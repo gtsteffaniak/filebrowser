@@ -103,7 +103,7 @@ func wopiSessionHandler(w http.ResponseWriter, r *http.Request, d *Context) (int
 	}
 
 	ext := strings.TrimPrefix(filepath.Ext(fi.Name), ".")
-	canWrite := perms.Modify && !settings.Config.Integrations.Wopi.ViewOnly
+	canWrite := perms.Modify && !settings.Config.Integrations.OnlyOffice.ViewOnly
 	urlsrc, ok := disc.editorURL(ext, canWrite)
 	if !ok {
 		return http.StatusUnsupportedMediaType, fmt.Errorf("the editor does not handle .%s files", ext)

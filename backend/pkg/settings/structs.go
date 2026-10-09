@@ -125,29 +125,34 @@ type IndexSqlConfig struct {
 
 type Integrations struct {
 	OnlyOffice OnlyOffice `json:"office" validate:"omitempty"`
-	Wopi       Wopi       `json:"wopi" validate:"omitempty"`
 	Media      Media      `json:"media" validate:"omitempty"`
 }
 
-// Wopi configures an editor that speaks WOPI, such as Collabora Online. Office
-// files whose extension the editor declares in its discovery document open in
-// it; the OnlyOffice integration keeps serving the others.
-type Wopi struct {
-	Url                  string `json:"url"`                                                             // public URL of the WOPI editor (e.g. Collabora Online), loaded by the browser in an iframe
-	InternalUrl          string `json:"internalUrl"`                                                     // optional address filebrowser uses to fetch the editor's discovery document, could be useful to bypass proxy
-	Secret               string `json:"secret"`                                                          // key signing WOPI access tokens; derived from the server auth key when empty
-	Product              string `json:"product" validate:"omitempty,oneof=collabora onlyoffice generic"` // editor flavour, detected from discovery when empty: collabora, onlyoffice or generic
-	TokenExpirationHours int    `json:"tokenExpirationHours"`                                            // lifetime of an editing session's access token, in hours (default: 10)
-	ViewOnly             bool   `json:"viewOnly"`                                                        // open every document read-only
-}
-
+// OnlyOffice configures the office editor documents open in. Despite the
+// type's name it is not tied to one product: product selects OnlyOffice Docs,
+// driven through its own document API, or Collabora Online, driven through
+// WOPI.
+//
 // onlyoffice secret is stored in the local.json file
 // docker exec <containerID> /var/www/onlyoffice/documentserver/npm/json -f /etc/onlyoffice/documentserver/local.json 'services.CoAuthoring.secret.session.string'
 type OnlyOffice struct {
-	Url         string `json:"url" validate:"required"`    // The URL to the OnlyOffice Document Server, needs to be accessible to the user.
-	InternalUrl string `json:"internalUrl"`                // An optional internal address that the filebrowser server can use to communicate with the OnlyOffice Document Server, could be useful to bypass proxy.
-	Secret      string `json:"secret" validate:"required"` // secret: authentication key for OnlyOffice integration
-	ViewOnly    bool   `json:"viewOnly"`                   // view only mode for OnlyOffice
+	Url                  string `json:"url" validate:"required"`                                 // The URL to the office editor (OnlyOffice Document Server or Collabora Online), needs to be accessible to the user.
+	InternalUrl          string `json:"internalUrl"`                                             // An optional internal address that the filebrowser server can use to communicate with the office editor, could be useful to bypass proxy.
+	Secret               string `json:"secret" validate:"required_unless=Product collabora"`     // secret: authentication key for OnlyOffice integration. For collabora, optional key signing editing sessions, derived from the server auth key when empty.
+	Product              string `json:"product" validate:"omitempty,oneof=onlyoffice collabora"` // office editor behind url: onlyoffice (default) or collabora
+	TokenExpirationHours int    `json:"tokenExpirationHours"`                                    // collabora only: lifetime of an editing session, in hours (default: 10)
+	ViewOnly             bool   `json:"viewOnly"`                                                // view only mode for the office editor
+}
+
+const (
+	OfficeProductOnlyOffice = "onlyoffice"
+	OfficeProductCollabora  = "collabora"
+)
+
+// IsCollabora reports whether documents open in Collabora Online (WOPI)
+// rather than in OnlyOffice Docs.
+func (o OnlyOffice) IsCollabora() bool {
+	return o.Url != "" && o.Product == OfficeProductCollabora
 }
 
 type Media struct {

@@ -200,39 +200,45 @@ func buildWopiEditorURL(urlsrc, wopiSrc, product, locale string) (string, error)
 var (
 	wopiDiscoveryCache  atomic.Pointer[wopiDiscovery]
 	wopiDiscoveryMu     sync.Mutex
-	wopiDiscoveryLoaded time.Time
 	wopiDiscoveryClient = &http.Client{Timeout: wopiDiscoveryTimeout}
+	// wopiDiscoveryRetry is how soon the refresher tries again while no
+	// discovery has ever loaded, e.g. when the editor starts after FileBrowser.
+	wopiDiscoveryRetry = 30 * time.Second
 )
 
-// wopiEnabled reports whether a WOPI editor is configured.
+// wopiEnabled reports whether documents open in a WOPI editor: integrations.office
+// with product collabora.
 func wopiEnabled() bool {
-	return settings.Config.Integrations.Wopi.Url != ""
+	return settings.Config.Integrations.OnlyOffice.IsCollabora()
 }
 
-// currentWopiDiscovery returns the cached discovery, refreshing it when it is
-// older than wopiDiscoveryRefresh. A failed refresh keeps the previous copy so
-// a transient editor outage does not break sessions already open.
+// currentWopiDiscovery returns the cached discovery, fetching it when none
+// has loaded yet. The background refresher keeps it current.
 func currentWopiDiscovery(ctx context.Context) (*wopiDiscovery, error) {
 	if !wopiEnabled() {
-		return nil, errors.New("wopi integration is not configured")
+		return nil, errors.New("office editor is not collabora")
 	}
-	cached := wopiDiscoveryCache.Load()
-	wopiDiscoveryMu.Lock()
-	defer wopiDiscoveryMu.Unlock()
-	if cached != nil && time.Since(wopiDiscoveryLoaded) < wopiDiscoveryRefresh {
+	if cached := wopiDiscoveryCache.Load(); cached != nil {
 		return cached, nil
 	}
+	return refreshWopiDiscovery(ctx)
+}
+
+// refreshWopiDiscovery fetches discovery and caches it. A failed refresh keeps
+// the previous copy, so a transient editor outage does not break sessions
+// already open; it only errors when there is nothing to fall back on.
+func refreshWopiDiscovery(ctx context.Context) (*wopiDiscovery, error) {
+	wopiDiscoveryMu.Lock()
+	defer wopiDiscoveryMu.Unlock()
 	fresh, err := fetchWopiDiscovery(ctx)
 	if err != nil {
-		if cached != nil {
+		if cached := wopiDiscoveryCache.Load(); cached != nil {
 			logger.Warningf("wopi: keeping previous discovery, refresh failed: %v", err)
-			wopiDiscoveryLoaded = time.Now()
 			return cached, nil
 		}
 		return nil, err
 	}
 	wopiDiscoveryCache.Store(fresh)
-	wopiDiscoveryLoaded = time.Now()
 	return fresh, nil
 }
 
@@ -246,7 +252,7 @@ func cachedWopiDiscovery() *wopiDiscovery {
 }
 
 func fetchWopiDiscovery(ctx context.Context) (*wopiDiscovery, error) {
-	cfg := settings.Config.Integrations.Wopi
+	cfg := settings.Config.Integrations.OnlyOffice
 	base := cfg.InternalUrl
 	if base == "" {
 		base = cfg.Url
@@ -299,15 +305,36 @@ func rewriteWopiDiscoveryOrigin(d *wopiDiscovery, publicURL string) {
 	}
 }
 
-// warmWopiDiscovery fetches discovery in the background at startup so the
-// first page load already knows which extensions the editor handles.
-func warmWopiDiscovery(ctx context.Context) {
+// runWopiDiscoveryRefresher loads discovery in the background until ctx ends:
+// every wopiDiscoveryRetry while it has never loaded (the editor may start
+// after FileBrowser), then every wopiDiscoveryRefresh. The SPA learns which
+// extensions open in the editor from this cache, so it must not depend on a
+// session being opened first.
+func runWopiDiscoveryRefresher(ctx context.Context) {
 	if !wopiEnabled() {
 		return
 	}
 	go func() {
-		if _, err := currentWopiDiscovery(ctx); err != nil {
-			logger.Warningf("wopi: could not load editor discovery: %v", err)
+		warned := false
+		for {
+			delay := wopiDiscoveryRefresh
+			if _, err := refreshWopiDiscovery(ctx); err != nil {
+				delay = wopiDiscoveryRetry
+				if !warned {
+					logger.Warningf("wopi: could not load editor discovery, retrying every %v: %v", wopiDiscoveryRetry, err)
+					warned = true
+				} else {
+					logger.Debugf("wopi: discovery still unavailable: %v", err)
+				}
+			} else if warned {
+				logger.Info("wopi: editor discovery loaded")
+				warned = false
+			}
+			select {
+			case <-ctx.Done():
+				return
+			case <-time.After(delay):
+			}
 		}
 	}()
 }
@@ -336,4 +363,18 @@ func wopiLocale(locale string) string {
 		return locale[:2] + "-" + locale[2:]
 	}
 	return locale
+}
+
+// officeProductForSPA names the editor office files open in: "collabora",
+// "onlyoffice", or "" when none is configured.
+func officeProductForSPA() string {
+	office := settings.Config.Integrations.OnlyOffice
+	switch {
+	case office.Url == "":
+		return ""
+	case office.IsCollabora():
+		return settings.OfficeProductCollabora
+	default:
+		return settings.OfficeProductOnlyOffice
+	}
 }

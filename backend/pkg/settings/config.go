@@ -122,9 +122,6 @@ func warnHttpProxyConfig() {
 		if u := Config.Integrations.OnlyOffice.Url; u != "" && strings.HasPrefix(strings.ToLower(u), "http://") {
 			logger.Warning("integrations.office.url uses http when it should be https for a production environment.")
 		}
-		if u := Config.Integrations.Wopi.Url; u != "" && strings.HasPrefix(strings.ToLower(u), "http://") {
-			logger.Warning("integrations.wopi.url uses http when it should be https for a production environment.")
-		}
 	}
 }
 
@@ -530,10 +527,9 @@ func setupUrls() {
 	}
 	Config.Integrations.OnlyOffice.Url = strings.Trim(Config.Integrations.OnlyOffice.Url, "/")
 	Config.Integrations.OnlyOffice.InternalUrl = strings.Trim(Config.Integrations.OnlyOffice.InternalUrl, "/")
-	Config.Integrations.Wopi.Url = strings.Trim(Config.Integrations.Wopi.Url, "/")
-	Config.Integrations.Wopi.InternalUrl = strings.Trim(Config.Integrations.Wopi.InternalUrl, "/")
-	if Config.Integrations.Wopi.TokenExpirationHours <= 0 {
-		Config.Integrations.Wopi.TokenExpirationHours = 10
+	Config.Integrations.OnlyOffice.Product = strings.ToLower(strings.TrimSpace(Config.Integrations.OnlyOffice.Product))
+	if Config.Integrations.OnlyOffice.TokenExpirationHours <= 0 {
+		Config.Integrations.OnlyOffice.TokenExpirationHours = 10
 	}
 }
 
@@ -823,11 +819,6 @@ func loadEnvConfig() {
 	if ok {
 		logger.Info("Using OnlyOffice secret from FILEBROWSER_ONLYOFFICE_SECRET environment variable")
 		Config.Integrations.OnlyOffice.Secret = officeSecret
-	}
-	wopiSecret, ok := os.LookupEnv("FILEBROWSER_WOPI_SECRET")
-	if ok {
-		logger.Info("Using WOPI secret from FILEBROWSER_WOPI_SECRET environment variable")
-		Config.Integrations.Wopi.Secret = wopiSecret
 	}
 
 	ffmpegPath, ok := os.LookupEnv("FILEBROWSER_FFMPEG_PATH")

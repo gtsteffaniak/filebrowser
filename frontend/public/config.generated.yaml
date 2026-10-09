@@ -272,17 +272,12 @@ shareDefaults:                            # optional defaults for new shares; ma
   banner: ""
 integrations:
   office:                                 #  validate:omitempty
-    url: ""                               # The URL to the OnlyOffice Document Server, needs to be accessible to the user.  validate:required
-    internalUrl: ""                       # An optional internal address that the filebrowser server can use to communicate with the OnlyOffice Document Server, could be useful to bypass proxy.
-    secret: ""                            # secret: authentication key for OnlyOffice integration  validate:required
-    viewOnly: false                       # view only mode for OnlyOffice
-  wopi:                                   #  validate:omitempty
-    url: ""                               # public URL of the WOPI editor (e.g. Collabora Online), loaded by the browser in an iframe
-    internalUrl: ""                       # optional address filebrowser uses to fetch the editor's discovery document, could be useful to bypass proxy
-    secret: ""                            # key signing WOPI access tokens; derived from the server auth key when empty
-    product: ""                           # editor flavour, detected from discovery when empty: collabora, onlyoffice or generic  validate:omitempty,oneof=collabora onlyoffice generic
-    tokenExpirationHours: 10              # lifetime of an editing session's access token, in hours (default: 10)
-    viewOnly: false                       # open every document read-only
+    url: ""                               # The URL to the office editor (OnlyOffice Document Server or Collabora Online), needs to be accessible to the user.  validate:required
+    internalUrl: ""                       # An optional internal address that the filebrowser server can use to communicate with the office editor, could be useful to bypass proxy.
+    secret: ""                            # secret: authentication key for OnlyOffice integration. For collabora, optional key signing editing sessions, derived from the server auth key when empty.  validate:required_unless=Product collabora
+    product: ""                           # office editor behind url: onlyoffice (default) or collabora  validate:omitempty,oneof=onlyoffice collabora
+    tokenExpirationHours: 10              # collabora only: lifetime of an editing session, in hours (default: 10)
+    viewOnly: false                       # view only mode for the office editor
   media:                                  #  validate:omitempty
     ffmpegPath: ""                        # path to ffmpeg directory with ffmpeg and ffprobe (eg. /usr/local/bin)
     convert:                              # config for ffmpeg conversion settings

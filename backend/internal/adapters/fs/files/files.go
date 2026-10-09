@@ -88,7 +88,7 @@ func processDirectoryMetadata(response *iteminfo.ExtendedFileInfo, idx *indexing
 // finalizeResponse handles final response adjustments (OnlyOffice ID, scope stripping).
 func finalizeResponse(response *iteminfo.ExtendedFileInfo, info *iteminfo.FileInfo, realPath string, user *users.User, userScope string) {
 	// Add OnlyOffice ID if applicable
-	if settings.Config.Integrations.OnlyOffice.Secret != "" && info.Type != "directory" && iteminfo.IsOnlyOffice(info.Name) {
+	if settings.Config.Integrations.OnlyOffice.Secret != "" && !settings.Config.Integrations.OnlyOffice.IsCollabora() && info.Type != "directory" && iteminfo.IsOnlyOffice(info.Name) {
 		response.OnlyOfficeId = generateOfficeId(realPath)
 	}
 

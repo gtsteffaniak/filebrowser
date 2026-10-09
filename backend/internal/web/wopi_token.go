@@ -39,10 +39,10 @@ func wopiFileID(source, realPath string) string {
 	return hex.EncodeToString(sum[:])
 }
 
-// wopiSigningKey returns integrations.wopi.secret, or a key derived from the
+// wopiSigningKey returns integrations.office.secret, or a key derived from the
 // server's auth key so tokens survive a restart without any extra setting.
 func wopiSigningKey() ([]byte, error) {
-	if secret := settings.Config.Integrations.Wopi.Secret; secret != "" {
+	if secret := settings.Config.Integrations.OnlyOffice.Secret; secret != "" {
 		return []byte(secret), nil
 	}
 	authKey, err := auth.JWTSigningKeyBytes()
@@ -55,7 +55,7 @@ func wopiSigningKey() ([]byte, error) {
 }
 
 func wopiTokenTTL() time.Duration {
-	hours := settings.Config.Integrations.Wopi.TokenExpirationHours
+	hours := settings.Config.Integrations.OnlyOffice.TokenExpirationHours
 	if hours <= 0 {
 		hours = 10
 	}

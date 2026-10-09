@@ -2,6 +2,7 @@ package web
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -10,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -178,14 +180,85 @@ func TestWopiLocale(t *testing.T) {
 
 func setWopiTestConfig(t *testing.T) {
 	t.Helper()
-	orig := settings.Config.Integrations.Wopi
+	orig := settings.Config.Integrations.OnlyOffice
 	origKey := settings.Config.Auth.Key
 	t.Cleanup(func() {
-		settings.Config.Integrations.Wopi = orig
+		settings.Config.Integrations.OnlyOffice = orig
 		settings.Config.Auth.Key = origKey
 	})
 	settings.Config.Auth.Key = "test-signing-key-for-length-check"
-	settings.Config.Integrations.Wopi = settings.Wopi{Url: "https://office.example", TokenExpirationHours: 10}
+	settings.Config.Integrations.OnlyOffice = settings.OnlyOffice{Url: "https://office.example", Product: settings.OfficeProductCollabora, TokenExpirationHours: 10}
+}
+
+func TestOfficeProductSelection(t *testing.T) {
+	orig := settings.Config.Integrations.OnlyOffice
+	t.Cleanup(func() { settings.Config.Integrations.OnlyOffice = orig })
+
+	cases := []struct {
+		office    settings.OnlyOffice
+		product   string
+		collabora bool
+	}{
+		{settings.OnlyOffice{}, "", false},
+		{settings.OnlyOffice{Product: settings.OfficeProductCollabora}, "", false},
+		{settings.OnlyOffice{Url: "https://oo.example", Secret: "s"}, "onlyoffice", false},
+		{settings.OnlyOffice{Url: "https://oo.example", Secret: "s", Product: "onlyoffice"}, "onlyoffice", false},
+		{settings.OnlyOffice{Url: "https://cool.example", Product: "collabora"}, "collabora", true},
+	}
+	for _, c := range cases {
+		settings.Config.Integrations.OnlyOffice = c.office
+		if got := officeProductForSPA(); got != c.product {
+			t.Errorf("%+v: officeProductForSPA = %q, want %q", c.office, got, c.product)
+		}
+		if wopiEnabled() != c.collabora {
+			t.Errorf("%+v: wopiEnabled = %v, want %v", c.office, wopiEnabled(), c.collabora)
+		}
+		if origins := onlyOfficeScriptSrcOrigins(); c.collabora && len(origins) != 0 {
+			t.Errorf("collabora must not add script-src origins, got %v", origins)
+		}
+	}
+}
+
+func TestWopiDiscoveryRefresherRetriesUntilEditorIsUp(t *testing.T) {
+	setWopiTestConfig(t)
+	var up atomic.Bool
+	editor := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if !up.Load() || r.URL.Path != "/hosting/discovery" {
+			http.Error(w, "starting", http.StatusServiceUnavailable)
+			return
+		}
+		_, _ = io.WriteString(w, collaboraDiscovery)
+	}))
+	t.Cleanup(editor.Close)
+	settings.Config.Integrations.OnlyOffice.Url = editor.URL
+
+	origRetry := wopiDiscoveryRetry
+	wopiDiscoveryCache.Store(nil)
+	t.Cleanup(func() {
+		wopiDiscoveryRetry = origRetry
+		wopiDiscoveryCache.Store(nil)
+	})
+	wopiDiscoveryRetry = 20 * time.Millisecond
+
+	ctx, cancel := context.WithCancel(context.Background())
+	t.Cleanup(cancel)
+	runWopiDiscoveryRefresher(ctx)
+
+	time.Sleep(100 * time.Millisecond)
+	if len(wopiExtensionsForSPA()) != 0 {
+		t.Fatal("no extensions are expected while the editor is down")
+	}
+	up.Store(true)
+	deadline := time.Now().Add(2 * time.Second)
+	for len(wopiExtensionsForSPA()) == 0 {
+		if time.Now().After(deadline) {
+			t.Fatal("discovery was never loaded after the editor came up")
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+	if wopiExtensionsForSPA()["docx"] != wopiActionEdit {
+		t.Errorf("extensions = %v", wopiExtensionsForSPA())
+	}
 }
 
 func TestWopiTokenRoundTrip(t *testing.T) {
@@ -213,7 +286,7 @@ func TestWopiTokenRoundTrip(t *testing.T) {
 	}
 
 	// Rotating the secret invalidates outstanding tokens.
-	settings.Config.Integrations.Wopi.Secret = "explicit-secret"
+	settings.Config.Integrations.OnlyOffice.Secret = "explicit-secret"
 	if _, err := parseWopiToken(raw, "fid1"); err == nil {
 		t.Error("token signed with the derived key must fail under an explicit secret")
 	}

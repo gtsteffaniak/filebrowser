@@ -40,8 +40,8 @@ import { getters } from './getters.ts';
 describe('getters.isWopiFile', () => {
   beforeEach(() => {
     stateMock.user = { username: 'alice', disableOnlyOfficeExt: '' };
-    globalVarsMock.wopiUrl = 'https://office.example';
-    globalVarsMock.wopiExtensions = { docx: 'edit', xlsx: 'edit', sxw: 'view' };
+    globalVarsMock.officeProduct = 'collabora';
+    globalVarsMock.officeExtensions = { docx: 'edit', xlsx: 'edit', sxw: 'view' };
   });
 
   it('routes extensions the editor declares, whatever their case', () => {
@@ -55,8 +55,10 @@ describe('getters.isWopiFile', () => {
     expect(getters.isWopiFile('README')).toBe(false);
   });
 
-  it('is off when no editor is configured', () => {
-    globalVarsMock.wopiUrl = '';
+  it('is off unless the office editor is Collabora', () => {
+    globalVarsMock.officeProduct = '';
+    expect(getters.isWopiFile('report.docx')).toBe(false);
+    globalVarsMock.officeProduct = 'onlyoffice';
     expect(getters.isWopiFile('report.docx')).toBe(false);
   });
 

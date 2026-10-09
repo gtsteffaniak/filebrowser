@@ -6142,9 +6142,6 @@ const docTemplate = `{
                 },
                 "office": {
                     "$ref": "#/definitions/settings.OnlyOffice"
-                },
-                "wopi": {
-                    "$ref": "#/definitions/settings.Wopi"
                 }
             }
         },
@@ -6408,24 +6405,35 @@ const docTemplate = `{
         "settings.OnlyOffice": {
             "type": "object",
             "required": [
-                "secret",
                 "url"
             ],
             "properties": {
                 "internalUrl": {
-                    "description": "An optional internal address that the filebrowser server can use to communicate with the OnlyOffice Document Server, could be useful to bypass proxy.",
+                    "description": "An optional internal address that the filebrowser server can use to communicate with the office editor, could be useful to bypass proxy.",
                     "type": "string"
+                },
+                "product": {
+                    "description": "office editor behind url: onlyoffice (default) or collabora",
+                    "type": "string",
+                    "enum": [
+                        "onlyoffice",
+                        "collabora"
+                    ]
                 },
                 "secret": {
-                    "description": "secret: authentication key for OnlyOffice integration",
+                    "description": "secret: authentication key for OnlyOffice integration. For collabora, optional key signing editing sessions, derived from the server auth key when empty.",
                     "type": "string"
                 },
+                "tokenExpirationHours": {
+                    "description": "collabora only: lifetime of an editing session, in hours (default: 10)",
+                    "type": "integer"
+                },
                 "url": {
-                    "description": "The URL to the OnlyOffice Document Server, needs to be accessible to the user.",
+                    "description": "The URL to the office editor (OnlyOffice Document Server or Collabora Online), needs to be accessible to the user.",
                     "type": "string"
                 },
                 "viewOnly": {
-                    "description": "view only mode for OnlyOffice",
+                    "description": "view only mode for the office editor",
                     "type": "boolean"
                 }
             }
@@ -7183,40 +7191,6 @@ const docTemplate = `{
                 "themeColor": {
                     "description": "theme color to use: eg. #ff0000, or var(--red), var(--purple), etc",
                     "type": "string"
-                }
-            }
-        },
-        "settings.Wopi": {
-            "type": "object",
-            "properties": {
-                "internalUrl": {
-                    "description": "optional address filebrowser uses to fetch the editor's discovery document, could be useful to bypass proxy",
-                    "type": "string"
-                },
-                "product": {
-                    "description": "editor flavour, detected from discovery when empty: collabora, onlyoffice or generic",
-                    "type": "string",
-                    "enum": [
-                        "collabora",
-                        "onlyoffice",
-                        "generic"
-                    ]
-                },
-                "secret": {
-                    "description": "key signing WOPI access tokens; derived from the server auth key when empty",
-                    "type": "string"
-                },
-                "tokenExpirationHours": {
-                    "description": "lifetime of an editing session's access token, in hours (default: 10)",
-                    "type": "integer"
-                },
-                "url": {
-                    "description": "public URL of the WOPI editor (e.g. Collabora Online), loaded by the browser in an iframe",
-                    "type": "string"
-                },
-                "viewOnly": {
-                    "description": "open every document read-only",
-                    "type": "boolean"
                 }
             }
         },

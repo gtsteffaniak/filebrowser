@@ -7,7 +7,7 @@
     </form>
     <iframe v-if="session" :name="frameName" :title="req.name" class="wopi-frame"
       allow="clipboard-read *; clipboard-write *; fullscreen" allowfullscreen></iframe>
-    <p v-if="!loaded" class="wopi-loading">{{ $t("general.loading", { suffix: "..." }) }}</p>
+    <p v-if="!loaded && !failed" class="wopi-loading">{{ $t("general.loading", { suffix: "..." }) }}</p>
   </div>
   <FloatingActionButton
     v-if="showCloseButton"
@@ -25,7 +25,7 @@
 </template>
 
 <script>
-import router from "@/router";
+import { router } from "@/router";
 import { state, mutations } from "@/store";
 import { removeLastDir } from "@/utils/url";
 import { wopiApi } from "@/api";
@@ -44,6 +44,7 @@ export default {
     return {
       session: null,
       loaded: false,
+      failed: false,
       floatIn: false,
       path: "",
       frameName: `wopi-frame-${Math.random().toString(36).slice(2)}`,
@@ -56,9 +57,10 @@ export default {
     editorOrigin() {
       return this.session ? new URL(this.session.actionUrl).origin : "";
     },
-    // Collabora draws its own close button (closebutton=1) and posts UI_Close.
+    // Collabora draws its own close button (closebutton=1) and posts UI_Close;
+    // without a session there is no editor, and this button is the way out.
     showCloseButton() {
-      return this.session !== null && this.session.product !== "collabora";
+      return this.failed || (this.session !== null && this.session.product !== "collabora");
     },
   },
   async mounted() {
@@ -73,6 +75,8 @@ export default {
       }, 100);
     } catch (error) {
       console.error("Error opening the WOPI editor:", error);
+      this.failed = true;
+      this.floatIn = true;
     }
   },
   beforeUnmount() {

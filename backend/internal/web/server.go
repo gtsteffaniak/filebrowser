@@ -82,7 +82,7 @@ func StartHttp(ctx context.Context, deps Deps, shutdownComplete chan struct{}) {
 	}
 
 	initRuntime(deps, fs)
-	warmWopiDiscovery(ctx)
+	runWopiDiscoveryRefresher(ctx)
 
 	router := http.NewServeMux()
 	api := http.NewServeMux()

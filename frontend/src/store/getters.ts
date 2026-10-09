@@ -533,16 +533,16 @@ export const getters = {
     }
     return false
   },
-  // isWopiFile reports whether a file opens in the WOPI editor: one is
-  // configured, its discovery declares the extension, and the user has not
-  // disabled office viewing for it.
+  // isWopiFile reports whether a file opens in the WOPI editor: the office
+  // editor is Collabora, its discovery declares the extension, and the user
+  // has not disabled office viewing for it.
   isWopiFile: (filename: string) => {
-    if (!globalVars.wopiUrl) return false
+    if (globalVars.officeProduct !== 'collabora') return false
     const name = filename || ''
     const dot = name.lastIndexOf('.')
     if (dot === -1) return false
     const ext = name.slice(dot + 1).toLowerCase()
-    const extensions: Record<string, string> = globalVars.wopiExtensions || {}
+    const extensions: Record<string, string> = globalVars.officeExtensions || {}
     if (!(ext in extensions)) return false
     return !getters.officeViewingDisabled(name)
   },
