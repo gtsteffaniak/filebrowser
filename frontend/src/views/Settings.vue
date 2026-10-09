@@ -96,6 +96,9 @@ export default {
     },
   },
   watch: {
+    "user.showAdvancedProfile"(enabled) {
+      if (enabled && state.activeSettingsView === 'profile-main') this.initializeActiveSettingFromHash();
+    },
     // Watch for route hash changes
     "$route.hash"() {
       this.initializeActiveSettingFromHash();
