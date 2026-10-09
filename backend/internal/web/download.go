@@ -263,7 +263,6 @@ func RawFilesHandler(w http.ResponseWriter, r *http.Request, d *Context, source 
 	}
 
 	firstFilePath := fileList[0]
-	displayFileList := ResolveDisplayFileList(d, source, fileList)
 	var err error
 	var status int
 	var userscope string
@@ -306,6 +305,10 @@ func RawFilesHandler(w http.ResponseWriter, r *http.Request, d *Context, source 
 		firstFilePath = fileList[0]
 		fileName = filepath.Base(firstFilePath)
 	}
+
+	// Build the display list from the filtered fileList so denied paths are never
+	// recorded in the download activity log.
+	displayFileList := ResolveDisplayFileList(d, source, fileList)
 
 	var isDir bool
 	if d.Share.Hash != "" {

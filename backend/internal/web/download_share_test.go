@@ -11,7 +11,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/gtsteffaniak/filebrowser/backend/internal/activity"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/app"
+	activitydb "github.com/gtsteffaniak/filebrowser/backend/internal/database/activity"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/share"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
@@ -492,5 +494,89 @@ func TestServeSingleFile_MissingScopedPathReturns404(t *testing.T) {
 	}
 	if status != http.StatusNotFound {
 		t.Fatalf("expected 404, got status=%d err=%v", status, err)
+	}
+}
+
+// TestRawFilesHandler_ActivityLogExcludesDeniedPaths verifies that when a download
+// mixes allowed and denied paths, only the allowed paths appear in the recorded
+// activity entry (the denied path name must not be revealed via the audit log).
+func TestRawFilesHandler_ActivityLogExcludesDeniedPaths(t *testing.T) {
+	sourceRoot, sourceName, _ := setupShareArchiveDownloadTest(t)
+
+	// Create a directory that owner is denied (DenyByDefault, no allow rule).
+	deniedDir := filepath.Join(sourceRoot, "denied_dir")
+	if err := os.MkdirAll(deniedDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(deniedDir, "secret.txt"), []byte("secret"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	ownerUser := users.User{
+		ID: 1,
+		FrontendUser: users.FrontendUser{Username: "owner"},
+		BackendScopes: []users.BackendScope{{
+			Path:  sourceRoot,
+			Scope: "/",
+			Permissions: users.SourceFilePermissions{
+				View: true, Download: true, Modify: true, Create: true, Delete: true,
+			},
+		}},
+	}
+	users.SyncBackendSourcePermissionsMap(&ownerUser)
+
+	d := &Context{User: &ownerUser}
+	req := httptest.NewRequest(http.MethodGet, "/api/resources/download?source="+sourceName+"&file=/shared&file=/denied_dir&algo=zip", nil)
+	rec := httptest.NewRecorder()
+
+	status, err := RawFilesHandler(rec, req, d, sourceName, []string{"/shared", "/denied_dir"})
+	if err != nil {
+		t.Fatalf("mixed paths: expected no error, got status=%d err=%v", status, err)
+	}
+	if status != http.StatusOK && status != 0 {
+		t.Fatalf("mixed paths: expected 200, got status=%d", status)
+	}
+
+	// Flush the activity buffer so entries are persisted to the SQLite store.
+	activity.FlushNow()
+
+	entries, _, qErr := state.ListActivity(activitydb.QueryFilter{
+		EventTypes: []activitydb.EventType{activitydb.EventDownload},
+		Page:       1,
+		Limit:      20,
+	})
+	if qErr != nil {
+		t.Fatalf("ListActivity: %v", qErr)
+	}
+	if len(entries) == 0 {
+		t.Fatal("expected at least one download activity entry")
+	}
+
+	// Collect all recorded paths across all detail entries for this test's download.
+	var recordedPaths []string
+	for _, e := range entries {
+		recordedPaths = append(recordedPaths, e.Details.Paths...)
+		if e.Details.Path != "" {
+			recordedPaths = append(recordedPaths, e.Details.Path)
+		}
+	}
+
+	// The allowed path (/shared) must appear in the activity log.
+	allowedFound := false
+	for _, p := range recordedPaths {
+		if strings.Contains(p, "shared") {
+			allowedFound = true
+			break
+		}
+	}
+	if !allowedFound {
+		t.Errorf("activity log %v should contain the allowed path 'shared'", recordedPaths)
+	}
+
+	// The denied path name must NOT appear in the activity log.
+	for _, p := range recordedPaths {
+		if strings.Contains(p, "denied_dir") {
+			t.Errorf("activity log recorded denied path %q — denied paths must not be revealed", p)
+		}
 	}
 }
