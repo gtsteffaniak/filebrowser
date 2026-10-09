@@ -284,6 +284,11 @@ func RawFilesHandler(w http.ResponseWriter, r *http.Request, d *Context, source 
 		return http.StatusInternalServerError, fmt.Errorf("source %s is not available", source)
 	}
 
+	// Remember how many paths the caller originally requested. After the access filter
+	// below shrinks the list, this count decides whether to serve raw vs. archive:
+	// a multi-path request must always yield an archive even if only one path survives.
+	originalCount := len(fileList)
+
 	// For non-share downloads, silently filter out paths the user is denied access to.
 	// Users should only download what they can see in the UI; a denied path must not
 	// block the rest of the selection. If nothing remains after filtering, return 404
@@ -327,7 +332,7 @@ func RawFilesHandler(w http.ResponseWriter, r *http.Request, d *Context, source 
 		return s, err
 	}
 
-	if len(fileList) == 1 && !isDir {
+	if len(fileList) == 1 && !isDir && originalCount == 1 {
 		forceInline := false
 		forceInline, err = resolveDownloadInlineDisposition(fileName, r.URL.Query().Get("inline") == "true")
 		if err != nil {
