@@ -187,8 +187,8 @@ userDefaults:                             # optional signup/CLI defaults; per-us
     singleClick: false                    # open directory on single click, also enables middle click to open in new tab
     hideFileExt: ""                       # space separated list of file extensions to hide in UI
     showCopyPath: false                   # show copy path button in the context menu
-    hideTypeColumn: false                 # hide the Type column in list and compact views
-    hideDateAddedColumn: false            # hide the Date added column in list and compact views
+    showTypeColumn: false                 # show the Type column in list and compact views
+    showCreationDateColumn: false         # show the Creation date column in list and compact views
     deleteAfterArchive: true              # delete source files after successful creation/extraction of archives
     viewMode: "normal"                    # view mode to use: eg. normal, list, grid, or compact
     gallerySize: 3                        # 0-9 - the size of the gallery thumbnails

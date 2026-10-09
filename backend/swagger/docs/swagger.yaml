@@ -1183,15 +1183,9 @@ definitions:
       gallerySize:
         description: 0-9 - the size of the gallery thumbnails
         type: integer
-      hideDateAddedColumn:
-        description: hide the Date added column in list and compact views
-        type: boolean
       hideFileExt:
         description: space separated list of file extensions to hide in UI
         type: string
-      hideTypeColumn:
-        description: hide the Type column in list and compact views
-        type: boolean
       newFileTemplate:
         description: list of custom filenames that will be used as template for new
           files
@@ -1207,12 +1201,18 @@ definitions:
       showCopyPath:
         description: show copy path button in the context menu
         type: boolean
+      showCreationDateColumn:
+        description: show the Creation date column in list and compact views
+        type: boolean
       showHidden:
         description: show hidden files in the UI. On windows this includes files starting
           with a dot and windows hidden files
         type: boolean
       showSelectMultiple:
         description: show select multiple files on desktop
+        type: boolean
+      showTypeColumn:
+        description: show the Type column in list and compact views
         type: boolean
       singleClick:
         description: open directory on single click, also enables middle click to
@@ -1761,9 +1761,6 @@ definitions:
       gallerySize:
         description: 0-9 - the size of the gallery thumbnails
         type: integer
-      hideDateAddedColumn:
-        description: hide the Date added column in list and compact views
-        type: boolean
       hideFileExt:
         description: space separated list of file extensions to hide in UI and API
         type: string
@@ -1773,9 +1770,6 @@ definitions:
         type: boolean
       hideSidebarFileActions:
         description: hide the file actions in the sidebar
-        type: boolean
-      hideTypeColumn:
-        description: hide the Type column in list and compact views
         type: boolean
       locale:
         description: 'language to use: eg. de, en, or fr'
@@ -1827,6 +1821,9 @@ definitions:
       showCopyPath:
         description: show copy path action in the context menu
         type: boolean
+      showCreationDateColumn:
+        description: show the Creation date column in list and compact views
+        type: boolean
       showFirstLogin:
         type: boolean
       showHidden:
@@ -1839,6 +1836,9 @@ definitions:
       showToolsInSidebar:
         description: 'when false, sidebar hides links with category "tool" (default:
           true)'
+        type: boolean
+      showTypeColumn:
+        description: show the Type column in list and compact views
         type: boolean
       sidebarLinks:
         description: customizable sidebar links
@@ -2093,9 +2093,6 @@ definitions:
       gallerySize:
         description: 0-9 - the size of the gallery thumbnails
         type: integer
-      hideDateAddedColumn:
-        description: hide the Date added column in list and compact views
-        type: boolean
       hideFileExt:
         description: space separated list of file extensions to hide in UI and API
         type: string
@@ -2105,9 +2102,6 @@ definitions:
         type: boolean
       hideSidebarFileActions:
         description: hide the file actions in the sidebar
-        type: boolean
-      hideTypeColumn:
-        description: hide the Type column in list and compact views
         type: boolean
       id:
         type: integer
@@ -2163,6 +2157,9 @@ definitions:
       showCopyPath:
         description: show copy path action in the context menu
         type: boolean
+      showCreationDateColumn:
+        description: show the Creation date column in list and compact views
+        type: boolean
       showFirstLogin:
         type: boolean
       showHidden:
@@ -2175,6 +2172,9 @@ definitions:
       showToolsInSidebar:
         description: 'when false, sidebar hides links with category "tool" (default:
           true)'
+        type: boolean
+      showTypeColumn:
+        description: show the Type column in list and compact views
         type: boolean
       sidebarLinks:
         description: customizable sidebar links

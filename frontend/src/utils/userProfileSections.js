@@ -47,8 +47,8 @@ export function sectionsFromFlatUser(user) {
       singleClick: !!u.singleClick,
       hideFileExt: u.hideFileExt || "",
       showCopyPath: !!u.showCopyPath,
-      hideTypeColumn: !!u.hideTypeColumn,
-      hideDateAddedColumn: !!u.hideDateAddedColumn,
+      showTypeColumn: !!u.showTypeColumn,
+      showCreationDateColumn: !!u.showCreationDateColumn,
       deleteAfterArchive: !!u.deleteAfterArchive,
       viewMode: u.viewMode,
       gallerySize: u.gallerySize,
@@ -130,8 +130,8 @@ export function applySectionsToFlatUser(user, sections) {
   user.singleClick = !!listing.singleClick;
   user.hideFileExt = listing.hideFileExt || "";
   user.showCopyPath = !!listing.showCopyPath;
-  user.hideTypeColumn = !!listing.hideTypeColumn;
-  user.hideDateAddedColumn = !!listing.hideDateAddedColumn;
+  user.showTypeColumn = !!listing.showTypeColumn;
+  user.showCreationDateColumn = !!listing.showCreationDateColumn;
   user.deleteAfterArchive = !!listing.deleteAfterArchive;
   if (listing.viewMode !== undefined) {
     user.viewMode = listing.viewMode;
@@ -216,8 +216,8 @@ const FLAT_PROFILE_FIELD_ENFORCED_PATHS = {
   disableSearchOptions: ["search", "disableOptions"],
   hideSidebarFileActions: ["sidebar", "hideFileActions"],
   showCopyPath: ["listing", "showCopyPath"],
-  hideTypeColumn: ["listing", "hideTypeColumn"],
-  hideDateAddedColumn: ["listing", "hideDateAddedColumn"],
+  showTypeColumn: ["listing", "showTypeColumn"],
+  showCreationDateColumn: ["listing", "showCreationDateColumn"],
   hideFilesInTree: ["sidebar", "hideFiles"],
   editorQuickSave: ["fileViewer", "editorQuickSave"],
   showSelectMultiple: ["listing", "showSelectMultiple"],

@@ -211,8 +211,8 @@ export interface UserObject {
   debugOffice: boolean;
   preferEditorForMarkdown: boolean;
   showCopyPath?: boolean;
-  hideTypeColumn?: boolean;
-  hideDateAddedColumn?: boolean;
+  showTypeColumn?: boolean;
+  showCreationDateColumn?: boolean;
   hideFileExt?: string;
   newFileTemplate?: string[];
   themeColor?: string;

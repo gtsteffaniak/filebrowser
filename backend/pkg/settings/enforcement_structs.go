@@ -31,8 +31,8 @@ type UserDefaultsListingEnforcement struct {
 	SingleClick             bool `json:"singleClick,omitempty"`
 	HideFileExt             bool `json:"hideFileExt,omitempty"`
 	ShowCopyPath            bool `json:"showCopyPath,omitempty"`
-	HideTypeColumn          bool `json:"hideTypeColumn,omitempty"`
-	HideDateAddedColumn     bool `json:"hideDateAddedColumn,omitempty"`
+	ShowTypeColumn          bool `json:"showTypeColumn,omitempty"`
+	ShowCreationDateColumn  bool `json:"showCreationDateColumn,omitempty"`
 	DeleteAfterArchive      bool `json:"deleteAfterArchive,omitempty"`
 	ViewMode                bool `json:"viewMode,omitempty"`
 	GallerySize             bool `json:"gallerySize,omitempty"`
