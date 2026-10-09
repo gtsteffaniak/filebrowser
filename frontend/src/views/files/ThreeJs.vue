@@ -37,7 +37,7 @@ import {
   Box3,
   Vector3,
   AnimationMixer,
-  Clock,
+  Timer,
   Mesh,
   Points,
   MeshStandardMaterial,
@@ -124,7 +124,7 @@ export default {
       animations: [],
       isAnimationPlaying: false,
       isAutoRotating: false,
-      clock: null,
+      timer: null,
       observer: null,
       loadTimer: null,
       hasInitialized: false,
@@ -260,7 +260,7 @@ export default {
       // Create scene
       this.scene = markRaw(new Scene());
       this.updateBackgroundColor();
-      this.clock = markRaw(new Clock());
+      this.timer = markRaw(new Timer());
 
       const container = this.$refs.container;
       const width = container.clientWidth;
@@ -280,9 +280,11 @@ export default {
       };
 
       this.renderer = markRaw(new WebGLRenderer(rendererConfig));
-      this.renderer.setSize(width, height);
       const pixelRatioCap = this.isThumbnail ? 1 : 2;
-      this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, pixelRatioCap));
+      const pixelRatio = Math.min(window.devicePixelRatio, pixelRatioCap);
+      this.renderer.setSize(Math.floor(width * pixelRatio), Math.floor(height * pixelRatio), false);
+      this.renderer.domElement.style.width = "100%";
+      this.renderer.domElement.style.height = "100%";
       container.appendChild(this.renderer.domElement);
 
       // Lights - Simplify lighting for thumbnails
@@ -460,7 +462,9 @@ export default {
 
       const modelDir = removeLastDir(this.fbdata.path);
       await this.fetchDirectoryTokens(modelDir);
-      await this.fetchDirectoryTokens(`${modelDir}/textures`);
+      if (this.fbdata.parentDirItems?.some((item) => item.name === "textures" && item.type === "directory")) {
+        await this.fetchDirectoryTokens(`${modelDir}/textures`);
+      }
     },
 
     resolveViewTokenForPath(filePath) {
@@ -583,6 +587,20 @@ export default {
         } else if (extension === 'obj') {
           this.loadOBJ(loader, loadingManager);
         } else {
+          if (extension === 'dae') {
+            const parse = loader.parse.bind(loader);
+            loader.parse = (...args) => {
+              const warn = console.warn;
+              console.warn = (msg, ...rest) => {
+                if (!String(msg).includes('Z-UP coordinate system')) warn(msg, ...rest);
+              };
+              try {
+                return parse(...args);
+              } finally {
+                console.warn = warn;
+              }
+            };
+          }
           // Standard load for all other formats including FBX
           loader.load(
             this.modelUrl,
@@ -820,8 +838,9 @@ export default {
           }
       }
 
+      this.timer.update();
       if (this.animationMixer && this.isAnimationPlaying) {
-        this.animationMixer.update(this.clock.getDelta());
+        this.animationMixer.update(this.timer.getDelta());
       }
       if (this.controls) this.controls.update();
       if (this.renderer && this.scene && this.camera) {
@@ -838,7 +857,8 @@ export default {
         this.camera.updateProjectionMatrix();
       }
       if (this.renderer) {
-        this.renderer.setSize(w, h);
+        const pixelRatio = Math.min(window.devicePixelRatio, this.isThumbnail ? 1 : 2);
+        this.renderer.setSize(Math.floor(w * pixelRatio), Math.floor(h * pixelRatio), false);
       }
     },
 
