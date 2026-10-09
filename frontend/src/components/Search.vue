@@ -732,6 +732,8 @@ export default {
         path: path,
         size: s.size,
         type: s.type,
+        modified: s.modified,
+        created: s.created,
         source: source,
       };
       mutations.resetSelected();

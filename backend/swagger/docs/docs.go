@@ -5387,6 +5387,9 @@ const docTemplate = `{
         "indexing.SearchResult": {
             "type": "object",
             "properties": {
+                "created": {
+                    "type": "string"
+                },
                 "hasPreview": {
                     "type": "boolean"
                 },

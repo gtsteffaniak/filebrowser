@@ -12,6 +12,8 @@ definitions:
     type: object
   indexing.SearchResult:
     properties:
+      created:
+        type: string
       hasPreview:
         type: boolean
       modified:
