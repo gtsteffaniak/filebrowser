@@ -1,6 +1,7 @@
 import { toStandardLocale } from "../i18n/index.ts";
 
 type DateInput = string | number | Date;
+type TimestampUnit = "milliseconds" | "seconds";
 
 const relativeFormatters = new Map<string, Intl.RelativeTimeFormat>();
 const dateTimeFormatters = new Map<string, Intl.DateTimeFormat>();
@@ -20,8 +21,11 @@ function cachedFormatter<T, O extends object>(
   return formatter;
 }
 
-export function fromNow(date: DateInput, locale: string = 'en-us'): string {
-  const normalized = normalizeDate(date);
+export function fromNow(date: DateInput, locale: string = 'en-us', { unit }: { unit?: TimestampUnit } = {}): string {
+  const normalized = normalizeDate(date, unit);
+  if (Number.isNaN(normalized.getTime())) {
+    return 'Invalid Date';
+  }
   const now = new Date();
   const diffInSeconds = Math.floor((now.getTime() - normalized.getTime()) / 1000);
   const intervals: { label: Intl.RelativeTimeFormatUnit; seconds: number }[] = [
@@ -48,10 +52,14 @@ export function fromNow(date: DateInput, locale: string = 'en-us'): string {
   return 'just now';
 }
 
-export function formatTimestamp(date: DateInput, locale: string = 'en-us', { seconds = true }: { seconds?: boolean } = {}): string {
-  const normalized = normalizeDate(date);
+export function formatTimestamp(
+  date: DateInput,
+  locale: string = 'en-us',
+  { seconds = true, unit }: { seconds?: boolean; unit?: TimestampUnit } = {},
+): string {
+  const normalized = normalizeDate(date, unit);
 
-  if (!(normalized instanceof Date) || Number.isNaN(normalized.getTime())) {
+  if (Number.isNaN(normalized.getTime())) {
     console.error('Invalid date object:', normalized);
     return 'Invalid Date';
   }
@@ -75,23 +83,18 @@ export function formatTimestamp(date: DateInput, locale: string = 'en-us', { sec
   }
 }
 
-function normalizeDate(date: DateInput): Date {
-  let normalizedDate: Date;
-
+// Always returns a date and if it's invalid, show Invalid Date instead of throwing
+function normalizeDate(date: DateInput, unit: TimestampUnit = "milliseconds"): Date {
   if (typeof date === 'string') {
-    // Parse the date string
-    normalizedDate = new Date(date);
-  } else if (typeof date === 'number') {
-    // Convert seconds to milliseconds if necessary
-    normalizedDate = new Date(date * (date < 1e12 ? 1000 : 1));
-  } else if (date instanceof Date && !Number.isNaN(date.getTime())) {
-    // It's already a valid Date object
-    normalizedDate = date;
-  } else {
-    throw new Error("Invalid date provided");
+    return new Date(date);
   }
-
-  return normalizedDate;
+  if (typeof date === 'number') {
+    return new Date(unit === "seconds" ? date * 1000 : date);
+  }
+  if (date instanceof Date) {
+    return date;
+  }
+  return new Date(Number.NaN);
 }
 
 /**
@@ -111,7 +114,10 @@ export function utcStartOfDaySecondsFromDateInput(isoDate: unknown): number | nu
   if (!Number.isFinite(y) || !Number.isFinite(m) || !Number.isFinite(d)) {
     return null;
   }
-  return Math.floor(Date.UTC(y, m - 1, d) / 1000);
+  const utc = new Date(0);
+  utc.setUTCFullYear(y, m - 1, d);
+  const time = utc.getTime();
+  return Number.isNaN(time) ? null : Math.floor(time / 1000);
 }
 
 export default {
