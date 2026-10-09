@@ -2,6 +2,121 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v2.0.0-stable
+
+This version represents the most significant change to date. It **requires** both a database migration and config structural changes. See the [migration guide](https://filebrowserquantum.com/en/docs/getting-started/v2/migration/) for step-by-step upgrade instructions, [About v2.0.0](https://filebrowserquantum.com/en/docs/getting-started/v2/about/) for a full summary.
+
+ **Breaking Changes**:
+ - Removed: `GET /api/raw` and `GET /public/api/raw` download routes — use `/api/resources/download` instead.
+ - Removed: `/share/…` URL redirect to `/public/share/…` — use `/public/share/…` directly.
+ - Removed: singular `source` search api param (use `sources`), bare `scope` paths without `sourceName:` prefix, and `glob` / `useGlob` aliases (use `useWildcard`).
+ - Removed `config.conditionals`, source-level `indexingIntervalMinutes` (indexing always uses adaptive scheduling), and deprecated rule fields `fileNames` / `folderNames` / top-level `hidden` — use `config.rules` with `fileName`, `folderName`, and `ignoreHidden` on rules. See [Exclusion rules](https://filebrowserquantum.com/en/docs/user-guides/general-configuration/exclusion-rules/).
+ - Removed: deprecated `userDefaults` config formats (nested and flat) — use the [config migration tool](https://filebrowserquantum.com/en/docs/getting-started/v2/config-migration/) to convert before upgrading.
+ - Changed: `PUT /api/users` moved to the more appropriate `PATCH` method and requires specifying `which` in the body. Blank or `all` values are rejected.
+ - Changed: http related config options in `server` config key moved to `http` config key. See [HTTP settings](https://filebrowserquantum.com/en/docs/configuration/http/).
+ - Changed (reverse proxy): `http.trustedHeaders` (v1.5.x list) removed — use `http.trustProxyHeaders: true` when behind nginx, Traefik, or Caddy. When enabled, FileBrowser honors `X-Forwarded-Host`, `X-Forwarded-Proto`, `X-Forwarded-For`, and `X-Real-IP` for client IP, cookies, OIDC callbacks, WebAuthn, share URLs, rate limiting, and activity logs. Default is `false` (direct connection values). The [config migration tool](https://filebrowserquantum.com/en/docs/getting-started/v2/config-migration/) converts v1 `trustedHeaders` lists to `trustProxyHeaders: true`. See [Reverse proxy](https://filebrowserquantum.com/en/docs/getting-started/reverse-proxy/) and [HTTP trustProxyHeaders](https://filebrowserquantum.com/en/docs/configuration/http/#trustproxyheaders).
+ - Changed: `FILEBROWSER_DATABASE` environment variable — use `FILEBROWSER_DATABASE_PATH` instead. See [Environment variables](https://filebrowserquantum.com/en/docs/reference/environment-variables/) and [Server settings](https://filebrowserquantum.com/en/docs/configuration/server/).
+ - Changed: Moved stream api to `/api/media/stream`. See [API reference](https://filebrowserquantum.com/en/docs/reference/api/).
+ - Changed: CLI user management — canonical commands are `user set <username> --password [value]` and `user promote <username>`; `set -u username,password` is deprecated. See [CLI reference](https://filebrowserquantum.com/en/docs/reference/cli/).
+
+ **Security**:
+- [Critical] A forged JWT could authenticate as any known `belongsTo`. Auth signing keys are now persisted in the application database and JWT validation fails closed when no key is configured. (GHSA-8f9r-wg7w-pfw) (#2987) Thanks @d3do-23 and @whoamis3c.
+- [High] Restricted custom API tokens can no longer be upgraded to a full-permission session via `POST /api/auth/renew` (GHSA-6gr6-5qpq-888p) -- thanks @tao0845.
+- [High] TOTP re-enrollment no longer allows anonymous callers to replace an existing second factor using only the account password; requires an authenticated self or admin session (GHSA-qx86-4v5r-26g5) -- thanks @tao0845.
+- [Medium] Public upload shares with `allowReplacements=false` now reject overwrites when clients send `override=true`. (GHSA-3846-gh75-gp3m) Thanks @d3do-23
+- [Medium] OnlyOffice callbacks verify the shared `integrations.office.secret` JWT and require the document key to match the cached editor session; document downloads re-validate redirect targets against the configured document-server host (SSRF); public shares with `enableOnlyOffice=false` reject `/office/*` requests server-side.
+- [Low] Public share lyrics and subtitle routes honor the share's file-viewer setting, download disable flag, and download limits (GHSA-p7x3-p5jj-9xfh) -- thanks Yves Soete of Blacksight LLC. @yssoe
+- Fresh installs with default `admin`/`admin` generate a random initial password and log it once (#2977).
+- OIDC login binds OAuth `state` to an HttpOnly cookie and rejects tampered callbacks; login/logout/session-expiry redirects reject open-redirect targets, and signup sends credentials in a JSON body instead of query parameters.
+- Startup fails when the configured auth signing key differs from the persisted one; session/API token registrations record JWT expiry and expired mappings are pruned.
+
+ **New Features**:
+ - View grant mechanism to distinguish between UI viewing and download. See [Access control overview](https://filebrowserquantum.com/en/docs/access-control/access-control-overview/).
+ - granular per-source file permissions (view, download, modify, create, delete) with automatic migration from global permissions
+   - per-source defaults configurable in `settings > access management`
+   - `view` permission is automatically set to true unless explicitly set to false. See [Access control overview](https://filebrowserquantum.com/en/docs/access-control/access-control-overview/).
+   - can be enforced for all users. See [Access control overview](https://filebrowserquantum.com/en/docs/access-control/access-control-overview/).
+ - New activity logs for user activity.
+   - charts and historical data
+   - export to csv reports
+ - Media player improvements:
+   - Refreshed playback queue UI: Supports thumbnails, stored into session storage, and has a "clear queue" button (#2575) (#2600).
+   - Loop now has 3 states (off/single/all) and neither of them will clear the existing queue (#2600).
+   - New "Audio visualizer" for audio files (desktop-only), you can configure some basic things to your taste (#2575) (#2620).
+   - The current state of the audio panel now is stored into local storage.
+   - More gestures: Swipe up to enter/exit fullscreen, long-press to change playback speed, single tap to pause (#2575).
+   - Videos now will resume fullscreen and PiP when navigating (queue auto-navigation, swipes gestures or next/previous) (#2649).
+ - Added `F4` shortcut to refresh the current directory and metadata (#2600).
+ - opt-in feature to send deployment analytics to filebrowser quantum developer servers
+   - anonymized with a viewer so users can see what info would be sent.
+   - if opt-in, every month a snapshot of your deployment config would be sent to developer servers
+   - this will help me know what features are being used and what versions everyone is on over time. I will also provide a public dashboard with this information in the future. 
+ - WebDAV now supports set modification time via the `X-OC-Mtime` header for clients that support it (#2626). See [WebDAV docs](https://filebrowserquantum.com/en/docs/features/webdav/).
+ - Copy operations now preserve their original modification times (#2642) (#2647):
+   - WebUI preserves both, files and directories.
+   - WebDAV `COPY` preserves modification times only for files, is limitation we have with webdav.
+ - User default enhancements
+   - Config `userDefaults` seeds SQLite on first run; only fields explicitly set in config stay locked in **Settings → User defaults** (other defaults remain editable)
+   - Added administrator controls for universal user defaults and enforced preferences in `settings > user management > user defaults`.
+   - Added configurable default file permissions per source in `settings > access management`.
+   - Added a User Defaults editor for account, permission, and profile preferences in the edit/create user prompt. See [User management](https://filebrowserquantum.com/en/docs/configuration/users/).
+ - Database env var rename: `FILEBROWSER_DATABASE` is removed (startup fails if set). Use `FILEBROWSER_DATABASE_PATH` (default `filebrowser.sqlite`) or `server.database.path` in config. See [Environment variables](https://filebrowserquantum.com/en/docs/reference/environment-variables/) and [Server settings](https://filebrowserquantum.com/en/docs/configuration/server/).
+ - CLI: `user set` with `--password` (inline value, interactive prompt on TTY, or piped stdin); `user promote` for admin grant without password reset. See [CLI reference](https://filebrowserquantum.com/en/docs/reference/cli/).
+- Require password change at next login for password-based users: new user setting `requirePasswordChange` (user defaults + per-user admin toggle). Bootstrap admins with a generated initial password get this automatically ([#2977](https://github.com/gtsteffaniak/filebrowser/issues/2977)). Generated bootstrap passwords use a speakable `word-xxxxx-xx` form.
+- PWA improvements for installed mobile apps: dedicated maskable icons (192/512), manifest and splash colors that follow the instance default theme, runtime `theme-color` sync on dark-mode toggle, and edge-to-edge safe-area layout for notched devices (#2625) (#2869) -- thanks @APatenaude
+- Users can set default view mode and thumbnail size from Profile settings (Listing options). Admins can set the same defaults for existing users and edit all profile preference defaults from the user management panel ([#2884](https://github.com/gtsteffaniak/filebrowser/issues/2884)).
+- Added "Upload only what's missing" to the upload conflict prompt (#2985) (#2553)
+- Added `init` CLI command, which creates a minimal commented config.yaml instead of a full config (#2957)
+- Config YAML expands `$VAR` and `${VAR}` so values such as `userPassword: "${FILEBROWSER_LDAP_USER_PASSWORD}"` work (#3042).
+- Sidebar source links can switch between aggregated usage (default) and a root-filesystem-only view via a new "Limit disk usage to source filesystem" toggle.
+
+ **Notes**:
+ - v2.x.x uses a new write-through backend state management. Changes go through a fast memory layer and also write changes to database to stay in sync. See [About v2.0.0](https://filebrowserquantum.com/en/docs/getting-started/v2/about/).
+ - CLI server start (`./filebrowser`), `setup`, `version`, and `set rule` syntax unchanged; see [CLI docs](https://filebrowserquantum.com/en/docs/reference/cli/)
+ - new dropdown and input styles
+ - swipe gestures to dismiss notifications (#2672)
+ - user updates are more granular, don't include entire user payload.
+ - `user.id` has been moved to a backend property and all frontend apis now query users by username. Swagger has been updated. See [API reference](https://filebrowserquantum.com/en/docs/reference/api/).
+ - removed legacy and deprecated properties from API responses and generated config output
+ - `/api/media/stream` is audio/video only (range-based chunking). Non-media inline viewing uses `GET /api/resources/view`. Both endpoints use the same `viewToken` from file metadata. See [API reference](https://filebrowserquantum.com/en/docs/reference/api/).
+ - removed exiftool as an optional helper, always built with the supported libraries (requires 64 bit os)
+ - If migration issues arise, see [Migration troubleshooting](https://filebrowserquantum.com/en/docs/getting-started/migration/troubleshooting/).
+ - default browser media player option removed, always uses themed plyr
+ - [docker] upgraded ffmpeg from 8.1.2 to 9.0
+- Sidebar navigation tree rows are real hyperlinks: middle-click, Ctrl/Cmd+click, and Shift+click use the browser's default new-tab or new-window behavior.
+- Pop-up preview has a 200ms debounce delay so it doesn't flash when moving the cursor across files quickly.
+- Improved UI responsiveness for larger directories and Firefox, with marginal memory improvement (#1773) (#2879)
+- Improvements to document thumbnail generation performance.
+- Changed behavior for typing to select files in listing view; added more actions in advanced search (#2776).
+- Session renew is handled by client keep-alive; per-request `X-Renew-Token` header handling removed.
+- `defaultEnabled` now means the source is always added to users on startup and login.
+- Webdav always shows hidden files, ignores the user preference. (#3004)
+- Share download links no longer embed a token; they link to the UI, which prompts for the password before download. For direct downloads use the documented `/api/share/direct` API. (#2888)
+- Sidebar links follow source changes: renaming a source updates links, disabling/deleting a user source removes them (#2878) (#2942), and adding a source via scopes auto-adds a link.
+- `/api/resources/download` and `/public/api/resources/download` return HTTP 404 for missing files/directories instead of 500 (#2981); `GET /api/resources` returns 400 when `path` is missing or empty (#2801).
+- Added risc-v to official releases.
+- A CLI password reset returns the user to a password-method user.
+
+ **Bugfixes**:
+- Long uploads/downloads no longer lose the session mid-transfer; session keep-alive renews before expiry and auto-logout is disabled during active transfers (#2638).
+- GroupMap changes are written through to SQL so JWT/OIDC/LDAP group memberships survive restart (#2742).
+- OIDC: `groupsClaim` is always requested and falls back to UserInfo; the verified ID-token identifier is preserved on fallback; sessions respect `tokenExpirationHours` (#3006).
+- LDAP `userGroups` matching accepts CN-only values against full `memberOf` DNs and is case-insensitive (#3044).
+- Sidebar folder links with custom names/icons/styles persist across restarts, and deleted links stay deleted (#2809) (#2935).
+- Fixed PDF thumbnail process aborts (#2763), PDF preview blocking uploads (#2752), and 401 on the PDF download button (#2978).
+- Fixed ffmpeg unresponsive lock issue (#2996).
+- Fixed multiple embedded subtitles with the same language (#2756).
+- Fixed Fuji `.raf` thumbnail preview; unsupported image preview formats return HTTP 415 instead of 500.
+- Members without download permission could not open text-based files with OnlyOffice enabled (#2777).
+- Fixed iOS 26 / WebKit multi-chunk upload stall by isolating chunk connections (#2734).
+- Mobile/UI fixes: upload options cut off (#2685), uploaded image cut off (#2765), next/previous buttons hiding on photos (#2767), missing gallery download button (#2767), double-tap to zoom, html viewer height, tooltips on mobile, assorted styling inconsistencies (#2908).
+- Public share folder and multi-file ZIP downloads were empty for anonymous visitors on sources with deny-by-default/path rules (#2631) (#2365).
+- Preserve Ctrl-click selection with stale keyboard state (#2958) (#2923); avoid false stalls in parallel transfers (#2950) (#2948) thanks @gudcks0305; hide Replace on conflict prompts when the user lacks modify permission (#2837).
+- Disk usage: fixed overstatement on virtiofs/Docker Desktop (#2894), inflated usage across ZFS datasets/btrfs subvolumes (#3025) (#2997), capped usage bars at 100% and summed nested mounts on Linux (#2761) (#2238).
+- Support non-ASCII share passwords (#2933); fall back to buffered copies when FUSE rejects fast paths (#2938) (#2924); tilde (`~`) source paths expand properly.
+- Fixed slow/broken file listing when `http.baseURL` is a subpath.
+- SQLite: removed shared cache and set `busy_timeout` on every pooled connection; busy errors no longer reported as success or empty cache results.
+
 ## v2.0.10
 
  **Security**:
