@@ -957,7 +957,6 @@ func SetDefaults(generate bool) Settings {
 				Models:             boolPtr(true),
 			},
 			FileViewer: UserDefaultsFileViewer{
-				EditorQuickSave:         false,
 				AutoplayMedia:           boolPtr(true),
 				DisableViewingExt:       "",
 				DisableOnlyOfficeExt:    ".md .txt .pdf .html .xml",
