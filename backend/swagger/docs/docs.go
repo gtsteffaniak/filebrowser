@@ -4093,6 +4093,83 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/wopi/session": {
+            "get": {
+                "description": "Returns the editor URL and the access token the browser posts to it.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Office"
+                ],
+                "summary": "Open a file in the WOPI editor",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Source name",
+                        "name": "source",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "File path",
+                        "name": "path",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/web.wopiSessionResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Missing or invalid parameters",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "No view permission",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "415": {
+                        "description": "The editor does not handle this file type",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "503": {
+                        "description": "Editor discovery unavailable",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ]
+            }
+        },
         "/public/api/media/lyrics": {
             "get": {
                 "produces": [
@@ -6328,24 +6405,35 @@ const docTemplate = `{
         "settings.OnlyOffice": {
             "type": "object",
             "required": [
-                "secret",
                 "url"
             ],
             "properties": {
                 "internalUrl": {
-                    "description": "An optional internal address that the filebrowser server can use to communicate with the OnlyOffice Document Server, could be useful to bypass proxy.",
+                    "description": "An optional internal address that the filebrowser server can use to communicate with the office editor, could be useful to bypass proxy.",
                     "type": "string"
+                },
+                "product": {
+                    "description": "office editor behind url: onlyoffice (default) or collabora",
+                    "type": "string",
+                    "enum": [
+                        "onlyoffice",
+                        "collabora"
+                    ]
                 },
                 "secret": {
-                    "description": "secret: authentication key for OnlyOffice integration",
+                    "description": "secret: authentication key for OnlyOffice integration. For collabora, optional key signing editing sessions, derived from the server auth key when empty.",
                     "type": "string"
                 },
+                "tokenExpirationHours": {
+                    "description": "collabora only: lifetime of an editing session, in hours (default: 10)",
+                    "type": "integer"
+                },
                 "url": {
-                    "description": "The URL to the OnlyOffice Document Server, needs to be accessible to the user.",
+                    "description": "The URL to the office editor (OnlyOffice Document Server or Collabora Online), needs to be accessible to the user.",
                     "type": "string"
                 },
                 "viewOnly": {
-                    "description": "view only mode for OnlyOffice",
+                    "description": "view only mode for the office editor",
                     "type": "boolean"
                 }
             }
@@ -8887,6 +8975,31 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "viewToken": {
+                    "type": "string"
+                }
+            }
+        },
+        "web.wopiSessionResponse": {
+            "type": "object",
+            "properties": {
+                "accessToken": {
+                    "description": "posted as access_token",
+                    "type": "string"
+                },
+                "accessTokenTtl": {
+                    "description": "posted as access_token_ttl: absolute expiry, epoch milliseconds",
+                    "type": "integer"
+                },
+                "actionUrl": {
+                    "description": "editor URL the iframe form posts to",
+                    "type": "string"
+                },
+                "mode": {
+                    "description": "\"edit\" or \"view\"",
+                    "type": "string"
+                },
+                "product": {
+                    "description": "collabora, onlyoffice or generic",
                     "type": "string"
                 }
             }

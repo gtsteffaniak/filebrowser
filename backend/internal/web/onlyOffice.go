@@ -141,7 +141,7 @@ type OnlyOfficeJWTPayload struct {
 // @Router /api/office/config [get]
 // @Security ApiKeyAuth
 func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
-	if settings.Config.Integrations.OnlyOffice.Url == "" {
+	if settings.Config.Integrations.OnlyOffice.Url == "" || settings.Config.Integrations.OnlyOffice.IsCollabora() {
 		return http.StatusInternalServerError, errors.New("only-office integration must be configured in settings")
 	}
 	if !onlyOfficeShareEnabled(d) {

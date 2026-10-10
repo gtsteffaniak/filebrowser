@@ -7,6 +7,7 @@
 // - /api/settings/ -> settings.js
 // - /api/tools/ -> tools.js
 // - /api/office/ -> office.js
+// - /api/wopi/ -> wopi.js
 // - /api/media/ -> media.js
 // - /public/api/* -> public functions in respective files (e.g., resourcesApi.fetchFilesPublic)
 
@@ -19,6 +20,7 @@ import * as settingsApi from "./settings.js";
 import * as shareApi from "./share.js";
 import * as toolsApi from "./tools.js";
 import * as usersApi from "./users.js";
+import * as wopiApi from "./wopi.js";
 import * as quotasApi from "./quotas.js";
 
 export {
@@ -32,4 +34,5 @@ export {
     shareApi,
     toolsApi,
     usersApi,
+    wopiApi,
 };

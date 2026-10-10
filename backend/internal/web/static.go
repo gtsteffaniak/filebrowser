@@ -87,6 +87,10 @@ func spaContentSecurityPolicy(nonce string) string {
 
 func onlyOfficeScriptSrcOrigins() []string {
 	oo := settings.Config.Integrations.OnlyOffice
+	if oo.IsCollabora() {
+		// Collabora is an iframe, not a script the SPA loads.
+		return nil
+	}
 	candidates := []string{
 		cspOriginFromURL(oo.Url),
 		cspOriginFromURL(oo.InternalUrl),
@@ -283,7 +287,9 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"enableThumbs":           !settings.Config.Server.DisablePreviews,
 		"externalLinks":          externalLinks,
 		"externalUrl":            strings.TrimSuffix(settings.Config.Http.ExternalUrl, "/"),
-		"onlyOfficeUrl":          settings.Config.Integrations.OnlyOffice.Url,
+		"onlyOfficeUrl":          utils.Ternary(settings.Config.Integrations.OnlyOffice.IsCollabora(), "", settings.Config.Integrations.OnlyOffice.Url),
+		"officeProduct":          officeProductForSPA(),
+		"officeExtensions":       wopiExtensionsForSPA(),
 		"oidcAvailable":          settings.Config.Auth.Methods.OidcAuth.Enabled,
 		"jwtAvailable":           settings.Config.Auth.Methods.JwtAuth.Enabled,
 		"proxyAvailable":         settings.Config.Auth.Methods.ProxyAuth.Enabled,
