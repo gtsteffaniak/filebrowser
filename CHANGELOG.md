@@ -33,6 +33,7 @@ Note: this release also contains all changes from v2.0.10-beta changelog
  - fix(auth): identify login fields for password autofill (#3077)
  - fix(backend): skip denied paths in multi-file downloads, 404 when none remain (#3100) @hippi345
  - fix: persist the user scope path chosen in the edit dialog (#3065) @mvanhorn
+ - fix(webdav): OPTIONS now advertises only methods actually supported and permitted for the user; the DAV header reports class 1 only since LOCK/UNLOCK are not enabled (#3110)
 
 
 ## v2.1.0
