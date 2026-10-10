@@ -642,6 +642,18 @@ func webDAVHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, err
 			}
 		},
 	}
+
+	// ownCloud-style chunked upload: the client PUTs `<name>-chunk-<n>` files as ordinary uploads
+	// and finishes by moving the last chunk to `<name>`; the chunks are concatenated here, and the
+	// final placement is left to the handler below so locks and `Overwrite` keep working.
+	if r.Method == "MOVE" {
+		if handled, status, err := owncloudChunkedMove(w, r, wd, requestPath, scopePath, prefix); handled {
+			if status != 0 {
+				return status, err
+			}
+			return 0, nil
+		}
+	}
 	if r.Method == "COPY" {
 		srcRealPath := filepath.Join(scopePath, requestPath)
 		sw := &statusResponseWriter{ResponseWriter: w, status: http.StatusOK}
