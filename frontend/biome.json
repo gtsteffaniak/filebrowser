@@ -1,0 +1,138 @@
+{
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "files": {
+    "ignoreUnknown": true,
+    "includes": [
+      "**",
+      "!dist",
+      "!public/config.generated.yaml",
+      "!public/index.html",
+      "!node_modules"
+    ]
+  },
+  "formatter": {
+    "enabled": false
+  },
+  "assist": {
+    "enabled": true,
+    "actions": { "source": { "organizeImports": "off" } }
+  },
+  "css": {
+    "linter": { "enabled": false },
+    "formatter": { "enabled": false },
+    "assist": { "enabled": false }
+  },
+  "html": {
+    "experimentalFullSupportEnabled": true,
+    "parser": { "interpolation": true },
+    "linter": { "enabled": true }
+  },
+  "linter": {
+    "enabled": true,
+    "domains": { "vue": "all", "project": "all", "types": "all" },
+    "rules": {
+      "performance": {
+        "useVueVapor": "off"
+      },
+      "security": {
+        "preset": "recommended"
+      },
+      "a11y": {
+        "noAutofocus": "off",
+        "noNoninteractiveElementToInteractiveRole": "off",
+        "noStaticElementInteractions": "off",
+        "noSvgWithoutTitle": "off",
+        "useAriaPropsSupportedByRole": "off",
+        "useGenericFontNames": "off",
+        "useKeyWithClickEvents": "off",
+        "useMediaCaption": "off",
+        "useSemanticElements": "off"
+      },
+      "complexity": {
+        "noForEach": "on",
+        "noImportantStyles": "off",
+        "noRedundantDefaultExport": "warn"
+      },
+      "correctness": {
+        "noUnknownPseudoClass": "off"
+      },
+      "nursery": {
+        "noEmptyObjectKeys": "error",
+        "noFloatingPromises": "error",
+        "noImpliedEval": "error",
+        "noJsonUnsafeValues": "error",
+        "noMisusedPromises": "error",
+        "noTopLevelLiterals": "error",
+        "noVueDeprecatedScopedSlots": "error",
+        "noVueImportCompilerMacros": "error",
+        "noVueRefAsOperand": "error",
+        "noVueUndeclaredDirectives": "off",
+        "noVueVOnNumberValues": "error",
+        "useConsistentObjectKeys": "error",
+        "useVueBaseImport": "warn",
+        "useVueConsistentDefinePropsDeclaration": "off",
+        "useVueNextTickPromise": "warn",
+        "useVueValidVFor": "error"
+      },
+      "style": {
+        "noDescendingSpecificity": "off",
+        "noVueOptionsApi": "off",
+        "useVueConsistentVBindStyle": "off",
+        "useVueHyphenatedAttributes": "off",
+        "useVueMultiWordComponentNames": "off"
+      },
+      "suspicious": {
+        "noExplicitAny": "warn",
+        "noImportCycles": "off",
+        "noNestedPromises": "error",
+        "noParametersOnlyUsedInRecursion": "error",
+        "noShadow": "off",
+        "noUnnecessaryConditions": "off",
+        "useArraySortCompare": "error"
+      }
+    }
+  },
+  "overrides": [
+    {
+      "includes": ["tests/playwright/**"],
+      "linter": {
+        "rules": {
+          "correctness": {
+            "noEmptyPattern": "off",
+            "noUnresolvedImports": "off"
+          },
+          "nursery": {
+            "noPlaywrightElementHandle": "error",
+            "noPlaywrightEval": "error",
+            "noPlaywrightForceOption": "error",
+            "noPlaywrightMissingAwait": "error",
+            "noPlaywrightNetworkidle": "error",
+            "noPlaywrightPagePause": "error",
+            "noPlaywrightUselessAwait": "error",
+            "noPlaywrightWaitForNavigation": "error",
+            "noPlaywrightWaitForSelector": "error",
+            "noPlaywrightWaitForTimeout": "warn",
+            "usePlaywrightValidDescribeCallback": "error"
+          }
+        }
+      }
+    },
+    {
+      "includes": [
+        "scripts/postcss-strip-legacy.ts",
+        "playwright.config.ts",
+        "playwright.performance.config.ts",
+        "**/*.test.js",
+        "**/*.test.ts"
+      ],
+      "linter": {
+        "rules": {
+          "correctness": {
+            "noUnresolvedImports": "off",
+            "noUndeclaredDependencies": "off"
+          }
+        }
+      }
+    }
+  ]
+}

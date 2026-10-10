@@ -1,6 +1,6 @@
-import { notify } from "@/notify";
+import { notify } from "@/notify/index.ts";
 import { getApiPath, getPublicApiPath } from "@/utils/url.js";
-import { adjustedData, fetchJSON, fetchURL } from "./utils";
+import { adjustedData, fetchJSON, fetchURL } from "./utils.ts";
 
 
 // ============================================================================

@@ -1,9 +1,9 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import type { ProbeSnapshot } from "./perf-helpers";
-import type { PerfResultFile } from "./perf-report";
+import type { ProbeSnapshot } from "./perf-helpers.ts";
+import type { PerfResultFile } from "./perf-report.ts";
 
-export type PerfThresholds = {
+export interface PerfThresholds {
   loadListingMs: number;
   scrollDurationMs: number;
   resizeDurationMs: number;
@@ -14,9 +14,9 @@ export type PerfThresholds = {
   maxLongTaskCount: number;
   maxLongTaskMs: number;
   maxFrameP95Ms: number;
-};
+}
 
-export type PerfConfig = {
+export interface PerfConfig {
   enforce: boolean;
   scales: number[];
   workers: number;
@@ -26,7 +26,7 @@ export type PerfConfig = {
     resize: { settleMs: number; settleMsAtScale10000: number };
   };
   thresholds: PerfThresholds;
-};
+}
 
 const CONFIG_REL = "tests/playwright/performance/perf-config.json";
 
@@ -105,10 +105,10 @@ export function selectCountForScale(scale: number): number {
   return cfg.selectCountByScale[String(scale)] ?? 12;
 }
 
-export type ThresholdCheck = {
+export interface ThresholdCheck {
   passed: boolean;
   warnings: string[];
-};
+}
 
 export function checkResultThresholds(
   scenario: string,

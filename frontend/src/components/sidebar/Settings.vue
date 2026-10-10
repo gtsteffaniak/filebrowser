@@ -1,5 +1,6 @@
 <template>
-  <div v-if="isMobile" role="button" class="card item clickable settings-card" @click="closeSettings">
+  <div v-if="isMobile" role="button" tabindex="0" class="card item clickable settings-card" @click="closeSettings"
+    @keydown.enter.prevent="!$event.repeat && closeSettings()" @keydown.space.prevent @keyup.space="closeSettings">
     <span class="settings-item-content">
       <span class="material-symbols-outlined settings-icon">close</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
       {{ $t("general.exit") }}
@@ -9,13 +10,17 @@
     <div
       v-if="setting.sections"
       class="card item settings-card-collapsible"
-      :class="{ hidden: !shouldShow(setting) }"
+      :class="{ hidden: !shouldShow(setting), 'settings-card-collapsible--active': canExpand(setting) && isSectionActive(setting) && expandedSections[setting.id] }"
     >
       <div
         role="button"
+        tabindex="0"
         class="settings-card-collapsible-header settings-card clickable"
-        :class="{ 'active-settings': isSectionActive(setting) }"
-        @click="setView(`${setting.id}-main`)"
+        :class="{ 'active-settings': isHeaderActive(setting) }"
+        @click="headerClick(setting)"
+        @keydown.enter.prevent="!$event.repeat && headerClick(setting)"
+        @keydown.space.prevent
+        @keyup.space="headerClick(setting)"
       >
         <span class="settings-item-content">
           <span class="material-symbols-outlined settings-icon">{{ setting.icon }}</span>
@@ -23,11 +28,15 @@
         </span>
         <i
           v-if="canExpand(setting)"
-          role="button"
           class="material-symbols-outlined settings-card-collapsible-chevron"
           :class="{ rotated: expandedSections[setting.id] }"
           :aria-expanded="!!expandedSections[setting.id]"
+          role="button"
+          tabindex="0"
           @click.stop="expandSection(setting)"
+          @keydown.enter.stop.prevent="!$event.repeat && expandSection(setting)"
+          @keydown.space.stop.prevent
+          @keyup.space.stop="expandSection(setting)"
         >
           keyboard_arrow_down
         </i>
@@ -38,13 +47,17 @@
             v-for="section in visibleSections(setting)"
             :key="section.id"
             role="button"
+            tabindex="0"
             class="settings-card-collapsible-sub-item settings-card clickable"
             :class="{ 'active-settings': active(`${setting.id}-${section.id}`) }"
             @click.stop="setView(`${setting.id}-${section.id}`)"
+            @keydown.enter.stop.prevent="!$event.repeat && setView(`${setting.id}-${section.id}`)"
+            @keydown.space.stop.prevent
+            @keyup.space.stop="setView(`${setting.id}-${section.id}`)"
           >
             <span class="settings-item-content">
               <span class="material-symbols-outlined settings-icon">{{ section.icon }}</span>
-              {{ $t(section.label) }}
+              {{ $t(section.label, { suffix: "" }) }}
             </span>
           </div>
         </div>
@@ -54,8 +67,12 @@
       v-else
       :id="`${setting.id}-sidebar`"
       role="button"
+      tabindex="0"
       class="card item clickable settings-card"
       @click="setView(`${setting.id}-main`)"
+      @keydown.enter.prevent="!$event.repeat && setView(`${setting.id}-main`)"
+      @keydown.space.prevent
+      @keyup.space="setView(`${setting.id}-main`)"
       :class="{
         hidden: !shouldShow(setting),
         'active-settings': active(`${setting.id}-main`),
@@ -95,26 +112,29 @@ export default {
   },
   watch: {
     activeView() {
-      this.expandableSettings.forEach((setting) => {
-        if (!this.isSectionActive(setting)) this.expandedSections[setting.id] = false;
-        else if (this.isSubSectionActive(setting)) this.expandedSections[setting.id] = true;
-        else if (setting.id === 'users') this.expandedSections[setting.id] = false;
-      });
+      this.syncExpanded();
     },
-    showAdvancedProfile(val) {
-      this.expandedSections.profile = val && this.activeView.startsWith("profile-");
+    showAdvancedProfile() {
+      this.syncExpanded();
     },
   },
   mounted() {
-    requestAnimationFrame(() => {
-      this.expandableSettings.forEach((setting) => {
-        if (this.isSectionActive(setting) && (this.isSubSectionActive(setting) || (setting.id === "profile" && this.showAdvancedProfile))) {
-          this.expandedSections[setting.id] = true;
-        }
-      });
-    });
+    requestAnimationFrame(() => this.syncExpanded());
   },
   methods: {
+    syncExpanded() {
+      for (const setting of this.expandableSettings) {
+        this.expandedSections[setting.id] = this.isSectionActive(setting) && this.canExpand(setting);
+      }
+    },
+    isHeaderActive(setting) {
+      return this.isSectionActive(setting) && (!this.canExpand(setting) || !this.expandedSections[setting.id]);
+    },
+    headerClick(setting) {
+      if (!this.canExpand(setting)) return this.setView(`${setting.id}-main`);
+      if (this.isSectionActive(setting)) return this.expandSection(setting);
+      this.setView(`${setting.id}-${this.visibleSections(setting)[0].id}`);
+    },
     expandSection(setting) {
       this.expandedSections[setting.id] = !this.expandedSections[setting.id];
     },
@@ -195,6 +215,10 @@ export default {
   flex-direction: column;
   flex-shrink: 0;
   overflow: hidden;
+}
+
+.settings-card-collapsible--active {
+  outline: 2px solid var(--primaryColor);
 }
 
 .settings-card-collapsible-chevron {

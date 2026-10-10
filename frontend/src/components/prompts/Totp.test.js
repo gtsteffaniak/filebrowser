@@ -1,3 +1,5 @@
+/** biome-ignore-all lint/correctness/noUnresolvedImports: false positives */
+
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createApp } from 'vue';
 

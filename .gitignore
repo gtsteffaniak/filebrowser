@@ -46,6 +46,7 @@ frontend/.tmp-icons-*
 /backend/internal/web/dist
 /backend/internal/web/embed
 /backend/debug
+/backend/http
 
 .DS_Store
 node_modules

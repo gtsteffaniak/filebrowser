@@ -16,17 +16,15 @@
     >
       <template v-if="showNewFileTemplate">
         <div class="context-menu-header">
-          <div
+          <button
+            type="button"
             class="action button clickable context-menu-create-toggle"
             aria-label="Back"
-            role="button"
             tabindex="0"
             @click="closeNewFilePicker"
-            @keydown.enter.prevent="closeNewFilePicker"
-            @keydown.space.prevent="closeNewFilePicker"
           >
             <i class="material-symbols">arrow_back</i>
-          </div>
+          </button>
         </div>
         <hr class="divider">
         <p v-if="newFileTemplates.length === 0 && isLoggedIn" class="context-menu-empty-message">
@@ -51,23 +49,21 @@
           v-if="showCreateToggle"
           class="context-menu-header"
         >
-          <div
+          <button
             v-if="showCreateToggle"
+            type="button"
             class="action button clickable context-menu-create-toggle"
             aria-label="Create Actions Toggle"
             :class="{ 'context-menu-create-toggle--disabled': createToggleDisabled }"
-            role="button"
             :aria-disabled="createToggleDisabled ? 'true' : 'false'"
             :tabindex="createToggleDisabled ? -1 : 0"
             @click="onCreateToggleClick"
-            @keydown.enter.prevent="onCreateToggleClick"
-            @keydown.space.prevent="onCreateToggleClick"
             @mouseenter="onCreateToggleMouseEnter"
             @mouseleave="hideTooltip"
           >
             <i v-if="!showCreate" class="material-symbols">add</i>
             <i v-else class="material-symbols">arrow_back</i>
-          </div>
+          </button>
           <div
             v-if="selectedCount > 0"
             @mouseleave="hideTooltip"
@@ -731,38 +727,37 @@ export default {
       this.isAnimating = true;
       expandBeforeEnter(el);
     },
-    enter(el, done) {
+    async enter(el, done) {
       const BUFFER = 8;
-      this.$nextTick(() => {
-        expandEnter(el, () => {
-          this.isAnimating = false;
-          done();
-        }, 300, {
-          onMeasured: (fullHeight, fullWidth) => {
-            const screenWidth = window.visualViewport?.width || window.innerWidth;
-            const screenHeight = window.visualViewport?.height || window.innerHeight;
-            let newX = this.posX;
-            let newY = this.posY;
-            if (newX + fullWidth + BUFFER > screenWidth) newX = screenWidth - fullWidth - BUFFER;
-            if (newX < BUFFER) newX = BUFFER;
-            if (newY + fullHeight + BUFFER > screenHeight) newY = screenHeight - fullHeight - BUFFER;
-            if (newY < BUFFER) newY = BUFFER;
-            this.posX = newX;
-            this.posY = newY;
-          },
-          getMaxHeight: () => {
-            const viewportHeight = window.visualViewport?.height || window.innerHeight;
-            if (this.showOverflow) {
-              return Math.max(
-                0,
-                viewportHeight - el.getBoundingClientRect().top - BUFFER,
-              );
-            }
-            return this.centered
-              ? viewportHeight - BUFFER * 2
-              : viewportHeight - this.posY - BUFFER;
-          },
-        });
+      await this.$nextTick();
+      expandEnter(el, () => {
+        this.isAnimating = false;
+        done();
+      }, 300, {
+        onMeasured: (fullHeight, fullWidth) => {
+          const screenWidth = window.visualViewport?.width || window.innerWidth;
+          const screenHeight = window.visualViewport?.height || window.innerHeight;
+          let newX = this.posX;
+          let newY = this.posY;
+          if (newX + fullWidth + BUFFER > screenWidth) newX = screenWidth - fullWidth - BUFFER;
+          if (newX < BUFFER) newX = BUFFER;
+          if (newY + fullHeight + BUFFER > screenHeight) newY = screenHeight - fullHeight - BUFFER;
+          if (newY < BUFFER) newY = BUFFER;
+          this.posX = newX;
+          this.posY = newY;
+        },
+        getMaxHeight: () => {
+          const viewportHeight = window.visualViewport?.height || window.innerHeight;
+          if (this.showOverflow) {
+            return Math.max(
+              0,
+              viewportHeight - el.getBoundingClientRect().top - BUFFER,
+            );
+          }
+          return this.centered
+            ? viewportHeight - BUFFER * 2
+            : viewportHeight - this.posY - BUFFER;
+        },
       });
     },
     leave(el, done) {

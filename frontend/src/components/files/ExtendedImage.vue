@@ -2,33 +2,35 @@
   <div class="image-ex-container" ref="container" @touchstart="touchStart" @touchmove.prevent="touchMove" @touchend="touchEnd" @dblclick="zoomAuto"
     @mousedown="mousedownStart" @mousemove="mouseMove" @mouseup="mouseUp" @wheel="wheelMove">
     <!-- Thumbnail placeholder (shown while full image loads, only if cached thumbnail exists) -->
-    <img 
-      v-if="cachedThumbnailUrl && !fullImageLoaded && !isTiff" 
-      :src="cachedThumbnailUrl" 
-      class="image-ex-img" 
+    <img
+      v-if="cachedThumbnailUrl && !fullImageLoaded && !isTiff"
+      :src="cachedThumbnailUrl"
+      class="image-ex-img"
       ref="thumbnail"
+      aria-hidden="true"
     />
-    
+
     <!-- Loading spinner overlay (shown while full image loads) -->
     <div v-if="!fullImageLoaded" class="image-loading-overlay">
       <LoadingSpinner size="medium" />
     </div>
 
-    <!-- Full image: 
+    <!-- Full image:
          - Always loading in background via JavaScript
          - Hidden until loaded if thumbnail exists, otherwise visible for progressive loading -->
-    <img 
-      v-if="!isTiff" 
-      class="image-ex-img" 
-      ref="imgex" 
-      @load="onLoad" 
-      @error="onImageError" 
-      :style="{ display: (cachedThumbnailUrl && !fullImageLoaded) ? 'none' : 'block' }" 
+    <img
+      v-if="!isTiff"
+      class="image-ex-img"
+      ref="imgex"
+      @load="onLoad"
+      @error="onImageError"
+      :style="{ display: (cachedThumbnailUrl && !fullImageLoaded) ? 'none' : 'block' }"
+      aria-hidden="true"
     />
-    <canvas 
-      v-else 
-      ref="imgex" 
-      class="image-ex-img" 
+    <canvas
+      v-else
+      ref="imgex"
+      class="image-ex-img"
       :style="{ display: (cachedThumbnailUrl && !fullImageLoaded) ? 'none' : 'block' }"
     ></canvas>
   </div>
@@ -171,25 +173,20 @@ export default {
       return this.edgeDy >= this.edgeCommitY && ay >= ax;
     },
   },
-  mounted() {
+  async mounted() {
     this.isTiff = this.checkIfTiff(this.src);
-    
+
     // Step 1: Cache check happens automatically via thumbnailUrl computed property
-    
+
     // Step 2: Always start loading the real image
     if (this.isTiff) {
       this.decodeTiff(this.src);
-    } else {
-      // Use nextTick to ensure element exists
-      this.$nextTick(() => {
-        this.loadFullImage();
-      });
     }
-    
+
     const container = this.$refs.container;
-    this.classList.forEach((className) => {
+    for (const className of this.classList) {
       container.classList.add(className);
-    });
+    }
     if (getComputedStyle(container).width === "0px") {
       container.style.width = "100%";
     }
@@ -198,6 +195,12 @@ export default {
     }
 
     window.addEventListener("resize", this.onResize);
+
+    if (!this.isTiff) {
+      // Use nextTick to ensure element exists
+      await this.$nextTick();
+      this.loadFullImage();
+    }
   },
   beforeUnmount() {
     // Clear any pending timeout
@@ -258,19 +261,18 @@ export default {
         this.scheduleZoomTapNavToggle();
       }
     },
-    loadFullImage() {
+    async loadFullImage() {
       if (!this.src) return;
       mutations.setLoading("preview-img", true);
-      
+
       // Set src directly via JavaScript to avoid Vue's HTML entity encoding in template bindings
       // Vue HTML-encodes & to &amp; when using :src="src" in templates
-      this.$nextTick(() => {
-        if (this.$refs.imgex && 'src' in this.$refs.imgex) {
-          // Decode any HTML entities (Vue shouldn't encode props, but decode just in case)
-          const cleanSrc = String(this.src).replace(/&amp;/g, '&');
-          this.$refs.imgex.src = cleanSrc;
-        }
-      });
+      await this.$nextTick();
+      if (this.$refs.imgex && 'src' in this.$refs.imgex) {
+        // Decode any HTML entities (Vue shouldn't encode props, but decode just in case)
+        const cleanSrc = String(this.src).replace(/&amp;/g, '&');
+        this.$refs.imgex.src = cleanSrc;
+      }
     },
     onLoad() {
       // Step 3: Real image loaded - hide thumbnail and show image
@@ -290,7 +292,7 @@ export default {
     onImageError(event) {
       const img = event.target;
       const actualSrc = img?.src || '';
-      
+
       // If the error is due to &amp; in URL, try to fix it
       if (actualSrc?.includes('&amp;')) {
         const fixedSrc = actualSrc.replace(/&amp;/g, '&');
@@ -314,7 +316,7 @@ export default {
           });
         return;
       }
-      
+
       this.finishImageError(img);
     },
     finishImageError(img) {
@@ -350,33 +352,32 @@ export default {
     onMouseUp() {
       this.inDrag = false;
     },
-    scheduleSetCenter() {
-      this.$nextTick(() => {
+    async scheduleSetCenter() {
+      await this.$nextTick();
+      requestAnimationFrame(() => {
+        this.setCenter();
+        const img = this.$refs.imgex;
+        const container = this.$refs.container;
+        if (
+          img &&
+          this.fullImageLoaded &&
+          (!img.clientWidth || !img.clientHeight)
+        ) {
+          requestAnimationFrame(() => this.setCenter());
+        }
+        // Force layout + compositor to pick up the decoded bitmap. Without this,
+        // WebKit/Blink sometimes leave the promoted layer black until display/position
+        // is toggled in DevTools or the window is resized.
         requestAnimationFrame(() => {
-          this.setCenter();
-          const img = this.$refs.imgex;
-          const container = this.$refs.container;
-          if (
-            img &&
-            this.fullImageLoaded &&
-            (!img.clientWidth || !img.clientHeight)
-          ) {
-            requestAnimationFrame(() => this.setCenter());
+          if (!img || !this.fullImageLoaded) {
+            return;
           }
-          // Force layout + compositor to pick up the decoded bitmap. Without this,
-          // WebKit/Blink sometimes leave the promoted layer black until display/position
-          // is toggled in DevTools or the window is resized.
+          void container?.offsetHeight;
+          void img.offsetHeight;
+          const prevOp = img.style.opacity;
+          img.style.opacity = '0.9999';
           requestAnimationFrame(() => {
-            if (!img || !this.fullImageLoaded) {
-              return;
-            }
-            void container?.offsetHeight;
-            void img.offsetHeight;
-            const prevOp = img.style.opacity;
-            img.style.opacity = '0.9999';
-            requestAnimationFrame(() => {
-              img.style.opacity = prevOp;
-            });
+            img.style.opacity = prevOp;
           });
         });
       });
@@ -841,49 +842,50 @@ export default {
     },
   },
   watch: {
-    src: function (newSrc) {
+    src: async function (newSrc) {
       if (!newSrc) {
         mutations.setLoading("preview-img", false);
         return;
       }
-      
+
       // Clear any existing timeout
       if (this.loadTimeout) {
         clearTimeout(this.loadTimeout);
         this.loadTimeout = null;
       }
-      
+
       // Reset and reload when src changes
       this.viewTokenRetried = false;
       this.fullImageLoaded = false;
       this.imageLoaded = false;
       this.isTiff = this.checkIfTiff(newSrc);
-      
+
       // Cache check happens automatically via thumbnailUrl computed property
-      
+
       // Always load the real image
       if (this.isTiff) {
         this.decodeTiff(newSrc);
-      } else {
-        this.$nextTick(() => {
-          this.loadFullImage();
-          // Set a timeout to handle cases where image never loads
-          this.loadTimeout = setTimeout(() => {
-            if (!this.fullImageLoaded && !this.imageLoaded) {
-              // Show the image even if load event didn't fire (might be partially loaded)
-              this.fullImageLoaded = true;
-              this.imageLoaded = true;
-              mutations.setLoading("preview-img", false);
-              this.scheduleSetCenter();
-            }
-          }, 30000); // 30 second timeout
-        });
       }
-      
+
       this.scale = 1;
       this.position.relative = { x: 0, y: 0 };
       this.resetEdgeGestureImmediate();
       this.applyImgTransform();
+
+      if (!this.isTiff) {
+        await this.$nextTick();
+        this.loadFullImage();
+        // Set a timeout to handle cases where image never loads
+        this.loadTimeout = setTimeout(() => {
+          if (!this.fullImageLoaded && !this.imageLoaded) {
+            // Show the image even if load event didn't fire (might be partially loaded)
+            this.fullImageLoaded = true;
+            this.imageLoaded = true;
+            mutations.setLoading("preview-img", false);
+            this.scheduleSetCenter();
+          }
+        }, 30000); // 30 second timeout
+      }
     },
   },
 };

@@ -3,8 +3,8 @@ import {
   extractBaselineMetrics,
   scenarioDuration,
   scopedLongTasks,
-} from "./perf-extract";
-import { superlinearity } from "./perf-results-json";
+} from "./perf-extract.ts";
+import { superlinearity } from "./perf-results-json.ts";
 
 describe("scopedLongTasks", () => {
   const metrics = {

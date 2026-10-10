@@ -2,7 +2,7 @@
   <div class="card-content editor-settings-content settings-items">
     <div v-for="field in fields" :key="field.key" class="setting-row item">
       <div class="setting-label">
-        <label :id="`editor-${field.key}-label`">{{ field.label }}</label>
+        <span :id="`editor-${field.key}-label`">{{ field.label }}</span>
         <i
           class="no-select material-symbols-outlined tooltip-info-icon"
           @mouseenter="showTooltip($event, field.desc)"
@@ -79,11 +79,11 @@ interface EditorSettingField {
   options?: { value: string | number; label: string }[];
 }
 
-defineOptions({ name: "EditorSettings" });
-
 defineProps({
   promptId: { type: [String, Number], default: null },
 });
+
+defineOptions({ name: "EditorSettings" });
 
 const { t } = useI18n();
 const config = editorConfig;
@@ -199,7 +199,7 @@ function hideTooltip(): void {
   min-width: 0;
 }
 
-.setting-row label {
+.setting-row .setting-label span {
   color: var(--textPrimary);
   font-size: 0.95em;
   flex-shrink: 1;

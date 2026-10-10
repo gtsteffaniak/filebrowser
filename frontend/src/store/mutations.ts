@@ -1,25 +1,37 @@
 import { setActiveViewGrantScope } from "@/api/viewToken.js";
 import { markRaw } from "vue";
-import { resourcesApi, usersApi } from "@/api";
+import { resourcesApi, usersApi } from "@/api/index.js";
 import {
   getEnforcedUserDefaults,
   getShareDefaultsPolicy,
   getSidebarLinkDefaultsPolicy,
   getToolAccessDefaultsPolicy,
-} from "@/api/settings";
-import { detectLocale, setLocale } from "@/i18n";
-import { notify } from "@/notify";
-import { url } from "@/utils";
-import { getTypeInfo } from "@/utils/mimetype";
+} from "@/api/settings.js";
+import { detectLocale, setLocale } from "@/i18n/index.ts";
+import { notify } from "@/notify/index.ts";
+import { url } from "@/utils/index.ts";
+import { getTypeInfo } from "@/utils/mimetype.js";
 import { getObjectProperty, setObjectProperty, omitObjectProperty } from '@/utils/object.js';
 import { sortedItems } from "@/utils/sort.js";
-import { isSourceSidebarCategory } from "@/utils/sidebarCategory";
-import { updateManifestLink } from "@/utils/pwaManifest";
-import { syncEventTheme } from "@/utils/theme";
-import { emitStateChanged } from './eventBus';
-import { getters } from "./getters";
-import { state } from "./state";
-import type { SourceInfo, SourceInfoUpdate, UserObject } from "./types";
+import { isSourceSidebarCategory } from "@/utils/sidebarCategory.ts";
+import { updateManifestLink } from "@/utils/pwaManifest.js";
+import { syncEventTheme } from "@/utils/theme.js";
+import { emitStateChanged } from "./eventBus.ts";
+import { getters } from "./getters.ts";
+import { state } from "./state.ts";
+import type {
+  DisplayPreference,
+  FileListItem,
+  Prompt,
+  ReqObject,
+  RouteObject,
+  ShareInfoObject,
+  SourceInfo,
+  SourceInfoUpdate,
+  StoreState,
+  UserObject,
+  UserScope,
+} from "./types.ts";
 
 export const mutations = {
   disableEventThemes: () => {
@@ -48,7 +60,7 @@ export const mutations = {
     }
     emitStateChanged();
   },
-  setPreviousHistoryItem: (value) => {
+  setPreviousHistoryItem: (value: StoreState['previousHistoryItem'] | null) => {
     if (value === state.previousHistoryItem) {
       return;
     }
@@ -58,41 +70,41 @@ export const mutations = {
     state.previousHistoryItem = value;
     emitStateChanged();
   },
-  setContextMenuHasItems: (value) => {
+  setContextMenuHasItems: (value: boolean) => {
     if (value === state.contextMenuHasItems) {
       return;
     }
     state.contextMenuHasItems = value;
     emitStateChanged();
   },
-  setEditorDirty: (value) => {
+  setEditorDirty: (value: boolean) => {
     if (value === state.editor.dirty) {
       return;
     }
     state.editor.dirty = value;
     emitStateChanged();
   },
-  setEditorSaveHandler: (handler) => {
+  setEditorSaveHandler: (handler: StoreState['editor']['saveHandler']) => {
     state.editor.saveHandler = handler;
     emitStateChanged();
   },
-  setEditorJsonFormatted: (value) => {
+  setEditorJsonFormatted: (value: boolean) => {
     if (value === state.editor.jsonFormatted) return;
     state.editor.jsonFormatted = value;
     emitStateChanged();
   },
-  setEditorStats: (stats) => {
+  setEditorStats: (stats: StoreState['editor']['stats']) => {
     if (JSON.stringify(state.editor.stats) === JSON.stringify(stats)) return;
     state.editor.stats = stats;
     emitStateChanged();
   },
-  setEditorFontSize: (size) => {
+  setEditorFontSize: (size: number) => {
     if (state.editor.fontSize === size) return;
     state.editor.fontSize = size;
-    localStorage.setItem('editorFontSize', size);
+    localStorage.setItem('editorFontSize', String(size));
     emitStateChanged();
   },
-  setMarkdownSplitView: (value) => {
+  setMarkdownSplitView: (value: boolean) => {
     if (value === state.editor.markdownSplitView) return;
     state.editor.markdownSplitView = value;
     sessionStorage.setItem("markdownSplitView", value ? "true" : "false");
@@ -101,32 +113,32 @@ export const mutations = {
   toggleSplitView: () => {
     mutations.setMarkdownSplitView(!state.editor.markdownSplitView);
   },
-  setEditorScrollRatio: (ratio, source) => {
+  setEditorScrollRatio: (ratio: number, source: StoreState['editor']['scrollSource']) => {
     state.editor.scrollRatio = ratio;
     state.editor.scrollSource = source;
     emitStateChanged();
   },
   // Called by both Editor and MarkdownViewer on mounts
-  resetEditorScrollRatio: (path) => {
+  resetEditorScrollRatio: (path: string) => {
     if (state.editor.scrollPath === path) return;
     state.editor.scrollPath = path;
     state.editor.scrollRatio = 0;
     state.editor.scrollSource = null;
     emitStateChanged();
   },
-  setDeletedItem: (value) => {
+  setDeletedItem: (value: boolean) => {
     if (value === state.deletedItem) {
       return;
     }
     state.deletedItem = value;
     emitStateChanged();
   },
-  setSeenUpdate: (value) => {
+  setSeenUpdate: (value: string | null) => {
     if (value === state.seenUpdate) {
       return;
     }
     state.seenUpdate = value
-    localStorage.setItem("seenUpdate", value);
+    localStorage.setItem("seenUpdate", value ?? "");
     emitStateChanged();
   },
   toggleOverflowMenu: () => {
@@ -136,7 +148,7 @@ export const mutations = {
   setWatchDirChangeAvailable() {
     state.req.hasUpdate = true;
   },
-  setPreviewSource: (value) => {
+  setPreviewSource: (value: string) => {
     if (value === state.popupPreviewSourceInfo?.url) {
       return;
     }
@@ -145,27 +157,27 @@ export const mutations = {
         ...state.popupPreviewSourceInfo,
         url: value,
         size: "xlarge",
-      };
+      } as NonNullable<StoreState['popupPreviewSourceInfo']>;
     } else {
       state.popupPreviewSourceInfo = null;
     }
     emitStateChanged();
   },
-  updateListing: (value) => {
+  updateListing: (value: StoreState['listing']) => {
     if (value === state.listing) {
       return;
     }
     state.listing = value;
     emitStateChanged();
   },
-  setCurrentSource: (value) => {
+  setCurrentSource: (value: string) => {
     if (value === state.sources.current) {
       return;
     }
     state.sources.current = value;
     emitStateChanged();
   },
-  updateSource: (sourcename, value) => {
+  updateSource: (sourcename: string, value: SourceInfo) => {
     if (getObjectProperty(state.sources.info, sourcename)) {
       state.sources.info = setObjectProperty(state.sources.info, sourcename, value) as Record<string, SourceInfo>;
     }
@@ -219,7 +231,7 @@ export const mutations = {
     }
     emitStateChanged();
   },
-  setRealtimeActive: (value) => {
+  setRealtimeActive: (value: boolean) => {
     if ( value === false ) {
       state.realtimeDownCount = state.realtimeDownCount + 1;
     } else {
@@ -231,18 +243,18 @@ export const mutations = {
     state.realtimeActive = value;
     emitStateChanged();
   },
-  setSources: (user) => {
+  setSources: (user: UserObject) => {
     // Rebuilding sources from /api/users must not wipe stats already merged from
     // /api/settings/sources, SSE, or a prior validateLogin — otherwise the sidebar
     // shows "unknown"/red until a full page reload (common after OTP: initAuth then
     // router beforeResolve both refresh the user).
-    const sameUser = Boolean(state.user && user.username === state.user.username);
+    const sameUser = user.username === state.user?.username;
     const prevInfo = sameUser && state.sources.info ? state.sources.info : {};
-    let currentSource = user.scopes.length > 0 ? user.scopes[0].name : "";
+    let currentSource = user.scopes[0]?.name ?? "";
     if (
       sameUser &&
       state.sources.current &&
-      user.scopes.some((s) => s.name === state.sources.current)
+      user.scopes.some((s: UserScope) => s.name === state.sources.current)
     ) {
       currentSource = state.sources.current;
     }
@@ -255,32 +267,31 @@ export const mutations = {
     } = { info: {}, current: currentSource, count: user.scopes.length, hasSourceInfo: false };
     for (const source of user.scopes) {
       const prev = prevInfo[source.name];
-      const merge = Boolean(prev);
       sources.info[source.name] = {
         pathPrefix: sources.count === 1 ? "" : encodeURIComponent(source.name),
-        used: merge ? prev.used : 0,
-        total: merge ? prev.total : 0,
-        usedAlt: merge ? prev.usedAlt : 0,
-        totalRoot: merge ? prev.totalRoot : 0,
-        usedAltRoot: merge ? prev.usedAltRoot : 0,
-        usedPercentage: merge ? prev.usedPercentage : 0,
-        usageScopeMismatch: merge ? prev.usageScopeMismatch : false,
-        status: merge ? prev.status : "unknown",
-        name: merge ? prev.name : source.name,
-        files: merge ? prev.files : 0,
-        folders: merge ? prev.folders : 0,
-        lastIndex: merge ? prev.lastIndex : 0,
-        quickScanDurationSeconds: merge ? prev.quickScanDurationSeconds : 0,
-        fullScanDurationSeconds: merge ? prev.fullScanDurationSeconds : 0,
-        complexity: merge ? prev.complexity : 0,
-        scanners: merge && prev.scanners ? [...prev.scanners] : [],
-        readOnly: merge ? prev.readOnly : false,
-        private: merge ? prev.private : false,
-        indexingDisabled: merge ? prev.indexingDisabled : false,
+        used: prev ? prev.used : 0,
+        total: prev ? prev.total : 0,
+        usedAlt: prev ? prev.usedAlt : 0,
+        totalRoot: prev ? prev.totalRoot : 0,
+        usedAltRoot: prev ? prev.usedAltRoot : 0,
+        usedPercentage: prev ? prev.usedPercentage : 0,
+        usageScopeMismatch: prev ? prev.usageScopeMismatch : false,
+        status: prev ? prev.status : "unknown",
+        name: prev ? prev.name : source.name,
+        files: prev ? prev.files : 0,
+        folders: prev ? prev.folders : 0,
+        lastIndex: prev ? prev.lastIndex : 0,
+        quickScanDurationSeconds: prev ? prev.quickScanDurationSeconds : 0,
+        fullScanDurationSeconds: prev ? prev.fullScanDurationSeconds : 0,
+        complexity: prev ? prev.complexity : 0,
+        scanners: prev?.scanners ? [...prev.scanners] : [],
+        readOnly: prev ? prev.readOnly : false,
+        private: prev ? prev.private : false,
+        indexingDisabled: prev ? prev.indexingDisabled : false,
       };
     }
     // Sidebar usage bar uses hasSourceInfo + per-source used/total; must survive object replace
-    sources.hasSourceInfo = user.scopes.some((s) => {
+    sources.hasSourceInfo = user.scopes.some((s: UserScope) => {
       const e = sources.info[s.name];
       return e && (e.total > 0 || e.used > 0 || e.usedAlt > 0);
     });
@@ -291,7 +302,7 @@ export const mutations = {
       const firstSourceLink = state.user.sidebarLinks.find(link =>
         isSourceSidebarCategory(link.category) && link.sourceName
       );
-      if (firstSourceLink) {
+      if (firstSourceLink?.sourceName) {
         targetSource = firstSourceLink.sourceName;
       }
     }
@@ -299,7 +310,7 @@ export const mutations = {
     state.sources = sources;
     emitStateChanged();
   },
-  setGallerySize: (value) => {
+  setGallerySize: (value: number) => {
     if (value === state.user.gallerySize) {
       return;
     }
@@ -307,11 +318,11 @@ export const mutations = {
     const isAnonymous = state.user.username === 'anonymous';
     if (!isAnonymous) {
       const encoded = url.base64Encode(state.user.username);
-      localStorage.setItem(`GallerySize_${encoded}`, value);
+      localStorage.setItem(`GallerySize_${encoded}`, String(value));
     }
     emitStateChanged();
   },
-  setActiveSettingsView: (value) => {
+  setActiveSettingsView: (value: string) => {
     if (value === state.activeSettingsView) {
       return;
     }
@@ -332,7 +343,7 @@ export const mutations = {
     }
     emitStateChanged();
   },
-  setSettings: (value) => {
+  setSettings: (value: StoreState['settings']) => {
     state.settings = value;
     emitStateChanged();
   },
@@ -351,14 +362,14 @@ export const mutations = {
     state.showSidebar = false;
     emitStateChanged();
   },
-  setSidebarVisible(value) {
+  setSidebarVisible(value: boolean) {
     if (value === state.showSidebar) {
       return;
     }
     state.showSidebar = value;
     emitStateChanged();
   },
-  setIsUploading(value) {
+  setIsUploading(value: boolean) {
     if (value === state.upload.isUploading) {
       return;
     }
@@ -368,7 +379,7 @@ export const mutations = {
   closeHovers: () => {
     // Close only specific lightweight/ephemeral hovers. Like ContextMenu, OverflowMenu, tooltip or sidebar (if not pinned and floating)
     const closeableHovers = ['ContextMenu', 'OverflowMenu'];
-    state.prompts = state.prompts.filter(p => !closeableHovers.includes(p.name));
+    state.prompts = state.prompts.filter(p => !closeableHovers.includes(p.name ?? ""));
     mutations.closeSidebar();
     mutations.hideTooltip(true);
   },
@@ -391,37 +402,28 @@ export const mutations = {
     }
     emitStateChanged();
   },
-  showPrompt: (value) => {
+  showPrompt: (value: Prompt | string) => {
+    const prompt: Prompt = typeof value === "string" ? { name: value } : (value ?? {});
     state.promptIdCounter += 1;
     const id = state.promptIdCounter;
     // Set parentId to the current topmost prompt, unless the prompt is pinned.
-    let parentId = value?.parentId;
-    if (!parentId && !value?.pinned) {
+    let parentId = prompt.parentId;
+    if (!parentId && !prompt.pinned) {
       const topPrompt = state.prompts[state.prompts.length - 1];
       if (topPrompt) {
         parentId = topPrompt.id;
       }
     }
-    const entry = typeof value === "object" ? {
+    const entry: Prompt = {
       id,
-      name: value?.name,
+      name: prompt.name,
       parentId,
-      pinned: value?.pinned || false,
-      confirm: value?.confirm,
-      action: value?.action,
-      props: value?.props || {},
-      discard: value?.discard,
-      cancel: value?.cancel,
-    } : {
-      id,
-      name: value,
-      parentId,
-      pinned: false,
-      confirm: value?.confirm,
-      action: value?.action,
-      props: value?.props || {},
-      discard: value?.discard,
-      cancel: value?.cancel,
+      pinned: prompt.pinned || false,
+      confirm: prompt.confirm,
+      action: prompt.action,
+      props: prompt.props || {},
+      discard: prompt.discard,
+      cancel: prompt.cancel,
     };
     const pinnedCount = state.prompts.filter(p => p.pinned).length;
     const isContextMenu = entry.name === "ContextMenu" || entry.name === "OverflowMenu";
@@ -434,15 +436,17 @@ export const mutations = {
     }
     mutations.hideTooltip(true);
   },
-  updatePromptTitle: (id, title) => {
+  updatePromptTitle: (id: number, title: string) => {
     const prompt = state.prompts.find((p) => p.id === id);
     if (!prompt) {
       return;
     }
-    prompt.props.title = title;
+    if (prompt.props) {
+      prompt.props.title = title;
+    }
     emitStateChanged();
   },
-  setLoading: (loadType, status) => {
+  setLoading: (loadType: string, status: boolean) => {
     if (status === false) {
       state.loading = omitObjectProperty(state.loading, loadType);
     } else {
@@ -450,18 +454,18 @@ export const mutations = {
     }
     emitStateChanged();
   },
-  setReload: (value) => {
+  setReload: (value: boolean) => {
     if (value === state.reload) {
       return;
     }
     state.reload = value;
     emitStateChanged();
   },
-  setCurrentUser: async (value) => {
+  setCurrentUser: async (value: Partial<UserObject> | null) => {
     try {
       // If value is null or undefined, emit state change and exit early
       if (!value) {
-        state.user = value;
+        state.user = null as unknown as UserObject;
         state.enforcedUserDefaults = {};
         state.sidebarLinkDefaultsPolicy = { items: [] };
         state.shareDefaultsPolicy = { values: {}, enforced: {} };
@@ -470,14 +474,14 @@ export const mutations = {
         return;
       }
       if (value.username !== "anonymous") {
-        mutations.setSources(value);
+        mutations.setSources(value as UserObject);
       }
       // Ensure locale exists and is valid
       if (!value.locale) {
         value.locale = detectLocale();
       }
       await setLocale(value.locale);
-      state.user = value;
+      state.user = value as UserObject;
       state.user.sorting = {} as { by: string; asc: boolean };
       state.user.sorting.by = "name";
       state.user.sorting.asc = true;
@@ -510,7 +514,7 @@ export const mutations = {
       const isAnonymous = state.user.username === 'anonymous';
       const encoded = !isAnonymous ? url.base64Encode(state.user.username) : '';
       let viewMode = (!isAnonymous && localStorage.getItem(`ViewMode_${encoded}`)) || state.user.viewMode || 'normal';
-      let gallerySize = (!isAnonymous && parseInt(localStorage.getItem(`GallerySize_${encoded}`), 10)) || state.user.gallerySize || 3;
+      let gallerySize = (!isAnonymous && parseInt(localStorage.getItem(`GallerySize_${encoded}`) ?? '', 10)) || state.user.gallerySize || 3;
       gallerySize = Math.min(9, Math.max(1, gallerySize)); // ensure 1–9 since this is the slider min and max size
 
       // Normalize to use the view families too
@@ -578,7 +582,7 @@ export const mutations = {
     }
     emitStateChanged();
   },
-  applyToolAccessDefaultsPolicy: (items) => {
+  applyToolAccessDefaultsPolicy: (items: unknown) => {
     state.toolAccessDefaultsPolicy = {
       items: Array.isArray(items) ? items : [],
     };
@@ -626,7 +630,7 @@ export const mutations = {
     }
     emitStateChanged();
   },
-  setShareData: (shareData) => {
+  setShareData: (shareData: Partial<ShareInfoObject>) => {
     const newShare = { ...state.shareInfo, ...shareData };
     if (JSON.stringify(newShare) === JSON.stringify(state.shareInfo)) {
       return;
@@ -653,14 +657,14 @@ export const mutations = {
     updateManifestLink();
     emitStateChanged();
   },
-  setSession: (value) => {
+  setSession: (value: string) => {
     if (value === state.sessionId) {
       return;
     }
     state.sessionId = value;
     emitStateChanged();
   },
-  setMultiple: (value) => {
+  setMultiple: (value: boolean) => {
     if (value === state.multiple) return;
     state.multiple = value;
     if (value) {
@@ -670,11 +674,11 @@ export const mutations = {
     }
     emitStateChanged();
   },
-  addSelected: (value) => {
+  addSelected: (value: number | FileListItem) => {
     state.selected.push(value);
     emitStateChanged();
   },
-  removeSelected: (value) => {
+  removeSelected: (value: number | FileListItem) => {
     const i = state.selected.indexOf(value);
     if (i === -1) return;
     state.selected.splice(i, 1);
@@ -700,21 +704,21 @@ export const mutations = {
       }
     }
   },
-  setLastSelectedIndex: (index) => {
+  setLastSelectedIndex: (index: number | null) => {
     if (index === state.lastSelectedIndex) {
       return;
     }
     state.lastSelectedIndex = index;
     emitStateChanged();
   },
-  setRaw: (value) => {
+  setRaw: (value: string) => {
     if (value === state.previewRaw) {
       return;
     }
     state.previewRaw = value;
     emitStateChanged();
   },
-  updateCurrentUser: async (value) => {
+  updateCurrentUser: async (value: Partial<UserObject>) => {
     // Ensure the input is a valid object
     if (typeof value !== "object" || value === null) return;
 
@@ -736,7 +740,7 @@ export const mutations = {
     }
     if (value.gallerySize !== undefined && !isAnonymous) {
       const encoded = url.base64Encode(state.user.username);
-      localStorage.setItem(`GallerySize_${encoded}`, value.gallerySize);
+      localStorage.setItem(`GallerySize_${encoded}`, String(value.gallerySize));
     }
 
     // Handle locale change
@@ -774,6 +778,8 @@ export const mutations = {
         "disableSearchOptions",
         "hideSidebarFileActions",
         "showCopyPath",
+        "showTypeColumn",
+        "showCreationDateColumn",
         "hideFilesInTree",
         "editorQuickSave",
         "showSelectMultiple",
@@ -816,7 +822,7 @@ export const mutations = {
     // Emit state change event
     emitStateChanged();
   },
-  replaceRequest: (value) => {
+  replaceRequest: (value: ReqObject) => {
     state.selected = [];
     mutations.setMultiple(false);
     if (!value?.items) {
@@ -829,20 +835,20 @@ export const mutations = {
     const sortby = sorting.by;
     const asc = sorting.asc;
     // Separate directories and files
-    const dirs = value.items.filter((item) => item.type === 'directory');
-    const files = value.items.filter((item) => item.type !== 'directory');
+    const dirs = value.items.filter((item: FileListItem) => item.type === 'directory');
+    const files = value.items.filter((item: FileListItem) => item.type !== 'directory');
     // Sort them separately
     const sortedDirs = sortedItems(dirs, sortby, asc);
     const sortedFiles = sortedItems(files, sortby, asc);
     value.items = [...sortedDirs, ...sortedFiles];
-    value.items.forEach((item, index) => {
+    value.items.forEach((item: FileListItem & { index?: number }, index: number) => {
       item.index = index;
     });
     state.req = value;
     setActiveViewGrantScope(value?.source ?? "");
     emitStateChanged();
   },
-  patchListingMetadata: (items, metadataMap, mergeForPath = null) => {
+  patchListingMetadata: (items: FileListItem[] | undefined, metadataMap: Map<string, unknown> | undefined, mergeForPath: string | null = null) => {
     if (!items?.length || !metadataMap?.size) {
       return;
     }
@@ -850,12 +856,12 @@ export const mutations = {
       if (!metadataMap.has(item.name)) continue;
       const metadata = metadataMap.get(item.name);
       item.metadata = item.path === mergeForPath
-        ? { ...metadata, ...item.metadata }
+        ? { ...(metadata as Record<string, unknown>), ...(item.metadata as Record<string, unknown>) }
         : metadata;
     }
     emitStateChanged();
   },
-  patchRequestMetadata: (metadataItems) => {
+  patchRequestMetadata: (metadataItems: Array<{ name: string; metadata: unknown }> | undefined) => {
     if (!state.req?.items || !metadataItems?.length) {
       return;
     }
@@ -868,7 +874,7 @@ export const mutations = {
     mutations.patchListingMetadata(state.req.items, byName);
   },
   /** Merge media fields from GET /api/media/metadata (single file). Replace req object so Vue watchers see the update. */
-  patchRequestFileMediaMetadata: (enriched) => {
+  patchRequestFileMediaMetadata: (enriched: Partial<ReqObject> | null | undefined) => {
     if (
       !state.req ||
       state.req.type === "directory" ||
@@ -890,14 +896,14 @@ export const mutations = {
     state.req = next;
     emitStateChanged();
   },
-  setRequestContent: (content) => {
+  setRequestContent: (content: string) => {
     if (!state.req || state.req.content === content) {
       return;
     }
     state.req = { ...state.req, content };
     emitStateChanged();
   },
-  setRequestViewToken: (viewToken) => {
+  setRequestViewToken: (viewToken: string) => {
     if (!state.req || !viewToken || state.req.viewToken === viewToken) {
       return;
     }
@@ -907,19 +913,19 @@ export const mutations = {
   clearRequest: () => {
     // Set req to null to prevent API calls with empty paths
     // Components should check for null req before accessing
-    state.req = null;
+    state.req = null as unknown as ReqObject;
     state.selected = [];
     mutations.setMultiple(false);
     emitStateChanged();
   },
-  setRoute: (value) => {
+  setRoute: (value: RouteObject) => {
     if (value === state.route) {
       return;
     }
     state.route = value;
     emitStateChanged();
   },
-  updateListingSortConfig: ({ field, asc }) => {
+  updateListingSortConfig: ({ field, asc }: { field: string; asc: boolean }) => {
     if (!state.user.sorting) {
       state.user.sorting = {} as { by: string; asc: boolean };
     }
@@ -928,7 +934,7 @@ export const mutations = {
     mutations.updateDisplayPreferences({ sorting: { by: field, asc: asc } });
     emitStateChanged();
   },
-  updatePickerSortConfig: ({ field, asc }) => {
+  updatePickerSortConfig: ({ field, asc }: { field: string; asc: boolean }) => {
     state.pickerSorting = { by: field, asc };
     try {
       localStorage.setItem("pickerSorting", JSON.stringify(state.pickerSorting));
@@ -942,7 +948,7 @@ export const mutations = {
     mutations.replaceRequest(state.req);
     emitStateChanged();
   },
-  updateClipboard: (value) => {
+  updateClipboard: (value: StoreState['clipboard']) => {
     if (value.key === state.clipboard.key &&
         JSON.stringify(value.items) === JSON.stringify(state.clipboard.items) &&
         value.path === state.clipboard.path) {
@@ -958,14 +964,14 @@ export const mutations = {
     state.clipboard.items = [];
     emitStateChanged();
   },
-  setSharePassword: (value) => {
+  setSharePassword: (value: string) => {
     if (value === state.sharePassword) {
       return;
     }
     state.sharePassword = value;
     emitStateChanged();
   },
-  setSearch: (value) => {
+  setSearch: (value: boolean) => {
     if (value === state.isSearchActive) {
       return;
     }
@@ -978,13 +984,13 @@ export const mutations = {
     mutations.setMultiple(false);
     emitStateChanged();
   },
-  showTooltip(value) {
+  showTooltip(value: Partial<StoreState['tooltip']>) {
     const useComponent = Boolean(value.component);
     state.tooltip.content = useComponent ? "" : (value.content ?? "");
-    state.tooltip.component = useComponent ? markRaw(value.component) : null;
+    state.tooltip.component = value.component ? markRaw(value.component) : null;
     state.tooltip.componentProps = useComponent ? (value.componentProps ?? {}) : null;
-    state.tooltip.x = value.x;
-    state.tooltip.y = value.y;
+    state.tooltip.x = value.x ?? 0;
+    state.tooltip.y = value.y ?? 0;
     state.tooltip.width = value.width ?? null;
     state.tooltip.pointerEvents = value.pointerEvents ?? false;
     state.tooltip.show = true;
@@ -1005,7 +1011,7 @@ export const mutations = {
     state.tooltip.pointerEvents = false;
     emitStateChanged();
   },
-  setMaxConcurrentUpload: (value) => {
+  setMaxConcurrentUpload: (value: number) => {
     if (!state.user.fileLoading) {
       state.user.fileLoading = {};
     }
@@ -1015,7 +1021,7 @@ export const mutations = {
     state.user.fileLoading.maxConcurrentUpload = value;
     emitStateChanged();
   },
-  updateDisplayPreferences: (payload) => {
+  updateDisplayPreferences: (payload: Partial<DisplayPreference>) => {
     let source = state.sources.current;
     if (getters.isShare()) {
       source = getters.currentHash();
@@ -1045,7 +1051,7 @@ export const mutations = {
     }
     emitStateChanged();
   },
-  setNavigationEnabled: (enabled) => {
+  setNavigationEnabled: (enabled: boolean) => {
     if (state.navigation.enabled === enabled) {
       return;
     }
@@ -1055,7 +1061,7 @@ export const mutations = {
     }
     emitStateChanged();
   },
-  setupNavigation: ({ listing, currentItem, directoryPath }) => {
+  setupNavigation: ({ listing, currentItem, directoryPath }: { listing: unknown; currentItem: Partial<FileListItem>; directoryPath: string }) => {
     // Cancel any pending auto-hide from a previous setupNavigation; the raw
     // setTimeout used to leak and could fire setNavigationShow(false) right
     // after opening a new image (nextPrevious flicker).
@@ -1076,11 +1082,11 @@ export const mutations = {
 
     // Sort listing according to sorting preferences
     const sorting = getters.sorting();
-    listing = sortedItems(listing, sorting.by, sorting.asc);
+    const items: Partial<FileListItem>[] = sortedItems(listing as Partial<FileListItem>[], sorting.by, sorting.asc);
 
     // Find current item index in the listing
-    for (let i = 0; i < listing.length; i++) {
-      if (listing.at(i).name === currentItem.name) {
+    for (let i = 0; i < items.length; i++) {
+      if (items.at(i)?.name === currentItem.name) {
         state.navigation.currentIndex = i;
         break;
       }
@@ -1092,7 +1098,7 @@ export const mutations = {
     }
 
     // Find previous item (skip directories)
-    for (const item of listing.slice(0, state.navigation.currentIndex).reverse()) {
+    for (const item of items.slice(0, state.navigation.currentIndex).reverse()) {
       if (item.type === 'directory') continue;
 
       item.path = url.joinPath(directoryPath, item.name);
@@ -1109,7 +1115,7 @@ export const mutations = {
     }
 
     // Find next item (skip directories)
-    for (const item of listing.slice(state.navigation.currentIndex + 1)) {
+    for (const item of items.slice(state.navigation.currentIndex + 1)) {
       if (item.type === 'directory') continue;
 
       item.path = url.joinPath(directoryPath, item.name);
@@ -1138,7 +1144,7 @@ export const mutations = {
       mutations.setNavigationTimeout(hideTimer);
     }
   },
-  getPrefetchUrl: (item) => {
+  getPrefetchUrl: (item: Partial<FileListItem>) => {
     const viewToken = item.viewToken;
     const typeHint = item.type || item.name;
     if (getters.isShare()) {
@@ -1156,7 +1162,7 @@ export const mutations = {
     }
     return resourcesApi.getViewURL(item.source, item.path, viewToken, null, false, typeHint);
   },
-  setNavigationShow: (show) => {
+  setNavigationShow: (show: boolean) => {
     if (state.navigation.show === show) {
       return;
     }
@@ -1178,7 +1184,7 @@ export const mutations = {
     mutations.setNavigationShow(!state.navigation.show);
   },
   /** Briefly reveal prev/next chrome (e.g. edge tap on video while gestures capture the event). */
-  peekNavigationChrome: (side = null) => {
+  peekNavigationChrome: (side: 'left' | 'right' | null = null) => {
     if (!state.navigation.enabled) {
       return;
     }
@@ -1208,7 +1214,7 @@ export const mutations = {
     }, 3000);
     mutations.setNavigationTimeout(hideTimer);
   },
-  setNavigationHover: (hover) => {
+  setNavigationHover: (hover: boolean) => {
     if (state.navigation.hoverNav === hover) {
       return;
     }
@@ -1231,7 +1237,7 @@ export const mutations = {
     state.navigation.gestureHintFlashClose = flashClose;
     emitStateChanged();
   },
-  setNavigationTimeout: (timeout) => {
+  setNavigationTimeout: (timeout: ReturnType<typeof setTimeout> | null) => {
     if (state.navigation.timeout) {
       clearTimeout(state.navigation.timeout);
     }
@@ -1260,7 +1266,7 @@ export const mutations = {
     mutations.clearNavigationTimeout();
     emitStateChanged();
   },
-  setNavigationTransitioning: (isTransitioning) => {
+  setNavigationTransitioning: (isTransitioning: boolean) => {
     if (isTransitioning === state.navigation.isTransitioning) {
       return;
     }
@@ -1280,7 +1286,7 @@ export const mutations = {
     }
     emitStateChanged();
   },
-  setPlaybackQueue: (playback) => {
+  setPlaybackQueue: (playback: Partial<StoreState['playbackQueue']>) => {
     state.playbackQueue.queue = playback.queue || [];
     state.playbackQueue.currentIndex = playback.currentIndex ?? -1;
     state.playbackQueue.mode = playback.mode === 'sequential' || playback.mode === 'shuffle' || playback.mode === 'single'
@@ -1297,26 +1303,26 @@ export const mutations = {
     } catch (_) { /* ignore */ }
     emitStateChanged();
   },
-  setPlaybackState: (isPlaying) => {
+  setPlaybackState: (isPlaying: boolean) => {
     if (isPlaying === state.playbackQueue.isPlaying) {
       return;
     }
     state.playbackQueue.isPlaying = isPlaying;
     emitStateChanged();
   },
-  navigateToQueueIndex: (index) => {
+  navigateToQueueIndex: (index: number) => {
     if (index < 0 || index >= state.playbackQueue.queue.length) return;
     const item = state.playbackQueue.queue.at(index);
     state.playbackQueue.currentIndex = index;
     // Update the current request to trigger navigation
-    mutations.replaceRequest(item);
+    mutations.replaceRequest(item as ReqObject);
     emitStateChanged();
   },
   togglePlayPause: () => {
     state.playbackQueue.shouldTogglePlayPause = !state.playbackQueue.shouldTogglePlayPause;
     emitStateChanged();
   },
-  setShareInfo: (shareInfo) => {
+  setShareInfo: (shareInfo: Partial<ShareInfoObject>) => {
     const merged = { ...state.shareInfo, ...shareInfo };
     if (shareInfo.passwordValid === undefined && state.shareInfo.passwordValid !== undefined) {
       merged.passwordValid = state.shareInfo.passwordValid;
@@ -1328,7 +1334,7 @@ export const mutations = {
     updateManifestLink();
     emitStateChanged();
   },
-  setSidebarWidth: (value) => {
+  setSidebarWidth: (value: number) => {
     // Ensure width is within bounds
     const minWidth = state.sidebar.minWidth;
     const maxWidth = state.sidebar.maxWidth;
@@ -1340,14 +1346,14 @@ export const mutations = {
     localStorage.setItem("sidebarWidth", newWidth.toString());
     emitStateChanged();
   },
-  setSidebarResizing: (value) => {
+  setSidebarResizing: (value: boolean) => {
     if (value === state.sidebar.isResizing) {
       return;
     }
     state.sidebar.isResizing = value;
     emitStateChanged();
   },
-  setSidebarMode(value) {
+  setSidebarMode(value: string) {
     const newMode = value === 'navigation' ? 'navigation' : 'links';
     if (newMode === state.sidebar.mode) return;
     state.sidebar.mode = newMode;

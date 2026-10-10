@@ -24,7 +24,7 @@ vi.mock("@/store", () => ({
   },
 }));
 
-import { canNativeShare, nativeShareFile } from "./nativeShare";
+import { canNativeShare, nativeShareFile } from "./nativeShare.js";
 
 function mockShare(implementation) {
   Object.defineProperty(window, "isSecureContext", {

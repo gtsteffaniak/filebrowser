@@ -431,7 +431,7 @@ import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import YamlEditorPanel from "@/components/prompts/YamlEditorPanel.vue";
 import { sidebarLinkKey } from "@/utils/sidebarLinkKeys.js";
 import { createDragReorder } from "@/utils/dragAndDropReorder.js";
-import yaml from "js-yaml";
+import { CORE_SCHEMA, dump, load, mergeTag } from "js-yaml";
 import {
   baseSidebarCategory,
   isRootOnlySidebarCategory,
@@ -852,7 +852,7 @@ export default {
     onYamlModeChange(enabled) {
       if (enabled) {
         const payload = this.isDefaultsMode ? this.defaultsYamlPayload() : this.links;
-        this.yamlText = yaml.dump(payload, { lineWidth: 120, noRefs: true });
+        this.yamlText = dump(payload, { lineWidth: 120, noRefs: true });
         this.yamlMode = true;
         return;
       }
@@ -884,7 +884,7 @@ export default {
     },
     applyYamlLinks(text) {
       try {
-        const parsed = yaml.load(text);
+        const parsed = load(text, { schema: CORE_SCHEMA.withTags(mergeTag) });
         if (!Array.isArray(parsed)) {
           throw new Error("expected array");
         }
@@ -969,7 +969,7 @@ export default {
       const defaultLinks = [];
 
       if (this.availableSources) {
-        Object.keys(this.availableSources).forEach(sourceName => {
+        for (const sourceName of Object.keys(this.availableSources)) {
           defaultLinks.push({
             name: sourceName,
             category: 'source',
@@ -977,7 +977,7 @@ export default {
             icon: '', // No icon by default - will show animated status indicator
             sourceName: sourceName,
           });
-        });
+        }
       }
 
       return defaultLinks;

@@ -1,6 +1,6 @@
-import i18n from '@/i18n'
-import { mutations, state } from '@/store'
-import { resolveHistoryNotificationButtons } from '@/utils/notificationActions'
+import i18n from "@/i18n/index.ts"
+import { mutations, state } from "@/store/index.ts"
+import { resolveHistoryNotificationButtons } from "@/utils/notificationActions.js"
 
 /**
  * @typedef {Object} NotificationButton
@@ -307,14 +307,14 @@ export function closeNotification(notificationId) {
  * Close all notifications
  */
 export function closePopUp() {
-  notifications.forEach(notification => {
+  for (const notification of notifications) {
     if (notification.timeoutId) {
       clearTimeout(notification.timeoutId)
     }
     if (notification.progressInterval) {
       clearInterval(notification.progressInterval)
     }
-  })
+  }
 
   // Handle multiple selection special case
   if (state.multiple) {
@@ -455,12 +455,12 @@ export function getNotificationProgress(notificationId) {
 // ============================================================================
 // Usage examples:
 //   import { notify } from "@/notify";
-//   
+//
 //   notify.showSuccessToast("File saved!");
 //   notify.showErrorToast("Failed to save file");
 //   notify.showInfoToast("Processing...");
 //   notify.showWarningToast("Disk space is low");
-//   
+//
 //   // With custom icon and duration:
 //   notify.showSuccessToast("Done!", { icon: "check", duration: 3000 });
 //   notify.showToast("info", "Custom message", { icon: "star", duration: 5000 });

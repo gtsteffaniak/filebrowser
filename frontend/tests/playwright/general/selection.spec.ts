@@ -1,5 +1,5 @@
 import type { Locator, Page } from "@playwright/test";
-import { expect, test } from "../test-setup";
+import { expect, test } from "../test-setup.ts";
 
 const LISTING_TITLE = "Graham's Filebrowser - Files - playwright-files";
 const DOUBLE_CLICK_WINDOW_MS = 600;
@@ -66,7 +66,11 @@ async function dispatchBubblingClick(
 }
 
 async function waitForDoubleClickWindow(page: Page) {
-  await page.waitForTimeout(DOUBLE_CLICK_WINDOW_MS);
+  const start = await page.evaluate(() => performance.now());
+  await page.waitForFunction(
+    ({ startTime, windowMs }) => performance.now() - startTime >= windowMs,
+    { startTime: start, windowMs: DOUBLE_CLICK_WINDOW_MS },
+  );
 }
 
 for (const modifier of [

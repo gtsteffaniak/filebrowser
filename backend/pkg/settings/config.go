@@ -872,6 +872,7 @@ func SetDefaults(generate bool) Settings {
 			BaseURL: "",
 		},
 		Server: Server{
+			SearchResultsLimit: 1000,
 			MinSearchLength:    defaultMinSearchLength,
 			NumImageProcessors: 4,
 			DatabaseV2: Database{
@@ -936,6 +937,8 @@ func SetDefaults(generate bool) Settings {
 				SingleClick:             false,
 				HideFileExt:             "",
 				ShowCopyPath:            false,
+				ShowTypeColumn:          false,
+				ShowCreationDateColumn:  false,
 				DeleteAfterArchive:      true,
 				ViewMode:                "normal",
 				GallerySize:             3,

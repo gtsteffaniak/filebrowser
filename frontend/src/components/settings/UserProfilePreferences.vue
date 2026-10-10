@@ -190,6 +190,18 @@
           :description="$t('profileSettings.showCopyPathDescription')"
         />
         <ProfilePreferenceToggle
+          field="showTypeColumn"
+          section="listing"
+          :name="$t('profileSettings.showTypeColumn')"
+          :description="$t('profileSettings.showTypeColumnDescription')"
+        />
+        <ProfilePreferenceToggle
+          field="showCreationDateColumn"
+          section="listing"
+          :name="$t('profileSettings.showCreationDateColumn')"
+          :description="$t('profileSettings.showCreationDateColumnDescription')"
+        />
+        <ProfilePreferenceToggle
           field="deleteAfterArchive"
           section="listing"
           :name="$t('profileSettings.deleteAfterArchive')"
@@ -713,6 +725,26 @@
         </ProfileEnforceableField>
       </div>
     </SettingsItem>
+
+    <SettingsItem
+      v-if="sectionVisible('accountOptions')"
+      aria-label="accountOptions"
+      name="accountOptions"
+      :accordion="!sectionKey"
+      :title="$t('profileSettings.accountOptions')"
+      :collapsable="!sectionKey"
+      :hidden="!!sectionKey"
+      :start-collapsed="sectionStartsCollapsed('accountOptions')"
+    >
+      <div class="settings-items">
+        <ProfilePreferenceToggle
+          field="showAdvancedProfile"
+          section="account"
+          :name="$t('profileSettings.showAdvancedProfile')"
+          :description="$t('profileSettings.showAdvancedProfileDescription')"
+        />
+      </div>
+    </SettingsItem>
   </SettingsAccordion>
   </template>
 </template>
@@ -1040,7 +1072,7 @@ export default {
     fieldDisabled(section, field) {
       return this.valueDisabled(section, field);
     },
-    helpText(section, field, description) {
+    helpText(_section, _field, description) {
       return description || "";
     },
     configLockTooltip(section, field) {
@@ -1078,7 +1110,7 @@ export default {
           const perms = getObjectProperty(getObjectProperty(this.sections, "account"), "permissions");
           const val = getObjectProperty(perms, key);
           if (val === undefined || val === null) {
-            return key === "download" ? true : false;
+            return key === "download";
           }
           return !!val;
         }

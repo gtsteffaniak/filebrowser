@@ -15,6 +15,7 @@
         @change="onChange"
       />
       <span class="slider round"></span>
+      <span class="hidden">{{ enforcedLabelText }}</span>
     </label>
   </div>
 </template>

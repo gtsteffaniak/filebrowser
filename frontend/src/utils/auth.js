@@ -1,5 +1,5 @@
-import { getters, mutations, state } from "@/store";
-import { globalVars } from "@/utils/constants";
+import { getters, mutations, state } from "@/store/index.ts";
+import { globalVars } from "@/utils/constants.js";
 import { getApiPath } from "@/utils/url.js";
 import { sanitizeLogoutDestination, sanitizePostLoginRedirect } from "@/utils/safeRedirect.js";
 
@@ -115,7 +115,7 @@ export async function validateLogin(isPublicRoute = false) {
  * so mid-upload 401 retries and keep-alive do not stampede /auth/renew.
  */
 export async function renew() {
-  if (renewInFlight) {
+  if (renewInFlight !== null) {
     return renewInFlight;
   }
   renewInFlight = (async () => {

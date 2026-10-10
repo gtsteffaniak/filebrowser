@@ -1,9 +1,9 @@
 import DOMPurify from "dompurify";
-import { getters, state } from "@/store";
-import { getCachedViewToken } from "@/api/viewToken";
-import { getViewURL } from "@/api/resources";
-import { getParentDir, resolveRelativePath } from "@/utils/url";
-import { globalVars } from "./constants";
+import { getters, state } from "@/store/index.ts";
+import { getCachedViewToken } from "@/api/viewToken.js";
+import { getViewURL } from "@/api/resources.js";
+import { getParentDir, resolveRelativePath } from "@/utils/url.js";
+import { globalVars } from "./constants.js";
 
 export const HTML_SANITIZE_CONFIG = {
   USE_PROFILES: { html: true, svg: true, svgFilters: true },
@@ -131,22 +131,19 @@ export function buildPreviewResourceUrl(
     getCachedViewToken(source);
 
   try {
-    let viewUrl;
-    if (getters.isShare()) {
-      viewUrl = getViewURL(
-        source,
-        resolvedPath,
-        viewToken,
-        {
-          path: state.shareInfo.subPath,
-          hash: state.shareInfo.hash,
-        },
-        false,
-        resolvedPath,
-      );
-    } else {
-      viewUrl = getViewURL(source, resolvedPath, viewToken, null, false, resolvedPath);
-    }
+    const viewUrl = getters.isShare()
+      ? getViewURL(
+          source,
+          resolvedPath,
+          viewToken,
+          {
+            path: state.shareInfo.subPath,
+            hash: state.shareInfo.hash,
+          },
+          false,
+          resolvedPath,
+        )
+      : getViewURL(source, resolvedPath, viewToken, null, false, resolvedPath);
     return viewUrl ?? href;
   } catch {
     return href;
@@ -235,29 +232,29 @@ export function rewriteHtmlResources(
   source: string,
 ): void {
   for (const [tag, attribute] of RESOURCE_ATTRIBUTES) {
-    doc.querySelectorAll(tag).forEach((element) => {
+    for (const element of doc.querySelectorAll(tag)) {
       if (!element.hasAttribute(attribute)) {
-        return;
+        continue;
       }
       if (tag === "link" && !shouldRewriteLinkHref(element)) {
-        return;
+        continue;
       }
       if (tag === "a") {
         const href = element.getAttribute("href");
         if (!href || !isLocalResourceReference(href)) {
-          return;
+          continue;
         }
       }
       rewriteAttribute(element, attribute, baseFilePath, source);
-    });
+    }
   }
 
-  doc.querySelectorAll("img[srcset], source[srcset]").forEach((element) => {
+  for (const element of doc.querySelectorAll("img[srcset], source[srcset]")) {
     const srcset = element.getAttribute("srcset");
     if (srcset) {
       element.setAttribute("srcset", rewriteSrcset(srcset, baseFilePath, source));
     }
-  });
+  }
 }
 
 export function rewriteDocumentStyles(
@@ -265,19 +262,19 @@ export function rewriteDocumentStyles(
   baseFilePath: string,
   source: string,
 ): void {
-  doc.querySelectorAll("style").forEach((styleEl) => {
+  for (const styleEl of doc.querySelectorAll("style")) {
     const css = styleEl.textContent;
     if (css) {
       styleEl.textContent = rewriteCssContent(css, baseFilePath, source);
     }
-  });
+  }
 
-  doc.querySelectorAll("[style]").forEach((element) => {
+  for (const element of doc.querySelectorAll("[style]")) {
     const style = element.getAttribute("style");
     if (style) {
       element.setAttribute("style", rewriteCssContent(style, baseFilePath, source));
     }
-  });
+  }
 }
 
 function navigationGuard(htmlEl: HTMLElement): string {

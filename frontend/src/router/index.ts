@@ -1,11 +1,12 @@
+/** biome-ignore-all lint/correctness/noUnresolvedImports: false positives */
 import type { RouteLocation, RouteRecordRaw } from "vue-router";
 import { createRouter, createWebHistory } from "vue-router";
 
-import i18n from "@/i18n";
-import { getters, mutations, state } from "@/store";
-import { validateLogin } from "@/utils/auth";
+import i18n from "@/i18n/index.ts";
+import { getters, mutations, state } from "@/store/index.ts";
+import { validateLogin } from "@/utils/auth.js";
 import { sanitizePostLoginRedirect } from "@/utils/safeRedirect.js";
-import { globalVars } from "@/utils/constants";
+import { globalVars } from "@/utils/constants.js";
 import Errors from "@/views/Errors.vue";
 import Files from "@/views/Files.vue";
 import Layout from "@/views/Layout.vue";
@@ -170,11 +171,10 @@ function isSameRoute(to: RouteLocation, from: RouteLocation) {
     toQuery === fromQuery;
 }
 
-router.beforeResolve(async (to, from, next) => {
+router.beforeResolve(async (to, from) => {
   if (isSameRoute(to, from)) {
     console.warn("Avoiding recursive navigation to the same route.");
-    next(false);
-    return;
+    return false;
   }
 
   // Clear any popup previews when navigating
@@ -205,31 +205,27 @@ router.beforeResolve(async (to, from, next) => {
       // Validation failed - clear state and redirect to login
       void mutations.setCurrentUser(null);
       const safeRedirect = sanitizePostLoginRedirect(to.fullPath);
-      next({ path: "/login", query: { redirect: safeRedirect } });
-      return;
+      return { path: "/login", query: { redirect: safeRedirect } };
     }
 
     if (to.matched.some((record) => record.meta.requiresAdmin)) {
       if (!getters.isAdmin()) {
-        next({ path: "/403" });
-        return;
+        return { path: "/403" };
       }
     }
 
     if (to.matched.some((record) => record.meta.requireSettingsEnabled)) {
       if (state.user?.disableSettings) {
-        next({ path: "/files/" });
-        return;
+        return { path: "/files/" };
       }
     }
   }
 
   if (to.path.endsWith("/login") && getters.isLoggedIn()) {
-    next({ path: "/files/" });
-    return;
+    return { path: "/files/" };
   }
 
-  next();
+  return true;
 });
 
 router.afterEach((to) => {
@@ -245,4 +241,4 @@ router.afterEach((to) => {
   }
 });
 
-export { router, router as default };
+export { router };

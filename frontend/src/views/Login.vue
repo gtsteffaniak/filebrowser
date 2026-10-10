@@ -32,20 +32,32 @@
             </div>
             <div class="field-wrap" :class="{ 'tombstone-field': eventTheme === 'halloween', born: eventTheme === 'halloween' }">
               <span v-if="eventTheme === 'halloween'" class="tombstone-label" aria-hidden="true"></span>
-              <input autofocus class="input" type="text" autocapitalize="off" v-model="username"
+              <input autofocus class="input" type="text" id="username" name="username" autocomplete="username"
+                autocapitalize="off" :spellcheck="false" v-model="username"
                 :placeholder="$t('general.username')" />
             </div>
             <div class="field-wrap" :class="{ 'tombstone-field': eventTheme === 'halloween', died: eventTheme === 'halloween' }">
               <span v-if="eventTheme === 'halloween'" class="tombstone-label" aria-hidden="true"></span>
-              <input class="input" type="password" v-model="password" :placeholder="$t('general.password')" />
+              <input class="input" type="password" id="password" name="password"
+                :autocomplete="createMode ? 'new-password' : 'current-password'"
+                v-model="password" :placeholder="$t('general.password')" />
             </div>
-            <input class="input" v-if="createMode" type="password" v-model="passwordConfirm"
+            <input class="input" v-if="createMode" type="password" id="password-confirm" name="password-confirm"
+              autocomplete="new-password" v-model="passwordConfirm"
               :placeholder="$t('login.passwordConfirm')" />
 
             <div v-if="globalVars.recaptcha" id="globalVars.recaptcha"></div>
             <input class="button button--block" type="submit" :disabled="globalVars.recaptcha && !recaptchaReady"
               :value="createMode ? $t('general.signup') : getLoginButtonValue()" />
-            <p @click="toggleMode" v-if="signup" aria-label="sign up toggle">
+            <p
+              v-if="signup"
+              @click="toggleMode"
+              @keydown.enter.prevent="toggleMode"
+              @keydown.space.prevent="toggleMode"
+              role="button"
+              tabindex="0"
+              aria-label="sign up toggle"
+            >
               {{ createMode ? $t("login.loginInstead") : $t("login.createAnAccount") }}
             </p>
           </div>
@@ -207,7 +219,7 @@
 </template>
 
 <script>
-import router from "@/router";
+import { router } from "@/router";
 import { mutations, state, getters } from "@/store";
 import Prompts from "@/components/prompts/Prompts.vue";
 import { authApi } from "@/api";
@@ -294,10 +306,11 @@ export default {
   }),
   watch: {
     // To render a new captcha whenever the login form is re-created (which can happen with wrong credentials)
-    inProgress(isInProgress, wasInProgress) {
+    async inProgress(isInProgress, wasInProgress) {
       if (!globalVars.recaptcha || !wasInProgress || isInProgress) return;
       this.recaptchaReady = false;
-      this.$nextTick(() => this.renderRecaptcha());
+      await this.$nextTick();
+      this.renderRecaptcha();
     },
   },
   mounted() {

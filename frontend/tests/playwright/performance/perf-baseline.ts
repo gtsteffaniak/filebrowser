@@ -15,7 +15,7 @@ import { cpus, platform, release, arch } from "node:os";
  * so the CI image already contains it via the existing `COPY ./frontend/tests/`.
  */
 
-export type BaselineMetricEntry = {
+export interface BaselineMetricEntry {
   value: number;
   tolerancePct: number;
   noiseFloor: number;
@@ -31,15 +31,15 @@ export type BaselineMetricEntry = {
   min?: number;
   max?: number;
   spreadPct?: number;
-};
+}
 
-export type BaselineRunEntry = {
+export interface BaselineRunEntry {
   scale: number;
   scenario: string;
   metrics: Record<string, BaselineMetricEntry>;
-};
+}
 
-export type EnvironmentFingerprint = {
+export interface EnvironmentFingerprint {
   os: string;
   platform: string;
   release: string;
@@ -55,9 +55,9 @@ export type EnvironmentFingerprint = {
   deviceScaleFactor: number;
   /** Set when running inside the CI container image. */
   imageTag: string | null;
-};
+}
 
-export type PerfBaseline = {
+export interface PerfBaseline {
   schemaVersion: number;
   createdAt: string;
   gitSha: string | null;
@@ -66,7 +66,7 @@ export type PerfBaseline = {
   environment: EnvironmentFingerprint;
   metrics: Record<string, BaselineRunEntry>;
   notes?: string;
-};
+}
 
 export const BASELINE_SCHEMA_VERSION = 1;
 
@@ -208,9 +208,11 @@ export function median(values: number[]): number {
   if (values.length === 0) return 0;
   const sorted = [...values].sort((a, b) => a - b);
   const mid = Math.floor(sorted.length / 2);
-  return sorted.length % 2 === 0
-    ? (sorted[mid - 1] + sorted[mid]) / 2
-    : sorted[mid];
+  const upper = sorted[mid] ?? 0;
+  if (sorted.length % 2 === 0) {
+    return ((sorted[mid - 1] ?? upper) + upper) / 2;
+  }
+  return upper;
 }
 
 /**

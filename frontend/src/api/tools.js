@@ -1,9 +1,9 @@
-import { notify } from "@/notify";
+import { notify } from "@/notify/index.ts";
 import { getApiPath } from "@/utils/url.js";
-import { fetchURL, fetchJSON } from "./utils";
+import { fetchURL, fetchJSON } from "./utils.ts";
 
 // GET /api/tools/search
-// extraParams: optional { olderThan, newerThan, useWildcard, terms, termJoin, perSourceScopes }
+// extraParams: optional { limit, olderThan, newerThan, useWildcard, terms, termJoin, perSourceScopes }
 // perSourceScopes: non-empty array of { source, path } sends repeated scope=source:path.
 export async function search(base, sources, query, largest = false, extraParams = {}) {
   try {
@@ -62,6 +62,10 @@ export async function search(base, sources, query, largest = false, extraParams 
 
     if (largest) {
       params.largest = "true";
+    }
+
+    if (extraParams.limit !== undefined) {
+      params.limit = String(extraParams.limit);
     }
 
     if (extraParams.olderThan !== undefined && extraParams.olderThan !== "") {

@@ -72,7 +72,7 @@ export default {
     closeTopPrompt() {
       mutations.closeTopPrompt();
     },
-    applyItems(data) {
+    async applyItems(data) {
       this.hydrating = true;
       this.items = Array.isArray(data.items)
         ? data.items.map((item) => ({
@@ -81,9 +81,8 @@ export default {
             link: { ...item.link },
           }))
         : [];
-      this.$nextTick(() => {
-        this.hydrating = false;
-      });
+      await this.$nextTick();
+      this.hydrating = false;
     },
     onItemsUpdate(items) {
       if (this.hydrating) {
@@ -102,9 +101,8 @@ export default {
         console.error(e);
       } finally {
         this.loading = false;
-        this.$nextTick(() => {
-          this.hydrating = false;
-        });
+        await this.$nextTick();
+        this.hydrating = false;
       }
     },
     async save() {

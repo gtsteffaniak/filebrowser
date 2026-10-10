@@ -141,11 +141,10 @@ export default {
       }
     },
   },
-  mounted() {
+  async mounted() {
     if (this.usesTemplate) {
-      this.$nextTick(() => {
-        this.$refs.filenameInput?.select();
-      });
+      await this.$nextTick();
+      this.$refs.filenameInput?.select();
     }
   },
   methods: {

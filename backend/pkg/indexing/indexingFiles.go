@@ -606,6 +606,7 @@ func (idx *Index) getFileInfoFromContext(ctx *PathContext, isIndexable bool) (*i
 		ItemInfo: iteminfo.ItemInfo{
 			Name:    ctx.BaseName,
 			Size:    size,
+			Created: getCreatedTime(ctx.FileInfo, ctx.RealPath),
 			ModTime: ctx.FileInfo.ModTime(),
 			Hidden:  ctx.IsHidden,
 		},
@@ -647,6 +648,7 @@ func (idx *Index) getBasicDirInfo(ctx *PathContext) *iteminfo.FileInfo {
 			Name:    ctx.BaseName,
 			Type:    "directory",
 			Size:    0,
+			Created: getCreatedTime(ctx.FileInfo, ctx.RealPath),
 			ModTime: ctx.FileInfo.ModTime(),
 			Hidden:  ctx.IsHidden,
 		},
@@ -743,6 +745,7 @@ func (idx *Index) GetFsInfoCore(indexPath string, opts Options) (*iteminfo.FileI
 			ItemInfo: iteminfo.ItemInfo{
 				Name:    baseName,
 				Size:    int64(realSize),
+				Created: getCreatedTime(dirInfo, realPath),
 				ModTime: dirInfo.ModTime(),
 			},
 		}
@@ -838,6 +841,7 @@ func (idx *Index) processDirectoryItem(file os.FileInfo, indexPath string, subdi
 
 	itemInfo := &iteminfo.ItemInfo{
 		Name:    file.Name(),
+		Created: getCreatedTime(file, utils.JoinPathAsUnix(idx.Path, indexPath, file.Name())),
 		ModTime: file.ModTime(),
 		Hidden:  IsHidden(utils.JoinPathAsUnix(idx.Path, indexPath, file.Name())),
 		Type:    "directory",
@@ -879,6 +883,7 @@ func (idx *Index) processFileItem(file os.FileInfo, indexPath string, opts Optio
 	fullCombined := utils.JoinPathAsUnix(idx.Path, indexPath, file.Name())
 	itemInfo := &iteminfo.ItemInfo{
 		Name:    file.Name(),
+		Created: getCreatedTime(file, fullCombined),
 		ModTime: file.ModTime(),
 		Hidden:  IsHidden(fullCombined),
 	}
@@ -1039,6 +1044,7 @@ func (idx *Index) GetDirInfoCore(dirInfo *os.File, stat os.FileInfo, indexPath s
 		Name:       baseName,
 		Type:       "directory",
 		Size:       totalSize,
+		Created:    getCreatedTime(stat, dirInfo.Name()),
 		ModTime:    stat.ModTime(),
 		HasPreview: hasPreview,
 	}

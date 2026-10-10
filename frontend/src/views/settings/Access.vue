@@ -11,7 +11,7 @@
   <errors v-if="error" :errorCode="error.status" />
   <div class="card-title">
     <h2>{{ $t("access.access") }}</h2>
-    <div class="form-flex-group">
+    <div v-if="sourceOptions.length > 1" class="form-flex-group">
       <ExpandDropdown
         input-id="source-select"
         v-model="selectedSource"
@@ -50,6 +50,8 @@
       :aria-label="$t('access.access')"
       :loading="loading"
     >
+      <template #cell-denyTotal="{ value }">{{ value || "-" }}</template>
+      <template #cell-allowTotal="{ value }">{{ value || "-" }}</template>
       <template #cell-warning="{ row }">
         <i
           v-if="!row.rule.pathExists"
@@ -194,9 +196,8 @@ export default {
         }
       } finally {
         this.defaultsLoading = false;
-        this.$nextTick(() => {
-          this.hydratingDefaults = false;
-        });
+        await this.$nextTick();
+        this.hydratingDefaults = false;
       }
     },
     canSaveSourceDefaults() {
@@ -247,9 +248,8 @@ export default {
         await this.loadSourceAccessDefaults();
       } finally {
         this.savingDefaults = false;
-        this.$nextTick(() => {
-          this.hydratingDefaults = false;
-        });
+        await this.$nextTick();
+        this.hydratingDefaults = false;
       }
     },
     isConfigLockedPermission(flag) {
@@ -272,13 +272,14 @@ export default {
           return null;
       }
     },
-    async onSourceAccessDefaultsChange(flag) {
+    async onSourceAccessDefaultsChange(flag, value) {
       if (!this.canSaveSourceDefaults() || !flag) {
         return;
       }
       if (this.isConfigLockedPermission(flag)) {
         return;
       }
+      this.sourceAccessDefaults = { ...this.sourceAccessDefaults, [flag]: value };
       const patch = this.sourceDefaultPermissionsPatch(flag);
       if (!patch) {
         return;
@@ -297,9 +298,8 @@ export default {
         await this.loadSourceAccessDefaults();
       } finally {
         this.savingDefaults = false;
-        this.$nextTick(() => {
-          this.hydratingDefaults = false;
-        });
+        await this.$nextTick();
+        this.hydratingDefaults = false;
       }
     },
     async fetchRules() {
@@ -348,7 +348,7 @@ export default {
 <style scoped>
 .card-title .form-flex-group {
   width: 100%;
-  margin-bottom: 0;
+  margin-bottom: 0.5em;
 }
 
 .card-content.full {

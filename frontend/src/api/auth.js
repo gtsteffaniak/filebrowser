@@ -1,5 +1,5 @@
-import { fetchJSON, fetchURL } from '@/api/utils'
-import { notify } from '@/notify'
+import { fetchJSON, fetchURL } from "@/api/utils.ts"
+import { notify } from "@/notify/index.ts"
 import { getApiPath } from '@/utils/url.js'
 
 // POST /api/auth/password/change-required
@@ -229,9 +229,9 @@ export async function deleteApiKey(params) {
 function arrayBufferToBase64(buffer) {
   const bytes = new Uint8Array(buffer)
   let binary = ''
-  bytes.forEach(b => {
-    binary += String.fromCharCode(b);
-  })
+  for (const b of bytes) {
+    binary += String.fromCharCode(b)
+  }
   return btoa(binary).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_')
 }
 

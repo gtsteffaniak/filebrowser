@@ -64,6 +64,7 @@
         <div
           v-if="numPinned > 0"
           class="pinned-items"
+          role="group"
           aria-label="Pinned Items"
           :class="{ lastGroup: numDirs === 0 && numFiles === 0, firstGroup: true }"
         >
@@ -73,9 +74,10 @@
             :class="{ 'zebra-row': idx % 2 === 1 }"
             v-bind:index="item.index"
             v-bind:name="item.name"
-            v-bind:isDir="item.type == 'directory'"
+            v-bind:isDir="item.type === 'directory'"
             v-bind:source="req.source"
             v-bind:modified="item.modified"
+            v-bind:created="item.created"
             v-bind:type="item.type"
             v-bind:size="item.size"
             v-bind:path="item.path"
@@ -97,6 +99,7 @@
         <div
           v-if="numDirs > 0"
           class="folder-items"
+          role="group"
           aria-label="Folder Items"
           :class="{ lastGroup: numFiles === 0, firstGroup: numPinned === 0 }"
         >
@@ -109,6 +112,7 @@
             v-bind:isDir="item.type === 'directory'"
             v-bind:source="req.source"
             v-bind:modified="item.modified"
+            v-bind:created="item.created"
             v-bind:type="item.type"
             v-bind:size="item.size"
             v-bind:path="item.path"
@@ -130,6 +134,7 @@
           v-if="numFiles > 0"
           class="file-items"
           :class="{ lastGroup: numFiles > 0, firstGroup: numPinned === 0 && numDirs === 0 }"
+          role="group"
           aria-label="File Items"
         >
           <item
@@ -140,6 +145,7 @@
             v-bind:name="item.name"
             v-bind:isDir="item.type === 'directory'"
             v-bind:modified="item.modified"
+            v-bind:created="item.created"
             v-bind:source="req.source"
             v-bind:type="item.type"
             v-bind:size="item.size"
@@ -240,13 +246,13 @@ export default {
       // Find the first item near the top of the viewport
       let topItem = null;
       let minTop = Infinity;
-      itemNodes.forEach((el) => {
+      for (const el of itemNodes) {
         const rect = el.getBoundingClientRect();
         if (rect.top >= 0 && rect.top < minTop) {
           minTop = rect.top;
           topItem = el;
         }
-      });
+      }
 
       // Decide category by checking which section is above
       let letter = "A";
@@ -561,9 +567,9 @@ export default {
       // Reset drag state for all items (replaces per-item dragend listeners)
       const items = this.$el?.querySelectorAll('.listing-item.drag-hover, .listing-item.half-selected');
       if (items) {
-        items.forEach(el => {
+        for (const el of items) {
           el.classList.remove('drag-hover', 'half-selected');
-        });
+        }
       }
       this.dragTargets.clear();
     },
@@ -624,6 +630,7 @@ export default {
           type: item.type,
           size: item.size,
           modified: item.modified,
+          created: item.created,
           hasPreview: item.hasPreview,
           previewUrl: previewUrl,
         });
@@ -816,8 +823,6 @@ export default {
 
       switch (shortcut) {
         case "Alt+ArrowUp":
-          event.preventDefault();
-          // fall through
         case "Backspace": {
           event.preventDefault();
           // get current path and its parent
@@ -833,8 +838,6 @@ export default {
         }
 
         case "Alt+ArrowDown":
-          event.preventDefault();
-          // fall through
         case "Enter": {
           event.preventDefault();
           if (this.selectedCount === 1) {
@@ -1353,7 +1356,7 @@ export default {
       // Get all item elements - use querySelectorAll with specific selector for better performance
       const itemElements = this.$el.querySelectorAll('.listing-item[data-index]');
 
-      itemElements.forEach((element) => {
+      for (const element of itemElements) {
         const elementRect = element.getBoundingClientRect();
 
         // Convert element position to be relative to listing view, this allows selection while scrolling
@@ -1376,25 +1379,25 @@ export default {
             rectangleSelectedIndexes.push(index);
           }
         }
-      });
+      }
 
       // Batch DOM updates to minimize reflows
       if (isAdditive) {
         // only add more items to the current selection without reset selection
         const newSelection = [...state.selected];
-        rectangleSelectedIndexes.forEach(index => {
+        for (const index of rectangleSelectedIndexes) {
           if (!newSelection.includes(index)) {
             newSelection.push(index);
           }
-        });
+        }
 
         mutations.resetSelected();
-        newSelection.forEach(index => { mutations.addSelected(index); });
+        for (const index of newSelection) { mutations.addSelected(index); }
       } else {
         // Select only the items in the rectangle and reset initial selection
         // PS: If you don't want that just hold ctrl, the selection will not be reset, allowing multi select.
         mutations.resetSelected();
-        rectangleSelectedIndexes.forEach(index => { mutations.addSelected(index); });
+        for (const index of rectangleSelectedIndexes) { mutations.addSelected(index); }
       }
     },
     handleDoubleClick(event) {

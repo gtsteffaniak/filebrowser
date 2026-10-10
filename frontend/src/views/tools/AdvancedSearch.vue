@@ -125,6 +125,20 @@
                     </div>
                   </div>
                   <div class="settings-items">
+                    <div class="settings-number-input item">
+                      <label for="advanced-search-limit">{{ $t('tools.advancedSearch.resultLimit') }}</label>
+                      <div>
+                        <input
+                          id="advanced-search-limit"
+                          v-model.number="resultLimit"
+                          type="range"
+                          min="1"
+                          :max="maxSearchResults"
+                          :disabled="loading"
+                        />
+                        <output for="advanced-search-limit" class="range-value">{{ resultLimit }}</output>
+                      </div>
+                    </div>
                     <ToggleSwitch
                       v-model="useWildcardSearch"
                       class="item"
@@ -195,6 +209,7 @@
                     :is-dir="entry.type === 'directory'"
                     :source="entry.source"
                     :modified="entry.modified"
+                    :created="entry.created"
                     :type="entry.type"
                     :size="entry.size"
                     :path="entry.path"
@@ -220,6 +235,7 @@
                     :name="entry.name"
                     :is-dir="entry.type === 'directory'"
                     :modified="entry.modified"
+                    :created="entry.created"
                     :source="entry.source"
                     :type="entry.type"
                     :size="entry.size"
@@ -245,7 +261,7 @@
 
 <script>
 import { toolsApi } from "@/api";
-import router from "@/router";
+import { router } from "@/router";
 import { state, getters, mutations } from "@/store";
 import { eventBus } from "@/store/eventBus";
 import { globalVars } from "@/utils/constants";
@@ -361,6 +377,7 @@ function hasFilterOrTermSignalsForImplicitSources(q) {
     nonempty("types") ||
     nonempty("largerThan") ||
     nonempty("smallerThan") ||
+    nonempty("limit") ||
     nonempty("dateOlder") ||
     nonempty("dateNewer")
   ) {
@@ -485,6 +502,7 @@ export default {
   },
   data() {
     return {
+      resultLimit: Math.min(500, globalVars.searchResultsLimit || 1000),
       termInputs: [""],
       termsJoinAnd: false,
       sourceEnabledFlags: {},
@@ -516,6 +534,9 @@ export default {
     };
   },
   computed: {
+    maxSearchResults() {
+      return globalVars.searchResultsLimit || 1000;
+    },
     isAdvancedSearchRoute() {
       return (this.$route.path || "") === "/tools/advancedSearch";
     },
@@ -602,7 +623,7 @@ export default {
         this.sourceScopedPaths = nextPaths;
 
         if (selected.length === 0) {
-          this.$nextTick(() => this.applyDefaultCurrentSourceIfNone());
+          void this.$nextTick().then(() => this.applyDefaultCurrentSourceIfNone());
         }
       },
     },
@@ -745,6 +766,9 @@ export default {
     largerThan() {
       this.scheduleAdvancedSearchUrlUpdate();
     },
+    resultLimit() {
+      this.scheduleAdvancedSearchUrlUpdate();
+    },
     smallerThan() {
       this.scheduleAdvancedSearchUrlUpdate();
     },
@@ -792,7 +816,9 @@ export default {
 
         this.applyQueryFromRoute();
         if (hasAnyAdvancedSearchRouteParams(this.$route.query)) {
-          this.$nextTick(() => void this.runSearch());
+          void this.$nextTick().then(() => {
+            void this.runSearch();
+          });
         }
         this.scheduleAdvancedSearchUrlUpdate();
       },
@@ -916,7 +942,7 @@ export default {
         return;
       }
       this.refreshQueued = true;
-      this.$nextTick(() => {
+      void this.$nextTick().then(() => {
         this.refreshQueued = false;
         mutations.resetSelected();
         void this.runSearch();
@@ -998,12 +1024,12 @@ export default {
           this.$route.query,
         )
       ) {
-        this.$nextTick(() => {
+        void this.$nextTick().then(() => {
           void this.runSearch();
         });
       }
       this.isInitializing = false;
-      this.$nextTick(() => {
+      void this.$nextTick().then(() => {
         this.updateAdvancedSearchUrl();
       });
     },
@@ -1055,6 +1081,9 @@ export default {
       }
       if (this.largerThan !== "") {
         query.largerThan = String(this.largerThan);
+      }
+      if (this.resultLimit !== Math.min(500, this.maxSearchResults)) {
+        query.limit = String(this.resultLimit);
       }
       if (this.smallerThan !== "") {
         query.smallerThan = String(this.smallerThan);
@@ -1176,6 +1205,11 @@ export default {
         ? String(largerThanRaw).trim()
         : "";
 
+      const requestedLimit = Number(q.limit);
+      this.resultLimit = Number.isSafeInteger(requestedLimit) && requestedLimit > 0
+        ? Math.min(requestedLimit, this.maxSearchResults)
+        : Math.min(500, this.maxSearchResults);
+
       const smallerThanRaw = q.smallerThan;
       this.smallerThan = smallerThanRaw !== undefined && smallerThanRaw !== null
         ? String(smallerThanRaw).trim()
@@ -1248,7 +1282,7 @@ export default {
         })
         .catch(() => {})
         .finally(() => {
-          this.$nextTick(() => {
+          void this.$nextTick().then(() => {
             this.suppressRouteQueryNavigation = false;
           });
         });
@@ -1257,7 +1291,7 @@ export default {
       if (!this.isAdvancedSearchRoute || this.isInitializing) {
         return;
       }
-      this.$nextTick(() => {
+      void this.$nextTick().then(() => {
         this.updateAdvancedSearchUrl();
       });
     },
@@ -1376,6 +1410,7 @@ export default {
           false,
           {
             ...dateParams,
+            limit: this.resultLimit,
             terms,
             termJoin: this.termsJoinAnd ? "and" : undefined,
             perSourceScopes,
@@ -1401,6 +1436,7 @@ export default {
             type: isDir ? "directory" : String(searchResult.type || "application/octet-stream"),
             size: typeof searchResult.size === "number" ? searchResult.size : 0,
             modified: typeof searchResult.modified === "string" ? searchResult.modified : "",
+            created: typeof searchResult.created === "string" ? searchResult.created : "",
             hasPreview: !!(searchResult.hasPreview || searchResult.HasPreview),
             source: resultSource,
             isShared: false,
@@ -1435,6 +1471,23 @@ export default {
 </script>
 
 <style scoped>
+.settings-number-input,
+.settings-number-input > div {
+  display: flex;
+  align-items: center;
+  gap: 1em;
+}
+
+.settings-number-input {
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.range-value {
+  min-width: 4ch;
+  text-align: center;
+}
+
 .advanced-search-root {
   display: flex;
   flex-direction: column;

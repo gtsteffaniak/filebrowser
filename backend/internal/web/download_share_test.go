@@ -11,7 +11,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/gtsteffaniak/filebrowser/backend/internal/activity"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/app"
+	activitydb "github.com/gtsteffaniak/filebrowser/backend/internal/database/activity"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/share"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
@@ -217,6 +219,191 @@ func TestRawFilesHandlerShareDirectoryDownloadNotEmptyZip(t *testing.T) {
 	}
 }
 
+// TestRawFilesHandler_MixedPathsZipContainsAllowedOnly verifies that a multi-path
+// ZIP download where some paths are access-denied returns 200 and includes only the
+// files from allowed paths (issue #3098 follow-up: silently skip denied paths).
+func TestRawFilesHandler_MixedPathsZipContainsAllowedOnly(t *testing.T) {
+	sourceRoot, sourceName, _ := setupShareArchiveDownloadTest(t)
+
+	// Create a second directory that owner is denied (DenyByDefault, no allow rule).
+	deniedDir := filepath.Join(sourceRoot, "denied_dir")
+	if err := os.MkdirAll(deniedDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(deniedDir, "secret.txt"), []byte("secret"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	ownerUser := users.User{
+		FrontendUser: users.FrontendUser{Username: "owner"},
+		BackendScopes: []users.BackendScope{{
+			Path:  sourceRoot,
+			Scope: "/",
+			Permissions: users.SourceFilePermissions{
+				View: true, Download: true, Modify: true, Create: true, Delete: true,
+			},
+		}},
+	}
+	users.SyncBackendSourcePermissionsMap(&ownerUser)
+
+	d := &Context{User: &ownerUser}
+	req := httptest.NewRequest(http.MethodGet, "/api/resources/download?source="+sourceName+"&file=/shared&file=/denied_dir&algo=zip", nil)
+	rec := httptest.NewRecorder()
+
+	status, err := RawFilesHandler(rec, req, d, sourceName, []string{"/shared", "/denied_dir"})
+	if err != nil {
+		t.Fatalf("mixed paths: expected no error, got status=%d err=%v", status, err)
+	}
+	if status != http.StatusOK && status != 0 {
+		t.Fatalf("mixed paths: expected 200, got status=%d", status)
+	}
+
+	body, readErr := io.ReadAll(rec.Body)
+	if readErr != nil {
+		t.Fatal(readErr)
+	}
+	names := readZipFileNames(body)
+
+	// hello.txt must be present (from the allowed /shared path).
+	found := false
+	for _, n := range names {
+		if strings.HasSuffix(n, "hello.txt") {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Fatalf("zip %v should contain hello.txt from allowed /shared, but it is absent", names)
+	}
+
+	// secret.txt must be absent (from /denied_dir which was silently filtered).
+	for _, n := range names {
+		if strings.Contains(n, "secret.txt") {
+			t.Fatalf("zip %v must not contain secret.txt from denied /denied_dir, but it does", names)
+		}
+	}
+}
+
+// TestRawFilesHandler_AllDeniedTarGzReturns404 verifies that a tar.gz download
+// where every requested path is access-denied returns 404 (not 200/403).
+func TestRawFilesHandler_AllDeniedTarGzReturns404(t *testing.T) {
+	sourceRoot, sourceName, _ := setupShareArchiveDownloadTest(t)
+
+	deniedDir := filepath.Join(sourceRoot, "denied_dir")
+	if err := os.MkdirAll(deniedDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+
+	ownerUser := users.User{
+		FrontendUser: users.FrontendUser{Username: "owner"},
+		BackendScopes: []users.BackendScope{{
+			Path:  sourceRoot,
+			Scope: "/",
+			Permissions: users.SourceFilePermissions{
+				View: true, Download: true, Modify: true, Create: true, Delete: true,
+			},
+		}},
+	}
+	users.SyncBackendSourcePermissionsMap(&ownerUser)
+
+	d := &Context{User: &ownerUser}
+	req := httptest.NewRequest(http.MethodGet, "/api/resources/download?source="+sourceName+"&file=/denied_dir&algo=tar.gz", nil)
+	rec := httptest.NewRecorder()
+
+	status, err := RawFilesHandler(rec, req, d, sourceName, []string{"/denied_dir"})
+	if err == nil {
+		t.Fatal("all-denied tar.gz: expected error, got nil")
+	}
+	if status != http.StatusNotFound {
+		t.Fatalf("all-denied tar.gz: expected 404, got status=%d err=%v", status, err)
+	}
+}
+
+// TestRawFilesHandler_AllDeniedEqualsNotFound verifies that an all-denied download
+// returns exactly the same status and error message as a request for a nonexistent
+// path, so that denied and missing paths are indistinguishable to the caller.
+func TestRawFilesHandler_AllDeniedEqualsNotFound(t *testing.T) {
+	sourceRoot, sourceName, _ := setupShareArchiveDownloadTest(t)
+
+	// A directory owner is denied (no allow rule, DenyByDefault=true).
+	deniedDir := filepath.Join(sourceRoot, "denied_dir")
+	if err := os.MkdirAll(deniedDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+
+	ownerUser := users.User{
+		FrontendUser: users.FrontendUser{Username: "owner"},
+		BackendScopes: []users.BackendScope{{
+			Path:  sourceRoot,
+			Scope: "/",
+			Permissions: users.SourceFilePermissions{
+				View: true, Download: true, Modify: true, Create: true, Delete: true,
+			},
+		}},
+	}
+	users.SyncBackendSourcePermissionsMap(&ownerUser)
+
+	// Request a path that exists on disk but is access-denied.
+	dDenied := &Context{User: &ownerUser}
+	reqDenied := httptest.NewRequest(http.MethodGet, "/api/resources/download?source="+sourceName+"&file=/denied_dir&algo=zip", nil)
+	recDenied := httptest.NewRecorder()
+	statusDenied, errDenied := RawFilesHandler(recDenied, reqDenied, dDenied, sourceName, []string{"/denied_dir"})
+
+	// Request a path that owner can access but that does not exist on disk.
+	dMissing := &Context{User: &ownerUser}
+	reqMissing := httptest.NewRequest(http.MethodGet, "/api/resources/download?source="+sourceName+"&file=/shared/nonexistent.txt", nil)
+	recMissing := httptest.NewRecorder()
+	statusMissing, errMissing := RawFilesHandler(recMissing, reqMissing, dMissing, sourceName, []string{"/shared/nonexistent.txt"})
+
+	if errDenied == nil || errMissing == nil {
+		t.Fatalf("expected errors from both: denied=%v, missing=%v", errDenied, errMissing)
+	}
+	if statusDenied != statusMissing {
+		t.Fatalf("status mismatch: denied=%d missing=%d", statusDenied, statusMissing)
+	}
+	if errDenied.Error() != errMissing.Error() {
+		t.Fatalf("error message mismatch: denied=%q missing=%q", errDenied.Error(), errMissing.Error())
+	}
+}
+
+// TestRawFilesHandler_AllowedUserGets200 verifies that a fully permitted user
+// still receives 200 with a valid archive (regression guard for issue #3098).
+func TestRawFilesHandler_AllowedUserGets200(t *testing.T) {
+	sourceRoot, sourceName, _ := setupShareArchiveDownloadTest(t)
+	settings.Config.Server.NameToSource[sourceName].Path = sourceRoot
+
+	allowedUser := users.User{
+		FrontendUser: users.FrontendUser{Username: "owner"},
+		BackendScopes: []users.BackendScope{{
+			Path:  sourceRoot,
+			Scope: "/",
+			Permissions: users.SourceFilePermissions{
+				View: true, Download: true, Modify: true, Create: true, Delete: true,
+			},
+		}},
+	}
+	users.SyncBackendSourcePermissionsMap(&allowedUser)
+
+	d := &Context{User: &allowedUser}
+	req := httptest.NewRequest(http.MethodGet, "/api/resources/download?source="+sourceName+"&file=/shared&algo=zip", nil)
+	rec := httptest.NewRecorder()
+
+	status, err := RawFilesHandler(rec, req, d, sourceName, []string{"/shared"})
+	if err != nil {
+		t.Fatalf("allowed user: unexpected error: status=%d err=%v", status, err)
+	}
+	if status != http.StatusOK && status != 0 {
+		t.Fatalf("allowed user: expected 200, got status=%d", status)
+	}
+	body, readErr := io.ReadAll(rec.Body)
+	if readErr != nil {
+		t.Fatal(readErr)
+	}
+	if len(readZipFileNames(body)) == 0 {
+		t.Fatal("allowed user: expected non-empty ZIP archive")
+	}
+}
+
 func TestRawFilesHandler_MissingFileReturns404(t *testing.T) {
 	sourceRoot, sourceName, _ := setupShareArchiveDownloadTest(t)
 	ownerUser := users.User{
@@ -307,5 +494,257 @@ func TestServeSingleFile_MissingScopedPathReturns404(t *testing.T) {
 	}
 	if status != http.StatusNotFound {
 		t.Fatalf("expected 404, got status=%d err=%v", status, err)
+	}
+}
+
+// TestRawFilesHandler_ActivityLogExcludesDeniedPaths verifies that when a download
+// mixes allowed and denied paths, only the allowed paths appear in the recorded
+// activity entry (the denied path name must not be revealed via the audit log).
+func TestRawFilesHandler_ActivityLogExcludesDeniedPaths(t *testing.T) {
+	sourceRoot, sourceName, _ := setupShareArchiveDownloadTest(t)
+
+	// Create a directory that owner is denied (DenyByDefault, no allow rule).
+	deniedDir := filepath.Join(sourceRoot, "denied_dir")
+	if err := os.MkdirAll(deniedDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(deniedDir, "secret.txt"), []byte("secret"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	ownerUser := users.User{
+		ID:           1,
+		FrontendUser: users.FrontendUser{Username: "owner"},
+		BackendScopes: []users.BackendScope{{
+			Path:  sourceRoot,
+			Scope: "/",
+			Permissions: users.SourceFilePermissions{
+				View: true, Download: true, Modify: true, Create: true, Delete: true,
+			},
+		}},
+	}
+	users.SyncBackendSourcePermissionsMap(&ownerUser)
+
+	d := &Context{User: &ownerUser}
+	req := httptest.NewRequest(http.MethodGet, "/api/resources/download?source="+sourceName+"&file=/shared&file=/denied_dir&algo=zip", nil)
+	rec := httptest.NewRecorder()
+
+	status, err := RawFilesHandler(rec, req, d, sourceName, []string{"/shared", "/denied_dir"})
+	if err != nil {
+		t.Fatalf("mixed paths: expected no error, got status=%d err=%v", status, err)
+	}
+	if status != http.StatusOK && status != 0 {
+		t.Fatalf("mixed paths: expected 200, got status=%d", status)
+	}
+
+	// Flush the activity buffer so entries are persisted to the SQLite store.
+	activity.FlushNow()
+
+	entries, _, qErr := state.ListActivity(activitydb.QueryFilter{
+		EventTypes: []activitydb.EventType{activitydb.EventDownload},
+		Page:       1,
+		Limit:      20,
+	})
+	if qErr != nil {
+		t.Fatalf("ListActivity: %v", qErr)
+	}
+	if len(entries) == 0 {
+		t.Fatal("expected at least one download activity entry")
+	}
+
+	// Collect all recorded paths across all detail entries for this test's download.
+	var recordedPaths []string
+	for _, e := range entries {
+		recordedPaths = append(recordedPaths, e.Details.Paths...)
+		if e.Details.Path != "" {
+			recordedPaths = append(recordedPaths, e.Details.Path)
+		}
+	}
+
+	// The allowed path (/shared) must appear in the activity log.
+	allowedFound := false
+	for _, p := range recordedPaths {
+		if strings.Contains(p, "shared") {
+			allowedFound = true
+			break
+		}
+	}
+	if !allowedFound {
+		t.Errorf("activity log %v should contain the allowed path 'shared'", recordedPaths)
+	}
+
+	// The denied path name must NOT appear in the activity log.
+	for _, p := range recordedPaths {
+		if strings.Contains(p, "denied_dir") {
+			t.Errorf("activity log recorded denied path %q — denied paths must not be revealed", p)
+		}
+	}
+}
+
+// TestRawFilesHandler_TwoFilesOneDeniedServesArchive verifies the fix for the bug
+// where a multi-file download request that has one path filtered out by access
+// control would serve the remaining single file as a raw download instead of the
+// requested archive.  Two plain files are requested; one is denied; the surviving
+// file must be returned inside a ZIP archive (not as a raw octet-stream with the
+// plain filename), and the archive must contain only the allowed file.
+func TestRawFilesHandler_TwoFilesOneDeniedServesArchive(t *testing.T) {
+	sourceRoot, sourceName, _ := setupShareArchiveDownloadTest(t)
+
+	// Create a plain file that owner is denied (DenyByDefault, no allow rule).
+	deniedDir := filepath.Join(sourceRoot, "denied_dir")
+	if err := os.MkdirAll(deniedDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(deniedDir, "secret.txt"), []byte("secret-content"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	ownerUser := users.User{
+		FrontendUser: users.FrontendUser{Username: "owner"},
+		BackendScopes: []users.BackendScope{{
+			Path:  sourceRoot,
+			Scope: "/",
+			Permissions: users.SourceFilePermissions{
+				View: true, Download: true, Modify: true, Create: true, Delete: true,
+			},
+		}},
+	}
+	users.SyncBackendSourcePermissionsMap(&ownerUser)
+
+	// Request two plain files: one allowed (/shared/hello.txt), one denied (/denied_dir/secret.txt).
+	d := &Context{User: &ownerUser}
+	req := httptest.NewRequest(http.MethodGet, "/api/resources/download?source="+sourceName+"&file=/shared/hello.txt&file=/denied_dir/secret.txt&algo=zip", nil)
+	rec := httptest.NewRecorder()
+
+	status, err := RawFilesHandler(rec, req, d, sourceName, []string{"/shared/hello.txt", "/denied_dir/secret.txt"})
+	if err != nil {
+		t.Fatalf("two-files-one-denied: expected no error, got status=%d err=%v", status, err)
+	}
+	if status != http.StatusOK && status != 0 {
+		t.Fatalf("two-files-one-denied: expected 200, got status=%d", status)
+	}
+
+	// The response must be an archive, not a raw file.  Check Content-Disposition for a .zip name.
+	cd := rec.Header().Get("Content-Disposition")
+	if !strings.Contains(cd, ".zip") {
+		t.Errorf("two-files-one-denied: Content-Disposition %q should reference a .zip archive (bug: single file served raw instead of archive)", cd)
+	}
+
+	body, readErr := io.ReadAll(rec.Body)
+	if readErr != nil {
+		t.Fatal(readErr)
+	}
+	names := readZipFileNames(body)
+	if len(names) == 0 {
+		t.Fatal("two-files-one-denied: body is not a valid ZIP archive (bug: raw file content served instead)")
+	}
+
+	// The allowed file must be present.
+	found := false
+	for _, n := range names {
+		if strings.HasSuffix(n, "hello.txt") {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Fatalf("two-files-one-denied: zip %v should contain hello.txt from allowed path", names)
+	}
+
+	// The denied file must be absent.
+	for _, n := range names {
+		if strings.Contains(n, "secret.txt") {
+			t.Fatalf("two-files-one-denied: zip %v must not contain secret.txt from denied path", names)
+		}
+	}
+}
+
+// TestRawFilesHandler_TwoFilesAllDeniedReturns404 verifies that when all requested
+// paths are access-denied the handler returns 404, indistinguishable from missing.
+func TestRawFilesHandler_TwoFilesAllDeniedReturns404(t *testing.T) {
+	sourceRoot, sourceName, _ := setupShareArchiveDownloadTest(t)
+
+	deniedDir := filepath.Join(sourceRoot, "denied_dir")
+	if err := os.MkdirAll(deniedDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(deniedDir, "a.txt"), []byte("a"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	deniedDir2 := filepath.Join(sourceRoot, "denied_dir2")
+	if err := os.MkdirAll(deniedDir2, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(deniedDir2, "b.txt"), []byte("b"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	ownerUser := users.User{
+		FrontendUser: users.FrontendUser{Username: "owner"},
+		BackendScopes: []users.BackendScope{{
+			Path:  sourceRoot,
+			Scope: "/",
+			Permissions: users.SourceFilePermissions{
+				View: true, Download: true, Modify: true, Create: true, Delete: true,
+			},
+		}},
+	}
+	users.SyncBackendSourcePermissionsMap(&ownerUser)
+
+	d := &Context{User: &ownerUser}
+	req := httptest.NewRequest(http.MethodGet, "/api/resources/download?source="+sourceName+"&file=/denied_dir/a.txt&file=/denied_dir2/b.txt&algo=zip", nil)
+	rec := httptest.NewRecorder()
+
+	status, err := RawFilesHandler(rec, req, d, sourceName, []string{"/denied_dir/a.txt", "/denied_dir2/b.txt"})
+	if err == nil {
+		t.Fatal("two-files-all-denied: expected error, got nil")
+	}
+	if status != http.StatusNotFound {
+		t.Fatalf("two-files-all-denied: expected 404, got status=%d err=%v", status, err)
+	}
+}
+
+// TestRawFilesHandler_SingleAllowedFileStillRaw verifies that a single-file download
+// for an allowed path is still served as a raw file (not wrapped in an archive).
+func TestRawFilesHandler_SingleAllowedFileStillRaw(t *testing.T) {
+	sourceRoot, sourceName, _ := setupShareArchiveDownloadTest(t)
+	settings.Config.Server.NameToSource[sourceName].Path = sourceRoot
+
+	ownerUser := users.User{
+		FrontendUser: users.FrontendUser{Username: "owner"},
+		BackendScopes: []users.BackendScope{{
+			Path:  sourceRoot,
+			Scope: "/",
+			Permissions: users.SourceFilePermissions{
+				View: true, Download: true, Modify: true, Create: true, Delete: true,
+			},
+		}},
+	}
+	users.SyncBackendSourcePermissionsMap(&ownerUser)
+
+	d := &Context{User: &ownerUser}
+	req := httptest.NewRequest(http.MethodGet, "/api/resources/download?source="+sourceName+"&file=/shared/hello.txt", nil)
+	rec := httptest.NewRecorder()
+
+	status, err := RawFilesHandler(rec, req, d, sourceName, []string{"/shared/hello.txt"})
+	if err != nil {
+		t.Fatalf("single-file: unexpected error: status=%d err=%v", status, err)
+	}
+	if status != http.StatusOK && status != 0 {
+		t.Fatalf("single-file: expected 200, got status=%d", status)
+	}
+
+	// Single-file response must NOT be a ZIP archive — Content-Disposition should
+	// not end in .zip and the body should be the raw file content.
+	cd := rec.Header().Get("Content-Disposition")
+	if strings.Contains(cd, ".zip") {
+		t.Errorf("single-file: Content-Disposition %q should not reference .zip for a raw single-file download", cd)
+	}
+	body, readErr := io.ReadAll(rec.Body)
+	if readErr != nil {
+		t.Fatal(readErr)
+	}
+	if string(body) != "share-zip-contents" {
+		t.Errorf("single-file: expected raw file content %q, got %q", "share-zip-contents", string(body))
 	}
 }

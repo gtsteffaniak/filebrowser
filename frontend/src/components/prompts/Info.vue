@@ -12,35 +12,39 @@
         <h3 class="section-title">{{ $t("prompts.basicInfo") }}</h3>
         <div class="info-item">
           <strong>{{ $t("prompts.displayName") }}</strong>
-          <span aria-label="info display name">{{ displayName }}</span>
+          <span role="group" aria-label="info display name">{{ displayName }}</span>
         </div>
         <div class="info-item">
           <strong>{{ $t("general.size") }}</strong>
-          <span aria-label="info size">{{ humanSize }}</span>
+          <span role="group" aria-label="info size">{{ humanSize }}</span>
         </div>
         <div class="info-item">
           <strong>{{ $t("general.type") }}</strong>
-          <span aria-label="info type">{{ type }}</span>
+          <span role="group" aria-label="info type">{{ type }}</span>
         </div>
         <div class="info-item" v-if="humanTime">
           <strong>{{ $t("files.lastModified") }}</strong>
-          <span aria-label="info last modified" :title="modTime">{{ humanTime }}</span>
+          <span role="group" aria-label="info last modified" :title="modTime">{{ humanTime }}</span>
+        </div>
+        <div class="info-item" v-if="humanCreatedTime">
+          <strong>{{ $t("files.creationTime") }}</strong>
+          <span aria-label="info date added" :title="createdTime">{{ humanCreatedTime }}</span>
         </div>
         <div class="info-item" v-if="source">
           <strong>{{ $t("general.source") }}</strong>
-          <span aria-label="info source">{{ source }}</span>
+          <span role="group" aria-label="info source">{{ source }}</span>
         </div>
         <div class="info-item" v-if="filePath">
           <strong>{{ $t("general.path") }}</strong>
-          <span aria-label="info path" class="break-word">{{ filePath }}</span>
+          <span role="group" aria-label="info path" class="break-word">{{ filePath }}</span>
         </div>
         <div class="info-item" v-if="hidden !== undefined">
           <strong>{{ $t("prompts.hidden") }}</strong>
-          <span aria-label="info hidden">{{ hidden ? "✓" : "✗" }}</span><!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <span role="group" aria-label="info hidden">{{ hidden ? "✓" : "✗" }}</span><!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
         </div>
         <div class="info-item" v-if="hasPreview !== undefined">
           <strong>{{ $t("prompts.hasPreview") }}</strong>
-          <span aria-label="info has preview">{{ hasPreview ? "✓" : "✗" }}</span><!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <span role="group" aria-label="info has preview">{{ hasPreview ? "✓" : "✗" }}</span><!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
         </div>
       </div>
 
@@ -150,7 +154,7 @@
 </template>
 <script>
 import { getHumanReadableFilesize } from "@/utils/filesizes";
-import { formatTimestamp } from "@/utils/moment";
+import { formatTimestamp, fromNow } from "@/utils/moment";
 import { copyToClipboard } from "@/utils/clipboard";
 import { resourcesApi, quotasApi, accessApi } from "@/api";
 import { getters, mutations, state } from "@/store";
@@ -219,7 +223,15 @@ export default {
     },
     modTime() {
       if (!this.item?.modified) return "";
-      return new Date(Date.parse(this.item.modified)).toLocaleString();
+      return fromNow(this.item.modified, state.user.locale);
+    },
+    humanCreatedTime() {
+      if (!this.item?.created) return "";
+      return formatTimestamp(this.item.created, state.user.locale);
+    },
+    createdTime() {
+      if (!this.item?.created) return "";
+      return fromNow(this.item.created, state.user.locale);
     },
     name() {
       return this.item?.name || "";
@@ -284,18 +296,18 @@ export default {
       if (this.accessRule.denyAll) {
         entries.push({ allow: false, type: "all", name: this.$t("access.all") });
       }
-      (this.accessRule.deny?.users || []).forEach((name) => {
+      for (const name of this.accessRule.deny?.users || []) {
         entries.push({ allow: false, type: "user", name });
-      });
-      (this.accessRule.deny?.groups || []).forEach((name) => {
+      }
+      for (const name of this.accessRule.deny?.groups || []) {
         entries.push({ allow: false, type: "group", name });
-      });
-      (this.accessRule.allow?.users || []).forEach((name) => {
+      }
+      for (const name of this.accessRule.allow?.users || []) {
         entries.push({ allow: true, type: "user", name });
-      });
-      (this.accessRule.allow?.groups || []).forEach((name) => {
+      }
+      for (const name of this.accessRule.allow?.groups || []) {
         entries.push({ allow: true, type: "group", name });
-      });
+      }
       return entries;
     },
     hasAccessRules() {

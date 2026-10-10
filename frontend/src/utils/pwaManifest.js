@@ -1,5 +1,5 @@
-import { globalVars } from "@/utils/constants";
-import { getters, state } from "@/store";
+import { globalVars } from "@/utils/constants.js";
+import { getters, state } from "@/store/index.ts";
 
 function manifestBaseUrl() {
   const base = globalVars.baseURL || "/";

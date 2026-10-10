@@ -3,7 +3,7 @@ import {
   test,
   expectLockTooltipOnRowHover,
   isExactSettingsApiResponse,
-} from "../test-setup";
+} from "../test-setup.ts";
 
 async function expandUserDefaultsGroup(
   page: import("@playwright/test").Page,

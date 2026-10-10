@@ -1,9 +1,9 @@
-import { fetchJSON } from "@/api/utils";
-import { getters, mutations, state } from "@/store";
-import { notify } from "@/notify";
-import i18n from "@/i18n";
+import { fetchJSON } from "@/api/utils.ts";
+import { getters, mutations, state } from "@/store/index.ts";
+import { notify } from "@/notify/index.ts";
+import i18n from "@/i18n/index.ts";
 import { getApiPath, getPublicApiPath } from "@/utils/url.js";
-import { notifyOperationError } from "@/utils/appNotifications";
+import { notifyOperationError } from "@/utils/appNotifications.js";
 
 /**
  * @param {{ file?: File; relativePath?: string }[]} items

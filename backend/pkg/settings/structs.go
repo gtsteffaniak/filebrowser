@@ -61,12 +61,13 @@ type Environment struct {
 }
 
 type Server struct {
-	MinSearchLength              int            `json:"minSearchLength" yaml:"minSearchLength"` // minimum length of search query to begin searching (default: 3)
-	DisableUpdateCheck           bool           `json:"disableUpdateCheck"`                     // disables backend update check service
-	NumImageProcessors           int            `json:"numImageProcessors"`                     // number of concurrent image processing jobs used to create previews, default is 4.
-	DisablePreviews              bool           `json:"disablePreviews"`                        // disable all previews thumbnails, simple icons will be used
-	DisableResize                bool           `json:"disablePreviewResize"`                   // disable resizing of previews for faster loading over slow connections
-	DisableTypeDetectionByHeader bool           `json:"disableTypeDetectionByHeader"`           // disable type detection by header, useful if filesystem is slow.
+	SearchResultsLimit           int            `json:"searchResultsLimit" yaml:"searchResultsLimit" validate:"gte=1"` // maximum requested search results across all sources (default: 1000); quick search defaults to 100, advanced search to 500; size viewer remains limited to 200
+	MinSearchLength              int            `json:"minSearchLength" yaml:"minSearchLength"`                        // minimum length of search query to begin searching (default: 3)
+	DisableUpdateCheck           bool           `json:"disableUpdateCheck"`                                            // disables backend update check service
+	NumImageProcessors           int            `json:"numImageProcessors"`                                            // number of concurrent image processing jobs used to create previews, default is 4.
+	DisablePreviews              bool           `json:"disablePreviews"`                                               // disable all previews thumbnails, simple icons will be used
+	DisableResize                bool           `json:"disablePreviewResize"`                                          // disable resizing of previews for faster loading over slow connections
+	DisableTypeDetectionByHeader bool           `json:"disableTypeDetectionByHeader"`                                  // disable type detection by header, useful if filesystem is slow.
 	Logging                      []LogConfig    `json:"logging" yaml:"logging"`
 	Sources                      []*Source      `json:"sources" validate:"required,dive"`
 	CacheDir                     string         `json:"cacheDir"`        // path to the cache directory, used for thumbnails and other cached files
@@ -363,6 +364,8 @@ type UserDefaultsListing struct {
 	SingleClick             bool     `json:"singleClick"`             // open directory on single click, also enables middle click to open in new tab
 	HideFileExt             string   `json:"hideFileExt"`             // space separated list of file extensions to hide in UI
 	ShowCopyPath            bool     `json:"showCopyPath"`            // show copy path button in the context menu
+	ShowTypeColumn          bool     `json:"showTypeColumn"`          // show the Type column in list and compact views
+	ShowCreationDateColumn  bool     `json:"showCreationDateColumn"`  // show the Creation date column in list and compact views
 	DeleteAfterArchive      bool     `json:"deleteAfterArchive"`      // delete source files after successful creation/extraction of archives
 	ViewMode                string   `json:"viewMode"`                // view mode to use: eg. normal, list, grid, or compact
 	GallerySize             int      `json:"gallerySize"`             // 0-9 - the size of the gallery thumbnails

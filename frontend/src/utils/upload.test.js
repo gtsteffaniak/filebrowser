@@ -28,10 +28,10 @@ vi.mock("@/utils/appNotifications", async (importOriginal) => {
   };
 });
 
-import { resourcesApi } from "@/api";
-import { notify } from "@/notify";
-import { state, getters } from "@/store";
-import { isSameSize, numberedName, uploadManager } from "./upload";
+import { resourcesApi } from "@/api/index.js";
+import { notify } from "@/notify/index.ts";
+import { state, getters } from "@/store/index.ts";
+import { isSameSize, numberedName, uploadManager } from "./upload.js";
 
 function addUpload(status = "uploading", file = new Blob(["a"])) {
   uploadManager.queue.push({

@@ -1,4 +1,4 @@
-import { state } from "@/store";
+import { state } from "@/store/index.ts";
 
 /**
  * Fetch a preview image and return an object URL for display.

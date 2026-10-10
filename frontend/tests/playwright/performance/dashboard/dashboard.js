@@ -1,11 +1,4 @@
 /* global Chart */
-const SCENARIO_COLORS = {
-  load: "#5b9fd4",
-  scroll: "#3d9a6a",
-  resize: "#c9a227",
-  select: "#b86dbb",
-};
-
 const BROWSER_COLORS = {
   chromium: "#5b9fd4",
   firefox: "#e87a2e",
@@ -13,7 +6,6 @@ const BROWSER_COLORS = {
 };
 
 const SCENARIOS = ["load", "scroll", "resize", "select"];
-const REPEAT_COLORS = ["#5b9fd4", "#3d9a6a", "#c9a227"];
 
 let data;
 const liveCharts = [];
@@ -241,24 +233,6 @@ function makeChart(canvas, config) {
   const chart = new Chart(canvas, config);
   liveCharts.push(chart);
   return chart;
-}
-
-function commonBarOptions(yTitle) {
-  return {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: { position: "bottom", labels: { boxWidth: 10, font: { size: 10 } } },
-    },
-    scales: {
-      x: { ticks: { font: { size: 10 } } },
-      y: {
-        beginAtZero: true,
-        title: { display: true, text: yTitle || "ms", font: { size: 10 } },
-        ticks: { font: { size: 10 } },
-      },
-    },
-  };
 }
 
 function medianOf(values) {
@@ -691,7 +665,7 @@ function renderDeltaHist() {
     const n = counts[b.id];
     const btn = document.createElement("button");
     btn.type = "button";
-    btn.className = "bar" + (deltaFilter.bucket === b.id ? " active" : "");
+    btn.className = `bar${deltaFilter.bucket === b.id ? " active" : ""}`;
     btn.dataset.filter = "bucket";
     btn.dataset.value = b.id;
     btn.title = `${b.label}: ${n} metric(s)`;
@@ -847,7 +821,7 @@ function fillDelta() {
     deltaBound = true;
   }
 
-  if (!cmp || !cmp.hasBaseline) {
+  if (!cmp?.hasBaseline) {
     if (heading) heading.textContent = "Baseline comparison";
     document.getElementById("delta-hist").innerHTML = "";
     document.getElementById("delta-strip").innerHTML = "";

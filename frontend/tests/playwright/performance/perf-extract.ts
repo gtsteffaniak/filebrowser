@@ -1,8 +1,8 @@
-import type { FrameTimingStat } from "./perf-frames";
-import type { InteractionTiming, WebVitals } from "./perf-vitals";
-import { cdpDurationSecondsToMs, type CdpDelta } from "./perf-cdp";
-import type { LongTask, ProbeSnapshot } from "./perf-helpers";
-import { findMetric, metricsForScenario } from "./perf-metrics";
+import type { FrameTimingStat } from "./perf-frames.ts";
+import type { InteractionTiming, WebVitals } from "./perf-vitals.ts";
+import { cdpDurationSecondsToMs, type CdpDelta } from "./perf-cdp.ts";
+import type { LongTask, ProbeSnapshot } from "./perf-helpers.ts";
+import { findMetric, metricsForScenario } from "./perf-metrics.ts";
 
 /**
  * Projects a raw run result onto the flat metric keys declared in the registry.
@@ -12,7 +12,7 @@ import { findMetric, metricsForScenario } from "./perf-metrics";
  * single-line change here plus a registry entry.
  */
 
-export type RunMetricBag = {
+export interface RunMetricBag {
   scenarioMs: number;
   domNodes: number;
   listingItems: number;
@@ -31,12 +31,12 @@ export type RunMetricBag = {
   droppedFrames: number;
   effectiveFps: number;
   interactionP95: number;
-};
+}
 
-type RawRun = {
+interface RawRun {
   scenario: string;
   metrics: Record<string, unknown>;
-};
+}
 
 function num(v: unknown, fallback = 0): number {
   const n = typeof v === "number" ? v : Number(v);

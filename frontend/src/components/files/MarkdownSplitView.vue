@@ -80,23 +80,21 @@ export default {
         this.liveMarkdownContent = editor?.getValue() || "";
       }
     },
-    active(isActive: boolean) {
+    async active(isActive: boolean) {
       if (isActive) {
         this.$emit("resize", 100 - this.previewPercent);
         this.liveMarkdownContent = this.editor?.getValue() || "";
       }
-      this.$nextTick(() => {
-        this.previewScrollEl = isActive ? (this.previewScrollWrapperEl() || null) : null;
-      });
+      await this.$nextTick();
+      this.previewScrollEl = isActive ? (this.previewScrollWrapperEl() || null) : null;
     },
   },
-  mounted() {
+  async mounted() {
     if (this.active) {
       this.$emit("resize", 100 - this.previewPercent);
       this.liveMarkdownContent = this.editor?.getValue() || "";
-      this.$nextTick(() => {
-        this.previewScrollEl = this.previewScrollWrapperEl() || null;
-      });
+      await this.$nextTick();
+      this.previewScrollEl = this.previewScrollWrapperEl() || null;
     }
   },
   beforeUnmount() {

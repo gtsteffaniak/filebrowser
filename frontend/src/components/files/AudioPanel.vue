@@ -192,7 +192,7 @@ export default {
     },
   },
   watch: {
-    activeTab(val) {
+    async activeTab(val) {
       // Persist to localStorage
       localStorage.setItem(LAST_TAB_KEY, val);
       if (val === "visualizer") {
@@ -205,25 +205,29 @@ export default {
       this.stopVisualizer();
       // Scroll to active line when switching to lyrics
       if (val === 'lyrics') {
-        this.$nextTick(() => this.scrollToActiveLine());
+        await this.$nextTick();
+        this.scrollToActiveLine();
       }
     },
-    activeLyricIndex() {
+    async activeLyricIndex() {
       if (this.activeTab === "lyrics") {
-        this.$nextTick(() => this.scrollToActiveLine());
+        await this.$nextTick();
+        this.scrollToActiveLine();
       }
     },
     lyrics: {
-      handler() {
+      async handler() {
         if (this.activeTab === 'lyrics' && this.lyrics.length) {
-          this.$nextTick(() => this.scrollToActiveLine());
+          await this.$nextTick();
+          this.scrollToActiveLine();
         }
       },
       immediate: true,
     },
-    lyricsScrollLocked(val) {
+    async lyricsScrollLocked(val) {
       if (!val && this.activeTab === 'lyrics' && this.lyrics.length) {
-        this.$nextTick(() => this.scrollToActiveLine());
+        await this.$nextTick();
+        this.scrollToActiveLine();
       }
     },
     visualizerConfig: {
@@ -247,14 +251,10 @@ export default {
       immediate: true,
     },
   },
-  mounted() {
+  async mounted() {
     document.addEventListener('keydown', this.onKeyDown);
     this.resizeObserver = new ResizeObserver(() => {
       if (this.activeTab === 'visualizer' && this.visualizerAnalyserLeft) this.resizeVisualizer();
-    });
-    this.$nextTick(() => {
-      const container = this.$el?.querySelector('.tab-visualizer');
-      if (container) this.resizeObserver.observe(container);
     });
     this.windowResizeHandler = () => {
       if (this.activeTab === 'visualizer' && this.visualizerAnalyserLeft) this.resizeVisualizer();
@@ -269,6 +269,9 @@ export default {
       }
     };
     document.addEventListener('visibilitychange', this.visibilityChangeHandler);
+    await this.$nextTick();
+    const container = this.$el?.querySelector('.tab-visualizer');
+    if (container) this.resizeObserver.observe(container);
   },
   beforeUnmount() {
     document.removeEventListener('keydown', this.onKeyDown);
@@ -302,12 +305,12 @@ export default {
         prev.maxDecibels !== config.maxDecibels;
       if (analyserL && analyserR && audioRelevantChanged) {
         try {
-          [analyserL, analyserR].forEach((analyser) => {
+          for (const analyser of [analyserL, analyserR]) {
             analyser.fftSize = config.fftSize;
             analyser.smoothingTimeConstant = config.smoothing;
             analyser.minDecibels = config.minDecibels;
             analyser.maxDecibels = config.maxDecibels;
-          });
+          }
           const binCount = analyserL.frequencyBinCount;
           this.fftDataLeft = new Float32Array(binCount);
           this.fftDataRight = new Float32Array(binCount);
@@ -429,12 +432,12 @@ export default {
     fullCleanup() {
       this.stopVisualizer();
       const analysers = [this.visualizerAnalyserLeft, this.visualizerAnalyserRight];
-      analysers.forEach((analyser) => {
+      for (const analyser of analysers) {
         if (analyser) {
           try { this.audioSource?.disconnect(analyser); } catch (_) { /* ignore */ }
           try { analyser.disconnect(); } catch (_) { /* ignore */ }
         }
-      });
+      }
       if (this.visualizerSplitter) {
         try { this.audioSource?.disconnect(this.visualizerSplitter); } catch (_) { /* ignore */ }
         try { this.visualizerSplitter.disconnect(); } catch (_) { /* ignore */ }
@@ -504,8 +507,8 @@ export default {
       for (let i = 0; i < halfCount; i++) {
         const t0 = i / halfCount;
         const t1 = (i + 1) / halfCount;
-        const fStart   = Math.pow(10, logMin + t0 * (logMax - logMin));
-        const fEnd     = Math.pow(10, logMin + t1 * (logMax - logMin));
+        const fStart   = 10 ** (logMin + t0 * (logMax - logMin));
+        const fEnd     = 10 ** (logMin + t1 * (logMax - logMin));
         const binStart = Math.max(1, Math.round(fStart / binHz));
         const binEnd   = Math.min(bufferLength - 1, Math.round(fEnd / binHz));
         const centerHz = Math.sqrt(fStart * fEnd);
@@ -581,8 +584,8 @@ export default {
         for (let f = start; f < end; f++) {
           const dbL = dataL.at(f);
           const dbR = dataR.at(f);
-          sumL += Number.isFinite(dbL) ? Math.pow(10, dbL / 10) : 0;
-          sumR += Number.isFinite(dbR) ? Math.pow(10, dbR / 10) : 0;
+          sumL += Number.isFinite(dbL) ? 10 ** (dbL / 10) : 0;
+          sumR += Number.isFinite(dbR) ? 10 ** (dbR / 10) : 0;
           count++;
         }
         const avgDbL = count > 0 && sumL > 0 ? 10 * Math.log10(sumL / count) : minDecibels;
@@ -681,25 +684,25 @@ export default {
 
       // right half - ascending hz means x increases (center to right edge)
       let lastXRight = -Infinity;
-      visibleTicks.forEach(({ hz, label }) => {
+      for (const { hz, label } of visibleTicks) {
         const x = hzToBarX(hz, halfCount);
-        if (x === null || x - lastXRight < 20) return; // if too near on this side, skip
-        if (!shouldDraw(x)) return; // also skip if is too close to a label from the other side
+        if (x === null || x - lastXRight < 20) continue; // if too near on this side, skip
+        if (!shouldDraw(x)) continue; // also skip if is too close to a label from the other side
         drawnPositions.push(x);
         lastXRight = x;
         ctx.fillText(label, x, xAxisY);
-      });
+      }
 
       // left half - ascending hz means x decreases (center to left edge)
       let lastXLeft = Infinity;
-      visibleTicks.forEach(({ hz, label }) => {
+      for (const { hz, label } of visibleTicks) {
         const x = hzToBarX(hz, 0);
-        if (x === null || lastXLeft - x < 20) return;
-        if (!shouldDraw(x)) return;
+        if (x === null || lastXLeft - x < 20) continue;
+        if (!shouldDraw(x)) continue;
         drawnPositions.push(x);
         lastXLeft = x;
         ctx.fillText(label, x, xAxisY);
-      });
+      }
 
       ctx.restore();
     },

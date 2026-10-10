@@ -320,7 +320,7 @@ const docTemplate = `{
         },
         "/api/access/group": {
             "put": {
-                "description": "Creates the group if missing and replaces its member list.",
+                "description": "Creates the group if missing and replaces its member list. When create is true, a group that already exists returns 409.",
                 "consumes": [
                     "application/json"
                 ],
@@ -340,6 +340,9 @@ const docTemplate = `{
                         "schema": {
                             "type": "object",
                             "properties": {
+                                "create": {
+                                    "type": "boolean"
+                                },
                                 "group": {
                                     "type": "string"
                                 },
@@ -355,7 +358,10 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Group saved successfully"
+                        "description": "Group saved; unknownMembers lists usernames with no matching local user",
+                        "schema": {
+                            "type": "object"
+                        }
                     },
                     "400": {
                         "description": "Bad request",
@@ -366,8 +372,8 @@ const docTemplate = `{
                             }
                         }
                     },
-                    "403": {
-                        "description": "Forbidden",
+                    "409": {
+                        "description": "Conflict (group already exists when create is true)",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -517,6 +523,81 @@ const docTemplate = `{
                     },
                     "403": {
                         "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/access/user-groups": {
+            "put": {
+                "description": "Replaces all of a user's group memberships in one request. Every group in the list must already exist.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Access"
+                ],
+                "summary": "Replace a user's group memberships",
+                "parameters": [
+                    {
+                        "description": "Username and full group list",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "groups": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    }
+                                },
+                                "user": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User groups updated",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "User not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -2774,7 +2855,7 @@ const docTemplate = `{
         },
         "/api/resources/unarchive": {
             "post": {
-                "description": "Extracts a zip or tar.gz archive on the server into the given destination directory. Server-side only; no extracted bytes are returned. Supports extracting to a different source via toSource. Requires create permission. Archive size is checked against server.maxArchiveSizeGB limit if configured.\n\n**Request body parameters:**\n- **fromSource** (string, required): Source name where the archive file lives. Example: ` + "`" + `\"default\"` + "`" + `\n- **toSource** (string, optional): Source name where contents will be extracted. Defaults to fromSource if omitted. Example: ` + "`" + `\"restored\"` + "`" + `\n- **path** (string, required): Path to the archive file (on fromSource). Must be .zip, .tar.gz, or .tgz. Example: ` + "`" + `\"/downloads/data.zip\"` + "`" + `\n- **destination** (string, required): Directory path (on toSource) to extract into. Example: ` + "`" + `\"/projects/imported\"` + "`" + `\n- **deleteAfter** (boolean, optional): If true, delete the archive file after successful extraction. Default: false. Example: ` + "`" + `true` + "`" + `",
+                "description": "Extracts a zip or tar.gz archive on the server into the given destination directory. Server-side only; no extracted bytes are returned. Supports extracting to a different source via toSource. Requires create permission. Archive size is checked against server.maxArchiveSizeGB limit if configured.\n\n**Request body parameters:**\n- **fromSource** (string, required): Source name where the archive file lives. Example: ` + "`" + `\"default\"` + "`" + `\n- **toSource** (string, optional): Source name where contents will be extracted. Defaults to fromSource if omitted. Example: ` + "`" + `\"restored\"` + "`" + `\n- **path** (string, required): Path to the archive file (on fromSource). Must be .zip, .tar.gz, or .tgz. Example: ` + "`" + `\"/downloads/data.zip\"` + "`" + `\n- **destination** (string, required): Directory path (on toSource) to extract into. Example: ` + "`" + `\"/projects/imported\"` + "`" + `\n- **deleteAfter** (boolean, optional): If true, delete the archive file after successful extraction. Default: false. Example: ` + "`" + `true` + "`" + `\n- **filenameEncoding** (string, optional): Fallback ZIP filename encoding: utf-8, cp932, gb18030, big5, euc-kr, cp437, windows-1252. Unicode metadata takes precedence. Omit to use a suggestion; ambiguous encodings require a selection.\n- **preview** (boolean, optional): Return ZIP encoding candidates and sample filenames without extracting or deleting anything. Requires the same source/destination permissions as extraction.",
                 "consumes": [
                     "application/json"
                 ],
@@ -2798,12 +2879,10 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Extracted; returns {\\\"path\\\": \\\"\u003cdestination path\u003e\\\", \\\"source\\\": \\\"\u003ctoSource\u003e\\\"}",
+                        "description": "Preview returns suggested and candidates; extraction returns path and source. Extracted; returns {\\\"path\\\": \\\"\u003cdestination path\u003e\\\", \\\"source\\\": \\\"\u003ctoSource\u003e\\\"}",
                         "schema": {
                             "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "additionalProperties": true
                         }
                     },
                     "400": {
@@ -3656,6 +3735,12 @@ const docTemplate = `{
                         "type": "boolean",
                         "description": "When true, match indexed file names with SQLite GLOB (wildcard patterns)",
                         "name": "useWildcard",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Requested advanced search limit, capped by server.searchResultsLimit (default 1000); omitted for quick search (100)",
+                        "name": "limit",
                         "in": "query"
                     },
                     {
@@ -5302,6 +5387,9 @@ const docTemplate = `{
         "indexing.SearchResult": {
             "type": "object",
             "properties": {
+                "created": {
+                    "type": "string"
+                },
                 "hasPreview": {
                     "type": "boolean"
                 },
@@ -5334,6 +5422,10 @@ const docTemplate = `{
                 },
                 "content": {
                     "description": "text content of a file, if requested",
+                    "type": "string"
+                },
+                "created": {
+                    "description": "filesystem birth time, nil when unavailable",
                     "type": "string"
                 },
                 "files": {
@@ -5429,6 +5521,10 @@ const docTemplate = `{
         "iteminfo.ExtendedItemInfo": {
             "type": "object",
             "properties": {
+                "created": {
+                    "description": "filesystem birth time, nil when unavailable",
+                    "type": "string"
+                },
                 "hasPreview": {
                     "description": "whether the file has a thumbnail preview",
                     "type": "boolean"
@@ -5474,6 +5570,10 @@ const docTemplate = `{
         "iteminfo.FileInfo": {
             "type": "object",
             "properties": {
+                "created": {
+                    "description": "filesystem birth time, nil when unavailable",
+                    "type": "string"
+                },
                 "files": {
                     "description": "files in the directory with optional metadata",
                     "type": "array",
@@ -5525,6 +5625,10 @@ const docTemplate = `{
         "iteminfo.ItemInfo": {
             "type": "object",
             "properties": {
+                "created": {
+                    "description": "filesystem birth time, nil when unavailable",
+                    "type": "string"
+                },
                 "hasPreview": {
                     "description": "whether the file has a thumbnail preview",
                     "type": "boolean"
@@ -6461,6 +6565,11 @@ const docTemplate = `{
                     "description": "number of concurrent image processing jobs used to create previews, default is 4.",
                     "type": "integer"
                 },
+                "searchResultsLimit": {
+                    "description": "maximum requested search results across all sources (default: 1000); quick search defaults to 100, advanced search to 500; size viewer remains limited to 200",
+                    "type": "integer",
+                    "minimum": 1
+                },
                 "sources": {
                     "type": "array",
                     "items": {
@@ -6867,12 +6976,20 @@ const docTemplate = `{
                     "description": "show copy path button in the context menu",
                     "type": "boolean"
                 },
+                "showCreationDateColumn": {
+                    "description": "show the Creation date column in list and compact views",
+                    "type": "boolean"
+                },
                 "showHidden": {
                     "description": "show hidden files in the UI. On windows this includes files starting with a dot and windows hidden files",
                     "type": "boolean"
                 },
                 "showSelectMultiple": {
                     "description": "show select multiple files on desktop",
+                    "type": "boolean"
+                },
+                "showTypeColumn": {
+                    "description": "show the Type column in list and compact views",
                     "type": "boolean"
                 },
                 "singleClick": {
@@ -7751,6 +7868,10 @@ const docTemplate = `{
                     "description": "show copy path action in the context menu",
                     "type": "boolean"
                 },
+                "showCreationDateColumn": {
+                    "description": "show the Creation date column in list and compact views",
+                    "type": "boolean"
+                },
                 "showFirstLogin": {
                     "type": "boolean"
                 },
@@ -7764,6 +7885,10 @@ const docTemplate = `{
                 },
                 "showToolsInSidebar": {
                     "description": "when false, sidebar hides links with category \"tool\" (default: true)",
+                    "type": "boolean"
+                },
+                "showTypeColumn": {
+                    "description": "show the Type column in list and compact views",
                     "type": "boolean"
                 },
                 "sidebarLinks": {
@@ -8204,6 +8329,10 @@ const docTemplate = `{
                     "description": "show copy path action in the context menu",
                     "type": "boolean"
                 },
+                "showCreationDateColumn": {
+                    "description": "show the Creation date column in list and compact views",
+                    "type": "boolean"
+                },
                 "showFirstLogin": {
                     "type": "boolean"
                 },
@@ -8217,6 +8346,10 @@ const docTemplate = `{
                 },
                 "showToolsInSidebar": {
                     "description": "when false, sidebar hides links with category \"tool\" (default: true)",
+                    "type": "boolean"
+                },
+                "showTypeColumn": {
+                    "description": "show the Type column in list and compact views",
                     "type": "boolean"
                 },
                 "sidebarLinks": {
@@ -8725,6 +8858,10 @@ const docTemplate = `{
                     "description": "Directory path on toSource to extract into (required). Example: \"/projects/imported\"",
                     "type": "string"
                 },
+                "filenameEncoding": {
+                    "description": "Fallback ZIP filename encoding; explicit Unicode metadata takes precedence.",
+                    "type": "string"
+                },
                 "fromSource": {
                     "description": "Source name where the archive file lives (required). Example: \"default\"",
                     "type": "string"
@@ -8732,6 +8869,10 @@ const docTemplate = `{
                 "path": {
                     "description": "Path to the archive file on fromSource; .zip, .tar.gz, or .tgz (required). Example: \"/downloads/data.zip\"",
                     "type": "string"
+                },
+                "preview": {
+                    "description": "Inspect ZIP names without writing or deleting files.",
+                    "type": "boolean"
                 },
                 "toSource": {
                     "description": "Source name where contents will be extracted (optional; default: fromSource). Example: \"restored\"",

@@ -125,7 +125,7 @@ export default {
       }
       return !!val;
     },
-    applyResponse(data) {
+    async applyResponse(data) {
       this.hydrating = true;
       this.lockedFromConfigPaths = Array.isArray(data.lockedFromConfigPaths)
         ? data.lockedFromConfigPaths
@@ -171,9 +171,8 @@ export default {
         },
         fileLoading: { ...(enf.fileLoading || {}) },
       };
-      this.$nextTick(() => {
-        this.hydrating = false;
-      });
+      await this.$nextTick();
+      this.hydrating = false;
     },
     canPatch() {
       return !this.loading && !this.saving && !this.hydrating;
@@ -194,9 +193,8 @@ export default {
         }
       } finally {
         this.loading = false;
-        this.$nextTick(() => {
-          this.hydrating = false;
-        });
+        await this.$nextTick();
+        this.hydrating = false;
       }
     },
     async sendPatch(partial) {
@@ -249,19 +247,20 @@ export default {
       }
       void this.sendPatch({ [section]: { [field]: value } });
     },
-    onAccountFieldChange(field) {
+    onAccountFieldChange(field, value) {
       if (!this.canPatch() || !field) {
         return;
       }
       const fieldStr = String(field);
-      const path = fieldStr.startsWith("permissions.")
-        ? `account.${fieldStr}`
-        : `account.${fieldStr}`;
-      if (this.isConfigLockedPath(path)) {
+      if (this.isConfigLockedPath(`account.${fieldStr}`)) {
         return;
       }
-      if (String(field).startsWith("permissions.")) {
-        const permKey = String(field).slice("permissions.".length);
+      if (fieldStr.startsWith("permissions.")) {
+        const permKey = fieldStr.slice("permissions.".length);
+        this.values.account.permissions = {
+          ...this.values.account.permissions,
+          [permKey]: value,
+        };
         void this.sendPatch({
           account: {
             permissions: {
@@ -271,9 +270,10 @@ export default {
         });
         return;
       }
+      this.values.account[fieldStr] = value;
       void this.sendPatch({
         account: {
-          [field]: getObjectProperty(this.values.account, field),
+          [fieldStr]: getObjectProperty(this.values.account, fieldStr),
         },
       });
     },

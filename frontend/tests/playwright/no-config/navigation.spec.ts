@@ -1,4 +1,4 @@
-import { expect, test } from "../test-setup";
+import { expect, test } from "../test-setup.ts";
 
 test("no config shows files", async ({ page, checkForErrors }) => {
   await page.goto("/files/");

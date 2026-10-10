@@ -1,4 +1,4 @@
-import { checkForNotification, expect, test } from "../test-setup";
+import { checkForNotification, expect, test } from "../test-setup.ts";
 
 test("navigate folder -- item should not be visible", async ({ page, checkForErrors }) => {
     await page.goto("/files/");
@@ -81,7 +81,7 @@ test("root indexing info is correct", async ({ page, checkForErrors }) => {
     await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
     // should mostly match system (du -sh frontend/tests/playwright-files) besides excluded values
     await page.locator('a[aria-label="myfolder"]').waitFor({ state: 'visible' });
-    
+
     // Check folder sizes
     await expect(page.locator('a[aria-label="myfolder"]').locator('.size')).toHaveText("3.5 MB");
     await expect(page.locator('a[aria-label="folder#hash"]').locator('.size')).toHaveText("4.0 KB");
@@ -90,12 +90,12 @@ test("root indexing info is correct", async ({ page, checkForErrors }) => {
     await expect(page.locator('a[aria-label="text-files"]').locator('.size')).toHaveText("8.0 KB");
     await expect(page.locator('a[aria-label="subfolderExclusions"]').locator('.size')).toHaveText("16.0 KB"); // 16 not 24 due to excluded items
     await expect(page.locator('a[aria-label="excludedButVisible"]').locator('.size')).toHaveText("4.0 KB");
-    
+
     // Check file sizes
     await expect(page.locator('a[aria-label="file.tar.gz"]').locator('.size')).toHaveText("4.0 KB");
     await expect(page.locator('a[aria-label="copyme.txt"]').locator('.size')).toHaveText("4.0 KB");
     await expect(page.locator('a[aria-label="utf8-truncated.txt"]').locator('.size')).toHaveText("12.0 KB");
-    
+
     // Check zero-size files
     await expect(page.locator('a[aria-label="1file1.txt"]').locator('.size')).toHaveText("0.0 bytes");
 
@@ -107,12 +107,12 @@ test("root indexing info is correct (logical size)", async ({ page, checkForErro
     await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files2");
     // should mostly match system (du -sh frontend/tests/playwright-files) besides excluded values
     await page.locator('a[aria-label="myfolder"]').waitFor({ state: 'visible' });
-    
+
     // Check folder sizes
     await expect(page.locator('a[aria-label="folder#hash"]').locator('.size')).toHaveText("0.0 bytes");
-    await expect(page.locator('a[aria-label="files"]').locator('.size')).toHaveText("418.0 bytes");
+    await expect(page.locator('a[aria-label="files"]').locator('.size')).toHaveText("413.0 bytes");
     await expect(page.locator('a[aria-label="subfolderExclusions"]').locator('.size')).toHaveText("0.0 bytes");
-    
+
     await page.goto("/files/include/files");
     await expect(page).toHaveTitle("Graham's Filebrowser - Files - files");
 

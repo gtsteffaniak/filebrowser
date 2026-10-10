@@ -264,6 +264,8 @@ type NonAdminEditable struct {
 	CustomTheme                string               `json:"customTheme"`                // Name of theme to use chosen from custom themes config.
 	ShowSelectMultiple         bool                 `json:"showSelectMultiple"`         // show select multiple files on desktop
 	ShowCopyPath               bool                 `json:"showCopyPath"`               // show copy path action in the context menu
+	ShowTypeColumn             bool                 `json:"showTypeColumn"`             // show the Type column in list and compact views
+	ShowCreationDateColumn     bool                 `json:"showCreationDateColumn"`     // show the Creation date column in list and compact views
 	ShowToolsInSidebar         bool                 `json:"showToolsInSidebar"`         // when false, sidebar hides links with category "tool" (default: true)
 	DebugOffice                bool                 `json:"debugOffice"`                // debug onlyoffice editor
 	SidebarLinks               []SidebarLink        `json:"sidebarLinks"`               // customizable sidebar links

@@ -66,6 +66,8 @@
       </p>
       <p class="size" :data-order="humanSize">{{ humanSize }}</p>
       <p class="modified" :title="modifiedTitle"><time :datetime="modified">{{ formattedTime }}</time></p>
+      <p v-if="showKindColumn" class="kind">{{ kindLabel }}</p>
+      <p v-if="showCreatedColumn" class="created" :title="createdTitle">{{ formattedCreatedTime }}</p>
       <p v-if="hasDuration" class="duration">{{ formattedDuration }}</p>
     </div>
     <div v-if="isPinned && !isListMode && !inlinePin" class="pin-icon-wrapper">
@@ -119,6 +121,7 @@
         :filename="name"
         :hasPreview="hasPreview"
         :modified="modified"
+        :created="created"
         :path="path"
         :source="source"
         :size="size"
@@ -144,6 +147,8 @@
       </p>
       <p class="size" :data-order="humanSize">{{ humanSize }}</p>
       <p class="modified" :title="modifiedTitle"><time :datetime="modified">{{ formattedTime }}</time></p>
+      <p v-if="showKindColumn" class="kind">{{ kindLabel }}</p>
+      <p v-if="showCreatedColumn" class="created" :title="createdTitle">{{ formattedCreatedTime }}</p>
       <p v-if="hasDuration" class="duration">{{ formattedDuration }}</p>
     </div>
     <div v-if="isPinned && !isListMode && !inlinePin" class="pin-icon-wrapper">
@@ -156,6 +161,7 @@
 import { globalVars } from "@/utils/constants";
 import downloadFiles from "@/utils/download";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
+import { getKindKey } from "@/utils/mimetype";
 import { formatDuration } from "@/utils/files.js";
 import { getObjectProperty } from '@/utils/object.js';
 import { resourcesApi } from "@/api";
@@ -194,6 +200,7 @@ export default {
     type: String,
     size: Number,
     modified: String,
+    created: String,
     index: [Number, String],
     readOnly: Boolean,
     path: String,
@@ -255,7 +262,13 @@ export default {
     modifiedTitle() {
       return state.user?.dateFormat
         ? fromNow(this.modified, state.user?.locale)
-        : formatTimestamp(this.modified, state.user?.locale);
+        : formatTimestamp(this.modified, state.user?.locale, { seconds: false });
+    },
+    createdTitle() {
+      if (!this.created) return "";
+      return state.user?.dateFormat
+        ? fromNow(this.created, state.user?.locale)
+        : formatTimestamp(this.created, state.user?.locale, { seconds: false });
     },
     galleryView() {
       return getters.viewMode() === "gallery";
@@ -369,15 +382,53 @@ export default {
     formattedTime() {
       return getters.getTime(this.modified);
     },
+    formattedCreatedTime() {
+      if (!this.created) return "";
+      return getters.getTime(this.created);
+    },
+    kindLabel() {
+      switch (getKindKey(this.type)) {
+        case "directory":
+          return this.$t("general.folder");
+        case "archive":
+          return this.$t("fileTypes.archive");
+        case "audio":
+          return this.$t("fileTypes.audio");
+        case "document":
+          return this.$t("fileTypes.document");
+        case "ebook":
+          return this.$t("fileTypes.ebook");
+        case "font":
+          return this.$t("fileTypes.font");
+        case "image":
+          return this.$t("fileTypes.image");
+        case "text":
+          return this.$t("fileTypes.text");
+        case "video":
+          return this.$t("fileTypes.video");
+        case "3d-model":
+          return this.$t("fileTypes.model3d");
+        case "invalid_link":
+          return this.$t("fileTypes.brokenLink");
+        default:
+          return this.$t("fileTypes.other");
+      }
+    },
     formattedDuration() {
       return formatDuration(this.metadata?.duration);
+    },
+    showKindColumn() {
+      return this.isListMode && !this.showLimitedOptions && state.user?.showTypeColumn;
+    },
+    showCreatedColumn() {
+      return this.isListMode && !this.showLimitedOptions && state.user?.showCreationDateColumn;
     },
     isListMode() {
       const mode = getters.viewMode();
       return mode === 'list' || mode === 'compact';
     },
   },
-  mounted() {
+  async mounted() {
     // Note: dragend listener moved to parent ListingView for better performance
     if (!this.hasPreview) return;
 
@@ -387,11 +438,10 @@ export default {
       threshold: 0,
     });
 
-    this.$nextTick(() => {
-      if (this.$el && this.$el instanceof Element) {
-        this.observer.observe(this.$el);
-      }
-    });
+    await this.$nextTick();
+    if (this.$el && this.$el instanceof Element) {
+      this.observer?.observe(this.$el);
+    }
   },
   beforeUnmount() {
     // Clean up observer
@@ -469,6 +519,12 @@ export default {
           type: this.type,
           size: this.size,
           modified: this.modified,
+          created: this.created,
+          hasPreview: this.hasPreview,
+          metadata: this.metadata,
+          hasDuration: this.hasDuration,
+          hash: this.hash,
+          pinned: this.pinned,
           path: this.path,
           url: this.path,
           index: this.index,

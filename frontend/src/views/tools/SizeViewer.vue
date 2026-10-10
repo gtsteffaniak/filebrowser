@@ -238,22 +238,22 @@ export default {
   watch: {
     searchPath() {
       if (!this.isInitializing) {
-        this.updateUrl();
+        void this.updateUrl();
       }
     },
     selectedSource() {
       if (!this.isInitializing) {
-        this.updateUrl();
+        void this.updateUrl();
       }
     },
     largerThanValue() {
       if (!this.isInitializing) {
-        this.updateUrl();
+        void this.updateUrl();
       }
     },
     includeFoldersValue() {
       if (!this.isInitializing) {
-        this.updateUrl();
+        void this.updateUrl();
       }
     },
     // Watch route query params in case URL changes externally
@@ -348,51 +348,50 @@ export default {
         this.includeFoldersValue = this.includeFolders;
       }
     },
-    updateUrl() {
+    async updateUrl() {
       if (!this.$route.path.startsWith('/tools/sizeViewer')) return;
       // Use nextTick to avoid triggering updates during component lifecycle
-      this.$nextTick(() => {
-        // Update URL query parameters to reflect current state
-        // This ensures refreshing the page will restore the same configuration
-        const query = {};
+      await this.$nextTick();
+      // Update URL query parameters to reflect current state
+      // This ensures refreshing the page will restore the same configuration
+      const query = {};
 
-        // Include path if it's not the default "/"
-        if (this.searchPath && this.searchPath !== "/") {
-          query.path = this.searchPath;
-        }
+      // Include path if it's not the default "/"
+      if (this.searchPath && this.searchPath !== "/") {
+        query.path = this.searchPath;
+      }
 
-        // Include source if set
-        if (this.selectedSource) {
-          query.source = this.selectedSource;
-        }
+      // Include source if set
+      if (this.selectedSource) {
+        query.source = this.selectedSource;
+      }
 
-        // Include largerThan if not the default value of 100
-        if (this.largerThanValue !== 100) {
-          query.largerThan = String(this.largerThanValue);
-        }
+      // Include largerThan if not the default value of 100
+      if (this.largerThanValue !== 100) {
+        query.largerThan = String(this.largerThanValue);
+      }
 
-        // Include includeFolders if true
-        if (this.includeFoldersValue) {
-          query.includeFolders = 'true';
-        }
+      // Include includeFolders if true
+      if (this.includeFoldersValue) {
+        query.includeFolders = 'true';
+      }
 
-        // Build query string for comparison
-        const newQueryString = new URLSearchParams(query).toString();
-        const currentQuery = this.$route.query || {};
-        const filteredEntries = Object.entries(currentQuery)
-          .filter(([_, value]) => value !== null && value !== undefined)
-          .map(([key, value]) => [key, String(value)]);
-        const currentQueryString = new URLSearchParams(Object.fromEntries(filteredEntries)).toString();
+      // Build query string for comparison
+      const newQueryString = new URLSearchParams(query).toString();
+      const currentQuery = this.$route.query || {};
+      const filteredEntries = Object.entries(currentQuery)
+        .filter(([_, value]) => value !== null && value !== undefined)
+        .map(([key, value]) => [key, String(value)]);
+      const currentQueryString = new URLSearchParams(Object.fromEntries(filteredEntries)).toString();
 
-        if (newQueryString !== currentQueryString) {
-          this.$router.replace({
-            path: this.$route.path,
-            query: Object.keys(query).length > 0 ? query : undefined,
-          }).catch(() => {
-            // Ignore navigation errors (e.g., if navigating to same route)
-          });
-        }
-      });
+      if (newQueryString !== currentQueryString) {
+        this.$router.replace({
+          path: this.$route.path,
+          query: Object.keys(query).length > 0 ? query : undefined,
+        }).catch(() => {
+          // Ignore navigation errors (e.g., if navigating to same route)
+        });
+      }
     },
     isSmallItem(item) {
       // Calculate if item is too small to display text
@@ -456,7 +455,7 @@ export default {
         const rowWidth = total / height;
         let y = container.y;
 
-        row.forEach(item => {
+        for (const item of row) {
           const itemHeight = item.value / rowWidth;
           rects.push({
             item: item.item,
@@ -466,13 +465,13 @@ export default {
             height: itemHeight
           });
           y += itemHeight;
-        });
+        }
       } else {
         // Vertical layout
         const rowHeight = total / width;
         let x = container.x;
 
-        row.forEach(item => {
+        for (const item of row) {
           const itemWidth = item.value / rowHeight;
           rects.push({
             item: item.item,
@@ -482,7 +481,7 @@ export default {
             height: rowHeight
           });
           x += itemWidth;
-        });
+        }
       }
     },
     cutArea(row, container) {
@@ -610,6 +609,7 @@ export default {
         type: item.type,
         size: item.size,
         modified: item.modified,
+        created: item.created,
         path: fullPath,
         url: fullPath,
         index: 0,

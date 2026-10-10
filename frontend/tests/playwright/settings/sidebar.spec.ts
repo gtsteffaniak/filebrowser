@@ -1,4 +1,4 @@
-import { expect, test } from "../test-setup";
+import { expect, test } from "../test-setup.ts";
 
 test("check default sidebar links are added to sidebar", async ({ page, checkForErrors }) => {
     await page.goto("/files/");

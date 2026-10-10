@@ -38,7 +38,7 @@
       <hr />
     </div>
     <div v-if="globalVars.passkeyAvailable" style="margin-top: 0.5em;">
-      <label>{{ $t("profileSettings.passkeys") }}</label>
+      <span>{{ $t("profileSettings.passkeys") }}</span>
       <div v-if="user.passkeyCredentials && user.passkeyCredentials.length > 0" class="passkey-list">
         <div v-for="pk in user.passkeyCredentials" :key="pk.id" class="passkey-item">
           <div class="passkey-info">
@@ -109,9 +109,10 @@
               :collapsable="true"
             >
               <div class="scope-path-row">
-                <label class="scope-path-label">{{ $t("settings.scopePath") }}</label>
+                <label class="scope-path-label" :for="`user-edit-scope-path-${source.name}`">{{ $t("settings.scopePath") }}</label>
                 <button
                   type="button"
+                  :id="`user-edit-scope-path-${source.name}`"
                   :aria-label="`user-edit-scope-path-${source.name}`"
                   class="clickable button scope-path-display"
                   @click="onScopePathRowClick(source)"
@@ -120,7 +121,7 @@
               </div>
               <source-file-permissions
                 :permissions="sourcePermissionsFor(source.name)"
-                @changed="markScopePermissionsExplicit(source.name)"
+                @changed="(key, value) => onSourcePermissionChange(source.name, key, value)"
               />
               <div class="scope-quota-block">
                 <ToggleSwitch
@@ -185,33 +186,15 @@
           :description="$t('sidebar.customizeLinksDescription')"
           @click="openSidebarLinksPrompt"
         />
+        <UserGroupsField
+          class="item"
+          v-model="groups"
+          :disabled="!groupsReady"
+          :username="user.username"
+          :description="$t('access.userGroupsDescription')"
+        />
+        <p v-if="ssoGroupSyncApplies" class="group-note">{{ $t("access.groupsOidcNote") }}</p>
       </div>
-
-      <div v-if="stateUser.permissions.admin" class="user-groups">
-        <label for="user-group-input">{{ $t("access.userGroups") }}</label>
-        <div class="group-chips">
-          <span v-for="group in groups" :key="group" class="group-chip">
-            {{ group }}
-            <button type="button" class="action chip-remove" :aria-label="$t('access.removeGroup')"
-              :title="$t('access.removeGroup')" @click="removeGroup(group)">
-              <i class="material-symbols material-size">close</i>
-            </button>
-          </span>
-        </div>
-        <div class="form-flex-group">
-          <input id="user-group-input" class="input form-form flat-right" type="text" list="user-group-options"
-            v-model.trim="newGroup" :placeholder="$t('access.addGroupPlaceholder')" @keydown.enter.prevent="addGroup" />
-          <datalist id="user-group-options">
-            <option v-for="g in suggestedGroups" :key="g" :value="g"></option>
-          </datalist>
-          <button type="button" class="button form-button flat-left" :disabled="!newGroup"
-            :aria-label="$t('access.addGroup')" :title="$t('access.addGroup')" @click="addGroup">
-            <i class="material-symbols">add</i>
-          </button>
-        </div>
-        <p v-if="user.loginMethod === 'oidc'" class="group-note">{{ $t("access.groupsOidcNote") }}</p>
-      </div>
-
 
       <UserDefaultsAccountSection
         v-if="stateUser.permissions.admin && loaded"
@@ -223,18 +206,6 @@
         :show-require-password-change="user.loginMethod === 'password'"
         respect-enforced-policy
         @account-change="onEditAccountChange"
-      />
-
-      <UserProfilePreferences
-        v-if="stateUser.permissions.admin && loaded"
-        :key="profileLoadKey"
-        v-model="profileSections"
-        :enforced="enforcedPreferences"
-        :default-expanded-section="null"
-        respect-enforced-policy
-        show-extension-inputs
-        :show-thumbnail-master="false"
-        @change="onPreferenceChange"
       />
     </div>
   </div>
@@ -265,8 +236,8 @@ import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import QuotaCustomLimitInput from "@/components/settings/QuotaCustomLimitInput.vue";
 import SettingsButton from "@/components/settings/SettingsButton.vue";
 import UserDefaultsAccountSection from "@/components/settings/UserDefaultsAccountSection.vue";
-import UserProfilePreferences from "@/components/settings/UserProfilePreferences.vue";
 import PasswordRequirementsHint from "@/components/PasswordRequirementsHint.vue";
+import UserGroupsField from "@/components/settings/UserGroupsField.vue";
 import Errors from "@/views/Errors.vue";
 import { evaluatePasswordPolicy } from "@/utils/passwordPolicy.js";
 import { notify } from "@/notify";
@@ -317,6 +288,8 @@ const PROFILE_SNAPSHOT_FIELDS = [
   "disableSearchOptions",
   "hideSidebarFileActions",
   "showCopyPath",
+  "showTypeColumn",
+  "showCreationDateColumn",
   "hideFilesInTree",
   "editorQuickSave",
   "showSelectMultiple",
@@ -336,8 +309,8 @@ export default {
     QuotaCustomLimitInput,
     SettingsButton,
     UserDefaultsAccountSection,
-    UserProfilePreferences,
     PasswordRequirementsHint,
+    UserGroupsField,
     Errors,
   },
   props: {
@@ -377,10 +350,9 @@ export default {
       pendingScopeSourceName: null,
       addingPasskey: false,
       groups: [],
-      createdUser: false,
       originalGroups: [],
-      allGroups: [],
-      newGroup: "",
+      groupsReady: false,
+      createdUser: false,
       sourceFilePermissionDefaults: null,
       sessionUnsubscribe: null,
       editAccount: {
@@ -424,8 +396,8 @@ export default {
     settings() {
       return state.settings;
     },
-    suggestedGroups() {
-      return this.allGroups.filter((g) => !this.groups.includes(g));
+    ssoGroupSyncApplies() {
+      return ["oidc", "ldap", "jwt", "proxy"].includes(this.user.loginMethod);
     },
     isNew() {
       return !this.targetUsername;
@@ -543,14 +515,6 @@ export default {
       if (this.globalVars.ldapAvailable) return "ldap";
       return "password"; // fallback
     },
-    profileSections: {
-      get() {
-        return sectionsFromFlatUser(this.profileUser);
-      },
-      set(sections) {
-        applySectionsToFlatUser(this.profileUser, sections);
-      },
-    },
     enforcedPreferences() {
       return state.enforcedUserDefaults || {};
     },
@@ -578,7 +542,6 @@ export default {
   },
   methods: {
     sourceIndexingDisabled(sourceName) {
-      // eslint-disable-next-line security/detect-object-injection -- source name from configured source list
       return Boolean(state.sources.info?.[sourceName]?.indexingDisabled);
     },
     scopeMeterOptions(source) {
@@ -710,6 +673,14 @@ export default {
           delete: false,
         };
       }
+    },
+    onSourcePermissionChange(sourceName, key, value) {
+      const scope = this.selectedSources.find((entry) => entry.name === sourceName);
+      if (!scope) {
+        return;
+      }
+      scope.permissions = { ...this.sourcePermissionsFor(sourceName), [key]: value };
+      this.markScopePermissionsExplicit(sourceName);
     },
     markScopePermissionsExplicit(sourceName) {
       const scope = this.selectedSources.find((entry) => entry.name === sourceName);
@@ -1147,11 +1118,23 @@ export default {
       this.user.permissions.api = this.editAccount.permissions.api;
       this.user.permissions.realtime = this.editAccount.permissions.realtime;
     },
-    onEditAccountChange() {
-      this.applyEditAccountToUser();
-      this.emitUpdate();
+    applyEditAccountField(field, value) {
+      const fieldStr = String(field ?? "");
+      if (!fieldStr) {
+        return;
+      }
+      if (fieldStr.startsWith("permissions.")) {
+        this.editAccount.permissions = {
+          ...this.editAccount.permissions,
+          [fieldStr.slice("permissions.".length)]: value,
+        };
+        return;
+      }
+      this.editAccount[fieldStr] = value;
     },
-    onPreferenceChange() {
+    onEditAccountChange(field, value) {
+      this.applyEditAccountField(field, value);
+      this.applyEditAccountToUser();
       this.emitUpdate();
     },
     deletePrompt() {
@@ -1183,72 +1166,29 @@ export default {
       });
     },
     async loadGroups() {
-      if (!state.user.permissions.admin) return;
+      if (!state.user.permissions.admin || this.isNew) {
+        this.groupsReady = true;
+        return;
+      }
       try {
-        this.allGroups = (await accessApi.getGroups()).groups || [];
-        if (!this.isNew) {
-          this.groups = (await accessApi.getUserGroups(this.user.username)).groups || [];
-          this.originalGroups = [...this.groups];
-        }
+        this.groups = (await accessApi.getUserGroups(this.user.username)).groups || [];
+        this.originalGroups = [...this.groups];
+        this.groupsReady = true;
       } catch (e) {
         notify.showError(e);
       }
     },
-    addGroup() {
-      const name = this.newGroup;
-      if (!name) return;
-      this.newGroup = "";
-      if (this.groups.includes(name)) return;
-      if (this.allGroups.includes(name)) {
-        this.groups.push(name);
-        return;
-      }
-      // Unknown group: ask before creating it (it is created when the user is saved).
-      const el = document.createElement("div");
-      el.textContent = name;
-      mutations.showPrompt({
-        name: "generic",
-        props: {
-          title: this.$t("access.addGroup"),
-          // Generic renders body via v-html, so the name is escaped.
-          body: this.$t("access.createGroupConfirm", { name: el.innerHTML }),
-          buttons: [
-            {
-              label: this.$t("general.cancel"),
-              className: "button--grey",
-              action: () => mutations.closeTopPrompt(),
-            },
-            {
-              label: this.$t("general.create"),
-              action: () => {
-                this.groups.push(name);
-                this.allGroups.push(name);
-                mutations.closeTopPrompt();
-              },
-            },
-          ],
-        },
-      });
-    },
-    removeGroup(group) {
-      this.groups = this.groups.filter((g) => g !== group);
-    },
     async saveGroups(username) {
       if (!state.user.permissions.admin) return;
-      const toAdd = this.groups.filter((g) => !this.originalGroups.includes(g));
-      const toRemove = this.originalGroups.filter((g) => !this.groups.includes(g));
-      // Record each change as it succeeds so a retry after a partial failure only redoes what is pending.
-      for (const group of toAdd) {
-        await accessApi.addUserToGroup(group, username);
-        this.originalGroups.push(group);
-      }
-      for (const group of toRemove) {
-        await accessApi.removeUserFromGroup(group, username);
-        this.originalGroups = this.originalGroups.filter((g) => g !== group);
-      }
+      const norm = (g) => JSON.stringify([...(g || [])].sort());
+      if (norm(this.groups) === norm(this.originalGroups)) return;
+      await accessApi.saveUserGroups(username, this.groups);
+      this.originalGroups = [...this.groups];
+      eventBus.emit("groupsChanged");
     },
     async save(event) {
       event.preventDefault();
+      if (!this.groupsReady) return;
       try {
         const session = getUserEditSession();
         if (session) {
@@ -1515,38 +1455,6 @@ export default {
 <style scoped>
 .user-edit-hub {
   margin-top: 1rem;
-}
-
-.user-groups {
-  padding-bottom: 1em;
-}
-
-.group-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4em;
-  margin: 0.4em 0;
-}
-
-.group-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.2em;
-  padding: 0.1em 0.3em 0.1em 0.7em;
-  border-radius: 1em;
-  color: var(--primaryColor);
-  background: color-mix(in srgb, var(--primaryColor) 12%, var(--surfacePrimary));
-}
-
-.chip-remove {
-  display: inline-flex;
-  align-items: center;
-  color: inherit;
-  border-radius: 50%;
-}
-
-.chip-remove i {
-  padding: 0;
 }
 
 .group-note {

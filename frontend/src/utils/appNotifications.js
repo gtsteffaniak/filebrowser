@@ -1,9 +1,9 @@
-import i18n from "@/i18n";
-import { notify } from "@/notify";
-import { state } from "@/store";
-import { globalVars } from "@/utils/constants";
-import { getHumanReadableFilesize } from "@/utils/filesizes";
-import { url } from "@/utils";
+import i18n from "@/i18n/index.ts";
+import { notify } from "@/notify/index.ts";
+import { state } from "@/store/index.ts";
+import { globalVars } from "@/utils/constants.js";
+import { getHumanReadableFilesize } from "@/utils/filesizes.js";
+import { url } from "@/utils/index.ts";
 
 const STORAGE_PREFIX = "appNotifications_";
 

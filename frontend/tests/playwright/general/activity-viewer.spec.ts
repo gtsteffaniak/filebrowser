@@ -1,8 +1,8 @@
 import {
   loginPlaywrightAdmin,
   PLAYWRIGHT_ADMIN_PASSWORD,
-} from "../playwright-auth";
-import { expect, test } from "../test-setup";
+} from "../playwright-auth.ts";
+import { expect, test } from "../test-setup.ts";
 
 test.describe("Activity Viewer API", () => {
   test("admin can list activity", async ({ page }) => {
@@ -44,7 +44,9 @@ test.describe("Activity Viewer API", () => {
     expect(usersRes.ok()).toBeTruthy();
     const users = (await usersRes.json()) as Array<{ id: number; username: string; permissions?: { admin?: boolean } }>;
     const adminUser = users.find((u) => u.permissions?.admin);
-    expect(adminUser).toBeDefined();
+    if (!adminUser) {
+      throw new Error("expected an admin user to exist");
+    }
 
     const nonAdminName = `activity-test-${Date.now()}`;
     const createRes = await page.request.post("http://127.0.0.1/api/users", {
@@ -97,7 +99,7 @@ test.describe("Activity Viewer API", () => {
     const now = Math.floor(Date.now() / 1000);
     const from = now - 86400;
     const scopedRes = await userPage.request.get(
-      `http://127.0.0.1/api/tools/activity?from=${from}&to=${now}&username=${encodeURIComponent(adminUser!.username)}`,
+      `http://127.0.0.1/api/tools/activity?from=${from}&to=${now}&username=${encodeURIComponent(adminUser.username)}`,
     );
     expect(scopedRes.status()).toBe(403);
 

@@ -31,7 +31,6 @@ import {
   onTooltipHelpTouchEnd,
   shouldIgnoreOutsideTap,
   showHoverTooltip,
-  showInteractiveTooltip,
   tooltipEventCoords,
 } from "./tooltipHelp.js";
 
@@ -177,7 +176,10 @@ describe("tooltipHelp", () => {
 
   it("ignores hover-driven hide while a tap tooltip is open", () => {
     storeMock.getters.isMobile.mockReturnValue(true);
-    showInteractiveTooltip("help", { clientX: 1, clientY: 2 });
+    onTooltipHelpTouchEnd(
+      makePointerEvent({ clientX: 1, clientY: 2 }),
+      "help",
+    );
     storeMock.state.tooltip.show = true;
     storeMock.state.tooltip.pointerEvents = true;
     storeMock.mutations.hideTooltip.mockClear();
