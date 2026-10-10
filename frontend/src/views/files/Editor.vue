@@ -553,12 +553,11 @@ function openEditorSettings() {
 function setupNavigationGuard() {
   if (props.viewerMode) return;
 
-  navigationGuard = router.beforeEach((to, from, next) => {
+  navigationGuard = router.beforeEach((to, from) => {
     // If prompt is already open, block any new navigation attempts
     if (isPromptOpen) {
       if (getters.currentPromptName() === "SaveBeforeExit") {
-        next(false);
-        return;
+        return false;
       }
       isPromptOpen = false;
       pendingNavigation = null;
@@ -567,12 +566,11 @@ function setupNavigationGuard() {
     const isDifferentRoute = to.path !== from.path || to.hash !== from.hash;
 
     if (isDirty && !props.viewerMode && isDifferentRoute && req.value) {
-      next(false);
       pendingNavigation = to;
       showSaveBeforeExitPrompt();
-      return;
+      return false;
     }
-    next();
+    return true;
   });
 }
 
@@ -721,11 +719,10 @@ const beforeUnloadHandler = (event: BeforeUnloadEvent) => {
   }
 };
 
-window.addEventListener("keydown", keyEvent, true);
-window.addEventListener("beforeunload", beforeUnloadHandler);
-setupNavigationGuard();
-
 onMounted(async () => {
+  window.addEventListener("keydown", keyEvent, true);
+  window.addEventListener("beforeunload", beforeUnloadHandler);
+  setupNavigationGuard();
   resizeContainerEl.value = editorRoot.value;
   resizeContainerEl.value?.addEventListener("keydown", stopEnterPropagation); // to avoid trigger prompts primary button when the editor is embedded
   if (props.viewerMode) {
@@ -774,6 +771,7 @@ onBeforeUnmount(() => {
   // Clear navigation guard
   if (navigationGuard) {
     navigationGuard();
+    navigationGuard = null;
   }
   // Clear dirty state and save handler when leaving editor
   mutations.setEditorDirty(false);
