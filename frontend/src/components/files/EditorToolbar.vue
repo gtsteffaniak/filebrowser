@@ -370,7 +370,6 @@ async function save() {
   saveResetTimer = setTimeout(() => {
     saveState.value = "idle";
   }, 1500);
-  focusEditor();
 }
 
 function undo() {
@@ -867,7 +866,6 @@ onBeforeUnmount(() => {
 });
 
 defineExpose({ save });
-
 </script>
 
 <style scoped>
