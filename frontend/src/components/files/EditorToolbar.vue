@@ -15,7 +15,9 @@
           @mousedown.prevent
           @click="btn.action"
         >
-          <i class="material-symbols">{{ btn.icon }}</i>
+          <Transition name="toolbar-icon" mode="out-in">
+            <i :key="btn.icon" class="material-symbols">{{ btn.icon }}</i>
+          </Transition>
         </button>
       </div>
     </div>
@@ -863,6 +865,9 @@ onBeforeUnmount(() => {
   window.removeEventListener("scroll", closeMenu, true);
   window.removeEventListener("resize", closeMenu);
 });
+
+defineExpose({ save });
+
 </script>
 
 <style scoped>
@@ -891,7 +896,7 @@ onBeforeUnmount(() => {
   border-radius: var(--borderRadius);
   color: var(--textPrimary);
   cursor: pointer;
-  transition: background-color 0.15s ease;
+  transition: opacity 0.15s ease;
 }
 
 .md-toolbar-group {
@@ -962,6 +967,17 @@ onBeforeUnmount(() => {
 
 .editor-toolbar-btn .material-symbols {
   font-size: 1.2em;
+}
+
+.toolbar-icon-enter-active,
+.toolbar-icon-leave-active {
+  transition: opacity 0.12s ease, transform 0.12s ease;
+}
+
+.toolbar-icon-enter-from,
+.toolbar-icon-leave-to {
+  opacity: 0;
+  transform: scale(0.6);
 }
 
 .editor-toolbar-menu {

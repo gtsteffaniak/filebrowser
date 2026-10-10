@@ -5,7 +5,7 @@
       :class="{ 'viewer-mode': viewerMode }"
       :style="isSplitActive ? { flexBasis: `${editorPanePercent}%` } : {}"
     >
-      <EditorToolbar v-if="showEditorToolbar" :editor="editor" :is-markdown="isMarkdownFile" :show-save="!viewerMode" :save-handler="handleEditorValueRequest" />
+      <EditorToolbar v-if="showEditorToolbar" ref="toolbar" :editor="editor" :is-markdown="isMarkdownFile" :show-save="!viewerMode" :save-handler="handleEditorValueRequest" />
       <div id="editor" ref="editorEl"></div>
     </div>
     <MarkdownSplitView
@@ -76,6 +76,7 @@ const { t } = useI18n();
 const editorRoot = ref<HTMLElement | null>(null);
 const editorEl = ref<HTMLElement | null>(null);
 const splitView = ref<InstanceType<typeof MarkdownSplitView> | null>(null);
+const toolbar = ref<InstanceType<typeof EditorToolbar> | null>(null);
 
 const editor = shallowRef<Ace.Editor | null>(null); // The editor instance
 const originalReq = ref<Req | null>(null);
@@ -539,7 +540,7 @@ function keyEvent(event: KeyboardEvent) {
   if ((ctrlKey || metaKey) && key.toLowerCase() === "s") {
     event.preventDefault();
     if (event.repeat) return;
-    handleEditorValueRequest().catch(() => { /* ignore */ });
+    void toolbar.value?.save();
   }
 }
 
