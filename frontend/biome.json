@@ -7,7 +7,8 @@
       "!dist",
       "!public/config.generated.yaml",
       "!public/index.html",
-      "!node_modules"
+      "!node_modules",
+      "!test-results"
     ]
   },
   "formatter": {
