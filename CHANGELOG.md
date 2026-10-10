@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v2.1.2
+
+ **Bug Fixes**:
+ - Language switcher not working (#3114) (#3117)
+
 ## v2.1.1
 
 Note: this release also contains all changes from v2.0.10-beta changelog
