@@ -348,6 +348,26 @@
       "exceeded": "Opslaglimiet overschreden"
     }
   },
+  "quotas": {
+    "title": "Opslagquota",
+    "openDescription": "Open het dialoogvenster met de opslagquota voor deze map.",
+    "folderDescription": "Stel een opslaglimiet in voor deze map.",
+    "shareLimit": "Opslagcapaciteit van deze Share beperken",
+    "shareLimitDescription": "Telt het aantal uploads via deze link. Dit telt ook mee voor de bronquota van de eigenaar.",
+    "scopeLimit": "Opslaglimiet voor deze bron",
+    "scopeLimitDescription": "Opslagcapaciteit voor de opdracht van deze gebruiker voor deze bron.",
+    "indexingDisabledMeterHint": "Indexering is voor deze bron uitgeschakeld. Alleen bijgehouden gebruik is beschikbaar.",
+    "meterIndexHint": "Maakt gebruik van de totale grootte van de geïndexeerde bestanden in deze map. Hierbij worden ook wijzigingen meegerekend die buiten FileBrowser zijn aangebracht wanneer de index wordt bijgewerkt.",
+    "meterAccountedHint": "Telt alleen uploads, opslagbewerkingen en verwijderingen die via FileBrowser zijn uitgevoerd.",
+    "meterIndexScope": "Geïndexeerde grootte",
+    "meterAccounted": "Gebruiksgegevens bijgehouden",
+    "usageCounting": "Gebruik tellen per",
+    "usageSyncPending": "Het gebruik wordt nog steeds gesynchroniseerd met de index.",
+    "accountedFallback": "De geïndexeerde grootte is nog niet beschikbaar; totdat de index beschikbaar is, wordt het bijgehouden gebruik gebruikt.",
+    "errors": {
+      "exceeded": "Opslaglimiet overschreden"
+    }
+  },
   "share": {
     "notice": "Opmerking: wanneer een Share wordt aangemaakt, wordt deze meer blootgesteld aan het publiek en gelden er andere toegangsregels. Als uw Share niet veilig is geconfigureerd, kan iedereen er toegang tot krijgen.",
     "readOnlySourceNotice": "Deze bron is alleen-lezen. Upload shares en rechten om bestanden te wijzigen zijn uitgeschakeld.",
@@ -796,8 +816,25 @@
   },
   "access": {
     "access": "Toegang",
+    "groups": "Groepen",
+    "newGroup": "Nieuwe groep",
+    "editGroup": "Groep bewerken",
+    "groupName": "Groepsnaam",
+    "userGroups": "Groepen",
+    "addGroup": "Groep toevoegen",
+    "createGroupConfirm": "De groep \"{name}\" bestaat niet. Aanmaken?",
+    "addGroupPlaceholder": "Groepsnaam",
+    "removeGroup": "Uit groep verwijderen",
+    "groupMembers": "Leden",
+    "enterUsername": "Voer gebruikersnaam in",
+    "addMember": "Lid toevoegen",
+    "unknownUser": "Geen gebruiker met de naam \"{name}\"",
+    "deleteGroupConfirm": "Groep \"{name}\" verwijderen? Deze wordt ook uit alle toegangsregels verwijderd.",
+    "groupsOidcNote": "Leden van OIDC-gesynchroniseerde groepen worden bij elke aanmelding van die gebruikers opnieuw ingesteld vanuit de identiteitsprovider.",
     "all": "Alles weigeren",
     "rules": "Toegangsregels",
+    "hasRules": "Toegangsregels geconfigureerd",
+    "manageDescription": "Regels inzake open toegang voor dit traject.",
     "deny": "Weigeren",
     "totalDenied": "Geweigerd",
     "totalAllowed": "Toegestaan",
