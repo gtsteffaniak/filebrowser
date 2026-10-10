@@ -5,7 +5,7 @@
       :class="{ 'viewer-mode': viewerMode }"
       :style="isSplitActive ? { flexBasis: `${editorPanePercent}%` } : {}"
     >
-      <EditorToolbar v-if="showEditorToolbar" :editor="editor" :is-markdown="isMarkdownFile" />
+      <EditorToolbar v-if="showEditorToolbar" :editor="editor" :is-markdown="isMarkdownFile" :show-save="!viewerMode" :save-handler="handleEditorValueRequest" />
       <div id="editor" ref="editorEl"></div>
     </div>
     <MarkdownSplitView
@@ -538,6 +538,7 @@ function keyEvent(event: KeyboardEvent) {
   if (props.viewerMode) return;
   if ((ctrlKey || metaKey) && key.toLowerCase() === "s") {
     event.preventDefault();
+    if (event.repeat) return;
     handleEditorValueRequest().catch(() => { /* ignore */ });
   }
 }
@@ -742,7 +743,9 @@ onMounted(async () => {
   }
   initializeEditor(state.editor.scrollRatio);
   // Register save handler so other components can trigger save
-  mutations.setEditorSaveHandler(() => handleEditorValueRequest());
+  if (!props.viewerMode) {
+    mutations.setEditorSaveHandler(() => handleEditorValueRequest());
+  }
   applyFontSize();
   void setupViewerResizeObserver();
 });

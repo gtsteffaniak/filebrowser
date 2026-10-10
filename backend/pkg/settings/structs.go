@@ -388,7 +388,6 @@ type UserDefaultsPreview struct {
 
 // UserDefaultsFileViewer holds file viewer/editor settings
 type UserDefaultsFileViewer struct {
-	EditorQuickSave         bool   `json:"editorQuickSave"`         // show quick save button in editor
 	AutoplayMedia           *bool  `json:"autoplayMedia"`           // autoplay media files in preview
 	DisableViewingExt       string `json:"disableViewingExt"`       // comma separated list of file extensions to disable viewing for
 	DisableOnlyOfficeExt    string `json:"disableOnlyOfficeExt"`    // list of file extensions to disable onlyoffice editor for

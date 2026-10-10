@@ -198,10 +198,20 @@ export default {
       type: Boolean,
       default: false,
     },
+    showSave: {
+      type: Boolean,
+      default: true,
+    },
+    saveHandler: {
+      type: Function as PropType<(() => Promise<void>) | null>,
+      default: null,
+    },
   },
   data: () => ({
     canUndo: false,
     canRedo: false,
+    saveState: "idle" as "idle" | "saving" | "success" | "error",
+    saveResetTimer: null as ReturnType<typeof setTimeout> | null,
     pendingSelection: null as PendingSelection | null,
     openMenu: null as "extra" | "align" | "clipboard" | null,
     menuPosition: { top: 0, left: 0, right: 0 },
@@ -234,6 +244,7 @@ export default {
     window.addEventListener("resize", this.closeMenu);
   },
   beforeUnmount() {
+    if (this.saveResetTimer) clearTimeout(this.saveResetTimer);
     this.detachUndoListener(this.editor);
     this.clearPendingSelection();
     eventBus.off("pathSelected", this.onPathSelected);
@@ -251,6 +262,16 @@ export default {
         { id: "redo", icon: "redo", title: this.$t("editor.md.redo"), action: () => this.redo(), disabled: !this.canRedo, sticky: true },
         { id: "find", icon: "search", title: this.$t("general.search"), action: () => this.openFind() },
       ];
+      if (this.showSave) {
+        alwaysAvailable.unshift({
+          id: "save",
+          icon: { idle: "save", saving: "save", success: "check", error: "error" }[this.saveState],
+          title: this.$t("general.save"),
+          action: () => this.save(),
+          disabled: this.saveState === "saving",
+          sticky: true,
+        });
+      }
       const isJson = state.req?.type === "application/json"
       if (isJson && getters.sourcePermissions().modify) {
         alwaysAvailable.push({
@@ -360,6 +381,21 @@ export default {
       } catch (e) {
         notify.showErrorToast(this.$t("editor.json.invalidJSON", { message: e instanceof Error ? e.message : String(e) }));
       }
+      this.focusEditor();
+    },
+    async save() {
+      if (!this.saveHandler || this.saveState === "saving") return;
+      if (this.saveResetTimer) clearTimeout(this.saveResetTimer);
+      this.saveState = "saving";
+      try {
+        await this.saveHandler();
+        this.saveState = "success";
+      } catch (_e) {
+        this.saveState = "error";
+      }
+      this.saveResetTimer = setTimeout(() => {
+        this.saveState = "idle";
+      }, 1500);
       this.focusEditor();
     },
     undo() {
@@ -821,7 +857,7 @@ export default {
   flex-shrink: 0;
 }
 
-/* for undo/redo sticky at the left for easy access */
+/* sticky buttons at the left for easy access */
 .editor-toolbar-sticky {
   left: 0;
   position: sticky;

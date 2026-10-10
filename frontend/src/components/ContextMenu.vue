@@ -230,7 +230,6 @@
       <action v-if="showUnarchiveInOverflow" icon="folder_open" :label="$t('prompts.unarchive')" @action="showUnarchivePromptFromPreview" />
       <action v-if="showEditButton" icon="edit" :label="$t('general.edit')" @action="goToEdit" />
       <action v-if="showPreviewButton" icon="visibility" :label="$t('general.preview')" @action="goToPreview" />
-      <action v-if="showSave" icon="save" :label="$t('general.save')" @action="save()" />
       <action v-if="showDelete" icon="delete" :label="$t('general.delete')" @action="showDeletePrompt" />
     </div>
   </transition>
@@ -246,7 +245,6 @@ import {
   showHoverTooltip,
 } from "@/utils/tooltipHelp.js";
 import { url } from "@/utils";
-import buttons from "@/utils/buttons";
 import { copyToClipboard } from "@/utils/clipboard";
 import { globalVars } from "@/utils/constants.js";
 import downloadFiles from "@/utils/download";
@@ -505,7 +503,6 @@ export default {
     },
     hasOverflowItems() {
       return this.showDelete
-        || this.showSave
         || this.showGoToRaw
         || this.hasDownload
         || this.showUnarchiveInOverflow
@@ -555,10 +552,6 @@ export default {
       if (getters.isSplitViewActive()) return false;
       if (getters.currentView() !== "editor") return false;
       return isRichTextPreviewMimeType(state.req.type);
-    },
-    showSave() {
-      const allowEdit = this.permissions.modify || (getters.isShare() && state.shareInfo.allowModify);
-      return getters.currentView() === "editor" && allowEdit;
     },
     showOverflow() {
       return getters.currentPromptName() === "OverflowMenu";
@@ -1039,26 +1032,6 @@ export default {
     goToPreview() {
       mutations.closeHovers();
       void this.$router.replace({ hash: "#preview" });
-    },
-    async save() {
-      const button = "save";
-      buttons.loading("save");
-      try {
-        // Call the editor save handler directly and await completion
-        if (state.editor.saveHandler) {
-          await state.editor.saveHandler();
-          buttons.success(button);
-        } else {
-          const errorMsg = "No editor save handler registered";
-          notify.showError(errorMsg);
-          throw new Error(errorMsg);
-        }
-      } catch (e) {
-        buttons.done(button);
-        mutations.closeHovers();
-        throw e;
-      }
-      mutations.closeHovers();
     },
     showUploadPrompt() {
       mutations.closeHovers();
