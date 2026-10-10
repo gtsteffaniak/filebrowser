@@ -8,6 +8,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -43,14 +44,18 @@ type owncloudChunk struct {
 	name   string
 }
 
-// owncloudChunkParts reports the destination an ownCloud chunk belongs to: `/dir/file.mp4-chunk-3`
-// is chunk 3 of `/dir/file.mp4`.
-func owncloudChunkParts(requestPath string) (base string, ok bool) {
+// owncloudChunkParts reports the destination an ownCloud chunk belongs to and which chunk it is:
+// `/dir/file.mp4-chunk-3` is chunk 3 of `/dir/file.mp4`.
+func owncloudChunkParts(requestPath string) (base string, number int, ok bool) {
 	idx := strings.LastIndex(requestPath, owncloudChunkSuffix)
 	if idx <= 0 || !isUploadChunkNumber(requestPath[idx+len(owncloudChunkSuffix):]) {
-		return "", false
+		return "", 0, false
 	}
-	return requestPath[:idx], true
+	number, convErr := strconv.Atoi(requestPath[idx+len(owncloudChunkSuffix):])
+	if convErr != nil {
+		return "", 0, false
+	}
+	return requestPath[:idx], number, true
 }
 
 func isUploadChunkNumber(name string) bool {
@@ -70,7 +75,7 @@ func isUploadChunkNumber(name string) bool {
 // merely ends in `-chunk-<n>` and has no sibling chunks on disk.
 func owncloudChunkedMove(w http.ResponseWriter, r *http.Request, wd *webdav.Handler, requestPath, scopePath, prefix string) (handled bool, status int, err error) {
 	// the handler normalizes request paths with a trailing slash, the chunk number is before it
-	base, ok := owncloudChunkParts(strings.TrimSuffix(requestPath, "/"))
+	base, moved, ok := owncloudChunkParts(strings.TrimSuffix(requestPath, "/"))
 	if !ok {
 		return false, 0, nil
 	}
@@ -85,10 +90,19 @@ func owncloudChunkedMove(w http.ResponseWriter, r *http.Request, wd *webdav.Hand
 	}
 	realDir := filepath.Dir(filepath.Join(scopePath, destPath))
 	chunks, err := collectOwncloudChunks(realDir, path.Base(destPath))
-	if err != nil || len(chunks) < 2 {
+	if err != nil {
+		return false, 0, nil
+	}
+	// the moved chunk closes the transfer: a higher number is a leftover of an earlier, longer upload
+	// of the same name, and assembling it would mix two files together
+	chunks = slices.DeleteFunc(chunks, func(chunk owncloudChunk) bool { return chunk.number > moved })
+	if len(chunks) < 2 {
 		return false, 0, nil
 	}
 	for i, chunk := range chunks {
+		if i > 0 && chunk.number == chunks[i-1].number {
+			return true, http.StatusConflict, fmt.Errorf("chunked upload has two files for chunk %d", chunk.number)
+		}
 		if chunk.number != i {
 			return true, http.StatusConflict, fmt.Errorf("chunked upload is missing chunk %d of %d", i, chunks[len(chunks)-1].number)
 		}
