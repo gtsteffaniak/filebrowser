@@ -1,4 +1,4 @@
-import { expect, test } from "../test-setup";
+import { expect, test } from "../test-setup.ts";
 
 test("info from listing - archive item", async({ page, checkForErrors }) => {
     await page.goto("/files/");
@@ -44,7 +44,6 @@ test("context menu is shown on sizeAnalyzer tool", async({ page, checkForErrors 
     await page.locator('input[aria-label="Larger than size input"]').fill('1');
     await page.locator('button[aria-label="Analyze button"]').click();
     await page.locator('div[aria-label="1.1MB.bin"]').hover();
-    await page.waitForTimeout(1500);
     await expect(page.locator('.floating-tooltip')).toBeVisible();
     await expect(page.locator('.floating-tooltip')).toHaveText('1.1MB.bin (1.1 MB)');
     await page.locator('div[aria-label="1.1MB.bin"]').click({ button: "right" });

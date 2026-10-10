@@ -1,5 +1,4 @@
-
-import { checkForNotification, expect, test } from "../test-setup";
+import { checkForNotification, expect, test } from "../test-setup.ts";
 
 test("breadcrumbs navigation checks for shares", async ({ page, checkForErrors }) => {
   await page.goto("/files/exclude/");
@@ -14,7 +13,7 @@ test("breadcrumbs navigation checks for shares", async ({ page, checkForErrors }
   await expect(page).toHaveTitle("Graham's Filebrowser - Share - myfolder");
   await page.dblclick('a[aria-label="testdata"]');
   await expect(page).toHaveTitle("Graham's Filebrowser - Share - testdata");
-  await page.waitForSelector('#breadcrumbs');
+  await expect(page.locator('#breadcrumbs')).toBeVisible();
 
   // Ensure no <span> children exist directly under #breadcrumbs (ie no breadcrumbs paths)
   const spanChildrenCount = await page.locator('#breadcrumbs > ul > li.item').count();

@@ -1,17 +1,17 @@
-import { detectLocale } from '@/i18n';
-import { mutations } from './mutations';
-import { state } from './state';
-import { url } from '@/utils';
-import { globalVars, previewViews, tools } from '@/utils/constants';
-import { hasToolAccess, toolIdFromPath } from '@/utils/toolAccess';
+import { detectLocale } from "@/i18n/index.ts";
+import { mutations } from "./mutations.ts";
+import { state } from "./state.ts";
+import { url } from "@/utils/index.ts";
+import { globalVars, previewViews, tools } from "@/utils/constants.js";
+import { hasToolAccess, toolIdFromPath } from "@/utils/toolAccess.js";
 import { getFileExtension } from '@/utils/files.js';
-import { getTypeInfo, isHtmlMimeType, isRichTextPreviewMimeType } from '@/utils/mimetype';
-import { fromNow } from '@/utils/moment';
+import { getTypeInfo, isHtmlMimeType, isRichTextPreviewMimeType } from "@/utils/mimetype.js";
+import { formatTimestamp, fromNow } from "@/utils/moment.ts";
 import { getNestedProperty, getObjectProperty } from '@/utils/object.js';
 import { buildItemUrl, removeLeadingSlash, removePrefix } from '@/utils/url.js';
-import { defaultDarkMode } from '@/utils/theme';
+import { defaultDarkMode } from "@/utils/theme.js";
 import { isMobileLayout } from '@/utils/viewport.js';
-import type { DisplayPreference, FileListItem } from './types';
+import type { DisplayPreference, FileListItem } from "./types.ts";
 
 export const getters = {
   displayPreferenceFor: (source: string, path: string): DisplayPreference | null => {
@@ -21,23 +21,43 @@ export const getters = {
     }
     return (getNestedProperty(state.displayPreferences, sourceKey, path) as DisplayPreference) || null;
   },
-  eventTheme: () => {
-    if (getters.isShare()) {
+  eventThemeAvailable: () => {
+    if (getters.isShare() || !globalVars.eventBasedThemes) {
       return "";
     }
-    if (!globalVars.eventBasedThemes) {
-      return ""
-    }
-    if (state.disableEventThemes) {
-      return ""
-    }
-    // if date is halloween october 31st, return halloween
-    if (new Date().getMonth() === 9 && new Date().getDate() === 31) {
+    // october 9th to 31st available in the theme dropdown to change freely
+    const now = new Date();
+    if (now.getMonth() === 9 && now.getDate() >= 9) {
       return "halloween";
     }
     return "";
   },
-  getTime: timestamp => {
+  autoEventTheme: () => {
+    if (getters.isShare() || !globalVars.eventBasedThemes) {
+      return "";
+    }
+    const now = new Date();
+    if (now.getMonth() === 9 && now.getDate() === 31) {
+      return "halloween";
+    }
+    return "";
+  },
+  eventTheme: () => {
+    if (state.disableEventThemes) {
+      return "";
+    }
+    if (getters.autoEventTheme()) {
+      return "halloween";
+    }
+    if (
+      getters.eventThemeAvailable() === "halloween" &&
+      localStorage.getItem("eventThemeOptIn") === "halloween"
+    ) {
+      return "halloween";
+    }
+    return "";
+  },
+  getTime: (timestamp: string) => {
     if (state.user?.dateFormat) {
       // Truncate the fractional seconds to 3 digits (milliseconds)
       const sanitizedString = timestamp.replace(/\.\d+/, match =>
@@ -45,7 +65,7 @@ export const getters = {
       )
       // Parse the sanitized string into a Date object
       const date = new Date(sanitizedString)
-      return date.toLocaleString()
+      return formatTimestamp(date, state.user?.locale)
     }
     return fromNow(timestamp, state.user?.locale)
   },
@@ -70,7 +90,7 @@ export const getters = {
     if (getters.isShare()) {
       source = getters.currentHash();
     }
-    let path = state.route.path;
+    let path = state.route.path ?? "";
 
     if (state.req.type !== "directory") {
       path = path.substring(0, path.lastIndexOf("/") + 1) || "/";
@@ -111,7 +131,12 @@ export const getters = {
     return state.user?.viewMode || "normal";
   },
   sorting: () => {
-    return getters.displayPreference()?.sorting || state.user?.sorting || { by: "name", asc: true };
+    const sorting = getters.displayPreference()?.sorting || state.user?.sorting || { by: "name", asc: true };
+    if ((sorting.by === "kind" && !state.user?.showTypeColumn) ||
+        (sorting.by === "created" && !state.user?.showCreationDateColumn)) {
+      return { by: "name", asc: sorting.asc };
+    }
+    return sorting;
   },
   /** Sort config for destination picker dialogs (copy/move/archive), independent of the main listing sort. */
   pickerSorting: () => {
@@ -169,9 +194,6 @@ export const getters = {
     if (state.shareInfo?.enforceDarkLightMode === "light") {
       return false
     }
-    if (!getters.isShare() && getters.eventTheme() === "halloween") {
-      return true
-    }
     if (!getters.isLoggedIn()) {
       // Public shares honor an initialized anonymous preference so the sidebar
       // toggle reaches the document. Login and other logged-out routes, and a
@@ -209,13 +231,12 @@ export const getters = {
     return false
   },
   isAdmin: () => state.user.permissions?.admin === true,
-  isFiles: () => state.route.path.startsWith('/files'),
+  isFiles: () => (state.route.path ?? '').startsWith('/files'),
   isListing: () => getters.isFiles() || (getters.isShare() && state.req.type === 'directory'),
   selectedCount: () =>
     Array.isArray(state.selected) ? state.selected.length : 0,
   getFirstSelected: () => {
     const first = state.selected[0];
-    // eslint-disable-next-line security/detect-object-injection -- first is a numeric array index, not a property lookup
     return typeof first === 'number' ? state.req.items[first] : first;
   },
   isSingleFileSelected: () =>
@@ -229,7 +250,6 @@ export const getters = {
       return buildItemUrl(first.source, first.path)
     }
     const first = state.selected[0] as number;
-    // eslint-disable-next-line security/detect-object-injection -- first is a numeric array index, not a property lookup
     const item = state.req.items[first];
     return item ? buildItemUrl(item.source, item.path) : "";
   },
@@ -238,13 +258,13 @@ export const getters = {
     if (!state.req.items) {
       return 0
     }
-    state.req.items.forEach(item => {
+    for (const item of state.req.items) {
       // Check if the item is a directory
       if (item.type === 'directory') {
         // Otherwise, count this directory
         dirCount++
       }
-    })
+    }
     // Return the directory count
     return dirCount
   },
@@ -253,21 +273,21 @@ export const getters = {
     if (!state.req.items) {
       return 0
     }
-    state.req.items.forEach(item => {
+    for (const item of state.req.items) {
       // Check if the item is a directory
       if (item.type !== 'directory') {
         // Otherwise, count this directory
         fileCount++
       }
-    })
+    }
     // Return the directory count
     return fileCount
   },
   reqItems: () => {
     if (state.user === null) return { pinned: [], dirs: [], files: [] };
-    const pinned = [];
-    const dirs = [];
-    const files = [];
+    const pinned: FileListItem[] = [];
+    const dirs: FileListItem[] = [];
+    const files: FileListItem[] = [];
     if (!state.req?.items) return { pinned, dirs, files };
 
     for (const item of state.req.items) {
@@ -279,7 +299,7 @@ export const getters = {
         dirs.push(item);
       } else {
         // Pre-existing: capitalized "Path" (not FileListItem's "path"), never read elsewhere. Left as-is.
-        (item as FileListItem & { Path?: string }).Path = state.req.path;
+        (item as FileListItem & { Path?: string | undefined }).Path = state.req.path;
         files.push(item);
       }
     }
@@ -335,7 +355,7 @@ export const getters = {
     return removePrefix(state.route.path, trimModifier)
   },
   shareHash: () => {
-    if (!state.route.path.startsWith('/public/share')) {
+    if (!(state.route.path ?? '').startsWith('/public/share')) {
       return ""
     }
     const urlPath = getters.routePath('/public/share')
@@ -349,7 +369,7 @@ export const getters = {
     return `/public/share/${getters.shareHash()}/`
   },
   getSharePath: (subPath = "") => {
-    if (!state.route.path.startsWith('/public/share')) {
+    if (!(state.route.path ?? '').startsWith('/public/share')) {
       return ""
     }
     let urlPath = getters.routePath('/public/share')
@@ -358,7 +378,7 @@ export const getters = {
     }
     // remove hash from path and decode each part
     const parts = urlPath.split('/').slice(2);
-    urlPath = parts.map(part => decodeURIComponent(part)).join('/')
+    urlPath = parts.map((part: string) => decodeURIComponent(part)).join('/')
     if (subPath !== "") {
       urlPath = url.joinPath(urlPath, removeLeadingSlash(subPath))
     }
@@ -375,10 +395,11 @@ export const getters = {
     if (pathname.startsWith(`/tools`)) return 'tools';
 
     if (state.req.type !== undefined) {
-      const ext = `.${state.req.name.split(".").pop().toLowerCase()}`;
+      const reqName = state.req.name ?? "";
+      const ext = `.${reqName.split(".").pop()?.toLowerCase() ?? ""}`;
       if (state.user.disableViewingExt?.includes(ext)) return 'preview';
       if (state.req.type === 'directory') return 'listingView';
-      if (state.req.onlyOfficeId && !getters.officeViewingDisabled(state.req.name)) return 'onlyOfficeEditor';
+      if (state.req.onlyOfficeId && !getters.officeViewingDisabled(reqName)) return 'onlyOfficeEditor';
       if (getTypeInfo(state.req.type).simpleType === '3d-model') return 'threeJsViewer';
 
       if ('content' in state.req && isRichTextPreviewMimeType(state.req.type)) {
@@ -492,7 +513,7 @@ export const getters = {
     }
     return files.sort((a, b) => a.progress - b.progress)
   },
-  fileViewingDisabled: filename => {
+  fileViewingDisabled: (filename: string) => {
     if (getters.isShare()) {
       if (state.shareInfo?.disableFileViewer || state.shareInfo?.shareType === "upload") {
         return true
@@ -511,7 +532,7 @@ export const getters = {
     }
     return false
   },
-  officeViewingDisabled: filename => {
+  officeViewingDisabled: (filename: string) => {
     const ext = ` ${getFileExtension(filename)}`;
     const disabledList = state.user.disableOnlyOfficeExt || ''
     if (disabledList === '*') {
@@ -733,7 +754,7 @@ export const getters = {
     return scopeEntry?.permissions ?? denyFile;
   },
   /** Whether the current user may create files/folders in the given source (share-aware). */
-  canCreateInSource: (source) => {
+  canCreateInSource: (source: string) => {
     if (getters.isShare()) {
       return !!state.shareInfo?.allowCreate;
     }

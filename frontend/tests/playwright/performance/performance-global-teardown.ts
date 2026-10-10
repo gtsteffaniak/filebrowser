@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import { writeFinalArtifacts } from "./perf-finalize";
-import { perfResultsDir } from "./perf-helpers";
+import { writeFinalArtifacts } from "./perf-finalize.ts";
+import { perfResultsDir } from "./perf-helpers.ts";
 
 /**
  * Finalize the run: aggregate iterations, compare against the committed

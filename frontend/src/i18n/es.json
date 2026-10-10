@@ -43,12 +43,15 @@
     "requestTimedOut": "La solicitud ha superado el tiempo de espera. Comprueba la configuración de tu red o del proxy inverso."
   },
   "files": {
+    "sortByCreationTime": "Ordenar por fecha de creación",
+    "creationTime": "Fecha de creación",
     "emptyFile": "Archivo vacío",
     "lastModified": "Última modificación",
     "multipleSelectionEnabled": "Selección múltiple activada",
     "sortByLastModified": "Ordenar por fecha de modificación",
     "sortByName": "Ordenar por nombre",
     "sortBySize": "Ordenar por tamaño",
+    "sortByType": "Ordenar por tipo",
     "noPreview": "Vista previa no disponible",
     "noDownloadAccess": "La descarga no está disponible",
     "newFile": "Nuevo archivo{suffix}",
@@ -146,7 +149,11 @@
     "failedLogin": "Error al iniciar sesión",
     "invalidCredentials": "Credenciales no válidas",
     "passkeyLogin": "Usar clave de acceso",
-    "recaptchaRequired": "Se requiere verificación de recaptcha"
+    "recaptchaRequired": "Se requiere verificación de recaptcha",
+    "requirePasswordChangeTitle": "Cambia tu contraseña",
+    "requirePasswordChangeInstructions": "Debes establecer una nueva contraseña antes de continuar.",
+    "requirePasswordChangeSuccess": "Se ha actualizado la contraseña. Ya has iniciado sesión.",
+    "requirePasswordChangeMustDiffer": "La nueva contraseña debe ser diferente de tu contraseña actual"
   },
   "prompts": {
     "noTemplate": "¡Tu plantilla está vacía!",
@@ -235,6 +242,15 @@
     "unarchiveMessage": "Elije dónde quieres extraer el archivo:",
     "unarchiveDestination": "Extraer a:",
     "unarchiveSuccess": "¡Archivo extraído con éxito!",
+    "zipFilenameEncoding": "Filename encoding",
+    "zipEncodingLoading": "Checking ZIP filenames…",
+    "zipEncodingError": "Could not read the ZIP filename preview.",
+    "zipEncodingRetry": "Retry preview",
+    "zipEncodingChoose": "Choose an encoding",
+    "zipEncodingSuggested": "suggested",
+    "zipEncodingHint": "Check the filenames below before extracting. Suggestions may be incorrect; ZIP Unicode metadata takes precedence.",
+    "zipFilenamePreview": "Filename preview",
+    "zipEncodingUnavailable": "No supported encoding can decode all filenames in this ZIP.",
     "downloadFailed": "Fallo en la descarga por trozos. Si se repite, intente reducir el tamaño de los trozos: {message}",
     "confirmPasswordToSaveUser": "Introduzca su contraseña actual para guardar estos cambios de usuario."
   },
@@ -313,7 +329,10 @@
     "userEditPreferences": "Preferencias del usuario",
     "userEditTools": "Acceso a las herramientas",
     "userEditToolsDescription": "Configurar a qué herramientas puede acceder este usuario",
-    "userEditSidebarLinks": "Enlaces de la barra lateral"
+    "userEditSidebarLinks": "Enlaces de la barra lateral",
+    "passwordRequirementsMatch": "Las contraseñas coinciden",
+    "passwordRequirementsMinLength": "Al menos {min} caracteres",
+    "requirePasswordChange": "Exigir el cambio de contraseña en el próximo inicio de sesión"
   },
   "sidebar": {
     "updateIsAvailable": "¡Actualización disponible!",
@@ -356,7 +375,9 @@
     "sidebarLinkDefaultsHelp": "Estos son los enlaces predeterminados que se añadirán para todos los nuevos usuarios. Si se establece un enlace como obligatorio, se añadirá para todos los usuarios y los usuarios que no sean administradores no podrán eliminarlo.",
     "sidebarLinkDefaultSourceHelp": "Solo se aplica cuando el usuario tiene acceso a esta fuente.",
     "sidebarLinkDefaultsYamlInvalid": "YAML no válido. Comprueba el formato e inténtalo de nuevo.",
-    "switchMode": "Alternar entre los enlaces y el árbol de navegación"
+    "switchMode": "Alternar entre los enlaces y el árbol de navegación",
+    "rootFilesystemOnly": "Limitar el uso del disco al sistema de archivos de origen",
+    "rootFilesystemOnlyDescription": "Cuando está activada, solo se incluye en el informe el sistema de archivos que contiene la ruta de origen. Cuando está desactivada (por defecto), el total del disco también incluye los sistemas de archivos montados bajo la ruta de origen, y los conjuntos de datos compartidos, como los de ZFS, se cuentan una sola vez."
   },
   "share": {
     "notice": "Cuando se crea un recurso compartido, este quedará más expuesto al público y tendrá diferentes reglas de acceso. Si no está configurado de forma forma segura, cualquiera podrá acceder a él.",
@@ -651,16 +672,12 @@
     "allow": "Permitir",
     "allowDeny": "Permitir/Bloquear",
     "userGroup": "Usuario/Grupo",
-    "enterName": "Escribe el nombre del usuario o grupo",
-    "deleted": "Regla de acceso eliminada",
-    "added": "Regla de acceso añadida",
     "accessManagement": "Gestión de accesos",
     "totalDenied": "Bloqueados",
     "totalAllowed": "Permitidos",
     "all": "Bloquear todo",
     "defaultBehaviorDescription": "La regla por defecto para todos es \"Permitir\": todos tienen acceso a todo a menos que especifiques una regla -- \"Denegar\" significa que los usuarios estarán bloqueados: No podrán acceder a esa carpeta(s) a menos que lo permitas especifcamente",
     "defaultBehavior": "Regla por defecto {suffix}",
-    "deletedCascade": "Reglas de acceso eliminadas",
     "cascadeDelete": "Eliminación en cascada",
     "cascadeDeleteDescription": "Si eliminas una regla de acceso con esta opción, también la eliminará para todo el contenido (archivos y carpetas), lo cual nos permite eliminar por completo un usuario o grupo de todo el árbol de directorios",
     "hasRules": "Normas de acceso configuradas",
@@ -670,16 +687,23 @@
     "editGroup": "Editar grupo",
     "groupName": "Nombre del grupo",
     "userGroups": "Grupos",
-    "addGroup": "Añadir grupo",
-    "createGroupConfirm": "El grupo «{name}» no existe. ¿Crearlo?",
-    "addGroupPlaceholder": "Nombre del grupo",
-    "removeGroup": "Quitar del grupo",
     "groupMembers": "Miembros",
-    "enterUsername": "Introduce el nombre de usuario",
-    "addMember": "Añadir miembro",
-    "unknownUser": "No hay ningún usuario llamado «{name}»",
     "deleteGroupConfirm": "¿Eliminar el grupo «{name}»? También se quitará de todas las reglas de acceso.",
-    "groupsOidcNote": "Los miembros de los grupos sincronizados con OIDC se restablecen desde el proveedor de identidad cada vez que esos usuarios inician sesión."
+    "groupsOidcNote": "Los miembros de los grupos sincronizados con OIDC se restablecen desde el proveedor de identidad cada vez que esos usuarios inician sesión.",
+    "userGroupsDescription": "Grupos a los que pertenece este usuario",
+    "membersCount": "Miembros: {count}",
+    "userGroupsCount": "Grupos: {count}",
+    "groupNameRequired": "Es obligatorio indicar el nombre del grupo.",
+    "groupNameTooShort": "Group name must be at least {min} characters.",
+    "groupNameTooLong": "El nombre del grupo debe tener un máximo de {max} caracteres.",
+    "groupNameInvalid": "El nombre del grupo no debe contener caracteres de control.",
+    "groupExists": "Ya existe un grupo con este nombre.",
+    "selectEntities": "Seleccionar",
+    "selectUser": "Seleccionar usuario",
+    "selectUsers": "Seleccionar usuarios",
+    "selectGroup": "Seleccionar grupo",
+    "selectGroups": "Seleccionar grupos",
+    "refineSearch": "Se muestran los primeros resultados de « {count} ». Refina tu búsqueda para ver más."
   },
   "fileLoading": {
     "title": "Subida y Descarga",
@@ -702,6 +726,10 @@
     "orange": "Naranja"
   },
   "profileSettings": {
+    "showTypeColumn": "Mostrar columna Tipo",
+    "showTypeColumnDescription": "Mostrar la columna Tipo en las vistas de lista y compacta en el listado principal.",
+    "showCreationDateColumn": "Mostrar columna Fecha de creación",
+    "showCreationDateColumnDescription": "Mostrar la columna Fecha de creación en las vistas de lista y compacta en el listado principal.",
     "promptRightCloseButton": "Mostrar botón de cerrar en el lado derecho de las ventanas",
     "promptRightCloseButtonDescription": "Mostrar el botón de cerrar en el lado derecho de las ventanas en vez del lado izquierdo",
     "hideFileExt": "Ocultar ciertos archivos (por extensión)",
@@ -828,6 +856,8 @@
       "customScrollbarDescription": "Reemplazar la barra de desplazamiento nativa del navegador por la integrada de Ace",
       "wrapContent": "Ajustar líneas largas en el editor",
       "wrapContentDescription": "Ajusta el contenido del editor para mantener siempre visibles las líneas muy largas",
+      "indentedSoftWrap": "Ajustar lineas largas con sangría",
+      "indentedSoftWrapDescription": "Cuando está habilitado, agrega una sangría al inicio de la línea del texto que fue ajustado",
       "autocompletion": "Autocompletado",
       "autocompletionDescription": "Habilita el autocompletado presionando manualmente las teclas 'ctrl + espacio'",
       "liveAutocompletion": "Autocompletado automático",
@@ -939,6 +969,11 @@
     "audio": "Audio",
     "archive": "Archivo",
     "document": "Documento",
+    "text": "Texto",
+    "ebook": "Libro electrónico",
+    "font": "Fuente",
+    "model3d": "Modelo 3D",
+    "brokenLink": "Enlace roto",
     "binary": "Binario",
     "other": "Otros"
   },
@@ -984,7 +1019,8 @@
       "termTooShort": "Cada término de búsqueda debe tener al menos {minSearchLength} caracteres",
       "resultsTitle": "Resultados de la búsqueda",
       "invalidSources": "Enciende al menos una fuente.",
-      "noResults": "No hay archivos o carpetas coincidentes."
+      "noResults": "No hay archivos o carpetas coincidentes.",
+      "resultLimit": "Máximo de resultados de búsqueda"
     },
     "activityViewer": {
       "name": "Visor de actividades",

@@ -1,10 +1,10 @@
-import { fetchURL, fetchJSON } from '@/api/utils'
+import { fetchURL, fetchJSON } from "@/api/utils.ts"
 import { getApiPath, getPublicApiPath } from '@/utils/url.js'
-import { getObjectProperty, setObjectProperty } from '@/utils/object'
-import { notify } from '@/notify'
-import { state } from '@/store/state.js'
-import { mutations } from '@/store/mutations.js'
-import i18n from '@/i18n'
+import { getObjectProperty, setObjectProperty } from "@/utils/object.js"
+import { notify } from "@/notify/index.ts"
+import { state } from "@/store/state.ts"
+import { mutations } from "@/store/mutations.ts"
+import i18n from "@/i18n/index.ts"
 
 // GET /api/users (list all)
 export async function getAllUsers() {
@@ -114,12 +114,12 @@ export async function update(user, which, options = {}) {
   const mergedHeaders = { ...(options.headers || {}) }
 
   let userData = {}
-  which.forEach(key => {
+  for (const key of which) {
     const value = getObjectProperty(user, key)
     if (value !== undefined) {
       userData = setObjectProperty(userData, key, value)
     }
-  })
+  }
 
   const apiPath = getApiPath('users', { username: user.username })
   const body = JSON.stringify({
@@ -237,4 +237,3 @@ export async function deleteUser(username, options = {}) {
     })
   }
 }
-

@@ -1,8 +1,8 @@
-import { expect, test } from "../test-setup";
+import { expect, test } from "../test-setup.ts";
 
 test("share folder breadcrumbs navigation checks", async ({ page, checkForErrors }) => {
     await page.goto("/files/playwright%20+%20files/share");
-    await page.waitForSelector('#breadcrumbs');
+    await expect(page.locator('#breadcrumbs')).toBeVisible();
     let spanChildrenCount = await page.locator('#breadcrumbs > ul > li.item').count();
     expect(spanChildrenCount).toBe(1);
     let breadCrumbLink = page.locator('a[aria-label="breadcrumb-link-share"]')
@@ -11,7 +11,7 @@ test("share folder breadcrumbs navigation checks", async ({ page, checkForErrors
     // click breadcrumb link
     await breadCrumbLink.click()
     await expect(page).toHaveTitle("Graham's Filebrowser - Files - share");
-    await page.waitForSelector('#breadcrumbs');
+    await expect(page.locator('#breadcrumbs')).toBeVisible();
     spanChildrenCount = await page.locator('#breadcrumbs > ul > li.item').count();
     expect(spanChildrenCount).toBe(1);
     breadCrumbLink = page.locator('a[aria-label="breadcrumb-link-share"]')
@@ -33,7 +33,7 @@ test("breadcrumbs navigation checks", async ({ page, checkForErrors }) => {
     await expect(page).toHaveTitle("Graham's Filebrowser - Share - myfolder");
     await page.dblclick('a[aria-label="testdata"]');
     await expect(page).toHaveTitle("Graham's Filebrowser - Share - testdata");
-    await page.waitForSelector('#breadcrumbs');
+    await expect(page.locator('#breadcrumbs')).toBeVisible();
     // Ensure no <span> children exist directly under #breadcrumbs (ie no breadcrumbs paths)
     const spanChildrenCount = await page.locator('#breadcrumbs > ul > li.item').count();
     expect(spanChildrenCount).toBe(1);

@@ -1,4 +1,4 @@
-import { expect, test } from "../test-setup";
+import { expect, test } from "../test-setup.ts";
 
 /**
  * No JWT: `sharePrepStorage.json` from global setup has only localStorage
@@ -151,4 +151,52 @@ test("anonymous file and directory shares apply the theme toggle", async ({ page
   expect(userUpdates).toEqual([]);
   // Each share load records the anonymous self-user 401. Toggling adds none.
   checkForErrors(0, 2);
+});
+
+test("anonymous visitor can stream video from myfolder share", async ({ page, checkForErrors }, testInfo) => {
+  await page.goto("/public/api/health");
+  const shareHash = await page.evaluate(() => localStorage.getItem("shareHash"));
+  if (!shareHash) throw new Error("shareHash is missing (global-setup sharePrepStorage)");
+
+  const streamResponse = page.waitForResponse(
+    (res) =>
+      res.url().includes("/public/api/media/stream") &&
+      res.request().method() === "GET",
+    { timeout: 60_000 },
+  );
+
+  await page.goto(`/public/share/${shareHash}/testdata/`);
+  await expect(page).toHaveTitle("Graham's Filebrowser - Share - testdata");
+  await expect(page.locator('a[aria-label="sample-640x480.mp4"]')).toBeVisible();
+
+  await page.locator('a[aria-label="sample-640x480.mp4"]').dblclick();
+  await expect(page).toHaveTitle(/sample-640x480\.mp4/);
+
+  const playButton = page.locator(".plyr-viewer .plyr__control--overlaid, .plyr-viewer button.plyr__control[data-plyr='play']");
+  await playButton.first().click({ timeout: 15_000 });
+
+  const stream = await streamResponse;
+  expect(stream.status(), await stream.text()).not.toBe(403);
+  expect([200, 206]).toContain(stream.status());
+
+  const rawBase =
+    (testInfo.project.use as { baseURL?: string }).baseURL ?? "http://127.0.0.1/";
+  const baseNorm = rawBase.endsWith("/") ? rawBase : `${rawBase}/`;
+  const viewTokenUrl = new URL(
+    `public/api/resources/view-token?hash=${encodeURIComponent(shareHash)}`,
+    baseNorm,
+  ).href;
+  const viewTokenPayload = await page.evaluate(async (url) => {
+    const res = await fetch(url, {
+      method: "POST",
+      credentials: "omit",
+    });
+    const text = await res.text();
+    return { status: res.status, text };
+  }, viewTokenUrl);
+  expect(viewTokenPayload.status, viewTokenPayload.text).toBe(200);
+  const viewTokenBody = JSON.parse(viewTokenPayload.text) as { viewToken?: string };
+  expect(viewTokenBody.viewToken?.length).toBeGreaterThan(0);
+
+  checkForErrors(0, 1);
 });

@@ -43,12 +43,15 @@
     "requestTimedOut": "Wystąpił limit czasu żądania. Sprawdź ustawienia sieci lub serwera proxy odwrotnego."
   },
   "files": {
+    "sortByCreationTime": "Sortuj według czasu utworzenia",
+    "creationTime": "Czas utworzenia",
     "emptyFile": "Pusty plik",
     "lastModified": "Ostatnio modyfikowane",
     "multipleSelectionEnabled": "Zaznaczenie wielu włączone",
     "sortByLastModified": "Sortuj wg. daty modyfikacji",
     "sortByName": "Sortuj wg. nazwy",
     "sortBySize": "Sortuj wg. rozmiaru",
+    "sortByType": "Sortuj według typu",
     "noPreview": "Podgląd nie jest dostępny dla tego pliku.",
     "noDownloadAccess": "Pobieranie nie jest dostępne.",
     "newFile": "Nowy plik{suffix}",
@@ -146,7 +149,11 @@
     "failedLogin": "Logowanie nie powiodło się",
     "invalidCredentials": "Podano nieprawidłowe dane uwierzytelniające",
     "passkeyLogin": "Użyj klucza dostępu",
-    "recaptchaRequired": "Wymagane jest sprawdzenie Recaptcha"
+    "recaptchaRequired": "Wymagane jest sprawdzenie Recaptcha",
+    "requirePasswordChangeTitle": "Zmień hasło",
+    "requirePasswordChangeInstructions": "Przed kontynuowaniem należy ustawić nowe hasło.",
+    "requirePasswordChangeSuccess": "Hasło zostało zaktualizowane. Jesteś teraz zalogowany.",
+    "requirePasswordChangeMustDiffer": "Nowe hasło musi różnić się od obecnego hasła"
   },
   "prompts": {
     "noTemplate": "Twój szablon jest pusty!",
@@ -235,6 +242,15 @@
     "unarchiveMessage": "Wybierz miejsce rozpakowania archiwum.",
     "unarchiveDestination": "Wyciąg do:",
     "unarchiveSuccess": "Archiwum rozpakowane pomyślnie!",
+    "zipFilenameEncoding": "Filename encoding",
+    "zipEncodingLoading": "Checking ZIP filenames…",
+    "zipEncodingError": "Could not read the ZIP filename preview.",
+    "zipEncodingRetry": "Retry preview",
+    "zipEncodingChoose": "Choose an encoding",
+    "zipEncodingSuggested": "suggested",
+    "zipEncodingHint": "Check the filenames below before extracting. Suggestions may be incorrect; ZIP Unicode metadata takes precedence.",
+    "zipFilenamePreview": "Filename preview",
+    "zipEncodingUnavailable": "No supported encoding can decode all filenames in this ZIP.",
     "downloadFailed": "Pobieranie fragmentów nie powiodło się - jeśli sytuacja się powtórzy, spróbuj zmniejszyć rozmiar fragmentu: {message}",
     "confirmPasswordToSaveUser": "Wprowadź aktualne hasło, aby zapisać zmiany użytkownika."
   },
@@ -313,7 +329,10 @@
     "userEditPreferences": "Preferencje użytkownika",
     "userEditTools": "Dostęp do narzędzi",
     "userEditToolsDescription": "Skonfiguruj, do których narzędzi ten użytkownik ma dostęp",
-    "userEditSidebarLinks": "Linki w pasku bocznym"
+    "userEditSidebarLinks": "Linki w pasku bocznym",
+    "passwordRequirementsMatch": "Hasła są zgodne",
+    "passwordRequirementsMinLength": "Co najmniej {min} znaków",
+    "requirePasswordChange": "Wymagaj zmiany hasła przy następnym logowaniu"
   },
   "sidebar": {
     "updateIsAvailable": "Aktualizacja jest już dostępna!",
@@ -356,7 +375,9 @@
     "sidebarLinkDefaultsHelp": "Są to domyślne linki, które zostaną dodane dla wszystkich nowych użytkowników. Jeśli ustawisz link jako obowiązkowy, zostanie on dodany dla wszystkich użytkowników i nie będzie można go usunąć, jeśli nie jest się administratorem.",
     "sidebarLinkDefaultSourceHelp": "Ma zastosowanie wyłącznie wtedy, gdy użytkownik ma dostęp do tego źródła.",
     "sidebarLinkDefaultsYamlInvalid": "Nieprawidłowy plik YAML. Sprawdź format i spróbuj ponownie.",
-    "switchMode": "Przełączanie między linkami a drzewem nawigacyjnym"
+    "switchMode": "Przełączanie między linkami a drzewem nawigacyjnym",
+    "rootFilesystemOnly": "Ogranicz wykorzystanie miejsca na dysku do rozmiarów systemu plików źródłowego",
+    "rootFilesystemOnlyDescription": "Gdy opcja jest włączona, uwzględniane są wyłącznie systemy plików zawierające ścieżkę źródłową. Gdy opcja jest wyłączona (ustawienie domyślne), całkowita pojemność dysku obejmuje również systemy plików zamontowane w ramach ścieżki źródłowej, przy czym wspólne pule, takie jak zbiory danych ZFS, są liczone tylko raz."
   },
   "share": {
     "notice": "Uwaga: po utworzeniu folderu udostępnionego staje się on bardziej dostępny publicznie i ma inne zasady dostępu. Jeśli udział nie jest bezpiecznie skonfigurowany, może być dostępny dla każdego.",
@@ -651,16 +672,12 @@
     "allow": "Zezwalaj",
     "allowDeny": "Zezwól/Odmów",
     "userGroup": "Użytkownik/Grupa",
-    "enterName": "Wprowadź nazwę użytkownika lub grupy",
-    "deleted": "Reguła dostępu usunięta!",
-    "added": "Dodano regułę dostępu!",
     "accessManagement": "Zarządzanie dostępem",
     "totalDenied": "Odmowa",
     "totalAllowed": "Dozwolone",
     "all": "Odmów wszystkim",
     "defaultBehaviorDescription": "To pokazuje, co się dzieje, gdy użytkownik próbuje uzyskać dostęp do ścieżki, dla której nie istnieją określone reguły dostępu. \"Zezwól\" oznacza, że użytkownicy mogą uzyskać dostęp domyślnie, \"Odmów\" oznacza, że użytkownicy są domyślnie blokowani, chyba że wyraźnie na to zezwolono.",
     "defaultBehavior": "Działanie domyślne{suffix}",
-    "deletedCascade": "Reguły dostępu usunięte ze ścieżki i wszystkich podścieżek!",
     "cascadeDelete": "Usuwanie rekursywne",
     "cascadeDeleteDescription": "Po włączeniu tej opcji usunięcie reguły dostępu spowoduje również usunięcie jej ze wszystkich podkatalogów. Pozwala to na całkowite usunięcie użytkownika lub grupy z całego drzewa katalogów.",
     "hasRules": "Skonfigurowane reguły dostępu",
@@ -670,16 +687,23 @@
     "editGroup": "Edytuj grupę",
     "groupName": "Nazwa grupy",
     "userGroups": "Grupy",
-    "addGroup": "Dodaj grupę",
-    "createGroupConfirm": "Grupa „{name}” nie istnieje. Utworzyć ją?",
-    "addGroupPlaceholder": "Nazwa grupy",
-    "removeGroup": "Usuń z grupy",
     "groupMembers": "Członkowie",
-    "enterUsername": "Wpisz nazwę użytkownika",
-    "addMember": "Dodaj członka",
-    "unknownUser": "Brak użytkownika o nazwie „{name}”",
     "deleteGroupConfirm": "Usunąć grupę „{name}”? Zostanie ona również usunięta ze wszystkich reguł dostępu.",
-    "groupsOidcNote": "Członkowie grup synchronizowanych przez OIDC są resetowani z dostawcy tożsamości przy każdym logowaniu tych użytkowników."
+    "groupsOidcNote": "Członkowie grup synchronizowanych przez OIDC są resetowani z dostawcy tożsamości przy każdym logowaniu tych użytkowników.",
+    "userGroupsDescription": "Grupy, do których należy ten użytkownik",
+    "membersCount": "Członkowie: {count}",
+    "userGroupsCount": "Grupy: {count}",
+    "groupNameRequired": "Nazwa grupy jest wymagana.",
+    "groupNameTooShort": "Group name must be at least {min} characters.",
+    "groupNameTooLong": "Nazwa grupy może zawierać maksymalnie {max} znaków.",
+    "groupNameInvalid": "Nazwa grupy nie może zawierać znaków sterujących.",
+    "groupExists": "Grupa o tej nazwie już istnieje.",
+    "selectEntities": "Wybierz",
+    "selectUser": "Wybierz użytkownika",
+    "selectUsers": "Wybierz użytkowników",
+    "selectGroup": "Wybierz grupę",
+    "selectGroups": "Wybierz grupy",
+    "refineSearch": "Wyświetlane są pierwsze wyniki z kategorii „ {count} ”. Zawęź wyszukiwanie, aby wyświetlić więcej wyników."
   },
   "fileLoading": {
     "title": "Przesyłanie i pobieranie",
@@ -702,6 +726,10 @@
     "orange": "pomarańczowy"
   },
   "profileSettings": {
+    "showTypeColumn": "Pokaż kolumnę Typ",
+    "showTypeColumnDescription": "Pokaż kolumnę Typ w widoku listy i widoku kompaktowym w głównym wykazie.",
+    "showCreationDateColumn": "Pokaż kolumnę Data utworzenia",
+    "showCreationDateColumnDescription": "Pokaż kolumnę Data utworzenia w widoku listy i widoku kompaktowym w głównym wykazie.",
     "promptRightCloseButton": "Pokaż przycisk zamykania okien dialogowych po prawej stronie",
     "promptRightCloseButtonDescription": "Pokaż przycisk zamykania okien dialogowych po prawej stronie zamiast po lewej",
     "hideFileExt": "Ukryj wybrane pliki (według rozszerzenia)",
@@ -828,6 +856,8 @@
       "customScrollbarDescription": "Zamień natywny pasek przewijania przeglądarki na wbudowany pasek Ace",
       "wrapContent": "Zawijanie długich wierszy w edytorze",
       "wrapContentDescription": "Zawija zawartość edytora, aby bardzo długie wiersze były zawsze widoczne",
+      "indentedSoftWrap": "Miękkie zawijanie z wcięciem",
+      "indentedSoftWrapDescription": "Gdy jest włączone, dodaje wcięcie na początku zawiniętego tekstu",
       "autocompletion": "Autouzupełnianie",
       "autocompletionDescription": "Włącza autouzupełnianie poprzez ręczne naciśnięcie 'ctrl + space'",
       "liveAutocompletion": "Autouzupełnianie na żywo",
@@ -939,6 +969,11 @@
     "audio": "Audio",
     "archive": "Archiwum",
     "document": "Dokument",
+    "text": "Tekst",
+    "ebook": "E-book",
+    "font": "Czcionka",
+    "model3d": "Model 3D",
+    "brokenLink": "Uszkodzony link",
     "binary": "Binarny",
     "other": "Inne"
   },
@@ -984,7 +1019,8 @@
       "termTooShort": "Każde wyszukiwane hasło musi zawierać co najmniej {minSearchLength} znaków",
       "resultsTitle": "Wyniki wyszukiwania",
       "invalidSources": "Włącz co najmniej jedno źródło.",
-      "noResults": "Brak pasujących plików lub folderów."
+      "noResults": "Brak pasujących plików lub folderów.",
+      "resultLimit": "Maksymalna liczba wyników wyszukiwania"
     },
     "activityViewer": {
       "name": "Przeglądarka aktywności",

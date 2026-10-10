@@ -14,5 +14,9 @@ server:
       config:
         defaultEnabled: true
 userDefaults:
+  listing:
+    viewMode: "normal"
+    # Size 4: switch-view "gallery" family resolves to icons (not gallery); list family → list.
+    gallerySize: 3
   account:
     showAdvancedProfile: true

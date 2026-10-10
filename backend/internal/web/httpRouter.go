@@ -36,6 +36,7 @@ func configureHTTPRouter(router, api, publicRoutes, publicApi *http.ServeMux) {
 	// Auth Routes - /api/auth/
 	// ========================================
 	api.HandleFunc("POST /auth/login", withRateLimit(AuthRateLimitCredentialLockout, loginHelper(loginHandler)))
+	api.HandleFunc("POST /auth/password/change-required", withoutUser(withRateLimitChain(AuthRateLimitCredentialLockout, changeRequiredPasswordHandler)))
 	api.HandleFunc("POST /auth/logout", withOrWithoutUser(withRateLimitChain(AuthRateLimitModerate, logoutHandler)))
 	api.HandleFunc("POST /auth/signup", withoutUser(withRateLimitChain(AuthRateLimitModerate, signupHandler)))
 	api.HandleFunc("POST /auth/otp/generate", withOrWithoutUser(withRateLimitChain(AuthRateLimitModerate, generateOTPHandler)))
@@ -97,6 +98,7 @@ func configureHTTPRouter(router, api, publicRoutes, publicApi *http.ServeMux) {
 	api.HandleFunc("POST /access/group", withAdmin(groupPostHandler))
 	api.HandleFunc("PUT /access/group", withAdmin(groupPutHandler))
 	api.HandleFunc("DELETE /access/group", withAdmin(groupDeleteHandler))
+	api.HandleFunc("PUT /access/user-groups", withAdmin(userGroupsPutHandler))
 
 	// ========================================
 	// Share Routes - /api/share/

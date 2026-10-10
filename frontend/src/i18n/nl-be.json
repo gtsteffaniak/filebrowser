@@ -43,12 +43,15 @@
     "requestTimedOut": "De tijdlimiet voor het verzoek is verstreken. Controleer je netwerk- of reverse-proxy-instellingen."
   },
   "files": {
+    "sortByCreationTime": "Sorteren op aanmaaktijd",
+    "creationTime": "Aanmaaktijd",
     "emptyFile": "Leeg bestand",
     "lastModified": "Laatst bewerkt",
     "multipleSelectionEnabled": "Meerdere items selecteren ingeschakeld",
     "sortByLastModified": "Sorteren op laatst bewerkt",
     "sortByName": "Sorteren op naam",
     "sortBySize": "Sorteren op grootte",
+    "sortByType": "Sorteren op type",
     "noPreview": "Preview is niet beschikbaar voor dit bestand.",
     "noDownloadAccess": "Download is niet beschikbaar.",
     "newFile": "Nieuw bestand{suffix}",
@@ -146,7 +149,11 @@
     "failedLogin": "Aanmelden mislukt",
     "invalidCredentials": "Ongeldige referenties verstrekt",
     "passkeyLogin": "Passkey gebruiken",
-    "recaptchaRequired": "Recaptcha-uitdaging vereist"
+    "recaptchaRequired": "Recaptcha-uitdaging vereist",
+    "requirePasswordChangeTitle": "Wijzig je wachtwoord",
+    "requirePasswordChangeInstructions": "U moet een nieuw wachtwoord instellen voordat u verder kunt gaan.",
+    "requirePasswordChangeSuccess": "Het wachtwoord is bijgewerkt. Je bent nu ingelogd.",
+    "requirePasswordChangeMustDiffer": "Het nieuwe wachtwoord moet anders zijn dan je huidige wachtwoord"
   },
   "prompts": {
     "noTemplate": "Uw sjabloon is leeg!",
@@ -235,6 +242,15 @@
     "unarchiveMessage": "Kies waar het archief moet worden uitgepakt.",
     "unarchiveDestination": "Uittreksel naar:",
     "unarchiveSuccess": "Archief met succes uitgepakt!",
+    "zipFilenameEncoding": "Filename encoding",
+    "zipEncodingLoading": "Checking ZIP filenames…",
+    "zipEncodingError": "Could not read the ZIP filename preview.",
+    "zipEncodingRetry": "Retry preview",
+    "zipEncodingChoose": "Choose an encoding",
+    "zipEncodingSuggested": "suggested",
+    "zipEncodingHint": "Check the filenames below before extracting. Suggestions may be incorrect; ZIP Unicode metadata takes precedence.",
+    "zipFilenamePreview": "Filename preview",
+    "zipEncodingUnavailable": "No supported encoding can decode all filenames in this ZIP.",
     "downloadFailed": "Chunkedownload mislukt - als dit zich herhaalt, probeer dan de grootte van de chunk te verkleinen: {message}",
     "confirmPasswordToSaveUser": "Voer uw huidige wachtwoord in om deze gebruikerswijzigingen op te slaan."
   },
@@ -313,7 +329,10 @@
     "userEditPreferences": "Gebruikersinstellingen",
     "userEditTools": "Toegang tot gereedschap",
     "userEditToolsDescription": "Stel in tot welke tools deze gebruiker toegang heeft",
-    "userEditSidebarLinks": "Links in de zijbalk"
+    "userEditSidebarLinks": "Links in de zijbalk",
+    "passwordRequirementsMatch": "Wachtwoorden komen overeen",
+    "passwordRequirementsMinLength": "{min} -tekens",
+    "requirePasswordChange": "Vereis dat het wachtwoord bij de volgende aanmelding wordt gewijzigd"
   },
   "sidebar": {
     "updateIsAvailable": "Er is een update beschikbaar!",
@@ -356,7 +375,9 @@
     "sidebarLinkDefaultsHelp": "Dit zijn de standaardlinks die voor alle nieuwe gebruikers worden toegevoegd. Als je een link verplicht stelt, wordt deze voor alle gebruikers toegevoegd en kan deze niet worden verwijderd door gebruikers die geen beheerder zijn.",
     "sidebarLinkDefaultSourceHelp": "Dit geldt alleen als de gebruiker toegang heeft tot deze bron.",
     "sidebarLinkDefaultsYamlInvalid": "Ongeldige YAML. Controleer de opmaak en probeer het opnieuw.",
-    "switchMode": "Schakelen tussen links en navigatiestructuur"
+    "switchMode": "Schakelen tussen links en navigatiestructuur",
+    "rootFilesystemOnly": "Het schijfgebruik beperken tot het bronbestandssysteem",
+    "rootFilesystemOnlyDescription": "Indien deze optie is ingeschakeld, wordt alleen het bestandssysteem met het bronpad weergegeven. Indien deze optie is uitgeschakeld (standaard), omvat het totale schijfvolume ook de bestandssystemen die onder het bronpad zijn gekoppeld, waarbij gedeelde pools zoals ZFS-datasets slechts één keer worden meegeteld."
   },
   "share": {
     "notice": "Opmerking: wanneer een share wordt aangemaakt, wordt deze meer blootgesteld aan het publiek en gelden er andere toegangsregels. Als je share niet veilig is geconfigureerd, kan iedereen er toegang tot krijgen.",
@@ -501,6 +522,10 @@
     "orange": "oranje"
   },
   "profileSettings": {
+    "showTypeColumn": "Type-kolom tonen",
+    "showTypeColumnDescription": "Toon de Type-kolom in lijst- en compacte weergaven in de hoofdlijst.",
+    "showCreationDateColumn": "Aanmaakdatum-kolom tonen",
+    "showCreationDateColumnDescription": "Toon de Aanmaakdatum-kolom in lijst- en compacte weergaven in de hoofdlijst.",
     "promptRightCloseButton": "Toon sluitknop van prompts rechts",
     "promptRightCloseButtonDescription": "Toon de sluitknop van de prompts aan de rechterkant in plaats van aan de linkerkant",
     "hideFileExt": "Bepaalde bestanden verbergen (op extensie)",
@@ -758,14 +783,10 @@
     "allow": "Sta  toe.",
     "allowDeny": "Toestaan/weigeren",
     "userGroup": "Gebruiker/Groep",
-    "enterName": "Voer de naam van de gebruiker of groep in",
-    "deleted": "Toegangsregel verwijderd!",
-    "added": "Toegangsregel toegevoegd!",
     "accessManagement": "Toegangsbeheer",
     "all": "Alles weigeren",
     "defaultBehaviorDescription": "Dit laat zien wat er gebeurt als een gebruiker toegang probeert te krijgen tot een pad waarvoor geen specifieke toegangsregels bestaan. Toestaan' betekent dat gebruikers standaard toegang hebben, 'Weigeren' betekent dat gebruikers standaard worden geblokkeerd tenzij ze expliciet toestemming krijgen.",
     "defaultBehavior": "Standaardactie{suffix}",
-    "deletedCascade": "Toegangsregels verwijderd van pad en alle subpaden!",
     "cascadeDelete": "Recursief verwijderen",
     "cascadeDeleteDescription": "Indien ingeschakeld, zal het verwijderen van een toegangsregel deze ook verwijderen uit alle submappen. Hierdoor kun je een gebruiker of groep volledig verwijderen uit de hele mappenstructuur.",
     "hasRules": "Toegangsregels geconfigureerd",
@@ -775,16 +796,23 @@
     "editGroup": "Groep bewerken",
     "groupName": "Groepsnaam",
     "userGroups": "Groepen",
-    "addGroup": "Groep toevoegen",
-    "createGroupConfirm": "De groep \"{name}\" bestaat niet. Aanmaken?",
-    "addGroupPlaceholder": "Groepsnaam",
-    "removeGroup": "Uit groep verwijderen",
     "groupMembers": "Leden",
-    "enterUsername": "Voer gebruikersnaam in",
-    "addMember": "Lid toevoegen",
-    "unknownUser": "Geen gebruiker met de naam \"{name}\"",
     "deleteGroupConfirm": "Groep \"{name}\" verwijderen? Deze wordt ook uit alle toegangsregels verwijderd.",
-    "groupsOidcNote": "Leden van OIDC-gesynchroniseerde groepen worden bij elke aanmelding van die gebruikers opnieuw ingesteld vanuit de identiteitsprovider."
+    "groupsOidcNote": "Leden van OIDC-gesynchroniseerde groepen worden bij elke aanmelding van die gebruikers opnieuw ingesteld vanuit de identiteitsprovider.",
+    "userGroupsDescription": "Groepen waarvan deze gebruiker lid is",
+    "membersCount": "Leden: {count}",
+    "userGroupsCount": "Groepen: {count}",
+    "groupNameRequired": "De groepsnaam is verplicht.",
+    "groupNameTooShort": "Group name must be at least {min} characters.",
+    "groupNameTooLong": "De groepsnaam mag maximaal {max} tekens lang zijn.",
+    "groupNameInvalid": "De groepsnaam mag geen besturingstekens bevatten.",
+    "groupExists": "Er bestaat al een groep met deze naam.",
+    "selectEntities": "Selecteer",
+    "selectUser": "Gebruiker selecteren",
+    "selectUsers": "Gebruikers selecteren",
+    "selectGroup": "Groep selecteren",
+    "selectGroups": "Groepen selecteren",
+    "refineSearch": "De eerste {count} -resultaten worden weergegeven. Verfijn je zoekopdracht om meer resultaten te zien."
   },
   "editor": {
     "stats": {
@@ -828,6 +856,8 @@
       "customScrollbarDescription": "Vervang de native browser-schuifbalk door de ingebouwde van Ace",
       "wrapContent": "Lange regels in de editor laten doorlopen",
       "wrapContentDescription": "Zorgt dat de editorinhoud wordt doorlopen zodat zeer lange regels altijd zichtbaar blijven",
+      "indentedSoftWrap": "Ingesprongen zachte terugloop",
+      "indentedSoftWrapDescription": "Wanneer dit is ingeschakeld, wordt een inspringing toegevoegd aan het begin van de teruggelopen tekst",
       "autocompletion": "Automatische aanvulling",
       "autocompletionDescription": "Schakelt automatische aanvulling in door handmatig op 'ctrl + space' te drukken",
       "liveAutocompletion": "Live automatische aanvulling",
@@ -939,6 +969,11 @@
     "audio": "Audio",
     "archive": "Archief",
     "document": "Document",
+    "text": "Tekst",
+    "ebook": "E-book",
+    "font": "Lettertype",
+    "model3d": "3D-model",
+    "brokenLink": "Verbroken link",
     "binary": "Binair",
     "other": "Andere"
   },
@@ -984,7 +1019,8 @@
       "termTooShort": "Elke zoekterm moet minimaal {minSearchLength} tekens bevatten.",
       "resultsTitle": "Zoekresultaten",
       "invalidSources": "Zet minstens één bron aan.",
-      "noResults": "Geen overeenkomende bestanden of mappen."
+      "noResults": "Geen overeenkomende bestanden of mappen.",
+      "resultLimit": "Maximumaantal zoekresultaten"
     },
     "activityViewer": {
       "name": "Activiteitenoverzicht",

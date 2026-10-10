@@ -1,4 +1,4 @@
-import { getters } from "@/store";
+import { getters } from "@/store/index.ts";
 
 /** Chromium/Android OOPIF PDF behavior (#2081); Firefox/Safari excluded. */
 export function isChromiumBasedBrowser() {

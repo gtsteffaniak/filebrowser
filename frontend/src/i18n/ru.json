@@ -43,12 +43,15 @@
     "requestTimedOut": "Истекло время ожидания запроса. Проверьте настройки сети или обратного прокси-сервера."
   },
   "files": {
+    "sortByCreationTime": "Сортировать по времени создания",
+    "creationTime": "Время создания",
     "emptyFile": "Пустой файл",
     "lastModified": "Последнее изменение",
     "multipleSelectionEnabled": "Мультивыбор включен",
     "sortByLastModified": "Сортировка по дате изменения",
     "sortByName": "Сортировка по имени",
     "sortBySize": "Сортировка по размеру",
+    "sortByType": "Сортировать по типу",
     "noPreview": "Предварительный просмотр для этого файла недоступен.",
     "noDownloadAccess": "Загрузка недоступна.",
     "newFile": "Новый файл{suffix}",
@@ -146,7 +149,11 @@
     "failedLogin": "Не удалось войти в систему",
     "invalidCredentials": "Предоставлены неверные учетные данные",
     "passkeyLogin": "Использовать ключ доступа",
-    "recaptchaRequired": "Требуется проверка Recaptcha"
+    "recaptchaRequired": "Требуется проверка Recaptcha",
+    "requirePasswordChangeTitle": "Изменить пароль",
+    "requirePasswordChangeInstructions": "Прежде чем продолжить, необходимо установить новый пароль.",
+    "requirePasswordChangeSuccess": "Пароль обновлен. Вы вошли в систему.",
+    "requirePasswordChangeMustDiffer": "Новый пароль должен отличаться от вашего текущего пароля"
   },
   "prompts": {
     "noTemplate": "Ваш шаблон пуст!",
@@ -235,6 +242,15 @@
     "unarchiveMessage": "Выберите, куда распаковать архив.",
     "unarchiveDestination": "Отрывок в:",
     "unarchiveSuccess": "Архив извлечен успешно!",
+    "zipFilenameEncoding": "Filename encoding",
+    "zipEncodingLoading": "Checking ZIP filenames…",
+    "zipEncodingError": "Could not read the ZIP filename preview.",
+    "zipEncodingRetry": "Retry preview",
+    "zipEncodingChoose": "Choose an encoding",
+    "zipEncodingSuggested": "suggested",
+    "zipEncodingHint": "Check the filenames below before extracting. Suggestions may be incorrect; ZIP Unicode metadata takes precedence.",
+    "zipFilenamePreview": "Filename preview",
+    "zipEncodingUnavailable": "No supported encoding can decode all filenames in this ZIP.",
     "downloadFailed": "Не удалось загрузить чанк - если ситуация повторяется, попробуйте уменьшить размер чанка: {message}",
     "confirmPasswordToSaveUser": "Введите свой текущий пароль, чтобы сохранить изменения пользователя."
   },
@@ -313,7 +329,10 @@
     "userEditPreferences": "Настройки пользователя",
     "userEditTools": "Доступ к инструментам",
     "userEditToolsDescription": "Настройте, к каким инструментам этот пользователь будет иметь доступ",
-    "userEditSidebarLinks": "Ссылки в боковой панели"
+    "userEditSidebarLinks": "Ссылки в боковой панели",
+    "passwordRequirementsMatch": "Пароли совпадают",
+    "passwordRequirementsMinLength": "Не менее {min} символов",
+    "requirePasswordChange": "Требовать смену пароля при следующем входе в систему"
   },
   "sidebar": {
     "updateIsAvailable": "Обновление доступно!",
@@ -356,7 +375,9 @@
     "sidebarLinkDefaultsHelp": "Это ссылки по умолчанию, которые будут добавлены для всех новых пользователей. Если вы сделаете ссылку обязательной, она будет добавлена для всех пользователей, и пользователи, не являющиеся администраторами, не смогут её удалить.",
     "sidebarLinkDefaultSourceHelp": "Применимо только в том случае, если у пользователя есть доступ к данному источнику.",
     "sidebarLinkDefaultsYamlInvalid": "Неверный YAML. Проверьте формат и попробуйте ещё раз.",
-    "switchMode": "Переключаться между ссылками и деревом навигации"
+    "switchMode": "Переключаться между ссылками и деревом навигации",
+    "rootFilesystemOnly": "Ограничить использование дискового пространства исходной файловой системой",
+    "rootFilesystemOnlyDescription": "Если этот параметр включен, в отчёте указывается только файловая система, содержащая исходный путь. Если он отключен (по умолчанию), в общем объёме диска также учитываются файловые системы, смонтированные под исходным путём, при этом общие пулы, такие как наборы данных ZFS, учитываются только один раз."
   },
   "share": {
     "notice": "Примечание: когда создается общий ресурс, он становится более открытым для публики и имеет другие правила доступа. Если ваш ресурс не настроен безопасно, доступ к нему может получить любой желающий.",
@@ -651,16 +672,12 @@
     "allow": "Разрешить",
     "allowDeny": "Разрешить/запретить",
     "userGroup": "Пользователь/группа",
-    "enterName": "Введите имя пользователя или группы",
-    "deleted": "Правило доступа удалено!",
-    "added": "Правило доступа добавлено!",
     "accessManagement": "Управление доступом",
     "totalDenied": "Отказано",
     "totalAllowed": "Разрешено",
     "all": "Запретить все",
     "defaultBehaviorDescription": "Здесь показано, что происходит, когда пользователь пытается получить доступ к пути, для которого не существует специальных правил доступа. 'Allow' означает, что пользователи могут получить доступ по умолчанию, 'Deny' означает, что пользователи блокируются по умолчанию, если только они не разрешены явным образом.",
     "defaultBehavior": "Действие по умолчанию{suffix}",
-    "deletedCascade": "Правила доступа удалены из пути и всех подпутей!",
     "cascadeDelete": "Рекурсивное удаление",
     "cascadeDeleteDescription": "Если эта функция включена, удаление правила доступа также удалит его из всех подкаталогов. Это позволяет полностью удалить пользователя или группу из всего дерева каталогов.",
     "hasRules": "Настроены правила доступа",
@@ -670,16 +687,23 @@
     "editGroup": "Редактировать группу",
     "groupName": "Название группы",
     "userGroups": "Группы",
-    "addGroup": "Добавить группу",
-    "createGroupConfirm": "Группа «{name}» не существует. Создать её?",
-    "addGroupPlaceholder": "Название группы",
-    "removeGroup": "Удалить из группы",
     "groupMembers": "Участники",
-    "enterUsername": "Введите имя пользователя",
-    "addMember": "Добавить участника",
-    "unknownUser": "Нет пользователя с именем «{name}»",
     "deleteGroupConfirm": "Удалить группу «{name}»? Она также будет удалена из всех правил доступа.",
-    "groupsOidcNote": "Участники групп, синхронизированных через OIDC, сбрасываются из провайдера удостоверений при каждом входе этих пользователей."
+    "groupsOidcNote": "Участники групп, синхронизированных через OIDC, сбрасываются из провайдера удостоверений при каждом входе этих пользователей.",
+    "userGroupsDescription": "Группы, в которые входит этот пользователь",
+    "membersCount": "Участники: {count}",
+    "userGroupsCount": "Группы: {count}",
+    "groupNameRequired": "Название группы является обязательным полем.",
+    "groupNameTooShort": "Group name must be at least {min} characters.",
+    "groupNameTooLong": "Название группы должно содержать не более {max} символов.",
+    "groupNameInvalid": "Название группы не должно содержать управляющих символов.",
+    "groupExists": "Группа с таким названием уже существует.",
+    "selectEntities": "Выбрать",
+    "selectUser": "Выбрать пользователя",
+    "selectUsers": "Выбрать пользователей",
+    "selectGroup": "Выбрать группу",
+    "selectGroups": "Выбрать группы",
+    "refineSearch": "Отображаются первые результаты по запросу « {count} ». Уточните поиск, чтобы увидеть больше результатов."
   },
   "fileLoading": {
     "title": "Загрузки и скачивания",
@@ -702,6 +726,10 @@
     "orange": "оранжевый"
   },
   "profileSettings": {
+    "showTypeColumn": "Показывать столбец Тип",
+    "showTypeColumnDescription": "Показывать столбец Тип в режимах списка и компактном режиме в основном списке.",
+    "showCreationDateColumn": "Показывать столбец Дата создания",
+    "showCreationDateColumnDescription": "Показывать столбец Дата создания в режимах списка и компактном режиме в основном списке.",
     "promptRightCloseButton": "Показывать кнопку закрытия диалогов справа",
     "promptRightCloseButtonDescription": "Показывать кнопку закрытия диалогов справа вместо слева",
     "hideFileExt": "Скрыть определенные файлы (по расширению)",
@@ -828,6 +856,8 @@
       "customScrollbarDescription": "Заменить стандартную полосу прокрутки браузера на встроенную в Ace",
       "wrapContent": "Переносить длинные строки в редакторе",
       "wrapContentDescription": "Переносит содержимое редактора, чтобы очень длинные строки всегда оставались видимыми",
+      "indentedSoftWrap": "Мягкий перенос с отступом",
+      "indentedSoftWrapDescription": "Когда это включено, добавляет отступ в начало перенесённого текста",
       "autocompletion": "Автодополнение",
       "autocompletionDescription": "Включает автодополнение при ручном нажатии 'ctrl + space'",
       "liveAutocompletion": "Живое автодополнение",
@@ -939,6 +969,11 @@
     "audio": "Аудио",
     "archive": "Архив",
     "document": "Документ",
+    "text": "Текст",
+    "ebook": "Электронная книга",
+    "font": "Шрифт",
+    "model3d": "3D-модель",
+    "brokenLink": "Битая ссылка",
     "binary": "Бинарные",
     "other": "Другие"
   },
@@ -984,7 +1019,8 @@
       "termTooShort": "Каждый поисковый запрос должен содержать не менее {minSearchLength} символов.",
       "resultsTitle": "Результаты поиска",
       "invalidSources": "Включите хотя бы один источник.",
-      "noResults": "Нет подходящих файлов или папок."
+      "noResults": "Нет подходящих файлов или папок.",
+      "resultLimit": "Максимальное количество результатов поиска"
     },
     "activityViewer": {
       "name": "Просмотрщик действий",

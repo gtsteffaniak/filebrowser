@@ -45,6 +45,7 @@
         :type="item.type"
         :size="item.size ?? item.originalItem?.size ?? 0"
         :modified="item.originalItem?.modified || new Date().toISOString()"
+        :created="item.originalItem?.created"
         :index="index"
         :class="{ 'zebra-row': index % 2 === 1, 'current-item': isCurrentItem(item), 'context-item': isContextItem(item) }"
         :path="item.path"
@@ -143,7 +144,7 @@ export default {
       default: true,
     },
   },
-  data: function () {
+  data() {
     const initialSource = this.browseSource || state.req.source;
     // If browsePath is provided, use it; otherwise use current path or root
     let initialPath;
@@ -270,15 +271,18 @@ export default {
       this.selectionBeforeMenu = null;
       mutations.resetSelected();
       if (previous?.entries?.length) {
-        previous.entries.forEach((entry) => mutations.addSelected(entry));
+        for (const entry of previous.entries) {
+          mutations.addSelected(entry);
+        }
       }
       if (previous?.multiple) {
         mutations.setMultiple(true);
       }
     },
-    loading(isLoading) {
+    async loading(isLoading) {
       if (!isLoading && this.fileList) {
-        this.$nextTick(() => this.followCurrentItem());
+        await this.$nextTick();
+        this.followCurrentItem();
       }
     },
     // Re-sort local items when the picker header changes the sort config
@@ -432,6 +436,7 @@ export default {
             pinned: !!item.pinned,
             size: item.size,
             modified: item.modified,
+            created: item.created,
             metadata: item.metadata,
             originalItem: item,
           });
@@ -463,7 +468,7 @@ export default {
       const sorted = this.sortEntries(rest);
       this.items = parentEntry ? [parentEntry, ...sorted] : sorted;
     },
-    next: function (event) {
+    next(event) {
       // Retrieves the URL of the directory the user
       // just clicked in and fill the options with its
       // content.
@@ -588,7 +593,7 @@ export default {
         isValid: !this.requireFileSelection,
       });
     },
-    select: function (event) {
+    select(event) {
       const path = event.currentTarget.dataset.path;
       if (this.selected === path) {
         this.clearSelection();
@@ -607,7 +612,7 @@ export default {
         isValid: !this.requireFileSelection || isFile,
       });
     },
-    createDir: async function () {
+    async createDir() {
       mutations.showPrompt({
         name: "newDir",
         action: null,
@@ -705,12 +710,14 @@ export default {
       this.stopFollowingCurrentItem = () => {
         observer.disconnect();
         clearTimeout(timer);
-        events.forEach((name) => container.removeEventListener(name, this.stopFollowingCurrentItem));
+        for (const name of events) {
+          container.removeEventListener(name, this.stopFollowingCurrentItem);
+        }
         this.stopFollowingCurrentItem = null;
       };
-      events.forEach((name) =>
-        container.addEventListener(name, this.stopFollowingCurrentItem, { passive: true })
-      );
+      for (const name of events) {
+        container.addEventListener(name, this.stopFollowingCurrentItem, { passive: true });
+      }
     },
     navigateToItem(item) {
       mutations.closeTopPrompt();
@@ -724,6 +731,22 @@ export default {
 </script>
 
 <style scoped>
+.card-content {
+  --listing-col-gap: 0.5rem;
+  --listing-col-size: 5rem;
+  --listing-col-modified: 8.5rem;
+}
+
+/* a bit of padding after the column inset */
+.sticky-header :deep(.listing-item-header.desktop-view) {
+  padding-right: calc(var(--listing-col-gap) + 0.5em);
+}
+
+.sticky-header :deep(.listing-item-header i) {
+  font-size: 1.2em;
+  margin-left: 0.1em;
+}
+
 /* File picker specific: make non-link items interactive */
 .listing-items :deep(.listing-item.clickable) {
   cursor: pointer;

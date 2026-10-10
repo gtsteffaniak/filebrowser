@@ -571,6 +571,18 @@ func BuildNode(v reflect.Value, comm CommentsMap) (*yaml.Node, error) {
 	return buildNodeWithDefaults(v, comm, reflect.Value{}, SecretFieldsMap{}, DeprecatedFieldsMap{})
 }
 
+func conditionalRulesAreUnset(rules []ConditionalRule) bool {
+	if len(rules) == 0 {
+		return true
+	}
+	for _, rule := range rules {
+		if rule != (ConditionalRule{}) {
+			return false
+		}
+	}
+	return true
+}
+
 // buildNodeWithDefaults constructs a yaml.Node for any Go value, skipping fields that match defaults, redacting secrets, and filtering deprecated fields
 func buildNodeWithDefaults(v reflect.Value, comm CommentsMap, defaults reflect.Value, secrets SecretFieldsMap, deprecated DeprecatedFieldsMap) (*yaml.Node, error) {
 	// Dereference pointers
@@ -618,6 +630,18 @@ func buildNodeWithDefaults(v reflect.Value, comm CommentsMap, defaults reflect.V
 			}
 
 			currentField := v.Field(i)
+
+			// Unset source display names are derived at startup; omit from minimal YAML export.
+			if defaults.IsValid() && typeName == "Source" && sf.Name == "Name" && currentField.Kind() == reflect.String && currentField.String() == "" {
+				continue
+			}
+
+			// Empty conditional rules are omitted from minimal YAML (template may include a sample row).
+			if defaults.IsValid() && typeName == "SourceConfig" && sf.Name == "Rules" {
+				if rules, ok := currentField.Interface().([]ConditionalRule); ok && conditionalRulesAreUnset(rules) {
+					continue
+				}
+			}
 
 			// Check if this is an inline/embedded field
 			yamlTag := sf.Tag.Get("yaml")

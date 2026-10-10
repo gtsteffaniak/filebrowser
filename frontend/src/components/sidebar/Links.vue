@@ -93,22 +93,22 @@
                   info
                 </i>
               </div>
-              <div v-if="hasUsageInfo(link) && link.category !== 'source-minimal'" class="usage-info">
+              <div v-if="hasUsageInfo(link) && baseSidebarCategory(link.category) !== 'source-minimal'" class="usage-info">
                 <!-- For source-hybrid, show single bar with background value for disk usage -->
                 <ProgressBar
-                  v-if="link.category === 'source-hybrid' || link.category === 'source-hybrid-2'"
-                  :key="`progress-hybrid-${link.sourceName}-${sourceInfo[link.sourceName]?.used || 0}-${sourceInfo[link.sourceName]?.usedAlt || 0}-${sourceInfo[link.sourceName]?.total || 0}`"
+                  v-if="isHybridCategory(link.category)"
+                  :key="`progress-hybrid-${link.sourceName}-${sourceInfo[link.sourceName]?.used || 0}-${getDiskUsed(link, sourceInfo[link.sourceName] || {})}-${getUsageTotal(link, sourceInfo[link.sourceName] || {})}`"
                   :val="sourceInfo[link.sourceName]?.used || 0"
-                  :val-background="sourceInfo[link.sourceName]?.usedAlt || 0"
-                  :val-text="link.category === 'source-hybrid-2' ? (sourceInfo[link.sourceName]?.usedAlt || 0) : null"
-                  :max="sourceInfo[link.sourceName]?.total || 1"
+                  :val-background="getDiskUsed(link, sourceInfo[link.sourceName] || {})"
+                  :val-text="baseSidebarCategory(link.category) === 'source-hybrid-2' ? getDiskUsed(link, sourceInfo[link.sourceName] || {}) : null"
+                  :max="getUsageTotal(link, sourceInfo[link.sourceName] || {})"
                   :status="getProgressBarStatus(link, sourceInfo[link.sourceName] || {})"
                   unit="bytes">
                 </ProgressBar>
                 <!-- For other source types, show single bar -->
                 <ProgressBar
                   v-else
-                  :key="`progress-${link.sourceName}-${sourceInfo[link.sourceName]?.used || 0}-${sourceInfo[link.sourceName]?.usedAlt || 0}-${sourceInfo[link.sourceName]?.total || 0}`"
+                  :key="`progress-${link.sourceName}-${sourceInfo[link.sourceName]?.used || 0}-${getDiskUsed(link, sourceInfo[link.sourceName] || {})}-${getUsageTotal(link, sourceInfo[link.sourceName] || {})}`"
                   :val="getProgressBarValue(link, sourceInfo[link.sourceName] || {})"
                   :val-background="getProgressBarReserved(sourceInfo[link.sourceName] || {})"
                   :max="getProgressBarMax(link, sourceInfo[link.sourceName] || {})"
@@ -169,6 +169,7 @@ import {
 import ProgressBar from "@/components/ProgressBar.vue";
 import { goToItem } from "@/utils/url";
 import { getIconClass } from "@/utils/material-symbols";
+import { baseSidebarCategory, isRootOnlySidebarCategory, isSourceSidebarCategory } from "@/utils/sidebarCategory";
 import { getObjectProperty } from '@/utils/object.js';
 import IndexInfo from "@/components/files/IndexInfo.vue";
 import { globalVars } from "@/utils/constants";
@@ -268,11 +269,11 @@ export default {
     sourceLinkMap() {
       const map = {};
       if (this.user?.sidebarLinks) {
-        this.user.sidebarLinks.forEach(link => {
+        for (const link of this.user.sidebarLinks) {
           if (this.isSourceCategory(link.category) && link.sourceName && !map[link.sourceName]) {
             map[link.sourceName] = link;
           }
-        });
+        }
       }
       return map;
     },
@@ -297,13 +298,30 @@ export default {
   },
   methods: {
     isSourceCategory(category) {
-      return category.startsWith("source")
+      return isSourceSidebarCategory(category);
+    },
+    isHybridCategory(category) {
+      const base = baseSidebarCategory(category);
+      return base === 'source-hybrid' || base === 'source-hybrid-2';
+    },
+    baseSidebarCategory,
+    /** Disk capacity for the link's scope: aggregated nested mounts (default) or root filesystem only (-root categories). */
+    getUsageTotal(link, sourceInfo) {
+      const root = isRootOnlySidebarCategory(link.category);
+      const total = root ? (sourceInfo.totalRoot || 0) : (sourceInfo.total || 0);
+      return total > 0 ? total : (sourceInfo.total || 1);
+    },
+    /** Disk-reported used bytes for the link's scope. */
+    getDiskUsed(link, sourceInfo) {
+      return isRootOnlySidebarCategory(link.category)
+        ? (sourceInfo.usedAltRoot || 0)
+        : (sourceInfo.usedAlt || 0);
     },
     getIconClass,
     hasUsageInfo(link) {
       if (!this.isSourceCategory(link.category) || !link.sourceName) return false;
       if (!this.hasSourceInfo || !this.isLinkAccessible(link)) return false;
-      if (link.category === 'source-minimal') return false;
+      if (baseSidebarCategory(link.category) === 'source-minimal') return false;
       const info = this.sourceInfo[link.sourceName] || {};
       if (info.scopeQuota?.limitBytes > 0) return true;
       return (info.used || 0) > 0 || (info.usedAlt || 0) > 0;
@@ -351,9 +369,9 @@ export default {
       const limitToScopes = scopedSourceNames.size > 0;
 
       if (this.sourceInfo) {
-        Object.keys(this.sourceInfo).forEach((sourceName) => {
+        for (const sourceName of Object.keys(this.sourceInfo)) {
           if (limitToScopes && !scopedSourceNames.has(sourceName)) {
-            return;
+            continue;
           }
           defaultLinks.push({
             name: sourceName,
@@ -362,7 +380,7 @@ export default {
             icon: "",
             sourceName: sourceName,
           });
-        });
+        }
       }
 
       return defaultLinks;
@@ -417,15 +435,15 @@ export default {
     },
     hasUsageScopeMismatch(link, sourceInfo) {
       if (!link || !sourceInfo) return false;
-      const cat = link.category;
-      if (cat !== 'source' && cat !== 'source-hybrid' && cat !== 'source-hybrid-2') {
+      const base = baseSidebarCategory(link.category);
+      if (base !== 'source' && base !== 'source-hybrid' && base !== 'source-hybrid-2') {
         return false;
       }
-      if (sourceInfo.usageScopeMismatch) {
+      if (sourceInfo.usageScopeMismatch && !isRootOnlySidebarCategory(link.category)) {
         return true;
       }
       const used = Number(sourceInfo.used) || 0;
-      const total = Number(sourceInfo.total) || 0;
+      const total = Number(this.getUsageTotal(link, sourceInfo)) || 0;
       return total > 0 && used > total;
     },
     getProgressBarValue(link, sourceInfo) {
@@ -433,8 +451,8 @@ export default {
         return sourceInfo.scopeQuota.usedBytes || 0;
       }
       // Called with (link, sourceInfo) from both modes
-      if (link.category === 'source-alt') {
-        return sourceInfo.usedAlt || 0;
+      if (baseSidebarCategory(link.category) === 'source-alt') {
+        return this.getDiskUsed(link, sourceInfo);
       }
       return sourceInfo.used || 0;
     },
@@ -767,7 +785,7 @@ a.sidebar-link-button {
 }
 
 .source-button.disabled:hover {
-  background: var(--surfaceSecondary);
+  background: var(--hoverOverlay);
   box-shadow: none !important;
   transform: none !important;
 }

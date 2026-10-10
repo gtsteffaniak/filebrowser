@@ -13,6 +13,7 @@
       <!-- Clear queue button -->
       <button
         v-if="queueCount > 1"
+        type="button"
         class="clear-queue-btn"
         @click="clearQueue"
         :title="$t('player.clearQueue')"
@@ -205,6 +206,7 @@ export default {
           type: item.type,
           source: item.source,
           modified: item.modified,
+          created: item.created,
           size: item.size,
           hasPreview: item.hasPreview,
           thumbnailUrl: this.getThumbnailUrl(item),
@@ -238,46 +240,44 @@ export default {
     }
   },
   watch: {
-    currentQueueIndex(newIndex, oldIndex) {
+    async currentQueueIndex(newIndex, oldIndex) {
       // Auto-scroll when current item changes
-      if (this.isPromptVisible && newIndex !== oldIndex) {
-        this.$nextTick(() => {
-          this.scrollToCurrentItem();
-        });
-      }
-      if (this.embedded && newIndex !== oldIndex) {
-        this.$nextTick(() => this.scrollToCurrentItem());
+      if ((this.isPromptVisible || this.embedded) && newIndex !== oldIndex) {
+        await this.$nextTick();
+        await this.scrollToCurrentItem();
       }
     },
     isPromptVisible: {
-      handler(newVal) {
+      async handler(newVal) {
         if (!this.embedded && newVal) {
-          this.$nextTick(() => {
-            setTimeout(() => {
-              this.scrollToCurrentItem();
-            }, 50);
-          });
+          await this.$nextTick();
+          setTimeout(() => {
+            void this.scrollToCurrentItem();
+          }, 50);
         }
       },
       immediate: true
     },
-    playbackMode(newMode, oldMode) {
+    async playbackMode(newMode, oldMode) {
       if (newMode !== oldMode && (this.isPromptVisible || this.embedded)) {
-        this.$nextTick(() => this.scrollToCurrentItem());
+        await this.$nextTick();
+        await this.scrollToCurrentItem();
       }
     },
     queueCount() {
       this.updatePromptTitle();
     },
-    itemLayout() {
+    async itemLayout() {
       if (this.isPromptVisible || this.embedded) {
-        this.$nextTick(() => this.scrollToCurrentItem());
+        await this.$nextTick();
+        await this.scrollToCurrentItem();
       }
     },
   },
-  mounted() {
-    this.$nextTick(() => this.scrollToCurrentItem());
+  async mounted() {
     this.updatePromptTitle();
+    await this.$nextTick();
+    await this.scrollToCurrentItem();
   },
   methods: {
     getThumbnailUrl(item) {
@@ -345,16 +345,15 @@ export default {
     triggerNavigation(item) {
       url.goToItem(item.source || state.req.source, item.path, undefined, false, getters.isShare());
     },
-    scrollToCurrentItem() {
+    async scrollToCurrentItem() {
       if (this.queueCount === 0) return;
-      this.$nextTick(() => {
-        const list = this.$refs.QueueList;
-        if (!list) return;
-        const currentItem = list.querySelector('.queue-item.current');
-        if (!currentItem) return;
+      await this.$nextTick();
+      const list = this.$refs.QueueList;
+      if (!list) return;
+      const currentItem = list.querySelector('.queue-item.current');
+      if (!currentItem) return;
 
-        this.centerCurrentItem(list, currentItem);
-      });
+      this.centerCurrentItem(list, currentItem);
     },
     centerCurrentItem(list, item) {
       const listRect = list.getBoundingClientRect();
@@ -466,7 +465,7 @@ export default {
 }
 
 .clear-queue-btn:hover {
-  background: var(--surfaceSecondary);
+  background: var(--hoverOverlay);
   color: var(--dangerColor, #e74c3c);
 }
 
@@ -500,7 +499,7 @@ export default {
 }
 
 .queue-item:hover {
-  background: var(--surfaceSecondary);
+  background: var(--hoverOverlay);
 }
 
 .queue-item.current {

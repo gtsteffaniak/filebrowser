@@ -37,7 +37,7 @@ import {
   Box3,
   Vector3,
   AnimationMixer,
-  Clock,
+  Timer,
   Mesh,
   Points,
   MeshStandardMaterial,
@@ -124,7 +124,7 @@ export default {
       animations: [],
       isAnimationPlaying: false,
       isAutoRotating: false,
-      clock: null,
+      timer: null,
       observer: null,
       loadTimer: null,
       hasInitialized: false,
@@ -149,7 +149,7 @@ export default {
   },
   mounted() {
     this.backgroundColor = '#000000';
-    
+
     if (this.isThumbnail) {
       this.initIntersectionObserver();
     } else {
@@ -200,16 +200,15 @@ export default {
     getSpaceText() {
       return this.hasAnimations ? this.$t("general.playPause") : this.$t("threejs.autoRotate");
     },
-    initIntersectionObserver() {
+    async initIntersectionObserver() {
       // Use a single global observer if possible, but for now localize config
       this.observer = new IntersectionObserver(this.handleIntersect, {
         root: null,
         rootMargin: "50px", // Reduced margin to avoid eager loading too many
         threshold: 0,
       });
-      this.$nextTick(() => {
-        if (this.$el instanceof Element) this.observer.observe(this.$el);
-      });
+      await this.$nextTick();
+      if (this.observer && this.$el instanceof Element) this.observer.observe(this.$el);
     },
 
     updateSelectedState() {
@@ -226,7 +225,7 @@ export default {
     },
 
     handleIntersect(entries) {
-      entries.forEach(entry => {
+      for (const entry of entries) {
         if (entry.isIntersecting) {
           this.isInView = true;
           if (!this.hasInitialized && !this.loadTimer) {
@@ -254,56 +253,58 @@ export default {
             this.error = null;
           }
         }
-      });
+      }
     },
 
     initScene() {
       // Create scene
       this.scene = markRaw(new Scene());
       this.updateBackgroundColor();
-      this.clock = markRaw(new Clock());
-      
+      this.timer = markRaw(new Timer());
+
       const container = this.$refs.container;
       const width = container.clientWidth;
       const height = container.clientHeight;
-      
+
       this.camera = markRaw(new PerspectiveCamera(75, width / height, 0.1, 1000));
       this.camera.position.set(0, 0, 5);
-      
+
       // OPTIMIZATION: Check if we can reuse a context or limit features
       // For thumbnails, we can use a simpler renderer configuration
-      const rendererConfig = { 
+      const rendererConfig = {
         antialias: !this.isThumbnail, // Disable antialiasing for thumbnails
         powerPreference: "high-performance",
         alpha: false, // We use a solid background
         depth: true,
         stencil: false,
       };
-      
+
       this.renderer = markRaw(new WebGLRenderer(rendererConfig));
-      this.renderer.setSize(width, height);
       const pixelRatioCap = this.isThumbnail ? 1 : 2;
-      this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, pixelRatioCap));
+      const pixelRatio = Math.min(window.devicePixelRatio, pixelRatioCap);
+      this.renderer.setSize(Math.floor(width * pixelRatio), Math.floor(height * pixelRatio), false);
+      this.renderer.domElement.style.width = "100%";
+      this.renderer.domElement.style.height = "100%";
       container.appendChild(this.renderer.domElement);
-      
+
       // Lights - Simplify lighting for thumbnails
       this.scene.add(markRaw(new AmbientLight(0xffffff, 0.6)));
       const dirLight1 = markRaw(new DirectionalLight(0xffffff, 0.8));
       dirLight1.position.set(1, 2, 3);
       this.scene.add(dirLight1);
-      
+
       if (!this.isThumbnail) {
         // Only add secondary lights for full view
         const dirLight2 = markRaw(new DirectionalLight(0xffffff, 0.4));
         dirLight2.position.set(-1, -2, -3);
         this.scene.add(dirLight2);
       }
-      
+
       // Controls
       this.controls = markRaw(new OrbitControls(this.camera, this.renderer.domElement));
       this.controls.enableDamping = true;
       this.controls.dampingFactor = 0.05;
-      
+
       if (this.isThumbnail) {
         this.controls.autoRotate = true;
         this.controls.autoRotateSpeed = 2.0;
@@ -315,7 +316,7 @@ export default {
         this.controls.autoRotate = false;
         this.controls.autoRotateSpeed = 2.0;
       }
-      
+
       this.animate();
     },
 
@@ -333,13 +334,13 @@ export default {
         }
       }
     },
-    
+
     updateCustomBackground() {
       if (this.scene) {
         this.scene.background = new Color(this.backgroundColor);
       }
     },
-    
+
     handleError(err, prefix = "Failed to load model") {
       console.error(prefix, err);
       const msg = err.message || 'Unknown error';
@@ -461,7 +462,9 @@ export default {
 
       const modelDir = removeLastDir(this.fbdata.path);
       await this.fetchDirectoryTokens(modelDir);
-      await this.fetchDirectoryTokens(`${modelDir}/textures`);
+      if (this.fbdata.parentDirItems?.some((item) => item.name === "textures" && item.type === "directory")) {
+        await this.fetchDirectoryTokens(`${modelDir}/textures`);
+      }
     },
 
     resolveViewTokenForPath(filePath) {
@@ -566,7 +569,7 @@ export default {
       }
       this.loading = true;
       this.error = null;
-      
+
       try {
         const extension = this.fileExtension;
         const LoaderClass = getObjectProperty(LOADERS, extension);
@@ -575,7 +578,7 @@ export default {
         const loadingManager = markRaw(new LoadingManager());
         loadingManager.onError = (url) => console.warn(`Error loading asset: ${url}`);
         loadingManager.setURLModifier((url) => this.resolveTextureUrl(url));
-        
+
         const loader = new LoaderClass(loadingManager);
 
         // Special handlers
@@ -584,6 +587,20 @@ export default {
         } else if (extension === 'obj') {
           this.loadOBJ(loader, loadingManager);
         } else {
+          if (extension === 'dae') {
+            const parse = loader.parse.bind(loader);
+            loader.parse = (...args) => {
+              const warn = console.warn;
+              console.warn = (msg, ...rest) => {
+                if (!String(msg).includes('Z-UP coordinate system')) warn(msg, ...rest);
+              };
+              try {
+                return parse(...args);
+              } finally {
+                console.warn = warn;
+              }
+            };
+          }
           // Standard load for all other formats including FBX
           loader.load(
             this.modelUrl,
@@ -627,9 +644,9 @@ export default {
         }
 
         loader.parse(
-            data, 
-            modelDir, 
-            (gltf) => this.onModelLoaded(gltf, 'glb'), 
+            data,
+            modelDir,
+            (gltf) => this.onModelLoaded(gltf, 'glb'),
             (err) => this.handleError(err, "Failed to parse GLB")
         );
       } catch (err) {
@@ -665,10 +682,10 @@ export default {
         (err) => this.handleError(err)
       );
     },
-    
+
     onModelLoaded(loadedData, extension) {
       this.clearCurrentModel();
-      
+
       let object;
       const ext = extension.toLowerCase();
 
@@ -692,7 +709,7 @@ export default {
 
       // Format specifics
       if (ext === '3mf') object.rotation.set(-Math.PI / 2, 0, 0);
-      
+
       if (['stl', 'ply', 'amf'].includes(ext)) {
         const material = new MeshStandardMaterial({
           color: 0x4fc3f7,
@@ -702,7 +719,7 @@ export default {
         });
         object = new Mesh(loadedData, material);
       }
-      
+
       // Point clouds need Points material
       if (['pcd', 'xyz'].includes(ext)) {
         const material = new PointsMaterial({
@@ -735,31 +752,31 @@ export default {
           child.receiveShadow = true;
           if (child.material) {
              const mats = Array.isArray(child.material) ? child.material : [child.material];
-             mats.forEach(m => {
+             for (const m of mats) {
                 m.side = DoubleSide;
                 if (child.isSkinnedMesh) m.skinning = true;
-             });
+             }
           }
         }
       });
-      
+
       if (!hasGeometry) {
         this.handleError(new Error("Model contains no renderable geometry"));
         return;
       }
-      
+
       this.model = markRaw(object);
       this.scene.add(this.model);
       this.centerAndScaleModel();
       this.loading = false;
     },
-    
+
     setupAnimations(root, animations) {
         this.animations = animations;
         this.animationMixer = markRaw(new AnimationMixer(root));
-        this.animations.forEach(clip => {
+        for (const clip of this.animations) {
             this.animationMixer.clipAction(clip).play();
-        });
+        }
         this.isAnimationPlaying = true;
     },
 
@@ -777,7 +794,7 @@ export default {
       if (!this.model) return;
       this.model.updateMatrixWorld(true);
       const box = new Box3().setFromObject(this.model);
-      
+
       if (box.isEmpty()) {
         this.model.position.set(0,0,0);
         return;
@@ -786,31 +803,31 @@ export default {
       const center = box.getCenter(new Vector3());
       const size = box.getSize(new Vector3());
       const maxDim = Math.max(size.x, size.y, size.z);
-      
+
       if (!Number.isFinite(maxDim) || maxDim === 0) return;
-      
+
       this.model.position.copy(center.negate());
-      
+
       const fov = this.camera.fov * (Math.PI / 180);
       const dist = Math.abs(maxDim / 2 / Math.tan(fov / 2)) * 1.5;
-      
+
       this.camera.position.set(dist, dist * 0.5, dist);
       this.camera.lookAt(0, 0, 0);
       this.controls.target.set(0, 0, 0);
       this.controls.update();
-      
+
       this.camera.near = Math.max(dist / 1000, 0.01);
       this.camera.far = Math.max(dist * 100, 1000);
       this.camera.updateProjectionMatrix();
-      
+
       this.initialCameraPosition = this.camera.position.clone();
       this.initialControlsTarget = this.controls.target.clone();
     },
-    
+
     animate() {
       if (!this.isInView && this.isThumbnail) return; // Stop rendering if not in view
       this.animationFrameId = requestAnimationFrame(this.animate);
-      
+
       // Throttle rendering for thumbnails to 30fps to save resources
       if (this.isThumbnail) {
           const now = Date.now();
@@ -821,42 +838,44 @@ export default {
           }
       }
 
+      this.timer.update();
       if (this.animationMixer && this.isAnimationPlaying) {
-        this.animationMixer.update(this.clock.getDelta());
+        this.animationMixer.update(this.timer.getDelta());
       }
       if (this.controls) this.controls.update();
       if (this.renderer && this.scene && this.camera) {
         this.renderer.render(this.scene, this.camera);
       }
     },
-    
+
     onWindowResize() {
       if (!this.$refs.container) return;
       const { clientWidth: w, clientHeight: h } = this.$refs.container;
-      
+
       if (this.camera) {
         this.camera.aspect = w / h;
         this.camera.updateProjectionMatrix();
       }
       if (this.renderer) {
-        this.renderer.setSize(w, h);
+        const pixelRatio = Math.min(window.devicePixelRatio, this.isThumbnail ? 1 : 2);
+        this.renderer.setSize(Math.floor(w * pixelRatio), Math.floor(h * pixelRatio), false);
       }
     },
-    
+
     cleanup() {
       if (this.animationFrameId) cancelAnimationFrame(this.animationFrameId);
       this.clearCurrentModel();
-      
+
       if (this.model) {
         this.model.traverse((c) => {
           if (c.geometry) c.geometry.dispose();
           if (c.material) {
-            [].concat(c.material).forEach(m => { m.dispose(); });
+            for (const m of [].concat(c.material)) { m.dispose(); }
           }
         });
         this.model = null;
       }
-      
+
       if (this.renderer) {
         // Essential for releasing WebGL contexts
         this.renderer.dispose();
@@ -867,7 +886,7 @@ export default {
       this.scene = null;
       this.camera = null;
     },
-    
+
     reinit() {
       this.viewTokenByPath = {};
       this.fetchedDirs = new Set();
@@ -876,17 +895,17 @@ export default {
       void this.loadModel();
       if (!this.isThumbnail) this.updateSelectedState();
     },
-    
+
     setupKeyboardShortcuts() {
       this.keyboardHandler = (e) => {
         const k = e.key.toLowerCase();
         if (['+', '=', '-', '_', ' ', 'q', 'e', 'w', 's', 'r'].includes(k)) e.preventDefault();
-        
+
         const ROT_SPEED = Math.PI / 2;
         const ZOOM = 0.3;
-        
+
         if (!this.model) return;
-        
+
         switch (k) {
           case ' ': if (this.hasAnimations) this.toggleAnimation(); else this.toggleAutoRotate(); break;
           case 'r': this.resetCamera(); break;
@@ -900,18 +919,18 @@ export default {
       };
       window.addEventListener('keydown', this.keyboardHandler);
     },
-    
+
     toggleAnimation() {
       if (!this.animationMixer) return;
       this.isAnimationPlaying = !this.isAnimationPlaying;
       this.animationMixer.timeScale = this.isAnimationPlaying ? 1 : 0;
     },
-    
+
     toggleAutoRotate() {
       this.isAutoRotating = !this.isAutoRotating;
       if (this.controls) this.controls.autoRotate = this.isAutoRotating;
     },
-    
+
     resetCamera() {
       if (this.initialCameraPosition) {
         this.camera.position.copy(this.initialCameraPosition);
@@ -925,7 +944,7 @@ export default {
         this.centerAndScaleModel();
       }
     },
-    
+
     zoomCamera(delta) {
       const dir = new Vector3().subVectors(this.camera.position, this.controls.target).normalize();
       const dist = this.camera.position.distanceTo(this.controls.target) * (1 + delta);

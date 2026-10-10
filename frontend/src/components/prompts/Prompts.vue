@@ -105,6 +105,7 @@ import Sidebar from "../sidebar/Sidebar.vue";
 import UserEdit from "./UserEdit.vue";
 import GroupEdit from "./GroupEdit.vue";
 import Totp from "./Totp.vue";
+import RequirePasswordChange from "./RequirePasswordChange.vue";
 import Access from "./Access.vue";
 import Password from "./Password.vue";
 import PlaybackQueue from "./PlaybackQueue.vue";
@@ -112,6 +113,7 @@ import VisualizerSettings from "./VisualizerSettings.vue";
 import EditorSettings from "./EditorSettings.vue";
 import SharePicker from "./SharePicker.vue";
 import PathPicker from "./PathPicker.vue";
+import EntityPicker from "./EntityPicker.vue";
 import SaveBeforeExit from "./SaveBeforeExit.vue";
 import CopyPasteConfirm from "./CopyPasteConfirm.vue";
 import CloseWithActiveUploads from "./CloseWithActiveUploads.vue";
@@ -156,6 +158,7 @@ export default {
     Replace,
     ReplaceRename,
     Totp,
+    RequirePasswordChange,
     Upload,
     Sidebar,
     CreateApi,
@@ -168,6 +171,7 @@ export default {
     VisualizerSettings,
     EditorSettings,
     PathPicker,
+    EntityPicker,
     SharePicker,
     SaveBeforeExit,
     CopyPasteConfirm,
@@ -253,7 +257,7 @@ export default {
   beforeUnmount() {
     window.removeEventListener('resize', this.handleWindowResize);
     window.removeEventListener('keydown', this.onDocumentKeydown);
-    Object.values(this.flashBorderTimers).forEach((tid) => { clearTimeout(tid); });
+    for (const tid of Object.values(this.flashBorderTimers)) { clearTimeout(tid); }
   },
   methods: {
     triggerPromptBorderFlash(id) {
@@ -272,7 +276,7 @@ export default {
       const maxWidth = window.innerWidth * 0.9;
       const maxHeight = window.innerHeight * 0.9;
 
-      this.prompts.forEach(prompt => {
+      for (const prompt of this.prompts) {
         const size = this.sizes[prompt.id];
         if (size) {
           if (size.width > maxWidth || size.height > maxHeight) {
@@ -287,7 +291,7 @@ export default {
         if (el) {
           this.clampDragOffset(prompt.id, el);
         }
-      });
+      }
     },
     isTopmost(id) {
       const allPrompts = this.prompts;
@@ -347,6 +351,8 @@ export default {
       // convert to lowercase
       // Explicit switch statement for compile-time safety with ESLint i18n validation
       switch (promptName.toLowerCase()) {
+        case "entitypicker":
+          return this.$t("access.selectEntities");
         case "group-edit":
           return this.$t("access.editGroup");
         case "user-edit":
@@ -400,7 +406,6 @@ export default {
           return this.$t("api.createTitle");
         case "actionapi":
           return this.$t("api.title");
-        case "sidebarLinks":
         case "sidebarlinks":
           return this.$t("sidebar.customizeLinks");
         case "password":
@@ -423,6 +428,8 @@ export default {
           return this.$t("share.shareInfo");
         case "totp":
           return this.$t("otp.name");
+        case "requirepasswordchange":
+          return this.$t("login.requirePasswordChangeTitle");
         case "useredit":
           return this.$t("settings.modifyOtherUser");
         case "deleteuser":

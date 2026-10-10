@@ -24,6 +24,7 @@ type SearchResult struct {
 	Type       string `json:"type"`
 	Size       int64  `json:"size"`
 	Modified   string `json:"modified,omitempty"`
+	Created    string `json:"created,omitempty"`
 	HasPreview bool   `json:"hasPreview"`
 	Source     string `json:"source"`
 }
@@ -78,12 +79,13 @@ func (idx *Index) SearchParsed(baseOpts iteminfo.SearchOptions, scope string, so
 		var path string
 		var name string
 		var size int64
+		var createdTime int64
 		var modTime int64
 		var mimeType string
 		var isDir bool
 		var hasPreview bool
 
-		if err := rows.Scan(&path, &name, &size, &modTime, &mimeType, &isDir, &hasPreview); err != nil {
+		if err := rows.Scan(&path, &name, &size, &createdTime, &modTime, &mimeType, &isDir, &hasPreview); err != nil {
 			logger.Errorf("Failed to scan search result row: %v", err)
 			continue
 		}
@@ -112,10 +114,17 @@ func (idx *Index) SearchParsed(baseOpts iteminfo.SearchOptions, scope string, so
 				HasPreview: hasPreview,
 				Source:     idx.Name,
 			}
+			if createdTime > 0 {
+				results[path].Created = time.Unix(createdTime, 0).Format(time.RFC3339)
+			}
 			count++
 		}
 	}
 
+	return sortSearchResults(results)
+}
+
+func sortSearchResults(results map[string]*SearchResult) []*SearchResult {
 	sortedKeys := make([]*SearchResult, 0, len(results))
 	for _, v := range results {
 		sortedKeys = append(sortedKeys, v)
@@ -242,12 +251,13 @@ func SearchMultiSourcesParsed(baseOpts iteminfo.SearchOptions, sources []string,
 		var path string
 		var name string
 		var size int64
+		var createdTime int64
 		var modTime int64
 		var mimeType string
 		var isDir bool
 		var hasPreview bool
 
-		if err := rows.Scan(&source, &path, &name, &size, &modTime, &mimeType, &isDir, &hasPreview); err != nil {
+		if err := rows.Scan(&source, &path, &name, &size, &createdTime, &modTime, &mimeType, &isDir, &hasPreview); err != nil {
 			logger.Errorf("Failed to scan search result row: %v", err)
 			continue
 		}
@@ -277,18 +287,12 @@ func SearchMultiSourcesParsed(baseOpts iteminfo.SearchOptions, sources []string,
 				HasPreview: hasPreview,
 				Source:     source,
 			}
+			if createdTime > 0 {
+				results[key].Created = time.Unix(createdTime, 0).Format(time.RFC3339)
+			}
 			count++
 		}
 	}
 
-	sortedKeys := make([]*SearchResult, 0, len(results))
-	for _, v := range results {
-		sortedKeys = append(sortedKeys, v)
-	}
-	sort.Slice(sortedKeys, func(i, j int) bool {
-		parts1 := strings.Split(sortedKeys[i].Path, "/")
-		parts2 := strings.Split(sortedKeys[j].Path, "/")
-		return len(parts1) < len(parts2)
-	})
-	return sortedKeys
+	return sortSearchResults(results)
 }

@@ -119,7 +119,8 @@ export default {
       mutations.showPrompt({
         name: "group-edit",
         props: {
-          title: this.$t(group ? "access.editGroup" : "access.newGroup"),
+          title: group ? this.$t("access.editGroup") : this.$t("access.newGroup"),
+          existingGroups: this.groups,
           ...(group ? { group, members: this.members.get(group) || [] } : {}),
         },
       });

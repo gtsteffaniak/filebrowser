@@ -1,4 +1,4 @@
-import { checkForNotification, expect, openShareFromFileActions, test } from "../test-setup";
+import { checkForNotification, expect, openShareFromFileActions, test } from "../test-setup.ts";
 
 test("root share path is valid", async ({ page, checkForErrors }) => {
   await page.goto("/files/");
@@ -61,7 +61,7 @@ test("share file creation actions", async ({ page, checkForErrors, openContextMe
   }
   await page.goto(`public/share/${rootShareHash}`);
   await expect(page).toHaveTitle("Graham's Filebrowser - Share - playwright-files");
-  await page.waitForTimeout(1000);
+  await expect(page.locator('[data-testid="file-actions-ready"]')).toBeAttached();
   await openContextMenu();
   await page.locator('button[aria-label="New file"]').click();
   await page.locator('button[aria-label="Empty file"]').click();

@@ -90,61 +90,85 @@ func TestPickUserEntry(t *testing.T) {
 	}
 }
 
-func TestLdapGroupMatchesAdmin(t *testing.T) {
+func TestLdapGroupMatches(t *testing.T) {
 	tests := []struct {
 		name       string
-		groupDN    string
-		adminGroup string
+		member     string
+		configured string
 		want       bool
 	}{
 		{
 			name:       "exact DN match",
-			groupDN:    "cn=authentik Admins,ou=groups,dc=ldap,dc=goauthentik,dc=io",
-			adminGroup: "cn=authentik Admins,ou=groups,dc=ldap,dc=goauthentik,dc=io",
+			member:     "cn=authentik Admins,ou=groups,dc=ldap,dc=goauthentik,dc=io",
+			configured: "cn=authentik Admins,ou=groups,dc=ldap,dc=goauthentik,dc=io",
 			want:       true,
 		},
 		{
 			name:       "CN match",
-			groupDN:    "cn=authentik Admins,ou=groups,dc=ldap,dc=goauthentik,dc=io",
-			adminGroup: "authentik Admins",
+			member:     "cn=authentik Admins,ou=groups,dc=ldap,dc=goauthentik,dc=io",
+			configured: "authentik Admins",
+			want:       true,
+		},
+		{
+			name:       "CN match case-insensitive",
+			member:     "cn=it department,ou=groups,dc=example,dc=com",
+			configured: "IT Department",
+			want:       true,
+		},
+		{
+			name:       "full DN match case-insensitive",
+			member:     "CN=Employees,OU=Groups,DC=Example,DC=COM",
+			configured: "cn=employees,ou=groups,dc=example,dc=com",
+			want:       true,
+		},
+		{
+			name:       "config full DN vs member CN-only",
+			member:     "Employees",
+			configured: "cn=Employees,ou=groups,dc=example,dc=com",
 			want:       true,
 		},
 		{
 			name:       "CN no match",
-			groupDN:    "cn=Other Group,ou=groups,dc=test",
-			adminGroup: "authentik Admins",
+			member:     "cn=Other Group,ou=groups,dc=test",
+			configured: "authentik Admins",
 			want:       false,
 		},
 		{
 			name:       "exact no match",
-			groupDN:    "cn=admins,ou=groups,dc=test",
-			adminGroup: "cn=authentik Admins,ou=groups,dc=ldap,dc=goauthentik,dc=io",
+			member:     "cn=admins,ou=groups,dc=test",
+			configured: "cn=authentik Admins,ou=groups,dc=ldap,dc=goauthentik,dc=io",
+			want:       false,
+		},
+		{
+			name:       "same CN different parents rejected",
+			member:     "cn=Admins,ou=Other,dc=example,dc=com",
+			configured: "cn=Admins,ou=Privileged,dc=example,dc=com",
 			want:       false,
 		},
 		{
 			name:       "whitespace trimmed",
-			groupDN:    "  cn=admins,ou=groups,dc=test  ",
-			adminGroup: "cn=admins,ou=groups,dc=test",
+			member:     "  cn=admins,ou=groups,dc=test  ",
+			configured: "cn=admins,ou=groups,dc=test",
 			want:       true,
 		},
 		{
 			name:       "invalid DN returns false",
-			groupDN:    "not-a-valid-dn",
-			adminGroup: "admins",
+			member:     "not-a-valid-dn",
+			configured: "admins",
 			want:       false,
 		},
 		{
-			name:       "empty adminGroup no match",
-			groupDN:    "cn=admins,ou=groups,dc=test",
-			adminGroup: "",
+			name:       "empty configured no match",
+			member:     "cn=admins,ou=groups,dc=test",
+			configured: "",
 			want:       false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := ldapGroupMatchesAdmin(tt.groupDN, tt.adminGroup)
+			got := ldapGroupMatches(tt.member, tt.configured)
 			if got != tt.want {
-				t.Errorf("ldapGroupMatchesAdmin(%q, %q) = %v, want %v", tt.groupDN, tt.adminGroup, got, tt.want)
+				t.Errorf("ldapGroupMatches(%q, %q) = %v, want %v", tt.member, tt.configured, got, tt.want)
 			}
 		})
 	}

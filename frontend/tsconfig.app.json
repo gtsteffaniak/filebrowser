@@ -1,0 +1,47 @@
+{
+  "compilerOptions": {
+    "lib": [ "ESNext", "DOM", "DOM.Iterable" ],
+    "types": [
+      "vite/client",
+      "vitest/globals",
+      "@intlify/unplugin-vue-i18n/messages"
+    ],
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+    "composite": true,
+    "strict": true,
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
+    "noEmit": true,
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "isolatedModules": true,
+    "resolveJsonModule": true,
+    "allowImportingTsExtensions": true,
+    "moduleDetection": "force",
+    "stableTypeOrdering": true,
+    "allowJs": true,
+    "checkJs": false,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "jsx": "preserve",
+    "jsxImportSource": "vue",
+    "skipLibCheck": true,
+    "verbatimModuleSyntax": true,
+    "noImplicitOverride": true,
+    "noUncheckedIndexedAccess": true
+  },
+  "vueCompilerOptions": {
+    "strictTemplates": true,
+    "checkUnknownProps": false,
+    "checkUnknownEvents": false
+  },
+  "include": [
+    "env.d.ts",
+    "src/**/*.ts",
+    "src/**/*.js",
+    "src/**/*.d.ts",
+    "src/**/*.vue"
+  ]
+}

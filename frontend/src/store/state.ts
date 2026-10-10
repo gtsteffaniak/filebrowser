@@ -1,7 +1,7 @@
 import { reactive } from 'vue';
-import { detectLocale } from "@/i18n";
-import { globalVars } from "@/utils/constants";
-import type { StoreState } from "./types";
+import { detectLocale } from "@/i18n/index.ts";
+import { globalVars } from "@/utils/constants.js";
+import type { StoreState } from "./types.ts";
 
 export const state: StoreState = reactive({
   disableEventThemes: eventTheme(),
@@ -45,7 +45,7 @@ export const state: StoreState = reactive({
       words: 0,
       chars: 0,
     },
-    fontSize: parseInt(localStorage.getItem('editorFontSize'), 10) || 14,
+    fontSize: parseInt(localStorage.getItem('editorFontSize') ?? '', 10) || 14,
     markdownSplitView: loadMarkdownSplitView(),
     scrollRatio: 0,
     scrollSource: null,

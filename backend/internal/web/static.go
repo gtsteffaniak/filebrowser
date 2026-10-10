@@ -270,6 +270,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 	data["globalVars"] = map[string]interface{}{
 		"name":                   settings.Config.Frontend.Name,
 		"minSearchLength":        settings.Config.Server.MinSearchLength,
+		"searchResultsLimit":     settings.Config.Server.SearchResultsLimit,
 		"disableExternal":        settings.Config.Frontend.DisableDefaultLinks,
 		"darkMode":               settings.Config.UserDefaults.UI.DarkMode,
 		"lightBackground":        settings.Config.Frontend.Styling.LightBackground,
@@ -287,6 +288,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"jwtAvailable":           settings.Config.Auth.Methods.JwtAuth.Enabled,
 		"proxyAvailable":         settings.Config.Auth.Methods.ProxyAuth.Enabled,
 		"passwordAvailable":      settings.Config.Auth.Methods.PasswordAuth.Enabled,
+		"passwordMinLength":      settings.PasswordMinLength(),
 		"ldapAvailable":          settings.Config.Auth.Methods.LdapAuth.Enabled,
 		"mediaAvailable":         settings.MediaEnabled(),
 		"muPdfAvailable":         settings.Env.MuPdfAvailable,

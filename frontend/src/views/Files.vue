@@ -19,10 +19,11 @@ import Errors from "@/views/Errors.vue";
 import Preview from "@/views/files/Preview.vue";
 import ListingView from "@/views/files/ListingView.vue";
 import { state, mutations, getters } from "@/store";
-import router from "@/router";
+import { router } from "@/router";
 import { extractSourceFromPath, removeLastDir, base64Encode, removeTrailingSlash } from "@/utils/url.js";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import { globalVars } from "@/utils/constants";
+import { syncEventTheme } from "@/utils/theme";
 import { isRichTextPreviewMimeType } from "@/utils/mimetype";
 import { invalidateDirMetadataCache } from "@/utils/metadataCache.js";
 import { showShareDownloadPrompt as openShareDownloadPrompt } from "@/utils/download.js";
@@ -168,7 +169,9 @@ export default {
     },
   },
   created() {
-    if (getters.eventTheme() === "halloween" && !localStorage.getItem("seenHalloweenMessage")) {
+    const isHalloween = getters.eventTheme() === "halloween";
+    syncEventTheme(isHalloween);
+    if (isHalloween && !localStorage.getItem("seenHalloweenMessage")) {
       mutations.showPrompt({
         name: "generic",
         pinned: true,
@@ -180,6 +183,7 @@ export default {
               label: this.$t("general.close"),
               action: () => {
                 localStorage.setItem("seenHalloweenMessage", "true");
+                mutations.closeTopPrompt();
               },
             },
             {
@@ -187,6 +191,7 @@ export default {
               action: () => {
                 mutations.disableEventThemes();
                 localStorage.setItem("seenHalloweenMessage", "true");
+                mutations.closeTopPrompt();
               },
               primary: true,
             },
@@ -195,10 +200,12 @@ export default {
       });
     }
     this.fetchData();
-
   },
   watch: {
-    $route: "fetchData",
+    $route() {
+      syncEventTheme(getters.eventTheme() === "halloween");
+      this.fetchData();
+    },
     reload(value) {
       if (value) {
         this.fetchData();
@@ -441,13 +448,13 @@ export default {
 
           // Redirect if multiple sources and user went to /files/
           if (routePath === "/files") {
-            let targetPath = `/files/${state.sources.current}`;
+            let targetPath = `/${state.sources.current}`;
             for (const link of state.user?.sidebarLinks || []) {
               if (link.target.startsWith('/')) {
                 if (!link.category.startsWith('source')) {
                   continue;
                 }
-                targetPath = `/files/${link.sourceName}${link.target}`;
+                targetPath = `/${link.sourceName}${link.target}`;
                 break;
               }
             }
@@ -455,7 +462,7 @@ export default {
             return;
           }
 
-          const result = extractSourceFromPath(getters.routePath());
+          const result = extractSourceFromPath(getters.routePath(), Object.keys(state.sources.info));
 
           if (result.source === "") {
             // No sources available - show a more graceful message instead of error popup

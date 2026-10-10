@@ -43,12 +43,15 @@
     "requestTimedOut": "İstek zaman aşımına uğradı. Ağ ayarlarınızı veya ters proxy ayarlarınızı kontrol edin."
   },
   "files": {
+    "sortByCreationTime": "Oluşturma zamanına göre sırala",
+    "creationTime": "Oluşturma zamanı",
     "emptyFile": "Boş dosya",
     "lastModified": "Son değiştirilme{suffix}",
     "multipleSelectionEnabled": "Çoklu seçim etkin",
     "sortByLastModified": "Güncelleme tarihine göre sırala",
     "sortByName": "İsme göre sırala",
     "sortBySize": "Boyuta göre sırala",
+    "sortByType": "Türe göre sırala",
     "noPreview": "Bu dosya için önizleme kullanılamıyor.",
     "noDownloadAccess": "İndirme mevcut değil.",
     "newFile": "Yeni dosya{suffix}",
@@ -146,7 +149,11 @@
     "failedLogin": "Giriş yapılamadı",
     "invalidCredentials": "Geçersiz kimlik bilgileri sağlandı",
     "passkeyLogin": "Geçiş Anahtarını Kullan",
-    "recaptchaRequired": "Recaptcha doğrulaması gerekli"
+    "recaptchaRequired": "Recaptcha doğrulaması gerekli",
+    "requirePasswordChangeTitle": "Şifrenizi değiştirin",
+    "requirePasswordChangeInstructions": "Devam etmeden önce yeni bir şifre belirlemelisiniz.",
+    "requirePasswordChangeSuccess": "Şifre güncellendi. Artık oturum açtınız.",
+    "requirePasswordChangeMustDiffer": "Yeni şifreniz, mevcut şifrenizden farklı olmalıdır"
   },
   "prompts": {
     "noTemplate": "Şablonunuz boş!",
@@ -235,6 +242,15 @@
     "unarchiveMessage": "Arşivin nereye çıkarılacağını seçin.",
     "unarchiveDestination": "Şuraya çıkar:",
     "unarchiveSuccess": "Arşiv başarıyla çıkarıldı!",
+    "zipFilenameEncoding": "Filename encoding",
+    "zipEncodingLoading": "Checking ZIP filenames…",
+    "zipEncodingError": "Could not read the ZIP filename preview.",
+    "zipEncodingRetry": "Retry preview",
+    "zipEncodingChoose": "Choose an encoding",
+    "zipEncodingSuggested": "suggested",
+    "zipEncodingHint": "Check the filenames below before extracting. Suggestions may be incorrect; ZIP Unicode metadata takes precedence.",
+    "zipFilenamePreview": "Filename preview",
+    "zipEncodingUnavailable": "No supported encoding can decode all filenames in this ZIP.",
     "downloadFailed": "Yığın indirme başarısız oldu - bu tekrarlanırsa yığın boyutunu küçültmeyi deneyin: {message}",
     "confirmPasswordToSaveUser": "Bu kullanıcı değişikliklerini kaydetmek için mevcut şifrenizi girin."
   },
@@ -313,7 +329,10 @@
     "userEditPreferences": "Kullanıcı tercihleri",
     "userEditTools": "Araçlara erişim",
     "userEditToolsDescription": "Bu kullanıcının hangi araçlara erişebileceğini ayarlayın",
-    "userEditSidebarLinks": "Kenar çubuğu bağlantıları"
+    "userEditSidebarLinks": "Kenar çubuğu bağlantıları",
+    "passwordRequirementsMatch": "Şifreler eşleşiyor",
+    "passwordRequirementsMinLength": "En az {min} karakter",
+    "requirePasswordChange": "Bir sonraki oturum açılışında şifre değişikliği zorunluluğu"
   },
   "sidebar": {
     "updateIsAvailable": "Bir güncelleme mevcut!",
@@ -356,7 +375,9 @@
     "sidebarLinkDefaultsHelp": "Bunlar, tüm yeni kullanıcılar için eklenecek varsayılan bağlantılardır. Bir bağlantıyı zorunlu kılarsanız, bu bağlantı tüm kullanıcılar için eklenecek ve yönetici olmayan kullanıcılar tarafından kaldırılamayacaktır.",
     "sidebarLinkDefaultSourceHelp": "Bu, yalnızca kullanıcının bu kaynağa erişimi olması durumunda geçerlidir.",
     "sidebarLinkDefaultsYamlInvalid": "YAML geçersiz. Biçimi kontrol edin ve tekrar deneyin.",
-    "switchMode": "Bağlantılar ile gezinme ağacı arasında geçiş yap"
+    "switchMode": "Bağlantılar ile gezinme ağacı arasında geçiş yap",
+    "rootFilesystemOnly": "Disk kullanımını kaynak dosya sistemiyle sınırla",
+    "rootFilesystemOnlyDescription": "Etkinleştirildiğinde, yalnızca kaynak yolunu içeren dosya sistemi raporlanır. Devre dışı bırakıldığında (varsayılan), disk toplamına kaynak yolunun altına bağlanmış dosya sistemleri de dahil edilir; ZFS veri kümeleri gibi paylaşımlı havuzlar ise yalnızca bir kez sayılır."
   },
   "share": {
     "notice": "Not: Bir paylaşım oluşturulduğunda, herkese daha açık hale gelir ve erişim için farklı kurallara sahip olur. Paylaşımınız güvenli bir şekilde yapılandırılmamışsa, herkes tarafından erişilebilir.",
@@ -651,16 +672,12 @@
     "allow": "İzin ver",
     "allowDeny": "İzin Ver / Reddet",
     "userGroup": "Kullanıcı/Grup",
-    "enterName": "Kullanıcı veya grup adını girin",
-    "deleted": "Erişim kuralı silindi!",
-    "added": "Erişim kuralı eklendi!",
     "accessManagement": "Erişim Yönetimi",
     "totalDenied": "Reddedildi",
     "totalAllowed": "İzin verildi",
     "all": "Tümünü Reddet",
     "defaultBehaviorDescription": "Bu, bir kullanıcı belirli erişim kurallarının bulunmadığı bir yola erişmeye çalıştığında ne olacağını gösterir. 'İzin ver' kullanıcıların varsayılan olarak erişebileceği, 'Reddet' ise açıkça izin verilmediği sürece kullanıcıların varsayılan olarak engellendiği anlamına gelir.",
     "defaultBehavior": "Varsayılan eylem{suffix}",
-    "deletedCascade": "Erişim kuralları yoldan ve tüm alt yollardan silindi!",
     "cascadeDelete": "Yinelemeli Silme",
     "cascadeDeleteDescription": "Etkinleştirildiğinde, bir erişim kuralı silindiğinde tüm alt dizinlerden de kaldırılır. Bu, bir kullanıcıyı veya grubu tüm dizin ağacından tamamen kaldırmanıza olanak tanır.",
     "hasRules": "Erişim kuralları yapılandırıldı",
@@ -670,16 +687,23 @@
     "editGroup": "Grubu düzenle",
     "groupName": "Grup adı",
     "userGroups": "Gruplar",
-    "addGroup": "Grup ekle",
-    "createGroupConfirm": "\"{name}\" grubu mevcut değil. Oluşturulsun mu?",
-    "addGroupPlaceholder": "Grup adı",
-    "removeGroup": "Gruptan çıkar",
     "groupMembers": "Üyeler",
-    "enterUsername": "Kullanıcı adını girin",
-    "addMember": "Üye ekle",
-    "unknownUser": "\"{name}\" adında bir kullanıcı yok",
     "deleteGroupConfirm": "\"{name}\" grubu silinsin mi? Tüm erişim kurallarından da kaldırılacaktır.",
-    "groupsOidcNote": "OIDC ile senkronize edilen grupların üyeleri, bu kullanıcılar her oturum açtığında kimlik sağlayıcısından sıfırlanır."
+    "groupsOidcNote": "OIDC ile senkronize edilen grupların üyeleri, bu kullanıcılar her oturum açtığında kimlik sağlayıcısından sıfırlanır.",
+    "userGroupsDescription": "Bu kullanıcının üyesi olduğu gruplar",
+    "membersCount": "Üyeler: {count}",
+    "userGroupsCount": "Gruplar: {count}",
+    "groupNameRequired": "Grup adı zorunludur.",
+    "groupNameTooShort": "Group name must be at least {min} characters.",
+    "groupNameTooLong": "Grup adı en fazla {max} karakterden oluşmalıdır.",
+    "groupNameInvalid": "Grup adı, kontrol karakterleri içermemelidir.",
+    "groupExists": "Bu isimde bir grup zaten mevcut.",
+    "selectEntities": "Seç",
+    "selectUser": "Kullanıcı seçin",
+    "selectUsers": "Kullanıcıları seçin",
+    "selectGroup": "Grubu seçin",
+    "selectGroups": "Grupları seçin",
+    "refineSearch": "{count} 'daki ilk eşleşmeler gösteriliyor. Daha fazlasını görmek için aramanızı daraltın."
   },
   "fileLoading": {
     "title": "Yüklemeler & İndirmeler",
@@ -702,6 +726,10 @@
     "orange": "turuncu"
   },
   "profileSettings": {
+    "showTypeColumn": "Tür sütununu göster",
+    "showTypeColumnDescription": "Ana listede liste ve kompakt görünümlerde Tür sütununu göster.",
+    "showCreationDateColumn": "Oluşturma tarihi sütununu göster",
+    "showCreationDateColumnDescription": "Ana listede liste ve kompakt görünümlerde Oluşturma tarihi sütununu göster.",
     "promptRightCloseButton": "Bildirim kapatma düğmesini sağda göster",
     "promptRightCloseButtonDescription": "Bildirimlerin kapatma düğmesini sol yerine sağ tarafta göster",
     "hideFileExt": "Belirli dosyaları gizle (uzantıya göre)",
@@ -828,6 +856,8 @@
       "customScrollbarDescription": "Tarayıcının yerel kaydırma çubuğunu Ace'in yerleşik olanıyla değiştir",
       "wrapContent": "Düzenleyicide uzun satırları kaydır",
       "wrapContentDescription": "Düzenleyici içeriğini kaydırarak çok uzun satırların her zaman görünür kalmasını sağlar",
+      "indentedSoftWrap": "Girintili yumuşak kaydırma",
+      "indentedSoftWrapDescription": "Bu etkinleştirildiğinde, kaydırılan metnin başına girinti ekler",
       "autocompletion": "Otomatik tamamlama",
       "autocompletionDescription": "Manuel olarak 'ctrl + space' tuşlarına basarak otomatik tamamlamayı etkinleştirir",
       "liveAutocompletion": "Canlı otomatik tamamlama",
@@ -939,6 +969,11 @@
     "audio": "Ses",
     "archive": "Arşiv",
     "document": "Belge",
+    "text": "Metin",
+    "ebook": "E-kitap",
+    "font": "Yazı tipi",
+    "model3d": "3B model",
+    "brokenLink": "Bozuk bağlantı",
     "binary": "İkili",
     "other": "Diğer"
   },
@@ -984,7 +1019,8 @@
       "termTooShort": "Her bir arama terimi en az {minSearchLength} karakter olmalıdır",
       "resultsTitle": "Arama sonuçları",
       "invalidSources": "En az bir kaynağı açın.",
-      "noResults": "Eşleşen dosya veya klasör yok."
+      "noResults": "Eşleşen dosya veya klasör yok.",
+      "resultLimit": "En fazla arama sonucu"
     },
     "activityViewer": {
       "name": "Etkinlik Görüntüleyici",

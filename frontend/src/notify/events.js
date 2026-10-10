@@ -1,8 +1,8 @@
-import { settingsApi } from '@/api'
-import i18n from '@/i18n'
-import { notify } from '@/notify'
-import { mutations, state } from '@/store'
-import { globalVars } from '@/utils/constants'
+import { settingsApi } from "@/api/index.js"
+import i18n from "@/i18n/index.ts"
+import { notify } from "@/notify/index.ts"
+import { mutations, state } from "@/store/index.ts"
+import { globalVars } from "@/utils/constants.js"
 
 let eventSrc = null
 let reconnectTimeout = null

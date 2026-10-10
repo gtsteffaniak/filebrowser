@@ -151,7 +151,22 @@ export default {
       applySectionsToFlatUser(profileUser, sections);
       updateUserEditSession({ user, profileUser });
     },
-    onEditAccountChange() {
+    applyEditAccountField(field, value) {
+      const fieldStr = String(field ?? "");
+      if (!fieldStr) {
+        return;
+      }
+      if (fieldStr.startsWith("permissions.")) {
+        this.editAccount.permissions = {
+          ...this.editAccount.permissions,
+          [fieldStr.slice("permissions.".length)]: value,
+        };
+        return;
+      }
+      this.editAccount[fieldStr] = value;
+    },
+    onEditAccountChange(field, value) {
+      this.applyEditAccountField(field, value);
       this.persistAccountEdits();
     },
     onPreferenceChange() {

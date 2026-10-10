@@ -16,6 +16,7 @@ export default {
     },
   },
   emits: ["update:modelValue"],
+  /** @returns {Record<symbol, { expanded: () => string | null, toggle: (name: string) => void }>} */
   provide() {
     return {
       [SETTINGS_ACCORDION_KEY]: {

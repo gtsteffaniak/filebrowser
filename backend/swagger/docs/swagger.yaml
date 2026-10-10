@@ -12,6 +12,8 @@ definitions:
     type: object
   indexing.SearchResult:
     properties:
+      created:
+        type: string
       hasPreview:
         type: boolean
       modified:
@@ -34,6 +36,9 @@ definitions:
         type: object
       content:
         description: text content of a file, if requested
+        type: string
+      created:
+        description: filesystem birth time, nil when unavailable
         type: string
       files:
         description: files in the directory with optional metadata
@@ -101,6 +106,9 @@ definitions:
     type: object
   iteminfo.ExtendedItemInfo:
     properties:
+      created:
+        description: filesystem birth time, nil when unavailable
+        type: string
       hasPreview:
         description: whether the file has a thumbnail preview
         type: boolean
@@ -132,6 +140,9 @@ definitions:
     type: object
   iteminfo.FileInfo:
     properties:
+      created:
+        description: filesystem birth time, nil when unavailable
+        type: string
       files:
         description: files in the directory with optional metadata
         items:
@@ -169,6 +180,9 @@ definitions:
     type: object
   iteminfo.ItemInfo:
     properties:
+      created:
+        description: filesystem birth time, nil when unavailable
+        type: string
       hasPreview:
         description: whether the file has a thumbnail preview
         type: boolean
@@ -889,6 +903,12 @@ definitions:
         description: number of concurrent image processing jobs used to create previews,
           default is 4.
         type: integer
+      searchResultsLimit:
+        description: 'maximum requested search results across all sources (default:
+          1000); quick search defaults to 100, advanced search to 500; size viewer
+          remains limited to 200'
+        minimum: 1
+        type: integer
       sources:
         items:
           $ref: '#/definitions/settings.Source'
@@ -1106,6 +1126,9 @@ definitions:
         type: string
       permissions:
         $ref: '#/definitions/settings.UserDefaultsAccountPermissions'
+      requirePasswordChange:
+        description: force password change at next password login
+        type: boolean
       showAdvancedProfile:
         description: show advanced profile settings in the user profile page
         type: boolean
@@ -1180,12 +1203,18 @@ definitions:
       showCopyPath:
         description: show copy path button in the context menu
         type: boolean
+      showCreationDateColumn:
+        description: show the Creation date column in list and compact views
+        type: boolean
       showHidden:
         description: show hidden files in the UI. On windows this includes files starting
           with a dot and windows hidden files
         type: boolean
       showSelectMultiple:
         description: show select multiple files on desktop
+        type: boolean
+      showTypeColumn:
+        description: show the Type column in list and compact views
         type: boolean
       singleClick:
         description: open directory on single click, also enables middle click to
@@ -1783,6 +1812,8 @@ definitions:
       quickDownload:
         description: show icon to download in one click
         type: boolean
+      requirePasswordChange:
+        type: boolean
       scopes:
         items:
           $ref: '#/definitions/users.FrontendScope'
@@ -1791,6 +1822,9 @@ definitions:
         type: boolean
       showCopyPath:
         description: show copy path action in the context menu
+        type: boolean
+      showCreationDateColumn:
+        description: show the Creation date column in list and compact views
         type: boolean
       showFirstLogin:
         type: boolean
@@ -1804,6 +1838,9 @@ definitions:
       showToolsInSidebar:
         description: 'when false, sidebar hides links with category "tool" (default:
           true)'
+        type: boolean
+      showTypeColumn:
+        description: show the Type column in list and compact views
         type: boolean
       sidebarLinks:
         description: customizable sidebar links
@@ -2111,6 +2148,8 @@ definitions:
       quickDownload:
         description: show icon to download in one click
         type: boolean
+      requirePasswordChange:
+        type: boolean
       scopes:
         items:
           $ref: '#/definitions/users.FrontendScope'
@@ -2119,6 +2158,9 @@ definitions:
         type: boolean
       showCopyPath:
         description: show copy path action in the context menu
+        type: boolean
+      showCreationDateColumn:
+        description: show the Creation date column in list and compact views
         type: boolean
       showFirstLogin:
         type: boolean
@@ -2132,6 +2174,9 @@ definitions:
       showToolsInSidebar:
         description: 'when false, sidebar hides links with category "tool" (default:
           true)'
+        type: boolean
+      showTypeColumn:
+        description: show the Type column in list and compact views
         type: boolean
       sidebarLinks:
         description: customizable sidebar links
@@ -2393,6 +2438,13 @@ definitions:
           default: fromSource). Example: "backups"'
         type: string
     type: object
+  web.changeRequiredPasswordBody:
+    properties:
+      password:
+        type: string
+      passwordConfirm:
+        type: string
+    type: object
   web.duplicateGroup:
     properties:
       count:
@@ -2478,6 +2530,10 @@ definitions:
         description: 'Directory path on toSource to extract into (required). Example:
           "/projects/imported"'
         type: string
+      filenameEncoding:
+        description: Fallback ZIP filename encoding; explicit Unicode metadata takes
+          precedence.
+        type: string
       fromSource:
         description: 'Source name where the archive file lives (required). Example:
           "default"'
@@ -2486,6 +2542,9 @@ definitions:
         description: 'Path to the archive file on fromSource; .zip, .tar.gz, or .tgz
           (required). Example: "/downloads/data.zip"'
         type: string
+      preview:
+        description: Inspect ZIP names without writing or deleting files.
+        type: boolean
       toSource:
         description: 'Source name where contents will be extracted (optional; default:
           fromSource). Example: "restored"'
@@ -2783,7 +2842,8 @@ paths:
     put:
       consumes:
       - application/json
-      description: Creates the group if missing and replaces its member list.
+      description: Creates the group if missing and replaces its member list. When
+        create is true, a group that already exists returns 409.
       parameters:
       - description: Group name and full member list
         in: body
@@ -2791,6 +2851,8 @@ paths:
         required: true
         schema:
           properties:
+            create:
+              type: boolean
             group:
               type: string
             members:
@@ -2802,15 +2864,18 @@ paths:
       - application/json
       responses:
         "200":
-          description: Group saved successfully
+          description: Group saved; unknownMembers lists usernames with no matching
+            local user
+          schema:
+            type: object
         "400":
           description: Bad request
           schema:
             additionalProperties:
               type: string
             type: object
-        "403":
-          description: Forbidden
+        "409":
+          description: Conflict (group already exists when create is true)
           schema:
             additionalProperties:
               type: string
@@ -2846,6 +2911,56 @@ paths:
               type: string
             type: object
       summary: Get all groups or groups for a user
+      tags:
+      - Access
+  /api/access/user-groups:
+    put:
+      consumes:
+      - application/json
+      description: Replaces all of a user's group memberships in one request. Every
+        group in the list must already exist.
+      parameters:
+      - description: Username and full group list
+        in: body
+        name: body
+        required: true
+        schema:
+          properties:
+            groups:
+              items:
+                type: string
+              type: array
+            user:
+              type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User groups updated
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: User not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Replace a user's group memberships
       tags:
       - Access
   /api/auth/login:
@@ -3055,6 +3170,61 @@ paths:
       summary: Verify OTP
       tags:
       - Auth
+  /api/auth/password/change-required:
+    post:
+      consumes:
+      - application/json
+      description: Verifies the current password and sets a new password when requirePasswordChange
+        is set. Issues a JWT on success.
+      parameters:
+      - description: Username
+        in: query
+        name: username
+        required: true
+        type: string
+      - description: URL-encoded current password
+        in: header
+        name: X-Password
+        required: true
+        type: string
+      - description: TOTP code (if 2FA is enabled)
+        in: header
+        name: X-Secret
+        type: string
+      - description: New password and confirmation
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/web.changeRequiredPasswordBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: JWT token for authentication
+          schema:
+            type: string
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Change required password at login
+      tags:
+      - Auth
   /api/auth/renew:
     post:
       consumes:
@@ -3069,6 +3239,12 @@ paths:
             type: string
         "401":
           description: Unauthorized - invalid token
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden - non-session token
           schema:
             additionalProperties:
               type: string
@@ -4346,6 +4522,8 @@ paths:
         - **path** (string, required): Path to the archive file (on fromSource). Must be .zip, .tar.gz, or .tgz. Example: `"/downloads/data.zip"`
         - **destination** (string, required): Directory path (on toSource) to extract into. Example: `"/projects/imported"`
         - **deleteAfter** (boolean, optional): If true, delete the archive file after successful extraction. Default: false. Example: `true`
+        - **filenameEncoding** (string, optional): Fallback ZIP filename encoding: utf-8, cp932, gb18030, big5, euc-kr, cp437, windows-1252. Unicode metadata takes precedence. Omit to use a suggestion; ambiguous encodings require a selection.
+        - **preview** (boolean, optional): Return ZIP encoding candidates and sample filenames without extracting or deleting anything. Requires the same source/destination permissions as extraction.
       parameters:
       - description: 'Request body: fromSource, toSource (optional), path, destination,
           deleteAfter (optional)'
@@ -4358,11 +4536,11 @@ paths:
       - application/json
       responses:
         "200":
-          description: 'Extracted; returns {\"path\": \"<destination path>\", \"source\":
-            \"<toSource>\"}'
+          description: 'Preview returns suggested and candidates; extraction returns
+            path and source. Extracted; returns {\"path\": \"<destination path>\",
+            \"source\": \"<toSource>\"}'
           schema:
-            additionalProperties:
-              type: string
+            additionalProperties: true
             type: object
         "400":
           description: Invalid request (e.g. missing required field, unsupported format)
@@ -4955,6 +5133,11 @@ paths:
         in: query
         name: useWildcard
         type: boolean
+      - description: Requested advanced search limit, capped by server.searchResultsLimit
+          (default 1000); omitted for quick search (100)
+        in: query
+        name: limit
+        type: integer
       - description: 'Optional: ''and'' to require all repeated ''terms'' match; default
           is OR'
         in: query

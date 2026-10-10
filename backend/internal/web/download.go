@@ -151,25 +151,8 @@ func downloadHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, e
 // @Failure 501 {object} map[string]string "Downloads disabled for upload shares"
 // @Router /public/api/resources/download [get]
 func publicDownloadHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
-	if d.Share.ShareType == "upload" {
-		return http.StatusNotImplemented, fmt.Errorf("downloads are disabled for upload shares")
-	}
-
-	if d.Share.DisableDownload {
-		return http.StatusForbidden, fmt.Errorf("downloads are not allowed for this share")
-	}
-
-	if !d.Share.PerUserDownloadLimit && d.Share.DownloadsLimit > 0 && d.Share.Downloads >= d.Share.DownloadsLimit {
-		return http.StatusForbidden, fmt.Errorf("share downloads limit reached")
-	}
-
-	if d.Share.PerUserDownloadLimit {
-		if d.User.Username == "anonymous" {
-			return http.StatusForbidden, fmt.Errorf("anonymous downloads are not allowed with per-user limits")
-		}
-		if d.Share.HasReachedUserLimit(d.User.Username) {
-			return http.StatusForbidden, fmt.Errorf("user download limit reached for this share")
-		}
+	if status, err := publicShareDownloadGate(d); err != nil {
+		return status, err
 	}
 
 	files := r.URL.Query()["file"]
@@ -213,6 +196,57 @@ func publicDownloadHandler(w http.ResponseWriter, r *http.Request, d *Context) (
 	return status, nil
 }
 
+// publicShareDownloadGate enforces upload-share, disable-download, and download-counter rules for public share byte egress.
+func publicShareDownloadGate(d *Context) (int, error) {
+	if d.Share.ShareType == "upload" {
+		return http.StatusNotImplemented, fmt.Errorf("downloads are disabled for upload shares")
+	}
+	if d.Share.DisableDownload {
+		return http.StatusForbidden, fmt.Errorf("downloads are not allowed for this share")
+	}
+	if status, err := publicShareDownloadLimits(d); err != nil {
+		return status, err
+	}
+	return 0, nil
+}
+
+func publicShareDownloadLimits(d *Context) (int, error) {
+	if !d.Share.PerUserDownloadLimit && d.Share.DownloadsLimit > 0 && d.Share.Downloads >= d.Share.DownloadsLimit {
+		return http.StatusForbidden, fmt.Errorf("share downloads limit reached")
+	}
+	if d.Share.PerUserDownloadLimit {
+		if d.User.Username == "anonymous" {
+			return http.StatusForbidden, fmt.Errorf("anonymous downloads are not allowed with per-user limits")
+		}
+		if d.Share.HasReachedUserLimit(d.User.Username) {
+			return http.StatusForbidden, fmt.Errorf("user download limit reached for this share")
+		}
+	}
+	return 0, nil
+}
+
+// publicShareMediaContentPolicy applies the same share view/download flags and download limits as other public content routes.
+func publicShareMediaContentPolicy(d *Context) (int, error) {
+	if d.Share.ShareType == "upload" {
+		return http.StatusNotImplemented, fmt.Errorf("browsing is disabled for upload shares")
+	}
+	sourceInfo, ok := settings.Config.Server.SourceMap[d.Share.SourcePath]
+	if !ok {
+		return http.StatusNotFound, fmt.Errorf("source not found")
+	}
+	filePerms, err := effectiveFilePerms(d, sourceInfo.Name)
+	if err != nil {
+		return http.StatusForbidden, err
+	}
+	if !filePerms.View {
+		return http.StatusForbidden, fmt.Errorf("user is not allowed to view files in this source")
+	}
+	if !filePerms.Download {
+		return http.StatusForbidden, fmt.Errorf("downloads are not allowed for this share")
+	}
+	return publicShareDownloadLimits(d)
+}
+
 func RawFilesHandler(w http.ResponseWriter, r *http.Request, d *Context, source string, fileList []string) (int, error) {
 	if d.Share.Hash == "" {
 		filePerms, err := effectiveFilePerms(d, source)
@@ -229,7 +263,6 @@ func RawFilesHandler(w http.ResponseWriter, r *http.Request, d *Context, source 
 	}
 
 	firstFilePath := fileList[0]
-	displayFileList := ResolveDisplayFileList(d, source, fileList)
 	var err error
 	var status int
 	var userscope string
@@ -250,6 +283,38 @@ func RawFilesHandler(w http.ResponseWriter, r *http.Request, d *Context, source 
 	if idx == nil {
 		return http.StatusInternalServerError, fmt.Errorf("source %s is not available", source)
 	}
+
+	// Remember how many paths the caller originally requested. After the access filter
+	// below shrinks the list, this count decides whether to serve raw vs. archive:
+	// a multi-path request must always yield an archive even if only one path survives.
+	originalCount := len(fileList)
+
+	// For non-share downloads, silently filter out paths the user is denied access to.
+	// Users should only download what they can see in the UI; a denied path must not
+	// block the rest of the selection. If nothing remains after filtering, return 404
+	// (same as a missing file) so that denied and nonexistent paths look identical.
+	if d.Share.Hash == "" {
+		permUser := accessCheckUsername(d)
+		allowed := fileList[:0]
+		for _, filePath := range fileList {
+			if state.AccessPermitted(idx.Path, utils.IndexPathFromNormalized(filePath, true), permUser) {
+				allowed = append(allowed, filePath)
+			} else {
+				logger.Debugf("download: skipping denied path for user %q", permUser)
+			}
+		}
+		if len(allowed) == 0 {
+			return realPathErrStatus(errors.ErrNotExist), errors.ErrNotExist
+		}
+		fileList = allowed
+		firstFilePath = fileList[0]
+		fileName = filepath.Base(firstFilePath)
+	}
+
+	// Build the display list from the filtered fileList so denied paths are never
+	// recorded in the download activity log.
+	displayFileList := ResolveDisplayFileList(d, source, fileList)
+
 	var isDir bool
 	if d.Share.Hash != "" {
 		if d.Share.Path == "" {
@@ -260,10 +325,14 @@ func RawFilesHandler(w http.ResponseWriter, r *http.Request, d *Context, source 
 		_, isDir, err = idx.GetRealPath(firstFilePath)
 	}
 	if err != nil {
-		return realPathErrStatus(err), err
+		s := realPathErrStatus(err)
+		if s == http.StatusNotFound {
+			return s, errors.ErrNotExist
+		}
+		return s, err
 	}
 
-	if len(fileList) == 1 && !isDir {
+	if len(fileList) == 1 && !isDir && originalCount == 1 {
 		forceInline := false
 		forceInline, err = resolveDownloadInlineDisposition(fileName, r.URL.Query().Get("inline") == "true")
 		if err != nil {

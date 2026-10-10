@@ -1,3 +1,14 @@
+/* List/compact column widths, shared by ListingHeader.vue so header and rows align.
+   rem keeps them identical even though row text uses a smaller font size. */
+:root {
+  --listing-col-gap: 1rem;
+  --listing-col-size: 6.5rem;
+  --listing-col-modified: 10rem;
+  --listing-col-kind: 4.8rem;
+  --listing-col-created: 8.35rem;
+  --listing-col-duration: 6.75rem;
+}
+
 .listing-items {
   animation-duration: 0.25s;
   user-select: none;
@@ -41,7 +52,7 @@ body.rtl .listing-items {
   padding: 0.5em;
   color: var(--textPrimary);
   border-color: var(--divider);
-  background: var(--surfacePrimary);
+  background: color-mix(in srgb, var(--surfacePrimary) 60%, transparent);
   /* Performance optimizations */
   contain: layout style paint;
   content-visibility: auto;
@@ -62,6 +73,8 @@ body.rtl .listing-items {
 
 .listing-item .size,
 .listing-item .modified,
+.listing-item .created,
+.listing-item .kind,
 .listing-item .duration {
   font-size: 0.9em;
 }
@@ -300,6 +313,8 @@ body.rtl .listing-items {
 
 .listing-items.gallery .listing-item .size,
 .listing-items.gallery .listing-item .modified,
+.listing-items.gallery .listing-item .created,
+.listing-items.gallery .listing-item .kind,
 .listing-items.gallery .listing-item .duration {
   display: none !important;
 }
@@ -325,8 +340,15 @@ body.rtl .listing-items {
   text-align: center;
 }
 
+.listing-items.normal .listing-item .created,
+.listing-items.normal .listing-item .kind {
+  display: none !important;
+}
+
 .listing-items.icons .listing-item .size,
 .listing-items.icons .listing-item .modified,
+.listing-items.icons .listing-item .created,
+.listing-items.icons .listing-item .kind,
 .listing-items.icons .listing-item .duration {
   display: none !important;
 }
@@ -426,38 +448,57 @@ body.rtl .listing-items {
   margin-bottom: .5em;
 }
 
-/* size, modified, duration */
+/* size, modified, type, date added, duration */
+.listing-items.list .listing-item .text,
+.listing-items.compact .listing-item .text {
+  padding-right: var(--listing-col-gap);
+}
+
+.listing-items.list .listing-item .size,
+.listing-items.compact .listing-item .size,
+.listing-items.list .listing-item .modified,
+.listing-items.compact .listing-item .modified,
+.listing-items.list .listing-item .kind,
+.listing-items.compact .listing-item .kind,
+.listing-items.list .listing-item .created,
+.listing-items.compact .listing-item .created,
+.listing-items.list .listing-item .duration,
+.listing-items.compact .listing-item .duration {
+  flex-shrink: 0;
+  box-sizing: border-box;
+  padding-left: var(--listing-col-gap);
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .listing-items.list .listing-item .size,
 .listing-items.compact .listing-item .size {
-  width: 8%;
-  min-width: 80px;
-  flex-shrink: 0;
-  text-align: right;
-  padding-right: 1em;
-  overflow: visible;
-  white-space: nowrap;
+  width: var(--listing-col-size);
 }
 
 .listing-items.list .listing-item .modified,
 .listing-items.compact .listing-item .modified {
-  width: 18%;
-  min-width: 100px;
-  flex-shrink: 0;
-  text-align: right;
-  padding-right: 1em;
-  overflow: visible;
-  white-space: nowrap;
+  width: var(--listing-col-modified);
+}
+
+.listing-items.list .listing-item .kind,
+.listing-items.compact .listing-item .kind {
+  width: var(--listing-col-kind);
+  /* extra room after the right-aligned Last modified dates */
+  padding-left: calc(var(--listing-col-gap) + 0.5rem);
+  text-align: left;
+}
+
+.listing-items.list .listing-item .created,
+.listing-items.compact .listing-item .created {
+  width: var(--listing-col-created);
 }
 
 .listing-items.list .listing-item .duration,
 .listing-items.compact .listing-item .duration {
-  width: 12%;
-  min-width: 70px;
-  flex-shrink: 0;
-  text-align: right;
-  padding-right: 1em;
-  overflow: visible;
-  white-space: nowrap;
+  width: var(--listing-col-duration);
 }
 
 .pinned-indicator {
@@ -601,9 +642,9 @@ body.rtl .listing-items {
 
 .listing-items.list .listing-item.zebra-row:not([aria-selected="true"]),
 .listing-items.compact .listing-item.zebra-row:not([aria-selected="true"]) {
-  background: color-mix(in srgb, var(--surfacePrimary) 20%, var(--background));
+  background: color-mix(in srgb, var(--surfacePrimary) 20%, var(--background) 60%);
 }
 
 .search-entry.zebra-row {
-  background: color-mix(in srgb, var(--surfacePrimary) 80%, var(--background));
+  background: color-mix(in srgb, var(--surfacePrimary) 80%, var(--background) 60%);
 }

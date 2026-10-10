@@ -8,14 +8,15 @@ import (
 
 // SearchItem represents a single search result row from the database
 type SearchItem struct {
-	Source     string
-	Path       string
-	Name       string
-	Size       int64
-	ModTime    int64
-	Type       string
-	IsDir      bool
-	HasPreview bool
+	Source      string
+	Path        string
+	Name        string
+	Size        int64
+	CreatedTime int64
+	ModTime     int64
+	Type        string
+	IsDir       bool
+	HasPreview  bool
 }
 
 // appendNameGlobSQL adds AND (name GLOB ? OR ...) or AND (name GLOB ? AND ...) when joinAnd is true.
@@ -44,8 +45,8 @@ func appendNameGlobSQL(query string, args []interface{}, patterns []string, join
 // Returns rows that can be iterated to scan search results.
 func (db *IndexDB) SearchItems(source string, scope string, largest bool, nameGlobPatterns []string, nameGlobPatternsAnd, caseExact bool) (*sql.Rows, error) {
 	query := `
-		SELECT path, name, size, mod_time, type, is_dir, has_preview 
-		FROM index_items 
+		SELECT path, name, size, created_time, mod_time, type, is_dir, has_preview
+		FROM index_items
 		WHERE source = ?
 	`
 	args := []interface{}{source}
@@ -77,8 +78,8 @@ func (db *IndexDB) SearchItemsMultiSource(sources []string, sourceScopes map[str
 	}
 
 	query := `
-		SELECT source, path, name, size, mod_time, type, is_dir, has_preview 
-		FROM index_items 
+		SELECT source, path, name, size, created_time, mod_time, type, is_dir, has_preview
+		FROM index_items
 	`
 	args := []interface{}{}
 	whereClauses := []string{}

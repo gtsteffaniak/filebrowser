@@ -1,5 +1,5 @@
-import router from '@/router';
-import { state } from '@/store';
+import { router } from "@/router/index.ts";
+import { state } from "@/store/index.ts";
 import { buildItemUrl } from '@/utils/url.js';
 
 /** @typedef {{ source: string, path: string, media: HTMLMediaElement, wasInlineFullscreen?: boolean, wasPlaying?: boolean }} PipSession */
@@ -84,13 +84,13 @@ function releasePipMediaFromHost(media) {
 }
 
 function notifyPipAvailabilityChange() {
-  pipAvailabilityListeners.forEach((listener) => {
+  for (const listener of pipAvailabilityListeners) {
     try {
       listener();
     } catch (_) {
       // ignore
     }
-  });
+  }
 }
 
 /** @param {() => void} listener @returns {() => void} unsubscribe */
@@ -102,13 +102,13 @@ export function onPipAvailabilityChange(listener) {
 }
 
 function notifyPendingInlineResume(snapshot) {
-  pendingInlineResumeListeners.forEach((listener) => {
+  for (const listener of pendingInlineResumeListeners) {
     try {
       listener(snapshot);
     } catch (_) {
       // ignore
     }
-  });
+  }
 }
 
 /** @param {(snapshot: NonNullable<typeof pendingInlineResume>) => void} listener @returns {() => void} unsubscribe */
@@ -258,19 +258,19 @@ function pauseInlineVideosExcept(exceptMedia = null) {
   if (typeof document === 'undefined') {
     return;
   }
-  document.querySelectorAll('video').forEach((el) => {
+  for (const el of document.querySelectorAll('video')) {
     if (!(el instanceof HTMLMediaElement)) {
-      return;
+      continue;
     }
     if (exceptMedia && el === exceptMedia) {
-      return;
+      continue;
     }
     try {
       el.pause();
     } catch (_) {
       // ignore
     }
-  });
+  }
 }
 
 function handlePipSessionClosed(media) {

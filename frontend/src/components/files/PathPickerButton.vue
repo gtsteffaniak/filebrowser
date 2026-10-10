@@ -1,7 +1,5 @@
 <template>
   <div
-    role="button"
-    tabindex="0"
     :aria-label="resolvedAriaLabel"
     class="searchContext clickable button unified-path-picker"
     @click="openPicker"

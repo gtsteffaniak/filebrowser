@@ -1,5 +1,11 @@
 //import { Page } from "@playwright/test";
-import { expect, test } from "../test-setup";
+import { setTimeout as sleep } from "node:timers/promises";
+import {
+  ensureListingViewMode,
+  expect,
+  test,
+  waitForListing3dThumbnails,
+} from "../test-setup.ts";
 
 const jpgQuality = 85;
 
@@ -17,28 +23,32 @@ test("setup theme", async ({ page, theme }) => {
 
 // run npx playwright test --ui to run these tests locally in ui mode
 test("each view mode", async ({ page, theme }) => {
+  test.setTimeout(30_000);
   if (theme === 'light') {
     return;
   }
   await page.goto("/files/");
-  await page.waitForTimeout(250);
+  await ensureListingViewMode(page, "normal");
+  await sleep(250);
   await page.screenshot({ path: `./generated/listing/view-mode-normal-${theme}.jpg`, quality: jpgQuality });
-  await page.locator('button[aria-label="Switch view"]').click();
-  await page.waitForTimeout(250);
+  await ensureListingViewMode(page, "gallery");
+  await sleep(250);
   await page.screenshot({ path: `./generated/listing/view-mode-gallery-${theme}.jpg`, quality: jpgQuality });
-  await page.locator('button[aria-label="Switch view"]').click();
-  await page.waitForTimeout(250);
+  await ensureListingViewMode(page, "list");
+  await sleep(250);
   await page.screenshot({ path: `./generated/listing/view-mode-list-${theme}.jpg`, quality: jpgQuality });
+  await ensureListingViewMode(page, "normal");
 });
 
 // run npx playwright test --ui to run these tests locally in ui mode
 test("context menu", async ({ page, theme }) => {
   await page.goto("/files/");
+  await ensureListingViewMode(page, "normal");
   await page.locator('a[aria-label="file.tar.gz"]').waitFor({ state: 'visible' });
   await page.locator('a[aria-label="file.tar.gz"]').click({ button: "right" });
   await page.locator('.selected-count-header').waitFor({ state: 'visible' });
   await expect(page.locator('.selected-count-header')).toHaveText('1');
-  await page.waitForTimeout(250);
+  await sleep(250);
   await page.locator('#context-menu').screenshot({ path: `./generated/context-menu/${theme}.jpg`, quality: jpgQuality });
   if (theme === 'light') {
     return;
@@ -64,18 +74,19 @@ test("info from search", async ({ page, theme }) => {
     return;
   }
   await page.goto("/files/");
+  await ensureListingViewMode(page, "normal");
   await page.locator('#search-bar-input').click()
   await page.locator('#search-input').fill('file.tar.gz');
   await expect(page.locator('#result-list')).toHaveCount(1);
-  await page.waitForTimeout(500);
+  await sleep(500);
   await page.screenshot({ path: `./generated/search/from-listing-${theme}.jpg`, quality: jpgQuality });
   await page.locator('li[aria-label="file.tar.gz"]').click({ button: "right" });
   await expect(page.locator('button[aria-label="Info"]')).toBeVisible();
-  await page.waitForTimeout(500);
+  await sleep(500);
   await page.screenshot({ path: `./generated/search/right-click-${theme}.jpg`, quality: jpgQuality });
   await page.locator('button[aria-label="Info"]').click();
   await expect(page.locator('span[aria-label="info display name"]')).toHaveText('file.tar.gz');
-  await page.waitForTimeout(500);
+  await sleep(500);
   await page.screenshot({ path: `./generated/search/info-from-search-${theme}.jpg`, quality: jpgQuality });
 })
 
@@ -85,7 +96,7 @@ test("no viewer available", async ({ page, theme }) => {
   }
   await page.goto("/files/playwright/file.tar.gz");
   await expect(page).toHaveTitle("FileBrowser Quantum - Files - file.tar.gz");
-  await page.waitForTimeout(500);
+  await sleep(500);
   await page.screenshot({ path: `./generated/viewer/no-viewer-available-${theme}.jpg`, quality: jpgQuality });
 })
 
@@ -103,24 +114,27 @@ test("copy from listing to new folder", async ({ page, theme }) => {
   await expect(page.locator('li[aria-selected="true"]')).toHaveCount(0);
   await page.locator('.card-content > .listing-items > div[aria-label="myfolder"]').click();
   await expect(page.locator('.card-content > .listing-items > div[aria-selected="true"]')).toHaveCount(1);
-  await page.waitForTimeout(500);
+  await sleep(500);
   await page.screenshot({ path: `./generated/prompts/copy-to-new-folder-${theme}.jpg`, quality: jpgQuality });
 })
 
 test("breadcrumbs navigation checks", async ({ page, theme }) => {
+  await page.goto("/files/");
+  await ensureListingViewMode(page, "normal");
   await page.goto("/files/playwright/myfolder");
-  await page.waitForSelector('#breadcrumbs');
+  await page.locator('#breadcrumbs').waitFor();
   let spanChildrenCount = await page.locator('#breadcrumbs > ul > li.item').count();
   expect(spanChildrenCount).toBe(1);
   let breadCrumbLink = page.locator('a[aria-label="breadcrumb-link-myfolder"]')
   await expect(breadCrumbLink).toHaveText("myfolder");
   await page.goto("/files/playwright/myfolder/testdata");
-  await page.waitForSelector('#breadcrumbs');
+  await page.locator('#breadcrumbs').waitFor();
   spanChildrenCount = await page.locator('#breadcrumbs > ul > li.item').count();
   expect(spanChildrenCount).toBe(2);
   breadCrumbLink = page.locator('a[aria-label="breadcrumb-link-testdata"]')
   await expect(breadCrumbLink).toHaveText("testdata");
-  await page.waitForTimeout(500);
+  await ensureListingViewMode(page, "normal");
+  await sleep(500);
   await page.screenshot({ path: `./generated/listing/breadcrumbs-navigation-${theme}.jpg`, quality: jpgQuality });
 })
 
@@ -137,7 +151,7 @@ test("delete file", async ({ page, theme }) => {
   await page.locator('button[aria-label="Delete"]').click();
   await expect(page.locator('.card-message')).toHaveText('Are you sure you want to delete this file/folder?');
   await expect(page.locator('.delete-item-wrapper > .listing-item > .text > .name')).toContainText('/deleteme.txt');
-  await page.waitForTimeout(500);
+  await sleep(500);
   await page.screenshot({ path: `./generated/prompts/delete-deleteme.txt-${theme}.jpg`, quality: jpgQuality });
 })
 
@@ -148,24 +162,25 @@ test("text file editor -- text", async ({ page, theme }) => {
   await page.goto("/files/playwright/copyme.txt");
   await page.locator(".ace_content").click();
   await page.keyboard.type("\nYou can edit this file, it shows styles based on formatting.\n\n Works on all text-based files under 25MB limit.");
-  await page.waitForTimeout(500);
+  await sleep(500);
   await page.screenshot({ path: `./generated/viewer/editor-copyme.txt-${theme}.jpg`, quality: jpgQuality });
 });
 
 
 test("text file editor -- javascript", async ({ page, theme }) => {
   await page.goto("/files/playwright/text-files/javascript.js");
-  await page.waitForTimeout(500);
+  await sleep(500);
   await page.screenshot({ path: `./generated/viewer/editor-javascript.js-${theme}.jpg`, quality: jpgQuality });
 });
 
 test("text file editor -- bash", async ({ page,theme }) => {
   await page.goto("/files/playwright/text-files/bash.sh");
-  await page.waitForTimeout(500);
+  await sleep(500);
   await page.screenshot({ path: `./generated/viewer/editor-bash.sh-${theme}.jpg`, quality: jpgQuality });
 });
 
 test("3d file preview thumbnails", async ({ page, checkForErrors, theme }) => {
+  test.setTimeout(60_000);
   if (theme === 'light') {
     return;
   }
@@ -176,8 +191,9 @@ test("3d file preview thumbnails", async ({ page, checkForErrors, theme }) => {
   await expect(page).toHaveTitle("FileBrowser Quantum - Files - myfolder");
   await page.locator('a[aria-label="3dmodels"]').waitFor({ state: 'visible' });
   await page.locator('a[aria-label="3dmodels"]').dblclick();
-  await expect(page).toHaveTitle("FileBrowser Quantum - Files - 3dmodels");  
-  await page.waitForTimeout(2000); // wait for thumbnails to load
+  await expect(page).toHaveTitle("FileBrowser Quantum - Files - 3dmodels");
+  await waitForListing3dThumbnails(page);
+  await sleep(250);
   await page.screenshot({ path: `./generated/thumbnails/3d-model-${theme}.jpg`, quality: jpgQuality });
   checkForErrors();
 });
@@ -194,14 +210,14 @@ test("3d file preview", async ({ page, checkForErrors, theme}) => {
   await expect(page).toHaveTitle("FileBrowser Quantum - Files - myfolder");
   await page.locator('a[aria-label="3dmodels"]').waitFor({ state: 'visible' });
   await page.locator('a[aria-label="3dmodels"]').dblclick();
-  await expect(page).toHaveTitle("FileBrowser Quantum - Files - 3dmodels");  
+  await expect(page).toHaveTitle("FileBrowser Quantum - Files - 3dmodels");
   await page.locator('a[aria-label="Lowpoly_tree_sample.dae"]').waitFor({ state: 'visible' });
   await page.locator('a[aria-label="Lowpoly_tree_sample.dae"]').dblclick();
   await expect(page).toHaveTitle("FileBrowser Quantum - Files - Lowpoly_tree_sample.dae");
   // check previews work
   await page.locator('.threejs-viewer .loading-overlay').waitFor({ state: 'visible' });
   await page.locator('.threejs-viewer canvas').waitFor({ state: 'visible' })
-  await page.waitForTimeout(500);
+  await sleep(500);
   await page.screenshot({ path: `./generated/viewer/3d-model-${theme}.jpg`, quality: jpgQuality });
   checkForErrors();
 });

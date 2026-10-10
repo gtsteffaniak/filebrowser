@@ -100,6 +100,8 @@ vi.mock('@/notify', () => ({
   },
 }));
 
-window.matchMedia = vi.fn(() => ({
-  matches: false,
-}));
+if (typeof window !== "undefined") {
+  window.matchMedia = vi.fn(() => ({
+    matches: false,
+  }));
+}

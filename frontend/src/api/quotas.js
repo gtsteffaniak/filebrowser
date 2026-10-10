@@ -1,6 +1,6 @@
-import { notify } from "@/notify";
+import { notify } from "@/notify/index.ts";
 import { getApiPath } from "@/utils/url.js";
-import { fetchJSON, fetchURL } from "./utils";
+import { fetchJSON, fetchURL } from "./utils.ts";
 
 /**
  * @param {string} source

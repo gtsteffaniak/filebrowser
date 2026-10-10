@@ -1,4 +1,4 @@
-import { getters, mutations, state } from "@/store";
+import { getters, mutations, state } from "@/store/index.ts";
 
 let dismissHandler = null;
 let dismissTimer = null;
@@ -136,15 +136,6 @@ function showTapTooltip(content, event) {
     pointerEvents: true,
   });
   registerTooltipDismiss();
-}
-
-/** @deprecated Use showHoverTooltip or tap handlers instead */
-export function showInteractiveTooltip(content, event) {
-  if (useTapForTooltip()) {
-    showTapTooltip(content, event);
-    return;
-  }
-  showHoverTooltip(content, event);
 }
 
 export function isTooltipContentVisible(content) {

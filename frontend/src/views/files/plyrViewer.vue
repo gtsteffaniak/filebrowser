@@ -437,27 +437,25 @@ export default {
     };
   },
   watch: {
-    playbackMode(newMode, oldMode) {
+    async playbackMode(newMode, oldMode) {
       if (newMode !== oldMode) {
         if (oldMode !== undefined) {
           // can only be "single" via clearPlaybackQueue
           this.toastType = newMode === 'single' ? 'cleared' : 'mode';
           this.showToast();
         }
-        this.$nextTick(() => {
-          this.ensurePlaybackModeApplied();
-        });
         this.updateMediaSessionNavHandlers();
+        await this.$nextTick();
+        this.ensurePlaybackModeApplied();
       }
     },
-    loop(newVal, oldVal) {
+    async loop(newVal, oldVal) {
       if (newVal !== oldVal) {
         this.toastType = 'loop';
         this.showToast();
-        this.$nextTick(() => {
-          this.ensurePlaybackModeApplied();
-        });
         this.updateMediaSessionNavHandlers();
+        await this.$nextTick();
+        this.ensurePlaybackModeApplied();
       }
     },
     currentQueueIndex() {
@@ -469,9 +467,10 @@ export default {
     albumArtSize(val) {
       sessionStorage.setItem('plyrAlbumArtSize', val.toString());
     },
-    activeLyricIndex() {
+    async activeLyricIndex() {
       if (this.showMobileLyrics && this.isMobile) {
-        this.$nextTick(() => this.scrollMobileLyrics());
+        await this.$nextTick();
+        this.scrollMobileLyrics();
       }
     },
     lyrics(newLyrics, oldLyrics) {
@@ -480,15 +479,17 @@ export default {
         this.activeWordIndex = -1;
       }
     },
-    mobileLyricsScrollLocked(val) {
+    async mobileLyricsScrollLocked(val) {
       if (!val && this.showMobileLyrics && this.lyrics.length) {
-        this.$nextTick(() => this.scrollMobileLyrics());
+        await this.$nextTick();
+        this.scrollMobileLyrics();
       }
     },
-    showMobileLyrics(val) {
+    async showMobileLyrics(val) {
         sessionStorage.setItem('plyrShowMobileLyrics', val ? '1' : '0');
         if (val && this.lyrics.length) {
-            this.$nextTick(() => this.scrollMobileLyrics());
+            await this.$nextTick();
+            this.scrollMobileLyrics();
         }
     },
     shouldTogglePlayPause(newVal, oldVal) {
@@ -549,7 +550,7 @@ export default {
       immediate: true
     },
     subtitlesList: {
-      handler(newSubs, oldSubs) {
+      async handler(newSubs, oldSubs) {
         const gained = newSubs && newSubs.length > 0 && (!oldSubs || oldSubs.length === 0);
         const lost = (!newSubs || newSubs.length === 0) && oldSubs && oldSubs.length > 0;
         if (gained || lost) {
@@ -557,22 +558,19 @@ export default {
         }
         if (gained) {
           if (!this.player && this.previewType === 'video') {
-            this.$nextTick(() => {
-              this.initializePlyr();
-            });
+            await this.$nextTick();
+            void this.initializePlyr();
           } else if (this.player && this.previewType === 'video') {
-            this.$nextTick(() => {
-              this.applyCustomSettings(this.player);
-              this.syncCaptionSizeSettingsVisibility();
-              this.applyCaptionSizeClass();
-            });
+            await this.$nextTick();
+            this.applyCustomSettings(this.player);
+            this.syncCaptionSizeSettingsVisibility();
+            this.applyCaptionSizeClass();
           }
         } else if (this.player && this.previewType === 'video') {
-          this.$nextTick(() => {
-            this.syncCaptionSizeSettingsVisibility();
-            this.captionSizeMenuInitialized = false;
-            this.applyCustomSettings(this.player);
-          });
+          await this.$nextTick();
+          this.syncCaptionSizeSettingsVisibility();
+          this.captionSizeMenuInitialized = false;
+          this.applyCustomSettings(this.player);
         }
       },
       deep: true,
@@ -861,14 +859,14 @@ export default {
   },
   beforeUnmount() {
     // Cleanup timeouts
-    [this.toastTimeout,
+    for (const timeout of [this.toastTimeout,
     this.skipFeedbackTimer,
     this.videoDismissCloseTimer,
     this.videoDismissHintTimer,
     this.skipNextTapTimer,
-  ].forEach(timeout => {
+  ]) {
       if (timeout) clearTimeout(timeout);
-    });
+    }
     // Cleanup Plyr
     this.destroyPlyr();
     this.clearMediaSession();
@@ -940,13 +938,13 @@ export default {
           'previoustrack',
           hasPrevious ? () => this.playPrevious() : null
         );
-      } catch (e) { /*ignore*/ }
+      } catch (_e) { /*ignore*/ }
       try {
         navigator.mediaSession.setActionHandler(
           'nexttrack',
           hasNext ? () => this.playNext() : null
         );
-      } catch (e) { /*ignore*/ }
+      } catch (_e) { /*ignore*/ }
     },
     updateMediaSessionPlaybackState() {
       if (!('mediaSession' in navigator)) return;
@@ -970,9 +968,9 @@ export default {
       navigator.mediaSession.metadata = null;
       // Clear all action handlers
       const actions = [ 'play', 'pause', 'previoustrack', 'nexttrack', 'seekbackward', 'seekforward', 'seekto', 'stop' ];
-      actions.forEach(action => {
+      for (const action of actions) {
         navigator.mediaSession.setActionHandler(action, null);
-      });
+      }
       // Clear position state
       if (navigator.mediaSession.setPositionState) {
         navigator.mediaSession.setPositionState(null);
@@ -1209,9 +1207,9 @@ export default {
         return;
       }
       const el = this.player.elements.container;
-      PLYR_CAPTION_SIZE_IDS.forEach((id) => {
+      for (const id of PLYR_CAPTION_SIZE_IDS) {
         el.classList.remove(`plyr-caption-size--${id}`);
-      });
+      }
       el.classList.add(`plyr-caption-size--${this.getStoredCaptionSize()}`);
     },
     syncCaptionSizeSettingsVisibility() {
@@ -1432,18 +1430,17 @@ export default {
         return;
       }
 
-      this.initializePlyr();
+      void this.initializePlyr();
     },
-    initializePlyr() {
+    async initializePlyr() {
       if (!this.mediaElement || this.player) {
         return;
       }
-      this.$nextTick(() => {
-        if (this.player) {
-          return;
-        }
-        void this.mountPlyrPlayer();
-      });
+      await this.$nextTick();
+      if (this.player) {
+        return;
+      }
+      void this.mountPlyrPlayer();
     },
     async mountPlyrPlayer() {
       if (!this.mediaElement || this.player) {
@@ -1459,7 +1456,7 @@ export default {
         this.nativePlayerPlay = this.player.play.bind(this.player);
         this.player.play = () => {
           if (!this.videoStreamAttached) {
-            this.attachVideoStreamAndPlay();
+            void this.attachVideoStreamAndPlay();
             return Promise.resolve();
           }
           return this.nativePlayerPlay();
@@ -1596,7 +1593,7 @@ export default {
         el.addEventListener('loadedmetadata', whenSeekable, { once: true });
       }
     },
-    attachVideoStreamAndPlay() {
+    async attachVideoStreamAndPlay() {
       if (this.videoStreamAttached || this.previewType !== 'video' || !this.raw) {
         if (this.inlineResumeSnapshot) {
           this.pipHandoffApplying = false;
@@ -1605,62 +1602,60 @@ export default {
       }
       this.videoStreamAttached = true;
       this.videoLoadingCleanup?.expectPlayback?.();
-      this.$nextTick(() => {
-        this.$nextTick(() => {
-          const el = this.mediaElement;
-          if (!el) {
-            return;
-          }
-          const snap = this.inlineResumeSnapshot;
-          const handoffTime = snap?.currentTime ?? this.pipHandoffSeekSeconds;
-          const streamUrl = appendMediaFragment(this.raw, handoffTime);
-          if (streamUrl && !el.getAttribute('src')) {
-            el.setAttribute('src', streamUrl);
-            this.lockedNativeVideoSrc = streamUrl;
-            if (snap?.wasPlaying !== false) {
-              el.autoplay = true;
-            }
-          }
-          if (snap?.wasPlaying !== false) {
-            const onCanPlay = () => this.attemptPipHandoffPlay(el, snap);
-            if (el.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) {
-              onCanPlay();
-            } else {
-              el.addEventListener('canplay', onCanPlay, { once: true });
-            }
-          }
+      await this.$nextTick();
+      await this.$nextTick();
+      const el = this.mediaElement;
+      if (!el) {
+        return;
+      }
+      const snap = this.inlineResumeSnapshot;
+      const handoffTime = snap?.currentTime ?? this.pipHandoffSeekSeconds;
+      const streamUrl = appendMediaFragment(this.raw, handoffTime);
+      if (streamUrl && !el.getAttribute('src')) {
+        el.setAttribute('src', streamUrl);
+        this.lockedNativeVideoSrc = streamUrl;
+        if (snap?.wasPlaying !== false) {
+          el.autoplay = true;
+        }
+      }
+      if (snap?.wasPlaying !== false) {
+        const onCanPlay = () => this.attemptPipHandoffPlay(el, snap);
+        if (el.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) {
+          onCanPlay();
+        } else {
+          el.addEventListener('canplay', onCanPlay, { once: true });
+        }
+      }
 
-          const startDefault = () => {
-            this.clearAttachVideoStreamWait();
-            this.applyQueryPlaybackSeek();
-            void el.play().catch(() => {});
-          };
+      const startDefault = () => {
+        this.clearAttachVideoStreamWait();
+        this.applyQueryPlaybackSeek();
+        void el.play().catch(() => {});
+      };
 
-          const startWithResume = () => {
-            this.clearAttachVideoStreamWait();
-            const onMeta = () => {
-              this.applyInlineResumeSeek(el, snap);
-            };
-            if (el.readyState >= HTMLMediaElement.HAVE_METADATA) {
-              onMeta();
-            } else {
-              el.addEventListener('loadedmetadata', onMeta, { once: true });
-            }
-          };
+      const startWithResume = () => {
+        this.clearAttachVideoStreamWait();
+        const onMeta = () => {
+          this.applyInlineResumeSeek(el, snap);
+        };
+        if (el.readyState >= HTMLMediaElement.HAVE_METADATA) {
+          onMeta();
+        } else {
+          el.addEventListener('loadedmetadata', onMeta, { once: true });
+        }
+      };
 
-          const start = snap ? startWithResume : startDefault;
-          this.attachVideoStreamResume = start;
-          if (snap) {
-            if (el.readyState >= HTMLMediaElement.HAVE_METADATA) {
-              start();
-            } else {
-              el.addEventListener('loadedmetadata', start, { once: true });
-            }
-          } else {
-            start();
-          }
-        });
-      });
+      const start = snap ? startWithResume : startDefault;
+      this.attachVideoStreamResume = start;
+      if (snap) {
+        if (el.readyState >= HTMLMediaElement.HAVE_METADATA) {
+          start();
+        } else {
+          el.addEventListener('loadedmetadata', start, { once: true });
+        }
+      } else {
+        start();
+      }
     },
     clearAttachVideoStreamWait() {
       const el = this.mediaElement;
@@ -1751,7 +1746,7 @@ export default {
         return;
       }
       if (!this.videoStreamAttached && this.previewType === 'video') {
-        this.attachVideoStreamAndPlay();
+        void this.attachVideoStreamAndPlay();
       }
       await this.waitForMediaReady(el, HTMLMediaElement.HAVE_METADATA);
       if (document.pictureInPictureElement === el) {
@@ -1860,7 +1855,7 @@ export default {
         const seekSeconds = Number.isFinite(snapshot.currentTime) ? snapshot.currentTime : 0;
         this.pipHandoffSeekSeconds = seekSeconds > 0 ? seekSeconds : null;
         this.inlineResumeSnapshot = snapshot;
-        this.attachVideoStreamAndPlay();
+        void this.attachVideoStreamAndPlay();
         return;
       }
       this.applyInlineResumeSeek(el, snapshot);
@@ -2010,9 +2005,9 @@ export default {
         ratechange: this.updateMediaSessionPlaybackState,
         canplay: this.updateMediaSessionPlaybackState,
       };
-      Object.entries(eventMap).forEach(([evt, fn]) => {
+      for (const [evt, fn] of Object.entries(eventMap)) {
         this.player.on(evt, fn);
-      });
+      }
       if ((this.previewType === 'video' || this.previewType === 'audio')) {
         this.player.on('enterfullscreen', this.onFullscreenEnter);
         this.player.on('exitfullscreen', this.onFullscreenExit);
@@ -2943,11 +2938,11 @@ export default {
             `;
             this.playbackButtons = menu.querySelectorAll('button[data-plyr="playback"]');
             // Set initial checked state
-            this.playbackButtons.forEach(btn => {
+            for (const btn of this.playbackButtons) {
               btn.setAttribute('aria-checked', btn.getAttribute('value') === this.playbackMode);
-            });
+            }
             // Add click listeners
-            this.playbackButtons.forEach(btn => {
+            for (const btn of this.playbackButtons) {
               btn.addEventListener('click', (event) => {
                 const value = event.currentTarget.getAttribute('value');
                 if (value === 'single') {
@@ -2962,9 +2957,11 @@ export default {
                 }
                 const newLabel = getModeLabel(value, this.$t);
                 if (this.playbackValueSpan) this.playbackValueSpan.textContent = newLabel;
-                this.playbackButtons.forEach(b => b.setAttribute('aria-checked', b.getAttribute('value') === value));
+                for (const b of this.playbackButtons) {
+                  b.setAttribute('aria-checked', b.getAttribute('value') === value);
+                }
               });
-            });
+            }
             const valueSpan = playbackBtn.querySelector('span .plyr__menu__value');
             if (valueSpan) {
               valueSpan.textContent = currentLabel;
@@ -2978,9 +2975,9 @@ export default {
           } else {
             // Just update checked states and label
             if (this.playbackButtons) {
-              this.playbackButtons.forEach(btn => {
+              for (const btn of this.playbackButtons) {
                 btn.setAttribute('aria-checked', btn.getAttribute('value') === this.playbackMode);
-              });
+              }
             }
             if (this.playbackValueSpan) {
               this.playbackValueSpan.textContent = currentLabel;
@@ -3010,11 +3007,11 @@ export default {
             `;
             this.loopButtons = menu.querySelectorAll('button[data-plyr="loop"]');
             // Set initial checked state
-            this.loopButtons.forEach(btn => {
+            for (const btn of this.loopButtons) {
               btn.setAttribute('aria-checked', btn.getAttribute('value') === this.loop);
-            });
+            }
             // Add click listeners
-            this.loopButtons.forEach(btn => {
+            for (const btn of this.loopButtons) {
               btn.addEventListener('click', (event) => {
                 const value = event.currentTarget.getAttribute('value');
                 if (value !== this.loop) {
@@ -3027,9 +3024,11 @@ export default {
                 }
                 const newLabel = getLoopLabel(value, this.$t);
                 if (this.loopValueSpan) this.loopValueSpan.textContent = newLabel;
-                this.loopButtons.forEach(b => b.setAttribute('aria-checked', b.getAttribute('value') === value));
+                for (const b of this.loopButtons) {
+                  b.setAttribute('aria-checked', b.getAttribute('value') === value);
+                }
               });
-            });
+            }
             const valueSpan = loopBtn.querySelector('span .plyr__menu__value');
             if (valueSpan) {
               valueSpan.textContent = currentLoopLabel;
@@ -3042,9 +3041,9 @@ export default {
           } else {
             // Update checked states and label
             if (this.loopButtons) {
-              this.loopButtons.forEach(btn => {
+              for (const btn of this.loopButtons) {
                 btn.setAttribute('aria-checked', btn.getAttribute('value') === this.loop);
-              });
+              }
             }
             if (this.loopValueSpan) {
               this.loopValueSpan.textContent = currentLoopLabel;
@@ -3074,23 +3073,25 @@ export default {
 
             this.captionSizeButtons = menu.querySelectorAll('button[data-plyr="caption-size"]');
             // Set initial checked state
-            this.captionSizeButtons.forEach(btn => {
+            for (const btn of this.captionSizeButtons) {
               btn.setAttribute('aria-checked', btn.getAttribute('value') === currentSize);
-            });
+            }
             // Add click listeners
-            this.captionSizeButtons.forEach(btn => {
+            for (const btn of this.captionSizeButtons) {
               btn.addEventListener('click', (event) => {
                 const value = event.currentTarget.getAttribute('value');
                 if (!PLYR_CAPTION_SIZE_IDS.includes(value)) return;
                 this.setStoredCaptionSize(value);
                 this.applyCaptionSizeClass();
                 // Update checked states and label
-                this.captionSizeButtons.forEach(b => b.setAttribute('aria-checked', b.getAttribute('value') === value));
+                for (const b of this.captionSizeButtons) {
+                  b.setAttribute('aria-checked', b.getAttribute('value') === value);
+                }
                 // Update label in button
                 const label = this.getCaptionSizeLabel(value);
                 if (this.captionSizeValueSpan) this.captionSizeValueSpan.textContent = label;
               });
-            });
+            }
             const valueSpan = captionSizeBtn.querySelector('span .plyr__menu__value');
             if (valueSpan) {
               valueSpan.textContent = currentSizeLabel;
@@ -3103,9 +3104,9 @@ export default {
           } else {
             // Update checked states and label
             if (this.captionSizeButtons) {
-              this.captionSizeButtons.forEach(btn => {
+              for (const btn of this.captionSizeButtons) {
                 btn.setAttribute('aria-checked', btn.getAttribute('value') === currentSize);
-              });
+              }
             }
             if (this.captionSizeValueSpan) {
               this.captionSizeValueSpan.textContent = currentSizeLabel;

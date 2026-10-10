@@ -1,5 +1,5 @@
 <template>
-  <div v-if="active" id="search" :class="{ active, ongoing, 'prompt-open': promptOpen }" @click="clearContext">
+  <div v-if="active" id="search" :class="{ active, ongoing, 'prompt-open': promptOpen, halloween: eventTheme === 'halloween' }" @click="clearContext">
     <!-- Search input section -->
     <div class="search-input-container">
       <!-- Close button visible when search is active -->
@@ -13,6 +13,10 @@
       <input id="search-input" type="text"
         @keyup.exact="keyup" @input="submit" ref="input" :autofocus="active" v-model.trim="value"
         aria-label="search input" :placeholder="$t('general.search', { suffix: '...' })" />
+      <div v-if="eventTheme === 'halloween'" class="halloween-eyes" aria-hidden="true">
+        <div class="eye"><div class="pupil"></div></div>
+        <div class="eye right"><div class="pupil"></div></div>
+      </div>
     </div>
     <div v-show="active" id="results" ref="result">
       <div class="inputWrapper">
@@ -149,7 +153,7 @@ import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import SettingsItem from "@/components/settings/SettingsItem.vue";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
-import router from "@/router";
+import { router } from "@/router";
 import { getters, mutations, state } from "@/store";
 import { url } from "@/utils/";
 import { globalVars } from "@/utils/constants";
@@ -418,7 +422,7 @@ export default {
       if (this.selectedSource === "__all__" || (this.selectedSource === "" && this.multipleSources)) {
         return "/";
       }
-      const result = url.extractSourceFromPath(decodeURIComponent(state.route.path));
+      const result = url.extractSourceFromPath(decodeURIComponent(state.route.path), Object.keys(state.sources.info));
       if (this.selectedSource === "" || result.source === this.selectedSource) {
         return result.path;
       } else {
@@ -625,7 +629,7 @@ export default {
         return "";
       }
     },
-    open() {
+    async open() {
       if (state.isSearchActive) return;
       if (getters.currentPromptName()) return;
 
@@ -634,16 +638,15 @@ export default {
       mutations.resetSelected();
       mutations.setSearch(true);
 
-      this.$nextTick(() => {
-        const input = this.$refs.input;
-        if (input) {
-          input.focus();
-        }
-        const resultList = document.getElementById("result-list");
-        if (resultList) {
-          resultList.classList.add("active");
-        }
-      });
+      await this.$nextTick();
+      const input = this.$refs.input;
+      if (input) {
+        input.focus();
+      }
+      const resultList = document.getElementById("result-list");
+      if (resultList) {
+        resultList.classList.add("active");
+      }
     },
     openInAdvancedSearch() {
       let sourcesToSearch;
@@ -729,6 +732,8 @@ export default {
         path: path,
         size: s.size,
         type: s.type,
+        modified: s.modified,
+        created: s.created,
         source: source,
       };
       mutations.resetSelected();
@@ -1049,7 +1054,7 @@ export default {
 
 
 .search-entry:hover {
-  background-color: var(--alt-background);
+  background-color: var(--hoverOverlay);
   transform: scale(1.01);
   box-shadow: none !important;
 }
@@ -1200,12 +1205,15 @@ body.rtl #search .boxes h3 {
 }
 
 .filesize {
-  background: var(--alt-background);
+  background: var(--surfaceSecondary);
   border-radius: var(--borderRadius);
   padding: 0.25em;
   padding-left: 0.5em;
   padding-right: 0.5em;
+  margin-right: 0.5em;
   min-width: fit-content;
+  opacity: 0.75;
+  font-weight: 500;
 }
 
 .source-badge {

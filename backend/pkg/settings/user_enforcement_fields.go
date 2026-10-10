@@ -23,6 +23,8 @@ var userJSONFieldEnforcementPaths = map[string]string{
 	"singleClick":                "listing.singleClick",
 	"hideFileExt":                "listing.hideFileExt",
 	"showCopyPath":               "listing.showCopyPath",
+	"showTypeColumn":             "listing.showTypeColumn",
+	"showCreationDateColumn":     "listing.showCreationDateColumn",
 	"deleteAfterArchive":         "listing.deleteAfterArchive",
 	"viewMode":                   "listing.viewMode",
 	"gallerySize":                "listing.gallerySize",

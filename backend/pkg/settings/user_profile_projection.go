@@ -30,6 +30,8 @@ func ProfileFromUser(u *users.User) UserProfile {
 			SingleClick:             u.SingleClick,
 			HideFileExt:             u.HideFileExt,
 			ShowCopyPath:            u.ShowCopyPath,
+			ShowTypeColumn:          u.ShowTypeColumn,
+			ShowCreationDateColumn:  u.ShowCreationDateColumn,
 			DeleteAfterArchive:      u.DeleteAfterArchive,
 			ViewMode:                u.ViewMode,
 			GallerySize:             u.GallerySize,
@@ -66,6 +68,7 @@ func ProfileFromUser(u *users.User) UserProfile {
 		FileLoading: u.FileLoading,
 		Account: UserDefaultsAccount{
 			LockPassword:               u.LockPassword,
+			RequirePasswordChange:      u.RequirePasswordChange,
 			DisableSettings:            u.DisableSettings,
 			DisableUpdateNotifications: u.DisableUpdateNotifications,
 			ShowAdvancedProfile:        u.ShowAdvancedProfile,
@@ -86,6 +89,7 @@ func ExpandProfileIntoUser(u *users.User, p UserProfile) {
 	}
 	u.DisableSettings = p.Account.DisableSettings
 	u.LockPassword = p.Account.LockPassword
+	u.RequirePasswordChange = p.Account.RequirePasswordChange
 	u.DisableUpdateNotifications = p.Account.DisableUpdateNotifications
 	u.ShowAdvancedProfile = p.Account.ShowAdvancedProfile
 	u.Permissions.Api = p.Account.Permissions.Api
@@ -107,6 +111,8 @@ func ExpandProfileIntoUser(u *users.User, p UserProfile) {
 	u.SingleClick = p.Listing.SingleClick
 	u.HideFileExt = p.Listing.HideFileExt
 	u.ShowCopyPath = p.Listing.ShowCopyPath
+	u.ShowTypeColumn = p.Listing.ShowTypeColumn
+	u.ShowCreationDateColumn = p.Listing.ShowCreationDateColumn
 	u.DeleteAfterArchive = p.Listing.DeleteAfterArchive
 	u.ViewMode = p.Listing.ViewMode
 	u.GallerySize = p.Listing.GallerySize

@@ -43,12 +43,15 @@
     "requestTimedOut": "S-a depășit timpul de așteptare pentru cerere. Verificați setările rețelei sau ale proxy-ului invers."
   },
   "files": {
+    "sortByCreationTime": "Sortează după timpul de creare",
+    "creationTime": "Timp de creare",
     "emptyFile": "Fișier gol",
     "lastModified": "Ultima modificare",
     "multipleSelectionEnabled": "Selecție multiplă activată",
     "sortByLastModified": "Ordonează dup ultima modificare",
     "sortByName": "Ordonează după nume",
     "sortBySize": "Ordonează după dimensiune",
+    "sortByType": "Ordonează după tip",
     "noPreview": "Previzualizarea nu este disponibilă pentru acest fișier.",
     "noDownloadAccess": "Descărcarea nu este disponibilă.",
     "newFile": "Fișier nou{suffix}",
@@ -146,7 +149,11 @@
     "failedLogin": "A eșuat autentificarea",
     "invalidCredentials": "Acreditări invalide furnizate",
     "passkeyLogin": "Folosește cheie de acces",
-    "recaptchaRequired": "Este necesară verificarea Recaptcha"
+    "recaptchaRequired": "Este necesară verificarea Recaptcha",
+    "requirePasswordChangeTitle": "Schimbă-ți parola",
+    "requirePasswordChangeInstructions": "Trebuie să setați o nouă parolă înainte de a continua.",
+    "requirePasswordChangeSuccess": "Parola a fost actualizată. Acum sunteți conectat.",
+    "requirePasswordChangeMustDiffer": "Noua parolă trebuie să fie diferită de parola actuală"
   },
   "prompts": {
     "noTemplate": "Șablonul tău este gol!",
@@ -235,6 +242,15 @@
     "unarchiveMessage": "Alegeți unde să extrageți arhiva.",
     "unarchiveDestination": "Extras la:",
     "unarchiveSuccess": "Arhiva extrasă cu succes!",
+    "zipFilenameEncoding": "Filename encoding",
+    "zipEncodingLoading": "Checking ZIP filenames…",
+    "zipEncodingError": "Could not read the ZIP filename preview.",
+    "zipEncodingRetry": "Retry preview",
+    "zipEncodingChoose": "Choose an encoding",
+    "zipEncodingSuggested": "suggested",
+    "zipEncodingHint": "Check the filenames below before extracting. Suggestions may be incorrect; ZIP Unicode metadata takes precedence.",
+    "zipFilenamePreview": "Filename preview",
+    "zipEncodingUnavailable": "No supported encoding can decode all filenames in this ZIP.",
     "downloadFailed": "Descărcarea fragmentată a eșuat - dacă acest lucru se repetă, încercați să reduceți dimensiunea fragmentului: {message}",
     "confirmPasswordToSaveUser": "Introduceți parola curentă pentru a salva aceste modificări de utilizator."
   },
@@ -313,7 +329,10 @@
     "userEditPreferences": "Preferințele utilizatorului",
     "userEditTools": "Acces la instrumente",
     "userEditToolsDescription": "Configurați instrumentele la care are acces acest utilizator",
-    "userEditSidebarLinks": "Linkuri din bara laterală"
+    "userEditSidebarLinks": "Linkuri din bara laterală",
+    "passwordRequirementsMatch": "Parolele se potrivesc",
+    "passwordRequirementsMinLength": "Cel puțin {min} caractere",
+    "requirePasswordChange": "Solicită schimbarea parolei la următoarea autentificare"
   },
   "sidebar": {
     "updateIsAvailable": "O actualizare este disponibilă!",
@@ -356,7 +375,9 @@
     "sidebarLinkDefaultsHelp": "Acestea sunt linkurile implicite care vor fi adăugate pentru toți utilizatorii noi. Dacă impui un link, acesta va fi adăugat pentru toți utilizatorii și nu poate fi eliminat de către utilizatorii care nu sunt administratori.",
     "sidebarLinkDefaultSourceHelp": "Se aplică numai în cazul în care utilizatorul are acces la această sursă.",
     "sidebarLinkDefaultsYamlInvalid": "YAML nevalid. Verificați formatul și încercați din nou.",
-    "switchMode": "Comutare între linkuri și arborele de navigare"
+    "switchMode": "Comutare între linkuri și arborele de navigare",
+    "rootFilesystemOnly": "Limitează utilizarea spațiului pe disc la sistemul de fișiere sursă",
+    "rootFilesystemOnlyDescription": "Când această opțiune este activată, se raportează doar sistemul de fișiere care conține calea sursă. Când este dezactivată (implicit), capacitatea totală a discului include și sistemele de fișiere montate sub calea sursă, iar spațiile de stocare partajate, precum seturile de date ZFS, sunt luate în calcul o singură dată."
   },
   "share": {
     "notice": "Notă: atunci când este creată o partajare, aceasta devine mai expusă publicului și are reguli diferite de acces. Dacă partajul dvs. nu este configurat în siguranță, acesta poate fi accesat de oricine.",
@@ -651,16 +672,12 @@
     "allow": "Permiteți",
     "allowDeny": "Permiteți/Negați",
     "userGroup": "Utilizator/grup",
-    "enterName": "Introduceți numele utilizatorului sau al grupului",
-    "deleted": "Regula de acces ștearsă!",
-    "added": "Regula de acces adăugată!",
     "accessManagement": "Gestionarea accesului",
     "totalDenied": "Refuzat",
     "totalAllowed": "Permise",
     "all": "Refuzați toate",
     "defaultBehaviorDescription": "Aceasta arată ce se întâmplă atunci când un utilizator încearcă să acceseze o cale unde nu există reguli specifice de acces. \"Allow\" înseamnă că utilizatorii pot accesa în mod implicit, \"Deny\" înseamnă că utilizatorii sunt blocați în mod implicit dacă nu li se permite în mod explicit.",
     "defaultBehavior": "Acțiune implicită{suffix}",
-    "deletedCascade": "Reguli de acces șterse din traseu și din toate subtratamentele!",
     "cascadeDelete": "Ștergere recursivă",
     "cascadeDeleteDescription": "Atunci când este activată, ștergerea unei reguli de acces o va elimina și din toate subdirectoarele. Acest lucru vă permite să eliminați complet un utilizator sau un grup din întregul arbore de directoare.",
     "hasRules": "Reguli de acces configurate",
@@ -670,16 +687,23 @@
     "editGroup": "Editează grupul",
     "groupName": "Numele grupului",
     "userGroups": "Grupuri",
-    "addGroup": "Adaugă grup",
-    "createGroupConfirm": "Grupul „{name}” nu există. Îl creați?",
-    "addGroupPlaceholder": "Numele grupului",
-    "removeGroup": "Elimină din grup",
     "groupMembers": "Membri",
-    "enterUsername": "Introduceți numele de utilizator",
-    "addMember": "Adaugă membru",
-    "unknownUser": "Niciun utilizator cu numele „{name}”",
     "deleteGroupConfirm": "Ștergeți grupul „{name}”? Va fi eliminat și din toate regulile de acces.",
-    "groupsOidcNote": "Membrii grupurilor sincronizate prin OIDC sunt resetați de la furnizorul de identitate la fiecare autentificare a acestor utilizatori."
+    "groupsOidcNote": "Membrii grupurilor sincronizate prin OIDC sunt resetați de la furnizorul de identitate la fiecare autentificare a acestor utilizatori.",
+    "userGroupsDescription": "Grupurile din care face parte acest utilizator",
+    "membersCount": "Membri: {count}",
+    "userGroupsCount": "Grupuri: {count}",
+    "groupNameRequired": "Numele grupului este obligatoriu.",
+    "groupNameTooShort": "Group name must be at least {min} characters.",
+    "groupNameTooLong": "Numele grupului trebuie să aibă cel mult {max} caractere.",
+    "groupNameInvalid": "Numele grupului nu trebuie să conțină caractere de control.",
+    "groupExists": "Există deja un grup cu acest nume.",
+    "selectEntities": "Selectează",
+    "selectUser": "Selectează utilizatorul",
+    "selectUsers": "Selectați utilizatorii",
+    "selectGroup": "Selectează grupul",
+    "selectGroups": "Selectați grupurile",
+    "refineSearch": "Se afișează primele rezultate pentru „ {count} ”. Rafinați căutarea pentru a vedea mai multe rezultate."
   },
   "fileLoading": {
     "title": "Încărcări și descărcări",
@@ -702,6 +726,10 @@
     "orange": "portocaliu"
   },
   "profileSettings": {
+    "showTypeColumn": "Afișează coloana Tip",
+    "showTypeColumnDescription": "Afișează coloana Tip în vizualizările listă și compactă din lista principală.",
+    "showCreationDateColumn": "Afișează coloana Data creării",
+    "showCreationDateColumnDescription": "Afișează coloana Data creării în vizualizările listă și compactă din lista principală.",
     "promptRightCloseButton": "Afișează butonul de închidere al solicitărilor în dreapta",
     "promptRightCloseButtonDescription": "Afișează butonul de închidere al solicitărilor în partea dreaptă în loc de partea stângă",
     "hideFileExt": "Ascunde anumite fișiere (după extensie)",
@@ -828,6 +856,8 @@
       "customScrollbarDescription": "Înlocuiește bara de derulare nativă a browser-ului cu cea integrată a lui Ace",
       "wrapContent": "Împărțirea liniilor lungi în editor",
       "wrapContentDescription": "Împarte conținutul editorului pentru a menține liniile foarte lungi întotdeauna vizibile",
+      "indentedSoftWrap": "Împărțire soft cu indentare",
+      "indentedSoftWrapDescription": "Când este activat, adaugă indentare la începutul textului împărțit",
       "autocompletion": "Completare automată",
       "autocompletionDescription": "Activează completarea automată prin apăsarea manuală a 'ctrl + space'",
       "liveAutocompletion": "Completare automată live",
@@ -939,6 +969,11 @@
     "audio": "Audio",
     "archive": "Arhiva",
     "document": "Document",
+    "text": "Text",
+    "ebook": "Carte electronică",
+    "font": "Font",
+    "model3d": "Model 3D",
+    "brokenLink": "Link nefuncțional",
     "binary": "Binare",
     "other": "Altele"
   },
@@ -984,7 +1019,8 @@
       "termTooShort": "Fiecare termen de căutare trebuie să aibă cel puțin {minSearchLength} caractere",
       "resultsTitle": "Rezultatele căutării",
       "invalidSources": "Porniți cel puțin o sursă.",
-      "noResults": "Nu există fișiere sau foldere corespunzătoare."
+      "noResults": "Nu există fișiere sau foldere corespunzătoare.",
+      "resultLimit": "Numărul maxim de rezultate ale căutării"
     },
     "activityViewer": {
       "name": "Vizualizator de activități",

@@ -43,12 +43,15 @@
     "requestTimedOut": "הבקשה פקעה. בדוק את הגדרות הרשת או את הגדרות ה-proxy ההפוך."
   },
   "files": {
+    "sortByCreationTime": "מיון לפי זמן יצירה",
+    "creationTime": "זמן יצירה",
     "emptyFile": "קובץ ריק",
     "lastModified": "שונה לאחרונה",
     "multipleSelectionEnabled": "בחירה מרובה מופעלת",
     "sortByLastModified": "מיין לפי השינוי האחרון",
     "sortByName": "מיין לפי שם",
     "sortBySize": "מיין לפי גודל",
+    "sortByType": "מיין לפי סוג",
     "noPreview": "תצוגה מקדימה לא זמינה לקובץ זה",
     "noDownloadAccess": "ההורדה אינה זמינה.",
     "newFile": "קובץ חדש{suffix}",
@@ -146,7 +149,11 @@
     "failedLogin": "נכשל בכניסה",
     "invalidCredentials": "פרטי הזדהות לא חוקיים",
     "passkeyLogin": "השתמש במפתח גישה",
-    "recaptchaRequired": "נדרש אתגר Recaptcha"
+    "recaptchaRequired": "נדרש אתגר Recaptcha",
+    "requirePasswordChangeTitle": "שנה את הסיסמה שלך",
+    "requirePasswordChangeInstructions": "עליך להגדיר סיסמה חדשה לפני שתמשיך.",
+    "requirePasswordChangeSuccess": "הסיסמה עודכנה. כעת אתה מחובר.",
+    "requirePasswordChangeMustDiffer": "הסיסמה החדשה חייבת להיות שונה מהסיסמה הנוכחית שלך"
   },
   "prompts": {
     "noTemplate": "התבנית שלך ריקה!",
@@ -235,6 +242,15 @@
     "unarchiveMessage": "בחר היכן לחלץ את הארכיון.",
     "unarchiveDestination": "חלץ אל:",
     "unarchiveSuccess": "הארכיון חולץ בהצלחה!",
+    "zipFilenameEncoding": "Filename encoding",
+    "zipEncodingLoading": "Checking ZIP filenames…",
+    "zipEncodingError": "Could not read the ZIP filename preview.",
+    "zipEncodingRetry": "Retry preview",
+    "zipEncodingChoose": "Choose an encoding",
+    "zipEncodingSuggested": "suggested",
+    "zipEncodingHint": "Check the filenames below before extracting. Suggestions may be incorrect; ZIP Unicode metadata takes precedence.",
+    "zipFilenamePreview": "Filename preview",
+    "zipEncodingUnavailable": "No supported encoding can decode all filenames in this ZIP.",
     "downloadFailed": "ההורדה המקוטעת נכשלה - אם הבעיה חוזרת על עצמה, נסה להקטין את גודל החלקים: {message}",
     "confirmPasswordToSaveUser": "הזן את הסיסמה הנוכחית שלך כדי לשמור את שינויי המשתמש."
   },
@@ -313,7 +329,10 @@
     "userEditPreferences": "העדפות המשתמש",
     "userEditTools": "גישה לכלים",
     "userEditToolsDescription": "הגדר לאילו כלים המשתמש הזה יכול לגשת",
-    "userEditSidebarLinks": "קישורים בסרגל הצדדי"
+    "userEditSidebarLinks": "קישורים בסרגל הצדדי",
+    "passwordRequirementsMatch": "הסיסמאות תואמות",
+    "passwordRequirementsMinLength": "לפחות {min} תווים",
+    "requirePasswordChange": "דרוש שינוי סיסמה בכניסה הבאה"
   },
   "sidebar": {
     "updateIsAvailable": "עדכון זמין!",
@@ -356,7 +375,9 @@
     "sidebarLinkDefaultsHelp": "אלה הם הקישורים המוגדרים כברירת מחדל שייתווספו לכל המשתמשים החדשים. אם תגדיר קישור כמחויב, הוא יתווסף לכל המשתמשים ולא ניתן יהיה להסיר אותו על ידי משתמשים שאינם מנהלים.",
     "sidebarLinkDefaultSourceHelp": "חל רק כאשר למשתמש יש גישה למקור זה.",
     "sidebarLinkDefaultsYamlInvalid": "YAML לא תקין. בדוק את הפורמט ונסה שוב.",
-    "switchMode": "החלפה בין קישורים לעץ הניווט"
+    "switchMode": "החלפה בין קישורים לעץ הניווט",
+    "rootFilesystemOnly": "הגבל את השימוש בדיסק למערכת הקבצים המקורית",
+    "rootFilesystemOnlyDescription": "כאשר האפשרות מופעלת, מדווחת רק מערכת הקבצים המכילה את נתיב המקור. כאשר האפשרות מושבתת (ברירת מחדל), סך נפח הדיסק כולל גם את מערכות הקבצים שעברו התקנה תחת נתיב המקור, כאשר מאגרים משותפים כגון מערכי נתונים של ZFS נספרים פעם אחת בלבד."
   },
   "share": {
     "notice": "הערה: כאשר נוצר שיתוף, הוא הופך לחשוף יותר לציבור וחל עליו כללים שונים לגבי גישה. אם השיתוף שלך אינו מוגדר בצורה מאובטחת, כל אחד יכול לגשת אליו.",
@@ -651,16 +672,12 @@
     "allow": "אפשר",
     "allowDeny": "אפשר/דחה",
     "userGroup": "משתמש/קבוצה",
-    "enterName": "הזן שם משתמש או שם קבוצה",
-    "deleted": "כלל הגישה נמחק!",
-    "added": "כלל גישה נוסף!",
     "accessManagement": "ניהול גישה",
     "totalDenied": "נדחה",
     "totalAllowed": "מותר",
     "all": "דחה הכל",
     "defaultBehaviorDescription": "זה מראה מה קורה כאשר משתמש מנסה לגשת לנתיב שבו אין כללי גישה ספציפיים. 'אפשר' פירושו שמשתמשים יכולים לגשת כברירת מחדל, 'דחה' פירושו שמשתמשים נחסמים כברירת מחדל, אלא אם כן הותר להם במפורש.",
     "defaultBehavior": "פעולה ברירת מחדל{suffix}",
-    "deletedCascade": "כללי הגישה נמחקו מהנתיב ומכל הנתיבים המשניים!",
     "cascadeDelete": "מחיקה רקורסיבית",
     "cascadeDeleteDescription": "כאשר אפשרות זו מופעלת, מחיקת כלל גישה תסיר אותו גם מכל הספריות המשנה. כך תוכל להסיר משתמש או קבוצה לחלוטין מכל עץ הספריות.",
     "hasRules": "כללי הגישה הוגדרו",
@@ -670,16 +687,23 @@
     "editGroup": "עריכת קבוצה",
     "groupName": "שם הקבוצה",
     "userGroups": "קבוצות",
-    "addGroup": "הוספת קבוצה",
-    "createGroupConfirm": "הקבוצה \"{name}\" אינה קיימת. ליצור אותה?",
-    "addGroupPlaceholder": "שם הקבוצה",
-    "removeGroup": "הסרה מהקבוצה",
     "groupMembers": "חברים",
-    "enterUsername": "הזן שם משתמש",
-    "addMember": "הוספת חבר",
-    "unknownUser": "אין משתמש בשם \"{name}\"",
     "deleteGroupConfirm": "למחוק את הקבוצה \"{name}\"? היא תוסר גם מכל כללי הגישה.",
-    "groupsOidcNote": "חברי קבוצות שמסונכרנות דרך OIDC מאופסים מספק הזהות בכל פעם שמשתמשים אלה מתחברים."
+    "groupsOidcNote": "חברי קבוצות שמסונכרנות דרך OIDC מאופסים מספק הזהות בכל פעם שמשתמשים אלה מתחברים.",
+    "userGroupsDescription": "הקבוצות שאליהן משתייך המשתמש הזה",
+    "membersCount": "חברים: {count}",
+    "userGroupsCount": "קבוצות: {count}",
+    "groupNameRequired": "יש להזין שם לקבוצה.",
+    "groupNameTooShort": "Group name must be at least {min} characters.",
+    "groupNameTooLong": "שם הקבוצה חייב להכיל לכל היותר {max} תווים.",
+    "groupNameInvalid": "שם הקבוצה אינו רשאי להכיל תווים מיוחדים.",
+    "groupExists": "כבר קיימת קבוצה בשם זה.",
+    "selectEntities": "בחר",
+    "selectUser": "בחר משתמש",
+    "selectUsers": "בחר משתמשים",
+    "selectGroup": "בחר קבוצה",
+    "selectGroups": "בחר קבוצות",
+    "refineSearch": "מוצגים התוצאות הראשונות עבור \" {count} \". צמצם את החיפוש כדי לראות תוצאות נוספות."
   },
   "fileLoading": {
     "title": "העלאות והורדות",
@@ -702,6 +726,10 @@
     "orange": "כתום"
   },
   "profileSettings": {
+    "showTypeColumn": "הצג עמודת סוג",
+    "showTypeColumnDescription": "הצג את עמודת הסוג בתצוגת רשימה ותצוגה קומפקטית ברשימה הראשית.",
+    "showCreationDateColumn": "הצג עמודת תאריך יצירה",
+    "showCreationDateColumnDescription": "הצג את עמודת תאריך היצירה בתצוגת רשימה ותצוגה קומפקטית ברשימה הראשית.",
     "promptRightCloseButton": "הצגת כפתור סגירת ההנחיות בצד ימין",
     "promptRightCloseButtonDescription": "הצגת כפתור הסגירה של ההנחיות בצד ימין במקום בצד שמאל",
     "hideFileExt": "הסתר קבצים מסוימים (לפי סיומת)",
@@ -828,6 +856,8 @@
       "customScrollbarDescription": "החלף את סרגל הגלילה המקורי של הדפדפן בזה המובנה של Ace",
       "wrapContent": "גלישת שורות ארוכות בעורך",
       "wrapContentDescription": "גולש את תוכן העורך כדי לשמור על שורות ארוכות מאוד תמיד גלויות",
+      "indentedSoftWrap": "גלישה רכה עם הזחה",
+      "indentedSoftWrapDescription": "כאשר זה מופעל, מוסיף הזחה לתחילת הטקסט הנגלש",
       "autocompletion": "השלמה אוטומטית",
       "autocompletionDescription": "מאפשר השלמה אוטומטית על ידי לחיצה ידנית על 'ctrl + space'",
       "liveAutocompletion": "השלמה אוטומטית חיה",
@@ -939,6 +969,11 @@
     "audio": "אודיו",
     "archive": "ארכיון",
     "document": "מסמך",
+    "text": "טקסט",
+    "ebook": "ספר אלקטרוני",
+    "font": "גופן",
+    "model3d": "מודל תלת-ממדי",
+    "brokenLink": "קישור שבור",
     "binary": "בינארי",
     "other": "אחר"
   },
@@ -984,7 +1019,8 @@
       "termTooShort": "כל מונח חיפוש חייב להכיל לפחות {minSearchLength} תווים",
       "resultsTitle": "תוצאות החיפוש",
       "invalidSources": "הפעל לפחות מקור אחד.",
-      "noResults": "אין קבצים או תיקיות תואמים."
+      "noResults": "אין קבצים או תיקיות תואמים.",
+      "resultLimit": "מספר מרבי של תוצאות חיפוש"
     },
     "activityViewer": {
       "name": "מציג הפעילויות",

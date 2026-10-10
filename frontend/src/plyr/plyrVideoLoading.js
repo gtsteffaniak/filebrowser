@@ -101,14 +101,14 @@ export function enablePlyrVideoLoadingIndicator(player, onLoadingChange) {
     emptied: onEmptied,
   };
 
-  Object.entries(handlers).forEach(([evt, fn]) => {
+  for (const [evt, fn] of Object.entries(handlers)) {
     player.on(evt, fn);
-  });
+  }
 
   return Object.assign(() => {
-    Object.entries(handlers).forEach(([evt, fn]) => {
+    for (const [evt, fn] of Object.entries(handlers)) {
       player.off(evt, fn);
-    });
+    }
     onLoadingChange(false);
   }, {
     expectPlayback: () => {

@@ -290,6 +290,7 @@ export default {
       isReassigningPath: false,
       tempPath: "",
       tempSource: "",
+      savedPath: null,
       pathExists: true,
       isChangingPassword: false,
       /** Set while a pathPicker for banner/favicon is open; cleared on select/cancel. */
@@ -398,6 +399,7 @@ export default {
     },
     displayPath() {
       // When editing, use the link's path; otherwise use the item's path
+      if (this.savedPath !== null) return this.savedPath;
       return this.isEditMode ? this.link.path : this.item.path;
     },
     displaySource() {
@@ -490,6 +492,9 @@ export default {
     },
   },
   watch: {
+    link() {
+      this.savedPath = null;
+    },
     listing(isListing) {
       if (!isListing) {
         this.password = "";
@@ -875,7 +880,7 @@ export default {
     populateDefaults() {
       this.applyShareDefaultsFromPolicy();
     },
-    applyShareDefaultsFromPolicy() {
+    async applyShareDefaultsFromPolicy() {
       if (this.isEditMode || this.editingLink) {
         return;
       }
@@ -932,9 +937,8 @@ export default {
       this.sidebarLinks = form.sidebarLinks;
       const policyDescription = form.description;
       if (policyDescription) {
-        this.$nextTick(() => {
-          this.description = policyDescription;
-        });
+        await this.$nextTick();
+        this.description = policyDescription;
       }
     },
     /**
@@ -952,7 +956,7 @@ export default {
         try {
           await shareApi.updatePath(this.link.hash, this.tempPath);
           notify.showSuccessToast(this.$t("messages.pathReassigned"));
-          this.link.path = this.tempPath;
+          this.savedPath = this.tempPath;
           this.pathExists = true;
           this.isEditingPath = false;
           this.isReassigningPath = false;
@@ -1143,7 +1147,7 @@ export default {
 }
 
 .file-picker-button:hover {
-  background: var(--surfacePrimary);
+  background: var(--hoverOverlay);
 }
 
 .file-picker-button .material-symbols {

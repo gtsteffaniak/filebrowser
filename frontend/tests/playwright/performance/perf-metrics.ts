@@ -17,7 +17,7 @@ export type MetricDirection = "lower-is-better" | "higher-is-better";
 
 export type MetricToleranceClass = "shape" | "timing" | "health";
 
-export type MetricDefinition = {
+export interface MetricDefinition {
   /** Key path inside a scenario's flat metric bag. */
   key: string;
   label: string;
@@ -36,7 +36,7 @@ export type MetricDefinition = {
   gating: boolean;
   /** Scenarios this metric is expected to appear in ("*" = all). */
   scenarios: string[];
-};
+}
 
 export const SCENARIOS = ["load", "scroll", "resize", "select"] as const;
 export type ScenarioName = (typeof SCENARIOS)[number];

@@ -18,13 +18,14 @@
       <template v-else>
         <p>{{ $t("prompts.archiveMessage") }}</p>
         <p class="prompts-label">{{ $t("prompts.archiveDestination") }}</p>
-        <div
+        <button
+          type="button"
           aria-label="archive-destination"
           class="searchContext clickable button"
           @click="showFileList = true"
         >
           {{ $t("general.path", { suffix: ":" }) }} {{ destPath }}{{ destSource ? ` (${destSource})` : "" }}
-        </div>
+        </button>
         <p class="prompts-label">{{ $t("prompts.archiveName") }}</p>
         <input
           v-model.trim="archiveName"
@@ -48,8 +49,8 @@
           max="9"
         />
         <div class="archive-options settings-items">
-          <ToggleSwitch class="item" v-model="deleteAfter" 
-            :name="$t('profileSettings.deleteAfterArchive')" 
+          <ToggleSwitch class="item" v-model="deleteAfter"
+            :name="$t('profileSettings.deleteAfterArchive')"
             :description="$t('profileSettings.deleteAfterArchiveDescription')" />
         </div>
       </template>
@@ -241,12 +242,11 @@ export default {
         this.destSource = pathOrData.source;
       }
     },
-    createNewDir() {
+    async createNewDir() {
       this.showNewDirInput = true;
       this.newDirName = "";
-      this.$nextTick(() => {
-        this.$refs.newDirInput?.focus();
-      });
+      await this.$nextTick();
+      this.$refs.newDirInput?.focus();
     },
     validateDirName(value) {
       if (this.$refs.fileList?.items) {

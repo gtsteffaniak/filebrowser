@@ -43,12 +43,15 @@
     "requestTimedOut": "A solicitação atingiu o tempo limite. Verifique as configurações da sua rede ou do proxy inverso."
   },
   "files": {
+    "sortByCreationTime": "Ordenar por data de criação",
+    "creationTime": "Data de criação",
     "emptyFile": "Ficheiro vazio",
     "lastModified": "Última alteração",
     "multipleSelectionEnabled": "Seleção múltipla ativada",
     "sortByLastModified": "Ordenar pela última alteração",
     "sortByName": "Ordenar pelo nome",
     "sortBySize": "Ordenar pelo tamanho",
+    "sortByType": "Ordenar pelo tipo",
     "noPreview": "A pré-visualização não está disponível para este ficheiro.",
     "noDownloadAccess": "A transferência não está disponível.",
     "newFile": "Novo ficheiro{suffix}",
@@ -146,7 +149,11 @@
     "failedLogin": "Falha no início de sessão",
     "invalidCredentials": "Credenciais inválidas fornecidas",
     "passkeyLogin": "Usar chave de acesso",
-    "recaptchaRequired": "Desafio Recaptcha necessário"
+    "recaptchaRequired": "Desafio Recaptcha necessário",
+    "requirePasswordChangeTitle": "Alterar a sua palavra-passe",
+    "requirePasswordChangeInstructions": "Tem de definir uma nova palavra-passe antes de continuar.",
+    "requirePasswordChangeSuccess": "A palavra-passe foi atualizada. Já está com a sessão iniciada.",
+    "requirePasswordChangeMustDiffer": "A nova palavra-passe tem de ser diferente da sua palavra-passe atual"
   },
   "prompts": {
     "noTemplate": "O seu modelo está vazio!",
@@ -235,6 +242,15 @@
     "unarchiveMessage": "Escolha onde extrair o arquivo.",
     "unarchiveDestination": "Extrair para:",
     "unarchiveSuccess": "Arquivo extraído com sucesso!",
+    "zipFilenameEncoding": "Filename encoding",
+    "zipEncodingLoading": "Checking ZIP filenames…",
+    "zipEncodingError": "Could not read the ZIP filename preview.",
+    "zipEncodingRetry": "Retry preview",
+    "zipEncodingChoose": "Choose an encoding",
+    "zipEncodingSuggested": "suggested",
+    "zipEncodingHint": "Check the filenames below before extracting. Suggestions may be incorrect; ZIP Unicode metadata takes precedence.",
+    "zipFilenamePreview": "Filename preview",
+    "zipEncodingUnavailable": "No supported encoding can decode all filenames in this ZIP.",
     "downloadFailed": "Falha na transferência em pedaços - se isto se repetir, tente reduzir o tamanho dos pedaços: {message}",
     "confirmPasswordToSaveUser": "Introduza a sua palavra-passe atual para guardar estas alterações de utilizador."
   },
@@ -313,7 +329,10 @@
     "userEditPreferences": "Preferências do utilizador",
     "userEditTools": "Acesso às ferramentas",
     "userEditToolsDescription": "Configurar as ferramentas a que este utilizador tem acesso",
-    "userEditSidebarLinks": "Links da barra lateral"
+    "userEditSidebarLinks": "Links da barra lateral",
+    "passwordRequirementsMatch": "As palavras-passe coincidem",
+    "passwordRequirementsMinLength": "Pelo menos {min} es caracteres",
+    "requirePasswordChange": "Exigir a alteração da palavra-passe no próximo início de sessão"
   },
   "sidebar": {
     "updateIsAvailable": "Está disponível uma atualização!",
@@ -356,7 +375,9 @@
     "sidebarLinkDefaultsHelp": "Estes são os links predefinidos que serão adicionados para todos os novos utilizadores. Se definir um link como obrigatório, este será adicionado para todos os utilizadores e não poderá ser removido por utilizadores que não sejam administradores.",
     "sidebarLinkDefaultSourceHelp": "Aplica-se apenas quando o utilizador tem acesso a esta fonte.",
     "sidebarLinkDefaultsYamlInvalid": "YAML inválido. Verifique o formato e tente novamente.",
-    "switchMode": "Alternar entre os links e a árvore de navegação"
+    "switchMode": "Alternar entre os links e a árvore de navegação",
+    "rootFilesystemOnly": "Limitar a utilização do disco ao sistema de ficheiros de origem",
+    "rootFilesystemOnlyDescription": "Quando esta opção está ativada, apenas o sistema de ficheiros que contém o caminho de origem é apresentado. Quando está desativada (por predefinição), o total do disco inclui também os sistemas de ficheiros montados no caminho de origem, sendo que os conjuntos de dados partilhados, como os do ZFS, são contabilizados apenas uma vez."
   },
   "share": {
     "notice": "Nota: quando uma partilha é criada, fica mais exposta ao público e tem regras de acesso diferentes. Se a sua partilha não estiver configurada de forma segura, pode ser acedida por qualquer pessoa.",
@@ -501,6 +522,10 @@
     "orange": "laranja"
   },
   "profileSettings": {
+    "showTypeColumn": "Mostrar coluna Tipo",
+    "showTypeColumnDescription": "Mostrar a coluna Tipo nas vistas de lista e compacta na listagem principal.",
+    "showCreationDateColumn": "Mostrar coluna Data de criação",
+    "showCreationDateColumnDescription": "Mostrar a coluna Data de criação nas vistas de lista e compacta na listagem principal.",
     "promptRightCloseButton": "Mostrar botão de fecho de prompts à direita",
     "promptRightCloseButtonDescription": "Mostrar o botão de fecho dos prompts no lado direito em vez do esquerdo",
     "hideFileExt": "Ocultar certos ficheiros (por extensão)",
@@ -758,14 +783,10 @@
     "allow": "Permitir",
     "allowDeny": "Permitir/Negar",
     "userGroup": "Utilizador/Grupo",
-    "enterName": "Introduzir o nome do utilizador ou do grupo",
-    "deleted": "Regra de acesso eliminada!",
-    "added": "Regra de acesso adicionada!",
     "accessManagement": "Gestão do acesso",
     "all": "Recusar tudo",
     "defaultBehaviorDescription": "Isto mostra o que acontece quando um utilizador tenta aceder a um caminho onde não existem regras de acesso específicas. \"Permitir\" significa que os utilizadores podem aceder por predefinição, \"Negar\" significa que os utilizadores são bloqueados por predefinição, a menos que sejam explicitamente autorizados.",
     "defaultBehavior": "Ação por defeito{suffix}",
-    "deletedCascade": "Regras de acesso eliminadas do caminho e de todos os subcaminhos!",
     "cascadeDelete": "Eliminação recursiva",
     "cascadeDeleteDescription": "Quando activada, a eliminação de uma regra de acesso também a removerá de todos os subdirectórios. Isto permite-lhe remover completamente um utilizador ou grupo de toda a árvore de diretórios.",
     "hasRules": "Regras de acesso configuradas",
@@ -775,16 +796,23 @@
     "editGroup": "Editar grupo",
     "groupName": "Nome do grupo",
     "userGroups": "Grupos",
-    "addGroup": "Adicionar grupo",
-    "createGroupConfirm": "O grupo \"{name}\" não existe. Criá-lo?",
-    "addGroupPlaceholder": "Nome do grupo",
-    "removeGroup": "Remover do grupo",
     "groupMembers": "Membros",
-    "enterUsername": "Introduza o nome de utilizador",
-    "addMember": "Adicionar membro",
-    "unknownUser": "Não existe nenhum utilizador com o nome \"{name}\"",
     "deleteGroupConfirm": "Eliminar o grupo \"{name}\"? Também será removido de todas as regras de acesso.",
-    "groupsOidcNote": "Os membros dos grupos sincronizados por OIDC são repostos a partir do fornecedor de identidade sempre que esses utilizadores iniciam sessão."
+    "groupsOidcNote": "Os membros dos grupos sincronizados por OIDC são repostos a partir do fornecedor de identidade sempre que esses utilizadores iniciam sessão.",
+    "userGroupsDescription": "Grupos a que este utilizador pertence",
+    "membersCount": "Membros: {count}",
+    "userGroupsCount": "Grupos: {count}",
+    "groupNameRequired": "É obrigatório indicar o nome do grupo.",
+    "groupNameTooShort": "Group name must be at least {min} characters.",
+    "groupNameTooLong": "O nome do grupo não pode ter mais de {max} caracteres.",
+    "groupNameInvalid": "O nome do grupo não pode conter caracteres de controlo.",
+    "groupExists": "Já existe um grupo com este nome.",
+    "selectEntities": "Selecionar",
+    "selectUser": "Selecionar utilizador",
+    "selectUsers": "Selecionar utilizadores",
+    "selectGroup": "Selecionar grupo",
+    "selectGroups": "Selecionar grupos",
+    "refineSearch": "A apresentar os primeiros resultados para « {count} ». Refine a sua pesquisa para ver mais resultados."
   },
   "editor": {
     "stats": {
@@ -828,6 +856,8 @@
       "customScrollbarDescription": "Substituir a barra de deslocamento nativa do navegador pela integrada do Ace",
       "wrapContent": "Quebrar linhas longas no editor",
       "wrapContentDescription": "Quebra o conteúdo do editor para manter linhas muito longas sempre visíveis",
+      "indentedSoftWrap": "Quebra suave com indentação",
+      "indentedSoftWrapDescription": "Quando ativado, adiciona indentação ao início do texto quebrado",
       "autocompletion": "Preenchimento automático",
       "autocompletionDescription": "Ativa o preenchimento automático pressionando manualmente 'ctrl + space'",
       "liveAutocompletion": "Preenchimento automático em tempo real",
@@ -939,6 +969,11 @@
     "audio": "Áudio",
     "archive": "Arquivo",
     "document": "Documento",
+    "text": "Texto",
+    "ebook": "Livro eletrónico",
+    "font": "Tipo de letra",
+    "model3d": "Modelo 3D",
+    "brokenLink": "Ligação quebrada",
     "binary": "Binário",
     "other": "Outros"
   },
@@ -984,7 +1019,8 @@
       "termTooShort": "Cada termo de pesquisa deve ter, pelo menos, {minSearchLength} caracteres",
       "resultsTitle": "Resultados da pesquisa",
       "invalidSources": "Ligar pelo menos uma fonte.",
-      "noResults": "Não há ficheiros ou pastas correspondentes."
+      "noResults": "Não há ficheiros ou pastas correspondentes.",
+      "resultLimit": "Número máximo de resultados da pesquisa"
     },
     "activityViewer": {
       "name": "Visualizador de Atividades",

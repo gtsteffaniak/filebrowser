@@ -1,4 +1,4 @@
-import { expect, test } from "../test-setup";
+import { expect, test, waitForListing3dThumbnails } from "../test-setup.ts";
 
 // 3d file thumbnails work
 test("3d file preview thumbnails", async({ page, checkForErrors }) => {
@@ -14,12 +14,12 @@ test("3d file preview thumbnails", async({ page, checkForErrors }) => {
     await page.locator('a[aria-label="Lowpoly_tree_sample.dae"] .threejs-viewer .loading-overlay').waitFor({ state: 'visible' });
     await page.locator('a[aria-label="Lowpoly_tree_sample.dae"] .threejs-viewer canvas').waitFor({ state: 'visible' });
 
-    // wait 2 seconds
-    await page.waitForTimeout(2000);
+    // wait for all thumbnails to finish loading and rendering
+    await waitForListing3dThumbnails(page);
     // Check for console errors
     checkForErrors();
 });
-  
+
 // 3d file preview, cycle through all 3d files and confirm no errors
 test("3d file preview next/previous", async({ page, checkForErrors }) => {
     await page.goto("/files/playwright-files/myfolder/3dmodels/Lowpoly_tree_sample.dae");
@@ -28,11 +28,11 @@ test("3d file preview next/previous", async({ page, checkForErrors }) => {
     await page.locator('.threejs-viewer .loading-overlay').waitFor({ state: 'visible' });
     await page.locator('.threejs-viewer canvas').waitFor({ state: 'visible' });
     await page.locator('button[aria-label="Next"]').click();
-    
+
     // material file
     await expect(page).toHaveTitle("Graham's Filebrowser - Files - Lowpoly_tree_sample.mtl");
     await page.locator('button[aria-label="Next"]').click();
-    
+
     await expect(page).toHaveTitle("Graham's Filebrowser - Files - Lowpoly_tree_sample.obj");
     await page.locator('.threejs-viewer .loading-overlay').waitFor({ state: 'visible' });
     await page.locator('.threejs-viewer canvas').waitFor({ state: 'visible' });

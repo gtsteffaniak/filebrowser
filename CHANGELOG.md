@@ -2,6 +2,39 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v2.1.1
+
+Note: this release also contains all changes from v2.0.10-beta changelog
+
+ **New Features**:
+ - User and group picker with partial, case-insensitive search when creating access rules (#3085), assigning groups on user edit, and choosing members on group edit.
+ - New `PUT /api/access/user-groups` endpoint that atomically replaces a user's group memberships.
+ - feat(search): configure the advanced search result limit (#3058) @beemines
+ - feat(listing): add sortable Date added and Type columns (#3052) @dweebzxx
+ - feat(archive): suggest and preview ZIP filename encodings (#3024) @AnaTofuZ
+
+ **Notes**:
+ - Group API breaking changes: `POST /api/access` returns 400 when `ruleCategory=group` names a nonexistent group or `ruleCategory=user` names a nonexistent user, group endpoints return 400/409 instead of 500 for client errors, and `PUT /api/access/group` accepts a `create` flag and returns `unknownMembers`. Existing database records are unaffected; no migration is required.
+ - update halloween theme (#3055)
+ - Add soft wrap option to the editor config (#3063)
+ - add better screenshot view handling (#3059)
+ - Update nl.json (#3089) @Stephan-P
+ - update german translations (#3062) @fehnomenal
+ - Update dev dependencies, add biome, fix types and linting (#3075) @Kurami32
+
+ **Bug Fixes**:
+ - Groups assigned in the user edit prompt now refresh the Groups settings list.
+ - Creating a group with an existing name now returns a conflict instead of silently overwriting its members.
+ - Access rules can no longer create empty groups from typos; group rules must reference an existing group.
+ - Empty group names are rejected and new group names must be 2-128 characters without control characters (existing records are unaffected); deleting or renaming a user now updates group memberships.
+ - fix(auth): use login endpoint for existing TOTP authentication (#3074)
+ - fix: apply theme toggles on anonymous public shares (#3049) @mvanhorn
+ - fix(frontend): keep source named files in extractSourceFromPath (#3099) (#3095)
+ - fix(auth): identify login fields for password autofill (#3077)
+ - fix(backend): skip denied paths in multi-file downloads, 404 when none remain (#3100) @hippi345
+ - fix: persist the user scope path chosen in the edit dialog (#3065) @mvanhorn
+
+
 ## v2.1.0
 
  **Security**:
@@ -69,6 +102,31 @@ All notable changes to this project will be documented in this file. For commit 
  - Cap source usage-bar percentage at 100% when indexed size exceeds partition total (#2761) (#2238)
  - On Linux, source partition totals sum distinct filesystems mounted under the source root (nested mounts) so usage bars match indexed content (#2761)
  - Context menu stuck when opened from a listing in a prompt like move/copy or search (#3028).
+
+## v2.0.10
+
+ **Security**:
+ - [High] Restricted custom API tokens (`minimal=false`) can no longer be upgraded to a full-permission session via `POST /api/auth/renew`; renew accepts only web session tokens registered in `hashed_tokens` (GHSA-6gr6-5qpq-888p) -- thanks @tao0845.
+ - [High] TOTP re-enrollment via `POST /api/auth/otp/generate` and `POST /api/auth/otp/verify` no longer allows anonymous callers to replace an existing second factor using only the account password; reset or replace requires an authenticated self or admin session (first-time enrollment without MFA unchanged) (GHSA-qx86-4v5r-26g5) -- thanks @tao0845.
+ - [Low] Public share lyrics and subtitle media routes now honor the share's file-viewer setting, download disable flag, and download limits, matching the public download route (GHSA-p7x3-p5jj-9xfh) -- thanks Yves Soete of Blacksight LLC. @yssoe
+
+ **New Features**:
+ - Require password change at next login for password-based users: new user setting `requirePasswordChange` (user defaults + per-user admin toggle), login blocked until the user sets a new password; bootstrap admins with a generated initial password get this automatically ([#2977](https://github.com/gtsteffaniak/filebrowser/issues/2977)). Generated bootstrap passwords use a speakable `word-xxxxx-xx` form (random word from a fixed list plus a 5-character and 2-character code) instead of a long hex string, for easier handoff before the forced change.
+ - Config YAML expands `$VAR` and `${VAR}` so values such as `userPassword: "${FILEBROWSER_LDAP_USER_PASSWORD}"` work as documented (#3042).
+
+ **Notes**:
+ - Sidebar navigation tree rows are real hyperlinks: middle-click, Ctrl/Cmd+click, and Shift+click use the browser’s default new-tab or new-window behavior.
+ - Sidebar source links can now switch between aggregated usage (default) and a root-filesystem-only view via a new "Limit disk usage to source filesystem" toggle.
+ - [docker] upgraded ffmpeg from 9.0 to 9.0.2
+ - CLI setup command no longer produces full config, instead a minimal config.yaml with comments.
+
+ **Bugfixes**:
+ - Fixed slow or broken file listing when `http.baseURL` is a subpath (for example `/files/`): the default source redirect navigated to `/files/{source}` on top of the app base URL, producing `/files/files/{source}` and resolving the wrong storage source until the route recovered.
+ - Anonymous visitors on public shares could not play inline video or audio: `GET /public/api/media/stream` returned 403 because view grants were validated before share context was fully hydrated; playback now works when download and the file viewer are allowed ([#3041](https://github.com/gtsteffaniak/filebrowser/issues/3041)).
+ - Fixed inflated disk usage for sources spanning multiple ZFS datasets (or btrfs subvolumes): shared-pool filesystems are now grouped by pool and counted once, instead of multiplying capacity by the number of mounted datasets (#3025) (#2997) (#2761).
+ - LDAP `userGroups` matching now accepts CN-only config values against full `memberOf` DNs and compares case-insensitively, instead of failing the shared auth helper with strict string equality (#3044).
+ - OIDC session expires despite tokenExpirationHours (#3006).
+ - Media playback becomes stuck after opening a failing media file since v2.0.8-beta (#3031)
 
 ## v2.0.9
 

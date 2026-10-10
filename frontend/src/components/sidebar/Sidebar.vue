@@ -6,11 +6,19 @@
   >
     <div v-if="shouldShow" class="button release-banner">
       <a :href="releaseUrl">{{ $t("sidebar.updateIsAvailable") }}</a>
-      <i @click="setSeenUpdate" aria-label="close-banner" class="material-symbols">close</i>
+      <i
+        @click="setSeenUpdate"
+        @keydown.enter.prevent="setSeenUpdate"
+        @keydown.space.prevent="setSeenUpdate"
+        role="button"
+        tabindex="0"
+        aria-label="close-banner"
+        class="material-symbols"
+      >close</i>
     </div>
     <div v-if="showPwaInstall" class="button release-banner">
-      <a href="#" @click.prevent="installPwa">{{ $t("pwa.install") }}</a>
-      <i @click="dismissPwaInstall" aria-label="close-banner" class="material-symbols">close</i>
+      <button type="button" @click="installPwa">{{ $t("pwa.install") }}</button>
+      <i @click="dismissPwaInstall" role="button" tabindex="0" aria-label="close-banner" class="material-symbols">close</i>
     </div>
     <SidebarSettings v-if="isSettings"></SidebarSettings>
     <SidebarGeneral v-if="!isSettings"></SidebarGeneral>
@@ -19,7 +27,7 @@
       <span v-for="item in externalLinks" :key="item.title">
         <a
           v-if="item.url === 'help prompt'"
-          href="#"
+          href="#help"
           @click.prevent="help"
           :title="$t('general.help')"
           >{{ $t("general.help") }}</a
@@ -201,7 +209,7 @@ export default {
   transform: translateZ(0);
   height: 100%;
   transition: left 0.4s ease, width 0.4s ease, z-index 0s linear 0.2s;
-  top: 4em;
+  top: var(--header-height);
   padding-bottom: 4em;
   background-color: var(--panel-bg);
   backdrop-filter: var(--panel-blur);

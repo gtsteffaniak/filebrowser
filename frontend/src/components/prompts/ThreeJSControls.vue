@@ -27,9 +27,9 @@
     <div class="shortcut-section">
       <h3 class="section-title">🎨 {{ $t("general.background") }}</h3> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
       <div class="color-control">
-        <input 
-          type="color" 
-          :value="backgroundColor" 
+        <input
+          type="color"
+          :value="backgroundColor"
           @input="handleBackgroundChange"
           class="color-picker-input"
           :title="$t('threejs.changeBackground')"
@@ -112,7 +112,7 @@ export default {
 }
 
 .shortcut-item:hover {
-  background-color: var(--surfaceSecondary);
+  background-color: var(--hoverOverlay);
 }
 
 .shortcut-item kbd {

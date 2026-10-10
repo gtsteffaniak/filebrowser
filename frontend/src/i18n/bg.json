@@ -216,6 +216,8 @@
     "requestTimedOut": "Изтече времето за изчакване на заявката. Проверете настройките на мрежата си или на обратния прокси сървър."
   },
   "files": {
+    "sortByCreationTime": "Сортиране по време на създаване",
+    "creationTime": "Време на създаване",
     "emptyFile": "Празен файл",
     "lastModified": "Последна промяна{suffix}",
     "duration": "Продължителност{suffix}",
@@ -224,6 +226,7 @@
     "sortByLastModified": "Сортиране по последна промяна",
     "sortByName": "Сортиране по име",
     "sortBySize": "Сортиране по размер",
+    "sortByType": "Сортиране по тип",
     "sortByDuration": "Сортиране по продължителност",
     "noPreview": "Преглед не е наличен за този файл.",
     "noDownloadAccess": "Изтегляне не е налично.",
@@ -319,7 +322,11 @@
     "failedLogin": "Неуспешно вписване",
     "invalidCredentials": "Предоставени са невалидни данни за вход",
     "passkeyLogin": "Използване на Passkey",
-    "recaptchaRequired": "Изисква се предизвикателство Recaptcha"
+    "recaptchaRequired": "Изисква се предизвикателство Recaptcha",
+    "requirePasswordChangeTitle": "Променете паролата си",
+    "requirePasswordChangeInstructions": "Трябва да зададете нова парола, преди да продължите.",
+    "requirePasswordChangeSuccess": "Паролата е актуализирана. Вече сте влезли в системата.",
+    "requirePasswordChangeMustDiffer": "Новата парола трябва да е различна от настоящата ви парола"
   },
   "share": {
     "notice": "Забележка: когато споделянето е създадено, то става по-достъпно за обществеността и има различни правила за достъп. Ако вашето споделяне не е сигурно конфигурирано, всеки може да получи достъп до него.",
@@ -426,6 +433,15 @@
     "unarchiveMessage": "Изберете къде да бъде извлечен архивът.",
     "unarchiveDestination": "Извличане в:",
     "unarchiveSuccess": "Архивът беше извлечен успешно!",
+    "zipFilenameEncoding": "Filename encoding",
+    "zipEncodingLoading": "Checking ZIP filenames…",
+    "zipEncodingError": "Could not read the ZIP filename preview.",
+    "zipEncodingRetry": "Retry preview",
+    "zipEncodingChoose": "Choose an encoding",
+    "zipEncodingSuggested": "suggested",
+    "zipEncodingHint": "Check the filenames below before extracting. Suggestions may be incorrect; ZIP Unicode metadata takes precedence.",
+    "zipFilenamePreview": "Filename preview",
+    "zipEncodingUnavailable": "No supported encoding can decode all filenames in this ZIP.",
     "dragAndDrop": "Плъзнете и пуснете файлове тук",
     "error": "Възникна грешка",
     "completed": "Завършено",
@@ -507,6 +523,10 @@
     "openInAdvancedSearch": "Отваряне в разширено търсене"
   },
   "profileSettings": {
+    "showTypeColumn": "Показване на колоната Тип",
+    "showTypeColumnDescription": "Показване на колоната Тип в изглед списък и компактен изглед в основния списък.",
+    "showCreationDateColumn": "Показване на колоната Дата на създаване",
+    "showCreationDateColumnDescription": "Показване на колоната Дата на създаване в изглед списък и компактен изглед в основния списък.",
     "promptRightCloseButton": "Показване на бутона за затваряне на прозорците вдясно",
     "promptRightCloseButtonDescription": "Показване на бутона за затваряне на прозорците от дясната страна вместо от лявата",
     "hideFileExt": "Скриване на определени файлове (по разширение)",
@@ -643,7 +663,10 @@
     "userEditPreferences": "Потребителски настройки",
     "userEditTools": "Достъп до инструменти",
     "userEditToolsDescription": "Настройте до кои инструменти този потребител има достъп",
-    "userEditSidebarLinks": "Връзки в страничната лента"
+    "userEditSidebarLinks": "Връзки в страничната лента",
+    "passwordRequirementsMatch": "Паролите съвпадат",
+    "passwordRequirementsMinLength": "Най-малко {min} символа",
+    "requirePasswordChange": "Да се изисква промяна на паролата при следващото влизане"
   },
   "time": {
     "time": "{prefix}Време{suffix}",
@@ -697,7 +720,9 @@
     "sidebarLinkDefaultsHelp": "Това са връзките по подразбиране, които ще бъдат добавени за всички нови потребители. Ако наложите дадена връзка, тя ще бъде добавена за всички потребители и няма да може да бъде премахната от потребители, които не са администратори.",
     "sidebarLinkDefaultSourceHelp": "Приложимо е само когато потребителят има достъп до този източник.",
     "sidebarLinkDefaultsYamlInvalid": "Невалиден YAML. Проверете формата и опитайте отново.",
-    "switchMode": "Превключване между връзките и дървото за навигация"
+    "switchMode": "Смяна на режима на страничната лента",
+    "rootFilesystemOnly": "Ограничаване на използването на дисково пространство до изходната файлова система",
+    "rootFilesystemOnlyDescription": "Когато тази опция е активирана, се отчита само файловата система, съдържаща изходния път. Когато е деактивирана (по подразбиране), общият обем на диска включва и файловите системи, монтирани под изходния път, като споделените пулове, например набори от данни в ZFS, се отчитат само веднъж."
   },
   "api": {
     "title": "API токени",
@@ -759,10 +784,6 @@
     "allow": "Разрешаване",
     "allowDeny": "Разрешаване/Забрана",
     "userGroup": "Потребител/Група",
-    "enterName": "Въведете име на потребител или група",
-    "deleted": "Правилото за достъп беше изтрито!",
-    "deletedCascade": "Правилата за достъп бяха изтрити от пътя и всички подпътища!",
-    "added": "Правилото за достъп беше добавено!",
     "accessManagement": "Управление на достъпа",
     "defaultBehavior": "Действие по подразбиране{suffix}",
     "defaultBehaviorDescription": "Това показва какво се случва, когато потребител се опита да получи достъп до път, където няма специфични правила за достъп. 'Разрешаване' означава, че потребителите могат да имат достъп по подразбиране, 'Забрана' означава, че потребителите са блокирани по подразбиране, освен ако не са изрично разрешени.",
@@ -775,16 +796,23 @@
     "editGroup": "Редактиране на група",
     "groupName": "Име на групата",
     "userGroups": "Групи",
-    "addGroup": "Добавяне на група",
-    "createGroupConfirm": "Групата „{name}“ не съществува. Да бъде ли създадена?",
-    "addGroupPlaceholder": "Име на групата",
-    "removeGroup": "Премахване от групата",
     "groupMembers": "Членове",
-    "enterUsername": "Въведете потребителско име",
-    "addMember": "Добавяне на член",
-    "unknownUser": "Няма потребител с име „{name}“",
     "deleteGroupConfirm": "Да се изтрие ли групата „{name}“? Тя ще бъде премахната и от всички правила за достъп.",
-    "groupsOidcNote": "Членовете на групи, синхронизирани чрез OIDC, се нулират от доставчика на идентичност при всяко влизане на тези потребители."
+    "groupsOidcNote": "Членовете на групи, синхронизирани чрез OIDC, се нулират от доставчика на идентичност при всяко влизане на тези потребители.",
+    "userGroupsDescription": "Групи, към които принадлежи този потребител",
+    "membersCount": "Членове: {count}",
+    "userGroupsCount": "Групи: {count}",
+    "groupNameRequired": "Името на групата е задължително.",
+    "groupNameTooShort": "Group name must be at least {min} characters.",
+    "groupNameTooLong": "Името на групата трябва да съдържа не повече от {max} символа.",
+    "groupNameInvalid": "Името на групата не трябва да съдържа контролни символи.",
+    "groupExists": "Вече съществува група с това име.",
+    "selectEntities": "Изберете",
+    "selectUser": "Изберете потребител",
+    "selectUsers": "Изберете потребители",
+    "selectGroup": "Изберете група",
+    "selectGroups": "Изберете групи",
+    "refineSearch": "Показват се първите резултати за „ {count} “. Уточнете търсенето си, за да видите още."
   },
   "fileLoading": {
     "title": "Качвания и изтегляния",
@@ -848,6 +876,8 @@
       "customScrollbarDescription": "Замяна на родната лента за превъртане на браузъра с вградената на Ace",
       "wrapContent": "Пренасяне на дългите редове в редактора",
       "wrapContentDescription": "Пренася съдържанието на редактора, за да поддържа много дългите редове винаги видими",
+      "indentedSoftWrap": "Меко пренасяне с отстъп",
+      "indentedSoftWrapDescription": "Когато това е включено, добавя отстъп в началото на пренесения текст",
       "autocompletion": "Автоматично довършване",
       "autocompletionDescription": "Включва автоматично довършване чрез ръчно натискане на 'ctrl + space'",
       "liveAutocompletion": "Живо автоматично довършване",
@@ -959,6 +989,11 @@
     "audio": "Аудио",
     "archive": "Архив",
     "document": "Документ",
+    "text": "Текст",
+    "ebook": "Електронна книга",
+    "font": "Шрифт",
+    "model3d": "3D модел",
+    "brokenLink": "Повредена връзка",
     "binary": "Двоичен",
     "other": "Друг"
   },
@@ -984,7 +1019,8 @@
       "termTooShort": "Всеки термин за търсене трябва да бъде поне {minSearchLength} символа",
       "resultsTitle": "Резултати от търсенето",
       "invalidSources": "Включете поне един източник.",
-      "noResults": "Няма съвпадащи файлове или папки."
+      "noResults": "Няма съвпадащи файлове или папки.",
+      "resultLimit": "Максимален брой резултати от търсенето"
     },
     "materialIconPicker": {
       "name": "Избор на Material икона",

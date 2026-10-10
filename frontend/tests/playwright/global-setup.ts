@@ -1,10 +1,10 @@
 import { writeFile } from "node:fs/promises";
 import type { Browser, Page } from "@playwright/test";
 import { expect, firefox } from "@playwright/test";
-import { loginPlaywrightAdmin } from "./playwright-auth";
+import { loginPlaywrightAdmin } from "./playwright-auth.ts";
 import {
   getOrCreateShareViaApi,
-} from "./test-setup";
+} from "./test-setup.ts";
 
 // Perform authentication and store auth state
 async function globalSetup() {

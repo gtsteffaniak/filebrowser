@@ -43,12 +43,15 @@
     "requestTimedOut": "A solicitação atingiu o tempo limite. Verifique as configurações da sua rede ou do proxy reverso."
   },
   "files": {
+    "sortByCreationTime": "Ordenar por data de criação",
+    "creationTime": "Data de criação",
     "emptyFile": "Arquivo vazio",
     "lastModified": "Última modificação",
     "multipleSelectionEnabled": "Seleção múltipla ativada",
     "sortByLastModified": "Ordenar pela última modificação",
     "sortByName": "Ordenar pelo nome",
     "sortBySize": "Ordenar pelo tamanho",
+    "sortByType": "Ordenar pelo tipo",
     "noPreview": "Pré-visualização não disponível para este arquivo.",
     "noDownloadAccess": "O download não está disponível.",
     "newFile": "Novo arquivo{suffix}",
@@ -146,7 +149,11 @@
     "failedLogin": "Falha no login",
     "invalidCredentials": "Credenciais inválidas fornecidas",
     "passkeyLogin": "Usar chave de acesso",
-    "recaptchaRequired": "Desafio Recaptcha necessário"
+    "recaptchaRequired": "Desafio Recaptcha necessário",
+    "requirePasswordChangeTitle": "Altere sua senha",
+    "requirePasswordChangeInstructions": "É necessário definir uma nova senha antes de continuar.",
+    "requirePasswordChangeSuccess": "Senha atualizada. Agora você está conectado.",
+    "requirePasswordChangeMustDiffer": "A nova senha deve ser diferente da sua senha atual"
   },
   "prompts": {
     "noTemplate": "Seu modelo está vazio!",
@@ -235,6 +242,15 @@
     "unarchiveMessage": "Escolha onde extrair o arquivo.",
     "unarchiveDestination": "Extrair para:",
     "unarchiveSuccess": "Arquivo extraído com sucesso!",
+    "zipFilenameEncoding": "Filename encoding",
+    "zipEncodingLoading": "Checking ZIP filenames…",
+    "zipEncodingError": "Could not read the ZIP filename preview.",
+    "zipEncodingRetry": "Retry preview",
+    "zipEncodingChoose": "Choose an encoding",
+    "zipEncodingSuggested": "suggested",
+    "zipEncodingHint": "Check the filenames below before extracting. Suggestions may be incorrect; ZIP Unicode metadata takes precedence.",
+    "zipFilenamePreview": "Filename preview",
+    "zipEncodingUnavailable": "No supported encoding can decode all filenames in this ZIP.",
     "downloadFailed": "Falha no download em pedaços - se isso se repetir, tente reduzir o tamanho do pedaço: {message}",
     "confirmPasswordToSaveUser": "Digite sua senha atual para salvar essas alterações de usuário."
   },
@@ -313,7 +329,10 @@
     "userEditPreferences": "Preferências do usuário",
     "userEditTools": "Acesso às ferramentas",
     "userEditToolsDescription": "Configure quais ferramentas esse usuário pode acessar",
-    "userEditSidebarLinks": "Links da barra lateral"
+    "userEditSidebarLinks": "Links da barra lateral",
+    "passwordRequirementsMatch": "As senhas coincidem",
+    "passwordRequirementsMinLength": "Pelo menos {min} caracteres",
+    "requirePasswordChange": "Exigir alteração da senha no próximo login"
   },
   "sidebar": {
     "updateIsAvailable": "Uma atualização está disponível!",
@@ -356,7 +375,9 @@
     "sidebarLinkDefaultsHelp": "Esses são os links padrão que serão adicionados para todos os novos usuários. Se você tornar um link obrigatório, ele será adicionado para todos os usuários e não poderá ser removido por usuários que não sejam administradores.",
     "sidebarLinkDefaultSourceHelp": "Aplica-se apenas quando o usuário tem acesso a essa fonte.",
     "sidebarLinkDefaultsYamlInvalid": "YAML inválido. Verifique o formato e tente novamente.",
-    "switchMode": "Alternar entre os links e a árvore de navegação"
+    "switchMode": "Alternar entre os links e a árvore de navegação",
+    "rootFilesystemOnly": "Limitar o uso do disco ao sistema de arquivos de origem",
+    "rootFilesystemOnlyDescription": "Quando ativada, apenas o sistema de arquivos que contém o caminho de origem é relatado. Quando desativada (padrão), o total do disco também inclui os sistemas de arquivos montados no caminho de origem, sendo que os pools compartilhados, como os conjuntos de dados ZFS, são contados uma única vez."
   },
   "share": {
     "notice": "Observação: quando um compartilhamento é criado, ele fica mais exposto ao público e tem regras de acesso diferentes. Se o seu compartilhamento não estiver configurado de forma segura, ele poderá ser acessado por qualquer pessoa.",
@@ -651,16 +672,12 @@
     "allow": "Permitir",
     "allowDeny": "Permitir/Negar",
     "userGroup": "Usuário/Grupo",
-    "enterName": "Digite o nome do usuário ou do grupo",
-    "deleted": "Regra de acesso excluída!",
-    "added": "Regra de acesso adicionada!",
     "accessManagement": "Gerenciamento de acesso",
     "totalDenied": "Negado",
     "totalAllowed": "Permitido",
     "all": "Negar tudo",
     "defaultBehaviorDescription": "Isso mostra o que acontece quando um usuário tenta acessar um caminho em que não existem regras de acesso específicas. \"Permitir\" significa que os usuários podem acessar por padrão, \"Negar\" significa que os usuários são bloqueados por padrão, a menos que sejam explicitamente permitidos.",
     "defaultBehavior": "Ação padrão{suffix}",
-    "deletedCascade": "Regras de acesso excluídas do caminho e de todos os subcaminhos!",
     "cascadeDelete": "Exclusão recursiva",
     "cascadeDeleteDescription": "Quando ativada, a exclusão de uma regra de acesso também a removerá de todos os subdiretórios. Isso permite remover completamente um usuário ou grupo de toda a árvore de diretórios.",
     "hasRules": "Regras de acesso configuradas",
@@ -670,16 +687,23 @@
     "editGroup": "Editar grupo",
     "groupName": "Nome do grupo",
     "userGroups": "Grupos",
-    "addGroup": "Adicionar grupo",
-    "createGroupConfirm": "O grupo \"{name}\" não existe. Criá-lo?",
-    "addGroupPlaceholder": "Nome do grupo",
-    "removeGroup": "Remover do grupo",
     "groupMembers": "Membros",
-    "enterUsername": "Digite o nome de usuário",
-    "addMember": "Adicionar membro",
-    "unknownUser": "Nenhum usuário chamado \"{name}\"",
     "deleteGroupConfirm": "Excluir o grupo \"{name}\"? Ele também será removido de todas as regras de acesso.",
-    "groupsOidcNote": "Os membros de grupos sincronizados por OIDC são redefinidos a partir do provedor de identidade sempre que esses usuários fazem login."
+    "groupsOidcNote": "Os membros de grupos sincronizados por OIDC são redefinidos a partir do provedor de identidade sempre que esses usuários fazem login.",
+    "userGroupsDescription": "Grupos dos quais este usuário faz parte",
+    "membersCount": "Membros: {count}",
+    "userGroupsCount": "Grupos: {count}",
+    "groupNameRequired": "É obrigatório informar o nome do grupo.",
+    "groupNameTooShort": "Group name must be at least {min} characters.",
+    "groupNameTooLong": "O nome do grupo deve ter, no máximo, {max} caracteres.",
+    "groupNameInvalid": "O nome do grupo não deve conter caracteres de controle.",
+    "groupExists": "Já existe um grupo com esse nome.",
+    "selectEntities": "Selecionar",
+    "selectUser": "Selecionar usuário",
+    "selectUsers": "Selecionar usuários",
+    "selectGroup": "Selecionar grupo",
+    "selectGroups": "Selecionar grupos",
+    "refineSearch": "Exibindo os primeiros resultados para “ {count} ”. Refine sua busca para ver mais."
   },
   "fileLoading": {
     "title": "Uploads e downloads",
@@ -702,6 +726,10 @@
     "orange": "laranja"
   },
   "profileSettings": {
+    "showTypeColumn": "Mostrar coluna Tipo",
+    "showTypeColumnDescription": "Mostrar a coluna Tipo nas vistas de lista e compacta na listagem principal.",
+    "showCreationDateColumn": "Mostrar coluna Data de criação",
+    "showCreationDateColumnDescription": "Mostrar a coluna Data de criação nas vistas de lista e compacta na listagem principal.",
     "promptRightCloseButton": "Mostrar botão de fechamento de prompts à direita",
     "promptRightCloseButtonDescription": "Mostrar o botão de fechamento dos prompts no lado direito em vez do esquerdo",
     "hideFileExt": "Ocultar certos arquivos (por extensão)",
@@ -828,6 +856,8 @@
       "customScrollbarDescription": "Substituir a barra de rolagem nativa do navegador pela integrada do Ace",
       "wrapContent": "Quebrar linhas longas no editor",
       "wrapContentDescription": "Quebra o conteúdo do editor para manter linhas muito longas sempre visíveis",
+      "indentedSoftWrap": "Quebra suave com indentação",
+      "indentedSoftWrapDescription": "Quando ativado, adiciona indentação ao início do texto quebrado",
       "autocompletion": "Preenchimento automático",
       "autocompletionDescription": "Ativa o preenchimento automático pressionando manualmente 'ctrl + space'",
       "liveAutocompletion": "Preenchimento automático ao vivo",
@@ -939,6 +969,11 @@
     "audio": "Áudio",
     "archive": "Arquivo",
     "document": "Documento",
+    "text": "Texto",
+    "ebook": "E-book",
+    "font": "Fonte",
+    "model3d": "Modelo 3D",
+    "brokenLink": "Link quebrado",
     "binary": "Binário",
     "other": "Outros"
   },
@@ -984,7 +1019,8 @@
       "termTooShort": "Cada termo de pesquisa deve ter pelo menos {minSearchLength} caracteres",
       "resultsTitle": "Resultados da pesquisa",
       "invalidSources": "Ligue pelo menos uma fonte.",
-      "noResults": "Não há arquivos ou pastas correspondentes."
+      "noResults": "Não há arquivos ou pastas correspondentes.",
+      "resultLimit": "Número máximo de resultados da pesquisa"
     },
     "activityViewer": {
       "name": "Visualizador de atividades",

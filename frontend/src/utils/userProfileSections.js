@@ -47,6 +47,8 @@ export function sectionsFromFlatUser(user) {
       singleClick: !!u.singleClick,
       hideFileExt: u.hideFileExt || "",
       showCopyPath: !!u.showCopyPath,
+      showTypeColumn: !!u.showTypeColumn,
+      showCreationDateColumn: !!u.showCreationDateColumn,
       deleteAfterArchive: !!u.deleteAfterArchive,
       viewMode: u.viewMode,
       gallerySize: u.gallerySize,
@@ -83,6 +85,7 @@ export function sectionsFromFlatUser(user) {
     },
     account: {
       lockPassword: !!u.lockPassword,
+      requirePasswordChange: !!u.requirePasswordChange,
       disableSettings: !!u.disableSettings,
       disableUpdateNotifications: !!u.disableUpdateNotifications,
       showAdvancedProfile: !!u.showAdvancedProfile,
@@ -127,6 +130,8 @@ export function applySectionsToFlatUser(user, sections) {
   user.singleClick = !!listing.singleClick;
   user.hideFileExt = listing.hideFileExt || "";
   user.showCopyPath = !!listing.showCopyPath;
+  user.showTypeColumn = !!listing.showTypeColumn;
+  user.showCreationDateColumn = !!listing.showCreationDateColumn;
   user.deleteAfterArchive = !!listing.deleteAfterArchive;
   if (listing.viewMode !== undefined) {
     user.viewMode = listing.viewMode;
@@ -164,6 +169,9 @@ export function applySectionsToFlatUser(user, sections) {
 
   if (account.lockPassword !== undefined) {
     user.lockPassword = !!account.lockPassword;
+  }
+  if (account.requirePasswordChange !== undefined) {
+    user.requirePasswordChange = !!account.requirePasswordChange;
   }
   if (account.disableSettings !== undefined) {
     user.disableSettings = !!account.disableSettings;
@@ -208,6 +216,8 @@ const FLAT_PROFILE_FIELD_ENFORCED_PATHS = {
   disableSearchOptions: ["search", "disableOptions"],
   hideSidebarFileActions: ["sidebar", "hideFileActions"],
   showCopyPath: ["listing", "showCopyPath"],
+  showTypeColumn: ["listing", "showTypeColumn"],
+  showCreationDateColumn: ["listing", "showCreationDateColumn"],
   hideFilesInTree: ["sidebar", "hideFiles"],
   editorQuickSave: ["fileViewer", "editorQuickSave"],
   showSelectMultiple: ["listing", "showSelectMultiple"],

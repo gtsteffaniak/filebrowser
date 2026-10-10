@@ -43,12 +43,15 @@
     "requestTimedOut": "Begäran gick ut. Kontrollera dina nätverksinställningar eller inställningarna för omvänd proxy."
   },
   "files": {
+    "sortByCreationTime": "Sortera efter skapandetid",
+    "creationTime": "Skapandetid",
     "emptyFile": "Tom fil",
     "lastModified": "Senast ändrad",
     "multipleSelectionEnabled": "Flerval är på",
     "sortByLastModified": "Sortera på senast ändrad",
     "sortByName": "Sortera på namn",
     "sortBySize": "Sortera på storlek",
+    "sortByType": "Sortera efter typ",
     "noPreview": "Förhandsgranskning är inte tillgänglig för den här filen.",
     "noDownloadAccess": "Nedladdning är inte tillgänglig.",
     "newFile": "Ny fil{suffix}",
@@ -146,7 +149,11 @@
     "failedLogin": "Misslyckades med att logga in",
     "invalidCredentials": "Ogiltiga inloggningsuppgifter har angetts",
     "passkeyLogin": "Använd Passkey",
-    "recaptchaRequired": "Recaptcha-utmaning krävs"
+    "recaptchaRequired": "Recaptcha-utmaning krävs",
+    "requirePasswordChangeTitle": "Byt lösenord",
+    "requirePasswordChangeInstructions": "Du måste ange ett nytt lösenord innan du kan fortsätta.",
+    "requirePasswordChangeSuccess": "Lösenordet har uppdaterats. Du är nu inloggad.",
+    "requirePasswordChangeMustDiffer": "Det nya lösenordet måste skilja sig från ditt nuvarande lösenord"
   },
   "prompts": {
     "noTemplate": "Din mall är tom!",
@@ -235,6 +242,15 @@
     "unarchiveMessage": "Välj var du vill extrahera arkivet.",
     "unarchiveDestination": "Extrahera till:",
     "unarchiveSuccess": "Arkivet har extraherats framgångsrikt!",
+    "zipFilenameEncoding": "Filename encoding",
+    "zipEncodingLoading": "Checking ZIP filenames…",
+    "zipEncodingError": "Could not read the ZIP filename preview.",
+    "zipEncodingRetry": "Retry preview",
+    "zipEncodingChoose": "Choose an encoding",
+    "zipEncodingSuggested": "suggested",
+    "zipEncodingHint": "Check the filenames below before extracting. Suggestions may be incorrect; ZIP Unicode metadata takes precedence.",
+    "zipFilenamePreview": "Filename preview",
+    "zipEncodingUnavailable": "No supported encoding can decode all filenames in this ZIP.",
     "downloadFailed": "Nedladdningen av chunked misslyckades - om detta upprepas, försök att minska chunkstorleken: {message}",
     "confirmPasswordToSaveUser": "Ange ditt nuvarande lösenord för att spara dessa användarändringar."
   },
@@ -313,7 +329,10 @@
     "userEditPreferences": "Användarinställningar",
     "userEditTools": "Åtkomst till verktyg",
     "userEditToolsDescription": "Ställ in vilka verktyg denna användare har åtkomst till",
-    "userEditSidebarLinks": "Länkar i sidomenyn"
+    "userEditSidebarLinks": "Länkar i sidomenyn",
+    "passwordRequirementsMatch": "Lösenorden stämmer överens",
+    "passwordRequirementsMinLength": "Minst {min} tecken",
+    "requirePasswordChange": "Kräv att lösenordet byts vid nästa inloggning"
   },
   "sidebar": {
     "updateIsAvailable": "En uppdatering är tillgänglig!",
@@ -356,7 +375,9 @@
     "sidebarLinkDefaultsHelp": "Detta är de standardlänkar som läggs till för alla nya användare. Om du gör en länk obligatorisk kommer den att läggas till för alla användare och kan inte tas bort av användare som inte är administratörer.",
     "sidebarLinkDefaultSourceHelp": "Gäller endast om användaren har tillgång till denna källa.",
     "sidebarLinkDefaultsYamlInvalid": "Ogiltig YAML. Kontrollera formatet och försök igen.",
-    "switchMode": "Växla mellan länkar och navigeringsträdet"
+    "switchMode": "Växla mellan länkar och navigeringsträdet",
+    "rootFilesystemOnly": "Begränsa diskanvändningen till källfilsystemet",
+    "rootFilesystemOnlyDescription": "När denna inställning är aktiverad redovisas endast det filsystem som innehåller källsökvägen. När den är inaktiverad (standard) inkluderar den totala diskutrymmet även filsystem som är monterade under källsökvägen, varvid delade pooler som ZFS-datauppsättningar räknas en gång."
   },
   "share": {
     "notice": "Observera: När en andel skapas blir den mer exponerad för allmänheten och har andra regler för åtkomst. Om din andel inte är säkert konfigurerad kan vem som helst komma åt den.",
@@ -501,6 +522,10 @@
     "orange": "apelsin"
   },
   "profileSettings": {
+    "showTypeColumn": "Visa Typ-kolumn",
+    "showTypeColumnDescription": "Visa Typ-kolumnen i list- och kompaktvyer i huvudlistan.",
+    "showCreationDateColumn": "Visa Skapandedatum-kolumn",
+    "showCreationDateColumnDescription": "Visa Skapandedatum-kolumnen i list- och kompaktvyer i huvudlistan.",
     "promptRightCloseButton": "Visa stängknapp för uppmaningar till höger",
     "promptRightCloseButtonDescription": "Visa stängknappen för uppmaningar på höger sida istället för vänster",
     "hideFileExt": "Dölj vissa filer (efter filändelse)",
@@ -758,14 +783,10 @@
     "allow": "Tillåt",
     "allowDeny": "Tillåt/avslå",
     "userGroup": "Användare/Grupp",
-    "enterName": "Ange användar- eller gruppnamn",
-    "deleted": "Åtkomstregel raderad!",
-    "added": "Tillträdesregel tillagd!",
     "accessManagement": "Hantering av åtkomst",
     "all": "Avvisa alla",
     "defaultBehaviorDescription": "Detta visar vad som händer när en användare försöker komma åt en sökväg där det inte finns några specifika åtkomstregler. \"Allow\" innebär att användare kan komma åt som standard, \"Deny\" innebär att användare blockeras som standard om de inte uttryckligen tillåts.",
     "defaultBehavior": "Standardåtgärd{suffix}",
-    "deletedCascade": "Åtkomstregler raderade från sökvägen och alla undervägar!",
     "cascadeDelete": "Rekursiv radering",
     "cascadeDeleteDescription": "Om funktionen är aktiverad tas en åtkomstregel även bort från alla underkataloger. På så sätt kan du helt ta bort en användare eller grupp från hela katalogträdet.",
     "hasRules": "Konfigurerade åtkomstregler",
@@ -775,16 +796,23 @@
     "editGroup": "Redigera grupp",
     "groupName": "Gruppnamn",
     "userGroups": "Grupper",
-    "addGroup": "Lägg till grupp",
-    "createGroupConfirm": "Gruppen \"{name}\" finns inte. Skapa den?",
-    "addGroupPlaceholder": "Gruppnamn",
-    "removeGroup": "Ta bort från grupp",
     "groupMembers": "Medlemmar",
-    "enterUsername": "Ange användarnamn",
-    "addMember": "Lägg till medlem",
-    "unknownUser": "Ingen användare med namnet \"{name}\"",
     "deleteGroupConfirm": "Ta bort gruppen \"{name}\"? Den tas även bort från alla åtkomstregler.",
-    "groupsOidcNote": "Medlemmar i OIDC-synkade grupper återställs från identitetsleverantören varje gång dessa användare loggar in."
+    "groupsOidcNote": "Medlemmar i OIDC-synkade grupper återställs från identitetsleverantören varje gång dessa användare loggar in.",
+    "userGroupsDescription": "Grupper som denna användare tillhör",
+    "membersCount": "Medlemmar: {count}",
+    "userGroupsCount": "Grupper: {count}",
+    "groupNameRequired": "Gruppnamn är obligatoriskt.",
+    "groupNameTooShort": "Group name must be at least {min} characters.",
+    "groupNameTooLong": "Gruppnamnet får innehålla högst {max} tecken.",
+    "groupNameInvalid": "Gruppnamnet får inte innehålla specialtecken.",
+    "groupExists": "Det finns redan en grupp med det namnet.",
+    "selectEntities": "Välj",
+    "selectUser": "Välj användare",
+    "selectUsers": "Välj användare",
+    "selectGroup": "Välj grupp",
+    "selectGroups": "Välj grupper",
+    "refineSearch": "Här visas de första träffarna för ” {count} ”. Begränsa din sökning för att se fler resultat."
   },
   "editor": {
     "stats": {
@@ -828,6 +856,8 @@
       "customScrollbarDescription": "Byt ut webbläsarens inbyggda rullningslist mot Ace:s inbyggda",
       "wrapContent": "Bryt långa rader i redigeraren",
       "wrapContentDescription": "Bryter redigerarens innehåll så att mycket långa rader alltid är synliga",
+      "indentedSoftWrap": "Indragen mjuk radbrytning",
+      "indentedSoftWrapDescription": "När detta är aktiverat läggs en indragning till i början av den radbryta texten",
       "autocompletion": "Autokomplettering",
       "autocompletionDescription": "Aktiverar autokomplettering genom att manuellt trycka på 'ctrl + space'",
       "liveAutocompletion": "Live-autokomplettering",
@@ -939,6 +969,11 @@
     "audio": "Ljud",
     "archive": "Arkiv",
     "document": "Dokument",
+    "text": "Text",
+    "ebook": "E-bok",
+    "font": "Typsnitt",
+    "model3d": "3D-modell",
+    "brokenLink": "Trasig länk",
     "binary": "Binär",
     "other": "Övriga"
   },
@@ -984,7 +1019,8 @@
       "termTooShort": "Varje sökterm måste innehålla minst {minSearchLength} tecken",
       "resultsTitle": "Sökresultat",
       "invalidSources": "Slå på minst en källa.",
-      "noResults": "Inga matchande filer eller mappar."
+      "noResults": "Inga matchande filer eller mappar.",
+      "resultLimit": "Maximalt antal sökresultat"
     },
     "activityViewer": {
       "name": "Aktivitetsvisare",

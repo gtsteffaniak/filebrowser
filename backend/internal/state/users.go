@@ -6,14 +6,15 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
-	"github.com/gtsteffaniak/filebrowser/backend/internal/errors"
-	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
-	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/quota"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/share"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/toolaccess"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/usersidebar"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
+	"github.com/gtsteffaniak/go-logger/logger"
 )
 
 // User operations
@@ -192,6 +193,9 @@ func CreateUser(user *users.User, plaintextPassword string) error {
 	}
 	// Hash password if provided
 	if plaintextPassword != "" {
+		if err := settings.ValidatePasswordPolicy(plaintextPassword); err != nil {
+			return err
+		}
 		hashedPassword, err := utils.HashPwd(plaintextPassword)
 		if err != nil {
 			return fmt.Errorf("failed to hash password: %w", err)
@@ -205,7 +209,11 @@ func CreateUser(user *users.User, plaintextPassword string) error {
 	}
 
 	// If still no BackendScopes (omitted or invalid API names), same defaults as ApplyUserDefaults.
+	preserveRequirePasswordChange := user.RequirePasswordChange
 	applyUserSettingsDefaults(user)
+	if preserveRequirePasswordChange {
+		user.RequirePasswordChange = true
+	}
 	defaults := EffectiveUserDefaults()
 	enforced := EffectiveEnforced()
 	settings.ApplyEnforcedDefaultsFrom(user, defaults, enforced)
@@ -295,6 +303,9 @@ func UpdateUser(user *users.User, plaintextPassword string, fields ...string) er
 		if strings.EqualFold(jsonFieldName, "password") {
 			if plaintextPassword == "" {
 				return fmt.Errorf("password field requires a non-empty plaintext password")
+			}
+			if err := settings.ValidatePasswordPolicy(plaintextPassword); err != nil {
+				return err
 			}
 			hashedPassword, hashErr := utils.HashPwd(plaintextPassword)
 			if hashErr != nil {
@@ -408,6 +419,11 @@ func commitUserUpdate(existingUser, storedSnapshot *users.User, sourceDefaults u
 		if err := sqlDb.UpdateUserUsername(oldUsername, existingUser); err != nil {
 			return err
 		}
+		if accessDb != nil {
+			if err := renameUserInAccess(oldUsername, existingUser); err != nil {
+				return err
+			}
+		}
 		if oldUserID != 0 && oldUserID != existingUser.ID {
 			userRecordCache.Delete(userCacheKeyID(oldUserID))
 		}
@@ -428,6 +444,31 @@ func commitUserUpdate(existingUser, storedSnapshot *users.User, sourceDefaults u
 	}
 
 	putUserInCache(existingUser)
+	return nil
+}
+
+// renameUserInAccess renames the user in group memberships and path rules after the SQL rename
+// has been written. On failure every earlier step is reverted (keeping the other updated fields)
+// so the stores never disagree about which username owns the memberships.
+func renameUserInAccess(oldUsername string, updated *users.User) error {
+	revertSQL := func() {
+		reverted := *updated
+		reverted.Username = oldUsername
+		if err := sqlDb.UpdateUser(&reverted); err != nil {
+			logger.Errorf("failed to revert username %q to %q after rename failure: %v", updated.Username, oldUsername, err)
+		}
+	}
+	if err := accessDb.RenameUserInGroups(oldUsername, updated.Username); err != nil {
+		revertSQL()
+		return fmt.Errorf("failed to rename user in groups: %w", err)
+	}
+	if err := accessDb.RenameUserInRules(oldUsername, updated.Username); err != nil {
+		if revErr := accessDb.RenameUserInGroups(updated.Username, oldUsername); revErr != nil {
+			logger.Errorf("failed to revert group memberships for %q after rename failure: %v", oldUsername, revErr)
+		}
+		revertSQL()
+		return fmt.Errorf("failed to rename user in access rules: %w", err)
+	}
 	return nil
 }
 
@@ -577,6 +618,9 @@ func DeleteUser(id uint64) error {
 		return fmt.Errorf("user not found in state")
 	}
 
+	if err := removeUserAccess(user.Username); err != nil {
+		return err
+	}
 	if err := sqlDb.DeleteUserByID(id); err != nil {
 		return err
 	}
@@ -601,6 +645,9 @@ func DeleteUserByUsername(username string) error {
 	}
 
 	uid := user.ID
+	if err := removeUserAccess(username); err != nil {
+		return err
+	}
 	if err := sqlDb.DeleteUserByUsername(username); err != nil {
 		return err
 	}
@@ -610,7 +657,23 @@ func DeleteUserByUsername(username string) error {
 	if accessDb != nil && uid != 0 {
 		_ = accessDb.RemoveHashedTokensForUser(uid)
 	}
+	return nil
+}
 
+// removeUserAccess strips a username from group memberships and path rules before the user row is
+// deleted. Each step rolls itself back on failure and any error aborts the delete, so a reused
+// username can never inherit leftovers. The failure mode is fail-safe: if the later SQL delete
+// fails the user only loses access, and a retry is idempotent.
+func removeUserAccess(username string) error {
+	if accessDb == nil {
+		return nil
+	}
+	if err := accessDb.RemoveUserFromAllGroups(username); err != nil {
+		return fmt.Errorf("failed to remove user from groups: %w", err)
+	}
+	if err := accessDb.RemoveAllRulesForUser(username); err != nil {
+		return fmt.Errorf("failed to remove user from access rules: %w", err)
+	}
 	return nil
 }
 

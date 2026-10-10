@@ -22,7 +22,7 @@
 <script>
 import { DocumentEditor } from "@onlyoffice/document-editor-vue";
 import { globalVars } from "@/utils/constants";
-import router from "@/router";
+import { router } from "@/router";
 import { state, mutations, getters } from "@/store";
 import { removeLastDir } from "@/utils/url";
 import { officeApi } from "@/api";
@@ -91,11 +91,11 @@ export default {
   beforeUnmount() {
     if (window.DocsAPI) delete window.DocsAPI;
     const iframes = document.querySelectorAll('iframe');
-    iframes.forEach(iframe => {
+    for (const iframe of iframes) {
       if (iframe.src.includes('onlyoffice')) {
         iframe.remove();
       }
-    });
+    }
   },
   methods: {
     close() {

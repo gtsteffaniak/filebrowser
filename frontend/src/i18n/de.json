@@ -43,12 +43,15 @@
     "requestTimedOut": "Die Anfrage ist abgelaufen. Überprüfen Sie Ihre Netzwerk- oder Reverse-Proxy-Einstellungen."
   },
   "files": {
+    "sortByCreationTime": "Nach Erstellungszeit sortieren",
+    "creationTime": "Erstellungszeit",
     "emptyFile": "Leere Datei",
     "lastModified": "Zuletzt geändert",
     "multipleSelectionEnabled": "Mehrfachauswahl aktiviert",
     "sortByLastModified": "Nach Änderungsdatum sortieren",
     "sortByName": "Nach Namen sortieren",
     "sortBySize": "Nach Größe sortieren",
+    "sortByType": "Nach Typ sortieren",
     "noPreview": "Für diese Datei ist keine Vorschau verfügbar.",
     "noDownloadAccess": "Der Download ist nicht verfügbar.",
     "newFile": "Neue Datei{suffix}",
@@ -146,7 +149,11 @@
     "failedLogin": "Anmeldung fehlgeschlagen",
     "invalidCredentials": "Ungültige Anmeldedaten angegeben",
     "passkeyLogin": "Passkey verwenden",
-    "recaptchaRequired": "Recaptcha-Überprüfung erforderlich"
+    "recaptchaRequired": "Recaptcha-Überprüfung erforderlich",
+    "requirePasswordChangeTitle": "Passwort ändern",
+    "requirePasswordChangeInstructions": "Sie müssen ein neues Passwort festlegen, bevor Sie fortfahren können.",
+    "requirePasswordChangeSuccess": "Das Passwort wurde aktualisiert. Sie sind nun angemeldet.",
+    "requirePasswordChangeMustDiffer": "Das neue Passwort muss sich von Ihrem aktuellen Passwort unterscheiden."
   },
   "prompts": {
     "noTemplate": "Ihre Vorlage ist leer!",
@@ -235,6 +242,15 @@
     "unarchiveMessage": "Wählen Sie, wohin das Archiv entpackt werden soll.",
     "unarchiveDestination": "Ziel:",
     "unarchiveSuccess": "Archiv erfolgreich entpackt!",
+    "zipFilenameEncoding": "Filename encoding",
+    "zipEncodingLoading": "Checking ZIP filenames…",
+    "zipEncodingError": "Could not read the ZIP filename preview.",
+    "zipEncodingRetry": "Retry preview",
+    "zipEncodingChoose": "Choose an encoding",
+    "zipEncodingSuggested": "suggested",
+    "zipEncodingHint": "Check the filenames below before extracting. Suggestions may be incorrect; ZIP Unicode metadata takes precedence.",
+    "zipFilenamePreview": "Filename preview",
+    "zipEncodingUnavailable": "No supported encoding can decode all filenames in this ZIP.",
     "downloadFailed": "Chunked Download fehlgeschlagen - falls sich dies wiederholt, versuchen Sie, die Chunk-Größe zu verringern: {message}",
     "confirmPasswordToSaveUser": "Geben Sie Ihr aktuelles Kennwort ein, um die Benutzeränderungen zu speichern."
   },
@@ -313,7 +329,10 @@
     "userEditPreferences": "Benutzereinstellungen",
     "userEditTools": "Zugriff auf Werkzeuge",
     "userEditToolsDescription": "Legen Sie fest, auf welche Tools dieser Benutzer zugreifen darf",
-    "userEditSidebarLinks": "Links in der Seitenleiste"
+    "userEditSidebarLinks": "Links in der Seitenleiste",
+    "passwordRequirementsMatch": "Die Passwörter stimmen überein",
+    "passwordRequirementsMinLength": "Mindestens {min} Zeichen",
+    "requirePasswordChange": "Passwortwechsel bei der nächsten Anmeldung erzwingen"
   },
   "sidebar": {
     "updateIsAvailable": "Ein Update ist verfügbar!",
@@ -356,7 +375,9 @@
     "sidebarLinkDefaultsHelp": "Dies sind die Standard-Links, die für alle neuen Benutzer hinzugefügt werden. Wenn Sie einen Link als obligatorisch festlegen, wird er für alle Benutzer hinzugefügt und kann von Benutzern ohne Administratorrechte nicht entfernt werden.",
     "sidebarLinkDefaultSourceHelp": "Gilt nur, wenn der Benutzer Zugriff auf diese Quelle hat.",
     "sidebarLinkDefaultsYamlInvalid": "Ungültiges YAML. Überprüfen Sie das Format und versuchen Sie es erneut.",
-    "switchMode": "Zwischen Links und Navigationsbaum umschalten"
+    "switchMode": "Zwischen Links und Navigationsbaum umschalten",
+    "rootFilesystemOnly": "Festplattennutzung auf das Quelldateisystem beschränken",
+    "rootFilesystemOnlyDescription": "Wenn diese Option aktiviert ist, wird nur das Dateisystem gemeldet, das den Quellpfad enthält. Wenn sie deaktiviert ist (Standardeinstellung), umfasst die Gesamtgröße der Festplatte auch die unter dem Quellpfad eingebundenen Dateisysteme, wobei gemeinsam genutzte Pools wie ZFS-Datensätze nur einmal gezählt werden."
   },
   "share": {
     "notice": "Hinweis: Wenn eine Freigabe erstellt wird, ist sie der Öffentlichkeit stärker ausgesetzt und unterliegt anderen Zugriffsregeln. Wenn Ihre Freigabe nicht sicher konfiguriert ist, kann jeder auf sie zugreifen.",
@@ -651,16 +672,12 @@
     "allow": "Zulassen",
     "allowDeny": "Zulassen/Verweigern",
     "userGroup": "Benutzer/Gruppe",
-    "enterName": "Benutzer- oder Gruppenname eingeben",
-    "deleted": "Zugriffsregel gelöscht!",
-    "added": "Zugangsregel hinzugefügt!",
     "accessManagement": "Zugangsverwaltung",
     "totalDenied": "Verweigert",
     "totalAllowed": "Erlaubt",
     "all": "Alle ablehnen",
     "defaultBehaviorDescription": "Dies zeigt, was passiert, wenn ein Benutzer versucht, auf einen Pfad zuzugreifen, für den keine spezifischen Zugriffsregeln bestehen. Zulassen\" bedeutet, dass Benutzer standardmäßig Zugang haben, \"Verweigern\" bedeutet, dass Benutzer standardmäßig blockiert werden, wenn sie nicht ausdrücklich zugelassen sind.",
     "defaultBehavior": "Standard-Aktion{suffix}",
-    "deletedCascade": "Zugriffsregeln aus Pfad und allen Unterpfaden gelöscht!",
     "cascadeDelete": "Rekursives Löschen",
     "cascadeDeleteDescription": "Wenn diese Funktion aktiviert ist, wird beim Löschen einer Zugriffsregel diese auch aus allen Unterverzeichnissen entfernt. Auf diese Weise können Sie einen Benutzer oder eine Gruppe vollständig aus dem gesamten Verzeichnisbaum entfernen.",
     "hasRules": "Zugriffsregeln konfiguriert",
@@ -670,16 +687,23 @@
     "editGroup": "Gruppe bearbeiten",
     "groupName": "Gruppenname",
     "userGroups": "Gruppen",
-    "addGroup": "Gruppe hinzufügen",
-    "createGroupConfirm": "Die Gruppe „{name}“ existiert nicht. Erstellen?",
-    "addGroupPlaceholder": "Gruppenname",
-    "removeGroup": "Aus Gruppe entfernen",
     "groupMembers": "Mitglieder",
-    "enterUsername": "Benutzernamen eingeben",
-    "addMember": "Mitglied hinzufügen",
-    "unknownUser": "Kein Benutzer mit dem Namen „{name}“",
     "deleteGroupConfirm": "Gruppe „{name}“ löschen? Sie wird auch aus allen Zugriffsregeln entfernt.",
-    "groupsOidcNote": "Mitglieder von OIDC-synchronisierten Gruppen werden bei jeder Anmeldung dieser Benutzer vom Identitätsanbieter zurückgesetzt."
+    "groupsOidcNote": "Mitglieder von OIDC-synchronisierten Gruppen werden bei jeder Anmeldung dieser Benutzer vom Identitätsanbieter zurückgesetzt.",
+    "userGroupsDescription": "Gruppen, denen dieser Benutzer angehört",
+    "membersCount": "Mitglieder: {count}",
+    "userGroupsCount": "Gruppen: {count}",
+    "groupNameRequired": "Der Gruppenname ist erforderlich.",
+    "groupNameTooShort": "Group name must be at least {min} characters.",
+    "groupNameTooLong": "Der Gruppenname darf höchstens {max} Zeichen lang sein.",
+    "groupNameInvalid": "Der Gruppenname darf keine Steuerzeichen enthalten.",
+    "groupExists": "Eine Gruppe mit diesem Namen existiert bereits.",
+    "selectEntities": "Auswählen",
+    "selectUser": "Benutzer auswählen",
+    "selectUsers": "Benutzer auswählen",
+    "selectGroup": "Gruppe auswählen",
+    "selectGroups": "Gruppen auswählen",
+    "refineSearch": "Hier werden die ersten Treffer für „ {count} “ angezeigt. Verfeinern Sie Ihre Suche, um weitere Ergebnisse anzuzeigen."
   },
   "fileLoading": {
     "title": "Uploads & Downloads",
@@ -702,6 +726,10 @@
     "orange": "orange"
   },
   "profileSettings": {
+    "showTypeColumn": "Spalte Typ anzeigen",
+    "showTypeColumnDescription": "Die Spalte Typ in Listen- und Kompaktansicht in der Hauptauflistung anzeigen.",
+    "showCreationDateColumn": "Spalte Erstellungsdatum anzeigen",
+    "showCreationDateColumnDescription": "Die Spalte Erstellungsdatum in Listen- und Kompaktansicht in der Hauptauflistung anzeigen.",
     "promptRightCloseButton": "Schaltfläche zum Schließen von Dialogen rechts anzeigen",
     "promptRightCloseButtonDescription": "Die Schaltfläche zum Schließen von Dialogen auf der rechten Seite anstelle der linken Seite anzeigen",
     "hideFileExt": "Bestimmte Dateien ausblenden (nach Erweiterung)",
@@ -828,6 +856,8 @@
       "customScrollbarDescription": "Die native Browser-Bildlaufleiste durch die integrierte Ace-Bildlaufleiste ersetzen",
       "wrapContent": "Lange Zeilen im Editor umbrechen",
       "wrapContentDescription": "Umbrüche den Editor-Inhalt, damit sehr lange Zeilen immer sichtbar bleiben",
+      "indentedSoftWrap": "Eingerückter weicher Umbruch",
+      "indentedSoftWrapDescription": "Wenn dies aktiviert ist, wird am Anfang des umbrochenen Textes eine Einrückung hinzugefügt",
       "autocompletion": "Autovervollständigung",
       "autocompletionDescription": "Aktiviert die Autovervollständigung durch manuelles Drücken von 'Strg + Leertaste'",
       "liveAutocompletion": "Live-Autovervollständigung",
@@ -939,6 +969,11 @@
     "audio": "Audio",
     "archive": "Archiv",
     "document": "Dokument",
+    "text": "Text",
+    "ebook": "E-Book",
+    "font": "Schriftart",
+    "model3d": "3D-Modell",
+    "brokenLink": "Defekter Link",
     "binary": "Binär",
     "other": "Andere"
   },
@@ -984,7 +1019,8 @@
       "termTooShort": "Jeder Suchbegriff muss mindestens {minSearchLength} Zeichen umfassen.",
       "resultsTitle": "Suchergebnisse",
       "invalidSources": "Schalten Sie mindestens eine Quelle ein.",
-      "noResults": "Keine passenden Dateien oder Ordner."
+      "noResults": "Keine passenden Dateien oder Ordner.",
+      "resultLimit": "Maximale Suchergebnisse"
     },
     "activityViewer": {
       "name": "Aktivitätsanzeige",

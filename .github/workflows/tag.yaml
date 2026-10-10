@@ -61,18 +61,23 @@ jobs:
           images: |
             gtstef/filebrowser
             ghcr.io/gtsteffaniak/filebrowser
+      - name: Decide floating Docker tags
+        id: floating
+        run: bash .github/scripts/docker-floating-tag-policy.sh
       - name: Modify tags (strip 'v' and add version tags)
         id: modify-json
         run: |
           JSON='${{ steps.meta.outputs.json }}'
-          MODIFIED_JSON=$(echo "$JSON" | jq '
+          MODIFIED_JSON=$(echo "$JSON" | jq \
+            --argjson updateTrack '${{ steps.floating.outputs.update_track == 'true' }}' \
+            --argjson updateMajor '${{ steps.floating.outputs.update_major == 'true' }}' '
             .tags |= map(
               sub(":v"; ":")      # Strip the 'v'
               | select(test(":latest") | not)
             ) |
-            # Find all version tags with suffix (X.Y.Z-suffix) and add major.minor and major tags
+            # Find all version tags with suffix (X.Y.Z-suffix) and add major.minor (always) and major tags (when allowed)
             .tags += [
-              .tags[] 
+              .tags[]
               | select(test(":[0-9]+\\.[0-9]+\\.[0-9]+-"))
               | split(":")
               | .[-1] as $version
@@ -83,18 +88,20 @@ jobs:
               | ($version_parts[0]) as $major
               | "gtstef/filebrowser:\($major_minor)-\($suffix)",
                 "ghcr.io/gtsteffaniak/filebrowser:\($major_minor)-\($suffix)",
-                "gtstef/filebrowser:\($major)-\($suffix)",
-                "ghcr.io/gtsteffaniak/filebrowser:\($major)-\($suffix)"
+                if $updateMajor then
+                  "gtstef/filebrowser:\($major)-\($suffix)",
+                  "ghcr.io/gtsteffaniak/filebrowser:\($major)-\($suffix)"
+                else empty end
             ] |
-            # Add suffix-only tags for beta (only if tag ends with -beta)
-            if any(.tags[]; split(":")[-1] | endswith("-beta")) then
+            # Add suffix-only tags for beta when semver policy allows
+            if $updateTrack and any(.tags[]; split(":")[-1] | endswith("-beta")) then
               .tags += [
                 "gtstef/filebrowser:beta",
                 "ghcr.io/gtsteffaniak/filebrowser:beta"
               ]
             else . end |
-            # Add suffix-only tags for stable (and latest) (only if tag ends with -stable)
-            if any(.tags[]; split(":")[-1] | endswith("-stable")) then
+            # Add suffix-only tags for stable (and latest) when semver policy allows
+            if $updateTrack and any(.tags[]; split(":")[-1] | endswith("-stable")) then
               .tags += [
                 "gtstef/filebrowser:stable",
                 "ghcr.io/gtsteffaniak/filebrowser:stable",
@@ -146,19 +153,26 @@ jobs:
           images: |
             gtstef/filebrowser
             ghcr.io/gtsteffaniak/filebrowser
+      - name: Decide floating Docker tags
+        id: floating
+        env:
+          SLIM_SUFFIX: -slim
+        run: bash .github/scripts/docker-floating-tag-policy.sh
       - name: Modify tags (strip 'v' and add 'slim' if needed)
         id: modify-json-slim
         run: |
           JSON='${{ steps.meta.outputs.json }}'
-          MODIFIED_JSON=$(echo "$JSON" | jq '
+          MODIFIED_JSON=$(echo "$JSON" | jq \
+            --argjson updateTrack '${{ steps.floating.outputs.update_track == 'true' }}' \
+            --argjson updateMajor '${{ steps.floating.outputs.update_major == 'true' }}' '
             .tags |= map(
               sub(":v"; ":")                 # Strip the 'v'
               | select(test(":latest") | not) # Remove the "latest" tag
               | . + "-slim"                   # Append "-slim" to the versioned tag
             ) |
-            # Find all version tags with suffix (X.Y.Z-suffix-slim) and add major.minor and major tags
+            # Find all version tags with suffix (X.Y.Z-suffix-slim) and add major.minor (always) and major tags (when allowed)
             .tags += [
-              .tags[] 
+              .tags[]
               | select(test(":[0-9]+\\.[0-9]+\\.[0-9]+-"))
               | split(":")
               | .[-1] as $version
@@ -169,18 +183,20 @@ jobs:
               | ($version_parts[0]) as $major
               | "gtstef/filebrowser:\($major_minor)-\($suffix)",
                 "ghcr.io/gtsteffaniak/filebrowser:\($major_minor)-\($suffix)",
-                "gtstef/filebrowser:\($major)-\($suffix)",
-                "ghcr.io/gtsteffaniak/filebrowser:\($major)-\($suffix)"
+                if $updateMajor then
+                  "gtstef/filebrowser:\($major)-\($suffix)",
+                  "ghcr.io/gtsteffaniak/filebrowser:\($major)-\($suffix)"
+                else empty end
             ] |
-            # Add suffix-only tags for beta-slim (only if tag ends with -beta-slim)
-            if any(.tags[]; split(":")[-1] | endswith("-beta-slim")) then
+            # Add suffix-only tags for beta-slim when semver policy allows
+            if $updateTrack and any(.tags[]; split(":")[-1] | endswith("-beta-slim")) then
               .tags += [
                 "gtstef/filebrowser:beta-slim",
                 "ghcr.io/gtsteffaniak/filebrowser:beta-slim"
               ]
             else . end |
-            # Add suffix-only tags for stable-slim (only if tag ends with -stable-slim)
-            if any(.tags[]; split(":")[-1] | endswith("-stable-slim")) then
+            # Add suffix-only tags for stable-slim when semver policy allows
+            if $updateTrack and any(.tags[]; split(":")[-1] | endswith("-stable-slim")) then
               .tags += [
                 "gtstef/filebrowser:stable-slim",
                 "ghcr.io/gtsteffaniak/filebrowser:stable-slim"

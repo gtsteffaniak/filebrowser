@@ -1,9 +1,9 @@
 import { chromium, expect } from "@playwright/test";
-import { loginPlaywrightAdmin } from "../playwright-auth";
-import { warmPerfConfig } from "./perf-config";
+import { loginPlaywrightAdmin } from "../playwright-auth.ts";
+import { warmPerfConfig } from "./perf-config.ts";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { perfResultsDir } from "./perf-helpers";
+import { perfResultsDir } from "./perf-helpers.ts";
 
 /**
  * Launch chromium with an actionable error.

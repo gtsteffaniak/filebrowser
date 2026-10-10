@@ -19,8 +19,10 @@
   </div>
 </template>
 
-<script lang="ts">
-import type { RouteLocationNormalized } from "vue-router";
+<script setup lang="ts">
+import { computed, nextTick, onBeforeUnmount, onMounted, onUnmounted, ref, shallowRef, watch } from "vue";
+import { useRoute, useRouter, type RouteLocationNormalized } from "vue-router";
+import { useI18n } from "vue-i18n";
 import type { Ace } from "ace-builds";
 import { state, getters, mutations } from "@/store";
 import { resourcesApi } from "@/api";
@@ -37,776 +39,754 @@ import "ace-builds/src-min-noconflict/mode-json";
 import "ace-builds/src-min-noconflict/mode-markdown";
 import EditorToolbar from "@/components/files/EditorToolbar.vue";
 import MarkdownSplitView from "@/components/files/MarkdownSplitView.vue";
-import { editorConfig } from "@/utils/editorConfig";
+import { editorConfig, type EditorConfig } from "@/utils/editorConfig";
 import { rejectPutIfQuotaExceeded } from "@/utils/uploadQuota";
 
 type Req = typeof state.req;
 interface AceRendererInternal { $gutterLayer: { $renderer: unknown } }
 
+const props = defineProps({
+  viewerMode: {
+    type: Boolean,
+    default: false
+  },
+  content: {
+    type: String,
+    default: ""
+  },
+  editorMode: {
+    type: String,
+    default: "yaml" // Default to YAML for config viewing
+  },
+  readOnly: {
+    type: Boolean,
+    default: null // null means auto-determine
+  }
+});
+
 const THEME_DARK = "ace/theme/tomorrow_night_bright";
 const THEME_LIGHT = "ace/theme/chrome";
 
-export default {
-  name: "editor",
-  components: {
-    EditorToolbar,
-    MarkdownSplitView,
-  },
-  props: {
-    viewerMode: {
-      type: Boolean,
-      default: false
-    },
-    content: {
-      type: String,
-      default: ""
-    },
-    editorMode: {
-      type: String,
-      default: "yaml" // Default to YAML for config viewing
-    },
-    readOnly: {
-      type: Boolean,
-      default: null // null means auto-determine
-    }
-  },
-  data: () => ({
-    editor: null as Ace.Editor | null, // The editor instance
-    isDirty: false,
-    savedContent: "", // content used for dirty comparisons
-    suppressDirtyTracking: false,
-    originalReq: null as Req | null,
-    saveLocked: false, // Lock saves during req transitions
-    saveUnlockTimer: null as ReturnType<typeof setTimeout> | null, // pending save-unlock timer
-    statsUpdateTimer: null as ReturnType<typeof setTimeout> | null, // throttle stats update
-    currentReqPath: null as string | null, // Track current path for transition detection
-    navigationGuard: null as (() => void) | null, // Navigation guard to prevent navigation with unsaved changes
-    isPromptOpen: false, // Track if prompt is currently open for avoid navigation
-    pendingNavigation: null as RouteLocationNormalized | null, // Store pending navigation while prompt is open
-    viewerResizeObserver: null as ResizeObserver | null,
-    editorPanePercent: 50, // split-view editor pane width
-    resizeContainerEl: null as HTMLElement | null, // #editor-root element, passed to MarkdownSplitView for divider drag geometry
-    beforeUnloadHandler: null as ((event: BeforeUnloadEvent) => void) | null,
-  }),
-  computed: {
-    permissions() {
-      return getters.sourcePermissions();
-    },
-    isDarkMode() {
-      return getters.isDarkMode();
-    },
-    req() {
-      return state.req;
-    },
-    // Current filename from route
-    routeFilename() {
-      if (this.viewerMode) return null;
-      const filename = decodeURIComponent(this.$route.path.split("/").pop() || "");
-      return getters.shareHash() === filename ? "" : filename;
-    },
-    // Check if state and route are synchronized
-    isStateSynced() {
-      if (this.viewerMode) return true;
-      if (!this.originalReq || !this.req) return false;
-      if (getters.isShare()) {
-        const subPath = state.shareInfo?.subPath;
-        if (subPath === undefined || subPath === null) return false;
-        if (!pathsMatch(this.req.path, subPath)) return false;
-        return pathsMatch(this.originalReq.path, this.req.path);
-      }
-      if (!this.routeFilename) return false;
-      return this.originalReq.name === this.routeFilename;
-    },
-    // Editor content to display
-    editorContent() {
-      if (this.viewerMode) {
-        return this.content || "";
-      }
-      if (!this.isStateSynced) {
-        return ""; // Show blank content until synced
-      }
-      return this.req.content === "empty-file-x6OlSil" ? "" : (this.req.content || "");
-    },
-    // Editor mode/language
-    editorLanguageMode() {
-      if (this.viewerMode) {
-        return this.getAceMode(this.editorMode);
-      }
-      if (!this.isStateSynced || !this.req) {
-        return "ace/mode/text";
-      }
+defineOptions({ name: "editor" });
 
-      return modelist.getModeForPath(this.req.name).mode;
-    },
-    // Editor read-only state
-    editorReadOnly() {
-      if (!this.viewerMode && !this.permissions.modify) {
-        return true;
-      }
-      if (this.readOnly !== null) {
-        return this.readOnly;
-      }
-      if (this.viewerMode) {
-        return true;
-      }
-      if (!this.isStateSynced) {
-        return true; // Read-only until synced
-      }
-      return this.req.type === "textImmutable";
-    },
-    isMarkdownFile() {
-      if (this.viewerMode) return false;
-      const type = this.req?.type;
-      return type === "text/markdown" || type === "text/x-markdown";
-    },
-    showEditorToolbar() {
-      return !this.editorReadOnly;
-    },
-    isSplitActive() {
-      return !this.viewerMode && this.isMarkdownFile && state.editor.markdownSplitView && !getters.isMobile() && this.permissions.modify;
-    },
-    editorScrollRatio() {
-      return state.editor.scrollRatio;
-    },
-    isTransitioning() {
-      return state.navigation.isTransitioning;
-    },
-    editorFontSize() {
-      return state.editor.fontSize;
-    },
-    wrapEditorContent() {
-      return editorConfig.wrapEditorContent;
-    },
-    editorAceOptions() {
-      return {
-        keybinding: editorConfig.keybinding,
-        tabSize: editorConfig.tabSize,
-        overscroll: editorConfig.overscroll,
-        showIndentGuides: editorConfig.showIndentGuides,
-        showGutter: editorConfig.showGutter,
-        fixedGutterWidth: editorConfig.fixedGutterWidth,
-        showLineNumbers: editorConfig.showLineNumbers,
-        relativeLineNumbers: editorConfig.relativeLineNumbers,
-        customScrollbar: editorConfig.customScrollbar,
-        enableAutocompletion: editorConfig.enableAutocompletion,
-        enableLiveAutocompletion: editorConfig.enableAutocompletion && editorConfig.enableLiveAutocompletion,
-      };
-    },
-  },
-  watch: {
-    // Lock saves during navigation transitions
-    isTransitioning(isTransitioning: boolean) {
-      if (isTransitioning && !this.viewerMode) {
-        this.saveLocked = true;
-      } else if (!isTransitioning && !this.viewerMode) {
-        // Unlock after a short delay to ensure req is fully loaded
-        this.scheduleSaveUnlock(300);
-      }
-    },
-    // Update originalReq and lock saves when req changes during navigation
-    'req'(newReq: Req, oldReq: Req) {
-      if (!this.viewerMode && newReq && (newReq.path !== oldReq?.path || newReq.source !== oldReq.source)) {
-        // Update originalReq to the new file
-        this.originalReq = newReq;
-        this.isDirty = false; // Reset dirty flag for new file
-        mutations.setEditorDirty(false);
-        mutations.setEditorJsonFormatted(false);
-        mutations.resetEditorScrollRatio(newReq.path);
+const route = useRoute();
+const router = useRouter();
+const { t } = useI18n();
 
-        // Lock saves temporarily
-        this.saveLocked = true;
-        this.currentReqPath = newReq.path;
+const editorRoot = ref<HTMLElement | null>(null);
+const editorEl = ref<HTMLElement | null>(null);
+const splitView = ref<InstanceType<typeof MarkdownSplitView> | null>(null);
 
-        // Unlock after content loads
-        this.scheduleSaveUnlock(500);
-      }
-    },
-    // Update editor content reactively
-    editorContent(newContent: string) {
-      if (this.editor) {
-        const currentValue = this.editor.getValue();
-        if (currentValue !== newContent) {
-          this.suppressDirtyTracking = true;
-          this.editor.setValue(newContent, -1); // -1 moves cursor to start
-          this.editor.session.getUndoManager().reset();
-          this.updateEditorStats();
-          this.suppressDirtyTracking = false;
-        }
-        this.savedContent = newContent;
-        this.isDirty = false;
-        mutations.setEditorDirty(false);
-        if (this.viewerMode) {
-          this.$nextTick(() => {
-            if (this.editor) {
-              this.editor.resize();
-            }
-          });
-        }
-        if (this.isSplitActive) {
-          (this.$refs.splitView as InstanceType<typeof MarkdownSplitView> | undefined)?.setLiveContent(newContent);
-        }
-      }
-    },
-    // Update editor language mode
-    editorLanguageMode(newMode: string) {
-      if (this.editor) {
-        this.editor.session.setMode(newMode);
-      }
-    },
-    // Update read-only state
-    editorReadOnly(isReadOnly: boolean) {
-      if (this.editor) {
-        this.editor.setReadOnly(isReadOnly);
-      }
-    },
-    // Update theme when dark mode changes
-    isDarkMode(newValue: boolean) {
-      if (this.editor) {
-        this.editor.setTheme(newValue ? THEME_DARK : THEME_LIGHT);
-      }
-    },
-    // Initialize navigation when state syncs for file editing
-    isStateSynced(synced: boolean) {
-      if (synced && !this.viewerMode && this.req) {
-        this.initializeNavigation();
-      }
-    },
-    editorScrollRatio() {
-      if (this.viewerMode || !this.isMarkdownFile) return;
-      if (state.editor.scrollSource === 'editor') return;
-      (this.$refs.splitView as InstanceType<typeof MarkdownSplitView> | undefined)?.applyScrollRatio(state.editor.scrollRatio);
-    },
-    isSplitActive() {
-      this.$nextTick(() => {
-        if (this.editor) this.editor.resize();
-      });
-    },
-    editorFontSize() {
-      this.applyFontSize();
-    },
-    wrapEditorContent() {
-      this.applyWrap();
-    },
-    editorAceOptions(cfg) {
-      this.applyAceOptions(cfg);
-    },
-  },
-  created() {
-    window.addEventListener("keydown", this.keyEvent, true);
+const editor = shallowRef<Ace.Editor | null>(null); // The editor instance
+const originalReq = ref<Req | null>(null);
+const editorPanePercent = ref(50); // split-view editor pane width
+const resizeContainerEl = ref<HTMLElement | null>(null); // #editor-root element, passed to MarkdownSplitView for divider drag geometry
 
-    // Show generic browser dialog if the user closes the tab, or try to close the browser with unsaved changes
-    this.beforeUnloadHandler = (event: BeforeUnloadEvent) => {
-      if (this.isDirty && !this.viewerMode) {
-        event.preventDefault();
-      }
-    };
-    window.addEventListener("beforeunload", this.beforeUnloadHandler);
+let isDirty = false;
+let savedContent = ""; // content used for dirty comparisons
+let suppressDirtyTracking = false;
+let saveLocked = false; // Lock saves during req transitions
+let saveUnlockTimer: ReturnType<typeof setTimeout> | null = null; // pending save-unlock timer
+let statsUpdateTimer: ReturnType<typeof setTimeout> | null = null; // throttle stats update
+let currentReqPath: string | null = null; // Track current path for transition detection
+let navigationGuard: (() => void) | null = null; // Navigation guard to prevent navigation with unsaved changes
+let isPromptOpen = false; // Track if prompt is currently open for avoid navigation
+let pendingNavigation: RouteLocationNormalized | null = null; // Store pending navigation while prompt is open
+let viewerResizeObserver: ResizeObserver | null = null;
 
-    this.setupNavigationGuard();
-  },
-  beforeUnmount() {
-    if (this.saveUnlockTimer) {
-      clearTimeout(this.saveUnlockTimer);
-      this.saveUnlockTimer = null;
-    }
-    if (this.statsUpdateTimer) {
-      clearTimeout(this.statsUpdateTimer);
-      this.statsUpdateTimer = null;
-    }
-    if (this.viewerResizeObserver) {
-      this.viewerResizeObserver.disconnect();
-      this.viewerResizeObserver = null;
-    }
+const permissions = computed(() => getters.sourcePermissions());
+const isDarkMode = computed(() => getters.isDarkMode());
+const req = computed(() => state.req);
+// Current filename from route
+const routeFilename = computed(() => {
+  if (props.viewerMode) return null;
+  const filename = decodeURIComponent(route.path.split("/").pop() || "");
+  return getters.shareHash() === filename ? "" : filename;
+});
+// Check if state and route are synchronized
+const isStateSynced = computed(() => {
+  if (props.viewerMode) return true;
+  if (!originalReq.value || !req.value) return false;
+  if (getters.isShare()) {
+    const subPath = state.shareInfo?.subPath;
+    if (subPath === undefined || subPath === null) return false;
+    if (!pathsMatch(req.value.path, subPath)) return false;
+    return pathsMatch(originalReq.value.path, req.value.path);
+  }
+  if (!routeFilename.value) return false;
+  return originalReq.value.name === routeFilename.value;
+});
+// Editor content to display
+const editorContent = computed(() => {
+  if (props.viewerMode) {
+    return props.content || "";
+  }
+  if (!isStateSynced.value) {
+    return ""; // Show blank content until synced
+  }
+  return req.value.content === "empty-file-x6OlSil" ? "" : (req.value.content || "");
+});
+// Editor mode/language
+const editorLanguageMode = computed(() => {
+  if (props.viewerMode) {
+    return getAceMode(props.editorMode);
+  }
+  if (!isStateSynced.value || !req.value) {
+    return "ace/mode/text";
+  }
 
-    window.removeEventListener("keydown", this.keyEvent, true);
-    if (this.beforeUnloadHandler) {
-      window.removeEventListener("beforeunload", this.beforeUnloadHandler);
-    }
+  return modelist.getModeForPath(req.value.name ?? "").mode;
+});
+// Editor read-only state
+const editorReadOnly = computed(() => {
+  if (!props.viewerMode && !permissions.value.modify) {
+    return true;
+  }
+  if (props.readOnly !== null) {
+    return props.readOnly;
+  }
+  if (props.viewerMode) {
+    return true;
+  }
+  if (!isStateSynced.value) {
+    return true; // Read-only until synced
+  }
+  return req.value.type === "textImmutable";
+});
+const isMarkdownFile = computed(() => {
+  if (props.viewerMode) return false;
+  const type = req.value?.type;
+  return type === "text/markdown" || type === "text/x-markdown";
+});
+const showEditorToolbar = computed(() => !editorReadOnly.value);
+const isSplitActive = computed(() =>
+  !props.viewerMode && isMarkdownFile.value && state.editor.markdownSplitView && !getters.isMobile() && permissions.value.modify
+);
+const editorAceOptions = computed(() => ({
+  keybinding: editorConfig.keybinding,
+  tabSize: editorConfig.tabSize,
+  overscroll: editorConfig.overscroll,
+  indentedSoftWrap: editorConfig.indentedSoftWrap,
+  showIndentGuides: editorConfig.showIndentGuides,
+  showGutter: editorConfig.showGutter,
+  fixedGutterWidth: editorConfig.fixedGutterWidth,
+  showLineNumbers: editorConfig.showLineNumbers,
+  relativeLineNumbers: editorConfig.relativeLineNumbers,
+  customScrollbar: editorConfig.customScrollbar,
+  enableAutocompletion: editorConfig.enableAutocompletion,
+  enableLiveAutocompletion: editorConfig.enableAutocompletion && editorConfig.enableLiveAutocompletion,
+}));
 
-    if (this.editor) {
-      this.editor.session.off('changeScrollTop', this.handleEditorScroll);
-    }
+// Lock saves during navigation transitions
+watch(() => state.navigation.isTransitioning, (isTransitioning) => {
+  if (isTransitioning && !props.viewerMode) {
+    saveLocked = true;
+  } else if (!isTransitioning && !props.viewerMode) {
+    // Unlock after a short delay to ensure req is fully loaded
+    scheduleSaveUnlock(300);
+  }
+});
 
-    // Clear navigation guard
-    if (this.navigationGuard) {
-      this.navigationGuard();
-    }
-
-    // Clear dirty state and save handler when leaving editor
+// Update originalReq and lock saves when req changes during navigation
+watch(req, (newReq, oldReq) => {
+  if (!props.viewerMode && newReq && (newReq.path !== oldReq?.path || newReq.source !== oldReq.source)) {
+    // Update originalReq to the new file
+    originalReq.value = newReq;
+    isDirty = false; // Reset dirty flag for new file
     mutations.setEditorDirty(false);
-    mutations.setEditorSaveHandler(null);
-    mutations.setEditorStats({ lines: 0, words: 0, chars: 0 });
-  },
-  unmounted() {
-    this.resizeContainerEl?.removeEventListener("keydown", this.stopEnterPropagation);
-    this.resizeContainerEl = null;
-    if (this.editor) {
-      this.editor.destroy();
-      this.editor = null;
+    mutations.setEditorJsonFormatted(false);
+    mutations.resetEditorScrollRatio(newReq.path ?? "");
+    // Lock saves temporarily
+    saveLocked = true;
+    currentReqPath = newReq.path ?? null;
+    // Unlock after content loads
+    scheduleSaveUnlock(500);
+  }
+});
+
+// Update editor content reactively
+watch(editorContent, async (newContent) => {
+  if (editor.value) {
+    const currentValue = editor.value.getValue();
+    if (currentValue !== newContent) {
+      suppressDirtyTracking = true;
+      editor.value.setValue(newContent, -1); // -1 moves cursor to start
+      editor.value.session.getUndoManager().reset();
+      updateEditorStats();
+      suppressDirtyTracking = false;
     }
-  },
-  mounted: function () {
-    this.resizeContainerEl = (this.$refs.editorRoot as HTMLElement | undefined) || null;
-    this.resizeContainerEl?.addEventListener("keydown", this.stopEnterPropagation); // to avoid trigger prompts primary button when the editor is embedded
-    if (this.viewerMode) {
-      this.$nextTick(() => {
-        this.$nextTick(() => {
-          this.initializeEditor();
-          this.applyFontSize();
-          this.setupViewerResizeObserver();
+    savedContent = newContent;
+    isDirty = false;
+    mutations.setEditorDirty(false);
+    if (isSplitActive.value) {
+      splitView.value?.setLiveContent(newContent);
+    }
+    if (props.viewerMode) {
+      await nextTick();
+      if (editor.value) {
+        editor.value.resize();
+      }
+    }
+  }
+});
+
+// Update editor language mode
+watch(editorLanguageMode, (newMode) => {
+  if (editor.value) {
+    editor.value.session.setMode(newMode);
+  }
+});
+
+// Update read-only state
+watch(editorReadOnly, (isReadOnly) => {
+  if (editor.value) {
+    editor.value.setReadOnly(isReadOnly);
+  }
+});
+
+// Update theme when dark mode changes
+watch(isDarkMode, (newValue) => {
+  if (editor.value) {
+    editor.value.setTheme(newValue ? THEME_DARK : THEME_LIGHT);
+  }
+});
+
+// Initialize navigation when state syncs for file editing
+watch(isStateSynced, (synced) => {
+  if (synced && !props.viewerMode && req.value) {
+    initializeNavigation();
+  }
+});
+
+watch(() => state.editor.scrollRatio, () => {
+  if (props.viewerMode || !isMarkdownFile.value) return;
+  if (state.editor.scrollSource === 'editor') return;
+  splitView.value?.applyScrollRatio(state.editor.scrollRatio);
+});
+
+watch(isSplitActive, async () => {
+  await nextTick();
+  if (editor.value) editor.value.resize();
+});
+
+watch(() => state.editor.fontSize, applyFontSize);
+
+watch(() => editorConfig.wrapEditorContent, applyWrap);
+
+watch(editorAceOptions, (cfg) => applyAceOptions(cfg));
+
+function scheduleSaveUnlock(delay: number) {
+  if (saveUnlockTimer) {
+    clearTimeout(saveUnlockTimer);
+  }
+  saveUnlockTimer = setTimeout(() => {
+    saveUnlockTimer = null;
+    if (!state.navigation.isTransitioning && req.value?.path === currentReqPath) {
+      saveLocked = false;
+    }
+  }, delay);
+}
+
+async function setupViewerResizeObserver() {
+  if (typeof ResizeObserver === "undefined" || !editor.value) {
+    return;
+  }
+  viewerResizeObserver = new ResizeObserver(() => {
+    if (editor.value) {
+      editor.value.resize();
+    }
+  });
+  viewerResizeObserver.observe(editor.value.container);
+  await nextTick();
+  if (editor.value) {
+    editor.value.resize();
+  }
+}
+
+function initializeNavigation() {
+  if (!req.value || req.value.type === 'directory') {
+    return;
+  }
+
+  mutations.resetSelected();
+  mutations.addSelected({
+    name: req.value.name ?? "",
+    path: req.value.path ?? "",
+    size: req.value.size,
+    type: req.value.type,
+    source: req.value.source,
+    modified: req.value.modified,
+    hasPreview: req.value.hasPreview,
+  });
+
+  void updateNavigationForCurrentItem();
+}
+
+async function updateNavigationForCurrentItem() {
+  if (!req.value || req.value.type === 'directory') {
+    return;
+  }
+  let directoryPath = removeLastDir(req.value.path);
+
+  // If directoryPath is empty, the file is in root - use '/' as the directory
+  if (!directoryPath || directoryPath === '') {
+    directoryPath = '/';
+  }
+  let listing: unknown;
+
+  if (req.value.items) {
+    listing = req.value.items;
+  } else if (req.value.parentDirItems) {
+    // Use pre-fetched parent directory items from Files.vue
+    listing = req.value.parentDirItems;
+  } else if (directoryPath !== req.value.path) {
+    // Fetch directory listing (now with '/' for root files)
+    try {
+      let res: { items: unknown; };
+      if (getters.isShare()) {
+        res = await resourcesApi.fetchFilesPublic(directoryPath, state.shareInfo.hash);
+      } else {
+        res = await resourcesApi.fetchFiles(req.value.source, directoryPath);
+      }
+      listing = res.items;
+    } catch (error) {
+      console.error("error Editor.vue", error);
+      listing = [req.value];
+    }
+  } else {
+    listing = [req.value];
+  }
+  mutations.setupNavigation({
+    listing: listing,
+    currentItem: req.value,
+    directoryPath: directoryPath
+  });
+}
+
+function initializeEditor(initialScrollRatio: number = state.editor.scrollRatio) {
+  if (!editorEl.value) {
+    return;
+  }
+  try {
+    ace.config.set(
+      "basePath",
+      `https://cdn.jsdelivr.net/npm/ace-builds@${ace_version}/src-min-noconflict/`
+    );
+
+    const editorInstance = ace.edit(editorEl.value, {
+      mode: editorLanguageMode.value,
+      value: editorContent.value,
+      showPrintMargin: false,
+      showGutter: editorConfig.showGutter,
+      showLineNumbers: editorConfig.showLineNumbers,
+      relativeLineNumbers: editorConfig.relativeLineNumbers,
+      theme: isDarkMode.value ? THEME_DARK : THEME_LIGHT,
+      readOnly: editorReadOnly.value,
+      wrap: !!editorConfig.wrapEditorContent,
+      indentedSoftWrap: editorConfig.indentedSoftWrap,
+      enableMobileMenu: false,
+      enableBasicAutocompletion: editorConfig.enableAutocompletion,
+      enableLiveAutocompletion: editorConfig.enableAutocompletion && editorConfig.enableLiveAutocompletion,
+      enableSnippets: editorConfig.enableAutocompletion,
+      useWorker: true,
+      cursorStyle: "smooth",
+      highlightGutterLine: true,
+      animatedScroll: true,
+      displayIndentGuides: editorConfig.showIndentGuides,
+      fixedWidthGutter: editorConfig.fixedGutterWidth,
+      tabSize: editorConfig.tabSize,
+      scrollPastEnd: editorConfig.overscroll,
+      customScrollbar: editorConfig.customScrollbar,
+      keyboardHandler: editorConfig.keybinding || null,
+      fontSize: `${state.editor.fontSize}px`,
+    });
+    editor.value = editorInstance;
+
+    savedContent = editorContent.value;
+    editorInstance.session.getUndoManager().reset(); // To avoid redo to an empty file on fresh mount
+    editorInstance.commands.removeCommand("showSettingsMenu");
+
+    editorInstance.on('change', () => {
+      if (editor.value !== editorInstance) return;
+      if (suppressDirtyTracking) return;
+      scheduleStatsUpdate(editorInstance);
+      splitView.value?.handleEditorChange();
+    });
+    // Initialize navigation for file editing mode when synced
+    if (isStateSynced.value && !props.viewerMode) {
+      initializeNavigation();
+    }
+    updateEditorStats();
+    editorInstance.selection.on('changeSelection', () => {
+      updateEditorStats();
+    });
+    if (!props.viewerMode) {
+      if (isMarkdownFile.value) {
+        void nextTick().then(() => {
+          if (editor.value !== editorInstance) return;
+          if (isSplitActive.value) {
+            splitView.value?.setLiveContent(editorInstance.getValue());
+          }
+          splitView.value?.applyScrollRatio(initialScrollRatio, true);
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+              if (editor.value !== editorInstance) return;
+              editorInstance.session.on('changeScrollTop', handleEditorScroll);
+            });
+          });
         });
-      });
+      } else {
+        editorInstance.session.on('changeScrollTop', handleEditorScroll);
+      }
+    }
+  } catch (_e) {
+    notify.showError(t("editor.uninitialized"));
+  }
+}
+
+function getValue(): string {
+  return editor.value?.getValue() ?? editorContent.value;
+}
+
+function getAceMode(mode: string): string {
+  switch (mode) {
+    case 'yaml': return 'ace/mode/yaml';
+    case 'json': return 'ace/mode/json';
+    case 'javascript': return 'ace/mode/javascript';
+    case 'typescript': return 'ace/mode/typescript';
+    case 'html': return 'ace/mode/html';
+    case 'css': return 'ace/mode/css';
+    case 'markdown': return 'ace/mode/markdown';
+    case 'text': return 'ace/mode/text';
+    case 'xml': return 'ace/mode/xml';
+    default: return `ace/mode/${mode}`;
+  }
+}
+
+async function handleEditorValueRequest() {
+  // Skip save logic in viewer mode
+  if (props.viewerMode) {
+    return;
+  }
+  // Check if navigation is transitioning
+  if (state.navigation.isTransitioning) {
+    const errorMsg = "Please wait for navigation to complete before saving.";
+    notify.showError(errorMsg);
+    throw new Error(errorMsg);
+  }
+  // Check if save is locked due to req transition
+  if (saveLocked) {
+    const errorMsg = "Please wait a moment before saving.";
+    notify.showError(errorMsg);
+    throw new Error(errorMsg);
+  }
+  // Filename protection - ensure state is synced before saving
+  const original = originalReq.value;
+  if (!isStateSynced.value || !original) {
+    const errorMsg = t("editor.saveAbortedMessage", {
+      activeFile: original?.name || "unknown",
+      tryingToSave: routeFilename.value || "unknown"
+    });
+    notify.showError(errorMsg);
+    throw new Error(errorMsg);
+  }
+  if (!editor.value) {
+    const errorMsg = t("editor.uninitialized");
+    notify.showError(errorMsg);
+    throw new Error(errorMsg);
+  }
+
+  const content = editor.value.getValue();
+  const newBytes = new TextEncoder().encode(content).length;
+  const oldBytes = original.size ?? 0;
+  const quotaPath = removeLastDir(original.path) || "/";
+  if (await rejectPutIfQuotaExceeded(quotaPath, newBytes, oldBytes)) {
+    const errorMsg = t("quotas.errors.exceeded");
+    throw new Error(errorMsg);
+  }
+  if (getters.isShare()) {
+    // Save the file
+    await resourcesApi.putPublic(state.shareInfo.hash, original.path, content);
+  } else {
+    // Save the file
+    await resourcesApi.put(original.source, original.path, content);
+  }
+
+  notify.showSuccessToast(`${original.name} saved successfully.`);
+  savedContent = editor.value.getValue();
+  mutations.setRequestContent(savedContent);
+  isDirty = false;
+  mutations.setEditorDirty(false);
+}
+
+function stopEnterPropagation(event: KeyboardEvent) {
+  if (event.key === "Enter") {
+    event.stopPropagation();
+  }
+}
+
+function keyEvent(event: KeyboardEvent) {
+  const { key, ctrlKey, metaKey } = event;
+  if (getters.currentPromptName()) return;
+  if ((ctrlKey || metaKey) && key === ",") {
+    event.preventDefault();
+    event.stopPropagation();
+    openEditorSettings();
+    return;
+  }
+  // Skip save shortcut in viewer mode
+  if (props.viewerMode) return;
+  if ((ctrlKey || metaKey) && key.toLowerCase() === "s") {
+    event.preventDefault();
+    handleEditorValueRequest().catch(() => { /* ignore */ });
+  }
+}
+
+function openEditorSettings() {
+  mutations.showPrompt({
+    name: "EditorSettings",
+  });
+}
+
+function setupNavigationGuard() {
+  if (props.viewerMode) return;
+
+  navigationGuard = router.beforeEach((to, from, next) => {
+    // If prompt is already open, block any new navigation attempts
+    if (isPromptOpen) {
+      if (getters.currentPromptName() === "SaveBeforeExit") {
+        next(false);
+        return;
+      }
+      isPromptOpen = false;
+      pendingNavigation = null;
+    }
+    // Check if we are navigating to a different route
+    const isDifferentRoute = to.path !== from.path || to.hash !== from.hash;
+
+    if (isDirty && !props.viewerMode && isDifferentRoute && req.value) {
+      next(false);
+      pendingNavigation = to;
+      showSaveBeforeExitPrompt();
       return;
     }
+    next();
+  });
+}
 
-    this.originalReq = this.req;
-    this.currentReqPath = this.req?.path ?? null;
-    if (this.isMarkdownFile && this.req?.path) {
-      mutations.resetEditorScrollRatio(this.req.path);
-    }
-    this.initializeEditor(state.editor.scrollRatio);
-
-    // Register save handler so other components can trigger save
-    mutations.setEditorSaveHandler(() => this.handleEditorValueRequest());
-    this.applyFontSize();
-    this.setupViewerResizeObserver();
-  },
-  methods: {
-    scheduleSaveUnlock(delay: number) {
-      if (this.saveUnlockTimer) {
-        clearTimeout(this.saveUnlockTimer);
-      }
-      this.saveUnlockTimer = setTimeout(() => {
-        this.saveUnlockTimer = null;
-        if (!state.navigation.isTransitioning && this.req?.path === this.currentReqPath) {
-          this.saveLocked = false;
-        }
-      }, delay);
-    },
-    setupViewerResizeObserver() {
-      if (typeof ResizeObserver === "undefined" || !this.editor) {
-        return;
-      }
-      this.viewerResizeObserver = new ResizeObserver(() => {
-        if (this.editor) {
-          this.editor.resize();
-        }
-      });
-      this.viewerResizeObserver.observe(this.editor.container);
-      this.$nextTick(() => {
-        if (this.editor) {
-          this.editor.resize();
-        }
-      });
-    },
-    initializeNavigation() {
-      if (!this.req || this.req.type === 'directory') {
-        return;
-      }
-
-      mutations.resetSelected();
-      mutations.addSelected({
-        name: this.req.name,
-        path: this.req.path,
-        size: this.req.size,
-        type: this.req.type,
-        source: this.req.source,
-        modified: this.req.modified,
-        hasPreview: this.req.hasPreview,
-      });
-
-      void this.updateNavigationForCurrentItem();
-    },
-
-    async updateNavigationForCurrentItem() {
-      if (!this.req || this.req.type === 'directory') {
-        return;
-      }
-
-      let directoryPath = removeLastDir(this.req.path);
-
-      // If directoryPath is empty, the file is in root - use '/' as the directory
-      if (!directoryPath || directoryPath === '') {
-        directoryPath = '/';
-      }
-
-      let listing: unknown;
-
-      if (this.req.items) {
-        listing = this.req.items;
-      } else if (this.req.parentDirItems) {
-        // Use pre-fetched parent directory items from Files.vue
-        listing = this.req.parentDirItems;
-      } else if (directoryPath !== this.req.path) {
-        // Fetch directory listing (now with '/' for root files)
-        try {
-          let res: { items: unknown; };
-          if (getters.isShare()) {
-            res = await resourcesApi.fetchFilesPublic(directoryPath, state.shareInfo.hash);
-          } else {
-            res = await resourcesApi.fetchFiles(this.req.source, directoryPath);
-          }
-          listing = res.items;
-        } catch (error) {
-          console.error("error Editor.vue", error);
-          listing = [this.req];
-        }
-      } else {
-        listing = [this.req];
-      }
-
-      mutations.setupNavigation({
-        listing: listing,
-        currentItem: this.req,
-        directoryPath: directoryPath
-      });
-    },
-    initializeEditor(initialScrollRatio: number = state.editor.scrollRatio) {
-      const editorEl = this.$refs.editorEl as HTMLElement | undefined;
-      if (!editorEl) {
-        return;
-      }
-
+function showSaveBeforeExitPrompt() {
+  isPromptOpen = true;
+  mutations.showPrompt({
+    name: "SaveBeforeExit",
+    pinned: true,
+    confirm: async () => {
       try {
-        ace.config.set(
-          "basePath",
-          `https://cdn.jsdelivr.net/npm/ace-builds@${ace_version}/src-min-noconflict/`
-        );
-
-        this.editor = ace.edit(editorEl, {
-          mode: this.editorLanguageMode,
-          value: this.editorContent,
-          showPrintMargin: false,
-          showGutter: editorConfig.showGutter,
-          showLineNumbers: editorConfig.showLineNumbers,
-          relativeLineNumbers: editorConfig.relativeLineNumbers,
-          theme: this.isDarkMode ? THEME_DARK : THEME_LIGHT,
-          readOnly: this.editorReadOnly,
-          wrap: !!editorConfig.wrapEditorContent,
-          enableMobileMenu: false,
-          enableBasicAutocompletion: editorConfig.enableAutocompletion,
-          enableLiveAutocompletion: editorConfig.enableAutocompletion && editorConfig.enableLiveAutocompletion,
-          enableSnippets: editorConfig.enableAutocompletion,
-          useWorker: true,
-          cursorStyle: "smooth",
-          highlightGutterLine: true,
-          animatedScroll: true,
-          displayIndentGuides: editorConfig.showIndentGuides,
-          fixedWidthGutter: editorConfig.fixedGutterWidth,
-          tabSize: editorConfig.tabSize,
-          scrollPastEnd: editorConfig.overscroll,
-          customScrollbar: editorConfig.customScrollbar,
-          keyboardHandler: editorConfig.keybinding || null,
-          fontSize: `${state.editor.fontSize}px`,
-        });
-
-        this.savedContent = this.editorContent;
-        this.editor.session.getUndoManager().reset(); // To avoid redo to an empty file on fresh mount
-        this.editor.commands.removeCommand("showSettingsMenu");
-
-        const editorInstance = this.editor;
-        editorInstance.on('change', () => {
-          if (this.editor !== editorInstance) return;
-          if (this.suppressDirtyTracking) return;
-          this.scheduleStatsUpdate(editorInstance);
-          (this.$refs.splitView as InstanceType<typeof MarkdownSplitView> | undefined)?.handleEditorChange();
-        });
-
-        // Initialize navigation for file editing mode when synced
-        if (this.isStateSynced && !this.viewerMode) {
-          this.initializeNavigation();
-        }
-        this.updateEditorStats();
-        this.editor.selection.on('changeSelection', () => {
-          this.updateEditorStats();
-        });
-        if (!this.viewerMode) {
-          if (this.isMarkdownFile) {
-            this.$nextTick(() => {
-              if (this.editor !== editorInstance) return;
-              if (this.isSplitActive) {
-                (this.$refs.splitView as InstanceType<typeof MarkdownSplitView> | undefined)?.setLiveContent(editorInstance.getValue());
-              }
-              (this.$refs.splitView as InstanceType<typeof MarkdownSplitView> | undefined)?.applyScrollRatio(initialScrollRatio, true);
-              requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-                  if (this.editor !== editorInstance) return;
-                  editorInstance.session.on('changeScrollTop', this.handleEditorScroll);
-                });
-              });
-            });
-          } else {
-            this.editor.session.on('changeScrollTop', this.handleEditorScroll);
-          }
-        }
+        await handleEditorValueRequest();
       } catch (_e) {
-        notify.showError(this.$t("editor.uninitialized"));
-      }
-    },
-    getValue(): string {
-      return this.editor?.getValue() ?? this.editorContent;
-    },
-    getAceMode(mode: string): string {
-      switch (mode) {
-        case 'yaml': return 'ace/mode/yaml';
-        case 'json': return 'ace/mode/json';
-        case 'javascript': return 'ace/mode/javascript';
-        case 'typescript': return 'ace/mode/typescript';
-        case 'html': return 'ace/mode/html';
-        case 'css': return 'ace/mode/css';
-        case 'markdown': return 'ace/mode/markdown';
-        case 'text': return 'ace/mode/text';
-        case 'xml': return 'ace/mode/xml';
-        default: return `ace/mode/${mode}`;
-      }
-    },
-    async handleEditorValueRequest() {
-      // Skip save logic in viewer mode
-      if (this.viewerMode) {
+        isPromptOpen = false;
         return;
       }
-
-      // Check if navigation is transitioning
-      if (state.navigation.isTransitioning) {
-        const errorMsg = "Please wait for navigation to complete before saving.";
-        notify.showError(errorMsg);
-        throw new Error(errorMsg);
-      }
-
-      // Check if save is locked due to req transition
-      if (this.saveLocked) {
-        const errorMsg = "Please wait a moment before saving.";
-        notify.showError(errorMsg);
-        throw new Error(errorMsg);
-      }
-
-      // Filename protection - ensure state is synced before saving
-      if (!this.isStateSynced) {
-        const errorMsg = this.$t("editor.saveAbortedMessage", {
-          activeFile: this.originalReq?.name || "unknown",
-          tryingToSave: this.routeFilename || "unknown"
-        });
-        notify.showError(errorMsg);
-        throw new Error(errorMsg);
-      }
-
-      if (!this.editor) {
-        const errorMsg = this.$t("editor.uninitialized");
-        notify.showError(errorMsg);
-        throw new Error(errorMsg);
-      }
-
-      const content = this.editor.getValue();
-      const newBytes = new TextEncoder().encode(content).length;
-      const oldBytes = this.originalReq?.size ?? 0;
-      const quotaPath = removeLastDir(this.originalReq.path) || "/";
-      if (await rejectPutIfQuotaExceeded(quotaPath, newBytes, oldBytes)) {
-        const errorMsg = this.$t("quotas.errors.exceeded");
-        throw new Error(errorMsg);
-      }
-
-      if (getters.isShare()) {
-        // Save the file
-        await resourcesApi.putPublic(state.shareInfo.hash, this.originalReq.path, content);
-      } else {
-        // Save the file
-        await resourcesApi.put(this.originalReq.source, this.originalReq.path, content);
-      }
-
-      notify.showSuccessToast(`${this.originalReq.name} saved successfully.`);
-      this.savedContent = this.editor.getValue();
-      mutations.setRequestContent(this.savedContent);
-      this.isDirty = false;
+      isDirty = false;
       mutations.setEditorDirty(false);
+      executePendingNavigation();
     },
-    stopEnterPropagation(event: KeyboardEvent) {
-      if (event.key === "Enter") {
-        event.stopPropagation();
-      }
+    discard: () => {
+      // Discard changes and exit
+      isDirty = false;
+      mutations.setEditorDirty(false);
+      executePendingNavigation();
     },
-    async keyEvent(event: KeyboardEvent) {
-      const { key, ctrlKey, metaKey } = event;
-      if (getters.currentPromptName()) return;
-      if ((ctrlKey || metaKey) && key === ",") {
-        event.preventDefault();
-        event.stopPropagation();
-        this.openEditorSettings();
-        return;
-      }
-      // Skip save shortcut in viewer mode
-      if (this.viewerMode) return;
+    cancel: () => {
+      // Keep editing - block navigation
+      cancelPendingNavigation();
+    },
+  });
+}
 
-      if ((ctrlKey || metaKey) && key.toLowerCase() === "s") {
-        event.preventDefault();
-        try {
-          await this.handleEditorValueRequest();
-        } catch (_e) {
-          // ignore
-        }
-      }
-    },
-    openEditorSettings() {
-      mutations.showPrompt({
-        name: "EditorSettings",
-      });
-    },
-    setupNavigationGuard() {
-      if (this.viewerMode) return;
+function executePendingNavigation() {
+  isPromptOpen = false;
+  const target = pendingNavigation;
+  pendingNavigation = null;
+  if (target) {
+    void router.push(target.fullPath);
+  }
+}
 
-      this.navigationGuard = this.$router.beforeEach((to, from, next) => {
-        // If prompt is already open, block any new navigation attempts
-        if (this.isPromptOpen) {
-          if (getters.currentPromptName() === "SaveBeforeExit") {
-            next(false);
-            return;
-          }
-          this.isPromptOpen = false;
-          this.pendingNavigation = null;
-        }
+function cancelPendingNavigation() {
+  isPromptOpen = false;
+  pendingNavigation = null;
+}
 
-        // Check if we are navigating to a different route
-        const isDifferentRoute = to.path !== from.path || to.hash !== from.hash;
+function getSelectedStats() {
+  if (!editor.value) return undefined;
+  const session = editor.value.session;
+  const selectionRange = editor.value.selection.getRange();
+  const isSelectionEmpty =
+    selectionRange.start.row === selectionRange.end.row &&
+    selectionRange.start.column === selectionRange.end.column;
 
-        if (this.isDirty && !this.viewerMode && isDifferentRoute && this.req) {
-          next(false);
-          this.pendingNavigation = to;
-          this.showSaveBeforeExitPrompt();
-          return;
-        }
-        next();
-      });
-    },
-    showSaveBeforeExitPrompt() {
-      this.isPromptOpen = true;
-      mutations.showPrompt({
-        name: "SaveBeforeExit",
-        pinned: true,
-        confirm: async () => {
-          try {
-            await this.handleEditorValueRequest();
-          } catch (_e) {
-            this.isPromptOpen = false;
-            return;
-          }
-          this.isDirty = false;
-          mutations.setEditorDirty(false);
-          this.executePendingNavigation();
-        },
-        discard: () => {
-          // Discard changes and exit
-          this.isDirty = false;
-          mutations.setEditorDirty(false);
-          this.executePendingNavigation();
-        },
-        cancel: () => {
-          // Keep editing - block navigation
-          this.cancelPendingNavigation();
-        },
-      });
-    },
-    executePendingNavigation() {
-      this.isPromptOpen = false;
-      const target = this.pendingNavigation;
-      this.pendingNavigation = null;
-      if (target) {
-        this.$router.push(target.fullPath);
-      }
-    },
-    cancelPendingNavigation() {
-      this.isPromptOpen = false;
-      this.pendingNavigation = null;
-    },
-    getSelectedStats() {
-      if (!this.editor) return undefined;
-      const session = this.editor.session;
-      const selectionRange = this.editor.selection.getRange();
-      const isSelectionEmpty =
-        selectionRange.start.row === selectionRange.end.row &&
-        selectionRange.start.column === selectionRange.end.column;
+  let text: string, lines: number;
+  if (!isSelectionEmpty) {
+    text = editor.value.getSelectedText();
+    lines = text ? text.split('\n').length : 0;
+  } else {
+    text = session.getValue();
+    lines = session.getLength();
+  }
 
-      let text, lines;
-      if (!isSelectionEmpty) {
-        text = this.editor.getSelectedText();
-        lines = text ? text.split('\n').length : 0;
-      } else {
-        text = session.getValue();
-        lines = session.getLength();
-      }
+  const chars = text.length;
+  const validWord = text.split(/\s+/).filter((word: string) => /[a-zA-Z0-9]/.test(word));
+  const words = validWord.length;
 
-      const chars = text.length;
-      const validWord = text.split(/\s+/).filter((t: string) => /[a-zA-Z0-9]/.test(t));
-      const words = validWord.length;
+  return { lines, words, chars };
+}
 
-      return { lines, words, chars };
-    },
-    updateEditorStats() {
-      if (!this.editor) return;
-      const stats = this.getSelectedStats();
-      if (!stats) return;
-      const { lines, words, chars } = stats;
-      const isMarkdown = this.isMarkdownFile;
-      if (isMarkdown) {
-        mutations.setEditorStats({ lines, words, chars });
-      } else {
-        // For other files, show only lines
-        // Just lines because will be a bit misleading to count words if we are viewing code for example
-        mutations.setEditorStats({ lines, words: null, chars: null });
+function updateEditorStats() {
+  if (!editor.value) return;
+  const stats = getSelectedStats();
+  if (!stats) return;
+  const { lines, words, chars } = stats;
+  if (isMarkdownFile.value) {
+    mutations.setEditorStats({ lines, words, chars });
+  } else {
+    // For other files, show only lines
+    // Just lines because will be a bit misleading to count words if we are viewing code for example
+    mutations.setEditorStats({ lines, words: null, chars: null });
+  }
+}
+
+function scheduleStatsUpdate(editorInstance?: Ace.Editor) {
+  if (statsUpdateTimer) {
+    clearTimeout(statsUpdateTimer);
+  }
+  statsUpdateTimer = setTimeout(() => {
+    statsUpdateTimer = null;
+    updateEditorStats();
+    if (editorInstance && editor.value === editorInstance) {
+      const dirty = editorInstance.getValue() !== savedContent;
+      if (isDirty !== dirty) {
+        isDirty = dirty;
+        mutations.setEditorDirty(dirty);
       }
-    },
-    scheduleStatsUpdate(editorInstance?: Ace.Editor) {
-      if (this.statsUpdateTimer) {
-        clearTimeout(this.statsUpdateTimer);
-      }
-      this.statsUpdateTimer = setTimeout(() => {
-        this.statsUpdateTimer = null;
-        this.updateEditorStats();
-        if (editorInstance && this.editor === editorInstance) {
-          const dirty = editorInstance.getValue() !== this.savedContent;
-          if (this.isDirty !== dirty) {
-            this.isDirty = dirty;
-            mutations.setEditorDirty(dirty);
-          }
-        }
-      }, 150);
-    },
-    applyFontSize() {
-      if (this.editor) {
-        this.editor.setOption('fontSize', `${state.editor.fontSize}px`);
-      }
-    },
-    applyWrap() {
-      if (this.editor) {
-        this.editor.setOption('wrap', !!editorConfig.wrapEditorContent);
-      }
-    },
-    applyAceOptions(cfg = editorConfig) {
-      if (!this.editor) return;
-      const wasRelative = this.editor.getOption('relativeLineNumbers');
-      this.editor.setOption('keyboardHandler', cfg.keybinding || null);
-      this.editor.setOption('tabSize', cfg.tabSize);
-      this.editor.setOption('scrollPastEnd', cfg.overscroll);
-      this.editor.setOption('displayIndentGuides', cfg.showIndentGuides);
-      this.editor.setOption('showGutter', cfg.showGutter);
-      this.editor.setOption('fixedWidthGutter', cfg.fixedGutterWidth);
-      this.editor.setOption('showLineNumbers', cfg.showLineNumbers);
-      this.editor.setOption('relativeLineNumbers', cfg.relativeLineNumbers);
-      this.editor.setOption('customScrollbar', cfg.customScrollbar);
-      this.editor.setOption('enableBasicAutocompletion', cfg.enableAutocompletion);
-      this.editor.setOption('enableLiveAutocompletion', cfg.enableAutocompletion && cfg.enableLiveAutocompletion);
-      this.editor.setOption('enableSnippets', cfg.enableAutocompletion);
-      if (wasRelative && !cfg.relativeLineNumbers && cfg.showLineNumbers) {
-        const gutterLayer = (this.editor.renderer as unknown as AceRendererInternal).$gutterLayer;
-        if (gutterLayer?.$renderer) {
-          gutterLayer.$renderer = null;
-        }
-      }
-    },
-    handleEditorScroll() {
-      (this.$refs.splitView as InstanceType<typeof MarkdownSplitView> | undefined)?.handleEditorScroll();
-    },
-  },
+    }
+  }, 150);
+}
+
+function applyFontSize() {
+  if (editor.value) {
+    editor.value.setOption('fontSize', `${state.editor.fontSize}px`);
+  }
+}
+
+function applyWrap() {
+  if (editor.value) {
+    editor.value.setOption('wrap', !!editorConfig.wrapEditorContent);
+  }
+}
+
+function applyAceOptions(cfg: Omit<EditorConfig, "wrapEditorContent"> = editorConfig) {
+  if (!editor.value) return;
+  const wasRelative = editor.value.getOption('relativeLineNumbers');
+  editor.value.setOption('keyboardHandler', cfg.keybinding || null);
+  editor.value.setOption('tabSize', cfg.tabSize);
+  editor.value.setOption('scrollPastEnd', cfg.overscroll);
+  editor.value.setOption('indentedSoftWrap', cfg.indentedSoftWrap);
+  editor.value.setOption('displayIndentGuides', cfg.showIndentGuides);
+  editor.value.setOption('showGutter', cfg.showGutter);
+  editor.value.setOption('fixedWidthGutter', cfg.fixedGutterWidth);
+  editor.value.setOption('showLineNumbers', cfg.showLineNumbers);
+  editor.value.setOption('relativeLineNumbers', cfg.relativeLineNumbers);
+  editor.value.setOption('customScrollbar', cfg.customScrollbar);
+  editor.value.setOption('enableBasicAutocompletion', cfg.enableAutocompletion);
+  editor.value.setOption('enableLiveAutocompletion', cfg.enableAutocompletion && cfg.enableLiveAutocompletion);
+  editor.value.setOption('enableSnippets', cfg.enableAutocompletion);
+  if (wasRelative && !cfg.relativeLineNumbers && cfg.showLineNumbers) {
+    const gutterLayer = (editor.value.renderer as unknown as AceRendererInternal).$gutterLayer;
+    if (gutterLayer?.$renderer) {
+      gutterLayer.$renderer = null;
+    }
+  }
+}
+
+function handleEditorScroll() {
+  splitView.value?.handleEditorScroll();
+}
+
+// Show generic browser dialog if the user closes the tab, or try to close the browser with unsaved changes
+const beforeUnloadHandler = (event: BeforeUnloadEvent) => {
+  if (isDirty && !props.viewerMode) {
+    event.preventDefault();
+  }
 };
 
+window.addEventListener("keydown", keyEvent, true);
+window.addEventListener("beforeunload", beforeUnloadHandler);
+setupNavigationGuard();
+
+onMounted(async () => {
+  resizeContainerEl.value = editorRoot.value;
+  resizeContainerEl.value?.addEventListener("keydown", stopEnterPropagation); // to avoid trigger prompts primary button when the editor is embedded
+  if (props.viewerMode) {
+    await nextTick();
+    await nextTick();
+    initializeEditor();
+    applyFontSize();
+    void setupViewerResizeObserver();
+    return;
+  }
+
+  originalReq.value = req.value;
+  currentReqPath = req.value?.path ?? null;
+  if (isMarkdownFile.value && req.value?.path) {
+    mutations.resetEditorScrollRatio(req.value.path);
+  }
+  initializeEditor(state.editor.scrollRatio);
+  // Register save handler so other components can trigger save
+  mutations.setEditorSaveHandler(() => handleEditorValueRequest());
+  applyFontSize();
+  void setupViewerResizeObserver();
+});
+
+onBeforeUnmount(() => {
+  if (saveUnlockTimer) {
+    clearTimeout(saveUnlockTimer);
+    saveUnlockTimer = null;
+  }
+  if (statsUpdateTimer) {
+    clearTimeout(statsUpdateTimer);
+    statsUpdateTimer = null;
+  }
+  if (viewerResizeObserver) {
+    viewerResizeObserver.disconnect();
+    viewerResizeObserver = null;
+  }
+
+  window.removeEventListener("keydown", keyEvent, true);
+  window.removeEventListener("beforeunload", beforeUnloadHandler);
+
+  if (editor.value) {
+    editor.value.session.off('changeScrollTop', handleEditorScroll);
+  }
+  // Clear navigation guard
+  if (navigationGuard) {
+    navigationGuard();
+  }
+  // Clear dirty state and save handler when leaving editor
+  mutations.setEditorDirty(false);
+  mutations.setEditorSaveHandler(null);
+  mutations.setEditorStats({ lines: 0, words: 0, chars: 0 });
+});
+
+onUnmounted(() => {
+  resizeContainerEl.value?.removeEventListener("keydown", stopEnterPropagation);
+  resizeContainerEl.value = null;
+  if (editor.value) {
+    editor.value.destroy();
+    editor.value = null;
+  }
+});
+
+defineExpose({ getValue });
 </script>
 
 <style scoped>
@@ -938,7 +918,7 @@ export default {
 
 .ace_editor .ace_search .ace_button:hover,
 .ace_editor .ace_search .ace_searchbtn:hover {
-  background-color: var(--surfaceSecondary);
+  background-color: var(--hoverOverlay);
 }
 
 .ace_editor.ace_autocomplete .ace_marker-layer .ace_active-line {

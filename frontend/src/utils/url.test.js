@@ -124,6 +124,44 @@ describe('extractSourceFromPath', () => {
       { url: "/files/default/root/folder1/file1.txt", expected: { source: "default", path: "/root/folder1/file1.txt" } },
       { url: "/files/first/root/file1.txt", expected: { source: "first", path: "/root/file1.txt" } },
       { url: "/files/second/root/folder1/file1.txt", expected: { source: "second", path: "/root/folder1/file1.txt" } },
+      { url: "/graham/", expected: { source: "graham", path: "/" } },
+      { url: "/files/files/graham/docs", expected: { source: "graham", path: "/docs" } },
+      { url: "/files/files/docs", expected: { source: "files", path: "/docs" } },
+      { url: "/files/files/", expected: { source: "files", path: "/" } },
+    ];
+
+    for (const test of tests) {
+      const result = extractSourceFromPath(test.url);
+      expect(result.source).toEqual(test.expected.source);
+      expect(result.path).toEqual(test.expected.path);
+    }
+  });
+
+  it('preserves source named "files" when it is a configured source', () => {
+    // knownSources tells the function that "files" is a real source, not a doubled prefix.
+    const knownSources = ["files"];
+    const tests = [
+      // Source named "files" with a single subfolder — source must not be stripped.
+      { url: "/files/files/subfolder", expected: { source: "files", path: "/subfolder" } },
+      // Source named "files" with a nested subfolder — this is the bug: without the fix the
+      // heuristic (parts.length > i+2) incorrectly strips "files" and returns source="subfolder".
+      { url: "/files/files/subfolder/nested", expected: { source: "files", path: "/subfolder/nested" } },
+      // Root of a source named "files".
+      { url: "/files/files/", expected: { source: "files", path: "/" } },
+    ];
+
+    for (const test of tests) {
+      const result = extractSourceFromPath(test.url, knownSources);
+      expect(result.source).toEqual(test.expected.source);
+      expect(result.path).toEqual(test.expected.path);
+    }
+  });
+
+  it('strips the doubled route-prefix when "files" is not a configured source', () => {
+    // Without knownSources containing "files", the heuristic strips the extra segment.
+    const tests = [
+      { url: "/files/files/graham/docs", expected: { source: "graham", path: "/docs" } },
+      { url: "/files/files/mysource/a/b", expected: { source: "mysource", path: "/a/b" } },
     ];
 
     for (const test of tests) {

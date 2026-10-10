@@ -1,10 +1,11 @@
 import { reactive } from 'vue';
-import { getObjectProperty } from './object';
+import { getObjectProperty } from "./object.js";
 
 const STORAGE_KEY = 'editorConfig';
 
 export interface EditorConfig {
   wrapEditorContent: boolean;
+  indentedSoftWrap: boolean;
   keybinding: string;
   tabSize: number;
   overscroll: number;
@@ -20,6 +21,7 @@ export interface EditorConfig {
 
 const DEFAULTS: EditorConfig = {
   wrapEditorContent: false,
+  indentedSoftWrap: false,
   keybinding: '',
   tabSize: 4,
   overscroll: 0,

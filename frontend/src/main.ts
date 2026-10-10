@@ -1,12 +1,13 @@
 import { createApp } from "vue";
-import i18n from "@/i18n";
-import { state } from "@/store"; // Adjust the path as per your setup
-import App from "./App.vue"; // Adjust the path as per your setup
-import router from "./router"; // Adjust the path as per your setup
+import i18n from "@/i18n/index.ts";
+import { state } from "@/store/index.ts";
+// biome-ignore lint/correctness/noUnresolvedImports: disabled temporarily
+import App from "./App.vue";
+import { router } from "./router/index.ts";
 
 import "./css/styles.css";
-import { initPwaInstall } from "@/utils/pwaInstall";
-import { defaultDarkMode, syncDocumentTheme } from "@/utils/theme";
+import { initPwaInstall } from "@/utils/pwaInstall.js";
+import { defaultDarkMode, syncDocumentTheme } from "@/utils/theme.js";
 import { initViewportLayoutListener } from "@/utils/viewport.js";
 
 initPwaInstall();

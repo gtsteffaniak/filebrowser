@@ -11,7 +11,8 @@
     </div>
     <ul v-if="effectiveNodes?.length" class="tree-list">
       <li v-for="node in effectiveNodes" :key="node.path" class="tree-item">
-        <div
+        <a
+          :href="getNodeUrl(node)"
           class="tree-node"
           :class="{
             'current-item': isCurrentItem(node),
@@ -20,7 +21,7 @@
             'context-item': isSelected(node),
             'hidden-file': node.isHidden,
           }"
-          @click="handleNodeClick(node)"
+          @click="onNodeClick($event, node)"
           @contextmenu.prevent="handleContextMenu($event, node)"
           @dragover.prevent="handleDragOver($event, node)"
           @dragleave.prevent="handleDragLeave($event, node)"
@@ -30,7 +31,7 @@
           <span
             v-if="node.isDir"
             class="expand-icon"
-            @click.stop="toggleExpand(node, true)"
+            @click.stop.prevent="toggleExpand(node, true)"
           >
             <i class="material-symbols">
               {{ node.expanded ? 'expand_more' : 'chevron_right' }} <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
@@ -46,7 +47,7 @@
           <span class="node-name" :title="node.name">
             {{ node.name }}
           </span>
-        </div>
+        </a>
         <!-- Recursive children if expanded -->
         <FileTree
           v-if="node.expanded && node.children && node.children.length > 0"
@@ -81,7 +82,7 @@ import Icon from '@/components/files/Icon.vue';
 import LoadingSpinner from '@/components/LoadingSpinner.vue';
 import { state, getters, mutations } from '@/store';
 import { eventBus } from '@/store/eventBus';
-import { goToItem, joinPath } from '@/utils/url';
+import { buildItemUrl, goToItem, joinPath } from '@/utils/url';
 import { goToItemNotificationButton } from '@/utils/notificationActions';
 import { notify } from '@/notify';
 import { notifyMoveCopyFailure } from '@/utils/appNotifications';
@@ -208,7 +209,9 @@ export default {
   },
   beforeUnmount() {
     // Clear all expand timeouts
-    this.expandTimeouts.forEach(timeout => { clearTimeout(timeout); });
+    for (const timeout of this.expandTimeouts.values()) {
+      clearTimeout(timeout);
+    }
     this.expandTimeouts.clear();
     if (this.unwatchReload) {
       this.unwatchReload();
@@ -313,6 +316,23 @@ export default {
       if (this.expanding || !this.rootLoaded || !this.pendingExpandPath) return;
       await this.expandToPath(this.pendingExpandPath);
       this.pendingExpandPath = null;
+    },
+
+    getNodeUrl(node) {
+      const source = node.source || this.currentSource;
+      return buildItemUrl(source, node.path, true);
+    },
+
+    /** @param {MouseEvent} event */
+    onNodeClick(event, node) {
+      if (event.button !== 0) {
+        return;
+      }
+      if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) {
+        return;
+      }
+      event.preventDefault();
+      this.handleNodeClick(node);
     },
 
     handleNodeClick(node) {
@@ -489,7 +509,9 @@ export default {
       this.rootNodes.forEach(clearNode);
 
       // Clear all pending expand timeouts
-      this.expandTimeouts.forEach(timeout => { clearTimeout(timeout); });
+      for (const timeout of this.expandTimeouts.values()) {
+        clearTimeout(timeout);
+      }
       this.expandTimeouts.clear();
     },
 
@@ -718,6 +740,8 @@ export default {
   width: 100%;
   box-sizing: border-box;
   position: relative;
+  text-decoration: none;
+  color: inherit;
 }
 
 .tree-node.hidden-file {

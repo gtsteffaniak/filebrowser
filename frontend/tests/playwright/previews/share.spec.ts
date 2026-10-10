@@ -1,4 +1,4 @@
-import { expect, test } from "../test-setup";
+import { expect, test, waitForListing3dThumbnails } from "../test-setup.ts";
 
 // 3d file thumbnails work
 test("3d file preview thumbnails in share", async({ page, checkForErrors }) => {
@@ -19,8 +19,8 @@ test("3d file preview thumbnails in share", async({ page, checkForErrors }) => {
     await page.locator('a[aria-label="Lowpoly_tree_sample.dae"] .threejs-viewer .loading-overlay').waitFor({ state: 'visible' });
     await page.locator('a[aria-label="Lowpoly_tree_sample.dae"] .threejs-viewer canvas').waitFor({ state: 'visible' });
 
-    // wait 2 seconds
-    await page.waitForTimeout(2000);
+    // wait for all thumbnails to finish loading and rendering
+    await waitForListing3dThumbnails(page);
     // Check for console errors
     checkForErrors();
 });
@@ -33,7 +33,7 @@ test("3d file preview next/previous", async ({ page, checkForErrors }) => {
     if (shareHash === "") {
         throw new Error("Share hash not found in localStorage");
     }
-    
+
     // Go directly to a 3D model file in the share
     await page.goto(`/public/share/${shareHash}/3dmodels/Lowpoly_tree_sample.dae`);
     await expect(page).toHaveTitle("Graham's Filebrowser - Share - Lowpoly_tree_sample.dae");

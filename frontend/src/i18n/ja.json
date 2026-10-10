@@ -43,12 +43,15 @@
     "requestTimedOut": "リクエストがタイムアウトしました。ネットワークまたはリバースプロキシの設定を確認してください。"
   },
   "files": {
+    "sortByCreationTime": "作成日時で並べ替え",
+    "creationTime": "作成日時",
     "emptyFile": "空のファイル",
     "lastModified": "最終変更",
     "multipleSelectionEnabled": "複数選択有効",
     "sortByLastModified": "最終変更日付によるソート",
     "sortByName": "名前によるソート",
     "sortBySize": "サイズによるソート",
+    "sortByType": "種類で並べ替え",
     "noPreview": "このファイルではプレビューは利用できません。",
     "noDownloadAccess": "ダウンロードはできません。",
     "newFile": "新規ファイル{suffix}",
@@ -146,7 +149,11 @@
     "failedLogin": "ログインに失敗しました",
     "invalidCredentials": "無効な認証情報が提供された",
     "passkeyLogin": "パスキーを使用",
-    "recaptchaRequired": "Recaptcha認証が必要です"
+    "recaptchaRequired": "Recaptcha認証が必要です",
+    "requirePasswordChangeTitle": "パスワードを変更する",
+    "requirePasswordChangeInstructions": "続行するには、新しいパスワードを設定する必要があります。",
+    "requirePasswordChangeSuccess": "パスワードが更新されました。これでログインが完了しました。",
+    "requirePasswordChangeMustDiffer": "新しいパスワードは、現在のパスワードとは異なるものにしてください"
   },
   "prompts": {
     "noTemplate": "テンプレートが空です！",
@@ -235,6 +242,15 @@
     "unarchiveMessage": "アーカイブを展開する場所を選択します。",
     "unarchiveDestination": "に抜粋する：",
     "unarchiveSuccess": "アーカイブは正常に抽出されました！",
+    "zipFilenameEncoding": "ファイル名の文字コード",
+    "zipEncodingLoading": "ZIP内のファイル名を確認しています…",
+    "zipEncodingError": "ZIPのファイル名プレビューを読み込めませんでした。",
+    "zipEncodingRetry": "プレビューを再取得",
+    "zipEncodingChoose": "文字コードを選択してください",
+    "zipEncodingSuggested": "推定",
+    "zipEncodingHint": "展開前に以下のファイル名を確認してください。推定は正確でない場合があります。ZIP内のUnicode情報が優先されます。",
+    "zipFilenamePreview": "ファイル名のプレビュー",
+    "zipEncodingUnavailable": "このZIPのすべてのファイル名を変換できる文字コードがありません。",
     "downloadFailed": "チャンクダウンロードに失敗しました - これが繰り返される場合は、チャンクサイズを小さくしてみてください：{message}",
     "confirmPasswordToSaveUser": "現在のパスワードを入力して、ユーザーの変更を保存します。"
   },
@@ -313,7 +329,10 @@
     "userEditPreferences": "ユーザー設定",
     "userEditTools": "ツールへのアクセス",
     "userEditToolsDescription": "このユーザーがアクセスできるツールを設定する",
-    "userEditSidebarLinks": "サイドバーのリンク"
+    "userEditSidebarLinks": "サイドバーのリンク",
+    "passwordRequirementsMatch": "パスワードが一致しています",
+    "passwordRequirementsMinLength": "{min} 文字以上",
+    "requirePasswordChange": "次回のログイン時にパスワードの変更を必須にする"
   },
   "sidebar": {
     "updateIsAvailable": "アップデートが利用可能です！",
@@ -356,7 +375,9 @@
     "sidebarLinkDefaultsHelp": "これらは、すべての新規ユーザーに対して追加されるデフォルトのリンクです。リンクを必須設定にすると、すべてのユーザーに追加され、管理者以外のユーザーは削除できなくなります。",
     "sidebarLinkDefaultSourceHelp": "ユーザーがこの情報源にアクセスできる場合にのみ適用されます。",
     "sidebarLinkDefaultsYamlInvalid": "YAMLが不正です。形式を確認して、もう一度試してください。",
-    "switchMode": "リンクとナビゲーションツリーを切り替える"
+    "switchMode": "リンクとナビゲーションツリーを切り替える",
+    "rootFilesystemOnly": "ディスク使用量をソースファイルシステムに制限する",
+    "rootFilesystemOnlyDescription": "有効にすると、ソースパスを含むファイルシステムのみが報告されます。無効（デフォルト）の場合は、ディスクの合計容量にソースパスの下にマウントされたファイルシステムも含まれ、ZFSデータセットなどの共有プールは1回のみカウントされます。"
   },
   "share": {
     "notice": "注意：共有が作成されると、公開されるようになり、アクセスに関するルールが異なります。共有が安全に設定されていない場合、誰でもアクセスできる可能性があります。",
@@ -651,16 +672,12 @@
     "allow": "許可",
     "allowDeny": "許可/拒否",
     "userGroup": "ユーザー/グループ",
-    "enterName": "ユーザー名またはグループ名を入力してください",
-    "deleted": "アクセスルールが削除されました！",
-    "added": "アクセスルールが追加されました！",
     "accessManagement": "アクセス管理",
     "totalDenied": "拒否済み",
     "totalAllowed": "許可済み",
     "all": "すべて拒否",
     "defaultBehaviorDescription": "これは、特定のアクセスルールが存在しないパスにユーザーがアクセスしようとした時の動作を示しています。「許可」はユーザーがデフォルトでアクセスできることを意味し、「拒否」は明示的に許可されない限り、ユーザーがデフォルトでブロックされることを意味します。",
     "defaultBehavior": "デフォルト動作{suffix}",
-    "deletedCascade": "パスとすべてのサブパスからアクセスルールが削除されました！",
     "cascadeDelete": "再帰的削除",
     "cascadeDeleteDescription": "有効な場合、アクセスルールを削除すると、すべてのサブディレクトリからも削除される。これにより、ディレクトリツリー全体からユーザーまたはグループを 完全に削除することができる。",
     "hasRules": "アクセスルールが設定されました",
@@ -670,16 +687,23 @@
     "editGroup": "グループを編集",
     "groupName": "グループ名",
     "userGroups": "グループ",
-    "addGroup": "グループを追加",
-    "createGroupConfirm": "グループ「{name}」は存在しません。作成しますか?",
-    "addGroupPlaceholder": "グループ名",
-    "removeGroup": "グループから削除",
     "groupMembers": "メンバー",
-    "enterUsername": "ユーザー名を入力",
-    "addMember": "メンバーを追加",
-    "unknownUser": "「{name}」というユーザーはいません",
     "deleteGroupConfirm": "グループ「{name}」を削除しますか?すべてのアクセスルールからも削除されます。",
-    "groupsOidcNote": "OIDCで同期されたグループのメンバーは、該当ユーザーがログインするたびにIDプロバイダーから再設定されます。"
+    "groupsOidcNote": "OIDCで同期されたグループのメンバーは、該当ユーザーがログインするたびにIDプロバイダーから再設定されます。",
+    "userGroupsDescription": "このユーザーが所属しているグループ",
+    "membersCount": "メンバー：{count}",
+    "userGroupsCount": "グループ：{count}",
+    "groupNameRequired": "グループ名の入力が必須です。",
+    "groupNameTooShort": "Group name must be at least {min} characters.",
+    "groupNameTooLong": "グループ名は、{max} 文字以内である必要があります。",
+    "groupNameInvalid": "グループ名には制御文字を含めてはなりません。",
+    "groupExists": "この名前のグループはすでに存在します。",
+    "selectEntities": "選択",
+    "selectUser": "ユーザーを選択してください",
+    "selectUsers": "ユーザーを選択",
+    "selectGroup": "グループを選択してください",
+    "selectGroups": "グループを選択",
+    "refineSearch": "「{count} 」の検索結果のうち、最初のものを表示しています。さらに多くの結果を表示するには、検索条件を絞り込んでください。"
   },
   "fileLoading": {
     "title": "アップロードとダウンロード",
@@ -702,6 +726,10 @@
     "orange": "オレンジ"
   },
   "profileSettings": {
+    "showTypeColumn": "種類列を表示",
+    "showTypeColumnDescription": "メイン一覧のリスト表示とコンパクト表示で種類列を表示します。",
+    "showCreationDateColumn": "作成日列を表示",
+    "showCreationDateColumnDescription": "メイン一覧のリスト表示とコンパクト表示で作成日列を表示します。",
     "promptRightCloseButton": "プロンプトの閉じるボタンを右側に表示",
     "promptRightCloseButtonDescription": "プロンプトの閉じるボタンを左側ではなく右側に表示",
     "hideFileExt": "特定のファイルを非表示にする（拡張子で）",
@@ -828,6 +856,8 @@
       "customScrollbarDescription": "ブラウザのネイティブスクロールバーを Ace 組み込みのものに置き換えます",
       "wrapContent": "エディタで長い行を折り返す",
       "wrapContentDescription": "エディタのコンテンツを折り返して、非常に長い行を常に表示したままにします",
+      "indentedSoftWrap": "インデント付きソフト折り返し",
+      "indentedSoftWrapDescription": "これが有効な場合、折り返されたテキストの先頭にインデントを追加します",
       "autocompletion": "自動補完",
       "autocompletionDescription": "手動で「ctrl + space」を押して自動補完を有効にします",
       "liveAutocompletion": "ライブ自動補完",
@@ -939,6 +969,11 @@
     "audio": "オーディオ",
     "archive": "アーカイブ",
     "document": "ドキュメント",
+    "text": "テキスト",
+    "ebook": "電子書籍",
+    "font": "フォント",
+    "model3d": "3Dモデル",
+    "brokenLink": "リンク切れ",
     "binary": "バイナリ",
     "other": "その他"
   },
@@ -984,7 +1019,8 @@
       "termTooShort": "各検索語は{minSearchLength} 文字以上でなければなりません。",
       "resultsTitle": "検索結果",
       "invalidSources": "少なくとも1つのソースをオンにする。",
-      "noResults": "一致するファイルやフォルダがありません。"
+      "noResults": "一致するファイルやフォルダがありません。",
+      "resultLimit": "検索結果の最大件数"
     },
     "activityViewer": {
       "name": "アクティビティビューア",
