@@ -341,3 +341,45 @@ func TestUpdateUserPatchPreservesBackendSourcePermissions(t *testing.T) {
 	}
 }
 
+
+func TestCreateUserKeepsRequestedPermissions(t *testing.T) {
+	t.Setenv("FILEBROWSER_ONLYOFFICE_SECRET", "")
+	settings.Initialize("../../../_docker/src/noauth/backend/config.yaml")
+	settings.Env.IsPlaywright = true
+
+	dbPath := filepath.Join(t.TempDir(), "filebrowser.sqlite")
+	_, err := Initialize(dbPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = Close() })
+
+	requested := users.SourceFilePermissions{View: true, Download: true, Delete: true}
+	u := &users.User{
+		FrontendUser: users.FrontendUser{
+			Username:       "alice",
+			Permissions:    users.Permissions{Admin: true, Share: true, Api: true, Realtime: true},
+			FrontendScopes: []users.FrontendScope{{Name: "exclude", Scope: "/", Permissions: &requested}},
+		},
+	}
+	if err = CreateUser(u, "password"); err != nil {
+		t.Fatal(err)
+	}
+
+	loaded, err := GetUserByUsername("alice")
+	if err != nil {
+		t.Fatal(err)
+	}
+	wantPerms := users.Permissions{Admin: true, Share: true, Api: true, Realtime: true}
+	if loaded.Permissions != wantPerms {
+		t.Fatalf("permissions = %+v, want %+v", loaded.Permissions, wantPerms)
+	}
+	if len(loaded.BackendScopes) == 0 {
+		t.Fatal("expected a scope for the requested source")
+	}
+	got := loaded.BackendScopes[0].Permissions
+	if got.View != requested.View || got.Download != requested.Download || got.Modify != requested.Modify ||
+		got.Create != requested.Create || got.Delete != requested.Delete {
+		t.Fatalf("scope permissions = %+v, want %+v", got, requested)
+	}
+}
