@@ -291,7 +291,6 @@ const PROFILE_SNAPSHOT_FIELDS = [
   "showTypeColumn",
   "showCreationDateColumn",
   "hideFilesInTree",
-  "editorQuickSave",
   "showSelectMultiple",
   "debugOffice",
   "viewMode",

@@ -7,6 +7,9 @@ All notable changes to this project will be documented in this file. For commit 
  **Bug Fixes**:
  - Language switcher not working (#3114) (#3117)
 
+ **Notes**:
+ - Removed "Editor quick save" setting (`userDefaults.fileViewer.quickSave`), the save button is now always present in the editor toolbar.
+
 ## v2.1.1
 
 Note: this release also contains all changes from v2.0.10-beta changelog

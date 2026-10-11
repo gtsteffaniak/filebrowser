@@ -604,8 +604,6 @@
     "showCopyPathDescription": "Een actie Pad kopiëren weergeven in het contextmenu van bestanden en mappen.",
     "deleteWithoutConfirming": "Bestanden verwijderen zonder bevestigingsvenster",
     "deleteWithoutConfirmingDescription": "Bestanden verwijderen zonder bevestigingsvenster. Dit werkt alleen als het bestand een mediabestand is.",
-    "editorQuickSave": "Knop voor snel opslaan weergeven in de editor",
-    "editorQuickSaveDescription": "De teksteditor toont alleen het opslagpictogram; alle andere acties worden verborgen",
     "previewOfficeDescription": "Toon miniaturen voor Office-bestandstypen in de listingweergave",
     "disableThumbnailPreviews": "Miniaturen uitschakelen voor bepaalde bestandsextensies",
     "disableThumbnailPreviewsDescription": "Een door spaties gescheiden lijst met bestandsextensies waarvoor miniatuurafbeeldingen uitgeschakeld moeten worden (bijv. '.txt .html').",
