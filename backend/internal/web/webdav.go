@@ -626,6 +626,10 @@ func webDAVHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, err
 		httpReq:   r,
 	}
 
+	if r.Method == http.MethodOptions {
+		return writeWebDAVOptions(w, r, filteredFS, prefix, filePerms)
+	}
+
 	wd := &webdav.Handler{
 		Prefix:     prefix,
 		FileSystem: filteredFS,
@@ -655,6 +659,39 @@ func webDAVHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, err
 	}
 	wd.ServeHTTP(w, r)
 	return 200, nil // errors and responses (XML-formatted) are handled by webdav handler
+}
+
+// writeWebDAVOptions answers OPTIONS directly so the Allow/DAV headers reflect
+// the methods this server actually supports and the user's permissions, instead
+// of the webdav library's hardcoded advertisement (which includes LOCK etc.).
+func writeWebDAVOptions(w http.ResponseWriter, r *http.Request, ffs *filteredFileSystem, prefix string, perms users.SourceFilePermissions) (int, error) {
+	rest, ok := strings.CutPrefix(r.URL.Path, prefix)
+	if !ok || (rest != "" && rest[0] != '/') {
+		return http.StatusNotFound, fmt.Errorf("request path %q outside webdav prefix %q", r.URL.Path, prefix)
+	}
+	requestPath := path.Clean("/" + rest)
+
+	var candidates []string
+	if fi, err := ffs.Stat(r.Context(), requestPath); err != nil {
+		candidates = []string{http.MethodPut, "MKCOL"}
+	} else if fi.IsDir() {
+		candidates = []string{"PROPFIND", http.MethodDelete, "COPY", "MOVE"}
+	} else {
+		candidates = []string{http.MethodGet, http.MethodHead, "PROPFIND", http.MethodPut, http.MethodDelete, "COPY", "MOVE"}
+	}
+
+	allowed := []string{http.MethodOptions}
+	for _, m := range candidates {
+		if _, err := webDAVMethodPermission(m, perms); err == nil {
+			allowed = append(allowed, m)
+		}
+	}
+
+	w.Header().Set("Allow", strings.Join(allowed, ", "))
+	w.Header().Set("DAV", "1")
+	w.Header().Set("MS-Author-Via", "DAV")
+	w.WriteHeader(http.StatusOK)
+	return http.StatusOK, nil
 }
 
 func webDAVMethodPermission(method string, perms users.SourceFilePermissions) (int, error) {

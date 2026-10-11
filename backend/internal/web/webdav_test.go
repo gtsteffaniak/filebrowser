@@ -994,3 +994,141 @@ func initTestIndex(t *testing.T, name, path string) {
 	// For WebDAV tests, indices are already initialized in setupWebDAVTestEnv
 	t.Helper()
 }
+
+// Test that OPTIONS advertises only the methods actually supported and
+// permitted for the user, rather than the webdav library's hardcoded list.
+func TestWebDAV_OPTIONS(t *testing.T) {
+	source1Path, _ := setupWebDAVTestEnv(t)
+
+	fullAccessUser := &users.User{
+		ID: 1,
+		FrontendUser: users.FrontendUser{
+			Username: "optionsfull",
+		},
+		BackendScopes: []users.BackendScope{
+			{Path: source1Path, Scope: "/"},
+		},
+		BackendSourcePermissions: webDAVPermsForPaths(true, true, true, true, source1Path),
+		Version:                  users.SourcePermissionsMigrationVersion,
+	}
+	applyBackendSourcePerms(fullAccessUser, fullAccessUser.BackendSourcePermissions)
+
+	readOnlyUser := &users.User{
+		ID: 2,
+		FrontendUser: users.FrontendUser{
+			Username: "optionsreadonly",
+		},
+		BackendScopes: []users.BackendScope{
+			{Path: source1Path, Scope: "/"},
+		},
+		BackendSourcePermissions: webDAVPermsForPaths(false, false, false, false, source1Path),
+		Version:                  users.SourcePermissionsMigrationVersion,
+	}
+	applyBackendSourcePerms(readOnlyUser, readOnlyUser.BackendSourcePermissions)
+
+	initTestIndex(t, "source1", source1Path)
+
+	// Methods the handler can never allow (they hit the default: -> 403 branch
+	// of webDAVMethodPermission) must never be advertised.
+	neverAllowed := []string{"LOCK", "UNLOCK", "PROPPATCH", "POST"}
+
+	doOptions := func(t *testing.T, user *users.User, path string) map[string]bool {
+		t.Helper()
+		req := httptest.NewRequest(http.MethodOptions, "/dav/source1"+path, nil)
+		req.SetPathValue("source", "source1")
+		req.SetPathValue("path", path)
+
+		w := httptest.NewRecorder()
+		status, err := webDAVHandler(w, req, &requestContext{User: user})
+		if err != nil {
+			t.Fatalf("webDAVHandler OPTIONS %s: %v", path, err)
+		}
+		if w.Code != http.StatusOK {
+			t.Fatalf("OPTIONS %s: expected status 200, got %d (status=%d)", path, w.Code, status)
+		}
+		if dav := w.Header().Get("DAV"); dav != "1" {
+			t.Errorf("OPTIONS %s: expected DAV \"1\", got %q", path, dav)
+		}
+		if via := w.Header().Get("MS-Author-Via"); via != "DAV" {
+			t.Errorf("OPTIONS %s: expected MS-Author-Via \"DAV\", got %q", path, via)
+		}
+
+		allowed := make(map[string]bool)
+		for _, m := range strings.Split(w.Header().Get("Allow"), ", ") {
+			if m != "" {
+				allowed[m] = true
+			}
+		}
+		if !allowed[http.MethodOptions] {
+			t.Errorf("OPTIONS %s: Allow %q missing OPTIONS", path, w.Header().Get("Allow"))
+		}
+		for _, m := range neverAllowed {
+			if allowed[m] {
+				t.Errorf("OPTIONS %s: Allow %q advertises unsupported method %s", path, w.Header().Get("Allow"), m)
+			}
+		}
+		// Consistency: everything advertised must pass webDAVMethodPermission
+		// for this user, so Allow never lies about what would succeed.
+		perms := user.BackendSourcePermissions[source1Path]
+		for m := range allowed {
+			if _, permErr := webDAVMethodPermission(m, perms); permErr != nil {
+				t.Errorf("OPTIONS %s: Allow advertises %s but webDAVMethodPermission denies it: %v", path, m, permErr)
+			}
+		}
+		return allowed
+	}
+
+	t.Run("directory advertises only supported methods", func(t *testing.T) {
+		allowed := doOptions(t, fullAccessUser, "/public/")
+		for _, m := range []string{"PROPFIND", http.MethodDelete, "COPY", "MOVE"} {
+			if !allowed[m] {
+				t.Errorf("expected %s in Allow for directory, got %v", m, allowed)
+			}
+		}
+		// GET/PUT/MKCOL don't apply to a collection URL itself
+		for _, m := range []string{http.MethodGet, http.MethodHead, http.MethodPut, "MKCOL"} {
+			if allowed[m] {
+				t.Errorf("unexpected %s in Allow for directory, got %v", m, allowed)
+			}
+		}
+	})
+
+	t.Run("file advertises read and write methods", func(t *testing.T) {
+		allowed := doOptions(t, fullAccessUser, "/public/readme.txt")
+		for _, m := range []string{http.MethodGet, http.MethodHead, "PROPFIND", http.MethodPut, http.MethodDelete, "COPY", "MOVE"} {
+			if !allowed[m] {
+				t.Errorf("expected %s in Allow for file, got %v", m, allowed)
+			}
+		}
+	})
+
+	t.Run("missing path advertises creation methods", func(t *testing.T) {
+		allowed := doOptions(t, fullAccessUser, "/public/newfile.txt")
+		for _, m := range []string{http.MethodPut, "MKCOL"} {
+			if !allowed[m] {
+				t.Errorf("expected %s in Allow for missing path, got %v", m, allowed)
+			}
+		}
+	})
+
+	t.Run("read-only user is not told writes are allowed", func(t *testing.T) {
+		allowed := doOptions(t, readOnlyUser, "/public/readme.txt")
+		for _, m := range []string{http.MethodPut, http.MethodDelete, "MOVE", "COPY", "MKCOL"} {
+			if allowed[m] {
+				t.Errorf("read-only user unexpectedly sees %s in Allow: %v", m, allowed)
+			}
+		}
+		if !allowed["PROPFIND"] {
+			t.Errorf("expected PROPFIND in Allow for read-only user, got %v", allowed)
+		}
+	})
+
+	t.Run("read-only user sees no read methods without download", func(t *testing.T) {
+		allowed := doOptions(t, readOnlyUser, "/public/readme.txt")
+		for _, m := range []string{http.MethodGet, http.MethodHead} {
+			if allowed[m] {
+				t.Errorf("read-only (no download) user unexpectedly sees %s in Allow: %v", m, allowed)
+			}
+		}
+	})
+}
