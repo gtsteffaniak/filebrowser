@@ -70,7 +70,7 @@
         >
           <item
             v-for="(item, idx) in pinnedItems"
-            :key="base64(`pinned-${item.path || item.name}`)"
+            :key="`pinned-${item.path || item.name}`"
             :class="{ 'zebra-row': idx % 2 === 1 }"
             v-bind:index="item.index"
             v-bind:name="item.name"
@@ -81,7 +81,7 @@
             v-bind:type="item.type"
             v-bind:size="item.size"
             v-bind:path="item.path"
-            v-bind:reducedOpacity="item.hidden || isDragging"
+            v-bind:reducedOpacity="item.hidden"
             v-bind:hash="shareInfo.hash"
             v-bind:hasPreview="item.hasPreview"
             v-bind:metadata="item.metadata"
@@ -105,7 +105,7 @@
         >
           <item
             v-for="(item, idx) in dirs"
-            :key="base64(item.name)"
+            :key="item.name"
             :class="{ 'zebra-row': (numPinned + idx) % 2 === 1 }"
             v-bind:index="item.index"
             v-bind:name="item.name"
@@ -116,7 +116,7 @@
             v-bind:type="item.type"
             v-bind:size="item.size"
             v-bind:path="item.path"
-            v-bind:reducedOpacity="item.hidden || isDragging"
+            v-bind:reducedOpacity="item.hidden"
             v-bind:hash="shareInfo.hash"
             v-bind:hasPreview="item.hasPreview"
             v-bind:hasDuration="hasDuration"
@@ -139,7 +139,7 @@
         >
           <item
             v-for="(item, idx) in files"
-            :key="base64(item.name)"
+            :key="item.name"
             :class="{ 'zebra-row': (numPinned + numDirs + idx) % 2 === 1 }"
             v-bind:index="item.index"
             v-bind:name="item.name"
@@ -150,7 +150,7 @@
             v-bind:type="item.type"
             v-bind:size="item.size"
             v-bind:path="item.path"
-            v-bind:reducedOpacity="item.hidden || isDragging"
+            v-bind:reducedOpacity="item.hidden"
             v-bind:hash="shareInfo.hash"
             v-bind:hasPreview="item.hasPreview"
             v-bind:metadata="item.metadata"
@@ -194,6 +194,7 @@ import { router } from "@/router";
 import { readAllDirectoryEntries, checkConflict } from "@/utils/upload";
 import throttle from "@/utils/throttle";
 import { state, mutations, getters } from "@/store";
+import { eventBus } from "@/store/eventBus";
 import { url } from "@/utils";
 import Item from "@/components/files/ListingItem.vue";
 import Upload from "@/components/prompts/Upload.vue";
@@ -227,12 +228,27 @@ export default {
       rectangleSelection: [],
       cssVariables: {},
       rafId: null,
+      lastPointer: null,
       selectionUpdatePending: false,
       isResizing: false,
       resizeTimeout: null,
     };
   },
+  created() {
+    // Non reactive on purpose: big DOM-derived caches.
+    this.itemNodes = null; // HTMLCollection of .listing-item
+    this.itemNodesHost = null;
+    this.rectangleItemRects = null;
+    this.contentResizeObserver = null;
+    this.observedListing = null;
+  },
   watch: {
+    items() {
+      this.rectangleItemRects = null;
+    },
+    loading() {
+      this.$nextTick(this.observeListingContent);
+    },
     gallerySize() {
       this.columnWidth = 250 + state.user.gallerySize * 50;
     },
@@ -241,19 +257,19 @@ export default {
       if (!scrollContainer) return;
 
       // Select all visible listing items
-      const itemNodes = scrollContainer.querySelectorAll(".listing-item");
-
-      // Find the first item near the top of the viewport
-      let topItem = null;
-      let minTop = Infinity;
-      for (const el of itemNodes) {
-        const rect = el.getBoundingClientRect();
-        if (rect.top >= 0 && rect.top < minTop) {
-          minTop = rect.top;
-          topItem = el;
+      const itemNodes = this.getListingItemNodes(scrollContainer);
+      // Find the first item at/below the top of the viewport
+      let lo = 0;
+      let hi = itemNodes.length;
+      while (lo < hi) {
+        const mid = (lo + hi) >>> 1;
+        if (itemNodes[mid].getBoundingClientRect().top >= 0) {
+          hi = mid;
+        } else {
+          lo = mid + 1;
         }
       }
-
+      const topItem = itemNodes[lo] ?? null;
       // Decide category by checking which section is above
       let letter = "A";
       let category = "folders"; // Default category
@@ -307,13 +323,13 @@ export default {
       return this.dragTargets.has(this.$el);
     },
     scrolling() {
-      return state.listing.scrollRatio;
+      return state.listing.listingScrollTop;
     },
     isStickySidebar() {
       return getters.isStickySidebar();
     },
     allItems() {
-      return [...this.pinnedItems, ...this.dirs, ...this.files];
+      return this.pinnedItems.concat(this.dirs, this.files);
     },
     numColumns() {
       void this.width;
@@ -348,9 +364,8 @@ export default {
     },
     hasDuration() {
       // Check if any pinned file or regular file has duration metadata
-      return [...this.pinnedItems, ...this.files].some(
-        file => file.type !== "directory" && file.metadata?.duration
-      );
+      const hasMetadataDuration = (file) => file.type !== "directory" && file.metadata?.duration;
+      return this.pinnedItems.some(hasMetadataDuration) || this.files.some(hasMetadataDuration);
     },
     items() {
       return getters.reqItems();
@@ -491,6 +506,8 @@ export default {
     // Add the needed event listeners to the window and document.
     window.addEventListener("keydown", this.keyEvent);
     window.addEventListener("resize", this.windowsResize);
+    this.contentResizeObserver = new ResizeObserver(() => eventBus.emit("scrollContentResized"));
+    this.observeListingContent();
     window.addEventListener("click", this.clickClear);
     window.addEventListener("dragover", this.preventDefault);
     window.addEventListener('paste', this.handlePaste);
@@ -526,6 +543,7 @@ export default {
   },
   beforeUnmount() {
     resetTypeAheadSession();
+    this.contentResizeObserver?.disconnect();
 
     if (this.resizeTimeout) {
       clearTimeout(this.resizeTimeout);
@@ -539,6 +557,11 @@ export default {
     window.removeEventListener("dragover", this.preventDefault);
     window.removeEventListener('paste', this.handlePaste);
     document.removeEventListener('mousemove', this.updateRectangleSelection);
+    this.stopRectangleScrollListener();
+    if (this.rafId) {
+      cancelAnimationFrame(this.rafId);
+      this.rafId = null;
+    }
     document.removeEventListener('mouseup', this.endRectangleSelection);
     document.removeEventListener('dragend', this.handleGlobalDragEnd);
     this.$el.removeEventListener('mousedown', this.startRectangleSelection);
@@ -563,6 +586,13 @@ export default {
     }
   },
   methods: {
+    observeListingContent() {
+      const el = this.$refs.listingView || null;
+      if (!this.contentResizeObserver || el === this.observedListing) return;
+      this.contentResizeObserver.disconnect();
+      this.observedListing = el;
+      if (el) this.contentResizeObserver.observe(el);
+    },
     handleGlobalDragEnd() {
       // Reset drag state for all items (replaces per-item dragend listeners)
       const items = this.$el?.querySelectorAll('.listing-item.drag-hover, .listing-item.half-selected');
@@ -613,8 +643,31 @@ export default {
       this.cancelContext(); // Clear timeout
       this.isSwipe = false; // Reset swipe state
     },
-    base64(name) {
-      return url.base64Encode(name);
+    // stays in sync with the DOM and avoids rebuilding a NodeList on every call
+    getListingItemNodes(container) {
+      if (this.itemNodesHost !== container) {
+        this.itemNodesHost = container;
+        this.itemNodes = container.getElementsByClassName("listing-item");
+      }
+      return this.itemNodes;
+    },
+    // Item boxes relative to the listing element. Relative values don't change while scrolling
+    // so they can be measured once and reused every frame.
+    measureItemRects(listingRect) {
+      const rects = [];
+      for (const element of this.$el.querySelectorAll('.listing-item[data-index]')) {
+        const index = parseInt(element.getAttribute('data-index'), 10);
+        if (Number.isNaN(index)) continue;
+        const r = element.getBoundingClientRect();
+        rects.push({
+          index,
+          left: r.left - listingRect.left,
+          top: r.top - listingRect.top,
+          right: r.right - listingRect.left,
+          bottom: r.bottom - listingRect.top,
+        });
+      }
+      return rects;
     },
     showDeletePrompt() {
       const items = [];
@@ -649,29 +702,33 @@ export default {
     },
     // Helper method to find the closest item in the given direction (up or down) from the current one.
     findClosestItem(selectedItem, direction) {
-      const listItems = Array.from(this.$el.querySelectorAll('.listing-item'));
+      const listItems = this.$el.querySelectorAll('.listing-item');
+      const selectedIndex = Array.prototype.indexOf.call(listItems, selectedItem);
+      if (selectedIndex === -1) return null;
+
       const selectedBounds = selectedItem.getBoundingClientRect();
       const selectedMidX = (selectedBounds.left + selectedBounds.right) / 2;
+      const down = direction === 'down';
 
       let closestItem = null;
       let closestDistance = Infinity;
 
-      for (const item of listItems) {
-        if (item === selectedItem) continue;
+      const step = down ? 1 : -1;
+      for (let i = selectedIndex + step; i >= 0 && i < listItems.length; i += step) {
+        const item = listItems[i];
         const itemBounds = item.getBoundingClientRect();
-        const itemMidX = (itemBounds.left + itemBounds.right) / 2;
-        const horizontalOffset = Math.abs(itemMidX - selectedMidX);
-
-        const verticalGap = direction === 'down'
+        const verticalGap = down
           ? itemBounds.top - selectedBounds.bottom
           : selectedBounds.top - itemBounds.bottom;
 
-        if (verticalGap > 0) {
-          const distance = Math.hypot(horizontalOffset, verticalGap);
-          if (distance < closestDistance) {
-            closestDistance = distance;
-            closestItem = item;
-          }
+        if (verticalGap <= 0) continue; // same row as the selected item
+        if (verticalGap >= closestDistance) break;
+
+        const itemMidX = (itemBounds.left + itemBounds.right) / 2;
+        const distance = Math.hypot(Math.abs(itemMidX - selectedMidX), verticalGap);
+        if (distance < closestDistance) {
+          closestDistance = distance;
+          closestItem = item;
         }
       }
       return closestItem;
@@ -1157,6 +1214,7 @@ export default {
         clearTimeout(this.resizeTimeout);
       }
       this.width = window.innerWidth;
+      this.rectangleItemRects = null;
       this.resizeTimeout = setTimeout(() => {
         this.isResizing = false;
         this.$refs.listingView?.classList.remove("resizing");
@@ -1237,6 +1295,15 @@ export default {
       }
       this.dragTargets.clear();
     },
+    measureSelectionBounds() {
+      const listingRect = this.$refs.listingView.getBoundingClientRect();
+      const statusBar = document.getElementById('status-bar');
+      const statusBarVisible = statusBar && getComputedStyle(statusBar).display !== 'none';
+      const maxY = statusBarVisible
+        ? Math.max(0, statusBar.getBoundingClientRect().top - listingRect.top)
+        : listingRect.height;
+      return { left: listingRect.left, top: listingRect.top, maxX: listingRect.width, maxY };
+    },
     startRectangleSelection(event) {
       // Start rectangle selection when clicking on empty space - don't start if the click was in the status bar, an item or the header
       if (event.target.closest('.listing-item') || event.target.closest('.header') || event.target.closest('#status-bar')) {
@@ -1247,20 +1314,14 @@ export default {
       if (event.button !== 0) return;
 
       this.isRectangleSelecting = true;
+      this.rectangleItemRects = null;
 
       // Get the position to the listing view container
-      const listingRect = this.$refs.listingView.getBoundingClientRect();
-      let startX = event.clientX - listingRect.left;
-      let startY = event.clientY - listingRect.top;
+      const { left, top, maxX, maxY } = this.measureSelectionBounds();
+      let startX = event.clientX - left;
+      let startY = event.clientY - top;
 
       // Clamp to container bounds
-      const statusBar = document.getElementById('status-bar');
-      const statusBarVisible = statusBar && getComputedStyle(statusBar).display !== 'none';
-      const maxX = listingRect.width;
-      const maxY = statusBarVisible
-        ? Math.max(0, statusBar.getBoundingClientRect().top - listingRect.top)
-        : listingRect.height;
-
       startX = Math.max(0, Math.min(startX, maxX));
       startY = Math.max(0, Math.min(startY, maxY));
 
@@ -1272,6 +1333,12 @@ export default {
         x: startX,
         y: startY
       };
+      this.lastPointer = {
+        x: event.clientX,
+        y: event.clientY,
+        additive: event.ctrlKey || event.metaKey,
+      };
+      document.addEventListener('scroll', this.handleRectangleScroll, { capture: true, passive: true });
 
       // Store the current selection state when starting rectangle
       this.initialSelectionState = [...state.selected];
@@ -1287,36 +1354,38 @@ export default {
 
     updateRectangleSelection(event) {
       if (!this.isRectangleSelecting) return;
-
-      // Get the position to the listing view container
-      const listingRect = this.$refs.listingView.getBoundingClientRect();
-      let endX = event.clientX - listingRect.left;
-      let endY = event.clientY - listingRect.top;
-
-      // Clamp to container bounds
-      const statusBar = document.getElementById('status-bar');
-      const statusBarVisible = statusBar && getComputedStyle(statusBar).display !== 'none';
-      const maxX = listingRect.width;
-      const maxY = statusBarVisible
-        ? Math.max(0, statusBar.getBoundingClientRect().top - listingRect.top)
-        : listingRect.height;
-
-      endX = Math.max(0, Math.min(endX, maxX));
-      endY = Math.max(0, Math.min(endY, maxY));
-
-      this.rectangleEnd = {
-        x: endX,
-        y: endY
+      this.lastPointer = {
+        x: event.clientX,
+        y: event.clientY,
+        additive: event.ctrlKey || event.metaKey,
       };
+      this.scheduleRectangleUpdate();
+    },
 
-      // Use requestAnimationFrame to batch updates
-      if (!this.selectionUpdatePending) {
-        this.selectionUpdatePending = true;
-        this.rafId = requestAnimationFrame(() => {
-          this.updateSelectedItemsInRectangle(event.ctrlKey || event.metaKey);
-          this.selectionUpdatePending = false;
-        });
-      }
+    handleRectangleScroll() {
+      this.rectangleItemRects = null;
+      this.scheduleRectangleUpdate();
+    },
+
+    // mousemove + scroll into one update
+    scheduleRectangleUpdate() {
+      if (!this.isRectangleSelecting || this.selectionUpdatePending) return;
+      this.selectionUpdatePending = true;
+      this.rafId = requestAnimationFrame(() => {
+        this.selectionUpdatePending = false;
+        this.rafId = null;
+        if (!this.isRectangleSelecting || !this.lastPointer) return;
+
+        const { left, top, maxX, maxY } = this.measureSelectionBounds();
+        const endX = Math.max(0, Math.min(this.lastPointer.x - left, maxX));
+        const endY = Math.max(0, Math.min(this.lastPointer.y - top, maxY));
+        this.rectangleEnd = { x: endX, y: endY };
+        this.updateSelectedItemsInRectangle(this.lastPointer.additive);
+      });
+    },
+
+    stopRectangleScrollListener() {
+      document.removeEventListener('scroll', this.handleRectangleScroll, { capture: true });
     },
 
     endRectangleSelection(event) {
@@ -1327,10 +1396,19 @@ export default {
         cancelAnimationFrame(this.rafId);
         this.rafId = null;
       }
+      this.stopRectangleScrollListener();
+
+      const { left, top, maxX, maxY } = this.measureSelectionBounds();
+      this.rectangleEnd = {
+        x: Math.max(0, Math.min(event.clientX - left, maxX)),
+        y: Math.max(0, Math.min(event.clientY - top, maxY)),
+      };
+      this.updateSelectedItemsInRectangle(event.ctrlKey || event.metaKey);
 
       this.isRectangleSelecting = false;
+      this.rectangleItemRects = null;
       this.selectionUpdatePending = false;
-      this.updateSelectedItemsInRectangle(event.ctrlKey || event.metaKey);
+      this.lastPointer = null;
 
       // Clear rectangle after a short delay
       setTimeout(() => {
@@ -1353,52 +1431,45 @@ export default {
 
       const rectangleSelectedIndexes = [];
 
-      // Get all item elements - use querySelectorAll with specific selector for better performance
-      const itemElements = this.$el.querySelectorAll('.listing-item[data-index]');
-
-      for (const element of itemElements) {
-        const elementRect = element.getBoundingClientRect();
-
-        // Convert element position to be relative to listing view, this allows selection while scrolling
-        const elementRelativeRect = {
-          left: elementRect.left - listingRect.left,
-          top: elementRect.top - listingRect.top,
-          right: elementRect.right - listingRect.left,
-          bottom: elementRect.bottom - listingRect.top
-        };
-
+      // Measure the items once per layout
+      if (!this.rectangleItemRects) {
+        this.rectangleItemRects = this.measureItemRects(listingRect);
+      }
+      for (const box of this.rectangleItemRects) {
         // Check if the item intersects with the rectangle
         if (
-          elementRelativeRect.left < rect.right &&
-          elementRelativeRect.right > rect.left &&
-          elementRelativeRect.top < rect.bottom &&
-          elementRelativeRect.bottom > rect.top
+          box.left < rect.right &&
+          box.right > rect.left &&
+          box.top < rect.bottom &&
+          box.bottom > rect.top
         ) {
-          const index = parseInt(element.getAttribute('data-index'), 10);
-          if (!Number.isNaN(index)) {
-            rectangleSelectedIndexes.push(index);
-          }
+          rectangleSelectedIndexes.push(box.index);
         }
       }
-
-      // Batch DOM updates to minimize reflows
+      // Compute the selection, and only touch the store when it actually changed
+      let nextSelection;
       if (isAdditive) {
-        // only add more items to the current selection without reset selection
-        const newSelection = [...state.selected];
+        // add more items to the current selection without reset selection
+        const known = new Set(state.selected);
+        nextSelection = [...state.selected];
         for (const index of rectangleSelectedIndexes) {
-          if (!newSelection.includes(index)) {
-            newSelection.push(index);
+          if (!known.has(index)) {
+            known.add(index);
+            nextSelection.push(index);
           }
         }
-
-        mutations.resetSelected();
-        for (const index of newSelection) { mutations.addSelected(index); }
       } else {
         // Select only the items in the rectangle and reset initial selection
         // PS: If you don't want that just hold ctrl, the selection will not be reset, allowing multi select.
-        mutations.resetSelected();
-        for (const index of rectangleSelectedIndexes) { mutations.addSelected(index); }
+        nextSelection = rectangleSelectedIndexes;
       }
+      const current = state.selected;
+      const unchanged =
+        current.length === nextSelection.length &&
+        nextSelection.every((value, i) => current[i] === value);
+      if (unchanged) return;
+      mutations.setSelected(nextSelection);
+      this.rectangleItemRects = null;
     },
     handleDoubleClick(event) {
       if (event.target.closest('.listing-item')) return;
@@ -1424,6 +1495,14 @@ export default {
 
 .font-size-large h2 {
   font-size: 2em !important;
+}
+
+.rectangle-selecting .listing-item {
+  pointer-events: none;
+}
+
+.listing-items.dropping .listing-item:not(.activebutton, .drag-hover) {
+  opacity: 0.5;
 }
 
 .listing-items.dropping {
@@ -1467,10 +1546,6 @@ export default {
 .rectangle-selecting {
   cursor: crosshair;
   user-select: none;
-}
-
-.rectangle-selecting .listing-item {
-  pointer-events: none;
 }
 
 .drop-indicator {

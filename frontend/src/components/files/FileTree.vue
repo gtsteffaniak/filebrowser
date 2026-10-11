@@ -431,45 +431,66 @@ export default {
     },
 
     async refresh() {
-      if (!this.isRootInstance || this.isRefreshing ) return;
+      if (!this.isRootInstance || this.isRefreshing) return;
+      if (!this.currentSource && !this.shareHash) return;
       this.isRefreshing = true;
       this.expandTimeouts.clear();
-      // Save expanded paths before reload to restore them
-      const expandedPaths = this.collectExpandedPaths(this.rootNodes);
-
       try {
-        await this.loadRoot();
-        // Restore expanded paths
-        await this.applyExpandedPaths(this.rootNodes, expandedPaths);
-        // Ensure current directory is expanded (it might already be)
-        await this.expandToPath(this.currentPath);
-        await this.scrollToCurrent();
+        const nodes = await this.syncNodes(this.rootNodes, this.rootPath);
+        if (!this.sameNodeList(this.rootNodes, nodes)) {
+          this.rootNodes = nodes;
+        }
+      } catch (err) {
+        console.error('Failed to refresh tree:', err);
       } finally {
         this.isRefreshing = false;
       }
     },
-    collectExpandedPaths(nodes, set = new Set()) {
-      for (const node of nodes) {
-        if (node.expanded) {
-          set.add(node.path);
+    async syncNodes(existing, path) {
+      const items = await this.fetchItems(path);
+      const known = new Map(existing.map((node) => [node.path, node]));
+      const merged = items.map((item) => {
+        const node = known.get(item.path);
+        if (!node) return this.createNode(item);
+        const wasDir = node.isDir;
+        Object.assign(node, item, { isHidden: item.hidden });
+        node.isDir = node.type === 'directory';
+        if (wasDir !== node.isDir) {
+          node.expanded = false;
+          node.loading = false;
+          node.children = null;
+          node.childrenCount = 0;
+          node.childrenError = null;
         }
-        if (node.children) {
-          this.collectExpandedPaths(node.children, set);
+        return node;
+      });
+      for (const node of merged) {
+        if (node.isDir && !node.expanded && !node.loading && node.children) {
+          node.children = null;
+          node.childrenCount = 0;
+          node.childrenError = null;
         }
       }
-      return set;
+      await Promise.all(
+        merged
+          .filter((node) => node.isDir && node.expanded && node.children)
+          .map(async (node) => {
+            try {
+              const children = await this.syncNodes(node.children, node.path);
+              if (!this.sameNodeList(node.children, children)) {
+                node.children = children;
+              }
+              node.childrenCount = children.length;
+              node.childrenError = null;
+            } catch (err) {
+              console.error('Failed to refresh children for', node.path, err);
+            }
+          })
+      );
+      return merged;
     },
-    async applyExpandedPaths(nodes, expandedPaths) {
-      for (const node of nodes) {
-        if (expandedPaths.has(node.path)) {
-          // Expand the node (load children if needed)
-          await this.toggleExpand(node, true);
-          // Recursively apply to children (if any)
-          if (node.children) {
-            await this.applyExpandedPaths(node.children, expandedPaths);
-          }
-        }
-      }
+    sameNodeList(a, b) {
+      return a.length === b.length && a.every((node, i) => node === b[i]);
     },
     handleDragOver(event, node) {
       if (!node.isDir || !this.canModify) return;

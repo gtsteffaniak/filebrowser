@@ -7,7 +7,6 @@ import { getters, mutations, state } from "@/store/index.ts";
 import { validateLogin } from "@/utils/auth.js";
 import { sanitizePostLoginRedirect } from "@/utils/safeRedirect.js";
 import { globalVars } from "@/utils/constants.js";
-import Errors from "@/views/Errors.vue";
 import Files from "@/views/Files.vue";
 import Layout from "@/views/Layout.vue";
 import Login from "@/views/Login.vue";
@@ -17,7 +16,7 @@ import Tools from "@/views/Tools.vue";
 const translate = (key: string): string => i18n.global.t(key) as string;
 const t = i18n.global.t.bind(i18n.global);
 
-const titles: Record<string, string> = {
+const titles = (): Record<string, string> => ({
   Login: translate("general.login"),
   Share: translate("general.share"),
   /** Same component as Share; name differs for /public optional-auth routes. */
@@ -31,11 +30,8 @@ const titles: Record<string, string> = {
   GlobalSettings: `${t("general.global")} ${t("general.settings")}`,
   Users: translate("general.users"),
   User: translate("general.user"),
-  Forbidden: translate("errors.forbidden"),
-  NotFound: translate("errors.notFound"),
   ShareNotFound: translate("errors.shareNotFound"),
-  InternalServerError: translate("errors.internal"),
-};
+});
 
 const routes: RouteRecordRaw[] = [
   {
@@ -118,33 +114,6 @@ const routes: RouteRecordRaw[] = [
     ],
   },
   {
-    path: "/403",
-    name: "Forbidden",
-    component: Errors,
-    props: {
-      errorCode: 403,
-      showHeader: true,
-    },
-  },
-  {
-    path: "/404",
-    name: "NotFound",
-    component: Errors,
-    props: {
-      errorCode: 404,
-      showHeader: true,
-    },
-  },
-  {
-    path: "/500",
-    name: "InternalServerError",
-    component: Errors,
-    props: {
-      errorCode: 500,
-      showHeader: true,
-    },
-  },
-  {
     path: "/:catchAll(.*)*",
     redirect: (to: RouteLocation) => {
       const path = Array.isArray(to.params.catchAll)
@@ -180,7 +149,7 @@ router.beforeResolve(async (to, from) => {
   // Clear any popup previews when navigating
   mutations.setPreviewSource("");
 
-  const title = titles[to.name as keyof typeof titles] || String(to.name || '');
+  const title = titles()[to.name as string] || String(to.name || '');
   document.title = `${globalVars.name} - ${title}`;
   mutations.setRoute(to);
 
@@ -210,7 +179,7 @@ router.beforeResolve(async (to, from) => {
 
     if (to.matched.some((record) => record.meta.requiresAdmin)) {
       if (!getters.isAdmin()) {
-        return { path: "/403" };
+        return { path: "/files/" };
       }
     }
 
@@ -228,6 +197,19 @@ router.beforeResolve(async (to, from) => {
   return true;
 });
 
+function getParentOrigin(): string {
+  const ancestor = window.location.ancestorOrigins?.[0];
+  if (ancestor && ancestor !== "null") {
+    return ancestor;
+  }
+  try {
+    const origin = document.referrer ? new URL(document.referrer).origin : "";
+    return origin && origin !== "null" ? origin : "*";
+  } catch (_error) {
+    return "*";
+  }
+}
+
 router.afterEach((to) => {
   // Only postMessage if running in an iframe
   if (window.self !== window.top) {
@@ -236,7 +218,7 @@ router.afterEach((to) => {
         type: "filebrowser:navigation",
         url: to.fullPath,
       },
-      "*"
+      getParentOrigin()
     );
   }
 });

@@ -142,10 +142,10 @@ export default {
         if (!this.previousSidebarSize) {
           this.previousSidebarSize = state.sidebar.width;
         }
-        mutations.setSidebarWidth(20); // 20 em
+        mutations.setSidebarWidth(20, false); // 20 em
       } else if (this.previousSidebarSize) {
         // When switching to desktop, restore previous width
-        mutations.setSidebarWidth(this.previousSidebarSize);
+        mutations.setSidebarWidth(this.previousSidebarSize, false);
         this.previousSidebarSize = null;
       }
     },
@@ -170,11 +170,12 @@ export default {
       const baseFontSize = this.getBaseFontSize();
       const deltaEm = deltaX / baseFontSize;
       const newWidth = this.resizeStartWidth + deltaEm;
-      mutations.setSidebarWidth(newWidth);
+      mutations.setSidebarWidth(newWidth, false);
     },
     stopResize() {
       if (!state.sidebar.isResizing) return;
       mutations.setSidebarResizing(false);
+      mutations.persistSidebarWidth();
       document.body.classList.remove('sidebar-resizing');
     },
     // Show the help overlay

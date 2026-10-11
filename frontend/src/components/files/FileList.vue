@@ -34,7 +34,7 @@
       ref="list"
       class="listing-items list"
       @contextmenu.capture="snapshotSelection"
-      @touchstart.capture="snapshotSelection"
+      @touchstart.capture.passive="snapshotSelection"
     >
       <ListingItem
         v-for="(item, index) in visibleItems"
@@ -44,7 +44,7 @@
         :source="item.source"
         :type="item.type"
         :size="item.size ?? item.originalItem?.size ?? 0"
-        :modified="item.originalItem?.modified || new Date().toISOString()"
+        :modified="item.originalItem?.modified || fallbackModified"
         :created="item.originalItem?.created"
         :index="index"
         :class="{ 'zebra-row': index % 2 === 1, 'current-item': isCurrentItem(item), 'context-item': isContextItem(item) }"
@@ -156,6 +156,7 @@ export default {
       initialPath = state.req.path;
     }
     return {
+      fallbackModified: new Date().toISOString(),
       items: [],
       path: initialPath,
       source: initialSource,

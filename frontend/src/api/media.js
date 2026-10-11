@@ -2,7 +2,13 @@ import { notify } from "@/notify/index.ts";
 import { state } from "@/store/index.ts";
 import { getApiPath, getPublicApiPath } from "@/utils/url.js";
 import { adjustedData, fetchURL } from "./utils.ts";
-import { getCachedDirMetadata, setCachedDirMetadata } from "@/utils/metadataCache.js";
+import {
+  getDirMetadataEntry,
+  setCachedDirMetadata,
+  setDirMetadataEntryPromise,
+  stemOf,
+  takePendingDirChanges,
+} from "@/utils/metadataCache.ts";
 
 // GET /api/media/subtitles or /public/api/media/subtitles
 export async function getSubtitleContent(source, path, subtitleName, embedded = false) {
@@ -51,27 +57,35 @@ export async function getLyrics(source, path) {
     return { lyrics: data.lyrics || "", format: data.format || "" };
 }
 
+async function publicResponseError(response) {
+  const error = new Error(response.statusText);
+  try {
+    const data = await response.json();
+    if (data?.message) {
+      error.message = data.message;
+    }
+  } catch (_e) {
+    // keep the status text
+  }
+  /** @type {any} */ (error).status = response.status;
+  return error;
+}
+
 // GET /public/api/media/lyrics
 export async function getLyricsPublic(path, hash, password = "") {
-    const params = {
-        path,
-        hash,
-    };
-    const apiPath = getPublicApiPath("media/lyrics", params);
-    const response = await fetch(apiPath, {
-        headers: { "X-SHARE-PASSWORD": encodeURIComponent(password || "") },
-    });
-    if (!response.ok) {
-        const error = new Error(response.statusText);
-        const data = await response.json();
-        if (data?.message) {
-            error.message = data.message;
-        }
-        error.status = response.status;
-        throw error;
-    }
-    const data = await response.json();
-    return { lyrics: data.lyrics || "", format: data.format || "" };
+  const params = {
+    path,
+    hash,
+  };
+  const apiPath = getPublicApiPath("media/lyrics", params);
+  const response = await fetch(apiPath, {
+    headers: { "X-SHARE-PASSWORD": encodeURIComponent(password || "") },
+  });
+  if (!response.ok) {
+    throw await publicResponseError(response);
+  }
+  const data = await response.json();
+  return { lyrics: data.lyrics || "", format: data.format || "" };
 }
 
 // GET /api/media/metadata — directory or file with metadata; optional albumArt for embedded cover extraction.
@@ -102,25 +116,74 @@ export async function fetchDirectoryMediaMetadataPublic(path, hash, password = "
     headers: { "X-SHARE-PASSWORD": encodeURIComponent(password || "") },
   });
   if (!response.ok) {
-    const error = new Error(response.statusText);
-    let data = null;
-    try {
-      data = await response.json();
-    } catch (_e) {
-      // ignore
-    }
-    if (data?.message) {
-      error.message = data.message;
-    }
-    /** @type {any} */ (error).status = response.status;
-    throw error;
+    throw await publicResponseError(response);
   }
   const data = await response.json();
   return adjustedData(data);
 }
 
+const MAX_ITEM_REFRESHES = 15;
+
+async function fetchWholeDirectoryMetadata({ isShare, source, hash, path, albumArt }, password) {
+  const payload = isShare
+    ? await fetchDirectoryMediaMetadataPublic(path, hash, password, albumArt)
+    : await fetchDirectoryMediaMetadata(source, path, albumArt);
+  return new Map(
+    (payload?.items || []).filter((i) => i.metadata).map((i) => [i.name, i.metadata])
+  );
+}
+
+async function fetchItemMetadata({ isShare, source, hash, path, albumArt }, password, name) {
+  const base = !path || path === "/" ? "" : path.replace(/\/+$/, "");
+  const itemPath = `${base}/${name}`;
+  const payload = isShare
+    ? await fetchDirectoryMediaMetadataPublic(itemPath, hash, password, albumArt)
+    : await fetchDirectoryMediaMetadata(source, itemPath, albumArt);
+  return payload && payload.type !== "directory" && payload.metadata ? payload.metadata : null;
+}
+
+// Applies the per-item changes recorded since the folder was cached, fetching only the changed items.
+function resolvePendingChanges(entry, { removed, dirty, stems }, cacheOpts, password) {
+  const base = entry.promise;
+  const promise = (async () => {
+    const map = new Map(await base);
+    for (const name of removed) {
+      map.delete(name);
+    }
+    const toRefresh = new Set(dirty);
+    if (stems.size) {
+      for (const name of map.keys()) {
+        if (stems.has(stemOf(name))) {
+          toRefresh.add(name);
+        }
+      }
+    }
+    if (toRefresh.size > MAX_ITEM_REFRESHES) {
+      return fetchWholeDirectoryMetadata(cacheOpts, password);
+    }
+    try {
+      await Promise.all(
+        [...toRefresh].map(async (name) => {
+          const metadata = await fetchItemMetadata(cacheOpts, password, name);
+          if (metadata) {
+            map.set(name, metadata);
+          } else {
+            map.delete(name);
+          }
+        })
+      );
+    } catch (_e) {
+      return fetchWholeDirectoryMetadata(cacheOpts, password);
+    }
+    return map;
+  })();
+  setDirMetadataEntryPromise(entry, promise);
+  return promise;
+}
+
 /**
  * Fetches media metadata, and caches it by directory, shared for all the callers to avoid unnecessary requests.
+ * Items changed (deleted, uploaded, moved) are patched individually instead of refetch the whole dir
  * @param {string} path - directory path
  * @param {{isShare?: boolean, source?: string, hash?: string, password?: string, albumArt?: boolean}} opts
  * @returns {Promise<Map<string, object>>}
@@ -128,19 +191,15 @@ export async function fetchDirectoryMediaMetadataPublic(path, hash, password = "
 export async function getDirectoryMetadataMap(path, opts = {}) {
   const { isShare = false, source, hash, password = "", albumArt = false } = opts;
   const cacheOpts = { isShare, source, hash, path, albumArt };
-  const cached = getCachedDirMetadata(cacheOpts);
-  if (cached !== null) {
-    return cached;
+  const entry = albumArt ? null : getDirMetadataEntry(cacheOpts);
+  if (entry) {
+    const pending = takePendingDirChanges(entry);
+    return pending ? resolvePendingChanges(entry, pending, cacheOpts, password) : entry.promise;
   }
-  const promise = (async () => {
-    const payload = isShare
-      ? await fetchDirectoryMediaMetadataPublic(path, hash, password, albumArt)
-      : await fetchDirectoryMediaMetadata(source, path, albumArt);
-    return new Map(
-      (payload?.items || []).filter((i) => i.metadata).map((i) => [i.name, i.metadata])
-    );
-  })();
-  setCachedDirMetadata(cacheOpts, promise);
+  const promise = fetchWholeDirectoryMetadata(cacheOpts, password);
+  if (!albumArt) {
+    setCachedDirMetadata(cacheOpts, promise);
+  }
   return promise;
 }
 

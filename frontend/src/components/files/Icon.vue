@@ -6,23 +6,22 @@
     <i v-else-if="hasPreviewImage && !isFile" class="material-symbols overlay-icon">folder</i>
     <i v-if="isShared" class="material-symbols overlay-icon">group</i>
     <!-- Preview content: image, 3D, or fallback -->
-    <img v-if="hasPreviewImage" :key="imageTargetSrc" :src="imageDisplaySrc" ref="thumbnail" aria-hidden="true" />
+    <img
+      v-if="hasPreviewImage && imageDisplaySrc"
+      :key="imageTargetSrc"
+      :src="imageDisplaySrc"
+      ref="thumbnail"
+      aria-hidden="true"
+      decoding="async"
+    />
+    <i v-else-if="hasPreviewImage" class="material-symbols placeholder-icon" aria-hidden="true">broken_image</i>
     <ThreeJs v-else-if="shouldUse3DPreview && !threeJsError"
       :key="`3d-${path}-${gallerySizeKey}`"
-      :fbdata="{
-        name: filename,
-        path: path,
-        source: source,
-        size: size,
-        type: mimetype,
-        viewToken: viewToken,
-        parentDirItems: parentDirItemsForPreview,
-      }"
+      :fbdata="threeDFbdata"
       :is-thumbnail="true"
       :add-load-delay="true"
       @error="handle3DError" />
   </span>
-
   <!-- Regular material icon (no preview) -->
   <span v-else class="image-preview">
     <i :class="[classes, { active: active, clickable: clickable }]"> {{ materialSymbol }} </i>
@@ -31,15 +30,73 @@
 </template>
 
 <script>
+import { computed } from "vue";
 import { createAsyncComponent } from "@/utils/asyncComponent.js";
 import { fetchPreviewImage } from "@/api/resources";
 import { globalVars } from "@/utils/constants";
 import { getTypeInfo } from "@/utils/mimetype";
 import { getObjectProperty } from '@/utils/object.js';
 import { mutations, state, getters } from "@/store";
-import { setImageLoaded } from "@/utils/imageCache";
+import {
+  acquireThumbnailBlob,
+  getThumbnailBlobKey,
+  releaseThumbnailBlob,
+  setImageLoaded,
+  storeThumbnailBlob
+} from "@/utils/imageCache.ts";
 
-const POPUP_PREVIEW_HOVER_DELAY_MS = 200;
+const POPUP_PREVIEW_HOVER_DELAY_MS = 250;
+const MAX_THUMBNAIL_LOADS = 8;
+let activeThumbnailLoads = 0;
+const thumbnailQueue = [];
+
+function abortError() {
+  return new DOMException("Aborted", "AbortError");
+}
+
+function loadThumbnailQueue() {
+  while (activeThumbnailLoads < MAX_THUMBNAIL_LOADS && thumbnailQueue.length > 0) {
+    const job = thumbnailQueue.shift();
+    job.signal.removeEventListener("abort", job.onAbort);
+    activeThumbnailLoads++;
+    fetchPreviewImage(job.url, job.signal)
+      .then(job.resolve, job.reject)
+      .finally(() => {
+        activeThumbnailLoads--;
+        loadThumbnailQueue();
+      });
+  }
+}
+
+/** @param {string} url @param {AbortSignal} signal @returns {Promise<string>} blob URL */
+function queuedFetchPreview(url, signal) {
+  return new Promise((resolve, reject) => {
+    if (signal.aborted) {
+      reject(abortError());
+      return;
+    }
+    const job = { url, signal, resolve, reject, onAbort: null };
+    job.onAbort = () => {
+      const i = thumbnailQueue.indexOf(job);
+      if (i !== -1) {
+        thumbnailQueue.splice(i, 1);
+        reject(abortError());
+      }
+    };
+    signal.addEventListener("abort", job.onAbort, { once: true });
+    thumbnailQueue.push(job);
+    loadThumbnailQueue();
+  });
+}
+
+const viewModeValue = computed(() => getters.viewMode());
+
+function buildImageTargetSrc(thumbnailUrl) {
+  if (!thumbnailUrl) {
+    return "";
+  }
+  return viewModeValue.value === "gallery" ? `${thumbnailUrl}&size=large` : thumbnailUrl;
+}
 
 export default {
   name: "Icon",
@@ -98,31 +155,36 @@ export default {
       type: String,
       default: "",
     },
+    inView: {
+      type: Boolean,
+      default: true,
+    },
+    inViewRef: {
+      type: Object,
+      default: null,
+    },
   },
   data() {
     return {
-      materialSymbol: "",
-      classes: "",
-      svgPath: "",
-      previewTimeouts: [],
-      popupHoverTimeoutId: null,
-      previewAbortController: null,
-      preloadAbortControllers: [],
       imageBlobUrl: null,
-      // UPDATED: Manage image state directly
       imageState: "loading", // Can be 'loading', 'loaded', or 'error'
-      imageTargetSrc: "", // API URL being loaded
-      currentThumbnail: "", // Add currentThumbnail to data
-      color: "", // Add color to data
+      imageTargetSrc: buildImageTargetSrc(this.thumbnailUrl),
       threeJsError: false, // Track if 3D preview failed
+      everInView: this.inViewRef ? this.inViewRef.value : this.inView,
     };
   },
   computed: {
-    placeholderUrl() {
-      return `${globalVars.baseURL}public/static/img/placeholder.png`;
+    isInView() {
+      return this.inViewRef ? this.inViewRef.value : this.inView;
     },
-    errorUrl() {
-      return `${globalVars.baseURL}public/static/img/placeholder.png`;
+    typeInfo() {
+      return getTypeInfo(this.mimetype);
+    },
+    classes() {
+      return this.typeInfo.classes || "material-symbols";
+    },
+    materialSymbol() {
+      return this.typeInfo.materialSymbol || "";
     },
     isFile() {
       return this.mimetype !== "directory";
@@ -137,76 +199,47 @@ export default {
       if (!this.hasPreview) {
         return false;
       }
-      const simpleType = this.getIconForType().simpleType;
-      if (simpleType === "audio" && !getters.previewPerms().audio) {
+      const perms = getters.previewPerms();
+      const simpleType = this.typeInfo.simpleType;
+      if (simpleType === "audio" && !perms.audio) {
         return false;
       }
-      if (simpleType === "video" && !getters.previewPerms().video) {
+      if (simpleType === "video" && !perms.video) {
         return false;
       }
-      if (simpleType === "image" && !getters.previewPerms().image) {
+      if (simpleType === "image" && !perms.image) {
         return false;
       }
-      if (simpleType === "ebook" && !getters.previewPerms().image) {
+      if (simpleType === "ebook" && !perms.image) {
         return false;
       }
       // office files
-      if ((simpleType === "document" || simpleType === "text") && !getters.previewPerms().office) {
+      if ((simpleType === "document" || simpleType === "text") && !perms.office) {
         return false;
       }
-      if (!getters.previewPerms().folder && this.mimetype === "directory") {
+      if (!perms.folder && this.mimetype === "directory") {
         return false;
       }
       // 3D models - show preview thumbnails (if backend provides them)
-      if (simpleType === "3d-model" && !getters.previewPerms().models) {
+      if (simpleType === "3d-model" && !perms.models) {
         return false;
       }
-      return this.imageState !== 'error' && !this.disablePreviewExt && !this.officeFileDisabled;
+      return this.imageState !== 'error' && !this.previewExtDisabled;
     },
-    disablePreviewExt() {
-      const ext = `.${(this.filename.split(".").pop() || "").toLowerCase()}`; // Ensure lowercase and dot
-      return state.user?.disablePreviewExt?.includes(ext);
-    },
-    officeFileDisabled() {
-      const ext = `.${(this.filename.split(".").pop() || "").toLowerCase()}`; // Ensure lowercase and dot
-      return state.user?.disablePreviewExt?.includes(ext);
-    },
-    pdfConvertable() {
-      if (!globalVars.muPdfAvailable) {
-        return false; // If muPDF is not available
+    previewExtDisabled() {
+      const disabled = state.user?.disablePreviewExt;
+      if (!disabled) {
+        return false;
       }
-      const ext = `.${(this.filename.split(".").pop() || "").toLowerCase()}`; // Ensure lowercase and dot
-      const pdfConvertCompatibleFileExtensions = {
-        ".pdf": true,
-        ".xps": true,
-        ".epub": true,
-        ".mobi": true,
-        ".fb2": true,
-        ".cbz": true,
-        ".svg": true,
-        ".txt": true,
-        ".docx": true,
-        ".pptx": true,
-        ".xlsx": true,
-        ".hwp": true,
-        ".hwpx": true,
-        ".md": true,
-      };
-      return ext in pdfConvertCompatibleFileExtensions;
+      const dot = this.filename.lastIndexOf(".");
+      const ext = `.${(dot === -1 ? this.filename : this.filename.slice(dot + 1)).toLowerCase()}`;
+      return disabled.includes(ext);
     },
-    // NEW: A single computed property to determine the final image src
     imageDisplaySrc() {
-      if (this.imageState === "error") {
-        return this.errorUrl;
-      }
-      // Show placeholder only for the initial load, not during hover animations
-      if (this.imageState === "loading") {
-        return this.placeholderUrl;
-      }
-      return this.imageBlobUrl || this.placeholderUrl;
+      return this.imageState === "loaded" ? this.imageBlobUrl : null;
     },
     showLargeIcon() {
-      return getters.viewMode() === "gallery";
+      return viewModeValue.value === "gallery";
     },
     popupPreviewUrl() {
       if (!this.thumbnailUrl) {
@@ -214,15 +247,13 @@ export default {
       }
       return `${this.thumbnailUrl}&size=xlarge`;
     },
-    showLarger() {
-      return getters.viewMode() === "gallery" || getters.viewMode() === "normal";
-    },
     hasMotion() {
+      const perms = getters.previewPerms();
       return (
-        this.getIconForType().simpleType === "video" &&
-        getters.previewPerms().video &&
+        this.typeInfo.simpleType === "video" &&
+        perms.video &&
         globalVars.mediaAvailable &&
-        getters.previewPerms().motionVideoPreview
+        perms.motionVideoPreview
       );
     },
     /** True when this is a folder with preview and we can cycle through folder images (motion preview). */
@@ -236,13 +267,13 @@ export default {
     shouldUse3DPreview() {
       // Check if we should use 3D preview instead of regular icon
       if (this.mimetype === "directory" || !this.size || !this.path) return false;
+      if (!this.everInView) return false;
       if (!getters.previewPerms().models) return false;
 
       const MAX_SIZE = 250 * 1024; // 250KB in bytes
       if (this.size > MAX_SIZE) return false;
 
-      const typeInfo = this.getIconForType();
-      return typeInfo.simpleType === '3d-model';
+      return this.typeInfo.simpleType === '3d-model';
     },
     /** Directory listing items for sibling viewToken lookup in 3D previews. */
     parentDirItemsForPreview() {
@@ -258,10 +289,18 @@ export default {
     gallerySizeKey() {
       // Returns gallery size to force 3D preview re-initialization on size change
       // Also includes view mode to handle view changes
-      return `${state.user?.gallerySize || 1}-${getters.viewMode()}`;
+      return `${state.user?.gallerySize || 1}-${viewModeValue.value}`;
     },
-    routePath() {
-      return state.route.path ?? "";
+    threeDFbdata() {
+      return {
+        name: this.filename,
+        path: this.path,
+        source: this.source,
+        size: this.size,
+        type: this.mimetype,
+        viewToken: this.viewToken,
+        parentDirItems: this.parentDirItemsForPreview,
+      };
     },
   },
   methods: {
@@ -291,14 +330,28 @@ export default {
         this.previewAbortController = null;
       }
       if (this.imageBlobUrl) {
-        URL.revokeObjectURL(this.imageBlobUrl);
+        releaseThumbnailBlob(this.blobKey);
+        this.blobKey = null;
         this.imageBlobUrl = null;
       }
     },
-    // Load preview via fetch so requests can be aborted on navigation
-    /**
-     * @param {string} url
-     */
+    cacheModified() {
+      return this.modified || state.req?.modified || "";
+    },
+    /** Shows a thumbnail that was already fetched, without a request @returns {boolean} */
+    showCachedThumbnail(url) {
+      const key = getThumbnailBlobKey(url, this.cacheModified());
+      const blobUrl = acquireThumbnailBlob(key);
+      if (!blobUrl) {
+        return false;
+      }
+      this.blobKey = key;
+      this.imageBlobUrl = blobUrl;
+      this.imageState = "loaded";
+      this.loadPaused = false;
+      return true;
+    },
+    /** @param {string} url */
     loadImage(url) {
       if (!url) {
         this.imageState = "error";
@@ -306,29 +359,37 @@ export default {
       }
 
       this.cancelActivePreviews();
+      if (this.showCachedThumbnail(url)) {
+        return;
+      }
       this.imageState = "loading";
+      if (!this.isInView) {
+        this.loadPaused = true;
+        return;
+      }
+      this.loadPaused = false;
 
       const controller = new AbortController();
       this.previewAbortController = controller;
       const loadUrl = url;
+      const modified = this.cacheModified();
 
-      fetchPreviewImage(loadUrl, controller.signal)
+      queuedFetchPreview(loadUrl, controller.signal)
         .then((blobUrl) => {
-          if (this.previewAbortController !== controller) {
-            URL.revokeObjectURL(blobUrl);
+          // Keep what was fetched even if moved on, another one may need it
+          const key = getThumbnailBlobKey(loadUrl, modified);
+          const sharedBlobUrl = storeThumbnailBlob(key, blobUrl);
+          if (this.previewAbortController !== controller || this.imageTargetSrc !== loadUrl) {
+            releaseThumbnailBlob(key);
             return;
           }
-          if (this.imageTargetSrc !== loadUrl) {
-            URL.revokeObjectURL(blobUrl);
-            return;
-          }
-          this.imageBlobUrl = blobUrl;
+          this.blobKey = key;
+          this.imageBlobUrl = sharedBlobUrl;
           this.imageState = "loaded";
           this.previewAbortController = null;
           if (this.path) {
             const source = getters.isShare() ? state.shareInfo?.hash : (this.source || state.req.source);
             const size = this.showLargeIcon ? "large" : "small";
-            const modified = this.modified || state.req.modified;
             setImageLoaded(source, this.path, size, modified, loadUrl);
           }
         })
@@ -404,10 +465,7 @@ export default {
         // Set the thumbnail or popup preview
         if (getters.previewPerms().popup) {
           mutations.setPreviewSource(getObjectProperty(sequence, index));
-        } else {
-          this.currentThumbnail = getObjectProperty(sequence, index);
         }
-
         // Preload the next frame (cancellable fetch warms HTTP cache)
         const nextIndex = (index + 1) % sequence.length;
         const frameUrl = sequence.at(nextIndex);
@@ -417,11 +475,6 @@ export default {
         fetchPreviewImage(frameUrl, preloadController.signal)
           .then((blobUrl) => {
             URL.revokeObjectURL(blobUrl);
-            if (this.path) {
-              const source = getters.isShare() ? state.shareInfo?.hash : (this.source || state.req.source);
-              const modified = this.modified || state.req.modified;
-              setImageLoaded(source, this.path, "xlarge", modified, frameUrl);
-            }
           })
           .catch(() => {});
 
@@ -438,32 +491,43 @@ export default {
       mutations.setPreviewSource("");
       // Clear popup preview source info when mouse leaves
       state.popupPreviewSourceInfo = null;
-      // UPDATED: Reset to the base thumbnail URL. The watcher will handle reloading it.
       this.updateImageTargetSrc();
     },
-    getIconForType() {
-      return getTypeInfo(this.mimetype);
-    },
     updateImageTargetSrc() {
-      let newSrc = this.thumbnailUrl || this.placeholderUrl;
       // If we need large thumbnails and have a thumbnail URL, append &size=large
       // Otherwise use the URL as-is (defaults to small)
-      if (this.thumbnailUrl && this.showLargeIcon) {
-        newSrc = `${this.thumbnailUrl}&size=large`;
-      }
-
+      const newSrc = buildImageTargetSrc(this.thumbnailUrl);
       if (this.imageTargetSrc !== newSrc) {
         this.imageTargetSrc = newSrc;
       }
     },
+    /** stop the request if the item scrolled away while the thumb was still loading */
+    pauseThumbnailLoad() {
+      if (this.previewAbortController) {
+        this.previewAbortController.abort();
+        this.previewAbortController = null;
+        this.imageState = "loading";
+        this.loadPaused = true;
+      }
+    },
+    /** request the again thumb again if the item came back into view */
+    resumeThumbnailLoad() {
+      if (this.loadPaused && this.imageTargetSrc) {
+        this.loadImage(this.imageTargetSrc);
+      }
+    },
   },
   watch: {
-    routePath() {
-      this.cancelActivePreviews();
-      this.imageState = "loading";
-    },
     thumbnailUrl() {
       this.updateImageTargetSrc();
+    },
+    isInView(visible) {
+      if (visible) {
+        this.everInView = true;
+        this.resumeThumbnailLoad();
+      } else {
+        this.pauseThumbnailLoad();
+      }
     },
     showLargeIcon() {
       this.updateImageTargetSrc();
@@ -477,21 +541,21 @@ export default {
         if (state.shareInfo?.disableThumbnails) {
           return;
         }
-        const simpleType = this.getIconForType().simpleType;
-        // Check preview settings (share or user)
-        if (simpleType === "video" && !getters.previewPerms().video) {
+        const simpleType = this.typeInfo.simpleType;
+        const perms = getters.previewPerms();
+        if (simpleType === "video" && !perms.video) {
           return;
         }
-        if (simpleType === "image" && !getters.previewPerms().image) {
+        if (simpleType === "image" && !perms.image) {
           return;
         }
-        if ((simpleType === "document" || simpleType === "text") && !getters.previewPerms().office) {
+        if ((simpleType === "document" || simpleType === "text") && !perms.office) {
           return;
         }
-        if (!getters.previewPerms().folder && this.mimetype === "directory") {
+        if (!perms.folder && this.mimetype === "directory") {
           return;
         }
-        if (this.disablePreviewExt || this.officeFileDisabled) {
+        if (this.previewExtDisabled) {
           return;
         }
         // All checks passed, load the image
@@ -500,13 +564,13 @@ export default {
       immediate: true, // Run this watcher on component mount
     },
   },
-  mounted() {
-    const result = this.getIconForType();
-    this.classes = result.classes || "material-symbols";
-    this.color = result.color || "lightgray";
-    this.materialSymbol = result.materialSymbol || "";
-    this.svgPath = result.svgPath || "";
-    this.updateImageTargetSrc();
+  beforeCreate() {
+    this.previewTimeouts = [];
+    this.popupHoverTimeoutId = null;
+    this.previewAbortController = null;
+    this.preloadAbortControllers = [];
+    this.loadPaused = false;
+    this.blobKey = null;
   },
   beforeUnmount() {
     this.cancelActivePreviews();
@@ -694,6 +758,12 @@ export default {
   object-fit: cover;
   object-position: center;
   display: block;
+}
+
+.image-preview .placeholder-icon {
+  color: white;
+  opacity: 0.7;
+  text-shadow: 0 0 3px rgb(0 0 0 / 80%);
 }
 
 /* 3D viewers - universal */

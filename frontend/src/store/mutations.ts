@@ -33,6 +33,24 @@ import type {
   UserScope,
 } from "./types.ts";
 
+let navigationSortCache: {
+  listing: Partial<FileListItem>[];
+  length: number;
+  by: string;
+  asc: boolean;
+  items: Partial<FileListItem>[];
+} | null = null;
+
+function getSortedNavigationItems(listing: Partial<FileListItem>[], by: string, asc: boolean): Partial<FileListItem>[] {
+  const cache = navigationSortCache;
+  if (cache && cache.listing === listing && cache.length === listing.length && cache.by === by && cache.asc === asc) {
+    return cache.items;
+  }
+  const items: Partial<FileListItem>[] = sortedItems(listing, by, asc);
+  navigationSortCache = { listing, length: listing.length, by, asc, items };
+  return items;
+}
+
 export const mutations = {
   disableEventThemes: () => {
     if (state.disableEventThemes) {
@@ -149,6 +167,9 @@ export const mutations = {
     state.req.hasUpdate = true;
   },
   setPreviewSource: (value: string) => {
+    if (!value && !state.popupPreviewSourceInfo) {
+      return;
+    }
     if (value === state.popupPreviewSourceInfo?.url) {
       return;
     }
@@ -167,8 +188,19 @@ export const mutations = {
     if (value === state.listing) {
       return;
     }
-    state.listing = value;
-    emitStateChanged();
+    // Assign only the fields that changed instead of replacing the object, so components
+    // reading aren't invalidated by a scrollRatio update.
+    const listing = state.listing as unknown as Record<string, unknown>;
+    let changed = false;
+    for (const [key, next] of Object.entries(value)) {
+      if (!Object.is(listing[key], next)) {
+        listing[key] = next;
+        changed = true;
+      }
+    }
+    if (changed) {
+      emitStateChanged();
+    }
   },
   setCurrentSource: (value: string) => {
     if (value === state.sources.current) {
@@ -678,6 +710,12 @@ export const mutations = {
     state.selected.push(value);
     emitStateChanged();
   },
+  /** Replace the whole selection in one go */
+  setSelected: (values: (number | FileListItem)[]) => {
+    state.selected = values;
+    mutations.setMultiple(false);
+    emitStateChanged();
+  },
   removeSelected: (value: number | FileListItem) => {
     const i = state.selected.indexOf(value);
     if (i === -1) return;
@@ -693,12 +731,7 @@ export const mutations = {
     if (state.req?.items?.length > 0) {
       // Close hovers
       mutations.closeHovers();
-      // Clear current selection first
-      mutations.resetSelected();
-      // Add all items from current directory to selection by their indices
-      state.req.items.forEach((_item, index) => {
-        mutations.addSelected(index);
-      });
+      mutations.setSelected(state.req.items.map((_item, index) => index));
       if (options.multiple) {
         mutations.setMultiple(true);
       }
@@ -825,6 +858,10 @@ export const mutations = {
   replaceRequest: (value: ReqObject) => {
     state.selected = [];
     mutations.setMultiple(false);
+    // skip deep reactivity for parent dirs
+    if (Array.isArray(value?.parentDirItems)) {
+      value.parentDirItems = markRaw(value.parentDirItems);
+    }
     if (!value?.items) {
       state.req = value;
       setActiveViewGrantScope(value?.source ?? "");
@@ -840,7 +877,7 @@ export const mutations = {
     // Sort them separately
     const sortedDirs = sortedItems(dirs, sortby, asc);
     const sortedFiles = sortedItems(files, sortby, asc);
-    value.items = [...sortedDirs, ...sortedFiles];
+    value.items = markRaw([...sortedDirs, ...sortedFiles]);
     value.items.forEach((item: FileListItem & { index?: number }, index: number) => {
       item.index = index;
     });
@@ -852,12 +889,28 @@ export const mutations = {
     if (!items?.length || !metadataMap?.size) {
       return;
     }
-    for (const item of items) {
-      if (!metadataMap.has(item.name)) continue;
-      const metadata = metadataMap.get(item.name);
-      item.metadata = item.path === mergeForPath
+    const resolveMetadata = (item: FileListItem, metadata: unknown) =>
+      item.path === mergeForPath
         ? { ...(metadata as Record<string, unknown>), ...(item.metadata as Record<string, unknown>) }
         : metadata;
+    // state.req.items is markRaw so editing an item would not re-render its row.
+    // For that, we swap the changed items for copies and replace the array
+    if (items === state.req?.items) {
+      let changed = false;
+      const nextItems = items.map((item) => {
+        if (!metadataMap.has(item.name)) return item;
+        changed = true;
+        return { ...item, metadata: resolveMetadata(item, metadataMap.get(item.name)) };
+      });
+      if (!changed) return;
+      state.req.items = markRaw(nextItems);
+      emitStateChanged();
+      return;
+    }
+    // Other arrays (like preview navigation listing) are not reactive so in place is fine.
+    for (const item of items) {
+      if (!metadataMap.has(item.name)) continue;
+      item.metadata = resolveMetadata(item, metadataMap.get(item.name));
     }
     emitStateChanged();
   },
@@ -871,7 +924,15 @@ export const mutations = {
         byName.set(e.name, e.metadata);
       }
     }
-    mutations.patchListingMetadata(state.req.items, byName);
+    let changed = false;
+    const nextItems = state.req.items.map((item) => {
+      if (!byName.has(item.name)) return item;
+      changed = true;
+      return { ...item, metadata: byName.get(item.name) };
+    });
+    if (!changed) return;
+    state.req.items = markRaw(nextItems);
+    emitStateChanged();
   },
   /** Merge media fields from GET /api/media/metadata (single file). Replace req object so Vue watchers see the update. */
   patchRequestFileMediaMetadata: (enriched: Partial<ReqObject> | null | undefined) => {
@@ -1082,7 +1143,7 @@ export const mutations = {
 
     // Sort listing according to sorting preferences
     const sorting = getters.sorting();
-    const items: Partial<FileListItem>[] = sortedItems(listing as Partial<FileListItem>[], sorting.by, sorting.asc);
+    const items = getSortedNavigationItems(listing as Partial<FileListItem>[], sorting.by, sorting.asc);
 
     // Find current item index in the listing
     for (let i = 0; i < items.length; i++) {
@@ -1098,8 +1159,9 @@ export const mutations = {
     }
 
     // Find previous item (skip directories)
-    for (const item of items.slice(0, state.navigation.currentIndex).reverse()) {
-      if (item.type === 'directory') continue;
+    for (let i = state.navigation.currentIndex - 1; i >= 0; i--) {
+      const item = items.at(i);
+      if (!item || item.type === 'directory') continue;
 
       item.path = url.joinPath(directoryPath, item.name);
       state.navigation.previousItem = item;
@@ -1115,8 +1177,9 @@ export const mutations = {
     }
 
     // Find next item (skip directories)
-    for (const item of items.slice(state.navigation.currentIndex + 1)) {
-      if (item.type === 'directory') continue;
+    for (let i = state.navigation.currentIndex + 1; i < items.length; i++) {
+      const item = items.at(i);
+      if (!item || item.type === 'directory') continue;
 
       item.path = url.joinPath(directoryPath, item.name);
       state.navigation.nextItem = item;
@@ -1334,7 +1397,7 @@ export const mutations = {
     updateManifestLink();
     emitStateChanged();
   },
-  setSidebarWidth: (value: number) => {
+  setSidebarWidth: (value: number, persist = true) => {
     // Ensure width is within bounds
     const minWidth = state.sidebar.minWidth;
     const maxWidth = state.sidebar.maxWidth;
@@ -1343,8 +1406,13 @@ export const mutations = {
       return;
     }
     state.sidebar.width = newWidth;
-    localStorage.setItem("sidebarWidth", newWidth.toString());
+    if (persist) {
+      localStorage.setItem("sidebarWidth", newWidth.toString());
+    }
     emitStateChanged();
+  },
+  persistSidebarWidth: () => {
+    localStorage.setItem("sidebarWidth", state.sidebar.width.toString());
   },
   setSidebarResizing: (value: boolean) => {
     if (value === state.sidebar.isResizing) {
