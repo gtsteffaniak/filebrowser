@@ -19,6 +19,11 @@ vi.mock('@/utils/url.js', () => ({
     `/api/${p}${params.username ? `?username=${params.username}` : ''}`,
 }));
 
+vi.mock('@/api/viewToken.js', () => ({
+  refreshViewGrantAfterSessionRenewal: vi.fn().mockResolvedValue(undefined),
+}));
+import { refreshViewGrantAfterSessionRenewal } from '@/api/viewToken.js';
+
 import {
   ensureSessionFresh,
   getSessionJwtExpiresAt,
@@ -218,5 +223,27 @@ describe('session JWT keep-alive', () => {
     await vi.advanceTimersByTimeAsync(60_000);
     expect(global.fetch.mock.calls.length).toBeGreaterThanOrEqual(2);
     stopSessionKeepAlive();
+  });
+});
+
+describe('renew preview grants', () => {
+  it('refreshes grants after successful session renewal', async () => {
+    vi.mocked(refreshViewGrantAfterSessionRenewal).mockClear();
+    respond(200, 'ok');
+    await renew();
+    expect(refreshViewGrantAfterSessionRenewal).toHaveBeenCalledOnce();
+  });
+
+  it('does not refresh grants when login renewal fails', async () => {
+    vi.mocked(refreshViewGrantAfterSessionRenewal).mockClear();
+    respond(401, 'expired');
+    await expect(renew()).rejects.toThrow('expired');
+    expect(refreshViewGrantAfterSessionRenewal).not.toHaveBeenCalled();
+  });
+
+  it('does not turn a preview refresh failure into a failed login renewal', async () => {
+    vi.mocked(refreshViewGrantAfterSessionRenewal).mockRejectedValueOnce(new Error('preview failed'));
+    respond(200, 'ok');
+    await expect(renew()).resolves.toBeUndefined();
   });
 });

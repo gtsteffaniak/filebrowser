@@ -1,4 +1,4 @@
-import { getters, state } from "@/store/index.ts";
+import { getters, mutations, state } from "@/store/index.ts";
 import { getApiPath, getPublicApiPath } from "@/utils/url.js";
 import {
   VIEW_REFRESH_BEFORE_MS,
@@ -11,6 +11,7 @@ const REFRESH_BEFORE_MS = VIEW_REFRESH_BEFORE_MS;
 
 let activeScope = "";
 let refreshTimer = null;
+let sessionGeneration = 0;
 
 /** Stable key for the current preview request (source, share, path). */
 export function requestViewIdentity(req) {
@@ -154,6 +155,7 @@ export function rememberViewToken(source, viewToken, expiresAt) {
 
 /** @returns {Promise<{ viewToken: string, expiresAt: number }>} */
 export async function refreshViewToken(source, existingToken, requestScope = null) {
+  const generation = sessionGeneration;
   const scope = requestScope ?? viewGrantScope(source);
   const url = viewTokenApiPath(source, existingToken);
   const res = await fetch(url, {
@@ -164,13 +166,13 @@ export async function refreshViewToken(source, existingToken, requestScope = nul
     },
   });
   if (!res.ok) {
-    if (res.status === 403 || res.status === 401) {
+    if (generation === sessionGeneration && (res.status === 403 || res.status === 401)) {
       clearCachedScopeByScope(scope);
     }
     throw new Error(await res.text());
   }
   const data = await res.json();
-  if (scope !== activeScope) {
+  if (generation !== sessionGeneration || scope !== activeScope) {
     return data;
   }
   writeCacheForScope(scope, data.viewToken, data.expiresAt);
@@ -190,4 +192,31 @@ export async function ensureViewToken(source) {
   }
   const data = await refreshViewToken(source, cached?.viewToken, scope);
   return data.viewToken;
+}
+
+/** Replace private grants after login renewal and update the active preview URLs. */
+export async function refreshViewGrantAfterSessionRenewal() {
+  if (getters.isShare()) return;
+  const generation = ++sessionGeneration;
+  if (refreshTimer) {
+    clearTimeout(refreshTimer);
+    refreshTimer = null;
+  }
+  // Inactive sources must not reuse grants bound to the previous login session.
+  try {
+    for (const key of Object.keys(sessionStorage)) {
+      if (key.startsWith("viewToken:")) sessionStorage.removeItem(key);
+    }
+  } catch {
+    // Storage can be unavailable; the active grant still refreshes below.
+  }
+  const req = state.req;
+  const source = req?.source;
+  const identity = requestViewIdentity(req);
+  if (!source || viewGrantScope(source) !== activeScope) return;
+  const data = await refreshViewToken(source);
+  if (generation === sessionGeneration && !getters.isShare() &&
+      requestViewIdentity(state.req) === identity && viewGrantScope(source) === activeScope) {
+    mutations.setRequestViewToken(data.viewToken);
+  }
 }

@@ -1,4 +1,7 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
+
+const setRequestViewToken = vi.hoisted(() => vi.fn());
+const reqState = vi.hoisted(() => ({ req: null }));
 
 const shareState = vi.hoisted(() => ({
   isShare: false,
@@ -9,7 +12,9 @@ vi.mock("@/store", () => ({
   getters: {
     isShare: () => shareState.isShare,
   },
+  mutations: { setRequestViewToken },
   state: {
+    get req() { return reqState.req; },
     sessionId: "test-session",
     shareInfo: {
       get hash() {
@@ -26,6 +31,7 @@ vi.mock("@/utils/url.js", () => ({
 }));
 
 import {
+  refreshViewGrantAfterSessionRenewal,
   requestViewIdentity,
   refreshViewToken,
   setActiveViewGrantScope,
@@ -122,5 +128,60 @@ describe("refreshViewToken", () => {
     await refreshViewToken("src", undefined, "share-a");
 
     expect(getCachedViewToken("src")).toBe("token-a");
+  });
+});
+
+describe("session renewal preview refresh", () => {
+  afterEach(() => {
+    shareState.isShare = false;
+    setActiveViewGrantScope("");
+    reqState.req = null;
+    vi.unstubAllGlobals();
+  });
+  beforeEach(() => {
+    sessionStorage.clear();
+    shareState.isShare = false;
+    reqState.req = { source: "src", path: "/post.html", viewToken: "old" };
+    setActiveViewGrantScope("src");
+    setRequestViewToken.mockClear();
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ viewToken: "new", expiresAt: Math.floor(Date.now() / 1000) + 3600 }),
+    }));
+  });
+
+  it("clears old cached grants and updates the active preview", async () => {
+    sessionStorage.setItem("viewToken:other", JSON.stringify({ viewToken: "old-other", expiresAt: Math.floor(Date.now() / 1000) + 3600 }));
+    await refreshViewGrantAfterSessionRenewal();
+    expect(sessionStorage.getItem("viewToken:other")).toBeNull();
+    expect(getCachedViewToken("src")).toBe("new");
+    expect(setRequestViewToken).toHaveBeenCalledWith("new");
+  });
+
+  it("does not apply the result to a different file", async () => {
+    let release;
+    fetch.mockImplementation(() => new Promise((resolve) => { release = resolve; }));
+    const refresh = refreshViewGrantAfterSessionRenewal();
+    reqState.req = { source: "src", path: "/other.html" };
+    release({ ok: true, json: async () => ({ viewToken: "new", expiresAt: Math.floor(Date.now() / 1000) + 3600 }) });
+    await refresh;
+    expect(setRequestViewToken).not.toHaveBeenCalled();
+  });
+
+  it("leaves public shares unchanged", async () => {
+    shareState.isShare = true;
+    await refreshViewGrantAfterSessionRenewal();
+    expect(fetch).not.toHaveBeenCalled();
+    expect(setRequestViewToken).not.toHaveBeenCalled();
+  });
+
+  it("discards a refresh started before session renewal", async () => {
+    let release;
+    fetch.mockImplementationOnce(() => new Promise((resolve) => { release = resolve; }));
+    const oldRefresh = refreshViewToken("src");
+    await refreshViewGrantAfterSessionRenewal();
+    release({ ok: true, json: async () => ({ viewToken: "old", expiresAt: Math.floor(Date.now() / 1000) + 3600 }) });
+    await oldRefresh;
+    expect(getCachedViewToken("src")).toBe("new");
   });
 });
