@@ -27,12 +27,6 @@
       :name="$t('profileSettings.disableHideSidebar')"
       :description="$t('profileSettings.disableHideSidebarDescription')"
     />
-    <ProfilePreferenceToggle
-      field="editorQuickSave"
-      section="fileViewer"
-      :name="$t('profileSettings.editorQuickSave')"
-      :description="$t('profileSettings.editorQuickSaveDescription')"
-    />
     <ToggleSwitch
       class="item"
       :enforceable="enforceable"
@@ -510,12 +504,6 @@
           :enforcement-locked="isEnforcementLocked('fileViewer', 'autoplayMedia')"
           :name="$t('profileSettings.autoplayMedia')"
           :description="helpText('fileViewer', 'autoplayMedia', $t('profileSettings.autoplayMediaDescription'))"
-        />
-        <ProfilePreferenceToggle
-          field="editorQuickSave"
-          section="fileViewer"
-          :name="$t('profileSettings.editorQuickSave')"
-          :description="$t('profileSettings.editorQuickSaveDescription')"
         />
         <ProfilePreferenceToggle
           field="preferEditorForMarkdown"

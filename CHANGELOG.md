@@ -4,8 +4,13 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v2.1.2
 
+ **Notes**:
+ - Removed "Editor quick save" setting (`userDefaults.fileViewer.quickSave`), the save button is now always present in the editor toolbar.
+
  **Bug Fixes**:
  - fix(webdav): OPTIONS now advertises only methods actually supported and permitted for the user; the DAV header reports class 1 only since LOCK/UNLOCK are not enabled (#3110)
+ - Language switcher not working (#3114) (#3117)
+ - Viewer showing a stale image after the file changed on disk: single-file downloads are now revalidated by the browser (#3132)
 
 ## v2.1.1
 

@@ -42,6 +42,31 @@ test("choose custom theme", async({ page, checkForErrors }) => {
   checkForErrors();
 });
 
+test("switching language loads translations", async({ page, checkForErrors }) => {
+  await page.goto("/files/");
+  await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
+  await openProfileSettings(page);
+
+  const userPatches: string[] = [];
+  page.on("request", (request) => {
+    if (request.method() === "PATCH" && new URL(request.url()).pathname.endsWith("/api/users")) {
+      userPatches.push(request.url());
+    }
+  });
+  try {
+    await selectExpandDropdownOption(page, "Language", /^Español/);
+    await checkForNotification(page, "¡Ajustes actualizados!");
+    // the UI should actually switch and not just the stored setting
+    await expect(page.locator('button[aria-label="Idioma"]')).toBeVisible();
+    await expect(page.locator("html")).toHaveAttribute("lang", "es");
+    expect(userPatches).toHaveLength(1);
+  } finally {
+    await selectExpandDropdownOption(page, "Idioma", /^English/);
+    await expect(page.locator('button[aria-label="Language"]')).toBeVisible();
+  }
+  checkForErrors();
+});
+
 test("view config", async({ page, checkForErrors }) => {
   await page.goto("/files/");
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");

@@ -31,7 +31,6 @@ var userJSONFieldEnforcementPaths = map[string]string{
 	"newFileTemplate":            "listing.newFileTemplate",
 	"disablePreviewExt":          "preview.disablePreviewExt",
 	"disableSearchOptions":       "search.disableOptions",
-	"editorQuickSave":            "fileViewer.editorQuickSave",
 	"preferEditorForMarkdown":    "fileViewer.preferEditorForMarkdown",
 	"debugOffice":                "fileViewer.debugOffice",
 	"disableViewingExt":          "fileViewer.disableViewingExt",

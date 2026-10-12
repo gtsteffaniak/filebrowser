@@ -14,7 +14,6 @@
           show-thumbnail-master
           @change="onPreferenceChange"
           @theme-color="onThemeColor"
-          @locale-change="onLocaleChange"
         />
       </div>
     </form>
@@ -122,9 +121,6 @@ export default {
       }
     },
     onPreferenceChange() {
-      void this.updateSettings();
-    },
-    onLocaleChange() {
       void this.updateSettings();
     },
     async updateSettings(event) {
