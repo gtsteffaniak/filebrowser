@@ -589,6 +589,10 @@ func TestWopiHostRejections(t *testing.T) {
 	if strings.Contains(rec.Body.String(), "Print") {
 		t.Errorf("printing needs View only, as with OnlyOffice; got %s", rec.Body.String())
 	}
+	// The editor still reads the file: viewing needs View, not Download.
+	if rec := f.do(http.MethodGet, "/contents", tok, nil, nil); rec.Code != http.StatusOK || rec.Body.String() != "original" {
+		t.Errorf("GetFile without download = %d %q, want 200 with the content", rec.Code, rec.Body.String())
+	}
 	if rec := f.do(http.MethodPost, "/contents", tok, []byte("x"), map[string]string{"X-WOPI-Override": "PUT"}); rec.Code != http.StatusUnauthorized {
 		t.Errorf("PutFile without modify = %d, want 401", rec.Code)
 	}
