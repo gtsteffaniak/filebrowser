@@ -237,7 +237,7 @@ export default {
         }
         notify.showSuccessToast(this.$t("prompts.renameSuccess"));
         eventBus.emit('itemsRenamed');
-        state.pendingHighlight = { path: newPath };
+        state.pendingHighlight = { path: newPath, source: getters.isShare() ? state.shareInfo.hash : this.item.source };
         mutations.closeTopPrompt();
 
         if (this.isPreviewView) {

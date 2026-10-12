@@ -189,7 +189,7 @@ export default {
 
         if (getters.isShare()) {
           await resourcesApi.postPublic(state.shareInfo?.hash, newPath, "", overwrite);
-          state.pendingHighlight = { path: newPath };
+          state.pendingHighlight = { path: newPath, source: state.shareInfo?.hash };
           mutations.setReload(true);
           mutations.closeTopPrompt();
           this.creating = false;
@@ -198,7 +198,7 @@ export default {
           return;
         }
         await resourcesApi.post(source, newPath, "", overwrite);
-        state.pendingHighlight = { path: newPath };
+        state.pendingHighlight = { path: newPath, source };
         mutations.setReload(true);
         mutations.closeTopPrompt();
 
@@ -230,7 +230,7 @@ export default {
 
                       if (getters.isShare()) {
                         await resourcesApi.postPublic(state.shareInfo?.hash, newPath, "", false);
-                        state.pendingHighlight = { path: newPath };
+                        state.pendingHighlight = { path: newPath, source: state.shareInfo?.hash };
                         mutations.setReload(true);
                         mutations.closeTopPrompt(); // close conflict prompt
                         mutations.closeTopPrompt(); // close new file prompt
@@ -240,7 +240,7 @@ export default {
                         return;
                       }
                       await resourcesApi.post(source, newPath, "", false);
-                      state.pendingHighlight = { path: newPath };
+                      state.pendingHighlight = { path: newPath, source };
                       mutations.setReload(true);
                       mutations.closeTopPrompt(); // close conflict prompt
                       mutations.closeTopPrompt(); // close new file prompt

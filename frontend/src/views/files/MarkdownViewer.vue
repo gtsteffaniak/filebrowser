@@ -677,6 +677,7 @@ function reinit() {
     type: state.req.type,
     source: state.req.source,
     modified: state.req.modified,
+    created: state.req.created,
     hasPreview: state.req.hasPreview,
   });
   // Set initial content. The `watch` will trigger the first highlight.
