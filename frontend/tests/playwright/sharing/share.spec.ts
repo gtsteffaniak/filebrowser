@@ -74,8 +74,7 @@ test("share file creation actions", async ({ page, checkForErrors, openContextMe
   await expect(page).toHaveTitle("Graham's Filebrowser - Share - dfsaf.txt");
   await page.locator(".ace_content").click();
   await page.keyboard.type("test content");
-  await page.locator(".overflow-menu-button").click();
-  await page.locator('button[aria-label="Save"]').click();
+  await page.locator('.editor-toolbar button[aria-label="Save"]').click();
   await checkForNotification(page, "dfsaf.txt saved successfully.");
   checkForErrors();
 });

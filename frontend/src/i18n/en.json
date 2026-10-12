@@ -604,8 +604,6 @@
     "showCreationDateColumnDescription": "Show the creation date column in list and compact views in the main listing.",
     "deleteWithoutConfirming": "Delete files without confirmation prompt",
     "deleteWithoutConfirmingDescription": "Delete files without confirmation prompt. This will only work if the file is a media file.",
-    "editorQuickSave": "Show quick save button in editor",
-    "editorQuickSaveDescription": "The text editor will only show the save icon, hiding any other actions",
     "previewOfficeDescription": "Show thumbnails for office file types in the listing view",
     "disableThumbnailPreviews": "Disable thumbnails for certain file extensions",
     "disableThumbnailPreviewsDescription": "A space-separated list of file extensions to disable thumbnail previews for (e.g., '.txt .html').",

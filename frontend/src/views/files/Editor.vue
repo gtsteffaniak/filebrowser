@@ -5,7 +5,7 @@
       :class="{ 'viewer-mode': viewerMode }"
       :style="isSplitActive ? { flexBasis: `${editorPanePercent}%` } : {}"
     >
-      <EditorToolbar v-if="showEditorToolbar" :editor="editor" :is-markdown="isMarkdownFile" />
+      <EditorToolbar v-if="showEditorToolbar" ref="toolbar" :editor="editor" :is-markdown="isMarkdownFile" :show-save="!viewerMode" :save-handler="handleEditorValueRequest" />
       <div id="editor" ref="editorEl"></div>
     </div>
     <MarkdownSplitView
@@ -76,6 +76,7 @@ const { t } = useI18n();
 const editorRoot = ref<HTMLElement | null>(null);
 const editorEl = ref<HTMLElement | null>(null);
 const splitView = ref<InstanceType<typeof MarkdownSplitView> | null>(null);
+const toolbar = ref<InstanceType<typeof EditorToolbar> | null>(null);
 
 const editor = shallowRef<Ace.Editor | null>(null); // The editor instance
 const originalReq = ref<Req | null>(null);
@@ -538,7 +539,8 @@ function keyEvent(event: KeyboardEvent) {
   if (props.viewerMode) return;
   if ((ctrlKey || metaKey) && key.toLowerCase() === "s") {
     event.preventDefault();
-    handleEditorValueRequest().catch(() => { /* ignore */ });
+    if (event.repeat) return;
+    void toolbar.value?.save();
   }
 }
 
@@ -551,12 +553,11 @@ function openEditorSettings() {
 function setupNavigationGuard() {
   if (props.viewerMode) return;
 
-  navigationGuard = router.beforeEach((to, from, next) => {
+  navigationGuard = router.beforeEach((to, from) => {
     // If prompt is already open, block any new navigation attempts
     if (isPromptOpen) {
       if (getters.currentPromptName() === "SaveBeforeExit") {
-        next(false);
-        return;
+        return false;
       }
       isPromptOpen = false;
       pendingNavigation = null;
@@ -565,12 +566,11 @@ function setupNavigationGuard() {
     const isDifferentRoute = to.path !== from.path || to.hash !== from.hash;
 
     if (isDirty && !props.viewerMode && isDifferentRoute && req.value) {
-      next(false);
       pendingNavigation = to;
       showSaveBeforeExitPrompt();
-      return;
+      return false;
     }
-    next();
+    return true;
   });
 }
 
@@ -719,11 +719,10 @@ const beforeUnloadHandler = (event: BeforeUnloadEvent) => {
   }
 };
 
-window.addEventListener("keydown", keyEvent, true);
-window.addEventListener("beforeunload", beforeUnloadHandler);
-setupNavigationGuard();
-
 onMounted(async () => {
+  window.addEventListener("keydown", keyEvent, true);
+  window.addEventListener("beforeunload", beforeUnloadHandler);
+  setupNavigationGuard();
   resizeContainerEl.value = editorRoot.value;
   resizeContainerEl.value?.addEventListener("keydown", stopEnterPropagation); // to avoid trigger prompts primary button when the editor is embedded
   if (props.viewerMode) {
@@ -742,7 +741,9 @@ onMounted(async () => {
   }
   initializeEditor(state.editor.scrollRatio);
   // Register save handler so other components can trigger save
-  mutations.setEditorSaveHandler(() => handleEditorValueRequest());
+  if (!props.viewerMode) {
+    mutations.setEditorSaveHandler(() => handleEditorValueRequest());
+  }
   applyFontSize();
   void setupViewerResizeObserver();
 });
@@ -770,6 +771,7 @@ onBeforeUnmount(() => {
   // Clear navigation guard
   if (navigationGuard) {
     navigationGuard();
+    navigationGuard = null;
   }
   // Clear dirty state and save handler when leaving editor
   mutations.setEditorDirty(false);

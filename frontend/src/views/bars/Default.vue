@@ -29,15 +29,6 @@
     />
     <template v-else>
       <action
-        v-if="showQuickSave"
-        class="save-button"
-        id="save-button"
-        icon="save"
-        :label="$t('general.save')"
-        @action="save()"
-      />
-      <action
-        v-else
         class="overflow-menu-button"
         :icon="iconName"
         :disabled="noItems || isSidebarFloating"
@@ -49,8 +40,6 @@
 
 <script>
 import { router } from "@/router";
-import buttons from "@/utils/buttons";
-import { notify } from "@/notify";
 import { getters, state, mutations } from "@/store";
 import Action from "@/components/Action.vue";
 import { globalVars } from "@/utils/constants";
@@ -82,12 +71,6 @@ export default {
         return currentTool.name;
       }
       return state.req.name;
-    },
-    showQuickSave() {
-      if (getters.currentView() !== "editor" || !getters.sourcePermissions().modify) {
-        return false;
-      }
-      return state.user.editorQuickSave;
     },
     disableNavButtons() {
       const isShare = getters.isShare();
@@ -130,9 +113,6 @@ export default {
     },
     noItems() {
       return !state.contextMenuHasItems && !getters.isPreviewView();
-    },
-    showSave() {
-      return getters.currentView() === "editor" && getters.sourcePermissions().modify;
     },
     showSearch() {
       return getters.isLoggedIn() && getters.currentView() === "listingView" && !getters.isShare();
@@ -183,26 +163,6 @@ export default {
           resultList.classList.add("active");
           document.getElementById("search-input").focus();
         }, 100);
-      }
-    },
-    async save() {
-      const button = "save";
-      buttons.loading("save");
-      try {
-        // Call the editor's save handler directly
-        if (state.editor.saveHandler) {
-          await state.editor.saveHandler();
-          buttons.success(button);
-          // Note: Success notification is shown by the editor
-        } else {
-          const errorMsg = "No editor save handler registered";
-          notify.showError(errorMsg);
-          throw new Error(errorMsg);
-        }
-      } catch (e) {
-        buttons.done(button);
-        // Note: Error notification is already shown by the editor
-        throw e; // Re-throw so caller knows save failed
       }
     },
     toggleOverflow() {
@@ -305,7 +265,10 @@ export default {
         confirm: async () => {
           // Save and exit - trigger the save action
           // If save fails, this will throw and be caught by SaveBeforeExit component
-          await this.save();
+          if (!state.editor.saveHandler) {
+            throw new Error("No editor save handler registered");
+          }
+          await state.editor.saveHandler();
           mutations.setEditorDirty(false);
           onConfirmAction();
         },

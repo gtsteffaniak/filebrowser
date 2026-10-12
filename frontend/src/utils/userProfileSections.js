@@ -68,7 +68,6 @@ export function sectionsFromFlatUser(user) {
     },
     fileViewer: {
       autoplayMedia: boolPtr(preview.autoplayMedia),
-      editorQuickSave: !!u.editorQuickSave,
       preferEditorForMarkdown: !!u.preferEditorForMarkdown,
       debugOffice: !!u.debugOffice,
       disableViewingExt: u.disableViewingExt || "",
@@ -152,7 +151,6 @@ export function applySectionsToFlatUser(user, sections) {
   user.disablePreviewExt = preview.disablePreviewExt || "";
 
   user.preview.autoplayMedia = boolPtr(fileViewer.autoplayMedia);
-  user.editorQuickSave = !!fileViewer.editorQuickSave;
   user.preferEditorForMarkdown = !!fileViewer.preferEditorForMarkdown;
   user.debugOffice = !!fileViewer.debugOffice;
   user.disableViewingExt = fileViewer.disableViewingExt || "";
@@ -219,7 +217,6 @@ const FLAT_PROFILE_FIELD_ENFORCED_PATHS = {
   showTypeColumn: ["listing", "showTypeColumn"],
   showCreationDateColumn: ["listing", "showCreationDateColumn"],
   hideFilesInTree: ["sidebar", "hideFiles"],
-  editorQuickSave: ["fileViewer", "editorQuickSave"],
   showSelectMultiple: ["listing", "showSelectMultiple"],
   debugOffice: ["fileViewer", "debugOffice"],
   viewMode: ["listing", "viewMode"],

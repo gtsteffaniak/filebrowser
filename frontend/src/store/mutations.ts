@@ -814,7 +814,6 @@ export const mutations = {
         "showTypeColumn",
         "showCreationDateColumn",
         "hideFilesInTree",
-        "editorQuickSave",
         "showSelectMultiple",
         "debugOffice",
         "disableUpdateNotifications",
