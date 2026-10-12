@@ -54,7 +54,6 @@ func TestApplyUserDefaults_copiesUserDefaultsOntoUser(t *testing.T) {
 				Models:             boolPtr(false),
 			},
 			FileViewer: UserDefaultsFileViewer{
-				EditorQuickSave:         true,
 				AutoplayMedia:           boolPtr(false),
 				DisableViewingExt:       ".bat",
 				DisableOnlyOfficeExt:    ".x",
@@ -109,7 +108,6 @@ func TestApplyUserDefaults_copiesUserDefaultsOntoUser(t *testing.T) {
 				Realtime: true,
 			},
 			NonAdminEditable: users.NonAdminEditable{
-				EditorQuickSave:            true,
 				HideSidebarFileActions:     true,
 				DisableQuickToggles:        true,
 				DisableSearchOptions:       true,

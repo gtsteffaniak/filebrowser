@@ -15,7 +15,9 @@
           @mousedown.prevent
           @click="btn.action"
         >
-          <i class="material-symbols">{{ btn.icon }}</i>
+          <Transition name="toolbar-icon" mode="out-in">
+            <i :key="btn.icon" class="material-symbols">{{ btn.icon }}</i>
+          </Transition>
         </button>
       </div>
     </div>
@@ -131,8 +133,9 @@
   </div>
 </template>
 
-<script lang="ts">
-import type { PropType } from "vue";
+<script setup lang="ts">
+import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
+import { useI18n } from "vue-i18n";
 import ace from "ace-builds";
 import type { Ace } from "ace-builds";
 import { mutations, state, getters } from "@/store";
@@ -153,6 +156,19 @@ interface PendingSelection {
   alt: string;
   range: AnchorRange;
 }
+
+const props = withDefaults(defineProps<{
+  editor?: Ace.Editor | null;
+  isMarkdown?: boolean;
+  showSave?: boolean;
+  saveHandler?: (() => Promise<void>) | null;
+}>(), {
+  editor: null,
+  isMarkdown: false,
+  showSave: true,
+  saveHandler: null,
+});
+
 
 function formatImageDestination(dest: string): string {
   if (/[\s()]/.test(dest)) {
@@ -187,604 +203,669 @@ interface ToolbarButton {
   menu?: "align" | "clipboard";
 }
 
-export default {
-  name: "editorToolbar",
-  props: {
-    editor: {
-      type: Object as PropType<Ace.Editor | null>,
-      default: null,
-    },
-    isMarkdown: {
-      type: Boolean,
-      default: false,
-    },
-  },
-  data: () => ({
-    canUndo: false,
-    canRedo: false,
-    pendingSelection: null as PendingSelection | null,
-    openMenu: null as "extra" | "align" | "clipboard" | null,
-    menuPosition: { top: 0, left: 0, right: 0 },
-    lastColors: new Map<string, string>([
-      ["mdFontColor", localStorage.getItem("mdFontColor") || ""],
-      ["mdHighlightColor", localStorage.getItem("mdHighlightColor") || ""],
-    ]),
-    colorInputRefs: new Map<string, HTMLInputElement>(),
-    iconMenuTriggerEls: new Map<"align" | "clipboard", HTMLElement>(),
-    iconMenuEls: new Map<"align" | "clipboard", HTMLElement>(),
-  }),
-  watch: {
-    editor: {
-      immediate: true,
-      handler(newEditor: Ace.Editor | null, oldEditor: Ace.Editor | null) {
-        this.detachUndoListener(oldEditor);
-        this.attachUndoListener(newEditor);
-        if (oldEditor && oldEditor !== newEditor) {
-          this.clearPendingSelection();
-        }
-      },
-    },
-  },
-  mounted() {
-    eventBus.on("pathSelected", this.onPathSelected);
-    eventBus.on("pathPickerCancelled", this.onPathPickerCancelled);
-    document.addEventListener("pointerdown", this.onPointerDown);
-    document.addEventListener("keydown", this.onKeyDown);
-    window.addEventListener("scroll", this.closeMenu, true);
-    window.addEventListener("resize", this.closeMenu);
-  },
-  beforeUnmount() {
-    this.detachUndoListener(this.editor);
-    this.clearPendingSelection();
-    eventBus.off("pathSelected", this.onPathSelected);
-    eventBus.off("pathPickerCancelled", this.onPathPickerCancelled);
-    document.removeEventListener("pointerdown", this.onPointerDown);
-    document.removeEventListener("keydown", this.onKeyDown);
-    window.removeEventListener("scroll", this.closeMenu, true);
-    window.removeEventListener("resize", this.closeMenu);
-  },
-  computed: {
-    toolbarButtons(): ToolbarButton[] {
-      // alwaysAvailable are for buttons that will be available for all filetypes, not just markdown.
-      const alwaysAvailable: ToolbarButton[] = [
-        { id: "undo", icon: "undo", title: this.$t("editor.md.undo"), action: () => this.undo(), disabled: !this.canUndo, sticky: true },
-        { id: "redo", icon: "redo", title: this.$t("editor.md.redo"), action: () => this.redo(), disabled: !this.canRedo, sticky: true },
-        { id: "find", icon: "search", title: this.$t("general.search"), action: () => this.openFind() },
-      ];
-      const isJson = state.req?.type === "application/json"
-      if (isJson && getters.sourcePermissions().modify) {
-        alwaysAvailable.push({
-          id: "formatJSON",
-          icon: "data_object",
-          title: this.$t("editor.json.formatJSON"),
-          action: () => this.formatJSON(),
-        });
+defineOptions({ name: "editorToolbar" });
+
+const { t } = useI18n();
+
+const canUndo = ref(false);
+const canRedo = ref(false);
+const saveState = ref<"idle" | "saving" | "success" | "error">("idle");
+let saveResetTimer: ReturnType<typeof setTimeout> | null = null;
+const pendingSelection = ref<PendingSelection | null>(null);
+const openMenu = ref<"extra" | "align" | "clipboard" | null>(null);
+const menuPosition = ref({ top: 0, left: 0, right: 0 });
+const lastColors = reactive(new Map<string, string>([
+  ["mdFontColor", localStorage.getItem("mdFontColor") || ""],
+  ["mdHighlightColor", localStorage.getItem("mdHighlightColor") || ""],
+]));
+const colorInputRefs = new Map<string, HTMLInputElement>();
+const iconMenuTriggerEls = new Map<"align" | "clipboard", HTMLElement>();
+const iconMenuEls = new Map<"align" | "clipboard", HTMLElement>();
+const extraMenuTrigger = ref<HTMLElement | null>(null);
+const extraMenu = ref<HTMLElement | null>(null);
+
+const toolbarButtons = computed((): ToolbarButton[] => {
+  // alwaysAvailable are for buttons that will be available for all filetypes, not just markdown.
+  const alwaysAvailable: ToolbarButton[] = [
+    { id: "undo", icon: "undo", title: t("editor.md.undo"), action: () => undo(), disabled: !canUndo.value, sticky: true },
+    { id: "redo", icon: "redo", title: t("editor.md.redo"), action: () => redo(), disabled: !canRedo.value, sticky: true },
+    { id: "find", icon: "search", title: t("general.search"), action: () => openFind() },
+  ];
+  if (props.showSave) {
+    alwaysAvailable.unshift({
+      id: "save",
+      icon: { idle: "save", saving: "save", success: "check", error: "error" }[saveState.value],
+      title: t("general.save"),
+      action: () => save(),
+      disabled: saveState.value === "saving",
+      sticky: true,
+    });
+  }
+  const isJson = state.req?.type === "application/json"
+  if (isJson && getters.sourcePermissions().modify) {
+    alwaysAvailable.push({
+      id: "formatJSON",
+      icon: "data_object",
+      title: t("editor.json.formatJSON"),
+      action: () => formatJSON(),
+    });
+  }
+  if (!props.isMarkdown) {
+    return [
+      ...alwaysAvailable,
+      ...clipboardMenuItems.value,
+    ];
+  }
+  return [
+    ...alwaysAvailable,
+    { id: "clipboard", icon: "content_paste", title: t("editor.md.clipboardActions"), menu: "clipboard" },
+    { id: "bold", icon: "format_bold", title: t("editor.md.bold"), action: () => wrapSelection("**", "**") },
+    { id: "italic", icon: "format_italic", title: t("editor.md.italic"), action: () => wrapSelection("_", "_") },
+    { id: "strikethrough", icon: "strikethrough_s", title: t("editor.md.strikethrough"), action: () => wrapSelection("~~", "~~") },
+    { id: "heading", icon: "title", title: t("editor.md.heading"), action: () => cycleHeading() },
+    { id: "quote", icon: "format_quote", title: t("editor.md.quote"), action: () => toggleLinePrefix("> ") },
+    { id: "image", icon: "image", title: t("fileTypes.image"), action: () => insertImage() },
+    { id: "align", icon: "format_align_left", title: t("editor.md.align"), menu: "align" },
+    { id: "bulletList", icon: "format_list_bulleted", title: t("editor.md.bulletList"), action: () => toggleLinePrefix("- ") },
+    { id: "numberedList", icon: "format_list_numbered", title: t("editor.md.numberedList"), action: () => applyNumberedList() },
+    { id: "taskList", icon: "checklist", title: t("editor.md.taskList"), action: () => toggleTaskList() },
+    { id: "fontColor", icon: "font_download", title: t("editor.md.fontColor"), color: "mdFontColor", applyColor: applyFontColor },
+    { id: "highlight", icon: "ink_highlighter", title: t("editor.md.highlight"), color: "mdHighlightColor", applyColor: applyHighlightColor },
+  ];
+});
+
+const stickyToolbarButtons = computed((): ToolbarButton[] => {
+  return toolbarButtons.value.filter((btn) => btn.sticky);
+});
+
+const editorToolbarButtons = computed((): ToolbarButton[] => {
+  return toolbarButtons.value.filter((btn) => !btn.sticky);
+});
+
+const alignMenuItems = computed((): ToolbarButton[] => {
+  return [
+    { id: "alignLeft", icon: "format_align_left", title: t("editor.md.alignLeft"), action: () => wrapSelection('<p align="left">', "</p>", t("editor.md.text")) },
+    { id: "alignCenter", icon: "format_align_center", title: t("editor.md.alignCenter"), action: () => wrapSelection("<center>", "</center>", t("editor.md.text")) },
+    { id: "alignRight", icon: "format_align_right", title: t("editor.md.alignRight"), action: () => wrapSelection('<p align="right">', "</p>", t("editor.md.text")) },
+    { id: "alignJustify", icon: "format_align_justify", title: t("editor.md.justify"), action: () => wrapSelection('<p align="justify">', "</p>", t("editor.md.text")) },
+  ];
+});
+
+const clipboardMenuItems = computed((): ToolbarButton[] => {
+  return [
+    { id: "copy", icon: "content_copy", title: t("general.copy"), action: () => copySelection() },
+    { id: "cut", icon: "content_cut", title: t("general.cut"), action: () => cutSelection() },
+    { id: "paste", icon: "content_paste", title: t("general.paste"), action: () => pasteClipboard() },
+    { id: "selectAll", icon: "select_all", title: t("buttons.selectAll"), action: () => selectAllText() },
+  ];
+});
+
+const extraMenuItems = computed((): ToolbarButton[] => {
+  const editorSettings: ToolbarButton = {
+    id: "editorSettings",
+    icon: "settings",
+    title: t("editor.settings.title"),
+    action: () => openEditorSettings(),
+  };
+  if (!props.isMarkdown) {
+    return [editorSettings];
+  }
+  return [
+    editorSettings,
+    { id: "code", icon: "code", title: t("editor.md.inlineCode"), action: () => wrapSelection("`", "`") },
+    { id: "codeBlock", icon: "code_blocks", title: t("editor.md.codeBlock"), action: () => insertCodeBlock() },
+    { id: "video", icon: "videocam", title: t("fileTypes.video"), action: () => insertVideo() },
+    { id: "audio", icon: "music_note", title: t("fileTypes.audio"), action: () => insertAudio() },
+    { id: "table", icon: "table", title: t("tools.activityViewer.tableView"), action: () => insertTable() },
+    { id: "horizontalRule", icon: "horizontal_rule", title: t("editor.md.horizontalRule"), action: () => insertHorizontalRule() },
+    { id: "inlineMath", icon: "functions", title: t("editor.md.inlineMath"), action: () => wrapSelection("$", "$", "E = mc^2") },
+    { id: "displayMath", icon: "calculate", title: t("editor.md.displayMath"), action: () => wrapSelection("$$\n", "\n$$", "E = mc^2") },
+    { id: "superscript", icon: "superscript", title: t("editor.md.superscript"), action: () => wrapSelection("<sup>", "</sup>", "2") },
+    { id: "subscript", icon: "subscript", title: t("editor.md.subscript"), action: () => wrapSelection("<sub>", "</sub>", "2") },
+    { id: "kbd", icon: "keyboard", title: t("threejs.keyboard"), action: () => wrapSelection("<kbd>", "</kbd>", "Ctrl") },
+    { id: "link", icon: "link", title: t("general.links"), action: () => insertLink() },
+  ];
+});
+
+const menuStyle = computed(() => {
+  if (openMenu.value === "align" || openMenu.value === "clipboard") {
+    return { top: `${menuPosition.value.top}px`, left: `${menuPosition.value.left}px`, transform: "translateX(-50%)" };
+  }
+  return { top: `${menuPosition.value.top}px`, right: `${menuPosition.value.right}px` };
+});
+
+function focusEditor() {
+  if (props.editor) props.editor.focus();
+}
+
+function formatJSON() {
+  const editor = props.editor;
+  if (!editor) return;
+  try {
+    const textToFormat = editor.getValue();
+    const parsed = JSON.parse(textToFormat);
+    const next = state.editor.jsonFormatted
+      ? JSON.stringify(parsed)
+      : JSON.stringify(parsed, null, 2);
+    if (next !== textToFormat) editor.setValue(next, -1);
+    mutations.setEditorJsonFormatted(!state.editor.jsonFormatted);
+    notify.showSuccessToast(t("editor.json.formatJSONSuccess"));
+  } catch (e) {
+    notify.showErrorToast(t("editor.json.invalidJSON", { message: e instanceof Error ? e.message : String(e) }));
+  }
+  focusEditor();
+}
+
+async function save() {
+  if (!props.saveHandler || saveState.value === "saving") return;
+  if (saveResetTimer) clearTimeout(saveResetTimer);
+  saveState.value = "saving";
+  try {
+    await props.saveHandler();
+    saveState.value = "success";
+  } catch (_e) {
+    // the editor already shows the error message
+    saveState.value = "error";
+  }
+  saveResetTimer = setTimeout(() => {
+    saveState.value = "idle";
+  }, 1500);
+}
+
+function undo() {
+  const editor = props.editor;
+  if (!editor) return;
+  editor.undo();
+  refreshUndoState();
+  focusEditor();
+}
+
+function redo() {
+  const editor = props.editor;
+  if (!editor) return;
+  editor.redo();
+  refreshUndoState();
+  focusEditor();
+}
+
+function openFind() {
+  const editor = props.editor;
+  if (!editor) return;
+  editor.execCommand("find");
+}
+
+function attachUndoListener(editor: Ace.Editor | null) {
+  if (!editor) return;
+  editor.session.on("change", refreshUndoState);
+  refreshUndoState();
+}
+
+function detachUndoListener(editor: Ace.Editor | null) {
+  if (!editor) return;
+  editor.session.off("change", refreshUndoState);
+}
+
+function refreshUndoState() {
+  const editor = props.editor;
+  if (!editor) {
+    canUndo.value = false;
+    canRedo.value = false;
+    return;
+  }
+  const undoManager = editor.session.getUndoManager();
+  canUndo.value = undoManager.hasUndo();
+  canRedo.value = undoManager.hasRedo();
+}
+
+function copySelection() {
+  const editor = props.editor;
+  if (!editor) return;
+  const text = editor.getCopyText();
+  if (text) void copyToClipboard(text);
+  focusEditor();
+}
+
+function cutSelection() {
+  const editor = props.editor;
+  if (!editor) return;
+  const text = editor.getCopyText();
+  if (text) void copyToClipboard(text);
+  editor.execCommand("cut");
+  focusEditor();
+}
+
+async function pasteClipboard() {
+  const editor = props.editor;
+  if (!editor) return;
+  focusEditor();
+  try {
+    const text = await navigator.clipboard.readText();
+    if (text) {
+      editor.execCommand("paste", { text });
+    }
+  } catch (_e) { /* ignore - probably blocked by browser */ }
+}
+
+function selectAllText() {
+  const editor = props.editor;
+  if (!editor) return;
+  editor.execCommand("selectall");
+}
+
+function selectedLineRange() {
+  const range = props.editor?.getSelectionRange();
+  if (!range) return { startRow: 0, endRow: 0 };
+  let endRow = range.end.row;
+  if (endRow > range.start.row && range.end.column === 0) {
+    endRow -= 1;
+  }
+  return { startRow: range.start.row, endRow };
+}
+
+function wrapSelection(before: string, after: string = before, placeholder: string = "") {
+  const editor = props.editor;
+  if (!editor) return;
+  const range = editor.getSelectionRange();
+  const selectedText = editor.getSelectedText();
+  const trailingNewline = selectedText.match(/\r?\n$/)?.[0] || "";
+  const text = selectedText ? selectedText.slice(0, selectedText.length - trailingNewline.length) : placeholder;
+  const start = { row: range.start.row, column: range.start.column };
+  if (selectedText) {
+    editor.session.replace(range, `${before}${text}${after}${trailingNewline}`);
+  } else {
+    editor.session.insert(start, `${before}${text}${after}`);
+  }
+  const contentStart = advancePosition(start, before);
+  const contentEnd = advancePosition(contentStart, text);
+  editor.selection.setRange({ start: contentStart, end: contentEnd });
+  focusEditor();
+}
+
+function applyFontColor(color: string) {
+  wrapSelection(`<font color="${color}">`, "</font>", t("editor.md.text"));
+}
+
+function applyHighlightColor(color: string) {
+  const style = color ? ` style="background-color: ${color}; --mark-color: ${color}"` : "";
+  wrapSelection(`<mark${style}>`, "</mark>", t("editor.md.highlight"));
+}
+
+function selectedColor(btn: ToolbarButton): string {
+  return (btn.color && lastColors.get(btn.color)) || "";
+}
+
+function applyStoredColor(btn: ToolbarButton) {
+  if (btn.disabled || !btn.color || !btn.applyColor) return;
+  const stored = selectedColor(btn);
+  if (!stored) {
+    colorInputRefs.get(btn.color)?.click();
+    return;
+  }
+  btn.applyColor(stored);
+}
+
+function setColorInput(el: HTMLInputElement | null, color: string) {
+  if (el) colorInputRefs.set(color, el);
+}
+
+function onColorChange(storageKey: string, color: string, apply?: (color: string) => void) {
+  localStorage.setItem(storageKey, color);
+  lastColors.set(storageKey, color);
+  apply?.(color);
+}
+
+function toggleLinePrefix(prefix: string) {
+  const editor = props.editor;
+  if (!editor) return;
+  const { startRow, endRow } = selectedLineRange();
+  const session = editor.session;
+  const lines = [];
+  for (let row = startRow; row <= endRow; row++) {
+    lines.push(session.getLine(row));
+  }
+  const nonBlank = lines.filter((line) => line.trim() !== "");
+  const allPrefixed = (nonBlank.length ? nonBlank : lines).every((line) => line.startsWith(prefix));
+  for (let row = startRow; row <= endRow; row++) {
+    const line = session.getLine(row);
+    if (allPrefixed) {
+      if (line.startsWith(prefix)) {
+        session.replace({ start: { row, column: 0 }, end: { row, column: prefix.length } }, "");
       }
-      if (!this.isMarkdown) {
-        return [
-          ...alwaysAvailable,
-          ...this.clipboardMenuItems,
-        ];
+    } else if (
+      !line.startsWith(prefix)
+      && (prefix === "> " || nonBlank.length === 0 || line.trim() !== "")
+    ) {
+      session.insert({ row, column: 0 }, prefix);
+    }
+  }
+  focusEditor();
+}
+
+function applyNumberedList() {
+  const editor = props.editor;
+  if (!editor) return;
+  const { startRow, endRow } = selectedLineRange();
+  const session = editor.session;
+  const lines = [];
+  for (let row = startRow; row <= endRow; row++) {
+    lines.push(session.getLine(row));
+  }
+  const nonBlank = lines.filter((line) => line.trim() !== "");
+  const alreadyNumbered = (nonBlank.length ? nonBlank : lines).every((line) => /^\d+\.\s/.test(line));
+  let num = 1;
+  for (let row = startRow; row <= endRow; row++) {
+    const line = session.getLine(row);
+    const match = line.match(/^\d+\.\s/);
+    if (alreadyNumbered) {
+      if (match) {
+        session.replace({ start: { row, column: 0 }, end: { row, column: match[0].length } }, "");
       }
-      return [
-        ...alwaysAvailable,
-        { id: "clipboard", icon: "content_paste", title: this.$t("editor.md.clipboardActions"), menu: "clipboard" },
-        { id: "bold", icon: "format_bold", title: this.$t("editor.md.bold"), action: () => this.wrapSelection("**", "**") },
-        { id: "italic", icon: "format_italic", title: this.$t("editor.md.italic"), action: () => this.wrapSelection("_", "_") },
-        { id: "strikethrough", icon: "strikethrough_s", title: this.$t("editor.md.strikethrough"), action: () => this.wrapSelection("~~", "~~") },
-        { id: "heading", icon: "title", title: this.$t("editor.md.heading"), action: () => this.cycleHeading() },
-        { id: "quote", icon: "format_quote", title: this.$t("editor.md.quote"), action: () => this.toggleLinePrefix("> ") },
-        { id: "image", icon: "image", title: this.$t("fileTypes.image"), action: () => this.insertImage() },
-        { id: "align", icon: "format_align_left", title: this.$t("editor.md.align"), menu: "align" },
-        { id: "bulletList", icon: "format_list_bulleted", title: this.$t("editor.md.bulletList"), action: () => this.toggleLinePrefix("- ") },
-        { id: "numberedList", icon: "format_list_numbered", title: this.$t("editor.md.numberedList"), action: () => this.applyNumberedList() },
-        { id: "taskList", icon: "checklist", title: this.$t("editor.md.taskList"), action: () => this.toggleTaskList() },
-        { id: "fontColor", icon: "font_download", title: this.$t("editor.md.fontColor"), color: "mdFontColor", applyColor: this.applyFontColor },
-        { id: "highlight", icon: "ink_highlighter", title: this.$t("editor.md.highlight"), color: "mdHighlightColor", applyColor: this.applyHighlightColor },
-      ];
-    },
-    stickyToolbarButtons(): ToolbarButton[] {
-      return this.toolbarButtons.filter((btn) => btn.sticky);
-    },
-    editorToolbarButtons(): ToolbarButton[] {
-      return this.toolbarButtons.filter((btn) => !btn.sticky);
-    },
-    alignMenuItems(): ToolbarButton[] {
-      return [
-        { id: "alignLeft", icon: "format_align_left", title: this.$t("editor.md.alignLeft"), action: () => this.wrapSelection('<p align="left">', "</p>", this.$t("editor.md.text")) },
-        { id: "alignCenter", icon: "format_align_center", title: this.$t("editor.md.alignCenter"), action: () => this.wrapSelection("<center>", "</center>", this.$t("editor.md.text")) },
-        { id: "alignRight", icon: "format_align_right", title: this.$t("editor.md.alignRight"), action: () => this.wrapSelection('<p align="right">', "</p>", this.$t("editor.md.text")) },
-        { id: "alignJustify", icon: "format_align_justify", title: this.$t("editor.md.justify"), action: () => this.wrapSelection('<p align="justify">', "</p>", this.$t("editor.md.text")) },
-      ];
-    },
-    clipboardMenuItems(): ToolbarButton[] {
-      return [
-        { id: "copy", icon: "content_copy", title: this.$t("general.copy"), action: () => this.copySelection() },
-        { id: "cut", icon: "content_cut", title: this.$t("general.cut"), action: () => this.cutSelection() },
-        { id: "paste", icon: "content_paste", title: this.$t("general.paste"), action: () => this.pasteClipboard() },
-        { id: "selectAll", icon: "select_all", title: this.$t("buttons.selectAll"), action: () => this.selectAllText() },
-      ];
-    },
-    extraMenuItems(): ToolbarButton[] {
-      const editorSettings: ToolbarButton = {
-        id: "editorSettings",
-        icon: "settings",
-        title: this.$t("editor.settings.title"),
-        action: () => this.openEditorSettings(),
-      };
-      if (!this.isMarkdown) {
-        return [editorSettings];
-      }
-      return [
-        editorSettings,
-        { id: "code", icon: "code", title: this.$t("editor.md.inlineCode"), action: () => this.wrapSelection("`", "`") },
-        { id: "codeBlock", icon: "code_blocks", title: this.$t("editor.md.codeBlock"), action: () => this.insertCodeBlock() },
-        { id: "video", icon: "videocam", title: this.$t("fileTypes.video"), action: () => this.insertVideo() },
-        { id: "audio", icon: "music_note", title: this.$t("fileTypes.audio"), action: () => this.insertAudio() },
-        { id: "table", icon: "table", title: this.$t("tools.activityViewer.tableView"), action: () => this.insertTable() },
-        { id: "horizontalRule", icon: "horizontal_rule", title: this.$t("editor.md.horizontalRule"), action: () => this.insertHorizontalRule() },
-        { id: "inlineMath", icon: "functions", title: this.$t("editor.md.inlineMath"), action: () => this.wrapSelection("$", "$", "E = mc^2") },
-        { id: "displayMath", icon: "calculate", title: this.$t("editor.md.displayMath"), action: () => this.wrapSelection("$$\n", "\n$$", "E = mc^2") },
-        { id: "superscript", icon: "superscript", title: this.$t("editor.md.superscript"), action: () => this.wrapSelection("<sup>", "</sup>", "2") },
-        { id: "subscript", icon: "subscript", title: this.$t("editor.md.subscript"), action: () => this.wrapSelection("<sub>", "</sub>", "2") },
-        { id: "kbd", icon: "keyboard", title: this.$t("threejs.keyboard"), action: () => this.wrapSelection("<kbd>", "</kbd>", "Ctrl") },
-        { id: "link", icon: "link", title: this.$t("general.links"), action: () => this.insertLink() },
-      ];
-    },
-    menuStyle() {
-      if (this.openMenu === "align" || this.openMenu === "clipboard") {
-        return { top: `${this.menuPosition.top}px`, left: `${this.menuPosition.left}px`, transform: "translateX(-50%)" };
-      }
-      return { top: `${this.menuPosition.top}px`, right: `${this.menuPosition.right}px` };
-    },
-  },
-  methods: {
-    expandBeforeEnter,
-    expandEnter,
-    expandLeave,
-    focusEditor() {
-      if (this.editor) this.editor.focus();
-    },
-    formatJSON() {
-      const editor = this.editor;
-      if (!editor) return;
-      try {
-        const textToFormat = editor.getValue();
-        const parsed = JSON.parse(textToFormat);
-        const next = state.editor.jsonFormatted
-          ? JSON.stringify(parsed)
-          : JSON.stringify(parsed, null, 2);
-        if (next !== textToFormat) editor.setValue(next, -1);
-        mutations.setEditorJsonFormatted(!state.editor.jsonFormatted);
-        notify.showSuccessToast(this.$t("editor.json.formatJSONSuccess"));
-      } catch (e) {
-        notify.showErrorToast(this.$t("editor.json.invalidJSON", { message: e instanceof Error ? e.message : String(e) }));
-      }
-      this.focusEditor();
-    },
-    undo() {
-      const editor = this.editor;
-      if (!editor) return;
-      editor.undo();
-      this.refreshUndoState();
-      this.focusEditor();
-    },
-    redo() {
-      const editor = this.editor;
-      if (!editor) return;
-      editor.redo();
-      this.refreshUndoState();
-      this.focusEditor();
-    },
-    openFind() {
-      const editor = this.editor;
-      if (!editor) return;
-      editor.execCommand("find");
-    },
-    attachUndoListener(editor: Ace.Editor | null) {
-      if (!editor) return;
-      editor.session.on("change", this.refreshUndoState);
-      this.refreshUndoState();
-    },
-    detachUndoListener(editor: Ace.Editor | null) {
-      if (!editor) return;
-      editor.session.off("change", this.refreshUndoState);
-    },
-    refreshUndoState() {
-      const editor = this.editor;
-      if (!editor) {
-        this.canUndo = false;
-        this.canRedo = false;
-        return;
-      }
-      const undoManager = editor.session.getUndoManager();
-      this.canUndo = undoManager.hasUndo();
-      this.canRedo = undoManager.hasRedo();
-    },
-    copySelection() {
-      const editor = this.editor;
-      if (!editor) return;
-      const text = editor.getCopyText();
-      if (text) void copyToClipboard(text);
-      this.focusEditor();
-    },
-    cutSelection() {
-      const editor = this.editor;
-      if (!editor) return;
-      const text = editor.getCopyText();
-      if (text) void copyToClipboard(text);
-      editor.execCommand("cut");
-      this.focusEditor();
-    },
-    async pasteClipboard() {
-      const editor = this.editor;
-      if (!editor) return;
-      this.focusEditor();
-      try {
-        const text = await navigator.clipboard.readText();
-        if (text) {
-          editor.execCommand("paste", { text });
-        }
-      } catch (_e) { /* ignore - probably blocked by browser */ }
-    },
-    selectAllText() {
-      const editor = this.editor;
-      if (!editor) return;
-      editor.execCommand("selectall");
-    },
-    selectedLineRange() {
-      const range = this.editor?.getSelectionRange();
-      if (!range) return { startRow: 0, endRow: 0 };
-      let endRow = range.end.row;
-      if (endRow > range.start.row && range.end.column === 0) {
-        endRow -= 1;
-      }
-      return { startRow: range.start.row, endRow };
-    },
-    wrapSelection(before: string, after: string = before, placeholder: string = "") {
-      const editor = this.editor;
-      if (!editor) return;
-      const range = editor.getSelectionRange();
-      const selectedText = editor.getSelectedText();
-      const trailingNewline = selectedText.match(/\r?\n$/)?.[0] || "";
-      const text = selectedText ? selectedText.slice(0, selectedText.length - trailingNewline.length) : placeholder;
-      const start = { row: range.start.row, column: range.start.column };
-      if (selectedText) {
-        editor.session.replace(range, `${before}${text}${after}${trailingNewline}`);
+    } else if (line.trim() !== "") {
+      const prefix = `${num}. `;
+      if (match) {
+        session.replace({ start: { row, column: 0 }, end: { row, column: match[0].length } }, prefix);
       } else {
-        editor.session.insert(start, `${before}${text}${after}`);
+        session.insert({ row, column: 0 }, prefix);
       }
-      const contentStart = advancePosition(start, before);
-      const contentEnd = advancePosition(contentStart, text);
-      editor.selection.setRange({ start: contentStart, end: contentEnd });
-      this.focusEditor();
+      num++;
+    }
+  }
+  focusEditor();
+}
+
+function cycleHeading() {
+  const editor = props.editor;
+  if (!editor) return;
+  const { startRow } = selectedLineRange();
+  const session = editor.session;
+  const line = session.getLine(startRow);
+  const match = line.match(/^(#{1,6})\s/);
+  const currentLevel = match?.[1]?.length ?? 0;
+  const nextLevel = currentLevel === 0 ? 1 : (currentLevel >= 6 ? 0 : currentLevel + 1);
+  const stripped = line.replace(/^#{1,6}\s*/, "");
+  const newLine = nextLevel === 0 ? stripped : `${"#".repeat(nextLevel)} ${stripped}`;
+  session.replace({ start: { row: startRow, column: 0 }, end: { row: startRow, column: line.length } }, newLine);
+  focusEditor();
+}
+
+function insertCodeBlock() {
+  const editor = props.editor;
+  if (!editor) return;
+  const selectedText = editor.getSelectedText();
+  const range = editor.getSelectionRange();
+  if (selectedText) {
+    editor.session.replace(range, `\`\`\`\n${  selectedText  }\n\`\`\``);
+  } else {
+    editor.insert("```\n\n```");
+    const pos = editor.getCursorPosition();
+    editor.moveCursorTo(pos.row - 1, 0);
+  }
+  focusEditor();
+}
+
+function insertLink() {
+  const editor = props.editor;
+  if (!editor) return;
+  const selectedText = editor.getSelectedText();
+  const range = editor.getSelectionRange();
+  const label = formatImageAltText(selectedText || t("editor.md.text"));
+  const linkText = `[${label}](url)`;
+  let insertionEnd: Ace.Point;
+  if (selectedText) {
+    insertionEnd = editor.session.replace(range, linkText);
+  } else {
+    editor.insert(linkText);
+    insertionEnd = editor.getCursorPosition();
+  }
+  const urlEnd = insertionEnd.column - 1; // before the closing ')'
+  const urlStart = urlEnd - "url".length;
+  if (urlStart >= 0) {
+    editor.selection.setRange({
+      start: { row: insertionEnd.row, column: urlStart },
+      end: { row: insertionEnd.row, column: urlEnd },
+    });
+  }
+  focusEditor();
+}
+
+function openEditorSettings() {
+  mutations.showPrompt({
+    name: "EditorSettings",
+  });
+}
+
+function insertBlock(content: string) {
+  const editor = props.editor;
+  if (!editor) return;
+  const pos = editor.getCursorPosition();
+  const line = editor.session.getLine(pos.row);
+  const needsNewlineBefore = line.trim() !== "";
+  editor.moveCursorTo(pos.row, line.length);
+  editor.clearSelection();
+  editor.insert(`${needsNewlineBefore ? "\n\n" : ""}${content}`);
+  focusEditor();
+}
+
+function insertHorizontalRule() {
+  insertBlock("---\n\n");
+}
+
+function insertImage() {
+  openPathPicker("image", { allowedFileTypes: ["image/"] });
+}
+
+function insertVideo() {
+  openPathPicker("video", { allowedFileTypes: ["video/"] });
+}
+
+function insertAudio() {
+  openPathPicker("audio", { allowedFileTypes: ["audio/"] });
+}
+
+function openPathPicker(kind: "image" | "video" | "audio", pickerProps: Record<string, unknown>) {
+  const editor = props.editor;
+  if (!editor) return;
+  const selectedText = editor.getSelectedText();
+  const range = editor.getSelectionRange();
+  const contextId = `md-toolbar-${kind}-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
+  pendingSelection.value = {
+    kind,
+    contextId,
+    alt: kind === "image" ? (selectedText || "") : "",
+    range: {
+      start: editor.session.doc.createAnchor(range.start.row, range.start.column),
+      end: editor.session.doc.createAnchor(range.end.row, range.end.column),
     },
-    applyFontColor(color: string) {
-      this.wrapSelection(`<font color="${color}">`, "</font>", this.$t("editor.md.text"));
+  };
+  props.editor?.blur();
+  mutations.showPrompt({
+    name: "pathPicker",
+    pinned: true,
+    props: {
+      currentPath: state.req?.path ? removeLastDir(state.req.path) : "/",
+      currentSource: state.req?.source || state.sources.current,
+      hideDestinationSource: true,
+      showFiles: true,
+      showFolders: true,
+      requireFileSelection: true,
+      selectionContextId: contextId,
+      ...pickerProps,
     },
-    applyHighlightColor(color: string) {
-      const style = color ? ` style="background-color: ${color}; --mark-color: ${color}"` : "";
-      this.wrapSelection(`<mark${style}>`, "</mark>", this.$t("editor.md.highlight"));
-    },
-    selectedColor(btn: ToolbarButton): string {
-      return (btn.color && this.lastColors.get(btn.color)) || "";
-    },
-    applyStoredColor(btn: ToolbarButton) {
-      if (btn.disabled || !btn.color || !btn.applyColor) return;
-      const stored = this.selectedColor(btn);
-      if (!stored) {
-        this.colorInputRefs.get(btn.color)?.click();
-        return;
-      }
-      btn.applyColor(stored);
-    },
-    setColorInput(el: HTMLInputElement | null, color: string) {
-      if (el) this.colorInputRefs.set(color, el);
-    },
-    onColorChange(storageKey: string, color: string, apply?: (color: string) => void) {
-      localStorage.setItem(storageKey, color);
-      this.lastColors.set(storageKey, color);
-      apply?.(color);
-    },
-    toggleLinePrefix(prefix: string) {
-      const editor = this.editor;
-      if (!editor) return;
-      const { startRow, endRow } = this.selectedLineRange();
-      const session = editor.session;
-      const lines = [];
-      for (let row = startRow; row <= endRow; row++) {
-        lines.push(session.getLine(row));
-      }
-      const nonBlank = lines.filter((line) => line.trim() !== "");
-      const allPrefixed = (nonBlank.length ? nonBlank : lines).every((line) => line.startsWith(prefix));
-      for (let row = startRow; row <= endRow; row++) {
-        const line = session.getLine(row);
-        if (allPrefixed) {
-          if (line.startsWith(prefix)) {
-            session.replace({ start: { row, column: 0 }, end: { row, column: prefix.length } }, "");
-          }
-        } else if (
-          !line.startsWith(prefix)
-          && (prefix === "> " || nonBlank.length === 0 || line.trim() !== "")
-        ) {
-          session.insert({ row, column: 0 }, prefix);
-        }
-      }
-      this.focusEditor();
-    },
-    applyNumberedList() {
-      const editor = this.editor;
-      if (!editor) return;
-      const { startRow, endRow } = this.selectedLineRange();
-      const session = editor.session;
-      const lines = [];
-      for (let row = startRow; row <= endRow; row++) {
-        lines.push(session.getLine(row));
-      }
-      const nonBlank = lines.filter((line) => line.trim() !== "");
-      const alreadyNumbered = (nonBlank.length ? nonBlank : lines).every((line) => /^\d+\.\s/.test(line));
-      let num = 1;
-      for (let row = startRow; row <= endRow; row++) {
-        const line = session.getLine(row);
-        const match = line.match(/^\d+\.\s/);
-        if (alreadyNumbered) {
-          if (match) {
-            session.replace({ start: { row, column: 0 }, end: { row, column: match[0].length } }, "");
-          }
-        } else if (line.trim() !== "") {
-          const prefix = `${num}. `;
-          if (match) {
-            session.replace({ start: { row, column: 0 }, end: { row, column: match[0].length } }, prefix);
-          } else {
-            session.insert({ row, column: 0 }, prefix);
-          }
-          num++;
-        }
-      }
-      this.focusEditor();
-    },
-    cycleHeading() {
-      const editor = this.editor;
-      if (!editor) return;
-      const { startRow } = this.selectedLineRange();
-      const session = editor.session;
-      const line = session.getLine(startRow);
-      const match = line.match(/^(#{1,6})\s/);
-      const currentLevel = match?.[1]?.length ?? 0;
-      const nextLevel = currentLevel === 0 ? 1 : (currentLevel >= 6 ? 0 : currentLevel + 1);
-      const stripped = line.replace(/^#{1,6}\s*/, "");
-      const newLine = nextLevel === 0 ? stripped : `${"#".repeat(nextLevel)} ${stripped}`;
-      session.replace({ start: { row: startRow, column: 0 }, end: { row: startRow, column: line.length } }, newLine);
-      this.focusEditor();
-    },
-    insertCodeBlock() {
-      const editor = this.editor;
-      if (!editor) return;
-      const selectedText = editor.getSelectedText();
-      const range = editor.getSelectionRange();
-      if (selectedText) {
-        editor.session.replace(range, `\`\`\`\n${  selectedText  }\n\`\`\``);
-      } else {
-        editor.insert("```\n\n```");
-        const pos = editor.getCursorPosition();
-        editor.moveCursorTo(pos.row - 1, 0);
-      }
-      this.focusEditor();
-    },
-    insertLink() {
-      const editor = this.editor;
-      if (!editor) return;
-      const selectedText = editor.getSelectedText();
-      const range = editor.getSelectionRange();
-      const label = formatImageAltText(selectedText || this.$t("editor.md.text"));
-      const linkText = `[${label}](url)`;
-      let insertionEnd: Ace.Point;
-      if (selectedText) {
-        insertionEnd = editor.session.replace(range, linkText);
-      } else {
-        editor.insert(linkText);
-        insertionEnd = editor.getCursorPosition();
-      }
-      const urlEnd = insertionEnd.column - 1; // before the closing ')'
-      const urlStart = urlEnd - "url".length;
-      if (urlStart >= 0) {
-        editor.selection.setRange({
-          start: { row: insertionEnd.row, column: urlStart },
-          end: { row: insertionEnd.row, column: urlEnd },
-        });
-      }
-      this.focusEditor();
-    },
-    openEditorSettings() {
-      mutations.showPrompt({
-        name: "EditorSettings",
-      });
-    },
-    insertBlock(content: string) {
-      const editor = this.editor;
-      if (!editor) return;
-      const pos = editor.getCursorPosition();
-      const line = editor.session.getLine(pos.row);
-      const needsNewlineBefore = line.trim() !== "";
-      editor.moveCursorTo(pos.row, line.length);
-      editor.clearSelection();
-      editor.insert(`${needsNewlineBefore ? "\n\n" : ""}${content}`);
-      this.focusEditor();
-    },
-    insertHorizontalRule() {
-      this.insertBlock("---\n\n");
-    },
-    insertImage() {
-      this.openPathPicker("image", { allowedFileTypes: ["image/"] });
-    },
-    insertVideo() {
-      this.openPathPicker("video", { allowedFileTypes: ["video/"] });
-    },
-    insertAudio() {
-      this.openPathPicker("audio", { allowedFileTypes: ["audio/"] });
-    },
-    openPathPicker(kind: "image" | "video" | "audio", pickerProps: Record<string, unknown>) {
-      const editor = this.editor;
-      if (!editor) return;
-      const selectedText = editor.getSelectedText();
-      const range = editor.getSelectionRange();
-      const contextId = `md-toolbar-${kind}-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
-      this.pendingSelection = {
-        kind,
-        contextId,
-        alt: kind === "image" ? (selectedText || "") : "",
-        range: {
-          start: editor.session.doc.createAnchor(range.start.row, range.start.column),
-          end: editor.session.doc.createAnchor(range.end.row, range.end.column),
-        },
-      };
-      this.editor?.blur();
-      mutations.showPrompt({
-        name: "pathPicker",
-        pinned: true,
-        props: {
-          currentPath: state.req?.path ? removeLastDir(state.req.path) : "/",
-          currentSource: state.req?.source || state.sources.current,
-          hideDestinationSource: true,
-          showFiles: true,
-          showFolders: true,
-          requireFileSelection: true,
-          selectionContextId: contextId,
-          ...pickerProps,
-        },
-      });
-    },
-    clearPendingSelection() {
-      this.pendingSelection?.range.start.detach();
-      this.pendingSelection?.range.end.detach();
-      this.pendingSelection = null;
-    },
-    buildImageMd(path: string, alt: string): string {
-      const fileName = path.split("/").filter(Boolean).pop() || "image";
-      const altText = alt || fileName.replace(/\.[^./]+$/, "");
-      return `![${formatImageAltText(altText)}](${formatImageDestination(path)})`;
-    },
-    buildMediaMd(path: string, tag: "video" | "audio"): string {
-      return `<${tag} src="${formatHtmlAttrValue(path)}" controls></${tag}>`;
-    },
-    onPathSelected(data: { path?: string; selectionContextId?: string }) {
-      const pending = this.pendingSelection;
-      if (!pending || !data || data.selectionContextId !== pending.contextId) {
-        return;
-      }
-      const editor = this.editor;
-      const path = data.path;
-      this.clearPendingSelection();
-      if (!editor || typeof path !== "string") return;
-      const text = pending.kind === "image"
-        ? this.buildImageMd(path, pending.alt)
-        : this.buildMediaMd(path, pending.kind);
-      const start = pending.range.start.getPosition();
-      const end = pending.range.end.getPosition();
-      const range = new (ace.require("ace/range").Range)(start.row, start.column, end.row, end.column);
-      const insertionEnd = editor.session.replace(range, text);
-      editor.moveCursorTo(insertionEnd.row, insertionEnd.column);
-      editor.clearSelection();
-    },
-    onPathPickerCancelled(data: { selectionContextId?: string }) {
-      if (!this.pendingSelection || !data || data.selectionContextId !== this.pendingSelection.contextId) {
-        return;
-      }
-      this.clearPendingSelection();
-    },
-    toggleTaskList() {
-      const editor = this.editor;
-      if (!editor) return;
-      const { startRow, endRow } = this.selectedLineRange();
-      const session = editor.session;
-      const taskPrefix = /^- \[[ xX]\] /;
-      const unchecked = /^- \[ \] /;
-      const checked = /^- \[[xX]\] /;
-      const lines = [];
-      for (let row = startRow; row <= endRow; row++) {
-        lines.push(session.getLine(row));
-      }
-      const nonBlank = lines.filter((line) => line.trim() !== "");
-      const target = nonBlank.length ? nonBlank : lines;
-      const allUnchecked = target.every((line) => unchecked.test(line));
-      const allChecked = target.every((line) => checked.test(line));
-      const action = allUnchecked ? "check" : allChecked ? "remove" : "add";
-      for (let row = startRow; row <= endRow; row++) {
-        const line = session.getLine(row);
-        const match = line.match(taskPrefix);
-        if (action === "remove") {
-          if (match) session.replace({ start: { row, column: 0 }, end: { row, column: match[0].length } }, "");
-        } else if (match) {
-          session.replace({ start: { row, column: 3 }, end: { row, column: 4 } }, action === "check" ? "x" : " ");
-        } else if (nonBlank.length === 0 || line.trim() !== "") {
-          session.insert({ row, column: 0 }, "- [ ] ");
-        }
-      }
-      this.focusEditor();
-    },
-    onPointerDown(e: PointerEvent) {
-      const target = e.target as Node;
-      const extraMenuTrigger = this.$refs.extraMenuTrigger as HTMLElement | undefined;
-      const extraMenu = this.$refs.extraMenu as HTMLElement | undefined;
-      const insideIconMenus =
-        Array.from(this.iconMenuTriggerEls.values()).some((el) => el.contains(target))
-        || Array.from(this.iconMenuEls.values()).some((el) => el.contains(target));
-      const inside =
-        extraMenuTrigger?.contains(target)
-        || extraMenu?.contains(target)
-        || insideIconMenus;
-      if (!inside) this.closeMenu();
-    },
-    toggleMenu(name: "extra" | "align" | "clipboard") {
-      if (this.openMenu === name) {
-        this.closeMenu();
-        return;
-      }
-      const trigger = name === "extra" ? (this.$refs.extraMenuTrigger as HTMLElement | undefined) : this.iconMenuTriggerEls.get(name);
-      if (trigger) {
-        const rect = trigger.getBoundingClientRect();
-        if (name === "extra") {
-          // Right-anchor to the viewport edge so it can't overflow off-screen
-          this.menuPosition = { top: rect.bottom + 4, left: 0, right: window.innerWidth - rect.right };
-        } else {
-          // Center under the button
-          this.menuPosition = { top: rect.bottom + 4, left: rect.left + rect.width / 2, right: 0 };
-        }
-      }
-      this.editor?.blur();
-      this.openMenu = name;
-    },
-    closeMenu() {
-      this.openMenu = null;
-    },
-    setIconMenuTriggerEl(menu: "align" | "clipboard", el: HTMLElement | null) {
-      if (el) this.iconMenuTriggerEls.set(menu, el);
-      else this.iconMenuTriggerEls.delete(menu);
-    },
-    setIconMenuEl(menu: "align" | "clipboard", el: HTMLElement | null) {
-      if (el) this.iconMenuEls.set(menu, el);
-      else this.iconMenuEls.delete(menu);
-    },
-    iconMenuItems(menu: "align" | "clipboard"): ToolbarButton[] {
-      return menu === "align" ? this.alignMenuItems : this.clipboardMenuItems;
-    },
-    onKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape" && this.openMenu) {
-        this.closeMenu();
-        this.focusEditor();
-      }
-    },
-    extBtnAction(item: ToolbarButton) {
-      this.closeMenu();
-      item.action?.();
-    },
-    insertTable() {
-      const column = this.$t("editor.md.column");
-      const cell = this.$t("editor.md.cell");
-      this.insertBlock(`| ${column} 1 | ${column} 2 |\n| --- | --- |\n| ${cell} 1 | ${cell} 2 |\n`);
-    },
-  },
-};
+  });
+}
+
+function clearPendingSelection() {
+  pendingSelection.value?.range.start.detach();
+  pendingSelection.value?.range.end.detach();
+  pendingSelection.value = null;
+}
+
+function buildImageMd(path: string, alt: string): string {
+  const fileName = path.split("/").filter(Boolean).pop() || "image";
+  const altText = alt || fileName.replace(/\.[^./]+$/, "");
+  return `![${formatImageAltText(altText)}](${formatImageDestination(path)})`;
+}
+
+function buildMediaMd(path: string, tag: "video" | "audio"): string {
+  return `<${tag} src="${formatHtmlAttrValue(path)}" controls></${tag}>`;
+}
+
+function onPathSelected(data: { path?: string; selectionContextId?: string }) {
+  const pending = pendingSelection.value;
+  if (!pending || !data || data.selectionContextId !== pending.contextId) {
+    return;
+  }
+  const editor = props.editor;
+  const path = data.path;
+  clearPendingSelection();
+  if (!editor || typeof path !== "string") return;
+  const text = pending.kind === "image"
+    ? buildImageMd(path, pending.alt)
+    : buildMediaMd(path, pending.kind);
+  const start = pending.range.start.getPosition();
+  const end = pending.range.end.getPosition();
+  const range = new (ace.require("ace/range").Range)(start.row, start.column, end.row, end.column);
+  const insertionEnd = editor.session.replace(range, text);
+  editor.moveCursorTo(insertionEnd.row, insertionEnd.column);
+  editor.clearSelection();
+}
+
+function onPathPickerCancelled(data: { selectionContextId?: string }) {
+  if (!pendingSelection.value || !data || data.selectionContextId !== pendingSelection.value.contextId) {
+    return;
+  }
+  clearPendingSelection();
+}
+
+function toggleTaskList() {
+  const editor = props.editor;
+  if (!editor) return;
+  const { startRow, endRow } = selectedLineRange();
+  const session = editor.session;
+  const taskPrefix = /^- \[[ xX]\] /;
+  const unchecked = /^- \[ \] /;
+  const checked = /^- \[[xX]\] /;
+  const lines = [];
+  for (let row = startRow; row <= endRow; row++) {
+    lines.push(session.getLine(row));
+  }
+  const nonBlank = lines.filter((line) => line.trim() !== "");
+  const target = nonBlank.length ? nonBlank : lines;
+  const allUnchecked = target.every((line) => unchecked.test(line));
+  const allChecked = target.every((line) => checked.test(line));
+  const action = allUnchecked ? "check" : allChecked ? "remove" : "add";
+  for (let row = startRow; row <= endRow; row++) {
+    const line = session.getLine(row);
+    const match = line.match(taskPrefix);
+    if (action === "remove") {
+      if (match) session.replace({ start: { row, column: 0 }, end: { row, column: match[0].length } }, "");
+    } else if (match) {
+      session.replace({ start: { row, column: 3 }, end: { row, column: 4 } }, action === "check" ? "x" : " ");
+    } else if (nonBlank.length === 0 || line.trim() !== "") {
+      session.insert({ row, column: 0 }, "- [ ] ");
+    }
+  }
+  focusEditor();
+}
+
+function onPointerDown(e: PointerEvent) {
+  const target = e.target as Node;
+  const insideIconMenus =
+    Array.from(iconMenuTriggerEls.values()).some((el) => el.contains(target))
+    || Array.from(iconMenuEls.values()).some((el) => el.contains(target));
+  const inside =
+    extraMenuTrigger.value?.contains(target)
+    || extraMenu.value?.contains(target)
+    || insideIconMenus;
+  if (!inside) closeMenu();
+}
+
+function toggleMenu(name: "extra" | "align" | "clipboard") {
+  if (openMenu.value === name) {
+    closeMenu();
+    return;
+  }
+  const trigger = name === "extra" ? (extraMenuTrigger.value ?? undefined) : iconMenuTriggerEls.get(name);
+  if (trigger) {
+    const rect = trigger.getBoundingClientRect();
+    if (name === "extra") {
+      // Right-anchor to the viewport edge so it can't overflow off-screen
+      menuPosition.value = { top: rect.bottom + 4, left: 0, right: window.innerWidth - rect.right };
+    } else {
+      // Center under the button
+      menuPosition.value = { top: rect.bottom + 4, left: rect.left + rect.width / 2, right: 0 };
+    }
+  }
+  props.editor?.blur();
+  openMenu.value = name;
+}
+
+function closeMenu() {
+  openMenu.value = null;
+}
+
+function setIconMenuTriggerEl(menu: "align" | "clipboard", el: HTMLElement | null) {
+  if (el) iconMenuTriggerEls.set(menu, el);
+  else iconMenuTriggerEls.delete(menu);
+}
+
+function setIconMenuEl(menu: "align" | "clipboard", el: HTMLElement | null) {
+  if (el) iconMenuEls.set(menu, el);
+  else iconMenuEls.delete(menu);
+}
+
+function iconMenuItems(menu: "align" | "clipboard"): ToolbarButton[] {
+  return menu === "align" ? alignMenuItems.value : clipboardMenuItems.value;
+}
+
+function onKeyDown(e: KeyboardEvent) {
+  if (e.key === "Escape" && openMenu.value) {
+    closeMenu();
+    focusEditor();
+  }
+}
+
+function extBtnAction(item: ToolbarButton) {
+  closeMenu();
+  item.action?.();
+}
+
+function insertTable() {
+  const column = t("editor.md.column");
+  const cell = t("editor.md.cell");
+  insertBlock(`| ${column} 1 | ${column} 2 |\n| --- | --- |\n| ${cell} 1 | ${cell} 2 |\n`);
+}
+
+watch(() => props.editor, (newEditor, oldEditor) => {
+  detachUndoListener(oldEditor ?? null);
+  attachUndoListener(newEditor);
+  if (oldEditor && oldEditor !== newEditor) {
+    clearPendingSelection();
+  }
+}, { immediate: true });
+
+onMounted(() => {
+  eventBus.on("pathSelected", onPathSelected);
+  eventBus.on("pathPickerCancelled", onPathPickerCancelled);
+  document.addEventListener("pointerdown", onPointerDown);
+  document.addEventListener("keydown", onKeyDown);
+  window.addEventListener("scroll", closeMenu, true);
+  window.addEventListener("resize", closeMenu);
+});
+
+onBeforeUnmount(() => {
+  if (saveResetTimer) clearTimeout(saveResetTimer);
+  detachUndoListener(props.editor);
+  clearPendingSelection();
+  eventBus.off("pathSelected", onPathSelected);
+  eventBus.off("pathPickerCancelled", onPathPickerCancelled);
+  document.removeEventListener("pointerdown", onPointerDown);
+  document.removeEventListener("keydown", onKeyDown);
+  window.removeEventListener("scroll", closeMenu, true);
+  window.removeEventListener("resize", closeMenu);
+});
+
+defineExpose({ save });
 </script>
 
 <style scoped>
@@ -813,7 +894,7 @@ export default {
   border-radius: var(--borderRadius);
   color: var(--textPrimary);
   cursor: pointer;
-  transition: background-color 0.15s ease;
+  transition: opacity 0.15s ease;
 }
 
 .md-toolbar-group {
@@ -821,7 +902,7 @@ export default {
   flex-shrink: 0;
 }
 
-/* for undo/redo sticky at the left for easy access */
+/* sticky buttons at the left for easy access */
 .editor-toolbar-sticky {
   left: 0;
   position: sticky;
@@ -884,6 +965,17 @@ export default {
 
 .editor-toolbar-btn .material-symbols {
   font-size: 1.2em;
+}
+
+.toolbar-icon-enter-active,
+.toolbar-icon-leave-active {
+  transition: opacity 0.12s ease, transform 0.12s ease;
+}
+
+.toolbar-icon-enter-from,
+.toolbar-icon-leave-to {
+  opacity: 0;
+  transform: scale(0.6);
 }
 
 .editor-toolbar-menu {

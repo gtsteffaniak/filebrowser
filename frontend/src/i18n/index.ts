@@ -98,7 +98,8 @@ setLanguage('en');
 
 // import.meta.glob is vite-specific
 // here we are preloading all json files as lazy chunks, except 'en.json' since this one will be always loaded.
-const localeModules = import.meta.glob<{ default: Record<string, unknown> }>('./!(en).json');
+const localeModules = import.meta.glob<{ default: Record<string, unknown> }>('./*.json');
+delete localeModules['./en.json'];
 
 export async function setLocale(locale: string) {
   // If the locale doesn't exist in our list, fallback to English

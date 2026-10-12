@@ -18,7 +18,6 @@ server:
 
 userDefaults:
   fileViewer:
-    editorQuickSave: false
     disableOnlyOfficeExt: ".md .txt .pdf"
     disableViewingExt: ""
   sidebar:
