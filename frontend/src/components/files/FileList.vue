@@ -78,7 +78,7 @@ import ListingHeader from "@/components/files/ListingHeader.vue";
 import ListingItem from "@/components/files/ListingItem.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
-import { sortedItems } from "@/utils/sort.js";
+import { sortedItems } from "@/utils/sort.ts";
 
 export default {
   name: "file-list",

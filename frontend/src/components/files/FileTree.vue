@@ -87,6 +87,7 @@ import { goToItemNotificationButton } from '@/utils/notificationActions';
 import { notify } from '@/notify';
 import { notifyMoveCopyFailure } from '@/utils/appNotifications';
 import { getObjectProperty } from '@/utils/object.js';
+import { sortedItems } from '@/utils/sort.ts';
 
 export default {
   name: 'FileTree',
@@ -256,7 +257,9 @@ export default {
       if (!this.showFiles) {
         items = items.filter(item => item.type === 'directory');
       }
-      return items;
+      const dirs = items.filter(item => item.type === 'directory');
+      const files = items.filter(item => item.type !== 'directory');
+      return [...sortedItems(dirs, 'name', true), ...sortedItems(files, 'name', true)];
     },
 
     createNode(item) {

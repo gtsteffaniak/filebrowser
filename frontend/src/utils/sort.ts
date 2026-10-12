@@ -1,7 +1,10 @@
 import { getObjectProperty } from "@/utils/object.js";
 import { KIND_ORDER, getKindKey } from "@/utils/mimetype.js";
+import type { FileListItem } from "@/store/types.ts";
 
-export function sortedItems(items = [], sortby = "name", asc = true) {
+type SortableItem = Partial<FileListItem>;
+
+export function sortedItems<T extends SortableItem>(items: T[] = [], sortby = "name", asc = true): T[] {
   return items.sort((a, b) => {
     const aPinned = !!a.pinned;
     const bPinned = !!b.pinned;
@@ -10,13 +13,13 @@ export function sortedItems(items = [], sortby = "name", asc = true) {
       return aPinned ? -1 : 1;
     }
 
-    let valueA = getObjectProperty(a, sortby);
-    let valueB = getObjectProperty(b, sortby);
+    let valueA = getObjectProperty(a, sortby) as string | number;
+    let valueB = getObjectProperty(b, sortby) as string | number;
 
     // Special handling for duration which is stored in metadata
     if (sortby === "duration") {
-      valueA = a.metadata?.duration ?? 0;
-      valueB = b.metadata?.duration ?? 0;
+      valueA = (a.metadata as { duration?: number } | undefined)?.duration ?? 0;
+      valueB = (b.metadata as { duration?: number } | undefined)?.duration ?? 0;
     }
 
     if (sortby === "created") {
