@@ -6747,7 +6747,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "copyPathPrefix": {
-                    "description": "explicit POSIX prefix for Copy Path; never inferred from path.",
+                    "description": "Clipboard mappings are opt-in and exposed to users with access to this source.",
                     "type": "string"
                 },
                 "copyPathWindows": {
