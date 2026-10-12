@@ -6,9 +6,10 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
-	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/access"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 )
 
 // Auther is the authentication interface.
@@ -39,12 +40,17 @@ func MakeSignedTokenAPI(user *users.User, name string, duration time.Duration, p
 	if _, ok := user.Tokens[name]; ok {
 		return "", users.AuthToken{}, fmt.Errorf("key already exists with same name %v ", name)
 	}
+	id, err := utils.RandomHex(16)
+	if err != nil {
+		return "", users.AuthToken{}, fmt.Errorf("generate token id: %w", err)
+	}
 	now := time.Now()
 	expires := now.Add(duration)
 	// Create minimal token with only JWT standard claims
 	claim := users.AuthToken{
 		MinimalAuthToken: users.MinimalAuthToken{
 			RegisteredClaims: jwt.RegisteredClaims{
+				ID:        id,
 				IssuedAt:  jwt.NewNumericDate(now),
 				ExpiresAt: jwt.NewNumericDate(expires),
 				Issuer:    FB_ISSUER,
