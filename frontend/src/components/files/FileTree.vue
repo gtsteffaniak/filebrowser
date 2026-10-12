@@ -53,7 +53,7 @@
         <FileTree
           v-if="node.expanded && node.children && node.children.length > 0"
           :nodes="node.children"
-          :currentSource="currentSource"
+          :currentSource="treeSource"
           :shareHash="shareHash"
           :currentPath="currentPath"
         />
@@ -129,6 +129,9 @@ export default {
     };
   },
   computed: {
+    treeSource() {
+      return this.currentSource || state.sources.current || null;
+    },
     isShare() {
       return !!this.shareHash;
     },
@@ -151,7 +154,7 @@ export default {
     },
   },
   watch: {
-    currentSource: {
+    treeSource: {
       async handler(newVal) {
         if (this.isRootInstance && newVal) {
           await this.loadRoot();
@@ -181,6 +184,8 @@ export default {
         if (newPath !== '/') {
           this.pendingExpandPath = newPath;
           this.tryExpandNodes();
+        } else {
+          this.$nextTick(this.scrollToTop);
         }
       },
       immediate: true,
@@ -228,7 +233,7 @@ export default {
       if (this.expanding) return;
       this.error = null;
       this.rootLoaded = false;
-      if ((!this.currentSource && !this.shareHash) || !this.isRootInstance) {
+      if ((!this.treeSource && !this.shareHash) || !this.isRootInstance) {
         this.rootNodes = [];
         return;
       }
@@ -246,10 +251,10 @@ export default {
       }
     },
     captureScope() {
-      return { source: this.currentSource, hash: this.shareHash, rootPath: this.rootPath };
+      return { source: this.treeSource, hash: this.shareHash, rootPath: this.rootPath };
     },
     isCurrentScope(scope) {
-      return scope.source === this.currentSource && scope.hash === this.shareHash && scope.rootPath === this.rootPath;
+      return scope.source === this.treeSource && scope.hash === this.shareHash && scope.rootPath === this.rootPath;
     },
     async fetchItems(path, scope = this.captureScope()) {
       let items;
@@ -273,7 +278,7 @@ export default {
       return {
         name: item.name,
         path: item.path,
-        source: this.currentSource,
+        source: this.treeSource,
         type: item.type,
         isDir: item.type === 'directory',
         expanded: false,
@@ -329,7 +334,7 @@ export default {
     },
 
     getNodeUrl(node) {
-      const source = node.source || this.currentSource;
+      const source = node.source || this.treeSource;
       return buildItemUrl(source, node.path, true);
     },
 
@@ -382,7 +387,7 @@ export default {
         goToItem(this.shareHash, node.path, {}, false, true);
       } else {
         mutations.setNavigationTransitioning(true);
-        goToItem(this.currentSource, node.path, {});
+        goToItem(this.treeSource, node.path, {});
       }
     },
 
@@ -397,7 +402,7 @@ export default {
       if (this.isShare) {
         return normalizedNodePath === normalizedCurrentPath;
       } else {
-        return node.source === this.currentSource && normalizedNodePath === normalizedCurrentPath;
+        return node.source === this.treeSource && normalizedNodePath === normalizedCurrentPath;
       }
     },
 
@@ -431,6 +436,16 @@ export default {
         this.expanding = false;
       }
     },
+    scrollToTop() {
+      let el = this.$refs.FileTree?.parentElement;
+      while (el) {
+        if (el.scrollTop > 0 && /(auto|scroll)/.test(getComputedStyle(el).overflowY)) {
+          el.scrollTo({ top: 0, behavior: 'smooth' });
+          return;
+        }
+        el = el.parentElement;
+      }
+    },
 
     scrollToCurrent() {
       if (!this.$refs.FileTree) return;
@@ -442,7 +457,7 @@ export default {
 
     async refresh() {
       if (!this.isRootInstance || this.isRefreshing) return;
-      if (!this.currentSource && !this.shareHash) return;
+      if (!this.treeSource && !this.shareHash) return;
       this.isRefreshing = true;
       for (const timeout of this.expandTimeouts.values()) {
         clearTimeout(timeout);
@@ -605,7 +620,7 @@ export default {
           from: item.path,
           fromSource: item.source || state.req.source,
           to: joinPath(node.path, item.name),
-          toSource: node.source || this.currentSource,
+          toSource: node.source || this.treeSource,
           name: item.name,
         });
       }
@@ -624,7 +639,7 @@ export default {
         if (this.isShare) {
           response = await resourcesApi.fetchFilesPublic(node.path, this.shareHash);
         } else {
-          response = await resourcesApi.fetchFiles(this.currentSource, node.path);
+          response = await resourcesApi.fetchFiles(this.treeSource, node.path);
         }
       } catch (err) {
         console.error('Failed to fetch dir for conflict check', err);
@@ -657,7 +672,7 @@ export default {
             buttons: [
               goToItemNotificationButton(
                 this.$t('buttons.goToItem'),
-                this.isShare ? this.shareHash : this.currentSource,
+                this.isShare ? this.shareHash : this.treeSource,
                 node.path,
                 this.isShare
               ),
