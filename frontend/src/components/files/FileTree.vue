@@ -161,6 +161,7 @@ const loading = ref(false);
 const error = ref<string | null>(null);
 const expanding = ref(false);
 const isRefreshing = ref(false);
+let refreshQueued = false;
 let unwatchReload: (() => void) | null = null;
 const expandTimeouts = new Map<TreeNode, ReturnType<typeof setTimeout>>(); // For auto-expand when dragging a item to a folder
 const pendingExpandPath = ref<string | null>(null);
@@ -175,6 +176,7 @@ const effectiveNodes = computed(() => (isRootInstance.value ? rootNodes.value : 
 const canModify = computed(() => getters.sourcePermissions().modify);
 // Defaults to true
 const showFiles = computed(() => !state.user?.hideFilesInTree);
+const normalizedCurrentPath = computed(() => normalizePath(props.currentPath));
 
 async function loadRoot() {
   if (expanding.value) return;
@@ -345,11 +347,10 @@ function normalizePath(p?: string | null) {
 
 function isCurrentItem(node: TreeNode) {
   const normalizedNodePath = normalizePath(node.path);
-  const normalizedCurrentPath = normalizePath(props.currentPath);
   if (isShare.value) {
-    return normalizedNodePath === normalizedCurrentPath;
+    return normalizedNodePath === normalizedCurrentPath.value;
   } else {
-    return node.source === treeSource.value && normalizedNodePath === normalizedCurrentPath;
+    return node.source === treeSource.value && normalizedNodePath === normalizedCurrentPath.value;
   }
 }
 
@@ -404,7 +405,11 @@ function scrollToCurrent() {
 }
 
 async function refresh() {
-  if (!isRootInstance.value || isRefreshing.value) return;
+  if (!isRootInstance.value) return;
+  if (isRefreshing.value) {
+    refreshQueued = true;
+    return;
+  }
   if (!treeSource.value && !shareHash.value) return;
   isRefreshing.value = true;
   for (const timeout of expandTimeouts.values()) {
@@ -425,6 +430,10 @@ async function refresh() {
     console.error('Failed to refresh tree:', err);
   } finally {
     isRefreshing.value = false;
+    if (refreshQueued) {
+      refreshQueued = false;
+      void refresh();
+    }
   }
 }
 
@@ -435,6 +444,13 @@ async function syncNodes(existing: TreeNode[], path: string, scope: TreeScope): 
   const merged = items.map((item) => {
     const currentNode = known.get(item.path);
     if (!currentNode) return createNode(item);
+    if (
+      (Object.keys(item) as (keyof FileListItem)[]).every((key) => currentNode[key] === item[key]) &&
+      currentNode.isHidden === item.hidden &&
+      !!currentNode.pinned === !!item.pinned
+    ) {
+      return currentNode;
+    }
     const wasDir = currentNode.isDir;
     const node: TreeNode = {
       ...currentNode,
@@ -670,8 +686,13 @@ async function handleDrop(event: DragEvent, node: TreeNode) {
   }
 }
 
-function isSelected(node: TreeNode) {
-  return state.prompts.some((prompt) => {
+function selectionKey(source: string | undefined, path: string) {
+  return isShare.value ? path : `${source ?? ''}\u0000${path}`;
+}
+
+const selectedKeys = computed(() => {
+  const keys = new Set<string>();
+  for (const prompt of state.prompts) {
     const promptProps = (prompt.props || {}) as PromptProps;
 
     // Collect items from various prompt prop
@@ -694,18 +715,16 @@ function isSelected(node: TreeNode) {
       candidates = [{ source: promptProps.targetSource, path: promptProps.targetPath, isDir: true }];
     }
 
-    if (candidates.length === 0) return false;
+    for (const selected of candidates) {
+      if (!selected.path || selected.heldSelected) continue; // picked from ListingView
+      keys.add(selectionKey(selected.source, selected.path));
+    }
+  }
+  return keys;
+});
 
-    // Compare node to each candidate (usually only one, but safe to loop)
-    return candidates.some(selected => {
-      if (!selected.path || selected.heldSelected) return false; // picked from ListingView
-      if (isShare.value) {
-        return selected.path === node.path;
-      } else {
-        return selected.source === node.source && selected.path === node.path;
-      }
-    });
-  });
+function isSelected(node: TreeNode) {
+  return selectedKeys.value.has(selectionKey(node.source, node.path));
 }
 
 watch(treeSource, async (newVal) => {
@@ -729,6 +748,7 @@ watch(() => props.rootPath, (newVal, oldVal) => {
 });
 
 watch(() => props.currentPath, (newPath) => {
+  if (!isRootInstance.value) return;
   if (newPath !== '/') {
     pendingExpandPath.value = newPath;
     void tryExpandNodes();
@@ -744,10 +764,12 @@ watch(showFiles, () => {
 });
 
 onMounted(() => {
+  // Only the root handles global events, child instances don't need them
+  if (!isRootInstance.value) return;
   unwatchReload = watch(
     () => state.reload,
     (newVal) => {
-      if (newVal === true && isRootInstance.value && !isRefreshing.value) {
+      if (newVal === true) {
         void refresh();
       }
     },
@@ -765,6 +787,8 @@ onBeforeUnmount(() => {
     clearTimeout(timeout);
   }
   expandTimeouts.clear();
+  refreshQueued = false;
+  if (!isRootInstance.value) return;
   if (unwatchReload) {
     unwatchReload();
   }

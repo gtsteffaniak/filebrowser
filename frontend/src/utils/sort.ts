@@ -3,6 +3,7 @@ import { KIND_ORDER, getKindKey } from "@/utils/mimetype.js";
 import type { FileListItem } from "@/store/types.ts";
 
 type SortableItem = Partial<FileListItem>;
+const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: "base" });
 
 export function sortedItems<T extends SortableItem>(items: T[] = [], sortby = "name", asc = true): T[] {
   return items.sort((a, b) => {
@@ -36,14 +37,14 @@ export function sortedItems<T extends SortableItem>(items: T[] = [], sortby = "n
       if (rankDiff !== 0) {
         return asc ? rankDiff : -rankDiff;
       }
-      return String(a.name ?? "").localeCompare(String(b.name ?? ""), undefined, { numeric: true, sensitivity: "base" });
+      return collator.compare(String(a.name ?? ""), String(b.name ?? ""));
     }
 
     if (sortby === "name") {
       // Use localeCompare with numeric option for natural sorting
       const left = String(valueA ?? "");
       const right = String(valueB ?? "");
-      const comparison = left.localeCompare(right, undefined, { numeric: true, sensitivity: "base" });
+      const comparison = collator.compare(left, right);
       return asc ? comparison : -comparison;
     }
 
