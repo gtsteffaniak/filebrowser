@@ -150,9 +150,6 @@ export default {
     };
   },
   computed: {
-    previewedName() {
-      return state.req?.type === 'directory' ? "" : state.req?.name || "";
-    },
     navigationSortOverride() {
       return state.navigation.sorting;
     },
@@ -315,14 +312,6 @@ export default {
           }
         });
       }, 100);
-    },
-    // the item we close will be the one that gets highlighted in ListingView
-    previewedName(name) {
-      const prev = state.previousHistoryItem;
-      if (!name || !prev?.name || prev.name === name) return;
-      const trim = (path) => (path || '').replace(/\/+$/, '') || '/';
-      if (prev.source !== state.req.source || trim(prev.path) !== trim(url.removeLastDir(state.req.path))) return;
-      mutations.setPreviousHistoryItem({ ...prev, name });
     },
     navigationSortOverride() {
       if (this.enabled && state.req) {
