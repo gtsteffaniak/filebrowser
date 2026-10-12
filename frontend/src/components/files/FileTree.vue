@@ -484,10 +484,15 @@ export default {
       if (!this.isCurrentScope(scope)) return existing;
       const known = new Map(existing.map((node) => [node.path, node]));
       const merged = items.map((item) => {
-        const node = known.get(item.path);
-        if (!node) return this.createNode(item);
-        const wasDir = node.isDir;
-        Object.assign(node, item, { isHidden: item.hidden, pinned: !!item.pinned });
+        const currentNode = known.get(item.path);
+        if (!currentNode) return this.createNode(item);
+        const wasDir = currentNode.isDir;
+        const node = {
+          ...currentNode,
+          ...item,
+          isHidden: item.hidden,
+          pinned: !!item.pinned,
+        };
         node.isDir = node.type === 'directory';
         if (wasDir !== node.isDir) {
           node.expanded = false;
@@ -510,8 +515,10 @@ export default {
           .filter((node) => node.isDir && node.expanded && node.children)
           .map(async (node) => {
             try {
-              const children = await this.syncNodes(node.children, node.path, scope);
-              if (!this.sameNodeList(node.children, children)) {
+              const previousChildren = node.children;
+              const children = await this.syncNodes(previousChildren, node.path, scope);
+              if (!this.isCurrentScope(scope)) return;
+              if (!this.sameNodeList(previousChildren, children)) {
                 node.children = children;
               }
               node.childrenCount = children.length;
@@ -521,6 +528,7 @@ export default {
             }
           })
       );
+      if (!this.isCurrentScope(scope)) return existing;
       return merged;
     },
     sameNodeList(a, b) {
