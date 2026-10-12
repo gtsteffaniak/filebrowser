@@ -150,6 +150,7 @@ describe("buildHtmlPreview", () => {
     const { srcdoc } = buildHtmlPreview('<a href="other.html">Next</a>', "/pages/index.html", "src");
     const doc = new DOMParser().parseFromString(srcdoc, "text/html");
     const postMessage = vi.fn();
+    // biome-ignore lint/nursery/noImpliedEval: Execute the generated navigation helper in this controlled test.
     new Function("document", "window", doc.querySelector("script").textContent)(doc, { parent: { postMessage } });
     const click = new MouseEvent(type, { bubbles: true, cancelable: true, ...options });
     doc.querySelector("a").dispatchEvent(click);
@@ -162,6 +163,7 @@ describe("buildHtmlPreview", () => {
     const { srcdoc } = buildHtmlPreview('<a href="other.html">Next</a>', "/pages/index.html", "src");
     const doc = new DOMParser().parseFromString(srcdoc, "text/html");
     const postMessage = vi.fn();
+    // biome-ignore lint/nursery/noImpliedEval: Execute the generated navigation helper in this controlled test.
     new Function("document", "window", doc.querySelector("script").textContent)(doc, { parent: { postMessage } });
     doc.querySelector("a").dispatchEvent(new MouseEvent("auxclick", { button: 2, bubbles: true, cancelable: true }));
     expect(postMessage).not.toHaveBeenCalled();
@@ -170,9 +172,11 @@ describe("buildHtmlPreview", () => {
     const { srcdoc } = buildHtmlPreview('<a href="other.html">Next</a>', "/pages/index.html", "src");
     const doc = new DOMParser().parseFromString(srcdoc, "text/html");
     const script = doc.querySelector("script").textContent;
+    // biome-ignore lint/nursery/noImpliedEval: Execute the generated navigation helper in this controlled test.
     expect(() => new Function(script)).not.toThrow();
     expect(script).toContain("filebrowser-html-navigation");
     const postMessage = vi.fn();
+    // biome-ignore lint/nursery/noImpliedEval: Execute the generated navigation helper in this controlled test.
     new Function("document", "window", script)(doc, { parent: { postMessage } });
     const click = new MouseEvent("click", { bubbles: true, cancelable: true });
     doc.querySelector("a").dispatchEvent(click);
@@ -200,7 +204,7 @@ describe("buildHtmlPreview", () => {
     expect(srcdoc).toContain(encodeURIComponent("/pages/photo.jpg"));
     const rendered = new DOMParser().parseFromString(srcdoc, "text/html");
     expect(rendered.querySelector("a").getAttribute("href")).toBe(
-      window.location.origin + "/files/src/pages/other.html",
+      `${window.location.origin}/files/src/pages/other.html`,
     );
     expect(srcdoc).not.toContain("app.js");
     expect(srcdoc).not.toContain("<script src=");
@@ -229,6 +233,7 @@ describe("buildHtmlPreview", () => {
     const anchor = doc.querySelector("a");
     const nativeURL = anchor.getAttribute("href");
     const postMessage = vi.fn();
+    // biome-ignore lint/nursery/noImpliedEval: Execute the generated navigation helper in this controlled test.
     new Function("document", "window", doc.querySelector("script").textContent)(doc, { parent: { postMessage } });
     anchor.dispatchEvent(new MouseEvent("auxclick", { button: 1, bubbles: true, cancelable: true }));
     expect(postMessage.mock.calls[0][0].href).toBe(nativeURL);

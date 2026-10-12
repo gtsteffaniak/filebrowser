@@ -309,7 +309,7 @@ function navigationGuard(htmlEl: HTMLElement): string {
     if (typeof globalVars.cspNonce === "string" && globalVars.cspNonce !== "") {
       guard.setAttribute("nonce", globalVars.cspNonce);
     }
-    guard.textContent = "const PARENT_ORIGIN = " + JSON.stringify(window.location.origin) + ";\n" + NAV_GUARD_SCRIPT;
+    guard.textContent = `const PARENT_ORIGIN = ${JSON.stringify(window.location.origin)};\n${NAV_GUARD_SCRIPT}`;
     head.appendChild(guard);
   }
   return `<!DOCTYPE html>\n${htmlEl.outerHTML}`;

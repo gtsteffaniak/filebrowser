@@ -197,7 +197,7 @@ func TestValidateViewGrantShareBinding(t *testing.T) {
 	}
 	t.Cleanup(func() { settings.Config.Server.SourceMap = nil })
 	d := &requestContext{
-		User:  testUserWithView(1, "srv"),
+		User: testUserWithView(1, "srv"),
 		Share: share.Share{
 			ShareColumns: share.ShareColumns{Hash: "abc123"},
 			SourcePath:   "/srv",
@@ -215,7 +215,7 @@ func TestValidateViewGrantShareBinding(t *testing.T) {
 		t.Fatalf("ValidateViewGrant: %v", err)
 	}
 	wrongShare := &requestContext{
-		User:  testUserWithView(1, "srv"),
+		User: testUserWithView(1, "srv"),
 		Share: share.Share{
 			ShareColumns: share.ShareColumns{Hash: "other"},
 			SourcePath:   "/srv",
@@ -779,8 +779,9 @@ func TestViewTokenHandlerExtendsExistingToken(t *testing.T) {
 	}
 	almostExpired := time.Now().Add(30 * time.Second).Unix()
 	utils.ViewGrantsCache.Set(token, utils.ViewGrant{
-		Source:    viewGrantScope(d, "default"),
-		ExpiresAt: almostExpired,
+		Source:       viewGrantScope(d, "default"),
+		ExpiresAt:    almostExpired,
+		SessionToken: d.Token,
 	})
 	utils.ViewGrantIndex.Set(viewGrantScope(d, "default"), token)
 	req := httptest.NewRequest(http.MethodPost, "/api/resources/view-token?source=default&viewToken="+token, nil)

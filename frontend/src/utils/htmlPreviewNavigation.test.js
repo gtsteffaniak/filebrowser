@@ -22,7 +22,7 @@ describe("sandboxed HTML navigation", () => {
     href.replace(origin, "https://evil.example.test"),
     href.replace(path, "/api/users"),
     href.replace("/files/folder/", "/files/private/"),
-    href + "?auth=unexpected",
+    `${href}?auth=unexpected`,
     href.replace("archive/post.html", "%2F..%2Fsecret.html"),
     href.replace("archive/post.html", "archive/movie.mp4"),
     "javascript:alert(1)",
