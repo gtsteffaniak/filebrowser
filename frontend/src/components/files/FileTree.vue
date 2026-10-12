@@ -33,8 +33,8 @@
             class="expand-icon"
             @click.stop.prevent="toggleExpand(node, true)"
           >
-            <i class="material-symbols">
-              {{ node.expanded ? 'expand_more' : 'chevron_right' }} <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+            <i class="material-symbols" :class="{ rotated: node.expanded }">
+              chevron_right <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
             </i>
           </span>
           <span v-else class="expand-icon-placeholder"></span>
@@ -44,6 +44,7 @@
             :isShared="node.isShared"
             class="node-icon"
           />
+          <i v-if="node.pinned" class="material-symbols pinned-indicator">push_pin</i>
           <span class="node-name" :title="node.name">
             {{ node.name }}
           </span>
@@ -244,13 +245,19 @@ export default {
         this.loading = false;
       }
     },
-    async fetchItems(path) {
+    captureScope() {
+      return { source: this.currentSource, hash: this.shareHash, rootPath: this.rootPath };
+    },
+    isCurrentScope(scope) {
+      return scope.source === this.currentSource && scope.hash === this.shareHash && scope.rootPath === this.rootPath;
+    },
+    async fetchItems(path, scope = this.captureScope()) {
       let items;
-      if (this.isShare) {
-        const res = await resourcesApi.fetchFilesPublic(path, this.shareHash, state.shareInfo?.password, false, false, true);
+      if (scope.hash) {
+        const res = await resourcesApi.fetchFilesPublic(path, scope.hash, state.shareInfo?.password, false, false, true);
         items = res.items || [];
       } else {
-        const res = await resourcesApi.fetchFiles(this.currentSource, path, false, false, true);
+        const res = await resourcesApi.fetchFiles(scope.source, path, false, false, true);
         items = res.items || [];
       }
       // Filter out files if showFiles is false
@@ -437,26 +444,35 @@ export default {
       if (!this.isRootInstance || this.isRefreshing) return;
       if (!this.currentSource && !this.shareHash) return;
       this.isRefreshing = true;
+      for (const timeout of this.expandTimeouts.values()) {
+        clearTimeout(timeout);
+      }
       this.expandTimeouts.clear();
+      const scope = this.captureScope();
       try {
-        const nodes = await this.syncNodes(this.rootNodes, this.rootPath);
+        const nodes = await this.syncNodes(this.rootNodes, this.rootPath, scope);
+        if (!this.isCurrentScope(scope)) return;
         if (!this.sameNodeList(this.rootNodes, nodes)) {
           this.rootNodes = nodes;
         }
+        this.error = null;
+        this.rootLoaded = true;
+        void this.tryExpandNodes();
       } catch (err) {
         console.error('Failed to refresh tree:', err);
       } finally {
         this.isRefreshing = false;
       }
     },
-    async syncNodes(existing, path) {
-      const items = await this.fetchItems(path);
+    async syncNodes(existing, path, scope) {
+      const items = await this.fetchItems(path, scope);
+      if (!this.isCurrentScope(scope)) return existing;
       const known = new Map(existing.map((node) => [node.path, node]));
       const merged = items.map((item) => {
         const node = known.get(item.path);
         if (!node) return this.createNode(item);
         const wasDir = node.isDir;
-        Object.assign(node, item, { isHidden: item.hidden });
+        Object.assign(node, item, { isHidden: item.hidden, pinned: !!item.pinned });
         node.isDir = node.type === 'directory';
         if (wasDir !== node.isDir) {
           node.expanded = false;
@@ -479,7 +495,7 @@ export default {
           .filter((node) => node.isDir && node.expanded && node.children)
           .map(async (node) => {
             try {
-              const children = await this.syncNodes(node.children, node.path);
+              const children = await this.syncNodes(node.children, node.path, scope);
               if (!this.sameNodeList(node.children, children)) {
                 node.children = children;
               }
@@ -802,11 +818,26 @@ export default {
   flex-shrink: 0;
 }
 
+.expand-icon i {
+  transition: transform 0.12s ease;
+}
+
+.expand-icon i.rotated {
+  transform: rotate(90deg);
+}
+
 .expand-icon:hover {
   color: var(--primaryColor);
 }
 
-.tree-node.current-item .expand-icon:hover {
+.pinned-indicator {
+  font-size: 0.9rem !important;
+  flex-shrink: 0;
+  margin: 0;
+}
+
+.tree-node.current-item .expand-icon:hover,
+.tree-node.current-item .pinned-indicator {
   color: white;
 }
 

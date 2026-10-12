@@ -919,6 +919,7 @@ export const mutations = {
       if (!metadataMap.has(item.name)) continue;
       item.metadata = resolveMetadata(item, metadataMap.get(item.name));
     }
+    navigationSortCache = null;
     emitStateChanged();
   },
   patchRequestMetadata: (metadataItems: Array<{ name: string; metadata: unknown }> | undefined) => {
