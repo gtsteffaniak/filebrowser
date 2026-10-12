@@ -1,5 +1,5 @@
 <template>
-  <div ref="FileTree" class="file-tree" :class="{ 'file-tree-root': isRootInstance }">
+  <div ref="treeEl" class="file-tree" :class="{ 'file-tree-root': isRootInstance }">
     <!-- Loading root -->
     <div v-if="isRootInstance && loading" class="tree-loading">
       <LoadingSpinner size="small" mode="placeholder" />
@@ -39,7 +39,7 @@
           </span>
           <span v-else class="expand-icon-placeholder"></span>
           <Icon
-            :mimetype="node.isDir ? 'directory' : node.type"
+            :mimetype="node.isDir ? 'directory' : (node.type ?? '')"
             :filename="node.name"
             :isShared="node.isShared"
             class="node-icon"
@@ -77,12 +77,15 @@
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { resourcesApi } from '@/api';
 import Icon from '@/components/files/Icon.vue';
 import LoadingSpinner from '@/components/LoadingSpinner.vue';
+import i18n from '@/i18n/index.ts';
 import { state, getters, mutations } from '@/store';
 import { eventBus } from '@/store/eventBus';
+import type { FileListItem } from '@/store/types.ts';
 import { buildItemUrl, goToItem, joinPath } from '@/utils/url';
 import { goToItemNotificationButton } from '@/utils/notificationActions';
 import { notify } from '@/notify';
@@ -90,674 +93,686 @@ import { notifyMoveCopyFailure } from '@/utils/appNotifications';
 import { getObjectProperty } from '@/utils/object.js';
 import { sortedItems } from '@/utils/sort.ts';
 
-export default {
-  name: 'FileTree',
-  components: { Icon, LoadingSpinner },
-  props: {
+export interface TreeNode extends FileListItem {
+  isDir: boolean;
+  expanded: boolean;
+  loading: boolean;
+  children: TreeNode[] | null;
+  childrenCount: number;
+  childrenError: string | null;
+  dragOver: boolean;
+  isHidden?: boolean;
+}
+
+interface TreeScope {
+  source: string | null;
+  hash: string | null;
+  rootPath: string;
+}
+
+interface MoveItem {
+  from: string;
+  fromSource?: string;
+  to: string;
+  toSource?: string;
+  name: string;
+}
+
+interface SelectionCandidate {
+  source?: string;
+  path?: string;
+  isDir?: boolean;
+  heldSelected?: boolean;
+}
+
+interface PromptProps {
+  items?: unknown;
+  item?: SelectionCandidate;
+  sourceName?: string;
+  path?: string;
+  targetPath?: string;
+  targetSource?: string;
+}
+
+const props = withDefaults(
+  defineProps<{
     // Will be ignored if we are in a share
-    currentSource: {
-      type: String,
-      default: null
-    },
+    currentSource?: string | null;
     // Nodes to render (for recursion, root uses its own data and leaves this null)
     // with 'root', I mean whole tree view component, the one that contains all the nodes/folders.
-    nodes: {
-      type: Array,
-      default: null
-    },
-    currentPath: {
-      type: String,
-      default: '/'
-    },
+    nodes?: TreeNode[] | null;
+    currentPath?: string;
     // Root path to start from
-    rootPath: {
-      type: String,
-      default: '/'
+    rootPath?: string;
+  }>(),
+  {
+    currentSource: null,
+    nodes: null,
+    currentPath: '/',
+    rootPath: '/',
+  }
+);
+
+const t = i18n.global.t.bind(i18n.global);
+
+const treeEl = ref<HTMLElement | null>(null);
+const rootNodes = ref<TreeNode[]>([]);
+const loading = ref(false);
+const error = ref<string | null>(null);
+const expanding = ref(false);
+const isRefreshing = ref(false);
+let unwatchReload: (() => void) | null = null;
+const expandTimeouts = new Map<TreeNode, ReturnType<typeof setTimeout>>(); // For auto-expand when dragging a item to a folder
+const pendingExpandPath = ref<string | null>(null);
+const rootLoaded = ref(false);
+
+const treeSource = computed(() => props.currentSource || state.sources.current || null);
+const shareHash = computed(() => getters.shareHash() || null);
+const isShare = computed(() => !!shareHash.value);
+// Determine if this instance is the root of the tree
+const isRootInstance = computed(() => props.nodes === null);
+const effectiveNodes = computed(() => (isRootInstance.value ? rootNodes.value : props.nodes));
+const canModify = computed(() => getters.sourcePermissions().modify);
+// Defaults to true
+const showFiles = computed(() => !state.user?.hideFilesInTree);
+
+async function loadRoot() {
+  if (expanding.value) return;
+  error.value = null;
+  rootLoaded.value = false;
+  if ((!treeSource.value && !shareHash.value) || !isRootInstance.value) {
+    rootNodes.value = [];
+    return;
+  }
+  loading.value = true;
+  try {
+    const items = await fetchItems(props.rootPath);
+    rootNodes.value = items.map(item => createNode(item));
+    rootLoaded.value = true;
+  } catch (err) {
+    console.error('Failed to load tree root:', err);
+    error.value = (err as Error).message || 'Failed to load';
+    rootNodes.value = [];
+  } finally {
+    loading.value = false;
+  }
+}
+
+function captureScope(): TreeScope {
+  return { source: treeSource.value, hash: shareHash.value, rootPath: props.rootPath };
+}
+
+function isCurrentScope(scope: TreeScope) {
+  return scope.source === treeSource.value && scope.hash === shareHash.value && scope.rootPath === props.rootPath;
+}
+
+async function fetchItems(path: string, scope: TreeScope = captureScope()): Promise<FileListItem[]> {
+  let items: FileListItem[];
+  if (scope.hash) {
+    const res = await resourcesApi.fetchFilesPublic(path, scope.hash, '', false, false, true);
+    items = res.items || [];
+  } else {
+    const res = await resourcesApi.fetchFiles(scope.source, path, false, false, true);
+    items = res.items || [];
+  }
+  // Filter out files if showFiles is false
+  if (!showFiles.value) {
+    items = items.filter(item => item.type === 'directory');
+  }
+  const dirs = items.filter(item => item.type === 'directory');
+  const files = items.filter(item => item.type !== 'directory');
+  return [...sortedItems(dirs, 'name', true), ...sortedItems(files, 'name', true)];
+}
+
+function createNode(item: FileListItem): TreeNode {
+  return {
+    source: treeSource.value || undefined,
+    type: item.type,
+    isDir: item.type === 'directory',
+    expanded: false,
+    loading: false,
+    children: null,
+    childrenCount: 0,
+    childrenError: null,
+    isShared: item.isShared,
+    dragOver: false, // For drag highlight
+    isHidden: item.hidden,
+    ...item
+  };
+}
+
+async function toggleExpand(node: TreeNode, skipNavigate = false) {
+  if (!node.isDir) return;
+
+  if (node.expanded) {
+    node.expanded = false;
+    return;
+  }
+
+  // Immediately expand and show loading state
+  node.expanded = true;
+
+  // Load children if not loaded
+  if (!node.children) {
+    node.loading = true;
+    node.childrenError = null;
+    try {
+      const items = await fetchItems(node.path);
+      node.children = items.map(item => createNode(item));
+      node.childrenCount = node.children.length;
+    } catch (err) {
+      console.error('Failed to load children for', node.path, err);
+      node.children = [];
+      node.childrenCount = 0;
+      node.childrenError = (err as Error).message || 'Failed to load';
+    } finally {
+      node.loading = false;
+    }
+  }
+
+  if (!skipNavigate && node.path !== props.currentPath) {
+    navigateTo(node);
+  }
+}
+
+async function tryExpandNodes() {
+  if (expanding.value || !rootLoaded.value || !pendingExpandPath.value) return;
+  await expandToPath(pendingExpandPath.value);
+  pendingExpandPath.value = null;
+}
+
+function getNodeUrl(node: TreeNode) {
+  const source = node.source || treeSource.value;
+  return buildItemUrl(source, node.path, true);
+}
+
+function onNodeClick(event: MouseEvent, node: TreeNode) {
+  if (event.button !== 0) {
+    return;
+  }
+  if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) {
+    return;
+  }
+  event.preventDefault();
+  handleNodeClick(node);
+}
+
+function handleNodeClick(node: TreeNode) {
+  // don't navigate to current item if we're already viewing it
+  if (isCurrentItem(node)) {
+    if (node.isDir) {
+      void toggleExpand(node, false); // If the item is a folder, just expand/collapse instead of navigate again
+    }
+    return;
+  }
+  if (node.isDir) {
+    navigateTo(node);
+  } else {
+    navigateTo(node);
+  }
+}
+
+function handleContextMenu(event: MouseEvent, node: TreeNode) {
+  event.preventDefault();
+  event.stopPropagation();
+
+  // Build an array with the single node (we don't support multi-select in tree yet, maybe later! But I'm not sure tbh)
+  const items = [node];
+  mutations.showPrompt({
+    name: 'ContextMenu',
+    props: {
+      posX: event.clientX,
+      posY: event.clientY,
+      items: items, // Pass to context menu
     },
-  },
-  data() {
-    return {
-      rootNodes: [],
-      loading: false,
-      error: null,
-      expanding: false,
-      isRefreshing: false,
-      unwatchReload: null,
-      expandTimeouts: new Map(), // For auto-expand when dragging a item to a folder
-      pendingExpandPath: null,
-      rootLoaded: false,
+  });
+}
+
+function navigateTo(node: TreeNode) {
+  if (isShare.value) {
+    mutations.setNavigationTransitioning(true);
+    goToItem(shareHash.value, node.path, {}, false, true);
+  } else {
+    mutations.setNavigationTransitioning(true);
+    goToItem(treeSource.value, node.path, {});
+  }
+}
+
+function normalizePath(p?: string | null) {
+  if (!p || p === '/') return '/';
+  return p.replace(/\/+$/, '');
+}
+
+function isCurrentItem(node: TreeNode) {
+  const normalizedNodePath = normalizePath(node.path);
+  const normalizedCurrentPath = normalizePath(props.currentPath);
+  if (isShare.value) {
+    return normalizedNodePath === normalizedCurrentPath;
+  } else {
+    return node.source === treeSource.value && normalizedNodePath === normalizedCurrentPath;
+  }
+}
+
+async function expandToPath(targetPath: string) {
+  if (!targetPath || targetPath === '/' || expanding.value) return;
+  expanding.value = true;
+  try {
+    if (isRootInstance.value && !rootNodes.value.length) {
+      await loadRoot();
+    }
+    const pathParts = targetPath.split('/').filter(p => p);
+    if (pathParts.length === 0) return;
+
+    let currentLevel = (isRootInstance.value ? rootNodes.value : props.nodes) ?? [];
+
+    for (const part of pathParts) {
+      const node = currentLevel.find(n => n.name === part && n.isDir);
+      if (!node) break;
+
+      if (!node.expanded) {
+        await toggleExpand(node, true);
+      }
+      currentLevel = node.children || [];
+    }
+
+    await nextTick();
+    scrollToCurrent();
+  } catch (err) {
+    console.error('Error expanding path:', err);
+  } finally {
+    expanding.value = false;
+  }
+}
+
+function scrollToTop() {
+  let el: HTMLElement | null = treeEl.value?.parentElement ?? null;
+  while (el) {
+    if (el.scrollTop > 0 && /(auto|scroll)/.test(getComputedStyle(el).overflowY)) {
+      el.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+    el = el.parentElement;
+  }
+}
+
+function scrollToCurrent() {
+  if (!treeEl.value) return;
+  const current = treeEl.value.querySelector('.tree-node.current-item');
+  if (current) {
+    current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+}
+
+async function refresh() {
+  if (!isRootInstance.value || isRefreshing.value) return;
+  if (!treeSource.value && !shareHash.value) return;
+  isRefreshing.value = true;
+  for (const timeout of expandTimeouts.values()) {
+    clearTimeout(timeout);
+  }
+  expandTimeouts.clear();
+  const scope = captureScope();
+  try {
+    const nodes = await syncNodes(rootNodes.value, props.rootPath, scope);
+    if (!isCurrentScope(scope)) return;
+    if (!sameNodeList(rootNodes.value, nodes)) {
+      rootNodes.value = nodes;
+    }
+    error.value = null;
+    rootLoaded.value = true;
+    void tryExpandNodes();
+  } catch (err) {
+    console.error('Failed to refresh tree:', err);
+  } finally {
+    isRefreshing.value = false;
+  }
+}
+
+async function syncNodes(existing: TreeNode[], path: string, scope: TreeScope): Promise<TreeNode[]> {
+  const items = await fetchItems(path, scope);
+  if (!isCurrentScope(scope)) return existing;
+  const known = new Map(existing.map((node) => [node.path, node]));
+  const merged = items.map((item) => {
+    const currentNode = known.get(item.path);
+    if (!currentNode) return createNode(item);
+    const wasDir = currentNode.isDir;
+    const node: TreeNode = {
+      ...currentNode,
+      ...item,
+      isHidden: item.hidden,
+      pinned: !!item.pinned,
     };
-  },
-  computed: {
-    treeSource() {
-      return this.currentSource || state.sources.current || null;
-    },
-    isShare() {
-      return !!this.shareHash;
-    },
-    shareHash() {
-      return getters.shareHash() || null;
-    },
-    // Determine if this instance is the root of the tree
-    isRootInstance() {
-      return this.nodes === null;
-    },
-    effectiveNodes() {
-      return this.isRootInstance ? this.rootNodes : this.nodes;
-    },
-    canModify() {
-      return getters.sourcePermissions().modify;
-    },
-    showFiles() {
-      // Defaults to true
-      return !state.user?.hideFilesInTree;
-    },
-  },
-  watch: {
-    treeSource: {
-      async handler(newVal) {
-        if (this.isRootInstance && newVal) {
-          await this.loadRoot();
-          this.rootLoaded = true;
-          this.tryExpandNodes();
-        }
-      },
-      immediate: true,
-    },
-    shareHash: {
-      async handler(newVal) {
-        if (this.isRootInstance && newVal) {
-          await this.loadRoot();
-          this.rootLoaded = true;
-          this.tryExpandNodes();
-        }
-      },
-      immediate: true,
-    },
-    rootPath: {
-      handler(newVal, oldVal) {
-        if (this.isRootInstance && newVal !== oldVal) this.loadRoot();
-      },
-    },
-    currentPath: {
-      handler(newPath) {
-        if (newPath !== '/') {
-          this.pendingExpandPath = newPath;
-          this.tryExpandNodes();
-        } else {
-          this.$nextTick(this.scrollToTop);
-        }
-      },
-      immediate: true,
-    },
-    showFiles: {
-      handler() {
-        if (this.isRootInstance) {
-          this.refresh();
-        }
-      },
-      immediate: false,
-    },
-  },
-  mounted() {
-    this.unwatchReload = this.$watch(
-      () => state.reload,
-      (newVal) => {
-        if (newVal === true && this.isRootInstance && !this.isRefreshing) {
-          this.refresh();
-        }
-      },
-      { immediate: false, flush: 'sync' }
-    );
-    eventBus.on('itemsDeleted', this.refresh);
-    eventBus.on('itemsRenamed', this.refresh);
-    eventBus.on('itemsMoved', this.refresh);
-    window.addEventListener('dragend', this.clearAllDragStates);
-  },
-  beforeUnmount() {
-    // Clear all expand timeouts
-    for (const timeout of this.expandTimeouts.values()) {
-      clearTimeout(timeout);
+    node.isDir = node.type === 'directory';
+    if (wasDir !== node.isDir) {
+      node.expanded = false;
+      node.loading = false;
+      node.children = null;
+      node.childrenCount = 0;
+      node.childrenError = null;
     }
-    this.expandTimeouts.clear();
-    if (this.unwatchReload) {
-      this.unwatchReload();
+    return node;
+  });
+  for (const node of merged) {
+    if (node.isDir && !node.expanded && !node.loading && node.children) {
+      node.children = null;
+      node.childrenCount = 0;
+      node.childrenError = null;
     }
-    eventBus.off('itemsDeleted', this.refresh);
-    eventBus.off('itemsRenamed', this.refresh);
-    eventBus.off('itemsMoved', this.refresh);
-    window.removeEventListener('dragend', this.clearAllDragStates);
-  },
-  methods: {
-    async loadRoot() {
-      if (this.expanding) return;
-      this.error = null;
-      this.rootLoaded = false;
-      if ((!this.treeSource && !this.shareHash) || !this.isRootInstance) {
-        this.rootNodes = [];
-        return;
-      }
-      this.loading = true;
-      try {
-        const items = await this.fetchItems(this.rootPath);
-        this.rootNodes = items.map(item => this.createNode(item));
-        this.rootLoaded = true;
-      } catch (err) {
-        console.error('Failed to load tree root:', err);
-        this.error = err.message || 'Failed to load';
-        this.rootNodes = [];
-      } finally {
-        this.loading = false;
-      }
-    },
-    captureScope() {
-      return { source: this.treeSource, hash: this.shareHash, rootPath: this.rootPath };
-    },
-    isCurrentScope(scope) {
-      return scope.source === this.treeSource && scope.hash === this.shareHash && scope.rootPath === this.rootPath;
-    },
-    async fetchItems(path, scope = this.captureScope()) {
-      let items;
-      if (scope.hash) {
-        const res = await resourcesApi.fetchFilesPublic(path, scope.hash, state.shareInfo?.password, false, false, true);
-        items = res.items || [];
-      } else {
-        const res = await resourcesApi.fetchFiles(scope.source, path, false, false, true);
-        items = res.items || [];
-      }
-      // Filter out files if showFiles is false
-      if (!this.showFiles) {
-        items = items.filter(item => item.type === 'directory');
-      }
-      const dirs = items.filter(item => item.type === 'directory');
-      const files = items.filter(item => item.type !== 'directory');
-      return [...sortedItems(dirs, 'name', true), ...sortedItems(files, 'name', true)];
-    },
-
-    createNode(item) {
-      return {
-        name: item.name,
-        path: item.path,
-        source: this.treeSource,
-        type: item.type,
-        isDir: item.type === 'directory',
-        expanded: false,
-        loading: false,
-        children: null,
-        childrenCount: 0,
-        childrenError: null,
-        isShared: item.isShared,
-        dragOver: false, // For drag highlight
-        isHidden: item.hidden,
-        ...item
-      };
-    },
-
-    async toggleExpand(node, skipNavigate = false) {
-      if (!node.isDir) return;
-
-      if (node.expanded) {
-        node.expanded = false;
-        return;
-      }
-
-      // Immediately expand and show loading state
-      node.expanded = true;
-
-      // Load children if not loaded
-      if (!node.children) {
-        node.loading = true;
-        node.childrenError = null;
+  }
+  await Promise.all(
+    merged
+      .filter((node) => node.isDir && node.expanded && node.children)
+      .map(async (node) => {
         try {
-          const items = await this.fetchItems(node.path);
-          node.children = items.map(item => this.createNode(item));
-          node.childrenCount = node.children.length;
-        } catch (error) {
-          console.error('Failed to load children for', node.path, error);
-          node.children = [];
-          node.childrenCount = 0;
-          node.childrenError = error.message || 'Failed to load';
-        } finally {
-          node.loading = false;
-        }
-      }
-
-      if (!skipNavigate && node.path !== this.currentPath) {
-        this.navigateTo(node);
-      }
-    },
-
-    async tryExpandNodes() {
-      if (this.expanding || !this.rootLoaded || !this.pendingExpandPath) return;
-      await this.expandToPath(this.pendingExpandPath);
-      this.pendingExpandPath = null;
-    },
-
-    getNodeUrl(node) {
-      const source = node.source || this.treeSource;
-      return buildItemUrl(source, node.path, true);
-    },
-
-    /** @param {MouseEvent} event */
-    onNodeClick(event, node) {
-      if (event.button !== 0) {
-        return;
-      }
-      if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) {
-        return;
-      }
-      event.preventDefault();
-      this.handleNodeClick(node);
-    },
-
-    handleNodeClick(node) {
-      // don't navigate to current item if we're already viewing it
-      if (this.isCurrentItem(node)) {
-        if (node.isDir) {
-          void this.toggleExpand(node, false); // If the item is a folder, just expand/collapse instead of navigate again
-        }
-        return;
-      }
-      if (node.isDir) {
-        this.navigateTo(node);
-      } else {
-        this.navigateTo(node);
-      }
-    },
-
-    handleContextMenu(event, node) {
-      event.preventDefault();
-      event.stopPropagation();
-
-      // Build an array with the single node (we don't support multi-select in tree yet, maybe later! But I'm not sure tbh)
-      const items = [node];
-      mutations.showPrompt({
-        name: 'ContextMenu',
-        props: {
-          posX: event.clientX,
-          posY: event.clientY,
-          items: items, // Pass to context menu
-        },
-      });
-    },
-
-    navigateTo(node) {
-      if (this.isShare) {
-        mutations.setNavigationTransitioning(true);
-        goToItem(this.shareHash, node.path, {}, false, true);
-      } else {
-        mutations.setNavigationTransitioning(true);
-        goToItem(this.treeSource, node.path, {});
-      }
-    },
-
-    normalizePath(p) {
-      if (!p || p === '/') return '/';
-      return p.replace(/\/+$/, '');
-    },
-
-    isCurrentItem(node) {
-      const normalizedNodePath = this.normalizePath(node.path);
-      const normalizedCurrentPath = this.normalizePath(this.currentPath);
-      if (this.isShare) {
-        return normalizedNodePath === normalizedCurrentPath;
-      } else {
-        return node.source === this.treeSource && normalizedNodePath === normalizedCurrentPath;
-      }
-    },
-
-    async expandToPath(targetPath) {
-      if (!targetPath || targetPath === '/' || this.expanding) return;
-      this.expanding = true;
-      try {
-        if (this.isRootInstance && !this.rootNodes.length) {
-          await this.loadRoot();
-        }
-        const pathParts = targetPath.split('/').filter(p => p);
-        if (pathParts.length === 0) return;
-
-        let currentLevel = this.isRootInstance ? this.rootNodes : this.nodes;
-
-          for (const part of pathParts) {
-          const node = currentLevel.find(n => n.name === part && n.isDir);
-          if (!node) break;
-
-          if (!node.expanded) {
-            await this.toggleExpand(node, true);
+          const previousChildren = node.children as TreeNode[];
+          const children = await syncNodes(previousChildren, node.path, scope);
+          if (!isCurrentScope(scope)) return;
+          if (!sameNodeList(previousChildren, children)) {
+            node.children = children;
           }
-          currentLevel = node.children || [];
-        }
-
-        await this.$nextTick();
-        this.scrollToCurrent();
-      } catch (err) {
-        console.error('Error expanding path:', err);
-      } finally {
-        this.expanding = false;
-      }
-    },
-    scrollToTop() {
-      let el = this.$refs.FileTree?.parentElement;
-      while (el) {
-        if (el.scrollTop > 0 && /(auto|scroll)/.test(getComputedStyle(el).overflowY)) {
-          el.scrollTo({ top: 0, behavior: 'smooth' });
-          return;
-        }
-        el = el.parentElement;
-      }
-    },
-
-    scrollToCurrent() {
-      if (!this.$refs.FileTree) return;
-      const current = this.$refs.FileTree.querySelector('.tree-node.current-item');
-      if (current) {
-        current.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-    },
-
-    async refresh() {
-      if (!this.isRootInstance || this.isRefreshing) return;
-      if (!this.treeSource && !this.shareHash) return;
-      this.isRefreshing = true;
-      for (const timeout of this.expandTimeouts.values()) {
-        clearTimeout(timeout);
-      }
-      this.expandTimeouts.clear();
-      const scope = this.captureScope();
-      try {
-        const nodes = await this.syncNodes(this.rootNodes, this.rootPath, scope);
-        if (!this.isCurrentScope(scope)) return;
-        if (!this.sameNodeList(this.rootNodes, nodes)) {
-          this.rootNodes = nodes;
-        }
-        this.error = null;
-        this.rootLoaded = true;
-        void this.tryExpandNodes();
-      } catch (err) {
-        console.error('Failed to refresh tree:', err);
-      } finally {
-        this.isRefreshing = false;
-      }
-    },
-    async syncNodes(existing, path, scope) {
-      const items = await this.fetchItems(path, scope);
-      if (!this.isCurrentScope(scope)) return existing;
-      const known = new Map(existing.map((node) => [node.path, node]));
-      const merged = items.map((item) => {
-        const currentNode = known.get(item.path);
-        if (!currentNode) return this.createNode(item);
-        const wasDir = currentNode.isDir;
-        const node = {
-          ...currentNode,
-          ...item,
-          isHidden: item.hidden,
-          pinned: !!item.pinned,
-        };
-        node.isDir = node.type === 'directory';
-        if (wasDir !== node.isDir) {
-          node.expanded = false;
-          node.loading = false;
-          node.children = null;
-          node.childrenCount = 0;
+          node.childrenCount = children.length;
           node.childrenError = null;
+        } catch (err) {
+          console.error('Failed to refresh children for', node.path, err);
         }
-        return node;
-      });
-      for (const node of merged) {
-        if (node.isDir && !node.expanded && !node.loading && node.children) {
-          node.children = null;
-          node.childrenCount = 0;
-          node.childrenError = null;
-        }
-      }
-      await Promise.all(
-        merged
-          .filter((node) => node.isDir && node.expanded && node.children)
-          .map(async (node) => {
-            try {
-              const previousChildren = node.children;
-              const children = await this.syncNodes(previousChildren, node.path, scope);
-              if (!this.isCurrentScope(scope)) return;
-              if (!this.sameNodeList(previousChildren, children)) {
-                node.children = children;
-              }
-              node.childrenCount = children.length;
-              node.childrenError = null;
-            } catch (err) {
-              console.error('Failed to refresh children for', node.path, err);
-            }
-          })
-      );
-      if (!this.isCurrentScope(scope)) return existing;
-      return merged;
-    },
-    sameNodeList(a, b) {
-      return a.length === b.length && a.every((node, i) => node === b[i]);
-    },
-    handleDragOver(event, node) {
-      if (!node.isDir || !this.canModify) return;
+      })
+  );
+  if (!isCurrentScope(scope)) return existing;
+  return merged;
+}
 
-      const isInternal = Array.from(event.dataTransfer.types).includes(
-        'application/x-filebrowser-internal-drag'
-      );
-      if (!isInternal) return;
+function sameNodeList(a: TreeNode[], b: TreeNode[]) {
+  return a.length === b.length && a.every((node, i) => node === b[i]);
+}
 
-      event.preventDefault();
-      node.dragOver = true;
+function handleDragOver(event: DragEvent, node: TreeNode) {
+  if (!node.isDir || !canModify.value) return;
 
-      // Auto-expand if collapsed and not loading
-      if (!node.expanded && !node.loading) {
-        // Clear any existing timeout for this node
-        if (this.expandTimeouts.has(node)) {
-          clearTimeout(this.expandTimeouts.get(node));
-        }
-        // Set a new timeout
-        const timeout = setTimeout(() => {
-          void this.toggleExpand(node, true); // expand without navigating
-          this.expandTimeouts.delete(node);
-        }, 800); // 800ms delay (we need to hover that time to auto expand when dragging a item)
-        this.expandTimeouts.set(node, timeout);
-      }
-    },
+  const isInternal = Array.from(event.dataTransfer?.types ?? []).includes(
+    'application/x-filebrowser-internal-drag'
+  );
+  if (!isInternal) return;
 
-    clearAllDragStates() {
-      if (!this.isRootInstance) return; // Only root should handle global reset
+  event.preventDefault();
+  node.dragOver = true;
 
-      const clearNode = (node) => {
-        node.dragOver = false;
-        if (node.children) {
-          node.children.forEach(clearNode);
-        }
-      };
-      this.rootNodes.forEach(clearNode);
-
-      // Clear all pending expand timeouts
-      for (const timeout of this.expandTimeouts.values()) {
-        clearTimeout(timeout);
-      }
-      this.expandTimeouts.clear();
-    },
-
-    handleDragLeave(event, node) {
-      if (!node.isDir) return;
-      // Don't clear drag state if we're just moving to a child element
-      if (event.currentTarget.contains(event.relatedTarget)) {
-        return;
-      }
-      node.dragOver = false;
-      // Clear auto-expand timeout
-      if (this.expandTimeouts.has(node)) {
-        clearTimeout(this.expandTimeouts.get(node));
-        this.expandTimeouts.delete(node);
-      }
-    },
-
-    async handleDrop(event, node) {
-      if (!node.isDir) return;
-      if (!this.canModify) return;
-      node.dragOver = false;
-
-      // Clear any pending timeout
-      if (this.expandTimeouts.has(node)) {
-        clearTimeout(this.expandTimeouts.get(node));
-        this.expandTimeouts.delete(node);
-      }
-
-      const isInternal = Array.from(event.dataTransfer.types).includes(
-        'application/x-filebrowser-internal-drag'
-      );
-      if (!isInternal) return;
-
-      event.preventDefault();
-
-      // Get selected items
-      const selectedIndices = state.selected;
-      if (!selectedIndices || selectedIndices.length === 0) return;
-
-      // Build list of items to move
-      const items = [];
-      for (const index of selectedIndices) {
-        const item = getObjectProperty(state.req?.items, index);
-        if (!item) continue;
-
-        // Prevent dropping onto itself or into its own subdirectory
-        if (item.path === node.path) continue; // cannot drop onto itself
-        if (node.path.startsWith(`${item.path}/`)) continue; // cannot drop into its own subdirectory
-
-        items.push({
-          from: item.path,
-          fromSource: item.source || state.req.source,
-          to: joinPath(node.path, item.name),
-          toSource: node.source || this.treeSource,
-          name: item.name,
-        });
-      }
-
-      if (items.length === 0) return;
-
-      const targetDir = this.normalizePath(node.path);
-      const sourceDir = this.normalizePath(state.req.path);
-      if (targetDir === sourceDir) {
-        notify.showErrorToast(this.$t("files.sameFolder"));
-        return;
-      }
-      // Fetch destination contents to check for conflicts
-      let response;
-      try {
-        if (this.isShare) {
-          response = await resourcesApi.fetchFilesPublic(node.path, this.shareHash);
-        } else {
-          response = await resourcesApi.fetchFiles(this.treeSource, node.path);
-        }
-      } catch (err) {
-        console.error('Failed to fetch dir for conflict check', err);
-        notify.showErrorToast(this.$t('files.cannotAccesDir'));
-        return;
-      }
-
-      const targetItems = response?.items || [];
-
-      // If any item name already exists in destination
-      const conflict = items.some(item => {
-        const itemName = item.to.split('/').pop();
-        return targetItems.some(target => target.name === itemName);
-      });
-
-      const performAction = async (overwrite, rename) => {
-        mutations.showPrompt({
-          name: 'move',
-          props: { operationInProgress: true },
-        });
-
-        try {
-          if (this.isShare) {
-            await resourcesApi.moveCopyPublic(this.shareHash, items, 'move', overwrite, rename);
-          } else {
-            await resourcesApi.moveCopy(items, 'move', overwrite, rename);
-          }
-          const buttonProps = {
-            icon: 'folder',
-            buttons: [
-              goToItemNotificationButton(
-                this.$t('buttons.goToItem'),
-                this.isShare ? this.shareHash : this.treeSource,
-                node.path,
-                this.isShare
-              ),
-            ],
-          };
-          notify.showSuccess(this.$t('prompts.moveSuccess'), buttonProps);
-          mutations.closeTopPrompt();
-          mutations.setReload(true);
-        } catch (error) {
-          mutations.closeTopPrompt();
-          notifyMoveCopyFailure(error);
-        }
-      };
-      if (conflict) {
-        mutations.showPrompt({
-          name: 'replace-rename',
-          pinned: true,
-          confirm: async (event, option) => {
-            const overwrite = option === 'overwrite';
-            const rename = option === 'rename';
-            event.preventDefault();
-            mutations.closeTopPrompt();
-            try {
-              await performAction(overwrite, rename);
-            } catch (error) {
-              notifyMoveCopyFailure(error);
-            }
-          },
-        });
-        return;
-      }
-      try {
-        await performAction(false, false);
-      } catch (error) {
-        notifyMoveCopyFailure(error);
-      }
-    },
-
-    isSelected(node) {
-      return state.prompts.some((prompt) => {
-        const props = prompt.props || {};
-
-        // Collect items from various prompt prop
-        let candidates = [];
-
-        // Most prompts store items in an "items" array
-        if (props.items && Array.isArray(props.items)) {
-          candidates = props.items;
-        }
-        // Rename, share, info have a single "item"
-        else if (props.item) {
-          candidates = [props.item];
-        }
-        // Access prompt uses sourceName + path
-        else if (props.sourceName && props.path) {
-          candidates = [{ source: props.sourceName, path: props.path, isDir: true }];
-        }
-        // Upload prompt uses targetPath + targetSource (yeah, I wanted to support upload from the tree context menu too)
-        else if (props.targetPath && props.targetSource) {
-          candidates = [{ source: props.targetSource, path: props.targetPath, isDir: true }];
-        }
-
-        if (candidates.length === 0) return false;
-
-        // Compare node to each candidate (usually only one, but safe to loop)
-        return candidates.some(selected => {
-          if (!selected.path || selected.heldSelected) return false; // picked from ListingView
-          if (this.isShare) {
-            return selected.path === node.path;
-          } else {
-            return selected.source === node.source && selected.path === node.path;
-          }
-        });
-      });
+  // Auto-expand if collapsed and not loading
+  if (!node.expanded && !node.loading) {
+    // Clear any existing timeout for this node
+    if (expandTimeouts.has(node)) {
+      clearTimeout(expandTimeouts.get(node));
     }
-  },
-};
+    // Set a new timeout
+    const timeout = setTimeout(() => {
+      void toggleExpand(node, true); // expand without navigating
+      expandTimeouts.delete(node);
+    }, 800); // 800ms delay (we need to hover that time to auto expand when dragging a item)
+    expandTimeouts.set(node, timeout);
+  }
+}
+
+function clearAllDragStates() {
+  if (!isRootInstance.value) return; // Only root should handle global reset
+
+  const clearNode = (node: TreeNode) => {
+    node.dragOver = false;
+    if (node.children) {
+      node.children.forEach(clearNode);
+    }
+  };
+  rootNodes.value.forEach(clearNode);
+
+  // Clear all pending expand timeouts
+  for (const timeout of expandTimeouts.values()) {
+    clearTimeout(timeout);
+  }
+  expandTimeouts.clear();
+}
+
+function handleDragLeave(event: DragEvent, node: TreeNode) {
+  if (!node.isDir) return;
+  // Don't clear drag state if we're just moving to a child element
+  if ((event.currentTarget as Node).contains(event.relatedTarget as Node | null)) {
+    return;
+  }
+  node.dragOver = false;
+  // Clear auto-expand timeout
+  if (expandTimeouts.has(node)) {
+    clearTimeout(expandTimeouts.get(node));
+    expandTimeouts.delete(node);
+  }
+}
+
+async function handleDrop(event: DragEvent, node: TreeNode) {
+  if (!node.isDir) return;
+  if (!canModify.value) return;
+  node.dragOver = false;
+
+  // Clear any pending timeout
+  if (expandTimeouts.has(node)) {
+    clearTimeout(expandTimeouts.get(node));
+    expandTimeouts.delete(node);
+  }
+
+  const isInternal = Array.from(event.dataTransfer?.types ?? []).includes(
+    'application/x-filebrowser-internal-drag'
+  );
+  if (!isInternal) return;
+
+  event.preventDefault();
+
+  // Get selected items
+  const selectedIndices = state.selected;
+  if (!selectedIndices || selectedIndices.length === 0) return;
+
+  // Build list of items to move
+  const items: MoveItem[] = [];
+  for (const index of selectedIndices) {
+    const item = getObjectProperty(state.req?.items, index) as FileListItem | undefined;
+    if (!item) continue;
+
+    // Prevent dropping onto itself or into its own subdirectory
+    if (item.path === node.path) continue; // cannot drop onto itself
+    if (node.path.startsWith(`${item.path}/`)) continue; // cannot drop into its own subdirectory
+
+    items.push({
+      from: item.path,
+      fromSource: item.source || state.req.source,
+      to: joinPath(node.path, item.name),
+      toSource: node.source || treeSource.value || undefined,
+      name: item.name,
+    });
+  }
+
+  if (items.length === 0) return;
+
+  const targetDir = normalizePath(node.path);
+  const sourceDir = normalizePath(state.req.path);
+  if (targetDir === sourceDir) {
+    notify.showErrorToast(t("files.sameFolder"));
+    return;
+  }
+  // Fetch destination contents to check for conflicts
+  let response: { items?: FileListItem[] } | undefined;
+  try {
+    if (isShare.value) {
+      response = await resourcesApi.fetchFilesPublic(node.path, shareHash.value);
+    } else {
+      response = await resourcesApi.fetchFiles(treeSource.value, node.path);
+    }
+  } catch (err) {
+    console.error('Failed to fetch dir for conflict check', err);
+    notify.showErrorToast(t('files.cannotAccesDir'));
+    return;
+  }
+
+  const targetItems: FileListItem[] = response?.items || [];
+
+  // If any item name already exists in destination
+  const conflict = items.some(item => {
+    const itemName = item.to.split('/').pop();
+    return targetItems.some(target => target.name === itemName);
+  });
+
+  const performAction = async (overwrite: boolean, rename: boolean) => {
+    mutations.showPrompt({
+      name: 'move',
+      props: { operationInProgress: true },
+    });
+
+    try {
+      if (isShare.value) {
+        await resourcesApi.moveCopyPublic(shareHash.value, items, 'move', overwrite, rename);
+      } else {
+        await resourcesApi.moveCopy(items, 'move', overwrite, rename);
+      }
+      const buttonProps = {
+        icon: 'folder',
+        buttons: [
+          goToItemNotificationButton(
+            t('buttons.goToItem'),
+            isShare.value ? shareHash.value : treeSource.value,
+            node.path,
+            isShare.value
+          ),
+        ],
+      };
+      notify.showSuccess(t('prompts.moveSuccess'), buttonProps);
+      mutations.closeTopPrompt();
+      mutations.setReload(true);
+    } catch (err) {
+      mutations.closeTopPrompt();
+      notifyMoveCopyFailure(err);
+    }
+  };
+  if (conflict) {
+    mutations.showPrompt({
+      name: 'replace-rename',
+      pinned: true,
+      confirm: async (event: Event, option: string) => {
+        const overwrite = option === 'overwrite';
+        const rename = option === 'rename';
+        event.preventDefault();
+        mutations.closeTopPrompt();
+        try {
+          await performAction(overwrite, rename);
+        } catch (err) {
+          notifyMoveCopyFailure(err);
+        }
+      },
+    });
+    return;
+  }
+  try {
+    await performAction(false, false);
+  } catch (err) {
+    notifyMoveCopyFailure(err);
+  }
+}
+
+function isSelected(node: TreeNode) {
+  return state.prompts.some((prompt) => {
+    const promptProps = (prompt.props || {}) as PromptProps;
+
+    // Collect items from various prompt prop
+    let candidates: SelectionCandidate[] = [];
+
+    // Most prompts store items in an "items" array
+    if (promptProps.items && Array.isArray(promptProps.items)) {
+      candidates = promptProps.items as SelectionCandidate[];
+    }
+    // Rename, share, info have a single "item"
+    else if (promptProps.item) {
+      candidates = [promptProps.item];
+    }
+    // Access prompt uses sourceName + path
+    else if (promptProps.sourceName && promptProps.path) {
+      candidates = [{ source: promptProps.sourceName, path: promptProps.path, isDir: true }];
+    }
+    // Upload prompt uses targetPath + targetSource (yeah, I wanted to support upload from the tree context menu too)
+    else if (promptProps.targetPath && promptProps.targetSource) {
+      candidates = [{ source: promptProps.targetSource, path: promptProps.targetPath, isDir: true }];
+    }
+
+    if (candidates.length === 0) return false;
+
+    // Compare node to each candidate (usually only one, but safe to loop)
+    return candidates.some(selected => {
+      if (!selected.path || selected.heldSelected) return false; // picked from ListingView
+      if (isShare.value) {
+        return selected.path === node.path;
+      } else {
+        return selected.source === node.source && selected.path === node.path;
+      }
+    });
+  });
+}
+
+watch(treeSource, async (newVal) => {
+  if (isRootInstance.value && newVal) {
+    await loadRoot();
+    rootLoaded.value = true;
+    void tryExpandNodes();
+  }
+}, { immediate: true });
+
+watch(shareHash, async (newVal) => {
+  if (isRootInstance.value && newVal) {
+    await loadRoot();
+    rootLoaded.value = true;
+    void tryExpandNodes();
+  }
+}, { immediate: true });
+
+watch(() => props.rootPath, (newVal, oldVal) => {
+  if (isRootInstance.value && newVal !== oldVal) void loadRoot();
+});
+
+watch(() => props.currentPath, (newPath) => {
+  if (newPath !== '/') {
+    pendingExpandPath.value = newPath;
+    void tryExpandNodes();
+  } else {
+    void nextTick(scrollToTop);
+  }
+}, { immediate: true });
+
+watch(showFiles, () => {
+  if (isRootInstance.value) {
+    void refresh();
+  }
+});
+
+onMounted(() => {
+  unwatchReload = watch(
+    () => state.reload,
+    (newVal) => {
+      if (newVal === true && isRootInstance.value && !isRefreshing.value) {
+        void refresh();
+      }
+    },
+    { flush: 'sync' }
+  );
+  eventBus.on('itemsDeleted', refresh);
+  eventBus.on('itemsRenamed', refresh);
+  eventBus.on('itemsMoved', refresh);
+  window.addEventListener('dragend', clearAllDragStates);
+});
+
+onBeforeUnmount(() => {
+  // Clear all expand timeouts
+  for (const timeout of expandTimeouts.values()) {
+    clearTimeout(timeout);
+  }
+  expandTimeouts.clear();
+  if (unwatchReload) {
+    unwatchReload();
+  }
+  eventBus.off('itemsDeleted', refresh);
+  eventBus.off('itemsRenamed', refresh);
+  eventBus.off('itemsMoved', refresh);
+  window.removeEventListener('dragend', clearAllDragStates);
+});
 </script>
 
 <style scoped>
