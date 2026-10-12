@@ -8,9 +8,8 @@
     <iframe
       v-if="isHtml"
       ref="viewerEl"
-      :key="req.path"
       class="html-content"
-      :srcdoc="htmlPreview.srcdoc"
+      src="about:blank"
       sandbox="allow-scripts allow-popups"
       referrerpolicy="no-referrer"
       title="HTML preview"
@@ -51,8 +50,9 @@ import { copyToClipboard } from "@/utils/clipboard";
 import { globalVars } from "@/utils/constants";
 import { isHtmlMimeType } from "@/utils/mimetype";
 import { router } from "@/router/index.ts";
-import { buildItemUrl, getApiPath } from "@/utils/url.js";
+import { buildItemUrl } from "@/utils/url.js";
 import { previewNavigationFile } from "@/utils/htmlPreviewNavigation";
+import { createHtmlPreviewLoader } from "@/utils/htmlPreviewLoader";
 import FloatingActionButton from "@/components/settings/FloatingActionButton.vue";
 import {
   buildHtmlPreview,
@@ -223,6 +223,24 @@ const htmlPreview = computed(() => {
   return buildHtmlPreview(content.value, state.req.path ?? "", state.req.source ?? "");
 });
 
+const htmlPreviewLoader = createHtmlPreviewLoader();
+
+function renderHtmlPreview() {
+  if (!isHtml.value) {
+    htmlPreviewLoader.dispose();
+    return;
+  }
+  const iframe = viewerEl.value as HTMLIFrameElement | null;
+  if (iframe?.contentWindow) {
+    htmlPreviewLoader.load(iframe.contentWindow, htmlPreview.value.srcdoc);
+  }
+}
+
+watch(htmlPreview, async () => {
+  await nextTick();
+  renderHtmlPreview();
+}, { flush: "post" });
+
 const renderedContent = computed(() => {
   void katexReady.value;
   return parseMarkdown(content.value, state.req.path ?? "", state.req.source ?? "");
@@ -300,6 +318,7 @@ onMounted(async () => {
   reinit();
   observeResize();
   await nextTick();
+  renderHtmlPreview();
   attachScrollListener(getScrollContainer());
 });
 
@@ -310,6 +329,7 @@ onBeforeUnmount(() => {
 });
 
 onUnmounted(() => {
+  htmlPreviewLoader.dispose();
   window.removeEventListener("message", handleHtmlNavigation);
   attachScrollListener(null);
   unobserveResize();
@@ -326,15 +346,19 @@ function toggleSplitView() {
 function handleHtmlNavigation(event: MessageEvent) {
   if (!isHtml.value) return;
   const iframe = viewerEl.value as HTMLIFrameElement | null;
-  const shareHash = getters.isShare() ? state.shareInfo.hash : "";
-  const viewPath = getApiPath("resources/view", {}, false, shareHash !== "");
+  const viewerPrefix = router.resolve({ path: buildItemUrl(state.req.source, "/") }).href;
   const file = previewNavigationFile(
     event, iframe?.contentWindow ?? null, window.location.origin,
-    viewPath, state.req.source ?? "", shareHash,
+    viewerPrefix,
   );
   if (file === null) return;
   // Only reconstruct a file-viewer route; never navigate to a URL supplied
   // directly by the frame. The normal app request enforces access to the file.
+  if (event.data.newTab === true) {
+    const href = router.resolve({ path: buildItemUrl(state.req.source, file) }).href;
+    window.open(href, "_blank", "noopener,noreferrer");
+    return;
+  }
   void router.push({ path: buildItemUrl(state.req.source, file) });
 }
 

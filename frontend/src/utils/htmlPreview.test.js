@@ -141,6 +141,31 @@ describe("rewriteCssContent", () => {
 });
 
 describe("buildHtmlPreview", () => {
+  it.each([
+    ["auxclick", { button: 1 }],
+    ["click", { ctrlKey: true }],
+    ["click", { metaKey: true }],
+    ["click", { shiftKey: true }],
+  ])("requests a parent-opened tab for %s with %j", (type, options) => {
+    const { srcdoc } = buildHtmlPreview('<a href="other.html">Next</a>', "/pages/index.html", "src");
+    const doc = new DOMParser().parseFromString(srcdoc, "text/html");
+    const postMessage = vi.fn();
+    new Function("document", "window", doc.querySelector("script").textContent)(doc, { parent: { postMessage } });
+    const click = new MouseEvent(type, { bubbles: true, cancelable: true, ...options });
+    doc.querySelector("a").dispatchEvent(click);
+    expect(click.defaultPrevented).toBe(true);
+    expect(postMessage).toHaveBeenCalledWith(
+      expect.objectContaining({ newTab: true }), window.location.origin,
+    );
+  });
+  it("does not hijack right-clicks", () => {
+    const { srcdoc } = buildHtmlPreview('<a href="other.html">Next</a>', "/pages/index.html", "src");
+    const doc = new DOMParser().parseFromString(srcdoc, "text/html");
+    const postMessage = vi.fn();
+    new Function("document", "window", doc.querySelector("script").textContent)(doc, { parent: { postMessage } });
+    doc.querySelector("a").dispatchEvent(new MouseEvent("auxclick", { button: 2, bubbles: true, cancelable: true }));
+    expect(postMessage).not.toHaveBeenCalled();
+  });
   it("injects a valid navigation helper without granting same-origin access", () => {
     const { srcdoc } = buildHtmlPreview('<a href="other.html">Next</a>', "/pages/index.html", "src");
     const doc = new DOMParser().parseFromString(srcdoc, "text/html");
@@ -173,7 +198,10 @@ describe("buildHtmlPreview", () => {
     const { srcdoc } = buildHtmlPreview(html, "/pages/index.html", "src");
     expect(srcdoc).toContain(encodeURIComponent("/pages/theme.css"));
     expect(srcdoc).toContain(encodeURIComponent("/pages/photo.jpg"));
-    expect(srcdoc).toContain(encodeURIComponent("/pages/other.html"));
+    const rendered = new DOMParser().parseFromString(srcdoc, "text/html");
+    expect(rendered.querySelector("a").getAttribute("href")).toBe(
+      window.location.origin + "/files/src/pages/other.html",
+    );
     expect(srcdoc).not.toContain("app.js");
     expect(srcdoc).not.toContain("<script src=");
     expect(srcdoc).toContain("scrollIntoView");
@@ -184,6 +212,34 @@ describe("buildHtmlPreview", () => {
     const html = `<html><body><a href="javascript:alert(1)">bad</a></body></html>`;
     const { srcdoc } = buildHtmlPreview(html, "/index.html", "src");
     expect(srcdoc).not.toContain("javascript:");
+  });
+
+  it("declares UTF-8 and preserves multilingual text in blob previews", () => {
+    const text = "中文 — café € 🎥";
+    const { srcdoc } = buildHtmlPreview(`<p>${text}</p><meta http-equiv="refresh" content="0;url=https://evil.test">`, "/index.html", "src");
+    const doc = new DOMParser().parseFromString(srcdoc, "text/html");
+    expect(doc.head.firstElementChild.outerHTML).toBe('<meta charset="utf-8">');
+    expect(doc.querySelector("p").textContent).toBe(text);
+    expect(doc.querySelector('meta[http-equiv]')).toBeNull();
+  });
+
+  it("gives native and intercepted HTML links the same viewer URL", () => {
+    const { srcdoc } = buildHtmlPreview('<a href="other.html">Next</a>', "/pages/index.html", "src");
+    const doc = new DOMParser().parseFromString(srcdoc, "text/html");
+    const anchor = doc.querySelector("a");
+    const nativeURL = anchor.getAttribute("href");
+    const postMessage = vi.fn();
+    new Function("document", "window", doc.querySelector("script").textContent)(doc, { parent: { postMessage } });
+    anchor.dispatchEvent(new MouseEvent("auxclick", { button: 1, bubbles: true, cancelable: true }));
+    expect(postMessage.mock.calls[0][0].href).toBe(nativeURL);
+    expect(nativeURL).not.toContain("viewToken");
+    expect(nativeURL).not.toContain("/api/");
+  });
+
+  it("does not honor forged navigation markers from uploaded HTML", () => {
+    const { srcdoc } = buildHtmlPreview('<a href="https://evil.test/page.html" data-filebrowser-html-link="true">External</a>', "/index.html", "src");
+    const doc = new DOMParser().parseFromString(srcdoc, "text/html");
+    expect(doc.querySelector("a").hasAttribute("data-filebrowser-html-link")).toBe(false);
   });
 
   it("preserves inline SVG", () => {

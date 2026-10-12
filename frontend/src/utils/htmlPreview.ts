@@ -2,7 +2,7 @@ import DOMPurify from "dompurify";
 import { getters, state } from "@/store/index.ts";
 import { getCachedViewToken } from "@/api/viewToken.js";
 import { getViewURL } from "@/api/resources.js";
-import { getParentDir, resolveRelativePath } from "@/utils/url.js";
+import { buildItemUrl, getParentDir, resolveRelativePath } from "@/utils/url.js";
 import { globalVars } from "./constants.js";
 
 export const HTML_SANITIZE_CONFIG = {
@@ -49,17 +49,19 @@ const ALLOWED_ABSOLUTE_URI_PATTERN = /^(https?:|data:|mailto:|tel:|#)/i;
 
 // to stop relative hrefs from navigating the srcdoc iframe against the parent, and
 // to keep anchor links working inside the iframe itself instead (was opening the app inside the iframe)
-const NAV_GUARD_SCRIPT = `document.addEventListener("click", function (e) {
+const NAV_GUARD_SCRIPT = `function handlePreviewClick(e) {
+  if (e.type === "auxclick" && e.button !== 1) return;
   var a = e.target && e.target.closest ? e.target.closest("a") : null;
   if (!a) return;
   var href = a.getAttribute("href") || "";
   if (href.charAt(0) !== "#") {
     try {
-      var url = new URL(href);
-      var path = url.searchParams.get("file") || "";
-      if (/\\.html?$/i.test(path) && /\\/resources\\/view$/.test(url.pathname)) {
+      if (a.getAttribute("data-filebrowser-html-link") === "true") {
         e.preventDefault();
-        window.parent.postMessage({ type: "filebrowser-html-navigation", href: href }, PARENT_ORIGIN);
+        window.parent.postMessage({
+          type: "filebrowser-html-navigation", href: href,
+          newTab: e.button === 1 || e.ctrlKey || e.metaKey || e.shiftKey
+        }, PARENT_ORIGIN);
         return;
       }
     } catch (_) {}
@@ -69,12 +71,15 @@ const NAV_GUARD_SCRIPT = `document.addEventListener("click", function (e) {
     }
     return;
   }
+  if (e.type === "auxclick") return;
   var id = href.slice(1);
   var el = id ? document.getElementById(id) : document.documentElement;
   if (!el) return;
   e.preventDefault();
   el.scrollIntoView();
-}, true);`;
+}
+document.addEventListener("click", handlePreviewClick, true);
+document.addEventListener("auxclick", handlePreviewClick, true);`;
 
 function viewTokenForSibling(
   resolvedPath: string,
@@ -294,6 +299,12 @@ function navigationGuard(htmlEl: HTMLElement): string {
     base.setAttribute("href", "about:blank");
     head.insertBefore(base, head.firstChild);
 
+    // Blob documents contain UTF-8 bytes. Upload-provided meta tags remain
+    // forbidden; inject only this fixed encoding declaration after sanitization.
+    const charset = doc.createElement("meta");
+    charset.setAttribute("charset", "utf-8");
+    head.insertBefore(charset, head.firstChild);
+
     const guard = doc.createElement("script");
     if (typeof globalVars.cspNonce === "string" && globalVars.cspNonce !== "") {
       guard.setAttribute("nonce", globalVars.cspNonce);
@@ -314,6 +325,18 @@ export function buildHtmlPreview(
   source: string,
 ): HtmlPreview {
   const doc = new DOMParser().parseFromString(content, "text/html");
+  const pageLinks = new Map<string, string>();
+  for (const anchor of doc.querySelectorAll("a[href]")) {
+    const href = anchor.getAttribute("href") ?? "";
+    if (!isLocalResourceReference(href)) continue;
+    const resolved = resolveRelativePath(filePath, href);
+    const pathOnly = resolved.split(/[?#]/)[0];
+    if (!pathOnly || !/\.html?$/i.test(pathOnly)) continue;
+    pageLinks.set(
+      buildPreviewResourceUrl(href, filePath, source),
+      new URL(buildItemUrl(source, pathOnly, true), window.location.origin).href,
+    );
+  }
   rewriteHtmlResources(doc, filePath, source);
   rewriteDocumentStyles(doc, filePath, source);
 
@@ -322,6 +345,15 @@ export function buildHtmlPreview(
   DOMPurify.addHook("uponSanitizeAttribute", blockUnsafeUriAttributes);
   try {
     const sanitized = DOMPurify.sanitize(serialized, { ...HTML_SANITIZE_CONFIG, RETURN_DOM: true, }) as unknown as HTMLElement;
+    // Native context-menu/new-tab actions use the same real viewer URL as
+    // intercepted clicks. Never preserve an upload-provided routing marker.
+    for (const anchor of sanitized.querySelectorAll("a[href]")) {
+      anchor.removeAttribute("data-filebrowser-html-link");
+      const viewerURL = pageLinks.get(anchor.getAttribute("href") ?? "");
+      if (!viewerURL) continue;
+      anchor.setAttribute("href", viewerURL);
+      anchor.setAttribute("data-filebrowser-html-link", "true");
+    }
     return { srcdoc: navigationGuard(sanitized) };
   } finally {
     DOMPurify.removeHook("uponSanitizeAttribute", blockUnsafeUriAttributes);
