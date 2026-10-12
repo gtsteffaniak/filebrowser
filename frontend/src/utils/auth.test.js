@@ -231,6 +231,7 @@ describe('renew preview grants', () => {
     vi.mocked(refreshViewGrantAfterSessionRenewal).mockClear();
     respond(200, 'ok');
     await renew();
+    await vi.dynamicImportSettled();
     expect(refreshViewGrantAfterSessionRenewal).toHaveBeenCalledOnce();
   });
 
@@ -245,5 +246,20 @@ describe('renew preview grants', () => {
     vi.mocked(refreshViewGrantAfterSessionRenewal).mockRejectedValueOnce(new Error('preview failed'));
     respond(200, 'ok');
     await expect(renew()).resolves.toBeUndefined();
+    await vi.dynamicImportSettled();
+  });
+});
+
+describe('renew with stalled preview recovery', () => {
+  it('resolves joined login renewal callers while preview refresh is pending', async () => {
+    let release;
+    const preview = new Promise((resolve) => { release = resolve; });
+    vi.mocked(refreshViewGrantAfterSessionRenewal).mockReturnValueOnce(preview);
+    respond(200, 'ok');
+    await Promise.all([renew(), renew()]);
+    expect(fetch).toHaveBeenCalledTimes(1);
+    await vi.dynamicImportSettled();
+    expect(refreshViewGrantAfterSessionRenewal).toHaveBeenCalled();
+    release();
   });
 });

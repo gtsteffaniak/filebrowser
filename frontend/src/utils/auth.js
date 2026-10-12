@@ -129,13 +129,10 @@ export async function renew() {
     if (res.status === 200) {
       setSessionExpiresAtFromToken(body);
       mutations.setSession(generateRandomCode(8));
-      // Load lazily: viewToken uses this module's refresh timing helpers.
-      try {
-        const { refreshViewGrantAfterSessionRenewal } = await import("@/api/viewToken.js");
-        await refreshViewGrantAfterSessionRenewal();
-      } catch {
-        // Login renewal succeeded; a failed preview refresh must not log the user out.
-      }
+      // Preview recovery must not keep successful login renewal pending.
+      void import("@/api/viewToken.js")
+        .then(({ refreshViewGrantAfterSessionRenewal }) => refreshViewGrantAfterSessionRenewal())
+        .catch(() => {});
       return;
     }
     throw new Error(body);

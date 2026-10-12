@@ -12,6 +12,7 @@ const REFRESH_BEFORE_MS = VIEW_REFRESH_BEFORE_MS;
 let activeScope = "";
 let refreshTimer = null;
 let sessionGeneration = 0;
+let recoveryTimer = null;
 
 /** Stable key for the current preview request (source, share, path). */
 export function requestViewIdentity(req) {
@@ -118,6 +119,10 @@ function scheduleViewGrantRefresh(source, scope) {
 }
 
 export function setActiveViewGrantScope(source) {
+  if (recoveryTimer) {
+    clearTimeout(recoveryTimer);
+    recoveryTimer = null;
+  }
   const scope = viewGrantScope(source);
   if (refreshTimer) {
     clearTimeout(refreshTimer);
@@ -154,11 +159,12 @@ export function rememberViewToken(source, viewToken, expiresAt) {
 }
 
 /** @returns {Promise<{ viewToken: string, expiresAt: number }>} */
-export async function refreshViewToken(source, existingToken, requestScope = null) {
+export async function refreshViewToken(source, existingToken, requestScope = null, signal = null) {
   const generation = sessionGeneration;
   const scope = requestScope ?? viewGrantScope(source);
   const url = viewTokenApiPath(source, existingToken);
   const res = await fetch(url, {
+    ...(signal ? { signal } : {}),
     method: "POST",
     credentials: "same-origin",
     headers: {
@@ -169,10 +175,13 @@ export async function refreshViewToken(source, existingToken, requestScope = nul
     if (generation === sessionGeneration && (res.status === 403 || res.status === 401)) {
       clearCachedScopeByScope(scope);
     }
-    throw new Error(await res.text());
+    throw Object.assign(new Error(await res.text()), { status: res.status });
   }
   const data = await res.json();
-  if (generation !== sessionGeneration || scope !== activeScope) {
+  if (generation !== sessionGeneration) {
+    throw new Error("Preview grant belongs to a previous session");
+  }
+  if (scope !== activeScope) {
     return data;
   }
   writeCacheForScope(scope, data.viewToken, data.expiresAt);
@@ -198,6 +207,10 @@ export async function ensureViewToken(source) {
 export async function refreshViewGrantAfterSessionRenewal() {
   if (getters.isShare()) return;
   const generation = ++sessionGeneration;
+  if (recoveryTimer) {
+    clearTimeout(recoveryTimer);
+    recoveryTimer = null;
+  }
   if (refreshTimer) {
     clearTimeout(refreshTimer);
     refreshTimer = null;
@@ -214,9 +227,27 @@ export async function refreshViewGrantAfterSessionRenewal() {
   const source = req?.source;
   const identity = requestViewIdentity(req);
   if (!source || viewGrantScope(source) !== activeScope) return;
-  const data = await refreshViewToken(source);
-  if (generation === sessionGeneration && !getters.isShare() &&
-      requestViewIdentity(state.req) === identity && viewGrantScope(source) === activeScope) {
-    mutations.setRequestViewToken(data.viewToken);
-  }
+  const isCurrent = () => generation === sessionGeneration && !getters.isShare() &&
+    requestViewIdentity(state.req) === identity && viewGrantScope(source) === activeScope;
+
+  // Retry transient failures while this file and session remain active.
+  const refreshActive = async (attempt = 0) => {
+    if (!isCurrent()) return;
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15_000);
+    try {
+      const data = await refreshViewToken(source, undefined, null, controller.signal);
+      if (isCurrent()) mutations.setRequestViewToken(data.viewToken);
+    } catch (error) {
+      if (!isCurrent() || error.status === 401 || error.status === 403) return;
+      const delay = Math.min(1000 * 2 ** Math.min(attempt, 5), 30_000);
+      recoveryTimer = setTimeout(() => {
+        recoveryTimer = null;
+        void refreshActive(attempt + 1);
+      }, delay);
+    } finally {
+      clearTimeout(timeout);
+    }
+  };
+  await refreshActive();
 }

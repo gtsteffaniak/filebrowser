@@ -31,6 +31,7 @@ vi.mock("@/utils/url.js", () => ({
 }));
 
 import {
+  ensureViewToken,
   refreshViewGrantAfterSessionRenewal,
   requestViewIdentity,
   refreshViewToken,
@@ -136,9 +137,12 @@ describe("session renewal preview refresh", () => {
     shareState.isShare = false;
     setActiveViewGrantScope("");
     reqState.req = null;
+    vi.clearAllTimers();
+    vi.useRealTimers();
     vi.unstubAllGlobals();
   });
   beforeEach(() => {
+    vi.useFakeTimers();
     sessionStorage.clear();
     shareState.isShare = false;
     reqState.req = { source: "src", path: "/post.html", viewToken: "old" };
@@ -178,10 +182,84 @@ describe("session renewal preview refresh", () => {
   it("discards a refresh started before session renewal", async () => {
     let release;
     fetch.mockImplementationOnce(() => new Promise((resolve) => { release = resolve; }));
-    const oldRefresh = refreshViewToken("src");
+    const oldRefresh = ensureViewToken("src");
+    const rejected = expect(oldRefresh).rejects.toThrow("previous session");
     await refreshViewGrantAfterSessionRenewal();
     release({ ok: true, json: async () => ({ viewToken: "old", expiresAt: Math.floor(Date.now() / 1000) + 3600 }) });
-    await oldRefresh;
+    await rejected;
     expect(getCachedViewToken("src")).toBe("new");
+  });
+});
+
+describe("preview grant recovery", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    sessionStorage.clear();
+    shareState.isShare = false;
+    reqState.req = { source: "src", path: "/post.html", viewToken: "old" };
+    setActiveViewGrantScope("src");
+    setRequestViewToken.mockClear();
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ viewToken: "new", expiresAt: Math.floor(Date.now() / 1000) + 3600 }),
+    }));
+  });
+  afterEach(() => {
+    shareState.isShare = false;
+    setActiveViewGrantScope("");
+    reqState.req = null;
+    vi.clearAllTimers();
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+  });
+
+  it("retries network failures and updates the active preview", async () => {
+    fetch.mockRejectedValueOnce(new Error("offline"));
+    await refreshViewGrantAfterSessionRenewal();
+    expect(setRequestViewToken).not.toHaveBeenCalled();
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(fetch).toHaveBeenCalledTimes(2);
+    expect(getCachedViewToken("src")).toBe("new");
+    expect(setRequestViewToken).toHaveBeenCalledWith("new");
+  });
+
+  it("backs off across repeated transient failures", async () => {
+    fetch.mockRejectedValueOnce(new Error("offline"))
+      .mockResolvedValueOnce({ ok: false, status: 503, text: async () => "unavailable" });
+    await refreshViewGrantAfterSessionRenewal();
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(fetch).toHaveBeenCalledTimes(2);
+    await vi.advanceTimersByTimeAsync(1999);
+    expect(fetch).toHaveBeenCalledTimes(2);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(setRequestViewToken).toHaveBeenCalledWith("new");
+  });
+
+  it("cancels a retry on navigation", async () => {
+    fetch.mockRejectedValueOnce(new Error("offline"));
+    await refreshViewGrantAfterSessionRenewal();
+    reqState.req = { source: "src", path: "/other.html" };
+    setActiveViewGrantScope("src");
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(setRequestViewToken).not.toHaveBeenCalled();
+  });
+
+  it("does not retry authorization denials", async () => {
+    fetch.mockResolvedValueOnce({ ok: false, status: 403, text: async () => "denied" });
+    await refreshViewGrantAfterSessionRenewal();
+    await vi.advanceTimersByTimeAsync(30_000);
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("times out stalled requests before retrying", async () => {
+    fetch.mockImplementationOnce((_url, { signal }) => new Promise((_resolve, reject) => {
+      signal.addEventListener("abort", () => reject(new Error("aborted")), { once: true });
+    }));
+    const refresh = refreshViewGrantAfterSessionRenewal();
+    await vi.advanceTimersByTimeAsync(15_000);
+    await refresh;
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(setRequestViewToken).toHaveBeenCalledWith("new");
   });
 });
