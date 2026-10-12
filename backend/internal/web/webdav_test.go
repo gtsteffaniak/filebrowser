@@ -874,7 +874,6 @@ func TestWebDAV_CopyPreservesModTime(t *testing.T) {
 	}
 }
 
-
 // TestWebDAV_ListingsIncludeHidden verifies that dotfiles/dotdirs are listed
 // over WebDAV even when the user's showHidden UI preference is false, and that
 // hidden paths are writable (needed for two-way sync clients like rclone).
@@ -1108,6 +1107,21 @@ func TestWebDAV_OPTIONS(t *testing.T) {
 			if !allowed[m] {
 				t.Errorf("expected %s in Allow for missing path, got %v", m, allowed)
 			}
+		}
+	})
+
+	t.Run("restricted path does not advertise creation methods", func(t *testing.T) {
+		path := "/public/not-viewable.txt"
+		req := httptest.NewRequest(http.MethodOptions, "/dav/source1"+path, nil)
+		req.SetPathValue("source", "source1")
+		req.SetPathValue("path", path)
+		w := httptest.NewRecorder()
+		status, err := webDAVHandler(w, req, &requestContext{User: fullAccessUser})
+		if err == nil {
+			t.Fatalf("expected error for restricted path, got status %d with Allow %q", status, w.Header().Get("Allow"))
+		}
+		if allow := w.Header().Get("Allow"); strings.Contains(allow, http.MethodPut) || strings.Contains(allow, "MKCOL") {
+			t.Errorf("restricted path advertises creation methods: %q", allow)
 		}
 	})
 

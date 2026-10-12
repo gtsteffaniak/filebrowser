@@ -51,11 +51,11 @@ func (f *fileInfoWrapper) mode() os.FileMode {
 
 // filteredFileSystem wraps a webdav.FileSystem and filters directory listings using FileInfoFaster
 type filteredFileSystem struct {
-	fs         webdav.FileSystem
-	source     string
-	user       *users.User
-	filePerms  users.SourceFilePermissions
-	httpReq    *http.Request
+	fs        webdav.FileSystem
+	source    string
+	user      *users.User
+	filePerms users.SourceFilePermissions
+	httpReq   *http.Request
 	// Cache FileInfoFaster results per path to avoid redundant calls within the same request
 	fileInfoCache map[string]*iteminfo.ExtendedFileInfo
 }
@@ -672,7 +672,14 @@ func writeWebDAVOptions(w http.ResponseWriter, r *http.Request, ffs *filteredFil
 	requestPath := path.Clean("/" + rest)
 
 	var candidates []string
-	if fi, err := ffs.Stat(r.Context(), requestPath); err != nil {
+	fi, err := ffs.Stat(r.Context(), requestPath)
+	if err != nil && !errors.Is(err, os.ErrNotExist) {
+		if errors.Is(err, os.ErrPermission) {
+			return http.StatusForbidden, err
+		}
+		return http.StatusInternalServerError, err
+	}
+	if err != nil {
 		candidates = []string{http.MethodPut, "MKCOL"}
 	} else if fi.IsDir() {
 		candidates = []string{"PROPFIND", http.MethodDelete, "COPY", "MOVE"}
