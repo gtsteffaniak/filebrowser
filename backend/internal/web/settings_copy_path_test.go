@@ -31,8 +31,8 @@ func TestSourceInfoCopyPathAccess(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() {
-		if err := db.Close(); err != nil {
-			t.Error(err)
+		if closeErr := db.Close(); closeErr != nil {
+			t.Error(closeErr)
 		}
 	})
 	indexing.SetIndexDBForTesting(db)
