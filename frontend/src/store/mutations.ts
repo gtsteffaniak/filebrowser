@@ -221,6 +221,8 @@ export const mutations = {
             readOnly: source.readOnly || false,
             private: source.private || false,
             indexingDisabled: source.indexingDisabled || false,
+            copyPathPrefix: source.copyPathPrefix,
+            copyPathWindows: source.copyPathWindows,
           };
           info = setObjectProperty(info, k, updated) as Record<string, SourceInfo>;
           if (updated.total > 0 || updated.used > 0 || updated.usedAlt > 0) hasAny = true;
@@ -288,6 +290,8 @@ export const mutations = {
         readOnly: prev ? prev.readOnly : false,
         private: prev ? prev.private : false,
         indexingDisabled: prev ? prev.indexingDisabled : false,
+        copyPathPrefix: prev?.copyPathPrefix,
+        copyPathWindows: prev?.copyPathWindows,
       };
     }
     // Sidebar usage bar uses hasSourceInfo + per-source used/total; must survive object replace

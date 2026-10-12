@@ -247,6 +247,9 @@ type SourceConfig struct {
 	DefaultPermissions users.SourceFilePermissions `json:"defaultPermissions,omitempty" yaml:"defaultPermissions,omitempty"`
 	// DefaultPermissionsFromConfig holds permission flags explicitly set under defaultPermissions in config YAML.
 	DefaultPermissionsFromConfig map[string]bool `json:"-"`
+	// Clipboard mappings are opt-in and exposed to users with access to this source.
+	CopyPathPrefix  string `json:"copyPathPrefix,omitempty" validate:"omitempty,startswith=/"` // explicit POSIX prefix for Copy Path; never inferred from path.
+	CopyPathWindows bool   `json:"copyPathWindows,omitempty"`                                  // convert Copy Path /D/path to D:\path (default: false); applied after copyPathPrefix.
 	// hidden but used internally - optimized map lookups for conditional rules
 	ResolvedRules ResolvedRulesConfig `json:"-"`
 }

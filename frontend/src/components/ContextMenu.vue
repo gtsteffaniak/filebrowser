@@ -248,6 +248,8 @@ import {
 import { url } from "@/utils";
 import buttons from "@/utils/buttons";
 import { copyToClipboard } from "@/utils/clipboard";
+import { formatCopyPath } from "@/utils/copyPath.ts";
+import { getObjectProperty } from "@/utils/object.js";
 import { globalVars } from "@/utils/constants.js";
 import downloadFiles from "@/utils/download";
 import { canNativeShare, nativeShareFile } from "@/utils/nativeShare";
@@ -946,8 +948,13 @@ export default {
     async copyPathToClipboard() {
       const item = this.firstSelected;
       const path = item?.path || "";
+      const source = item?.source || state.req.source || state.sources.current;
+      // Shares keep their share-relative paths, even with a logged-in user's store.
+      const config = getters.isShare() ? undefined :
+        /** @type {import("@/store/types.ts").SourceInfo | undefined} */ (getObjectProperty(state.sources.info, source));
+      const scope = config ? state.user.scopes.find((entry) => entry.name === source)?.scope || "/" : "/";
 
-      await copyToClipboard(path);
+      await copyToClipboard(formatCopyPath(path, config, scope));
       mutations.closeHovers();
     },
     showNewDirPrompt() {

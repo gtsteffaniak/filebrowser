@@ -106,6 +106,8 @@ type ReducedIndex struct {
 	ReadOnly         bool           `json:"readOnly"`
 	Private          bool           `json:"private"`
 	IndexingDisabled bool           `json:"indexingDisabled,omitempty"`
+	CopyPathPrefix   string         `json:"copyPathPrefix,omitempty"`
+	CopyPathWindows  bool           `json:"copyPathWindows,omitempty"`
 	Status           IndexStatus    `json:"status"`
 	Scanners         []*ScannerInfo `json:"scanners,omitempty"`
 }

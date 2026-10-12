@@ -6746,6 +6746,14 @@ const docTemplate = `{
         "settings.SourceConfig": {
             "type": "object",
             "properties": {
+                "copyPathPrefix": {
+                    "description": "explicit POSIX prefix for Copy Path; never inferred from path.",
+                    "type": "string"
+                },
+                "copyPathWindows": {
+                    "description": "convert Copy Path /D/path to D:\\path (default: false); applied after copyPathPrefix.",
+                    "type": "boolean"
+                },
                 "createUserDir": {
                     "description": "create a user directory for each user under defaultUserScope + username",
                     "type": "boolean"
