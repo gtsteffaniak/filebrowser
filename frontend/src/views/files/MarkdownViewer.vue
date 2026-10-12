@@ -50,6 +50,9 @@ import { createScrollSyncGuard } from "@/utils/markdownScrollSync";
 import { copyToClipboard } from "@/utils/clipboard";
 import { globalVars } from "@/utils/constants";
 import { isHtmlMimeType } from "@/utils/mimetype";
+import { router } from "@/router/index.ts";
+import { buildItemUrl, getApiPath } from "@/utils/url.js";
+import { previewNavigationFile } from "@/utils/htmlPreviewNavigation";
 import FloatingActionButton from "@/components/settings/FloatingActionButton.vue";
 import {
   buildHtmlPreview,
@@ -293,6 +296,7 @@ watch(() => props.scrollTarget, (newEl) => {
 });
 
 onMounted(async () => {
+  window.addEventListener("message", handleHtmlNavigation);
   reinit();
   observeResize();
   await nextTick();
@@ -306,6 +310,7 @@ onBeforeUnmount(() => {
 });
 
 onUnmounted(() => {
+  window.removeEventListener("message", handleHtmlNavigation);
   attachScrollListener(null);
   unobserveResize();
 
@@ -316,6 +321,21 @@ onUnmounted(() => {
 
 function toggleSplitView() {
   mutations.toggleSplitView();
+}
+
+function handleHtmlNavigation(event: MessageEvent) {
+  if (!isHtml.value) return;
+  const iframe = viewerEl.value as HTMLIFrameElement | null;
+  const shareHash = getters.isShare() ? state.shareInfo.hash : "";
+  const viewPath = getApiPath("resources/view", {}, false, shareHash !== "");
+  const file = previewNavigationFile(
+    event, iframe?.contentWindow ?? null, window.location.origin,
+    viewPath, state.req.source ?? "", shareHash,
+  );
+  if (file === null) return;
+  // Only reconstruct a file-viewer route; never navigate to a URL supplied
+  // directly by the frame. The normal app request enforces access to the file.
+  void router.push({ path: buildItemUrl(state.req.source, file) });
 }
 
 function applyHtmlPreviewHeight() {

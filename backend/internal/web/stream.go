@@ -100,7 +100,8 @@ func mintViewGrant(d *Context, sourceName string) (string, error) {
 		return "", fmt.Errorf("view permission required")
 	}
 	scope := viewGrantScope(d, internalSource)
-	if existing, ok := utils.ViewGrantIndex.Get(scope); ok {
+	indexKey := viewGrantIndexKey(d, scope)
+	if existing, ok := utils.ViewGrantIndex.Get(indexKey); ok {
 		if grant, ok := utils.ViewGrantsCache.Get(existing); ok {
 			if grant.Source == scope && time.Now().Unix() <= grant.ExpiresAt {
 				grant.ExpiresAt = time.Now().Add(viewGrantTTL).Unix()
@@ -117,9 +118,19 @@ func mintViewGrant(d *Context, sourceName string) (string, error) {
 		Source:    scope,
 		ExpiresAt: time.Now().Add(viewGrantTTL).Unix(),
 	}
+	if d.Share.Hash == "" {
+		grant.SessionToken = d.Token
+	}
 	utils.ViewGrantsCache.Set(token, grant)
-	utils.ViewGrantIndex.Set(scope, token)
+	utils.ViewGrantIndex.Set(indexKey, token)
 	return token, nil
+}
+
+func viewGrantIndexKey(d *Context, scope string) string {
+	if d.Share.Hash != "" {
+		return scope
+	}
+	return scope + "\x00" + utils.HashSHA256(d.Token)
 }
 
 func refreshViewGrant(d *Context, sourceName, existingToken string) (string, int64, error) {
@@ -136,10 +147,10 @@ func refreshViewGrant(d *Context, sourceName, existingToken string) (string, int
 	scope := viewGrantScope(d, internalSource)
 	if existingToken != "" {
 		if grant, ok := utils.ViewGrantsCache.Get(existingToken); ok {
-			if grant.Source == scope && time.Now().Unix() <= grant.ExpiresAt {
+			if grant.Source == scope && (d.Share.Hash != "" || grant.SessionToken == d.Token) && time.Now().Unix() <= grant.ExpiresAt {
 				grant.ExpiresAt = time.Now().Add(viewGrantTTL).Unix()
 				utils.ViewGrantsCache.Set(existingToken, grant)
-				utils.ViewGrantIndex.Set(scope, existingToken)
+				utils.ViewGrantIndex.Set(viewGrantIndexKey(d, scope), existingToken)
 				return existingToken, grant.ExpiresAt, nil
 			}
 		}
@@ -231,6 +242,9 @@ func ValidateViewGrant(token string, d *Context, sourceName string) error {
 	if time.Now().Unix() > grant.ExpiresAt {
 		utils.ViewGrantsCache.Delete(token)
 		return fmt.Errorf("view token expired")
+	}
+	if grant.SessionToken != "" && (d == nil || d.Share.Hash != "" || d.Token != grant.SessionToken) {
+		return fmt.Errorf("view token session mismatch")
 	}
 	viewCtx := contextForViewGrantValidation(d, grant.Source)
 	if !viewGrantScopeMatches(viewCtx, grant.Source, sourceName) {

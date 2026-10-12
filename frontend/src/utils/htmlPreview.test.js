@@ -141,6 +141,22 @@ describe("rewriteCssContent", () => {
 });
 
 describe("buildHtmlPreview", () => {
+  it("injects a valid navigation helper without granting same-origin access", () => {
+    const { srcdoc } = buildHtmlPreview('<a href="other.html">Next</a>', "/pages/index.html", "src");
+    const doc = new DOMParser().parseFromString(srcdoc, "text/html");
+    const script = doc.querySelector("script").textContent;
+    expect(() => new Function(script)).not.toThrow();
+    expect(script).toContain("filebrowser-html-navigation");
+    const postMessage = vi.fn();
+    new Function("document", "window", script)(doc, { parent: { postMessage } });
+    const click = new MouseEvent("click", { bubbles: true, cancelable: true });
+    doc.querySelector("a").dispatchEvent(click);
+    expect(click.defaultPrevented).toBe(true);
+    expect(postMessage).toHaveBeenCalledWith(
+      expect.objectContaining({ type: "filebrowser-html-navigation" }),
+      window.location.origin,
+    );
+  });
   it("rewrites linked assets and strips user scripts from sandboxed srcdoc", () => {
     const html = `<!DOCTYPE html>
 <html>

@@ -54,6 +54,15 @@ const NAV_GUARD_SCRIPT = `document.addEventListener("click", function (e) {
   if (!a) return;
   var href = a.getAttribute("href") || "";
   if (href.charAt(0) !== "#") {
+    try {
+      var url = new URL(href);
+      var path = url.searchParams.get("file") || "";
+      if (/\\.html?$/i.test(path) && /\\/resources\\/view$/.test(url.pathname)) {
+        e.preventDefault();
+        window.parent.postMessage({ type: "filebrowser-html-navigation", href: href }, PARENT_ORIGIN);
+        return;
+      }
+    } catch (_) {}
     // Absolute links are left alone -- relative links would resolve to about:blank.
     if (!/^[a-z][a-z0-9+.-]*:/i.test(href) && href.slice(0, 2) !== "//") {
       e.preventDefault();
@@ -289,7 +298,7 @@ function navigationGuard(htmlEl: HTMLElement): string {
     if (typeof globalVars.cspNonce === "string" && globalVars.cspNonce !== "") {
       guard.setAttribute("nonce", globalVars.cspNonce);
     }
-    guard.textContent = NAV_GUARD_SCRIPT;
+    guard.textContent = "const PARENT_ORIGIN = " + JSON.stringify(window.location.origin) + ";\n" + NAV_GUARD_SCRIPT;
     head.appendChild(guard);
   }
   return `<!DOCTYPE html>\n${htmlEl.outerHTML}`;
