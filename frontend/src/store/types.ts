@@ -281,6 +281,7 @@ export interface StoreState {
   } | null;
   contextMenuHasItems: boolean;
   deletedItem: boolean;
+  pendingHighlight: { path: string; once?: boolean; source?: string } | null;
   showOverflowMenu: boolean;
   sessionId: string;
   isSafari: boolean;

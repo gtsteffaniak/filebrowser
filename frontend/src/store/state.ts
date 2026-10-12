@@ -23,6 +23,7 @@ export const state: StoreState = reactive({
   },
   contextMenuHasItems: false,
   deletedItem: false,
+  pendingHighlight: null, // { path, ts } of the item just created/renamed, see Files.vue
   showOverflowMenu: false,
   sessionId: "",
   isSafari: /^((?!chrome|android).)*safari/i.test(navigator.userAgent),
