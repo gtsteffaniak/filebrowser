@@ -36,7 +36,6 @@
         :mimetype="type"
         :active="isClickable ? isSelected : undefined"
         :thumbnailUrl="isThumbnailInView ? thumbnailUrl : ''"
-        :inViewRef="viewportRef"
         :filename="name"
         :hasPreview="hasPreview"
         :modified="modified"
@@ -98,6 +97,7 @@ import { globalVars } from "@/utils/constants";
 import downloadFiles from "@/utils/download";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { getKindKey } from "@/utils/mimetype";
+import { hasCachedThumbnailBlob } from "@/utils/imageCache.ts";
 import { formatDuration } from "@/utils/files.js";
 import { getObjectProperty } from '@/utils/object.js';
 import { resourcesApi } from "@/api";
@@ -130,21 +130,64 @@ const quickDownloadValue = computed(() =>
 const showTypeColumnValue = computed(() => isListModeValue.value && state.user?.showTypeColumn);
 const showCreationDateColumnValue = computed(() => isListModeValue.value && state.user?.showCreationDateColumn);
 
-// One IntersectionObserver for all items
+/**
+ * True when this item's thumbnail was loaded before and is still cached, so the Icon can show it on
+ * its first render instead of flashing the type icon until the IntersectionObserver reports the item.
+ * Mirrors the source/modified/size the Icon uses for its cache lookups.
+ */
+function hasCachedThumbnail(item) {
+  if (!item.hasPreview || !item.path || !globalVars.enableThumbs) {
+    return false;
+  }
+  const source = getters.isShare() ? state.shareInfo?.hash : (item.source || state.req?.source);
+  const modified = item.modified || state.req?.modified || "";
+  const size = viewModeValue.value === "gallery" ? "large" : "small";
+  return hasCachedThumbnailBlob(source, item.path, modified, size);
+}
+
+// One IntersectionObserver per scroll container for all its items.
+// rootMargin only grows a real root, with root: null it does not reach past an inner scroller (#main),
+// so the 500px lookahead needs the scrolling ancestor as root.
 const viewportCallbacks = new WeakMap();
-let viewportObserver = null;
-function getViewportObserver() {
-  if (!viewportObserver) {
-    viewportObserver = new IntersectionObserver(
+const viewportObservers = new WeakMap(); // root element (or WINDOW_ROOT) -> observer
+const WINDOW_ROOT = {};
+const scrollRootByParent = new WeakMap(); // items of one group share the same parent, look it up once
+
+function findScrollRoot(el) {
+  const parent = el.parentElement;
+  if (!parent) {
+    return null;
+  }
+  if (scrollRootByParent.has(parent)) {
+    return scrollRootByParent.get(parent);
+  }
+  let root = null;
+  for (let node = parent; node; node = node.parentElement) {
+    const overflowY = getComputedStyle(node).overflowY;
+    if (overflowY === "auto" || overflowY === "scroll" || overflowY === "overlay") {
+      root = node;
+      break;
+    }
+  }
+  scrollRootByParent.set(parent, root);
+  return root;
+}
+
+function getViewportObserver(root) {
+  const key = root || WINDOW_ROOT;
+  let observer = viewportObservers.get(key);
+  if (!observer) {
+    observer = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
           viewportCallbacks.get(entry.target)?.(entry.isIntersecting);
         }
       },
-      { root: null, rootMargin: "500px", threshold: 0 },
+      { root, rootMargin: "500px", threshold: 0 },
     );
+    viewportObservers.set(key, observer);
   }
-  return viewportObserver;
+  return observer;
 }
 
 export default {
@@ -154,10 +197,18 @@ export default {
   },
   data() {
     return {
-      isThumbnailInView: false,
+      isThumbnailInView: hasCachedThumbnail(this),
       isDraggedOver: false,
       localSelected: false,
     };
+  },
+  beforeCreate() {
+    // runs before provide(), non-reactive holder on purpose
+    this.viewportRef = shallowRef(false);
+  },
+  provide() {
+    // the Icons inside this item inject it, see Icon.vue
+    return { inView: this.viewportRef };
   },
   created() {
     // non-reactive on purpose, they're never read by the template
@@ -168,8 +219,8 @@ export default {
     this.isSwipe = false;
     this.contextTimeout = null;
     this.observedEl = null;
+    this.observer = null;
     this.isUnmounted = false;
-    this.viewportRef = shallowRef(false); // read by Icon.vue only
   },
   props: {
     name: String,
@@ -395,14 +446,16 @@ export default {
           this.isThumbnailInView = true;
         }
       });
-      getViewportObserver().observe(this.$el);
+      this.observer = getViewportObserver(findScrollRoot(this.$el));
+      this.observer.observe(this.$el);
     }
   },
   beforeUnmount() {
     this.isUnmounted = true;
     // Stop observing the item (the observer is shared)
     if (this.observedEl) {
-      viewportObserver?.unobserve(this.observedEl);
+      this.observer?.unobserve(this.observedEl);
+      this.observer = null;
       viewportCallbacks.delete(this.observedEl);
       this.observedEl = null;
     }

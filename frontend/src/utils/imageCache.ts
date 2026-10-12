@@ -15,30 +15,27 @@ type ThumbnailSize = "small" | "large" | "xlarge";
 interface ThumbnailBlob {
   blobUrl: string;
   refs: number;
-  weight: number;
+  bytes: number;
 }
 
 // Maximum number of entries in the URL index
 const MAX_URL_INDEX_SIZE = 10000;
-
-// Thumbnail blobs are limited by weight, not count cuz a large thumbnail costs more memory
-const MAX_THUMBNAIL_WEIGHT = 400;
-const LARGE_THUMBNAIL_WEIGHT = 4;
+const MAX_THUMBNAIL_BYTES = 32 * 1024 * 1024;
 
 // key = "source|path|size|modified" value = URL. Insertion order is recency order.
 const urlIndex = new Map<string, string>();
 const thumbnailBlobs = new Map<string, ThumbnailBlob>(); // least recently used first
-let thumbnailWeight = 0;
+let thumbnailBytes = 0;
 
 function evictThumbnailBlobs(): void {
   for (const [key, entry] of thumbnailBlobs) {
-    if (thumbnailWeight <= MAX_THUMBNAIL_WEIGHT) {
+    if (thumbnailBytes <= MAX_THUMBNAIL_BYTES) {
       break;
     }
     if (entry.refs === 0) {
       URL.revokeObjectURL(entry.blobUrl);
       thumbnailBlobs.delete(key);
-      thumbnailWeight -= entry.weight;
+      thumbnailBytes -= entry.bytes;
     }
   }
 }
@@ -70,9 +67,10 @@ export function acquireThumbnailBlob(key: string): string | null {
 /**
  * Stores a freshly fetched thumbnail and takes a reference to it. If another Icon stored the same
  * thumbnail first, the new blob is revoked and the existing one is returned.
+ * @param bytes size of the fetched blob
  * @returns the blob URL to display
  */
-export function storeThumbnailBlob(key: string, blobUrl: string): string {
+export function storeThumbnailBlob(key: string, blobUrl: string, bytes: number): string {
   const existing = thumbnailBlobs.get(key);
   if (existing) {
     if (existing.blobUrl !== blobUrl) {
@@ -81,9 +79,9 @@ export function storeThumbnailBlob(key: string, blobUrl: string): string {
     existing.refs++;
     return existing.blobUrl;
   }
-  const weight = key.includes("size=large") ? LARGE_THUMBNAIL_WEIGHT : 1;
-  thumbnailBlobs.set(key, { blobUrl, refs: 1, weight });
-  thumbnailWeight += weight;
+  const size = Math.max(bytes || 0, 1);
+  thumbnailBlobs.set(key, { blobUrl, refs: 1, bytes: size });
+  thumbnailBytes += size;
   evictThumbnailBlobs();
   return blobUrl;
 }
@@ -153,6 +151,19 @@ function findBySize<T>(
 /** @returns the cached URL, or null if not cached */
 export function getBestCachedImage(source: Source, path: string | null | undefined, modified: Modified): string | null {
   return findBySize(source, path, modified, ["xlarge", "large", "small"], (url) => url);
+}
+
+/** When true shows the image on its very first render */
+export function hasCachedThumbnailBlob(
+  source: Source,
+  path: string | null | undefined,
+  modified: Modified,
+  size: Exclude<ThumbnailSize, "xlarge">,
+): boolean {
+  const found = findBySize<boolean>(source, path, modified, [size], (url) =>
+    thumbnailBlobs.has(getThumbnailBlobKey(url, modified)) ? true : null,
+  );
+  return found === true;
 }
 
 /**

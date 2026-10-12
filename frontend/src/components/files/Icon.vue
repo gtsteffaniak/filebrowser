@@ -8,9 +8,7 @@
     <!-- Preview content: image, 3D, or fallback -->
     <img
       v-if="hasPreviewImage && imageDisplaySrc"
-      :key="imageTargetSrc"
       :src="imageDisplaySrc"
-      ref="thumbnail"
       aria-hidden="true"
       decoding="async"
     />
@@ -29,553 +27,448 @@
   </span>
 </template>
 
-<script>
-import { computed } from "vue";
-import { createAsyncComponent } from "@/utils/asyncComponent.js";
+<script setup lang="ts">
+import { computed, inject, onBeforeUnmount, ref, unref, watch, type Ref } from "vue";
 import { fetchPreviewImage } from "@/api/resources";
+import { createAsyncComponent } from "@/utils/asyncComponent.js";
 import { globalVars } from "@/utils/constants";
 import { getTypeInfo } from "@/utils/mimetype";
-import { getObjectProperty } from '@/utils/object.js';
-import { mutations, state, getters } from "@/store";
+import { getters, mutations, state } from "@/store";
 import {
   acquireThumbnailBlob,
   getThumbnailBlobKey,
   releaseThumbnailBlob,
   setImageLoaded,
-  storeThumbnailBlob
+  storeThumbnailBlob,
 } from "@/utils/imageCache.ts";
+import { queuedFetchPreview } from "@/utils/previewRequests.ts";
+
+const props = withDefaults(
+  defineProps<{
+    filename: string;
+    mimetype: string;
+    hasPreview?: boolean;
+    active?: boolean;
+    thumbnailUrl?: string;
+    source?: string | null;
+    path?: string | null;
+    modified?: string | null;
+    clickable?: boolean;
+    size?: number | null;
+    isShared?: boolean;
+    isDir?: boolean;
+    viewToken?: string;
+    inView?: boolean;
+  }>(),
+  {
+    hasPreview: false,
+    active: false,
+    thumbnailUrl: "",
+    source: null,
+    path: null,
+    modified: null,
+    clickable: false,
+    size: null,
+    isShared: false,
+    isDir: false,
+    viewToken: "",
+    inView: true,
+  },
+);
 
 const POPUP_PREVIEW_HOVER_DELAY_MS = 250;
-const MAX_THUMBNAIL_LOADS = 8;
-let activeThumbnailLoads = 0;
-const thumbnailQueue = [];
 
-function abortError() {
-  return new DOMException("Aborted", "AbortError");
-}
+type ImageState = "loading" | "loaded" | "error";
 
-function loadThumbnailQueue() {
-  while (activeThumbnailLoads < MAX_THUMBNAIL_LOADS && thumbnailQueue.length > 0) {
-    const job = thumbnailQueue.shift();
-    job.signal.removeEventListener("abort", job.onAbort);
-    activeThumbnailLoads++;
-    fetchPreviewImage(job.url, job.signal)
-      .then(job.resolve, job.reject)
-      .finally(() => {
-        activeThumbnailLoads--;
-        loadThumbnailQueue();
-      });
-  }
-}
+// a shallowRef from ListingItem, so a visibility change re-renders only the Icon
+const injectedInView = inject<Ref<boolean> | null>("inView", null);
 
-/** @param {string} url @param {AbortSignal} signal @returns {Promise<string>} blob URL */
-function queuedFetchPreview(url, signal) {
-  return new Promise((resolve, reject) => {
-    if (signal.aborted) {
-      reject(abortError());
-      return;
-    }
-    const job = { url, signal, resolve, reject, onAbort: null };
-    job.onAbort = () => {
-      const i = thumbnailQueue.indexOf(job);
-      if (i !== -1) {
-        thumbnailQueue.splice(i, 1);
-        reject(abortError());
-      }
-    };
-    signal.addEventListener("abort", job.onAbort, { once: true });
-    thumbnailQueue.push(job);
-    loadThumbnailQueue();
-  });
-}
+const ThreeJs = createAsyncComponent(() => import("@/views/files/ThreeJs.vue"));
 
-const viewModeValue = computed(() => getters.viewMode());
+const showLargeIcon = computed(() => getters.viewMode() === "gallery");
 
-function buildImageTargetSrc(thumbnailUrl) {
+function buildImageTargetSrc(thumbnailUrl: string): string {
   if (!thumbnailUrl) {
     return "";
   }
-  return viewModeValue.value === "gallery" ? `${thumbnailUrl}&size=large` : thumbnailUrl;
+  return showLargeIcon.value ? `${thumbnailUrl}&size=large` : thumbnailUrl;
 }
 
-export default {
-  name: "Icon",
-  components: {
-    ThreeJs: createAsyncComponent(() => import('@/views/files/ThreeJs.vue')),
-  },
-  props: {
-    filename: {
-      type: String,
-      required: true,
-    },
-    mimetype: {
-      type: String,
-      required: true,
-    },
-    hasPreview: {
-      type: Boolean,
-      default: false,
-    },
-    active: {
-      type: Boolean,
-    },
-    thumbnailUrl: {
-      type: String,
-      default: "",
-    },
-    source: {
-      type: String,
-      default: null,
-    },
-    path: {
-      type: String,
-      default: null,
-    },
-    modified: {
-      type: String,
-      default: null,
-    },
-    clickable: {
-      type: Boolean,
-      default: false,
-    },
-    size: {
-      type: Number,
-      default: null,
-    },
-    isShared: {
-      type: Boolean,
-      default: false,
-    },
-    isDir: {
-      type: Boolean,
-      default: false,
-    },
-    viewToken: {
-      type: String,
-      default: "",
-    },
-    inView: {
-      type: Boolean,
-      default: true,
-    },
-    inViewRef: {
-      type: Object,
-      default: null,
-    },
-  },
-  data() {
-    return {
-      imageBlobUrl: null,
-      imageState: "loading", // Can be 'loading', 'loaded', or 'error'
-      imageTargetSrc: buildImageTargetSrc(this.thumbnailUrl),
-      threeJsError: false, // Track if 3D preview failed
-      everInView: this.inViewRef ? this.inViewRef.value : this.inView,
-    };
-  },
-  computed: {
-    isInView() {
-      return this.inViewRef ? this.inViewRef.value : this.inView;
-    },
-    typeInfo() {
-      return getTypeInfo(this.mimetype);
-    },
-    classes() {
-      return this.typeInfo.classes || "material-symbols";
-    },
-    materialSymbol() {
-      return this.typeInfo.materialSymbol || "";
-    },
-    isFile() {
-      return this.mimetype !== "directory";
-    },
-    hasPreviewImage() {
-      if (state.shareInfo?.disableThumbnails) {
-        return false;
-      }
-      if (this.thumbnailUrl === "") {
-        return false;
-      }
-      if (!this.hasPreview) {
-        return false;
-      }
-      const perms = getters.previewPerms();
-      const simpleType = this.typeInfo.simpleType;
-      if (simpleType === "audio" && !perms.audio) {
-        return false;
-      }
-      if (simpleType === "video" && !perms.video) {
-        return false;
-      }
-      if (simpleType === "image" && !perms.image) {
-        return false;
-      }
-      if (simpleType === "ebook" && !perms.image) {
-        return false;
-      }
-      // office files
-      if ((simpleType === "document" || simpleType === "text") && !perms.office) {
-        return false;
-      }
-      if (!perms.folder && this.mimetype === "directory") {
-        return false;
-      }
-      // 3D models - show preview thumbnails (if backend provides them)
-      if (simpleType === "3d-model" && !perms.models) {
-        return false;
-      }
-      return this.imageState !== 'error' && !this.previewExtDisabled;
-    },
-    previewExtDisabled() {
-      const disabled = state.user?.disablePreviewExt;
-      if (!disabled) {
-        return false;
-      }
-      const dot = this.filename.lastIndexOf(".");
-      const ext = `.${(dot === -1 ? this.filename : this.filename.slice(dot + 1)).toLowerCase()}`;
-      return disabled.includes(ext);
-    },
-    imageDisplaySrc() {
-      return this.imageState === "loaded" ? this.imageBlobUrl : null;
-    },
-    showLargeIcon() {
-      return viewModeValue.value === "gallery";
-    },
-    popupPreviewUrl() {
-      if (!this.thumbnailUrl) {
-        return "";
-      }
-      return `${this.thumbnailUrl}&size=xlarge`;
-    },
-    hasMotion() {
-      const perms = getters.previewPerms();
-      return (
-        this.typeInfo.simpleType === "video" &&
-        perms.video &&
-        globalVars.mediaAvailable &&
-        perms.motionVideoPreview
-      );
-    },
-    /** True when this is a folder with preview and we can cycle through folder images (motion preview). */
-    hasFolderMotion() {
-      return (
-        this.mimetype === "directory" &&
-        getters.previewPerms().folder &&
-        this.hasPreview
-      );
-    },
-    shouldUse3DPreview() {
-      // Check if we should use 3D preview instead of regular icon
-      if (this.mimetype === "directory" || !this.size || !this.path) return false;
-      if (!this.everInView) return false;
-      if (!getters.previewPerms().models) return false;
+const imageBlobUrl = ref<string | null>(null);
+const imageState = ref<ImageState>("loading"); // Can be 'loading', 'loaded', or 'error'
+const imageTargetSrc = ref(buildImageTargetSrc(props.thumbnailUrl));
+const threeJsError = ref(false); // track if 3D preview failed
+const everInView = ref<boolean>(unref(injectedInView) ?? props.inView);
 
-      const MAX_SIZE = 250 * 1024; // 250KB in bytes
-      if (this.size > MAX_SIZE) return false;
+// non-reactive on purpose cuz never read by template
+let previewTimeouts: ReturnType<typeof setTimeout>[] = [];
+let popupHoverTimeoutId: ReturnType<typeof setTimeout> | null = null;
+let previewAbortController: AbortController | null = null;
+let preloadAbortControllers: AbortController[] = [];
+let loadPaused = false;
+let blobKey: string | null = null;
 
-      return this.typeInfo.simpleType === '3d-model';
-    },
-    /** Directory listing items for sibling viewToken lookup in 3D previews. */
-    parentDirItemsForPreview() {
-      const req = state.req;
-      if (!req) {
-        return undefined;
-      }
-      if (req.type === "directory" && req.items?.length) {
-        return req.items;
-      }
-      return req.parentDirItems;
-    },
-    gallerySizeKey() {
-      // Returns gallery size to force 3D preview re-initialization on size change
-      // Also includes view mode to handle view changes
-      return `${state.user?.gallerySize || 1}-${viewModeValue.value}`;
-    },
-    threeDFbdata() {
-      return {
-        name: this.filename,
-        path: this.path,
-        source: this.source,
-        size: this.size,
-        type: this.mimetype,
-        viewToken: this.viewToken,
-        parentDirItems: this.parentDirItemsForPreview,
-      };
-    },
-  },
-  methods: {
-    handle3DError() {
-      // When 3D preview fails, fall back to material icon
-      this.threeJsError = true;
-    },
-    clearPopupHoverTimeout() {
-      if (this.popupHoverTimeoutId !== null) {
-        clearTimeout(this.popupHoverTimeoutId);
-        this.popupHoverTimeoutId = null;
-      }
-    },
-    cancelPreloadRequests() {
-      this.clearPopupHoverTimeout();
-      this.previewTimeouts.forEach(clearTimeout);
-      this.previewTimeouts = [];
-      for (const controller of this.preloadAbortControllers) {
-        controller.abort();
-      }
-      this.preloadAbortControllers = [];
-    },
-    cancelActivePreviews() {
-      this.cancelPreloadRequests();
-      if (this.previewAbortController) {
-        this.previewAbortController.abort();
-        this.previewAbortController = null;
-      }
-      if (this.imageBlobUrl) {
-        releaseThumbnailBlob(this.blobKey);
-        this.blobKey = null;
-        this.imageBlobUrl = null;
-      }
-    },
-    cacheModified() {
-      return this.modified || state.req?.modified || "";
-    },
-    /** Shows a thumbnail that was already fetched, without a request @returns {boolean} */
-    showCachedThumbnail(url) {
-      const key = getThumbnailBlobKey(url, this.cacheModified());
-      const blobUrl = acquireThumbnailBlob(key);
-      if (!blobUrl) {
-        return false;
-      }
-      this.blobKey = key;
-      this.imageBlobUrl = blobUrl;
-      this.imageState = "loaded";
-      this.loadPaused = false;
-      return true;
-    },
-    /** @param {string} url */
-    loadImage(url) {
-      if (!url) {
-        this.imageState = "error";
+const isInView = computed(() => unref(injectedInView) ?? props.inView);
+const typeInfo = computed(() => getTypeInfo(props.mimetype));
+const classes = computed(() => typeInfo.value.classes || "material-symbols");
+const materialSymbol = computed(() => typeInfo.value.materialSymbol || "");
+const isFile = computed(() => props.mimetype !== "directory");
+
+const previewExtDisabled = computed(() => {
+  const disabled = state.user?.disablePreviewExt;
+  if (!disabled) {
+    return false;
+  }
+  const dot = props.filename.lastIndexOf(".");
+  const ext = `.${(dot === -1 ? props.filename : props.filename.slice(dot + 1)).toLowerCase()}`;
+  return disabled.includes(ext);
+});
+
+/** Everything that decides whether a thumbnail may be shown */
+const previewAllowed = computed(() => {
+  if (state.shareInfo?.disableThumbnails) {
+    return false;
+  }
+  if (props.thumbnailUrl === "") {
+    return false;
+  }
+  if (!props.hasPreview) {
+    return false;
+  }
+  const perms = getters.previewPerms();
+  const simpleType = typeInfo.value.simpleType;
+  if (simpleType === "audio" && !perms.audio) {
+    return false;
+  }
+  if (simpleType === "video" && !perms.video) {
+    return false;
+  }
+  if (simpleType === "image" && !perms.image) {
+    return false;
+  }
+  if (simpleType === "ebook" && !perms.image) {
+    return false;
+  }
+  // office files
+  if ((simpleType === "document" || simpleType === "text") && !perms.office) {
+    return false;
+  }
+  if (!perms.folder && props.mimetype === "directory") {
+    return false;
+  }
+  // 3D models - show preview thumbnails (if backend provides them)
+  if (simpleType === "3d-model" && !perms.models) {
+    return false;
+  }
+  return !previewExtDisabled.value;
+});
+
+const hasPreviewImage = computed(() => previewAllowed.value && imageState.value !== "error");
+const imageDisplaySrc = computed(() => (imageState.value === "loaded" ? imageBlobUrl.value : null));
+
+const popupPreviewUrl = computed(() => (props.thumbnailUrl ? `${props.thumbnailUrl}&size=xlarge` : ""));
+
+const hasMotion = computed(() => {
+  const perms = getters.previewPerms();
+  return Boolean(
+    typeInfo.value.simpleType === "video" &&
+      perms.video &&
+      globalVars.mediaAvailable &&
+      perms.motionVideoPreview,
+  );
+});
+
+/** True when this is a folder with preview and we can cycle through folder images (motion preview). */
+const hasFolderMotion = computed(
+  () => props.mimetype === "directory" && getters.previewPerms().folder && props.hasPreview,
+);
+
+const shouldUse3DPreview = computed(() => {
+  // Check if we should use 3D preview instead of regular icon
+  if (props.mimetype === "directory" || !props.size || !props.path) return false;
+  if (!everInView.value) return false;
+  if (!getters.previewPerms().models) return false;
+
+  const MAX_SIZE = 250 * 1024; // 250KB in bytes
+  if (props.size > MAX_SIZE) return false;
+
+  return typeInfo.value.simpleType === "3d-model";
+});
+
+/** Directory listing items for sibling viewToken lookup in 3D previews. */
+const parentDirItemsForPreview = computed(() => {
+  const req = state.req;
+  if (!req) {
+    return undefined;
+  }
+  if (req.type === "directory" && req.items?.length) {
+    return req.items;
+  }
+  return req.parentDirItems;
+});
+
+// Returns gallery size to force 3D preview re-initialization on size change
+// Also includes view mode to handle view changes
+const gallerySizeKey = computed(() => `${state.user?.gallerySize || 1}-${getters.viewMode()}`);
+
+const threeDFbdata = computed(() => ({
+  name: props.filename,
+  path: props.path,
+  source: props.source,
+  size: props.size,
+  type: props.mimetype,
+  viewToken: props.viewToken,
+  parentDirItems: parentDirItemsForPreview.value,
+}));
+
+function handle3DError(): void {
+  // When 3D preview fails, fall back to material icon
+  threeJsError.value = true;
+}
+
+function clearPopupHoverTimeout(): void {
+  if (popupHoverTimeoutId !== null) {
+    clearTimeout(popupHoverTimeoutId);
+    popupHoverTimeoutId = null;
+  }
+}
+
+function cancelPreloadRequests(): void {
+  clearPopupHoverTimeout();
+  previewTimeouts.forEach(clearTimeout);
+  previewTimeouts = [];
+  for (const controller of preloadAbortControllers) {
+    controller.abort();
+  }
+  preloadAbortControllers = [];
+}
+
+function cancelActivePreviews(): void {
+  cancelPreloadRequests();
+  if (previewAbortController) {
+    previewAbortController.abort();
+    previewAbortController = null;
+  }
+  if (imageBlobUrl.value) {
+    releaseThumbnailBlob(blobKey);
+    blobKey = null;
+    imageBlobUrl.value = null;
+  }
+}
+
+function cacheModified(): string {
+  return props.modified || state.req?.modified || "";
+}
+
+/** Shows a thumbnail that was already fetched, without a request */
+function showCachedThumbnail(url: string): boolean {
+  const key = getThumbnailBlobKey(url, cacheModified());
+  const blobUrl = acquireThumbnailBlob(key);
+  if (!blobUrl) {
+    return false;
+  }
+  blobKey = key;
+  imageBlobUrl.value = blobUrl;
+  imageState.value = "loaded";
+  loadPaused = false;
+  return true;
+}
+
+function loadImage(url: string): void {
+  if (!url) {
+    imageState.value = "error";
+    return;
+  }
+
+  cancelActivePreviews();
+  if (showCachedThumbnail(url)) {
+    return;
+  }
+  imageState.value = "loading";
+  if (!isInView.value) {
+    loadPaused = true;
+    return;
+  }
+  loadPaused = false;
+
+  const controller = new AbortController();
+  previewAbortController = controller;
+  const loadUrl = url;
+  const modified = cacheModified();
+
+  queuedFetchPreview(loadUrl, controller.signal)
+    .then(({ blobUrl, bytes }) => {
+      // Keep what was fetched even if moved on, another one may need it
+      const key = getThumbnailBlobKey(loadUrl, modified);
+      const sharedBlobUrl = storeThumbnailBlob(key, blobUrl, bytes);
+      if (previewAbortController !== controller || imageTargetSrc.value !== loadUrl) {
+        releaseThumbnailBlob(key);
         return;
       }
-
-      this.cancelActivePreviews();
-      if (this.showCachedThumbnail(url)) {
+      blobKey = key;
+      imageBlobUrl.value = sharedBlobUrl;
+      imageState.value = "loaded";
+      previewAbortController = null;
+      if (props.path) {
+        const source = getters.isShare() ? state.shareInfo?.hash : props.source || state.req?.source;
+        const size = showLargeIcon.value ? "large" : "small";
+        setImageLoaded(source, props.path, size, modified, loadUrl);
+      }
+    })
+    .catch((err) => {
+      if (err?.name === "AbortError") {
         return;
       }
-      this.imageState = "loading";
-      if (!this.isInView) {
-        this.loadPaused = true;
-        return;
+      if (imageTargetSrc.value === loadUrl && previewAbortController === controller) {
+        imageState.value = "error";
+        previewAbortController = null;
       }
-      this.loadPaused = false;
+    });
+}
 
-      const controller = new AbortController();
-      this.previewAbortController = controller;
-      const loadUrl = url;
-      const modified = this.cacheModified();
+function handleMouseEnter(): void {
+  if (!getters.previewPerms().popup || !props.path) {
+    return;
+  }
+  clearPopupHoverTimeout();
+  popupHoverTimeoutId = setTimeout(() => {
+    popupHoverTimeoutId = null;
+    showPopupPreview();
+  }, POPUP_PREVIEW_HOVER_DELAY_MS);
+}
 
-      queuedFetchPreview(loadUrl, controller.signal)
-        .then((blobUrl) => {
-          // Keep what was fetched even if moved on, another one may need it
-          const key = getThumbnailBlobKey(loadUrl, modified);
-          const sharedBlobUrl = storeThumbnailBlob(key, blobUrl);
-          if (this.previewAbortController !== controller || this.imageTargetSrc !== loadUrl) {
-            releaseThumbnailBlob(key);
-            return;
-          }
-          this.blobKey = key;
-          this.imageBlobUrl = sharedBlobUrl;
-          this.imageState = "loaded";
-          this.previewAbortController = null;
-          if (this.path) {
-            const source = getters.isShare() ? state.shareInfo?.hash : (this.source || state.req.source);
-            const size = this.showLargeIcon ? "large" : "small";
-            setImageLoaded(source, this.path, size, modified, loadUrl);
-          }
-        })
-        .catch((err) => {
-          if (err?.name === "AbortError") {
-            return;
-          }
-          if (this.imageTargetSrc === loadUrl && this.previewAbortController === controller) {
-            this.imageState = "error";
-            this.previewAbortController = null;
-          }
-        });
-    },
-    handleMouseEnter() {
-      if (!getters.previewPerms().popup || !this.path) {
-        return;
-      }
-      this.clearPopupHoverTimeout();
-      this.popupHoverTimeoutId = setTimeout(() => {
-        this.popupHoverTimeoutId = null;
-        this.showPopupPreview();
-      }, POPUP_PREVIEW_HOVER_DELAY_MS);
-    },
-    showPopupPreview() {
-      const source = getters.isShare() ? state.shareInfo?.hash : (this.source || state.req.source);
-      const modified = this.modified || state.req.modified;
+function showPopupPreview(): void {
+  const path = props.path;
+  if (!path) {
+    return;
+  }
+  const source = (getters.isShare() ? state.shareInfo?.hash : props.source || state.req?.source) ?? "";
+  const modified = props.modified || state.req?.modified;
 
-      // 3D model: show ThreeJs in popup
-      if (this.shouldUse3DPreview) {
-        state.popupPreviewSourceInfo = {
-          type: "3d",
-          source,
-          path: this.path,
-          fbdata: {
-            name: this.filename,
-            path: this.path,
-            source,
-            size: this.size,
-            type: this.mimetype,
-            viewToken: this.viewToken,
-            parentDirItems: this.parentDirItemsForPreview,
-          },
-        };
-        return;
-      }
-
-      // Image (and other preview types): popup always uses xlarge preview
-      const imageUrl = this.popupPreviewUrl;
-      if (this.imageState === "loaded") {
-        state.popupPreviewSourceInfo = { source, path: this.path, size: "xlarge", url: imageUrl, modified };
-      }
-      // Motion preview: video (atPercentage) or folder (cycle next previewable image)
-      const useVideoMotion = getters.previewPerms().motionVideoPreview && this.hasMotion;
-      const useFolderMotion = getters.previewPerms().popup && this.hasFolderMotion;
-      if (!useVideoMotion && !useFolderMotion) {
-        return;
-      }
-
-      const sequence = [
-        imageUrl,
-        `${imageUrl}&atPercentage=25`,
-        `${imageUrl}&atPercentage=50`,
-        `${imageUrl}&atPercentage=75`,
-      ];
-      let index = 0;
-
-      const updateThumbnail = () => {
-        if (!state.popupPreviewSourceInfo || state.popupPreviewSourceInfo.path !== this.path) {
-          this.previewTimeouts.forEach(clearTimeout);
-          this.previewTimeouts = [];
-          return;
-        }
-        // Set the thumbnail or popup preview
-        if (getters.previewPerms().popup) {
-          mutations.setPreviewSource(getObjectProperty(sequence, index));
-        }
-        // Preload the next frame (cancellable fetch warms HTTP cache)
-        const nextIndex = (index + 1) % sequence.length;
-        const frameUrl = sequence.at(nextIndex);
-        if (!frameUrl) return;
-        const preloadController = new AbortController();
-        this.preloadAbortControllers.push(preloadController);
-        fetchPreviewImage(frameUrl, preloadController.signal)
-          .then((blobUrl) => {
-            URL.revokeObjectURL(blobUrl);
-          })
-          .catch(() => {});
-
-        // Schedule next update
-        index = nextIndex;
-        const timeoutId = setTimeout(updateThumbnail, 750);
-        this.previewTimeouts.push(timeoutId);
-      };
-      updateThumbnail();
-    },
-    handleMouseLeave() {
-      this.clearPopupHoverTimeout();
-      this.cancelPreloadRequests();
-      mutations.setPreviewSource("");
-      // Clear popup preview source info when mouse leaves
-      state.popupPreviewSourceInfo = null;
-      this.updateImageTargetSrc();
-    },
-    updateImageTargetSrc() {
-      // If we need large thumbnails and have a thumbnail URL, append &size=large
-      // Otherwise use the URL as-is (defaults to small)
-      const newSrc = buildImageTargetSrc(this.thumbnailUrl);
-      if (this.imageTargetSrc !== newSrc) {
-        this.imageTargetSrc = newSrc;
-      }
-    },
-    /** stop the request if the item scrolled away while the thumb was still loading */
-    pauseThumbnailLoad() {
-      if (this.previewAbortController) {
-        this.previewAbortController.abort();
-        this.previewAbortController = null;
-        this.imageState = "loading";
-        this.loadPaused = true;
-      }
-    },
-    /** request the again thumb again if the item came back into view */
-    resumeThumbnailLoad() {
-      if (this.loadPaused && this.imageTargetSrc) {
-        this.loadImage(this.imageTargetSrc);
-      }
-    },
-  },
-  watch: {
-    thumbnailUrl() {
-      this.updateImageTargetSrc();
-    },
-    isInView(visible) {
-      if (visible) {
-        this.everInView = true;
-        this.resumeThumbnailLoad();
-      } else {
-        this.pauseThumbnailLoad();
-      }
-    },
-    showLargeIcon() {
-      this.updateImageTargetSrc();
-    },
-    imageTargetSrc: {
-      handler(newSrc) {
-        // Check all conditions EXCEPT imageState to avoid circular dependency
-        if (!this.hasPreview || !this.thumbnailUrl) {
-          return;
-        }
-        if (state.shareInfo?.disableThumbnails) {
-          return;
-        }
-        const simpleType = this.typeInfo.simpleType;
-        const perms = getters.previewPerms();
-        if (simpleType === "video" && !perms.video) {
-          return;
-        }
-        if (simpleType === "image" && !perms.image) {
-          return;
-        }
-        if ((simpleType === "document" || simpleType === "text") && !perms.office) {
-          return;
-        }
-        if (!perms.folder && this.mimetype === "directory") {
-          return;
-        }
-        if (this.previewExtDisabled) {
-          return;
-        }
-        // All checks passed, load the image
-        this.loadImage(newSrc);
+  // 3D model: show ThreeJs in popup
+  if (shouldUse3DPreview.value) {
+    mutations.setPopupPreview({
+      type: "3d",
+      source,
+      path,
+      fbdata: {
+        name: props.filename,
+        path,
+        source,
+        size: props.size ?? undefined,
+        type: props.mimetype,
+        viewToken: props.viewToken,
+        parentDirItems: parentDirItemsForPreview.value,
       },
-      immediate: true, // Run this watcher on component mount
-    },
+    });
+    return;
+  }
+
+  // Image (and other preview types): popup always uses xlarge preview
+  const imageUrl = popupPreviewUrl.value;
+  if (imageState.value === "loaded") {
+    mutations.setPopupPreview({ source, path, size: "xlarge", url: imageUrl, modified });
+  }
+  // Motion preview: video (atPercentage) or folder (cycle next previewable image)
+  const useVideoMotion = getters.previewPerms().motionVideoPreview && hasMotion.value;
+  const useFolderMotion = getters.previewPerms().popup && hasFolderMotion.value;
+  if (!useVideoMotion && !useFolderMotion) {
+    return;
+  }
+
+  const sequence = [
+    imageUrl,
+    `${imageUrl}&atPercentage=25`,
+    `${imageUrl}&atPercentage=50`,
+    `${imageUrl}&atPercentage=75`,
+  ];
+  let index = 0;
+
+  const updateThumbnail = () => {
+    if (!state.popupPreviewSourceInfo || state.popupPreviewSourceInfo.path !== props.path) {
+      previewTimeouts.forEach(clearTimeout);
+      previewTimeouts = [];
+      return;
+    }
+    // Set the thumbnail or popup preview
+    if (getters.previewPerms().popup) {
+      mutations.setPreviewSource(sequence[index] ?? "");
+    }
+    // Preload the next frame (cancellable fetch warms HTTP cache)
+    const nextIndex = (index + 1) % sequence.length;
+    const frameUrl = sequence.at(nextIndex);
+    if (!frameUrl) return;
+    const preloadController = new AbortController();
+    preloadAbortControllers.push(preloadController);
+    fetchPreviewImage(frameUrl, preloadController.signal)
+      .then((blobUrl) => {
+        URL.revokeObjectURL(blobUrl);
+      })
+      .catch(() => {});
+
+    // Schedule next update
+    index = nextIndex;
+    const timeoutId = setTimeout(updateThumbnail, 750);
+    previewTimeouts.push(timeoutId);
+  };
+  updateThumbnail();
+}
+
+function handleMouseLeave(): void {
+  clearPopupHoverTimeout();
+  cancelPreloadRequests();
+  mutations.setPreviewSource("");
+  updateImageTargetSrc();
+}
+
+function updateImageTargetSrc(): void {
+  // If we need large thumbnails and have a thumbnail URL, append &size=large
+  // Otherwise use the URL as-is (defaults to small)
+  const newSrc = buildImageTargetSrc(props.thumbnailUrl);
+  if (imageTargetSrc.value !== newSrc) {
+    imageTargetSrc.value = newSrc;
+  }
+}
+
+/** stop the request if the item scrolled away while the thumb was still loading */
+function pauseThumbnailLoad(): void {
+  if (previewAbortController) {
+    previewAbortController.abort();
+    previewAbortController = null;
+    imageState.value = "loading";
+    loadPaused = true;
+  }
+}
+
+/** request the thumb again if the item came back into view */
+function resumeThumbnailLoad(): void {
+  if (loadPaused && imageTargetSrc.value) {
+    loadImage(imageTargetSrc.value);
+  }
+}
+
+watch(() => props.thumbnailUrl, updateImageTargetSrc);
+watch(showLargeIcon, updateImageTargetSrc);
+watch(isInView, (visible) => {
+  if (visible) {
+    everInView.value = true;
+    resumeThumbnailLoad();
+  } else {
+    pauseThumbnailLoad();
+  }
+});
+watch(
+  imageTargetSrc,
+  (newSrc) => {
+    if (!previewAllowed.value) {
+      return;
+    }
+    loadImage(newSrc);
   },
-  beforeCreate() {
-    this.previewTimeouts = [];
-    this.popupHoverTimeoutId = null;
-    this.previewAbortController = null;
-    this.preloadAbortControllers = [];
-    this.loadPaused = false;
-    this.blobKey = null;
-  },
-  beforeUnmount() {
-    this.cancelActivePreviews();
-  },
-};
+  { immediate: true }, // Run on component mount
+);
+
+onBeforeUnmount(cancelActivePreviews);
 </script>
 
 <style>

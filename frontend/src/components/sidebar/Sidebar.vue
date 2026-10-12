@@ -103,13 +103,16 @@ export default {
     document.removeEventListener('mouseup', this.stopResize);
     document.removeEventListener('touchend', this.stopResize);
   },
-  watch: {
-    isMobile(newIsMobile, oldIsMobile) {
-      if (newIsMobile !== oldIsMobile) {
-        this.handleMobileStateChange(newIsMobile);
-      }
-    },
-  },
+   watch: {
+    isMobile: {
+      handler(newIsMobile, oldIsMobile) {
+        if (newIsMobile !== oldIsMobile) {
+          this.handleMobileStateChange(newIsMobile);
+        }
+      },
+      immediate: true,
+     },
+   },
   computed: {
     externalLinks: () => globalVars.externalLinks,
     name: () => globalVars.name,

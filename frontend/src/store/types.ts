@@ -226,6 +226,7 @@ export interface UserObject {
   };
   // Optional properties that may be added dynamically
   disableViewingExt?: string;
+  disablePreviewExt?: string;
   disableOnlyOfficeExt?: string;
   displayNames?: string[];
   id?: number;

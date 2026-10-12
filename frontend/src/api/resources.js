@@ -20,7 +20,7 @@ import {
   removeDirMetadataItem
 } from '@/utils/metadataCache.ts'
 
-export { fetchPreviewImage } from "@/utils/previewRequests.js"
+export { fetchPreviewBlob, fetchPreviewImage } from "@/utils/previewRequests.ts"
 
 const VIEW_TOKEN_TTL_SECONDS = 15 * 60;
 const MOCK_DATA_SOURCE = 'mockData';

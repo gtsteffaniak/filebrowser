@@ -1450,8 +1450,9 @@ export default {
       let nextSelection;
       if (isAdditive) {
         // add more items to the current selection without reset selection
-        const known = new Set(state.selected);
-        nextSelection = [...state.selected];
+        const base = this.initialSelectionState || [];
+        const known = new Set(base);
+        nextSelection = [...base];
         for (const index of rectangleSelectedIndexes) {
           if (!known.has(index)) {
             known.add(index);

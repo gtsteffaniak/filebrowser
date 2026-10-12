@@ -184,6 +184,14 @@ export const mutations = {
     }
     emitStateChanged();
   },
+  /** Sets (or clears with null) the full popup preview info, e.g. when an Icon is hovered. */
+  setPopupPreview: (info: StoreState['popupPreviewSourceInfo']) => {
+    if (!info && !state.popupPreviewSourceInfo) {
+      return;
+    }
+    state.popupPreviewSourceInfo = info;
+    emitStateChanged();
+  },
   updateListing: (value: StoreState['listing']) => {
     if (value === state.listing) {
       return;

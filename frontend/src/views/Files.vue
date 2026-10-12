@@ -69,7 +69,11 @@ function sameListing(a, b) {
   if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length) {
     return false;
   }
-  const describe = (i) => `${i.type}|${i.size}|${i.modified}|${i.pinned}|${i.hasPreview}`;
+  const describe = (i) =>
+    [ i.type, i.size, i.modified,
+      i.created, i.pinned, i.hasPreview,
+      i.isShared, i.hidden, i.viewToken,
+    ].join("|");
   const known = new Map();
   for (const item of a) {
     known.set(item.name, describe(item));
