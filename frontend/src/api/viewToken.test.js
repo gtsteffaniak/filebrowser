@@ -245,6 +245,38 @@ describe("preview grant recovery", () => {
     expect(setRequestViewToken).not.toHaveBeenCalled();
   });
 
+  it("preserves recovery when the same preview scope is set again", async () => {
+    fetch.mockRejectedValueOnce(new Error("offline"));
+    await refreshViewGrantAfterSessionRenewal();
+    reqState.req = { ...reqState.req };
+    setActiveViewGrantScope("src");
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(fetch).toHaveBeenCalledTimes(2);
+    expect(setRequestViewToken).toHaveBeenCalledWith("new");
+  });
+
+  it("cancels recovery when the storage source changes", async () => {
+    fetch.mockRejectedValueOnce(new Error("offline"));
+    await refreshViewGrantAfterSessionRenewal();
+    reqState.req = { source: "other", path: "/post.html" };
+    setActiveViewGrantScope("other");
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(setRequestViewToken).not.toHaveBeenCalled();
+  });
+
+  it("clears sibling grants immediately even when the first refresh fails", async () => {
+    reqState.req.parentDirItems = [
+      { path: "/movie.mp4", viewToken: "old-video" },
+      { path: "/image.png", viewToken: "old-image" },
+    ];
+    fetch.mockRejectedValueOnce(new Error("offline"));
+    await refreshViewGrantAfterSessionRenewal();
+    expect(reqState.req.parentDirItems.every((item) => item.viewToken === undefined)).toBe(true);
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(setRequestViewToken).toHaveBeenCalledWith("new");
+  });
+
   it("does not retry authorization denials", async () => {
     fetch.mockResolvedValueOnce({ ok: false, status: 403, text: async () => "denied" });
     await refreshViewGrantAfterSessionRenewal();

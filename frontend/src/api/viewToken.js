@@ -119,11 +119,11 @@ function scheduleViewGrantRefresh(source, scope) {
 }
 
 export function setActiveViewGrantScope(source) {
-  if (recoveryTimer) {
+  const scope = viewGrantScope(source);
+  if (recoveryTimer && scope !== activeScope) {
     clearTimeout(recoveryTimer);
     recoveryTimer = null;
   }
-  const scope = viewGrantScope(source);
   if (refreshTimer) {
     clearTimeout(refreshTimer);
     refreshTimer = null;
@@ -222,6 +222,11 @@ export async function refreshViewGrantAfterSessionRenewal() {
     }
   } catch {
     // Storage can be unavailable; the active grant still refreshes below.
+  }
+  // Sibling grants also belong to the previous session. Relative resources
+  // must fall back to the refreshed, source-scoped request grant.
+  for (const item of state.req?.parentDirItems ?? []) {
+    item.viewToken = undefined;
   }
   const req = state.req;
   const source = req?.source;
