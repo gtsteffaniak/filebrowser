@@ -426,6 +426,7 @@ export interface StoreState {
     gestureHint: 'previous' | 'next' | 'close' | null;
     gestureHintCommitReady: boolean;
     gestureHintFlashClose: boolean;
+    sorting: { by: string; asc: boolean } | null;
   };
   playbackQueue: {
     queue: unknown[];

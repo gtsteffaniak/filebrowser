@@ -46,7 +46,7 @@ function getSortedNavigationItems(listing: Partial<FileListItem>[], by: string, 
   if (cache && cache.listing === listing && cache.length === listing.length && cache.by === by && cache.asc === asc) {
     return cache.items;
   }
-  const items: Partial<FileListItem>[] = sortedItems(listing, by, asc);
+  const items: Partial<FileListItem>[] = sortedItems([...listing], by, asc);
   navigationSortCache = { listing, length: listing.length, by, asc, items };
   return items;
 }
@@ -1002,6 +1002,9 @@ export const mutations = {
     mutations.updateDisplayPreferences({ sorting: { by: field, asc: asc } });
     emitStateChanged();
   },
+  updateNavigationSortConfig: ({ field, asc }: { field: string; asc: boolean }) => {
+    state.navigation.sorting = { by: field, asc };
+  },
   updatePickerSortConfig: ({ field, asc }: { field: string; asc: boolean }) => {
     state.pickerSorting = { by: field, asc };
     try {
@@ -1125,6 +1128,7 @@ export const mutations = {
     }
     state.navigation.enabled = enabled;
     if (!enabled) {
+      state.navigation.sorting = null;
       mutations.clearNavigation();
     }
     emitStateChanged();
@@ -1149,7 +1153,7 @@ export const mutations = {
     }
 
     // Sort listing according to sorting preferences
-    const sorting = getters.sorting();
+    const sorting = getters.navigationSorting();
     const items = getSortedNavigationItems(listing as Partial<FileListItem>[], sorting.by, sorting.asc);
 
     // Find current item index in the listing

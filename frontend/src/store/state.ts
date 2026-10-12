@@ -170,6 +170,7 @@ export const state: StoreState = reactive({
     gestureHint: null,
     gestureHintCommitReady: false,
     gestureHintFlashClose: false,
+    sorting: null,
   },
   playbackQueue: loadPlaybackQueue(),
   shareInfo: {

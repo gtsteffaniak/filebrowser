@@ -322,7 +322,7 @@ export default {
         // If parent provides isSelectedProp, use it; otherwise use local state
         return this.isSelectedProp !== null ? this.isSelectedProp : this.localSelected;
       }
-      return selectedIndexSet.value.has(this.index);
+      return selectedIndexSet.value.has(Number(this.index));
     },
     isDraggable() {
       return (
