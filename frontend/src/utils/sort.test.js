@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { sortedItems } from './sort.js';
+import { sortedItems } from "./sort.ts";
 
 describe('testSort', () => {
 
