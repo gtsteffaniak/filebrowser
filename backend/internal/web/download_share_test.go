@@ -497,6 +497,48 @@ func TestServeSingleFile_MissingScopedPathReturns404(t *testing.T) {
 	}
 }
 
+// TestServeSingleFile_RequiresRevalidation verifies that a single-file download is not
+// reused from the browser cache without revalidation, so a file changed on disk is not
+// served stale, and that an unchanged file still answers 304.
+func TestServeSingleFile_RequiresRevalidation(t *testing.T) {
+	sourceRoot, sourceName, _ := setupShareArchiveDownloadTest(t)
+	ownerUser := users.User{
+		FrontendUser: users.FrontendUser{Username: "owner"},
+		BackendScopes: []users.BackendScope{{
+			Path:  sourceRoot,
+			Scope: "/",
+			Permissions: users.SourceFilePermissions{
+				View: true, Download: true, Modify: true, Create: true, Delete: true,
+			},
+		}},
+	}
+	users.SyncBackendSourcePermissionsMap(&ownerUser)
+	d := &Context{User: &ownerUser}
+
+	rec := httptest.NewRecorder()
+	status, err := ServeSingleFile(rec, httptest.NewRequest(http.MethodGet, "/", nil), d, sourceName, "/shared/hello.txt", "hello.txt", ServeSingleFileOptions{ForceInline: true})
+	if err != nil {
+		t.Fatalf("unexpected error: status=%d err=%v", status, err)
+	}
+	if got := rec.Header().Get("Cache-Control"); got != "private, no-cache" {
+		t.Fatalf("expected Cache-Control %q, got %q", "private, no-cache", got)
+	}
+	lastModified := rec.Header().Get("Last-Modified")
+	if lastModified == "" {
+		t.Fatal("expected a Last-Modified header to revalidate against")
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req.Header.Set("If-Modified-Since", lastModified)
+	rec = httptest.NewRecorder()
+	if _, err := ServeSingleFile(rec, req, d, sourceName, "/shared/hello.txt", "hello.txt", ServeSingleFileOptions{ForceInline: true}); err != nil {
+		t.Fatalf("conditional request: unexpected error: %v", err)
+	}
+	if rec.Code != http.StatusNotModified {
+		t.Fatalf("expected 304 for an unchanged file, got %d", rec.Code)
+	}
+}
+
 // TestRawFilesHandler_ActivityLogExcludesDeniedPaths verifies that when a download
 // mixes allowed and denied paths, only the allowed paths appear in the recorded
 // activity entry (the denied path name must not be revealed via the audit log).

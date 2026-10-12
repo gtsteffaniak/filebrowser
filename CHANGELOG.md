@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file. For commit 
 
  **Bug Fixes**:
  - Language switcher not working (#3114) (#3117)
+ - Viewer showing a stale image after the file changed on disk: single-file downloads are now revalidated by the browser (#3132)
 
  **Notes**:
  - Removed "Editor quick save" setting (`userDefaults.fileViewer.quickSave`), the save button is now always present in the editor toolbar.

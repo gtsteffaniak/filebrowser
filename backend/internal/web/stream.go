@@ -552,7 +552,9 @@ func ServeSingleFile(w http.ResponseWriter, r *http.Request, d *Context, source 
 	}
 
 	SetContentDisposition(w, r, displayFileName, opts.ForceInline)
-	w.Header().Set("Cache-Control", "private")
+	// no-cache: the URL does not change when the file does, so browsers must revalidate
+	// (ServeContent answers 304 when unchanged) instead of reusing a stale copy.
+	w.Header().Set("Cache-Control", "private, no-cache")
 	w.Header().Set("X-Content-Type-Options", "nosniff")
 
 	var reader io.ReadSeeker = fd
