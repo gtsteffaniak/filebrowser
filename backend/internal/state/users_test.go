@@ -341,11 +341,18 @@ func TestUpdateUserPatchPreservesBackendSourcePermissions(t *testing.T) {
 	}
 }
 
-
 func TestCreateUserKeepsRequestedPermissions(t *testing.T) {
-	t.Setenv("FILEBROWSER_ONLYOFFICE_SECRET", "")
-	settings.Initialize("../../../_docker/src/noauth/backend/config.yaml")
-	settings.Env.IsPlaywright = true
+	original := settings.Config
+	t.Cleanup(func() { settings.Config = original })
+	settings.Config = settings.SetDefaults(true)
+	source := &settings.Source{Path: "/data/a", Name: "a", Config: settings.SourceConfig{
+		DefaultEnabled:     true,
+		DefaultPermissions: users.SourceFilePermissions{View: true, Download: true, Modify: true, Create: true},
+	}}
+	settings.Config.Server.Sources = []*settings.Source{source}
+	settings.Config.Server.SourceMap = map[string]*settings.Source{source.Path: source}
+	settings.Config.Server.NameToSource = map[string]*settings.Source{source.Name: source}
+	settings.InitializeUserResolvers()
 
 	dbPath := filepath.Join(t.TempDir(), "filebrowser.sqlite")
 	_, err := Initialize(dbPath)
@@ -359,7 +366,7 @@ func TestCreateUserKeepsRequestedPermissions(t *testing.T) {
 		FrontendUser: users.FrontendUser{
 			Username:       "alice",
 			Permissions:    users.Permissions{Admin: true, Share: true, Api: true, Realtime: true},
-			FrontendScopes: []users.FrontendScope{{Name: "exclude", Scope: "/", Permissions: &requested}},
+			FrontendScopes: []users.FrontendScope{{Name: "a", Scope: "/", Permissions: &requested}},
 		},
 	}
 	if err = CreateUser(u, "password"); err != nil {
