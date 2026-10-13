@@ -6043,7 +6043,7 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "fts5": {
-                    "description": "Enable FTS5, provides faster search queries, but 40% slower indexing and 15% larger index file size",
+                    "description": "Enable FTS5 to provide faster search queries, but 40% slower indexing and 15% larger database size",
                     "type": "boolean"
                 },
                 "startupIntegrityCheck": {
