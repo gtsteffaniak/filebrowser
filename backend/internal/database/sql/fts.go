@@ -6,10 +6,6 @@ import (
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
-// indexSchemaVersion is bumped whenever the index_items/search schema changes; a
-// mismatch causes the (rebuildable) index database to be recreated and rescanned.
-const indexSchemaVersion = 1
-
 // supportsFTS5 reports whether the driver can create an FTS5 table with the trigram
 // tokenizer (SQLite >= 3.34 with FTS5 compiled in).
 func (db *IndexDB) supportsFTS5() bool {
@@ -20,16 +16,21 @@ func (db *IndexDB) supportsFTS5() bool {
 	return true
 }
 
-// ensureSearchIndex creates the FTS5 trigram search table and its sync triggers.
-// When the driver lacks FTS5/trigram support it logs once and leaves FTS disabled so
-// search falls back to the unindexed path.
-func (db *IndexDB) ensureSearchIndex() {
-	if !db.supportsFTS5() {
-		logger.Errorf("SQLite FTS5 trigram support is unavailable in this build; search will use the unindexed fallback. For cgo builds use -tags \"cgosql sqlite_fts5\".")
-		db.ftsReady.Store(false)
-		return
+// ftsTableExists reports whether the FTS search table is present.
+func (db *IndexDB) ftsTableExists() bool {
+	var n int
+	if err := db.QueryRow(`SELECT count(*) FROM sqlite_master WHERE type = 'table' AND name = 'index_items_fts'`).Scan(&n); err != nil {
+		return false
 	}
-	const ddl = `
+	return n > 0
+}
+
+// FTSReady reports whether the trigram search index is available for queries.
+func (db *IndexDB) FTSReady() bool {
+	return db.ftsReady.Load()
+}
+
+const ftsDDL = `
 	CREATE VIRTUAL TABLE IF NOT EXISTS index_items_fts USING fts5(
 		name, spath,
 		content='index_items', content_rowid='rowid',
@@ -47,37 +48,56 @@ func (db *IndexDB) ensureSearchIndex() {
 		INSERT INTO index_items_fts(rowid, name, spath) VALUES (new.rowid, new.name, new.spath);
 	END;
 	`
-	if _, err := db.Exec(ddl); err != nil {
+
+// syncSearchIndex creates the FTS5 trigram index when enabled and drops it when
+// disabled. The index is derived data: enabling it builds from existing rows (no
+// rescan), and disabling it removes the table and triggers.
+func (db *IndexDB) syncSearchIndex(enabled bool) {
+	if !enabled {
+		db.dropSearchIndex()
+		return
+	}
+	if !db.supportsFTS5() {
+		logger.Errorf("indexSqlConfig.fts5 is enabled but FTS5 trigram support is unavailable in this build; search will use the unindexed fallback. For cgo builds use -tags \"cgosql sqlite_fts5\".")
+		db.ftsReady.Store(false)
+		return
+	}
+	if err := db.ensureSpathColumn(); err != nil {
+		logger.Errorf("failed to add the spath column (%v); search will use the unindexed fallback", err)
+		db.ftsReady.Store(false)
+		return
+	}
+	existed := db.ftsTableExists()
+	if _, err := db.Exec(ftsDDL); err != nil {
 		logger.Errorf("failed to create the FTS search index (%v); search will use the unindexed fallback", err)
 		db.ftsReady.Store(false)
 		return
 	}
+	if !existed {
+		if _, err := db.Exec(`INSERT INTO index_items_fts(index_items_fts) VALUES('rebuild')`); err != nil {
+			logger.Errorf("failed to populate the FTS search index (%v); search will use the unindexed fallback", err)
+			db.ftsReady.Store(false)
+			return
+		}
+	}
 	db.ftsReady.Store(true)
 }
 
-// FTSReady reports whether the trigram search index is available for queries.
-func (db *IndexDB) FTSReady() bool {
-	return db.ftsReady.Load()
-}
-
-// checkIndexSchemaVersion verifies a reused database matches the current schema and
-// has a healthy FTS index. A non-nil error means the database should be recreated.
-func (db *IndexDB) checkIndexSchemaVersion() error {
-	var version int
-	if err := db.QueryRow(`PRAGMA user_version`).Scan(&version); err != nil {
-		return fmt.Errorf("read user_version: %w", err)
+// dropSearchIndex removes the FTS table and its triggers (used when the feature is
+// disabled or the index needs a rebuild).
+func (db *IndexDB) dropSearchIndex() {
+	db.ftsReady.Store(false)
+	if !db.ftsTableExists() {
+		return
 	}
-	if version != indexSchemaVersion {
-		return fmt.Errorf("schema version %d, want %d", version, indexSchemaVersion)
+	if _, err := db.Exec(`
+		DROP TRIGGER IF EXISTS index_items_fts_ai;
+		DROP TRIGGER IF EXISTS index_items_fts_ad;
+		DROP TRIGGER IF EXISTS index_items_fts_au;
+		DROP TABLE IF EXISTS index_items_fts;
+	`); err != nil {
+		logger.Warningf("failed to drop the FTS search index: %v", err)
 	}
-	var hasFTS int
-	if err := db.QueryRow(`SELECT count(*) FROM sqlite_master WHERE type = 'table' AND name = 'index_items_fts'`).Scan(&hasFTS); err != nil {
-		return fmt.Errorf("check fts table: %w", err)
-	}
-	if hasFTS == 0 {
-		return fmt.Errorf("search index missing")
-	}
-	return db.checkFTSHealth()
 }
 
 // checkFTSHealth compares the FTS index against the base table and runs a cheap

@@ -109,29 +109,20 @@ func NewIndexDB(name string, journalMode string, batchSize int, cacheSizeMB int,
 		}
 	}
 
-	// Reused databases must match the current schema (spath column + healthy FTS index).
-	// A mismatch deletes the database so it is rebuilt from a fresh scan.
-	if !disableReuse && !isNewDb {
-		if err := idxDB.checkIndexSchemaVersion(); err != nil {
-			logger.Warningf("[DB_INIT] index database schema is incompatible (%v); deleting and recreating: index_%s.db", err, name)
-			isNewDb = true
-			dbPath := idxDB.Path()
-			idxDB.Close()
-			if dbPath != "" {
-				_ = os.Remove(dbPath)
-				_ = os.Remove(dbPath + "-wal")
-				_ = os.Remove(dbPath + "-shm")
-			}
-			idxDB, err = createIndexDB(name, journalMode, "", batchSize, cacheSizeMB, disableReuse)
-			if err != nil {
-				return nil, false, err
-			}
-		}
-	}
-
 	if err := idxDB.CreateIndexTable(); err != nil {
 		idxDB.Close()
 		return nil, false, err
+	}
+
+	// The FTS5 search index is optional (indexSqlConfig.fts5, default off). Enabling it
+	// builds from existing rows; disabling it drops the table and triggers.
+	idxDB.syncSearchIndex(settings.Config.Server.IndexSqlConfig.FTS5)
+	if !disableReuse && !isNewDb && idxDB.FTSReady() {
+		if err := idxDB.checkFTSHealth(); err != nil {
+			logger.Warningf("[DB_INIT] FTS search index is unhealthy (%v); rebuilding", err)
+			idxDB.dropSearchIndex()
+			idxDB.syncSearchIndex(true)
+		}
 	}
 	go idxDB.startPeriodicCleanup()
 	return idxDB, isNewDb, nil
@@ -275,7 +266,6 @@ func (db *IndexDB) CreateIndexTable() error {
 		is_hidden BOOLEAN NOT NULL,
 		has_preview BOOLEAN NOT NULL,
 		last_updated INTEGER NOT NULL DEFAULT 0,
-		spath TEXT GENERATED ALWAYS AS (source || ':' || path) VIRTUAL,
 		PRIMARY KEY (source, path)
 	);
 	
@@ -286,17 +276,7 @@ func (db *IndexDB) CreateIndexTable() error {
 	if _, err := db.Exec(query); err != nil {
 		return err
 	}
-	if err := db.ensureCreatedTimeColumn(); err != nil {
-		return err
-	}
-	if err := db.ensureSpathColumn(); err != nil {
-		return err
-	}
-	db.ensureSearchIndex()
-	if _, err := db.Exec(fmt.Sprintf("PRAGMA user_version = %d", indexSchemaVersion)); err != nil {
-		return err
-	}
-	return nil
+	return db.ensureCreatedTimeColumn()
 }
 
 // ensureSpathColumn adds the generated spath column (source:path) used by the FTS
