@@ -47,14 +47,21 @@ var reservedUsernames = map[string]struct{}{
 	strings.ToLower(AnonymousUserName): {},
 }
 
-// ValidateUsername rejects empty and reserved login names.
+// ValidateUsername rejects empty and reserved login names, and names that do not map to their
+// own createUserDir home directory.
 func ValidateUsername(username string) error {
+	raw := username
 	username = strings.TrimSpace(username)
 	if username == "" {
 		return fmt.Errorf("username is empty")
 	}
 	if _, reserved := reservedUsernames[strings.ToLower(username)]; reserved {
 		return fmt.Errorf("username %q is reserved", username)
+	}
+	// The per-user home directory is derived from CleanUsername(username), so reject names
+	// that it would rewrite, the names "." and "-", and names containing path separators.
+	if CleanUsername(raw) != raw || raw == "." || raw == "-" || strings.ContainsAny(raw, `/\`) {
+		return fmt.Errorf("username %q contains characters that are not allowed", raw)
 	}
 	return nil
 }
