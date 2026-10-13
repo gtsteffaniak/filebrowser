@@ -552,6 +552,9 @@ export default {
     },
     /** Debounced entry point for the search input (fires 250ms after the last keystroke). */
     onInput() {
+      // Invalidate any in-flight request immediately, so a late response cannot
+      // repopulate results for the previous query during the debounce window.
+      this.abortSearch();
       this.debouncedSubmit();
     },
     /** Immediate search, used by filter/source changes; cancels any pending debounced call. */
@@ -560,6 +563,9 @@ export default {
       return this.submit(event);
     },
     abortSearch() {
+      // A new query supersedes any in-flight request: bump the sequence so a late
+      // response is ignored, then abort it so it releases the server connection.
+      this.searchSeq++;
       if (this.searchAbort) {
         this.searchAbort.abort();
         this.searchAbort = null;
