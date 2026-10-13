@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v2.0.1-stable
+
+ **Security**:
+ - [Medium] Fixed session token collision issue when multiple users login simultaneously.
+
 ## v2.0.0-stable
 
 This version represents the most significant change to date. It **requires** both a database migration and config structural changes. See the [migration guide](https://filebrowserquantum.com/en/docs/getting-started/v2/migration/) for step-by-step upgrade instructions, [About v2.0.0](https://filebrowserquantum.com/en/docs/getting-started/v2/about/) for a full summary.
