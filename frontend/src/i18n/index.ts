@@ -15,6 +15,7 @@ export const availableLocales: Record<string, string> = {
   el: 'el',
   en: 'en',
   es: 'es',
+  eu: 'eu',
   fr: 'fr',
   he: 'he',
   hu: 'hu',

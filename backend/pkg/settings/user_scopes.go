@@ -1,6 +1,7 @@
 package settings
 
 import (
+	"path"
 	"strings"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
@@ -22,10 +23,21 @@ func ExpandBackendScopesForCreateUserDir(u *users.User) {
 		if !ok {
 			continue
 		}
-		if source.Config.CreateUserDir && scopeBaseName(scope.Scope) != cleanedUserName {
-			u.BackendScopes[i].Scope = joinUnixScopePath(scope.Scope, cleanedUserName)
+		if !source.Config.CreateUserDir {
+			continue
 		}
+		// This runs more than once for a new user, so a scope that already ends in the user's
+		// directory is left alone. The source's defaultUserScope itself is not a user's home:
+		// a user named after its last element ("users" with "/users") gets "/users/users".
+		if scopeBaseName(scope.Scope) == cleanedUserName && !sameScopePath(scope.Scope, source.Config.DefaultUserScope) {
+			continue
+		}
+		u.BackendScopes[i].Scope = joinUnixScopePath(scope.Scope, cleanedUserName)
 	}
+}
+
+func sameScopePath(a, b string) bool {
+	return path.Clean("/"+a) == path.Clean("/"+b)
 }
 
 func scopeBaseName(scope string) string {
