@@ -626,6 +626,7 @@ export default {
       // Only pass scope if searching a single source
       const scope = sourcesToSearch.length === 1 ? this.getContext : null;
 
+      let succeeded = false;
       try {
         const results = await toolsApi.search(
           scope,
@@ -639,9 +640,7 @@ export default {
           return;
         }
         this.results = results;
-        if (this.results.length === 0 && this.ongoing === 0) {
-          this.noneMessage = this.$t("search.noResults");
-        }
+        succeeded = true;
       } catch {
         // Aborted/superseded requests are expected; real errors are surfaced by the API layer.
       } finally {
@@ -649,6 +648,10 @@ export default {
           this.searchAbort = null;
         }
         this.ongoing = Math.max(0, this.ongoing - 1);
+        // Checked after the counter drops so the message only shows once nothing is in flight.
+        if (succeeded && this.results.length === 0 && this.ongoing === 0) {
+          this.noneMessage = this.$t("search.noResults");
+        }
       }
     },
     clearContext(event) {
