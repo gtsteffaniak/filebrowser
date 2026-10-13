@@ -5,7 +5,8 @@ All notable changes to this project will be documented in this file. For commit 
 ## v2.0.1-stable
 
  **Security**:
- - [Medium] Fixed session token collision issue when multiple users login simultaneously.
+ - [High] New accounts named with ".." breaks out of scoped folder on creation (GHSA-c84q-q5g6-r47f) -- reporter @dylanzonix
+ - [Medium] Fixed session token collision issue when multiple users login simultaneously. (GHSA-c9cr-w724-gqj3) (#3135) Thanks @dl-pt reporters: @Ishtiaque-Ahmed-Risat @AlexWhiplash @tonghuaroot
 
 ## v2.0.0-stable
 
