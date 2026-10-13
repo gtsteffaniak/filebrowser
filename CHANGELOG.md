@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v2.1.2
+
+ **Security**:
+ - [High] New accounts named with ".." breaks out of scoped folder on creation (GHSA-c84q-q5g6-r47f) -- reporter @dylanzonix
+ - [Medium] Fixed session token collision issue when multiple users login simultaneously. (GHSA-c9cr-w724-gqj3) (#3135) Thanks @dl-pt reporters: @Ishtiaque-Ahmed-Risat @AlexWhiplash @tonghuaroot
+
+ **Notes**:
+ - Removed "Editor quick save" setting (`userDefaults.fileViewer.quickSave`), the save button is now always present in the editor toolbar. (#3122)
+ - add Basque (eu) translation and fix Spanish (es) strings (#3118)
+
+ **Bug Fixes**:
+ - fix(webdav): OPTIONS now advertises only methods actually supported and permitted for the user; the DAV header reports class 1 only since LOCK/UNLOCK are not enabled (#3110)
+ - fix(download): revalidate single-file downloads so a changed file is not served stale (#3133)
+ - Language switcher not working (#3114) (#3117)
+ - Viewer showing a stale image after the file changed on disk: single-file downloads are now revalidated by the browser (#3132)
+
 ## v2.1.1
 
 Note: this release also contains all changes from v2.0.10-beta changelog
@@ -33,7 +49,6 @@ Note: this release also contains all changes from v2.0.10-beta changelog
  - fix(auth): identify login fields for password autofill (#3077)
  - fix(backend): skip denied paths in multi-file downloads, 404 when none remain (#3100) @hippi345
  - fix: persist the user scope path chosen in the edit dialog (#3065) @mvanhorn
-
 
 ## v2.1.0
 

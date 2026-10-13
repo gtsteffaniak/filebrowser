@@ -52,7 +52,6 @@ type UserDefaultsPreviewEnforcement struct {
 }
 
 type UserDefaultsFileViewerEnforcement struct {
-	EditorQuickSave         bool `json:"editorQuickSave,omitempty"`
 	AutoplayMedia           bool `json:"autoplayMedia,omitempty"`
 	DisableViewingExt       bool `json:"disableViewingExt,omitempty"`
 	DisableOnlyOfficeExt    bool `json:"disableOnlyOfficeExt,omitempty"`

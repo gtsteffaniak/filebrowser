@@ -6924,10 +6924,6 @@ const docTemplate = `{
                     "description": "comma separated list of file extensions to disable viewing for",
                     "type": "string"
                 },
-                "editorQuickSave": {
-                    "description": "show quick save button in editor",
-                    "type": "boolean"
-                },
                 "preferEditorForMarkdown": {
                     "description": "prefer editor first for markdown files instead of the Markdown Viewer",
                     "type": "boolean"
@@ -7763,10 +7759,6 @@ const docTemplate = `{
                     "description": "space separated list of file extensions to disable viewing for",
                     "type": "string"
                 },
-                "editorQuickSave": {
-                    "description": "show quick save button in editor",
-                    "type": "boolean"
-                },
                 "effectiveToolAccess": {
                     "type": "object",
                     "additionalProperties": {
@@ -8217,10 +8209,6 @@ const docTemplate = `{
                 "disableViewingExt": {
                     "description": "space separated list of file extensions to disable viewing for",
                     "type": "string"
-                },
-                "editorQuickSave": {
-                    "description": "show quick save button in editor",
-                    "type": "boolean"
                 },
                 "effectiveToolAccess": {
                     "type": "object",

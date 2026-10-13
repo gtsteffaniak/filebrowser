@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/activity"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/app"
@@ -494,6 +495,102 @@ func TestServeSingleFile_MissingScopedPathReturns404(t *testing.T) {
 	}
 	if status != http.StatusNotFound {
 		t.Fatalf("expected 404, got status=%d err=%v", status, err)
+	}
+}
+
+// TestServeSingleFile_RequiresRevalidation verifies that a single-file download is not
+// reused from the browser cache without revalidation, so a file changed on disk is not
+// served stale, and that an unchanged file still answers 304.
+func TestServeSingleFile_RequiresRevalidation(t *testing.T) {
+	sourceRoot, sourceName, _ := setupShareArchiveDownloadTest(t)
+	ownerUser := users.User{
+		FrontendUser: users.FrontendUser{Username: "owner"},
+		BackendScopes: []users.BackendScope{{
+			Path:  sourceRoot,
+			Scope: "/",
+			Permissions: users.SourceFilePermissions{
+				View: true, Download: true, Modify: true, Create: true, Delete: true,
+			},
+		}},
+	}
+	users.SyncBackendSourcePermissionsMap(&ownerUser)
+	d := &Context{User: &ownerUser}
+
+	rec := httptest.NewRecorder()
+	status, err := ServeSingleFile(rec, httptest.NewRequest(http.MethodGet, "/", nil), d, sourceName, "/shared/hello.txt", "hello.txt", ServeSingleFileOptions{ForceInline: true})
+	if err != nil {
+		t.Fatalf("unexpected error: status=%d err=%v", status, err)
+	}
+	if got := rec.Header().Get("Cache-Control"); got != "private, no-cache" {
+		t.Fatalf("expected Cache-Control %q, got %q", "private, no-cache", got)
+	}
+	lastModified := rec.Header().Get("Last-Modified")
+	if lastModified == "" {
+		t.Fatal("expected a Last-Modified header to revalidate against")
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req.Header.Set("If-Modified-Since", lastModified)
+	rec = httptest.NewRecorder()
+	if _, err := ServeSingleFile(rec, req, d, sourceName, "/shared/hello.txt", "hello.txt", ServeSingleFileOptions{ForceInline: true}); err != nil {
+		t.Fatalf("conditional request: unexpected error: %v", err)
+	}
+	if rec.Code != http.StatusNotModified {
+		t.Fatalf("expected 304 for an unchanged file, got %d", rec.Code)
+	}
+}
+
+// TestServeSingleFile_SameSecondEditIsNotServedStale verifies that an edit within the same
+// second as the cached copy, which If-Modified-Since cannot see, changes the ETag so a
+// conditional request gets the new content rather than 304.
+func TestServeSingleFile_SameSecondEditIsNotServedStale(t *testing.T) {
+	sourceRoot, sourceName, _ := setupShareArchiveDownloadTest(t)
+	ownerUser := users.User{
+		FrontendUser: users.FrontendUser{Username: "owner"},
+		BackendScopes: []users.BackendScope{{
+			Path:  sourceRoot,
+			Scope: "/",
+			Permissions: users.SourceFilePermissions{
+				View: true, Download: true, Modify: true, Create: true, Delete: true,
+			},
+		}},
+	}
+	users.SyncBackendSourcePermissionsMap(&ownerUser)
+	d := &Context{User: &ownerUser}
+	filePath := filepath.Join(sourceRoot, "shared", "hello.txt")
+	modTime := time.Date(2026, 1, 2, 3, 4, 5, 100_000_000, time.UTC)
+	if err := os.Chtimes(filePath, modTime, modTime); err != nil {
+		t.Fatal(err)
+	}
+
+	rec := httptest.NewRecorder()
+	if _, err := ServeSingleFile(rec, httptest.NewRequest(http.MethodGet, "/", nil), d, sourceName, "/shared/hello.txt", "hello.txt", ServeSingleFileOptions{ForceInline: true}); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	etag, lastModified := rec.Header().Get("ETag"), rec.Header().Get("Last-Modified")
+
+	// Same second, same size: only the ETag can tell the two versions apart.
+	if err := os.WriteFile(filePath, []byte("share-zip-CHANGED!"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Chtimes(filePath, modTime.Add(time.Millisecond), modTime.Add(time.Millisecond)); err != nil {
+		t.Fatal(err)
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	if etag != "" {
+		req.Header.Set("If-None-Match", etag)
+	}
+	req.Header.Set("If-Modified-Since", lastModified)
+	rec = httptest.NewRecorder()
+	if _, err := ServeSingleFile(rec, req, d, sourceName, "/shared/hello.txt", "hello.txt", ServeSingleFileOptions{ForceInline: true}); err != nil {
+		t.Fatalf("conditional request: unexpected error: %v", err)
+	}
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200 for a file edited within the same second, got %d", rec.Code)
+	}
+	if got := rec.Body.String(); got != "share-zip-CHANGED!" {
+		t.Fatalf("expected the new content, got %q", got)
 	}
 }
 

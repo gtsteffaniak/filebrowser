@@ -605,8 +605,6 @@
     "showCreationDateColumnDescription": "Erakutsi sortze-dataren zutabea zerrenda nagusiko zerrenda-ikuspegian eta ikuspegi trinkoan.",
     "deleteWithoutConfirming": "Ezabatu fitxategiak berrespen-leihorik gabe",
     "deleteWithoutConfirmingDescription": "Ezabatu fitxategiak berrespen-leihorik gabe. Fitxategia multimedia-fitxategia bada soilik funtzionatuko du.",
-    "editorQuickSave": "Erakutsi gordetze azkarreko botoia editorean",
-    "editorQuickSaveDescription": "Testu-editoreak gordetzeko ikonoa soilik erakutsiko du, beste ekintza guztiak ezkutatuz",
     "previewOfficeDescription": "Erakutsi Office fitxategi moten miniaturak zerrenda-ikuspegian",
     "disableThumbnailPreviews": "Desgaitu miniaturak fitxategi-luzapen jakin batzuetarako",
     "disableThumbnailPreviewsDescription": "Miniaturak desgaitzeko fitxategi-luzapenen zerrenda, zuriunez bereizita (adib. '.txt .html').",
