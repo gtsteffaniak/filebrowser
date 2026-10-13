@@ -7,11 +7,12 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/sqlitebusy"
-	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing/iteminfo"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
@@ -19,6 +20,7 @@ import (
 // It wraps the underlying sql.DB connection and provides type-safe methods.
 type IndexDB struct {
 	*TempDB
+	ftsReady atomic.Bool
 }
 
 func createIndexDB(name string, journalMode string, lockingMode string, batchSize int, cacheSizeMB int, disableReuse bool) (*IndexDB, error) {
@@ -100,6 +102,26 @@ func NewIndexDB(name string, journalMode string, batchSize int, cacheSizeMB int,
 			idxDB.Close()
 
 			// Recreate the database connection
+			idxDB, err = createIndexDB(name, journalMode, "", batchSize, cacheSizeMB, disableReuse)
+			if err != nil {
+				return nil, false, err
+			}
+		}
+	}
+
+	// Reused databases must match the current schema (spath column + healthy FTS index).
+	// A mismatch deletes the database so it is rebuilt from a fresh scan.
+	if !disableReuse && !isNewDb {
+		if err := idxDB.checkIndexSchemaVersion(); err != nil {
+			logger.Warningf("[DB_INIT] index database schema is incompatible (%v); deleting and recreating: index_%s.db", err, name)
+			isNewDb = true
+			dbPath := idxDB.Path()
+			idxDB.Close()
+			if dbPath != "" {
+				_ = os.Remove(dbPath)
+				_ = os.Remove(dbPath + "-wal")
+				_ = os.Remove(dbPath + "-shm")
+			}
 			idxDB, err = createIndexDB(name, journalMode, "", batchSize, cacheSizeMB, disableReuse)
 			if err != nil {
 				return nil, false, err
@@ -234,6 +256,7 @@ func (db *IndexDB) startPeriodicCleanup() {
 		} else if deletedCount > 0 {
 			logger.Infof("[DB_MAINTENANCE] Cleaned up %d stale index entries", deletedCount)
 		}
+		db.optimizeFTS()
 	}
 }
 
@@ -252,6 +275,7 @@ func (db *IndexDB) CreateIndexTable() error {
 		is_hidden BOOLEAN NOT NULL,
 		has_preview BOOLEAN NOT NULL,
 		last_updated INTEGER NOT NULL DEFAULT 0,
+		spath TEXT GENERATED ALWAYS AS (source || ':' || path) VIRTUAL,
 		PRIMARY KEY (source, path)
 	);
 	
@@ -259,11 +283,53 @@ func (db *IndexDB) CreateIndexTable() error {
 	CREATE INDEX IF NOT EXISTS idx_source_size ON index_items(source, size);
 	CREATE INDEX IF NOT EXISTS idx_last_updated ON index_items(source, last_updated);
 	`
-	_, err := db.Exec(query)
+	if _, err := db.Exec(query); err != nil {
+		return err
+	}
+	if err := db.ensureCreatedTimeColumn(); err != nil {
+		return err
+	}
+	if err := db.ensureSpathColumn(); err != nil {
+		return err
+	}
+	db.ensureSearchIndex()
+	if _, err := db.Exec(fmt.Sprintf("PRAGMA user_version = %d", indexSchemaVersion)); err != nil {
+		return err
+	}
+	return nil
+}
+
+// ensureSpathColumn adds the generated spath column (source:path) used by the FTS
+// search index when it is missing from an existing table. PRAGMA table_xinfo is used
+// because table_info omits generated columns.
+func (db *IndexDB) ensureSpathColumn() error {
+	rows, err := db.Query(`PRAGMA table_xinfo(index_items)`)
 	if err != nil {
 		return err
 	}
-	return db.ensureCreatedTimeColumn()
+	found := false
+	for rows.Next() {
+		var cid, notNull, pk, hidden int
+		var name, columnType string
+		var defaultValue interface{}
+		if scanErr := rows.Scan(&cid, &name, &columnType, &notNull, &defaultValue, &pk, &hidden); scanErr != nil {
+			rows.Close()
+			return scanErr
+		}
+		if name == "spath" {
+			found = true
+		}
+	}
+	if rowsErr := rows.Err(); rowsErr != nil {
+		rows.Close()
+		return rowsErr
+	}
+	rows.Close()
+	if found {
+		return nil
+	}
+	_, err = db.Exec(`ALTER TABLE index_items ADD COLUMN spath TEXT GENERATED ALWAYS AS (source || ':' || path) VIRTUAL`)
+	return err
 }
 
 // ensureCreatedTimeColumn adds the created_time column to index_items when it is

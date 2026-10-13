@@ -79,12 +79,19 @@ export async function search(base, sources, query, largest = false, extraParams 
     }
 
     const apiPath = getApiPath("tools/search", params);
-    const res = await fetchURL(apiPath);
+    const res = await fetchURL(
+      apiPath,
+      extraParams.signal ? { signal: extraParams.signal } : undefined
+    );
     const data = await res.json();
 
     return data;
   } catch (err) {
-    notify.showError(err.message || "Error occurred during search");
+    // Aborted/superseded searches are expected; don't surface them as errors.
+    const aborted = extraParams?.signal?.aborted || err?.name === "AbortError";
+    if (!aborted) {
+      notify.showError(err.message || "Error occurred during search");
+    }
     throw err;
   }
 }

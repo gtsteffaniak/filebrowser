@@ -11,7 +11,7 @@
       <i v-else class="material-symbols">search</i>
       <!-- Input field for search -->
       <input id="search-input" type="text"
-        @keyup.exact="keyup" @input="submit" ref="input" :autofocus="active" v-model.trim="value"
+        @keyup.exact="keyup" @input="onInput" ref="input" :autofocus="active" v-model.trim="value"
         aria-label="search input" :placeholder="$t('general.search', { suffix: '...' })" />
       <div v-if="eventTheme === 'halloween'" class="halloween-eyes" aria-hidden="true">
         <div class="eye"><div class="pupil"></div></div>
@@ -157,6 +157,7 @@ import { router } from "@/router";
 import { getters, mutations, state } from "@/store";
 import { url } from "@/utils/";
 import { globalVars } from "@/utils/constants";
+import { debounce } from "@/utils/debounce.js";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { isTypeAheadSessionActive } from "@/utils/listingTypeAhead.js";
 import { utcStartOfDaySecondsFromDateInput } from "@/utils/moment";
@@ -208,34 +209,34 @@ export default {
       this.selectedSource = state.sources.current;
     },
     largerThan() {
-      this.submit();
+      this.submitNow();
     },
     smallerThan() {
-      this.submit();
+      this.submitNow();
     },
     modifiedOlderThan() {
-      this.submit();
+      this.submitNow();
     },
     modifiedNewerThan() {
-      this.submit();
+      this.submitNow();
     },
     useWildcardSearch() {
-      this.submit();
+      this.submitNow();
     },
     caseExactSearch() {
-      this.submit();
+      this.submitNow();
     },
     entryTypeFilter(newValue) {
       if (newValue === "type:folder" && this.selectedMediaTypes.length > 0) {
         this.selectedMediaTypes = [];
         return;
       }
-      this.submit();
+      this.submitNow();
     },
     selectedMediaTypes: {
       deep: true,
       handler() {
-        this.submit();
+        this.submitNow();
       },
     },
     value() {
@@ -254,6 +255,14 @@ export default {
         mutations.resetSelected();
       }
     },
+  },
+  created() {
+    // Coalesce keystrokes into one request 250ms after the last input.
+    this.debouncedSubmit = debounce(() => this.submit(), 250);
+    // Aborts the in-flight search so a superseded request doesn't hold a server connection.
+    this.searchAbort = null;
+    // Monotonic token so a late response can't overwrite newer results.
+    this.searchSeq = 0;
   },
   mounted() {
     this.selectedSource = state.sources.current;
@@ -307,6 +316,11 @@ export default {
     // Clean up keyboard event listener
     if (this.handleKeydown) {
       document.removeEventListener('keydown', this.handleKeydown);
+    }
+    this.debouncedSubmit.cancel();
+    if (this.searchAbort) {
+      this.searchAbort.abort();
+      this.searchAbort = null;
     }
   },
   computed: {
@@ -485,7 +499,7 @@ export default {
     },
     updateSource(value) {
       this.selectedSource = value;
-      void this.submit();
+      void this.submitNow();
     },
     getItemUrl(s) {
       // Use source from result if available, otherwise fall back to selectedSource
@@ -517,12 +531,16 @@ export default {
       this.value = "";
       this.results = [];
       this.ongoing = 0;
+      this.debouncedSubmit.cancel();
+      this.abortSearch();
       this.noneMessage = this.$t("search.typeToSearch", {
         minSearchLength: globalVars.minSearchLength,
       });
     },
     close(event) {
       this.value = "";
+      this.debouncedSubmit.cancel();
+      this.abortSearch();
       event.stopPropagation();
       mutations.setSearch(false);
     },
@@ -530,6 +548,21 @@ export default {
       if (event.keyCode === 27) {
         this.close(event);
         return;
+      }
+    },
+    /** Debounced entry point for the search input (fires 250ms after the last keystroke). */
+    onInput() {
+      this.debouncedSubmit();
+    },
+    /** Immediate search, used by filter/source changes; cancels any pending debounced call. */
+    submitNow(event) {
+      this.debouncedSubmit.cancel();
+      return this.submit(event);
+    },
+    abortSearch() {
+      if (this.searchAbort) {
+        this.searchAbort.abort();
+        this.searchAbort = null;
       }
     },
     resetSearchFilters() {
@@ -573,6 +606,11 @@ export default {
             ? `case:exact ${this.value}`
             : `case:exact ${searchTypesFull}${this.value}`;
       }
+      // Abort the previous request so a superseded search releases the server connection.
+      this.abortSearch();
+      const controller = new AbortController();
+      this.searchAbort = controller;
+      const seq = ++this.searchSeq;
       this.ongoing++;
 
       // Determine which sources to search
@@ -588,17 +626,29 @@ export default {
       // Only pass scope if searching a single source
       const scope = sourcesToSearch.length === 1 ? this.getContext : null;
 
-      this.results = await toolsApi.search(
-        scope,
-        sourcesToSearch,
-        searchQuery,
-        false,
-        dateParams
-      );
-
-      this.ongoing--;
-      if (this.results.length === 0 && this.ongoing === 0) {
-        this.noneMessage = this.$t("search.noResults");
+      try {
+        const results = await toolsApi.search(
+          scope,
+          sourcesToSearch,
+          searchQuery,
+          false,
+          { ...dateParams, signal: controller.signal }
+        );
+        // Ignore a response that arrived after a newer search superseded it.
+        if (seq !== this.searchSeq) {
+          return;
+        }
+        this.results = results;
+        if (this.results.length === 0 && this.ongoing === 0) {
+          this.noneMessage = this.$t("search.noResults");
+        }
+      } catch {
+        // Aborted/superseded requests are expected; real errors are surfaced by the API layer.
+      } finally {
+        if (this.searchAbort === controller) {
+          this.searchAbort = null;
+        }
+        this.ongoing = Math.max(0, this.ongoing - 1);
       }
     },
     clearContext(event) {

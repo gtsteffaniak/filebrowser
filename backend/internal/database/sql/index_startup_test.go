@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/fileutils"
-	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing/iteminfo"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 )
 
 func TestMain(m *testing.M) {
@@ -126,4 +126,75 @@ func TestNewIndexDB_StartupOff(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+}
+
+// TestNewIndexDB_ReusesHealthyDB checks that a matching schema is reused, not recreated.
+func TestNewIndexDB_ReusesHealthyDB(t *testing.T) {
+	dir := t.TempDir()
+	pop := pushTestIndexConfig(t, dir, testIndexSQLConfig(settings.IndexStartupIntegrityOff))
+	defer pop()
+
+	db, isNew, err := NewIndexDB("reuse_ok", "OFF", 1000, 32, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !isNew {
+		t.Fatalf("fresh database should report isNewDb=true")
+	}
+	if err = db.InsertItem("src1", "/a.txt", &iteminfo.FileInfo{
+		Path:     "/a.txt",
+		ItemInfo: iteminfo.ItemInfo{Name: "a.txt", Type: "text/plain", ModTime: time.Unix(1, 0)},
+	}); err != nil {
+		t.Fatal(err)
+	}
+	if err = db.Close(); err != nil {
+		t.Fatal(err)
+	}
+
+	db2, isNew2, err := NewIndexDB("reuse_ok", "OFF", 1000, 32, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db2.Close()
+	if isNew2 {
+		t.Fatalf("a healthy database should be reused, not recreated")
+	}
+	if !db2.FTSReady() {
+		t.Fatalf("expected the FTS index to be ready on reuse")
+	}
+}
+
+// TestNewIndexDB_RecreatesOnSchemaVersionMismatch checks the upgrade path: an outdated
+// schema is deleted and rebuilt (isNewDb=true triggers a rescan).
+func TestNewIndexDB_RecreatesOnSchemaVersionMismatch(t *testing.T) {
+	dir := t.TempDir()
+	pop := pushTestIndexConfig(t, dir, testIndexSQLConfig(settings.IndexStartupIntegrityOff))
+	defer pop()
+
+	db, _, err := NewIndexDB("schema_ver", "OFF", 1000, 32, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err = db.Exec("PRAGMA user_version = 0"); err != nil {
+		t.Fatal(err)
+	}
+	if err = db.Close(); err != nil {
+		t.Fatal(err)
+	}
+
+	db2, isNew2, err := NewIndexDB("schema_ver", "OFF", 1000, 32, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db2.Close()
+	if !isNew2 {
+		t.Fatalf("expected isNewDb=true after a schema version mismatch")
+	}
+	var version int
+	if err := db2.QueryRow("PRAGMA user_version").Scan(&version); err != nil {
+		t.Fatal(err)
+	}
+	if version != indexSchemaVersion {
+		t.Fatalf("user_version = %d, want %d", version, indexSchemaVersion)
+	}
 }
