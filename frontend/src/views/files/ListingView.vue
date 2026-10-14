@@ -1143,9 +1143,11 @@ export default {
     },
     async drop(event) {
       event.preventDefault();
-      // The listeners are attached once at mount, so re-check: the source may have changed since,
-      // or turned out to be read-only once its info arrived. Covers shares too (create = allowCreate).
+      // The drop listeners are always attached, so this is the gate: the source may be one the user
+      // cannot write to, or may have turned out read-only since dragEnter when its info arrived.
+      // Covers shares too (create = allowCreate). Clear the drop indicator dragEnter may have shown.
       if (!getters.sourcePermissions().create) {
+        this.dragTargets.clear();
         return;
       }
       const isInternal = Array.from(event.dataTransfer.types).includes(

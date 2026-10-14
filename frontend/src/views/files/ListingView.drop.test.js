@@ -1,9 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 
+const { store } = vi.hoisted(() => ({ store: { create: false } }));
 vi.mock("@/store", () => ({
   state: { selected: [], isSafari: false },
   mutations: { setSearch: vi.fn() },
-  getters: { isShare: () => false },
+  getters: { isShare: () => false, sourcePermissions: () => ({ create: store.create }) },
 }));
 vi.mock("@/utils/download", () => ({ default: vi.fn() }));
 vi.mock("@/api", () => ({ resourcesApi: {} }));
@@ -37,5 +38,18 @@ describe("ListingView drop listeners", () => {
 
     ListingView.beforeUnmount.call(ctx);
     expect(types(el.removeEventListener)).toEqual(expect.arrayContaining(dropEvents));
+  });
+
+  // dragEnter shows the drop indicator; if the source is found read-only before the drop, the
+  // refused drop must still take the indicator down (browsers send no dragleave on drop).
+  it("clear the drop indicator when the drop is refused", async () => {
+    const el = {};
+    const ctx = { $el: el, dragTargets: new Set([el]) };
+    const event = { preventDefault: vi.fn(), dataTransfer: { types: ["Files"] } };
+    store.create = false;
+
+    await ListingView.methods.drop.call(ctx, event);
+
+    expect(ctx.dragTargets.size).toBe(0);
   });
 });
