@@ -562,7 +562,7 @@ export const getters = {
         asc: true
       },
       viewMode: "normal",
-      singleClick: true,
+      singleClick: globalVars.singleClick === true,
       quickDownload: false,
       gallerySize: 5,
       permissions: {
