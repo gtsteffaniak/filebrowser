@@ -1035,6 +1035,19 @@ export default {
         return;
       }
 
+      const operation = this.clipboard.key === "x" ? "move" : "copy";
+      // Pasting writes into the current source; a cut also removes the items from where they were cut,
+      // and a share refuses any change unless it allows modify.
+      const canPaste =
+        getters.sourcePermissions().create &&
+        this.clipboard.items.every((item) => {
+          const origin = getters.sourcePermissions(item.fromSource);
+          return operation === "move" || getters.isShare() ? origin.modify : origin.download;
+        });
+      if (!canPaste) {
+        return;
+      }
+
       // Construct destination path properly (without URL prefix)
       const destPath = state.req.path.endsWith('/') ? state.req.path : `${state.req.path}/`;
 
@@ -1045,8 +1058,6 @@ export default {
         toSource: state.req.source,
         name: item.name,
       }));
-
-      const operation = this.clipboard.key === "x" ? "move" : "copy";
 
       // Show confirmation prompt first
       mutations.showPrompt({
