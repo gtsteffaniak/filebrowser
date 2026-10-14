@@ -13,6 +13,8 @@ export function activityEventLabel(eventType, $t) {
       return $t("general.rename");
     case "upload":
       return $t("general.upload");
+    case "fileModify":
+      return $t("tools.activityViewer.eventFileModify");
     case "delete":
       return $t("general.delete");
     case "login":
@@ -87,6 +89,7 @@ const CHANGE_EVENT_TYPES = new Set([
   "move",
   "copy",
   "rename",
+  "fileModify",
   "shareUpdate",
   "userUpdate",
   "accessUpdate",

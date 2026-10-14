@@ -6,34 +6,35 @@ import "fmt"
 type EventType string
 
 const (
-	EventDownload      EventType = "download"
-	EventMove          EventType = "move"
-	EventCopy          EventType = "copy"
-	EventRename        EventType = "rename"
-	EventUpload        EventType = "upload"
-	EventDelete        EventType = "delete"
-	EventBulkDelete    EventType = "bulkDelete"
-	EventArchive       EventType = "archive"
-	EventUnarchive     EventType = "unarchive"
-	EventShareCreate   EventType = "shareCreate"
-	EventShareUpdate   EventType = "shareUpdate"
-	EventShareDelete   EventType = "shareDelete"
-	EventUserCreate    EventType = "userCreate"
-	EventUserUpdate    EventType = "userUpdate"
-	EventUserDelete    EventType = "userDelete"
-	EventAccessUpdate  EventType = "accessUpdate"
-	EventAccessCreate  EventType = "accessCreate"
-	EventAccessDelete  EventType = "accessDelete"
-	EventQuotaCreate   EventType = "quotaCreate"
-	EventQuotaUpdate   EventType = "quotaUpdate"
-	EventQuotaDelete   EventType = "quotaDelete"
-	EventLogin             EventType = "login"
-	EventLogout            EventType = "logout"
-	EventSignup            EventType = "signup"
-	EventPasskeyRegister   EventType = "passkeyRegister"
-	EventPasskeyDelete     EventType = "passkeyDelete"
-	EventTokenCreate       EventType = "tokenCreate"
-	EventTokenDelete       EventType = "tokenDelete"
+	EventDownload        EventType = "download"
+	EventMove            EventType = "move"
+	EventCopy            EventType = "copy"
+	EventRename          EventType = "rename"
+	EventUpload          EventType = "upload"
+	EventFileModify      EventType = "fileModify"
+	EventDelete          EventType = "delete"
+	EventBulkDelete      EventType = "bulkDelete"
+	EventArchive         EventType = "archive"
+	EventUnarchive       EventType = "unarchive"
+	EventShareCreate     EventType = "shareCreate"
+	EventShareUpdate     EventType = "shareUpdate"
+	EventShareDelete     EventType = "shareDelete"
+	EventUserCreate      EventType = "userCreate"
+	EventUserUpdate      EventType = "userUpdate"
+	EventUserDelete      EventType = "userDelete"
+	EventAccessUpdate    EventType = "accessUpdate"
+	EventAccessCreate    EventType = "accessCreate"
+	EventAccessDelete    EventType = "accessDelete"
+	EventQuotaCreate     EventType = "quotaCreate"
+	EventQuotaUpdate     EventType = "quotaUpdate"
+	EventQuotaDelete     EventType = "quotaDelete"
+	EventLogin           EventType = "login"
+	EventLogout          EventType = "logout"
+	EventSignup          EventType = "signup"
+	EventPasskeyRegister EventType = "passkeyRegister"
+	EventPasskeyDelete   EventType = "passkeyDelete"
+	EventTokenCreate     EventType = "tokenCreate"
+	EventTokenDelete     EventType = "tokenDelete"
 	EventDuplicateFinder EventType = "duplicateFinder"
 )
 
@@ -44,6 +45,7 @@ var AllEventTypes = []EventType{
 	EventCopy,
 	EventRename,
 	EventUpload,
+	EventFileModify,
 	EventDelete,
 	EventBulkDelete,
 	EventArchive,
@@ -77,6 +79,7 @@ var FileEventTypes = []EventType{
 	EventCopy,
 	EventRename,
 	EventUpload,
+	EventFileModify,
 	EventDelete,
 	EventBulkDelete,
 	EventArchive,
@@ -155,7 +158,7 @@ func intersectEventTypes(requested, allowed []EventType) []EventType {
 func (e EventType) Valid() bool {
 	switch e {
 	case EventDownload, EventMove, EventCopy, EventRename,
-		EventUpload, EventDelete, EventBulkDelete,
+		EventUpload, EventFileModify, EventDelete, EventBulkDelete,
 		EventArchive, EventUnarchive,
 		EventShareCreate, EventShareUpdate, EventShareDelete,
 		EventUserCreate, EventUserUpdate, EventUserDelete, EventAccessUpdate, EventAccessCreate, EventAccessDelete,

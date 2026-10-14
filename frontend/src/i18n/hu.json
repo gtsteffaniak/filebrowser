@@ -1082,7 +1082,8 @@
       "webSessionNamed": "Webes előadás ({name})",
       "scopeAccess": "Hozzáférési tevékenység",
       "eventAccessCreate": "Hozzáférés létrehozása",
-      "eventAccessDelete": "Hozzáférés törlés"
+      "eventAccessDelete": "Hozzáférés törlés",
+      "eventFileModify": "Fájl módosítása"
     },
     "toolAccessDefaults": "Az eszközökhöz való hozzáférés alapértelmezett beállításai",
     "toolAccessDefaultsDescription": "Állítsa be, hogy az új felhasználók alapértelmezés szerint mely eszközökhöz férhessenek hozzá",
