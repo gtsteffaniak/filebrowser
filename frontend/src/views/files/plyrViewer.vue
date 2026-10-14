@@ -296,7 +296,7 @@ import {
   isTranscodeHlsMode,
 } from '@/plyr/transcodeMode.js';
 import { transcodeLog, transcodeWarn } from '@/plyr/transcodeDebug.js';
-import { primePlay } from '@/plyr/playbackIntent.js';
+import { isPlayBlockedError, primePlay } from '@/plyr/playbackIntent.js';
 import { needsTranscodeFirst } from '@/utils/canBrowserPlayNative.js';
 import { getTranscodeSessions } from '@/api/transcode.js';
 import { getCachedViewToken } from '@/api/viewToken.js';
@@ -478,6 +478,9 @@ export default {
       transcodeModeValueSpan: null,
       transcodeOfferEmitted: false,
       mountPlyrInProgress: false,
+      /** Armed when autoplay is blocked so the next user gesture can resume playback. */
+      resumeOnGestureArmed: false,
+      resumeOnGestureHandler: null,
     };
   },
   watch: {
@@ -1007,6 +1010,7 @@ export default {
       if (timeout) clearTimeout(timeout);
     }
     // Cleanup Plyr
+    this.disarmResumeOnNextGesture();
     this.destroyPlyr();
     this.clearMediaSession();
     document.removeEventListener('keydown', this.handleKeydown);
@@ -1924,22 +1928,58 @@ export default {
       this.ensurePlaybackModeApplied();
     },
     resumeTranscodePlayback() {
+      const media = this.player?.media || this.mediaElement;
       transcodeLog('resumeTranscodePlayback', {
         playerPaused: this.player?.paused,
-        mediaPaused: (this.player?.media || this.mediaElement)?.paused,
-        readyState: (this.player?.media || this.mediaElement)?.readyState,
+        mediaPaused: media?.paused,
+        readyState: media?.readyState,
       });
-      if (!this.player?.paused) {
-        return Promise.resolve();
-      }
-      return this.player.play().then(() => {
+      const playResult = this.player?.play ? this.player.play() : media?.play();
+      return Promise.resolve(playResult).then(() => {
         transcodeLog('resumeTranscodePlayback play resolved');
       }).catch((playErr) => {
         transcodeWarn('player.play failed during transcode attach', {
           name: playErr?.name,
           message: playErr?.message,
         });
+        if (isPlayBlockedError(playErr)) {
+          this.armResumeOnNextGesture();
+        }
+        throw playErr;
       });
+    },
+    /**
+     * Autoplay was blocked (Safari requires the play() call to come directly from
+     * a gesture handler). Arm a one-shot resume so a single tap or keypress
+     * anywhere restarts playback instead of the user hunting for the play button.
+     */
+    armResumeOnNextGesture() {
+      if (this.resumeOnGestureArmed) {
+        return;
+      }
+      this.resumeOnGestureArmed = true;
+      const handler = () => {
+        this.disarmResumeOnNextGesture();
+        const media = this.player?.media || this.mediaElement;
+        if (!this.transcodeActive || !media || !media.paused) {
+          return;
+        }
+        transcodeLog('resuming transcode playback after user gesture');
+        void this.resumeTranscodePlayback().catch(() => {});
+      };
+      this.resumeOnGestureHandler = handler;
+      window.addEventListener('pointerdown', handler, { once: true, capture: true });
+      window.addEventListener('keydown', handler, { once: true, capture: true });
+    },
+    disarmResumeOnNextGesture() {
+      const handler = this.resumeOnGestureHandler;
+      this.resumeOnGestureArmed = false;
+      this.resumeOnGestureHandler = null;
+      if (!handler) {
+        return;
+      }
+      window.removeEventListener('pointerdown', handler, { capture: true });
+      window.removeEventListener('keydown', handler, { capture: true });
     },
     syncTranscodePlaybackState() {
       mutations.setPlaybackState(true);
