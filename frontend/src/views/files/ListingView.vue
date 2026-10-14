@@ -518,11 +518,11 @@ export default {
     }
 
     // if safari , make sure click and hold opens context menu, but not for any other browser
-    if (this.permissions?.modify || getters.isShare()) {
-      this.$el.addEventListener("dragenter", this.dragEnter);
-      this.$el.addEventListener("dragleave", this.dragLeave);
-      this.$el.addEventListener("drop", this.drop);
-    }
+    // Always listen: dragEnter and drop check create on the current source on every event. Deciding
+    // here, once, left no drop target after navigating from a source the user cannot write to.
+    this.$el.addEventListener("dragenter", this.dragEnter);
+    this.$el.addEventListener("dragleave", this.dragLeave);
+    this.$el.addEventListener("drop", this.drop);
   },
   beforeUnmount() {
     resetTypeAheadSession();
@@ -556,11 +556,9 @@ export default {
     }
 
     // Also clean up drag/drop listeners on the component's root element
-    if (state.user && this.permissions?.modify || getters.isShare()) {
-      this.$el.removeEventListener("dragenter", this.dragEnter);
-      this.$el.removeEventListener("dragleave", this.dragLeave);
-      this.$el.removeEventListener("drop", this.drop);
-    }
+    this.$el.removeEventListener("dragenter", this.dragEnter);
+    this.$el.removeEventListener("dragleave", this.dragLeave);
+    this.$el.removeEventListener("drop", this.drop);
   },
   methods: {
     handleGlobalDragEnd() {
