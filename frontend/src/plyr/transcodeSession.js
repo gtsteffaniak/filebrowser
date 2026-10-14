@@ -29,6 +29,19 @@ export class TranscodeSessionController {
   }
 
   async start({ replaceSessionId, startSec } = {}) {
+    try {
+      return await this.startOnce({ replaceSessionId, startSec });
+    } catch (err) {
+      // The session we were told to replace is already gone; retry without it.
+      if (err?.status === 404 && replaceSessionId) {
+        transcodeWarn('replace target missing; retrying without replaceSessionId', { replaceSessionId });
+        return this.startOnce({ startSec });
+      }
+      throw err;
+    }
+  }
+
+  async startOnce({ replaceSessionId, startSec } = {}) {
     transcodeLog('session start request', {
       source: this.source,
       path: this.path,

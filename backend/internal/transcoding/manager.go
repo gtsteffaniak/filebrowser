@@ -434,6 +434,9 @@ func (m *Manager) failSession(sessionID, generation string, err error) {
 }
 
 func (m *Manager) finishProducer(sessionID, generation string, err error) {
+	if err != nil {
+		logger.Warningf("transcode producer exited id=%s: %v", sessionID, err)
+	}
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	sess, ok := m.sessions[sessionID]
@@ -441,6 +444,8 @@ func (m *Manager) finishProducer(sessionID, generation string, err error) {
 		if err != nil && sess.state != StateStopping {
 			sess.state = StateFailed
 			sess.info.State = StateFailed
+			info := m.publicSession(sess, false)
+			m.publishLocked(EventPayload{ID: m.nextEventID(), Type: "session_failed", Session: &info})
 		} else if sess.state != StateStopping {
 			sess.state = StateCompleted
 			sess.info.State = StateCompleted

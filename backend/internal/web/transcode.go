@@ -211,6 +211,7 @@ func transcodePlaylistHandler(w http.ResponseWriter, r *http.Request, d *Context
 	}
 	id := strings.TrimSpace(r.PathValue("id"))
 	deadline := time.Now().Add(15 * time.Second)
+	var lastErr error
 	for {
 		data, err := mgr.Playlist(d.User.Username, id)
 		if err == nil && len(data) > 0 {
@@ -223,9 +224,16 @@ func transcodePlaylistHandler(w http.ResponseWriter, r *http.Request, d *Context
 			}
 			return http.StatusOK, nil
 		}
+		lastErr = err
 		if time.Now().After(deadline) {
-			logger.Infof("[transcode] playlist timeout session=%s user=%s err=%v", id, d.User.Username, err)
-			return transcodeErrorStatus(err), err
+			if lastErr == nil {
+				// The session exists but never produced a playlist (encoder failed or is stalled).
+				logger.Warningf("[transcode] playlist not ready session=%s user=%s", id, d.User.Username)
+				w.Header().Set("Retry-After", "5")
+				return http.StatusServiceUnavailable, fmt.Errorf("transcode playlist not ready")
+			}
+			logger.Warningf("[transcode] playlist failed session=%s user=%s err=%v", id, d.User.Username, lastErr)
+			return transcodeErrorStatus(lastErr), lastErr
 		}
 		select {
 		case <-r.Context().Done():
