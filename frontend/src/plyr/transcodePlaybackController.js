@@ -133,6 +133,42 @@ export class TranscodePlaybackController {
       });
     };
 
+    /**
+     * Restore the remembered playhead after a source swap.
+     *
+     * The server starts the HLS job at the segment boundary at or before the
+     * requested position and the transcode output keeps source timestamps
+     * (-copyts), so the media timeline matches the original file and the exact
+     * position can be seeked directly. hls.js's own startPosition handling is
+     * not reliable once the source has been replaced.
+     */
+    const applyStartPosition = (video) => {
+      const target = Number(startSec);
+      if (!video || !Number.isFinite(target) || target <= 0) {
+        return;
+      }
+      try {
+        let clamped = target;
+        const seekable = video.seekable;
+        if (seekable && seekable.length > 0) {
+          const rangeStart = seekable.start(0);
+          const rangeEnd = seekable.end(seekable.length - 1);
+          clamped = Math.min(Math.max(target, rangeStart), rangeEnd);
+        }
+        if (Math.abs(video.currentTime - clamped) < 0.25) {
+          return;
+        }
+        video.currentTime = clamped;
+        transcodeLog('applied resume position after HLS attach', {
+          requested: target,
+          applied: clamped,
+          currentTime: video.currentTime,
+        });
+      } catch (err) {
+        transcodeWarn('failed to apply resume position', { target, message: err?.message });
+      }
+    };
+
     try {
       await controller.start({ replaceSessionId, startSec });
       if (!this.isCurrentAttempt(attempt)) {
@@ -175,7 +211,12 @@ export class TranscodePlaybackController {
       const hlsAttachPromise = attachHlsToVideo({
         video: el,
         session: controller.session,
-        startPosition: startSec,
+        // Load from the start of the available playlist: the server already
+        // begins the job at the segment containing the requested position, and
+        // startPosition mapping across a source swap is unreliable. The exact
+        // playhead is restored by applyStartPosition once the first fragment
+        // is buffered.
+        startPosition: -1,
         signal: attachAbort.signal,
         onFirstBuffered: () => {
           if (!this.isCurrentAttempt(attempt)) {
@@ -188,6 +229,7 @@ export class TranscodePlaybackController {
           // Mark the HLS session active before resuming the element. The
           // resulting `play` event must not be mistaken for a new start.
           this.active = true;
+          applyStartPosition(getVideoElement?.());
           onFirstBuffered?.();
           resumePlayback();
         },
@@ -208,6 +250,7 @@ export class TranscodePlaybackController {
       this.attachAbort = null;
       this.hlsCleanup = hlsAttach.cleanup;
       this.active = true;
+      applyStartPosition(getVideoElement?.());
       transcodeLog('HLS attach complete', { sessionId: controller.session?.id });
 
       return { ok: true, mode, session: controller.session };
