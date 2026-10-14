@@ -6374,6 +6374,10 @@ const docTemplate = `{
                     "description": "hard per-user concurrent transcode ceiling (default: 1)",
                     "type": "integer"
                 },
+                "maxResolution": {
+                    "description": "superseded by profiles.\u003cname\u003e.maxResolution. deprecated: kept for config compatibility",
+                    "type": "integer"
+                },
                 "profiles": {
                     "description": "per-profile transcode settings shown in the player menu",
                     "allOf": [

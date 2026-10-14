@@ -351,6 +351,8 @@ export default {
           return this.$t('player.transcodeSystemLimitReached', {
             limit: this.videoTranscodeOffer.systemLimit,
           });
+        case 'unsupported':
+          return this.$t('player.transcodeDisabled');
         default:
           return this.$t('player.transcodeUnsupportedFormat');
       }
@@ -846,10 +848,6 @@ export default {
       })) {
         return;
       }
-      if (globalVars.transcodeEnabled !== true) {
-        this.handleVideoTranscodeOffer({ enabled: false, canStart: false, sessions: [] });
-        return;
-      }
       try {
         const status = await getTranscodeSessions();
         if (state.req.path !== expectedPath) {
@@ -858,6 +856,7 @@ export default {
         this.handleVideoTranscodeOffer(this.normalizeTranscodeSessionStatus(status));
       } catch (err) {
         console.warn('Failed to check transcode for unsupported format:', err);
+        this.handleVideoTranscodeOffer({ enabled: false, canStart: false, sessions: [] });
       }
     },
     disposeTranscodePlaybackController({ stopSession = true } = {}) {
@@ -875,7 +874,7 @@ export default {
       this.disposeTranscodePlaybackController({ stopSession: true });
       status = this.normalizeTranscodeSessionStatus(status);
       let mode = 'offer';
-      if (status.enabled === false || globalVars.transcodeEnabled !== true) {
+      if (status.enabled === false) {
         mode = 'unsupported';
       } else if (!status.canStart) {
         if (status.blockReason === 'user_limit') {

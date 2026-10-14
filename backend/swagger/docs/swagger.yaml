@@ -723,6 +723,10 @@ definitions:
       maxConcurrentPerUser:
         description: 'hard per-user concurrent transcode ceiling (default: 1)'
         type: integer
+      maxResolution:
+        description: 'superseded by profiles.<name>.maxResolution. deprecated: kept
+          for config compatibility'
+        type: integer
       profiles:
         allOf:
         - $ref: '#/definitions/settings.TranscodeProfiles'

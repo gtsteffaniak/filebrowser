@@ -38,8 +38,10 @@ func WireServicesWithContext(ctx context.Context, store *state.Store) (*App, err
 		return nil, err
 	}
 
+	// Create the manager whenever ffmpeg is available so enabling transcoding at
+	// runtime (admin media settings) takes effect without a restart.
 	var transcodeMgr *transcoding.Manager
-	if settings.TranscodeEnabled() || settings.Config.Integrations.Media.Transcode.Enabled {
+	if settings.Env.FFmpegAvailable {
 		storeDir, err := transcoding.NewStore(settings.TranscodeCacheDir())
 		if err != nil {
 			return nil, err

@@ -1885,10 +1885,6 @@ export default {
         return;
       }
       this.transcodeOfferEmitted = true;
-      if (!this.transcodeEnabled) {
-        this.$emit('needs-transcode', { enabled: false, canStart: false, sessions: [] });
-        return;
-      }
       try {
         const status = await getTranscodeSessions();
         this.$emit('needs-transcode', normalizeTranscodeSessionStatus(status, {
@@ -1897,7 +1893,7 @@ export default {
         }));
       } catch (err) {
         console.error('Failed to check transcode sessions:', err);
-        this.transcodeOfferEmitted = false;
+        this.$emit('needs-transcode', { enabled: false, canStart: false, sessions: [] });
       }
     },
     onVideoLoadedMetadata() {

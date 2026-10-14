@@ -168,6 +168,7 @@ type MediaTranscode struct {
 	CacheMaxSizeMB       int               `json:"cacheMaxSizeMB"`       // disk cache size limit in MB; 0 = unlimited (default: 10240)
 	CacheRetentionH      int               `json:"cacheRetentionH"`      // completed cache retention in hours (default: 24)
 	Profiles             TranscodeProfiles `json:"profiles"`             // per-profile transcode settings shown in the player menu
+	MaxResolution        int               `json:"maxResolution"`        // superseded by profiles.<name>.maxResolution. deprecated: kept for config compatibility
 }
 
 // TranscodeProfiles configures the player's transcode quality presets.
