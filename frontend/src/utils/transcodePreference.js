@@ -5,7 +5,7 @@ export const TRANSCODE_PREFERENCE_STORAGE_KEY = 'filebrowser.transcodeMode';
 
 export const DEFAULT_TRANSCODE_MODE = 'quality';
 
-const VALID_PREFERRED_MODES = new Set(['quality', 'datasaver']);
+const VALID_PREFERRED_MODES = new Set(['quality', 'balanced', 'datasaver']);
 
 /**
  * @returns {'quality' | 'datasaver'}

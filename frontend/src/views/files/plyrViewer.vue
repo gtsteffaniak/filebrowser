@@ -817,11 +817,27 @@ export default {
         && !getters.isShare()
       );
     },
-    shouldProactivelyOfferTranscode() {
-      if (!this.nativeVideoTranscodeEligible || this.startTranscode) {
+    formatNeedsTranscode() {
+      if (this.previewType !== 'video') {
         return false;
       }
       return needsTranscodeFirst(this.transcodeProbeParams());
+    },
+    transcodeProfileOptions() {
+      const configured = Array.isArray(globalVars.transcodeProfiles)
+        ? globalVars.transcodeProfiles
+        : PLYR_TRANSCODE_HLS_MODES;
+      const ids = configured.filter((id) => PLYR_TRANSCODE_HLS_MODES.includes(id));
+      return ids.length ? ids : PLYR_TRANSCODE_HLS_MODES;
+    },
+    shouldProactivelyOfferTranscode() {
+      if (this.previewType !== 'video' || this.startTranscode) {
+        return false;
+      }
+      if (this.isTranscodePlaybackMode || getters.isShare()) {
+        return false;
+      }
+      return this.formatNeedsTranscode;
     },
     plyrSettingsMenu() {
       const base = ['captions', 'captionSize', 'quality', 'speed', 'playback', 'loop'];
@@ -834,7 +850,7 @@ export default {
       if (this.previewType !== 'video' || this.transcodeActive || this.transcodeStartInProgress) {
         return null;
       }
-      if (isTranscodeHlsMode(this.transcodeMode)) {
+      if (isTranscodeHlsMode(this.transcodeMode) || this.formatNeedsTranscode) {
         return null;
       }
       if (this.lockedNativeVideoSrc) {
@@ -848,6 +864,9 @@ export default {
       return null;
     },
     shouldAttachVideoStream() {
+      if (this.formatNeedsTranscode) {
+        return false;
+      }
       if (
         this.previewType === 'video'
         && shouldDeferVideoStreamAttach(this.req?.source, this.req?.path)
@@ -871,6 +890,9 @@ export default {
         return false;
       }
       if (isTranscodeHlsMode(this.transcodeMode) || this.transcodeStartInProgress) {
+        return false;
+      }
+      if (this.formatNeedsTranscode) {
         return false;
       }
       if (shouldDeferVideoStreamAttach(this.req?.source, this.req?.path)) {
@@ -1856,13 +1878,17 @@ export default {
       if (this.transcodeSwitchInProgress || this.isTranscodePlaybackMode) {
         return;
       }
-      if (!this.nativeVideoTranscodeEligible || this.transcodeOfferEmitted) {
+      if (this.transcodeOfferEmitted) {
         return;
       }
-      if (!needsTranscodeFirst(this.transcodeProbeParams())) {
+      if (this.previewType !== 'video' || getters.isShare() || !this.formatNeedsTranscode) {
         return;
       }
       this.transcodeOfferEmitted = true;
+      if (!this.transcodeEnabled) {
+        this.$emit('needs-transcode', { enabled: false, canStart: false, sessions: [] });
+        return;
+      }
       try {
         const status = await getTranscodeSessions();
         this.$emit('needs-transcode', normalizeTranscodeSessionStatus(status, {
@@ -1875,7 +1901,7 @@ export default {
       }
     },
     onVideoLoadedMetadata() {
-      if (!this.nativeVideoTranscodeEligible || this.transcodeOfferEmitted) {
+      if (this.transcodeOfferEmitted || getters.isShare()) {
         return;
       }
       const video = this.mediaElement;
@@ -2092,7 +2118,7 @@ export default {
       ) {
         return;
       }
-      if (!this.nativeVideoTranscodeEligible || this.transcodeOfferEmitted) {
+      if (this.transcodeOfferEmitted || getters.isShare()) {
         return;
       }
       const code = event?.target?.error?.code;
@@ -2149,6 +2175,8 @@ export default {
       switch (normalizeTranscodeMode(mode)) {
         case 'datasaver':
           return this.$t('general.dataSaver');
+        case 'balanced':
+          return this.$t('general.balanced');
         case 'quality':
           return this.$t('general.quality');
         default:
@@ -2727,9 +2755,18 @@ export default {
       const togglePlayPause = () => {
         if (this.player.playing) {
           this.player.pause();
-        } else {
-          this.player.play();
+          return;
         }
+        if (this.formatNeedsTranscode) {
+          void this.offerTranscodePlayback();
+          return;
+        }
+        void this.player.play().catch((playErr) => {
+          transcodeWarn('player.play failed', { message: playErr?.message });
+          if (playErr?.name === 'NotSupportedError') {
+            void this.offerTranscodePlayback();
+          }
+        });
       };
       const handleEdgeZoneTap = (zone, event) => {
         const now = Date.now();
@@ -3674,17 +3711,15 @@ export default {
 
             if (!this.transcodeMenuInitialized) {
               const menu = transcodePanel.querySelector('div[role="menu"]');
-              menu.innerHTML = `
-                <button data-plyr="transcode-mode" type="button" role="menuitemradio" class="plyr__control" value="native">
-                  <span>${this.$t('general.off')}</span>
-                </button>
-                <button data-plyr="transcode-mode" type="button" role="menuitemradio" class="plyr__control" value="quality">
-                  <span>${this.$t('general.quality')}</span>
-                </button>
-                <button data-plyr="transcode-mode" type="button" role="menuitemradio" class="plyr__control" value="datasaver">
-                  <span>${this.$t('general.dataSaver')}</span>
-                </button>
-              `;
+              const modeButtons = [{ value: 'native', label: this.$t('general.off') }]
+                .concat(this.transcodeProfileOptions.map((id) => ({
+                  value: id,
+                  label: this.getTranscodeModeLabel(id),
+                })));
+              menu.innerHTML = modeButtons.map((opt) => `
+                <button data-plyr="transcode-mode" type="button" role="menuitemradio" class="plyr__control" value="${opt.value}">
+                  <span>${opt.label}</span>
+                </button>`).join('');
               this.transcodeModeButtons = menu.querySelectorAll('button[data-plyr="transcode-mode"]');
               this.transcodeModeButtons.forEach((btn) => {
                 btn.setAttribute('aria-checked', btn.getAttribute('value') === this.transcodeMode);

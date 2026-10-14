@@ -3112,6 +3112,47 @@
                 }
             }
         },
+        "/api/settings/media": {
+            "get": {
+                "description": "Returns the DB-backed media integration settings (transcode, conversion, debug).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Settings"
+                ],
+                "summary": "Get runtime media settings",
+                "responses": {
+                    "200": {
+                        "description": "Media settings",
+                        "schema": {
+                            "$ref": "#/definitions/settings.MediaSettings"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "description": "Merges a partial JSON patch into the DB-backed media settings and applies them at runtime.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Settings"
+                ],
+                "summary": "Update runtime media settings",
+                "responses": {
+                    "200": {
+                        "description": "Updated media settings",
+                        "schema": {
+                            "$ref": "#/definitions/settings.MediaSettings"
+                        }
+                    }
+                }
+            }
+        },
         "/api/share": {
             "get": {
                 "description": "Retrieves all share links associated with a specific resource path for the current user.",
@@ -6233,6 +6274,43 @@
             "type": "object",
             "properties": {
                 "convert": {
+                    "description": "config for ffmpeg conversion settings. deprecated: manage via the admin media settings API",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/settings.FfmpegConvert"
+                        }
+                    ]
+                },
+                "debug": {
+                    "description": "output ffmpeg stdout for media integration. deprecated: manage via the admin media settings API",
+                    "type": "boolean"
+                },
+                "extractEmbeddedSubtitles": {
+                    "description": "extract embedded subtitles from media files. deprecated: manage via the admin media settings API",
+                    "type": "boolean"
+                },
+                "ffmpegPath": {
+                    "description": "path to ffmpeg directory with ffmpeg and ffprobe (eg. /usr/local/bin)",
+                    "type": "string"
+                },
+                "hardwareAcceleration": {
+                    "description": "enable hardware acceleration for ffmpeg if available. deprecated: manage via the admin media settings API",
+                    "type": "boolean"
+                },
+                "transcode": {
+                    "description": "HLS transcoding for media playback. deprecated: manage via the admin media settings API",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/settings.MediaTranscode"
+                        }
+                    ]
+                }
+            }
+        },
+        "settings.MediaSettings": {
+            "type": "object",
+            "properties": {
+                "convert": {
                     "description": "config for ffmpeg conversion settings",
                     "allOf": [
                         {
@@ -6247,10 +6325,6 @@
                 "extractEmbeddedSubtitles": {
                     "description": "extract embedded subtitles from media files",
                     "type": "boolean"
-                },
-                "ffmpegPath": {
-                    "description": "path to ffmpeg directory with ffmpeg and ffprobe (eg. /usr/local/bin)",
-                    "type": "string"
                 },
                 "hardwareAcceleration": {
                     "description": "enable hardware acceleration for ffmpeg if available",
@@ -6285,9 +6359,17 @@
                     "description": "global concurrent transcode sessions (default: 2)",
                     "type": "integer"
                 },
-                "maxResolution": {
-                    "description": "maximum output height in pixels (default: 1080)",
+                "maxConcurrentPerUser": {
+                    "description": "hard per-user concurrent transcode ceiling (default: 1)",
                     "type": "integer"
+                },
+                "profiles": {
+                    "description": "per-profile transcode settings shown in the player menu",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/settings.TranscodeProfiles"
+                        }
+                    ]
                 }
             }
         },
@@ -6842,6 +6924,52 @@
                 "lightBackground": {
                     "description": "specify a valid CSS color property value to use as the background color in light mode",
                     "type": "string"
+                }
+            }
+        },
+        "settings.TranscodeProfile": {
+            "type": "object",
+            "properties": {
+                "avgBitrateKbps": {
+                    "description": "average video bitrate in kbps; 0 = original",
+                    "type": "integer"
+                },
+                "enabled": {
+                    "description": "show this preset in the player menu (default: true)",
+                    "type": "boolean"
+                },
+                "maxResolution": {
+                    "description": "maximum output height in pixels; 0 = original",
+                    "type": "integer"
+                }
+            }
+        },
+        "settings.TranscodeProfiles": {
+            "type": "object",
+            "properties": {
+                "balanced": {
+                    "description": "balanced quality and size",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/settings.TranscodeProfile"
+                        }
+                    ]
+                },
+                "datasaver": {
+                    "description": "smallest output",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/settings.TranscodeProfile"
+                        }
+                    ]
+                },
+                "quality": {
+                    "description": "match the source unless capped",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/settings.TranscodeProfile"
+                        }
+                    ]
                 }
             }
         },

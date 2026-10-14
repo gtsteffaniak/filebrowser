@@ -118,6 +118,18 @@ export async function patchToolAccessDefaults(doc) {
   });
 }
 
+export function getMediaSettings() {
+  return fetchJSON(getApiPath("settings/media"));
+}
+
+export async function patchMediaSettings(partial) {
+  return fetchJSON(getApiPath("settings/media"), {
+    method: "PATCH",
+    body: JSON.stringify(partial),
+    headers: { "Content-Type": "application/json" },
+  });
+}
+
 export function getSourceSettings() {
   return fetchJSON(getApiPath("settings/source"));
 }

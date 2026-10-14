@@ -278,38 +278,6 @@ integrations:
     viewOnly: false                       # view only mode for OnlyOffice
   media:                                  #  validate:omitempty
     ffmpegPath: ""                        # path to ffmpeg directory with ffmpeg and ffprobe (eg. /usr/local/bin)
-    convert:                              # config for ffmpeg conversion settings
-      imagePreview:                       # supported image preview formats. defaults vary by type (see individual type docs)
-        heic: false
-        jpeg: true
-      videoPreview:                       # supported video preview formats. defaults to true for all types unless explicitly disabled.
-        3g2: true
-        3gp: true
-        asf: true
-        avi: true
-        f4v: true
-        flv: true
-        m2ts: true
-        m4v: true
-        mkv: true
-        mov: true
-        mp4: true
-        mpeg: true
-        mpg: true
-        ogv: true
-        ts: true
-        vob: true
-        webm: true
-        wmv: true
-    debug: false                          # output ffmpeg stdout for media integration -- careful can produces lots of output!
-    extractEmbeddedSubtitles: false       # extract embedded subtitles from media files
-    hardwareAcceleration: false           # enable hardware acceleration for ffmpeg if available
-    transcode:                            # HLS transcoding for media playback
-      enabled: false                      # enable HLS transcoding for authenticated playback (default: false)
-      maxConcurrent: 2                    # global concurrent transcode sessions (default: 2)
-      maxResolution: 1080                 # maximum output height in pixels (default: 1080)
-      cacheMaxSizeMB: 10240               # disk cache size limit in MB; 0 = unlimited (default: 10240)
-      cacheRetentionH: 24                 # completed cache retention in hours (default: 24)
 http:
   socket: ""                              # socket to listen on - eg. /var/run/filebrowser.sock
   tlsKey: ""                              # path to TLS key

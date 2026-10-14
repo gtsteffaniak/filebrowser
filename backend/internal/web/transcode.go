@@ -66,13 +66,7 @@ func transcodeStartHandler(w http.ResponseWriter, r *http.Request, d *Context) (
 		return status, resolveErr
 	}
 
-	userLimit := d.User.MaxConcurrentTranscodes
-	if userLimit < 1 {
-		userLimit = settings.Config.UserDefaults.Account.MaxConcurrentTranscodes
-	}
-	if userLimit < 1 {
-		userLimit = 1
-	}
+	userLimit := effectiveUserLimit(d.User.MaxConcurrentTranscodes)
 
 	logger.Infof("[transcode] POST sessions user=%s source=%q path=%q profile=%q replace=%q client=%q startSec=%.2f",
 		d.User.Username, req.Source, req.Path, profile, req.ReplaceSessionID, req.ClientID, req.StartSec)
@@ -120,7 +114,7 @@ func transcodeSessionsHandler(w http.ResponseWriter, r *http.Request, d *Context
 		return http.StatusServiceUnavailable, transcoding.ErrDisabled
 	}
 	adminAll := d.User.Permissions.Admin && strings.EqualFold(r.URL.Query().Get("all"), "true")
-	snap := mgr.Snapshot(d.User.Username, adminAll, d.User.MaxConcurrentTranscodes)
+	snap := mgr.Snapshot(d.User.Username, adminAll, effectiveUserLimit(d.User.MaxConcurrentTranscodes))
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(snap); err != nil {
 		return http.StatusInternalServerError, err
@@ -177,10 +171,7 @@ func transcodeEventsHandler(w http.ResponseWriter, r *http.Request, d *Context) 
 	events, cancel := mgr.Subscribe()
 	defer cancel()
 
-	userLimit := d.User.MaxConcurrentTranscodes
-	if userLimit < 1 {
-		userLimit = settings.Config.UserDefaults.Account.MaxConcurrentTranscodes
-	}
+	userLimit := effectiveUserLimit(d.User.MaxConcurrentTranscodes)
 	snap := mgr.Snapshot(d.User.Username, false, userLimit)
 	initPayload, _ := json.Marshal(transcoding.EventPayload{
 		ID:      "0",
@@ -334,4 +325,23 @@ func transcodeErrorStatus(err error) int {
 	default:
 		return http.StatusInternalServerError
 	}
+}
+
+// effectiveUserLimit resolves a user's concurrent transcode limit, clamped by the
+// admin-defined per-user ceiling and the global limit.
+func effectiveUserLimit(userMax int) int {
+	limit := userMax
+	if limit < 1 {
+		limit = settings.Config.UserDefaults.Account.MaxConcurrentTranscodes
+	}
+	if limit < 1 {
+		limit = 1
+	}
+	if ceiling := settings.TranscodeMaxConcurrentPerUser(); ceiling > 0 && limit > ceiling {
+		limit = ceiling
+	}
+	if global := settings.TranscodeMaxConcurrent(); global > 0 && limit > global {
+		limit = global
+	}
+	return limit
 }

@@ -385,8 +385,8 @@ func setupMediaTranscode() {
 	if t.MaxConcurrent <= 0 {
 		t.MaxConcurrent = 2
 	}
-	if t.MaxResolution <= 0 {
-		t.MaxResolution = 1080
+	if t.MaxConcurrentPerUser <= 0 {
+		t.MaxConcurrentPerUser = 1
 	}
 	if t.CacheMaxSizeMB < 0 {
 		t.CacheMaxSizeMB = 0
@@ -396,6 +396,28 @@ func setupMediaTranscode() {
 	}
 	if t.CacheRetentionH <= 0 {
 		t.CacheRetentionH = 24
+	}
+	normalizeTranscodeProfile(&t.Profiles.Quality)
+	normalizeTranscodeProfile(&t.Profiles.Balanced)
+	normalizeTranscodeProfile(&t.Profiles.DataSaver)
+}
+
+// normalizeTranscodeProfile clamps negative profile values (0 means "original").
+func normalizeTranscodeProfile(p *TranscodeProfile) {
+	if p.MaxResolution < 0 {
+		p.MaxResolution = 0
+	}
+	if p.AvgBitrateKbps < 0 {
+		p.AvgBitrateKbps = 0
+	}
+}
+
+// DefaultTranscodeProfiles returns the built-in transcode presets.
+func DefaultTranscodeProfiles() TranscodeProfiles {
+	return TranscodeProfiles{
+		Quality:   TranscodeProfile{Enabled: true, MaxResolution: 0, AvgBitrateKbps: 0},
+		Balanced:  TranscodeProfile{Enabled: true, MaxResolution: 1080, AvgBitrateKbps: 0},
+		DataSaver: TranscodeProfile{Enabled: true, MaxResolution: 720, AvgBitrateKbps: 0},
 	}
 }
 
@@ -628,13 +650,13 @@ func setupLogging() {
 	for i := range Config.Server.Logging {
 		cfg := &Config.Server.Logging[i]
 		// Enable debug logging automatically in dev mode
+		pattern := cfg.ApiFilter
+		if pattern == "" {
+			pattern = "^/health|^/favicon.ico|^/static|^/public/static|^/__vite"
+		}
 		levels := cfg.Levels
 		if os.Getenv("FILEBROWSER_DEVMODE") == "true" {
 			levels = "info|warning|error|debug"
-		}
-		pattern := cfg.ApiFilter
-		if pattern == "" {
-			pattern = "^/health|^/favicon.ico|^/static|^/public/static"
 		}
 		jsonCfg := logger.JsonConfig{
 			Levels:         levels,
@@ -1029,11 +1051,12 @@ func SetDefaults(generate bool) Settings {
 		s.Integrations.Media.Convert.VideoPreview[t] = boolPtr(true)
 	}
 	s.Integrations.Media.Transcode = MediaTranscode{
-		Enabled:         false,
-		MaxConcurrent:   2,
-		MaxResolution:   1080,
-		CacheMaxSizeMB:  10240,
-		CacheRetentionH: 24,
+		Enabled:              false,
+		MaxConcurrent:        2,
+		MaxConcurrentPerUser: 1,
+		CacheMaxSizeMB:       10240,
+		CacheRetentionH:      24,
+		Profiles:             DefaultTranscodeProfiles(),
 	}
 	return s
 }
@@ -1130,13 +1153,70 @@ func TranscodeMaxConcurrent() int {
 	return n
 }
 
-// TranscodeMaxResolution returns the configured maximum output height.
-func TranscodeMaxResolution() int {
-	n := Config.Integrations.Media.Transcode.MaxResolution
+// TranscodeMaxConcurrentPerUser returns the admin-defined per-user ceiling.
+func TranscodeMaxConcurrentPerUser() int {
+	n := Config.Integrations.Media.Transcode.MaxConcurrentPerUser
 	if n < 1 {
-		return 1080
+		return 1
 	}
 	return n
+}
+
+// EnabledTranscodeProfiles returns enabled transcode preset ids in player-menu order.
+func EnabledTranscodeProfiles() []string {
+	p := Config.Integrations.Media.Transcode.Profiles
+	ids := make([]string, 0, 3)
+	for _, e := range []struct {
+		id   string
+		prof TranscodeProfile
+	}{
+		{"quality", p.Quality},
+		{"balanced", p.Balanced},
+		{"datasaver", p.DataSaver},
+	} {
+		if e.prof.Enabled {
+			ids = append(ids, e.id)
+		}
+	}
+	return ids
+}
+
+// TranscodeProfileConfig returns the configured settings for a transcode profile name.
+func TranscodeProfileConfig(name string) (TranscodeProfile, bool) {
+	p := Config.Integrations.Media.Transcode.Profiles
+	switch name {
+	case "quality":
+		return p.Quality, true
+	case "balanced":
+		return p.Balanced, true
+	case "datasaver":
+		return p.DataSaver, true
+	default:
+		return TranscodeProfile{}, false
+	}
+}
+
+// CurrentMediaSettings returns the runtime media settings (excluding ffmpegPath).
+func CurrentMediaSettings() MediaSettings {
+	m := Config.Integrations.Media
+	return MediaSettings{
+		Convert:                  m.Convert,
+		Debug:                    m.Debug,
+		ExtractEmbeddedSubtitles: m.ExtractEmbeddedSubtitles,
+		HardwareAcceleration:     m.HardwareAcceleration,
+		Transcode:                m.Transcode,
+	}
+}
+
+// ApplyMediaSettings applies runtime media settings to the in-memory config and
+// re-initializes the ffmpeg integration so changes take effect immediately.
+func ApplyMediaSettings(s MediaSettings) {
+	Config.Integrations.Media.Convert = s.Convert
+	Config.Integrations.Media.Debug = s.Debug
+	Config.Integrations.Media.ExtractEmbeddedSubtitles = s.ExtractEmbeddedSubtitles
+	Config.Integrations.Media.HardwareAcceleration = s.HardwareAcceleration
+	Config.Integrations.Media.Transcode = s.Transcode
+	setupMedia(false)
 }
 
 // TranscodeCacheMaxSizeBytes returns the configured disk cache limit in bytes.

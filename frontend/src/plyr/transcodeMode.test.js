@@ -10,13 +10,15 @@ import {
 describe('transcodeMode', () => {
   it('normalizes supported modes', () => {
     expect(normalizeTranscodeMode('quality')).toBe('quality');
+    expect(normalizeTranscodeMode('balanced')).toBe('balanced');
     expect(normalizeTranscodeMode('unknown')).toBe('native');
   });
 
   it('identifies HLS modes', () => {
-    expect(TRANSCODE_MODES).toEqual(['native', 'quality', 'datasaver']);
-    expect(TRANSCODE_HLS_MODES).toEqual(['quality', 'datasaver']);
+    expect(TRANSCODE_MODES).toEqual(['native', 'quality', 'balanced', 'datasaver']);
+    expect(TRANSCODE_HLS_MODES).toEqual(['quality', 'balanced', 'datasaver']);
     expect(isTranscodeHlsMode('quality')).toBe(true);
+    expect(isTranscodeHlsMode('balanced')).toBe(true);
     expect(isTranscodeHlsMode('native')).toBe(false);
   });
 

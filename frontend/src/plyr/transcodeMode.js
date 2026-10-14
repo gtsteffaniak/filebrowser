@@ -1,8 +1,8 @@
 /** Supported transcode playback modes in the player UI. */
-export const TRANSCODE_MODES = ['native', 'quality', 'datasaver'];
+export const TRANSCODE_MODES = ['native', 'quality', 'balanced', 'datasaver'];
 
 /** Modes that use server-side HLS transcoding. */
-export const TRANSCODE_HLS_MODES = ['quality', 'datasaver'];
+export const TRANSCODE_HLS_MODES = ['quality', 'balanced', 'datasaver'];
 
 export function normalizeTranscodeMode(mode) {
   const value = String(mode || 'native').toLowerCase();

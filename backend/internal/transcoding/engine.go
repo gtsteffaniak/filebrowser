@@ -2,6 +2,7 @@ package transcoding
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"strings"
 
@@ -79,6 +80,7 @@ func (e *MediaEngine) BuildPlan(ctx context.Context, realPath string, profile Pr
 	plan.pipeline = pipeline
 	plan.profileMode = string(profile)
 	plan.maxHeight = maxHeightForProfile(profile)
+	plan.avgBitrateKbps = avgBitrateForProfile(profile)
 	plan.remux = params.Remux
 	plan.videoCopy = params.VideoCopy
 	plan.needsTranscode = ffmpeg.NeedsFullVideoTranscode(info, pipeline)
@@ -109,6 +111,7 @@ func (e *MediaEngine) BuildPlan(ctx context.Context, realPath string, profile Pr
 		FileModTime:        stat.ModTime().UnixNano(),
 		Profile:            plan.profileMode,
 		MaxResolution:      plan.maxHeight,
+		MaxBitrate:         plan.avgBitrateKbps,
 		SegmentDurationSec: plan.segmentSec,
 		Params:             params,
 	}
@@ -149,6 +152,7 @@ type hlsPlan struct {
 	pipeline         ffmpeg.HLSPipelineOptions
 	profileMode      string
 	maxHeight        int
+	avgBitrateKbps   int
 	remux            bool
 	videoCopy        bool
 	needsTranscode   bool
@@ -161,32 +165,64 @@ type hlsPlan struct {
 	cacheFingerprint string
 }
 
+// maxHeightForProfile returns the configured output height cap for a profile.
+// Zero means "keep the source resolution".
 func maxHeightForProfile(profile Profile) int {
-	configMax := settings.TranscodeMaxResolution()
-	modeMax := 1080
-	if profile == ProfileDataSaver {
-		modeMax = 720
+	cfg, ok := settings.TranscodeProfileConfig(string(profile))
+	if !ok {
+		return 0
 	}
-	if configMax > 0 && configMax < modeMax {
-		return configMax
+	return cfg.MaxResolution
+}
+
+func avgBitrateForProfile(profile Profile) int {
+	cfg, ok := settings.TranscodeProfileConfig(string(profile))
+	if !ok {
+		return 0
 	}
-	return modeMax
+	return cfg.AvgBitrateKbps
 }
 
 func encodeProfileForMode(info ffmpeg.StreamInfo, profile Profile) encode.VideoProfile {
+	cfg, _ := settings.TranscodeProfileConfig(string(profile))
+	maxHeight := cfg.MaxResolution
+	if maxHeight <= 0 {
+		maxHeight = info.Height
+	}
+	base := ffmpeg.DefaultHLSVideoProfile(maxHeight)
 	switch profile {
 	case ProfileDataSaver:
-		base := ffmpeg.DefaultHLSVideoProfile(maxHeightForProfile(profile))
 		base.Quality = encode.PresetVeryfast
-		base.Bitrate = encode.BitrateConfig{
-			Target:  "1500k",
-			Min:     "800k",
-			Max:     "2500k",
-			BufSize: "3000k",
-		}
-		return base
+	case ProfileBalanced:
+		base.Quality = encode.PresetFast
 	default:
-		return ffmpeg.DefaultHLSVideoProfile(maxHeightForProfile(profile))
+		base.Quality = encode.PresetMedium
+	}
+	base.Bitrate = transcodeBitrateConfig(cfg, info, maxHeight)
+	return base
+}
+
+// transcodeBitrateConfig resolves the target bitrate: explicit config wins, then the
+// source bitrate when no downscale is applied, then a resolution-derived default.
+func transcodeBitrateConfig(cfg settings.TranscodeProfile, info ffmpeg.StreamInfo, maxHeight int) encode.BitrateConfig {
+	if cfg.AvgBitrateKbps > 0 {
+		return bitrateFromKbps(cfg.AvgBitrateKbps)
+	}
+	if info.VideoBitrate > 0 && (maxHeight <= 0 || info.Height <= maxHeight) {
+		return bitrateFromKbps(info.VideoBitrate / 1000)
+	}
+	return ffmpeg.DefaultHLSVideoProfile(maxHeight).Bitrate
+}
+
+func bitrateFromKbps(kbps int) encode.BitrateConfig {
+	if kbps < 1 {
+		kbps = 1
+	}
+	return encode.BitrateConfig{
+		Target:  fmt.Sprintf("%dk", kbps),
+		Min:     fmt.Sprintf("%dk", kbps/2),
+		Max:     fmt.Sprintf("%dk", kbps*3/2),
+		BufSize: fmt.Sprintf("%dk", kbps*2),
 	}
 }
 

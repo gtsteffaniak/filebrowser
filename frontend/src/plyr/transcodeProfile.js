@@ -2,15 +2,13 @@ import { parseTranscodeModeFromQuery, PLAYBACK_TRANSCODE_QUERY_KEY } from '@/uti
 
 export const TRANSCODE_PROFILES = {
   quality: 'quality',
+  balanced: 'balanced',
   datasaver: 'datasaver',
 };
 
 /** Map shareable playback query mode to backend profile. */
 export function profileFromTranscodeMode(mode) {
-  if (mode === 'datasaver') {
-    return TRANSCODE_PROFILES.datasaver;
-  }
-  return TRANSCODE_PROFILES.quality;
+  return TRANSCODE_PROFILES[mode] ?? TRANSCODE_PROFILES.quality;
 }
 
 export function transcodeModeFromRouteQuery(query) {

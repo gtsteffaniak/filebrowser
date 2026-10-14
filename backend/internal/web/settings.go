@@ -149,10 +149,10 @@ func getSourceInfoHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 }
 
 type userDefaultsResponse struct {
-	Values                  *settings.UserDefaults            `json:"values,omitempty"`
-	Enforced                settings.UserDefaultsEnforcement `json:"enforced"`
-	LockedFromConfigPaths   []string                         `json:"lockedFromConfigPaths,omitempty"`
-	LockMessage             string                           `json:"lockMessage,omitempty"`
+	Values                *settings.UserDefaults           `json:"values,omitempty"`
+	Enforced              settings.UserDefaultsEnforcement `json:"enforced"`
+	LockedFromConfigPaths []string                         `json:"lockedFromConfigPaths,omitempty"`
+	LockMessage           string                           `json:"lockMessage,omitempty"`
 }
 
 func userDefaultsLockMeta() (paths []string, message string) {
@@ -349,7 +349,7 @@ func settingsToolAccessDefaultsPatchHandler(w http.ResponseWriter, r *http.Reque
 }
 
 type shareDefaultsResponse struct {
-	Values   *settings.ShareDefaults            `json:"values,omitempty"`
+	Values   *settings.ShareDefaults           `json:"values,omitempty"`
 	Enforced settings.ShareDefaultsEnforcement `json:"enforced"`
 }
 
@@ -431,4 +431,41 @@ func settingsShareDefaultsPatchHandler(w http.ResponseWriter, r *http.Request, d
 		}
 	}
 	return settingsShareDefaultsGetHandler(w, r, d)
+}
+
+// settingsMediaGetHandler returns the runtime media settings for admin users.
+// @Summary Get runtime media settings
+// @Description Returns the DB-backed media integration settings (transcode, conversion, debug).
+// @Tags Settings
+// @Produce json
+// @Success 200 {object} settings.MediaSettings "Media settings"
+// @Router /api/settings/media [get]
+func settingsMediaGetHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+	return RenderJSON(w, r, state.GetMediaSettings())
+}
+
+// settingsMediaPatchHandler merges a partial update into the runtime media settings.
+// @Summary Update runtime media settings
+// @Description Merges a partial JSON patch into the DB-backed media settings and applies them at runtime.
+// @Tags Settings
+// @Accept json
+// @Produce json
+// @Success 200 {object} settings.MediaSettings "Updated media settings"
+// @Router /api/settings/media [patch]
+func settingsMediaPatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+	patchJSON, err := readSettingsPatchBody(w, r)
+	if err != nil {
+		if err.Error() == "request body too large" {
+			return http.StatusRequestEntityTooLarge, err
+		}
+		return http.StatusBadRequest, fmt.Errorf("read media settings patch: %w", err)
+	}
+	if len(patchJSON) == 0 {
+		return http.StatusBadRequest, fmt.Errorf("empty media settings patch body")
+	}
+	if err := state.PatchMediaSettings(patchJSON); err != nil {
+		logger.Errorf("failed to patch media settings: %v", err)
+		return http.StatusBadRequest, fmt.Errorf("failed to update media settings: %w", err)
+	}
+	return settingsMediaGetHandler(w, r, d)
 }

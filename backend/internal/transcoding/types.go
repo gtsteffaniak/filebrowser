@@ -18,12 +18,13 @@ type Profile string
 
 const (
 	ProfileQuality   Profile = "quality"
+	ProfileBalanced  Profile = "balanced"
 	ProfileDataSaver Profile = "datasaver"
 )
 
 func ParseProfile(raw string) (Profile, error) {
 	switch Profile(raw) {
-	case ProfileQuality, ProfileDataSaver:
+	case ProfileQuality, ProfileBalanced, ProfileDataSaver:
 		return Profile(raw), nil
 	default:
 		return "", ErrInvalidProfile
@@ -57,15 +58,15 @@ type SessionInfo struct {
 
 // SnapshotResponse is returned by session list/status endpoints.
 type SnapshotResponse struct {
-	Enabled        bool          `json:"enabled"`
-	GlobalLimit    int           `json:"globalLimit"`
-	UserLimit      int           `json:"userLimit"`
-	GlobalActive   int           `json:"globalActive"`
-	UserActive     int           `json:"userActive"`
-	CanStart       bool          `json:"canStart"`
-	BlockReason    string        `json:"blockReason,omitempty"`
-	HeartbeatSec   int           `json:"heartbeatIntervalSec"`
-	Sessions       []SessionInfo `json:"sessions"`
+	Enabled      bool          `json:"enabled"`
+	GlobalLimit  int           `json:"globalLimit"`
+	UserLimit    int           `json:"userLimit"`
+	GlobalActive int           `json:"globalActive"`
+	UserActive   int           `json:"userActive"`
+	CanStart     bool          `json:"canStart"`
+	BlockReason  string        `json:"blockReason,omitempty"`
+	HeartbeatSec int           `json:"heartbeatIntervalSec"`
+	Sessions     []SessionInfo `json:"sessions"`
 }
 
 // StartRequest is the body for POST /api/media/transcode/sessions.

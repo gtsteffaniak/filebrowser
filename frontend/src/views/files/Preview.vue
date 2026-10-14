@@ -831,7 +831,7 @@ export default {
       if (state.req.path !== expectedPath) {
         return;
       }
-      if (this.previewType !== 'video' || getters.isShare() || globalVars.transcodeEnabled !== true) {
+      if (this.previewType !== 'video' || getters.isShare()) {
         return;
       }
       if (this.transcodePlaybackActive || parseTranscodeModeFromQuery(this.$route?.query)) {
@@ -844,6 +844,10 @@ export default {
         mimeType: state.req.type,
         fileName: state.req.name,
       })) {
+        return;
+      }
+      if (globalVars.transcodeEnabled !== true) {
+        this.handleVideoTranscodeOffer({ enabled: false, canStart: false, sessions: [] });
         return;
       }
       try {
@@ -865,13 +869,15 @@ export default {
     },
     /** plyrViewer failed native playback or detected an unsupported container. */
     handleVideoTranscodeOffer(status) {
-      if (this.previewType !== 'video' || getters.isShare() || globalVars.transcodeEnabled !== true) {
+      if (this.previewType !== 'video' || getters.isShare()) {
         return;
       }
       this.disposeTranscodePlaybackController({ stopSession: true });
       status = this.normalizeTranscodeSessionStatus(status);
       let mode = 'offer';
-      if (!status.canStart) {
+      if (status.enabled === false || globalVars.transcodeEnabled !== true) {
+        mode = 'unsupported';
+      } else if (!status.canStart) {
         if (status.blockReason === 'user_limit') {
           mode = 'user_limit';
         } else if (status.blockReason === 'global_limit') {

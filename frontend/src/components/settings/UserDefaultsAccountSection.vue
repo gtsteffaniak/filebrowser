@@ -73,9 +73,10 @@
             class="sizeInput input"
             type="number"
             min="1"
+            :max="maxConcurrentTranscodesLimit"
             step="1"
             :value="account.maxConcurrentTranscodes"
-            @change="emitAccountChange('maxConcurrentTranscodes', Number($event.target.value))"
+            @change="emitAccountChange('maxConcurrentTranscodes', clampMaxConcurrentTranscodes($event.target.value))"
             :disabled="isFieldDisabled('maxConcurrentTranscodes')"
           />
         </div>
@@ -137,6 +138,7 @@ import SettingsItem from "@/components/settings/SettingsItem.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
 import { getObjectProperty } from "@/utils/object.js";
+import { globalVars } from "@/utils/constants";
 
 export default {
   name: "UserDefaultsAccountSection",
@@ -184,8 +186,17 @@ export default {
     maxConcurrentTranscodesInputId() {
       return `maxConcurrentTranscodes-${this._uid}`;
     },
+    maxConcurrentTranscodesLimit() {
+      const limit = globalVars?.transcodeMaxPerUser;
+      return Number.isFinite(limit) && limit > 0 ? limit : undefined;
+    },
   },
   methods: {
+    clampMaxConcurrentTranscodes(raw) {
+      const value = Math.max(1, Number(raw) || 1);
+      const limit = this.maxConcurrentTranscodesLimit;
+      return limit ? Math.min(value, limit) : value;
+    },
     isFieldLocked(field) {
       return this.configLockedPaths.includes(`account.${field}`);
     },

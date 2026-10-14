@@ -661,6 +661,34 @@ definitions:
       convert:
         allOf:
         - $ref: '#/definitions/settings.FfmpegConvert'
+        description: 'config for ffmpeg conversion settings. deprecated: manage via
+          the admin media settings API'
+      debug:
+        description: 'output ffmpeg stdout for media integration. deprecated: manage
+          via the admin media settings API'
+        type: boolean
+      extractEmbeddedSubtitles:
+        description: 'extract embedded subtitles from media files. deprecated: manage
+          via the admin media settings API'
+        type: boolean
+      ffmpegPath:
+        description: path to ffmpeg directory with ffmpeg and ffprobe (eg. /usr/local/bin)
+        type: string
+      hardwareAcceleration:
+        description: 'enable hardware acceleration for ffmpeg if available. deprecated:
+          manage via the admin media settings API'
+        type: boolean
+      transcode:
+        allOf:
+        - $ref: '#/definitions/settings.MediaTranscode'
+        description: 'HLS transcoding for media playback. deprecated: manage via the
+          admin media settings API'
+    type: object
+  settings.MediaSettings:
+    properties:
+      convert:
+        allOf:
+        - $ref: '#/definitions/settings.FfmpegConvert'
         description: config for ffmpeg conversion settings
       debug:
         description: output ffmpeg stdout for media integration -- careful can produces
@@ -669,9 +697,6 @@ definitions:
       extractEmbeddedSubtitles:
         description: extract embedded subtitles from media files
         type: boolean
-      ffmpegPath:
-        description: path to ffmpeg directory with ffmpeg and ffprobe (eg. /usr/local/bin)
-        type: string
       hardwareAcceleration:
         description: enable hardware acceleration for ffmpeg if available
         type: boolean
@@ -695,9 +720,13 @@ definitions:
       maxConcurrent:
         description: 'global concurrent transcode sessions (default: 2)'
         type: integer
-      maxResolution:
-        description: 'maximum output height in pixels (default: 1080)'
+      maxConcurrentPerUser:
+        description: 'hard per-user concurrent transcode ceiling (default: 1)'
         type: integer
+      profiles:
+        allOf:
+        - $ref: '#/definitions/settings.TranscodeProfiles'
+        description: per-profile transcode settings shown in the player menu
     type: object
   settings.OidcConfig:
     properties:
@@ -1113,6 +1142,33 @@ definitions:
         description: specify a valid CSS color property value to use as the background
           color in light mode
         type: string
+    type: object
+  settings.TranscodeProfile:
+    properties:
+      avgBitrateKbps:
+        description: average video bitrate in kbps; 0 = original
+        type: integer
+      enabled:
+        description: 'show this preset in the player menu (default: true)'
+        type: boolean
+      maxResolution:
+        description: maximum output height in pixels; 0 = original
+        type: integer
+    type: object
+  settings.TranscodeProfiles:
+    properties:
+      balanced:
+        allOf:
+        - $ref: '#/definitions/settings.TranscodeProfile'
+        description: balanced quality and size
+      datasaver:
+        allOf:
+        - $ref: '#/definitions/settings.TranscodeProfile'
+        description: smallest output
+      quality:
+        allOf:
+        - $ref: '#/definitions/settings.TranscodeProfile'
+        description: match the source unless capped
     type: object
   settings.UserDefaults:
     properties:
@@ -4729,6 +4785,35 @@ paths:
           schema:
             type: string
       summary: Get system settings as YAML
+      tags:
+      - Settings
+  /api/settings/media:
+    get:
+      description: Returns the DB-backed media integration settings (transcode, conversion,
+        debug).
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Media settings
+          schema:
+            $ref: '#/definitions/settings.MediaSettings'
+      summary: Get runtime media settings
+      tags:
+      - Settings
+    patch:
+      consumes:
+      - application/json
+      description: Merges a partial JSON patch into the DB-backed media settings and
+        applies them at runtime.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Updated media settings
+          schema:
+            $ref: '#/definitions/settings.MediaSettings'
+      summary: Update runtime media settings
       tags:
       - Settings
   /api/share:

@@ -445,6 +445,12 @@ func userPatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 		}
 	}
 
+	if state.FieldListIncludes(req.Which, "maxConcurrentTranscodes") {
+		if ceiling := settings.TranscodeMaxConcurrentPerUser(); ceiling > 0 && req.User.MaxConcurrentTranscodes > ceiling {
+			req.User.MaxConcurrentTranscodes = ceiling
+		}
+	}
+
 	err = state.UpdateUser(&req.User, req.User.Password, req.Which...)
 	if err != nil {
 		var locked settings.ErrEnforcedUserField
