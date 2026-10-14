@@ -6,6 +6,12 @@ import { transcodeError, transcodeLog, transcodeVerbose, transcodeWarn } from '@
 const ATTACH_TIMEOUT_MS = 45_000;
 /** Minimum forward buffer before starting playback on live transcode sessions. */
 const MIN_LIVE_BUFFER_FRAGS = 2;
+/**
+ * A live session can take a while to buffer MIN_LIVE_BUFFER_FRAGS. Once the
+ * element is actually playable, start after this grace period instead of
+ * leaving playback (and the mode-switch UI) blocked on the extra fragment.
+ */
+const LIVE_BUFFER_GRACE_MS = 2_000;
 const RECOVERABLE_HLS_DETAILS = new Set([
   'bufferSeekOverHole',
   'bufferNudgeOnStall',
@@ -148,6 +154,47 @@ export function attachHlsToVideo({
       }
     };
 
+    let graceTimerId = null;
+    const clearGraceTimer = () => {
+      if (graceTimerId !== null) {
+        clearTimeout(graceTimerId);
+        graceTimerId = null;
+      }
+    };
+    const startPlaybackReady = (reason) => {
+      if (settled || readyToPlay) {
+        return;
+      }
+      readyToPlay = true;
+      clearGraceTimer();
+      transcodeLog('hls attach ready', {
+        reason,
+        bufferedFrags,
+        minBufferFrags,
+        readyState: video.readyState,
+      });
+      onFirstBuffered?.(video);
+      finish('resolve', { cleanup, hls });
+    };
+    const onVideoPlayable = () => scheduleGraceResolve();
+    const scheduleGraceResolve = () => {
+      if (settled || readyToPlay || graceTimerId !== null || bufferedFrags < 1) {
+        return;
+      }
+      const playable = video.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA
+        || video.buffered?.length > 0;
+      if (!playable) {
+        return;
+      }
+      graceTimerId = setTimeout(() => {
+        graceTimerId = null;
+        if (bufferedFrags < 1) {
+          return;
+        }
+        startPlaybackReady('live-buffer-grace');
+      }, LIVE_BUFFER_GRACE_MS);
+    };
+
     const timeoutId = setTimeout(() => {
       transcodeError('hls attach timed out waiting for buffered fragments', {
         sessionId: session?.id,
@@ -182,6 +229,9 @@ export function attachHlsToVideo({
 
     const cleanup = () => {
       transcodeLog('hls destroy', { sessionId: session?.id });
+      clearGraceTimer();
+      video.removeEventListener('canplay', onVideoPlayable);
+      video.removeEventListener('loadeddata', onVideoPlayable);
       hls.destroy();
     };
 
@@ -238,12 +288,14 @@ export function attachHlsToVideo({
         bufferedFrags,
         minBufferFrags,
       });
-      if (readyToPlay || bufferedFrags < minBufferFrags) {
+      if (readyToPlay) {
         return;
       }
-      readyToPlay = true;
-      onFirstBuffered?.(video);
-      finish('resolve', { cleanup, hls });
+      if (bufferedFrags >= minBufferFrags) {
+        startPlaybackReady('buffer-satisfied');
+        return;
+      }
+      scheduleGraceResolve();
     });
 
     hls.on(Hls.Events.ERROR, (_event, data) => {
@@ -261,6 +313,9 @@ export function attachHlsToVideo({
       }
       transcodeWarn('hls non-fatal error', info);
     });
+
+    video.addEventListener('canplay', onVideoPlayable);
+    video.addEventListener('loadeddata', onVideoPlayable);
 
     transcodeLog('hls attachMedia + loadSource', { playlistURL });
     hls.attachMedia(video);
