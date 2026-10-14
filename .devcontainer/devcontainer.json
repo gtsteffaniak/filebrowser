@@ -1,6 +1,6 @@
 {
   "name": "filebrowser",
-  "image": "mcr.microsoft.com/devcontainers/go:1.25-bookworm",
+  "image": "mcr.microsoft.com/devcontainers/go:1.27-bookworm",
   
 
   "features": {
