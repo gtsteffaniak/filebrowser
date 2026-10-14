@@ -657,6 +657,7 @@
     "media": "Media",
     "hardwareAcceleration": "Hardware acceleration",
     "hardwareAccelerationDescription": "Use GPU hardware acceleration for ffmpeg when available.",
+    "hardwareAccelerationUnavailable": "No usable ffmpeg hardware encoder was detected on this server.",
     "extractEmbeddedSubtitles": "Extract embedded subtitles",
     "extractEmbeddedSubtitlesDescription": "Extract embedded subtitles from media files.",
     "mediaDebug": "Debug logging",

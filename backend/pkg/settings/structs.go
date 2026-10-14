@@ -52,6 +52,7 @@ type Environment struct {
 	FFmpegPath                     string          `json:"-"`
 	FFprobePath                    string          `json:"-"`
 	FFmpegAvailable                bool            `json:"-"`
+	HardwareAccelerationAvailable  bool            `json:"-"` // true when ffmpeg reports at least one usable hardware encoder
 	LoginIconPath                  string          `json:"-"` // resolved login icon path (filesystem or embedded)
 	LoginIconIsCustom              bool            `json:"-"` // true if login icon is from custom filesystem path
 	LoginIconEmbeddedPath          string          `json:"-"` // embedded asset path for default icon
@@ -143,11 +144,11 @@ type Media struct {
 	// The fields below are deprecated and migrated to runtime (DB-backed) media settings on
 	// first run. They are kept only to seed the database from an existing config.yaml.
 
-	Convert                  FfmpegConvert  `json:"convert"`                  // config for ffmpeg conversion settings. deprecated: manage via the admin media settings API
-	Debug                    bool           `json:"debug"`                    // output ffmpeg stdout for media integration. deprecated: manage via the admin media settings API
-	ExtractEmbeddedSubtitles bool           `json:"extractEmbeddedSubtitles"` // extract embedded subtitles from media files. deprecated: manage via the admin media settings API
-	HardwareAcceleration     bool           `json:"hardwareAcceleration"`     // enable hardware acceleration for ffmpeg if available. deprecated: manage via the admin media settings API
-	Transcode                MediaTranscode `json:"transcode"`                // HLS transcoding for media playback. deprecated: manage via the admin media settings API
+	Convert                  FfmpegConvert  `json:"convert"`                  // deprecated: config for ffmpeg conversion settings. deprecated: manage via the admin media settings API
+	Debug                    bool           `json:"debug"`                    // deprecated: output ffmpeg stdout for media integration. deprecated: manage via the admin media settings API
+	ExtractEmbeddedSubtitles bool           `json:"extractEmbeddedSubtitles"` // deprecated:extract embedded subtitles from media files. deprecated: manage via the admin media settings API
+	HardwareAcceleration     bool           `json:"hardwareAcceleration"`     // deprecated: enable hardware acceleration for ffmpeg if available. deprecated: manage via the admin media settings API
+	Transcode                MediaTranscode `json:"transcode"`                // deprecated: HLS transcoding for media playback. deprecated: manage via the admin media settings API
 }
 
 // MediaSettings holds the runtime (DB-backed) media integration settings.

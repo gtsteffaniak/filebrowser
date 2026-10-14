@@ -10,6 +10,7 @@ import (
 	"time"
 
 	goffmpeg "github.com/gtsteffaniak/go-ffmpeg"
+	"github.com/gtsteffaniak/go-ffmpeg/capabilities"
 )
 
 func requireFFmpegBinaries(t *testing.T) {
@@ -58,8 +59,8 @@ func TestGetMediaDurationConcurrentNoDeadlock(t *testing.T) {
 			MaxEncode: 2,
 		},
 		CacheDir:             t.TempDir(),
-		SkipHWTests:          true,
 		HardwareAcceleration: false,
+		EncoderHierarchy:     []capabilities.AccelType{capabilities.AccelNone},
 	})
 	if err != nil {
 		t.Fatalf("Initialize() error = %v", err)

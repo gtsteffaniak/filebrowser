@@ -10,8 +10,9 @@
     <template v-else>
       <div class="settings-items">
         <ToggleSwitch class="item" v-model="media.hardwareAcceleration"
+          :disabled="!hardwareAccelerationAvailable"
           :name="$t('settings.hardwareAcceleration')"
-          :description="$t('settings.hardwareAccelerationDescription')" />
+          :description="hardwareAccelerationDescription" />
         <ToggleSwitch class="item" v-model="media.extractEmbeddedSubtitles"
           :name="$t('settings.extractEmbeddedSubtitles')"
           :description="$t('settings.extractEmbeddedSubtitlesDescription')" />
@@ -49,6 +50,7 @@ import { notify } from "@/notify";
 import { mutations } from "@/store";
 import { eventBus } from "@/store/eventBus";
 import { getMediaSettings, patchMediaSettings } from "@/api/settings";
+import { globalVars } from "@/utils/constants";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import SettingsButton from "@/components/settings/SettingsButton.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
@@ -74,6 +76,17 @@ export default {
       loading: true,
       mediaSettingsHandler: null,
     };
+  },
+  computed: {
+    /** Detection always runs, so this reflects whether any hardware encoder works. */
+    hardwareAccelerationAvailable() {
+      return globalVars?.hardwareAccelerationAvailable === true;
+    },
+    hardwareAccelerationDescription() {
+      return this.hardwareAccelerationAvailable
+        ? this.$t("settings.hardwareAccelerationDescription")
+        : this.$t("settings.hardwareAccelerationUnavailable");
+    },
   },
   mounted() {
     this.mediaSettingsHandler = () => this.load({ silent: true });

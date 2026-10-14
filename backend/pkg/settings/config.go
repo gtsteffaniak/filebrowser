@@ -22,6 +22,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/version"
 	goffmpeg "github.com/gtsteffaniak/go-ffmpeg"
+	"github.com/gtsteffaniak/go-ffmpeg/capabilities"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
@@ -439,7 +440,7 @@ func setupFFmpegIntegration() {
 	if maxEncode < 1 {
 		maxEncode = 2
 	}
-	err := ffmpeg.Initialize(context.Background(), ffmpeg.InitOptions{
+	initOpts := ffmpeg.InitOptions{
 		FFmpegPath: Config.Integrations.Media.FfmpegPath,
 		Concurrency: goffmpeg.Concurrency{
 			MaxProbe:  16,
@@ -447,9 +448,14 @@ func setupFFmpegIntegration() {
 			MaxEncode: maxEncode,
 		},
 		CacheDir:             Config.Server.CacheDir,
-		SkipHWTests:          !Config.Integrations.Media.HardwareAcceleration,
 		HardwareAcceleration: Config.Integrations.Media.HardwareAcceleration,
-	})
+	}
+	// Hardware codec detection always runs so the setting can be toggled at
+	// runtime; when it is off, software encoders are preferred instead.
+	if !Config.Integrations.Media.HardwareAcceleration {
+		initOpts.EncoderHierarchy = []capabilities.AccelType{capabilities.AccelNone}
+	}
+	err := ffmpeg.Initialize(context.Background(), initOpts)
 	if err != nil {
 		logger.Warningf("ffmpeg unavailable: %v", err)
 		Env.FFmpegAvailable = false
@@ -467,6 +473,7 @@ func setupFFmpegIntegration() {
 	Env.FFmpegAvailable = true
 	Env.FFmpegPath = svc.FFmpegPath()
 	Env.FFprobePath = svc.FFprobePath()
+	Env.HardwareAccelerationAvailable = svc.HardwareAccelerationAvailable()
 }
 
 func setupSources(generate bool) {

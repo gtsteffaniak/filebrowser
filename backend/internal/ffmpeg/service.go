@@ -30,25 +30,28 @@ type InitOptions struct {
 	MaxConcurrent        int // deprecated: use Concurrency
 	Concurrency          goffmpeg.Concurrency
 	CacheDir             string
-	SkipHWTests          bool
 	HardwareAcceleration bool
+	// EncoderHierarchy restricts which acceleration backends are preferred.
+	// Pass []capabilities.AccelType{capabilities.AccelNone} to keep detection
+	// (so hardware availability stays known) while preferring software.
+	EncoderHierarchy []capabilities.AccelType
 }
 
 // Initialize creates the global ffmpeg service and runs capability detection.
+// Hardware encoder smoke tests always run so hardware acceleration can be
+// enabled or disabled at runtime without a restart.
 func Initialize(ctx context.Context, opts InitOptions) error {
 	if opts.CacheDir == "" {
 		opts.CacheDir = os.TempDir()
 	}
 
-	if opts.HardwareAcceleration {
-		logger.Info("Detecting ffmpeg hardware codec support...")
-	}
+	logger.Info("Detecting ffmpeg codec support...")
 
 	cfg := goffmpeg.Config{
-		FFmpegPath:    opts.FFmpegPath,
-		Concurrency:   opts.Concurrency,
-		Logger:        goffmpeg.NopLogger(),
-		SkipHWTests:   opts.SkipHWTests,
+		FFmpegPath:       opts.FFmpegPath,
+		Concurrency:      opts.Concurrency,
+		Logger:           goffmpeg.NopLogger(),
+		EncoderHierarchy: opts.EncoderHierarchy,
 	}
 	if opts.Concurrency.MaxProbe == 0 && opts.Concurrency.MaxDecode == 0 && opts.Concurrency.MaxEncode == 0 {
 		if opts.MaxConcurrent < 1 {
@@ -70,6 +73,28 @@ func Initialize(ctx context.Context, opts InitOptions) error {
 
 	logCapabilities(svc, opts.HardwareAcceleration)
 	return nil
+}
+
+// HardwareAccelerationAvailable reports whether any hardware encoder is usable.
+func HardwareAccelerationAvailable() bool {
+	return global.HardwareAccelerationAvailable()
+}
+
+// HardwareAccelerationAvailable reports whether any hardware encoder is usable.
+func (s *Service) HardwareAccelerationAvailable() bool {
+	if s == nil || s.inner == nil {
+		return false
+	}
+	caps := s.inner.Capabilities()
+	if caps == nil {
+		return false
+	}
+	for _, enc := range caps.Encoders {
+		if enc.Available && enc.Kind != "" && enc.Kind != "software" {
+			return true
+		}
+	}
+	return false
 }
 
 // Get returns the initialized service, or nil when ffmpeg is unavailable.
@@ -145,7 +170,7 @@ func (s *Service) ExtractSubtitle(ctx context.Context, videoPath string, streamI
 	return content, nil
 }
 
-func logCapabilities(svc *goffmpeg.Service, detectHardware bool) {
+func logCapabilities(svc *goffmpeg.Service, wantsHardware bool) {
 	caps := svc.Capabilities()
 	if caps == nil {
 		return
@@ -153,13 +178,13 @@ func logCapabilities(svc *goffmpeg.Service, detectHardware bool) {
 
 	logger.Debugf("Media Enabled: version %s @ %s", caps.FFmpegVersion, caps.FFmpegPath)
 
-	if !detectHardware {
-		return
-	}
-
 	hw := hardwareCodecSummary(svc)
 	if hw == "" {
-		logger.Warning("no ffmpeg hardware codec support found")
+		if wantsHardware {
+			logger.Warning("hardware acceleration is enabled but no ffmpeg hardware codec support was found")
+		} else {
+			logger.Debug("no ffmpeg hardware codec support found")
+		}
 		return
 	}
 	logger.Debugf("supported ffmpeg hardware codecs: %s", hw)
