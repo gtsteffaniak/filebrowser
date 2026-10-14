@@ -415,9 +415,13 @@ func normalizeTranscodeProfile(p *TranscodeProfile) {
 // DefaultTranscodeProfiles returns the built-in transcode presets.
 func DefaultTranscodeProfiles() TranscodeProfiles {
 	return TranscodeProfiles{
-		Quality:   TranscodeProfile{Enabled: true, MaxResolution: 0, AvgBitrateKbps: 0},
-		Balanced:  TranscodeProfile{Enabled: true, MaxResolution: 1080, AvgBitrateKbps: 0},
-		DataSaver: TranscodeProfile{Enabled: true, MaxResolution: 720, AvgBitrateKbps: 0},
+		Quality:  TranscodeProfile{Enabled: true, MaxResolution: 0, AvgBitrateKbps: 0},
+		Balanced: TranscodeProfile{Enabled: true, MaxResolution: 1080, AvgBitrateKbps: 0},
+		// 720p at 1500 kbps is the commonly cited minimum for acceptable 720p
+		// (standard 720p rungs sit at 2400-3500 kbps), which is what a data saver
+		// on a metered mobile connection should target. "0 = original" would keep
+		// the source bitrate, which is not a data saver at all.
+		DataSaver: TranscodeProfile{Enabled: true, MaxResolution: 720, AvgBitrateKbps: 1500},
 	}
 }
 

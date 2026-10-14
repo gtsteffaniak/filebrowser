@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
+	"github.com/gtsteffaniak/go-logger/logger"
 )
 
 const mediaSettingsDefaultKey = "media.default"
@@ -29,6 +30,12 @@ func InitMediaSettings() error {
 		return fmt.Errorf("load media settings: %w", err)
 	}
 	loaded = settings.SanitizeMediaSettings(loaded)
+	if migrated, changed := settings.MigrateLegacyMediaDefaults(loaded); changed {
+		loaded = migrated
+		if saveErr := sqlDb.SaveSetting(mediaSettingsDefaultKey, loaded); saveErr != nil {
+			logger.Warningf("failed to persist media settings migration: %v", saveErr)
+		}
+	}
 
 	mediaSettingsMu.Lock()
 	mediaSettingsDefault = loaded

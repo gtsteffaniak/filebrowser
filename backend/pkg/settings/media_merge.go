@@ -41,6 +41,19 @@ func ApplyMediaSettingsIfChanged(s MediaSettings) {
 	ApplyMediaSettings(s)
 }
 
+// MigrateLegacyMediaDefaults upgrades media settings that were persisted with a
+// superseded default. Currently: the data-saver profile shipped with a
+// "0 = original" bitrate, which kept the source bitrate even though the profile
+// caps the resolution — the opposite of a data saver.
+func MigrateLegacyMediaDefaults(m MediaSettings) (MediaSettings, bool) {
+	ds := &m.Transcode.Profiles.DataSaver
+	if ds.Enabled && ds.MaxResolution == 720 && ds.AvgBitrateKbps == 0 {
+		ds.AvgBitrateKbps = DefaultTranscodeProfiles().DataSaver.AvgBitrateKbps
+		return m, true
+	}
+	return m, false
+}
+
 // SanitizeMediaSettings clamps runtime media settings into supported ranges.
 func SanitizeMediaSettings(m MediaSettings) MediaSettings {
 	t := &m.Transcode

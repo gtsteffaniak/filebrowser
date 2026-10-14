@@ -125,8 +125,8 @@ const PROFILES = [
   { id: "datasaver", label: "general.dataSaver" },
 ];
 
-function defaultProfile(maxResolution) {
-  return { enabled: true, maxResolution, avgBitrateKbps: 0 };
+function defaultProfile(maxResolution, avgBitrateKbps = 0) {
+  return { enabled: true, maxResolution, avgBitrateKbps };
 }
 
 function defaultMedia() {
@@ -144,7 +144,7 @@ function defaultMedia() {
       profiles: {
         quality: defaultProfile(0),
         balanced: defaultProfile(1080),
-        datasaver: defaultProfile(720),
+        datasaver: defaultProfile(720, 1500),
       },
     },
   };
