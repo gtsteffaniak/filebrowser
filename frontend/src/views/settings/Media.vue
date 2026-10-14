@@ -17,18 +17,10 @@
           :description="$t('settings.extractEmbeddedSubtitlesDescription')" />
         <ToggleSwitch class="item" v-model="media.debug" :name="$t('settings.mediaDebug')"
           :description="$t('settings.mediaDebugDescription')" />
-      </div>
-
-      <div v-if="hasImagePreview" class="settings-items">
-        <h3>{{ $t("settings.imagePreview") }}</h3>
-        <ToggleSwitch v-for="(value, key) in media.convert.imagePreview" :key="`img-${key}`" class="item"
-          v-model="media.convert.imagePreview[key]" :name="String(key)" />
-      </div>
-
-      <div v-if="hasVideoPreview" class="settings-items">
-        <h3>{{ $t("settings.videoPreview") }}</h3>
-        <ToggleSwitch v-for="(value, key) in media.convert.videoPreview" :key="`vid-${key}`" class="item"
-          v-model="media.convert.videoPreview[key]" :name="String(key)" />
+        <SettingsButton class="item"
+          :name="$t('settings.imageVideoConversionFormats')"
+          :description="$t('settings.imageVideoConversionFormatsDescription')"
+          @click="openConversionFormats" />
       </div>
 
       <div class="settings-items">
@@ -36,70 +28,11 @@
         <ToggleSwitch class="item" v-model="media.transcode.enabled"
           :name="$t('settings.transcodeEnabled')"
           :description="$t('settings.transcodeEnabledDescription')" />
-        <div class="settings-number-input item">
-          <div class="no-padding">
-            <label for="transcodeMaxConcurrent">{{ $t("settings.transcodeMaxConcurrent") }}</label>
-            <HelpTooltipIcon :text="$t('settings.transcodeMaxConcurrentHelp')" />
-          </div>
-          <div class="no-padding">
-            <input id="transcodeMaxConcurrent" class="sizeInput input" v-model.number="media.transcode.maxConcurrent" type="number" min="1" />
-          </div>
-        </div>
-        <div class="settings-number-input item">
-          <div class="no-padding">
-            <label for="transcodeMaxConcurrentPerUser">{{ $t("settings.transcodeMaxConcurrentPerUser") }}</label>
-            <HelpTooltipIcon :text="$t('settings.transcodeMaxConcurrentPerUserHelp')" />
-          </div>
-          <div class="no-padding">
-            <input id="transcodeMaxConcurrentPerUser" class="sizeInput input" v-model.number="media.transcode.maxConcurrentPerUser" type="number" min="1" />
-          </div>
-        </div>
-        <div class="settings-number-input item">
-          <div class="no-padding">
-            <label for="transcodeCacheMaxSizeMB">{{ $t("settings.transcodeCacheMaxSizeMB") }}</label>
-            <HelpTooltipIcon :text="$t('settings.transcodeCacheMaxSizeMBHelp')" />
-          </div>
-          <div class="no-padding">
-            <input id="transcodeCacheMaxSizeMB" class="sizeInput input" v-model.number="media.transcode.cacheMaxSizeMB" type="number" min="0" />
-          </div>
-        </div>
-        <div class="settings-number-input item">
-          <div class="no-padding">
-            <label for="transcodeCacheRetentionH">{{ $t("settings.transcodeCacheRetentionH") }}</label>
-            <HelpTooltipIcon :text="$t('settings.transcodeCacheRetentionHHelp')" />
-          </div>
-          <div class="no-padding">
-            <input id="transcodeCacheRetentionH" class="sizeInput input" v-model.number="media.transcode.cacheRetentionH" type="number" min="1" />
-          </div>
-        </div>
-      </div>
-
-      <div v-for="profile in profiles" :key="profile.id" class="settings-items">
-        <ToggleSwitch class="item" v-model="media.transcode.profiles[profile.id].enabled"
-          :name="$t(profile.label)"
-          :description="$t('settings.transcodeProfileEnabledDescription')" />
-        <div class="settings-number-input item">
-          <div class="no-padding">
-            <label :for="`profile-${profile.id}-maxResolution`">{{ $t("settings.transcodeProfileMaxResolution") }}</label>
-            <HelpTooltipIcon :text="$t('settings.transcodeProfileMaxResolutionHelp')" />
-          </div>
-          <div class="no-padding">
-            <input :id="`profile-${profile.id}-maxResolution`" class="sizeInput input"
-              v-model.number="media.transcode.profiles[profile.id].maxResolution"
-              type="number" min="0" />
-          </div>
-        </div>
-        <div class="settings-number-input item">
-          <div class="no-padding">
-            <label :for="`profile-${profile.id}-avgBitrate`">{{ $t("settings.transcodeProfileAvgBitrate") }}</label>
-            <HelpTooltipIcon :text="$t('settings.transcodeProfileAvgBitrateHelp')" />
-          </div>
-          <div class="no-padding">
-            <input :id="`profile-${profile.id}-avgBitrate`" class="sizeInput input"
-              v-model.number="media.transcode.profiles[profile.id].avgBitrateKbps"
-              type="number" min="0" />
-          </div>
-        </div>
+        <SettingsButton class="item"
+          :name="$t('settings.transcodeSettings')"
+          :description="$t('settings.transcodeSettingsDescription')"
+          :disabled="!media.transcode.enabled"
+          @click="openTranscodeSettings" />
       </div>
 
       <div class="card-actions">
@@ -113,102 +46,85 @@
 
 <script>
 import { notify } from "@/notify";
+import { mutations } from "@/store";
+import { eventBus } from "@/store/eventBus";
 import { getMediaSettings, patchMediaSettings } from "@/api/settings";
-import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
+import SettingsButton from "@/components/settings/SettingsButton.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import Errors from "@/views/Errors.vue";
-
-const PROFILES = [
-  { id: "quality", label: "general.quality" },
-  { id: "balanced", label: "general.balanced" },
-  { id: "datasaver", label: "general.dataSaver" },
-];
-
-function defaultProfile(maxResolution, avgBitrateKbps = 0) {
-  return { enabled: true, maxResolution, avgBitrateKbps };
-}
-
-function defaultMedia() {
-  return {
-    convert: { imagePreview: {}, videoPreview: {} },
-    debug: false,
-    extractEmbeddedSubtitles: false,
-    hardwareAcceleration: false,
-    transcode: {
-      enabled: false,
-      maxConcurrent: 2,
-      maxConcurrentPerUser: 1,
-      cacheMaxSizeMB: 10240,
-      cacheRetentionH: 24,
-      profiles: {
-        quality: defaultProfile(0),
-        balanced: defaultProfile(1080),
-        datasaver: defaultProfile(720, 1500),
-      },
-    },
-  };
-}
-
-function mergeMedia(loaded) {
-  const base = defaultMedia();
-  const value = loaded || {};
-  return {
-    ...base,
-    ...value,
-    convert: {
-      imagePreview: { ...base.convert.imagePreview, ...(value.convert?.imagePreview || {}) },
-      videoPreview: { ...base.convert.videoPreview, ...(value.convert?.videoPreview || {}) },
-    },
-    transcode: {
-      ...base.transcode,
-      ...(value.transcode || {}),
-      profiles: {
-        quality: { ...base.transcode.profiles.quality, ...(value.transcode?.profiles?.quality || {}) },
-        balanced: { ...base.transcode.profiles.balanced, ...(value.transcode?.profiles?.balanced || {}) },
-        datasaver: { ...base.transcode.profiles.datasaver, ...(value.transcode?.profiles?.datasaver || {}) },
-      },
-    },
-  };
-}
+import {
+  MEDIA_SETTINGS_CHANGED_EVENT,
+  emptyMediaSettings,
+  mergeMediaSettings,
+} from "@/utils/mediaSettings";
 
 export default {
   name: "mediaSettings",
   components: {
-    HelpTooltipIcon,
     ToggleSwitch,
+    SettingsButton,
     LoadingSpinner,
     Errors,
   },
   data() {
     return {
-      media: defaultMedia(),
-      profiles: PROFILES,
+      media: emptyMediaSettings(),
       error: null,
       loading: true,
+      mediaSettingsHandler: null,
     };
   },
-  computed: {
-    hasImagePreview() {
-      return Object.keys(this.media.convert.imagePreview || {}).length > 0;
-    },
-    hasVideoPreview() {
-      return Object.keys(this.media.convert.videoPreview || {}).length > 0;
-    },
+  mounted() {
+    this.mediaSettingsHandler = () => this.load({ silent: true });
+    eventBus.on(MEDIA_SETTINGS_CHANGED_EVENT, this.mediaSettingsHandler);
+    void this.load();
   },
-  async mounted() {
-    try {
-      this.media = mergeMedia(await getMediaSettings());
-    } catch (e) {
-      this.error = e;
-    } finally {
-      this.loading = false;
+  beforeUnmount() {
+    if (this.mediaSettingsHandler) {
+      eventBus.off(MEDIA_SETTINGS_CHANGED_EVENT, this.mediaSettingsHandler);
+      this.mediaSettingsHandler = null;
     }
   },
   methods: {
+    async load({ silent = false } = {}) {
+      if (!silent) {
+        this.loading = true;
+      }
+      try {
+        this.media = mergeMediaSettings(await getMediaSettings());
+        this.error = null;
+      } catch (e) {
+        this.error = e;
+      } finally {
+        this.loading = false;
+      }
+    },
+    openConversionFormats() {
+      mutations.showPrompt({
+        name: "media-conversion-formats",
+        props: {
+          title: this.$t("settings.imageVideoConversionFormats"),
+        },
+      });
+    },
+    openTranscodeSettings() {
+      mutations.showPrompt({
+        name: "media-transcode-settings",
+        props: {
+          title: this.$t("settings.transcodeSettings"),
+        },
+      });
+    },
+    /** Only patch the fields owned by this section so prompt edits are not clobbered. */
     async save() {
       try {
-        this.media = mergeMedia(await patchMediaSettings(this.media));
+        this.media = mergeMediaSettings(await patchMediaSettings({
+          hardwareAcceleration: this.media.hardwareAcceleration,
+          extractEmbeddedSubtitles: this.media.extractEmbeddedSubtitles,
+          debug: this.media.debug,
+          transcode: { enabled: this.media.transcode.enabled },
+        }));
         notify.showSuccessToast(this.$t("settings.settingsUpdated"));
       } catch (e) {
         notify.showError(e?.message || this.$t("settings.settingsUpdateFailed"));
@@ -221,20 +137,6 @@ export default {
 <style scoped>
 .card-content h3 {
   text-align: center;
-}
-
-.settings-number-input {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  padding: 1em;
-}
-
-.settings-number-input div {
-  display: flex;
-  padding: 0.5em;
-  align-items: center;
 }
 
 .item {
