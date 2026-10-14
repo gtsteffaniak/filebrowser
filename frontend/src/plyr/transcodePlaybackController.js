@@ -114,10 +114,16 @@ export class TranscodePlaybackController {
     this.sessionController = controller;
 
     const resumePlayback = () => {
+      const el = getVideoElement?.();
+      transcodeLog('transcode resumePlayback', {
+        shouldAutoplay,
+        hasVideoElement: Boolean(el),
+        mediaPaused: el?.paused,
+        readyState: el?.readyState,
+      });
       if (!shouldAutoplay) {
         return;
       }
-      const el = getVideoElement?.();
       if (!el) {
         return;
       }
@@ -175,6 +181,10 @@ export class TranscodePlaybackController {
           if (!this.isCurrentAttempt(attempt)) {
             return;
           }
+          transcodeLog('transcode onFirstBuffered', {
+            sessionId: controller.session?.id,
+            attempt,
+          });
           // Mark the HLS session active before resuming the element. The
           // resulting `play` event must not be mistaken for a new start.
           this.active = true;

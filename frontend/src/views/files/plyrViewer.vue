@@ -1924,11 +1924,21 @@ export default {
       this.ensurePlaybackModeApplied();
     },
     resumeTranscodePlayback() {
+      transcodeLog('resumeTranscodePlayback', {
+        playerPaused: this.player?.paused,
+        mediaPaused: (this.player?.media || this.mediaElement)?.paused,
+        readyState: (this.player?.media || this.mediaElement)?.readyState,
+      });
       if (!this.player?.paused) {
         return Promise.resolve();
       }
-      return this.player.play().catch((playErr) => {
-        transcodeWarn('player.play failed during transcode attach', { message: playErr?.message });
+      return this.player.play().then(() => {
+        transcodeLog('resumeTranscodePlayback play resolved');
+      }).catch((playErr) => {
+        transcodeWarn('player.play failed during transcode attach', {
+          name: playErr?.name,
+          message: playErr?.message,
+        });
       });
     },
     syncTranscodePlaybackState() {
@@ -2027,6 +2037,14 @@ export default {
         ?? await this.resolveReuseSessionId();
       const seekSec = startSec ?? this.player?.currentTime ?? 0;
       const shouldPlay = autoplay ?? this.shouldAutoplay;
+      transcodeLog('startTranscodePlayback params', {
+        activeMode,
+        manageSwitch,
+        shouldPlay,
+        seekSec,
+        hasPlayPrime: Boolean(playPrime),
+        transcodeSwitchInProgress: this.transcodeSwitchInProgress,
+      });
 
       try {
         transcodeLog('preparing video element for HLS', {
@@ -2230,6 +2248,15 @@ export default {
       }
       const previousMode = this.transcodeMode;
       const wasPlaying = !!this.player?.playing;
+      transcodeLog('switchTranscodeMode start', {
+        mode,
+        previousMode,
+        wasPlaying,
+        playerPaused: this.player?.paused,
+        mediaPaused: (this.player?.media || this.mediaElement)?.paused,
+        shouldAutoplay: this.shouldAutoplay,
+        currentTime: this.player?.currentTime,
+      });
       this.transcodeSwitchInProgress = true;
       this.transcodeMode = mode;
       if (PLYR_TRANSCODE_HLS_MODES.includes(mode)) {
@@ -2277,6 +2304,13 @@ export default {
       } finally {
         this.transcodeSwitchInProgress = false;
         this.syncPlaybackUrl({ transcodeMode: this.transcodeMode });
+        transcodeLog('switchTranscodeMode done', {
+          mode: this.transcodeMode,
+          transcodeActive: this.transcodeActive,
+          playerPaused: this.player?.paused,
+          mediaPaused: (this.player?.media || this.mediaElement)?.paused,
+          videoPlaybackLoading: this.videoPlaybackLoading,
+        });
       }
     },
     async reconcilePipSessionOnMount() {
@@ -3731,6 +3765,14 @@ export default {
                   }
                   const wasPlaying = !!this.player?.playing;
                   const el = this.player?.media || this.mediaElement;
+                  transcodeLog('transcode menu selection', {
+                    value,
+                    wasPlaying,
+                    playerPaused: this.player?.paused,
+                    mediaPaused: el?.paused,
+                    currentTime: this.player?.currentTime,
+                    shouldAutoplay: this.shouldAutoplay,
+                  });
                   const playPrime = wasPlaying ? primePlay(el) : null;
                   void this.switchTranscodeMode(value, { playPrime });
                 });

@@ -1,3 +1,5 @@
+import { transcodeLog, transcodeWarn } from '@/plyr/transcodeDebug.js';
+
 /**
  * Helpers for preserving playback intent across src/HLS handoffs.
  * Mirrors native attachVideoStreamAndPlay / attemptPipHandoffPlay semantics.
@@ -49,42 +51,57 @@ export function primePlay(video) {
  */
 export function resumeWhenReady(video, { playCall, onPlaying } = {}) {
   if (!video) {
+    transcodeWarn('resumeWhenReady skipped — no video element');
     return;
   }
   const tryPlay = () => {
     const invoke = playCall ?? (() => video.play());
+    transcodeLog('resumeWhenReady tryPlay', {
+      readyState: video.readyState,
+      paused: video.paused,
+      hasPlayCall: Boolean(playCall),
+    });
     void Promise.resolve(invoke()).then(() => {
+      transcodeLog('resumeWhenReady play resolved');
       onPlaying?.();
     }).catch((err) => {
-      if (!isPlayTeardownError(err)) {
-        // Blocked or failed play — leave paused without retry spam.
-      }
+      transcodeWarn('resumeWhenReady play rejected', { name: err?.name, message: err?.message });
     });
   };
 
   if (video.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA && !video.paused) {
+    transcodeLog('resumeWhenReady skipped — already playing');
     return;
   }
   if (video.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) {
     tryPlay();
     return;
   }
+  transcodeLog('resumeWhenReady waiting for canplay', { readyState: video.readyState });
   video.addEventListener('canplay', tryPlay, { once: true });
 }
 
 /** Await a primed play promise after HLS attach, or fall back to resumeWhenReady. */
 export async function continuePlay(video, playPromise, { playCall, onPlaying } = {}) {
+  transcodeLog('continuePlay', {
+    hasPlayPromise: Boolean(playPromise),
+    readyState: video?.readyState,
+    paused: video?.paused,
+  });
   if (playPromise) {
     try {
       await playPromise;
+      transcodeLog('continuePlay primed promise resolved');
       onPlaying?.();
       return;
     } catch (err) {
+      transcodeWarn('continuePlay primed promise rejected', { name: err?.name, message: err?.message });
       if (isPlayTeardownError(err)) {
         resumeWhenReady(video, { playCall, onPlaying });
         return;
       }
       if (isPlayBlockedError(err)) {
+        transcodeWarn('continuePlay blocked by autoplay policy');
         return;
       }
       resumeWhenReady(video, { playCall, onPlaying });
