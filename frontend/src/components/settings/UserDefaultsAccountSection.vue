@@ -74,8 +74,8 @@
             type="number"
             min="1"
             step="1"
-            v-model.number="account.maxConcurrentTranscodes"
-            @change="$emit('account-change', 'maxConcurrentTranscodes')"
+            :value="account.maxConcurrentTranscodes"
+            @change="emitAccountChange('maxConcurrentTranscodes', Number($event.target.value))"
             :disabled="isFieldDisabled('maxConcurrentTranscodes')"
           />
         </div>

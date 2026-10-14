@@ -2,7 +2,6 @@ package transcoding
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"strings"
 
@@ -189,14 +188,6 @@ func encodeProfileForMode(info ffmpeg.StreamInfo, profile Profile) encode.VideoP
 	default:
 		return ffmpeg.DefaultHLSVideoProfile(maxHeightForProfile(profile))
 	}
-}
-
-func (p hlsPlan) describe() string {
-	svc := ffmpeg.Get()
-	if svc == nil {
-		return fmt.Sprintf("profile=%s remux=%t videoCopy=%t", p.profileMode, p.remux, p.videoCopy)
-	}
-	return svc.DescribeHLSSegmentPlan(p.params)
 }
 
 func userTranscodeLimit(uMax int) int {

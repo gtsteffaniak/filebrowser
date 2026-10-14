@@ -7,7 +7,6 @@ import (
 	"io"
 	"net/http"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"time"
 
@@ -334,11 +333,5 @@ func transcodeErrorStatus(err error) int {
 		return http.StatusAccepted
 	default:
 		return http.StatusInternalServerError
-	}
-}
-
-func transcodeRetryAfterHeader(w http.ResponseWriter, err error) {
-	if errors.Is(err, transcoding.ErrGlobalLimit) {
-		w.Header().Set("Retry-After", strconv.Itoa(15))
 	}
 }

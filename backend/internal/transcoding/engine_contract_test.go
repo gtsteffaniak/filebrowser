@@ -9,9 +9,9 @@ import (
 )
 
 func TestStoreServeContractOpensNormalizedSegment(t *testing.T) {
-	store, err := NewStore(t.TempDir())
-	if err != nil {
-		t.Fatal(err)
+	store, storeErr := NewStore(t.TempDir())
+	if storeErr != nil {
+		t.Fatal(storeErr)
 	}
 	jobDir := t.TempDir()
 	segDir := filepath.Join(jobDir, "seg")

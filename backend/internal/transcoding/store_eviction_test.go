@@ -9,9 +9,9 @@ import (
 )
 
 func TestStoreEvictInactiveByRetention(t *testing.T) {
-	store, err := NewStore(t.TempDir())
-	if err != nil {
-		t.Fatal(err)
+	store, storeErr := NewStore(t.TempDir())
+	if storeErr != nil {
+		t.Fatal(storeErr)
 	}
 	oldDir := filepath.Join(store.root, "fp-old", "gen-old")
 	if err := os.MkdirAll(filepath.Join(oldDir, "seg"), 0o755); err != nil {
@@ -48,9 +48,9 @@ func TestStoreEvictInactiveByRetention(t *testing.T) {
 }
 
 func TestStoreEvictInactiveBySize(t *testing.T) {
-	store, err := NewStore(t.TempDir())
-	if err != nil {
-		t.Fatal(err)
+	store, storeErr := NewStore(t.TempDir())
+	if storeErr != nil {
+		t.Fatal(storeErr)
 	}
 	writeGeneration := func(name string) string {
 		t.Helper()
@@ -87,9 +87,9 @@ func TestStoreEvictInactiveBySize(t *testing.T) {
 }
 
 func TestStoreReadPlaylistNormalizesBareSegments(t *testing.T) {
-	store, err := NewStore(t.TempDir())
-	if err != nil {
-		t.Fatal(err)
+	store, storeErr := NewStore(t.TempDir())
+	if storeErr != nil {
+		t.Fatal(storeErr)
 	}
 	jobDir := t.TempDir()
 	segDir := filepath.Join(jobDir, "seg")
