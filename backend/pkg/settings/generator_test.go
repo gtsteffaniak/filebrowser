@@ -82,7 +82,7 @@ type PasswordAuthConfig struct {
 	}
 
 	// Test with no filtering - should quote all strings
-	yamlOutput, err := GenerateConfigYamlWithSource(settings, false, true, false, sourcePath)
+	yamlOutput, err := GenerateConfigYamlWithSource(settings, false, true, false, false, sourcePath)
 	if err != nil {
 		t.Fatalf("GenerateConfigYaml failed: %v", err)
 	}
@@ -226,13 +226,13 @@ type UserDefaults struct {
 	}
 
 	// Test full=true - should show all fields
-	fullYaml, err := GenerateConfigYamlWithSource(config, false, true, false, sourcePath)
+	fullYaml, err := GenerateConfigYamlWithSource(config, false, true, false, false, sourcePath)
 	if err != nil {
 		t.Fatalf("GenerateConfigYaml with full=true failed: %v", err)
 	}
 
 	// Test full=false - should only show non-default fields
-	filteredYaml, err := GenerateConfigYamlWithSource(config, false, false, false, sourcePath)
+	filteredYaml, err := GenerateConfigYamlWithSource(config, false, false, false, false, sourcePath)
 	if err != nil {
 		t.Fatalf("GenerateConfigYaml with full=false failed: %v", err)
 	}
@@ -264,13 +264,13 @@ func TestGenerateConfigYaml_CommentsOnOff(t *testing.T) {
 	}
 
 	// Test with comments=true using the real source
-	withComments, err := GenerateConfigYaml(config, true, true, false)
+	withComments, err := GenerateConfigYaml(config, true, true, false, false)
 	if err != nil {
 		t.Fatalf("GenerateConfigYaml with comments=true failed: %v", err)
 	}
 
 	// Test with comments=false using the real source
-	withoutComments, err := GenerateConfigYaml(config, false, true, false)
+	withoutComments, err := GenerateConfigYaml(config, false, true, false, false)
 	if err != nil {
 		t.Fatalf("GenerateConfigYaml with comments=false failed: %v", err)
 	}
@@ -321,6 +321,7 @@ func TestGenerateConfigYaml_IntegrationTest(t *testing.T) {
 		showComments     bool
 		showFull         bool
 		filterDeprecated bool
+		isSetup          bool
 		expectSecret     bool
 		expectDeprecated bool
 		expectFull       bool
@@ -331,6 +332,7 @@ func TestGenerateConfigYaml_IntegrationTest(t *testing.T) {
 			showComments:     false,
 			showFull:         true,
 			filterDeprecated: false,
+			isSetup:          false,
 			expectSecret:     true,  // secrets should be hidden
 			expectDeprecated: false,
 			expectFull:       true,  // all fields shown
@@ -341,6 +343,7 @@ func TestGenerateConfigYaml_IntegrationTest(t *testing.T) {
 			showComments:     true,
 			showFull:         true,
 			filterDeprecated: true,
+			isSetup:          false,
 			expectSecret:     true,  // secrets should be hidden
 			expectDeprecated: false, // deprecated should be filtered
 			expectFull:       true,  // all non-deprecated fields shown
@@ -351,16 +354,28 @@ func TestGenerateConfigYaml_IntegrationTest(t *testing.T) {
 			showComments:     false,
 			showFull:         false,
 			filterDeprecated: false,
+			isSetup:          false,
 			expectSecret:     true,  // secrets should be hidden
 			expectDeprecated: false, // might not appear if matches default
 			expectFull:       false, // only non-default fields
+			expectComments:   false, // no comments
+		},
+		{
+			name:             "show all including deprecated & Auth secrets",
+			showComments:     false,
+			showFull:         true,
+			filterDeprecated: false,
+			isSetup:          true,
+			expectSecret:     false, // secrets should shown
+			expectDeprecated: false,
+			expectFull:       true,  // all fields shown
 			expectComments:   false, // no comments
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			yamlOutput, err := GenerateConfigYaml(config, tt.showComments, tt.showFull, tt.filterDeprecated)
+			yamlOutput, err := GenerateConfigYaml(config, tt.showComments, tt.showFull, tt.filterDeprecated, tt.isSetup)
 			if err != nil {
 				t.Fatalf("GenerateConfigYaml failed: %v", err)
 			}
@@ -478,17 +493,17 @@ func TestGenerateConfigYaml_EdgeCases(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// Spot-check flag combinations (full cartesian product is slow without comment-parse cache)
 			cases := []struct {
-				showComments, showFull, filterDeprecated bool
+				showComments, showFull, filterDeprecated, isSetup bool
 			}{
-				{false, true, false},
-				{true, true, true},
-				{false, false, true},
+				{false, true, false, false},
+				{true, true, true, false},
+				{false, false, true, false},
 			}
 			if testing.Short() {
 				cases = cases[:1]
 			}
 			for _, tc := range cases {
-				yamlOutput, err := GenerateConfigYaml(tt.config, tc.showComments, tc.showFull, tc.filterDeprecated)
+				yamlOutput, err := GenerateConfigYaml(tt.config, tc.showComments, tc.showFull, tc.filterDeprecated, tc.isSetup)
 				if err != nil {
 					t.Fatalf("GenerateConfigYaml failed for %s (comments=%v, full=%v, filterDeprecated=%v): %v",
 						tt.desc, tc.showComments, tc.showFull, tc.filterDeprecated, err)
@@ -507,7 +522,7 @@ func TestGenerateConfigYaml_EdgeCases(t *testing.T) {
 func TestGenerateConfigYaml_defaultPermissionsDocumentsView(t *testing.T) {
 	cfg := SetDefaults(true)
 	cfg.Server.Sources = []*Source{{Path: ".", Config: SourceConfig{}}}
-	out, err := GenerateConfigYamlWithSource(&cfg, true, true, true, ".")
+	out, err := GenerateConfigYamlWithSource(&cfg, true, true, true, false, ".")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -529,7 +544,7 @@ func TestGenerateConfigYaml_OmitsEmptyRulesWhenFiltered(t *testing.T) {
 	cfg.Server.DatabaseV2.Path = "./filebrowser.sqlite"
 	cfg.Server.Logging = []LogConfig{{Output: "stdout", Levels: "info|warning|error"}}
 
-	out, err := GenerateConfigYamlWithSource(&cfg, true, false, false, ".")
+	out, err := GenerateConfigYamlWithSource(&cfg, true, false, false, false, ".")
 	if err != nil {
 		t.Fatal(err)
 	}
