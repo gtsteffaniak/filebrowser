@@ -1082,7 +1082,8 @@
       "webSessionNamed": "Sesiune web ({name})",
       "scopeAccess": "Activitatea de acces",
       "eventAccessCreate": "Accesare și creare",
-      "eventAccessDelete": "Accesare Ștergere"
+      "eventAccessDelete": "Accesare Ștergere",
+      "eventFileModify": "Modificare fișier"
     },
     "toolAccessDefaults": "Setările implicite privind accesul la instrumente",
     "toolAccessDefaultsDescription": "Configurați instrumentele la care noii utilizatori au acces în mod implicit",

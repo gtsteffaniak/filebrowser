@@ -1207,7 +1207,7 @@ func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *Context) (int
 	}
 
 	status, err := putResourceWithQuota(w, r, d, source, fullIndexPath)
-	if err == nil && status == http.StatusOK {
+	if err == nil && (status == http.StatusOK || status == 0) {
 		activity.RecordFileModify(r, toActor(d), source, path)
 	}
 	return status, err
@@ -1252,7 +1252,7 @@ func publicPutHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 		return http.StatusForbidden, fmt.Errorf("source is read-only")
 	}
 	status, err := putResourceWithQuota(w, r, d, sourceName, resolvedPath)
-	if err == nil && status == http.StatusOK {
+	if err == nil && (status == http.StatusOK || status == 0) {
 		activity.RecordFileModify(r, toActor(d), sourceName, resolvedPath)
 	}
 	return status, err

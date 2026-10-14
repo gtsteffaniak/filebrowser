@@ -1082,7 +1082,8 @@
       "webSessionNamed": "Session en ligne ({name})",
       "scopeAccess": "Activité d'accès",
       "eventAccessCreate": "Accéder à la création",
-      "eventAccessDelete": "Accès/Supprimer"
+      "eventAccessDelete": "Accès/Supprimer",
+      "eventFileModify": "Modification d'un fichier"
     },
     "toolAccessDefaults": "Paramètres par défaut d'accès aux outils",
     "toolAccessDefaultsDescription": "Configurer les outils auxquels les nouveaux utilisateurs ont accès par défaut",
