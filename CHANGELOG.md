@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file. For commit 
 
  **Bug Fixes**:
  - keep requested permissions when creating a user (#3130)
+ - add missing file modify logging to activity viewer (#3152)
 
 ## v2.1.2
 
