@@ -191,11 +191,11 @@ func TestWebDAV_OwncloudChunkedUpload_CannotWriteOutsideTheScope(t *testing.T) {
 	} else if string(content) != "ESCAPED!" {
 		t.Errorf("assembled content = %q, want %q", content, "ESCAPED!")
 	}
-	if _, err := os.Stat(filepath.Join(source1Path, "public", "escape.bin-chunk-0")); !os.IsNotExist(err) {
-		t.Errorf("a chunk was left behind: %v", err)
+	if _, statErr := os.Stat(filepath.Join(source1Path, "public", "escape.bin-chunk-0")); !os.IsNotExist(statErr) {
+		t.Errorf("a chunk was left behind: %v", statErr)
 	}
-	if _, err := os.Stat(filepath.Join(source1Path, "escape.bin")); !os.IsNotExist(err) {
-		t.Errorf("the climbing path escaped the scope: %v", err)
+	if _, statErr := os.Stat(filepath.Join(source1Path, "escape.bin")); !os.IsNotExist(statErr) {
+		t.Errorf("the climbing path escaped the scope: %v", statErr)
 	}
 
 	// a Destination that resolves somewhere else entirely is not a chunked upload, and the library
@@ -208,8 +208,8 @@ func TestWebDAV_OwncloudChunkedUpload_CannotWriteOutsideTheScope(t *testing.T) {
 	if got < 300 {
 		t.Errorf("MOVE to a destination outside the source: got %d, want an error", got)
 	}
-	if _, err := os.Stat("/tmp/fb_escape_probe.txt"); !os.IsNotExist(err) {
-		t.Fatalf("path traversal escaped the scope (status %d): %v", got, err)
+	if _, statErr := os.Stat("/tmp/fb_escape_probe.txt"); !os.IsNotExist(statErr) {
+		t.Fatalf("path traversal escaped the scope (status %d): %v", got, statErr)
 	}
 
 	// and no half-assembled file is left behind anywhere the user can see

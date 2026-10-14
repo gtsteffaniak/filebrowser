@@ -150,8 +150,8 @@ func owncloudChunkedMove(w http.ResponseWriter, r *http.Request, wd *webdav.Hand
 	}
 	destDir := path.Dir(destPath)
 	for _, chunk := range chunks {
-		if err := ffs.checkAccess(path.Join(destDir, chunk.name)); err != nil {
-			return true, http.StatusForbidden, fmt.Errorf("chunked upload cannot access chunk %s: %w", chunk.name, err)
+		if accessErr := ffs.checkAccess(path.Join(destDir, chunk.name)); accessErr != nil {
+			return true, http.StatusForbidden, fmt.Errorf("chunked upload cannot access chunk %s: %w", chunk.name, accessErr)
 		}
 	}
 
@@ -168,10 +168,10 @@ func owncloudChunkedMove(w http.ResponseWriter, r *http.Request, wd *webdav.Hand
 		return true, http.StatusInternalServerError, err
 	}
 	realAssembled := tmp.Name()
-	if err := tmp.Chmod(fileutils.EffectiveFilePerm()); err != nil {
+	if chmodErr := tmp.Chmod(fileutils.EffectiveFilePerm()); chmodErr != nil {
 		tmp.Close()
 		os.Remove(realAssembled)
-		return true, http.StatusInternalServerError, err
+		return true, http.StatusInternalServerError, chmodErr
 	}
 	written, err := writeOwncloudChunks(realDir, chunks, tmp)
 	if err != nil {
@@ -319,11 +319,11 @@ func uploadDestinationPath(r *http.Request, prefix string) (string, error) {
 	}
 	rest, ok := strings.CutPrefix(u.Path, prefix)
 	if !ok || (rest != "" && rest[0] != '/') {
-		return "", fmt.Errorf("Destination is outside this source")
+		return "", fmt.Errorf("destination is outside this source")
 	}
 	rest = path.Clean("/" + rest)
 	if rest == "/" || rest == "." {
-		return "", fmt.Errorf("Destination is empty")
+		return "", fmt.Errorf("destination is empty")
 	}
 	return rest, nil
 }
