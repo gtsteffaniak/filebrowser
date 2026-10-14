@@ -12,11 +12,14 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/gtsteffaniak/go-logger/logger"
 	"golang.org/x/net/webdav"
 
+	"github.com/gtsteffaniak/filebrowser/backend/internal/activity"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/fileutils"
+	activitydb "github.com/gtsteffaniak/filebrowser/backend/internal/database/activity"
 )
 
 // Chunked uploads over WebDAV, in the shape rclone's `--owncloud-chunk-size` sends, which is what
@@ -70,11 +73,35 @@ func isUploadChunkNumber(name string) bool {
 	return true
 }
 
+// owncloudAssemblies tracks the real destination paths with an assembly in flight, so two
+// concurrent final MOVEs for the same file cannot interleave their chunks.
+var (
+	owncloudAssembliesMu sync.Mutex
+	owncloudAssemblies   = map[string]struct{}{}
+)
+
+func acquireOwncloudAssembly(realDest string) bool {
+	owncloudAssembliesMu.Lock()
+	defer owncloudAssembliesMu.Unlock()
+	if _, ok := owncloudAssemblies[realDest]; ok {
+		return false
+	}
+	owncloudAssemblies[realDest] = struct{}{}
+	return true
+}
+
+func releaseOwncloudAssembly(realDest string) {
+	owncloudAssembliesMu.Lock()
+	defer owncloudAssembliesMu.Unlock()
+	delete(owncloudAssemblies, realDest)
+}
+
 // owncloudChunkedMove handles the final MOVE of an ownCloud-style chunked upload, and reports
 // handled=false when the request is an ordinary move — including the move of a real file whose name
 // merely ends in `-chunk-<n>` and has no sibling chunks on disk.
-func owncloudChunkedMove(w http.ResponseWriter, r *http.Request, wd *webdav.Handler, requestPath, scopePath, prefix string) (handled bool, status int, err error) {
+func owncloudChunkedMove(w http.ResponseWriter, r *http.Request, wd *webdav.Handler, ffs *filteredFileSystem, requestPath, scopePath, prefix string) (handled bool, status int, err error) {
 	// the handler normalizes request paths with a trailing slash, the chunk number is before it
+	sourceName := path.Base(strings.TrimSuffix(requestPath, "/"))
 	base, moved, ok := owncloudChunkParts(strings.TrimSuffix(requestPath, "/"))
 	if !ok {
 		return false, 0, nil
@@ -85,10 +112,14 @@ func owncloudChunkedMove(w http.ResponseWriter, r *http.Request, wd *webdav.Hand
 		return true, http.StatusBadRequest, err
 	}
 	if destPath != base {
-		// the client is moving the chunk somewhere else: not a chunked upload
-		return false, 0, nil
+		// a dot-prefixed chunk name is the hidden variant of the same transfer
+		if !strings.HasPrefix(path.Base(base), ".") || destPath != path.Join(path.Dir(base), strings.TrimPrefix(path.Base(base), ".")) {
+			// the client is moving the chunk somewhere else: not a chunked upload
+			return false, 0, nil
+		}
 	}
-	realDir := filepath.Dir(filepath.Join(scopePath, destPath))
+	realDest := filepath.Join(scopePath, destPath)
+	realDir := filepath.Dir(realDest)
 	chunks, err := collectOwncloudChunks(realDir, path.Base(destPath))
 	if err != nil {
 		return false, 0, nil
@@ -96,6 +127,10 @@ func owncloudChunkedMove(w http.ResponseWriter, r *http.Request, wd *webdav.Hand
 	// the moved chunk closes the transfer: a higher number is a leftover of an earlier, longer upload
 	// of the same name, and assembling it would mix two files together
 	chunks = slices.DeleteFunc(chunks, func(chunk owncloudChunk) bool { return chunk.number > moved })
+	// the chunk named in the request must be on disk, exactly under that name
+	if !slices.ContainsFunc(chunks, func(chunk owncloudChunk) bool { return chunk.name == sourceName }) {
+		return true, http.StatusNotFound, fmt.Errorf("chunk %s does not exist", sourceName)
+	}
 	if len(chunks) < 2 {
 		return false, 0, nil
 	}
@@ -107,6 +142,23 @@ func owncloudChunkedMove(w http.ResponseWriter, r *http.Request, wd *webdav.Hand
 			return true, http.StatusConflict, fmt.Errorf("chunked upload is missing chunk %d of %d", i, chunks[len(chunks)-1].number)
 		}
 	}
+
+	// assembling deletes the chunks afterwards, and every chunk must be one the user may touch;
+	// check both up front so a denied transfer touches nothing
+	if !ffs.sourceFilePerms().Delete {
+		return true, http.StatusForbidden, fmt.Errorf("delete permission required")
+	}
+	destDir := path.Dir(destPath)
+	for _, chunk := range chunks {
+		if err := ffs.checkAccess(path.Join(destDir, chunk.name)); err != nil {
+			return true, http.StatusForbidden, fmt.Errorf("chunked upload cannot access chunk %s: %w", chunk.name, err)
+		}
+	}
+
+	if !acquireOwncloudAssembly(realDest) {
+		return true, http.StatusConflict, fmt.Errorf("another chunked upload is already assembling %s", destPath)
+	}
+	defer releaseOwncloudAssembly(realDest)
 
 	// The assembled file is a random hidden name in the destination directory: it must not be able to
 	// collide with something the user already has (O_EXCL), and staying in that directory is what lets
@@ -137,7 +189,10 @@ func owncloudChunkedMove(w http.ResponseWriter, r *http.Request, wd *webdav.Hand
 
 	// Move the assembled file the way any other WebDAV move is done: the library cleans the paths,
 	// confirms the locks, honours `Overwrite` and answers 201/204/412 itself.
-	assembled := path.Join(path.Dir(destPath), filepath.Base(realAssembled))
+	assembled := path.Join(destDir, filepath.Base(realAssembled))
+	// the library move of the hidden staging file is not a user-visible move: skip its activity
+	// record and record one upload for the real destination instead
+	ffs.skipRenameActivityFrom = assembled
 	original := r.URL.Path
 	r.URL.Path = prefix + assembled
 	sw := &statusResponseWriter{ResponseWriter: w, status: http.StatusOK}
@@ -147,6 +202,15 @@ func owncloudChunkedMove(w http.ResponseWriter, r *http.Request, wd *webdav.Hand
 		os.Remove(realAssembled)
 		return true, 0, nil
 	}
+	activity.RecordWebDAVUser(r, ffs.user, activitydb.Entry{
+		EventType: activitydb.EventUpload,
+		Source:    ffs.source,
+		Path:      destPath,
+		Details: activitydb.Details{
+			Source: ffs.source,
+			Path:   destPath,
+		},
+	})
 	for _, chunk := range chunks {
 		if err := os.Remove(filepath.Join(realDir, chunk.name)); err != nil {
 			logger.Debugf("webdav chunked upload: could not remove chunk %s: %v", chunk.name, err)
@@ -169,7 +233,10 @@ func collectOwncloudChunks(realDir, baseName string) ([]owncloudChunk, error) {
 	prefixes := []string{baseName + owncloudChunkSuffix, "." + baseName + owncloudChunkSuffix}
 	var chunks []owncloudChunk
 	for _, entry := range entries {
-		if entry.IsDir() {
+		// only regular files are chunks: a symlink or device named `x-chunk-0` must never
+		// be read into the assembled file (Type()==0 means "unknown", openOwncloudChunks
+		// re-checks those against Lstat)
+		if t := entry.Type(); t != 0 && !t.IsRegular() {
 			continue
 		}
 		for _, p := range prefixes {
@@ -191,7 +258,7 @@ func collectOwncloudChunks(realDir, baseName string) ([]owncloudChunk, error) {
 func writeOwncloudChunks(realDir string, chunks []owncloudChunk, out *os.File) (int64, error) {
 	var written int64
 	for _, chunk := range chunks {
-		in, err := os.Open(filepath.Join(realDir, chunk.name))
+		in, err := openOwncloudChunk(filepath.Join(realDir, chunk.name))
 		if err != nil {
 			out.Close()
 			return written, err
@@ -204,7 +271,37 @@ func writeOwncloudChunks(realDir string, chunks []owncloudChunk, out *os.File) (
 			return written, copyErr
 		}
 	}
+	if err := out.Sync(); err != nil {
+		out.Close()
+		return written, err
+	}
 	return written, out.Close()
+}
+
+// openOwncloudChunk opens a chunk for reading without ever following a symlink: the entry is
+// Lstat'ed first (a symlink swap between ReadDir and open is caught by the SameFile check),
+// and on platforms that support it the open itself uses O_NOFOLLOW.
+func openOwncloudChunk(name string) (*os.File, error) {
+	lstat, err := os.Lstat(name)
+	if err != nil {
+		return nil, err
+	}
+	if !lstat.Mode().IsRegular() {
+		return nil, fmt.Errorf("chunk %s is not a regular file", filepath.Base(name))
+	}
+	in, err := os.OpenFile(name, os.O_RDONLY|owncloudNoFollowFlag, 0)
+	if err != nil {
+		return nil, err
+	}
+	stat, err := in.Stat()
+	if err == nil && (!stat.Mode().IsRegular() || !os.SameFile(lstat, stat)) {
+		err = fmt.Errorf("chunk %s changed while opening", filepath.Base(name))
+	}
+	if err != nil {
+		in.Close()
+		return nil, err
+	}
+	return in, nil
 }
 
 // uploadDestinationPath reads the Destination header of the final MOVE and returns the path inside
