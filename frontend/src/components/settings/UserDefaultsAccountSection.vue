@@ -140,6 +140,8 @@ import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
 import { getObjectProperty } from "@/utils/object.js";
 import { globalVars } from "@/utils/constants";
 
+let transcodeInputCounter = 0;
+
 export default {
   name: "UserDefaultsAccountSection",
   components: {
@@ -182,10 +184,13 @@ export default {
     },
   },
   emits: ["account-change", "enforced-change", "enforced-permission-change"],
+  data() {
+    transcodeInputCounter += 1;
+    return {
+      maxConcurrentTranscodesInputId: `maxConcurrentTranscodes-${transcodeInputCounter}`,
+    };
+  },
   computed: {
-    maxConcurrentTranscodesInputId() {
-      return `maxConcurrentTranscodes-${this._uid}`;
-    },
     maxConcurrentTranscodesLimit() {
       const limit = globalVars?.transcodeMaxPerUser;
       return Number.isFinite(limit) && limit > 0 ? limit : undefined;

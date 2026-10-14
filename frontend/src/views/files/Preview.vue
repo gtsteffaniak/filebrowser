@@ -54,22 +54,21 @@
           <button
             v-if="videoTranscodeOffer.mode === 'offer'"
             type="button"
-            class="button button--flat"
+            class="button button--flat preview-action--icon-only"
+            :aria-label="$t('general.transcode', { suffix: '' })"
+            :title="$t('general.transcode', { suffix: '' })"
             @click="startVideoTranscode"
           >
-            <div>
-              <i class="material-symbols">sync</i>{{ $t("general.transcode") }}
-            </div>
+            <i class="material-symbols">sync</i>
           </button>
-          <a target="_blank" :href="downloadUrl" class="button button--flat" v-if="permissions.download">
-            <div>
-              <i class="material-symbols">file_download</i>{{ $t("general.download") }}
-            </div>
-          </a>
-          <a target="_blank" :href="openFileUrl" class="button button--flat" v-if="permissions.download && req.type !== 'directory'">
-            <div>
-              <i class="material-symbols">open_in_new</i>{{ $t("general.openFile") }}
-            </div>
+          <a
+            v-if="permissions.download"
+            target="_blank"
+            :href="downloadUrl"
+            class="button button--flat preview-action--icon-only"
+            :aria-label="$t('general.download', { suffix: '' })"
+          >
+            <i class="material-symbols">file_download</i>
           </a>
         </div>
       </div>
