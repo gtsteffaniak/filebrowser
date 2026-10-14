@@ -340,12 +340,20 @@ func (m *Manager) rollbackAdmissionLocked(username string) {
 func (m *Manager) runProducer(ctx context.Context, sess *playbackSession, startSec float64) {
 	defer m.producerWg.Done()
 
+	// Snapshot session fields under the lock; runProducer runs concurrently with
+	// code that may read or replace these fields.
+	m.mu.Lock()
 	sessionID := sess.info.ID
 	gen := sess.generation
-	startIndex, ffmpegStartSec := continuousSeekParams(startSec, sess.plan.segmentSec)
+	jobDir := sess.jobDir
+	realPath := sess.realPath
+	plan := sess.plan
+	m.mu.Unlock()
+
+	startIndex, ffmpegStartSec := continuousSeekParams(startSec, plan.segmentSec)
 
 	jobCtx, cancel := context.WithCancel(ctx)
-	job, err := m.engine.StartContinuous(jobCtx, sess.realPath, sess.jobDir, sess.plan, startIndex, ffmpegStartSec)
+	job, err := m.engine.StartContinuous(jobCtx, realPath, jobDir, plan, startIndex, ffmpegStartSec)
 	if err != nil {
 		cancel()
 		m.failSession(sessionID, gen, err)
@@ -383,13 +391,13 @@ func (m *Manager) runProducer(ctx context.Context, sess *playbackSession, startS
 		case <-ctx.Done():
 			return
 		case <-deadline.C:
-			if !m.store.InitReady(sess.jobDir) {
+			if !m.store.InitReady(jobDir) {
 				job.Cancel()
 				m.failSession(sessionID, gen, fmt.Errorf("startup timeout"))
 			}
 			return
 		case <-ticker.C:
-			if m.store.InitReady(sess.jobDir) {
+			if m.store.InitReady(jobDir) {
 				m.markRunning(sessionID, gen)
 				return
 			}
