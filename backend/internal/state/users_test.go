@@ -341,3 +341,52 @@ func TestUpdateUserPatchPreservesBackendSourcePermissions(t *testing.T) {
 	}
 }
 
+func TestCreateUserKeepsRequestedPermissions(t *testing.T) {
+	original := settings.Config
+	t.Cleanup(func() { settings.Config = original })
+	settings.Config = settings.SetDefaults(true)
+	source := &settings.Source{Path: "/data/a", Name: "a", Config: settings.SourceConfig{
+		DefaultEnabled:     true,
+		DefaultPermissions: users.SourceFilePermissions{View: true, Download: true, Modify: true, Create: true},
+	}}
+	settings.Config.Server.Sources = []*settings.Source{source}
+	settings.Config.Server.SourceMap = map[string]*settings.Source{source.Path: source}
+	settings.Config.Server.NameToSource = map[string]*settings.Source{source.Name: source}
+	settings.InitializeUserResolvers()
+
+	dbPath := filepath.Join(t.TempDir(), "filebrowser.sqlite")
+	_, err := Initialize(dbPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = Close() })
+
+	requested := users.SourceFilePermissions{View: true, Download: true, Delete: true}
+	u := &users.User{
+		FrontendUser: users.FrontendUser{
+			Username:       "alice",
+			Permissions:    users.Permissions{Admin: true, Share: true, Api: true, Realtime: true},
+			FrontendScopes: []users.FrontendScope{{Name: "a", Scope: "/", Permissions: &requested}},
+		},
+	}
+	if err = CreateUser(u, "password"); err != nil {
+		t.Fatal(err)
+	}
+
+	loaded, err := GetUserByUsername("alice")
+	if err != nil {
+		t.Fatal(err)
+	}
+	wantPerms := users.Permissions{Admin: true, Share: true, Api: true, Realtime: true}
+	if loaded.Permissions != wantPerms {
+		t.Fatalf("permissions = %+v, want %+v", loaded.Permissions, wantPerms)
+	}
+	if len(loaded.BackendScopes) == 0 {
+		t.Fatal("expected a scope for the requested source")
+	}
+	got := loaded.BackendScopes[0].Permissions
+	if got.View != requested.View || got.Download != requested.Download || got.Modify != requested.Modify ||
+		got.Create != requested.Create || got.Delete != requested.Delete {
+		t.Fatalf("scope permissions = %+v, want %+v", got, requested)
+	}
+}
