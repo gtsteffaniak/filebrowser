@@ -1112,6 +1112,7 @@ export default {
         "application/x-filebrowser-internal-drag"
       );
       if (isInternal) return;
+      if (!getters.sourcePermissions().create) return;
 
       if (!this.$el.contains(event.relatedTarget)) {
         this.dragTargets.add(this.$el);
@@ -1133,8 +1134,10 @@ export default {
     },
     async drop(event) {
       event.preventDefault();
-      if (getters.isShare() && !state.shareInfo.allowCreate) {
-        return
+      // The listeners are attached once at mount, so re-check: the source may have changed since,
+      // or turned out to be read-only once its info arrived. Covers shares too (create = allowCreate).
+      if (!getters.sourcePermissions().create) {
+        return;
       }
       const isInternal = Array.from(event.dataTransfer.types).includes(
         "application/x-filebrowser-internal-drag"

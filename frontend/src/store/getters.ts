@@ -751,7 +751,12 @@ export const getters = {
       return denyFile;
     }
     const scopeEntry = state.user.scopes.find((entry) => entry?.name === activeSource);
-    return scopeEntry?.permissions ?? denyFile;
+    const permissions = scopeEntry?.permissions ?? denyFile;
+    // The server refuses writes to a read-only source whatever the scope grants, so do not offer them.
+    if (state.sources?.info?.[activeSource]?.readOnly) {
+      return { ...permissions, modify: false, create: false, delete: false };
+    }
+    return permissions;
   },
   /** Whether the current user may create files/folders in the given source (share-aware). */
   canCreateInSource: (source: string) => {
