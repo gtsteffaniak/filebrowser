@@ -1082,7 +1082,8 @@
       "webSessionNamed": "Веб-сесія ({name})",
       "scopeAccess": "Активність доступу",
       "eventAccessCreate": "Доступ до створення",
-      "eventAccessDelete": "Доступ до видалення"
+      "eventAccessDelete": "Доступ до видалення",
+      "eventFileModify": "Зміна файлу"
     },
     "toolAccessDefaults": "Стандартні налаштування доступу до інструментів",
     "toolAccessDefaultsDescription": "Налаштуйте, до яких інструментів нові користувачі матимуть доступ за замовчуванням",
