@@ -34,11 +34,14 @@ app.directive("focus", {
   },
 });
 
-app.mixin({
-  mounted() {
-    // expose vue instance to components
-    this.$el.__vue__ = this;
-  },
-});
+if (import.meta.env.DEV) {
+  app.mixin({
+    mounted() {
+      if (this.$el?.nodeType === 1) {
+        this.$el.__vue__ = this;
+      }
+    },
+  });
+}
 
 void router.isReady().then(() => app.mount("#app"));
