@@ -283,7 +283,7 @@ func TestExtractZip_nestedBackslashes(t *testing.T) {
 func BenchmarkNormalizeArchiveEntryName(b *testing.B) {
 	const name = `PRO1000\Winx64\NDIS65\e1c65x64.cat`
 	b.ReportAllocs()
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		_, _ = normalizeArchiveEntryName(name)
 	}
 }
