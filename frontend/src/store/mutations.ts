@@ -1333,7 +1333,7 @@ export const mutations = {
     updateManifestLink();
     emitStateChanged();
   },
-  setSidebarWidth: (value: number) => {
+  setSidebarWidth: (value: number, persist = true) => {
     // Ensure width is within bounds
     const minWidth = state.sidebar.minWidth;
     const maxWidth = state.sidebar.maxWidth;
@@ -1342,8 +1342,13 @@ export const mutations = {
       return;
     }
     state.sidebar.width = newWidth;
-    localStorage.setItem("sidebarWidth", newWidth.toString());
+    if (persist) {
+      localStorage.setItem("sidebarWidth", newWidth.toString());
+    }
     emitStateChanged();
+  },
+  persistSidebarWidth: () => {
+    localStorage.setItem("sidebarWidth", state.sidebar.width.toString());
   },
   setSidebarResizing: (value: boolean) => {
     if (value === state.sidebar.isResizing) {

@@ -447,18 +447,21 @@ async function syncNodes(existing: TreeNode[], path: string, scope: TreeScope): 
     if (
       (Object.keys(item) as (keyof FileListItem)[]).every((key) => currentNode[key] === item[key]) &&
       currentNode.isHidden === item.hidden &&
-      !!currentNode.pinned === !!item.pinned
+      !!currentNode.pinned === !!item.pinned &&
+      !!currentNode.isShared === !!item.isShared
     ) {
       return currentNode;
     }
     const wasDir = currentNode.isDir;
     const node: TreeNode = {
-      ...currentNode,
-      ...item,
-      isHidden: item.hidden,
-      pinned: !!item.pinned,
+      ...createNode(item),
+      expanded: currentNode.expanded,
+      loading: currentNode.loading,
+      children: currentNode.children,
+      childrenCount: currentNode.childrenCount,
+      childrenError: currentNode.childrenError,
+      dragOver: currentNode.dragOver,
     };
-    node.isDir = node.type === 'directory';
     if (wasDir !== node.isDir) {
       node.expanded = false;
       node.loading = false;
