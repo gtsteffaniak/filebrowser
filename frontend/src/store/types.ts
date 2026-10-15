@@ -293,6 +293,13 @@ export interface StoreState {
       newFileTemplate?: boolean;
     };
   };
+  /** Effective media settings for playback, or null before the API reports them. */
+  mediaPlayerSettings: {
+    enabled: boolean;
+    profiles: string[];
+    maxConcurrentPerUser: number;
+    hardwareAcceleration: boolean;
+  } | null;
   sidebarLinkDefaultsPolicy: {
     items?: Array<{
       enabled?: boolean;

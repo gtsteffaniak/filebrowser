@@ -6,31 +6,13 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestStoreServeContractOpensNormalizedSegment(t *testing.T) {
 	store, storeErr := NewStore(t.TempDir())
 	if storeErr != nil {
 		t.Fatal(storeErr)
-	}
-	jobDir := t.TempDir()
-	segDir := filepath.Join(jobDir, "seg")
-	if err := os.MkdirAll(segDir, 0o755); err != nil {
-		t.Fatal(err)
-	}
-	if err := os.WriteFile(filepath.Join(jobDir, "init.m4s"), []byte("init-segment-bytes"), 0o644); err != nil {
-		t.Fatal(err)
-	}
-	segPath := filepath.Join(segDir, "00000.m4s")
-	payload := make([]byte, 9000)
-	if err := os.WriteFile(segPath, payload, 0o644); err != nil {
-		t.Fatal(err)
-	}
-	if err := os.WriteFile(segPath+".ready", []byte("1"), 0o644); err != nil {
-		t.Fatal(err)
-	}
-	if err := os.WriteFile(filepath.Join(jobDir, "ffmpeg.m3u8"), []byte("#EXTM3U\n#EXT-X-MAP:URI=\"init.m4s\"\n#EXTINF:4,\n00000.m4s\n"), 0o644); err != nil {
-		t.Fatal(err)
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -53,10 +35,15 @@ func TestStoreServeContractOpensNormalizedSegment(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	mgr.mu.Lock()
-	sess := mgr.sessions[info.ID]
-	sess.jobDir = jobDir
-	mgr.mu.Unlock()
+	jobDir, err := mgr.JobDir("contract-user", info.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Wait for the producer's initial writes, then populate the generation the way
+	// ffmpeg plus the segment aligner would before the playlist is served.
+	waitForInit(t, store, jobDir)
+	writeServeFixture(t, jobDir, "#EXTM3U\n#EXT-X-MAP:URI=\"init.m4s\"\n#EXTINF:4,\n00000.m4s\n")
 
 	playlist, err := mgr.Playlist("contract-user", info.ID)
 	if err != nil {
@@ -81,4 +68,37 @@ func TestStoreServeContractOpensNormalizedSegment(t *testing.T) {
 		t.Fatalf("open segment: %v", err)
 	}
 	segFile.Close()
+}
+
+// writeServeFixture populates a generation with an aligned segment and a playlist,
+// mirroring what ffmpeg plus the segment aligner produce on disk.
+func writeServeFixture(t *testing.T, jobDir, playlist string) {
+	t.Helper()
+	segDir := filepath.Join(jobDir, "seg")
+	if err := os.MkdirAll(segDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	segPath := filepath.Join(segDir, "00000.m4s")
+	if err := os.WriteFile(segPath, make([]byte, 9000), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(segPath+".ready", []byte("1"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(jobDir, "ffmpeg.m3u8"), []byte(playlist), 0o644); err != nil {
+		t.Fatal(err)
+	}
+}
+
+// waitForInit waits until the fake producer has written its init segment, so a
+// test can populate the generation without racing the producer's own writes.
+func waitForInit(t *testing.T, store *Store, jobDir string) {
+	t.Helper()
+	deadline := time.Now().Add(2 * time.Second)
+	for !store.InitReady(jobDir) {
+		if time.Now().After(deadline) {
+			t.Fatal("timed out waiting for the producer to write init.m4s")
+		}
+		time.Sleep(5 * time.Millisecond)
+	}
 }

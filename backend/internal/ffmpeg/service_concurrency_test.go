@@ -65,7 +65,7 @@ func TestGetMediaDurationConcurrentNoDeadlock(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Initialize() error = %v", err)
 	}
-	t.Cleanup(func() { global = nil })
+	t.Cleanup(func() { global.Store(nil) })
 
 	svc := Get()
 	if svc == nil {

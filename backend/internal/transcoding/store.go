@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/ffmpeg"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
@@ -72,6 +73,15 @@ func (s *Store) SegmentReady(path string) bool {
 	return ffmpeg.HLSSegmentServeReady(jobDir, name)
 }
 
+// SegmentNameReady reports whether a segment has been aligned and is safe to serve.
+func (s *Store) SegmentNameReady(jobDir, name string) bool {
+	path, err := s.SegmentPath(jobDir, name)
+	if err != nil {
+		return false
+	}
+	return s.SegmentReady(path)
+}
+
 func (s *Store) InitReady(jobDir string) bool {
 	return ffmpeg.HLSInitReady(jobDir)
 }
@@ -98,15 +108,83 @@ func (s *Store) OpenInit(jobDir string) (*os.File, error) {
 	return os.Open(path)
 }
 
-func (s *Store) ReadPlaylist(jobDir string) ([]byte, error) {
-	if err := ffmpeg.NormalizeHLSPlaylist(jobDir); err != nil {
-		return nil, err
-	}
+// ReadServePlaylist returns the playlist normalized in memory with only the
+// segments that are aligned and ready included, plus how many segments it
+// exposes. The playlist on disk is left untouched so serving never races with
+// ffmpeg rewriting ffmpeg.m3u8.
+func (s *Store) ReadServePlaylist(jobDir string) ([]byte, int, error) {
 	path := s.PlaylistPath(jobDir)
 	if err := s.assertContained(jobDir, path); err != nil {
-		return nil, err
+		return nil, 0, err
 	}
-	return os.ReadFile(path)
+	raw, err := os.ReadFile(path)
+	if err != nil {
+		return nil, 0, err
+	}
+	out, ready := buildServePlaylist(raw, func(name string) bool {
+		return s.SegmentNameReady(jobDir, name)
+	})
+	return out, ready, nil
+}
+
+// IsCompleteGeneration reports whether a generation directory holds a finished,
+// fully aligned HLS output that can be served without running ffmpeg again.
+func (s *Store) IsCompleteGeneration(jobDir string) bool {
+	if jobDir == "" || !s.InitReady(jobDir) {
+		return false
+	}
+	raw, err := os.ReadFile(s.PlaylistPath(jobDir))
+	if err != nil {
+		return false
+	}
+	return playlistIsComplete(raw, func(name string) bool {
+		return s.SegmentNameReady(jobDir, name)
+	})
+}
+
+// FindReusableGeneration returns the most recently modified complete generation
+// under fingerprint. Generations are keyed only by file identity and transcode
+// parameters, so any user playing the same file with the same profile reuses the
+// same cached playlist and segments.
+func (s *Store) FindReusableGeneration(fingerprint string) (string, bool) {
+	if fingerprint == "" {
+		return "", false
+	}
+	fpDir := filepath.Join(s.root, fingerprint)
+	entries, err := os.ReadDir(fpDir)
+	if err != nil {
+		return "", false
+	}
+	var best string
+	var bestMod time.Time
+	for _, entry := range entries {
+		if !entry.IsDir() {
+			continue
+		}
+		genDir := filepath.Join(fpDir, entry.Name())
+		if !s.IsCompleteGeneration(genDir) {
+			continue
+		}
+		info, statErr := entry.Info()
+		if statErr != nil {
+			continue
+		}
+		if best == "" || info.ModTime().After(bestMod) {
+			best = genDir
+			bestMod = info.ModTime()
+		}
+	}
+	return best, best != ""
+}
+
+// TouchGeneration refreshes a generation's modification time so active cache
+// entries are not evicted by retention while they are still being watched.
+func (s *Store) TouchGeneration(jobDir string) {
+	if jobDir == "" {
+		return
+	}
+	now := time.Now()
+	_ = os.Chtimes(jobDir, now, now)
 }
 
 func (s *Store) RemoveGeneration(jobDir string) error {

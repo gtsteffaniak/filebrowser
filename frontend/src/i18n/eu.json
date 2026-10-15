@@ -170,7 +170,13 @@
     "clearSelection": "Garbitu hautapena",
     "interval": "Tartea{suffix}",
     "none": "Bat ere ez",
-    "enforce": "Derrigortu{suffix}"
+    "enforce": "Derrigortu{suffix}",
+    "unknown": "Ezezaguna",
+    "simple": "Sinplea",
+    "normal": "Normala",
+    "complex": "Konplexua",
+    "access": "Sarbidea",
+    "groups": "Taldeak"
   },
   "buttons": {
     "copySuccess": "Arbelean kopiatu da!",
@@ -644,7 +650,7 @@
     "userEditSidebarLinks": "Alboko barrako estekak",
     "userDefaultsDescription": "Konfiguratu erabiltzaile berriei aplikatzen zaizkien ezarpen lehenetsiak eta erabiltzaile guztiei derrigortutako gidalerroak.",
     "editAsYaml": "Editatu YAML gisa",
-    "userDefaultFieldLockedFromConfig": "Lehenespen hau konfigurazio-fitxategian ezarrita dago, eta ezin da hemen aldatu.",
+    "lockedFromConfig": "Lehenespen hau konfigurazio-fitxategian ezarrita dago, eta ezin da hemen aldatu.",
     "accountDefaults": "Kontuaren lehenespenak",
     "disableUserSettings": "Desgaitu erabiltzaile-ezarpenen orria",
     "analyticsView": "Ikusi analitikak",
@@ -659,9 +665,6 @@
     "passwordRequirementsMatch": "Pasahitzak bat datoz",
     "passwordRequirementsMinLength": "Gutxienez {min} karaktere",
     "loginMethod": "Saioa hasteko metodoa",
-    "loginMethods": {
-      "password": "Pasahitza"
-    },
     "modifyOtherUser": "Aldatu erabiltzailea:",
     "modifyOtherUserTitle": "Aldatu erabiltzailea: {username}",
     "themeColor": "Gaiaren kolorea",
@@ -764,10 +767,6 @@
     "minimalInfo": "Tokenaren pertsonalizazioak baztertzen ditu; baimenak lotutako erabiltzailearenak izango dira, eta ez du beste atributurik izango."
   },
   "index": {
-    "unknown": "Ezezaguna",
-    "simple": "Sinplea",
-    "normal": "Normala",
-    "complex": "Konplexua",
     "highlyComplex": "Oso konplexua",
     "assessment": "Ebaluazioa",
     "ready": "Prest",
@@ -794,12 +793,9 @@
     "passwordRequiredForGeneration": "Zure pasahitza behar da autentifikazio-kode bat sortzeko."
   },
   "access": {
-    "access": "Sarbidea",
-    "groups": "Taldeak",
     "newGroup": "Talde berria",
     "editGroup": "Editatu taldea",
     "groupName": "Taldearen izena",
-    "userGroups": "Taldeak",
     "userGroupsDescription": "Erabiltzaile hau zein taldetakoa den",
     "groupMembers": "Kideak",
     "membersCount": "Kideak: {count}",
@@ -811,7 +807,6 @@
     "groupExists": "Badago izen hori duen talde bat.",
     "deleteGroupConfirm": "Ezabatu \"{name}\" taldea? Sarbide-arau guztietatik ere kenduko da.",
     "groupsOidcNote": "SSO bidez sinkronizatutako taldeetako (OIDC, LDAP, JWT, proxy) kideak identitate-hornitzailetik berrezartzen dira erabiltzaile horiek saioa hasten duten bakoitzean.",
-    "selectEntities": "Hautatu",
     "selectUser": "Hautatu erabiltzailea",
     "selectUsers": "Hautatu erabiltzaileak",
     "selectGroup": "Hautatu taldea",

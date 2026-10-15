@@ -40,7 +40,7 @@ func InitMediaSettings() error {
 	// Media settings pinned in the config file win over stored values, and are
 	// locked in the admin UI.
 	if settings.MediaSettingsLockedFromConfig() {
-		overlaid, overlayErr := settings.ApplyConfigSpecifiedPathsToMedia(loaded, settings.Config.Integrations.Media)
+		overlaid, overlayErr := settings.ApplyConfigSpecifiedPathsToMedia(loaded, settings.ConfigMediaIntegration())
 		if overlayErr != nil {
 			return fmt.Errorf("overlay config media settings: %w", overlayErr)
 		}

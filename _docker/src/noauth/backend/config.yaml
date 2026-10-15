@@ -65,3 +65,7 @@ userDefaults:
     video: true
     office: true
     highQuality: true
+integrations:
+  media:
+    # Keep the multi-second ffmpeg hardware codec probe out of CI startup.
+    hardwareAcceleration: false

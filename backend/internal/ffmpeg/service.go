@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"strings"
+	"sync/atomic"
 
 	goffmpeg "github.com/gtsteffaniak/go-ffmpeg"
 	"github.com/gtsteffaniak/go-ffmpeg/capabilities"
@@ -22,7 +23,10 @@ type Service struct {
 // FFmpegService is kept for existing callers.
 type FFmpegService = Service
 
-var global *Service
+// global holds the process-wide ffmpeg service. It is swapped wholesale by
+// ApplyMediaSettings, so it is stored atomically to keep concurrent readers
+// (transcode admission, previews, media handlers) race-free.
+var global atomic.Pointer[Service]
 
 // InitOptions configures startup initialization.
 type InitOptions struct {
@@ -75,14 +79,14 @@ func Initialize(ctx context.Context, opts InitOptions) error {
 
 	svc, err := goffmpeg.New(ctx, cfg)
 	if err != nil {
-		global = nil
+		global.Store(nil)
 		return err
 	}
 
-	global = &Service{
+	global.Store(&Service{
 		inner:    svc,
 		cacheDir: opts.CacheDir,
-	}
+	})
 
 	logCapabilities(svc, opts.HardwareAcceleration)
 	return nil
@@ -90,7 +94,7 @@ func Initialize(ctx context.Context, opts InitOptions) error {
 
 // HardwareAccelerationAvailable reports whether any hardware encoder is usable.
 func HardwareAccelerationAvailable() bool {
-	return global.HardwareAccelerationAvailable()
+	return global.Load().HardwareAccelerationAvailable()
 }
 
 // HardwareAccelerationAvailable reports whether any hardware encoder is usable.
@@ -112,12 +116,13 @@ func (s *Service) HardwareAccelerationAvailable() bool {
 
 // Get returns the initialized service, or nil when ffmpeg is unavailable.
 func Get() *Service {
-	return global
+	return global.Load()
 }
 
 // Enabled reports whether ffmpeg initialized successfully.
 func Enabled() bool {
-	return global != nil && global.inner != nil
+	svc := global.Load()
+	return svc != nil && svc.inner != nil
 }
 
 // FFmpegPath returns the resolved ffmpeg binary path.
@@ -203,10 +208,25 @@ func logCapabilities(svc *goffmpeg.Service, wantsHardware bool) {
 	logger.Debugf("supported ffmpeg hardware codecs: %s", hw)
 }
 
+// hardwareCodecSummary lists the hardware encode/decode paths that detection
+// found usable. It reads the capability maps directly instead of the
+// hierarchy-filtered encode/decode options, so hardware stays reported when it
+// is detected but not preferred (for example when hardware acceleration is
+// disabled and software encoders are selected instead).
 func hardwareCodecSummary(svc *goffmpeg.Service) string {
+	if svc == nil {
+		return ""
+	}
+	return hardwareCodecSummaryFromCaps(svc.Capabilities())
+}
+
+func hardwareCodecSummaryFromCaps(caps *capabilities.Capabilities) string {
+	if caps == nil {
+		return ""
+	}
+
 	seen := make(map[string]struct{})
 	var parts []string
-
 	add := func(entry string) {
 		if entry == "" {
 			return
@@ -218,18 +238,28 @@ func hardwareCodecSummary(svc *goffmpeg.Service) string {
 		parts = append(parts, entry)
 	}
 
-	for _, opt := range svc.AvailableEncodeOptions() {
-		if opt.Accel == capabilities.AccelNone {
-			continue
-		}
-		add(fmt.Sprintf("%s encode via %s (%s)", opt.Codec, opt.Encoder, capabilities.AccelLabel(opt.Accel)))
+	for _, name := range caps.HardwareEncoders() {
+		add(fmt.Sprintf("%s encode via %s (%s)", encoderCodec(name), name,
+			capabilities.AccelLabel(capabilities.EncoderAccel(name))))
 	}
-	for _, opt := range svc.AvailableDecodeOptions() {
-		if opt.Accel == capabilities.AccelNone {
-			continue
-		}
-		add(fmt.Sprintf("%s decode via %s (%s)", opt.Codec, opt.Decoder, capabilities.AccelLabel(opt.Accel)))
+	for _, name := range caps.HardwareDecoders() {
+		add(fmt.Sprintf("%s decode via %s (%s)", caps.Decoders[name].Codec, name,
+			capabilities.AccelLabel(capabilities.DecoderAccel(name))))
 	}
 
 	return strings.Join(parts, ", ")
+}
+
+func encoderCodec(name string) capabilities.VideoCodec {
+	for _, codec := range []capabilities.VideoCodec{
+		capabilities.CodecH264,
+		capabilities.CodecHEVC,
+		capabilities.CodecAV1,
+		capabilities.CodecVP9,
+	} {
+		if capabilities.EncoderMatchesCodec(name, codec) {
+			return codec
+		}
+	}
+	return ""
 }

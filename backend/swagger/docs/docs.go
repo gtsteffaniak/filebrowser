@@ -8926,7 +8926,7 @@ const docTemplate = `{
             }
         },
         "web.mediaSettingsResponse": {
-            "description": "Returns the DB-backed media integration settings (transcode, conversion, debug).",
+            "description": "Admins receive the DB-backed media integration settings; every authenticated user receives the player-relevant subset (transcode enabled, profiles, per-user limit).",
             "type": "object",
             "properties": {
                 "convert": {

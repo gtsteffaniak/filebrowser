@@ -476,7 +476,7 @@ export default {
     loginMethodOptions() {
       const options = [];
       if (this.globalVars.passwordAvailable) {
-        options.push({ value: "password", label: this.$t("settings.loginMethods.password") });
+        options.push({ value: "password", label: this.$t("general.password") });
       }
       if (this.globalVars.oidcAvailable) {
         options.push({ value: "oidc", label: "OIDC" });

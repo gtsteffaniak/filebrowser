@@ -52,6 +52,12 @@ func initializeDatabase(configFile string, cliMode bool) bool {
 	if err != nil {
 		logger.Fatalf("could not initialize state: %v", err)
 	}
+	// state.Open applies persisted media settings, so initialize ffmpeg once here
+	// (before wiring, which reads Env.FFmpegAvailable) instead of during config
+	// load, which would run the multi-second hardware codec probe twice.
+	if !cliMode {
+		settings.InitFFmpeg()
+	}
 	runtimeApp, err = app.WireServices(store)
 	if err != nil {
 		logger.Fatalf("could not wire services: %v", err)

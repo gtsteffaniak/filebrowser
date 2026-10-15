@@ -433,9 +433,10 @@ func settingsShareDefaultsPatchHandler(w http.ResponseWriter, r *http.Request, d
 	return settingsShareDefaultsGetHandler(w, r, d)
 }
 
-// settingsMediaGetHandler returns the runtime media settings for admin users.
+// settingsMediaGetHandler returns the runtime media settings.
 // @Summary Get runtime media settings
-// @Description Returns the DB-backed media integration settings (transcode, conversion, debug).
+// @Description Admins receive the DB-backed media integration settings; every authenticated user
+// @Description receives the player-relevant subset (transcode enabled, profiles, per-user limit).
 // @Tags Settings
 // @Produce json
 // @Success 200 {object} mediaSettingsResponse "Media settings"
@@ -447,6 +448,16 @@ type mediaSettingsResponse struct {
 	LockMessage           string   `json:"lockMessage,omitempty"`
 }
 
+// mediaPlayerSettings is the player-relevant subset of the runtime media
+// settings. It is safe to expose to any authenticated user so the player can
+// reflect admin changes without a page reload.
+type mediaPlayerSettings struct {
+	Enabled              bool     `json:"enabled"`
+	Profiles             []string `json:"profiles"`
+	MaxConcurrentPerUser int      `json:"maxConcurrentPerUser"`
+	HardwareAcceleration bool     `json:"hardwareAcceleration"`
+}
+
 func mediaSettingsLockMeta() (paths []string, message string) {
 	paths = settings.ConfigSpecifiedMediaPaths()
 	if len(paths) == 0 {
@@ -456,12 +467,26 @@ func mediaSettingsLockMeta() (paths []string, message string) {
 }
 
 func settingsMediaGetHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+	if !d.User.Permissions.Admin {
+		return RenderJSON(w, r, currentMediaPlayerSettings())
+	}
 	lockedPaths, lockMessage := mediaSettingsLockMeta()
 	return RenderJSON(w, r, mediaSettingsResponse{
 		MediaSettings:         state.GetMediaSettings(),
 		LockedFromConfigPaths: lockedPaths,
 		LockMessage:           lockMessage,
 	})
+}
+
+// currentMediaPlayerSettings reads the live media settings for the player UI.
+func currentMediaPlayerSettings() mediaPlayerSettings {
+	media := state.GetMediaSettings()
+	return mediaPlayerSettings{
+		Enabled:              settings.TranscodeEnabled(),
+		Profiles:             settings.EnabledTranscodeProfiles(),
+		MaxConcurrentPerUser: settings.TranscodeMaxConcurrentPerUser(),
+		HardwareAcceleration: media.HardwareAcceleration,
+	}
 }
 
 // settingsMediaPatchHandler merges a partial update into the runtime media settings.

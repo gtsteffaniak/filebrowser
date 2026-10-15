@@ -170,7 +170,13 @@
     "remove": "Rimuovi{suffix}",
     "saved": "Salvato{suffix}",
     "removed": "Rimosso{suffix}",
-    "back": "Indietro{suffix}"
+    "back": "Indietro{suffix}",
+    "unknown": "Sconosciuto",
+    "simple": "Semplice",
+    "normal": "Normale",
+    "complex": "Complesso",
+    "access": "Accesso",
+    "groups": "Gruppi"
   },
   "buttons": {
     "copySuccess": "Copiato negli appunti!",
@@ -618,9 +624,6 @@
     "enterPassword": "Inserisci password",
     "enterPasswordAgain": "Inserisci di nuovo la password",
     "loginMethod": "Metodo di accesso",
-    "loginMethods": {
-      "password": "Password"
-    },
     "modifyOtherUser": "Modifica utente:",
     "themeColor": "Colore del tema",
     "listingOptions": "Opzioni elenco",
@@ -656,9 +659,9 @@
     "userDefaultsDescription": "Configurare le impostazioni predefinite da applicare ai nuovi utenti e le politiche da far rispettare a tutti gli utenti.",
     "accountDefaults": "Impostazioni predefinite dell'account",
     "disableUserSettings": "Disattiva la pagina delle impostazioni utente",
-    "userDefaultFieldLockedFromConfig": "Questa impostazione predefinita è configurata nel file di configurazione e non può essere modificata in questa sede.",
     "sourceAccessDefaultsHelp": "Permessi predefiniti applicati ai file sorgente e ai nuovi utenti. L'opzione \"Enforce\" blocca un valore per tutti gli utenti non amministratori.",
     "editAsYaml": "Modifica come YAML",
+    "lockedFromConfig": "Questa impostazione predefinita è configurata nel file di configurazione e non può essere modificata in questa sede.",
     "userEditPreferences": "Preferenze utente",
     "userEditTools": "Accesso agli strumenti",
     "userEditToolsDescription": "Configurare a quali strumenti questo utente può accedere",
@@ -733,10 +736,6 @@
     "minimalInfo": "Esclude personalizzazioni, i permessi coincideranno con l'utente associato."
   },
   "index": {
-    "unknown": "Sconosciuto",
-    "simple": "Semplice",
-    "normal": "Normale",
-    "complex": "Complesso",
     "highlyComplex": "Altamente Complesso",
     "assessment": "Valutazione",
     "ready": "Pronto",
@@ -763,7 +762,6 @@
     "passwordRequiredForGeneration": "La password è necessaria per generare un codice autenticatore."
   },
   "access": {
-    "access": "Accesso",
     "all": "Nega Tutto",
     "rules": "Regole di accesso",
     "deny": "Nega",
@@ -779,11 +777,9 @@
     "cascadeDeleteDescription": "Se abilitato, l'eliminazione di una regola rimuoverà anche quelle nelle sottodirectory.",
     "hasRules": "Regole di accesso configurate",
     "manageDescription": "Regole di libero accesso per questo percorso.",
-    "groups": "Gruppi",
     "newGroup": "Nuovo gruppo",
     "editGroup": "Modifica gruppo",
     "groupName": "Nome del gruppo",
-    "userGroups": "Gruppi",
     "groupMembers": "Membri",
     "deleteGroupConfirm": "Eliminare il gruppo \"{name}\"? Verrà rimosso anche da tutte le regole di accesso.",
     "groupsOidcNote": "I membri dei gruppi sincronizzati tramite OIDC vengono reimpostati dal provider di identità a ogni accesso di tali utenti.",
@@ -795,7 +791,6 @@
     "groupNameTooLong": "Il nome del gruppo deve contenere al massimo {max} caratteri.",
     "groupNameInvalid": "Il nome del gruppo non deve contenere caratteri di controllo.",
     "groupExists": "Esiste già un gruppo con questo nome.",
-    "selectEntities": "Seleziona",
     "selectUser": "Seleziona utente",
     "selectUsers": "Seleziona gli utenti",
     "selectGroup": "Seleziona un gruppo",

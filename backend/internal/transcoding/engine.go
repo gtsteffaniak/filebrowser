@@ -61,7 +61,8 @@ func (e *MediaEngine) BuildPlan(ctx context.Context, realPath string, profile Pr
 	}
 
 	pipeline := ffmpeg.HLSPipelineOptions{
-		MaxHeight: maxHeightForProfile(profile),
+		MaxHeight:           maxHeightForProfile(profile),
+		ForceVideoTranscode: profileRequiresBitrateTranscode(profile, info),
 	}
 	buildIn := ffmpeg.BuildHLSSegmentBuildInput(info, pipeline)
 	defaults := ffmpeg.DefaultOnDemandHLSDefaults()
@@ -183,10 +184,23 @@ func avgBitrateForProfile(profile Profile) int {
 	return cfg.AvgBitrateKbps
 }
 
+// profileRequiresBitrateTranscode reports whether the profile pins a bitrate cap
+// below the source. Stream copy would silently ignore the cap, so a full video
+// re-encode is required to honor the profile.
+func profileRequiresBitrateTranscode(profile Profile, info ffmpeg.StreamInfo) bool {
+	cfg, ok := settings.TranscodeProfileConfig(string(profile))
+	if !ok || cfg.AvgBitrateKbps <= 0 {
+		return false
+	}
+	return info.VideoBitrate <= 0 || info.VideoBitrate/1000 > cfg.AvgBitrateKbps
+}
+
 func encodeProfileForMode(info ffmpeg.StreamInfo, profile Profile) encode.VideoProfile {
 	cfg, _ := settings.TranscodeProfileConfig(string(profile))
 	maxHeight := cfg.MaxResolution
-	if maxHeight <= 0 {
+	// The scale filter can only cap the height, never upscale, so a cap above the
+	// source resolution must not be used to pick a higher bitrate rung.
+	if maxHeight <= 0 || (info.Height > 0 && info.Height < maxHeight) {
 		maxHeight = info.Height
 	}
 	base := ffmpeg.DefaultHLSVideoProfile(maxHeight)

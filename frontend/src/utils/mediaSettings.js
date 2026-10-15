@@ -1,5 +1,7 @@
 /** Shared shapes/defaults for the runtime media settings (settings/media + prompts). */
 
+import { patchMediaSettings } from '@/api/settings.js';
+
 export const MEDIA_TRANSCODE_PROFILES = [
   { id: 'quality', label: 'general.quality' },
   { id: 'balanced', label: 'general.balanced' },
@@ -61,3 +63,83 @@ export function mergeMediaSettings(loaded) {
 
 /** Event emitted after a media settings prompt saves, so the section reloads. */
 export const MEDIA_SETTINGS_CHANGED_EVENT = 'mediaSettingsChanged';
+
+/** Enabled transcode profile ids in player-menu order. */
+export function enabledTranscodeProfileIds(media) {
+  const profiles = media?.transcode?.profiles || {};
+  return MEDIA_TRANSCODE_PROFILES
+    .filter((profile) => profiles[profile.id]?.enabled)
+    .map((profile) => profile.id);
+}
+
+/**
+ * Normalize the media settings payload for playback. The settings API returns
+ * the full object to admins and a player-only subset to everyone else, so both
+ * shapes collapse to the same fields here.
+ */
+export function normalizeMediaPlayerSettings(data) {
+  const transcode = data?.transcode || {};
+  return {
+    enabled: Boolean(data?.enabled ?? transcode.enabled),
+    profiles: Array.isArray(data?.profiles) ? data.profiles : enabledTranscodeProfileIds(data),
+    maxConcurrentPerUser: Number(data?.maxConcurrentPerUser ?? transcode.maxConcurrentPerUser) || 1,
+    hardwareAcceleration: Boolean(data?.hardwareAcceleration),
+  };
+}
+
+function deleteAtPath(target, path) {
+  const parts = String(path).split('.');
+  let node = target;
+  for (let i = 0; i < parts.length - 1; i += 1) {
+    if (!node || typeof node !== 'object') {
+      return;
+    }
+    node = node[parts[i]];
+  }
+  if (node && typeof node === 'object') {
+    delete node[parts[parts.length - 1]];
+  }
+}
+
+/**
+ * Remove config-locked leaf paths from a partial media settings patch.
+ *
+ * The backend rejects any patch that touches a path pinned in `config.yaml`, and
+ * the settings sections submit whole sub-objects (e.g. the full `transcode`
+ * object). Without this, locking one field would make every sibling unsavable.
+ */
+export function stripLockedMediaPaths(patch, lockedFromConfigPaths = []) {
+  if (!patch) {
+    return patch;
+  }
+  const locked = Array.isArray(lockedFromConfigPaths) ? lockedFromConfigPaths : [];
+  if (locked.length === 0) {
+    return patch;
+  }
+  const stripped = JSON.parse(JSON.stringify(patch));
+  for (const path of locked) {
+    deleteAtPath(stripped, path);
+  }
+  return stripped;
+}
+
+/** True when a (possibly nested) patch still carries at least one leaf value. */
+function hasPatchContent(value) {
+  if (value === null || typeof value !== 'object') {
+    return true;
+  }
+  return Object.values(value).some(hasPatchContent);
+}
+
+/**
+ * Patch media settings, skipping paths locked from the config file.
+ * @returns {Promise<{ skipped: boolean, media?: object }>}
+ */
+export async function saveMediaSettingsPatch(partial, lockedFromConfigPaths = []) {
+  const patch = stripLockedMediaPaths(partial, lockedFromConfigPaths);
+  if (!hasPatchContent(patch)) {
+    return { skipped: true };
+  }
+  const media = await patchMediaSettings(patch);
+  return { skipped: false, media: mergeMediaSettings(media) };
+}

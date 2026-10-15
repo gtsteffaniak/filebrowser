@@ -79,7 +79,7 @@ func initializeConfig(configFile string, cliMode bool) {
 	}
 	warnHttpProxyConfig()
 	setupFrontend(false)
-	setupMedia(false)
+	setupMedia()
 }
 
 func setupServer() {
@@ -339,7 +339,17 @@ func setupFrontend(generate bool) {
 	loadCustomFavicon()
 }
 
-func setupMedia(generate bool) {
+// setupMedia normalizes the media integration settings. ffmpeg initialization is
+// deferred to InitFFmpeg so the hardware codec probe runs once, after persisted
+// media settings have been applied.
+func setupMedia() {
+	applyMediaConvertDefaults()
+	setupMediaTranscode()
+}
+
+// applyMediaConvertDefaults re-seeds the conversion format maps and reapplies the
+// user's explicit config overrides (the maps are wiped during YAML unmarshal).
+func applyMediaConvertDefaults() {
 	// Save user's explicit config before applying defaults
 	userImageConfig := make(map[ImagePreviewType]*bool)
 	for k, v := range Config.Integrations.Media.Convert.ImagePreview {
@@ -372,12 +382,6 @@ func setupMedia(generate bool) {
 	// Apply user overrides (only for keys explicitly set in YAML)
 	for k, v := range userVideoConfig {
 		Config.Integrations.Media.Convert.VideoPreview[k] = v
-	}
-
-	setupMediaTranscode()
-
-	if !generate && !isGoTest() {
-		setupFFmpegIntegration()
 	}
 }
 
@@ -431,6 +435,7 @@ func isGoTest() bool {
 }
 
 func setupFFmpegIntegration() {
+	ffmpegInitialized = true
 	n := Config.Server.NumImageProcessors
 	if n < 1 {
 		n = 4
@@ -480,6 +485,19 @@ func setupFFmpegIntegration() {
 	Env.FFmpegPath = svc.FFmpegPath()
 	Env.FFprobePath = svc.FFprobePath()
 	Env.HardwareAccelerationAvailable = svc.HardwareAccelerationAvailable()
+}
+
+// InitFFmpeg initializes ffmpeg with the effective media settings. Startup calls
+// it once, after persisted media settings have been applied, so the multi-second
+// hardware codec probe does not run twice. It is a no-op when ffmpeg has already
+// been initialized (for example when ApplyMediaSettings triggered it first).
+func InitFFmpeg() {
+	mediaMu.Lock()
+	defer mediaMu.Unlock()
+	if isGoTest() || ffmpegInitialized {
+		return
+	}
+	setupFFmpegIntegration()
 }
 
 func setupSources(generate bool) {
@@ -1166,11 +1184,15 @@ func TranscodeCacheDir() string {
 
 // TranscodeEnabled reports whether authenticated HLS transcoding is enabled.
 func TranscodeEnabled() bool {
+	mediaMu.RLock()
+	defer mediaMu.RUnlock()
 	return Config.Integrations.Media.Transcode.Enabled && Env.FFmpegAvailable
 }
 
 // TranscodeMaxConcurrent returns the global transcode session limit.
 func TranscodeMaxConcurrent() int {
+	mediaMu.RLock()
+	defer mediaMu.RUnlock()
 	n := Config.Integrations.Media.Transcode.MaxConcurrent
 	if n < 1 {
 		return 2
@@ -1180,6 +1202,8 @@ func TranscodeMaxConcurrent() int {
 
 // TranscodeMaxConcurrentPerUser returns the admin-defined per-user ceiling.
 func TranscodeMaxConcurrentPerUser() int {
+	mediaMu.RLock()
+	defer mediaMu.RUnlock()
 	n := Config.Integrations.Media.Transcode.MaxConcurrentPerUser
 	if n < 1 {
 		return 1
@@ -1189,6 +1213,12 @@ func TranscodeMaxConcurrentPerUser() int {
 
 // EnabledTranscodeProfiles returns enabled transcode preset ids in player-menu order.
 func EnabledTranscodeProfiles() []string {
+	mediaMu.RLock()
+	defer mediaMu.RUnlock()
+	return enabledTranscodeProfilesLocked()
+}
+
+func enabledTranscodeProfilesLocked() []string {
 	p := Config.Integrations.Media.Transcode.Profiles
 	ids := make([]string, 0, 3)
 	for _, e := range []struct {
@@ -1208,6 +1238,8 @@ func EnabledTranscodeProfiles() []string {
 
 // TranscodeProfileConfig returns the configured settings for a transcode profile name.
 func TranscodeProfileConfig(name string) (TranscodeProfile, bool) {
+	mediaMu.RLock()
+	defer mediaMu.RUnlock()
 	p := Config.Integrations.Media.Transcode.Profiles
 	switch name {
 	case "quality":
@@ -1223,6 +1255,12 @@ func TranscodeProfileConfig(name string) (TranscodeProfile, bool) {
 
 // CurrentMediaSettings returns the runtime media settings (excluding ffmpegPath).
 func CurrentMediaSettings() MediaSettings {
+	mediaMu.RLock()
+	defer mediaMu.RUnlock()
+	return currentMediaSettingsLocked()
+}
+
+func currentMediaSettingsLocked() MediaSettings {
 	m := Config.Integrations.Media
 	return MediaSettings{
 		Convert:                  m.Convert,
@@ -1233,20 +1271,34 @@ func CurrentMediaSettings() MediaSettings {
 	}
 }
 
-// ApplyMediaSettings applies runtime media settings to the in-memory config and
-// re-initializes the ffmpeg integration so changes take effect immediately.
+// ApplyMediaSettings applies runtime media settings to the in-memory config.
+// ffmpeg is re-initialized only when an input that affects initialization
+// changed, so toggling conversion formats, profiles, or cache limits does not
+// re-run the multi-second hardware codec probe.
 func ApplyMediaSettings(s MediaSettings) {
+	mediaMu.Lock()
+	defer mediaMu.Unlock()
+
+	before := currentFFmpegInitInputs()
 	Config.Integrations.Media.Convert = s.Convert
 	Config.Integrations.Media.Debug = s.Debug
 	Config.Integrations.Media.ExtractEmbeddedSubtitles = s.ExtractEmbeddedSubtitles
 	Config.Integrations.Media.HardwareAcceleration = s.HardwareAcceleration
 	Config.Integrations.Media.Transcode = s.Transcode
-	setupMedia(false)
+	applyMediaConvertDefaults()
+	setupMediaTranscode()
+
+	if isGoTest() || currentFFmpegInitInputs() == before {
+		return
+	}
+	setupFFmpegIntegration()
 }
 
 // TranscodeCacheMaxSizeBytes returns the configured disk cache limit in bytes.
 // Zero means unlimited.
 func TranscodeCacheMaxSizeBytes() int64 {
+	mediaMu.RLock()
+	defer mediaMu.RUnlock()
 	mb := Config.Integrations.Media.Transcode.CacheMaxSizeMB
 	if mb <= 0 {
 		return 0
@@ -1256,6 +1308,8 @@ func TranscodeCacheMaxSizeBytes() int64 {
 
 // TranscodeCacheRetention returns how long inactive cache generations are kept.
 func TranscodeCacheRetention() time.Duration {
+	mediaMu.RLock()
+	defer mediaMu.RUnlock()
 	h := Config.Integrations.Media.Transcode.CacheRetentionH
 	if h <= 0 {
 		return 24 * time.Hour

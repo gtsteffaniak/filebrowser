@@ -31,6 +31,8 @@ export const state: StoreState = reactive({
   showSidebar: false,
   displayPreferences: {},
   enforcedUserDefaults: {},
+  /** Effective media settings for playback; null until the API reports them. */
+  mediaPlayerSettings: null,
   sidebarLinkDefaultsPolicy: { items: [] },
   toolAccessDefaultsPolicy: { items: [] },
   shareDefaultsPolicy: { values: {}, enforced: {} },

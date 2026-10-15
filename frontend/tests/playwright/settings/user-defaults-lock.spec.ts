@@ -61,7 +61,7 @@ test("config-locked user defaults show lock help and skip patch", async ({ page,
     await expectLockTooltipOnRowHover(
       page,
       showHiddenRow,
-      "This default is set in the config file and cannot be changed here.",
+      "This setting is set in the config file and cannot be changed here.",
     );
 
     let patchCount = 0;

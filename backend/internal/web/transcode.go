@@ -1,11 +1,13 @@
 package web
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"path/filepath"
 	"strings"
 	"time"
@@ -213,6 +215,10 @@ func transcodePlaylistHandler(w http.ResponseWriter, r *http.Request, d *Context
 	deadline := time.Now().Add(15 * time.Second)
 	var lastErr error
 	for {
+		if mgr.Failed(d.User.Username, id) {
+			logger.Warningf("[transcode] playlist failed session=%s user=%s (producer failed)", id, d.User.Username)
+			return http.StatusServiceUnavailable, fmt.Errorf("transcode producer failed")
+		}
 		data, err := mgr.Playlist(d.User.Username, id)
 		if err == nil && len(data) > 0 {
 			logger.Infof("[transcode] playlist session=%s user=%s bytes=%d", id, d.User.Username, len(data))
@@ -272,7 +278,9 @@ func transcodeSegmentHandler(w http.ResponseWriter, r *http.Request, d *Context)
 	}
 	id := strings.TrimSpace(r.PathValue("id"))
 	name := strings.TrimSpace(r.PathValue("name"))
-	f, err := mgr.OpenSegment(d.User.Username, id, name)
+	// A segment listed in the playlist is normally aligned already; retry briefly
+	// so a narrow race with the aligner never surfaces as a failed request.
+	f, err := openSegmentWithRetry(r.Context(), mgr, d.User.Username, id, name)
 	if err != nil {
 		logger.Infof("[transcode] segment failed session=%s user=%s name=%s err=%v", id, d.User.Username, name, err)
 		return transcodeErrorStatus(err), err
@@ -286,6 +294,24 @@ func transcodeSegmentHandler(w http.ResponseWriter, r *http.Request, d *Context)
 		return http.StatusInternalServerError, copyErr
 	}
 	return http.StatusOK, nil
+}
+
+func openSegmentWithRetry(ctx context.Context, mgr *transcoding.Manager, username, sessionID, name string) (*os.File, error) {
+	deadline := time.Now().Add(10 * time.Second)
+	for {
+		f, err := mgr.OpenSegment(username, sessionID, name)
+		if err == nil || !errors.Is(err, transcoding.ErrNotReady) {
+			return f, err
+		}
+		if time.Now().After(deadline) {
+			return nil, err
+		}
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		case <-time.After(100 * time.Millisecond):
+		}
+	}
 }
 
 func resolveTranscodeFile(d *Context, source, scopedPath string) (realPath, fileName string, status int, err error) {
@@ -329,7 +355,8 @@ func transcodeErrorStatus(err error) int {
 	case errors.Is(err, transcoding.ErrInvalidProfile), errors.Is(err, transcoding.ErrUnsupportedMedia):
 		return http.StatusUnprocessableEntity
 	case errors.Is(err, transcoding.ErrNotReady):
-		return http.StatusAccepted
+		// A 2xx would make hls.js treat the (non-segment) error body as media.
+		return http.StatusServiceUnavailable
 	default:
 		return http.StatusInternalServerError
 	}

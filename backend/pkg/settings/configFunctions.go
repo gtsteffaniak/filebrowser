@@ -4,6 +4,8 @@ func CanConvertImage(ext string) bool {
 	if !MediaEnabled() {
 		return false
 	}
+	mediaMu.RLock()
+	defer mediaMu.RUnlock()
 	val := Config.Integrations.Media.Convert.ImagePreview[ImagePreviewType(ext)]
 	if val == nil {
 		return false // Extension not in the configured list
@@ -15,6 +17,8 @@ func CanConvertVideo(ext string) bool {
 	if !MediaEnabled() {
 		return false
 	}
+	mediaMu.RLock()
+	defer mediaMu.RUnlock()
 	val := Config.Integrations.Media.Convert.VideoPreview[VideoPreviewType(ext)]
 	if val == nil {
 		return false // Extension not in the configured list

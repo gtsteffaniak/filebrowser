@@ -786,6 +786,12 @@ export default {
       return parseTranscodeModeFromQuery(this.$route?.query);
     },
     transcodeEnabled() {
+      // globalVars are static page constants; prefer the live media settings so
+      // an admin toggling transcoding does not need a page reload.
+      const live = state.mediaPlayerSettings;
+      if (live) {
+        return live.enabled === true;
+      }
       return globalVars.transcodeEnabled === true;
     },
     transcodeActive() {
@@ -827,9 +833,15 @@ export default {
       return needsTranscodeFirst(this.transcodeProbeParams());
     },
     transcodeProfileOptions() {
-      const configured = Array.isArray(globalVars.transcodeProfiles)
-        ? globalVars.transcodeProfiles
-        : PLYR_TRANSCODE_HLS_MODES;
+      const live = state.mediaPlayerSettings?.profiles;
+      let configured;
+      if (Array.isArray(live)) {
+        configured = live;
+      } else {
+        configured = Array.isArray(globalVars.transcodeProfiles)
+          ? globalVars.transcodeProfiles
+          : PLYR_TRANSCODE_HLS_MODES;
+      }
       const ids = configured.filter((id) => PLYR_TRANSCODE_HLS_MODES.includes(id));
       return ids.length ? ids : PLYR_TRANSCODE_HLS_MODES;
     },
@@ -2265,16 +2277,46 @@ export default {
     async switchToNativePlayback({ autoplay } = {}) {
       const currentTime = this.player?.currentTime ?? 0;
       const shouldPlay = autoplay ?? !!this.player?.playing;
-      this.teardownTranscodePlayback({ stopSession: false });
+      transcodeLog('switchToNativePlayback', { currentTime, shouldPlay });
+
+      // Release the HLS source even when a shared controller owns it. hls.js
+      // otherwise keeps its MediaSource attached to the element and the native
+      // source never loads, leaving the player frozen on the last frame.
+      const controller = this.transcodePlayback;
+      if (controller) {
+        if (this.usesSharedTranscodePlayback()) {
+          controller.teardownLocal({ stopSession: true });
+        } else {
+          controller.dispose({ stopSession: true });
+        }
+      }
       this.lockedNativeVideoSrc = null;
       this.videoStreamAttached = false;
-      await this.$nextTick();
-      this.attachVideoStreamAndPlay();
-      await this.$nextTick();
-      if (this.player && Number.isFinite(currentTime) && currentTime > 0) {
-        this.player.currentTime = currentTime;
+      // hls.js leaves its (now revoked) MediaSource blob URL on the element, and
+      // attachVideoStreamAndPlay only binds when no src is present.
+      const media = this.player?.media || this.mediaElement;
+      if (media?.hasAttribute('src')) {
+        media.removeAttribute('src');
       }
-      if (shouldPlay && this.player) {
+      await this.$nextTick();
+
+      // Restore the playhead through the inline-resume path, which waits for the
+      // new source to report metadata before seeking. Setting currentTime any
+      // earlier is discarded and playback restarts at 0:00.
+      const canResume = Number.isFinite(currentTime) && currentTime > 0;
+      if (canResume) {
+        this.pipHandoffSeekSeconds = currentTime;
+        this.inlineResumeSnapshot = {
+          source: this.req?.source,
+          path: this.req?.path,
+          currentTime,
+          wasPlaying: shouldPlay,
+          wasFullscreen: false,
+        };
+      }
+
+      await this.attachVideoStreamAndPlay();
+      if (!canResume && shouldPlay && this.player) {
         await this.player.play().catch(() => {});
       }
     },
@@ -2827,13 +2869,16 @@ export default {
           this.player.pause();
           return;
         }
-        if (this.formatNeedsTranscode) {
+        // Only offer transcoding when the source cannot play natively and no
+        // transcode is already running. Otherwise a transcoded `.wmv` could never
+        // be resumed from the player surface or the overlaid play button.
+        if (this.formatNeedsTranscode && !this.isTranscodePlaybackMode && !this.transcodeActive) {
           void this.offerTranscodePlayback();
           return;
         }
         void this.player.play().catch((playErr) => {
           transcodeWarn('player.play failed', { message: playErr?.message });
-          if (playErr?.name === 'NotSupportedError') {
+          if (playErr?.name === 'NotSupportedError' && !this.transcodeActive) {
             void this.offerTranscodePlayback();
           }
         });

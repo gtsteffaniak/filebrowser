@@ -5,7 +5,7 @@
     </div>
     <template v-else>
       <div v-if="hasImagePreview" class="settings-items">
-        <h3>{{ $t("settings.imagePreview") }}</h3>
+        <h3>{{ $t("media.imagePreview") }}</h3>
         <ToggleSwitch
           v-for="(value, key) in media.convert.imagePreview"
           :key="`img-${key}`"
@@ -17,7 +17,7 @@
         />
       </div>
       <div v-if="hasVideoPreview" class="settings-items">
-        <h3>{{ $t("settings.videoPreview") }}</h3>
+        <h3>{{ $t("media.videoPreview") }}</h3>
         <ToggleSwitch
           v-for="(value, key) in media.convert.videoPreview"
           :key="`vid-${key}`"
@@ -59,13 +59,14 @@
 import { notify } from "@/notify";
 import { mutations } from "@/store";
 import { eventBus } from "@/store/eventBus";
-import { getMediaSettings, patchMediaSettings } from "@/api/settings";
+import { getMediaSettings } from "@/api/settings";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import {
   MEDIA_SETTINGS_CHANGED_EVENT,
   emptyMediaSettings,
   mergeMediaSettings,
+  saveMediaSettingsPatch,
 } from "@/utils/mediaSettings";
 
 export default {
@@ -119,7 +120,7 @@ export default {
       return this.lockedFromConfigPaths.includes(path);
     },
     fieldTooltip(path) {
-      return this.isLocked(path) ? this.$t("settings.mediaFieldLockedFromConfig") : "";
+      return this.isLocked(path) ? this.$t("settings.lockedFromConfig") : "";
     },
     close() {
       mutations.closeTopPrompt();
@@ -130,7 +131,14 @@ export default {
       }
       this.saving = true;
       try {
-        await patchMediaSettings({ convert: this.media.convert });
+        const { skipped, media } = await saveMediaSettingsPatch(
+          { convert: this.media.convert },
+          this.lockedFromConfigPaths,
+        );
+        if (!skipped) {
+          this.media = media;
+        }
+        void mutations.syncMediaPlayerSettings();
         notify.showSuccess(this.$t("general.saved"));
         eventBus.emit(MEDIA_SETTINGS_CHANGED_EVENT);
         this.close();

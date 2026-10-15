@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -214,17 +215,34 @@ func TestStoreRejectsInvalidSegment(t *testing.T) {
 
 func TestSessionReusable(t *testing.T) {
 	running := &playbackSession{state: StateRunning}
-	completed := &playbackSession{state: StateCompleted}
+	// A generation that starts at segment 0 covers the whole file, so a
+	// completed session serves any playhead without transcoding again.
+	completedFromStart := &playbackSession{state: StateCompleted, coversFromStart: true}
+	// A generation that started mid-file never produced earlier segments.
+	completedPartial := &playbackSession{state: StateCompleted, startSec: 60}
+	runningPartial := &playbackSession{state: StateRunning, startSec: 60}
 	failed := &playbackSession{state: StateFailed}
 
 	if !sessionReusable(running, 12) {
 		t.Fatal("running session should be reusable while playing")
 	}
-	if !sessionReusable(completed, 0) {
+	if !sessionReusable(completedFromStart, 0) {
 		t.Fatal("completed session should be reusable from start")
 	}
-	if sessionReusable(completed, 12) {
-		t.Fatal("completed session should not be reused for mid-playback seek")
+	if !sessionReusable(completedFromStart, 12) {
+		t.Fatal("a completed generation that covers the file should serve a later seek")
+	}
+	if sessionReusable(completedPartial, 12) {
+		t.Fatal("a mid-file generation must not be reused for an earlier playhead")
+	}
+	if !sessionReusable(completedPartial, 90) {
+		t.Fatal("a mid-file generation should serve a later playhead")
+	}
+	if sessionReusable(runningPartial, 12) {
+		t.Fatal("a mid-file running generation must not be reused for an earlier playhead")
+	}
+	if !sessionReusable(runningPartial, 90) {
+		t.Fatal("a mid-file running generation should serve a later playhead")
 	}
 	if sessionReusable(failed, 0) {
 		t.Fatal("failed session should not be reused")
@@ -319,6 +337,10 @@ func TestManagerSupersedesNonReusableSession(t *testing.T) {
 	sess := mgr.sessions[first.ID]
 	sess.state = StateCompleted
 	sess.info.State = StateCompleted
+	// Simulate a generation that started mid-file: it never produced the earlier
+	// segments, so a request for an earlier playhead must start a new session.
+	sess.startSec = 60
+	sess.coversFromStart = false
 	mgr.mu.Unlock()
 
 	second, err := mgr.Start(ctx, StartInput{
@@ -510,5 +532,217 @@ func TestManagerCloseWaitsForProducers(t *testing.T) {
 	case <-blockingJob.Cancelled():
 	case <-time.After(2 * time.Second):
 		t.Fatal("Close did not cancel running producer")
+	}
+}
+
+// A completed generation on disk is shared by every user playing the same file
+// with the same profile: no second transcode, and the cached playlist is served.
+func TestManagerAttachesToCompletedGenerationAcrossUsers(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	store, err := NewStore(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	engine := NewFakeEngine()
+	mgr, err := NewManager(ctx, engine, store, Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer mgr.Close(context.Background())
+
+	realPath := t.TempDir() + "/clip.mp4"
+	plan, planErr := engine.BuildPlan(ctx, realPath, ProfileQuality)
+	if planErr != nil {
+		t.Fatal(planErr)
+	}
+	// Pre-seed the cache as if another user had already finished this transcode.
+	generationDir := filepath.Join(store.root, plan.cacheFingerprint, "gen-existing")
+	writeCompleteGeneration(t, generationDir, 9000)
+
+	start := func(username string) SessionInfo {
+		t.Helper()
+		info, startErr := mgr.Start(ctx, StartInput{
+			Username:  username,
+			UserLimit: 1,
+			Source:    "s",
+			Path:      "/clip.mp4",
+			RealPath:  realPath,
+			Profile:   ProfileQuality,
+			ClientID:  username,
+		})
+		if startErr != nil {
+			t.Fatalf("start %s: %v", username, startErr)
+		}
+		return info
+	}
+
+	first := start("user-a")
+	second := start("user-b")
+
+	if engine.StartCount() != 0 {
+		t.Fatalf("expected no new ffmpeg producer, got %d starts", engine.StartCount())
+	}
+	for _, info := range []SessionInfo{first, second} {
+		if info.State != StateCompleted {
+			t.Fatalf("session %s state = %s, want completed", info.ID, info.State)
+		}
+	}
+	jobDir, err := mgr.JobDir("user-a", first.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if jobDir != generationDir {
+		t.Fatalf("jobDir = %q, want the cached generation %q", jobDir, generationDir)
+	}
+	// The cached playlist is served to both users.
+	playlist, err := mgr.Playlist("user-b", second.ID)
+	if err != nil {
+		t.Fatalf("playlist: %v", err)
+	}
+	if !strings.Contains(string(playlist), "/seg/00000.m4s") {
+		t.Fatalf("playlist missing cached segment: %q", string(playlist))
+	}
+}
+
+// While one user's transcode is still running, a second user starting the same
+// file and profile attaches to that producer instead of spawning another ffmpeg.
+func TestManagerSharesInProgressProducerAcrossUsers(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	store, err := NewStore(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	engine := NewFakeEngine()
+	mgr, err := NewManager(ctx, engine, store, Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer mgr.Close(context.Background())
+
+	realPath := t.TempDir() + "/shared.mp4"
+	in := StartInput{
+		Username:  "user-a",
+		UserLimit: 1,
+		Source:    "s",
+		Path:      "/shared.mp4",
+		RealPath:  realPath,
+		Profile:   ProfileQuality,
+		ClientID:  "a",
+	}
+	first, err := mgr.Start(ctx, in)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	in.Username = "user-b"
+	in.ClientID = "b"
+	second, err := mgr.Start(ctx, in)
+	if err != nil {
+		t.Fatalf("second start: %v", err)
+	}
+
+	// The producer runs in its own goroutine; wait for it to start before
+	// asserting that no second ffmpeg process was launched.
+	deadline := time.Now().Add(2 * time.Second)
+	for engine.StartCount() < 1 {
+		if time.Now().After(deadline) {
+			t.Fatal("timed out waiting for the first producer to start")
+		}
+		time.Sleep(5 * time.Millisecond)
+	}
+	if engine.StartCount() != 1 {
+		t.Fatalf("expected a single ffmpeg producer, got %d", engine.StartCount())
+	}
+	firstDir, err := mgr.JobDir("user-a", first.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	secondDir, err := mgr.JobDir("user-b", second.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if firstDir != secondDir {
+		t.Fatalf("sessions share no generation: %q vs %q", firstDir, secondDir)
+	}
+
+	mgr.mu.Lock()
+	producer := mgr.producers[first.ID]
+	shared := mgr.producers[second.ID]
+	refs := 0
+	if producer != nil {
+		refs = producer.refs
+	}
+	mgr.mu.Unlock()
+	if producer == nil || producer != shared {
+		t.Fatal("expected both sessions to share one producer")
+	}
+	if refs != 2 {
+		t.Fatalf("producer refs = %d, want 2", refs)
+	}
+
+	// Stopping one viewer must not stop the shared transcode.
+	if err := mgr.Stop("user-b", second.ID); err != nil {
+		t.Fatalf("stop user-b: %v", err)
+	}
+	mgr.mu.Lock()
+	stillRunning := mgr.producers[first.ID]
+	mgr.mu.Unlock()
+	if stillRunning == nil {
+		t.Fatal("shared producer was dropped while another session still watches")
+	}
+}
+
+// Stopping the last viewer of a generation releases the shared producer.
+func TestManagerLastViewerReleasesSharedProducer(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	store, err := NewStore(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	engine := NewFakeEngine()
+	mgr, err := NewManager(ctx, engine, store, Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer mgr.Close(context.Background())
+
+	in := StartInput{
+		Username:  "user-a",
+		UserLimit: 1,
+		Source:    "s",
+		Path:      "/last.mp4",
+		RealPath:  t.TempDir() + "/last.mp4",
+		Profile:   ProfileQuality,
+		ClientID:  "a",
+	}
+	first, err := mgr.Start(ctx, in)
+	if err != nil {
+		t.Fatal(err)
+	}
+	in.Username = "user-b"
+	in.ClientID = "b"
+	second, err := mgr.Start(ctx, in)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err := mgr.Stop("user-b", second.ID); err != nil {
+		t.Fatal(err)
+	}
+	if err := mgr.Stop("user-a", first.ID); err != nil {
+		t.Fatal(err)
+	}
+	mgr.mu.Lock()
+	remaining := len(mgr.producers)
+	producing := len(mgr.producing)
+	mgr.mu.Unlock()
+	if remaining != 0 || producing != 0 {
+		t.Fatalf("producers=%d producing=%d, want both empty", remaining, producing)
 	}
 }

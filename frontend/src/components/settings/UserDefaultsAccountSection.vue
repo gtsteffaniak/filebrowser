@@ -64,8 +64,8 @@
         class="settings-number-input item"
       >
         <div class="no-padding">
-          <label :for="maxConcurrentTranscodesInputId">{{ $t('settings.maxConcurrentTranscodes') }}</label>
-          <HelpTooltipIcon :text="$t('settings.maxConcurrentTranscodesHelp')" />
+          <label :for="maxConcurrentTranscodesInputId">{{ $t('media.maxConcurrentTranscodes') }}</label>
+          <HelpTooltipIcon :text="$t('media.maxConcurrentTranscodesHelp')" />
         </div>
         <div class="no-padding">
           <input
@@ -139,6 +139,7 @@ import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
 import { getObjectProperty } from "@/utils/object.js";
 import { globalVars } from "@/utils/constants";
+import { state } from "@/store";
 
 let transcodeInputCounter = 0;
 
@@ -192,6 +193,11 @@ export default {
   },
   computed: {
     maxConcurrentTranscodesLimit() {
+      // Prefer the live media settings; globalVars are static page constants.
+      const live = state.mediaPlayerSettings?.maxConcurrentPerUser;
+      if (Number.isFinite(live) && live > 0) {
+        return live;
+      }
       const limit = globalVars?.transcodeMaxPerUser;
       return Number.isFinite(limit) && limit > 0 ? limit : undefined;
     },
@@ -234,13 +240,13 @@ export default {
     },
     configLockTooltipForField(field) {
       if (this.isFieldLocked(field)) {
-        return this.$t("settings.userDefaultFieldLockedFromConfig");
+        return this.$t("settings.lockedFromConfig");
       }
       return "";
     },
     configLockTooltipForPermission(field) {
       if (this.isPermissionLocked(field)) {
-        return this.$t("settings.userDefaultFieldLockedFromConfig");
+        return this.$t("settings.lockedFromConfig");
       }
       return "";
     },

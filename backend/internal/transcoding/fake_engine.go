@@ -26,10 +26,21 @@ func NewFakeEngine() *FakeEngine {
 
 func (f *FakeEngine) Available() bool { return true }
 
+// StartCount returns how many ffmpeg jobs have been launched.
+func (f *FakeEngine) StartCount() int {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	return f.Starts
+}
+
 func (f *FakeEngine) BuildPlan(ctx context.Context, realPath string, profile Profile) (hlsPlan, error) {
 	f.mu.Lock()
 	defer f.mu.Unlock()
-	return f.plan, nil
+	plan := f.plan
+	// Mirror production: the cache fingerprint is keyed by file identity and
+	// transcode parameters only, never by user or session.
+	plan.cacheFingerprint = "fp-" + filepath.Base(realPath) + "-" + string(profile)
+	return plan, nil
 }
 
 type fakeJob struct {

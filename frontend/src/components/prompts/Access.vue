@@ -79,7 +79,7 @@
         v-if="entries.length > 0"
         :columns="columns"
         :items="tableRows"
-        :aria-label="$t('access.access')"
+        :aria-label="$t('general.access')"
       >
         <template #cell-edit="{ row }">
           <button type="button" @click="deleteAccess(row.entry)" class="action" :aria-label="$t('general.delete')"

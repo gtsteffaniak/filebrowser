@@ -1,10 +1,85 @@
 package transcoding
 
 import (
+	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/ffmpeg"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 )
+
+func withTranscodeProfiles(t *testing.T) {
+	t.Helper()
+	original := settings.Config.Integrations.Media.Transcode.Profiles
+	t.Cleanup(func() { settings.Config.Integrations.Media.Transcode.Profiles = original })
+	settings.Config.Integrations.Media.Transcode.Profiles = settings.DefaultTranscodeProfiles()
+}
+
+// A profile that caps the height above the source resolution must not select a
+// higher bitrate rung: the scale filter can only cap, never upscale.
+func TestEncodeProfileForModeClampsToSourceHeight(t *testing.T) {
+	withTranscodeProfiles(t)
+	small := ffmpeg.StreamInfo{Height: 270, VideoBitrate: 0}
+
+	balanced := encodeProfileForMode(small, ProfileBalanced)
+	dataSaver := encodeProfileForMode(small, ProfileDataSaver)
+	quality := encodeProfileForMode(small, ProfileQuality)
+
+	balancedKbps := bitrateKbps(balanced.Bitrate.Target)
+	if balancedKbps != 1500 {
+		t.Fatalf("balanced bitrate for 270p source = %d kbps, want 1500 (no upscale rung)", balancedKbps)
+	}
+	if got := bitrateKbps(dataSaver.Bitrate.Target); got != 1500 {
+		t.Fatalf("data saver bitrate = %d kbps, want 1500", got)
+	}
+	if balancedKbps > bitrateKbps(quality.Bitrate.Target) {
+		t.Fatalf("balanced (%d kbps) must not exceed quality (%d kbps) for a small source",
+			balancedKbps, bitrateKbps(quality.Bitrate.Target))
+	}
+}
+
+func TestEncodeProfileForModeKeepsSourceBitrate(t *testing.T) {
+	withTranscodeProfiles(t)
+	// 720p H.264 at ~2500 kbps with no explicit cap keeps the source bitrate.
+	src := ffmpeg.StreamInfo{Height: 720, VideoBitrate: 2_500_000}
+	got := encodeProfileForMode(src, ProfileBalanced)
+	if kbps := bitrateKbps(got.Bitrate.Target); kbps != 2500 {
+		t.Fatalf("bitrate = %d kbps, want the source 2500 kbps", kbps)
+	}
+}
+
+func TestProfileRequiresBitrateTranscode(t *testing.T) {
+	withTranscodeProfiles(t)
+
+	// Data saver pins 1500 kbps: a higher-bitrate or unknown-bitrate source must
+	// be re-encoded, since stream copy ignores the cap.
+	high := ffmpeg.StreamInfo{Height: 720, VideoBitrate: 4_000_000}
+	if !profileRequiresBitrateTranscode(ProfileDataSaver, high) {
+		t.Fatal("a source above the cap must force a transcode")
+	}
+	unknown := ffmpeg.StreamInfo{Height: 480, VideoBitrate: 0}
+	if !profileRequiresBitrateTranscode(ProfileDataSaver, unknown) {
+		t.Fatal("an unknown source bitrate must force a transcode to honor the cap")
+	}
+	low := ffmpeg.StreamInfo{Height: 720, VideoBitrate: 1_000_000}
+	if profileRequiresBitrateTranscode(ProfileDataSaver, low) {
+		t.Fatal("a source below the cap does not need a re-encode")
+	}
+	// Quality pins no bitrate, so it never forces a transcode for the bitrate's sake.
+	if profileRequiresBitrateTranscode(ProfileQuality, high) {
+		t.Fatal("quality has no bitrate cap and must not force a transcode")
+	}
+}
+
+func bitrateKbps(target string) int {
+	trimmed := strings.TrimSuffix(target, "k")
+	n, err := strconv.Atoi(trimmed)
+	if err != nil {
+		return -1
+	}
+	return n
+}
 
 func TestContinuousSeekParams(t *testing.T) {
 	t.Parallel()

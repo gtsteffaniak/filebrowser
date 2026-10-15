@@ -7,8 +7,8 @@
       <div class="settings-items">
         <div class="settings-number-input item">
           <div class="no-padding">
-            <label for="transcodeMaxConcurrent">{{ $t("settings.transcodeMaxConcurrent") }}</label>
-            <HelpTooltipIcon :text="isLocked('transcode.maxConcurrent') ? lockMessageText : $t('settings.transcodeMaxConcurrentHelp')" />
+            <label for="transcodeMaxConcurrent">{{ $t("media.transcodeMaxConcurrent") }}</label>
+            <HelpTooltipIcon :text="isLocked('transcode.maxConcurrent') ? lockMessageText : $t('media.transcodeMaxConcurrentHelp')" />
           </div>
           <div class="no-padding">
             <input id="transcodeMaxConcurrent" class="sizeInput input" :disabled="isLocked('transcode.maxConcurrent')" :title="fieldTooltip('transcode.maxConcurrent')" v-model.number="media.transcode.maxConcurrent" type="number" min="1" />
@@ -16,8 +16,8 @@
         </div>
         <div class="settings-number-input item">
           <div class="no-padding">
-            <label for="transcodeMaxConcurrentPerUser">{{ $t("settings.transcodeMaxConcurrentPerUser") }}</label>
-            <HelpTooltipIcon :text="isLocked('transcode.maxConcurrentPerUser') ? lockMessageText : $t('settings.transcodeMaxConcurrentPerUserHelp')" />
+            <label for="transcodeMaxConcurrentPerUser">{{ $t("media.transcodeMaxConcurrentPerUser") }}</label>
+            <HelpTooltipIcon :text="isLocked('transcode.maxConcurrentPerUser') ? lockMessageText : $t('media.transcodeMaxConcurrentPerUserHelp')" />
           </div>
           <div class="no-padding">
             <input id="transcodeMaxConcurrentPerUser" class="sizeInput input" :disabled="isLocked('transcode.maxConcurrentPerUser')" :title="fieldTooltip('transcode.maxConcurrentPerUser')" v-model.number="media.transcode.maxConcurrentPerUser" type="number" min="1" />
@@ -25,8 +25,8 @@
         </div>
         <div class="settings-number-input item">
           <div class="no-padding">
-            <label for="transcodeCacheMaxSizeMB">{{ $t("settings.transcodeCacheMaxSizeMB") }}</label>
-            <HelpTooltipIcon :text="isLocked('transcode.cacheMaxSizeMB') ? lockMessageText : $t('settings.transcodeCacheMaxSizeMBHelp')" />
+            <label for="transcodeCacheMaxSizeMB">{{ $t("media.transcodeCacheMaxSizeMB") }}</label>
+            <HelpTooltipIcon :text="isLocked('transcode.cacheMaxSizeMB') ? lockMessageText : $t('media.transcodeCacheMaxSizeMBHelp')" />
           </div>
           <div class="no-padding">
             <input id="transcodeCacheMaxSizeMB" class="sizeInput input" :disabled="isLocked('transcode.cacheMaxSizeMB')" :title="fieldTooltip('transcode.cacheMaxSizeMB')" v-model.number="media.transcode.cacheMaxSizeMB" type="number" min="0" />
@@ -34,8 +34,8 @@
         </div>
         <div class="settings-number-input item">
           <div class="no-padding">
-            <label for="transcodeCacheRetentionH">{{ $t("settings.transcodeCacheRetentionH") }}</label>
-            <HelpTooltipIcon :text="isLocked('transcode.cacheRetentionH') ? lockMessageText : $t('settings.transcodeCacheRetentionHHelp')" />
+            <label for="transcodeCacheRetentionH">{{ $t("media.transcodeCacheRetentionH") }}</label>
+            <HelpTooltipIcon :text="isLocked('transcode.cacheRetentionH') ? lockMessageText : $t('media.transcodeCacheRetentionHHelp')" />
           </div>
           <div class="no-padding">
             <input id="transcodeCacheRetentionH" class="sizeInput input" :disabled="isLocked('transcode.cacheRetentionH')" :title="fieldTooltip('transcode.cacheRetentionH')" v-model.number="media.transcode.cacheRetentionH" type="number" min="1" />
@@ -50,13 +50,13 @@
           v-model="media.transcode.profiles[profile.id].enabled"
           :disabled="isLocked(`transcode.profiles.${profile.id}.enabled`)"
           :value-tooltip="fieldTooltip(`transcode.profiles.${profile.id}.enabled`)"
-          :name="$t('settings.transcodeProfileEnabled')"
-          :description="$t('settings.transcodeProfileEnabledDescription')"
+          :name="$t('media.transcodeProfileEnabled')"
+          :description="$t('media.transcodeProfileEnabledDescription')"
         />
         <div class="settings-number-input item">
           <div class="no-padding">
-            <label :for="`profile-${profile.id}-maxResolution`">{{ $t("settings.transcodeProfileMaxResolution") }}</label>
-            <HelpTooltipIcon :text="isLocked(`transcode.profiles.${profile.id}.maxResolution`) ? lockMessageText : $t('settings.transcodeProfileMaxResolutionHelp')" />
+            <label :for="`profile-${profile.id}-maxResolution`">{{ $t("media.transcodeProfileMaxResolution") }}</label>
+            <HelpTooltipIcon :text="isLocked(`transcode.profiles.${profile.id}.maxResolution`) ? lockMessageText : $t('media.transcodeProfileMaxResolutionHelp')" />
           </div>
           <div class="no-padding">
             <input :id="`profile-${profile.id}-maxResolution`" class="sizeInput input"
@@ -67,8 +67,8 @@
         </div>
         <div class="settings-number-input item">
           <div class="no-padding">
-            <label :for="`profile-${profile.id}-avgBitrate`">{{ $t("settings.transcodeProfileAvgBitrate") }}</label>
-            <HelpTooltipIcon :text="isLocked(`transcode.profiles.${profile.id}.avgBitrateKbps`) ? lockMessageText : $t('settings.transcodeProfileAvgBitrateHelp')" />
+            <label :for="`profile-${profile.id}-avgBitrate`">{{ $t("media.transcodeProfileAvgBitrate") }}</label>
+            <HelpTooltipIcon :text="isLocked(`transcode.profiles.${profile.id}.avgBitrateKbps`) ? lockMessageText : $t('media.transcodeProfileAvgBitrateHelp')" />
           </div>
           <div class="no-padding">
             <input :id="`profile-${profile.id}-avgBitrate`" class="sizeInput input"
@@ -109,7 +109,7 @@
 import { notify } from "@/notify";
 import { mutations } from "@/store";
 import { eventBus } from "@/store/eventBus";
-import { getMediaSettings, patchMediaSettings } from "@/api/settings";
+import { getMediaSettings } from "@/api/settings";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
@@ -118,6 +118,7 @@ import {
   MEDIA_TRANSCODE_PROFILES,
   emptyMediaSettings,
   mergeMediaSettings,
+  saveMediaSettingsPatch,
 } from "@/utils/mediaSettings";
 
 export default {
@@ -162,7 +163,7 @@ export default {
   },
   computed: {
     lockMessageText() {
-      return this.$t("settings.mediaFieldLockedFromConfig");
+      return this.$t("settings.lockedFromConfig");
     },
   },
   methods: {
@@ -170,7 +171,7 @@ export default {
       return this.lockedFromConfigPaths.includes(path);
     },
     fieldTooltip(path) {
-      return this.isLocked(path) ? this.$t("settings.mediaFieldLockedFromConfig") : "";
+      return this.isLocked(path) ? this.$t("settings.lockedFromConfig") : "";
     },
     close() {
       mutations.closeTopPrompt();
@@ -181,7 +182,16 @@ export default {
       }
       this.saving = true;
       try {
-        await patchMediaSettings({ transcode: this.media.transcode });
+        // `transcode.enabled` belongs to the media section, so only send the
+        // transcode object this prompt owns (locked paths are stripped for us).
+        const { skipped, media } = await saveMediaSettingsPatch(
+          { transcode: this.media.transcode },
+          this.lockedFromConfigPaths,
+        );
+        if (!skipped) {
+          this.media = media;
+        }
+        void mutations.syncMediaPlayerSettings();
         notify.showSuccess(this.$t("general.saved"));
         eventBus.emit(MEDIA_SETTINGS_CHANGED_EVENT);
         this.close();

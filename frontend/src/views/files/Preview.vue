@@ -920,6 +920,9 @@ export default {
         if (!this.transcodePlaybackController || this.transcodePlaybackController.disposed) {
           this.transcodePlaybackController = new TranscodePlaybackController();
         }
+        // Pressing the offer button is a user gesture, so start playback right away
+        // instead of mounting the viewer paused.
+        this.playbackStarted = true;
         this.videoTranscodeOffer = null;
         this.transcodePlaybackActive = true;
       } catch (err) {

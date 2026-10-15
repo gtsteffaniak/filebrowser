@@ -1,6 +1,6 @@
 <template>
   <div class="card-title">
-    <h2>{{ $t("settings.media") }}</h2>
+    <h2>{{ $t("general.media") }}</h2>
   </div>
   <div class="card-content">
     <errors v-if="error" :errorCode="error.status" />
@@ -12,33 +12,33 @@
         <ToggleSwitch class="item" v-model="media.hardwareAcceleration"
           :disabled="!hardwareAccelerationAvailable || isLocked('hardwareAcceleration')"
           :value-tooltip="fieldTooltip('hardwareAcceleration', hardwareAccelerationDescription)"
-          :name="$t('settings.hardwareAcceleration')"
+          :name="$t('media.hardwareAcceleration')"
           :description="hardwareAccelerationDescription" />
         <ToggleSwitch class="item" v-model="media.extractEmbeddedSubtitles"
           :disabled="isLocked('extractEmbeddedSubtitles')"
           :value-tooltip="fieldTooltip('extractEmbeddedSubtitles')"
-          :name="$t('settings.extractEmbeddedSubtitles')"
-          :description="$t('settings.extractEmbeddedSubtitlesDescription')" />
-        <ToggleSwitch class="item" v-model="media.debug" :name="$t('settings.mediaDebug')"
+          :name="$t('media.extractEmbeddedSubtitles')"
+          :description="$t('media.extractEmbeddedSubtitlesDescription')" />
+        <ToggleSwitch class="item" v-model="media.debug" :name="$t('media.debug')"
           :disabled="isLocked('debug')"
           :value-tooltip="fieldTooltip('debug')"
-          :description="$t('settings.mediaDebugDescription')" />
+          :description="$t('media.debugDescription')" />
         <SettingsButton class="item"
-          :name="$t('settings.imageVideoConversionFormats')"
-          :description="$t('settings.imageVideoConversionFormatsDescription')"
+          :name="$t('media.imageVideoConversionFormats')"
+          :description="$t('media.imageVideoConversionFormatsDescription')"
           @click="openConversionFormats" />
       </div>
 
       <div class="settings-items">
-        <h3>{{ $t("settings.transcode") }}</h3>
+        <h3>{{ $t("media.transcode") }}</h3>
         <ToggleSwitch class="item" v-model="media.transcode.enabled"
           :disabled="isLocked('transcode.enabled')"
           :value-tooltip="fieldTooltip('transcode.enabled')"
-          :name="$t('settings.transcodeEnabled')"
-          :description="$t('settings.transcodeEnabledDescription')" />
+          :name="$t('media.transcodeEnabled')"
+          :description="$t('media.transcodeEnabledDescription')" />
         <SettingsButton class="item"
-          :name="$t('settings.transcodeSettings')"
-          :description="$t('settings.transcodeSettingsDescription')"
+          :name="$t('media.transcodeSettings')"
+          :description="$t('media.transcodeSettingsDescription')"
           :disabled="!media.transcode.enabled"
           @click="openTranscodeSettings" />
       </div>
@@ -56,7 +56,7 @@
 import { notify } from "@/notify";
 import { mutations } from "@/store";
 import { eventBus } from "@/store/eventBus";
-import { getMediaSettings, patchMediaSettings } from "@/api/settings";
+import { getMediaSettings } from "@/api/settings";
 import { globalVars } from "@/utils/constants";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import SettingsButton from "@/components/settings/SettingsButton.vue";
@@ -66,6 +66,7 @@ import {
   MEDIA_SETTINGS_CHANGED_EVENT,
   emptyMediaSettings,
   mergeMediaSettings,
+  saveMediaSettingsPatch,
 } from "@/utils/mediaSettings";
 
 export default {
@@ -94,12 +95,16 @@ export default {
     },
     hardwareAccelerationDescription() {
       return this.hardwareAccelerationAvailable
-        ? this.$t("settings.hardwareAccelerationDescription")
-        : this.$t("settings.hardwareAccelerationUnavailable");
+        ? this.$t("media.hardwareAccelerationDescription")
+        : this.$t("media.hardwareAccelerationUnavailable");
     },
   },
   mounted() {
-    this.mediaSettingsHandler = () => this.load({ silent: true });
+    this.mediaSettingsHandler = () => {
+      void this.load({ silent: true });
+      // Keep the player's live view of media settings in sync after a save.
+      void mutations.syncMediaPlayerSettings();
+    };
     eventBus.on(MEDIA_SETTINGS_CHANGED_EVENT, this.mediaSettingsHandler);
     void this.load();
   },
@@ -132,13 +137,13 @@ export default {
       return this.lockedFromConfigPaths.includes(path);
     },
     fieldTooltip(path, fallback = "") {
-      return this.isLocked(path) ? this.$t("settings.mediaFieldLockedFromConfig") : fallback;
+      return this.isLocked(path) ? this.$t("settings.lockedFromConfig") : fallback;
     },
     openConversionFormats() {
       mutations.showPrompt({
         name: "media-conversion-formats",
         props: {
-          title: this.$t("settings.imageVideoConversionFormats"),
+          title: this.$t("media.imageVideoConversionFormats"),
           lockedFromConfigPaths: this.lockedFromConfigPaths,
           lockMessage: this.lockMessage,
         },
@@ -148,7 +153,7 @@ export default {
       mutations.showPrompt({
         name: "media-transcode-settings",
         props: {
-          title: this.$t("settings.transcodeSettings"),
+          title: this.$t("media.transcodeSettings"),
           lockedFromConfigPaths: this.lockedFromConfigPaths,
           lockMessage: this.lockMessage,
         },
@@ -157,15 +162,21 @@ export default {
     /** Only patch the fields owned by this section so prompt edits are not clobbered. */
     async save() {
       try {
-        this.media = mergeMediaSettings(await patchMediaSettings({
+        const { skipped, media } = await saveMediaSettingsPatch({
           hardwareAcceleration: this.media.hardwareAcceleration,
           extractEmbeddedSubtitles: this.media.extractEmbeddedSubtitles,
           debug: this.media.debug,
           transcode: { enabled: this.media.transcode.enabled },
-        }));
+        }, this.lockedFromConfigPaths);
+        if (skipped) {
+          notify.showSuccessToast(this.lockMessage || this.$t("settings.lockedFromConfig"));
+          return;
+        }
+        this.media = media;
+        void mutations.syncMediaPlayerSettings();
         notify.showSuccessToast(this.$t("settings.settingsUpdated"));
       } catch (e) {
-        notify.showError(e?.message || this.$t("settings.settingsUpdateFailed"));
+        notify.showError(e?.message || this.$t("media.updateFailed"));
       }
     },
   },
