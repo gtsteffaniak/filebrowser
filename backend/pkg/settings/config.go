@@ -986,6 +986,7 @@ func SetDefaults(generate bool) Settings {
 				BatchSize:             1000,
 				CacheSizeMB:           32,
 				DisableReuse:          false,
+				FTS5:                  false,
 				StartupIntegrityCheck: IndexStartupIntegrityQuickCheck,
 			},
 			Filesystem: Filesystem{

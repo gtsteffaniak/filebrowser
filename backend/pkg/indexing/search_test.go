@@ -1,6 +1,7 @@
 package indexing
 
 import (
+	"context"
 	"os"
 	"reflect"
 	"strings"
@@ -61,7 +62,7 @@ func BenchmarkSearchAllIndexes(b *testing.B) {
 	for b.Loop() {
 		// Execute the SearchAllIndexes function
 		for _, term := range searchTerms {
-			idx.Search(term, "/", "test", false, DefaultSearchResults, 0, 0, false)
+			idx.Search(context.Background(), term, "/", false, DefaultSearchResults, 0, 0, false)
 		}
 	}
 }
@@ -195,7 +196,7 @@ func TestSearchWhileIndexing(t *testing.T) {
 			wg.Add(1)
 			go func(searchTerm string) {
 				defer wg.Done()
-				idx.Search(searchTerm, "/", "test", false, DefaultSearchResults, 0, 0, false)
+				idx.Search(context.Background(), searchTerm, "/", false, DefaultSearchResults, 0, 0, false)
 			}(term)
 		}
 
@@ -539,7 +540,7 @@ func TestSearchIndexes(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.search, func(t *testing.T) {
-			result := index.Search(tt.search, tt.scope, "", false, DefaultSearchResults, 0, 0, false)
+			result := index.Search(context.Background(), tt.search, tt.scope, false, DefaultSearchResults, 0, 0, false)
 			// Convert results to comparable format (without Modified field)
 			expected := make([]SearchResult, len(tt.expectedResult))
 			for i, r := range tt.expectedResult {
@@ -601,7 +602,7 @@ func TestSearchUserGlob(t *testing.T) {
 		}
 	}
 
-	result := index.Search("new*folder", "/media/", "", false, DefaultSearchResults, 0, 0, true)
+	result := index.Search(context.Background(), "new*folder", "/media/", false, DefaultSearchResults, 0, 0, true)
 	if len(result) != 1 || result[0].Path != "/media/NEW-folder" {
 		t.Fatalf("expected new*folder to match NEW-folder, got %#v", result)
 	}
@@ -684,7 +685,7 @@ func TestSearchLargestModeExcludesRoot(t *testing.T) {
 	}
 
 	// Test that when largest=true and scope="/", the root directory "/" is NOT included
-	result := index.Search("", "/", "test-session", true, DefaultSearchResults, 0, 0, false)
+	result := index.Search(context.Background(), "", "/", true, DefaultSearchResults, 0, 0, false)
 
 	// Verify that "/" is NOT in the results
 	rootFound := false
@@ -780,7 +781,7 @@ func TestSearchLargestModeExcludesScopeDirectory(t *testing.T) {
 	}
 
 	// Test that when largest=true and scope="/test/", the scope directory "/test/" is NOT included
-	result := index.Search("", "/test/", "test-session", true, DefaultSearchResults, 0, 0, false)
+	result := index.Search(context.Background(), "", "/test/", true, DefaultSearchResults, 0, 0, false)
 
 	// Verify that "/test/" is NOT in the results
 	scopeDirFound := false
