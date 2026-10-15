@@ -1074,11 +1074,17 @@ export const mutations = {
   },
   setNavigationEnabled: (enabled: boolean) => {
     if (state.navigation.enabled === enabled) {
+      if (!enabled && !state.navigation.isTransitioning && state.navigation.sorting) {
+        state.navigation.sorting = null;
+        emitStateChanged();
+      }
       return;
     }
     state.navigation.enabled = enabled;
     if (!enabled) {
-      state.navigation.sorting = null;
+      if (!state.navigation.isTransitioning) {
+        state.navigation.sorting = null;
+      }
       mutations.clearNavigation();
     }
     emitStateChanged();

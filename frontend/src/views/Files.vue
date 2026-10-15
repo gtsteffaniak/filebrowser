@@ -227,6 +227,7 @@ export default {
       if (replaceSelection) mutations.resetSelected();
       mutations.addSelected(index);
       const el = document.getElementById(base64Encode(encodeURIComponent(name)));
+      console.log("selectAndScroll", name, index, !!el);
       if (!el) return false; // selected but item is not in DOM
       el.scrollIntoView({ behavior: "instant", block: "center" });
       return true;

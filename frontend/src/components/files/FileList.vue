@@ -297,13 +297,9 @@ export default {
       }
     },
   },
-  mounted() {
+  async mounted() {
     if (this.fileList) {
-      // When fileList is provided, just display the items
-      this.withLoading(async () => {
-        await new Promise(resolve => setTimeout(resolve, 0));
-        this.fillFromList();
-      });
+      this.fillFromList();
     } else if (this.browseShare) {
       // Browse a specific share
       this.withLoading(() => resourcesApi.fetchFilesPublic("/", this.browseShare).then(this.fillOptions));
@@ -325,6 +321,10 @@ export default {
       }
     }
     this.attachScrollListener();
+    if (this.fileList) {
+      await this.$nextTick();
+      this.followCurrentItem();
+    }
   },
   beforeUnmount() {
     this.scrollContainer?.removeEventListener("scroll", this.handleScroll);
