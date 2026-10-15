@@ -3,7 +3,6 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 VITE_PORT="${VITE_DEV_PORT:-5173}"
-VITE_ORIGIN="${VITE_DEV_ORIGIN:-http://localhost:8080}"
 VITE_CLIENT_PORT="${VITE_DEV_CLIENT_PORT:-8080}"
 READY_URL="http://127.0.0.1:${VITE_PORT}/__vite/@vite/client"
 WAIT_SECONDS="${VITE_READY_TIMEOUT:-60}"
@@ -71,7 +70,6 @@ fi
 echo "Starting Vite dev server on 127.0.0.1:${VITE_PORT}..."
 (
 	cd "$ROOT/frontend"
-	export VITE_DEV_ORIGIN="$VITE_ORIGIN"
 	export VITE_DEV_PORT="$VITE_PORT"
 	export VITE_DEV_CLIENT_PORT="$VITE_CLIENT_PORT"
 	exec npm run dev
