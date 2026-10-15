@@ -26,7 +26,6 @@ func MakeUserDirs(u *users.User, createDir bool) error {
 	if cleanedUserName == "" || cleanedUserName == "-" || cleanedUserName == "." {
 		return fmt.Errorf("MakeUserDirs: invalid user for home dir creation: [%s]", u.Username)
 	}
-	settings.ExpandBackendScopesForCreateUserDir(u)
 	for i, scope := range u.BackendScopes {
 		source, ok := settings.Config.Server.SourceMap[scope.Path]
 		if !ok {
