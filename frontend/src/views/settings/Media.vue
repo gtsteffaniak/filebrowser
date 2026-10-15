@@ -10,13 +10,18 @@
     <template v-else>
       <div class="settings-items">
         <ToggleSwitch class="item" v-model="media.hardwareAcceleration"
-          :disabled="!hardwareAccelerationAvailable"
+          :disabled="!hardwareAccelerationAvailable || isLocked('hardwareAcceleration')"
+          :value-tooltip="fieldTooltip('hardwareAcceleration', hardwareAccelerationDescription)"
           :name="$t('settings.hardwareAcceleration')"
           :description="hardwareAccelerationDescription" />
         <ToggleSwitch class="item" v-model="media.extractEmbeddedSubtitles"
+          :disabled="isLocked('extractEmbeddedSubtitles')"
+          :value-tooltip="fieldTooltip('extractEmbeddedSubtitles')"
           :name="$t('settings.extractEmbeddedSubtitles')"
           :description="$t('settings.extractEmbeddedSubtitlesDescription')" />
         <ToggleSwitch class="item" v-model="media.debug" :name="$t('settings.mediaDebug')"
+          :disabled="isLocked('debug')"
+          :value-tooltip="fieldTooltip('debug')"
           :description="$t('settings.mediaDebugDescription')" />
         <SettingsButton class="item"
           :name="$t('settings.imageVideoConversionFormats')"
@@ -27,6 +32,8 @@
       <div class="settings-items">
         <h3>{{ $t("settings.transcode") }}</h3>
         <ToggleSwitch class="item" v-model="media.transcode.enabled"
+          :disabled="isLocked('transcode.enabled')"
+          :value-tooltip="fieldTooltip('transcode.enabled')"
           :name="$t('settings.transcodeEnabled')"
           :description="$t('settings.transcodeEnabledDescription')" />
         <SettingsButton class="item"
@@ -75,6 +82,9 @@ export default {
       error: null,
       loading: true,
       mediaSettingsHandler: null,
+      /** Media settings pinned in the config file cannot be changed here. */
+      lockedFromConfigPaths: [],
+      lockMessage: "",
     };
   },
   computed: {
@@ -105,7 +115,12 @@ export default {
         this.loading = true;
       }
       try {
-        this.media = mergeMediaSettings(await getMediaSettings());
+        const data = await getMediaSettings();
+        this.media = mergeMediaSettings(data);
+        this.lockedFromConfigPaths = Array.isArray(data?.lockedFromConfigPaths)
+          ? data.lockedFromConfigPaths
+          : [];
+        this.lockMessage = typeof data?.lockMessage === "string" ? data.lockMessage : "";
         this.error = null;
       } catch (e) {
         this.error = e;
@@ -113,11 +128,19 @@ export default {
         this.loading = false;
       }
     },
+    isLocked(path) {
+      return this.lockedFromConfigPaths.includes(path);
+    },
+    fieldTooltip(path, fallback = "") {
+      return this.isLocked(path) ? this.$t("settings.mediaFieldLockedFromConfig") : fallback;
+    },
     openConversionFormats() {
       mutations.showPrompt({
         name: "media-conversion-formats",
         props: {
           title: this.$t("settings.imageVideoConversionFormats"),
+          lockedFromConfigPaths: this.lockedFromConfigPaths,
+          lockMessage: this.lockMessage,
         },
       });
     },
@@ -126,6 +149,8 @@ export default {
         name: "media-transcode-settings",
         props: {
           title: this.$t("settings.transcodeSettings"),
+          lockedFromConfigPaths: this.lockedFromConfigPaths,
+          lockMessage: this.lockMessage,
         },
       });
     },

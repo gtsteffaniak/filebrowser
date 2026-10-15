@@ -3124,24 +3124,6 @@ const docTemplate = `{
             }
         },
         "/api/settings/media": {
-            "get": {
-                "description": "Returns the DB-backed media integration settings (transcode, conversion, debug).",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Settings"
-                ],
-                "summary": "Get runtime media settings",
-                "responses": {
-                    "200": {
-                        "description": "Media settings",
-                        "schema": {
-                            "$ref": "#/definitions/settings.MediaSettings"
-                        }
-                    }
-                }
-            },
             "patch": {
                 "description": "Merges a partial JSON patch into the DB-backed media settings and applies them at runtime.",
                 "consumes": [
@@ -3158,7 +3140,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Updated media settings",
                         "schema": {
-                            "$ref": "#/definitions/settings.MediaSettings"
+                            "$ref": "#/definitions/web.mediaSettingsResponse"
                         }
                     }
                 }
@@ -6285,7 +6267,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "convert": {
-                    "description": "config for ffmpeg conversion settings. deprecated: manage via the admin media settings API",
+                    "description": "deprecated: config for ffmpeg conversion settings. deprecated: manage via the admin media settings API",
                     "allOf": [
                         {
                             "$ref": "#/definitions/settings.FfmpegConvert"
@@ -6293,11 +6275,11 @@ const docTemplate = `{
                     ]
                 },
                 "debug": {
-                    "description": "output ffmpeg stdout for media integration. deprecated: manage via the admin media settings API",
+                    "description": "deprecated: output ffmpeg stdout for media integration. deprecated: manage via the admin media settings API",
                     "type": "boolean"
                 },
                 "extractEmbeddedSubtitles": {
-                    "description": "extract embedded subtitles from media files. deprecated: manage via the admin media settings API",
+                    "description": "deprecated:extract embedded subtitles from media files. deprecated: manage via the admin media settings API",
                     "type": "boolean"
                 },
                 "ffmpegPath": {
@@ -6305,44 +6287,11 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "hardwareAcceleration": {
-                    "description": "enable hardware acceleration for ffmpeg if available. deprecated: manage via the admin media settings API",
+                    "description": "deprecated: enable hardware acceleration for ffmpeg if available. deprecated: manage via the admin media settings API",
                     "type": "boolean"
                 },
                 "transcode": {
-                    "description": "HLS transcoding for media playback. deprecated: manage via the admin media settings API",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/settings.MediaTranscode"
-                        }
-                    ]
-                }
-            }
-        },
-        "settings.MediaSettings": {
-            "type": "object",
-            "properties": {
-                "convert": {
-                    "description": "config for ffmpeg conversion settings",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/settings.FfmpegConvert"
-                        }
-                    ]
-                },
-                "debug": {
-                    "description": "output ffmpeg stdout for media integration -- careful can produces lots of output!",
-                    "type": "boolean"
-                },
-                "extractEmbeddedSubtitles": {
-                    "description": "extract embedded subtitles from media files",
-                    "type": "boolean"
-                },
-                "hardwareAcceleration": {
-                    "description": "enable hardware acceleration for ffmpeg if available",
-                    "type": "boolean"
-                },
-                "transcode": {
-                    "description": "HLS transcoding for media playback",
+                    "description": "deprecated: HLS transcoding for media playback. deprecated: manage via the admin media settings API",
                     "allOf": [
                         {
                             "$ref": "#/definitions/settings.MediaTranscode"
@@ -8971,6 +8920,49 @@ const docTemplate = `{
                     "allOf": [
                         {
                             "$ref": "#/definitions/web.fileWatchMetadata"
+                        }
+                    ]
+                }
+            }
+        },
+        "web.mediaSettingsResponse": {
+            "description": "Returns the DB-backed media integration settings (transcode, conversion, debug).",
+            "type": "object",
+            "properties": {
+                "convert": {
+                    "description": "config for ffmpeg conversion settings",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/settings.FfmpegConvert"
+                        }
+                    ]
+                },
+                "debug": {
+                    "description": "output ffmpeg stdout for media integration -- careful can produces lots of output!",
+                    "type": "boolean"
+                },
+                "extractEmbeddedSubtitles": {
+                    "description": "extract embedded subtitles from media files",
+                    "type": "boolean"
+                },
+                "hardwareAcceleration": {
+                    "description": "enable hardware acceleration for ffmpeg if available",
+                    "type": "boolean"
+                },
+                "lockMessage": {
+                    "type": "string"
+                },
+                "lockedFromConfigPaths": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "transcode": {
+                    "description": "HLS transcoding for media playback",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/settings.MediaTranscode"
                         }
                     ]
                 }

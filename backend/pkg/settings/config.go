@@ -455,6 +455,11 @@ func setupFFmpegIntegration() {
 	// runtime; when it is off, software encoders are preferred instead.
 	if !Config.Integrations.Media.HardwareAcceleration {
 		initOpts.EncoderHierarchy = []capabilities.AccelType{capabilities.AccelNone}
+		// A config file that pins hardwareAcceleration: false opts out of the
+		// multi-second probe entirely, since the value cannot be changed here.
+		if IsMediaSettingLockedFromConfig("hardwareAcceleration") {
+			initOpts.SkipHWTests = true
+		}
 	}
 	err := ffmpeg.Initialize(context.Background(), initOpts)
 	if err != nil {
@@ -744,6 +749,14 @@ func loadConfigWithDefaults(configFile string, generate bool) error {
 		Env.ConfigUserDefaultsSpecified = true
 		if udMap, ok := udRaw.(map[string]interface{}); ok {
 			Env.ConfigUserDefaultsSpecifiedPaths = CollectMapLeafPaths(udMap, "")
+		}
+	}
+
+	// Runtime media settings live in the database; record which ones the config
+	// file pins so they can win over stored values and lock in the admin UI.
+	if integrations, ok := filteredConfig["integrations"].(map[string]interface{}); ok {
+		if mediaMap, ok := integrations["media"].(map[string]interface{}); ok {
+			Env.ConfigMediaSpecifiedPaths = CollectMapLeafPaths(mediaMap, "")
 		}
 	}
 

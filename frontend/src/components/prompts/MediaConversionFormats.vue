@@ -11,6 +11,8 @@
           :key="`img-${key}`"
           class="item"
           v-model="media.convert.imagePreview[key]"
+          :disabled="isLocked(`convert.imagePreview.${key}`)"
+          :value-tooltip="fieldTooltip(`convert.imagePreview.${key}`)"
           :name="String(key)"
         />
       </div>
@@ -21,6 +23,8 @@
           :key="`vid-${key}`"
           class="item"
           v-model="media.convert.videoPreview[key]"
+          :disabled="isLocked(`convert.videoPreview.${key}`)"
+          :value-tooltip="fieldTooltip(`convert.videoPreview.${key}`)"
           :name="String(key)"
         />
       </div>
@@ -75,6 +79,15 @@ export default {
       type: [String, Number],
       default: null,
     },
+    /** Media settings pinned in the config file cannot be changed here. */
+    lockedFromConfigPaths: {
+      type: Array,
+      default: () => [],
+    },
+    lockMessage: {
+      type: String,
+      default: "",
+    },
   },
   data() {
     return {
@@ -102,6 +115,12 @@ export default {
     }
   },
   methods: {
+    isLocked(path) {
+      return this.lockedFromConfigPaths.includes(path);
+    },
+    fieldTooltip(path) {
+      return this.isLocked(path) ? this.$t("settings.mediaFieldLockedFromConfig") : "";
+    },
     close() {
       mutations.closeTopPrompt();
     },
@@ -135,5 +154,11 @@ export default {
   display: flex;
   justify-content: center;
   padding: 2em;
+}
+
+/* Settings pinned in the config file cannot be edited here. */
+input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 </style>

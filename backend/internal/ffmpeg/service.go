@@ -34,6 +34,10 @@ type InitOptions struct {
 	// VerboseFFmpeg streams ffmpeg process output to stderr and raises the ffmpeg
 	// log level. Wired to the media debug setting.
 	VerboseFFmpeg bool
+	// SkipHWTests skips the hardware encoder probe. Only set this when hardware
+	// acceleration is pinned off in the config file, otherwise the admin cannot
+	// enable it without a restart.
+	SkipHWTests bool
 	// EncoderHierarchy restricts which acceleration backends are preferred.
 	// Pass []capabilities.AccelType{capabilities.AccelNone} to keep detection
 	// (so hardware availability stays known) while preferring software.
@@ -41,20 +45,25 @@ type InitOptions struct {
 }
 
 // Initialize creates the global ffmpeg service and runs capability detection.
-// Hardware encoder smoke tests always run so hardware acceleration can be
-// enabled or disabled at runtime without a restart.
+// Hardware encoder smoke tests run so hardware acceleration can be enabled or
+// disabled at runtime without a restart, unless the config file pins it off.
 func Initialize(ctx context.Context, opts InitOptions) error {
 	if opts.CacheDir == "" {
 		opts.CacheDir = os.TempDir()
 	}
 
-	logger.Info("Detecting ffmpeg codec support...")
+	if opts.SkipHWTests {
+		logger.Info("Skipping ffmpeg hardware codec detection (hardware acceleration disabled in config)")
+	} else {
+		logger.Info("Detecting ffmpeg codec support...")
+	}
 
 	cfg := goffmpeg.Config{
 		FFmpegPath:       opts.FFmpegPath,
 		Concurrency:      opts.Concurrency,
 		Logger:           logger.GetGlobalLogger(),
 		VerboseFFmpeg:    opts.VerboseFFmpeg,
+		SkipHWTests:      opts.SkipHWTests,
 		EncoderHierarchy: opts.EncoderHierarchy,
 	}
 	if opts.Concurrency.MaxProbe == 0 && opts.Concurrency.MaxDecode == 0 && opts.Concurrency.MaxEncode == 0 {

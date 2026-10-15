@@ -438,10 +438,30 @@ func settingsShareDefaultsPatchHandler(w http.ResponseWriter, r *http.Request, d
 // @Description Returns the DB-backed media integration settings (transcode, conversion, debug).
 // @Tags Settings
 // @Produce json
-// @Success 200 {object} settings.MediaSettings "Media settings"
+// @Success 200 {object} mediaSettingsResponse "Media settings"
 // @Router /api/settings/media [get]
+// mediaSettingsResponse is the runtime media settings plus config-lock metadata.
+type mediaSettingsResponse struct {
+	settings.MediaSettings
+	LockedFromConfigPaths []string `json:"lockedFromConfigPaths,omitempty"`
+	LockMessage           string   `json:"lockMessage,omitempty"`
+}
+
+func mediaSettingsLockMeta() (paths []string, message string) {
+	paths = settings.ConfigSpecifiedMediaPaths()
+	if len(paths) == 0 {
+		return nil, ""
+	}
+	return paths, settings.MediaConfigLockMessage
+}
+
 func settingsMediaGetHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
-	return RenderJSON(w, r, state.GetMediaSettings())
+	lockedPaths, lockMessage := mediaSettingsLockMeta()
+	return RenderJSON(w, r, mediaSettingsResponse{
+		MediaSettings:         state.GetMediaSettings(),
+		LockedFromConfigPaths: lockedPaths,
+		LockMessage:           lockMessage,
+	})
 }
 
 // settingsMediaPatchHandler merges a partial update into the runtime media settings.
@@ -450,7 +470,7 @@ func settingsMediaGetHandler(w http.ResponseWriter, r *http.Request, d *Context)
 // @Tags Settings
 // @Accept json
 // @Produce json
-// @Success 200 {object} settings.MediaSettings "Updated media settings"
+// @Success 200 {object} mediaSettingsResponse "Updated media settings"
 // @Router /api/settings/media [patch]
 func settingsMediaPatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
 	patchJSON, err := readSettingsPatchBody(w, r)

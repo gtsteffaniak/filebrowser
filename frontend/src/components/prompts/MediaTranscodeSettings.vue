@@ -8,37 +8,37 @@
         <div class="settings-number-input item">
           <div class="no-padding">
             <label for="transcodeMaxConcurrent">{{ $t("settings.transcodeMaxConcurrent") }}</label>
-            <HelpTooltipIcon :text="$t('settings.transcodeMaxConcurrentHelp')" />
+            <HelpTooltipIcon :text="isLocked('transcode.maxConcurrent') ? lockMessageText : $t('settings.transcodeMaxConcurrentHelp')" />
           </div>
           <div class="no-padding">
-            <input id="transcodeMaxConcurrent" class="sizeInput input" v-model.number="media.transcode.maxConcurrent" type="number" min="1" />
+            <input id="transcodeMaxConcurrent" class="sizeInput input" :disabled="isLocked('transcode.maxConcurrent')" :title="fieldTooltip('transcode.maxConcurrent')" v-model.number="media.transcode.maxConcurrent" type="number" min="1" />
           </div>
         </div>
         <div class="settings-number-input item">
           <div class="no-padding">
             <label for="transcodeMaxConcurrentPerUser">{{ $t("settings.transcodeMaxConcurrentPerUser") }}</label>
-            <HelpTooltipIcon :text="$t('settings.transcodeMaxConcurrentPerUserHelp')" />
+            <HelpTooltipIcon :text="isLocked('transcode.maxConcurrentPerUser') ? lockMessageText : $t('settings.transcodeMaxConcurrentPerUserHelp')" />
           </div>
           <div class="no-padding">
-            <input id="transcodeMaxConcurrentPerUser" class="sizeInput input" v-model.number="media.transcode.maxConcurrentPerUser" type="number" min="1" />
+            <input id="transcodeMaxConcurrentPerUser" class="sizeInput input" :disabled="isLocked('transcode.maxConcurrentPerUser')" :title="fieldTooltip('transcode.maxConcurrentPerUser')" v-model.number="media.transcode.maxConcurrentPerUser" type="number" min="1" />
           </div>
         </div>
         <div class="settings-number-input item">
           <div class="no-padding">
             <label for="transcodeCacheMaxSizeMB">{{ $t("settings.transcodeCacheMaxSizeMB") }}</label>
-            <HelpTooltipIcon :text="$t('settings.transcodeCacheMaxSizeMBHelp')" />
+            <HelpTooltipIcon :text="isLocked('transcode.cacheMaxSizeMB') ? lockMessageText : $t('settings.transcodeCacheMaxSizeMBHelp')" />
           </div>
           <div class="no-padding">
-            <input id="transcodeCacheMaxSizeMB" class="sizeInput input" v-model.number="media.transcode.cacheMaxSizeMB" type="number" min="0" />
+            <input id="transcodeCacheMaxSizeMB" class="sizeInput input" :disabled="isLocked('transcode.cacheMaxSizeMB')" :title="fieldTooltip('transcode.cacheMaxSizeMB')" v-model.number="media.transcode.cacheMaxSizeMB" type="number" min="0" />
           </div>
         </div>
         <div class="settings-number-input item">
           <div class="no-padding">
             <label for="transcodeCacheRetentionH">{{ $t("settings.transcodeCacheRetentionH") }}</label>
-            <HelpTooltipIcon :text="$t('settings.transcodeCacheRetentionHHelp')" />
+            <HelpTooltipIcon :text="isLocked('transcode.cacheRetentionH') ? lockMessageText : $t('settings.transcodeCacheRetentionHHelp')" />
           </div>
           <div class="no-padding">
-            <input id="transcodeCacheRetentionH" class="sizeInput input" v-model.number="media.transcode.cacheRetentionH" type="number" min="1" />
+            <input id="transcodeCacheRetentionH" class="sizeInput input" :disabled="isLocked('transcode.cacheRetentionH')" :title="fieldTooltip('transcode.cacheRetentionH')" v-model.number="media.transcode.cacheRetentionH" type="number" min="1" />
           </div>
         </div>
       </div>
@@ -48,26 +48,32 @@
         <ToggleSwitch
           class="item"
           v-model="media.transcode.profiles[profile.id].enabled"
+          :disabled="isLocked(`transcode.profiles.${profile.id}.enabled`)"
+          :value-tooltip="fieldTooltip(`transcode.profiles.${profile.id}.enabled`)"
           :name="$t('settings.transcodeProfileEnabled')"
           :description="$t('settings.transcodeProfileEnabledDescription')"
         />
         <div class="settings-number-input item">
           <div class="no-padding">
             <label :for="`profile-${profile.id}-maxResolution`">{{ $t("settings.transcodeProfileMaxResolution") }}</label>
-            <HelpTooltipIcon :text="$t('settings.transcodeProfileMaxResolutionHelp')" />
+            <HelpTooltipIcon :text="isLocked(`transcode.profiles.${profile.id}.maxResolution`) ? lockMessageText : $t('settings.transcodeProfileMaxResolutionHelp')" />
           </div>
           <div class="no-padding">
             <input :id="`profile-${profile.id}-maxResolution`" class="sizeInput input"
+              :disabled="isLocked(`transcode.profiles.${profile.id}.maxResolution`)"
+              :title="fieldTooltip(`transcode.profiles.${profile.id}.maxResolution`)"
               v-model.number="media.transcode.profiles[profile.id].maxResolution" type="number" min="0" />
           </div>
         </div>
         <div class="settings-number-input item">
           <div class="no-padding">
             <label :for="`profile-${profile.id}-avgBitrate`">{{ $t("settings.transcodeProfileAvgBitrate") }}</label>
-            <HelpTooltipIcon :text="$t('settings.transcodeProfileAvgBitrateHelp')" />
+            <HelpTooltipIcon :text="isLocked(`transcode.profiles.${profile.id}.avgBitrateKbps`) ? lockMessageText : $t('settings.transcodeProfileAvgBitrateHelp')" />
           </div>
           <div class="no-padding">
             <input :id="`profile-${profile.id}-avgBitrate`" class="sizeInput input"
+              :disabled="isLocked(`transcode.profiles.${profile.id}.avgBitrateKbps`)"
+              :title="fieldTooltip(`transcode.profiles.${profile.id}.avgBitrateKbps`)"
               v-model.number="media.transcode.profiles[profile.id].avgBitrateKbps" type="number" min="0" />
           </div>
         </div>
@@ -126,6 +132,15 @@ export default {
       type: [String, Number],
       default: null,
     },
+    /** Media settings pinned in the config file cannot be changed here. */
+    lockedFromConfigPaths: {
+      type: Array,
+      default: () => [],
+    },
+    lockMessage: {
+      type: String,
+      default: "",
+    },
   },
   data() {
     return {
@@ -145,7 +160,18 @@ export default {
       this.loading = false;
     }
   },
+  computed: {
+    lockMessageText() {
+      return this.$t("settings.mediaFieldLockedFromConfig");
+    },
+  },
   methods: {
+    isLocked(path) {
+      return this.lockedFromConfigPaths.includes(path);
+    },
+    fieldTooltip(path) {
+      return this.isLocked(path) ? this.$t("settings.mediaFieldLockedFromConfig") : "";
+    },
     close() {
       mutations.closeTopPrompt();
     },
@@ -197,5 +223,11 @@ export default {
   display: flex;
   justify-content: center;
   padding: 2em;
+}
+
+/* Settings pinned in the config file cannot be edited here. */
+input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 </style>

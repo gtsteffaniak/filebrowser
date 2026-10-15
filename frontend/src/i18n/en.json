@@ -650,6 +650,7 @@
     "userDefaultsDescription": "Configure default settings applied to new users and enforced policy for all users.",
     "editAsYaml": "Edit as YAML",
     "userDefaultFieldLockedFromConfig": "This default is set in the config file and cannot be changed here.",
+    "mediaFieldLockedFromConfig": "This setting is set in the config file and cannot be changed here.",
     "accountDefaults": "Account defaults",
     "maxConcurrentTranscodes": "Max concurrent transcodes",
     "maxConcurrentTranscodesHelp": "The maximum number of simultaneous HLS transcode playback sessions for this user.",

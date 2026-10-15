@@ -45,6 +45,7 @@ type Environment struct {
 	IsFirstLoad                      bool     `json:"-"` // used internally to track if this is the first load of the application
 	ConfigUserDefaultsSpecified      bool     `json:"-"` // true when the config file contained a userDefaults section
 	ConfigUserDefaultsSpecifiedPaths []string `json:"-"` // dot-paths explicitly set under userDefaults in config
+	ConfigMediaSpecifiedPaths        []string `json:"-"` // dot-paths explicitly set under integrations.media in config
 	// ConfigSourceDefaultPermissions maps permission flags explicitly set in config defaultPermissions (e.g. view -> true).
 	ConfigSourceDefaultPermissions map[string]bool `json:"-"`
 	MuPdfAvailable                 bool            `json:"-"` // used internally if compiled with mupdf support
