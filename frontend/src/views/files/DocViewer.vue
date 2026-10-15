@@ -207,6 +207,7 @@ watch(() => state.req, (newReq) => {
       type: newReq.type,
       source: newReq.source,
       modified: newReq.modified,
+      created: newReq.created,
       hasPreview: newReq.hasPreview,
     });
   }
@@ -221,6 +222,7 @@ onMounted(() => {
     type: state.req.type,
     source: state.req.source,
     modified: state.req.modified,
+    created: state.req.created,
     hasPreview: state.req.hasPreview,
   });
 });
