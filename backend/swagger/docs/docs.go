@@ -7922,7 +7922,7 @@ const docTemplate = `{
                     "$ref": "#/definitions/users.LoginMethod"
                 },
                 "maxConcurrentTranscodes": {
-                    "description": "admin-set concurrent transcode session limit (default from userDefaults)",
+                    "description": "MaxConcurrentTranscodes is admin-set: it stays out of NonAdminEditable so a\nuser cannot raise their own limit through a self-service PATCH.",
                     "type": "integer"
                 },
                 "newFileTemplate": {
@@ -8380,7 +8380,7 @@ const docTemplate = `{
                     "$ref": "#/definitions/users.LoginMethod"
                 },
                 "maxConcurrentTranscodes": {
-                    "description": "admin-set concurrent transcode session limit (default from userDefaults)",
+                    "description": "MaxConcurrentTranscodes is admin-set: it stays out of NonAdminEditable so a\nuser cannot raise their own limit through a self-service PATCH.",
                     "type": "integer"
                 },
                 "newFileTemplate": {

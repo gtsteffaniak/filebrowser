@@ -1844,7 +1844,9 @@ definitions:
       loginMethod:
         $ref: '#/definitions/users.LoginMethod'
       maxConcurrentTranscodes:
-        description: admin-set concurrent transcode session limit (default from userDefaults)
+        description: |-
+          MaxConcurrentTranscodes is admin-set: it stays out of NonAdminEditable so a
+          user cannot raise their own limit through a self-service PATCH.
         type: integer
       newFileTemplate:
         description: list of custom filenames that will be used as template for new
@@ -2178,7 +2180,9 @@ definitions:
       loginMethod:
         $ref: '#/definitions/users.LoginMethod'
       maxConcurrentTranscodes:
-        description: admin-set concurrent transcode session limit (default from userDefaults)
+        description: |-
+          MaxConcurrentTranscodes is admin-set: it stays out of NonAdminEditable so a
+          user cannot raise their own limit through a self-service PATCH.
         type: integer
       newFileTemplate:
         description: list of custom filenames that will be used as template for new
