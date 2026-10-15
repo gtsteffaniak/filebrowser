@@ -5,8 +5,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
@@ -19,6 +19,9 @@ func MakeUserDir(fullPath string) error {
 }
 
 func MakeUserDirs(u *users.User, createDir bool) error {
+	if u.Permissions.Admin {
+		return nil
+	}
 	cleanedUserName := users.CleanUsername(u.Username)
 	if cleanedUserName == "" || cleanedUserName == "-" || cleanedUserName == "." {
 		return fmt.Errorf("MakeUserDirs: invalid user for home dir creation: [%s]", u.Username)
