@@ -5,12 +5,13 @@
     :class="{ 'html-viewer-mode': isHtml }"
     :style="htmlViewerStyle"
   >
+    <!-- Never add allow-scripts together with allow-same-origin (see HTML_PREVIEW_SANDBOX). -->
     <iframe
       v-if="isHtml"
       ref="viewerEl"
       class="html-content"
       src="about:blank"
-      sandbox="allow-scripts allow-popups"
+      :sandbox="HTML_PREVIEW_SANDBOX"
       referrerpolicy="no-referrer"
       title="HTML preview"
       @load="applyHtmlPreviewHeight"
@@ -49,12 +50,10 @@ import { createScrollSyncGuard } from "@/utils/markdownScrollSync";
 import { copyToClipboard } from "@/utils/clipboard";
 import { globalVars } from "@/utils/constants";
 import { isHtmlMimeType } from "@/utils/mimetype";
-import { router } from "@/router/index.ts";
-import { buildItemUrl } from "@/utils/url.js";
-import { previewNavigationFile } from "@/utils/htmlPreviewNavigation";
 import { createHtmlPreviewLoader } from "@/utils/htmlPreviewLoader";
 import FloatingActionButton from "@/components/settings/FloatingActionButton.vue";
 import {
+  HTML_PREVIEW_SANDBOX,
   buildHtmlPreview,
   buildPreviewResourceUrl,
   rewriteHtmlResources,
@@ -314,7 +313,6 @@ watch(() => props.scrollTarget, (newEl) => {
 });
 
 onMounted(async () => {
-  window.addEventListener("message", handleHtmlNavigation);
   reinit();
   observeResize();
   await nextTick();
@@ -330,7 +328,6 @@ onBeforeUnmount(() => {
 
 onUnmounted(() => {
   htmlPreviewLoader.dispose();
-  window.removeEventListener("message", handleHtmlNavigation);
   attachScrollListener(null);
   unobserveResize();
 
@@ -343,30 +340,24 @@ function toggleSplitView() {
   mutations.toggleSplitView();
 }
 
-function handleHtmlNavigation(event: MessageEvent) {
-  if (!isHtml.value) return;
-  const iframe = viewerEl.value as HTMLIFrameElement | null;
-  const viewerPrefix = router.resolve({ path: buildItemUrl(state.req.source, "/") }).href;
-  const file = previewNavigationFile(
-    event, iframe?.contentWindow ?? null, window.location.origin,
-    viewerPrefix,
-  );
-  if (file === null) return;
-  // Only reconstruct a file-viewer route; never navigate to a URL supplied
-  // directly by the frame. The normal app request enforces access to the file.
-  if (event.data.newTab === true) {
-    const href = router.resolve({ path: buildItemUrl(state.req.source, file) }).href;
-    window.open(href, "_blank", "noopener,noreferrer");
-    return;
-  }
-  void router.push({ path: buildItemUrl(state.req.source, file) });
-}
-
 function applyHtmlPreviewHeight() {
   const iframe = viewerEl.value as HTMLIFrameElement | null;
   if (!iframe || !isHtml.value) return;
-  const available = window.innerHeight - iframe.getBoundingClientRect().top;
-  iframe.style.height = `${available}px`;
+  const minAvailable = window.innerHeight - iframe.getBoundingClientRect().top;
+  try {
+    const doc = iframe.contentDocument;
+    if (doc?.documentElement) {
+      const contentHeight = Math.max(
+        doc.documentElement.scrollHeight,
+        doc.body?.scrollHeight ?? 0,
+      );
+      iframe.style.height = `${Math.max(contentHeight, minAvailable)}px`;
+      return;
+    }
+  } catch {
+    // Fall back to viewport height if the frame is not yet same-origin readable.
+  }
+  iframe.style.height = `${minAvailable}px`;
 }
 
 function observeResize() {

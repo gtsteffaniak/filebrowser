@@ -779,11 +779,10 @@ func TestViewTokenHandlerExtendsExistingToken(t *testing.T) {
 	}
 	almostExpired := time.Now().Add(30 * time.Second).Unix()
 	utils.ViewGrantsCache.Set(token, utils.ViewGrant{
-		Source:       viewGrantScope(d, "default"),
-		ExpiresAt:    almostExpired,
-		SessionToken: d.Token,
+		Source:    viewGrantScope(d, "default"),
+		ExpiresAt: almostExpired,
 	})
-	utils.ViewGrantIndex.Set(viewGrantIndexKey(d, viewGrantScope(d, "default")), token)
+	utils.ViewGrantIndex.Set(viewGrantScope(d, "default"), token)
 	req := httptest.NewRequest(http.MethodPost, "/api/resources/view-token?source=default&viewToken="+token, nil)
 	rec := httptest.NewRecorder()
 	status, err := viewTokenHandler(rec, req, d)

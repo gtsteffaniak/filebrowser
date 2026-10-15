@@ -129,10 +129,6 @@ export async function renew() {
     if (res.status === 200) {
       setSessionExpiresAtFromToken(body);
       mutations.setSession(generateRandomCode(8));
-      // Preview recovery must not keep successful login renewal pending.
-      void import("@/api/viewToken.js")
-        .then(({ refreshViewGrantAfterSessionRenewal }) => refreshViewGrantAfterSessionRenewal())
-        .catch(() => {});
       return;
     }
     throw new Error(body);

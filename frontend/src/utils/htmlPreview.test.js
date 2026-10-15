@@ -48,13 +48,28 @@ vi.mock("@/api/resources", () => ({
 vi.mock("@/api/media", () => ({}));
 
 import {
+  HTML_PREVIEW_CSP,
+  HTML_PREVIEW_SANDBOX,
   buildHtmlPreview,
   buildPreviewResourceUrl,
+  isAllowedTopNavigationUrl,
   isLocalResourceReference,
   rewriteCssContent,
   rewriteSrcset,
 } from "./htmlPreview.ts";
 import { state } from "@/store/index.ts";
+
+describe("HTML_PREVIEW_SANDBOX", () => {
+  it("uses same-origin without scripts so the session cookie reaches subresources", () => {
+    expect(HTML_PREVIEW_SANDBOX).toContain("allow-same-origin");
+    expect(HTML_PREVIEW_SANDBOX).not.toContain("allow-scripts");
+  });
+
+  it("never combines allow-scripts with allow-same-origin (XSS breakout risk)", () => {
+    const tokens = HTML_PREVIEW_SANDBOX.split(/\s+/);
+    expect(tokens.includes("allow-scripts") && tokens.includes("allow-same-origin")).toBe(false);
+  });
+});
 
 describe("isLocalResourceReference", () => {
   it("treats relative paths as local", () => {
@@ -140,53 +155,37 @@ describe("rewriteCssContent", () => {
   });
 });
 
+describe("isAllowedTopNavigationUrl", () => {
+  it("accepts in-app HTML viewer routes for the active source", () => {
+    const href = `${window.location.origin}/files/src/pages/other.html`;
+    expect(isAllowedTopNavigationUrl(href, "src")).toBe(true);
+  });
+
+  it("rejects external and non-html viewer paths", () => {
+    expect(isAllowedTopNavigationUrl("https://evil.test/x.html", "src")).toBe(false);
+    expect(isAllowedTopNavigationUrl(`${window.location.origin}/files/src/pages/other.txt`, "src")).toBe(false);
+  });
+});
+
 describe("buildHtmlPreview", () => {
-  it.each([
-    ["auxclick", { button: 1 }],
-    ["click", { ctrlKey: true }],
-    ["click", { metaKey: true }],
-    ["click", { shiftKey: true }],
-  ])("requests a parent-opened tab for %s with %j", (type, options) => {
+  it("routes same-source HTML links to the viewer with target=_top", () => {
     const { srcdoc } = buildHtmlPreview('<a href="other.html">Next</a>', "/pages/index.html", "src");
     const doc = new DOMParser().parseFromString(srcdoc, "text/html");
-    const postMessage = vi.fn();
-    // biome-ignore lint/nursery/noImpliedEval: Execute the generated navigation helper in this controlled test.
-    new Function("document", "window", doc.querySelector("script").textContent)(doc, { parent: { postMessage } });
-    const click = new MouseEvent(type, { bubbles: true, cancelable: true, ...options });
-    doc.querySelector("a").dispatchEvent(click);
-    expect(click.defaultPrevented).toBe(true);
-    expect(postMessage).toHaveBeenCalledWith(
-      expect.objectContaining({ newTab: true }), window.location.origin,
-    );
+    const anchor = doc.querySelector("a");
+    expect(anchor.getAttribute("target")).toBe("_top");
+    expect(anchor.getAttribute("href")).toBe(`${window.location.origin}/files/src/pages/other.html`);
+    expect(anchor.getAttribute("href")).not.toContain("viewToken");
+    expect(doc.querySelector("script")).toBeNull();
   });
-  it("does not hijack right-clicks", () => {
-    const { srcdoc } = buildHtmlPreview('<a href="other.html">Next</a>', "/pages/index.html", "src");
-    const doc = new DOMParser().parseFromString(srcdoc, "text/html");
-    const postMessage = vi.fn();
-    // biome-ignore lint/nursery/noImpliedEval: Execute the generated navigation helper in this controlled test.
-    new Function("document", "window", doc.querySelector("script").textContent)(doc, { parent: { postMessage } });
-    doc.querySelector("a").dispatchEvent(new MouseEvent("auxclick", { button: 2, bubbles: true, cancelable: true }));
-    expect(postMessage).not.toHaveBeenCalled();
+
+  it("opens external http(s) links in a new tab", () => {
+    const { srcdoc } = buildHtmlPreview('<a href="https://example.com/page">External</a>', "/index.html", "src");
+    const anchor = new DOMParser().parseFromString(srcdoc, "text/html").querySelector("a");
+    expect(anchor.getAttribute("target")).toBe("_blank");
+    expect(anchor.getAttribute("rel")).toBe("noopener noreferrer");
   });
-  it("injects a valid navigation helper without granting same-origin access", () => {
-    const { srcdoc } = buildHtmlPreview('<a href="other.html">Next</a>', "/pages/index.html", "src");
-    const doc = new DOMParser().parseFromString(srcdoc, "text/html");
-    const script = doc.querySelector("script").textContent;
-    // biome-ignore lint/nursery/noImpliedEval: Execute the generated navigation helper in this controlled test.
-    expect(() => new Function(script)).not.toThrow();
-    expect(script).toContain("filebrowser-html-navigation");
-    const postMessage = vi.fn();
-    // biome-ignore lint/nursery/noImpliedEval: Execute the generated navigation helper in this controlled test.
-    new Function("document", "window", script)(doc, { parent: { postMessage } });
-    const click = new MouseEvent("click", { bubbles: true, cancelable: true });
-    doc.querySelector("a").dispatchEvent(click);
-    expect(click.defaultPrevented).toBe(true);
-    expect(postMessage).toHaveBeenCalledWith(
-      expect.objectContaining({ type: "filebrowser-html-navigation" }),
-      window.location.origin,
-    );
-  });
-  it("rewrites linked assets and strips user scripts from sandboxed srcdoc", () => {
+
+  it("rewrites linked assets and strips user scripts from the preview document", () => {
     const html = `<!DOCTYPE html>
 <html>
 <head>
@@ -208,7 +207,6 @@ describe("buildHtmlPreview", () => {
     );
     expect(srcdoc).not.toContain("app.js");
     expect(srcdoc).not.toContain("<script src=");
-    expect(srcdoc).toContain("scrollIntoView");
     expect(srcdoc).not.toContain("javascript:");
   });
 
@@ -218,33 +216,21 @@ describe("buildHtmlPreview", () => {
     expect(srcdoc).not.toContain("javascript:");
   });
 
-  it("declares UTF-8 and preserves multilingual text in blob previews", () => {
+  it("declares UTF-8, CSP, and preserves multilingual text", () => {
     const text = "中文 — café € 🎥";
     const { srcdoc } = buildHtmlPreview(`<p>${text}</p><meta http-equiv="refresh" content="0;url=https://evil.test">`, "/index.html", "src");
     const doc = new DOMParser().parseFromString(srcdoc, "text/html");
-    expect(doc.head.firstElementChild.outerHTML).toBe('<meta charset="utf-8">');
+    expect(doc.head.firstElementChild?.getAttribute("charset")).toBe("utf-8");
+    expect(doc.querySelector('meta[http-equiv="Content-Security-Policy"]')?.getAttribute("content")).toBe(HTML_PREVIEW_CSP);
     expect(doc.querySelector("p").textContent).toBe(text);
-    expect(doc.querySelector('meta[http-equiv]')).toBeNull();
-  });
-
-  it("gives native and intercepted HTML links the same viewer URL", () => {
-    const { srcdoc } = buildHtmlPreview('<a href="other.html">Next</a>', "/pages/index.html", "src");
-    const doc = new DOMParser().parseFromString(srcdoc, "text/html");
-    const anchor = doc.querySelector("a");
-    const nativeURL = anchor.getAttribute("href");
-    const postMessage = vi.fn();
-    // biome-ignore lint/nursery/noImpliedEval: Execute the generated navigation helper in this controlled test.
-    new Function("document", "window", doc.querySelector("script").textContent)(doc, { parent: { postMessage } });
-    anchor.dispatchEvent(new MouseEvent("auxclick", { button: 1, bubbles: true, cancelable: true }));
-    expect(postMessage.mock.calls[0][0].href).toBe(nativeURL);
-    expect(nativeURL).not.toContain("viewToken");
-    expect(nativeURL).not.toContain("/api/");
+    expect(doc.querySelector('meta[http-equiv="refresh"]')).toBeNull();
   });
 
   it("does not honor forged navigation markers from uploaded HTML", () => {
     const { srcdoc } = buildHtmlPreview('<a href="https://evil.test/page.html" data-filebrowser-html-link="true">External</a>', "/index.html", "src");
     const doc = new DOMParser().parseFromString(srcdoc, "text/html");
     expect(doc.querySelector("a").hasAttribute("data-filebrowser-html-link")).toBe(false);
+    expect(doc.querySelector("a").getAttribute("target")).toBe("_blank");
   });
 
   it("preserves inline SVG", () => {

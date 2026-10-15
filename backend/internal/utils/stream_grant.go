@@ -5,9 +5,6 @@ package utils
 type ViewGrant struct {
 	Source    string
 	ExpiresAt int64
-	// SessionToken stays server-side. Cookie-less preview requests may use this
-	// grant only on read-only view routes, after revalidating the originating session.
-	SessionToken string `json:"-"`
 }
 
 // ShareAccessGrant tracks remaining uses for count-limited share download tokens.

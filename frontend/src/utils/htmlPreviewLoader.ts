@@ -1,6 +1,6 @@
 // Keep iframe document updates out of the browser's joint session history.
-// The iframe stays sandboxed without allow-same-origin; only its sanitized
-// document and the trusted navigation helper are placed in the blob.
+// With allow-same-origin (and no allow-scripts), blob documents are same-origin
+// so subresources use the session cookie; only sanitized HTML is loaded here.
 export function createHtmlPreviewLoader(
   createURL: (html: string) => string = (html) =>
     URL.createObjectURL(new Blob([html], { type: "text/html;charset=utf-8" })),

@@ -1,4 +1,4 @@
-import { getters, mutations, state } from "@/store/index.ts";
+import { getters, state } from "@/store/index.ts";
 import { getApiPath, getPublicApiPath } from "@/utils/url.js";
 import {
   VIEW_REFRESH_BEFORE_MS,
@@ -11,8 +11,6 @@ const REFRESH_BEFORE_MS = VIEW_REFRESH_BEFORE_MS;
 
 let activeScope = "";
 let refreshTimer = null;
-let sessionGeneration = 0;
-let recoveryTimer = null;
 
 /** Stable key for the current preview request (source, share, path). */
 export function requestViewIdentity(req) {
@@ -120,10 +118,6 @@ function scheduleViewGrantRefresh(source, scope) {
 
 export function setActiveViewGrantScope(source) {
   const scope = viewGrantScope(source);
-  if (recoveryTimer && scope !== activeScope) {
-    clearTimeout(recoveryTimer);
-    recoveryTimer = null;
-  }
   if (refreshTimer) {
     clearTimeout(refreshTimer);
     refreshTimer = null;
@@ -159,12 +153,10 @@ export function rememberViewToken(source, viewToken, expiresAt) {
 }
 
 /** @returns {Promise<{ viewToken: string, expiresAt: number }>} */
-export async function refreshViewToken(source, existingToken, requestScope = null, signal = null) {
-  const generation = sessionGeneration;
+export async function refreshViewToken(source, existingToken, requestScope = null) {
   const scope = requestScope ?? viewGrantScope(source);
   const url = viewTokenApiPath(source, existingToken);
   const res = await fetch(url, {
-    ...(signal ? { signal } : {}),
     method: "POST",
     credentials: "same-origin",
     headers: {
@@ -172,15 +164,12 @@ export async function refreshViewToken(source, existingToken, requestScope = nul
     },
   });
   if (!res.ok) {
-    if (generation === sessionGeneration && (res.status === 403 || res.status === 401)) {
+    if (res.status === 403 || res.status === 401) {
       clearCachedScopeByScope(scope);
     }
-    throw Object.assign(new Error(await res.text()), { status: res.status });
+    throw new Error(await res.text());
   }
   const data = await res.json();
-  if (generation !== sessionGeneration) {
-    throw new Error("Preview grant belongs to a previous session");
-  }
   if (scope !== activeScope) {
     return data;
   }
@@ -201,58 +190,4 @@ export async function ensureViewToken(source) {
   }
   const data = await refreshViewToken(source, cached?.viewToken, scope);
   return data.viewToken;
-}
-
-/** Replace private grants after login renewal and update the active preview URLs. */
-export async function refreshViewGrantAfterSessionRenewal() {
-  if (getters.isShare()) return;
-  const generation = ++sessionGeneration;
-  if (recoveryTimer) {
-    clearTimeout(recoveryTimer);
-    recoveryTimer = null;
-  }
-  if (refreshTimer) {
-    clearTimeout(refreshTimer);
-    refreshTimer = null;
-  }
-  // Inactive sources must not reuse grants bound to the previous login session.
-  try {
-    for (const key of Object.keys(sessionStorage)) {
-      if (key.startsWith("viewToken:")) sessionStorage.removeItem(key);
-    }
-  } catch {
-    // Storage can be unavailable; the active grant still refreshes below.
-  }
-  // Sibling grants also belong to the previous session. Relative resources
-  // must fall back to the refreshed, source-scoped request grant.
-  for (const item of state.req?.parentDirItems ?? []) {
-    item.viewToken = undefined;
-  }
-  const req = state.req;
-  const source = req?.source;
-  const identity = requestViewIdentity(req);
-  if (!source || viewGrantScope(source) !== activeScope) return;
-  const isCurrent = () => generation === sessionGeneration && !getters.isShare() &&
-    requestViewIdentity(state.req) === identity && viewGrantScope(source) === activeScope;
-
-  // Retry transient failures while this file and session remain active.
-  const refreshActive = async (attempt = 0) => {
-    if (!isCurrent()) return;
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 15_000);
-    try {
-      const data = await refreshViewToken(source, undefined, null, controller.signal);
-      if (isCurrent()) mutations.setRequestViewToken(data.viewToken);
-    } catch (error) {
-      if (!isCurrent() || error.status === 401 || error.status === 403) return;
-      const delay = Math.min(1000 * 2 ** Math.min(attempt, 5), 30_000);
-      recoveryTimer = setTimeout(() => {
-        recoveryTimer = null;
-        void refreshActive(attempt + 1);
-      }, delay);
-    } finally {
-      clearTimeout(timeout);
-    }
-  };
-  await refreshActive();
 }
