@@ -48,13 +48,28 @@ vi.mock("@/api/resources", () => ({
 vi.mock("@/api/media", () => ({}));
 
 import {
+  HTML_PREVIEW_CSP,
+  HTML_PREVIEW_SANDBOX,
   buildHtmlPreview,
   buildPreviewResourceUrl,
+  isAllowedTopNavigationUrl,
   isLocalResourceReference,
   rewriteCssContent,
   rewriteSrcset,
 } from "./htmlPreview.ts";
 import { state } from "@/store/index.ts";
+
+describe("HTML_PREVIEW_SANDBOX", () => {
+  it("uses same-origin without scripts so the session cookie reaches subresources", () => {
+    expect(HTML_PREVIEW_SANDBOX).toContain("allow-same-origin");
+    expect(HTML_PREVIEW_SANDBOX).not.toContain("allow-scripts");
+  });
+
+  it("never combines allow-scripts with allow-same-origin (XSS breakout risk)", () => {
+    const tokens = HTML_PREVIEW_SANDBOX.split(/\s+/);
+    expect(tokens.includes("allow-scripts") && tokens.includes("allow-same-origin")).toBe(false);
+  });
+});
 
 describe("isLocalResourceReference", () => {
   it("treats relative paths as local", () => {
@@ -140,8 +155,37 @@ describe("rewriteCssContent", () => {
   });
 });
 
+describe("isAllowedTopNavigationUrl", () => {
+  it("accepts in-app HTML viewer routes for the active source", () => {
+    const href = `${window.location.origin}/files/src/pages/other.html`;
+    expect(isAllowedTopNavigationUrl(href, "src")).toBe(true);
+  });
+
+  it("rejects external and non-html viewer paths", () => {
+    expect(isAllowedTopNavigationUrl("https://evil.test/x.html", "src")).toBe(false);
+    expect(isAllowedTopNavigationUrl(`${window.location.origin}/files/src/pages/other.txt`, "src")).toBe(false);
+  });
+});
+
 describe("buildHtmlPreview", () => {
-  it("rewrites linked assets and strips user scripts from sandboxed srcdoc", () => {
+  it("routes same-source HTML links to the viewer with target=_top", () => {
+    const { srcdoc } = buildHtmlPreview('<a href="other.html">Next</a>', "/pages/index.html", "src");
+    const doc = new DOMParser().parseFromString(srcdoc, "text/html");
+    const anchor = doc.querySelector("a");
+    expect(anchor.getAttribute("target")).toBe("_top");
+    expect(anchor.getAttribute("href")).toBe(`${window.location.origin}/files/src/pages/other.html`);
+    expect(anchor.getAttribute("href")).not.toContain("viewToken");
+    expect(doc.querySelector("script")).toBeNull();
+  });
+
+  it("opens external http(s) links in a new tab", () => {
+    const { srcdoc } = buildHtmlPreview('<a href="https://example.com/page">External</a>', "/index.html", "src");
+    const anchor = new DOMParser().parseFromString(srcdoc, "text/html").querySelector("a");
+    expect(anchor.getAttribute("target")).toBe("_blank");
+    expect(anchor.getAttribute("rel")).toBe("noopener noreferrer");
+  });
+
+  it("rewrites linked assets and strips user scripts from the preview document", () => {
     const html = `<!DOCTYPE html>
 <html>
 <head>
@@ -157,10 +201,12 @@ describe("buildHtmlPreview", () => {
     const { srcdoc } = buildHtmlPreview(html, "/pages/index.html", "src");
     expect(srcdoc).toContain(encodeURIComponent("/pages/theme.css"));
     expect(srcdoc).toContain(encodeURIComponent("/pages/photo.jpg"));
-    expect(srcdoc).toContain(encodeURIComponent("/pages/other.html"));
+    const rendered = new DOMParser().parseFromString(srcdoc, "text/html");
+    expect(rendered.querySelector("a").getAttribute("href")).toBe(
+      `${window.location.origin}/files/src/pages/other.html`,
+    );
     expect(srcdoc).not.toContain("app.js");
     expect(srcdoc).not.toContain("<script src=");
-    expect(srcdoc).toContain("scrollIntoView");
     expect(srcdoc).not.toContain("javascript:");
   });
 
@@ -168,6 +214,23 @@ describe("buildHtmlPreview", () => {
     const html = `<html><body><a href="javascript:alert(1)">bad</a></body></html>`;
     const { srcdoc } = buildHtmlPreview(html, "/index.html", "src");
     expect(srcdoc).not.toContain("javascript:");
+  });
+
+  it("declares UTF-8, CSP, and preserves multilingual text", () => {
+    const text = "中文 — café € 🎥";
+    const { srcdoc } = buildHtmlPreview(`<p>${text}</p><meta http-equiv="refresh" content="0;url=https://evil.test">`, "/index.html", "src");
+    const doc = new DOMParser().parseFromString(srcdoc, "text/html");
+    expect(doc.head.firstElementChild?.getAttribute("charset")).toBe("utf-8");
+    expect(doc.querySelector('meta[http-equiv="Content-Security-Policy"]')?.getAttribute("content")).toBe(HTML_PREVIEW_CSP);
+    expect(doc.querySelector("p").textContent).toBe(text);
+    expect(doc.querySelector('meta[http-equiv="refresh"]')).toBeNull();
+  });
+
+  it("does not honor forged navigation markers from uploaded HTML", () => {
+    const { srcdoc } = buildHtmlPreview('<a href="https://evil.test/page.html" data-filebrowser-html-link="true">External</a>', "/index.html", "src");
+    const doc = new DOMParser().parseFromString(srcdoc, "text/html");
+    expect(doc.querySelector("a").hasAttribute("data-filebrowser-html-link")).toBe(false);
+    expect(doc.querySelector("a").getAttribute("target")).toBe("_blank");
   });
 
   it("preserves inline SVG", () => {

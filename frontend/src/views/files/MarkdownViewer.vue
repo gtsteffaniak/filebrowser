@@ -5,13 +5,13 @@
     :class="{ 'html-viewer-mode': isHtml }"
     :style="htmlViewerStyle"
   >
+    <!-- Never add allow-scripts together with allow-same-origin (see HTML_PREVIEW_SANDBOX). -->
     <iframe
       v-if="isHtml"
       ref="viewerEl"
-      :key="req.path"
       class="html-content"
-      :srcdoc="htmlPreview.srcdoc"
-      sandbox="allow-scripts allow-popups"
+      src="about:blank"
+      :sandbox="HTML_PREVIEW_SANDBOX"
       referrerpolicy="no-referrer"
       title="HTML preview"
       @load="applyHtmlPreviewHeight"
@@ -50,8 +50,10 @@ import { createScrollSyncGuard } from "@/utils/markdownScrollSync";
 import { copyToClipboard } from "@/utils/clipboard";
 import { globalVars } from "@/utils/constants";
 import { isHtmlMimeType } from "@/utils/mimetype";
+import { createHtmlPreviewLoader } from "@/utils/htmlPreviewLoader";
 import FloatingActionButton from "@/components/settings/FloatingActionButton.vue";
 import {
+  HTML_PREVIEW_SANDBOX,
   buildHtmlPreview,
   buildPreviewResourceUrl,
   rewriteHtmlResources,
@@ -220,6 +222,24 @@ const htmlPreview = computed(() => {
   return buildHtmlPreview(content.value, state.req.path ?? "", state.req.source ?? "");
 });
 
+const htmlPreviewLoader = createHtmlPreviewLoader();
+
+function renderHtmlPreview() {
+  if (!isHtml.value) {
+    htmlPreviewLoader.dispose();
+    return;
+  }
+  const iframe = viewerEl.value as HTMLIFrameElement | null;
+  if (iframe?.contentWindow) {
+    htmlPreviewLoader.load(iframe.contentWindow, htmlPreview.value.srcdoc);
+  }
+}
+
+watch(htmlPreview, async () => {
+  await nextTick();
+  renderHtmlPreview();
+}, { flush: "post" });
+
 const renderedContent = computed(() => {
   void katexReady.value;
   return parseMarkdown(content.value, state.req.path ?? "", state.req.source ?? "");
@@ -296,6 +316,7 @@ onMounted(async () => {
   reinit();
   observeResize();
   await nextTick();
+  renderHtmlPreview();
   attachScrollListener(getScrollContainer());
 });
 
@@ -306,6 +327,7 @@ onBeforeUnmount(() => {
 });
 
 onUnmounted(() => {
+  htmlPreviewLoader.dispose();
   attachScrollListener(null);
   unobserveResize();
 
@@ -321,8 +343,21 @@ function toggleSplitView() {
 function applyHtmlPreviewHeight() {
   const iframe = viewerEl.value as HTMLIFrameElement | null;
   if (!iframe || !isHtml.value) return;
-  const available = window.innerHeight - iframe.getBoundingClientRect().top;
-  iframe.style.height = `${available}px`;
+  const minAvailable = window.innerHeight - iframe.getBoundingClientRect().top;
+  try {
+    const doc = iframe.contentDocument;
+    if (doc?.documentElement) {
+      const contentHeight = Math.max(
+        doc.documentElement.scrollHeight,
+        doc.body?.scrollHeight ?? 0,
+      );
+      iframe.style.height = `${Math.max(contentHeight, minAvailable)}px`;
+      return;
+    }
+  } catch {
+    // Fall back to viewport height if the frame is not yet same-origin readable.
+  }
+  iframe.style.height = `${minAvailable}px`;
 }
 
 function observeResize() {

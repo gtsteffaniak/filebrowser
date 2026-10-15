@@ -2,8 +2,7 @@ import DOMPurify from "dompurify";
 import { getters, state } from "@/store/index.ts";
 import { getCachedViewToken } from "@/api/viewToken.js";
 import { getViewURL } from "@/api/resources.js";
-import { getParentDir, resolveRelativePath } from "@/utils/url.js";
-import { globalVars } from "./constants.js";
+import { buildItemUrl, getParentDir, resolveRelativePath } from "@/utils/url.js";
 
 export const HTML_SANITIZE_CONFIG = {
   USE_PROFILES: { html: true, svg: true, svgFilters: true },
@@ -12,6 +11,13 @@ export const HTML_SANITIZE_CONFIG = {
   FORBID_TAGS: ["iframe", "object", "embed", "form", "base", "meta", "script"],
   FORBID_ATTR: ["target", "formaction"],
 };
+
+/** Sandboxed HTML preview iframe flags (no allow-scripts — scripts must never share an origin with the parent). */
+export const HTML_PREVIEW_SANDBOX =
+  "allow-same-origin allow-popups allow-top-navigation-by-user-activation";
+
+export const HTML_PREVIEW_CSP =
+  "default-src 'none'; script-src 'none'; img-src 'self' data: blob:; media-src 'self' data: blob:; style-src 'self' 'unsafe-inline' data:; font-src 'self' data: blob:; connect-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'";
 
 const CSS_URL_PATTERN = /url\(\s*(['"]?)([^'")]+?)\1\s*\)/gi;
 const CSS_IMPORT_URL_PATTERN = /@import\s+url\(\s*['"]?([^'")\s]+)['"]?\s*\)/gi;
@@ -46,26 +52,6 @@ const RESOURCE_ATTRIBUTES: Array<[string, string]> = [
 ];
 
 const ALLOWED_ABSOLUTE_URI_PATTERN = /^(https?:|data:|mailto:|tel:|#)/i;
-
-// to stop relative hrefs from navigating the srcdoc iframe against the parent, and
-// to keep anchor links working inside the iframe itself instead (was opening the app inside the iframe)
-const NAV_GUARD_SCRIPT = `document.addEventListener("click", function (e) {
-  var a = e.target && e.target.closest ? e.target.closest("a") : null;
-  if (!a) return;
-  var href = a.getAttribute("href") || "";
-  if (href.charAt(0) !== "#") {
-    // Absolute links are left alone -- relative links would resolve to about:blank.
-    if (!/^[a-z][a-z0-9+.-]*:/i.test(href) && href.slice(0, 2) !== "//") {
-      e.preventDefault();
-    }
-    return;
-  }
-  var id = href.slice(1);
-  var el = id ? document.getElementById(id) : document.documentElement;
-  if (!el) return;
-  e.preventDefault();
-  el.scrollIntoView();
-}, true);`;
 
 function viewTokenForSibling(
   resolvedPath: string,
@@ -277,20 +263,62 @@ export function rewriteDocumentStyles(
   }
 }
 
-function navigationGuard(htmlEl: HTMLElement): string {
+function buildHtmlViewerUrl(source: string, filePath: string): string {
+  const pathOnly = filePath.split(/[?#]/)[0];
+  return new URL(buildItemUrl(source, pathOnly, true), window.location.origin).href;
+}
+
+/** Same-origin FileBrowser viewer routes only (used to gate target="_top"). */
+export function isAllowedTopNavigationUrl(href: string, source: string): boolean {
+  try {
+    const url = new URL(href, window.location.origin);
+    if (url.origin !== window.location.origin || url.username || url.password) {
+      return false;
+    }
+    const prefix = new URL(buildItemUrl(source, "/", true), window.location.origin);
+    const prefixPath = prefix.pathname.endsWith("/")
+      ? prefix.pathname
+      : `${prefix.pathname}/`;
+    if (!url.pathname.startsWith(prefixPath)) {
+      return false;
+    }
+    const relative = decodeURIComponent(url.pathname.slice(prefixPath.length));
+    // biome-ignore lint/suspicious/noControlCharactersInRegex: Reject control characters in navigation paths.
+    if (!relative || !/\.html?$/i.test(relative) || /[\x00-\x1f\\]/.test(relative)) {
+      return false;
+    }
+    return !relative.split("/").some((part) => part === "." || part === "..");
+  } catch {
+    return false;
+  }
+}
+
+function applyPreviewLinkTargets(doc: ParentNode, source: string, pageViewerUrls: Set<string>): void {
+  for (const anchor of doc.querySelectorAll("a[href]")) {
+    const href = anchor.getAttribute("href") ?? "";
+    if (pageViewerUrls.has(href) && isAllowedTopNavigationUrl(href, source)) {
+      anchor.setAttribute("target", "_top");
+      continue;
+    }
+    if (/^https?:/i.test(href)) {
+      anchor.setAttribute("target", "_blank");
+      anchor.setAttribute("rel", "noopener noreferrer");
+    }
+  }
+}
+
+function wrapPreviewDocument(htmlEl: HTMLElement): string {
   const doc = htmlEl.ownerDocument;
   const head = doc.head ?? htmlEl.querySelector("head");
   if (head) {
-    const base = doc.createElement("base");
-    base.setAttribute("href", "about:blank");
-    head.insertBefore(base, head.firstChild);
+    const charset = doc.createElement("meta");
+    charset.setAttribute("charset", "utf-8");
+    head.insertBefore(charset, head.firstChild);
 
-    const guard = doc.createElement("script");
-    if (typeof globalVars.cspNonce === "string" && globalVars.cspNonce !== "") {
-      guard.setAttribute("nonce", globalVars.cspNonce);
-    }
-    guard.textContent = NAV_GUARD_SCRIPT;
-    head.appendChild(guard);
+    const csp = doc.createElement("meta");
+    csp.setAttribute("http-equiv", "Content-Security-Policy");
+    csp.setAttribute("content", HTML_PREVIEW_CSP);
+    head.insertBefore(csp, charset.nextSibling);
   }
   return `<!DOCTYPE html>\n${htmlEl.outerHTML}`;
 }
@@ -305,6 +333,18 @@ export function buildHtmlPreview(
   source: string,
 ): HtmlPreview {
   const doc = new DOMParser().parseFromString(content, "text/html");
+  const pageLinks = new Map<string, string>();
+  for (const anchor of doc.querySelectorAll("a[href]")) {
+    const href = anchor.getAttribute("href") ?? "";
+    if (!isLocalResourceReference(href)) continue;
+    const resolved = resolveRelativePath(filePath, href);
+    const pathOnly = resolved.split(/[?#]/)[0];
+    if (!pathOnly || !/\.html?$/i.test(pathOnly)) continue;
+    pageLinks.set(
+      buildPreviewResourceUrl(href, filePath, source),
+      buildHtmlViewerUrl(source, pathOnly),
+    );
+  }
   rewriteHtmlResources(doc, filePath, source);
   rewriteDocumentStyles(doc, filePath, source);
 
@@ -312,8 +352,28 @@ export function buildHtmlPreview(
 
   DOMPurify.addHook("uponSanitizeAttribute", blockUnsafeUriAttributes);
   try {
-    const sanitized = DOMPurify.sanitize(serialized, { ...HTML_SANITIZE_CONFIG, RETURN_DOM: true, }) as unknown as HTMLElement;
-    return { srcdoc: navigationGuard(sanitized) };
+    const sanitized = DOMPurify.sanitize(serialized, {
+      ...HTML_SANITIZE_CONFIG,
+      RETURN_DOM: true,
+    }) as unknown as HTMLElement;
+
+    for (const anchor of sanitized.querySelectorAll("a")) {
+      anchor.removeAttribute("data-filebrowser-html-link");
+    }
+
+    const pageViewerUrls = new Set<string>();
+    for (const anchor of sanitized.querySelectorAll("a[href]")) {
+      const viewerURL = pageLinks.get(anchor.getAttribute("href") ?? "");
+      if (!viewerURL || !isAllowedTopNavigationUrl(viewerURL, source)) {
+        continue;
+      }
+      anchor.setAttribute("href", viewerURL);
+      pageViewerUrls.add(viewerURL);
+    }
+
+    applyPreviewLinkTargets(sanitized, source, pageViewerUrls);
+
+    return { srcdoc: wrapPreviewDocument(sanitized) };
   } finally {
     DOMPurify.removeHook("uponSanitizeAttribute", blockUnsafeUriAttributes);
   }
