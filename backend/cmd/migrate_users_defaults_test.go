@@ -49,8 +49,8 @@ func TestMigrateUsersFlow_appliesConfigDefaultsAndSourcePermissions(t *testing.T
 	if !perms.View || !perms.Modify || !perms.Create || !perms.Download {
 		t.Fatalf("scope permissions after migration: %+v", perms)
 	}
-	if user.BackendScopes[0].Scope != "/legacy-bolt-user" {
-		t.Fatalf("createUserDir scope=%q", user.BackendScopes[0].Scope)
+	if user.BackendScopes[0].Scope != "/" {
+		t.Fatalf("scope after applying migration defaults=%q", user.BackendScopes[0].Scope)
 	}
 }
 
