@@ -57,6 +57,9 @@ func WireServicesWithContext(ctx context.Context, store *state.Store) (*App, err
 			return nil, err
 		}
 	}
+	// Register the manager (nil when ffmpeg is unavailable) so the web layer can
+	// reach it without it being threaded through StartHttp's Deps.
+	transcoding.SetDefault(transcodeMgr)
 
 	return &App{
 		Store:       store,

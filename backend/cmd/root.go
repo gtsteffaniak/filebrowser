@@ -234,10 +234,9 @@ func rootCMD(ctx context.Context, serverConfig *settings.Server, a *app.App, shu
 	icons.InitializePWAManifest()
 
 	web.StartHttp(ctx, web.Deps{
-		Store:       a.Store,
-		Files:       a.Files,
-		Auth:        a.Auth,
-		Transcoding: a.Transcoding,
+		Store: a.Store,
+		Files: a.Files,
+		Auth:  a.Auth,
 	}, shutdownComplete)
 	return nil
 }

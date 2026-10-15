@@ -295,6 +295,7 @@ import {
   normalizeTranscodeSessionStatus,
   isTranscodeHlsMode,
 } from '@/plyr/transcodeMode.js';
+import { isTranscodeAvailable } from '@/plyr/transcodeAvailability.js';
 import { transcodeLog, transcodeWarn } from '@/plyr/transcodeDebug.js';
 import { isPlayBlockedError, primePlay } from '@/plyr/playbackIntent.js';
 import { needsTranscodeFirst } from '@/utils/canBrowserPlayNative.js';
@@ -786,13 +787,7 @@ export default {
       return parseTranscodeModeFromQuery(this.$route?.query);
     },
     transcodeEnabled() {
-      // globalVars are static page constants; prefer the live media settings so
-      // an admin toggling transcoding does not need a page reload.
-      const live = state.mediaPlayerSettings;
-      if (live) {
-        return live.enabled === true;
-      }
-      return globalVars.transcodeEnabled === true;
+      return isTranscodeAvailable();
     },
     transcodeActive() {
       return this.transcodePlayback?.active === true;
@@ -1901,6 +1896,12 @@ export default {
         return;
       }
       this.transcodeOfferEmitted = true;
+      if (!this.transcodeEnabled) {
+        // Transcoding is off on this server: show the unsupported notice without
+        // asking for sessions, which would answer 503.
+        this.$emit('needs-transcode', { enabled: false, canStart: false, sessions: [] });
+        return;
+      }
       try {
         const status = await getTranscodeSessions();
         this.$emit('needs-transcode', normalizeTranscodeSessionStatus(status, {

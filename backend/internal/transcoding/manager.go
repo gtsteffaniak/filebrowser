@@ -92,6 +92,24 @@ type Options struct {
 	BaseURL string
 }
 
+// defaultManager is the process-wide manager used by the HTTP layer. It is stored
+// atomically because request handlers read it on every transcode call while
+// startup (and tests) replace it wholesale.
+var defaultManager atomic.Pointer[Manager]
+
+// SetDefault registers the process-wide transcode manager. It is called from
+// app.WireServices with the manager it constructs, or with nil when ffmpeg is
+// unavailable so the web layer reports transcoding as disabled.
+func SetDefault(m *Manager) {
+	defaultManager.Store(m)
+}
+
+// Default returns the process-wide transcode manager, or nil when transcoding is
+// unavailable (ffmpeg missing or disabled).
+func Default() *Manager {
+	return defaultManager.Load()
+}
+
 func NewManager(ctx context.Context, engine Engine, store *Store, opts Options) (*Manager, error) {
 	if engine == nil {
 		engine = NewMediaEngine()

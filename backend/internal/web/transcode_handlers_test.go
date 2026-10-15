@@ -21,10 +21,10 @@ func setupTranscodeHandlerTest(t *testing.T) (*transcoding.Manager, func()) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	prev := runtimeDeps.Transcoding
-	runtimeDeps.Transcoding = mgr
+	prev := transcoding.Default()
+	transcoding.SetDefault(mgr)
 	return mgr, func() {
-		runtimeDeps.Transcoding = prev
+		transcoding.SetDefault(prev)
 		cancel()
 		_ = mgr.Close(context.Background())
 	}

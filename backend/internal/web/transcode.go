@@ -22,15 +22,8 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 )
 
-func transcodeManager() *transcoding.Manager {
-	if runtimeDeps.Transcoding == nil {
-		return nil
-	}
-	return runtimeDeps.Transcoding
-}
-
 func transcodeStartHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
-	mgr := transcodeManager()
+	mgr := transcoding.Default()
 	if mgr == nil || !mgr.Enabled() {
 		return http.StatusServiceUnavailable, transcoding.ErrDisabled
 	}
@@ -111,7 +104,7 @@ func transcodeStartHandler(w http.ResponseWriter, r *http.Request, d *Context) (
 }
 
 func transcodeSessionsHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
-	mgr := transcodeManager()
+	mgr := transcoding.Default()
 	if mgr == nil {
 		return http.StatusServiceUnavailable, transcoding.ErrDisabled
 	}
@@ -125,7 +118,7 @@ func transcodeSessionsHandler(w http.ResponseWriter, r *http.Request, d *Context
 }
 
 func transcodeSessionDeleteHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
-	mgr := transcodeManager()
+	mgr := transcoding.Default()
 	if mgr == nil {
 		return http.StatusServiceUnavailable, transcoding.ErrDisabled
 	}
@@ -141,7 +134,7 @@ func transcodeSessionDeleteHandler(w http.ResponseWriter, r *http.Request, d *Co
 }
 
 func transcodeSessionHeartbeatHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
-	mgr := transcodeManager()
+	mgr := transcoding.Default()
 	if mgr == nil {
 		return http.StatusServiceUnavailable, transcoding.ErrDisabled
 	}
@@ -158,7 +151,7 @@ func transcodeSessionHeartbeatHandler(w http.ResponseWriter, r *http.Request, d 
 }
 
 func transcodeEventsHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
-	mgr := transcodeManager()
+	mgr := transcoding.Default()
 	if mgr == nil {
 		return http.StatusServiceUnavailable, transcoding.ErrDisabled
 	}
@@ -207,7 +200,7 @@ func transcodeEventsHandler(w http.ResponseWriter, r *http.Request, d *Context) 
 }
 
 func transcodePlaylistHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
-	mgr := transcodeManager()
+	mgr := transcoding.Default()
 	if mgr == nil {
 		return http.StatusServiceUnavailable, transcoding.ErrDisabled
 	}
@@ -250,7 +243,7 @@ func transcodePlaylistHandler(w http.ResponseWriter, r *http.Request, d *Context
 }
 
 func transcodeInitHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
-	mgr := transcodeManager()
+	mgr := transcoding.Default()
 	if mgr == nil {
 		return http.StatusServiceUnavailable, transcoding.ErrDisabled
 	}
@@ -272,7 +265,7 @@ func transcodeInitHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 }
 
 func transcodeSegmentHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
-	mgr := transcodeManager()
+	mgr := transcoding.Default()
 	if mgr == nil {
 		return http.StatusServiceUnavailable, transcoding.ErrDisabled
 	}
