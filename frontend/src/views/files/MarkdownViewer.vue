@@ -677,6 +677,7 @@ function reinit() {
     type: state.req.type,
     source: state.req.source,
     modified: state.req.modified,
+    created: state.req.created,
     hasPreview: state.req.hasPreview,
   });
   // Set initial content. The `watch` will trigger the first highlight.
@@ -970,6 +971,8 @@ function applyScrollRatio(line: number) {
   margin: 0;
   border-radius: 0;
   padding: 0;
+  font-family: inherit;
+  font-size: inherit;
   line-height: 1.45;
   width: 100%;
 }
