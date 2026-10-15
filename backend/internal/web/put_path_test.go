@@ -135,6 +135,7 @@ func TestResourcePutHandler_PreservesFilePermissions(t *testing.T) {
 		{"new", 0},
 		{"readable", 0604},
 		{"executable", 0755},
+		{"privileged", 0755 | os.ModeSetuid | os.ModeSetgid},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			root := setupPutHTTPTest(t)
@@ -145,6 +146,10 @@ func TestResourcePutHandler_PreservesFilePermissions(t *testing.T) {
 				}
 				if err := os.Chmod(path, tc.mode); err != nil {
 					t.Fatal(err)
+				}
+				before, err := os.Stat(path)
+				if err != nil || before.Mode() != tc.mode {
+					t.Fatalf("could not set initial mode: info=%v err=%v", before, err)
 				}
 			}
 			admin, err := state.GetUserByUsername("admin")
@@ -164,12 +169,13 @@ func TestResourcePutHandler_PreservesFilePermissions(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			want := tc.mode
+			want := tc.mode.Perm()
 			if want == 0 {
 				want = 0600
 			}
-			if info.Mode().Perm() != want {
-				t.Fatalf("permissions=%04o want %04o", info.Mode().Perm(), want)
+			mode := info.Mode() & (os.ModePerm | os.ModeSetuid | os.ModeSetgid | os.ModeSticky)
+			if mode != want {
+				t.Fatalf("mode=%v want %v", mode, want)
 			}
 		})
 	}

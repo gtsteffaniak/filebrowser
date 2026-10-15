@@ -138,6 +138,7 @@ func finalizeQuotaPut(quotaCtx quota.UploadContext, tempPath, realPath, sourceNa
 		return true, err
 	}
 	if info, err := os.Stat(realPath); err == nil {
+		// Do not transfer setuid/setgid bits to new contents without preserving ownership.
 		if err = os.Chmod(tempPath, info.Mode().Perm()); err != nil {
 			_ = os.Remove(tempPath)
 			return true, err
