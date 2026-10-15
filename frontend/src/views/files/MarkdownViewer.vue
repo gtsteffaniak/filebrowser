@@ -971,6 +971,8 @@ function applyScrollRatio(line: number) {
   margin: 0;
   border-radius: 0;
   padding: 0;
+  font-family: inherit;
+  font-size: inherit;
   line-height: 1.45;
   width: 100%;
 }
