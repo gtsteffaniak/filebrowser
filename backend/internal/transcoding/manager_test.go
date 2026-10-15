@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 )
@@ -415,6 +416,47 @@ func TestManagerStartToleratesExpiredReplaceSession(t *testing.T) {
 	// Nothing was replaced, so the per-user limit still applies.
 	if _, err := start("/c.mp4", 2, "also-missing"); err != ErrUserLimit {
 		t.Fatalf("want ErrUserLimit when no slot was released, got %v", err)
+	}
+}
+
+// toggleEngine reports availability that can change after construction, standing
+// in for ffmpeg becoming usable at runtime.
+type toggleEngine struct {
+	FakeEngine
+	available atomic.Bool
+}
+
+func (e *toggleEngine) Available() bool { return e.available.Load() }
+
+// Availability is evaluated per request, so a manager created while ffmpeg was
+// unavailable starts serving as soon as the engine reports available. Wiring the
+// manager only when ffmpeg is present at startup would pin transcoding off until
+// the next restart.
+func TestManagerEnabledIsEvaluatedPerRequest(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	store, err := NewStore(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	engine := &toggleEngine{}
+	mgr, err := NewManager(ctx, engine, store, Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer mgr.Close(context.Background())
+
+	if mgr.Enabled() {
+		t.Fatal("manager must report disabled while the engine is unavailable")
+	}
+	engine.available.Store(true)
+	if !mgr.Enabled() {
+		t.Fatal("manager must report enabled once the engine becomes available")
+	}
+	engine.available.Store(false)
+	if mgr.Enabled() {
+		t.Fatal("manager must report disabled again when the engine goes away")
 	}
 }
 
