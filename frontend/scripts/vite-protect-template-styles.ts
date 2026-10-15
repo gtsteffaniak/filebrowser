@@ -2,7 +2,7 @@
 
 import type { Plugin } from "vite";
 
-const STYLE_BLOCK = /<style\b[^>]*>[\s\S]*?<\/style>/g;
+const STYLE_BLOCK = /<style\b[^>]*>[\s\S]*?<\/style>|<link\b[^>]*>/g;
 
 export default function protectTemplateStyles(): Plugin[] {
   let blocks: string[] = [];
