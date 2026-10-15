@@ -912,9 +912,7 @@ export default {
         return;
       }
       mutations.closeHovers();
-      const directoryPath = state.req?.type === "directory"
-        ? state.req.path
-        : url.getParentDir(item.path);
+      const directoryPath = url.getParentDir(item.path);
       const action = item.pinned ? "remove" : "add";
       try {
         if (getters.isShare()) {

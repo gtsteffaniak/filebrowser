@@ -12,7 +12,7 @@ import { notify } from "@/notify/index.ts";
 import { url } from "@/utils/index.ts";
 import { getTypeInfo } from "@/utils/mimetype.js";
 import { getObjectProperty, setObjectProperty, omitObjectProperty } from '@/utils/object.js';
-import { sortedItems } from "@/utils/sort.js";
+import { sortedItems } from "@/utils/sort.ts";
 import { isSourceSidebarCategory } from "@/utils/sidebarCategory.ts";
 import { updateManifestLink } from "@/utils/pwaManifest.js";
 import { syncEventTheme } from "@/utils/theme.js";
@@ -1342,8 +1342,10 @@ export const mutations = {
       return;
     }
     state.sidebar.width = newWidth;
-    localStorage.setItem("sidebarWidth", newWidth.toString());
     emitStateChanged();
+  },
+  persistSidebarWidth: () => {
+    localStorage.setItem("sidebarWidth", state.sidebar.width.toString());
   },
   setSidebarResizing: (value: boolean) => {
     if (value === state.sidebar.isResizing) {
