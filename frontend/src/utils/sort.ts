@@ -1,7 +1,11 @@
 import { getObjectProperty } from "@/utils/object.js";
 import { KIND_ORDER, getKindKey } from "@/utils/mimetype.js";
+import type { FileListItem } from "@/store/types.ts";
 
-export function sortedItems(items = [], sortby = "name", asc = true) {
+type SortableItem = Partial<FileListItem>;
+const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: "base" });
+
+export function sortedItems<T extends SortableItem>(items: T[] = [], sortby = "name", asc = true): T[] {
   return items.sort((a, b) => {
     const aPinned = !!a.pinned;
     const bPinned = !!b.pinned;
@@ -10,13 +14,13 @@ export function sortedItems(items = [], sortby = "name", asc = true) {
       return aPinned ? -1 : 1;
     }
 
-    let valueA = getObjectProperty(a, sortby);
-    let valueB = getObjectProperty(b, sortby);
+    let valueA = getObjectProperty(a, sortby) as string | number;
+    let valueB = getObjectProperty(b, sortby) as string | number;
 
     // Special handling for duration which is stored in metadata
     if (sortby === "duration") {
-      valueA = a.metadata?.duration ?? 0;
-      valueB = b.metadata?.duration ?? 0;
+      valueA = (a.metadata as { duration?: number } | undefined)?.duration ?? 0;
+      valueB = (b.metadata as { duration?: number } | undefined)?.duration ?? 0;
     }
 
     if (sortby === "created") {
@@ -33,14 +37,14 @@ export function sortedItems(items = [], sortby = "name", asc = true) {
       if (rankDiff !== 0) {
         return asc ? rankDiff : -rankDiff;
       }
-      return String(a.name ?? "").localeCompare(String(b.name ?? ""), undefined, { numeric: true, sensitivity: "base" });
+      return collator.compare(String(a.name ?? ""), String(b.name ?? ""));
     }
 
     if (sortby === "name") {
       // Use localeCompare with numeric option for natural sorting
       const left = String(valueA ?? "");
       const right = String(valueB ?? "");
-      const comparison = left.localeCompare(right, undefined, { numeric: true, sensitivity: "base" });
+      const comparison = collator.compare(left, right);
       return asc ? comparison : -comparison;
     }
 
