@@ -234,6 +234,9 @@ func CreateUser(user *users.User, plaintextPassword string) error {
 	settings.ApplyEnforcedSourcePermissionsFrom(user, GetSourceAccessDefaults(), GetEnforcedSourcePermissions())
 
 	users.SyncBackendSourcePermissionsMap(user)
+	if !user.Permissions.Admin {
+		settings.ExpandBackendScopesForCreateUserDir(user)
+	}
 
 	applySidebarLinkDefaults(user)
 

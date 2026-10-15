@@ -220,6 +220,7 @@ export default {
         type: this.fbdata.type,
         source: this.fbdata.source,
         modified: this.fbdata.modified,
+        created: this.fbdata.created,
         hasPreview: this.fbdata.hasPreview,
       });
     },
