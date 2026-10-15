@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { sortedItems } from "./sort.ts";
+import { sortedItems } from './sort.ts';
 
 describe('testSort', () => {
 
@@ -129,7 +129,7 @@ describe('testSort', () => {
       { name: "document.pdf", metadata: {} }, // metadata but no duration
     ]
     const result = sortedItems(input, "duration", true);
-    
+
     // Items with no duration (treated as 0) should come first
     expect(result[0].metadata?.duration ?? 0).toBe(0);
     expect(result[1].metadata?.duration ?? 0).toBe(0);

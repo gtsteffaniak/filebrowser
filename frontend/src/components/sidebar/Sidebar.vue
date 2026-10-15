@@ -145,10 +145,10 @@ export default {
         if (!this.previousSidebarSize) {
           this.previousSidebarSize = state.sidebar.width;
         }
-        mutations.setSidebarWidth(20, false); // 20 em
+        mutations.setSidebarWidth(20); // 20 em
       } else if (this.previousSidebarSize) {
         // When switching to desktop, restore previous width
-        mutations.setSidebarWidth(this.previousSidebarSize, false);
+        mutations.setSidebarWidth(this.previousSidebarSize);
         this.previousSidebarSize = null;
       }
     },
@@ -173,7 +173,7 @@ export default {
       const baseFontSize = this.getBaseFontSize();
       const deltaEm = deltaX / baseFontSize;
       const newWidth = this.resizeStartWidth + deltaEm;
-      mutations.setSidebarWidth(newWidth, false);
+      mutations.setSidebarWidth(newWidth);
     },
     stopResize() {
       if (!state.sidebar.isResizing) return;
