@@ -33,6 +33,24 @@ import type {
   UserScope,
 } from "./types.ts";
 
+let navigationSortCache: {
+  listing: Partial<FileListItem>[];
+  length: number;
+  by: string;
+  asc: boolean;
+  items: Partial<FileListItem>[];
+} | null = null;
+
+function getSortedNavigationItems(listing: Partial<FileListItem>[], by: string, asc: boolean): Partial<FileListItem>[] {
+  const cache = navigationSortCache;
+  if (cache && cache.listing === listing && cache.length === listing.length && cache.by === by && cache.asc === asc) {
+    return cache.items;
+  }
+  const items: Partial<FileListItem>[] = sortedItems([...listing], by, asc);
+  navigationSortCache = { listing, length: listing.length, by, asc, items };
+  return items;
+}
+
 export const mutations = {
   disableEventThemes: () => {
     if (state.disableEventThemes) {
@@ -858,6 +876,7 @@ export const mutations = {
         ? { ...(metadata as Record<string, unknown>), ...(item.metadata as Record<string, unknown>) }
         : metadata;
     }
+    navigationSortCache = null;
     emitStateChanged();
   },
   patchRequestMetadata: (metadataItems: Array<{ name: string; metadata: unknown }> | undefined) => {
@@ -932,6 +951,9 @@ export const mutations = {
     state.user.sorting.asc = asc;
     mutations.updateDisplayPreferences({ sorting: { by: field, asc: asc } });
     emitStateChanged();
+  },
+  updateNavigationSortConfig: ({ field, asc }: { field: string; asc: boolean }) => {
+    state.navigation.sorting = { by: field, asc };
   },
   updatePickerSortConfig: ({ field, asc }: { field: string; asc: boolean }) => {
     state.pickerSorting = { by: field, asc };
@@ -1056,6 +1078,7 @@ export const mutations = {
     }
     state.navigation.enabled = enabled;
     if (!enabled) {
+      state.navigation.sorting = null;
       mutations.clearNavigation();
     }
     emitStateChanged();
@@ -1080,8 +1103,8 @@ export const mutations = {
     }
 
     // Sort listing according to sorting preferences
-    const sorting = getters.sorting();
-    const items: Partial<FileListItem>[] = sortedItems(listing as Partial<FileListItem>[], sorting.by, sorting.asc);
+    const sorting = getters.navigationSorting();
+    const items = getSortedNavigationItems(listing as Partial<FileListItem>[], sorting.by, sorting.asc);
 
     // Find current item index in the listing
     for (let i = 0; i < items.length; i++) {

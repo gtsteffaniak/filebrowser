@@ -20,7 +20,7 @@
         {{ $t('general.path', { suffix: ':' }) }} {{ sourcePath.path }}
       </div>
       <slot name="sticky" />
-      <ListingHeader v-if="sortable && !loading" use-picker-sorting />
+      <ListingHeader v-if="sortable && !loading" :use-picker-sorting="!fileList" :use-navigation-sorting="!!fileList" />
     </div>
 
     <!-- Loading Spinner -->
@@ -179,6 +179,7 @@ export default {
   computed: {
     /** Sorting config used by sortEntries; follows the picker sort when sortable. */
     pickerSort() {
+      if (this.fileList) return getters.navigationSorting();
       return this.sortable ? getters.pickerSorting() : getters.sorting();
     },
     isMobile() {
@@ -286,9 +287,13 @@ export default {
       }
     },
     // Re-sort local items when the picker header changes the sort config
-    pickerSort() {
-      if (this.sortable) {
+    async pickerSort() {
+      if (this.sortable || this.fileList) {
         this.resortItems();
+        if (this.fileList) {
+          await this.$nextTick();
+          this.scrollToCurrentItem();
+        }
       }
     },
   },
@@ -654,7 +659,7 @@ export default {
     fillFromList() {
       const allItems = this.fileList || [];
       const items = allItems.filter(item => !item.isDirectory && item.type !== 'directory');
-      this.items = this.sortable ? this.sortEntries(items) : items;
+      this.items = this.sortEntries(items);
     },
     isCurrentItem(item) {
       return !!this.fileList && !!state.req && item.name === state.req.name;
