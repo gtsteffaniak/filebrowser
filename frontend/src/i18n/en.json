@@ -1004,7 +1004,6 @@
     "transcodeFailed": "Transcoding failed",
     "transcodeLoading": "Preparing transcoded stream",
     "transcodeUnsupportedFormat": "This video format is not supported by your browser.",
-    "transcodeDisabled": "This video format is not supported by your browser, and transcoding is not enabled on this server.",
     "transcodeUserLimitReached": "Transcode limit reached. You already have an active transcode session:",
     "transcodeSystemLimitReached": "Server transcode limit reached ({limit} concurrent). Try again when a session finishes.",
     "visualizer": {

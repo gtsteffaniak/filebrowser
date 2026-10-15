@@ -663,7 +663,13 @@
     "normal": "Normal",
     "complex": "Komplexe",
     "access": "Zugriff",
-    "groups": "Gruppen"
+    "groups": "Gruppen",
+    "transcode": "Transkodieren{suffix}",
+    "off": "Aus{suffix}",
+    "quality": "Qualität{suffix}",
+    "balanced": "Ausgewogen{suffix}",
+    "dataSaver": "Datensparmodus{suffix}",
+    "media": "Medien"
   },
   "access": {
     "rules": "Zugangsregeln",
@@ -942,7 +948,12 @@
       "maxDecibelsDescription": "Lauteste Lautstärke (dBFS), die der Balken registriert",
       "showScalesDescription": "Achsen und Gitternetzlinien auf dem Visualisierer anzeigen",
       "showPeaksDescription": "Kleine weiße Spitzenindikatoren über jedem Balken"
-    }
+    },
+    "transcodeFailed": "Die Transkodierung ist fehlgeschlagen",
+    "transcodeLoading": "Vorbereitung des transkodierten Streams",
+    "transcodeUnsupportedFormat": "Dieses Videoformat wird von Ihrem Browser nicht unterstützt.",
+    "transcodeUserLimitReached": "Transkodierungslimit erreicht. Sie haben bereits eine aktive Transkodierungssitzung:",
+    "transcodeSystemLimitReached": "Das Transkodierungslimit des Servers wurde erreicht ({limit} gleichzeitig). Versuchen Sie es erneut, sobald eine Sitzung beendet ist."
   },
   "fileSizeAnalyzer": {
     "title": "Dateigrößen-Analysator",
@@ -1204,5 +1215,40 @@
     "errors": {
       "exceeded": "Speicherkontingent überschritten"
     }
+  },
+  "media": {
+    "hardwareAcceleration": "Hardwarebeschleunigung",
+    "hardwareAccelerationDescription": "Verwenden Sie die GPU-Hardwarebeschleunigung für ffmpeg, sofern verfügbar.",
+    "hardwareAccelerationUnavailable": "Auf diesem Server wurde kein brauchbarer FFmpeg-Hardware-Encoder erkannt.",
+    "extractEmbeddedSubtitles": "Eingebettete Untertitel extrahieren",
+    "extractEmbeddedSubtitlesDescription": "Eingebettete Untertitel aus Mediendateien extrahieren.",
+    "debug": "Debug-Protokollierung",
+    "debugDescription": "ffmpeg-Standardausgabe für die Medienintegration. Warnung: Es entsteht eine große Datenmenge an Ausgabe.",
+    "imagePreview": "Formate für Bildvorschauen",
+    "videoPreview": "Formate für Videovorschauen",
+    "imageVideoConversionFormats": "Bild- und Video-Konvertierungsformate",
+    "imageVideoConversionFormatsDescription": "Wählen Sie aus, welche Bild- und Videoformate ffmpeg für die Vorschau konvertieren soll.",
+    "updateFailed": "Die Einstellungen konnten nicht aktualisiert werden.",
+    "maxConcurrentTranscodes": "Maximale Anzahl gleichzeitiger Transkodierungen",
+    "maxConcurrentTranscodesHelp": "Die maximale Anzahl gleichzeitiger HLS-Transcode-Wiedergabesitzungen für diesen Benutzer.",
+    "transcode": "Transkodierung",
+    "transcodeEnabled": "Transkodierung aktivieren",
+    "transcodeEnabledDescription": "Serverseitige HLS-Transkodierung für die Wiedergabe nach Authentifizierung zulassen.",
+    "transcodeSettings": "Transkodierungseinstellungen",
+    "transcodeSettingsDescription": "Begrenzungen der gleichzeitigen Verbindungen, Festplatten-Cache sowie die pro Profil festgelegten Auflösungs- und Bitraten-Obergrenzen.",
+    "transcodeMaxConcurrent": "Globale gleichzeitige Sitzungen",
+    "transcodeMaxConcurrentHelp": "Maximale Anzahl gleichzeitiger Transkodierungsvorgänge für alle Benutzer.",
+    "transcodeMaxConcurrentPerUser": "Sitzungslimit pro Benutzer",
+    "transcodeMaxConcurrentPerUserHelp": "Es gibt eine feste Obergrenze für die Anzahl der gleichzeitig laufenden Transkodierungssitzungen pro Benutzer. Die Benutzereinstellungen dürfen diesen Wert nicht überschreiten.",
+    "transcodeCacheMaxSizeMB": "Cache-Größenbegrenzung (MB)",
+    "transcodeCacheMaxSizeMBHelp": "Maximaler Speicherplatz für den Transcode-Cache in MB. 0 bedeutet unbegrenzt.",
+    "transcodeCacheRetentionH": "Cache-Speicherdauer (Stunden)",
+    "transcodeCacheRetentionHHelp": "Wie lange werden inaktive Transcode-Cache-Generationen vor dem Löschen aufbewahrt?",
+    "transcodeProfileEnabled": "Aktiviert",
+    "transcodeProfileEnabledDescription": "Diese Qualitätsvoreinstellung im Player-Menü anzeigen.",
+    "transcodeProfileMaxResolution": "Maximale Auflösung",
+    "transcodeProfileMaxResolutionHelp": "Maximale Ausgabehöhe in Pixeln. Bei 0 wird die Quellauflösung beibehalten.",
+    "transcodeProfileAvgBitrate": "Durchschnittliche Bitrate (kbps)",
+    "transcodeProfileAvgBitrateHelp": "Angestrebte durchschnittliche Video-Bitrate in kbps. Bei 0 wird die Quell-Bitrate beibehalten."
   }
 }

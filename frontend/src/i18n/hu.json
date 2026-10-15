@@ -663,7 +663,13 @@
     "normal": "Normál",
     "complex": "Komplex",
     "access": "Hozzáférés",
-    "groups": "Csoportok"
+    "groups": "Csoportok",
+    "transcode": "Átkódolás{suffix}",
+    "off": "Ki{suffix}",
+    "quality": "Minőség{suffix}",
+    "balanced": "Kiegyensúlyozott{suffix}",
+    "dataSaver": "Adatmegtakarító{suffix}",
+    "media": "Média"
   },
   "access": {
     "rules": "Hozzáférési szabályok",
@@ -942,7 +948,12 @@
       "maxDecibelsDescription": "A leghangosabb szint (dBFS), amit az oszlop érzékel",
       "showScalesDescription": "Tengelyek és rácsvonalak megjelenítése a vizualizátoron",
       "showPeaksDescription": "Kis fehér csúcsjelzők minden oszlop felett"
-    }
+    },
+    "transcodeFailed": "A kódátalakítás sikertelen volt",
+    "transcodeLoading": "Transzkódolt adatfolyam előkészítése",
+    "transcodeUnsupportedFormat": "A böngésződ nem támogatja ezt a videóformátumot.",
+    "transcodeUserLimitReached": "Elérte a transzkódolási korlátot. Már van egy aktív transzkódolási munkamenete:",
+    "transcodeSystemLimitReached": "Elérte a szerver átkódolási korlátját ({limit} párhuzamos folyamat). Kérjük, próbálja meg újra, miután egy munkamenet befejeződött."
   },
   "fileSizeAnalyzer": {
     "title": "Fájlméret elemző",
@@ -1204,5 +1215,40 @@
     "errors": {
       "exceeded": "A tárhelykvóta túllépése"
     }
+  },
+  "media": {
+    "hardwareAcceleration": "Hardveres gyorsítás",
+    "hardwareAccelerationDescription": "Ha lehetséges, használja az ffmpeg GPU-alapú hardveres gyorsítását.",
+    "hardwareAccelerationUnavailable": "Ezen a szerveren nem sikerült használható ffmpeg hardveres kódolót észlelni.",
+    "extractEmbeddedSubtitles": "Beágyazott feliratok kivonása",
+    "extractEmbeddedSubtitlesDescription": "Beágyazott feliratok kivonása a médiafájlokból.",
+    "debug": "Hibakeresési naplózás",
+    "debugDescription": "Az ffmpeg stdout kimenete a médiaintegrációhoz. Figyelem: nagy mennyiségű kimenetet eredményez.",
+    "imagePreview": "Képelőnézeti formátumok",
+    "videoPreview": "Videó-előnézeti formátumok",
+    "imageVideoConversionFormats": "Kép- és videókonvertálási formátumok",
+    "imageVideoConversionFormatsDescription": "Válassza ki, hogy az ffmpeg mely kép- és videóformátumokat konvertálhassa az előnézetekhez.",
+    "updateFailed": "A beállítások frissítése nem sikerült.",
+    "maxConcurrentTranscodes": "Maximális egyidejű átkódolások száma",
+    "maxConcurrentTranscodesHelp": "Az adott felhasználó számára engedélyezett egyidejű HLS-átkódolásos lejátszási munkamenetek maximális száma.",
+    "transcode": "Átkódolás",
+    "transcodeEnabled": "Transzkódolás engedélyezése",
+    "transcodeEnabledDescription": "Engedélyezze a szerveroldali HLS-átkódolást a hitelesített lejátszáshoz.",
+    "transcodeSettings": "Átkódolási beállítások",
+    "transcodeSettingsDescription": "A párhuzamos feldolgozás korlátai, a lemez-gyorsítótár, valamint a profilonkénti felbontás és a bitráta-korlátok.",
+    "transcodeMaxConcurrent": "Globális párhuzamos munkamenetek",
+    "transcodeMaxConcurrentHelp": "Az összes felhasználóra vonatkozó egyidejű átkódolási munkamenetek maximális száma.",
+    "transcodeMaxConcurrentPerUser": "Felhasználónkénti munkamenet-korlát",
+    "transcodeMaxConcurrentPerUserHelp": "Egyetlen felhasználó számára is szigorú felső határ van érvényben az egyidejű átkódolási munkamenetek számát illetően. A felhasználói beállítások nem léphetik túl ezt a határt.",
+    "transcodeCacheMaxSizeMB": "A gyorsítótár méretének felső határa (MB)",
+    "transcodeCacheMaxSizeMBHelp": "A transzkódolási gyorsítótár maximális lemezterülete MB-ban. A 0 érték korlátlan területet jelent.",
+    "transcodeCacheRetentionH": "A gyorsítótár megőrzési ideje (óra)",
+    "transcodeCacheRetentionHHelp": "Mennyi ideig maradnak meg az inaktív transzkódolási gyorsítótár-generációk, mielőtt törlésre kerülnek.",
+    "transcodeProfileEnabled": "Engedélyezve",
+    "transcodeProfileEnabledDescription": "Jelenítsd meg ezt a minőségi beállítást a lejátszó menüjében.",
+    "transcodeProfileMaxResolution": "Maximális felbontás",
+    "transcodeProfileMaxResolutionHelp": "A kimeneti magasság maximális értéke pixelben. A 0 érték esetén a forrás felbontása marad meg.",
+    "transcodeProfileAvgBitrate": "Átlagos bitráta (kbps)",
+    "transcodeProfileAvgBitrateHelp": "A videó átlagos bitrátájának célértéke kbps-ben. A 0 érték a forrás bitrátáját tartja meg."
   }
 }

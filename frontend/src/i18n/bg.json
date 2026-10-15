@@ -176,7 +176,13 @@
     "normal": "Нормален",
     "complex": "Сложен",
     "access": "Достъп",
-    "groups": "Групи"
+    "groups": "Групи",
+    "transcode": "Транскодиране{suffix}",
+    "off": "Изключено{suffix}",
+    "quality": "Качество{suffix}",
+    "balanced": "Балансиран{suffix}",
+    "dataSaver": "Икономия на данни{suffix}",
+    "media": "Медии"
   },
   "buttons": {
     "copySuccess": "Копирано в клипборда!",
@@ -962,7 +968,12 @@
       "maxDecibelsDescription": "Най-силното ниво (dBFS), което лентата регистрира",
       "showScalesDescription": "Показване на оси и линии на мрежата върху визуализатора",
       "showPeaksDescription": "Малки бели индикатори за пикове над всяка лента"
-    }
+    },
+    "transcodeFailed": "Прекодирането се провали",
+    "transcodeLoading": "Подготовка на транскодиран поток",
+    "transcodeUnsupportedFormat": "Този видеоформат не се поддържа от вашия браузър.",
+    "transcodeUserLimitReached": "Достигнат е лимитът за транскодиране. Вече имате активна сесия за транскодиране:",
+    "transcodeSystemLimitReached": "Достигнат е лимитът за транскодиране на сървъра ({limit} едновременни). Опитайте отново, когато приключи някоя сесия."
   },
   "fileSizeAnalyzer": {
     "title": "Анализатор на размер на файлове",
@@ -1204,5 +1215,40 @@
     "errors": {
       "exceeded": "Превишена квота за съхранение"
     }
+  },
+  "media": {
+    "hardwareAcceleration": "Хардуерно ускорение",
+    "hardwareAccelerationDescription": "Използвайте хардуерно ускорение чрез графичния процесор (GPU) за ffmpeg, когато е налично.",
+    "hardwareAccelerationUnavailable": "На този сървър не беше открит нито един подходящ хардуерен енкодер за ffmpeg.",
+    "extractEmbeddedSubtitles": "Извличане на вградени субтитри",
+    "extractEmbeddedSubtitlesDescription": "Извличане на вградени субтитри от мултимедийни файлове.",
+    "debug": "Регистриране на отладочни събития",
+    "debugDescription": "Изходът от stdout на ffmpeg за интегриране на мултимедията. Предупреждение: генерира голям обем изходни данни.",
+    "imagePreview": "Формати за предварителен преглед на изображенията",
+    "videoPreview": "Формати за предварително преглеждане на видеоклипове",
+    "imageVideoConversionFormats": "Формати за конвертиране на изображения и видео",
+    "imageVideoConversionFormatsDescription": "Изберете кои формати на изображения и видеоклипове ffmpeg да конвертира за предварителен преглед.",
+    "updateFailed": "Не успяхме да актуализираме настройките.",
+    "maxConcurrentTranscodes": "Максимален брой едновременни транскодирания",
+    "maxConcurrentTranscodesHelp": "Максималният брой едновременни сесии за възпроизвеждане с прекодиране HLS за този потребител.",
+    "transcode": "Прекодиране",
+    "transcodeEnabled": "Активиране на транскодирането",
+    "transcodeEnabledDescription": "Разрешаване на транскодиране по HLS от страна на сървъра за възпроизвеждане след удостоверяване.",
+    "transcodeSettings": "Настройки за транскодиране",
+    "transcodeSettingsDescription": "Ограничения за едновременния достъп, дисковият кеш, както и ограниченията за резолюция и битрейт за всеки профил.",
+    "transcodeMaxConcurrent": "Общ брой едновременни сесии",
+    "transcodeMaxConcurrentHelp": "Максимален брой едновременни сесии за транскодиране за всички потребители.",
+    "transcodeMaxConcurrentPerUser": "Ограничение за сесиите на потребител",
+    "transcodeMaxConcurrentPerUserHelp": "Строго ограничение за броя на едновременните сесии за транскодиране за всеки отделен потребител. Настройките на потребителя не могат да надвишават това ограничение.",
+    "transcodeCacheMaxSizeMB": "Ограничение на размера на кеша (МБ)",
+    "transcodeCacheMaxSizeMBHelp": "Максимално дисково пространство за кеша за транскодиране в МБ. 0 означава неограничено.",
+    "transcodeCacheRetentionH": "Време на съхранение в кеша (часа)",
+    "transcodeCacheRetentionHHelp": "Колко дълго се съхраняват неактивните поколения на кеша за транскодиране, преди да бъдат изтрити.",
+    "transcodeProfileEnabled": "Активирано",
+    "transcodeProfileEnabledDescription": "Покажи тази настройка за качество в менюто на плейъра.",
+    "transcodeProfileMaxResolution": "Максимална резолюция",
+    "transcodeProfileMaxResolutionHelp": "Максимална височина на изхода в пиксели. Стойността 0 запазва резолюцията на източника.",
+    "transcodeProfileAvgBitrate": "Средна скорост на предаване (kbps)",
+    "transcodeProfileAvgBitrateHelp": "Целева средна скорост на предаване на видеото в kbps. Стойността 0 запазва скоростта на предаване на изходния файл."
   }
 }

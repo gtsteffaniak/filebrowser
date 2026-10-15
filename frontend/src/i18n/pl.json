@@ -663,7 +663,13 @@
     "normal": "Normalny",
     "complex": "Kompleks",
     "access": "Dostęp",
-    "groups": "Grupy"
+    "groups": "Grupy",
+    "transcode": "Transkodowanie{suffix}",
+    "off": "Wyłączone{suffix}",
+    "quality": "Jakość{suffix}",
+    "balanced": "Zrównoważony{suffix}",
+    "dataSaver": "Oszczędzanie danych{suffix}",
+    "media": "Media"
   },
   "access": {
     "rules": "Zasady dostępu",
@@ -942,7 +948,12 @@
       "maxDecibelsDescription": "Najgłośniejszy poziom (dBFS) rejestrowany przez słupek",
       "showScalesDescription": "Pokaż osie i linie siatki na wizualizatorze",
       "showPeaksDescription": "Małe białe wskaźniki szczytów nad każdym słupkiem"
-    }
+    },
+    "transcodeFailed": "Transkodowanie nie powiodło się",
+    "transcodeLoading": "Przygotowywanie strumienia po transkodowaniu",
+    "transcodeUnsupportedFormat": "Ten format wideo nie jest obsługiwany przez Twoją przeglądarkę.",
+    "transcodeUserLimitReached": "Osiągnięto limit transkodowania. Masz już aktywną sesję transkodowania:",
+    "transcodeSystemLimitReached": "Osiągnięto limit transkodowania serwera ({limit} jednocześnie). Spróbuj ponownie po zakończeniu sesji."
   },
   "fileSizeAnalyzer": {
     "title": "Analizator rozmiaru plików",
@@ -1204,5 +1215,40 @@
     "errors": {
       "exceeded": "Przekroczono limit przestrzeni dyskowej"
     }
+  },
+  "media": {
+    "hardwareAcceleration": "Przyspieszenie sprzętowe",
+    "hardwareAccelerationDescription": "Jeśli to możliwe, należy korzystać z przyspieszenia sprzętowego GPU w programie ffmpeg.",
+    "hardwareAccelerationUnavailable": "Na tym serwerze nie wykryto żadnego działającego kodera sprzętowego ffmpeg.",
+    "extractEmbeddedSubtitles": "Wyodrębnij wbudowane napisy",
+    "extractEmbeddedSubtitlesDescription": "Wyodrębnij napisy osadzone w plikach multimedialnych.",
+    "debug": "Rejestracja błędów",
+    "debugDescription": "Wyjście stdout programu ffmpeg do integracji multimediów. Ostrzeżenie: generuje dużą ilość danych wyjściowych.",
+    "imagePreview": "Formaty podglądu obrazów",
+    "videoPreview": "Formaty podglądu wideo",
+    "imageVideoConversionFormats": "Formaty konwersji obrazów i filmów",
+    "imageVideoConversionFormatsDescription": "Wybierz formaty obrazów i filmów, które ffmpeg może konwertować w celu wyświetlenia podglądu.",
+    "updateFailed": "Nie udało się zaktualizować ustawień.",
+    "maxConcurrentTranscodes": "Maksymalna liczba równoczesnych transkodowań",
+    "maxConcurrentTranscodesHelp": "Maksymalna liczba sesji odtwarzania z jednoczesnym transkodowaniem HLS dla tego użytkownika.",
+    "transcode": "Transkodowanie",
+    "transcodeEnabled": "Włącz transkodowanie",
+    "transcodeEnabledDescription": "Zezwól na transkodowanie HLS po stronie serwera w przypadku odtwarzania po uwierzytelnieniu.",
+    "transcodeSettings": "Ustawienia transkodowania",
+    "transcodeSettingsDescription": "Ograniczenia dotyczące współbieżności, pamięć podręczna dysku oraz ograniczenia rozdzielczości i przepływności dla poszczególnych profili.",
+    "transcodeMaxConcurrent": "Liczba sesji równoczesnych na całym świecie",
+    "transcodeMaxConcurrentHelp": "Maksymalna liczba sesji transkodowania prowadzonych jednocześnie przez wszystkich użytkowników.",
+    "transcodeMaxConcurrentPerUser": "Limit sesji na użytkownika",
+    "transcodeMaxConcurrentPerUserHelp": "Ostry limit liczby równoczesnych sesji transkodowania dla każdego użytkownika. Ustawienia użytkownika nie mogą przekraczać tej wartości.",
+    "transcodeCacheMaxSizeMB": "Limit rozmiaru pamięci podręcznej (MB)",
+    "transcodeCacheMaxSizeMBHelp": "Maksymalna ilość miejsca na dysku przeznaczona na pamięć podręczną transkodowania w MB. Wartość 0 oznacza nieograniczoną ilość miejsca.",
+    "transcodeCacheRetentionH": "Czas przechowywania w pamięci podręcznej (w godzinach)",
+    "transcodeCacheRetentionHHelp": "Jak długo nieaktywne generacje pamięci podręcznej transkodowania są przechowywane przed usunięciem.",
+    "transcodeProfileEnabled": "Włączone",
+    "transcodeProfileEnabledDescription": "Wyświetl to ustawienie jakości w menu odtwarzacza.",
+    "transcodeProfileMaxResolution": "Maksymalna rozdzielczość",
+    "transcodeProfileMaxResolutionHelp": "Maksymalna wysokość wyjściowa w pikselach. Wartość 0 pozwala zachować rozdzielczość źródłową.",
+    "transcodeProfileAvgBitrate": "Średnia przepływność (kbps)",
+    "transcodeProfileAvgBitrateHelp": "Docelowa średnia przepływność wideo w kbps. Wartość 0 oznacza zachowanie przepływności źródłowej."
   }
 }

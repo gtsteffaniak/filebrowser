@@ -663,7 +663,13 @@
     "normal": "Normálne",
     "complex": "Komplex",
     "access": "Prístup",
-    "groups": "Skupiny"
+    "groups": "Skupiny",
+    "transcode": "Prekódovať{suffix}",
+    "off": "Vypnuté{suffix}",
+    "quality": "Kvalita{suffix}",
+    "balanced": "Vyvážený{suffix}",
+    "dataSaver": "Úspora dát{suffix}",
+    "media": "Médiá"
   },
   "access": {
     "rules": "Pravidlá prístupu",
@@ -942,7 +948,12 @@
       "maxDecibelsDescription": "Najhlasnejšia úroveň (dBFS), ktorú stĺpec zaznamenáva",
       "showScalesDescription": "Zobraziť osi a mriežku na vizualizéri",
       "showPeaksDescription": "Malé biele indikátory špičiek nad každým stĺpcom"
-    }
+    },
+    "transcodeFailed": "Prekódovanie sa nepodarilo",
+    "transcodeLoading": "Príprava transkódovaného prúdu",
+    "transcodeUnsupportedFormat": "Váš prehliadač nepodporuje tento formát videa.",
+    "transcodeUserLimitReached": "Bol dosiahnutý limit prekódovania. Už máte aktívnu reláciu prekódovania:",
+    "transcodeSystemLimitReached": "Bol dosiahnutý limit prekódovania na serveri ({limit} súbežných operácií). Skúste to znova po ukončení relácie."
   },
   "fileSizeAnalyzer": {
     "title": "Analyzátor veľkosti súborov",
@@ -1204,5 +1215,40 @@
     "errors": {
       "exceeded": "Prekročený úložný limit"
     }
+  },
+  "media": {
+    "hardwareAcceleration": "Hardvérová akcelerácia",
+    "hardwareAccelerationDescription": "Ak je k dispozícii hardvérová akcelerácia GPU pre ffmpeg, použite ju.",
+    "hardwareAccelerationUnavailable": "Na tomto serveri nebol zistený žiadny použiteľný hardvérový kodér ffmpeg.",
+    "extractEmbeddedSubtitles": "Extrahovať vložené titulky",
+    "extractEmbeddedSubtitlesDescription": "Extrahovať vložené titulky z mediálnych súborov.",
+    "debug": "Protokolovanie ladenia",
+    "debugDescription": "Výstup z ffmpeg stdout pre integráciu médií. Upozornenie: vytvára veľké množstvo výstupných údajov.",
+    "imagePreview": "Formáty náhľadov obrázkov",
+    "videoPreview": "Formáty náhľadov videí",
+    "imageVideoConversionFormats": "Formáty konverzie obrázkov a videí",
+    "imageVideoConversionFormatsDescription": "Vyberte, ktoré formáty obrázkov a videí má ffmpeg konvertovať na účely náhľadov.",
+    "updateFailed": "Aktualizácia nastavení sa nepodarila.",
+    "maxConcurrentTranscodes": "Maximálny počet súbežných transkódovaní",
+    "maxConcurrentTranscodesHelp": "Maximálny počet súčasných relácií prehrávania s transkódovaním HLS pre tohto používateľa.",
+    "transcode": "Prekódovanie",
+    "transcodeEnabled": "Zapnúť transkódovanie",
+    "transcodeEnabledDescription": "Povoliť transkódovanie HLS na strane servera pre prehrávanie po overení.",
+    "transcodeSettings": "Nastavenia prekódovania",
+    "transcodeSettingsDescription": "Obmedzenia súbežnosti, disková vyrovnávacia pamäť a obmedzenia rozlíšenia a prenosovej rýchlosti pre jednotlivé profily.",
+    "transcodeMaxConcurrent": "Počet súbežných relácií na celom svete",
+    "transcodeMaxConcurrentHelp": "Maximálny počet súbežných transkódovacích relácií pre všetkých používateľov.",
+    "transcodeMaxConcurrentPerUser": "Limit relácií na používateľa",
+    "transcodeMaxConcurrentPerUserHelp": "Prísny limit na počet súbežných transkódovacích relácií pre každého jednotlivého používateľa. Používateľské nastavenia nemôžu tento limit prekročiť.",
+    "transcodeCacheMaxSizeMB": "Limit veľkosti vyrovnávacej pamäte (MB)",
+    "transcodeCacheMaxSizeMBHelp": "Maximálny priestor na disku pre vyrovnávaciu pamäť transkódovania v MB. Hodnota 0 znamená neobmedzený priestor.",
+    "transcodeCacheRetentionH": "Doba uchovávania v cache (hodiny)",
+    "transcodeCacheRetentionHHelp": "Ako dlho sa uchovávajú neaktívne generácie vyrovnávacej pamäte transkódovania pred ich odstránením.",
+    "transcodeProfileEnabled": "Zapnuté",
+    "transcodeProfileEnabledDescription": "Zobraziť toto prednastavenie kvality v ponuke prehrávača.",
+    "transcodeProfileMaxResolution": "Maximálne rozlíšenie",
+    "transcodeProfileMaxResolutionHelp": "Maximálna výška výstupu v pixeloch. Hodnota 0 zachová rozlíšenie zdroja.",
+    "transcodeProfileAvgBitrate": "Priemerná prenosová rýchlosť (kbps)",
+    "transcodeProfileAvgBitrateHelp": "Cieľová priemerná prenosová rýchlosť videa v kbps. Hodnota 0 zachová prenosovú rýchlosť zdrojového súboru."
   }
 }

@@ -176,7 +176,13 @@
     "normal": "Normaal",
     "complex": "Complex",
     "access": "Toegang",
-    "groups": "Groepen"
+    "groups": "Groepen",
+    "transcode": "Transcoderen{suffix}",
+    "off": "Uit{suffix}",
+    "quality": "Kwaliteit{suffix}",
+    "balanced": "Evenwichtig{suffix}",
+    "dataSaver": "Databesparing{suffix}",
+    "media": "Media"
   },
   "buttons": {
     "copySuccess": "Gekopieerd naar klembord!",
@@ -982,7 +988,12 @@
       "maxDecibelsDescription": "Luidste niveau (dBFS) dat de balk registreert",
       "showScalesDescription": "Assen en rasterlijnen weergeven op de visualisator",
       "showPeaksDescription": "Kleine witte piekindicatoren boven elke balk"
-    }
+    },
+    "transcodeFailed": "Het transcoderen is mislukt",
+    "transcodeLoading": "Een getranscodeerde stream voorbereiden",
+    "transcodeUnsupportedFormat": "Dit videoformaat wordt niet ondersteund door je browser.",
+    "transcodeUserLimitReached": "De limiet voor transcoderen is bereikt. Je hebt al een actieve transcodersessie:",
+    "transcodeSystemLimitReached": "De limiet voor transcodering op de server is bereikt ({limit} gelijktijdig). Probeer het opnieuw zodra een sessie is beëindigd."
   },
   "fileSizeAnalyzer": {
     "title": "Bestandsgrootte analyseren",
@@ -1204,5 +1215,40 @@
   },
   "pwa": {
     "install": "App installeren"
+  },
+  "media": {
+    "hardwareAcceleration": "Hardwareversnelling",
+    "hardwareAccelerationDescription": "Gebruik GPU-hardwareversnelling voor ffmpeg indien beschikbaar.",
+    "hardwareAccelerationUnavailable": "Er is op deze server geen bruikbare ffmpeg-hardware-encoder gedetecteerd.",
+    "extractEmbeddedSubtitles": "Ingesloten ondertitels extraheren",
+    "extractEmbeddedSubtitlesDescription": "Ingebedde ondertitels uit mediabestanden extraheren.",
+    "debug": "Foutlogboek",
+    "debugDescription": "FFmpeg-stdout-uitvoer voor de media-integratie. Waarschuwing: dit levert veel uitvoer op.",
+    "imagePreview": "Formaten voor afbeeldingsvoorbeelden",
+    "videoPreview": "Formaten voor videovoorbeelden",
+    "imageVideoConversionFormats": "Bestandsformaten voor afbeeldingen en video’s",
+    "imageVideoConversionFormatsDescription": "Kies welke afbeeldings- en videoformaten ffmpeg mag converteren voor voorbeelden.",
+    "updateFailed": "Het bijwerken van de instellingen is mislukt.",
+    "maxConcurrentTranscodes": "Maximaal aantal gelijktijdige transcoderingen",
+    "maxConcurrentTranscodesHelp": "Het maximale aantal gelijktijdige HLS-transcodering- en afspeelsessies voor deze gebruiker.",
+    "transcode": "Transcodering",
+    "transcodeEnabled": "Transcodering inschakelen",
+    "transcodeEnabledDescription": "Schakel HLS-transcodering aan de serverzijde in voor afspelen na authenticatie.",
+    "transcodeSettings": "Instellingen voor transcodering",
+    "transcodeSettingsDescription": "Beperkingen op gelijktijdigheid, schijfcache en de limieten voor resolutie en bitsnelheid per profiel.",
+    "transcodeMaxConcurrent": "Wereldwijde gelijktijdige sessies",
+    "transcodeMaxConcurrentHelp": "Maximaal aantal gelijktijdige transcodersessies voor alle gebruikers samen.",
+    "transcodeMaxConcurrentPerUser": "Maximaal aantal sessies per gebruiker",
+    "transcodeMaxConcurrentPerUserHelp": "Er geldt een strikte limiet voor het aantal gelijktijdige transcodersessies per gebruiker. Gebruikersinstellingen mogen deze limiet niet overschrijden.",
+    "transcodeCacheMaxSizeMB": "Maximale cachegrootte (MB)",
+    "transcodeCacheMaxSizeMBHelp": "Maximale schijfruimte voor de transcodecache in MB. 0 betekent onbeperkt.",
+    "transcodeCacheRetentionH": "Cache-bewaartermijn (uren)",
+    "transcodeCacheRetentionHHelp": "Hoe lang worden inactieve transcode-cachegeneraties bewaard voordat ze worden verwijderd?",
+    "transcodeProfileEnabled": "Ingeschakeld",
+    "transcodeProfileEnabledDescription": "Geef deze kwaliteitsinstelling weer in het menu van de speler.",
+    "transcodeProfileMaxResolution": "Maximale resolutie",
+    "transcodeProfileMaxResolutionHelp": "Maximale uitvoerhoogte in pixels. Bij 0 blijft de bronresolutie behouden.",
+    "transcodeProfileAvgBitrate": "Gemiddelde bitsnelheid (kbps)",
+    "transcodeProfileAvgBitrateHelp": "Beoogde gemiddelde videobitsnelheid in kbps. Bij 0 blijft de bitsnelheid van de bron behouden."
   }
 }

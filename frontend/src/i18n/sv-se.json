@@ -770,7 +770,13 @@
     "normal": "Normal",
     "complex": "Komplex",
     "access": "Åtkomst",
-    "groups": "Grupper"
+    "groups": "Grupper",
+    "transcode": "Omkodning{suffix}",
+    "off": "Av{suffix}",
+    "quality": "Kvalitet{suffix}",
+    "balanced": "Balanserad{suffix}",
+    "dataSaver": "Dataspara{suffix}",
+    "media": "Media"
   },
   "access": {
     "rules": "Regler för åtkomst",
@@ -942,7 +948,12 @@
       "maxDecibelsDescription": "Högsta nivå (dBFS) som stapeln registrerar",
       "showScalesDescription": "Visa axlar och rutnätslinjer på visualiseraren",
       "showPeaksDescription": "Små vita toppindikatorer ovanför varje stapel"
-    }
+    },
+    "transcodeFailed": "Omkodningen misslyckades",
+    "transcodeLoading": "Förberedelse av transkodad ström",
+    "transcodeUnsupportedFormat": "Detta videoformat stöds inte av din webbläsare.",
+    "transcodeUserLimitReached": "Gränsen för omkodning har nåtts. Du har redan en aktiv omkodningssession:",
+    "transcodeSystemLimitReached": "Gränsen för serveromkodning har nåtts ({limit} samtidigt). Försök igen när en session har avslutats."
   },
   "fileSizeAnalyzer": {
     "title": "Analysator för filstorlek",
@@ -1204,5 +1215,40 @@
     "errors": {
       "exceeded": "Lagringskvoten har överskridits"
     }
+  },
+  "media": {
+    "hardwareAcceleration": "Hårdvaruacceleration",
+    "hardwareAccelerationDescription": "Använd GPU-hårdvaruacceleration för ffmpeg när det är möjligt.",
+    "hardwareAccelerationUnavailable": "Ingen användbar ffmpeg-hårdvarukodare har upptäckts på den här servern.",
+    "extractEmbeddedSubtitles": "Extrahera inbäddade undertexter",
+    "extractEmbeddedSubtitlesDescription": "Extrahera inbäddade undertexter från mediefiler.",
+    "debug": "Felsökningsloggning",
+    "debugDescription": "Utdata från ffmpeg:s stdout för medieintegrationen. Varning: genererar mycket utdata.",
+    "imagePreview": "Format för bildförhandsvisning",
+    "videoPreview": "Format för videoförhandsvisning",
+    "imageVideoConversionFormats": "Bild- och videokonverteringsformat",
+    "imageVideoConversionFormatsDescription": "Välj vilka bild- och videoformat som ffmpeg ska kunna konvertera för förhandsgranskning.",
+    "updateFailed": "Det gick inte att uppdatera inställningarna.",
+    "maxConcurrentTranscodes": "Maximalt antal samtidiga omkodningar",
+    "maxConcurrentTranscodesHelp": "Det maximala antalet samtidiga HLS-uppspelningssessioner med omkodning för denna användare.",
+    "transcode": "Omkodning",
+    "transcodeEnabled": "Aktivera omkodning",
+    "transcodeEnabledDescription": "Tillåt HLS-omkodning på serversidan för uppspelning efter inloggning.",
+    "transcodeSettings": "Inställningar för omkodning",
+    "transcodeSettingsDescription": "Begränsningar för samtidig användning, diskcache samt upplösnings- och bithastighetsbegränsningar per profil.",
+    "transcodeMaxConcurrent": "Globala samtidiga sessioner",
+    "transcodeMaxConcurrentHelp": "Högsta antalet samtidiga transkodningssessioner för alla användare.",
+    "transcodeMaxConcurrentPerUser": "Begränsning av antalet sessioner per användare",
+    "transcodeMaxConcurrentPerUserHelp": "Ett strikt tak för antalet samtidiga omkodningssessioner per enskild användare. Användarinställningarna får inte överskrida detta.",
+    "transcodeCacheMaxSizeMB": "Gräns för cacheminnets storlek (MB)",
+    "transcodeCacheMaxSizeMBHelp": "Maximalt diskutrymme för omkodningscachen i MB. 0 betyder obegränsat.",
+    "transcodeCacheRetentionH": "Cache-lagringstid (timmar)",
+    "transcodeCacheRetentionHHelp": "Hur länge inaktiva generationer av transkodningscachen sparas innan de rensas bort.",
+    "transcodeProfileEnabled": "Aktiverad",
+    "transcodeProfileEnabledDescription": "Visa den här kvalitetsinställningen i spelarmenyn.",
+    "transcodeProfileMaxResolution": "Högsta upplösning",
+    "transcodeProfileMaxResolutionHelp": "Maximal utgångshöjd i pixlar. Värdet 0 behåller källans upplösning.",
+    "transcodeProfileAvgBitrate": "Genomsnittlig bithastighet (kbps)",
+    "transcodeProfileAvgBitrateHelp": "Målvärde för genomsnittlig videobithastighet i kbps. Värdet 0 innebär att källans bithastighet bibehålls."
   }
 }

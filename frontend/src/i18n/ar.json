@@ -663,7 +663,13 @@
     "normal": "عادي",
     "complex": "مجمع",
     "access": "الوصول",
-    "groups": "المجموعات"
+    "groups": "المجموعات",
+    "transcode": "تحويل الترميز{suffix}",
+    "off": "إيقاف{suffix}",
+    "quality": "الجودة{suffix}",
+    "balanced": "متوازن{suffix}",
+    "dataSaver": "موفّر البيانات{suffix}",
+    "media": "وسائل الإعلام"
   },
   "access": {
     "rules": "قواعد الوصول",
@@ -942,7 +948,12 @@
       "maxDecibelsDescription": "أعلى مستوى (dBFS) يسجله العمود",
       "showScalesDescription": "إظهار خطوط المحاور والشبكة على المصور",
       "showPeaksDescription": "مؤشرات قمة بيضاء صغيرة فوق كل عمود"
-    }
+    },
+    "transcodeFailed": "فشل تحويل الترميز",
+    "transcodeLoading": "تحضير البث الذي تم تحويل ترميزه",
+    "transcodeUnsupportedFormat": "متصفحك لا يدعم تنسيق الفيديو هذا.",
+    "transcodeUserLimitReached": "تم الوصول إلى الحد الأقصى لعمليات التحويل. لديك بالفعل جلسة تحويل نشطة:",
+    "transcodeSystemLimitReached": "تم الوصول إلى الحد الأقصى لتحويل الترميز على الخادم ({limit} عملية متزامنة). حاول مرة أخرى عند انتهاء إحدى الجلسات."
   },
   "fileSizeAnalyzer": {
     "title": "محلل حجم الملف",
@@ -1204,5 +1215,40 @@
     "errors": {
       "exceeded": "تم تجاوز حصة التخزين"
     }
+  },
+  "media": {
+    "hardwareAcceleration": "التسريع بالجهاز",
+    "hardwareAccelerationDescription": "استخدم التسريع المادي عبر وحدة معالجة الرسومات (GPU) لبرنامج ffmpeg عند توفره.",
+    "hardwareAccelerationUnavailable": "لم يتم الكشف عن أي مُشفّر مادي لـ ffmpeg قابل للاستخدام على هذا الخادم.",
+    "extractEmbeddedSubtitles": "استخراج الترجمة المضمنة",
+    "extractEmbeddedSubtitlesDescription": "استخراج الترجمات المضمنة من ملفات الوسائط.",
+    "debug": "تسجيل أخطاء التصحيح",
+    "debugDescription": "إخراج stdout لـ ffmpeg من أجل دمج الوسائط. تحذير: ينتج عن ذلك كمية كبيرة من الإخراج.",
+    "imagePreview": "تنسيقات معاينة الصور",
+    "videoPreview": "تنسيقات معاينة الفيديو",
+    "imageVideoConversionFormats": "تنسيقات تحويل الصور والفيديو",
+    "imageVideoConversionFormatsDescription": "اختر تنسيقات الصور والفيديو التي يمكن لـ ffmpeg تحويلها لعرضها في المعاينة.",
+    "updateFailed": "فشل تحديث الإعدادات.",
+    "maxConcurrentTranscodes": "الحد الأقصى لعدد عمليات التحويل المتزامنة",
+    "maxConcurrentTranscodesHelp": "الحد الأقصى لعدد جلسات التشغيل المتزامنة التي تستخدم تحويل الترميز HLS لهذا المستخدم.",
+    "transcode": "تحويل الترميز",
+    "transcodeEnabled": "تمكين تحويل الترميز",
+    "transcodeEnabledDescription": "السماح بتحويل ترميز HLS من جانب الخادم للتشغيل بعد المصادقة.",
+    "transcodeSettings": "إعدادات تحويل الترميز",
+    "transcodeSettingsDescription": "حدود التزامن، وذاكرة التخزين المؤقتة على القرص، والحدود القصوى للدقة ومعدل البت لكل ملف تعريف.",
+    "transcodeMaxConcurrent": "الجلسات المتزامنة على مستوى العالم",
+    "transcodeMaxConcurrentHelp": "الحد الأقصى لعدد جلسات التحويل المتزامنة لجميع المستخدمين.",
+    "transcodeMaxConcurrentPerUser": "الحد الأقصى لعدد الجلسات لكل مستخدم",
+    "transcodeMaxConcurrentPerUserHelp": "حد أقصى صارم لعدد جلسات التحويل المتزامنة لأي مستخدم واحد. ولا يمكن لإعدادات المستخدم تجاوز هذا الحد.",
+    "transcodeCacheMaxSizeMB": "الحد الأقصى لحجم ذاكرة التخزين المؤقت (ميغابايت)",
+    "transcodeCacheMaxSizeMBHelp": "الحد الأقصى لمساحة القرص المخصصة لذاكرة التخزين المؤقتة لعملية التحويل، بالميغابايت. الرقم 0 يعني مساحة غير محدودة.",
+    "transcodeCacheRetentionH": "مدة الاحتفاظ بالذاكرة المؤقتة (بالساعات)",
+    "transcodeCacheRetentionHHelp": "ما هي المدة التي يتم خلالها الاحتفاظ بأجيال ذاكرة التخزين المؤقتة للتحويل غير النشطة قبل إزالتها؟",
+    "transcodeProfileEnabled": "ممكّن",
+    "transcodeProfileEnabledDescription": "اعرض إعداد الجودة هذا في قائمة المشغل.",
+    "transcodeProfileMaxResolution": "الدقة القصوى",
+    "transcodeProfileMaxResolutionHelp": "أقصى ارتفاع للإخراج بالبكسل. عند تعيين القيمة إلى 0، يتم الاحتفاظ بدقة المصدر.",
+    "transcodeProfileAvgBitrate": "متوسط معدل البت (كيلوبت في الثانية)",
+    "transcodeProfileAvgBitrateHelp": "متوسط معدل البت المستهدف للفيديو بالكيلوبت في الثانية. القيمة «0» تحافظ على معدل البت الأصلي."
   }
 }

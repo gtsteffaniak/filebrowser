@@ -663,7 +663,13 @@
     "normal": "Normal",
     "complex": "Complex",
     "access": "Acces",
-    "groups": "Grupuri"
+    "groups": "Grupuri",
+    "transcode": "Transcodare{suffix}",
+    "off": "Oprit{suffix}",
+    "quality": "Calitate{suffix}",
+    "balanced": "Echilibrat{suffix}",
+    "dataSaver": "Economizor de date{suffix}",
+    "media": "Mass-media"
   },
   "access": {
     "rules": "Reguli de acces",
@@ -942,7 +948,12 @@
       "maxDecibelsDescription": "Cel mai puternic nivel (dBFS) înregistrat de bară",
       "showScalesDescription": "Afișați axele și liniile grilei pe vizualizator",
       "showPeaksDescription": "Indicatoare mici albe de vârf deasupra fiecărei bare"
-    }
+    },
+    "transcodeFailed": "Transcodarea a eșuat",
+    "transcodeLoading": "Pregătirea fluxului transcodat",
+    "transcodeUnsupportedFormat": "Acest format video nu este acceptat de browserul tău.",
+    "transcodeUserLimitReached": "S-a atins limita de transcodare. Ai deja o sesiune de transcodare activă:",
+    "transcodeSystemLimitReached": "S-a atins limita de transcodare a serverului ({limit} simultan). Încercați din nou după ce se încheie o sesiune."
   },
   "fileSizeAnalyzer": {
     "title": "Analizor dimensiune fișier",
@@ -1204,5 +1215,40 @@
     "errors": {
       "exceeded": "S-a depășit cota de stocare"
     }
+  },
+  "media": {
+    "hardwareAcceleration": "Accelerare hardware",
+    "hardwareAccelerationDescription": "Utilizați accelerarea hardware prin GPU pentru ffmpeg, atunci când este disponibilă.",
+    "hardwareAccelerationUnavailable": "Pe acest server nu a fost detectat niciun codificator hardware ffmpeg funcțional.",
+    "extractEmbeddedSubtitles": "Extragerea subtitrărilor încorporate",
+    "extractEmbeddedSubtitlesDescription": "Extrage subtitrările încorporate din fișierele media.",
+    "debug": "Jurnalizarea erorilor de depanare",
+    "debugDescription": "Ieșirea stdout din ffmpeg pentru integrarea fișierelor media. Atenție: generează un volum mare de date de ieșire.",
+    "imagePreview": "Formate de previzualizare a imaginilor",
+    "videoPreview": "Formate de previzualizare video",
+    "imageVideoConversionFormats": "Formate de conversie a imaginilor și a videoclipurilor",
+    "imageVideoConversionFormatsDescription": "Alegeți formatele de imagine și video pe care ffmpeg le poate converti pentru previzualizări.",
+    "updateFailed": "Nu s-au putut actualiza setările.",
+    "maxConcurrentTranscodes": "Numărul maxim de transcodări simultane",
+    "maxConcurrentTranscodesHelp": "Numărul maxim de sesiuni simultane de redare cu transcodare HLS pentru acest utilizator.",
+    "transcode": "Transcodare",
+    "transcodeEnabled": "Activează transcodarea",
+    "transcodeEnabledDescription": "Permite transcodarea HLS pe server pentru redarea conținutului după autentificare.",
+    "transcodeSettings": "Setări de transcodare",
+    "transcodeSettingsDescription": "Limitele de concurență, memoria cache pe disc, precum și rezoluția specifică fiecărui profil și limitele de rată de biți.",
+    "transcodeMaxConcurrent": "Sesiuni simultane la nivel global",
+    "transcodeMaxConcurrentHelp": "Numărul maxim de sesiuni de transcodare simultane pentru toți utilizatorii.",
+    "transcodeMaxConcurrentPerUser": "Limita de sesiuni pe utilizator",
+    "transcodeMaxConcurrentPerUserHelp": "Limită maximă strictă privind numărul de sesiuni de transcodare simultane pentru un singur utilizator. Setările utilizatorului nu pot depăși această limită.",
+    "transcodeCacheMaxSizeMB": "Limita dimensiunii cache-ului (MB)",
+    "transcodeCacheMaxSizeMBHelp": "Spațiul maxim pe disc pentru memoria cache de transcodare, în MB. Valoarea 0 înseamnă nelimitat.",
+    "transcodeCacheRetentionH": "Durata de păstrare a cache-ului (ore)",
+    "transcodeCacheRetentionHHelp": "Cât timp sunt păstrate generațiile de cache de transcodare inactive înainte de a fi eliminate.",
+    "transcodeProfileEnabled": "Activat",
+    "transcodeProfileEnabledDescription": "Afișează această presetare de calitate în meniul playerului.",
+    "transcodeProfileMaxResolution": "Rezoluție maximă",
+    "transcodeProfileMaxResolutionHelp": "Înălțimea maximă de ieșire în pixeli. Valoarea 0 păstrează rezoluția sursei.",
+    "transcodeProfileAvgBitrate": "Rata medie de transfer (kbps)",
+    "transcodeProfileAvgBitrateHelp": "Rata de biți medie țintă pentru video, în kbps. Valoarea 0 menține rata de biți a sursei."
   }
 }

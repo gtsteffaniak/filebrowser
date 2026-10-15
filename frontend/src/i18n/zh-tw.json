@@ -770,7 +770,13 @@
     "normal": "正常",
     "complex": "複雜",
     "access": "存取",
-    "groups": "群組"
+    "groups": "群組",
+    "transcode": "轉碼{suffix}",
+    "off": "關閉{suffix}",
+    "quality": "品質{suffix}",
+    "balanced": "平衡{suffix}",
+    "dataSaver": "數據節省模式{suffix}",
+    "media": "媒體"
   },
   "access": {
     "rules": "存取規則",
@@ -942,7 +948,12 @@
       "maxDecibelsDescription": "條形記錄的最高音量（dBFS）",
       "showScalesDescription": "在視覺化工具上顯示軸和網格線",
       "showPeaksDescription": "每個條形上方的小白色峰值指示器"
-    }
+    },
+    "transcodeFailed": "轉碼失敗",
+    "transcodeLoading": "準備轉碼後的串流",
+    "transcodeUnsupportedFormat": "您的瀏覽器不支援此影片格式。",
+    "transcodeUserLimitReached": "已達到轉碼限制。您目前已有一個正在進行的轉碼作業：",
+    "transcodeSystemLimitReached": "已達到伺服器轉碼限制（{limit} 個同時處理）。請待一個工作階段結束後再試一次。"
   },
   "fileSizeAnalyzer": {
     "title": "檔案大小分析器",
@@ -1204,5 +1215,40 @@
     "errors": {
       "exceeded": "儲存空間已超過配額"
     }
+  },
+  "media": {
+    "hardwareAcceleration": "硬體加速",
+    "hardwareAccelerationDescription": "若條件允許，請為 ffmpeg 啟用 GPU 硬體加速。",
+    "hardwareAccelerationUnavailable": "未在此伺服器上偵測到可用的 ffmpeg 硬體編碼器。",
+    "extractEmbeddedSubtitles": "擷取內嵌字幕",
+    "extractEmbeddedSubtitlesDescription": "從媒體檔案中擷取內嵌字幕。",
+    "debug": "除錯記錄",
+    "debugDescription": "將 ffmpeg 的標準輸出用於媒體整合。警告：會產生大量輸出。",
+    "imagePreview": "圖片預覽格式",
+    "videoPreview": "影片預覽格式",
+    "imageVideoConversionFormats": "圖片與影片的轉換格式",
+    "imageVideoConversionFormatsDescription": "選擇 ffmpeg 可轉換哪些圖像和影片格式以供預覽。",
+    "updateFailed": "無法更新設定。",
+    "maxConcurrentTranscodes": "最大同時轉碼數",
+    "maxConcurrentTranscodesHelp": "此使用者可同時進行的 HLS 轉碼播放工作階段最大數量。",
+    "transcode": "轉碼",
+    "transcodeEnabled": "啟用轉碼",
+    "transcodeEnabledDescription": "允許在經過身份驗證的播放中進行伺服器端 HLS 轉碼。",
+    "transcodeSettings": "轉碼設定",
+    "transcodeSettingsDescription": "並發限制、磁碟快取，以及各配置檔的解析度與位元率上限。",
+    "transcodeMaxConcurrent": "全球同時在線會話數",
+    "transcodeMaxConcurrentHelp": "所有使用者同時進行的轉碼工作階段最大數量。",
+    "transcodeMaxConcurrentPerUser": "每位使用者的會話上限",
+    "transcodeMaxConcurrentPerUserHelp": "針對任何單一使用者，並行轉碼工作階段設有硬性上限。使用者設定不得超過此上限。",
+    "transcodeCacheMaxSizeMB": "快取大小上限（MB）",
+    "transcodeCacheMaxSizeMBHelp": "轉碼快取的最大磁碟空間（單位：MB）。0 表示無限制。",
+    "transcodeCacheRetentionH": "快取保留時間（小時）",
+    "transcodeCacheRetentionHHelp": "閒置的轉碼快取世代在被清除前會保留多久。",
+    "transcodeProfileEnabled": "已啟用",
+    "transcodeProfileEnabledDescription": "在播放器選單中顯示此畫質預設值。",
+    "transcodeProfileMaxResolution": "最高解析度",
+    "transcodeProfileMaxResolutionHelp": "最大輸出高度（以像素為單位）。設定為 0 將保留原始解析度。",
+    "transcodeProfileAvgBitrate": "平均位元率 (kbps)",
+    "transcodeProfileAvgBitrateHelp": "目標平均影片位元率（單位：kbps）。設定為 0 時將保留原始位元率。"
   }
 }

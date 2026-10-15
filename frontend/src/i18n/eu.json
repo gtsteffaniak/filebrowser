@@ -176,7 +176,13 @@
     "normal": "Normala",
     "complex": "Konplexua",
     "access": "Sarbidea",
-    "groups": "Taldeak"
+    "groups": "Taldeak",
+    "transcode": "Bidali transkodetuta{suffix}",
+    "off": "Itzali{suffix}",
+    "quality": "Kalitatea{suffix}",
+    "balanced": "Orekatuta{suffix}",
+    "dataSaver": "Datu-gordetzailea{suffix}",
+    "media": "Komunikabideak"
   },
   "buttons": {
     "copySuccess": "Arbelean kopiatu da!",
@@ -982,7 +988,12 @@
       "maxDecibelsDescription": "Barrak erregistratzen duen mailarik altuena (dBFS)",
       "showScalesDescription": "Erakutsi ardatzak eta sareta-lerroak bistaratzailean",
       "showPeaksDescription": "Gailur-adierazle zuri txikiak barra bakoitzaren gainean"
-    }
+    },
+    "transcodeFailed": "Transkodaketa huts egin du",
+    "transcodeLoading": "Transkodatutako korrontea prestatzen",
+    "transcodeUnsupportedFormat": "Bideo-formatua ez dago zure nabigatzailean onartuta.",
+    "transcodeUserLimitReached": "Transkodetze-muga gainditu da. Dagoeneko transkodetze-saio aktibo bat duzu:",
+    "transcodeSystemLimitReached": "Zerbitzariaren transkodetze-muga gainditu da ({limit} aldi berean). Saiatu berriro saio bat amaitzean."
   },
   "fileSizeAnalyzer": {
     "title": "Fitxategi-tamainen analizatzailea",
@@ -1204,5 +1215,40 @@
   },
   "pwa": {
     "install": "Instalatu aplikazioa"
+  },
+  "media": {
+    "hardwareAcceleration": "Hardware azelerazioa",
+    "hardwareAccelerationDescription": "Erabili ffmpeg-entzat GPU hardware azelerazioa eskuragarri dagoenean.",
+    "hardwareAccelerationUnavailable": "Ez da ffmpeg hardware kodetzaile erabilgarririk detektatu zerbitzari honetan.",
+    "extractEmbeddedSubtitles": "Txertatutako azpitituluak atera",
+    "extractEmbeddedSubtitlesDescription": "Media fitxategietatik txertatutako azpitituluak atera.",
+    "debug": "Akatsen erregistroa",
+    "debugDescription": "Media integrazioarako ffmpeg-en stdout irteera. Oharra: irteera asko sortzen du.",
+    "imagePreview": "Irudi aurrebistako formatuak",
+    "videoPreview": "Bideo aurrebista formatuak",
+    "imageVideoConversionFormats": "Irudi eta bideo bihurketa formatuak",
+    "imageVideoConversionFormatsDescription": "Aukeratu ffmpeg-ek aurrebistetarako bihur ditzakeen irudi eta bideo formatuak.",
+    "updateFailed": "Ezarpenak eguneratzeko huts egin da.",
+    "maxConcurrentTranscodes": "Maximo aldi bereko transkodetzeak",
+    "maxConcurrentTranscodesHelp": "Erabiltzaile honentzako aldi berean exekutatu daitezkeen HLS transkodetze-erreprodukzio saioen kopuru maximoa.",
+    "transcode": "Bihurketa",
+    "transcodeEnabled": "Transkodaketa gaitzea",
+    "transcodeEnabledDescription": "Baimentu zerbitzari-aldiko HLS transkodaketa erreprodukzio autentifikaturako.",
+    "transcodeSettings": "Transkodifikazioko ezarpenak",
+    "transcodeSettingsDescription": "Paralelismo-mugak, disko-cachea eta profil bakoitzeko bereizmen- eta bitrate-mugak.",
+    "transcodeMaxConcurrent": "Munduko aldi bereko saioak",
+    "transcodeMaxConcurrentHelp": "Erabiltzaile guztietan zehar aldi berean exekutatzen diren transkodetze saioen kopuru maximoa.",
+    "transcodeMaxConcurrentPerUser": "Erabiltzaile bakoitzeko saio-muga",
+    "transcodeMaxConcurrentPerUserHelp": "Erabiltzaile bakar baterako aldi berean exekutatzen diren transkodetze saioetarako muga zorrotza. Erabiltzailearen ezarpenek ezin dute hori gainditu.",
+    "transcodeCacheMaxSizeMB": "Kaxearen tamaina-muga (MB)",
+    "transcodeCacheMaxSizeMBHelp": "Transkodetze-cache-rako disko-espazio maximoa MB-tan. 0k mugagabea adierazten du.",
+    "transcodeCacheRetentionH": "Gordailuaren iraupena (ordu)",
+    "transcodeCacheRetentionHHelp": "Zenbat denbora gordetzen dira inaktibo dauden transkodaketa-cache-generazioak kanporatu aurretik?",
+    "transcodeProfileEnabled": "Gaitu",
+    "transcodeProfileEnabledDescription": "Eman kalitatezko aurrezarpen hau erreproduzitzaile-menuan ikusteko.",
+    "transcodeProfileMaxResolution": "Maximo bereizmena",
+    "transcodeProfileMaxResolutionHelp": "Pixeletan irteerako altuera maximoa. 0-k iturburuaren bereizmena mantentzen du.",
+    "transcodeProfileAvgBitrate": "Batez besteko bitratea (kbps)",
+    "transcodeProfileAvgBitrateHelp": "Helburu bideoaren batez besteko bitratea kbps-tan. 0-k iturburuaren bitratea mantentzen du."
   }
 }

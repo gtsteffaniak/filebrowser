@@ -663,7 +663,13 @@
     "normal": "Normal",
     "complex": "Complejo",
     "access": "Acceso",
-    "groups": "Grupos"
+    "groups": "Grupos",
+    "transcode": "Transcodificar{suffix}",
+    "off": "Apagado{suffix}",
+    "quality": "Calidad{suffix}",
+    "balanced": "Equilibrado{suffix}",
+    "dataSaver": "Ahorro de datos{suffix}",
+    "media": "Medios de comunicación"
   },
   "access": {
     "rules": "Reglas de acceso",
@@ -942,7 +948,12 @@
       "maxDecibelsDescription": "Nivel más alto (dBFS) que registra la barra",
       "showScalesDescription": "Mostrar ejes y líneas de cuadrícula en el visualizador",
       "showPeaksDescription": "Pequeños indicadores blancos sobre cada barra"
-    }
+    },
+    "transcodeFailed": "Error en la transcodificación",
+    "transcodeLoading": "Preparación de la transmisión transcodificada",
+    "transcodeUnsupportedFormat": "Tu navegador no es compatible con este formato de vídeo.",
+    "transcodeUserLimitReached": "Se ha alcanzado el límite de transcodificación. Ya tienes una sesión de transcodificación activa:",
+    "transcodeSystemLimitReached": "Se ha alcanzado el límite de transcodificación del servidor ({limit} simultáneas). Inténtalo de nuevo cuando finalice una sesión."
   },
   "fileSizeAnalyzer": {
     "title": "Analizador de espacio",
@@ -1204,5 +1215,40 @@
     "errors": {
       "exceeded": "Se ha superado el límite de almacenamiento"
     }
+  },
+  "media": {
+    "hardwareAcceleration": "Aceleración por hardware",
+    "hardwareAccelerationDescription": "Utiliza la aceleración por hardware de la GPU para ffmpeg cuando esté disponible.",
+    "hardwareAccelerationUnavailable": "No se ha detectado ningún codificador de hardware de FFmpeg válido en este servidor.",
+    "extractEmbeddedSubtitles": "Extraer subtítulos incrustados",
+    "extractEmbeddedSubtitlesDescription": "Extraer los subtítulos incrustados de los archivos multimedia.",
+    "debug": "Registros de depuración",
+    "debugDescription": "Salida de ffmpeg (stdout) para la integración multimedia. Advertencia: genera una gran cantidad de datos de salida.",
+    "imagePreview": "Formatos de vista previa de imágenes",
+    "videoPreview": "Formatos de vista previa de vídeo",
+    "imageVideoConversionFormats": "Formatos de conversión de imágenes y vídeos",
+    "imageVideoConversionFormatsDescription": "Elige qué formatos de imagen y vídeo puede convertir ffmpeg para las vistas previas.",
+    "updateFailed": "No se han podido actualizar los ajustes.",
+    "maxConcurrentTranscodes": "Número máximo de transcodificaciones simultáneas",
+    "maxConcurrentTranscodesHelp": "El número máximo de sesiones simultáneas de reproducción con transcodificación HLS para este usuario.",
+    "transcode": "Transcodificación",
+    "transcodeEnabled": "Habilitar la transcodificación",
+    "transcodeEnabledDescription": "Permitir la transcodificación HLS del lado del servidor para la reproducción con autenticación.",
+    "transcodeSettings": "Configuración de transcodificación",
+    "transcodeSettingsDescription": "Límites de concurrencia, caché de disco y límites de resolución y velocidad de bits por perfil.",
+    "transcodeMaxConcurrent": "Sesiones simultáneas a nivel mundial",
+    "transcodeMaxConcurrentHelp": "Número máximo de sesiones de transcodificación simultáneas entre todos los usuarios.",
+    "transcodeMaxConcurrentPerUser": "Límite de sesiones por usuario",
+    "transcodeMaxConcurrentPerUserHelp": "Límite máximo estricto del número de sesiones de transcodificación simultáneas por usuario. La configuración del usuario no puede superar este límite.",
+    "transcodeCacheMaxSizeMB": "Límite de tamaño de la caché (MB)",
+    "transcodeCacheMaxSizeMBHelp": "Espacio máximo en disco para la caché de transcodificación, en MB. El valor 0 significa ilimitado.",
+    "transcodeCacheRetentionH": "Retención de la caché (horas)",
+    "transcodeCacheRetentionHHelp": "Cuánto tiempo se conservan las generaciones de caché de transcodificación inactivas antes de su eliminación.",
+    "transcodeProfileEnabled": "Activado",
+    "transcodeProfileEnabledDescription": "Mostrar este ajuste preestablecido de calidad en el menú del reproductor.",
+    "transcodeProfileMaxResolution": "Resolución máxima",
+    "transcodeProfileMaxResolutionHelp": "Altura máxima de salida en píxeles. El valor 0 mantiene la resolución original.",
+    "transcodeProfileAvgBitrate": "Velocidad de transmisión media (kbps)",
+    "transcodeProfileAvgBitrateHelp": "Velocidad de bits media deseada del vídeo en kbps. Si se introduce «0», se mantiene la velocidad de bits de origen."
   }
 }

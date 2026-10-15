@@ -663,7 +663,13 @@
     "normal": "ノーマル",
     "complex": "コンプレックス",
     "access": "アクセス",
-    "groups": "グループ"
+    "groups": "グループ",
+    "transcode": "トランスコード{suffix}",
+    "off": "オフ{suffix}",
+    "quality": "品質{suffix}",
+    "balanced": "バランスが取れている{suffix}",
+    "dataSaver": "データセーバー{suffix}",
+    "media": "メディア"
   },
   "access": {
     "rules": "アクセスルール",
@@ -942,7 +948,12 @@
       "maxDecibelsDescription": "バーが記録する最大レベル（dBFS）",
       "showScalesDescription": "ビジュアライザーに軸とグリッド線を表示",
       "showPeaksDescription": "各バーの上に表示される小さな白いピークインジケーター"
-    }
+    },
+    "transcodeFailed": "トランスコードに失敗しました",
+    "transcodeLoading": "トランスコード済みストリームの準備",
+    "transcodeUnsupportedFormat": "お使いのブラウザでは、この動画形式はサポートされていません。",
+    "transcodeUserLimitReached": "トランスコードの制限に達しました。すでにアクティブなトランスコードセッションがあります：",
+    "transcodeSystemLimitReached": "サーバーのトランスコード制限に達しました（{limit} の同時処理）。セッションが終了したら、再度お試しください。"
   },
   "fileSizeAnalyzer": {
     "title": "ファイル・サイズ・アナライザー",
@@ -1204,5 +1215,40 @@
     "errors": {
       "exceeded": "ストレージの割り当て上限を超えました"
     }
+  },
+  "media": {
+    "hardwareAcceleration": "ハードウェアアクセラレーション",
+    "hardwareAccelerationDescription": "利用可能な場合は、ffmpegでGPUハードウェアアクセラレーションを使用してください。",
+    "hardwareAccelerationUnavailable": "このサーバーでは、使用可能な FFmpeg ハードウェアエンコーダーは検出されませんでした。",
+    "extractEmbeddedSubtitles": "埋め込み字幕を抽出する",
+    "extractEmbeddedSubtitlesDescription": "メディアファイルから埋め込み字幕を抽出します。",
+    "debug": "デバッグログ",
+    "debugDescription": "メディア統合のためのffmpegの標準出力。警告：出力量が非常に多くなります。",
+    "imagePreview": "画像プレビューの形式",
+    "videoPreview": "動画プレビューの形式",
+    "imageVideoConversionFormats": "画像および動画の変換形式",
+    "imageVideoConversionFormatsDescription": "ffmpegがプレビュー用に変換できる画像および動画の形式を選択してください。",
+    "updateFailed": "設定の更新に失敗しました。",
+    "maxConcurrentTranscodes": "最大同時トランスコード数",
+    "maxConcurrentTranscodesHelp": "このユーザーによるHLSトランスコード再生セッションの同時実行可能数の上限。",
+    "transcode": "トランスコーディング",
+    "transcodeEnabled": "トランスコーディングを有効にする",
+    "transcodeEnabledDescription": "認証済み再生において、サーバーサイドのHLSトランスコーディングを許可します。",
+    "transcodeSettings": "トランスコード設定",
+    "transcodeSettingsDescription": "同時接続数の上限、ディスクキャッシュ、およびプロファイルごとの解像度とビットレートの上限。",
+    "transcodeMaxConcurrent": "グローバル同時セッション数",
+    "transcodeMaxConcurrentHelp": "全ユーザーにわたる同時トランスコードセッションの最大数。",
+    "transcodeMaxConcurrentPerUser": "ユーザーごとのセッション制限",
+    "transcodeMaxConcurrentPerUserHelp": "1人のユーザーあたりの同時トランスコードセッション数には厳格な上限が設けられています。ユーザー設定はこの上限を超えることはできません。",
+    "transcodeCacheMaxSizeMB": "キャッシュサイズの制限（MB）",
+    "transcodeCacheMaxSizeMBHelp": "トランスコードキャッシュの最大ディスク容量（MB単位）。0の場合は無制限を意味します。",
+    "transcodeCacheRetentionH": "キャッシュの保持期間（時間）",
+    "transcodeCacheRetentionHHelp": "使用されていないトランスコードキャッシュの各世代は、削除されるまでどのくらいの期間保持されるか。",
+    "transcodeProfileEnabled": "有効",
+    "transcodeProfileEnabledDescription": "この高品質プリセットをプレーヤーメニューに表示する。",
+    "transcodeProfileMaxResolution": "最大解像度",
+    "transcodeProfileMaxResolutionHelp": "ピクセル単位での最大出力高さ。0に設定すると、ソースの解像度が維持されます。",
+    "transcodeProfileAvgBitrate": "平均ビットレート（kbps）",
+    "transcodeProfileAvgBitrateHelp": "動画の目標平均ビットレート（kbps）。0を指定すると、ソースのビットレートが維持されます。"
   }
 }

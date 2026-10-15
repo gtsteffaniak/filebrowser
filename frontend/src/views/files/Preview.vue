@@ -351,8 +351,6 @@ export default {
           return this.$t('player.transcodeSystemLimitReached', {
             limit: this.videoTranscodeOffer.systemLimit,
           });
-        case 'unsupported':
-          return this.$t('player.transcodeDisabled');
         default:
           return this.$t('player.transcodeUnsupportedFormat');
       }
