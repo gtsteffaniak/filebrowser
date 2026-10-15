@@ -163,8 +163,18 @@ func RecordPatchItem(r *http.Request, actor *Actor, action string, item MoveCopy
 	RecordUser(r, actor, entry)
 }
 
+// recordFileEvent records a file operation. Anonymous share visitors have no user ID,
+// so their uploads and deletes are attributed to the share owner.
+func recordFileEvent(r *http.Request, actor *Actor, entry activitydb.Entry) {
+	if actor != nil && actor.Share.Hash != "" && (actor.User == nil || actor.User.ID == 0) {
+		RecordShareOwner(r, actor, entry)
+		return
+	}
+	RecordUser(r, actor, entry)
+}
+
 func RecordDelete(r *http.Request, actor *Actor, source, path string) {
-	RecordUser(r, actor, activitydb.Entry{
+	recordFileEvent(r, actor, activitydb.Entry{
 		EventType: activitydb.EventDelete,
 		Source:    source,
 		Path:      path,
@@ -198,7 +208,7 @@ func RecordBulkDelete(r *http.Request, actor *Actor, succeeded []BulkDeleteItem)
 		entry.Details.Source = succeeded[0].Source
 		entry.Details.Path = succeeded[0].Path
 	}
-	RecordUser(r, actor, entry)
+	recordFileEvent(r, actor, entry)
 }
 
 func RecordUpload(r *http.Request, actor *Actor, source, path string, isDir bool) {
@@ -210,7 +220,7 @@ func RecordUpload(r *http.Request, actor *Actor, source, path string, isDir bool
 		Source: source,
 		Path:   pathLabel,
 	}
-	RecordUser(r, actor, activitydb.Entry{
+	recordFileEvent(r, actor, activitydb.Entry{
 		EventType: activitydb.EventUpload,
 		Source:    source,
 		Path:      pathLabel,

@@ -318,6 +318,7 @@ func publicDeleteHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 		return http.StatusInternalServerError, fmt.Errorf("an error occured while deleting the resource")
 	}
 	preview.DelThumbs(r.Context(), *fileInfo)
+	activity.RecordDelete(r, toActor(d), d.Share.GetSourceName(), fileInfo.Path)
 	return http.StatusOK, nil
 }
 
@@ -390,10 +391,12 @@ func ResourceBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *Contex
 		Succeeded: make([]BulkDeleteItem, 0),
 		Failed:    make([]BulkDeleteItem, 0),
 	}
+	activityItems := make([]activity.BulkDeleteItem, 0, len(items))
 
 	// Process each item one at a time
 	for _, item := range items {
 		rawPath := item.Path
+		activityPath := rawPath
 		// Validate item
 		if rawPath == "" {
 			response.Failed = append(response.Failed, BulkDeleteItem{
@@ -489,6 +492,7 @@ func ResourceBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *Contex
 			}
 			// Delete thumbnails
 			preview.DelThumbs(r.Context(), *fileInfo)
+			activityPath = fileInfo.Path
 		} else {
 			// Regular user context - validate source and check user scope
 			if item.Source == "" {
@@ -574,6 +578,7 @@ func ResourceBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *Contex
 			loggedItem.Source = d.Share.GetSourceName()
 		}
 		response.Succeeded = append(response.Succeeded, loggedItem)
+		activityItems = append(activityItems, activity.BulkDeleteItem{Source: loggedItem.Source, Path: activityPath})
 	}
 
 	// Determine status code based on results
@@ -582,8 +587,8 @@ func ResourceBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *Contex
 		statusCode = http.StatusMultiStatus
 	}
 
-	if len(response.Succeeded) > 0 {
-		activity.RecordBulkDelete(r, toActor(d), bulkDeleteActivityItems(response.Succeeded))
+	if len(activityItems) > 0 {
+		activity.RecordBulkDelete(r, toActor(d), activityItems)
 	}
 
 	return RenderJSON(w, r, response, statusCode)
@@ -1851,12 +1856,4 @@ func moveCopyWithClientPaths(item MoveCopyItem, clientFrom, clientTo string) Mov
 	item.FromPath = clientFrom
 	item.ToPath = clientTo
 	return item
-}
-
-func bulkDeleteActivityItems(items []BulkDeleteItem) []activity.BulkDeleteItem {
-	out := make([]activity.BulkDeleteItem, len(items))
-	for i, it := range items {
-		out[i] = activity.BulkDeleteItem{Source: it.Source, Path: it.Path}
-	}
-	return out
 }

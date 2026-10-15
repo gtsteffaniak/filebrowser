@@ -1,9 +1,13 @@
 package activity
 
 import (
+	"net/http/httptest"
 	"testing"
+	"time"
 
 	activitydb "github.com/gtsteffaniak/filebrowser/backend/internal/database/activity"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/database/share"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 )
 
 func TestAccessRuleCreateChanges(t *testing.T) {
@@ -26,6 +30,68 @@ func TestAccessRuleDeleteChanges(t *testing.T) {
 	assertFieldChange(t, changes[2], "value", "", "admin")
 	assertFieldChange(t, changes[3], "cascade", "", "true")
 	assertFieldChange(t, changes[4], "count", "", "3")
+}
+
+func TestShareFileEventsRecordedForShareOwner(t *testing.T) {
+	store := &mockActivityStore{}
+	globalMu.Lock()
+	old := globalRecorder
+	globalMu.Unlock()
+	defer func() {
+		globalMu.Lock()
+		globalRecorder = old
+		globalMu.Unlock()
+	}()
+
+	rec := &Recorder{
+		store:         store,
+		buffer:        make([]activitydb.Entry, 0, 4),
+		flushCh:       make(chan struct{}, 1),
+		stopCh:        make(chan struct{}),
+		doneCh:        make(chan struct{}),
+		maxBuffer:     10000,
+		flushInterval: time.Hour,
+		enabled:       true,
+	}
+	globalMu.Lock()
+	globalRecorder = rec
+	globalMu.Unlock()
+	go rec.loop()
+
+	actor := &Actor{
+		User:  &users.User{FrontendUser: users.FrontendUser{Username: "anonymous"}},
+		Share: share.Share{Hash: "share-hash", UserID: 7},
+	}
+	r := httptest.NewRequest("POST", "/public/api/resources", nil)
+	RecordUpload(r, actor, "main", "/pub/new.txt", false)
+	RecordDelete(r, actor, "main", "/pub/old.txt")
+	RecordBulkDelete(r, actor, []BulkDeleteItem{{Source: "main", Path: "/pub/a.txt"}})
+	loggedIn := &Actor{
+		User:  &users.User{ID: 5, FrontendUser: users.FrontendUser{Username: "bob"}},
+		Share: share.Share{Hash: "share-hash", UserID: 7},
+	}
+	RecordUpload(r, loggedIn, "main", "/pub/bob.txt", false)
+	rec.Stop()
+
+	var got []activitydb.Entry
+	for _, batch := range store.inserts {
+		got = append(got, batch...)
+	}
+	want := []activitydb.EventType{activitydb.EventUpload, activitydb.EventDelete, activitydb.EventBulkDelete}
+	if len(got) != len(want)+1 {
+		t.Fatalf("expected %d entries, got %d: %+v", len(want)+1, len(got), got)
+	}
+	if last := got[len(want)]; last.UserID != 5 {
+		t.Fatalf("logged-in share visitor: userID=%d, want 5", last.UserID)
+	}
+	for i, e := range got[:len(want)] {
+		if e.EventType != want[i] {
+			t.Fatalf("entry %d: event type %q, want %q", i, e.EventType, want[i])
+		}
+		if e.UserID != 7 || e.Details.ShareHash != "share-hash" {
+			t.Fatalf("entry %d: userID=%d shareHash=%q, want share owner 7 and share-hash", i, e.UserID, e.Details.ShareHash)
+		}
+	}
 }
 
 func assertFieldChange(t *testing.T, change activitydb.FieldChange, field, from, to string) {
