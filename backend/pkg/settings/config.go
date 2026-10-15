@@ -449,6 +449,7 @@ func setupFFmpegIntegration() {
 		},
 		CacheDir:             Config.Server.CacheDir,
 		HardwareAcceleration: Config.Integrations.Media.HardwareAcceleration,
+		VerboseFFmpeg:        Config.Integrations.Media.Debug,
 	}
 	// Hardware codec detection always runs so the setting can be toggled at
 	// runtime; when it is off, software encoders are preferred instead.

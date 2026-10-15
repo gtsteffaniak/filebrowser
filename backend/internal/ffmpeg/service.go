@@ -31,6 +31,9 @@ type InitOptions struct {
 	Concurrency          goffmpeg.Concurrency
 	CacheDir             string
 	HardwareAcceleration bool
+	// VerboseFFmpeg streams ffmpeg process output to stderr and raises the ffmpeg
+	// log level. Wired to the media debug setting.
+	VerboseFFmpeg bool
 	// EncoderHierarchy restricts which acceleration backends are preferred.
 	// Pass []capabilities.AccelType{capabilities.AccelNone} to keep detection
 	// (so hardware availability stays known) while preferring software.
@@ -50,7 +53,8 @@ func Initialize(ctx context.Context, opts InitOptions) error {
 	cfg := goffmpeg.Config{
 		FFmpegPath:       opts.FFmpegPath,
 		Concurrency:      opts.Concurrency,
-		Logger:           goffmpeg.NopLogger(),
+		Logger:           logger.GetGlobalLogger(),
+		VerboseFFmpeg:    opts.VerboseFFmpeg,
 		EncoderHierarchy: opts.EncoderHierarchy,
 	}
 	if opts.Concurrency.MaxProbe == 0 && opts.Concurrency.MaxDecode == 0 && opts.Concurrency.MaxEncode == 0 {
