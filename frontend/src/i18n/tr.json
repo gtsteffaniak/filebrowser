@@ -119,6 +119,7 @@
     "el": "Ελληνικά",
     "en": "English",
     "es": "Español",
+    "eu": "Euskara",
     "fr": "Français",
     "he": "עברית",
     "hu": "Magyar",
@@ -1081,7 +1082,8 @@
       "webSessionNamed": "Web oturumu ({name})",
       "scopeAccess": "Erişim etkinliği",
       "eventAccessCreate": "Erişim oluştur",
-      "eventAccessDelete": "Erişim silme"
+      "eventAccessDelete": "Erişim silme",
+      "eventFileModify": "Dosya düzenleme"
     },
     "toolAccessDefaults": "Araç erişim varsayılan ayarları",
     "toolAccessDefaultsDescription": "Yeni kullanıcıların varsayılan olarak hangi araçlara erişebileceğini ayarlayın",

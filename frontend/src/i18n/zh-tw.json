@@ -119,6 +119,7 @@
     "el": "Ελληνικά",
     "en": "English",
     "es": "Español",
+    "eu": "Euskara",
     "fr": "Français",
     "he": "עברית",
     "hu": "Magyar",
@@ -1081,7 +1082,8 @@
       "webSessionNamed": "網路研討會（{name} ）",
       "scopeAccess": "存取活動",
       "eventAccessCreate": "存取 建立",
-      "eventAccessDelete": "存取 刪除"
+      "eventAccessDelete": "存取 刪除",
+      "eventFileModify": "檔案修改"
     },
     "toolAccessDefaults": "工具存取預設值",
     "toolAccessDefaultsDescription": "設定新使用者預設可存取的工具",

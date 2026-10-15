@@ -119,6 +119,7 @@
     "el": "Ελληνικά",
     "en": "English",
     "es": "Español",
+    "eu": "Euskara",
     "fr": "Français",
     "he": "עברית",
     "hu": "Magyar",
@@ -1081,7 +1082,8 @@
       "webSessionNamed": "جلسة عبر الإنترنت ({name})",
       "scopeAccess": "الوصول إلى النشاط",
       "eventAccessCreate": "الوصول إلى \"إنشاء\"",
-      "eventAccessDelete": "الوصول والحذف"
+      "eventAccessDelete": "الوصول والحذف",
+      "eventFileModify": "تعديل الملف"
     },
     "toolAccessDefaults": "الإعدادات الافتراضية للوصول إلى الأدوات",
     "toolAccessDefaultsDescription": "تحديد الأدوات التي يمكن للمستخدمين الجدد الوصول إليها بشكل افتراضي",

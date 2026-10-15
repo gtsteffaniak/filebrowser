@@ -346,7 +346,8 @@ export default {
               pinned: true,
               props: {
                 isSameFile: isSameFile,
-                operation: this.operation
+                operation: this.operation,
+                destSource: this.destSource,
               },
               confirm: async (event, option) => {
                 overwrite = option === "overwrite";

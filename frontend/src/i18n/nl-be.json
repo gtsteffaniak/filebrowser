@@ -119,6 +119,7 @@
     "el": "Ελληνικά",
     "en": "English",
     "es": "Español",
+    "eu": "Euskara",
     "fr": "Français",
     "he": "עברית",
     "hu": "Magyar",
@@ -1081,7 +1082,8 @@
       "webSessionNamed": "Websessie ({name})",
       "scopeAccess": "Toegangsactiviteit",
       "eventAccessCreate": "Toegang aanmaken",
-      "eventAccessDelete": "Toegang verwijderen"
+      "eventAccessDelete": "Toegang verwijderen",
+      "eventFileModify": "Bestand wijzigen"
     },
     "toolAccessDefaults": "Standaardinstellingen voor toegang tot gereedschappen",
     "toolAccessDefaultsDescription": "Stel in tot welke tools nieuwe gebruikers standaard toegang hebben",

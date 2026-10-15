@@ -218,6 +218,24 @@ func RecordUpload(r *http.Request, actor *Actor, source, path string, isDir bool
 	})
 }
 
+// RecordFileModify appends an audit row for an in-place file content update (PUT).
+func RecordFileModify(r *http.Request, actor *Actor, source, path string) {
+	entry := activitydb.Entry{
+		EventType: activitydb.EventFileModify,
+		Source:    source,
+		Path:      path,
+		Details: activitydb.Details{
+			Source: source,
+			Path:   path,
+		},
+	}
+	if actor != nil && actor.Share.Hash != "" {
+		RecordShareOwner(r, actor, entry)
+		return
+	}
+	RecordUser(r, actor, entry)
+}
+
 func RecordShareMutation(r *http.Request, actor *Actor, eventType activitydb.EventType, hash, sourceName, path string, changes []activitydb.FieldChange) {
 	details := activitydb.Details{
 		Source:    sourceName,

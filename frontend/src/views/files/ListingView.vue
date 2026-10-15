@@ -535,11 +535,11 @@ export default {
     }
 
     // if safari , make sure click and hold opens context menu, but not for any other browser
-    if (this.permissions?.modify || getters.isShare()) {
-      this.$el.addEventListener("dragenter", this.dragEnter);
-      this.$el.addEventListener("dragleave", this.dragLeave);
-      this.$el.addEventListener("drop", this.drop);
-    }
+    // Always listen: dragEnter and drop check create on the current source on every event. Deciding
+    // here, once, left no drop target after navigating from a source the user cannot write to.
+    this.$el.addEventListener("dragenter", this.dragEnter);
+    this.$el.addEventListener("dragleave", this.dragLeave);
+    this.$el.addEventListener("drop", this.drop);
   },
   beforeUnmount() {
     resetTypeAheadSession();
@@ -579,11 +579,9 @@ export default {
     }
 
     // Also clean up drag/drop listeners on the component's root element
-    if (state.user && this.permissions?.modify || getters.isShare()) {
-      this.$el.removeEventListener("dragenter", this.dragEnter);
-      this.$el.removeEventListener("dragleave", this.dragLeave);
-      this.$el.removeEventListener("drop", this.drop);
-    }
+    this.$el.removeEventListener("dragenter", this.dragEnter);
+    this.$el.removeEventListener("dragleave", this.dragLeave);
+    this.$el.removeEventListener("drop", this.drop);
   },
   methods: {
     observeListingContent() {
@@ -1092,6 +1090,19 @@ export default {
         return;
       }
 
+      const operation = this.clipboard.key === "x" ? "move" : "copy";
+      // Pasting writes into the current source; a cut also removes the items from where they were cut,
+      // and a share refuses any change unless it allows modify.
+      const canPaste =
+        getters.sourcePermissions().create &&
+        this.clipboard.items.every((item) => {
+          const origin = getters.sourcePermissions(item.fromSource);
+          return operation === "move" || getters.isShare() ? origin.modify : origin.download;
+        });
+      if (!canPaste) {
+        return;
+      }
+
       // Construct destination path properly (without URL prefix)
       const destPath = state.req.path.endsWith('/') ? state.req.path : `${state.req.path}/`;
 
@@ -1102,8 +1113,6 @@ export default {
         toSource: state.req.source,
         name: item.name,
       }));
-
-      const operation = this.clipboard.key === "x" ? "move" : "copy";
 
       // Show confirmation prompt first
       mutations.showPrompt({
@@ -1169,6 +1178,7 @@ export default {
         "application/x-filebrowser-internal-drag"
       );
       if (isInternal) return;
+      if (!getters.sourcePermissions().create) return;
 
       if (!this.$el.contains(event.relatedTarget)) {
         this.dragTargets.add(this.$el);
@@ -1190,8 +1200,12 @@ export default {
     },
     async drop(event) {
       event.preventDefault();
-      if (getters.isShare() && !state.shareInfo.allowCreate) {
-        return
+      // The drop listeners are always attached, so this is the gate: the source may be one the user
+      // cannot write to, or may have turned out read-only since dragEnter when its info arrived.
+      // Covers shares too (create = allowCreate). Clear the drop indicator dragEnter may have shown.
+      if (!getters.sourcePermissions().create) {
+        this.dragTargets.clear();
+        return;
       }
       const isInternal = Array.from(event.dataTransfer.types).includes(
         "application/x-filebrowser-internal-drag"

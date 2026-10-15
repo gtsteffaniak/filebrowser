@@ -119,6 +119,7 @@
     "el": "Ελληνικά",
     "en": "English",
     "es": "Español",
+    "eu": "Euskara",
     "fr": "Français",
     "he": "עברית",
     "hu": "Magyar",
@@ -1081,7 +1082,8 @@
       "webSessionNamed": "מפגש מקוון ({name})",
       "scopeAccess": "פעילות גישה",
       "eventAccessCreate": "גישה ליצירה",
-      "eventAccessDelete": "גישה ומחיקה"
+      "eventAccessDelete": "גישה ומחיקה",
+      "eventFileModify": "שינוי קובץ"
     },
     "toolAccessDefaults": "הגדרות ברירת מחדל לגישה לכלים",
     "toolAccessDefaultsDescription": "הגדר לאילו כלים יוכלו משתמשים חדשים לגשת כברירת מחדל",

@@ -552,7 +552,12 @@ func ServeSingleFile(w http.ResponseWriter, r *http.Request, d *Context, source 
 	}
 
 	SetContentDisposition(w, r, displayFileName, opts.ForceInline)
-	w.Header().Set("Cache-Control", "private")
+	// no-cache: the URL does not change when the file does, so browsers must revalidate
+	// (ServeContent answers 304 when unchanged) instead of reusing a stale copy. The ETag,
+	// from mtime in nanoseconds and size, catches an edit within the same second, which
+	// If-Modified-Since cannot; it costs no read of the file.
+	w.Header().Set("Cache-Control", "private, no-cache")
+	w.Header().Set("ETag", fmt.Sprintf(`"%x-%x"`, fileInfo.ModTime().UnixNano(), fileInfo.Size()))
 	w.Header().Set("X-Content-Type-Options", "nosniff")
 
 	var reader io.ReadSeeker = fd

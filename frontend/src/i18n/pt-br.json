@@ -119,6 +119,7 @@
     "el": "Ελληνικά",
     "en": "English",
     "es": "Español",
+    "eu": "Euskara",
     "fr": "Français",
     "he": "עברית",
     "hu": "Magyar",
@@ -1081,7 +1082,8 @@
       "webSessionNamed": "Sessão online ({name})",
       "scopeAccess": "Atividade de acesso",
       "eventAccessCreate": "Acessar criar",
-      "eventAccessDelete": "Acessar/Excluir"
+      "eventAccessDelete": "Acessar/Excluir",
+      "eventFileModify": "Modificação de arquivo"
     },
     "toolAccessDefaults": "Configurações padrão de acesso às ferramentas",
     "toolAccessDefaultsDescription": "Configure quais ferramentas os novos usuários podem acessar por padrão",

@@ -78,7 +78,8 @@ export default {
       return this.currentPrompt.props?.isSameFile === true;
     },
     canReplace() {
-      const canModify = !!getters.sourcePermissions().modify;
+      // Replacing changes the destination, which for copy/move is not the source being browsed
+      const canModify = !!getters.sourcePermissions(this.currentPrompt.props?.destSource).modify;
       if (getters.isShare()) {
         return canModify && !!state.shareInfo?.allowReplacements;
       }
