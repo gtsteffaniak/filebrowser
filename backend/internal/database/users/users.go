@@ -123,7 +123,9 @@ type Permissions struct {
 	Create     bool `json:"create,omitempty"`     // deprecated: legacy user migration only; not used for API tokens
 	Download   bool `json:"download,omitempty"`   // deprecated: legacy user migration only; not used for API tokens
 	View       bool `json:"view,omitempty"`       // deprecated: legacy user migration only; not used for API tokens
-	Configured bool `json:"configured,omitempty"` // true when explicitly set (allows intentional deny-all)
+	Configured bool `json:"-"`                    // true when explicitly set on create (allows intentional deny-all); not persisted or API-visible
+
+	PresentGlobalKeys GlobalPermissionsFieldMask `json:"-"` // JSON keys present on create-user permissions object
 }
 
 // MarkPermissionsConfigured marks account permissions as explicitly set (including all-false).
@@ -132,8 +134,23 @@ func MarkPermissionsConfigured(p Permissions) Permissions {
 	return p
 }
 
+// GlobalPermissionsFieldMaskFromPermissions returns keys recorded during Permissions JSON decode.
+func (p Permissions) GlobalPermissionsFieldMaskFromPermissions() GlobalPermissionsFieldMask {
+	return p.PresentGlobalKeys
+}
+
 // UnmarshalJSON sets Configured so an explicit all-false permissions object is distinct from omission.
+// JSON null and absent permissions do not set Configured.
 func (p *Permissions) UnmarshalJSON(data []byte) error {
+	trimmed := strings.TrimSpace(string(data))
+	if trimmed == "" || trimmed == "null" {
+		*p = Permissions{}
+		return nil
+	}
+	var obj map[string]json.RawMessage
+	if err := json.Unmarshal(data, &obj); err != nil {
+		return err
+	}
 	type plain Permissions
 	var tmp plain
 	if err := json.Unmarshal(data, &tmp); err != nil {
@@ -141,7 +158,20 @@ func (p *Permissions) UnmarshalJSON(data []byte) error {
 	}
 	*p = Permissions(tmp)
 	p.Configured = true
+	p.PresentGlobalKeys = GlobalPermissionsFieldMaskFromJSON(data)
 	return nil
+}
+
+// EffectiveGlobalPermissionsMask combines handler-parsed and permissions JSON key presence.
+func (u *User) EffectiveGlobalPermissionsMask() GlobalPermissionsFieldMask {
+	fromPerms := u.Permissions.GlobalPermissionsFieldMaskFromPermissions()
+	m := u.PermissionsFieldMask
+	return GlobalPermissionsFieldMask{
+		Admin:    m.Admin || fromPerms.Admin,
+		Api:      m.Api || fromPerms.Api,
+		Share:    m.Share || fromPerms.Share,
+		Realtime: m.Realtime || fromPerms.Realtime,
+	}
 }
 
 // SourceFilePermissions holds per-source file operation permissions (v4+).
@@ -226,6 +256,8 @@ type UserLegacyFields struct {
 type User struct {
 	FrontendUser
 	ID uint64 `json:"id,omitempty"`
+	// PermissionsFieldMask is set by POST /api/users from raw JSON; not persisted.
+	PermissionsFieldMask GlobalPermissionsFieldMask `json:"-"`
 	// BackendScopes is the authoritative, persisted access list (SourceScope.Name = backend source path).
 	// SQLite stores this inside user_data JSON under the key "scopes" (see sqldb.UserData).
 	BackendScopes            []BackendScope                   `json:"backendScopes,omitempty"`

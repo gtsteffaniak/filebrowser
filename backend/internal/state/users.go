@@ -211,25 +211,28 @@ func CreateUser(user *users.User, plaintextPassword string) error {
 	// If still no BackendScopes (omitted or invalid API names), same defaults as ApplyUserDefaults.
 	preserveRequirePasswordChange := user.RequirePasswordChange
 	requestedPermissions := user.Permissions
-	// Configured distinguishes an explicit all-false permissions object from omission
-	// (zero value). Any set bit still counts so Go callers that set Admin without
-	// MarkPermissionsConfigured (e.g. OIDC admin promotion) keep working.
-	permissionsRequested := requestedPermissions.Configured ||
-		requestedPermissions.Admin || requestedPermissions.Share ||
-		requestedPermissions.Api || requestedPermissions.Realtime ||
-		requestedPermissions.HasAnyFilePermission()
 	requestedScopePermissions := make(map[string]users.SourceFilePermissions, len(user.BackendScopes))
 	for _, scope := range user.BackendScopes {
 		if !scope.Permissions.IsUnset() {
 			requestedScopePermissions[scope.Path] = scope.Permissions
 		}
 	}
-	// Apply requested account permissions before defaults derive per-source file
-	// permissions. Otherwise admin defaults temporarily grant AdminSourceFilePermissions,
-	// then restoring Admin:false (while keeping e.g. Share:true) would leave admin-level
-	// file permissions on a non-admin user for default-enabled sources.
-	if permissionsRequested {
+	globalMask := user.EffectiveGlobalPermissionsMask()
+	// Configured distinguishes an explicit all-false permissions object from omission
+	// (zero value). Any set bit still counts so Go callers that set Admin without
+	// MarkPermissionsConfigured (e.g. OIDC admin promotion) keep working.
+	permissionsRequested := globalMask.Any() || requestedPermissions.Configured ||
+		requestedPermissions.Admin || requestedPermissions.Share ||
+		requestedPermissions.Api || requestedPermissions.Realtime ||
+		requestedPermissions.HasAnyFilePermission()
+	if globalMask.Any() {
+		defaultPerms := settings.ConvertPermissionsToUsers(EffectiveUserDefaults().Account.Permissions)
+		user.Permissions = users.MergeGlobalPermissionsOnCreate(defaultPerms, requestedPermissions, globalMask)
+	} else if permissionsRequested {
 		user.Permissions = requestedPermissions
+	}
+	// Apply profile/scope defaults using the final account permissions (admin flag drives scope defaults).
+	if permissionsRequested {
 		settings.ApplyUserDefaultsFromKeepingAccountPermissions(user, EffectiveUserDefaults())
 	} else {
 		applyUserSettingsDefaults(user)
@@ -237,6 +240,7 @@ func CreateUser(user *users.User, plaintextPassword string) error {
 	if preserveRequirePasswordChange {
 		user.RequirePasswordChange = true
 	}
+	user.PermissionsFieldMask = users.GlobalPermissionsFieldMask{}
 	for i, scope := range user.BackendScopes {
 		if perms, ok := requestedScopePermissions[scope.Path]; ok {
 			user.BackendScopes[i].Permissions = perms
