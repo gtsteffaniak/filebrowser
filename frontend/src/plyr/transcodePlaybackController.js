@@ -94,10 +94,14 @@ export class TranscodePlaybackController {
         mode,
         hasViewToken: Boolean(viewToken),
       });
+      // start() set the flag; clearing it here keeps later starts from coalescing
+      // onto this already-settled chain.
+      this.startInProgress = false;
       return { ok: false, reason: 'preconditions' };
     }
 
     if (this.disposed) {
+      this.startInProgress = false;
       return { ok: false, reason: 'disposed' };
     }
 
@@ -295,6 +299,9 @@ export class TranscodePlaybackController {
   teardownLocal({ stopSession = false } = {}) {
     this.attempt += 1;
     this._cancelInFlight({ stopSession });
+    // Invalidate any in-flight start: its finally block compares attempts and
+    // would otherwise leave the flag set, blocking every future start.
+    this.startInProgress = false;
   }
 
   updatePlayback({ currentTime, paused }) {

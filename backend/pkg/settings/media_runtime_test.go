@@ -9,7 +9,15 @@ import (
 func withMediaConfig(t *testing.T) {
 	t.Helper()
 	original := Config.Integrations.Media
-	t.Cleanup(func() { Config.Integrations.Media = original })
+	originalInitialized := ffmpegInitialized
+	originalAvailable := Env.FFmpegAvailable
+	originalHWAvailable := Env.HardwareAccelerationAvailable
+	t.Cleanup(func() {
+		Config.Integrations.Media = original
+		ffmpegInitialized = originalInitialized
+		Env.FFmpegAvailable = originalAvailable
+		Env.HardwareAccelerationAvailable = originalHWAvailable
+	})
 }
 
 func TestMediaAccessorsReflectRuntimeSettings(t *testing.T) {
@@ -127,6 +135,54 @@ func TestFFmpegInitInputsTrackOnlyInitRelevantFields(t *testing.T) {
 	}
 }
 
+// Changing an init-relevant input marks ffmpeg initialized (so a later startup
+// probe is skipped) and returns with mediaMu released, so media readers are never
+// blocked behind the multi-second hardware probe.
+func TestApplyMediaSettingsReleasesLockAndMarksInitialized(t *testing.T) {
+	withMediaConfig(t)
+	ffmpegInitialized = false
+
+	media := CurrentMediaSettings()
+	media.HardwareAcceleration = !media.HardwareAcceleration
+	ApplyMediaSettings(media)
+
+	if !ffmpegInitialized {
+		t.Fatal("an init-input change must mark ffmpeg as initialized")
+	}
+
+	// Reading through a locked accessor must not block: ApplyMediaSettings has
+	// returned and released mediaMu.
+	acquired := make(chan bool)
+	go func() { acquired <- HardwareAccelerationEnabled() }()
+	select {
+	case <-acquired:
+	case <-time.After(2 * time.Second):
+		t.Fatal("mediaMu is still held after ApplyMediaSettings returned")
+	}
+}
+
+// A patch that touches no init-relevant input must not trigger a re-probe.
+func TestApplyMediaSettingsSkipsInitWhenNothingRelevantChanged(t *testing.T) {
+	withMediaConfig(t)
+
+	media := CurrentMediaSettings()
+	media.Debug = !media.Debug // debug IS init-relevant
+	ffmpegInitialized = false
+	ApplyMediaSettings(media)
+	if !ffmpegInitialized {
+		t.Fatal("debug is an init input and must mark ffmpeg initialized")
+	}
+
+	ffmpegInitialized = false
+	media = CurrentMediaSettings()
+	media.Transcode.Profiles.DataSaver.AvgBitrateKbps = 1234
+	media.Transcode.CacheRetentionH = 12
+	ApplyMediaSettings(media)
+	if ffmpegInitialized {
+		t.Fatal("a profile/cache-only change must not trigger a re-probe")
+	}
+}
+
 // Media settings are read from request handlers and the transcode manager while
 // an admin PATCH swaps them, so the accessors must be safe under concurrency.
 func TestMediaAccessorsAreRaceFree(t *testing.T) {
@@ -173,7 +229,12 @@ func TestMediaAccessorsAreRaceFree(t *testing.T) {
 				_, _ = TranscodeProfileConfig("quality")
 				_ = MediaDebugEnabled()
 				_ = CanConvertImage("heic")
+				_ = CanConvertVideo("mp4")
 				_ = CurrentMediaSettings()
+				_ = MediaEnabled()
+				_ = HardwareAccelerationSupported()
+				_ = ExtractEmbeddedSubtitlesEnabled()
+				_ = HardwareAccelerationEnabled()
 			}
 		}()
 	}

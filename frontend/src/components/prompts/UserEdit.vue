@@ -1006,6 +1006,7 @@ export default {
         disableSettings: !!this.user.disableSettings,
         disableUpdateNotifications: !!this.user.disableUpdateNotifications,
         showAdvancedProfile: !!this.user.showAdvancedProfile,
+        maxConcurrentTranscodes: Math.max(1, Number(this.user.maxConcurrentTranscodes) || 1),
         permissions: {
           admin: !!permissions.admin,
           share: !!permissions.share,
@@ -1058,6 +1059,12 @@ export default {
         && !this.enforcedAccount.showAdvancedProfile
       ) {
         fields.push("showAdvancedProfile");
+      }
+      if (
+        current.maxConcurrentTranscodes !== orig.maxConcurrentTranscodes
+        && !this.enforcedAccount.maxConcurrentTranscodes
+      ) {
+        fields.push("maxConcurrentTranscodes");
       }
       if (JSON.stringify(current.permissions) !== JSON.stringify(orig.permissions)) {
         const permissionFields = ["admin", "share", "api", "realtime"];

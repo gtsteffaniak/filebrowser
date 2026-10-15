@@ -41,17 +41,18 @@ func WireServicesWithContext(ctx context.Context, store *state.Store) (*App, err
 	// Create the manager whenever ffmpeg is available so enabling transcoding at
 	// runtime (admin media settings) takes effect without a restart.
 	var transcodeMgr *transcoding.Manager
-	if settings.Env.FFmpegAvailable {
+	if settings.MediaEnabled() {
 		storeDir, err := transcoding.NewStore(settings.TranscodeCacheDir())
 		if err != nil {
 			return nil, err
 		}
-		baseURL := settings.Config.Http.BaseURL
-		if settings.Config.Http.ExternalUrl != "" {
-			baseURL = settings.Config.Http.ExternalUrl
-		}
+		// Root-relative delivery URLs only: the playlist and its segments are
+		// fetched from the same origin that served the page, so a subpath
+		// deployment or an alternate hostname (LAN IP, internal DNS) still
+		// resolves, and the session cookie is sent. http.externalUrl is stripped
+		// of the base path by setupUrls and would produce 404/401 URLs here.
 		transcodeMgr, err = transcoding.NewManager(ctx, transcoding.NewMediaEngine(), storeDir, transcoding.Options{
-			BaseURL: strings.TrimRight(baseURL, "/"),
+			BaseURL: strings.TrimRight(settings.Config.Http.BaseURL, "/"),
 		})
 		if err != nil {
 			return nil, err

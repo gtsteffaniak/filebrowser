@@ -372,6 +372,52 @@ func TestManagerSupersedesNonReusableSession(t *testing.T) {
 	}
 }
 
+// A replace target that already expired (janitor expiry, producer failure) must
+// not fail the start. No slot was released in that case, so the admission limits
+// still apply.
+func TestManagerStartToleratesExpiredReplaceSession(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	store, err := NewStore(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	mgr, err := NewManager(ctx, NewFakeEngine(), store, Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer mgr.Close(context.Background())
+
+	start := func(path string, userLimit int, replace string) (SessionInfo, error) {
+		t.Helper()
+		return mgr.Start(ctx, StartInput{
+			Username:         "expired-user",
+			UserLimit:        userLimit,
+			Source:           "s",
+			Path:             path,
+			RealPath:         t.TempDir() + path,
+			Profile:          ProfileQuality,
+			ReplaceSessionID: replace,
+			ClientID:         path,
+		})
+	}
+
+	if _, err := start("/a.mp4", 1, ""); err != nil {
+		t.Fatalf("first start: %v", err)
+	}
+
+	// A different file means no reuse, so this exercises the replace branch.
+	if _, err := start("/b.mp4", 2, "does-not-exist"); err != nil {
+		t.Fatalf("an expired replace target must not fail the start: %v", err)
+	}
+
+	// Nothing was replaced, so the per-user limit still applies.
+	if _, err := start("/c.mp4", 2, "also-missing"); err != ErrUserLimit {
+		t.Fatalf("want ErrUserLimit when no slot was released, got %v", err)
+	}
+}
+
 func TestManagerProducersKeyedBySessionID(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()

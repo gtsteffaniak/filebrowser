@@ -9,7 +9,16 @@ import (
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
-const mediaSettingsDefaultKey = "media.default"
+const (
+	mediaSettingsDefaultKey   = "media.default"
+	mediaSettingsMigrationKey = "media.migrations"
+)
+
+// mediaMigrations records the one-time media settings migrations that already
+// ran, so a value an admin deliberately sets afterwards is never overwritten.
+type mediaMigrations struct {
+	DataSaverBitrate bool `json:"dataSaverBitrate"`
+}
 
 var (
 	mediaSettingsMu      sync.RWMutex
@@ -30,12 +39,7 @@ func InitMediaSettings() error {
 		return fmt.Errorf("load media settings: %w", err)
 	}
 	loaded = settings.SanitizeMediaSettings(loaded)
-	if migrated, changed := settings.MigrateLegacyMediaDefaults(loaded); changed {
-		loaded = migrated
-		if saveErr := sqlDb.SaveSetting(mediaSettingsDefaultKey, loaded); saveErr != nil {
-			logger.Warningf("failed to persist media settings migration: %v", saveErr)
-		}
-	}
+	loaded = applyMediaMigrationsOnce(loaded)
 
 	// Media settings pinned in the config file win over stored values, and are
 	// locked in the admin UI.
@@ -71,6 +75,40 @@ func loadMediaSettingsSetting(key string) (settings.MediaSettings, error) {
 	return ms, nil
 }
 
+// applyMediaMigrationsOnce upgrades legacy stored values exactly once. The
+// data-saver bitrate migration matches "720p + 0 kbps", which an admin may set
+// deliberately later, so it must not run again on every startup.
+func applyMediaMigrationsOnce(loaded settings.MediaSettings) settings.MediaSettings {
+	migrations := loadMediaMigrations()
+	if migrations.DataSaverBitrate {
+		return loaded
+	}
+	if migrated, changed := settings.MigrateLegacyMediaDefaults(loaded); changed {
+		loaded = migrated
+		if saveErr := sqlDb.SaveSetting(mediaSettingsDefaultKey, loaded); saveErr != nil {
+			logger.Warningf("failed to persist media settings migration: %v", saveErr)
+		}
+	}
+	migrations.DataSaverBitrate = true
+	if saveErr := sqlDb.SaveSetting(mediaSettingsMigrationKey, migrations); saveErr != nil {
+		logger.Warningf("failed to persist media migrations marker: %v", saveErr)
+	}
+	return loaded
+}
+
+func loadMediaMigrations() mediaMigrations {
+	raw, err := sqlDb.GetSetting(mediaSettingsMigrationKey)
+	if err != nil {
+		return mediaMigrations{}
+	}
+	var migrations mediaMigrations
+	if err := json.Unmarshal(raw, &migrations); err != nil {
+		logger.Warningf("failed to parse media migrations marker: %v", err)
+		return mediaMigrations{}
+	}
+	return migrations
+}
+
 // GetMediaSettings returns the runtime media settings.
 func GetMediaSettings() settings.MediaSettings {
 	mediaSettingsMu.RLock()
@@ -97,7 +135,11 @@ func PatchMediaSettings(patchJSON []byte) error {
 	}
 
 	mediaSettingsDefault = merged
-	settings.ApplyMediaSettings(merged)
 	mediaSettingsMu.Unlock()
+
+	// Applies to the in-memory config and, when an ffmpeg init input changed,
+	// re-runs the hardware codec probe. Done outside the lock so media reads are
+	// not blocked behind a multi-second probe.
+	settings.ApplyMediaSettings(merged)
 	return nil
 }

@@ -2,15 +2,20 @@ package settings
 
 import "sync"
 
-// mediaMu guards the runtime media integration settings. ApplyMediaSettings
-// replaces whole sub-objects (including the conversion maps) while request
-// handlers and the transcode manager read them, so every access goes through
-// this lock.
+// mediaMu guards the runtime media integration settings and the Env fields that
+// ffmpeg initialization publishes. ApplyMediaSettings replaces whole sub-objects
+// (including the conversion maps) while request handlers and the transcode
+// manager read them, so every access goes through this lock.
 var mediaMu sync.RWMutex
+
+// ffmpegInitMu serializes ffmpeg (re-)initialization. The hardware codec probe
+// takes seconds, so it runs outside mediaMu and only one probe may be in flight.
+var ffmpegInitMu sync.Mutex
 
 // ffmpegInitialized records whether ffmpeg has been initialized. Startup defers
 // initialization until persisted media settings have been applied, and this keeps
 // it to a single hardware codec probe even when ApplyMediaSettings runs first.
+// Guarded by mediaMu.
 var ffmpegInitialized bool
 
 // ConfigMediaIntegration returns a snapshot of the media integration settings
@@ -26,6 +31,14 @@ func HardwareAccelerationEnabled() bool {
 	mediaMu.RLock()
 	defer mediaMu.RUnlock()
 	return Config.Integrations.Media.HardwareAcceleration
+}
+
+// HardwareAccelerationSupported reports whether the host has a usable ffmpeg
+// hardware encoder, as detected during initialization.
+func HardwareAccelerationSupported() bool {
+	mediaMu.RLock()
+	defer mediaMu.RUnlock()
+	return Env.HardwareAccelerationAvailable
 }
 
 // MediaDebugEnabled reports whether verbose ffmpeg output is enabled.

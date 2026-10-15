@@ -111,9 +111,34 @@ export function attachHlsToVideo({
   if (!Hls.isSupported()) {
     if (video.canPlayType('application/vnd.apple.mpegurl')) {
       transcodeLog('hls attach using native HLS', { playlistURL });
+      if (signal?.aborted) {
+        const error = new Error('HLS attach aborted');
+        error.name = 'AbortError';
+        return Promise.reject(error);
+      }
+      // Native HLS has no hls.js events, so report readiness from the element.
+      // onFirstBuffered marks the session active, applies the start position and
+      // resumes the primed play promise; without it playback stays paused.
+      let reportedReady = false;
+      const onReady = () => {
+        if (reportedReady || signal?.aborted) {
+          return;
+        }
+        reportedReady = true;
+        onFirstBuffered?.(video);
+      };
+      const onAbortNative = () => {
+        video.removeEventListener('loadeddata', onReady);
+        video.removeEventListener('canplay', onReady);
+      };
+      signal?.addEventListener('abort', onAbortNative, { once: true });
+      video.addEventListener('loadeddata', onReady, { once: true });
+      video.addEventListener('canplay', onReady, { once: true });
       video.src = playlistURL;
       return Promise.resolve({
         cleanup: () => {
+          onAbortNative();
+          signal?.removeEventListener('abort', onAbortNative);
           video.removeAttribute('src');
           video.load();
         },

@@ -75,8 +75,7 @@ describe('TranscodePlaybackController', () => {
     expect(attachHlsToVideo).toHaveBeenCalledOnce();
   });
 
-  it('works when Vue wraps the controller in a reactive proxy', async () => {
-    const controller = reactive(new TranscodePlaybackController());
+  it('works when Vue wraps the controller in a reactive proxy', async () => {    const controller = reactive(new TranscodePlaybackController());
     const video = document.createElement('video');
     const result = await controller.start({
       source: 's',
@@ -166,5 +165,103 @@ describe('TranscodePlaybackController', () => {
     expect(secondResult.ok).toBe(true);
     expect(controller.active).toBe(true);
     expect(attachHlsToVideo).toHaveBeenCalledOnce();
+  });
+
+  it('clears startInProgress when preconditions fail so a later start still runs', async () => {
+    const controller = new TranscodePlaybackController();
+    const video = document.createElement('video');
+
+    const skipped = await controller.start({
+      source: 's',
+      path: '/v.mp4',
+      viewToken: '',
+      mode: 'quality',
+      getVideoElement: () => video,
+      nextTick: async () => {},
+      shouldAutoplay: false,
+    });
+
+    expect(skipped).toMatchObject({ ok: false, reason: 'preconditions' });
+    expect(controller.startInProgress).toBe(false);
+
+    const result = await controller.start({
+      source: 's',
+      path: '/v.mp4',
+      viewToken: 'token',
+      mode: 'quality',
+      clientId: 'c1',
+      startSec: 0,
+      getVideoElement: () => video,
+      nextTick: async () => {},
+      shouldAutoplay: false,
+    });
+
+    expect(result.ok).toBe(true);
+    expect(attachHlsToVideo).toHaveBeenCalledOnce();
+  });
+
+  it('clears startInProgress when disposed', async () => {
+    const controller = new TranscodePlaybackController();
+    controller.disposed = true;
+
+    const result = await controller.start({
+      source: 's',
+      path: '/v.mp4',
+      viewToken: 'token',
+      mode: 'quality',
+      getVideoElement: () => document.createElement('video'),
+      nextTick: async () => {},
+      shouldAutoplay: false,
+    });
+
+    expect(result).toMatchObject({ ok: false, reason: 'disposed' });
+    expect(controller.startInProgress).toBe(false);
+  });
+
+  it('clears startInProgress when torn down mid-start', async () => {
+    const controller = new TranscodePlaybackController();
+    const video = document.createElement('video');
+    let resolveAttach;
+    vi.mocked(attachHlsToVideo).mockReturnValueOnce(new Promise((resolve) => {
+      resolveAttach = resolve;
+    }));
+
+    const pending = controller.start({
+      source: 's',
+      path: '/v.mp4',
+      viewToken: 'token',
+      mode: 'quality',
+      clientId: 'c1',
+      startSec: 0,
+      getVideoElement: () => video,
+      nextTick: async () => {},
+      shouldAutoplay: false,
+    });
+
+    // Let the start reach the HLS attach stage before tearing it down.
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(attachHlsToVideo).toHaveBeenCalledOnce();
+
+    // teardownLocal invalidates the attempt; its finally block skips the reset.
+    controller.teardownLocal();
+    expect(controller.startInProgress).toBe(false);
+
+    resolveAttach({ cleanup: vi.fn() });
+    const result = await pending;
+    expect(result).toMatchObject({ ok: false, reason: 'stale' });
+
+    // A later start must not coalesce onto the settled chain.
+    const restarted = await controller.start({
+      source: 's',
+      path: '/v.mp4',
+      viewToken: 'token',
+      mode: 'quality',
+      clientId: 'c2',
+      startSec: 0,
+      getVideoElement: () => video,
+      nextTick: async () => {},
+      shouldAutoplay: false,
+    });
+    expect(restarted.ok).toBe(true);
   });
 });

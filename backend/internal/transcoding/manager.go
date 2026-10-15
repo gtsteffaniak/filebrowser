@@ -235,19 +235,25 @@ func (m *Manager) Start(ctx context.Context, in StartInput) (SessionInfo, error)
 			continue
 		}
 
+		// An already-expired replace target (janitor expiry, producer failure) means
+		// there is nothing to replace, not a failed start. The admission checks
+		// below still apply in that case because no slot was released.
+		replaced := false
 		if in.ReplaceSessionID != "" {
-			if err := m.stopSessionLocked(in.Username, in.ReplaceSessionID); err != nil {
+			stopErr := m.stopSessionLocked(in.Username, in.ReplaceSessionID)
+			if stopErr != nil && !errors.Is(stopErr, ErrNotFound) {
 				m.mu.Unlock()
-				return SessionInfo{}, err
+				return SessionInfo{}, stopErr
 			}
+			replaced = stopErr == nil
 		}
 
 		userLimit := userTranscodeLimit(in.UserLimit)
-		if m.userCounts[in.Username] >= userLimit && in.ReplaceSessionID == "" {
+		if m.userCounts[in.Username] >= userLimit && !replaced {
 			m.mu.Unlock()
 			return SessionInfo{}, ErrUserLimit
 		}
-		if m.globalCount >= settings.TranscodeMaxConcurrent() && in.ReplaceSessionID == "" {
+		if m.globalCount >= settings.TranscodeMaxConcurrent() && !replaced {
 			m.mu.Unlock()
 			return SessionInfo{}, ErrGlobalLimit
 		}

@@ -37,11 +37,20 @@ func transcodeStartHandler(w http.ResponseWriter, r *http.Request, d *Context) (
 	}
 	req.Source = strings.TrimSpace(req.Source)
 	req.Path = strings.TrimSpace(req.Path)
-	if req.Path != "" && !strings.HasPrefix(req.Path, "/") {
-		req.Path = "/" + req.Path
-	}
 	if req.Source == "" || req.Path == "" {
 		return http.StatusBadRequest, fmt.Errorf("source and path are required")
+	}
+	// Normalize before the access check: the access layer preserves ".." segments
+	// while GetRealPathScoped cleans and joins them, so a path like
+	// /public/../private/secret.mp4 could otherwise bypass a deny rule for
+	// /private/.
+	cleanPath, cleanErr := utils.SanitizePath(req.Path)
+	if cleanErr != nil {
+		return http.StatusBadRequest, cleanErr
+	}
+	req.Path = cleanPath
+	if !strings.HasPrefix(req.Path, "/") {
+		req.Path = "/" + req.Path
 	}
 	if err := ValidateViewGrant(strings.TrimSpace(req.ViewToken), d, req.Source); err != nil {
 		return http.StatusForbidden, err
@@ -97,6 +106,9 @@ func transcodeStartHandler(w http.ResponseWriter, r *http.Request, d *Context) (
 		code = http.StatusOK
 	}
 	w.Header().Set("Content-Type", "application/json")
+	// Write the status before the body: Encode would otherwise commit an implicit
+	// 200 and a new session could never report 201.
+	w.WriteHeader(code)
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		return http.StatusInternalServerError, err
 	}

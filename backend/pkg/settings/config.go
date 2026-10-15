@@ -434,31 +434,46 @@ func isGoTest() bool {
 	return flag.Lookup("test.v") != nil
 }
 
+// setupFFmpegIntegration probes ffmpeg and publishes the resulting Env fields.
+// The probe runs without mediaMu so media readers (transcode admission, preview
+// type selection, static page rendering) are not blocked for seconds, and it is
+// serialized by ffmpegInitMu. Callers must not hold mediaMu.
 func setupFFmpegIntegration() {
-	ffmpegInitialized = true
-	n := Config.Server.NumImageProcessors
+	ffmpegInitMu.Lock()
+	defer ffmpegInitMu.Unlock()
+
+	mediaMu.RLock()
+	numImageProcessors := Config.Server.NumImageProcessors
+	cacheDir := Config.Server.CacheDir
+	ffmpegPath := Config.Integrations.Media.FfmpegPath
+	hardwareAcceleration := Config.Integrations.Media.HardwareAcceleration
+	debug := Config.Integrations.Media.Debug
+	maxConcurrent := Config.Integrations.Media.Transcode.MaxConcurrent
+	mediaMu.RUnlock()
+
+	n := numImageProcessors
 	if n < 1 {
 		n = 4
 	}
 	maxDecode := (n + 1) / 2
-	maxEncode := Config.Integrations.Media.Transcode.MaxConcurrent
+	maxEncode := maxConcurrent
 	if maxEncode < 1 {
 		maxEncode = 2
 	}
 	initOpts := ffmpeg.InitOptions{
-		FFmpegPath: Config.Integrations.Media.FfmpegPath,
+		FFmpegPath: ffmpegPath,
 		Concurrency: goffmpeg.Concurrency{
 			MaxProbe:  16,
 			MaxDecode: maxDecode,
 			MaxEncode: maxEncode,
 		},
-		CacheDir:             Config.Server.CacheDir,
-		HardwareAcceleration: Config.Integrations.Media.HardwareAcceleration,
-		VerboseFFmpeg:        Config.Integrations.Media.Debug,
+		CacheDir:             cacheDir,
+		HardwareAcceleration: hardwareAcceleration,
+		VerboseFFmpeg:        debug,
 	}
 	// Hardware codec detection always runs so the setting can be toggled at
 	// runtime; when it is off, software encoders are preferred instead.
-	if !Config.Integrations.Media.HardwareAcceleration {
+	if !hardwareAcceleration {
 		initOpts.EncoderHierarchy = []capabilities.AccelType{capabilities.AccelNone}
 		// A config file that pins hardwareAcceleration: false opts out of the
 		// multi-second probe entirely, since the value cannot be changed here.
@@ -469,22 +484,28 @@ func setupFFmpegIntegration() {
 	err := ffmpeg.Initialize(context.Background(), initOpts)
 	if err != nil {
 		logger.Warningf("ffmpeg unavailable: %v", err)
-		Env.FFmpegAvailable = false
-		Env.FFmpegPath = ""
-		Env.FFprobePath = ""
+		publishFFmpegEnv(false, "", "", false)
 		return
 	}
 
 	svc := ffmpeg.Get()
 	if svc == nil {
-		Env.FFmpegAvailable = false
+		publishFFmpegEnv(false, "", "", false)
 		return
 	}
 
-	Env.FFmpegAvailable = true
-	Env.FFmpegPath = svc.FFmpegPath()
-	Env.FFprobePath = svc.FFprobePath()
-	Env.HardwareAccelerationAvailable = svc.HardwareAccelerationAvailable()
+	publishFFmpegEnv(true, svc.FFmpegPath(), svc.FFprobePath(), svc.HardwareAccelerationAvailable())
+}
+
+// publishFFmpegEnv records the ffmpeg detection results under the media lock so
+// readers never observe a partially updated set of Env fields.
+func publishFFmpegEnv(available bool, ffmpegPath, ffprobePath string, hardwareAcceleration bool) {
+	mediaMu.Lock()
+	defer mediaMu.Unlock()
+	Env.FFmpegAvailable = available
+	Env.FFmpegPath = ffmpegPath
+	Env.FFprobePath = ffprobePath
+	Env.HardwareAccelerationAvailable = hardwareAcceleration
 }
 
 // InitFFmpeg initializes ffmpeg with the effective media settings. Startup calls
@@ -493,10 +514,12 @@ func setupFFmpegIntegration() {
 // been initialized (for example when ApplyMediaSettings triggered it first).
 func InitFFmpeg() {
 	mediaMu.Lock()
-	defer mediaMu.Unlock()
 	if isGoTest() || ffmpegInitialized {
+		mediaMu.Unlock()
 		return
 	}
+	ffmpegInitialized = true
+	mediaMu.Unlock()
 	setupFFmpegIntegration()
 }
 
@@ -1275,11 +1298,10 @@ func currentMediaSettingsLocked() MediaSettings {
 // ApplyMediaSettings applies runtime media settings to the in-memory config.
 // ffmpeg is re-initialized only when an input that affects initialization
 // changed, so toggling conversion formats, profiles, or cache limits does not
-// re-run the multi-second hardware codec probe.
+// re-run the multi-second hardware codec probe. The probe itself runs after
+// releasing mediaMu so media readers are not blocked behind it.
 func ApplyMediaSettings(s MediaSettings) {
 	mediaMu.Lock()
-	defer mediaMu.Unlock()
-
 	before := currentFFmpegInitInputs()
 	Config.Integrations.Media.Convert = s.Convert
 	Config.Integrations.Media.Debug = s.Debug
@@ -1289,10 +1311,17 @@ func ApplyMediaSettings(s MediaSettings) {
 	applyMediaConvertDefaults()
 	setupMediaTranscode()
 
-	if isGoTest() || currentFFmpegInitInputs() == before {
-		return
+	changed := currentFFmpegInitInputs() != before
+	if changed {
+		// Record that the new inputs have been applied so a later startup
+		// InitFFmpeg does not run a second probe.
+		ffmpegInitialized = true
 	}
-	setupFFmpegIntegration()
+	mediaMu.Unlock()
+
+	if changed && !isGoTest() {
+		setupFFmpegIntegration()
+	}
 }
 
 // TranscodeCacheMaxSizeBytes returns the configured disk cache limit in bytes.
