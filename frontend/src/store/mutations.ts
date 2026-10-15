@@ -1333,7 +1333,7 @@ export const mutations = {
     updateManifestLink();
     emitStateChanged();
   },
-  setSidebarWidth: (value: number, persist = true) => {
+  setSidebarWidth: (value: number) => {
     // Ensure width is within bounds
     const minWidth = state.sidebar.minWidth;
     const maxWidth = state.sidebar.maxWidth;
@@ -1342,9 +1342,6 @@ export const mutations = {
       return;
     }
     state.sidebar.width = newWidth;
-    if (persist) {
-      localStorage.setItem("sidebarWidth", newWidth.toString());
-    }
     emitStateChanged();
   },
   persistSidebarWidth: () => {
