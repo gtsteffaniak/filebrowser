@@ -16,9 +16,9 @@ import (
 	commonerrors "github.com/gtsteffaniak/filebrowser/backend/internal/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/quota"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
-	"github.com/gtsteffaniak/go-logger/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
+	"github.com/gtsteffaniak/go-logger/logger"
 )
 
 func uploadQuotaContext(d *Context, sourceName, fullIndexPath, realPath string, r *http.Request, sessionID string, totalSize int64, hasTotalSize bool) quota.UploadContext {
@@ -134,6 +134,15 @@ func sanitizePutFinalizeError(err error) (int, error) {
 // The bool is true when the quota reservation should still be released by the caller.
 func finalizeQuotaPut(quotaCtx quota.UploadContext, tempPath, realPath, sourceName string, written, totalSize int64, hasTotalSize bool, contentLength int64) (bool, error) {
 	if err := validateReceivedBytes(written, totalSize, hasTotalSize, contentLength); err != nil {
+		_ = os.Remove(tempPath)
+		return true, err
+	}
+	if info, err := os.Stat(realPath); err == nil {
+		if err = os.Chmod(tempPath, info.Mode().Perm()); err != nil {
+			_ = os.Remove(tempPath)
+			return true, err
+		}
+	} else if !os.IsNotExist(err) {
 		_ = os.Remove(tempPath)
 		return true, err
 	}

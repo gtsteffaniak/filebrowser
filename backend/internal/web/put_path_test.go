@@ -6,9 +6,11 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 
+	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/fileutils"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/app"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 	commonerrors "github.com/gtsteffaniak/filebrowser/backend/internal/errors"
@@ -115,6 +117,61 @@ func TestResourcePutHandler_CreatesNewFile(t *testing.T) {
 	}
 	if info.Size() != int64(len(body)) {
 		t.Fatalf("size=%d want %d", info.Size(), len(body))
+	}
+}
+
+func TestResourcePutHandler_PreservesFilePermissions(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Unix permission bits are not supported on Windows")
+	}
+	originalPerm := fileutils.PermFile
+	fileutils.PermFile = 0600
+	t.Cleanup(func() { fileutils.PermFile = originalPerm })
+
+	for _, tc := range []struct {
+		name string
+		mode os.FileMode
+	}{
+		{"new", 0},
+		{"readable", 0604},
+		{"executable", 0755},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			root := setupPutHTTPTest(t)
+			path := filepath.Join(root, "projects", "edit.txt")
+			if tc.mode != 0 {
+				if err := os.WriteFile(path, []byte("before"), 0600); err != nil {
+					t.Fatal(err)
+				}
+				if err := os.Chmod(path, tc.mode); err != nil {
+					t.Fatal(err)
+				}
+			}
+			admin, err := state.GetUserByUsername("admin")
+			if err != nil {
+				t.Fatal(err)
+			}
+			req := httptest.NewRequest(http.MethodPut, "/api/resources?source=Downloads&path=/projects/edit.txt", strings.NewReader("after"))
+			status, err := resourcePutHandler(httptest.NewRecorder(), req, &requestContext{User: &admin})
+			if err != nil || status != http.StatusOK {
+				t.Fatalf("put failed: status=%d err=%v", status, err)
+			}
+			content, err := os.ReadFile(path)
+			if err != nil || string(content) != "after" {
+				t.Fatalf("content=%q err=%v", content, err)
+			}
+			info, err := os.Stat(path)
+			if err != nil {
+				t.Fatal(err)
+			}
+			want := tc.mode
+			if want == 0 {
+				want = 0600
+			}
+			if info.Mode().Perm() != want {
+				t.Fatalf("permissions=%04o want %04o", info.Mode().Perm(), want)
+			}
+		})
 	}
 }
 
