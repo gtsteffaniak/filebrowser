@@ -228,19 +228,6 @@ router.beforeResolve(async (to, from) => {
   return true;
 });
 
-function getParentOrigin(): string {
-  const ancestor = window.location.ancestorOrigins?.[0];
-  if (ancestor && ancestor !== "null") {
-    return ancestor;
-  }
-  try {
-    const origin = document.referrer ? new URL(document.referrer).origin : "";
-    return origin && origin !== "null" ? origin : "*";
-  } catch (_error) {
-    return "*";
-  }
-}
-
 router.afterEach((to) => {
   // Only postMessage if running in an iframe
   if (window.self !== window.top) {
@@ -249,7 +236,7 @@ router.afterEach((to) => {
         type: "filebrowser:navigation",
         url: to.fullPath,
       },
-      getParentOrigin()
+      "*"
     );
   }
 });
