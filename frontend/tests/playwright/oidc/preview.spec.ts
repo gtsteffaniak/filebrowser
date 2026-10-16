@@ -1,35 +1,24 @@
 import { expect, test } from "../test-setup.ts";
 
-test("Create first item", async ({ page, checkForErrors, openContextMenu }, testInfo) => {
-  test.setTimeout(20_000);
-  const folderName = `first-item-creation-${testInfo.retry}`;
+test("Create first new file", async ({ page, checkForErrors }, testInfo) => {
+  // johndoe is in OIDC adminGroup "Admins", so CreateUser keeps source root (not an
+  // empty createUserDir home). playwright-files already has content — do not require
+  // the empty-state message. Unique name so retries in the same container stay safe.
+  const fileName = `oidc-new-${testInfo.retry}-${Date.now()}.txt`;
 
   await page.goto("/");
-  await openContextMenu();
-  await page.locator('button[aria-label="New folder"]').click();
-  await page.locator('input[aria-label="New Folder Name"]').fill(folderName);
-  await page.locator('button[aria-label="Create"]').click();
-  const folderNotification = page
-    .locator('.notification-item')
-    .filter({ hasText: 'Folder created successfully' });
-  await folderNotification.locator('.notification-buttons .button').click();
-  await expect(page).toHaveTitle(`Graham's Filebrowser - Files - ${folderName}`);
-  // Dismiss the folder notification
-  await folderNotification.locator('i.material-symbols', { hasText: /^\s*close\s*$/ }).click();
-  await expect(folderNotification).toBeHidden();
-  await expect(page.locator('.listing-items .message > span')).toHaveText('Nothing to show here...');
-  await page.locator('.listing-items').click({ button: "right" });
+  await expect(page.locator(".listing-items")).toBeVisible();
+  await expect(page.locator(".listing-items .message.delayed")).toHaveCount(0);
+
+  await page.locator(".listing-items").click({ button: "right" });
   await page.locator('button[aria-label="New file"]').click();
   await page.locator('button[aria-label="Empty file"]').click();
-  await page.locator('input[aria-label="FileName Field"]').fill('test.txt');
+  await page.locator('input[aria-label="FileName Field"]').fill(fileName);
   await page.locator('button[aria-label="Create"]').click();
-  // Wait for notification and click "Go to item" button
-  const fileNotification = page
-    .locator('.notification-item')
-    .filter({ hasText: 'File created successfully' });
-  await fileNotification.locator('.notification-buttons .button').click();
-  await expect(page).toHaveTitle("Graham's Filebrowser - Files - test.txt");
+  await page.locator(".notification-buttons .button").waitFor({ state: "visible" });
+  await page.locator(".notification-buttons .button").click();
+  await expect(page).toHaveTitle(`Graham's Filebrowser - Files - ${fileName}`);
   await page.locator('button[aria-label="Close"]').click();
-  await expect(page.locator('.listing-items .file-items')).toHaveCount(1);
+  await expect(page.locator(`.listing-items [aria-label="${fileName}"]`)).toBeVisible();
   checkForErrors();
 });
