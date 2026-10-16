@@ -163,6 +163,136 @@ func TestGetRealPathScoped_CacheKeyDoesNotCollideWithUnscoped(t *testing.T) {
 	}
 }
 
+func TestGetRealPathForMutation_ExistingInScope(t *testing.T) {
+	sourceRoot, userScope := setupSymlinkEscapeFixture(t)
+	idx := symlinkTestIndex(sourceRoot)
+
+	realPath, err := idx.GetRealPathForMutation(userScope, "/user1/allowed.txt")
+	if err != nil {
+		t.Fatalf("expected in-scope path to resolve: %v", err)
+	}
+	want, err := filepath.EvalSymlinks(filepath.Join(sourceRoot, "user1", "allowed.txt"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if realPath != want {
+		t.Fatalf("got %q, want %q", realPath, want)
+	}
+}
+
+func TestGetRealPathForMutation_RejectsEscapingLeaf(t *testing.T) {
+	sourceRoot, userScope := setupSymlinkEscapeFixture(t)
+	idx := symlinkTestIndex(sourceRoot)
+
+	if _, err := idx.GetRealPathForMutation(userScope, "/user1/secret_link"); !errors.Is(err, liberrors.ErrPathEscapesScope) {
+		t.Fatalf("expected ErrPathEscapesScope, got %v", err)
+	}
+}
+
+func TestGetRealPathForMutation_AllowsMissingLeafInScope(t *testing.T) {
+	sourceRoot, userScope := setupSymlinkEscapeFixture(t)
+	idx := symlinkTestIndex(sourceRoot)
+
+	realPath, err := idx.GetRealPathForMutation(userScope, "/user1/newfile.txt")
+	if err != nil {
+		t.Fatalf("expected missing leaf under existing dir to resolve: %v", err)
+	}
+	want, err := filepath.EvalSymlinks(filepath.Join(sourceRoot, "user1", "newfile.txt"))
+	if err != nil {
+		// Leaf does not exist; resolve the parent instead.
+		parent, perr := filepath.EvalSymlinks(filepath.Join(sourceRoot, "user1"))
+		if perr != nil {
+			t.Fatal(perr)
+		}
+		want = filepath.Join(parent, "newfile.txt")
+	}
+	if realPath != want {
+		t.Fatalf("got %q, want %q", realPath, want)
+	}
+}
+
+func TestGetRealPathForMutation_RejectsMissingLeafUnderEscapingParent(t *testing.T) {
+	sourceRoot, userScope := setupSymlinkEscapeFixture(t)
+	idx := symlinkTestIndex(sourceRoot)
+
+	userDir := filepath.Join(sourceRoot, "user1")
+	outsideDir := filepath.Join(filepath.Dir(sourceRoot), "outside-dir")
+	if err := os.MkdirAll(outsideDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Symlink(outsideDir, filepath.Join(userDir, "evil_dir")); err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := idx.GetRealPathForMutation(userScope, "/user1/evil_dir/hack.txt"); !errors.Is(err, liberrors.ErrPathEscapesScope) {
+		t.Fatalf("expected ErrPathEscapesScope for missing leaf under escaping parent, got %v", err)
+	}
+}
+
+func TestGetRealPathForRemoval_PreservesSymlinkLeaf(t *testing.T) {
+	sourceRoot, userScope := setupSymlinkEscapeFixture(t)
+	idx := symlinkTestIndex(sourceRoot)
+
+	// Removal semantics must return the link itself (parent resolved, leaf not
+	// followed) so delete removes the link rather than its target.
+	realPath, err := idx.GetRealPathForRemoval(userScope, "/user1/secret_link")
+	if err != nil {
+		t.Fatalf("expected link path to resolve for removal: %v", err)
+	}
+	parent, err := filepath.EvalSymlinks(filepath.Join(sourceRoot, "user1"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := filepath.Join(parent, "secret_link")
+	if realPath != want {
+		t.Fatalf("got %q, want link itself %q", realPath, want)
+	}
+}
+
+func TestGetRealPathForRemoval_RejectsEscapingIntermediate(t *testing.T) {
+	sourceRoot, userScope := setupSymlinkEscapeFixture(t)
+	idx := symlinkTestIndex(sourceRoot)
+
+	userDir := filepath.Join(sourceRoot, "user1")
+	outsideDir := filepath.Join(filepath.Dir(sourceRoot), "outside-dir2")
+	if err := os.MkdirAll(outsideDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Symlink(outsideDir, filepath.Join(userDir, "evil_dir")); err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := idx.GetRealPathForRemoval(userScope, "/user1/evil_dir/victim.txt"); !errors.Is(err, liberrors.ErrPathEscapesScope) {
+		t.Fatalf("expected ErrPathEscapesScope for removal under escaping parent, got %v", err)
+	}
+}
+
+func TestGetRealPathForMutation_EnforcesBoundInsideSource(t *testing.T) {
+	sourceRoot, userScope := setupSymlinkEscapeFixture(t)
+	idx := symlinkTestIndex(sourceRoot)
+
+	// Link inside the user scope pointing elsewhere inside the source is allowed
+	// for the source bound but denied for the narrower user-scope bound.
+	insideSource := filepath.Join(sourceRoot, "other", "file.txt")
+	if err := os.MkdirAll(filepath.Dir(insideSource), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(insideSource, []byte("x"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	userDir := filepath.Join(sourceRoot, "user1")
+	if err := os.Symlink(insideSource, filepath.Join(userDir, "cross_link")); err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := idx.GetRealPathForMutation("/", "/user1/cross_link"); err != nil {
+		t.Fatalf("source-bound resolution should allow in-source target: %v", err)
+	}
+	if _, err := idx.GetRealPathForMutation(userScope, "/user1/cross_link"); !errors.Is(err, liberrors.ErrPathEscapesScope) {
+		t.Fatalf("expected ErrPathEscapesScope under user bound, got %v", err)
+	}
+}
+
 func TestGetFileInfo_RejectsSymlinkEscapeWithBound(t *testing.T) {
 	sourceRoot, userScope := setupSymlinkEscapeFixture(t)
 	idx := symlinkTestIndex(sourceRoot)

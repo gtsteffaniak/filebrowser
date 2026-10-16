@@ -1,6 +1,7 @@
 package indexing
 
 import (
+	stderrors "errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -1060,6 +1061,11 @@ func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, indexPath strin
 	return idx.GetDirInfoCore(dirInfo, stat, indexPath, opts, scanner)
 }
 
+// GetRealPath resolves an index path to a real filesystem path, enforcing
+// source-root containment. It is cached (RealPathCache) — use it for reads and
+// bookkeeping only. Mutating filesystem operations must use
+// GetRealPathForMutation or GetRealPathForRemoval, which resolve uncached and
+// enforce a caller-supplied scope bound.
 func (idx *Index) GetRealPath(relativePath ...string) (string, bool, error) {
 	return idx.getRealPathInternal("/", false, relativePath...)
 }
@@ -1104,6 +1110,80 @@ func (idx *Index) getRealPathInternal(boundIndexPath string, enforceScope bool, 
 	RealPathCache.Set(cacheKey, realPath)
 	IsDirCache.Set(cacheKey+":isdir", isDir)
 	return realPath, isDir, nil
+}
+
+// GetRealPathForMutation resolves an index path for a mutating filesystem
+// operation (create/overwrite/mkdir/move-into). When the leaf exists it is fully
+// resolved; otherwise the deepest existing ancestor is resolved and the missing
+// tail is re-joined, since non-existent components cannot be symlinks. The
+// resolved path is verified to stay inside the source root and boundIndexPath
+// ("" or "/" = source root only). Resolution is uncached so a returned path is
+// safe to mutate immediately.
+func (idx *Index) GetRealPathForMutation(boundIndexPath, indexPath string) (string, error) {
+	return idx.resolveForMutation(boundIndexPath, indexPath, true)
+}
+
+// GetRealPathForRemoval resolves an index path for entry-removal semantics
+// (delete/rename-of-entry): the parent chain is resolved and contained, but the
+// leaf name is preserved so that removing a symlink removes the link itself
+// rather than its target.
+func (idx *Index) GetRealPathForRemoval(boundIndexPath, indexPath string) (string, error) {
+	return idx.resolveForMutation(boundIndexPath, indexPath, false)
+}
+
+func (idx *Index) resolveForMutation(boundIndexPath, indexPath string, resolveLeaf bool) (string, error) {
+	abs, err := filepath.Abs(utils.JoinUnderSourceRoot(idx.Path, indexPath))
+	if err != nil {
+		return "", fmt.Errorf("could not get real path: %v, %s", indexPath, err)
+	}
+	// The source root has no leaf to preserve for entry-removal semantics;
+	// resolve it so callers can apply their own root handling.
+	if !resolveLeaf && abs == filepath.Clean(idx.Path) {
+		resolved, _, rerr := iteminfo.ResolveSymlinks(abs)
+		if rerr != nil {
+			return "", rerr
+		}
+		if cerr := idx.ensureResolvedContained(resolved, boundIndexPath); cerr != nil {
+			return "", cerr
+		}
+		return resolved, nil
+	}
+	if resolveLeaf {
+		resolved, _, rerr := iteminfo.ResolveSymlinks(abs)
+		if rerr == nil {
+			if cerr := idx.ensureResolvedContained(resolved, boundIndexPath); cerr != nil {
+				return "", cerr
+			}
+			return resolved, nil
+		} else if !stderrors.Is(rerr, os.ErrNotExist) {
+			return "", rerr
+		}
+	}
+	// Walk up to the deepest existing ancestor. Missing tail components cannot
+	// be symlinks since they do not exist, so re-joining them is safe.
+	tail := []string{filepath.Base(abs)}
+	ancestor := filepath.Dir(abs)
+	for {
+		resolved, isDir, aerr := iteminfo.ResolveSymlinks(ancestor)
+		if aerr == nil {
+			if !isDir {
+				return "", fmt.Errorf("parent path is not a directory")
+			}
+			if cerr := idx.ensureResolvedContained(resolved, boundIndexPath); cerr != nil {
+				return "", cerr
+			}
+			return filepath.Join(append([]string{resolved}, tail...)...), nil
+		}
+		if !stderrors.Is(aerr, os.ErrNotExist) {
+			return "", aerr
+		}
+		next := filepath.Dir(ancestor)
+		if next == ancestor {
+			return "", fmt.Errorf("no existing ancestor for path %s", indexPath)
+		}
+		tail = append([]string{filepath.Base(ancestor)}, tail...)
+		ancestor = next
+	}
 }
 
 func (idx *Index) RefreshFileInfo(opts utils.FileOptions) error {

@@ -318,6 +318,7 @@ export default {
         void this.setupNavigationForCurrentItem();
       }
     },
+    // Watch for when navigation links are set up
     'state.navigation.previousLink'() {
       this.showInitialNavigation();
     },

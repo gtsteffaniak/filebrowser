@@ -47,9 +47,9 @@ func symlinkPutFixture(t *testing.T) (downloadsPath string, idx *indexing.Index)
 func TestResolvePutRealPath_NewFileViaParent(t *testing.T) {
 	_, idx := symlinkPutFixture(t)
 
-	realPath, err := resolvePutRealPath(idx, "/projects/newfile.txt")
+	realPath, err := idx.GetRealPathForMutation("", "/projects/newfile.txt")
 	if err != nil {
-		t.Fatalf("resolvePutRealPath: %v", err)
+		t.Fatalf("GetRealPathForMutation: %v", err)
 	}
 	parentReal, isDir, err := idx.GetRealPath("/projects")
 	if err != nil || !isDir {
@@ -64,7 +64,7 @@ func TestResolvePutRealPath_NewFileViaParent(t *testing.T) {
 func TestResolvePutRealPath_RejectsEscapingParent(t *testing.T) {
 	_, idx := symlinkPutFixture(t)
 
-	_, err := resolvePutRealPath(idx, "/evil/hack.txt")
+	_, err := idx.GetRealPathForMutation("", "/evil/hack.txt")
 	if !errors.Is(err, commonerrors.ErrPathEscapesScope) {
 		t.Fatalf("expected ErrPathEscapesScope, got %v", err)
 	}
@@ -72,7 +72,7 @@ func TestResolvePutRealPath_RejectsEscapingParent(t *testing.T) {
 
 func TestSanitizePutPathError_NoFilesystemPaths(t *testing.T) {
 	_, idx := symlinkPutFixture(t)
-	_, internalErr := resolvePutRealPath(idx, "/evil/hack.txt")
+	_, internalErr := idx.GetRealPathForMutation("", "/evil/hack.txt")
 	if internalErr == nil {
 		t.Fatal("expected resolution error")
 	}
