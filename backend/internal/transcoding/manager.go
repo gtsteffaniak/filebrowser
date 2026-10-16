@@ -437,6 +437,7 @@ func (m *Manager) newSessionLocked(in StartInput, sessionID, reuseKey, clientID,
 			State:             StateStarting,
 			StartedAt:         now.Unix(),
 			HeartbeatInterval: int(defaultHeartbeatInterval.Seconds()),
+			DurationSec:       plan.info.Duration,
 			DeliveryBaseURL:   m.deliveryURL(sessionID),
 		},
 		reuseKey:        reuseKey,
@@ -1005,9 +1006,19 @@ func (m *Manager) expireSessions() {
 		if now.Before(sess.startupDeadline) && sess.state == StateStarting {
 			continue
 		}
+		// Client leases expire individually: a client that stops heartbeating
+		// (tab closed, heartbeat failing, player remounted) frees its claim
+		// after reconnectGrace instead of holding it until the inactivity
+		// timeouts. Without this pruning clients only ever grew, so a dead
+		// session held its user-limit slot for up to pauseInactivityTimeout.
+		for clientID, seen := range sess.clients {
+			if now.Sub(seen) > reconnectGrace {
+				delete(sess.clients, clientID)
+			}
+		}
 		idle := now.Sub(sess.lastActivity)
 		grace := now.Sub(sess.lastHeartbeat)
-		if len(sess.clients) == 0 && grace > reconnectGrace {
+		if len(sess.clients) == 0 && grace > reconnectGrace && idle > reconnectGrace {
 			toStop = append(toStop, id)
 			continue
 		}

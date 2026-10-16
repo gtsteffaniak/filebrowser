@@ -25,8 +25,8 @@ func TestEncodeProfileForModeClampsToSourceHeight(t *testing.T) {
 	if got := bitrateKbps(encodeProfileForMode(small, ProfileQuality).Bitrate.Target); got != 1500 {
 		t.Fatalf("quality bitrate for 270p source = %d kbps, want the 1500 rung (no upscale)", got)
 	}
-	if got := bitrateKbps(encodeProfileForMode(small, ProfileBalanced).Bitrate.Target); got != 3000 {
-		t.Fatalf("balanced bitrate = %d kbps, want the 3000 cap", got)
+	if got := bitrateKbps(encodeProfileForMode(small, ProfileBalanced).Bitrate.Target); got != 4000 {
+		t.Fatalf("balanced bitrate = %d kbps, want the 4000 cap", got)
 	}
 	if got := bitrateKbps(encodeProfileForMode(small, ProfileDataSaver).Bitrate.Target); got != 1500 {
 		t.Fatalf("data saver bitrate = %d kbps, want the 1500 cap", got)

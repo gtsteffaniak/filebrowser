@@ -82,6 +82,30 @@ function describeHlsError(data) {
 }
 
 /**
+ * hls.js (and native HLS) report media.duration as the end of the last listed
+ * fragment. Our event playlist only contains segments produced so far, so the
+ * reported duration starts near zero and grows as the backend transcodes. Pin
+ * the element's duration to the probed source duration while attached so the
+ * seek bar and duration display are correct from the first fragment.
+ * Returns a restore function that removes the override.
+ */
+function pinMediaDuration(video, durationSec) {
+  if (!video || !Number.isFinite(durationSec) || durationSec <= 0) {
+    return null;
+  }
+  const real = durationSec;
+  Object.defineProperty(video, 'duration', {
+    configurable: true,
+    get() {
+      return real;
+    },
+  });
+  return () => {
+    delete video.duration;
+  };
+}
+
+/**
  * Attach hls.js to a video element for a transcode session.
  * Resolves once enough media is buffered and playback can begin safely.
  */
@@ -119,6 +143,7 @@ export function attachHlsToVideo({
       // Native HLS has no hls.js events, so report readiness from the element.
       // onFirstBuffered marks the session active, applies the start position and
       // resumes the primed play promise; without it playback stays paused.
+      const restoreDuration = pinMediaDuration(video, session?.durationSec);
       let reportedReady = false;
       const onReady = () => {
         if (reportedReady || signal?.aborted) {
@@ -139,6 +164,7 @@ export function attachHlsToVideo({
         cleanup: () => {
           onAbortNative();
           signal?.removeEventListener('abort', onAbortNative);
+          restoreDuration?.();
           video.removeAttribute('src');
           video.load();
         },
@@ -231,6 +257,7 @@ export function attachHlsToVideo({
       finish('reject', new Error('HLS attach timed out'));
     }, ATTACH_TIMEOUT_MS);
 
+    const restoreDuration = pinMediaDuration(video, session?.durationSec);
     const hls = new Hls({
       enableWorker: true,
       lowLatencyMode: false,
@@ -255,6 +282,7 @@ export function attachHlsToVideo({
     const cleanup = () => {
       transcodeLog('hls destroy', { sessionId: session?.id });
       clearGraceTimer();
+      restoreDuration?.();
       video.removeEventListener('canplay', onVideoPlayable);
       video.removeEventListener('loadeddata', onVideoPlayable);
       hls.destroy();

@@ -582,7 +582,13 @@ export const mutations = {
       return;
     }
     try {
-      state.mediaPlayerSettings = await getMediaPlayerSettings();
+      const settings = await getMediaPlayerSettings();
+      // The request can resolve after logout/share transition — don't write
+      // media settings into a logged-out state.
+      if (!getters.isLoggedIn() || getters.isShare() || state.user?.username === "anonymous") {
+        return;
+      }
+      state.mediaPlayerSettings = settings;
     } catch {
       state.mediaPlayerSettings = null;
     }

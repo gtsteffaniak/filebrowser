@@ -2168,6 +2168,12 @@ export default {
         }
 
         if (result.reason === 'capacity' && isTranscodeHlsMode(this.transcodeMode)) {
+          // Fall back fully: leaving transcodeMode on an HLS profile would make
+          // the play event fired by attachVideoStreamAndPlay re-enter
+          // startTranscodePlayback and spin on the 409 limit.
+          this.transcodeMode = 'native';
+          this.updateTranscodeModeMenuSelection();
+          this.syncPlaybackUrl();
           await this.switchToNativePlayback();
           return;
         }
@@ -3837,10 +3843,13 @@ export default {
           // Stable hook for tests — Plyr stamps data-plyr="settings" on every menu item.
           transcodeBtn.setAttribute('data-plyr-menu', 'transcodeMode');
           if (!this.transcodeMenuAvailable) {
-            // Leave transcodeMenuInitialized false: a later availability flip
-            // (live settings sync) must still build the buttons, and
-            // ensurePlaybackModeApplied re-checks until then.
             transcodeBtn.setAttribute('hidden', '');
+            // Availability flipped off after init (logout, live settings
+            // sync): the built buttons are stale, so a later availability flip
+            // must rebuild them.
+            this.transcodeMenuInitialized = false;
+            this.transcodeModeButtons = null;
+            this.transcodeModeValueSpan = null;
           } else {
             transcodeBtn.removeAttribute('hidden');
             const currentLabel = this.getTranscodeModeLabel(this.transcodeMode);

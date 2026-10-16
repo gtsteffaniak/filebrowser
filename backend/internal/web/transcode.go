@@ -33,9 +33,9 @@ func transcodeManager() (*transcoding.Manager, error) {
 }
 
 func transcodeStartHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
-	mgr, err := transcodeManager()
-	if err != nil {
-		return http.StatusServiceUnavailable, err
+	mgr, managerErr := transcodeManager()
+	if managerErr != nil {
+		return http.StatusServiceUnavailable, managerErr
 	}
 	if d.Share.Hash != "" {
 		return http.StatusNotFound, fmt.Errorf("transcoding not available for shares")

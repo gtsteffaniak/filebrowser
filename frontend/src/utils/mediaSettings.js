@@ -22,7 +22,7 @@ export function emptyMediaTranscode() {
     profiles: {
       quality: emptyTranscodeProfile(0, 0),
       // 720p balanced / 480p data saver: matches the backend defaults.
-      balanced: emptyTranscodeProfile(720, 3000),
+      balanced: emptyTranscodeProfile(720, 4000),
       datasaver: emptyTranscodeProfile(480, 1500),
     },
   };

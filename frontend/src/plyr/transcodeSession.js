@@ -89,6 +89,11 @@ export class TranscodeSessionController {
           message: err?.message,
           status: err?.status,
         });
+        if (err?.status === 404 || err?.status === 410) {
+          // The session is already gone server-side; retrying the lease is
+          // pointless and keeps erroring every interval.
+          this.stopHeartbeat();
+        }
       });
     }, Math.max(intervalSec, 5) * 1000);
   }

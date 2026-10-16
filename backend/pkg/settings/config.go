@@ -425,10 +425,10 @@ func DefaultTranscodeProfiles() TranscodeProfiles {
 		// Quality preserves the source: it stream-copies whatever is already
 		// HLS-compatible (h264 video / AAC audio) and transcodes only what isn't.
 		Quality: TranscodeProfile{Enabled: true, MaxResolution: 0, AvgBitrateKbps: 0},
-		// Balanced always transcodes to a bounded 720p rung. ~3000 kbps sits in
-		// the standard 720p ladder (2400-3500 kbps); the cap is a ceiling, so a
+		// Balanced always transcodes to a bounded 720p rung. 4000 kbps sits in
+		// the standard 720p ladder (~3000-6000 kbps); the cap is a ceiling, so a
 		// source already below it keeps its own bitrate.
-		Balanced: TranscodeProfile{Enabled: true, MaxResolution: 720, AvgBitrateKbps: 3000},
+		Balanced: TranscodeProfile{Enabled: true, MaxResolution: 720, AvgBitrateKbps: 4000},
 		// Data saver always transcodes to a bounded 480p rung. 1500 kbps gives
 		// solid 480p quality while still cutting typical source bitrates well
 		// below balanced.

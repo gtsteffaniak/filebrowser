@@ -849,6 +849,12 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 		// DEFER RECOVERY FUNCTION
 		defer func() {
 			if rcv := recover(); rcv != nil {
+				// ErrAbortHandler is the sentinel net/http panics with to abort a
+				// response whose client disconnected (e.g. ReverseProxy mid-copy).
+				// Re-panic so the server suppresses it instead of logging a crash.
+				if rcv == http.ErrAbortHandler {
+					panic(rcv)
+				}
 				method := r.Method
 				url := r.URL.Path
 				if r.URL.RawQuery != "" {

@@ -73,6 +73,9 @@ export async function mockTranscodeSessions(
   const sessions = new Map<string, { id: string; profile: string; source: string; path: string; state: string }>();
   const starts: SessionStart[] = [];
   let playlistHits = 0;
+  // Track the not-ready response per session so a new session's first playlist
+  // poll still exercises the retry path instead of inheriting prior state.
+  const playlistNotReadySeen = new Set<string>();
 
   await page.route("**/api/media/transcode/sessions**", async (route) => {
     const request = route.request();
@@ -142,7 +145,9 @@ export async function mockTranscodeSessions(
     const playlistMatch = path.match(/\/sessions\/([^/]+)\/index\.m3u8$/);
     if (method === "GET" && playlistMatch) {
       playlistHits += 1;
-      if (opts.playlistNotReadyFirst && playlistHits === 1) {
+      const playlistSessionId = playlistMatch[1] || "";
+      if (opts.playlistNotReadyFirst && !playlistNotReadySeen.has(playlistSessionId)) {
+        playlistNotReadySeen.add(playlistSessionId);
         await route.fulfill({
           status: 503,
           headers: { "Retry-After": "1" },

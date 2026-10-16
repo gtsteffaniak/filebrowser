@@ -153,8 +153,13 @@ func (e *MediaEngine) StartContinuous(ctx context.Context, realPath, outputDir s
 		MaxHeight:        plan.maxHeight,
 		Remux:            plan.remux,
 		VideoCopy:        plan.videoCopy,
+		InputVideoCodec:  plan.info.VideoCodec,
 		GOP:              plan.params.GOP,
-		Pacing:           ffmpeg.HLSContinuousCacheFill,
+		// Live pacing transcodes ~1x after a 60s headstart burst instead of
+		// burning CPU to finish the whole file up front. Produced segments
+		// stay comfortably ahead of the buffer horizon; the disk cache then
+		// only fills for content that is actually watched.
+		Pacing: ffmpeg.HLSContinuousLivePaced,
 	}
 	return svc.StartHLSContinuous(ctx, opts)
 }

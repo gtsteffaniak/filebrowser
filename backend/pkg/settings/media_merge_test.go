@@ -86,8 +86,8 @@ func TestSanitizeMediaSettings(t *testing.T) {
 func TestDefaultTranscodeProfiles(t *testing.T) {
 	// The capped tiers must not inherit the source bitrate ("0 = original").
 	b := DefaultTranscodeProfiles().Balanced
-	if b.MaxResolution != 720 || b.AvgBitrateKbps != 3000 {
-		t.Fatalf("balanced = %dp/%d kbps, want 720p/3000 kbps", b.MaxResolution, b.AvgBitrateKbps)
+	if b.MaxResolution != 720 || b.AvgBitrateKbps != 4000 {
+		t.Fatalf("balanced = %dp/%d kbps, want 720p/4000 kbps", b.MaxResolution, b.AvgBitrateKbps)
 	}
 	ds := DefaultTranscodeProfiles().DataSaver
 	if ds.MaxResolution != 480 || ds.AvgBitrateKbps != 1500 {

@@ -52,6 +52,7 @@ type SessionInfo struct {
 	State             SessionState `json:"state"`
 	StartedAt         int64        `json:"startedAt"`
 	HeartbeatInterval int          `json:"heartbeatIntervalSec"`
+	DurationSec       float64      `json:"durationSec,omitempty"`
 	DeliveryBaseURL   string       `json:"deliveryBaseUrl,omitempty"`
 	Reused            bool         `json:"reused,omitempty"`
 }
