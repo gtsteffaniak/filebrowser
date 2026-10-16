@@ -9,7 +9,6 @@ import (
 	"time"
 
 	jwt "github.com/golang-jwt/jwt/v4"
-	"github.com/gtsteffaniak/filebrowser/backend/internal/auth"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 )
 
@@ -39,19 +38,15 @@ func wopiFileID(source, realPath string) string {
 	return hex.EncodeToString(sum[:])
 }
 
-// wopiSigningKey returns integrations.office.secret, or a key derived from the
-// server's auth key so tokens survive a restart without any extra setting.
+// wopiSigningKey returns integrations.office.secret, the key access tokens are
+// signed with. Only FileBrowser verifies them: the editor hands them back
+// untouched, so Collabora needs no matching setting.
 func wopiSigningKey() ([]byte, error) {
-	if secret := settings.Config.Integrations.OnlyOffice.Secret; secret != "" {
-		return []byte(secret), nil
+	secret := settings.Config.Integrations.OnlyOffice.Secret
+	if secret == "" {
+		return nil, errors.New("integrations.office.secret is not set")
 	}
-	authKey, err := auth.JWTSigningKeyBytes()
-	if err != nil {
-		return nil, err
-	}
-	mac := hmac.New(sha256.New, authKey)
-	mac.Write([]byte("filebrowser-wopi-access-token"))
-	return mac.Sum(nil), nil
+	return []byte(secret), nil
 }
 
 func wopiTokenTTL() time.Duration {

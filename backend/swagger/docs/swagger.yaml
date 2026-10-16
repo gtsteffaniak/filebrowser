@@ -738,9 +738,9 @@ definitions:
         - collabora
         type: string
       secret:
-        description: 'secret: authentication key for OnlyOffice integration. For collabora,
-          optional key signing editing sessions, derived from the server auth key
-          when empty.'
+        description: 'secret: authentication key for the office integration. OnlyOffice:
+          the JWT secret shared with the Document Server. Collabora: the key FileBrowser
+          signs editing sessions with (Collabora itself takes no matching setting).'
         type: string
       tokenExpirationHours:
         description: 'collabora only: lifetime of an editing session, in hours (default:
@@ -754,6 +754,7 @@ definitions:
         description: view only mode for the office editor
         type: boolean
     required:
+    - secret
     - url
     type: object
   settings.PasskeyAuthConfig:

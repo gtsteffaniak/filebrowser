@@ -187,7 +187,7 @@ func setWopiTestConfig(t *testing.T) {
 		settings.Config.Auth.Key = origKey
 	})
 	settings.Config.Auth.Key = "test-signing-key-for-length-check"
-	settings.Config.Integrations.OnlyOffice = settings.OnlyOffice{Url: "https://office.example", Product: settings.OfficeProductCollabora, TokenExpirationHours: 10}
+	settings.Config.Integrations.OnlyOffice = settings.OnlyOffice{Url: "https://office.example", Product: settings.OfficeProductCollabora, Secret: "wopi-test-secret", TokenExpirationHours: 10}
 }
 
 func TestOfficeProductSelection(t *testing.T) {
@@ -286,9 +286,18 @@ func TestWopiTokenRoundTrip(t *testing.T) {
 	}
 
 	// Rotating the secret invalidates outstanding tokens.
-	settings.Config.Integrations.OnlyOffice.Secret = "explicit-secret"
+	settings.Config.Integrations.OnlyOffice.Secret = "rotated-secret"
 	if _, err := parseWopiToken(raw, "fid1"); err == nil {
-		t.Error("token signed with the derived key must fail under an explicit secret")
+		t.Error("a token signed with the previous secret must be rejected")
+	}
+
+	// Without a secret there is nothing to sign or verify with.
+	settings.Config.Integrations.OnlyOffice.Secret = ""
+	if _, _, err := mintWopiToken(wopiClaims{FileID: "fid1"}, time.Now()); err == nil {
+		t.Error("minting must fail without integrations.office.secret")
+	}
+	if _, err := parseWopiToken(raw, "fid1"); err == nil {
+		t.Error("verifying must fail without integrations.office.secret")
 	}
 }
 
