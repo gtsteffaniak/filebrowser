@@ -536,3 +536,54 @@ func TestCreateUserNonAdminDoesNotKeepAdminScopePermissions(t *testing.T) {
 		t.Fatalf("scope permissions = %+v, want non-admin defaults %+v", got, want)
 	}
 }
+
+// Explicit all-false account permissions must not inherit Admin from user defaults.
+func TestCreateUserAllFalsePermissionsDoesNotInheritAdminDefaults(t *testing.T) {
+	original := settings.Config
+	t.Cleanup(func() { settings.Config = original })
+	settings.Config = settings.SetDefaults(true)
+	source := &settings.Source{Path: "/data/a", Name: "a", Config: settings.SourceConfig{
+		DefaultEnabled:     true,
+		DefaultPermissions: users.SourceFilePermissions{View: true, Download: true},
+	}}
+	settings.Config.Server.Sources = []*settings.Source{source}
+	settings.Config.Server.SourceMap = map[string]*settings.Source{source.Path: source}
+	settings.Config.Server.NameToSource = map[string]*settings.Source{source.Name: source}
+	settings.InitializeUserResolvers()
+
+	dbPath := filepath.Join(t.TempDir(), "filebrowser.sqlite")
+	if _, err := Initialize(dbPath); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = Close() })
+
+	userDefaultsMu.Lock()
+	previousDefaults := userDefaultsDefault
+	userDefaultsDefault.Account.Permissions.Admin = true
+	userDefaultsDefault.Account.Permissions.Share = true
+	userDefaultsDefault.Account.Permissions.Api = true
+	userDefaultsMu.Unlock()
+	t.Cleanup(func() {
+		userDefaultsMu.Lock()
+		userDefaultsDefault = previousDefaults
+		userDefaultsMu.Unlock()
+	})
+
+	u := &users.User{
+		FrontendUser: users.FrontendUser{
+			Username:    "carol",
+			Permissions: users.MarkPermissionsConfigured(users.Permissions{}),
+		},
+	}
+	if err := CreateUser(u, "password"); err != nil {
+		t.Fatal(err)
+	}
+
+	loaded, err := GetUserByUsername("carol")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if loaded.Permissions.Admin || loaded.Permissions.Share || loaded.Permissions.Api || loaded.Permissions.Realtime {
+		t.Fatalf("expected all-false account permissions, got %+v", loaded.Permissions)
+	}
+}

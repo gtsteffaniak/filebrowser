@@ -211,8 +211,13 @@ func CreateUser(user *users.User, plaintextPassword string) error {
 	// If still no BackendScopes (omitted or invalid API names), same defaults as ApplyUserDefaults.
 	preserveRequirePasswordChange := user.RequirePasswordChange
 	requestedPermissions := user.Permissions
-	permissionsRequested := requestedPermissions.Admin || requestedPermissions.Share ||
-		requestedPermissions.Api || requestedPermissions.Realtime || requestedPermissions.HasAnyFilePermission()
+	// Configured distinguishes an explicit all-false permissions object from omission
+	// (zero value). Any set bit still counts so Go callers that set Admin without
+	// MarkPermissionsConfigured (e.g. OIDC admin promotion) keep working.
+	permissionsRequested := requestedPermissions.Configured ||
+		requestedPermissions.Admin || requestedPermissions.Share ||
+		requestedPermissions.Api || requestedPermissions.Realtime ||
+		requestedPermissions.HasAnyFilePermission()
 	requestedScopePermissions := make(map[string]users.SourceFilePermissions, len(user.BackendScopes))
 	for _, scope := range user.BackendScopes {
 		if !scope.Permissions.IsUnset() {
