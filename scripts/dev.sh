@@ -3,7 +3,36 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 VITE_PORT="${VITE_DEV_PORT:-5173}"
-VITE_CLIENT_PORT="${VITE_DEV_CLIENT_PORT:-8080}"
+BACKEND_CONFIG="${BACKEND_CONFIG:-$ROOT/backend/test_config.yaml}"
+
+# Browser talks to the Go server (which reverse-proxies /__vite/). Keep Vite's
+# server.origin + HMR clientPort in sync with that listen port so modules/HMR
+# stay same-origin instead of defaulting to :8080 while Air uses test_config.
+backend_http_port() {
+	local config=$1
+	local port=""
+	if [[ -f "$config" ]]; then
+		port="$(
+			awk '
+				/^[[:space:]]*http:[[:space:]]*$/ { in_http=1; next }
+				in_http && /^[^[:space:]#]/ { in_http=0 }
+				in_http && /^[[:space:]]*port:[[:space:]]*[0-9]+/ {
+					gsub(/[^0-9]/, "", $2)
+					print $2
+					exit
+				}
+			' "$config"
+		)"
+	fi
+	if [[ -z "$port" ]]; then
+		port=8080
+	fi
+	printf '%s' "$port"
+}
+
+BACKEND_PORT="$(backend_http_port "$BACKEND_CONFIG")"
+VITE_ORIGIN="${VITE_DEV_ORIGIN:-http://localhost:${BACKEND_PORT}}"
+VITE_CLIENT_PORT="${VITE_DEV_CLIENT_PORT:-${BACKEND_PORT}}"
 READY_URL="http://127.0.0.1:${VITE_PORT}/__vite/@vite/client"
 WAIT_SECONDS="${VITE_READY_TIMEOUT:-60}"
 
@@ -67,9 +96,10 @@ if curl -fsS -o /dev/null "$READY_URL" 2>/dev/null || ss -tln 2>/dev/null | grep
 	stop_listeners_on_port "$VITE_PORT"
 fi
 
-echo "Starting Vite dev server on 127.0.0.1:${VITE_PORT}..."
+echo "Starting Vite dev server on 127.0.0.1:${VITE_PORT} (browser origin ${VITE_ORIGIN}, HMR clientPort ${VITE_CLIENT_PORT})..."
 (
 	cd "$ROOT/frontend"
+	export VITE_DEV_ORIGIN="$VITE_ORIGIN"
 	export VITE_DEV_PORT="$VITE_PORT"
 	export VITE_DEV_CLIENT_PORT="$VITE_CLIENT_PORT"
 	exec npm run dev
