@@ -149,7 +149,7 @@ func owncloudChunkedMove(w http.ResponseWriter, r *http.Request, wd *webdav.Hand
 		return true, http.StatusForbidden, fmt.Errorf("delete permission required")
 	}
 	destDir := path.Dir(destPath)
-	if err := ffs.checkScopePath(destDir, false); err != nil {
+	if err = ffs.checkScopePath(destDir, false); err != nil {
 		return true, http.StatusForbidden, fmt.Errorf("chunked upload destination denied: %w", err)
 	}
 	for _, chunk := range chunks {
