@@ -22,30 +22,48 @@ func TestEncodeProfileForModeClampsToSourceHeight(t *testing.T) {
 	withTranscodeProfiles(t)
 	small := ffmpeg.StreamInfo{Height: 270, VideoBitrate: 0}
 
-	balanced := encodeProfileForMode(small, ProfileBalanced)
-	dataSaver := encodeProfileForMode(small, ProfileDataSaver)
-	quality := encodeProfileForMode(small, ProfileQuality)
+	if got := bitrateKbps(encodeProfileForMode(small, ProfileQuality).Bitrate.Target); got != 1500 {
+		t.Fatalf("quality bitrate for 270p source = %d kbps, want the 1500 rung (no upscale)", got)
+	}
+	if got := bitrateKbps(encodeProfileForMode(small, ProfileBalanced).Bitrate.Target); got != 3000 {
+		t.Fatalf("balanced bitrate = %d kbps, want the 3000 cap", got)
+	}
+	if got := bitrateKbps(encodeProfileForMode(small, ProfileDataSaver).Bitrate.Target); got != 1500 {
+		t.Fatalf("data saver bitrate = %d kbps, want the 1500 cap", got)
+	}
+}
 
-	balancedKbps := bitrateKbps(balanced.Bitrate.Target)
-	if balancedKbps != 1500 {
-		t.Fatalf("balanced bitrate for 270p source = %d kbps, want 1500 (no upscale rung)", balancedKbps)
-	}
-	if got := bitrateKbps(dataSaver.Bitrate.Target); got != 1500 {
-		t.Fatalf("data saver bitrate = %d kbps, want 1500", got)
-	}
-	if balancedKbps > bitrateKbps(quality.Bitrate.Target) {
-		t.Fatalf("balanced (%d kbps) must not exceed quality (%d kbps) for a small source",
-			balancedKbps, bitrateKbps(quality.Bitrate.Target))
+// Bitrate caps are ceilings, not targets: -b:v is a target average, so a source
+// already below the cap must keep its own bitrate instead of being inflated.
+func TestEncodeProfileForModeFloorsBitrateAtSource(t *testing.T) {
+	withTranscodeProfiles(t)
+	small := ffmpeg.StreamInfo{Height: 720, VideoBitrate: 800_000}
+	for _, profile := range []Profile{ProfileQuality, ProfileBalanced, ProfileDataSaver} {
+		if kbps := bitrateKbps(encodeProfileForMode(small, profile).Bitrate.Target); kbps != 800 {
+			t.Fatalf("%s bitrate for an 800 kbps source = %d kbps, want 800", profile, kbps)
+		}
 	}
 }
 
 func TestEncodeProfileForModeKeepsSourceBitrate(t *testing.T) {
 	withTranscodeProfiles(t)
-	// 720p H.264 at ~2500 kbps with no explicit cap keeps the source bitrate.
+	// 720p H.264 at ~2500 kbps sits below the balanced cap, so the source
+	// bitrate wins.
 	src := ffmpeg.StreamInfo{Height: 720, VideoBitrate: 2_500_000}
 	got := encodeProfileForMode(src, ProfileBalanced)
 	if kbps := bitrateKbps(got.Bitrate.Target); kbps != 2500 {
 		t.Fatalf("bitrate = %d kbps, want the source 2500 kbps", kbps)
+	}
+}
+
+func TestProfileForcesVideoTranscode(t *testing.T) {
+	if profileForcesVideoTranscode(ProfileQuality) {
+		t.Fatal("quality must keep the source when stream copy is possible")
+	}
+	for _, profile := range []Profile{ProfileBalanced, ProfileDataSaver} {
+		if !profileForcesVideoTranscode(profile) {
+			t.Fatalf("%s must always transcode video", profile)
+		}
 	}
 }
 

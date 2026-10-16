@@ -48,8 +48,8 @@ func TestMergeMediaSettingsPatchJSONProfile(t *testing.T) {
 	if merged.Transcode.Profiles.DataSaver.MaxResolution != 480 {
 		t.Fatalf("datasaver maxResolution = %d, want 480", merged.Transcode.Profiles.DataSaver.MaxResolution)
 	}
-	if merged.Transcode.Profiles.Balanced.MaxResolution != 1080 {
-		t.Fatalf("balanced maxResolution = %d, want 1080", merged.Transcode.Profiles.Balanced.MaxResolution)
+	if merged.Transcode.Profiles.Balanced.MaxResolution != 720 {
+		t.Fatalf("balanced maxResolution = %d, want 720", merged.Transcode.Profiles.Balanced.MaxResolution)
 	}
 }
 
@@ -83,40 +83,15 @@ func TestSanitizeMediaSettings(t *testing.T) {
 	}
 }
 
-func TestDefaultDataSaverBitrate(t *testing.T) {
-	// A 720p data saver must not inherit the source bitrate ("0 = original").
+func TestDefaultTranscodeProfiles(t *testing.T) {
+	// The capped tiers must not inherit the source bitrate ("0 = original").
+	b := DefaultTranscodeProfiles().Balanced
+	if b.MaxResolution != 720 || b.AvgBitrateKbps != 3000 {
+		t.Fatalf("balanced = %dp/%d kbps, want 720p/3000 kbps", b.MaxResolution, b.AvgBitrateKbps)
+	}
 	ds := DefaultTranscodeProfiles().DataSaver
-	if ds.MaxResolution != 720 {
-		t.Fatalf("data-saver maxResolution = %d, want 720", ds.MaxResolution)
-	}
-	if ds.AvgBitrateKbps != 1500 {
-		t.Fatalf("data-saver avgBitrateKbps = %d, want 1500", ds.AvgBitrateKbps)
-	}
-}
-
-func TestMigrateLegacyMediaDefaults(t *testing.T) {
-	legacy := testMediaSettings()
-	legacy.Transcode.Profiles.DataSaver = TranscodeProfile{Enabled: true, MaxResolution: 720, AvgBitrateKbps: 0}
-
-	migrated, changed := MigrateLegacyMediaDefaults(legacy)
-	if !changed {
-		t.Fatal("expected the legacy data-saver default to be migrated")
-	}
-	if migrated.Transcode.Profiles.DataSaver.AvgBitrateKbps != 1500 {
-		t.Fatalf("avgBitrateKbps = %d, want 1500", migrated.Transcode.Profiles.DataSaver.AvgBitrateKbps)
-	}
-}
-
-func TestMigrateLegacyMediaDefaultsLeavesExplicitValues(t *testing.T) {
-	custom := testMediaSettings()
-	custom.Transcode.Profiles.DataSaver = TranscodeProfile{Enabled: true, MaxResolution: 720, AvgBitrateKbps: 800}
-	if _, changed := MigrateLegacyMediaDefaults(custom); changed {
-		t.Fatal("an explicit data-saver bitrate must not be migrated")
-	}
-
-	current := testMediaSettings()
-	if _, changed := MigrateLegacyMediaDefaults(current); changed {
-		t.Fatal("current defaults must not be migrated")
+	if ds.MaxResolution != 480 || ds.AvgBitrateKbps != 1500 {
+		t.Fatalf("data-saver = %dp/%d kbps, want 480p/1500 kbps", ds.MaxResolution, ds.AvgBitrateKbps)
 	}
 }
 

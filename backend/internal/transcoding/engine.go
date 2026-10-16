@@ -62,7 +62,7 @@ func (e *MediaEngine) BuildPlan(ctx context.Context, realPath string, profile Pr
 
 	pipeline := ffmpeg.HLSPipelineOptions{
 		MaxHeight:           maxHeightForProfile(profile),
-		ForceVideoTranscode: profileRequiresBitrateTranscode(profile, info),
+		ForceVideoTranscode: profileForcesVideoTranscode(profile) || profileRequiresBitrateTranscode(profile, info),
 	}
 	buildIn := ffmpeg.BuildHLSSegmentBuildInput(info, pipeline)
 	defaults := ffmpeg.DefaultOnDemandHLSDefaults()
@@ -184,6 +184,14 @@ func avgBitrateForProfile(profile Profile) int {
 	return cfg.AvgBitrateKbps
 }
 
+// profileForcesVideoTranscode reports whether the profile always re-encodes.
+// Quality preserves the source whenever stream copy is possible; the smaller
+// profiles always transcode so output is normalized h264 video plus AAC stereo
+// audio at a bounded bitrate, regardless of how the source was encoded.
+func profileForcesVideoTranscode(profile Profile) bool {
+	return profile != ProfileQuality
+}
+
 // profileRequiresBitrateTranscode reports whether the profile pins a bitrate cap
 // below the source. Stream copy would silently ignore the cap, so a full video
 // re-encode is required to honor the profile.
@@ -220,7 +228,13 @@ func encodeProfileForMode(info ffmpeg.StreamInfo, profile Profile) encode.VideoP
 // source bitrate when no downscale is applied, then a resolution-derived default.
 func transcodeBitrateConfig(cfg settings.TranscodeProfile, info ffmpeg.StreamInfo, maxHeight int) encode.BitrateConfig {
 	if cfg.AvgBitrateKbps > 0 {
-		return bitrateFromKbps(cfg.AvgBitrateKbps)
+		kbps := cfg.AvgBitrateKbps
+		// The cap is a ceiling: -b:v is a target average, so a source already
+		// below it would be inflated to the profile value. Floor at the source.
+		if src := info.VideoBitrate / 1000; src > 0 && src < kbps {
+			kbps = src
+		}
+		return bitrateFromKbps(kbps)
 	}
 	if info.VideoBitrate > 0 && (maxHeight <= 0 || info.Height <= maxHeight) {
 		return bitrateFromKbps(info.VideoBitrate / 1000)

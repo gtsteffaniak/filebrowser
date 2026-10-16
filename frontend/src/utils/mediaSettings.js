@@ -21,9 +21,9 @@ export function emptyMediaTranscode() {
     cacheRetentionH: 24,
     profiles: {
       quality: emptyTranscodeProfile(0, 0),
-      balanced: emptyTranscodeProfile(1080, 0),
-      // 720p data saver: 1500 kbps matches the backend default.
-      datasaver: emptyTranscodeProfile(720, 1500),
+      // 720p balanced / 480p data saver: matches the backend defaults.
+      balanced: emptyTranscodeProfile(720, 3000),
+      datasaver: emptyTranscodeProfile(480, 1500),
     },
   };
 }

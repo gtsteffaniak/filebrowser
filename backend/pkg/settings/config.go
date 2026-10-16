@@ -422,13 +422,17 @@ func normalizeTranscodeProfile(p *TranscodeProfile) {
 // DefaultTranscodeProfiles returns the built-in transcode presets.
 func DefaultTranscodeProfiles() TranscodeProfiles {
 	return TranscodeProfiles{
-		Quality:  TranscodeProfile{Enabled: true, MaxResolution: 0, AvgBitrateKbps: 0},
-		Balanced: TranscodeProfile{Enabled: true, MaxResolution: 1080, AvgBitrateKbps: 0},
-		// 720p at 1500 kbps is the commonly cited minimum for acceptable 720p
-		// (standard 720p rungs sit at 2400-3500 kbps), which is what a data saver
-		// on a metered mobile connection should target. "0 = original" would keep
-		// the source bitrate, which is not a data saver at all.
-		DataSaver: TranscodeProfile{Enabled: true, MaxResolution: 720, AvgBitrateKbps: 1500},
+		// Quality preserves the source: it stream-copies whatever is already
+		// HLS-compatible (h264 video / AAC audio) and transcodes only what isn't.
+		Quality: TranscodeProfile{Enabled: true, MaxResolution: 0, AvgBitrateKbps: 0},
+		// Balanced always transcodes to a bounded 720p rung. ~3000 kbps sits in
+		// the standard 720p ladder (2400-3500 kbps); the cap is a ceiling, so a
+		// source already below it keeps its own bitrate.
+		Balanced: TranscodeProfile{Enabled: true, MaxResolution: 720, AvgBitrateKbps: 3000},
+		// Data saver always transcodes to a bounded 480p rung. 1500 kbps gives
+		// solid 480p quality while still cutting typical source bitrates well
+		// below balanced.
+		DataSaver: TranscodeProfile{Enabled: true, MaxResolution: 480, AvgBitrateKbps: 1500},
 	}
 }
 
