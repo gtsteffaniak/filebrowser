@@ -97,7 +97,7 @@ import { globalVars } from "@/utils/constants";
 import downloadFiles from "@/utils/download";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { getKindKey } from "@/utils/mimetype";
-import { hasCachedThumbnailBlob } from "@/utils/imageCache.ts";
+import { hasCachedThumbnailBlob } from "@/utils/cache/imageCache.ts";
 import { formatDuration } from "@/utils/files.js";
 import { getObjectProperty } from '@/utils/object.js';
 import { resourcesApi } from "@/api";

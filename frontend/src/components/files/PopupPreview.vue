@@ -15,7 +15,7 @@
 <script>
 import { createAsyncComponent } from "@/utils/asyncComponent.js";
 import { state, getters } from "@/store";
-import { setImageLoaded } from "@/utils/imageCache.ts";
+import { setImageLoaded } from "@/utils/cache/imageCache.ts";
 
 export default {
   name: "PopupPreview",

@@ -8,7 +8,7 @@ import {
   setDirMetadataEntryPromise,
   stemOf,
   takePendingDirChanges,
-} from "@/utils/metadataCache.ts";
+} from "@/utils/cache/metadataCache.ts";
 
 // GET /api/media/subtitles or /public/api/media/subtitles
 export async function getSubtitleContent(source, path, subtitleName, embedded = false) {

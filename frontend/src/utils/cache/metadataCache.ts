@@ -1,4 +1,3 @@
-// src/utils/metadataCache.ts
 import { state } from "@/store/index.ts";
 
 /** Which source (or share) a folder belongs to */

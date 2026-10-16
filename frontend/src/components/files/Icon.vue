@@ -40,7 +40,7 @@ import {
   releaseThumbnailBlob,
   setImageLoaded,
   storeThumbnailBlob,
-} from "@/utils/imageCache.ts";
+} from "@/utils/cache/imageCache.ts";
 import { queuedFetchPreview } from "@/utils/previewRequests.ts";
 
 const props = withDefaults(

@@ -18,7 +18,7 @@ import {
   invalidateDirMetadataItem,
   markDirMetadataItemChanged,
   removeDirMetadataItem
-} from '@/utils/metadataCache.ts'
+} from '@/utils/cache/metadataCache.ts'
 
 export { fetchPreviewBlob, fetchPreviewImage } from "@/utils/previewRequests.ts"
 

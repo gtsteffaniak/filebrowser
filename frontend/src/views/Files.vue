@@ -25,9 +25,9 @@ import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import { globalVars } from "@/utils/constants";
 import { syncEventTheme } from "@/utils/theme";
 import { isRichTextPreviewMimeType } from "@/utils/mimetype";
-import { invalidateDirMetadataCache } from "@/utils/metadataCache.ts";
-import { clearImageCache } from "@/utils/imageCache.ts";
-import { listingCacheKey, getCachedListing, cacheListing, deleteCachedListing, clearListingCache } from "@/utils/listingCache.ts";
+import { invalidateDirMetadataCache } from "@/utils/cache/metadataCache.ts";
+import { clearImageCache } from "@/utils/cache/imageCache.ts";
+import { listingCacheKey, getCachedListing, cacheListing, deleteCachedListing, clearListingCache } from "@/utils/cache/listingCache.ts";
 import { showShareDownloadPrompt as openShareDownloadPrompt } from "@/utils/download.js";
 
 function directoryListingHasMediaChildren(req) {
