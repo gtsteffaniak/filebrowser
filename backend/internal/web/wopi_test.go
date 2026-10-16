@@ -187,7 +187,7 @@ func setWopiTestConfig(t *testing.T) {
 		settings.Config.Auth.Key = origKey
 	})
 	settings.Config.Auth.Key = "test-signing-key-for-length-check"
-	settings.Config.Integrations.OnlyOffice = settings.OnlyOffice{Url: "https://office.example", Product: settings.OfficeProductCollabora, Secret: "wopi-test-secret", TokenExpirationHours: 10}
+	settings.Config.Integrations.OnlyOffice = settings.OnlyOffice{Url: "https://office.example", Product: settings.OfficeProductCollabora, Secret: "2vQ7mK9xR4tW8zL1nB6cF3hJ5pD0sG2a", TokenExpirationHours: 10}
 }
 
 func TestOfficeProductSelection(t *testing.T) {
@@ -286,9 +286,15 @@ func TestWopiTokenRoundTrip(t *testing.T) {
 	}
 
 	// Rotating the secret invalidates outstanding tokens.
-	settings.Config.Integrations.OnlyOffice.Secret = "rotated-secret"
+	settings.Config.Integrations.OnlyOffice.Secret = "Yh3Lp8Qw1Nz6Rt4Vb9Kd2Mx7Gs5Cf0Ja"
 	if _, err := parseWopiToken(raw, "fid1"); err == nil {
 		t.Error("a token signed with the previous secret must be rejected")
+	}
+
+	// A secret too short to resist offline guessing is refused at runtime too.
+	settings.Config.Integrations.OnlyOffice.Secret = "short"
+	if _, _, err := mintWopiToken(wopiClaims{FileID: "fid1"}, time.Now()); err == nil {
+		t.Error("minting must fail with a short secret")
 	}
 
 	// Without a secret there is nothing to sign or verify with.

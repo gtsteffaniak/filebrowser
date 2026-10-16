@@ -139,7 +139,7 @@ type Integrations struct {
 type OnlyOffice struct {
 	Url                  string `json:"url" validate:"required"`                                 // The URL to the office editor (OnlyOffice Document Server or Collabora Online), needs to be accessible to the user.
 	InternalUrl          string `json:"internalUrl"`                                             // An optional internal address that the filebrowser server can use to communicate with the office editor, could be useful to bypass proxy.
-	Secret               string `json:"secret" validate:"required"`                              // secret: authentication key for the office integration. OnlyOffice: the JWT secret shared with the Document Server. Collabora: the key FileBrowser signs editing sessions with (Collabora itself takes no matching setting).
+	Secret               string `json:"secret" validate:"required"`                              // secret: authentication key for the office integration. OnlyOffice: the JWT secret shared with the Document Server. Collabora: the key FileBrowser signs editing sessions with, at least 32 characters (Collabora itself takes no matching setting).
 	Product              string `json:"product" validate:"omitempty,oneof=onlyoffice collabora"` // office editor behind url: onlyoffice (default) or collabora
 	TokenExpirationHours int    `json:"tokenExpirationHours"`                                    // collabora only: lifetime of an editing session, in hours (default: 10)
 	ViewOnly             bool   `json:"viewOnly"`                                                // view only mode for the office editor
@@ -148,6 +148,10 @@ type OnlyOffice struct {
 const (
 	OfficeProductOnlyOffice = "onlyoffice"
 	OfficeProductCollabora  = "collabora"
+
+	// MinCollaboraSecretLength is the shortest secret accepted for Collabora,
+	// whose secret signs the editing sessions FileBrowser issues.
+	MinCollaboraSecretLength = 32
 )
 
 // IsCollabora reports whether documents open in Collabora Online (WOPI)

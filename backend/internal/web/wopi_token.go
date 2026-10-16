@@ -46,6 +46,9 @@ func wopiSigningKey() ([]byte, error) {
 	if secret == "" {
 		return nil, errors.New("integrations.office.secret is not set")
 	}
+	if len(secret) < settings.MinCollaboraSecretLength {
+		return nil, errors.New("integrations.office.secret is too short to sign editing sessions")
+	}
 	return []byte(secret), nil
 }
 

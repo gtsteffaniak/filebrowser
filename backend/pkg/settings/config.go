@@ -787,7 +787,22 @@ func ValidateConfig(config Settings) error {
 	if err != nil {
 		return fmt.Errorf("could not validate config: %v", err)
 	}
+	if err = ValidateOfficeSecret(Config.Integrations.OnlyOffice); err != nil {
+		return fmt.Errorf("could not validate config: %v", err)
+	}
 	return nil
+}
+
+// ValidateOfficeSecret rejects a short secret for Collabora. There the secret
+// is FileBrowser's own HMAC key for the editing sessions it hands to the
+// browser, so anyone holding a session token could brute-force a weak one
+// offline and forge tokens. OnlyOffice's secret is left alone: it must match
+// the Document Server's, which FileBrowser does not choose.
+func ValidateOfficeSecret(o OnlyOffice) error {
+	if !o.IsCollabora() || len(o.Secret) >= MinCollaboraSecretLength {
+		return nil
+	}
+	return fmt.Errorf("integrations.office.secret must be at least %d characters with product collabora (generate one with: openssl rand -base64 32)", MinCollaboraSecretLength)
 }
 
 // validateFilePermission validates that a string is a valid Unix octal file permission (3-4 digits, 0-7)

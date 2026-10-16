@@ -6426,7 +6426,7 @@ const docTemplate = `{
                     ]
                 },
                 "secret": {
-                    "description": "secret: authentication key for the office integration. OnlyOffice: the JWT secret shared with the Document Server. Collabora: the key FileBrowser signs editing sessions with (Collabora itself takes no matching setting).",
+                    "description": "secret: authentication key for the office integration. OnlyOffice: the JWT secret shared with the Document Server. Collabora: the key FileBrowser signs editing sessions with, at least 32 characters (Collabora itself takes no matching setting).",
                     "type": "string"
                 },
                 "tokenExpirationHours": {
