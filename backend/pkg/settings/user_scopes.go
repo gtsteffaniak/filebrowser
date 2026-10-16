@@ -26,8 +26,8 @@ func ExpandBackendScopesForCreateUserDir(u *users.User) {
 		if !source.Config.CreateUserDir {
 			continue
 		}
-		// This runs more than once for a new user, so a scope that already ends in the user's
-		// directory is left alone. The source's defaultUserScope itself is not a user's home:
+		// Keep expansion idempotent so a scope that already ends in the user's directory is left
+		// alone. The source's defaultUserScope itself is not a user's home:
 		// a user named after its last element ("users" with "/users") gets "/users/users".
 		if scopeBaseName(scope.Scope) == cleanedUserName && !sameScopePath(scope.Scope, source.Config.DefaultUserScope) {
 			continue

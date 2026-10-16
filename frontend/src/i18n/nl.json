@@ -1125,7 +1125,8 @@
       "shareFilter": "Share-filter",
       "pathGlob": "Padpatroon (glob)",
       "viewActivity": "Activiteit bekijken",
-      "tableColumns": "Kolommen in de tabel"
+      "tableColumns": "Kolommen in de tabel",
+      "eventFileModify": "Bestand wijzigen"
     },
     "toolNotFound": "Gereedschap niet gevonden"
   },

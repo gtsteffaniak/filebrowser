@@ -1072,6 +1072,7 @@
       "scopeAccess": "Access activity",
       "scopeShares": "Share activity",
       "eventBulkDelete": "Bulk delete",
+      "eventFileModify": "File modify",
       "eventShareCreate": "Share create",
       "eventShareUpdate": "Share update",
       "eventShareDelete": "Share delete",

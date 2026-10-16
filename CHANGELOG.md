@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v2.1.3
+
+ **New Features**:
+ - chunked uploads for large files like rclone `--owncloud-chunk-size` (#3112)
+
+ **Bug Fixes**:
+ - keep requested permissions when creating a user (#3130)
+ - add missing file modify logging to activity viewer (#3152)
+
 ## v2.1.2
 
  **Security**:

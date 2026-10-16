@@ -56,6 +56,9 @@ type filteredFileSystem struct {
 	user      *users.User
 	filePerms users.SourceFilePermissions
 	httpReq   *http.Request
+	// skipRenameActivityFrom suppresses the move record for the hidden staging file a chunked
+	// upload is assembled under; the upload is recorded once against the real destination.
+	skipRenameActivityFrom string
 	// Cache FileInfoFaster results per path to avoid redundant calls within the same request
 	fileInfoCache map[string]*iteminfo.ExtendedFileInfo
 }
@@ -530,6 +533,9 @@ func (ffs *filteredFileSystem) Rename(ctx context.Context, oldPath, newPath stri
 	if err := ffs.fs.Rename(ctx, oldPath, newPath); err != nil {
 		return err
 	}
+	if ffs.skipRenameActivityFrom != "" && oldPath == ffs.skipRenameActivityFrom {
+		return nil
+	}
 	activity.RecordWebDAVUser(ffs.httpReq, ffs.user, activitydb.Entry{
 		EventType:  activitydb.EventMove,
 		Source:     ffs.source,
@@ -645,6 +651,18 @@ func webDAVHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, err
 				logger.Errorf("webdav handler failed on path %s: %s", req.URL.Path, err)
 			}
 		},
+	}
+
+	// ownCloud-style chunked upload: the client PUTs `<name>-chunk-<n>` files as ordinary uploads
+	// and finishes by moving the last chunk to `<name>`; the chunks are concatenated here, and the
+	// final placement is left to the handler below so locks and `Overwrite` keep working.
+	if r.Method == "MOVE" {
+		if handled, status, err := owncloudChunkedMove(w, r, wd, filteredFS, requestPath, scopePath, prefix); handled {
+			if status != 0 {
+				return status, err
+			}
+			return 0, nil
+		}
 	}
 	if r.Method == "COPY" {
 		srcRealPath := filepath.Join(scopePath, requestPath)

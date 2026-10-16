@@ -317,6 +317,7 @@ function initializeNavigation() {
     type: req.value.type,
     source: req.value.source,
     modified: req.value.modified,
+    created: req.value.created,
     hasPreview: req.value.hasPreview,
   });
 

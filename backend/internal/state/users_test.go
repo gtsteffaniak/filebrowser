@@ -1,12 +1,14 @@
 package state
 
 import (
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 
-	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/files"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 )
 
 func TestCreateUserValidateUsername(t *testing.T) {
@@ -50,6 +52,82 @@ func TestCreateUserValidateUsername(t *testing.T) {
 			}
 			if !strings.Contains(err.Error(), tc.wantErr) {
 				t.Fatalf("CreateUser(%q): got %v, want error containing %q", tc.username, err, tc.wantErr)
+			}
+		})
+	}
+}
+
+func TestCreateUserCreateUserDirRespectsFinalAdminPermission(t *testing.T) {
+	t.Setenv("FILEBROWSER_ONLYOFFICE_SECRET", "")
+	settings.Initialize("../../../_docker/src/noauth/backend/config.yaml")
+	settings.Env.IsPlaywright = true
+
+	dbPath := filepath.Join(t.TempDir(), "filebrowser.sqlite")
+	if _, err := Initialize(dbPath); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = Close() })
+
+	root := t.TempDir()
+	source := &settings.Source{
+		Path: root,
+		Config: settings.SourceConfig{
+			CreateUserDir: true,
+		},
+	}
+	settings.Config.Server.Sources = []*settings.Source{source}
+	settings.Config.Server.SourceMap = map[string]*settings.Source{root: source}
+
+	tests := []struct {
+		name      string
+		admin     bool
+		username  string
+		wantScope string
+		wantDir   bool
+	}{
+		{name: "admin keeps source root", admin: true, username: "new-admin", wantScope: "/", wantDir: false},
+		{name: "non-admin gets personal directory", admin: false, username: "new-user", wantScope: "/new-user", wantDir: true},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			userDefaultsMu.Lock()
+			previousDefaults := userDefaultsDefault
+			userDefaultsDefault.Account.Permissions.Admin = tc.admin
+			userDefaultsMu.Unlock()
+			t.Cleanup(func() {
+				userDefaultsMu.Lock()
+				userDefaultsDefault = previousDefaults
+				userDefaultsMu.Unlock()
+			})
+
+			user := &users.User{
+				FrontendUser:  users.FrontendUser{Username: tc.username},
+				BackendScopes: []users.BackendScope{{Path: root, Scope: "/"}},
+			}
+			if err := CreateUser(user, "password"); err != nil {
+				t.Fatalf("CreateUser: %v", err)
+			}
+			saved, err := GetUserByUsername(tc.username)
+			if err != nil {
+				t.Fatalf("GetUserByUsername: %v", err)
+			}
+			if saved.Permissions.Admin != tc.admin {
+				t.Fatalf("saved admin=%v, want %v", saved.Permissions.Admin, tc.admin)
+			}
+			if got := saved.BackendScopes[0].Scope; got != tc.wantScope {
+				t.Fatalf("saved scope=%q, want %q", got, tc.wantScope)
+			}
+
+			if err := files.MakeUserDirs(&saved, true); err != nil {
+				t.Fatalf("MakeUserDirs: %v", err)
+			}
+			_, statErr := os.Stat(filepath.Join(root, tc.username))
+			if tc.wantDir && statErr != nil {
+				t.Fatalf("user directory does not exist: %v", statErr)
+			}
+			if !tc.wantDir && !os.IsNotExist(statErr) {
+				t.Fatalf("user directory stat error=%v, want not-exist", statErr)
 			}
 		})
 	}
@@ -341,3 +419,52 @@ func TestUpdateUserPatchPreservesBackendSourcePermissions(t *testing.T) {
 	}
 }
 
+func TestCreateUserKeepsRequestedPermissions(t *testing.T) {
+	original := settings.Config
+	t.Cleanup(func() { settings.Config = original })
+	settings.Config = settings.SetDefaults(true)
+	source := &settings.Source{Path: "/data/a", Name: "a", Config: settings.SourceConfig{
+		DefaultEnabled:     true,
+		DefaultPermissions: users.SourceFilePermissions{View: true, Download: true, Modify: true, Create: true},
+	}}
+	settings.Config.Server.Sources = []*settings.Source{source}
+	settings.Config.Server.SourceMap = map[string]*settings.Source{source.Path: source}
+	settings.Config.Server.NameToSource = map[string]*settings.Source{source.Name: source}
+	settings.InitializeUserResolvers()
+
+	dbPath := filepath.Join(t.TempDir(), "filebrowser.sqlite")
+	_, err := Initialize(dbPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = Close() })
+
+	requested := users.SourceFilePermissions{View: true, Download: true, Delete: true}
+	u := &users.User{
+		FrontendUser: users.FrontendUser{
+			Username:       "alice",
+			Permissions:    users.Permissions{Admin: true, Share: true, Api: true, Realtime: true},
+			FrontendScopes: []users.FrontendScope{{Name: "a", Scope: "/", Permissions: &requested}},
+		},
+	}
+	if err = CreateUser(u, "password"); err != nil {
+		t.Fatal(err)
+	}
+
+	loaded, err := GetUserByUsername("alice")
+	if err != nil {
+		t.Fatal(err)
+	}
+	wantPerms := users.Permissions{Admin: true, Share: true, Api: true, Realtime: true}
+	if loaded.Permissions != wantPerms {
+		t.Fatalf("permissions = %+v, want %+v", loaded.Permissions, wantPerms)
+	}
+	if len(loaded.BackendScopes) == 0 {
+		t.Fatal("expected a scope for the requested source")
+	}
+	got := loaded.BackendScopes[0].Permissions
+	if got.View != requested.View || got.Download != requested.Download || got.Modify != requested.Modify ||
+		got.Create != requested.Create || got.Delete != requested.Delete {
+		t.Fatalf("scope permissions = %+v, want %+v", got, requested)
+	}
+}

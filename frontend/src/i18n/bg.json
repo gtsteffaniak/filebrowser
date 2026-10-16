@@ -1101,7 +1101,8 @@
       "shareFilter": "Филтър по споделяне",
       "pathGlob": "Модел на път (glob)",
       "viewActivity": "Преглед на активност",
-      "tableColumns": "Колони на таблицата"
+      "tableColumns": "Колони на таблицата",
+      "eventFileModify": "Промяна на файл"
     },
     "toolNotFound": "Инструментът не е намерен",
     "toolAccessDefaults": "Настройки по подразбиране за достъп до инструменти",

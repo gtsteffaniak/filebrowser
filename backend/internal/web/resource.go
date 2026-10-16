@@ -1206,7 +1206,11 @@ func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *Context) (int
 		return http.StatusMethodNotAllowed, errPutPathIsDirectory
 	}
 
-	return putResourceWithQuota(w, r, d, source, fullIndexPath)
+	status, err := putResourceWithQuota(w, r, d, source, fullIndexPath)
+	if err == nil && (status == http.StatusOK || status == 0) {
+		activity.RecordFileModify(r, toActor(d), source, path)
+	}
+	return status, err
 }
 
 // publicPutHandler handles the PUT request for a public share.
@@ -1247,7 +1251,11 @@ func publicPutHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 	if idx.Config.ReadOnly {
 		return http.StatusForbidden, fmt.Errorf("source is read-only")
 	}
-	return putResourceWithQuota(w, r, d, sourceName, resolvedPath)
+	status, err := putResourceWithQuota(w, r, d, sourceName, resolvedPath)
+	if err == nil && (status == http.StatusOK || status == 0) {
+		activity.RecordFileModify(r, toActor(d), sourceName, resolvedPath)
+	}
+	return status, err
 }
 
 // resourcePatchHandler performs a patch operation (e.g., move, copy, rename) on resources.
