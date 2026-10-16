@@ -183,9 +183,9 @@ test("markdown viewer", async ({ page, theme }) => {
   if (theme === "light") {
     return;
   }
-  await page.goto("/files/playwright/text-files/markdown-preview.md");
-  await expect(page).toHaveTitle("FileBrowser Quantum - Files - markdown-preview.md");
-  await expect(page.locator("#markedown-viewer")).toContainText("Markdown preview support");
+  await page.goto("/files/playwright/files/for testing.md");
+  await expect(page).toHaveTitle("FileBrowser Quantum - Files - for testing.md");
+  await expect(page.locator("#markedown-viewer")).toContainText("this is a test");
   await sleep(500);
   await page.screenshot({ path: `./generated/viewer/markdown-viewer-${theme}.jpg`, quality: jpgQuality });
 });
