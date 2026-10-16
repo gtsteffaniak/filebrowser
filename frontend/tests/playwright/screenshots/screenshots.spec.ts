@@ -2,6 +2,7 @@
 import { setTimeout as sleep } from "node:timers/promises";
 import {
   ensureListingViewMode,
+  ensureUserDarkMode,
   expect,
   test,
   waitForListing3dThumbnails,
@@ -177,6 +178,19 @@ test("text file editor -- bash", async ({ page,theme }) => {
   await page.goto("/files/playwright/text-files/bash.sh");
   await sleep(500);
   await page.screenshot({ path: `./generated/viewer/editor-bash.sh-${theme}.jpg`, quality: jpgQuality });
+});
+
+test("markdown viewer", async ({ page, theme }) => {
+  if (theme === "light") {
+    return;
+  }
+  await ensureUserDarkMode(page, true);
+  await page.goto("/files/playwright/files/for testing.md");
+  await expect(page).toHaveTitle("FileBrowser Quantum - Files - for testing.md");
+  await expect(page.locator("#markedown-viewer")).toContainText("this is a test");
+  await expect(page.locator("html")).toHaveClass(/dark-mode/);
+  await sleep(500);
+  await page.screenshot({ path: `./generated/viewer/markdown-viewer-${theme}.jpg`, quality: jpgQuality });
 });
 
 test("3d file preview thumbnails", async ({ page, checkForErrors, theme }) => {

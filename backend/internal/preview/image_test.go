@@ -13,6 +13,7 @@ import (
 	"testing"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/fileutils"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/testutil"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/image/bmp"
@@ -20,6 +21,7 @@ import (
 )
 
 func TestMain(m *testing.M) {
+	testutil.QuietLogging()
 	// Ensure fileutils permissions are set (needed by NewPreviewGenerator)
 	if fileutils.PermDir == 0 {
 		fileutils.SetFsPermissions(0644, 0755)

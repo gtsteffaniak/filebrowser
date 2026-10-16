@@ -382,6 +382,7 @@ func isGoTest() bool {
 	return flag.Lookup("test.v") != nil
 }
 
+
 func setupFFmpegIntegration() {
 	n := Config.Server.NumImageProcessors
 	if n < 1 {
@@ -593,6 +594,10 @@ func setupAuth(generate bool) {
 }
 
 func setupLogging() {
+	// Tests quiet the logger in testutil.Main; skip stacking handlers here.
+	if isGoTest() && os.Getenv("FILEBROWSER_TEST_LOG") == "" {
+		return
+	}
 	if len(Config.Server.Logging) == 0 {
 		Config.Server.Logging = []LogConfig{
 			{
