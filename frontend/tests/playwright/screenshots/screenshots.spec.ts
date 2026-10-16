@@ -179,6 +179,17 @@ test("text file editor -- bash", async ({ page,theme }) => {
   await page.screenshot({ path: `./generated/viewer/editor-bash.sh-${theme}.jpg`, quality: jpgQuality });
 });
 
+test("markdown viewer", async ({ page, theme }) => {
+  if (theme === "light") {
+    return;
+  }
+  await page.goto("/files/playwright/text-files/markdown-preview.md");
+  await expect(page).toHaveTitle("FileBrowser Quantum - Files - markdown-preview.md");
+  await expect(page.locator("#markedown-viewer")).toContainText("Markdown preview support");
+  await sleep(500);
+  await page.screenshot({ path: `./generated/viewer/markdown-viewer-${theme}.jpg`, quality: jpgQuality });
+});
+
 test("3d file preview thumbnails", async ({ page, checkForErrors, theme }) => {
   test.setTimeout(60_000);
   if (theme === 'light') {
