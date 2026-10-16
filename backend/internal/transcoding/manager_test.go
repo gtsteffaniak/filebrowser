@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -489,6 +490,149 @@ func TestManagerStartToleratesExpiredReplaceSession(t *testing.T) {
 	// Nothing was replaced, so the per-user limit still applies.
 	if _, err := start("/c.mp4", 2, "also-missing"); err != ErrUserLimit {
 		t.Fatalf("want ErrUserLimit when no slot was released, got %v", err)
+	}
+}
+
+// Switching profiles for the same user+client+file must hand over the existing
+// session even when replaceSessionId is omitted (frontend race).
+func TestManagerStartHandsOverSameFileClientSession(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	store, err := NewStore(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	mgr, err := NewManager(ctx, NewFakeEngine(), store, Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer mgr.Close(context.Background())
+
+	base := StartInput{
+		Username:  "handover-user",
+		UserLimit: 1,
+		Source:    "s",
+		Path:      "/clip.mp4",
+		RealPath:  t.TempDir() + "/clip.mp4",
+		Profile:   ProfileDataSaver,
+		ClientID:  "plyr-1",
+	}
+	first, err := mgr.Start(ctx, base)
+	if err != nil {
+		t.Fatalf("datasaver start: %v", err)
+	}
+
+	second, err := mgr.Start(ctx, StartInput{
+		Username:  base.Username,
+		UserLimit: base.UserLimit,
+		Source:    base.Source,
+		Path:      base.Path,
+		RealPath:  base.RealPath,
+		Profile:   ProfileBalanced,
+		ClientID:  base.ClientID,
+		// Intentionally omit ReplaceSessionID — the manager must still hand over.
+	})
+	if err != nil {
+		t.Fatalf("balanced start without replaceSessionId: %v", err)
+	}
+	if second.ID == first.ID {
+		t.Fatal("expected a new session for the new profile")
+	}
+	if second.Profile != ProfileBalanced {
+		t.Fatalf("profile = %s, want balanced", second.Profile)
+	}
+	if _, err := mgr.SessionForUser(base.Username, first.ID); err != ErrNotFound {
+		t.Fatalf("old datasaver session should be gone, got %v", err)
+	}
+	snap := mgr.Snapshot(base.Username, false, base.UserLimit)
+	if snap.UserActive != 1 {
+		t.Fatalf("userActive=%d want 1 after handover", snap.UserActive)
+	}
+}
+
+// Reusing another client's completed same-file session must still release this
+// client's live session for a different profile so the slot does not leak.
+func TestManagerReuseReleasesOtherSameFileClientSession(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	store, err := NewStore(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	mgr, err := NewManager(ctx, NewFakeEngine(), store, Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer mgr.Close(context.Background())
+
+	realPath := t.TempDir() + "/clip.mp4"
+	balanced, err := mgr.Start(ctx, StartInput{
+		Username:  "reuse-handover",
+		UserLimit: 2,
+		Source:    "s",
+		Path:      "/clip.mp4",
+		RealPath:  realPath,
+		Profile:   ProfileBalanced,
+		ClientID:  "other-client",
+	})
+	if err != nil {
+		t.Fatalf("balanced start: %v", err)
+	}
+	mgr.mu.Lock()
+	sess := mgr.sessions[balanced.ID]
+	sess.state = StateCompleted
+	sess.info.State = StateCompleted
+	sess.coversFromStart = true
+	mgr.mu.Unlock()
+
+	datasaver, err := mgr.Start(ctx, StartInput{
+		Username:  "reuse-handover",
+		UserLimit: 2,
+		Source:    "s",
+		Path:      "/clip.mp4",
+		RealPath:  realPath,
+		Profile:   ProfileDataSaver,
+		ClientID:  "plyr-1",
+	})
+	if err != nil {
+		t.Fatalf("datasaver start: %v", err)
+	}
+
+	// plyr-1 switches to balanced: reuse the completed session and release datasaver.
+	reused, err := mgr.Start(ctx, StartInput{
+		Username:  "reuse-handover",
+		UserLimit: 1,
+		Source:    "s",
+		Path:      "/clip.mp4",
+		RealPath:  realPath,
+		Profile:   ProfileBalanced,
+		ClientID:  "plyr-1",
+	})
+	if err != nil {
+		t.Fatalf("reuse balanced: %v", err)
+	}
+	if !reused.Reused || reused.ID != balanced.ID {
+		t.Fatalf("expected reused balanced session, got id=%s reused=%v", reused.ID, reused.Reused)
+	}
+	if _, err := mgr.SessionForUser("reuse-handover", datasaver.ID); err != ErrNotFound {
+		t.Fatalf("datasaver session should be released after reuse handover, got %v", err)
+	}
+}
+
+func TestStoreReadServePlaylistMissingIsNotReady(t *testing.T) {
+	store, err := NewStore(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	jobDir, err := store.EnsureJobDir("fp", "gen")
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, _, err = store.ReadServePlaylist(jobDir)
+	if !errors.Is(err, ErrNotReady) {
+		t.Fatalf("missing playlist: got %v, want ErrNotReady", err)
 	}
 }
 

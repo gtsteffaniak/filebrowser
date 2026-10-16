@@ -121,6 +121,11 @@ func (s *Store) ReadServePlaylist(jobDir string) ([]byte, int, error) {
 	}
 	raw, err := os.ReadFile(path)
 	if err != nil {
+		// ffmpeg has not written the playlist yet; callers poll on ErrNotReady
+		// instead of treating a missing file as a hard 500.
+		if os.IsNotExist(err) {
+			return nil, 0, ErrNotReady
+		}
 		return nil, 0, err
 	}
 	out, ready := buildServePlaylist(raw, func(name string) bool {

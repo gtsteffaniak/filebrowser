@@ -10,6 +10,7 @@ import {
 } from "@/api/settings.js";
 import { detectLocale, setLocale } from "@/i18n/index.ts";
 import { notify } from "@/notify/index.ts";
+import { globalVars } from "@/utils/constants.js";
 import { url } from "@/utils/index.ts";
 import { getTypeInfo } from "@/utils/mimetype.js";
 import { getObjectProperty, setObjectProperty, omitObjectProperty } from '@/utils/object.js';
@@ -568,6 +569,14 @@ export const mutations = {
    */
   syncMediaPlayerSettings: async () => {
     if (!getters.isLoggedIn() || getters.isShare() || state.user?.username === "anonymous") {
+      state.mediaPlayerSettings = null;
+      emitStateChanged();
+      return;
+    }
+    // ffmpeg availability is fixed for the process lifetime; skip the API when
+    // media is unavailable (GET /settings/media answers 503 and shows up as a
+    // failed request / console error in Playwright and the browser).
+    if (globalVars.mediaAvailable !== true) {
       state.mediaPlayerSettings = null;
       emitStateChanged();
       return;

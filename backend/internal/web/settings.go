@@ -467,6 +467,9 @@ func mediaSettingsLockMeta() (paths []string, message string) {
 }
 
 func settingsMediaGetHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+	if !settings.MediaEnabled() {
+		return http.StatusServiceUnavailable, fmt.Errorf("media features unavailable: ffmpeg not available")
+	}
 	if !d.User.Permissions.Admin {
 		return RenderJSON(w, r, currentMediaPlayerSettings())
 	}
@@ -498,6 +501,9 @@ func currentMediaPlayerSettings() mediaPlayerSettings {
 // @Success 200 {object} mediaSettingsResponse "Updated media settings"
 // @Router /api/settings/media [patch]
 func settingsMediaPatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+	if !settings.MediaEnabled() {
+		return http.StatusServiceUnavailable, fmt.Errorf("media features unavailable: ffmpeg not available")
+	}
 	patchJSON, err := readSettingsPatchBody(w, r)
 	if err != nil {
 		if err.Error() == "request body too large" {

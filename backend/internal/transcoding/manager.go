@@ -213,11 +213,17 @@ func (m *Manager) Start(ctx context.Context, in StartInput) (SessionInfo, error)
 			// A replaced session must still be stopped even when this request
 			// attaches to an existing generation, otherwise the old profile's
 			// session (and its producer slot) leaks.
-			if ok && in.ReplaceSessionID != "" && in.ReplaceSessionID != info.ID {
-				if stopErr := m.stopSessionLocked(in.Username, in.ReplaceSessionID); stopErr != nil && !errors.Is(stopErr, ErrNotFound) {
-					m.mu.Unlock()
-					return SessionInfo{}, stopErr
+			if ok {
+				if in.ReplaceSessionID != "" && in.ReplaceSessionID != info.ID {
+					if stopErr := m.stopSessionLocked(in.Username, in.ReplaceSessionID); stopErr != nil && !errors.Is(stopErr, ErrNotFound) {
+						m.mu.Unlock()
+						return SessionInfo{}, stopErr
+					}
 				}
+				// Profile/mode switches reuse a completed generation for the new
+				// profile while another same-file session (old profile) is still
+				// counted against the user limit — release those here.
+				m.releaseSameFileClientSessionsLocked(in.Username, in.Source, in.Path, clientID, info.ID)
 			}
 			m.mu.Unlock()
 			return info, err
@@ -246,6 +252,11 @@ func (m *Manager) Start(ctx context.Context, in StartInput) (SessionInfo, error)
 				return SessionInfo{}, stopErr
 			}
 			replaced = stopErr == nil
+		}
+		// Same user+client+file mode switches must hand over gracefully even when
+		// the client omits replaceSessionId (race / stale UI state).
+		if m.releaseSameFileClientSessionsLocked(in.Username, in.Source, in.Path, clientID, "") {
+			replaced = true
 		}
 
 		userLimit := userTranscodeLimit(in.UserLimit)
@@ -651,6 +662,31 @@ func (m *Manager) supersedeSessionLocked(sessionID string, sess *playbackSession
 	sess.info.State = StateStopping
 	m.detachProducerLocked(sessionID)
 	m.releaseSessionLocked(sessionID, sess)
+}
+
+// releaseSameFileClientSessionsLocked stops other sessions for the same
+// user+source+path that this client is attached to, keeping keepSessionID.
+// Used for graceful profile/mode handover when switching streams on one file.
+func (m *Manager) releaseSameFileClientSessionsLocked(username, source, path, clientID, keepSessionID string) bool {
+	released := false
+	for id, sess := range m.sessions {
+		if id == keepSessionID || sess == nil {
+			continue
+		}
+		if sess.info.Username != username || sess.info.Source != source || sess.info.Path != path {
+			continue
+		}
+		if clientID != "" {
+			if _, ok := sess.clients[clientID]; !ok {
+				continue
+			}
+		}
+		if err := m.stopSessionLocked(username, id); err != nil {
+			continue
+		}
+		released = true
+	}
+	return released
 }
 
 // detachProducerLocked drops one session's hold on a generation. The ffmpeg job

@@ -643,6 +643,11 @@ export default {
     transcodeMode() {
       this.updateTranscodeModeMenuSelection();
     },
+    transcodeMenuAvailable() {
+      if (this.player) {
+        this.applyCustomSettings(this.player);
+      }
+    },
   },
   computed: {
     routePath() {
@@ -851,7 +856,10 @@ export default {
     },
     plyrSettingsMenu() {
       const base = ['captions', 'captionSize', 'quality', 'speed', 'playback', 'loop'];
-      if (this.transcodeMenuAvailable) {
+      // Register the slot whenever authenticated video can show it later.
+      // Plyr only builds settings panels at mount; applyCustomSettings toggles
+      // visibility when media/live settings settle (e.g. after syncMediaPlayerSettings).
+      if (this.previewType === 'video' && getters.isLoggedIn() && !getters.isShare()) {
         return [...base, 'transcodeMode'];
       }
       return base;
@@ -2029,15 +2037,20 @@ export default {
       return resolveTranscodeModeForPlayback(this.$route?.query);
     },
     async resolveReuseSessionId() {
-      if (!this.startTranscode && !this.wantsTranscodePlayback) {
+      if (!this.req?.source || !this.req?.path) {
         return undefined;
       }
       try {
         const status = await getTranscodeSessions();
-        const sameFile = (status.sessions || []).find(
+        const sameFile = (status.sessions || []).filter(
           (session) => session.source === this.req?.source && session.path === this.req?.path,
         );
-        return sameFile?.id;
+        // Prefer a live session so a completed cache entry for another profile
+        // is not passed as replaceSessionId while an older profile is still active.
+        const active = sameFile.find(
+          (session) => session.state === 'starting' || session.state === 'running',
+        );
+        return active?.id ?? sameFile[0]?.id;
       } catch {
         return undefined;
       }
@@ -2340,6 +2353,10 @@ export default {
         currentTime: this.player?.currentTime,
       });
       this.transcodeSwitchInProgress = true;
+      // Capture before mode/teardown changes so same-file profile switches always
+      // send replaceSessionId even if the controller is mid-start.
+      const replaceSessionId = this.transcodePlayback?.sessionController?.session?.id
+        ?? await this.resolveReuseSessionId();
       this.transcodeMode = mode;
       if (PLYR_TRANSCODE_HLS_MODES.includes(mode)) {
         savePreferredTranscodeMode(mode);
@@ -2347,6 +2364,7 @@ export default {
       try {
         if (PLYR_TRANSCODE_HLS_MODES.includes(mode)) {
           await this.startTranscodePlayback({
+            replaceSessionId,
             startSec: this.player?.currentTime ?? 0,
             mode,
             autoplay: wasPlaying || this.shouldAutoplay,
@@ -2702,6 +2720,15 @@ export default {
         this.player.on('exitfullscreen', this.applyCaptionSizeClass);
       }
       this.ensurePlaybackModeApplied();
+      // Re-apply custom menus when settings opens so late media availability
+      // (live settings sync / test hooks) can unhide transcodeMode.
+      const settingsBtn = this.player.elements?.buttons?.settings;
+      if (settingsBtn && !settingsBtn.dataset.transcodeMenuHook) {
+        settingsBtn.dataset.transcodeMenuHook = '1';
+        settingsBtn.addEventListener('click', () => {
+          void this.$nextTick(() => this.ensurePlaybackModeApplied());
+        });
+      }
       if (this.previewType === 'video') {
         this.applyCaptionSizeClass();
         this.syncCaptionSizeSettingsVisibility();
@@ -3816,7 +3843,16 @@ export default {
         const transcodeBtn = player.elements.settings?.buttons?.transcodeMode;
         const transcodePanel = player.elements.settings?.panels?.transcodeMode;
         if (transcodeBtn && transcodePanel) {
-          const visible = this.transcodeMenuAvailable;
+          // Stable hook for tests — Plyr stamps data-plyr="settings" on every menu item.
+          transcodeBtn.setAttribute('data-plyr-menu', 'transcodeMode');
+          // Call isTranscodeAvailable() directly: the computed can stay stale when
+          // tests (or a late sync) mutate globalVars, which is not Vue-reactive.
+          const visible = (
+            this.previewType === 'video'
+            && getters.isLoggedIn()
+            && !getters.isShare()
+            && isTranscodeAvailable()
+          );
           if (!visible) {
             transcodeBtn.setAttribute('hidden', '');
             this.transcodeMenuInitialized = true;

@@ -122,7 +122,7 @@ describe('TranscodePlaybackController', () => {
     expect(activeDuringFirstBuffered).toBe(true);
   });
 
-  it('coalesces concurrent duplicate starts', async () => {
+  it('supersedes in-flight start with the latest mode switch', async () => {
     const controller = new TranscodePlaybackController();
     const video = document.createElement('video');
     let resolveFirstAttach;
@@ -144,6 +144,9 @@ describe('TranscodePlaybackController', () => {
       shouldAutoplay: false,
     });
 
+    // Let the first start reach HLS attach before superseding it.
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
     const second = controller.start({
       source: 's',
       path: '/v.mp4',
@@ -161,10 +164,11 @@ describe('TranscodePlaybackController', () => {
     const firstResult = await first;
     const secondResult = await second;
 
-    expect(firstResult.ok).toBe(true);
+    expect(firstResult.ok).toBe(false);
+    expect(['cancelled', 'stale']).toContain(firstResult.reason);
     expect(secondResult.ok).toBe(true);
     expect(controller.active).toBe(true);
-    expect(attachHlsToVideo).toHaveBeenCalledOnce();
+    expect(attachHlsToVideo).toHaveBeenCalledTimes(2);
   });
 
   it('clears startInProgress when preconditions fail so a later start still runs', async () => {

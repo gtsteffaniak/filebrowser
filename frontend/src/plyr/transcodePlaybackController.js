@@ -56,9 +56,13 @@ export class TranscodePlaybackController {
   }
 
   start(params) {
+    // A mode switch while a start is in flight must not reuse the old chain —
+    // that dropped replaceSessionId / profile and raced the backend. Invalidate
+    // the in-flight attempt and queue the latest params instead.
     if (this.startInProgress) {
-      transcodeLog('coalescing duplicate transcode start');
-      return this._startChain;
+      transcodeLog('superseding in-flight transcode start');
+      this.attempt += 1;
+      this.attachAbort?.abort();
     }
     this.startInProgress = true;
     this._startChain = this._startChain
