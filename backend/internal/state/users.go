@@ -211,6 +211,8 @@ func CreateUser(user *users.User, plaintextPassword string) error {
 	// If still no BackendScopes (omitted or invalid API names), same defaults as ApplyUserDefaults.
 	preserveRequirePasswordChange := user.RequirePasswordChange
 	requestedPermissions := user.Permissions
+	permissionsRequested := requestedPermissions.Admin || requestedPermissions.Share ||
+		requestedPermissions.Api || requestedPermissions.Realtime || requestedPermissions.HasAnyFilePermission()
 	requestedScopePermissions := make(map[string]users.SourceFilePermissions, len(user.BackendScopes))
 	for _, scope := range user.BackendScopes {
 		if !scope.Permissions.IsUnset() {
@@ -221,8 +223,10 @@ func CreateUser(user *users.User, plaintextPassword string) error {
 	if preserveRequirePasswordChange {
 		user.RequirePasswordChange = true
 	}
-	// Defaults fill in what the caller left out; keep the permissions it asked for.
-	user.Permissions = requestedPermissions
+	// Defaults fill in what the caller left out; keep account permissions only when the caller set them.
+	if permissionsRequested {
+		user.Permissions = requestedPermissions
+	}
 	for i, scope := range user.BackendScopes {
 		if perms, ok := requestedScopePermissions[scope.Path]; ok {
 			user.BackendScopes[i].Permissions = perms

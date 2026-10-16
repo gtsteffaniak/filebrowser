@@ -1,6 +1,5 @@
 import type { Locator, Page, Response } from "@playwright/test";
 import { test as base, expect } from "@playwright/test";
-import { PLAYWRIGHT_ADMIN_USERNAME } from "./playwright-auth.ts";
 
 const PLAYWRIGHT_RETRY_INTERVALS = [500, 1000, 1500, 2000];
 
@@ -337,18 +336,25 @@ export async function disableAndCloseHalloweenPrompt(page: Page): Promise<void> 
   );
 }
 
-/** Persist dark mode for the logged-in admin (screenshot projects only label theme). */
+/**
+ * Persist dark/light mode for the logged-in user via the sidebar toggle.
+ * The Playwright `theme` fixture only labels the project; light setup can leave
+ * darkMode=false on the shared admin user. Prefer the UI over a hardcoded API
+ * host so this works with screenshot docker (localhost:8080 + http.baseURL /files/).
+ */
 export async function ensureUserDarkMode(page: Page, darkMode: boolean): Promise<void> {
-  const response = await page.request.patch(
-    `http://127.0.0.1/api/users?username=${encodeURIComponent(PLAYWRIGHT_ADMIN_USERNAME)}`,
-    {
-      data: {
-        which: ["darkMode"],
-        data: { darkMode },
-      },
-    },
-  );
-  expect(response.ok()).toBeTruthy();
+  await page.goto("/files/");
+  const toggle = page.locator('div[aria-label="Toggle Theme"]');
+  await expect(toggle).toBeVisible();
+  const isDark = await toggle.evaluate((el) => el.classList.contains("active"));
+  if (isDark !== darkMode) {
+    await toggle.click();
+  }
+  if (darkMode) {
+    await expect(page.locator("html")).toHaveClass(/dark-mode/);
+  } else {
+    await expect(page.locator("html")).not.toHaveClass(/dark-mode/);
+  }
 }
 
 export interface PlaywrightFixtureOptions {
