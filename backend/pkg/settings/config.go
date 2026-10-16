@@ -9,9 +9,11 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"runtime"
 	"slices"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/go-playground/validator/v10"
@@ -382,6 +384,24 @@ func isGoTest() bool {
 	return flag.Lookup("test.v") != nil
 }
 
+// setupQuietTestLogging sends only error/fatal lines to the null device so `go test`
+// output stays readable. Set FILEBROWSER_TEST_LOG=1 to keep normal config logging.
+func setupQuietTestLogging() error {
+	logger.DisableCompatibilityMode()
+	return logger.EnableCompatibilityMode(logger.JsonConfig{
+		Levels:   "error|fatal",
+		Output:   testLogOutput(),
+		NoColors: true,
+	})
+}
+
+func testLogOutput() string {
+	if runtime.GOOS == "windows" {
+		return "NUL"
+	}
+	return os.DevNull
+}
+
 func setupFFmpegIntegration() {
 	n := Config.Server.NumImageProcessors
 	if n < 1 {
@@ -592,7 +612,17 @@ func setupAuth(generate bool) {
 
 }
 
+var testLoggingOnce sync.Once
+
 func setupLogging() {
+	if isGoTest() && os.Getenv("FILEBROWSER_TEST_LOG") == "" {
+		testLoggingOnce.Do(func() {
+			if err := setupQuietTestLogging(); err != nil {
+				log.Println("[ERROR] Failed to set up test logger:", err)
+			}
+		})
+		return
+	}
 	if len(Config.Server.Logging) == 0 {
 		Config.Server.Logging = []LogConfig{
 			{
