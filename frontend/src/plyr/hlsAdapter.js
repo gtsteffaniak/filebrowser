@@ -1,6 +1,6 @@
 import Hls from 'hls.js';
 import { getTranscodePlaylistURL } from '@/api/transcode.js';
-import { state } from '@/store';
+import { state } from '@/store/index.ts';
 import { transcodeError, transcodeLog, transcodeVerbose, transcodeWarn } from '@/plyr/transcodeDebug.js';
 
 const ATTACH_TIMEOUT_MS = 45_000;
@@ -30,9 +30,9 @@ function applyAuthToFetchParams(initParams) {
   initParams.credentials = 'same-origin';
   const headers = authHeaders();
   if (initParams.headers instanceof Headers) {
-    Object.entries(headers).forEach(([key, value]) => {
+    for (const [key, value] of Object.entries(headers)) {
       initParams.headers.set(key, value);
-    });
+    }
   } else {
     initParams.headers = {
       ...(initParams.headers || {}),
@@ -240,9 +240,9 @@ export function attachHlsToVideo({
       startPosition: initialStart,
       xhrSetup(xhr, url) {
         xhr.withCredentials = true;
-        Object.entries(authHeaders()).forEach(([key, value]) => {
+        for (const [key, value] of Object.entries(authHeaders())) {
           xhr.setRequestHeader(key, value);
-        });
+        }
         transcodeVerbose('hls xhr open', { url });
       },
       fetchSetup(context, initParams) {

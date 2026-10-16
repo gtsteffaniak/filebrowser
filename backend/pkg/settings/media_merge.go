@@ -54,6 +54,41 @@ func MigrateLegacyMediaDefaults(m MediaSettings) (MediaSettings, bool) {
 	return m, false
 }
 
+// CloneMediaSettings returns a deep copy of m.
+//
+// The conversion maps hold *bool values, so a shallow copy would share both the
+// maps and the pointers with the live config: a caller editing the copy would
+// reconfigure the server without ApplyMediaSettings, and would race with
+// CanConvertImage/CanConvertVideo. MediaTranscode holds only value fields, so the
+// two maps are the whole of the reference state.
+func CloneMediaSettings(m MediaSettings) MediaSettings {
+	out := m
+	out.Convert = FfmpegConvert{
+		ImagePreview: cloneBoolMap(m.Convert.ImagePreview),
+		VideoPreview: cloneBoolMap(m.Convert.VideoPreview),
+	}
+	return out
+}
+
+// cloneBoolMap copies a map of *bool values, keeping nil entries nil.
+func cloneBoolMap[K comparable](src map[K]*bool) map[K]*bool {
+	if src == nil {
+		return nil
+	}
+	dst := make(map[K]*bool, len(src))
+	for k, v := range src {
+		dst[k] = cloneBoolPtr(v)
+	}
+	return dst
+}
+
+func cloneBoolPtr(v *bool) *bool {
+	if v == nil {
+		return nil
+	}
+	return boolPtr(*v)
+}
+
 // SanitizeMediaSettings clamps runtime media settings into supported ranges.
 func SanitizeMediaSettings(m MediaSettings) MediaSettings {
 	t := &m.Transcode

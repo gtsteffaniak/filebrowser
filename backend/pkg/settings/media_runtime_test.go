@@ -101,6 +101,62 @@ func TestTranscodeCacheSizeZeroMeansUnlimited(t *testing.T) {
 	}
 }
 
+// CurrentMediaSettings must hand out an independent snapshot. The conversion maps
+// hold *bool values, so a shallow copy would let a caller reconfigure the live
+// server without ApplyMediaSettings, and would race with CanConvertImage.
+func TestCurrentMediaSettingsReturnsIndependentConvertMaps(t *testing.T) {
+	withMediaConfig(t)
+	Config.Integrations.Media.Convert.ImagePreview = map[ImagePreviewType]*bool{
+		HEICImagePreview: boolPtr(false),
+		JPEGImagePreview: boolPtr(true),
+		"nil-entry":      nil,
+	}
+	Config.Integrations.Media.Convert.VideoPreview = map[VideoPreviewType]*bool{
+		MP4VideoPreview: boolPtr(true),
+	}
+
+	snapshot := CurrentMediaSettings()
+	if snapshot.Convert.ImagePreview["nil-entry"] != nil {
+		t.Fatal("a nil map entry must stay nil in the snapshot")
+	}
+
+	// Editing the snapshot in every way must leave the live config untouched.
+	snapshot.Convert.ImagePreview[HEICImagePreview] = boolPtr(true)
+	*snapshot.Convert.ImagePreview[JPEGImagePreview] = false
+	snapshot.Convert.ImagePreview["added"] = boolPtr(true)
+	delete(snapshot.Convert.ImagePreview, "nil-entry")
+	snapshot.Convert.VideoPreview[MP4VideoPreview] = boolPtr(false)
+
+	live := Config.Integrations.Media.Convert
+	if *live.ImagePreview[HEICImagePreview] {
+		t.Fatal("replacing a snapshot entry changed the live config")
+	}
+	if !*live.ImagePreview[JPEGImagePreview] {
+		t.Fatal("writing through a snapshot pointer changed the live config")
+	}
+	if _, ok := live.ImagePreview["added"]; ok {
+		t.Fatal("adding to the snapshot changed the live config")
+	}
+	if _, ok := live.ImagePreview["nil-entry"]; !ok {
+		t.Fatal("deleting from the snapshot changed the live config")
+	}
+	if !*live.VideoPreview[MP4VideoPreview] {
+		t.Fatal("the video preview map is still shared with the live config")
+	}
+
+	// Snapshots must not share pointers with each other or with the live config.
+	fresh := CurrentMediaSettings()
+	if fresh.Convert.ImagePreview[JPEGImagePreview] == snapshot.Convert.ImagePreview[JPEGImagePreview] {
+		t.Fatal("two snapshots share a *bool pointer")
+	}
+	if fresh.Convert.ImagePreview[JPEGImagePreview] == live.ImagePreview[JPEGImagePreview] {
+		t.Fatal("a snapshot shares a *bool pointer with the live config")
+	}
+	if !*fresh.Convert.ImagePreview[JPEGImagePreview] {
+		t.Fatal("the live config should still report jpeg conversion enabled")
+	}
+}
+
 // Only settings that change how ffmpeg is initialized should trigger a re-probe.
 func TestFFmpegInitInputsTrackOnlyInitRelevantFields(t *testing.T) {
 	withMediaConfig(t)

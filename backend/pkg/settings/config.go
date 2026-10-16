@@ -361,9 +361,11 @@ func applyMediaConvertDefaults() {
 	Config.Integrations.Media.Convert.ImagePreview[HEICImagePreview] = boolPtr(false) // HEIC defaults to disabled
 	Config.Integrations.Media.Convert.ImagePreview[JPEGImagePreview] = boolPtr(true)  // JPEG fallback defaults to enabled
 
-	// Apply user overrides (only for keys explicitly set in YAML)
+	// Apply user overrides (only for keys explicitly set in YAML). The pointers are
+	// cloned so the live config never shares *bool values with the settings it was
+	// built from.
 	for k, v := range userImageConfig {
-		Config.Integrations.Media.Convert.ImagePreview[k] = v
+		Config.Integrations.Media.Convert.ImagePreview[k] = cloneBoolPtr(v)
 	}
 
 	// VideoPreview: Merge user config with defaults
@@ -381,7 +383,7 @@ func applyMediaConvertDefaults() {
 
 	// Apply user overrides (only for keys explicitly set in YAML)
 	for k, v := range userVideoConfig {
-		Config.Integrations.Media.Convert.VideoPreview[k] = v
+		Config.Integrations.Media.Convert.VideoPreview[k] = cloneBoolPtr(v)
 	}
 }
 
@@ -1288,15 +1290,17 @@ func CurrentMediaSettings() MediaSettings {
 	return currentMediaSettingsLocked()
 }
 
+// currentMediaSettingsLocked snapshots the live media settings. Callers must hold
+// mediaMu. The returned value is deep-copied so it cannot alias the live config.
 func currentMediaSettingsLocked() MediaSettings {
 	m := Config.Integrations.Media
-	return MediaSettings{
+	return CloneMediaSettings(MediaSettings{
 		Convert:                  m.Convert,
 		Debug:                    m.Debug,
 		ExtractEmbeddedSubtitles: m.ExtractEmbeddedSubtitles,
 		HardwareAcceleration:     m.HardwareAcceleration,
 		Transcode:                m.Transcode,
-	}
+	})
 }
 
 // ApplyMediaSettings applies runtime media settings to the in-memory config.

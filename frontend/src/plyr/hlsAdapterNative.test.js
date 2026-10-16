@@ -17,6 +17,9 @@ import { attachHlsToVideo } from '@/plyr/hlsAdapter.js';
 function nativeHlsVideo() {
   const video = document.createElement('video');
   video.canPlayType = () => 'maybe';
+  // jsdom does not implement load(); the cleanup path calls it and jsdom would
+  // otherwise print "Not implemented: HTMLMediaElement's load() method".
+  video.load = () => {};
   return video;
 }
 

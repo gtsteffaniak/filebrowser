@@ -236,7 +236,10 @@ func transcodePlaylistHandler(w http.ResponseWriter, r *http.Request, d *Context
 			return http.StatusOK, nil
 		}
 		lastErr = err
-		if time.Now().After(deadline) {
+		// Only a playlist that is still being produced is worth waiting for. Any
+		// other error (not the owner, expired session, transcoding disabled) is
+		// terminal and must not hold the request for the whole deadline.
+		if !errors.Is(err, transcoding.ErrNotReady) || time.Now().After(deadline) {
 			if lastErr == nil {
 				// The session exists but never produced a playlist (encoder failed or is stalled).
 				logger.Warningf("[transcode] playlist not ready session=%s user=%s", id, d.User.Username)

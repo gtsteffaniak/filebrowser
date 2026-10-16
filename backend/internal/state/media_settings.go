@@ -109,11 +109,13 @@ func loadMediaMigrations() mediaMigrations {
 	return migrations
 }
 
-// GetMediaSettings returns the runtime media settings.
+// GetMediaSettings returns the runtime media settings. The value is deep-copied
+// so callers cannot mutate the stored settings (or the live config they are
+// applied to) through the conversion maps.
 func GetMediaSettings() settings.MediaSettings {
 	mediaSettingsMu.RLock()
 	defer mediaSettingsMu.RUnlock()
-	return mediaSettingsDefault
+	return settings.CloneMediaSettings(mediaSettingsDefault)
 }
 
 // PatchMediaSettings merges patch JSON into the media settings, persists, and applies them.

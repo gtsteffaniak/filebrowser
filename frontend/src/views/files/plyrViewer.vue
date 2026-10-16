@@ -1974,7 +1974,7 @@ export default {
       const handler = () => {
         this.disarmResumeOnNextGesture();
         const media = this.player?.media || this.mediaElement;
-        if (!this.transcodeActive || !media || !media.paused) {
+        if (!this.transcodeActive || !media?.paused) {
           return;
         }
         transcodeLog('resuming transcode playback after user gesture');
@@ -2255,9 +2255,9 @@ export default {
         return;
       }
       const label = this.getTranscodeModeLabel(this.transcodeMode);
-      this.transcodeModeButtons.forEach((btn) => {
+      for (const btn of this.transcodeModeButtons) {
         btn.setAttribute('aria-checked', btn.getAttribute('value') === this.transcodeMode);
-      });
+      }
       if (this.transcodeModeValueSpan) {
         this.transcodeModeValueSpan.textContent = label;
       }
@@ -2266,16 +2266,15 @@ export default {
       if (!this.transcodeModeButtons) {
         return;
       }
-      this.transcodeModeButtons.forEach((btn) => {
+      for (const btn of this.transcodeModeButtons) {
         btn.disabled = disabled;
         if (disabled) {
           btn.setAttribute('aria-disabled', 'true');
         } else {
           btn.removeAttribute('aria-disabled');
         }
-      });
-    },
-    async switchToNativePlayback({ autoplay } = {}) {
+      }
+    },    async switchToNativePlayback({ autoplay } = {}) {
       const currentTime = this.player?.currentTime ?? 0;
       const shouldPlay = autoplay ?? !!this.player?.playing;
       transcodeLog('switchToNativePlayback', { currentTime, shouldPlay });
@@ -3837,10 +3836,10 @@ export default {
                   <span>${opt.label}</span>
                 </button>`).join('');
               this.transcodeModeButtons = menu.querySelectorAll('button[data-plyr="transcode-mode"]');
-              this.transcodeModeButtons.forEach((btn) => {
+              for (const btn of this.transcodeModeButtons) {
                 btn.setAttribute('aria-checked', btn.getAttribute('value') === this.transcodeMode);
-              });
-              this.transcodeModeButtons.forEach((btn) => {
+              }
+              for (const btn of this.transcodeModeButtons) {
                 btn.addEventListener('click', (event) => {
                   if (this.transcodeSwitchInProgress) {
                     return;
@@ -3862,7 +3861,7 @@ export default {
                   const playPrime = wasPlaying ? primePlay(el) : null;
                   void this.switchTranscodeMode(value, { playPrime });
                 });
-              });
+              }
               const valueSpan = transcodeBtn.querySelector('span .plyr__menu__value');
               if (valueSpan) {
                 valueSpan.textContent = currentLabel;
@@ -3873,9 +3872,9 @@ export default {
               }
               this.transcodeMenuInitialized = true;
             } else if (this.transcodeModeButtons) {
-              this.transcodeModeButtons.forEach((btn) => {
+              for (const btn of this.transcodeModeButtons) {
                 btn.setAttribute('aria-checked', btn.getAttribute('value') === this.transcodeMode);
-              });
+              }
               if (this.transcodeModeValueSpan) {
                 this.transcodeModeValueSpan.textContent = currentLabel;
               }

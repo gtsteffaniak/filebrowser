@@ -1,4 +1,4 @@
-import { fetchURL, adjustedData } from './utils';
+import { fetchURL, adjustedData } from './utils.ts';
 import { getApiPath } from '@/utils/url.js';
 
 /** POST /api/media/transcode/sessions */
