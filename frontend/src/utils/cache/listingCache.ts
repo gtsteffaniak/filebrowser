@@ -7,7 +7,7 @@ interface ListingCacheEntry {
   items: number;
 }
 
-const TTL_MS = 120000;
+const TTL_MS = 300000;
 const MAX_ENTRIES = 6; // list maximum
 const MAX_TOTAL_ITEMS = 10000; // maximum items in total
 const MAX_ENTRY_ITEMS = 5000; // folders with more items than this are always fetched (so no cache at all)

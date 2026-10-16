@@ -1484,7 +1484,6 @@ export default {
         nextSelection.every((value, i) => current[i] === value);
       if (unchanged) return;
       mutations.setSelected(nextSelection);
-      this.rectangleItemRects = null;
     },
     handleDoubleClick(event) {
       if (event.target.closest('.listing-item')) return;
