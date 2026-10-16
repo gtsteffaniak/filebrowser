@@ -468,3 +468,71 @@ func TestCreateUserKeepsRequestedPermissions(t *testing.T) {
 		t.Fatalf("scope permissions = %+v, want %+v", got, requested)
 	}
 }
+
+// Non-admin create with another account flag set must not keep admin-level source file
+// permissions that applyUserSettingsDefaults would assign while defaults still had Admin.
+func TestCreateUserNonAdminDoesNotKeepAdminScopePermissions(t *testing.T) {
+	original := settings.Config
+	t.Cleanup(func() { settings.Config = original })
+	settings.Config = settings.SetDefaults(true)
+	sourceDefaults := users.SourceFilePermissions{View: true, Download: true, Modify: true, Create: true}
+	source := &settings.Source{Path: "/data/a", Name: "a", Config: settings.SourceConfig{
+		DefaultEnabled:     true,
+		DefaultPermissions: sourceDefaults,
+	}}
+	settings.Config.Server.Sources = []*settings.Source{source}
+	settings.Config.Server.SourceMap = map[string]*settings.Source{source.Path: source}
+	settings.Config.Server.NameToSource = map[string]*settings.Source{source.Name: source}
+	settings.InitializeUserResolvers()
+
+	dbPath := filepath.Join(t.TempDir(), "filebrowser.sqlite")
+	if _, err := Initialize(dbPath); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = Close() })
+
+	userDefaultsMu.Lock()
+	previousDefaults := userDefaultsDefault
+	userDefaultsDefault.Account.Permissions.Admin = true
+	userDefaultsDefault.Account.Permissions.Share = false
+	userDefaultsMu.Unlock()
+	t.Cleanup(func() {
+		userDefaultsMu.Lock()
+		userDefaultsDefault = previousDefaults
+		userDefaultsMu.Unlock()
+	})
+
+	u := &users.User{
+		FrontendUser: users.FrontendUser{
+			Username:    "bob",
+			Permissions: users.Permissions{Admin: false, Share: true},
+		},
+	}
+	if err := CreateUser(u, "password"); err != nil {
+		t.Fatal(err)
+	}
+
+	loaded, err := GetUserByUsername("bob")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if loaded.Permissions.Admin {
+		t.Fatal("expected non-admin account permissions")
+	}
+	if !loaded.Permissions.Share {
+		t.Fatal("expected requested share permission to be kept")
+	}
+	if len(loaded.BackendScopes) == 0 {
+		t.Fatal("expected default-enabled source scope")
+	}
+	got := loaded.BackendScopes[0].Permissions
+	adminPerms := settings.AdminSourceFilePermissions()
+	if got.Delete == adminPerms.Delete && got.Modify == adminPerms.Modify && got.Create == adminPerms.Create {
+		t.Fatalf("non-admin kept admin scope permissions: %+v", got)
+	}
+	want := settings.DefaultSourceFilePermissions()
+	if got.View != want.View || got.Download != want.Download || got.Modify != want.Modify ||
+		got.Create != want.Create || got.Delete != want.Delete {
+		t.Fatalf("scope permissions = %+v, want non-admin defaults %+v", got, want)
+	}
+}

@@ -219,17 +219,26 @@ func CreateUser(user *users.User, plaintextPassword string) error {
 			requestedScopePermissions[scope.Path] = scope.Permissions
 		}
 	}
-	applyUserSettingsDefaults(user)
-	if preserveRequirePasswordChange {
-		user.RequirePasswordChange = true
-	}
-	// Defaults fill in what the caller left out; keep account permissions only when the caller set them.
+	// Apply requested account permissions before defaults derive per-source file
+	// permissions. Otherwise admin defaults temporarily grant AdminSourceFilePermissions,
+	// then restoring Admin:false (while keeping e.g. Share:true) would leave admin-level
+	// file permissions on a non-admin user for default-enabled sources.
 	if permissionsRequested {
 		user.Permissions = requestedPermissions
+		settings.ApplyUserDefaultsFromKeepingAccountPermissions(user, EffectiveUserDefaults())
+	} else {
+		applyUserSettingsDefaults(user)
+	}
+	if preserveRequirePasswordChange {
+		user.RequirePasswordChange = true
 	}
 	for i, scope := range user.BackendScopes {
 		if perms, ok := requestedScopePermissions[scope.Path]; ok {
 			user.BackendScopes[i].Permissions = perms
+			if user.BackendSourcePermissions == nil {
+				user.BackendSourcePermissions = make(map[string]users.SourceFilePermissions)
+			}
+			user.BackendSourcePermissions[scope.Path] = perms
 		}
 	}
 	defaults := EffectiveUserDefaults()
