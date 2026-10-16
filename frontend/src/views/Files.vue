@@ -131,7 +131,6 @@ export default {
       error: null,
       width: window.innerWidth,
       lastPath: "",
-      lastHash: "",
       popupSource: "",
       loadingProgress: 0,
       loadingStartTime: null,
@@ -213,7 +212,6 @@ export default {
     },
   },
   mounted() {
-    window.addEventListener("hashchange", this.scrollToHash);
     window.addEventListener("keydown", this.keyEvent);
   },
   beforeUnmount() {
@@ -223,46 +221,32 @@ export default {
     mutations.replaceRequest({}); // Use mutation
   },
   methods: {
-    scrollToHash() {
-      let scrollToId = "";
-      let targetName = "";
-      // scroll to previous item either from location hash or from previousItemHashId state
-      // prefers location hash
-      const noHashChange = window.location.hash === this.lastHash
-      if (noHashChange && state.previousHistoryItem?.name === "") return;
-      this.lastHash = window.location.hash;
-      if (window.location.hash) {
-        const rawHash = window.location.hash.slice(1);
-        let decodedName;
-        try {
-          decodedName = decodeURIComponent(rawHash);
-        } catch (_e) {
-          // If the hash contains malformed escape sequences, fall back to raw
-          decodedName = rawHash;
-        }
-        targetName = decodedName;
-        scrollToId = base64Encode(encodeURIComponent(decodedName));
-      } else if (state.previousHistoryItem?.name &&
-                 state.previousHistoryItem.path === state.req.path &&
-                 state.previousHistoryItem.source === state.req.source) {
-        targetName = state.previousHistoryItem?.name;
-        scrollToId = base64Encode(encodeURIComponent(state.previousHistoryItem?.name));
-      }
-      // Don't call getElementById with empty string
-      if (!scrollToId || scrollToId.trim() === '') {
-        return;
-      }
-      // Re-select the item we are returning to -- replaces the previous glow effect.
-      const targetIndex = state.req?.items?.findIndex((item) => item.name === targetName);
-      if (typeof targetIndex === 'number' && targetIndex !== -1) {
-        mutations.addSelected(targetIndex);
-      }
-      const element = document.getElementById(scrollToId);
-      if (element) {
-        element.scrollIntoView({
-          behavior: "instant",
-          block: "center",
-        });
+    selectAndScroll(name, replaceSelection = false) {
+      const index = state.req?.items?.findIndex((item) => item.name === name) ?? -1;
+      if (index === -1) return false;
+      if (replaceSelection) mutations.resetSelected();
+      mutations.addSelected(index);
+      const el = document.getElementById(base64Encode(encodeURIComponent(name)));
+      console.log("selectAndScroll", name, index, !!el);
+      if (!el) return false; // selected but item is not in DOM
+      el.scrollIntoView({ behavior: "instant", block: "center" });
+      return true;
+    },
+    async highlightPending(final = true) {
+      const pHighlight = state.pendingHighlight;
+      if (!pHighlight) return;
+      await this.$nextTick();
+      if (state.pendingHighlight !== pHighlight) return;
+      if (pHighlight.source && pHighlight.source !== state.req?.source) return;
+
+      const norm = (src) => `/${(src || "").split("/").filter(Boolean).join("/")}`;
+      const clean = pHighlight.path.replace(/\/+$/, "");
+      const idx = clean.lastIndexOf("/");
+      const parent = idx <= 0 ? "/" : clean.slice(0, idx);
+      const name = clean.slice(idx + 1);
+      if (norm(parent) !== norm(state.req?.path)) return;
+      if (this.selectAndScroll(name, true) || final) {
+        state.pendingHighlight = null;
       }
     },
     async patchMediaMetadataIfNeeded(listing, source) {
@@ -429,6 +413,9 @@ export default {
           this.loadingProgress = 10;
           const file = await fetchShareItemWithParent(this.sharePassword);
           mutations.replaceRequest(file);
+          if (file.type !== "directory") {
+            state.pendingHighlight = { path: file.path, source: file.source };
+          }
           document.title = `${globalVars.name} - ${this.$t("general.share")} - ${file.name}`;
           await this.patchMediaMetadataIfNeeded(file);
           if (this.$route.query.download === "true") {
@@ -471,7 +458,6 @@ export default {
             return;
           }
 
-          this.lastHash = "";
           mutations.resetSelected();
 
           this.loadingProgress = 10;
@@ -484,6 +470,9 @@ export default {
           }
           document.title = `${globalVars.name} - ${this.$t("general.files")} - ${res.name}`;
           mutations.replaceRequest(res);
+          if (res.type !== "directory") {
+            state.pendingHighlight = { path: res.path, source: res.source };
+          }
           mutations.setLoading("files", false);
           await this.patchMediaMetadataIfNeeded(res, fetchSource);
         }
@@ -519,9 +508,7 @@ export default {
         }
       }
 
-      setTimeout(() => {
-        this.scrollToHash();
-      }, 25);
+      void this.highlightPending();
       this.lastPath = state.route.path;
     },
 

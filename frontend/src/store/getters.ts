@@ -138,6 +138,10 @@ export const getters = {
     }
     return sorting;
   },
+  /** Sort used by nextPrevious and quick jump */
+  navigationSorting: () => {
+    return state.navigation.sorting || getters.sorting();
+  },
   /** Sort config for destination picker dialogs (copy/move/archive), independent of the main listing sort. */
   pickerSorting: () => {
     return state.pickerSorting || { by: "name", asc: true };
