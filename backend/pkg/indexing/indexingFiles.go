@@ -1373,7 +1373,7 @@ func setFilePreviewFlags(fileInfo *iteminfo.ItemInfo, realPath string) {
 		return
 	}
 	// Check for office docs and PDFs
-	if settings.Config.Integrations.OnlyOffice.Secret != "" && iteminfo.IsOnlyOffice(fileInfo.Name) {
+	if settings.Config.Integrations.OnlyOffice.Secret != "" && !settings.Config.Integrations.OnlyOffice.IsCollabora() && iteminfo.IsOnlyOffice(fileInfo.Name) {
 		fileInfo.HasPreview = true
 		return
 	}

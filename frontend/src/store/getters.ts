@@ -310,7 +310,7 @@ export const getters = {
       return false
     }
     const cv = getters.currentView()
-    if (cv === 'onlyOfficeEditor') {
+    if (cv === 'onlyOfficeEditor' || cv === 'wopiEditor') {
       return false
     }
     let visible = (state.showSidebar || getters.isStickySidebar())
@@ -399,6 +399,7 @@ export const getters = {
       const ext = `.${reqName.split(".").pop()?.toLowerCase() ?? ""}`;
       if (state.user.disableViewingExt?.includes(ext)) return 'preview';
       if (state.req.type === 'directory') return 'listingView';
+      if (getters.isWopiFile(reqName) && !getters.isShare()) return 'wopiEditor';
       if (state.req.onlyOfficeId && !getters.officeViewingDisabled(reqName)) return 'onlyOfficeEditor';
       if (getTypeInfo(state.req.type).simpleType === '3d-model') return 'threeJsViewer';
 
@@ -532,6 +533,19 @@ export const getters = {
     }
     return false
   },
+  // isWopiFile reports whether a file opens in the WOPI editor: the office
+  // editor is Collabora, its discovery declares the extension, and the user
+  // has not disabled office viewing for it.
+  isWopiFile: (filename: string) => {
+    if (globalVars.officeProduct !== 'collabora') return false
+    const name = filename || ''
+    const dot = name.lastIndexOf('.')
+    if (dot === -1) return false
+    const ext = name.slice(dot + 1).toLowerCase()
+    const extensions: Record<string, string> = globalVars.officeExtensions || {}
+    if (!Object.hasOwn(extensions, ext)) return false
+    return !getters.officeViewingDisabled(name)
+  },
   officeViewingDisabled: (filename: string) => {
     const ext = ` ${getFileExtension(filename)}`;
     const disabledList = state.user.disableOnlyOfficeExt || ''
@@ -548,6 +562,7 @@ export const getters = {
   },
   shouldFetchFileContent: (fileInfo: { name: string; source?: string; onlyOfficeId?: string }) => {
     if (getters.fileViewingDisabled(fileInfo.name)) return false
+    if (getters.isWopiFile(fileInfo.name) && !getters.isShare()) return false
     if (fileInfo.onlyOfficeId && !getters.officeViewingDisabled(fileInfo.name)) return false
     if (!getters.sourcePermissions(fileInfo.source).download) return false
     return true

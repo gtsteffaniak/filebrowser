@@ -180,6 +180,11 @@ func configureHTTPRouter(router, api, publicRoutes, publicApi *http.ServeMux) {
 	publicApi.HandleFunc("GET /office/config", withHashFile(onlyofficeClientConfigGetHandler))
 
 	// ========================================
+	// WOPI Routes - /api/wopi/ (session for the SPA)
+	// ========================================
+	api.HandleFunc("GET /wopi/session", withUser(wopiSessionHandler))
+
+	// ========================================
 	// Misc Routes
 	// ========================================
 	api.HandleFunc("GET /events", withUser(SSEHandler))
@@ -216,6 +221,14 @@ func configureHTTPRouter(router, api, publicRoutes, publicApi *http.ServeMux) {
 		// Note: do not trim /dav prefix here - webdav library requires it
 		router.Handle(webDavPath+"/{source}/{path...}", withBasicAuth(webDAVHandler))
 	}
+
+	// WOPI host endpoints, called server to server by the editor. They carry
+	// no session: the access_token in the query authenticates them.
+	wopiFilePath := settings.Config.Http.BaseURL + "wopi/files/{id}"
+	router.HandleFunc("GET "+wopiFilePath, withWopiToken(wopiCheckFileInfoHandler))
+	router.HandleFunc("POST "+wopiFilePath, withWopiToken(wopiFilesPostHandler))
+	router.HandleFunc("GET "+wopiFilePath+"/contents", withWopiToken(wopiGetFileHandler))
+	router.HandleFunc("POST "+wopiFilePath+"/contents", withWopiToken(wopiPutFileHandler))
 
 	publicRoutes.HandleFunc("GET /share/", withOrWithoutUser(indexHandler))
 
