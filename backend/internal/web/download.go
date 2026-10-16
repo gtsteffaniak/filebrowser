@@ -322,7 +322,7 @@ func RawFilesHandler(w http.ResponseWriter, r *http.Request, d *Context, source 
 		}
 		_, isDir, err = idx.GetRealPathScoped(d.Share.Path, firstFilePath)
 	} else {
-		_, isDir, err = idx.GetRealPath(firstFilePath)
+		_, isDir, err = idx.GetRealPathScoped(userscope, firstFilePath)
 	}
 	if err != nil {
 		s := realPathErrStatus(err)

@@ -16,9 +16,9 @@ import (
 	commonerrors "github.com/gtsteffaniak/filebrowser/backend/internal/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/quota"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
-	"github.com/gtsteffaniak/go-logger/logger"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
+	"github.com/gtsteffaniak/go-logger/logger"
 )
 
 func uploadQuotaContext(d *Context, sourceName, fullIndexPath, realPath string, r *http.Request, sessionID string, totalSize int64, hasTotalSize bool) quota.UploadContext {
@@ -47,38 +47,6 @@ func buildUploadQuotaContext(principal *users.User, sourceName, sourcePath, full
 		TotalSize:       totalSize,
 		HasKnownSize:    hasTotalSize,
 	}
-}
-
-// resolvePutRealPath maps an index path to a real filesystem path for PUT.
-// Existing files resolve directly; missing final components resolve via the parent directory.
-func resolvePutRealPath(idx *indexing.Index, fullIndexPath string) (string, error) {
-	realPath, isDir, err := idx.GetRealPath(fullIndexPath)
-	if err == nil {
-		if isDir {
-			return "", fmt.Errorf("path is a directory")
-		}
-		return realPath, nil
-	}
-	if !isMissingPutTargetError(err) {
-		return "", err
-	}
-
-	parentIndexPath := filepath.Dir(fullIndexPath)
-	if parentIndexPath == "." || parentIndexPath == "" {
-		parentIndexPath = "/"
-	}
-	parentReal, isDir, parentErr := idx.GetRealPath(parentIndexPath)
-	if parentErr != nil {
-		return "", parentErr
-	}
-	if !isDir {
-		return "", fmt.Errorf("parent path is not a directory")
-	}
-	baseName := filepath.Base(strings.TrimSuffix(fullIndexPath, "/"))
-	if baseName == "" || baseName == "." {
-		return "", fmt.Errorf("invalid file path")
-	}
-	return filepath.Join(parentReal, baseName), nil
 }
 
 var (
@@ -171,14 +139,18 @@ func isMissingPutTargetError(err error) bool {
 }
 
 // putResourceWithQuota writes PUT body bytes with upload-style quota reserve/commit on the destination path.
-func putResourceWithQuota(w http.ResponseWriter, r *http.Request, d *Context, sourceName, fullIndexPath string) (int, error) {
+// boundIndexPath limits symlink resolution to the caller's scope ("" or "/" = source root only).
+func putResourceWithQuota(w http.ResponseWriter, r *http.Request, d *Context, sourceName, boundIndexPath, fullIndexPath string) (int, error) {
 	idx := indexing.GetIndex(sourceName)
 	if idx == nil {
 		return http.StatusNotFound, fmt.Errorf("source not found")
 	}
-	realPath, err := resolvePutRealPath(idx, fullIndexPath)
+	realPath, err := idx.GetRealPathForMutation(boundIndexPath, fullIndexPath)
 	if err != nil {
 		return sanitizePutPathError(err)
+	}
+	if stat, statErr := os.Stat(realPath); statErr == nil && stat.IsDir() {
+		return http.StatusMethodNotAllowed, errPutPathIsDirectory
 	}
 
 	totalSize, hasTotalSize, err := parsePutTotalSize(r)

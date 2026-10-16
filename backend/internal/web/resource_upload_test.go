@@ -49,6 +49,11 @@ func setupUploadHTTPTest(t *testing.T) (root string, user *users.User) {
 	fileutils.SetFsPermissions(0o644, 0o755)
 
 	root = t.TempDir()
+	// Mutation helpers resolve symlinks; keep the source root in resolved form
+	// so expected paths match what the code produces (macOS /var -> /private/var).
+	if resolved, rerr := filepath.EvalSymlinks(root); rerr == nil {
+		root = resolved
+	}
 	sourceName := "uploads"
 	sourcePath := root
 
