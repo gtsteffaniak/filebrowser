@@ -12,11 +12,11 @@ import (
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/fileutils"
-	liberrors "github.com/gtsteffaniak/filebrowser/backend/internal/errors"
-	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 	dbsql "github.com/gtsteffaniak/filebrowser/backend/internal/database/sql"
+	liberrors "github.com/gtsteffaniak/filebrowser/backend/internal/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing/iteminfo"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 )
 
 func Test_GetRealPath(t *testing.T) {
@@ -129,7 +129,7 @@ func TestWriteFilePreservesExecutableBit(t *testing.T) {
 	waitForScannerReady(t, idx)
 
 	indexPath := "/" + scriptName
-	if err := WriteFile(sourceName, indexPath, strings.NewReader("#!/bin/sh\necho bye\n")); err != nil {
+	if err := WriteFile(sourceName, "", indexPath, strings.NewReader("#!/bin/sh\necho bye\n")); err != nil {
 		t.Fatalf("WriteFile: %v", err)
 	}
 
@@ -182,7 +182,7 @@ func TestWriteFileRejectsExistingDirectory(t *testing.T) {
 	defer stopPoll()
 	waitForScannerReady(t, idx)
 
-	err := WriteFile(sourceName, "/"+dirName, strings.NewReader("file content"))
+	err := WriteFile(sourceName, "", "/"+dirName, strings.NewReader("file content"))
 	if err == nil {
 		t.Fatal("expected error when path is an existing directory")
 	}
@@ -571,7 +571,7 @@ func TestDeleteFilesRootProtection(t *testing.T) {
 	}
 
 	// Test: Attempting to delete the root directory should return an error
-	err := DeleteFiles("test_root_protection", realTmpDir, true)
+	err := DeleteFiles("test_root_protection", "", "/", true)
 	if err == nil {
 		t.Error("DeleteFiles should return an error when trying to delete root directory")
 	}
@@ -583,13 +583,13 @@ func TestDeleteFilesRootProtection(t *testing.T) {
 	}
 
 	// Test with trailing slash - should still be blocked
-	err = DeleteFiles("test_root_protection", realTmpDir+"/", true)
+	err = DeleteFiles("test_root_protection", "", "/", true)
 	if err == nil {
 		t.Error("DeleteFiles should return an error for root directory with trailing slash")
 	}
 
 	// Test with cleaned path variations
-	err = DeleteFiles("test_root_protection", realTmpDir+"/.", true)
+	err = DeleteFiles("test_root_protection", "", "/", true)
 	if err == nil {
 		t.Error("DeleteFiles should return an error for root directory with /. suffix")
 	}
@@ -670,7 +670,7 @@ func runDeleteFilesSubfolderWithRaceStress(t *testing.T, iter int) {
 
 	waitForScannerReady(t, idx)
 
-	err := DeleteFiles(sourceName, subfolderPath, true)
+	err := DeleteFiles(sourceName, "", "/"+subfolderName, true)
 	stopPolling()
 
 	t.Logf("iteration %d: DeleteFiles finished in %s (err=%v)", iter, time.Since(start), err)
@@ -694,13 +694,130 @@ func runDeleteFilesSubfolderWithRaceStress(t *testing.T, iter int) {
 	t.Logf("iteration %d: cleaned scanners and indices", iter)
 }
 
+// TestDeleteFiles_RemovesSymlinkNotTarget verifies that deleting a symlink leaf
+// removes the link itself and never follows it to the target.
+func TestDeleteFiles_RemovesSymlinkNotTarget(t *testing.T) {
+	root := t.TempDir()
+	outside := filepath.Join(filepath.Dir(root), "outside-victim.txt")
+	if err := os.WriteFile(outside, []byte("keep me"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Symlink(outside, filepath.Join(root, "link")); err != nil {
+		t.Fatal(err)
+	}
+
+	sourceName := "test_delete_symlink"
+	indexing.SetTestIndex(sourceName, root)
+	t.Cleanup(indexing.ClearTestIndices)
+	idx := indexing.GetIndex(sourceName)
+	idx.Config.ResolvedRules.IndexingDisabled = true
+
+	if err := DeleteFiles(sourceName, "", "/link", false); err != nil {
+		t.Fatalf("DeleteFiles: %v", err)
+	}
+	if _, err := os.Lstat(filepath.Join(root, "link")); !os.IsNotExist(err) {
+		t.Fatal("symlink should have been removed")
+	}
+	got, err := os.ReadFile(outside)
+	if err != nil || string(got) != "keep me" {
+		t.Fatalf("delete followed the symlink and removed the target: %v %q", err, got)
+	}
+}
+
+// TestDeleteFiles_RejectsEscapingIntermediate verifies a delete under an
+// intermediate symlink escaping the source is refused.
+func TestDeleteFiles_RejectsEscapingIntermediate(t *testing.T) {
+	root := t.TempDir()
+	outsideDir := filepath.Join(filepath.Dir(root), "outside-dir")
+	if err := os.MkdirAll(outsideDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Symlink(outsideDir, filepath.Join(root, "evil")); err != nil {
+		t.Fatal(err)
+	}
+	victim := filepath.Join(outsideDir, "victim.txt")
+	if err := os.WriteFile(victim, []byte("keep"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	sourceName := "test_delete_escape"
+	indexing.SetTestIndex(sourceName, root)
+	t.Cleanup(indexing.ClearTestIndices)
+	idx := indexing.GetIndex(sourceName)
+	idx.Config.ResolvedRules.IndexingDisabled = true
+
+	err := DeleteFiles(sourceName, "", "/evil/victim.txt", false)
+	if !errors.Is(err, liberrors.ErrPathEscapesScope) {
+		t.Fatalf("expected ErrPathEscapesScope, got %v", err)
+	}
+	if _, err := os.Stat(victim); err != nil {
+		t.Fatal("delete escaped the bound and removed the outside file")
+	}
+}
+
+// TestWriteFile_RejectsSymlinkEscape verifies a write through a symlink leaf
+// resolving outside the source is refused before any bytes are written.
+func TestWriteFile_RejectsSymlinkEscape(t *testing.T) {
+	root := t.TempDir()
+	outside := filepath.Join(filepath.Dir(root), "outside.txt")
+	if err := os.WriteFile(outside, []byte("original"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Symlink(outside, filepath.Join(root, "evil")); err != nil {
+		t.Fatal(err)
+	}
+
+	sourceName := "test_write_symlink"
+	indexing.SetTestIndex(sourceName, root)
+	t.Cleanup(indexing.ClearTestIndices)
+	idx := indexing.GetIndex(sourceName)
+	idx.Config.ResolvedRules.IndexingDisabled = true
+
+	err := WriteFile(sourceName, "", "/evil", strings.NewReader("pwned"))
+	if !errors.Is(err, liberrors.ErrPathEscapesScope) {
+		t.Fatalf("expected ErrPathEscapesScope, got %v", err)
+	}
+	got, _ := os.ReadFile(outside)
+	if string(got) != "original" {
+		t.Fatal("write went through the symlink")
+	}
+}
+
+// TestWriteFile_RejectsMissingLeafUnderEscapingParent verifies the j764/3j46
+// primitive: writing a new file under a symlinked directory that escapes the
+// source is refused even though the leaf does not exist yet.
+func TestWriteFile_RejectsMissingLeafUnderEscapingParent(t *testing.T) {
+	root := t.TempDir()
+	outsideDir := filepath.Join(filepath.Dir(root), "outside-parent")
+	if err := os.MkdirAll(outsideDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Symlink(outsideDir, filepath.Join(root, "evil_dir")); err != nil {
+		t.Fatal(err)
+	}
+
+	sourceName := "test_write_escape_parent"
+	indexing.SetTestIndex(sourceName, root)
+	t.Cleanup(indexing.ClearTestIndices)
+	idx := indexing.GetIndex(sourceName)
+	idx.Config.ResolvedRules.IndexingDisabled = true
+
+	err := WriteFile(sourceName, "", "/evil_dir/hack.txt", strings.NewReader("pwned"))
+	if !errors.Is(err, liberrors.ErrPathEscapesScope) {
+		t.Fatalf("expected ErrPathEscapesScope, got %v", err)
+	}
+	if _, err := os.Lstat(filepath.Join(outsideDir, "hack.txt")); !os.IsNotExist(err) {
+		t.Fatal("write landed outside the source through the symlinked parent")
+	}
+}
+
 func waitForScannerReady(t *testing.T, idx *indexing.Index) {
 	t.Helper()
 	// Give the scanners a moment to initialize, but don't wait for full "ready" status
 	// The initial scan can take longer than the test timeout, but DeleteFiles will work
 	// as long as the scanners are initialized and running
 	time.Sleep(500 * time.Millisecond)
-	
+
 	// Verify scanners exist
 	status := idx.GetScannerStatus()
 	if totalScanners, ok := status["totalScanners"].(int); !ok || totalScanners == 0 {
