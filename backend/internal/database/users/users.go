@@ -1,6 +1,7 @@
 package users
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -113,15 +114,34 @@ type MinimalAuthToken struct {
 }
 
 type Permissions struct {
-	Api      bool `json:"api"`                // allow api access
-	Admin    bool `json:"admin"`              // allow admin access
-	Modify   bool `json:"modify,omitempty"`   // deprecated: legacy user migration only; not used for API tokens
-	Share    bool `json:"share"`              // allow sharing files
-	Realtime bool `json:"realtime"`           // allow realtime updates
-	Delete   bool `json:"delete,omitempty"`   // deprecated: legacy user migration only; not used for API tokens
-	Create   bool `json:"create,omitempty"`   // deprecated: legacy user migration only; not used for API tokens
-	Download bool `json:"download,omitempty"` // deprecated: legacy user migration only; not used for API tokens
-	View     bool `json:"view,omitempty"`     // deprecated: legacy user migration only; not used for API tokens
+	Api        bool `json:"api"`                  // allow api access
+	Admin      bool `json:"admin"`                // allow admin access
+	Modify     bool `json:"modify,omitempty"`     // deprecated: legacy user migration only; not used for API tokens
+	Share      bool `json:"share"`                // allow sharing files
+	Realtime   bool `json:"realtime"`             // allow realtime updates
+	Delete     bool `json:"delete,omitempty"`     // deprecated: legacy user migration only; not used for API tokens
+	Create     bool `json:"create,omitempty"`     // deprecated: legacy user migration only; not used for API tokens
+	Download   bool `json:"download,omitempty"`   // deprecated: legacy user migration only; not used for API tokens
+	View       bool `json:"view,omitempty"`       // deprecated: legacy user migration only; not used for API tokens
+	Configured bool `json:"configured,omitempty"` // true when explicitly set (allows intentional deny-all)
+}
+
+// MarkPermissionsConfigured marks account permissions as explicitly set (including all-false).
+func MarkPermissionsConfigured(p Permissions) Permissions {
+	p.Configured = true
+	return p
+}
+
+// UnmarshalJSON sets Configured so an explicit all-false permissions object is distinct from omission.
+func (p *Permissions) UnmarshalJSON(data []byte) error {
+	type plain Permissions
+	var tmp plain
+	if err := json.Unmarshal(data, &tmp); err != nil {
+		return err
+	}
+	*p = Permissions(tmp)
+	p.Configured = true
+	return nil
 }
 
 // SourceFilePermissions holds per-source file operation permissions (v4+).

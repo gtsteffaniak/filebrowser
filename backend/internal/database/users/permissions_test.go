@@ -1,6 +1,34 @@
 package users
 
-import "testing"
+import (
+	"encoding/json"
+	"testing"
+)
+
+func TestPermissionsUnmarshalJSONMarksConfigured(t *testing.T) {
+	t.Parallel()
+
+	var p Permissions
+	if err := json.Unmarshal([]byte(`{"admin":false,"share":false,"api":false,"realtime":false}`), &p); err != nil {
+		t.Fatal(err)
+	}
+	if !p.Configured {
+		t.Fatal("expected Configured after unmarshaling an explicit permissions object")
+	}
+	if p.Admin || p.Share || p.Api || p.Realtime {
+		t.Fatalf("expected all-false permissions, got %+v", p)
+	}
+
+	var u struct {
+		Permissions Permissions `json:"permissions"`
+	}
+	if err := json.Unmarshal([]byte(`{}`), &u); err != nil {
+		t.Fatal(err)
+	}
+	if u.Permissions.Configured {
+		t.Fatal("omitted permissions must not set Configured")
+	}
+}
 
 func TestSourceFilePermissionsIsUnset(t *testing.T) {
 	t.Parallel()
