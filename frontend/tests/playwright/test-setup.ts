@@ -1,5 +1,6 @@
 import type { Locator, Page, Response } from "@playwright/test";
 import { test as base, expect } from "@playwright/test";
+import { PLAYWRIGHT_ADMIN_USERNAME } from "./playwright-auth.ts";
 
 const PLAYWRIGHT_RETRY_INTERVALS = [500, 1000, 1500, 2000];
 
@@ -334,6 +335,20 @@ export async function disableAndCloseHalloweenPrompt(page: Page): Promise<void> 
       await prompt.getByRole("button", { name: /disable/i }).click();
     },
   );
+}
+
+/** Persist dark mode for the logged-in admin (screenshot projects only label theme). */
+export async function ensureUserDarkMode(page: Page, darkMode: boolean): Promise<void> {
+  const response = await page.request.patch(
+    `http://127.0.0.1/api/users?username=${encodeURIComponent(PLAYWRIGHT_ADMIN_USERNAME)}`,
+    {
+      data: {
+        which: ["darkMode"],
+        data: { darkMode },
+      },
+    },
+  );
+  expect(response.ok()).toBeTruthy();
 }
 
 export interface PlaywrightFixtureOptions {
