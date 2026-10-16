@@ -545,7 +545,15 @@ export default {
           this.loadingProgress = 10;
           const fetchSource = decodeURIComponent(result.source);
           const fetchPath = decodeURIComponent(result.path);
-
+          // highlight the directory we just left
+          const prevReq = state.req;
+          if (!wasReload && prevReq?.type === "directory" && prevReq.source === fetchSource) {
+            const up = fetchPath.split("/").filter(Boolean);
+            const down = (prevReq.path || "").split("/").filter(Boolean);
+            if (down.length > up.length && up.every((seg, i) => seg === down[i])) {
+              state.pendingHighlight = { path: `/${down.slice(0, up.length + 1).join("/")}`, source: fetchSource };
+            }
+          }
           // Show the last listing of the folder and refresh it in the background
           cacheKey = listingCacheKey(fetchSource, fetchPath);
           const cached = wasReload ? null : getCachedListing(cacheKey);
