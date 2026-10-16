@@ -273,7 +273,7 @@ func archiveCreateHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 	if fullDestParent != fullDestFile && !state.AccessPermitted(idxTo.Path, utils.IndexPathFromNormalized(fullDestParent, true), d.User.Username) {
 		return http.StatusForbidden, fmt.Errorf("access denied to destination parent of %s", req.Destination)
 	}
-	parentReal, _, err := idxTo.GetRealPath(fullDestParent)
+	parentReal, err := idxTo.GetRealPathForMutation(userScopeTo, fullDestParent)
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("destination parent path invalid: %v", err)
 	}
@@ -351,26 +351,26 @@ func archiveCreateHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 
 	if req.DeleteAfter {
 		type itemToDelete struct {
-			realPath string
-			isDir    bool
+			indexPath string
+			isDir     bool
 		}
 		var toDelete []itemToDelete
 		for _, full := range itemPaths {
-			realPath, isDir, err := idx.GetRealPath(full)
+			_, isDir, err := idx.GetRealPath(full)
 			if err != nil {
 				continue
 			}
-			toDelete = append(toDelete, itemToDelete{realPath: realPath, isDir: isDir})
+			toDelete = append(toDelete, itemToDelete{indexPath: full, isDir: isDir})
 		}
 		for i := 0; i < len(toDelete); i++ {
 			for j := i + 1; j < len(toDelete); j++ {
-				if len(toDelete[j].realPath) > len(toDelete[i].realPath) {
+				if len(toDelete[j].indexPath) > len(toDelete[i].indexPath) {
 					toDelete[i], toDelete[j] = toDelete[j], toDelete[i]
 				}
 			}
 		}
 		for _, item := range toDelete {
-			if err := files.DeleteFiles(req.FromSource, item.realPath, item.isDir); err != nil {
+			if err := files.DeleteFiles(req.FromSource, userScope, item.indexPath, item.isDir); err != nil {
 				logger.Errorf("Failed to delete source after archive: %v", err)
 			}
 		}
@@ -461,7 +461,7 @@ func unarchiveHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 	if !state.AccessPermitted(idxFrom.Path, utils.IndexPathFromNormalized(fullArchivePath, true), d.User.Username) {
 		return http.StatusForbidden, fmt.Errorf("access denied to archive %s", req.Path)
 	}
-	archiveReal, _, err := idxFrom.GetRealPath(fullArchivePath)
+	archiveReal, _, err := idxFrom.GetRealPathScoped(userScopeFrom, fullArchivePath)
 	if err != nil {
 		return http.StatusNotFound, fmt.Errorf("archive path not found: %v", err)
 	}
@@ -478,7 +478,7 @@ func unarchiveHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 	if !state.AccessPermitted(idxTo.Path, utils.IndexPathFromNormalized(fullDestPath, true), d.User.Username) {
 		return http.StatusForbidden, fmt.Errorf("access denied to destination %s", req.Destination)
 	}
-	destReal, _, err := idxTo.GetRealPath(fullDestPath)
+	destReal, _, err := idxTo.GetRealPathScoped(userScopeTo, fullDestPath)
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("destination path invalid: %v", err)
 	}
@@ -560,7 +560,23 @@ func addFile(source string, path string, d *Context, tarWriter *tar.Writer, zipW
 		return nil // Silently skip this file/folder
 	}
 
-	realPath, _, _ := idx.GetRealPath(path)
+	// Symlink resolution is contained to the share path for shares and the user
+	// scope otherwise; entries that resolve outside the bound are skipped.
+	boundIndexPath := ""
+	if d.Share.Hash != "" {
+		boundIndexPath = d.Share.Path
+	} else {
+		var err error
+		boundIndexPath, err = d.User.GetScopeForSourceName(source)
+		if err != nil {
+			return err
+		}
+	}
+
+	realPath, _, err := idx.GetRealPathScoped(boundIndexPath, path)
+	if err != nil {
+		return err
+	}
 	info, err := os.Stat(realPath)
 	if err != nil {
 		return err
@@ -590,17 +606,26 @@ func addFile(source string, path string, d *Context, tarWriter *tar.Writer, zipW
 				return nil
 			}
 
-			// Check access control for each file/folder during walk
-			if d.Share.Hash == "" {
-				indexRelPath := utils.JoinPathAsUnix(path, relPath)
-				indexRelPath = filepath.ToSlash(indexRelPath)
-				indexPath := utils.IndexPathFromNormalized(indexRelPath, true)
-				if !state.AccessPermitted(idx.Path, indexPath, permUser) {
-					if fileInfo.IsDir() {
-						return filepath.SkipDir
-					}
-					return nil
+			// A symlinked entry must resolve inside the bound before its
+			// contents are opened; escaping entries are silently skipped.
+			indexRelPath := utils.JoinPathAsUnix(path, relPath)
+			indexRelPath = filepath.ToSlash(indexRelPath)
+			if _, _, serr := idx.GetRealPathScoped(boundIndexPath, indexRelPath); serr != nil {
+				if fileInfo.IsDir() {
+					return filepath.SkipDir
 				}
+				return nil
+			}
+
+			// Check access control for each file/folder during walk. Share
+			// downloads are checked as the share owner via permUser, so the
+			// owner's deny rules apply to share visitors as well.
+			indexPath := utils.IndexPathFromNormalized(indexRelPath, true)
+			if !state.AccessPermitted(idx.Path, indexPath, permUser) {
+				if fileInfo.IsDir() {
+					return filepath.SkipDir
+				}
+				return nil
 			}
 
 			// Prepend base folder name unless flatten is true
@@ -1021,6 +1046,47 @@ func safeExtractPath(destDir, name string) (string, error) {
 	}
 	if rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
 		return "", fmt.Errorf("invalid entry path: %q", name)
+	}
+	// Lexical containment is not enough: a pre-existing symlink inside destDir
+	// (or an existing symlink at the entry location itself) would redirect the
+	// write outside. Resolve the entry the same way mutation sinks do — the
+	// leaf if it exists, else the deepest existing ancestor — and require the
+	// result to stay under the resolved destination root.
+	destResolved, err := filepath.EvalSymlinks(destDir)
+	if err != nil {
+		return "", err
+	}
+	check := abs
+	if resolved, rerr := filepath.EvalSymlinks(check); rerr == nil {
+		check = resolved
+	} else if errors.Is(rerr, os.ErrNotExist) {
+		parent := filepath.Dir(abs)
+		leaf := filepath.Base(abs)
+		for {
+			resolvedParent, perr := filepath.EvalSymlinks(parent)
+			if perr == nil {
+				check = filepath.Join(resolvedParent, leaf)
+				break
+			}
+			if !errors.Is(perr, os.ErrNotExist) {
+				return "", perr
+			}
+			next := filepath.Dir(parent)
+			if next == parent {
+				return "", fmt.Errorf("no existing ancestor for entry path: %q", name)
+			}
+			leaf = filepath.Join(filepath.Base(parent), leaf)
+			parent = next
+		}
+	} else {
+		return "", rerr
+	}
+	relCheck, err := filepath.Rel(destResolved, check)
+	if err != nil {
+		return "", fmt.Errorf("invalid entry path: %q: %w", name, err)
+	}
+	if relCheck == ".." || strings.HasPrefix(relCheck, ".."+string(filepath.Separator)) {
+		return "", fmt.Errorf("entry path escapes destination through a symlink: %q", name)
 	}
 	return abs, nil
 }
