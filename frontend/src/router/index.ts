@@ -7,6 +7,7 @@ import { getters, mutations, state } from "@/store/index.ts";
 import { validateLogin } from "@/utils/auth.js";
 import { sanitizePostLoginRedirect } from "@/utils/safeRedirect.js";
 import { globalVars } from "@/utils/constants.js";
+import Errors from "@/views/Errors.vue";
 import Files from "@/views/Files.vue";
 import Layout from "@/views/Layout.vue";
 import Login from "@/views/Login.vue";
@@ -30,7 +31,10 @@ const titles = (): Record<string, string> => ({
   GlobalSettings: `${t("general.global")} ${t("general.settings")}`,
   Users: translate("general.users"),
   User: translate("general.user"),
+  Forbidden: translate("errors.forbidden"),
+  NotFound: translate("errors.notFound"),
   ShareNotFound: translate("errors.shareNotFound"),
+  InternalServerError: translate("errors.internal"),
 });
 
 const routes: RouteRecordRaw[] = [
@@ -114,6 +118,33 @@ const routes: RouteRecordRaw[] = [
     ],
   },
   {
+    path: "/403",
+    name: "Forbidden",
+    component: Errors,
+    props: {
+      errorCode: 403,
+      showHeader: true,
+    },
+  },
+  {
+    path: "/404",
+    name: "NotFound",
+    component: Errors,
+    props: {
+      errorCode: 404,
+      showHeader: true,
+    },
+  },
+  {
+    path: "/500",
+    name: "InternalServerError",
+    component: Errors,
+    props: {
+      errorCode: 500,
+      showHeader: true,
+    },
+  },
+  {
     path: "/:catchAll(.*)*",
     redirect: (to: RouteLocation) => {
       const path = Array.isArray(to.params.catchAll)
@@ -179,7 +210,7 @@ router.beforeResolve(async (to, from) => {
 
     if (to.matched.some((record) => record.meta.requiresAdmin)) {
       if (!getters.isAdmin()) {
-        return { path: "/files/" };
+        return { path: "/403" };
       }
     }
 

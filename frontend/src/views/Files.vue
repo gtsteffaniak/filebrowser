@@ -536,7 +536,7 @@ export default {
 
           if (result.source === "") {
             // No sources available - show a more graceful message instead of error popup
-            this.error = { status: "noSources" };
+            this.error = { message: $t("index.noSources") };
             mutations.replaceRequest({});
             return;
           }
@@ -598,7 +598,12 @@ export default {
         this.error = e;
         mutations.replaceRequest({});
         this.loadingProgress = 0;
-        if (e.status === 401 && isShare) {
+
+        if (e.status === 404) {
+          void router.push({ name: "notFound" });
+        } else if (e.status === 403) {
+          void router.push({ name: "forbidden" });
+        } else if (e.status === 401 && isShare) {
           // Handle share password requirement
           this.clearStoredSharePassword(state.shareInfo?.hash);
           this.attemptedPasswordLogin = this.sharePassword !== "";

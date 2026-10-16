@@ -10,7 +10,6 @@
 <script>
 const errors = {
   0: { icon: "cloud_off" },
-  noSources: { icon: "folder_off" },
   401: { icon: "error" },
   403: { icon: "error" },
   404: { icon: "gps_off" },
@@ -36,8 +35,6 @@ export default {
           return this.$t('errors.notFound');
         case 'share404':
           return this.$t('errors.shareNotFound');
-        case 'noSources':
-          return this.$t('index.noSources');
         default:
           return this.$t('errors.internal');
       }
