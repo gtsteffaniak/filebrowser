@@ -259,7 +259,7 @@ export function encodedPath(path) {
   }
   const parts = path.split("/");
   const encodedParts = parts.map(part => encodeURIComponent(part));
-  return encodedParts.join("/").replace("//", "/");
+  return encodedParts.join("/").replace(/\/{2,}/g, "/");
 }
 
 // assume non-encoded input path and source
@@ -268,10 +268,9 @@ export function goToItem(source, path, previousHistoryItem, newTab = false, isSh
   if (source === state.sources.current && path === state.req.path && cv === "listingView") {
     return;
   }
-  if (previousHistoryItem && cv === "listingView") {
+  if (!newTab && previousHistoryItem && cv === "listingView") {
     mutations.setPreviousHistoryItem(previousHistoryItem);
   }
-  mutations.resetAll()
   const newPath = encodedPath(path);
   let fullPath;
   if (isShare) {
@@ -285,6 +284,7 @@ export function goToItem(source, path, previousHistoryItem, newTab = false, isSh
     window.open(absoluteUrl, '_blank');
     return;
   }
+  mutations.resetAll();
 
   if (previousHistoryItem === undefined) {
     // When undefined will not create browser history

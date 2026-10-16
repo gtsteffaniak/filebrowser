@@ -890,16 +890,14 @@ export default {
 
       // Check if state.req.items exists and has the item at this index
       // This prevents errors when ListingItem is used outside of the main file listing (e.g., duplicate finder)
-      let previousHistoryItem = null;
       const currentItem = getObjectProperty(state.req.items, this.index);
       if (currentItem) {
-        previousHistoryItem = {
-          name: currentItem.name,
+        state.pendingHighlight = {
+          path: `${state.req.path.replace(/\/+$/, "")}/${currentItem.name}`,
           source: state.req.source,
-          path: state.req.path,
         };
       }
-      url.goToItem(this.source, this.path, previousHistoryItem, false, getters.isShare());
+      url.goToItem(this.source, this.path, null, false, getters.isShare());
     },
   },
 };
