@@ -694,9 +694,11 @@ func loadConfigWithDefaults(configFile string, generate bool) error {
 	}
 
 	// check if database is set in the config
-	val, ok := filteredConfig["server"].(map[string]interface{})["database"].(string)
-	if ok && val != "" {
-		return fmt.Errorf("old database path is set in the config, please migrate your database to SQLite")
+	if server, ok := filteredConfig["server"].(map[string]interface{}); ok {
+		val, ok := server["database"].(string)
+		if ok && val != "" {
+			return fmt.Errorf("old database path is set in the config, please migrate your database to SQLite")
+		}
 	}
 
 	// Marshal the filtered config back to YAML
