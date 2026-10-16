@@ -319,32 +319,37 @@ func openSegmentWithRetry(ctx context.Context, mgr *transcoding.Manager, usernam
 	}
 }
 
-func resolveTranscodeFile(d *Context, source, scopedPath string) (realPath, fileName string, status int, err error) {
+func resolveTranscodeFile(d *Context, source, clientPath string) (realPath, fileName string, status int, err error) {
 	idx := indexing.GetIndex(source)
 	if idx == nil {
 		return "", "", http.StatusInternalServerError, fmt.Errorf("source %s is not available", source)
-	}
-	if !stateAccessPermitted(d, idx.Path, scopedPath) {
-		return "", "", http.StatusForbidden, fmt.Errorf("access denied")
 	}
 	userScope, scopeErr := d.User.GetScopeForSourceName(source)
 	if scopeErr != nil || userScope == "" {
 		return "", "", http.StatusForbidden, fmt.Errorf("user has no access to source: %s", source)
 	}
-	realPath, _, err = idx.GetRealPathScoped(userScope, scopedPath)
+	// API paths are scope-relative (finalizeResponse strips the user's scope), so
+	// the scope has to be re-joined before the access-rule check and the filesystem
+	// resolution: GetRealPathScoped uses its bound only for the containment check,
+	// not for the join. Every other handler joins the same way.
+	fullIndexPath := utils.JoinScopedIndexPath(userScope, clientPath)
+	if !stateAccessPermitted(d, idx.Path, fullIndexPath) {
+		return "", "", http.StatusForbidden, fmt.Errorf("access denied")
+	}
+	realPath, _, err = idx.GetRealPathScoped(userScope, fullIndexPath)
 	if err != nil {
 		if errors.Is(err, liberrors.ErrPathEscapesScope) {
 			return "", "", http.StatusForbidden, err
 		}
 		return "", "", http.StatusInternalServerError, err
 	}
-	fileName = filepath.Base(scopedPath)
+	fileName = filepath.Base(fullIndexPath)
 	return realPath, fileName, http.StatusOK, nil
 }
 
-func stateAccessPermitted(d *Context, sourcePath, scopedPath string) bool {
+func stateAccessPermitted(d *Context, sourcePath, fullIndexPath string) bool {
 	permUser := d.User.Username
-	return state.AccessPermitted(sourcePath, utils.IndexPathFromNormalized(scopedPath, true), permUser)
+	return state.AccessPermitted(sourcePath, utils.IndexPathFromNormalized(fullIndexPath, true), permUser)
 }
 
 func transcodeErrorStatus(err error) int {

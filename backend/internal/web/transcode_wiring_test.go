@@ -1,11 +1,16 @@
 package web
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
+	"github.com/gtsteffaniak/filebrowser/backend/internal/app"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/transcoding"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 )
@@ -47,5 +52,36 @@ func TestTranscodeManagerIsWiredWithoutFFmpeg(t *testing.T) {
 	}
 	if err != transcoding.ErrDisabled {
 		t.Fatalf("err = %v, want ErrDisabled", err)
+	}
+}
+
+// Wiring must not fail when the transcode cache directory cannot be created. The
+// cache tree is created on demand, so a disabled (or currently unusable) cache
+// path must not abort startup through logger.Fatalf.
+func TestWireServicesToleratesUnavailableTranscodeCache(t *testing.T) {
+	setupTestEnv(t)
+
+	originalCacheDir := settings.Config.Server.CacheDir
+	originalManager := transcoding.Default()
+	t.Cleanup(func() {
+		settings.Config.Server.CacheDir = originalCacheDir
+		transcoding.SetDefault(originalManager)
+	})
+
+	// A file where the transcoding directory would go makes directory creation fail.
+	cacheDir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(cacheDir, "transcoding"), []byte("not a dir"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.MkdirAll(filepath.Join(cacheDir, "transcoding"), 0o755); err == nil {
+		t.Fatal("test setup: expected directory creation to fail on a file path")
+	}
+	settings.Config.Server.CacheDir = cacheDir
+
+	if _, err := app.WireServicesWithContext(context.Background(), state.Default()); err != nil {
+		t.Fatalf("wiring must tolerate an unusable transcode cache dir: %v", err)
+	}
+	if transcoding.Default() == nil {
+		t.Fatal("manager must still be wired")
 	}
 }

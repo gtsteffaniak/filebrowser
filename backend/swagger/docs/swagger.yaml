@@ -1712,41 +1712,6 @@ definitions:
         description: default view mode for anonymous users
         type: string
     type: object
-  users.AuthToken:
-    properties:
-      Permissions:
-        $ref: '#/definitions/users.Permissions'
-      belongsTo:
-        description: legacy stored metadata only, never trusted for auth; identity
-          is always the hashed_tokens lookup
-        type: integer
-      expiresAt:
-        type: integer
-      issuedAt:
-        type: integer
-      key:
-        description: for backward compatibility
-        type: string
-      name:
-        type: string
-      token:
-        type: string
-      username:
-        type: string
-    type: object
-  users.BackendScope:
-    properties:
-      path:
-        description: real path for the source
-        type: string
-      permissions:
-        $ref: '#/definitions/users.SourceFilePermissions'
-      quota:
-        $ref: '#/definitions/users.ScopeQuota'
-      scope:
-        description: index path within that source
-        type: string
-    type: object
   users.FileLoading:
     properties:
       clearAll:
@@ -1987,14 +1952,6 @@ definitions:
         description: 'deprecated: legacy user migration only; not used for API tokens'
         type: boolean
     type: object
-  users.PinnedItems:
-    additionalProperties:
-      additionalProperties:
-        items:
-          type: string
-        type: array
-      type: object
-    type: object
   users.Preview:
     properties:
       audio:
@@ -2084,212 +2041,6 @@ definitions:
   users.ToolAccessMap:
     additionalProperties:
       type: boolean
-    type: object
-  users.User:
-    properties:
-      apiKeys:
-        additionalProperties:
-          $ref: '#/definitions/users.AuthToken'
-        type: object
-      backendScopes:
-        description: |-
-          BackendScopes is the authoritative, persisted access list (SourceScope.Name = backend source path).
-          SQLite stores this inside user_data JSON under the key "scopes" (see sqldb.UserData).
-        items:
-          $ref: '#/definitions/users.BackendScope'
-        type: array
-      backendSourcePermissions:
-        additionalProperties:
-          $ref: '#/definitions/users.SourceFilePermissions'
-        description: key = source path
-        type: object
-      customTheme:
-        description: Name of theme to use chosen from custom themes config.
-        type: string
-      darkMode:
-        description: should dark mode be enabled
-        type: boolean
-      dateFormat:
-        description: when false, the date is relative, when true, the date is an exact
-          timestamp
-        type: boolean
-      debugOffice:
-        description: debug onlyoffice editor
-        type: boolean
-      declinedDefaultSources:
-        items:
-          type: string
-        type: array
-      deleteAfterArchive:
-        description: delete source files after successful creation/extraction of archives
-        type: boolean
-      deleteWithoutConfirming:
-        description: delete files without confirmation
-        type: boolean
-      disableOfficePreviewExt:
-        description: deprecated
-        type: string
-      disableOnlyOfficeExt:
-        description: deprecated
-        type: string
-      disablePreviewExt:
-        description: space separated list of file extensions to disable preview for
-        type: string
-      disableQuickToggles:
-        description: disable the quick toggles in the sidebar
-        type: boolean
-      disableSearchOptions:
-        description: disable the search options in the search bar
-        type: boolean
-      disableSettings:
-        type: boolean
-      disableUpdateNotifications:
-        description: disable update notifications
-        type: boolean
-      disableViewingExt:
-        description: space separated list of file extensions to disable viewing for
-        type: string
-      effectiveToolAccess:
-        additionalProperties:
-          type: boolean
-        type: object
-      fileLoading:
-        allOf:
-        - $ref: '#/definitions/users.FileLoading'
-        description: upload and download settings
-      gallerySize:
-        description: 0-9 - the size of the gallery thumbnails
-        type: integer
-      hideFileExt:
-        description: space separated list of file extensions to hide in UI and API
-        type: string
-      hideFilesInTree:
-        description: hide files in the sidebar tree navigation, when true, will show
-          only directories.
-        type: boolean
-      hideSidebarFileActions:
-        description: hide the file actions in the sidebar
-        type: boolean
-      id:
-        type: integer
-      locale:
-        description: 'language to use: eg. de, en, or fr'
-        type: string
-      lockPassword:
-        type: boolean
-      loginMethod:
-        $ref: '#/definitions/users.LoginMethod'
-      maxConcurrentTranscodes:
-        description: |-
-          MaxConcurrentTranscodes is admin-set: it stays out of NonAdminEditable so a
-          user cannot raise their own limit through a self-service PATCH.
-        type: integer
-      newFileTemplate:
-        description: list of custom filenames that will be used as template for new
-          files
-        items:
-          type: string
-        type: array
-      otpEnabled:
-        type: boolean
-      passkeyCredentials:
-        items:
-          $ref: '#/definitions/users.WebAuthnCredential'
-        type: array
-      password:
-        type: string
-      perm:
-        $ref: '#/definitions/users.Permissions'
-      permissions:
-        allOf:
-        - $ref: '#/definitions/users.Permissions'
-        description: 'global: admin, api, share, realtime'
-      pinnedItems:
-        $ref: '#/definitions/users.PinnedItems'
-      preferEditorForMarkdown:
-        description: prefer editor first for markdown files instead of the Markdown
-          Viewer
-        type: boolean
-      preview:
-        $ref: '#/definitions/users.Preview'
-      promptRightCloseButton:
-        description: show the prompts close button on the right
-        type: boolean
-      quickDownload:
-        description: show icon to download in one click
-        type: boolean
-      requirePasswordChange:
-        type: boolean
-      scopes:
-        items:
-          $ref: '#/definitions/users.FrontendScope'
-        type: array
-      showAdvancedProfile:
-        type: boolean
-      showCopyPath:
-        description: show copy path action in the context menu
-        type: boolean
-      showCreationDateColumn:
-        description: show the Creation date column in list and compact views
-        type: boolean
-      showFirstLogin:
-        type: boolean
-      showHidden:
-        description: show hidden files in the UI. On windows this includes files starting
-          with a dot and windows hidden files
-        type: boolean
-      showSelectMultiple:
-        description: show select multiple files on desktop
-        type: boolean
-      showToolsInSidebar:
-        description: 'when false, sidebar hides links with category "tool" (default:
-          true)'
-        type: boolean
-      showTypeColumn:
-        description: show the Type column in list and compact views
-        type: boolean
-      sidebarLinks:
-        description: customizable sidebar links
-        items:
-          $ref: '#/definitions/users.SidebarLink'
-        type: array
-      singleClick:
-        description: open directory on single click, also enables middle click to
-          open in new tab
-        type: boolean
-      sorting:
-        $ref: '#/definitions/users.Sorting'
-      sourcePermissions:
-        additionalProperties:
-          $ref: '#/definitions/users.SourceFilePermissions'
-        description: 'deprecated: use scopes[].permissions'
-        type: object
-      stickySidebar:
-        description: keep sidebar open when navigating
-        type: boolean
-      themeColor:
-        description: 'theme color to use: eg. #ff0000, or var(--red), var(--purple),
-          etc'
-        type: string
-      tokens:
-        additionalProperties:
-          $ref: '#/definitions/users.AuthToken'
-        type: object
-      toolAccess:
-        allOf:
-        - $ref: '#/definitions/users.ToolAccessMap'
-        description: per-tool access overrides
-      totpNonce:
-        type: string
-      totpSecret:
-        type: string
-      username:
-        type: string
-      version:
-        type: integer
-      viewMode:
-        description: 'view mode to use: eg. normal, list, grid, or compact'
-        type: string
     type: object
   users.WebAuthnCredential:
     properties:
@@ -5380,7 +5131,7 @@ paths:
         name: data
         required: true
         schema:
-          $ref: '#/definitions/users.User'
+          $ref: '#/definitions/users.FrontendUser'
       responses:
         "204":
           description: No Content - User updated successfully
@@ -5427,14 +5178,12 @@ paths:
         name: data
         required: true
         schema:
-          $ref: '#/definitions/users.User'
+          $ref: '#/definitions/users.FrontendUser'
       produces:
       - application/json
       responses:
         "201":
           description: Created user
-          schema:
-            $ref: '#/definitions/users.User'
         "400":
           description: Bad Request
           schema:

@@ -16,12 +16,14 @@ type Store struct {
 	root string
 }
 
+// NewStore returns a store rooted at root (or the configured transcode cache
+// dir). The directory is created on demand by EnsureJobDir when a transcode
+// actually starts: wiring the manager at startup must not require the cache tree
+// to exist or be creatable, since transcoding may be disabled. Every read path
+// tolerates a missing root.
 func NewStore(root string) (*Store, error) {
 	if root == "" {
 		root = settings.TranscodeCacheDir()
-	}
-	if err := os.MkdirAll(root, 0o755); err != nil {
-		return nil, err
 	}
 	return &Store{root: root}, nil
 }

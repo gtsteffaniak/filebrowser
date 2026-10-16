@@ -2,6 +2,9 @@ package transcoding
 
 import (
 	"context"
+	"encoding/hex"
+	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -303,6 +306,76 @@ func TestSessionInfoOmitsUserID(t *testing.T) {
 	}
 	if info.Username != "alice" {
 		t.Fatalf("username=%q", info.Username)
+	}
+	// The session id is an opaque random token used to address the session and its
+	// delivery URLs, never a user identifier.
+	if len(info.ID) != 32 {
+		t.Fatalf("session id %q should be a 32-char opaque token", info.ID)
+	}
+	if _, err := hex.DecodeString(info.ID); err != nil {
+		t.Fatalf("session id %q should be hex, not a user id: %v", info.ID, err)
+	}
+
+	for _, payload := range []any{info, mgr.Snapshot("alice", false, 2)} {
+		encoded, err := json.Marshal(payload)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if path := findUserIDField(encoded); path != "" {
+			t.Fatalf("session payload exposes a user id at %s: %s", path, encoded)
+		}
+	}
+}
+
+// findUserIDField returns the JSON path of the first user-identifier field, or "".
+func findUserIDField(payload []byte) string {
+	var decoded any
+	if err := json.Unmarshal(payload, &decoded); err != nil {
+		return ""
+	}
+	found := ""
+	var walk func(node any, path string)
+	walk = func(node any, path string) {
+		if found != "" {
+			return
+		}
+		switch node := node.(type) {
+		case map[string]any:
+			for key, child := range node {
+				if normalizedKeyLooksLikeUserID(key) {
+					found = path + "." + key
+					return
+				}
+				walk(child, path+"."+key)
+			}
+		case []any:
+			for i, child := range node {
+				walk(child, fmt.Sprintf("%s[%d]", path, i))
+			}
+		}
+	}
+	walk(decoded, "$")
+	return found
+}
+
+func normalizedKeyLooksLikeUserID(key string) bool {
+	normalized := strings.ToLower(key)
+	normalized = strings.NewReplacer("_", "", "-", "", " ", "").Replace(normalized)
+	return normalized == "userid"
+}
+
+func TestFindUserIDField(t *testing.T) {
+	cases := map[string]string{
+		`{"sessions":[{"id":"abc","username":"alice"}]}`: "",
+		`{"userId":7}`:                     "$.userId",
+		`{"nested":{"user_id":7}}`:         "$.nested.user_id",
+		`{"list":[{"USER-ID":7}]}`:         "$.list[0].USER-ID",
+		`{"id":"abc","user":{"name":"a"}}`: "",
+	}
+	for payload, want := range cases {
+		if got := findUserIDField([]byte(payload)); got != want {
+			t.Errorf("findUserIDField(%s) = %q, want %q", payload, got, want)
+		}
 	}
 }
 
