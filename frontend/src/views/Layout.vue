@@ -100,7 +100,7 @@ export default {
       return getters.isLoggedIn() && getters.currentView() === "listingView" && !getters.isShare();
     },
     isOnlyOffice() {
-      return getters.currentView() === "onlyOfficeEditor";
+      return ["onlyOfficeEditor", "wopiEditor"].includes(getters.currentView());
     },
     invalidShare() {
       return getters.isShare() && getters.isInvalidShare();

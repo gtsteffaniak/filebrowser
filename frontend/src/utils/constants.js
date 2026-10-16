@@ -74,6 +74,7 @@ const previewViews = [
   'epubViewer',
   'docViewer',
   'onlyOfficeEditor',
+  'wopiEditor',
   'editor',
   'loading',
   'threeJsViewer'

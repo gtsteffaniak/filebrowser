@@ -87,6 +87,10 @@ func spaContentSecurityPolicy(nonce string) string {
 
 func onlyOfficeScriptSrcOrigins() []string {
 	oo := settings.Config.Integrations.OnlyOffice
+	if oo.IsCollabora() {
+		// Collabora is an iframe, not a script the SPA loads.
+		return nil
+	}
 	candidates := []string{
 		cspOriginFromURL(oo.Url),
 		cspOriginFromURL(oo.InternalUrl),

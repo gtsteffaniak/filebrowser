@@ -850,7 +850,10 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 		defer func() {
 			if rcv := recover(); rcv != nil {
 				method := r.Method
-				url := r.URL.String()
+				url := r.URL.Path
+				if r.URL.RawQuery != "" {
+					url += "?" + redactAccessToken(r.URL.RawQuery)
+				}
 				username := "unknown" // Default username
 
 				// Attempt to get username from ResponseWriterWrapper if it's set
@@ -891,7 +894,7 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 		// Existing logging logic for normal requests
 		fullURL := r.URL.Path
 		if r.URL.RawQuery != "" {
-			fullURL += "?" + r.URL.RawQuery
+			fullURL += "?" + redactAccessToken(r.URL.RawQuery)
 		}
 		truncUser := wrappedWriter.User
 		if truncUser == "" {
