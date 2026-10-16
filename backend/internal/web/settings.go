@@ -466,9 +466,18 @@ func mediaSettingsLockMeta() (paths []string, message string) {
 	return paths, settings.MediaConfigLockMessage
 }
 
-func settingsMediaGetHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+// requireMediaEnabled gates the media settings APIs on ffmpeg availability so
+// clients get a 503 they can hide UI behind instead of a 200 with dead data.
+func requireMediaEnabled() error {
 	if !settings.MediaEnabled() {
-		return http.StatusServiceUnavailable, fmt.Errorf("media features unavailable: ffmpeg not available")
+		return fmt.Errorf("media features unavailable: ffmpeg not available")
+	}
+	return nil
+}
+
+func settingsMediaGetHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+	if err := requireMediaEnabled(); err != nil {
+		return http.StatusServiceUnavailable, err
 	}
 	if !d.User.Permissions.Admin {
 		return RenderJSON(w, r, currentMediaPlayerSettings())
@@ -501,8 +510,8 @@ func currentMediaPlayerSettings() mediaPlayerSettings {
 // @Success 200 {object} mediaSettingsResponse "Updated media settings"
 // @Router /api/settings/media [patch]
 func settingsMediaPatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
-	if !settings.MediaEnabled() {
-		return http.StatusServiceUnavailable, fmt.Errorf("media features unavailable: ffmpeg not available")
+	if err := requireMediaEnabled(); err != nil {
+		return http.StatusServiceUnavailable, err
 	}
 	patchJSON, err := readSettingsPatchBody(w, r)
 	if err != nil {

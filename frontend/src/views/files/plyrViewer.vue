@@ -2720,15 +2720,6 @@ export default {
         this.player.on('exitfullscreen', this.applyCaptionSizeClass);
       }
       this.ensurePlaybackModeApplied();
-      // Re-apply custom menus when settings opens so late media availability
-      // (live settings sync / test hooks) can unhide transcodeMode.
-      const settingsBtn = this.player.elements?.buttons?.settings;
-      if (settingsBtn && !settingsBtn.dataset.transcodeMenuHook) {
-        settingsBtn.dataset.transcodeMenuHook = '1';
-        settingsBtn.addEventListener('click', () => {
-          void this.$nextTick(() => this.ensurePlaybackModeApplied());
-        });
-      }
       if (this.previewType === 'video') {
         this.applyCaptionSizeClass();
         this.syncCaptionSizeSettingsVisibility();
@@ -3845,17 +3836,11 @@ export default {
         if (transcodeBtn && transcodePanel) {
           // Stable hook for tests — Plyr stamps data-plyr="settings" on every menu item.
           transcodeBtn.setAttribute('data-plyr-menu', 'transcodeMode');
-          // Call isTranscodeAvailable() directly: the computed can stay stale when
-          // tests (or a late sync) mutate globalVars, which is not Vue-reactive.
-          const visible = (
-            this.previewType === 'video'
-            && getters.isLoggedIn()
-            && !getters.isShare()
-            && isTranscodeAvailable()
-          );
-          if (!visible) {
+          if (!this.transcodeMenuAvailable) {
+            // Leave transcodeMenuInitialized false: a later availability flip
+            // (live settings sync) must still build the buttons, and
+            // ensurePlaybackModeApplied re-checks until then.
             transcodeBtn.setAttribute('hidden', '');
-            this.transcodeMenuInitialized = true;
           } else {
             transcodeBtn.removeAttribute('hidden');
             const currentLabel = this.getTranscodeModeLabel(this.transcodeMode);

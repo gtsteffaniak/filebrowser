@@ -22,10 +22,20 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 )
 
-func transcodeStartHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+// transcodeManager returns the shared manager, or ErrDisabled when transcoding
+// is unavailable (no ffmpeg, or media features disabled at runtime).
+func transcodeManager() (*transcoding.Manager, error) {
 	mgr := transcoding.Default()
 	if mgr == nil || !mgr.Enabled() {
-		return http.StatusServiceUnavailable, transcoding.ErrDisabled
+		return nil, transcoding.ErrDisabled
+	}
+	return mgr, nil
+}
+
+func transcodeStartHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+	mgr, err := transcodeManager()
+	if err != nil {
+		return http.StatusServiceUnavailable, err
 	}
 	if d.Share.Hash != "" {
 		return http.StatusNotFound, fmt.Errorf("transcoding not available for shares")
@@ -116,9 +126,9 @@ func transcodeStartHandler(w http.ResponseWriter, r *http.Request, d *Context) (
 }
 
 func transcodeSessionsHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
-	mgr := transcoding.Default()
-	if mgr == nil || !mgr.Enabled() {
-		return http.StatusServiceUnavailable, transcoding.ErrDisabled
+	mgr, err := transcodeManager()
+	if err != nil {
+		return http.StatusServiceUnavailable, err
 	}
 	adminAll := d.User.Permissions.Admin && strings.EqualFold(r.URL.Query().Get("all"), "true")
 	snap := mgr.Snapshot(d.User.Username, adminAll, effectiveUserLimit(d.User.MaxConcurrentTranscodes))
@@ -130,9 +140,9 @@ func transcodeSessionsHandler(w http.ResponseWriter, r *http.Request, d *Context
 }
 
 func transcodeSessionDeleteHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
-	mgr := transcoding.Default()
-	if mgr == nil || !mgr.Enabled() {
-		return http.StatusServiceUnavailable, transcoding.ErrDisabled
+	mgr, err := transcodeManager()
+	if err != nil {
+		return http.StatusServiceUnavailable, err
 	}
 	id := strings.TrimSpace(r.PathValue("id"))
 	if id == "" {
@@ -146,9 +156,9 @@ func transcodeSessionDeleteHandler(w http.ResponseWriter, r *http.Request, d *Co
 }
 
 func transcodeSessionHeartbeatHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
-	mgr := transcoding.Default()
-	if mgr == nil || !mgr.Enabled() {
-		return http.StatusServiceUnavailable, transcoding.ErrDisabled
+	mgr, err := transcodeManager()
+	if err != nil {
+		return http.StatusServiceUnavailable, err
 	}
 	id := strings.TrimSpace(r.PathValue("id"))
 	var req transcoding.HeartbeatRequest
@@ -163,9 +173,9 @@ func transcodeSessionHeartbeatHandler(w http.ResponseWriter, r *http.Request, d 
 }
 
 func transcodeEventsHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
-	mgr := transcoding.Default()
-	if mgr == nil || !mgr.Enabled() {
-		return http.StatusServiceUnavailable, transcoding.ErrDisabled
+	mgr, err := transcodeManager()
+	if err != nil {
+		return http.StatusServiceUnavailable, err
 	}
 	flusher, ok := w.(http.Flusher)
 	if !ok {
@@ -212,9 +222,9 @@ func transcodeEventsHandler(w http.ResponseWriter, r *http.Request, d *Context) 
 }
 
 func transcodePlaylistHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
-	mgr := transcoding.Default()
-	if mgr == nil || !mgr.Enabled() {
-		return http.StatusServiceUnavailable, transcoding.ErrDisabled
+	mgr, err := transcodeManager()
+	if err != nil {
+		return http.StatusServiceUnavailable, err
 	}
 	id := strings.TrimSpace(r.PathValue("id"))
 	deadline := time.Now().Add(15 * time.Second)
@@ -258,9 +268,9 @@ func transcodePlaylistHandler(w http.ResponseWriter, r *http.Request, d *Context
 }
 
 func transcodeInitHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
-	mgr := transcoding.Default()
-	if mgr == nil || !mgr.Enabled() {
-		return http.StatusServiceUnavailable, transcoding.ErrDisabled
+	mgr, err := transcodeManager()
+	if err != nil {
+		return http.StatusServiceUnavailable, err
 	}
 	id := strings.TrimSpace(r.PathValue("id"))
 	f, err := mgr.OpenInit(d.User.Username, id)
@@ -280,9 +290,9 @@ func transcodeInitHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 }
 
 func transcodeSegmentHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
-	mgr := transcoding.Default()
-	if mgr == nil || !mgr.Enabled() {
-		return http.StatusServiceUnavailable, transcoding.ErrDisabled
+	mgr, err := transcodeManager()
+	if err != nil {
+		return http.StatusServiceUnavailable, err
 	}
 	id := strings.TrimSpace(r.PathValue("id"))
 	name := strings.TrimSpace(r.PathValue("name"))
