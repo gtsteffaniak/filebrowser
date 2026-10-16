@@ -26,6 +26,8 @@ import { globalVars } from "@/utils/constants";
 import { syncEventTheme } from "@/utils/theme";
 import { isRichTextPreviewMimeType } from "@/utils/mimetype";
 import { invalidateDirMetadataCache } from "@/utils/metadataCache.ts";
+import { clearImageCache } from "@/utils/imageCache.ts";
+import { listingCacheKey, getCachedListing, cacheListing, deleteCachedListing, clearListingCache } from "@/utils/listingCache.ts";
 import { showShareDownloadPrompt as openShareDownloadPrompt } from "@/utils/download.js";
 
 function directoryListingHasMediaChildren(req) {
@@ -35,35 +37,7 @@ function directoryListingHasMediaChildren(req) {
   );
 }
 
-const LISTING_CACHE_TTL_MS = 300000;
-const LISTING_CACHE_MAX = 8;
-const listingCache = new Map();
-
 const trimTrailingSlash = (p) => (p || "/").replace(/\/+$/, "") || "/";
-
-function listingCacheKey(source, path) {
-  return `${state.user?.username}\n${source}\n${trimTrailingSlash(path)}`;
-}
-
-function getCachedListing(key) {
-  const entry = listingCache.get(key);
-  if (!entry) {
-    return null;
-  }
-  if (Date.now() - entry.time > LISTING_CACHE_TTL_MS) {
-    listingCache.delete(key);
-    return null;
-  }
-  return entry;
-}
-
-function cacheListing(key, res) {
-  listingCache.delete(key);
-  listingCache.set(key, { res, time: Date.now() });
-  if (listingCache.size > LISTING_CACHE_MAX) {
-    listingCache.delete(listingCache.keys().next().value);
-  }
-}
 
 function sameListing(a, b) {
   if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length) {
@@ -459,7 +433,7 @@ export default {
       this.error = null;
       mutations.setReload(false);
       if (wasReload) {
-        listingCache.clear();
+        clearListingCache();
       }
       let cacheKey = null;
       let cachedPending = null;
@@ -610,7 +584,7 @@ export default {
             if (res.type === "directory") {
               cacheListing(cacheKey, res);
             } else {
-              listingCache.delete(cacheKey);
+              deleteCachedListing(cacheKey);
             }
             await this.patchMediaMetadataIfNeeded(res, fetchSource);
           }
@@ -619,7 +593,7 @@ export default {
       } catch (e) {
         if (isStale()) return;
         if (cacheKey) {
-          listingCache.delete(cacheKey);
+          deleteCachedListing(cacheKey);
         }
         this.error = e;
         mutations.replaceRequest({});
@@ -743,11 +717,12 @@ export default {
           }
         }
       }
-      // F4! - refresh the listing with its metadata
+      // F4 - refresh listing and cache
       if (event.key === "F4" && !event.ctrlKey && !event.metaKey && !event.repeat) {
         if (getters.currentPromptName() || getters.currentView() !== 'listingView') return;
         event.preventDefault();
         invalidateDirMetadataCache();
+        clearImageCache();
         mutations.setReload(true);
       }
       // CTRL+E - switch between editor and markdown viewer

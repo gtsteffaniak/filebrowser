@@ -16,16 +16,18 @@ interface ThumbnailBlob {
   blobUrl: string;
   refs: number;
   bytes: number;
+  cacheVersion: number;
 }
 
 // Maximum number of entries in the URL index
 const MAX_URL_INDEX_SIZE = 10000;
 const MAX_THUMBNAIL_BYTES = 32 * 1024 * 1024;
 
-// key = "source|path|size|modified" value = URL. Insertion order is recency order.
+// key = "source|path|size|modified" value = URL. Least recently used first.
 const urlIndex = new Map<string, string>();
 const thumbnailBlobs = new Map<string, ThumbnailBlob>(); // least recently used first
 let thumbnailBytes = 0;
+let cacheVersion = 0;
 
 function evictThumbnailBlobs(): void {
   for (const [key, entry] of thumbnailBlobs) {
@@ -46,7 +48,7 @@ function evictThumbnailBlobs(): void {
  * @param modified the file modified date
  */
 export function getThumbnailBlobKey(url: string, modified?: Modified): string {
-  return `${state.user?.username || ""}|${modified || ""}|${url}`;
+  return `${cacheVersion}|${state.user?.username || ""}|${modified || ""}|${url}`;
 }
 
 /**
@@ -77,10 +79,12 @@ export function storeThumbnailBlob(key: string, blobUrl: string, bytes: number):
       URL.revokeObjectURL(blobUrl);
     }
     existing.refs++;
+    thumbnailBlobs.delete(key);
+    thumbnailBlobs.set(key, existing);
     return existing.blobUrl;
   }
   const size = Math.max(bytes || 0, 1);
-  thumbnailBlobs.set(key, { blobUrl, refs: 1, bytes: size });
+  thumbnailBlobs.set(key, { blobUrl, refs: 1, bytes: size, cacheVersion });
   thumbnailBytes += size;
   evictThumbnailBlobs();
   return blobUrl;
@@ -95,7 +99,25 @@ export function releaseThumbnailBlob(key: string | null): void {
   if (entry.refs > 0) {
     entry.refs--;
   }
+  if (entry.refs === 0 && entry.cacheVersion !== cacheVersion) {
+    URL.revokeObjectURL(entry.blobUrl);
+    thumbnailBlobs.delete(key as string);
+    thumbnailBytes -= entry.bytes;
+  }
   evictThumbnailBlobs();
+}
+
+/** Forgets every thumbnail so next request fetches them again, the ones on screen are freed when released */
+export function clearImageCache(): void {
+  cacheVersion++;
+  urlIndex.clear();
+  for (const [key, entry] of thumbnailBlobs) {
+    if (entry.refs === 0) {
+      URL.revokeObjectURL(entry.blobUrl);
+      thumbnailBlobs.delete(key);
+      thumbnailBytes -= entry.bytes;
+    }
+  }
 }
 
 function urlIndexKey(source: Source, path: string, size: ThumbnailSize, modified: Modified): string {
@@ -139,9 +161,12 @@ function findBySize<T>(
     return null;
   }
   for (const size of sizes) {
-    const url = urlIndex.get(urlIndexKey(source, cleanPath, size, modified));
+    const key = urlIndexKey(source, cleanPath, size, modified);
+    const url = urlIndex.get(key);
     const found = url ? visit(url) : null;
-    if (found !== null) {
+    if (url && found !== null) {
+      urlIndex.delete(key);
+      urlIndex.set(key, url);
       return found;
     }
   }

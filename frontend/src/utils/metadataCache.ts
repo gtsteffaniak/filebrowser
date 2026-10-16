@@ -28,10 +28,12 @@ export interface PendingDirChanges {
 export interface DirMetadataEntry extends PendingDirChanges {
   key: string;
   promise: Promise<DirMetadataMap>;
+  size: number;
+  time: number;
 }
 
-// maximum number of entries to prevent memory grow
-const MAX_CACHE_ITEMS = 800;
+const TTL_MS = 300000;
+const MAX_TOTAL_ITEMS = 5000;
 const MAX_PENDING_CHANGES = 200;
 // least recently used first
 const cacheMap = new Map<string, DirMetadataEntry>();
@@ -78,12 +80,40 @@ export function stemOf(name: string): string {
   return (dot > 0 ? name.slice(0, dot) : name).toLowerCase();
 }
 
-function dropOnReject(entry: DirMetadataEntry): void {
-  entry.promise.catch(() => {
-    if (cache().get(entry.key) === entry) {
-      cache().delete(entry.key);
+function trimToLimit(): void {
+  const entries = cache();
+  let total = 0;
+  for (const entry of entries.values()) {
+    total += entry.size;
+  }
+  for (const [key, entry] of entries) {
+    if (total <= MAX_TOTAL_ITEMS) {
+      break;
     }
-  });
+    total -= entry.size;
+    entries.delete(key);
+  }
+}
+
+function watchEntry(entry: DirMetadataEntry): void {
+  const { promise } = entry;
+  promise.then(
+    (map) => {
+      if (entry.promise === promise && cache().get(entry.key) === entry) {
+        entry.size = map.size;
+        if (map.size === 0) {
+          cache().delete(entry.key);
+        } else {
+          trimToLimit();
+        }
+      }
+    },
+    () => {
+      if (entry.promise === promise && cache().get(entry.key) === entry) {
+        cache().delete(entry.key);
+      }
+    },
+  );
 }
 
 /** Looking an entry up counts as using it, so the folders you keep returning to are removed last */
@@ -95,6 +125,9 @@ export function getDirMetadataEntry(opts: DirMetadataKey): DirMetadataEntry | nu
     return null;
   }
   entries.delete(key);
+  if (Date.now() - entry.time > TTL_MS) {
+    return null;
+  }
   entries.set(key, entry);
   return entry;
 }
@@ -103,17 +136,10 @@ export function getDirMetadataEntry(opts: DirMetadataKey): DirMetadataEntry | nu
 export function setCachedDirMetadata(opts: DirMetadataKey, promise: Promise<DirMetadataMap>): void {
   const entries = cache();
   const key = getCacheKey(opts);
-  if (entries.has(key)) {
-    entries.delete(key);
-  } else if (entries.size >= MAX_CACHE_ITEMS) {
-    const oldest = entries.keys().next().value;
-    if (oldest !== undefined) {
-      entries.delete(oldest);
-    }
-  }
-  const entry: DirMetadataEntry = { key, promise, removed: new Set(), dirty: new Set(), stems: new Set() };
+  entries.delete(key);
+  const entry: DirMetadataEntry = { key, promise, size: 0, time: Date.now(), removed: new Set(), dirty: new Set(), stems: new Set() };
   entries.set(key, entry);
-  dropOnReject(entry);
+  watchEntry(entry);
 }
 
 /**
@@ -134,7 +160,7 @@ export function takePendingDirChanges(entry: DirMetadataEntry): PendingDirChange
 /** Replaces the promise of an existing entry (after pending changes were applied). */
 export function setDirMetadataEntryPromise(entry: DirMetadataEntry, promise: Promise<DirMetadataMap>): void {
   entry.promise = promise;
-  dropOnReject(entry);
+  watchEntry(entry);
 }
 
 function dropSubtree(scope: DirMetadataScope, itemPath: string): void {

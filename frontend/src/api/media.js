@@ -1,7 +1,7 @@
 import { notify } from "@/notify/index.ts";
 import { state } from "@/store/index.ts";
 import { getApiPath, getPublicApiPath } from "@/utils/url.js";
-import { adjustedData, fetchURL } from "./utils.ts";
+import { adjustedData, fetchURL, requestTimeoutSignal } from "./utils.ts";
 import {
   getDirMetadataEntry,
   setCachedDirMetadata,
@@ -88,6 +88,9 @@ export async function getLyricsPublic(path, hash, password = "") {
   return { lyrics: data.lyrics || "", format: data.format || "" };
 }
 
+// a hanged request would stay in the cache for every caller of the folder
+const METADATA_TIMEOUT_MS = 30000;
+
 // GET /api/media/metadata — directory or file with metadata; optional albumArt for embedded cover extraction.
 /** @param {boolean} albumArt when true, request embedded album art in audio metadata */
 /** @returns {Promise<object>} resource (adjustedData) */
@@ -97,7 +100,7 @@ export async function fetchDirectoryMediaMetadata(source, path, albumArt = false
     path,
     ...(albumArt ? { albumArt: "true" } : {}),
   });
-  const res = await fetchURL(apiPath);
+  const res = await fetchURL(apiPath, { signal: requestTimeoutSignal(METADATA_TIMEOUT_MS) });
   const data = await res.json();
   return adjustedData(data);
 }
@@ -114,6 +117,7 @@ export async function fetchDirectoryMediaMetadataPublic(path, hash, password = "
   const apiPath = getPublicApiPath("media/metadata", params);
   const response = await fetch(apiPath, {
     headers: { "X-SHARE-PASSWORD": encodeURIComponent(password || "") },
+    signal: requestTimeoutSignal(METADATA_TIMEOUT_MS),
   });
   if (!response.ok) {
     throw await publicResponseError(response);
@@ -121,8 +125,6 @@ export async function fetchDirectoryMediaMetadataPublic(path, hash, password = "
   const data = await response.json();
   return adjustedData(data);
 }
-
-const MAX_ITEM_REFRESHES = 15;
 
 async function fetchWholeDirectoryMetadata({ isShare, source, hash, path, albumArt }, password) {
   const payload = isShare
@@ -158,21 +160,27 @@ function resolvePendingChanges(entry, { removed, dirty, stems }, cacheOpts, pass
         }
       }
     }
-    if (toRefresh.size > MAX_ITEM_REFRESHES) {
-      return fetchWholeDirectoryMetadata(cacheOpts, password);
-    }
-    try {
+    // returns the names that failed, others are applied
+    const refresh = async (names) => {
+      const failed = [];
       await Promise.all(
-        [...toRefresh].map(async (name) => {
-          const metadata = await fetchItemMetadata(cacheOpts, password, name);
-          if (metadata) {
-            map.set(name, metadata);
-          } else {
-            map.delete(name);
+        names.map(async (name) => {
+          try {
+            const metadata = await fetchItemMetadata(cacheOpts, password, name);
+            if (metadata) {
+              map.set(name, metadata);
+            } else {
+              map.delete(name);
+            }
+          } catch (_e) {
+            failed.push(name);
           }
         })
       );
-    } catch (_e) {
+      return failed;
+    };
+    const failed = await refresh([...toRefresh]);
+    if (failed.length && (await refresh(failed)).length) {
       return fetchWholeDirectoryMetadata(cacheOpts, password);
     }
     return map;
