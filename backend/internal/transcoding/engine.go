@@ -61,10 +61,22 @@ func (e *MediaEngine) BuildPlan(ctx context.Context, realPath string, profile Pr
 	}
 
 	pipeline := ffmpeg.HLSPipelineOptions{
-		MaxHeight:           maxHeightForProfile(profile),
-		ForceVideoTranscode: profileForcesVideoTranscode(profile) || profileRequiresBitrateTranscode(profile, info),
+		MaxHeight: maxHeightForProfile(profile),
 	}
-	buildIn := ffmpeg.BuildHLSSegmentBuildInput(info, pipeline)
+	mustTranscode := profileForcesVideoTranscode(profile) ||
+		profileRequiresBitrateTranscode(profile, info) ||
+		(pipeline.MaxHeight > 0 && info.Height > pipeline.MaxHeight) ||
+		!fmp4CopyableVideoCodec(info.VideoCodec)
+	pipeline.ForceVideoTranscode = mustTranscode
+	// BuildHLSSegmentBuildInput gates stream copy on h264 only; fMP4 also
+	// carries HEVC and VP9, so eligibility is computed here instead.
+	remux, videoCopy := fmp4CopyEligibility(info, mustTranscode)
+	buildIn := ffmpeg.HLSSegmentBuildInput{
+		Info:      info,
+		MaxHeight: pipeline.MaxHeight,
+		Remux:     remux,
+		VideoCopy: videoCopy,
+	}
 	defaults := ffmpeg.DefaultOnDemandHLSDefaults()
 
 	svc := ffmpeg.Get()
@@ -84,7 +96,7 @@ func (e *MediaEngine) BuildPlan(ctx context.Context, realPath string, profile Pr
 	plan.avgBitrateKbps = avgBitrateForProfile(profile)
 	plan.remux = params.Remux
 	plan.videoCopy = params.VideoCopy
-	plan.needsTranscode = ffmpeg.NeedsFullVideoTranscode(info, pipeline)
+	plan.needsTranscode = mustTranscode
 
 	if plan.needsTranscode || (!plan.remux && !plan.videoCopy) {
 		plan.encodeProfile = encodeProfileForMode(info, profile)
@@ -190,6 +202,33 @@ func avgBitrateForProfile(profile Profile) int {
 // audio at a bounded bitrate, regardless of how the source was encoded.
 func profileForcesVideoTranscode(profile Profile) bool {
 	return profile != ProfileQuality
+}
+
+// fmp4CopyableVideoCodec reports whether the video codec can be stream-copied
+// into fMP4 HLS output: a codec with a standard MP4 mapping that a meaningful
+// share of browsers decode. h264 is universal; HEVC plays on Apple and
+// hardware-capable Chrome/Edge; VP9 plays everywhere except older iOS. VP8 has
+// no MP4 mapping, and everything else must transcode.
+func fmp4CopyableVideoCodec(name string) bool {
+	n := strings.ToLower(strings.TrimSpace(name))
+	switch n {
+	case "", "h264", "avc", "avc1", "hevc", "h265", "hvc1", "hev1", "vp9":
+		return true
+	}
+	return strings.Contains(n, "h264") || strings.HasPrefix(n, "vp09")
+}
+
+// fmp4CopyEligibility selects the stream-copy pipeline for a source: remux when
+// video and audio are both fMP4-compatible, videoCopy when only the audio needs
+// transcoding. Nothing copies when a transcode is required.
+func fmp4CopyEligibility(info ffmpeg.StreamInfo, mustTranscode bool) (remux, videoCopy bool) {
+	if !info.HasVideo || mustTranscode || !fmp4CopyableVideoCodec(info.VideoCodec) {
+		return false, false
+	}
+	if info.AudioCodec == "" || strings.EqualFold(info.AudioCodec, "aac") {
+		return true, false
+	}
+	return false, true
 }
 
 // profileRequiresBitrateTranscode reports whether the profile pins a bitrate cap

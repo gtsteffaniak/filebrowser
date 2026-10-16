@@ -67,6 +67,47 @@ func TestProfileForcesVideoTranscode(t *testing.T) {
 	}
 }
 
+func TestFMP4CopyableVideoCodec(t *testing.T) {
+	for _, codec := range []string{"h264", "avc1", "hevc", "h265", "hvc1", "hev1", "vp9", "vp09.00.40.08"} {
+		if !fmp4CopyableVideoCodec(codec) {
+			t.Fatalf("%s should be fMP4-copyable", codec)
+		}
+	}
+	for _, codec := range []string{"vp8", "av1", "wmv3", "mpeg4", "theora"} {
+		if fmp4CopyableVideoCodec(codec) {
+			t.Fatalf("%s has no usable fMP4 mapping and must transcode", codec)
+		}
+	}
+}
+
+func TestFMP4CopyEligibility(t *testing.T) {
+	tests := []struct {
+		name          string
+		info          ffmpeg.StreamInfo
+		mustTranscode bool
+		wantRemux     bool
+		wantVideoCopy bool
+	}{
+		{"hevc+aac remuxes", ffmpeg.StreamInfo{HasVideo: true, VideoCodec: "hevc", AudioCodec: "aac"}, false, true, false},
+		{"vp9+aac remuxes", ffmpeg.StreamInfo{HasVideo: true, VideoCodec: "vp9", AudioCodec: "aac"}, false, true, false},
+		{"vp9+opus copies video only", ffmpeg.StreamInfo{HasVideo: true, VideoCodec: "vp9", AudioCodec: "opus"}, false, false, true},
+		{"hevc+ac3 copies video only", ffmpeg.StreamInfo{HasVideo: true, VideoCodec: "hevc", AudioCodec: "ac3"}, false, false, true},
+		{"hevc without audio remuxes", ffmpeg.StreamInfo{HasVideo: true, VideoCodec: "hevc"}, false, true, false},
+		{"vp8 never copies", ffmpeg.StreamInfo{HasVideo: true, VideoCodec: "vp8", AudioCodec: "aac"}, false, false, false},
+		{"av1 never copies", ffmpeg.StreamInfo{HasVideo: true, VideoCodec: "av1", AudioCodec: "aac"}, false, false, false},
+		{"forced transcode copies nothing", ffmpeg.StreamInfo{HasVideo: true, VideoCodec: "vp9", AudioCodec: "aac"}, true, false, false},
+		{"no video copies nothing", ffmpeg.StreamInfo{AudioCodec: "aac"}, false, false, false},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			remux, videoCopy := fmp4CopyEligibility(tc.info, tc.mustTranscode)
+			if remux != tc.wantRemux || videoCopy != tc.wantVideoCopy {
+				t.Fatalf("got (remux=%v, videoCopy=%v), want (%v, %v)", remux, videoCopy, tc.wantRemux, tc.wantVideoCopy)
+			}
+		})
+	}
+}
+
 func TestProfileRequiresBitrateTranscode(t *testing.T) {
 	withTranscodeProfiles(t)
 
