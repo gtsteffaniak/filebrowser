@@ -114,16 +114,16 @@ type MinimalAuthToken struct {
 }
 
 type Permissions struct {
-	Api        bool `json:"api"`                  // allow api access
-	Admin      bool `json:"admin"`                // allow admin access
-	Modify     bool `json:"modify,omitempty"`     // deprecated: legacy user migration only; not used for API tokens
-	Share      bool `json:"share"`                // allow sharing files
-	Realtime   bool `json:"realtime"`             // allow realtime updates
-	Delete     bool `json:"delete,omitempty"`     // deprecated: legacy user migration only; not used for API tokens
-	Create     bool `json:"create,omitempty"`     // deprecated: legacy user migration only; not used for API tokens
-	Download   bool `json:"download,omitempty"`   // deprecated: legacy user migration only; not used for API tokens
-	View       bool `json:"view,omitempty"`       // deprecated: legacy user migration only; not used for API tokens
-	Configured bool `json:"-"`                    // true when explicitly set on create (allows intentional deny-all); not persisted or API-visible
+	Api        bool `json:"api"`                // allow api access
+	Admin      bool `json:"admin"`              // allow admin access
+	Modify     bool `json:"modify,omitempty"`   // deprecated: legacy user migration only; not used for API tokens
+	Share      bool `json:"share"`              // allow sharing files
+	Realtime   bool `json:"realtime"`           // allow realtime updates
+	Delete     bool `json:"delete,omitempty"`   // deprecated: legacy user migration only; not used for API tokens
+	Create     bool `json:"create,omitempty"`   // deprecated: legacy user migration only; not used for API tokens
+	Download   bool `json:"download,omitempty"` // deprecated: legacy user migration only; not used for API tokens
+	View       bool `json:"view,omitempty"`     // deprecated: legacy user migration only; not used for API tokens
+	Configured bool `json:"-"`                  // true when explicitly set on create (allows intentional deny-all); not persisted or API-visible
 
 	PresentGlobalKeys GlobalPermissionsFieldMask `json:"-"` // JSON keys present on create-user permissions object
 }
@@ -162,7 +162,8 @@ func (p *Permissions) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// EffectiveGlobalPermissionsMask combines handler-parsed and permissions JSON key presence.
+// EffectiveGlobalPermissionsMask combines the caller-supplied field mask and the key
+// presence recorded by Permissions.UnmarshalJSON.
 func (u *User) EffectiveGlobalPermissionsMask() GlobalPermissionsFieldMask {
 	fromPerms := u.Permissions.GlobalPermissionsFieldMaskFromPermissions()
 	m := u.PermissionsFieldMask
@@ -256,7 +257,9 @@ type UserLegacyFields struct {
 type User struct {
 	FrontendUser
 	ID uint64 `json:"id,omitempty"`
-	// PermissionsFieldMask is set by POST /api/users from raw JSON; not persisted.
+	// PermissionsFieldMask marks global permission keys a programmatic create caller
+	// explicitly supplied; not persisted. JSON create requests record key presence on
+	// Permissions.PresentGlobalKeys during decode instead.
 	PermissionsFieldMask GlobalPermissionsFieldMask `json:"-"`
 	// BackendScopes is the authoritative, persisted access list (SourceScope.Name = backend source path).
 	// SQLite stores this inside user_data JSON under the key "scopes" (see sqldb.UserData).

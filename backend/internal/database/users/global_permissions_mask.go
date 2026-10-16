@@ -46,28 +46,6 @@ func GlobalPermissionsFieldMaskFromJSON(raw json.RawMessage) GlobalPermissionsFi
 	return mask
 }
 
-// ParseGlobalPermissionsFieldMaskFromCreateRequest extracts permission key presence from
-// a POST /api/users body shaped as {"data": {..., "permissions": {...}}}.
-func ParseGlobalPermissionsFieldMaskFromCreateRequest(body []byte) GlobalPermissionsFieldMask {
-	var top map[string]json.RawMessage
-	if err := json.Unmarshal(body, &top); err != nil {
-		return GlobalPermissionsFieldMask{}
-	}
-	dataRaw, ok := top["data"]
-	if !ok {
-		return GlobalPermissionsFieldMask{}
-	}
-	var data map[string]json.RawMessage
-	if err := json.Unmarshal(dataRaw, &data); err != nil {
-		return GlobalPermissionsFieldMask{}
-	}
-	permsRaw, ok := data["permissions"]
-	if !ok {
-		return GlobalPermissionsFieldMask{}
-	}
-	return GlobalPermissionsFieldMaskFromJSON(permsRaw)
-}
-
 // MergeGlobalPermissionsOnCreate combines defaults with caller-supplied global permissions.
 // When mask is empty, any true global flag on requested preserves the full requested struct
 // (programmatic create paths). Otherwise only masked fields override defaults.

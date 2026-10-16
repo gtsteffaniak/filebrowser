@@ -179,7 +179,6 @@ func usersPostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 	if err = json.Unmarshal(body, &req); err != nil {
 		return http.StatusBadRequest, err
 	}
-	req.User.PermissionsFieldMask = users.ParseGlobalPermissionsFieldMaskFromCreateRequest(body)
 	r.Body.Close()
 
 	if req.User.Username == "" {

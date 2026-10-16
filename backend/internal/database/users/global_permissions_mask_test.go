@@ -27,20 +27,6 @@ func TestGlobalPermissionsFieldMaskFromJSON(t *testing.T) {
 	}
 }
 
-func TestParseGlobalPermissionsFieldMaskFromCreateRequest(t *testing.T) {
-	body := []byte(`{"data":{"username":"u","permissions":{"admin":true}}}`)
-	got := ParseGlobalPermissionsFieldMaskFromCreateRequest(body)
-	want := GlobalPermissionsFieldMask{Admin: true}
-	if got != want {
-		t.Fatalf("got %+v, want %+v", got, want)
-	}
-
-	omitted := []byte(`{"data":{"username":"u"}}`)
-	if m := ParseGlobalPermissionsFieldMaskFromCreateRequest(omitted); m.Any() {
-		t.Fatalf("expected empty mask when permissions omitted, got %+v", m)
-	}
-}
-
 func TestMergeGlobalPermissionsOnCreate(t *testing.T) {
 	defaults := Permissions{Admin: false, Api: true, Share: true, Realtime: true}
 

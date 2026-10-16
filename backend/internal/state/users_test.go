@@ -337,7 +337,7 @@ func TestUpdateUserClearsTOTPWhenOtpDisabled(t *testing.T) {
 
 	u := &users.User{
 		FrontendUser: users.FrontendUser{
-			Username: "alice",
+			Username:   "alice",
 			OtpEnabled: true,
 		},
 	}
@@ -388,11 +388,11 @@ func TestUpdateUserPatchPreservesBackendSourcePermissions(t *testing.T) {
 	scopePerms := users.SourceFilePermissions{View: true, Download: true, Modify: true}
 	u := &users.User{
 		FrontendUser: users.FrontendUser{
-			Username: "alice",
+			Username:    "alice",
 			Permissions: users.Permissions{Admin: true},
 		},
 		BackendScopes: []users.BackendScope{{Path: "/data/a", Scope: "/", Permissions: scopePerms}},
-		Version:     users.SourcePermissionsMigrationVersion,
+		Version:       users.SourcePermissionsMigrationVersion,
 	}
 	if err = CreateUser(u, "password"); err != nil {
 		t.Fatal(err)
@@ -546,10 +546,16 @@ func setupCreateUserDefaultsTest(t *testing.T) {
 	settings.Config.UserDefaults.Account.Permissions.Api = true
 	settings.Config.UserDefaults.Account.Permissions.Realtime = true
 	userDefaultsMu.Lock()
+	previousUserDefaults := userDefaultsDefault
 	userDefaultsDefault.Account.Permissions.Share = true
 	userDefaultsDefault.Account.Permissions.Api = true
 	userDefaultsDefault.Account.Permissions.Realtime = true
 	userDefaultsMu.Unlock()
+	t.Cleanup(func() {
+		userDefaultsMu.Lock()
+		userDefaultsDefault = previousUserDefaults
+		userDefaultsMu.Unlock()
+	})
 	source := &settings.Source{Path: "/data/a", Name: "a", Config: settings.SourceConfig{
 		DefaultEnabled:     true,
 		DefaultPermissions: users.SourceFilePermissions{View: true, Download: true},
