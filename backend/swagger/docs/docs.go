@@ -7957,6 +7957,10 @@ const docTemplate = `{
                     "description": "allow api access",
                     "type": "boolean"
                 },
+                "configured": {
+                    "description": "true when explicitly set (allows intentional deny-all)",
+                    "type": "boolean"
+                },
                 "create": {
                     "description": "deprecated: legacy user migration only; not used for API tokens",
                     "type": "boolean"

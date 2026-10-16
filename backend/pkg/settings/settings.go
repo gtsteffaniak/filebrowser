@@ -150,17 +150,35 @@ func ApplyUserDefaults(u *users.User) {
 // Keep this in sync with [UserDefaults]: every user-facing field there should be copied
 // here (except DefaultScopes, which is wired through source config rather than this helper).
 func ApplyUserDefaultsFrom(u *users.User, d UserDefaults) {
+	applyUserDefaultsFrom(u, d, false)
+}
+
+// ApplyUserDefaultsFromKeepingAccountPermissions applies profile and scope defaults but
+// leaves u.Permissions unchanged so default-enabled scope permissions use the caller's
+// final admin flag (see CreateUser).
+func ApplyUserDefaultsFromKeepingAccountPermissions(u *users.User, d UserDefaults) {
+	applyUserDefaultsFrom(u, d, true)
+}
+
+func applyUserDefaultsFrom(u *users.User, d UserDefaults, keepAccountPermissions bool) {
+	savedPermissions := u.Permissions
 	ApplyFullProfileFromDefaults(u, d)
 
 	if u.Username == "anonymous" {
 		return
 	}
 
-	// Global permissions (admin, api, share, realtime)
-	u.Permissions.Api = d.Account.Permissions.Api
-	u.Permissions.Admin = d.Account.Permissions.Admin
-	u.Permissions.Share = d.Account.Permissions.Share
-	u.Permissions.Realtime = d.Account.Permissions.Realtime
+	// Global permissions (admin, api, share, realtime). Profile merge overwrites these;
+	// restore the caller's values when CreateUser already applied requested permissions
+	// so default-enabled scope permissions use the final admin flag.
+	if keepAccountPermissions {
+		u.Permissions = savedPermissions
+	} else {
+		u.Permissions.Api = d.Account.Permissions.Api
+		u.Permissions.Admin = d.Account.Permissions.Admin
+		u.Permissions.Share = d.Account.Permissions.Share
+		u.Permissions.Realtime = d.Account.Permissions.Realtime
+	}
 
 	sourceDefaults := DefaultSourceFilePermissions()
 
