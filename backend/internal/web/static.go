@@ -318,6 +318,8 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"disablePWAInstall":             settings.Config.Frontend.DisablePWAInstall,
 		"devMode":                       settings.Env.IsDevMode,
 		"playwrightTest":                settings.Env.IsPlaywright,
+		"officeProduct":                 officeProductForSPA(),
+		"officeExtensions":              wopiExtensionsForSPA(),
 	}
 
 	cspNonce, err := utils.CSPNonce()
