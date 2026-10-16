@@ -444,7 +444,6 @@ func TestGenerateConfigYaml_IntegrationTest(t *testing.T) {
 				}
 			}
 
-			t.Logf("Generated YAML for %s:\n%s", tt.name, yamlOutput)
 		})
 	}
 }
