@@ -179,3 +179,39 @@ func TestSearchResultsLimitConfig(t *testing.T) {
 		})
 	}
 }
+
+func TestConfigLoadWithoutServerMap(t *testing.T) {
+	original := Config
+	t.Cleanup(func() { Config = original })
+	for _, tc := range []struct {
+		name    string
+		content string
+		loadErr bool
+	}{
+		{name: "empty file", content: ""},
+		{name: "no server key", content: "frontend:\n  name: test\n"},
+		{name: "null server", content: "server:\n"},
+		{name: "scalar server", content: "server: test\n", loadErr: true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			configFile := filepath.Join(t.TempDir(), "config.yaml")
+			if err := os.WriteFile(configFile, []byte(tc.content), 0644); err != nil {
+				t.Fatal(err)
+			}
+			err := loadConfigWithDefaults(configFile, true)
+			if tc.loadErr {
+				if err == nil {
+					t.Fatal("expected an error for a non-map server section")
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("error loading config file: %v", err)
+			}
+			// no sources are configured, so validation should report it
+			if err := ValidateConfig(Config); err == nil {
+				t.Fatal("expected validation error for config with missing required sources, got nil")
+			}
+		})
+	}
+}
