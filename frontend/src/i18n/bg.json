@@ -1217,9 +1217,6 @@
     }
   },
   "media": {
-    "hardwareAcceleration": "Хардуерно ускорение",
-    "hardwareAccelerationDescription": "Използвайте хардуерно ускорение чрез графичния процесор (GPU) за ffmpeg, когато е налично.",
-    "hardwareAccelerationUnavailable": "На този сървър не беше открит нито един подходящ хардуерен енкодер за ffmpeg.",
     "extractEmbeddedSubtitles": "Извличане на вградени субтитри",
     "extractEmbeddedSubtitlesDescription": "Извличане на вградени субтитри от мултимедийни файлове.",
     "debug": "Регистриране на отладочни събития",

@@ -1217,9 +1217,6 @@
     }
   },
   "media": {
-    "hardwareAcceleration": "האצת חומרה",
-    "hardwareAccelerationDescription": "השתמש בהאצת חומרה של ה-GPU עבור ffmpeg כאשר היא זמינה.",
-    "hardwareAccelerationUnavailable": "לא אותר מקודד חומרה של ffmpeg שמיש בשרת זה.",
     "extractEmbeddedSubtitles": "חילוץ כתוביות מוטמעות",
     "extractEmbeddedSubtitlesDescription": "לחלץ כתוביות מוטמעות מקבצי מדיה.",
     "debug": "רישום באגים",

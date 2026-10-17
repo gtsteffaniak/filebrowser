@@ -1217,9 +1217,6 @@
     }
   },
   "media": {
-    "hardwareAcceleration": "ハードウェアアクセラレーション",
-    "hardwareAccelerationDescription": "利用可能な場合は、ffmpegでGPUハードウェアアクセラレーションを使用してください。",
-    "hardwareAccelerationUnavailable": "このサーバーでは、使用可能な FFmpeg ハードウェアエンコーダーは検出されませんでした。",
     "extractEmbeddedSubtitles": "埋め込み字幕を抽出する",
     "extractEmbeddedSubtitlesDescription": "メディアファイルから埋め込み字幕を抽出します。",
     "debug": "デバッグログ",

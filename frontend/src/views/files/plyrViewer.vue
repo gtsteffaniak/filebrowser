@@ -288,6 +288,7 @@ import {
 } from '@/utils/transcodePreference.js';
 import { createTranscodeClientId } from '@/plyr/transcodeSession.js';
 import { TranscodePlaybackController } from '@/plyr/transcodePlaybackController.js';
+import { mediaCoverage, seekOutsideCoverage, servableCoverage } from '@/plyr/transcodeSeek.js';
 import {
   TRANSCODE_MODES as PLYR_TRANSCODE_MODES,
   TRANSCODE_HLS_MODES as PLYR_TRANSCODE_HLS_MODES,
@@ -478,6 +479,11 @@ export default {
       transcodeModeButtons: null,
       transcodeModeValueSpan: null,
       transcodeOfferEmitted: false,
+      /** Last requested playhead for out-of-coverage transcode repositioning. */
+      pendingSeekIntentSec: null,
+      seekRepositionTimer: null,
+      /** Polls for produced coverage so a reposition lands on the exact intent. */
+      preciseSeekTimer: null,
       mountPlyrInProgress: false,
       /** Armed when autoplay is blocked so the next user gesture can resume playback. */
       resumeOnGestureArmed: false,
@@ -551,13 +557,16 @@ export default {
       }
     },
     'req.path'() {
-      this.videoStreamAttached = false;
-      this.pipHandoffSeekSeconds = null;
-      this.lockedNativeVideoSrc = null;
-      this.hasStartedPlayback = false;
-      this.transcodeOfferEmitted = false;
-      this.transcodeFallbackAttempted = false;
-      this.overlaidHintApi?.reset();
+      this.resetFilePlaybackState();
+    },
+    'req.source'(newSource, oldSource) {
+      if (!newSource || newSource === oldSource) {
+        return;
+      }
+      this.resetFilePlaybackState();
+      this.destroyPlyr();
+      this.plyrTeardownDone = false;
+      void this.initializePlyr();
     },
     routePath() {
       this.stopIfRouteLeftThisFile();
@@ -1137,6 +1146,16 @@ export default {
       navigator.mediaSession.playbackState = 'none';
       this.mediaSessionOwnerId = 0;
     },
+    resetFilePlaybackState() {
+      this.clearPendingSeekIntent();
+      this.videoStreamAttached = false;
+      this.pipHandoffSeekSeconds = null;
+      this.lockedNativeVideoSrc = null;
+      this.hasStartedPlayback = false;
+      this.transcodeOfferEmitted = false;
+      this.transcodeFallbackAttempted = false;
+      this.overlaidHintApi?.reset();
+    },
     getActiveMediaElement() {
       return this.player?.media ?? this.mediaElement ?? null;
     },
@@ -1202,17 +1221,23 @@ export default {
       this.mountedPreviewKey = null;
       this.pipHandoffApplying = false;
       this.lockedNativeVideoSrc = null;
-      this.teardownTranscodePlayback({
-        stopSession: !this.transcodeActive && !this.transcodeStartInProgress,
-      });
-      if (!this.usesSharedTranscodePlayback()) {
-        this.transcodePlayback = null;
-      }
-
+      this.clearPendingSeekIntent();
       const media = this.getActiveMediaElement();
       const inPip = this.isMediaInPictureInPicture(media);
       const isTransition = state.navigation.isTransitioning;
       const leavingInPip = inPip && this.req?.path;
+
+      // keepAlive: leaving in PiP must keep hls.js + the session feeding the
+      // adopted element; otherwise invalidate the controller (shared included)
+      // so in-flight starts can't call play() on the orphaned element.
+      this.teardownTranscodePlayback({
+        stopSession: !this.transcodeActive && !this.transcodeStartInProgress,
+        keepAlive: Boolean(leavingInPip),
+      });
+      if (!this.usesSharedTranscodePlayback()) {
+        this.transcodePlayback = null;
+      }
+      this.disarmResumeOnNextGesture();
 
       if (this.player) {
         if (isTransition && !inPip) {
@@ -1285,6 +1310,9 @@ export default {
       this.audioGraphInitialized = false;
     },
     togglePlayPause() {
+      if (this.plyrTeardownDone) {
+        return;
+      }
       if (this.player) {
         this.player.togglePlay();
         return;
@@ -1294,6 +1322,9 @@ export default {
       if (media.paused) media.play(); else media.pause();
     },
     handlePlay() {
+      if (this.plyrTeardownDone) {
+        return;
+      }
       this.$emit('play');
       if (
         this.previewType === 'video'
@@ -1612,11 +1643,11 @@ export default {
       void this.initializePlyr();
     },
     async initializePlyr() {
-      if (!this.mediaElement || this.player) {
+      if (!this.mediaElement || this.player || this.plyrTeardownDone) {
         return;
       }
       await this.$nextTick();
-      if (this.player) {
+      if (!this.mediaElement || this.player || this.plyrTeardownDone) {
         return;
       }
       void this.mountPlyrPlayer();
@@ -1685,7 +1716,10 @@ export default {
             this.resumePlaybackAfterNavigation();
           });
         }
-        this.seekOnReleaseCleanup = enablePlyrSeekOnRelease(this.player);
+        this.seekOnReleaseCleanup = enablePlyrSeekOnRelease(this.player, {
+          onSeekTarget: (sec) => this.onTranscodeSeekIntent(sec),
+        });
+        this.wrapPlayerSeekIntent();
         this.setupScrubPreview();
         this.setupVideoLoadingIndicator();
         if (this.previewType === 'video' && (this.startTranscode || (this.wantsTranscodePlayback && !this.shouldProactivelyOfferTranscode))) {
@@ -1807,7 +1841,7 @@ export default {
       }
     },
     async attachVideoStreamAndPlay() {
-      if (this.videoStreamAttached || this.previewType !== 'video' || !this.raw) {
+      if (this.plyrTeardownDone || this.videoStreamAttached || this.previewType !== 'video' || !this.raw) {
         if (this.inlineResumeSnapshot) {
           this.pipHandoffApplying = false;
         }
@@ -1894,7 +1928,7 @@ export default {
       return this.transcodePlayback;
     },
     async offerTranscodePlayback() {
-      if (this.transcodeSwitchInProgress || this.isTranscodePlaybackMode) {
+      if (this.plyrTeardownDone || this.transcodeSwitchInProgress || this.isTranscodePlaybackMode) {
         return;
       }
       if (this.transcodeOfferEmitted) {
@@ -1950,6 +1984,11 @@ export default {
     },
     resumeTranscodePlayback() {
       const media = this.player?.media || this.mediaElement;
+      // After teardown the element is an orphan unless it was handed to PiP;
+      // a PiP-adopted element is intentionally alive and may still resume.
+      if (this.plyrTeardownDone && !this.isMediaInPictureInPicture(media)) {
+        return Promise.resolve();
+      }
       transcodeLog('resumeTranscodePlayback', {
         playerPaused: this.player?.paused,
         mediaPaused: media?.paused,
@@ -2003,6 +2042,9 @@ export default {
       window.removeEventListener('keydown', handler, { capture: true });
     },
     syncTranscodePlaybackState() {
+      if (this.plyrTeardownDone) {
+        return;
+      }
       mutations.setPlaybackState(true);
       this.$emit('play');
     },
@@ -2063,6 +2105,9 @@ export default {
       playPrime,
       manageSwitchState = true,
     } = {}) {
+      if (this.plyrTeardownDone) {
+        return;
+      }
       transcodeLog('startTranscodePlayback called', {
         source: this.req?.source,
         path: this.req?.path,
@@ -2185,16 +2230,171 @@ export default {
         if (manageSwitch) {
           this.transcodeSwitchInProgress = false;
         }
+        // A seek intent issued while this start was in flight is checked
+        // against the fresh coverage now that the flags have cleared.
+        this.evaluateSeekIntent();
       }
     },
-    teardownTranscodePlayback({ stopSession = false } = {}) {
-      if (!this.transcodePlayback) {
+    teardownTranscodePlayback({ stopSession = false, keepAlive = false } = {}) {
+      this.clearPendingSeekIntent();
+      if (!this.transcodePlayback || keepAlive) {
         return;
       }
       if (this.usesSharedTranscodePlayback()) {
+        this.transcodePlayback.teardownLocal({ stopSession });
         return;
       }
       this.transcodePlayback.dispose({ stopSession });
+    },
+    // Keyboard/API seeks bypass commitPlyrSeek, so the intended target has to
+    // be captured by wrapping the Plyr entry points that set currentTime.
+    wrapPlayerSeekIntent() {
+      const player = this.player;
+      if (!player || player.__seekIntentWrapped) {
+        return;
+      }
+      player.__seekIntentWrapped = true;
+      const step = () => player.seekTime || 10;
+      const forward = player.forward?.bind(player);
+      if (forward) {
+        player.forward = (t) => {
+          this.onTranscodeSeekIntent((player.media?.currentTime ?? 0) + (Number.isFinite(t) ? t : step()));
+          return forward(t);
+        };
+      }
+      const rewind = player.rewind?.bind(player);
+      if (rewind) {
+        player.rewind = (t) => {
+          this.onTranscodeSeekIntent((player.media?.currentTime ?? 0) - (Number.isFinite(t) ? t : step()));
+          return rewind(t);
+        };
+      }
+      const seek = player.seek?.bind(player);
+      if (seek) {
+        player.seek = (input) => {
+          const target = this.resolveSeekInputSeconds(input, player);
+          if (Number.isFinite(target)) {
+            this.onTranscodeSeekIntent(target);
+          }
+          return seek(input);
+        };
+      }
+    },
+    resolveSeekInputSeconds(input, player) {
+      if (typeof input === 'number' && Number.isFinite(input)) {
+        return input;
+      }
+      const str = String(input ?? '').trim();
+      const duration = player?.duration;
+      if (str.endsWith('%') && Number.isFinite(duration) && duration > 0) {
+        const pct = parseFloat(str.slice(0, -1));
+        return Number.isFinite(pct) ? (pct / 100) * duration : NaN;
+      }
+      const parsed = parseFloat(str);
+      return Number.isFinite(parsed) ? parsed : NaN;
+    },
+    // Record a scrub/seek intent. Live-paced transcodes can only serve what
+    // the producer has written, so a target outside the produced coverage
+    // must reposition the generation — debounced so drag tails coalesce.
+    onTranscodeSeekIntent(sec) {
+      if (this.plyrTeardownDone || !this.isTranscodePlaybackMode || !Number.isFinite(sec)) {
+        return;
+      }
+      this.pendingSeekIntentSec = Math.max(0, sec);
+      if (this.seekRepositionTimer) {
+        clearTimeout(this.seekRepositionTimer);
+      }
+      this.seekRepositionTimer = setTimeout(() => {
+        this.seekRepositionTimer = null;
+        this.evaluateSeekIntent();
+      }, 350);
+    },
+    evaluateSeekIntent() {
+      const intent = this.pendingSeekIntentSec;
+      if (intent == null || this.plyrTeardownDone || !this.isTranscodePlaybackMode) {
+        return;
+      }
+      // A start/reposition is already rebuilding the session; the intent is
+      // re-evaluated against the new coverage once it lands.
+      if (this.transcodeStartInProgress || this.transcodeSwitchInProgress) {
+        return;
+      }
+      const el = this.getActiveMediaElement();
+      // Servable — not just buffered — coverage: a completed generation can
+      // serve its whole playlist on demand, so a seek inside it stays an
+      // in-place element seek instead of tearing the session down.
+      const coverage = servableCoverage(
+        el,
+        this.transcodePlayback?.sessionController?.session,
+      );
+      if (!coverage) {
+        // Nothing attached yet — keep the intent for a later evaluation.
+        return;
+      }
+      if (!seekOutsideCoverage(intent, coverage)) {
+        this.pendingSeekIntentSec = null;
+        return;
+      }
+      this.pendingSeekIntentSec = null;
+      this.repositionTranscode(intent);
+    },
+    // Ask the backend to serve the requested playhead: it reuses coverage when
+    // the target is already produced, otherwise it supersedes this session
+    // with a generation restarted at the aligned segment boundary.
+    repositionTranscode(targetSec) {
+      const el = this.getActiveMediaElement();
+      const wasPlaying = el ? !el.paused : true;
+      transcodeLog('seek past produced coverage — repositioning transcode', {
+        targetSec,
+        sessionId: this.transcodePlayback?.sessionController?.session?.id,
+      });
+      this.startPreciseSeekWait(targetSec);
+      void this.startTranscodePlayback({
+        startSec: targetSec,
+        autoplay: wasPlaying,
+      });
+    },
+    // applyStartPosition clamps the playhead to the produced edge at attach
+    // time, so a reposition initially lands a few seconds before the intent.
+    // Poll until production passes the target, then re-apply it exactly.
+    startPreciseSeekWait(targetSec) {
+      this.clearPreciseSeekWait();
+      const deadline = Date.now() + 15000;
+      this.preciseSeekTimer = setInterval(() => {
+        const el = this.getActiveMediaElement();
+        if (!el || this.plyrTeardownDone || Date.now() > deadline) {
+          this.clearPreciseSeekWait();
+          return;
+        }
+        const coverage = mediaCoverage(el);
+        if (!coverage || coverage.end < targetSec - 0.75) {
+          return;
+        }
+        const clamped = Math.min(Math.max(targetSec, coverage.start), coverage.end);
+        if (Math.abs(el.currentTime - clamped) > 0.35) {
+          try {
+            el.currentTime = clamped;
+          } catch (_) {
+            // element not seekable yet; next poll retries
+            return;
+          }
+        }
+        this.clearPreciseSeekWait();
+      }, 400);
+    },
+    clearPreciseSeekWait() {
+      if (this.preciseSeekTimer) {
+        clearInterval(this.preciseSeekTimer);
+        this.preciseSeekTimer = null;
+      }
+    },
+    clearPendingSeekIntent() {
+      this.pendingSeekIntentSec = null;
+      if (this.seekRepositionTimer) {
+        clearTimeout(this.seekRepositionTimer);
+        this.seekRepositionTimer = null;
+      }
+      this.clearPreciseSeekWait();
     },
     onVideoPlaybackError(event) {
       if (
@@ -2492,7 +2692,7 @@ export default {
       });
     },
     async requestPictureInPictureWhenReady() {
-      if (this.isPipControlBlocked()) {
+      if (this.plyrTeardownDone || this.isPipControlBlocked()) {
         return;
       }
       const el = this.mediaElement;
@@ -2566,10 +2766,13 @@ export default {
       }
     },
     attemptPipHandoffPlay(el, snapshot) {
-      if (!el || snapshot?.wasPlaying === false) {
+      if (this.plyrTeardownDone || !el || snapshot?.wasPlaying === false) {
         return;
       }
       const tryPlay = () => {
+        if (this.plyrTeardownDone) {
+          return;
+        }
         const playCall = this.nativePlayerPlay
           ?? (() => this.player?.play?.() ?? el.play());
         void Promise.resolve(playCall()).then(() => {

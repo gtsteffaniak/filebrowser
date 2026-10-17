@@ -20,6 +20,7 @@ vi.mock('@/api/transcode.js', () => ({
 }));
 
 import { attachHlsToVideo } from '@/plyr/hlsAdapter.js';
+import { startTranscodeSession } from '@/api/transcode.js';
 
 describe('TranscodePlaybackController', () => {
   beforeEach(() => {
@@ -267,5 +268,83 @@ describe('TranscodePlaybackController', () => {
       shouldAutoplay: false,
     });
     expect(restarted.ok).toBe(true);
+  });
+
+  it('applies a seek target past the buffered window on a reused completed session', async () => {
+    const controller = new TranscodePlaybackController();
+    const video = document.createElement('video');
+    // Only the first fragments are buffered, but a completed generation can
+    // serve its whole playlist on demand.
+    Object.defineProperty(video, 'seekable', {
+      get: () => ({ length: 1, start: () => 0, end: () => 24 }),
+      configurable: true,
+    });
+    vi.mocked(startTranscodeSession).mockResolvedValueOnce({
+      id: 'sess-1',
+      state: 'completed',
+      startSec: 0,
+      endSec: 5112,
+      durationSec: 5112,
+      heartbeatIntervalSec: 12,
+      deliveryBaseUrl: '/api/media/transcode/sessions/sess-1',
+    });
+    vi.mocked(attachHlsToVideo).mockImplementationOnce(async ({ onFirstBuffered }) => {
+      onFirstBuffered();
+      return { cleanup: vi.fn() };
+    });
+
+    const result = await controller.start({
+      source: 's',
+      path: '/v.mp4',
+      viewToken: 'token',
+      mode: 'quality',
+      clientId: 'c1',
+      startSec: 3415.39,
+      getVideoElement: () => video,
+      nextTick: async () => {},
+      shouldAutoplay: false,
+    });
+
+    expect(result.ok).toBe(true);
+    // The target must not be clamped to the buffered edge (24s).
+    expect(video.currentTime).toBeCloseTo(3415.39, 2);
+  });
+
+  it('clamps a seek target to the produced edge on a running session', async () => {
+    const controller = new TranscodePlaybackController();
+    const video = document.createElement('video');
+    Object.defineProperty(video, 'seekable', {
+      get: () => ({ length: 1, start: () => 2400, end: () => 2440 }),
+      configurable: true,
+    });
+    vi.mocked(startTranscodeSession).mockResolvedValueOnce({
+      id: 'sess-2',
+      state: 'running',
+      startSec: 2400,
+      endSec: 2440,
+      heartbeatIntervalSec: 12,
+      deliveryBaseUrl: '/api/media/transcode/sessions/sess-2',
+    });
+    vi.mocked(attachHlsToVideo).mockImplementationOnce(async ({ onFirstBuffered }) => {
+      onFirstBuffered();
+      return { cleanup: vi.fn() };
+    });
+
+    const result = await controller.start({
+      source: 's',
+      path: '/v.mp4',
+      viewToken: 'token',
+      mode: 'quality',
+      clientId: 'c1',
+      startSec: 2600,
+      getVideoElement: () => video,
+      nextTick: async () => {},
+      shouldAutoplay: false,
+    });
+
+    expect(result.ok).toBe(true);
+    // Production has not reached 2600 yet; clamp to the produced edge and let
+    // the precise-seek wait re-apply the target once production catches up.
+    expect(video.currentTime).toBeCloseTo(2440, 1);
   });
 });

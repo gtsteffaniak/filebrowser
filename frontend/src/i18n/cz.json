@@ -1217,9 +1217,6 @@
     }
   },
   "media": {
-    "hardwareAcceleration": "Hardwarová akcelerace",
-    "hardwareAccelerationDescription": "Pokud je k dispozici, použijte hardwarovou akceleraci GPU pro ffmpeg.",
-    "hardwareAccelerationUnavailable": "Na tomto serveru nebyl zjištěn žádný použitelný hardwarový kodér ffmpeg.",
     "extractEmbeddedSubtitles": "Extrahovat vložené titulky",
     "extractEmbeddedSubtitlesDescription": "Extrahovat vložené titulky z mediálních souborů.",
     "debug": "Logování pro ladění",

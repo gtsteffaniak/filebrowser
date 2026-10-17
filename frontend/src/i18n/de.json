@@ -1217,9 +1217,6 @@
     }
   },
   "media": {
-    "hardwareAcceleration": "Hardwarebeschleunigung",
-    "hardwareAccelerationDescription": "Verwenden Sie die GPU-Hardwarebeschleunigung für ffmpeg, sofern verfügbar.",
-    "hardwareAccelerationUnavailable": "Auf diesem Server wurde kein brauchbarer FFmpeg-Hardware-Encoder erkannt.",
     "extractEmbeddedSubtitles": "Eingebettete Untertitel extrahieren",
     "extractEmbeddedSubtitlesDescription": "Eingebettete Untertitel aus Mediendateien extrahieren.",
     "debug": "Debug-Protokollierung",

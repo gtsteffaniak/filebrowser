@@ -1217,9 +1217,6 @@
     }
   },
   "media": {
-    "hardwareAcceleration": "Accélération matérielle",
-    "hardwareAccelerationDescription": "Utiliser l'accélération matérielle par GPU pour ffmpeg lorsque celle-ci est disponible.",
-    "hardwareAccelerationUnavailable": "Aucun encodeur matériel ffmpeg utilisable n'a été détecté sur ce serveur.",
     "extractEmbeddedSubtitles": "Extraire les sous-titres intégrés",
     "extractEmbeddedSubtitlesDescription": "Extraire les sous-titres intégrés des fichiers multimédias.",
     "debug": "Journalisation de débogage",

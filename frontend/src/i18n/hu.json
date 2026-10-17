@@ -1217,9 +1217,6 @@
     }
   },
   "media": {
-    "hardwareAcceleration": "Hardveres gyorsítás",
-    "hardwareAccelerationDescription": "Ha lehetséges, használja az ffmpeg GPU-alapú hardveres gyorsítását.",
-    "hardwareAccelerationUnavailable": "Ezen a szerveren nem sikerült használható ffmpeg hardveres kódolót észlelni.",
     "extractEmbeddedSubtitles": "Beágyazott feliratok kivonása",
     "extractEmbeddedSubtitlesDescription": "Beágyazott feliratok kivonása a médiafájlokból.",
     "debug": "Hibakeresési naplózás",

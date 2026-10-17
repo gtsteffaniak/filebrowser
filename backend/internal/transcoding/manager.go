@@ -25,6 +25,11 @@ type producer struct {
 	plan       hlsPlan
 	job        ContinuousJob
 	cancel     context.CancelFunc
+	// startIndex is the first segment index this generation produces; startSec
+	// is the segment-aligned ffmpeg -ss offset. Segments before it are never
+	// produced, so coverage checks need both bounds.
+	startIndex int
+	startSec   float64
 	// refs counts the sessions attached to this generation. The job is only
 	// cancelled once the last attached session goes away.
 	refs int
@@ -72,7 +77,6 @@ type Manager struct {
 	byReuse     map[string]string
 	inflight    map[string]*inflightStart
 	producers   map[string]*producer
-	producing   map[string]*producer
 	userCounts  map[string]int
 	globalCount int
 
@@ -133,7 +137,6 @@ func NewManager(ctx context.Context, engine Engine, store *Store, opts Options) 
 		byReuse:    make(map[string]string),
 		inflight:   make(map[string]*inflightStart),
 		producers:  make(map[string]*producer),
-		producing:  make(map[string]*producer),
 		userCounts: make(map[string]int),
 		subs:       make(map[chan EventPayload]struct{}),
 		runCtx:     runCtx,
@@ -167,7 +170,6 @@ func (m *Manager) Close(ctx context.Context) error {
 		m.releaseSessionLocked(id, sess)
 	}
 	m.producers = make(map[string]*producer)
-	m.producing = make(map[string]*producer)
 	m.mu.Unlock()
 
 	done := make(chan struct{})
@@ -209,7 +211,7 @@ func (m *Manager) Start(ctx context.Context, in StartInput) (SessionInfo, error)
 
 	for {
 		m.mu.Lock()
-		if info, ok, err := m.tryReuseSessionLocked(reuseKey, clientID, in.StartSec); ok || err != nil {
+		if info, ok, err := m.tryReuseSessionLocked(in, reuseKey, clientID); ok || err != nil {
 			// A replaced session must still be stopped even when this request
 			// attaches to an existing generation, otherwise the old profile's
 			// session (and its producer slot) leaks.
@@ -283,7 +285,7 @@ func (m *Manager) Start(ctx context.Context, in StartInput) (SessionInfo, error)
 	}
 }
 
-func (m *Manager) tryReuseSessionLocked(reuseKey, clientID string, startSec float64) (SessionInfo, bool, error) {
+func (m *Manager) tryReuseSessionLocked(in StartInput, reuseKey, clientID string) (SessionInfo, bool, error) {
 	existingID, ok := m.byReuse[reuseKey]
 	if !ok {
 		return SessionInfo{}, false, nil
@@ -293,15 +295,32 @@ func (m *Manager) tryReuseSessionLocked(reuseKey, clientID string, startSec floa
 		delete(m.byReuse, reuseKey)
 		return SessionInfo{}, false, nil
 	}
-	if sessionReusable(sess, startSec) {
+	if sessionReusable(sess, in.StartSec, m.sessionCoverageEndLocked(sess)) {
 		now := time.Now()
 		sess.clients[clientID] = now
 		sess.lastActivity = now
 		sess.lastHeartbeat = now
 		return m.publicSession(sess, true), true, nil
 	}
-	m.supersedeSessionLocked(existingID, sess)
+	// Repositioning supersedes only the requester's own session: a different
+	// client seeking elsewhere gets its own generation rather than killing
+	// playback for every client attached to this one.
+	if in.ReplaceSessionID == existingID || soleLiveClient(sess, clientID) {
+		m.supersedeSessionLocked(existingID, sess)
+	}
 	return SessionInfo{}, false, nil
+}
+
+// soleLiveClient reports whether clientID is the only client on the session
+// that has been heard from within the reconnect grace window.
+func soleLiveClient(sess *playbackSession, clientID string) bool {
+	now := time.Now()
+	for id, seen := range sess.clients {
+		if id != clientID && now.Sub(seen) <= reconnectGrace {
+			return false
+		}
+	}
+	return true
 }
 
 func (m *Manager) commitStart(ctx context.Context, in StartInput, reuseKey, clientID string, flight *inflightStart) (SessionInfo, error) {
@@ -317,14 +336,12 @@ func (m *Manager) commitStart(ctx context.Context, in StartInput, reuseKey, clie
 		return SessionInfo{}, err
 	}
 
-	// A request starting at the beginning of the file can attach to a generation
-	// another session is already producing, or to a completed generation left in
-	// the cache. Both are keyed only by file identity plus transcode parameters,
-	// so any user playing the same file with the same profile reuses them.
-	if in.StartSec <= 0 {
-		if info, attached, attachErr := m.attachExistingGeneration(in, sessionID, reuseKey, clientID, flight, plan); attached || attachErr != nil {
-			return info, attachErr
-		}
+	// Any requested playhead may already be covered by a live producer or a
+	// completed generation left in the cache. Generations are keyed only by
+	// file identity plus transcode parameters, so any user playing the same
+	// file with the same profile reuses them.
+	if info, attached, attachErr := m.attachCoveringGeneration(in, sessionID, reuseKey, clientID, flight, plan); attached || attachErr != nil {
+		return info, attachErr
 	}
 
 	generation, err := newSessionID()
@@ -348,21 +365,20 @@ func (m *Manager) commitStart(ctx context.Context, in StartInput, reuseKey, clie
 		return SessionInfo{}, ErrDisabled
 	}
 
-	sess := m.newSessionLocked(in, sessionID, reuseKey, clientID, jobDir, generation, plan, startIndex, ffmpegStartSec)
-	// Reserve the generation for this fingerprint before the producer starts so a
-	// concurrent start for the same file attaches instead of transcoding again.
+	sess := m.newSessionLocked(in, sessionID, reuseKey, clientID, jobDir, generation, plan, startIndex, ffmpegStartSec, segmentStartSec(plan, startIndex))
+	// Register the generation before the producer starts so a concurrent start
+	// for the same file attaches to it instead of transcoding again.
 	producer := &producer{
 		sessionID:  sessionID,
 		generation: generation,
 		jobDir:     jobDir,
 		plan:       plan,
+		startIndex: startIndex,
+		startSec:   ffmpegStartSec,
 		refs:       1,
 	}
 	m.sessions[sessionID] = sess
 	m.producers[sessionID] = producer
-	if ffmpegStartSec <= 0 {
-		m.producing[plan.cacheFingerprint] = producer
-	}
 	m.byReuse[reuseKey] = sessionID
 	info := m.publicSession(sess, false)
 	m.finishInflightLocked(reuseKey, flight, info, nil)
@@ -373,10 +389,11 @@ func (m *Manager) commitStart(ctx context.Context, in StartInput, reuseKey, clie
 	return info, nil
 }
 
-// attachExistingGeneration attaches a new session to a generation that is either
-// being produced right now or already complete on disk. Returns attached=false
-// when no reusable generation exists for the plan.
-func (m *Manager) attachExistingGeneration(in StartInput, sessionID, reuseKey, clientID string, flight *inflightStart, plan hlsPlan) (SessionInfo, bool, error) {
+// attachCoveringGeneration attaches a new session to a generation — a live
+// producer or a completed cache entry — whose produced coverage reaches the
+// requested playhead. Returns attached=false when nothing covers it.
+func (m *Manager) attachCoveringGeneration(in StartInput, sessionID, reuseKey, clientID string, flight *inflightStart, plan hlsPlan) (SessionInfo, bool, error) {
+	targetSec := in.StartSec
 	m.mu.Lock()
 	if m.closed.Load() {
 		m.rollbackAdmissionLocked(in.Username)
@@ -384,24 +401,40 @@ func (m *Manager) attachExistingGeneration(in StartInput, sessionID, reuseKey, c
 		m.mu.Unlock()
 		return SessionInfo{}, true, ErrDisabled
 	}
-	if producer := m.producing[plan.cacheFingerprint]; producer != nil {
-		producer.refs++
-		sess := m.newSessionLocked(in, sessionID, reuseKey, clientID, producer.jobDir, producer.generation, plan, 0, 0)
-		sess.state = m.generationStateLocked(producer.generation)
+	// Multiple sessions can reference the same generation; each unique
+	// producer is considered once. A seek within a live producer's coverage
+	// attaches instead of launching another ffmpeg for the same file.
+	seen := make(map[*producer]struct{})
+	for _, p := range m.producers {
+		if p == nil || p.plan.cacheFingerprint != plan.cacheFingerprint {
+			continue
+		}
+		if _, dup := seen[p]; dup {
+			continue
+		}
+		seen[p] = struct{}{}
+		if !m.producerCoversTargetLocked(p, targetSec) {
+			continue
+		}
+		p.refs++
+		sess := m.newSessionLocked(in, sessionID, reuseKey, clientID, p.jobDir, p.generation, plan, p.startIndex, p.startSec, m.producerCoverageEndSecLocked(p))
+		sess.state = m.generationStateLocked(p.generation)
 		sess.info.State = sess.state
 		m.sessions[sessionID] = sess
-		m.producers[sessionID] = producer
+		m.producers[sessionID] = p
 		m.byReuse[reuseKey] = sessionID
 		info := m.publicSession(sess, false)
 		m.finishInflightLocked(reuseKey, flight, info, nil)
-		m.publish(EventPayload{ID: m.nextEventID(), Type: "session_started", Session: &info})
+		m.publishLocked(EventPayload{ID: m.nextEventID(), Type: "session_started", Session: &info})
 		m.mu.Unlock()
 		return info, true, nil
 	}
 	m.mu.Unlock()
 
-	jobDir, ok := m.store.FindReusableGeneration(plan.cacheFingerprint)
-	if !ok {
+	// Completed generations always ran to EOF, so covering the target only
+	// requires it to start at or before the requested playhead.
+	jobDir, cov, ok := m.store.FindReusableGeneration(plan.cacheFingerprint)
+	if !ok || segmentStartSec(plan, cov.FirstIndex) > targetSec+seekBackwardEpsSec {
 		return SessionInfo{}, false, nil
 	}
 
@@ -412,7 +445,7 @@ func (m *Manager) attachExistingGeneration(in StartInput, sessionID, reuseKey, c
 		m.finishInflightLocked(reuseKey, flight, SessionInfo{}, ErrDisabled)
 		return SessionInfo{}, true, ErrDisabled
 	}
-	sess := m.newSessionLocked(in, sessionID, reuseKey, clientID, jobDir, filepath.Base(jobDir), plan, 0, 0)
+	sess := m.newSessionLocked(in, sessionID, reuseKey, clientID, jobDir, filepath.Base(jobDir), plan, cov.FirstIndex, segmentStartSec(plan, cov.FirstIndex), segmentEndSec(plan, cov.LastReadyIndex))
 	sess.state = StateCompleted
 	sess.info.State = StateCompleted
 	m.sessions[sessionID] = sess
@@ -420,11 +453,72 @@ func (m *Manager) attachExistingGeneration(in StartInput, sessionID, reuseKey, c
 	m.store.TouchGeneration(jobDir)
 	info := m.publicSession(sess, false)
 	m.finishInflightLocked(reuseKey, flight, info, nil)
-	m.publish(EventPayload{ID: m.nextEventID(), Type: "session_started", Session: &info})
+	m.publishLocked(EventPayload{ID: m.nextEventID(), Type: "session_started", Session: &info})
 	return info, true, nil
 }
 
-func (m *Manager) newSessionLocked(in StartInput, sessionID, reuseKey, clientID, jobDir, generation string, plan hlsPlan, startIndex int, startSec float64) *playbackSession {
+// producerCoversTargetLocked reports whether a live generation can already
+// serve the requested playhead: it must have started at or before the target
+// and its produced edge must have reached it (within the forward slack that
+// makes waiting cheaper than restarting ffmpeg).
+func (m *Manager) producerCoversTargetLocked(p *producer, targetSec float64) bool {
+	if targetSec < coverageStartSec(p.plan, p.startIndex)-seekBackwardEpsSec {
+		return false
+	}
+	return targetSec <= m.producerCoverageEndSecLocked(p)+repositionForwardSlackSec
+}
+
+// producerCoverageEndSecLocked returns the source-time end of the producer's
+// produced edge — the end of the last aligned/ready segment.
+func (m *Manager) producerCoverageEndSecLocked(p *producer) float64 {
+	end := coverageStartSec(p.plan, p.startIndex)
+	if cov := m.store.GenerationCoverage(p.jobDir); cov.LastReadyIndex >= 0 {
+		end = segmentEndSec(p.plan, cov.LastReadyIndex)
+	}
+	return end
+}
+
+// sessionCoverageEndLocked returns the source-time end of the range the
+// session's generation can currently serve.
+func (m *Manager) sessionCoverageEndLocked(sess *playbackSession) float64 {
+	end := coverageStartSec(sess.plan, sess.startIndex)
+	if sess.jobDir != "" {
+		if cov := m.store.GenerationCoverage(sess.jobDir); cov.LastReadyIndex >= 0 {
+			end = segmentEndSec(sess.plan, cov.LastReadyIndex)
+		}
+	}
+	return end
+}
+
+// segmentStartSec maps a segment index on the playlist grid to its source-time
+// start. Remux plans carry the keyframe-aligned timeline; everything else
+// falls back to the fixed segment grid.
+func segmentStartSec(plan hlsPlan, idx int) float64 {
+	if idx >= 0 && idx < len(plan.segmentStarts) {
+		return plan.segmentStarts[idx]
+	}
+	return float64(idx) * plan.segmentSec
+}
+
+// segmentEndSec maps a segment index to its source-time end.
+func segmentEndSec(plan hlsPlan, idx int) float64 {
+	start := segmentStartSec(plan, idx)
+	if idx >= 0 && idx < len(plan.segmentDurations) && plan.segmentDurations[idx] > 0 {
+		return start + plan.segmentDurations[idx]
+	}
+	if idx+1 >= 0 && idx+1 < len(plan.segmentStarts) {
+		return plan.segmentStarts[idx+1]
+	}
+	return start + plan.segmentSec
+}
+
+// coverageStartSec is the source-time start of the first segment a generation
+// produces — the lower bound of the range it can serve.
+func coverageStartSec(plan hlsPlan, startIndex int) float64 {
+	return segmentStartSec(plan, startIndex)
+}
+
+func (m *Manager) newSessionLocked(in StartInput, sessionID, reuseKey, clientID, jobDir, generation string, plan hlsPlan, startIndex int, startSec, endSec float64) *playbackSession {
 	now := time.Now()
 	return &playbackSession{
 		info: SessionInfo{
@@ -437,7 +531,9 @@ func (m *Manager) newSessionLocked(in StartInput, sessionID, reuseKey, clientID,
 			State:             StateStarting,
 			StartedAt:         now.Unix(),
 			HeartbeatInterval: int(defaultHeartbeatInterval.Seconds()),
-			DurationSec:       plan.info.Duration,
+			DurationSec:       plan.mediaDurationSec,
+			StartSec:          coverageStartSec(plan, startIndex),
+			EndSec:            endSec,
 			DeliveryBaseURL:   m.deliveryURL(sessionID),
 		},
 		reuseKey:        reuseKey,
@@ -453,7 +549,7 @@ func (m *Manager) newSessionLocked(in StartInput, sessionID, reuseKey, clientID,
 		startupDeadline: now.Add(startupTimeout),
 		startIndex:      startIndex,
 		startSec:        startSec,
-		coversFromStart: startSec <= 0,
+		coversFromStart: startIndex == 0,
 	}
 }
 
@@ -614,6 +710,9 @@ func (m *Manager) finishProducer(generation string, err error) {
 		}
 		sess.state = StateCompleted
 		sess.info.State = StateCompleted
+		// The generation ran to EOF, so the produced end is final — refresh it
+		// for sessions created while the producer was still live.
+		sess.info.EndSec = m.sessionCoverageEndLocked(sess)
 	}
 }
 
@@ -624,11 +723,6 @@ func (m *Manager) dropProducerLocked(generation string) {
 	for id, p := range m.producers {
 		if p.generation == generation {
 			delete(m.producers, id)
-		}
-	}
-	for fingerprint, p := range m.producing {
-		if p.generation == generation {
-			delete(m.producing, fingerprint)
 		}
 	}
 }
@@ -710,11 +804,6 @@ func (m *Manager) detachProducerLocked(sessionID string) {
 	}
 	if p.cancel != nil {
 		p.cancel()
-	}
-	for fingerprint, other := range m.producing {
-		if other == p {
-			delete(m.producing, fingerprint)
-		}
 	}
 }
 
@@ -921,16 +1010,23 @@ func (m *Manager) deliveryURL(sessionID string) string {
 	return fmt.Sprintf("%s/api/media/transcode/sessions/%s", m.baseURL, sessionID)
 }
 
-// sessionReusable reports whether an existing generation can serve the requested
-// playhead. Segments before the generation's start offset were never produced, so
-// a backward seek past it must start a new generation.
-func sessionReusable(sess *playbackSession, startSec float64) bool {
+// sessionReusable reports whether an existing generation can serve the
+// requested playhead. Segments before the generation's start index were never
+// produced, and with live-paced production the produced edge only advances in
+// realtime — a target beyond it must reposition the generation rather than
+// stall at the edge. coverageEndSec is the source-time end of the last
+// produced segment.
+func sessionReusable(sess *playbackSession, startSec, coverageEndSec float64) bool {
 	switch sess.state {
 	case StateStarting, StateRunning:
-		return sess.startSec <= 0 || startSec >= sess.startSec
+		if startSec < coverageStartSec(sess.plan, sess.startIndex)-seekBackwardEpsSec {
+			return false
+		}
+		return startSec <= coverageEndSec+repositionForwardSlackSec
 	case StateCompleted:
-		// A completed generation covers the whole file when it starts at segment 0.
-		return sess.coversFromStart || startSec >= sess.startSec
+		// A completed generation ran to EOF, so it only needs to have started
+		// at or before the requested playhead.
+		return sess.coversFromStart || startSec >= coverageStartSec(sess.plan, sess.startIndex)-seekBackwardEpsSec
 	default:
 		return false
 	}

@@ -9,7 +9,7 @@ export const MEDIA_TRANSCODE_PROFILES = [
 ];
 
 export function emptyTranscodeProfile(maxResolution = 0, avgBitrateKbps = 0) {
-  return { enabled: true, maxResolution, avgBitrateKbps };
+  return { enabled: true, maxResolution, avgBitrateKbps, encoderBackend: '' };
 }
 
 export function emptyMediaTranscode() {
@@ -19,6 +19,7 @@ export function emptyMediaTranscode() {
     maxConcurrentPerUser: 1,
     cacheMaxSizeMB: 10240,
     cacheRetentionH: 24,
+    encoderBackend: '',
     profiles: {
       quality: emptyTranscodeProfile(0, 0),
       // 720p balanced / 480p data saver: matches the backend defaults.
@@ -34,6 +35,7 @@ export function emptyMediaSettings() {
     debug: false,
     extractEmbeddedSubtitles: false,
     hardwareAcceleration: false,
+    accelDevice: 'auto',
     transcode: emptyMediaTranscode(),
   };
 }

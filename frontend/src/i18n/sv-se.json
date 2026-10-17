@@ -1217,9 +1217,6 @@
     }
   },
   "media": {
-    "hardwareAcceleration": "Hårdvaruacceleration",
-    "hardwareAccelerationDescription": "Använd GPU-hårdvaruacceleration för ffmpeg när det är möjligt.",
-    "hardwareAccelerationUnavailable": "Ingen användbar ffmpeg-hårdvarukodare har upptäckts på den här servern.",
     "extractEmbeddedSubtitles": "Extrahera inbäddade undertexter",
     "extractEmbeddedSubtitlesDescription": "Extrahera inbäddade undertexter från mediefiler.",
     "debug": "Felsökningsloggning",

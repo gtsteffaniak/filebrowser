@@ -27,7 +27,7 @@ func TestStoreCreatesRootOnDemand(t *testing.T) {
 	if _, err := store.EvictInactive(nil, 0, time.Hour); err != nil {
 		t.Fatalf("EvictInactive: %v", err)
 	}
-	if _, ok := store.FindReusableGeneration("fp"); ok {
+	if _, _, ok := store.FindReusableGeneration("fp"); ok {
 		t.Fatal("no generation should be reusable for a missing root")
 	}
 	if _, _, err := store.ReadServePlaylist(filepath.Join(root, "fp", "gen")); err == nil {
@@ -46,7 +46,7 @@ func TestStoreCreatesRootOnDemand(t *testing.T) {
 		t.Fatalf("fingerprint owner marker not created: %v", err)
 	}
 	// A fresh generation is not complete, so it is not reusable yet.
-	if _, ok := store.FindReusableGeneration("fp"); ok {
+	if _, _, ok := store.FindReusableGeneration("fp"); ok {
 		t.Fatal("an incomplete generation must not be reusable")
 	}
 }

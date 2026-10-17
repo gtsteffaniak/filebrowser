@@ -1217,9 +1217,6 @@
     }
   },
   "media": {
-    "hardwareAcceleration": "التسريع بالجهاز",
-    "hardwareAccelerationDescription": "استخدم التسريع المادي عبر وحدة معالجة الرسومات (GPU) لبرنامج ffmpeg عند توفره.",
-    "hardwareAccelerationUnavailable": "لم يتم الكشف عن أي مُشفّر مادي لـ ffmpeg قابل للاستخدام على هذا الخادم.",
     "extractEmbeddedSubtitles": "استخراج الترجمة المضمنة",
     "extractEmbeddedSubtitlesDescription": "استخراج الترجمات المضمنة من ملفات الوسائط.",
     "debug": "تسجيل أخطاء التصحيح",

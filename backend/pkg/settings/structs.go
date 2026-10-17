@@ -169,6 +169,11 @@ type Media struct {
 	ExtractEmbeddedSubtitles bool           `json:"extractEmbeddedSubtitles"` // deprecated:extract embedded subtitles from media files. deprecated: manage via the admin media settings API
 	HardwareAcceleration     bool           `json:"hardwareAcceleration"`     // deprecated: enable hardware acceleration for ffmpeg if available. deprecated: manage via the admin media settings API
 	Transcode                MediaTranscode `json:"transcode"`                // deprecated: HLS transcoding for media playback. deprecated: manage via the admin media settings API
+
+	// AccelDevice selects the acceleration device: "auto" (default), "software"/"cpu",
+	// "igpu", "dgpu", a Linux DRM render node (e.g. /dev/dri/renderD128), or a GPU
+	// name substring. Managed via the admin media settings API.
+	AccelDevice string `json:"accelDevice"`
 }
 
 // MediaSettings holds the runtime (DB-backed) media integration settings.
@@ -178,6 +183,7 @@ type MediaSettings struct {
 	Debug                    bool           `json:"debug"`                    // output ffmpeg stdout for media integration -- careful can produces lots of output!
 	ExtractEmbeddedSubtitles bool           `json:"extractEmbeddedSubtitles"` // extract embedded subtitles from media files
 	HardwareAcceleration     bool           `json:"hardwareAcceleration"`     // enable hardware acceleration for ffmpeg if available
+	AccelDevice              string         `json:"accelDevice"`              // acceleration device: "auto", "software"/"cpu", "igpu", "dgpu", a DRM render node, or a GPU name substring
 	Transcode                MediaTranscode `json:"transcode"`                // HLS transcoding for media playback
 }
 
@@ -190,6 +196,7 @@ type MediaTranscode struct {
 	CacheRetentionH      int               `json:"cacheRetentionH"`      // completed cache retention in hours (default: 24)
 	Profiles             TranscodeProfiles `json:"profiles"`             // per-profile transcode settings shown in the player menu
 	MaxResolution        int               `json:"maxResolution"`        // superseded by profiles.<name>.maxResolution. deprecated: kept for config compatibility
+	EncoderBackend       string            `json:"encoderBackend"`       // default video encoder backend for transcodes: "" (auto), "cpu", or an accel backend (nvenc, amf, qsv, vaapi, d3d12, videotoolbox)
 }
 
 // TranscodeProfiles configures the player's transcode quality presets.
@@ -201,9 +208,10 @@ type TranscodeProfiles struct {
 
 // TranscodeProfile configures a single transcode quality preset.
 type TranscodeProfile struct {
-	Enabled        bool `json:"enabled"`        // show this preset in the player menu (default: true)
-	MaxResolution  int  `json:"maxResolution"`  // maximum output height in pixels; 0 = original
-	AvgBitrateKbps int  `json:"avgBitrateKbps"` // average video bitrate in kbps; 0 = original
+	Enabled        bool   `json:"enabled"`        // show this preset in the player menu (default: true)
+	MaxResolution  int    `json:"maxResolution"`  // maximum output height in pixels; 0 = original
+	AvgBitrateKbps int    `json:"avgBitrateKbps"` // average video bitrate in kbps; 0 = original
+	EncoderBackend string `json:"encoderBackend"` // encoder backend override; "" inherits transcode.encoderBackend
 }
 
 type FfmpegConvert struct {

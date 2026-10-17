@@ -95,6 +95,87 @@ func TestDefaultTranscodeProfiles(t *testing.T) {
 	}
 }
 
+func TestSanitizeMediaSettingsAccelDevice(t *testing.T) {
+	cases := []struct {
+		name       string
+		device     string
+		hwAccel    bool
+		wantDevice string
+		wantHW     bool
+	}{
+		{"empty device defaults to auto", "", true, "auto", true},
+		{"software disables hardware", "software", true, "software", false},
+		{"cpu alias maps to software", "cpu", true, "software", false},
+		{"bool off forces software", "auto", false, "software", false},
+		{"named device stays enabled", "renderD128", true, "renderD128", true},
+		{"uppercase normalizes", "AUTO", true, "auto", true},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			out := SanitizeMediaSettings(MediaSettings{
+				AccelDevice:          tc.device,
+				HardwareAcceleration: tc.hwAccel,
+				Transcode:            MediaTranscode{MaxConcurrent: 1, MaxConcurrentPerUser: 1, CacheRetentionH: 1},
+			})
+			if out.AccelDevice != tc.wantDevice || out.HardwareAcceleration != tc.wantHW {
+				t.Fatalf("accelDevice = %q/%v, want %q/%v", out.AccelDevice, out.HardwareAcceleration, tc.wantDevice, tc.wantHW)
+			}
+		})
+	}
+}
+
+func TestMergeMediaSettingsPatchJSONAccelDeviceExplicit(t *testing.T) {
+	base := testMediaSettings()
+	base.AccelDevice = "software"
+	base.HardwareAcceleration = false
+
+	// An explicit accelDevice patch is authoritative over the derived bool:
+	// switching the device away from software must re-enable hardware accel.
+	merged, err := MergeMediaSettingsPatchJSON(base, []byte(`{"accelDevice":"auto"}`))
+	if err != nil {
+		t.Fatalf("merge: %v", err)
+	}
+	merged = SanitizeMediaSettings(merged)
+	if merged.AccelDevice != "auto" || !merged.HardwareAcceleration {
+		t.Fatalf("accelDevice = %q/%v, want auto/true", merged.AccelDevice, merged.HardwareAcceleration)
+	}
+}
+
+func TestMergeMediaSettingsPatchJSONLegacyBoolOff(t *testing.T) {
+	base := testMediaSettings()
+	base.AccelDevice = "auto"
+	base.HardwareAcceleration = true
+
+	// A legacy client toggling hardwareAcceleration off without touching
+	// accelDevice must still land on the software device.
+	merged, err := MergeMediaSettingsPatchJSON(base, []byte(`{"hardwareAcceleration":false}`))
+	if err != nil {
+		t.Fatalf("merge: %v", err)
+	}
+	merged = SanitizeMediaSettings(merged)
+	if merged.AccelDevice != "software" || merged.HardwareAcceleration {
+		t.Fatalf("accelDevice = %q/%v, want software/false", merged.AccelDevice, merged.HardwareAcceleration)
+	}
+}
+
+func TestSanitizeEncoderBackend(t *testing.T) {
+	cases := map[string]string{
+		"":             "",
+		"auto":         "",
+		"cpu":          "cpu",
+		"software":     "cpu",
+		"nvenc":        "nvenc",
+		"VAAPI":        "vaapi",
+		"videotoolbox": "videotoolbox",
+		"not-a-real":   "",
+	}
+	for in, want := range cases {
+		if got := sanitizeEncoderBackend(in); got != want {
+			t.Errorf("sanitizeEncoderBackend(%q) = %q, want %q", in, got, want)
+		}
+	}
+}
+
 func TestEnabledTranscodeProfiles(t *testing.T) {
 	original := Config.Integrations.Media.Transcode
 	t.Cleanup(func() { Config.Integrations.Media.Transcode = original })

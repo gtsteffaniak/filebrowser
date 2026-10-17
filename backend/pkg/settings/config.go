@@ -453,6 +453,7 @@ func setupFFmpegIntegration() {
 	cacheDir := Config.Server.CacheDir
 	ffmpegPath := Config.Integrations.Media.FfmpegPath
 	hardwareAcceleration := Config.Integrations.Media.HardwareAcceleration
+	accelDevice := Config.Integrations.Media.AccelDevice
 	debug := Config.Integrations.Media.Debug
 	maxConcurrent := Config.Integrations.Media.Transcode.MaxConcurrent
 	mediaMu.RUnlock()
@@ -475,6 +476,7 @@ func setupFFmpegIntegration() {
 		},
 		CacheDir:             cacheDir,
 		HardwareAcceleration: hardwareAcceleration,
+		AccelDevice:          accelDevice,
 		VerboseFFmpeg:        debug,
 	}
 	// Hardware codec detection always runs so the setting can be toggled at
@@ -1274,6 +1276,22 @@ func enabledTranscodeProfilesLocked() []string {
 func TranscodeProfileConfig(name string) (TranscodeProfile, bool) {
 	mediaMu.RLock()
 	defer mediaMu.RUnlock()
+	return transcodeProfileConfigLocked(name)
+}
+
+// TranscodeEncoderBackend resolves the encoder backend for a transcode
+// profile: the preset's own override when set, otherwise the transcode-level
+// default, otherwise "" for the detected (auto) backend.
+func TranscodeEncoderBackend(profile string) string {
+	mediaMu.RLock()
+	defer mediaMu.RUnlock()
+	if cfg, ok := transcodeProfileConfigLocked(profile); ok && cfg.EncoderBackend != "" {
+		return cfg.EncoderBackend
+	}
+	return Config.Integrations.Media.Transcode.EncoderBackend
+}
+
+func transcodeProfileConfigLocked(name string) (TranscodeProfile, bool) {
 	p := Config.Integrations.Media.Transcode.Profiles
 	switch name {
 	case "quality":
@@ -1303,6 +1321,7 @@ func currentMediaSettingsLocked() MediaSettings {
 		Debug:                    m.Debug,
 		ExtractEmbeddedSubtitles: m.ExtractEmbeddedSubtitles,
 		HardwareAcceleration:     m.HardwareAcceleration,
+		AccelDevice:              m.AccelDevice,
 		Transcode:                m.Transcode,
 	})
 }
@@ -1319,6 +1338,7 @@ func ApplyMediaSettings(s MediaSettings) {
 	Config.Integrations.Media.Debug = s.Debug
 	Config.Integrations.Media.ExtractEmbeddedSubtitles = s.ExtractEmbeddedSubtitles
 	Config.Integrations.Media.HardwareAcceleration = s.HardwareAcceleration
+	Config.Integrations.Media.AccelDevice = s.AccelDevice
 	Config.Integrations.Media.Transcode = s.Transcode
 	applyMediaConvertDefaults()
 	setupMediaTranscode()

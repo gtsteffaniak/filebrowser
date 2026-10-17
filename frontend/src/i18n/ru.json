@@ -1217,9 +1217,6 @@
     }
   },
   "media": {
-    "hardwareAcceleration": "Аппаратное ускорение",
-    "hardwareAccelerationDescription": "Используйте аппаратное ускорение на GPU для ffmpeg, если оно доступно.",
-    "hardwareAccelerationUnavailable": "На этом сервере не обнаружено ни одного пригодного для использования аппаратного кодировщика ffmpeg.",
     "extractEmbeddedSubtitles": "Извлечь встроенные субтитры",
     "extractEmbeddedSubtitlesDescription": "Извлечение встроенных субтитров из медиафайлов.",
     "debug": "Ведение журнала отладки",

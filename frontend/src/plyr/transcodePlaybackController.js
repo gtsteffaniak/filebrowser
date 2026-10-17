@@ -3,6 +3,7 @@ import { continuePlay } from '@/plyr/playbackIntent.js';
 import { profileFromTranscodeMode } from '@/plyr/transcodeProfile.js';
 import { TranscodeSessionController } from '@/plyr/transcodeSession.js';
 import { transcodeError, transcodeLog, transcodeWarn } from '@/plyr/transcodeDebug.js';
+import { servableCoverage } from '@/plyr/transcodeSeek.js';
 import { getTranscodeSessions } from '@/api/transcode.js';
 import { isTranscodeHlsMode } from '@/plyr/transcodeMode.js';
 
@@ -144,11 +145,13 @@ export class TranscodePlaybackController {
     /**
      * Restore the remembered playhead after a source swap.
      *
-     * The server starts the HLS job at the segment boundary at or before the
-     * requested position and the transcode output keeps source timestamps
-     * (-copyts), so the media timeline matches the original file and the exact
-     * position can be seeked directly. hls.js's own startPosition handling is
-     * not reliable once the source has been replaced.
+     * The transcode output keeps source timestamps (-copyts + timelineOffset),
+     * so the element timeline matches the original file and the position can
+     * be seeked directly. The clamp uses the session's servable range rather
+     * than the buffered window: a completed generation can serve every
+     * segment on demand, while a live-paced generation can only serve up to
+     * its produced edge. hls.js's own startPosition handling is not reliable
+     * once the source has been replaced.
      */
     const applyStartPosition = (video) => {
       const target = Number(startSec);
@@ -157,11 +160,9 @@ export class TranscodePlaybackController {
       }
       try {
         let clamped = target;
-        const seekable = video.seekable;
-        if (seekable && seekable.length > 0) {
-          const rangeStart = seekable.start(0);
-          const rangeEnd = seekable.end(seekable.length - 1);
-          clamped = Math.min(Math.max(target, rangeStart), rangeEnd);
+        const coverage = servableCoverage(video, controller.session);
+        if (coverage) {
+          clamped = Math.min(Math.max(target, coverage.start), coverage.end);
         }
         if (Math.abs(video.currentTime - clamped) < 0.25) {
           return;
@@ -219,11 +220,11 @@ export class TranscodePlaybackController {
       const hlsAttachPromise = attachHlsToVideo({
         video: el,
         session: controller.session,
-        // Load from the start of the available playlist: the server already
-        // begins the job at the segment containing the requested position, and
-        // startPosition mapping across a source swap is unreliable. The exact
-        // playhead is restored by applyStartPosition once the first fragment
-        // is buffered.
+        // Load from the start of the available playlist and restore the exact
+        // playhead via applyStartPosition: for a fresh generation the job
+        // begins at the segment containing the requested position, and for a
+        // reused completed generation the whole file is already servable.
+        // startPosition mapping across a source swap is unreliable.
         startPosition: -1,
         signal: attachAbort.signal,
         onFirstBuffered: () => {

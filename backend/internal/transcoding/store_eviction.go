@@ -40,14 +40,23 @@ func (s *Store) EvictInactive(active map[string]struct{}, maxBytes int64, maxAge
 				continue
 			}
 		}
-		complete := s.IsCompleteGeneration(gen.dir)
-		if !complete {
+		cov := s.GenerationCoverage(gen.dir)
+		if !cov.Complete {
 			// Too new to judge: a producer may be about to write into it.
 			if now.Sub(gen.modTime) < incompleteGenerationGrace {
 				totalSize += gen.size
 				continue
 			}
 			if err := s.removeGenerationLogged(gen.dir, "incomplete"); err == nil {
+				evicted = append(evicted, gen.dir)
+			}
+			continue
+		}
+		// A completed tail that covers only a few minutes of the file can never
+		// serve a from-start request and is only useful for seeks into its own
+		// narrow range — not worth keeping.
+		if cov.FirstIndex > 0 && cov.ProducedSec < minPartialGenerationKeepSec {
+			if err := s.removeGenerationLogged(gen.dir, "short-partial"); err == nil {
 				evicted = append(evicted, gen.dir)
 			}
 			continue

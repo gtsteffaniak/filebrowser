@@ -1217,9 +1217,6 @@
     }
   },
   "media": {
-    "hardwareAcceleration": "硬件加速",
-    "hardwareAccelerationDescription": "在条件允许的情况下，为 ffmpeg 启用 GPU 硬件加速。",
-    "hardwareAccelerationUnavailable": "未在此服务器上检测到可用的 ffmpeg 硬件编码器。",
     "extractEmbeddedSubtitles": "提取嵌入式字幕",
     "extractEmbeddedSubtitlesDescription": "从媒体文件中提取嵌入式字幕。",
     "debug": "调试日志",

@@ -77,6 +77,19 @@
               v-model.number="media.transcode.profiles[profile.id].avgBitrateKbps" type="number" min="0" />
           </div>
         </div>
+        <div class="settings-number-input item">
+          <div class="no-padding">
+            <label :for="`profile-${profile.id}-encoderBackend`">{{ $t("media.encoderBackend") }}</label>
+            <HelpTooltipIcon :text="isLocked(`transcode.profiles.${profile.id}.encoderBackend`) ? lockMessageText : $t('media.transcodeProfileEncoderBackendHelp')" />
+          </div>
+          <ExpandDropdown
+            :input-id="`profile-${profile.id}-encoderBackend`"
+            :model-value="profileEncoderBackendValue(profile.id)"
+            :options="backendSelectOptions"
+            :aria-label="$t('media.encoderBackend')"
+            :disabled="isLocked(`transcode.profiles.${profile.id}.encoderBackend`)"
+            @update:modelValue="onProfileBackendChange(profile.id, $event)" />
+        </div>
       </div>
     </template>
   </div>
@@ -111,6 +124,7 @@ import { mutations } from "@/store";
 import { eventBus } from "@/store/eventBus";
 import { getMediaSettings } from "@/api/settings";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
+import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import {
@@ -125,6 +139,7 @@ export default {
   name: "MediaTranscodeSettings",
   components: {
     ToggleSwitch,
+    ExpandDropdown,
     HelpTooltipIcon,
     LoadingSpinner,
   },
@@ -147,13 +162,19 @@ export default {
     return {
       media: emptyMediaSettings(),
       profiles: MEDIA_TRANSCODE_PROFILES,
+      /** H.264 encoder backends reported by the backend (hardware ones only when usable). */
+      encoderBackendOptions: [],
       loading: true,
       saving: false,
     };
   },
   async mounted() {
     try {
-      this.media = mergeMediaSettings(await getMediaSettings());
+      const data = await getMediaSettings();
+      this.media = mergeMediaSettings(data);
+      this.encoderBackendOptions = Array.isArray(data?.encoderBackendOptions)
+        ? data.encoderBackendOptions
+        : [];
     } catch (e) {
       notify.showError(e);
       console.error(e);
@@ -165,6 +186,21 @@ export default {
     lockMessageText() {
       return this.$t("settings.lockedFromConfig");
     },
+    backendSelectOptions() {
+      return this.encoderBackendOptions.map((option) => ({
+        value: option.id,
+        label: option.label || option.id,
+      }));
+    },
+    /** The backend ffmpeg's auto selection resolves to (flagged default, else CPU). */
+    defaultEncoderBackendId() {
+      const flagged = this.encoderBackendOptions.find((option) => option.default);
+      return flagged?.id || "cpu";
+    },
+    /** The resolved transcode-wide backend presets inherit from. */
+    resolvedTranscodeBackend() {
+      return this.media.transcode.encoderBackend || this.defaultEncoderBackendId;
+    },
   },
   methods: {
     isLocked(path) {
@@ -172,6 +208,15 @@ export default {
     },
     fieldTooltip(path) {
       return this.isLocked(path) ? this.$t("settings.lockedFromConfig") : "";
+    },
+    /** A stored '' (inherit) displays as the resolved transcode-wide backend. */
+    profileEncoderBackendValue(profileId) {
+      return this.media.transcode.profiles[profileId]?.encoderBackend || this.resolvedTranscodeBackend;
+    },
+    onProfileBackendChange(profileId, value) {
+      if (this.media.transcode.profiles[profileId]) {
+        this.media.transcode.profiles[profileId].encoderBackend = value;
+      }
     },
     close() {
       mutations.closeTopPrompt();
@@ -223,6 +268,10 @@ export default {
   display: flex;
   padding: 0.5em;
   align-items: center;
+}
+
+.settings-number-input .expand-dropdown {
+  max-width: 16em;
 }
 
 .item {

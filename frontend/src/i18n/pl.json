@@ -1217,9 +1217,6 @@
     }
   },
   "media": {
-    "hardwareAcceleration": "Przyspieszenie sprzętowe",
-    "hardwareAccelerationDescription": "Jeśli to możliwe, należy korzystać z przyspieszenia sprzętowego GPU w programie ffmpeg.",
-    "hardwareAccelerationUnavailable": "Na tym serwerze nie wykryto żadnego działającego kodera sprzętowego ffmpeg.",
     "extractEmbeddedSubtitles": "Wyodrębnij wbudowane napisy",
     "extractEmbeddedSubtitlesDescription": "Wyodrębnij napisy osadzone w plikach multimedialnych.",
     "debug": "Rejestracja błędów",

@@ -41,6 +41,22 @@ const (
 	cacheEvictionInterval    = time.Minute
 )
 
+const (
+	// repositionForwardSlackSec is how far past the produced edge a requested
+	// playhead may sit before the generation is repositioned. Within slack it
+	// is cheaper to let live-paced production reach the target than to restart
+	// ffmpeg.
+	repositionForwardSlackSec = 12.0
+	// seekBackwardEpsSec tolerates rounding when a playhead sits right on a
+	// generation's start boundary.
+	seekBackwardEpsSec = 1.0
+	// minPartialGenerationKeepSec is the minimum produced duration worth
+	// caching for a generation that does not cover the whole file. Shorter
+	// partial tails are discarded: they can only ever serve seeks into a tiny
+	// range and cost more disk than they save.
+	minPartialGenerationKeepSec = 300.0
+)
+
 // SessionInfo is the public view of an active transcode session.
 type SessionInfo struct {
 	ID                string       `json:"id"`
@@ -53,8 +69,17 @@ type SessionInfo struct {
 	StartedAt         int64        `json:"startedAt"`
 	HeartbeatInterval int          `json:"heartbeatIntervalSec"`
 	DurationSec       float64      `json:"durationSec,omitempty"`
-	DeliveryBaseURL   string       `json:"deliveryBaseUrl,omitempty"`
-	Reused            bool         `json:"reused,omitempty"`
+	// StartSec is the media-time position of the generation's first segment —
+	// the source-time offset the client adds to the 0-based HLS element
+	// timeline to recover source positions.
+	StartSec float64 `json:"startSec,omitempty"`
+	// EndSec is the produced coverage end of the attached generation — the
+	// start time of its last ready segment. For completed generations this
+	// bounds the whole servable range; the client uses it to decide whether a
+	// seek target can be satisfied in-session instead of repositioning.
+	EndSec          float64 `json:"endSec,omitempty"`
+	DeliveryBaseURL string  `json:"deliveryBaseUrl,omitempty"`
+	Reused          bool    `json:"reused,omitempty"`
 }
 
 // SnapshotResponse is returned by session list/status endpoints.

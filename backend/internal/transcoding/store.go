@@ -134,35 +134,65 @@ func (s *Store) ReadServePlaylist(jobDir string) ([]byte, int, error) {
 	return out, ready, nil
 }
 
-// IsCompleteGeneration reports whether a generation directory holds a finished,
-// fully aligned HLS output that can be served without running ffmpeg again.
-func (s *Store) IsCompleteGeneration(jobDir string) bool {
-	if jobDir == "" || !s.InitReady(jobDir) {
-		return false
+// GenerationCoverage describes the contiguous produced range of a generation
+// on the shared segment grid. Segments before FirstIndex were never produced;
+// LastReadyIndex is the produced edge a session can serve right now.
+type GenerationCoverage struct {
+	FirstIndex     int     // first listed segment index (the job's start index); -1 when no playlist segments exist
+	LastReadyIndex int     // highest aligned/ready segment index; -1 when nothing is ready
+	ProducedSec    float64 // servable media duration (sum of ready #EXTINF)
+	EndList        bool    // ffmpeg wrote #EXT-X-ENDLIST — the job ran to EOF
+	Complete       bool    // EndList && every listed segment ready && at least one segment
+	HasPlaylist    bool    // ffmpeg.m3u8 existed and parsed
+}
+
+// GenerationCoverage parses the generation playlist once and reports the
+// produced range. A running job's playlist grows per segment, so the coverage
+// reflects the produced edge at read time.
+func (s *Store) GenerationCoverage(jobDir string) GenerationCoverage {
+	cov := GenerationCoverage{FirstIndex: -1, LastReadyIndex: -1}
+	if jobDir == "" {
+		return cov
 	}
 	raw, err := os.ReadFile(s.PlaylistPath(jobDir))
 	if err != nil {
-		return false
+		return cov
 	}
-	return playlistIsComplete(raw, func(name string) bool {
+	result := parseServePlaylist(raw, func(name string) bool {
 		return s.SegmentNameReady(jobDir, name)
 	})
+	cov.HasPlaylist = true
+	cov.FirstIndex = result.firstIndex
+	cov.LastReadyIndex = result.lastReadyIndex
+	cov.ProducedSec = result.producedSec
+	cov.EndList = result.endList
+	cov.Complete = result.endList && result.totalCount > 0 && result.readyCount == result.totalCount
+	return cov
 }
 
-// FindReusableGeneration returns the most recently modified complete generation
-// under fingerprint. Generations are keyed only by file identity and transcode
-// parameters, so any user playing the same file with the same profile reuses the
-// same cached playlist and segments.
-func (s *Store) FindReusableGeneration(fingerprint string) (string, bool) {
+// IsCompleteGeneration reports whether a generation directory holds a finished,
+// fully aligned HLS output that can be served without running ffmpeg again.
+func (s *Store) IsCompleteGeneration(jobDir string) bool {
+	return jobDir != "" && s.InitReady(jobDir) && s.GenerationCoverage(jobDir).Complete
+}
+
+// FindReusableGeneration returns the complete generation under fingerprint
+// with the widest coverage — the lowest listed segment index wins, with the
+// most recently modified breaking ties. Generations are keyed only by file
+// identity and transcode parameters, so any user playing the same file with
+// the same profile reuses the same cached playlist and segments. The caller
+// must check the returned coverage reaches the requested playhead.
+func (s *Store) FindReusableGeneration(fingerprint string) (string, GenerationCoverage, bool) {
 	if fingerprint == "" {
-		return "", false
+		return "", GenerationCoverage{}, false
 	}
 	fpDir := filepath.Join(s.root, fingerprint)
 	entries, err := os.ReadDir(fpDir)
 	if err != nil {
-		return "", false
+		return "", GenerationCoverage{}, false
 	}
 	var best string
+	var bestCov GenerationCoverage
 	var bestMod time.Time
 	for _, entry := range entries {
 		if !entry.IsDir() {
@@ -172,16 +202,18 @@ func (s *Store) FindReusableGeneration(fingerprint string) (string, bool) {
 		if !s.IsCompleteGeneration(genDir) {
 			continue
 		}
+		cov := s.GenerationCoverage(genDir)
 		info, statErr := entry.Info()
 		if statErr != nil {
 			continue
 		}
-		if best == "" || info.ModTime().After(bestMod) {
+		if best == "" || cov.FirstIndex < bestCov.FirstIndex || (cov.FirstIndex == bestCov.FirstIndex && info.ModTime().After(bestMod)) {
 			best = genDir
+			bestCov = cov
 			bestMod = info.ModTime()
 		}
 	}
-	return best, best != ""
+	return best, bestCov, best != ""
 }
 
 // TouchGeneration refreshes a generation's modification time so active cache

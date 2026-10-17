@@ -1217,9 +1217,6 @@
     }
   },
   "media": {
-    "hardwareAcceleration": "Donanım hızlandırma",
-    "hardwareAccelerationDescription": "Mümkün olduğunda ffmpeg için GPU donanım hızlandırmasını kullanın.",
-    "hardwareAccelerationUnavailable": "Bu sunucuda kullanılabilir bir ffmpeg donanım kodlayıcısı algılanmadı.",
     "extractEmbeddedSubtitles": "Gömülü altyazıları ayıklama",
     "extractEmbeddedSubtitlesDescription": "Medya dosyalarından gömülü altyazıları ayıklayın.",
     "debug": "Hata ayıklama günlüğü",

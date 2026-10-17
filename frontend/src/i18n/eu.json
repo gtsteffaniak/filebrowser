@@ -1217,9 +1217,6 @@
     "install": "Instalatu aplikazioa"
   },
   "media": {
-    "hardwareAcceleration": "Hardware azelerazioa",
-    "hardwareAccelerationDescription": "Erabili ffmpeg-entzat GPU hardware azelerazioa eskuragarri dagoenean.",
-    "hardwareAccelerationUnavailable": "Ez da ffmpeg hardware kodetzaile erabilgarririk detektatu zerbitzari honetan.",
     "extractEmbeddedSubtitles": "Txertatutako azpitituluak atera",
     "extractEmbeddedSubtitlesDescription": "Media fitxategietatik txertatutako azpitituluak atera.",
     "debug": "Akatsen erregistroa",

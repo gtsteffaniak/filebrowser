@@ -19,7 +19,7 @@ require (
 	github.com/google/go-cmp v0.7.0
 	github.com/google/uuid v1.6.0
 	github.com/gtsteffaniak/go-cache v1.1.0
-	github.com/gtsteffaniak/go-ffmpeg v1.2.1
+	github.com/gtsteffaniak/go-ffmpeg v1.2.2
 	github.com/gtsteffaniak/go-logger v1.1.0
 	github.com/kovidgoyal/imaging v1.8.23
 	github.com/mattn/go-sqlite3 v1.14.52
@@ -99,5 +99,3 @@ require (
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.1 // indirect
 )
-
-replace github.com/gtsteffaniak/go-ffmpeg => /Users/steffag/git/personal/go-ffmpeg

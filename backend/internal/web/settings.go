@@ -8,6 +8,7 @@ import (
 	"io/fs"
 	"net/http"
 
+	"github.com/gtsteffaniak/filebrowser/backend/internal/ffmpeg"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/quota"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/toolaccess"
@@ -444,8 +445,10 @@ func settingsShareDefaultsPatchHandler(w http.ResponseWriter, r *http.Request, d
 // mediaSettingsResponse is the runtime media settings plus config-lock metadata.
 type mediaSettingsResponse struct {
 	settings.MediaSettings
-	LockedFromConfigPaths []string `json:"lockedFromConfigPaths,omitempty"`
-	LockMessage           string   `json:"lockMessage,omitempty"`
+	LockedFromConfigPaths []string                      `json:"lockedFromConfigPaths,omitempty"`
+	LockMessage           string                        `json:"lockMessage,omitempty"`
+	AccelDeviceOptions    []ffmpeg.AccelDeviceOption    `json:"accelDeviceOptions,omitempty"`
+	EncoderBackendOptions []ffmpeg.EncoderBackendOption `json:"encoderBackendOptions,omitempty"`
 }
 
 // mediaPlayerSettings is the player-relevant subset of the runtime media
@@ -487,6 +490,8 @@ func settingsMediaGetHandler(w http.ResponseWriter, r *http.Request, d *Context)
 		MediaSettings:         state.GetMediaSettings(),
 		LockedFromConfigPaths: lockedPaths,
 		LockMessage:           lockMessage,
+		AccelDeviceOptions:    ffmpeg.Get().AccelDeviceOptions(),
+		EncoderBackendOptions: ffmpeg.Get().EncoderBackendOptions(),
 	})
 }
 

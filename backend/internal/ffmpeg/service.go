@@ -11,6 +11,7 @@ import (
 	goffmpeg "github.com/gtsteffaniak/go-ffmpeg"
 	"github.com/gtsteffaniak/go-ffmpeg/capabilities"
 	"github.com/gtsteffaniak/go-ffmpeg/ops"
+	"github.com/gtsteffaniak/go-ffmpeg/platform"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
@@ -35,6 +36,10 @@ type InitOptions struct {
 	Concurrency          goffmpeg.Concurrency
 	CacheDir             string
 	HardwareAcceleration bool
+	// AccelDevice scopes hardware acceleration to one device: "auto" (default),
+	// "software"/"cpu", "igpu", "dgpu", a DRM render node, or a GPU name
+	// substring. Parsed by go-ffmpeg; an unavailable device falls back to auto.
+	AccelDevice string
 	// VerboseFFmpeg streams ffmpeg process output to stderr and raises the ffmpeg
 	// log level. Wired to the media debug setting.
 	VerboseFFmpeg bool
@@ -69,6 +74,11 @@ func Initialize(ctx context.Context, opts InitOptions) error {
 		VerboseFFmpeg:    opts.VerboseFFmpeg,
 		SkipHWTests:      opts.SkipHWTests,
 		EncoderHierarchy: opts.EncoderHierarchy,
+	}
+	if sel, selErr := goffmpeg.ParseGPUSelector(opts.AccelDevice); selErr == nil {
+		// GPUStrictness stays at the zero value: a selected device that is not
+		// present falls back to auto instead of failing ffmpeg init.
+		cfg.GPUSelector = sel
 	}
 	if opts.Concurrency.MaxProbe == 0 && opts.Concurrency.MaxDecode == 0 && opts.Concurrency.MaxEncode == 0 {
 		if opts.MaxConcurrent < 1 {
@@ -117,6 +127,149 @@ func (s *Service) HardwareAccelerationAvailable() bool {
 // Get returns the initialized service, or nil when ffmpeg is unavailable.
 func Get() *Service {
 	return global.Load()
+}
+
+// Capabilities exposes the detected ffmpeg capability matrix, or nil when the
+// service is unavailable.
+func (s *Service) Capabilities() *capabilities.Capabilities {
+	if s == nil || s.inner == nil {
+		return nil
+	}
+	return s.inner.Capabilities()
+}
+
+// AccelDeviceOption is one selectable entry in the acceleration device list.
+type AccelDeviceOption struct {
+	ID    string `json:"id"`
+	Label string `json:"label"`
+	// ResolvedID is the concrete device the "auto" option resolves to, so the
+	// UI can display it when a stored selection pins that same device.
+	ResolvedID string `json:"resolvedId,omitempty"`
+}
+
+// AccelDeviceOptions lists the acceleration devices the admin UI can offer.
+// Every option is a concrete device labeled "<class> (<device name>)": the
+// auto entry carries whichever device auto-selection resolves to, remaining
+// GPUs are listed by name so several same-class cards stay distinguishable.
+func (s *Service) AccelDeviceOptions() []AccelDeviceOption {
+	auto := AccelDeviceOption{ID: "auto"}
+	gpuOpts := []AccelDeviceOption{}
+	if caps := s.Capabilities(); caps != nil {
+		auto.Label, auto.ResolvedID, gpuOpts = resolvedAccelDeviceOptions(caps)
+	}
+	if auto.Label == "" {
+		auto.Label = "Auto"
+	}
+	out := []AccelDeviceOption{auto}
+	out = append(out, gpuOpts...)
+	out = append(out, AccelDeviceOption{ID: "software", Label: "CPU (software)"})
+	return out
+}
+
+// resolvedAccelDeviceOptions builds the auto option label and the per-device
+// options from the capability matrix. The device auto resolves to is folded
+// into the auto entry rather than listed again.
+func resolvedAccelDeviceOptions(caps *capabilities.Capabilities) (autoLabel, resolvedID string, opts []AccelDeviceOption) {
+	resolved := caps.Platform.Details["render_device"]
+	gpus, err := platform.ListGPUs()
+	if err == nil {
+		for _, g := range gpus {
+			if g.RenderNode == resolved {
+				resolvedID = g.RenderNode
+				autoLabel = gpuClassLabel(g) + " (" + gpuDisplayName(g) + ")"
+				continue
+			}
+			id := g.RenderNode
+			if id == "" {
+				id = g.Name
+			}
+			if id == "" {
+				continue
+			}
+			opts = append(opts, AccelDeviceOption{ID: id, Label: gpuClassLabel(g) + " (" + gpuDisplayName(g) + ")"})
+		}
+	}
+	if autoLabel == "" {
+		autoLabel = autoGPUName(caps)
+	}
+	return autoLabel, resolvedID, opts
+}
+
+// gpuClassLabel names the device class shown in the dropdown.
+func gpuClassLabel(g platform.GPUDevice) string {
+	if g.Integrated {
+		return "Integrated GPU"
+	}
+	return "Dedicated GPU"
+}
+
+func gpuDisplayName(g platform.GPUDevice) string {
+	if g.Name != "" {
+		return g.Name
+	}
+	return g.RenderNode
+}
+
+// autoGPUName names the GPU driving the detected default hardware encoder on
+// platforms where individual devices cannot be enumerated (e.g. "Apple GPU").
+func autoGPUName(caps *capabilities.Capabilities) string {
+	var fallback capabilities.AccelType
+	for _, opt := range caps.EncodeOptions {
+		if !opt.Available || opt.Accel == "" || opt.Accel == capabilities.AccelNone {
+			continue
+		}
+		if opt.Codec != capabilities.CodecH264 {
+			continue
+		}
+		if opt.Default {
+			if name := capabilities.GPUForAccel(caps, opt.Accel).Name; name != "" {
+				return name
+			}
+		}
+		fallback = opt.Accel
+	}
+	if name := capabilities.GPUForAccel(caps, fallback).Name; name != "" && name != "CPU" {
+		return name
+	}
+	return ""
+}
+
+// EncoderBackendOption is one selectable entry in the encoder backend list.
+type EncoderBackendOption struct {
+	ID      string `json:"id"`
+	Label   string `json:"label"`
+	Default bool   `json:"default,omitempty"`
+}
+
+// EncoderBackendOptions lists the detected backends that can encode H.264 —
+// the codec every transcode preset outputs. "cpu" covers software encoders;
+// the detected default is flagged so the UI can describe the auto choice.
+func (s *Service) EncoderBackendOptions() []EncoderBackendOption {
+	out := []EncoderBackendOption{{ID: "cpu", Label: "CPU (software)"}}
+	caps := s.Capabilities()
+	if caps == nil {
+		return out
+	}
+	seen := map[string]bool{"cpu": true}
+	for _, opt := range caps.EncodeOptions {
+		if opt.Codec != capabilities.CodecH264 || !opt.Available {
+			continue
+		}
+		id := string(opt.Accel)
+		if id == "" || id == string(capabilities.AccelNone) {
+			id = "cpu"
+		}
+		if seen[id] {
+			continue
+		}
+		seen[id] = true
+		label := opt.Label
+		if label == "" {
+			label = opt.Encoder
+		}
+		out = append(out, EncoderBackendOption{ID: id, Label: label, Default: opt.Default})
+	}
+	return out
 }
 
 // Enabled reports whether ffmpeg initialized successfully.

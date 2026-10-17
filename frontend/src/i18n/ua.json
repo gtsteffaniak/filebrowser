@@ -1217,9 +1217,6 @@
     }
   },
   "media": {
-    "hardwareAcceleration": "Апаратне прискорення",
-    "hardwareAccelerationDescription": "Використовуйте апаратне прискорення на GPU для ffmpeg, якщо воно доступне.",
-    "hardwareAccelerationUnavailable": "На цьому сервері не виявлено жодного придатного для використання апаратного кодера ffmpeg.",
     "extractEmbeddedSubtitles": "Витягнути вбудовані субтитри",
     "extractEmbeddedSubtitlesDescription": "Витягнути вбудовані субтитри з медіафайлів.",
     "debug": "Журнал налагодження",

@@ -68,9 +68,23 @@ func DefaultOnDemandHLSDefaults() goffmpeg.OnDemandHLSDefaults {
 	return goffmpeg.DefaultOnDemandHLSDefaults()
 }
 
-// BuildHLSSegmentTimeline returns segment start times and durations.
-func BuildHLSSegmentTimeline(durationSec float64, keyframes []float64, segmentDurationSec float64) (starts, durations []float64) {
-	return goffmpeg.BuildHLSSegmentTimeline(durationSec, keyframes, segmentDurationSec)
+// BuildHLSSegmentTimeline returns segment start times and durations on a
+// 0-based media timeline; startTimeSec is the probed container start_time.
+func BuildHLSSegmentTimeline(durationSec float64, keyframes []float64, segmentDurationSec, startTimeSec float64) (starts, durations []float64) {
+	return goffmpeg.BuildHLSSegmentTimeline(durationSec, keyframes, segmentDurationSec, startTimeSec)
+}
+
+// PrepareHLSMediaTimeline normalizes keyframes and duration for HLS segment
+// planning: container start_time is subtracted and corrupt keyframe indexes
+// are filtered out.
+func PrepareHLSMediaTimeline(keyframes []float64, durationSec, startTimeSec float64) (sanitizedKeyframes []float64, mediaDurationSec float64) {
+	return goffmpeg.PrepareHLSMediaTimeline(keyframes, durationSec, startTimeSec)
+}
+
+// HLSMediaTimelineDuration converts a probed container duration to the
+// 0-based media timeline length the produced HLS output covers.
+func HLSMediaTimelineDuration(durationSec, startTimeSec float64) float64 {
+	return goffmpeg.HLSMediaTimelineDuration(durationSec, startTimeSec)
 }
 
 // SanitizeHLSKeyframes filters spurious keyframe probes.

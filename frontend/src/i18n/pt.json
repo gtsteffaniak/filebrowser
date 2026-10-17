@@ -1217,9 +1217,6 @@
     }
   },
   "media": {
-    "hardwareAcceleration": "Aceleração por hardware",
-    "hardwareAccelerationDescription": "Utilizar a aceleração por hardware da GPU para o ffmpeg, quando disponível.",
-    "hardwareAccelerationUnavailable": "Não foi detetado nenhum codificador de hardware ffmpeg utilizável neste servidor.",
     "extractEmbeddedSubtitles": "Extrair legendas incorporadas",
     "extractEmbeddedSubtitlesDescription": "Extrair legendas incorporadas de ficheiros multimédia.",
     "debug": "Registo de depuração",

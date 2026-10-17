@@ -1217,9 +1217,6 @@
     }
   },
   "media": {
-    "hardwareAcceleration": "Επιτάχυνση μέσω υλικού",
-    "hardwareAccelerationDescription": "Χρησιμοποιήστε την επιτάχυνση μέσω υλικού της GPU για το ffmpeg, όταν είναι διαθέσιμη.",
-    "hardwareAccelerationUnavailable": "Δεν εντοπίστηκε κανένας λειτουργικός κωδικοποιητής υλικού ffmpeg σε αυτόν τον διακομιστή.",
     "extractEmbeddedSubtitles": "Εξαγωγή ενσωματωμένων υπότιτλων",
     "extractEmbeddedSubtitlesDescription": "Εξαγωγή ενσωματωμένων υπότιτλων από αρχεία πολυμέσων.",
     "debug": "Καταγραφή σφαλμάτων",

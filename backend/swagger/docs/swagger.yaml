@@ -1,4 +1,25 @@
 definitions:
+  ffmpeg.AccelDeviceOption:
+    properties:
+      id:
+        type: string
+      label:
+        type: string
+      resolvedId:
+        description: |-
+          ResolvedID is the concrete device the "auto" option resolves to, so the
+          UI can display it when a stored selection pins that same device.
+        type: string
+    type: object
+  ffmpeg.EncoderBackendOption:
+    properties:
+      default:
+        type: boolean
+      id:
+        type: string
+      label:
+        type: string
+    type: object
   files.Items:
     properties:
       files:
@@ -662,6 +683,12 @@ definitions:
     type: object
   settings.Media:
     properties:
+      accelDevice:
+        description: |-
+          AccelDevice selects the acceleration device: "auto" (default), "software"/"cpu",
+          "igpu", "dgpu", a Linux DRM render node (e.g. /dev/dri/renderD128), or a GPU
+          name substring. Managed via the admin media settings API.
+        type: string
       convert:
         allOf:
         - $ref: '#/definitions/settings.FfmpegConvert'
@@ -700,6 +727,10 @@ definitions:
         description: 'enable HLS transcoding for authenticated playback (default:
           false)'
         type: boolean
+      encoderBackend:
+        description: 'default video encoder backend for transcodes: "" (auto), "cpu",
+          or an accel backend (nvenc, amf, qsv, vaapi, d3d12, videotoolbox)'
+        type: string
       maxConcurrent:
         description: 'global concurrent transcode sessions (default: 2)'
         type: integer
@@ -1148,6 +1179,9 @@ definitions:
       enabled:
         description: 'show this preset in the player menu (default: true)'
         type: boolean
+      encoderBackend:
+        description: encoder backend override; "" inherits transcode.encoderBackend
+        type: string
       maxResolution:
         description: maximum output height in pixels; 0 = original
         type: integer
@@ -2331,6 +2365,14 @@ definitions:
       user receives the player-relevant subset (transcode enabled, profiles, per-user
       limit).
     properties:
+      accelDevice:
+        description: 'acceleration device: "auto", "software"/"cpu", "igpu", "dgpu",
+          a DRM render node, or a GPU name substring'
+        type: string
+      accelDeviceOptions:
+        items:
+          $ref: '#/definitions/ffmpeg.AccelDeviceOption'
+        type: array
       convert:
         allOf:
         - $ref: '#/definitions/settings.FfmpegConvert'
@@ -2339,6 +2381,10 @@ definitions:
         description: output ffmpeg stdout for media integration -- careful can produces
           lots of output!
         type: boolean
+      encoderBackendOptions:
+        items:
+          $ref: '#/definitions/ffmpeg.EncoderBackendOption'
+        type: array
       extractEmbeddedSubtitles:
         description: extract embedded subtitles from media files
         type: boolean

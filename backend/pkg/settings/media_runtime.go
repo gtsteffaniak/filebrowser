@@ -61,6 +61,7 @@ func ExtractEmbeddedSubtitlesEnabled() bool {
 type ffmpegInitInputs struct {
 	ffmpegPath           string
 	hardwareAcceleration bool
+	accelDevice          string
 	debug                bool
 	imageProcessors      int
 	maxEncode            int
@@ -78,6 +79,7 @@ func currentFFmpegInitInputs() ffmpegInitInputs {
 	return ffmpegInitInputs{
 		ffmpegPath:           Config.Integrations.Media.FfmpegPath,
 		hardwareAcceleration: Config.Integrations.Media.HardwareAcceleration,
+		accelDevice:          Config.Integrations.Media.AccelDevice,
 		debug:                Config.Integrations.Media.Debug,
 		imageProcessors:      n,
 		maxEncode:            maxEncode,

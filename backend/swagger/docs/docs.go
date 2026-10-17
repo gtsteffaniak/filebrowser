@@ -5464,6 +5464,35 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "ffmpeg.AccelDeviceOption": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "label": {
+                    "type": "string"
+                },
+                "resolvedId": {
+                    "description": "ResolvedID is the concrete device the \"auto\" option resolves to, so the\nUI can display it when a stored selection pins that same device.",
+                    "type": "string"
+                }
+            }
+        },
+        "ffmpeg.EncoderBackendOption": {
+            "type": "object",
+            "properties": {
+                "default": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "label": {
+                    "type": "string"
+                }
+            }
+        },
         "files.Items": {
             "type": "object",
             "properties": {
@@ -6344,6 +6373,10 @@ const docTemplate = `{
         "settings.Media": {
             "type": "object",
             "properties": {
+                "accelDevice": {
+                    "description": "AccelDevice selects the acceleration device: \"auto\" (default), \"software\"/\"cpu\",\n\"igpu\", \"dgpu\", a Linux DRM render node (e.g. /dev/dri/renderD128), or a GPU\nname substring. Managed via the admin media settings API.",
+                    "type": "string"
+                },
                 "convert": {
                     "description": "deprecated: config for ffmpeg conversion settings. deprecated: manage via the admin media settings API",
                     "allOf": [
@@ -6392,6 +6425,10 @@ const docTemplate = `{
                 "enabled": {
                     "description": "enable HLS transcoding for authenticated playback (default: false)",
                     "type": "boolean"
+                },
+                "encoderBackend": {
+                    "description": "default video encoder backend for transcodes: \"\" (auto), \"cpu\", or an accel backend (nvenc, amf, qsv, vaapi, d3d12, videotoolbox)",
+                    "type": "string"
                 },
                 "maxConcurrent": {
                     "description": "global concurrent transcode sessions (default: 2)",
@@ -6990,6 +7027,10 @@ const docTemplate = `{
                 "enabled": {
                     "description": "show this preset in the player menu (default: true)",
                     "type": "boolean"
+                },
+                "encoderBackend": {
+                    "description": "encoder backend override; \"\" inherits transcode.encoderBackend",
+                    "type": "string"
                 },
                 "maxResolution": {
                     "description": "maximum output height in pixels; 0 = original",
@@ -8677,6 +8718,16 @@ const docTemplate = `{
             "description": "Admins receive the DB-backed media integration settings; every authenticated user receives the player-relevant subset (transcode enabled, profiles, per-user limit).",
             "type": "object",
             "properties": {
+                "accelDevice": {
+                    "description": "acceleration device: \"auto\", \"software\"/\"cpu\", \"igpu\", \"dgpu\", a DRM render node, or a GPU name substring",
+                    "type": "string"
+                },
+                "accelDeviceOptions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/ffmpeg.AccelDeviceOption"
+                    }
+                },
                 "convert": {
                     "description": "config for ffmpeg conversion settings",
                     "allOf": [
@@ -8688,6 +8739,12 @@ const docTemplate = `{
                 "debug": {
                     "description": "output ffmpeg stdout for media integration -- careful can produces lots of output!",
                     "type": "boolean"
+                },
+                "encoderBackendOptions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/ffmpeg.EncoderBackendOption"
+                    }
                 },
                 "extractEmbeddedSubtitles": {
                     "description": "extract embedded subtitles from media files",

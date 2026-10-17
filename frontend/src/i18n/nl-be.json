@@ -1217,9 +1217,6 @@
     }
   },
   "media": {
-    "hardwareAcceleration": "Hardwareversnelling",
-    "hardwareAccelerationDescription": "Gebruik GPU-hardwareversnelling voor ffmpeg indien beschikbaar.",
-    "hardwareAccelerationUnavailable": "Er is op deze server geen bruikbare ffmpeg-hardware-encoder gedetecteerd.",
     "extractEmbeddedSubtitles": "Ingesloten ondertitels extraheren",
     "extractEmbeddedSubtitlesDescription": "Ingebedde ondertitels uit mediabestanden extraheren.",
     "debug": "Foutlogboek",

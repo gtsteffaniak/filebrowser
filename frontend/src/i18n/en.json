@@ -697,9 +697,10 @@
     "userUpdated": "User updated!"
   },
   "media": {
-    "hardwareAcceleration": "Hardware acceleration",
-    "hardwareAccelerationDescription": "Use GPU hardware acceleration for ffmpeg when available.",
-    "hardwareAccelerationUnavailable": "No usable ffmpeg hardware encoder was detected on this server.",
+    "accelDevice": "Acceleration device",
+    "accelDeviceDescription": "GPU device used for hardware-accelerated media processing. CPU (software) disables hardware acceleration.",
+    "encoderBackend": "Encoder backend",
+    "transcodeProfileEncoderBackendHelp": "Encoder backend for this preset; defaults to the detected preferred backend.",
     "extractEmbeddedSubtitles": "Extract embedded subtitles",
     "extractEmbeddedSubtitlesDescription": "Extract embedded subtitles from media files.",
     "debug": "Debug logging",

@@ -7,6 +7,7 @@ import (
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/ffmpeg"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
+	"github.com/gtsteffaniak/go-ffmpeg/capabilities"
 )
 
 func withTranscodeProfiles(t *testing.T) {
@@ -175,9 +176,9 @@ func TestTranscodePlanUsesFixedSegmentGrid(t *testing.T) {
 	// Sparse WMV-like keyframes that do not match the output grid.
 	keyframes := []float64{0, 3.909, 7.818, 11.727}
 	keyframes = ffmpeg.SanitizeHLSKeyframes(keyframes, duration)
-	_, keyframeDurs := ffmpeg.BuildHLSSegmentTimeline(duration, keyframes, segDur)
+	_, keyframeDurs := ffmpeg.BuildHLSSegmentTimeline(duration, keyframes, segDur, 0)
 
-	_, fixedDurs := ffmpeg.BuildHLSSegmentTimeline(duration, nil, segDur)
+	_, fixedDurs := ffmpeg.BuildHLSSegmentTimeline(duration, nil, segDur, 0)
 
 	if len(keyframeDurs) == len(fixedDurs) {
 		same := true
@@ -200,5 +201,76 @@ func TestTranscodePlanUsesFixedSegmentGrid(t *testing.T) {
 		if dur != segDur {
 			t.Fatalf("fixed segment %d duration = %v, want %v", i, dur, segDur)
 		}
+	}
+}
+
+// Containers with a non-zero format start_time (e.g. some MKV/MP4 muxes) carry
+// keyframe times on a shifted container timeline. Segment planning must
+// rebase them onto the 0-based media timeline the HLS output covers.
+func TestTranscodePlanNormalizesContainerStartTime(t *testing.T) {
+	t.Parallel()
+	const segDur = 4.0
+	const startTime = 1.4
+
+	// Same media as the zero-offset case: 30.5s of content whose format
+	// duration includes the 1.4s pre-roll offset.
+	containerDuration := 30.5 + startTime
+	containerKeyframes := []float64{startTime, startTime + 3.909, startTime + 7.818, startTime + 11.727}
+
+	sanitized, mediaDuration := ffmpeg.PrepareHLSMediaTimeline(containerKeyframes, containerDuration, startTime)
+	if mediaDuration < 30.4 || mediaDuration > 30.6 {
+		t.Fatalf("media duration = %v, want ~30.5", mediaDuration)
+	}
+	_, offsetDurs := ffmpeg.BuildHLSSegmentTimeline(mediaDuration, sanitized, segDur, 0)
+
+	keyframes := ffmpeg.SanitizeHLSKeyframes([]float64{0, 3.909, 7.818, 11.727}, 30.5)
+	_, zeroOffsetDurs := ffmpeg.BuildHLSSegmentTimeline(30.5, keyframes, segDur, 0)
+
+	if len(offsetDurs) != len(zeroOffsetDurs) {
+		t.Fatalf("normalized timeline has %d segments, want %d", len(offsetDurs), len(zeroOffsetDurs))
+	}
+	for i := range zeroOffsetDurs {
+		if offsetDurs[i] != zeroOffsetDurs[i] {
+			t.Fatalf("segment %d duration = %v, want %v", i, offsetDurs[i], zeroOffsetDurs[i])
+		}
+	}
+
+	// The lib also normalizes internally when startTimeSec is passed directly.
+	_, libDurs := ffmpeg.BuildHLSSegmentTimeline(containerDuration, containerKeyframes, segDur, startTime)
+	if len(libDurs) != len(zeroOffsetDurs) {
+		t.Fatalf("lib-normalized timeline has %d segments, want %d", len(libDurs), len(zeroOffsetDurs))
+	}
+}
+
+// The encoder backend preference resolves profile override, then the
+// transcode-level default; hardware backends are capability-guarded so an
+// unavailable one degrades to auto instead of erroring the job.
+func TestPreferredEncoderAccel(t *testing.T) {
+	withTranscodeProfiles(t)
+	origBackend := settings.Config.Integrations.Media.Transcode.EncoderBackend
+	t.Cleanup(func() { settings.Config.Integrations.Media.Transcode.EncoderBackend = origBackend })
+
+	settings.Config.Integrations.Media.Transcode.EncoderBackend = ""
+	if got := preferredEncoderAccel(ProfileBalanced); got != "" {
+		t.Fatalf("auto backend = %q, want \"\"", got)
+	}
+
+	settings.Config.Integrations.Media.Transcode.EncoderBackend = "cpu"
+	if got := preferredEncoderAccel(ProfileBalanced); got != capabilities.AccelNone {
+		t.Fatalf("cpu backend = %q, want %q", got, capabilities.AccelNone)
+	}
+	// A per-preset override beats the transcode-level default.
+	profiles := settings.DefaultTranscodeProfiles()
+	profiles.DataSaver.EncoderBackend = "cpu"
+	settings.Config.Integrations.Media.Transcode.Profiles = profiles
+	if got := preferredEncoderAccel(ProfileDataSaver); got != capabilities.AccelNone {
+		t.Fatalf("preset-override backend = %q, want %q", got, capabilities.AccelNone)
+	}
+
+	// No ffmpeg service in tests -> no capabilities -> hardware backends must
+	// degrade to auto rather than resolving (ResolveEncoder would error).
+	settings.Config.Integrations.Media.Transcode.EncoderBackend = "nvenc"
+	if got := preferredEncoderAccel(ProfileBalanced); got != "" {
+		t.Fatalf("unavailable nvenc = %q, want auto \"\"", got)
 	}
 }

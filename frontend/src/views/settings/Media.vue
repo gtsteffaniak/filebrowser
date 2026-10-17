@@ -9,20 +9,30 @@
     </div>
     <template v-else>
       <div class="settings-items">
-        <ToggleSwitch class="item" v-model="media.hardwareAcceleration"
-          :disabled="!hardwareAccelerationAvailable || isLocked('hardwareAcceleration')"
-          :value-tooltip="fieldTooltip('hardwareAcceleration', hardwareAccelerationDescription)"
-          :name="$t('media.hardwareAcceleration')"
-          :description="hardwareAccelerationDescription" />
+        <div class="settings-select-input item">
+          <div class="no-padding">
+            <label for="accelDevice">{{ $t("media.accelDevice") }}</label>
+            <HelpTooltipIcon :text="accelDeviceTooltip" />
+          </div>
+          <ExpandDropdown
+            input-id="accelDevice"
+            :model-value="accelDeviceModelValue"
+            :options="accelDeviceSelectOptions"
+            :aria-label="$t('media.accelDevice')"
+            :disabled="isLocked('hardwareAcceleration') || isLocked('accelDevice')"
+            @update:modelValue="onAccelDeviceChange" />
+        </div>
         <ToggleSwitch class="item" v-model="media.extractEmbeddedSubtitles"
           :disabled="isLocked('extractEmbeddedSubtitles')"
           :value-tooltip="fieldTooltip('extractEmbeddedSubtitles')"
           :name="$t('media.extractEmbeddedSubtitles')"
-          :description="$t('media.extractEmbeddedSubtitlesDescription')" />
+          :description="$t('media.extractEmbeddedSubtitlesDescription')"
+          @update:modelValue="save" />
         <ToggleSwitch class="item" v-model="media.debug" :name="$t('media.debug')"
           :disabled="isLocked('debug')"
           :value-tooltip="fieldTooltip('debug')"
-          :description="$t('media.debugDescription')" />
+          :description="$t('media.debugDescription')"
+          @update:modelValue="save" />
         <SettingsButton class="item"
           :name="$t('media.imageVideoConversionFormats')"
           :description="$t('media.imageVideoConversionFormatsDescription')"
@@ -35,18 +45,13 @@
           :disabled="isLocked('transcode.enabled')"
           :value-tooltip="fieldTooltip('transcode.enabled')"
           :name="$t('media.transcodeEnabled')"
-          :description="$t('media.transcodeEnabledDescription')" />
+          :description="$t('media.transcodeEnabledDescription')"
+          @update:modelValue="save" />
         <SettingsButton class="item"
           :name="$t('media.transcodeSettings')"
           :description="$t('media.transcodeSettingsDescription')"
           :disabled="!media.transcode.enabled"
           @click="openTranscodeSettings" />
-      </div>
-
-      <div class="card-actions">
-        <button type="button" class="button button--flat" @click="save">
-          {{ $t("general.save") }}
-        </button>
       </div>
     </template>
   </div>
@@ -57,9 +62,10 @@ import { notify } from "@/notify";
 import { mutations } from "@/store";
 import { eventBus } from "@/store/eventBus";
 import { getMediaSettings } from "@/api/settings";
-import { globalVars } from "@/utils/constants";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import SettingsButton from "@/components/settings/SettingsButton.vue";
+import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
+import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import Errors from "@/views/Errors.vue";
 import {
@@ -74,6 +80,8 @@ export default {
   components: {
     ToggleSwitch,
     SettingsButton,
+    ExpandDropdown,
+    HelpTooltipIcon,
     LoadingSpinner,
     Errors,
   },
@@ -86,17 +94,33 @@ export default {
       /** Media settings pinned in the config file cannot be changed here. */
       lockedFromConfigPaths: [],
       lockMessage: "",
+      /** Selectable acceleration devices reported by the backend. */
+      accelDeviceOptions: [],
     };
   },
   computed: {
-    /** Detection always runs, so this reflects whether any hardware encoder works. */
-    hardwareAccelerationAvailable() {
-      return globalVars?.hardwareAccelerationAvailable === true;
+    accelDeviceTooltip() {
+      return this.isLocked("hardwareAcceleration") || this.isLocked("accelDevice")
+        ? this.$t("settings.lockedFromConfig")
+        : this.$t("media.accelDeviceDescription");
     },
-    hardwareAccelerationDescription() {
-      return this.hardwareAccelerationAvailable
-        ? this.$t("media.hardwareAccelerationDescription")
-        : this.$t("media.hardwareAccelerationUnavailable");
+    accelDeviceSelectOptions() {
+      const options = Array.isArray(this.accelDeviceOptions) ? this.accelDeviceOptions : [];
+      return options.map((option) => ({
+        value: option.id,
+        label: option.label || option.id,
+      }));
+    },
+    /** The concrete device auto resolves to, so a pinned value equal to it can collapse to "auto". */
+    autoResolvedDeviceId() {
+      const auto = (this.accelDeviceOptions || []).find((option) => option.id === "auto");
+      return auto?.resolvedId || null;
+    },
+    /** A stored value pinning the same device auto resolves to displays as auto. */
+    accelDeviceModelValue() {
+      return this.autoResolvedDeviceId && this.media.accelDevice === this.autoResolvedDeviceId
+        ? "auto"
+        : this.media.accelDevice;
     },
   },
   mounted() {
@@ -122,6 +146,9 @@ export default {
       try {
         const data = await getMediaSettings();
         this.media = mergeMediaSettings(data);
+        this.accelDeviceOptions = Array.isArray(data?.accelDeviceOptions)
+          ? data.accelDeviceOptions
+          : [];
         this.lockedFromConfigPaths = Array.isArray(data?.lockedFromConfigPaths)
           ? data.lockedFromConfigPaths
           : [];
@@ -138,6 +165,10 @@ export default {
     },
     fieldTooltip(path, fallback = "") {
       return this.isLocked(path) ? this.$t("settings.lockedFromConfig") : fallback;
+    },
+    onAccelDeviceChange(value) {
+      this.media.accelDevice = value;
+      void this.save();
     },
     openConversionFormats() {
       mutations.showPrompt({
@@ -163,7 +194,7 @@ export default {
     async save() {
       try {
         const { skipped, media } = await saveMediaSettingsPatch({
-          hardwareAcceleration: this.media.hardwareAcceleration,
+          accelDevice: this.media.accelDevice,
           extractEmbeddedSubtitles: this.media.extractEmbeddedSubtitles,
           debug: this.media.debug,
           transcode: { enabled: this.media.transcode.enabled },
@@ -192,8 +223,21 @@ export default {
   padding: 1em;
 }
 
-.card-actions {
-  margin-top: 1em;
+.settings-select-input {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.settings-select-input .no-padding {
+  display: flex;
+  padding: 0;
+  align-items: center;
+}
+
+.settings-select-input .expand-dropdown {
+  max-width: 20em;
 }
 
 .loading-hint {

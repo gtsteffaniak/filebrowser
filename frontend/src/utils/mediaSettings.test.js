@@ -7,6 +7,7 @@ vi.mock('@/api/settings', () => ({
 import { patchMediaSettings } from '@/api/settings.js';
 import {
   enabledTranscodeProfileIds,
+  mergeMediaSettings,
   normalizeMediaPlayerSettings,
   saveMediaSettingsPatch,
   stripLockedMediaPaths,
@@ -70,6 +71,29 @@ describe('mediaSettings', () => {
       );
       expect(result.skipped).toBe(true);
       expect(patchMediaSettings).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('mergeMediaSettings', () => {
+    it('defaults accelDevice and encoderBackend fields when absent', () => {
+      const merged = mergeMediaSettings(undefined);
+      expect(merged.accelDevice).toBe('auto');
+      expect(merged.transcode.encoderBackend).toBe('');
+      expect(merged.transcode.profiles.datasaver.encoderBackend).toBe('');
+    });
+
+    it('merges accelDevice and per-preset encoderBackend overrides', () => {
+      const merged = mergeMediaSettings({
+        accelDevice: 'renderD128',
+        transcode: {
+          encoderBackend: 'vaapi',
+          profiles: { balanced: { encoderBackend: 'cpu' } },
+        },
+      });
+      expect(merged.accelDevice).toBe('renderD128');
+      expect(merged.transcode.encoderBackend).toBe('vaapi');
+      expect(merged.transcode.profiles.balanced.encoderBackend).toBe('cpu');
+      expect(merged.transcode.profiles.quality.encoderBackend).toBe('');
     });
   });
 

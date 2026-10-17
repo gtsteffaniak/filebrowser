@@ -167,7 +167,7 @@ func TestStoreFindReusableGeneration(t *testing.T) {
 	if storeErr != nil {
 		t.Fatal(storeErr)
 	}
-	if _, ok := store.FindReusableGeneration("missing"); ok {
+	if _, _, ok := store.FindReusableGeneration("missing"); ok {
 		t.Fatal("no generation should be reusable for an unknown fingerprint")
 	}
 
@@ -176,15 +176,18 @@ func TestStoreFindReusableGeneration(t *testing.T) {
 	if err := os.MkdirAll(filepath.Join(partial, "seg"), 0o755); err != nil {
 		t.Fatal(err)
 	}
-	if _, ok := store.FindReusableGeneration("fp"); ok {
+	if _, _, ok := store.FindReusableGeneration("fp"); ok {
 		t.Fatal("an incomplete generation must not be reusable")
 	}
 
 	complete := filepath.Join(store.root, "fp", "gen-complete")
 	writeCompleteGeneration(t, complete, 9000)
-	got, ok := store.FindReusableGeneration("fp")
+	got, cov, ok := store.FindReusableGeneration("fp")
 	if !ok || got != complete {
 		t.Fatalf("FindReusableGeneration = (%q, %v), want (%q, true)", got, ok, complete)
+	}
+	if cov.FirstIndex != 0 || cov.LastReadyIndex != 0 || !cov.Complete {
+		t.Fatalf("coverage = %+v, want FirstIndex=0 LastReadyIndex=0 Complete", cov)
 	}
 }
 
@@ -338,5 +341,49 @@ func TestBuildServePlaylistRewritesMediaSequence(t *testing.T) {
 	}
 	if !strings.Contains(got, "#EXT-X-TARGETDURATION:4") {
 		t.Fatalf("target duration missing: %q", got)
+	}
+}
+
+// A completed tail covering only a few minutes of the file is discarded: it
+// can never serve a from-start request and only helps seeks into a tiny
+// range — not worth the disk. Full-file and larger tails are kept.
+func TestStoreEvictsShortPartialGenerations(t *testing.T) {
+	store, storeErr := NewStore(t.TempDir())
+	if storeErr != nil {
+		t.Fatal(storeErr)
+	}
+	writeGen := func(fp, gen string, firstIdx, count int) string {
+		t.Helper()
+		dir := filepath.Join(store.root, fp, gen)
+		writeProducedRange(t, dir, firstIdx, count, true, false)
+		old := time.Now().Add(-2 * time.Hour)
+		if err := os.Chtimes(dir, old, old); err != nil {
+			t.Fatal(err)
+		}
+		return dir
+	}
+	short := writeGen("fp-short", "gen", 40, 5)   // 20s produced — discarded
+	long := writeGen("fp-long", "gen", 40, 100)   // 400s produced — kept
+	full := writeGen("fp-full", "gen", 0, 5)      // whole file — kept
+
+	evicted, err := store.EvictInactive(nil, 0, 24*time.Hour)
+	if err != nil {
+		t.Fatal(err)
+	}
+	found := map[string]bool{}
+	for _, dir := range evicted {
+		found[dir] = true
+	}
+	if !found[short] {
+		t.Fatal("short partial generation should be evicted")
+	}
+	if found[long] {
+		t.Fatal("a >=5min tail should be kept for seek coverage")
+	}
+	if found[full] {
+		t.Fatal("a full-file generation must be kept")
+	}
+	if _, err := os.Stat(short); !os.IsNotExist(err) {
+		t.Fatal("expected short partial generation removed")
 	}
 }

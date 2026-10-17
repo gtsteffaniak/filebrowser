@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/gtsteffaniak/go-ffmpeg/capabilities"
 	"github.com/gtsteffaniak/go-ffmpeg/encode"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/ffmpeg"
@@ -87,6 +88,9 @@ func (e *MediaEngine) BuildPlan(ctx context.Context, realPath string, profile Pr
 	if err != nil {
 		return plan, err
 	}
+	// No audio stream to carry — keep it out of the ffmpeg args and reflect it
+	// in the cache fingerprint instead of relying on the optional -map probe.
+	params.OmitAudio = !info.HasAudio
 
 	plan.info = info
 	plan.params = params
@@ -106,12 +110,13 @@ func (e *MediaEngine) BuildPlan(ctx context.Context, realPath string, profile Pr
 	var keyframes []float64
 	var starts, durs []float64
 	if plan.remux || plan.videoCopy {
-		keyframes, _ = svc.ProbeVideoKeyframeTimes(ctx, realPath)
-		keyframes = ffmpeg.SanitizeHLSKeyframes(keyframes, info.Duration)
-		starts, durs = ffmpeg.BuildHLSSegmentTimeline(info.Duration, keyframes, defaults.SegmentDurationSec)
+		rawKeyframes, _ := svc.ProbeVideoKeyframeTimes(ctx, realPath)
+		keyframes, plan.mediaDurationSec = ffmpeg.PrepareHLSMediaTimeline(rawKeyframes, info.Duration, info.StartTime)
+		starts, durs = ffmpeg.BuildHLSSegmentTimeline(plan.mediaDurationSec, keyframes, defaults.SegmentDurationSec, 0)
 	} else {
 		// Full transcode output uses ffmpeg's fixed GOP/segment grid; align fMP4 to that grid.
-		starts, durs = ffmpeg.BuildHLSSegmentTimeline(info.Duration, nil, defaults.SegmentDurationSec)
+		_, plan.mediaDurationSec = ffmpeg.PrepareHLSMediaTimeline(nil, info.Duration, info.StartTime)
+		starts, durs = ffmpeg.BuildHLSSegmentTimeline(plan.mediaDurationSec, nil, defaults.SegmentDurationSec, 0)
 	}
 	plan.keyframes = keyframes
 	plan.segmentStarts = starts
@@ -142,19 +147,21 @@ func (e *MediaEngine) StartContinuous(ctx context.Context, realPath, outputDir s
 			URL:        realPath,
 			StreamType: ffmpeg.StreamFile,
 		},
-		OutputDir:        outputDir,
-		StartIndex:       startIndex,
-		StartSec:         startSec,
-		SegmentDurations: plan.segmentDurations,
-		SegmentSec:       plan.segmentSec,
-		FreshPlaylist:    startIndex == 0 && startSec <= 0,
-		Decode:           plan.decodeProfile,
-		Profile:          plan.encodeProfile,
-		MaxHeight:        plan.maxHeight,
-		Remux:            plan.remux,
-		VideoCopy:        plan.videoCopy,
-		InputVideoCodec:  plan.info.VideoCodec,
-		GOP:              plan.params.GOP,
+		OutputDir:         outputDir,
+		StartIndex:        startIndex,
+		StartSec:          startSec,
+		SegmentDurations:  plan.segmentDurations,
+		SegmentSec:        plan.segmentSec,
+		FreshPlaylist:     startIndex == 0 && startSec <= 0,
+		Decode:            plan.decodeProfile,
+		Profile:           plan.encodeProfile,
+		MaxHeight:         plan.maxHeight,
+		Remux:             plan.remux,
+		VideoCopy:         plan.videoCopy,
+		InputVideoCodec:   plan.info.VideoCodec,
+		InputStartTimeSec: plan.info.StartTime,
+		OmitAudio:         plan.params.OmitAudio,
+		GOP:               plan.params.GOP,
 		// Live pacing transcodes ~1x after a 60s headstart burst instead of
 		// burning CPU to finish the whole file up front. Produced segments
 		// stay comfortably ahead of the buffer horizon; the disk cache then
@@ -180,6 +187,7 @@ type hlsPlan struct {
 	segmentStarts    []float64
 	segmentDurations []float64
 	segmentSec       float64
+	mediaDurationSec float64
 	cacheFingerprint string
 }
 
@@ -265,7 +273,28 @@ func encodeProfileForMode(info ffmpeg.StreamInfo, profile Profile) encode.VideoP
 		base.Quality = encode.PresetMedium
 	}
 	base.Bitrate = transcodeBitrateConfig(cfg, info, maxHeight)
+	base.Accel = preferredEncoderAccel(profile)
 	return base
+}
+
+// preferredEncoderAccel resolves the configured encoder backend for a profile:
+// preset override, then the transcode-level default, then auto. "cpu" forces
+// software; an accel backend is only applied when detection marked it usable —
+// a backend the host cannot run must degrade to auto instead of failing jobs.
+func preferredEncoderAccel(profile Profile) capabilities.AccelType {
+	switch backend := settings.TranscodeEncoderBackend(string(profile)); backend {
+	case "", "auto":
+		return ""
+	case "cpu":
+		return capabilities.AccelNone
+	default:
+		accel := capabilities.AccelType(backend)
+		caps := ffmpeg.Get().Capabilities()
+		if caps == nil || !caps.CodecEncodeAvailable(capabilities.CodecH264, accel) {
+			return ""
+		}
+		return accel
+	}
 }
 
 // transcodeBitrateConfig resolves the target bitrate: explicit config wins, then the

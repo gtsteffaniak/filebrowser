@@ -1217,9 +1217,6 @@
     }
   },
   "media": {
-    "hardwareAcceleration": "硬體加速",
-    "hardwareAccelerationDescription": "若條件允許，請為 ffmpeg 啟用 GPU 硬體加速。",
-    "hardwareAccelerationUnavailable": "未在此伺服器上偵測到可用的 ffmpeg 硬體編碼器。",
     "extractEmbeddedSubtitles": "擷取內嵌字幕",
     "extractEmbeddedSubtitlesDescription": "從媒體檔案中擷取內嵌字幕。",
     "debug": "除錯記錄",

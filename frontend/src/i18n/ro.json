@@ -1217,9 +1217,6 @@
     }
   },
   "media": {
-    "hardwareAcceleration": "Accelerare hardware",
-    "hardwareAccelerationDescription": "Utilizați accelerarea hardware prin GPU pentru ffmpeg, atunci când este disponibilă.",
-    "hardwareAccelerationUnavailable": "Pe acest server nu a fost detectat niciun codificator hardware ffmpeg funcțional.",
     "extractEmbeddedSubtitles": "Extragerea subtitrărilor încorporate",
     "extractEmbeddedSubtitlesDescription": "Extrage subtitrările încorporate din fișierele media.",
     "debug": "Jurnalizarea erorilor de depanare",

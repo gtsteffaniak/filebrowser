@@ -3,6 +3,7 @@ package settings
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 )
 
 // MergeMediaSettingsPatchJSON merges a partial JSON patch into base media settings.
@@ -18,6 +19,19 @@ func MergeMediaSettingsPatchJSON(base MediaSettings, patchJSON []byte) (MediaSet
 	var merged MediaSettings
 	if err := json.Unmarshal(mergedBytes, &merged); err != nil {
 		return MediaSettings{}, fmt.Errorf("unmarshal merged media settings: %w", err)
+	}
+	// An explicit accelDevice in the patch is authoritative over the legacy
+	// hardwareAcceleration bool carried over from the base settings —
+	// otherwise switching the device away from "software" would be forced
+	// back by the derived false.
+	var patch map[string]json.RawMessage
+	if err := json.Unmarshal(patchJSON, &patch); err == nil {
+		if raw, ok := patch["accelDevice"]; ok {
+			var dev string
+			if err := json.Unmarshal(raw, &dev); err == nil {
+				merged.HardwareAcceleration = accelDeviceWantsHardware(dev)
+			}
+		}
 	}
 	return merged, nil
 }
@@ -94,7 +108,62 @@ func SanitizeMediaSettings(m MediaSettings) MediaSettings {
 	sanitizeTranscodeProfile(&t.Profiles.Quality)
 	sanitizeTranscodeProfile(&t.Profiles.Balanced)
 	sanitizeTranscodeProfile(&t.Profiles.DataSaver)
+	m.AccelDevice, m.HardwareAcceleration = sanitizeAccelDevice(m.AccelDevice, m.HardwareAcceleration)
+	t.EncoderBackend = sanitizeEncoderBackend(t.EncoderBackend)
+	for _, p := range []*TranscodeProfile{&t.Profiles.Quality, &t.Profiles.Balanced, &t.Profiles.DataSaver} {
+		p.EncoderBackend = sanitizeEncoderBackend(p.EncoderBackend)
+	}
 	return m
+}
+
+// sanitizeAccelDevice normalizes the acceleration device selector and keeps the
+// legacy hardwareAcceleration bool in sync: "software" is the only value that
+// maps to disabled, and a false bool (set by older clients or a config pin)
+// always forces the software device.
+func sanitizeAccelDevice(device string, hwAccel bool) (string, bool) {
+	dev := strings.TrimSpace(device)
+	// Aliases compare case-insensitively; a named device (render node, GPU name)
+	// keeps its case because render-node paths are case-sensitive.
+	switch strings.ToLower(dev) {
+	case "", "auto":
+		dev = "auto"
+	case "cpu", "none", "software":
+		dev = "software"
+	}
+	if dev == "software" {
+		return dev, false
+	}
+	if !hwAccel {
+		return "software", false
+	}
+	return dev, true
+}
+
+// accelDeviceWantsHardware reports whether a device selector value enables
+// hardware acceleration; only the software aliases opt out.
+func accelDeviceWantsHardware(device string) bool {
+	switch strings.ToLower(strings.TrimSpace(device)) {
+	case "cpu", "none", "software":
+		return false
+	}
+	return true
+}
+
+// sanitizeEncoderBackend normalizes an encoder backend preference: "" selects
+// the detected default, "cpu" forces software, anything else must be a known
+// accel backend name — unknown values degrade to auto rather than breaking
+// transcodes.
+func sanitizeEncoderBackend(backend string) string {
+	switch strings.ToLower(strings.TrimSpace(backend)) {
+	case "", "auto":
+		return ""
+	case "cpu", "software", "none":
+		return "cpu"
+	case "nvenc", "amf", "qsv", "vaapi", "d3d12", "videotoolbox":
+		return strings.ToLower(strings.TrimSpace(backend))
+	default:
+		return ""
+	}
 }
 
 func sanitizeTranscodeProfile(p *TranscodeProfile) {

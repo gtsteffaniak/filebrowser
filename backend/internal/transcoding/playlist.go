@@ -30,6 +30,15 @@ type servePlaylistResult struct {
 	readyCount int
 	totalCount int
 	endList    bool
+	// firstIndex is the lowest listed segment index — the generation's start
+	// index on the shared segment grid. -1 when the playlist lists no segments.
+	firstIndex int
+	// lastReadyIndex is the highest aligned/ready segment index — the produced
+	// edge a session can actually serve. -1 when nothing is ready.
+	lastReadyIndex int
+	// producedSec is the servable media duration: the sum of #EXTINF for the
+	// segments that are aligned and ready.
+	producedSec float64
 }
 
 // buildServePlaylist normalizes a raw ffmpeg playlist in memory for serving.
@@ -44,13 +53,6 @@ type servePlaylistResult struct {
 func buildServePlaylist(raw []byte, isReady func(name string) bool) ([]byte, int) {
 	result := parseServePlaylist(raw, isReady)
 	return result.data, result.readyCount
-}
-
-// playlistIsComplete reports whether raw is a finished playlist (ENDLIST) whose
-// segments are all aligned and ready, so the generation can be reused as-is.
-func playlistIsComplete(raw []byte, isReady func(name string) bool) bool {
-	result := parseServePlaylist(raw, isReady)
-	return result.endList && result.totalCount > 0 && result.readyCount == result.totalCount
 }
 
 func parseServePlaylist(raw []byte, isReady func(name string) bool) servePlaylistResult {
@@ -117,11 +119,26 @@ func parseServePlaylist(raw []byte, isReady func(name string) bool) servePlaylis
 	if sawEndList && len(blocks) > 0 && len(kept) == len(blocks) {
 		out = append(out, hlsEndListTag)
 	}
+	firstIndex := -1
+	if len(blocks) > 0 {
+		firstIndex = blocks[0].index
+	}
+	lastReadyIndex := -1
+	producedSec := 0.0
+	if len(kept) > 0 {
+		lastReadyIndex = kept[len(kept)-1].index
+		for _, block := range kept {
+			producedSec += block.duration
+		}
+	}
 	return servePlaylistResult{
-		data:       []byte(strings.Join(out, "\n") + "\n"),
-		readyCount: len(kept),
-		totalCount: len(blocks),
-		endList:    sawEndList,
+		data:           []byte(strings.Join(out, "\n") + "\n"),
+		readyCount:     len(kept),
+		totalCount:     len(blocks),
+		endList:        sawEndList,
+		firstIndex:     firstIndex,
+		lastReadyIndex: lastReadyIndex,
+		producedSec:    producedSec,
 	}
 }
 
