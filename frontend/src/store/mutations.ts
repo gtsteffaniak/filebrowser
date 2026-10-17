@@ -12,7 +12,7 @@ import { notify } from "@/notify/index.ts";
 import { url } from "@/utils/index.ts";
 import { getTypeInfo } from "@/utils/mimetype.js";
 import { getObjectProperty, setObjectProperty, omitObjectProperty } from '@/utils/object.js';
-import { sortedItems } from "@/utils/sort.js";
+import { sortedItems } from "@/utils/sort.ts";
 import { isSourceSidebarCategory } from "@/utils/sidebarCategory.ts";
 import { updateManifestLink } from "@/utils/pwaManifest.js";
 import { syncEventTheme } from "@/utils/theme.js";
@@ -32,6 +32,24 @@ import type {
   UserObject,
   UserScope,
 } from "./types.ts";
+
+let navigationSortCache: {
+  listing: Partial<FileListItem>[];
+  length: number;
+  by: string;
+  asc: boolean;
+  items: Partial<FileListItem>[];
+} | null = null;
+
+function getSortedNavigationItems(listing: Partial<FileListItem>[], by: string, asc: boolean): Partial<FileListItem>[] {
+  const cache = navigationSortCache;
+  if (cache && cache.listing === listing && cache.length === listing.length && cache.by === by && cache.asc === asc) {
+    return cache.items;
+  }
+  const items: Partial<FileListItem>[] = sortedItems([...listing], by, asc);
+  navigationSortCache = { listing, length: listing.length, by, asc, items };
+  return items;
+}
 
 export const mutations = {
   disableEventThemes: () => {
@@ -858,6 +876,7 @@ export const mutations = {
         ? { ...(metadata as Record<string, unknown>), ...(item.metadata as Record<string, unknown>) }
         : metadata;
     }
+    navigationSortCache = null;
     emitStateChanged();
   },
   patchRequestMetadata: (metadataItems: Array<{ name: string; metadata: unknown }> | undefined) => {
@@ -932,6 +951,9 @@ export const mutations = {
     state.user.sorting.asc = asc;
     mutations.updateDisplayPreferences({ sorting: { by: field, asc: asc } });
     emitStateChanged();
+  },
+  updateNavigationSortConfig: ({ field, asc }: { field: string; asc: boolean }) => {
+    state.navigation.sorting = { by: field, asc };
   },
   updatePickerSortConfig: ({ field, asc }: { field: string; asc: boolean }) => {
     state.pickerSorting = { by: field, asc };
@@ -1052,10 +1074,17 @@ export const mutations = {
   },
   setNavigationEnabled: (enabled: boolean) => {
     if (state.navigation.enabled === enabled) {
+      if (!enabled && !state.navigation.isTransitioning && state.navigation.sorting) {
+        state.navigation.sorting = null;
+        emitStateChanged();
+      }
       return;
     }
     state.navigation.enabled = enabled;
     if (!enabled) {
+      if (!state.navigation.isTransitioning) {
+        state.navigation.sorting = null;
+      }
       mutations.clearNavigation();
     }
     emitStateChanged();
@@ -1080,8 +1109,8 @@ export const mutations = {
     }
 
     // Sort listing according to sorting preferences
-    const sorting = getters.sorting();
-    const items: Partial<FileListItem>[] = sortedItems(listing as Partial<FileListItem>[], sorting.by, sorting.asc);
+    const sorting = getters.navigationSorting();
+    const items = getSortedNavigationItems(listing as Partial<FileListItem>[], sorting.by, sorting.asc);
 
     // Find current item index in the listing
     for (let i = 0; i < items.length; i++) {
@@ -1342,8 +1371,10 @@ export const mutations = {
       return;
     }
     state.sidebar.width = newWidth;
-    localStorage.setItem("sidebarWidth", newWidth.toString());
     emitStateChanged();
+  },
+  persistSidebarWidth: () => {
+    localStorage.setItem("sidebarWidth", state.sidebar.width.toString());
   },
   setSidebarResizing: (value: boolean) => {
     if (value === state.sidebar.isResizing) {

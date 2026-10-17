@@ -247,7 +247,7 @@ func TestOnlyOfficeCallbackRetainsKeyWhenSaveFails(t *testing.T) {
 	utils.OnlyOfficeCache.Set(realPath, docKey)
 
 	writeCalls := 0
-	files.WriteFileFunc = func(string, string, io.Reader) error {
+	files.WriteFileFunc = func(string, string, string, io.Reader) error {
 		writeCalls++
 		return errors.New("write failed")
 	}
@@ -276,7 +276,7 @@ func TestOnlyOfficeCallbackRetainsKeyWhenSaveFails(t *testing.T) {
 
 	// The document server retries the callback with the same key; the session
 	// must still resolve and the save must be allowed to complete.
-	files.WriteFileFunc = func(string, string, io.Reader) error {
+	files.WriteFileFunc = func(string, string, string, io.Reader) error {
 		writeCalls++
 		return nil
 	}
@@ -334,7 +334,7 @@ func TestOnlyOfficeCallbackSerializesConcurrentSaves(t *testing.T) {
 	writeCalls, active, maxActive := 0, 0, 0
 	writeStarted := make(chan struct{}, 2)
 	writeRelease := make(chan struct{})
-	files.WriteFileFunc = func(string, string, io.Reader) error {
+	files.WriteFileFunc = func(string, string, string, io.Reader) error {
 		writesMu.Lock()
 		writeCalls++
 		active++

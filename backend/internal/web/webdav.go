@@ -56,6 +56,9 @@ type filteredFileSystem struct {
 	user      *users.User
 	filePerms users.SourceFilePermissions
 	httpReq   *http.Request
+	// skipRenameActivityFrom suppresses the move record for the hidden staging file a chunked
+	// upload is assembled under; the upload is recorded once against the real destination.
+	skipRenameActivityFrom string
 	// Cache FileInfoFaster results per path to avoid redundant calls within the same request
 	fileInfoCache map[string]*iteminfo.ExtendedFileInfo
 }
@@ -206,6 +209,32 @@ func (ffs *filteredFileSystem) checkAccess(requestPath string) error {
 	// The caller will handle whether the operation is appropriate
 	logger.Debugf("checkAccess: path check returned: %v (may be acceptable for new items)", err)
 	return nil
+}
+
+// checkScopePath verifies that a WebDAV request path cannot traverse a symlink
+// resolving outside the user's scope. Write targets may not exist yet (the
+// deepest existing ancestor is resolved); forRemoval keeps the leaf unresolved
+// so a symlink entry is removed rather than followed. Returns os.ErrPermission
+// on scope escapes.
+func (ffs *filteredFileSystem) checkScopePath(requestPath string, forRemoval bool) error {
+	idx := indexing.GetIndex(ffs.source)
+	if idx == nil {
+		return fmt.Errorf("source not found")
+	}
+	userScope, err := ffs.user.GetScopeForSourceName(ffs.source)
+	if err != nil {
+		return err
+	}
+	fullIndexPath := utils.JoinScopedIndexPath(userScope, strings.TrimPrefix(requestPath, "/"))
+	if forRemoval {
+		_, err = idx.GetRealPathForRemoval(userScope, fullIndexPath)
+	} else {
+		_, err = idx.GetRealPathForMutation(userScope, fullIndexPath)
+	}
+	if errors.Is(err, commonerrors.ErrPathEscapesScope) {
+		return os.ErrPermission
+	}
+	return err
 }
 
 // filteredFile wraps a webdav.File and filters Readdir results based on FileInfoFaster
@@ -359,6 +388,11 @@ func (ffs *filteredFileSystem) Mkdir(ctx context.Context, name string, perm os.F
 		return err
 	}
 
+	if err := ffs.checkScopePath(name, false); err != nil {
+		logger.Debugf("Mkdir: scope check denied for %s: %v", name, err)
+		return err
+	}
+
 	if err := ffs.fs.Mkdir(ctx, name, perm); err != nil {
 		return err
 	}
@@ -390,6 +424,18 @@ func (ffs *filteredFileSystem) OpenFile(ctx context.Context, requestPath string,
 			logger.Debugf("OpenFile: write access denied for %s: %v", requestPath, err)
 			return nil, err
 		}
+
+		// A symlinked component must not carry the write outside the scope
+		if err := ffs.checkScopePath(requestPath, false); err != nil {
+			logger.Debugf("OpenFile: scope check denied for %s: %v", requestPath, err)
+			return nil, err
+		}
+	} else {
+		// A symlinked component must not carry the read outside the scope
+		if err := ffs.checkScopePath(requestPath, false); errors.Is(err, os.ErrPermission) {
+			logger.Debugf("OpenFile: read denied by scope for %s", requestPath)
+			return nil, os.ErrPermission
+		}
 	}
 
 	var desiredMtime time.Time
@@ -416,10 +462,13 @@ func (ffs *filteredFileSystem) OpenFile(ctx context.Context, requestPath string,
 				}
 				principal := quota.PrincipalForUpload(ffs.user, 0, "")
 				if state.HasApplicableQuotas(principal, sourcePath, fullIndexPath, "", 0) {
-					realPath, pathErr := resolvePutRealPath(idx, fullIndexPath)
+					realPath, pathErr := idx.GetRealPathForMutation(userScope, fullIndexPath)
 					if pathErr != nil {
 						_, clientErr := sanitizePutPathError(pathErr)
 						return nil, clientErr
+					}
+					if stat, statErr := os.Stat(realPath); statErr == nil && stat.IsDir() {
+						return nil, fmt.Errorf("path is a directory")
 					}
 					totalSize, hasTotalSize, sizeErr := parsePutTotalSize(ffs.httpReq)
 					if sizeErr != nil {
@@ -495,7 +544,10 @@ func (ffs *filteredFileSystem) RemoveAll(ctx context.Context, requestPath string
 		logger.Debugf("RemoveAll: access denied for %s: %v", requestPath, err)
 		return err
 	}
-
+	if err = ffs.checkScopePath(requestPath, true); err != nil {
+		logger.Debugf("RemoveAll: scope check denied for %s: %v", requestPath, err)
+		return err
+  }
 	// The API delete path frees the deleted bytes from the quota counters. Do the same
 	// here: a WebDAV DELETE, and the MOVE over an existing destination that the WebDAV
 	// library implements as RemoveAll + Rename, otherwise leave the old bytes charged
@@ -515,7 +567,7 @@ func (ffs *filteredFileSystem) RemoveAll(ctx context.Context, requestPath string
 		deleteBytes, _ = state.IndexedPathBytes(ffs.source, indexPath, true)
 	} else {
 		deleteBytes = info.Size()
-	}
+  }
 
 	if err := ffs.fs.RemoveAll(ctx, requestPath); err != nil {
 		return err
@@ -556,8 +608,22 @@ func (ffs *filteredFileSystem) Rename(ctx context.Context, oldPath, newPath stri
 		return err
 	}
 
+	// Neither the moved entry nor the destination may resolve through a
+	// symlink outside the scope.
+	if err := ffs.checkScopePath(oldPath, true); err != nil {
+		logger.Debugf("Rename: scope check denied for source %s: %v", oldPath, err)
+		return err
+	}
+	if err := ffs.checkScopePath(newPath, false); err != nil {
+		logger.Debugf("Rename: scope check denied for destination %s: %v", newPath, err)
+		return err
+	}
+
 	if err := ffs.fs.Rename(ctx, oldPath, newPath); err != nil {
 		return err
+	}
+	if ffs.skipRenameActivityFrom != "" && oldPath == ffs.skipRenameActivityFrom {
+		return nil
 	}
 	activity.RecordWebDAVUser(ffs.httpReq, ffs.user, activitydb.Entry{
 		EventType:  activitydb.EventMove,
@@ -574,6 +640,11 @@ func (ffs *filteredFileSystem) Rename(ctx context.Context, oldPath, newPath stri
 }
 
 func (ffs *filteredFileSystem) Stat(ctx context.Context, requestPath string) (os.FileInfo, error) {
+	// A symlinked component must not carry the stat outside the scope
+	if err := ffs.checkScopePath(requestPath, false); errors.Is(err, os.ErrPermission) {
+		return nil, os.ErrPermission
+	}
+
 	// Try to get file info (uses cache if available, FileInfoFaster otherwise)
 	_, err := ffs.getFileInfo(requestPath, false)
 	if err == nil {
@@ -674,6 +745,18 @@ func webDAVHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, err
 				logger.Errorf("webdav handler failed on path %s: %s", req.URL.Path, err)
 			}
 		},
+	}
+
+	// ownCloud-style chunked upload: the client PUTs `<name>-chunk-<n>` files as ordinary uploads
+	// and finishes by moving the last chunk to `<name>`; the chunks are concatenated here, and the
+	// final placement is left to the handler below so locks and `Overwrite` keep working.
+	if r.Method == "MOVE" {
+		if handled, status, err := owncloudChunkedMove(w, r, wd, filteredFS, requestPath, scopePath, prefix); handled {
+			if status != 0 {
+				return status, err
+			}
+			return 0, nil
+		}
 	}
 	if r.Method == "COPY" {
 		srcRealPath := filepath.Join(scopePath, requestPath)
