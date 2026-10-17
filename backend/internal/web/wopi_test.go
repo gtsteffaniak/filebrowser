@@ -187,7 +187,7 @@ func setWopiTestConfig(t *testing.T) {
 		settings.Config.Auth.Key = origKey
 	})
 	settings.Config.Auth.Key = "test-signing-key-for-length-check"
-	settings.Config.Integrations.OnlyOffice = settings.OnlyOffice{Url: "https://office.example", Product: settings.OfficeProductCollabora, Secret: "2vQ7mK9xR4tW8zL1nB6cF3hJ5pD0sG2a", TokenExpirationHours: 10}
+	settings.Config.Integrations.OnlyOffice = settings.OnlyOffice{Url: "https://office.example", Product: settings.OfficeProductCollabora, TokenExpirationHours: 10}
 }
 
 func TestOfficeProductSelection(t *testing.T) {
@@ -285,25 +285,26 @@ func TestWopiTokenRoundTrip(t *testing.T) {
 		t.Error("missing token must be rejected")
 	}
 
-	// Rotating the secret invalidates outstanding tokens.
-	settings.Config.Integrations.OnlyOffice.Secret = "Yh3Lp8Qw1Nz6Rt4Vb9Kd2Mx7Gs5Cf0Ja"
-	if _, err := parseWopiToken(raw, "fid1"); err == nil {
-		t.Error("a token signed with the previous secret must be rejected")
-	}
-
-	// A secret too short to resist offline guessing is refused at runtime too.
+	// integrations.office.secret belongs to OnlyOffice and does not change
+	// the signing key.
 	settings.Config.Integrations.OnlyOffice.Secret = "short"
-	if _, _, err := mintWopiToken(wopiClaims{FileID: "fid1"}, time.Now()); err == nil {
-		t.Error("minting must fail with a short secret")
+	if _, err := parseWopiToken(raw, "fid1"); err != nil {
+		t.Errorf("office.secret must not affect Collabora tokens: %v", err)
 	}
 
-	// Without a secret there is nothing to sign or verify with.
-	settings.Config.Integrations.OnlyOffice.Secret = ""
+	// Rotating auth.key invalidates outstanding tokens.
+	settings.Config.Auth.Key = "another-signing-key-for-length-check"
+	if _, err := parseWopiToken(raw, "fid1"); err == nil {
+		t.Error("a token signed under the previous auth.key must be rejected")
+	}
+
+	// Without an auth key there is nothing to derive a key from.
+	settings.Config.Auth.Key = ""
 	if _, _, err := mintWopiToken(wopiClaims{FileID: "fid1"}, time.Now()); err == nil {
-		t.Error("minting must fail without integrations.office.secret")
+		t.Error("minting must fail without auth.key")
 	}
 	if _, err := parseWopiToken(raw, "fid1"); err == nil {
-		t.Error("verifying must fail without integrations.office.secret")
+		t.Error("verifying must fail without auth.key")
 	}
 }
 

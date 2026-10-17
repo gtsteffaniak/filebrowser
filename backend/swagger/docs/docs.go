@@ -6409,7 +6409,6 @@ const docTemplate = `{
         "settings.OnlyOffice": {
             "type": "object",
             "required": [
-                "secret",
                 "url"
             ],
             "properties": {
@@ -6426,7 +6425,7 @@ const docTemplate = `{
                     ]
                 },
                 "secret": {
-                    "description": "secret: authentication key for the office integration. OnlyOffice: the JWT secret shared with the Document Server. Collabora: the key FileBrowser signs editing sessions with, at least 32 characters (Collabora itself takes no matching setting).",
+                    "description": "secret: OnlyOffice only, the JWT secret shared with the Document Server. Unused with collabora: editing sessions are signed with a key derived from auth.key, and Collabora trusts FileBrowser through its storage.wopi.host allow-list, where FileBrowser's host must be added.",
                     "type": "string"
                 },
                 "tokenExpirationHours": {

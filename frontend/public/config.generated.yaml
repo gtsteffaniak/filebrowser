@@ -274,7 +274,7 @@ integrations:
   office:                                 #  validate:omitempty
     url: ""                               # The URL to the office editor (OnlyOffice Document Server or Collabora Online), needs to be accessible to the user.  validate:required
     internalUrl: ""                       # An optional internal address that the filebrowser server can use to communicate with the office editor, could be useful to bypass proxy.
-    secret: ""                            # secret: authentication key for the office integration. OnlyOffice: the JWT secret shared with the Document Server. Collabora: the key FileBrowser signs editing sessions with, at least 32 characters (Collabora itself takes no matching setting).  validate:required
+    secret: ""                            # secret: OnlyOffice only, the JWT secret shared with the Document Server. Unused with collabora: editing sessions are signed with a key derived from auth.key, and Collabora trusts FileBrowser through its storage.wopi.host allow-list, where FileBrowser's host must be added.  validate:required_unless=Product collabora
     product: ""                           # office editor behind url: onlyoffice (default) or collabora  validate:omitempty,oneof=onlyoffice collabora
     tokenExpirationHours: 10              # collabora only: lifetime of an editing session, in hours (default: 10)
     viewOnly: false                       # view only mode for the office editor
