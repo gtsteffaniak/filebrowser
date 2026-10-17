@@ -28,6 +28,40 @@ func TestPermissionsUnmarshalJSONMarksConfigured(t *testing.T) {
 	if u.Permissions.Configured {
 		t.Fatal("omitted permissions must not set Configured")
 	}
+
+	var nullWrap struct {
+		Permissions Permissions `json:"permissions"`
+	}
+	if err := json.Unmarshal([]byte(`{"permissions":null}`), &nullWrap); err != nil {
+		t.Fatal(err)
+	}
+	if nullWrap.Permissions.Configured {
+		t.Fatal("permissions null must not set Configured")
+	}
+	if nullWrap.Permissions.GlobalPermissionsFieldMaskFromPermissions().Any() {
+		t.Fatal("permissions null must not set global key mask")
+	}
+}
+
+func TestPermissionsUnmarshalJSONPartialKeys(t *testing.T) {
+	t.Parallel()
+
+	var u struct {
+		Permissions Permissions `json:"permissions"`
+	}
+	if err := json.Unmarshal([]byte(`{"permissions":{"admin":true}}`), &u); err != nil {
+		t.Fatal(err)
+	}
+	if !u.Permissions.Configured {
+		t.Fatal("expected Configured for explicit permissions object")
+	}
+	mask := u.Permissions.GlobalPermissionsFieldMaskFromPermissions()
+	if !mask.Admin || mask.Api || mask.Share || mask.Realtime {
+		t.Fatalf("mask = %+v, want admin only", mask)
+	}
+	if !u.Permissions.Admin {
+		t.Fatal("expected admin true")
+	}
 }
 
 func TestSourceFilePermissionsIsUnset(t *testing.T) {

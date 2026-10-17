@@ -273,6 +273,23 @@ func EffectiveUserDefaults() settings.UserDefaults {
 	return userDefaultsDefault
 }
 
+// SetEffectiveUserDefaultsForTest replaces in-memory universal defaults (tests only).
+func SetEffectiveUserDefaultsForTest(t interface {
+	Helper()
+	Cleanup(func())
+}, d settings.UserDefaults) {
+	t.Helper()
+	userDefaultsMu.Lock()
+	previous := userDefaultsDefault
+	userDefaultsDefault = d
+	userDefaultsMu.Unlock()
+	t.Cleanup(func() {
+		userDefaultsMu.Lock()
+		userDefaultsDefault = previous
+		userDefaultsMu.Unlock()
+	})
+}
+
 // ApplyUserDefaults applies persisted defaults to a user, including sidebar link and tool access defaults.
 func ApplyUserDefaults(u *users.User) {
 	applyUserSettingsDefaults(u)
