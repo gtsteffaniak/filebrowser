@@ -337,7 +337,7 @@ func TestUpdateUserClearsTOTPWhenOtpDisabled(t *testing.T) {
 
 	u := &users.User{
 		FrontendUser: users.FrontendUser{
-			Username: "alice",
+			Username:   "alice",
 			OtpEnabled: true,
 		},
 	}
@@ -388,11 +388,11 @@ func TestUpdateUserPatchPreservesBackendSourcePermissions(t *testing.T) {
 	scopePerms := users.SourceFilePermissions{View: true, Download: true, Modify: true}
 	u := &users.User{
 		FrontendUser: users.FrontendUser{
-			Username: "alice",
+			Username:    "alice",
 			Permissions: users.Permissions{Admin: true},
 		},
 		BackendScopes: []users.BackendScope{{Path: "/data/a", Scope: "/", Permissions: scopePerms}},
-		Version:     users.SourcePermissionsMigrationVersion,
+		Version:       users.SourcePermissionsMigrationVersion,
 	}
 	if err = CreateUser(u, "password"); err != nil {
 		t.Fatal(err)
@@ -537,11 +537,25 @@ func TestCreateUserNonAdminDoesNotKeepAdminScopePermissions(t *testing.T) {
 	}
 }
 
-// Explicit all-false account permissions must not inherit Admin from user defaults.
-func TestCreateUserAllFalsePermissionsDoesNotInheritAdminDefaults(t *testing.T) {
+func setupCreateUserDefaultsTest(t *testing.T) {
+	t.Helper()
 	original := settings.Config
 	t.Cleanup(func() { settings.Config = original })
 	settings.Config = settings.SetDefaults(true)
+	settings.Config.UserDefaults.Account.Permissions.Share = true
+	settings.Config.UserDefaults.Account.Permissions.Api = true
+	settings.Config.UserDefaults.Account.Permissions.Realtime = true
+	userDefaultsMu.Lock()
+	previousUserDefaults := userDefaultsDefault
+	userDefaultsDefault.Account.Permissions.Share = true
+	userDefaultsDefault.Account.Permissions.Api = true
+	userDefaultsDefault.Account.Permissions.Realtime = true
+	userDefaultsMu.Unlock()
+	t.Cleanup(func() {
+		userDefaultsMu.Lock()
+		userDefaultsDefault = previousUserDefaults
+		userDefaultsMu.Unlock()
+	})
 	source := &settings.Source{Path: "/data/a", Name: "a", Config: settings.SourceConfig{
 		DefaultEnabled:     true,
 		DefaultPermissions: users.SourceFilePermissions{View: true, Download: true},
@@ -556,6 +570,11 @@ func TestCreateUserAllFalsePermissionsDoesNotInheritAdminDefaults(t *testing.T) 
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { _ = Close() })
+}
+
+// Explicit all-false account permissions must not inherit Admin from user defaults.
+func TestCreateUserAllFalsePermissionsDoesNotInheritAdminDefaults(t *testing.T) {
+	setupCreateUserDefaultsTest(t)
 
 	userDefaultsMu.Lock()
 	previousDefaults := userDefaultsDefault
@@ -585,5 +604,75 @@ func TestCreateUserAllFalsePermissionsDoesNotInheritAdminDefaults(t *testing.T) 
 	}
 	if loaded.Permissions.Admin || loaded.Permissions.Share || loaded.Permissions.Api || loaded.Permissions.Realtime {
 		t.Fatalf("expected all-false account permissions, got %+v", loaded.Permissions)
+	}
+}
+
+func TestCreateUserAppliesDefaultGlobalPermissionsWhenOmitted(t *testing.T) {
+	setupCreateUserDefaultsTest(t)
+
+	u := &users.User{
+		FrontendUser: users.FrontendUser{
+			Username: "bob",
+		},
+	}
+	if err := CreateUser(u, "password"); err != nil {
+		t.Fatal(err)
+	}
+
+	loaded, err := GetUserByUsername("bob")
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := users.Permissions{Share: true, Api: true, Realtime: true}
+	if loaded.Permissions != want {
+		t.Fatalf("permissions = %+v, want %+v", loaded.Permissions, want)
+	}
+}
+
+func TestCreateUserPartialGlobalPermissionsMask(t *testing.T) {
+	setupCreateUserDefaultsTest(t)
+
+	u := &users.User{
+		FrontendUser: users.FrontendUser{
+			Username:    "dave",
+			Permissions: users.Permissions{Admin: true},
+		},
+		PermissionsFieldMask: users.GlobalPermissionsFieldMask{Admin: true},
+	}
+	if err := CreateUser(u, "password"); err != nil {
+		t.Fatal(err)
+	}
+
+	loaded, err := GetUserByUsername("dave")
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := users.Permissions{Admin: true, Share: true, Api: true, Realtime: true}
+	if loaded.Permissions != want {
+		t.Fatalf("permissions = %+v, want %+v", loaded.Permissions, want)
+	}
+}
+
+func TestCreateUserExplicitFalseOverridesDefault(t *testing.T) {
+	setupCreateUserDefaultsTest(t)
+
+	u := &users.User{
+		FrontendUser: users.FrontendUser{
+			Username:    "erin",
+			Permissions: users.Permissions{Share: false, Api: false},
+		},
+		PermissionsFieldMask: users.GlobalPermissionsFieldMask{Share: true, Api: true},
+	}
+	if err := CreateUser(u, "password"); err != nil {
+		t.Fatal(err)
+	}
+
+	loaded, err := GetUserByUsername("erin")
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := users.Permissions{Share: false, Api: false, Realtime: true}
+	if loaded.Permissions != want {
+		t.Fatalf("permissions = %+v, want %+v", loaded.Permissions, want)
 	}
 }
