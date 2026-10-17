@@ -9,6 +9,9 @@ const MIN_LIVE_BUFFER_FRAGS = 2;
 // Once the element is playable, start after this grace period rather than
 // blocking on MIN_LIVE_BUFFER_FRAGS when production is slow.
 const LIVE_BUFFER_GRACE_MS = 2_000;
+/** Wait for decoded dimensions before declaring attach ready (MSE can buffer without painting). */
+const RENDERABLE_WAIT_MS = 8_000;
+const MAX_BUFFER_APPEND_RECOVERIES = 3;
 const RECOVERABLE_HLS_DETAILS = new Set([
   'bufferSeekOverHole',
   'bufferNudgeOnStall',
@@ -39,6 +42,17 @@ function applyAuthToFetchParams(initParams) {
   return initParams;
 }
 
+function describeBufferedRanges(video) {
+  if (!video?.buffered) {
+    return [];
+  }
+  const ranges = [];
+  for (let i = 0; i < video.buffered.length; i += 1) {
+    ranges.push([video.buffered.start(i), video.buffered.end(i)]);
+  }
+  return ranges;
+}
+
 function describeVideo(video) {
   if (!video) {
     return null;
@@ -51,7 +65,61 @@ function describeVideo(video) {
     duration: video.duration,
     src: video.currentSrc || video.getAttribute('src') || null,
     size: `${video.videoWidth}x${video.videoHeight}`,
+    buffered: describeBufferedRanges(video),
   };
+}
+
+/**
+ * MSE may report buffered fragments while videoWidth is still 0. Wait briefly for
+ * a decoded frame (or time advancing) before telling Plyr playback can start.
+ */
+export function waitUntilVideoRenderable(video, signal, maxMs = RENDERABLE_WAIT_MS) {
+  return new Promise((resolve) => {
+    if (!video) {
+      resolve(false);
+      return;
+    }
+    if (signal?.aborted) {
+      resolve(false);
+      return;
+    }
+    const startedAt = performance.now();
+    let settled = false;
+    const finish = (ok) => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      video.removeEventListener('loadeddata', onProgress);
+      video.removeEventListener('canplay', onProgress);
+      video.removeEventListener('timeupdate', onProgress);
+      resolve(ok);
+    };
+    const onProgress = () => {
+      if (signal?.aborted) {
+        finish(false);
+        return;
+      }
+      const hasPicture = video.videoWidth > 0
+        && video.videoHeight > 0
+        && video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA;
+      if (hasPicture) {
+        finish(true);
+        return;
+      }
+      if (performance.now() - startedAt >= maxMs) {
+        transcodeWarn('waitUntilVideoRenderable timed out', describeVideo(video));
+        finish(false);
+      }
+    };
+    video.addEventListener('loadeddata', onProgress);
+    video.addEventListener('canplay', onProgress);
+    video.addEventListener('timeupdate', onProgress);
+    onProgress();
+    if (typeof video.requestVideoFrameCallback === 'function') {
+      video.requestVideoFrameCallback(() => onProgress());
+    }
+  });
 }
 
 function describeFrag(frag) {
@@ -140,7 +208,9 @@ export function attachHlsToVideo({
       // Native HLS has no hls.js events, so report readiness from the element.
       // onFirstBuffered marks the session active, applies the start position and
       // resumes the primed play promise; without it playback stays paused.
-      const restoreDuration = pinMediaDuration(video, session?.durationSec);
+      const restoreDuration = session?.vodPlaylist
+        ? null
+        : pinMediaDuration(video, session?.durationSec);
       let reportedReady = false;
       const onReady = () => {
         if (reportedReady || signal?.aborted) {
@@ -179,8 +249,9 @@ export function attachHlsToVideo({
     let settled = false;
     let readyToPlay = false;
     let bufferedFrags = 0;
+    const isVodPlaylist = Boolean(session?.vodPlaylist);
     const isCompletedSession = session?.state === 'completed' || session?.state === 'ready';
-    const minBufferFrags = isCompletedSession ? 1 : MIN_LIVE_BUFFER_FRAGS;
+    const minBufferFrags = isVodPlaylist || isCompletedSession ? 1 : MIN_LIVE_BUFFER_FRAGS;
     const onAbort = () => {
       cleanup();
       const error = new Error('HLS attach aborted');
@@ -203,6 +274,7 @@ export function attachHlsToVideo({
     };
 
     let graceTimerId = null;
+    let appendRecoveryAttempts = 0;
     const clearGraceTimer = () => {
       if (graceTimerId !== null) {
         clearTimeout(graceTimerId);
@@ -215,14 +287,45 @@ export function attachHlsToVideo({
       }
       readyToPlay = true;
       clearGraceTimer();
-      transcodeLog('hls attach ready', {
-        reason,
-        bufferedFrags,
-        minBufferFrags,
-        readyState: video.readyState,
+      void waitUntilVideoRenderable(video, signal).then((renderable) => {
+        if (settled) {
+          return;
+        }
+        transcodeLog('hls attach ready', {
+          reason,
+          renderable,
+          bufferedFrags,
+          minBufferFrags,
+          readyState: video.readyState,
+          video: describeVideo(video),
+        });
+        // Buffered audio alone advances currentTime and Plyr's clock while
+        // videoWidth stays 0 — typical when fMP4 video fragments are invalid.
+        if (!renderable && isVodPlaylist) {
+          transcodeError('hls attach failed — VOD video never decoded a frame', {
+            sessionId: session?.id,
+            video: describeVideo(video),
+          });
+          cleanup();
+          const err = new Error('HLS video track did not decode');
+          err.code = 'VIDEO_NOT_RENDERABLE';
+          onFatal?.({
+            type: 'mediaError',
+            details: 'videoTrackNotRenderable',
+            fatal: true,
+          });
+          finish('reject', err);
+          return;
+        }
+        if (!renderable) {
+          transcodeWarn('hls attach proceeding without decoded video dimensions', {
+            sessionId: session?.id,
+            video: describeVideo(video),
+          });
+        }
+        onFirstBuffered?.(video);
+        finish('resolve', { cleanup, hls });
       });
-      onFirstBuffered?.(video);
-      finish('resolve', { cleanup, hls });
     };
     const onVideoPlayable = () => scheduleGraceResolve();
     const scheduleGraceResolve = () => {
@@ -258,7 +361,7 @@ export function attachHlsToVideo({
     // MediaSource.duration is Infinity). On a completed VOD playlist a pinned
     // finite value makes hls.js skip its own duration update, leaving
     // seekable empty and silently discarding every seek.
-    const restoreDuration = isCompletedSession
+    const restoreDuration = isVodPlaylist || isCompletedSession
       ? null
       : pinMediaDuration(video, session?.durationSec);
     const hls = new Hls({
@@ -268,6 +371,22 @@ export function attachHlsToVideo({
       maxBufferLength: 30,
       maxMaxBufferLength: 60,
       startPosition: initialStart,
+      manifestLoadPolicy: {
+        default: {
+          maxTimeToFirstByteMs: 60_000,
+          maxLoadTimeMs: 60_000,
+          timeoutRetry: {
+            maxNumRetry: 4,
+            retryDelayMs: 2000,
+            maxRetryDelayMs: 8000,
+          },
+          errorRetry: {
+            maxNumRetry: 8,
+            retryDelayMs: 2000,
+            maxRetryDelayMs: 8000,
+          },
+        },
+      },
       xhrSetup(xhr, url) {
         xhr.withCredentials = true;
         for (const [key, value] of Object.entries(authHeaders())) {
@@ -338,11 +457,20 @@ export function attachHlsToVideo({
 
     hls.on(Hls.Events.FRAG_BUFFERED, (_event, data) => {
       bufferedFrags += 1;
+      const fragInfo = describeFrag(data?.frag);
       transcodeLog('hls frag buffered', {
-        frag: describeFrag(data?.frag),
+        frag: fragInfo,
         video: describeVideo(video),
         bufferedFrags,
         minBufferFrags,
+        sessionStartSec: session?.startSec,
+        // If frag.start ≈ 0 while sessionStartSec is large, hls.js is on playlist-local
+        // time and absolute startSec math in the player will be wrong.
+        timelineCheck: bufferedFrags === 1 ? {
+          fragStart: fragInfo?.start,
+          videoCurrentTime: video?.currentTime,
+          sessionStartSec: session?.startSec,
+        } : undefined,
       });
       if (readyToPlay) {
         return;
@@ -355,7 +483,10 @@ export function attachHlsToVideo({
     });
 
     hls.on(Hls.Events.ERROR, (_event, data) => {
-      const info = describeHlsError(data);
+      const info = {
+        ...describeHlsError(data),
+        video: describeVideo(video),
+      };
       if (data?.fatal) {
         transcodeError('hls fatal error', info);
         cleanup();
@@ -363,8 +494,43 @@ export function attachHlsToVideo({
         finish('reject', data);
         return;
       }
+      if (data?.details === 'bufferAppendNoProgress') {
+        transcodeWarn('hls bufferAppendNoProgress', info);
+        if (appendRecoveryAttempts < MAX_BUFFER_APPEND_RECOVERIES) {
+          appendRecoveryAttempts += 1;
+          try {
+            hls.recoverMediaError();
+            transcodeLog('hls recoverMediaError after bufferAppendNoProgress', {
+              attempt: appendRecoveryAttempts,
+            });
+          } catch (err) {
+            transcodeWarn('hls recoverMediaError failed', { message: err?.message });
+          }
+        }
+        return;
+      }
       if (RECOVERABLE_HLS_DETAILS.has(data?.details)) {
         transcodeVerbose('hls non-fatal media recovery', info);
+        return;
+      }
+      // Init/segment 503 during startup is common; recover before MSE requires reset.
+      if (data?.type === Hls.ErrorTypes.NETWORK_ERROR && data?.response?.code === 503) {
+        transcodeWarn('hls 503 during transcode startup — retrying load', info);
+        try {
+          hls.startLoad(hls.liveSyncPosition ?? -1);
+        } catch (err) {
+          transcodeWarn('hls startLoad retry after 503 failed', { message: err?.message });
+        }
+        return;
+      }
+      if (data?.details === 'mediaSourceRequiresReset' && appendRecoveryAttempts < MAX_BUFFER_APPEND_RECOVERIES) {
+        appendRecoveryAttempts += 1;
+        transcodeWarn('hls mediaSourceRequiresReset — recoverMediaError', info);
+        try {
+          hls.recoverMediaError();
+        } catch (err) {
+          transcodeWarn('hls recoverMediaError failed', { message: err?.message });
+        }
         return;
       }
       transcodeWarn('hls non-fatal error', info);

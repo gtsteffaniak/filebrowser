@@ -225,7 +225,9 @@ func transcodePlaylistHandler(w http.ResponseWriter, r *http.Request, d *Context
 		return http.StatusServiceUnavailable, err
 	}
 	id := strings.TrimSpace(r.PathValue("id"))
-	deadline := time.Now().Add(15 * time.Second)
+	// Match hls.js attach timeout so the first manifest poll can wait for slow
+	// CPU transcode / EAC3→AAC startup without a spurious 503.
+	deadline := time.Now().Add(45 * time.Second)
 	var lastErr error
 	for {
 		if mgr.Failed(d.User.Username, id) {
@@ -271,7 +273,7 @@ func transcodeInitHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 		return http.StatusServiceUnavailable, err
 	}
 	id := strings.TrimSpace(r.PathValue("id"))
-	f, err := mgr.OpenInit(d.User.Username, id)
+	f, err := mgr.OpenInitWait(r.Context(), d.User.Username, id, 45*time.Second)
 	if err != nil {
 		logger.Infof("[transcode] init failed session=%s user=%s err=%v", id, d.User.Username, err)
 		return transcodeErrorStatus(err), err
@@ -297,7 +299,7 @@ func transcodeSegmentHandler(w http.ResponseWriter, r *http.Request, d *Context)
 	// index.m3u8 only lists segments after the publisher lands them in seg/,
 	// so a listed segment always exists — a miss means the generation was
 	// cleared, and hls.js retries fragment loads on its own.
-	f, err := mgr.OpenSegment(d.User.Username, id, name)
+	f, err := mgr.OpenSegment(r.Context(), d.User.Username, id, name)
 	if err != nil {
 		logger.Infof("[transcode] segment failed session=%s user=%s name=%s err=%v", id, d.User.Username, name, err)
 		return transcodeErrorStatus(err), err

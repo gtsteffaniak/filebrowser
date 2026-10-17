@@ -366,7 +366,7 @@ func processContent(info *iteminfo.ExtendedFileInfo, idx *indexing.Index, opts u
 		}
 		err := extractVideoMetadata(context.Background(), extItem, info.RealPath, nil)
 		if err != nil {
-			logger.Debugf("failed to extract video metadata for file: "+info.RealPath, info.Name, err)
+			logger.Debugf("failed to extract video metadata for file: %s (%s): %v", info.RealPath, info.Name, err)
 		} else {
 			info.Metadata = extItem.Metadata
 		}

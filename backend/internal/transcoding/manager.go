@@ -33,6 +33,11 @@ type producer struct {
 	// refs counts the sessions attached to this generation. The job is only
 	// cancelled once the last attached session goes away.
 	refs int
+	// encodeHead is the highest segment index known ready on disk for this job.
+	encodeHead int
+	// vodRestartIndex >= 0 means the job was cancelled to reposition; runProducer retries.
+	vodRestartIndex int
+	clearSegmentsOnStart bool
 }
 
 type playbackSession struct {
@@ -368,7 +373,11 @@ func (m *Manager) commitStart(ctx context.Context, ps pendingStart) (SessionInfo
 		return SessionInfo{}, err
 	}
 
-	startIndex, ffmpegStartSec := continuousSeekParams(ps.in.StartSec, plan.segmentSec)
+	startIndex, ffmpegStartSec := vodSeekParams(plan, ps.in.StartSec)
+	if err := m.writeVODPlaylist(jobDir, plan.playlistBody); err != nil {
+		m.finishInflight(ps.in.Username, ps.reuseKey, ps.flight, SessionInfo{}, err)
+		return SessionInfo{}, err
+	}
 
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -377,16 +386,18 @@ func (m *Manager) commitStart(ctx context.Context, ps pendingStart) (SessionInfo
 		return SessionInfo{}, ErrDisabled
 	}
 
-	sess := m.newSessionLocked(ps, jobDir, generation, startIndex, ffmpegStartSec, coverageStartSec(plan, startIndex))
+	sess := m.newSessionLocked(ps, jobDir, generation, startIndex, ffmpegStartSec, plan.mediaDurationSec)
 	// Register the generation before the producer starts so a concurrent start
 	// for the same file attaches to it instead of transcoding again.
 	m.producers[ps.sessionID] = &producer{
-		generation: generation,
-		jobDir:     jobDir,
-		plan:       plan,
-		startIndex: startIndex,
-		startSec:   ffmpegStartSec,
-		refs:       1,
+		generation:      generation,
+		jobDir:          jobDir,
+		plan:            plan,
+		startIndex:      startIndex,
+		startSec:        ffmpegStartSec,
+		encodeHead:      startIndex - 1,
+		vodRestartIndex: -1,
+		refs:            1,
 	}
 	info := m.finishAttachLocked(ps, sess)
 
@@ -475,6 +486,9 @@ func (m *Manager) attachCoveringGeneration(ps pendingStart) (SessionInfo, bool, 
 // and its produced edge must have reached it (within the forward slack that
 // makes waiting cheaper than restarting ffmpeg).
 func (m *Manager) producerCoversTargetLocked(p *producer, targetSec float64) bool {
+	if p.plan.vodList.Count() > 0 {
+		return targetSec >= -seekBackwardEpsSec && targetSec <= p.plan.mediaDurationSec+seekBackwardEpsSec
+	}
 	if targetSec < coverageStartSec(p.plan, p.startIndex)-seekBackwardEpsSec {
 		return false
 	}
@@ -485,6 +499,9 @@ func (m *Manager) producerCoversTargetLocked(p *producer, targetSec float64) boo
 // edge — the generation start plus the produced media duration on disk, or
 // the start alone when nothing has been produced yet.
 func (m *Manager) coverageEndSecLocked(plan hlsPlan, startIndex int, jobDir string) float64 {
+	if plan.vodList.Count() > 0 {
+		return plan.mediaDurationSec
+	}
 	end := coverageStartSec(plan, startIndex)
 	if jobDir != "" {
 		if cov := m.store.GenerationCoverage(jobDir); cov.HasPlaylist {
@@ -529,9 +546,10 @@ func (m *Manager) newSessionLocked(ps pendingStart, jobDir, generation string, s
 			StartedAt:         now.Unix(),
 			HeartbeatInterval: int(defaultHeartbeatInterval.Seconds()),
 			DurationSec:       ps.plan.mediaDurationSec,
-			StartSec:          coverageStartSec(ps.plan, startIndex),
+			StartSec:          ps.in.StartSec,
 			EndSec:            endSec,
 			DeliveryBaseURL:   m.deliveryURL(ps.sessionID),
+			VodPlaylist:       ps.plan.vodList.Count() > 0,
 		},
 		reuseKey:        ps.reuseKey,
 		generation:      generation,
@@ -605,22 +623,50 @@ func (m *Manager) runProducer(ctx context.Context, sess *playbackSession) {
 	ffmpegStartSec := sess.startSec
 	m.mu.Unlock()
 
-	retried := false
+	retriedVT := false
+	retriedCorrupt := false
 	for {
 		outcome := m.runProducerJob(ctx, sessionID, gen, jobDir, realPath, plan, startIndex, ffmpegStartSec)
-		if outcome != producerRestartSoftware || retried {
+		switch outcome {
+		case producerRestartSoftware:
+			if retriedVT {
+				return
+			}
+			retriedVT = true
+			logger.Warningf("transcode generation=%s hardware decode unreliable, restarting with software decode", gen)
+			if err := m.store.ClearGenerationOutput(jobDir); err != nil {
+				logger.Warningf("transcode generation=%s clearing output before decode retry: %v", gen, err)
+			}
+			plan.decodeProfile.ForceSoftware = true
+		case producerRestartCorrupt:
+			if retriedCorrupt {
+				return
+			}
+			retriedCorrupt = true
+			logger.Warningf("transcode generation=%s software decode unreliable, restarting generation", gen)
+			if err := m.store.ClearGenerationOutput(jobDir); err != nil {
+				logger.Warningf("transcode generation=%s clearing output before corrupt retry: %v", gen, err)
+			}
+		case producerRestartSeek:
+			m.mu.Lock()
+			idx := startIndex
+			sec := ffmpegStartSec
+			clear := false
+			if p := m.producers[sessionID]; p != nil {
+				idx = p.startIndex
+				sec = p.startSec
+				clear = p.clearSegmentsOnStart
+				p.clearSegmentsOnStart = false
+				p.vodRestartIndex = -1
+			}
+			m.mu.Unlock()
+			startIndex = idx
+			ffmpegStartSec = sec
+			plan.vodClearFromIndex = clear
+			continue
+		default:
 			return
 		}
-		// Hardware decode proved unreliable on this file — wipe the partial
-		// corrupt output and restart once with software decode. Segments are
-		// re-encoded from the generation's start rather than resumed because
-		// detection fires within the first seconds of output.
-		retried = true
-		logger.Warningf("transcode generation=%s hardware decode unreliable, restarting with software decode", gen)
-		if err := m.store.ClearGenerationOutput(jobDir); err != nil {
-			logger.Warningf("transcode generation=%s clearing output before decode retry: %v", gen, err)
-		}
-		plan.decodeProfile.ForceSoftware = true
 	}
 }
 
@@ -636,6 +682,11 @@ const (
 	// producerRestartSoftware: sustained hardware decode failures — caller
 	// should retry the generation with software decode.
 	producerRestartSoftware
+	// producerRestartCorrupt: sustained software decode corruption — caller
+	// should wipe partial output and restart the generation once.
+	producerRestartCorrupt
+	// producerRestartSeek: segment handler cancelled the job to reposition.
+	producerRestartSeek
 )
 
 // runProducerJob runs one ffmpeg job for the generation and watches it through
@@ -643,7 +694,14 @@ const (
 // caller decides whether the outcome ends or retries the generation.
 func (m *Manager) runProducerJob(ctx context.Context, sessionID, gen, jobDir, realPath string, plan hlsPlan, startIndex int, startSec float64) producerOutcome {
 	jobCtx, cancel := context.WithCancel(ctx)
-	job, err := m.engine.StartContinuous(jobCtx, realPath, jobDir, plan, startIndex, startSec)
+	planCopy := plan
+	m.mu.Lock()
+	if p := m.producers[sessionID]; p != nil {
+		planCopy.vodClearFromIndex = p.clearSegmentsOnStart
+		p.clearSegmentsOnStart = false
+	}
+	m.mu.Unlock()
+	job, err := m.engine.StartContinuous(jobCtx, realPath, jobDir, planCopy, startIndex, startSec)
 	if err != nil {
 		cancel()
 		m.failSession(gen, err)
@@ -677,7 +735,16 @@ func (m *Manager) runProducerJob(ctx context.Context, sessionID, gen, jobDir, re
 		case <-ctx.Done():
 			return producerGone
 		case err := <-jobDone:
-			m.finishProducer(gen, err)
+			m.mu.Lock()
+			restartSeek := false
+			if p := m.producers[sessionID]; p != nil && p.vodRestartIndex >= 0 {
+				restartSeek = true
+			}
+			m.mu.Unlock()
+			if restartSeek {
+				return producerRestartSeek
+			}
+			m.finishProducer(gen, err, jobDir, plan)
 			return producerDone
 		case <-startup.C:
 			if !m.store.InitReady(jobDir) {
@@ -686,17 +753,32 @@ func (m *Manager) runProducerJob(ctx context.Context, sessionID, gen, jobDir, re
 				return producerDone
 			}
 		case <-ticker.C:
-			if job.VTDecodeUnreliable() {
+			if job.VTDecodeUnreliable() && !plan.decodeProfile.ForceSoftware {
 				job.Cancel()
 				if waitErr := <-jobDone; waitErr != nil {
 					logger.Infof("transcode generation=%s job stopped for software decode retry: %v", gen, waitErr)
 				}
 				return producerRestartSoftware
 			}
+			// Stream-copy/remux: NAL errors in stderr mean the output bitstream is
+			// likely unusable. Full re-encode uses +discardcorrupt and libavcodec
+			// often logs NAL lines on damaged MKV while still producing valid fMP4.
+			if job.SoftwareDecodeUnreliable() && (plan.remux || plan.videoCopy) {
+				job.Cancel()
+				if waitErr := <-jobDone; waitErr != nil {
+					logger.Infof("transcode generation=%s job stopped for corrupt decode retry: %v", gen, waitErr)
+				}
+				return producerRestartCorrupt
+			}
 			if !started && m.store.InitReady(jobDir) {
 				started = true
 				m.markRunning(gen)
 			}
+			m.mu.Lock()
+			if p := m.producers[sessionID]; p != nil {
+				m.refreshVODEncodeHead(p, jobDir, plan)
+			}
+			m.mu.Unlock()
 		}
 	}
 }
@@ -732,9 +814,12 @@ func (m *Manager) failSession(generation string, err error) {
 	}
 }
 
-func (m *Manager) finishProducer(generation string, err error) {
+func (m *Manager) finishProducer(generation string, err error, jobDir string, plan hlsPlan) {
 	if err != nil {
 		logger.Warningf("transcode producer exited generation=%s: %v", generation, err)
+	}
+	if err == nil && plan.vodList.Count() > 0 {
+		m.markVODComplete(jobDir, plan.mediaDurationSec)
 	}
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -965,10 +1050,55 @@ func (m *Manager) OpenInit(username, sessionID string) (*os.File, error) {
 	return m.store.OpenInit(jobDir)
 }
 
-func (m *Manager) OpenSegment(username, sessionID, name string) (*os.File, error) {
+// OpenInitWait polls until init.m4s exists or maxWait elapses. hls.js requests
+// init in parallel with the first media segment; returning 503 once often leaves
+// MSE in a bad state unless the client retries cleanly.
+func (m *Manager) OpenInitWait(ctx context.Context, username, sessionID string, maxWait time.Duration) (*os.File, error) {
+	deadline := time.Now().Add(maxWait)
+	for {
+		f, err := m.OpenInit(username, sessionID)
+		if err == nil {
+			return f, nil
+		}
+		if !errors.Is(err, ErrNotReady) || time.Now().After(deadline) {
+			return nil, err
+		}
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		case <-time.After(100 * time.Millisecond):
+		}
+	}
+}
+
+func (m *Manager) OpenSegment(ctx context.Context, username, sessionID, name string) (*os.File, error) {
 	jobDir, err := m.touchJobDir(username, sessionID)
 	if err != nil {
 		return nil, err
+	}
+	m.mu.Lock()
+	sess, sessErr := m.ownedSessionLocked(username, sessionID)
+	var p *producer
+	if sessErr == nil {
+		p = m.producers[sessionID]
+	}
+	m.mu.Unlock()
+	if sessErr != nil {
+		return nil, sessErr
+	}
+	if sess.plan.vodList.Count() > 0 {
+		segIndex, parseErr := parseSegmentIndex(name)
+		if parseErr != nil {
+			return nil, parseErr
+		}
+		waitCtx, cancel := context.WithTimeout(context.Background(), time.Duration(vodSegmentWaitTimeout)*time.Second)
+		defer cancel()
+		if err := m.ensureVODSegment(waitCtx, sess, p, segIndex); err != nil {
+			if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+				return nil, ErrNotReady
+			}
+			return nil, err
+		}
 	}
 	return m.store.OpenSegment(jobDir, name)
 }
@@ -982,7 +1112,7 @@ func (m *Manager) Playlist(username, sessionID string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	if !hasSegments {
+	if !hasSegments && !strings.Contains(string(data), "#EXT-X-PLAYLIST-TYPE:VOD") {
 		// The playlist exists but lists no published segments yet; report
 		// not-ready so the caller keeps polling instead of serving an
 		// empty playlist.
@@ -1057,6 +1187,14 @@ func (m *Manager) deliveryURL(sessionID string) string {
 // (live-paced, ~1x) must reposition rather than stall. coverageEndSec is the
 // source-time end of the last produced segment.
 func sessionReusable(sess *playbackSession, startSec, coverageEndSec float64) bool {
+	if sess.plan.vodList.Count() > 0 {
+		switch sess.state {
+		case StateStarting, StateRunning, StateCompleted:
+			return startSec >= -seekBackwardEpsSec && startSec <= sess.plan.mediaDurationSec+seekBackwardEpsSec
+		default:
+			return false
+		}
+	}
 	switch sess.state {
 	case StateStarting, StateRunning:
 		if startSec < coverageStartSec(sess.plan, sess.startIndex)-seekBackwardEpsSec {

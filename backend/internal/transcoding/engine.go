@@ -9,9 +9,32 @@ import (
 	"github.com/gtsteffaniak/go-ffmpeg/capabilities"
 	"github.com/gtsteffaniak/go-ffmpeg/encode"
 
+	"github.com/gtsteffaniak/go-logger/logger"
+
 	"github.com/gtsteffaniak/filebrowser/backend/internal/ffmpeg"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 )
+
+// maxCopySegmentDurationSec is the longest #EXTINF allowed on remux/video-copy
+// VOD paths. Sparse or corrupt keyframe indexes can plan multi-minute segments
+// that produce huge, MSE-hostile fMP4 fragments — force a transcode grid instead.
+func maxCopySegmentDurationSec(segmentSec float64) float64 {
+	cap := segmentSec * 3
+	if cap < 12 {
+		cap = 12
+	}
+	return cap
+}
+
+func vodMaxSegmentDuration(list ffmpeg.VODSegmentList) float64 {
+	var max float64
+	for _, d := range list.Durations {
+		if d > max {
+			max = d
+		}
+	}
+	return max
+}
 
 // MediaEngine adapts the ffmpeg service for HLS transcoding.
 type MediaEngine struct{}
@@ -23,6 +46,8 @@ type ContinuousJob interface {
 	// VTDecodeUnreliable reports sustained VideoToolbox hardware decode failures
 	// in ffmpeg stderr — a signal to restart the job with software decode.
 	VTDecodeUnreliable() bool
+	// SoftwareDecodeUnreliable reports sustained software decoder corruption in stderr.
+	SoftwareDecodeUnreliable() bool
 }
 
 // Engine performs probe/plan/start operations for tests and production.
@@ -69,18 +94,9 @@ func (e *MediaEngine) BuildPlan(ctx context.Context, realPath string, profile Pr
 	}
 	mustTranscode := profileForcesVideoTranscode(profile) ||
 		profileRequiresBitrateTranscode(profile, info) ||
-		(pipeline.MaxHeight > 0 && info.Height > pipeline.MaxHeight) ||
-		!fmp4CopyableVideoCodec(info.VideoCodec)
+		(pipeline.MaxHeight > 0 && info.Height > pipeline.MaxHeight)
 	pipeline.ForceVideoTranscode = mustTranscode
-	// BuildHLSSegmentBuildInput gates stream copy on h264 only; fMP4 also
-	// carries HEVC and VP9, so eligibility is computed here instead.
-	remux, videoCopy := fmp4CopyEligibility(info, mustTranscode)
-	buildIn := ffmpeg.HLSSegmentBuildInput{
-		Info:      info,
-		MaxHeight: pipeline.MaxHeight,
-		Remux:     remux,
-		VideoCopy: videoCopy,
-	}
+	buildIn := ffmpeg.BuildHLSSegmentBuildInput(info, pipeline)
 	defaults := ffmpeg.DefaultOnDemandHLSDefaults()
 
 	svc := ffmpeg.Get()
@@ -103,9 +119,9 @@ func (e *MediaEngine) BuildPlan(ctx context.Context, realPath string, profile Pr
 	plan.avgBitrateKbps = avgBitrateForProfile(profile)
 	plan.remux = params.Remux
 	plan.videoCopy = params.VideoCopy
-	plan.needsTranscode = mustTranscode
+	plan.needsTranscode = mustTranscode || (!plan.remux && !plan.videoCopy)
 
-	if plan.needsTranscode || (!plan.remux && !plan.videoCopy) {
+	if plan.needsTranscode {
 		plan.encodeProfile = encodeProfileForMode(info, profile)
 		plan.decodeProfile = ffmpeg.HLSDecodeProfileForOnDemand(info)
 	}
@@ -119,6 +135,45 @@ func (e *MediaEngine) BuildPlan(ctx context.Context, realPath string, profile Pr
 	}
 	plan.keyframes = keyframes
 	plan.segmentSec = defaults.SegmentDurationSec
+	plan.vodList = ffmpeg.BuildVODSegmentList(info.Duration, plan.segmentSec, info.StartTime, keyframes)
+	if n := plan.vodList.Count(); n > 0 {
+		last := n - 1
+		plan.mediaDurationSec = plan.vodList.Starts[last] + plan.vodList.Durations[last]
+	}
+	plan.playlistBody = ffmpeg.BuildVODPlaylist(plan.vodList, ffmpeg.DefaultVODPlaylistOptions())
+	if plan.mediaDurationSec <= 0 {
+		return plan, ErrUnsupportedMedia
+	}
+
+	if (plan.remux || plan.videoCopy) && vodMaxSegmentDuration(plan.vodList) > maxCopySegmentDurationSec(plan.segmentSec) {
+		logger.Infof(
+			"transcode: longest keyframe segment %.1fs exceeds %.1fs cap on %s — forcing video transcode for HLS",
+			vodMaxSegmentDuration(plan.vodList),
+			maxCopySegmentDurationSec(plan.segmentSec),
+			realPath,
+		)
+		pipeline.ForceVideoTranscode = true
+		buildIn = ffmpeg.BuildHLSSegmentBuildInput(info, pipeline)
+		params, err = svc.BuildHLSSegmentParams(ctx, realPath, buildIn, true)
+		if err != nil {
+			return plan, err
+		}
+		params.OmitAudio = !info.HasAudio
+		plan.params = params
+		plan.remux = params.Remux
+		plan.videoCopy = params.VideoCopy
+		plan.needsTranscode = true
+		plan.encodeProfile = encodeProfileForMode(info, profile)
+		plan.decodeProfile = ffmpeg.HLSDecodeProfileForOnDemand(info)
+		plan.keyframes = nil
+		_, plan.mediaDurationSec = ffmpeg.PrepareHLSMediaTimeline(nil, info.Duration, info.StartTime)
+		plan.vodList = ffmpeg.BuildVODSegmentList(info.Duration, plan.segmentSec, info.StartTime, nil)
+		if n := plan.vodList.Count(); n > 0 {
+			last := n - 1
+			plan.mediaDurationSec = plan.vodList.Starts[last] + plan.vodList.Durations[last]
+		}
+		plan.playlistBody = ffmpeg.BuildVODPlaylist(plan.vodList, ffmpeg.DefaultVODPlaylistOptions())
+	}
 
 	cacheID := ffmpeg.HLSCacheIdentity{
 		SourcePath:         realPath,
@@ -131,9 +186,8 @@ func (e *MediaEngine) BuildPlan(ctx context.Context, realPath string, profile Pr
 		Params:             params,
 	}
 	// Generations produced before the publisher model serve corrupt or
-	// unverifiable timelines, so the cache namespace is versioned — v3 entries
-	// always carry the published index.m3u8/job.json layout.
-	plan.cacheFingerprint = "v3-" + ffmpeg.HLSCacheFingerprint(cacheID)
+	// unverifiable timelines, so the cache namespace is versioned.
+	plan.cacheFingerprint = "vod-" + ffmpeg.HLSCacheFingerprint(cacheID)
 	return plan, nil
 }
 
@@ -142,31 +196,36 @@ func (e *MediaEngine) StartContinuous(ctx context.Context, realPath, outputDir s
 	if svc == nil {
 		return nil, ErrUnavailable
 	}
-	opts := ffmpeg.HLSContinuousOptions{
+	playlistStart := vodPlaylistStartSec(plan, startIndex)
+	if startSec > 0 && playlistStart == 0 && startIndex > 0 {
+		playlistStart = startSec
+	}
+	opts := ffmpeg.HLSVODJobOptions{
 		Input: ffmpeg.InputSource{
 			URL:        realPath,
 			StreamType: ffmpeg.StreamFile,
 		},
-		OutputDir:         outputDir,
-		StartIndex:        startIndex,
-		StartSec:          startSec,
-		SegmentSec:        plan.segmentSec,
-		FreshPlaylist:     startIndex == 0 && startSec <= 0,
-		Decode:            plan.decodeProfile,
-		Profile:           plan.encodeProfile,
-		MaxHeight:         plan.maxHeight,
-		Remux:             plan.remux,
-		VideoCopy:         plan.videoCopy,
-		InputVideoCodec:   plan.info.VideoCodec,
-		InputStartTimeSec: plan.info.StartTime,
-		OmitAudio:         plan.params.OmitAudio,
-		GOP:               plan.params.GOP,
-		// ~1.5x input pacing after a 60s headstart burst: the produced edge
-		// stays ahead of playback while the cache still only fills for
-		// content that is actually watched.
-		Pacing: ffmpeg.HLSContinuousLivePaced,
+		OutputDir:           outputDir,
+		StartIndex:          startIndex,
+		StartSec:            playlistStart,
+		SegmentSec:          plan.segmentSec,
+		InputStartTimeSec:   plan.info.StartTime,
+		KeyframeSeekTimes:   plan.keyframes,
+		Decode:              plan.decodeProfile,
+		Profile:             plan.encodeProfile,
+		MaxHeight:           plan.maxHeight,
+		Remux:               plan.remux,
+		VideoCopy:           plan.videoCopy,
+		GOP:                 plan.params.GOP,
+		InputVideoCodec:     plan.info.VideoCodec,
+		OmitAudio:              plan.params.OmitAudio,
+		ClearSegmentsFromIndex: plan.vodClearFromIndex,
 	}
-	return svc.StartHLSContinuous(ctx, opts)
+	job, err := svc.StartHLSVODSegmentJob(ctx, opts)
+	if err != nil {
+		return nil, err
+	}
+	return job, nil
 }
 
 type hlsPlan struct {
@@ -185,6 +244,9 @@ type hlsPlan struct {
 	segmentSec       float64
 	mediaDurationSec float64
 	cacheFingerprint string
+	vodList            ffmpeg.VODSegmentList
+	playlistBody       string
+	vodClearFromIndex  bool
 }
 
 // maxHeightForProfile returns the configured output height cap for a profile.
@@ -211,33 +273,6 @@ func avgBitrateForProfile(profile Profile) int {
 // audio at a bounded bitrate, regardless of how the source was encoded.
 func profileForcesVideoTranscode(profile Profile) bool {
 	return profile != ProfileQuality
-}
-
-// fmp4CopyableVideoCodec reports whether the video codec can be stream-copied
-// into fMP4 HLS output and still decode in every hls.js-capable browser. Only
-// h264 qualifies: VP9 has no Safari MSE support, HEVC support is inconsistent
-// outside Apple hardware, and VP8 has no MP4 mapping. Everything else takes
-// the transcode path, which always emits h264 + AAC.
-func fmp4CopyableVideoCodec(name string) bool {
-	n := strings.ToLower(strings.TrimSpace(name))
-	switch n {
-	case "", "h264", "avc", "avc1":
-		return true
-	}
-	return strings.Contains(n, "h264")
-}
-
-// fmp4CopyEligibility selects the stream-copy pipeline for a source: remux when
-// video and audio are both fMP4-compatible, videoCopy when only the audio needs
-// transcoding. Nothing copies when a transcode is required.
-func fmp4CopyEligibility(info ffmpeg.StreamInfo, mustTranscode bool) (remux, videoCopy bool) {
-	if !info.HasVideo || mustTranscode || !fmp4CopyableVideoCodec(info.VideoCodec) {
-		return false, false
-	}
-	if info.AudioCodec == "" || strings.EqualFold(info.AudioCodec, "aac") {
-		return true, false
-	}
-	return false, true
 }
 
 // profileRequiresBitrateTranscode reports whether the profile pins a bitrate cap

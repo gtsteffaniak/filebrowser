@@ -21,11 +21,20 @@ vi.mock('@/store', () => ({
   state: { sessionId: 'test-session' },
 }));
 
-import { attachHlsToVideo } from '@/plyr/hlsAdapter.js';
+import { attachHlsToVideo, waitUntilVideoRenderable } from '@/plyr/hlsAdapter.js';
 
 describe('attachHlsToVideo', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  it('waitUntilVideoRenderable resolves when video has dimensions', async () => {
+    const video = document.createElement('video');
+    Object.defineProperty(video, 'videoWidth', { configurable: true, get: () => 640 });
+    Object.defineProperty(video, 'videoHeight', { configurable: true, get: () => 360 });
+    Object.defineProperty(video, 'readyState', { configurable: true, get: () => HTMLMediaElement.HAVE_CURRENT_DATA });
+
+    await expect(waitUntilVideoRenderable(video, null, 500)).resolves.toBe(true);
   });
 
   it('rejects immediately when signal is already aborted', async () => {

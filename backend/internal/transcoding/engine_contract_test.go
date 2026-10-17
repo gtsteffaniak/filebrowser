@@ -64,7 +64,7 @@ func TestStoreServeContractOpensNormalizedSegment(t *testing.T) {
 	}
 	initFile.Close()
 
-	segFile, err := mgr.OpenSegment("contract-user", info.ID, "00000.m4s")
+	segFile, err := mgr.OpenSegment(context.Background(), "contract-user", info.ID, "00000.m4s")
 	if err != nil {
 		t.Fatalf("open segment: %v", err)
 	}
@@ -79,7 +79,7 @@ func writeServeFixture(t *testing.T, jobDir, playlist string) {
 	if err := os.MkdirAll(segDir, 0o755); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(segDir, "00000.m4s"), make([]byte, 9000), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(segDir, "00000.m4s"), fakeVODSegmentPayload(), 0o644); err != nil {
 		t.Fatal(err)
 	}
 	if err := os.WriteFile(filepath.Join(jobDir, "index.m3u8"), []byte(playlist), 0o644); err != nil {

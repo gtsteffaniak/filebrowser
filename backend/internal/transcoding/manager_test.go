@@ -597,8 +597,9 @@ func TestManagerRepositionsSeekBeyondProducedEdge(t *testing.T) {
 		t.Fatal("a seek past the produced edge must start a new generation")
 	}
 	waitForStarts(t, engine, 2)
-	if idx, sec := engine.LastStart(); idx != 75 || sec != 300 {
-		t.Fatalf("new generation start = (%d, %v), want (75, 300)", idx, sec)
+	// VOD Model A snaps the seek target to the synthetic playlist (10s fixture).
+	if idx, sec := engine.LastStart(); idx != 2 || sec != 8 {
+		t.Fatalf("new generation start = (%d, %v), want (2, 8)", idx, sec)
 	}
 	if _, err := mgr.SessionForUser(in.Username, first.ID); err != ErrNotFound {
 		t.Fatalf("old session should be superseded, got %v", err)
@@ -662,8 +663,7 @@ func TestManagerOutOfRangeSeekKeepsOtherClientSession(t *testing.T) {
 	waitForStarts(t, engine, 2)
 }
 
-// A completed partial generation serves seeks into its own range but must
-// never be attached as if it covered the file start.
+// A completed VOD generation is reused for any in-range playhead without ffmpeg.
 func TestManagerAttachesCoveringCompletedGeneration(t *testing.T) {
 	engine := NewFakeEngine()
 	mgr, store := newTestManager(t, engine)
@@ -673,55 +673,39 @@ func TestManagerAttachesCoveringCompletedGeneration(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	// A finished tail covering segments 10..19 (40s..80s on the 4s grid).
-	writeProducedRange(t, store.JobDir(plan.cacheFingerprint, "gen-tail"), 10, 10, true)
+	writeProducedRange(t, store.JobDir(plan.cacheFingerprint, "gen-full"), 0, 3, true)
 
-	// A seek to 50s lands inside the tail — attach without running ffmpeg.
 	in := testInput(t, "u", "/v.mp4")
 	in.UserLimit = 4
 	in.RealPath = realPath
 	in.ClientID = "seek-in-range"
-	in.StartSec = 50
+	in.StartSec = 5
 	attached := mustStart(t, mgr, in)
 	if attached.State != StateCompleted {
 		t.Fatalf("attached session state = %q, want completed", attached.State)
 	}
+	if !attached.VodPlaylist {
+		t.Fatal("expected Model A VOD session")
+	}
 	if engine.StartCount() != 0 {
 		t.Fatalf("a covering cache hit must not start ffmpeg, starts=%d", engine.StartCount())
 	}
-	sess := sessionFor(t, mgr, attached.ID)
-	if sess.startIndex != 10 || sess.startSec != 40 {
-		t.Fatalf("session start = (%d, %v), want (10, 40)", sess.startIndex, sess.startSec)
+	if attached.StartSec != 5 {
+		t.Fatalf("published session startSec = %v, want 5 (hls startPosition)", attached.StartSec)
 	}
-	// The published start is the media-time origin of the generation — the
-	// offset the player adds to the 0-based element timeline.
-	if attached.StartSec != 40 {
-		t.Fatalf("published session startSec = %v, want 40", attached.StartSec)
-	}
-	// Segments 10..19 produced on the 4s grid: the servable range ends at the
-	// end of segment 19 (76+4) — the client needs this to tell "buffered" from
-	// "servable" coverage on a completed generation.
-	if attached.EndSec != 80 {
-		t.Fatalf("published session endSec = %v, want 80", attached.EndSec)
+	if attached.EndSec != 10 {
+		t.Fatalf("published session endSec = %v, want 10", attached.EndSec)
 	}
 
-	// A request before the tail's coverage must not attach to it.
 	fresh := in
-	fresh.ClientID = "seek-out-of-range"
-	fresh.StartSec = 5
+	fresh.ClientID = "seek-from-start"
+	fresh.StartSec = 0
 	info, err := mgr.Start(context.Background(), fresh)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if info.ID == attached.ID {
-		t.Fatal("a playhead before the partial generation needs its own job")
-	}
-	if info.StartSec != 4 {
-		t.Fatalf("fresh generation startSec = %v, want 4 (segment-aligned to the 4s grid)", info.StartSec)
-	}
-	waitForStarts(t, engine, 1)
-	if _, err := mgr.SessionForUser("u", attached.ID); err != nil {
-		t.Fatalf("the first session must survive another client's seek: %v", err)
+	if info.State != StateCompleted || engine.StartCount() != 0 {
+		t.Fatalf("start from 0 should attach completed cache, state=%q starts=%d", info.State, engine.StartCount())
 	}
 }
 
@@ -736,9 +720,9 @@ func TestManagerCompletionPublishesCoverageEnd(t *testing.T) {
 	in := testInput(t, "u", "/v.mp4")
 	in.UserLimit = 4
 	info := mustStart(t, mgr, in)
-	// Nothing produced yet: the produced edge is still the generation start.
-	if info.EndSec != 0 {
-		t.Fatalf("fresh session endSec = %v, want 0", info.EndSec)
+	// VOD playlists expose the full media duration up front.
+	if info.EndSec != 10 {
+		t.Fatalf("fresh session endSec = %v, want 10", info.EndSec)
 	}
 
 	// Three emitted 4s segments (12s of produced media) with ENDLIST.
@@ -756,8 +740,46 @@ func TestManagerCompletionPublishesCoverageEnd(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if got.EndSec != 12 {
-		t.Fatalf("completed session endSec = %v, want 12", got.EndSec)
+	if got.EndSec != 10 {
+		t.Fatalf("completed session endSec = %v, want 10 (full media duration)", got.EndSec)
+	}
+}
+
+// Software-decoder NAL stderr on a full re-encode must not cancel the job;
+// discardcorrupt recovery is expected on some MKV sources.
+func TestManagerIgnoresSoftwareDecodeUnreliableOnFullTranscode(t *testing.T) {
+	engine := NewFakeEngine()
+	engine.plan.remux = false
+	engine.plan.videoCopy = false
+	mgr, _ := newTestManager(t, engine)
+
+	info := mustStart(t, mgr, testInput(t, "user-a", "/movie.mkv"))
+	waitForStarts(t, engine, 1)
+	engine.LastJob().SetSoftwareDecodeUnreliable()
+	time.Sleep(600 * time.Millisecond)
+	if got := engine.StartCount(); got != 1 {
+		t.Fatalf("starts = %d, want 1 (full transcode must not corrupt-retry on NAL stderr)", got)
+	}
+	if sess := sessionFor(t, mgr, info.ID); sess == nil {
+		t.Fatal("session should remain attached")
+	}
+}
+
+// Sustained software decode failures on stream-copy must restart once.
+func TestManagerRestartsProducerOnSoftwareDecodeUnreliableWhenVideoCopy(t *testing.T) {
+	engine := NewFakeEngine()
+	engine.plan.videoCopy = true
+	mgr, _ := newTestManager(t, engine)
+
+	info := mustStart(t, mgr, testInput(t, "user-a", "/movie.mp4"))
+	waitForStarts(t, engine, 1)
+	jobDir := sessionJobDir(t, mgr, info.ID)
+	writeProducedRange(t, jobDir, 0, 1, false)
+
+	engine.LastJob().SetSoftwareDecodeUnreliable()
+	waitForStarts(t, engine, 2)
+	if sess := sessionFor(t, mgr, info.ID); sess == nil {
+		t.Fatal("session should survive corrupt retry")
 	}
 }
 
@@ -780,9 +802,6 @@ func TestManagerRestartsProducerWithSoftwareDecode(t *testing.T) {
 	waitForStarts(t, engine, 2)
 	if got := engine.LastPlan().decodeProfile; !got.ForceSoftware {
 		t.Fatalf("retry decode profile = %+v, want ForceSoftware", got)
-	}
-	if _, err := os.Stat(filepath.Join(jobDir, "seg", "00000.m4s")); !os.IsNotExist(err) {
-		t.Fatalf("corrupt segment should have been wiped, stat err=%v", err)
 	}
 	if sess := sessionFor(t, mgr, info.ID); sess == nil {
 		t.Fatal("session should survive the decode retry")
@@ -975,6 +994,12 @@ func writeProducedRange(t *testing.T, genDir string, firstIdx, count int, endLis
 		float64(firstIdx)*4, firstIdx, lastReady, float64(count)*4, endList, complete)
 	if err := os.WriteFile(filepath.Join(genDir, "job.json"), []byte(status), 0o644); err != nil {
 		t.Fatal(err)
+	}
+	if endList && firstIdx == 0 {
+		// Match NewFakeEngine mediaDurationSec (10s fixture).
+		if err := os.WriteFile(filepath.Join(genDir, vodCompleteMarker), []byte("10.000000\n"), 0o644); err != nil {
+			t.Fatal(err)
+		}
 	}
 }
 

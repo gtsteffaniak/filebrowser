@@ -151,3 +151,6 @@ const HLSContinuousCacheFill = goffmpeg.HLSContinuousCacheFill
 
 // HLSContinuousLivePaced pacing mode (~1x readrate after an initial burst).
 const HLSContinuousLivePaced = goffmpeg.HLSContinuousLivePaced
+
+// HLSContinuousPacing selects continuous HLS input read pacing.
+type HLSContinuousPacing = goffmpeg.HLSContinuousPacing

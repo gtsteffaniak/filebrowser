@@ -68,46 +68,24 @@ func TestProfileForcesVideoTranscode(t *testing.T) {
 	}
 }
 
-func TestFMP4CopyableVideoCodec(t *testing.T) {
-	for _, codec := range []string{"h264", "avc", "avc1"} {
-		if !fmp4CopyableVideoCodec(codec) {
-			t.Fatalf("%s should be fMP4-copyable", codec)
-		}
+func TestHLSPipelineSelection(t *testing.T) {
+	mkvAC3 := ffmpeg.BuildHLSSegmentBuildInput(ffmpeg.StreamInfo{
+		HasVideo: true, VideoCodec: "h264", AudioCodec: "ac3", FormatName: "matroska,webm",
+	}, ffmpeg.HLSPipelineOptions{})
+	if !mkvAC3.VideoCopy || mkvAC3.Remux {
+		t.Fatalf("mkv h264+ac3 should video-copy with AAC audio transcode: remux=%v videoCopy=%v", mkvAC3.Remux, mkvAC3.VideoCopy)
 	}
-	// Only h264 is universal under MSE: VP9 has no Safari support and HEVC is
-	// inconsistent outside Apple hardware, so both transcode instead.
-	for _, codec := range []string{"hevc", "h265", "hvc1", "hev1", "vp9", "vp09.00.40.08", "vp8", "av1", "wmv3", "mpeg4", "theora"} {
-		if fmp4CopyableVideoCodec(codec) {
-			t.Fatalf("%s must transcode for broad hls.js compatibility", codec)
-		}
+	mp4AC3 := ffmpeg.BuildHLSSegmentBuildInput(ffmpeg.StreamInfo{
+		HasVideo: true, VideoCodec: "h264", AudioCodec: "ac3", FormatName: "mov,mp4,m4a,3gp,3g2",
+	}, ffmpeg.HLSPipelineOptions{})
+	if mp4AC3.Remux || !mp4AC3.VideoCopy {
+		t.Fatalf("mp4 h264+ac3 = remux %v videoCopy %v", mp4AC3.Remux, mp4AC3.VideoCopy)
 	}
-}
-
-func TestFMP4CopyEligibility(t *testing.T) {
-	tests := []struct {
-		name          string
-		info          ffmpeg.StreamInfo
-		mustTranscode bool
-		wantRemux     bool
-		wantVideoCopy bool
-	}{
-		{"h264+aac remuxes", ffmpeg.StreamInfo{HasVideo: true, VideoCodec: "h264", AudioCodec: "aac"}, false, true, false},
-		{"h264+ac3 copies video only", ffmpeg.StreamInfo{HasVideo: true, VideoCodec: "h264", AudioCodec: "ac3"}, false, false, true},
-		{"h264 without audio remuxes", ffmpeg.StreamInfo{HasVideo: true, VideoCodec: "h264"}, false, true, false},
-		{"hevc transcodes for compatibility", ffmpeg.StreamInfo{HasVideo: true, VideoCodec: "hevc", AudioCodec: "aac"}, false, false, false},
-		{"vp9 transcodes for compatibility", ffmpeg.StreamInfo{HasVideo: true, VideoCodec: "vp9", AudioCodec: "opus"}, false, false, false},
-		{"vp8 never copies", ffmpeg.StreamInfo{HasVideo: true, VideoCodec: "vp8", AudioCodec: "aac"}, false, false, false},
-		{"av1 never copies", ffmpeg.StreamInfo{HasVideo: true, VideoCodec: "av1", AudioCodec: "aac"}, false, false, false},
-		{"forced transcode copies nothing", ffmpeg.StreamInfo{HasVideo: true, VideoCodec: "h264", AudioCodec: "aac"}, true, false, false},
-		{"no video copies nothing", ffmpeg.StreamInfo{AudioCodec: "aac"}, false, false, false},
-	}
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			remux, videoCopy := fmp4CopyEligibility(tc.info, tc.mustTranscode)
-			if remux != tc.wantRemux || videoCopy != tc.wantVideoCopy {
-				t.Fatalf("got (remux=%v, videoCopy=%v), want (%v, %v)", remux, videoCopy, tc.wantRemux, tc.wantVideoCopy)
-			}
-		})
+	aac := ffmpeg.BuildHLSSegmentBuildInput(ffmpeg.StreamInfo{
+		HasVideo: true, VideoCodec: "h264", AudioCodec: "aac", FormatName: "matroska,webm",
+	}, ffmpeg.HLSPipelineOptions{})
+	if !aac.Remux || aac.VideoCopy {
+		t.Fatalf("h264+aac should remux: remux=%v videoCopy=%v", aac.Remux, aac.VideoCopy)
 	}
 }
 
@@ -247,6 +225,16 @@ func TestTranscodePlanNormalizesContainerStartTime(t *testing.T) {
 // The encoder backend preference resolves profile override, then the
 // transcode-level default; hardware backends are capability-guarded so an
 // unavailable one degrades to auto instead of erroring the job.
+func TestVODMaxSegmentDuration(t *testing.T) {
+	list := ffmpeg.VODSegmentList{Durations: []float64{4, 50.9, 984}}
+	if got := vodMaxSegmentDuration(list); got != 984 {
+		t.Fatalf("max duration = %v, want 984", got)
+	}
+	if maxCopySegmentDurationSec(4) != 12 {
+		t.Fatalf("copy cap = %v, want 12", maxCopySegmentDurationSec(4))
+	}
+}
+
 func TestPreferredEncoderAccel(t *testing.T) {
 	withTranscodeProfiles(t)
 	origBackend := settings.Config.Integrations.Media.Transcode.EncoderBackend

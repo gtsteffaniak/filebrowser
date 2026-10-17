@@ -5,16 +5,9 @@ definitions:
         type: string
       label:
         type: string
-      resolvedId:
-        description: |-
-          ResolvedID is the concrete device the "auto" option resolves to, so the
-          UI can display it when a stored selection pins that same device.
-        type: string
     type: object
   ffmpeg.EncoderBackendOption:
     properties:
-      default:
-        type: boolean
       id:
         type: string
       label:

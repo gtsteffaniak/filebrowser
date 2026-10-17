@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 	"sync"
 	"sync/atomic"
+
+	"github.com/gtsteffaniak/filebrowser/backend/internal/ffmpeg"
 )
 
 // FakeEngine is a deterministic Engine for tests.
@@ -21,11 +23,14 @@ type FakeEngine struct {
 }
 
 func NewFakeEngine() *FakeEngine {
+	vodList := ffmpeg.BuildVODSegmentList(10, 4, 0, nil)
 	return &FakeEngine{
 		plan: hlsPlan{
 			cacheFingerprint: "fp-test",
 			segmentSec:       4,
 			mediaDurationSec: 10,
+			vodList:          vodList,
+			playlistBody:     ffmpeg.BuildVODPlaylist(vodList, ffmpeg.DefaultVODPlaylistOptions()),
 		},
 	}
 }
@@ -50,9 +55,10 @@ func (f *FakeEngine) BuildPlan(ctx context.Context, realPath string, profile Pro
 }
 
 type fakeJob struct {
-	cancelled  chan struct{}
-	waitErr    error
-	unreliable atomic.Bool
+	cancelled          chan struct{}
+	waitErr            error
+	unreliable         atomic.Bool
+	softwareUnreliable atomic.Bool
 }
 
 func newFakeJob() *fakeJob {
@@ -76,9 +82,18 @@ func (j *fakeJob) VTDecodeUnreliable() bool {
 	return j.unreliable.Load()
 }
 
+func (j *fakeJob) SoftwareDecodeUnreliable() bool {
+	return j.softwareUnreliable.Load()
+}
+
 // SetVTUnreliable simulates ffmpeg reporting sustained VideoToolbox decode failures.
 func (j *fakeJob) SetVTUnreliable() {
 	j.unreliable.Store(true)
+}
+
+// SetSoftwareDecodeUnreliable simulates sustained software decoder corruption in stderr.
+func (j *fakeJob) SetSoftwareDecodeUnreliable() {
+	j.softwareUnreliable.Store(true)
 }
 
 // NewBlockingFakeJob returns a ContinuousJob that waits until Cancel is called.
@@ -126,6 +141,11 @@ func (f *FakeEngine) StartContinuous(ctx context.Context, realPath, outputDir st
 	f.mu.Unlock()
 	_ = os.MkdirAll(filepath.Join(outputDir, "seg"), 0o755)
 	_ = os.WriteFile(filepath.Join(outputDir, "init.m4s"), []byte("fake-init-segment-bytes-for-test"), 0o644)
-	_ = os.WriteFile(filepath.Join(outputDir, "index.m3u8"), []byte("#EXTM3U\n"), 0o644)
+	playlist := plan.playlistBody
+	if playlist == "" {
+		playlist = "#EXTM3U\n"
+	}
+	_ = os.WriteFile(filepath.Join(outputDir, "index.m3u8"), []byte(playlist), 0o644)
+	_ = os.WriteFile(filepath.Join(outputDir, "seg", "00000.m4s"), fakeVODSegmentPayload(), 0o644)
 	return job, nil
 }

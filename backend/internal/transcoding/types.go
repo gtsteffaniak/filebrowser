@@ -80,6 +80,8 @@ type SessionInfo struct {
 	EndSec          float64 `json:"endSec,omitempty"`
 	DeliveryBaseURL string  `json:"deliveryBaseUrl,omitempty"`
 	Reused          bool    `json:"reused,omitempty"`
+	// VodPlaylist marks Model A synthetic VOD playlists (playlist-local timeline).
+	VodPlaylist bool `json:"vodPlaylist,omitempty"`
 }
 
 // SnapshotResponse is returned by session list/status endpoints.

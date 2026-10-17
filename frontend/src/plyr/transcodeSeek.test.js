@@ -33,6 +33,11 @@ describe('mediaCoverage', () => {
 });
 
 describe('servableCoverage', () => {
+  it('returns full file range for VOD playlists', () => {
+    const session = { vodPlaylist: true, durationSec: 5112 };
+    expect(servableCoverage(null, session)).toEqual({ start: 0, end: 5112 });
+  });
+
   it('covers the whole produced range for a completed full generation', () => {
     const el = { seekable: fakeSeekable([[0, 24]]) };
     const session = { state: 'completed', startSec: 0, endSec: 5112 };

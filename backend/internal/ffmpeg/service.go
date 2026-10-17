@@ -187,6 +187,9 @@ func (s *Service) ResolveAccelDevice(device string) string {
 			return opt.ID
 		}
 	}
+	if id, _ := wslNVIDIAAccelDefault(caps); id != "" {
+		return id
+	}
 	return "software"
 }
 
@@ -208,7 +211,30 @@ func resolvedAccelDeviceOptions(caps *capabilities.Capabilities) (autoLabel, res
 	if autoLabel == "" {
 		autoLabel = autoGPUName(caps)
 	}
+	if resolvedID == "" {
+		if id, label := wslNVIDIAAccelDefault(caps); id != "" {
+			if autoLabel == "" {
+				autoLabel = label
+			}
+			resolvedID = id
+		}
+	}
 	return autoLabel, resolvedID, opts
+}
+
+// wslNVIDIAAccelDefault exposes dgpu when WSL has an NVIDIA driver but no DRM nodes.
+func wslNVIDIAAccelDefault(caps *capabilities.Capabilities) (id, label string) {
+	if caps == nil || !caps.Platform.WSL || !caps.Platform.NVIDIA {
+		return "", ""
+	}
+	name := strings.TrimSpace(caps.Platform.Details["gpu"])
+	if name == "" {
+		name = platform.NVIDIAGPUName()
+	}
+	if name == "" {
+		name = "NVIDIA GPU"
+	}
+	return "dgpu", "Dedicated GPU (" + name + ")"
 }
 
 // accelDeviceID prefers the render node so the selection can be passed back to

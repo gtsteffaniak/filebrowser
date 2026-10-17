@@ -1,6 +1,10 @@
 package ffmpeg
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/gtsteffaniak/go-ffmpeg/capabilities"
+)
 
 func TestAccelDeviceOptionsOmitsAuto(t *testing.T) {
 	s := &Service{}
@@ -22,5 +26,18 @@ func TestResolveAccelDeviceWithoutCapabilities(t *testing.T) {
 	}
 	if got := s.ResolveAccelDevice("/dev/dri/renderD128"); got != "/dev/dri/renderD128" {
 		t.Fatalf("ResolveAccelDevice(explicit) = %q", got)
+	}
+}
+
+func TestResolveAccelDeviceWSLNVIDIA(t *testing.T) {
+	s := &Service{}
+	caps := capabilities.NewCapabilities()
+	caps.Platform = capabilities.PlatformInfo{OS: "linux", WSL: true, NVIDIA: true}
+	caps.Platform.Details = map[string]string{"gpu": "NVIDIA GeForce RTX 3050"}
+	s.inner = nil // ResolveAccelDevice only reads caps via s.Capabilities()
+	// Inject caps through a minimal service wrapper is not available; test helper directly.
+	id, label := wslNVIDIAAccelDefault(caps)
+	if id != "dgpu" || label != "Dedicated GPU (NVIDIA GeForce RTX 3050)" {
+		t.Fatalf("wsl default = %q / %q", id, label)
 	}
 }

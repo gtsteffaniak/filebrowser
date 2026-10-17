@@ -40,6 +40,13 @@ export function mediaCoverage(el) {
  * or up to the produced (≈buffered) edge for a live-paced one.
  */
 export function servableCoverage(el, session) {
+  if (session?.vodPlaylist) {
+    const end = session.durationSec;
+    if (!Number.isFinite(end) || end <= 0) {
+      return null;
+    }
+    return { start: 0, end };
+  }
   const start = Number.isFinite(session?.startSec) ? session.startSec : 0;
   if (session?.state === 'completed') {
     const end = Number.isFinite(session?.endSec)
@@ -407,12 +414,15 @@ export class TranscodePlaybackController {
 
       const attachAbort = new AbortController();
       this.attachAbort = attachAbort;
+      const vodStart = controller.session?.vodPlaylist
+        && Number.isFinite(startSec)
+        && startSec > 0
+        ? startSec
+        : -1;
       const hlsAttachPromise = attachHlsToVideo({
         video: el,
         session: controller.session,
-        // startPosition mapping across a source swap is unreliable; the exact
-        // playhead is restored via applyStartPosition instead.
-        startPosition: -1,
+        startPosition: vodStart,
         signal: attachAbort.signal,
         onFirstBuffered: () => {
           if (!this.isCurrentAttempt(attempt)) {

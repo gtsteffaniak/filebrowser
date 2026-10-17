@@ -5472,19 +5472,12 @@ const docTemplate = `{
                 },
                 "label": {
                     "type": "string"
-                },
-                "resolvedId": {
-                    "description": "ResolvedID is the concrete device the \"auto\" option resolves to, so the\nUI can display it when a stored selection pins that same device.",
-                    "type": "string"
                 }
             }
         },
         "ffmpeg.EncoderBackendOption": {
             "type": "object",
             "properties": {
-                "default": {
-                    "type": "boolean"
-                },
                 "id": {
                     "type": "string"
                 },
