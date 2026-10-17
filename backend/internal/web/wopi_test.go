@@ -285,10 +285,26 @@ func TestWopiTokenRoundTrip(t *testing.T) {
 		t.Error("missing token must be rejected")
 	}
 
-	// Rotating the secret invalidates outstanding tokens.
-	settings.Config.Integrations.OnlyOffice.Secret = "explicit-secret"
+	// integrations.office.secret belongs to OnlyOffice and does not change
+	// the signing key.
+	settings.Config.Integrations.OnlyOffice.Secret = "short"
+	if _, err := parseWopiToken(raw, "fid1"); err != nil {
+		t.Errorf("office.secret must not affect Collabora tokens: %v", err)
+	}
+
+	// Rotating auth.key invalidates outstanding tokens.
+	settings.Config.Auth.Key = "another-signing-key-for-length-check"
 	if _, err := parseWopiToken(raw, "fid1"); err == nil {
-		t.Error("token signed with the derived key must fail under an explicit secret")
+		t.Error("a token signed under the previous auth.key must be rejected")
+	}
+
+	// Without an auth key there is nothing to derive a key from.
+	settings.Config.Auth.Key = ""
+	if _, _, err := mintWopiToken(wopiClaims{FileID: "fid1"}, time.Now()); err == nil {
+		t.Error("minting must fail without auth.key")
+	}
+	if _, err := parseWopiToken(raw, "fid1"); err == nil {
+		t.Error("verifying must fail without auth.key")
 	}
 }
 
