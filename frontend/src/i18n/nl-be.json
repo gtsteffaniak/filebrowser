@@ -1246,6 +1246,10 @@
     "transcodeProfileMaxResolution": "Maximale resolutie",
     "transcodeProfileMaxResolutionHelp": "Maximale uitvoerhoogte in pixels. Bij 0 blijft de bronresolutie behouden.",
     "transcodeProfileAvgBitrate": "Gemiddelde bitsnelheid (kbps)",
-    "transcodeProfileAvgBitrateHelp": "Beoogde gemiddelde videobitsnelheid in kbps. Bij 0 blijft de bitsnelheid van de bron behouden."
+    "transcodeProfileAvgBitrateHelp": "Beoogde gemiddelde videobitsnelheid in kbps. Bij 0 blijft de bitsnelheid van de bron behouden.",
+    "accelDevice": "Versnellingsapparaat",
+    "accelDeviceDescription": "GPU-apparaat dat wordt gebruikt voor hardwareversnelde mediaverwerking. De CPU (software) schakelt de hardwareversnelling uit.",
+    "encoderBackend": "Encoder-backend",
+    "transcodeProfileEncoderBackendHelp": "Encoder-backend voor deze voorinstelling; standaard is dit de gedetecteerde voorkeursbackend."
   }
 }

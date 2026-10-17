@@ -1246,6 +1246,10 @@
     "transcodeProfileMaxResolution": "Maximális felbontás",
     "transcodeProfileMaxResolutionHelp": "A kimeneti magasság maximális értéke pixelben. A 0 érték esetén a forrás felbontása marad meg.",
     "transcodeProfileAvgBitrate": "Átlagos bitráta (kbps)",
-    "transcodeProfileAvgBitrateHelp": "A videó átlagos bitrátájának célértéke kbps-ben. A 0 érték a forrás bitrátáját tartja meg."
+    "transcodeProfileAvgBitrateHelp": "A videó átlagos bitrátájának célértéke kbps-ben. A 0 érték a forrás bitrátáját tartja meg.",
+    "accelDevice": "Gyorsítóberendezés",
+    "accelDeviceDescription": "A hardveresen gyorsított médiafeldolgozáshoz használt GPU-eszköz. A CPU (szoftver) letiltja a hardveres gyorsítást.",
+    "encoderBackend": "Kódoló háttérrendszer",
+    "transcodeProfileEncoderBackendHelp": "A beállításhoz tartozó kódoló háttérprogram; alapértelmezés szerint az észlelt, előnyben részesített háttérprogramot használja."
   }
 }

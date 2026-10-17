@@ -1246,6 +1246,10 @@
     "transcodeProfileMaxResolution": "Rezoluție maximă",
     "transcodeProfileMaxResolutionHelp": "Înălțimea maximă de ieșire în pixeli. Valoarea 0 păstrează rezoluția sursei.",
     "transcodeProfileAvgBitrate": "Rata medie de transfer (kbps)",
-    "transcodeProfileAvgBitrateHelp": "Rata de biți medie țintă pentru video, în kbps. Valoarea 0 menține rata de biți a sursei."
+    "transcodeProfileAvgBitrateHelp": "Rata de biți medie țintă pentru video, în kbps. Valoarea 0 menține rata de biți a sursei.",
+    "accelDevice": "Dispozitiv de accelerare",
+    "accelDeviceDescription": "Dispozitiv GPU utilizat pentru procesarea conținutului media cu accelerare hardware. CPU (software) dezactivează accelerarea hardware.",
+    "encoderBackend": "Backend-ul codificatorului",
+    "transcodeProfileEncoderBackendHelp": "Backend-ul encoderului pentru această presetare; implicit se utilizează backend-ul preferat detectat."
   }
 }

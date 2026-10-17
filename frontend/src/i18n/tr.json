@@ -1246,6 +1246,10 @@
     "transcodeProfileMaxResolution": "Maksimum çözünürlük",
     "transcodeProfileMaxResolutionHelp": "Piksel cinsinden maksimum çıktı yüksekliği. 0 değeri, kaynak çözünürlüğünü korur.",
     "transcodeProfileAvgBitrate": "Ortalama bit hızı (kbps)",
-    "transcodeProfileAvgBitrateHelp": "Hedeflenen ortalama video bit hızı (kbps cinsinden). 0 değeri, kaynak bit hızını korur."
+    "transcodeProfileAvgBitrateHelp": "Hedeflenen ortalama video bit hızı (kbps cinsinden). 0 değeri, kaynak bit hızını korur.",
+    "accelDevice": "Hızlandırma cihazı",
+    "accelDeviceDescription": "Donanım hızlandırmalı medya işleme için kullanılan GPU aygıtı. CPU (yazılım), donanım hızlandırmayı devre dışı bırakır.",
+    "encoderBackend": "Enkoder arka ucu",
+    "transcodeProfileEncoderBackendHelp": "Bu ön ayar için kodlayıcı arka ucu; varsayılan olarak algılanan tercih edilen arka uç kullanılır."
   }
 }

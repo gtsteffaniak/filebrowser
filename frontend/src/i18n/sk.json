@@ -1246,6 +1246,10 @@
     "transcodeProfileMaxResolution": "Maximálne rozlíšenie",
     "transcodeProfileMaxResolutionHelp": "Maximálna výška výstupu v pixeloch. Hodnota 0 zachová rozlíšenie zdroja.",
     "transcodeProfileAvgBitrate": "Priemerná prenosová rýchlosť (kbps)",
-    "transcodeProfileAvgBitrateHelp": "Cieľová priemerná prenosová rýchlosť videa v kbps. Hodnota 0 zachová prenosovú rýchlosť zdrojového súboru."
+    "transcodeProfileAvgBitrateHelp": "Cieľová priemerná prenosová rýchlosť videa v kbps. Hodnota 0 zachová prenosovú rýchlosť zdrojového súboru.",
+    "accelDevice": "Zariadenie na zrýchlenie",
+    "accelDeviceDescription": "Zariadenie GPU sa používa na hardvérovo akcelerované spracovanie multimédií. CPU (softvér) deaktivuje hardvérovú akceleráciu.",
+    "encoderBackend": "Backend kodéra",
+    "transcodeProfileEncoderBackendHelp": "Backend enkodéra pre toto prednastavenie; predvolene sa nastaví na zistený preferovaný backend."
   }
 }

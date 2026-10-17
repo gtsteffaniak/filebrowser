@@ -1118,13 +1118,6 @@ export default {
         && isLivePacedSession(session)
       ) {
         this.player.speed = 1;
-        this.speedToastVisible = true;
-        this.speedToastMessage = this.$t('player.transcodeSpeedCapped');
-        clearTimeout(this.speedToastTimer);
-        this.speedToastTimer = setTimeout(() => {
-          this.speedToastVisible = false;
-          this.speedToastTimer = null;
-        }, 1500);
       }
       this.updateMediaSessionPlaybackState();
     },

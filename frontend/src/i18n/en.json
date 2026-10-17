@@ -1029,8 +1029,7 @@
       "maxDecibelsDescription": "Loudest level (dBFS) that the bar resgisters",
       "showScalesDescription": "Show axis and grid lines on the visualizer",
       "showPeaksDescription": "Small white peak indicators above each bar"
-    },
-    "transcodeSpeedCapped": "Speed capped at 1x while transcoding"
+    }
   },
   "fileSizeAnalyzer": {
     "title": "File Size Analyzer",

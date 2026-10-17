@@ -1246,6 +1246,10 @@
     "transcodeProfileMaxResolution": "最高解析度",
     "transcodeProfileMaxResolutionHelp": "最大輸出高度（以像素為單位）。設定為 0 將保留原始解析度。",
     "transcodeProfileAvgBitrate": "平均位元率 (kbps)",
-    "transcodeProfileAvgBitrateHelp": "目標平均影片位元率（單位：kbps）。設定為 0 時將保留原始位元率。"
+    "transcodeProfileAvgBitrateHelp": "目標平均影片位元率（單位：kbps）。設定為 0 時將保留原始位元率。",
+    "accelDevice": "加速裝置",
+    "accelDeviceDescription": "用於硬體加速媒體處理的 GPU 裝置。CPU（軟體）會停用硬體加速功能。",
+    "encoderBackend": "編碼器後端",
+    "transcodeProfileEncoderBackendHelp": "此預設值的編碼器後端；預設為偵測到的首選後端。"
   }
 }

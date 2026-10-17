@@ -1246,6 +1246,10 @@
     "transcodeProfileMaxResolution": "Maximo bereizmena",
     "transcodeProfileMaxResolutionHelp": "Pixeletan irteerako altuera maximoa. 0-k iturburuaren bereizmena mantentzen du.",
     "transcodeProfileAvgBitrate": "Batez besteko bitratea (kbps)",
-    "transcodeProfileAvgBitrateHelp": "Helburu bideoaren batez besteko bitratea kbps-tan. 0-k iturburuaren bitratea mantentzen du."
+    "transcodeProfileAvgBitrateHelp": "Helburu bideoaren batez besteko bitratea kbps-tan. 0-k iturburuaren bitratea mantentzen du.",
+    "accelDevice": "Azelerazio-gailua",
+    "accelDeviceDescription": "GPU gailua hardware bidez azeleratutako multimedia prozesamendurako erabiltzen da. CPUk (softwareak) hardware azelerazioa desgaitzen du.",
+    "encoderBackend": "Enkodatzaile atzealdea",
+    "transcodeProfileEncoderBackendHelp": "Aurrezarpen honen enkoder atzeko plana; hautemandako atzeko plan lehenetsira lehenetsita dago."
   }
 }
