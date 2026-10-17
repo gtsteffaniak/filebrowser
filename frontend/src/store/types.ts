@@ -120,7 +120,12 @@ export interface Prompt {
   cancel?: unknown;
 }
 
-export interface SourceInfo {
+export interface CopyPathConfig {
+  copyPathPrefix?: string;
+  copyPathWindows?: boolean;
+}
+
+export interface SourceInfo extends CopyPathConfig {
   pathPrefix?: string | undefined;
   used: number;
   total: number;
@@ -144,7 +149,7 @@ export interface SourceInfo {
 }
 
 /** Raw shape of a single source entry as sent by /api/settings/sources or SSE updates. */
-export interface SourceInfoUpdate {
+export interface SourceInfoUpdate extends CopyPathConfig {
   used?: number;
   total?: number;
   usedAlt?: number;

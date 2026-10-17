@@ -1026,6 +1026,14 @@ definitions:
     type: object
   settings.SourceConfig:
     properties:
+      copyPathPrefix:
+        description: Clipboard mappings are opt-in and exposed to users with access
+          to this source.
+        type: string
+      copyPathWindows:
+        description: 'convert Copy Path /D/path to D:\path (default: false); applied
+          after copyPathPrefix.'
+        type: boolean
       createUserDir:
         description: create a user directory for each user under defaultUserScope
           + username

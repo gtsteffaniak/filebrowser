@@ -59,6 +59,8 @@ FileBrowser Quantum is a massive fork of the file browser open-source project wi
      - Ability to create long-lived API Tokens.
      - A helpful Swagger page is available at `/swagger` endpoint for API enabled users.
 
+The existing Copy Path action supports optional [per-source POSIX and Windows path mappings](docs/copy-path.md).
+
 Notable features that this fork *does not* have (removed):
  - ❌ shell commands are completely removed and will not be returned.
 

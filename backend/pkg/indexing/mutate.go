@@ -349,6 +349,9 @@ func GetIndexInfo(sourceName string, forceCacheRefresh bool) (ReducedIndex, erro
 	reducedIdx.ReadOnly = idx.Config.ReadOnly
 	reducedIdx.Private = idx.Config.Private
 	reducedIdx.IndexingDisabled = idx.Config.ResolvedRules.IndexingDisabled
+	// Only publish explicit clipboard mappings, never the source's host path.
+	reducedIdx.CopyPathPrefix = idx.Config.CopyPathPrefix
+	reducedIdx.CopyPathWindows = idx.Config.CopyPathWindows
 	idx.mu.RUnlock()
 	return reducedIdx, nil
 }
