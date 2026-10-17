@@ -2,6 +2,7 @@ package indexing
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -926,12 +927,75 @@ func (idx *Index) processFileItem(file os.FileInfo, indexPath string, opts Optio
 	return itemInfo, itemInfo.Size, shouldCountSize, bubblesUpHasPreview
 }
 
+// Seams for tests: make a single entry, or the whole ReadDir, fail.
+var (
+	readDirEntries = func(f *os.File) ([]os.DirEntry, error) { return f.ReadDir(-1) }
+	entryInfo      = func(e os.DirEntry) (os.FileInfo, error) { return e.Info() }
+	lstatPath      = os.Lstat
+)
+
+// unreadableWarned keeps the warning to once per path; routine scans revisit the same entry forever.
+var unreadableWarned sync.Map
+
+func skipUnreadable(path string, err error) {
+	if os.IsNotExist(err) {
+		return // removed between listing and stat, which Readdir also ignored
+	}
+	if _, seen := unreadableWarned.LoadOrStore(path, struct{}{}); seen {
+		logger.Debugf("skipping unreadable entry %s: %v", path, err)
+		return
+	}
+	logger.Warningf("skipping unreadable entry %s: %v", path, err)
+}
+
+// readDirSkippingUnreadable returns the same entries Readdir(-1) did, except that an entry whose
+// lstat fails (e.g. a Windows junction seen through a CIFS mount, whose target the share user cannot
+// read) is skipped instead of failing the whole directory. Only an error reading the directory
+// itself is returned.
+//
+// The common path is ReadDir + Info(), which on Unix is one lstat per entry, as Readdir did. On Unix,
+// when the filesystem reports an unknown d_type, ReadDir lstats by itself and stops at the first
+// failure; that case re-reads the directory by name and lstats each entry.
+func readDirSkippingUnreadable(dir *os.File) ([]os.FileInfo, error) {
+	entries, err := readDirEntries(dir)
+	if err == nil {
+		files := make([]os.FileInfo, 0, len(entries))
+		for _, e := range entries {
+			info, ierr := entryInfo(e)
+			if ierr != nil {
+				skipUnreadable(filepath.Join(dir.Name(), e.Name()), ierr)
+				continue
+			}
+			files = append(files, info)
+		}
+		return files, nil
+	}
+	if _, serr := dir.Seek(0, io.SeekStart); serr != nil {
+		return nil, err
+	}
+	names, nerr := dir.Readdirnames(-1)
+	if nerr != nil {
+		return nil, err
+	}
+	files := make([]os.FileInfo, 0, len(names))
+	for _, name := range names {
+		path := filepath.Join(dir.Name(), name)
+		info, lerr := lstatPath(path)
+		if lerr != nil {
+			skipUnreadable(path, lerr)
+			continue
+		}
+		files = append(files, info)
+	}
+	return files, nil
+}
+
 // GetDirInfoCore is the consolidated implementation for both GetDirInfo and GetDirInfoViewableOnly
 func (idx *Index) GetDirInfoCore(dirInfo *os.File, stat os.FileInfo, indexPath string, opts Options, scanner *Scanner) (*iteminfo.FileInfo, error) {
 	if !strings.HasSuffix(indexPath, "/") {
 		indexPath = indexPath + "/"
 	}
-	files, err := dirInfo.Readdir(-1)
+	files, err := readDirSkippingUnreadable(dirInfo)
 	if err != nil {
 		return nil, err
 	}
