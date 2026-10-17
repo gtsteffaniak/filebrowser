@@ -544,7 +544,7 @@ func (ffs *filteredFileSystem) RemoveAll(ctx context.Context, requestPath string
 		logger.Debugf("RemoveAll: access denied for %s: %v", requestPath, err)
 		return err
 	}
-	if err = ffs.checkScopePath(requestPath, true); err != nil {
+	if err := ffs.checkScopePath(requestPath, true); err != nil {
 		logger.Debugf("RemoveAll: scope check denied for %s: %v", requestPath, err)
 		return err
   }
