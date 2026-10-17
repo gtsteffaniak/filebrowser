@@ -669,7 +669,8 @@
     "quality": "Calitate{suffix}",
     "balanced": "Echilibrat{suffix}",
     "dataSaver": "Economizor de date{suffix}",
-    "media": "Mass-media"
+    "media": "Mass-media",
+    "default": "Implicit{suffix}"
   },
   "access": {
     "rules": "Reguli de acces",

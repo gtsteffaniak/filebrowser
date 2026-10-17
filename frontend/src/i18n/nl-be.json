@@ -776,7 +776,8 @@
     "quality": "Kwaliteit{suffix}",
     "balanced": "Evenwichtig{suffix}",
     "dataSaver": "Databesparing{suffix}",
-    "media": "Media"
+    "media": "Media",
+    "default": "Standaard{suffix}"
   },
   "access": {
     "rules": "Toegangsregels",

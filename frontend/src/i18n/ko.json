@@ -669,7 +669,8 @@
     "quality": "품질{suffix}",
     "balanced": "균형 잡힌{suffix}",
     "dataSaver": "데이터 절약 모드{suffix}",
-    "media": "미디어"
+    "media": "미디어",
+    "default": "기본값{suffix}"
   },
   "access": {
     "rules": "액세스 규칙",

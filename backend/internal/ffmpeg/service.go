@@ -142,32 +142,56 @@ func (s *Service) Capabilities() *capabilities.Capabilities {
 type AccelDeviceOption struct {
 	ID    string `json:"id"`
 	Label string `json:"label"`
-	// ResolvedID is the concrete device the "auto" option resolves to, so the
-	// UI can display it when a stored selection pins that same device.
-	ResolvedID string `json:"resolvedId,omitempty"`
 }
 
-// AccelDeviceOptions lists the acceleration devices the admin UI can offer.
-// Every option is a concrete device labeled "<class> (<device name>)": the
-// auto entry carries whichever device auto-selection resolves to, remaining
-// GPUs are listed by name so several same-class cards stay distinguishable.
+// AccelDeviceOptions lists concrete acceleration devices for the admin UI.
+// The default auto-selected GPU (when stored as "auto") is included by name;
+// there is no separate "auto" entry.
 func (s *Service) AccelDeviceOptions() []AccelDeviceOption {
-	auto := AccelDeviceOption{ID: "auto"}
-	gpuOpts := []AccelDeviceOption{}
+	out := []AccelDeviceOption{}
 	if caps := s.Capabilities(); caps != nil {
-		auto.Label, auto.ResolvedID, gpuOpts = resolvedAccelDeviceOptions(caps)
+		defaultLabel, defaultID, gpuOpts := resolvedAccelDeviceOptions(caps)
+		if defaultID != "" {
+			out = append(out, AccelDeviceOption{ID: defaultID, Label: defaultLabel})
+		}
+		out = append(out, gpuOpts...)
 	}
-	if auto.Label == "" {
-		auto.Label = "Auto"
-	}
-	out := []AccelDeviceOption{auto}
-	out = append(out, gpuOpts...)
 	out = append(out, AccelDeviceOption{ID: "software", Label: "CPU (software)"})
 	return out
 }
 
-// resolvedAccelDeviceOptions builds the auto option label and per-device
-// options; the device auto resolves to is folded into the auto entry.
+// ResolveAccelDevice maps stored "auto"/empty to the concrete device the UI
+// should display; explicit software aliases and device IDs are unchanged.
+func (s *Service) ResolveAccelDevice(device string) string {
+	dev := strings.TrimSpace(device)
+	switch strings.ToLower(dev) {
+	case "software", "cpu", "none":
+		return "software"
+	}
+	if dev != "" && !strings.EqualFold(dev, "auto") {
+		return dev
+	}
+	caps := s.Capabilities()
+	if caps == nil {
+		return "software"
+	}
+	defaultLabel, defaultID, gpuOpts := resolvedAccelDeviceOptions(caps)
+	if defaultID != "" {
+		return defaultID
+	}
+	if len(gpuOpts) == 1 {
+		return gpuOpts[0].ID
+	}
+	for _, opt := range gpuOpts {
+		if opt.Label == defaultLabel {
+			return opt.ID
+		}
+	}
+	return "software"
+}
+
+// resolvedAccelDeviceOptions labels the default auto-selected GPU and lists
+// every other enumerated device.
 func resolvedAccelDeviceOptions(caps *capabilities.Capabilities) (autoLabel, resolvedID string, opts []AccelDeviceOption) {
 	resolved := caps.Platform.Details["render_device"]
 	gpus, _ := platform.ListGPUs()
@@ -237,40 +261,67 @@ func autoGPUName(caps *capabilities.Capabilities) string {
 
 // EncoderBackendOption is one selectable entry in the encoder backend list.
 type EncoderBackendOption struct {
-	ID      string `json:"id"`
-	Label   string `json:"label"`
-	Default bool   `json:"default,omitempty"`
+	ID    string `json:"id"`
+	Label string `json:"label"`
 }
 
-// EncoderBackendOptions lists the detected backends that can encode H.264 —
-// the codec every transcode preset outputs. "cpu" covers software encoders;
-// the detected default is flagged so the UI can describe the auto choice.
+// EncoderBackendOptions lists concrete H.264 encode paths for the admin UI.
+// Labels are "device - encoder" so multiple hardware backends stay distinct.
+// An empty stored encoderBackend (Default in the UI) lets go-ffmpeg pick from
+// the selected acceleration device.
 func (s *Service) EncoderBackendOptions() []EncoderBackendOption {
-	out := []EncoderBackendOption{{ID: "cpu", Label: "CPU (software)"}}
 	caps := s.Capabilities()
 	if caps == nil {
-		return out
+		return []EncoderBackendOption{{ID: "cpu", Label: encoderBackendLabel(nil, capabilities.EncodeOption{Encoder: "libx264"})}}
 	}
-	seen := map[string]bool{"cpu": true}
+	var out []EncoderBackendOption
+	seen := map[string]bool{}
 	for _, opt := range caps.EncodeOptions {
 		if opt.Codec != capabilities.CodecH264 || !opt.Available {
 			continue
 		}
-		id := string(opt.Accel)
-		if id == "" || id == string(capabilities.AccelNone) {
-			id = "cpu"
-		}
+		id := encoderBackendOptionID(opt)
 		if seen[id] {
 			continue
 		}
 		seen[id] = true
-		label := opt.Label
-		if label == "" {
-			label = opt.Encoder
-		}
-		out = append(out, EncoderBackendOption{ID: id, Label: label, Default: opt.Default})
+		out = append(out, EncoderBackendOption{ID: id, Label: encoderBackendLabel(caps, opt)})
+	}
+	if len(out) == 0 {
+		return []EncoderBackendOption{{ID: "cpu", Label: encoderBackendLabel(caps, capabilities.EncodeOption{Encoder: "libx264"})}}
 	}
 	return out
+}
+
+func encoderBackendOptionID(opt capabilities.EncodeOption) string {
+	if opt.Accel == "" || opt.Accel == capabilities.AccelNone {
+		return "cpu"
+	}
+	return opt.Encoder
+}
+
+func encoderBackendLabel(caps *capabilities.Capabilities, opt capabilities.EncodeOption) string {
+	device := "CPU (software)"
+	if opt.Accel != "" && opt.Accel != capabilities.AccelNone {
+		if caps != nil {
+			gpu := capabilities.GPUForAccel(caps, opt.Accel)
+			switch {
+			case gpu.RenderNode != "":
+				device = gpu.RenderNode
+			case gpu.Name != "" && gpu.Name != "CPU":
+				device = gpu.Name
+			default:
+				device = string(opt.Accel)
+			}
+		} else {
+			device = string(opt.Accel)
+		}
+	}
+	encoder := opt.Encoder
+	if encoder == "" {
+		encoder = "libx264"
+	}
+	return device + " - " + encoder
 }
 
 // Enabled reports whether ffmpeg initialized successfully.

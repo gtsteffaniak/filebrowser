@@ -155,8 +155,23 @@ func sanitizeEncoderBackend(backend string) string {
 	case "nvenc", "amf", "qsv", "vaapi", "d3d12", "videotoolbox":
 		return strings.ToLower(strings.TrimSpace(backend))
 	default:
+		if looksLikeEncoderName(backend) {
+			return backend
+		}
 		return ""
 	}
+}
+
+func looksLikeEncoderName(name string) bool {
+	n := strings.TrimSpace(name)
+	if n == "" {
+		return false
+	}
+	lower := strings.ToLower(n)
+	if strings.HasPrefix(lower, "lib") {
+		return true
+	}
+	return strings.Contains(n, "_")
 }
 
 func sanitizeTranscodeProfile(p *TranscodeProfile) {

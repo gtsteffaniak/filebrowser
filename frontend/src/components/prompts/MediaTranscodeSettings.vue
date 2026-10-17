@@ -187,19 +187,13 @@ export default {
       return this.$t("settings.lockedFromConfig");
     },
     backendSelectOptions() {
-      return this.encoderBackendOptions.map((option) => ({
-        value: option.id,
-        label: option.label || option.id,
-      }));
-    },
-    /** The backend ffmpeg's auto selection resolves to (flagged default, else CPU). */
-    defaultEncoderBackendId() {
-      const flagged = this.encoderBackendOptions.find((option) => option.default);
-      return flagged?.id || "cpu";
-    },
-    /** The resolved transcode-wide backend presets inherit from. */
-    resolvedTranscodeBackend() {
-      return this.media.transcode.encoderBackend || this.defaultEncoderBackendId;
+      return [
+        { value: "", label: this.$t("general.default") },
+        ...this.encoderBackendOptions.map((option) => ({
+          value: option.id,
+          label: option.label || option.id,
+        })),
+      ];
     },
   },
   methods: {
@@ -209,13 +203,12 @@ export default {
     fieldTooltip(path) {
       return this.isLocked(path) ? this.$t("settings.lockedFromConfig") : "";
     },
-    /** A stored '' (inherit) displays as the resolved transcode-wide backend. */
     profileEncoderBackendValue(profileId) {
-      return this.media.transcode.profiles[profileId]?.encoderBackend || this.resolvedTranscodeBackend;
+      return this.media.transcode.profiles[profileId]?.encoderBackend ?? "";
     },
     onProfileBackendChange(profileId, value) {
       if (this.media.transcode.profiles[profileId]) {
-        this.media.transcode.profiles[profileId].encoderBackend = value;
+        this.media.transcode.profiles[profileId].encoderBackend = value ?? "";
       }
     },
     close() {

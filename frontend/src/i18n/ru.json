@@ -669,7 +669,8 @@
     "quality": "Качество{suffix}",
     "balanced": "Сбалансированный{suffix}",
     "dataSaver": "Режим экономии трафика{suffix}",
-    "media": "СМИ"
+    "media": "СМИ",
+    "default": "По умолчанию{suffix}"
   },
   "access": {
     "rules": "Правила доступа",

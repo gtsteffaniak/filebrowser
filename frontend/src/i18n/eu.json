@@ -182,7 +182,8 @@
     "quality": "Kalitatea{suffix}",
     "balanced": "Orekatuta{suffix}",
     "dataSaver": "Datu-gordetzailea{suffix}",
-    "media": "Komunikabideak"
+    "media": "Komunikabideak",
+    "default": "Lehenetsia{suffix}"
   },
   "buttons": {
     "copySuccess": "Arbelean kopiatu da!",

@@ -776,7 +776,8 @@
     "quality": "Kvalitet{suffix}",
     "balanced": "Balanserad{suffix}",
     "dataSaver": "Dataspara{suffix}",
-    "media": "Media"
+    "media": "Media",
+    "default": "Standard{suffix}"
   },
   "access": {
     "rules": "Regler för åtkomst",

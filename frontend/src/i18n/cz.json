@@ -776,7 +776,8 @@
     "quality": "Kvalita{suffix}",
     "balanced": "Vyvážený{suffix}",
     "dataSaver": "Úspora dat{suffix}",
-    "media": "Média"
+    "media": "Média",
+    "default": "Výchozí nastavení{suffix}"
   },
   "access": {
     "rules": "Pravidla přístupu",

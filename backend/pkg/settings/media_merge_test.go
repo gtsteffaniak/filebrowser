@@ -167,6 +167,7 @@ func TestSanitizeEncoderBackend(t *testing.T) {
 		"nvenc":        "nvenc",
 		"VAAPI":        "vaapi",
 		"videotoolbox": "videotoolbox",
+		"h264_vaapi":   "h264_vaapi",
 		"not-a-real":   "",
 	}
 	for in, want := range cases {

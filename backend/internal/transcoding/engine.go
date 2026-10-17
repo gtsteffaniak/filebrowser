@@ -269,28 +269,62 @@ func encodeProfileForMode(info ffmpeg.StreamInfo, profile Profile) encode.VideoP
 		base.Quality = encode.PresetMedium
 	}
 	base.Bitrate = transcodeBitrateConfig(cfg, info, maxHeight)
-	base.Accel = preferredEncoderAccel(profile)
+	accel, encoder := preferredEncoderSelection(profile)
+	base.Accel = accel
+	base.Encoder = encoder
 	return base
 }
 
-// preferredEncoderAccel resolves the configured encoder backend for a profile:
+// preferredEncoderSelection resolves the configured encoder backend for a profile:
 // preset override, then the transcode-level default, then auto. "cpu" forces
-// software; an accel backend is only applied when detection marked it usable —
-// a backend the host cannot run must degrade to auto instead of failing jobs.
-func preferredEncoderAccel(profile Profile) capabilities.AccelType {
-	switch backend := settings.TranscodeEncoderBackend(string(profile)); backend {
+// software; legacy accel names (vaapi, nvenc, …) select that backend; an
+// explicit ffmpeg encoder name pins the encoder. Unavailable choices degrade to
+// auto instead of failing jobs.
+func preferredEncoderSelection(profile Profile) (capabilities.AccelType, string) {
+	backend := settings.TranscodeEncoderBackend(string(profile))
+	switch backend {
 	case "", "auto":
-		return ""
+		return "", ""
 	case "cpu":
-		return capabilities.AccelNone
+		return capabilities.AccelNone, ""
 	default:
-		accel := capabilities.AccelType(backend)
-		caps := ffmpeg.Get().Capabilities()
-		if caps == nil || !caps.CodecEncodeAvailable(capabilities.CodecH264, accel) {
-			return ""
+		if accel, ok := legacyAccelBackend(backend); ok {
+			caps := ffmpeg.Get().Capabilities()
+			if caps == nil || !caps.CodecEncodeAvailable(capabilities.CodecH264, accel) {
+				return "", ""
+			}
+			return accel, ""
 		}
-		return accel
+		caps := ffmpeg.Get().Capabilities()
+		if caps == nil {
+			return "", ""
+		}
+		for _, opt := range caps.EncodeOptions {
+			if opt.Codec != capabilities.CodecH264 || !opt.Available || opt.Encoder != backend {
+				continue
+			}
+			if opt.Accel == "" || opt.Accel == capabilities.AccelNone {
+				return capabilities.AccelNone, backend
+			}
+			return opt.Accel, backend
+		}
+		return "", ""
 	}
+}
+
+func legacyAccelBackend(backend string) (capabilities.AccelType, bool) {
+	switch backend {
+	case "nvenc", "amf", "qsv", "vaapi", "d3d12", "videotoolbox":
+		return capabilities.AccelType(backend), true
+	default:
+		return "", false
+	}
+}
+
+// preferredEncoderAccel is kept for tests that only assert the accel override.
+func preferredEncoderAccel(profile Profile) capabilities.AccelType {
+	accel, _ := preferredEncoderSelection(profile)
+	return accel
 }
 
 // transcodeBitrateConfig resolves the target bitrate: explicit config wins, then the

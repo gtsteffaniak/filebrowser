@@ -776,7 +776,8 @@
     "quality": "Qualidade{suffix}",
     "balanced": "Equilibrado{suffix}",
     "dataSaver": "Modalidade de Poupança de Dados{suffix}",
-    "media": "Meios de comunicação social"
+    "media": "Meios de comunicação social",
+    "default": "Padrão{suffix}"
   },
   "access": {
     "rules": "Regras de acesso",

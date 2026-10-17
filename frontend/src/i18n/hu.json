@@ -669,7 +669,8 @@
     "quality": "Minőség{suffix}",
     "balanced": "Kiegyensúlyozott{suffix}",
     "dataSaver": "Adatmegtakarító{suffix}",
-    "media": "Média"
+    "media": "Média",
+    "default": "Alapértelmezett{suffix}"
   },
   "access": {
     "rules": "Hozzáférési szabályok",

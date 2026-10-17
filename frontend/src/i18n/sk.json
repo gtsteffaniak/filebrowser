@@ -669,7 +669,8 @@
     "quality": "Kvalita{suffix}",
     "balanced": "Vyvážený{suffix}",
     "dataSaver": "Úspora dát{suffix}",
-    "media": "Médiá"
+    "media": "Médiá",
+    "default": "Predvolené nastavenie{suffix}"
   },
   "access": {
     "rules": "Pravidlá prístupu",

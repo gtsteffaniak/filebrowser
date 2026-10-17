@@ -486,8 +486,12 @@ func settingsMediaGetHandler(w http.ResponseWriter, r *http.Request, d *Context)
 		return RenderJSON(w, r, currentMediaPlayerSettings())
 	}
 	lockedPaths, lockMessage := mediaSettingsLockMeta()
+	media := state.GetMediaSettings()
+	if svc := ffmpeg.Get(); svc != nil {
+		media.AccelDevice = svc.ResolveAccelDevice(media.AccelDevice)
+	}
 	return RenderJSON(w, r, mediaSettingsResponse{
-		MediaSettings:         state.GetMediaSettings(),
+		MediaSettings:         media,
 		LockedFromConfigPaths: lockedPaths,
 		LockMessage:           lockMessage,
 		AccelDeviceOptions:    ffmpeg.Get().AccelDeviceOptions(),

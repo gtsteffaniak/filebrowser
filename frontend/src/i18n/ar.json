@@ -669,7 +669,8 @@
     "quality": "الجودة{suffix}",
     "balanced": "متوازن{suffix}",
     "dataSaver": "موفّر البيانات{suffix}",
-    "media": "وسائل الإعلام"
+    "media": "وسائل الإعلام",
+    "default": "الافتراضي{suffix}"
   },
   "access": {
     "rules": "قواعد الوصول",

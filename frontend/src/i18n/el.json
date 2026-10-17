@@ -669,7 +669,8 @@
     "quality": "Ποιότητα{suffix}",
     "balanced": "Ισορροπημένο{suffix}",
     "dataSaver": "Εξοικονόμηση δεδομένων{suffix}",
-    "media": "Μέσα ενημέρωσης"
+    "media": "Μέσα ενημέρωσης",
+    "default": "Προεπιλογή{suffix}"
   },
   "access": {
     "rules": "Κανόνες πρόσβασης",

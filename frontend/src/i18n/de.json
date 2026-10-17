@@ -669,7 +669,8 @@
     "quality": "Qualität{suffix}",
     "balanced": "Ausgewogen{suffix}",
     "dataSaver": "Datensparmodus{suffix}",
-    "media": "Medien"
+    "media": "Medien",
+    "default": "Standard{suffix}"
   },
   "access": {
     "rules": "Zugangsregeln",

@@ -776,7 +776,8 @@
     "quality": "品質{suffix}",
     "balanced": "平衡{suffix}",
     "dataSaver": "數據節省模式{suffix}",
-    "media": "媒體"
+    "media": "媒體",
+    "default": "預設{suffix}"
   },
   "access": {
     "rules": "存取規則",

@@ -776,7 +776,8 @@
     "quality": "Якість{suffix}",
     "balanced": "Збалансований{suffix}",
     "dataSaver": "Економія трафіку{suffix}",
-    "media": "ЗМІ"
+    "media": "ЗМІ",
+    "default": "За замовчуванням{suffix}"
   },
   "access": {
     "rules": "Правила доступу",

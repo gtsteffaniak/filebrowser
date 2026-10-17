@@ -669,7 +669,8 @@
     "quality": "איכות{suffix}",
     "balanced": "מאוזן{suffix}",
     "dataSaver": "חיסכון בנתונים{suffix}",
-    "media": "מדיה"
+    "media": "מדיה",
+    "default": "ברירת מחדל{suffix}"
   },
   "access": {
     "rules": "כללי גישה",

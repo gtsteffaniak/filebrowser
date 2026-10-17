@@ -669,7 +669,8 @@
     "quality": "Kalite{suffix}",
     "balanced": "Dengeli{suffix}",
     "dataSaver": "Veri Tasarrufu{suffix}",
-    "media": "Medya"
+    "media": "Medya",
+    "default": "Varsayılan{suffix}"
   },
   "access": {
     "rules": "Erişim kuralları",

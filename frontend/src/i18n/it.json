@@ -182,7 +182,8 @@
     "quality": "Qualità{suffix}",
     "balanced": "Equilibrato{suffix}",
     "dataSaver": "Risparmio dati{suffix}",
-    "media": "Media"
+    "media": "Media",
+    "default": "Predefinito{suffix}"
   },
   "buttons": {
     "copySuccess": "Copiato negli appunti!",

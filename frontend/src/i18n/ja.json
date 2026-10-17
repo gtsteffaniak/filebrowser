@@ -669,7 +669,8 @@
     "quality": "品質{suffix}",
     "balanced": "バランスが取れている{suffix}",
     "dataSaver": "データセーバー{suffix}",
-    "media": "メディア"
+    "media": "メディア",
+    "default": "デフォルト{suffix}"
   },
   "access": {
     "rules": "アクセスルール",

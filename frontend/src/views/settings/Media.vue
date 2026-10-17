@@ -16,7 +16,7 @@
           </div>
           <ExpandDropdown
             input-id="accelDevice"
-            :model-value="accelDeviceModelValue"
+            :model-value="media.accelDevice"
             :options="accelDeviceSelectOptions"
             :aria-label="$t('media.accelDevice')"
             :disabled="isLocked('hardwareAcceleration') || isLocked('accelDevice')"
@@ -110,17 +110,6 @@ export default {
         value: option.id,
         label: option.label || option.id,
       }));
-    },
-    /** The concrete device auto resolves to, so a pinned value equal to it can collapse to "auto". */
-    autoResolvedDeviceId() {
-      const auto = (this.accelDeviceOptions || []).find((option) => option.id === "auto");
-      return auto?.resolvedId || null;
-    },
-    /** A stored value pinning the same device auto resolves to displays as auto. */
-    accelDeviceModelValue() {
-      return this.autoResolvedDeviceId && this.media.accelDevice === this.autoResolvedDeviceId
-        ? "auto"
-        : this.media.accelDevice;
     },
   },
   mounted() {

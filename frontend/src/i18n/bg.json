@@ -182,7 +182,8 @@
     "quality": "Качество{suffix}",
     "balanced": "Балансиран{suffix}",
     "dataSaver": "Икономия на данни{suffix}",
-    "media": "Медии"
+    "media": "Медии",
+    "default": "По подразбиране{suffix}"
   },
   "buttons": {
     "copySuccess": "Копирано в клипборда!",
