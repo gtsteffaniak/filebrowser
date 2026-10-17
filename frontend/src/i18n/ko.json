@@ -1246,6 +1246,10 @@
     "transcodeProfileMaxResolution": "최대 해상도",
     "transcodeProfileMaxResolutionHelp": "픽셀 단위의 최대 출력 높이. 0을 지정하면 원본 해상도를 유지합니다.",
     "transcodeProfileAvgBitrate": "평균 비트레이트 (kbps)",
-    "transcodeProfileAvgBitrateHelp": "kbps 단위의 목표 평균 동영상 비트레이트. 0을 지정하면 소스 비트레이트를 유지합니다."
+    "transcodeProfileAvgBitrateHelp": "kbps 단위의 목표 평균 동영상 비트레이트. 0을 지정하면 소스 비트레이트를 유지합니다.",
+    "accelDevice": "가속 장치",
+    "accelDeviceDescription": "하드웨어 가속 미디어 처리에 사용되는 GPU 장치. CPU(소프트웨어)가 하드웨어 가속을 비활성화합니다.",
+    "encoderBackend": "인코더 백엔드",
+    "transcodeProfileEncoderBackendHelp": "이 프리셋에 대한 인코더 백엔드입니다. 기본값은 감지된 권장 백엔드로 설정됩니다."
   }
 }

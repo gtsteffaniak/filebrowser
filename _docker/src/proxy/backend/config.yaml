@@ -43,5 +43,4 @@ userDefaults:
 
 integrations:
   media:
-    # Keep the multi-second ffmpeg hardware codec probe out of CI startup.
-    hardwareAcceleration: false
+    skipHwCheck: true

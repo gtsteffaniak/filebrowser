@@ -6401,6 +6401,10 @@ const docTemplate = `{
                     "description": "deprecated: enable hardware acceleration for ffmpeg if available. deprecated: manage via the admin media settings API",
                     "type": "boolean"
                 },
+                "skipHwCheck": {
+                    "description": "SkipHwCheck skips the ffmpeg hardware codec probe entirely (software-only).\nConfig-only, not a runtime setting — advanced use, e.g. keeping the\nmulti-second probe out of CI startup.",
+                    "type": "boolean"
+                },
                 "transcode": {
                     "description": "deprecated: HLS transcoding for media playback. deprecated: manage via the admin media settings API",
                     "allOf": [

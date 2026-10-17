@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
+	"sync/atomic"
 )
 
 // FakeEngine is a deterministic Engine for tests.
@@ -14,6 +15,8 @@ type FakeEngine struct {
 	plan      hlsPlan
 	lastIndex int
 	lastSec   float64
+	lastPlan  hlsPlan
+	lastJob   *fakeJob
 	jobDirs   []string
 }
 
@@ -22,8 +25,6 @@ func NewFakeEngine() *FakeEngine {
 		plan: hlsPlan{
 			cacheFingerprint: "fp-test",
 			segmentSec:       4,
-			segmentStarts:    []float64{0, 4, 8},
-			segmentDurations: []float64{4, 4, 2},
 			mediaDurationSec: 10,
 		},
 	}
@@ -49,8 +50,9 @@ func (f *FakeEngine) BuildPlan(ctx context.Context, realPath string, profile Pro
 }
 
 type fakeJob struct {
-	cancelled chan struct{}
-	waitErr   error
+	cancelled  chan struct{}
+	waitErr    error
+	unreliable atomic.Bool
 }
 
 func newFakeJob() *fakeJob {
@@ -68,6 +70,15 @@ func (j *fakeJob) Cancel() {
 func (j *fakeJob) Wait() error {
 	<-j.cancelled
 	return j.waitErr
+}
+
+func (j *fakeJob) VTDecodeUnreliable() bool {
+	return j.unreliable.Load()
+}
+
+// SetVTUnreliable simulates ffmpeg reporting sustained VideoToolbox decode failures.
+func (j *fakeJob) SetVTUnreliable() {
+	j.unreliable.Store(true)
 }
 
 // NewBlockingFakeJob returns a ContinuousJob that waits until Cancel is called.
@@ -88,15 +99,33 @@ func (f *FakeEngine) LastStart() (startIndex int, startSec float64) {
 	return f.lastIndex, f.lastSec
 }
 
+// LastPlan returns the plan passed to the most recent StartContinuous call, so
+// tests can assert decode-profile changes across retries.
+func (f *FakeEngine) LastPlan() hlsPlan {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	return f.lastPlan
+}
+
+// LastJob returns the job created by the most recent StartContinuous call.
+func (f *FakeEngine) LastJob() *fakeJob {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	return f.lastJob
+}
+
 func (f *FakeEngine) StartContinuous(ctx context.Context, realPath, outputDir string, plan hlsPlan, startIndex int, startSec float64) (ContinuousJob, error) {
 	f.mu.Lock()
 	f.Starts++
 	f.lastIndex = startIndex
 	f.lastSec = startSec
+	f.lastPlan = plan
+	job := newFakeJob()
+	f.lastJob = job
 	f.jobDirs = append(f.jobDirs, outputDir)
 	f.mu.Unlock()
 	_ = os.MkdirAll(filepath.Join(outputDir, "seg"), 0o755)
 	_ = os.WriteFile(filepath.Join(outputDir, "init.m4s"), []byte("fake-init-segment-bytes-for-test"), 0o644)
-	_ = os.WriteFile(filepath.Join(outputDir, "ffmpeg.m3u8"), []byte("#EXTM3U\n"), 0o644)
-	return newFakeJob(), nil
+	_ = os.WriteFile(filepath.Join(outputDir, "index.m3u8"), []byte("#EXTM3U\n"), 0o644)
+	return job, nil
 }

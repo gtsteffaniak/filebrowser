@@ -160,6 +160,10 @@ func (o OnlyOffice) IsCollabora() bool {
 
 type Media struct {
 	FfmpegPath string `json:"ffmpegPath"` // path to ffmpeg directory with ffmpeg and ffprobe (eg. /usr/local/bin)
+	// SkipHwCheck skips the ffmpeg hardware codec probe entirely (software-only).
+	// Config-only, not a runtime setting — advanced use, e.g. keeping the
+	// multi-second probe out of CI startup.
+	SkipHwCheck bool `json:"skipHwCheck"`
 
 	// The fields below are deprecated and migrated to runtime (DB-backed) media settings on
 	// first run. They are kept only to seed the database from an existing config.yaml.

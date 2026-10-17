@@ -15,7 +15,6 @@ import (
 	_ "github.com/gtsteffaniak/filebrowser/backend/internal/database/sqldb" // Import to register SQL driver
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
-	"github.com/gtsteffaniak/filebrowser/backend/internal/transcoding"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing/iteminfo"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
@@ -35,17 +34,7 @@ func setupTestEnv(t *testing.T) {
 	t.Cleanup(func() {
 		state.Close()
 	})
-	// Wiring always registers a manager (so enabling transcoding at runtime works),
-	// and every manager owns a janitor goroutine. Stop the one this test wired:
-	// cleanups run LIFO, so this happens before state.Close. Bounded so a stuck
-	// producer can never hang the test binary.
-	if mgr := transcoding.Default(); mgr != nil {
-		t.Cleanup(func() {
-			closeCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-			defer cancel()
-			_ = mgr.Close(closeCtx)
-		})
-	}
+	stopTranscodeManagerOnCleanup(t)
 
 	settings.Config.Server.SourceMap = map[string]*settings.Source{
 		"/srv": {

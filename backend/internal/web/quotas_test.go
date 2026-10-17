@@ -24,6 +24,7 @@ func setupQuotaHTTPTest(t *testing.T) {
 		t.Fatal(err)
 	}
 	app.MustWireServices(state.Default())
+	stopTranscodeManagerOnCleanup(t)
 	t.Cleanup(func() {
 		state.Close()
 	})

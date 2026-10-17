@@ -281,6 +281,9 @@ integrations:
     viewOnly: false                       # view only mode for the office editor
   media:                                  #  validate:omitempty
     ffmpegPath: ""                        # path to ffmpeg directory with ffmpeg and ffprobe (eg. /usr/local/bin)
+    skipHwCheck: false                    # SkipHwCheck skips the ffmpeg hardware codec probe entirely (software-only).
+                                          # Config-only, not a runtime setting — advanced use, e.g. keeping the
+                                          # multi-second probe out of CI startup.
     accelDevice: ""                       # AccelDevice selects the acceleration device: "auto" (default), "software"/"cpu",
                                           # "igpu", "dgpu", a Linux DRM render node (e.g. /dev/dri/renderD128), or a GPU
                                           # name substring. Managed via the admin media settings API.

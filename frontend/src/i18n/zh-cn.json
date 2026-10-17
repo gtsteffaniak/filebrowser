@@ -1246,6 +1246,10 @@
     "transcodeProfileMaxResolution": "最大分辨率",
     "transcodeProfileMaxResolutionHelp": "最大输出高度（以像素为单位）。设置为 0 时将保留源分辨率。",
     "transcodeProfileAvgBitrate": "平均比特率（kbps）",
-    "transcodeProfileAvgBitrateHelp": "目标视频平均码率（单位：kbps）。设置为 0 时将保留源视频的码率。"
+    "transcodeProfileAvgBitrateHelp": "目标视频平均码率（单位：kbps）。设置为 0 时将保留源视频的码率。",
+    "accelDevice": "加速装置",
+    "accelDeviceDescription": "用于硬件加速媒体处理的 GPU 设备。CPU（软件）禁用了硬件加速。",
+    "encoderBackend": "编码器后端",
+    "transcodeProfileEncoderBackendHelp": "此预设的编码器后端；默认使用检测到的首选后端。"
   }
 }

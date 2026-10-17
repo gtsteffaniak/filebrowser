@@ -1246,6 +1246,10 @@
     "transcodeProfileMaxResolution": "Risoluzione massima",
     "transcodeProfileMaxResolutionHelp": "Altezza massima di output in pixel. Il valore 0 mantiene la risoluzione originale.",
     "transcodeProfileAvgBitrate": "Bitrate medio (kbps)",
-    "transcodeProfileAvgBitrateHelp": "Bitrate medio desiderato del video in kbps. Il valore 0 mantiene il bitrate originale."
+    "transcodeProfileAvgBitrateHelp": "Bitrate medio desiderato del video in kbps. Il valore 0 mantiene il bitrate originale.",
+    "accelDevice": "Dispositivo di accelerazione",
+    "accelDeviceDescription": "Dispositivo GPU utilizzato per l'elaborazione multimediale con accelerazione hardware. La CPU (software) disattiva l'accelerazione hardware.",
+    "encoderBackend": "Backend dell'encoder",
+    "transcodeProfileEncoderBackendHelp": "Backend dell'encoder per questa preimpostazione; per impostazione predefinita viene utilizzato il backend preferito rilevato."
   }
 }

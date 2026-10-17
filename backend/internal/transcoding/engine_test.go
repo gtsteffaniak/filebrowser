@@ -69,14 +69,16 @@ func TestProfileForcesVideoTranscode(t *testing.T) {
 }
 
 func TestFMP4CopyableVideoCodec(t *testing.T) {
-	for _, codec := range []string{"h264", "avc1", "hevc", "h265", "hvc1", "hev1", "vp9", "vp09.00.40.08"} {
+	for _, codec := range []string{"h264", "avc", "avc1"} {
 		if !fmp4CopyableVideoCodec(codec) {
 			t.Fatalf("%s should be fMP4-copyable", codec)
 		}
 	}
-	for _, codec := range []string{"vp8", "av1", "wmv3", "mpeg4", "theora"} {
+	// Only h264 is universal under MSE: VP9 has no Safari support and HEVC is
+	// inconsistent outside Apple hardware, so both transcode instead.
+	for _, codec := range []string{"hevc", "h265", "hvc1", "hev1", "vp9", "vp09.00.40.08", "vp8", "av1", "wmv3", "mpeg4", "theora"} {
 		if fmp4CopyableVideoCodec(codec) {
-			t.Fatalf("%s has no usable fMP4 mapping and must transcode", codec)
+			t.Fatalf("%s must transcode for broad hls.js compatibility", codec)
 		}
 	}
 }
@@ -89,14 +91,14 @@ func TestFMP4CopyEligibility(t *testing.T) {
 		wantRemux     bool
 		wantVideoCopy bool
 	}{
-		{"hevc+aac remuxes", ffmpeg.StreamInfo{HasVideo: true, VideoCodec: "hevc", AudioCodec: "aac"}, false, true, false},
-		{"vp9+aac remuxes", ffmpeg.StreamInfo{HasVideo: true, VideoCodec: "vp9", AudioCodec: "aac"}, false, true, false},
-		{"vp9+opus copies video only", ffmpeg.StreamInfo{HasVideo: true, VideoCodec: "vp9", AudioCodec: "opus"}, false, false, true},
-		{"hevc+ac3 copies video only", ffmpeg.StreamInfo{HasVideo: true, VideoCodec: "hevc", AudioCodec: "ac3"}, false, false, true},
-		{"hevc without audio remuxes", ffmpeg.StreamInfo{HasVideo: true, VideoCodec: "hevc"}, false, true, false},
+		{"h264+aac remuxes", ffmpeg.StreamInfo{HasVideo: true, VideoCodec: "h264", AudioCodec: "aac"}, false, true, false},
+		{"h264+ac3 copies video only", ffmpeg.StreamInfo{HasVideo: true, VideoCodec: "h264", AudioCodec: "ac3"}, false, false, true},
+		{"h264 without audio remuxes", ffmpeg.StreamInfo{HasVideo: true, VideoCodec: "h264"}, false, true, false},
+		{"hevc transcodes for compatibility", ffmpeg.StreamInfo{HasVideo: true, VideoCodec: "hevc", AudioCodec: "aac"}, false, false, false},
+		{"vp9 transcodes for compatibility", ffmpeg.StreamInfo{HasVideo: true, VideoCodec: "vp9", AudioCodec: "opus"}, false, false, false},
 		{"vp8 never copies", ffmpeg.StreamInfo{HasVideo: true, VideoCodec: "vp8", AudioCodec: "aac"}, false, false, false},
 		{"av1 never copies", ffmpeg.StreamInfo{HasVideo: true, VideoCodec: "av1", AudioCodec: "aac"}, false, false, false},
-		{"forced transcode copies nothing", ffmpeg.StreamInfo{HasVideo: true, VideoCodec: "vp9", AudioCodec: "aac"}, true, false, false},
+		{"forced transcode copies nothing", ffmpeg.StreamInfo{HasVideo: true, VideoCodec: "h264", AudioCodec: "aac"}, true, false, false},
 		{"no video copies nothing", ffmpeg.StreamInfo{AudioCodec: "aac"}, false, false, false},
 	}
 	for _, tc := range tests {

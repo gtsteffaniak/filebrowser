@@ -17,10 +17,8 @@ type Store struct {
 }
 
 // NewStore returns a store rooted at root (or the configured transcode cache
-// dir). The directory is created on demand by EnsureJobDir when a transcode
-// actually starts: wiring the manager at startup must not require the cache tree
-// to exist or be creatable, since transcoding may be disabled. Every read path
-// tolerates a missing root.
+// dir). The directory is created lazily on first transcode so wiring never
+// requires the cache tree to exist; every read path tolerates a missing root.
 func NewStore(root string) (*Store, error) {
 	if root == "" {
 		root = settings.TranscodeCacheDir()
@@ -57,8 +55,10 @@ func (s *Store) InitPath(jobDir string) string {
 	return filepath.Join(jobDir, "init.m4s")
 }
 
+// PlaylistPath is the publisher's canonical serve playlist: every segment it
+// lists has already been validated, aligned, and renamed into seg/.
 func (s *Store) PlaylistPath(jobDir string) string {
-	return filepath.Join(jobDir, "ffmpeg.m3u8")
+	return filepath.Join(jobDir, "index.m3u8")
 }
 
 func (s *Store) SegmentPath(jobDir, name string) (string, error) {
@@ -69,34 +69,26 @@ func (s *Store) SegmentPath(jobDir, name string) (string, error) {
 	return path, nil
 }
 
-func (s *Store) SegmentReady(path string) bool {
-	name := filepath.Base(path)
-	jobDir := filepath.Dir(filepath.Dir(path))
-	return ffmpeg.HLSSegmentServeReady(jobDir, name)
-}
-
-// SegmentNameReady reports whether a segment has been aligned and is safe to serve.
-func (s *Store) SegmentNameReady(jobDir, name string) bool {
-	path, err := s.SegmentPath(jobDir, name)
-	if err != nil {
-		return false
-	}
-	return s.SegmentReady(path)
-}
-
 func (s *Store) InitReady(jobDir string) bool {
 	return ffmpeg.HLSInitReady(jobDir)
 }
 
-func (s *Store) OpenReadySegment(jobDir, name string) (*os.File, error) {
+// OpenSegment opens a published segment. The publisher only lists a segment in
+// index.m3u8 after it lands in seg/, so a listed segment always exists —
+// a missing file here means the generation was cleared or evicted.
+func (s *Store) OpenSegment(jobDir, name string) (*os.File, error) {
 	path, err := s.SegmentPath(jobDir, name)
 	if err != nil {
 		return nil, err
 	}
-	if !s.SegmentReady(path) {
-		return nil, ErrNotReady
+	f, err := os.Open(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil, ErrNotReady
+		}
+		return nil, err
 	}
-	return os.Open(path)
+	return f, nil
 }
 
 func (s *Store) OpenInit(jobDir string) (*os.File, error) {
@@ -110,28 +102,25 @@ func (s *Store) OpenInit(jobDir string) (*os.File, error) {
 	return os.Open(path)
 }
 
-// ReadServePlaylist returns the playlist normalized in memory with only the
-// segments that are aligned and ready included, plus how many segments it
-// exposes. The playlist on disk is left untouched so serving never races with
-// ffmpeg rewriting ffmpeg.m3u8.
-func (s *Store) ReadServePlaylist(jobDir string) ([]byte, int, error) {
+// ReadServePlaylist returns the publisher's index.m3u8 verbatim plus whether
+// it lists at least one segment. The publisher atomically rewrites it as
+// segments are validated, so serving never races with ffmpeg and needs no
+// per-request readiness filtering.
+func (s *Store) ReadServePlaylist(jobDir string) ([]byte, bool, error) {
 	path := s.PlaylistPath(jobDir)
 	if err := s.assertContained(jobDir, path); err != nil {
-		return nil, 0, err
+		return nil, false, err
 	}
-	raw, err := os.ReadFile(path)
+	data, err := os.ReadFile(path)
 	if err != nil {
-		// ffmpeg has not written the playlist yet; callers poll on ErrNotReady
-		// instead of treating a missing file as a hard 500.
+		// The publisher has not written the playlist yet; callers poll on
+		// ErrNotReady instead of treating a missing file as a hard 500.
 		if os.IsNotExist(err) {
-			return nil, 0, ErrNotReady
+			return nil, false, ErrNotReady
 		}
-		return nil, 0, err
+		return nil, false, err
 	}
-	out, ready := buildServePlaylist(raw, func(name string) bool {
-		return s.SegmentNameReady(jobDir, name)
-	})
-	return out, ready, nil
+	return data, strings.Contains(string(data), "seg/"), nil
 }
 
 // GenerationCoverage describes the contiguous produced range of a generation
@@ -139,34 +128,33 @@ func (s *Store) ReadServePlaylist(jobDir string) ([]byte, int, error) {
 // LastReadyIndex is the produced edge a session can serve right now.
 type GenerationCoverage struct {
 	FirstIndex     int     // first listed segment index (the job's start index); -1 when no playlist segments exist
-	LastReadyIndex int     // highest aligned/ready segment index; -1 when nothing is ready
-	ProducedSec    float64 // servable media duration (sum of ready #EXTINF)
+	LastReadyIndex int     // highest published segment index; -1 when nothing is ready
+	StartSec       float64 // effective media start — the publisher's snapped/real anchor
+	ProducedSec    float64 // servable media duration (sum of published #EXTINF)
 	EndList        bool    // ffmpeg wrote #EXT-X-ENDLIST — the job ran to EOF
-	Complete       bool    // EndList && every listed segment ready && at least one segment
-	HasPlaylist    bool    // ffmpeg.m3u8 existed and parsed
+	Complete       bool    // EndList && every listed segment published && at least one segment
+	HasPlaylist    bool    // the publisher's job.json existed
 }
 
-// GenerationCoverage parses the generation playlist once and reports the
-// produced range. A running job's playlist grows per segment, so the coverage
-// reflects the produced edge at read time.
+// GenerationCoverage reads the generation's job.json — the publisher's
+// authoritative record of produced coverage. A running job rewrites it as
+// segments publish, so the coverage reflects the produced edge at read time.
 func (s *Store) GenerationCoverage(jobDir string) GenerationCoverage {
 	cov := GenerationCoverage{FirstIndex: -1, LastReadyIndex: -1}
 	if jobDir == "" {
 		return cov
 	}
-	raw, err := os.ReadFile(s.PlaylistPath(jobDir))
+	st, err := ffmpeg.ReadHLSJobStatus(jobDir)
 	if err != nil {
 		return cov
 	}
-	result := parseServePlaylist(raw, func(name string) bool {
-		return s.SegmentNameReady(jobDir, name)
-	})
 	cov.HasPlaylist = true
-	cov.FirstIndex = result.firstIndex
-	cov.LastReadyIndex = result.lastReadyIndex
-	cov.ProducedSec = result.producedSec
-	cov.EndList = result.endList
-	cov.Complete = result.endList && result.totalCount > 0 && result.readyCount == result.totalCount
+	cov.FirstIndex = st.FirstIndex
+	cov.LastReadyIndex = st.LastReadyIndex
+	cov.StartSec = st.StartSec
+	cov.ProducedSec = st.ProducedSec
+	cov.EndList = st.EndList
+	cov.Complete = st.Complete
 	return cov
 }
 
@@ -177,11 +165,10 @@ func (s *Store) IsCompleteGeneration(jobDir string) bool {
 }
 
 // FindReusableGeneration returns the complete generation under fingerprint
-// with the widest coverage — the lowest listed segment index wins, with the
-// most recently modified breaking ties. Generations are keyed only by file
-// identity and transcode parameters, so any user playing the same file with
-// the same profile reuses the same cached playlist and segments. The caller
-// must check the returned coverage reaches the requested playhead.
+// with the widest coverage (lowest listed segment index, newest wins ties).
+// Generations are keyed by file identity + transcode params, so any user
+// playing the same file/profile shares the cached output. The caller must
+// check the returned coverage reaches the requested playhead.
 func (s *Store) FindReusableGeneration(fingerprint string) (string, GenerationCoverage, bool) {
 	if fingerprint == "" {
 		return "", GenerationCoverage{}, false
@@ -224,6 +211,44 @@ func (s *Store) TouchGeneration(jobDir string) {
 	}
 	now := time.Now()
 	_ = os.Chtimes(jobDir, now, now)
+}
+
+// ClearGenerationOutput wipes a generation's produced files — segments,
+// readiness markers, playlists, init — while keeping the job directory itself.
+// Used when a running producer must restart: coverage is computed from files
+// on disk, so stale output from the failed run would otherwise be served or
+// inflate the produced edge.
+func (s *Store) ClearGenerationOutput(jobDir string) error {
+	if jobDir == "" {
+		return nil
+	}
+	if err := s.assertContained(s.root, jobDir); err != nil {
+		return err
+	}
+	for _, sub := range []string{"seg", "raw"} {
+		segDir := filepath.Join(jobDir, sub)
+		entries, err := os.ReadDir(segDir)
+		if err != nil {
+			if os.IsNotExist(err) {
+				continue
+			}
+			return err
+		}
+		for _, entry := range entries {
+			if entry.IsDir() {
+				continue
+			}
+			if err := os.Remove(filepath.Join(segDir, entry.Name())); err != nil && !os.IsNotExist(err) {
+				return err
+			}
+		}
+	}
+	for _, name := range []string{"ffmpeg.m3u8", "ffmpeg.m3u8.tmp", "index.m3u8", "job.json", "init.m4s"} {
+		if err := os.Remove(filepath.Join(jobDir, name)); err != nil && !os.IsNotExist(err) {
+			return err
+		}
+	}
+	return nil
 }
 
 func (s *Store) RemoveGeneration(jobDir string) error {

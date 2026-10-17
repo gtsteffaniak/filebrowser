@@ -1246,6 +1246,10 @@
     "transcodeProfileMaxResolution": "Maksymalna rozdzielczość",
     "transcodeProfileMaxResolutionHelp": "Maksymalna wysokość wyjściowa w pikselach. Wartość 0 pozwala zachować rozdzielczość źródłową.",
     "transcodeProfileAvgBitrate": "Średnia przepływność (kbps)",
-    "transcodeProfileAvgBitrateHelp": "Docelowa średnia przepływność wideo w kbps. Wartość 0 oznacza zachowanie przepływności źródłowej."
+    "transcodeProfileAvgBitrateHelp": "Docelowa średnia przepływność wideo w kbps. Wartość 0 oznacza zachowanie przepływności źródłowej.",
+    "accelDevice": "Urządzenie przyspieszające",
+    "accelDeviceDescription": "Urządzenie GPU wykorzystywane do sprzętowo przyspieszanego przetwarzania multimediów. Procesor CPU (oprogramowanie) wyłącza przyspieszenie sprzętowe.",
+    "encoderBackend": "Moduł zaplecza enkodera",
+    "transcodeProfileEncoderBackendHelp": "Moduł zaplecza enkodera dla tego ustawienia; domyślnie wybierany jest wykryty preferowany moduł zaplecza."
   }
 }

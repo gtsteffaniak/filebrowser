@@ -286,17 +286,16 @@ import {
   resolveTranscodeModeForPlayback,
   savePreferredTranscodeMode,
 } from '@/utils/transcodePreference.js';
-import { createTranscodeClientId } from '@/plyr/transcodeSession.js';
+import { createTranscodeClientId, isLivePacedSession } from '@/plyr/transcodeSession.js';
 import { TranscodePlaybackController } from '@/plyr/transcodePlaybackController.js';
-import { mediaCoverage, seekOutsideCoverage, servableCoverage } from '@/plyr/transcodeSeek.js';
 import {
   TRANSCODE_MODES as PLYR_TRANSCODE_MODES,
   TRANSCODE_HLS_MODES as PLYR_TRANSCODE_HLS_MODES,
   normalizeTranscodeMode,
   normalizeTranscodeSessionStatus,
   isTranscodeHlsMode,
+  isTranscodeAvailable,
 } from '@/plyr/transcodeMode.js';
-import { isTranscodeAvailable } from '@/plyr/transcodeAvailability.js';
 import { transcodeLog, transcodeWarn } from '@/plyr/transcodeDebug.js';
 import { isPlayBlockedError, primePlay } from '@/plyr/playbackIntent.js';
 import { needsTranscodeFirst } from '@/utils/canBrowserPlayNative.js';
@@ -443,6 +442,7 @@ export default {
       longPressPreviousSpeed: 1,
       speedToastVisible: false,
       speedToastMessage: '',
+      speedToastTimer: null,
 
       // Plyr instance
       player: null,
@@ -479,11 +479,6 @@ export default {
       transcodeModeButtons: null,
       transcodeModeValueSpan: null,
       transcodeOfferEmitted: false,
-      /** Last requested playhead for out-of-coverage transcode repositioning. */
-      pendingSeekIntentSec: null,
-      seekRepositionTimer: null,
-      /** Polls for produced coverage so a reposition lands on the exact intent. */
-      preciseSeekTimer: null,
       mountPlyrInProgress: false,
       /** Armed when autoplay is blocked so the next user gesture can resume playback. */
       resumeOnGestureArmed: false,
@@ -1113,6 +1108,19 @@ export default {
         );
       } catch (_e) { /*ignore*/ }
     },
+    onRateChange() {
+      // Live-paced sessions produce at ~1x; faster playback would just drain
+      // the buffered lead and stall, so cap the rate while one is running.
+      const session = this.transcodePlayback?.sessionController?.session;
+      if (
+        this.isTranscodePlaybackMode
+        && this.player?.speed > 1
+        && isLivePacedSession(session)
+      ) {
+        this.player.speed = 1;
+      }
+      this.updateMediaSessionPlaybackState();
+    },
     updateMediaSessionPlaybackState() {
       if (!('mediaSession' in navigator)) return;
       if (!this.ownsMediaSession()) return;
@@ -1147,7 +1155,7 @@ export default {
       this.mediaSessionOwnerId = 0;
     },
     resetFilePlaybackState() {
-      this.clearPendingSeekIntent();
+      this.transcodePlayback?.clearPendingSeek();
       this.videoStreamAttached = false;
       this.pipHandoffSeekSeconds = null;
       this.lockedNativeVideoSrc = null;
@@ -1221,7 +1229,6 @@ export default {
       this.mountedPreviewKey = null;
       this.pipHandoffApplying = false;
       this.lockedNativeVideoSrc = null;
-      this.clearPendingSeekIntent();
       const media = this.getActiveMediaElement();
       const inPip = this.isMediaInPictureInPicture(media);
       const isTransition = state.navigation.isTransitioning;
@@ -2230,13 +2237,10 @@ export default {
         if (manageSwitch) {
           this.transcodeSwitchInProgress = false;
         }
-        // A seek intent issued while this start was in flight is checked
-        // against the fresh coverage now that the flags have cleared.
-        this.evaluateSeekIntent();
       }
     },
     teardownTranscodePlayback({ stopSession = false, keepAlive = false } = {}) {
-      this.clearPendingSeekIntent();
+      this.transcodePlayback?.clearPendingSeek();
       if (!this.transcodePlayback || keepAlive) {
         return;
       }
@@ -2293,108 +2297,13 @@ export default {
       const parsed = parseFloat(str);
       return Number.isFinite(parsed) ? parsed : NaN;
     },
-    // Record a scrub/seek intent. Live-paced transcodes can only serve what
-    // the producer has written, so a target outside the produced coverage
-    // must reposition the generation — debounced so drag tails coalesce.
+    // Record a scrub/seek intent; the controller repositions the session when
+    // the target lands outside the generation's servable coverage.
     onTranscodeSeekIntent(sec) {
       if (this.plyrTeardownDone || !this.isTranscodePlaybackMode || !Number.isFinite(sec)) {
         return;
       }
-      this.pendingSeekIntentSec = Math.max(0, sec);
-      if (this.seekRepositionTimer) {
-        clearTimeout(this.seekRepositionTimer);
-      }
-      this.seekRepositionTimer = setTimeout(() => {
-        this.seekRepositionTimer = null;
-        this.evaluateSeekIntent();
-      }, 350);
-    },
-    evaluateSeekIntent() {
-      const intent = this.pendingSeekIntentSec;
-      if (intent == null || this.plyrTeardownDone || !this.isTranscodePlaybackMode) {
-        return;
-      }
-      // A start/reposition is already rebuilding the session; the intent is
-      // re-evaluated against the new coverage once it lands.
-      if (this.transcodeStartInProgress || this.transcodeSwitchInProgress) {
-        return;
-      }
-      const el = this.getActiveMediaElement();
-      // Servable — not just buffered — coverage: a completed generation can
-      // serve its whole playlist on demand, so a seek inside it stays an
-      // in-place element seek instead of tearing the session down.
-      const coverage = servableCoverage(
-        el,
-        this.transcodePlayback?.sessionController?.session,
-      );
-      if (!coverage) {
-        // Nothing attached yet — keep the intent for a later evaluation.
-        return;
-      }
-      if (!seekOutsideCoverage(intent, coverage)) {
-        this.pendingSeekIntentSec = null;
-        return;
-      }
-      this.pendingSeekIntentSec = null;
-      this.repositionTranscode(intent);
-    },
-    // Ask the backend to serve the requested playhead: it reuses coverage when
-    // the target is already produced, otherwise it supersedes this session
-    // with a generation restarted at the aligned segment boundary.
-    repositionTranscode(targetSec) {
-      const el = this.getActiveMediaElement();
-      const wasPlaying = el ? !el.paused : true;
-      transcodeLog('seek past produced coverage — repositioning transcode', {
-        targetSec,
-        sessionId: this.transcodePlayback?.sessionController?.session?.id,
-      });
-      this.startPreciseSeekWait(targetSec);
-      void this.startTranscodePlayback({
-        startSec: targetSec,
-        autoplay: wasPlaying,
-      });
-    },
-    // applyStartPosition clamps the playhead to the produced edge at attach
-    // time, so a reposition initially lands a few seconds before the intent.
-    // Poll until production passes the target, then re-apply it exactly.
-    startPreciseSeekWait(targetSec) {
-      this.clearPreciseSeekWait();
-      const deadline = Date.now() + 15000;
-      this.preciseSeekTimer = setInterval(() => {
-        const el = this.getActiveMediaElement();
-        if (!el || this.plyrTeardownDone || Date.now() > deadline) {
-          this.clearPreciseSeekWait();
-          return;
-        }
-        const coverage = mediaCoverage(el);
-        if (!coverage || coverage.end < targetSec - 0.75) {
-          return;
-        }
-        const clamped = Math.min(Math.max(targetSec, coverage.start), coverage.end);
-        if (Math.abs(el.currentTime - clamped) > 0.35) {
-          try {
-            el.currentTime = clamped;
-          } catch (_) {
-            // element not seekable yet; next poll retries
-            return;
-          }
-        }
-        this.clearPreciseSeekWait();
-      }, 400);
-    },
-    clearPreciseSeekWait() {
-      if (this.preciseSeekTimer) {
-        clearInterval(this.preciseSeekTimer);
-        this.preciseSeekTimer = null;
-      }
-    },
-    clearPendingSeekIntent() {
-      this.pendingSeekIntentSec = null;
-      if (this.seekRepositionTimer) {
-        clearTimeout(this.seekRepositionTimer);
-        this.seekRepositionTimer = null;
-      }
-      this.clearPreciseSeekWait();
+      this.transcodePlayback?.notifySeekIntent(sec);
     },
     onVideoPlaybackError(event) {
       if (
@@ -2914,7 +2823,7 @@ export default {
         },
         seeked: this.updateMediaSessionPlaybackState,
         loadedmetadata: this.updateMediaSessionPlaybackState,
-        ratechange: this.updateMediaSessionPlaybackState,
+        ratechange: this.onRateChange,
         canplay: this.updateMediaSessionPlaybackState,
       };
       for (const [evt, fn] of Object.entries(eventMap)) {

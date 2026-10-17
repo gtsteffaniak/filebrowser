@@ -3,13 +3,13 @@ package transcoding
 import (
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 	"time"
 )
 
-// writeCompleteGeneration creates a finished generation (init + playlist with
-// ENDLIST + a ready segment) so retention/size eviction can be exercised.
+// writeCompleteGeneration creates a finished generation (init + index.m3u8
+// with ENDLIST + a published segment + complete job.json) so retention and
+// reuse paths can be exercised.
 func writeCompleteGeneration(t *testing.T, genDir string, segmentBytes int) {
 	t.Helper()
 	segDir := filepath.Join(genDir, "seg")
@@ -19,15 +19,15 @@ func writeCompleteGeneration(t *testing.T, genDir string, segmentBytes int) {
 	if err := os.WriteFile(filepath.Join(genDir, "init.m4s"), make([]byte, 1024), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	segPath := filepath.Join(segDir, "00000.m4s")
-	if err := os.WriteFile(segPath, make([]byte, segmentBytes), 0o644); err != nil {
-		t.Fatal(err)
-	}
-	if err := os.WriteFile(segPath+".ready", []byte("1"), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(segDir, "00000.m4s"), make([]byte, segmentBytes), 0o644); err != nil {
 		t.Fatal(err)
 	}
 	playlist := "#EXTM3U\n#EXT-X-VERSION:7\n#EXTINF:4.000000,\nseg/00000.m4s\n#EXT-X-ENDLIST\n"
-	if err := os.WriteFile(filepath.Join(genDir, "ffmpeg.m3u8"), []byte(playlist), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(genDir, "index.m3u8"), []byte(playlist), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	status := `{"startSec":0,"firstIndex":0,"lastReadyIndex":0,"producedSec":4,"endList":true,"complete":true}`
+	if err := os.WriteFile(filepath.Join(genDir, "job.json"), []byte(status), 0o644); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -191,156 +191,60 @@ func TestStoreFindReusableGeneration(t *testing.T) {
 	}
 }
 
-// writeServeableSegment writes a segment file large enough to pass the
-// minimum-size serve check, optionally marking it aligned (.ready).
-func writeServeableSegment(t *testing.T, dir, name string, ready bool) string {
+// writeServeableSegment writes a published segment file large enough to pass
+// the minimum-size serve check.
+func writeServeableSegment(t *testing.T, dir, name string) string {
 	t.Helper()
 	path := filepath.Join(dir, name)
 	if err := os.WriteFile(path, make([]byte, 9000), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	if ready {
-		if err := os.WriteFile(path+".ready", []byte("1"), 0o644); err != nil {
-			t.Fatal(err)
-		}
-	}
 	return path
 }
 
-func TestStoreReadPlaylistNormalizesBareSegments(t *testing.T) {
+// ReadServePlaylist returns the publisher's index.m3u8 verbatim — the
+// readiness filtering lives in the publisher, so serving is a plain read.
+func TestStoreReadServePlaylistVerbatim(t *testing.T) {
 	store, storeErr := NewStore(t.TempDir())
 	if storeErr != nil {
 		t.Fatal(storeErr)
 	}
 	jobDir := t.TempDir()
-	segDir := filepath.Join(jobDir, "seg")
-	if err := os.MkdirAll(segDir, 0o755); err != nil {
-		t.Fatal(err)
-	}
-	writeServeableSegment(t, segDir, "00000.m4s", true)
-	if err := os.WriteFile(filepath.Join(jobDir, "ffmpeg.m3u8"), []byte("#EXTM3U\n#EXT-X-MAP:URI=\"init.m4s\"\n#EXTINF:4,\n00000.m4s\n"), 0o644); err != nil {
+	playlist := "#EXTM3U\n#EXT-X-VERSION:7\n#EXT-X-MEDIA-SEQUENCE:3\n" +
+		"#EXTINF:4.000000,\nseg/00003.m4s\n#EXTINF:4.000000,\nseg/00004.m4s\n"
+	if err := os.WriteFile(filepath.Join(jobDir, "index.m3u8"), []byte(playlist), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
-	data, _, err := store.ReadServePlaylist(jobDir)
+	data, hasSegments, err := store.ReadServePlaylist(jobDir)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(string(data), "seg/00000.m4s") {
-		t.Fatalf("expected normalized playlist, got %q", string(data))
+	if !hasSegments {
+		t.Fatal("expected hasSegments for a playlist listing segments")
 	}
-	if strings.Count(string(data), "#EXTM3U") != 1 {
-		t.Fatalf("expected a single #EXTM3U header, got %q", string(data))
+	if string(data) != playlist {
+		t.Fatalf("serve playlist must be verbatim, got %q", string(data))
 	}
 }
 
-// Segments that are not yet aligned (no .ready marker) must be withheld from the
-// served playlist so a client never requests a segment the server would reject.
-func TestStoreReadServePlaylistWithholdsUnalignedSegments(t *testing.T) {
+// An index.m3u8 exists before its first segment publishes; hasSegments gates
+// serving an empty playlist to hls.js.
+func TestStoreReadServePlaylistEmptyIsNotReady(t *testing.T) {
 	store, storeErr := NewStore(t.TempDir())
 	if storeErr != nil {
 		t.Fatal(storeErr)
 	}
 	jobDir := t.TempDir()
-	segDir := filepath.Join(jobDir, "seg")
-	if err := os.MkdirAll(segDir, 0o755); err != nil {
+	if err := os.WriteFile(filepath.Join(jobDir, "index.m3u8"), []byte("#EXTM3U\n#EXT-X-VERSION:7\n#EXT-X-TARGETDURATION:4\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	writeServeableSegment(t, segDir, "00000.m4s", true)
-	writeServeableSegment(t, segDir, "00001.m4s", false)
-	playlist := "#EXTM3U\n#EXT-X-VERSION:7\n#EXT-X-TARGETDURATION:4\n#EXT-X-MEDIA-SEQUENCE:0\n" +
-		"#EXT-X-MAP:URI=\"init.m4s\"\n" +
-		"#EXTINF:4.000000,\nseg/00000.m4s\n#EXTINF:4.000000,\nseg/00001.m4s\n#EXT-X-ENDLIST\n"
-	if err := os.WriteFile(filepath.Join(jobDir, "ffmpeg.m3u8"), []byte(playlist), 0o644); err != nil {
-		t.Fatal(err)
-	}
-
-	data, ready, err := store.ReadServePlaylist(jobDir)
+	_, hasSegments, err := store.ReadServePlaylist(jobDir)
 	if err != nil {
 		t.Fatal(err)
 	}
-	got := string(data)
-	if !strings.Contains(got, "seg/00000.m4s") {
-		t.Fatalf("ready segment missing from playlist: %q", got)
-	}
-	if strings.Contains(got, "seg/00001.m4s") {
-		t.Fatalf("unaligned segment must be withheld: %q", got)
-	}
-	// ENDLIST must not appear while segments are still being produced.
-	if strings.Contains(got, "#EXT-X-ENDLIST") {
-		t.Fatalf("incomplete playlist must not advertise ENDLIST: %q", got)
-	}
-	if ready != 1 {
-		t.Fatalf("ready segments = %d, want 1", ready)
-	}
-}
-
-// A finished playlist (all segments ready) keeps ENDLIST and reports a ready segment.
-func TestStoreReadServePlaylistKeepsEndListWhenComplete(t *testing.T) {
-	store, storeErr := NewStore(t.TempDir())
-	if storeErr != nil {
-		t.Fatal(storeErr)
-	}
-	jobDir := t.TempDir()
-	segDir := filepath.Join(jobDir, "seg")
-	if err := os.MkdirAll(segDir, 0o755); err != nil {
-		t.Fatal(err)
-	}
-	writeServeableSegment(t, segDir, "00000.m4s", true)
-	playlist := "#EXTM3U\n#EXT-X-VERSION:7\n#EXTINF:4.000000,\nseg/00000.m4s\n#EXT-X-ENDLIST\n"
-	if err := os.WriteFile(filepath.Join(jobDir, "ffmpeg.m3u8"), []byte(playlist), 0o644); err != nil {
-		t.Fatal(err)
-	}
-
-	data, _, err := store.ReadServePlaylist(jobDir)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !strings.Contains(string(data), "#EXT-X-ENDLIST") {
-		t.Fatalf("complete playlist must keep ENDLIST: %q", string(data))
-	}
-}
-
-// The served playlist must not mutate the on-disk file (no race with ffmpeg).
-func TestStoreReadServePlaylistDoesNotMutateDisk(t *testing.T) {
-	store, storeErr := NewStore(t.TempDir())
-	if storeErr != nil {
-		t.Fatal(storeErr)
-	}
-	jobDir := t.TempDir()
-	playlistPath := filepath.Join(jobDir, "ffmpeg.m3u8")
-	original := "#EXTM3U\n#EXTINF:4.000000,\n00000.m4s\n"
-	if err := os.WriteFile(playlistPath, []byte(original), 0o644); err != nil {
-		t.Fatal(err)
-	}
-
-	if _, _, err := store.ReadServePlaylist(jobDir); err != nil {
-		t.Fatal(err)
-	}
-	after, err := os.ReadFile(playlistPath)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if string(after) != original {
-		t.Fatalf("on-disk playlist was modified: %q", string(after))
-	}
-}
-
-// A mid-stream session must report the first included segment as MEDIA-SEQUENCE
-// so hls.js computes fragment sequence numbers correctly.
-func TestBuildServePlaylistRewritesMediaSequence(t *testing.T) {
-	raw := []byte("#EXTM3U\n#EXT-X-VERSION:7\n#EXT-X-TARGETDURATION:4\n#EXT-X-MEDIA-SEQUENCE:3\n" +
-		"#EXTINF:4.000000,\nseg/00003.m4s\n#EXTINF:4.000000,\nseg/00004.m4s\n")
-	out, ready := buildServePlaylist(raw, func(string) bool { return true })
-	if ready != 2 {
-		t.Fatalf("ready = %d, want 2", ready)
-	}
-	got := string(out)
-	if !strings.Contains(got, "#EXT-X-MEDIA-SEQUENCE:3") {
-		t.Fatalf("media sequence not preserved: %q", got)
-	}
-	if !strings.Contains(got, "#EXT-X-TARGETDURATION:4") {
-		t.Fatalf("target duration missing: %q", got)
+	if hasSegments {
+		t.Fatal("an empty published playlist must read as not ready")
 	}
 }
 
@@ -355,16 +259,16 @@ func TestStoreEvictsShortPartialGenerations(t *testing.T) {
 	writeGen := func(fp, gen string, firstIdx, count int) string {
 		t.Helper()
 		dir := filepath.Join(store.root, fp, gen)
-		writeProducedRange(t, dir, firstIdx, count, true, false)
+		writeProducedRange(t, dir, firstIdx, count, true)
 		old := time.Now().Add(-2 * time.Hour)
 		if err := os.Chtimes(dir, old, old); err != nil {
 			t.Fatal(err)
 		}
 		return dir
 	}
-	short := writeGen("fp-short", "gen", 40, 5)   // 20s produced — discarded
-	long := writeGen("fp-long", "gen", 40, 100)   // 400s produced — kept
-	full := writeGen("fp-full", "gen", 0, 5)      // whole file — kept
+	short := writeGen("fp-short", "gen", 40, 5) // 20s produced — discarded
+	long := writeGen("fp-long", "gen", 40, 100) // 400s produced — kept
+	full := writeGen("fp-full", "gen", 0, 5)    // whole file — kept
 
 	evicted, err := store.EvictInactive(nil, 0, 24*time.Hour)
 	if err != nil {

@@ -1,6 +1,7 @@
 package transcoding
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"testing"
@@ -48,5 +49,31 @@ func TestStoreCreatesRootOnDemand(t *testing.T) {
 	// A fresh generation is not complete, so it is not reusable yet.
 	if _, _, ok := store.FindReusableGeneration("fp"); ok {
 		t.Fatal("an incomplete generation must not be reusable")
+	}
+}
+
+func TestStoreRejectsInvalidSegment(t *testing.T) {
+	store, _ := NewStore(t.TempDir())
+	jobDir := t.TempDir()
+	if _, err := store.SegmentPath(jobDir, "../etc/passwd"); err == nil {
+		t.Fatal("expected invalid segment error")
+	}
+	if _, err := store.SegmentPath(jobDir, "bad.m4s"); err == nil {
+		t.Fatal("expected invalid segment name")
+	}
+}
+
+func TestStoreReadServePlaylistMissingIsNotReady(t *testing.T) {
+	store, err := NewStore(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	jobDir, err := store.EnsureJobDir("fp", "gen")
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, _, err = store.ReadServePlaylist(jobDir)
+	if !errors.Is(err, ErrNotReady) {
+		t.Fatalf("missing playlist: got %v, want ErrNotReady", err)
 	}
 }

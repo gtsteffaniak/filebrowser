@@ -149,7 +149,7 @@ import {
 import { isPdfFile } from "@/utils/mediaFile";
 import { shouldUsePdfPreviewFallback } from "@/utils/pdfPreview.js";
 import { TranscodePlaybackController } from "@/plyr/transcodePlaybackController.js";
-import { isTranscodeAvailable } from "@/plyr/transcodeAvailability.js";
+import { isTranscodeAvailable } from "@/plyr/transcodeMode.js";
 
 export default {
   name: "preview",

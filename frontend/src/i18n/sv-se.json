@@ -1246,6 +1246,10 @@
     "transcodeProfileMaxResolution": "Högsta upplösning",
     "transcodeProfileMaxResolutionHelp": "Maximal utgångshöjd i pixlar. Värdet 0 behåller källans upplösning.",
     "transcodeProfileAvgBitrate": "Genomsnittlig bithastighet (kbps)",
-    "transcodeProfileAvgBitrateHelp": "Målvärde för genomsnittlig videobithastighet i kbps. Värdet 0 innebär att källans bithastighet bibehålls."
+    "transcodeProfileAvgBitrateHelp": "Målvärde för genomsnittlig videobithastighet i kbps. Värdet 0 innebär att källans bithastighet bibehålls.",
+    "accelDevice": "Accelerationsanordning",
+    "accelDeviceDescription": "GPU-enhet som används för hårdvaruaccelererad mediebehandling. CPU (programvara) inaktiverar hårdvaruaccelerationen.",
+    "encoderBackend": "Kodarens backend",
+    "transcodeProfileEncoderBackendHelp": "Encoder-backend för denna förinställning; standardinställningen är den upptäckta rekommenderade backenden."
   }
 }

@@ -1246,6 +1246,10 @@
     "transcodeProfileMaxResolution": "Resolución máxima",
     "transcodeProfileMaxResolutionHelp": "Altura máxima de salida en píxeles. El valor 0 mantiene la resolución original.",
     "transcodeProfileAvgBitrate": "Velocidad de transmisión media (kbps)",
-    "transcodeProfileAvgBitrateHelp": "Velocidad de bits media deseada del vídeo en kbps. Si se introduce «0», se mantiene la velocidad de bits de origen."
+    "transcodeProfileAvgBitrateHelp": "Velocidad de bits media deseada del vídeo en kbps. Si se introduce «0», se mantiene la velocidad de bits de origen.",
+    "accelDevice": "Dispositivo de aceleración",
+    "accelDeviceDescription": "Dispositivo GPU utilizado para el procesamiento multimedia acelerado por hardware. La CPU (software) desactiva la aceleración por hardware.",
+    "encoderBackend": "Backend del codificador",
+    "transcodeProfileEncoderBackendHelp": "Backend del codificador para este ajuste preestablecido; por defecto, se utiliza el backend preferido detectado."
   }
 }

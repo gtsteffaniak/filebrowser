@@ -166,33 +166,34 @@ func (s *Service) AccelDeviceOptions() []AccelDeviceOption {
 	return out
 }
 
-// resolvedAccelDeviceOptions builds the auto option label and the per-device
-// options from the capability matrix. The device auto resolves to is folded
-// into the auto entry rather than listed again.
+// resolvedAccelDeviceOptions builds the auto option label and per-device
+// options; the device auto resolves to is folded into the auto entry.
 func resolvedAccelDeviceOptions(caps *capabilities.Capabilities) (autoLabel, resolvedID string, opts []AccelDeviceOption) {
 	resolved := caps.Platform.Details["render_device"]
-	gpus, err := platform.ListGPUs()
-	if err == nil {
-		for _, g := range gpus {
-			if g.RenderNode == resolved {
-				resolvedID = g.RenderNode
-				autoLabel = gpuClassLabel(g) + " (" + gpuDisplayName(g) + ")"
-				continue
-			}
-			id := g.RenderNode
-			if id == "" {
-				id = g.Name
-			}
-			if id == "" {
-				continue
-			}
-			opts = append(opts, AccelDeviceOption{ID: id, Label: gpuClassLabel(g) + " (" + gpuDisplayName(g) + ")"})
+	gpus, _ := platform.ListGPUs()
+	for _, g := range gpus {
+		label := gpuClassLabel(g) + " (" + gpuDisplayName(g) + ")"
+		if g.RenderNode != "" && g.RenderNode == resolved {
+			autoLabel, resolvedID = label, g.RenderNode
+			continue
+		}
+		if id := accelDeviceID(g); id != "" {
+			opts = append(opts, AccelDeviceOption{ID: id, Label: label})
 		}
 	}
 	if autoLabel == "" {
 		autoLabel = autoGPUName(caps)
 	}
 	return autoLabel, resolvedID, opts
+}
+
+// accelDeviceID prefers the render node so the selection can be passed back to
+// ffmpeg; GPU name is the fallback on platforms without DRM render nodes.
+func accelDeviceID(g platform.GPUDevice) string {
+	if g.RenderNode != "" {
+		return g.RenderNode
+	}
+	return g.Name
 }
 
 // gpuClassLabel names the device class shown in the dropdown.
@@ -361,11 +362,9 @@ func logCapabilities(svc *goffmpeg.Service, wantsHardware bool) {
 	logger.Debugf("supported ffmpeg hardware codecs: %s", hw)
 }
 
-// hardwareCodecSummary lists the hardware encode/decode paths that detection
-// found usable. It reads the capability maps directly instead of the
-// hierarchy-filtered encode/decode options, so hardware stays reported when it
-// is detected but not preferred (for example when hardware acceleration is
-// disabled and software encoders are selected instead).
+// hardwareCodecSummary lists detected hardware encode/decode paths. It reads
+// the capability maps directly so hardware is still reported when detected
+// but not preferred (e.g. hardware acceleration disabled).
 func hardwareCodecSummary(svc *goffmpeg.Service) string {
 	if svc == nil {
 		return ""

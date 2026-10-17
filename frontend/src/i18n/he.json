@@ -1246,6 +1246,10 @@
     "transcodeProfileMaxResolution": "רזולוציה מקסימלית",
     "transcodeProfileMaxResolutionHelp": "גובה הפלט המרבי בפיקסלים. הערך 0 שומר על רזולוציית המקור.",
     "transcodeProfileAvgBitrate": "קצב העברה ממוצע (kbps)",
-    "transcodeProfileAvgBitrateHelp": "קצב הסיביות הממוצע הרצוי של הווידאו ב-kbps. הערך 0 משמר את קצב הסיביות של המקור."
+    "transcodeProfileAvgBitrateHelp": "קצב הסיביות הממוצע הרצוי של הווידאו ב-kbps. הערך 0 משמר את קצב הסיביות של המקור.",
+    "accelDevice": "מכשיר האצה",
+    "accelDeviceDescription": "התקן GPU המשמש לעיבוד מדיה עם האצה חומרתית. המעבד (תוכנה) מבטל את ההאצה החומרתית.",
+    "encoderBackend": "חלק האחורי של המקודד",
+    "transcodeProfileEncoderBackendHelp": "ממשק אחורי של מקודד עבור הגדרה קבועה זו; ברירת המחדל היא הממשק האחורי המועדף שזוהה."
   }
 }
