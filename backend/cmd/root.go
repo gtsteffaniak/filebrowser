@@ -17,6 +17,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/internal/icons"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/preview"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/transcoding"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/version"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/web"
@@ -186,9 +187,9 @@ func StartFilebrowser() {
 		fileutils.ClearCacheDir(settings.Config.Server.CacheDir)
 	}
 	<-shutdownComplete
-	if runtimeApp != nil && runtimeApp.Transcoding != nil {
+	if transcodeMgr := transcoding.Default(); transcodeMgr != nil {
 		shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 30*time.Second)
-		if err := runtimeApp.Transcoding.Close(shutdownCtx); err != nil {
+		if err := transcodeMgr.Close(shutdownCtx); err != nil {
 			logger.Warningf("transcode shutdown: %v", err)
 		}
 		shutdownCancel()

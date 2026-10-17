@@ -15,10 +15,9 @@ import (
 
 // App holds wired dependencies for the running process.
 type App struct {
-	Store       *state.Store
-	Files       *files.Service
-	Auth        *auth.Service
-	Transcoding *transcoding.Manager
+	Store *state.Store
+	Files *files.Service
+	Auth  *auth.Service
 }
 
 // WireServices connects domain packages to the state store after Open.
@@ -38,35 +37,27 @@ func WireServicesWithContext(ctx context.Context, store *state.Store) (*App, err
 		return nil, err
 	}
 
-	// Create the manager even when ffmpeg is currently unavailable: the media
-	// engine re-checks availability on every request, so enabling transcoding (or
-	// fixing the ffmpeg path) at runtime via the admin media settings takes effect
-	// without a restart. Registering nil here would leave every transcode endpoint
-	// returning 503 forever.
+	// Always create the manager: the engine re-checks ffmpeg availability per
+	// request, so a runtime admin settings change takes effect without restart.
 	storeDir, err := transcoding.NewStore(settings.TranscodeCacheDir())
 	if err != nil {
 		return nil, err
 	}
-	// Root-relative delivery URLs only: the playlist and its segments are fetched
-	// from the same origin that served the page, so a subpath deployment or an
-	// alternate hostname (LAN IP, internal DNS) still resolves, and the session
-	// cookie is sent. http.externalUrl is stripped of the base path by setupUrls
-	// and would produce 404/401 URLs here.
-	transcodeMgr, err := transcoding.NewManager(ctx, transcoding.NewMediaEngine(), storeDir, transcoding.Options{
-		BaseURL: strings.TrimRight(settings.Config.Http.BaseURL, "/"),
-	})
+	// Delivery URLs stay root-relative so a subpath deployment or alternate
+	// hostname still resolves and the session cookie is sent.
+	transcodeMgr, err := transcoding.NewManager(ctx, transcoding.NewMediaEngine(), storeDir,
+		strings.TrimRight(settings.Config.Http.BaseURL, "/"))
 	if err != nil {
 		return nil, err
 	}
-	// Register the manager so the web layer can reach it without it being
-	// threaded through StartHttp's Deps.
+	// Exported so the web layer (and shutdown) can reach it without threading
+	// it through StartHttp's Deps.
 	transcoding.SetDefault(transcodeMgr)
 
 	return &App{
-		Store:       store,
-		Files:       filesSvc,
-		Auth:        authSvc,
-		Transcoding: transcodeMgr,
+		Store: store,
+		Files: filesSvc,
+		Auth:  authSvc,
 	}, nil
 }
 

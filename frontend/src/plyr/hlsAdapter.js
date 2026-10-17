@@ -6,11 +6,8 @@ import { transcodeError, transcodeLog, transcodeVerbose, transcodeWarn } from '@
 const ATTACH_TIMEOUT_MS = 45_000;
 /** Minimum forward buffer before starting playback on live transcode sessions. */
 const MIN_LIVE_BUFFER_FRAGS = 2;
-/**
- * A live session can take a while to buffer MIN_LIVE_BUFFER_FRAGS. Once the
- * element is actually playable, start after this grace period instead of
- * leaving playback (and the mode-switch UI) blocked on the extra fragment.
- */
+// Once the element is playable, start after this grace period rather than
+// blocking on MIN_LIVE_BUFFER_FRAGS when production is slow.
 const LIVE_BUFFER_GRACE_MS = 2_000;
 const RECOVERABLE_HLS_DETAILS = new Set([
   'bufferSeekOverHole',
@@ -82,12 +79,9 @@ function describeHlsError(data) {
 }
 
 /**
- * hls.js (and native HLS) report media.duration as the end of the last listed
- * fragment. Our event playlist only contains segments produced so far, so the
- * reported duration starts near zero and grows as the backend transcodes. Pin
- * the element's duration to the probed source duration while attached so the
- * seek bar and duration display are correct from the first fragment.
- * Returns a restore function that removes the override.
+ * Pin media.duration to the probed source duration while attached — a live
+ * playlist only lists produced segments, so duration would otherwise grow
+ * from ~0 as ffmpeg transcodes. Returns a restore function.
  */
 function pinMediaDuration(video, durationSec) {
   if (!video || !Number.isFinite(durationSec) || durationSec <= 0) {
@@ -106,19 +100,13 @@ function pinMediaDuration(video, durationSec) {
 }
 
 /**
- * Pin the element to a source-relative timeline so the playhead, seekable
- * ranges and Plyr's position display all speak source seconds: reads are
- * shifted by the measured offset and writes shifted back. The offset is
- * `mediaStartSec - raw.seekable.start(0)`, measured once from the first
- * buffered range — identity when the engine already exposes media
- * timestamps (native HLS, or hls.js with a matching `timelineOffset`), and
- * corrective when it rebases a mid-file generation to 0.
- *
+ * Pin the element to a source-relative timeline: reads are shifted by the
+ * measured offset (mediaStartSec - raw seekable start) and writes shifted
+ * back, so the playhead and seekable ranges all speak source seconds.
  * @param {HTMLMediaElement} video
  * @param {number} mediaStartSec source-time position of the generation start
- * @param {number} initialOffset offset to assume before the first range is
- *   measurable — 0 when the raw timeline is already expected to be
- *   source-relative.
+ * @param {number} initialOffset offset to assume before the first buffered
+ *   range is measurable
  */
 function pinMediaTimeline(video, mediaStartSec, initialOffset) {
   if (!video || !Number.isFinite(mediaStartSec) || mediaStartSec <= 0) {
@@ -345,21 +333,15 @@ export function attachHlsToVideo({
       finish('reject', new Error('HLS attach timed out'));
     }, ATTACH_TIMEOUT_MS);
 
-    // Pin the duration only for live-paced sessions, where the open-ended
-    // playlist leaves MediaSource duration at Infinity and the UI would
-    // otherwise show a broken/∞ length. A completed (VOD) playlist must not
-    // be pinned: hls.js only writes mediaSource.duration when the element's
-    // duration is non-finite or shorter than the playlist edge, so a pinned
-    // finite value makes it skip the update — seekable then stays empty and
-    // every currentTime write is silently discarded by the seek algorithm.
+    // Pin duration only for live-paced sessions (open-ended playlist →
+    // MediaSource.duration is Infinity). On a completed VOD playlist a pinned
+    // finite value makes hls.js skip its own duration update, leaving
+    // seekable empty and silently discarding every seek.
     const restoreDuration = isCompletedSession
       ? null
       : pinMediaDuration(video, session?.durationSec);
-    // timelineOffset shifts the playlist's fragment positions onto the
-    // source media timeline (frag.start = playlistOffset + mediaStartSec).
-    // That makes initPTS align with the shifted positions, so appended fMP4
-    // media lands at its tfdt position and the element's timeline is
-    // source-relative natively — no timestamp rebasing to patch over.
+    // timelineOffset shifts fragment positions onto the source timeline so
+    // appended fMP4 lands at its tfdt position natively.
     const hls = new Hls({
       enableWorker: true,
       lowLatencyMode: false,

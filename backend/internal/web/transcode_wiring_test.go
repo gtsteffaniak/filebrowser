@@ -79,16 +79,16 @@ func TestWireServicesToleratesUnavailableTranscodeCache(t *testing.T) {
 	}
 	settings.Config.Server.CacheDir = cacheDir
 
-	wired, err := app.WireServicesWithContext(context.Background(), state.Default())
-	if err != nil {
+	if _, err := app.WireServicesWithContext(context.Background(), state.Default()); err != nil {
 		t.Fatalf("wiring must tolerate an unusable transcode cache dir: %v", err)
 	}
 	// Close the manager this second wiring created so its janitor does not outlive
 	// the test.
+	mgr := transcoding.Default()
 	t.Cleanup(func() {
 		closeCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
-		_ = wired.Transcoding.Close(closeCtx)
+		_ = mgr.Close(closeCtx)
 	})
 	if transcoding.Default() == nil {
 		t.Fatal("manager must still be wired")

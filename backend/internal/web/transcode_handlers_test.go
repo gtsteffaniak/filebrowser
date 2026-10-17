@@ -19,7 +19,7 @@ func setupTranscodeHandlerTest(t *testing.T) (*transcoding.Manager, func()) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	mgr, err := transcoding.NewManager(ctx, transcoding.NewFakeEngine(), store, transcoding.Options{BaseURL: ""})
+	mgr, err := transcoding.NewManager(ctx, transcoding.NewFakeEngine(), store, "")
 	if err != nil {
 		t.Fatal(err)
 	}

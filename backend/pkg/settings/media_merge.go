@@ -20,10 +20,8 @@ func MergeMediaSettingsPatchJSON(base MediaSettings, patchJSON []byte) (MediaSet
 	if err := json.Unmarshal(mergedBytes, &merged); err != nil {
 		return MediaSettings{}, fmt.Errorf("unmarshal merged media settings: %w", err)
 	}
-	// An explicit accelDevice in the patch is authoritative over the legacy
-	// hardwareAcceleration bool carried over from the base settings —
-	// otherwise switching the device away from "software" would be forced
-	// back by the derived false.
+	// An explicit accelDevice wins over the legacy hardwareAcceleration bool in
+	// the base settings, which would otherwise force the device back to software.
 	var patch map[string]json.RawMessage
 	if err := json.Unmarshal(patchJSON, &patch); err == nil {
 		if raw, ok := patch["accelDevice"]; ok {
@@ -55,13 +53,8 @@ func ApplyMediaSettingsIfChanged(s MediaSettings) {
 	ApplyMediaSettings(s)
 }
 
-// CloneMediaSettings returns a deep copy of m.
-//
-// The conversion maps hold *bool values, so a shallow copy would share both the
-// maps and the pointers with the live config: a caller editing the copy would
-// reconfigure the server without ApplyMediaSettings, and would race with
-// CanConvertImage/CanConvertVideo. MediaTranscode holds only value fields, so the
-// two maps are the whole of the reference state.
+// CloneMediaSettings returns a deep copy of m — the conversion maps hold *bool
+// values, so a shallow copy would alias the live config's reference state.
 func CloneMediaSettings(m MediaSettings) MediaSettings {
 	out := m
 	out.Convert = FfmpegConvert{

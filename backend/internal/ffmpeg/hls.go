@@ -81,6 +81,11 @@ func PrepareHLSMediaTimeline(keyframes []float64, durationSec, startTimeSec floa
 	return goffmpeg.PrepareHLSMediaTimeline(keyframes, durationSec, startTimeSec)
 }
 
+// KeyframeSeekBefore returns the largest keyframe time <= sec, or 0 when none.
+func KeyframeSeekBefore(keyframes []float64, sec float64) float64 {
+	return goffmpeg.KeyframeSeekBefore(keyframes, sec)
+}
+
 // HLSMediaTimelineDuration converts a probed container duration to the
 // 0-based media timeline length the produced HLS output covers.
 func HLSMediaTimelineDuration(durationSec, startTimeSec float64) float64 {

@@ -15,11 +15,11 @@ import (
 
 	"github.com/gtsteffaniak/go-logger/logger"
 
+	"github.com/gtsteffaniak/filebrowser/backend/internal/ffmpeg"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 )
 
 type producer struct {
-	sessionID  string
 	generation string
 	jobDir     string
 	plan       hlsPlan
@@ -53,17 +53,26 @@ type playbackSession struct {
 	// startSec is the segment-aligned ffmpeg start offset for this generation.
 	// Segments before it were never produced, so the session cannot serve them.
 	startSec float64
-	// startIndex is the first segment index produced by this generation.
+	// startIndex is the first segment index produced by this generation. When it
+	// is 0 the generation covers the whole file, so any playhead is servable.
 	startIndex int
-	// coversFromStart is true when the generation's playlist starts at segment 0,
-	// so any playhead is already covered by the cached segments.
-	coversFromStart bool
 }
 
 type inflightStart struct {
 	done chan struct{}
 	info SessionInfo
 	err  error
+}
+
+// pendingStart carries a start request's identity through the start pipeline:
+// admission → inflight slot → covering-generation attach → session creation.
+type pendingStart struct {
+	in        StartInput
+	sessionID string
+	reuseKey  string
+	clientID  string
+	flight    *inflightStart
+	plan      hlsPlan
 }
 
 // Manager owns playback sessions, admission, and disk cache producers.
@@ -92,10 +101,6 @@ type Manager struct {
 	lastEvict  time.Time
 }
 
-type Options struct {
-	BaseURL string
-}
-
 // defaultManager is the process-wide manager used by the HTTP layer. It is stored
 // atomically because request handlers read it on every transcode call while
 // startup (and tests) replace it wholesale.
@@ -114,7 +119,10 @@ func Default() *Manager {
 	return defaultManager.Load()
 }
 
-func NewManager(ctx context.Context, engine Engine, store *Store, opts Options) (*Manager, error) {
+// NewManager constructs a session manager around an Engine and a Store.
+// baseURL is the public URL prefix the app is served under; segment/playlist
+// URLs the manager writes are prefixed with it.
+func NewManager(ctx context.Context, engine Engine, store *Store, baseURL string) (*Manager, error) {
 	if engine == nil {
 		engine = NewMediaEngine()
 	}
@@ -132,7 +140,7 @@ func NewManager(ctx context.Context, engine Engine, store *Store, opts Options) 
 	m := &Manager{
 		engine:     engine,
 		store:      store,
-		baseURL:    strings.TrimSuffix(opts.BaseURL, "/"),
+		baseURL:    strings.TrimSuffix(baseURL, "/"),
 		sessions:   make(map[string]*playbackSession),
 		byReuse:    make(map[string]string),
 		inflight:   make(map[string]*inflightStart),
@@ -277,7 +285,12 @@ func (m *Manager) Start(ctx context.Context, in StartInput) (SessionInfo, error)
 		m.globalCount++
 		m.mu.Unlock()
 
-		info, err := m.commitStart(ctx, in, reuseKey, clientID, flight)
+		info, err := m.commitStart(ctx, pendingStart{
+			in:       in,
+			reuseKey: reuseKey,
+			clientID: clientID,
+			flight:   flight,
+		})
 		if err != nil {
 			return SessionInfo{}, err
 		}
@@ -295,7 +308,7 @@ func (m *Manager) tryReuseSessionLocked(in StartInput, reuseKey, clientID string
 		delete(m.byReuse, reuseKey)
 		return SessionInfo{}, false, nil
 	}
-	if sessionReusable(sess, in.StartSec, m.sessionCoverageEndLocked(sess)) {
+	if sessionReusable(sess, in.StartSec, m.coverageEndSecLocked(sess.plan, sess.startIndex, sess.jobDir)) {
 		now := time.Now()
 		sess.clients[clientID] = now
 		sess.lastActivity = now
@@ -323,16 +336,16 @@ func soleLiveClient(sess *playbackSession, clientID string) bool {
 	return true
 }
 
-func (m *Manager) commitStart(ctx context.Context, in StartInput, reuseKey, clientID string, flight *inflightStart) (SessionInfo, error) {
-	plan, err := m.engine.BuildPlan(ctx, in.RealPath, in.Profile)
+func (m *Manager) commitStart(ctx context.Context, ps pendingStart) (SessionInfo, error) {
+	plan, err := m.engine.BuildPlan(ctx, ps.in.RealPath, ps.in.Profile)
 	if err != nil {
-		m.finishInflight(in.Username, reuseKey, flight, SessionInfo{}, err)
+		m.finishInflight(ps.in.Username, ps.reuseKey, ps.flight, SessionInfo{}, err)
 		return SessionInfo{}, err
 	}
+	ps.plan = plan
 
-	sessionID, err := newSessionID()
-	if err != nil {
-		m.finishInflight(in.Username, reuseKey, flight, SessionInfo{}, err)
+	if ps.sessionID, err = newRandomID(); err != nil {
+		m.finishInflight(ps.in.Username, ps.reuseKey, ps.flight, SessionInfo{}, err)
 		return SessionInfo{}, err
 	}
 
@@ -340,36 +353,34 @@ func (m *Manager) commitStart(ctx context.Context, in StartInput, reuseKey, clie
 	// completed generation left in the cache. Generations are keyed only by
 	// file identity plus transcode parameters, so any user playing the same
 	// file with the same profile reuses them.
-	if info, attached, attachErr := m.attachCoveringGeneration(in, sessionID, reuseKey, clientID, flight, plan); attached || attachErr != nil {
+	if info, attached, attachErr := m.attachCoveringGeneration(ps); attached || attachErr != nil {
 		return info, attachErr
 	}
 
-	generation, err := newSessionID()
+	generation, err := newRandomID()
 	if err != nil {
-		m.finishInflight(in.Username, reuseKey, flight, SessionInfo{}, err)
+		m.finishInflight(ps.in.Username, ps.reuseKey, ps.flight, SessionInfo{}, err)
 		return SessionInfo{}, err
 	}
 	jobDir, err := m.store.EnsureJobDir(plan.cacheFingerprint, generation)
 	if err != nil {
-		m.finishInflight(in.Username, reuseKey, flight, SessionInfo{}, err)
+		m.finishInflight(ps.in.Username, ps.reuseKey, ps.flight, SessionInfo{}, err)
 		return SessionInfo{}, err
 	}
 
-	startIndex, ffmpegStartSec := continuousSeekParams(in.StartSec, plan.segmentSec)
+	startIndex, ffmpegStartSec := continuousSeekParams(ps.in.StartSec, plan.segmentSec)
 
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	if m.closed.Load() {
-		m.rollbackAdmissionLocked(in.Username)
-		m.finishInflightLocked(reuseKey, flight, SessionInfo{}, ErrDisabled)
+		m.abortStartLocked(ps.in.Username, ps.reuseKey, ps.flight)
 		return SessionInfo{}, ErrDisabled
 	}
 
-	sess := m.newSessionLocked(in, sessionID, reuseKey, clientID, jobDir, generation, plan, startIndex, ffmpegStartSec, segmentStartSec(plan, startIndex))
+	sess := m.newSessionLocked(ps, jobDir, generation, startIndex, ffmpegStartSec, coverageStartSec(plan, startIndex))
 	// Register the generation before the producer starts so a concurrent start
 	// for the same file attaches to it instead of transcoding again.
-	producer := &producer{
-		sessionID:  sessionID,
+	m.producers[ps.sessionID] = &producer{
 		generation: generation,
 		jobDir:     jobDir,
 		plan:       plan,
@@ -377,27 +388,38 @@ func (m *Manager) commitStart(ctx context.Context, in StartInput, reuseKey, clie
 		startSec:   ffmpegStartSec,
 		refs:       1,
 	}
-	m.sessions[sessionID] = sess
-	m.producers[sessionID] = producer
-	m.byReuse[reuseKey] = sessionID
-	info := m.publicSession(sess, false)
-	m.finishInflightLocked(reuseKey, flight, info, nil)
+	info := m.finishAttachLocked(ps, sess)
 
-	m.publish(EventPayload{ID: m.nextEventID(), Type: "session_started", Session: &info})
 	m.producerWg.Add(1)
 	go m.runProducer(m.runCtx, sess)
 	return info, nil
 }
 
+// abortStartLocked fails a start while holding m.mu: it releases the caller's
+// admission slot and resolves the inflight slot so waiters see ErrDisabled.
+func (m *Manager) abortStartLocked(username, reuseKey string, flight *inflightStart) {
+	m.rollbackAdmissionLocked(username)
+	m.finishInflightLocked(reuseKey, flight, SessionInfo{}, ErrDisabled)
+}
+
+// finishAttachLocked registers an attached session, resolves the inflight
+// start, and emits the session_started event. Caller holds m.mu.
+func (m *Manager) finishAttachLocked(ps pendingStart, sess *playbackSession) SessionInfo {
+	m.sessions[ps.sessionID] = sess
+	m.byReuse[ps.reuseKey] = ps.sessionID
+	info := m.emitSessionEventLocked(sess, eventSessionStarted)
+	m.finishInflightLocked(ps.reuseKey, ps.flight, info, nil)
+	return info
+}
+
 // attachCoveringGeneration attaches a new session to a generation — a live
 // producer or a completed cache entry — whose produced coverage reaches the
 // requested playhead. Returns attached=false when nothing covers it.
-func (m *Manager) attachCoveringGeneration(in StartInput, sessionID, reuseKey, clientID string, flight *inflightStart, plan hlsPlan) (SessionInfo, bool, error) {
-	targetSec := in.StartSec
+func (m *Manager) attachCoveringGeneration(ps pendingStart) (SessionInfo, bool, error) {
+	targetSec := ps.in.StartSec
 	m.mu.Lock()
 	if m.closed.Load() {
-		m.rollbackAdmissionLocked(in.Username)
-		m.finishInflightLocked(reuseKey, flight, SessionInfo{}, ErrDisabled)
+		m.abortStartLocked(ps.in.Username, ps.reuseKey, ps.flight)
 		m.mu.Unlock()
 		return SessionInfo{}, true, ErrDisabled
 	}
@@ -406,7 +428,7 @@ func (m *Manager) attachCoveringGeneration(in StartInput, sessionID, reuseKey, c
 	// attaches instead of launching another ffmpeg for the same file.
 	seen := make(map[*producer]struct{})
 	for _, p := range m.producers {
-		if p == nil || p.plan.cacheFingerprint != plan.cacheFingerprint {
+		if p == nil || p.plan.cacheFingerprint != ps.plan.cacheFingerprint {
 			continue
 		}
 		if _, dup := seen[p]; dup {
@@ -417,15 +439,11 @@ func (m *Manager) attachCoveringGeneration(in StartInput, sessionID, reuseKey, c
 			continue
 		}
 		p.refs++
-		sess := m.newSessionLocked(in, sessionID, reuseKey, clientID, p.jobDir, p.generation, plan, p.startIndex, p.startSec, m.producerCoverageEndSecLocked(p))
+		sess := m.newSessionLocked(ps, p.jobDir, p.generation, p.startIndex, p.startSec, m.coverageEndSecLocked(p.plan, p.startIndex, p.jobDir))
 		sess.state = m.generationStateLocked(p.generation)
 		sess.info.State = sess.state
-		m.sessions[sessionID] = sess
-		m.producers[sessionID] = p
-		m.byReuse[reuseKey] = sessionID
-		info := m.publicSession(sess, false)
-		m.finishInflightLocked(reuseKey, flight, info, nil)
-		m.publishLocked(EventPayload{ID: m.nextEventID(), Type: "session_started", Session: &info})
+		m.producers[ps.sessionID] = p
+		info := m.finishAttachLocked(ps, sess)
 		m.mu.Unlock()
 		return info, true, nil
 	}
@@ -433,27 +451,22 @@ func (m *Manager) attachCoveringGeneration(in StartInput, sessionID, reuseKey, c
 
 	// Completed generations always ran to EOF, so covering the target only
 	// requires it to start at or before the requested playhead.
-	jobDir, cov, ok := m.store.FindReusableGeneration(plan.cacheFingerprint)
-	if !ok || segmentStartSec(plan, cov.FirstIndex) > targetSec+seekBackwardEpsSec {
+	jobDir, cov, ok := m.store.FindReusableGeneration(ps.plan.cacheFingerprint)
+	if !ok || cov.StartSec > targetSec+seekBackwardEpsSec {
 		return SessionInfo{}, false, nil
 	}
 
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	if m.closed.Load() {
-		m.rollbackAdmissionLocked(in.Username)
-		m.finishInflightLocked(reuseKey, flight, SessionInfo{}, ErrDisabled)
+		m.abortStartLocked(ps.in.Username, ps.reuseKey, ps.flight)
 		return SessionInfo{}, true, ErrDisabled
 	}
-	sess := m.newSessionLocked(in, sessionID, reuseKey, clientID, jobDir, filepath.Base(jobDir), plan, cov.FirstIndex, segmentStartSec(plan, cov.FirstIndex), segmentEndSec(plan, cov.LastReadyIndex))
+	sess := m.newSessionLocked(ps, jobDir, filepath.Base(jobDir), cov.FirstIndex, float64(cov.FirstIndex)*ps.plan.segmentSec, cov.StartSec+cov.ProducedSec)
 	sess.state = StateCompleted
 	sess.info.State = StateCompleted
-	m.sessions[sessionID] = sess
-	m.byReuse[reuseKey] = sessionID
 	m.store.TouchGeneration(jobDir)
-	info := m.publicSession(sess, false)
-	m.finishInflightLocked(reuseKey, flight, info, nil)
-	m.publishLocked(EventPayload{ID: m.nextEventID(), Type: "session_started", Session: &info})
+	info := m.finishAttachLocked(ps, sess)
 	return info, true, nil
 }
 
@@ -465,91 +478,74 @@ func (m *Manager) producerCoversTargetLocked(p *producer, targetSec float64) boo
 	if targetSec < coverageStartSec(p.plan, p.startIndex)-seekBackwardEpsSec {
 		return false
 	}
-	return targetSec <= m.producerCoverageEndSecLocked(p)+repositionForwardSlackSec
+	return targetSec <= m.coverageEndSecLocked(p.plan, p.startIndex, p.jobDir)+repositionForwardSlackSec
 }
 
-// producerCoverageEndSecLocked returns the source-time end of the producer's
-// produced edge — the end of the last aligned/ready segment.
-func (m *Manager) producerCoverageEndSecLocked(p *producer) float64 {
-	end := coverageStartSec(p.plan, p.startIndex)
-	if cov := m.store.GenerationCoverage(p.jobDir); cov.LastReadyIndex >= 0 {
-		end = segmentEndSec(p.plan, cov.LastReadyIndex)
-	}
-	return end
-}
-
-// sessionCoverageEndLocked returns the source-time end of the range the
-// session's generation can currently serve.
-func (m *Manager) sessionCoverageEndLocked(sess *playbackSession) float64 {
-	end := coverageStartSec(sess.plan, sess.startIndex)
-	if sess.jobDir != "" {
-		if cov := m.store.GenerationCoverage(sess.jobDir); cov.LastReadyIndex >= 0 {
-			end = segmentEndSec(sess.plan, cov.LastReadyIndex)
+// coverageEndSecLocked returns the source-time end of a generation's produced
+// edge — the generation start plus the produced media duration on disk, or
+// the start alone when nothing has been produced yet.
+func (m *Manager) coverageEndSecLocked(plan hlsPlan, startIndex int, jobDir string) float64 {
+	end := coverageStartSec(plan, startIndex)
+	if jobDir != "" {
+		if cov := m.store.GenerationCoverage(jobDir); cov.HasPlaylist {
+			// The publisher's recorded start is the real anchor — identical to
+			// coverageStartSec by construction, but read from the artifact
+			// rather than recomputed.
+			return cov.StartSec + cov.ProducedSec
 		}
 	}
 	return end
 }
 
-// segmentStartSec maps a segment index on the playlist grid to its source-time
-// start. Remux plans carry the keyframe-aligned timeline; everything else
-// falls back to the fixed segment grid.
-func segmentStartSec(plan hlsPlan, idx int) float64 {
-	if idx >= 0 && idx < len(plan.segmentStarts) {
-		return plan.segmentStarts[idx]
-	}
-	return float64(idx) * plan.segmentSec
-}
-
-// segmentEndSec maps a segment index to its source-time end.
-func segmentEndSec(plan hlsPlan, idx int) float64 {
-	start := segmentStartSec(plan, idx)
-	if idx >= 0 && idx < len(plan.segmentDurations) && plan.segmentDurations[idx] > 0 {
-		return start + plan.segmentDurations[idx]
-	}
-	if idx+1 >= 0 && idx+1 < len(plan.segmentStarts) {
-		return plan.segmentStarts[idx+1]
-	}
-	return start + plan.segmentSec
-}
-
-// coverageStartSec is the source-time start of the first segment a generation
-// produces — the lower bound of the range it can serve.
+// coverageStartSec is the source-time start of a generation's first segment —
+// the lower bound of the range it can serve and the offset the client adds to
+// its 0-based HLS element timeline. ffmpeg anchors a stream-copy generation at
+// the keyframe the seek snapped to and a transcode generation at the exact
+// -ss, so positions on the planned segment grid are not usable here: emitted
+// copy boundaries diverge from the plan and mid-file generations would be
+// misplaced by the accumulated divergence.
 func coverageStartSec(plan hlsPlan, startIndex int) float64 {
-	return segmentStartSec(plan, startIndex)
+	if startIndex <= 0 {
+		return 0
+	}
+	start := float64(startIndex) * plan.segmentSec
+	if (plan.remux || plan.videoCopy) && len(plan.keyframes) > 0 {
+		return ffmpeg.KeyframeSeekBefore(plan.keyframes, start)
+	}
+	return start
 }
 
-func (m *Manager) newSessionLocked(in StartInput, sessionID, reuseKey, clientID, jobDir, generation string, plan hlsPlan, startIndex int, startSec, endSec float64) *playbackSession {
+func (m *Manager) newSessionLocked(ps pendingStart, jobDir, generation string, startIndex int, startSec, endSec float64) *playbackSession {
 	now := time.Now()
 	return &playbackSession{
 		info: SessionInfo{
-			ID:                sessionID,
-			Username:          in.Username,
-			Source:            in.Source,
-			Path:              in.Path,
-			FileName:          in.FileName,
-			Profile:           in.Profile,
+			ID:                ps.sessionID,
+			Username:          ps.in.Username,
+			Source:            ps.in.Source,
+			Path:              ps.in.Path,
+			FileName:          ps.in.FileName,
+			Profile:           ps.in.Profile,
 			State:             StateStarting,
 			StartedAt:         now.Unix(),
 			HeartbeatInterval: int(defaultHeartbeatInterval.Seconds()),
-			DurationSec:       plan.mediaDurationSec,
-			StartSec:          coverageStartSec(plan, startIndex),
+			DurationSec:       ps.plan.mediaDurationSec,
+			StartSec:          coverageStartSec(ps.plan, startIndex),
 			EndSec:            endSec,
-			DeliveryBaseURL:   m.deliveryURL(sessionID),
+			DeliveryBaseURL:   m.deliveryURL(ps.sessionID),
 		},
-		reuseKey:        reuseKey,
+		reuseKey:        ps.reuseKey,
 		generation:      generation,
 		jobDir:          jobDir,
-		realPath:        in.RealPath,
-		plan:            plan,
+		realPath:        ps.in.RealPath,
+		plan:            ps.plan,
 		state:           StateStarting,
-		clients:         map[string]time.Time{clientID: now},
+		clients:         map[string]time.Time{ps.clientID: now},
 		lastActivity:    now,
 		lastHeartbeat:   now,
 		startedAt:       now,
 		startupDeadline: now.Add(startupTimeout),
 		startIndex:      startIndex,
 		startSec:        startSec,
-		coversFromStart: startIndex == 0,
 	}
 }
 
@@ -609,12 +605,49 @@ func (m *Manager) runProducer(ctx context.Context, sess *playbackSession) {
 	ffmpegStartSec := sess.startSec
 	m.mu.Unlock()
 
+	retried := false
+	for {
+		outcome := m.runProducerJob(ctx, sessionID, gen, jobDir, realPath, plan, startIndex, ffmpegStartSec)
+		if outcome != producerRestartSoftware || retried {
+			return
+		}
+		// Hardware decode proved unreliable on this file — wipe the partial
+		// corrupt output and restart once with software decode. Segments are
+		// re-encoded from the generation's start rather than resumed because
+		// detection fires within the first seconds of output.
+		retried = true
+		logger.Warningf("transcode generation=%s hardware decode unreliable, restarting with software decode", gen)
+		if err := m.store.ClearGenerationOutput(jobDir); err != nil {
+			logger.Warningf("transcode generation=%s clearing output before decode retry: %v", gen, err)
+		}
+		plan.decodeProfile.ForceSoftware = true
+	}
+}
+
+// producerOutcome is how a single ffmpeg job run settled.
+type producerOutcome int
+
+const (
+	// producerDone: the job finished or failed — the generation is finalized.
+	producerDone producerOutcome = iota
+	// producerGone: the manager was closed or the generation was detached —
+	// nothing left to do.
+	producerGone
+	// producerRestartSoftware: sustained hardware decode failures — caller
+	// should retry the generation with software decode.
+	producerRestartSoftware
+)
+
+// runProducerJob runs one ffmpeg job for the generation and watches it through
+// startup and steady state. Sessions attach and detach while it runs; the
+// caller decides whether the outcome ends or retries the generation.
+func (m *Manager) runProducerJob(ctx context.Context, sessionID, gen, jobDir, realPath string, plan hlsPlan, startIndex int, startSec float64) producerOutcome {
 	jobCtx, cancel := context.WithCancel(ctx)
-	job, err := m.engine.StartContinuous(jobCtx, realPath, jobDir, plan, startIndex, ffmpegStartSec)
+	job, err := m.engine.StartContinuous(jobCtx, realPath, jobDir, plan, startIndex, startSec)
 	if err != nil {
 		cancel()
 		m.failSession(gen, err)
-		return
+		return producerDone
 	}
 
 	m.mu.Lock()
@@ -628,30 +661,39 @@ func (m *Manager) runProducer(ctx context.Context, sess *playbackSession) {
 	}
 	m.mu.Unlock()
 
+	jobDone := make(chan error, 1)
 	go func() {
-		waitErr := job.Wait()
+		jobDone <- job.Wait()
 		cancel()
-		m.finishProducer(gen, waitErr)
 	}()
 
-	deadline := time.NewTimer(startupTimeout)
-	defer deadline.Stop()
+	startup := time.NewTimer(startupTimeout)
+	defer startup.Stop()
 	ticker := time.NewTicker(200 * time.Millisecond)
 	defer ticker.Stop()
+	started := false
 	for {
 		select {
 		case <-ctx.Done():
-			return
-		case <-deadline.C:
+			return producerGone
+		case err := <-jobDone:
+			m.finishProducer(gen, err)
+			return producerDone
+		case <-startup.C:
 			if !m.store.InitReady(jobDir) {
 				job.Cancel()
 				m.failSession(gen, fmt.Errorf("startup timeout"))
+				return producerDone
 			}
-			return
 		case <-ticker.C:
-			if m.store.InitReady(jobDir) {
+			if job.VTDecodeUnreliable() {
+				job.Cancel()
+				<-jobDone
+				return producerRestartSoftware
+			}
+			if !started && m.store.InitReady(jobDir) {
+				started = true
 				m.markRunning(gen)
-				return
 			}
 		}
 	}
@@ -668,8 +710,7 @@ func (m *Manager) markRunning(generation string) {
 		}
 		sess.state = StateRunning
 		sess.info.State = StateRunning
-		info := m.publicSession(sess, false)
-		m.publishLocked(EventPayload{ID: m.nextEventID(), Type: "session_running", Session: &info})
+		m.emitSessionEventLocked(sess, eventSessionRunning)
 	}
 }
 
@@ -684,8 +725,7 @@ func (m *Manager) failSession(generation string, err error) {
 		}
 		sess.state = StateFailed
 		sess.info.State = StateFailed
-		info := m.publicSession(sess, false)
-		m.publishLocked(EventPayload{ID: m.nextEventID(), Type: "session_failed", Session: &info})
+		m.emitSessionEventLocked(sess, eventSessionFailed)
 		m.releaseSessionLocked(id, sess)
 	}
 }
@@ -704,15 +744,14 @@ func (m *Manager) finishProducer(generation string, err error) {
 		if err != nil {
 			sess.state = StateFailed
 			sess.info.State = StateFailed
-			info := m.publicSession(sess, false)
-			m.publishLocked(EventPayload{ID: m.nextEventID(), Type: "session_failed", Session: &info})
+			m.emitSessionEventLocked(sess, eventSessionFailed)
 			continue
 		}
 		sess.state = StateCompleted
 		sess.info.State = StateCompleted
 		// The generation ran to EOF, so the produced end is final — refresh it
 		// for sessions created while the producer was still live.
-		sess.info.EndSec = m.sessionCoverageEndLocked(sess)
+		sess.info.EndSec = m.coverageEndSecLocked(sess.plan, sess.startIndex, sess.jobDir)
 	}
 }
 
@@ -733,13 +772,23 @@ func (m *Manager) Stop(username, sessionID string) error {
 	return m.stopSessionLocked(username, sessionID)
 }
 
-func (m *Manager) stopSessionLocked(username, sessionID string) error {
+// ownedSessionLocked returns the session when it exists and belongs to
+// username. Caller holds m.mu.
+func (m *Manager) ownedSessionLocked(username, sessionID string) (*playbackSession, error) {
 	sess, ok := m.sessions[sessionID]
 	if !ok {
-		return ErrNotFound
+		return nil, ErrNotFound
 	}
 	if sess.info.Username != username {
-		return ErrNotOwner
+		return nil, ErrNotOwner
+	}
+	return sess, nil
+}
+
+func (m *Manager) stopSessionLocked(username, sessionID string) error {
+	sess, err := m.ownedSessionLocked(username, sessionID)
+	if err != nil {
+		return err
 	}
 	if sess.state == StateStopping {
 		return nil
@@ -818,19 +867,15 @@ func (m *Manager) releaseSessionLocked(sessionID string, sess *playbackSession) 
 	if m.globalCount > 0 {
 		m.globalCount--
 	}
-	info := m.publicSession(sess, false)
-	m.publishLocked(EventPayload{ID: m.nextEventID(), Type: "session_stopped", Session: &info})
+	m.emitSessionEventLocked(sess, eventSessionStopped)
 }
 
 func (m *Manager) Heartbeat(username, sessionID string, req HeartbeatRequest) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	sess, ok := m.sessions[sessionID]
-	if !ok {
-		return ErrNotFound
-	}
-	if sess.info.Username != username {
-		return ErrNotOwner
+	sess, err := m.ownedSessionLocked(username, sessionID)
+	if err != nil {
+		return err
 	}
 	clientID := normalizeClientID(req.ClientID)
 	now := time.Now()
@@ -860,9 +905,6 @@ func (m *Manager) Snapshot(username string, adminAll bool, userLimit int) Snapsh
 		CanStart:     true,
 		HeartbeatSec: int(defaultHeartbeatInterval.Seconds()),
 	}
-	if resp.UserLimit < 1 {
-		resp.UserLimit = 1
-	}
 	if m.userCounts[username] >= resp.UserLimit {
 		resp.CanStart = false
 		resp.BlockReason = "user_limit"
@@ -883,12 +925,9 @@ func (m *Manager) Snapshot(username string, adminAll bool, userLimit int) Snapsh
 func (m *Manager) SessionForUser(username, sessionID string) (SessionInfo, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	sess, ok := m.sessions[sessionID]
-	if !ok {
-		return SessionInfo{}, ErrNotFound
-	}
-	if sess.info.Username != username {
-		return SessionInfo{}, ErrNotOwner
+	sess, err := m.ownedSessionLocked(username, sessionID)
+	if err != nil {
+		return SessionInfo{}, err
 	}
 	return m.publicSession(sess, false), nil
 }
@@ -896,47 +935,55 @@ func (m *Manager) SessionForUser(username, sessionID string) (SessionInfo, error
 func (m *Manager) JobDir(username, sessionID string) (string, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	sess, ok := m.sessions[sessionID]
-	if !ok {
-		return "", ErrNotFound
-	}
-	if sess.info.Username != username {
-		return "", ErrNotOwner
+	sess, err := m.ownedSessionLocked(username, sessionID)
+	if err != nil {
+		return "", err
 	}
 	return sess.jobDir, nil
 }
 
+// touchJobDir returns the session's job directory and marks the session active
+// under a single lock acquisition — delivery handlers call it per request.
+func (m *Manager) touchJobDir(username, sessionID string) (string, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	sess, err := m.ownedSessionLocked(username, sessionID)
+	if err != nil {
+		return "", err
+	}
+	sess.lastActivity = time.Now()
+	return sess.jobDir, nil
+}
+
 func (m *Manager) OpenInit(username, sessionID string) (*os.File, error) {
-	jobDir, err := m.JobDir(username, sessionID)
+	jobDir, err := m.touchJobDir(username, sessionID)
 	if err != nil {
 		return nil, err
 	}
-	m.touchActivity(sessionID)
 	return m.store.OpenInit(jobDir)
 }
 
 func (m *Manager) OpenSegment(username, sessionID, name string) (*os.File, error) {
-	jobDir, err := m.JobDir(username, sessionID)
+	jobDir, err := m.touchJobDir(username, sessionID)
 	if err != nil {
 		return nil, err
 	}
-	m.touchActivity(sessionID)
-	return m.store.OpenReadySegment(jobDir, name)
+	return m.store.OpenSegment(jobDir, name)
 }
 
 func (m *Manager) Playlist(username, sessionID string) ([]byte, error) {
-	jobDir, err := m.JobDir(username, sessionID)
+	jobDir, err := m.touchJobDir(username, sessionID)
 	if err != nil {
 		return nil, err
 	}
-	m.touchActivity(sessionID)
-	data, ready, err := m.store.ReadServePlaylist(jobDir)
+	data, hasSegments, err := m.store.ReadServePlaylist(jobDir)
 	if err != nil {
 		return nil, err
 	}
-	if ready == 0 {
-		// The playlist exists but has no aligned segments yet; report not-ready so
-		// the caller keeps polling instead of serving an empty playlist.
+	if !hasSegments {
+		// The playlist exists but lists no published segments yet; report
+		// not-ready so the caller keeps polling instead of serving an
+		// empty playlist.
 		return nil, ErrNotReady
 	}
 	return m.rewritePlaylist(sessionID, data), nil
@@ -947,22 +994,11 @@ func (m *Manager) Playlist(username, sessionID string) ([]byte, error) {
 func (m *Manager) Failed(username, sessionID string) bool {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	sess, ok := m.sessions[sessionID]
-	if !ok {
-		return false
-	}
-	if sess.info.Username != username {
+	sess, err := m.ownedSessionLocked(username, sessionID)
+	if err != nil {
 		return false
 	}
 	return sess.state == StateFailed
-}
-
-func (m *Manager) touchActivity(sessionID string) {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-	if sess := m.sessions[sessionID]; sess != nil {
-		sess.lastActivity = time.Now()
-	}
 }
 
 func (m *Manager) Subscribe() (<-chan EventPayload, func()) {
@@ -979,18 +1015,22 @@ func (m *Manager) Subscribe() (<-chan EventPayload, func()) {
 	return ch, cancel
 }
 
-func (m *Manager) publish(evt EventPayload) {
-	m.subMu.Lock()
-	defer m.subMu.Unlock()
-	for ch := range m.subs {
-		select {
-		case ch <- evt:
-		default:
-		}
-	}
+const (
+	eventSessionStarted = "session_started"
+	eventSessionRunning = "session_running"
+	eventSessionFailed  = "session_failed"
+	eventSessionStopped = "session_stopped"
+)
+
+// emitSessionEventLocked publishes a lifecycle event for sess and returns the
+// public info the payload carried. Caller holds m.mu.
+func (m *Manager) emitSessionEventLocked(sess *playbackSession, evtType string) SessionInfo {
+	info := m.publicSession(sess, false)
+	m.publish(EventPayload{ID: m.nextEventID(), Type: evtType, Session: &info})
+	return info
 }
 
-func (m *Manager) publishLocked(evt EventPayload) {
+func (m *Manager) publish(evt EventPayload) {
 	m.subMu.Lock()
 	defer m.subMu.Unlock()
 	for ch := range m.subs {
@@ -1010,12 +1050,10 @@ func (m *Manager) deliveryURL(sessionID string) string {
 	return fmt.Sprintf("%s/api/media/transcode/sessions/%s", m.baseURL, sessionID)
 }
 
-// sessionReusable reports whether an existing generation can serve the
-// requested playhead. Segments before the generation's start index were never
-// produced, and with live-paced production the produced edge only advances in
-// realtime — a target beyond it must reposition the generation rather than
-// stall at the edge. coverageEndSec is the source-time end of the last
-// produced segment.
+// sessionReusable reports whether a generation can serve the requested
+// playhead: a target before its start index or beyond the produced edge
+// (live-paced, ~1x) must reposition rather than stall. coverageEndSec is the
+// source-time end of the last produced segment.
 func sessionReusable(sess *playbackSession, startSec, coverageEndSec float64) bool {
 	switch sess.state {
 	case StateStarting, StateRunning:
@@ -1026,7 +1064,7 @@ func sessionReusable(sess *playbackSession, startSec, coverageEndSec float64) bo
 	case StateCompleted:
 		// A completed generation ran to EOF, so it only needs to have started
 		// at or before the requested playhead.
-		return sess.coversFromStart || startSec >= coverageStartSec(sess.plan, sess.startIndex)-seekBackwardEpsSec
+		return sess.startIndex == 0 || startSec >= coverageStartSec(sess.plan, sess.startIndex)-seekBackwardEpsSec
 	default:
 		return false
 	}
@@ -1099,30 +1137,7 @@ func (m *Manager) expireSessions() {
 	var toStop []string
 	m.mu.Lock()
 	for id, sess := range m.sessions {
-		if now.Before(sess.startupDeadline) && sess.state == StateStarting {
-			continue
-		}
-		// Client leases expire individually: a client that stops heartbeating
-		// (tab closed, heartbeat failing, player remounted) frees its claim
-		// after reconnectGrace instead of holding it until the inactivity
-		// timeouts. Without this pruning clients only ever grew, so a dead
-		// session held its user-limit slot for up to pauseInactivityTimeout.
-		for clientID, seen := range sess.clients {
-			if now.Sub(seen) > reconnectGrace {
-				delete(sess.clients, clientID)
-			}
-		}
-		idle := now.Sub(sess.lastActivity)
-		grace := now.Sub(sess.lastHeartbeat)
-		if len(sess.clients) == 0 && grace > reconnectGrace && idle > reconnectGrace {
-			toStop = append(toStop, id)
-			continue
-		}
-		limit := playingInactivityTimeout
-		if sess.paused {
-			limit = pauseInactivityTimeout
-		}
-		if idle > limit {
+		if sessionExpired(sess, now) {
 			toStop = append(toStop, id)
 		}
 	}
@@ -1135,7 +1150,36 @@ func (m *Manager) expireSessions() {
 	m.mu.Unlock()
 }
 
-func newSessionID() (string, error) {
+// sessionExpired reports whether a session has outlived its clients and its
+// inactivity budget. As a side effect it prunes stale client claims.
+func sessionExpired(sess *playbackSession, now time.Time) bool {
+	if now.Before(sess.startupDeadline) && sess.state == StateStarting {
+		return false
+	}
+	// Client leases expire individually: a client that stops heartbeating
+	// (tab closed, heartbeat failing, player remounted) frees its claim
+	// after reconnectGrace instead of holding it until the inactivity
+	// timeouts. Without this pruning clients only ever grew, so a dead
+	// session held its user-limit slot for up to pauseInactivityTimeout.
+	for clientID, seen := range sess.clients {
+		if now.Sub(seen) > reconnectGrace {
+			delete(sess.clients, clientID)
+		}
+	}
+	idle := now.Sub(sess.lastActivity)
+	grace := now.Sub(sess.lastHeartbeat)
+	if len(sess.clients) == 0 && grace > reconnectGrace && idle > reconnectGrace {
+		return true
+	}
+	limit := playingInactivityTimeout
+	if sess.paused {
+		limit = pauseInactivityTimeout
+	}
+	return idle > limit
+}
+
+// newRandomID returns a random hex id for sessions and generations.
+func newRandomID() (string, error) {
 	var b [16]byte
 	if _, err := rand.Read(b[:]); err != nil {
 		return "", err

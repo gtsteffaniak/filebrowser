@@ -17,7 +17,7 @@ func TestStoreServeContractOpensNormalizedSegment(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	mgr, err := NewManager(ctx, NewFakeEngine(), store, Options{BaseURL: "/testing"})
+	mgr, err := NewManager(ctx, NewFakeEngine(), store, "/testing")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -40,10 +40,11 @@ func TestStoreServeContractOpensNormalizedSegment(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// Wait for the producer's initial writes, then populate the generation the way
-	// ffmpeg plus the segment aligner would before the playlist is served.
+	// Wait for the producer's initial writes, then populate the generation the
+	// way the publisher leaves it: a published segment under seg/ plus the
+	// canonical index.m3u8.
 	waitForInit(t, store, jobDir)
-	writeServeFixture(t, jobDir, "#EXTM3U\n#EXT-X-MAP:URI=\"init.m4s\"\n#EXTINF:4,\n00000.m4s\n")
+	writeServeFixture(t, jobDir, "#EXTM3U\n#EXT-X-MAP:URI=\"init.m4s\"\n#EXTINF:4,\nseg/00000.m4s\n")
 
 	playlist, err := mgr.Playlist("contract-user", info.ID)
 	if err != nil {
@@ -70,22 +71,18 @@ func TestStoreServeContractOpensNormalizedSegment(t *testing.T) {
 	segFile.Close()
 }
 
-// writeServeFixture populates a generation with an aligned segment and a playlist,
-// mirroring what ffmpeg plus the segment aligner produce on disk.
+// writeServeFixture populates a generation with a published segment and the
+// serve playlist, mirroring what the publisher leaves on disk.
 func writeServeFixture(t *testing.T, jobDir, playlist string) {
 	t.Helper()
 	segDir := filepath.Join(jobDir, "seg")
 	if err := os.MkdirAll(segDir, 0o755); err != nil {
 		t.Fatal(err)
 	}
-	segPath := filepath.Join(segDir, "00000.m4s")
-	if err := os.WriteFile(segPath, make([]byte, 9000), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(segDir, "00000.m4s"), make([]byte, 9000), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(segPath+".ready", []byte("1"), 0o644); err != nil {
-		t.Fatal(err)
-	}
-	if err := os.WriteFile(filepath.Join(jobDir, "ffmpeg.m3u8"), []byte(playlist), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(jobDir, "index.m3u8"), []byte(playlist), 0o644); err != nil {
 		t.Fatal(err)
 	}
 }

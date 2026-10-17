@@ -5,7 +5,7 @@ import {
   servableCoverage,
   TRANSCODE_SEEK_BACKWARD_EPS_SEC,
   TRANSCODE_SEEK_FORWARD_SLACK_SEC,
-} from '@/plyr/transcodeSeek.js';
+} from '@/plyr/transcodePlaybackController.js';
 
 function fakeSeekable(ranges) {
   return {

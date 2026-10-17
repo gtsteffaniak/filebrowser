@@ -1,13 +1,11 @@
 package web
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 	"path/filepath"
 	"strings"
 	"time"
@@ -296,9 +294,10 @@ func transcodeSegmentHandler(w http.ResponseWriter, r *http.Request, d *Context)
 	}
 	id := strings.TrimSpace(r.PathValue("id"))
 	name := strings.TrimSpace(r.PathValue("name"))
-	// A segment listed in the playlist is normally aligned already; retry briefly
-	// so a narrow race with the aligner never surfaces as a failed request.
-	f, err := openSegmentWithRetry(r.Context(), mgr, d.User.Username, id, name)
+	// index.m3u8 only lists segments after the publisher lands them in seg/,
+	// so a listed segment always exists — a miss means the generation was
+	// cleared, and hls.js retries fragment loads on its own.
+	f, err := mgr.OpenSegment(d.User.Username, id, name)
 	if err != nil {
 		logger.Infof("[transcode] segment failed session=%s user=%s name=%s err=%v", id, d.User.Username, name, err)
 		return transcodeErrorStatus(err), err
@@ -312,24 +311,6 @@ func transcodeSegmentHandler(w http.ResponseWriter, r *http.Request, d *Context)
 		return http.StatusInternalServerError, copyErr
 	}
 	return http.StatusOK, nil
-}
-
-func openSegmentWithRetry(ctx context.Context, mgr *transcoding.Manager, username, sessionID, name string) (*os.File, error) {
-	deadline := time.Now().Add(10 * time.Second)
-	for {
-		f, err := mgr.OpenSegment(username, sessionID, name)
-		if err == nil || !errors.Is(err, transcoding.ErrNotReady) {
-			return f, err
-		}
-		if time.Now().After(deadline) {
-			return nil, err
-		}
-		select {
-		case <-ctx.Done():
-			return nil, ctx.Err()
-		case <-time.After(100 * time.Millisecond):
-		}
-	}
 }
 
 func resolveTranscodeFile(d *Context, source, clientPath string) (realPath, fileName string, status int, err error) {

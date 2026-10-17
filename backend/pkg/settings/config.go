@@ -2,8 +2,6 @@ package settings
 
 import (
 	"bytes"
-	"context"
-	"flag"
 	"fmt"
 	"io"
 	"log"
@@ -18,11 +16,8 @@ import (
 	"github.com/goccy/go-yaml"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/fileutils"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
-	"github.com/gtsteffaniak/filebrowser/backend/internal/ffmpeg"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/version"
-	goffmpeg "github.com/gtsteffaniak/go-ffmpeg"
-	"github.com/gtsteffaniak/go-ffmpeg/capabilities"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
@@ -436,101 +431,6 @@ func DefaultTranscodeProfiles() TranscodeProfiles {
 	}
 }
 
-func isGoTest() bool {
-	return flag.Lookup("test.v") != nil
-}
-
-// setupFFmpegIntegration probes ffmpeg and publishes the resulting Env fields.
-// The probe runs without mediaMu so media readers (transcode admission, preview
-// type selection, static page rendering) are not blocked for seconds, and it is
-// serialized by ffmpegInitMu. Callers must not hold mediaMu.
-func setupFFmpegIntegration() {
-	ffmpegInitMu.Lock()
-	defer ffmpegInitMu.Unlock()
-
-	mediaMu.RLock()
-	numImageProcessors := Config.Server.NumImageProcessors
-	cacheDir := Config.Server.CacheDir
-	ffmpegPath := Config.Integrations.Media.FfmpegPath
-	hardwareAcceleration := Config.Integrations.Media.HardwareAcceleration
-	accelDevice := Config.Integrations.Media.AccelDevice
-	debug := Config.Integrations.Media.Debug
-	maxConcurrent := Config.Integrations.Media.Transcode.MaxConcurrent
-	mediaMu.RUnlock()
-
-	n := numImageProcessors
-	if n < 1 {
-		n = 4
-	}
-	maxDecode := (n + 1) / 2
-	maxEncode := maxConcurrent
-	if maxEncode < 1 {
-		maxEncode = 2
-	}
-	initOpts := ffmpeg.InitOptions{
-		FFmpegPath: ffmpegPath,
-		Concurrency: goffmpeg.Concurrency{
-			MaxProbe:  16,
-			MaxDecode: maxDecode,
-			MaxEncode: maxEncode,
-		},
-		CacheDir:             cacheDir,
-		HardwareAcceleration: hardwareAcceleration,
-		AccelDevice:          accelDevice,
-		VerboseFFmpeg:        debug,
-	}
-	// Hardware codec detection always runs so the setting can be toggled at
-	// runtime; when it is off, software encoders are preferred instead.
-	if !hardwareAcceleration {
-		initOpts.EncoderHierarchy = []capabilities.AccelType{capabilities.AccelNone}
-		// A config file that pins hardwareAcceleration: false opts out of the
-		// multi-second probe entirely, since the value cannot be changed here.
-		if IsMediaSettingLockedFromConfig("hardwareAcceleration") {
-			initOpts.SkipHWTests = true
-		}
-	}
-	err := ffmpeg.Initialize(context.Background(), initOpts)
-	if err != nil {
-		logger.Warningf("ffmpeg unavailable: %v", err)
-		publishFFmpegEnv(false, "", "", false)
-		return
-	}
-
-	svc := ffmpeg.Get()
-	if svc == nil {
-		publishFFmpegEnv(false, "", "", false)
-		return
-	}
-
-	publishFFmpegEnv(true, svc.FFmpegPath(), svc.FFprobePath(), svc.HardwareAccelerationAvailable())
-}
-
-// publishFFmpegEnv records the ffmpeg detection results under the media lock so
-// readers never observe a partially updated set of Env fields.
-func publishFFmpegEnv(available bool, ffmpegPath, ffprobePath string, hardwareAcceleration bool) {
-	mediaMu.Lock()
-	defer mediaMu.Unlock()
-	Env.FFmpegAvailable = available
-	Env.FFmpegPath = ffmpegPath
-	Env.FFprobePath = ffprobePath
-	Env.HardwareAccelerationAvailable = hardwareAcceleration
-}
-
-// InitFFmpeg initializes ffmpeg with the effective media settings. Startup calls
-// it once, after persisted media settings have been applied, so the multi-second
-// hardware codec probe does not run twice. It is a no-op when ffmpeg has already
-// been initialized (for example when ApplyMediaSettings triggered it first).
-func InitFFmpeg() {
-	mediaMu.Lock()
-	if isGoTest() || ffmpegInitialized {
-		mediaMu.Unlock()
-		return
-	}
-	ffmpegInitialized = true
-	mediaMu.Unlock()
-	setupFFmpegIntegration()
-}
-
 func setupSources(generate bool) {
 	if len(Config.Server.Sources) == 0 {
 		logger.Fatal("There are no `server.sources` configured. If you have `server.root` configured, please update the config and add at least one `server.sources` with a `path` configured.")
@@ -809,7 +709,12 @@ func loadConfigWithDefaults(configFile string, generate bool) error {
 	// file pins so they can win over stored values and lock in the admin UI.
 	if integrations, ok := filteredConfig["integrations"].(map[string]interface{}); ok {
 		if mediaMap, ok := integrations["media"].(map[string]interface{}); ok {
-			Env.ConfigMediaSpecifiedPaths = CollectMapLeafPaths(mediaMap, "")
+			paths := CollectMapLeafPaths(mediaMap, "")
+			// skipHwCheck is config-only, not a runtime media setting — don't
+			// let it trigger the "locked from config" admin UI state.
+			Env.ConfigMediaSpecifiedPaths = slices.DeleteFunc(paths, func(p string) bool {
+				return p == "skipHwCheck"
+			})
 		}
 	}
 
@@ -1216,167 +1121,6 @@ func DownloadCacheDir() string {
 // TranscodeCacheDir is where HLS transcode output is cached on disk.
 func TranscodeCacheDir() string {
 	return filepath.Join(Config.Server.CacheDir, "transcoding")
-}
-
-// TranscodeEnabled reports whether authenticated HLS transcoding is enabled.
-func TranscodeEnabled() bool {
-	mediaMu.RLock()
-	defer mediaMu.RUnlock()
-	return Config.Integrations.Media.Transcode.Enabled && Env.FFmpegAvailable
-}
-
-// TranscodeMaxConcurrent returns the global transcode session limit.
-func TranscodeMaxConcurrent() int {
-	mediaMu.RLock()
-	defer mediaMu.RUnlock()
-	n := Config.Integrations.Media.Transcode.MaxConcurrent
-	if n < 1 {
-		return 2
-	}
-	return n
-}
-
-// TranscodeMaxConcurrentPerUser returns the admin-defined per-user ceiling.
-func TranscodeMaxConcurrentPerUser() int {
-	mediaMu.RLock()
-	defer mediaMu.RUnlock()
-	n := Config.Integrations.Media.Transcode.MaxConcurrentPerUser
-	if n < 1 {
-		return 1
-	}
-	return n
-}
-
-// EnabledTranscodeProfiles returns enabled transcode preset ids in player-menu order.
-func EnabledTranscodeProfiles() []string {
-	mediaMu.RLock()
-	defer mediaMu.RUnlock()
-	return enabledTranscodeProfilesLocked()
-}
-
-func enabledTranscodeProfilesLocked() []string {
-	p := Config.Integrations.Media.Transcode.Profiles
-	ids := make([]string, 0, 3)
-	for _, e := range []struct {
-		id   string
-		prof TranscodeProfile
-	}{
-		{"quality", p.Quality},
-		{"balanced", p.Balanced},
-		{"datasaver", p.DataSaver},
-	} {
-		if e.prof.Enabled {
-			ids = append(ids, e.id)
-		}
-	}
-	return ids
-}
-
-// TranscodeProfileConfig returns the configured settings for a transcode profile name.
-func TranscodeProfileConfig(name string) (TranscodeProfile, bool) {
-	mediaMu.RLock()
-	defer mediaMu.RUnlock()
-	return transcodeProfileConfigLocked(name)
-}
-
-// TranscodeEncoderBackend resolves the encoder backend for a transcode
-// profile: the preset's own override when set, otherwise the transcode-level
-// default, otherwise "" for the detected (auto) backend.
-func TranscodeEncoderBackend(profile string) string {
-	mediaMu.RLock()
-	defer mediaMu.RUnlock()
-	if cfg, ok := transcodeProfileConfigLocked(profile); ok && cfg.EncoderBackend != "" {
-		return cfg.EncoderBackend
-	}
-	return Config.Integrations.Media.Transcode.EncoderBackend
-}
-
-func transcodeProfileConfigLocked(name string) (TranscodeProfile, bool) {
-	p := Config.Integrations.Media.Transcode.Profiles
-	switch name {
-	case "quality":
-		return p.Quality, true
-	case "balanced":
-		return p.Balanced, true
-	case "datasaver":
-		return p.DataSaver, true
-	default:
-		return TranscodeProfile{}, false
-	}
-}
-
-// CurrentMediaSettings returns the runtime media settings (excluding ffmpegPath).
-func CurrentMediaSettings() MediaSettings {
-	mediaMu.RLock()
-	defer mediaMu.RUnlock()
-	return currentMediaSettingsLocked()
-}
-
-// currentMediaSettingsLocked snapshots the live media settings. Callers must hold
-// mediaMu. The returned value is deep-copied so it cannot alias the live config.
-func currentMediaSettingsLocked() MediaSettings {
-	m := Config.Integrations.Media
-	return CloneMediaSettings(MediaSettings{
-		Convert:                  m.Convert,
-		Debug:                    m.Debug,
-		ExtractEmbeddedSubtitles: m.ExtractEmbeddedSubtitles,
-		HardwareAcceleration:     m.HardwareAcceleration,
-		AccelDevice:              m.AccelDevice,
-		Transcode:                m.Transcode,
-	})
-}
-
-// ApplyMediaSettings applies runtime media settings to the in-memory config.
-// ffmpeg is re-initialized only when an input that affects initialization
-// changed, so toggling conversion formats, profiles, or cache limits does not
-// re-run the multi-second hardware codec probe. The probe itself runs after
-// releasing mediaMu so media readers are not blocked behind it.
-func ApplyMediaSettings(s MediaSettings) {
-	mediaMu.Lock()
-	before := currentFFmpegInitInputs()
-	Config.Integrations.Media.Convert = s.Convert
-	Config.Integrations.Media.Debug = s.Debug
-	Config.Integrations.Media.ExtractEmbeddedSubtitles = s.ExtractEmbeddedSubtitles
-	Config.Integrations.Media.HardwareAcceleration = s.HardwareAcceleration
-	Config.Integrations.Media.AccelDevice = s.AccelDevice
-	Config.Integrations.Media.Transcode = s.Transcode
-	applyMediaConvertDefaults()
-	setupMediaTranscode()
-
-	changed := currentFFmpegInitInputs() != before
-	if changed {
-		// Record that the new inputs have been applied so a later startup
-		// InitFFmpeg does not run a second probe.
-		ffmpegInitialized = true
-	}
-	mediaMu.Unlock()
-
-	if changed && !isGoTest() {
-		setupFFmpegIntegration()
-	}
-}
-
-// TranscodeCacheMaxSizeBytes returns the configured disk cache limit in bytes.
-// Zero means unlimited.
-func TranscodeCacheMaxSizeBytes() int64 {
-	mediaMu.RLock()
-	defer mediaMu.RUnlock()
-	mb := Config.Integrations.Media.Transcode.CacheMaxSizeMB
-	if mb <= 0 {
-		return 0
-	}
-	return int64(mb) * 1024 * 1024
-}
-
-// TranscodeCacheRetention returns how long inactive cache generations are kept.
-func TranscodeCacheRetention() time.Duration {
-	mediaMu.RLock()
-	defer mediaMu.RUnlock()
-	h := Config.Integrations.Media.Transcode.CacheRetentionH
-	if h <= 0 {
-		return 24 * time.Hour
-	}
-	return time.Duration(h) * time.Hour
 }
 
 // PrepareDownloadSpoolDir creates the download spool directory and removes any leftover dl-archive-*

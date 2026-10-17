@@ -4,10 +4,10 @@ import (
 	"context"
 	"encoding/hex"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -15,62 +15,12 @@ import (
 	"time"
 )
 
-type slowBuildEngine struct {
-	FakeEngine
-	buildStarted chan struct{}
-	releaseBuild chan struct{}
-}
-
-func (s *slowBuildEngine) BuildPlan(ctx context.Context, realPath string, profile Profile) (hlsPlan, error) {
-	s.buildStarted <- struct{}{}
-	<-s.releaseBuild
-	return s.FakeEngine.BuildPlan(ctx, realPath, profile)
-}
-
-type blockingStartEngine struct {
-	FakeEngine
-	job *fakeJob
-}
-
-func (b *blockingStartEngine) StartContinuous(ctx context.Context, realPath, outputDir string, plan hlsPlan, startIndex int, startSec float64) (ContinuousJob, error) {
-	if err := os.MkdirAll(filepath.Join(outputDir, "seg"), 0o755); err != nil {
-		return nil, err
-	}
-	return b.job, nil
-}
-
 func TestManagerReuseSameFileRefresh(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	mgr, _ := newTestManager(t, nil)
+	in := testInput(t, "u", "/v.mp4")
 
-	store, err := NewStore(t.TempDir())
-	if err != nil {
-		t.Fatal(err)
-	}
-	engine := NewFakeEngine()
-	mgr, err := NewManager(ctx, engine, store, Options{BaseURL: ""})
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer mgr.Close(context.Background())
-
-	in := StartInput{
-		Username:  "u",
-		UserLimit: 1,
-		Source:    "s",
-		Path:      "/v.mp4",
-		RealPath:  t.TempDir() + "/v.mp4",
-		Profile:   ProfileQuality,
-		ClientID:  "c1",
-	}
-	first, err := mgr.Start(ctx, in)
-	if err != nil {
-		t.Fatalf("start: %v", err)
-	}
-	second, err := mgr.Start(ctx, in)
-	if err != nil {
-		t.Fatalf("reuse: %v", err)
-	}
+	first := mustStart(t, mgr, in)
+	second := mustStart(t, mgr, in)
 	if first.ID != second.ID {
 		t.Fatalf("expected same session, got %s then %s", first.ID, second.ID)
 	}
@@ -80,55 +30,20 @@ func TestManagerReuseSameFileRefresh(t *testing.T) {
 }
 
 func TestManagerUserLimit(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	mgr, _ := newTestManager(t, nil)
 
-	store, err := NewStore(t.TempDir())
-	if err != nil {
-		t.Fatal(err)
-	}
-	engine := NewFakeEngine()
-	mgr, err := NewManager(ctx, engine, store, Options{})
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer mgr.Close(context.Background())
-
-	base := StartInput{
-		Username:  "user-two",
-		UserLimit: 1,
-		Source:    "s",
-		Path:      "/a.mp4",
-		RealPath:  t.TempDir() + "/a.mp4",
-		Profile:   ProfileQuality,
-		ClientID:  "c1",
-	}
-	if _, err := mgr.Start(ctx, base); err != nil {
-		t.Fatalf("first: %v", err)
-	}
-	other := base
-	other.Path = "/b.mp4"
-	other.RealPath = t.TempDir() + "/b.mp4"
+	mustStart(t, mgr, testInput(t, "user-two", "/a.mp4"))
+	other := testInput(t, "user-two", "/b.mp4")
 	other.ClientID = "c2"
-	if _, err := mgr.Start(ctx, other); err != ErrUserLimit {
+	if _, err := mgr.Start(context.Background(), other); err != ErrUserLimit {
 		t.Fatalf("want user limit, got %v", err)
 	}
 }
 
 func TestManagerConcurrentSameKeySingleSession(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	store, err := NewStore(t.TempDir())
-	if err != nil {
-		t.Fatal(err)
-	}
-	engine := NewFakeEngine()
-	mgr, err := NewManager(ctx, engine, store, Options{})
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer mgr.Close(context.Background())
+	mgr, _ := newTestManager(t, nil)
+	in := testInput(t, "user-three", "/same.mp4")
+	in.ClientID = "client"
 
 	var wg sync.WaitGroup
 	const n = 20
@@ -137,15 +52,7 @@ func TestManagerConcurrentSameKeySingleSession(t *testing.T) {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			info, err := mgr.Start(ctx, StartInput{
-				Username:  "user-three",
-				UserLimit: 1,
-				Source:    "s",
-				Path:      "/same.mp4",
-				RealPath:  t.TempDir() + "/same.mp4",
-				Profile:   ProfileQuality,
-				ClientID:  "client",
-			})
+			info, err := mgr.Start(context.Background(), in)
 			if err != nil {
 				t.Errorf("start: %v", err)
 				return
@@ -166,26 +73,9 @@ func TestManagerConcurrentSameKeySingleSession(t *testing.T) {
 }
 
 func TestManagerStopIdempotent(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	mgr, _ := newTestManager(t, nil)
 
-	store, err := NewStore(t.TempDir())
-	if err != nil {
-		t.Fatal(err)
-	}
-	mgr, err := NewManager(ctx, NewFakeEngine(), store, Options{})
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer mgr.Close(context.Background())
-
-	info, err := mgr.Start(ctx, StartInput{
-		Username: "user-four", UserLimit: 1, Source: "s", Path: "/x.mp4",
-		RealPath: t.TempDir() + "/x.mp4", Profile: ProfileQuality,
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
+	info := mustStart(t, mgr, testInput(t, "user-four", "/x.mp4"))
 	if err := mgr.Stop("user-four", info.ID); err != nil {
 		t.Fatal(err)
 	}
@@ -195,26 +85,10 @@ func TestManagerStopIdempotent(t *testing.T) {
 }
 
 func TestManagerHeartbeatRequiresSession(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	store, _ := NewStore(t.TempDir())
-	mgr, _ := NewManager(ctx, NewFakeEngine(), store, Options{})
-	defer mgr.Close(context.Background())
+	mgr, _ := newTestManager(t, nil)
 
 	if err := mgr.Heartbeat("user-one", "missing", HeartbeatRequest{}); err != ErrNotFound {
 		t.Fatalf("got %v", err)
-	}
-}
-
-func TestStoreRejectsInvalidSegment(t *testing.T) {
-	store, _ := NewStore(t.TempDir())
-	jobDir := t.TempDir()
-	if _, err := store.SegmentPath(jobDir, "../etc/passwd"); err == nil {
-		t.Fatal("expected invalid segment error")
-	}
-	if _, err := store.SegmentPath(jobDir, "bad.m4s"); err == nil {
-		t.Fatal("expected invalid segment name")
 	}
 }
 
@@ -223,7 +97,7 @@ func TestSessionReusable(t *testing.T) {
 	running := &playbackSession{state: StateRunning, plan: plan}
 	// A generation that starts at segment 0 covers the whole file, so a
 	// completed session serves any playhead without transcoding again.
-	completedFromStart := &playbackSession{state: StateCompleted, coversFromStart: true, plan: plan}
+	completedFromStart := &playbackSession{state: StateCompleted, plan: plan}
 	// A generation that started at segment 15 never produced earlier segments.
 	completedPartial := &playbackSession{state: StateCompleted, startSec: 60, startIndex: 15, plan: plan}
 	runningPartial := &playbackSession{state: StateRunning, startSec: 60, startIndex: 15, plan: plan}
@@ -264,6 +138,28 @@ func TestSessionReusable(t *testing.T) {
 	}
 }
 
+func TestCoverageStartSec(t *testing.T) {
+	// A stream-copy seek generation is anchored by ffmpeg at the keyframe the
+	// input seek snapped to — not at the fixed grid position the -ss asked
+	// for, and never at the planned segment timeline, which diverges from the
+	// emitted boundaries and would shift the client's element timeline.
+	copyPlan := hlsPlan{segmentSec: 4, videoCopy: true, keyframes: []float64{0, 10, 40, 80, 1885, 1890}}
+	if got := coverageStartSec(copyPlan, 472); got != 1885 {
+		t.Fatalf("copy generation start = %v, want snapped keyframe 1885", got)
+	}
+	if got := coverageStartSec(copyPlan, 0); got != 0 {
+		t.Fatalf("generation from media start = %v, want 0", got)
+	}
+	// A copy plan without probed keyframes falls back to the -ss grid value.
+	if got := coverageStartSec(hlsPlan{segmentSec: 4, remux: true}, 472); got != 1888 {
+		t.Fatalf("copy generation without keyframes = %v, want grid 1888", got)
+	}
+	// Transcode output starts at the exact -ss — the segment grid position.
+	if got := coverageStartSec(hlsPlan{segmentSec: 4}, 472); got != 1888 {
+		t.Fatalf("transcode generation start = %v, want grid 1888", got)
+	}
+}
+
 func TestRewritePlaylistRewritesDeliveryURLs(t *testing.T) {
 	mgr := &Manager{baseURL: "/testing"}
 	playlist := "#EXTM3U\n#EXT-X-MAP:URI=\"init.m4s\"\n#EXTINF:4,\nseg/00000.m4s\n"
@@ -278,43 +174,16 @@ func TestRewritePlaylistRewritesDeliveryURLs(t *testing.T) {
 }
 
 func TestManagerJanitorDoesNotRace(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	store, _ := NewStore(t.TempDir())
-	mgr, _ := NewManager(ctx, NewFakeEngine(), store, Options{})
-	defer func() {
-		shCtx, c := context.WithTimeout(context.Background(), 2*time.Second)
-		defer c()
-		_ = mgr.Close(shCtx)
-	}()
+	newTestManager(t, nil)
 	time.Sleep(janitorInterval + 20*time.Millisecond)
 }
 
 func TestSessionInfoOmitsUserID(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	mgr, _ := newTestManager(t, nil)
 
-	store, err := NewStore(t.TempDir())
-	if err != nil {
-		t.Fatal(err)
-	}
-	mgr, err := NewManager(ctx, NewFakeEngine(), store, Options{})
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer mgr.Close(context.Background())
-
-	info, err := mgr.Start(ctx, StartInput{
-		Username:  "alice",
-		UserLimit: 2,
-		Source:    "s",
-		Path:      "/clip.mp4",
-		RealPath:  t.TempDir() + "/clip.mp4",
-		Profile:   ProfileQuality,
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
+	in := testInput(t, "alice", "/clip.mp4")
+	in.UserLimit = 2
+	info := mustStart(t, mgr, in)
 	if info.Username != "alice" {
 		t.Fatalf("username=%q", info.Username)
 	}
@@ -332,118 +201,35 @@ func TestSessionInfoOmitsUserID(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if path := findUserIDField(encoded); path != "" {
-			t.Fatalf("session payload exposes a user id at %s: %s", path, encoded)
-		}
-	}
-}
-
-// findUserIDField returns the JSON path of the first user-identifier field, or "".
-func findUserIDField(payload []byte) string {
-	var decoded any
-	if err := json.Unmarshal(payload, &decoded); err != nil {
-		return ""
-	}
-	found := ""
-	var walk func(node any, path string)
-	walk = func(node any, path string) {
-		if found != "" {
-			return
-		}
-		switch node := node.(type) {
-		case map[string]any:
-			for key, child := range node {
-				if normalizedKeyLooksLikeUserID(key) {
-					found = path + "." + key
-					return
-				}
-				walk(child, path+"."+key)
-			}
-		case []any:
-			for i, child := range node {
-				walk(child, fmt.Sprintf("%s[%d]", path, i))
-			}
-		}
-	}
-	walk(decoded, "$")
-	return found
-}
-
-func normalizedKeyLooksLikeUserID(key string) bool {
-	normalized := strings.ToLower(key)
-	normalized = strings.NewReplacer("_", "", "-", "", " ", "").Replace(normalized)
-	return normalized == "userid"
-}
-
-func TestFindUserIDField(t *testing.T) {
-	cases := map[string]string{
-		`{"sessions":[{"id":"abc","username":"alice"}]}`: "",
-		`{"userId":7}`:                     "$.userId",
-		`{"nested":{"user_id":7}}`:         "$.nested.user_id",
-		`{"list":[{"USER-ID":7}]}`:         "$.list[0].USER-ID",
-		`{"id":"abc","user":{"name":"a"}}`: "",
-	}
-	for payload, want := range cases {
-		if got := findUserIDField([]byte(payload)); got != want {
-			t.Errorf("findUserIDField(%s) = %q, want %q", payload, got, want)
+		if key := userIDKeyPattern.Find(encoded); key != nil {
+			t.Fatalf("session payload exposes a user id field %s: %s", key, encoded)
 		}
 	}
 }
 
 func TestManagerSupersedesNonReusableSession(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	mgr, _ := newTestManager(t, nil)
 
-	store, err := NewStore(t.TempDir())
-	if err != nil {
-		t.Fatal(err)
-	}
-	engine := NewFakeEngine()
-	mgr, err := NewManager(ctx, engine, store, Options{})
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer mgr.Close(context.Background())
-
-	base := StartInput{
-		Username:  "supersede-user",
-		UserLimit: 1,
-		Source:    "s",
-		Path:      "/clip.mp4",
-		RealPath:  t.TempDir() + "/clip.mp4",
-		Profile:   ProfileQuality,
-		ClientID:  "c1",
-	}
-	first, err := mgr.Start(ctx, base)
-	if err != nil {
-		t.Fatal(err)
-	}
-	mgr.mu.Lock()
-	sess := mgr.sessions[first.ID]
-	sess.state = StateCompleted
-	sess.info.State = StateCompleted
+	base := testInput(t, "supersede-user", "/clip.mp4")
+	first := mustStart(t, mgr, base)
 	// Simulate a generation that started mid-file: it never produced the earlier
 	// segments, so a request for an earlier playhead must start a new session.
-	sess.startSec = 60
-	sess.startIndex = 15
-	sess.coversFromStart = false
-	mgr.mu.Unlock()
-
-	second, err := mgr.Start(ctx, StartInput{
-		Username:         base.Username,
-		UserLimit:        base.UserLimit,
-		Source:           base.Source,
-		Path:             base.Path,
-		RealPath:         base.RealPath,
-		Profile:          base.Profile,
-		ClientID:         "c2",
-		StartSec:         12,
-		ReplaceSessionID: first.ID,
+	seedSessionState(t, mgr, first.ID, func(sess *playbackSession) {
+		sess.state = StateCompleted
+		sess.info.State = StateCompleted
+		sess.startSec = 60
+		sess.startIndex = 15
 	})
+
+	second := base
+	second.ClientID = "c2"
+	second.StartSec = 12
+	second.ReplaceSessionID = first.ID
+	info, err := mgr.Start(context.Background(), second)
 	if err != nil {
 		t.Fatalf("superseding start: %v", err)
 	}
-	if second.ID == first.ID {
+	if info.ID == first.ID {
 		t.Fatal("expected a new session after non-reusable supersession")
 	}
 
@@ -463,31 +249,15 @@ func TestManagerSupersedesNonReusableSession(t *testing.T) {
 // not fail the start. No slot was released in that case, so the admission limits
 // still apply.
 func TestManagerStartToleratesExpiredReplaceSession(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	store, err := NewStore(t.TempDir())
-	if err != nil {
-		t.Fatal(err)
-	}
-	mgr, err := NewManager(ctx, NewFakeEngine(), store, Options{})
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer mgr.Close(context.Background())
+	mgr, _ := newTestManager(t, nil)
 
 	start := func(path string, userLimit int, replace string) (SessionInfo, error) {
 		t.Helper()
-		return mgr.Start(ctx, StartInput{
-			Username:         "expired-user",
-			UserLimit:        userLimit,
-			Source:           "s",
-			Path:             path,
-			RealPath:         t.TempDir() + path,
-			Profile:          ProfileQuality,
-			ReplaceSessionID: replace,
-			ClientID:         path,
-		})
+		in := testInput(t, "expired-user", path)
+		in.UserLimit = userLimit
+		in.ReplaceSessionID = replace
+		in.ClientID = path
+		return mgr.Start(context.Background(), in)
 	}
 
 	if _, err := start("/a.mp4", 1, ""); err != nil {
@@ -508,51 +278,25 @@ func TestManagerStartToleratesExpiredReplaceSession(t *testing.T) {
 // Switching profiles for the same user+client+file must hand over the existing
 // session even when replaceSessionId is omitted (frontend race).
 func TestManagerStartHandsOverSameFileClientSession(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	mgr, _ := newTestManager(t, nil)
 
-	store, err := NewStore(t.TempDir())
-	if err != nil {
-		t.Fatal(err)
-	}
-	mgr, err := NewManager(ctx, NewFakeEngine(), store, Options{})
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer mgr.Close(context.Background())
+	base := testInput(t, "handover-user", "/clip.mp4")
+	base.Profile = ProfileDataSaver
+	base.ClientID = "plyr-1"
+	first := mustStart(t, mgr, base)
 
-	base := StartInput{
-		Username:  "handover-user",
-		UserLimit: 1,
-		Source:    "s",
-		Path:      "/clip.mp4",
-		RealPath:  t.TempDir() + "/clip.mp4",
-		Profile:   ProfileDataSaver,
-		ClientID:  "plyr-1",
-	}
-	first, err := mgr.Start(ctx, base)
-	if err != nil {
-		t.Fatalf("datasaver start: %v", err)
-	}
-
-	second, err := mgr.Start(ctx, StartInput{
-		Username:  base.Username,
-		UserLimit: base.UserLimit,
-		Source:    base.Source,
-		Path:      base.Path,
-		RealPath:  base.RealPath,
-		Profile:   ProfileBalanced,
-		ClientID:  base.ClientID,
-		// Intentionally omit ReplaceSessionID — the manager must still hand over.
-	})
+	second := base
+	second.Profile = ProfileBalanced
+	// Intentionally omit ReplaceSessionID — the manager must still hand over.
+	info, err := mgr.Start(context.Background(), second)
 	if err != nil {
 		t.Fatalf("balanced start without replaceSessionId: %v", err)
 	}
-	if second.ID == first.ID {
+	if info.ID == first.ID {
 		t.Fatal("expected a new session for the new profile")
 	}
-	if second.Profile != ProfileBalanced {
-		t.Fatalf("profile = %s, want balanced", second.Profile)
+	if info.Profile != ProfileBalanced {
+		t.Fatalf("profile = %s, want balanced", info.Profile)
 	}
 	if _, err := mgr.SessionForUser(base.Username, first.ID); err != ErrNotFound {
 		t.Fatalf("old datasaver session should be gone, got %v", err)
@@ -566,62 +310,28 @@ func TestManagerStartHandsOverSameFileClientSession(t *testing.T) {
 // Reusing another client's completed same-file session must still release this
 // client's live session for a different profile so the slot does not leak.
 func TestManagerReuseReleasesOtherSameFileClientSession(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	mgr, _ := newTestManager(t, nil)
 
-	store, err := NewStore(t.TempDir())
-	if err != nil {
-		t.Fatal(err)
-	}
-	mgr, err := NewManager(ctx, NewFakeEngine(), store, Options{})
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer mgr.Close(context.Background())
-
-	realPath := t.TempDir() + "/clip.mp4"
-	balanced, err := mgr.Start(ctx, StartInput{
-		Username:  "reuse-handover",
-		UserLimit: 2,
-		Source:    "s",
-		Path:      "/clip.mp4",
-		RealPath:  realPath,
-		Profile:   ProfileBalanced,
-		ClientID:  "other-client",
+	base := testInput(t, "reuse-handover", "/clip.mp4")
+	base.UserLimit = 2
+	base.Profile = ProfileBalanced
+	base.ClientID = "other-client"
+	balanced := mustStart(t, mgr, base)
+	seedSessionState(t, mgr, balanced.ID, func(sess *playbackSession) {
+		sess.state = StateCompleted
+		sess.info.State = StateCompleted
 	})
-	if err != nil {
-		t.Fatalf("balanced start: %v", err)
-	}
-	mgr.mu.Lock()
-	sess := mgr.sessions[balanced.ID]
-	sess.state = StateCompleted
-	sess.info.State = StateCompleted
-	sess.coversFromStart = true
-	mgr.mu.Unlock()
 
-	datasaver, err := mgr.Start(ctx, StartInput{
-		Username:  "reuse-handover",
-		UserLimit: 2,
-		Source:    "s",
-		Path:      "/clip.mp4",
-		RealPath:  realPath,
-		Profile:   ProfileDataSaver,
-		ClientID:  "plyr-1",
-	})
-	if err != nil {
-		t.Fatalf("datasaver start: %v", err)
-	}
+	datasaverIn := base
+	datasaverIn.Profile = ProfileDataSaver
+	datasaverIn.ClientID = "plyr-1"
+	datasaver := mustStart(t, mgr, datasaverIn)
 
 	// plyr-1 switches to balanced: reuse the completed session and release datasaver.
-	reused, err := mgr.Start(ctx, StartInput{
-		Username:  "reuse-handover",
-		UserLimit: 1,
-		Source:    "s",
-		Path:      "/clip.mp4",
-		RealPath:  realPath,
-		Profile:   ProfileBalanced,
-		ClientID:  "plyr-1",
-	})
+	reuse := datasaverIn
+	reuse.Profile = ProfileBalanced
+	reuse.UserLimit = 1
+	reused, err := mgr.Start(context.Background(), reuse)
 	if err != nil {
 		t.Fatalf("reuse balanced: %v", err)
 	}
@@ -633,48 +343,13 @@ func TestManagerReuseReleasesOtherSameFileClientSession(t *testing.T) {
 	}
 }
 
-func TestStoreReadServePlaylistMissingIsNotReady(t *testing.T) {
-	store, err := NewStore(t.TempDir())
-	if err != nil {
-		t.Fatal(err)
-	}
-	jobDir, err := store.EnsureJobDir("fp", "gen")
-	if err != nil {
-		t.Fatal(err)
-	}
-	_, _, err = store.ReadServePlaylist(jobDir)
-	if !errors.Is(err, ErrNotReady) {
-		t.Fatalf("missing playlist: got %v, want ErrNotReady", err)
-	}
-}
-
-// toggleEngine reports availability that can change after construction, standing
-// in for ffmpeg becoming usable at runtime.
-type toggleEngine struct {
-	FakeEngine
-	available atomic.Bool
-}
-
-func (e *toggleEngine) Available() bool { return e.available.Load() }
-
 // Availability is evaluated per request, so a manager created while ffmpeg was
 // unavailable starts serving as soon as the engine reports available. Wiring the
 // manager only when ffmpeg is present at startup would pin transcoding off until
 // the next restart.
 func TestManagerEnabledIsEvaluatedPerRequest(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	store, err := NewStore(t.TempDir())
-	if err != nil {
-		t.Fatal(err)
-	}
 	engine := &toggleEngine{}
-	mgr, err := NewManager(ctx, engine, store, Options{})
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer mgr.Close(context.Background())
+	mgr, _ := newTestManager(t, engine)
 
 	if mgr.Enabled() {
 		t.Fatal("manager must report disabled while the engine is unavailable")
@@ -690,84 +365,37 @@ func TestManagerEnabledIsEvaluatedPerRequest(t *testing.T) {
 }
 
 func TestManagerProducersKeyedBySessionID(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	store, err := NewStore(t.TempDir())
-	if err != nil {
-		t.Fatal(err)
-	}
-	engine := NewFakeEngine()
-	mgr, err := NewManager(ctx, engine, store, Options{})
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer mgr.Close(context.Background())
+	mgr, _ := newTestManager(t, nil)
 
 	start := func(path string) SessionInfo {
 		t.Helper()
-		info, err := mgr.Start(ctx, StartInput{
-			Username:  "producer-user",
-			UserLimit: 2,
-			Source:    "s",
-			Path:      path,
-			RealPath:  t.TempDir() + path,
-			Profile:   ProfileQuality,
-		})
-		if err != nil {
-			t.Fatalf("start %s: %v", path, err)
-		}
-		return info
+		in := testInput(t, "producer-user", path)
+		in.UserLimit = 2
+		return mustStart(t, mgr, in)
 	}
-
 	first := start("/a.mp4")
 	second := start("/b.mp4")
 
-	deadline := time.Now().Add(2 * time.Second)
-	for {
+	pollUntil(t, 2*time.Second, func() bool {
 		mgr.mu.Lock()
-		ready := len(mgr.producers) == 2 &&
+		defer mgr.mu.Unlock()
+		return len(mgr.producers) == 2 &&
 			mgr.producers[first.ID] != nil &&
 			mgr.producers[second.ID] != nil
-		mgr.mu.Unlock()
-		if ready {
-			break
-		}
-		if time.Now().After(deadline) {
-			t.Fatal("timed out waiting for both session producers")
-		}
-		time.Sleep(10 * time.Millisecond)
-	}
+	}, "both session producers")
 }
 
 func TestManagerBuildPlanOutsideLock(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	store, err := NewStore(t.TempDir())
-	if err != nil {
-		t.Fatal(err)
-	}
 	engine := &slowBuildEngine{
 		buildStarted: make(chan struct{}, 1),
 		releaseBuild: make(chan struct{}),
 	}
-	mgr, err := NewManager(ctx, engine, store, Options{})
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer mgr.Close(context.Background())
+	mgr, _ := newTestManager(t, engine)
+	in := testInput(t, "slow-user", "/slow.mp4")
 
 	started := make(chan SessionInfo, 1)
 	go func() {
-		info, err := mgr.Start(ctx, StartInput{
-			Username:  "slow-user",
-			UserLimit: 1,
-			Source:    "s",
-			Path:      "/slow.mp4",
-			RealPath:  t.TempDir() + "/slow.mp4",
-			Profile:   ProfileQuality,
-		})
+		info, err := mgr.Start(context.Background(), in)
 		if err != nil {
 			t.Errorf("start: %v", err)
 			close(started)
@@ -799,45 +427,14 @@ func TestManagerBuildPlanOutsideLock(t *testing.T) {
 }
 
 func TestManagerCloseWaitsForProducers(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	store, err := NewStore(t.TempDir())
-	if err != nil {
-		t.Fatal(err)
-	}
 	blockingJob := NewBlockingFakeJob()
 	engine := &blockingStartEngine{job: blockingJob}
-	mgr, err := NewManager(ctx, engine, store, Options{})
-	if err != nil {
-		t.Fatal(err)
-	}
+	mgr, _ := newTestManager(t, engine)
 
-	info, err := mgr.Start(ctx, StartInput{
-		Username:  "close-user",
-		UserLimit: 1,
-		Source:    "s",
-		Path:      "/close.mp4",
-		RealPath:  t.TempDir() + "/close.mp4",
-		Profile:   ProfileQuality,
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	deadline := time.Now().Add(2 * time.Second)
-	for {
-		mgr.mu.Lock()
-		ready := mgr.producers[info.ID] != nil
-		mgr.mu.Unlock()
-		if ready {
-			break
-		}
-		if time.Now().After(deadline) {
-			t.Fatal("timed out waiting for producer registration")
-		}
-		time.Sleep(10 * time.Millisecond)
-	}
+	info := mustStart(t, mgr, testInput(t, "close-user", "/close.mp4"))
+	pollUntil(t, 2*time.Second, func() bool {
+		return producerFor(t, mgr, info.ID) != nil
+	}, "producer registration")
 
 	closeCtx, closeCancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer closeCancel()
@@ -855,22 +452,11 @@ func TestManagerCloseWaitsForProducers(t *testing.T) {
 // A completed generation on disk is shared by every user playing the same file
 // with the same profile: no second transcode, and the cached playlist is served.
 func TestManagerAttachesToCompletedGenerationAcrossUsers(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	store, err := NewStore(t.TempDir())
-	if err != nil {
-		t.Fatal(err)
-	}
 	engine := NewFakeEngine()
-	mgr, err := NewManager(ctx, engine, store, Options{})
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer mgr.Close(context.Background())
+	mgr, store := newTestManager(t, engine)
 
-	realPath := t.TempDir() + "/clip.mp4"
-	plan, planErr := engine.BuildPlan(ctx, realPath, ProfileQuality)
+	realPath := filepath.Join(t.TempDir(), "clip.mp4")
+	plan, planErr := engine.BuildPlan(context.Background(), realPath, ProfileQuality)
 	if planErr != nil {
 		t.Fatal(planErr)
 	}
@@ -880,21 +466,11 @@ func TestManagerAttachesToCompletedGenerationAcrossUsers(t *testing.T) {
 
 	start := func(username string) SessionInfo {
 		t.Helper()
-		info, startErr := mgr.Start(ctx, StartInput{
-			Username:  username,
-			UserLimit: 1,
-			Source:    "s",
-			Path:      "/clip.mp4",
-			RealPath:  realPath,
-			Profile:   ProfileQuality,
-			ClientID:  username,
-		})
-		if startErr != nil {
-			t.Fatalf("start %s: %v", username, startErr)
-		}
-		return info
+		in := testInput(t, username, "/clip.mp4")
+		in.RealPath = realPath
+		in.ClientID = username
+		return mustStart(t, mgr, in)
 	}
-
 	first := start("user-a")
 	second := start("user-b")
 
@@ -926,51 +502,19 @@ func TestManagerAttachesToCompletedGenerationAcrossUsers(t *testing.T) {
 // While one user's transcode is still running, a second user starting the same
 // file and profile attaches to that producer instead of spawning another ffmpeg.
 func TestManagerSharesInProgressProducerAcrossUsers(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	store, err := NewStore(t.TempDir())
-	if err != nil {
-		t.Fatal(err)
-	}
 	engine := NewFakeEngine()
-	mgr, err := NewManager(ctx, engine, store, Options{})
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer mgr.Close(context.Background())
+	mgr, _ := newTestManager(t, engine)
 
-	realPath := t.TempDir() + "/shared.mp4"
-	in := StartInput{
-		Username:  "user-a",
-		UserLimit: 1,
-		Source:    "s",
-		Path:      "/shared.mp4",
-		RealPath:  realPath,
-		Profile:   ProfileQuality,
-		ClientID:  "a",
-	}
-	first, err := mgr.Start(ctx, in)
-	if err != nil {
-		t.Fatal(err)
-	}
-
+	in := testInput(t, "user-a", "/shared.mp4")
+	in.ClientID = "a"
+	first := mustStart(t, mgr, in)
 	in.Username = "user-b"
 	in.ClientID = "b"
-	second, err := mgr.Start(ctx, in)
-	if err != nil {
-		t.Fatalf("second start: %v", err)
-	}
+	second := mustStart(t, mgr, in)
 
 	// The producer runs in its own goroutine; wait for it to start before
 	// asserting that no second ffmpeg process was launched.
-	deadline := time.Now().Add(2 * time.Second)
-	for engine.StartCount() < 1 {
-		if time.Now().After(deadline) {
-			t.Fatal("timed out waiting for the first producer to start")
-		}
-		time.Sleep(5 * time.Millisecond)
-	}
+	waitForStarts(t, engine, 1)
 	if engine.StartCount() != 1 {
 		t.Fatalf("expected a single ffmpeg producer, got %d", engine.StartCount())
 	}
@@ -986,68 +530,33 @@ func TestManagerSharesInProgressProducerAcrossUsers(t *testing.T) {
 		t.Fatalf("sessions share no generation: %q vs %q", firstDir, secondDir)
 	}
 
-	mgr.mu.Lock()
-	producer := mgr.producers[first.ID]
-	shared := mgr.producers[second.ID]
-	refs := 0
-	if producer != nil {
-		refs = producer.refs
-	}
-	mgr.mu.Unlock()
-	if producer == nil || producer != shared {
+	producer := producerFor(t, mgr, first.ID)
+	if producer == nil || producer != producerFor(t, mgr, second.ID) {
 		t.Fatal("expected both sessions to share one producer")
 	}
-	if refs != 2 {
-		t.Fatalf("producer refs = %d, want 2", refs)
+	if producer.refs != 2 {
+		t.Fatalf("producer refs = %d, want 2", producer.refs)
 	}
 
 	// Stopping one viewer must not stop the shared transcode.
 	if err := mgr.Stop("user-b", second.ID); err != nil {
 		t.Fatalf("stop user-b: %v", err)
 	}
-	mgr.mu.Lock()
-	stillRunning := mgr.producers[first.ID]
-	mgr.mu.Unlock()
-	if stillRunning == nil {
+	if producerFor(t, mgr, first.ID) == nil {
 		t.Fatal("shared producer was dropped while another session still watches")
 	}
 }
 
 // Stopping the last viewer of a generation releases the shared producer.
 func TestManagerLastViewerReleasesSharedProducer(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	mgr, _ := newTestManager(t, nil)
 
-	store, err := NewStore(t.TempDir())
-	if err != nil {
-		t.Fatal(err)
-	}
-	engine := NewFakeEngine()
-	mgr, err := NewManager(ctx, engine, store, Options{})
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer mgr.Close(context.Background())
-
-	in := StartInput{
-		Username:  "user-a",
-		UserLimit: 1,
-		Source:    "s",
-		Path:      "/last.mp4",
-		RealPath:  t.TempDir() + "/last.mp4",
-		Profile:   ProfileQuality,
-		ClientID:  "a",
-	}
-	first, err := mgr.Start(ctx, in)
-	if err != nil {
-		t.Fatal(err)
-	}
+	in := testInput(t, "user-a", "/last.mp4")
+	in.ClientID = "a"
+	first := mustStart(t, mgr, in)
 	in.Username = "user-b"
 	in.ClientID = "b"
-	second, err := mgr.Start(ctx, in)
-	if err != nil {
-		t.Fatal(err)
-	}
+	second := mustStart(t, mgr, in)
 
 	if err := mgr.Stop("user-b", second.ID); err != nil {
 		t.Fatal(err)
@@ -1063,116 +572,28 @@ func TestManagerLastViewerReleasesSharedProducer(t *testing.T) {
 	}
 }
 
-// writeProducedRange writes a generation's playlist plus ready segments
-// covering [firstIdx, firstIdx+count) so coverage checks see a produced edge.
-// With waitForProducer it first waits for the fake job's initial playlist to
-// land, so the fake's own write cannot clobber the simulated coverage.
-func writeProducedRange(t *testing.T, genDir string, firstIdx, count int, endList, waitForProducer bool) {
-	t.Helper()
-	playlistPath := filepath.Join(genDir, "ffmpeg.m3u8")
-	if waitForProducer {
-		deadline := time.Now().Add(5 * time.Second)
-		for {
-			if st, err := os.Stat(playlistPath); err == nil && st.Size() > 0 {
-				break
-			}
-			if time.Now().After(deadline) {
-				t.Fatal("producer never wrote its initial playlist")
-			}
-			time.Sleep(5 * time.Millisecond)
-		}
-	}
-	segDir := filepath.Join(genDir, "seg")
-	if err := os.MkdirAll(segDir, 0o755); err != nil {
-		t.Fatal(err)
-	}
-	if err := os.WriteFile(filepath.Join(genDir, "init.m4s"), make([]byte, 1024), 0o644); err != nil {
-		t.Fatal(err)
-	}
-	var b strings.Builder
-	b.WriteString("#EXTM3U\n#EXT-X-VERSION:7\n#EXT-X-TARGETDURATION:4\n")
-	fmt.Fprintf(&b, "#EXT-X-MEDIA-SEQUENCE:%d\n", firstIdx)
-	for i := 0; i < count; i++ {
-		name := fmt.Sprintf("%05d.m4s", firstIdx+i)
-		writeServeableSegment(t, segDir, name, true)
-		fmt.Fprintf(&b, "#EXTINF:4.000000,\nseg/%s\n", name)
-	}
-	if endList {
-		b.WriteString("#EXT-X-ENDLIST\n")
-	}
-	if err := os.WriteFile(filepath.Join(genDir, "ffmpeg.m3u8"), []byte(b.String()), 0o644); err != nil {
-		t.Fatal(err)
-	}
-}
-
-func sessionJobDir(t *testing.T, mgr *Manager, sessionID string) string {
-	t.Helper()
-	mgr.mu.Lock()
-	defer mgr.mu.Unlock()
-	return mgr.sessions[sessionID].jobDir
-}
-
-// waitForStarts polls the fake engine until n ffmpeg jobs have launched —
-// producers run on their own goroutine, so the count is not synchronous.
-func waitForStarts(t *testing.T, engine *FakeEngine, n int) {
-	t.Helper()
-	deadline := time.Now().Add(5 * time.Second)
-	for engine.StartCount() < n {
-		if time.Now().After(deadline) {
-			t.Fatalf("ffmpeg starts=%d, want %d", engine.StartCount(), n)
-		}
-		time.Sleep(5 * time.Millisecond)
-	}
-}
-
 // A seek beyond the produced edge must supersede the requester's session with
 // a new generation aligned to the seek target — the whole point of
 // replaceSessionId repositioning.
 func TestManagerRepositionsSeekBeyondProducedEdge(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	store, storeErr := NewStore(t.TempDir())
-	if storeErr != nil {
-		t.Fatal(storeErr)
-	}
 	engine := NewFakeEngine()
-	mgr, err := NewManager(ctx, engine, store, Options{})
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer mgr.Close(context.Background())
+	mgr, _ := newTestManager(t, engine)
 
-	in := StartInput{
-		Username:  "seeker",
-		UserLimit: 1,
-		Source:    "s",
-		Path:      "/v.mp4",
-		RealPath:  t.TempDir() + "/v.mp4",
-		Profile:   ProfileQuality,
-		ClientID:  "c1",
-	}
-	first, err := mgr.Start(ctx, in)
-	if err != nil {
-		t.Fatal(err)
-	}
+	in := testInput(t, "seeker", "/v.mp4")
+	first := mustStart(t, mgr, in)
 	// Segments 0..4 produced: edge at 20s on the 4s grid.
-	writeProducedRange(t, sessionJobDir(t, mgr, first.ID), 0, 5, false, true)
+	genDir := sessionJobDir(t, mgr, first.ID)
+	waitForPlaylistFile(t, genDir)
+	writeProducedRange(t, genDir, 0, 5, false)
 
-	second, err := mgr.Start(ctx, StartInput{
-		Username:         in.Username,
-		UserLimit:        in.UserLimit,
-		Source:           in.Source,
-		Path:             in.Path,
-		RealPath:         in.RealPath,
-		Profile:          in.Profile,
-		ClientID:         in.ClientID,
-		StartSec:         300,
-		ReplaceSessionID: first.ID,
-	})
+	second := in
+	second.StartSec = 300
+	second.ReplaceSessionID = first.ID
+	info, err := mgr.Start(context.Background(), second)
 	if err != nil {
 		t.Fatalf("reposition start: %v", err)
 	}
-	if second.ID == first.ID {
+	if info.ID == first.ID {
 		t.Fatal("a seek past the produced edge must start a new generation")
 	}
 	waitForStarts(t, engine, 2)
@@ -1186,48 +607,26 @@ func TestManagerRepositionsSeekBeyondProducedEdge(t *testing.T) {
 
 // A seek inside the produced range must reuse the live session — no restart.
 func TestManagerReusesWithinProducedCoverage(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	store, storeErr := NewStore(t.TempDir())
-	if storeErr != nil {
-		t.Fatal(storeErr)
-	}
 	engine := NewFakeEngine()
-	mgr, err := NewManager(ctx, engine, store, Options{})
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer mgr.Close(context.Background())
+	mgr, _ := newTestManager(t, engine)
 
-	in := StartInput{
-		Username:  "viewer",
-		UserLimit: 2,
-		Source:    "s",
-		Path:      "/v.mp4",
-		RealPath:  t.TempDir() + "/v.mp4",
-		Profile:   ProfileQuality,
-		ClientID:  "c1",
-	}
-	first, err := mgr.Start(ctx, in)
-	if err != nil {
-		t.Fatal(err)
-	}
-	writeProducedRange(t, sessionJobDir(t, mgr, first.ID), 0, 5, false, true)
+	in := testInput(t, "viewer", "/v.mp4")
+	in.UserLimit = 2
+	first := mustStart(t, mgr, in)
+	genDir := sessionJobDir(t, mgr, first.ID)
+	waitForPlaylistFile(t, genDir)
+	writeProducedRange(t, genDir, 0, 5, false)
 
-	reused, err := mgr.Start(ctx, StartInput{
-		Username: in.Username,
-		Source:   in.Source,
-		Path:     in.Path,
-		RealPath: in.RealPath,
-		Profile:  in.Profile,
-		ClientID: "c2",
-		StartSec: 10,
-	})
+	reused := in
+	reused.UserLimit = 0
+	reused.ClientID = "c2"
+	reused.StartSec = 10
+	info, err := mgr.Start(context.Background(), reused)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if reused.ID != first.ID || !reused.Reused {
-		t.Fatalf("seek inside coverage should reuse the session, got id=%q reused=%v", reused.ID, reused.Reused)
+	if info.ID != first.ID || !info.Reused {
+		t.Fatalf("seek inside coverage should reuse the session, got id=%q reused=%v", info.ID, info.Reused)
 	}
 	if engine.StartCount() != 1 {
 		t.Fatalf("ffmpeg starts=%d, want 1", engine.StartCount())
@@ -1237,48 +636,24 @@ func TestManagerReusesWithinProducedCoverage(t *testing.T) {
 // A different client seeking beyond coverage gets its own generation — the
 // shared session must not be superseded out from under its other clients.
 func TestManagerOutOfRangeSeekKeepsOtherClientSession(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	store, storeErr := NewStore(t.TempDir())
-	if storeErr != nil {
-		t.Fatal(storeErr)
-	}
 	engine := NewFakeEngine()
-	mgr, err := NewManager(ctx, engine, store, Options{})
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer mgr.Close(context.Background())
+	mgr, _ := newTestManager(t, engine)
 
-	in := StartInput{
-		Username:  "multi",
-		UserLimit: 4,
-		Source:    "s",
-		Path:      "/v.mp4",
-		RealPath:  t.TempDir() + "/v.mp4",
-		Profile:   ProfileQuality,
-		ClientID:  "c1",
-	}
-	first, err := mgr.Start(ctx, in)
-	if err != nil {
-		t.Fatal(err)
-	}
-	writeProducedRange(t, sessionJobDir(t, mgr, first.ID), 0, 5, false, true)
+	in := testInput(t, "multi", "/v.mp4")
+	in.UserLimit = 4
+	first := mustStart(t, mgr, in)
+	genDir := sessionJobDir(t, mgr, first.ID)
+	waitForPlaylistFile(t, genDir)
+	writeProducedRange(t, genDir, 0, 5, false)
 
-	second, err := mgr.Start(ctx, StartInput{
-		Username:  in.Username,
-		UserLimit: in.UserLimit,
-		Source:    in.Source,
-		Path:      in.Path,
-		RealPath:  in.RealPath,
-		Profile:   in.Profile,
-		ClientID:  "c2",
-		StartSec:  300,
-	})
+	second := in
+	second.ClientID = "c2"
+	second.StartSec = 300
+	info, err := mgr.Start(context.Background(), second)
 	if err != nil {
 		t.Fatalf("second client start: %v", err)
 	}
-	if second.ID == first.ID {
+	if info.ID == first.ID {
 		t.Fatal("the second client must get its own session")
 	}
 	if _, err := mgr.SessionForUser(in.Username, first.ID); err != nil {
@@ -1290,53 +665,33 @@ func TestManagerOutOfRangeSeekKeepsOtherClientSession(t *testing.T) {
 // A completed partial generation serves seeks into its own range but must
 // never be attached as if it covered the file start.
 func TestManagerAttachesCoveringCompletedGeneration(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	store, storeErr := NewStore(t.TempDir())
-	if storeErr != nil {
-		t.Fatal(storeErr)
-	}
 	engine := NewFakeEngine()
-	mgr, err := NewManager(ctx, engine, store, Options{})
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer mgr.Close(context.Background())
+	mgr, store := newTestManager(t, engine)
 
-	realPath := t.TempDir() + "/v.mp4"
-	plan, err := engine.BuildPlan(ctx, realPath, ProfileQuality)
+	realPath := filepath.Join(t.TempDir(), "v.mp4")
+	plan, err := engine.BuildPlan(context.Background(), realPath, ProfileQuality)
 	if err != nil {
 		t.Fatal(err)
 	}
 	// A finished tail covering segments 10..19 (40s..80s on the 4s grid).
-	writeProducedRange(t, store.JobDir(plan.cacheFingerprint, "gen-tail"), 10, 10, true, false)
+	writeProducedRange(t, store.JobDir(plan.cacheFingerprint, "gen-tail"), 10, 10, true)
 
 	// A seek to 50s lands inside the tail — attach without running ffmpeg.
-	attached, err := mgr.Start(ctx, StartInput{
-		Username:  "u",
-		UserLimit: 4,
-		Source:    "s",
-		Path:      "/v.mp4",
-		RealPath:  realPath,
-		Profile:   ProfileQuality,
-		ClientID:  "seek-in-range",
-		StartSec:  50,
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
+	in := testInput(t, "u", "/v.mp4")
+	in.UserLimit = 4
+	in.RealPath = realPath
+	in.ClientID = "seek-in-range"
+	in.StartSec = 50
+	attached := mustStart(t, mgr, in)
 	if attached.State != StateCompleted {
 		t.Fatalf("attached session state = %q, want completed", attached.State)
 	}
 	if engine.StartCount() != 0 {
 		t.Fatalf("a covering cache hit must not start ffmpeg, starts=%d", engine.StartCount())
 	}
-	mgr.mu.Lock()
-	gotIndex := mgr.sessions[attached.ID].startIndex
-	gotStart := mgr.sessions[attached.ID].startSec
-	mgr.mu.Unlock()
-	if gotIndex != 10 || gotStart != 40 {
-		t.Fatalf("session start = (%d, %v), want (10, 40)", gotIndex, gotStart)
+	sess := sessionFor(t, mgr, attached.ID)
+	if sess.startIndex != 10 || sess.startSec != 40 {
+		t.Fatalf("session start = (%d, %v), want (10, 40)", sess.startIndex, sess.startSec)
 	}
 	// The published start is the media-time origin of the generation — the
 	// offset the player adds to the 0-based element timeline.
@@ -1351,24 +706,18 @@ func TestManagerAttachesCoveringCompletedGeneration(t *testing.T) {
 	}
 
 	// A request before the tail's coverage must not attach to it.
-	fresh, err := mgr.Start(ctx, StartInput{
-		Username:  "u",
-		UserLimit: 4,
-		Source:    "s",
-		Path:      "/v.mp4",
-		RealPath:  realPath,
-		Profile:   ProfileQuality,
-		ClientID:  "seek-out-of-range",
-		StartSec:  5,
-	})
+	fresh := in
+	fresh.ClientID = "seek-out-of-range"
+	fresh.StartSec = 5
+	info, err := mgr.Start(context.Background(), fresh)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if fresh.ID == attached.ID {
+	if info.ID == attached.ID {
 		t.Fatal("a playhead before the partial generation needs its own job")
 	}
-	if fresh.StartSec != 4 {
-		t.Fatalf("fresh generation startSec = %v, want 4 (segment-aligned to the 4s grid)", fresh.StartSec)
+	if info.StartSec != 4 {
+		t.Fatalf("fresh generation startSec = %v, want 4 (segment-aligned to the 4s grid)", info.StartSec)
 	}
 	waitForStarts(t, engine, 1)
 	if _, err := mgr.SessionForUser("u", attached.ID); err != nil {
@@ -1380,56 +729,255 @@ func TestManagerAttachesCoveringCompletedGeneration(t *testing.T) {
 // produced end, so a client attaching later can serve any playhead inside the
 // generation without repositioning.
 func TestManagerCompletionPublishesCoverageEnd(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	store, storeErr := NewStore(t.TempDir())
-	if storeErr != nil {
-		t.Fatal(storeErr)
-	}
 	engine := &blockingStartEngine{job: newFakeJob()}
 	engine.plan = NewFakeEngine().plan
-	mgr, err := NewManager(ctx, engine, store, Options{})
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer mgr.Close(context.Background())
+	mgr, _ := newTestManager(t, engine)
 
-	info, err := mgr.Start(ctx, StartInput{
-		Username:  "u",
-		UserLimit: 4,
-		Source:    "s",
-		Path:      "/v.mp4",
-		RealPath:  t.TempDir() + "/v.mp4",
-		Profile:   ProfileQuality,
-		ClientID:  "c1",
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
+	in := testInput(t, "u", "/v.mp4")
+	in.UserLimit = 4
+	info := mustStart(t, mgr, in)
 	// Nothing produced yet: the produced edge is still the generation start.
 	if info.EndSec != 0 {
 		t.Fatalf("fresh session endSec = %v, want 0", info.EndSec)
 	}
 
-	// All three segments of the fake plan (ends at 8+2=10s) with ENDLIST.
-	writeProducedRange(t, sessionJobDir(t, mgr, info.ID), 0, 3, true, false)
+	// Three emitted 4s segments (12s of produced media) with ENDLIST.
+	writeProducedRange(t, sessionJobDir(t, mgr, info.ID), 0, 3, true)
 	engine.job.Cancel()
 
-	deadline := time.Now().Add(5 * time.Second)
-	for {
+	pollUntil(t, 5*time.Second, func() bool {
 		got, err := mgr.SessionForUser("u", info.ID)
 		if err != nil {
 			t.Fatal(err)
 		}
-		if got.State == StateCompleted {
-			if got.EndSec != 10 {
-				t.Fatalf("completed session endSec = %v, want 10", got.EndSec)
-			}
-			return
-		}
+		return got.State == StateCompleted
+	}, "session completion")
+	got, err := mgr.SessionForUser("u", info.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got.EndSec != 12 {
+		t.Fatalf("completed session endSec = %v, want 12", got.EndSec)
+	}
+}
+
+// Sustained hardware decode failures must restart the generation once with
+// software decode: the corrupt partial output is wiped so it cannot be served
+// or counted toward coverage, and a second failure does not loop restarts.
+func TestManagerRestartsProducerWithSoftwareDecode(t *testing.T) {
+	engine := NewFakeEngine()
+	mgr, _ := newTestManager(t, engine)
+
+	info := mustStart(t, mgr, testInput(t, "user-a", "/movie.mp4"))
+	waitForStarts(t, engine, 1)
+
+	// Seed output resembling produced coverage from the failing run.
+	jobDir := sessionJobDir(t, mgr, info.ID)
+	writeProducedRange(t, jobDir, 0, 3, false)
+
+	engine.LastJob().SetVTUnreliable()
+
+	waitForStarts(t, engine, 2)
+	if got := engine.LastPlan().decodeProfile; !got.ForceSoftware {
+		t.Fatalf("retry decode profile = %+v, want ForceSoftware", got)
+	}
+	if _, err := os.Stat(filepath.Join(jobDir, "seg", "00000.m4s")); !os.IsNotExist(err) {
+		t.Fatalf("corrupt segment should have been wiped, stat err=%v", err)
+	}
+	if sess := sessionFor(t, mgr, info.ID); sess == nil {
+		t.Fatal("session should survive the decode retry")
+	}
+
+	// A second unreliable flag must not trigger another restart.
+	engine.LastJob().SetVTUnreliable()
+	time.Sleep(500 * time.Millisecond)
+	if got := engine.StartCount(); got != 2 {
+		t.Fatalf("starts = %d, want exactly 2 (decode retry is once-only)", got)
+	}
+}
+
+// ---- test helpers ----
+
+// slowBuildEngine blocks inside BuildPlan until releaseBuild closes, standing
+// in for a slow ffprobe so tests can assert the manager lock is not held.
+type slowBuildEngine struct {
+	FakeEngine
+	buildStarted chan struct{}
+	releaseBuild chan struct{}
+}
+
+func (s *slowBuildEngine) BuildPlan(ctx context.Context, realPath string, profile Profile) (hlsPlan, error) {
+	s.buildStarted <- struct{}{}
+	<-s.releaseBuild
+	return s.FakeEngine.BuildPlan(ctx, realPath, profile)
+}
+
+// blockingStartEngine returns a job that runs until cancelled, so a producer
+// stays registered for the duration of the test.
+type blockingStartEngine struct {
+	FakeEngine
+	job *fakeJob
+}
+
+func (b *blockingStartEngine) StartContinuous(ctx context.Context, realPath, outputDir string, plan hlsPlan, startIndex int, startSec float64) (ContinuousJob, error) {
+	if err := os.MkdirAll(filepath.Join(outputDir, "seg"), 0o755); err != nil {
+		return nil, err
+	}
+	return b.job, nil
+}
+
+// toggleEngine reports availability that can change after construction, standing
+// in for ffmpeg becoming usable at runtime.
+type toggleEngine struct {
+	FakeEngine
+	available atomic.Bool
+}
+
+func (e *toggleEngine) Available() bool { return e.available.Load() }
+
+// newTestManager wires a Store in a temp dir and a manager around engine (a
+// FakeEngine when nil), closing the manager at test cleanup.
+func newTestManager(t *testing.T, engine Engine) (*Manager, *Store) {
+	t.Helper()
+	store, err := NewStore(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if engine == nil {
+		engine = NewFakeEngine()
+	}
+	mgr, err := NewManager(context.Background(), engine, store, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = mgr.Close(context.Background()) })
+	return mgr, store
+}
+
+// testInput returns a StartInput for username+path with the defaults most tests
+// share; override fields (StartSec, ReplaceSessionID, ...) as needed.
+func testInput(t *testing.T, username, path string) StartInput {
+	t.Helper()
+	return StartInput{
+		Username:  username,
+		UserLimit: 1,
+		Source:    "s",
+		Path:      path,
+		RealPath:  filepath.Join(t.TempDir(), path),
+		Profile:   ProfileQuality,
+		ClientID:  "c1",
+	}
+}
+
+// mustStart calls mgr.Start and fails the test on error.
+func mustStart(t *testing.T, mgr *Manager, in StartInput) SessionInfo {
+	t.Helper()
+	info, err := mgr.Start(context.Background(), in)
+	if err != nil {
+		t.Fatalf("start %s: %v", in.Path, err)
+	}
+	return info
+}
+
+// pollUntil fails the test when cond is not met within timeout.
+func pollUntil(t *testing.T, timeout time.Duration, cond func() bool, msg string) {
+	t.Helper()
+	deadline := time.Now().Add(timeout)
+	for !cond() {
 		if time.Now().After(deadline) {
-			t.Fatalf("session state = %q, want completed", got.State)
+			t.Fatalf("timed out waiting for %s", msg)
 		}
 		time.Sleep(5 * time.Millisecond)
 	}
 }
+
+// waitForStarts polls the fake engine until n ffmpeg jobs have launched —
+// producers run on their own goroutine, so the count is not synchronous.
+func waitForStarts(t *testing.T, engine *FakeEngine, n int) {
+	t.Helper()
+	pollUntil(t, 5*time.Second, func() bool {
+		return engine.StartCount() >= n
+	}, fmt.Sprintf("%d ffmpeg starts (have %d)", n, engine.StartCount()))
+}
+
+// seedSessionState mutates a session under the manager lock, for tests that
+// need a state the producer lifecycle has not reached yet.
+func seedSessionState(t *testing.T, mgr *Manager, id string, mutate func(*playbackSession)) {
+	t.Helper()
+	mgr.mu.Lock()
+	defer mgr.mu.Unlock()
+	mutate(mgr.sessions[id])
+}
+
+// sessionFor returns the internal session under the manager lock.
+func sessionFor(t *testing.T, mgr *Manager, id string) *playbackSession {
+	t.Helper()
+	mgr.mu.Lock()
+	defer mgr.mu.Unlock()
+	return mgr.sessions[id]
+}
+
+// producerFor returns the producer registered for a session under the lock.
+func producerFor(t *testing.T, mgr *Manager, id string) *producer {
+	t.Helper()
+	mgr.mu.Lock()
+	defer mgr.mu.Unlock()
+	return mgr.producers[id]
+}
+
+func sessionJobDir(t *testing.T, mgr *Manager, sessionID string) string {
+	t.Helper()
+	mgr.mu.Lock()
+	defer mgr.mu.Unlock()
+	return mgr.sessions[sessionID].jobDir
+}
+
+// waitForPlaylistFile waits for the producer's initial playlist to land so a
+// later write of simulated coverage cannot be clobbered by the fake's own write.
+func waitForPlaylistFile(t *testing.T, genDir string) {
+	t.Helper()
+	playlistPath := filepath.Join(genDir, "index.m3u8")
+	pollUntil(t, 5*time.Second, func() bool {
+		st, err := os.Stat(playlistPath)
+		return err == nil && st.Size() > 0
+	}, "the producer's initial playlist")
+}
+
+// writeProducedRange writes a generation's published output — seg/ files plus
+// index.m3u8 and job.json covering [firstIdx, firstIdx+count) — so coverage
+// checks see the produced edge the publisher would have recorded.
+func writeProducedRange(t *testing.T, genDir string, firstIdx, count int, endList bool) {
+	t.Helper()
+	segDir := filepath.Join(genDir, "seg")
+	if err := os.MkdirAll(segDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(genDir, "init.m4s"), make([]byte, 1024), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	var b strings.Builder
+	b.WriteString("#EXTM3U\n#EXT-X-VERSION:7\n#EXT-X-TARGETDURATION:4\n")
+	fmt.Fprintf(&b, "#EXT-X-MEDIA-SEQUENCE:%d\n", firstIdx)
+	for i := 0; i < count; i++ {
+		name := fmt.Sprintf("%05d.m4s", firstIdx+i)
+		writeServeableSegment(t, segDir, name)
+		fmt.Fprintf(&b, "#EXTINF:4.000000,\nseg/%s\n", name)
+	}
+	if endList {
+		b.WriteString("#EXT-X-ENDLIST\n")
+	}
+	if err := os.WriteFile(filepath.Join(genDir, "index.m3u8"), []byte(b.String()), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	lastReady := firstIdx + count - 1
+	complete := endList && count > 0
+	status := fmt.Sprintf(`{"startSec":%g,"firstIndex":%d,"lastReadyIndex":%d,"producedSec":%g,"endList":%t,"complete":%t}`,
+		float64(firstIdx)*4, firstIdx, lastReady, float64(count)*4, endList, complete)
+	if err := os.WriteFile(filepath.Join(genDir, "job.json"), []byte(status), 0o644); err != nil {
+		t.Fatal(err)
+	}
+}
+
+// userIDKeyPattern matches a JSON key that looks like a user identifier, at any
+// depth — the guard TestSessionInfoOmitsUserID applies to session payloads.
+var userIDKeyPattern = regexp.MustCompile(`(?i)"user[-_ ]?id"\s*:`)

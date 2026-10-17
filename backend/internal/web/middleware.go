@@ -606,13 +606,9 @@ func getJwtUser(w http.ResponseWriter, r *http.Request, data *requestContext, fn
 	return fn(w, r, data)
 }
 
-// reusableSessionToken returns an existing FileBrowser session token carried by
-// the request when it is valid, registered, unexpired, and owned by the given
-// user. The expiry time is returned so callers can refresh the session cookie.
-// The session cookie is preferred over ExtractToken because ExtractToken would
-// otherwise select the external JwtAuth bearer (Authorization header or auth
-// query param), which is not a registered FileBrowser session and can never be
-// reused.
+// reusableSessionToken returns the request's FileBrowser session token when it
+// is valid, unexpired, and owned by the user — preferred over ExtractToken,
+// which would select a non-session JwtAuth bearer instead.
 func reusableSessionToken(r *http.Request, user *users.User) (string, time.Time) {
 	var existing string
 	var err error

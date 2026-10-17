@@ -20,6 +20,9 @@ type MediaEngine struct{}
 type ContinuousJob interface {
 	Cancel()
 	Wait() error
+	// VTDecodeUnreliable reports sustained VideoToolbox hardware decode failures
+	// in ffmpeg stderr — a signal to restart the job with software decode.
+	VTDecodeUnreliable() bool
 }
 
 // Engine performs probe/plan/start operations for tests and production.
@@ -108,19 +111,13 @@ func (e *MediaEngine) BuildPlan(ctx context.Context, realPath string, profile Pr
 	}
 
 	var keyframes []float64
-	var starts, durs []float64
 	if plan.remux || plan.videoCopy {
 		rawKeyframes, _ := svc.ProbeVideoKeyframeTimes(ctx, realPath)
 		keyframes, plan.mediaDurationSec = ffmpeg.PrepareHLSMediaTimeline(rawKeyframes, info.Duration, info.StartTime)
-		starts, durs = ffmpeg.BuildHLSSegmentTimeline(plan.mediaDurationSec, keyframes, defaults.SegmentDurationSec, 0)
 	} else {
-		// Full transcode output uses ffmpeg's fixed GOP/segment grid; align fMP4 to that grid.
 		_, plan.mediaDurationSec = ffmpeg.PrepareHLSMediaTimeline(nil, info.Duration, info.StartTime)
-		starts, durs = ffmpeg.BuildHLSSegmentTimeline(plan.mediaDurationSec, nil, defaults.SegmentDurationSec, 0)
 	}
 	plan.keyframes = keyframes
-	plan.segmentStarts = starts
-	plan.segmentDurations = durs
 	plan.segmentSec = defaults.SegmentDurationSec
 
 	cacheID := ffmpeg.HLSCacheIdentity{
@@ -133,7 +130,10 @@ func (e *MediaEngine) BuildPlan(ctx context.Context, realPath string, profile Pr
 		SegmentDurationSec: plan.segmentSec,
 		Params:             params,
 	}
-	plan.cacheFingerprint = ffmpeg.HLSCacheFingerprint(cacheID)
+	// Generations produced before the publisher model serve corrupt or
+	// unverifiable timelines, so the cache namespace is versioned — v3 entries
+	// always carry the published index.m3u8/job.json layout.
+	plan.cacheFingerprint = "v3-" + ffmpeg.HLSCacheFingerprint(cacheID)
 	return plan, nil
 }
 
@@ -150,7 +150,6 @@ func (e *MediaEngine) StartContinuous(ctx context.Context, realPath, outputDir s
 		OutputDir:         outputDir,
 		StartIndex:        startIndex,
 		StartSec:          startSec,
-		SegmentDurations:  plan.segmentDurations,
 		SegmentSec:        plan.segmentSec,
 		FreshPlaylist:     startIndex == 0 && startSec <= 0,
 		Decode:            plan.decodeProfile,
@@ -162,10 +161,9 @@ func (e *MediaEngine) StartContinuous(ctx context.Context, realPath, outputDir s
 		InputStartTimeSec: plan.info.StartTime,
 		OmitAudio:         plan.params.OmitAudio,
 		GOP:               plan.params.GOP,
-		// Live pacing transcodes ~1x after a 60s headstart burst instead of
-		// burning CPU to finish the whole file up front. Produced segments
-		// stay comfortably ahead of the buffer horizon; the disk cache then
-		// only fills for content that is actually watched.
+		// ~1.5x input pacing after a 60s headstart burst: the produced edge
+		// stays ahead of playback while the cache still only fills for
+		// content that is actually watched.
 		Pacing: ffmpeg.HLSContinuousLivePaced,
 	}
 	return svc.StartHLSContinuous(ctx, opts)
@@ -184,8 +182,6 @@ type hlsPlan struct {
 	encodeProfile    encode.VideoProfile
 	decodeProfile    ffmpeg.VideoDecodeProfile
 	keyframes        []float64
-	segmentStarts    []float64
-	segmentDurations []float64
 	segmentSec       float64
 	mediaDurationSec float64
 	cacheFingerprint string
@@ -218,17 +214,17 @@ func profileForcesVideoTranscode(profile Profile) bool {
 }
 
 // fmp4CopyableVideoCodec reports whether the video codec can be stream-copied
-// into fMP4 HLS output: a codec with a standard MP4 mapping that a meaningful
-// share of browsers decode. h264 is universal; HEVC plays on Apple and
-// hardware-capable Chrome/Edge; VP9 plays everywhere except older iOS. VP8 has
-// no MP4 mapping, and everything else must transcode.
+// into fMP4 HLS output and still decode in every hls.js-capable browser. Only
+// h264 qualifies: VP9 has no Safari MSE support, HEVC support is inconsistent
+// outside Apple hardware, and VP8 has no MP4 mapping. Everything else takes
+// the transcode path, which always emits h264 + AAC.
 func fmp4CopyableVideoCodec(name string) bool {
 	n := strings.ToLower(strings.TrimSpace(name))
 	switch n {
-	case "", "h264", "avc", "avc1", "hevc", "h265", "hvc1", "hev1", "vp9":
+	case "", "h264", "avc", "avc1":
 		return true
 	}
-	return strings.Contains(n, "h264") || strings.HasPrefix(n, "vp09")
+	return strings.Contains(n, "h264")
 }
 
 // fmp4CopyEligibility selects the stream-copy pipeline for a source: remux when
