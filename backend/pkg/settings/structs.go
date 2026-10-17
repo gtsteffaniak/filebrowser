@@ -45,6 +45,7 @@ type Environment struct {
 	IsFirstLoad                      bool     `json:"-"` // used internally to track if this is the first load of the application
 	ConfigUserDefaultsSpecified      bool     `json:"-"` // true when the config file contained a userDefaults section
 	ConfigUserDefaultsSpecifiedPaths []string `json:"-"` // dot-paths explicitly set under userDefaults in config
+	ConfigMediaSpecifiedPaths        []string `json:"-"` // dot-paths explicitly set under integrations.media in config
 	// ConfigSourceDefaultPermissions maps permission flags explicitly set in config defaultPermissions (e.g. view -> true).
 	ConfigSourceDefaultPermissions map[string]bool `json:"-"`
 	MuPdfAvailable                 bool            `json:"-"` // used internally if compiled with mupdf support
@@ -52,6 +53,7 @@ type Environment struct {
 	FFmpegPath                     string          `json:"-"`
 	FFprobePath                    string          `json:"-"`
 	FFmpegAvailable                bool            `json:"-"`
+	HardwareAccelerationAvailable  bool            `json:"-"` // true when ffmpeg reports at least one usable hardware encoder
 	LoginIconPath                  string          `json:"-"` // resolved login icon path (filesystem or embedded)
 	LoginIconIsCustom              bool            `json:"-"` // true if login icon is from custom filesystem path
 	LoginIconEmbeddedPath          string          `json:"-"` // embedded asset path for default icon
@@ -157,11 +159,63 @@ func (o OnlyOffice) IsCollabora() bool {
 }
 
 type Media struct {
-	FfmpegPath               string        `json:"ffmpegPath"`               // path to ffmpeg directory with ffmpeg and ffprobe (eg. /usr/local/bin)
-	Convert                  FfmpegConvert `json:"convert"`                  // config for ffmpeg conversion settings
-	Debug                    bool          `json:"debug"`                    // output ffmpeg stdout for media integration -- careful can produces lots of output!
-	ExtractEmbeddedSubtitles bool          `json:"extractEmbeddedSubtitles"` // extract embedded subtitles from media files
-	HardwareAcceleration     bool          `json:"hardwareAcceleration"`     // enable hardware acceleration for ffmpeg if available
+	FfmpegPath string `json:"ffmpegPath"` // path to ffmpeg directory with ffmpeg and ffprobe (eg. /usr/local/bin)
+	// SkipHwCheck skips the ffmpeg hardware codec probe entirely (software-only).
+	// Config-only, not a runtime setting — advanced use, e.g. keeping the
+	// multi-second probe out of CI startup.
+	SkipHwCheck bool `json:"skipHwCheck"`
+
+	// The fields below are deprecated and migrated to runtime (DB-backed) media settings on
+	// first run. They are kept only to seed the database from an existing config.yaml.
+
+	Convert                  FfmpegConvert  `json:"convert"`                  // deprecated: config for ffmpeg conversion settings. deprecated: manage via the admin media settings API
+	Debug                    bool           `json:"debug"`                    // deprecated: output ffmpeg stdout for media integration. deprecated: manage via the admin media settings API
+	ExtractEmbeddedSubtitles bool           `json:"extractEmbeddedSubtitles"` // deprecated:extract embedded subtitles from media files. deprecated: manage via the admin media settings API
+	HardwareAcceleration     bool           `json:"hardwareAcceleration"`     // deprecated: enable hardware acceleration for ffmpeg if available. deprecated: manage via the admin media settings API
+	Transcode                MediaTranscode `json:"transcode"`                // deprecated: HLS transcoding for media playback. deprecated: manage via the admin media settings API
+
+	// AccelDevice selects the acceleration device: "auto" (default), "software"/"cpu",
+	// "igpu", "dgpu", a Linux DRM render node (e.g. /dev/dri/renderD128), or a GPU
+	// name substring. Managed via the admin media settings API.
+	AccelDevice string `json:"accelDevice"`
+}
+
+// MediaSettings holds the runtime (DB-backed) media integration settings.
+// FfmpegPath is config-only and intentionally excluded.
+type MediaSettings struct {
+	Convert                  FfmpegConvert  `json:"convert"`                  // config for ffmpeg conversion settings
+	Debug                    bool           `json:"debug"`                    // output ffmpeg stdout for media integration -- careful can produces lots of output!
+	ExtractEmbeddedSubtitles bool           `json:"extractEmbeddedSubtitles"` // extract embedded subtitles from media files
+	HardwareAcceleration     bool           `json:"hardwareAcceleration"`     // enable hardware acceleration for ffmpeg if available
+	AccelDevice              string         `json:"accelDevice"`              // acceleration device: "auto", "software"/"cpu", "igpu", "dgpu", a DRM render node, or a GPU name substring
+	Transcode                MediaTranscode `json:"transcode"`                // HLS transcoding for media playback
+}
+
+// MediaTranscode configures authenticated HLS transcoding (disabled by default).
+type MediaTranscode struct {
+	Enabled              bool              `json:"enabled"`              // enable HLS transcoding for authenticated playback (default: false)
+	MaxConcurrent        int               `json:"maxConcurrent"`        // global concurrent transcode sessions (default: 2)
+	MaxConcurrentPerUser int               `json:"maxConcurrentPerUser"` // hard per-user concurrent transcode ceiling (default: 1)
+	CacheMaxSizeMB       int               `json:"cacheMaxSizeMB"`       // disk cache size limit in MB; 0 = unlimited (default: 10240)
+	CacheRetentionH      int               `json:"cacheRetentionH"`      // completed cache retention in hours (default: 24)
+	Profiles             TranscodeProfiles `json:"profiles"`             // per-profile transcode settings shown in the player menu
+	MaxResolution        int               `json:"maxResolution"`        // superseded by profiles.<name>.maxResolution. deprecated: kept for config compatibility
+	EncoderBackend       string            `json:"encoderBackend"`       // default video encoder backend for transcodes: "" (auto), "cpu", or an accel backend (nvenc, amf, qsv, vaapi, d3d12, videotoolbox)
+}
+
+// TranscodeProfiles configures the player's transcode quality presets.
+type TranscodeProfiles struct {
+	Quality   TranscodeProfile `json:"quality"`   // match the source unless capped
+	Balanced  TranscodeProfile `json:"balanced"`  // balanced quality and size
+	DataSaver TranscodeProfile `json:"datasaver"` // smallest output
+}
+
+// TranscodeProfile configures a single transcode quality preset.
+type TranscodeProfile struct {
+	Enabled        bool   `json:"enabled"`        // show this preset in the player menu (default: true)
+	MaxResolution  int    `json:"maxResolution"`  // maximum output height in pixels; 0 = original
+	AvgBitrateKbps int    `json:"avgBitrateKbps"` // average video bitrate in kbps; 0 = original
+	EncoderBackend string `json:"encoderBackend"` // encoder backend override; "" inherits transcode.encoderBackend
 }
 
 type FfmpegConvert struct {
@@ -437,6 +491,7 @@ type UserDefaultsAccount struct {
 	LoginMethod                string                         `json:"loginMethod,omitempty"`      // login method to use: eg. password, proxy, oidc
 	DisableUpdateNotifications bool                           `json:"disableUpdateNotifications"` // disable update notifications banner for admin users
 	ShowAdvancedProfile        bool                           `json:"showAdvancedProfile"`        // show advanced profile settings in the user profile page
+	MaxConcurrentTranscodes    int                            `json:"maxConcurrentTranscodes"`    // per-user concurrent transcode sessions (default: 1)
 }
 
 // UserDefaults is a type that holds the default values for some fields on User.

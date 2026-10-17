@@ -3123,6 +3123,29 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/settings/media": {
+            "patch": {
+                "description": "Merges a partial JSON patch into the DB-backed media settings and applies them at runtime.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Settings"
+                ],
+                "summary": "Update runtime media settings",
+                "responses": {
+                    "200": {
+                        "description": "Updated media settings",
+                        "schema": {
+                            "$ref": "#/definitions/web.mediaSettingsResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/share": {
             "get": {
                 "description": "Retrieves all share links associated with a specific resource path for the current user.",
@@ -3863,16 +3886,13 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/users.User"
+                            "$ref": "#/definitions/users.FrontendUser"
                         }
                     }
                 ],
                 "responses": {
                     "201": {
-                        "description": "Created user",
-                        "schema": {
-                            "$ref": "#/definitions/users.User"
-                        }
+                        "description": "Created user"
                     },
                     "400": {
                         "description": "Bad Request",
@@ -3982,7 +4002,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/users.User"
+                            "$ref": "#/definitions/users.FrontendUser"
                         }
                     }
                 ],
@@ -5444,6 +5464,35 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "ffmpeg.AccelDeviceOption": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "label": {
+                    "type": "string"
+                },
+                "resolvedId": {
+                    "description": "ResolvedID is the concrete device the \"auto\" option resolves to, so the\nUI can display it when a stored selection pins that same device.",
+                    "type": "string"
+                }
+            }
+        },
+        "ffmpeg.EncoderBackendOption": {
+            "type": "object",
+            "properties": {
+                "default": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "label": {
+                    "type": "string"
+                }
+            }
+        },
         "files.Items": {
             "type": "object",
             "properties": {
@@ -6324,8 +6373,12 @@ const docTemplate = `{
         "settings.Media": {
             "type": "object",
             "properties": {
+                "accelDevice": {
+                    "description": "AccelDevice selects the acceleration device: \"auto\" (default), \"software\"/\"cpu\",\n\"igpu\", \"dgpu\", a Linux DRM render node (e.g. /dev/dri/renderD128), or a GPU\nname substring. Managed via the admin media settings API.",
+                    "type": "string"
+                },
                 "convert": {
-                    "description": "config for ffmpeg conversion settings",
+                    "description": "deprecated: config for ffmpeg conversion settings. deprecated: manage via the admin media settings API",
                     "allOf": [
                         {
                             "$ref": "#/definitions/settings.FfmpegConvert"
@@ -6333,11 +6386,11 @@ const docTemplate = `{
                     ]
                 },
                 "debug": {
-                    "description": "output ffmpeg stdout for media integration -- careful can produces lots of output!",
+                    "description": "deprecated: output ffmpeg stdout for media integration. deprecated: manage via the admin media settings API",
                     "type": "boolean"
                 },
                 "extractEmbeddedSubtitles": {
-                    "description": "extract embedded subtitles from media files",
+                    "description": "deprecated:extract embedded subtitles from media files. deprecated: manage via the admin media settings API",
                     "type": "boolean"
                 },
                 "ffmpegPath": {
@@ -6345,8 +6398,61 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "hardwareAcceleration": {
-                    "description": "enable hardware acceleration for ffmpeg if available",
+                    "description": "deprecated: enable hardware acceleration for ffmpeg if available. deprecated: manage via the admin media settings API",
                     "type": "boolean"
+                },
+                "skipHwCheck": {
+                    "description": "SkipHwCheck skips the ffmpeg hardware codec probe entirely (software-only).\nConfig-only, not a runtime setting — advanced use, e.g. keeping the\nmulti-second probe out of CI startup.",
+                    "type": "boolean"
+                },
+                "transcode": {
+                    "description": "deprecated: HLS transcoding for media playback. deprecated: manage via the admin media settings API",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/settings.MediaTranscode"
+                        }
+                    ]
+                }
+            }
+        },
+        "settings.MediaTranscode": {
+            "type": "object",
+            "properties": {
+                "cacheMaxSizeMB": {
+                    "description": "disk cache size limit in MB; 0 = unlimited (default: 10240)",
+                    "type": "integer"
+                },
+                "cacheRetentionH": {
+                    "description": "completed cache retention in hours (default: 24)",
+                    "type": "integer"
+                },
+                "enabled": {
+                    "description": "enable HLS transcoding for authenticated playback (default: false)",
+                    "type": "boolean"
+                },
+                "encoderBackend": {
+                    "description": "default video encoder backend for transcodes: \"\" (auto), \"cpu\", or an accel backend (nvenc, amf, qsv, vaapi, d3d12, videotoolbox)",
+                    "type": "string"
+                },
+                "maxConcurrent": {
+                    "description": "global concurrent transcode sessions (default: 2)",
+                    "type": "integer"
+                },
+                "maxConcurrentPerUser": {
+                    "description": "hard per-user concurrent transcode ceiling (default: 1)",
+                    "type": "integer"
+                },
+                "maxResolution": {
+                    "description": "superseded by profiles.\u003cname\u003e.maxResolution. deprecated: kept for config compatibility",
+                    "type": "integer"
+                },
+                "profiles": {
+                    "description": "per-profile transcode settings shown in the player menu",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/settings.TranscodeProfiles"
+                        }
+                    ]
                 }
             }
         },
@@ -6915,6 +7021,56 @@ const docTemplate = `{
                 }
             }
         },
+        "settings.TranscodeProfile": {
+            "type": "object",
+            "properties": {
+                "avgBitrateKbps": {
+                    "description": "average video bitrate in kbps; 0 = original",
+                    "type": "integer"
+                },
+                "enabled": {
+                    "description": "show this preset in the player menu (default: true)",
+                    "type": "boolean"
+                },
+                "encoderBackend": {
+                    "description": "encoder backend override; \"\" inherits transcode.encoderBackend",
+                    "type": "string"
+                },
+                "maxResolution": {
+                    "description": "maximum output height in pixels; 0 = original",
+                    "type": "integer"
+                }
+            }
+        },
+        "settings.TranscodeProfiles": {
+            "type": "object",
+            "properties": {
+                "balanced": {
+                    "description": "balanced quality and size",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/settings.TranscodeProfile"
+                        }
+                    ]
+                },
+                "datasaver": {
+                    "description": "smallest output",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/settings.TranscodeProfile"
+                        }
+                    ]
+                },
+                "quality": {
+                    "description": "match the source unless capped",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/settings.TranscodeProfile"
+                        }
+                    ]
+                }
+            }
+        },
         "settings.UserDefaults": {
             "type": "object",
             "properties": {
@@ -6962,6 +7118,10 @@ const docTemplate = `{
                 "loginMethod": {
                     "description": "login method to use: eg. password, proxy, oidc",
                     "type": "string"
+                },
+                "maxConcurrentTranscodes": {
+                    "description": "per-user concurrent transcode sessions (default: 1)",
+                    "type": "integer"
                 },
                 "permissions": {
                     "$ref": "#/definitions/settings.UserDefaultsAccountPermissions"
@@ -7707,56 +7867,6 @@ const docTemplate = `{
                 }
             }
         },
-        "users.AuthToken": {
-            "type": "object",
-            "properties": {
-                "Permissions": {
-                    "$ref": "#/definitions/users.Permissions"
-                },
-                "belongsTo": {
-                    "description": "legacy stored metadata only, never trusted for auth; identity is always the hashed_tokens lookup",
-                    "type": "integer"
-                },
-                "expiresAt": {
-                    "type": "integer"
-                },
-                "issuedAt": {
-                    "type": "integer"
-                },
-                "key": {
-                    "description": "for backward compatibility",
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "token": {
-                    "type": "string"
-                },
-                "username": {
-                    "type": "string"
-                }
-            }
-        },
-        "users.BackendScope": {
-            "type": "object",
-            "properties": {
-                "path": {
-                    "description": "real path for the source",
-                    "type": "string"
-                },
-                "permissions": {
-                    "$ref": "#/definitions/users.SourceFilePermissions"
-                },
-                "quota": {
-                    "$ref": "#/definitions/users.ScopeQuota"
-                },
-                "scope": {
-                    "description": "index path within that source",
-                    "type": "string"
-                }
-            }
-        },
         "users.FileLoading": {
             "type": "object",
             "properties": {
@@ -7890,6 +8000,10 @@ const docTemplate = `{
                 },
                 "loginMethod": {
                     "$ref": "#/definitions/users.LoginMethod"
+                },
+                "maxConcurrentTranscodes": {
+                    "description": "MaxConcurrentTranscodes is admin-set: it stays out of NonAdminEditable so a\nuser cannot raise their own limit through a self-service PATCH.",
+                    "type": "integer"
                 },
                 "newFileTemplate": {
                     "description": "list of custom filenames that will be used as template for new files",
@@ -8079,18 +8193,6 @@ const docTemplate = `{
                 }
             }
         },
-        "users.PinnedItems": {
-            "type": "object",
-            "additionalProperties": {
-                "type": "object",
-                "additionalProperties": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                }
-            }
-        },
         "users.Preview": {
             "type": "object",
             "properties": {
@@ -8216,281 +8318,6 @@ const docTemplate = `{
             "type": "object",
             "additionalProperties": {
                 "type": "boolean"
-            }
-        },
-        "users.User": {
-            "type": "object",
-            "properties": {
-                "apiKeys": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "$ref": "#/definitions/users.AuthToken"
-                    }
-                },
-                "backendScopes": {
-                    "description": "BackendScopes is the authoritative, persisted access list (SourceScope.Name = backend source path).\nSQLite stores this inside user_data JSON under the key \"scopes\" (see sqldb.UserData).",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/users.BackendScope"
-                    }
-                },
-                "backendSourcePermissions": {
-                    "description": "key = source path",
-                    "type": "object",
-                    "additionalProperties": {
-                        "$ref": "#/definitions/users.SourceFilePermissions"
-                    }
-                },
-                "customTheme": {
-                    "description": "Name of theme to use chosen from custom themes config.",
-                    "type": "string"
-                },
-                "darkMode": {
-                    "description": "should dark mode be enabled",
-                    "type": "boolean"
-                },
-                "dateFormat": {
-                    "description": "when false, the date is relative, when true, the date is an exact timestamp",
-                    "type": "boolean"
-                },
-                "debugOffice": {
-                    "description": "debug onlyoffice editor",
-                    "type": "boolean"
-                },
-                "declinedDefaultSources": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "deleteAfterArchive": {
-                    "description": "delete source files after successful creation/extraction of archives",
-                    "type": "boolean"
-                },
-                "deleteWithoutConfirming": {
-                    "description": "delete files without confirmation",
-                    "type": "boolean"
-                },
-                "disableOfficePreviewExt": {
-                    "description": "deprecated",
-                    "type": "string"
-                },
-                "disableOnlyOfficeExt": {
-                    "description": "deprecated",
-                    "type": "string"
-                },
-                "disablePreviewExt": {
-                    "description": "space separated list of file extensions to disable preview for",
-                    "type": "string"
-                },
-                "disableQuickToggles": {
-                    "description": "disable the quick toggles in the sidebar",
-                    "type": "boolean"
-                },
-                "disableSearchOptions": {
-                    "description": "disable the search options in the search bar",
-                    "type": "boolean"
-                },
-                "disableSettings": {
-                    "type": "boolean"
-                },
-                "disableUpdateNotifications": {
-                    "description": "disable update notifications",
-                    "type": "boolean"
-                },
-                "disableViewingExt": {
-                    "description": "space separated list of file extensions to disable viewing for",
-                    "type": "string"
-                },
-                "effectiveToolAccess": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "boolean"
-                    }
-                },
-                "fileLoading": {
-                    "description": "upload and download settings",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/users.FileLoading"
-                        }
-                    ]
-                },
-                "gallerySize": {
-                    "description": "0-9 - the size of the gallery thumbnails",
-                    "type": "integer"
-                },
-                "hideFileExt": {
-                    "description": "space separated list of file extensions to hide in UI and API",
-                    "type": "string"
-                },
-                "hideFilesInTree": {
-                    "description": "hide files in the sidebar tree navigation, when true, will show only directories.",
-                    "type": "boolean"
-                },
-                "hideSidebarFileActions": {
-                    "description": "hide the file actions in the sidebar",
-                    "type": "boolean"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "locale": {
-                    "description": "language to use: eg. de, en, or fr",
-                    "type": "string"
-                },
-                "lockPassword": {
-                    "type": "boolean"
-                },
-                "loginMethod": {
-                    "$ref": "#/definitions/users.LoginMethod"
-                },
-                "newFileTemplate": {
-                    "description": "list of custom filenames that will be used as template for new files",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "otpEnabled": {
-                    "type": "boolean"
-                },
-                "passkeyCredentials": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/users.WebAuthnCredential"
-                    }
-                },
-                "password": {
-                    "type": "string"
-                },
-                "perm": {
-                    "$ref": "#/definitions/users.Permissions"
-                },
-                "permissions": {
-                    "description": "global: admin, api, share, realtime",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/users.Permissions"
-                        }
-                    ]
-                },
-                "pinnedItems": {
-                    "$ref": "#/definitions/users.PinnedItems"
-                },
-                "preferEditorForMarkdown": {
-                    "description": "prefer editor first for markdown files instead of the Markdown Viewer",
-                    "type": "boolean"
-                },
-                "preview": {
-                    "$ref": "#/definitions/users.Preview"
-                },
-                "promptRightCloseButton": {
-                    "description": "show the prompts close button on the right",
-                    "type": "boolean"
-                },
-                "quickDownload": {
-                    "description": "show icon to download in one click",
-                    "type": "boolean"
-                },
-                "requirePasswordChange": {
-                    "type": "boolean"
-                },
-                "scopes": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/users.FrontendScope"
-                    }
-                },
-                "showAdvancedProfile": {
-                    "type": "boolean"
-                },
-                "showCopyPath": {
-                    "description": "show copy path action in the context menu",
-                    "type": "boolean"
-                },
-                "showCreationDateColumn": {
-                    "description": "show the Creation date column in list and compact views",
-                    "type": "boolean"
-                },
-                "showFirstLogin": {
-                    "type": "boolean"
-                },
-                "showHidden": {
-                    "description": "show hidden files in the UI. On windows this includes files starting with a dot and windows hidden files",
-                    "type": "boolean"
-                },
-                "showSelectMultiple": {
-                    "description": "show select multiple files on desktop",
-                    "type": "boolean"
-                },
-                "showToolsInSidebar": {
-                    "description": "when false, sidebar hides links with category \"tool\" (default: true)",
-                    "type": "boolean"
-                },
-                "showTypeColumn": {
-                    "description": "show the Type column in list and compact views",
-                    "type": "boolean"
-                },
-                "sidebarLinks": {
-                    "description": "customizable sidebar links",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/users.SidebarLink"
-                    }
-                },
-                "singleClick": {
-                    "description": "open directory on single click, also enables middle click to open in new tab",
-                    "type": "boolean"
-                },
-                "sorting": {
-                    "$ref": "#/definitions/users.Sorting"
-                },
-                "sourcePermissions": {
-                    "description": "deprecated: use scopes[].permissions",
-                    "type": "object",
-                    "additionalProperties": {
-                        "$ref": "#/definitions/users.SourceFilePermissions"
-                    }
-                },
-                "stickySidebar": {
-                    "description": "keep sidebar open when navigating",
-                    "type": "boolean"
-                },
-                "themeColor": {
-                    "description": "theme color to use: eg. #ff0000, or var(--red), var(--purple), etc",
-                    "type": "string"
-                },
-                "tokens": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "$ref": "#/definitions/users.AuthToken"
-                    }
-                },
-                "toolAccess": {
-                    "description": "per-tool access overrides",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/users.ToolAccessMap"
-                        }
-                    ]
-                },
-                "totpNonce": {
-                    "type": "string"
-                },
-                "totpSecret": {
-                    "type": "string"
-                },
-                "username": {
-                    "type": "string"
-                },
-                "version": {
-                    "type": "integer"
-                },
-                "viewMode": {
-                    "description": "view mode to use: eg. normal, list, grid, or compact",
-                    "type": "string"
-                }
             }
         },
         "users.WebAuthnCredential": {
@@ -8886,6 +8713,65 @@ const docTemplate = `{
                     "allOf": [
                         {
                             "$ref": "#/definitions/web.fileWatchMetadata"
+                        }
+                    ]
+                }
+            }
+        },
+        "web.mediaSettingsResponse": {
+            "description": "Admins receive the DB-backed media integration settings; every authenticated user receives the player-relevant subset (transcode enabled, profiles, per-user limit).",
+            "type": "object",
+            "properties": {
+                "accelDevice": {
+                    "description": "acceleration device: \"auto\", \"software\"/\"cpu\", \"igpu\", \"dgpu\", a DRM render node, or a GPU name substring",
+                    "type": "string"
+                },
+                "accelDeviceOptions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/ffmpeg.AccelDeviceOption"
+                    }
+                },
+                "convert": {
+                    "description": "config for ffmpeg conversion settings",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/settings.FfmpegConvert"
+                        }
+                    ]
+                },
+                "debug": {
+                    "description": "output ffmpeg stdout for media integration -- careful can produces lots of output!",
+                    "type": "boolean"
+                },
+                "encoderBackendOptions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/ffmpeg.EncoderBackendOption"
+                    }
+                },
+                "extractEmbeddedSubtitles": {
+                    "description": "extract embedded subtitles from media files",
+                    "type": "boolean"
+                },
+                "hardwareAcceleration": {
+                    "description": "enable hardware acceleration for ffmpeg if available",
+                    "type": "boolean"
+                },
+                "lockMessage": {
+                    "type": "string"
+                },
+                "lockedFromConfigPaths": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "transcode": {
+                    "description": "HLS transcoding for media playback",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/settings.MediaTranscode"
                         }
                     ]
                 }

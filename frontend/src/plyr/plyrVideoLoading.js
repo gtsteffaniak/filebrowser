@@ -1,3 +1,5 @@
+import { transcodeLog } from '@/plyr/transcodeDebug.js';
+
 /**
  * Show a loading indicator while the native video element is fetching or buffering.
  */
@@ -23,9 +25,25 @@ export function enablePlyrVideoLoadingIndicator(player, onLoadingChange) {
     )
   );
 
+  let lastShow = false;
   const sync = () => {
     const hasSource = Boolean(media.currentSrc || media.src);
     const show = playbackExpected && hasSource && isLoadingOrBuffering();
+    if (show !== lastShow) {
+      lastShow = show;
+      transcodeLog('loading overlay changed', {
+        show,
+        playbackExpected,
+        waiting,
+        seeking,
+        loading,
+        hasSource,
+        networkState: media.networkState,
+        readyState: media.readyState,
+        paused: media.paused,
+        currentSrc: media.currentSrc,
+      });
+    }
     onLoadingChange(show);
   };
 

@@ -10,7 +10,7 @@
   />
   <errors v-if="error" :errorCode="error.status" />
   <div class="card-title">
-    <h2>{{ $t("access.groups") }}</h2>
+    <h2>{{ $t("general.groups") }}</h2>
   </div>
 
   <div class="card-content full has-fab-bottom-right">
@@ -20,7 +20,7 @@
       :items="rows"
       item-key="name"
       default-sort-key="name"
-      :aria-label="$t('access.groups')"
+      :aria-label="$t('general.groups')"
       :loading="loading"
     >
       <template #cell-members="{ row }">{{ row.members.join(", ") }}</template>

@@ -137,6 +137,8 @@ import UserEditSidebarLinks from "./UserEditSidebarLinks.vue";
 import Quota from "./Quota.vue";
 import NewFileTemplate from "./NewFileTemplate.vue";
 import DefaultViewPrefs from "./DefaultViewPrefs.vue";
+import MediaConversionFormats from "./MediaConversionFormats.vue";
+import MediaTranscodeSettings from "./MediaTranscodeSettings.vue";
 import { state, getters, mutations } from "@/store";
 import { getObjectProperty, omitObjectProperty, setObjectProperty } from "@/utils/object.js";
 
@@ -196,6 +198,8 @@ export default {
     Quota,
     NewFileTemplate,
     DefaultViewPrefs,
+    MediaConversionFormats,
+    MediaTranscodeSettings,
   },
   data() {
     return {
@@ -352,7 +356,7 @@ export default {
       // Explicit switch statement for compile-time safety with ESLint i18n validation
       switch (promptName.toLowerCase()) {
         case "entitypicker":
-          return this.$t("access.selectEntities");
+          return this.$t("general.select");
         case "group-edit":
           return this.$t("access.editGroup");
         case "user-edit":

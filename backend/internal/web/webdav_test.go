@@ -72,6 +72,7 @@ func setupWebDAVTestEnv(t *testing.T) (string, string) {
 		t.Fatal(err)
 	}
 	app.MustWireServices(state.Default())
+	stopTranscodeManagerOnCleanup(t)
 	t.Cleanup(func() {
 		state.Close()
 	})

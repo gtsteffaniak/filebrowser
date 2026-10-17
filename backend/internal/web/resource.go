@@ -168,7 +168,7 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *Context) (int
 		Expand:                   true,
 		Content:                  getContent,
 		Metadata:                 getMetadata,
-		ExtractEmbeddedSubtitles: settings.Config.Integrations.Media.ExtractEmbeddedSubtitles,
+		ExtractEmbeddedSubtitles: settings.ExtractEmbeddedSubtitlesEnabled(),
 		ShowHidden:               d.User.ShowHidden,
 		HideFileExt:              d.User.HideFileExt,
 		SkipExtendedAttrs:        skipExtendedAttrs,

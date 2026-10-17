@@ -1,6 +1,6 @@
 module github.com/gtsteffaniak/filebrowser/backend
 
-go 1.27.0
+go 1.27.1
 
 require (
 	github.com/alecthomas/kong v1.16.1
@@ -19,7 +19,7 @@ require (
 	github.com/google/go-cmp v0.7.0
 	github.com/google/uuid v1.6.0
 	github.com/gtsteffaniak/go-cache v1.1.0
-	github.com/gtsteffaniak/go-ffmpeg v1.2.0
+	github.com/gtsteffaniak/go-ffmpeg v1.4.0
 	github.com/gtsteffaniak/go-logger v1.1.0
 	github.com/kovidgoyal/imaging v1.8.23
 	github.com/mattn/go-sqlite3 v1.14.52
@@ -33,8 +33,8 @@ require (
 	golang.org/x/mod v0.41.0
 	golang.org/x/net v0.59.0
 	golang.org/x/oauth2 v0.37.0
-	golang.org/x/sys v0.48.0
-	golang.org/x/term v0.46.0
+	golang.org/x/sys v0.49.0
+	golang.org/x/term v0.47.0
 	golang.org/x/text v0.42.0
 	golang.org/x/time v0.16.0
 	golang.org/x/tools v0.50.0
@@ -98,9 +98,4 @@ require (
 	modernc.org/libc v1.77.1 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.1 // indirect
-)
-
-exclude (
-	github.com/alecthomas/go-check-sumtype v0.5.0
-	github.com/gtsteffaniak/go-ffmpeg v1.1.0
 )

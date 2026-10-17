@@ -2,8 +2,6 @@ package settings
 
 import (
 	"bytes"
-	"context"
-	"flag"
 	"fmt"
 	"io"
 	"log"
@@ -18,10 +16,8 @@ import (
 	"github.com/goccy/go-yaml"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/fileutils"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
-	"github.com/gtsteffaniak/filebrowser/backend/internal/ffmpeg"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/version"
-	goffmpeg "github.com/gtsteffaniak/go-ffmpeg"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
@@ -78,7 +74,7 @@ func initializeConfig(configFile string, cliMode bool) {
 	}
 	warnHttpProxyConfig()
 	setupFrontend(false)
-	setupMedia(false)
+	setupMedia()
 }
 
 func setupServer() {
@@ -338,7 +334,17 @@ func setupFrontend(generate bool) {
 	loadCustomFavicon()
 }
 
-func setupMedia(generate bool) {
+// setupMedia normalizes the media integration settings. ffmpeg initialization is
+// deferred to InitFFmpeg so the hardware codec probe runs once, after persisted
+// media settings have been applied.
+func setupMedia() {
+	applyMediaConvertDefaults()
+	setupMediaTranscode()
+}
+
+// applyMediaConvertDefaults re-seeds the conversion format maps and reapplies the
+// user's explicit config overrides (the maps are wiped during YAML unmarshal).
+func applyMediaConvertDefaults() {
 	// Save user's explicit config before applying defaults
 	userImageConfig := make(map[ImagePreviewType]*bool)
 	for k, v := range Config.Integrations.Media.Convert.ImagePreview {
@@ -350,9 +356,11 @@ func setupMedia(generate bool) {
 	Config.Integrations.Media.Convert.ImagePreview[HEICImagePreview] = boolPtr(false) // HEIC defaults to disabled
 	Config.Integrations.Media.Convert.ImagePreview[JPEGImagePreview] = boolPtr(true)  // JPEG fallback defaults to enabled
 
-	// Apply user overrides (only for keys explicitly set in YAML)
+	// Apply user overrides (only for keys explicitly set in YAML). The pointers are
+	// cloned so the live config never shares *bool values with the settings it was
+	// built from.
 	for k, v := range userImageConfig {
-		Config.Integrations.Media.Convert.ImagePreview[k] = v
+		Config.Integrations.Media.Convert.ImagePreview[k] = cloneBoolPtr(v)
 	}
 
 	// VideoPreview: Merge user config with defaults
@@ -370,52 +378,57 @@ func setupMedia(generate bool) {
 
 	// Apply user overrides (only for keys explicitly set in YAML)
 	for k, v := range userVideoConfig {
-		Config.Integrations.Media.Convert.VideoPreview[k] = v
-	}
-
-	if !generate && !isGoTest() {
-		setupFFmpegIntegration()
+		Config.Integrations.Media.Convert.VideoPreview[k] = cloneBoolPtr(v)
 	}
 }
 
-func isGoTest() bool {
-	return flag.Lookup("test.v") != nil
+func setupMediaTranscode() {
+	t := &Config.Integrations.Media.Transcode
+	if t.MaxConcurrent <= 0 {
+		t.MaxConcurrent = 2
+	}
+	if t.MaxConcurrentPerUser <= 0 {
+		t.MaxConcurrentPerUser = 1
+	}
+	if t.CacheMaxSizeMB < 0 {
+		t.CacheMaxSizeMB = 0
+	}
+	if t.CacheMaxSizeMB == 0 && !t.Enabled {
+		t.CacheMaxSizeMB = 10240
+	}
+	if t.CacheRetentionH <= 0 {
+		t.CacheRetentionH = 24
+	}
+	normalizeTranscodeProfile(&t.Profiles.Quality)
+	normalizeTranscodeProfile(&t.Profiles.Balanced)
+	normalizeTranscodeProfile(&t.Profiles.DataSaver)
 }
 
-func setupFFmpegIntegration() {
-	n := Config.Server.NumImageProcessors
-	if n < 1 {
-		n = 4
+// normalizeTranscodeProfile clamps negative profile values (0 means "original").
+func normalizeTranscodeProfile(p *TranscodeProfile) {
+	if p.MaxResolution < 0 {
+		p.MaxResolution = 0
 	}
-	maxDecode := (n + 1) / 2
-	err := ffmpeg.Initialize(context.Background(), ffmpeg.InitOptions{
-		FFmpegPath: Config.Integrations.Media.FfmpegPath,
-		Concurrency: goffmpeg.Concurrency{
-			MaxProbe:  16,
-			MaxDecode: maxDecode,
-			MaxEncode: 2,
-		},
-		CacheDir:             Config.Server.CacheDir,
-		SkipHWTests:          !Config.Integrations.Media.HardwareAcceleration,
-		HardwareAcceleration: Config.Integrations.Media.HardwareAcceleration,
-	})
-	if err != nil {
-		logger.Warningf("ffmpeg unavailable: %v", err)
-		Env.FFmpegAvailable = false
-		Env.FFmpegPath = ""
-		Env.FFprobePath = ""
-		return
+	if p.AvgBitrateKbps < 0 {
+		p.AvgBitrateKbps = 0
 	}
+}
 
-	svc := ffmpeg.Get()
-	if svc == nil {
-		Env.FFmpegAvailable = false
-		return
+// DefaultTranscodeProfiles returns the built-in transcode presets.
+func DefaultTranscodeProfiles() TranscodeProfiles {
+	return TranscodeProfiles{
+		// Quality preserves the source: it stream-copies whatever is already
+		// HLS-compatible (h264 video / AAC audio) and transcodes only what isn't.
+		Quality: TranscodeProfile{Enabled: true, MaxResolution: 0, AvgBitrateKbps: 0},
+		// Balanced always transcodes to a bounded 720p rung. 4000 kbps sits in
+		// the standard 720p ladder (~3000-6000 kbps); the cap is a ceiling, so a
+		// source already below it keeps its own bitrate.
+		Balanced: TranscodeProfile{Enabled: true, MaxResolution: 720, AvgBitrateKbps: 4000},
+		// Data saver always transcodes to a bounded 480p rung. 1500 kbps gives
+		// solid 480p quality while still cutting typical source bitrates well
+		// below balanced.
+		DataSaver: TranscodeProfile{Enabled: true, MaxResolution: 480, AvgBitrateKbps: 1500},
 	}
-
-	Env.FFmpegAvailable = true
-	Env.FFmpegPath = svc.FFmpegPath()
-	Env.FFprobePath = svc.FFprobePath()
 }
 
 func setupSources(generate bool) {
@@ -607,13 +620,13 @@ func setupLogging() {
 	for i := range Config.Server.Logging {
 		cfg := &Config.Server.Logging[i]
 		// Enable debug logging automatically in dev mode
+		pattern := cfg.ApiFilter
+		if pattern == "" {
+			pattern = "^/health|^/favicon.ico|^/static|^/public/static|^/__vite"
+		}
 		levels := cfg.Levels
 		if os.Getenv("FILEBROWSER_DEVMODE") == "true" {
 			levels = "info|warning|error|debug"
-		}
-		pattern := cfg.ApiFilter
-		if pattern == "" {
-			pattern = "^/health|^/favicon.ico|^/static|^/public/static"
 		}
 		jsonCfg := logger.JsonConfig{
 			Levels:         levels,
@@ -689,6 +702,19 @@ func loadConfigWithDefaults(configFile string, generate bool) error {
 		Env.ConfigUserDefaultsSpecified = true
 		if udMap, ok := udRaw.(map[string]interface{}); ok {
 			Env.ConfigUserDefaultsSpecifiedPaths = CollectMapLeafPaths(udMap, "")
+		}
+	}
+
+	// Runtime media settings live in the database; record which ones the config
+	// file pins so they can win over stored values and lock in the admin UI.
+	if integrations, ok := filteredConfig["integrations"].(map[string]interface{}); ok {
+		if mediaMap, ok := integrations["media"].(map[string]interface{}); ok {
+			paths := CollectMapLeafPaths(mediaMap, "")
+			// skipHwCheck is config-only, not a runtime media setting — don't
+			// let it trigger the "locked from config" admin UI state.
+			Env.ConfigMediaSpecifiedPaths = slices.DeleteFunc(paths, func(p string) bool {
+				return p == "skipHwCheck"
+			})
 		}
 	}
 
@@ -995,6 +1021,7 @@ func SetDefaults(generate bool) Settings {
 				LoginMethod:                "",
 				DisableUpdateNotifications: false,
 				ShowAdvancedProfile:        false,
+				MaxConcurrentTranscodes:    1,
 			},
 		},
 	}
@@ -1006,6 +1033,14 @@ func SetDefaults(generate bool) Settings {
 	s.Integrations.Media.Convert.VideoPreview = make(map[VideoPreviewType]*bool)
 	for _, t := range AllVideoPreviewTypes {
 		s.Integrations.Media.Convert.VideoPreview[t] = boolPtr(true)
+	}
+	s.Integrations.Media.Transcode = MediaTranscode{
+		Enabled:              false,
+		MaxConcurrent:        2,
+		MaxConcurrentPerUser: 1,
+		CacheMaxSizeMB:       10240,
+		CacheRetentionH:      24,
+		Profiles:             DefaultTranscodeProfiles(),
 	}
 	return s
 }
@@ -1081,6 +1116,11 @@ func PWAIconsCacheDir() string {
 // Where transient archives for multi-request (Range) downloads are stored to support chunked downloads.
 func DownloadCacheDir() string {
 	return filepath.Join(Config.Server.CacheDir, "downloads")
+}
+
+// TranscodeCacheDir is where HLS transcode output is cached on disk.
+func TranscodeCacheDir() string {
+	return filepath.Join(Config.Server.CacheDir, "transcoding")
 }
 
 // PrepareDownloadSpoolDir creates the download spool directory and removes any leftover dl-archive-*

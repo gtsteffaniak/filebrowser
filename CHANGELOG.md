@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v2.2.0
+
+ **New Features**:
+ - Authenticated HLS transcoding for media playback with quality presets (quality / balanced / data saver), including stream-copy of browser-compatible sources, realtime-paced ffmpeg jobs, and a size/retention-managed segment cache.
+ - Seeking ahead of the transcoded region now restarts the transcode at the seek position instead of stalling; short skipped fragments are discarded automatically.
+ - Fixed the player timeline for mid-file transcode sessions: the playhead and seekable range now reflect the true source position instead of starting at 0.
+ - Seeks inside a completed transcode generation now happen in place — the player treats the whole produced playlist as servable instead of clamping to the buffered window or needlessly restarting the transcode.
+ - Fixed the seek bar dead on completed transcode sessions: pinning the element duration prevented hls.js from setting the MediaSource duration, which left `seekable` empty so the browser discarded every seek.
+ - Media settings: acceleration device selector (CPU / auto / detected GPU devices) and per-preset encoder backend overrides, replacing the hardware acceleration toggle.
+
 ## v2.1.2
 
  **Security**:
