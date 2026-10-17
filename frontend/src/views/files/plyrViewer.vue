@@ -287,19 +287,17 @@ import {
   savePreferredTranscodeMode,
 } from '@/utils/transcodePreference.js';
 import { createTranscodeClientId, isLivePacedSession } from '@/plyr/transcodeSession.js';
-import { TranscodePlaybackController } from '@/plyr/transcodePlaybackController.js';
 import {
   TRANSCODE_MODES as PLYR_TRANSCODE_MODES,
   TRANSCODE_HLS_MODES as PLYR_TRANSCODE_HLS_MODES,
   normalizeTranscodeMode,
-  normalizeTranscodeSessionStatus,
   isTranscodeHlsMode,
   isTranscodeAvailable,
 } from '@/plyr/transcodeMode.js';
-import { transcodeLog, transcodeWarn } from '@/plyr/transcodeMode.js';
+import { transcodeWarn } from '@/plyr/transcodeMode.js';
 import { isPlayBlockedError, primePlay } from '@/plyr/playbackIntent.js';
 import { needsTranscodeFirst } from '@/utils/canBrowserPlayNative.js';
-import { getTranscodeSessions } from '@/api/transcode.js';
+import { fetchTranscodeOffer, videoTranscodeOfferFromStatus } from '@/plyr/transcodeOffer.js';
 import { getCachedViewToken } from '@/api/viewToken.js';
 import { notify } from '@/notify';
 import { isInLeftNavTapZone, isInRightNavTapZone } from '@/utils/navigationEdgeZones.js';
@@ -1668,10 +1666,6 @@ export default {
     bindTranscodePlaybackController() {
       if (this.sharedTranscodePlayback && !this.sharedTranscodePlayback.disposed) {
         this.transcodePlayback = this.sharedTranscodePlayback;
-        return;
-      }
-      if (!this.transcodePlayback || this.transcodePlayback.disposed) {
-        this.transcodePlayback = new TranscodePlaybackController();
       }
     },
     async mountPlyrPlayer() {
@@ -1945,21 +1939,21 @@ export default {
         return;
       }
       this.transcodeOfferEmitted = true;
+      const file = { source: this.req?.source, path: this.req?.path };
       if (!this.transcodeEnabled) {
-        // Transcoding is off on this server: show the unsupported notice without
-        // asking for sessions, which would answer 503.
-        this.$emit('needs-transcode', { enabled: false, canStart: false, sessions: [] });
+        this.$emit('needs-transcode', videoTranscodeOfferFromStatus(
+          { enabled: false, canStart: false, sessions: [] },
+          file,
+        ));
         return;
       }
       try {
-        const status = await getTranscodeSessions();
-        this.$emit('needs-transcode', normalizeTranscodeSessionStatus(status, {
-          source: this.req?.source,
-          path: this.req?.path,
-        }));
-      } catch (err) {
-        console.error('Failed to check transcode sessions:', err);
-        this.$emit('needs-transcode', { enabled: false, canStart: false, sessions: [] });
+        this.$emit('needs-transcode', await fetchTranscodeOffer(file));
+      } catch {
+        this.$emit('needs-transcode', videoTranscodeOfferFromStatus(
+          { enabled: false, canStart: false, sessions: [] },
+          file,
+        ));
       }
     },
     onVideoLoadedMetadata() {
@@ -1996,15 +1990,8 @@ export default {
       if (this.plyrTeardownDone && !this.isMediaInPictureInPicture(media)) {
         return Promise.resolve();
       }
-      transcodeLog('resumeTranscodePlayback', {
-        playerPaused: this.player?.paused,
-        mediaPaused: media?.paused,
-        readyState: media?.readyState,
-      });
       const playResult = this.player?.play ? this.player.play() : media?.play();
-      return Promise.resolve(playResult).then(() => {
-        transcodeLog('resumeTranscodePlayback play resolved');
-      }).catch((playErr) => {
+      return Promise.resolve(playResult).catch((playErr) => {
         transcodeWarn('player.play failed during transcode attach', {
           name: playErr?.name,
           message: playErr?.message,
@@ -2031,7 +2018,6 @@ export default {
         if (!this.transcodeActive || !media?.paused) {
           return;
         }
-        transcodeLog('resuming transcode playback after user gesture');
         void this.resumeTranscodePlayback().catch(() => {});
       };
       this.resumeOnGestureHandler = handler;
@@ -2115,16 +2101,6 @@ export default {
       if (this.plyrTeardownDone) {
         return;
       }
-      transcodeLog('startTranscodePlayback called', {
-        source: this.req?.source,
-        path: this.req?.path,
-        transcodeEnabled: this.transcodeEnabled,
-        transcodeMode: this.transcodeMode,
-        requestedMode: mode,
-        hasPlayer: Boolean(this.player),
-        replaceSessionId,
-        startSec,
-      });
       if (this.previewType !== 'video' || !this.req?.source || !this.req?.path || !this.transcodeEnabled) {
         transcodeWarn('startTranscodePlayback skipped — preconditions failed', {
           previewType: this.previewType,
@@ -2155,20 +2131,7 @@ export default {
         ?? await this.resolveReuseSessionId();
       const seekSec = startSec ?? this.player?.currentTime ?? 0;
       const shouldPlay = autoplay ?? this.shouldAutoplay;
-      transcodeLog('startTranscodePlayback params', {
-        activeMode,
-        manageSwitch,
-        shouldPlay,
-        seekSec,
-        hasPlayPrime: Boolean(playPrime),
-        transcodeSwitchInProgress: this.transcodeSwitchInProgress,
-      });
-
       try {
-        transcodeLog('preparing video element for HLS', {
-          replaceSessionId: effectiveReplaceSessionId,
-          seekSec,
-        });
         this.videoStreamAttached = true;
         this.transcodeMode = activeMode;
         this.lockedNativeVideoSrc = null;
@@ -2186,7 +2149,6 @@ export default {
           nextTick: () => this.$nextTick(),
           shouldAutoplay: shouldPlay,
           onFirstBuffered: () => {
-            transcodeLog('first HLS fragment buffered — starting playback');
             this.syncPlyrAfterTranscodeReady();
           },
           onResumePlayback: () => this.resumeTranscodePlayback(),
@@ -2195,7 +2157,7 @@ export default {
             notify.showError(this.$t('player.transcodeFailed'));
           },
           onCapacityStatus: (status) => {
-            this.$emit('needs-transcode', normalizeTranscodeSessionStatus(status, {
+            this.$emit('needs-transcode', videoTranscodeOfferFromStatus(status, {
               source: this.req?.source,
               path: this.req?.path,
             }));
@@ -2402,10 +2364,10 @@ export default {
           btn.removeAttribute('aria-disabled');
         }
       }
-    },    async switchToNativePlayback({ autoplay } = {}) {
+    },
+    async switchToNativePlayback({ autoplay } = {}) {
       const currentTime = this.player?.currentTime ?? 0;
       const shouldPlay = autoplay ?? !!this.player?.playing;
-      transcodeLog('switchToNativePlayback', { currentTime, shouldPlay });
 
       // Release the HLS source even when a shared controller owns it. hls.js
       // otherwise keeps its MediaSource attached to the element and the native
@@ -2458,15 +2420,6 @@ export default {
       }
       const previousMode = this.transcodeMode;
       const wasPlaying = !!this.player?.playing;
-      transcodeLog('switchTranscodeMode start', {
-        mode,
-        previousMode,
-        wasPlaying,
-        playerPaused: this.player?.paused,
-        mediaPaused: (this.player?.media || this.mediaElement)?.paused,
-        shouldAutoplay: this.shouldAutoplay,
-        currentTime: this.player?.currentTime,
-      });
       this.transcodeSwitchInProgress = true;
       // Capture before mode/teardown changes so same-file profile switches always
       // send replaceSessionId even if the controller is mid-start.
@@ -2492,13 +2445,12 @@ export default {
             this.teardownTranscodePlayback({ stopSession: true });
           }
           try {
-            const status = await getTranscodeSessions();
-            this.$emit('needs-transcode', normalizeTranscodeSessionStatus(status, {
+            this.$emit('needs-transcode', await fetchTranscodeOffer({
               source: this.req?.source,
               path: this.req?.path,
             }));
-          } catch (err) {
-            console.error('Failed to check transcode sessions:', err);
+          } catch {
+            // Keep current mode; user can retry from the player menu.
           }
         } else {
           await this.switchToNativePlayback({ autoplay: wasPlaying || this.shouldAutoplay });
@@ -2519,13 +2471,6 @@ export default {
       } finally {
         this.transcodeSwitchInProgress = false;
         this.syncPlaybackUrl({ transcodeMode: this.transcodeMode });
-        transcodeLog('switchTranscodeMode done', {
-          mode: this.transcodeMode,
-          transcodeActive: this.transcodeActive,
-          playerPaused: this.player?.paused,
-          mediaPaused: (this.player?.media || this.mediaElement)?.paused,
-          videoPlaybackLoading: this.videoPlaybackLoading,
-        });
       }
     },
     async reconcilePipSessionOnMount() {
@@ -3992,14 +3937,6 @@ export default {
                   }
                   const wasPlaying = !!this.player?.playing;
                   const el = this.player?.media || this.mediaElement;
-                  transcodeLog('transcode menu selection', {
-                    value,
-                    wasPlaying,
-                    playerPaused: this.player?.paused,
-                    mediaPaused: el?.paused,
-                    currentTime: this.player?.currentTime,
-                    shouldAutoplay: this.shouldAutoplay,
-                  });
                   const playPrime = wasPlaying ? primePlay(el) : null;
                   void this.switchTranscodeMode(value, { playPrime });
                 });

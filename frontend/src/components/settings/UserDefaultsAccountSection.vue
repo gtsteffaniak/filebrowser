@@ -190,13 +190,13 @@ export default {
     },
     configLockTooltipForField(field) {
       if (this.isFieldLocked(field)) {
-        return this.$t("settings.lockedFromConfig");
+        return this.$t("settings.userDefaultFieldLockedFromConfig");
       }
       return "";
     },
     configLockTooltipForPermission(field) {
       if (this.isPermissionLocked(field)) {
-        return this.$t("settings.lockedFromConfig");
+        return this.$t("settings.userDefaultFieldLockedFromConfig");
       }
       return "";
     },

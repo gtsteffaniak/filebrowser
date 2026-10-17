@@ -352,7 +352,7 @@ export default {
       // Explicit switch statement for compile-time safety with ESLint i18n validation
       switch (promptName.toLowerCase()) {
         case "entitypicker":
-          return this.$t("general.select");
+          return this.$t("access.selectEntities");
         case "group-edit":
           return this.$t("access.editGroup");
         case "user-edit":

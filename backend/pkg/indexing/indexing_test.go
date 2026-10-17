@@ -5,9 +5,9 @@ import (
 	"reflect"
 	"testing"
 
-	dbsql "github.com/gtsteffaniak/filebrowser/backend/internal/database/sql"
-	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
+	dbsql "github.com/gtsteffaniak/filebrowser/backend/internal/database/sql"
 )
 
 func BenchmarkFillIndex(b *testing.B) {
@@ -19,8 +19,9 @@ func BenchmarkFillIndex(b *testing.B) {
 	if idx == nil {
 		b.Fatal("index is nil")
 	}
+	b.ResetTimer()
 	b.ReportAllocs()
-	for b.Loop() {
+	for i := 0; i < b.N; i++ {
 		idx.CreateMockData(50, 3) // 1000 dirs, 3 files per dir
 	}
 }

@@ -10,7 +10,7 @@
   />
   <errors v-if="error" :errorCode="error.status" />
   <div class="card-title">
-    <h2>{{ $t("general.access") }}</h2>
+    <h2>{{ $t("access.access") }}</h2>
     <div v-if="sourceOptions.length > 1" class="form-flex-group">
       <ExpandDropdown
         input-id="source-select"
@@ -47,7 +47,7 @@
       :items="accessTableRows"
       item-key="path"
       default-sort-key="path"
-      :aria-label="$t('general.access')"
+      :aria-label="$t('access.access')"
       :loading="loading"
     >
       <template #cell-denyTotal="{ value }">{{ value || "-" }}</template>

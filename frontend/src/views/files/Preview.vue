@@ -134,8 +134,11 @@ import { parseLyrics } from "@/utils/lyrics";
 import { globalVars } from "@/utils/constants";
 import { navigatePlaybackQueue } from "@/utils/playbackQueue.js";
 import { shouldAutoPlayPreview } from "@/utils/previewAutoplay.js";
-import { getTranscodeSessions } from "@/api/transcode.js";
-import { needsTranscodeFirst } from "@/utils/canBrowserPlayNative.js";
+import {
+  fetchTranscodeOffer,
+  proactiveVideoTranscodeOffer,
+  videoTranscodeOfferFromStatus,
+} from "@/plyr/transcodeOffer.js";
 import {
   buildPlaybackQueryPatch,
   parsePlaybackTimeFromQuery,
@@ -149,7 +152,6 @@ import {
 import { isPdfFile } from "@/utils/mediaFile";
 import { shouldUsePdfPreviewFallback } from "@/utils/pdfPreview.js";
 import { TranscodePlaybackController } from "@/plyr/transcodePlaybackController.js";
-import { isTranscodeAvailable } from "@/plyr/transcodeMode.js";
 
 export default {
   name: "preview",
@@ -382,6 +384,11 @@ export default {
         await this.loadPreviewForReq();
       },
     },
+    showVideoPlayer(val) {
+      if (val && this.previewType === 'video') {
+        this.ensureTranscodePlaybackController();
+      }
+    },
   },
   mounted() {
     window.addEventListener("keydown", this.keyEvent);
@@ -485,7 +492,7 @@ export default {
             if (state.req.path !== path) {
               return;
             }
-            await this.checkProactiveVideoTranscodeOffer(path);
+            await this.runProactiveTranscodeOffer(path);
           } finally {
             if (state.req.path === path) {
               this.avMetadataLoading = false;
@@ -826,41 +833,30 @@ export default {
         hash: this.$route.hash,
       });
     },
-    /** Offer transcode UI before mounting plyr when metadata indicates native playback will fail. */
-    async checkProactiveVideoTranscodeOffer(expectedPath) {
-      if (state.req.path !== expectedPath) {
-        return;
-      }
-      if (this.previewType !== 'video' || getters.isShare()) {
-        return;
-      }
-      if (this.transcodePlaybackActive || parseTranscodeModeFromQuery(this.$route?.query)) {
-        return;
-      }
-      const meta = state.req.metadata || {};
-      if (!needsTranscodeFirst({
-        videoCodec: meta.videoCodec,
-        audioCodec: meta.audioCodec,
-        mimeType: state.req.type,
-        fileName: state.req.name,
-      })) {
-        return;
-      }
-      if (!isTranscodeAvailable()) {
-        // Transcoding is off on this server: show the unsupported notice without
-        // asking for sessions, which would answer 503.
-        this.handleVideoTranscodeOffer({ enabled: false, canStart: false, sessions: [] });
-        return;
-      }
+    async runProactiveTranscodeOffer(expectedPath) {
       try {
-        const status = await getTranscodeSessions();
-        if (state.req.path !== expectedPath) {
-          return;
+        const offer = await proactiveVideoTranscodeOffer({
+          expectedPath,
+          currentPath: state.req.path,
+          source: state.req.source,
+          previewType: this.previewType,
+          isShare: getters.isShare(),
+          route: this.$route,
+          metadata: state.req.metadata,
+          mimeType: state.req.type,
+          fileName: state.req.name,
+          transcodePlaybackActive: this.transcodePlaybackActive,
+        });
+        if (offer && state.req.path === expectedPath) {
+          this.applyVideoTranscodeOffer(offer);
         }
-        this.handleVideoTranscodeOffer(this.normalizeTranscodeSessionStatus(status));
-      } catch (err) {
-        console.warn('Failed to check transcode for unsupported format:', err);
-        this.handleVideoTranscodeOffer({ enabled: false, canStart: false, sessions: [] });
+      } catch {
+        if (state.req.path === expectedPath) {
+          this.applyVideoTranscodeOffer(videoTranscodeOfferFromStatus(
+            { enabled: false, canStart: false, sessions: [] },
+            { source: state.req.source, path: state.req.path },
+          ));
+        }
       }
     },
     disposeTranscodePlaybackController({ stopSession = true } = {}) {
@@ -871,44 +867,36 @@ export default {
       this.transcodePlaybackController = null;
     },
     /** plyrViewer failed native playback or detected an unsupported container. */
-    handleVideoTranscodeOffer(status) {
+    handleVideoTranscodeOffer(offerOrStatus) {
       if (this.previewType !== 'video' || getters.isShare()) {
         return;
       }
       this.disposeTranscodePlaybackController({ stopSession: true });
-      status = this.normalizeTranscodeSessionStatus(status);
-      let mode = 'offer';
-      if (status.enabled === false) {
-        mode = 'unsupported';
-      } else if (!status.canStart) {
-        if (status.blockReason === 'user_limit') {
-          mode = 'user_limit';
-        } else if (status.blockReason === 'global_limit') {
-          mode = 'system_limit';
-        }
-      }
+      const offer = offerOrStatus?.mode !== undefined
+        ? offerOrStatus
+        : videoTranscodeOfferFromStatus(offerOrStatus, {
+          source: state.req.source,
+          path: state.req.path,
+        });
+      this.applyVideoTranscodeOffer(offer);
+    },
+    applyVideoTranscodeOffer(offer) {
       this.transcodePlaybackActive = false;
       this.videoTranscodeOffer = {
-        mode,
-        sessions: status.sessions || [],
-        systemLimit: status.globalLimit,
-        userLimit: status.userLimit,
+        mode: offer.mode,
+        sessions: offer.sessions || [],
+        systemLimit: offer.systemLimit,
+        userLimit: offer.userLimit,
       };
-      if (mode === 'offer') {
+      if (offer.mode === 'offer') {
         this.clearTranscodeFromUrl();
       }
     },
-    normalizeTranscodeSessionStatus(status) {
-      if (!status || status.canStart || status.blockReason !== 'user_limit') {
-        return status;
+    ensureTranscodePlaybackController() {
+      if (!this.transcodePlaybackController || this.transcodePlaybackController.disposed) {
+        this.transcodePlaybackController = new TranscodePlaybackController();
       }
-      const sameFileActive = (status.sessions || []).some(
-        (session) => session.source === state.req.source && session.path === state.req.path,
-      );
-      if (!sameFileActive) {
-        return status;
-      }
-      return { ...status, canStart: true, blockReason: '' };
+      return this.transcodePlaybackController;
     },
     async startVideoTranscode() {
       if (this.transcodePlaybackActive) {
@@ -916,22 +904,22 @@ export default {
         return;
       }
       try {
-        let status = await getTranscodeSessions();
-        status = this.normalizeTranscodeSessionStatus(status);
-        if (!status.canStart) {
-          this.handleVideoTranscodeOffer(status);
+        const offer = await fetchTranscodeOffer({
+          source: state.req.source,
+          path: state.req.path,
+        });
+        if (!offer.status?.canStart) {
+          this.applyVideoTranscodeOffer(offer);
           return;
         }
-        if (!this.transcodePlaybackController || this.transcodePlaybackController.disposed) {
-          this.transcodePlaybackController = new TranscodePlaybackController();
-        }
+        this.ensureTranscodePlaybackController();
         // Pressing the offer button is a user gesture, so start playback right away
         // instead of mounting the viewer paused.
         this.playbackStarted = true;
         this.videoTranscodeOffer = null;
         this.transcodePlaybackActive = true;
-      } catch (err) {
-        console.error('Failed to verify transcode availability:', err);
+      } catch {
+        // Offer UI stays visible; user can retry.
       }
     },
   },

@@ -2,7 +2,7 @@
   <EntityPickerButton
     kind="group"
     multiple
-    :label="$t('general.groups')"
+    :label="$t('access.userGroups')"
     :description="description"
     :username="username"
     :disabled="disabled"

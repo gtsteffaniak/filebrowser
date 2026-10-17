@@ -149,10 +149,10 @@ func getSourceInfoHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 }
 
 type userDefaultsResponse struct {
-	Values                *settings.UserDefaults           `json:"values,omitempty"`
-	Enforced              settings.UserDefaultsEnforcement `json:"enforced"`
-	LockedFromConfigPaths []string                         `json:"lockedFromConfigPaths,omitempty"`
-	LockMessage           string                           `json:"lockMessage,omitempty"`
+	Values                  *settings.UserDefaults            `json:"values,omitempty"`
+	Enforced                settings.UserDefaultsEnforcement `json:"enforced"`
+	LockedFromConfigPaths   []string                         `json:"lockedFromConfigPaths,omitempty"`
+	LockMessage             string                           `json:"lockMessage,omitempty"`
 }
 
 func userDefaultsLockMeta() (paths []string, message string) {
@@ -349,7 +349,7 @@ func settingsToolAccessDefaultsPatchHandler(w http.ResponseWriter, r *http.Reque
 }
 
 type shareDefaultsResponse struct {
-	Values   *settings.ShareDefaults           `json:"values,omitempty"`
+	Values   *settings.ShareDefaults            `json:"values,omitempty"`
 	Enforced settings.ShareDefaultsEnforcement `json:"enforced"`
 }
 
@@ -432,4 +432,3 @@ func settingsShareDefaultsPatchHandler(w http.ResponseWriter, r *http.Request, d
 	}
 	return settingsShareDefaultsGetHandler(w, r, d)
 }
-

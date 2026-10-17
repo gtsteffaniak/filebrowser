@@ -109,11 +109,6 @@
     "pause": "Pause{suffix}",
     "resume": "Resume{suffix}",
     "retry": "Retry{suffix}",
-    "transcode": "Transcode{suffix}",
-    "off": "Off{suffix}",
-    "quality": "Quality{suffix}",
-    "balanced": "Balanced{suffix}",
-    "dataSaver": "Data Saver{suffix}",
     "disable": "Disable{suffix}",
     "confirm": "Confirm{suffix}",
     "uploading": "Uploading{suffix}",
@@ -176,12 +171,11 @@
     "interval": "Interval{suffix}",
     "none": "None",
     "enforce": "Enforce{suffix}",
-    "unknown": "Unknown",
-    "simple": "Simple",
-    "normal": "Normal",
-    "complex": "Complex",
-    "access": "Access",
-    "groups": "Groups"
+    "transcode": "Transcode{suffix}",
+    "off": "Off{suffix}",
+    "quality": "Quality{suffix}",
+    "balanced": "Balanced{suffix}",
+    "dataSaver": "Data Saver{suffix}"
   },
   "buttons": {
     "copySuccess": "Copied to clipboard!",
@@ -655,7 +649,7 @@
     "userEditSidebarLinks": "Sidebar links",
     "userDefaultsDescription": "Configure default settings applied to new users and enforced policy for all users.",
     "editAsYaml": "Edit as YAML",
-    "lockedFromConfig": "This setting is set in the config file and cannot be changed here.",
+    "userDefaultFieldLockedFromConfig": "This default is set in the config file and cannot be changed here.",
     "accountDefaults": "Account defaults",
     "disableUserSettings": "Disable user settings page",
     "analyticsView": "View analytics",
@@ -670,6 +664,9 @@
     "passwordRequirementsMatch": "Passwords match",
     "passwordRequirementsMinLength": "At least {min} characters",
     "loginMethod": "Login method",
+    "loginMethods": {
+      "password": "Password"
+    },
     "modifyOtherUser": "Modify user:",
     "modifyOtherUserTitle": "Modify user: {username}",
     "themeColor": "Theme Color",
@@ -772,6 +769,10 @@
     "minimalInfo": "Excludes token customizations, permissions will match the associated user and have no other attributes."
   },
   "index": {
+    "unknown": "Unknown",
+    "simple": "Simple",
+    "normal": "Normal",
+    "complex": "Complex",
     "highlyComplex": "Highly Complex",
     "assessment": "Assessment",
     "ready": "Ready",
@@ -798,9 +799,12 @@
     "passwordRequiredForGeneration": "Your password is required to generate an authenticator code."
   },
   "access": {
+    "access": "Access",
+    "groups": "Groups",
     "newGroup": "New group",
     "editGroup": "Edit group",
     "groupName": "Group name",
+    "userGroups": "Groups",
     "userGroupsDescription": "Groups this user belongs to",
     "groupMembers": "Members",
     "membersCount": "Members: {count}",
@@ -812,6 +816,7 @@
     "groupExists": "A group with this name already exists.",
     "deleteGroupConfirm": "Delete group \"{name}\"? It will also be removed from all access rules.",
     "groupsOidcNote": "Members of SSO-synced groups (OIDC, LDAP, JWT, proxy) are reset from the identity provider each time those users log in.",
+    "selectEntities": "Select",
     "selectUser": "Select user",
     "selectUsers": "Select users",
     "selectGroup": "Select group",
@@ -965,11 +970,6 @@
     "toggleLyrics": "Toggle lyrics",
     "closePanel": "Close panel",
     "openPanel": "Open panel",
-    "transcodeFailed": "Transcoding failed",
-    "transcodeLoading": "Preparing transcoded stream",
-    "transcodeUnsupportedFormat": "This video format is not supported by your browser.",
-    "transcodeUserLimitReached": "Transcode limit reached. You already have an active transcode session:",
-    "transcodeSystemLimitReached": "Server transcode limit reached ({limit} concurrent). Try again when a session finishes.",
     "visualizer": {
       "title": "Visualizer",
       "settings": "Visualizer settings",
@@ -992,7 +992,12 @@
       "maxDecibelsDescription": "Loudest level (dBFS) that the bar resgisters",
       "showScalesDescription": "Show axis and grid lines on the visualizer",
       "showPeaksDescription": "Small white peak indicators above each bar"
-    }
+    },
+    "transcodeFailed": "Transcoding failed",
+    "transcodeLoading": "Preparing transcoded stream",
+    "transcodeUnsupportedFormat": "This video format is not supported by your browser.",
+    "transcodeUserLimitReached": "Transcode limit reached. You already have an active transcode session:",
+    "transcodeSystemLimitReached": "Server transcode limit reached ({limit} concurrent). Try again when a session finishes."
   },
   "fileSizeAnalyzer": {
     "title": "File Size Analyzer",

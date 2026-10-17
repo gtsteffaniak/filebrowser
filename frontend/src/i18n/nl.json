@@ -171,12 +171,6 @@
     "interval": "Interval{suffix}",
     "none": "Geen",
     "enforce": "Handhaven{suffix}",
-    "unknown": "Onbekend",
-    "simple": "Eenvoudig",
-    "normal": "Normaal",
-    "complex": "Complex",
-    "access": "Toegang",
-    "groups": "Groepen",
     "transcode": "Transcoderen{suffix}",
     "off": "Uit{suffix}",
     "quality": "Kwaliteit{suffix}",
@@ -655,7 +649,7 @@
     "userEditSidebarLinks": "Links in de zijbalk",
     "userDefaultsDescription": "Stel de standaardinstellingen in die voor nieuwe gebruikers gelden en het beleid dat voor alle gebruikers moet worden nageleefd.",
     "editAsYaml": "Bewerken als YAML",
-    "lockedFromConfig": "Deze standaardinstelling is vastgelegd in het configuratiebestand en kan hier niet worden gewijzigd.",
+    "userDefaultFieldLockedFromConfig": "Deze standaardinstelling is vastgelegd in het configuratiebestand en kan hier niet worden gewijzigd.",
     "accountDefaults": "Standaardinstellingen voor accounts",
     "disableUserSettings": "Pagina met gebruikersinstellingen uitschakelen",
     "analyticsView": "Analyses bekijken",
@@ -668,6 +662,9 @@
     "enterPassword": "Wachtwoord invoeren",
     "enterPasswordAgain": "Wachtwoord opnieuw invoeren",
     "loginMethod": "Aanmeldingsmethode",
+    "loginMethods": {
+      "password": "Wachtwoord"
+    },
     "modifyOtherUser": "Gebruiker wijzigen:",
     "modifyOtherUserTitle": "Gebruiker aanpassen: {username}",
     "themeColor": "Themakleur",
@@ -772,6 +769,10 @@
     "minimalInfo": "Sluit tokenaanpassingen uit om een kleinere tokenlengte te creëren. Exacte overeenkomst met de rechten van de bijbehorende gebruiker."
   },
   "index": {
+    "unknown": "Onbekend",
+    "simple": "Eenvoudig",
+    "normal": "Normaal",
+    "complex": "Complex",
     "highlyComplex": "Zeer complex",
     "assessment": "Beoordeling",
     "ready": "Klaar",
@@ -798,9 +799,12 @@
     "passwordRequiredForGeneration": "Uw wachtwoord is nodig om een verificatiecode te genereren."
   },
   "access": {
+    "access": "Toegang",
+    "groups": "Groepen",
     "newGroup": "Nieuwe groep",
     "editGroup": "Groep bewerken",
     "groupName": "Groepsnaam",
+    "userGroups": "Groepen",
     "groupMembers": "Leden",
     "deleteGroupConfirm": "Groep \"{name}\" verwijderen? Deze wordt ook uit alle toegangsregels verwijderd.",
     "groupsOidcNote": "Leden van OIDC-gesynchroniseerde groepen worden bij elke aanmelding van die gebruikers opnieuw ingesteld vanuit de identiteitsprovider.",
@@ -827,6 +831,7 @@
     "groupNameTooLong": "De groepsnaam mag maximaal {max} tekens lang zijn.",
     "groupNameInvalid": "De groepsnaam mag geen besturingstekens bevatten.",
     "groupExists": "Er bestaat al een groep met deze naam.",
+    "selectEntities": "Selecteer",
     "selectUser": "Gebruiker selecteren",
     "selectUsers": "Gebruikers selecteren",
     "selectGroup": "Groep selecteren",

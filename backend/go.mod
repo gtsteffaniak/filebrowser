@@ -1,6 +1,6 @@
 module github.com/gtsteffaniak/filebrowser/backend
 
-go 1.27.1
+go 1.27.0
 
 require (
 	github.com/alecthomas/kong v1.16.1

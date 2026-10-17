@@ -494,10 +494,11 @@ export default {
         mutations.replaceRequest({});
         this.loadingProgress = 0;
 
-        // Keep the user on the current files/share URL and show <errors> inline.
-        // Do not navigate to /403|/404|/500 — those standalone routes have no Layout
-        // and leave users stranded after an access denial or missing path.
-        if (e.status === 401 && isShare) {
+        if (e.status === 404) {
+          void router.push({ name: "notFound" });
+        } else if (e.status === 403) {
+          void router.push({ name: "forbidden" });
+        } else if (e.status === 401 && isShare) {
           // Handle share password requirement
           this.clearStoredSharePassword(state.shareInfo?.hash);
           this.attemptedPasswordLogin = this.sharePassword !== "";
@@ -508,6 +509,8 @@ export default {
             this.error = null;
           }
           this.showPasswordPrompt();
+        } else {
+          void router.push({ name: "error" });
         }
       } finally {
         mutations.setLoading(isShare ? "share" : "files", false);

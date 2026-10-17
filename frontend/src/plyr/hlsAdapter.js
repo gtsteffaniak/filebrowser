@@ -1,7 +1,14 @@
-import Hls from 'hls.js';
 import { getTranscodePlaylistURL } from '@/api/transcode.js';
 import { state } from '@/store/index.ts';
-import { transcodeError, transcodeLog, transcodeVerbose, transcodeWarn } from '@/plyr/transcodeMode.js';
+import { transcodeError, transcodeWarn } from '@/plyr/transcodeMode.js';
+
+let hlsModulePromise;
+async function loadHlsModule() {
+  if (!hlsModulePromise) {
+    hlsModulePromise = import('hls.js').then((m) => m.default);
+  }
+  return hlsModulePromise;
+}
 
 const ATTACH_TIMEOUT_MS = 45_000;
 /** Minimum forward buffer before starting playback on live transcode sessions. */
@@ -106,7 +113,7 @@ function pinMediaDuration(video, durationSec) {
  * go-ffmpeg v1.4.0+ publishes fMP4 with tfdt on the full-file decode timeline,
  * so the element and hls.js use source seconds directly (no timelineOffset).
  */
-export function attachHlsToVideo({
+export async function attachHlsToVideo({
   video,
   session,
   startPosition = -1,
@@ -114,24 +121,14 @@ export function attachHlsToVideo({
   onFatal,
   onFirstBuffered,
 }) {
+  const Hls = await loadHlsModule();
   const playlistURL = getTranscodePlaylistURL(session);
   const initialStart = Number.isFinite(startPosition) && startPosition >= 0
     ? startPosition
     : -1;
 
-  transcodeLog('hls attach requested', {
-    sessionId: session?.id,
-    playlistURL,
-    startPosition: initialStart,
-    hlsSupported: Hls.isSupported(),
-    video: describeVideo(video),
-    sessionState: session?.state,
-    reused: session?.reused,
-  });
-
   if (!Hls.isSupported()) {
     if (video.canPlayType('application/vnd.apple.mpegurl')) {
-      transcodeLog('hls attach using native HLS', { playlistURL });
       if (signal?.aborted) {
         const error = new Error('HLS attach aborted');
         error.name = 'AbortError';
@@ -209,18 +206,12 @@ export function attachHlsToVideo({
         graceTimerId = null;
       }
     };
-    const startPlaybackReady = (reason) => {
+    const startPlaybackReady = (_reason) => {
       if (settled || readyToPlay) {
         return;
       }
       readyToPlay = true;
       clearGraceTimer();
-      transcodeLog('hls attach ready', {
-        reason,
-        bufferedFrags,
-        minBufferFrags,
-        readyState: video.readyState,
-      });
       onFirstBuffered?.(video);
       finish('resolve', { cleanup, hls });
     };
@@ -268,22 +259,19 @@ export function attachHlsToVideo({
       maxBufferLength: 30,
       maxMaxBufferLength: 60,
       startPosition: initialStart,
-      xhrSetup(xhr, url) {
+      xhrSetup(xhr, _url) {
         xhr.withCredentials = true;
         for (const [key, value] of Object.entries(authHeaders())) {
           xhr.setRequestHeader(key, value);
         }
-        transcodeVerbose('hls xhr open', { url });
       },
       fetchSetup(context, initParams) {
-        transcodeVerbose('hls fetch setup', { url: context?.url });
         applyAuthToFetchParams(initParams);
         return new Request(context.url, initParams);
       },
     });
 
     const cleanup = () => {
-      transcodeLog('hls destroy', { sessionId: session?.id });
       clearGraceTimer();
       restoreDuration?.();
       video.removeEventListener('canplay', onVideoPlayable);
@@ -297,53 +285,12 @@ export function attachHlsToVideo({
       return;
     }
 
-    hls.on(Hls.Events.MEDIA_ATTACHED, () => {
-      transcodeLog('hls media attached', { video: describeVideo(video) });
-    });
-
-    hls.on(Hls.Events.MANIFEST_LOADING, (_event, data) => {
-      transcodeLog('hls manifest loading', { url: data?.url });
-    });
-
-    hls.on(Hls.Events.MANIFEST_LOADED, (_event, data) => {
-      transcodeLog('hls manifest loaded', {
-        levels: data?.levels?.length,
-        firstLevel: data?.firstLevel,
-        url: data?.url,
-      });
-    });
-
-    hls.on(Hls.Events.MANIFEST_PARSED, (_event, data) => {
-      transcodeLog('hls manifest parsed — calling startLoad', {
-        levels: data?.levels?.length,
-        startPosition: initialStart,
-      });
+    hls.on(Hls.Events.MANIFEST_PARSED, () => {
       hls.startLoad(initialStart >= 0 ? initialStart : -1);
     });
 
-    hls.on(Hls.Events.LEVEL_LOADING, (_event, data) => {
-      transcodeVerbose('hls level loading', { level: data?.level, url: data?.url });
-    });
-
-    hls.on(Hls.Events.FRAG_LOADING, (_event, data) => {
-      transcodeLog('hls frag loading', { frag: describeFrag(data?.frag) });
-    });
-
-    hls.on(Hls.Events.FRAG_LOADED, (_event, data) => {
-      transcodeLog('hls frag loaded', {
-        frag: describeFrag(data?.frag),
-        bytes: data?.frag?.stats?.total,
-      });
-    });
-
-    hls.on(Hls.Events.FRAG_BUFFERED, (_event, data) => {
+    hls.on(Hls.Events.FRAG_BUFFERED, () => {
       bufferedFrags += 1;
-      transcodeLog('hls frag buffered', {
-        frag: describeFrag(data?.frag),
-        video: describeVideo(video),
-        bufferedFrags,
-        minBufferFrags,
-      });
       if (readyToPlay) {
         return;
       }
@@ -364,7 +311,6 @@ export function attachHlsToVideo({
         return;
       }
       if (RECOVERABLE_HLS_DETAILS.has(data?.details)) {
-        transcodeVerbose('hls non-fatal media recovery', info);
         return;
       }
       transcodeWarn('hls non-fatal error', info);
@@ -373,10 +319,7 @@ export function attachHlsToVideo({
     video.addEventListener('canplay', onVideoPlayable);
     video.addEventListener('loadeddata', onVideoPlayable);
 
-    transcodeLog('hls attachMedia + loadSource', { playlistURL });
     hls.attachMedia(video);
     hls.loadSource(playlistURL);
   });
 }
-
-export { Hls };
