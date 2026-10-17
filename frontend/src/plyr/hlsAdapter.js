@@ -1,7 +1,7 @@
 import Hls from 'hls.js';
 import { getTranscodePlaylistURL } from '@/api/transcode.js';
 import { state } from '@/store/index.ts';
-import { transcodeError, transcodeLog, transcodeVerbose, transcodeWarn } from '@/plyr/transcodeDebug.js';
+import { transcodeError, transcodeLog, transcodeVerbose, transcodeWarn } from '@/plyr/transcodeMode.js';
 
 const ATTACH_TIMEOUT_MS = 45_000;
 /** Minimum forward buffer before starting playback on live transcode sessions. */

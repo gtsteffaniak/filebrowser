@@ -668,8 +668,7 @@
     "off": "כבוי{suffix}",
     "quality": "איכות{suffix}",
     "balanced": "מאוזן{suffix}",
-    "dataSaver": "חיסכון בנתונים{suffix}",
-    "media": "מדיה"
+    "dataSaver": "חיסכון בנתונים{suffix}"
   },
   "access": {
     "rules": "כללי גישה",
@@ -1215,41 +1214,5 @@
     "errors": {
       "exceeded": "חריגה ממכסת האחסון"
     }
-  },
-  "media": {
-    "extractEmbeddedSubtitles": "חילוץ כתוביות מוטמעות",
-    "extractEmbeddedSubtitlesDescription": "לחלץ כתוביות מוטמעות מקבצי מדיה.",
-    "debug": "רישום באגים",
-    "debugDescription": "פלט ה-stdout של ffmpeg לצורך שילוב המדיה. אזהרה: יוצר כמות גדולה של פלט.",
-    "imagePreview": "פורמטים לתצוגה מקדימה של תמונות",
-    "videoPreview": "פורמטים של תצוגה מקדימה של וידאו",
-    "imageVideoConversionFormats": "פורמטים להמרת תמונות וקטעי וידאו",
-    "imageVideoConversionFormatsDescription": "בחר אילו פורמטים של תמונות ווידאו ffmpeg יוכל להמיר לצורך תצוגה מקדימה.",
-    "updateFailed": "לא הצליח לעדכן את ההגדרות.",
-    "maxConcurrentTranscodes": "מספר מקסימלי של תהליכי המרה בו-זמניים",
-    "maxConcurrentTranscodesHelp": "המספר המרבי של הפעלות השמעה בו-זמנית של קבצים שעברו המרה ב-HLS עבור משתמש זה.",
-    "transcode": "המרה",
-    "transcodeEnabled": "הפעל המרה",
-    "transcodeEnabledDescription": "אפשר המרה ב-HLS בצד השרת לצורך השמעה למשתמשים מאומתים.",
-    "transcodeSettings": "הגדרות המרה",
-    "transcodeSettingsDescription": "מגבלות על ריבוי משימות, מטמון הדיסק, וכן הגבלות על הרזולוציה וקצב הסיביות לכל פרופיל.",
-    "transcodeMaxConcurrent": "מספר הפעלות בו-זמניות ברחבי העולם",
-    "transcodeMaxConcurrentHelp": "המספר המרבי של תהליכי המרה המתרחשים במקביל עבור כל המשתמשים.",
-    "transcodeMaxConcurrentPerUser": "מגבלת הפעלה לכל משתמש",
-    "transcodeMaxConcurrentPerUserHelp": "מגבלה קשיחה על מספר הפעולות המקבילות של המרה עבור כל משתמש בודד. הגדרות המשתמש אינן יכולות לחרוג ממגבלה זו.",
-    "transcodeCacheMaxSizeMB": "מגבלת גודל המטמון (MB)",
-    "transcodeCacheMaxSizeMBHelp": "שטח הדיסק המרבי עבור מטמון ההמרה, במגה-בייט. הערך 0 פירושו ללא הגבלה.",
-    "transcodeCacheRetentionH": "משך שמירת המטמון (בשעות)",
-    "transcodeCacheRetentionHHelp": "כמה זמן נשמרות גרסאות מטמון הטרנסקוד שאינן פעילות לפני שהן מוסרות.",
-    "transcodeProfileEnabled": "מופעל",
-    "transcodeProfileEnabledDescription": "הצג את הגדרת האיכות הזו בתפריט הנגן.",
-    "transcodeProfileMaxResolution": "רזולוציה מקסימלית",
-    "transcodeProfileMaxResolutionHelp": "גובה הפלט המרבי בפיקסלים. הערך 0 שומר על רזולוציית המקור.",
-    "transcodeProfileAvgBitrate": "קצב העברה ממוצע (kbps)",
-    "transcodeProfileAvgBitrateHelp": "קצב הסיביות הממוצע הרצוי של הווידאו ב-kbps. הערך 0 משמר את קצב הסיביות של המקור.",
-    "accelDevice": "מכשיר האצה",
-    "accelDeviceDescription": "התקן GPU המשמש לעיבוד מדיה עם האצה חומרתית. המעבד (תוכנה) מבטל את ההאצה החומרתית.",
-    "encoderBackend": "חלק האחורי של המקודד",
-    "transcodeProfileEncoderBackendHelp": "ממשק אחורי של מקודד עבור הגדרה קבועה זו; ברירת המחדל היא הממשק האחורי המועדף שזוהה."
   }
 }

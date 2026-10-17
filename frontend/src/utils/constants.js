@@ -44,14 +44,6 @@ const settings = [
       { id: 'groups', label: 'general.groups', component: 'GroupsSettings', permissions: { admin: true }, icon: 'groups' },
     ],
   },
-  {
-    id: 'media',
-    label: 'general.media',
-    component: 'MediaSettings',
-    permissions: { admin: true },
-    requiresMedia: true,
-    icon: 'movie',
-  },
   { id: 'systemAdmin', label: 'settings.systemAdmin', component: 'SystemAdmin', permissions: { admin: true }, icon: 'admin_panel_settings' },
 ];
 

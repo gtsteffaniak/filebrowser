@@ -335,8 +335,7 @@ func setupFrontend(generate bool) {
 }
 
 // setupMedia normalizes the media integration settings. ffmpeg initialization is
-// deferred to InitFFmpeg so the hardware codec probe runs once, after persisted
-// media settings have been applied.
+// deferred to InitFFmpeg so the hardware codec probe runs once at startup.
 func setupMedia() {
 	applyMediaConvertDefaults()
 	setupMediaTranscode()
@@ -393,7 +392,7 @@ func setupMediaTranscode() {
 	if t.CacheMaxSizeMB < 0 {
 		t.CacheMaxSizeMB = 0
 	}
-	if t.CacheMaxSizeMB == 0 && !t.Enabled {
+	if t.Enabled && t.CacheMaxSizeMB == 0 {
 		t.CacheMaxSizeMB = 10240
 	}
 	if t.CacheRetentionH <= 0 {
@@ -405,6 +404,14 @@ func setupMediaTranscode() {
 }
 
 // normalizeTranscodeProfile clamps negative profile values (0 means "original").
+func cloneBoolPtr(v *bool) *bool {
+	if v == nil {
+		return nil
+	}
+	b := *v
+	return &b
+}
+
 func normalizeTranscodeProfile(p *TranscodeProfile) {
 	if p.MaxResolution < 0 {
 		p.MaxResolution = 0
@@ -1021,7 +1028,6 @@ func SetDefaults(generate bool) Settings {
 				LoginMethod:                "",
 				DisableUpdateNotifications: false,
 				ShowAdvancedProfile:        false,
-				MaxConcurrentTranscodes:    1,
 			},
 		},
 	}

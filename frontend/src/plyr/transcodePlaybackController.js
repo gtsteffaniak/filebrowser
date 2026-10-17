@@ -1,7 +1,7 @@
 import { attachHlsToVideo } from '@/plyr/hlsAdapter.js';
 import { continuePlay } from '@/plyr/playbackIntent.js';
 import { TranscodeSessionController } from '@/plyr/transcodeSession.js';
-import { transcodeError, transcodeLog, transcodeWarn } from '@/plyr/transcodeDebug.js';
+import { transcodeError, transcodeLog, transcodeWarn } from '@/plyr/transcodeMode.js';
 import { getTranscodeSessions } from '@/api/transcode.js';
 import { isTranscodeHlsMode } from '@/plyr/transcodeMode.js';
 

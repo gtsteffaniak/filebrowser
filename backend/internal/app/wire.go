@@ -37,22 +37,22 @@ func WireServicesWithContext(ctx context.Context, store *state.Store) (*App, err
 		return nil, err
 	}
 
-	// Always create the manager: the engine re-checks ffmpeg availability per
-	// request, so a runtime admin settings change takes effect without restart.
-	storeDir, err := transcoding.NewStore(settings.TranscodeCacheDir())
-	if err != nil {
-		return nil, err
+	if settings.TranscodeEnabled() {
+		storeDir, err := transcoding.NewStore(settings.TranscodeCacheDir())
+		if err != nil {
+			return nil, err
+		}
+		// Delivery URLs stay root-relative so a subpath deployment or alternate
+		// hostname still resolves and the session cookie is sent.
+		transcodeMgr, err := transcoding.NewManager(ctx, transcoding.NewMediaEngine(), storeDir,
+			strings.TrimRight(settings.Config.Http.BaseURL, "/"))
+		if err != nil {
+			return nil, err
+		}
+		transcoding.SetDefault(transcodeMgr)
+	} else {
+		transcoding.SetDefault(nil)
 	}
-	// Delivery URLs stay root-relative so a subpath deployment or alternate
-	// hostname still resolves and the session cookie is sent.
-	transcodeMgr, err := transcoding.NewManager(ctx, transcoding.NewMediaEngine(), storeDir,
-		strings.TrimRight(settings.Config.Http.BaseURL, "/"))
-	if err != nil {
-		return nil, err
-	}
-	// Exported so the web layer (and shutdown) can reach it without threading
-	// it through StartHttp's Deps.
-	transcoding.SetDefault(transcodeMgr)
 
 	return &App{
 		Store: store,

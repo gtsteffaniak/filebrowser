@@ -89,10 +89,6 @@ type Manager struct {
 	userCounts  map[string]int
 	globalCount int
 
-	subMu   sync.Mutex
-	subs    map[chan EventPayload]struct{}
-	nextEvt uint64
-
 	closed     atomic.Bool
 	wg         sync.WaitGroup
 	producerWg sync.WaitGroup
@@ -146,7 +142,6 @@ func NewManager(ctx context.Context, engine Engine, store *Store, baseURL string
 		inflight:   make(map[string]*inflightStart),
 		producers:  make(map[string]*producer),
 		userCounts: make(map[string]int),
-		subs:       make(map[chan EventPayload]struct{}),
 		runCtx:     runCtx,
 		cancel:     cancel,
 	}
@@ -407,7 +402,7 @@ func (m *Manager) abortStartLocked(username, reuseKey string, flight *inflightSt
 func (m *Manager) finishAttachLocked(ps pendingStart, sess *playbackSession) SessionInfo {
 	m.sessions[ps.sessionID] = sess
 	m.byReuse[ps.reuseKey] = ps.sessionID
-	info := m.emitSessionEventLocked(sess, eventSessionStarted)
+	info := m.sessionInfoLocked(sess)
 	m.finishInflightLocked(ps.reuseKey, ps.flight, info, nil)
 	return info
 }
@@ -712,7 +707,6 @@ func (m *Manager) markRunning(generation string) {
 		}
 		sess.state = StateRunning
 		sess.info.State = StateRunning
-		m.emitSessionEventLocked(sess, eventSessionRunning)
 	}
 }
 
@@ -727,7 +721,6 @@ func (m *Manager) failSession(generation string, err error) {
 		}
 		sess.state = StateFailed
 		sess.info.State = StateFailed
-		m.emitSessionEventLocked(sess, eventSessionFailed)
 		m.releaseSessionLocked(id, sess)
 	}
 }
@@ -746,7 +739,6 @@ func (m *Manager) finishProducer(generation string, err error) {
 		if err != nil {
 			sess.state = StateFailed
 			sess.info.State = StateFailed
-			m.emitSessionEventLocked(sess, eventSessionFailed)
 			continue
 		}
 		sess.state = StateCompleted
@@ -869,7 +861,6 @@ func (m *Manager) releaseSessionLocked(sessionID string, sess *playbackSession) 
 	if m.globalCount > 0 {
 		m.globalCount--
 	}
-	m.emitSessionEventLocked(sess, eventSessionStopped)
 }
 
 func (m *Manager) Heartbeat(username, sessionID string, req HeartbeatRequest) error {
@@ -893,10 +884,7 @@ func (m *Manager) Snapshot(username string, adminAll bool, userLimit int) Snapsh
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	if userLimit < 1 {
-		userLimit = settings.Config.UserDefaults.Account.MaxConcurrentTranscodes
-	}
-	if userLimit < 1 {
-		userLimit = 1
+		userLimit = settings.TranscodeMaxConcurrentPerUser()
 	}
 	resp := SnapshotResponse{
 		Enabled:      m.engine.Available(),
@@ -1003,49 +991,9 @@ func (m *Manager) Failed(username, sessionID string) bool {
 	return sess.state == StateFailed
 }
 
-func (m *Manager) Subscribe() (<-chan EventPayload, func()) {
-	ch := make(chan EventPayload, 8)
-	m.subMu.Lock()
-	m.subs[ch] = struct{}{}
-	m.subMu.Unlock()
-	cancel := func() {
-		m.subMu.Lock()
-		delete(m.subs, ch)
-		close(ch)
-		m.subMu.Unlock()
-	}
-	return ch, cancel
-}
-
-const (
-	eventSessionStarted = "session_started"
-	eventSessionRunning = "session_running"
-	eventSessionFailed  = "session_failed"
-	eventSessionStopped = "session_stopped"
-)
-
-// emitSessionEventLocked publishes a lifecycle event for sess and returns the
-// public info the payload carried. Caller holds m.mu.
-func (m *Manager) emitSessionEventLocked(sess *playbackSession, evtType string) SessionInfo {
-	info := m.publicSession(sess, false)
-	m.publish(EventPayload{ID: m.nextEventID(), Type: evtType, Session: &info})
-	return info
-}
-
-func (m *Manager) publish(evt EventPayload) {
-	m.subMu.Lock()
-	defer m.subMu.Unlock()
-	for ch := range m.subs {
-		select {
-		case ch <- evt:
-		default:
-		}
-	}
-}
-
-func (m *Manager) nextEventID() string {
-	id := atomic.AddUint64(&m.nextEvt, 1)
-	return fmt.Sprintf("%d", id)
+// sessionInfoLocked returns the public session view. Caller holds m.mu.
+func (m *Manager) sessionInfoLocked(sess *playbackSession) SessionInfo {
+	return m.publicSession(sess, false)
 }
 
 func (m *Manager) deliveryURL(sessionID string) string {

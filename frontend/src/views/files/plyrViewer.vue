@@ -296,7 +296,7 @@ import {
   isTranscodeHlsMode,
   isTranscodeAvailable,
 } from '@/plyr/transcodeMode.js';
-import { transcodeLog, transcodeWarn } from '@/plyr/transcodeDebug.js';
+import { transcodeLog, transcodeWarn } from '@/plyr/transcodeMode.js';
 import { isPlayBlockedError, primePlay } from '@/plyr/playbackIntent.js';
 import { needsTranscodeFirst } from '@/utils/canBrowserPlayNative.js';
 import { getTranscodeSessions } from '@/api/transcode.js';

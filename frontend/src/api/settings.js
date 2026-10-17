@@ -1,6 +1,5 @@
 import { notify } from "@/notify/index.ts";
 import { getApiPath, getPublicApiPath } from "@/utils/url.js";
-import { normalizeMediaPlayerSettings } from "@/utils/mediaSettings.js";
 import { fetchJSON, fetchURL, requestTimeoutSignal } from "./utils.ts";
 
 const analyticsRequestTimeoutMs = 5000;
@@ -115,28 +114,6 @@ export async function patchToolAccessDefaults(doc) {
   return fetchJSON(getApiPath("settings/tool-access-defaults"), {
     method: "PATCH",
     body: JSON.stringify(doc),
-    headers: { "Content-Type": "application/json" },
-  });
-}
-
-export function getMediaSettings() {
-  return fetchJSON(getApiPath("settings/media"));
-}
-
-/**
- * Effective media settings for playback. Every authenticated user may read this;
- * admins receive the full settings object and everyone else the player subset.
- * @returns {Promise<{ enabled: boolean, profiles: string[], maxConcurrentPerUser: number, hardwareAcceleration: boolean }>}
- */
-export async function getMediaPlayerSettings() {
-  const data = await fetchJSON(getApiPath("settings/media"));
-  return normalizeMediaPlayerSettings(data);
-}
-
-export async function patchMediaSettings(partial) {
-  return fetchJSON(getApiPath("settings/media"), {
-    method: "PATCH",
-    body: JSON.stringify(partial),
     headers: { "Content-Type": "application/json" },
   });
 }

@@ -1,4 +1,4 @@
-import { transcodeLog } from '@/plyr/transcodeDebug.js';
+import { transcodeLog } from '@/plyr/transcodeMode.js';
 
 /**
  * Show a loading indicator while the native video element is fetching or buffering.

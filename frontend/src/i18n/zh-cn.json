@@ -775,8 +775,7 @@
     "off": "关闭{suffix}",
     "quality": "质量{suffix}",
     "balanced": "平衡的{suffix}",
-    "dataSaver": "数据节省模式{suffix}",
-    "media": "媒体"
+    "dataSaver": "数据节省模式{suffix}"
   },
   "access": {
     "rules": "访问规则",
@@ -1215,41 +1214,5 @@
     "errors": {
       "exceeded": "存储配额已超出"
     }
-  },
-  "media": {
-    "extractEmbeddedSubtitles": "提取嵌入式字幕",
-    "extractEmbeddedSubtitlesDescription": "从媒体文件中提取嵌入式字幕。",
-    "debug": "调试日志",
-    "debugDescription": "将 ffmpeg 的标准输出用于媒体集成。警告：会产生大量输出。",
-    "imagePreview": "图像预览格式",
-    "videoPreview": "视频预览格式",
-    "imageVideoConversionFormats": "图像和视频转换格式",
-    "imageVideoConversionFormatsDescription": "选择 ffmpeg 可用于预览的图像和视频格式。",
-    "updateFailed": "更新设置失败。",
-    "maxConcurrentTranscodes": "最大并发转码数",
-    "maxConcurrentTranscodesHelp": "该用户可同时进行的 HLS 转码播放会话的最大数量。",
-    "transcode": "转码",
-    "transcodeEnabled": "启用转码",
-    "transcodeEnabledDescription": "允许在经过身份验证的播放中进行服务器端 HLS 转码。",
-    "transcodeSettings": "转码设置",
-    "transcodeSettingsDescription": "并发限制、磁盘缓存以及每个配置文件的分辨率和比特率上限。",
-    "transcodeMaxConcurrent": "全球并发会话数",
-    "transcodeMaxConcurrentHelp": "所有用户同时进行的转码会话的最大数量。",
-    "transcodeMaxConcurrentPerUser": "每位用户的会话限制",
-    "transcodeMaxConcurrentPerUserHelp": "对任何单个用户的并发转码会话数设有硬性上限。用户设置不得超过此上限。",
-    "transcodeCacheMaxSizeMB": "缓存大小限制（MB）",
-    "transcodeCacheMaxSizeMBHelp": "转码缓存的最大磁盘空间（单位：MB）。0 表示无限制。",
-    "transcodeCacheRetentionH": "缓存保留时间（小时）",
-    "transcodeCacheRetentionHHelp": "在被清除之前，闲置的转码缓存代会保留多长时间。",
-    "transcodeProfileEnabled": "已启用",
-    "transcodeProfileEnabledDescription": "在播放器菜单中显示此画质预设。",
-    "transcodeProfileMaxResolution": "最大分辨率",
-    "transcodeProfileMaxResolutionHelp": "最大输出高度（以像素为单位）。设置为 0 时将保留源分辨率。",
-    "transcodeProfileAvgBitrate": "平均比特率（kbps）",
-    "transcodeProfileAvgBitrateHelp": "目标视频平均码率（单位：kbps）。设置为 0 时将保留源视频的码率。",
-    "accelDevice": "加速装置",
-    "accelDeviceDescription": "用于硬件加速媒体处理的 GPU 设备。CPU（软件）禁用了硬件加速。",
-    "encoderBackend": "编码器后端",
-    "transcodeProfileEncoderBackendHelp": "此预设的编码器后端；默认使用检测到的首选后端。"
   }
 }

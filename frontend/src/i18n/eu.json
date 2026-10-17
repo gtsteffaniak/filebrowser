@@ -181,8 +181,7 @@
     "off": "Itzali{suffix}",
     "quality": "Kalitatea{suffix}",
     "balanced": "Orekatuta{suffix}",
-    "dataSaver": "Datu-gordetzailea{suffix}",
-    "media": "Komunikabideak"
+    "dataSaver": "Datu-gordetzailea{suffix}"
   },
   "buttons": {
     "copySuccess": "Arbelean kopiatu da!",
@@ -1215,41 +1214,5 @@
   },
   "pwa": {
     "install": "Instalatu aplikazioa"
-  },
-  "media": {
-    "extractEmbeddedSubtitles": "Txertatutako azpitituluak atera",
-    "extractEmbeddedSubtitlesDescription": "Media fitxategietatik txertatutako azpitituluak atera.",
-    "debug": "Akatsen erregistroa",
-    "debugDescription": "Media integrazioarako ffmpeg-en stdout irteera. Oharra: irteera asko sortzen du.",
-    "imagePreview": "Irudi aurrebistako formatuak",
-    "videoPreview": "Bideo aurrebista formatuak",
-    "imageVideoConversionFormats": "Irudi eta bideo bihurketa formatuak",
-    "imageVideoConversionFormatsDescription": "Aukeratu ffmpeg-ek aurrebistetarako bihur ditzakeen irudi eta bideo formatuak.",
-    "updateFailed": "Ezarpenak eguneratzeko huts egin da.",
-    "maxConcurrentTranscodes": "Maximo aldi bereko transkodetzeak",
-    "maxConcurrentTranscodesHelp": "Erabiltzaile honentzako aldi berean exekutatu daitezkeen HLS transkodetze-erreprodukzio saioen kopuru maximoa.",
-    "transcode": "Bihurketa",
-    "transcodeEnabled": "Transkodaketa gaitzea",
-    "transcodeEnabledDescription": "Baimentu zerbitzari-aldiko HLS transkodaketa erreprodukzio autentifikaturako.",
-    "transcodeSettings": "Transkodifikazioko ezarpenak",
-    "transcodeSettingsDescription": "Paralelismo-mugak, disko-cachea eta profil bakoitzeko bereizmen- eta bitrate-mugak.",
-    "transcodeMaxConcurrent": "Munduko aldi bereko saioak",
-    "transcodeMaxConcurrentHelp": "Erabiltzaile guztietan zehar aldi berean exekutatzen diren transkodetze saioen kopuru maximoa.",
-    "transcodeMaxConcurrentPerUser": "Erabiltzaile bakoitzeko saio-muga",
-    "transcodeMaxConcurrentPerUserHelp": "Erabiltzaile bakar baterako aldi berean exekutatzen diren transkodetze saioetarako muga zorrotza. Erabiltzailearen ezarpenek ezin dute hori gainditu.",
-    "transcodeCacheMaxSizeMB": "Kaxearen tamaina-muga (MB)",
-    "transcodeCacheMaxSizeMBHelp": "Transkodetze-cache-rako disko-espazio maximoa MB-tan. 0k mugagabea adierazten du.",
-    "transcodeCacheRetentionH": "Gordailuaren iraupena (ordu)",
-    "transcodeCacheRetentionHHelp": "Zenbat denbora gordetzen dira inaktibo dauden transkodaketa-cache-generazioak kanporatu aurretik?",
-    "transcodeProfileEnabled": "Gaitu",
-    "transcodeProfileEnabledDescription": "Eman kalitatezko aurrezarpen hau erreproduzitzaile-menuan ikusteko.",
-    "transcodeProfileMaxResolution": "Maximo bereizmena",
-    "transcodeProfileMaxResolutionHelp": "Pixeletan irteerako altuera maximoa. 0-k iturburuaren bereizmena mantentzen du.",
-    "transcodeProfileAvgBitrate": "Batez besteko bitratea (kbps)",
-    "transcodeProfileAvgBitrateHelp": "Helburu bideoaren batez besteko bitratea kbps-tan. 0-k iturburuaren bitratea mantentzen du.",
-    "accelDevice": "Azelerazio-gailua",
-    "accelDeviceDescription": "GPU gailua hardware bidez azeleratutako multimedia prozesamendurako erabiltzen da. CPUk (softwareak) hardware azelerazioa desgaitzen du.",
-    "encoderBackend": "Enkodatzaile atzealdea",
-    "transcodeProfileEncoderBackendHelp": "Aurrezarpen honen enkoder atzeko plana; hautemandako atzeko plan lehenetsira lehenetsita dago."
   }
 }

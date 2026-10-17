@@ -45,7 +45,3 @@ export function getTranscodePlaylistURL(session) {
   }
   return `${window.origin}${base}/index.m3u8`;
 }
-
-export function transcodeEventsURL() {
-  return getApiPath('media/transcode/sessions/events');
-}

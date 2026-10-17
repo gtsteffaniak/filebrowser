@@ -668,8 +668,7 @@
     "off": "꺼짐{suffix}",
     "quality": "품질{suffix}",
     "balanced": "균형 잡힌{suffix}",
-    "dataSaver": "데이터 절약 모드{suffix}",
-    "media": "미디어"
+    "dataSaver": "데이터 절약 모드{suffix}"
   },
   "access": {
     "rules": "액세스 규칙",
@@ -1215,41 +1214,5 @@
     "errors": {
       "exceeded": "저장 용량 한도를 초과했습니다"
     }
-  },
-  "media": {
-    "extractEmbeddedSubtitles": "내장 자막 추출",
-    "extractEmbeddedSubtitlesDescription": "미디어 파일에서 내장 자막을 추출합니다.",
-    "debug": "디버그 로깅",
-    "debugDescription": "미디어 통합을 위해 ffmpeg의 stdout을 출력합니다. 주의: 출력량이 매우 많습니다.",
-    "imagePreview": "이미지 미리보기 형식",
-    "videoPreview": "동영상 미리보기 형식",
-    "imageVideoConversionFormats": "이미지 및 동영상 변환 형식",
-    "imageVideoConversionFormatsDescription": "ffmpeg가 미리보기를 위해 변환할 이미지 및 동영상 형식을 선택하십시오.",
-    "updateFailed": "설정 업데이트에 실패했습니다.",
-    "maxConcurrentTranscodes": "최대 동시 트랜스코딩 수",
-    "maxConcurrentTranscodesHelp": "이 사용자에 대해 동시에 실행할 수 있는 HLS 트랜스코드 재생 세션의 최대 수입니다.",
-    "transcode": "트랜스코딩",
-    "transcodeEnabled": "트랜스코딩 활성화",
-    "transcodeEnabledDescription": "인증된 재생에 대해 서버 측 HLS 트랜스코딩을 허용합니다.",
-    "transcodeSettings": "트랜스코딩 설정",
-    "transcodeSettingsDescription": "동시 접속 제한, 디스크 캐시, 프로필별 해상도 및 비트레이트 상한.",
-    "transcodeMaxConcurrent": "전 세계 동시 세션 수",
-    "transcodeMaxConcurrentHelp": "모든 사용자를 통틀어 동시에 실행할 수 있는 트랜스코딩 세션의 최대 수.",
-    "transcodeMaxConcurrentPerUser": "사용자당 세션 제한",
-    "transcodeMaxConcurrentPerUserHelp": "단일 사용자당 동시 트랜스코딩 세션 수에 대한 엄격한 상한선이 설정되어 있습니다. 사용자 설정은 이 한도를 초과할 수 없습니다.",
-    "transcodeCacheMaxSizeMB": "캐시 크기 제한 (MB)",
-    "transcodeCacheMaxSizeMBHelp": "트랜스코드 캐시의 최대 디스크 공간(MB 단위). 0은 무제한을 의미합니다.",
-    "transcodeCacheRetentionH": "캐시 유지 기간 (시간)",
-    "transcodeCacheRetentionHHelp": "사용되지 않는 트랜스코드 캐시 세대가 제거되기 전까지 얼마나 오래 유지되는지.",
-    "transcodeProfileEnabled": "활성화됨",
-    "transcodeProfileEnabledDescription": "플레이어 메뉴에 이 화질 사전 설정을 표시합니다.",
-    "transcodeProfileMaxResolution": "최대 해상도",
-    "transcodeProfileMaxResolutionHelp": "픽셀 단위의 최대 출력 높이. 0을 지정하면 원본 해상도를 유지합니다.",
-    "transcodeProfileAvgBitrate": "평균 비트레이트 (kbps)",
-    "transcodeProfileAvgBitrateHelp": "kbps 단위의 목표 평균 동영상 비트레이트. 0을 지정하면 소스 비트레이트를 유지합니다.",
-    "accelDevice": "가속 장치",
-    "accelDeviceDescription": "하드웨어 가속 미디어 처리에 사용되는 GPU 장치. CPU(소프트웨어)가 하드웨어 가속을 비활성화합니다.",
-    "encoderBackend": "인코더 백엔드",
-    "transcodeProfileEncoderBackendHelp": "이 프리셋에 대한 인코더 백엔드입니다. 기본값은 감지된 권장 백엔드로 설정됩니다."
   }
 }

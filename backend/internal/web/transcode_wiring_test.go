@@ -16,42 +16,31 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 )
 
-// The transcode manager must be wired even when ffmpeg is unavailable at startup.
-// It is registered nil in that case today, and a later runtime enable (an admin
-// PATCH of the media settings) never creates one, so every transcode endpoint
-// would keep returning 503 until the next restart.
-func TestTranscodeManagerIsWiredWithoutFFmpeg(t *testing.T) {
+func TestTranscodeManagerNilWhenDisabled(t *testing.T) {
 	originalAvailable := settings.Env.FFmpegAvailable
-	originalMedia := settings.CurrentMediaSettings()
+	originalTranscode := settings.Config.Integrations.Media.Transcode
 	originalManager := transcoding.Default()
 	t.Cleanup(func() {
 		settings.Env.FFmpegAvailable = originalAvailable
-		settings.ApplyMediaSettings(originalMedia)
+		settings.Config.Integrations.Media.Transcode = originalTranscode
 		transcoding.SetDefault(originalManager)
 	})
 
-	// Startup with ffmpeg missing and transcoding disabled.
 	settings.Env.FFmpegAvailable = false
-	disabled := originalMedia
-	disabled.Transcode = settings.MediaTranscode{Enabled: false}
-	settings.ApplyMediaSettings(disabled)
+	settings.Config.Integrations.Media.Transcode.Enabled = false
+	transcoding.SetDefault(nil)
 
 	setupTestEnv(t)
 
-	mgr := transcoding.Default()
-	if mgr == nil {
-		t.Fatal("transcode manager must be wired even when ffmpeg is unavailable")
-	}
-	if mgr.Enabled() {
-		t.Fatal("manager must report disabled while ffmpeg is unavailable")
+	if transcoding.Default() != nil {
+		t.Fatal("transcode manager must be nil when transcoding is disabled")
 	}
 
-	// Requests are gated on availability, not on the manager being nil.
 	req := httptest.NewRequest(http.MethodPost, "/api/media/transcode/sessions", strings.NewReader(`{"source":"s","path":"/a.mp4"}`))
 	rec := httptest.NewRecorder()
 	status, err := transcodeStartHandler(rec, req, &Context{})
 	if status != http.StatusServiceUnavailable {
-		t.Fatalf("status = %d, want 503 while ffmpeg is unavailable (err=%v)", status, err)
+		t.Fatalf("status = %d, want 503 while transcoding is disabled (err=%v)", status, err)
 	}
 	if err != transcoding.ErrDisabled {
 		t.Fatalf("err = %v, want ErrDisabled", err)
@@ -71,7 +60,6 @@ func TestWireServicesToleratesUnavailableTranscodeCache(t *testing.T) {
 		transcoding.SetDefault(originalManager)
 	})
 
-	// A file where the transcoding directory would go makes directory creation fail.
 	cacheDir := t.TempDir()
 	if err := os.WriteFile(filepath.Join(cacheDir, "transcoding"), []byte("not a dir"), 0o644); err != nil {
 		t.Fatal(err)
@@ -81,10 +69,10 @@ func TestWireServicesToleratesUnavailableTranscodeCache(t *testing.T) {
 	}
 	cfg := settings.Config
 	cfg.Server.CacheDir = cacheDir
+	cfg.Integrations.Media.Transcode.Enabled = true
+	settings.Env.FFmpegAvailable = true
 	settings.SwapConfigForTest(cfg)
 
-	// setupTestEnv already registered a manager; stop it before wiring again so
-	// two janitors do not run for the rest of this test.
 	if first := transcoding.Default(); first != nil {
 		closeCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
@@ -94,15 +82,13 @@ func TestWireServicesToleratesUnavailableTranscodeCache(t *testing.T) {
 	if _, err := app.WireServicesWithContext(context.Background(), state.Default()); err != nil {
 		t.Fatalf("wiring must tolerate an unusable transcode cache dir: %v", err)
 	}
-	// Close the manager this second wiring created so its janitor does not outlive
-	// the test.
 	mgr := transcoding.Default()
 	t.Cleanup(func() {
 		closeCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 		_ = mgr.Close(closeCtx)
 	})
-	if transcoding.Default() == nil {
-		t.Fatal("manager must still be wired")
+	if mgr == nil {
+		t.Fatal("manager must be wired when transcoding is enabled")
 	}
 }

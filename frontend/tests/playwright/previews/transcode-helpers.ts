@@ -11,7 +11,7 @@ seg/00000.m4s
 `;
 
 /**
- * Force the static app-config (and live media settings API) to advertise
+ * Force the static app-config to advertise
  * transcoding so the plyr mode menu appears even when the CI image lacks ffmpeg.
  *
  * Hook getElementById so the patch runs when constants.js reads `#app-config`.
@@ -39,22 +39,6 @@ export async function enableTranscodeUi(page: Page) {
       }
       return el;
     };
-  });
-
-  await page.route("**/api/settings/media", async (route) => {
-    if (route.request().method() !== "GET") {
-      return route.continue();
-    }
-    await route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify({
-        enabled: true,
-        profiles: ["quality", "balanced", "datasaver"],
-        maxConcurrentPerUser: 1,
-        hardwareAcceleration: false,
-      }),
-    });
   });
 }
 

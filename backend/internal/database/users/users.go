@@ -181,9 +181,6 @@ type Preview struct {
 type FrontendUser struct {
 	NonAdminEditable
 	DisableSettings bool `json:"disableSettings"`
-	// MaxConcurrentTranscodes is admin-set: it stays out of NonAdminEditable so a
-	// user cannot raise their own limit through a self-service PATCH.
-	MaxConcurrentTranscodes int                              `json:"maxConcurrentTranscodes"`
 	Username                string                           `json:"username"`
 	FrontendScopes          []FrontendScope                  `json:"scopes"`
 	LockPassword            bool                             `json:"lockPassword"`

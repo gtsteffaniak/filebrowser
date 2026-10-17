@@ -68,19 +68,9 @@ func (e *MediaEngine) BuildPlan(ctx context.Context, realPath string, profile Pr
 		MaxHeight: maxHeightForProfile(profile),
 	}
 	mustTranscode := profileForcesVideoTranscode(profile) ||
-		profileRequiresBitrateTranscode(profile, info) ||
-		(pipeline.MaxHeight > 0 && info.Height > pipeline.MaxHeight) ||
-		!fmp4CopyableVideoCodec(info.VideoCodec)
+		profileRequiresBitrateTranscode(profile, info)
 	pipeline.ForceVideoTranscode = mustTranscode
-	// BuildHLSSegmentBuildInput gates stream copy on h264 only; fMP4 also
-	// carries HEVC and VP9, so eligibility is computed here instead.
-	remux, videoCopy := fmp4CopyEligibility(info, mustTranscode)
-	buildIn := ffmpeg.HLSSegmentBuildInput{
-		Info:      info,
-		MaxHeight: pipeline.MaxHeight,
-		Remux:     remux,
-		VideoCopy: videoCopy,
-	}
+	buildIn := ffmpeg.BuildHLSSegmentBuildInput(info, pipeline)
 	defaults := ffmpeg.DefaultOnDemandHLSDefaults()
 
 	svc := ffmpeg.Get()
@@ -211,33 +201,6 @@ func avgBitrateForProfile(profile Profile) int {
 // audio at a bounded bitrate, regardless of how the source was encoded.
 func profileForcesVideoTranscode(profile Profile) bool {
 	return profile != ProfileQuality
-}
-
-// fmp4CopyableVideoCodec reports whether the video codec can be stream-copied
-// into fMP4 HLS output and still decode in every hls.js-capable browser. Only
-// h264 qualifies: VP9 has no Safari MSE support, HEVC support is inconsistent
-// outside Apple hardware, and VP8 has no MP4 mapping. Everything else takes
-// the transcode path, which always emits h264 + AAC.
-func fmp4CopyableVideoCodec(name string) bool {
-	n := strings.ToLower(strings.TrimSpace(name))
-	switch n {
-	case "", "h264", "avc", "avc1":
-		return true
-	}
-	return strings.Contains(n, "h264")
-}
-
-// fmp4CopyEligibility selects the stream-copy pipeline for a source: remux when
-// video and audio are both fMP4-compatible, videoCopy when only the audio needs
-// transcoding. Nothing copies when a transcode is required.
-func fmp4CopyEligibility(info ffmpeg.StreamInfo, mustTranscode bool) (remux, videoCopy bool) {
-	if !info.HasVideo || mustTranscode || !fmp4CopyableVideoCodec(info.VideoCodec) {
-		return false, false
-	}
-	if info.AudioCodec == "" || strings.EqualFold(info.AudioCodec, "aac") {
-		return true, false
-	}
-	return false, true
 }
 
 // profileRequiresBitrateTranscode reports whether the profile pins a bitrate cap

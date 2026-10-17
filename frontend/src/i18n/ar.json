@@ -668,8 +668,7 @@
     "off": "إيقاف{suffix}",
     "quality": "الجودة{suffix}",
     "balanced": "متوازن{suffix}",
-    "dataSaver": "موفّر البيانات{suffix}",
-    "media": "وسائل الإعلام"
+    "dataSaver": "موفّر البيانات{suffix}"
   },
   "access": {
     "rules": "قواعد الوصول",
@@ -1215,41 +1214,5 @@
     "errors": {
       "exceeded": "تم تجاوز حصة التخزين"
     }
-  },
-  "media": {
-    "extractEmbeddedSubtitles": "استخراج الترجمة المضمنة",
-    "extractEmbeddedSubtitlesDescription": "استخراج الترجمات المضمنة من ملفات الوسائط.",
-    "debug": "تسجيل أخطاء التصحيح",
-    "debugDescription": "إخراج stdout لـ ffmpeg من أجل دمج الوسائط. تحذير: ينتج عن ذلك كمية كبيرة من الإخراج.",
-    "imagePreview": "تنسيقات معاينة الصور",
-    "videoPreview": "تنسيقات معاينة الفيديو",
-    "imageVideoConversionFormats": "تنسيقات تحويل الصور والفيديو",
-    "imageVideoConversionFormatsDescription": "اختر تنسيقات الصور والفيديو التي يمكن لـ ffmpeg تحويلها لعرضها في المعاينة.",
-    "updateFailed": "فشل تحديث الإعدادات.",
-    "maxConcurrentTranscodes": "الحد الأقصى لعدد عمليات التحويل المتزامنة",
-    "maxConcurrentTranscodesHelp": "الحد الأقصى لعدد جلسات التشغيل المتزامنة التي تستخدم تحويل الترميز HLS لهذا المستخدم.",
-    "transcode": "تحويل الترميز",
-    "transcodeEnabled": "تمكين تحويل الترميز",
-    "transcodeEnabledDescription": "السماح بتحويل ترميز HLS من جانب الخادم للتشغيل بعد المصادقة.",
-    "transcodeSettings": "إعدادات تحويل الترميز",
-    "transcodeSettingsDescription": "حدود التزامن، وذاكرة التخزين المؤقتة على القرص، والحدود القصوى للدقة ومعدل البت لكل ملف تعريف.",
-    "transcodeMaxConcurrent": "الجلسات المتزامنة على مستوى العالم",
-    "transcodeMaxConcurrentHelp": "الحد الأقصى لعدد جلسات التحويل المتزامنة لجميع المستخدمين.",
-    "transcodeMaxConcurrentPerUser": "الحد الأقصى لعدد الجلسات لكل مستخدم",
-    "transcodeMaxConcurrentPerUserHelp": "حد أقصى صارم لعدد جلسات التحويل المتزامنة لأي مستخدم واحد. ولا يمكن لإعدادات المستخدم تجاوز هذا الحد.",
-    "transcodeCacheMaxSizeMB": "الحد الأقصى لحجم ذاكرة التخزين المؤقت (ميغابايت)",
-    "transcodeCacheMaxSizeMBHelp": "الحد الأقصى لمساحة القرص المخصصة لذاكرة التخزين المؤقتة لعملية التحويل، بالميغابايت. الرقم 0 يعني مساحة غير محدودة.",
-    "transcodeCacheRetentionH": "مدة الاحتفاظ بالذاكرة المؤقتة (بالساعات)",
-    "transcodeCacheRetentionHHelp": "ما هي المدة التي يتم خلالها الاحتفاظ بأجيال ذاكرة التخزين المؤقتة للتحويل غير النشطة قبل إزالتها؟",
-    "transcodeProfileEnabled": "ممكّن",
-    "transcodeProfileEnabledDescription": "اعرض إعداد الجودة هذا في قائمة المشغل.",
-    "transcodeProfileMaxResolution": "الدقة القصوى",
-    "transcodeProfileMaxResolutionHelp": "أقصى ارتفاع للإخراج بالبكسل. عند تعيين القيمة إلى 0، يتم الاحتفاظ بدقة المصدر.",
-    "transcodeProfileAvgBitrate": "متوسط معدل البت (كيلوبت في الثانية)",
-    "transcodeProfileAvgBitrateHelp": "متوسط معدل البت المستهدف للفيديو بالكيلوبت في الثانية. القيمة «0» تحافظ على معدل البت الأصلي.",
-    "accelDevice": "جهاز التسارع",
-    "accelDeviceDescription": "يُستخدم جهاز GPU لمعالجة الوسائط المعتمدة على التسريع المادي. أما وحدة المعالجة المركزية (CPU) (برمجيًّا) فتقوم بتعطيل التسريع المادي.",
-    "encoderBackend": "الجزء الخلفي للمشفّر",
-    "transcodeProfileEncoderBackendHelp": "الخلفية المشفرة لهذا الإعداد المسبق؛ يتم تعيين الخلفية المفضلة المكتشفة كخيار افتراضي."
   }
 }

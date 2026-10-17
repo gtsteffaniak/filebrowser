@@ -137,8 +137,6 @@ import UserEditSidebarLinks from "./UserEditSidebarLinks.vue";
 import Quota from "./Quota.vue";
 import NewFileTemplate from "./NewFileTemplate.vue";
 import DefaultViewPrefs from "./DefaultViewPrefs.vue";
-import MediaConversionFormats from "./MediaConversionFormats.vue";
-import MediaTranscodeSettings from "./MediaTranscodeSettings.vue";
 import { state, getters, mutations } from "@/store";
 import { getObjectProperty, omitObjectProperty, setObjectProperty } from "@/utils/object.js";
 
@@ -198,8 +196,6 @@ export default {
     Quota,
     NewFileTemplate,
     DefaultViewPrefs,
-    MediaConversionFormats,
-    MediaTranscodeSettings,
   },
   data() {
     return {

@@ -668,8 +668,7 @@
     "off": "Kapalı{suffix}",
     "quality": "Kalite{suffix}",
     "balanced": "Dengeli{suffix}",
-    "dataSaver": "Veri Tasarrufu{suffix}",
-    "media": "Medya"
+    "dataSaver": "Veri Tasarrufu{suffix}"
   },
   "access": {
     "rules": "Erişim kuralları",
@@ -1215,41 +1214,5 @@
     "errors": {
       "exceeded": "Depolama kotası aşıldı"
     }
-  },
-  "media": {
-    "extractEmbeddedSubtitles": "Gömülü altyazıları ayıklama",
-    "extractEmbeddedSubtitlesDescription": "Medya dosyalarından gömülü altyazıları ayıklayın.",
-    "debug": "Hata ayıklama günlüğü",
-    "debugDescription": "Medya entegrasyonu için ffmpeg stdout çıktısı. Uyarı: Çok fazla çıktı üretilir.",
-    "imagePreview": "Görüntü önizleme biçimleri",
-    "videoPreview": "Video önizleme formatları",
-    "imageVideoConversionFormats": "Görüntü ve video dönüştürme formatları",
-    "imageVideoConversionFormatsDescription": "ffmpeg'in önizleme amacıyla hangi resim ve video formatlarını dönüştürebileceğini seçin.",
-    "updateFailed": "Ayarlar güncellenemedi.",
-    "maxConcurrentTranscodes": "Aynı anda gerçekleştirilebilecek maksimum kod dönüştürme sayısı",
-    "maxConcurrentTranscodesHelp": "Bu kullanıcı için eşzamanlı HLS kod dönüştürme oynatma oturumlarının maksimum sayısı.",
-    "transcode": "Kod dönüştürme",
-    "transcodeEnabled": "Kod dönüştürmeyi etkinleştir",
-    "transcodeEnabledDescription": "Kimlik doğrulaması yapılmış oynatma için sunucu tarafında HLS kod dönüştürme işlemine izin verin.",
-    "transcodeSettings": "Kod dönüştürme ayarları",
-    "transcodeSettingsDescription": "Eşzamanlılık sınırları, disk önbelleği ve profil başına çözünürlük ile bit hızı sınırları.",
-    "transcodeMaxConcurrent": "Küresel eşzamanlı oturumlar",
-    "transcodeMaxConcurrentHelp": "Tüm kullanıcılar için eşzamanlı kod dönüştürme oturumlarının azami sayısı.",
-    "transcodeMaxConcurrentPerUser": "Kullanıcı başına oturum sınırı",
-    "transcodeMaxConcurrentPerUserHelp": "Herhangi bir kullanıcı için eşzamanlı kod dönüştürme oturumlarına ilişkin kesin bir üst sınır vardır. Kullanıcı ayarları bu sınırı aşamaz.",
-    "transcodeCacheMaxSizeMB": "Önbellek boyutu sınırı (MB)",
-    "transcodeCacheMaxSizeMBHelp": "Transkodlama önbelleği için maksimum disk alanı (MB cinsinden). 0, sınırsız anlamına gelir.",
-    "transcodeCacheRetentionH": "Önbellek saklama süresi (saat)",
-    "transcodeCacheRetentionHHelp": "Kullanılmayan kod dönüştürme önbellek nesilleri, silinmeden önce ne kadar süreyle saklanır?",
-    "transcodeProfileEnabled": "Etkinleştirildi",
-    "transcodeProfileEnabledDescription": "Bu kalite ayarını oynatıcı menüsünde göster.",
-    "transcodeProfileMaxResolution": "Maksimum çözünürlük",
-    "transcodeProfileMaxResolutionHelp": "Piksel cinsinden maksimum çıktı yüksekliği. 0 değeri, kaynak çözünürlüğünü korur.",
-    "transcodeProfileAvgBitrate": "Ortalama bit hızı (kbps)",
-    "transcodeProfileAvgBitrateHelp": "Hedeflenen ortalama video bit hızı (kbps cinsinden). 0 değeri, kaynak bit hızını korur.",
-    "accelDevice": "Hızlandırma cihazı",
-    "accelDeviceDescription": "Donanım hızlandırmalı medya işleme için kullanılan GPU aygıtı. CPU (yazılım), donanım hızlandırmayı devre dışı bırakır.",
-    "encoderBackend": "Enkoder arka ucu",
-    "transcodeProfileEncoderBackendHelp": "Bu ön ayar için kodlayıcı arka ucu; varsayılan olarak algılanan tercih edilen arka uç kullanılır."
   }
 }

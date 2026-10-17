@@ -668,8 +668,7 @@
     "off": "Désactivé{suffix}",
     "quality": "Qualité{suffix}",
     "balanced": "Équilibré{suffix}",
-    "dataSaver": "Économiseur de données{suffix}",
-    "media": "Médias"
+    "dataSaver": "Économiseur de données{suffix}"
   },
   "access": {
     "rules": "Règles d'accès",
@@ -1215,41 +1214,5 @@
     "errors": {
       "exceeded": "Quota de stockage dépassé"
     }
-  },
-  "media": {
-    "extractEmbeddedSubtitles": "Extraire les sous-titres intégrés",
-    "extractEmbeddedSubtitlesDescription": "Extraire les sous-titres intégrés des fichiers multimédias.",
-    "debug": "Journalisation de débogage",
-    "debugDescription": "Sortie stdout de ffmpeg pour l'intégration multimédia. Attention : génère un volume important de données de sortie.",
-    "imagePreview": "Formats d'aperçu des images",
-    "videoPreview": "Formats d'aperçu vidéo",
-    "imageVideoConversionFormats": "Formats de conversion d'images et de vidéos",
-    "imageVideoConversionFormatsDescription": "Sélectionnez les formats d'images et de vidéos que FFmpeg peut convertir pour les aperçus.",
-    "updateFailed": "Échec de la mise à jour des paramètres.",
-    "maxConcurrentTranscodes": "Nombre maximal de transcodages simultanés",
-    "maxConcurrentTranscodesHelp": "Nombre maximal de sessions simultanées de lecture avec transcodage HLS pour cet utilisateur.",
-    "transcode": "Transcodage",
-    "transcodeEnabled": "Activer le transcodage",
-    "transcodeEnabledDescription": "Autoriser le transcodage HLS côté serveur pour la lecture après authentification.",
-    "transcodeSettings": "Paramètres de transcodage",
-    "transcodeSettingsDescription": "Limites de connexions simultanées, cache disque, ainsi que la résolution et les plafonds de débit binaire par profil.",
-    "transcodeMaxConcurrent": "Nombre total de sessions simultanées",
-    "transcodeMaxConcurrentHelp": "Nombre maximal de sessions de transcodage simultanées pour l'ensemble des utilisateurs.",
-    "transcodeMaxConcurrentPerUser": "Limite de sessions par utilisateur",
-    "transcodeMaxConcurrentPerUserHelp": "Limite maximale stricte du nombre de sessions de transcodage simultanées pour un utilisateur donné. Les paramètres de l'utilisateur ne peuvent pas dépasser cette limite.",
-    "transcodeCacheMaxSizeMB": "Limite de taille du cache (Mo)",
-    "transcodeCacheMaxSizeMBHelp": "Espace disque maximal alloué au cache de transcodage, en Mo. La valeur 0 correspond à un espace illimité.",
-    "transcodeCacheRetentionH": "Durée de conservation du cache (en heures)",
-    "transcodeCacheRetentionHHelp": "Durée pendant laquelle les générations de cache de transcodage inactives sont conservées avant d'être supprimées.",
-    "transcodeProfileEnabled": "Activé",
-    "transcodeProfileEnabledDescription": "Afficher ce préréglage de qualité dans le menu du lecteur.",
-    "transcodeProfileMaxResolution": "Résolution maximale",
-    "transcodeProfileMaxResolutionHelp": "Hauteur maximale de sortie en pixels. La valeur 0 conserve la résolution d'origine.",
-    "transcodeProfileAvgBitrate": "Débit binaire moyen (kbps)",
-    "transcodeProfileAvgBitrateHelp": "Débit binaire moyen souhaité pour la vidéo, en kbps. La valeur 0 conserve le débit binaire de la source.",
-    "accelDevice": "Dispositif d'accélération",
-    "accelDeviceDescription": "Périphérique GPU utilisé pour le traitement multimédia accéléré par le matériel. Le CPU (logiciel) désactive l'accélération matérielle.",
-    "encoderBackend": "Backend de l'encodeur",
-    "transcodeProfileEncoderBackendHelp": "Backend d'encodage pour ce préréglage ; la valeur par défaut correspond au backend préféré détecté."
   }
 }

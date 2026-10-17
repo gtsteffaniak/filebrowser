@@ -775,8 +775,7 @@
     "off": "Av{suffix}",
     "quality": "Kvalitet{suffix}",
     "balanced": "Balanserad{suffix}",
-    "dataSaver": "Dataspara{suffix}",
-    "media": "Media"
+    "dataSaver": "Dataspara{suffix}"
   },
   "access": {
     "rules": "Regler för åtkomst",
@@ -1215,41 +1214,5 @@
     "errors": {
       "exceeded": "Lagringskvoten har överskridits"
     }
-  },
-  "media": {
-    "extractEmbeddedSubtitles": "Extrahera inbäddade undertexter",
-    "extractEmbeddedSubtitlesDescription": "Extrahera inbäddade undertexter från mediefiler.",
-    "debug": "Felsökningsloggning",
-    "debugDescription": "Utdata från ffmpeg:s stdout för medieintegrationen. Varning: genererar mycket utdata.",
-    "imagePreview": "Format för bildförhandsvisning",
-    "videoPreview": "Format för videoförhandsvisning",
-    "imageVideoConversionFormats": "Bild- och videokonverteringsformat",
-    "imageVideoConversionFormatsDescription": "Välj vilka bild- och videoformat som ffmpeg ska kunna konvertera för förhandsgranskning.",
-    "updateFailed": "Det gick inte att uppdatera inställningarna.",
-    "maxConcurrentTranscodes": "Maximalt antal samtidiga omkodningar",
-    "maxConcurrentTranscodesHelp": "Det maximala antalet samtidiga HLS-uppspelningssessioner med omkodning för denna användare.",
-    "transcode": "Omkodning",
-    "transcodeEnabled": "Aktivera omkodning",
-    "transcodeEnabledDescription": "Tillåt HLS-omkodning på serversidan för uppspelning efter inloggning.",
-    "transcodeSettings": "Inställningar för omkodning",
-    "transcodeSettingsDescription": "Begränsningar för samtidig användning, diskcache samt upplösnings- och bithastighetsbegränsningar per profil.",
-    "transcodeMaxConcurrent": "Globala samtidiga sessioner",
-    "transcodeMaxConcurrentHelp": "Högsta antalet samtidiga transkodningssessioner för alla användare.",
-    "transcodeMaxConcurrentPerUser": "Begränsning av antalet sessioner per användare",
-    "transcodeMaxConcurrentPerUserHelp": "Ett strikt tak för antalet samtidiga omkodningssessioner per enskild användare. Användarinställningarna får inte överskrida detta.",
-    "transcodeCacheMaxSizeMB": "Gräns för cacheminnets storlek (MB)",
-    "transcodeCacheMaxSizeMBHelp": "Maximalt diskutrymme för omkodningscachen i MB. 0 betyder obegränsat.",
-    "transcodeCacheRetentionH": "Cache-lagringstid (timmar)",
-    "transcodeCacheRetentionHHelp": "Hur länge inaktiva generationer av transkodningscachen sparas innan de rensas bort.",
-    "transcodeProfileEnabled": "Aktiverad",
-    "transcodeProfileEnabledDescription": "Visa den här kvalitetsinställningen i spelarmenyn.",
-    "transcodeProfileMaxResolution": "Högsta upplösning",
-    "transcodeProfileMaxResolutionHelp": "Maximal utgångshöjd i pixlar. Värdet 0 behåller källans upplösning.",
-    "transcodeProfileAvgBitrate": "Genomsnittlig bithastighet (kbps)",
-    "transcodeProfileAvgBitrateHelp": "Målvärde för genomsnittlig videobithastighet i kbps. Värdet 0 innebär att källans bithastighet bibehålls.",
-    "accelDevice": "Accelerationsanordning",
-    "accelDeviceDescription": "GPU-enhet som används för hårdvaruaccelererad mediebehandling. CPU (programvara) inaktiverar hårdvaruaccelerationen.",
-    "encoderBackend": "Kodarens backend",
-    "transcodeProfileEncoderBackendHelp": "Encoder-backend för denna förinställning; standardinställningen är den upptäckta rekommenderade backenden."
   }
 }

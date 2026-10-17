@@ -668,8 +668,7 @@
     "off": "Ki{suffix}",
     "quality": "Minőség{suffix}",
     "balanced": "Kiegyensúlyozott{suffix}",
-    "dataSaver": "Adatmegtakarító{suffix}",
-    "media": "Média"
+    "dataSaver": "Adatmegtakarító{suffix}"
   },
   "access": {
     "rules": "Hozzáférési szabályok",
@@ -1215,41 +1214,5 @@
     "errors": {
       "exceeded": "A tárhelykvóta túllépése"
     }
-  },
-  "media": {
-    "extractEmbeddedSubtitles": "Beágyazott feliratok kivonása",
-    "extractEmbeddedSubtitlesDescription": "Beágyazott feliratok kivonása a médiafájlokból.",
-    "debug": "Hibakeresési naplózás",
-    "debugDescription": "Az ffmpeg stdout kimenete a médiaintegrációhoz. Figyelem: nagy mennyiségű kimenetet eredményez.",
-    "imagePreview": "Képelőnézeti formátumok",
-    "videoPreview": "Videó-előnézeti formátumok",
-    "imageVideoConversionFormats": "Kép- és videókonvertálási formátumok",
-    "imageVideoConversionFormatsDescription": "Válassza ki, hogy az ffmpeg mely kép- és videóformátumokat konvertálhassa az előnézetekhez.",
-    "updateFailed": "A beállítások frissítése nem sikerült.",
-    "maxConcurrentTranscodes": "Maximális egyidejű átkódolások száma",
-    "maxConcurrentTranscodesHelp": "Az adott felhasználó számára engedélyezett egyidejű HLS-átkódolásos lejátszási munkamenetek maximális száma.",
-    "transcode": "Átkódolás",
-    "transcodeEnabled": "Transzkódolás engedélyezése",
-    "transcodeEnabledDescription": "Engedélyezze a szerveroldali HLS-átkódolást a hitelesített lejátszáshoz.",
-    "transcodeSettings": "Átkódolási beállítások",
-    "transcodeSettingsDescription": "A párhuzamos feldolgozás korlátai, a lemez-gyorsítótár, valamint a profilonkénti felbontás és a bitráta-korlátok.",
-    "transcodeMaxConcurrent": "Globális párhuzamos munkamenetek",
-    "transcodeMaxConcurrentHelp": "Az összes felhasználóra vonatkozó egyidejű átkódolási munkamenetek maximális száma.",
-    "transcodeMaxConcurrentPerUser": "Felhasználónkénti munkamenet-korlát",
-    "transcodeMaxConcurrentPerUserHelp": "Egyetlen felhasználó számára is szigorú felső határ van érvényben az egyidejű átkódolási munkamenetek számát illetően. A felhasználói beállítások nem léphetik túl ezt a határt.",
-    "transcodeCacheMaxSizeMB": "A gyorsítótár méretének felső határa (MB)",
-    "transcodeCacheMaxSizeMBHelp": "A transzkódolási gyorsítótár maximális lemezterülete MB-ban. A 0 érték korlátlan területet jelent.",
-    "transcodeCacheRetentionH": "A gyorsítótár megőrzési ideje (óra)",
-    "transcodeCacheRetentionHHelp": "Mennyi ideig maradnak meg az inaktív transzkódolási gyorsítótár-generációk, mielőtt törlésre kerülnek.",
-    "transcodeProfileEnabled": "Engedélyezve",
-    "transcodeProfileEnabledDescription": "Jelenítsd meg ezt a minőségi beállítást a lejátszó menüjében.",
-    "transcodeProfileMaxResolution": "Maximális felbontás",
-    "transcodeProfileMaxResolutionHelp": "A kimeneti magasság maximális értéke pixelben. A 0 érték esetén a forrás felbontása marad meg.",
-    "transcodeProfileAvgBitrate": "Átlagos bitráta (kbps)",
-    "transcodeProfileAvgBitrateHelp": "A videó átlagos bitrátájának célértéke kbps-ben. A 0 érték a forrás bitrátáját tartja meg.",
-    "accelDevice": "Gyorsítóberendezés",
-    "accelDeviceDescription": "A hardveresen gyorsított médiafeldolgozáshoz használt GPU-eszköz. A CPU (szoftver) letiltja a hardveres gyorsítást.",
-    "encoderBackend": "Kódoló háttérrendszer",
-    "transcodeProfileEncoderBackendHelp": "A beállításhoz tartozó kódoló háttérprogram; alapértelmezés szerint az észlelt, előnyben részesített háttérprogramot használja."
   }
 }

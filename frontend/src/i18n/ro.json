@@ -668,8 +668,7 @@
     "off": "Oprit{suffix}",
     "quality": "Calitate{suffix}",
     "balanced": "Echilibrat{suffix}",
-    "dataSaver": "Economizor de date{suffix}",
-    "media": "Mass-media"
+    "dataSaver": "Economizor de date{suffix}"
   },
   "access": {
     "rules": "Reguli de acces",
@@ -1215,41 +1214,5 @@
     "errors": {
       "exceeded": "S-a depășit cota de stocare"
     }
-  },
-  "media": {
-    "extractEmbeddedSubtitles": "Extragerea subtitrărilor încorporate",
-    "extractEmbeddedSubtitlesDescription": "Extrage subtitrările încorporate din fișierele media.",
-    "debug": "Jurnalizarea erorilor de depanare",
-    "debugDescription": "Ieșirea stdout din ffmpeg pentru integrarea fișierelor media. Atenție: generează un volum mare de date de ieșire.",
-    "imagePreview": "Formate de previzualizare a imaginilor",
-    "videoPreview": "Formate de previzualizare video",
-    "imageVideoConversionFormats": "Formate de conversie a imaginilor și a videoclipurilor",
-    "imageVideoConversionFormatsDescription": "Alegeți formatele de imagine și video pe care ffmpeg le poate converti pentru previzualizări.",
-    "updateFailed": "Nu s-au putut actualiza setările.",
-    "maxConcurrentTranscodes": "Numărul maxim de transcodări simultane",
-    "maxConcurrentTranscodesHelp": "Numărul maxim de sesiuni simultane de redare cu transcodare HLS pentru acest utilizator.",
-    "transcode": "Transcodare",
-    "transcodeEnabled": "Activează transcodarea",
-    "transcodeEnabledDescription": "Permite transcodarea HLS pe server pentru redarea conținutului după autentificare.",
-    "transcodeSettings": "Setări de transcodare",
-    "transcodeSettingsDescription": "Limitele de concurență, memoria cache pe disc, precum și rezoluția specifică fiecărui profil și limitele de rată de biți.",
-    "transcodeMaxConcurrent": "Sesiuni simultane la nivel global",
-    "transcodeMaxConcurrentHelp": "Numărul maxim de sesiuni de transcodare simultane pentru toți utilizatorii.",
-    "transcodeMaxConcurrentPerUser": "Limita de sesiuni pe utilizator",
-    "transcodeMaxConcurrentPerUserHelp": "Limită maximă strictă privind numărul de sesiuni de transcodare simultane pentru un singur utilizator. Setările utilizatorului nu pot depăși această limită.",
-    "transcodeCacheMaxSizeMB": "Limita dimensiunii cache-ului (MB)",
-    "transcodeCacheMaxSizeMBHelp": "Spațiul maxim pe disc pentru memoria cache de transcodare, în MB. Valoarea 0 înseamnă nelimitat.",
-    "transcodeCacheRetentionH": "Durata de păstrare a cache-ului (ore)",
-    "transcodeCacheRetentionHHelp": "Cât timp sunt păstrate generațiile de cache de transcodare inactive înainte de a fi eliminate.",
-    "transcodeProfileEnabled": "Activat",
-    "transcodeProfileEnabledDescription": "Afișează această presetare de calitate în meniul playerului.",
-    "transcodeProfileMaxResolution": "Rezoluție maximă",
-    "transcodeProfileMaxResolutionHelp": "Înălțimea maximă de ieșire în pixeli. Valoarea 0 păstrează rezoluția sursei.",
-    "transcodeProfileAvgBitrate": "Rata medie de transfer (kbps)",
-    "transcodeProfileAvgBitrateHelp": "Rata de biți medie țintă pentru video, în kbps. Valoarea 0 menține rata de biți a sursei.",
-    "accelDevice": "Dispozitiv de accelerare",
-    "accelDeviceDescription": "Dispozitiv GPU utilizat pentru procesarea conținutului media cu accelerare hardware. CPU (software) dezactivează accelerarea hardware.",
-    "encoderBackend": "Backend-ul codificatorului",
-    "transcodeProfileEncoderBackendHelp": "Backend-ul encoderului pentru această presetare; implicit se utilizează backend-ul preferat detectat."
   }
 }

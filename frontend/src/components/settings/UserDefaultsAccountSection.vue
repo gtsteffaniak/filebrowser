@@ -59,28 +59,6 @@
         :name="$t('profileSettings.showAdvancedProfile')"
         :description="$t('profileSettings.showAdvancedProfileDescription')"
       />
-      <div
-        v-if="enforceable || account.maxConcurrentTranscodes !== undefined"
-        class="settings-number-input item"
-      >
-        <div class="no-padding">
-          <label :for="maxConcurrentTranscodesInputId">{{ $t('media.maxConcurrentTranscodes') }}</label>
-          <HelpTooltipIcon :text="$t('media.maxConcurrentTranscodesHelp')" />
-        </div>
-        <div class="no-padding">
-          <input
-            :id="maxConcurrentTranscodesInputId"
-            class="sizeInput input"
-            type="number"
-            min="1"
-            :max="maxConcurrentTranscodesLimit"
-            step="1"
-            :value="account.maxConcurrentTranscodes"
-            @change="emitAccountChange('maxConcurrentTranscodes', clampMaxConcurrentTranscodes($event.target.value))"
-            :disabled="isFieldDisabled('maxConcurrentTranscodes')"
-          />
-        </div>
-      </div>
     </div>
     <div class="settings-items">
       <h3>{{ $t("general.permissions") }}</h3>
@@ -136,19 +114,13 @@
 <script>
 import SettingsItem from "@/components/settings/SettingsItem.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
-import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
 import { getObjectProperty } from "@/utils/object.js";
-import { globalVars } from "@/utils/constants";
-import { state } from "@/store";
-
-let transcodeInputCounter = 0;
 
 export default {
   name: "UserDefaultsAccountSection",
   components: {
     SettingsItem,
     ToggleSwitch,
-    HelpTooltipIcon,
   },
   props: {
     startCollapsed: {
@@ -185,29 +157,7 @@ export default {
     },
   },
   emits: ["account-change", "enforced-change", "enforced-permission-change"],
-  data() {
-    transcodeInputCounter += 1;
-    return {
-      maxConcurrentTranscodesInputId: `maxConcurrentTranscodes-${transcodeInputCounter}`,
-    };
-  },
-  computed: {
-    maxConcurrentTranscodesLimit() {
-      // Prefer the live media settings; globalVars are static page constants.
-      const live = state.mediaPlayerSettings?.maxConcurrentPerUser;
-      if (Number.isFinite(live) && live > 0) {
-        return live;
-      }
-      const limit = globalVars?.transcodeMaxPerUser;
-      return Number.isFinite(limit) && limit > 0 ? limit : undefined;
-    },
-  },
   methods: {
-    clampMaxConcurrentTranscodes(raw) {
-      const value = Math.max(1, Number(raw) || 1);
-      const limit = this.maxConcurrentTranscodesLimit;
-      return limit ? Math.min(value, limit) : value;
-    },
     isFieldLocked(field) {
       return this.configLockedPaths.includes(`account.${field}`);
     },

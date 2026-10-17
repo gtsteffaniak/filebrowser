@@ -3,7 +3,7 @@ import {
   startTranscodeSession,
   stopTranscodeSession,
 } from '@/api/transcode.js';
-import { transcodeLog, transcodeWarn } from '@/plyr/transcodeDebug.js';
+import { transcodeLog, transcodeWarn } from '@/plyr/transcodeMode.js';
 
 let clientCounter = 0;
 

@@ -88,31 +88,10 @@ func TestValidateNonAdminSelfPatchWhich(t *testing.T) {
 			{"loginMethod"},
 			{"lockPassword"},
 			{"disableSettings"},
-			// Admin-set: a user must not raise their own transcode limit.
-			{"maxConcurrentTranscodes"},
-			{"locale", "maxConcurrentTranscodes"},
 		} {
 			if err := validateNonAdminSelfPatchWhich(which); err == nil {
 				t.Fatalf("expected error for which=%v", which)
 			}
-		}
-	})
-
-	t.Run("requires password confirmation for maxConcurrentTranscodes", func(t *testing.T) {
-		if userPutOnlyNonAdminEditableFields([]string{"maxConcurrentTranscodes"}) {
-			t.Fatal("maxConcurrentTranscodes must not count as a non-admin-editable field")
-		}
-		if userPutOnlyNonAdminEditableFields([]string{"locale", "maxConcurrentTranscodes"}) {
-			t.Fatal("maxConcurrentTranscodes must not be exempt from password confirmation")
-		}
-		if !userPutOnlyNonAdminEditableFields([]string{"locale"}) {
-			t.Fatal("locale should remain non-admin editable")
-		}
-	})
-
-	t.Run("allows admins to patch maxConcurrentTranscodes", func(t *testing.T) {
-		if err := validatePatchWhich([]string{"maxConcurrentTranscodes"}); err != nil {
-			t.Fatalf("admins must be able to patch the limit: %v", err)
 		}
 	})
 

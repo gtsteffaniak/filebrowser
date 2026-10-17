@@ -32,7 +32,6 @@ import UserSettings from "@/views/settings/Users.vue";
 import FileLoading from "@/views/settings/FileLoading.vue";
 import ApiKeys from "@/views/settings/Api.vue";
 import SystemAdmin from "@/views/settings/SystemAdmin.vue";
-import MediaSettings from "@/views/settings/Media.vue";
 import NotificationsSettings from "@/views/settings/Notifications.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import { getObjectProperty } from '@/utils/object.js';
@@ -51,7 +50,6 @@ export default {
     FileLoading,
     UserSettings,
     SystemAdmin,
-    MediaSettings,
     NotificationsSettings,
     LoadingSpinner,
   },

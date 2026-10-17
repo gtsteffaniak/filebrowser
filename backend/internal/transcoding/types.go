@@ -113,10 +113,3 @@ type HeartbeatRequest struct {
 	ClientID    string  `json:"clientId,omitempty"`
 }
 
-// EventPayload is sent over SSE for capacity/lifecycle updates.
-type EventPayload struct {
-	ID      string           `json:"id"`
-	Type    string           `json:"type"`
-	Summary SnapshotResponse `json:"summary,omitempty"`
-	Session *SessionInfo     `json:"session,omitempty"`
-}

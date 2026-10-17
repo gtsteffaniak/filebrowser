@@ -78,7 +78,7 @@ func transcodeStartHandler(w http.ResponseWriter, r *http.Request, d *Context) (
 		return status, resolveErr
 	}
 
-	userLimit := effectiveUserLimit(d.User.MaxConcurrentTranscodes)
+	userLimit := effectiveUserLimit()
 
 	logger.Infof("[transcode] POST sessions user=%s source=%q path=%q profile=%q replace=%q client=%q startSec=%.2f",
 		d.User.Username, req.Source, req.Path, profile, req.ReplaceSessionID, req.ClientID, req.StartSec)
@@ -129,7 +129,7 @@ func transcodeSessionsHandler(w http.ResponseWriter, r *http.Request, d *Context
 		return http.StatusServiceUnavailable, err
 	}
 	adminAll := d.User.Permissions.Admin && strings.EqualFold(r.URL.Query().Get("all"), "true")
-	snap := mgr.Snapshot(d.User.Username, adminAll, effectiveUserLimit(d.User.MaxConcurrentTranscodes))
+	snap := mgr.Snapshot(d.User.Username, adminAll, effectiveUserLimit())
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(snap); err != nil {
 		return http.StatusInternalServerError, err
@@ -168,55 +168,6 @@ func transcodeSessionHeartbeatHandler(w http.ResponseWriter, r *http.Request, d 
 	}
 	w.WriteHeader(http.StatusNoContent)
 	return http.StatusNoContent, nil
-}
-
-func transcodeEventsHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
-	mgr, err := transcodeManager()
-	if err != nil {
-		return http.StatusServiceUnavailable, err
-	}
-	flusher, ok := w.(http.Flusher)
-	if !ok {
-		return http.StatusInternalServerError, fmt.Errorf("streaming unsupported")
-	}
-	w.Header().Set("Content-Type", "text/event-stream")
-	w.Header().Set("Cache-Control", "no-cache")
-	w.Header().Set("Connection", "keep-alive")
-
-	events, cancel := mgr.Subscribe()
-	defer cancel()
-
-	userLimit := effectiveUserLimit(d.User.MaxConcurrentTranscodes)
-	snap := mgr.Snapshot(d.User.Username, false, userLimit)
-	initPayload, _ := json.Marshal(transcoding.EventPayload{
-		ID:      "0",
-		Type:    "snapshot",
-		Summary: snap,
-	})
-	fmt.Fprintf(w, "id: 0\nevent: transcode\ndata: %s\n\n", initPayload)
-	flusher.Flush()
-
-	heartbeat := time.NewTicker(30 * time.Second)
-	defer heartbeat.Stop()
-	for {
-		select {
-		case <-r.Context().Done():
-			return http.StatusOK, nil
-		case <-heartbeat.C:
-			fmt.Fprintf(w, ": keepalive\n\n")
-			flusher.Flush()
-		case evt, ok := <-events:
-			if !ok {
-				return http.StatusOK, nil
-			}
-			if evt.Session != nil && evt.Session.Username != d.User.Username && !d.User.Permissions.Admin {
-				continue
-			}
-			payload, _ := json.Marshal(evt)
-			fmt.Fprintf(w, "id: %s\nevent: transcode\ndata: %s\n\n", evt.ID, payload)
-			flusher.Flush()
-		}
-	}
 }
 
 func transcodePlaylistHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
@@ -366,19 +317,10 @@ func transcodeErrorStatus(err error) int {
 	}
 }
 
-// effectiveUserLimit resolves a user's concurrent transcode limit, clamped by the
-// admin-defined per-user ceiling and the global limit.
-func effectiveUserLimit(userMax int) int {
-	limit := userMax
-	if limit < 1 {
-		limit = settings.Config.UserDefaults.Account.MaxConcurrentTranscodes
-	}
-	if limit < 1 {
-		limit = 1
-	}
-	if ceiling := settings.TranscodeMaxConcurrentPerUser(); ceiling > 0 && limit > ceiling {
-		limit = ceiling
-	}
+// effectiveUserLimit returns the configured per-user transcode ceiling, clamped
+// by the global concurrent session limit.
+func effectiveUserLimit() int {
+	limit := settings.TranscodeMaxConcurrentPerUser()
 	if global := settings.TranscodeMaxConcurrent(); global > 0 && limit > global {
 		limit = global
 	}
