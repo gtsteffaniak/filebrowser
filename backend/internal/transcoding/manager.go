@@ -688,7 +688,9 @@ func (m *Manager) runProducerJob(ctx context.Context, sessionID, gen, jobDir, re
 		case <-ticker.C:
 			if job.VTDecodeUnreliable() {
 				job.Cancel()
-				<-jobDone
+				if waitErr := <-jobDone; waitErr != nil {
+					logger.Infof("transcode generation=%s job stopped for software decode retry: %v", gen, waitErr)
+				}
 				return producerRestartSoftware
 			}
 			if !started && m.store.InitReady(jobDir) {

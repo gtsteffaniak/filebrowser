@@ -100,83 +100,11 @@ function pinMediaDuration(video, durationSec) {
 }
 
 /**
- * Pin the element to a source-relative timeline: reads are shifted by the
- * measured offset (mediaStartSec - raw seekable start) and writes shifted
- * back, so the playhead and seekable ranges all speak source seconds.
- * @param {HTMLMediaElement} video
- * @param {number} mediaStartSec source-time position of the generation start
- * @param {number} initialOffset offset to assume before the first buffered
- *   range is measurable
- */
-function pinMediaTimeline(video, mediaStartSec, initialOffset) {
-  if (!video || !Number.isFinite(mediaStartSec) || mediaStartSec <= 0) {
-    return null;
-  }
-  const desc = (name) => {
-    const d = Object.getOwnPropertyDescriptor(HTMLMediaElement.prototype, name);
-    return d?.get ? d : null;
-  };
-  const currentTime = desc('currentTime');
-  const seekable = desc('seekable');
-  const buffered = desc('buffered');
-  const played = desc('played');
-  if (!currentTime?.set || !seekable || !buffered) {
-    return null;
-  }
-  let measured = false;
-  let offset = initialOffset;
-  const shiftRanges = (ranges) => ({
-    length: ranges?.length ?? 0,
-    start: (i) => ranges.start(i) + offset,
-    end: (i) => ranges.end(i) + offset,
-  });
-  Object.defineProperty(video, 'currentTime', {
-    configurable: true,
-    get: () => currentTime.get.call(video) + offset,
-    set: (v) => currentTime.set.call(video, v - offset),
-  });
-  Object.defineProperty(video, 'seekable', {
-    configurable: true,
-    get: () => shiftRanges(seekable.get.call(video)),
-  });
-  Object.defineProperty(video, 'buffered', {
-    configurable: true,
-    get: () => shiftRanges(buffered.get.call(video)),
-  });
-  if (played) {
-    Object.defineProperty(video, 'played', {
-      configurable: true,
-      get: () => shiftRanges(played.get.call(video)),
-    });
-  }
-  return {
-    // Lock in the true offset once the first range exists; the raw origin
-    // never moves afterwards within a generation.
-    measure() {
-      if (measured) {
-        return;
-      }
-      const raw = seekable.get.call(video);
-      if (!raw || raw.length === 0) {
-        return;
-      }
-      measured = true;
-      offset = mediaStartSec - raw.start(0);
-    },
-    restore() {
-      delete video.currentTime;
-      delete video.seekable;
-      delete video.buffered;
-      if (played) {
-        delete video.played;
-      }
-    },
-  };
-}
-
-/**
  * Attach hls.js to a video element for a transcode session.
  * Resolves once enough media is buffered and playback can begin safely.
+ *
+ * go-ffmpeg v1.4.0+ publishes fMP4 with tfdt on the full-file decode timeline,
+ * so the element and hls.js use source seconds directly (no timelineOffset).
  */
 export function attachHlsToVideo({
   video,
@@ -190,7 +118,6 @@ export function attachHlsToVideo({
   const initialStart = Number.isFinite(startPosition) && startPosition >= 0
     ? startPosition
     : -1;
-  const mediaStartSec = Number.isFinite(session?.startSec) ? session.startSec : 0;
 
   transcodeLog('hls attach requested', {
     sessionId: session?.id,
@@ -214,17 +141,12 @@ export function attachHlsToVideo({
       // onFirstBuffered marks the session active, applies the start position and
       // resumes the primed play promise; without it playback stays paused.
       const restoreDuration = pinMediaDuration(video, session?.durationSec);
-      // Native HLS typically already exposes the source timeline; the
-      // measurement makes that an identity transform, but still normalizes
-      // engines that rebase a mid-file generation to 0.
-      const pinTimeline = pinMediaTimeline(video, mediaStartSec, 0);
       let reportedReady = false;
       const onReady = () => {
         if (reportedReady || signal?.aborted) {
           return;
         }
         reportedReady = true;
-        pinTimeline?.measure();
         onFirstBuffered?.(video);
       };
       const onAbortNative = () => {
@@ -239,7 +161,6 @@ export function attachHlsToVideo({
         cleanup: () => {
           onAbortNative();
           signal?.removeEventListener('abort', onAbortNative);
-          pinTimeline?.restore();
           restoreDuration?.();
           video.removeAttribute('src');
           video.load();
@@ -340,15 +261,12 @@ export function attachHlsToVideo({
     const restoreDuration = isCompletedSession
       ? null
       : pinMediaDuration(video, session?.durationSec);
-    // timelineOffset shifts fragment positions onto the source timeline so
-    // appended fMP4 lands at its tfdt position natively.
     const hls = new Hls({
       enableWorker: true,
       lowLatencyMode: false,
       backBufferLength: 30,
       maxBufferLength: 30,
       maxMaxBufferLength: 60,
-      timelineOffset: mediaStartSec,
       startPosition: initialStart,
       xhrSetup(xhr, url) {
         xhr.withCredentials = true;
@@ -461,4 +379,4 @@ export function attachHlsToVideo({
   });
 }
 
-export { Hls, pinMediaTimeline };
+export { Hls };

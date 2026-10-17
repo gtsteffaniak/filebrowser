@@ -115,7 +115,7 @@ test("transcode mode menu stays hidden when media is unavailable", async ({
   await page.goto(`${TESTDATA}/sample-640x480.mp4`);
   await expect(page.locator(".plyr-viewer video").first()).toBeVisible({ timeout: 15_000 });
 
-  const mediaAvailable = await page.evaluate(() => (window as any).globalVars?.mediaAvailable === true);
+  const mediaAvailable = await page.evaluate(() => window.globalVars?.mediaAvailable === true);
   if (mediaAvailable) {
     test.skip(true, "ffmpeg is available in this environment; menu visibility is expected");
   }

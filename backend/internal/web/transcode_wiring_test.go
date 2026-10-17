@@ -22,17 +22,19 @@ import (
 // would keep returning 503 until the next restart.
 func TestTranscodeManagerIsWiredWithoutFFmpeg(t *testing.T) {
 	originalAvailable := settings.Env.FFmpegAvailable
-	originalTranscode := settings.Config.Integrations.Media.Transcode
+	originalMedia := settings.CurrentMediaSettings()
 	originalManager := transcoding.Default()
 	t.Cleanup(func() {
 		settings.Env.FFmpegAvailable = originalAvailable
-		settings.Config.Integrations.Media.Transcode = originalTranscode
+		settings.ApplyMediaSettings(originalMedia)
 		transcoding.SetDefault(originalManager)
 	})
 
 	// Startup with ffmpeg missing and transcoding disabled.
 	settings.Env.FFmpegAvailable = false
-	settings.Config.Integrations.Media.Transcode = settings.MediaTranscode{Enabled: false}
+	disabled := originalMedia
+	disabled.Transcode = settings.MediaTranscode{Enabled: false}
+	settings.ApplyMediaSettings(disabled)
 
 	setupTestEnv(t)
 
@@ -62,10 +64,10 @@ func TestTranscodeManagerIsWiredWithoutFFmpeg(t *testing.T) {
 func TestWireServicesToleratesUnavailableTranscodeCache(t *testing.T) {
 	setupTestEnv(t)
 
-	originalCacheDir := settings.Config.Server.CacheDir
+	prevConfig := settings.Config
 	originalManager := transcoding.Default()
 	t.Cleanup(func() {
-		settings.Config.Server.CacheDir = originalCacheDir
+		settings.SwapConfigForTest(prevConfig)
 		transcoding.SetDefault(originalManager)
 	})
 
@@ -77,7 +79,17 @@ func TestWireServicesToleratesUnavailableTranscodeCache(t *testing.T) {
 	if err := os.MkdirAll(filepath.Join(cacheDir, "transcoding"), 0o755); err == nil {
 		t.Fatal("test setup: expected directory creation to fail on a file path")
 	}
-	settings.Config.Server.CacheDir = cacheDir
+	cfg := settings.Config
+	cfg.Server.CacheDir = cacheDir
+	settings.SwapConfigForTest(cfg)
+
+	// setupTestEnv already registered a manager; stop it before wiring again so
+	// two janitors do not run for the rest of this test.
+	if first := transcoding.Default(); first != nil {
+		closeCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		_ = first.Close(closeCtx)
+	}
 
 	if _, err := app.WireServicesWithContext(context.Background(), state.Default()); err != nil {
 		t.Fatalf("wiring must tolerate an unusable transcode cache dir: %v", err)

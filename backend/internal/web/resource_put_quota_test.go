@@ -24,6 +24,7 @@ func setupPutQuotaTest(t *testing.T) string {
 		t.Fatal(err)
 	}
 	app.MustWireServices(state.Default())
+	stopTranscodeManagerOnCleanup(t)
 	t.Cleanup(func() {
 		state.Close()
 	})

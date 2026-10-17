@@ -18,11 +18,11 @@ async function captureRealMediaAvailable(page: Page) {
     const original = Document.prototype.getElementById;
     Document.prototype.getElementById = function patchedGetElementById(id) {
       const el = original.call(this, id);
-      if (id === "app-config" && el && el.textContent && (window as any).__realMediaAvailable === undefined) {
+      if (id === "app-config" && el && el.textContent && window.__realMediaAvailable === undefined) {
         try {
-          (window as any).__realMediaAvailable = JSON.parse(el.textContent).mediaAvailable === true;
+          window.__realMediaAvailable = JSON.parse(el.textContent).mediaAvailable === true;
         } catch (_) {
-          (window as any).__realMediaAvailable = false;
+          window.__realMediaAvailable = false;
         }
       }
       return el;
@@ -77,7 +77,7 @@ test("transcode playback survives forward, backward, and repeated scrubbing", as
   const video = page.locator(".plyr-viewer video").first();
   await expect(video).toBeVisible({ timeout: 15_000 });
 
-  const mediaAvailable = await page.evaluate(() => (window as any).__realMediaAvailable === true);
+  const mediaAvailable = await page.evaluate(() => window.__realMediaAvailable === true);
   if (!mediaAvailable) {
     test.skip(true, "ffmpeg unavailable on this server; real transcode cannot run");
   }
