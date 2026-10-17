@@ -13,9 +13,14 @@ import { rememberViewToken } from "./viewToken.js"
 import { isMediaFile } from "@/utils/mediaFile.js"
 import { getObjectProperty } from "@/utils/object.js"
 import { getStreamURL, getStreamURLPublic } from "./media.js"
-import { invalidateDirMetadataCache } from '@/utils/metadataCache.js'
+import {
+  invalidateDirMetadataCache,
+  invalidateDirMetadataItem,
+  markDirMetadataItemChanged,
+  removeDirMetadataItem
+} from '@/utils/cache/metadataCache.ts'
 
-export { fetchPreviewImage } from "@/utils/previewRequests.js"
+export { fetchPreviewBlob, fetchPreviewImage } from "@/utils/previewRequests.ts"
 
 const VIEW_TOKEN_TTL_SECONDS = 15 * 60;
 const MOCK_DATA_SOURCE = 'mockData';
@@ -107,7 +112,7 @@ function cacheViewTokenFromListing(data) {
 }
 
 // Notify if errors occur
-export async function fetchFiles(source, path, content = false, metadata = false, skipExtendedAttrs = false) {
+export async function fetchFiles(source, path, content = false, metadata = false, skipExtendedAttrs = false, signal = undefined) {
   if (!source || source === undefined || source === null) {
     throw new Error('no source provided')
   }
@@ -135,13 +140,15 @@ export async function fetchFiles(source, path, content = false, metadata = false
       ...(metadata && { metadata: 'true' }),
       ...(skipExtendedAttrs && { skipExtendedAttrs: 'true' })
     })
-    const res = await fetchURL(apiPath)
+    const res = await fetchURL(apiPath, signal ? { signal } : undefined)
     const data = await res.json()
     const adjusted = adjustedData(data)
     cacheViewTokenFromListing(adjusted)
     return adjusted
   } catch (err) {
-    notify.showError(err.message || 'Error fetching data')
+    if (err?.name !== 'AbortError') {
+      notify.showError(err.message || 'Error fetching data')
+    }
     throw err
   }
 }
@@ -256,7 +263,11 @@ export async function bulkDelete(items) {
     // 200 = all succeeded, 207 = partial success (some succeeded, some failed)
     if (response.status === 200 || response.status === 207) {
       for (const item of items) {
-        invalidateDirMetadataCache({ source: item.source, path: getParentDir(item.path) })
+        if (response.status === 200) {
+          removeDirMetadataItem({ source: item.source }, item.path)
+        } else {
+          invalidateDirMetadataItem({ source: item.source }, item.path)
+        }
       }
       return data
     }
@@ -925,7 +936,7 @@ export function post(
       });
 
     const uploadPromise = startRequest(false).then((result) => {
-      invalidateDirMetadataCache({ source, path: getParentDir(path) });
+      markDirMetadataItemChanged({ source }, path);
       return result;
     });
     // Preserve .xhr for pause/abort; re-attach after .then() so callers still see it.
@@ -993,8 +1004,19 @@ export async function moveCopy(
     // 200 = all succeeded, 207 = partial success (some succeeded, some failed)
     if (response.status === 200 || response.status === 207) {
       for (const item of items) {
-        invalidateDirMetadataCache({ source: item.fromSource, path: getParentDir(item.from) })
-        invalidateDirMetadataCache({ source: item.toSource, path: getParentDir(item.to) })
+        if (response.status !== 200) {
+          invalidateDirMetadataItem({ source: item.fromSource }, item.from)
+          invalidateDirMetadataItem({ source: item.toSource }, item.to)
+          continue
+        }
+        if (action === 'move') {
+          removeDirMetadataItem({ source: item.fromSource }, item.from)
+        }
+        if (rename) {
+          invalidateDirMetadataCache({ source: item.toSource, path: getParentDir(item.to) })
+        } else {
+          markDirMetadataItemChanged({ source: item.toSource }, item.to)
+        }
       }
       return data
     }
@@ -1229,7 +1251,7 @@ function sharePublicAuthHeaders(hash) {
  * @param {boolean} metadata
  * @returns {Promise<any>}
  */
-export async function fetchFilesPublic(path, hash, password = "", content = false, metadata = false, skipExtendedAttrs = false) {
+export async function fetchFilesPublic(path, hash, password = "", content = false, metadata = false, skipExtendedAttrs = false, signal = undefined) {
   const params = {
     path: path,
     hash,
@@ -1242,6 +1264,7 @@ export async function fetchFilesPublic(path, hash, password = "", content = fals
   const response = await fetch(apiPath, {
     credentials: "same-origin",
     headers: sharePassword ? { "X-SHARE-PASSWORD": encodeURIComponent(sharePassword) } : {},
+    ...(signal && { signal }),
   });
 
   if (!response.ok) {
@@ -1418,7 +1441,7 @@ export function postPublic(
 
     promise.xhr = request;
     promise.then(() => {
-      invalidateDirMetadataCache({ isShare: true, hash, path: getParentDir(path) })
+      markDirMetadataItemChanged({ isShare: true, hash }, path)
     }).catch(() => { /* upload failed so do nothing */ });
     return promise;
   } catch (err) {
@@ -1497,7 +1520,11 @@ export async function bulkDeletePublic(items) {
 
     if (response.status === 200 || response.status === 207) {
       for (const item of items) {
-        invalidateDirMetadataCache({ isShare: true, hash, path: getParentDir(item.path) })
+        if (response.status === 200) {
+          removeDirMetadataItem({ isShare: true, hash }, item.path)
+        } else {
+          invalidateDirMetadataItem({ isShare: true, hash }, item.path)
+        }
       }
       return data
     }
@@ -1556,8 +1583,19 @@ export async function moveCopyPublic(
 
     if (response.status === 200 || response.status === 207) {
       for (const item of items) {
-        invalidateDirMetadataCache({ isShare: true, hash, path: getParentDir(item.from) })
-        invalidateDirMetadataCache({ isShare: true, hash, path: getParentDir(item.to) })
+        if (response.status !== 200) {
+          invalidateDirMetadataItem({ isShare: true, hash }, item.from)
+          invalidateDirMetadataItem({ isShare: true, hash }, item.to)
+          continue
+        }
+        if (action === 'move') {
+          removeDirMetadataItem({ isShare: true, hash }, item.from)
+        }
+        if (rename) {
+          invalidateDirMetadataCache({ isShare: true, hash, path: getParentDir(item.to) })
+        } else {
+          markDirMetadataItemChanged({ isShare: true, hash }, item.to)
+        }
       }
       return data
     }

@@ -17,7 +17,7 @@ import Tools from "@/views/Tools.vue";
 const translate = (key: string): string => i18n.global.t(key) as string;
 const t = i18n.global.t.bind(i18n.global);
 
-const titles: Record<string, string> = {
+const titles = (): Record<string, string> => ({
   Login: translate("general.login"),
   Share: translate("general.share"),
   /** Same component as Share; name differs for /public optional-auth routes. */
@@ -35,7 +35,7 @@ const titles: Record<string, string> = {
   NotFound: translate("errors.notFound"),
   ShareNotFound: translate("errors.shareNotFound"),
   InternalServerError: translate("errors.internal"),
-};
+});
 
 const routes: RouteRecordRaw[] = [
   {
@@ -180,7 +180,7 @@ router.beforeResolve(async (to, from) => {
   // Clear any popup previews when navigating
   mutations.setPreviewSource("");
 
-  const title = titles[to.name as keyof typeof titles] || String(to.name || '');
+  const title = titles()[to.name as string] || String(to.name || '');
   document.title = `${globalVars.name} - ${title}`;
   mutations.setRoute(to);
 

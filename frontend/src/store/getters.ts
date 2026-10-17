@@ -1,3 +1,4 @@
+import { computed } from "vue";
 import { detectLocale } from "@/i18n/index.ts";
 import { mutations } from "./mutations.ts";
 import { state } from "./state.ts";
@@ -12,6 +13,40 @@ import { buildItemUrl, removeLeadingSlash, removePrefix } from '@/utils/url.js';
 import { defaultDarkMode } from "@/utils/theme.js";
 import { isMobileLayout } from '@/utils/viewport.js';
 import type { DisplayPreference, FileListItem } from "./types.ts";
+
+export interface PreviewPerms {
+  audio: boolean;
+  video: boolean;
+  image: boolean;
+  office: boolean;
+  folder: boolean;
+  popup: boolean;
+  models: boolean;
+  motionVideoPreview: boolean;
+  disableHideSidebar: boolean;
+  autoplayMedia: boolean;
+  showHidden: boolean;
+}
+
+// previewPerms gets called lot of times per file, we computute it once and
+// cache it to avoid allocating a new object it will recompute when the route or permission change
+const previewPermsComputed = computed<Readonly<PreviewPerms>>(() => {
+  const preview = state.user?.preview;
+  const isShare = getters.isShare();
+  return {
+    audio: preview?.audio ?? true,
+    video: preview?.video ?? true,
+    image: preview?.image ?? true,
+    office: preview?.office ?? true,
+    folder: preview?.folder ?? true,
+    popup: preview?.popup ?? true,
+    models: preview?.models ?? true,
+    motionVideoPreview: preview?.motionVideoPreview ?? false,
+    disableHideSidebar: preview?.disableHideSidebar ?? false,
+    autoplayMedia: preview?.autoplayMedia ?? true,
+    showHidden: isShare ? (state.shareInfo?.showHidden !== undefined ? state.shareInfo?.showHidden : false) : false,
+  };
+});
 
 export const getters = {
   displayPreferenceFor: (source: string, path: string): DisplayPreference | null => {
@@ -302,8 +337,6 @@ export const getters = {
       if (item.type === 'directory') {
         dirs.push(item);
       } else {
-        // Pre-existing: capitalized "Path" (not FileListItem's "path"), never read elsewhere. Left as-is.
-        (item as FileListItem & { Path?: string | undefined }).Path = state.req.path;
         files.push(item);
       }
     }
@@ -779,36 +812,5 @@ export const getters = {
       realtime: !!globalPerms.realtime,
     };
   },
-  previewPerms: () => {
-    if (getters.isShare()) {
-      // For shares, use defaults for preview settings (shares don't have per-share preview config)
-      return {
-        audio: state.user?.preview?.audio ?? true,
-        video: state.user?.preview?.video ?? true,
-        image: state.user?.preview?.image ?? true,
-        office: state.user?.preview?.office ?? true,
-        folder: state.user?.preview?.folder ?? true,
-        popup: state.user?.preview?.popup ?? true,
-        models: state.user?.preview?.models ?? true,
-        motionVideoPreview: state.user?.preview?.motionVideoPreview ?? false,
-        disableHideSidebar: state.user?.preview?.disableHideSidebar ?? false,
-        autoplayMedia: state.user?.preview?.autoplayMedia ?? true,
-        showHidden: state.shareInfo?.showHidden !== undefined ? state.shareInfo?.showHidden : false,
-      };
-    }
-    // For regular users, use their preview settings -- unless is share
-    return {
-      audio: state.user?.preview?.audio ?? true,
-      video: state.user?.preview?.video ?? true,
-      image: state.user?.preview?.image ?? true,
-      office: state.user?.preview?.office ?? true,
-      folder: state.user?.preview?.folder ?? true,
-      popup: state.user?.preview?.popup ?? true,
-      models: state.user?.preview?.models ?? true,
-      motionVideoPreview: state.user?.preview?.motionVideoPreview ?? false,
-      disableHideSidebar: state.user?.preview?.disableHideSidebar ?? false,
-      autoplayMedia: state.user?.preview?.autoplayMedia ?? true,
-      showHidden: false, // Backend handles this now, but kept for API compatibility
-    };
-  }
+  previewPerms: (): Readonly<PreviewPerms> => previewPermsComputed.value,
 };

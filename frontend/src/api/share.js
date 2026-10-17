@@ -115,13 +115,15 @@ export async function updatePath(hash, newPath) {
 // PUBLIC API ENDPOINTS (hash-based authentication)
 // ============================================================================
 
-export async function getShareInfoPublic(hash) {
+export async function getShareInfoPublic(hash, signal = undefined) {
   try {
     const apiPath = getPublicApiPath('share/info', { hash: hash })
-    const response = await fetch(apiPath)
+    const response = await fetch(apiPath, signal ? { signal } : undefined)
     return response.json()
   } catch (err) {
-    notify.showError(err.message || 'Error getting share info')
+    if (err?.name !== 'AbortError') {
+      notify.showError(err.message || 'Error getting share info')
+    }
     throw err
   }
 }
