@@ -7,49 +7,19 @@ import { notify } from "@/notify";
 import { url } from "@/utils";
 import { getTypeInfo } from "@/utils/mimetype";
 import { getObjectProperty, setObjectProperty, omitObjectProperty } from '@/utils/object.js';
-import { sortedItems } from "@/utils/sort.ts";
-import { isSourceSidebarCategory } from "@/utils/sidebarCategory.ts";
-import { updateManifestLink } from "@/utils/pwaManifest.js";
-import { syncEventTheme } from "@/utils/theme.js";
+import { sortedItems } from "@/utils/sort.js";
+import { isSourceSidebarCategory } from "@/utils/sidebarCategory";
+import { updateManifestLink } from "@/utils/pwaManifest";
+import { syncEventTheme } from "@/utils/theme";
 import {
   cancelCloseUploadPrompt,
   confirmCloseUploadPrompt,
   hasCloseWithActiveUploadsPrompt,
-} from "@/utils/uploadNavigationGuard.ts";
-import { emitStateChanged } from "./eventBus.ts";
-import { getters } from "./getters.ts";
-import { state } from "./state.ts";
-import type {
-  DisplayPreference,
-  FileListItem,
-  Prompt,
-  ReqObject,
-  RouteObject,
-  ShareInfoObject,
-  SourceInfo,
-  SourceInfoUpdate,
-  StoreState,
-  UserObject,
-  UserScope,
-} from "./types.ts";
-
-let navigationSortCache: {
-  listing: Partial<FileListItem>[];
-  length: number;
-  by: string;
-  asc: boolean;
-  items: Partial<FileListItem>[];
-} | null = null;
-
-function getSortedNavigationItems(listing: Partial<FileListItem>[], by: string, asc: boolean): Partial<FileListItem>[] {
-  const cache = navigationSortCache;
-  if (cache && cache.listing === listing && cache.length === listing.length && cache.by === by && cache.asc === asc) {
-    return cache.items;
-  }
-  const items: Partial<FileListItem>[] = sortedItems([...listing], by, asc);
-  navigationSortCache = { listing, length: listing.length, by, asc, items };
-  return items;
-}
+} from "@/utils/uploadNavigationGuard";
+import { emitStateChanged } from './eventBus';
+import { getters } from "./getters";
+import { state } from "./state";
+import type { SourceInfo, SourceInfoUpdate, UserObject } from "./types";
 
 const uploadBeforeUnloadHandler = (event: BeforeUnloadEvent) => {
   if (!state.upload.isUploading) {

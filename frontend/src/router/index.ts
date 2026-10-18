@@ -10,7 +10,7 @@ import {
   evaluateUploadNavigationGuard,
   isDifferentAppRoute,
   showUploadNavigationConfirm,
-} from "@/utils/uploadNavigationGuard.ts";
+} from "@/utils/uploadNavigationGuard";
 import Errors from "@/views/Errors.vue";
 import Files from "@/views/Files.vue";
 import Layout from "@/views/Layout.vue";
@@ -185,11 +185,13 @@ router.beforeResolve(async (to, from, next) => {
   if (isDifferentAppRoute(to, from)) {
     const uploadNav = evaluateUploadNavigationGuard(to);
     if (uploadNav === "block") {
-      return false;
+      next(false);
+      return;
     }
     if (uploadNav === "prompt") {
       showUploadNavigationConfirm(to, router);
-      return false;
+      next(false);
+      return;
     }
   }
 
