@@ -258,8 +258,11 @@ func GetRemoteIP(r *http.Request) string {
 
 	xff := r.Header.Get("X-Forwarded-For")
 	if cfg.Http.TrustProxyHeaders && xff != "" {
-		ips := strings.Split(xff, ",")
-		return strings.TrimSpace(ips[0])
+		// Use the rightmost hop: the trusted proxy appends the connecting client, so the
+		// leftmost value is attacker-controlled when clients send X-Forwarded-For.
+		if ip := lastForwardedValue(xff); ip != "" {
+			return ip
+		}
 	}
 
 	xri := r.Header.Get("X-Real-IP")
