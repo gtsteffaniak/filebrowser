@@ -89,9 +89,11 @@ export function showUploadNavigationConfirm(
   });
 }
 
-export function confirmCloseUploadPrompt(uploadPromptId: number) {
+export function confirmCloseUploadPrompt(uploadPromptId?: number) {
   dismissCloseWithActiveUploadsPrompt();
-  mutations.closeTopPrompt(uploadPromptId, { force: true });
+  if (uploadPromptId !== undefined) {
+    mutations.closeTopPrompt(uploadPromptId, { force: true });
+  }
 }
 
 export function cancelCloseUploadPrompt() {

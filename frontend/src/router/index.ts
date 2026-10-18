@@ -5,12 +5,12 @@ import i18n from "@/i18n";
 import { getters, mutations, state } from "@/store";
 import { validateLogin } from "@/utils/auth";
 import { sanitizePostLoginRedirect } from "@/utils/safeRedirect.js";
-import { globalVars } from "@/utils/constants";
+import { globalVars } from "@/utils/constants.js";
 import {
   evaluateUploadNavigationGuard,
   isDifferentAppRoute,
   showUploadNavigationConfirm,
-} from "@/utils/uploadNavigationGuard";
+} from "@/utils/uploadNavigationGuard.ts";
 import Errors from "@/views/Errors.vue";
 import Files from "@/views/Files.vue";
 import Layout from "@/views/Layout.vue";
@@ -185,13 +185,11 @@ router.beforeResolve(async (to, from, next) => {
   if (isDifferentAppRoute(to, from)) {
     const uploadNav = evaluateUploadNavigationGuard(to);
     if (uploadNav === "block") {
-      next(false);
-      return;
+      return false;
     }
     if (uploadNav === "prompt") {
       showUploadNavigationConfirm(to, router);
-      next(false);
-      return;
+      return false;
     }
   }
 
