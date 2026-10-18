@@ -177,6 +177,33 @@ router.beforeResolve(async (to, from, next) => {
     return;
   }
 
+  const isDifferentRoute =
+    to.path !== from.path ||
+    to.hash !== from.hash ||
+    JSON.stringify(to.query) !== JSON.stringify(from.query);
+
+  if (
+    isDifferentRoute &&
+    state.upload.isUploading &&
+    !state.prompts.some((p) => p.name === "CloseWithActiveUploads")
+  ) {
+    const uploadPrompt = state.prompts.find((p) => p.name === "upload");
+    mutations.showPrompt({
+      name: "CloseWithActiveUploads",
+      pinned: true,
+      confirm: () => {
+        if (uploadPrompt) {
+          mutations.closeTopPrompt(uploadPrompt.id, { force: true });
+        }
+        void router.push(to);
+      },
+      cancel: () => {
+        mutations.closeTopPrompt(undefined, { force: true });
+      },
+    });
+    return false;
+  }
+
   // Clear any popup previews when navigating
   mutations.setPreviewSource("");
 

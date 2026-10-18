@@ -448,13 +448,12 @@ class UploadManager {
       }
     }
 
-    // Update isUploading state based on whether there are active or pending uploads
-    const hasActiveOrPending = this.activeUploads > 0 || this.hasPending();
-    mutations.setIsUploading(hasActiveOrPending);
+    // Update isUploading for close/navigation guards and beforeunload
+    mutations.setIsUploading(this.hasOngoingUploads());
 
     // Only reload when we transition from having active uploads to having none
-    const hasNoActiveOrPending = this.activeUploads === 0 && !this.hasPending();
-    if (this.hadActiveUploads && hasNoActiveOrPending) {
+    const hasNoOngoingUploads = !this.hasOngoingUploads();
+    if (this.hadActiveUploads && hasNoOngoingUploads) {
       console.log("all uploads processed  ", this.queue);
       // Only reload if there are no errors or conflicts - keep prompt open so users can see and retry
       const hasErrorsOrConflicts = this.queue.some((item) =>
@@ -841,6 +840,19 @@ class UploadManager {
 
   hasPending() {
     return this.queue.some((item) => item.status === "pending");
+  }
+
+  /** True while uploads may still run (including user- or stall-paused jobs). */
+  hasOngoingUploads() {
+    return (
+      this.activeUploads > 0 ||
+      this.queue.some(
+        (item) =>
+          item.status === "pending" ||
+          item.status === "uploading" ||
+          item.status === "paused"
+      )
+    );
   }
 
   getConflictingFolder() {

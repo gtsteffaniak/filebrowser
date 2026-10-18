@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+
+## v2.0.2-stable
+
+ **Bug Fixes**:
+ - fix(frontend): restore upload prompt close, tab-reload, and in-app navigation guards while uploads are active (including paused uploads)
+
 ## v2.0.1-stable
 
  **Security**:
