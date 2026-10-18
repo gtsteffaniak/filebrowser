@@ -21,6 +21,43 @@ type extractAccessPolicy struct {
 	perms           users.SourceFilePermissions
 }
 
+// allowWriteSymlinkEntry authorizes creating or replacing a symlink at destPath without following the final path component.
+func (p *extractAccessPolicy) allowWriteSymlinkEntry(destPath string) error {
+	if p == nil || p.idx == nil {
+		return nil
+	}
+	parent := filepath.Dir(destPath)
+	if err := p.allowWriteIncludingParents(parent); err != nil {
+		return err
+	}
+	destResolved, err := filepath.EvalSymlinks(p.destRealRoot)
+	if err != nil {
+		return err
+	}
+	rel, err := filepath.Rel(filepath.Clean(destResolved), filepath.Clean(destPath))
+	if err != nil {
+		return err
+	}
+	if rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
+		return fmt.Errorf("symlink path escapes destination")
+	}
+	rel = filepath.ToSlash(rel)
+	indexPath := utils.JoinPathAsUnix(p.destIndexPrefix, rel)
+	if !state.AccessPermitted(p.idx.Path, utils.IndexPathFromNormalized(indexPath, true), p.username) {
+		return fmt.Errorf("access denied to %s", rel)
+	}
+	if _, statErr := os.Lstat(destPath); os.IsNotExist(statErr) {
+		if !p.perms.Create {
+			return fmt.Errorf("create permission required")
+		}
+		return nil
+	}
+	if !p.perms.Modify {
+		return fmt.Errorf("modify permission required")
+	}
+	return nil
+}
+
 // allowWrite checks index access and source Create/Modify permissions for one destination path.
 func (p *extractAccessPolicy) allowWrite(destPath string) error {
 	if p == nil || p.idx == nil {

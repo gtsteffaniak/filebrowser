@@ -1308,7 +1308,7 @@ func extractZipWithEncoding(archivePath, destDir, charset string, policy *extrac
 			if rerr != nil {
 				return rerr
 			}
-			if err = policy.allowWriteIncludingParents(destPath); err != nil {
+			if err = policy.allowWriteSymlinkEntry(destPath); err != nil {
 				return err
 			}
 			if err = extractArchivedSymlink(destDir, destPath, string(buf), f.Modified); err != nil {
@@ -1383,7 +1383,7 @@ func extractTarGz(archivePath, destDir string, policy *extractAccessPolicy) erro
 				return err
 			}
 		case tar.TypeSymlink:
-			if err = policy.allowWriteIncludingParents(destPath); err != nil {
+			if err = policy.allowWriteSymlinkEntry(destPath); err != nil {
 				return err
 			}
 			if err = extractArchivedSymlink(destDir, destPath, h.Linkname, h.ModTime); err != nil {

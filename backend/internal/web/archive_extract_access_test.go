@@ -232,6 +232,60 @@ func TestExtractZipWithEncoding_accessPolicy(t *testing.T) {
 			t.Fatal("expected create permission error for symlink entry")
 		}
 	})
+
+	t.Run("denied existing symlink at link path", func(t *testing.T) {
+		destDir, sourceRoot, sourceName, username := setupExtractAccessPolicyTest(t)
+		if err := os.WriteFile(filepath.Join(destDir, "allowed.txt"), []byte("x"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		linkName := "secret-link"
+		if err := os.Symlink("allowed.txt", filepath.Join(destDir, linkName)); err != nil {
+			t.Fatal(err)
+		}
+		if err := state.DenyUser(sourceRoot, utils.IndexPathFromNormalized("/dest/"+linkName, true), username); err != nil {
+			t.Fatal(err)
+		}
+		zipPath := filepath.Join(t.TempDir(), "replace-link.zip")
+		writeTestZip(t, zipPath, func(zw *zip.Writer) error {
+			hdr := &zip.FileHeader{Name: linkName, Method: zip.Store}
+			hdr.SetMode(0o777 | os.ModeSymlink)
+			w, err := zw.CreateHeader(hdr)
+			if err != nil {
+				return err
+			}
+			_, err = w.Write([]byte("other.txt"))
+			return err
+		})
+		policy := testExtractPolicy(t, destDir, sourceName, username, fullPerms())
+		if err := extractZipWithEncoding(zipPath, destDir, "", policy); err == nil {
+			t.Fatal("expected access denied for denied symlink path")
+		}
+	})
+
+	t.Run("dangling symlink requires modify", func(t *testing.T) {
+		destDir, _, sourceName, username := setupExtractAccessPolicyTest(t)
+		linkName := "dangling"
+		if err := os.Symlink("missing-target", filepath.Join(destDir, linkName)); err != nil {
+			t.Fatal(err)
+		}
+		zipPath := filepath.Join(t.TempDir(), "replace-dangling.zip")
+		writeTestZip(t, zipPath, func(zw *zip.Writer) error {
+			hdr := &zip.FileHeader{Name: linkName, Method: zip.Store}
+			hdr.SetMode(0o777 | os.ModeSymlink)
+			w, err := zw.CreateHeader(hdr)
+			if err != nil {
+				return err
+			}
+			_, err = w.Write([]byte("new-target"))
+			return err
+		})
+		perms := fullPerms()
+		perms.Modify = false
+		policy := testExtractPolicy(t, destDir, sourceName, username, perms)
+		if err := extractZipWithEncoding(zipPath, destDir, "", policy); err == nil {
+			t.Fatal("expected modify permission error when replacing dangling symlink")
+		}
+	})
 }
 
 func TestExtractTarGz_accessPolicy(t *testing.T) {
@@ -288,6 +342,33 @@ func TestExtractTarGz_accessPolicy(t *testing.T) {
 		policy := testExtractPolicy(t, destDir, sourceName, username, noCreate)
 		if err := extractTarGz(archivePath, destDir, policy); err == nil {
 			t.Fatal("expected create permission error for symlink entry")
+		}
+	})
+
+	t.Run("denied existing symlink at link path", func(t *testing.T) {
+		destDir, sourceRoot, sourceName, username := setupExtractAccessPolicyTest(t)
+		if err := os.WriteFile(filepath.Join(destDir, "allowed.txt"), []byte("x"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		linkName := "secret-link"
+		if err := os.Symlink("allowed.txt", filepath.Join(destDir, linkName)); err != nil {
+			t.Fatal(err)
+		}
+		if err := state.DenyUser(sourceRoot, utils.IndexPathFromNormalized("/dest/"+linkName, true), username); err != nil {
+			t.Fatal(err)
+		}
+		archivePath := filepath.Join(t.TempDir(), "replace-link.tar.gz")
+		writeTestTarGz(t, archivePath, func(tw *tar.Writer) error {
+			return tw.WriteHeader(&tar.Header{
+				Name:     linkName,
+				Mode:     0o777,
+				Typeflag: tar.TypeSymlink,
+				Linkname: "other.txt",
+			})
+		})
+		policy := testExtractPolicy(t, destDir, sourceName, username, fullPerms())
+		if err := extractTarGz(archivePath, destDir, policy); err == nil {
+			t.Fatal("expected access denied for denied symlink path")
 		}
 	})
 }
