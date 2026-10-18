@@ -354,10 +354,11 @@ func UpdateSharesForMovedResource(oldSource, oldPath, newSource, newPath string)
 
 		removeShareFromPathIndexLocked(l.SourcePath, l.Path, l.Hash)
 
+		shareWasDir := strings.HasSuffix(l.Path, "/")
 		l.SourcePath = newSource
 		suffix := strings.TrimPrefix(norm, oldPath)
 		l.Path = strings.TrimSuffix(newPath+suffix, "/")
-		if strings.HasSuffix(suffix, "/") {
+		if shareWasDir {
 			l.Path = utils.AddTrailingSlashIfNotExists(l.Path)
 		}
 

@@ -15,8 +15,9 @@ func rewriteSharePathAfterMove(sharePath, oldPath, newPath string) string {
 		return sharePath
 	}
 	suffix := strings.TrimPrefix(norm, oldPath)
+	shareWasDir := strings.HasSuffix(sharePath, "/")
 	updated := strings.TrimSuffix(newPath+suffix, "/")
-	if strings.HasSuffix(suffix, "/") {
+	if shareWasDir {
 		updated = utils.AddTrailingSlashIfNotExists(updated)
 	}
 	return updated

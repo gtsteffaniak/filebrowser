@@ -145,6 +145,7 @@ func (s *Storage) UpdateShares(oldSource, oldPath, newSource, newPath string) (i
 		if l == nil || l.SourcePath != oldSource {
 			continue
 		}
+		shareWasDir := strings.HasSuffix(l.Path, "/")
 		l.Path = utils.AddTrailingSlashIfNotExists(l.Path)
 
 		norm := utils.AddTrailingSlashIfNotExists(l.Path)
@@ -155,7 +156,7 @@ func (s *Storage) UpdateShares(oldSource, oldPath, newSource, newPath string) (i
 		l.SourcePath = newSource
 		suffix := strings.TrimPrefix(norm, oldPath)
 		l.Path = strings.TrimSuffix(newPath+suffix, "/")
-		if strings.HasSuffix(suffix, "/") {
+		if shareWasDir {
 			l.Path = utils.AddTrailingSlashIfNotExists(l.Path)
 		}
 
