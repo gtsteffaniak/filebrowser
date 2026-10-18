@@ -7,6 +7,10 @@ All notable changes to this project will be documented in this file. For commit 
  **Security**:
  - [High] File Size Analyzer hover tooltips render file paths as plain text instead of HTML, closing stored XSS via crafted file names (GHSA-rmjp-pfrq-cc3v) reporter @U3RhcnQ
 
+ **Bug Fixes**:
+ - fix(frontend): keep source named `files` in `extractSourceFromPath` ([#3143](https://github.com/gtsteffaniak/filebrowser/issues/3143), [#3099](https://github.com/gtsteffaniak/filebrowser/pull/3099))
+ - fix(frontend): load the default source when browsing `/files/` with a single configured source ([#3178](https://github.com/gtsteffaniak/filebrowser/issues/3178)) (related: [#3144](https://github.com/gtsteffaniak/filebrowser/issues/3144))
+
 ## v2.0.1-stable
 
  **Security**:
