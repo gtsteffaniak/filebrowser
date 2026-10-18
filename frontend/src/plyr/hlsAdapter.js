@@ -299,26 +299,8 @@ export function attachHlsToVideo({
           readyState: video.readyState,
           video: describeVideo(video),
         });
-        // Buffered audio alone advances currentTime and Plyr's clock while
-        // videoWidth stays 0 — typical when fMP4 video fragments are invalid.
-        if (!renderable && isVodPlaylist) {
-          transcodeError('hls attach failed — VOD video never decoded a frame', {
-            sessionId: session?.id,
-            video: describeVideo(video),
-          });
-          cleanup();
-          const err = new Error('HLS video track did not decode');
-          err.code = 'VIDEO_NOT_RENDERABLE';
-          onFatal?.({
-            type: 'mediaError',
-            details: 'videoTrackNotRenderable',
-            fatal: true,
-          });
-          finish('reject', err);
-          return;
-        }
         if (!renderable) {
-          transcodeWarn('hls attach proceeding without decoded video dimensions', {
+          transcodeWarn('hls attach: no decoded video dimensions yet', {
             sessionId: session?.id,
             video: describeVideo(video),
           });

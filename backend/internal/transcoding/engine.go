@@ -15,9 +15,8 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 )
 
-// maxCopySegmentDurationSec is the longest #EXTINF allowed on remux/video-copy
-// VOD paths. Sparse or corrupt keyframe indexes can plan multi-minute segments
-// that produce huge, MSE-hostile fMP4 fragments — force a transcode grid instead.
+// maxCopySegmentDurationSec caps remux/video-copy segment length; sparse keyframe
+// indexes otherwise plan multi-minute #EXTINF values and MSE-hostile fMP4.
 func maxCopySegmentDurationSec(segmentSec float64) float64 {
 	cap := segmentSec * 3
 	if cap < 12 {
@@ -46,8 +45,6 @@ type ContinuousJob interface {
 	// VTDecodeUnreliable reports sustained VideoToolbox hardware decode failures
 	// in ffmpeg stderr — a signal to restart the job with software decode.
 	VTDecodeUnreliable() bool
-	// SoftwareDecodeUnreliable reports sustained software decoder corruption in stderr.
-	SoftwareDecodeUnreliable() bool
 }
 
 // Engine performs probe/plan/start operations for tests and production.

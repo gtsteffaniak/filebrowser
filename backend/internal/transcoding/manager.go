@@ -624,7 +624,6 @@ func (m *Manager) runProducer(ctx context.Context, sess *playbackSession) {
 	m.mu.Unlock()
 
 	retriedVT := false
-	retriedCorrupt := false
 	for {
 		outcome := m.runProducerJob(ctx, sessionID, gen, jobDir, realPath, plan, startIndex, ffmpegStartSec)
 		switch outcome {
@@ -638,15 +637,6 @@ func (m *Manager) runProducer(ctx context.Context, sess *playbackSession) {
 				logger.Warningf("transcode generation=%s clearing output before decode retry: %v", gen, err)
 			}
 			plan.decodeProfile.ForceSoftware = true
-		case producerRestartCorrupt:
-			if retriedCorrupt {
-				return
-			}
-			retriedCorrupt = true
-			logger.Warningf("transcode generation=%s software decode unreliable, restarting generation", gen)
-			if err := m.store.ClearGenerationOutput(jobDir); err != nil {
-				logger.Warningf("transcode generation=%s clearing output before corrupt retry: %v", gen, err)
-			}
 		case producerRestartSeek:
 			m.mu.Lock()
 			idx := startIndex
@@ -682,9 +672,6 @@ const (
 	// producerRestartSoftware: sustained hardware decode failures — caller
 	// should retry the generation with software decode.
 	producerRestartSoftware
-	// producerRestartCorrupt: sustained software decode corruption — caller
-	// should wipe partial output and restart the generation once.
-	producerRestartCorrupt
 	// producerRestartSeek: segment handler cancelled the job to reposition.
 	producerRestartSeek
 )
@@ -759,16 +746,6 @@ func (m *Manager) runProducerJob(ctx context.Context, sessionID, gen, jobDir, re
 					logger.Infof("transcode generation=%s job stopped for software decode retry: %v", gen, waitErr)
 				}
 				return producerRestartSoftware
-			}
-			// Stream-copy/remux: NAL errors in stderr mean the output bitstream is
-			// likely unusable. Full re-encode uses +discardcorrupt and libavcodec
-			// often logs NAL lines on damaged MKV while still producing valid fMP4.
-			if job.SoftwareDecodeUnreliable() && (plan.remux || plan.videoCopy) {
-				job.Cancel()
-				if waitErr := <-jobDone; waitErr != nil {
-					logger.Infof("transcode generation=%s job stopped for corrupt decode retry: %v", gen, waitErr)
-				}
-				return producerRestartCorrupt
 			}
 			if !started && m.store.InitReady(jobDir) {
 				started = true

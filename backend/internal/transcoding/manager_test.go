@@ -745,44 +745,6 @@ func TestManagerCompletionPublishesCoverageEnd(t *testing.T) {
 	}
 }
 
-// Software-decoder NAL stderr on a full re-encode must not cancel the job;
-// discardcorrupt recovery is expected on some MKV sources.
-func TestManagerIgnoresSoftwareDecodeUnreliableOnFullTranscode(t *testing.T) {
-	engine := NewFakeEngine()
-	engine.plan.remux = false
-	engine.plan.videoCopy = false
-	mgr, _ := newTestManager(t, engine)
-
-	info := mustStart(t, mgr, testInput(t, "user-a", "/movie.mkv"))
-	waitForStarts(t, engine, 1)
-	engine.LastJob().SetSoftwareDecodeUnreliable()
-	time.Sleep(600 * time.Millisecond)
-	if got := engine.StartCount(); got != 1 {
-		t.Fatalf("starts = %d, want 1 (full transcode must not corrupt-retry on NAL stderr)", got)
-	}
-	if sess := sessionFor(t, mgr, info.ID); sess == nil {
-		t.Fatal("session should remain attached")
-	}
-}
-
-// Sustained software decode failures on stream-copy must restart once.
-func TestManagerRestartsProducerOnSoftwareDecodeUnreliableWhenVideoCopy(t *testing.T) {
-	engine := NewFakeEngine()
-	engine.plan.videoCopy = true
-	mgr, _ := newTestManager(t, engine)
-
-	info := mustStart(t, mgr, testInput(t, "user-a", "/movie.mp4"))
-	waitForStarts(t, engine, 1)
-	jobDir := sessionJobDir(t, mgr, info.ID)
-	writeProducedRange(t, jobDir, 0, 1, false)
-
-	engine.LastJob().SetSoftwareDecodeUnreliable()
-	waitForStarts(t, engine, 2)
-	if sess := sessionFor(t, mgr, info.ID); sess == nil {
-		t.Fatal("session should survive corrupt retry")
-	}
-}
-
 // Sustained hardware decode failures must restart the generation once with
 // software decode: the corrupt partial output is wiped so it cannot be served
 // or counted toward coverage, and a second failure does not loop restarts.

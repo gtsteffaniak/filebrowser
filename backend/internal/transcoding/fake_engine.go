@@ -55,10 +55,9 @@ func (f *FakeEngine) BuildPlan(ctx context.Context, realPath string, profile Pro
 }
 
 type fakeJob struct {
-	cancelled          chan struct{}
-	waitErr            error
-	unreliable         atomic.Bool
-	softwareUnreliable atomic.Bool
+	cancelled  chan struct{}
+	waitErr    error
+	unreliable atomic.Bool
 }
 
 func newFakeJob() *fakeJob {
@@ -82,18 +81,9 @@ func (j *fakeJob) VTDecodeUnreliable() bool {
 	return j.unreliable.Load()
 }
 
-func (j *fakeJob) SoftwareDecodeUnreliable() bool {
-	return j.softwareUnreliable.Load()
-}
-
 // SetVTUnreliable simulates ffmpeg reporting sustained VideoToolbox decode failures.
 func (j *fakeJob) SetVTUnreliable() {
 	j.unreliable.Store(true)
-}
-
-// SetSoftwareDecodeUnreliable simulates sustained software decoder corruption in stderr.
-func (j *fakeJob) SetSoftwareDecodeUnreliable() {
-	j.softwareUnreliable.Store(true)
 }
 
 // NewBlockingFakeJob returns a ContinuousJob that waits until Cancel is called.

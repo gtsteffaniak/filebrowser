@@ -1,7 +1,6 @@
 /**
- * Transcode/HLS diagnostic logging.
- * Always logs to console with the [transcode] prefix.
- * Set localStorage.transcodeDebug = '1' for verbose HLS event noise.
+ * Transcode/HLS console diagnostics ([transcode] prefix).
+ * Verbose hls.js events: localStorage.setItem('transcodeDebug', '1') then reload.
  */
 export function isTranscodeDebugVerbose() {
   try {
