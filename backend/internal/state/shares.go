@@ -348,14 +348,18 @@ func UpdateSharesForMovedResource(oldSource, oldPath, newSource, newPath string)
 			continue
 		}
 		norm := utils.AddTrailingSlashIfNotExists(l.Path)
-		if !strings.Contains(norm, oldPath) {
+		if !strings.HasPrefix(norm, oldPath) {
 			continue
 		}
 
 		removeShareFromPathIndexLocked(l.SourcePath, l.Path, l.Hash)
 
 		l.SourcePath = newSource
-		l.Path = newPath
+		suffix := strings.TrimPrefix(norm, oldPath)
+		l.Path = strings.TrimSuffix(newPath+suffix, "/")
+		if strings.HasSuffix(suffix, "/") {
+			l.Path = utils.AddTrailingSlashIfNotExists(l.Path)
+		}
 
 		if err := sqlDb.SaveShare(l); err != nil {
 			logger.Error("failed to save updated share after resource move", "hash", l.Hash, "error", err)
