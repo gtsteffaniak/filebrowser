@@ -20,7 +20,7 @@ import Preview from "@/views/files/Preview.vue";
 import ListingView from "@/views/files/ListingView.vue";
 import { state, mutations, getters } from "@/store";
 import { router } from "@/router";
-import { extractSourceFromPath, removeLastDir, base64Encode, removeTrailingSlash } from "@/utils/url.js";
+import { extractSourceFromPath, removeLastDir, base64Encode, removeTrailingSlash, pathsMatch } from "@/utils/url.js";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import { globalVars } from "@/utils/constants";
 import { syncEventTheme } from "@/utils/theme";
@@ -36,8 +36,6 @@ function directoryListingHasMediaChildren(req) {
     req.items?.some((i) => i.type?.startsWith("audio") || i.type?.startsWith("video"))
   );
 }
-
-const trimTrailingSlash = (p) => (p || "/").replace(/\/+$/, "") || "/";
 
 function sameListing(a, b) {
   if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length) {
@@ -64,8 +62,7 @@ function reusableParentItems(inScope, filePath) {
   if (!Array.isArray(items)) {
     return null;
   }
-  const target = trimTrailingSlash(filePath);
-  return items.some((item) => trimTrailingSlash(item.path) === target) ? items : null;
+  return items.some((item) => pathsMatch(item.path, filePath)) ? items : null;
 }
 
 /** @returns {Promise<{ items?: object[], name: string, type: string, path: string, source: string, hash?: string, token?: string, parentDirItems?: object[] }>} */

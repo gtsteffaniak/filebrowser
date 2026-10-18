@@ -187,7 +187,7 @@ export default {
     removeFromFolderLists(item) {
       const drop = (list) => {
         if (!Array.isArray(list)) return list;
-        const index = list.findIndex((i) => i.path === item.path);
+        const index = list.findIndex((i) => url.pathsMatch(i.path, item.path));
         if (index !== -1) list.splice(index, 1);
         return list;
       };

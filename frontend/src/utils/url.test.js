@@ -40,7 +40,7 @@ vi.mock('@/utils/constants', () => {
   };
 });
 
-import { extractSourceFromPath, getApiPath, getPublicApiPath, removePrefix } from './url.js';
+import { extractSourceFromPath, getApiPath, getPublicApiPath, pathsMatch, removePrefix } from './url.js';
 
 describe('testurl', () => {
 
@@ -169,5 +169,25 @@ describe('extractSourceFromPath', () => {
       expect(result.source).toEqual(test.expected.source);
       expect(result.path).toEqual(test.expected.path);
     }
+  });
+});
+
+describe('pathsMatch', () => {
+  it('ignores a trailing slash', () => {
+    expect(pathsMatch('/trip/b.jpg/', '/trip/b.jpg')).toBe(true);
+    expect(pathsMatch('/trip/b.jpg', '/trip/b.jpg')).toBe(true);
+    expect(pathsMatch('/trip/', '/trip')).toBe(true);
+    expect(pathsMatch('/b.jpg/', '/b.jpg')).toBe(true);
+  });
+
+  it('does not match different paths', () => {
+    expect(pathsMatch('/trip/a.jpg/', '/trip/b.jpg')).toBe(false);
+    expect(pathsMatch('/trip/b.jpg/', '/other/b.jpg')).toBe(false);
+  });
+
+  it('never matches a missing path', () => {
+    expect(pathsMatch(undefined, '/trip/b.jpg')).toBe(false);
+    expect(pathsMatch('/trip/b.jpg', undefined)).toBe(false);
+    expect(pathsMatch(undefined, undefined)).toBe(false);
   });
 });
