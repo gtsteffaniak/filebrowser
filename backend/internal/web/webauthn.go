@@ -11,6 +11,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/internal/activity"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/auth"
 	activitydb "github.com/gtsteffaniak/filebrowser/backend/internal/database/activity"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
 )
@@ -110,7 +111,7 @@ func beginPasskeyRegistrationHandler(w http.ResponseWriter, r *http.Request, d *
 	if !auth.IsWebAuthnEnabled() {
 		return http.StatusForbidden, errors.ErrPasskeyNotEnabled
 	}
-	if d.User.HasPasskeyMFA() {
+	if d.User.LoginMethod == users.LoginMethodPassword && d.User.HasPasskeyMFA() {
 		if err := checkOtpActorPassword(r, d, d.User.Username); err != nil {
 			return http.StatusUnauthorized, err
 		}
@@ -149,7 +150,7 @@ func finishPasskeyRegistrationHandler(w http.ResponseWriter, r *http.Request, d 
 	if !auth.IsWebAuthnEnabled() {
 		return http.StatusForbidden, errors.ErrPasskeyNotEnabled
 	}
-	if d.User.HasPasskeyMFA() {
+	if d.User.LoginMethod == users.LoginMethodPassword && d.User.HasPasskeyMFA() {
 		if err := checkOtpActorPassword(r, d, d.User.Username); err != nil {
 			return http.StatusUnauthorized, err
 		}
@@ -198,8 +199,10 @@ func deletePasskeyCredentialHandler(w http.ResponseWriter, r *http.Request, d *C
 	if !auth.IsWebAuthnEnabled() {
 		return http.StatusForbidden, errors.ErrPasskeyNotEnabled
 	}
-	if err := checkOtpActorPassword(r, d, d.User.Username); err != nil {
-		return http.StatusUnauthorized, err
+	if d.User.LoginMethod == users.LoginMethodPassword {
+		if err := checkOtpActorPassword(r, d, d.User.Username); err != nil {
+			return http.StatusUnauthorized, err
+		}
 	}
 
 	credentialID := r.PathValue("id")

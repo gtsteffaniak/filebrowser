@@ -1,6 +1,9 @@
-import { fetchJSON, fetchURL } from '@/api/utils'
-import { notify } from '@/notify'
+import { fetchJSON, fetchURL } from "@/api/utils.ts"
+import { notify } from "@/notify/index.ts"
 import { getApiPath } from '@/utils/url.js'
+import { state } from "@/store/state.ts"
+import { mutations } from "@/store/mutations.ts"
+import i18n from "@/i18n/index.ts"
 
 // POST /api/auth/password/change-required
 export async function changeRequiredPassword(username, currentPassword, newPassword, otp) {
@@ -229,9 +232,9 @@ export async function deleteApiKey(params) {
 function arrayBufferToBase64(buffer) {
   const bytes = new Uint8Array(buffer)
   let binary = ''
-  bytes.forEach(b => {
-    binary += String.fromCharCode(b);
-  })
+  for (const b of bytes) {
+    binary += String.fromCharCode(b)
+  }
   return btoa(binary).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_')
 }
 
@@ -327,17 +330,63 @@ export async function beginPasskeyLogin(username, password) {
   }
 }
 
-export async function beginPasskeyRegistration() {
+function passkeyActorPasswordHeaders(actorPassword) {
+  if (actorPassword === undefined || actorPassword === null) {
+    return {}
+  }
+  return { 'X-Password': encodeURIComponent(actorPassword) }
+}
+
+function isPasskeyActorPasswordRequired(status, message) {
+  if (status !== 401) {
+    return false
+  }
+  const msg = message || ''
+  return (
+    msg.includes('X-Password') ||
+    msg.includes('password is required') ||
+    msg.includes('invalid password')
+  )
+}
+
+function passkeyHttpError(message, status) {
+  const err = new Error(message)
+  err.status = status
+  return err
+}
+
+function promptPasskeyActorPassword(i18nKey) {
+  return new Promise((resolve, reject) => {
+    mutations.showPrompt({
+      name: 'password',
+      props: {
+        infoText: i18n.global.t(i18nKey || 'prompts.confirmPasswordToSaveUser'),
+        submitLabel: i18n.global.t('general.confirm'),
+        submitCallback: async (actorPassword) => {
+          try {
+            resolve(actorPassword)
+          } catch (err) {
+            reject(err)
+          }
+        },
+      },
+    })
+  })
+}
+
+async function runBeginPasskeyRegistration(actorPassword) {
+  const passwordHeaders = passkeyActorPasswordHeaders(actorPassword)
   const apiPath = getApiPath('auth/webauthn/begin-register')
   const res = await fetch(apiPath, {
     method: 'POST',
     credentials: 'same-origin',
+    headers: passwordHeaders,
   })
 
   const body = await res.json().catch(() => ({}))
   if (res.status !== 200) {
     const msg = body.message || 'Failed to begin passkey registration'
-    throw new Error(msg)
+    throw passkeyHttpError(msg, res.status)
   }
 
   const credential = await navigator.credentials.create({ publicKey: preprocessPublicKeyOptions(body.publicKey) })
@@ -348,25 +397,75 @@ export async function beginPasskeyRegistration() {
   const finishRes = await fetch(finishPath, {
     method: 'POST',
     credentials: 'same-origin',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      ...passwordHeaders,
+    },
     body: JSON.stringify(formatted),
   })
 
   if (finishRes.status !== 200) {
     const errBody = await finishRes.json().catch(() => ({}))
-    throw new Error(errBody.message || 'Failed to register passkey')
+    throw passkeyHttpError(errBody.message || 'Failed to register passkey', finishRes.status)
   }
 }
 
-export async function deletePasskeyCredential(credentialId) {
+export async function beginPasskeyRegistration(options = {}) {
+  if (options.actorPassword !== undefined) {
+    return runBeginPasskeyRegistration(options.actorPassword)
+  }
+  try {
+    return await runBeginPasskeyRegistration(undefined)
+  } catch (err) {
+    const canRetry =
+      state.user?.loginMethod === 'password' &&
+      options.skipActorPasswordConfirm !== true &&
+      isPasskeyActorPasswordRequired(err.status, err.message)
+    if (!canRetry) {
+      throw err
+    }
+    const actorPassword = await promptPasskeyActorPassword(options.actorPasswordPromptI18nKey)
+    return beginPasskeyRegistration({
+      ...options,
+      actorPassword,
+      skipActorPasswordConfirm: true,
+    })
+  }
+}
+
+async function runDeletePasskeyCredential(credentialId, actorPassword) {
   const apiPath = getApiPath(`auth/webauthn/${encodeURIComponent(credentialId)}`)
   const res = await fetch(apiPath, {
     method: 'DELETE',
     credentials: 'same-origin',
+    headers: passkeyActorPasswordHeaders(actorPassword),
   })
 
   if (res.status !== 200) {
     const errBody = await res.json().catch(() => ({}))
-    throw new Error(errBody.message || 'Failed to delete passkey')
+    throw passkeyHttpError(errBody.message || 'Failed to delete passkey', res.status)
+  }
+}
+
+export async function deletePasskeyCredential(credentialId, options = {}) {
+  if (options.actorPassword !== undefined) {
+    return runDeletePasskeyCredential(credentialId, options.actorPassword)
+  }
+  try {
+    return await runDeletePasskeyCredential(credentialId, undefined)
+  } catch (err) {
+    const canRetry =
+      state.user?.loginMethod === 'password' &&
+      options.skipActorPasswordConfirm !== true &&
+      isPasskeyActorPasswordRequired(err.status, err.message)
+    if (!canRetry) {
+      throw err
+    }
+    const actorPassword = await promptPasskeyActorPassword(options.actorPasswordPromptI18nKey)
+    return deletePasskeyCredential(credentialId, {
+      ...options,
+      actorPassword,
+      skipActorPasswordConfirm: true,
+    })
   }
 }
