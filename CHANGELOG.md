@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file. For commit 
 
  **Security**:
  - [Moderate] Authenticated `GET /api/resources/view` no longer accepts view tokens minted for a public share when the caller lacks view permission on the requested source (GHSA-wxj5-g3qp-g732) reporter @BlueN0r
+ - [Low] SSE source-update delivery no longer iterates the client registry without holding its lock, preventing a concurrent map iteration/write crash when Realtime clients connect or disconnect (GHSA-p9wm-f5jj-75pj) reporter @tao0845
  - [High] Incomplete symlink-containment remediation: an authenticated non-admin user could create a relative symlink via archive extraction, relocate it with WebDAV MOVE, and write through it to arbitrary host paths with the service account's privileges (GHSA-3j46-5w28-f8p2) reporter @Saku0512
  - [Moderate] Source-root containment bypass: create, write, delete, and move operations now resolve symlinks uncached and enforce the caller's scope, closing escapes through pre-existing out-of-source symlinks on upload, PUT, PATCH, delete, and WebDAV endpoints (GHSA-j764-qg3m-rhv7) reporter @chaoming0625
  - [Moderate] Archive downloads and extraction no longer read or write through symlinks that resolve outside the caller's share or user scope; escaping archive-walk entries are skipped
