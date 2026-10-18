@@ -1,18 +1,23 @@
 package share
 
 import (
+	"sync"
 	"testing"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 )
 
+var permissionsTestSourcesOnce sync.Once
+
 func initPermissionsTestSources(t *testing.T) {
 	t.Helper()
-	users.SetSourceNameResolver(func(name string) (string, error) {
-		if name == "default" {
-			return "/default", nil
-		}
-		return "", nil
+	permissionsTestSourcesOnce.Do(func() {
+		users.SetSourceNameResolver(func(name string) (string, error) {
+			if name == "default" {
+				return "/default", nil
+			}
+			return "", nil
+		})
 	})
 }
 
