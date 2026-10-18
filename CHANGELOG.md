@@ -17,6 +17,7 @@ All notable changes to this project will be documented in this file. For commit 
  - fix(download): revalidate single-file downloads so a changed file is not served stale (#3133)
  - Language switcher not working (#3114) (#3117)
  - Viewer showing a stale image after the file changed on disk: single-file downloads are now revalidated by the browser (#3132)
+ - fix(frontend): load the default source when browsing `/files/` with a single configured source ([#3178](https://github.com/gtsteffaniak/filebrowser/issues/3178)) (related: [#3143](https://github.com/gtsteffaniak/filebrowser/issues/3143), [#3144](https://github.com/gtsteffaniak/filebrowser/issues/3144))
 
 ## v2.1.1
 
