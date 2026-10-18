@@ -47,10 +47,14 @@ func effectiveFilePerms(d *Context, sourceName string) (users.SourceFilePermissi
 		return users.DenyAllSourceFilePermissions(), fmt.Errorf("user context not set")
 	}
 	var link *share.Share
+	actor := d.User
 	if d.Share.Hash != "" {
 		link = &d.Share
+		if d.ShareUser != nil {
+			actor = d.ShareUser
+		}
 	}
-	return share.EffectiveFilePermissions(d.User, link, sourceName)
+	return share.EffectiveFilePermissions(actor, link, sourceName)
 }
 
 // accessCheckUsername is the username used for filesystem access-rule checks.

@@ -19,9 +19,28 @@ func (l *Share) FilePermissions() users.SourceFilePermissions {
 
 // EffectiveFilePermissions returns share-scoped permissions when link is active,
 // otherwise resolves permissions from the authenticated user.
+// For shares, owner is the user whose current source permissions are intersected with the share flags.
 func EffectiveFilePermissions(user *users.User, link *Share, sourceName string) (users.SourceFilePermissions, error) {
 	if link != nil && link.Hash != "" {
-		return link.FilePermissions(), nil
+		owner := user
+		if owner == nil || owner.Username == "" || owner.Username == "anonymous" {
+			owner = nil
+		}
+		sharePerms := link.FilePermissions()
+		if owner == nil {
+			return sharePerms, nil
+		}
+		ownerPerms, err := owner.FilePermsForSourceName(sourceName)
+		if err != nil {
+			return users.DenyAllSourceFilePermissions(), err
+		}
+		return users.SourceFilePermissions{
+			View:     sharePerms.View && ownerPerms.View,
+			Download: sharePerms.Download && ownerPerms.Download,
+			Modify:   sharePerms.Modify && ownerPerms.Modify,
+			Delete:   sharePerms.Delete && ownerPerms.Delete,
+			Create:   sharePerms.Create && ownerPerms.Create,
+		}, nil
 	}
 	if user == nil {
 		return users.DenyAllSourceFilePermissions(), fmt.Errorf("user context not set")
