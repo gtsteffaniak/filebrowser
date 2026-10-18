@@ -51,6 +51,14 @@ function getSortedNavigationItems(listing: Partial<FileListItem>[], by: string, 
   return items;
 }
 
+const uploadBeforeUnloadHandler = (event: BeforeUnloadEvent) => {
+  if (!state.upload.isUploading) {
+    return;
+  }
+  event.preventDefault();
+  event.returnValue = "";
+};
+
 export const mutations = {
   disableEventThemes: () => {
     if (state.disableEventThemes) {
@@ -392,6 +400,13 @@ export const mutations = {
       return;
     }
     state.upload.isUploading = value;
+    if (typeof window !== "undefined") {
+      if (value) {
+        window.addEventListener("beforeunload", uploadBeforeUnloadHandler);
+      } else {
+        window.removeEventListener("beforeunload", uploadBeforeUnloadHandler);
+      }
+    }
     emitStateChanged();
   },
   closeHovers: () => {
@@ -401,7 +416,30 @@ export const mutations = {
     mutations.closeSidebar();
     mutations.hideTooltip(true);
   },
-  closeTopPrompt: (id?: number) => {
+  closeTopPrompt: (id?: number, options?: { force?: boolean }) => {
+    if (!options?.force && state.prompts.length > 0) {
+      const targetId =
+        id ?? state.prompts[state.prompts.length - 1]?.id;
+      const promptToClose = state.prompts.find((p) => p.id === targetId);
+      if (
+        promptToClose?.name === "upload" &&
+        state.upload.isUploading &&
+        !state.prompts.some((p) => p.name === "CloseWithActiveUploads")
+      ) {
+        mutations.showPrompt({
+          name: "CloseWithActiveUploads",
+          pinned: true,
+          confirm: () => {
+            mutations.closeTopPrompt(targetId, { force: true });
+          },
+          cancel: () => {
+            mutations.closeTopPrompt(undefined, { force: true });
+          },
+        });
+        return;
+      }
+    }
+
     if (id === undefined) {
       // close topmost prompt
       if (state.prompts.length === 0) return;

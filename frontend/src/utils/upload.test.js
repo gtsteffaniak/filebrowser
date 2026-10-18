@@ -30,7 +30,7 @@ vi.mock("@/utils/appNotifications", async (importOriginal) => {
 
 import { resourcesApi } from "@/api/index.js";
 import { notify } from "@/notify/index.ts";
-import { state, getters } from "@/store/index.ts";
+import { mutations, state, getters } from "@/store/index.ts";
 import { isSameSize, numberedName, uploadManager } from "./upload.js";
 
 function addUpload(status = "uploading", file = new Blob(["a"])) {
@@ -397,5 +397,26 @@ describe("conflicts on loose files", () => {
 
     expect(onConflict).not.toHaveBeenCalled();
     expect(uploadManager.queue).toHaveLength(2);
+  });
+});
+
+describe("hasOngoingUploads", () => {
+  it("treats paused uploads as in progress", () => {
+    addUpload("paused");
+    uploadManager.activeUploads = 0;
+    expect(uploadManager.hasOngoingUploads()).toBe(true);
+  });
+
+  it("is false when the queue has only finished uploads", () => {
+    addUpload("completed");
+    uploadManager.activeUploads = 0;
+    expect(uploadManager.hasOngoingUploads()).toBe(false);
+  });
+
+  it("keeps isUploading true while uploads are paused", async () => {
+    addUpload("paused");
+    uploadManager.activeUploads = 0;
+    await uploadManager.processQueue();
+    expect(mutations.setIsUploading).toHaveBeenCalledWith(true);
   });
 });
