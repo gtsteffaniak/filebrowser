@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file. For commit 
 ## v2.1.3
 
  **Security**:
+ - [Low] Duplicate finder results are cached per requesting user so filtered file names from one account are not served to another (GHSA-4fhx-8pf6-5gmr) reporter @Nazarami
  - [Moderate] Authenticated `GET /api/resources/view` no longer accepts view tokens minted for a public share when the caller lacks view permission on the requested source (GHSA-wxj5-g3qp-g732) reporter @BlueN0r
  - [Low] SSE source-update delivery no longer iterates the client registry without holding its lock, preventing a concurrent map iteration/write crash when Realtime clients connect or disconnect (GHSA-p9wm-f5jj-75pj) reporter @tao0845
  - [High] Incomplete symlink-containment remediation: an authenticated non-admin user could create a relative symlink via archive extraction, relocate it with WebDAV MOVE, and write through it to arbitrary host paths with the service account's privileges (GHSA-3j46-5w28-f8p2) reporter @Saku0512
