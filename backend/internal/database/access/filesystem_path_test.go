@@ -20,7 +20,7 @@ type stubInfo struct {
 
 func (s stubInfo) Name() string       { return s.name }
 func (s stubInfo) Size() int64        { return 0 }
-func (s stubInfo) Mode() fs.FileMode { return s.mode }
+func (s stubInfo) Mode() fs.FileMode  { return s.mode }
 func (s stubInfo) ModTime() time.Time { return time.Time{} }
 func (s stubInfo) IsDir() bool        { return s.mode.IsDir() }
 func (s stubInfo) Sys() interface{}   { return s.id }
@@ -67,11 +67,7 @@ func withMockFS(t *testing.T, m *mockFS) {
 	t.Helper()
 	orig := fsOps
 	fsOps = m
-	filesystemPathCache.ClearAll()
-	t.Cleanup(func() {
-		fsOps = orig
-		filesystemPathCache.ClearAll()
-	})
+	t.Cleanup(func() { fsOps = orig })
 }
 
 func TestResolveFilesystemIndexPathFollowsExistingSegment(t *testing.T) {
@@ -108,6 +104,59 @@ func TestResolveFilesystemIndexPathPreservesNotExistTail(t *testing.T) {
 	}
 }
 
+func TestResolveFilesystemIndexPathReResolvesAfterSegmentAppears(t *testing.T) {
+	root := filepath.FromSlash("/data")
+	dir := filepath.Join(root, "privatestorage")
+	secret := filepath.Join(dir, "Secret.TXT")
+	fileID := 99
+	fileInfo := stubInfo{name: "Secret.TXT", mode: 0, id: fileID}
+	created := false
+
+	withMockFS(t, &mockFS{
+		lstat: func(name string) (fs.FileInfo, error) {
+			if name == dir {
+				return stubInfo{name: "privatestorage", mode: fs.ModeDir, id: 1}, nil
+			}
+			if name == secret || name == filepath.Join(dir, "secret.txt") {
+				if !created {
+					return nil, fs.ErrNotExist
+				}
+				return fileInfo, nil
+			}
+			return nil, fs.ErrNotExist
+		},
+		readdir: func(name string) ([]fs.DirEntry, error) {
+			if name == root {
+				return []fs.DirEntry{mockDirEntry{info: stubInfo{name: "privatestorage", mode: fs.ModeDir, id: 1}}}, nil
+			}
+			if name == dir {
+				if !created {
+					return []fs.DirEntry{}, nil
+				}
+				return []fs.DirEntry{mockDirEntry{info: fileInfo}}, nil
+			}
+			return nil, fs.ErrNotExist
+		},
+	})
+
+	got, err := resolveFilesystemIndexPath(root, utils.IndexPathFromNormalized("/privatestorage/secret.txt", false))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got.String() != "/privatestorage/secret.txt" {
+		t.Fatalf("first resolve %q", got.String())
+	}
+
+	created = true
+	got, err = resolveFilesystemIndexPath(root, utils.IndexPathFromNormalized("/privatestorage/secret.txt", false))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got.String() != "/privatestorage/Secret.TXT" {
+		t.Fatalf("second resolve %q, want on-disk spelling", got.String())
+	}
+}
+
 func TestResolveFilesystemIndexPathPreservesIsDir(t *testing.T) {
 	root := t.TempDir()
 	if err := os.MkdirAll(filepath.Join(root, "privatestorage"), 0o755); err != nil {
@@ -126,19 +175,21 @@ func TestResolveFilesystemIndexPathPreservesIsDir(t *testing.T) {
 }
 
 func TestResolveFilesystemIndexPathCaseAliasViaReadDir(t *testing.T) {
-	root := "/data"
+	root := filepath.FromSlash("/data")
 	dirID := 1
 	fileID := 2
 	privateDir := stubInfo{name: "privatestorage", mode: fs.ModeDir, id: dirID}
 	secretFile := stubInfo{name: "secret.txt", mode: 0, id: fileID}
-	aliasDir := stubInfo{name: "PrivateStorage", mode: fs.ModeDir, id: dirID}
+	privPath := filepath.Join(root, "privatestorage")
+	aliasPath := filepath.Join(root, "PrivateStorage")
+	secretPath := filepath.Join(privPath, "secret.txt")
 
 	withMockFS(t, &mockFS{
 		lstat: func(name string) (fs.FileInfo, error) {
 			switch name {
-			case "/data/PrivateStorage":
-				return aliasDir, nil
-			case "/data/privatestorage/secret.txt":
+			case aliasPath, privPath:
+				return privateDir, nil
+			case secretPath:
 				return secretFile, nil
 			default:
 				return nil, fs.ErrNotExist
@@ -146,9 +197,9 @@ func TestResolveFilesystemIndexPathCaseAliasViaReadDir(t *testing.T) {
 		},
 		readdir: func(name string) ([]fs.DirEntry, error) {
 			switch name {
-			case "/data":
+			case root:
 				return []fs.DirEntry{mockDirEntry{info: privateDir}}, nil
-			case "/data/privatestorage":
+			case privPath:
 				return []fs.DirEntry{mockDirEntry{info: secretFile}}, nil
 			default:
 				return nil, fs.ErrNotExist
@@ -165,23 +216,68 @@ func TestResolveFilesystemIndexPathCaseAliasViaReadDir(t *testing.T) {
 	}
 }
 
-func TestResolveFilesystemIndexPathReadDirEACCESFailsClosed(t *testing.T) {
+func TestResolveFilesystemIndexPathDeniesAmbiguousHardLink(t *testing.T) {
+	root := filepath.FromSlash("/data")
+	fileID := 42
+	candidate := stubInfo{name: "PRIVATE.TXT", mode: 0, id: fileID}
+	aFile := stubInfo{name: "a.txt", mode: 0, id: fileID}
+	privFile := stubInfo{name: "private.txt", mode: 0, id: fileID}
+	dir := stubInfo{name: "share", mode: fs.ModeDir, id: 1}
+	share := filepath.Join(root, "share")
+	candPath := filepath.Join(share, "PRIVATE.TXT")
+
 	withMockFS(t, &mockFS{
 		lstat: func(name string) (fs.FileInfo, error) {
-			if name == "/data/PrivateStorage" {
+			switch name {
+			case share:
+				return dir, nil
+			case candPath, filepath.Join(share, "a.txt"), filepath.Join(share, "private.txt"):
+				return candidate, nil
+			default:
+				return nil, fs.ErrNotExist
+			}
+		},
+		readdir: func(name string) ([]fs.DirEntry, error) {
+			if name == share {
+				return []fs.DirEntry{
+					mockDirEntry{info: aFile},
+					mockDirEntry{info: privFile},
+				}, nil
+			}
+			return nil, fs.ErrNotExist
+		},
+		same: func(a, b fs.FileInfo) bool {
+			ai, okA := a.(stubInfo)
+			bi, okB := b.(stubInfo)
+			return okA && okB && ai.id == bi.id
+		},
+	})
+
+	_, err := resolveFilesystemIndexPath(root, utils.IndexPathFromNormalized("/share/PRIVATE.TXT", false))
+	if err == nil {
+		t.Fatal("expected ambiguous hard link resolution to fail closed")
+	}
+}
+
+func TestResolveFilesystemIndexPathReadDirEACCESFailsClosed(t *testing.T) {
+	root := filepath.FromSlash("/data")
+	aliasPath := filepath.Join(root, "PrivateStorage")
+	withMockFS(t, &mockFS{
+		lstat: func(name string) (fs.FileInfo, error) {
+			if name == aliasPath {
 				return stubInfo{name: "PrivateStorage", mode: fs.ModeDir, id: 1}, nil
 			}
 			return nil, fs.ErrNotExist
 		},
 		readdir: func(name string) ([]fs.DirEntry, error) {
-			if name == "/data" {
+			if name == root {
 				return nil, syscall.EACCES
 			}
 			return nil, fs.ErrNotExist
 		},
 	})
 
-	_, err := resolveFilesystemIndexPath("/data", utils.IndexPathFromNormalized("/PrivateStorage/secret.txt", false))
+	_, err := resolveFilesystemIndexPath(root, utils.IndexPathFromNormalized("/PrivateStorage/secret.txt", false))
 	if err == nil {
 		t.Fatal("expected error on EACCES")
 	}
