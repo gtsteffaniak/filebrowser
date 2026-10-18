@@ -355,19 +355,37 @@ function passkeyHttpError(message, status) {
   return err
 }
 
+export function isPasskeyActorPasswordCancelled(err) {
+  return err?.cancelled === true || err?.name === 'PasskeyActorPasswordCancelled'
+}
+
+function passkeyActorPasswordCancelledError() {
+  const err = new Error('Password confirmation cancelled')
+  err.name = 'PasskeyActorPasswordCancelled'
+  err.cancelled = true
+  return err
+}
+
 function promptPasskeyActorPassword(i18nKey) {
   return new Promise((resolve, reject) => {
+    let settled = false
+    const finish = (fn, value) => {
+      if (settled) {
+        return
+      }
+      settled = true
+      fn(value)
+    }
     mutations.showPrompt({
       name: 'password',
+      cancel: () => {
+        finish(reject, passkeyActorPasswordCancelledError())
+      },
       props: {
         infoText: i18n.global.t(i18nKey || 'prompts.confirmPasswordToSaveUser'),
         submitLabel: i18n.global.t('general.confirm'),
         submitCallback: async (actorPassword) => {
-          try {
-            resolve(actorPassword)
-          } catch (err) {
-            reject(err)
-          }
+          finish(resolve, actorPassword)
         },
       },
     })

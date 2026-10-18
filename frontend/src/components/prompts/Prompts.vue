@@ -433,7 +433,8 @@ export default {
           return;
         }
       }
-      // Normal close behavior
+      // Normal close behavior (dismiss via close control or Escape — not component submit paths)
+      promptToClose.cancel?.();
       mutations.closeTopPrompt(id);
       // Clean up state for this prompt
       this.cleanupDragState(id);
