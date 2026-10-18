@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
-## v2.0.2
+## v2.0.2-stable
 
  **Security**:
  - [High] File Size Analyzer hover tooltips render file paths as plain text instead of HTML, closing stored XSS via crafted file names (GHSA-rmjp-pfrq-cc3v) reporter @U3RhcnQ
