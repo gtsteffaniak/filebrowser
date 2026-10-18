@@ -110,6 +110,11 @@ func beginPasskeyRegistrationHandler(w http.ResponseWriter, r *http.Request, d *
 	if !auth.IsWebAuthnEnabled() {
 		return http.StatusForbidden, errors.ErrPasskeyNotEnabled
 	}
+	if d.User.HasPasskeyMFA() {
+		if err := checkOtpActorPassword(r, d, d.User.Username); err != nil {
+			return http.StatusUnauthorized, err
+		}
+	}
 
 	registerRequestOrigin(r)
 
@@ -143,6 +148,11 @@ func beginPasskeyRegistrationHandler(w http.ResponseWriter, r *http.Request, d *
 func finishPasskeyRegistrationHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
 	if !auth.IsWebAuthnEnabled() {
 		return http.StatusForbidden, errors.ErrPasskeyNotEnabled
+	}
+	if d.User.HasPasskeyMFA() {
+		if err := checkOtpActorPassword(r, d, d.User.Username); err != nil {
+			return http.StatusUnauthorized, err
+		}
 	}
 
 	registerRequestOrigin(r)
@@ -187,6 +197,9 @@ func finishPasskeyRegistrationHandler(w http.ResponseWriter, r *http.Request, d 
 func deletePasskeyCredentialHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
 	if !auth.IsWebAuthnEnabled() {
 		return http.StatusForbidden, errors.ErrPasskeyNotEnabled
+	}
+	if err := checkOtpActorPassword(r, d, d.User.Username); err != nil {
+		return http.StatusUnauthorized, err
 	}
 
 	credentialID := r.PathValue("id")

@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v2.0.2
+
+ **Security**:
+ - [Moderate] Passkey registration and deletion now require the account password when a passkey is already configured, and passkeys cannot be altered through generic user profile PATCH (GHSA-r744-4vm3-2px3) reporter @tonghuaroot
+
 ## v2.0.1-stable
 
  **Security**:
