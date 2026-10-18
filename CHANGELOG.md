@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v2.0.2
+
+ **Security**:
+ - [Low] SSE source-update delivery no longer iterates the client registry without holding its lock, preventing a concurrent map iteration/write crash when Realtime clients connect or disconnect (GHSA-p9wm-f5jj-75pj) reporter @tao0845
+
 ## v2.0.1-stable
 
  **Security**:
