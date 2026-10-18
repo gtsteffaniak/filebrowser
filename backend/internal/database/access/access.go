@@ -396,6 +396,7 @@ func (s *Storage) DenyAll(sourcePath string, indexPath utils.IndexPath) error {
 // Permitted checks if a username is permitted for a given sourcePath and indexPath, recursively checking parent directories.
 func (s *Storage) Permitted(sourcePath string, indexPath utils.IndexPath, username string) bool {
 	indexPath = checkPath(indexPath)
+	indexPath = checkPath(resolveFilesystemIndexPath(sourcePath, indexPath))
 	pathStr := indexPath.String()
 
 	// Get current version for the sourcePath
