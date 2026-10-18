@@ -414,6 +414,9 @@ func (ffs *filteredFileSystem) OpenFile(ctx context.Context, requestPath string,
 	isReplaceWrite := isWrite && ((flag&os.O_TRUNC) != 0 || (flag&os.O_CREATE) != 0)
 
 	if isWrite {
+		if status, err := denyIfSourceReadOnly(ffs.source); status != 0 {
+			return nil, err
+		}
 		// Check user permissions first
 		if !ffs.sourceFilePerms().Create && !ffs.sourceFilePerms().Modify {
 			return nil, fmt.Errorf("write permission required")
