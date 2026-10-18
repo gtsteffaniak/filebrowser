@@ -201,7 +201,8 @@ router.beforeResolve(async (to, from, next) => {
         mutations.closeTopPrompt(undefined, { force: true });
       },
     });
-    return false;
+    next(false);
+    return;
   }
 
   // Clear any popup previews when navigating
