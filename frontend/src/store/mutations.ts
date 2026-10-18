@@ -16,6 +16,11 @@ import { sortedItems } from "@/utils/sort.ts";
 import { isSourceSidebarCategory } from "@/utils/sidebarCategory.ts";
 import { updateManifestLink } from "@/utils/pwaManifest.js";
 import { syncEventTheme } from "@/utils/theme.js";
+import {
+  cancelCloseUploadPrompt,
+  confirmCloseUploadPrompt,
+  hasCloseWithActiveUploadsPrompt,
+} from "@/utils/uploadNavigationGuard.ts";
 import { emitStateChanged } from "./eventBus.ts";
 import { getters } from "./getters.ts";
 import { state } from "./state.ts";
@@ -50,6 +55,14 @@ function getSortedNavigationItems(listing: Partial<FileListItem>[], by: string, 
   navigationSortCache = { listing, length: listing.length, by, asc, items };
   return items;
 }
+
+const uploadBeforeUnloadHandler = (event: BeforeUnloadEvent) => {
+  if (!state.upload.isUploading) {
+    return;
+  }
+  event.preventDefault();
+  event.returnValue = "";
+};
 
 export const mutations = {
   disableEventThemes: () => {
@@ -392,6 +405,13 @@ export const mutations = {
       return;
     }
     state.upload.isUploading = value;
+    if (typeof window !== "undefined") {
+      if (value) {
+        window.addEventListener("beforeunload", uploadBeforeUnloadHandler);
+      } else {
+        window.removeEventListener("beforeunload", uploadBeforeUnloadHandler);
+      }
+    }
     emitStateChanged();
   },
   closeHovers: () => {
@@ -401,7 +421,30 @@ export const mutations = {
     mutations.closeSidebar();
     mutations.hideTooltip(true);
   },
-  closeTopPrompt: (id?: number) => {
+  closeTopPrompt: (id?: number, options?: { force?: boolean }) => {
+    if (!options?.force && state.prompts.length > 0) {
+      const targetId =
+        id ?? state.prompts[state.prompts.length - 1]?.id;
+      const promptToClose = state.prompts.find((p) => p.id === targetId);
+      if (
+        promptToClose?.name === "upload" &&
+        state.upload.isUploading &&
+        !hasCloseWithActiveUploadsPrompt()
+      ) {
+        mutations.showPrompt({
+          name: "CloseWithActiveUploads",
+          pinned: true,
+          confirm: () => {
+            confirmCloseUploadPrompt(targetId);
+          },
+          cancel: () => {
+            cancelCloseUploadPrompt();
+          },
+        });
+        return;
+      }
+    }
+
     if (id === undefined) {
       // close topmost prompt
       if (state.prompts.length === 0) return;

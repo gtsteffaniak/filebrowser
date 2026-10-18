@@ -7,6 +7,11 @@ import { getters, mutations, state } from "@/store/index.ts";
 import { validateLogin } from "@/utils/auth.js";
 import { sanitizePostLoginRedirect } from "@/utils/safeRedirect.js";
 import { globalVars } from "@/utils/constants.js";
+import {
+  evaluateUploadNavigationGuard,
+  isDifferentAppRoute,
+  showUploadNavigationConfirm,
+} from "@/utils/uploadNavigationGuard.ts";
 import Errors from "@/views/Errors.vue";
 import Files from "@/views/Files.vue";
 import Layout from "@/views/Layout.vue";
@@ -175,6 +180,17 @@ router.beforeResolve(async (to, from) => {
   if (isSameRoute(to, from)) {
     console.warn("Avoiding recursive navigation to the same route.");
     return false;
+  }
+
+  if (isDifferentAppRoute(to, from)) {
+    const uploadNav = evaluateUploadNavigationGuard(to);
+    if (uploadNav === "block") {
+      return false;
+    }
+    if (uploadNav === "prompt") {
+      showUploadNavigationConfirm(to, router);
+      return false;
+    }
   }
 
   // Clear any popup previews when navigating
