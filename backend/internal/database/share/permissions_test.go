@@ -60,6 +60,43 @@ func TestShareFilePermissions(t *testing.T) {
 	}
 }
 
+func TestEffectiveFilePermissionsClampsShareToOwner(t *testing.T) {
+	t.Parallel()
+	initPermissionsTestSources(t)
+
+	ownerPerms := users.SourceFilePermissions{
+		View: true, Download: false, Modify: true, Create: false, Delete: false,
+	}
+	owner := &users.User{
+		FrontendUser: users.FrontendUser{Username: "owner"},
+		BackendScopes: []users.BackendScope{
+			{Path: "/default", Scope: "/", Permissions: ownerPerms},
+		},
+		BackendSourcePermissions: map[string]users.SourceFilePermissions{
+			"/default": ownerPerms,
+		},
+		Version: users.SourcePermissionsMigrationVersion,
+	}
+	link := Share{ShareColumns: ShareColumns{Hash: "share1"}}
+	link.AllowCreate = true
+	link.AllowModify = true
+	link.DisableDownload = false
+
+	got, err := EffectiveFilePermissions(owner, &link, "default")
+	if err != nil {
+		t.Fatalf("EffectiveFilePermissions: %v", err)
+	}
+	if got.Download {
+		t.Fatal("expected download denied when owner lost download permission")
+	}
+	if got.Create {
+		t.Fatal("expected create denied when owner lost create permission")
+	}
+	if !got.Modify {
+		t.Fatal("expected modify still allowed from share intersect owner")
+	}
+}
+
 func TestClampShareEditable(t *testing.T) {
 	t.Parallel()
 	ownerPerms := users.SourceFilePermissions{
