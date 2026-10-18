@@ -883,12 +883,14 @@ func ResourcePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 			}
 		}()
 
-		// On the first chunk, check quota and conflicts
-		if offset == 0 {
+		// Reserve quota before writing any chunk (including resume at nonzero offset).
+		if !quotaReserved {
 			if quotaErr := checkUploadQuota(quotaCtx); quotaErr != nil {
 				return renderQuotaError(w, r, quotaErr)
 			}
 			quotaReserved = true
+		}
+		if offset == 0 {
 			// Check for file/folder conflicts for chunked uploads
 			if stat, statErr := os.Stat(realPath); statErr == nil {
 				existingIsDir := stat.IsDir()
@@ -1041,6 +1043,13 @@ func ResourcePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 	}
 
 	if !isContentUpload(r) {
+		sessionID := newQuotaSessionID()
+		totalSize := r.ContentLength
+		hasSize := totalSize >= 0
+		quotaCtx := uploadQuotaContext(d, source, fullIndexPath, realPath, r, sessionID, totalSize, hasSize)
+		if quotaErr := checkUploadQuota(quotaCtx); quotaErr != nil {
+			return renderQuotaError(w, r, quotaErr)
+		}
 		err = files.WriteFile(fileOpts.Source, mutationBound, fullIndexPath, r.Body)
 		if err != nil {
 			logger.Debugf("error writing file: %v", err)
