@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v2.0.2
+
+ **Security**:
+ - [Moderate] Per-path access rules are evaluated against filesystem-resolved path segments, closing DENY bypasses via case variants and other on-disk name aliases (GHSA-4vrc-935w-xxq2) reporter @FrogApprentice
+
 ## v2.0.1-stable
 
  **Security**:
