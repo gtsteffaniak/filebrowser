@@ -76,6 +76,7 @@ import ListingItem from "@/components/files/ListingItem.vue";
 import { eventBus } from "@/store/eventBus";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import url from "@/utils/url";
+import { listingCacheKey, getCachedListing } from "@/utils/cache/listingCache.ts";
 
 export default {
   name: "delete",
@@ -182,6 +183,20 @@ export default {
     },
     closeTopPrompt() {
       mutations.closeTopPrompt();
+    },
+    removeFromFolderLists(item) {
+      const drop = (list) => {
+        if (!Array.isArray(list)) return list;
+        const index = list.findIndex((i) => i.path === item.path);
+        if (index !== -1) list.splice(index, 1);
+        return list;
+      };
+      state.req.parentDirItems = drop(state.req.parentDirItems);
+      state.navigation.listing = drop(state.navigation.listing);
+      const cached = getCachedListing(listingCacheKey(item.source, url.getParentDir(item.path)));
+      if (cached?.res.items) {
+        cached.res.items = drop(cached.res.items);
+      }
     },
     getItemName(path) {
       const parts = path.split("/").filter(p => p);
@@ -291,6 +306,7 @@ export default {
             const currentItem = state.req;
             // Only navigate if we delete the current item, not by deleting a different one (from fileTree)
             if (currentItem && deletedItem.source === currentItem.source && deletedItem.path === currentItem.path) {
+              this.removeFromFolderLists(deletedItem);
               mutations.setNavigationTransitioning(true);
               // Try next, then previous, then parent directory
               if (state.navigation.nextItem) {
