@@ -6,9 +6,14 @@ All notable changes to this project will be documented in this file. For commit 
 
  **Security**:
  - [Moderate] WebDAV PUT now requires Create permission when the target path does not yet exist, so Modify-only users cannot create new files (GHSA-8655-2ph3-q7q7) reporter @levanduy181
+ - [Low] Failed-login lockout and auth rate limits now use the rightmost `X-Forwarded-For` hop when proxy headers are trusted, so a client cannot spoof the client IP with a leftmost forwarded value (GHSA-wjp8-g49g-xrhx) reporter @LECOQQ
+ - [Low] Duplicate finder results are cached per requesting user so filtered file names from one account are not served to another (GHSA-4fhx-8pf6-5gmr) reporter @Nazarami
+ - [Moderate] Authenticated `GET /api/resources/view` no longer accepts view tokens minted for a public share when the caller lacks view permission on the requested source (GHSA-wxj5-g3qp-g732) reporter @BlueN0r
+ - [Low] SSE source-update delivery no longer iterates the client registry without holding its lock, preventing a concurrent map iteration/write crash when Realtime clients connect or disconnect (GHSA-p9wm-f5jj-75pj) reporter @tao0845
  - [High] Incomplete symlink-containment remediation: an authenticated non-admin user could create a relative symlink via archive extraction, relocate it with WebDAV MOVE, and write through it to arbitrary host paths with the service account's privileges (GHSA-3j46-5w28-f8p2) reporter @Saku0512
  - [Moderate] Source-root containment bypass: create, write, delete, and move operations now resolve symlinks uncached and enforce the caller's scope, closing escapes through pre-existing out-of-source symlinks on upload, PUT, PATCH, delete, and WebDAV endpoints (GHSA-j764-qg3m-rhv7) reporter @chaoming0625
- - [Moderate] Archive downloads and extraction no longer read or write through symlinks that resolve outside the caller's share or user scope; escaping archive-walk entries are skipped
+ - [Moderate] Preview reads resolve symlinks within the caller's scope so authenticated preview cannot follow an out-of-scope symlink target (GHSA-g2q5-r6ch-v25f) reporter @tao0845
+ - [Moderate] Archive downloads and extraction no longer read or write through symlinks that resolve outside the caller's share or user scope; escaping archive-walk entries are skipped (GHSA-qqf3-2wvq-q4w9) reporter @SmokinCaterpillar
  - [Moderate] Share directory-archive downloads now apply the share owner's access rules to every entry, closing a bypass where anonymous share visitors could download admin-denied content (GHSA-9fcr-gm58-p839) reporter @Tan-JunWei
 
  **New Features**:
