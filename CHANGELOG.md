@@ -6,6 +6,8 @@ All notable changes to this project will be documented in this file. For commit 
 
  **Security**:
  - [High] File Size Analyzer hover tooltips render file paths as plain text instead of HTML, closing stored XSS via crafted file names (GHSA-rmjp-pfrq-cc3v) reporter @U3RhcnQ
+ - [Moderate] WebDAV PUT now requires Create permission when the target path does not yet exist, so Modify-only users cannot create new files (GHSA-8655-2ph3-q7q7) reporter @levanduy181
+ - [Low] Failed-login lockout and auth rate limits now use the rightmost `X-Forwarded-For` hop when proxy headers are trusted, so a client cannot spoof the client IP with a leftmost forwarded value (GHSA-wjp8-g49g-xrhx) reporter @LECOQQ
 
  **Bug Fixes**:
  - fix(frontend): keep source named `files` in `extractSourceFromPath` ([#3143](https://github.com/gtsteffaniak/filebrowser/issues/3143), [#3099](https://github.com/gtsteffaniak/filebrowser/pull/3099))
