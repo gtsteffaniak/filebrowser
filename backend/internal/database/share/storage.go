@@ -145,15 +145,20 @@ func (s *Storage) UpdateShares(oldSource, oldPath, newSource, newPath string) (i
 		if l == nil || l.SourcePath != oldSource {
 			continue
 		}
+		shareWasDir := strings.HasSuffix(l.Path, "/")
 		l.Path = utils.AddTrailingSlashIfNotExists(l.Path)
 
-		pos := strings.Index(l.Path, oldPath)
-		if pos < 0 {
+		norm := utils.AddTrailingSlashIfNotExists(l.Path)
+		if !strings.HasPrefix(norm, oldPath) {
 			continue
 		}
 
 		l.SourcePath = newSource
-		l.Path = newPath
+		suffix := strings.TrimPrefix(norm, oldPath)
+		l.Path = strings.TrimSuffix(newPath+suffix, "/")
+		if shareWasDir {
+			l.Path = utils.AddTrailingSlashIfNotExists(l.Path)
+		}
 
 		if err := s.back.Save(l); err != nil {
 			logger.Error("failed to save updated share", "hash", l.Hash, "error", err)
