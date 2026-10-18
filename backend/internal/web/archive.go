@@ -1054,21 +1054,25 @@ func safeExtractPath(destDir, name string) (string, error) {
 	if rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
 		return "", fmt.Errorf("invalid entry path: %q", name)
 	}
-	// Lexical containment is not enough: a pre-existing symlink inside destDir
-	// (or an existing symlink at the entry location itself) would redirect the
-	// write outside. Resolve the entry the same way mutation sinks do — the
-	// leaf if it exists, else the deepest existing ancestor — and require the
-	// result to stay under the resolved destination root.
+	if _, err = resolvedWritePathUnderDest(destDir, entryAbs); err != nil {
+		return "", fmt.Errorf("invalid entry path: %q: %w", name, err)
+	}
+	return abs, nil
+}
+
+// resolvedWritePathUnderDest resolves symlink components on entryAbs and ensures the
+// effective write target stays under the resolved destination root.
+func resolvedWritePathUnderDest(destDir, entryAbs string) (string, error) {
 	destResolved, err := filepath.EvalSymlinks(destDir)
 	if err != nil {
 		return "", err
 	}
-	check := abs
+	check := entryAbs
 	if resolved, rerr := filepath.EvalSymlinks(check); rerr == nil {
 		check = resolved
 	} else if errors.Is(rerr, os.ErrNotExist) {
-		parent := filepath.Dir(abs)
-		leaf := filepath.Base(abs)
+		parent := filepath.Dir(entryAbs)
+		leaf := filepath.Base(entryAbs)
 		for {
 			resolvedParent, perr := filepath.EvalSymlinks(parent)
 			if perr == nil {
@@ -1080,7 +1084,7 @@ func safeExtractPath(destDir, name string) (string, error) {
 			}
 			next := filepath.Dir(parent)
 			if next == parent {
-				return "", fmt.Errorf("no existing ancestor for entry path: %q", name)
+				return "", fmt.Errorf("no existing ancestor for entry path: %q", entryAbs)
 			}
 			leaf = filepath.Join(filepath.Base(parent), leaf)
 			parent = next
@@ -1090,12 +1094,12 @@ func safeExtractPath(destDir, name string) (string, error) {
 	}
 	relCheck, err := filepath.Rel(destResolved, check)
 	if err != nil {
-		return "", fmt.Errorf("invalid entry path: %q: %w", name, err)
+		return "", err
 	}
 	if relCheck == ".." || strings.HasPrefix(relCheck, ".."+string(filepath.Separator)) {
-		return "", fmt.Errorf("entry path escapes destination through a symlink: %q", name)
+		return "", fmt.Errorf("entry path escapes destination through a symlink: %q", entryAbs)
 	}
-	return abs, nil
+	return check, nil
 }
 
 // applyArchivedTimesAndPerm sets permission bits and modification time from an archive entry using
@@ -1284,7 +1288,7 @@ func extractZipWithEncoding(archivePath, destDir, charset string, policy *extrac
 		mode := fi.Mode()
 		isDirEntry := mode.Type() == fs.ModeDir || strings.HasSuffix(o.name, "/") || strings.HasSuffix(o.name, "\\")
 		if isDirEntry {
-			if err = policy.allowWrite(destPath); err != nil {
+			if err = policy.allowWriteIncludingParents(destPath); err != nil {
 				return err
 			}
 			if err = extractArchivedDir(destPath, mode, f.Modified); err != nil {
@@ -1304,6 +1308,9 @@ func extractZipWithEncoding(archivePath, destDir, charset string, policy *extrac
 			if rerr != nil {
 				return rerr
 			}
+			if err = policy.allowWriteIncludingParents(destPath); err != nil {
+				return err
+			}
 			if err = extractArchivedSymlink(destDir, destPath, string(buf), f.Modified); err != nil {
 				return err
 			}
@@ -1314,7 +1321,7 @@ func extractZipWithEncoding(archivePath, destDir, charset string, policy *extrac
 			continue
 		}
 
-		if err = policy.allowWrite(destPath); err != nil {
+		if err = policy.allowWriteIncludingParents(destPath); err != nil {
 			return err
 		}
 
@@ -1360,7 +1367,7 @@ func extractTarGz(archivePath, destDir string, policy *extractAccessPolicy) erro
 
 		switch h.Typeflag {
 		case tar.TypeDir:
-			if err = policy.allowWrite(destPath); err != nil {
+			if err = policy.allowWriteIncludingParents(destPath); err != nil {
 				return err
 			}
 			mode := h.FileInfo().Mode()
@@ -1368,7 +1375,7 @@ func extractTarGz(archivePath, destDir string, policy *extractAccessPolicy) erro
 				return err
 			}
 		case tar.TypeReg:
-			if err = policy.allowWrite(destPath); err != nil {
+			if err = policy.allowWriteIncludingParents(destPath); err != nil {
 				return err
 			}
 			mode := h.FileInfo().Mode()
@@ -1376,6 +1383,9 @@ func extractTarGz(archivePath, destDir string, policy *extractAccessPolicy) erro
 				return err
 			}
 		case tar.TypeSymlink:
+			if err = policy.allowWriteIncludingParents(destPath); err != nil {
+				return err
+			}
 			if err = extractArchivedSymlink(destDir, destPath, h.Linkname, h.ModTime); err != nil {
 				return err
 			}
