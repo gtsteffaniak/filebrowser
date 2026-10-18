@@ -521,11 +521,18 @@ func unarchiveHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 		defer zr.Close()
 		return RenderJSON(w, r, archiveencoding.Inspect(zr.File), http.StatusOK)
 	}
+	policy := &extractAccessPolicy{
+		idx:             idxTo,
+		destRealRoot:    destReal,
+		destIndexPrefix: fullDestPath,
+		username:        d.User.Username,
+		perms:           destPerms,
+	}
 	var extractErr error
 	if strings.HasSuffix(lower, ".zip") {
-		extractErr = extractZipWithEncoding(archiveReal, destReal, req.FilenameEncoding)
+		extractErr = extractZipWithEncoding(archiveReal, destReal, req.FilenameEncoding, policy)
 	} else if strings.HasSuffix(lower, ".tar.gz") || (strings.HasSuffix(lower, ".tgz")) {
-		extractErr = extractTarGz(archiveReal, destReal)
+		extractErr = extractTarGz(archiveReal, destReal, policy)
 	} else {
 		return http.StatusBadRequest, fmt.Errorf("unsupported archive format (use .zip or .tar.gz)")
 	}
@@ -1205,10 +1212,10 @@ func extractArchivedSymlink(destRoot, destPath, target string, modTime time.Time
 }
 
 func extractZip(archivePath, destDir string) error {
-	return extractZipWithEncoding(archivePath, destDir, "")
+	return extractZipWithEncoding(archivePath, destDir, "", nil)
 }
 
-func extractZipWithEncoding(archivePath, destDir, charset string) error {
+func extractZipWithEncoding(archivePath, destDir, charset string, policy *extractAccessPolicy) error {
 	r, err := zip.OpenReader(archivePath)
 	if err != nil {
 		return err
@@ -1277,6 +1284,9 @@ func extractZipWithEncoding(archivePath, destDir, charset string) error {
 		mode := fi.Mode()
 		isDirEntry := mode.Type() == fs.ModeDir || strings.HasSuffix(o.name, "/") || strings.HasSuffix(o.name, "\\")
 		if isDirEntry {
+			if err = policy.allowWrite(destPath); err != nil {
+				return err
+			}
 			if err = extractArchivedDir(destPath, mode, f.Modified); err != nil {
 				return err
 			}
@@ -1304,6 +1314,10 @@ func extractZipWithEncoding(archivePath, destDir, charset string) error {
 			continue
 		}
 
+		if err = policy.allowWrite(destPath); err != nil {
+			return err
+		}
+
 		var rc io.ReadCloser
 		rc, err = f.Open()
 		if err != nil {
@@ -1316,7 +1330,7 @@ func extractZipWithEncoding(archivePath, destDir, charset string) error {
 	return nil
 }
 
-func extractTarGz(archivePath, destDir string) error {
+func extractTarGz(archivePath, destDir string, policy *extractAccessPolicy) error {
 	f, err := os.Open(archivePath)
 	if err != nil {
 		return err
@@ -1346,11 +1360,17 @@ func extractTarGz(archivePath, destDir string) error {
 
 		switch h.Typeflag {
 		case tar.TypeDir:
+			if err = policy.allowWrite(destPath); err != nil {
+				return err
+			}
 			mode := h.FileInfo().Mode()
 			if err = extractArchivedDir(destPath, mode, h.ModTime); err != nil {
 				return err
 			}
 		case tar.TypeReg:
+			if err = policy.allowWrite(destPath); err != nil {
+				return err
+			}
 			mode := h.FileInfo().Mode()
 			if err = extractArchivedRegularFile(destPath, mode, h.ModTime, io.NopCloser(tr)); err != nil {
 				return err
