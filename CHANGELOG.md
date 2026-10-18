@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
-## v2.0.2
+## v2.0.2-stable
 
  **Security**:
  - [Moderate] Public share requests now intersect stored share flags with the share owner's current source permissions, so revoked Share/Download/write rights or scope changes take effect without recreating the link (GHSA-whwr-fggp-56fw) reporter @dylanzonix
