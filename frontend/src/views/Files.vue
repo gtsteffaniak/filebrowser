@@ -445,11 +445,23 @@ export default {
                 break;
               }
             }
+            // Source named "files" yields targetPath "/files", which is a no-op from /files/.
+            if (removeTrailingSlash(targetPath) === "/files" && state.sources.current) {
+              targetPath = `/files/${encodeURIComponent(state.sources.current)}/`;
+            }
             void router.push(targetPath);
             return;
           }
 
           const result = extractSourceFromPath(getters.routePath(), Object.keys(state.sources.info));
+
+          if (result.source === "" && state.sources.count === 1) {
+            const fallback = state.sources.defaultSource || state.sources.current;
+            if (fallback) {
+              result.source = fallback;
+              result.path = "/";
+            }
+          }
 
           if (result.source === "") {
             // No sources available - show a more graceful message instead of error popup
