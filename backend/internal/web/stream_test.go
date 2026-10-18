@@ -226,6 +226,39 @@ func TestValidateViewGrantShareBinding(t *testing.T) {
 	}
 }
 
+func TestValidateViewGrantRejectsShareTokenOnAuthenticatedRoute(t *testing.T) {
+	initStreamTestSources(t)
+	settings.Config.Server.SourceMap = map[string]*settings.Source{
+		"/srv": {Path: "/srv", Name: "srv"},
+	}
+	t.Cleanup(func() { settings.Config.Server.SourceMap = nil })
+
+	shareCtx := &requestContext{
+		User:  testUserWithView(1, "srv"),
+		Share: share.Share{ShareColumns: share.ShareColumns{Hash: "abc123"}, SourcePath: "/srv"},
+	}
+	token, err := mintViewGrant(shareCtx, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	denied := &requestContext{
+		User: &users.User{
+			FrontendUser: users.FrontendUser{Username: "bob"},
+			ID:           2,
+			BackendScopes: []users.BackendScope{
+				{Path: "/srv", Scope: "/", Permissions: users.DenyAllSourceFilePermissions()},
+			},
+			BackendSourcePermissions: map[string]users.SourceFilePermissions{
+				"/srv": users.DenyAllSourceFilePermissions(),
+			},
+			Version: users.SourcePermissionsMigrationVersion,
+		},
+	}
+	if err := ValidateViewGrant(token, denied, "srv"); err == nil {
+		t.Fatal("expected share view token to be rejected on authenticated view route")
+	}
+}
+
 func TestAttachViewTokenForAllFileTypes(t *testing.T) {
 	t.Parallel()
 	initStreamTestSources(t)

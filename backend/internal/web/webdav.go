@@ -237,6 +237,26 @@ func (ffs *filteredFileSystem) checkScopePath(requestPath string, forRemoval boo
 	return err
 }
 
+func (ffs *filteredFileSystem) requireCreatePermissionForNewFile(requestPath string) error {
+	idx := indexing.GetIndex(ffs.source)
+	if idx == nil {
+		return fmt.Errorf("source not found")
+	}
+	userScope, err := ffs.user.GetScopeForSourceName(ffs.source)
+	if err != nil {
+		return err
+	}
+	fullIndexPath := utils.JoinScopedIndexPath(userScope, strings.TrimPrefix(requestPath, "/"))
+	realPath, err := idx.GetRealPathForMutation(userScope, fullIndexPath)
+	if err != nil {
+		return err
+	}
+	if _, statErr := os.Stat(realPath); os.IsNotExist(statErr) {
+		return fmt.Errorf("create permission required")
+	}
+	return nil
+}
+
 // filteredFile wraps a webdav.File and filters Readdir results based on FileInfoFaster
 type filteredFile struct {
 	webdav.File
@@ -429,6 +449,12 @@ func (ffs *filteredFileSystem) OpenFile(ctx context.Context, requestPath string,
 		if err := ffs.checkScopePath(requestPath, false); err != nil {
 			logger.Debugf("OpenFile: scope check denied for %s: %v", requestPath, err)
 			return nil, err
+		}
+
+		if (flag&os.O_CREATE) != 0 && !ffs.sourceFilePerms().Create {
+			if err := ffs.requireCreatePermissionForNewFile(requestPath); err != nil {
+				return nil, err
+			}
 		}
 	} else {
 		// A symlinked component must not carry the read outside the scope
