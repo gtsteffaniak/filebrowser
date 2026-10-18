@@ -7,6 +7,11 @@ import { getters, mutations, state } from "@/store/index.ts";
 import { validateLogin } from "@/utils/auth.js";
 import { sanitizePostLoginRedirect } from "@/utils/safeRedirect.js";
 import { globalVars } from "@/utils/constants.js";
+import {
+  evaluateUploadNavigationGuard,
+  isDifferentAppRoute,
+  showUploadNavigationConfirm,
+} from "@/utils/uploadNavigationGuard.ts";
 import Errors from "@/views/Errors.vue";
 import Files from "@/views/Files.vue";
 import Layout from "@/views/Layout.vue";
@@ -177,31 +182,15 @@ router.beforeResolve(async (to, from) => {
     return false;
   }
 
-  const isDifferentRoute =
-    to.path !== from.path ||
-    to.hash !== from.hash ||
-    JSON.stringify(to.query) !== JSON.stringify(from.query);
-
-  if (
-    isDifferentRoute &&
-    state.upload.isUploading &&
-    !state.prompts.some((p) => p.name === "CloseWithActiveUploads")
-  ) {
-    const uploadPrompt = state.prompts.find((p) => p.name === "upload");
-    mutations.showPrompt({
-      name: "CloseWithActiveUploads",
-      pinned: true,
-      confirm: () => {
-        if (uploadPrompt) {
-          mutations.closeTopPrompt(uploadPrompt.id, { force: true });
-        }
-        void router.push(to);
-      },
-      cancel: () => {
-        mutations.closeTopPrompt(undefined, { force: true });
-      },
-    });
-    return false;
+  if (isDifferentAppRoute(to, from)) {
+    const uploadNav = evaluateUploadNavigationGuard(to);
+    if (uploadNav === "block") {
+      return false;
+    }
+    if (uploadNav === "prompt") {
+      showUploadNavigationConfirm(to, router);
+      return false;
+    }
   }
 
   // Clear any popup previews when navigating

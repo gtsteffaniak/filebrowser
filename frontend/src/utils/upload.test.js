@@ -419,4 +419,22 @@ describe("hasOngoingUploads", () => {
     await uploadManager.processQueue();
     expect(mutations.setIsUploading).toHaveBeenCalledWith(true);
   });
+
+  it("clears isUploading when the last paused upload is cancelled", () => {
+    const item = addUpload("paused");
+    uploadManager.activeUploads = 0;
+    mutations.setIsUploading.mockClear();
+    uploadManager.cancel(item.id);
+    expect(mutations.setIsUploading).toHaveBeenCalledWith(false);
+  });
+
+  it("clears isUploading when clearAll removes the last paused upload", () => {
+    state.user.fileLoading.clearAll = true;
+    addUpload("paused");
+    uploadManager.activeUploads = 0;
+    mutations.setIsUploading.mockClear();
+    uploadManager.clearCompleted();
+    expect(mutations.setIsUploading).toHaveBeenCalledWith(false);
+    state.user.fileLoading.clearAll = false;
+  });
 });
