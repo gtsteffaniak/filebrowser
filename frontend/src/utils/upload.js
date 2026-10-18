@@ -781,6 +781,8 @@ class UploadManager {
     if (index !== -1) {
       this.queue.splice(index, 1);
     }
+    mutations.setIsUploading(this.hasOngoingUploads());
+    void this.processQueue();
   }
 
   retry(id, overwrite = false) {
@@ -832,6 +834,7 @@ class UploadManager {
     if (hadCompleted && this.queue.length === 0) {
       mutations.setReload(true);
     }
+    mutations.setIsUploading(this.hasOngoingUploads());
   }
 
   findById(id) {

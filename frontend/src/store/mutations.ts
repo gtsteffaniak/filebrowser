@@ -11,6 +11,11 @@ import { sortedItems } from "@/utils/sort.js";
 import { isSourceSidebarCategory } from "@/utils/sidebarCategory";
 import { updateManifestLink } from "@/utils/pwaManifest";
 import { syncEventTheme } from "@/utils/theme";
+import {
+  cancelCloseUploadPrompt,
+  confirmCloseUploadPrompt,
+  hasCloseWithActiveUploadsPrompt,
+} from "@/utils/uploadNavigationGuard";
 import { emitStateChanged } from './eventBus';
 import { getters } from "./getters";
 import { state } from "./state";
@@ -351,16 +356,16 @@ export const mutations = {
       if (
         promptToClose?.name === "upload" &&
         state.upload.isUploading &&
-        !state.prompts.some((p) => p.name === "CloseWithActiveUploads")
+        !hasCloseWithActiveUploadsPrompt()
       ) {
         mutations.showPrompt({
           name: "CloseWithActiveUploads",
           pinned: true,
           confirm: () => {
-            mutations.closeTopPrompt(targetId, { force: true });
+            confirmCloseUploadPrompt(targetId);
           },
           cancel: () => {
-            mutations.closeTopPrompt(undefined, { force: true });
+            cancelCloseUploadPrompt();
           },
         });
         return;
