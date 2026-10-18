@@ -191,6 +191,45 @@ func TestOnlyOfficeCallbackDeniedOnReadOnlySource(t *testing.T) {
 	}
 }
 
+func TestWebDAVMutationsAllowedOnWritableSource(t *testing.T) {
+	source1Path, _ := setupWebDAVTestEnv(t)
+	user := &users.User{
+		ID: 1,
+		FrontendUser: users.FrontendUser{Username: "writer"},
+		BackendScopes: []users.BackendScope{
+			{Path: source1Path, Scope: "/"},
+		},
+		BackendSourcePermissions: webDAVPermsForPaths(true, true, true, true, source1Path),
+		Version:                  users.SourcePermissionsMigrationVersion,
+	}
+	applyBackendSourcePerms(user, user.BackendSourcePermissions)
+
+	ffs := &filteredFileSystem{
+		fs:        webdav.Dir(filepath.Join(source1Path, "public")),
+		source:    "source1",
+		user:      user,
+		filePerms: user.BackendSourcePermissions[source1Path],
+	}
+	if err := ffs.Mkdir(context.Background(), "okdir", 0o755); err != nil {
+		t.Fatalf("Mkdir on writable source: %v", err)
+	}
+}
+
+func TestArchiveCreateDeniedOnReadOnlySource(t *testing.T) {
+	root, user := setupUploadHTTPTest(t)
+	setTestSourceReadOnly("uploads", true)
+	if err := os.WriteFile(filepath.Join(root, "a.txt"), []byte("x"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	body := `{"fromSource":"uploads","paths":["/a.txt"],"destination":"/out.zip","format":"zip"}`
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodPost, "/api/resources/archive", strings.NewReader(body))
+	status, err := archiveCreateHandler(rec, req, &Context{User: user})
+	if status != http.StatusForbidden || err == nil {
+		t.Fatalf("archive create on read-only: status=%d err=%v", status, err)
+	}
+}
+
 func TestUnarchivePreviewSkipsReadOnlyDeleteAfterOnSource(t *testing.T) {
 	root, user := setupUploadHTTPTest(t)
 	setTestSourceReadOnly("uploads", true)
