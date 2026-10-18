@@ -2,7 +2,27 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+<<<<<<< HEAD
 ## v2.0.1-stable
+=======
+## v2.1.3
+
+ **Security**:
+ - [Low] Duplicate finder results are cached per requesting user so filtered file names from one account are not served to another (GHSA-4fhx-8pf6-5gmr) reporter @Nazarami
+ - [High] Incomplete symlink-containment remediation: an authenticated non-admin user could create a relative symlink via archive extraction, relocate it with WebDAV MOVE, and write through it to arbitrary host paths with the service account's privileges (GHSA-3j46-5w28-f8p2) reporter @Saku0512
+ - [Moderate] Source-root containment bypass: create, write, delete, and move operations now resolve symlinks uncached and enforce the caller's scope, closing escapes through pre-existing out-of-source symlinks on upload, PUT, PATCH, delete, and WebDAV endpoints (GHSA-j764-qg3m-rhv7) reporter @chaoming0625
+ - [Moderate] Archive downloads and extraction no longer read or write through symlinks that resolve outside the caller's share or user scope; escaping archive-walk entries are skipped
+ - [Moderate] Share directory-archive downloads now apply the share owner's access rules to every entry, closing a bypass where anonymous share visitors could download admin-denied content (GHSA-9fcr-gm58-p839) reporter @Tan-JunWei
+
+ **New Features**:
+ - chunked uploads for large files like rclone `--owncloud-chunk-size` (#3112)
+
+ **Bug Fixes**:
+ - keep requested permissions when creating a user (#3130)
+ - add missing file modify logging to activity viewer (#3152)
+
+## v2.1.2
+>>>>>>> a42ebce1 (fix(tools): scope duplicate finder cache per user (GHSA-4fhx-8pf6-5gmr))
 
  **Security**:
  - [High] New accounts named with ".." breaks out of scoped folder on creation (GHSA-c84q-q5g6-r47f) -- reporter @dylanzonix
