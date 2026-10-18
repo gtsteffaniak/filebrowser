@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v2.0.2
+
+ **Security**:
+ - [Moderate] WebDAV PUT now requires Create permission when the target path does not yet exist, so Modify-only users cannot create new files (GHSA-8655-2ph3-q7q7) reporter @levanduy181
+
 ## v2.0.1-stable
 
  **Security**:
