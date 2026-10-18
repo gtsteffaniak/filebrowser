@@ -232,7 +232,12 @@ func ValidateViewGrant(token string, d *Context, sourceName string) error {
 		utils.ViewGrantsCache.Delete(token)
 		return fmt.Errorf("view token expired")
 	}
-	viewCtx := contextForViewGrantValidation(d, grant.Source)
+	viewCtx := d
+	if d.Share.Hash != "" {
+		viewCtx = contextForViewGrantValidation(d, grant.Source)
+	} else if sourceName == "" || grant.Source != sourceName {
+		return fmt.Errorf("view token scope mismatch")
+	}
 	if !viewGrantScopeMatches(viewCtx, grant.Source, sourceName) {
 		return fmt.Errorf("view token scope mismatch")
 	}
