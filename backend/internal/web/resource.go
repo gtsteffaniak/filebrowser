@@ -1047,14 +1047,26 @@ func ResourcePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 		totalSize := r.ContentLength
 		hasSize := totalSize >= 0
 		quotaCtx := uploadQuotaContext(d, source, fullIndexPath, realPath, r, sessionID, totalSize, hasSize)
+		quotaReserved := false
+		defer func() {
+			if quotaReserved {
+				releaseUploadQuota(sessionID)
+			}
+		}()
 		if quotaErr := checkUploadQuota(quotaCtx); quotaErr != nil {
 			return renderQuotaError(w, r, quotaErr)
 		}
+		quotaReserved = true
 		err = files.WriteFile(fileOpts.Source, mutationBound, fullIndexPath, r.Body)
 		if err != nil {
 			logger.Debugf("error writing file: %v", err)
 			return ErrToStatus(err), err
 		}
+		if commitErr := commitUploadQuotaAfterMove(quotaCtx); commitErr != nil {
+			quotaReserved = false
+			return renderQuotaError(w, r, commitErr)
+		}
+		quotaReserved = false
 		activity.RecordUpload(r, toActor(d), source, path, false)
 		return http.StatusOK, nil
 	}

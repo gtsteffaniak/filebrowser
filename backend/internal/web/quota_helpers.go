@@ -48,8 +48,12 @@ func buildUploadQuotaContext(principal *users.User, sourceName, sourcePath, full
 		HasKnownSize:    hasTotalSize,
 	}
 	if realPath != "" {
-		if stat, err := os.Stat(realPath); err == nil && !stat.IsDir() {
+		stat, err := os.Stat(realPath)
+		if err == nil && !stat.IsDir() {
 			ctx.PriorFileSize = stat.Size()
+			ctx.HasPriorFileSize = true
+		} else if os.IsNotExist(err) {
+			ctx.PriorFileSize = 0
 			ctx.HasPriorFileSize = true
 		}
 	}

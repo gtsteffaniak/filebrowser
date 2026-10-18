@@ -547,15 +547,36 @@ func ReserveQuota(sessionID string, checks []QuotaReserveCheck) error {
 		if chk.LimitBytes <= 0 || chk.DeltaBytes <= 0 {
 			continue
 		}
+		existingIdx := -1
+		var existingBytes int64
+		for i, r := range reservationsBySession[sessionID] {
+			if r.QuotaID == chk.QuotaID {
+				existingIdx = i
+				existingBytes = r.Bytes
+				break
+			}
+		}
+		if existingIdx >= 0 && existingBytes == chk.DeltaBytes {
+			continue
+		}
 		reserved := sumSessionReservedLocked(chk.QuotaID)
-		if chk.UsedBytes+reserved+chk.DeltaBytes > chk.LimitBytes {
+		delta := chk.DeltaBytes
+		if existingIdx >= 0 {
+			delta = chk.DeltaBytes - existingBytes
+			reserved -= existingBytes
+		}
+		if chk.UsedBytes+reserved+delta > chk.LimitBytes {
 			return fmt.Errorf("quota exceeded for %s", chk.QuotaID)
 		}
 		if chk.Meter == quota.MeterAccounted || chk.Kind == "share" {
 			if err := ensureQuotaCounterMemLocked(chk.QuotaID); err != nil {
 				return err
 			}
-			quotaCounters[chk.QuotaID].ReservedBytes += chk.DeltaBytes
+			quotaCounters[chk.QuotaID].ReservedBytes += delta
+		}
+		if existingIdx >= 0 {
+			reservationsBySession[sessionID][existingIdx].Bytes = chk.DeltaBytes
+			continue
 		}
 		reservationsBySession[sessionID] = append(reservationsBySession[sessionID], quotaReservation{
 			QuotaID: chk.QuotaID,
