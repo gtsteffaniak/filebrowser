@@ -1135,6 +1135,7 @@ func ResourcePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 	}
 	quotaReserved = false
 	activity.RecordUpload(r, toActor(d), source, path, false)
+	activeUploadSessions.release(realPath, sessionID)
 	abandonSession = false
 	return http.StatusOK, nil
 }

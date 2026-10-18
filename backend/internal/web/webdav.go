@@ -237,6 +237,26 @@ func (ffs *filteredFileSystem) checkScopePath(requestPath string, forRemoval boo
 	return err
 }
 
+func (ffs *filteredFileSystem) requireCreatePermissionForNewFile(requestPath string) error {
+	idx := indexing.GetIndex(ffs.source)
+	if idx == nil {
+		return fmt.Errorf("source not found")
+	}
+	userScope, err := ffs.user.GetScopeForSourceName(ffs.source)
+	if err != nil {
+		return err
+	}
+	fullIndexPath := utils.JoinScopedIndexPath(userScope, strings.TrimPrefix(requestPath, "/"))
+	realPath, err := idx.GetRealPathForMutation(userScope, fullIndexPath)
+	if err != nil {
+		return err
+	}
+	if _, statErr := os.Stat(realPath); os.IsNotExist(statErr) {
+		return fmt.Errorf("create permission required")
+	}
+	return nil
+}
+
 // filteredFile wraps a webdav.File and filters Readdir results based on FileInfoFaster
 type filteredFile struct {
 	webdav.File
@@ -433,6 +453,12 @@ func (ffs *filteredFileSystem) OpenFile(ctx context.Context, requestPath string,
 			logger.Debugf("OpenFile: scope check denied for %s: %v", requestPath, err)
 			return nil, err
 		}
+
+		if (flag&os.O_CREATE) != 0 && !ffs.sourceFilePerms().Create {
+			if err := ffs.requireCreatePermissionForNewFile(requestPath); err != nil {
+				return nil, err
+			}
+		}
 	} else {
 		// A symlinked component must not carry the read outside the scope
 		if err := ffs.checkScopePath(requestPath, false); errors.Is(err, os.ErrPermission) {
@@ -547,14 +573,41 @@ func (ffs *filteredFileSystem) RemoveAll(ctx context.Context, requestPath string
 		logger.Debugf("RemoveAll: access denied for %s: %v", requestPath, err)
 		return err
 	}
-
 	if err := ffs.checkScopePath(requestPath, true); err != nil {
 		logger.Debugf("RemoveAll: scope check denied for %s: %v", requestPath, err)
 		return err
+  }
+	// The API delete path frees the deleted bytes from the quota counters. Do the same
+	// here: a WebDAV DELETE, and the MOVE over an existing destination that the WebDAV
+	// library implements as RemoveAll + Rename, otherwise leave the old bytes charged
+	// until the next quota recount.
+	//
+	// The counters and the index speak source-relative paths, while requestPath is
+	// relative to the user's scope, so join the scope the way OpenFile does.
+	indexPath := requestPath
+	if userScope, scopeErr := ffs.user.GetScopeForSourceName(ffs.source); scopeErr == nil {
+		indexPath = utils.JoinScopedIndexPath(userScope, strings.TrimPrefix(requestPath, "/"))
 	}
+
+	var deleteBytes int64
+	if info, err := ffs.fs.Stat(ctx, requestPath); err != nil {
+		logger.Debugf("RemoveAll: cannot stat %s before deleting, quota not adjusted: %v", requestPath, err)
+	} else if info.IsDir() {
+		deleteBytes, _ = state.IndexedPathBytes(ffs.source, indexPath, true)
+	} else {
+		deleteBytes = info.Size()
+  }
 
 	if err := ffs.fs.RemoveAll(ctx, requestPath); err != nil {
 		return err
+	}
+
+	if deleteBytes > 0 {
+		if sourceInfo, ok := settings.Config.Server.NameToSource[ffs.source]; ok {
+			if adjErr := state.ApplyAccountedUsageDelta(ffs.user, ffs.source, sourceInfo.Path, indexPath, "", -deleteBytes); adjErr != nil {
+				logger.Warningf("quota adjust after webdav delete failed: %v", adjErr)
+			}
+		}
 	}
 	activity.RecordWebDAVUser(ffs.httpReq, ffs.user, activitydb.Entry{
 		EventType: activitydb.EventDelete,

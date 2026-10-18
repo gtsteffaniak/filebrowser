@@ -14,100 +14,89 @@
       :is="tooltip.component"
       v-bind="tooltip.componentProps || {}"
     />
-    <div v-else v-html="tooltip.content"></div>
+    <div v-else>{{ tooltip.content }}</div>
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
+import { computed, nextTick, ref, watch } from "vue";
+import type { CSSProperties } from "vue";
+import { useRoute } from "vue-router";
 import { state } from "@/store";
 import { hideInteractiveTooltip } from "@/utils/tooltipHelp.js";
 
-export default {
-  name: "Tooltip",
-  data() {
-    return {
-      adjustedX: 0,
-      adjustedY: 0,
-      margin: 15,
-    };
+const margin = 15;
+const adjustedX = ref(0);
+const adjustedY = ref(0);
+const tooltipRef = ref<HTMLElement | null>(null);
+const route = useRoute();
+
+const tooltip = computed(() => state.tooltip);
+const hasComponent = computed(() => Boolean(tooltip.value.component));
+
+const tooltipStyle = computed(() => {
+  const style: CSSProperties = {
+    top: `${adjustedY.value}px`,
+    left: `${adjustedX.value}px`,
+  };
+
+  if (tooltip.value.width) {
+    style.maxWidth = tooltip.value.width;
+    style.width = tooltip.value.width;
+  }
+
+  if (tooltip.value.width || tooltip.value.pointerEvents) {
+    style.maxHeight = "80vh";
+    style.overflowY = "auto";
+  }
+
+  return style;
+});
+
+async function updatePosition(x: number, y: number) {
+  await nextTick();
+  const tooltipEl = tooltipRef.value;
+  if (!tooltipEl) return;
+
+  const tooltipRect = tooltipEl.getBoundingClientRect();
+  const windowWidth = window.innerWidth;
+  const windowHeight = window.innerHeight;
+
+  if (x + margin + tooltipRect.width > windowWidth) {
+    adjustedX.value = x - margin - tooltipRect.width;
+  } else {
+    adjustedX.value = x + margin;
+  }
+
+  if (adjustedX.value < 0) {
+    adjustedX.value = margin;
+  }
+
+  if (y + margin + tooltipRect.height > windowHeight) {
+    adjustedY.value = y - margin - tooltipRect.height;
+  } else {
+    adjustedY.value = y + margin;
+  }
+
+  if (adjustedY.value < 0) {
+    adjustedY.value = margin;
+  }
+}
+
+watch(
+  () => route.fullPath,
+  () => hideInteractiveTooltip(true),
+);
+
+watch(
+  tooltip,
+  (newTooltip) => {
+    if (newTooltip.show) {
+      void updatePosition(newTooltip.x, newTooltip.y);
+    }
   },
-  computed: {
-    tooltip() {
-      return state.tooltip;
-    },
-    hasComponent() {
-      return Boolean(this.tooltip.component);
-    },
-    tooltipStyle() {
-      const style = {
-        top: `${this.adjustedY}px`,
-        left: `${this.adjustedX}px`,
-      };
-
-      if (this.tooltip.width) {
-        style.maxWidth = this.tooltip.width;
-        style.width = this.tooltip.width;
-      }
-
-      if (this.tooltip.width || this.tooltip.pointerEvents) {
-        style.maxHeight = "80vh";
-        style.overflowY = "auto";
-      }
-
-      return style;
-    },
-  },
-  watch: {
-    $route: {
-      handler() {
-        hideInteractiveTooltip(true);
-      },
-    },
-    tooltip: {
-      handler(newTooltip) {
-        if (newTooltip.show) {
-          this.updatePosition(newTooltip.x, newTooltip.y);
-        }
-      },
-      deep: true,
-    },
-  },
-  methods: {
-    /**
-     * @param {number} x - X coordinate
-     * @param {number} y - Y coordinate
-     */
-    async updatePosition(x, y) {
-      await this.$nextTick();
-      const tooltipEl = this.$refs.tooltipRef;
-      if (!tooltipEl) return;
-
-      const tooltipRect = tooltipEl.getBoundingClientRect();
-      const windowWidth = window.innerWidth;
-      const windowHeight = window.innerHeight;
-
-      if (x + this.margin + tooltipRect.width > windowWidth) {
-        this.adjustedX = x - this.margin - tooltipRect.width;
-      } else {
-        this.adjustedX = x + this.margin;
-      }
-
-      if (this.adjustedX < 0) {
-        this.adjustedX = this.margin;
-      }
-
-      if (y + this.margin + tooltipRect.height > windowHeight) {
-        this.adjustedY = y - this.margin - tooltipRect.height;
-      } else {
-        this.adjustedY = y + this.margin;
-      }
-
-      if (this.adjustedY < 0) {
-        this.adjustedY = this.margin;
-      }
-    },
-  },
-};
+  { deep: true },
+);
 </script>
 
 <style>
