@@ -174,7 +174,7 @@ func initializeSchemaVersion(db *sql.DB) error {
 			currentSchemaVersion, currentTimestamp())
 		if err != nil {
 			return fmt.Errorf("failed to initialize schema version: %w", err)
-	}
+		}
 	}
 
 	return nil
