@@ -282,6 +282,9 @@ func validateNonAdminSelfPatchWhich(which []string) error {
 		if f == "" {
 			return fmt.Errorf("which must not contain empty field names")
 		}
+		if strings.EqualFold(f, "PasskeyCredentials") {
+			return fmt.Errorf("passkeys can only be managed through the passkey registration endpoints")
+		}
 		if strings.EqualFold(f, "Password") || strings.EqualFold(f, "OtpEnabled") {
 			continue
 		}
@@ -304,7 +307,7 @@ func userPutOnlyNonAdminEditableFields(which []string) bool {
 		if f == "" {
 			return false
 		}
-		if strings.EqualFold(f, "Password") {
+		if strings.EqualFold(f, "Password") || strings.EqualFold(f, "PasskeyCredentials") {
 			return false
 		}
 		if _, ok := allowed[f]; !ok {
