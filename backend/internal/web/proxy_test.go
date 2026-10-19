@@ -8,6 +8,18 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 )
 
+func TestGetRemoteIPUsesRightmostForwardedFor(t *testing.T) {
+	settings.Config.Http.TrustProxyHeaders = true
+	t.Cleanup(func() { settings.Config.Http.TrustProxyHeaders = false })
+
+	req := httptest.NewRequest("GET", "http://example.com/", nil)
+	req.RemoteAddr = "10.0.0.1:1234"
+	req.Header.Set("X-Forwarded-For", "203.0.113.50, 198.51.100.7")
+	if got := GetRemoteIP(req); got != "198.51.100.7" {
+		t.Fatalf("GetRemoteIP = %q, want 198.51.100.7", got)
+	}
+}
+
 func TestGetScheme(t *testing.T) {
 	t.Run("trusted proto", func(t *testing.T) {
 		settings.Config.Http.TrustProxyHeaders = true

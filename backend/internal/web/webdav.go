@@ -206,6 +206,17 @@ func (ffs *filteredFileSystem) checkAccess(requestPath string) error {
 	return nil
 }
 
+func (ffs *filteredFileSystem) requireCreatePermissionForNewFile(ctx context.Context, requestPath string) error {
+	_, err := ffs.fs.Stat(ctx, requestPath)
+	if err == nil {
+		return nil
+	}
+	if os.IsNotExist(err) {
+		return fmt.Errorf("create permission required")
+	}
+	return err
+}
+
 // filteredFile wraps a webdav.File and filters Readdir results based on FileInfoFaster
 type filteredFile struct {
 	webdav.File
@@ -321,6 +332,12 @@ func (ffs *filteredFileSystem) OpenFile(ctx context.Context, requestPath string,
 		if err := ffs.checkAccess(requestPath); err != nil {
 			logger.Debugf("OpenFile: write access denied for %s: %v", requestPath, err)
 			return nil, err
+		}
+
+		if (flag&os.O_CREATE) != 0 && !ffs.sourceFilePerms().Create {
+			if err := ffs.requireCreatePermissionForNewFile(ctx, requestPath); err != nil {
+				return nil, err
+			}
 		}
 	}
 

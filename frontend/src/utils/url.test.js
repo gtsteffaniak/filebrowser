@@ -136,4 +136,17 @@ describe('extractSourceFromPath', () => {
       expect(result.path).toEqual(test.expected.path);
     }
   });
+
+  it('preserves source named "files" when it is a configured source', () => {
+    const knownSources = ["files"];
+    const tests = [
+      { url: "/files/files/subfolder/nested", expected: { source: "files", path: "/subfolder/nested" } },
+    ];
+
+    for (const test of tests) {
+      const result = extractSourceFromPath(test.url, knownSources);
+      expect(result.source).toEqual(test.expected.source);
+      expect(result.path).toEqual(test.expected.path);
+    }
+  });
 });
