@@ -1,1 +1,1 @@
-LOADED_FROM_WORKSPACE
+@file:/workspace/backend/internal/database/access/access.go
