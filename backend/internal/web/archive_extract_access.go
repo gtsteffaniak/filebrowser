@@ -1,6 +1,7 @@
 package web
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -36,7 +37,14 @@ func (p *extractAccessPolicy) allowWriteSymlinkEntry(archiveEntryName, destPath 
 		logger.Debugf("unarchive: eval destination symlinks: %v", err)
 		return errEntryPathInvalid
 	}
-	rel, err := filepath.Rel(filepath.Clean(destResolved), filepath.Clean(destPath))
+	// Resolve the parent chain only: the final component is the link being
+	// created or replaced and must be checked at the link path, not its target.
+	linkPath, err := resolvedLinkPath(destPath)
+	if err != nil {
+		logger.Debugf("unarchive: resolve symlink entry parent: %v", err)
+		return errEntryPathInvalid
+	}
+	rel, err := filepath.Rel(filepath.Clean(destResolved), linkPath)
 	if err != nil {
 		logger.Debugf("unarchive: symlink entry relative path: %v", err)
 		return errEntryPathInvalid
@@ -60,6 +68,28 @@ func (p *extractAccessPolicy) allowWriteSymlinkEntry(archiveEntryName, destPath 
 		return fmt.Errorf("modify permission required")
 	}
 	return nil
+}
+
+// resolvedLinkPath resolves symlink components in the parents of p without
+// following the final path component, so checks apply to the link path itself.
+func resolvedLinkPath(p string) (string, error) {
+	parent := filepath.Dir(p)
+	leaf := filepath.Base(p)
+	for {
+		resolved, err := filepath.EvalSymlinks(parent)
+		if err == nil {
+			return filepath.Join(resolved, leaf), nil
+		}
+		if !errors.Is(err, os.ErrNotExist) {
+			return "", err
+		}
+		next := filepath.Dir(parent)
+		if next == parent {
+			return "", err
+		}
+		leaf = filepath.Join(filepath.Base(parent), leaf)
+		parent = next
+	}
 }
 
 // allowWrite checks index access and source Create/Modify permissions for one destination path.
