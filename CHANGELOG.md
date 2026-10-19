@@ -1,1 +1,1 @@
-file:///workspace/CHANGELOG.md
+__CURSOR_FILE__:/workspace/CHANGELOG.md
