@@ -5,11 +5,14 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"strings"
+	"sync/atomic"
 	"syscall"
 	"testing"
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 )
 
 type stubInfo struct {
@@ -35,16 +38,7 @@ func (m mockDirEntry) Type() fs.FileMode          { return m.info.Mode().Type() 
 func (m mockDirEntry) Info() (fs.FileInfo, error) { return m.info, nil }
 
 type mockFS struct {
-	lstat   func(name string) (fs.FileInfo, error)
 	readdir func(name string) ([]fs.DirEntry, error)
-	same    func(a, b fs.FileInfo) bool
-}
-
-func (m *mockFS) Lstat(name string) (fs.FileInfo, error) {
-	if m.lstat != nil {
-		return m.lstat(name)
-	}
-	return nil, fs.ErrNotExist
 }
 
 func (m *mockFS) ReadDir(name string) ([]fs.DirEntry, error) {
@@ -54,15 +48,6 @@ func (m *mockFS) ReadDir(name string) ([]fs.DirEntry, error) {
 	return nil, fs.ErrNotExist
 }
 
-func (m *mockFS) SameFile(a, b fs.FileInfo) bool {
-	if m.same != nil {
-		return m.same(a, b)
-	}
-	ai, okA := a.(stubInfo)
-	bi, okB := b.(stubInfo)
-	return okA && okB && ai.id == bi.id
-}
-
 func withMockFS(t *testing.T, m *mockFS) {
 	t.Helper()
 	orig := fsOps
@@ -70,32 +55,182 @@ func withMockFS(t *testing.T, m *mockFS) {
 	t.Cleanup(func() { fsOps = orig })
 }
 
-func TestResolveFilesystemIndexPathFollowsExistingSegment(t *testing.T) {
-	root := t.TempDir()
-	privateDir := filepath.Join(root, "privatestorage")
-	if err := os.MkdirAll(privateDir, 0o755); err != nil {
-		t.Fatal(err)
-	}
-	secret := filepath.Join(privateDir, "secret.txt")
-	if err := os.WriteFile(secret, []byte("x"), 0o644); err != nil {
-		t.Fatal(err)
-	}
+func testStorage(t *testing.T) *Storage {
+	s := NewStorage(nil)
+	s.markSourceCaseInsensitive("/data", true)
+	return s
+}
 
-	got, err := resolveFilesystemIndexPath(root, utils.IndexPathFromNormalized("/privatestorage/secret.txt", false))
-	if err != nil {
-		t.Fatal(err)
+func (s *Storage) markSourceCaseInsensitive(sourcePath string, v bool) {
+	s.mux.Lock()
+	defer s.mux.Unlock()
+	if s.caseInsensitive == nil {
+		s.caseInsensitive = make(map[string]bool)
 	}
-	if got.String() != "/privatestorage/secret.txt" {
-		t.Fatalf("resolved %q", got.String())
+	s.caseInsensitive[sourcePath] = v
+}
+
+func TestFoldedRuleIndexAddRemove(t *testing.T) {
+	s := NewStorage(nil)
+	path := "/secret/"
+	s.mux.Lock()
+	s.setFoldedRuleNL("src", path)
+	s.mux.Unlock()
+	s.mux.RLock()
+	got := s.foldedRulePaths["src"][foldedRuleKey(path)]
+	s.mux.RUnlock()
+	if got != path {
+		t.Fatalf("fold index %q", got)
+	}
+	s.mux.Lock()
+	s.unsetFoldedRuleNL("src", path)
+	s.mux.Unlock()
+	s.mux.RLock()
+	_, ok := s.foldedRulePaths["src"]
+	s.mux.RUnlock()
+	if ok {
+		t.Fatal("expected folded map removed for source")
 	}
 }
 
-func TestResolveFilesystemIndexPathPreservesNotExistTail(t *testing.T) {
+func TestPermittedHotPathNoFilesystemCalls(t *testing.T) {
+	var readDirCalls atomic.Int32
+	withMockFS(t, &mockFS{
+		readdir: func(name string) ([]fs.DirEntry, error) {
+			readDirCalls.Add(1)
+			return nil, errors.New("unexpected filesystem access")
+		},
+	})
+
+	settings.Config = settings.Settings{
+		Server: settings.Server{
+			SourceMap: map[string]*settings.Source{
+				"/data": {Path: "/data", Config: settings.SourceConfig{DenyByDefault: false}},
+			},
+		},
+	}
+
+	s := testStorage(t)
+	if err := s.DenyUser("/data", utils.IndexPathFromNormalized("/privatestorage/secret.txt", false), "alice"); err != nil {
+		t.Fatal(err)
+	}
+
+	readDirCalls.Store(0)
+	if !s.Permitted("/data", utils.IndexPathFromNormalized("/privatestorage/secret.txt", false), "bob") {
+		t.Fatal("expected permitted for non-denied user on exact path")
+	}
+	if readDirCalls.Load() != 0 {
+		t.Fatalf("expected no ReadDir on exact-match hot path, got %d", readDirCalls.Load())
+	}
+
+	readDirCalls.Store(0)
+	if !s.Permitted("/data", utils.IndexPathFromNormalized("/other/none.txt", false), "bob") {
+		t.Fatal("expected permitted when no rule applies and denyByDefault is false")
+	}
+	if readDirCalls.Load() != 0 {
+		t.Fatalf("expected no ReadDir when no folded rule applies, got %d", readDirCalls.Load())
+	}
+
+	s.markSourceCaseInsensitive("/data", false)
+	readDirCalls.Store(0)
+	if !s.Permitted("/data", utils.IndexPathFromNormalized("/PRIVATE/secret.txt", false), "bob") {
+		t.Fatal("case-sensitive source should not resolve")
+	}
+	if readDirCalls.Load() != 0 {
+		t.Fatalf("expected no ReadDir on case-sensitive source, got %d", readDirCalls.Load())
+	}
+}
+
+func TestPermittedCaseVariantDenyOnCaseInsensitiveSource(t *testing.T) {
+	root := filepath.FromSlash("/data")
+	dir := stubInfo{name: "privatestorage", mode: fs.ModeDir, id: 1}
+	secret := stubInfo{name: "secret.txt", mode: 0, id: 2}
+	privPath := filepath.Join(root, "privatestorage")
+	aliasPath := filepath.Join(root, "PrivateStorage")
+	secretPath := filepath.Join(privPath, "secret.txt")
+
+	withMockFS(t, &mockFS{
+		readdir: func(name string) ([]fs.DirEntry, error) {
+			switch name {
+			case root:
+				return []fs.DirEntry{mockDirEntry{info: dir}}, nil
+			case privPath:
+				return []fs.DirEntry{mockDirEntry{info: secret}}, nil
+			default:
+				return nil, fs.ErrNotExist
+			}
+		},
+	})
+
+	settings.Config = settings.Settings{
+		Server: settings.Server{
+			SourceMap: map[string]*settings.Source{
+				root: {Path: root, Config: settings.SourceConfig{DenyByDefault: true}},
+			},
+		},
+	}
+
+	s := testStorage(t)
+	if err := s.DenyUser(root, utils.IndexPathFromNormalized("/privatestorage/secret.txt", false), "alice"); err != nil {
+		t.Fatal(err)
+	}
+	if s.Permitted(root, utils.IndexPathFromNormalized("/PrivateStorage/secret.txt", false), "alice") {
+		t.Fatal("case variant must match deny rule")
+	}
+	_ = aliasPath
+	_ = secretPath
+}
+
+func TestResolveSegmentAmbiguityFailsClosed(t *testing.T) {
+	root := filepath.FromSlash("/data/share")
+	withMockFS(t, &mockFS{
+		readdir: func(name string) ([]fs.DirEntry, error) {
+			if name == root {
+				return []fs.DirEntry{
+					mockDirEntry{info: stubInfo{name: "file.txt", id: 1}},
+					mockDirEntry{info: stubInfo{name: "File.txt", id: 2}},
+				}, nil
+			}
+			return nil, fs.ErrNotExist
+		},
+	})
+	_, err := resolveSegmentFromDir(root, "FILE.TXT")
+	if err == nil {
+		t.Fatal("expected ambiguity error")
+	}
+	if !strings.Contains(err.Error(), "ambiguous") {
+		t.Fatalf("got %v", err)
+	}
+}
+
+func TestPermittedFailsClosedOnFilesystemResolveError(t *testing.T) {
+	withMockFS(t, &mockFS{
+		readdir: func(name string) ([]fs.DirEntry, error) {
+			return nil, syscall.EACCES
+		},
+	})
+	settings.Config = settings.Settings{
+		Server: settings.Server{
+			SourceMap: map[string]*settings.Source{
+				"/data": {Path: "/data", Config: settings.SourceConfig{DenyByDefault: true}},
+			},
+		},
+	}
+	s := testStorage(t)
+	if err := s.DenyUser("/data", utils.IndexPathFromNormalized("/privatestorage/secret.txt", false), "alice"); err != nil {
+		t.Fatal(err)
+	}
+	if s.Permitted("/data", utils.IndexPathFromNormalized("/PrivateStorage/secret.txt", false), "alice") {
+		t.Fatal("expected deny when filesystem resolution fails")
+	}
+}
+
+func TestResolveIndexPathPreservesNotExistTail(t *testing.T) {
 	root := t.TempDir()
 	if err := os.MkdirAll(filepath.Join(root, "privatestorage"), 0o755); err != nil {
 		t.Fatal(err)
 	}
-	got, err := resolveFilesystemIndexPath(root, utils.IndexPathFromNormalized("/privatestorage/newfile.txt", false))
+	got, err := resolveIndexPathForAccess(root, utils.IndexPathFromNormalized("/privatestorage/newfile.txt", false))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -104,196 +239,29 @@ func TestResolveFilesystemIndexPathPreservesNotExistTail(t *testing.T) {
 	}
 }
 
-func TestResolveFilesystemIndexPathReResolvesAfterSegmentAppears(t *testing.T) {
-	root := filepath.FromSlash("/data")
-	dir := filepath.Join(root, "privatestorage")
-	secret := filepath.Join(dir, "Secret.TXT")
-	fileID := 99
-	fileInfo := stubInfo{name: "Secret.TXT", mode: 0, id: fileID}
-	created := false
-
-	withMockFS(t, &mockFS{
-		lstat: func(name string) (fs.FileInfo, error) {
-			if name == dir {
-				return stubInfo{name: "privatestorage", mode: fs.ModeDir, id: 1}, nil
-			}
-			if name == secret || name == filepath.Join(dir, "secret.txt") {
-				if !created {
-					return nil, fs.ErrNotExist
-				}
-				return fileInfo, nil
-			}
-			return nil, fs.ErrNotExist
-		},
+func BenchmarkPermittedExactPathNoFS(b *testing.B) {
+	orig := fsOps
+	fsOps = &mockFS{
 		readdir: func(name string) ([]fs.DirEntry, error) {
-			if name == root {
-				return []fs.DirEntry{mockDirEntry{info: stubInfo{name: "privatestorage", mode: fs.ModeDir, id: 1}}}, nil
-			}
-			if name == dir {
-				if !created {
-					return []fs.DirEntry{}, nil
-				}
-				return []fs.DirEntry{mockDirEntry{info: fileInfo}}, nil
-			}
-			return nil, fs.ErrNotExist
+			panic("filesystem used on hot path")
 		},
-	})
-
-	got, err := resolveFilesystemIndexPath(root, utils.IndexPathFromNormalized("/privatestorage/secret.txt", false))
-	if err != nil {
-		t.Fatal(err)
 	}
-	if got.String() != "/privatestorage/secret.txt" {
-		t.Fatalf("first resolve %q", got.String())
-	}
-
-	created = true
-	got, err = resolveFilesystemIndexPath(root, utils.IndexPathFromNormalized("/privatestorage/secret.txt", false))
-	if err != nil {
-		t.Fatal(err)
-	}
-	if got.String() != "/privatestorage/Secret.TXT" {
-		t.Fatalf("second resolve %q, want on-disk spelling", got.String())
-	}
-}
-
-func TestResolveFilesystemIndexPathPreservesIsDir(t *testing.T) {
-	root := t.TempDir()
-	if err := os.MkdirAll(filepath.Join(root, "privatestorage"), 0o755); err != nil {
-		t.Fatal(err)
-	}
-	got, err := resolveFilesystemIndexPath(root, utils.IndexPathFromNormalized("/privatestorage", true))
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !got.IsDir {
-		t.Fatal("expected directory semantics preserved")
-	}
-	if got.String() != "/privatestorage/" {
-		t.Fatalf("resolved %q", got.String())
-	}
-}
-
-func TestResolveFilesystemIndexPathCaseAliasViaReadDir(t *testing.T) {
-	root := filepath.FromSlash("/data")
-	dirID := 1
-	fileID := 2
-	privateDir := stubInfo{name: "privatestorage", mode: fs.ModeDir, id: dirID}
-	secretFile := stubInfo{name: "secret.txt", mode: 0, id: fileID}
-	privPath := filepath.Join(root, "privatestorage")
-	aliasPath := filepath.Join(root, "PrivateStorage")
-	secretPath := filepath.Join(privPath, "secret.txt")
-
-	withMockFS(t, &mockFS{
-		lstat: func(name string) (fs.FileInfo, error) {
-			switch name {
-			case aliasPath, privPath:
-				return privateDir, nil
-			case secretPath:
-				return secretFile, nil
-			default:
-				return nil, fs.ErrNotExist
-			}
+	defer func() { fsOps = orig }()
+	settings.Config = settings.Settings{
+		Server: settings.Server{
+			SourceMap: map[string]*settings.Source{
+				"/data": {Path: "/data", Config: settings.SourceConfig{DenyByDefault: false}},
+			},
 		},
-		readdir: func(name string) ([]fs.DirEntry, error) {
-			switch name {
-			case root:
-				return []fs.DirEntry{mockDirEntry{info: privateDir}}, nil
-			case privPath:
-				return []fs.DirEntry{mockDirEntry{info: secretFile}}, nil
-			default:
-				return nil, fs.ErrNotExist
-			}
-		},
-	})
-
-	got, err := resolveFilesystemIndexPath(root, utils.IndexPathFromNormalized("/PrivateStorage/secret.txt", false))
-	if err != nil {
-		t.Fatal(err)
 	}
-	if got.String() != "/privatestorage/secret.txt" {
-		t.Fatalf("resolved %q, want /privatestorage/secret.txt", got.String())
-	}
-}
-
-func TestResolveFilesystemIndexPathDeniesAmbiguousHardLink(t *testing.T) {
-	root := filepath.FromSlash("/data")
-	fileID := 42
-	candidate := stubInfo{name: "PRIVATE.TXT", mode: 0, id: fileID}
-	aFile := stubInfo{name: "a.txt", mode: 0, id: fileID}
-	privFile := stubInfo{name: "private.txt", mode: 0, id: fileID}
-	dir := stubInfo{name: "share", mode: fs.ModeDir, id: 1}
-	share := filepath.Join(root, "share")
-	candPath := filepath.Join(share, "PRIVATE.TXT")
-
-	withMockFS(t, &mockFS{
-		lstat: func(name string) (fs.FileInfo, error) {
-			switch name {
-			case share:
-				return dir, nil
-			case candPath, filepath.Join(share, "a.txt"), filepath.Join(share, "private.txt"):
-				return candidate, nil
-			default:
-				return nil, fs.ErrNotExist
-			}
-		},
-		readdir: func(name string) ([]fs.DirEntry, error) {
-			if name == share {
-				return []fs.DirEntry{
-					mockDirEntry{info: aFile},
-					mockDirEntry{info: privFile},
-				}, nil
-			}
-			return nil, fs.ErrNotExist
-		},
-		same: func(a, b fs.FileInfo) bool {
-			ai, okA := a.(stubInfo)
-			bi, okB := b.(stubInfo)
-			return okA && okB && ai.id == bi.id
-		},
-	})
-
-	_, err := resolveFilesystemIndexPath(root, utils.IndexPathFromNormalized("/share/PRIVATE.TXT", false))
-	if err == nil {
-		t.Fatal("expected ambiguous hard link resolution to fail closed")
-	}
-}
-
-func TestResolveFilesystemIndexPathReadDirEACCESFailsClosed(t *testing.T) {
-	root := filepath.FromSlash("/data")
-	aliasPath := filepath.Join(root, "PrivateStorage")
-	withMockFS(t, &mockFS{
-		lstat: func(name string) (fs.FileInfo, error) {
-			if name == aliasPath {
-				return stubInfo{name: "PrivateStorage", mode: fs.ModeDir, id: 1}, nil
-			}
-			return nil, fs.ErrNotExist
-		},
-		readdir: func(name string) ([]fs.DirEntry, error) {
-			if name == root {
-				return nil, syscall.EACCES
-			}
-			return nil, fs.ErrNotExist
-		},
-	})
-
-	_, err := resolveFilesystemIndexPath(root, utils.IndexPathFromNormalized("/PrivateStorage/secret.txt", false))
-	if err == nil {
-		t.Fatal("expected error on EACCES")
-	}
-	if !errors.Is(err, syscall.EACCES) {
-		t.Fatalf("expected EACCES, got %v", err)
-	}
-}
-
-func TestPermittedFailsClosedOnFilesystemResolveError(t *testing.T) {
-	withMockFS(t, &mockFS{
-		lstat: func(name string) (fs.FileInfo, error) {
-			return nil, syscall.EACCES
-		},
-	})
-	store := &Storage{}
-	if store.Permitted("/data", utils.IndexPathFromNormalized("/any/path.txt", false), "alice") {
-		t.Fatal("expected deny when filesystem resolution fails")
+	s := NewStorage(nil)
+	s.markSourceCaseInsensitive("/data", true)
+	_ = s.DenyUser("/data", utils.IndexPathFromNormalized("/privatestorage/secret.txt", false), "alice")
+	path := utils.IndexPathFromNormalized("/privatestorage/secret.txt", false)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		if s.Permitted("/data", path, "bob") {
+			// expected
+		}
 	}
 }

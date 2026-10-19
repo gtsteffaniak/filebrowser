@@ -1,7 +1,6 @@
 package access
 
 import (
-	"errors"
 	"fmt"
 	"io/fs"
 	"os"
@@ -9,123 +8,131 @@ import (
 	"strings"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing"
 )
 
-// filesystemOps abstracts directory reads for alias resolution (overridden in tests).
+// Access rules match by path. On case-insensitive filesystems, lookups use a
+// case-folded rule index and may resolve request paths to indexed on-disk spelling.
+
+// filesystemOps abstracts directory reads for segment resolution (overridden in tests).
 type filesystemOps interface {
-	Lstat(name string) (fs.FileInfo, error)
 	ReadDir(name string) ([]fs.DirEntry, error)
-	SameFile(a, b fs.FileInfo) bool
 }
 
 type osFilesystemOps struct{}
 
-func (osFilesystemOps) Lstat(name string) (fs.FileInfo, error) { return os.Lstat(name) }
 func (osFilesystemOps) ReadDir(name string) ([]fs.DirEntry, error) { return os.ReadDir(name) }
-func (osFilesystemOps) SameFile(a, b fs.FileInfo) bool           { return os.SameFile(a, b) }
 
 var fsOps filesystemOps = osFilesystemOps{}
 
-// resolveFilesystemIndexPath maps an index path to the spelling stored on disk so
-// access rules match case variants and other filesystem name aliases.
-// Returns an error when the filesystem cannot be read; callers must deny access (fail closed).
-func resolveFilesystemIndexPath(sourceRoot string, indexPath utils.IndexPath) (utils.IndexPath, error) {
+// resolveIndexPathForAccess maps indexPath to the spelling used in the index (and
+// on disk) when case-insensitive matching is required. Missing tail segments are
+// preserved. Returns an error on ambiguity or unreadable directories (fail closed).
+func resolveIndexPathForAccess(sourceRoot string, indexPath utils.IndexPath) (utils.IndexPath, error) {
 	rel := strings.TrimPrefix(strings.TrimSpace(indexPath.String()), "/")
 	if rel == "" {
 		return indexPath, nil
 	}
 
+	idx := indexing.GetIndex(sourceRoot)
+	sourceName := ""
+	if idx != nil {
+		sourceName = idx.Name
+	}
+
 	parts := strings.Split(rel, "/")
-	current := sourceRoot
 	resolved := make([]string, 0, len(parts))
+	parentIndex := "/"
+	parentFS := sourceRoot
+
 	for _, part := range parts {
 		if part == "" {
 			continue
 		}
-		name, next, err := resolvePathSegment(current, part)
+		name, found, err := lookupSegmentName(sourceName, parentIndex, part)
 		if err != nil {
 			return utils.IndexPath{}, err
 		}
+		if !found {
+			name, err = resolveSegmentFromDir(parentFS, part)
+			if err != nil {
+				return utils.IndexPath{}, err
+			}
+		}
 		resolved = append(resolved, name)
-		current = next
+		parentIndex = indexChildPath(parentIndex, name)
+		parentFS = filepath.Join(parentFS, name)
 	}
+
 	return utils.IndexPathFromNormalized("/"+strings.Join(resolved, "/"), indexPath.IsDir), nil
 }
 
-func resolvePathSegment(parent, part string) (resolvedName, nextParent string, err error) {
-	candidate := filepath.Join(parent, part)
-	_, lerr := fsOps.Lstat(candidate)
-	if errors.Is(lerr, fs.ErrNotExist) {
-		return part, candidate, nil
+func lookupSegmentName(sourceName, parentIndexPath, segment string) (string, bool, error) {
+	if sourceName == "" {
+		return "", false, nil
 	}
-	if lerr != nil {
-		return "", "", lerr
+	db := indexing.GetIndexDB()
+	if db == nil {
+		return "", false, nil
 	}
-
-	entries, rerr := fsOps.ReadDir(parent)
-	if rerr != nil {
-		return "", "", rerr
+	children, err := db.GetDirectoryChildren(sourceName, parentIndexPath)
+	if err != nil {
+		return "", false, err
 	}
-
-	for _, e := range entries {
-		if e.Name() == part {
-			name := e.Name()
-			return name, filepath.Join(parent, name), nil
+	var foldMatches []string
+	for _, child := range children {
+		if child.Name == segment {
+			return child.Name, true, nil
+		}
+		if strings.EqualFold(child.Name, segment) {
+			foldMatches = append(foldMatches, child.Name)
 		}
 	}
-
-	candInfo, lerr := fsOps.Lstat(candidate)
-	if lerr != nil {
-		if errors.Is(lerr, fs.ErrNotExist) {
-			return part, candidate, nil
-		}
-		return "", "", lerr
+	switch len(foldMatches) {
+	case 0:
+		return "", false, nil
+	case 1:
+		return foldMatches[0], true, nil
+	default:
+		return "", false, fmt.Errorf("ambiguous case-insensitive match for %q under %q", segment, parentIndexPath)
 	}
-
-	foldMatches, err := matchingEntryNames(entries, parent, part, candInfo, true)
-	if err != nil {
-		return "", "", err
-	}
-	if len(foldMatches) == 1 {
-		name := foldMatches[0]
-		return name, filepath.Join(parent, name), nil
-	}
-	if len(foldMatches) > 1 {
-		return "", "", fmt.Errorf("ambiguous case-insensitive match for %q under %q", part, parent)
-	}
-
-	sameMatches, err := matchingEntryNames(entries, parent, part, candInfo, false)
-	if err != nil {
-		return "", "", err
-	}
-	if len(sameMatches) == 1 {
-		name := sameMatches[0]
-		return name, filepath.Join(parent, name), nil
-	}
-	if len(sameMatches) > 1 {
-		return "", "", fmt.Errorf("ambiguous filesystem alias for %q under %q", part, parent)
-	}
-
-	return "", "", fmt.Errorf("filesystem alias for %q under %q could not be resolved", part, parent)
 }
 
-func matchingEntryNames(entries []fs.DirEntry, parent, part string, candInfo fs.FileInfo, caseFoldOnly bool) ([]string, error) {
-	matches := make([]string, 0, 1)
+func resolveSegmentFromDir(parentFS, segment string) (string, error) {
+	entries, err := fsOps.ReadDir(parentFS)
+	if err != nil {
+		return "", err
+	}
+	var foldMatches []string
 	for _, e := range entries {
-		if caseFoldOnly && !strings.EqualFold(e.Name(), part) {
-			continue
+		if e.Name() == segment {
+			return e.Name(), nil
 		}
-		entryPath := filepath.Join(parent, e.Name())
-		ei, eerr := fsOps.Lstat(entryPath)
-		if eerr != nil {
-			if errors.Is(eerr, fs.ErrNotExist) {
-				continue
-			}
-			return nil, eerr
-		}
-		if fsOps.SameFile(candInfo, ei) {
-			matches = append(matches, e.Name())
+		if strings.EqualFold(e.Name(), segment) {
+			foldMatches = append(foldMatches, e.Name())
 		}
 	}
-	return matches, nil
+	switch len(foldMatches) {
+	case 0:
+		return segment, nil
+	case 1:
+		return foldMatches[0], nil
+	default:
+		return "", fmt.Errorf("ambiguous case-insensitive match for %q under %q", segment, parentFS)
+	}
+}
+
+// resolveAccessIndexPath resolves indexPath when case-folded rules may apply.
+func (s *Storage) resolveAccessIndexPath(sourcePath string, indexPath utils.IndexPath) (utils.IndexPath, error) {
+	if !s.needsCaseFoldResolution(sourcePath, indexPath) {
+		return indexPath, nil
+	}
+	return resolveIndexPathForAccess(sourcePath, indexPath)
+}
+
+func indexChildPath(parent, name string) string {
+	if parent == "/" {
+		return "/" + name + "/"
+	}
+	return strings.TrimSuffix(parent, "/") + "/" + name + "/"
 }

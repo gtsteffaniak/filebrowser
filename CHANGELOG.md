@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file. For commit 
 
  **Security**:
  - [Moderate] Passkey registration and deletion now require the account password when a passkey is already configured, and passkeys cannot be altered through generic user profile PATCH (GHSA-r744-4vm3-2px3) reporter @tonghuaroot
- - [Moderate] Per-path access rules are evaluated against filesystem-resolved path segments, closing DENY bypasses via case variants and other on-disk name aliases (GHSA-4vrc-935w-xxq2) reporter @FrogApprentice
+ - [Moderate] Per-path access rules match by path and apply case-insensitively on case-insensitive filesystems via an in-memory rule index, closing DENY bypasses from path case variants without per-request directory scans (GHSA-4vrc-935w-xxq2) reporter @FrogApprentice
  - [Moderate] Authenticated GET /api/resources/view no longer accepts view tokens minted for a public share when the caller lacks view permission on the requested source (GHSA-wxj5-g3qp-g732) reporter @BlueN0r
  - [Low] Duplicate finder results are cached per requesting user so filtered file names from one account are not served to another (GHSA-4fhx-8pf6-5gmr) reporter @Nazarami
  - [Moderate] WebDAV PUT now requires Create permission when the target path does not yet exist, so Modify-only users cannot create new files (GHSA-8655-2ph3-q7q7) reporter @levanduy181
