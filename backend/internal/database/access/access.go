@@ -1,3 +1,1 @@
-package access
-
-// mcp ping
+LOAD
