@@ -2,16 +2,14 @@ package web
 
 import (
 	"archive/zip"
-	"context"
 	"encoding/json"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
-
-	"golang.org/x/net/webdav"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/files"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
@@ -46,6 +44,110 @@ func TestDenyIfSourceReadOnly(t *testing.T) {
 	if !strings.Contains(err.Error(), "read-only") {
 		t.Fatalf("error = %v", err)
 	}
+}
+
+func webDAVReadOnlyTestUser(source1Path string) *users.User {
+	user := &users.User{
+		ID: 1,
+		FrontendUser: users.FrontendUser{Username: "writer"},
+		BackendScopes: []users.BackendScope{
+			{Path: source1Path, Scope: "/"},
+		},
+		BackendSourcePermissions: webDAVPermsForPaths(true, true, true, true, source1Path),
+		Version:                  users.SourcePermissionsMigrationVersion,
+	}
+	applyBackendSourcePerms(user, user.BackendSourcePermissions)
+	return user
+}
+
+func callWebDAVHandler(t *testing.T, user *users.User, method, path string, body io.Reader, extra func(*http.Request)) (int, int) {
+	t.Helper()
+	req := httptest.NewRequest(method, "/dav/source1"+path, body)
+	req.SetPathValue("source", "source1")
+	req.SetPathValue("path", path)
+	if extra != nil {
+		extra(req)
+	}
+	w := httptest.NewRecorder()
+	status, err := webDAVHandler(w, req, &requestContext{User: user})
+	if status != 0 && status != http.StatusOK {
+		if w.Code == 0 || w.Code == http.StatusOK {
+			w.Code = status
+		}
+	}
+	if err != nil && status == 0 {
+		t.Fatalf("%s %s: %v", method, path, err)
+	}
+	return w.Code, status
+}
+
+func TestWebDAVReadOnlySourceEnforcement(t *testing.T) {
+	source1Path, _ := setupWebDAVTestEnv(t)
+	user := webDAVReadOnlyTestUser(source1Path)
+
+	t.Run("read-only", func(t *testing.T) {
+		setTestSourceReadOnly("source1", true)
+		t.Cleanup(func() { setTestSourceReadOnly("source1", false) })
+
+		writeCases := []struct {
+			method string
+			path   string
+			setup  func(*http.Request)
+		}{
+			{method: "MKCOL", path: "/public/rodir"},
+			{method: http.MethodPut, path: "/public/ro-new.txt"},
+			{method: http.MethodDelete, path: "/public/readme.txt"},
+			{
+				method: "COPY",
+				path:   "/public/readme.txt",
+				setup: func(r *http.Request) {
+					r.Header.Set("Destination", "/dav/source1/public/readme-copy.txt")
+				},
+			},
+			{
+				method: "MOVE",
+				path:   "/public/readme.txt",
+				setup: func(r *http.Request) {
+					r.Header.Set("Destination", "/dav/source1/public/readme-moved.txt")
+				},
+			},
+		}
+		for _, tc := range writeCases {
+			t.Run(tc.method, func(t *testing.T) {
+				var body io.Reader
+				if tc.method == http.MethodPut {
+					body = strings.NewReader("data")
+				}
+				code, _ := callWebDAVHandler(t, user, tc.method, tc.path, body, tc.setup)
+				if code != http.StatusForbidden {
+					t.Fatalf("expected 403, got %d", code)
+				}
+			})
+		}
+
+		for _, tc := range []struct {
+			method string
+			path   string
+		}{
+			{method: "PROPFIND", path: "/public"},
+			{method: http.MethodGet, path: "/public/readme.txt"},
+		} {
+			t.Run(tc.method+"_allowed", func(t *testing.T) {
+				code, _ := callWebDAVHandler(t, user, tc.method, tc.path, nil, nil)
+				if code == http.StatusForbidden {
+					t.Fatalf("%s should not be forbidden on read-only source", tc.method)
+				}
+			})
+		}
+	})
+
+	t.Run("writable", func(t *testing.T) {
+		setTestSourceReadOnly("source1", false)
+		code, _ := callWebDAVHandler(t, user, http.MethodPut, "/public/writable-new.txt", strings.NewReader("ok"), nil)
+		if code != http.StatusCreated {
+			t.Fatalf("PUT on writable source: expected 201, got %d", code)
+		}
+	})
 }
 
 func TestUnarchivePreviewAllowsReadOnlyDestination(t *testing.T) {
@@ -114,44 +216,6 @@ func TestUnarchiveExtractionDeniedOnReadOnlyDestination(t *testing.T) {
 	}
 }
 
-func TestWebDAVMutationsDeniedOnReadOnlySource(t *testing.T) {
-	source1Path, _ := setupWebDAVTestEnv(t)
-	setTestSourceReadOnly("source1", true)
-
-	user := &users.User{
-		ID: 1,
-		FrontendUser: users.FrontendUser{Username: "writer"},
-		BackendScopes: []users.BackendScope{
-			{Path: source1Path, Scope: "/"},
-		},
-		BackendSourcePermissions: webDAVPermsForPaths(true, true, true, true, source1Path),
-		Version:                  users.SourcePermissionsMigrationVersion,
-	}
-	applyBackendSourcePerms(user, user.BackendSourcePermissions)
-
-	ffs := &filteredFileSystem{
-		fs:        webdav.Dir(filepath.Join(source1Path, "public")),
-		source:    "source1",
-		user:      user,
-		filePerms: user.BackendSourcePermissions[source1Path],
-	}
-
-	ctx := context.Background()
-	if err := ffs.Mkdir(ctx, "rodir", 0o755); err == nil || !strings.Contains(err.Error(), "read-only") {
-		t.Fatalf("Mkdir: err=%v", err)
-	}
-	if err := ffs.RemoveAll(ctx, "readme.txt"); err == nil || !strings.Contains(err.Error(), "read-only") {
-		t.Fatalf("RemoveAll: err=%v", err)
-	}
-	if err := ffs.Rename(ctx, "readme.txt", "moved.txt"); err == nil || !strings.Contains(err.Error(), "read-only") {
-		t.Fatalf("Rename: err=%v", err)
-	}
-	_, err := ffs.OpenFile(ctx, "new.txt", os.O_CREATE|os.O_WRONLY, 0o644)
-	if err == nil || !strings.Contains(err.Error(), "read-only") {
-		t.Fatalf("OpenFile write: err=%v", err)
-	}
-}
-
 func TestOnlyOfficeCallbackDeniedOnReadOnlySource(t *testing.T) {
 	initStreamTestSources(t)
 	indexing.SetTestIndex("default", "/default")
@@ -188,30 +252,6 @@ func TestOnlyOfficeCallbackDeniedOnReadOnlySource(t *testing.T) {
 	}
 	if rec.Code != http.StatusForbidden {
 		t.Fatalf("status = %d, want %d body=%s", rec.Code, http.StatusForbidden, rec.Body.String())
-	}
-}
-
-func TestWebDAVMutationsAllowedOnWritableSource(t *testing.T) {
-	source1Path, _ := setupWebDAVTestEnv(t)
-	user := &users.User{
-		ID: 1,
-		FrontendUser: users.FrontendUser{Username: "writer"},
-		BackendScopes: []users.BackendScope{
-			{Path: source1Path, Scope: "/"},
-		},
-		BackendSourcePermissions: webDAVPermsForPaths(true, true, true, true, source1Path),
-		Version:                  users.SourcePermissionsMigrationVersion,
-	}
-	applyBackendSourcePerms(user, user.BackendSourcePermissions)
-
-	ffs := &filteredFileSystem{
-		fs:        webdav.Dir(filepath.Join(source1Path, "public")),
-		source:    "source1",
-		user:      user,
-		filePerms: user.BackendSourcePermissions[source1Path],
-	}
-	if err := ffs.Mkdir(context.Background(), "okdir", 0o755); err != nil {
-		t.Fatalf("Mkdir on writable source: %v", err)
 	}
 }
 
