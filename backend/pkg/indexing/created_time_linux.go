@@ -9,15 +9,23 @@ import (
 	"golang.org/x/sys/unix"
 )
 
-// getCreatedTime returns the file's birth time via statx, or nil if the path is empty
-// or the filesystem does not report one. The link itself is queried only when info
-// describes a symlink; otherwise the target is followed, matching how info was obtained.
+// getCreatedTime returns the file's birth time when available. Directory listings
+// embed birth time in statxFileInfo; other paths use statx on realPath (or nil).
 func getCreatedTime(info os.FileInfo, realPath string) *time.Time {
+	if info == nil {
+		return nil
+	}
+	if sxi, ok := info.(*statxFileInfo); ok {
+		return sxi.birthTime()
+	}
+	if _, ok := info.(*fstatatFileInfo); ok {
+		return nil
+	}
 	if realPath == "" {
 		return nil
 	}
 	flags := 0
-	if info != nil && info.Mode()&os.ModeSymlink != 0 {
+	if info.Mode()&os.ModeSymlink != 0 {
 		flags = unix.AT_SYMLINK_NOFOLLOW
 	}
 	var stx unix.Statx_t
