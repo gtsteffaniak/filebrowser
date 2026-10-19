@@ -1,1 +1,1 @@
-@workspace/CHANGELOG.md
+{{EXEC:python3 -c "print(open('/workspace/CHANGELOG.md').read(), end='')"}}
