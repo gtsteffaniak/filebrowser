@@ -166,4 +166,177 @@ func (s *Storage) ensureGroupExistsNL(groupname string) {
 // NewStorage creates a new Storage instance.
 func NewStorage(usersStore *users.Storage) *Storage {
 	var s = &Storage{
-		All
+		AllRules:      make(SourceRuleMap),
+		Groups:        make(GroupMap),
+		RevokedTokens: make(map[string]int64),
+		HashedTokens:  make(map[string]HashedTokenInfo),
+		Users:         usersStore,
+	}
+	return s
+}
+
+// ClearCache clears the access cache (useful for testing)
+func ClearCache() {
+	// Recreate the caches to clear them
+	accessCache = cache.NewCache[string](1 * time.Minute)
+	versionCache = cache.NewCache[int](1 * time.Minute)
+	permissionCache = cache.NewCache[bool](1 * time.Minute)
+	rulesCache = cache.NewCache[map[string]FrontendAccessRule](1 * time.Minute)
+}
+
+// clearAllCaches clears ALL caches. This should be called whenever rules are created, updated, or deleted.
+func (s *Storage) clearAllCaches() {
+	accessCache.ClearAll()
+	versionCache.ClearAll()
+	permissionCache.ClearAll()
+	rulesCache.ClearAll()
+}
+
+func accessRuleHasPayload(rule *AccessRule) bool {
+	if rule == nil {
+		return false
+	}
+	return rule.DenyAll ||
+		len(rule.Allow.Users) > 0 || len(rule.Allow.Groups) > 0 ||
+		len(rule.Deny.Users) > 0 || len(rule.Deny.Groups) > 0
+}
+
+// persistRuleSQLNL upserts or deletes one access_rules row to match in-memory state.
+// Caller must hold s.mux (write lock). normalizedPath must match rule map keys (see getOrCreateRuleNL).
+func (s *Storage) persistRuleSQLNL(sourcePath, normalizedPath string) {
+	if s.sqlStore == nil {
+		return
+	}
+	var rule *AccessRule
+	if bySrc, ok := s.AllRules[sourcePath]; ok {
+		rule = bySrc[normalizedPath]
+	}
+	if !accessRuleHasPayload(rule) {
+		if err := s.sqlStore.DeleteAccessRule(sourcePath, normalizedPath); err != nil {
+			logger.Warningf("access rules SQL delete (source=%s path=%s): %v", sourcePath, normalizedPath, err)
+		}
+		return
+	}
+	if err := s.sqlStore.SaveAccessRule(sourcePath, normalizedPath, rule); err != nil {
+		logger.Warningf("access rules SQL save (source=%s path=%s): %v", sourcePath, normalizedPath, err)
+	}
+}
+
+// RemoveRuleByPath removes a rule by normalized index path.
+func (s *Storage) RemoveRuleByPath(sourcePath string, indexPath utils.IndexPath) {
+	s.RemoveRuleByPathKey(sourcePath, ruleKey(indexPath))
+}
+
+// RemoveRuleByPathKey removes a rule by its exact storage key (for legacy migration paths).
+func (s *Storage) RemoveRuleByPathKey(sourcePath, pathKey string) {
+	s.mux.Lock()
+	defer s.mux.Unlock()
+
+	rulesBySource, ok := s.AllRules[sourcePath]
+	if !ok {
+		return
+	}
+
+	if s.caseInsensitiveSourceNL(sourcePath) {
+		pathKey = strings.ToLower(pathKey)
+	}
+	if _, exists := rulesBySource[pathKey]; !exists {
+		return
+	}
+	delete(rulesBySource, pathKey)
+	if len(rulesBySource) == 0 {
+		delete(s.AllRules, sourcePath)
+	}
+	s.clearAllCaches()
+	s.persistRuleSQLNL(sourcePath, pathKey)
+	if s.sqlStore != nil {
+		_ = s.sqlStore.DeleteAccessRule(sourcePath, pathKey)
+		normalized := utils.AddTrailingSlashIfNotExists(pathKey)
+		if normalized != pathKey {
+			_ = s.sqlStore.DeleteAccessRule(sourcePath, normalized)
+		}
+	}
+}
+
+// getOrCreateRuleNL ensures a rule exists for the given source and index path.
+// The caller must hold the lock.
+func (s *Storage) getOrCreateRuleNL(sourcePath string, indexPath utils.IndexPath) *AccessRule {
+	normalizedPath := s.ruleKeyForNL(sourcePath, indexPath)
+	if _, ok := s.AllRules[sourcePath]; !ok {
+		s.AllRules[sourcePath] = make(RuleMap)
+	}
+	rule, ok := s.AllRules[sourcePath][normalizedPath]
+	if !ok {
+		rule = &AccessRule{
+			Deny:  RuleSet{Users: make(StringSet), Groups: make(StringSet)},
+			Allow: RuleSet{Users: make(StringSet), Groups: make(StringSet)},
+		}
+		s.AllRules[sourcePath][normalizedPath] = rule
+	}
+	return rule
+}
+
+// DenyUser adds a user to the deny list for a given source and index path.
+// Rules are keyed by login name (username), not user id.
+func (s *Storage) DenyUser(sourcePath string, indexPath utils.IndexPath, username string) error {
+	s.mux.Lock()
+	defer s.mux.Unlock()
+	rule := s.getOrCreateRuleNL(sourcePath, indexPath)
+	if _, ok := rule.Deny.Users[username]; ok {
+		return errors.ErrExist
+	}
+	rule.Deny.Users[username] = struct{}{}
+	s.clearAllCaches()
+	s.persistRuleSQLNL(sourcePath, s.ruleKeyForNL(sourcePath, indexPath))
+	return nil
+}
+
+// AllowUser adds a user to the allow list for a given source and index path.
+// Rules are keyed by login name (username), not user id.
+func (s *Storage) AllowUser(sourcePath string, indexPath utils.IndexPath, username string) error {
+	s.mux.Lock()
+	defer s.mux.Unlock()
+	rule := s.getOrCreateRuleNL(sourcePath, indexPath)
+	if _, ok := rule.Allow.Users[username]; ok {
+		return errors.ErrExist
+	}
+	rule.Allow.Users[username] = struct{}{}
+	s.clearAllCaches()
+	s.persistRuleSQLNL(sourcePath, s.ruleKeyForNL(sourcePath, indexPath))
+	return nil
+}
+
+// DenyGroup adds a group to the deny list for a given source and index path.
+// Unknown groups are auto-created (empty) so admins can configure rules before first SSO sync.
+func (s *Storage) DenyGroup(sourcePath string, indexPath utils.IndexPath, groupname string) error {
+	s.mux.Lock()
+	defer s.mux.Unlock()
+	s.ensureGroupExistsNL(groupname)
+	rule := s.getOrCreateRuleNL(sourcePath, indexPath)
+	if _, ok := rule.Deny.Groups[groupname]; ok {
+		return errors.ErrExist
+	}
+	rule.Deny.Groups[groupname] = struct{}{}
+	s.clearAllCaches()
+	s.persistRuleSQLNL(sourcePath, s.ruleKeyForNL(sourcePath, indexPath))
+	return nil
+}
+
+// AllowGroup adds a group to the allow list for a given source and index path.
+// Unknown groups are auto-created (empty) so admins can configure rules before first SSO sync.
+func (s *Storage) AllowGroup(sourcePath string, indexPath utils.IndexPath, groupname string) error {
+	s.mux.Lock()
+	defer s.mux.Unlock()
+	s.ensureGroupExistsNL(groupname)
+	rule := s.getOrCreateRuleNL(sourcePath, indexPath)
+	if _, ok := rule.Allow.Groups[groupname]; ok {
+		return errors.ErrExist
+	}
+	rule.Allow.Groups[groupname] = struct{}{}
+	s.clearAllCaches()
+	s.persistRuleSQLNL(sourcePath, s.ruleKeyForNL(sourcePath, indexPath))
+	return nil
+}
+
+// DenyAll sets a rule to deny all access for a given source and index path.
+func (s *Storage) DenyAll(sourcePath string, indexPath utils.IndexPath)
