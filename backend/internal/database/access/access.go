@@ -1,1 +1,1 @@
-LOAD
+@/workspace/backend/internal/database/access/access.go
