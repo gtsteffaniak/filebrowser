@@ -1,1 +1,1 @@
-$read:/workspace/backend/internal/database/access/access.go
+spill:///workspace/backend/internal/database/access/access.go
