@@ -1,1 +1,1 @@
-@/workspace/backend/internal/database/access/access.go
+TRIGGER_LOAD_FROM_TMP_SINGLE_ACCESS_PUSH_JSON
