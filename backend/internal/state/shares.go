@@ -6,9 +6,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/share"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
@@ -312,23 +312,20 @@ func UpdateSharesForMovedResource(oldSource, oldPath, newSource, newPath string)
 	sharesMux.Lock()
 	defer sharesMux.Unlock()
 
-	oldPath = utils.AddTrailingSlashIfNotExists(oldPath)
-	newPath = utils.AddTrailingSlashIfNotExists(newPath)
-
 	var updatedHashes []string
 	for _, l := range sharesByHash {
 		if l == nil || l.SourcePath != oldSource {
 			continue
 		}
-		norm := utils.AddTrailingSlashIfNotExists(l.Path)
-		if !strings.Contains(norm, oldPath) {
+		rewrittenPath, matches := utils.RewritePathPrefix(l.Path, oldPath, newPath)
+		if !matches {
 			continue
 		}
 
 		removeShareFromPathIndexLocked(l.SourcePath, l.Path, l.Hash)
 
 		l.SourcePath = newSource
-		l.Path = newPath
+		l.Path = rewrittenPath
 
 		if err := sqlDb.SaveShare(l); err != nil {
 			logger.Error("failed to save updated share after resource move", "hash", l.Hash, "error", err)
