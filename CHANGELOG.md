@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file. For commit 
 ## v2.1.3
 
  **Security**:
+ - [High] Sources marked `readOnly` are now enforced on WebDAV writes, server-side archive/unarchive, and OnlyOffice save callbacks (GHSA-4v62-884x-2466) reporter @anpryl
  - [Moderate] Moving or renaming a folder updates only shares whose paths are under the moved prefix, preserving per-file share roots instead of retargeting unrelated substring matches (GHSA-26fh-r34c-qxh6) reporters @jayhemnani9910 @dylanzonix
  - [Moderate] WebDAV PUT now requires Create permission when the target path does not yet exist, so Modify-only users cannot create new files (GHSA-8655-2ph3-q7q7) reporter @levanduy181
  - [Low] Failed-login lockout and auth rate limits now use the rightmost `X-Forwarded-For` hop when proxy headers are trusted, so a client cannot spoof the client IP with a leftmost forwarded value (GHSA-wjp8-g49g-xrhx) reporter @LECOQQ
