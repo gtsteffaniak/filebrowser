@@ -24,6 +24,9 @@ All notable changes to this project will be documented in this file. For commit 
  **Bug Fixes**:
  - keep requested permissions when creating a user (#3130)
  - add missing file modify logging to activity viewer (#3152)
+ - fix(frontend): restore upload prompt close, tab-reload, and in-app navigation guards while uploads are active (including paused uploads)
+ - fix(frontend): load the default source when browsing `/files/` with a single configured source ([#3178](https://github.com/gtsteffaniak/filebrowser/issues/3178)) (related: [#3143](https://github.com/gtsteffaniak/filebrowser/issues/3143), [#3144](https://github.com/gtsteffaniak/filebrowser/issues/3144))
+ - Path picker list and thumbnails not working in shares in the markdown editor (#3223).
 
 ## v2.1.2
 

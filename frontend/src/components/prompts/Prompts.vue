@@ -224,12 +224,18 @@ export default {
       handler(newVal, oldVal) {
         const prev = oldVal ?? [];
         const oldIds = new Set(prev.map((p) => p.id));
+        const newIds = new Set(newVal.map((p) => p.id));
         for (const p of newVal) {
           if (!oldIds.has(p.id)) {
             this.triggerPromptBorderFlash(p.id);
             if (this.isEditorPrompt(p)) {
               this.ensureEditorPromptSize(p.id);
             }
+          }
+        }
+        for (const id of oldIds) {
+          if (!newIds.has(id)) {
+            this.cleanupDragState(id);
           }
         }
       },
@@ -461,38 +467,15 @@ export default {
       }
     },
     closeTopPrompt(id) {
-      // Find the prompt we're trying to close
-      const promptToClose = state.prompts.find(p => p.id === id);
-      if (!promptToClose) return;
-      // Check if it's the upload prompt with active uploads
-      if (promptToClose.name === "upload") {
-        const hasActiveUploads = state.upload.isUploading;
-        const hasWarningPrompt = state.prompts.some(p => p.name === "CloseWithActiveUploads");
-
-        if (hasActiveUploads && !hasWarningPrompt) {
-          // Show warning prompt instead of closing
-          mutations.showPrompt({
-            name: "CloseWithActiveUploads",
-            pinned: true,
-            confirm: () => {
-              // User confirmed to close anyway - close the upload prompt
-              mutations.closeTopPrompt(id);
-              // Clean up state for this prompt
-              this.cleanupDragState(id);
-            },
-            cancel: () => {
-              // User cancelled - just close the warning prompt
-              mutations.closeTopPrompt();
-            },
-          });
-          return;
-        }
-      }
-      // Normal close behavior (dismiss via close control or Escape — not component submit paths)
-      promptToClose.cancel?.();
+      const targetId =
+        id ?? state.prompts[state.prompts.length - 1]?.id;
+      const promptToClose = targetId !== undefined
+        ? state.prompts.find((p) => p.id === targetId)
+        : undefined;
       mutations.closeTopPrompt(id);
-      // Clean up state for this prompt
-      this.cleanupDragState(id);
+      if (promptToClose && !state.prompts.some((p) => p.id === promptToClose.id)) {
+        promptToClose.cancel?.();
+      }
     },
     cleanupDragState(id) {
       this.dragOffsets = omitObjectProperty(this.dragOffsets, id);
