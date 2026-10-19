@@ -1,1 +1,1 @@
-__include__:/workspace/backend/internal/database/access/access.go
+$read:/workspace/backend/internal/database/access/access.go
