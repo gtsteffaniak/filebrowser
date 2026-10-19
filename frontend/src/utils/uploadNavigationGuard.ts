@@ -55,6 +55,7 @@ export function evaluateUploadNavigationGuard(
   to: RouteLocationNormalized
 ): UploadNavigationGuardResult {
   if (!state.upload.isUploading) {
+    clearApprovedUploadNavigation();
     return "allow";
   }
   if (consumeApprovedUploadNavigation(to)) {
@@ -80,7 +81,9 @@ export function showUploadNavigationConfirm(
       if (uploadPrompt) {
         mutations.closeTopPrompt(uploadPrompt.id, { force: true });
       }
-      void router.push(to);
+      void router.push(to).finally(() => {
+        clearApprovedUploadNavigation();
+      });
     },
     cancel: () => {
       clearApprovedUploadNavigation();
