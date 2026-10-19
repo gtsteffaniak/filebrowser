@@ -1,5 +1,5 @@
 <template>
-  <div class="card-content" v-html="body"></div>
+  <div class="card-content">{{ body }}</div>
   <div class="card-actions">
     <button
       type="button"
@@ -14,56 +14,48 @@
     </button>
   </div>
 </template>
-<script>
 
+<script setup lang="ts">
+import { computed } from "vue";
 // use this component for any prompt to display text message and custom buttons
-// simple html body is supported, but anything complex should get its own component.
-export default {
-  name: "generic-prompt",
-  props: {
-    title: {
-      type: String,
-      required: true,
-    },
-    body: {
-      type: String,
-      required: true,
-    },
-    buttons: {
-      type: Array,
-      required: false,
-      default: () => [],
-    },
+// body is rendered as plain text, anything with markup should get its own component.
+
+export interface PromptButton {
+  label: string;
+  action?: () => void;
+  className?: string;
+}
+
+const props = withDefaults(
+  defineProps<{
+    promptId?: string | number | null;
+    title: string;
+    body: string;
+    buttons?: PromptButton[];
+  }>(),
+  {
+    promptId: null,
+    buttons: () => [],
   },
-  computed: {
-    displayButtons() {
-      // If buttons are provided, use them
-      if (this.buttons && this.buttons.length > 0) {
-        return this.buttons;
-      }
-      return [];
-    },
-  },
-  methods: {
-    handleButtonClick(button) {
-      // Execute the button's action
-      if (typeof button.action === 'function') {
-        try {
-          button.action();
-        } catch (error) {
-          console.error('Error executing button action:', error);
-        }
-      }
-    },
-    getButtonClass(button) {
-      // Default button classes
-      let classes = 'button button--flat';
-      // Add custom class if provided
-      if (button.className) {
-        classes += ` ${button.className}`;
-      }
-      return classes;
-    },
-  },
-};
+);
+
+const displayButtons = computed(() => props.buttons);
+
+function handleButtonClick(button: PromptButton) {
+  if (typeof button.action === "function") {
+    try {
+      button.action();
+    } catch (error) {
+      console.error("Error executing button action:", error);
+    }
+  }
+}
+
+function getButtonClass(button: PromptButton) {
+  let classes = "button button--flat";
+  if (button.className) {
+    classes += ` ${button.className}`;
+  }
+  return classes;
+}
 </script>
