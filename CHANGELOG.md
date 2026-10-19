@@ -1,1 +1,1 @@
-LOAD_FROM:/tmp/push_files_final.json
+{{readFile:/workspace/CHANGELOG.md}}
