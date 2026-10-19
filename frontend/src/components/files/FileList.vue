@@ -509,7 +509,7 @@ export default {
         void this.withLoading(() => resourcesApi.fetchFiles(sourceToUse, path).then(this.fillOptions));
       } else if (this.browseShare || getters.isShare()) {
         // Browsing a share - use public API
-        const hashToUse = this.browseShare || state.shareInfo?.hash;
+        const hashToUse = this.browseShare || getters.shareHash();
         void this.withLoading(() => resourcesApi.fetchFilesPublic(path, hashToUse).then(this.fillOptions));
       } else {
         this.source = sourceToUse;
@@ -651,7 +651,7 @@ export default {
       this.selectedSource = null;
       this.selectedType = null;
       if (this.browseShare || getters.isShare()) {
-        const hashToUse = this.browseShare || state.shareInfo?.hash;
+        const hashToUse = this.browseShare || getters.shareHash();
         void this.withLoading(() => resourcesApi.fetchFilesPublic(p, hashToUse).then(this.fillOptions));
       } else {
         void this.withLoading(() => resourcesApi.fetchFiles(source, p).then(this.fillOptions));
