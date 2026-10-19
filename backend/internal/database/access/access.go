@@ -100,9 +100,9 @@ func TokenExpiredPastGrace(expiresAt int64, now time.Time) bool {
 
 // Storage manages access rules and group membership.
 type Storage struct {
-	mux                   sync.RWMutex
-	AllRules SourceRuleMap // AllRules[sourcePath][indexPath] - in-memory authoritative state
-	Groups   GroupMap      // key: group name, value: set of usernames - in-memory authoritative state
+	mux           sync.RWMutex
+	AllRules      SourceRuleMap              // AllRules[sourcePath][indexPath] - in-memory authoritative state
+	Groups        GroupMap                   // key: group name, value: set of usernames - in-memory authoritative state
 	RevokedTokens map[string]int64           // token hash → revocation unix time (0 = immediate) - in-memory authoritative state
 	HashedTokens  map[string]HashedTokenInfo // maps token hash → owner/type - in-memory authoritative state
 	Users         *users.Storage             // Reference to users storage
