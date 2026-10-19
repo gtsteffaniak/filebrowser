@@ -1,1 +1,1 @@
-@/tmp/indexingFiles_content.go
+/workspace/backend/pkg/indexing/indexingFiles.go
