@@ -1,1 +1,1 @@
-@file:/workspace/backend/internal/database/access/access.go
+/workspace/backend/internal/database/access/access.go
