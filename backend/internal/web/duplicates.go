@@ -203,7 +203,7 @@ func duplicatesHandler(w http.ResponseWriter, r *http.Request, d *Context) (int,
 
 	// Generate cache key from all input parameters that affect results
 	// Checksums are always enabled, so cache key doesn't need to include that flag
-	cacheKey := fmt.Sprintf("%s:%s:%d", index.Path, opts.combinedPath, opts.minSize)
+	cacheKey := fmt.Sprintf("%s:%s:%s:%d", index.Path, opts.combinedPath, opts.username, opts.minSize)
 
 	// Check cache first (before acquiring mutex)
 	if cachedResults, ok := duplicateResultsCache.Get(cacheKey); ok {
