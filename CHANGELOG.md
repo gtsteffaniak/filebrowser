@@ -1,1 +1,1 @@
-@file:/tmp/mcp_cou_payload.json
+${{readFile('/workspace/CHANGELOG.md')}}
