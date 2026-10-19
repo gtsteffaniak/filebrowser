@@ -95,9 +95,9 @@ func TestUpdateSharesForMovedResource(t *testing.T) {
 
 	check := func(hash, wantPath, wantSource string) {
 		t.Helper()
-		s, err := GetShare(hash)
-		if err != nil {
-			t.Fatalf("GetShare(%s): %v", hash, err)
+		s, getErr := GetShare(hash)
+		if getErr != nil {
+			t.Fatalf("GetShare(%s): %v", hash, getErr)
 		}
 		if s.Path != wantPath || s.SourcePath != wantSource {
 			t.Fatalf("share %s = (path %q, source %q), want (path %q, source %q)",
