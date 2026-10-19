@@ -5,6 +5,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"strings"
 	"syscall"
 	"testing"
 	"time"
@@ -221,27 +222,32 @@ func TestResolveFilesystemIndexPathDeniesAmbiguousHardLink(t *testing.T) {
 	fileID := 42
 	candidate := stubInfo{name: "PRIVATE.TXT", mode: 0, id: fileID}
 	aFile := stubInfo{name: "a.txt", mode: 0, id: fileID}
-	privFile := stubInfo{name: "private.txt", mode: 0, id: fileID}
+	zFile := stubInfo{name: "z.txt", mode: 0, id: fileID}
 	dir := stubInfo{name: "share", mode: fs.ModeDir, id: 1}
 	share := filepath.Join(root, "share")
 	candPath := filepath.Join(share, "PRIVATE.TXT")
+	aPath := filepath.Join(share, "a.txt")
+	zPath := filepath.Join(share, "z.txt")
 
 	withMockFS(t, &mockFS{
 		lstat: func(name string) (fs.FileInfo, error) {
 			switch name {
 			case share:
 				return dir, nil
-			case candPath, filepath.Join(share, "a.txt"), filepath.Join(share, "private.txt"):
+			case candPath, aPath, zPath:
 				return candidate, nil
 			default:
 				return nil, fs.ErrNotExist
 			}
 		},
 		readdir: func(name string) ([]fs.DirEntry, error) {
-			if name == share {
+			switch name {
+			case root:
+				return []fs.DirEntry{mockDirEntry{info: dir}}, nil
+			case share:
 				return []fs.DirEntry{
 					mockDirEntry{info: aFile},
-					mockDirEntry{info: privFile},
+					mockDirEntry{info: zFile},
 				}, nil
 			}
 			return nil, fs.ErrNotExist
@@ -256,6 +262,9 @@ func TestResolveFilesystemIndexPathDeniesAmbiguousHardLink(t *testing.T) {
 	_, err := resolveFilesystemIndexPath(root, utils.IndexPathFromNormalized("/share/PRIVATE.TXT", false))
 	if err == nil {
 		t.Fatal("expected ambiguous hard link resolution to fail closed")
+	}
+	if !strings.Contains(err.Error(), "ambiguous filesystem alias") {
+		t.Fatalf("expected hard-link ambiguity error, got %v", err)
 	}
 }
 
