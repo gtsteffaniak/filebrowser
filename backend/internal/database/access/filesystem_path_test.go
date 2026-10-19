@@ -260,8 +260,8 @@ func BenchmarkPermittedExactPathNoFS(b *testing.B) {
 	path := utils.IndexPathFromNormalized("/privatestorage/secret.txt", false)
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		if s.Permitted("/data", path, "bob") {
-			// expected
+		if !s.Permitted("/data", path, "bob") {
+			b.Fatal("expected permitted on exact-path hot path")
 		}
 	}
 }
