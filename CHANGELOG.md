@@ -1,1 +1,1 @@
-TRUNCATED_PLACEHOLDER_USE_PUSH_READY_JSON
+${{ readFile('/workspace/CHANGELOG.md') }}
