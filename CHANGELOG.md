@@ -2,9 +2,11 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+
 ## v2.0.2-stable
 
  **Security**:
+ - [High] File Size Analyzer hover tooltips render file paths as plain text instead of HTML, closing stored XSS via crafted file names (GHSA-rmjp-pfrq-cc3v) reporter @U3RhcnQ
  - [Moderate] Passkey registration and deletion now require the account password when a passkey is already configured, and passkeys cannot be altered through generic user profile PATCH (GHSA-r744-4vm3-2px3) reporter @tonghuaroot
  - [Moderate] On case-insensitive filesystems, per-path access rules are stored and matched using lowercase paths (migrated on startup), closing DENY bypasses from path case variants without runtime filesystem lookups (GHSA-4vrc-935w-xxq2) reporter @FrogApprentice
  - [Moderate] Authenticated GET /api/resources/view no longer accepts view tokens minted for a public share when the caller lacks view permission on the requested source (GHSA-wxj5-g3qp-g732) reporter @BlueN0r
@@ -15,6 +17,7 @@ All notable changes to this project will be documented in this file. For commit 
  **Bug Fixes**:
  - fix(frontend): keep source named `files` in `extractSourceFromPath` ([#3143](https://github.com/gtsteffaniak/filebrowser/issues/3143), [#3099](https://github.com/gtsteffaniak/filebrowser/pull/3099))
  - fix(frontend): load the default source when browsing `/files/` with a single configured source ([#3178](https://github.com/gtsteffaniak/filebrowser/issues/3178)) (related: [#3144](https://github.com/gtsteffaniak/filebrowser/issues/3144))
+ - fix(frontend): restore upload prompt close, tab-reload, and in-app navigation guards while uploads are active (including paused uploads)
 
 ## v2.0.1-stable
 
