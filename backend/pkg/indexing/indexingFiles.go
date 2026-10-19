@@ -653,7 +653,12 @@ func (idx *Index) persistDirectoryListing(indexPath string, indexableInfo *itemi
 		return
 	}
 	idx.UpdateMetadata(indexableInfo, nil, true)
-	idx.SetFolderSize(indexPath, uint64(indexableInfo.Size))
+	newSize := uint64(indexableInfo.Size)
+	if previousSize, exists := idx.GetFolderSize(indexPath); exists {
+		idx.updateFolderSizeAndParents(indexPath, newSize, previousSize, true)
+	} else {
+		idx.SetFolderSize(indexPath, newSize)
+	}
 }
 
 // getBasicDirInfo returns just directory metadata without children

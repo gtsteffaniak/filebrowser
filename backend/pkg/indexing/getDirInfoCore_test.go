@@ -521,6 +521,56 @@ func TestGetDirInfoCore_IndexableListing(t *testing.T) {
 	}
 }
 
+// TestPersistDirectoryListing_PropagatesSizeToParents verifies that when a
+// refreshed listing changes a cached folder size, the delta is propagated to
+// ancestor folder sizes rather than leaving them stale.
+func TestPersistDirectoryListing_PropagatesSizeToParents(t *testing.T) {
+	db, _, err := dbsql.NewIndexDB("test_persist_prop", "OFF", 1000, 32, false)
+	if err != nil {
+		t.Fatalf("Failed to create test database: %v", err)
+	}
+
+	idx := &Index{
+		Source: settings.Source{
+			Name: "test_persist_prop",
+			Path: t.TempDir(),
+			Config: settings.SourceConfig{
+				UseLogicalSize: true,
+			},
+		},
+		db:                  db,
+		scanUpdatedPaths:    make(map[string]bool),
+		folderSizes:         make(map[string]uint64),
+		folderSizesUnsynced: make(map[string]struct{}),
+	}
+
+	opts := Options{CheckViewable: true}
+	listing := func(size int64) *iteminfo.FileInfo {
+		return &iteminfo.FileInfo{
+			Path:     "/sub/",
+			ItemInfo: iteminfo.ItemInfo{Name: "sub", Type: "directory", Size: size},
+		}
+	}
+
+	// Seed stale sizes: child contributes 40 toward the parent's 100.
+	idx.SetFolderSize("/", 100)
+	idx.SetFolderSize("/sub/", 40)
+
+	idx.persistDirectoryListing("/sub/", listing(60), opts)
+	if size, _ := idx.GetFolderSize("/sub/"); size != 60 {
+		t.Errorf("expected /sub/ size 60, got %d", size)
+	}
+	if size, _ := idx.GetFolderSize("/"); size != 120 {
+		t.Errorf("expected / size 120 after +20 delta, got %d", size)
+	}
+
+	// Shrink propagates a negative delta too.
+	idx.persistDirectoryListing("/sub/", listing(30), opts)
+	if size, _ := idx.GetFolderSize("/"); size != 90 {
+		t.Errorf("expected / size 90 after -30 delta, got %d", size)
+	}
+}
+
 // mockFileInfo is a simple mock implementation of os.FileInfo for testing
 type mockFileInfo struct {
 	name    string
