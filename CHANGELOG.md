@@ -1,1 +1,1 @@
-/tmp/changelog_full_content.txt
+@workspace/CHANGELOG.md
