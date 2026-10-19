@@ -1,5 +1,5 @@
 import type { RouteLocationNormalized, Router } from "vue-router";
-import { mutations, state } from "@/store";
+import { mutations, state } from "@/store/index.ts";
 
 let approvedNavigationFullPath: string | null = null;
 
