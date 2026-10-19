@@ -1,1 +1,1 @@
-spill:///tmp/mcp_final_args.json
+__LOAD_FROM__/tmp/statx_changelog_content.txt
