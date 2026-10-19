@@ -24,10 +24,21 @@ func getFileSizeByMode(stat *syscall.Stat_t, useLogicalSize bool) uint64 {
 	return uint64(stat.Blocks * 512)
 }
 
+// unixFileDetailsProvider lets platform-specific os.FileInfo implementations
+// (e.g. Linux statx/fstatat directory listings) expose size, link count and
+// inode without an extra path-based stat.
+type unixFileDetailsProvider interface {
+	unixFileDetails(useLogicalSize bool) (realSize uint64, nlink uint64, ino uint64)
+}
+
 func getFileDetails(sys any, filePath string, useLogicalSize bool) (uint64, uint64, uint64, bool) {
 	// If useLogicalSize is true, we still need inode info for hardlink detection
 	// but use logical size instead of allocated size
 	if sys != nil {
+		if provider, ok := sys.(unixFileDetailsProvider); ok {
+			realSize, nlink, ino := provider.unixFileDetails(useLogicalSize)
+			return realSize, nlink, ino, true
+		}
 		if stat, ok := sys.(*syscall.Stat_t); ok {
 			realSize := getFileSizeByMode(stat, useLogicalSize)
 			return realSize, uint64(stat.Nlink), stat.Ino, true
