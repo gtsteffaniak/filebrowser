@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file. For commit 
 ## v2.1.3
 
  **Security**:
- - [Moderate] Per-path access rules match by path and apply case-insensitively on case-insensitive filesystems via an in-memory rule index, closing DENY bypasses from path case variants without per-request directory scans (GHSA-4vrc-935w-xxq2) reporter @FrogApprentice
+ - [Moderate] On case-insensitive filesystems, per-path access rules are stored and matched using lowercase paths (migrated on startup), closing DENY bypasses from path case variants without runtime filesystem lookups (GHSA-4vrc-935w-xxq2) reporter @FrogApprentice
  - [Moderate] Moving or renaming a folder updates only shares whose paths are under the moved prefix, preserving per-file share roots instead of retargeting unrelated substring matches (GHSA-26fh-r34c-qxh6) reporters @jayhemnani9910 @dylanzonix
  - [Moderate] WebDAV PUT now requires Create permission when the target path does not yet exist, so Modify-only users cannot create new files (GHSA-8655-2ph3-q7q7) reporter @levanduy181
  - [Low] Failed-login lockout and auth rate limits now use the rightmost `X-Forwarded-For` hop when proxy headers are trusted, so a client cannot spoof the client IP with a leftmost forwarded value (GHSA-wjp8-g49g-xrhx) reporter @LECOQQ

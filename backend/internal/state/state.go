@@ -128,7 +128,6 @@ func initialize(dbPath string) (bool, error) {
 		return existingDb, fmt.Errorf("failed to load access rules: %w", err)
 	}
 	newAccessDb.AllRules = allRules
-	newAccessDb.RebuildFoldedRuleIndex()
 	logger.Debugf("Loaded access rules for %d sources", len(allRules))
 
 	allGroups, err := sqlDb.GetAllGroups()
@@ -169,6 +168,19 @@ func initialize(dbPath string) (bool, error) {
 	logger.Debugf("Loaded %d hashed tokens (%d expired dropped)", len(hashedTokens)-expired, expired)
 
 	newAccessDb.SetSQLStore(sqlDb)
+
+	sourceRoots := make(map[string]string, len(settings.Config.Server.SourceMap))
+	for path, src := range settings.Config.Server.SourceMap {
+		sourceRoots[path] = src.Path
+	}
+	for sourcePath := range allRules {
+		if _, ok := sourceRoots[sourcePath]; !ok {
+			sourceRoots[sourcePath] = sourcePath
+		}
+	}
+	if modeErr := newAccessDb.StartupCaseModes(sourceRoots, sqlDb); modeErr != nil {
+		return existingDb, fmt.Errorf("failed to initialize access source case modes: %w", modeErr)
+	}
 
 	usersMux.Lock()
 	sharesMux.Lock()

@@ -6,7 +6,7 @@ import (
 )
 
 // currentSchemaVersion is the SQLite schema marker for this codebase.
-const currentSchemaVersion = 4
+const currentSchemaVersion = 5
 
 // Schema creates all tables for the SQLite database
 func createSchema(db *sql.DB) error {
@@ -59,6 +59,11 @@ func createSchema(db *sql.DB) error {
 	CREATE INDEX IF NOT EXISTS idx_access_rules_source ON access_rules(source);
 	CREATE INDEX IF NOT EXISTS idx_access_rules_path ON access_rules(path);
 	CREATE INDEX IF NOT EXISTS idx_access_rules_source_path ON access_rules(source, path);
+
+	CREATE TABLE IF NOT EXISTS access_source_mode (
+		source TEXT PRIMARY KEY NOT NULL,
+		case_insensitive INTEGER NOT NULL
+	);
 
 	-- Groups table
 	CREATE TABLE IF NOT EXISTS groups (
@@ -218,6 +223,10 @@ func runMigrations(db *sql.DB, fromVersion int) error {
 			}
 		case 4:
 			if err := addHashedTokenExpiryColumn(db); err != nil {
+				return err
+			}
+		case 5:
+			if err := migrateV5AccessSourceMode(db); err != nil {
 				return err
 			}
 		default:
