@@ -15,7 +15,7 @@
       :is="tooltip.component"
       v-bind="tooltip.componentProps || {}"
     />
-    <div v-else>{{ tooltip.content }}</div>
+    <div v-else class="tooltip-text">{{ tooltip.content }}</div>
   </div>
 </template>
 
