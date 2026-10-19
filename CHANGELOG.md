@@ -1,1 +1,1 @@
-https://raw.githubusercontent.com/gtsteffaniak/filebrowser/dev/v2.1.3/CHANGELOG.md
+spill:///tmp/mcp_final_args.json
