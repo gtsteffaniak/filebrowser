@@ -1,3 +1,1 @@
-package indexing
-
-// restored via MCP inline test
+PLACEHOLDER_57K
