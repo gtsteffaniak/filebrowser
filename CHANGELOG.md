@@ -1,1 +1,1 @@
-TRUNCATED_PLACEHOLDER
+file:///workspace/CHANGELOG.md
