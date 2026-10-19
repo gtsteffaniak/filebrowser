@@ -1008,7 +1008,6 @@ export default {
       this.filePickerField = 'banner';
       mutations.showPrompt({
         name: 'pathPicker',
-        pinned: true,
         props: {
           currentPath: this.displayPath || '/',
           currentSource: this.displaySource,

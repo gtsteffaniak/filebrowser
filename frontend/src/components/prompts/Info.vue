@@ -2,7 +2,7 @@
   <div class="card-content info-content">
     <div class="settings-items">
       <ActivityViewerButton
-        v-if="source"
+        v-if="source && !isShare"
         :href="activityViewerHref"
       />
     </div>
@@ -248,6 +248,9 @@ export default {
     source() {
       return this.item?.source || "";
     },
+    isShare() {
+      return getters.isShare();
+    },
     filePath() {
       return this.item?.path || "";
     },
@@ -279,10 +282,10 @@ export default {
       return getters.isAdmin();
     },
     showQuotaSection() {
-      return this.isAdmin && this.dir && this.source && this.filePath;
+      return this.isAdmin && !this.isShare && this.dir && this.source && this.filePath;
     },
     showAccessSection() {
-      return this.isAdmin && this.source && this.filePath;
+      return this.isAdmin && !this.isShare && this.source && this.filePath;
     },
     quotaEnabled() {
       return this.quotaExists && (this.quotaSnapshot.limitBytes || 0) > 0;
