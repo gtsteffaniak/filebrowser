@@ -1,1 +1,1 @@
-@file:///tmp/changelog_mcp_payload.json:content
+@/workspace/CHANGELOG.md
