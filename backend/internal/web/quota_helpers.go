@@ -35,7 +35,7 @@ func uploadQuotaContext(d *Context, sourceName, fullIndexPath, realPath string, 
 }
 
 func buildUploadQuotaContext(principal *users.User, sourceName, sourcePath, fullIndexPath, realPath, shareHash string, shareLimit int64, sessionID string, totalSize int64, hasTotalSize bool) quota.UploadContext {
-	return quota.UploadContext{
+	ctx := quota.UploadContext{
 		Principal:       principal,
 		SourceName:      sourceName,
 		SourcePath:      sourcePath,
@@ -47,6 +47,17 @@ func buildUploadQuotaContext(principal *users.User, sourceName, sourcePath, full
 		TotalSize:       totalSize,
 		HasKnownSize:    hasTotalSize,
 	}
+	if realPath != "" {
+		stat, err := os.Stat(realPath)
+		if err == nil && !stat.IsDir() {
+			ctx.PriorFileSize = stat.Size()
+			ctx.HasPriorFileSize = true
+		} else if os.IsNotExist(err) {
+			ctx.PriorFileSize = 0
+			ctx.HasPriorFileSize = true
+		}
+	}
+	return ctx
 }
 
 var (
