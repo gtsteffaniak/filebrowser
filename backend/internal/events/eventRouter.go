@@ -41,15 +41,13 @@ func handleUserEvents() {
 	for ue := range userEventChan {
 		for _, user := range ue.users {
 			userClientsMu.RLock()
-			conns := userClients[user]
-			userClientsMu.RUnlock()
-
-			for _, ch := range conns {
+			for _, ch := range userClients[user] {
 				select {
 				case ch <- ue.event:
 				default:
 				}
 			}
+			userClientsMu.RUnlock()
 		}
 	}
 }
@@ -135,24 +133,14 @@ func DebouncedBroadcast(eventType, message string) {
 func handleSourceUpdates() {
 	for update := range sourceUpdateChan {
 		sourceClientsMu.RLock()
-		clientsMap := sourceClients[update.source]
-		clientChans := make([]chan EventMessage, 0, len(clientsMap))
-		for ch := range clientsMap {
-			clientChans = append(clientChans, ch)
-		}
-		sourceClientsMu.RUnlock()
-
-		if len(clientChans) == 0 {
-			continue
-		}
-
-		for _, ch := range clientChans {
+		for ch := range sourceClients[update.source] {
 			select {
 			case ch <- update.event:
 			default:
 				// Channel full, message dropped
 			}
 		}
+		sourceClientsMu.RUnlock()
 	}
 }
 
