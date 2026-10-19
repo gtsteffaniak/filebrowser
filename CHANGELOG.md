@@ -1,1 +1,1 @@
-PARTIAL_TEST
+LOAD_FROM:/tmp/push_files_final.json
