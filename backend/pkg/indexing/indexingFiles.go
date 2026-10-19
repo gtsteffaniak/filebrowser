@@ -1,1 +1,3 @@
-spill:///tmp/push_indexing_content.go
+package indexing
+
+// restored via MCP inline test
