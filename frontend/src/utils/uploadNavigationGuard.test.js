@@ -15,7 +15,7 @@ vi.mock("@/store", () => ({
   },
 }));
 
-import { state } from "@/store";
+import { state } from "@/store/index.ts";
 import {
   approveUploadNavigation,
   cancelCloseUploadPrompt,
@@ -24,7 +24,7 @@ import {
   dismissCloseWithActiveUploadsPrompt,
   evaluateUploadNavigationGuard,
   hasCloseWithActiveUploadsPrompt,
-} from "./uploadNavigationGuard";
+} from "./uploadNavigationGuard.ts";
 
 const to = (fullPath) => ({ fullPath, path: fullPath, hash: "", query: {} });
 
