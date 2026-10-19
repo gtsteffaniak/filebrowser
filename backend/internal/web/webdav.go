@@ -707,6 +707,11 @@ func webDAVHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, err
 	if status, permErr := webDAVMethodPermission(r.Method, filePerms); permErr != nil {
 		return status, permErr
 	}
+	if isWebDAVWriteMethod(r.Method) {
+		if status, roErr := denyIfSourceReadOnly(source); roErr != nil {
+			return status, roErr
+		}
+	}
 	requestPath := utils.AddTrailingSlashIfNotExists(r.PathValue("path"))
 	if !strings.HasPrefix(requestPath, "/") {
 		requestPath = "/" + requestPath
@@ -825,8 +830,12 @@ func writeWebDAVOptions(w http.ResponseWriter, r *http.Request, ffs *filteredFil
 		candidates = []string{http.MethodGet, http.MethodHead, "PROPFIND", http.MethodPut, http.MethodDelete, "COPY", "MOVE"}
 	}
 
+	_, roErr := denyIfSourceReadOnly(ffs.source)
 	allowed := []string{http.MethodOptions}
 	for _, m := range candidates {
+		if roErr != nil && isWebDAVWriteMethod(m) {
+			continue
+		}
 		if _, err := webDAVMethodPermission(m, perms); err == nil {
 			allowed = append(allowed, m)
 		}
@@ -837,6 +846,15 @@ func writeWebDAVOptions(w http.ResponseWriter, r *http.Request, ffs *filteredFil
 	w.Header().Set("MS-Author-Via", "DAV")
 	w.WriteHeader(http.StatusOK)
 	return http.StatusOK, nil
+}
+
+func isWebDAVWriteMethod(method string) bool {
+	switch method {
+	case "MKCOL", http.MethodPut, http.MethodDelete, "COPY", "MOVE":
+		return true
+	default:
+		return false
+	}
 }
 
 func webDAVMethodPermission(method string, perms users.SourceFilePermissions) (int, error) {
