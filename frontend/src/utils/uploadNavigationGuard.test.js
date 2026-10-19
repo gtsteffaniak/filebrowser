@@ -57,6 +57,14 @@ describe("uploadNavigationGuard", () => {
     expect(evaluateUploadNavigationGuard(to("/files/a/"))).toBe("prompt");
   });
 
+  it("does not reuse approval after uploads finish", () => {
+    approveUploadNavigation("/files/same/");
+    state.upload.isUploading = false;
+    expect(evaluateUploadNavigationGuard(to("/files/same/"))).toBe("allow");
+    state.upload.isUploading = true;
+    expect(evaluateUploadNavigationGuard(to("/files/same/"))).toBe("prompt");
+  });
+
   it("dismisses all CloseWithActiveUploads prompts", () => {
     state.prompts = [
       { id: 1, name: "upload" },
