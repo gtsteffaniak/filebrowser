@@ -1,1 +1,1 @@
-__LOAD_FROM__/tmp/statx_changelog_content.txt
+@file(/tmp/statx_changelog_content.txt)
