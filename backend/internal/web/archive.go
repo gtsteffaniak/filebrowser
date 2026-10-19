@@ -540,7 +540,8 @@ func unarchiveHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 		if errors.Is(extractErr, archiveencoding.ErrEncoding) {
 			return http.StatusBadRequest, extractErr
 		}
-		return http.StatusInternalServerError, extractErr
+		logger.Errorf("archive extraction failed: %v", extractErr)
+		return http.StatusInternalServerError, clientExtractError()
 	}
 
 	if req.DeleteAfter {
@@ -1055,7 +1056,8 @@ func safeExtractPath(destDir, name string) (string, error) {
 		return "", fmt.Errorf("invalid entry path: %q", name)
 	}
 	if _, err = resolvedWritePathUnderDest(destDir, entryAbs); err != nil {
-		return "", fmt.Errorf("invalid entry path: %q: %w", name, err)
+		logger.Debugf("unarchive: entry %q path resolution: %v", name, err)
+		return "", fmt.Errorf("invalid entry path: %q", name)
 	}
 	return abs, nil
 }
@@ -1065,7 +1067,8 @@ func safeExtractPath(destDir, name string) (string, error) {
 func resolvedWritePathUnderDest(destDir, entryAbs string) (string, error) {
 	destResolved, err := filepath.EvalSymlinks(destDir)
 	if err != nil {
-		return "", err
+		logger.Debugf("unarchive: eval destination symlinks: %v", err)
+		return "", errEntryPathInvalid
 	}
 	check := entryAbs
 	if resolved, rerr := filepath.EvalSymlinks(check); rerr == nil {
@@ -1080,24 +1083,28 @@ func resolvedWritePathUnderDest(destDir, entryAbs string) (string, error) {
 				break
 			}
 			if !errors.Is(perr, os.ErrNotExist) {
-				return "", perr
+				logger.Debugf("unarchive: eval entry symlinks: %v", perr)
+				return "", errEntryPathInvalid
 			}
 			next := filepath.Dir(parent)
 			if next == parent {
-				return "", fmt.Errorf("no existing ancestor for entry path: %q", entryAbs)
+				logger.Debugf("unarchive: no existing ancestor for entry under %s", destDir)
+				return "", errEntryPathInvalid
 			}
 			leaf = filepath.Join(filepath.Base(parent), leaf)
 			parent = next
 		}
 	} else {
-		return "", rerr
+		logger.Debugf("unarchive: eval entry symlinks: %v", rerr)
+		return "", errEntryPathInvalid
 	}
 	relCheck, err := filepath.Rel(destResolved, check)
 	if err != nil {
-		return "", err
+		logger.Debugf("unarchive: relative path under destination: %v", err)
+		return "", errEntryPathInvalid
 	}
 	if relCheck == ".." || strings.HasPrefix(relCheck, ".."+string(filepath.Separator)) {
-		return "", fmt.Errorf("entry path escapes destination through a symlink: %q", entryAbs)
+		return "", errEntryPathEscape
 	}
 	return check, nil
 }
@@ -1165,7 +1172,8 @@ func extractArchivedDir(destPath string, mode fs.FileMode, modTime time.Time) er
 		perm = fileutils.EffectiveDirPerm()
 	}
 	if err := os.MkdirAll(destPath, perm); err != nil {
-		return fmt.Errorf("mkdir %q: %w", destPath, err)
+		logger.Debugf("unarchive: mkdir: %v", err)
+		return fmt.Errorf("failed to create directory from archive entry")
 	}
 	return applyArchivedTimesAndPerm(destPath, mode, modTime)
 }
@@ -1175,7 +1183,8 @@ func extractArchivedRegularFile(destPath string, mode fs.FileMode, modTime time.
 	defer func() { _ = src.Close() }()
 	parent := filepath.Dir(destPath)
 	if err := os.MkdirAll(parent, fileutils.EffectiveDirPerm()); err != nil {
-		return fmt.Errorf("mkdir %q: %w", parent, err)
+		logger.Debugf("unarchive: mkdir parent: %v", err)
+		return fmt.Errorf("failed to create directory from archive entry")
 	}
 	perm := mode.Perm()
 	if perm == 0 {
@@ -1183,15 +1192,18 @@ func extractArchivedRegularFile(destPath string, mode fs.FileMode, modTime time.
 	}
 	out, err := os.OpenFile(destPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, perm)
 	if err != nil {
-		return err
+		logger.Debugf("unarchive: create file: %v", err)
+		return fmt.Errorf("failed to write file from archive entry")
 	}
 	_, copyErr := io.Copy(out, src)
 	cerr := out.Close()
 	if copyErr != nil {
-		return copyErr
+		logger.Debugf("unarchive: write file: %v", copyErr)
+		return fmt.Errorf("failed to write file from archive entry")
 	}
 	if cerr != nil {
-		return cerr
+		logger.Debugf("unarchive: close file: %v", cerr)
+		return fmt.Errorf("failed to write file from archive entry")
 	}
 	return applyArchivedTimesAndPerm(destPath, mode, modTime)
 }
@@ -1201,16 +1213,19 @@ func extractArchivedSymlink(destRoot, destPath, target string, modTime time.Time
 	target = strings.TrimSpace(target)
 	symParent := filepath.Dir(destPath)
 	if err := os.MkdirAll(symParent, fileutils.EffectiveDirPerm()); err != nil {
-		return fmt.Errorf("mkdir %q: %w", symParent, err)
+		logger.Debugf("unarchive: mkdir symlink parent: %v", err)
+		return fmt.Errorf("failed to create symlink from archive entry")
 	}
 	if err := symlinkTargetStaysUnderDest(destRoot, destPath, target); err != nil {
 		return err
 	}
 	if err := os.Remove(destPath); err != nil && !os.IsNotExist(err) {
-		return err
+		logger.Debugf("unarchive: remove symlink: %v", err)
+		return fmt.Errorf("failed to create symlink from archive entry")
 	}
 	if err := os.Symlink(target, destPath); err != nil {
-		return err
+		logger.Debugf("unarchive: symlink: %v", err)
+		return fmt.Errorf("failed to create symlink from archive entry")
 	}
 	return applyArchivedTimesAndPerm(destPath, fs.ModeSymlink, modTime)
 }
@@ -1288,8 +1303,13 @@ func extractZipWithEncoding(archivePath, destDir, charset string, policy *extrac
 		mode := fi.Mode()
 		isDirEntry := mode.Type() == fs.ModeDir || strings.HasSuffix(o.name, "/") || strings.HasSuffix(o.name, "\\")
 		if isDirEntry {
-			if err = policy.allowWriteIncludingParents(destPath); err != nil {
+			var skip bool
+			skip, err = checkExtractPolicy(policy, func() error { return policy.allowWriteIncludingParents(destPath) })
+			if err != nil {
 				return err
+			}
+			if skip {
+				continue
 			}
 			if err = extractArchivedDir(destPath, mode, f.Modified); err != nil {
 				return err
@@ -1308,8 +1328,13 @@ func extractZipWithEncoding(archivePath, destDir, charset string, policy *extrac
 			if rerr != nil {
 				return rerr
 			}
-			if err = policy.allowWriteSymlinkEntry(destPath); err != nil {
+			var skip bool
+			skip, err = checkExtractPolicy(policy, func() error { return policy.allowWriteSymlinkEntry(destPath) })
+			if err != nil {
 				return err
+			}
+			if skip {
+				continue
 			}
 			if err = extractArchivedSymlink(destDir, destPath, string(buf), f.Modified); err != nil {
 				return err
@@ -1321,8 +1346,13 @@ func extractZipWithEncoding(archivePath, destDir, charset string, policy *extrac
 			continue
 		}
 
-		if err = policy.allowWriteIncludingParents(destPath); err != nil {
+		var skip bool
+		skip, err = checkExtractPolicy(policy, func() error { return policy.allowWriteIncludingParents(destPath) })
+		if err != nil {
 			return err
+		}
+		if skip {
+			continue
 		}
 
 		var rc io.ReadCloser
@@ -1367,24 +1397,44 @@ func extractTarGz(archivePath, destDir string, policy *extractAccessPolicy) erro
 
 		switch h.Typeflag {
 		case tar.TypeDir:
-			if err = policy.allowWriteIncludingParents(destPath); err != nil {
+			var skip bool
+			skip, err = checkExtractPolicy(policy, func() error { return policy.allowWriteIncludingParents(destPath) })
+			if err != nil {
 				return err
+			}
+			if skip {
+				continue
 			}
 			mode := h.FileInfo().Mode()
 			if err = extractArchivedDir(destPath, mode, h.ModTime); err != nil {
 				return err
 			}
 		case tar.TypeReg:
-			if err = policy.allowWriteIncludingParents(destPath); err != nil {
+			var skip bool
+			skip, err = checkExtractPolicy(policy, func() error { return policy.allowWriteIncludingParents(destPath) })
+			if err != nil {
 				return err
+			}
+			if skip {
+				if h.Size > 0 {
+					if _, err = io.CopyN(io.Discard, tr, h.Size); err != nil {
+						return err
+					}
+				}
+				continue
 			}
 			mode := h.FileInfo().Mode()
 			if err = extractArchivedRegularFile(destPath, mode, h.ModTime, io.NopCloser(tr)); err != nil {
 				return err
 			}
 		case tar.TypeSymlink:
-			if err = policy.allowWriteSymlinkEntry(destPath); err != nil {
+			var skip bool
+			skip, err = checkExtractPolicy(policy, func() error { return policy.allowWriteSymlinkEntry(destPath) })
+			if err != nil {
 				return err
+			}
+			if skip {
+				continue
 			}
 			if err = extractArchivedSymlink(destDir, destPath, h.Linkname, h.ModTime); err != nil {
 				return err

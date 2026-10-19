@@ -1,6 +1,7 @@
 package web
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -10,6 +11,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing"
+	"github.com/gtsteffaniak/go-logger/logger"
 )
 
 // extractAccessPolicy enforces per-path access rules and source file permissions during unarchive.
@@ -32,19 +34,22 @@ func (p *extractAccessPolicy) allowWriteSymlinkEntry(destPath string) error {
 	}
 	destResolved, err := filepath.EvalSymlinks(p.destRealRoot)
 	if err != nil {
-		return err
+		logger.Debugf("unarchive: eval destination symlinks: %v", err)
+		return errEntryPathInvalid
 	}
 	rel, err := filepath.Rel(filepath.Clean(destResolved), filepath.Clean(destPath))
 	if err != nil {
-		return err
+		logger.Debugf("unarchive: symlink entry relative path: %v", err)
+		return errEntryPathInvalid
 	}
 	if rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
-		return fmt.Errorf("symlink path escapes destination")
+		return errEntryPathEscape
 	}
 	rel = filepath.ToSlash(rel)
 	indexPath := utils.JoinPathAsUnix(p.destIndexPrefix, rel)
 	if !state.AccessPermitted(p.idx.Path, utils.IndexPathFromNormalized(indexPath, true), p.username) {
-		return fmt.Errorf("access denied to %s", rel)
+		logger.Debugf("unarchive: skipping symlink entry at index path %s for user %s (access denied)", indexPath, p.username)
+		return errExtractSkip
 	}
 	if _, statErr := os.Lstat(destPath); os.IsNotExist(statErr) {
 		if !p.perms.Create {
@@ -69,16 +74,19 @@ func (p *extractAccessPolicy) allowWrite(destPath string) error {
 	}
 	destResolved, err := filepath.EvalSymlinks(p.destRealRoot)
 	if err != nil {
-		return err
+		logger.Debugf("unarchive: eval destination symlinks: %v", err)
+		return errEntryPathInvalid
 	}
 	rel, err := filepath.Rel(filepath.Clean(destResolved), filepath.Clean(effectivePath))
 	if err != nil {
-		return err
+		logger.Debugf("unarchive: entry relative path: %v", err)
+		return errEntryPathInvalid
 	}
 	rel = filepath.ToSlash(rel)
 	indexPath := utils.JoinPathAsUnix(p.destIndexPrefix, rel)
 	if !state.AccessPermitted(p.idx.Path, utils.IndexPathFromNormalized(indexPath, true), p.username) {
-		return fmt.Errorf("access denied to %s", rel)
+		logger.Debugf("unarchive: skipping entry at index path %s for user %s (access denied)", indexPath, p.username)
+		return errExtractSkip
 	}
 	if _, statErr := os.Stat(destPath); os.IsNotExist(statErr) {
 		if !p.perms.Create {
@@ -114,8 +122,23 @@ func (p *extractAccessPolicy) allowWriteIncludingParents(destPath string) error 
 	}
 	for i := len(missingParents) - 1; i >= 0; i-- {
 		if err := p.allowWrite(missingParents[i]); err != nil {
+			if errors.Is(err, errExtractSkip) {
+				return errExtractSkip
+			}
 			return err
 		}
 	}
 	return p.allowWrite(destPath)
+}
+
+// checkExtractPolicy runs an access-policy check; skipped entries return (true, nil).
+func checkExtractPolicy(policy *extractAccessPolicy, check func() error) (skip bool, err error) {
+	if policy == nil {
+		return false, nil
+	}
+	err = check()
+	if errors.Is(err, errExtractSkip) {
+		return true, nil
+	}
+	return false, err
 }
