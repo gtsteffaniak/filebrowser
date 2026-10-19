@@ -101,9 +101,8 @@ func TokenExpiredPastGrace(expiresAt int64, now time.Time) bool {
 // Storage manages access rules and group membership.
 type Storage struct {
 	mux                   sync.RWMutex
-	AllRules              SourceRuleMap // AllRules[sourcePath][indexPath] - in-memory authoritative state
-	sourceCaseInsensitive map[string]bool // per-source: lowercase rule keys and lookups
-	Groups                GroupMap        // key: group name, value: set of usernames - in-memory authoritative state
+	AllRules SourceRuleMap // AllRules[sourcePath][indexPath] - in-memory authoritative state
+	Groups   GroupMap      // key: group name, value: set of usernames - in-memory authoritative state
 	RevokedTokens map[string]int64           // token hash → revocation unix time (0 = immediate) - in-memory authoritative state
 	HashedTokens  map[string]HashedTokenInfo // maps token hash → owner/type - in-memory authoritative state
 	Users         *users.Storage             // Reference to users storage
@@ -114,6 +113,7 @@ type Storage struct {
 type SQLPersister interface {
 	SaveAccessRule(source, path string, rule *AccessRule) error
 	DeleteAccessRule(source, path string) error
+	MigrateAccessRulePathsLowercase(source string, oldPaths []string, newRules RuleMap) error
 	SaveGroup(name string, members StringSet) error
 	DeleteGroup(name string) error
 	SaveRevokedToken(tokenHash string, revokedAt int64) error
@@ -237,11 +237,9 @@ func (s *Storage) RemoveRuleByPathKey(sourcePath, pathKey string) {
 		return
 	}
 
+	pathKey = strings.ToLower(pathKey)
 	if _, exists := rulesBySource[pathKey]; !exists {
 		return
-	}
-	if s.caseInsensitiveSourceNL(sourcePath) {
-		pathKey = strings.ToLower(pathKey)
 	}
 	delete(rulesBySource, pathKey)
 	if len(rulesBySource) == 0 {
