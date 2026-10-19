@@ -1,1 +1,1 @@
-TRIGGER
+LOAD
