@@ -128,6 +128,7 @@ func initialize(dbPath string) (bool, error) {
 		return existingDb, fmt.Errorf("failed to load access rules: %w", err)
 	}
 	newAccessDb.AllRules = allRules
+	newAccessDb.RebuildFoldedRuleIndex()
 	logger.Debugf("Loaded access rules for %d sources", len(allRules))
 
 	allGroups, err := sqlDb.GetAllGroups()
