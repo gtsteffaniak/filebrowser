@@ -1,1 +1,1 @@
-/workspace/CHANGELOG.md
+https://raw.githubusercontent.com/gtsteffaniak/filebrowser/dev/v2.1.3/CHANGELOG.md
