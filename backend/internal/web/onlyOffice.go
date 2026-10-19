@@ -645,6 +645,10 @@ func processOnlyOfficeCallback(w http.ResponseWriter, r *http.Request, d *Contex
 			return returnOnlyOfficeSuccess(w, r)
 		}
 
+		if status, roErr := denyIfSourceReadOnly(source); roErr != nil {
+			return returnOnlyOfficeError(w, r, status, roErr.Error())
+		}
+
 		// Check modify permission for save operations
 		filePerms, permErr := effectiveFilePerms(d, source)
 		if permErr != nil || !filePerms.Modify {

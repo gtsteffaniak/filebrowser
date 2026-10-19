@@ -189,25 +189,25 @@ func (s *Storage) StartupCaseModes(sourceRoots map[string]string, store CaseMode
 		}
 
 		if hasSaved && saved && !detected {
-			logger.Warningf("access rules: source %q detected case-sensitive filesystem but was case-insensitive; rule keys left unchanged", sourcePath)
+			logger.Warningf("access rules: source %q probed case-sensitive but was case-insensitive; keeping case-insensitive mode", sourcePath)
+			detected = true
 		}
 
 		needMigrate := detected && (!hasSaved || !saved)
+		s.sourceCaseInsensitive[sourcePath] = detected
+
 		if needMigrate {
-			if err := s.migrateSourceRulesInsensitiveNL(sourcePath); err != nil {
+			if err := s.migrateSourceRulesInsensitiveNL(sourcePath, detected); err != nil {
 				return err
 			}
-		}
-
-		s.sourceCaseInsensitive[sourcePath] = detected
-		if err := store.SaveAccessSourceCaseMode(sourcePath, detected); err != nil {
+		} else if err := store.SaveAccessSourceCaseMode(sourcePath, detected); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (s *Storage) migrateSourceRulesInsensitiveNL(sourcePath string) error {
+func (s *Storage) migrateSourceRulesInsensitiveNL(sourcePath string, caseInsensitive bool) error {
 	rulesBySource, ok := s.AllRules[sourcePath]
 	if !ok || len(rulesBySource) == 0 {
 		return nil
@@ -234,17 +234,7 @@ func (s *Storage) migrateSourceRulesInsensitiveNL(sourcePath string) error {
 	if s.sqlStore == nil {
 		return nil
 	}
-	for _, old := range oldPaths {
-		if err := s.sqlStore.DeleteAccessRule(sourcePath, old); err != nil {
-			return err
-		}
-	}
-	for path, rule := range newRules {
-		if err := s.sqlStore.SaveAccessRule(sourcePath, path, rule); err != nil {
-			return err
-		}
-	}
-	return nil
+	return s.sqlStore.MigrateAccessRulesInsensitive(sourcePath, oldPaths, newRules, caseInsensitive)
 }
 
 func mergeAccessRulesInPlace(dst, src *AccessRule) {
@@ -253,6 +243,18 @@ func mergeAccessRulesInPlace(dst, src *AccessRule) {
 	}
 	if src.DenyAll {
 		dst.DenyAll = true
+	}
+	if dst.Deny.Users == nil {
+		dst.Deny.Users = StringSet{}
+	}
+	if dst.Deny.Groups == nil {
+		dst.Deny.Groups = StringSet{}
+	}
+	if dst.Allow.Users == nil {
+		dst.Allow.Users = StringSet{}
+	}
+	if dst.Allow.Groups == nil {
+		dst.Allow.Groups = StringSet{}
 	}
 	for u := range src.Deny.Users {
 		dst.Deny.Users[u] = struct{}{}

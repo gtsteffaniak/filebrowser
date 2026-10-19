@@ -126,6 +126,7 @@ type RuleUpsert struct {
 type SQLPersister interface {
 	SaveAccessRule(source, path string, rule *AccessRule) error
 	DeleteAccessRule(source, path string) error
+	MigrateAccessRulesInsensitive(source string, oldPaths []string, newRules RuleMap, caseInsensitive bool) error
 	SaveGroup(name string, members StringSet) error
 	DeleteGroup(name string) error
 	DeleteGroupWithRules(name string, save []RuleUpsert, remove []RuleKey) error
@@ -278,11 +279,11 @@ func (s *Storage) RemoveRuleByPathKey(sourcePath, pathKey string) {
 		return
 	}
 
-	if _, exists := rulesBySource[pathKey]; !exists {
-		return
-	}
 	if s.caseInsensitiveSourceNL(sourcePath) {
 		pathKey = strings.ToLower(pathKey)
+	}
+	if _, exists := rulesBySource[pathKey]; !exists {
+		return
 	}
 	delete(rulesBySource, pathKey)
 	if len(rulesBySource) == 0 {

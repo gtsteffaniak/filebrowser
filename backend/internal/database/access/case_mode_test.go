@@ -71,7 +71,7 @@ func TestPermittedInsensitiveDenyCaseVariant(t *testing.T) {
 	settings.Config = settings.Settings{
 		Server: settings.Server{
 			SourceMap: map[string]*settings.Source{
-				"/data": {Path: "/data", Config: settings.SourceConfig{DenyByDefault: true}},
+				"/data": {Path: "/data", Config: settings.SourceConfig{DenyByDefault: false}},
 			},
 		},
 	}
@@ -86,6 +86,25 @@ func TestPermittedInsensitiveDenyCaseVariant(t *testing.T) {
 	}
 	if s.Permitted("/data", utils.IndexPathFromNormalized("/PRIVATE/secret.txt", false), "alice") {
 		t.Fatal("case variant must hit deny rule")
+	}
+}
+
+func TestRemoveRuleByPathKeyInsensitiveCaseVariant(t *testing.T) {
+	settings.Config = settings.Settings{
+		Server: settings.Server{
+			SourceMap: map[string]*settings.Source{
+				"/data": {Path: "/data", Config: settings.SourceConfig{DenyByDefault: false}},
+			},
+		},
+	}
+	s := NewStorage(nil)
+	setInsensitiveSource(s, "/data")
+	if err := s.DenyUser("/data", utils.IndexPathFromNormalized("/private/x", false), "alice"); err != nil {
+		t.Fatal(err)
+	}
+	s.RemoveRuleByPathKey("/data", "/PRIVATE/x/")
+	if !s.Permitted("/data", utils.IndexPathFromNormalized("/private/x", false), "alice") {
+		t.Fatal("rule should be removed when key casing differs")
 	}
 }
 

@@ -680,7 +680,6 @@ function openPathPicker(kind: "image" | "video" | "audio", pickerProps: Record<s
   props.editor?.blur();
   mutations.showPrompt({
     name: "pathPicker",
-    pinned: true,
     props: {
       currentPath: state.req?.path ? removeLastDir(state.req.path) : "/",
       currentSource: state.req?.source || state.sources.current,

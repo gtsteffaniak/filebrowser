@@ -14,6 +14,9 @@ type failingRevokePersister struct{}
 
 func (failingRevokePersister) SaveAccessRule(string, string, *access.AccessRule) error { return nil }
 func (failingRevokePersister) DeleteAccessRule(string, string) error                   { return nil }
+func (failingRevokePersister) MigrateAccessRulesInsensitive(string, []string, access.RuleMap, bool) error {
+	return nil
+}
 func (failingRevokePersister) SaveGroup(string, access.StringSet) error                { return nil }
 func (failingRevokePersister) DeleteGroup(string) error                                { return nil }
 func (failingRevokePersister) DeleteGroupWithRules(string, []access.RuleUpsert, []access.RuleKey) error {
