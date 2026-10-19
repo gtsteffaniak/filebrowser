@@ -413,16 +413,6 @@ export default {
       }
     };
 
-    const handleBeforeUnload = (event) => {
-      // Warn user if they try to leave/refresh the page while uploads are active
-      if (isUploading.value) {
-        event.preventDefault();
-        // Chrome requires returnValue to be set
-        event.returnValue = '';
-        return '';
-      }
-    };
-
     // Helper to get the destination path (from prop or fallback to current request)
     const getDestinationPath = () => props.targetPath || state.req.path;
 
@@ -453,7 +443,6 @@ export default {
 
     onMounted(async () => {
       document.addEventListener("visibilitychange", void handleVisibilityChange);
-      window.addEventListener("beforeunload", handleBeforeUnload);
       uploadManager.setOnConflict(handleConflict);
       if (props.initialItems) {
         await processItems(props.initialItems);
@@ -462,7 +451,6 @@ export default {
 
     onUnmounted(() => {
       document.removeEventListener("visibilitychange", void handleVisibilityChange);
-      window.removeEventListener("beforeunload", handleBeforeUnload);
       uploadManager.setOnConflict(() => {}); // cleanup
       releaseWakeLock();
     });

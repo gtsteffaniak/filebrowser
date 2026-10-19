@@ -2,6 +2,7 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+
 ## v2.0.2-stable
 
  **Security**:
@@ -16,6 +17,7 @@ All notable changes to this project will be documented in this file. For commit 
  **Bug Fixes**:
  - fix(frontend): keep source named `files` in `extractSourceFromPath` ([#3143](https://github.com/gtsteffaniak/filebrowser/issues/3143), [#3099](https://github.com/gtsteffaniak/filebrowser/pull/3099))
  - fix(frontend): load the default source when browsing `/files/` with a single configured source ([#3178](https://github.com/gtsteffaniak/filebrowser/issues/3178)) (related: [#3144](https://github.com/gtsteffaniak/filebrowser/issues/3144))
+ - fix(frontend): restore upload prompt close, tab-reload, and in-app navigation guards while uploads are active (including paused uploads)
 
 ## v2.0.1-stable
 
