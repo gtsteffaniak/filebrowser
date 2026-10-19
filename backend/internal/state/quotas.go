@@ -535,6 +535,12 @@ func ApplicableFolderQuotas(sourcePath, destIndexPath string, principalUserID ui
 	return out
 }
 
+type reserveApplyPlan struct {
+	chk         QuotaReserveCheck
+	existingIdx int
+	counterDelta int64
+}
+
 // ReserveQuota increases reserved bytes for applicable quotas.
 func ReserveQuota(sessionID string, checks []QuotaReserveCheck) error {
 	if sessionID == "" || len(checks) == 0 {
@@ -543,6 +549,7 @@ func ReserveQuota(sessionID string, checks []QuotaReserveCheck) error {
 	quotasMux.Lock()
 	defer quotasMux.Unlock()
 
+	plans := make([]reserveApplyPlan, 0, len(checks))
 	for _, chk := range checks {
 		if chk.LimitBytes <= 0 || chk.DeltaBytes <= 0 {
 			continue
@@ -559,23 +566,34 @@ func ReserveQuota(sessionID string, checks []QuotaReserveCheck) error {
 		if existingIdx >= 0 && existingBytes == chk.DeltaBytes {
 			continue
 		}
-		reserved := sumSessionReservedLocked(chk.QuotaID)
-		delta := chk.DeltaBytes
+		reservedOther := sumSessionReservedLocked(chk.QuotaID)
 		if existingIdx >= 0 {
-			delta = chk.DeltaBytes - existingBytes
-			reserved -= existingBytes
+			reservedOther -= existingBytes
 		}
-		if chk.UsedBytes+reserved+delta > chk.LimitBytes {
+		if chk.UsedBytes+reservedOther+chk.DeltaBytes > chk.LimitBytes {
 			return fmt.Errorf("quota exceeded for %s", chk.QuotaID)
 		}
+		counterDelta := chk.DeltaBytes
+		if existingIdx >= 0 {
+			counterDelta = chk.DeltaBytes - existingBytes
+		}
+		plans = append(plans, reserveApplyPlan{
+			chk:          chk,
+			existingIdx:  existingIdx,
+			counterDelta: counterDelta,
+		})
+	}
+
+	for _, plan := range plans {
+		chk := plan.chk
 		if chk.Meter == quota.MeterAccounted || chk.Kind == "share" {
 			if err := ensureQuotaCounterMemLocked(chk.QuotaID); err != nil {
 				return err
 			}
-			quotaCounters[chk.QuotaID].ReservedBytes += delta
+			quotaCounters[chk.QuotaID].ReservedBytes += plan.counterDelta
 		}
-		if existingIdx >= 0 {
-			reservationsBySession[sessionID][existingIdx].Bytes = chk.DeltaBytes
+		if plan.existingIdx >= 0 {
+			reservationsBySession[sessionID][plan.existingIdx].Bytes = chk.DeltaBytes
 			continue
 		}
 		reservationsBySession[sessionID] = append(reservationsBySession[sessionID], quotaReservation{
