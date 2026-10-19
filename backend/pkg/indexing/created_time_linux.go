@@ -18,8 +18,8 @@ func getCreatedTime(info os.FileInfo, realPath string) *time.Time {
 	if sxi, ok := info.(*statxFileInfo); ok {
 		return sxi.birthTime()
 	}
-	if fxi, ok := info.(*fstatatFileInfo); ok {
-		return fxi.birthTime()
+	if _, ok := info.(*fstatatFileInfo); ok {
+		return nil
 	}
 	if realPath == "" {
 		return nil

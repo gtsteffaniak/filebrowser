@@ -71,13 +71,18 @@ func processDirectoryMetadata(response *iteminfo.ExtendedFileInfo, idx *indexing
 	}
 	var wg sync.WaitGroup
 
-	wg.Go(func() {
-		indexPath := idx.MakeIndexPath(response.Path, true).String()
-		err := idx.RefreshDirectory(indexPath, false)
-		if err != nil {
-			logger.Debugf("Failed to refresh directory for folder size update: %v", err)
-		}
-	})
+	// Expanded listings already persisted index rows and the folder size from
+	// the freshly read directory (persistDirectoryListing); only unexpanded
+	// directory requests still need a refresh walk.
+	if !opts.Expand {
+		wg.Go(func() {
+			indexPath := idx.MakeIndexPath(response.Path, true).String()
+			err := idx.RefreshDirectory(indexPath, false)
+			if err != nil {
+				logger.Debugf("Failed to refresh directory for folder size update: %v", err)
+			}
+		})
+	}
 
 	if opts.Metadata && metadataCount > 0 {
 		addMetadataToChildren(response, opts, &wg)

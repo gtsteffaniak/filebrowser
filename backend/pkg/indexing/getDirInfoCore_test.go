@@ -6,6 +6,10 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	dbsql "github.com/gtsteffaniak/filebrowser/backend/internal/database/sql"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing/iteminfo"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 )
 
 // TestFetchExtendedAttributes tests the fetchExtendedAttributes helper function
@@ -287,7 +291,7 @@ func TestProcessFileItem(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			itemInfo, size, shouldCount, bubblesUp := idx.processFileItem(
-				tt.file, tt.combinedPath, tt.opts, tt.scanner,
+				tt.file, tt.combinedPath, tt.opts, tt.scanner, nil,
 			)
 
 			if itemInfo == nil {
@@ -305,6 +309,215 @@ func TestProcessFileItem(t *testing.T) {
 			// bubblesUp is a boolean, just verify it's set
 			_ = bubblesUp
 		})
+	}
+}
+
+// TestFetchDirectoryCache_cachesIndexedFiles verifies the file metadata map is
+// built from the same GetMetadataInfo query as the folder preview map.
+func TestFetchDirectoryCache_cachesIndexedFiles(t *testing.T) {
+	idx, _, cleanup := setupTestIndex(t)
+	defer cleanup()
+
+	subdirMap, cachedFiles := idx.fetchDirectoryCache("/", Options{
+		SkipExtendedAttrs: false,
+		Recursive:         false,
+	})
+
+	if _, ok := subdirMap["/subdir/"]; !ok {
+		t.Errorf("expected hasPreview entry for /subdir/, got %v", subdirMap)
+	}
+	if len(cachedFiles) != 2 {
+		t.Fatalf("expected 2 cached files at root, got %d", len(cachedFiles))
+	}
+	f1 := cachedFiles["file1.txt"]
+	if f1 == nil || f1.Size != 100 || f1.Type != "file" {
+		t.Errorf("unexpected cached file1.txt: %+v", f1)
+	}
+
+	// Recursive listings never use the cache (they index fresh metadata).
+	_, cachedFiles = idx.fetchDirectoryCache("/", Options{Recursive: true})
+	if cachedFiles != nil {
+		t.Errorf("expected nil cachedFiles for recursive opts, got %v", cachedFiles)
+	}
+}
+
+// TestProcessFileItem_CachedMetadataReuse verifies unchanged files reuse cached
+// type/preview/created metadata instead of re-detecting, while changed files
+// fall back to fresh detection.
+func TestProcessFileItem_CachedMetadataReuse(t *testing.T) {
+	idx, _, cleanup := setupTestIndex(t)
+	defer cleanup()
+
+	now := time.Now()
+	created := now.Add(-time.Hour)
+	mockFile := &mockFileInfo{
+		name:    "track.flac",
+		size:    1024,
+		modTime: now,
+	}
+	opts := Options{Recursive: false, SkipExtendedAttrs: false}
+
+	cachedFiles := map[string]*iteminfo.ItemInfo{
+		"track.flac": {
+			Name:       "track.flac",
+			Size:       1024,
+			ModTime:    now,
+			Created:    &created,
+			Type:       "audio/x-cached",
+			HasPreview: true,
+		},
+	}
+
+	itemInfo, _, _, _ := idx.processFileItem(mockFile, "/test/", opts, nil, cachedFiles)
+	if itemInfo.Type != "audio/x-cached" {
+		t.Errorf("expected cached type, got %s", itemInfo.Type)
+	}
+	if !itemInfo.HasPreview {
+		t.Error("expected cached HasPreview=true")
+	}
+	if itemInfo.Created == nil || !itemInfo.Created.Equal(created) {
+		t.Errorf("expected cached Created %v, got %v", created, itemInfo.Created)
+	}
+
+	// Size change invalidates the cache: fresh detection runs and preview is
+	// recomputed (the nonexistent real path yields no album art).
+	stale := map[string]*iteminfo.ItemInfo{
+		"track.flac": {
+			Name:       "track.flac",
+			Size:       512,
+			ModTime:    now,
+			Type:       "audio/x-cached",
+			HasPreview: true,
+		},
+	}
+	itemInfo, _, _, _ = idx.processFileItem(mockFile, "/test/", opts, nil, stale)
+	if itemInfo.Type == "audio/x-cached" {
+		t.Error("expected fresh type detection after size change")
+	}
+	if itemInfo.HasPreview {
+		t.Error("expected HasPreview=false after fresh detection")
+	}
+
+	// Mtime change also invalidates the cache.
+	staleMtime := map[string]*iteminfo.ItemInfo{
+		"track.flac": {
+			Name:       "track.flac",
+			Size:       1024,
+			ModTime:    now.Add(-time.Minute),
+			Type:       "audio/x-cached",
+			HasPreview: true,
+		},
+	}
+	itemInfo, _, _, _ = idx.processFileItem(mockFile, "/test/", opts, nil, staleMtime)
+	if itemInfo.Type == "audio/x-cached" {
+		t.Error("expected fresh type detection after mtime change")
+	}
+}
+
+// TestGetDirInfoCore_IndexableListing verifies the second listing returned by
+// GetDirInfoCore contains only items indexing would persist (hidden and
+// viewable-only entries are displayed but not indexed), and that
+// persistDirectoryListing writes exactly those rows plus the folder size.
+func TestGetDirInfoCore_IndexableListing(t *testing.T) {
+	if indexDB == nil {
+		var err error
+		indexDB, _, err = dbsql.NewIndexDB("test_indexable", "OFF", 1000, 32, false)
+		if err != nil {
+			t.Fatalf("Failed to create test database: %v", err)
+		}
+	}
+
+	root := t.TempDir()
+	for _, name := range []string{"visible.txt", ".hidden.txt", "viewable.txt"} {
+		if err := os.WriteFile(filepath.Join(root, name), []byte("data"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	idx := &Index{
+		Source: settings.Source{
+			Name: "test_indexable",
+			Path: root,
+			Config: settings.SourceConfig{
+				UseLogicalSize: true,
+				ResolvedRules: settings.ResolvedRulesConfig{
+					// Viewable in listings but excluded from indexing.
+					FileNames: map[string]settings.ConditionalRule{
+						"viewable.txt": {Viewable: true},
+					},
+				},
+			},
+		},
+		db:                  indexDB,
+		scanUpdatedPaths:    make(map[string]bool),
+		folderSizes:         make(map[string]uint64),
+		folderSizesUnsynced: make(map[string]struct{}),
+	}
+	// Clean any rows left by a previous run for this source.
+	if err := idx.db.DeleteItem(idx.Name, "/", true); err != nil {
+		t.Fatalf("cleanup DeleteItem: %v", err)
+	}
+
+	dir, err := os.Open(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer dir.Close()
+	stat, err := dir.Stat()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	opts := Options{
+		CheckViewable:     true,
+		ShowHidden:        true,
+		SkipExtendedAttrs: false,
+	}
+	display, indexable, err := idx.GetDirInfoCore(dir, stat, "/", opts, nil)
+	if err != nil {
+		t.Fatalf("GetDirInfoCore: %v", err)
+	}
+
+	displayNames := make(map[string]bool, len(display.Files))
+	for _, f := range display.Files {
+		displayNames[f.Name] = true
+	}
+	for _, name := range []string{"visible.txt", ".hidden.txt", "viewable.txt"} {
+		if !displayNames[name] {
+			t.Errorf("expected %s in display listing", name)
+		}
+	}
+
+	if indexable == nil {
+		t.Fatal("expected non-nil indexable listing")
+	}
+	if len(indexable.Files) != 1 || indexable.Files[0].Name != "visible.txt" {
+		names := make([]string, 0, len(indexable.Files))
+		for _, f := range indexable.Files {
+			names = append(names, f.Name)
+		}
+		t.Fatalf("expected only visible.txt in indexable listing, got %v", names)
+	}
+	if indexable.Size != 4 {
+		t.Errorf("expected indexable size 4 (visible.txt only), got %d", indexable.Size)
+	}
+
+	// Persisting must write only indexable rows and set the folder size.
+	idx.persistDirectoryListing("/", indexable, opts)
+
+	if size, ok := idx.GetFolderSize("/"); !ok || size != 4 {
+		t.Errorf("expected folder size 4, got %d (ok=%v)", size, ok)
+	}
+	meta, exists := idx.GetMetadataInfo("/", true, false)
+	if !exists {
+		t.Fatal("expected indexed directory metadata after persist")
+	}
+	if len(meta.Files) != 1 || meta.Files[0].Name != "visible.txt" {
+		names := make([]string, 0, len(meta.Files))
+		for _, f := range meta.Files {
+			names = append(names, f.Name)
+		}
+		t.Fatalf("expected only visible.txt indexed, got %v", names)
 	}
 }
 
