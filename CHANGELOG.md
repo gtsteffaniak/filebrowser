@@ -1,1 +1,1 @@
-${read_file:/workspace/CHANGELOG.md}
+/tmp/changelog_full_content.txt
