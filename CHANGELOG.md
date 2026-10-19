@@ -1,1 +1,1 @@
-@file(/tmp/statx_changelog_content.txt)
+PLACEHOLDER
