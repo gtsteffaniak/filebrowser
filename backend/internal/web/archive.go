@@ -229,6 +229,12 @@ func archiveCreateHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 	if destSource == "" {
 		destSource = req.FromSource
 	}
+	if status, roErr := denyIfSourceReadOnly(destSource); roErr != nil {
+		return status, roErr
+	}
+	if status, roErr := denyIfSourceReadOnly(req.FromSource); req.DeleteAfter && roErr != nil {
+		return status, roErr
+	}
 	destPerms, err := effectiveFilePerms(d, destSource)
 	if err != nil {
 		return http.StatusForbidden, err
@@ -418,6 +424,14 @@ func unarchiveHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 	}
 	if req.ToSource == "" {
 		req.ToSource = req.FromSource
+	}
+	if !req.Preview {
+		if status, roErr := denyIfSourceReadOnly(req.ToSource); roErr != nil {
+			return status, roErr
+		}
+	}
+	if status, roErr := denyIfSourceReadOnly(req.FromSource); req.DeleteAfter && !req.Preview && roErr != nil {
+		return status, roErr
 	}
 	destPerms, err := effectiveFilePerms(d, req.ToSource)
 	if err != nil {
