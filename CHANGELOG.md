@@ -1,1 +1,1 @@
-@/workspace/CHANGELOG.md
+INLINE_LARGE_FILE:/workspace/CHANGELOG.md
