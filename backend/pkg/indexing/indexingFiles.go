@@ -124,6 +124,8 @@ type Index struct {
 	schedulerStop     chan struct{}
 	schedulerStopOnce sync.Once
 	schedulerBatch    int // >0: serial pass in progress; suppresses PostScan inside executeScan
+	// Adaptive scheduler: run one serial scan on process start (then normal slot cadence).
+	schedulerStartupPassPending bool
 	// In-memory folder size tracking (not stored in SQLite)
 	folderSizes         map[string]uint64   // path -> size (in-memory only, calculated from children)
 	folderSizesUnsynced map[string]struct{} // Tracks which folder sizes have changed since last DB sync
@@ -930,7 +932,7 @@ func (idx *Index) GetDirInfoCore(dirInfo *os.File, stat os.FileInfo, indexPath s
 	if !strings.HasSuffix(indexPath, "/") {
 		indexPath = indexPath + "/"
 	}
-	files, err := dirInfo.Readdir(-1)
+	files, err := readDirFileInfos(dirInfo)
 	if err != nil {
 		return nil, err
 	}
@@ -1753,7 +1755,6 @@ func (idx *Index) writePersistedIndexInfo() error {
 			NumDirs:         scanner.numDirs,
 			NumFiles:        scanner.numFiles,
 			LastScanned:     scanner.lastScanned,
-			FullScanCounter: scanner.fullScanCounter,
 		}
 	}
 
