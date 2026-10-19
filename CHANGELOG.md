@@ -1,1 +1,1 @@
-file:///workspace/CHANGELOG.md
+@file(/tmp/statx_changelog_content.txt)
