@@ -1,9 +1,32 @@
 package web
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+)
 
-// errExtractSkip means the archive entry is omitted because access rules deny it (not an extraction failure).
-var errExtractSkip = errors.New("extract entry skipped by access rules")
+// errExtractAccessDenied marks access-rule denials during extraction (use errors.Is).
+var errExtractAccessDenied = errors.New("extract access denied")
+
+type extractAccessDeniedError struct {
+	entry string
+}
+
+func (e *extractAccessDeniedError) Error() string {
+	return fmt.Sprintf("access denied: %s", e.entry)
+}
+
+func (e *extractAccessDeniedError) Unwrap() error {
+	return errExtractAccessDenied
+}
+
+func newExtractAccessDenied(archiveEntryName string) error {
+	display := archiveEntryName
+	if normalized, err := normalizeArchiveEntryName(archiveEntryName); err == nil && normalized != "" {
+		display = normalized
+	}
+	return &extractAccessDeniedError{entry: display}
+}
 
 // errEntryPathInvalid and errEntryPathEscape are returned from path resolution without filesystem paths in Error().
 var (

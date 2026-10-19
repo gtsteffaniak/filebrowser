@@ -540,6 +540,9 @@ func unarchiveHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 		if errors.Is(extractErr, archiveencoding.ErrEncoding) {
 			return http.StatusBadRequest, extractErr
 		}
+		if errors.Is(extractErr, errExtractAccessDenied) {
+			return http.StatusForbidden, extractErr
+		}
 		logger.Errorf("archive extraction failed: %v", extractErr)
 		return http.StatusInternalServerError, clientExtractError()
 	}
@@ -1292,6 +1295,23 @@ func extractZipWithEncoding(archivePath, destDir, charset string, policy *extrac
 	})
 
 	for _, o := range ordered {
+		destPath, pathErr := safeExtractPath(destDir, o.name)
+		if pathErr != nil {
+			return pathErr
+		}
+		fi := o.f.FileInfo()
+		mode := fi.Mode()
+		isDirEntry := mode.Type() == fs.ModeDir || strings.HasSuffix(o.name, "/") || strings.HasSuffix(o.name, "\\")
+		isSymlink := mode.Type() == fs.ModeSymlink
+		if !isDirEntry && !isSymlink && !mode.IsRegular() {
+			continue
+		}
+		if err = preflightExtractEntry(policy, o.name, destPath, isDirEntry, isSymlink); err != nil {
+			return err
+		}
+	}
+
+	for _, o := range ordered {
 		f := o.f
 		var destPath string
 		destPath, err = safeExtractPath(destDir, o.name)
@@ -1303,14 +1323,6 @@ func extractZipWithEncoding(archivePath, destDir, charset string, policy *extrac
 		mode := fi.Mode()
 		isDirEntry := mode.Type() == fs.ModeDir || strings.HasSuffix(o.name, "/") || strings.HasSuffix(o.name, "\\")
 		if isDirEntry {
-			var skip bool
-			skip, err = checkExtractPolicy(policy, func() error { return policy.allowWriteIncludingParents(destPath) })
-			if err != nil {
-				return err
-			}
-			if skip {
-				continue
-			}
 			if err = extractArchivedDir(destPath, mode, f.Modified); err != nil {
 				return err
 			}
@@ -1328,14 +1340,6 @@ func extractZipWithEncoding(archivePath, destDir, charset string, policy *extrac
 			if rerr != nil {
 				return rerr
 			}
-			var skip bool
-			skip, err = checkExtractPolicy(policy, func() error { return policy.allowWriteSymlinkEntry(destPath) })
-			if err != nil {
-				return err
-			}
-			if skip {
-				continue
-			}
 			if err = extractArchivedSymlink(destDir, destPath, string(buf), f.Modified); err != nil {
 				return err
 			}
@@ -1343,15 +1347,6 @@ func extractZipWithEncoding(archivePath, destDir, charset string, policy *extrac
 		}
 
 		if !mode.IsRegular() {
-			continue
-		}
-
-		var skip bool
-		skip, err = checkExtractPolicy(policy, func() error { return policy.allowWriteIncludingParents(destPath) })
-		if err != nil {
-			return err
-		}
-		if skip {
 			continue
 		}
 
@@ -1368,6 +1363,9 @@ func extractZipWithEncoding(archivePath, destDir, charset string, policy *extrac
 }
 
 func extractTarGz(archivePath, destDir string, policy *extractAccessPolicy) error {
+	if err := preflightTarGz(archivePath, destDir, policy); err != nil {
+		return err
+	}
 	f, err := os.Open(archivePath)
 	if err != nil {
 		return err
@@ -1389,54 +1387,77 @@ func extractTarGz(archivePath, destDir string, policy *extractAccessPolicy) erro
 		if err != nil {
 			return err
 		}
-		var destPath string
-		destPath, err = safeExtractPath(destDir, h.Name)
+		destPath, err := safeExtractPath(destDir, h.Name)
 		if err != nil {
 			return err
 		}
 
 		switch h.Typeflag {
 		case tar.TypeDir:
-			var skip bool
-			skip, err = checkExtractPolicy(policy, func() error { return policy.allowWriteIncludingParents(destPath) })
-			if err != nil {
-				return err
-			}
-			if skip {
-				continue
-			}
 			mode := h.FileInfo().Mode()
 			if err = extractArchivedDir(destPath, mode, h.ModTime); err != nil {
 				return err
 			}
 		case tar.TypeReg:
-			var skip bool
-			skip, err = checkExtractPolicy(policy, func() error { return policy.allowWriteIncludingParents(destPath) })
-			if err != nil {
-				return err
-			}
-			if skip {
-				if h.Size > 0 {
-					if _, err = io.CopyN(io.Discard, tr, h.Size); err != nil {
-						return err
-					}
-				}
-				continue
-			}
 			mode := h.FileInfo().Mode()
 			if err = extractArchivedRegularFile(destPath, mode, h.ModTime, io.NopCloser(tr)); err != nil {
 				return err
 			}
 		case tar.TypeSymlink:
-			var skip bool
-			skip, err = checkExtractPolicy(policy, func() error { return policy.allowWriteSymlinkEntry(destPath) })
-			if err != nil {
+			if err = extractArchivedSymlink(destDir, destPath, h.Linkname, h.ModTime); err != nil {
 				return err
 			}
-			if skip {
-				continue
+		default:
+			if h.Size > 0 {
+				if _, err = io.CopyN(io.Discard, tr, h.Size); err != nil {
+					return err
+				}
 			}
-			if err = extractArchivedSymlink(destDir, destPath, h.Linkname, h.ModTime); err != nil {
+		}
+	}
+	return nil
+}
+
+func preflightTarGz(archivePath, destDir string, policy *extractAccessPolicy) error {
+	if policy == nil {
+		return nil
+	}
+	f, err := os.Open(archivePath)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	gz, err := gzip.NewReader(f)
+	if err != nil {
+		return err
+	}
+	defer gz.Close()
+
+	tr := tar.NewReader(gz)
+	for {
+		h, err := tr.Next()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return err
+		}
+		destPath, err := safeExtractPath(destDir, h.Name)
+		if err != nil {
+			return err
+		}
+		switch h.Typeflag {
+		case tar.TypeDir:
+			if err = preflightExtractEntry(policy, h.Name, destPath, true, false); err != nil {
+				return err
+			}
+		case tar.TypeReg:
+			if err = preflightExtractEntry(policy, h.Name, destPath, false, false); err != nil {
+				return err
+			}
+		case tar.TypeSymlink:
+			if err = preflightExtractEntry(policy, h.Name, destPath, false, true); err != nil {
 				return err
 			}
 		default:

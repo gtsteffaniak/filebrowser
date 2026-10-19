@@ -4,6 +4,7 @@ import (
 	"archive/tar"
 	"archive/zip"
 	"compress/gzip"
+	"errors"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -132,6 +133,22 @@ func fullPerms() users.SourceFilePermissions {
 	}
 }
 
+func requireExtractAccessDenied(t *testing.T, err error, destReal string, wantEntryInMsg string) {
+	t.Helper()
+	if !errors.Is(err, errExtractAccessDenied) {
+		t.Fatalf("expected access-rule denial, got %v", err)
+	}
+	if !strings.HasPrefix(err.Error(), "access denied: ") {
+		t.Fatalf("unexpected denial message: %v", err)
+	}
+	if strings.Contains(err.Error(), destReal) {
+		t.Fatalf("denial error leaked real path: %v", err)
+	}
+	if wantEntryInMsg != "" && !strings.Contains(err.Error(), wantEntryInMsg) {
+		t.Fatalf("expected archive entry %q in %v", wantEntryInMsg, err)
+	}
+}
+
 func TestExtractZipWithEncoding_accessPolicy(t *testing.T) {
 	t.Run("allowed creation", func(t *testing.T) {
 		destDir, _, sourceName, username := setupExtractAccessPolicyTest(t)
@@ -150,14 +167,21 @@ func TestExtractZipWithEncoding_accessPolicy(t *testing.T) {
 		}
 	})
 
-	t.Run("skips entry when parent path denied by access rules", func(t *testing.T) {
+	t.Run("fails when parent path denied by access rules without writing", func(t *testing.T) {
 		destDir, sourceRoot, sourceName, username := setupExtractAccessPolicyTest(t)
 		if err := state.DenyUser(sourceRoot, utils.IndexPathFromNormalized("/dest/blocked", true), username); err != nil {
 			t.Fatal(err)
 		}
 		zipPath := filepath.Join(t.TempDir(), "parent.zip")
 		writeTestZip(t, zipPath, func(zw *zip.Writer) error {
-			w, err := zw.Create("blocked/child.txt")
+			w, err := zw.Create("allowed.txt")
+			if err != nil {
+				return err
+			}
+			if _, err = w.Write([]byte("ok")); err != nil {
+				return err
+			}
+			w, err = zw.Create("blocked/child.txt")
 			if err != nil {
 				return err
 			}
@@ -165,11 +189,13 @@ func TestExtractZipWithEncoding_accessPolicy(t *testing.T) {
 			return err
 		})
 		policy := testExtractPolicy(t, destDir, sourceName, username, fullPerms())
-		if err := extractZipWithEncoding(zipPath, destDir, "", policy); err != nil {
-			t.Fatalf("extract: %v", err)
+		err := extractZipWithEncoding(zipPath, destDir, "", policy)
+		requireExtractAccessDenied(t, err, destDir, "blocked/child.txt")
+		if _, statErr := os.Stat(filepath.Join(destDir, "allowed.txt")); !os.IsNotExist(statErr) {
+			t.Fatal("preflight should prevent partial extraction")
 		}
-		if _, err := os.Stat(filepath.Join(destDir, "blocked", "child.txt")); !os.IsNotExist(err) {
-			t.Fatal("expected denied path to be skipped")
+		if _, statErr := os.Stat(filepath.Join(destDir, "blocked", "child.txt")); !os.IsNotExist(statErr) {
+			t.Fatal("expected denied path not written")
 		}
 	})
 
@@ -196,7 +222,7 @@ func TestExtractZipWithEncoding_accessPolicy(t *testing.T) {
 		}
 	})
 
-	t.Run("skips entry resolved through denied symlink target", func(t *testing.T) {
+	t.Run("fails when entry resolves through denied symlink target", func(t *testing.T) {
 		destDir, sourceRoot, sourceName, username := setupExtractAccessPolicyTest(t)
 		blocked := filepath.Join(destDir, "blocked")
 		if err := os.MkdirAll(blocked, 0o755); err != nil {
@@ -219,11 +245,9 @@ func TestExtractZipWithEncoding_accessPolicy(t *testing.T) {
 			return err
 		})
 		policy := testExtractPolicy(t, destDir, sourceName, username, fullPerms())
-		if err := extractZipWithEncoding(zipPath, destDir, "", policy); err != nil {
-			t.Fatalf("extract: %v", err)
-		}
+		requireExtractAccessDenied(t, extractZipWithEncoding(zipPath, destDir, "", policy), destDir, "alias/secret.txt")
 		if _, err := os.Stat(filepath.Join(destDir, "alias", "secret.txt")); !os.IsNotExist(err) {
-			t.Fatal("expected entry under denied target to be skipped")
+			t.Fatal("expected entry under denied target not written")
 		}
 	})
 
@@ -276,16 +300,14 @@ func TestExtractZipWithEncoding_accessPolicy(t *testing.T) {
 			return err
 		})
 		policy := testExtractPolicy(t, destDir, sourceName, username, fullPerms())
-		if err := extractZipWithEncoding(zipPath, destDir, "", policy); err != nil {
-			t.Fatalf("extract: %v", err)
-		}
+		requireExtractAccessDenied(t, extractZipWithEncoding(zipPath, destDir, "", policy), destDir, linkName)
 		target, err := os.Readlink(linkPath)
 		if err != nil || target != "allowed.txt" {
 			t.Fatalf("symlink should be unchanged, target=%q err=%v", target, err)
 		}
 	})
 
-	t.Run("skips denied entries and extracts allowed ones", func(t *testing.T) {
+	t.Run("fails mixed archive when any entry denied without partial write", func(t *testing.T) {
 		destDir, sourceRoot, sourceName, username := setupExtractAccessPolicyTest(t)
 		if err := state.DenyUser(sourceRoot, utils.IndexPathFromNormalized("/dest/hidden.txt", true), username); err != nil {
 			t.Fatal(err)
@@ -304,14 +326,12 @@ func TestExtractZipWithEncoding_accessPolicy(t *testing.T) {
 			return nil
 		})
 		policy := testExtractPolicy(t, destDir, sourceName, username, fullPerms())
-		if err := extractZipWithEncoding(zipPath, destDir, "", policy); err != nil {
-			t.Fatalf("extract: %v", err)
-		}
-		if _, err := os.Stat(filepath.Join(destDir, "public.txt")); err != nil {
-			t.Fatal("expected public.txt")
+		requireExtractAccessDenied(t, extractZipWithEncoding(zipPath, destDir, "", policy), destDir, "hidden.txt")
+		if _, err := os.Stat(filepath.Join(destDir, "public.txt")); !os.IsNotExist(err) {
+			t.Fatal("preflight should prevent partial extraction")
 		}
 		if _, err := os.Stat(filepath.Join(destDir, "hidden.txt")); !os.IsNotExist(err) {
-			t.Fatal("expected hidden.txt to be skipped")
+			t.Fatal("expected hidden.txt not written")
 		}
 	})
 
@@ -357,7 +377,7 @@ func TestExtractTarGz_accessPolicy(t *testing.T) {
 		}
 	})
 
-	t.Run("skips entry when parent path denied by access rules", func(t *testing.T) {
+	t.Run("fails when parent path denied by access rules", func(t *testing.T) {
 		destDir, sourceRoot, sourceName, username := setupExtractAccessPolicyTest(t)
 		if err := state.DenyUser(sourceRoot, utils.IndexPathFromNormalized("/dest/blocked", true), username); err != nil {
 			t.Fatal(err)
@@ -371,12 +391,7 @@ func TestExtractTarGz_accessPolicy(t *testing.T) {
 			return err
 		})
 		policy := testExtractPolicy(t, destDir, sourceName, username, fullPerms())
-		if err := extractTarGz(archivePath, destDir, policy); err != nil {
-			t.Fatalf("extract: %v", err)
-		}
-		if _, err := os.Stat(filepath.Join(destDir, "blocked", "child.txt")); !os.IsNotExist(err) {
-			t.Fatal("expected denied path to be skipped")
-		}
+		requireExtractAccessDenied(t, extractTarGz(archivePath, destDir, policy), destDir, "blocked/child.txt")
 	})
 
 	t.Run("symlink entry requires policy", func(t *testing.T) {
@@ -423,13 +438,11 @@ func TestExtractTarGz_accessPolicy(t *testing.T) {
 			})
 		})
 		policy := testExtractPolicy(t, destDir, sourceName, username, fullPerms())
-		if err := extractTarGz(archivePath, destDir, policy); err != nil {
-			t.Fatalf("extract: %v", err)
-		}
+		requireExtractAccessDenied(t, extractTarGz(archivePath, destDir, policy), destDir, linkName)
 	})
 }
 
-func TestUnarchiveHandler_skipsDeniedEntriesAndSanitizesErrors(t *testing.T) {
+func TestUnarchiveHandler_accessDeniedAndSanitizesErrors(t *testing.T) {
 	destDir, sourceRoot, sourceName, username := setupExtractAccessPolicyTest(t)
 	user, err := state.GetUserByUsername(username)
 	if err != nil {
@@ -457,17 +470,20 @@ func TestUnarchiveHandler_skipsDeniedEntriesAndSanitizesErrors(t *testing.T) {
 	rec := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodPost, "/api/resources/unarchive", strings.NewReader(body))
 	status, handlerErr := unarchiveHandler(rec, req, &Context{User: &user})
-	if handlerErr != nil || status != http.StatusOK {
+	if status != http.StatusForbidden || handlerErr == nil {
 		t.Fatalf("status=%d err=%v body=%s", status, handlerErr, rec.Body.String())
 	}
-	if strings.Contains(rec.Body.String(), "hidden.txt") {
-		t.Fatalf("response leaked denied entry name: %s", rec.Body.String())
+	if !strings.Contains(handlerErr.Error(), "access denied: hidden.txt") {
+		t.Fatalf("unexpected error: %v", handlerErr)
 	}
-	if _, err := os.Stat(filepath.Join(destDir, "visible.txt")); err != nil {
-		t.Fatal("expected visible.txt")
+	if strings.Contains(handlerErr.Error(), destDir) || strings.Contains(handlerErr.Error(), sourceRoot) {
+		t.Fatalf("client error leaked real path: %v", handlerErr)
+	}
+	if _, err := os.Stat(filepath.Join(destDir, "visible.txt")); !os.IsNotExist(err) {
+		t.Fatal("preflight should prevent partial extraction")
 	}
 	if _, err := os.Stat(filepath.Join(destDir, "hidden.txt")); !os.IsNotExist(err) {
-		t.Fatal("expected hidden.txt skipped")
+		t.Fatal("expected hidden.txt not written")
 	}
 
 	// Permission failure must not expose the real destination path in the client error.

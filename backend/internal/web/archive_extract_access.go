@@ -1,7 +1,6 @@
 package web
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -24,12 +23,12 @@ type extractAccessPolicy struct {
 }
 
 // allowWriteSymlinkEntry authorizes creating or replacing a symlink at destPath without following the final path component.
-func (p *extractAccessPolicy) allowWriteSymlinkEntry(destPath string) error {
+func (p *extractAccessPolicy) allowWriteSymlinkEntry(archiveEntryName, destPath string) error {
 	if p == nil || p.idx == nil {
 		return nil
 	}
 	parent := filepath.Dir(destPath)
-	if err := p.allowWriteIncludingParents(parent); err != nil {
+	if err := p.allowWriteIncludingParents(archiveEntryName, parent); err != nil {
 		return err
 	}
 	destResolved, err := filepath.EvalSymlinks(p.destRealRoot)
@@ -48,8 +47,8 @@ func (p *extractAccessPolicy) allowWriteSymlinkEntry(destPath string) error {
 	rel = filepath.ToSlash(rel)
 	indexPath := utils.JoinPathAsUnix(p.destIndexPrefix, rel)
 	if !state.AccessPermitted(p.idx.Path, utils.IndexPathFromNormalized(indexPath, true), p.username) {
-		logger.Debugf("unarchive: skipping symlink entry at index path %s for user %s (access denied)", indexPath, p.username)
-		return errExtractSkip
+		logger.Debugf("unarchive: symlink entry %q denied at index path %s for user %s", archiveEntryName, indexPath, p.username)
+		return newExtractAccessDenied(archiveEntryName)
 	}
 	if _, statErr := os.Lstat(destPath); os.IsNotExist(statErr) {
 		if !p.perms.Create {
@@ -64,7 +63,7 @@ func (p *extractAccessPolicy) allowWriteSymlinkEntry(destPath string) error {
 }
 
 // allowWrite checks index access and source Create/Modify permissions for one destination path.
-func (p *extractAccessPolicy) allowWrite(destPath string) error {
+func (p *extractAccessPolicy) allowWrite(archiveEntryName, destPath string) error {
 	if p == nil || p.idx == nil {
 		return nil
 	}
@@ -85,8 +84,8 @@ func (p *extractAccessPolicy) allowWrite(destPath string) error {
 	rel = filepath.ToSlash(rel)
 	indexPath := utils.JoinPathAsUnix(p.destIndexPrefix, rel)
 	if !state.AccessPermitted(p.idx.Path, utils.IndexPathFromNormalized(indexPath, true), p.username) {
-		logger.Debugf("unarchive: skipping entry at index path %s for user %s (access denied)", indexPath, p.username)
-		return errExtractSkip
+		logger.Debugf("unarchive: entry %q denied at index path %s for user %s", archiveEntryName, indexPath, p.username)
+		return newExtractAccessDenied(archiveEntryName)
 	}
 	if _, statErr := os.Stat(destPath); os.IsNotExist(statErr) {
 		if !p.perms.Create {
@@ -101,7 +100,7 @@ func (p *extractAccessPolicy) allowWrite(destPath string) error {
 }
 
 // allowWriteIncludingParents authorizes destPath and every missing ancestor directory that extraction would create.
-func (p *extractAccessPolicy) allowWriteIncludingParents(destPath string) error {
+func (p *extractAccessPolicy) allowWriteIncludingParents(archiveEntryName, destPath string) error {
 	if p == nil || p.idx == nil {
 		return nil
 	}
@@ -121,24 +120,19 @@ func (p *extractAccessPolicy) allowWriteIncludingParents(destPath string) error 
 		}
 	}
 	for i := len(missingParents) - 1; i >= 0; i-- {
-		if err := p.allowWrite(missingParents[i]); err != nil {
-			if errors.Is(err, errExtractSkip) {
-				return errExtractSkip
-			}
+		if err := p.allowWrite(archiveEntryName, missingParents[i]); err != nil {
 			return err
 		}
 	}
-	return p.allowWrite(destPath)
+	return p.allowWrite(archiveEntryName, destPath)
 }
 
-// checkExtractPolicy runs an access-policy check; skipped entries return (true, nil).
-func checkExtractPolicy(policy *extractAccessPolicy, check func() error) (skip bool, err error) {
+func preflightExtractEntry(policy *extractAccessPolicy, archiveEntryName, destPath string, isDir, isSymlink bool) error {
 	if policy == nil {
-		return false, nil
+		return nil
 	}
-	err = check()
-	if errors.Is(err, errExtractSkip) {
-		return true, nil
+	if isSymlink {
+		return policy.allowWriteSymlinkEntry(archiveEntryName, destPath)
 	}
-	return false, err
+	return policy.allowWriteIncludingParents(archiveEntryName, destPath)
 }
