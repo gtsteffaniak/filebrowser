@@ -1,7 +1,9 @@
 package web
 
 import (
+	"archive/tar"
 	"archive/zip"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -341,5 +343,34 @@ func TestExtractZipFilenameEncoding(t *testing.T) {
 				t.Fatalf("content=%q err=%v", content, err)
 			}
 		})
+	}
+}
+
+func TestExtractTarGz_hardLinks(t *testing.T) {
+	archivePath := filepath.Join(t.TempDir(), "links.tar.gz")
+	writeTestTarGz(t, archivePath, func(tw *tar.Writer) error {
+		if err := tw.WriteHeader(&tar.Header{Name: "proj/a.txt", Mode: 0o644, Size: 4, Typeflag: tar.TypeReg}); err != nil {
+			return err
+		}
+		if _, err := io.WriteString(tw, "same"); err != nil {
+			return err
+		}
+		return tw.WriteHeader(&tar.Header{Name: "proj/sub/b.txt", Mode: 0o644, Typeflag: tar.TypeLink, Linkname: "proj/a.txt"})
+	})
+	destDir := t.TempDir()
+	if err := extractTarGz(archivePath, destDir, nil); err != nil {
+		t.Fatalf("extract: %v", err)
+	}
+	got, err := os.ReadFile(filepath.Join(destDir, "proj", "sub", "b.txt"))
+	if err != nil || string(got) != "same" {
+		t.Fatalf("hard link entry: got %q, %v", got, err)
+	}
+
+	missing := filepath.Join(t.TempDir(), "missing.tar.gz")
+	writeTestTarGz(t, missing, func(tw *tar.Writer) error {
+		return tw.WriteHeader(&tar.Header{Name: "b.txt", Mode: 0o644, Typeflag: tar.TypeLink, Linkname: "a.txt"})
+	})
+	if err := extractTarGz(missing, t.TempDir(), nil); err == nil {
+		t.Fatal("expected an error for a hard link to a file that is not in the archive")
 	}
 }

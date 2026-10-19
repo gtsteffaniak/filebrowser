@@ -1250,6 +1250,24 @@ func extractArchivedSymlink(destRoot, destPath, target string, modTime time.Time
 	return applyArchivedTimesAndPerm(destPath, fs.ModeSymlink, modTime)
 }
 
+// extractArchivedHardLink writes a copy of a regular file extracted earlier from the same
+// archive, which is what a tar hard link entry stands for.
+func extractArchivedHardLink(destRoot, destPath string, h *tar.Header, extracted map[string]bool) error {
+	targetPath, err := safeExtractPath(destRoot, h.Linkname)
+	if err != nil {
+		return err
+	}
+	if !extracted[targetPath] {
+		return fmt.Errorf("hard link %q points to %q, which is not a file earlier in the archive", h.Name, h.Linkname)
+	}
+	src, err := os.Open(targetPath)
+	if err != nil {
+		logger.Debugf("unarchive: open hard link target: %v", err)
+		return fmt.Errorf("failed to write file from archive entry")
+	}
+	return extractArchivedRegularFile(destPath, h.FileInfo().Mode(), h.ModTime, src)
+}
+
 func extractZip(archivePath, destDir string) error {
 	return extractZipWithEncoding(archivePath, destDir, "", nil)
 }
@@ -1396,6 +1414,8 @@ func extractTarGz(archivePath, destDir string, policy *extractAccessPolicy) erro
 	defer gz.Close()
 
 	tr := tar.NewReader(gz)
+	// Regular files written so far, for hard links to point at.
+	extracted := make(map[string]bool)
 	for {
 		h, err := tr.Next()
 		if err == io.EOF {
@@ -1420,6 +1440,12 @@ func extractTarGz(archivePath, destDir string, policy *extractAccessPolicy) erro
 			if err = extractArchivedRegularFile(destPath, mode, h.ModTime, io.NopCloser(tr)); err != nil {
 				return err
 			}
+			extracted[destPath] = true
+		case tar.TypeLink:
+			if err = extractArchivedHardLink(destDir, destPath, h, extracted); err != nil {
+				return err
+			}
+			extracted[destPath] = true
 		case tar.TypeSymlink:
 			if err = extractArchivedSymlink(destDir, destPath, h.Linkname, h.ModTime); err != nil {
 				return err
@@ -1469,7 +1495,7 @@ func preflightTarGz(archivePath, destDir string, policy *extractAccessPolicy) er
 			if err = preflightExtractEntry(policy, h.Name, destPath, true, false); err != nil {
 				return err
 			}
-		case tar.TypeReg:
+		case tar.TypeReg, tar.TypeLink:
 			if err = preflightExtractEntry(policy, h.Name, destPath, false, false); err != nil {
 				return err
 			}
