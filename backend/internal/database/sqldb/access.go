@@ -121,9 +121,8 @@ func (s *SQLStore) SaveAccessRule(source, path string, rule *access.AccessRule) 
 	return nil
 }
 
-// MigrateAccessRulesInsensitive rewrites rule paths for case-insensitive mode and
-// persists the source case mode in one transaction.
-func (s *SQLStore) MigrateAccessRulesInsensitive(source string, oldPaths []string, newRules access.RuleMap, caseInsensitive bool) error {
+// MigrateAccessRulePathsLowercase rewrites rule paths to lowercase in one transaction.
+func (s *SQLStore) MigrateAccessRulePathsLowercase(source string, oldPaths []string, newRules access.RuleMap) error {
 	tx, err := s.BeginTx()
 	if err != nil {
 		return fmt.Errorf("failed to begin access rule migration: %w", err)
@@ -151,13 +150,6 @@ func (s *SQLStore) MigrateAccessRulesInsensitive(source string, oldPaths []strin
 		if _, err := tx.Exec(`DELETE FROM access_rules WHERE source = ? AND path = ?`, source, old); err != nil {
 			return rollback(fmt.Errorf("failed to delete access rule: %w", err))
 		}
-	}
-	mode := 0
-	if caseInsensitive {
-		mode = 1
-	}
-	if _, err := tx.Exec(`INSERT OR REPLACE INTO access_source_mode (source, case_insensitive) VALUES (?, ?)`, source, mode); err != nil {
-		return rollback(fmt.Errorf("failed to save access source mode: %w", err))
 	}
 	if err := tx.Commit(); err != nil {
 		return fmt.Errorf("failed to commit access rule migration: %w", err)

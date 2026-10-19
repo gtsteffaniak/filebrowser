@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file. For commit 
 ## v2.1.3
 
  **Security**:
- - [Moderate] On case-insensitive filesystems, per-path access rules are stored and matched using lowercase paths (migrated on startup), closing DENY bypasses from path case variants without runtime filesystem lookups (GHSA-4vrc-935w-xxq2) reporter @FrogApprentice
+ - [Moderate] Per-path access rules are now case-insensitive on all sources: rule keys are stored lowercase and request paths are matched in memory without filesystem lookups, with a one-time startup migration merging case-colliding rules (GHSA-4vrc-935w-xxq2) reporter @FrogApprentice
  - [Medium] Storage quota accounting now records upload byte deltas using the pre-replace file size, and upload paths without size metadata or with resumed chunk offsets cannot skip quota checks (GHSA-m57f-66qj-8jxg) reporter @jayhemnani9910
  - [High] Sources marked `readOnly` are now enforced on WebDAV writes, server-side archive/unarchive, and OnlyOffice save callbacks (GHSA-4v62-884x-2466) reporter @anpryl
  - [Moderate] Moving or renaming a folder updates only shares whose paths are under the moved prefix, preserving per-file share roots instead of retargeting unrelated substring matches (GHSA-26fh-r34c-qxh6) reporters @jayhemnani9910 @dylanzonix

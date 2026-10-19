@@ -169,17 +169,8 @@ func initialize(dbPath string) (bool, error) {
 
 	newAccessDb.SetSQLStore(sqlDb)
 
-	sourceRoots := make(map[string]string, len(settings.Config.Server.SourceMap))
-	for path, src := range settings.Config.Server.SourceMap {
-		sourceRoots[path] = src.Path
-	}
-	for sourcePath := range allRules {
-		if _, ok := sourceRoots[sourcePath]; !ok {
-			sourceRoots[sourcePath] = sourcePath
-		}
-	}
-	if modeErr := newAccessDb.StartupCaseModes(sourceRoots, sqlDb); modeErr != nil {
-		return existingDb, fmt.Errorf("failed to initialize access source case modes: %w", modeErr)
+	if migErr := newAccessDb.StartupMigrateAccessRuleKeys(); migErr != nil {
+		return existingDb, fmt.Errorf("failed to migrate access rule paths: %w", migErr)
 	}
 
 	usersMux.Lock()
