@@ -1,9 +1,8 @@
-import { fetchJSON, fetchURL } from "@/api/utils.ts"
-import { notify } from "@/notify/index.ts"
+import { fetchJSON, fetchURL } from '@/api/utils'
+import { notify } from '@/notify'
 import { getApiPath } from '@/utils/url.js'
-import { state } from "@/store/state.ts"
-import { mutations } from "@/store/mutations.ts"
-import i18n from "@/i18n/index.ts"
+import { state, mutations } from '@/store'
+import i18n from '@/i18n'
 
 // POST /api/auth/password/change-required
 export async function changeRequiredPassword(username, currentPassword, newPassword, otp) {
