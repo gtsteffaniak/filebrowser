@@ -1,1 +1,1 @@
-@/workspace/CHANGELOG.md
+/workspace/CHANGELOG.md
