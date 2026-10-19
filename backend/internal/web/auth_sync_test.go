@@ -17,6 +17,9 @@ type stubGroupSQL struct {
 
 func (s *stubGroupSQL) SaveAccessRule(string, string, *access.AccessRule) error { return nil }
 func (s *stubGroupSQL) DeleteAccessRule(string, string) error                  { return nil }
+func (s *stubGroupSQL) MigrateAccessRulesInsensitive(string, []string, access.RuleMap, bool) error {
+	return nil
+}
 func (s *stubGroupSQL) SaveGroup(string, access.StringSet) error               { return s.saveErr }
 func (s *stubGroupSQL) DeleteGroup(string) error                               { return nil }
 func (s *stubGroupSQL) DeleteGroupWithRules(string, []access.RuleUpsert, []access.RuleKey) error {
