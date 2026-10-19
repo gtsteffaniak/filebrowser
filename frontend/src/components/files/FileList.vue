@@ -300,9 +300,10 @@ export default {
   async mounted() {
     if (this.fileList) {
       this.fillFromList();
-    } else if (this.browseShare) {
-      // Browse a specific share
-      this.withLoading(() => resourcesApi.fetchFilesPublic("/", this.browseShare).then(this.fillOptions));
+    } else if (this.browseShare || getters.isShare()) {
+      const hash = this.browseShare || getters.shareHash();
+      const startPath = this.browseShare ? "/" : this.path;
+      this.withLoading(() => resourcesApi.fetchFilesPublic(startPath, hash).then(this.fillOptions));
     } else {
       // Normal browse mode: fetch files
       const sourceToUse = this.currentSource;
