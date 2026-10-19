@@ -300,9 +300,10 @@ export default {
   async mounted() {
     if (this.fileList) {
       this.fillFromList();
-    } else if (this.browseShare) {
-      // Browse a specific share
-      this.withLoading(() => resourcesApi.fetchFilesPublic("/", this.browseShare).then(this.fillOptions));
+    } else if (this.browseShare || getters.isShare()) {
+      const hash = this.browseShare || getters.shareHash();
+      const startPath = this.browseShare ? "/" : this.path;
+      this.withLoading(() => resourcesApi.fetchFilesPublic(startPath, hash).then(this.fillOptions));
     } else {
       // Normal browse mode: fetch files
       const sourceToUse = this.currentSource;
@@ -508,7 +509,7 @@ export default {
         void this.withLoading(() => resourcesApi.fetchFiles(sourceToUse, path).then(this.fillOptions));
       } else if (this.browseShare || getters.isShare()) {
         // Browsing a share - use public API
-        const hashToUse = this.browseShare || state.shareInfo?.hash;
+        const hashToUse = this.browseShare || getters.shareHash();
         void this.withLoading(() => resourcesApi.fetchFilesPublic(path, hashToUse).then(this.fillOptions));
       } else {
         this.source = sourceToUse;
@@ -650,7 +651,7 @@ export default {
       this.selectedSource = null;
       this.selectedType = null;
       if (this.browseShare || getters.isShare()) {
-        const hashToUse = this.browseShare || state.shareInfo?.hash;
+        const hashToUse = this.browseShare || getters.shareHash();
         void this.withLoading(() => resourcesApi.fetchFilesPublic(p, hashToUse).then(this.fillOptions));
       } else {
         void this.withLoading(() => resourcesApi.fetchFiles(source, p).then(this.fillOptions));
