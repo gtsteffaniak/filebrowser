@@ -1,1 +1,1 @@
-PLACEHOLDER
+file:///workspace/CHANGELOG.md
