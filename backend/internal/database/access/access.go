@@ -1,1 +1,1 @@
-LOAD_FROM_TMP_MCP_PUSH_INVOKE
+@file:///tmp/mcp_cou_args_only.json
