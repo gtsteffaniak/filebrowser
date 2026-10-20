@@ -3,7 +3,6 @@ package access
 import (
 	"fmt"
 	"maps"
-	"path/filepath"
 	"slices"
 	"sort"
 	"strings"
@@ -101,8 +100,8 @@ func TokenExpiredPastGrace(expiresAt int64, now time.Time) bool {
 // Storage manages access rules and group membership.
 type Storage struct {
 	mux           sync.RWMutex
-	AllRules SourceRuleMap // AllRules[sourcePath][indexPath] - in-memory authoritative state
-	Groups   GroupMap      // key: group name, value: set of usernames - in-memory authoritative state
+	AllRules      SourceRuleMap              // AllRules[sourcePath][indexPath] - in-memory authoritative state
+	Groups        GroupMap                   // key: group name, value: set of usernames - in-memory authoritative state
 	RevokedTokens map[string]int64           // token hash → revocation unix time (0 = immediate) - in-memory authoritative state
 	HashedTokens  map[string]HashedTokenInfo // maps token hash → owner/type - in-memory authoritative state
 	Users         *users.Storage             // Reference to users storage
@@ -293,7 +292,7 @@ func (s *Storage) RemoveRuleByPathKey(sourcePath, pathKey string) {
 	if s.sqlStore != nil {
 		_ = s.sqlStore.DeleteAccessRule(sourcePath, pathKey)
 		normalized := utils.AddTrailingSlashIfNotExists(pathKey)
-		if normalized != pathKey {
+		if normalized != pathKey && rulesBySource[normalized] == nil {
 			_ = s.sqlStore.DeleteAccessRule(sourcePath, normalized)
 		}
 	}
@@ -531,7 +530,7 @@ func (s *Storage) GetFrontendRules(sourcePath string, indexPath utils.IndexPath)
 	}
 
 	// Check if path exists on filesystem
-	pathExists := utils.CheckPathExists(filepath.Join(sourcePath, indexPath.String()))
+	pathExists := checkRulePathExists(sourcePath, indexPath.String())
 
 	frontendRules := FrontendAccessRule{
 		SourceDenyDefault: sourceDenyDefault,
@@ -596,7 +595,7 @@ func (s *Storage) GetAllRules(sourcePath string) (map[string]FrontendAccessRule,
 		frontendPath := indexPath
 
 		// Check if path exists on filesystem
-		pathExists := utils.CheckPathExists(filepath.Join(sourcePath, indexPath))
+		pathExists := checkRulePathExists(sourcePath, indexPath)
 
 		// Convert AccessRule to FrontendAccessRule
 		frontendRules[frontendPath] = FrontendAccessRule{
@@ -1035,7 +1034,7 @@ func (s *Storage) RemoveAllowUser(sourcePath string, indexPath utils.IndexPath, 
 	}
 	removed := exists
 	// If rule is now empty, remove it
-	if len(rule.Allow.Users) == 0 && len(rule.Allow.Groups) == 0 && len(rule.Deny.Users) == 0 && len(rule.Deny.Groups) == 0 {
+	if !accessRuleHasPayload(rule) {
 		s.deleteStoredRuleNL(sourcePath, normalizedPath)
 	}
 	if removed {
@@ -1061,7 +1060,7 @@ func (s *Storage) RemoveAllowGroup(sourcePath string, indexPath utils.IndexPath,
 	}
 	removed := exists
 	// If rule is now empty, remove it
-	if len(rule.Allow.Users) == 0 && len(rule.Allow.Groups) == 0 && len(rule.Deny.Users) == 0 && len(rule.Deny.Groups) == 0 {
+	if !accessRuleHasPayload(rule) {
 		s.deleteStoredRuleNL(sourcePath, normalizedPath)
 	}
 	if removed {
@@ -1087,7 +1086,7 @@ func (s *Storage) RemoveDenyUser(sourcePath string, indexPath utils.IndexPath, u
 	}
 	removed := exists
 	// If rule is now empty, remove it
-	if len(rule.Allow.Users) == 0 && len(rule.Allow.Groups) == 0 && len(rule.Deny.Users) == 0 && len(rule.Deny.Groups) == 0 {
+	if !accessRuleHasPayload(rule) {
 		s.deleteStoredRuleNL(sourcePath, normalizedPath)
 	}
 	if removed {
@@ -1113,7 +1112,7 @@ func (s *Storage) RemoveDenyGroup(sourcePath string, indexPath utils.IndexPath, 
 	}
 	removed := exists
 	// If rule is now empty, remove it
-	if len(rule.Allow.Users) == 0 && len(rule.Allow.Groups) == 0 && len(rule.Deny.Users) == 0 && len(rule.Deny.Groups) == 0 {
+	if !accessRuleHasPayload(rule) {
 		s.deleteStoredRuleNL(sourcePath, normalizedPath)
 	}
 	if removed {
@@ -1139,7 +1138,7 @@ func (s *Storage) RemoveDenyAll(sourcePath string, indexPath utils.IndexPath) (b
 		removed = true
 	}
 	// If rule is now empty, remove it
-	if len(rule.Allow.Users) == 0 && len(rule.Allow.Groups) == 0 && len(rule.Deny.Users) == 0 && len(rule.Deny.Groups) == 0 {
+	if !accessRuleHasPayload(rule) {
 		s.deleteStoredRuleNL(sourcePath, normalizedPath)
 	}
 	if removed {
@@ -1600,9 +1599,13 @@ func (s *Storage) UpdateRules(sourcePath string, oldPath, newPath utils.IndexPat
 
 	oldKey := s.ruleKeyForNL(sourcePath, oldPath)
 	newKey := s.ruleKeyForNL(sourcePath, newPath)
+	if oldKey == newKey {
+		return 0, nil
+	}
 
 	updated := 0
 	rulesToUpdate := make(map[string]string) // old path -> new path
+	movedRules := make(map[string]*AccessRule)
 
 	// Find all rules that need to be updated
 	for rulePath := range rulesBySource {
@@ -1614,11 +1617,20 @@ func (s *Storage) UpdateRules(sourcePath string, oldPath, newPath utils.IndexPat
 		}
 	}
 
-	// Update all matched rules
-	for oldRulePath, newRulePath := range rulesToUpdate {
-		rule := rulesBySource[oldRulePath]
+	// Remove all matched rules first so overlapping moves cannot clobber each other
+	for oldRulePath := range rulesToUpdate {
+		movedRules[oldRulePath] = rulesBySource[oldRulePath]
 		delete(rulesBySource, oldRulePath)
-		rulesBySource[newRulePath] = rule
+	}
+
+	// Insert or merge into target paths
+	for oldRulePath, newRulePath := range rulesToUpdate {
+		rule := movedRules[oldRulePath]
+		if existing, exists := rulesBySource[newRulePath]; exists {
+			mergeAccessRulesInPlace(existing, rule)
+		} else {
+			rulesBySource[newRulePath] = rule
+		}
 		logger.Info("access rule updated", "source", sourcePath, "fromPath", oldRulePath, "toPath", newRulePath)
 		updated++
 	}
@@ -1626,7 +1638,7 @@ func (s *Storage) UpdateRules(sourcePath string, oldPath, newPath utils.IndexPat
 	if updated > 0 {
 		s.clearAllCaches()
 		for oldRulePath := range rulesToUpdate {
-			if s.sqlStore != nil {
+			if s.sqlStore != nil && rulesBySource[oldRulePath] == nil {
 				_ = s.sqlStore.DeleteAccessRule(sourcePath, oldRulePath)
 			}
 		}
@@ -1655,9 +1667,16 @@ func (s *Storage) UpdateRulePath(sourcePath string, oldPath, newPath utils.Index
 	if !ok {
 		return fmt.Errorf("no rule found for path: %s", oldKey)
 	}
+	if oldKey == newKey {
+		return nil
+	}
 
 	delete(rulesBySource, oldKey)
-	rulesBySource[newKey] = rule
+	if existing, exists := rulesBySource[newKey]; exists {
+		mergeAccessRulesInPlace(existing, rule)
+	} else {
+		rulesBySource[newKey] = rule
+	}
 	s.clearAllCaches()
 	if s.sqlStore != nil {
 		_ = s.sqlStore.DeleteAccessRule(sourcePath, oldKey)

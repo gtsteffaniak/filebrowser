@@ -1,14 +1,55 @@
 package access
 
 import (
+	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
-// Access rules are stored and matched using lowercase path keys (ASCII ToLower
-// only; not full Unicode case folding).
+// Access rules are stored and matched using lowercase path keys (strings.ToLower).
+
+// checkRulePathExists reports whether rulePath exists under sourcePath, matching
+// path segments case-insensitively when the exact path is not found on case-sensitive filesystems.
+func checkRulePathExists(sourcePath, rulePath string) bool {
+	if utils.CheckPathExists(filepath.Join(sourcePath, rulePath)) {
+		return true
+	}
+	rel := strings.Trim(strings.TrimSpace(rulePath), "/")
+	if rel == "" {
+		return utils.CheckPathExists(sourcePath)
+	}
+	current := sourcePath
+	for _, part := range strings.Split(rel, "/") {
+		if part == "" {
+			continue
+		}
+		candidate := filepath.Join(current, part)
+		if utils.CheckPathExists(candidate) {
+			current = candidate
+			continue
+		}
+		entries, err := os.ReadDir(current)
+		if err != nil {
+			return false
+		}
+		partLower := strings.ToLower(part)
+		matched := ""
+		for _, e := range entries {
+			if strings.ToLower(e.Name()) == partLower {
+				matched = e.Name()
+				break
+			}
+		}
+		if matched == "" {
+			return false
+		}
+		current = filepath.Join(current, matched)
+	}
+	return true
+}
 
 // ruleKeyForNL returns the storage key; caller must hold s.mux.
 func (s *Storage) ruleKeyForNL(_ string, indexPath utils.IndexPath) string {
