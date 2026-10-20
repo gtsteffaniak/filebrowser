@@ -121,6 +121,42 @@ func (s *SQLStore) SaveAccessRule(source, path string, rule *access.AccessRule) 
 	return nil
 }
 
+// MigrateAccessRulePathsLowercase rewrites rule paths to lowercase in one transaction.
+func (s *SQLStore) MigrateAccessRulePathsLowercase(source string, oldPaths []string, newRules access.RuleMap) error {
+	tx, err := s.BeginTx()
+	if err != nil {
+		return fmt.Errorf("failed to begin access rule migration: %w", err)
+	}
+	rollback := func(cause error) error {
+		if rbErr := tx.Rollback(); rbErr != nil {
+			return fmt.Errorf("%w (rollback also failed: %v)", cause, rbErr)
+		}
+		return cause
+	}
+
+	for path, rule := range newRules {
+		ruleDataJSON, err := json.Marshal(rule)
+		if err != nil {
+			return rollback(fmt.Errorf("failed to marshal rule data: %w", err))
+		}
+		if _, err := tx.Exec(`INSERT OR REPLACE INTO access_rules (source, path, rule_data) VALUES (?, ?, ?)`, source, path, ruleDataJSON); err != nil {
+			return rollback(fmt.Errorf("failed to save access rule: %w", err))
+		}
+	}
+	for _, old := range oldPaths {
+		if _, kept := newRules[old]; kept {
+			continue
+		}
+		if _, err := tx.Exec(`DELETE FROM access_rules WHERE source = ? AND path = ?`, source, old); err != nil {
+			return rollback(fmt.Errorf("failed to delete access rule: %w", err))
+		}
+	}
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("failed to commit access rule migration: %w", err)
+	}
+	return nil
+}
+
 // DeleteAccessRule deletes an access rule
 func (s *SQLStore) DeleteAccessRule(source, path string) error {
 	query := `DELETE FROM access_rules WHERE source = ? AND path = ?`
