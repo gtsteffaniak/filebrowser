@@ -62,7 +62,7 @@ func TestCollectTIFFPreviewCandidatesIgnoresMalformedOffsets(t *testing.T) {
 func TestCollectTIFFPreviewCandidatesIgnoresMalformedSubIFDOffset(t *testing.T) {
 	data := buildSyntheticTIFF(tiffFixture{
 		thumbnailJPEG: smallJPEG,
-		subIFDJPEG:  largeJPEG,
+		subIFDJPEG:    largeJPEG,
 		badJpgFromRaw: true,
 	})
 	f := openBytesFile(t, data)
@@ -111,6 +111,138 @@ func TestTiffTagUint32sSupportsIFDType(t *testing.T) {
 	}
 	if len(preview) != len(largeJPEG) {
 		t.Fatalf("preview size = %d, want %d (SubIFD type IFD)", len(preview), len(largeJPEG))
+	}
+}
+
+func TestExtractEmbeddedPreviewFallbackWhenDecodeFails(t *testing.T) {
+	// Synthetic ARW where SubIFD offset is placed after IFD2, and a SubIFD tag
+	// points past EOF so extimagemeta.Decode fails with EOF, while IFD2 holds a
+	// valid JPEGInterchangeFormat preview.
+	order := binary.LittleEndian
+	buf := make([]byte, 32*1024)
+	copy(buf[0:2], []byte("II"))
+	order.PutUint16(buf[2:4], tiffMagicStandard)
+	ifd0Off := uint32(8)
+	order.PutUint32(buf[4:8], ifd0Off)
+
+	thumbOff := uint32(4096)
+	copy(buf[thumbOff:], smallJPEG)
+	largeOff := uint32(8192)
+	copy(buf[largeOff:], largeJPEG)
+
+	ifd1Off := uint32(256)
+	ifd2Off := uint32(512)
+	subIFDOff := uint32(768)
+
+	writeIFD := func(offset uint32, entries []tiffEntry, next uint32) {
+		off := int(offset)
+		order.PutUint16(buf[off:off+2], uint16(len(entries)))
+		entryBase := off + 2
+		for i, entry := range entries {
+			pos := entryBase + i*12
+			order.PutUint16(buf[pos:pos+2], entry.tag)
+			order.PutUint16(buf[pos+2:pos+4], entry.typ)
+			order.PutUint32(buf[pos+4:pos+8], entry.count)
+			order.PutUint32(buf[pos+8:pos+12], entry.value)
+		}
+		order.PutUint32(buf[entryBase+len(entries)*12:entryBase+len(entries)*12+4], next)
+	}
+
+	writeIFD(ifd0Off, []tiffEntry{
+		{tag: tiffTagOrientation, typ: tiffTypeShort, count: 1, value: 6},
+		{tag: tiffTagSubIFDs, typ: tiffTypeLong, count: 1, value: subIFDOff},
+		{tag: tiffTagJPEGInterchange, typ: tiffTypeLong, count: 1, value: thumbOff},
+		{tag: tiffTagJPEGInterchangeLen, typ: tiffTypeLong, count: 1, value: uint32(len(smallJPEG))},
+	}, ifd1Off)
+
+	writeIFD(ifd1Off, []tiffEntry{
+		{tag: tiffTagJPEGInterchange, typ: tiffTypeLong, count: 1, value: thumbOff},
+		{tag: tiffTagJPEGInterchangeLen, typ: tiffTypeLong, count: 1, value: uint32(len(smallJPEG))},
+	}, ifd2Off)
+
+	writeIFD(ifd2Off, []tiffEntry{
+		{tag: tiffTagJPEGInterchange, typ: tiffTypeLong, count: 1, value: largeOff},
+		{tag: tiffTagJPEGInterchangeLen, typ: tiffTypeLong, count: 1, value: uint32(len(largeJPEG))},
+	}, 0)
+
+	// SubIFD has a StripOffsets tag with count=2 pointing beyond file end so Decode fails with EOF.
+	writeIFD(subIFDOff, []tiffEntry{
+		{tag: tiffTagStripOffsets, typ: tiffTypeLong, count: 2, value: uint32(len(buf) + 4096)},
+	}, 0)
+
+	path := filepath.Join(t.TempDir(), "sample.arw")
+	if err := os.WriteFile(path, buf[:int(largeOff)+len(largeJPEG)], 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	preview, err := ExtractEmbeddedPreview(t.Context(), path)
+	if err != nil {
+		t.Fatalf("ExtractEmbeddedPreview() err = %v", err)
+	}
+	if len(preview) != len(largeJPEG) {
+		t.Fatalf("ExtractEmbeddedPreview() len = %d, want %d", len(preview), len(largeJPEG))
+	}
+	if got := GetOrientation(t.Context(), path); got != "Rotate 90 CW" {
+		t.Fatalf("GetOrientation() = %q, want %q", got, "Rotate 90 CW")
+	}
+}
+
+func TestExtractEmbeddedPreviewSupportsRW2AndStripPreview(t *testing.T) {
+	order := binary.LittleEndian
+	buf := make([]byte, 16*1024)
+	copy(buf[0:2], []byte("II"))
+	order.PutUint16(buf[2:4], tiffMagicPanasonicRW2)
+	ifd0Off := uint32(8)
+	order.PutUint32(buf[4:8], ifd0Off)
+
+	largeOff := uint32(4096)
+	copy(buf[largeOff:], largeJPEG)
+
+	entries := []tiffEntry{
+		{tag: tiffTagStripOffsets, typ: tiffTypeLong, count: 1, value: largeOff},
+		{tag: tiffTagStripByteCounts, typ: tiffTypeLong, count: 1, value: uint32(len(largeJPEG))},
+	}
+	order.PutUint16(buf[ifd0Off:ifd0Off+2], uint16(len(entries)))
+	for i, entry := range entries {
+		pos := int(ifd0Off) + 2 + i*12
+		order.PutUint16(buf[pos:pos+2], entry.tag)
+		order.PutUint16(buf[pos+2:pos+4], entry.typ)
+		order.PutUint32(buf[pos+4:pos+8], entry.count)
+		order.PutUint32(buf[pos+8:pos+12], entry.value)
+	}
+
+	path := filepath.Join(t.TempDir(), "sample.rw2")
+	if err := os.WriteFile(path, buf[:int(largeOff)+len(largeJPEG)], 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	preview, err := ExtractEmbeddedPreview(t.Context(), path)
+	if err != nil {
+		t.Fatalf("ExtractEmbeddedPreview() err = %v", err)
+	}
+	if len(preview) != len(largeJPEG) {
+		t.Fatalf("ExtractEmbeddedPreview() len = %d, want %d", len(preview), len(largeJPEG))
+	}
+}
+
+func TestExtractEmbeddedPreviewDSC02672(t *testing.T) {
+	path := "/Users/steffag/Downloads/DSC02672-first-4MB.ARW"
+	if _, err := os.Stat(path); err != nil {
+		t.Skip(path)
+	}
+
+	got, err := ExtractEmbeddedPreview(t.Context(), path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !IsJPEG(got) {
+		t.Fatalf("expected JPEG preview, got %d bytes", len(got))
+	}
+	if len(got) != 2954147 {
+		t.Fatalf("preview size = %d, want 2954147", len(got))
+	}
+	if orient := GetOrientation(t.Context(), path); orient != "Horizontal (normal)" {
+		t.Fatalf("GetOrientation() = %q, want Horizontal (normal)", orient)
 	}
 }
 
@@ -195,8 +327,8 @@ func buildSyntheticTIFF(fix tiffFixture) []byte {
 }
 
 type tiffEntry struct {
-	tag, typ       uint16
-	count, value   uint32
+	tag, typ     uint16
+	count, value uint32
 }
 
 func buildChainedTIFF(chainLen int) []byte {
