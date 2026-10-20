@@ -1535,9 +1535,14 @@ func ResourcePatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 			continue
 		}
 
-		// Resolve the destination with the deepest-existing-ancestor rule so a
-		// symlinked parent or leaf cannot redirect the move outside the bound.
-		realDest, err := dstIdx.GetRealPathForMutation(boundDst, fullDstIndexPath)
+		// Resolve the destination: copy must reject escaping symlink leaves; move/rename
+		// must replace an existing symlink entry without following it.
+		var realDest string
+		if req.Action == "copy" {
+			realDest, err = dstIdx.GetRealPathForMutation(boundDst, fullDstIndexPath)
+		} else {
+			realDest, err = dstIdx.GetRealPathForRemoval(boundDst, fullDstIndexPath)
+		}
 		if err != nil {
 			item.Message = "destination directory does not exist"
 			if d.Share.Hash != "" {

@@ -211,6 +211,20 @@ func TestGetRealPathForMutation_AllowsMissingLeafInScope(t *testing.T) {
 	}
 }
 
+func TestGetRealPathForMutation_RejectsDanglingSymlinkLeaf(t *testing.T) {
+	sourceRoot, userScope := setupSymlinkEscapeFixture(t)
+	idx := symlinkTestIndex(sourceRoot)
+
+	outside := filepath.Join(filepath.Dir(sourceRoot), "missing-outside.txt")
+	userDir := filepath.Join(sourceRoot, "user1")
+	if err := os.Symlink(outside, filepath.Join(userDir, "dangling")); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := idx.GetRealPathForMutation(userScope, "/user1/dangling"); !errors.Is(err, liberrors.ErrPathEscapesScope) {
+		t.Fatalf("expected ErrPathEscapesScope for dangling symlink leaf, got %v", err)
+	}
+}
+
 func TestGetRealPathForMutation_RejectsMissingLeafUnderEscapingParent(t *testing.T) {
 	sourceRoot, userScope := setupSymlinkEscapeFixture(t)
 	idx := symlinkTestIndex(sourceRoot)

@@ -421,7 +421,7 @@ export const mutations = {
     mutations.closeSidebar();
     mutations.hideTooltip(true);
   },
-  closeTopPrompt: (id?: number, options?: { force?: boolean }) => {
+  closeTopPrompt: (id?: number, options?: { force?: boolean; skipCancel?: boolean }) => {
     if (!options?.force && state.prompts.length > 0) {
       const targetId =
         id ?? state.prompts[state.prompts.length - 1]?.id;
@@ -445,16 +445,25 @@ export const mutations = {
       }
     }
 
+    let closed: Prompt | undefined;
     if (id === undefined) {
       // close topmost prompt
       if (state.prompts.length === 0) return;
       mutations.closeHovers();
+      closed = state.prompts[state.prompts.length - 1];
       state.prompts.pop();
     } else {
       // close prompt by ID
       const idx = state.prompts.findIndex(p => p.id === id);
       if (idx === -1) return;
+      closed = state.prompts[idx];
       state.prompts.splice(idx, 1);
+    }
+    if (!options?.skipCancel) {
+      const onCancel = closed?.cancel;
+      if (typeof onCancel === "function") {
+        onCancel();
+      }
     }
     // Pre-existing: no top-level state.stickySidebar (only state.user.stickySidebar), so this
     // is always truthy-negated. Left as-is; see PR description.

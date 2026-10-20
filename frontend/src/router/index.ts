@@ -184,11 +184,11 @@ router.beforeResolve(async (to, from) => {
 
   if (isDifferentAppRoute(to, from)) {
     const uploadNav = evaluateUploadNavigationGuard(to);
-    if (uploadNav === "block") {
-      return false;
-    }
-    if (uploadNav === "prompt") {
-      showUploadNavigationConfirm(to, router);
+    if (uploadNav !== "allow") {
+      mutations.setNavigationTransitioning(false);
+      if (uploadNav === "prompt") {
+        showUploadNavigationConfirm(to, router);
+      }
       return false;
     }
   }

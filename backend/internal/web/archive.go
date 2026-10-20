@@ -1091,6 +1091,9 @@ func resolvedWritePathUnderDest(destDir, entryAbs string) (string, error) {
 	if resolved, rerr := filepath.EvalSymlinks(check); rerr == nil {
 		check = resolved
 	} else if errors.Is(rerr, os.ErrNotExist) {
+		if li, lerr := os.Lstat(entryAbs); lerr == nil && li.Mode()&os.ModeSymlink != 0 {
+			return "", errEntryPathInvalid
+		}
 		parent := filepath.Dir(entryAbs)
 		leaf := filepath.Base(entryAbs)
 		for {

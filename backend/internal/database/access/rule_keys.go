@@ -120,7 +120,9 @@ func (s *Storage) migrateSourceRulesLowercaseNL(sourcePath string) error {
 			mergeAccessRulesInPlace(existing, rule)
 			continue
 		}
-		newRules[lower] = cloneAccessRule(rule)
+		fresh := &AccessRule{}
+		mergeAccessRulesInPlace(fresh, rule)
+		newRules[lower] = fresh
 		if lower != path {
 			logger.Infof("access rules: migrated rule path %q -> %q on source %s", path, lower, sourcePath)
 		}

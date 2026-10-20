@@ -14,7 +14,7 @@ backend_http_port() {
 	if [[ -f "$config" ]]; then
 		port="$(
 			awk '
-				/^[[:space:]]*http:[[:space:]]*$/ { in_http=1; next }
+				/^[[:space:]]*http:[[:space:]]*(#.*)?$/ { in_http=1; next }
 				in_http && /^[^[:space:]#]/ { in_http=0 }
 				in_http && /^[[:space:]]*port:[[:space:]]*[0-9]+/ {
 					gsub(/[^0-9]/, "", $2)

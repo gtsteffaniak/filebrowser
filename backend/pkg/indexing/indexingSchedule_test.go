@@ -106,6 +106,11 @@ func TestFolderSizesRestoredOnStartup(t *testing.T) {
 		},
 	}, nil, true)
 
+	idx.folderSizesMu.Lock()
+	idx.folderSizes = make(map[string]uint64)
+	idx.folderSizesUnsynced = make(map[string]struct{})
+	idx.folderSizesMu.Unlock()
+
 	idx.setupMultiScanner(false)
 
 	size, ok := idx.GetFolderSize("/sub/")

@@ -67,8 +67,8 @@ func TestConcurrentSSEClientLifecycleRace(t *testing.T) {
 	}()
 
 	time.Sleep(100 * time.Millisecond)
-	Shutdown()
 	close(stop)
 	wg.Wait()
+	Shutdown()
 	time.Sleep(50 * time.Millisecond)
 }
