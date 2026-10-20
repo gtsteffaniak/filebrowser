@@ -1165,15 +1165,15 @@ func TestWebDAVDeleteNestedQuota(t *testing.T) {
 			user.BackendScopes[0].Scope = scope
 			for path, content := range map[string]string{"public/direct": "123", "public/nested/file": "12345", "sibling/file": "1234567"} {
 				full := filepath.Join(sourcePath, scope, path)
-				if err := os.MkdirAll(filepath.Dir(full), 0755); err != nil {
+				if err = os.MkdirAll(filepath.Dir(full), 0755); err != nil {
 					t.Fatal(err)
 				}
-				if err := os.WriteFile(full, []byte(content), 0644); err != nil {
+				if err = os.WriteFile(full, []byte(content), 0644); err != nil {
 					t.Fatal(err)
 				}
 			}
 			idx := indexing.GetIndex("Downloads")
-			if err := idx.RefreshDirectory("/", true); err != nil {
+			if err = idx.RefreshDirectory("/", true); err != nil {
 				t.Fatal(err)
 			}
 			nested, err := state.CreateFolderQuota(sourcePath, utils.JoinPathAsUnix(scope, "/public/nested"), user.ID, 100, "accounted")
@@ -1185,16 +1185,16 @@ func TestWebDAVDeleteNestedQuota(t *testing.T) {
 				t.Fatal(err)
 			}
 			for path, size := range map[string]int64{"/public/nested/file": 5, "/sibling/file": 7} {
-				if err := state.ApplyAccountedUsageDelta(&user, "Downloads", sourcePath, utils.JoinPathAsUnix(scope, path), "", size); err != nil {
+				if err = state.ApplyAccountedUsageDelta(&user, "Downloads", sourcePath, utils.JoinPathAsUnix(scope, path), "", size); err != nil {
 					t.Fatal(err)
 				}
 			}
 			ffs := &filteredFileSystem{fs: failedDeleteFileSystem{}, source: "Downloads", user: &user}
-			if err := ffs.RemoveAll(context.Background(), "/public"); err == nil {
+			if err = ffs.RemoveAll(context.Background(), "/public"); err == nil {
 				t.Fatal("expected forbidden deletion")
 			}
 			ffs.filePerms = users.SourceFilePermissions{Delete: true}
-			if err := ffs.RemoveAll(context.Background(), "/public"); err == nil {
+			if err = ffs.RemoveAll(context.Background(), "/public"); err == nil {
 				t.Fatal("expected underlying deletion failure")
 			}
 			if used, _ := state.GetQuotaCounterSnapshot(nested.ID); used != 5 {
