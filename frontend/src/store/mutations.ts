@@ -421,7 +421,7 @@ export const mutations = {
     mutations.closeSidebar();
     mutations.hideTooltip(true);
   },
-  closeTopPrompt: (id?: number, options?: { force?: boolean }) => {
+  closeTopPrompt: (id?: number, options?: { force?: boolean; skipCancel?: boolean }) => {
     if (!options?.force && state.prompts.length > 0) {
       const targetId =
         id ?? state.prompts[state.prompts.length - 1]?.id;
@@ -459,9 +459,11 @@ export const mutations = {
       closed = state.prompts[idx];
       state.prompts.splice(idx, 1);
     }
-    const onCancel = closed?.cancel;
-    if (typeof onCancel === "function") {
-      onCancel();
+    if (!options?.skipCancel) {
+      const onCancel = closed?.cancel;
+      if (typeof onCancel === "function") {
+        onCancel();
+      }
     }
     // Pre-existing: no top-level state.stickySidebar (only state.user.stickySidebar), so this
     // is always truthy-negated. Left as-is; see PR description.

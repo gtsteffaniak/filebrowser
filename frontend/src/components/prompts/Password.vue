@@ -82,7 +82,7 @@ export default {
         return;
       }
       this.submitCallback(this.password);
-      mutations.closeTopPrompt();
+      mutations.closeTopPrompt(undefined, { skipCancel: true });
     },
   },
 };
