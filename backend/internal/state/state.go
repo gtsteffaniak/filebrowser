@@ -167,6 +167,10 @@ func initialize(dbPath string) (bool, error) {
 
 	accessDb.SetSQLStore(sqlDb)
 
+	if migErr := accessDb.StartupMigrateAccessRuleKeys(); migErr != nil {
+		return existingDb, fmt.Errorf("failed to migrate access rule paths: %w", migErr)
+	}
+
 	if err = BackfillHashedTokensFromUserRecords(); err != nil {
 		return existingDb, fmt.Errorf("failed to backfill hashed tokens: %w", err)
 	}

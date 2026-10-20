@@ -113,6 +113,7 @@ type Storage struct {
 type SQLPersister interface {
 	SaveAccessRule(source, path string, rule *AccessRule) error
 	DeleteAccessRule(source, path string) error
+	MigrateAccessRulePathsLowercase(source string, oldPaths []string, newRules RuleMap) error
 	SaveGroup(name string, members StringSet) error
 	DeleteGroup(name string) error
 	SaveRevokedToken(tokenHash string, revokedAt int64) error
@@ -223,7 +224,7 @@ func (s *Storage) persistRuleSQLNL(sourcePath, normalizedPath string) {
 
 // RemoveRuleByPath removes a rule by normalized index path.
 func (s *Storage) RemoveRuleByPath(sourcePath string, indexPath utils.IndexPath) {
-	s.RemoveRuleByPathKey(sourcePath, ruleKey(indexPath))
+	s.RemoveRuleByPathKey(sourcePath, s.ruleKeyForNL(sourcePath, indexPath))
 }
 
 // RemoveRuleByPathKey removes a rule by its exact storage key (for legacy migration paths).
@@ -236,6 +237,7 @@ func (s *Storage) RemoveRuleByPathKey(sourcePath, pathKey string) {
 		return
 	}
 
+	pathKey = strings.ToLower(pathKey)
 	if _, exists := rulesBySource[pathKey]; !exists {
 		return
 	}
@@ -257,7 +259,7 @@ func (s *Storage) RemoveRuleByPathKey(sourcePath, pathKey string) {
 // getOrCreateRuleNL ensures a rule exists for the given source and index path.
 // The caller must hold the lock.
 func (s *Storage) getOrCreateRuleNL(sourcePath string, indexPath utils.IndexPath) *AccessRule {
-	normalizedPath := ruleKey(indexPath)
+	normalizedPath := s.ruleKeyForNL(sourcePath, indexPath)
 	if _, ok := s.AllRules[sourcePath]; !ok {
 		s.AllRules[sourcePath] = make(RuleMap)
 	}
@@ -283,7 +285,7 @@ func (s *Storage) DenyUser(sourcePath string, indexPath utils.IndexPath, usernam
 	}
 	rule.Deny.Users[username] = struct{}{}
 	s.clearAllCaches()
-	s.persistRuleSQLNL(sourcePath, ruleKey(indexPath))
+	s.persistRuleSQLNL(sourcePath, s.ruleKeyForNL(sourcePath, indexPath))
 	return nil
 }
 
@@ -298,7 +300,7 @@ func (s *Storage) AllowUser(sourcePath string, indexPath utils.IndexPath, userna
 	}
 	rule.Allow.Users[username] = struct{}{}
 	s.clearAllCaches()
-	s.persistRuleSQLNL(sourcePath, ruleKey(indexPath))
+	s.persistRuleSQLNL(sourcePath, s.ruleKeyForNL(sourcePath, indexPath))
 	return nil
 }
 
@@ -314,7 +316,7 @@ func (s *Storage) DenyGroup(sourcePath string, indexPath utils.IndexPath, groupn
 	}
 	rule.Deny.Groups[groupname] = struct{}{}
 	s.clearAllCaches()
-	s.persistRuleSQLNL(sourcePath, ruleKey(indexPath))
+	s.persistRuleSQLNL(sourcePath, s.ruleKeyForNL(sourcePath, indexPath))
 	return nil
 }
 
@@ -330,7 +332,7 @@ func (s *Storage) AllowGroup(sourcePath string, indexPath utils.IndexPath, group
 	}
 	rule.Allow.Groups[groupname] = struct{}{}
 	s.clearAllCaches()
-	s.persistRuleSQLNL(sourcePath, ruleKey(indexPath))
+	s.persistRuleSQLNL(sourcePath, s.ruleKeyForNL(sourcePath, indexPath))
 	return nil
 }
 
@@ -344,13 +346,13 @@ func (s *Storage) DenyAll(sourcePath string, indexPath utils.IndexPath) error {
 	}
 	rule.DenyAll = true
 	s.clearAllCaches()
-	s.persistRuleSQLNL(sourcePath, ruleKey(indexPath))
+	s.persistRuleSQLNL(sourcePath, s.ruleKeyForNL(sourcePath, indexPath))
 	return nil
 }
 
 // Permitted checks if a username is permitted for a given sourcePath and indexPath, recursively checking parent directories.
 func (s *Storage) Permitted(sourcePath string, indexPath utils.IndexPath, username string) bool {
-	indexPath = checkPath(indexPath)
+	indexPath = s.checkPathForSource(sourcePath, indexPath)
 	pathStr := indexPath.String()
 
 	// Get current version for the sourcePath
@@ -423,7 +425,7 @@ func (s *Storage) getRuleAtExactPath(sourcePath string, indexPath utils.IndexPat
 	if !ok {
 		return nil, false
 	}
-	rule, ok := rulesBySource[ruleKey(indexPath)]
+	rule, ok := rulesBySource[s.ruleKeyForNL(sourcePath, indexPath)]
 	return rule, ok
 }
 
@@ -500,7 +502,7 @@ func (s *Storage) GetFrontendRules(sourcePath string, indexPath utils.IndexPath)
 	if !ok {
 		return frontendRules, false
 	}
-	rule, ok := rulesBySource[ruleKey(indexPath)]
+	rule, ok := rulesBySource[s.ruleKeyForNL(sourcePath, indexPath)]
 	if !ok || rule == nil {
 		return frontendRules, false
 	}
@@ -679,7 +681,7 @@ func (s *Storage) RemoveUserFromGroup(group, username string) error {
 func (s *Storage) RemoveAllowUser(sourcePath string, indexPath utils.IndexPath, username string) (bool, error) {
 	s.mux.Lock()
 	defer s.mux.Unlock()
-	normalizedPath := ruleKey(indexPath)
+	normalizedPath := s.ruleKeyForNL(sourcePath, indexPath)
 	rule, ok := s.AllRules[sourcePath][normalizedPath]
 	if !ok {
 		return false, nil
@@ -708,7 +710,7 @@ func (s *Storage) RemoveAllowUser(sourcePath string, indexPath utils.IndexPath, 
 func (s *Storage) RemoveAllowGroup(sourcePath string, indexPath utils.IndexPath, groupname string) (bool, error) {
 	s.mux.Lock()
 	defer s.mux.Unlock()
-	normalizedPath := ruleKey(indexPath)
+	normalizedPath := s.ruleKeyForNL(sourcePath, indexPath)
 	rule, ok := s.AllRules[sourcePath][normalizedPath]
 	if !ok {
 		return false, nil
@@ -737,7 +739,7 @@ func (s *Storage) RemoveAllowGroup(sourcePath string, indexPath utils.IndexPath,
 func (s *Storage) RemoveDenyUser(sourcePath string, indexPath utils.IndexPath, username string) (bool, error) {
 	s.mux.Lock()
 	defer s.mux.Unlock()
-	normalizedPath := ruleKey(indexPath)
+	normalizedPath := s.ruleKeyForNL(sourcePath, indexPath)
 	rule, ok := s.AllRules[sourcePath][normalizedPath]
 	if !ok {
 		return false, nil
@@ -766,7 +768,7 @@ func (s *Storage) RemoveDenyUser(sourcePath string, indexPath utils.IndexPath, u
 func (s *Storage) RemoveDenyGroup(sourcePath string, indexPath utils.IndexPath, groupname string) (bool, error) {
 	s.mux.Lock()
 	defer s.mux.Unlock()
-	normalizedPath := ruleKey(indexPath)
+	normalizedPath := s.ruleKeyForNL(sourcePath, indexPath)
 	rule, ok := s.AllRules[sourcePath][normalizedPath]
 	if !ok {
 		return false, nil
@@ -795,7 +797,7 @@ func (s *Storage) RemoveDenyGroup(sourcePath string, indexPath utils.IndexPath, 
 func (s *Storage) RemoveDenyAll(sourcePath string, indexPath utils.IndexPath) (bool, error) {
 	s.mux.Lock()
 	defer s.mux.Unlock()
-	normalizedPath := ruleKey(indexPath)
+	normalizedPath := s.ruleKeyForNL(sourcePath, indexPath)
 	rule, ok := s.AllRules[sourcePath][normalizedPath]
 	if !ok {
 		return false, nil
@@ -1131,7 +1133,7 @@ func (s *Storage) RemoveUserCascade(sourcePath string, indexPath utils.IndexPath
 	s.mux.Lock()
 	defer s.mux.Unlock()
 
-	normalizedPath := ruleKey(indexPath)
+	normalizedPath := s.ruleKeyForNL(sourcePath, indexPath)
 	rulesBySource, ok := s.AllRules[sourcePath]
 	if !ok {
 		return 0, nil
@@ -1199,7 +1201,7 @@ func (s *Storage) RemoveGroupCascade(sourcePath string, indexPath utils.IndexPat
 	s.mux.Lock()
 	defer s.mux.Unlock()
 
-	normalizedPath := ruleKey(indexPath)
+	normalizedPath := s.ruleKeyForNL(sourcePath, indexPath)
 	rulesBySource, ok := s.AllRules[sourcePath]
 	if !ok {
 		return 0, nil
@@ -1271,8 +1273,8 @@ func (s *Storage) UpdateRules(sourcePath string, oldPath, newPath utils.IndexPat
 		return 0, nil // No rules for this source, not an error
 	}
 
-	oldKey := ruleKey(oldPath)
-	newKey := ruleKey(newPath)
+	oldKey := s.ruleKeyForNL(sourcePath, oldPath)
+	newKey := s.ruleKeyForNL(sourcePath, newPath)
 
 	updated := 0
 	rulesToUpdate := make(map[string]string) // old path -> new path
@@ -1316,8 +1318,8 @@ func (s *Storage) UpdateRulePath(sourcePath string, oldPath, newPath utils.Index
 	s.mux.Lock()
 	defer s.mux.Unlock()
 
-	oldKey := ruleKey(oldPath)
-	newKey := ruleKey(newPath)
+	oldKey := s.ruleKeyForNL(sourcePath, oldPath)
+	newKey := s.ruleKeyForNL(sourcePath, newPath)
 
 	rulesBySource, ok := s.AllRules[sourcePath]
 	if !ok {
