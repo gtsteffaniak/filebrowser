@@ -34,7 +34,7 @@ const route = useRoute();
 
 const tooltip = computed(() => state.tooltip);
 const hasComponent = computed(() => Boolean(tooltip.value.component));
-const isDarkMode = computed(() => getters.isDarkMode);
+const isDarkMode = computed(() => getters.isDarkMode());
 
 const tooltipStyle = computed(() => {
   const style: CSSProperties = {
