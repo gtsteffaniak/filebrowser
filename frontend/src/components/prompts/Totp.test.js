@@ -27,6 +27,8 @@ const { store, router, notify } = vi.hoisted(() => {
 });
 
 vi.mock('@/store', () => store);
+vi.mock('@/store/state.ts', () => ({ state: store.state }));
+vi.mock('@/store/mutations.ts', () => ({ mutations: store.mutations }));
 vi.mock('@/router', () => ({ default: router, router }));
 vi.mock('@/notify', () => ({ notify }));
 vi.mock('@/utils/constants', () => ({ globalVars: { baseURL: '/', recaptcha: false } }));
