@@ -590,6 +590,11 @@ func ReserveQuota(sessionID string, checks []QuotaReserveCheck) error {
 			if err := ensureQuotaCounterMemLocked(chk.QuotaID); err != nil {
 				return err
 			}
+		}
+	}
+	for _, plan := range plans {
+		chk := plan.chk
+		if chk.Meter == quota.MeterAccounted || chk.Kind == "share" {
 			quotaCounters[chk.QuotaID].ReservedBytes += plan.counterDelta
 		}
 		if plan.existingIdx >= 0 {

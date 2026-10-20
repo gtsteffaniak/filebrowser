@@ -467,15 +467,7 @@ export default {
       }
     },
     closeTopPrompt(id) {
-      const targetId =
-        id ?? state.prompts[state.prompts.length - 1]?.id;
-      const promptToClose = targetId !== undefined
-        ? state.prompts.find((p) => p.id === targetId)
-        : undefined;
       mutations.closeTopPrompt(id);
-      if (promptToClose && !state.prompts.some((p) => p.id === promptToClose.id)) {
-        promptToClose.cancel?.();
-      }
     },
     cleanupDragState(id) {
       this.dragOffsets = omitObjectProperty(this.dragOffsets, id);

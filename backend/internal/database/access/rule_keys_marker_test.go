@@ -108,9 +108,24 @@ func TestSecondStartupSkipsAccessRulesMigration(t *testing.T) {
 		t.Fatal("marker should be set after first startup")
 	}
 
-	// Simulate state.initialize: marker set → do not call StartupMigrateAccessRuleKeys.
+	s2 := access.NewStorage(nil)
+	rules2, err := sqlStore.GetAllAccessRules()
+	if err != nil {
+		t.Fatal(err)
+	}
+	s2.AllRules = rules2
+	s2.SetSQLStore(counter)
+	done, err := sqlStore.AccessRulesLowercaseMigrated()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !done {
+		if err := s2.StartupMigrateAccessRuleKeys(); err != nil {
+			t.Fatal(err)
+		}
+	}
 	if counter.calls != 1 {
-		t.Fatal("second startup must not invoke SQL migration")
+		t.Fatalf("second startup must not invoke SQL migration, got %d calls", counter.calls)
 	}
 }
 

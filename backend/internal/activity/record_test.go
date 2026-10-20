@@ -71,26 +71,44 @@ func TestShareFileEventsRecordedForShareOwner(t *testing.T) {
 		Share: share.Share{Hash: "share-hash", UserID: 7},
 	}
 	RecordUpload(r, loggedIn, "main", "/pub/bob.txt", false)
+	RecordFileModify(r, loggedIn, "main", "/pub/edited.txt")
+	RecordFileModify(r, actor, "main", "/pub/anon-edit.txt")
 	rec.Stop()
 
 	var got []activitydb.Entry
 	for _, batch := range store.inserts {
 		got = append(got, batch...)
 	}
-	want := []activitydb.EventType{activitydb.EventUpload, activitydb.EventDelete, activitydb.EventBulkDelete}
-	if len(got) != len(want)+1 {
-		t.Fatalf("expected %d entries, got %d: %+v", len(want)+1, len(got), got)
+	want := []activitydb.EventType{
+		activitydb.EventUpload,
+		activitydb.EventDelete,
+		activitydb.EventBulkDelete,
+		activitydb.EventUpload,
+		activitydb.EventFileModify,
+		activitydb.EventFileModify,
 	}
-	if last := got[len(want)]; last.UserID != 5 {
-		t.Fatalf("logged-in share visitor: userID=%d, want 5", last.UserID)
+	if len(got) != len(want) {
+		t.Fatalf("expected %d entries, got %d: %+v", len(want), len(got), got)
 	}
-	for i, e := range got[:len(want)] {
+	for i, e := range got {
 		if e.EventType != want[i] {
 			t.Fatalf("entry %d: event type %q, want %q", i, e.EventType, want[i])
 		}
+	}
+	for i := 0; i < 3; i++ {
+		e := got[i]
 		if e.UserID != 7 || e.Details.ShareHash != "share-hash" {
-			t.Fatalf("entry %d: userID=%d shareHash=%q, want share owner 7 and share-hash", i, e.UserID, e.Details.ShareHash)
+			t.Fatalf("anonymous share entry %d: userID=%d shareHash=%q", i, e.UserID, e.Details.ShareHash)
 		}
+	}
+	if got[3].UserID != 5 {
+		t.Fatalf("logged-in share visitor upload: userID=%d, want 5", got[3].UserID)
+	}
+	if got[4].UserID != 5 {
+		t.Fatalf("logged-in share visitor modify: userID=%d, want 5", got[4].UserID)
+	}
+	if got[5].UserID != 7 || got[5].Details.ShareHash != "share-hash" {
+		t.Fatalf("anonymous share modify: userID=%d shareHash=%q", got[5].UserID, got[5].Details.ShareHash)
 	}
 }
 

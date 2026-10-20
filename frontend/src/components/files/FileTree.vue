@@ -279,8 +279,13 @@ async function toggleExpand(node: TreeNode, skipNavigate = false) {
 
 async function tryExpandNodes() {
   if (expanding.value || !rootLoaded.value || !pendingExpandPath.value) return;
-  await expandToPath(pendingExpandPath.value);
-  pendingExpandPath.value = null;
+  const target = pendingExpandPath.value;
+  await expandToPath(target);
+  if (pendingExpandPath.value === target) {
+    pendingExpandPath.value = null;
+  } else {
+    void tryExpandNodes();
+  }
 }
 
 function getNodeUrl(node: TreeNode) {

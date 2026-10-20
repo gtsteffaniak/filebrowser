@@ -512,13 +512,13 @@ func TestUnarchiveHandler_accessDeniedAndSanitizesErrors(t *testing.T) {
 	rec = httptest.NewRecorder()
 	req = httptest.NewRequest(http.MethodPost, "/api/resources/unarchive", strings.NewReader(body))
 	status, handlerErr = unarchiveHandler(rec, req, &Context{User: &user})
-	if status != http.StatusInternalServerError || handlerErr == nil {
+	if status != http.StatusForbidden || handlerErr == nil {
 		t.Fatalf("status=%d err=%v", status, handlerErr)
 	}
 	if strings.Contains(handlerErr.Error(), destDir) || strings.Contains(handlerErr.Error(), sourceRoot) {
 		t.Fatalf("client error leaked real path: %v", handlerErr)
 	}
-	if handlerErr.Error() != clientExtractError().Error() {
+	if !strings.Contains(handlerErr.Error(), "modify permission required") {
 		t.Fatalf("unexpected client error: %v", handlerErr)
 	}
 	_ = sourceName

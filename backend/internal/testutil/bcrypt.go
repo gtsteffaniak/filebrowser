@@ -5,7 +5,6 @@ package testutil
 import (
 	"log"
 	"os"
-	"runtime"
 	"testing"
 
 	"golang.org/x/crypto/bcrypt"
@@ -36,13 +35,9 @@ func QuietLogging() {
 		return
 	}
 	logger.DisableCompatibilityMode()
-	out := os.DevNull
-	if runtime.GOOS == "windows" {
-		out = "NUL"
-	}
 	if err := logger.EnableCompatibilityMode(logger.JsonConfig{
 		Levels:   "error|fatal",
-		Output:   out,
+		Output:   os.Stderr.Name(),
 		NoColors: true,
 	}); err != nil {
 		log.Println("[ERROR] Failed to set up quiet test logger:", err)

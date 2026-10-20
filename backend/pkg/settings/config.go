@@ -594,16 +594,16 @@ func setupAuth(generate bool) {
 }
 
 func setupLogging() {
-	// Tests quiet the logger in testutil.Main; skip stacking handlers here.
-	if isGoTest() && os.Getenv("FILEBROWSER_TEST_LOG") == "" {
-		return
-	}
 	if len(Config.Server.Logging) == 0 {
 		Config.Server.Logging = []LogConfig{
 			{
 				Output: "stdout",
 			},
 		}
+	}
+	// Tests quiet the logger in testutil.Main; skip stacking handlers here.
+	if isGoTest() && os.Getenv("FILEBROWSER_TEST_LOG") == "" {
+		return
 	}
 	for i := range Config.Server.Logging {
 		cfg := &Config.Server.Logging[i]

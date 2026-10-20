@@ -91,15 +91,9 @@ func TestCreateUserCreateUserDirRespectsFinalAdminPermission(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			userDefaultsMu.Lock()
-			previousDefaults := userDefaultsDefault
-			userDefaultsDefault.Account.Permissions.Admin = tc.admin
-			userDefaultsMu.Unlock()
-			t.Cleanup(func() {
-				userDefaultsMu.Lock()
-				userDefaultsDefault = previousDefaults
-				userDefaultsMu.Unlock()
-			})
+			d := EffectiveUserDefaults()
+			d.Account.Permissions.Admin = tc.admin
+			SetEffectiveUserDefaultsForTest(t, d)
 
 			user := &users.User{
 				FrontendUser:  users.FrontendUser{Username: tc.username},
@@ -491,16 +485,10 @@ func TestCreateUserNonAdminDoesNotKeepAdminScopePermissions(t *testing.T) {
 	}
 	t.Cleanup(func() { _ = Close() })
 
-	userDefaultsMu.Lock()
-	previousDefaults := userDefaultsDefault
-	userDefaultsDefault.Account.Permissions.Admin = true
-	userDefaultsDefault.Account.Permissions.Share = false
-	userDefaultsMu.Unlock()
-	t.Cleanup(func() {
-		userDefaultsMu.Lock()
-		userDefaultsDefault = previousDefaults
-		userDefaultsMu.Unlock()
-	})
+	d := EffectiveUserDefaults()
+	d.Account.Permissions.Admin = true
+	d.Account.Permissions.Share = false
+	SetEffectiveUserDefaultsForTest(t, d)
 
 	u := &users.User{
 		FrontendUser: users.FrontendUser{
@@ -545,17 +533,11 @@ func setupCreateUserDefaultsTest(t *testing.T) {
 	settings.Config.UserDefaults.Account.Permissions.Share = true
 	settings.Config.UserDefaults.Account.Permissions.Api = true
 	settings.Config.UserDefaults.Account.Permissions.Realtime = true
-	userDefaultsMu.Lock()
-	previousUserDefaults := userDefaultsDefault
-	userDefaultsDefault.Account.Permissions.Share = true
-	userDefaultsDefault.Account.Permissions.Api = true
-	userDefaultsDefault.Account.Permissions.Realtime = true
-	userDefaultsMu.Unlock()
-	t.Cleanup(func() {
-		userDefaultsMu.Lock()
-		userDefaultsDefault = previousUserDefaults
-		userDefaultsMu.Unlock()
-	})
+	d := EffectiveUserDefaults()
+	d.Account.Permissions.Share = true
+	d.Account.Permissions.Api = true
+	d.Account.Permissions.Realtime = true
+	SetEffectiveUserDefaultsForTest(t, d)
 	source := &settings.Source{Path: "/data/a", Name: "a", Config: settings.SourceConfig{
 		DefaultEnabled:     true,
 		DefaultPermissions: users.SourceFilePermissions{View: true, Download: true},
@@ -576,17 +558,11 @@ func setupCreateUserDefaultsTest(t *testing.T) {
 func TestCreateUserAllFalsePermissionsDoesNotInheritAdminDefaults(t *testing.T) {
 	setupCreateUserDefaultsTest(t)
 
-	userDefaultsMu.Lock()
-	previousDefaults := userDefaultsDefault
-	userDefaultsDefault.Account.Permissions.Admin = true
-	userDefaultsDefault.Account.Permissions.Share = true
-	userDefaultsDefault.Account.Permissions.Api = true
-	userDefaultsMu.Unlock()
-	t.Cleanup(func() {
-		userDefaultsMu.Lock()
-		userDefaultsDefault = previousDefaults
-		userDefaultsMu.Unlock()
-	})
+	d := EffectiveUserDefaults()
+	d.Account.Permissions.Admin = true
+	d.Account.Permissions.Share = true
+	d.Account.Permissions.Api = true
+	SetEffectiveUserDefaultsForTest(t, d)
 
 	u := &users.User{
 		FrontendUser: users.FrontendUser{

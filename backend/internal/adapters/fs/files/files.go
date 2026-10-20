@@ -656,7 +656,7 @@ func DeleteFiles(source, boundIndexPath, indexPath string, isDir bool) error {
 		return os.RemoveAll(realPath)
 	}
 
-	indexPath = index.MakeIndexPath(realPath, isDir).String()
+	indexPath = index.MakeIndexPath(indexPath, isDir).String()
 
 	// Perform the physical deletion
 	err = os.RemoveAll(realPath)
@@ -676,7 +676,7 @@ func DeleteFiles(source, boundIndexPath, indexPath string, isDir bool) error {
 
 	// Refresh the parent directory to recalculate sizes and update counts
 	refreshConfig := utils.FileOptions{
-		Path:  index.MakeIndexPath(filepath.Dir(realPath), true).String(),
+		Path:  index.MakeIndexPath(filepath.Dir(strings.TrimSuffix(indexPath, "/")), true).String(),
 		IsDir: true,
 	}
 	err = index.RefreshFileInfo(refreshConfig)

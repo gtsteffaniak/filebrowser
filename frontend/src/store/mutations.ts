@@ -445,17 +445,21 @@ export const mutations = {
       }
     }
 
+    let closed: Prompt | undefined;
     if (id === undefined) {
       // close topmost prompt
       if (state.prompts.length === 0) return;
       mutations.closeHovers();
+      closed = state.prompts[state.prompts.length - 1];
       state.prompts.pop();
     } else {
       // close prompt by ID
       const idx = state.prompts.findIndex(p => p.id === id);
       if (idx === -1) return;
+      closed = state.prompts[idx];
       state.prompts.splice(idx, 1);
     }
+    closed?.cancel?.();
     // Pre-existing: no top-level state.stickySidebar (only state.user.stickySidebar), so this
     // is always truthy-negated. Left as-is; see PR description.
     if (state.prompts.length === 0 && !(state as unknown as { stickySidebar?: boolean }).stickySidebar) {

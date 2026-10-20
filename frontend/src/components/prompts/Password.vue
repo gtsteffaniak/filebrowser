@@ -81,8 +81,8 @@ export default {
       if (!this.canSubmit) {
         return;
       }
-      mutations.closeTopPrompt();
       this.submitCallback(this.password);
+      mutations.closeTopPrompt();
     },
   },
 };

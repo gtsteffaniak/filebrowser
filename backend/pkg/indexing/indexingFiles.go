@@ -1265,6 +1265,9 @@ func (idx *Index) resolveForMutation(boundIndexPath, indexPath string, resolveLe
 		} else if !stderrors.Is(rerr, os.ErrNotExist) {
 			return "", rerr
 		}
+		if li, lerr := os.Lstat(abs); lerr == nil && li.Mode()&os.ModeSymlink != 0 {
+			return "", fmt.Errorf("%w: dangling symlink leaf", errors.ErrPathEscapesScope)
+		}
 	}
 	// Walk up to the deepest existing ancestor. Missing tail components cannot
 	// be symlinks since they do not exist, so re-joining them is safe.

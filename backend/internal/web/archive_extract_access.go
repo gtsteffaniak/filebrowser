@@ -60,12 +60,12 @@ func (p *extractAccessPolicy) allowWriteSymlinkEntry(archiveEntryName, destPath 
 	}
 	if _, statErr := os.Lstat(destPath); os.IsNotExist(statErr) {
 		if !p.perms.Create {
-			return fmt.Errorf("create permission required")
+			return fmt.Errorf("%w: create permission required", newExtractAccessDenied(archiveEntryName))
 		}
 		return nil
 	}
 	if !p.perms.Modify {
-		return fmt.Errorf("modify permission required")
+		return fmt.Errorf("%w: modify permission required", newExtractAccessDenied(archiveEntryName))
 	}
 	return nil
 }
@@ -119,12 +119,12 @@ func (p *extractAccessPolicy) allowWrite(archiveEntryName, destPath string) erro
 	}
 	if _, statErr := os.Stat(destPath); os.IsNotExist(statErr) {
 		if !p.perms.Create {
-			return fmt.Errorf("create permission required")
+			return fmt.Errorf("%w: create permission required", newExtractAccessDenied(archiveEntryName))
 		}
 		return nil
 	}
 	if !p.perms.Modify {
-		return fmt.Errorf("modify permission required")
+		return fmt.Errorf("%w: modify permission required", newExtractAccessDenied(archiveEntryName))
 	}
 	return nil
 }

@@ -312,6 +312,19 @@ func (s *Storage) getOrCreateRuleNL(sourcePath string, indexPath utils.IndexPath
 			Allow: RuleSet{Users: make(StringSet), Groups: make(StringSet)},
 		}
 		s.AllRules[sourcePath][normalizedPath] = rule
+	} else {
+		if rule.Deny.Users == nil {
+			rule.Deny.Users = make(StringSet)
+		}
+		if rule.Deny.Groups == nil {
+			rule.Deny.Groups = make(StringSet)
+		}
+		if rule.Allow.Users == nil {
+			rule.Allow.Users = make(StringSet)
+		}
+		if rule.Allow.Groups == nil {
+			rule.Allow.Groups = make(StringSet)
+		}
 	}
 	return rule
 }
