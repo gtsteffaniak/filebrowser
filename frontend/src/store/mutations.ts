@@ -459,7 +459,10 @@ export const mutations = {
       closed = state.prompts[idx];
       state.prompts.splice(idx, 1);
     }
-    closed?.cancel?.();
+    const onCancel = closed?.cancel;
+    if (typeof onCancel === "function") {
+      onCancel();
+    }
     // Pre-existing: no top-level state.stickySidebar (only state.user.stickySidebar), so this
     // is always truthy-negated. Left as-is; see PR description.
     if (state.prompts.length === 0 && !(state as unknown as { stickySidebar?: boolean }).stickySidebar) {
