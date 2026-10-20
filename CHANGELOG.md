@@ -19,6 +19,7 @@ All notable changes to this project will be documented in this file. For commit 
  - [Moderate] Preview reads resolve symlinks within the caller's scope so authenticated preview cannot follow an out-of-scope symlink target (GHSA-g2q5-r6ch-v25f) reporter @tao0845
  - [Moderate] Archive downloads and extraction no longer read or write through symlinks that resolve outside the caller's share or user scope; escaping archive-walk entries are skipped (GHSA-qqf3-2wvq-q4w9) reporter @SmokinCaterpillar
  - [Moderate] Share directory-archive downloads now apply the share owner's access rules to every entry, closing a bypass where anonymous share visitors could download admin-denied content (GHSA-9fcr-gm58-p839) reporter @Tan-JunWei
+ - [Moderate] Access rule paths are stored and matched case-insensitively so rules cannot be bypassed via path casing on case-insensitive filesystems; existing rules are migrated at startup (GHSA-4vrc-935w-xxq2) reporter @FrogApprentice
 
  **New Features**:
  - chunked uploads for large files like rclone `--owncloud-chunk-size` (#3112)
