@@ -60,7 +60,7 @@ func TestUpgradeMigratesAndSetsMarker(t *testing.T) {
 	counter := &migrateCallCounter{SQLPersister: sqlStore}
 	s.SetSQLStore(counter)
 
-	if err := s.StartupMigrateAccessRuleKeys(); err != nil {
+	if err = s.StartupMigrateAccessRuleKeys(); err != nil {
 		t.Fatal(err)
 	}
 	if counter.calls != 1 {
@@ -96,7 +96,7 @@ func TestSecondStartupSkipsAccessRulesMigration(t *testing.T) {
 	counter := &migrateCallCounter{SQLPersister: sqlStore}
 	s.SetSQLStore(counter)
 
-	if err := s.StartupMigrateAccessRuleKeys(); err != nil {
+	if err = s.StartupMigrateAccessRuleKeys(); err != nil {
 		t.Fatal(err)
 	}
 	if counter.calls != 1 {
@@ -130,7 +130,7 @@ func TestMigrationFailureDoesNotSetMarker(t *testing.T) {
 	s.AllRules = rules
 	s.SetSQLStore(failAccessRuleMigratePersister{SQLPersister: sqlStore})
 
-	if err := s.StartupMigrateAccessRuleKeys(); err == nil {
+	if err = s.StartupMigrateAccessRuleKeys(); err == nil {
 		t.Fatal("expected migration failure")
 	}
 	ok, err := sqlStore.AccessRulesLowercaseMigrated()
