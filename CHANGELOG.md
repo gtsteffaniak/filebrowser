@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file. For commit 
 ## v2.1.3
 
  **Security**:
+ - [Moderate] Passkey registration and deletion now require the account password when a passkey is already configured, and passkeys cannot be altered through generic user profile PATCH (GHSA-r744-4vm3-2px3) reporter @tonghuaroot
  - [Medium] Storage quota accounting now records upload byte deltas using the pre-replace file size, and upload paths without size metadata or with resumed chunk offsets cannot skip quota checks (GHSA-m57f-66qj-8jxg) reporter @jayhemnani9910
  - [High] Sources marked `readOnly` are now enforced on WebDAV writes, server-side archive/unarchive, and OnlyOffice save callbacks (GHSA-4v62-884x-2466) reporter @anpryl
  - [Moderate] Moving or renaming a folder updates only shares whose paths are under the moved prefix, preserving per-file share roots instead of retargeting unrelated substring matches (GHSA-26fh-r34c-qxh6) reporters @jayhemnani9910 @dylanzonix
