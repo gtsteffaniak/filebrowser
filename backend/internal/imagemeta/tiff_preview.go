@@ -221,6 +221,9 @@ func tiffTagFirstUint16(t tiffTag, order binary.ByteOrder) uint16 {
 		}
 		return uint16(t.valueOffset & 0xffff)
 	case tiffTypeLong:
+		if t.valueOffset > 0xffff {
+			return 0
+		}
 		return uint16(t.valueOffset)
 	default:
 		return 0
