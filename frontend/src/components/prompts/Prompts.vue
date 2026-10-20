@@ -412,7 +412,13 @@ export default {
       }
     },
     closeTopPrompt(id) {
+      const promptToClose = state.prompts.find((p) => p.id === id);
       mutations.closeTopPrompt(id);
+      // Only invoke cancel if the prompt was actually closed; the upload
+      // guard can intercept and keep it open.
+      if (promptToClose && !state.prompts.includes(promptToClose)) {
+        promptToClose.cancel?.();
+      }
     },
     cleanupDragState(id) {
       this.dragOffsets = omitObjectProperty(this.dragOffsets, id);
