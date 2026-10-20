@@ -9,14 +9,16 @@ import (
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/fileutils"
-	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
-	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	dbsql "github.com/gtsteffaniak/filebrowser/backend/internal/database/sql"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/testutil"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing/iteminfo"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestMain(m *testing.M) {
+	testutil.QuietLogging()
 	// Ensure fileutils permissions are set (needed by NewTempDB)
 	if fileutils.PermDir == 0 {
 		fileutils.SetFsPermissions(0644, 0755)

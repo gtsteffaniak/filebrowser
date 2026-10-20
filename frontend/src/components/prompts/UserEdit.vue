@@ -1428,6 +1428,9 @@ export default {
         notify.showSuccessToast(this.$t("profileSettings.passkeyAdded"));
         setTimeout(() => { window.location.reload(); }, 500);
       } catch (err) {
+        if (authApi.isPasskeyActorPasswordCancelled(err)) {
+          return;
+        }
         notify.showError(err.message || this.$t("profileSettings.passkeyAddFailed"));
       } finally {
         this.addingPasskey = false;
@@ -1439,6 +1442,9 @@ export default {
         notify.showSuccessToast(this.$t("profileSettings.passkeyDeleted"));
         setTimeout(() => { window.location.reload(); }, 500);
       } catch (err) {
+        if (authApi.isPasskeyActorPasswordCancelled(err)) {
+          return;
+        }
         notify.showError(err.message || this.$t("profileSettings.passkeyDeleteFailed"));
       }
     },

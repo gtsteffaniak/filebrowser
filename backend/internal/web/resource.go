@@ -270,6 +270,12 @@ func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *Context) (
 		return ErrToStatus(err), err
 	}
 
+	userScope, err := d.User.GetScopeForSourceName(source)
+	if err != nil {
+		return http.StatusForbidden, err
+	}
+	fullIndexPath := utils.JoinScopedIndexPath(userScope, path)
+
 	// delete thumbnails
 	preview.DelThumbs(r.Context(), *fileInfo)
 
@@ -285,7 +291,7 @@ func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *Context) (
 		deleteBytes = fileInfo.Size
 	}
 
-	err = files.DeleteFiles(source, fileInfo.RealPath, fileInfo.Type == "directory")
+	err = files.DeleteFiles(source, userScope, fullIndexPath, fileInfo.Type == "directory")
 	if err != nil {
 		return ErrToStatus(err), err
 	}
@@ -312,12 +318,21 @@ func publicDeleteHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 	if err != nil {
 		return http.StatusNotFound, fmt.Errorf("resource not available")
 	}
-	err = files.DeleteFiles(d.Share.SourcePath, fileInfo.RealPath, fileInfo.Type == "directory")
+	userScope, err := d.ShareUser.GetScopeForSourceName(d.Share.SourcePath)
+	if err != nil {
+		return http.StatusForbidden, err
+	}
+	// d.IndexPath is scope-relative; rebuild full index paths for the bound and target.
+	shareRelPath := strings.TrimPrefix(d.Share.Path, userScope)
+	fullIndexPath := utils.JoinScopedIndexPath(userScope, d.IndexPath)
+	boundIndexPath := utils.JoinScopedIndexPath(userScope, shareRelPath)
+	err = files.DeleteFiles(d.Share.SourcePath, boundIndexPath, fullIndexPath, fileInfo.Type == "directory")
 	if err != nil {
 		logger.Errorf("public delete handler: error deleting resource with error %v", err)
 		return http.StatusInternalServerError, fmt.Errorf("an error occured while deleting the resource")
 	}
 	preview.DelThumbs(r.Context(), *fileInfo)
+	activity.RecordDelete(r, toActor(d), d.Share.GetSourceName(), fileInfo.Path)
 	return http.StatusOK, nil
 }
 
@@ -390,10 +405,12 @@ func ResourceBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *Contex
 		Succeeded: make([]BulkDeleteItem, 0),
 		Failed:    make([]BulkDeleteItem, 0),
 	}
+	activityItems := make([]activity.BulkDeleteItem, 0, len(items))
 
 	// Process each item one at a time
 	for _, item := range items {
 		rawPath := item.Path
+		activityPath := rawPath
 		// Validate item
 		if rawPath == "" {
 			response.Failed = append(response.Failed, BulkDeleteItem{
@@ -476,8 +493,12 @@ func ResourceBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *Contex
 				return http.StatusNotFound, fmt.Errorf("resource not available")
 			}
 
+			// indexPath is scope-relative; rebuild full index paths for the bound and target.
+			boundIndexPath := utils.JoinScopedIndexPath(userScope, withoutUserScope)
+			fullIndexPath := utils.JoinScopedIndexPath(userScope, indexPath)
+
 			// Delete the file/directory
-			err = files.DeleteFiles(sourceName, fileInfo.RealPath, fileInfo.Type == "directory")
+			err = files.DeleteFiles(sourceName, boundIndexPath, fullIndexPath, fileInfo.Type == "directory")
 			if err != nil {
 				logger.Errorf("resource bulk delete handler: error deleting file/directory: %v", err)
 				response.Failed = append(response.Failed, BulkDeleteItem{
@@ -489,6 +510,7 @@ func ResourceBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *Contex
 			}
 			// Delete thumbnails
 			preview.DelThumbs(r.Context(), *fileInfo)
+			activityPath = fileInfo.Path
 		} else {
 			// Regular user context - validate source and check user scope
 			if item.Source == "" {
@@ -501,7 +523,7 @@ func ResourceBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *Contex
 			}
 
 			// Check user scope for this source
-			_, err := filePermUser.GetScopeForSourceName(item.Source)
+			userScope, err := filePermUser.GetScopeForSourceName(item.Source)
 			if err != nil {
 				response.Failed = append(response.Failed, BulkDeleteItem{
 					Source:  item.Source,
@@ -554,7 +576,8 @@ func ResourceBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *Contex
 				})
 				continue
 			}
-			err = files.DeleteFiles(item.Source, fileInfo.RealPath, fileInfo.Type == "directory")
+			fullIndexPath := utils.JoinScopedIndexPath(userScope, sanitizedPath)
+			err = files.DeleteFiles(item.Source, userScope, fullIndexPath, fileInfo.Type == "directory")
 			if err != nil {
 				response.Failed = append(response.Failed, BulkDeleteItem{
 					Source:  item.Source,
@@ -574,6 +597,7 @@ func ResourceBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *Contex
 			loggedItem.Source = d.Share.GetSourceName()
 		}
 		response.Succeeded = append(response.Succeeded, loggedItem)
+		activityItems = append(activityItems, activity.BulkDeleteItem{Source: loggedItem.Source, Path: activityPath})
 	}
 
 	// Determine status code based on results
@@ -582,8 +606,8 @@ func ResourceBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *Contex
 		statusCode = http.StatusMultiStatus
 	}
 
-	if len(response.Succeeded) > 0 {
-		activity.RecordBulkDelete(r, toActor(d), bulkDeleteActivityItems(response.Succeeded))
+	if len(activityItems) > 0 {
+		activity.RecordBulkDelete(r, toActor(d), activityItems)
 	}
 
 	return RenderJSON(w, r, response, statusCode)
@@ -746,8 +770,19 @@ func ResourcePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 
 	fullIndexPath := utils.JoinScopedIndexPath(userscope, path)
 
-	// get scoped path
-	realPath, _, _ := idx.GetRealPath(fullIndexPath)
+	// Resolve for mutation: symlink components must stay inside the share path
+	// for shares, or inside the user's scope otherwise — never unchecked. A
+	// not-yet-existing leaf resolves via its nearest existing ancestor.
+	mutationBound := userscope
+	if d.Share.Hash != "" && d.Share.Path != "" {
+		// d.Share.Path may be scope-relative or already scope-prefixed; normalize
+		// to a full index path so it can serve as the containment bound.
+		mutationBound = utils.JoinScopedIndexPath(userscope, strings.TrimPrefix(d.Share.Path, userscope))
+	}
+	realPath, err := idx.GetRealPathForMutation(mutationBound, fullIndexPath)
+	if err != nil {
+		return sanitizePutPathError(err)
+	}
 
 	if d.Share.Hash == "" {
 		filePerms, permErr := effectiveFilePerms(d, source)
@@ -787,7 +822,7 @@ func ResourcePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 		dirOpts := fileOpts
 		dirOpts.Path = fullIndexPath
 
-		err = files.WriteDirectory(dirOpts)
+		err = files.WriteDirectory(mutationBound, dirOpts)
 		if err != nil {
 			logger.Debugf("error writing directory: %v", err)
 			return ErrToStatus(err), err
@@ -848,12 +883,14 @@ func ResourcePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 			}
 		}()
 
-		// On the first chunk, check quota and conflicts
-		if offset == 0 {
+		// Reserve quota before writing any chunk (including resume at nonzero offset).
+		if !quotaReserved {
 			if quotaErr := checkUploadQuota(quotaCtx); quotaErr != nil {
 				return renderQuotaError(w, r, quotaErr)
 			}
 			quotaReserved = true
+		}
+		if offset == 0 {
 			// Check for file/folder conflicts for chunked uploads
 			if stat, statErr := os.Stat(realPath); statErr == nil {
 				existingIsDir := stat.IsDir()
@@ -1006,11 +1043,30 @@ func ResourcePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 	}
 
 	if !isContentUpload(r) {
-		err = files.WriteFile(fileOpts.Source, fullIndexPath, r.Body)
+		sessionID := newQuotaSessionID()
+		totalSize := r.ContentLength
+		hasSize := totalSize >= 0
+		quotaCtx := uploadQuotaContext(d, source, fullIndexPath, realPath, r, sessionID, totalSize, hasSize)
+		quotaReserved := false
+		defer func() {
+			if quotaReserved {
+				releaseUploadQuota(sessionID)
+			}
+		}()
+		if quotaErr := checkUploadQuota(quotaCtx); quotaErr != nil {
+			return renderQuotaError(w, r, quotaErr)
+		}
+		quotaReserved = true
+		err = files.WriteFile(fileOpts.Source, mutationBound, fullIndexPath, r.Body)
 		if err != nil {
 			logger.Debugf("error writing file: %v", err)
 			return ErrToStatus(err), err
 		}
+		if commitErr := commitUploadQuotaAfterMove(quotaCtx); commitErr != nil {
+			quotaReserved = false
+			return renderQuotaError(w, r, commitErr)
+		}
+		quotaReserved = false
 		activity.RecordUpload(r, toActor(d), source, path, false)
 		return http.StatusOK, nil
 	}
@@ -1100,6 +1156,7 @@ func ResourcePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 	}
 	quotaReserved = false
 	activity.RecordUpload(r, toActor(d), source, path, false)
+	activeUploadSessions.release(realPath, sessionID)
 	abandonSession = false
 	return http.StatusOK, nil
 }
@@ -1206,7 +1263,11 @@ func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *Context) (int
 		return http.StatusMethodNotAllowed, errPutPathIsDirectory
 	}
 
-	return putResourceWithQuota(w, r, d, source, fullIndexPath)
+	status, err := putResourceWithQuota(w, r, d, source, userScope, fullIndexPath)
+	if err == nil && (status == http.StatusOK || status == 0) {
+		activity.RecordFileModify(r, toActor(d), source, path)
+	}
+	return status, err
 }
 
 // publicPutHandler handles the PUT request for a public share.
@@ -1247,7 +1308,11 @@ func publicPutHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 	if idx.Config.ReadOnly {
 		return http.StatusForbidden, fmt.Errorf("source is read-only")
 	}
-	return putResourceWithQuota(w, r, d, sourceName, resolvedPath)
+	status, err := putResourceWithQuota(w, r, d, sourceName, d.Share.Path, resolvedPath)
+	if err == nil && (status == http.StatusOK || status == 0) {
+		activity.RecordFileModify(r, toActor(d), sourceName, resolvedPath)
+	}
+	return status, err
 }
 
 // resourcePatchHandler performs a patch operation (e.g., move, copy, rename) on resources.
@@ -1446,8 +1511,17 @@ func ResourcePatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 			continue
 		}
 
+		// Bound symlink resolution to the share path for shares or the user
+		// scope otherwise, so linked paths cannot escape the caller's scope.
+		boundSrc := userscopeSrc
+		boundDst := userscopeDst
+		if d.Share.Hash != "" {
+			boundSrc = d.Share.Path
+			boundDst = d.Share.Path
+		}
+
 		// Get real paths (fullSrcIndexPath already includes user scope)
-		realSrc, isSrcDir, err := srcIdx.GetRealPath(fullSrcIndexPath)
+		realSrc, isSrcDir, err := srcIdx.GetRealPathScoped(boundSrc, fullSrcIndexPath)
 		if err != nil {
 			logger.Errorf("could not resolve source path: %v, fromPath: %v", err, clientFromPath)
 			item.Message = "could not resolve source path"
@@ -1461,10 +1535,14 @@ func ResourcePatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 			continue
 		}
 
-		// Check destination parent directory exists
-		dstParentPath := filepath.Dir(cleanToPath)
-		fullDstParentPath := utils.JoinScopedIndexPath(userscopeDst, dstParentPath)
-		parentDir, _, err := dstIdx.GetRealPath(fullDstParentPath)
+		// Resolve the destination: copy must reject escaping symlink leaves; move/rename
+		// must replace an existing symlink entry without following it.
+		var realDest string
+		if req.Action == "copy" {
+			realDest, err = dstIdx.GetRealPathForMutation(boundDst, fullDstIndexPath)
+		} else {
+			realDest, err = dstIdx.GetRealPathForRemoval(boundDst, fullDstIndexPath)
+		}
 		if err != nil {
 			item.Message = "destination directory does not exist"
 			if d.Share.Hash != "" {
@@ -1476,7 +1554,6 @@ func ResourcePatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 			response.Failed = append(response.Failed, moveCopyWithClientPaths(item, clientFromPath, clientToPath))
 			continue
 		}
-		realDest := parentDir + "/" + filepath.Base(cleanToPath)
 
 		// Auto-rename if requested
 		if req.Rename {
@@ -1851,12 +1928,4 @@ func moveCopyWithClientPaths(item MoveCopyItem, clientFrom, clientTo string) Mov
 	item.FromPath = clientFrom
 	item.ToPath = clientTo
 	return item
-}
-
-func bulkDeleteActivityItems(items []BulkDeleteItem) []activity.BulkDeleteItem {
-	out := make([]activity.BulkDeleteItem, len(items))
-	for i, it := range items {
-		out[i] = activity.BulkDeleteItem{Source: it.Source, Path: it.Path}
-	}
-	return out
 }

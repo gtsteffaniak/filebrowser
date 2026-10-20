@@ -60,6 +60,10 @@ body.rtl .listing-items {
   position: relative;
 }
 
+.listing-items.normal .listing-item {
+  contain-intrinsic-block-size: auto calc(max(var(--icon-size), 3.6em) + 1em);
+}
+
 .listing-item .text {
   padding-left: 0.5em;
   flex: 1;

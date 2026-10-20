@@ -1,0 +1,539 @@
+package web
+
+import (
+	"fmt"
+	"io"
+	"net/http"
+	"net/http/httptest"
+	"os"
+	"path/filepath"
+	"strings"
+	"testing"
+
+	activityrec "github.com/gtsteffaniak/filebrowser/backend/internal/activity"
+	activitydb "github.com/gtsteffaniak/filebrowser/backend/internal/database/activity"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
+)
+
+// chunkedUploadUser builds a user with the given permissions on source1.
+func chunkedUploadUser(source1Path, scope string, perms users.SourceFilePermissions) *users.User {
+	return &users.User{
+		ID: 1,
+		FrontendUser: users.FrontendUser{
+			Username: "chunked-uploader",
+		},
+		BackendScopes: []users.BackendScope{
+			{Path: source1Path, Scope: scope},
+		},
+		BackendSourcePermissions: map[string]users.SourceFilePermissions{source1Path: perms},
+		Version:                  users.SourcePermissionsMigrationVersion,
+	}
+}
+
+func chunkedUploadFullPerms() users.SourceFilePermissions {
+	return users.SourceFilePermissions{View: true, Download: true, Modify: true, Create: true, Delete: true}
+}
+
+// doSource1WebDAV calls the handler the way the router does, and reports the status the client
+// would see (the handler writes success codes itself and returns error codes).
+func doSource1WebDAV(t *testing.T, user *users.User, method, path string, body io.Reader, headers map[string]string) int {
+	t.Helper()
+	req := httptest.NewRequest(method, "/dav/source1"+path, body)
+	req.SetPathValue("source", "source1")
+	req.SetPathValue("path", path)
+	for k, v := range headers {
+		req.Header.Set(k, v)
+	}
+	w := httptest.NewRecorder()
+	status, err := webDAVHandler(w, req, &requestContext{User: user})
+	if status != 0 && status != http.StatusOK && (w.Code == 0 || w.Code == http.StatusOK) {
+		w.Code = status
+	}
+	if status >= 400 && err == nil {
+		t.Fatalf("%s %s: status %d without an error", method, path, status)
+	}
+	return w.Code
+}
+
+func mustPutChunk(t *testing.T, user *users.User, dir, name string, number int, content string) {
+	t.Helper()
+	path := fmt.Sprintf("%s/%s-chunk-%d", dir, name, number)
+	if got := doSource1WebDAV(t, user, http.MethodPut, path, strings.NewReader(content), nil); got != http.StatusCreated {
+		t.Fatalf("PUT %s: got %d, want 201", path, got)
+	}
+}
+
+func TestWebDAV_OwncloudChunkedUpload_AssemblesChunks(t *testing.T) {
+	source1Path, _ := setupWebDAVTestEnv(t)
+	initTestIndex(t, "source1", source1Path)
+	user := chunkedUploadUser(source1Path, "/", chunkedUploadFullPerms())
+
+	// rclone's shape: the chunks are ordinary uploads next to the destination
+	parts := []string{"hello ", "big ", "world"}
+	for i, part := range parts {
+		mustPutChunk(t, user, "/public", "video.mp4", i, part)
+	}
+
+	got := doSource1WebDAV(t, user, "MOVE", "/public/video.mp4-chunk-2", nil, map[string]string{
+		"Destination":     "/dav/source1/public/video.mp4",
+		"OC-Total-Length": "15",
+	})
+	if got != http.StatusCreated {
+		t.Fatalf("MOVE of the last chunk: got %d, want 201", got)
+	}
+
+	content, err := os.ReadFile(filepath.Join(source1Path, "public", "video.mp4"))
+	if err != nil {
+		t.Fatalf("assembled file not written: %v", err)
+	}
+	if string(content) != "hello big world" {
+		t.Errorf("assembled content = %q, want %q", content, "hello big world")
+	}
+	entries, err := os.ReadDir(filepath.Join(source1Path, "public"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, entry := range entries {
+		if strings.Contains(entry.Name(), "-chunk-") || strings.Contains(entry.Name(), ".assembled-") {
+			t.Errorf("transfer artifact left behind: %s", entry.Name())
+		}
+	}
+}
+
+func TestWebDAV_OwncloudChunkedUpload_RefusesGapsAndWrongTotal(t *testing.T) {
+	source1Path, _ := setupWebDAVTestEnv(t)
+	initTestIndex(t, "source1", source1Path)
+	user := chunkedUploadUser(source1Path, "/", chunkedUploadFullPerms())
+
+	// a missing chunk must not be assembled into a shorter file
+	mustPutChunk(t, user, "/public", "gap.bin", 0, "abc")
+	mustPutChunk(t, user, "/public", "gap.bin", 2, "def")
+	got := doSource1WebDAV(t, user, "MOVE", "/public/gap.bin-chunk-2", nil, map[string]string{
+		"Destination":     "/dav/source1/public/gap.bin",
+		"OC-Total-Length": "6",
+	})
+	if got != http.StatusConflict {
+		t.Errorf("MOVE with a missing chunk: got %d, want 409", got)
+	}
+	if _, err := os.Stat(filepath.Join(source1Path, "public", "gap.bin")); !os.IsNotExist(err) {
+		t.Errorf("a truncated file was written anyway: %v", err)
+	}
+
+	// ... and neither must a total length that disagrees with the chunks
+	mustPutChunk(t, user, "/public", "short.bin", 0, "abc")
+	mustPutChunk(t, user, "/public", "short.bin", 1, "def")
+	got = doSource1WebDAV(t, user, "MOVE", "/public/short.bin-chunk-1", nil, map[string]string{
+		"Destination":     "/dav/source1/public/short.bin",
+		"OC-Total-Length": "99",
+	})
+	if got != http.StatusBadRequest {
+		t.Errorf("MOVE with a wrong total length: got %d, want 400", got)
+	}
+}
+
+func TestWebDAV_OwncloudChunkedUpload_HonoursOverwrite(t *testing.T) {
+	source1Path, _ := setupWebDAVTestEnv(t)
+	initTestIndex(t, "source1", source1Path)
+	user := chunkedUploadUser(source1Path, "/", chunkedUploadFullPerms())
+	existing := filepath.Join(source1Path, "public", "existing.bin")
+	if err := os.WriteFile(existing, []byte("do not lose me"), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	mustPutChunk(t, user, "/public", "existing.bin", 0, "new ")
+	mustPutChunk(t, user, "/public", "existing.bin", 1, "content")
+	// without `Overwrite: T` the destination must not be replaced (the WebDAV library's rule)
+	got := doSource1WebDAV(t, user, "MOVE", "/public/existing.bin-chunk-1", nil, map[string]string{
+		"Destination": "/dav/source1/public/existing.bin",
+	})
+	if got != http.StatusPreconditionFailed {
+		t.Errorf("MOVE onto an existing file without Overwrite: got %d, want 412", got)
+	}
+	if content, _ := os.ReadFile(existing); string(content) != "do not lose me" {
+		t.Errorf("existing file was replaced anyway: %q", content)
+	}
+
+	got = doSource1WebDAV(t, user, "MOVE", "/public/existing.bin-chunk-1", nil, map[string]string{
+		"Destination": "/dav/source1/public/existing.bin",
+		"Overwrite":   "T",
+	})
+	if got != http.StatusNoContent {
+		t.Errorf("MOVE with Overwrite: T: got %d, want 204", got)
+	}
+	if content, _ := os.ReadFile(existing); string(content) != "new content" {
+		t.Errorf("overwrite did not land: %q", content)
+	}
+}
+
+func TestWebDAV_OwncloudChunkedUpload_CannotWriteOutsideTheScope(t *testing.T) {
+	source1Path, _ := setupWebDAVTestEnv(t)
+	initTestIndex(t, "source1", source1Path)
+	// the user is confined to /public
+	user := chunkedUploadUser(source1Path, "/public", chunkedUploadFullPerms())
+
+	// both the request path and the Destination climb out with `..`: this is the shape that enters the
+	// chunked move itself (they have to agree, or it is an ordinary move)
+	mustPutChunk(t, user, "/public/..", "escape.bin", 0, "ESCAPED")
+	mustPutChunk(t, user, "/public/..", "escape.bin", 1, "!")
+	got := doSource1WebDAV(t, user, "MOVE", "/public/../escape.bin-chunk-1", nil, map[string]string{
+		"Destination": "/dav/source1/public/../escape.bin",
+	})
+	if got != http.StatusCreated {
+		t.Fatalf("chunked move with a climbing path: got %d, want 201", got)
+	}
+	// the cleaned paths are anchored at the scope, so the file lands inside it and not above it,
+	// and it is the concatenation of both chunks (which only the chunked move produces)
+	content, err := os.ReadFile(filepath.Join(source1Path, "public", "escape.bin"))
+	if err != nil {
+		t.Errorf("assembled file is not inside the user's scope: %v", err)
+	} else if string(content) != "ESCAPED!" {
+		t.Errorf("assembled content = %q, want %q", content, "ESCAPED!")
+	}
+	if _, statErr := os.Stat(filepath.Join(source1Path, "public", "escape.bin-chunk-0")); !os.IsNotExist(statErr) {
+		t.Errorf("a chunk was left behind: %v", statErr)
+	}
+	if _, statErr := os.Stat(filepath.Join(source1Path, "escape.bin")); !os.IsNotExist(statErr) {
+		t.Errorf("the climbing path escaped the scope: %v", statErr)
+	}
+
+	// a Destination that resolves somewhere else entirely is not a chunked upload, and the library
+	// refuses to move the chunk there
+	mustPutChunk(t, user, "", "other.bin", 0, "a")
+	mustPutChunk(t, user, "", "other.bin", 1, "b")
+	got = doSource1WebDAV(t, user, "MOVE", "/other.bin-chunk-1", nil, map[string]string{
+		"Destination": "/dav/source1/public/../../" + strings.Repeat("../", 20) + "tmp/fb_escape_probe.txt",
+	})
+	if got < 300 {
+		t.Errorf("MOVE to a destination outside the source: got %d, want an error", got)
+	}
+	if _, statErr := os.Stat("/tmp/fb_escape_probe.txt"); !os.IsNotExist(statErr) {
+		t.Fatalf("path traversal escaped the scope (status %d): %v", got, statErr)
+	}
+
+	// and no half-assembled file is left behind anywhere the user can see
+	entries, err := os.ReadDir(filepath.Join(source1Path, "public"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, entry := range entries {
+		if strings.Contains(entry.Name(), ".assembled") {
+			t.Errorf("assembled temp file left behind: %s", entry.Name())
+		}
+	}
+}
+
+func TestWebDAV_OwncloudChunkedUpload_PlainMoveStillWorks(t *testing.T) {
+	source1Path, _ := setupWebDAVTestEnv(t)
+	initTestIndex(t, "source1", source1Path)
+	user := chunkedUploadUser(source1Path, "/", chunkedUploadFullPerms())
+
+	// a real file whose name ends in -chunk-N, with no siblings, is an ordinary file
+	doSource1WebDAV(t, user, http.MethodPut, "/public/notes-chunk-1", strings.NewReader("just notes"), nil)
+	got := doSource1WebDAV(t, user, "MOVE", "/public/notes-chunk-1", nil, map[string]string{
+		"Destination": "/dav/source1/public/notes.txt",
+	})
+	if got != http.StatusCreated {
+		t.Fatalf("MOVE of a plain file: got %d, want 201", got)
+	}
+	content, err := os.ReadFile(filepath.Join(source1Path, "public", "notes.txt"))
+	if err != nil || string(content) != "just notes" {
+		t.Errorf("plain move lost the file: %v %q", err, content)
+	}
+}
+
+func TestWebDAV_OwncloudChunkedUpload_DoesNotDestroyCollidingTemp(t *testing.T) {
+	source1Path, _ := setupWebDAVTestEnv(t)
+	initTestIndex(t, "source1", source1Path)
+	user := chunkedUploadUser(source1Path, "/", chunkedUploadFullPerms())
+
+	// a user file that looks like our staging name must survive the upload
+	colliding := filepath.Join(source1Path, "public", ".video.mp4.assembled")
+	if err := os.WriteFile(colliding, []byte("user data"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	mustPutChunk(t, user, "/public", "video.mp4", 0, "hello ")
+	mustPutChunk(t, user, "/public", "video.mp4", 1, "world")
+	got := doSource1WebDAV(t, user, "MOVE", "/public/video.mp4-chunk-1", nil, map[string]string{
+		"Destination": "/dav/source1/public/video.mp4",
+	})
+	if got != http.StatusCreated {
+		t.Fatalf("MOVE: got %d, want 201", got)
+	}
+	if content, err := os.ReadFile(colliding); err != nil || string(content) != "user data" {
+		t.Errorf("the colliding file was destroyed: %v %q", err, content)
+	}
+	if content, err := os.ReadFile(filepath.Join(source1Path, "public", "video.mp4")); err != nil || string(content) != "hello world" {
+		t.Errorf("assembled content = %q, %v", content, err)
+	}
+}
+
+func TestWebDAV_OwncloudChunkedUpload_RecordsUploadNotTempMove(t *testing.T) {
+	source1Path, _ := setupWebDAVTestEnv(t)
+	initTestIndex(t, "source1", source1Path)
+	user := chunkedUploadUser(source1Path, "/", chunkedUploadFullPerms())
+
+	mustPutChunk(t, user, "/public", "audit.bin", 0, "aa")
+	mustPutChunk(t, user, "/public", "audit.bin", 1, "bb")
+	if got := doSource1WebDAV(t, user, "MOVE", "/public/audit.bin-chunk-1", nil, map[string]string{
+		"Destination": "/dav/source1/public/audit.bin",
+	}); got != http.StatusCreated {
+		t.Fatalf("MOVE: got %d, want 201", got)
+	}
+
+	activityrec.FlushNow()
+	rows, _, err := state.ListActivity(activitydb.QueryFilter{Limit: 100})
+	if err != nil {
+		t.Fatal(err)
+	}
+	var uploads, moves int
+	for _, row := range rows {
+		if strings.Contains(row.Path, ".assembled-") {
+			t.Errorf("activity recorded the hidden staging name: %s %q", row.EventType, row.Path)
+		}
+		switch row.EventType {
+		case activitydb.EventUpload:
+			uploads++
+			if row.Path != "/public/audit.bin" {
+				t.Errorf("upload recorded for %q, want /public/audit.bin", row.Path)
+			}
+		case activitydb.EventMove:
+			moves++
+		}
+	}
+	if uploads != 1 {
+		t.Errorf("expected exactly one upload entry, got %d", uploads)
+	}
+	if moves != 0 {
+		t.Errorf("expected no move entries for the staging file, got %d", moves)
+	}
+}
+
+func TestWebDAV_OwncloudChunkedUpload_SkipsSymlinkChunks(t *testing.T) {
+	source1Path, _ := setupWebDAVTestEnv(t)
+	initTestIndex(t, "source1", source1Path)
+	user := chunkedUploadUser(source1Path, "/", chunkedUploadFullPerms())
+
+	outside := filepath.Join(t.TempDir(), "outside-secret.txt")
+	if err := os.WriteFile(outside, []byte("OUTSIDE-SECRET"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Symlink(outside, filepath.Join(source1Path, "public", "link.bin-chunk-0")); err != nil {
+		t.Skipf("cannot create symlink: %v", err)
+	}
+	mustPutChunk(t, user, "/public", "link.bin", 1, "REAL")
+
+	got := doSource1WebDAV(t, user, "MOVE", "/public/link.bin-chunk-1", nil, map[string]string{
+		"Destination": "/dav/source1/public/link.bin",
+	})
+	if got != http.StatusCreated {
+		t.Fatalf("MOVE: got %d, want 201", got)
+	}
+	// with the symlink ignored only one chunk remains: this is a plain move of that chunk,
+	// and the outside file's content must never land in the destination
+	content, err := os.ReadFile(filepath.Join(source1Path, "public", "link.bin"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(string(content), "OUTSIDE") {
+		t.Errorf("symlink chunk content leaked into the destination: %q", content)
+	}
+	if string(content) != "REAL" {
+		t.Errorf("destination = %q, want %q", content, "REAL")
+	}
+}
+
+func TestWebDAV_OwncloudChunkedUpload_RequiresDeletePermission(t *testing.T) {
+	source1Path, _ := setupWebDAVTestEnv(t)
+	initTestIndex(t, "source1", source1Path)
+	user := chunkedUploadUser(source1Path, "/", users.SourceFilePermissions{
+		View: true, Download: true, Modify: true, Create: true,
+	})
+
+	mustPutChunk(t, user, "/public", "nodelete.bin", 0, "aa")
+	mustPutChunk(t, user, "/public", "nodelete.bin", 1, "bb")
+	got := doSource1WebDAV(t, user, "MOVE", "/public/nodelete.bin-chunk-1", nil, map[string]string{
+		"Destination": "/dav/source1/public/nodelete.bin",
+	})
+	if got != http.StatusForbidden {
+		t.Errorf("MOVE without delete permission: got %d, want 403", got)
+	}
+	// a denied transfer touches nothing
+	for _, name := range []string{"nodelete.bin-chunk-0", "nodelete.bin-chunk-1"} {
+		if _, err := os.Stat(filepath.Join(source1Path, "public", name)); err != nil {
+			t.Errorf("chunk %s was touched: %v", name, err)
+		}
+	}
+	if _, err := os.Stat(filepath.Join(source1Path, "public", "nodelete.bin")); !os.IsNotExist(err) {
+		t.Errorf("destination was written anyway: %v", err)
+	}
+}
+
+func TestWebDAV_OwncloudChunkedUpload_DeniedChunkTouchesNothing(t *testing.T) {
+	source1Path, _ := setupWebDAVTestEnv(t)
+	initTestIndex(t, "source1", source1Path)
+	user := chunkedUploadUser(source1Path, "/", chunkedUploadFullPerms())
+
+	mustPutChunk(t, user, "/public", "denied.bin", 0, "aa")
+	mustPutChunk(t, user, "/public", "denied.bin", 1, "bb")
+	if err := state.DenyUser(source1Path, utils.IndexPathFromNormalized("/public/denied.bin-chunk-0", false), "chunked-uploader"); err != nil {
+		t.Fatalf("failed to set up access rule: %v", err)
+	}
+	got := doSource1WebDAV(t, user, "MOVE", "/public/denied.bin-chunk-1", nil, map[string]string{
+		"Destination": "/dav/source1/public/denied.bin",
+	})
+	if got != http.StatusForbidden {
+		t.Errorf("MOVE over a denied chunk: got %d, want 403", got)
+	}
+	for _, name := range []string{"denied.bin-chunk-0", "denied.bin-chunk-1"} {
+		if _, err := os.Stat(filepath.Join(source1Path, "public", name)); err != nil {
+			t.Errorf("chunk %s was touched: %v", name, err)
+		}
+	}
+	if _, err := os.Stat(filepath.Join(source1Path, "public", "denied.bin")); !os.IsNotExist(err) {
+		t.Errorf("destination was written anyway: %v", err)
+	}
+}
+
+func TestWebDAV_OwncloudChunkedUpload_MovedChunkMustExist(t *testing.T) {
+	source1Path, _ := setupWebDAVTestEnv(t)
+	initTestIndex(t, "source1", source1Path)
+	user := chunkedUploadUser(source1Path, "/", chunkedUploadFullPerms())
+
+	mustPutChunk(t, user, "/public", "miss.bin", 0, "aa")
+	mustPutChunk(t, user, "/public", "miss.bin", 1, "bb")
+	got := doSource1WebDAV(t, user, "MOVE", "/public/miss.bin-chunk-5", nil, map[string]string{
+		"Destination": "/dav/source1/public/miss.bin",
+	})
+	if got != http.StatusNotFound {
+		t.Errorf("MOVE of a chunk that does not exist: got %d, want 404", got)
+	}
+	for _, name := range []string{"miss.bin-chunk-0", "miss.bin-chunk-1"} {
+		if _, err := os.Stat(filepath.Join(source1Path, "public", name)); err != nil {
+			t.Errorf("chunk %s was touched: %v", name, err)
+		}
+	}
+	if _, err := os.Stat(filepath.Join(source1Path, "public", "miss.bin")); !os.IsNotExist(err) {
+		t.Errorf("destination was written anyway: %v", err)
+	}
+}
+
+func TestOwncloudAssemblyInFlight(t *testing.T) {
+	dest := filepath.Join(t.TempDir(), "file.bin")
+	if !acquireOwncloudAssembly(dest) {
+		t.Fatal("first acquire should succeed")
+	}
+	if acquireOwncloudAssembly(dest) {
+		t.Error("second acquire for the same destination should fail while one is in flight")
+	}
+	if !acquireOwncloudAssembly(dest + ".other") {
+		t.Error("a different destination should not be blocked")
+	}
+	releaseOwncloudAssembly(dest + ".other")
+	releaseOwncloudAssembly(dest)
+	if !acquireOwncloudAssembly(dest) {
+		t.Error("acquire after release should succeed")
+	}
+	releaseOwncloudAssembly(dest)
+}
+
+func TestWebDAV_OwncloudChunkedUploadPathParsing(t *testing.T) {
+	cases := []struct {
+		path          string
+		base          string
+		ok            bool
+		chunkNumber   string
+		validChunkNum bool
+	}{
+		{"/public/video.mp4-chunk-0", "/public/video.mp4", true, "0", true},
+		{"/video.mp4-chunk-12", "/video.mp4", true, "12", true},
+		{"/video.mp4-chunk-", "", false, "", false},
+		{"/chunk-1", "", false, "1", true},
+		{"/public/readme.txt", "", false, "", false},
+		{"/public/video.mp4-chunk-00x", "", false, "00x", false},
+		{"/public/video.mp4-chunk-1234567890", "", false, "1234567890", false},
+	}
+	for _, tc := range cases {
+		base, _, ok := owncloudChunkParts(tc.path)
+		if base != tc.base || ok != tc.ok {
+			t.Errorf("owncloudChunkParts(%q) = %q, %v; want %q, %v", tc.path, base, ok, tc.base, tc.ok)
+		}
+		if got := isUploadChunkNumber(tc.chunkNumber); got != tc.validChunkNum {
+			t.Errorf("isUploadChunkNumber(%q) = %v, want %v", tc.chunkNumber, got, tc.validChunkNum)
+		}
+	}
+}
+
+func TestWebDAV_UploadDestinationPathIsCleaned(t *testing.T) {
+	cases := []struct {
+		destination string
+		want        string
+	}{
+		{"/dav/source1/public/file.txt", "/public/file.txt"},
+		{"/dav/source1/public/../../tmp/x.txt", "/tmp/x.txt"},
+		{"/dav/source1/public/" + strings.Repeat("../", 25) + "tmp/x.txt", "/tmp/x.txt"},
+		{"/dav/source1/", ""},
+		{"/dav/source1", ""},
+	}
+	for _, tc := range cases {
+		req := httptest.NewRequest("MOVE", "/dav/source1/public/x-chunk-0", nil)
+		req.Header.Set("Destination", tc.destination)
+		got, err := uploadDestinationPath(req, "/dav/source1")
+		if tc.want == "" {
+			if err == nil {
+				t.Errorf("uploadDestinationPath(%q) = %q, want an error", tc.destination, got)
+			}
+			continue
+		}
+		if err != nil || got != tc.want {
+			t.Errorf("uploadDestinationPath(%q) = %q, %v; want %q", tc.destination, got, err, tc.want)
+		}
+	}
+}
+
+func TestWebDAV_OwncloudChunkedUpload_IgnoresChunksAboveTheMovedOne(t *testing.T) {
+	source1Path, _ := setupWebDAVTestEnv(t)
+	initTestIndex(t, "source1", source1Path)
+	user := chunkedUploadUser(source1Path, "/", chunkedUploadFullPerms())
+
+	// chunk 2 is a leftover of an earlier, longer upload of the same name: the client closes this
+	// transfer with chunk 1, so only 0 and 1 belong to it
+	mustPutChunk(t, user, "/public", "mixed.bin", 0, "AAA")
+	mustPutChunk(t, user, "/public", "mixed.bin", 1, "BBB")
+	mustPutChunk(t, user, "/public", "mixed.bin", 2, "CCC")
+	got := doSource1WebDAV(t, user, "MOVE", "/public/mixed.bin-chunk-1", nil, map[string]string{
+		"Destination": "/dav/source1/public/mixed.bin",
+	})
+	if got != http.StatusCreated {
+		t.Fatalf("MOVE: got %d, want 201", got)
+	}
+	if content, err := os.ReadFile(filepath.Join(source1Path, "public", "mixed.bin")); err != nil || string(content) != "AAABBB" {
+		t.Errorf("assembled %q, %v; want %q", content, err, "AAABBB")
+	}
+	if _, err := os.Stat(filepath.Join(source1Path, "public", "mixed.bin-chunk-2")); err != nil {
+		t.Errorf("the chunk of another transfer was consumed: %v", err)
+	}
+}
+
+func TestWebDAV_OwncloudChunkedUpload_RejectsTwoFilesForOneChunk(t *testing.T) {
+	source1Path, _ := setupWebDAVTestEnv(t)
+	initTestIndex(t, "source1", source1Path)
+	user := chunkedUploadUser(source1Path, "/", chunkedUploadFullPerms())
+
+	mustPutChunk(t, user, "/public", "dup.bin", 0, "aaa")
+	mustPutChunk(t, user, "/public", "dup.bin", 1, "bbb")
+	// a hidden copy of a chunk, which clients that hide them would also leave behind
+	if err := os.WriteFile(filepath.Join(source1Path, "public", ".dup.bin-chunk-0"), []byte("zzz"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	got := doSource1WebDAV(t, user, "MOVE", "/public/dup.bin-chunk-1", nil, map[string]string{
+		"Destination": "/dav/source1/public/dup.bin",
+	})
+	if got != http.StatusConflict {
+		t.Errorf("MOVE with two files for one chunk: got %d, want 409", got)
+	}
+	if _, err := os.Stat(filepath.Join(source1Path, "public", "dup.bin")); !os.IsNotExist(err) {
+		t.Errorf("a file was written from an ambiguous transfer: %v", err)
+	}
+}

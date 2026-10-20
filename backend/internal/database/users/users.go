@@ -1,6 +1,7 @@
 package users
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -113,15 +114,65 @@ type MinimalAuthToken struct {
 }
 
 type Permissions struct {
-	Api      bool `json:"api"`                // allow api access
-	Admin    bool `json:"admin"`              // allow admin access
-	Modify   bool `json:"modify,omitempty"`   // deprecated: legacy user migration only; not used for API tokens
-	Share    bool `json:"share"`              // allow sharing files
-	Realtime bool `json:"realtime"`           // allow realtime updates
-	Delete   bool `json:"delete,omitempty"`   // deprecated: legacy user migration only; not used for API tokens
-	Create   bool `json:"create,omitempty"`   // deprecated: legacy user migration only; not used for API tokens
-	Download bool `json:"download,omitempty"` // deprecated: legacy user migration only; not used for API tokens
-	View     bool `json:"view,omitempty"`     // deprecated: legacy user migration only; not used for API tokens
+	Api        bool `json:"api"`                // allow api access
+	Admin      bool `json:"admin"`              // allow admin access
+	Modify     bool `json:"modify,omitempty"`   // deprecated: legacy user migration only; not used for API tokens
+	Share      bool `json:"share"`              // allow sharing files
+	Realtime   bool `json:"realtime"`           // allow realtime updates
+	Delete     bool `json:"delete,omitempty"`   // deprecated: legacy user migration only; not used for API tokens
+	Create     bool `json:"create,omitempty"`   // deprecated: legacy user migration only; not used for API tokens
+	Download   bool `json:"download,omitempty"` // deprecated: legacy user migration only; not used for API tokens
+	View       bool `json:"view,omitempty"`     // deprecated: legacy user migration only; not used for API tokens
+	Configured bool `json:"-"`                  // true when explicitly set on create (allows intentional deny-all); not persisted or API-visible
+
+	PresentGlobalKeys GlobalPermissionsFieldMask `json:"-"` // JSON keys present on create-user permissions object
+}
+
+// MarkPermissionsConfigured marks account permissions as explicitly set (including all-false).
+func MarkPermissionsConfigured(p Permissions) Permissions {
+	p.Configured = true
+	return p
+}
+
+// GlobalPermissionsFieldMaskFromPermissions returns keys recorded during Permissions JSON decode.
+func (p Permissions) GlobalPermissionsFieldMaskFromPermissions() GlobalPermissionsFieldMask {
+	return p.PresentGlobalKeys
+}
+
+// UnmarshalJSON sets Configured so an explicit all-false permissions object is distinct from omission.
+// JSON null and absent permissions do not set Configured.
+func (p *Permissions) UnmarshalJSON(data []byte) error {
+	trimmed := strings.TrimSpace(string(data))
+	if trimmed == "" || trimmed == "null" {
+		*p = Permissions{}
+		return nil
+	}
+	var obj map[string]json.RawMessage
+	if err := json.Unmarshal(data, &obj); err != nil {
+		return err
+	}
+	type plain Permissions
+	var tmp plain
+	if err := json.Unmarshal(data, &tmp); err != nil {
+		return err
+	}
+	*p = Permissions(tmp)
+	p.Configured = true
+	p.PresentGlobalKeys = GlobalPermissionsFieldMaskFromJSON(data)
+	return nil
+}
+
+// EffectiveGlobalPermissionsMask combines the caller-supplied field mask and the key
+// presence recorded by Permissions.UnmarshalJSON.
+func (u *User) EffectiveGlobalPermissionsMask() GlobalPermissionsFieldMask {
+	fromPerms := u.Permissions.GlobalPermissionsFieldMaskFromPermissions()
+	m := u.PermissionsFieldMask
+	return GlobalPermissionsFieldMask{
+		Admin:    m.Admin || fromPerms.Admin,
+		Api:      m.Api || fromPerms.Api,
+		Share:    m.Share || fromPerms.Share,
+		Realtime: m.Realtime || fromPerms.Realtime,
+	}
 }
 
 // SourceFilePermissions holds per-source file operation permissions (v4+).
@@ -206,6 +257,10 @@ type UserLegacyFields struct {
 type User struct {
 	FrontendUser
 	ID uint64 `json:"id,omitempty"`
+	// PermissionsFieldMask marks global permission keys a programmatic create caller
+	// explicitly supplied; not persisted. JSON create requests record key presence on
+	// Permissions.PresentGlobalKeys during decode instead.
+	PermissionsFieldMask GlobalPermissionsFieldMask `json:"-"`
 	// BackendScopes is the authoritative, persisted access list (SourceScope.Name = backend source path).
 	// SQLite stores this inside user_data JSON under the key "scopes" (see sqldb.UserData).
 	BackendScopes            []BackendScope                   `json:"backendScopes,omitempty"`
