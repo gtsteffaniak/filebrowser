@@ -496,8 +496,30 @@ func (ffs *filteredFileSystem) RemoveAll(ctx context.Context, requestPath string
 		return err
 	}
 
+	fileInfo, err := ffs.getFileInfo(requestPath, false)
+	if err != nil {
+		return err
+	}
+	sourceInfo, ok := settings.Config.Server.NameToSource[ffs.source]
+	if !ok {
+		return fmt.Errorf("source %s not found", ffs.source)
+	}
+	indexPath, _, err := files.CheckPermissions(utils.FileOptions{Path: requestPath, Source: ffs.source}, ffs.user)
+	if err != nil {
+		return err
+	}
+	deleteBytes := fileInfo.Size
+	isDir := fileInfo.Type == "directory"
+	if isDir {
+		deleteBytes, _ = state.IndexedPathBytes(ffs.source, indexPath, true)
+	}
+	adjustments := state.PrepareAccountedDelete(ffs.user, ffs.source, sourceInfo.Path, indexPath, "", isDir, deleteBytes)
+
 	if err := ffs.fs.RemoveAll(ctx, requestPath); err != nil {
 		return err
+	}
+	if err := state.ApplyAccountedDelete(adjustments); err != nil {
+		logger.Warningf("quota adjust after delete failed: %v", err)
 	}
 	activity.RecordWebDAVUser(ffs.httpReq, ffs.user, activitydb.Entry{
 		EventType: activitydb.EventDelete,
