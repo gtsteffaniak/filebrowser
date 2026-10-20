@@ -693,10 +693,7 @@ func (s *Storage) RemoveAllowUser(sourcePath string, indexPath utils.IndexPath, 
 	removed := exists
 	// If rule is now empty, remove it
 	if len(rule.Allow.Users) == 0 && len(rule.Allow.Groups) == 0 && len(rule.Deny.Users) == 0 && len(rule.Deny.Groups) == 0 {
-		delete(s.AllRules[sourcePath], normalizedPath)
-		if len(s.AllRules[sourcePath]) == 0 {
-			delete(s.AllRules, sourcePath)
-		}
+		s.deleteStoredRuleNL(sourcePath, normalizedPath)
 	}
 	if removed {
 		s.clearAllCaches()
@@ -722,10 +719,7 @@ func (s *Storage) RemoveAllowGroup(sourcePath string, indexPath utils.IndexPath,
 	removed := exists
 	// If rule is now empty, remove it
 	if len(rule.Allow.Users) == 0 && len(rule.Allow.Groups) == 0 && len(rule.Deny.Users) == 0 && len(rule.Deny.Groups) == 0 {
-		delete(s.AllRules[sourcePath], normalizedPath)
-		if len(s.AllRules[sourcePath]) == 0 {
-			delete(s.AllRules, sourcePath)
-		}
+		s.deleteStoredRuleNL(sourcePath, normalizedPath)
 	}
 	if removed {
 		s.clearAllCaches()
@@ -751,10 +745,7 @@ func (s *Storage) RemoveDenyUser(sourcePath string, indexPath utils.IndexPath, u
 	removed := exists
 	// If rule is now empty, remove it
 	if len(rule.Allow.Users) == 0 && len(rule.Allow.Groups) == 0 && len(rule.Deny.Users) == 0 && len(rule.Deny.Groups) == 0 {
-		delete(s.AllRules[sourcePath], normalizedPath)
-		if len(s.AllRules[sourcePath]) == 0 {
-			delete(s.AllRules, sourcePath)
-		}
+		s.deleteStoredRuleNL(sourcePath, normalizedPath)
 	}
 	if removed {
 		s.clearAllCaches()
@@ -780,10 +771,7 @@ func (s *Storage) RemoveDenyGroup(sourcePath string, indexPath utils.IndexPath, 
 	removed := exists
 	// If rule is now empty, remove it
 	if len(rule.Allow.Users) == 0 && len(rule.Allow.Groups) == 0 && len(rule.Deny.Users) == 0 && len(rule.Deny.Groups) == 0 {
-		delete(s.AllRules[sourcePath], normalizedPath)
-		if len(s.AllRules[sourcePath]) == 0 {
-			delete(s.AllRules, sourcePath)
-		}
+		s.deleteStoredRuleNL(sourcePath, normalizedPath)
 	}
 	if removed {
 		s.clearAllCaches()
@@ -809,10 +797,7 @@ func (s *Storage) RemoveDenyAll(sourcePath string, indexPath utils.IndexPath) (b
 	}
 	// If rule is now empty, remove it
 	if len(rule.Allow.Users) == 0 && len(rule.Allow.Groups) == 0 && len(rule.Deny.Users) == 0 && len(rule.Deny.Groups) == 0 {
-		delete(s.AllRules[sourcePath], normalizedPath)
-		if len(s.AllRules[sourcePath]) == 0 {
-			delete(s.AllRules, sourcePath)
-		}
+		s.deleteStoredRuleNL(sourcePath, normalizedPath)
 	}
 	if removed {
 		s.clearAllCaches()
@@ -847,10 +832,7 @@ func (s *Storage) RemoveAllRulesForUser(username string) error {
 				changed = true
 			}
 			if len(rule.Allow.Users) == 0 && len(rule.Allow.Groups) == 0 && len(rule.Deny.Users) == 0 && len(rule.Deny.Groups) == 0 {
-				delete(s.AllRules[sourcePath], indexPath)
-				if len(s.AllRules[sourcePath]) == 0 {
-					delete(s.AllRules, sourcePath)
-				}
+				s.deleteStoredRuleNL(sourcePath, indexPath)
 				touch(sourcePath, indexPath)
 			}
 		}
@@ -891,10 +873,7 @@ func (s *Storage) RemoveAllRulesForGroup(groupname string) error {
 				changed = true
 			}
 			if len(rule.Allow.Users) == 0 && len(rule.Allow.Groups) == 0 && len(rule.Deny.Users) == 0 && len(rule.Deny.Groups) == 0 {
-				delete(s.AllRules[sourcePath], indexPath)
-				if len(s.AllRules[sourcePath]) == 0 {
-					delete(s.AllRules, sourcePath)
-				}
+				s.deleteStoredRuleNL(sourcePath, indexPath)
 				touch(sourcePath, indexPath)
 			}
 		}
@@ -1169,18 +1148,13 @@ func (s *Storage) RemoveUserCascade(sourcePath string, indexPath utils.IndexPath
 			// If rule is now empty, mark it for deletion
 			if len(rule.Allow.Users) == 0 && len(rule.Allow.Groups) == 0 &&
 				len(rule.Deny.Users) == 0 && len(rule.Deny.Groups) == 0 && !rule.DenyAll {
-				delete(s.AllRules[sourcePath], rulePath)
+				s.deleteStoredRuleNL(sourcePath, rulePath)
 				pathChanged = true
 			}
 			if pathChanged {
 				touchedPaths[rulePath] = struct{}{}
 			}
 		}
-	}
-
-	// If no rules left for this source, remove the source entry
-	if len(s.AllRules[sourcePath]) == 0 {
-		delete(s.AllRules, sourcePath)
 	}
 
 	if changed {
@@ -1237,18 +1211,13 @@ func (s *Storage) RemoveGroupCascade(sourcePath string, indexPath utils.IndexPat
 			// If rule is now empty, mark it for deletion
 			if len(rule.Allow.Users) == 0 && len(rule.Allow.Groups) == 0 &&
 				len(rule.Deny.Users) == 0 && len(rule.Deny.Groups) == 0 && !rule.DenyAll {
-				delete(s.AllRules[sourcePath], rulePath)
+				s.deleteStoredRuleNL(sourcePath, rulePath)
 				pathChanged = true
 			}
 			if pathChanged {
 				touchedPaths[rulePath] = struct{}{}
 			}
 		}
-	}
-
-	// If no rules left for this source, remove the source entry
-	if len(s.AllRules[sourcePath]) == 0 {
-		delete(s.AllRules, sourcePath)
 	}
 
 	if changed {
