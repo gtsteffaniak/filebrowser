@@ -373,4 +373,32 @@ func TestExtractTarGz_hardLinks(t *testing.T) {
 	if err := extractTarGz(missing, t.TempDir(), nil); err == nil {
 		t.Fatal("expected an error for a hard link to a file that is not in the archive")
 	}
+
+	// A symlink entry replaces the extracted file before the hard link names it.
+	replaced := filepath.Join(t.TempDir(), "replaced.tar.gz")
+	writeTestTarGz(t, replaced, func(tw *tar.Writer) error {
+		if err := tw.WriteHeader(&tar.Header{Name: "a.txt", Mode: 0o644, Size: 4, Typeflag: tar.TypeReg}); err != nil {
+			return err
+		}
+		if _, err := io.WriteString(tw, "mine"); err != nil {
+			return err
+		}
+		if err := tw.WriteHeader(&tar.Header{Name: "a.txt", Mode: 0o777, Typeflag: tar.TypeSymlink, Linkname: "private/secret.txt"}); err != nil {
+			return err
+		}
+		return tw.WriteHeader(&tar.Header{Name: "b.txt", Mode: 0o644, Typeflag: tar.TypeLink, Linkname: "a.txt"})
+	})
+	replacedDest := t.TempDir()
+	if err := os.MkdirAll(filepath.Join(replacedDest, "private"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(replacedDest, "private", "secret.txt"), []byte("secret"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := extractTarGz(replaced, replacedDest, nil); err == nil {
+		t.Fatal("expected an error for a hard link whose target was replaced by a symlink")
+	}
+	if got, err := os.ReadFile(filepath.Join(replacedDest, "b.txt")); err == nil {
+		t.Fatalf("hard link entry copied the symlink target: %q", got)
+	}
 }
