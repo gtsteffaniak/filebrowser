@@ -172,9 +172,6 @@ func (s *SQLStore) MigrateAccessRulePathsLowercase(source string, oldPaths []str
 			return rollback(fmt.Errorf("failed to delete access rule: %w", err))
 		}
 	}
-	if err := s.saveSettingInTx(tx, settingAccessRulesLowercaseMigrated, true); err != nil {
-		return rollback(fmt.Errorf("failed to save access rules migration marker: %w", err))
-	}
 	if err := tx.Commit(); err != nil {
 		return fmt.Errorf("failed to commit access rule migration: %w", err)
 	}
