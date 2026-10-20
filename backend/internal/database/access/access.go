@@ -1,1 +1,1 @@
-@file:///tmp/mcp_cou_args_only.json
+/workspace/backend/internal/database/access/access.go
