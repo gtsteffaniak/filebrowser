@@ -237,12 +237,14 @@ type fstatatFileInfo struct {
 	stat unix.Stat_t
 }
 
-func (f *fstatatFileInfo) Name() string       { return f.name }
-func (f *fstatatFileInfo) Size() int64        { return f.stat.Size }
-func (f *fstatatFileInfo) Mode() os.FileMode  { return modeFromStatx(uint16(f.stat.Mode)) }
-func (f *fstatatFileInfo) ModTime() time.Time { return time.Unix(f.stat.Mtim.Sec, f.stat.Mtim.Nsec) }
-func (f *fstatatFileInfo) IsDir() bool        { return f.stat.Mode&unix.S_IFMT == unix.S_IFDIR }
-func (f *fstatatFileInfo) Sys() interface{}   { return f }
+func (f *fstatatFileInfo) Name() string      { return f.name }
+func (f *fstatatFileInfo) Size() int64       { return f.stat.Size }
+func (f *fstatatFileInfo) Mode() os.FileMode { return modeFromStatx(uint16(f.stat.Mode)) }
+func (f *fstatatFileInfo) ModTime() time.Time {
+	return time.Unix(int64(f.stat.Mtim.Sec), int64(f.stat.Mtim.Nsec))
+}
+func (f *fstatatFileInfo) IsDir() bool      { return f.stat.Mode&unix.S_IFMT == unix.S_IFDIR }
+func (f *fstatatFileInfo) Sys() interface{} { return f }
 
 // unixFileDetails provides size/nlink/ino from the fstatat result so callers
 // never need a second path-based stat.
