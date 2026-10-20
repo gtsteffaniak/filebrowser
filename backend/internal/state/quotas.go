@@ -671,6 +671,69 @@ func ForceCommitSessionQuota(sessionID string, deltaBytes int64) error {
 	return nil
 }
 
+// PrepareAccountedDelete captures quota adjustments while deleted paths are still indexed.
+// Unknown sizes are omitted; descendant quotas are measured independently.
+func PrepareAccountedDelete(principal *users.User, sourceName, sourcePath, indexPath, shareHash string, isDir bool, itemBytes int64) map[string]int64 {
+	adjustments := make(map[string]int64)
+	if principal == nil {
+		return adjustments
+	}
+	// Copy definitions under the quota lock, then perform index lookups outside it.
+	for _, fq := range ListFolderQuotasForSource(sourcePath) {
+		if fq.LimitBytes <= 0 || (fq.UserID != 0 && fq.UserID != principal.ID) {
+			continue
+		}
+		if quota.EffectiveMeter(configuredFolderMeter(fq), sourceName, fq.Path) != quota.MeterAccounted {
+			continue
+		}
+		size := itemBytes
+		if !indexPathCovers(fq.Path, indexPath) {
+			if !isDir || !indexPathCovers(indexPath, fq.Path) {
+				continue
+			}
+			var ok bool
+			size, ok = IndexedPathBytes(sourceName, fq.Path, true)
+			if !ok {
+				continue
+			}
+		}
+		if size > 0 {
+			adjustments[fq.ID] = -size
+		}
+	}
+	if itemBytes > 0 {
+		for _, bs := range principal.BackendScopes {
+			if bs.Path != sourcePath || bs.Quota == nil || bs.Quota.LimitBytes <= 0 {
+				continue
+			}
+			configured := bs.Quota.Meter
+			if configured == "" {
+				configured = quota.MeterIndexScope
+			}
+			if quota.EffectiveMeter(configured, sourceName, scopeIndexPath(principal, sourceName)) == quota.MeterAccounted {
+				adjustments[bs.Quota.ID] = -itemBytes
+			}
+		}
+		if shareHash != "" {
+			adjustments[quota.ShareQuotaID(shareHash)] = -itemBytes
+		}
+	}
+	return adjustments
+}
+
+// ApplyAccountedDelete applies prepared adjustments only after a successful deletion.
+func ApplyAccountedDelete(adjustments map[string]int64) error {
+	quotasMux.Lock()
+	defer quotasMux.Unlock()
+	defer signalQuotaFlush()
+	for id, delta := range adjustments {
+		if err := applyCounterDeltaLocked(id, delta); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // ApplyAccountedUsageDelta adjusts accounted and share quota counters for a path (negative delta frees space).
 func ApplyAccountedUsageDelta(principal *users.User, sourceName, sourcePath, indexPath, shareHash string, delta int64) error {
 	if delta == 0 || principal == nil {
