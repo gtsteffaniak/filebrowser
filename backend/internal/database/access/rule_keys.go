@@ -45,12 +45,26 @@ func (s *Storage) StartupMigrateAccessRuleKeys() error {
 			return err
 		}
 	}
-	return nil
+	if s.sqlStore == nil {
+		return nil
+	}
+	migrated, err := s.sqlStore.AccessRulesLowercaseMigrated()
+	if err != nil {
+		return err
+	}
+	if migrated {
+		return nil
+	}
+	return s.sqlStore.SetAccessRulesLowercaseMigrated()
 }
 
 func (s *Storage) migrateSourceRulesLowercaseNL(sourcePath string) error {
 	rulesBySource, ok := s.AllRules[sourcePath]
 	if !ok || len(rulesBySource) == 0 {
+		return nil
+	}
+
+	if !rulesNeedLowercaseMigration(rulesBySource) {
 		return nil
 	}
 
@@ -69,10 +83,6 @@ func (s *Storage) migrateSourceRulesLowercaseNL(sourcePath string) error {
 		if lower != path {
 			logger.Infof("access rules: migrated rule path %q -> %q on source %s", path, lower, sourcePath)
 		}
-	}
-
-	if !rulesNeedLowercaseMigration(rulesBySource) {
-		return nil
 	}
 
 	s.AllRules[sourcePath] = newRules

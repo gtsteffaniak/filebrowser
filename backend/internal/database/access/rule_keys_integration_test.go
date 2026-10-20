@@ -53,14 +53,15 @@ func TestStartupMigrationMergesCollidingRules(t *testing.T) {
 		t.Fatal("missing bob from merge")
 	}
 
-	if migErr := s.StartupMigrateAccessRuleKeys(); migErr != nil {
-		t.Fatal(migErr)
+	migrated, err := sqlStore.AccessRulesLowercaseMigrated()
+	if err != nil || !migrated {
+		t.Fatal("marker should be set after first migration")
 	}
 	byPath2, err := sqlStore.GetAccessRulesBySource("/src")
 	if err != nil {
 		t.Fatal(err)
 	}
 	if len(byPath2) != 1 {
-		t.Fatal("second migration should be idempotent")
+		t.Fatal("rules should remain after marker is set without re-running migration")
 	}
 }

@@ -126,6 +126,8 @@ type SQLPersister interface {
 	SaveAccessRule(source, path string, rule *AccessRule) error
 	DeleteAccessRule(source, path string) error
 	MigrateAccessRulePathsLowercase(source string, oldPaths []string, newRules RuleMap) error
+	AccessRulesLowercaseMigrated() (bool, error)
+	SetAccessRulesLowercaseMigrated() error
 	SaveGroup(name string, members StringSet) error
 	DeleteGroup(name string) error
 	DeleteGroupWithRules(name string, save []RuleUpsert, remove []RuleKey) error

@@ -14,6 +14,8 @@ type failingRevokePersister struct{}
 
 func (failingRevokePersister) SaveAccessRule(string, string, *access.AccessRule) error { return nil }
 func (failingRevokePersister) DeleteAccessRule(string, string) error                   { return nil }
+func (failingRevokePersister) AccessRulesLowercaseMigrated() (bool, error) { return false, nil }
+func (failingRevokePersister) SetAccessRulesLowercaseMigrated() error      { return nil }
 func (failingRevokePersister) MigrateAccessRulePathsLowercase(string, []string, access.RuleMap) error {
 	return nil
 }

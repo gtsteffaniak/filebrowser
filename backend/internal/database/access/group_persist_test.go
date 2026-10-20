@@ -16,6 +16,8 @@ type stubGroupSQL struct {
 
 func (s *stubGroupSQL) SaveAccessRule(string, string, *access.AccessRule) error { return nil }
 func (s *stubGroupSQL) DeleteAccessRule(string, string) error                  { return nil }
+func (s *stubGroupSQL) AccessRulesLowercaseMigrated() (bool, error) { return false, nil }
+func (s *stubGroupSQL) SetAccessRulesLowercaseMigrated() error      { return nil }
 func (s *stubGroupSQL) MigrateAccessRulePathsLowercase(string, []string, access.RuleMap) error {
 	return nil
 }
@@ -46,6 +48,8 @@ type recordingGroupSQL struct {
 
 func (s *recordingGroupSQL) SaveAccessRule(string, string, *access.AccessRule) error { return nil }
 func (s *recordingGroupSQL) DeleteAccessRule(string, string) error                  { return nil }
+func (s *recordingGroupSQL) AccessRulesLowercaseMigrated() (bool, error) { return false, nil }
+func (s *recordingGroupSQL) SetAccessRulesLowercaseMigrated() error      { return nil }
 func (s *recordingGroupSQL) MigrateAccessRulePathsLowercase(string, []string, access.RuleMap) error {
 	return nil
 }

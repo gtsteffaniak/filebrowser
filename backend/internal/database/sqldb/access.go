@@ -3,10 +3,31 @@ package sqldb
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/access"
 )
+
+// settingAccessRulesLowercaseMigrated marks that access rule paths were normalized to lowercase.
+const settingAccessRulesLowercaseMigrated = "access_rules_lowercase_migrated"
+
+// AccessRulesLowercaseMigrated reports whether the one-time lowercase migration has completed.
+func (s *SQLStore) AccessRulesLowercaseMigrated() (bool, error) {
+	_, err := s.GetSetting(settingAccessRulesLowercaseMigrated)
+	if err != nil {
+		if errors.Is(err, ErrSettingNotFound) {
+			return false, nil
+		}
+		return false, err
+	}
+	return true, nil
+}
+
+// SetAccessRulesLowercaseMigrated records that the lowercase migration finished (empty DBs too).
+func (s *SQLStore) SetAccessRulesLowercaseMigrated() error {
+	return s.SaveSetting(settingAccessRulesLowercaseMigrated, true)
+}
 
 // Access rules SQL operations
 
@@ -150,6 +171,9 @@ func (s *SQLStore) MigrateAccessRulePathsLowercase(source string, oldPaths []str
 		if _, err := tx.Exec(`DELETE FROM access_rules WHERE source = ? AND path = ?`, source, old); err != nil {
 			return rollback(fmt.Errorf("failed to delete access rule: %w", err))
 		}
+	}
+	if err := s.saveSettingInTx(tx, settingAccessRulesLowercaseMigrated, true); err != nil {
+		return rollback(fmt.Errorf("failed to save access rules migration marker: %w", err))
 	}
 	if err := tx.Commit(); err != nil {
 		return fmt.Errorf("failed to commit access rule migration: %w", err)
