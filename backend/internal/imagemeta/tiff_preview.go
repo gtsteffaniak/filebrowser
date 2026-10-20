@@ -9,11 +9,18 @@ import (
 )
 
 const (
+	tiffTagStripOffsets       = 0x0111
+	tiffTagOrientation        = 0x0112
+	tiffTagStripByteCounts    = 0x0117
 	tiffTagSubIFDs            = 0x014a
 	tiffTagJpgFromRaw         = 0x002e
 	tiffTagJPEGInterchange    = 0x0201
 	tiffTagJPEGInterchangeLen = 0x0202
 	tiffIFDScanLimit          = 4 * 1024 * 1024
+	tiffMagicStandard         = 42
+	tiffMagicPanasonicRW2     = 0x0055
+	tiffMagicOlympusORF1      = 0x4f52
+	tiffMagicOlympusORF2      = 0x5352
 	tiffTypeByte              = 1
 	tiffTypeASCII             = 2
 	tiffTypeShort             = 3
@@ -97,11 +104,48 @@ func collectTIFFPreviewCandidates(f *os.File) ([]previewCandidate, error) {
 	for _, ifd := range ifds {
 		out = appendPreviewCandidates(out, jpgFromRawCandidates(ifd))
 		out = appendPreviewCandidates(out, jpegInterchangeCandidates(ifd))
+		out = appendPreviewCandidates(out, stripPreviewCandidates(ifd, order))
 		if len(out) >= maxTIFFPreviewCandidates {
 			break
 		}
 	}
 	return out, nil
+}
+
+// extractTIFFOrientation reads standard TIFF IFD0 Orientation (0x0112) as a fallback
+// when full EXIF decoding fails.
+func extractTIFFOrientation(f *os.File) uint16 {
+	info, err := f.Stat()
+	if err != nil {
+		return 0
+	}
+	scanSize := info.Size()
+	if scanSize > tiffIFDScanLimit {
+		scanSize = tiffIFDScanLimit
+	}
+	if scanSize < 8 {
+		return 0
+	}
+	header := make([]byte, scanSize)
+	n, err := f.ReadAt(header, 0)
+	if err != nil && err != io.EOF {
+		return 0
+	}
+	header = header[:n]
+
+	order, ifd0, ok := tiffHeaderIFD0(header)
+	if !ok || ifd0 == 0 {
+		return 0
+	}
+	ifd, _, _, err := parseTIFFIFD(header, order, ifd0)
+	if err != nil {
+		return 0
+	}
+	tag, ok := ifd.tags[tiffTagOrientation]
+	if !ok || tag.count == 0 {
+		return 0
+	}
+	return tiffTagFirstUint16(tag, order)
 }
 
 func appendPreviewCandidates(dst, src []previewCandidate) []previewCandidate {
@@ -144,6 +188,45 @@ func jpegInterchangeCandidates(ifd tiffIFD) []previewCandidate {
 	return []previewCandidate{{offset: offset, length: length}}
 }
 
+func stripPreviewCandidates(ifd tiffIFD, order binary.ByteOrder) []previewCandidate {
+	offTag, okOff := ifd.tags[tiffTagStripOffsets]
+	lenTag, okLen := ifd.tags[tiffTagStripByteCounts]
+	if !okOff || !okLen || offTag.count != 1 || lenTag.count != 1 {
+		return nil
+	}
+	offset := tiffTagScalarUint32(offTag, order)
+	length := tiffTagScalarUint32(lenTag, order)
+	if offset == 0 || length <= 4 || length > maxPreviewReadSize {
+		return nil
+	}
+	return []previewCandidate{{offset: offset, length: length}}
+}
+
+func tiffTagScalarUint32(t tiffTag, order binary.ByteOrder) uint32 {
+	switch t.typ {
+	case tiffTypeLong, tiffTypeIFD:
+		return t.valueOffset
+	case tiffTypeShort:
+		return uint32(tiffTagFirstUint16(t, order))
+	default:
+		return 0
+	}
+}
+
+func tiffTagFirstUint16(t tiffTag, order binary.ByteOrder) uint16 {
+	switch t.typ {
+	case tiffTypeShort:
+		if order == binary.BigEndian {
+			return uint16(t.valueOffset >> 16)
+		}
+		return uint16(t.valueOffset & 0xffff)
+	case tiffTypeLong:
+		return uint16(t.valueOffset)
+	default:
+		return 0
+	}
+}
+
 func tiffHeaderIFD0(data []byte) (binary.ByteOrder, uint32, bool) {
 	if len(data) < 8 {
 		return nil, 0, false
@@ -157,7 +240,9 @@ func tiffHeaderIFD0(data []byte) (binary.ByteOrder, uint32, bool) {
 	default:
 		return nil, 0, false
 	}
-	if order.Uint16(data[2:4]) != 42 {
+	switch order.Uint16(data[2:4]) {
+	case tiffMagicStandard, tiffMagicPanasonicRW2, tiffMagicOlympusORF1, tiffMagicOlympusORF2:
+	default:
 		return nil, 0, false
 	}
 	return order, order.Uint32(data[4:8]), true
