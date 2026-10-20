@@ -104,7 +104,7 @@ const MD_SANITIZE_CONFIG = { USE_PROFILES: { html: true, mathMl: true }, ADD_TAG
 const marked = new Marked({ gfm: true });
 marked.use({
   extensions: [{
-    name: "blockKatexInterrupt",
+    name: "blockMathInterrupt",
     level: "block",
     start(src: string) {
       const m = src.match(/\n\${1,2}[ \t]*(?:\n|$)/);
@@ -114,30 +114,82 @@ marked.use({
   }],
 });
 
-// Lazy load katex + mhchem (math + chemistry) -- so md files that don't have math/chemistry notation simply will not load katex
+// Lazy load temml (math + chemistry) -- so md files that don't have math/chemistry notation simply will not load temml
 // making the file load more faster, similar thing to the async components.
 const MATH_PATTERN = /\$\$[\s\S]+?\$\$|\$[^\s$][^$\n]*\$/;
+const INLINE_MATH_RULE = /^(\${1,2})(?!\$)((?:\\.|[^\\\n])*?(?:\\.|[^\\\n$]))\1(?=[\s?!.,:？！。，：]|$)/;
+const BLOCK_MATH_RULE = /^(\${1,2})\n((?:\\[\s\S]|[^\\])+?)\n\1(?:\n|$)/;
 function contentHasMath(content: string): boolean {
   return MATH_PATTERN.test(content);
 }
-let katexLoaded = false;
-let katexPromise: Promise<void> | null = null;
-function loadKatex(): Promise<void> {
-  if (katexLoaded) return Promise.resolve();
-  if (katexPromise === null) {
-    katexPromise = Promise.all([
-      import("marked-katex-extension"),
-      import("katex/contrib/mhchem"), // To render chemistry formulas
-    ]).then(([{ default: markedKatex }]) => {
-      marked.use(markedKatex({ throwOnError: false, output: "mathml" }));
-      katexLoaded = true;
+let mathLoaded = false;
+let mathPromise: Promise<void> | null = null;
+function loadMath(): Promise<void> {
+  if (mathLoaded) return Promise.resolve();
+  if (mathPromise === null) {
+    mathPromise = import("temml").then(({ default: temml }) => {
+      const renderMath = (token: { text?: string; displayMode?: boolean }, newlineAfter: boolean) =>
+        temml.renderToString(token.text ?? "", { throwOnError: false, displayMode: Boolean(token.displayMode) }) + (newlineAfter ? "\n" : "");
+      marked.use({
+        extensions: [
+          {
+            name: "inlineMath",
+            level: "inline",
+            start(src: string) {
+              let indexSrc = src;
+              while (indexSrc) {
+                const index = indexSrc.indexOf("$");
+                if (index === -1) return undefined;
+                if (index === 0 || indexSrc.charAt(index - 1) === " ") {
+                  if (INLINE_MATH_RULE.test(indexSrc.substring(index))) {
+                    return index;
+                  }
+                }
+                indexSrc = indexSrc.substring(index + 1).replace(/^\$+/, "");
+              }
+              return undefined;
+            },
+            tokenizer(src: string) {
+              const match = src.match(INLINE_MATH_RULE);
+              if (!match?.[1] || !match[2]) return undefined;
+              return {
+                type: "inlineMath",
+                raw: match[0],
+                text: match[2].trim(),
+                displayMode: match[1].length === 2,
+              };
+            },
+            renderer(token) {
+              return renderMath(token as { text?: string; displayMode?: boolean }, false);
+            },
+          },
+          {
+            name: "blockMath",
+            level: "block",
+            tokenizer(src: string) {
+              const match = src.match(BLOCK_MATH_RULE);
+              if (!match?.[1] || !match[2]) return undefined;
+              return {
+                type: "blockMath",
+                raw: match[0],
+                text: match[2].trim(),
+                displayMode: match[1].length === 2,
+              };
+            },
+            renderer(token) {
+              return renderMath(token as { text?: string; displayMode?: boolean }, true);
+            },
+          },
+        ],
+      });
+      mathLoaded = true;
     }).catch((err) => {
-      console.error("Failed to load katex:", err);
-      katexPromise = null;
+      console.error("Failed to load temml:", err);
+      mathPromise = null;
       throw err;
     });
   }
-  return katexPromise;
+  return mathPromise;
 }
 
 // Void elements that not always need a closing tag
@@ -184,7 +236,7 @@ const scrollContainer = ref<HTMLElement | null>(null);
 const viewerEl = ref<HTMLElement | null>(null);
 
 const content = ref("");
-const katexReady = ref(false);
+const mathReady = ref(false);
 
 const scrollGuard = createScrollSyncGuard();
 let boundScrollEl: HTMLElement | null = null;
@@ -221,7 +273,7 @@ const htmlPreview = computed(() => {
 });
 
 const renderedContent = computed(() => {
-  void katexReady.value;
+  void mathReady.value;
   return parseMarkdown(content.value, state.req.path ?? "", state.req.source ?? "");
 });
 
@@ -247,8 +299,8 @@ const htmlViewerStyle = computed(() => {
 
 // We now watch the `content` property.
 watch(content, () => {
-  if (!katexLoaded && contentHasMath(content.value)) {
-    void loadKatex().then(() => { katexReady.value = true; }).catch(() => { /* logged inside loadKatex above */ });
+  if (!mathLoaded && contentHasMath(content.value)) {
+    void loadMath().then(() => { mathReady.value = true; }).catch(() => { /* logged inside loadMath above */ });
   }
   const target = isLoadingNewContent
     ? state.editor.scrollRatio
