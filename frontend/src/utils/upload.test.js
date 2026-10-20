@@ -26,7 +26,7 @@ vi.mock("@/utils/appNotifications", () => ({
 
 import { resourcesApi } from "@/api";
 import { notify } from "@/notify";
-import { state } from "@/store";
+import { mutations, state } from "@/store";
 import { getters } from "@/store/getters";
 import { isSameSize, numberedName, uploadManager } from "./upload";
 
@@ -394,5 +394,44 @@ describe("conflicts on loose files", () => {
 
     expect(onConflict).not.toHaveBeenCalled();
     expect(uploadManager.queue).toHaveLength(2);
+  });
+});
+
+describe("hasOngoingUploads", () => {
+  it("treats paused uploads as in progress", () => {
+    addUpload("paused");
+    uploadManager.activeUploads = 0;
+    expect(uploadManager.hasOngoingUploads()).toBe(true);
+  });
+
+  it("is false when the queue has only finished uploads", () => {
+    addUpload("completed");
+    uploadManager.activeUploads = 0;
+    expect(uploadManager.hasOngoingUploads()).toBe(false);
+  });
+
+  it("keeps isUploading true while uploads are paused", async () => {
+    addUpload("paused");
+    uploadManager.activeUploads = 0;
+    await uploadManager.processQueue();
+    expect(mutations.setIsUploading).toHaveBeenCalledWith(true);
+  });
+
+  it("clears isUploading when the last paused upload is cancelled", () => {
+    const item = addUpload("paused");
+    uploadManager.activeUploads = 0;
+    mutations.setIsUploading.mockClear();
+    uploadManager.cancel(item.id);
+    expect(mutations.setIsUploading).toHaveBeenCalledWith(false);
+  });
+
+  it("clears isUploading when clearAll removes the last paused upload", () => {
+    state.user.fileLoading.clearAll = true;
+    addUpload("paused");
+    uploadManager.activeUploads = 0;
+    mutations.setIsUploading.mockClear();
+    uploadManager.clearCompleted();
+    expect(mutations.setIsUploading).toHaveBeenCalledWith(false);
+    state.user.fileLoading.clearAll = false;
   });
 });

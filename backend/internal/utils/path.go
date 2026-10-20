@@ -84,3 +84,23 @@ func AddTrailingSlashIfNotExists(indexPath string) string {
 	}
 	return indexPath
 }
+
+// RewritePathPrefix rewrites sharePath when it is exactly oldPrefix or beneath it, swapping the
+// prefix for newPrefix. Comparison is slash-aware (trailing slashes normalized), so a sibling path
+// that merely shares a leading substring ("/backup/photos/" vs oldPrefix "/photos") does not match.
+// A trailing slash on sharePath (directory convention) is preserved. Returns matches=false with the
+// input unchanged on no match.
+func RewritePathPrefix(sharePath, oldPrefix, newPrefix string) (rewritten string, matches bool) {
+	oldPrefix = AddTrailingSlashIfNotExists(oldPrefix)
+	newPrefix = AddTrailingSlashIfNotExists(newPrefix)
+	norm := AddTrailingSlashIfNotExists(sharePath)
+	if !strings.HasPrefix(norm, oldPrefix) {
+		return sharePath, false
+	}
+	suffix := strings.TrimPrefix(norm, oldPrefix)
+	rewritten = strings.TrimSuffix(newPrefix+suffix, "/")
+	if strings.HasSuffix(sharePath, "/") {
+		rewritten = AddTrailingSlashIfNotExists(rewritten)
+	}
+	return rewritten, true
+}

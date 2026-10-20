@@ -4,13 +4,12 @@ import (
 	stderrors "errors"
 	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
-	"github.com/gtsteffaniak/filebrowser/backend/internal/errors"
-	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/crud"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/errors"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
@@ -137,23 +136,18 @@ func (s *Storage) UpdateShares(oldSource, oldPath, newSource, newPath string) (i
 		return 0, err
 	}
 
-	oldPath = utils.AddTrailingSlashIfNotExists(oldPath)
-	newPath = utils.AddTrailingSlashIfNotExists(newPath)
-
 	updated := 0
 	for _, l := range links {
 		if l == nil || l.SourcePath != oldSource {
 			continue
 		}
-		l.Path = utils.AddTrailingSlashIfNotExists(l.Path)
-
-		pos := strings.Index(l.Path, oldPath)
-		if pos < 0 {
+		rewrittenPath, matches := utils.RewritePathPrefix(l.Path, oldPath, newPath)
+		if !matches {
 			continue
 		}
 
 		l.SourcePath = newSource
-		l.Path = newPath
+		l.Path = rewrittenPath
 
 		if err := s.back.Save(l); err != nil {
 			logger.Error("failed to save updated share", "hash", l.Hash, "error", err)

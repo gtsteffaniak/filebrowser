@@ -5,7 +5,12 @@ import i18n from "@/i18n";
 import { getters, mutations, state } from "@/store";
 import { validateLogin } from "@/utils/auth";
 import { sanitizePostLoginRedirect } from "@/utils/safeRedirect.js";
-import { globalVars } from "@/utils/constants";
+import { globalVars } from "@/utils/constants.js";
+import {
+  evaluateUploadNavigationGuard,
+  isDifferentAppRoute,
+  showUploadNavigationConfirm,
+} from "@/utils/uploadNavigationGuard";
 import Errors from "@/views/Errors.vue";
 import Files from "@/views/Files.vue";
 import Layout from "@/views/Layout.vue";
@@ -175,6 +180,19 @@ router.beforeResolve(async (to, from, next) => {
     console.warn("Avoiding recursive navigation to the same route.");
     next(false);
     return;
+  }
+
+  if (isDifferentAppRoute(to, from)) {
+    const uploadNav = evaluateUploadNavigationGuard(to);
+    if (uploadNav === "block") {
+      next(false);
+      return;
+    }
+    if (uploadNav === "prompt") {
+      showUploadNavigationConfirm(to, router);
+      next(false);
+      return;
+    }
   }
 
   // Clear any popup previews when navigating
