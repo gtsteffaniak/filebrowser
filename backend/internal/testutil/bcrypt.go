@@ -37,7 +37,7 @@ func QuietLogging() {
 	logger.DisableCompatibilityMode()
 	if err := logger.EnableCompatibilityMode(logger.JsonConfig{
 		Levels:   "error|fatal",
-		Output:   os.Stderr.Name(),
+		Output:   "stdout",
 		NoColors: true,
 	}); err != nil {
 		log.Println("[ERROR] Failed to set up quiet test logger:", err)

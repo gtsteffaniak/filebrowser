@@ -115,14 +115,8 @@ func TestSecondStartupSkipsAccessRulesMigration(t *testing.T) {
 	}
 	s2.AllRules = rules2
 	s2.SetSQLStore(counter)
-	done, err := sqlStore.AccessRulesLowercaseMigrated()
-	if err != nil {
+	if err = s2.StartupMigrateAccessRuleKeys(); err != nil {
 		t.Fatal(err)
-	}
-	if !done {
-		if err := s2.StartupMigrateAccessRuleKeys(); err != nil {
-			t.Fatal(err)
-		}
 	}
 	if counter.calls != 1 {
 		t.Fatalf("second startup must not invoke SQL migration, got %d calls", counter.calls)

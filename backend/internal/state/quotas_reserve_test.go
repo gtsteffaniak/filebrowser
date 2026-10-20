@@ -2,6 +2,8 @@ package state
 
 import (
 	"testing"
+
+	"github.com/gtsteffaniak/filebrowser/backend/internal/database/quota"
 )
 
 func withCleanQuotaReservations(t *testing.T) {
@@ -82,5 +84,43 @@ func TestReserveQuota_multiCheckAtomicOnFailure(t *testing.T) {
 	}
 	if got := SessionReservedForQuota("q-tight"); got != 0 {
 		t.Fatalf("failed quota must not be reserved, got=%d", got)
+	}
+}
+
+// Accounted meters run counter ensure before any reservation mutation; a failed batch must
+// leave session reservations unchanged (two-pass ReserveQuota).
+func TestReserveQuota_accountedBatchAtomicOnFailure(t *testing.T) {
+	withCleanQuotaReservations(t)
+	if sqlDb == nil {
+		t.Skip("requires initialized SQL store for accounted quota counters")
+	}
+
+	first := QuotaReserveCheck{
+		QuotaID:    "q-accounted-a",
+		Kind:       "share",
+		Meter:      quota.MeterAccounted,
+		LimitBytes: 1000,
+		UsedBytes:  0,
+		DeltaBytes: 100,
+	}
+	if err := ReserveQuota("sess-acct", []QuotaReserveCheck{first}); err != nil {
+		t.Fatalf("setup reserve: %v", err)
+	}
+	if got := SessionReservedForQuota("q-accounted-a"); got != 100 {
+		t.Fatalf("setup reserved=%d", got)
+	}
+
+	batch := []QuotaReserveCheck{
+		{QuotaID: "q-accounted-a", Kind: "share", Meter: quota.MeterAccounted, LimitBytes: 1000, UsedBytes: 0, DeltaBytes: 500},
+		{QuotaID: "q-accounted-b", Kind: "share", Meter: quota.MeterAccounted, LimitBytes: 50, UsedBytes: 0, DeltaBytes: 60},
+	}
+	if err := ReserveQuota("sess-acct", batch); err == nil {
+		t.Fatal("expected second accounted quota in batch to fail")
+	}
+	if got := SessionReservedForQuota("q-accounted-a"); got != 100 {
+		t.Fatalf("first accounted reservation must be unchanged after failed batch, reserved=%d", got)
+	}
+	if got := SessionReservedForQuota("q-accounted-b"); got != 0 {
+		t.Fatalf("failed accounted quota must not be reserved, got=%d", got)
 	}
 }
