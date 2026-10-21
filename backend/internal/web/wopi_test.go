@@ -452,9 +452,9 @@ func newWopiHostFixture(t *testing.T, perms users.SourceFilePermissions) *wopiHo
 			RealPath: realPath,
 		}, nil
 	}
-	files.WriteFileFunc = func(source, path string, in io.Reader) error {
-		if source != "srv" || path != "/docs/report.docx" {
-			t.Errorf("WriteFile(%q, %q): unexpected target", source, path)
+	files.WriteFileFunc = func(source, boundIndexPath, path string, in io.Reader) error {
+		if source != "srv" || boundIndexPath != "/" || path != "/docs/report.docx" {
+			t.Errorf("WriteFile(%q, %q, %q): unexpected target", source, boundIndexPath, path)
 		}
 		data, err := io.ReadAll(in)
 		if err != nil {
