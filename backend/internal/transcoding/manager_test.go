@@ -727,7 +727,7 @@ func TestManagerCompletionPublishesCoverageEnd(t *testing.T) {
 
 	// Three emitted 4s segments (12s of produced media) with ENDLIST.
 	writeProducedRange(t, sessionJobDir(t, mgr, info.ID), 0, 3, true)
-	engine.job.Cancel()
+	engine.job.Complete()
 
 	pollUntil(t, 5*time.Second, func() bool {
 		got, err := mgr.SessionForUser("u", info.ID)

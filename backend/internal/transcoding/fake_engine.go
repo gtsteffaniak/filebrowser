@@ -56,6 +56,7 @@ func (f *FakeEngine) BuildPlan(ctx context.Context, realPath string, profile Pro
 
 type fakeJob struct {
 	cancelled  chan struct{}
+	doneMu     sync.Mutex
 	waitErr    error
 	unreliable atomic.Bool
 }
@@ -65,9 +66,21 @@ func newFakeJob() *fakeJob {
 }
 
 func (j *fakeJob) Cancel() {
+	j.setDone(context.Canceled)
+}
+
+// Complete finishes the job cleanly, as if ffmpeg ran to EOF on its own.
+func (j *fakeJob) Complete() {
+	j.setDone(nil)
+}
+
+func (j *fakeJob) setDone(err error) {
+	j.doneMu.Lock()
+	defer j.doneMu.Unlock()
 	select {
 	case <-j.cancelled:
 	default:
+		j.waitErr = err
 		close(j.cancelled)
 	}
 }
