@@ -39,12 +39,12 @@ func wopiFileID(source, realPath string) string {
 	return hex.EncodeToString(sum[:])
 }
 
-// wopiSigningKey returns integrations.office.secret, or a key derived from the
-// server's auth key so tokens survive a restart without any extra setting.
+// wopiSigningKey derives the key access tokens are signed with from the
+// server's auth key. integrations.office.secret plays no part: it belongs to
+// OnlyOffice, and a hand-picked value could be short enough to brute-force
+// from a session token the browser sees. Only FileBrowser verifies these
+// tokens; the editor hands them back untouched.
 func wopiSigningKey() ([]byte, error) {
-	if secret := settings.Config.Integrations.OnlyOffice.Secret; secret != "" {
-		return []byte(secret), nil
-	}
 	authKey, err := auth.JWTSigningKeyBytes()
 	if err != nil {
 		return nil, err
