@@ -100,13 +100,13 @@ func settingsConfigHandler(w http.ResponseWriter, r *http.Request, d *Context) (
 
 	// If we successfully read the generated YAML, use it as the comment source
 	if readErr == nil && len(embeddedYaml) > 0 {
-		yamlConfig, err = settings.GenerateConfigYamlWithEmbedded(&settings.Config, showComments, showFull, false, string(embeddedYaml))
+		yamlConfig, err = settings.GenerateConfigYamlWithEmbedded(&settings.Config, showComments, showFull, false, false, string(embeddedYaml))
 		if err != nil {
 			return http.StatusInternalServerError, fmt.Errorf("error generating YAML: %v", err)
 		}
 	} else {
 		// Fallback to Go source parsing if generated YAML doesn't exist
-		yamlConfig, err = settings.GenerateConfigYaml(&settings.Config, showComments, showFull, false)
+		yamlConfig, err = settings.GenerateConfigYaml(&settings.Config, showComments, showFull, false, false)
 		if err != nil {
 			return http.StatusInternalServerError, fmt.Errorf("error generating YAML: %v", err)
 		}

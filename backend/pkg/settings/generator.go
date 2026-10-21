@@ -968,7 +968,7 @@ func GenerateYaml() {
 
 	// Generate YAML with comments enabled, full config, and deprecated fields filtered
 	// Use multi-directory comment parsing to get comments from all packages
-	yamlContent, err := GenerateConfigYamlWithSource(&Config, true, true, true, "pkg/settings")
+	yamlContent, err := GenerateConfigYamlWithSource(&Config, true, true, true, false, "pkg/settings")
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error generating YAML: %v\n", err)
 		os.Exit(1)
@@ -988,7 +988,7 @@ func GenerateYaml() {
 }
 
 // GenerateConfigYaml generates YAML from a given config with options for comments and filtering
-func GenerateConfigYaml(config *Settings, showComments bool, showFull bool, filterDeprecated bool) (string, error) {
+func GenerateConfigYaml(config *Settings, showComments bool, showFull bool, filterDeprecated bool, isSetup bool) (string, error) {
 	// Try different source paths to handle both runtime and test scenarios
 	sourcePaths := []string{
 		".",               // When running tests from settings directory
@@ -997,7 +997,7 @@ func GenerateConfigYaml(config *Settings, showComments bool, showFull bool, filt
 	}
 
 	for _, sourcePath := range sourcePaths {
-		yamlOutput, err := GenerateConfigYamlWithSource(config, showComments, showFull, filterDeprecated, sourcePath)
+		yamlOutput, err := GenerateConfigYamlWithSource(config, showComments, showFull, filterDeprecated, isSetup, sourcePath)
 		if err == nil {
 			return yamlOutput, nil
 		}
@@ -1012,7 +1012,7 @@ func GenerateConfigYaml(config *Settings, showComments bool, showFull bool, filt
 }
 
 // GenerateConfigYamlWithEmbedded generates YAML from a given config using embedded YAML content as comment source
-func GenerateConfigYamlWithEmbedded(config *Settings, showComments bool, showFull bool, filterDeprecated bool, embeddedYaml string) (string, error) {
+func GenerateConfigYamlWithEmbedded(config *Settings, showComments bool, showFull bool, filterDeprecated bool, isSetup bool, embeddedYaml string) (string, error) {
 	var comm CommentsMap
 	var secrets SecretFieldsMap
 	var deprecated DeprecatedFieldsMap
@@ -1034,6 +1034,11 @@ func GenerateConfigYamlWithEmbedded(config *Settings, showComments bool, showFul
 		comm = make(CommentsMap)
 		secrets = make(SecretFieldsMap)
 		deprecated = make(DeprecatedFieldsMap)
+	}
+
+	// If setup cmd, disable the authentication obfuscation
+	if isSetup {
+		delete(secrets, "PasswordAuthConfig")
 	}
 
 	// If not filtering deprecated fields, clear the deprecated map
@@ -1181,7 +1186,7 @@ func GenerateConfigYamlWithEmptyMaps(config *Settings, showFull bool) (string, e
 }
 
 // GenerateConfigYamlWithSource generates YAML from a given config with options for comments and filtering, using a custom source path
-func GenerateConfigYamlWithSource(config *Settings, showComments bool, showFull bool, filterDeprecated bool, sourcePath string) (string, error) {
+func GenerateConfigYamlWithSource(config *Settings, showComments bool, showFull bool, filterDeprecated bool, isSetup bool, sourcePath string) (string, error) {
 	var comm CommentsMap
 	var secrets SecretFieldsMap
 	var deprecated DeprecatedFieldsMap
@@ -1218,6 +1223,11 @@ func GenerateConfigYamlWithSource(config *Settings, showComments bool, showFull 
 	// If not filtering deprecated fields, clear the deprecated map
 	if !filterDeprecated {
 		deprecated = make(DeprecatedFieldsMap)
+	}
+
+	// If setup cmd, disable the authentication obfuscation
+	if isSetup {
+		delete(secrets, "PasswordAuthConfig")
 	}
 
 	var node *yaml.Node
