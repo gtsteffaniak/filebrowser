@@ -21,6 +21,8 @@ type UploadContext struct {
 	SessionID       string
 	TotalSize       int64
 	HasKnownSize    bool
+	PriorFileSize   int64
+	HasPriorFileSize bool
 }
 
 // CheckUploadLength verifies size is known when quotas apply.
@@ -90,7 +92,9 @@ func uploadCommitDelta(ctx UploadContext) int64 {
 		return 0
 	}
 	oldSize := int64(0)
-	if ctx.DestRealPath != "" {
+	if ctx.HasPriorFileSize {
+		oldSize = ctx.PriorFileSize
+	} else if ctx.DestRealPath != "" {
 		if stat, err := os.Stat(ctx.DestRealPath); err == nil && !stat.IsDir() {
 			oldSize = stat.Size()
 		}

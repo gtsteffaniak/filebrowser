@@ -277,6 +277,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"searchResultsLimit":            settings.Config.Server.SearchResultsLimit,
 		"disableExternal":               settings.Config.Frontend.DisableDefaultLinks,
 		"darkMode":                      settings.Config.UserDefaults.UI.DarkMode,
+		"singleClick":                   settings.Config.UserDefaults.Listing.SingleClick,
 		"lightBackground":               settings.Config.Frontend.Styling.LightBackground,
 		"darkBackground":                settings.Config.Frontend.Styling.DarkBackground,
 		"baseURL":                       settings.Config.Http.BaseURL,

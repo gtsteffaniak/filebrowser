@@ -6,11 +6,13 @@ import (
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/fileutils"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/testutil"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing/iteminfo"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 )
 
 func TestMain(m *testing.M) {
+	testutil.QuietLogging()
 	if fileutils.PermDir == 0 {
 		fileutils.SetFsPermissions(0o644, 0o755)
 	}

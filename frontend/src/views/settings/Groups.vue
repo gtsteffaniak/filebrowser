@@ -125,18 +125,12 @@ export default {
         },
       });
     },
-    escapeHtml(text) {
-      const el = document.createElement("div");
-      el.textContent = text;
-      return el.innerHTML;
-    },
     remove(group) {
       mutations.showPrompt({
         name: "generic",
         props: {
           title: this.$t("general.delete"),
-          // Generic renders body via v-html, so escape the user-supplied name.
-          body: this.$t("access.deleteGroupConfirm", { name: this.escapeHtml(group) }),
+          body: this.$t("access.deleteGroupConfirm", { name: group }),
           buttons: [
             {
               label: this.$t("general.cancel"),

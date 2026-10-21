@@ -617,6 +617,10 @@ func setupLogging() {
 			},
 		}
 	}
+	// Tests quiet the logger in testutil.Main; skip stacking handlers here.
+	if isGoTest() && os.Getenv("FILEBROWSER_TEST_LOG") == "" {
+		return
+	}
 	for i := range Config.Server.Logging {
 		cfg := &Config.Server.Logging[i]
 		// Enable debug logging automatically in dev mode
@@ -719,9 +723,11 @@ func loadConfigWithDefaults(configFile string, generate bool) error {
 	}
 
 	// check if database is set in the config
-	val, ok := filteredConfig["server"].(map[string]interface{})["database"].(string)
-	if ok && val != "" {
-		return fmt.Errorf("old database path is set in the config, please migrate your database to SQLite")
+	if server, ok := filteredConfig["server"].(map[string]interface{}); ok {
+		val, ok := server["database"].(string)
+		if ok && val != "" {
+			return fmt.Errorf("old database path is set in the config, please migrate your database to SQLite")
+		}
 	}
 
 	// Marshal the filtered config back to YAML

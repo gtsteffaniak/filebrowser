@@ -1089,7 +1089,8 @@
       "webSessionNamed": "Διαδικτυακή συνεδρία ({name})",
       "scopeAccess": "Δραστηριότητα πρόσβασης",
       "eventAccessCreate": "Πρόσβαση στη δημιουργία",
-      "eventAccessDelete": "Πρόσβαση - Διαγραφή"
+      "eventAccessDelete": "Πρόσβαση - Διαγραφή",
+      "eventFileModify": "Τροποποίηση αρχείου"
     },
     "toolAccessDefaults": "Προεπιλεγμένες ρυθμίσεις πρόσβασης στα εργαλεία",
     "toolAccessDefaultsDescription": "Ρυθμίστε ποια εργαλεία θα έχουν πρόσβαση οι νέοι χρήστες από προεπιλογή",

@@ -1089,7 +1089,8 @@
       "webSessionNamed": "웹 세션 ({name})",
       "scopeAccess": "액세스 활동",
       "eventAccessCreate": "액세스 생성",
-      "eventAccessDelete": "액세스 삭제"
+      "eventAccessDelete": "액세스 삭제",
+      "eventFileModify": "파일 수정"
     },
     "toolAccessDefaults": "도구 액세스 기본 설정",
     "toolAccessDefaultsDescription": "새 사용자가 기본적으로 사용할 수 있는 도구를 설정합니다.",

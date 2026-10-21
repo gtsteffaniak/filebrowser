@@ -34,7 +34,17 @@
 
       <div class="debug-section">
         <strong>{{ $t("onlyoffice.processSteps") }}:</strong><br/> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-        <div v-html="debugInfo"></div>
+        <div v-for="(step, i) in debugInfo" :key="i">
+          {{ step.text }}
+          <template v-for="(line, j) in step.lines" :key="j">
+            <br/>
+            <strong v-if="line.label">{{ line.label }}</strong> {{ typeof line === "string" ? line : line.text }}
+          </template>
+          <template v-if="step.link">
+            <br/>
+            <a :href="wikiLink" target="_blank" rel="noopener noreferrer">📖 {{ $t("onlyoffice.troubleshootingGuide") }}</a> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          </template>
+        </div>
       </div>
 
       <div v-if="onlyOfficeLogs.length > 0" class="debug-section debug-section-logs">
@@ -53,7 +63,18 @@
         {{ noLogsMessage }}
       </div>
 
-      <div v-if="overallStatus" v-html="overallStatus"></div>
+      <div v-if="overallStatus === 'error'" class="debug-status-error">
+        <strong>❌ {{ $t("onlyoffice.errorDetected") }}</strong><br/> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+        {{ $t("onlyoffice.integrationFailed") }}<br/>
+        <a :href="wikiLink" target="_blank" rel="noopener noreferrer">
+          <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          📖 {{ $t("onlyoffice.troubleshootingGuide") }}
+        </a>
+      </div>
+      <div v-else-if="overallStatus === 'success'" class="debug-status-success">
+        <strong>🎉 {{ $t("onlyoffice.documentInitialized") }}</strong><br/> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+        {{ $t("onlyoffice.integrationSuccess") }}
+      </div>
     </div>
   </div>
 </template>
@@ -88,7 +109,8 @@ export default {
   },
   data() {
     return {
-      debugInfo: `⏳ ${this.$t("onlyoffice.startingInit")}`,
+      debugInfo: [{ text: `⏳ ${this.$t("onlyoffice.startingInit")}` }],
+      wikiLink,
       clientConfig: {},
       hasErrors: false,
       onlyOfficeLogs: [],
@@ -155,28 +177,15 @@ export default {
       return this.onlyOfficeLogs.slice(-10);
     },
     noLogsMessage() {
-      return !state.user.permissions.admin 
+      return !state.user.permissions.admin
         ? this.$t("onlyoffice.logsNotAvailable")
         : this.$t("onlyoffice.waitingForLogs");
     },
     overallStatus() {
       if (this.hasErrors) {
-        return `
-          <div class="debug-status-error">
-            <strong>❌ ${this.$t("onlyoffice.errorDetected")}</strong><br/>
-            ${this.$t("onlyoffice.integrationFailed")}<br/>
-            <a href="${wikiLink}" target="_blank">
-              📖 ${this.$t("onlyoffice.troubleshootingGuide")}
-            </a>
-          </div>
-        `;
-      } else if (this.debugInfo.includes("🎉") && !this.hasErrors) {
-        return `
-          <div class="debug-status-success">
-            <strong>🎉 ${this.$t("onlyoffice.documentInitialized")}</strong><br/>
-            ${this.$t("onlyoffice.integrationSuccess")}
-          </div>
-        `;
+        return "error";
+      } else if (this.debugInfo.some((step) => step.text.includes("🎉"))) {
+        return "success";
       }
       return "";
     },
@@ -192,7 +201,7 @@ export default {
       this.sseConnection = null;
     }
     window.removeEventListener('onlyOfficeLogEvent', this.handleOnlyOfficeLogEvent);
-    
+
     if (state.user.permissions.admin && !state.user.permissions.realtime) {
       console.log('🔌 Cleaning up OnlyOffice SSE connection');
       events.stopSSE();
@@ -205,32 +214,32 @@ export default {
     async initializeDebugger() {
       try {
         this.updateDebugStatus(`✅ ${this.$t("onlyoffice.configCheck")}`);
-        
+
         const configData = await officeApi.getConfig(state.req);
         this.clientConfig = configData;
-        
+
         if (this.clientConfig.document?.key) {
           this.documentId = this.clientConfig.document.key;
         }
-        
+
         this.updateDebugStatus(`✅ ${this.$t("onlyoffice.apiRequest")}`);
         this.updateDebugStatus(`✅ ${this.$t("onlyoffice.serverConnection")}`);
-        
+
         setTimeout(() => {
           this.checkOnlyOfficeServer();
         }, 100);
-        
+
       } catch (error) {
         console.error("Error during OnlyOffice setup:", error);
         const errorMsg = (error && typeof error === 'object' && 'message' in error) ? error.message : String(error);
-        this.updateDebugStatus(`❌ ${this.$t("onlyoffice.setupError")}: ${errorMsg}<br/><a href="${wikiLink}" target="_blank">📖 ${this.$t("onlyoffice.troubleshootingGuide")}</a>`);
+        this.updateDebugStatus({ text: `❌ ${this.$t("onlyoffice.setupError")}: ${errorMsg}`, link: true });
       }
     },
-    
+
     updateDebugStatus(message) {
-      this.debugInfo = `${this.debugInfo}<br/>${message}`;
+      this.debugInfo = [...this.debugInfo, typeof message === "string" ? { text: message } : message];
     },
-    
+
     checkOnlyOfficeServer() {
       const testUrl = `${this.onlyOfficeUrl}/web-apps/apps/api/documents/api.js`;
       this.updateDebugStatus(`🔄 ${this.$t("onlyoffice.testingConnectivity")}`);
@@ -246,18 +255,24 @@ export default {
           detectedNetworkError = true;
           this.hasErrors = true;
 
-          let errorMsg = `❌ OnlyOffice Server Connection Refused<br/>`;
-          errorMsg += `<strong>Failed URL:</strong> ${errorStr.match(/GET ([^\s]+)/)?.[1] || testUrl}<br/>`;
-          errorMsg += `<strong>OnlyOffice Server:</strong> ${this.onlyOfficeUrl}<br/><br/>`;
-          errorMsg += `<strong>This means:</strong><br/>`;
-          errorMsg += `• OnlyOffice server is <strong>NOT RUNNING</strong><br/>`;
-          errorMsg += `• Wrong OnlyOffice URL configured<br/>`;
-          errorMsg += `• Network/firewall blocking connection<br/><br/>`;
-          errorMsg += `<strong>To fix:</strong><br/>`;
-          errorMsg += `• Start OnlyOffice Document Server<br/>`;
-          errorMsg += `• Verify ${this.onlyOfficeUrl} is accessible<br/>`;
-          errorMsg += `• Check Docker containers if using Docker<br/>`;
-          errorMsg += `<br/><a href="${wikiLink}" target="_blank" style="color: #1976d2;">📖 ${this.$t("onlyoffice.troubleshootingGuide")}</a>`;
+          const errorMsg = {
+            text: "❌ OnlyOffice Server Connection Refused",
+            lines: [
+              { label: "Failed URL:", text: errorStr.match(/GET ([^\s]+)/)?.[1] || testUrl },
+              { label: "OnlyOffice Server:", text: this.onlyOfficeUrl },
+              "",
+              { label: "This means:" },
+              "• OnlyOffice server is NOT RUNNING",
+              "• Wrong OnlyOffice URL configured",
+              "• Network/firewall blocking connection",
+              "",
+              { label: "To fix:" },
+              "• Start OnlyOffice Document Server",
+              `• Verify ${this.onlyOfficeUrl} is accessible`,
+              "• Check Docker containers if using Docker",
+            ],
+            link: true,
+          };
 
           this.updateDebugStatus(errorMsg);
         }
@@ -273,7 +288,10 @@ export default {
         .catch(() => {
           if (!detectedNetworkError) {
             this.hasErrors = true;
-            this.updateDebugStatus(`❌ OnlyOffice server test failed: ${testUrl}<br/>• Check if OnlyOffice server is running<br/>• Verify URL configuration`);
+            this.updateDebugStatus({
+              text: `❌ OnlyOffice server test failed: ${testUrl}`,
+              lines: ["• Check if OnlyOffice server is running", "• Verify URL configuration"],
+            });
           }
         });
 
@@ -287,7 +305,7 @@ export default {
         }, 4000);
       }, 1000);
     },
-    
+
     monitorCallbackIssues() {
       const originalFetch = window.fetch;
       window.fetch = (...args) => {
@@ -295,41 +313,47 @@ export default {
           if (response.url.includes('onlyoffice/callback')) {
             if (response.status === 405) {
               this.hasErrors = true;
-              this.updateDebugStatus(`
-                ❌ Callback Method Not Allowed (405)<br/>
-                <strong>Issue:</strong> OnlyOffice server is sending ${args[1]?.method || 'GET'} requests to callback URL<br/>
-                <strong>Expected:</strong> POST requests<br/>
-                <strong>Root Cause:</strong> OnlyOffice server configuration issue<br/>
-                <strong>Solution:</strong><br/>
-                • Check OnlyOffice server callback configuration<br/>
-                • Verify callback URL is correctly set in OnlyOffice server<br/>
-                • Ensure OnlyOffice server is using correct HTTP method<br/>
-                • Check OnlyOffice server logs for callback configuration errors<br/>
-              `);
+              this.updateDebugStatus({
+                text: "❌ Callback Method Not Allowed (405)",
+                lines: [
+                  { label: "Issue:", text: `OnlyOffice server is sending ${args[1]?.method || 'GET'} requests to callback URL` },
+                  { label: "Expected:", text: "POST requests" },
+                  { label: "Root Cause:", text: "OnlyOffice server configuration issue" },
+                  { label: "Solution:" },
+                  "• Check OnlyOffice server callback configuration",
+                  "• Verify callback URL is correctly set in OnlyOffice server",
+                  "• Ensure OnlyOffice server is using correct HTTP method",
+                  "• Check OnlyOffice server logs for callback configuration errors",
+                ],
+              });
             } else if (response.status === 400) {
               this.hasErrors = true;
-              this.updateDebugStatus(`
-                ❌ Callback Bad Request (400)<br/>
-                <strong>Issue:</strong> OnlyOffice server sent invalid callback data<br/>
-                <strong>Root Cause:</strong> OnlyOffice server → FileBrowser API communication problem<br/>
-                <strong>Solution:</strong><br/>
-                • Check OnlyOffice server logs for callback generation errors<br/>
-                • Verify JWT secret matches between OnlyOffice and FileBrowser<br/>
-                • Check OnlyOffice server callback URL configuration<br/>
-                • Ensure OnlyOffice server can reach FileBrowser internal URL<br/>
-              `);
+              this.updateDebugStatus({
+                text: "❌ Callback Bad Request (400)",
+                lines: [
+                  { label: "Issue:", text: "OnlyOffice server sent invalid callback data" },
+                  { label: "Root Cause:", text: "OnlyOffice server → FileBrowser API communication problem" },
+                  { label: "Solution:" },
+                  "• Check OnlyOffice server logs for callback generation errors",
+                  "• Verify JWT secret matches between OnlyOffice and FileBrowser",
+                  "• Check OnlyOffice server callback URL configuration",
+                  "• Ensure OnlyOffice server can reach FileBrowser internal URL",
+                ],
+              });
             } else if (response.status === 500) {
               this.hasErrors = true;
-              this.updateDebugStatus(`
-                ❌ Callback Internal Server Error (500)<br/>
-                <strong>Issue:</strong> FileBrowser API error processing OnlyOffice callback<br/>
-                <strong>Root Cause:</strong> FileBrowser API configuration or processing issue<br/>
-                <strong>Solution:</strong><br/>
-                • Check FileBrowser server logs for callback processing errors<br/>
-                • Verify FileBrowser API configuration<br/>
-                • Check if OnlyOffice server is sending valid callback data<br/>
-                • Ensure FileBrowser has proper permissions to save files<br/>
-              `);
+              this.updateDebugStatus({
+                text: "❌ Callback Internal Server Error (500)",
+                lines: [
+                  { label: "Issue:", text: "FileBrowser API error processing OnlyOffice callback" },
+                  { label: "Root Cause:", text: "FileBrowser API configuration or processing issue" },
+                  { label: "Solution:" },
+                  "• Check FileBrowser server logs for callback processing errors",
+                  "• Verify FileBrowser API configuration",
+                  "• Check if OnlyOffice server is sending valid callback data",
+                  "• Ensure FileBrowser has proper permissions to save files",
+                ],
+              });
             }
           }
           return response;
@@ -340,7 +364,7 @@ export default {
         window.fetch = originalFetch;
       }, 15000);
     },
-    
+
     setupOnlyOfficeLogStreaming() {
       if (!state.user.permissions.admin) {
         return;
@@ -380,7 +404,7 @@ export default {
         this.onlyOfficeLogs = this.onlyOfficeLogs.slice(-50);
       }
     },
-    
+
     getLogLevelColor(level) {
       switch (level) {
         case 'ERROR': return '#f44336';
@@ -390,7 +414,7 @@ export default {
         default: return '#666';
       }
     },
-    
+
     formatTimestamp(timestamp) {
       return new Date(timestamp).toLocaleTimeString();
     },

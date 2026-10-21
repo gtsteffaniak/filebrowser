@@ -150,6 +150,9 @@ export default {
     };
   },
   computed: {
+    navigationSortOverride() {
+      return state.navigation.sorting;
+    },
     moveWithSidebar() {
       return getters.isSidebarVisible() && getters.isStickySidebar();
     },
@@ -309,6 +312,11 @@ export default {
           }
         });
       }, 100);
+    },
+    navigationSortOverride() {
+      if (this.enabled && state.req) {
+        void this.setupNavigationForCurrentItem();
+      }
     },
     // Watch for when navigation links are set up
     'state.navigation.previousLink'() {

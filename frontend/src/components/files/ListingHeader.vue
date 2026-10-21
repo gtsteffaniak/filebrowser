@@ -111,12 +111,17 @@ export default {
       type: Boolean,
       default: false,
     },
+    useNavigationSorting: {
+      type: Boolean,
+      default: false,
+    },
   },
   computed: {
     isMobile() {
       return getters.isMobile();
     },
     sortConfig() {
+      if (this.useNavigationSorting) return getters.navigationSorting();
       return this.usePickerSorting ? getters.pickerSorting() : getters.sorting();
     },
     nameSorted() {
@@ -148,10 +153,10 @@ export default {
       return mode === "list" || mode === "compact";
     },
     showKindColumn() {
-      return this.isListMode && !this.usePickerSorting && state.user?.showTypeColumn;
+      return this.isListMode && !this.usePickerSorting && !this.useNavigationSorting && state.user?.showTypeColumn;
     },
     showCreatedColumn() {
-      return this.isListMode && !this.usePickerSorting && state.user?.showCreationDateColumn;
+      return this.isListMode && !this.usePickerSorting && !this.useNavigationSorting && state.user?.showCreationDateColumn;
     },
     nameIcon() {
       if (this.nameSorted && !this.ascOrdered) {
@@ -190,7 +195,7 @@ export default {
       return "arrow_upward";
     },
     quickDownloadEnabled() {
-      if (this.usePickerSorting) {
+      if (this.usePickerSorting || this.useNavigationSorting) {
         return false;
       }
       if (getters.isMobile()) {
@@ -216,6 +221,10 @@ export default {
         asc = true;
       }
       // Commit the updateSort mutation
+      if (this.useNavigationSorting) {
+        mutations.updateNavigationSortConfig({ field, asc });
+        return;
+      }
       if (this.usePickerSorting) {
         mutations.updatePickerSortConfig({ field, asc });
         return;

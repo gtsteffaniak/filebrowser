@@ -1089,7 +1089,8 @@
       "webSessionNamed": "Webbsession ({name})",
       "scopeAccess": "Åtkomstaktivitet",
       "eventAccessCreate": "Öppna skapa",
-      "eventAccessDelete": "Åtkomst radera"
+      "eventAccessDelete": "Åtkomst radera",
+      "eventFileModify": "Ändra fil"
     },
     "toolAccessDefaults": "Standardinställningar för verktygsåtkomst",
     "toolAccessDefaultsDescription": "Ställ in vilka verktyg nya användare ska ha tillgång till som standard",

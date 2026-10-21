@@ -1089,7 +1089,8 @@
       "tableColumns": "Columnas de la tabla",
       "scopeAccess": "Actividad de acceso",
       "eventAccessCreate": "Creación de acceso",
-      "eventAccessDelete": "Eliminación de acceso"
+      "eventAccessDelete": "Eliminación de acceso",
+      "eventFileModify": "Modificar archivo"
     },
     "toolAccessDefaults": "Configuración predeterminada del acceso a las herramientas",
     "toolAccessDefaultsDescription": "Configura a qué herramientas pueden acceder los nuevos usuarios de forma predeterminada",

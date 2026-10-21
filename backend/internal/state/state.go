@@ -173,6 +173,16 @@ func initialize(dbPath string) (bool, error) {
 
 	newAccessDb.SetSQLStore(sqlDb)
 
+	accessRulesLowercased, err := sqlDb.AccessRulesLowercaseMigrated()
+	if err != nil {
+		return existingDb, fmt.Errorf("failed to read access rules migration marker: %w", err)
+	}
+	if !accessRulesLowercased {
+		if migErr := newAccessDb.StartupMigrateAccessRuleKeys(); migErr != nil {
+			return existingDb, fmt.Errorf("failed to migrate access rule paths: %w", migErr)
+		}
+	}
+
 	usersMux.Lock()
 	sharesMux.Lock()
 	indexMux.Lock()

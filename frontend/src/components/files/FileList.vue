@@ -20,7 +20,7 @@
         {{ $t('general.path', { suffix: ':' }) }} {{ sourcePath.path }}
       </div>
       <slot name="sticky" />
-      <ListingHeader v-if="sortable && !loading" use-picker-sorting />
+      <ListingHeader v-if="sortable && !loading" :use-picker-sorting="!fileList" :use-navigation-sorting="!!fileList" />
     </div>
 
     <!-- Loading Spinner -->
@@ -179,6 +179,7 @@ export default {
   computed: {
     /** Sorting config used by sortEntries; follows the picker sort when sortable. */
     pickerSort() {
+      if (this.fileList) return getters.navigationSorting();
       return this.sortable ? getters.pickerSorting() : getters.sorting();
     },
     isMobile() {
@@ -286,22 +287,23 @@ export default {
       }
     },
     // Re-sort local items when the picker header changes the sort config
-    pickerSort() {
-      if (this.sortable) {
+    async pickerSort() {
+      if (this.sortable || this.fileList) {
         this.resortItems();
+        if (this.fileList) {
+          await this.$nextTick();
+          this.scrollToCurrentItem();
+        }
       }
     },
   },
-  mounted() {
+  async mounted() {
     if (this.fileList) {
-      // When fileList is provided, just display the items
-      this.withLoading(async () => {
-        await new Promise(resolve => setTimeout(resolve, 0));
-        this.fillFromList();
-      });
-    } else if (this.browseShare) {
-      // Browse a specific share
-      this.withLoading(() => resourcesApi.fetchFilesPublic("/", this.browseShare).then(this.fillOptions));
+      this.fillFromList();
+    } else if (this.browseShare || getters.isShare()) {
+      const hash = this.browseShare || getters.shareHash();
+      const startPath = this.browseShare ? "/" : this.path;
+      this.withLoading(() => resourcesApi.fetchFilesPublic(startPath, hash).then(this.fillOptions));
     } else {
       // Normal browse mode: fetch files
       const sourceToUse = this.currentSource;
@@ -320,6 +322,10 @@ export default {
       }
     }
     this.attachScrollListener();
+    if (this.fileList) {
+      await this.$nextTick();
+      this.followCurrentItem();
+    }
   },
   beforeUnmount() {
     this.scrollContainer?.removeEventListener("scroll", this.handleScroll);
@@ -503,7 +509,7 @@ export default {
         void this.withLoading(() => resourcesApi.fetchFiles(sourceToUse, path).then(this.fillOptions));
       } else if (this.browseShare || getters.isShare()) {
         // Browsing a share - use public API
-        const hashToUse = this.browseShare || state.shareInfo?.hash;
+        const hashToUse = this.browseShare || getters.shareHash();
         void this.withLoading(() => resourcesApi.fetchFilesPublic(path, hashToUse).then(this.fillOptions));
       } else {
         this.source = sourceToUse;
@@ -645,7 +651,7 @@ export default {
       this.selectedSource = null;
       this.selectedType = null;
       if (this.browseShare || getters.isShare()) {
-        const hashToUse = this.browseShare || state.shareInfo?.hash;
+        const hashToUse = this.browseShare || getters.shareHash();
         void this.withLoading(() => resourcesApi.fetchFilesPublic(p, hashToUse).then(this.fillOptions));
       } else {
         void this.withLoading(() => resourcesApi.fetchFiles(source, p).then(this.fillOptions));
@@ -654,7 +660,7 @@ export default {
     fillFromList() {
       const allItems = this.fileList || [];
       const items = allItems.filter(item => !item.isDirectory && item.type !== 'directory');
-      this.items = this.sortable ? this.sortEntries(items) : items;
+      this.items = this.sortEntries(items);
     },
     isCurrentItem(item) {
       return !!this.fileList && !!state.req && item.name === state.req.name;

@@ -1098,7 +1098,8 @@
       "webSessionNamed": "Sessione web ({name})",
       "scopeAccess": "Attività di accesso",
       "eventAccessCreate": "Accedi - Crea",
-      "eventAccessDelete": "Accedi - Elimina"
+      "eventAccessDelete": "Accedi - Elimina",
+      "eventFileModify": "Modifica file"
     },
     "toolAccessDefaults": "Impostazioni predefinite per l'accesso agli strumenti",
     "toolAccessDefaultsDescription": "Configurare a quali strumenti i nuovi utenti possono accedere per impostazione predefinita",

@@ -1089,7 +1089,8 @@
       "webSessionNamed": "Sesja internetowa ({name})",
       "scopeAccess": "Działania związane z dostępem",
       "eventAccessCreate": "Dostęp do tworzenia",
-      "eventAccessDelete": "Dostęp – usunięcie"
+      "eventAccessDelete": "Dostęp – usunięcie",
+      "eventFileModify": "Modyfikacja pliku"
     },
     "toolAccessDefaults": "Domyślne ustawienia dostępu do narzędzi",
     "toolAccessDefaultsDescription": "Skonfiguruj, do których narzędzi nowi użytkownicy będą mieli domyślny dostęp",

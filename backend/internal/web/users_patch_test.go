@@ -80,6 +80,12 @@ func TestValidateNonAdminSelfPatchWhich(t *testing.T) {
 		}
 	})
 
+	t.Run("rejects passkey credentials field", func(t *testing.T) {
+		if err := validateNonAdminSelfPatchWhich([]string{"passkeyCredentials"}); err == nil {
+			t.Fatal("expected error for passkeyCredentials")
+		}
+	})
+
 	t.Run("rejects privileged fields", func(t *testing.T) {
 		for _, which := range [][]string{
 			{"scopes"},

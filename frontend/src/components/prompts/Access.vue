@@ -44,14 +44,14 @@
       <div class="form-flex-group">
         <ExpandDropdown
           v-model="addType"
-          class="flat-right form-compact"
+          class="flat-right form-compact access-type"
           :options="addTypeOptions"
           :aria-label="$t('access.userGroup')"
         />
         <ExpandDropdown
           v-if="addType !== 'all'"
           v-model="addListType"
-          class="flat-right flat-left form-compact form-grow"
+          class="flat-right flat-left form-compact form-grow access-list"
           :options="addListTypeOptions"
           :aria-label="$t('access.allowDeny')"
         />
@@ -434,6 +434,18 @@ export default {
 <style scoped>
 .form-flex-group {
   margin-top: 1em;
+}
+
+.form-flex-group > .expand-dropdown.form-compact.access-type {
+  flex: 0 0 8em;
+  width: 8em;
+  min-width: 8em;
+}
+
+.form-flex-group > .expand-dropdown.form-compact.access-list {
+  flex: 1 1 0;
+  width: auto;
+  min-width: 0;
 }
 
 .banner-content {

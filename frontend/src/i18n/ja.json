@@ -1089,7 +1089,8 @@
       "webSessionNamed": "Webセッション（{name} ）",
       "scopeAccess": "アクセス状況",
       "eventAccessCreate": "アクセス 作成",
-      "eventAccessDelete": "アクセス 削除"
+      "eventAccessDelete": "アクセス 削除",
+      "eventFileModify": "ファイルの変更"
     },
     "toolAccessDefaults": "ツールのアクセス権のデフォルト設定",
     "toolAccessDefaultsDescription": "新規ユーザーがデフォルトで利用できるツールを設定する",

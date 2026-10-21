@@ -228,12 +228,18 @@ export default {
       handler(newVal, oldVal) {
         const prev = oldVal ?? [];
         const oldIds = new Set(prev.map((p) => p.id));
+        const newIds = new Set(newVal.map((p) => p.id));
         for (const p of newVal) {
           if (!oldIds.has(p.id)) {
             this.triggerPromptBorderFlash(p.id);
             if (this.isEditorPrompt(p)) {
               this.ensureEditorPromptSize(p.id);
             }
+          }
+        }
+        for (const id of oldIds) {
+          if (!newIds.has(id)) {
+            this.cleanupDragState(id);
           }
         }
       },
@@ -465,37 +471,7 @@ export default {
       }
     },
     closeTopPrompt(id) {
-      // Find the prompt we're trying to close
-      const promptToClose = state.prompts.find(p => p.id === id);
-      if (!promptToClose) return;
-      // Check if it's the upload prompt with active uploads
-      if (promptToClose.name === "upload") {
-        const hasActiveUploads = state.upload.isUploading;
-        const hasWarningPrompt = state.prompts.some(p => p.name === "CloseWithActiveUploads");
-
-        if (hasActiveUploads && !hasWarningPrompt) {
-          // Show warning prompt instead of closing
-          mutations.showPrompt({
-            name: "CloseWithActiveUploads",
-            pinned: true,
-            confirm: () => {
-              // User confirmed to close anyway - close the upload prompt
-              mutations.closeTopPrompt(id);
-              // Clean up state for this prompt
-              this.cleanupDragState(id);
-            },
-            cancel: () => {
-              // User cancelled - just close the warning prompt
-              mutations.closeTopPrompt();
-            },
-          });
-          return;
-        }
-      }
-      // Normal close behavior
       mutations.closeTopPrompt(id);
-      // Clean up state for this prompt
-      this.cleanupDragState(id);
     },
     cleanupDragState(id) {
       this.dragOffsets = omitObjectProperty(this.dragOffsets, id);

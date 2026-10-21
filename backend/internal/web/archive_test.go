@@ -322,7 +322,7 @@ func TestExtractZipFilenameEncoding(t *testing.T) {
 				t.Fatal(err)
 			}
 			out := t.TempDir()
-			err = extractZipWithEncoding(archivePath, out, tc.charset)
+			err = extractZipWithEncoding(archivePath, out, tc.charset, nil)
 			if tc.invalid {
 				if err == nil {
 					t.Fatal("expected error")

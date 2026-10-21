@@ -1089,7 +1089,8 @@
       "webSessionNamed": "Sessão online ({name})",
       "scopeAccess": "Atividade de acesso",
       "eventAccessCreate": "Aceder à criação",
-      "eventAccessDelete": "Aceder/eliminar"
+      "eventAccessDelete": "Aceder/eliminar",
+      "eventFileModify": "Modificação de ficheiro"
     },
     "toolAccessDefaults": "Definições predefinidas de acesso às ferramentas",
     "toolAccessDefaultsDescription": "Configurar quais as ferramentas a que os novos utilizadores têm acesso por predefinição",

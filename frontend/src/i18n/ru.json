@@ -1089,7 +1089,8 @@
       "webSessionNamed": "Веб-сессия ({name})",
       "scopeAccess": "Деятельность по обеспечению доступа",
       "eventAccessCreate": "Создать доступ",
-      "eventAccessDelete": "Доступ к удалению"
+      "eventAccessDelete": "Доступ к удалению",
+      "eventFileModify": "Изменение файла"
     },
     "toolAccessDefaults": "Настройки доступа к инструментам по умолчанию",
     "toolAccessDefaultsDescription": "Настройте, к каким инструментам новые пользователи будут иметь доступ по умолчанию",

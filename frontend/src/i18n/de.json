@@ -1089,7 +1089,8 @@
       "webSessionNamed": "Web-Sitzung ({name})",
       "scopeAccess": "Zugriffsaktivität",
       "eventAccessCreate": "Zugriff erstellen",
-      "eventAccessDelete": "Zugriff löschen"
+      "eventAccessDelete": "Zugriff löschen",
+      "eventFileModify": "Datei ändern"
     },
     "toolAccessDefaults": "Standard-Zugriffseinstellungen für Werkzeuge",
     "toolAccessDefaultsDescription": "Legen Sie fest, auf welche Tools neue Benutzer standardmäßig zugreifen können",

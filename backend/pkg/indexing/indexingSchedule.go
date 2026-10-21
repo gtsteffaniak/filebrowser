@@ -242,6 +242,23 @@ func (idx *Index) SendSourceUpdateEvent() error {
 	return nil
 }
 
+// restoreFolderSizes loads the persisted directory sizes into the in-memory folderSizes map.
+// Quick scans iterate that map to decide which folders to stat, so leaving it empty after a
+// restart would make them blind until the next full scan.
+func (idx *Index) restoreFolderSizes() {
+	if idx.db == nil {
+		return
+	}
+	sizes, err := idx.db.LoadFolderSizes(idx.Name)
+	if err != nil {
+		logger.Errorf("[%s] Failed to load persisted folder sizes: %v", idx.Name, err)
+		return
+	}
+	idx.folderSizesMu.Lock()
+	idx.folderSizes = sizes
+	idx.folderSizesMu.Unlock()
+}
+
 // setupMultiScanner creates and starts the multi-scanner system
 // isNewDb: if true, skip loading persisted complexity values (database is new or recreated)
 func (idx *Index) setupMultiScanner(isNewDb bool) {
@@ -249,6 +266,11 @@ func (idx *Index) setupMultiScanner(isNewDb bool) {
 	// Scanner-level stats below use a second GetByPath only for the Scanners map.
 	if err := idx.Load(); err != nil {
 		logger.Errorf("Failed to load persisted index data for [%v]: %v", idx.Name, err)
+	}
+	// Quick scans only stat the directories present in folderSizes, which is in-memory only.
+	// Restoring it keeps change detection working after a restart without a full re-read.
+	if !isNewDb {
+		idx.restoreFolderSizes()
 	}
 
 	idx.mu.Lock()
@@ -315,12 +337,6 @@ func (idx *Index) setupMultiScanner(isNewDb bool) {
 
 		idx.mu.Lock()
 		idx.scanners[dirPath] = childScanner
-		idx.mu.Unlock()
-	}
-
-	if idx.useAdaptiveScheduling() {
-		idx.mu.Lock()
-		idx.schedulerStartupPassPending = true
 		idx.mu.Unlock()
 	}
 

@@ -1089,7 +1089,8 @@
       "webSessionNamed": "网络研讨会（{name} ）",
       "scopeAccess": "访问活动",
       "eventAccessCreate": "访问 创建",
-      "eventAccessDelete": "访问 删除"
+      "eventAccessDelete": "访问 删除",
+      "eventFileModify": "文件修改"
     },
     "toolAccessDefaults": "工具访问默认设置",
     "toolAccessDefaultsDescription": "配置新用户默认可以访问的工具",

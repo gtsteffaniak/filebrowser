@@ -1,6 +1,6 @@
 <template>
   <div class="card-content">
-    <file-list ref="fileList" @update:selected="updateSelection" :browseSource="currentSource"
+    <file-list ref="fileList" @update:selected="updateSelection" :browseSource="listBrowseSource"
       :browse-path="initialBrowsePath" :hide-destination-source="hideDestinationSource" :showFiles="showFiles"
       :showFolders="showFolders" :require-file-selection="requireFileSelection"
       :allowed-file-types="allowedFileTypes" :title="listTitle" v-model:filter-query="filterQuery">
@@ -22,7 +22,7 @@
 </template>
 
 <script>
-import { mutations } from "@/store";
+import { mutations, getters } from "@/store";
 import FileList from "../files/FileList.vue";
 import ListingFilter from "@/components/files/ListingFilter.vue";
 import { eventBus } from "@/store/eventBus";
@@ -86,6 +86,9 @@ export default {
     };
   },
   computed: {
+    listBrowseSource() {
+      return getters.isShare() ? null : this.currentSource;
+    },
     initialBrowsePath() {
       const p = this.currentPath;
       if (p && typeof p === "string" && p.length > 0) {

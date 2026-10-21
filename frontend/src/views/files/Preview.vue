@@ -534,6 +534,7 @@ export default {
         type: state.req.type,
         source: state.req.source,
         modified: state.req.modified,
+        created: state.req.created,
         hasPreview: state.req.hasPreview,
       });
     },
