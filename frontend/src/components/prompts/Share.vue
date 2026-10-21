@@ -187,7 +187,7 @@ import { notify } from "@/notify";
 import { state, getters, mutations } from "@/store";
 import { shareApi } from "@/api";
 import { copyToClipboard } from "@/utils/clipboard";
-import { fromNow } from "@/utils/moment";
+import { fromNowSeconds } from "@/utils/moment";
 import { buildItemUrl } from "@/utils/url";
 import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
 import SettingsTable from "@/components/settings/Table.vue";
@@ -844,7 +844,7 @@ export default {
      * @param {number} time
      */
     humanTime(time) {
-      return fromNow(time, state.user?.locale)
+      return fromNowSeconds(time, state.user?.locale)
     },
     sort() {
       this.links = this.links.sort((a, b) => {
