@@ -74,12 +74,15 @@ func (m *Manager) openVODSegment(ctx context.Context, sess *playbackSession, job
 		}
 		m.mu.Lock()
 		p := m.producers[sess.info.ID]
+		// Snapshot under the lock: the producer goroutine refreshes encodeHead
+		// and swaps job while a request is in flight.
+		view := vodJobView(p)
 		m.mu.Unlock()
 		var f *os.File
 		var ready bool
 		var err error
 		if explicitCopy {
-			f, ready, err = ffmpeg.HLSVODOpenReadyExplicitCopySegment(jobDir, segIndex, vodJobRunning(p))
+			f, ready, err = ffmpeg.HLSVODOpenReadyExplicitCopySegment(jobDir, segIndex, view.Running)
 		} else {
 			f, ready, err = ffmpeg.HLSVODOpenReadySegment(segPath)
 		}
@@ -100,7 +103,7 @@ func (m *Manager) openVODSegment(ctx context.Context, sess *playbackSession, job
 			f.Close()
 		}
 
-		action := ffmpeg.DecideHLSVODSegmentAction(cfg, vodJobView(p), segIndex, false)
+		action := ffmpeg.DecideHLSVODSegmentAction(cfg, view, segIndex, false)
 		if action == ffmpeg.HLSVODActionRestart {
 			if !vodProducerLive(p) {
 				// No producer can ever write this segment (finished generation

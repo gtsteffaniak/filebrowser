@@ -518,8 +518,8 @@ func TestManagerSharesInProgressProducerAcrossUsers(t *testing.T) {
 	if producer == nil || producer != producerFor(t, mgr, second.ID) {
 		t.Fatal("expected both sessions to share one producer")
 	}
-	if producer.refs != 2 {
-		t.Fatalf("producer refs = %d, want 2", producer.refs)
+	if snap := snapshotProducer(t, mgr, first.ID); snap.refs != 2 {
+		t.Fatalf("producer refs = %d, want 2", snap.refs)
 	}
 
 	// Stopping one viewer must not stop the shared transcode.
@@ -819,11 +819,10 @@ func TestManagerSuspendsProducerWhenAllClientsPaused(t *testing.T) {
 	suspendPausedProducers(t, mgr, time.Now().Add(time.Hour))
 
 	pollUntil(t, 2*time.Second, func() bool { return !job.Running() }, "suspended job to stop")
-	p := producerFor(t, mgr, sess.ID)
-	if p == nil || !p.suspended {
+	if snap := snapshotProducer(t, mgr, sess.ID); !snap.exists || !snap.suspended {
 		t.Fatal("a suspended producer must stay registered and marked suspended")
 	}
-	if got := sessionFor(t, mgr, sess.ID).state; got == StateFailed || got == StateCompleted {
+	if got := sessionState(t, mgr, sess.ID); got == StateFailed || got == StateCompleted {
 		t.Fatalf("pause suspension must not finalize the session, state=%s", got)
 	}
 	// Already-produced segments still serve without churning the producer.
@@ -859,7 +858,7 @@ func TestManagerKeepsProducerWhileAnyClientPlays(t *testing.T) {
 	if !job.Running() {
 		t.Fatal("a playing client must prevent producer suspension")
 	}
-	if p := producerFor(t, mgr, sess.ID); p == nil || p.suspended {
+	if snap := snapshotProducer(t, mgr, sess.ID); !snap.exists || snap.suspended {
 		t.Fatal("producer must not be suspended while a client plays")
 	}
 }
@@ -897,8 +896,7 @@ func TestManagerResumesProducerOnUnpauseHeartbeat(t *testing.T) {
 	// The fake wrote segment 0 at launch; wait until the encode head sees it
 	// so the resume target is deterministic.
 	pollUntil(t, 2*time.Second, func() bool {
-		p := producerFor(t, mgr, sess.ID)
-		return p != nil && p.encodeHead >= 1
+		return snapshotProducer(t, mgr, sess.ID).encodeHead >= 1
 	}, "encode head to advance past segment 0")
 	job := engine.LastJob()
 
@@ -912,7 +910,7 @@ func TestManagerResumesProducerOnUnpauseHeartbeat(t *testing.T) {
 		t.Fatal(err)
 	}
 	waitForStarts(t, engine, 2)
-	if p := producerFor(t, mgr, sess.ID); p == nil || p.suspended {
+	if snap := snapshotProducer(t, mgr, sess.ID); !snap.exists || snap.suspended {
 		t.Fatal("producer must be live after an un-pause heartbeat")
 	}
 	// Resume relaunches at the encode head — not the generation's start.
@@ -1071,11 +1069,48 @@ func sessionFor(t *testing.T, mgr *Manager, id string) *playbackSession {
 }
 
 // producerFor returns the producer registered for a session under the lock.
+// Only pointer identity is safe to check on the result — mutable fields race
+// the producer loop; use snapshotProducer to read them.
 func producerFor(t *testing.T, mgr *Manager, id string) *producer {
 	t.Helper()
 	mgr.mu.Lock()
 	defer mgr.mu.Unlock()
 	return mgr.producers[id]
+}
+
+// producerSnapshot carries the producer fields tests assert on. Fields are
+// zero and exists is false when the session has no registered producer.
+type producerSnapshot struct {
+	exists     bool
+	suspended  bool
+	encodeHead int
+	refs       int
+}
+
+// snapshotProducer reads the session's producer fields under the manager lock
+// so assertions don't race the producer goroutine.
+func snapshotProducer(t *testing.T, mgr *Manager, id string) producerSnapshot {
+	t.Helper()
+	mgr.mu.Lock()
+	defer mgr.mu.Unlock()
+	p := mgr.producers[id]
+	if p == nil {
+		return producerSnapshot{}
+	}
+	return producerSnapshot{
+		exists:     true,
+		suspended:  p.suspended,
+		encodeHead: p.encodeHead,
+		refs:       p.refs,
+	}
+}
+
+// sessionState returns the session's lifecycle state under the manager lock.
+func sessionState(t *testing.T, mgr *Manager, id string) SessionState {
+	t.Helper()
+	mgr.mu.Lock()
+	defer mgr.mu.Unlock()
+	return mgr.sessions[id].state
 }
 
 func sessionJobDir(t *testing.T, mgr *Manager, sessionID string) string {
