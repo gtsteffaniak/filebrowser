@@ -6,7 +6,7 @@
       :class="{ 'with-top-spacing': isShare && !disableShareCard }">
       <i :class="{ 'disabled': !isLoggedIn }"
         aria-label="Navigate Home"
-        @click="goHome()" class="material-symbols action">home</i>
+        @click="goHome()" class="material-symbols action button">home</i>
       <span
         class="sidebar-mode-toggle-wrap item"
         @mouseenter="showTooltip($event, $t('sidebar.switchMode'))"
@@ -25,10 +25,10 @@
       </span>
       <i v-if="isShare" aria-label="Edit Share" @mouseenter="showTooltip($event, editShareText)" @mouseleave="hideTooltip"
         :class="{ 'disabled': !canEdit }"
-        @click="showEditShareHover" class="material-symbols action">edit</i>
+        @click="showEditShareHover" class="material-symbols action button">edit</i>
       <i v-else @mouseenter="showTooltip($event, $t('sidebar.customizeLinks'))" @mouseleave="hideTooltip"
         aria-label="Edit Links"
-        @click="openSidebarLinksPrompt" class="material-symbols action">edit</i>
+        @click="openSidebarLinksPrompt" class="material-symbols action button">edit</i>
     </div>
     <!-- Scrollable Content Area -->
     <div class="sidebar-links-content">
@@ -670,13 +670,14 @@ export default {
 }
 
 .sidebar-links-header .material-symbols.action {
-  padding: 0.25em;
-  border-radius: 0.5em;
-  transition: background 0.2s;
-}
-
-.sidebar-links-header .material-symbols.action:hover {
-  background: var(--surfaceSecondary);
+  --button-width: auto;
+  --button-padding-x: 0;
+  --button-padding-y: 0;
+  --button-min-width: 1.5em;
+  --button-min-height: 1.5em;
+  --hover-transform: scale(1.15);
+  --hover-shadow: inset 0 0 0 3em var(--hoverOverlay);
+  flex-shrink: 0;
 }
 
 .sidebar-links-header .sidebar-mode-toggle-wrap {
@@ -726,7 +727,6 @@ export default {
 
 .usage-info .vue-simple-progress {
   border: var(--borderWidth) solid var(--surfaceSecondary);
-  border-radius: var(--borderRadius) !important;
 }
 
 .sidebar-links .inner-card {
@@ -741,9 +741,10 @@ export default {
 .sidebar-link-button {
   margin: 0;
   margin-top: 0.25em;
-  padding-left: 0.5em;
-  padding-right: 0.5em;
-  border-radius: 0.5em;
+  border-radius: var(--borderRadius);
+
+  --button-padding-x: 0.5em;
+  --button-padding-y: 0;
   justify-content: flex-start;
   max-width: 98%;
 }

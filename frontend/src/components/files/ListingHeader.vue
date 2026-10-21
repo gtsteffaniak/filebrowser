@@ -247,6 +247,8 @@ export default {
   box-sizing: border-box;
   border-top-left-radius: 1em;
   border-top-right-radius: 1em;
+  border-bottom-left-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
   margin-bottom: 0 !important;
   justify-content: space-between;
   user-select: none;

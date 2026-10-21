@@ -2,7 +2,7 @@
   <header v-if="!isOnlyOffice" :class="['flexbar']" :inert="overlayShown">
     <action
       v-if="!disableNavButtons"
-      class="nav-toggle-button"
+      class="nav-toggle-button button"
       icon="close_back"
       :label="$t('general.close')"
       :disabled="isDisabledMultiAction"
@@ -21,7 +21,7 @@
     <title v-if="!showSearch" class="topTitle">{{ getTopTitle }}</title>
     <action
       v-if="showHeaderSwitchView && !disableNavButtons"
-      class="menu-button"
+      class="menu-button button"
       :icon="viewIcon"
       :label="viewModeActionLabel"
       @action="switchView"
@@ -29,7 +29,7 @@
     />
     <template v-else>
       <action
-        class="overflow-menu-button"
+        class="overflow-menu-button button"
         :icon="iconName"
         :disabled="noItems || isSidebarFloating"
         @click="toggleOverflow"

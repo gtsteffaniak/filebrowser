@@ -133,10 +133,12 @@ body.rtl .listing-items {
   box-shadow: rgb(0 0 0 / 6%) 0 1px 3px, rgb(0 0 0 / 12%) 0 1px 2px;
 }
 
+/* Rows join into one panel — no radius of their own, even if a theme
+   forces one on .listing-item (outer-facing corners are re-rounded below) */
 .listing-items.list .listing-item,
 .listing-items.compact .listing-item {
   max-width: 100%;
-  border-radius: 0;
+  border-radius: 0 !important;
 }
 
 .listing-items.gallery .listing-item {
@@ -270,8 +272,8 @@ body.rtl .listing-items {
 
 .listing-items.compact :where(.lastGroup) .listing-item:last-child {
   border-bottom: var(--borderWidth) solid var(--divider);
-  border-bottom-left-radius: var(--borderRadius);
-  border-bottom-right-radius: var(--borderRadius);
+  border-bottom-left-radius: var(--borderRadius) !important;
+  border-bottom-right-radius: var(--borderRadius) !important;
 }
 
 .listing-items.compact .listing-item div:last-of-type,
@@ -424,8 +426,8 @@ body.rtl .listing-items {
 
 .listing-items.compact :where(.firstGroup) .listing-item:first-child {
   border-top: var(--borderWidth) solid var(--divider);
-  border-top-left-radius: var(--borderRadius);
-  border-top-right-radius: var(--borderRadius);
+  border-top-left-radius: var(--borderRadius) !important;
+  border-top-right-radius: var(--borderRadius) !important;
 }
 
 /* =========== */
@@ -439,17 +441,17 @@ body.rtl .listing-items {
 
 .listing-items.list > .listing-item:first-child,
 .listing-items.list :where(.pinned-items, .folder-items, .file-items) .listing-item:first-child {
-  border-top-left-radius: var(--borderRadius);
-  border-top-right-radius: var(--borderRadius);
   border-top: var(--borderWidth) solid var(--divider);
+  border-top-left-radius: var(--borderRadius) !important;
+  border-top-right-radius: var(--borderRadius) !important;
 }
 
 .listing-items.list > .listing-item:not(:has(~ .listing-item)),
 .listing-items.list :where(.pinned-items, .folder-items, .file-items) .listing-item:last-child {
-  border-bottom-left-radius: var(--borderRadius);
-  border-bottom-right-radius: var(--borderRadius);
   border-bottom: var(--borderWidth) solid var(--divider);
   margin-bottom: .5em;
+  border-bottom-left-radius: var(--borderRadius) !important;
+  border-bottom-right-radius: var(--borderRadius) !important;
 }
 
 /* size, modified, type, date added, duration */
