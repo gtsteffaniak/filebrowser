@@ -289,6 +289,9 @@ func migrateUsers(oldDB *storm.DB, sqlStore *sqldb.SQLStore) error {
 		prevVersion := user.Version
 		if len(user.BackendScopes) == 0 {
 			settings.ApplyUserDefaults(user)
+			if !user.Permissions.Admin {
+				settings.ExpandBackendScopesForCreateUserDir(user)
+			}
 		}
 		if prevVersion < users.SourcePermissionsMigrationVersion {
 			// ApplyUserDefaults bumps Version; restore pre-defaults version so legacy global file ops migrate to scopes.

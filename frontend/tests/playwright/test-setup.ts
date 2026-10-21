@@ -336,6 +336,27 @@ export async function disableAndCloseHalloweenPrompt(page: Page): Promise<void> 
   );
 }
 
+/**
+ * Persist dark/light mode for the logged-in user via the sidebar toggle.
+ * The Playwright `theme` fixture only labels the project; light setup can leave
+ * darkMode=false on the shared admin user. Prefer the UI over a hardcoded API
+ * host so this works with screenshot docker (localhost:8080 + http.baseURL /files/).
+ */
+export async function ensureUserDarkMode(page: Page, darkMode: boolean): Promise<void> {
+  await page.goto("/files/");
+  const toggle = page.locator('div[aria-label="Toggle Theme"]');
+  await expect(toggle).toBeVisible();
+  const isDark = await toggle.evaluate((el) => el.classList.contains("active"));
+  if (isDark !== darkMode) {
+    await toggle.click();
+  }
+  if (darkMode) {
+    await expect(page.locator("html")).toHaveClass(/dark-mode/);
+  } else {
+    await expect(page.locator("html")).not.toHaveClass(/dark-mode/);
+  }
+}
+
 export interface PlaywrightFixtureOptions {
   theme: 'light' | 'dark';
 }

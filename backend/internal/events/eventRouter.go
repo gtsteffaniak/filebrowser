@@ -41,15 +41,13 @@ func handleUserEvents() {
 	for ue := range userEventChan {
 		for _, user := range ue.users {
 			userClientsMu.RLock()
-			conns := userClients[user]
-			userClientsMu.RUnlock()
-
-			for _, ch := range conns {
+			for _, ch := range userClients[user] {
 				select {
 				case ch <- ue.event:
 				default:
 				}
 			}
+			userClientsMu.RUnlock()
 		}
 	}
 }
@@ -135,28 +133,14 @@ func DebouncedBroadcast(eventType, message string) {
 func handleSourceUpdates() {
 	for update := range sourceUpdateChan {
 		sourceClientsMu.RLock()
-		clients := sourceClients[update.source]
-		clientCount := len(clients)
-		sourceClientsMu.RUnlock()
-
-		if clientCount == 0 {
-			// No clients registered for this source - this is normal if no one is connected
-			continue
-		}
-
-		sentCount := 0
-		for ch := range clients {
+		for ch := range sourceClients[update.source] {
 			select {
 			case ch <- update.event:
-				sentCount++
 			default:
 				// Channel full, message dropped
 			}
 		}
-		// Log if we have clients but couldn't send to all
-		//if sentCount < clientCount {
-		//	// Some messages were dropped due to full channels
-		//}
+		sourceClientsMu.RUnlock()
 	}
 }
 

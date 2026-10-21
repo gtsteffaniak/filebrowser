@@ -71,13 +71,18 @@ func processDirectoryMetadata(response *iteminfo.ExtendedFileInfo, idx *indexing
 	}
 	var wg sync.WaitGroup
 
-	wg.Go(func() {
-		indexPath := idx.MakeIndexPath(response.Path, true).String()
-		err := idx.RefreshDirectory(indexPath, false)
-		if err != nil {
-			logger.Debugf("Failed to refresh directory for folder size update: %v", err)
-		}
-	})
+	// Expanded listings already persisted index rows and the folder size from
+	// the freshly read directory (persistDirectoryListing); only unexpanded
+	// directory requests still need a refresh walk.
+	if !opts.Expand {
+		wg.Go(func() {
+			indexPath := idx.MakeIndexPath(response.Path, true).String()
+			err := idx.RefreshDirectory(indexPath, false)
+			if err != nil {
+				logger.Debugf("Failed to refresh directory for folder size update: %v", err)
+			}
+		})
+	}
 
 	if opts.Metadata && metadataCount > 0 {
 		addMetadataToChildren(response, opts, &wg)
@@ -629,47 +634,53 @@ func extractVideoMetadata(ctx context.Context, item *iteminfo.ExtendedItemInfo, 
 	return nil
 }
 
-func DeleteFiles(source, absPath string, isDir bool) error {
+// DeleteFiles deletes the file or directory at indexPath. boundIndexPath limits
+// symlink resolution to the caller's scope ("" or "/" = source root only). The
+// entry itself is removed: a symlink leaf is deleted, never followed, and an
+// intermediate symlinked component cannot carry the delete outside the bound.
+func DeleteFiles(source, boundIndexPath, indexPath string, isDir bool) error {
 	index := indexing.GetIndex(source)
 	if index == nil {
 		return fmt.Errorf("could not get index: %v ", source)
 	}
-	// Safety guard: never allow deletion of the source root directory itself
-	cleanAbs := filepath.Clean(absPath)
-	if cleanAbs == filepath.Clean(index.Path) {
-		return fmt.Errorf("refusing to delete source root directory: %s", absPath)
+	if utils.CleanIndexPathSegment(indexPath) == "" {
+		return fmt.Errorf("refusing to delete source root directory: %s", indexPath)
 	}
-
-	if !index.Config.ResolvedRules.IndexingDisabled {
-		indexPath := index.MakeIndexPath(absPath, isDir).String()
-
-		// Perform the physical deletion
-		err := os.RemoveAll(absPath)
-		if err != nil {
-			return err
-		}
-
-		// Clear cache entries
-		indexing.RealPathCache.Delete(absPath)
-		indexing.IsDirCache.Delete(absPath + ":isdir")
-
-		// Remove metadata from index
-		deleteSuccess := index.DeleteMetadata(indexPath, isDir, isDir)
-		if !deleteSuccess {
-			logger.Errorf("Failed to delete metadata from index for %s, but filesystem deletion succeeded", indexPath)
-		}
-
-		// Refresh the parent directory to recalculate sizes and update counts
-		refreshConfig := utils.FileOptions{
-			Path:  index.MakeIndexPath(filepath.Dir(absPath), true).String(),
-			IsDir: true,
-		}
-		err = index.RefreshFileInfo(refreshConfig)
+	realPath, err := index.GetRealPathForRemoval(boundIndexPath, indexPath)
+	if err != nil {
 		return err
 	}
 
-	// Indexing disabled, just delete the file
-	return os.RemoveAll(absPath)
+	if index.Config.ResolvedRules.IndexingDisabled {
+		// Indexing disabled, just delete the file
+		return os.RemoveAll(realPath)
+	}
+
+	indexPath = index.MakeIndexPath(indexPath, isDir).String()
+
+	// Perform the physical deletion
+	err = os.RemoveAll(realPath)
+	if err != nil {
+		return err
+	}
+
+	// Clear cache entries
+	indexing.RealPathCache.Delete(realPath)
+	indexing.IsDirCache.Delete(realPath + ":isdir")
+
+	// Remove metadata from index
+	deleteSuccess := index.DeleteMetadata(indexPath, isDir, isDir)
+	if !deleteSuccess {
+		logger.Errorf("Failed to delete metadata from index for %s, but filesystem deletion succeeded", indexPath)
+	}
+
+	// Refresh the parent directory to recalculate sizes and update counts
+	refreshConfig := utils.FileOptions{
+		Path:  index.MakeIndexPath(filepath.Dir(strings.TrimSuffix(indexPath, "/")), true).String(),
+		IsDir: true,
+	}
+	err = index.RefreshFileInfo(refreshConfig)
+	return err
 }
 
 func RefreshIndex(source string, path string, isDir bool, recursive bool) error {
@@ -896,15 +907,19 @@ func CopyResource(isSrcDir bool, sourceIndex, destIndex, realsrc, realdst string
 	return nil
 }
 
-func WriteDirectory(opts utils.FileOptions) error {
+// WriteDirectory creates a directory at opts.Path. boundIndexPath limits symlink
+// resolution to the caller's scope ("" or "/" = source root only).
+func WriteDirectory(boundIndexPath string, opts utils.FileOptions) error {
 	idx := indexing.GetIndex(opts.Source)
 	if idx == nil {
 		return fmt.Errorf("could not get index: %v ", opts.Source)
 	}
-	realPath, _, _ := idx.GetRealPath(opts.Path)
+	realPath, err := idx.GetRealPathForMutation(boundIndexPath, opts.Path)
+	if err != nil {
+		return err
+	}
 
 	var stat os.FileInfo
-	var err error
 	// Check if the destination exists and is a file
 	if stat, err = os.Stat(realPath); err == nil && !stat.IsDir() {
 		// If it's a file and we're trying to create a directory, remove the file first
@@ -948,21 +963,24 @@ func WriteDirectory(opts utils.FileOptions) error {
 // WriteFileFunc is a variable that can be mocked in tests
 var WriteFileFunc = writeFile
 
-func WriteFile(source, path string, in io.Reader) error {
-	return WriteFileFunc(source, path, in)
+// WriteFile writes stream contents to the file at index path path. boundIndexPath
+// limits symlink resolution to the caller's scope ("" or "/" = source root only).
+func WriteFile(source, boundIndexPath, path string, in io.Reader) error {
+	return WriteFileFunc(source, boundIndexPath, path, in)
 }
 
-func writeFile(source, path string, in io.Reader) error {
+func writeFile(source, boundIndexPath, path string, in io.Reader) error {
 	idx := indexing.GetIndex(source)
 	if idx == nil {
 		return fmt.Errorf("could not get index: %v ", source)
 	}
-	realPath, _, _ := idx.GetRealPath(path)
-	// Strip trailing slash from realPath if it's meant to be a file
-	realPath = strings.TrimRight(realPath, "/")
+	realPath, err := idx.GetRealPathForMutation(boundIndexPath, path)
+	if err != nil {
+		return err
+	}
 	// Ensure the parent directories exist
 	parentDir := filepath.Dir(realPath)
-	err := os.MkdirAll(parentDir, fileutils.PermDir)
+	err = os.MkdirAll(parentDir, fileutils.PermDir)
 	if err != nil {
 		return err
 	}

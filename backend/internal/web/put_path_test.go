@@ -6,9 +6,11 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 
+	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/fileutils"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/app"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 	commonerrors "github.com/gtsteffaniak/filebrowser/backend/internal/errors"
@@ -47,9 +49,9 @@ func symlinkPutFixture(t *testing.T) (downloadsPath string, idx *indexing.Index)
 func TestResolvePutRealPath_NewFileViaParent(t *testing.T) {
 	_, idx := symlinkPutFixture(t)
 
-	realPath, err := resolvePutRealPath(idx, "/projects/newfile.txt")
+	realPath, err := idx.GetRealPathForMutation("", "/projects/newfile.txt")
 	if err != nil {
-		t.Fatalf("resolvePutRealPath: %v", err)
+		t.Fatalf("GetRealPathForMutation: %v", err)
 	}
 	parentReal, isDir, err := idx.GetRealPath("/projects")
 	if err != nil || !isDir {
@@ -64,7 +66,7 @@ func TestResolvePutRealPath_NewFileViaParent(t *testing.T) {
 func TestResolvePutRealPath_RejectsEscapingParent(t *testing.T) {
 	_, idx := symlinkPutFixture(t)
 
-	_, err := resolvePutRealPath(idx, "/evil/hack.txt")
+	_, err := idx.GetRealPathForMutation("", "/evil/hack.txt")
 	if !errors.Is(err, commonerrors.ErrPathEscapesScope) {
 		t.Fatalf("expected ErrPathEscapesScope, got %v", err)
 	}
@@ -72,7 +74,7 @@ func TestResolvePutRealPath_RejectsEscapingParent(t *testing.T) {
 
 func TestSanitizePutPathError_NoFilesystemPaths(t *testing.T) {
 	_, idx := symlinkPutFixture(t)
-	_, internalErr := resolvePutRealPath(idx, "/evil/hack.txt")
+	_, internalErr := idx.GetRealPathForMutation("", "/evil/hack.txt")
 	if internalErr == nil {
 		t.Fatal("expected resolution error")
 	}
@@ -115,6 +117,67 @@ func TestResourcePutHandler_CreatesNewFile(t *testing.T) {
 	}
 	if info.Size() != int64(len(body)) {
 		t.Fatalf("size=%d want %d", info.Size(), len(body))
+	}
+}
+
+func TestResourcePutHandler_PreservesFilePermissions(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Unix permission bits are not supported on Windows")
+	}
+	originalPerm := fileutils.PermFile
+	fileutils.PermFile = 0600
+	t.Cleanup(func() { fileutils.PermFile = originalPerm })
+
+	for _, tc := range []struct {
+		name string
+		mode os.FileMode
+	}{
+		{"new", 0},
+		{"readable", 0604},
+		{"executable", 0755},
+		{"privileged", 0755 | os.ModeSetuid | os.ModeSetgid},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			root := setupPutHTTPTest(t)
+			path := filepath.Join(root, "projects", "edit.txt")
+			if tc.mode != 0 {
+				if err := os.WriteFile(path, []byte("before"), 0600); err != nil {
+					t.Fatal(err)
+				}
+				if err := os.Chmod(path, tc.mode); err != nil {
+					t.Fatal(err)
+				}
+				before, err := os.Stat(path)
+				if err != nil || before.Mode() != tc.mode {
+					t.Fatalf("could not set initial mode: info=%v err=%v", before, err)
+				}
+			}
+			admin, err := state.GetUserByUsername("admin")
+			if err != nil {
+				t.Fatal(err)
+			}
+			req := httptest.NewRequest(http.MethodPut, "/api/resources?source=Downloads&path=/projects/edit.txt", strings.NewReader("after"))
+			status, err := resourcePutHandler(httptest.NewRecorder(), req, &requestContext{User: &admin})
+			if err != nil || status != http.StatusOK {
+				t.Fatalf("put failed: status=%d err=%v", status, err)
+			}
+			content, err := os.ReadFile(path)
+			if err != nil || string(content) != "after" {
+				t.Fatalf("content=%q err=%v", content, err)
+			}
+			info, err := os.Stat(path)
+			if err != nil {
+				t.Fatal(err)
+			}
+			want := tc.mode.Perm()
+			if want == 0 {
+				want = 0600
+			}
+			mode := info.Mode() & (os.ModePerm | os.ModeSetuid | os.ModeSetgid | os.ModeSticky)
+			if mode != want {
+				t.Fatalf("mode=%v want %v", mode, want)
+			}
+		})
 	}
 }
 

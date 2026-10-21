@@ -645,6 +645,10 @@ func processOnlyOfficeCallback(w http.ResponseWriter, r *http.Request, d *Contex
 			return returnOnlyOfficeSuccess(w, r)
 		}
 
+		if status, roErr := denyIfSourceReadOnly(source); roErr != nil {
+			return returnOnlyOfficeError(w, r, status, roErr.Error())
+		}
+
 		// Check modify permission for save operations
 		filePerms, permErr := effectiveFilePerms(d, source)
 		if permErr != nil || !filePerms.Modify {
@@ -712,7 +716,7 @@ func processOnlyOfficeCallback(w http.ResponseWriter, r *http.Request, d *Contex
 		}
 		fullIndexPath := utils.JoinPathAsUnix(userScope, path)
 
-		writeErr := files.WriteFile(source, fullIndexPath, doc.Body)
+		writeErr := files.WriteFile(source, userScope, fullIndexPath, doc.Body)
 		if writeErr != nil {
 			logger.Errorf("OnlyOffice callback: failed to write updated document to path=%s: %v",
 				path, writeErr)

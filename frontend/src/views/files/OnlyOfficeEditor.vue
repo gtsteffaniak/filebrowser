@@ -99,10 +99,12 @@ export default {
   },
   methods: {
     close() {
+      const { path, source } = state.req;
       mutations.replaceRequest({});
-      const uri = `${removeLastDir(state.route.path)}/`;
-      const filename = this.path.split('/').pop() || "";
-      void router.push({ path: uri, hash: `#${filename}` });
+      if (path) {
+        state.pendingHighlight = { path, source };
+      }
+      void router.push({ path: `${removeLastDir(state.route.path)}/` });
     },
 
     showDebugPrompt() {

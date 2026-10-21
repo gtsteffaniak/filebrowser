@@ -356,6 +356,74 @@ func TestCopySymlinkReplacesExistingDestination(t *testing.T) {
 	}
 }
 
+func TestCopyFile_ReplacesDestinationSymlinkWithoutFollowingTarget(t *testing.T) {
+	dir := t.TempDir()
+	outside := filepath.Join(filepath.Dir(dir), "outside-victim.txt")
+	if err := os.WriteFile(outside, []byte("keep me"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	link := filepath.Join(dir, "link")
+	if err := os.Symlink(outside, link); err != nil {
+		t.Fatal(err)
+	}
+	src := filepath.Join(dir, "src.txt")
+	if err := os.WriteFile(src, []byte("copied"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := CopyFile(src, link); err != nil {
+		t.Fatalf("CopyFile: %v", err)
+	}
+	info, err := os.Lstat(link)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if info.Mode()&os.ModeSymlink != 0 {
+		t.Fatal("destination should be a regular file replacing the symlink entry")
+	}
+	got, err := os.ReadFile(outside)
+	if err != nil || string(got) != "keep me" {
+		t.Fatalf("copy followed the symlink target: %v %q", err, got)
+	}
+	if body, err := os.ReadFile(link); err != nil || string(body) != "copied" {
+		t.Fatalf("link path content = %q, err=%v", body, err)
+	}
+}
+
+func TestMoveFile_ReplacesDestinationSymlinkWithoutFollowingTarget(t *testing.T) {
+	dir := t.TempDir()
+	outside := filepath.Join(filepath.Dir(dir), "outside-victim.txt")
+	if err := os.WriteFile(outside, []byte("keep me"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	link := filepath.Join(dir, "link")
+	if err := os.Symlink(outside, link); err != nil {
+		t.Fatal(err)
+	}
+	src := filepath.Join(dir, "src.txt")
+	if err := os.WriteFile(src, []byte("moved"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := MoveFile(src, link); err != nil {
+		t.Fatalf("MoveFile: %v", err)
+	}
+	if _, err := os.Lstat(src); !os.IsNotExist(err) {
+		t.Fatal("source should be gone after move")
+	}
+	info, err := os.Lstat(link)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if info.Mode()&os.ModeSymlink != 0 {
+		t.Fatal("destination should be a regular file replacing the symlink entry")
+	}
+	got, err := os.ReadFile(outside)
+	if err != nil || string(got) != "keep me" {
+		t.Fatalf("move followed the symlink target: %v %q", err, got)
+	}
+}
+
 func TestCopyFileContentsFallsBackAfterCopyFileRangeBadFileDescriptor(t *testing.T) {
 	const content = "complete file contents"
 	src := struct{ io.Reader }{bytes.NewBufferString(content)}

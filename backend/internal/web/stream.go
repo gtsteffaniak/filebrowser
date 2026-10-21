@@ -232,7 +232,10 @@ func ValidateViewGrant(token string, d *Context, sourceName string) error {
 		utils.ViewGrantsCache.Delete(token)
 		return fmt.Errorf("view token expired")
 	}
-	viewCtx := contextForViewGrantValidation(d, grant.Source)
+	viewCtx := d
+	if d.Share.Hash == "" && (sourceName == "" || grant.Source != sourceName) {
+		return fmt.Errorf("view token scope mismatch")
+	}
 	if !viewGrantScopeMatches(viewCtx, grant.Source, sourceName) {
 		return fmt.Errorf("view token scope mismatch")
 	}
@@ -251,33 +254,6 @@ func ValidateViewGrant(token string, d *Context, sourceName string) error {
 	grant.ExpiresAt = time.Now().Add(viewGrantTTL).Unix()
 	utils.ViewGrantsCache.Set(token, grant)
 	return nil
-}
-
-// contextForViewGrantValidation hydrates share metadata when optional-auth middleware
-// left only a hash stub on the context (anonymous public share visitors).
-func contextForViewGrantValidation(d *Context, grantSource string) *Context {
-	if d == nil {
-		return d
-	}
-	if d.Share.Hash != "" {
-		return d
-	}
-	hash := strings.TrimSpace(grantSource)
-	if hash == "" {
-		return d
-	}
-	link, err := state.GetShare(hash)
-	if err != nil || link.Hash == "" {
-		return d
-	}
-	out := *d
-	out.Share = link
-	if out.ShareUser == nil {
-		if u, err := state.UserForShareOwner(link); err == nil {
-			out.ShareUser = &u
-		}
-	}
-	return &out
 }
 
 func viewGrantScopeMatches(d *Context, grantSource, sourceName string) bool {

@@ -438,7 +438,7 @@ func wopiPutFileHandler(w http.ResponseWriter, r *http.Request, req *wopiRequest
 	if err != nil {
 		return http.StatusUnauthorized
 	}
-	if err = files.WriteFile(req.claims.Source, utils.JoinPathAsUnix(scope, req.claims.Path), spool); err != nil {
+	if err = files.WriteFile(req.claims.Source, scope, utils.JoinPathAsUnix(scope, req.claims.Path), spool); err != nil {
 		logger.Errorf("wopi: PutFile: writing %s: %v", req.name, err)
 		return http.StatusInternalServerError
 	}
