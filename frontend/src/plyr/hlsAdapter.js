@@ -4,11 +4,6 @@ import { state } from '@/store/index.ts';
 import { transcodeError, transcodeLog, transcodeVerbose, transcodeWarn } from '@/plyr/transcodeDebug.js';
 
 const ATTACH_TIMEOUT_MS = 45_000;
-/** Minimum forward buffer before starting playback on live transcode sessions. */
-const MIN_LIVE_BUFFER_FRAGS = 2;
-// Once the element is playable, start after this grace period rather than
-// blocking on MIN_LIVE_BUFFER_FRAGS when production is slow.
-const LIVE_BUFFER_GRACE_MS = 2_000;
 /** Wait for decoded dimensions before declaring attach ready (MSE can buffer without painting). */
 const RENDERABLE_WAIT_MS = 8_000;
 const MAX_BUFFER_APPEND_RECOVERIES = 3;
@@ -147,27 +142,6 @@ function describeHlsError(data) {
 }
 
 /**
- * Pin media.duration to the probed source duration while attached — a live
- * playlist only lists produced segments, so duration would otherwise grow
- * from ~0 as ffmpeg transcodes. Returns a restore function.
- */
-function pinMediaDuration(video, durationSec) {
-  if (!video || !Number.isFinite(durationSec) || durationSec <= 0) {
-    return null;
-  }
-  const real = durationSec;
-  Object.defineProperty(video, 'duration', {
-    configurable: true,
-    get() {
-      return real;
-    },
-  });
-  return () => {
-    delete video.duration;
-  };
-}
-
-/**
  * Attach hls.js to a video element for a transcode session.
  * Resolves once enough media is buffered and playback can begin safely.
  *
@@ -208,9 +182,6 @@ export function attachHlsToVideo({
       // Native HLS has no hls.js events, so report readiness from the element.
       // onFirstBuffered marks the session active, applies the start position and
       // resumes the primed play promise; without it playback stays paused.
-      const restoreDuration = session?.vodPlaylist
-        ? null
-        : pinMediaDuration(video, session?.durationSec);
       let reportedReady = false;
       const onReady = () => {
         if (reportedReady || signal?.aborted) {
@@ -231,7 +202,6 @@ export function attachHlsToVideo({
         cleanup: () => {
           onAbortNative();
           signal?.removeEventListener('abort', onAbortNative);
-          restoreDuration?.();
           video.removeAttribute('src');
           video.load();
         },
@@ -249,9 +219,9 @@ export function attachHlsToVideo({
     let settled = false;
     let readyToPlay = false;
     let bufferedFrags = 0;
-    const isVodPlaylist = Boolean(session?.vodPlaylist);
-    const isCompletedSession = session?.state === 'completed' || session?.state === 'ready';
-    const minBufferFrags = isVodPlaylist || isCompletedSession ? 1 : MIN_LIVE_BUFFER_FRAGS;
+    // The synthetic VOD playlist lists the full media duration; a single
+    // buffered fragment is enough to start playback.
+    const minBufferFrags = 1;
     const onAbort = () => {
       cleanup();
       const error = new Error('HLS attach aborted');
@@ -273,20 +243,12 @@ export function attachHlsToVideo({
       }
     };
 
-    let graceTimerId = null;
     let appendRecoveryAttempts = 0;
-    const clearGraceTimer = () => {
-      if (graceTimerId !== null) {
-        clearTimeout(graceTimerId);
-        graceTimerId = null;
-      }
-    };
     const startPlaybackReady = (reason) => {
       if (settled || readyToPlay) {
         return;
       }
       readyToPlay = true;
-      clearGraceTimer();
       void waitUntilVideoRenderable(video, signal).then((renderable) => {
         if (settled) {
           return;
@@ -309,24 +271,6 @@ export function attachHlsToVideo({
         finish('resolve', { cleanup, hls });
       });
     };
-    const onVideoPlayable = () => scheduleGraceResolve();
-    const scheduleGraceResolve = () => {
-      if (settled || readyToPlay || graceTimerId !== null || bufferedFrags < 1) {
-        return;
-      }
-      const playable = video.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA
-        || video.buffered?.length > 0;
-      if (!playable) {
-        return;
-      }
-      graceTimerId = setTimeout(() => {
-        graceTimerId = null;
-        if (bufferedFrags < 1) {
-          return;
-        }
-        startPlaybackReady('live-buffer-grace');
-      }, LIVE_BUFFER_GRACE_MS);
-    };
 
     const timeoutId = setTimeout(() => {
       transcodeError('hls attach timed out waiting for buffered fragments', {
@@ -339,13 +283,6 @@ export function attachHlsToVideo({
       finish('reject', new Error('HLS attach timed out'));
     }, ATTACH_TIMEOUT_MS);
 
-    // Pin duration only for live-paced sessions (open-ended playlist →
-    // MediaSource.duration is Infinity). On a completed VOD playlist a pinned
-    // finite value makes hls.js skip its own duration update, leaving
-    // seekable empty and silently discarding every seek.
-    const restoreDuration = isVodPlaylist || isCompletedSession
-      ? null
-      : pinMediaDuration(video, session?.durationSec);
     const hls = new Hls({
       enableWorker: true,
       lowLatencyMode: false,
@@ -385,10 +322,6 @@ export function attachHlsToVideo({
 
     const cleanup = () => {
       transcodeLog('hls destroy', { sessionId: session?.id });
-      clearGraceTimer();
-      restoreDuration?.();
-      video.removeEventListener('canplay', onVideoPlayable);
-      video.removeEventListener('loadeddata', onVideoPlayable);
       hls.destroy();
     };
 
@@ -459,9 +392,7 @@ export function attachHlsToVideo({
       }
       if (bufferedFrags >= minBufferFrags) {
         startPlaybackReady('buffer-satisfied');
-        return;
       }
-      scheduleGraceResolve();
     });
 
     hls.on(Hls.Events.ERROR, (_event, data) => {
@@ -517,9 +448,6 @@ export function attachHlsToVideo({
       }
       transcodeWarn('hls non-fatal error', info);
     });
-
-    video.addEventListener('canplay', onVideoPlayable);
-    video.addEventListener('loadeddata', onVideoPlayable);
 
     transcodeLog('hls attachMedia + loadSource', { playlistURL });
     hls.attachMedia(video);

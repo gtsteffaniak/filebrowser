@@ -121,28 +121,30 @@ func bitrateKbps(target string) int {
 	return n
 }
 
-func TestContinuousSeekParams(t *testing.T) {
+func TestVODSeekParams(t *testing.T) {
 	t.Parallel()
-	const seg = 4.0
+	plan := hlsPlan{
+		vodList: ffmpeg.BuildVODSegmentList(30.5, 4.0, 0, nil),
+	}
 
 	tests := []struct {
-		name       string
-		startSec   float64
-		wantIndex  int
-		wantFFmpeg float64
+		name         string
+		requested    float64
+		wantIndex    int
+		wantStartSec float64
 	}{
-		{name: "zero", startSec: 0, wantIndex: 0, wantFFmpeg: 0},
-		{name: "within first segment", startSec: 3.44, wantIndex: 0, wantFFmpeg: 0},
-		{name: "segment boundary", startSec: 4, wantIndex: 1, wantFFmpeg: 4},
-		{name: "mid segment", startSec: 5.5, wantIndex: 1, wantFFmpeg: 4},
+		{name: "zero", requested: 0, wantIndex: 0, wantStartSec: 0},
+		{name: "within first segment", requested: 3.44, wantIndex: 0, wantStartSec: 0},
+		{name: "segment boundary", requested: 4, wantIndex: 1, wantStartSec: 4},
+		{name: "mid segment", requested: 5.5, wantIndex: 1, wantStartSec: 4},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			idx, ffStart := continuousSeekParams(tc.startSec, seg)
-			if idx != tc.wantIndex || ffStart != tc.wantFFmpeg {
-				t.Fatalf("continuousSeekParams(%v, %v) = (%d, %v), want (%d, %v)",
-					tc.startSec, seg, idx, ffStart, tc.wantIndex, tc.wantFFmpeg)
+			idx, start := vodSeekParams(plan, tc.requested)
+			if idx != tc.wantIndex || start != tc.wantStartSec {
+				t.Fatalf("vodSeekParams(%v) = (%d, %v), want (%d, %v)",
+					tc.requested, idx, start, tc.wantIndex, tc.wantStartSec)
 			}
 		})
 	}
@@ -154,16 +156,13 @@ func TestTranscodePlanUsesFixedSegmentGrid(t *testing.T) {
 	duration := 30.5
 
 	// Sparse WMV-like keyframes that do not match the output grid.
-	keyframes := []float64{0, 3.909, 7.818, 11.727}
-	keyframes = ffmpeg.SanitizeHLSKeyframes(keyframes, duration)
-	_, keyframeDurs := ffmpeg.BuildHLSSegmentTimeline(duration, keyframes, segDur, 0)
+	keyframeList := ffmpeg.BuildVODSegmentList(duration, segDur, 0, []float64{0, 3.909, 7.818, 11.727})
+	fixedList := ffmpeg.BuildVODSegmentList(duration, segDur, 0, nil)
 
-	_, fixedDurs := ffmpeg.BuildHLSSegmentTimeline(duration, nil, segDur, 0)
-
-	if len(keyframeDurs) == len(fixedDurs) {
+	if len(keyframeList.Durations) == len(fixedList.Durations) {
 		same := true
-		for i := range fixedDurs {
-			if keyframeDurs[i] != fixedDurs[i] {
+		for i := range fixedList.Durations {
+			if keyframeList.Durations[i] != fixedList.Durations[i] {
 				same = false
 				break
 			}
@@ -173,11 +172,11 @@ func TestTranscodePlanUsesFixedSegmentGrid(t *testing.T) {
 		}
 	}
 
-	lastFixed := fixedDurs[len(fixedDurs)-1]
+	lastFixed := fixedList.Durations[len(fixedList.Durations)-1]
 	if lastFixed <= 0 || lastFixed > segDur {
 		t.Fatalf("tail segment duration %v out of range", lastFixed)
 	}
-	for i, dur := range fixedDurs[:len(fixedDurs)-1] {
+	for i, dur := range fixedList.Durations[:len(fixedList.Durations)-1] {
 		if dur != segDur {
 			t.Fatalf("fixed segment %d duration = %v, want %v", i, dur, segDur)
 		}
@@ -201,24 +200,23 @@ func TestTranscodePlanNormalizesContainerStartTime(t *testing.T) {
 	if mediaDuration < 30.4 || mediaDuration > 30.6 {
 		t.Fatalf("media duration = %v, want ~30.5", mediaDuration)
 	}
-	_, offsetDurs := ffmpeg.BuildHLSSegmentTimeline(mediaDuration, sanitized, segDur, 0)
+	offsetList := ffmpeg.BuildVODSegmentList(mediaDuration, segDur, 0, sanitized)
 
-	keyframes := ffmpeg.SanitizeHLSKeyframes([]float64{0, 3.909, 7.818, 11.727}, 30.5)
-	_, zeroOffsetDurs := ffmpeg.BuildHLSSegmentTimeline(30.5, keyframes, segDur, 0)
+	zeroOffsetList := ffmpeg.BuildVODSegmentList(30.5, segDur, 0, []float64{0, 3.909, 7.818, 11.727})
 
-	if len(offsetDurs) != len(zeroOffsetDurs) {
-		t.Fatalf("normalized timeline has %d segments, want %d", len(offsetDurs), len(zeroOffsetDurs))
+	if len(offsetList.Durations) != len(zeroOffsetList.Durations) {
+		t.Fatalf("normalized timeline has %d segments, want %d", len(offsetList.Durations), len(zeroOffsetList.Durations))
 	}
-	for i := range zeroOffsetDurs {
-		if offsetDurs[i] != zeroOffsetDurs[i] {
-			t.Fatalf("segment %d duration = %v, want %v", i, offsetDurs[i], zeroOffsetDurs[i])
+	for i := range zeroOffsetList.Durations {
+		if offsetList.Durations[i] != zeroOffsetList.Durations[i] {
+			t.Fatalf("segment %d duration = %v, want %v", i, offsetList.Durations[i], zeroOffsetList.Durations[i])
 		}
 	}
 
 	// The lib also normalizes internally when startTimeSec is passed directly.
-	_, libDurs := ffmpeg.BuildHLSSegmentTimeline(containerDuration, containerKeyframes, segDur, startTime)
-	if len(libDurs) != len(zeroOffsetDurs) {
-		t.Fatalf("lib-normalized timeline has %d segments, want %d", len(libDurs), len(zeroOffsetDurs))
+	libList := ffmpeg.BuildVODSegmentList(containerDuration, segDur, startTime, containerKeyframes)
+	if len(libList.Durations) != len(zeroOffsetList.Durations) {
+		t.Fatalf("lib-normalized timeline has %d segments, want %d", len(libList.Durations), len(zeroOffsetList.Durations))
 	}
 }
 

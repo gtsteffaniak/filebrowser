@@ -2,93 +2,169 @@ package transcoding
 
 import (
 	"context"
-	"errors"
+	"io"
+	"os"
+	"sync"
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/ffmpeg"
 )
 
-func (m *Manager) ensureVODSegment(ctx context.Context, sess *playbackSession, p *producer, segIndex int) error {
-	if segIndex < 0 || segIndex >= sess.plan.vodList.Count() {
-		return ErrInvalidSegment
-	}
-	path := ffmpeg.HLSVODSegmentPath(sess.jobDir, segIndex)
-	if ready, err := ffmpeg.HLSVODSegmentReady(path); err != nil {
-		return err
-	} else if ready {
-		return nil
-	}
-	if p == nil {
-		return ErrNotReady
-	}
-	head := p.encodeHead
-	if segIndex <= head+vodSegmentLookahead && p.job != nil {
-		return m.waitVODSegment(ctx, path, time.Duration(vodSegmentWaitTimeout)*time.Second)
-	}
-	return m.restartVODProducer(ctx, sess, p, segIndex)
+// leasedSegmentFile wraps an opened VOD segment so Close() also releases the
+// HLSVODSession serve-path lease once the handler finishes copying.
+type leasedSegmentFile struct {
+	*os.File
+	release func()
+	once    sync.Once
 }
 
-func (m *Manager) waitVODSegment(ctx context.Context, path string, timeout time.Duration) error {
-	deadline := time.Now().Add(timeout)
-	interval := time.Duration(vodSegmentPollInterval) * time.Millisecond
+func (f *leasedSegmentFile) Close() error {
+	var err error
+	f.once.Do(func() {
+		err = f.File.Close()
+		if f.release != nil {
+			f.release()
+		}
+	})
+	return err
+}
+
+// vodProducerLive reports whether the generation's producer can still emit
+// segments. Producers leave m.producers as soon as their job finishes or
+// fails, so a non-nil entry can still write or restart.
+func vodProducerLive(p *producer) bool {
+	return p != nil
+}
+
+func vodJobRunning(p *producer) bool {
+	return p != nil && p.job != nil && p.job.Running()
+}
+
+// vodJobView snapshots the producer for DecideHLSVODSegmentAction.
+// EncodeHead mirrors go-ffmpeg's session: the first not-yet-ready index at or
+// after the job start.
+func vodJobView(p *producer) ffmpeg.HLSVODJobView {
+	if p == nil {
+		return ffmpeg.HLSVODJobView{}
+	}
+	return ffmpeg.HLSVODJobView{
+		Running:    vodJobRunning(p),
+		StartIndex: p.startIndex,
+		EncodeHead: p.encodeHead,
+	}
+}
+
+// openVODSegment waits for the segment the way go-ffmpeg's HLSVODSession does:
+// serve a publishable fragment, wait while the request sits within the forward
+// gap of the encode head, and reposition the producer when it is behind the
+// job start or too far ahead. The returned file holds a serve-path lease on
+// the segment so an in-flight read survives a producer rewrite; callers must
+// Close it.
+func (m *Manager) openVODSegment(ctx context.Context, sess *playbackSession, jobDir string, segIndex int) (io.ReadCloser, error) {
+	if segIndex < 0 || segIndex >= sess.plan.vodList.Count() {
+		return nil, ErrInvalidSegment
+	}
+	session := sess.vodSession
+	segPath := ffmpeg.HLSVODSegmentPath(jobDir, segIndex)
+	explicitCopy := planUsesExplicitCopy(sess.plan)
+	cfg := vodDecisionConfig(sess.plan)
 	for {
-		ready, err := ffmpeg.HLSVODSegmentReady(path)
+		if err := ctx.Err(); err != nil {
+			return nil, err
+		}
+		m.mu.Lock()
+		p := m.producers[sess.info.ID]
+		m.mu.Unlock()
+		var f *os.File
+		var ready bool
+		var err error
+		if explicitCopy {
+			f, ready, err = ffmpeg.HLSVODOpenReadyExplicitCopySegment(jobDir, segIndex, vodJobRunning(p))
+		} else {
+			f, ready, err = ffmpeg.HLSVODOpenReadySegment(segPath)
+		}
 		if err != nil {
-			return err
+			return nil, err
 		}
-		if ready {
-			return nil
+		if ready && f != nil {
+			if session == nil {
+				return f, nil
+			}
+			session.AcquireServePath(segPath)
+			return &leasedSegmentFile{
+				File:    f,
+				release: func() { session.ReleaseServePath(segPath) },
+			}, nil
 		}
-		if time.Now().After(deadline) {
-			return ErrNotReady
+		if f != nil {
+			f.Close()
+		}
+
+		action := ffmpeg.DecideHLSVODSegmentAction(cfg, vodJobView(p), segIndex, false)
+		if action == ffmpeg.HLSVODActionRestart {
+			if !vodProducerLive(p) {
+				// No producer can ever write this segment (finished generation
+				// or completed-generation viewer).
+				return nil, ErrNotReady
+			}
+			m.signalVODRestart(sess, p, segIndex)
+		} else if !vodProducerLive(p) {
+			// Wait action only makes sense while a producer can still write.
+			return nil, ErrNotReady
+		}
+		if p != nil {
+			// Demand for an unproduced segment wakes a producer suspended by
+			// all-paused playback; it relaunches at the encode head or the
+			// reposition signalled above.
+			m.mu.Lock()
+			m.resumeProducerLocked(p)
+			m.mu.Unlock()
 		}
 		select {
 		case <-ctx.Done():
-			return ctx.Err()
-		case <-time.After(interval):
+			return nil, ctx.Err()
+		case <-time.After(vodSegmentPollInterval * time.Millisecond):
 		}
 	}
 }
 
-func (m *Manager) restartVODProducer(ctx context.Context, sess *playbackSession, p *producer, segIndex int) error {
-	if p == nil || p.job == nil {
-		return ErrNotReady
-	}
-	playlistStart := vodPlaylistStartSec(sess.plan, segIndex)
-	clear := segIndex < p.encodeHead || segIndex > p.encodeHead+vodSegmentLookahead
-
+// signalVODRestart repositions the producer to segIndex and cancels the running
+// job; runProducerJob picks the pending restart up at its next job launch.
+// Segments at or after segIndex are cleared by the new job so a rewrite cannot
+// serve stale output.
+func (m *Manager) signalVODRestart(sess *playbackSession, p *producer, segIndex int) {
 	m.mu.Lock()
 	p.vodRestartIndex = segIndex
 	p.startIndex = segIndex
-	p.startSec = playlistStart
-	p.clearSegmentsOnStart = clear
+	p.startSec = vodPlaylistStartSec(sess.plan, segIndex)
+	p.clearSegmentsOnStart = true
+	p.encodeHead = segIndex
 	if p.job != nil {
 		p.job.Cancel()
 	}
+	m.resumeProducerLocked(p)
 	m.mu.Unlock()
-
-	path := ffmpeg.HLSVODSegmentPath(sess.jobDir, segIndex)
-	if err := m.waitVODSegment(ctx, path, time.Duration(vodSegmentWaitTimeout)*time.Second); err != nil {
-		if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
-			return ErrNotReady
-		}
-		return err
-	}
-	return nil
 }
 
 func (m *Manager) refreshVODEncodeHead(p *producer, jobDir string, plan hlsPlan) {
 	if p == nil || plan.vodList.Count() == 0 {
 		return
 	}
-	head := p.startIndex - 1
-	for i := p.startIndex; i < plan.vodList.Count(); i++ {
-		path := ffmpeg.HLSVODSegmentPath(jobDir, i)
-		ready, err := ffmpeg.HLSVODSegmentReady(path)
+	head := p.startIndex
+	jobRunning := vodJobRunning(p)
+	explicitCopy := planUsesExplicitCopy(plan)
+	for head < plan.vodList.Count() {
+		var ready bool
+		var err error
+		if explicitCopy {
+			ready, err = ffmpeg.HLSVODExplicitCopySegmentReady(jobDir, head, jobRunning)
+		} else {
+			ready, err = ffmpeg.HLSVODSegmentReady(ffmpeg.HLSVODSegmentPath(jobDir, head))
+		}
 		if err != nil || !ready {
 			break
 		}
-		head = i
+		head++
 	}
 	p.encodeHead = head
 }

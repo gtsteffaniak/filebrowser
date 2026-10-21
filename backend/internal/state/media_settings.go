@@ -39,6 +39,9 @@ func InitMediaSettings() error {
 		if overlayErr != nil {
 			return fmt.Errorf("overlay config media settings: %w", overlayErr)
 		}
+		// Re-sanitize: config-pinned values are overlaid after the load-time
+		// sanitize, so clamps (e.g. the readRate floor) must run again.
+		overlaid = settings.SanitizeMediaSettings(overlaid)
 		if !settings.MediaSettingsEqual(loaded, overlaid) {
 			if saveErr := sqlDb.SaveSetting(mediaSettingsDefaultKey, overlaid); saveErr != nil {
 				return fmt.Errorf("save config-synced media settings: %w", saveErr)

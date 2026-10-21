@@ -11,87 +11,23 @@ function profileFromTranscodeMode(mode) {
   return TRANSCODE_PROFILES[mode] ?? TRANSCODE_PROFILES.quality;
 }
 
-// Within this slack past the produced edge, waiting for ~1x production beats
-// restarting ffmpeg. Kept in step with the backend's repositionForwardSlackSec.
-export const TRANSCODE_SEEK_FORWARD_SLACK_SEC = 12;
-
-// Tolerates rounding when the playhead sits on a generation's start boundary.
-export const TRANSCODE_SEEK_BACKWARD_EPS_SEC = 1;
-
 /**
- * The source-second range the element currently exposes (buffered/produced
- * edge) — NOT the servable range, see servableCoverage.
+ * The media-time range a session's synthetic VOD playlist can serve: the full
+ * [0, durationSec]. Every session serves the on-demand playlist — a segment
+ * request for an unproduced index waits inside the backend's forward gap or
+ * repositions the encode job, so coverage is never narrower than the file.
  */
-export function mediaCoverage(el) {
-  const seekable = el?.seekable;
-  if (!seekable || seekable.length === 0) {
+export function servableCoverage(session) {
+  const end = session?.durationSec;
+  if (!Number.isFinite(end) || end <= 0) {
     return null;
   }
-  try {
-    return { start: seekable.start(0), end: seekable.end(seekable.length - 1) };
-  } catch {
-    return null;
-  }
+  return { start: 0, end };
 }
-
-/**
- * The source-second range the generation can serve on demand: the full
- * [startSec, endSec] for a completed generation (every segment is on disk),
- * or up to the produced (≈buffered) edge for a live-paced one.
- */
-export function servableCoverage(el, session) {
-  if (session?.vodPlaylist) {
-    const end = session.durationSec;
-    if (!Number.isFinite(end) || end <= 0) {
-      return null;
-    }
-    return { start: 0, end };
-  }
-  const start = Number.isFinite(session?.startSec) ? session.startSec : 0;
-  if (session?.state === 'completed') {
-    const end = Number.isFinite(session?.endSec)
-      ? session.endSec
-      : session?.durationSec;
-    if (!Number.isFinite(end) || end < start) {
-      return null;
-    }
-    return { start, end };
-  }
-  const buffered = mediaCoverage(el);
-  if (!buffered) {
-    return null;
-  }
-  return { start: Math.min(start, buffered.start), end: buffered.end };
-}
-
-/**
- * True when the target is before the generation start or past the produced
- * edge beyond slack — waiting for paced production would just stall.
- */
-export function seekOutsideCoverage(targetSec, coverage) {
-  if (!Number.isFinite(targetSec) || targetSec < 0 || !coverage) {
-    return false;
-  }
-  if (targetSec < coverage.start - TRANSCODE_SEEK_BACKWARD_EPS_SEC) {
-    return true;
-  }
-  return targetSec > coverage.end + TRANSCODE_SEEK_FORWARD_SLACK_SEC;
-}
-
-// Debounce so a scrub's drag tail coalesces into one reposition request.
-const SEEK_INTENT_DEBOUNCE_MS = 350;
-// applyStartPosition clamps the playhead to the produced edge at attach time,
-// so a reposition initially lands a few seconds before the intent. Poll until
-// production passes the target, then re-apply it exactly.
-const PRECISE_SEEK_POLL_MS = 400;
-const PRECISE_SEEK_TIMEOUT_MS = 15_000;
 
 /**
  * Owns one transcode playback attempt: session start, HLS attach, cancellation,
- * stale-async guards, and seek-intent handling. A seek outside the generation's
- * servable coverage repositions it via a new start at the target; seeks inside
- * coverage stay plain element seeks. Vue components provide DOM/player hooks
- * only.
+ * and stale-async guards. Vue components provide DOM/player hooks only.
  */
 export class TranscodePlaybackController {
   constructor() {
@@ -107,10 +43,6 @@ export class TranscodePlaybackController {
     this.disposed = false;
     this.startInProgress = false;
     this._startChain = Promise.resolve();
-    this._params = null;
-    this._pendingSeekIntentSec = null;
-    this._seekRepositionTimer = null;
-    this._preciseSeekTimer = null;
   }
 
   dispose({ stopSession = false } = {}) {
@@ -119,24 +51,6 @@ export class TranscodePlaybackController {
     this._cancelInFlight({ stopSession });
     this.active = false;
     this.startInProgress = false;
-    this._clearPendingSeek();
-  }
-
-  /** Drop any pending seek intent (file switch, teardown, mode change). */
-  clearPendingSeek() {
-    this._clearPendingSeek();
-  }
-
-  _clearPendingSeek() {
-    this._pendingSeekIntentSec = null;
-    if (this._seekRepositionTimer) {
-      clearTimeout(this._seekRepositionTimer);
-      this._seekRepositionTimer = null;
-    }
-    if (this._preciseSeekTimer) {
-      clearInterval(this._preciseSeekTimer);
-      this._preciseSeekTimer = null;
-    }
   }
 
   isCurrentAttempt(attempt) {
@@ -169,113 +83,10 @@ export class TranscodePlaybackController {
       this.attachAbort?.abort();
     }
     this.startInProgress = true;
-    this._params = params;
     this._startChain = this._startChain
       .catch(() => {})
       .then(() => this._startOnce(params));
     return this._startChain;
-  }
-
-  _videoElement() {
-    return this._params?.getVideoElement?.() ?? null;
-  }
-
-  /**
-   * Record a scrub/seek intent. Live-paced generations can only serve what the
-   * producer has written, so a target outside the servable coverage must
-   * reposition the session — debounced so drag tails coalesce. Seeks inside
-   * coverage are plain element seeks and need no action here.
-   */
-  notifySeekIntent(sec) {
-    if (this.disposed || !Number.isFinite(sec)) {
-      return;
-    }
-    this._pendingSeekIntentSec = Math.max(0, sec);
-    if (this._seekRepositionTimer) {
-      clearTimeout(this._seekRepositionTimer);
-    }
-    this._seekRepositionTimer = setTimeout(() => {
-      this._seekRepositionTimer = null;
-      this._evaluateSeekIntent();
-    }, SEEK_INTENT_DEBOUNCE_MS);
-  }
-
-  _evaluateSeekIntent() {
-    const intent = this._pendingSeekIntentSec;
-    if (intent == null || this.disposed) {
-      return;
-    }
-    // A start/reposition is already rebuilding the session; the intent is
-    // re-evaluated against the new coverage once it lands (see _startOnce's
-    // finally block).
-    if (this.startInProgress) {
-      return;
-    }
-    const el = this._videoElement();
-    // Servable — not just buffered — coverage: a completed generation can
-    // serve its whole playlist on demand, so a seek inside it stays an
-    // in-place element seek instead of tearing the session down.
-    const coverage = servableCoverage(el, this.sessionController?.session);
-    if (!coverage) {
-      // Nothing attached yet — keep the intent for a later evaluation.
-      return;
-    }
-    if (!seekOutsideCoverage(intent, coverage)) {
-      this._pendingSeekIntentSec = null;
-      return;
-    }
-    this._pendingSeekIntentSec = null;
-    if (!this._params) {
-      return;
-    }
-    const wasPlaying = el ? !el.paused : true;
-    transcodeLog('seek past produced coverage — repositioning transcode', {
-      targetSec: intent,
-      sessionId: this.sessionController?.session?.id,
-    });
-    this._startPreciseSeekWait(intent);
-    void this.start({
-      ...this._params,
-      // Supersede the session currently attached; a stale stored id would 404.
-      replaceSessionId: this.sessionController?.session?.id ?? this._params.replaceSessionId,
-      startSec: intent,
-      shouldAutoplay: wasPlaying,
-    });
-  }
-
-  _startPreciseSeekWait(targetSec) {
-    if (this._preciseSeekTimer) {
-      clearInterval(this._preciseSeekTimer);
-    }
-    const deadline = Date.now() + PRECISE_SEEK_TIMEOUT_MS;
-    this._preciseSeekTimer = setInterval(() => {
-      const el = this._videoElement();
-      if (!el || this.disposed || Date.now() > deadline) {
-        this._stopPreciseSeekWait();
-        return;
-      }
-      const coverage = mediaCoverage(el);
-      if (!coverage || coverage.end < targetSec - 0.75) {
-        return;
-      }
-      const clamped = Math.min(Math.max(targetSec, coverage.start), coverage.end);
-      if (Math.abs(el.currentTime - clamped) > 0.35) {
-        try {
-          el.currentTime = clamped;
-        } catch (_) {
-          // element not seekable yet; next poll retries
-          return;
-        }
-      }
-      this._stopPreciseSeekWait();
-    }, PRECISE_SEEK_POLL_MS);
-  }
-
-  _stopPreciseSeekWait() {
-    if (this._preciseSeekTimer) {
-      clearInterval(this._preciseSeekTimer);
-      this._preciseSeekTimer = null;
-    }
   }
 
   async _startOnce({
@@ -357,7 +168,7 @@ export class TranscodePlaybackController {
       }
       try {
         let clamped = target;
-        const coverage = servableCoverage(video, controller.session);
+        const coverage = servableCoverage(controller.session);
         if (coverage) {
           clamped = Math.min(Math.max(target, coverage.start), coverage.end);
         }
@@ -495,9 +306,6 @@ export class TranscodePlaybackController {
       if (attempt === this.attempt) {
         this.startInProgress = false;
       }
-      // A seek intent issued while this start was in flight is checked
-      // against the fresh coverage now that the flags have cleared.
-      this._evaluateSeekIntent();
     }
   }
 
@@ -507,7 +315,6 @@ export class TranscodePlaybackController {
     // Invalidate any in-flight start: its finally block compares attempts and
     // would otherwise leave the flag set, blocking every future start.
     this.startInProgress = false;
-    this._clearPendingSeek();
   }
 
   updatePlayback({ currentTime, paused }) {

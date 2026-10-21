@@ -399,9 +399,34 @@ func setupMediaTranscode() {
 	if t.CacheRetentionH <= 0 {
 		t.CacheRetentionH = 24
 	}
+	clampTranscodeReadRate(t)
 	normalizeTranscodeProfile(&t.Profiles.Quality)
 	normalizeTranscodeProfile(&t.Profiles.Balanced)
 	normalizeTranscodeProfile(&t.Profiles.DataSaver)
+}
+
+const (
+	// defaultTranscodeReadRate applies when readRate is unset or non-positive.
+	defaultTranscodeReadRate = 2.0
+	// minTranscodeReadRate keeps producers at/above realtime so playback isn't
+	// starved by a producer slower than the player.
+	minTranscodeReadRate = 1.0
+)
+
+// clampTranscodeReadRate enforces throttled producers: unset or sub-realtime
+// read rates are raised, so a producer is never left unthrottled.
+func clampTranscodeReadRate(t *MediaTranscode) {
+	if t.ReadRate <= 0 {
+		t.ReadRate = defaultTranscodeReadRate
+	} else if t.ReadRate < minTranscodeReadRate {
+		t.ReadRate = minTranscodeReadRate
+	}
+	if t.ReadRateInitialBurst < 0 {
+		t.ReadRateInitialBurst = 0
+	}
+	if t.ReadRateCatchup < 0 {
+		t.ReadRateCatchup = 0
+	}
 }
 
 // normalizeTranscodeProfile clamps negative profile values (0 means "original").

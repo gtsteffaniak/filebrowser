@@ -310,7 +310,7 @@ describe('TranscodePlaybackController', () => {
     expect(video.currentTime).toBeCloseTo(3415.39, 2);
   });
 
-  it('clamps a seek target to the produced edge on a running session', async () => {
+  it('applies an unproduced seek target on a running VOD session', async () => {
     const controller = new TranscodePlaybackController();
     const video = document.createElement('video');
     Object.defineProperty(video, 'seekable', {
@@ -319,9 +319,9 @@ describe('TranscodePlaybackController', () => {
     });
     vi.mocked(startTranscodeSession).mockResolvedValueOnce({
       id: 'sess-2',
+      vodPlaylist: true,
       state: 'running',
-      startSec: 2400,
-      endSec: 2440,
+      durationSec: 5112,
       heartbeatIntervalSec: 12,
       deliveryBaseUrl: '/api/media/transcode/sessions/sess-2',
     });
@@ -343,8 +343,9 @@ describe('TranscodePlaybackController', () => {
     });
 
     expect(result.ok).toBe(true);
-    // Production has not reached 2600 yet; clamp to the produced edge and let
-    // the precise-seek wait re-apply the target once production catches up.
-    expect(video.currentTime).toBeCloseTo(2440, 1);
+    // VOD sessions serve the whole [0, durationSec] playlist; the backend
+    // waits/repositions the job for the segment, so the target is never
+    // clamped to the produced edge.
+    expect(video.currentTime).toBeCloseTo(2600, 1);
   });
 });

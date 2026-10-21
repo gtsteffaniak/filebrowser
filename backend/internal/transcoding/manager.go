@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -23,44 +24,68 @@ type producer struct {
 	generation string
 	jobDir     string
 	plan       hlsPlan
-	job        ContinuousJob
+	job        VODJob
 	cancel     context.CancelFunc
 	// startIndex is the first segment index this generation produces; startSec
-	// is the segment-aligned ffmpeg -ss offset. Segments before it are never
-	// produced, so coverage checks need both bounds.
+	// is the playlist-time anchor. Segments before it are never produced until
+	// a restart repositions the job.
 	startIndex int
 	startSec   float64
 	// refs counts the sessions attached to this generation. The job is only
 	// cancelled once the last attached session goes away.
 	refs int
-	// encodeHead is the highest segment index known ready on disk for this job.
+	// encodeHead is the first not-yet-ready segment index at or after
+	// startIndex — the metric HLSVODJobView.EncodeHead carries.
 	encodeHead int
 	// vodRestartIndex >= 0 means the job was cancelled to reposition; runProducer retries.
 	vodRestartIndex int
+	// clearSegmentsOnStart makes the next job unlink segments >= startIndex
+	// before writing, per the HLSVODSession restart contract.
 	clearSegmentsOnStart bool
+	// vodSession owns the serve-path read leases for this generation's output
+	// dir so an in-flight segment read survives a producer rewrite.
+	vodSession *ffmpeg.HLSVODSession
+	// suspended parks the producer: the current job was cancelled because
+	// every client stayed paused past producerPauseGrace. runProducer waits
+	// on resume and relaunches the job on demand. Cleared at job launch.
+	suspended bool
+	// resume wakes a suspended producer (segment request or un-pause
+	// heartbeat). Buffered 1 so multiple wake-ups coalesce.
+	resume chan struct{}
+}
+
+// clientLease tracks one heartbeat stream's freshness and pause state.
+type clientLease struct {
+	seen   time.Time
+	paused bool
 }
 
 type playbackSession struct {
-	info            SessionInfo
-	reuseKey        string
-	generation      string
-	jobDir          string
-	realPath        string
-	plan            hlsPlan
-	state           SessionState
-	clients         map[string]time.Time
-	lastActivity    time.Time
-	lastHeartbeat   time.Time
-	playheadSec     float64
-	paused          bool
+	info          SessionInfo
+	reuseKey      string
+	generation    string
+	jobDir        string
+	realPath      string
+	plan          hlsPlan
+	state         SessionState
+	clients       map[string]clientLease
+	lastActivity  time.Time
+	lastHeartbeat time.Time
+	playheadSec   float64
+	paused        bool
+	// pausedSince is when the session's live clients first became all-paused;
+	// zero while any client reports playing. Producer suspension uses it.
+	pausedSince     time.Time
 	startedAt       time.Time
 	startupDeadline time.Time
-	// startSec is the segment-aligned ffmpeg start offset for this generation.
-	// Segments before it were never produced, so the session cannot serve them.
+	// startSec is the playlist-time anchor of this generation's first segment.
 	startSec float64
 	// startIndex is the first segment index produced by this generation. When it
 	// is 0 the generation covers the whole file, so any playhead is servable.
 	startIndex int
+	// vodSession leases open segment paths; nil until the session commits to a
+	// live producer (completed-generation viewers never see rewrites).
+	vodSession *ffmpeg.HLSVODSession
 }
 
 type inflightStart struct {
@@ -313,9 +338,9 @@ func (m *Manager) tryReuseSessionLocked(in StartInput, reuseKey, clientID string
 		delete(m.byReuse, reuseKey)
 		return SessionInfo{}, false, nil
 	}
-	if sessionReusable(sess, in.StartSec, m.coverageEndSecLocked(sess.plan, sess.startIndex, sess.jobDir)) {
+	if sessionReusable(sess, in.StartSec) {
 		now := time.Now()
-		sess.clients[clientID] = now
+		sess.clients[clientID] = clientLease{seen: now, paused: true}
 		sess.lastActivity = now
 		sess.lastHeartbeat = now
 		return m.publicSession(sess, true), true, nil
@@ -333,8 +358,8 @@ func (m *Manager) tryReuseSessionLocked(in StartInput, reuseKey, clientID string
 // that has been heard from within the reconnect grace window.
 func soleLiveClient(sess *playbackSession, clientID string) bool {
 	now := time.Now()
-	for id, seen := range sess.clients {
-		if id != clientID && now.Sub(seen) <= reconnectGrace {
+	for id, lease := range sess.clients {
+		if id != clientID && now.Sub(lease.seen) <= reconnectGrace {
 			return false
 		}
 	}
@@ -386,7 +411,13 @@ func (m *Manager) commitStart(ctx context.Context, ps pendingStart) (SessionInfo
 		return SessionInfo{}, ErrDisabled
 	}
 
+	vodSess := ffmpeg.NewHLSVODSession(ffmpeg.HLSVODSessionOptions{
+		OutDir:           jobDir,
+		Decision:         vodDecisionConfig(plan),
+		ExplicitCopyCuts: planUsesExplicitCopy(plan),
+	})
 	sess := m.newSessionLocked(ps, jobDir, generation, startIndex, ffmpegStartSec, plan.mediaDurationSec)
+	sess.vodSession = vodSess
 	// Register the generation before the producer starts so a concurrent start
 	// for the same file attaches to it instead of transcoding again.
 	m.producers[ps.sessionID] = &producer{
@@ -395,9 +426,11 @@ func (m *Manager) commitStart(ctx context.Context, ps pendingStart) (SessionInfo
 		plan:            plan,
 		startIndex:      startIndex,
 		startSec:        ffmpegStartSec,
-		encodeHead:      startIndex - 1,
+		encodeHead:      startIndex,
 		vodRestartIndex: -1,
 		refs:            1,
+		vodSession:      vodSess,
+		resume:          make(chan struct{}, 1),
 	}
 	info := m.finishAttachLocked(ps, sess)
 
@@ -450,7 +483,8 @@ func (m *Manager) attachCoveringGeneration(ps pendingStart) (SessionInfo, bool, 
 			continue
 		}
 		p.refs++
-		sess := m.newSessionLocked(ps, p.jobDir, p.generation, p.startIndex, p.startSec, m.coverageEndSecLocked(p.plan, p.startIndex, p.jobDir))
+		sess := m.newSessionLocked(ps, p.jobDir, p.generation, p.startIndex, p.startSec, p.plan.mediaDurationSec)
+		sess.vodSession = p.vodSession
 		sess.state = m.generationStateLocked(p.generation)
 		sess.info.State = sess.state
 		m.producers[ps.sessionID] = p
@@ -461,9 +495,10 @@ func (m *Manager) attachCoveringGeneration(ps pendingStart) (SessionInfo, bool, 
 	m.mu.Unlock()
 
 	// Completed generations always ran to EOF, so covering the target only
-	// requires it to start at or before the requested playhead.
+	// requires it to start at or before the requested playhead. A generation
+	// that began mid-file cannot serve segments before its first index.
 	jobDir, cov, ok := m.store.FindReusableGeneration(ps.plan.cacheFingerprint)
-	if !ok || cov.StartSec > targetSec+seekBackwardEpsSec {
+	if !ok || (cov.FirstIndex > 0 && vodPlaylistStartSec(ps.plan, cov.FirstIndex) > targetSec+seekBackwardEpsSec) {
 		return SessionInfo{}, false, nil
 	}
 
@@ -473,7 +508,7 @@ func (m *Manager) attachCoveringGeneration(ps pendingStart) (SessionInfo, bool, 
 		m.abortStartLocked(ps.in.Username, ps.reuseKey, ps.flight)
 		return SessionInfo{}, true, ErrDisabled
 	}
-	sess := m.newSessionLocked(ps, jobDir, filepath.Base(jobDir), cov.FirstIndex, float64(cov.FirstIndex)*ps.plan.segmentSec, cov.StartSec+cov.ProducedSec)
+	sess := m.newSessionLocked(ps, jobDir, filepath.Base(jobDir), cov.FirstIndex, vodPlaylistStartSec(ps.plan, cov.FirstIndex), ps.plan.mediaDurationSec)
 	sess.state = StateCompleted
 	sess.info.State = StateCompleted
 	m.store.TouchGeneration(jobDir)
@@ -481,55 +516,12 @@ func (m *Manager) attachCoveringGeneration(ps pendingStart) (SessionInfo, bool, 
 	return info, true, nil
 }
 
-// producerCoversTargetLocked reports whether a live generation can already
-// serve the requested playhead: it must have started at or before the target
-// and its produced edge must have reached it (within the forward slack that
-// makes waiting cheaper than restarting ffmpeg).
+// producerCoversTargetLocked reports whether a live generation can serve the
+// requested playhead. Under the synthetic VOD playlist any in-bounds target is
+// servable: segment requests wait within the forward gap and reposition the
+// job for anything outside it.
 func (m *Manager) producerCoversTargetLocked(p *producer, targetSec float64) bool {
-	if p.plan.vodList.Count() > 0 {
-		return targetSec >= -seekBackwardEpsSec && targetSec <= p.plan.mediaDurationSec+seekBackwardEpsSec
-	}
-	if targetSec < coverageStartSec(p.plan, p.startIndex)-seekBackwardEpsSec {
-		return false
-	}
-	return targetSec <= m.coverageEndSecLocked(p.plan, p.startIndex, p.jobDir)+repositionForwardSlackSec
-}
-
-// coverageEndSecLocked returns the source-time end of a generation's produced
-// edge — the generation start plus the produced media duration on disk, or
-// the start alone when nothing has been produced yet.
-func (m *Manager) coverageEndSecLocked(plan hlsPlan, startIndex int, jobDir string) float64 {
-	if plan.vodList.Count() > 0 {
-		return plan.mediaDurationSec
-	}
-	end := coverageStartSec(plan, startIndex)
-	if jobDir != "" {
-		if cov := m.store.GenerationCoverage(jobDir); cov.HasPlaylist {
-			// The publisher's recorded start is the real anchor — identical to
-			// coverageStartSec by construction, but read from the artifact
-			// rather than recomputed.
-			return cov.StartSec + cov.ProducedSec
-		}
-	}
-	return end
-}
-
-// coverageStartSec is the source-time start of a generation's first segment —
-// the lower bound of the range it can serve and the offset the client adds to
-// its 0-based HLS element timeline. ffmpeg anchors a stream-copy generation at
-// the keyframe the seek snapped to and a transcode generation at the exact
-// -ss, so positions on the planned segment grid are not usable here: emitted
-// copy boundaries diverge from the plan and mid-file generations would be
-// misplaced by the accumulated divergence.
-func coverageStartSec(plan hlsPlan, startIndex int) float64 {
-	if startIndex <= 0 {
-		return 0
-	}
-	start := float64(startIndex) * plan.segmentSec
-	if (plan.remux || plan.videoCopy) && len(plan.keyframes) > 0 {
-		return ffmpeg.KeyframeSeekBefore(plan.keyframes, start)
-	}
-	return start
+	return targetSec >= -seekBackwardEpsSec && targetSec <= p.plan.mediaDurationSec+seekBackwardEpsSec
 }
 
 func (m *Manager) newSessionLocked(ps pendingStart, jobDir, generation string, startIndex int, startSec, endSec float64) *playbackSession {
@@ -557,7 +549,7 @@ func (m *Manager) newSessionLocked(ps pendingStart, jobDir, generation string, s
 		realPath:        ps.in.RealPath,
 		plan:            ps.plan,
 		state:           StateStarting,
-		clients:         map[string]time.Time{ps.clientID: now},
+		clients:         map[string]clientLease{ps.clientID: {seen: now, paused: true}},
 		lastActivity:    now,
 		lastHeartbeat:   now,
 		startedAt:       now,
@@ -620,12 +612,11 @@ func (m *Manager) runProducer(ctx context.Context, sess *playbackSession) {
 	realPath := sess.realPath
 	plan := sess.plan
 	startIndex := sess.startIndex
-	ffmpegStartSec := sess.startSec
 	m.mu.Unlock()
 
 	retriedVT := false
 	for {
-		outcome := m.runProducerJob(ctx, sessionID, gen, jobDir, realPath, plan, startIndex, ffmpegStartSec)
+		outcome := m.runProducerJob(ctx, sessionID, gen, jobDir, realPath, plan, startIndex)
 		switch outcome {
 		case producerRestartSoftware:
 			if retriedVT {
@@ -638,21 +629,22 @@ func (m *Manager) runProducer(ctx context.Context, sess *playbackSession) {
 			}
 			plan.decodeProfile.ForceSoftware = true
 		case producerRestartSeek:
+			// runProducerJob picks the pending vodRestartIndex back up.
+			continue
+		case producerSuspended:
+			if !m.waitProducerResume(ctx, sessionID, gen) {
+				return
+			}
+			// Resume where the producer left off: relaunch at the encode head
+			// through the same restart path a seek uses, which also clears a
+			// partial segment left at the head by the cancelled job. A pending
+			// restart index (request-driven reposition) wins.
 			m.mu.Lock()
-			idx := startIndex
-			sec := ffmpegStartSec
-			clear := false
-			if p := m.producers[sessionID]; p != nil {
-				idx = p.startIndex
-				sec = p.startSec
-				clear = p.clearSegmentsOnStart
-				p.clearSegmentsOnStart = false
-				p.vodRestartIndex = -1
+			if p := m.producers[sessionID]; p != nil && p.generation == gen && p.vodRestartIndex < 0 {
+				p.vodRestartIndex = p.encodeHead
+				p.clearSegmentsOnStart = true
 			}
 			m.mu.Unlock()
-			startIndex = idx
-			ffmpegStartSec = sec
-			plan.vodClearFromIndex = clear
 			continue
 		default:
 			return
@@ -674,21 +666,37 @@ const (
 	producerRestartSoftware
 	// producerRestartSeek: segment handler cancelled the job to reposition.
 	producerRestartSeek
+	// producerSuspended: every client stayed paused past the grace window, so
+	// the job was cancelled. The producer parks until demand wakes it.
+	producerSuspended
 )
 
 // runProducerJob runs one ffmpeg job for the generation and watches it through
 // startup and steady state. Sessions attach and detach while it runs; the
-// caller decides whether the outcome ends or retries the generation.
-func (m *Manager) runProducerJob(ctx context.Context, sessionID, gen, jobDir, realPath string, plan hlsPlan, startIndex int, startSec float64) producerOutcome {
+// caller decides whether the outcome ends or retries the generation. A pending
+// vodRestartIndex signalled by a segment request is consumed here so the job
+// launches at the repositioned index.
+func (m *Manager) runProducerJob(ctx context.Context, sessionID, gen, jobDir, realPath string, plan hlsPlan, startIndex int) producerOutcome {
 	jobCtx, cancel := context.WithCancel(ctx)
 	planCopy := plan
+	var vodSess *ffmpeg.HLSVODSession
 	m.mu.Lock()
 	if p := m.producers[sessionID]; p != nil {
+		if p.vodRestartIndex >= 0 {
+			startIndex = p.vodRestartIndex
+			p.startIndex = startIndex
+			p.startSec = vodPlaylistStartSec(plan, startIndex)
+			p.encodeHead = startIndex
+			p.vodRestartIndex = -1
+		}
+		// Launching a job means the producer is no longer parked.
+		p.suspended = false
 		planCopy.vodClearFromIndex = p.clearSegmentsOnStart
 		p.clearSegmentsOnStart = false
+		vodSess = p.vodSession
 	}
 	m.mu.Unlock()
-	job, err := m.engine.StartContinuous(jobCtx, realPath, jobDir, planCopy, startIndex, startSec)
+	job, err := m.engine.StartVODJob(jobCtx, realPath, jobDir, planCopy, startIndex, vodSess)
 	if err != nil {
 		cancel()
 		m.failSession(gen, err)
@@ -724,12 +732,17 @@ func (m *Manager) runProducerJob(ctx context.Context, sessionID, gen, jobDir, re
 		case err := <-jobDone:
 			m.mu.Lock()
 			restartSeek := false
-			if p := m.producers[sessionID]; p != nil && p.vodRestartIndex >= 0 {
-				restartSeek = true
+			suspended := false
+			if p := m.producers[sessionID]; p != nil {
+				restartSeek = p.vodRestartIndex >= 0
+				suspended = p.suspended && !restartSeek
 			}
 			m.mu.Unlock()
 			if restartSeek {
 				return producerRestartSeek
+			}
+			if suspended {
+				return producerSuspended
 			}
 			m.finishProducer(gen, err, jobDir, plan)
 			return producerDone
@@ -757,6 +770,78 @@ func (m *Manager) runProducerJob(ctx context.Context, sessionID, gen, jobDir, re
 			}
 			m.mu.Unlock()
 		}
+	}
+}
+
+// waitProducerResume parks a producer suspended for all-paused playback until
+// demand (segment request or un-pause heartbeat) wakes it. Returns false when
+// the producer was detached or superseded while parked so the goroutine exits.
+func (m *Manager) waitProducerResume(ctx context.Context, sessionID, generation string) bool {
+	m.mu.Lock()
+	p := m.producers[sessionID]
+	m.mu.Unlock()
+	if p == nil || p.generation != generation {
+		return false
+	}
+	select {
+	case <-ctx.Done():
+		return false
+	case <-p.resume:
+	}
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	return m.producers[sessionID] == p && p.generation == generation
+}
+
+// resumeProducerLocked wakes a producer suspended because every client was
+// paused. The send never blocks: a buffered wake-up coalesces repeat signals
+// and one buffered on a running producer is simply unused.
+func (m *Manager) resumeProducerLocked(p *producer) {
+	if p == nil {
+		return
+	}
+	select {
+	case p.resume <- struct{}{}:
+	default:
+	}
+}
+
+// suspendPausedProducersLocked cancels VOD producers whose attached clients
+// are all paused past producerPauseGrace. Already-produced segments stay on
+// disk; the producer relaunches on the next segment request or un-pause
+// heartbeat via the existing VOD restart path. Cancelling the job is the
+// cross-platform pause: it frees CPU without platform-specific signals.
+func (m *Manager) suspendPausedProducersLocked(now time.Time) {
+	// A producer is shared by every session attached to its generation, so
+	// suspension requires every session's clients to be paused, measured from
+	// the most recent moment a session became all-paused.
+	suspendable := map[*producer]bool{}
+	pausedSince := map[*producer]time.Time{}
+	for _, sess := range m.sessions {
+		p := m.producers[sess.info.ID]
+		if p == nil {
+			continue
+		}
+		if _, ok := suspendable[p]; !ok {
+			suspendable[p] = true
+		}
+		if sess.pausedSince.IsZero() {
+			suspendable[p] = false
+			continue
+		}
+		if sess.pausedSince.After(pausedSince[p]) {
+			pausedSince[p] = sess.pausedSince
+		}
+	}
+	for p, ok := range suspendable {
+		if !ok || p.suspended || !vodJobRunning(p) {
+			continue
+		}
+		if now.Sub(pausedSince[p]) < producerPauseGrace {
+			continue
+		}
+		p.suspended = true
+		p.job.Cancel()
 	}
 }
 
@@ -813,9 +898,8 @@ func (m *Manager) finishProducer(generation string, err error, jobDir string, pl
 		}
 		sess.state = StateCompleted
 		sess.info.State = StateCompleted
-		// The generation ran to EOF, so the produced end is final — refresh it
-		// for sessions created while the producer was still live.
-		sess.info.EndSec = m.coverageEndSecLocked(sess.plan, sess.startIndex, sess.jobDir)
+		// The generation ran to EOF, so coverage is the full media duration.
+		sess.info.EndSec = sess.plan.mediaDurationSec
 	}
 }
 
@@ -918,6 +1002,9 @@ func (m *Manager) detachProducerLocked(sessionID string) {
 	if p.cancel != nil {
 		p.cancel()
 	}
+	// Wake a producer parked in waitProducerResume so it notices the detach
+	// and exits instead of waiting on resume until manager close.
+	m.resumeProducerLocked(p)
 }
 
 func (m *Manager) releaseSessionLocked(sessionID string, sess *playbackSession) {
@@ -943,11 +1030,29 @@ func (m *Manager) Heartbeat(username, sessionID string, req HeartbeatRequest) er
 	}
 	clientID := normalizeClientID(req.ClientID)
 	now := time.Now()
-	sess.clients[clientID] = now
+	sess.clients[clientID] = clientLease{seen: now, paused: req.Paused}
 	sess.lastHeartbeat = now
 	sess.lastActivity = now
 	sess.playheadSec = req.PlayheadSec
-	sess.paused = req.Paused
+	// paused is only true when every live client is paused: a single playing
+	// viewer keeps the session (and its shared producer) active.
+	sess.paused = true
+	for _, lease := range sess.clients {
+		if !lease.paused {
+			sess.paused = false
+			break
+		}
+	}
+	if sess.paused {
+		if sess.pausedSince.IsZero() {
+			sess.pausedSince = now
+		}
+	} else {
+		sess.pausedSince = time.Time{}
+		// An un-paused client is demand: wake a suspended producer so its next
+		// segment request is already in flight.
+		m.resumeProducerLocked(m.producers[sessionID])
+	}
 	return nil
 }
 
@@ -1048,17 +1153,18 @@ func (m *Manager) OpenInitWait(ctx context.Context, username, sessionID string, 
 	}
 }
 
-func (m *Manager) OpenSegment(ctx context.Context, username, sessionID, name string) (*os.File, error) {
+// OpenSegment waits for the requested VOD segment per the HLSVODSession
+// decision rules — serve when publishable, wait inside the forward gap, or
+// reposition the job — and returns the open file holding a serve-path lease.
+// The caller must Close it; the lease is released when the file closes (after
+// the handler finishes copying the response).
+func (m *Manager) OpenSegment(ctx context.Context, username, sessionID, name string) (io.ReadCloser, error) {
 	jobDir, err := m.touchJobDir(username, sessionID)
 	if err != nil {
 		return nil, err
 	}
 	m.mu.Lock()
 	sess, sessErr := m.ownedSessionLocked(username, sessionID)
-	var p *producer
-	if sessErr == nil {
-		p = m.producers[sessionID]
-	}
 	m.mu.Unlock()
 	if sessErr != nil {
 		return nil, sessErr
@@ -1070,12 +1176,14 @@ func (m *Manager) OpenSegment(ctx context.Context, username, sessionID, name str
 		}
 		waitCtx, cancel := context.WithTimeout(context.Background(), time.Duration(vodSegmentWaitTimeout)*time.Second)
 		defer cancel()
-		if err := m.ensureVODSegment(waitCtx, sess, p, segIndex); err != nil {
+		f, err := m.openVODSegment(waitCtx, sess, jobDir, segIndex)
+		if err != nil {
 			if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
 				return nil, ErrNotReady
 			}
 			return nil, err
 		}
+		return f, nil
 	}
 	return m.store.OpenSegment(jobDir, name)
 }
@@ -1159,32 +1267,20 @@ func (m *Manager) deliveryURL(sessionID string) string {
 	return fmt.Sprintf("%s/api/media/transcode/sessions/%s", m.baseURL, sessionID)
 }
 
-// sessionReusable reports whether a generation can serve the requested
-// playhead: a target before its start index or beyond the produced edge
-// (live-paced, ~1x) must reposition rather than stall. coverageEndSec is the
-// source-time end of the last produced segment.
-func sessionReusable(sess *playbackSession, startSec, coverageEndSec float64) bool {
-	if sess.plan.vodList.Count() > 0 {
-		switch sess.state {
-		case StateStarting, StateRunning, StateCompleted:
-			return startSec >= -seekBackwardEpsSec && startSec <= sess.plan.mediaDurationSec+seekBackwardEpsSec
-		default:
-			return false
-		}
-	}
+// sessionReusable reports whether a session's generation can serve the
+// requested playhead. Live generations serve any in-bounds target (segment
+// requests reposition the job as needed); a generation that began mid-file can
+// never serve segments before its start index, so such targets reposition.
+func sessionReusable(sess *playbackSession, startSec float64) bool {
 	switch sess.state {
-	case StateStarting, StateRunning:
-		if startSec < coverageStartSec(sess.plan, sess.startIndex)-seekBackwardEpsSec {
-			return false
-		}
-		return startSec <= coverageEndSec+repositionForwardSlackSec
-	case StateCompleted:
-		// A completed generation ran to EOF, so it only needs to have started
-		// at or before the requested playhead.
-		return sess.startIndex == 0 || startSec >= coverageStartSec(sess.plan, sess.startIndex)-seekBackwardEpsSec
+	case StateStarting, StateRunning, StateCompleted:
 	default:
 		return false
 	}
+	if startSec < -seekBackwardEpsSec || startSec > sess.plan.mediaDurationSec+seekBackwardEpsSec {
+		return false
+	}
+	return sess.startIndex <= 0 || startSec >= vodPlaylistStartSec(sess.plan, sess.startIndex)-seekBackwardEpsSec
 }
 
 func (m *Manager) rewritePlaylist(sessionID string, data []byte) []byte {
@@ -1264,6 +1360,7 @@ func (m *Manager) expireSessions() {
 			m.releaseSessionLocked(id, sess)
 		}
 	}
+	m.suspendPausedProducersLocked(now)
 	m.mu.Unlock()
 }
 
@@ -1278,9 +1375,27 @@ func sessionExpired(sess *playbackSession, now time.Time) bool {
 	// after reconnectGrace instead of holding it until the inactivity
 	// timeouts. Without this pruning clients only ever grew, so a dead
 	// session held its user-limit slot for up to pauseInactivityTimeout.
-	for clientID, seen := range sess.clients {
-		if now.Sub(seen) > reconnectGrace {
+	for clientID, lease := range sess.clients {
+		if now.Sub(lease.seen) > reconnectGrace {
 			delete(sess.clients, clientID)
+		}
+	}
+	// Recompute pause state after pruning: a stale playing client must not
+	// keep the session (and shared producer) awake once its lease is gone.
+	if len(sess.clients) > 0 {
+		sess.paused = true
+		for _, lease := range sess.clients {
+			if !lease.paused {
+				sess.paused = false
+				break
+			}
+		}
+		if sess.paused {
+			if sess.pausedSince.IsZero() {
+				sess.pausedSince = now
+			}
+		} else {
+			sess.pausedSince = time.Time{}
 		}
 	}
 	idle := now.Sub(sess.lastActivity)

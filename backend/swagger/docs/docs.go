@@ -6446,6 +6446,18 @@ const docTemplate = `{
                             "$ref": "#/definitions/settings.TranscodeProfiles"
                         }
                     ]
+                },
+                "readRate": {
+                    "description": "VOD producer input pacing in Nx realtime (-readrate); unset or \u003c1 clamps to \u003e=1 (default: 2)",
+                    "type": "number"
+                },
+                "readRateCatchup": {
+                    "description": "post-stall recovery rate (-readrate_catchup, ffmpeg \u003e= 8.0); 0 = ffmpeg default",
+                    "type": "number"
+                },
+                "readRateInitialBurst": {
+                    "description": "unthrottled media seconds at each producer start/restart (-readrate_initial_burst, ffmpeg \u003e= 6.1); 0 = none",
+                    "type": "number"
                 }
             }
         },

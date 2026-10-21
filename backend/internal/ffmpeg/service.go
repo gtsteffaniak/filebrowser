@@ -197,11 +197,19 @@ func (s *Service) ResolveAccelDevice(device string) string {
 // every other enumerated device.
 func resolvedAccelDeviceOptions(caps *capabilities.Capabilities) (autoLabel, resolvedID string, opts []AccelDeviceOption) {
 	resolved := caps.Platform.Details["render_device"]
+	autoAccel := autoGPUAccel(caps)
 	gpus, _ := platform.ListGPUs()
 	for _, g := range gpus {
 		label := gpuClassLabel(g) + " (" + gpuDisplayName(g) + ")"
-		if g.RenderNode != "" && g.RenderNode == resolved {
+		switch {
+		case g.RenderNode != "" && g.RenderNode == resolved:
 			autoLabel, resolvedID = label, g.RenderNode
+			continue
+		case resolvedID == "" && autoAccel.Vendor != "" && g.Vendor == autoAccel.Vendor:
+			// Vendor-level default for platforms without a render node (macOS,
+			// synthetic GPUs): this device backs the preferred hardware encoder,
+			// so it is the resolved auto selection, not an extra option.
+			autoLabel, resolvedID = label, accelDeviceID(g)
 			continue
 		}
 		if id := accelDeviceID(g); id != "" {
@@ -209,7 +217,7 @@ func resolvedAccelDeviceOptions(caps *capabilities.Capabilities) (autoLabel, res
 		}
 	}
 	if autoLabel == "" {
-		autoLabel = autoGPUName(caps)
+		autoLabel = autoAccel.Name
 	}
 	if resolvedID == "" {
 		if id, label := wslNVIDIAAccelDefault(caps); id != "" {
@@ -248,6 +256,14 @@ func accelDeviceID(g platform.GPUDevice) string {
 
 // gpuClassLabel names the device class shown in the dropdown.
 func gpuClassLabel(g platform.GPUDevice) string {
+	switch g.DeviceClass {
+	case "soc":
+		return "SoC GPU"
+	case "igpu":
+		return "Integrated GPU"
+	case "dgpu":
+		return "Dedicated GPU"
+	}
 	if g.Integrated {
 		return "Integrated GPU"
 	}
@@ -261,9 +277,9 @@ func gpuDisplayName(g platform.GPUDevice) string {
 	return g.RenderNode
 }
 
-// autoGPUName names the GPU driving the detected default hardware encoder on
-// platforms where individual devices cannot be enumerated (e.g. "Apple GPU").
-func autoGPUName(caps *capabilities.Capabilities) string {
+// autoGPUAccel describes the GPU driving the detected default hardware
+// encoder (e.g. Apple VideoToolbox → "Apple GPU"/vendor "apple").
+func autoGPUAccel(caps *capabilities.Capabilities) capabilities.AccelGPU {
 	var fallback capabilities.AccelType
 	for _, opt := range caps.EncodeOptions {
 		if !opt.Available || opt.Accel == "" || opt.Accel == capabilities.AccelNone {
@@ -273,16 +289,17 @@ func autoGPUName(caps *capabilities.Capabilities) string {
 			continue
 		}
 		if opt.Default {
-			if name := capabilities.GPUForAccel(caps, opt.Accel).Name; name != "" {
-				return name
+			if gpu := capabilities.GPUForAccel(caps, opt.Accel); gpu.Name != "" {
+				return gpu
 			}
 		}
 		fallback = opt.Accel
 	}
-	if name := capabilities.GPUForAccel(caps, fallback).Name; name != "" && name != "CPU" {
-		return name
+	gpu := capabilities.GPUForAccel(caps, fallback)
+	if gpu.Name == "CPU" || gpu.Vendor == "software" {
+		return capabilities.AccelGPU{}
 	}
-	return ""
+	return gpu
 }
 
 // EncoderBackendOption is one selectable entry in the encoder backend list.
@@ -372,18 +389,12 @@ func (s *Service) FFprobePath() string {
 	return s.inner.FFprobePath()
 }
 
-func (s *Service) Acquire(ctx context.Context) error {
+// ProbeVideoFPS returns the average frame rate of the first video stream.
+func (s *Service) ProbeVideoFPS(ctx context.Context, path string) (float64, error) {
 	if s == nil || s.inner == nil {
-		return fmt.Errorf("ffmpeg service not available")
+		return 0, fmt.Errorf("ffmpeg service not available")
 	}
-	return s.inner.Acquire(ctx)
-}
-
-func (s *Service) Release() {
-	if s == nil || s.inner == nil {
-		return
-	}
-	s.inner.Release()
+	return s.inner.ProbeVideoFPS(ctx, path)
 }
 
 // VideoPreview extracts a JPEG preview frame to w.

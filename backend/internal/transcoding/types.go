@@ -32,29 +32,26 @@ func ParseProfile(raw string) (Profile, error) {
 }
 
 const (
-	defaultHeartbeatInterval = 12 * time.Second
+	defaultHeartbeatInterval = 8 * time.Second
 	startupTimeout           = 90 * time.Second
 	playingInactivityTimeout = 5 * time.Minute
 	pauseInactivityTimeout   = 30 * time.Minute
-	reconnectGrace           = 30 * time.Second
-	janitorInterval          = 5 * time.Second
-	cacheEvictionInterval    = time.Minute
+	// reconnectGrace bounds how long a session survives once its clients stop
+	// heartbeating (tab closed, viewer unmounted). It must exceed the
+	// heartbeat interval with enough slack for a delayed tick.
+	reconnectGrace        = 15 * time.Second
+	janitorInterval       = 5 * time.Second
+	cacheEvictionInterval = time.Minute
+	// producerPauseGrace is how long every client on a generation must stay
+	// paused before its producer is suspended. It must exceed the heartbeat
+	// interval so a quick pause/unpause doesn't churn ffmpeg restarts.
+	producerPauseGrace = 10 * time.Second
 )
 
 const (
-	// repositionForwardSlackSec is how far past the produced edge a requested
-	// playhead may sit before the generation is repositioned. Within slack it
-	// is cheaper to let live-paced production reach the target than to restart
-	// ffmpeg.
-	repositionForwardSlackSec = 12.0
 	// seekBackwardEpsSec tolerates rounding when a playhead sits right on a
 	// generation's start boundary.
 	seekBackwardEpsSec = 1.0
-	// minPartialGenerationKeepSec is the minimum produced duration worth
-	// caching for a generation that does not cover the whole file. Shorter
-	// partial tails are discarded: they can only ever serve seeks into a tiny
-	// range and cost more disk than they save.
-	minPartialGenerationKeepSec = 300.0
 )
 
 // SessionInfo is the public view of an active transcode session.

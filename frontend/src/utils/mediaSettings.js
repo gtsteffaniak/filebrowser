@@ -20,6 +20,9 @@ export function emptyMediaTranscode() {
     cacheMaxSizeMB: 10240,
     cacheRetentionH: 24,
     encoderBackend: '',
+    readRate: 2,
+    readRateInitialBurst: 0,
+    readRateCatchup: 0,
     profiles: {
       quality: emptyTranscodeProfile(0, 0),
       // 720p balanced / 480p data saver: matches the backend defaults.

@@ -201,6 +201,9 @@ type MediaTranscode struct {
 	Profiles             TranscodeProfiles `json:"profiles"`             // per-profile transcode settings shown in the player menu
 	MaxResolution        int               `json:"maxResolution"`        // superseded by profiles.<name>.maxResolution. deprecated: kept for config compatibility
 	EncoderBackend       string            `json:"encoderBackend"`       // default video encoder backend for transcodes: "" (auto), "cpu", or an accel backend (nvenc, amf, qsv, vaapi, d3d12, videotoolbox)
+	ReadRate             float64           `json:"readRate"`             // VOD producer input pacing in Nx realtime (-readrate); unset or <1 clamps to >=1 (default: 2)
+	ReadRateInitialBurst float64           `json:"readRateInitialBurst"` // unthrottled media seconds at each producer start/restart (-readrate_initial_burst, ffmpeg >= 6.1); 0 = none
+	ReadRateCatchup      float64           `json:"readRateCatchup"`      // post-stall recovery rate (-readrate_catchup, ffmpeg >= 8.0); 0 = ffmpeg default
 }
 
 // TranscodeProfiles configures the player's transcode quality presets.

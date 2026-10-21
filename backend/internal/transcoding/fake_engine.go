@@ -2,6 +2,7 @@ package transcoding
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
 	"sync"
@@ -90,6 +91,16 @@ func (j *fakeJob) Wait() error {
 	return j.waitErr
 }
 
+// Running reports whether the fake job is still active (non-blocking).
+func (j *fakeJob) Running() bool {
+	select {
+	case <-j.cancelled:
+		return false
+	default:
+		return true
+	}
+}
+
 func (j *fakeJob) VTDecodeUnreliable() bool {
 	return j.unreliable.Load()
 }
@@ -99,7 +110,7 @@ func (j *fakeJob) SetVTUnreliable() {
 	j.unreliable.Store(true)
 }
 
-// NewBlockingFakeJob returns a ContinuousJob that waits until Cancel is called.
+// NewBlockingFakeJob returns a VODJob that waits until Cancel is called.
 func NewBlockingFakeJob() *fakeJob {
 	return newFakeJob()
 }
@@ -109,15 +120,15 @@ func (j *fakeJob) Cancelled() <-chan struct{} {
 	return j.cancelled
 }
 
-// LastStart reports the segment index and ffmpeg -ss offset of the most recent
-// continuous job, for tests that assert reposition alignment.
+// LastStart reports the segment index of the most recent VOD job, for tests
+// that assert reposition alignment.
 func (f *FakeEngine) LastStart() (startIndex int, startSec float64) {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	return f.lastIndex, f.lastSec
 }
 
-// LastPlan returns the plan passed to the most recent StartContinuous call, so
+// LastPlan returns the plan passed to the most recent StartVODJob call, so
 // tests can assert decode-profile changes across retries.
 func (f *FakeEngine) LastPlan() hlsPlan {
 	f.mu.Lock()
@@ -125,18 +136,22 @@ func (f *FakeEngine) LastPlan() hlsPlan {
 	return f.lastPlan
 }
 
-// LastJob returns the job created by the most recent StartContinuous call.
+// LastJob returns the job created by the most recent StartVODJob call.
 func (f *FakeEngine) LastJob() *fakeJob {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	return f.lastJob
 }
 
-func (f *FakeEngine) StartContinuous(ctx context.Context, realPath, outputDir string, plan hlsPlan, startIndex int, startSec float64) (ContinuousJob, error) {
+// StartVODJob launches a fake job anchored at startIndex. The session arg is
+// unused: a fake job cannot be installed into an HLSVODSession (that requires a
+// concrete *ops.HLSVODSegmentJob), so the manager drives decisions from the
+// producer-level job view instead.
+func (f *FakeEngine) StartVODJob(ctx context.Context, realPath, outputDir string, plan hlsPlan, startIndex int, session *ffmpeg.HLSVODSession) (VODJob, error) {
 	f.mu.Lock()
 	f.Starts++
 	f.lastIndex = startIndex
-	f.lastSec = startSec
+	f.lastSec = vodPlaylistStartSec(plan, startIndex)
 	f.lastPlan = plan
 	job := newFakeJob()
 	f.lastJob = job
@@ -149,6 +164,6 @@ func (f *FakeEngine) StartContinuous(ctx context.Context, realPath, outputDir st
 		playlist = "#EXTM3U\n"
 	}
 	_ = os.WriteFile(filepath.Join(outputDir, "index.m3u8"), []byte(playlist), 0o644)
-	_ = os.WriteFile(filepath.Join(outputDir, "seg", "00000.m4s"), fakeVODSegmentPayload(), 0o644)
+	_ = os.WriteFile(filepath.Join(outputDir, "seg", fmt.Sprintf("%05d.m4s", startIndex)), fakeVODSegmentPayload(), 0o644)
 	return job, nil
 }

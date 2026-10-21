@@ -286,7 +286,7 @@ import {
   resolveTranscodeModeForPlayback,
   savePreferredTranscodeMode,
 } from '@/utils/transcodePreference.js';
-import { createTranscodeClientId, isLivePacedSession } from '@/plyr/transcodeSession.js';
+import { createTranscodeClientId } from '@/plyr/transcodeSession.js';
 import { TranscodePlaybackController } from '@/plyr/transcodePlaybackController.js';
 import {
   TRANSCODE_MODES as PLYR_TRANSCODE_MODES,
@@ -1109,16 +1109,6 @@ export default {
       } catch (_e) { /*ignore*/ }
     },
     onRateChange() {
-      // Live-paced sessions produce at ~1x; faster playback would just drain
-      // the buffered lead and stall, so cap the rate while one is running.
-      const session = this.transcodePlayback?.sessionController?.session;
-      if (
-        this.isTranscodePlaybackMode
-        && this.player?.speed > 1
-        && isLivePacedSession(session)
-      ) {
-        this.player.speed = 1;
-      }
       this.updateMediaSessionPlaybackState();
     },
     updateMediaSessionPlaybackState() {
@@ -1155,7 +1145,6 @@ export default {
       this.mediaSessionOwnerId = 0;
     },
     resetFilePlaybackState() {
-      this.transcodePlayback?.clearPendingSeek();
       this.videoStreamAttached = false;
       this.pipHandoffSeekSeconds = null;
       this.lockedNativeVideoSrc = null;
@@ -1723,10 +1712,7 @@ export default {
             this.resumePlaybackAfterNavigation();
           });
         }
-        this.seekOnReleaseCleanup = enablePlyrSeekOnRelease(this.player, {
-          onSeekTarget: (sec) => this.onTranscodeSeekIntent(sec),
-        });
-        this.wrapPlayerSeekIntent();
+        this.seekOnReleaseCleanup = enablePlyrSeekOnRelease(this.player);
         this.setupScrubPreview();
         this.setupVideoLoadingIndicator();
         if (this.previewType === 'video' && (this.startTranscode || (this.wantsTranscodePlayback && !this.shouldProactivelyOfferTranscode))) {
@@ -2240,7 +2226,6 @@ export default {
       }
     },
     teardownTranscodePlayback({ stopSession = false, keepAlive = false } = {}) {
-      this.transcodePlayback?.clearPendingSeek();
       if (!this.transcodePlayback || keepAlive) {
         return;
       }
@@ -2249,61 +2234,6 @@ export default {
         return;
       }
       this.transcodePlayback.dispose({ stopSession });
-    },
-    // Keyboard/API seeks bypass commitPlyrSeek, so the intended target has to
-    // be captured by wrapping the Plyr entry points that set currentTime.
-    wrapPlayerSeekIntent() {
-      const player = this.player;
-      if (!player || player.__seekIntentWrapped) {
-        return;
-      }
-      player.__seekIntentWrapped = true;
-      const step = () => player.seekTime || 10;
-      const forward = player.forward?.bind(player);
-      if (forward) {
-        player.forward = (t) => {
-          this.onTranscodeSeekIntent((player.media?.currentTime ?? 0) + (Number.isFinite(t) ? t : step()));
-          return forward(t);
-        };
-      }
-      const rewind = player.rewind?.bind(player);
-      if (rewind) {
-        player.rewind = (t) => {
-          this.onTranscodeSeekIntent((player.media?.currentTime ?? 0) - (Number.isFinite(t) ? t : step()));
-          return rewind(t);
-        };
-      }
-      const seek = player.seek?.bind(player);
-      if (seek) {
-        player.seek = (input) => {
-          const target = this.resolveSeekInputSeconds(input, player);
-          if (Number.isFinite(target)) {
-            this.onTranscodeSeekIntent(target);
-          }
-          return seek(input);
-        };
-      }
-    },
-    resolveSeekInputSeconds(input, player) {
-      if (typeof input === 'number' && Number.isFinite(input)) {
-        return input;
-      }
-      const str = String(input ?? '').trim();
-      const duration = player?.duration;
-      if (str.endsWith('%') && Number.isFinite(duration) && duration > 0) {
-        const pct = parseFloat(str.slice(0, -1));
-        return Number.isFinite(pct) ? (pct / 100) * duration : NaN;
-      }
-      const parsed = parseFloat(str);
-      return Number.isFinite(parsed) ? parsed : NaN;
-    },
-    // Record a scrub/seek intent; the controller repositions the session when
-    // the target lands outside the generation's servable coverage.
-    onTranscodeSeekIntent(sec) {
-      if (this.plyrTeardownDone || !this.isTranscodePlaybackMode || !Number.isFinite(sec)) {
-        return;
-      }
-      this.transcodePlayback?.notifySeekIntent(sec);
     },
     onVideoPlaybackError(event) {
       if (
@@ -2806,10 +2736,18 @@ export default {
           this.hasStartedPlayback = true;
           mutations.setPlaybackState(true);
           this.updateMediaSessionPlaybackState();
+          this.transcodePlayback?.updatePlayback({
+            currentTime: this.player?.currentTime,
+            paused: false,
+          });
         },
         pause: () => {
           mutations.setPlaybackState(false);
           this.updateMediaSessionPlaybackState();
+          this.transcodePlayback?.updatePlayback({
+            currentTime: this.player?.currentTime,
+            paused: true,
+          });
         },
         timeupdate: () => {
           this.updateMediaSessionPlaybackState();

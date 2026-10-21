@@ -52,15 +52,6 @@ func (s *Store) EvictInactive(active map[string]struct{}, maxBytes int64, maxAge
 			}
 			continue
 		}
-		// A completed tail that covers only a few minutes of the file can never
-		// serve a from-start request and is only useful for seeks into its own
-		// narrow range — not worth keeping.
-		if cov.FirstIndex > 0 && cov.ProducedSec < minPartialGenerationKeepSec {
-			if err := s.removeGenerationLogged(gen.dir, "short-partial"); err == nil {
-				evicted = append(evicted, gen.dir)
-			}
-			continue
-		}
 		totalSize += gen.size
 		if maxAge > 0 && now.Sub(gen.modTime) >= maxAge {
 			if err := s.removeGenerationLogged(gen.dir, "retention"); err == nil {

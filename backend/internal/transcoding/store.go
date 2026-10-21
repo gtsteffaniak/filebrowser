@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/gtsteffaniak/filebrowser/backend/internal/ffmpeg"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 )
 
@@ -56,22 +56,30 @@ func (s *Store) InitPath(jobDir string) string {
 	return filepath.Join(jobDir, "init.m4s")
 }
 
-// PlaylistPath is the publisher's canonical serve playlist: every segment it
-// lists has already been validated, aligned, and renamed into seg/.
+// PlaylistPath is the synthetic VOD media playlist served to clients. It lists
+// the full planned segment grid; per-segment readiness is checked at request
+// time, not from the playlist.
 func (s *Store) PlaylistPath(jobDir string) string {
 	return filepath.Join(jobDir, "index.m3u8")
 }
 
+var vodSegmentFilePattern = regexp.MustCompile(`^[0-9]{5}\.m4s$`)
+
 func (s *Store) SegmentPath(jobDir, name string) (string, error) {
-	path, err := ffmpeg.ResolveHLSSegmentPath(jobDir, name)
-	if err != nil {
+	name = filepath.Base(strings.TrimSpace(name))
+	if !vodSegmentFilePattern.MatchString(name) {
+		return "", ErrInvalidSegment
+	}
+	path := filepath.Join(jobDir, "seg", name)
+	if err := s.assertContained(jobDir, path); err != nil {
 		return "", ErrInvalidSegment
 	}
 	return path, nil
 }
 
 func (s *Store) InitReady(jobDir string) bool {
-	return ffmpeg.HLSInitReady(jobDir)
+	st, err := os.Stat(s.InitPath(jobDir))
+	return err == nil && st.Size() > 0
 }
 
 // OpenSegment opens a published segment. The publisher only lists a segment in
@@ -165,61 +173,65 @@ func (s *Store) vodCompleteDuration(jobDir string) (float64, bool) {
 	return v, true
 }
 
-// GenerationCoverage describes the contiguous produced range of a generation
-// on the shared segment grid. Segments before FirstIndex were never produced;
-// LastReadyIndex is the produced edge a session can serve right now.
+// GenerationCoverage describes the produced range of a completed generation
+// on the shared segment grid. Segments before FirstIndex were never produced
+// (generations that began mid-file).
 type GenerationCoverage struct {
-	FirstIndex     int     // first listed segment index (the job's start index); -1 when no playlist segments exist
-	LastReadyIndex int     // highest published segment index; -1 when nothing is ready
-	StartSec       float64 // effective media start — the publisher's snapped/real anchor
-	ProducedSec    float64 // servable media duration (sum of published #EXTINF)
-	EndList        bool    // ffmpeg wrote #EXT-X-ENDLIST — the job ran to EOF
-	Complete       bool    // EndList && every listed segment published && at least one segment
-	HasPlaylist    bool    // the publisher's job.json existed
+	FirstIndex  int     // first produced segment index; -1 when nothing was produced
+	StartSec    float64 // unused — the VOD grid makes coverage playlist-local
+	ProducedSec float64 // servable media duration from the vod.complete marker
+	Complete    bool    // the generation ran to EOF (vod.complete marker exists)
+	HasPlaylist bool    // the serve playlist exists
 }
 
-// GenerationCoverage reads the generation's job.json — the publisher's
-// authoritative record of produced coverage. A running job rewrites it as
-// segments publish, so the coverage reflects the produced edge at read time.
+// GenerationCoverage reads the vod.complete marker plus the produced segment
+// files — the only authoritative record under the synthetic playlist model.
 func (s *Store) GenerationCoverage(jobDir string) GenerationCoverage {
-	cov := GenerationCoverage{FirstIndex: -1, LastReadyIndex: -1}
+	cov := GenerationCoverage{FirstIndex: -1}
 	if jobDir == "" {
 		return cov
 	}
-	if dur, ok := s.vodCompleteDuration(jobDir); ok {
+	if _, err := os.Stat(s.PlaylistPath(jobDir)); err == nil {
 		cov.HasPlaylist = true
-		cov.FirstIndex = 0
-		cov.LastReadyIndex = -1
-		cov.StartSec = 0
+	}
+	if dur, ok := s.vodCompleteDuration(jobDir); ok {
+		cov.FirstIndex = s.firstProducedSegmentIndex(jobDir)
 		cov.ProducedSec = dur
-		cov.EndList = true
 		cov.Complete = true
-		return cov
 	}
-	st, err := ffmpeg.ReadHLSJobStatus(jobDir)
-	if err != nil {
-		return cov
-	}
-	cov.HasPlaylist = true
-	cov.FirstIndex = st.FirstIndex
-	cov.LastReadyIndex = st.LastReadyIndex
-	cov.StartSec = st.StartSec
-	cov.ProducedSec = st.ProducedSec
-	cov.EndList = st.EndList
-	cov.Complete = st.Complete
 	return cov
 }
 
-// IsCompleteGeneration reports whether a generation directory holds a finished,
-// fully aligned HLS output that can be served without running ffmpeg again.
+// firstProducedSegmentIndex returns the lowest segment index on disk, or -1.
+func (s *Store) firstProducedSegmentIndex(jobDir string) int {
+	entries, err := os.ReadDir(filepath.Join(jobDir, "seg"))
+	if err != nil {
+		return -1
+	}
+	first := -1
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
+		idx, err := parseSegmentIndex(entry.Name())
+		if err != nil {
+			continue
+		}
+		if first < 0 || idx < first {
+			first = idx
+		}
+	}
+	return first
+}
+
+// IsCompleteGeneration reports whether a generation directory holds a finished
+// VOD output that can be served without running ffmpeg again.
 func (s *Store) IsCompleteGeneration(jobDir string) bool {
 	if jobDir == "" || !s.InitReady(jobDir) {
 		return false
 	}
-	if dur, ok := s.vodCompleteDuration(jobDir); ok && dur > 0 {
-		return true
-	}
-	return s.GenerationCoverage(jobDir).Complete
+	_, ok := s.vodCompleteDuration(jobDir)
+	return ok
 }
 
 // FindReusableGeneration returns the complete generation under fingerprint
@@ -283,15 +295,13 @@ func (s *Store) ClearGenerationOutput(jobDir string) error {
 	if err := s.assertContained(s.root, jobDir); err != nil {
 		return err
 	}
-	for _, sub := range []string{"seg", "raw"} {
-		segDir := filepath.Join(jobDir, sub)
-		entries, err := os.ReadDir(segDir)
-		if err != nil {
-			if os.IsNotExist(err) {
-				continue
-			}
+	segDir := filepath.Join(jobDir, "seg")
+	entries, err := os.ReadDir(segDir)
+	if err != nil {
+		if !os.IsNotExist(err) {
 			return err
 		}
+	} else {
 		for _, entry := range entries {
 			if entry.IsDir() {
 				continue
@@ -301,7 +311,7 @@ func (s *Store) ClearGenerationOutput(jobDir string) error {
 			}
 		}
 	}
-	for _, name := range []string{"ffmpeg.m3u8", "ffmpeg.m3u8.tmp", "index.m3u8", "job.json", "init.m4s", vodCompleteMarker, ".ffmpeg-vod.m3u8"} {
+	for _, name := range []string{"init.m4s", vodCompleteMarker, ".ffmpeg-vod-segments.csv"} {
 		if err := os.Remove(filepath.Join(jobDir, name)); err != nil && !os.IsNotExist(err) {
 			return err
 		}

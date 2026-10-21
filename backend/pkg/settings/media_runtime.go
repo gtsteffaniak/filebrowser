@@ -9,6 +9,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/internal/ffmpeg"
 	goffmpeg "github.com/gtsteffaniak/go-ffmpeg"
 	"github.com/gtsteffaniak/go-ffmpeg/capabilities"
+	"github.com/gtsteffaniak/go-ffmpeg/encode"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
@@ -162,6 +163,20 @@ func TranscodeCacheMaxSizeBytes() int64 {
 		return 0
 	}
 	return int64(mb) * 1024 * 1024
+}
+
+// TranscodeThrottleConfig returns the readrate pacing applied to VOD producers.
+// Enabled only when readRate > 0; burst/catchup flags are version-gated by ffmpeg.
+func TranscodeThrottleConfig() encode.ThrottleConfig {
+	mediaMu.RLock()
+	defer mediaMu.RUnlock()
+	t := Config.Integrations.Media.Transcode
+	return encode.ThrottleConfig{
+		Enabled:      t.ReadRate > 0,
+		Rate:         t.ReadRate,
+		InitialBurst: t.ReadRateInitialBurst,
+		Catchup:      t.ReadRateCatchup,
+	}
 }
 
 // TranscodeCacheRetention returns how long inactive cache generations are kept.

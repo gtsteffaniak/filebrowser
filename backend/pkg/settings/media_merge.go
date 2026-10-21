@@ -98,6 +98,7 @@ func SanitizeMediaSettings(m MediaSettings) MediaSettings {
 	if t.CacheRetentionH < 1 {
 		t.CacheRetentionH = 24
 	}
+	clampTranscodeReadRate(t)
 	sanitizeTranscodeProfile(&t.Profiles.Quality)
 	sanitizeTranscodeProfile(&t.Profiles.Balanced)
 	sanitizeTranscodeProfile(&t.Profiles.DataSaver)

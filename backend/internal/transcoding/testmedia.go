@@ -10,7 +10,13 @@ func fakeVODSegmentPayload() []byte {
 func buildTestFragmentWithTFDTForTrack(ticks uint32, trackID uint32, minTotal int) []byte {
 	tfdt := makeFullAtom("tfdt", 0, uint32ToBytes(ticks))
 	tfhd := makeFullAtom("tfhd", 0, uint32ToBytes(trackID))
+	// A trun keeps the moof above the reader's minimum parseable size.
+	trunPayload := append([]byte{0, 0x00, 0x01, 0x00}, uint32ToBytes(2)...)
+	trunPayload = append(trunPayload, uint32ToBytes(1024)...)
+	trunPayload = append(trunPayload, uint32ToBytes(1024)...)
+	trun := makeAtom("trun", trunPayload)
 	trafPayload := append(tfhd, tfdt...)
+	trafPayload = append(trafPayload, trun...)
 	traf := makeAtom("traf", trafPayload)
 	moof := makeAtom("moof", traf)
 	pad := minTotal - len(moof) - 8

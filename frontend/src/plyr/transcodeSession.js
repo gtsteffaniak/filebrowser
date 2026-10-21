@@ -13,15 +13,6 @@ export function createTranscodeClientId(prefix = 'plyr') {
 }
 
 /**
- * True while the session's generation is still producing: live-paced ffmpeg
- * runs ~1x, so playback faster than 1x would only drain the buffered lead and
- * stall. Completed/ready generations can serve any speed on demand.
- */
-export function isLivePacedSession(session) {
-  return session != null && session.state !== 'completed' && session.state !== 'ready';
-}
-
-/**
  * Manages one transcode playback session: start/reuse, heartbeat, detach/stop.
  */
 export class TranscodeSessionController {

@@ -7,9 +7,9 @@ import (
 	"time"
 )
 
-// writeCompleteGeneration creates a finished generation (init + index.m3u8
-// with ENDLIST + a published segment + complete job.json) so retention and
-// reuse paths can be exercised.
+// writeCompleteGeneration creates a finished generation (init + index.m3u8 +
+// a produced segment + the vod.complete marker) so retention and reuse paths
+// can be exercised.
 func writeCompleteGeneration(t *testing.T, genDir string, segmentBytes int) {
 	t.Helper()
 	segDir := filepath.Join(genDir, "seg")
@@ -26,8 +26,7 @@ func writeCompleteGeneration(t *testing.T, genDir string, segmentBytes int) {
 	if err := os.WriteFile(filepath.Join(genDir, "index.m3u8"), []byte(playlist), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	status := `{"startSec":0,"firstIndex":0,"lastReadyIndex":0,"producedSec":4,"endList":true,"complete":true}`
-	if err := os.WriteFile(filepath.Join(genDir, "job.json"), []byte(status), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(genDir, vodCompleteMarker), []byte("4.000000\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -186,17 +185,17 @@ func TestStoreFindReusableGeneration(t *testing.T) {
 	if !ok || got != complete {
 		t.Fatalf("FindReusableGeneration = (%q, %v), want (%q, true)", got, ok, complete)
 	}
-	if cov.FirstIndex != 0 || cov.LastReadyIndex != 0 || !cov.Complete {
-		t.Fatalf("coverage = %+v, want FirstIndex=0 LastReadyIndex=0 Complete", cov)
+	if cov.FirstIndex != 0 || !cov.Complete {
+		t.Fatalf("coverage = %+v, want FirstIndex=0 Complete", cov)
 	}
 }
 
-// writeServeableSegment writes a published segment file large enough to pass
-// the minimum-size serve check.
+// writeServeableSegment writes a published segment file that passes the
+// publishable-fragment serve check.
 func writeServeableSegment(t *testing.T, dir, name string) string {
 	t.Helper()
 	path := filepath.Join(dir, name)
-	if err := os.WriteFile(path, make([]byte, 9000), 0o644); err != nil {
+	if err := os.WriteFile(path, fakeVODSegmentPayload(), 0o644); err != nil {
 		t.Fatal(err)
 	}
 	return path
@@ -248,46 +247,32 @@ func TestStoreReadServePlaylistEmptyIsNotReady(t *testing.T) {
 	}
 }
 
-// A completed tail covering only a few minutes of the file is discarded: it
-// can never serve a from-start request and only helps seeks into a tiny
-// range — not worth the disk. Full-file and larger tails are kept.
-func TestStoreEvictsShortPartialGenerations(t *testing.T) {
+// A completed mid-file generation is kept: it still serves seeks into its
+// produced range without re-running ffmpeg.
+func TestStoreKeepsPartialCompletedGenerations(t *testing.T) {
 	store, storeErr := NewStore(t.TempDir())
 	if storeErr != nil {
 		t.Fatal(storeErr)
 	}
-	writeGen := func(fp, gen string, firstIdx, count int) string {
-		t.Helper()
-		dir := filepath.Join(store.root, fp, gen)
-		writeProducedRange(t, dir, firstIdx, count, true)
-		old := time.Now().Add(-2 * time.Hour)
-		if err := os.Chtimes(dir, old, old); err != nil {
-			t.Fatal(err)
-		}
-		return dir
+	partialDir := filepath.Join(store.root, "fp-partial", "gen-partial")
+	writeProducedRange(t, partialDir, 40, 5, true)
+	old := time.Now().Add(-2 * time.Hour)
+	if err := os.Chtimes(partialDir, old, old); err != nil {
+		t.Fatal(err)
 	}
-	short := writeGen("fp-short", "gen", 40, 5) // 20s produced — discarded
-	long := writeGen("fp-long", "gen", 40, 100) // 400s produced — kept
-	full := writeGen("fp-full", "gen", 0, 5)    // whole file — kept
 
-	evicted, err := store.EvictInactive(nil, 0, 24*time.Hour)
+	// Retention disabled — only the dedicated rules can evict, so this pins
+	// that a short mid-file tail is still kept.
+	evicted, err := store.EvictInactive(nil, 0, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
-	found := map[string]bool{}
 	for _, dir := range evicted {
-		found[dir] = true
+		if dir == partialDir {
+			t.Fatal("a completed mid-file generation must be kept for seek coverage")
+		}
 	}
-	if !found[short] {
-		t.Fatal("short partial generation should be evicted")
-	}
-	if found[long] {
-		t.Fatal("a >=5min tail should be kept for seek coverage")
-	}
-	if found[full] {
-		t.Fatal("a full-file generation must be kept")
-	}
-	if _, err := os.Stat(short); !os.IsNotExist(err) {
-		t.Fatal("expected short partial generation removed")
+	if _, err := os.Stat(partialDir); err != nil {
+		t.Fatalf("partial generation removed: %v", err)
 	}
 }

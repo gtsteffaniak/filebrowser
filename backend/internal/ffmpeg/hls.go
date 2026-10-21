@@ -62,12 +62,6 @@ func DefaultOnDemandHLSDefaults() goffmpeg.OnDemandHLSDefaults {
 	return goffmpeg.DefaultOnDemandHLSDefaults()
 }
 
-// BuildHLSSegmentTimeline returns segment start times and durations on a
-// 0-based media timeline; startTimeSec is the probed container start_time.
-func BuildHLSSegmentTimeline(durationSec float64, keyframes []float64, segmentDurationSec, startTimeSec float64) (starts, durations []float64) {
-	return goffmpeg.BuildHLSSegmentTimeline(durationSec, keyframes, segmentDurationSec, startTimeSec)
-}
-
 // PrepareHLSMediaTimeline normalizes keyframes and duration for HLS segment
 // planning: container start_time is subtracted and corrupt keyframe indexes
 // are filtered out.
@@ -80,22 +74,6 @@ func KeyframeSeekBefore(keyframes []float64, sec float64) float64 {
 	return goffmpeg.KeyframeSeekBefore(keyframes, sec)
 }
 
-// HLSMediaTimelineDuration converts a probed container duration to the
-// 0-based media timeline length the produced HLS output covers.
-func HLSMediaTimelineDuration(durationSec, startTimeSec float64) float64 {
-	return goffmpeg.HLSMediaTimelineDuration(durationSec, startTimeSec)
-}
-
-// SanitizeHLSKeyframes filters spurious keyframe probes.
-func SanitizeHLSKeyframes(keyframes []float64, durationSec float64) []float64 {
-	return goffmpeg.SanitizeHLSKeyframes(keyframes, durationSec)
-}
-
-// NeedsFullVideoTranscode reports whether video must be re-encoded.
-func NeedsFullVideoTranscode(info StreamInfo, opts HLSPipelineOptions) bool {
-	return goffmpeg.NeedsFullVideoTranscode(info, opts)
-}
-
 // HLSDecodeProfileForOnDemand selects input decode for short on-demand HLS segments.
 func HLSDecodeProfileForOnDemand(info StreamInfo) VideoDecodeProfile {
 	return goffmpeg.HLSDecodeProfileForOnDemand(info)
@@ -104,14 +82,6 @@ func HLSDecodeProfileForOnDemand(info StreamInfo) VideoDecodeProfile {
 // DefaultHLSVideoProfile returns safe H.264 transcode defaults.
 func DefaultHLSVideoProfile(maxHeight int) VideoProfile {
 	return goffmpeg.DefaultHLSVideoProfile(maxHeight)
-}
-
-// DescribeHLSSegmentPlan summarizes the encode path for logging.
-func (s *Service) DescribeHLSSegmentPlan(params HLSSegmentParams) string {
-	if s == nil || s.inner == nil {
-		return ""
-	}
-	return s.inner.DescribeHLSSegmentPlan(params)
 }
 
 // ProbeVideoKeyframeTimes returns keyframe presentation times in seconds.

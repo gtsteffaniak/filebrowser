@@ -13,6 +13,8 @@ import (
 	"sync/atomic"
 	"testing"
 	"time"
+
+	"github.com/gtsteffaniak/filebrowser/backend/internal/ffmpeg"
 )
 
 func TestManagerReuseSameFileRefresh(t *testing.T) {
@@ -93,7 +95,11 @@ func TestManagerHeartbeatRequiresSession(t *testing.T) {
 }
 
 func TestSessionReusable(t *testing.T) {
-	plan := hlsPlan{segmentSec: 4}
+	plan := hlsPlan{
+		segmentSec:       4,
+		mediaDurationSec: 300,
+		vodList:          ffmpeg.BuildVODSegmentList(300, 4, 0, nil),
+	}
 	running := &playbackSession{state: StateRunning, plan: plan}
 	// A generation that starts at segment 0 covers the whole file, so a
 	// completed session serves any playhead without transcoding again.
@@ -103,60 +109,38 @@ func TestSessionReusable(t *testing.T) {
 	runningPartial := &playbackSession{state: StateRunning, startSec: 60, startIndex: 15, plan: plan}
 	failed := &playbackSession{state: StateFailed, plan: plan}
 
-	if !sessionReusable(running, 12, 120) {
-		t.Fatal("running session should be reusable while playing within coverage")
+	if !sessionReusable(running, 12) {
+		t.Fatal("running session should be reusable for an in-bounds playhead")
 	}
-	if !sessionReusable(running, 130, 120) {
-		t.Fatal("a target just past the produced edge should wait for paced production")
+	if !sessionReusable(running, 130) {
+		t.Fatal("a live generation serves any in-bounds target (requests reposition the job)")
 	}
-	if sessionReusable(running, 300, 120) {
-		t.Fatal("a target far past the produced edge must reposition the generation")
+	if !sessionReusable(running, 300) {
+		t.Fatal("a target at the media end should still reuse the session")
 	}
-	if !sessionReusable(completedFromStart, 0, 0) {
+	if sessionReusable(running, 400) {
+		t.Fatal("an out-of-bounds target must not reuse the session")
+	}
+	if !sessionReusable(completedFromStart, 0) {
 		t.Fatal("completed session should be reusable from start")
 	}
-	if !sessionReusable(completedFromStart, 12, 0) {
+	if !sessionReusable(completedFromStart, 12) {
 		t.Fatal("a completed generation that covers the file should serve a later seek")
 	}
-	if sessionReusable(completedPartial, 12, 0) {
+	if sessionReusable(completedPartial, 12) {
 		t.Fatal("a mid-file generation must not be reused for an earlier playhead")
 	}
-	if !sessionReusable(completedPartial, 90, 0) {
+	if !sessionReusable(completedPartial, 90) {
 		t.Fatal("a completed mid-file generation should serve a later playhead")
 	}
-	if sessionReusable(runningPartial, 12, 300) {
+	if sessionReusable(runningPartial, 12) {
 		t.Fatal("a mid-file running generation must not be reused for an earlier playhead")
 	}
-	if !sessionReusable(runningPartial, 90, 300) {
+	if !sessionReusable(runningPartial, 90) {
 		t.Fatal("a mid-file running generation should serve a later playhead")
 	}
-	if sessionReusable(runningPartial, 90, 64) {
-		t.Fatal("a playhead past the produced edge must not reuse a running generation")
-	}
-	if sessionReusable(failed, 0, 0) {
+	if sessionReusable(failed, 0) {
 		t.Fatal("failed session should not be reused")
-	}
-}
-
-func TestCoverageStartSec(t *testing.T) {
-	// A stream-copy seek generation is anchored by ffmpeg at the keyframe the
-	// input seek snapped to — not at the fixed grid position the -ss asked
-	// for, and never at the planned segment timeline, which diverges from the
-	// emitted boundaries and would shift the client's element timeline.
-	copyPlan := hlsPlan{segmentSec: 4, videoCopy: true, keyframes: []float64{0, 10, 40, 80, 1885, 1890}}
-	if got := coverageStartSec(copyPlan, 472); got != 1885 {
-		t.Fatalf("copy generation start = %v, want snapped keyframe 1885", got)
-	}
-	if got := coverageStartSec(copyPlan, 0); got != 0 {
-		t.Fatalf("generation from media start = %v, want 0", got)
-	}
-	// A copy plan without probed keyframes falls back to the -ss grid value.
-	if got := coverageStartSec(hlsPlan{segmentSec: 4, remux: true}, 472); got != 1888 {
-		t.Fatalf("copy generation without keyframes = %v, want grid 1888", got)
-	}
-	// Transcode output starts at the exact -ss — the segment grid position.
-	if got := coverageStartSec(hlsPlan{segmentSec: 4}, 472); got != 1888 {
-		t.Fatalf("transcode generation start = %v, want grid 1888", got)
 	}
 }
 
@@ -800,7 +784,7 @@ type blockingStartEngine struct {
 	job *fakeJob
 }
 
-func (b *blockingStartEngine) StartContinuous(ctx context.Context, realPath, outputDir string, plan hlsPlan, startIndex int, startSec float64) (ContinuousJob, error) {
+func (b *blockingStartEngine) StartVODJob(ctx context.Context, realPath, outputDir string, plan hlsPlan, startIndex int, session *ffmpeg.HLSVODSession) (VODJob, error) {
 	if err := os.MkdirAll(filepath.Join(outputDir, "seg"), 0o755); err != nil {
 		return nil, err
 	}
@@ -818,6 +802,185 @@ func (e *toggleEngine) Available() bool { return e.available.Load() }
 
 // newTestManager wires a Store in a temp dir and a manager around engine (a
 // FakeEngine when nil), closing the manager at test cleanup.
+// All clients paused past the grace window suspends the producer: the job is
+// cancelled, produced segments stay servable, and the session is not finalized.
+func TestManagerSuspendsProducerWhenAllClientsPaused(t *testing.T) {
+	engine := NewFakeEngine()
+	mgr, _ := newTestManager(t, engine)
+
+	in := testInput(t, "pauser", "/v.mp4")
+	sess := mustStart(t, mgr, in)
+	waitForStarts(t, engine, 1)
+	job := engine.LastJob()
+
+	if err := mgr.Heartbeat(in.Username, sess.ID, HeartbeatRequest{ClientID: "c1", Paused: true}); err != nil {
+		t.Fatal(err)
+	}
+	suspendPausedProducers(t, mgr, time.Now().Add(time.Hour))
+
+	pollUntil(t, 2*time.Second, func() bool { return !job.Running() }, "suspended job to stop")
+	p := producerFor(t, mgr, sess.ID)
+	if p == nil || !p.suspended {
+		t.Fatal("a suspended producer must stay registered and marked suspended")
+	}
+	if got := sessionFor(t, mgr, sess.ID).state; got == StateFailed || got == StateCompleted {
+		t.Fatalf("pause suspension must not finalize the session, state=%s", got)
+	}
+	// Already-produced segments still serve without churning the producer.
+	f, err := mgr.OpenSegment(context.Background(), in.Username, sess.ID, "00000.m4s")
+	if err != nil {
+		t.Fatalf("ready segment after suspend: %v", err)
+	}
+	f.Close()
+	if engine.StartCount() != 1 {
+		t.Fatalf("serving a ready segment must not relaunch ffmpeg, starts=%d", engine.StartCount())
+	}
+}
+
+// One playing client anywhere on a producer keeps it alive — suspension only
+// happens when every attached client is paused.
+func TestManagerKeepsProducerWhileAnyClientPlays(t *testing.T) {
+	engine := NewFakeEngine()
+	mgr, _ := newTestManager(t, engine)
+
+	in := testInput(t, "multi", "/v.mp4")
+	sess := mustStart(t, mgr, in)
+	waitForStarts(t, engine, 1)
+	job := engine.LastJob()
+
+	if err := mgr.Heartbeat(in.Username, sess.ID, HeartbeatRequest{ClientID: "c1", Paused: true}); err != nil {
+		t.Fatal(err)
+	}
+	if err := mgr.Heartbeat(in.Username, sess.ID, HeartbeatRequest{ClientID: "c2", Paused: false}); err != nil {
+		t.Fatal(err)
+	}
+	suspendPausedProducers(t, mgr, time.Now().Add(time.Hour))
+
+	if !job.Running() {
+		t.Fatal("a playing client must prevent producer suspension")
+	}
+	if p := producerFor(t, mgr, sess.ID); p == nil || p.suspended {
+		t.Fatal("producer must not be suspended while a client plays")
+	}
+}
+
+// Inside the grace window the producer keeps running — a quick pause/unpause
+// must not churn ffmpeg restarts.
+func TestManagerDoesNotSuspendWithinPauseGrace(t *testing.T) {
+	engine := NewFakeEngine()
+	mgr, _ := newTestManager(t, engine)
+
+	in := testInput(t, "quick", "/v.mp4")
+	sess := mustStart(t, mgr, in)
+	waitForStarts(t, engine, 1)
+	job := engine.LastJob()
+
+	if err := mgr.Heartbeat(in.Username, sess.ID, HeartbeatRequest{ClientID: "c1", Paused: true}); err != nil {
+		t.Fatal(err)
+	}
+	suspendPausedProducers(t, mgr, time.Now())
+
+	if !job.Running() {
+		t.Fatal("producer must survive a pause shorter than the grace window")
+	}
+}
+
+// An un-pause heartbeat wakes the suspended producer — ffmpeg relaunches
+// before the next segment request lands.
+func TestManagerResumesProducerOnUnpauseHeartbeat(t *testing.T) {
+	engine := NewFakeEngine()
+	mgr, _ := newTestManager(t, engine)
+
+	in := testInput(t, "pauser", "/v.mp4")
+	sess := mustStart(t, mgr, in)
+	waitForStarts(t, engine, 1)
+	// The fake wrote segment 0 at launch; wait until the encode head sees it
+	// so the resume target is deterministic.
+	pollUntil(t, 2*time.Second, func() bool {
+		p := producerFor(t, mgr, sess.ID)
+		return p != nil && p.encodeHead >= 1
+	}, "encode head to advance past segment 0")
+	job := engine.LastJob()
+
+	if err := mgr.Heartbeat(in.Username, sess.ID, HeartbeatRequest{ClientID: "c1", Paused: true}); err != nil {
+		t.Fatal(err)
+	}
+	suspendPausedProducers(t, mgr, time.Now().Add(time.Hour))
+	pollUntil(t, 2*time.Second, func() bool { return !job.Running() }, "suspended job to stop")
+
+	if err := mgr.Heartbeat(in.Username, sess.ID, HeartbeatRequest{ClientID: "c1", Paused: false}); err != nil {
+		t.Fatal(err)
+	}
+	waitForStarts(t, engine, 2)
+	if p := producerFor(t, mgr, sess.ID); p == nil || p.suspended {
+		t.Fatal("producer must be live after an un-pause heartbeat")
+	}
+	// Resume relaunches at the encode head — not the generation's start.
+	if idx, _ := engine.LastStart(); idx != 1 {
+		t.Fatalf("resumed job start index = %d, want 1 (encode head)", idx)
+	}
+}
+
+// A segment request while suspended relaunches the producer at the requested
+// index via the existing VOD restart path — the cross-platform pause is just
+// cancel + the restart demand already uses for seeks.
+func TestManagerResumesProducerOnSegmentRequest(t *testing.T) {
+	engine := NewFakeEngine()
+	mgr, _ := newTestManager(t, engine)
+
+	in := testInput(t, "pauser", "/v.mp4")
+	sess := mustStart(t, mgr, in)
+	waitForStarts(t, engine, 1)
+	job := engine.LastJob()
+
+	if err := mgr.Heartbeat(in.Username, sess.ID, HeartbeatRequest{ClientID: "c1", Paused: true}); err != nil {
+		t.Fatal(err)
+	}
+	suspendPausedProducers(t, mgr, time.Now().Add(time.Hour))
+	pollUntil(t, 2*time.Second, func() bool { return !job.Running() }, "suspended job to stop")
+
+	// The suspended job reads as !Running, so a request beyond its head takes
+	// the restart path: the relaunched job produces the requested segment.
+	f, err := mgr.OpenSegment(context.Background(), in.Username, sess.ID, "00002.m4s")
+	if err != nil {
+		t.Fatalf("segment request after suspend: %v", err)
+	}
+	f.Close()
+	waitForStarts(t, engine, 2)
+	if idx, _ := engine.LastStart(); idx != 2 {
+		t.Fatalf("restarted job start index = %d, want 2", idx)
+	}
+}
+
+// Stopping a session whose producer is parked releases it cleanly — Close must
+// not block on a goroutine parked waiting for resume.
+func TestManagerStopReleasesSuspendedProducer(t *testing.T) {
+	engine := NewFakeEngine()
+	mgr, _ := newTestManager(t, engine)
+
+	in := testInput(t, "pauser", "/v.mp4")
+	sess := mustStart(t, mgr, in)
+	waitForStarts(t, engine, 1)
+	job := engine.LastJob()
+
+	if err := mgr.Heartbeat(in.Username, sess.ID, HeartbeatRequest{ClientID: "c1", Paused: true}); err != nil {
+		t.Fatal(err)
+	}
+	suspendPausedProducers(t, mgr, time.Now().Add(time.Hour))
+	pollUntil(t, 2*time.Second, func() bool { return !job.Running() }, "suspended job to stop")
+
+	if err := mgr.Stop(in.Username, sess.ID); err != nil {
+		t.Fatal(err)
+	}
+	if p := producerFor(t, mgr, sess.ID); p != nil {
+		t.Fatal("stopping a suspended session must detach the producer")
+	}
+	// Manager close would hang if the parked producer goroutine never woke.
+	if err := mgr.Close(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func newTestManager(t *testing.T, engine Engine) (*Manager, *Store) {
 	t.Helper()
 	store, err := NewStore(t.TempDir())
@@ -881,6 +1044,15 @@ func waitForStarts(t *testing.T, engine *FakeEngine, n int) {
 	}, fmt.Sprintf("%d ffmpeg starts (have %d)", n, engine.StartCount()))
 }
 
+// suspendPausedProducers runs the janitor's suspension pass as if `now` were
+// the current time, so tests can jump past the pause grace window.
+func suspendPausedProducers(t *testing.T, mgr *Manager, now time.Time) {
+	t.Helper()
+	mgr.mu.Lock()
+	defer mgr.mu.Unlock()
+	mgr.suspendPausedProducersLocked(now)
+}
+
 // seedSessionState mutates a session under the manager lock, for tests that
 // need a state the producer lifecycle has not reached yet.
 func seedSessionState(t *testing.T, mgr *Manager, id string, mutate func(*playbackSession)) {
@@ -924,9 +1096,9 @@ func waitForPlaylistFile(t *testing.T, genDir string) {
 	}, "the producer's initial playlist")
 }
 
-// writeProducedRange writes a generation's published output — seg/ files plus
-// index.m3u8 and job.json covering [firstIdx, firstIdx+count) — so coverage
-// checks see the produced edge the publisher would have recorded.
+// writeProducedRange writes a generation's produced output — seg/ files plus
+// index.m3u8 covering [firstIdx, firstIdx+count) — with the vod.complete
+// marker when endList is set so coverage checks see a finished generation.
 func writeProducedRange(t *testing.T, genDir string, firstIdx, count int, endList bool) {
 	t.Helper()
 	segDir := filepath.Join(genDir, "seg")
@@ -950,16 +1122,8 @@ func writeProducedRange(t *testing.T, genDir string, firstIdx, count int, endLis
 	if err := os.WriteFile(filepath.Join(genDir, "index.m3u8"), []byte(b.String()), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	lastReady := firstIdx + count - 1
-	complete := endList && count > 0
-	status := fmt.Sprintf(`{"startSec":%g,"firstIndex":%d,"lastReadyIndex":%d,"producedSec":%g,"endList":%t,"complete":%t}`,
-		float64(firstIdx)*4, firstIdx, lastReady, float64(count)*4, endList, complete)
-	if err := os.WriteFile(filepath.Join(genDir, "job.json"), []byte(status), 0o644); err != nil {
-		t.Fatal(err)
-	}
-	if endList && firstIdx == 0 {
-		// Match NewFakeEngine mediaDurationSec (10s fixture).
-		if err := os.WriteFile(filepath.Join(genDir, vodCompleteMarker), []byte("10.000000\n"), 0o644); err != nil {
+	if endList {
+		if err := os.WriteFile(filepath.Join(genDir, vodCompleteMarker), []byte(fmt.Sprintf("%g\n", float64(count)*4)), 0o644); err != nil {
 			t.Fatal(err)
 		}
 	}

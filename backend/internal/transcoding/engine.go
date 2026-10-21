@@ -38,10 +38,12 @@ func vodMaxSegmentDuration(list ffmpeg.VODSegmentList) float64 {
 // MediaEngine adapts the ffmpeg service for HLS transcoding.
 type MediaEngine struct{}
 
-// ContinuousJob is a running ffmpeg HLS encode.
-type ContinuousJob interface {
+// VODJob is a running ffmpeg HLS VOD encode.
+type VODJob interface {
 	Cancel()
 	Wait() error
+	// Running reports whether ffmpeg is still active (non-blocking).
+	Running() bool
 	// VTDecodeUnreliable reports sustained VideoToolbox hardware decode failures
 	// in ffmpeg stderr — a signal to restart the job with software decode.
 	VTDecodeUnreliable() bool
@@ -51,7 +53,7 @@ type ContinuousJob interface {
 type Engine interface {
 	Available() bool
 	BuildPlan(ctx context.Context, realPath string, profile Profile) (hlsPlan, error)
-	StartContinuous(ctx context.Context, realPath, outputDir string, plan hlsPlan, startIndex int, startSec float64) (ContinuousJob, error)
+	StartVODJob(ctx context.Context, realPath, outputDir string, plan hlsPlan, startIndex int, session *ffmpeg.HLSVODSession) (VODJob, error)
 }
 
 func NewMediaEngine() *MediaEngine {
@@ -121,6 +123,11 @@ func (e *MediaEngine) BuildPlan(ctx context.Context, realPath string, profile Pr
 	if plan.needsTranscode {
 		plan.encodeProfile = encodeProfileForMode(info, profile)
 		plan.decodeProfile = ffmpeg.HLSDecodeProfileForOnDemand(info)
+		// Hardware encoder limit checks need output height AND frame rate;
+		// OutputHeight comes from DefaultHLSVideoProfile, fps from the probe.
+		if fps, ferr := svc.ProbeVideoFPS(ctx, realPath); ferr == nil && fps > 0 {
+			plan.encodeProfile.FrameRate = fps
+		}
 	}
 
 	var keyframes []float64
@@ -162,6 +169,9 @@ func (e *MediaEngine) BuildPlan(ctx context.Context, realPath string, profile Pr
 		plan.needsTranscode = true
 		plan.encodeProfile = encodeProfileForMode(info, profile)
 		plan.decodeProfile = ffmpeg.HLSDecodeProfileForOnDemand(info)
+		if fps, ferr := svc.ProbeVideoFPS(ctx, realPath); ferr == nil && fps > 0 {
+			plan.encodeProfile.FrameRate = fps
+		}
 		plan.keyframes = nil
 		_, plan.mediaDurationSec = ffmpeg.PrepareHLSMediaTimeline(nil, info.Duration, info.StartTime)
 		plan.vodList = ffmpeg.BuildVODSegmentList(info.Duration, plan.segmentSec, info.StartTime, nil)
@@ -188,35 +198,38 @@ func (e *MediaEngine) BuildPlan(ctx context.Context, realPath string, profile Pr
 	return plan, nil
 }
 
-func (e *MediaEngine) StartContinuous(ctx context.Context, realPath, outputDir string, plan hlsPlan, startIndex int, startSec float64) (ContinuousJob, error) {
+func (e *MediaEngine) StartVODJob(ctx context.Context, realPath, outputDir string, plan hlsPlan, startIndex int, session *ffmpeg.HLSVODSession) (VODJob, error) {
 	svc := ffmpeg.Get()
 	if svc == nil {
 		return nil, ErrUnavailable
-	}
-	playlistStart := vodPlaylistStartSec(plan, startIndex)
-	if startSec > 0 && playlistStart == 0 && startIndex > 0 {
-		playlistStart = startSec
 	}
 	opts := ffmpeg.HLSVODJobOptions{
 		Input: ffmpeg.InputSource{
 			URL:        realPath,
 			StreamType: ffmpeg.StreamFile,
 		},
-		OutputDir:           outputDir,
-		StartIndex:          startIndex,
-		StartSec:            playlistStart,
-		SegmentSec:          plan.segmentSec,
-		InputStartTimeSec:   plan.info.StartTime,
-		KeyframeSeekTimes:   plan.keyframes,
-		Decode:              plan.decodeProfile,
-		Profile:             plan.encodeProfile,
-		MaxHeight:           plan.maxHeight,
-		Remux:               plan.remux,
-		VideoCopy:           plan.videoCopy,
-		GOP:                 plan.params.GOP,
-		InputVideoCodec:     plan.info.VideoCodec,
+		OutputDir:              outputDir,
+		StartIndex:             startIndex,
+		StartSec:               vodPlaylistStartSec(plan, startIndex),
+		SegmentSec:             plan.segmentSec,
+		InputStartTimeSec:      plan.info.StartTime,
+		KeyframeSeekTimes:      plan.keyframes,
+		Decode:                 plan.decodeProfile,
+		Profile:                plan.encodeProfile,
+		MaxHeight:              plan.maxHeight,
+		Remux:                  plan.remux,
+		VideoCopy:              plan.videoCopy,
+		GOP:                    plan.params.GOP,
+		InputVideoCodec:        plan.info.VideoCodec,
 		OmitAudio:              plan.params.OmitAudio,
+		Throttle:               settings.TranscodeThrottleConfig(),
 		ClearSegmentsFromIndex: plan.vodClearFromIndex,
+		Session:                session,
+	}
+	if planUsesExplicitCopy(plan) {
+		// Explicit-cut copy jobs align restarts to the synthetic playlist grid
+		// via -f segment -segment_times and the live .ffmpeg-vod-segments.csv.
+		opts.SegmentList = &plan.vodList
 	}
 	job, err := svc.StartHLSVODSegmentJob(ctx, opts)
 	if err != nil {
@@ -226,24 +239,24 @@ func (e *MediaEngine) StartContinuous(ctx context.Context, realPath, outputDir s
 }
 
 type hlsPlan struct {
-	info             ffmpeg.StreamInfo
-	params           ffmpeg.HLSSegmentParams
-	pipeline         ffmpeg.HLSPipelineOptions
-	profileMode      string
-	maxHeight        int
-	avgBitrateKbps   int
-	remux            bool
-	videoCopy        bool
-	needsTranscode   bool
-	encodeProfile    encode.VideoProfile
-	decodeProfile    ffmpeg.VideoDecodeProfile
-	keyframes        []float64
-	segmentSec       float64
-	mediaDurationSec float64
-	cacheFingerprint string
-	vodList            ffmpeg.VODSegmentList
-	playlistBody       string
-	vodClearFromIndex  bool
+	info              ffmpeg.StreamInfo
+	params            ffmpeg.HLSSegmentParams
+	pipeline          ffmpeg.HLSPipelineOptions
+	profileMode       string
+	maxHeight         int
+	avgBitrateKbps    int
+	remux             bool
+	videoCopy         bool
+	needsTranscode    bool
+	encodeProfile     encode.VideoProfile
+	decodeProfile     ffmpeg.VideoDecodeProfile
+	keyframes         []float64
+	segmentSec        float64
+	mediaDurationSec  float64
+	cacheFingerprint  string
+	vodList           ffmpeg.VODSegmentList
+	playlistBody      string
+	vodClearFromIndex bool
 }
 
 // maxHeightForProfile returns the configured output height cap for a profile.
@@ -353,7 +366,7 @@ func legacyAccelBackend(backend string) (capabilities.AccelType, bool) {
 	}
 }
 
-// preferredEncoderAccel is kept for tests that only assert the accel override.
+// preferredEncoderAccel returns the accel backend selected for a profile.
 func preferredEncoderAccel(profile Profile) capabilities.AccelType {
 	accel, _ := preferredEncoderSelection(profile)
 	return accel
@@ -394,17 +407,6 @@ func userTranscodeLimit(uMax int) int {
 		return 1
 	}
 	return uMax
-}
-
-// continuousSeekParams maps a client playhead to ffmpeg's segment grid.
-// FFmpeg starts at the segment boundary; the player seeks to the exact playhead.
-func continuousSeekParams(startSec, segmentSec float64) (startIndex int, ffmpegStartSec float64) {
-	if startSec <= 0 || segmentSec <= 0 {
-		return 0, 0
-	}
-	startIndex = int(startSec / segmentSec)
-	ffmpegStartSec = float64(startIndex) * segmentSec
-	return startIndex, ffmpegStartSec
 }
 
 func normalizeClientID(id string) string {
