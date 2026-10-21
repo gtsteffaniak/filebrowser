@@ -1082,7 +1082,8 @@
       "webSessionNamed": "Webová relace ({name})",
       "scopeAccess": "Aktivita přístupu",
       "eventAccessCreate": "Vytvořit přístup",
-      "eventAccessDelete": "Přístup, smazat"
+      "eventAccessDelete": "Přístup, smazat",
+      "eventFileModify": "Úprava souboru"
     },
     "toolAccessDefaults": "Výchozí nastavení přístupu k nástrojům",
     "toolAccessDefaultsDescription": "Nastavte, ke kterým nástrojům budou mít noví uživatelé ve výchozím nastavení přístup",

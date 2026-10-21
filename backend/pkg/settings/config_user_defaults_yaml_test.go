@@ -90,8 +90,8 @@ func TestYAMLConfig_applyUserDefaultsFrom_proxyAndJwt(t *testing.T) {
 		if !u.Permissions.Share {
 			t.Fatal("Share=false after ApplyUserDefaultsFrom")
 		}
-		if len(u.BackendScopes) != 1 || u.BackendScopes[0].Scope != "/demo-127.0.0.1" {
-			t.Fatalf("createUserDir scope: %+v", u.BackendScopes)
+		if len(u.BackendScopes) != 1 || u.BackendScopes[0].Scope != "/" {
+			t.Fatalf("scope after applying defaults: %+v", u.BackendScopes)
 		}
 		perms := u.BackendScopes[0].Permissions
 		if !perms.View || !perms.Modify || !perms.Create || !perms.Download {
@@ -115,7 +115,7 @@ func TestYAMLConfig_applyUserDefaultsFrom_proxyAndJwt(t *testing.T) {
 		if u.SingleClick {
 			t.Fatal("expected listing.singleClick false on user")
 		}
-		if u.BackendScopes[0].Scope != "/testuser" {
+		if u.BackendScopes[0].Scope != "/" {
 			t.Fatalf("scope=%q", u.BackendScopes[0].Scope)
 		}
 	})

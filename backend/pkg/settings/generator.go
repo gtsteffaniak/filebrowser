@@ -982,7 +982,9 @@ func GenerateYaml() {
 		fmt.Fprintf(os.Stderr, "error writing YAML: %v\n", err)
 		os.Exit(1)
 	}
-	fmt.Printf("Generated YAML with comments (deprecated fields filtered): %s\n", output)
+	if !isGoTest() {
+		fmt.Printf("Generated YAML with comments (deprecated fields filtered): %s\n", output)
+	}
 }
 
 // GenerateConfigYaml generates YAML from a given config with options for comments and filtering
