@@ -30,11 +30,9 @@ func TestResolveAccelDeviceWithoutCapabilities(t *testing.T) {
 }
 
 func TestResolveAccelDeviceWSLNVIDIA(t *testing.T) {
-	s := &Service{}
 	caps := capabilities.NewCapabilities()
 	caps.Platform = capabilities.PlatformInfo{OS: "linux", WSL: true, NVIDIA: true}
 	caps.Platform.Details = map[string]string{"gpu": "NVIDIA GeForce RTX 3050"}
-	s.inner = nil // ResolveAccelDevice only reads caps via s.Capabilities()
 	// Inject caps through a minimal service wrapper is not available; test helper directly.
 	id, label := wslNVIDIAAccelDefault(caps)
 	if id != "dgpu" || label != "Dedicated GPU (NVIDIA GeForce RTX 3050)" {

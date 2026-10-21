@@ -24,12 +24,6 @@ type HLSSegmentBuildInput = goffmpeg.HLSSegmentBuildInput
 // HLSCacheIdentity describes inputs for a stable on-demand HLS disk cache key.
 type HLSCacheIdentity = goffmpeg.HLSCacheIdentity
 
-// HLSContinuousOptions configures a long-running ffmpeg HLS job.
-type HLSContinuousOptions = goffmpeg.HLSContinuousOptions
-
-// HLSContinuousJob runs ffmpeg until EOF, cancellation, or error.
-type HLSContinuousJob = goffmpeg.HLSContinuousJob
-
 // VideoDecodeProfile selects input decode settings.
 type VideoDecodeProfile = encode.VideoDecodeProfile
 
@@ -128,14 +122,6 @@ func (s *Service) ProbeVideoKeyframeTimes(ctx context.Context, path string) ([]f
 	return s.inner.ProbeVideoKeyframeTimes(ctx, path)
 }
 
-// StartHLSContinuous launches ffmpeg -f hls writing fMP4 segments to disk.
-func (s *Service) StartHLSContinuous(ctx context.Context, opts HLSContinuousOptions) (*HLSContinuousJob, error) {
-	if s == nil || s.inner == nil {
-		return nil, errUnavailable()
-	}
-	return s.inner.StartHLSContinuous(ctx, opts)
-}
-
 func errUnavailable() error {
 	return fmt.Errorf("ffmpeg service not available")
 }
@@ -145,12 +131,3 @@ type InputSource = ops.InputSource
 
 // StreamFile is the file stream type constant.
 const StreamFile = goffmpeg.StreamFile
-
-// HLSContinuousCacheFill pacing mode.
-const HLSContinuousCacheFill = goffmpeg.HLSContinuousCacheFill
-
-// HLSContinuousLivePaced pacing mode (~1x readrate after an initial burst).
-const HLSContinuousLivePaced = goffmpeg.HLSContinuousLivePaced
-
-// HLSContinuousPacing selects continuous HLS input read pacing.
-type HLSContinuousPacing = goffmpeg.HLSContinuousPacing
