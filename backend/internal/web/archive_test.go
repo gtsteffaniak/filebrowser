@@ -1,7 +1,9 @@
 package web
 
 import (
+	"archive/tar"
 	"archive/zip"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -341,5 +343,88 @@ func TestExtractZipFilenameEncoding(t *testing.T) {
 				t.Fatalf("content=%q err=%v", content, err)
 			}
 		})
+	}
+}
+
+func TestExtractTarGz_hardLinks(t *testing.T) {
+	archivePath := filepath.Join(t.TempDir(), "links.tar.gz")
+	writeTestTarGz(t, archivePath, func(tw *tar.Writer) error {
+		if err := tw.WriteHeader(&tar.Header{Name: "proj/a.txt", Mode: 0o644, Size: 4, Typeflag: tar.TypeReg}); err != nil {
+			return err
+		}
+		if _, err := io.WriteString(tw, "same"); err != nil {
+			return err
+		}
+		return tw.WriteHeader(&tar.Header{Name: "proj/sub/b.txt", Mode: 0o644, Typeflag: tar.TypeLink, Linkname: "proj/a.txt"})
+	})
+	destDir := t.TempDir()
+	if err := extractTarGz(archivePath, destDir, nil); err != nil {
+		t.Fatalf("extract: %v", err)
+	}
+	got, err := os.ReadFile(filepath.Join(destDir, "proj", "sub", "b.txt"))
+	if err != nil || string(got) != "same" {
+		t.Fatalf("hard link entry: got %q, %v", got, err)
+	}
+
+	missing := filepath.Join(t.TempDir(), "missing.tar.gz")
+	writeTestTarGz(t, missing, func(tw *tar.Writer) error {
+		return tw.WriteHeader(&tar.Header{Name: "b.txt", Mode: 0o644, Typeflag: tar.TypeLink, Linkname: "a.txt"})
+	})
+	if err := extractTarGz(missing, t.TempDir(), nil); err == nil {
+		t.Fatal("expected an error for a hard link to a file that is not in the archive")
+	}
+
+	// A symlink entry replaces the extracted file before the hard link names it.
+	replaced := filepath.Join(t.TempDir(), "replaced.tar.gz")
+	writeTestTarGz(t, replaced, func(tw *tar.Writer) error {
+		if err := tw.WriteHeader(&tar.Header{Name: "a.txt", Mode: 0o644, Size: 4, Typeflag: tar.TypeReg}); err != nil {
+			return err
+		}
+		if _, err := io.WriteString(tw, "mine"); err != nil {
+			return err
+		}
+		if err := tw.WriteHeader(&tar.Header{Name: "a.txt", Mode: 0o777, Typeflag: tar.TypeSymlink, Linkname: "private/secret.txt"}); err != nil {
+			return err
+		}
+		return tw.WriteHeader(&tar.Header{Name: "b.txt", Mode: 0o644, Typeflag: tar.TypeLink, Linkname: "a.txt"})
+	})
+	replacedDest := t.TempDir()
+	if err := os.MkdirAll(filepath.Join(replacedDest, "private"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(replacedDest, "private", "secret.txt"), []byte("secret"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := extractTarGz(replaced, replacedDest, nil); err == nil {
+		t.Fatal("expected an error for a hard link whose target was replaced by a symlink")
+	}
+	if got, err := os.ReadFile(filepath.Join(replacedDest, "b.txt")); err == nil {
+		t.Fatalf("hard link entry copied the symlink target: %q", got)
+	}
+
+	// A hard link names its own target, as GNU tar writes for a file archived twice,
+	// or names it through a symlink.
+	self := filepath.Join(t.TempDir(), "self.tar.gz")
+	writeTestTarGz(t, self, func(tw *tar.Writer) error {
+		if err := tw.WriteHeader(&tar.Header{Name: "a.txt", Mode: 0o644, Size: 4, Typeflag: tar.TypeReg}); err != nil {
+			return err
+		}
+		if _, err := io.WriteString(tw, "same"); err != nil {
+			return err
+		}
+		if err := tw.WriteHeader(&tar.Header{Name: "c.txt", Mode: 0o777, Typeflag: tar.TypeSymlink, Linkname: "a.txt"}); err != nil {
+			return err
+		}
+		if err := tw.WriteHeader(&tar.Header{Name: "a.txt", Mode: 0o644, Typeflag: tar.TypeLink, Linkname: "a.txt"}); err != nil {
+			return err
+		}
+		return tw.WriteHeader(&tar.Header{Name: "c.txt", Mode: 0o644, Typeflag: tar.TypeLink, Linkname: "a.txt"})
+	})
+	selfDest := t.TempDir()
+	if err := extractTarGz(self, selfDest, nil); err != nil {
+		t.Fatalf("extract: %v", err)
+	}
+	if got, err := os.ReadFile(filepath.Join(selfDest, "a.txt")); err != nil || string(got) != "same" {
+		t.Fatalf("hard link to itself: got %q, %v", got, err)
 	}
 }
