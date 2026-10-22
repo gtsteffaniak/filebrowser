@@ -34,6 +34,29 @@ func createTokenAuthUser(t *testing.T, username string, perms users.Permissions)
 	return &reloaded
 }
 
+// registerApiToken mints a named API token for user, stores its metadata, and
+// registers its hash so auth can resolve it. configure, when non-nil, may adjust
+// the metadata before it is persisted.
+func registerApiToken(t *testing.T, user *users.User, name string, caps users.Permissions, minimal bool, configure func(*users.AuthToken)) string {
+	t.Helper()
+	tokenString, tokenMeta, err := auth.MakeSignedTokenAPI(user, name, time.Hour, caps, minimal)
+	if err != nil {
+		t.Fatal(err)
+	}
+	tokenMeta.Name = name
+	tokenMeta.Token = tokenString
+	if configure != nil {
+		configure(&tokenMeta)
+	}
+	if err = state.AddUserToken(user.Username, tokenMeta); err != nil {
+		t.Fatal(err)
+	}
+	if err = state.AddApiToken(tokenString, user.ID); err != nil {
+		t.Fatal(err)
+	}
+	return tokenString
+}
+
 func cookieRequest(t *testing.T, handler http.HandlerFunc, token string) *httptest.ResponseRecorder {
 	t.Helper()
 	rec := httptest.NewRecorder()
@@ -74,18 +97,7 @@ func TestApiTokenMinimalKeepsOwnerPermissions(t *testing.T) {
 	t.Cleanup(func() { settings.Config.Auth.Key = originalAuthKey })
 
 	user := createTokenAuthUser(t, "minimal-admin", users.Permissions{Admin: true, Api: true})
-	tokenString, tokenMeta, err := auth.MakeSignedTokenAPI(user, "minimal-key", time.Hour, users.Permissions{}, true)
-	if err != nil {
-		t.Fatal(err)
-	}
-	tokenMeta.Name = "minimal-key"
-	tokenMeta.Token = tokenString
-	if err := state.AddUserToken(user.Username, tokenMeta); err != nil {
-		t.Fatal(err)
-	}
-	if err := state.AddApiToken(tokenString, user.ID); err != nil {
-		t.Fatal(err)
-	}
+	tokenString := registerApiToken(t, user, "minimal-key", users.Permissions{}, true, nil)
 
 	rec := cookieRequest(t, withAdmin(mockHandler), tokenString)
 	if rec.Code != http.StatusOK {
@@ -100,18 +112,7 @@ func TestApiTokenCustomizedZeroPermissionsForbiddenOnAdmin(t *testing.T) {
 	t.Cleanup(func() { settings.Config.Auth.Key = originalAuthKey })
 
 	user := createTokenAuthUser(t, "custom-zero-admin", users.Permissions{Admin: true, Api: true})
-	tokenString, tokenMeta, err := auth.MakeSignedTokenAPI(user, "zero-key", time.Hour, users.Permissions{}, false)
-	if err != nil {
-		t.Fatal(err)
-	}
-	tokenMeta.Name = "zero-key"
-	tokenMeta.Token = tokenString
-	if err := state.AddUserToken(user.Username, tokenMeta); err != nil {
-		t.Fatal(err)
-	}
-	if err := state.AddApiToken(tokenString, user.ID); err != nil {
-		t.Fatal(err)
-	}
+	tokenString := registerApiToken(t, user, "zero-key", users.Permissions{}, false, nil)
 
 	rec := cookieRequest(t, withAdmin(mockHandler), tokenString)
 	if rec.Code != http.StatusForbidden {
@@ -126,19 +127,9 @@ func TestApiTokenLegacyEmptyCapsTreatedAsMinimal(t *testing.T) {
 	t.Cleanup(func() { settings.Config.Auth.Key = originalAuthKey })
 
 	user := createTokenAuthUser(t, "legacy-minimal-admin", users.Permissions{Admin: true, Api: true})
-	tokenString, tokenMeta, err := auth.MakeSignedTokenAPI(user, "legacy-key", time.Hour, users.Permissions{}, true)
-	if err != nil {
-		t.Fatal(err)
-	}
-	tokenMeta.Name = "legacy-key"
-	tokenMeta.Token = tokenString
-	tokenMeta.Minimal = nil
-	if err := state.AddUserToken(user.Username, tokenMeta); err != nil {
-		t.Fatal(err)
-	}
-	if err := state.AddApiToken(tokenString, user.ID); err != nil {
-		t.Fatal(err)
-	}
+	tokenString := registerApiToken(t, user, "legacy-key", users.Permissions{}, true, func(meta *users.AuthToken) {
+		meta.Minimal = nil
+	})
 
 	rec := cookieRequest(t, withAdmin(mockHandler), tokenString)
 	if rec.Code != http.StatusOK {
@@ -156,18 +147,7 @@ func TestApiTokenCapsAppliedFromStoredMetadata(t *testing.T) {
 	user := createTokenAuthUser(t, "capped-admin", users.Permissions{Admin: true, Api: true})
 
 	// The token cap excludes admin, so the resolved user must lose admin.
-	tokenString, tokenMeta, err := auth.MakeSignedTokenAPI(user, "capped-key", time.Hour, users.Permissions{Share: true}, false)
-	if err != nil {
-		t.Fatal(err)
-	}
-	tokenMeta.Name = "capped-key"
-	tokenMeta.Token = tokenString
-	if err := state.AddUserToken(user.Username, tokenMeta); err != nil {
-		t.Fatal(err)
-	}
-	if err := state.AddApiToken(tokenString, user.ID); err != nil {
-		t.Fatal(err)
-	}
+	tokenString := registerApiToken(t, user, "capped-key", users.Permissions{Share: true}, false, nil)
 
 	rec := cookieRequest(t, withAdmin(mockHandler), tokenString)
 	if rec.Code != http.StatusForbidden {
@@ -307,18 +287,7 @@ func TestApiTokenBasicAuthRoundTrip(t *testing.T) {
 	t.Cleanup(func() { settings.Config.Auth.Key = originalAuthKey })
 
 	user := createTokenAuthUser(t, "webdav-user", users.Permissions{Api: true})
-	tokenString, tokenMeta, err := auth.MakeSignedTokenAPI(user, "obsidian-sync", time.Hour, users.Permissions{}, true)
-	if err != nil {
-		t.Fatal(err)
-	}
-	tokenMeta.Name = "obsidian-sync"
-	tokenMeta.Token = tokenString
-	if err = state.AddUserToken(user.Username, tokenMeta); err != nil {
-		t.Fatal(err)
-	}
-	if err = state.AddApiToken(tokenString, user.ID); err != nil {
-		t.Fatal(err)
-	}
+	tokenString := registerApiToken(t, user, "obsidian-sync", users.Permissions{}, true, nil)
 
 	basicRequest := func(token string) *httptest.ResponseRecorder {
 		rec := httptest.NewRecorder()
