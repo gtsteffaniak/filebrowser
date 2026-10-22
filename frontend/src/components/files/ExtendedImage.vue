@@ -3,8 +3,8 @@
     @mousedown="mousedownStart" @mousemove="mouseMove" @mouseup="mouseUp" @wheel="wheelMove">
     <!-- Thumbnail placeholder (shown while full image loads, only if cached thumbnail exists) -->
     <img
-      v-if="cachedThumbnailUrl && !fullImageLoaded && !isTiff"
-      :src="cachedThumbnailUrl"
+      v-if="thumbnailSrc && !fullImageLoaded && !isTiff"
+      :src="thumbnailSrc"
       class="image-ex-img"
       ref="thumbnail"
       aria-hidden="true"
@@ -24,14 +24,14 @@
       ref="imgex"
       @load="onLoad"
       @error="onImageError"
-      :style="{ display: (cachedThumbnailUrl && !fullImageLoaded) ? 'none' : 'block' }"
+      :style="{ display: (thumbnailSrc && !fullImageLoaded) ? 'none' : 'block' }"
       aria-hidden="true"
     />
     <canvas
       v-else
       ref="imgex"
       class="image-ex-img"
-      :style="{ display: (cachedThumbnailUrl && !fullImageLoaded) ? 'none' : 'block' }"
+      :style="{ display: (thumbnailSrc && !fullImageLoaded) ? 'none' : 'block' }"
     ></canvas>
   </div>
 </template>
@@ -41,7 +41,7 @@ import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import { notify } from "@/notify";
 import { getters, mutations, state } from '@/store';
 import { globalVars } from "@/utils/constants";
-import { getBestCachedImage } from "@/utils/imageCache";
+import { acquireBestCachedThumbnailBlob, getBestCachedImage, releaseThumbnailBlob } from "@/utils/cache/imageCache.ts";
 import { isRawImageMimeType } from "@/utils/mimetype";
 import { refreshViewToken, requestViewIdentity } from "@/api/viewToken.js";
 import throttle from "@/utils/throttle";
@@ -102,6 +102,7 @@ export default {
       edgeRubberMax: 100,
       pinchActive: false,
       viewTokenRetried: false,
+      thumbBlobUrl: null, // blob of the cached thumbnail
       zoomTapStartX: 0,
       zoomTapStartY: 0,
       zoomTapMoved: false,
@@ -121,7 +122,8 @@ export default {
     isLoaded() {
       return !("preview-img" in (state?.loading || {}));
     },
-    cachedThumbnailUrl() {
+    // Which cached entry to look, or null when no thumbnail should be shown
+    thumbnailLookup() {
       if (!state?.req) {
         return null;
       }
@@ -135,10 +137,17 @@ export default {
       if (useOriginalForHeic || useOriginalForRaw) {
         return null;
       }
-      // Get cached thumbnail URL (prefers large, falls back to small)
       // For shares, use shareInfo.hash as the source; otherwise use this.source
       const source = getters.isShare() ? state.shareInfo?.hash : this.source;
-      return getBestCachedImage(source, this.path, state.req?.modified);
+      return { source, path: this.path, modified: state.req?.modified };
+    },
+    cachedThumbnailUrl() {
+      const lookup = this.thumbnailLookup;
+      return lookup ? getBestCachedImage(lookup.source, lookup.path, lookup.modified) : null;
+    },
+    // Prefer the blob over the URL
+    thumbnailSrc() {
+      return this.thumbBlobUrl || this.cachedThumbnailUrl;
     },
     navigationGestureAllowed() {
       return state.navigation.enabled && getters.currentPrompt() === null;
@@ -173,6 +182,12 @@ export default {
       return this.edgeDy >= this.edgeCommitY && ay >= ax;
     },
   },
+  beforeCreate() {
+    this.thumbBlobKey = null;
+  },
+  created() {
+    this.syncThumbnailBlob();
+  },
   async mounted() {
     this.isTiff = this.checkIfTiff(this.src);
 
@@ -203,6 +218,8 @@ export default {
     }
   },
   beforeUnmount() {
+    this.dropThumbnailBlob();
+    mutations.setLoading("preview-img", false);
     // Clear any pending timeout
     if (this.loadTimeout) {
       clearTimeout(this.loadTimeout);
@@ -219,6 +236,26 @@ export default {
     document.removeEventListener("mouseup", this.onMouseUp);
   },
   methods: {
+    dropThumbnailBlob() {
+      if (this.thumbBlobKey) {
+        releaseThumbnailBlob(this.thumbBlobKey);
+        this.thumbBlobKey = null;
+      }
+      this.thumbBlobUrl = null;
+    },
+    /** Takes the cached thumbnail blob for the current image, if one is still held. */
+    syncThumbnailBlob() {
+      this.dropThumbnailBlob();
+      const lookup = this.thumbnailLookup;
+      if (!lookup) {
+        return;
+      }
+      const hit = acquireBestCachedThumbnailBlob(lookup.source, lookup.path, lookup.modified);
+      if (hit) {
+        this.thumbBlobKey = hit.key;
+        this.thumbBlobUrl = hit.blobUrl;
+      }
+    },
     syncNavigationGestureHintToStore() {
       let kind = null;
       let commitReady = false;
@@ -278,6 +315,7 @@ export default {
       // Step 3: Real image loaded - hide thumbnail and show image
       this.imageLoaded = true;
       this.fullImageLoaded = true;
+      this.dropThumbnailBlob();
       // Clear the timeout if image loaded successfully
       if (this.loadTimeout) {
         clearTimeout(this.loadTimeout);
@@ -859,6 +897,7 @@ export default {
       this.fullImageLoaded = false;
       this.imageLoaded = false;
       this.isTiff = this.checkIfTiff(newSrc);
+      this.syncThumbnailBlob();
 
       // Cache check happens automatically via thumbnailUrl computed property
 

@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 const { store } = vi.hoisted(() => ({ store: { create: false } }));
 vi.mock("@/store", () => ({
@@ -27,11 +27,18 @@ const dropEvents = ["dragenter", "dragleave", "drop"];
 const types = (spy) => spy.mock.calls.map(([type]) => type);
 
 describe("ListingView drop listeners", () => {
+  afterEach(() => vi.unstubAllGlobals());
   // The listing is not remounted when navigating between sources, so a user who lands on a source
   // they cannot write to must still get a drop target once they move to one they can.
   it("are attached and removed even when the user cannot write at mount", () => {
     const el = { addEventListener: vi.fn(), removeEventListener: vi.fn() };
-    const ctx = { $el: el, permissions: { modify: false, create: false } };
+    const ctx = {
+      $el: el,
+      permissions: { modify: false, create: false },
+      observeListingContent: vi.fn(),
+      stopRectangleScrollListener: vi.fn(),
+    };
+    vi.stubGlobal("ResizeObserver", class { observe() {} disconnect() {} });
 
     ListingView.mounted.call(ctx);
     expect(types(el.addEventListener)).toEqual(expect.arrayContaining(dropEvents));
