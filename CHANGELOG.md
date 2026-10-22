@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v2.1.4
+
+ **Bug Fixes**:
+ - Preview generation for webp broken (#3254) (#3259)
+ - Share banner never shows to public visitors, returns bannerUrl but not banner (#3246) (#3250)
+ - fix html/markdwon relative file preview support (#3131) (#3129) (#2355)
+
 ## v2.1.3
 
  **Security**:
