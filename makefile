@@ -133,7 +133,7 @@ test-frontend:
 	cd frontend && npm run test
 
 # Playwright docker project names (match _docker/Dockerfile.playwright-<name>).
-PLAYWRIGHT_PROJECTS := sharing settings noauth general jwt proxy previews oidc no-config screenshots
+PLAYWRIGHT_PROJECTS := general sharing settings noauth general jwt proxy previews oidc no-config screenshots
 
 # Full matrix (default). To build/run a single project:
 #   make test-playwright-project PROJECT=previews

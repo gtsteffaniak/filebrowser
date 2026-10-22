@@ -86,12 +86,16 @@ test("next/previous follow the name order of the folder", async({ page, checkFor
   await expect(previous).toBeHidden();
 
   await next.click();
+  await expect(page).toHaveTitle("Graham's Filebrowser - Files - file_example_WMV_480_1_2MB.wmv");
+  await next.click();
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - gray-sample.jpg");
   await next.click();
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - IMG_2578.JPG");
 
   await previous.click();
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - gray-sample.jpg");
+  await previous.click();
+  await expect(page).toHaveTitle("Graham's Filebrowser - Files - file_example_WMV_480_1_2MB.wmv");
   await previous.click();
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - 20130612_142406.jpg");
   await expect(previous).toBeHidden();
@@ -112,6 +116,7 @@ test("next/previous follow the listing sort order", async({ page, checkForErrors
     "sample-640x480.mp4",
     "IMG_2578.JPG",
     "gray-sample.jpg",
+    "file_example_WMV_480_1_2MB.wmv",
     "20130612_142406.jpg",
   ]);
 
