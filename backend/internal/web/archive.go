@@ -1268,9 +1268,15 @@ func extractArchivedHardLink(destRoot, destPath string, h *tar.Header, extracted
 		return fmt.Errorf("failed to write file from archive entry")
 	}
 	// A later entry may have replaced the target, e.g. with a symlink to another file.
-	if info, err := src.Stat(); err != nil || !info.Mode().IsRegular() || !os.SameFile(info, written) {
+	info, err := src.Stat()
+	if err != nil || !info.Mode().IsRegular() || !os.SameFile(info, written) {
 		_ = src.Close()
 		return notExtracted
+	}
+	// The entry may name its own target, directly (GNU tar does this for a file archived
+	// twice) or through a symlink. Writing it would truncate the file it copies from.
+	if dest, err := os.Stat(destPath); err == nil && os.SameFile(dest, info) {
+		return src.Close()
 	}
 	return extractArchivedRegularFile(destPath, h.FileInfo().Mode(), h.ModTime, src)
 }

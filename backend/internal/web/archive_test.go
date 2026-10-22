@@ -401,4 +401,30 @@ func TestExtractTarGz_hardLinks(t *testing.T) {
 	if got, err := os.ReadFile(filepath.Join(replacedDest, "b.txt")); err == nil {
 		t.Fatalf("hard link entry copied the symlink target: %q", got)
 	}
+
+	// A hard link names its own target, as GNU tar writes for a file archived twice,
+	// or names it through a symlink.
+	self := filepath.Join(t.TempDir(), "self.tar.gz")
+	writeTestTarGz(t, self, func(tw *tar.Writer) error {
+		if err := tw.WriteHeader(&tar.Header{Name: "a.txt", Mode: 0o644, Size: 4, Typeflag: tar.TypeReg}); err != nil {
+			return err
+		}
+		if _, err := io.WriteString(tw, "same"); err != nil {
+			return err
+		}
+		if err := tw.WriteHeader(&tar.Header{Name: "c.txt", Mode: 0o777, Typeflag: tar.TypeSymlink, Linkname: "a.txt"}); err != nil {
+			return err
+		}
+		if err := tw.WriteHeader(&tar.Header{Name: "a.txt", Mode: 0o644, Typeflag: tar.TypeLink, Linkname: "a.txt"}); err != nil {
+			return err
+		}
+		return tw.WriteHeader(&tar.Header{Name: "c.txt", Mode: 0o644, Typeflag: tar.TypeLink, Linkname: "a.txt"})
+	})
+	selfDest := t.TempDir()
+	if err := extractTarGz(self, selfDest, nil); err != nil {
+		t.Fatalf("extract: %v", err)
+	}
+	if got, err := os.ReadFile(filepath.Join(selfDest, "a.txt")); err != nil || string(got) != "same" {
+		t.Fatalf("hard link to itself: got %q, %v", got, err)
+	}
 }
