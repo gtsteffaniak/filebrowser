@@ -13,6 +13,14 @@ server:
           download: true
           modify: true
           create: true
+    # Small WebM fixtures for media-teardown playback tests. Kept in a separate
+    # source so they do not change listings asserted by other suites.
+    - path: "../frontend/tests/playwright-files-previews"
+      name: "playwright-media"
+      config:
+        defaultPermissions:
+          view: true
+          download: true
 
 auth:
   methods:

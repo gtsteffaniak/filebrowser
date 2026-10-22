@@ -1028,12 +1028,16 @@ export default {
   ]) {
       if (timeout) clearTimeout(timeout);
     }
-    // Cleanup Plyr
+    // Cleanup Plyr. Always finish listener/media-session cleanup even if a
+    // teardown step throws, so an orphaned element cannot keep playing.
     this.disarmResumeOnNextGesture();
-    this.destroyPlyr();
-    this.clearMediaSession();
-    document.removeEventListener('keydown', this.handleKeydown);
-    window.removeEventListener('pagehide', this.pagehideHandler);
+    try {
+      this.destroyPlyr();
+    } finally {
+      this.clearMediaSession();
+      document.removeEventListener('keydown', this.handleKeydown);
+      window.removeEventListener('pagehide', this.pagehideHandler);
+    }
   },
   methods: {
     /** Plyr captions menu: show format only (e.g. `.srt`, `.ass`), not the video basename. */
@@ -1161,10 +1165,18 @@ export default {
       return Boolean(el && document.pictureInPictureElement === el);
     },
     stopIfRouteLeftThisFile() {
-      if (this.plyrTeardownDone || !this.req?.path) {
+      if (this.plyrTeardownDone) {
         return;
       }
-      const expected = buildItemUrl(this.req.source, this.req.path);
+      // Preview.close() clears state.req before navigating; fall back to the
+      // file this instance mounted for so route changes still stop playback.
+      const source = this.req?.source ?? this.mountedPreviewKey?.source;
+      const path = this.req?.path ?? this.mountedPreviewKey?.path;
+      if (!path) {
+        this.destroyPlyr();
+        return;
+      }
+      const expected = buildItemUrl(source, path);
       const current = state.route.path;
       if (current === expected || current.startsWith(`${expected}#`)) {
         return;
@@ -1222,6 +1234,13 @@ export default {
       const inPip = this.isMediaInPictureInPicture(media);
       const isTransition = state.navigation.isTransitioning;
       const leavingInPip = inPip && this.req?.path;
+
+      // Stop the element before controller/player teardown. Those paths can
+      // throw or await, and a failure there must never leave audio playing on
+      // an element that is about to be detached from the DOM.
+      if (!leavingInPip && media) {
+        this.stopMediaElement(media);
+      }
 
       // keepAlive: leaving in PiP must keep hls.js + the session feeding the
       // adopted element; otherwise invalidate the controller (shared included)
@@ -1664,12 +1683,11 @@ export default {
       }
     },
     async mountPlyrPlayer() {
-      if (!this.mediaElement || this.player || this.mountPlyrInProgress) {
+      if (!this.mediaElement || this.player || this.mountPlyrInProgress || this.plyrTeardownDone) {
         return;
       }
       this.mountPlyrInProgress = true;
       try {
-        this.plyrTeardownDone = false;
         this.bindTranscodePlaybackController();
         this.mountedPreviewKey = resolvePipMediaKey(this.req?.source, this.req?.path);
         this.pipHandoffApplying = false;
@@ -1844,6 +1862,9 @@ export default {
       this.videoLoadingCleanup?.expectPlayback?.();
       await this.$nextTick();
       await this.$nextTick();
+      if (this.plyrTeardownDone || !this.mediaElement) {
+        return;
+      }
       const el = this.mediaElement;
       if (!el) {
         return;
@@ -1869,6 +1890,9 @@ export default {
 
       const startDefault = () => {
         this.clearAttachVideoStreamWait();
+        if (this.plyrTeardownDone) {
+          return;
+        }
         void el.play().catch(() => {});
       };
 

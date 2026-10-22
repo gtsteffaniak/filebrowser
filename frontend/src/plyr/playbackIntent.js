@@ -65,7 +65,7 @@ export function isPlaybackProgressing(video) {
  * Resume playback once media is ready.
  * @returns {Promise<{ played: boolean, blocked: boolean }>}
  */
-export function resumeWhenReady(video, { playCall, onPlaying } = {}) {
+export function resumeWhenReady(video, { playCall, onPlaying, isCancelled } = {}) {
   return new Promise((resolve) => {
     if (!video) {
       transcodeWarn('resumeWhenReady skipped — no video element');
@@ -92,6 +92,13 @@ export function resumeWhenReady(video, { playCall, onPlaying } = {}) {
       resolve(result);
     };
     const tryPlay = () => {
+      // The owning preview may have been closed/unmounted while we waited for
+      // canplay. Never start playback on an element that is being torn down.
+      if (isCancelled?.()) {
+        transcodeLog('resumeWhenReady cancelled before play');
+        finish({ played: false, blocked: false });
+        return;
+      }
       const invoke = playCall ?? (() => video.play());
       transcodeLog('resumeWhenReady tryPlay', {
         readyState: video.readyState,
@@ -126,7 +133,7 @@ export function resumeWhenReady(video, { playCall, onPlaying } = {}) {
  * Await a primed play promise after HLS attach, or fall back to resumeWhenReady.
  * @returns {Promise<{ played: boolean, blocked: boolean }>}
  */
-export async function continuePlay(video, playPromise, { playCall, onPlaying } = {}) {
+export async function continuePlay(video, playPromise, { playCall, onPlaying, isCancelled } = {}) {
   transcodeLog('continuePlay', {
     hasPlayPromise: Boolean(playPromise),
     readyState: video?.readyState,
@@ -135,6 +142,10 @@ export async function continuePlay(video, playPromise, { playCall, onPlaying } =
   if (playPromise) {
     try {
       await playPromise;
+      if (isCancelled?.()) {
+        transcodeLog('continuePlay cancelled after primed promise');
+        return { played: false, blocked: false };
+      }
       // The primed promise may belong to a source that has since been replaced
       // (for example a transcode mode switch), so its resolution is not proof
       // that the current element is actually playing.
@@ -155,5 +166,5 @@ export async function continuePlay(video, playPromise, { playCall, onPlaying } =
       }
     }
   }
-  return resumeWhenReady(video, { playCall, onPlaying });
+  return resumeWhenReady(video, { playCall, onPlaying, isCancelled });
 }

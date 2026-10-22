@@ -156,6 +156,7 @@ export class TranscodePlaybackController {
       void continuePlay(el, playPrime, {
         playCall: onResumePlayback,
         onPlaying: onPlaybackStarted,
+        isCancelled: () => !this.isCurrentAttempt(attempt),
       });
     };
 

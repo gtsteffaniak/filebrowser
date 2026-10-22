@@ -76,6 +76,25 @@ describe('playbackIntent', () => {
     expect(result.played).toBe(true);
   });
 
+  it('resumeWhenReady does not play after the preview was torn down', async () => {
+    const playCall = vi.fn(() => Promise.resolve());
+    const video = videoStub({ readyState: HTMLMediaElement.HAVE_FUTURE_DATA, paused: true });
+    const result = await resumeWhenReady(video, { playCall, isCancelled: () => true });
+    expect(playCall).not.toHaveBeenCalled();
+    expect(result).toEqual({ played: false, blocked: false });
+  });
+
+  it('continuePlay skips onPlaying when cancelled', async () => {
+    const onPlaying = vi.fn();
+    const video = videoStub({ readyState: HTMLMediaElement.HAVE_FUTURE_DATA, paused: false });
+    const result = await continuePlay(video, Promise.resolve(), {
+      onPlaying,
+      isCancelled: () => true,
+    });
+    expect(onPlaying).not.toHaveBeenCalled();
+    expect(result).toEqual({ played: false, blocked: false });
+  });
+
   it('continuePlay reports playing when the primed promise resolves and media progresses', async () => {
     const onPlaying = vi.fn();
     const video = videoStub({ readyState: HTMLMediaElement.HAVE_FUTURE_DATA, paused: false });
