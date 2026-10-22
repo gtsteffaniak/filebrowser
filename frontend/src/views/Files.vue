@@ -350,7 +350,11 @@ export default {
           shareInfo = await shareApi.getShareInfoPublic(hash, signal);
         } catch (e) {
           if (isStale()) return;
-          throw e;
+          this.error = e;
+          this.loadingProgress = 0;
+          mutations.replaceRequest({});
+          mutations.setLoading("share", false);
+          return;
         }
         if (isStale()) return;
 
@@ -435,6 +439,7 @@ export default {
       }
       let cacheKey = null;
       let cachedPending = null;
+      let showingCached = false;
 
       try {
         if (isShare) {
@@ -574,6 +579,7 @@ export default {
             cachedPending = state.pendingHighlight;
             document.title = `${globalVars.name} - ${this.$t("general.files")} - ${cached.res.name}`;
             mutations.replaceRequest(cached.res);
+            showingCached = true;
             this.lastPath = state.route.path;
             mutations.setLoading("files", false);
             if (state.navigation.isTransitioning) {
@@ -596,6 +602,7 @@ export default {
               state.pendingHighlight = cachedPending;
             }
             mutations.replaceRequest(res);
+            showingCached = false;
             if (res.type === "directory") {
               this.lastPath = state.route.path;
             }
@@ -614,6 +621,10 @@ export default {
 
       } catch (e) {
         if (isStale()) return;
+        if (showingCached && ![401, 403, 404].includes(e?.status)) {
+          this.loadingProgress = 0;
+          return;
+        }
         if (cacheKey) {
           deleteCachedListing(cacheKey);
         }

@@ -400,7 +400,17 @@ export default {
         let currentItemMoved = false;
 
         if (shouldNavigate) {
-          currentItemMoved = this.localItems.some(item =>
+          const movedItems = hasFailures
+            ? this.localItems.filter(item =>
+                (result.succeeded || []).some(done =>
+                  done.fromSource === item.fromSource && url.pathsMatch(done.fromPath, item.from)
+                )
+              )
+            : this.localItems;
+          for (const item of movedItems) {
+            removeFromFolderLists({ source: item.fromSource, path: item.from });
+          }
+          currentItemMoved = movedItems.some(item =>
             item.from === state.req?.path && item.fromSource === state.req?.source
           );
         }
@@ -414,7 +424,6 @@ export default {
             notify.showSuccessToast(this.$t("prompts.moveSuccess"));
             notifyMoveCopyComplete("move", this.localItems.length);
           }
-          removeFromFolderLists({ source: state.req.source, path: state.req.path });
           // Navigate next, previous or parent dir (like when deleting)
           const next = state.navigation.nextItem;
           const prev = state.navigation.previousItem;
@@ -426,11 +435,6 @@ export default {
             url.goToItem(getters.isShare() ? getters.shareHash() : state.req.source, url.removeLastDir(state.req.path), {}, false, getters.isShare());
           }
         } else {
-          if (getters.isPreviewView() && this.operation === 'move' && !hasFailures) {
-            for (const item of this.localItems) {
-              removeFromFolderLists({ source: item.fromSource, path: item.from });
-            }
-          }
           // Only close prompts and reload on success (or partial success)
           mutations.setReload(true);
           mutations.closeTopPrompt(); // close conflict prompt
