@@ -1,19 +1,19 @@
+/* Button chrome is themeable: every value below is a --button-* hook.
+   --hover-transform / --hover-shadow (consumed in styles.css) cover :hover. */
 .button {
   display:flex;
   align-items: center;
   justify-content: center;
   outline: 0;
-  padding: .5em;
+  padding: var(--button-padding-y, .5em) var(--button-padding-x, 1em);
   border-radius: var(--borderRadius);
   cursor: pointer;
-  background: var(--primaryColor);
-  color: white;
-  box-shadow: 0 0 5px rgb(0 0 0 / 5%);
-  transition: transform 0.1s ease, opacity 0.1s ease, background-color 0.1s ease;
-  min-width: 2em;
-  min-height: 2em;
-  padding-left: 1em;
-  padding-right: 1em;
+  background: var(--button-background, var(--primaryColor));
+  color: var(--button-color, white);
+  box-shadow: var(--button-shadow, 0 0 5px rgb(0 0 0 / 5%));
+  transition: transform 0.1s ease, opacity 0.1s ease, background-color 0.1s ease, box-shadow 0.2s ease;
+  min-width: var(--button-min-width, 2em);
+  min-height: var(--button-min-height, 2em);
 }
 
 button {
@@ -21,8 +21,8 @@ button {
   border: none;
   background-color: var(--surfaceSecondary);
   transition: background-color 0.3s;
-  min-width: 2em;
-  min-height: 2em;
+  min-width: var(--button-min-width, 2em);
+  min-height: var(--button-min-height, 2em);
   display: flex;
   justify-content: center;
   align-items: center;
