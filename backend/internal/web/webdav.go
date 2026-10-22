@@ -739,6 +739,10 @@ func webDAVHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, err
 		defer releaseMutation()
 	}
 
+	if contextErr := r.Context().Err(); contextErr != nil {
+		return http.StatusRequestTimeout, contextErr
+	}
+
 	// Get the user's scope to determine the WebDAV root directory
 	// Resolve the scope path to get the real filesystem root for WebDAV
 	// This is the root directory that WebDAV will use to resolve relative paths.

@@ -1,7 +1,9 @@
 package web
 
 import (
+	"context"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing"
 	"net/http/httptest"
 	"os"
 	"path/filepath"
@@ -71,5 +73,31 @@ func TestWebDAVLockingAcrossScopesAndAPI(t *testing.T) {
 	data, _ = os.ReadFile(target)
 	if string(data) != "authorized" {
 		t.Fatal("precondition changed file")
+	}
+}
+
+func TestWebDAVCancelledRequestPreservesFile(t *testing.T) {
+	root, _ := setupWebDAVTestEnv(t)
+	user := &users.User{ID: 1, FrontendUser: users.FrontendUser{Username: "cancel-test"}, BackendScopes: []users.BackendScope{{Path: root, Scope: "/"}}, BackendSourcePermissions: webDAVPermsForPaths(true, true, true, true, root), Version: users.SourcePermissionsMigrationVersion}
+	target := filepath.Join(root, "public", "readme.txt")
+	release := indexing.LockDAVMutations(indexing.GetIndex("source1"))
+	ctx, cancel := context.WithCancel(context.Background())
+	req := httptest.NewRequest("PUT", "/dav/source1/public/readme.txt", strings.NewReader("cancelled-write")).WithContext(ctx)
+	req.SetPathValue("source", "source1")
+	req.SetPathValue("path", "/public/readme.txt")
+	done := make(chan int, 1)
+	go func() {
+		w := httptest.NewRecorder()
+		status, _ := webDAVHandler(w, req, &Context{User: user})
+		done <- status
+	}()
+	cancel()
+	release()
+	if status := <-done; status != 408 {
+		t.Fatalf("cancelled write status %d", status)
+	}
+	data, err := os.ReadFile(target)
+	if err != nil || string(data) != "public content" {
+		t.Fatalf("cancelled write changed file: %v", err)
 	}
 }
