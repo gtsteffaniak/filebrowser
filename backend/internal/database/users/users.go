@@ -104,6 +104,8 @@ type AuthToken struct {
 	BelongsTo   uint64      `json:"belongsTo,omitempty"` // legacy stored metadata only, never trusted for auth; identity is always the hashed_tokens lookup
 	IssuedAt    int64       `json:"issuedAt,omitempty"`
 	ExpiresAt   int64       `json:"expiresAt,omitempty"`
+	// Minimal distinguishes owner-inheriting tokens from customized caps. Nil means legacy (infer from stored permissions).
+	Minimal     *bool       `json:"minimal,omitempty"`
 	Permissions Permissions `json:"Permissions,omitempty"`
 }
 

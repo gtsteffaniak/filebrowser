@@ -587,7 +587,7 @@ func applyNamedApiTokenGlobalCaps(user *users.User, tokenName string) {
 	if !ok {
 		return
 	}
-	if !users.HasAnyGlobalPermission(stored.Permissions) {
+	if users.IsMinimalApiToken(stored) {
 		return
 	}
 	user.Permissions = users.IntersectGlobalPermissions(user.Permissions, stored.Permissions)
