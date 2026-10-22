@@ -76,7 +76,7 @@ import ListingItem from "@/components/files/ListingItem.vue";
 import { eventBus } from "@/store/eventBus";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import url from "@/utils/url";
-import { listingCacheKey, getCachedListing } from "@/utils/cache/listingCache.ts";
+import { removeFromFolderLists } from "@/utils/cache/listingCache.ts";
 
 export default {
   name: "delete",
@@ -184,20 +184,6 @@ export default {
     closeTopPrompt() {
       mutations.closeTopPrompt();
     },
-    removeFromFolderLists(item) {
-      const drop = (list) => {
-        if (!Array.isArray(list)) return list;
-        const index = list.findIndex((i) => url.pathsMatch(i.path, item.path));
-        if (index !== -1) list.splice(index, 1);
-        return list;
-      };
-      state.req.parentDirItems = drop(state.req.parentDirItems);
-      state.navigation.listing = drop(state.navigation.listing);
-      const cached = getCachedListing(listingCacheKey(item.source, url.getParentDir(item.path)));
-      if (cached?.res.items) {
-        cached.res.items = drop(cached.res.items);
-      }
-    },
     getItemName(path) {
       const parts = path.split("/").filter(p => p);
       return parts[parts.length - 1] || path;
@@ -299,26 +285,31 @@ export default {
           if (!this.items) {
             mutations.resetSelected();
           }
-
+          if (getters.isPreviewView()) {
+            for (const deleted of this.itemsToDelete) {
+              removeFromFolderLists(deleted);
+            }
+          }
           // If we delete a item while in a preview
           if (getters.isPreviewView() && this.itemsToDelete.length === 1) {
             const deletedItem = this.itemsToDelete[0];
             const currentItem = state.req;
             // Only navigate if we delete the current item, not by deleting a different one (from fileTree)
             if (currentItem && deletedItem.source === currentItem.source && deletedItem.path === currentItem.path) {
-              this.removeFromFolderLists(deletedItem);
+              removeFromFolderLists(deletedItem);
               mutations.setNavigationTransitioning(true);
               // Try next, then previous, then parent directory
               if (state.navigation.nextItem) {
-                url.goToItem(state.navigation.nextItem.source, state.navigation.nextItem.path, undefined, false, getters.isShare());
+                url.goToItem(getters.isShare() ? getters.shareHash() : state.navigation.nextItem.source, state.navigation.nextItem.path, undefined, false, getters.isShare());
               } else if (state.navigation.previousItem) {
-                url.goToItem(state.navigation.previousItem.source, state.navigation.previousItem.path, undefined, false, getters.isShare());
+                url.goToItem(getters.isShare() ? getters.shareHash() : state.navigation.previousItem.source, state.navigation.previousItem.path, undefined, false, getters.isShare());
               } else {
                 // Navigate to parent directory of deleted item
                 const parentPath = url.removeLastDir(deletedItem.path);
-                url.goToItem(deletedItem.source, parentPath, {}, false, getters.isShare());
+                url.goToItem(getters.isShare() ? getters.shareHash() : deletedItem.source, parentPath, {}, false, getters.isShare());
               }
             } else {
+              removeFromFolderLists(deletedItem);
               mutations.setReload(true);
             }
           } else {
@@ -327,7 +318,7 @@ export default {
               const deletedItem = this.itemsToDelete[0];
               if (deletedItem.type === 'directory' && deletedItem.path === state.req.path) {
                 const parentPath = url.removeLastDir(deletedItem.path);
-                url.goToItem(deletedItem.source, parentPath, {}, false, getters.isShare());
+                url.goToItem(getters.isShare() ? getters.shareHash() : deletedItem.source, parentPath, {}, false, getters.isShare());
                 this.deleting = false;
                 return; // return early to avoid extra reload (and 404)
               }

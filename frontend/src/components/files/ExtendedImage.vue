@@ -219,6 +219,7 @@ export default {
   },
   beforeUnmount() {
     this.dropThumbnailBlob();
+    mutations.setLoading("preview-img", false);
     // Clear any pending timeout
     if (this.loadTimeout) {
       clearTimeout(this.loadTimeout);

@@ -20,7 +20,7 @@
         {{ $t('general.path', { suffix: ':' }) }} {{ sourcePath.path }}
       </div>
       <slot name="sticky" />
-      <ListingHeader v-if="sortable && !loading" :use-picker-sorting="!fileList" :use-navigation-sorting="!!fileList" />
+      <ListingHeader v-if="sortable && !loading" :use-picker-sorting="!fileList" :use-navigation-sorting="!!fileList" :has-duration="hasDuration" />
     </div>
 
     <!-- Loading Spinner -->
@@ -51,7 +51,7 @@
         :path="item.path"
         :hasPreview="item.originalItem?.hasPreview && item.type !== 'directory' || false"
         :metadata="item.originalItem?.metadata"
-        :hasDuration="item.originalItem?.hasDuration || false"
+        :hasDuration="hasDuration"
         :updateGlobalState="false"
         :isSelectedProp="selected === item.path"
         :clickable="false"
@@ -185,6 +185,11 @@ export default {
     },
     isMobile() {
       return getters.isMobile();
+    },
+    hasDuration() {
+      return this.visibleItems.some(
+        (item) => item.type !== "directory" && (item.metadata ?? item.originalItem?.metadata)?.duration,
+      );
     },
     visibleItems() {
       const query = this.filterQuery.trim().toLowerCase();

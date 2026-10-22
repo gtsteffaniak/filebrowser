@@ -1,5 +1,6 @@
 import { state } from "@/store/index.ts";
 import type { ReqObject } from "@/store/types.ts";
+import { getParentDir, pathsMatch } from "@/utils/url.js";
 
 interface ListingCacheEntry {
   res: ReqObject;
@@ -89,4 +90,19 @@ export function cacheListing(key: string, res: ReqObject): void {
 export function clearListingCache(): void {
   cache.clear();
   totalItems = 0;
+}
+
+/** Drops a removed or moved item from the lists that are reused without refetching */
+export function removeFromFolderLists(item: { source?: string; path: string }): void {
+  const drop = <T extends { path?: string }>(list: T[] | undefined): T[] | undefined => {
+    if (!Array.isArray(list)) return list;
+    const index = list.findIndex((i) => pathsMatch(i.path as string, item.path));
+    if (index !== -1) list.splice(index, 1);
+    return list;
+  };
+  if (state.req) {
+    state.req.parentDirItems = drop(state.req.parentDirItems);
+  }
+  state.navigation.listing = drop(state.navigation.listing as { path?: string }[] | undefined);
+  deleteCachedListing(listingCacheKey(item.source as string, getParentDir(item.path)));
 }

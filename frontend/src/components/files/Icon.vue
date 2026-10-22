@@ -120,6 +120,7 @@ const previewExtDisabled = computed(() => {
     return false;
   }
   const dot = props.filename.lastIndexOf(".");
+  if (dot <= 0) return false;
   const ext = `.${(dot === -1 ? props.filename : props.filename.slice(dot + 1)).toLowerCase()}`;
   return disabled.includes(ext);
 });
@@ -468,7 +469,12 @@ watch(
   { immediate: true }, // Run on component mount
 );
 
-onBeforeUnmount(cancelActivePreviews);
+onBeforeUnmount(() => {
+  cancelActivePreviews();
+  if (props.path && state.popupPreviewSourceInfo?.path === props.path) {
+    mutations.setPopupPreview(null);
+  }
+});
 </script>
 
 <style>

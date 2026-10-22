@@ -784,6 +784,7 @@ export const mutations = {
   },
   resetSelected: () => {
     state.selected = [];
+    state.lastSelectedIndex = null;
     mutations.setMultiple(false);
     emitStateChanged();
   },
@@ -916,6 +917,7 @@ export const mutations = {
   },
   replaceRequest: (value: ReqObject) => {
     state.selected = [];
+    state.lastSelectedIndex = null;
     mutations.setMultiple(false);
     // skip deep reactivity for parent dirs
     if (Array.isArray(value?.parentDirItems)) {
@@ -962,7 +964,19 @@ export const mutations = {
         return { ...item, metadata: resolveMetadata(item, metadataMap.get(item.name)) };
       });
       if (!changed) return;
-      state.req.items = markRaw(nextItems);
+      let sortedNext = nextItems;
+      const { by, asc } = getters.sorting();
+      if (by === "duration") {
+        // sort once duration loads
+        sortedNext = [
+          ...sortedItems(nextItems.filter((i) => i.type === "directory"), by, asc),
+          ...sortedItems(nextItems.filter((i) => i.type !== "directory"), by, asc),
+        ];
+        sortedNext.forEach((item: FileListItem & { index?: number }, index: number) => {
+          item.index = index;
+        });
+      }
+      state.req.items = markRaw(sortedNext);
       emitStateChanged();
       return;
     }

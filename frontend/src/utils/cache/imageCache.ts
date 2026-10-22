@@ -28,6 +28,15 @@ const urlIndex = new Map<string, string>();
 const thumbnailBlobs = new Map<string, ThumbnailBlob>(); // least recently used first
 let thumbnailBytes = 0;
 let cacheVersion = 0;
+let cacheUser: string | null = null;
+
+function checkUser(): void {
+  const user = state.user?.username || "";
+  if (user !== cacheUser) {
+    cacheUser = user;
+    clearImageCache();
+  }
+}
 
 function evictThumbnailBlobs(): void {
   for (const [key, entry] of thumbnailBlobs) {
@@ -48,6 +57,7 @@ function evictThumbnailBlobs(): void {
  * @param modified the file modified date
  */
 export function getThumbnailBlobKey(url: string, modified?: Modified): string {
+  checkUser();
   return `${cacheVersion}|${state.user?.username || ""}|${modified || ""}|${url}`;
 }
 
@@ -175,6 +185,7 @@ function findBySize<T>(
 
 /** @returns the cached URL, or null if not cached */
 export function getBestCachedImage(source: Source, path: string | null | undefined, modified: Modified): string | null {
+  checkUser();
   return findBySize(source, path, modified, ["xlarge", "large", "small"], (url) => url);
 }
 

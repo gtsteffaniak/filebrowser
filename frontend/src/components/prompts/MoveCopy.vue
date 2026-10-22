@@ -97,6 +97,7 @@ import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import PathPickerButton from "@/components/files/PathPickerButton.vue";
 import ListingFilter from "@/components/files/ListingFilter.vue";
 import { eventBus } from '@/store/eventBus';
+import { removeFromFolderLists } from "@/utils/cache/listingCache.ts";
 
 export default {
   name: "move-copy",
@@ -178,6 +179,7 @@ export default {
         from: item.path,
         fromSource: item.source,
         name: item.name,
+        isDir: item.type === 'directory',
       }));
     } else if (state.isSearchActive) {
       // Add null checks to prevent undefined values
@@ -187,6 +189,7 @@ export default {
             from: state.selected[0].path,
             fromSource: state.selected[0].source,
             name: state.selected[0].name,
+            isDir: state.selected[0].type === 'directory',
           },
         ];
       }
@@ -199,6 +202,7 @@ export default {
               from: reqItem.path,
               fromSource: state.req.source,
               name: reqItem.name,
+              isDir: reqItem.type === 'directory',
             });
           }
         }
@@ -252,13 +256,13 @@ export default {
         const currentSource = this.$refs.fileList.source;
         const fullPath = currentPath.endsWith('/') ? `${currentPath + this.newDirName}/` : `${currentPath}/${this.newDirName}/`;
         if (getters.isShare()) {
-          await resourcesApi.postPublic(state.shareInfo?.hash, fullPath, "", false, undefined, {}, true);
+          await resourcesApi.postPublic(getters.shareHash(), fullPath, "", false, undefined, {}, true);
         } else {
           await resourcesApi.post(currentSource, fullPath, "", false, undefined, {}, true);
         }
         // Refresh the file list while keeping the current navigation that we did in the prompt
         if (getters.isShare()) {
-          await resourcesApi.fetchFilesPublic(currentPath, state.shareInfo.hash)
+          await resourcesApi.fetchFilesPublic(currentPath, getters.shareHash())
             .then((req) => this.$refs.fileList.fillOptions(req, true));
         } else {
           await resourcesApi.fetchFiles(currentSource, currentPath)
@@ -313,7 +317,7 @@ export default {
           buttons.loading(this.operation);
           let result;
           if (getters.isShare()) {
-            result = await resourcesApi.moveCopyPublic(state.shareInfo.hash, itemsToProcess, this.operation, overwrite, rename);
+            result = await resourcesApi.moveCopyPublic(getters.shareHash(), itemsToProcess, this.operation, overwrite, rename);
           } else {
             result = await resourcesApi.moveCopy(itemsToProcess, this.operation, overwrite, rename);
           }
@@ -322,7 +326,7 @@ export default {
         let conflict = false;
         let dstResp = null;
         if (getters.isShare()) {
-          dstResp = await resourcesApi.fetchFilesPublic(this.destPath, state.shareInfo?.hash);
+          dstResp = await resourcesApi.fetchFilesPublic(this.destPath, getters.shareHash());
         } else {
           dstResp = await resourcesApi.fetchFiles(this.destSource, this.destPath);
         }
@@ -410,19 +414,23 @@ export default {
             notify.showSuccessToast(this.$t("prompts.moveSuccess"));
             notifyMoveCopyComplete("move", this.localItems.length);
           }
-
+          removeFromFolderLists({ source: state.req.source, path: state.req.path });
           // Navigate next, previous or parent dir (like when deleting)
           const next = state.navigation.nextItem;
           const prev = state.navigation.previousItem;
           if (next) {
-            url.goToItem(next.source, next.path, undefined, false, getters.isShare());
+            url.goToItem(getters.isShare() ? getters.shareHash() : next.source, next.path, undefined, false, getters.isShare());
           } else if (prev) {
-            url.goToItem(prev.source, prev.path, undefined, false, getters.isShare());
+            url.goToItem(getters.isShare() ? getters.shareHash() : prev.source, prev.path, undefined, false, getters.isShare());
           } else {
-            url.goToItem(state.req.source, url.removeLastDir(state.req.path), {}, false, getters.isShare());
+            url.goToItem(getters.isShare() ? getters.shareHash() : state.req.source, url.removeLastDir(state.req.path), {}, false, getters.isShare());
           }
         } else {
-
+          if (getters.isPreviewView() && this.operation === 'move' && !hasFailures) {
+            for (const item of this.localItems) {
+              removeFromFolderLists({ source: item.fromSource, path: item.from });
+            }
+          }
           // Only close prompts and reload on success (or partial success)
           mutations.setReload(true);
           mutations.closeTopPrompt(); // close conflict prompt
@@ -441,7 +449,7 @@ export default {
                 ? [
                     goToItemNotificationButton(
                       this.$t("buttons.goToItem"),
-                      destSource || state.shareInfo?.hash,
+                      destSource || getters.shareHash(),
                       destPath,
                       getters.isShare()
                     ),

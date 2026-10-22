@@ -105,7 +105,7 @@
         >
           <item
             v-for="(item, idx) in dirs"
-            :key="item.name"
+            :key="item.path || item.name"
             :class="{ 'zebra-row': (numPinned + idx) % 2 === 1 }"
             v-bind:index="item.index"
             v-bind:name="item.name"
@@ -139,7 +139,7 @@
         >
           <item
             v-for="(item, idx) in files"
-            :key="item.name"
+            :key="item.path || item.name"
             :class="{ 'zebra-row': (numPinned + numDirs + idx) % 2 === 1 }"
             v-bind:index="item.index"
             v-bind:name="item.name"
@@ -287,8 +287,6 @@ export default {
 
       if (topItem?.closest('.pinned-items')) {
         category = "pinned";
-        const firstPinned = this.pinnedItems[0];
-        letter = firstPinned?.name?.[0]?.toUpperCase();
       }
       else if (this.numFiles > 0) {
         const fileSection = this.$el.querySelector(".file-items");
@@ -957,6 +955,7 @@ export default {
             from: item.path,
             fromSource: state.req.source,
             name: item.name,
+            isDir: item.type === 'directory',
           };
         })
         .filter(Boolean);
@@ -1112,6 +1111,7 @@ export default {
         to: destPath + item.name,
         toSource: state.req.source,
         name: item.name,
+        isDir: item.isDir,
       }));
 
       // Show confirmation prompt first

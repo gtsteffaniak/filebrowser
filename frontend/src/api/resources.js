@@ -293,7 +293,9 @@ export async function put(source, path, content = '') {
     throw new Error('no source provided')
   }
   // resourceAction already handles error notification, just propagate
-  return await resourceAction(source, path, 'PUT', content)
+  const result = await resourceAction(source, path, 'PUT', content)
+  markDirMetadataItemChanged({ source }, path)
+  return result
 }
 
 export async function download(format, files, shareHash = "") {
@@ -1015,7 +1017,7 @@ export async function moveCopy(
         if (rename) {
           invalidateDirMetadataCache({ source: item.toSource, path: getParentDir(item.to) })
         } else {
-          markDirMetadataItemChanged({ source: item.toSource }, item.to)
+          markDirMetadataItemChanged({ source: item.toSource }, item.isDir ? `${item.to}/` : item.to)
         }
       }
       return data
@@ -1485,7 +1487,9 @@ async function resourceActionPublic(hash, path, method, content, token = "") {
 }
 
 export async function putPublic(hash, path, content = '') {
-  return await resourceActionPublic(hash, path, 'PUT', content)
+  const result = await resourceActionPublic(hash, path, 'PUT', content)
+  markDirMetadataItemChanged({ isShare: true, hash }, path)
+  return result
 }
 
 export async function bulkDeletePublic(items) {
@@ -1594,7 +1598,7 @@ export async function moveCopyPublic(
         if (rename) {
           invalidateDirMetadataCache({ isShare: true, hash, path: getParentDir(item.to) })
         } else {
-          markDirMetadataItemChanged({ isShare: true, hash }, item.to)
+          markDirMetadataItemChanged({ isShare: true, hash }, item.isDir ? `${item.to}/` : item.to)
         }
       }
       return data

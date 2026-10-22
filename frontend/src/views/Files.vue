@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div v-if="loadingProgress < 100" class="progress-line" :style="{ width: `${loadingProgress}%`, ...moveWithSidebar }"></div>
+    <div v-if="loadingProgress > 0 && loadingProgress < 100" class="progress-line" :style="{ width: `${loadingProgress}%`, ...moveWithSidebar }"></div>
     <errors v-if="error" :errorCode="error.status" />
     <component v-else-if="currentViewLoaded" :is="currentView" :fbdata="req"></component>
     <div v-else>
@@ -574,6 +574,7 @@ export default {
             cachedPending = state.pendingHighlight;
             document.title = `${globalVars.name} - ${this.$t("general.files")} - ${cached.res.name}`;
             mutations.replaceRequest(cached.res);
+            this.lastPath = state.route.path;
             mutations.setLoading("files", false);
             if (state.navigation.isTransitioning) {
               mutations.setNavigationTransitioning(false);
@@ -591,10 +592,13 @@ export default {
             cacheListing(cacheKey, cached.res);
             await this.patchMediaMetadataIfNeeded(state.req, fetchSource);
           } else {
-            if (cachedPending && !state.pendingHighlight) {
+            if (cachedPending && !state.pendingHighlight && state.selected.length === 0) {
               state.pendingHighlight = cachedPending;
             }
             mutations.replaceRequest(res);
+            if (res.type === "directory") {
+              this.lastPath = state.route.path;
+            }
             if (res.type !== "directory") {
               state.pendingHighlight = { path: res.path, source: res.source };
             }

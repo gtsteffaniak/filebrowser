@@ -434,25 +434,17 @@ export default {
     },
   },
   async mounted() {
-    if (!this.hasPreview && getKindKey(this.type) !== "3d-model") return;
-
-    await this.$nextTick();
-    if (this.isUnmounted) return;
-    if (this.$el && this.$el instanceof Element) {
-      this.observedEl = this.$el;
-      viewportCallbacks.set(this.$el, (visible) => {
-        this.viewportRef.value = visible;
-        if (visible) {
-          this.isThumbnailInView = true;
-        }
-      });
-      this.observer = getViewportObserver(findScrollRoot(this.$el));
-      this.observer.observe(this.$el);
-    }
+    await this.observeViewport();
+  },
+  watch: {
+    hasPreview(value) {
+      if (value && !this.observedEl) {
+        void this.observeViewport();
+      }
+    },
   },
   beforeUnmount() {
     this.isUnmounted = true;
-    // Stop observing the item (the observer is shared)
     if (this.observedEl) {
       this.observer?.unobserve(this.observedEl);
       this.observer = null;
@@ -461,6 +453,22 @@ export default {
     }
   },
   methods: {
+    async observeViewport() {
+      if (!this.hasPreview && getKindKey(this.type) !== "3d-model") return;
+      await this.$nextTick();
+      if (this.isUnmounted || this.observedEl) return;
+      if (this.$el && this.$el instanceof Element) {
+        this.observedEl = this.$el;
+        viewportCallbacks.set(this.$el, (visible) => {
+          this.viewportRef.value = visible;
+          if (visible) {
+            this.isThumbnailInView = true;
+          }
+        });
+        this.observer = getViewportObserver(findScrollRoot(this.$el));
+        this.observer.observe(this.$el);
+      }
+    },
     setModifiedTitle(event) {
       event.currentTarget.title = this.modifiedTitle;
     },
@@ -631,6 +639,7 @@ export default {
           to: url.joinPath(this.path, item.name),
           toSource: this.source,
           name: item.name,
+          isDir: item.type === 'directory',
         });
       }
 
