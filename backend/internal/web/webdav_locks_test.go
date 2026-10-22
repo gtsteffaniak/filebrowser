@@ -19,8 +19,8 @@ func TestScopedLocksOverlappingScopes(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err := narrow.Create(now, webdav.LockDetails{Root: "/file", Duration: time.Hour}); err != webdav.ErrLocked {
-		t.Fatalf("overlap: %v", err)
+	if _, narrowErr := narrow.Create(now, webdav.LockDetails{Root: "/file", Duration: time.Hour}); narrowErr != webdav.ErrLocked {
+		t.Fatalf("overlap: %v", narrowErr)
 	}
 	release, err := narrow.Confirm(now, "/file", "", webdav.Condition{Token: token})
 	if err != nil {
@@ -114,7 +114,7 @@ func TestScopedLocksRejectParentRefresh(t *testing.T) {
 
 func TestScopedLockPathMapping(t *testing.T) {
 	root := scopeTestRoot(t)
-	s := newScopedLockSystem(webdav.NewMemLS(), root+"/team").(*scopedLockSystem)
+	s := newScopedLockSystem(webdav.NewMemLS(), root+"/team")
 	for _, name := range []string{"/../../file", "../../file", "/file"} {
 		if got, err := s.physical(name); err != nil || got != filepath.ToSlash(root+"/team/file") {
 			t.Fatalf("%q => %q", name, got)
@@ -148,9 +148,9 @@ func TestScopedLocksUnsupportedConditions(t *testing.T) {
 		t.Fatal(err)
 	}
 	for _, condition := range []webdav.Condition{{Token: token, Not: true}, {Token: token, ETag: "etag"}, {ETag: "etag"}} {
-		release, err := ls.Confirm(now, "/file", "", condition)
-		if release != nil || err != webdav.ErrConfirmationFailed {
-			t.Fatalf("unsupported condition accepted: %+v %v", condition, err)
+		release, confirmErr := ls.Confirm(now, "/file", "", condition)
+		if release != nil || confirmErr != webdav.ErrConfirmationFailed {
+			t.Fatalf("unsupported condition accepted: %+v %v", condition, confirmErr)
 		}
 	}
 	release, err := ls.Confirm(now, "/file", "", webdav.Condition{Token: token})
@@ -202,13 +202,13 @@ func TestScopedLocksRecursiveMutation(t *testing.T) {
 			now := time.Now()
 			root := scopeTestRoot(t)
 			base := webdav.NewMemLS()
-			ls := newScopedLockSystem(base, root, root).(*scopedLockSystem)
+			ls := newScopedLockSystem(base, root, root)
 			parent, err := ls.Create(now, webdav.LockDetails{Root: "/team", Duration: time.Hour, ZeroDepth: true})
 			if err != nil {
 				t.Fatal(err)
 			}
-			if _, err := ls.Create(now, webdav.LockDetails{Root: "/team/file", Duration: time.Hour, ZeroDepth: true}); err != nil {
-				t.Fatal(err)
+			if _, createErr := ls.Create(now, webdav.LockDetails{Root: "/team/file", Duration: time.Hour, ZeroDepth: true}); createErr != nil {
+				t.Fatal(createErr)
 			}
 			ls.recursiveMutation = recursive
 			release, err := ls.Confirm(now, "/team", "", webdav.Condition{Token: parent})
@@ -227,7 +227,7 @@ func TestScopedLocksRecursiveMutation(t *testing.T) {
 	now := time.Now()
 	root := scopeTestRoot(t)
 	base := webdav.NewMemLS()
-	ls := newScopedLockSystem(base, root, root).(*scopedLockSystem)
+	ls := newScopedLockSystem(base, root, root)
 	if _, err := ls.Create(now, webdav.LockDetails{Root: "/team/file", Duration: time.Hour, ZeroDepth: true}); err != nil {
 		t.Fatal(err)
 	}
@@ -241,7 +241,7 @@ func TestScopedLocksHeldExpiredDescendant(t *testing.T) {
 	now := time.Now()
 	root := scopeTestRoot(t)
 	base := webdav.NewMemLS()
-	ls := newScopedLockSystem(base, root, root).(*scopedLockSystem)
+	ls := newScopedLockSystem(base, root, root)
 	parent, err := ls.Create(now, webdav.LockDetails{Root: "/team", Duration: time.Hour, ZeroDepth: true})
 	if err != nil {
 		t.Fatal(err)
@@ -271,7 +271,7 @@ func TestScopedLocksHeldExpiredDescendant(t *testing.T) {
 func TestScopedLocksBindTaggedIfToRequest(t *testing.T) {
 	now := time.Now()
 	root := scopeTestRoot(t)
-	ls := newScopedLockSystem(webdav.NewMemLS(), root, root).(*scopedLockSystem)
+	ls := newScopedLockSystem(webdav.NewMemLS(), root, root)
 	token, err := ls.Create(now, webdav.LockDetails{Root: "/other", Duration: time.Hour})
 	if err != nil {
 		t.Fatal(err)
@@ -289,9 +289,9 @@ func TestScopedLocksBindTaggedIfToRequest(t *testing.T) {
 			ls.requestDestination = "/destination"
 			second = "/destination"
 		}
-		release, err := ls.Confirm(now, "/other", second, webdav.Condition{Token: token})
-		if err != webdav.ErrConfirmationFailed || release != nil {
-			t.Fatalf("%s accepted unrelated tagged source: %v", method, err)
+		release, confirmErr := ls.Confirm(now, "/other", second, webdav.Condition{Token: token})
+		if confirmErr != webdav.ErrConfirmationFailed || release != nil {
+			t.Fatalf("%s accepted unrelated tagged source: %v", method, confirmErr)
 		}
 	}
 	ls.requestMethod = "PUT"
@@ -312,7 +312,7 @@ func TestScopedLocksBindTaggedIfToRequest(t *testing.T) {
 func TestScopedLocksBindTokenOperationsToRequest(t *testing.T) {
 	now := time.Now()
 	root := scopeTestRoot(t)
-	ls := newScopedLockSystem(webdav.NewMemLS(), root, root).(*scopedLockSystem)
+	ls := newScopedLockSystem(webdav.NewMemLS(), root, root)
 	token, err := ls.Create(now, webdav.LockDetails{Root: "/actual", Duration: time.Hour})
 	if err != nil {
 		t.Fatal(err)

@@ -770,7 +770,7 @@ func webDAVHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, err
 
 	conditionalFS := &conditionalDAVFS{FileSystem: filteredFS, request: r, name: strings.TrimPrefix(r.URL.Path, prefix)}
 	w = &conditionalDAVWriter{ResponseWriter: w, fs: conditionalFS}
-	locks := newScopedLockSystem(idx.WebdavLock, scopePath, idx.Path).(*scopedLockSystem)
+	locks := newScopedLockSystem(idx.WebdavLock, scopePath, idx.Path)
 	locks.enforceRequest = true
 	locks.requestMethod = r.Method
 	locks.requestSource = strings.TrimPrefix(r.URL.Path, prefix)

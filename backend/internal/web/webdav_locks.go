@@ -46,10 +46,16 @@ type scopedLockSystem struct {
 	requestDestination string
 }
 
-func newScopedLockSystem(base webdav.LockSystem, scopePath string, indexRoot ...string) webdav.LockSystem {
+func newScopedLockSystem(base webdav.LockSystem, scopePath string, indexRoot ...string) *scopedLockSystem {
 	candidate := &scopeLockStore{base: base, roots: make(map[string]scopedLockRecord)}
 	actual, _ := scopeLockStores.LoadOrStore(base, candidate)
-	s := &scopedLockSystem{store: actual.(*scopeLockStore)}
+	store, ok := actual.(*scopeLockStore)
+	s := &scopedLockSystem{store: store}
+	if !ok || store == nil {
+		s.initErr = webdav.ErrLocked
+		s.store = candidate
+		return s
+	}
 	root := scopePath
 	if len(indexRoot) != 0 {
 		root = indexRoot[0]

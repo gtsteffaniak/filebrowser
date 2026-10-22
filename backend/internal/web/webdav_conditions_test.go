@@ -15,7 +15,7 @@ import (
 func guardedDAV(dir string, locks webdav.LockSystem) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fs := &conditionalDAVFS{FileSystem: webdav.Dir(dir), request: r, name: r.URL.Path}
-		lockView := newScopedLockSystem(locks, filepath.ToSlash(dir)).(*scopedLockSystem)
+		lockView := newScopedLockSystem(locks, filepath.ToSlash(dir))
 		lockView.recursiveMutation = r.Method == "DELETE" || r.Method == "MOVE" || r.Method == "COPY"
 		h := &webdav.Handler{FileSystem: fs, LockSystem: lockView}
 		h.ServeHTTP(&conditionalDAVWriter{ResponseWriter: w, fs: fs}, r)
@@ -93,7 +93,9 @@ func TestDAVRealHTTPLockLifecycle(t *testing.T) {
 }
 func TestDAVConcurrentIfMatchHasOneWinner(t *testing.T) {
 	dir := t.TempDir()
-	os.WriteFile(filepath.Join(dir, "file"), []byte("original"), 0600)
+	if err := os.WriteFile(filepath.Join(dir, "file"), []byte("original"), 0600); err != nil {
+		t.Fatal(err)
+	}
 	h := guardedDAV(dir, webdav.NewMemLS())
 	tag := davRequest(h, "GET", "/file", "", nil).Header().Get("ETag")
 	var wg sync.WaitGroup
@@ -125,8 +127,12 @@ func TestDAVConcurrentIfMatchHasOneWinner(t *testing.T) {
 }
 func TestDAVConditionalDeleteAndMovePreserveFiles(t *testing.T) {
 	dir := t.TempDir()
-	os.WriteFile(filepath.Join(dir, "file"), []byte("original"), 0600)
-	os.WriteFile(filepath.Join(dir, "dest"), []byte("destination"), 0600)
+	if err := os.WriteFile(filepath.Join(dir, "file"), []byte("original"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(dir, "dest"), []byte("destination"), 0600); err != nil {
+		t.Fatal(err)
+	}
 	h := guardedDAV(dir, webdav.NewMemLS())
 	for _, method := range []string{"DELETE", "MOVE"} {
 		headers := map[string]string{"If-Match": `"wrong"`}

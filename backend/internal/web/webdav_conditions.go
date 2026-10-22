@@ -88,7 +88,7 @@ func (f *conditionalDAVFS) check(ctx context.Context) error {
 		default:
 			return
 		}
-		info, err := f.FileSystem.Stat(ctx, f.name)
+		info, err := f.Stat(ctx, f.name)
 		if err != nil && !os.IsNotExist(err) {
 			f.err = err
 			return
