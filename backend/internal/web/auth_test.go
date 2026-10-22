@@ -197,9 +197,11 @@ func TestApplyNamedApiTokenGlobalCaps(t *testing.T) {
 
 	t.Run("custom api token caps globals", func(t *testing.T) {
 		user := *owner
+		customized := false
 		user.Tokens = map[string]users.AuthToken{
 			"customized": {
 				Name: "customized",
+				Minimal: &customized,
 				Permissions: users.Permissions{
 					Admin:  false,
 					Api:    true,
@@ -214,6 +216,22 @@ func TestApplyNamedApiTokenGlobalCaps(t *testing.T) {
 		}
 		if !user.Permissions.Api || !user.Permissions.Share {
 			t.Fatalf("expected api and share, got %#v", user.Permissions)
+		}
+	})
+
+	t.Run("customized zero global caps", func(t *testing.T) {
+		user := *owner
+		customized := false
+		user.Tokens = map[string]users.AuthToken{
+			"locked-down": {
+				Name:        "locked-down",
+				Minimal:     &customized,
+				Permissions: users.Permissions{},
+			},
+		}
+		applyNamedApiTokenGlobalCaps(&user, "locked-down")
+		if user.Permissions.Admin || user.Permissions.Api || user.Permissions.Share {
+			t.Fatalf("customized empty caps should clear globals, got %#v", user.Permissions)
 		}
 	})
 }

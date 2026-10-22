@@ -67,6 +67,85 @@ func TestApiTokenWithoutMetadataRejected(t *testing.T) {
 	}
 }
 
+func TestApiTokenMinimalKeepsOwnerPermissions(t *testing.T) {
+	setupTestEnv(t)
+	originalAuthKey := settings.Config.Auth.Key
+	settings.Config.Auth.Key = "key"
+	t.Cleanup(func() { settings.Config.Auth.Key = originalAuthKey })
+
+	user := createTokenAuthUser(t, "minimal-admin", users.Permissions{Admin: true, Api: true})
+	tokenString, tokenMeta, err := auth.MakeSignedTokenAPI(user, "minimal-key", time.Hour, users.Permissions{}, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	tokenMeta.Name = "minimal-key"
+	tokenMeta.Token = tokenString
+	if err := state.AddUserToken(user.Username, tokenMeta); err != nil {
+		t.Fatal(err)
+	}
+	if err := state.AddApiToken(tokenString, user.ID); err != nil {
+		t.Fatal(err)
+	}
+
+	rec := cookieRequest(t, withAdmin(mockHandler), tokenString)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("minimal API token: got status %d, want %d", rec.Code, http.StatusOK)
+	}
+}
+
+func TestApiTokenCustomizedZeroPermissionsForbiddenOnAdmin(t *testing.T) {
+	setupTestEnv(t)
+	originalAuthKey := settings.Config.Auth.Key
+	settings.Config.Auth.Key = "key"
+	t.Cleanup(func() { settings.Config.Auth.Key = originalAuthKey })
+
+	user := createTokenAuthUser(t, "custom-zero-admin", users.Permissions{Admin: true, Api: true})
+	tokenString, tokenMeta, err := auth.MakeSignedTokenAPI(user, "zero-key", time.Hour, users.Permissions{}, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	tokenMeta.Name = "zero-key"
+	tokenMeta.Token = tokenString
+	if err := state.AddUserToken(user.Username, tokenMeta); err != nil {
+		t.Fatal(err)
+	}
+	if err := state.AddApiToken(tokenString, user.ID); err != nil {
+		t.Fatal(err)
+	}
+
+	rec := cookieRequest(t, withAdmin(mockHandler), tokenString)
+	if rec.Code != http.StatusForbidden {
+		t.Fatalf("customized zero-cap API token: got status %d, want %d", rec.Code, http.StatusForbidden)
+	}
+}
+
+func TestApiTokenLegacyEmptyCapsTreatedAsMinimal(t *testing.T) {
+	setupTestEnv(t)
+	originalAuthKey := settings.Config.Auth.Key
+	settings.Config.Auth.Key = "key"
+	t.Cleanup(func() { settings.Config.Auth.Key = originalAuthKey })
+
+	user := createTokenAuthUser(t, "legacy-minimal-admin", users.Permissions{Admin: true, Api: true})
+	tokenString, tokenMeta, err := auth.MakeSignedTokenAPI(user, "legacy-key", time.Hour, users.Permissions{}, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	tokenMeta.Name = "legacy-key"
+	tokenMeta.Token = tokenString
+	tokenMeta.Minimal = nil
+	if err := state.AddUserToken(user.Username, tokenMeta); err != nil {
+		t.Fatal(err)
+	}
+	if err := state.AddApiToken(tokenString, user.ID); err != nil {
+		t.Fatal(err)
+	}
+
+	rec := cookieRequest(t, withAdmin(mockHandler), tokenString)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("legacy empty-cap API token: got status %d, want %d", rec.Code, http.StatusOK)
+	}
+}
+
 // A named API token with stored caps must have those caps applied at auth time.
 func TestApiTokenCapsAppliedFromStoredMetadata(t *testing.T) {
 	setupTestEnv(t)

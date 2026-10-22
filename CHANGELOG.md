@@ -25,6 +25,7 @@ All notable changes to this project will be documented in this file. For commit 
  - chunked uploads for large files like rclone `--owncloud-chunk-size` (#3112)
 
  **Bug Fixes**:
+ - fix(auth): apply stored permission caps for customized API tokens with no global flags enabled; minimal tokens still inherit the owner's permissions
  - keep requested permissions when creating a user (#3130)
  - add missing file modify logging to activity viewer (#3152)
  - fix(frontend): restore upload prompt close, tab-reload, and in-app navigation guards while uploads are active (including paused uploads)
