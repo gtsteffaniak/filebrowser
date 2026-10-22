@@ -88,7 +88,7 @@ test("next/previous follow the name order of the folder", async({ page, checkFor
   await next.click();
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - gray-sample.jpg");
   await next.click();
-  await expect(page).toHaveTitle("Graham's Filebrowser - Files - IMG_2578.JPG");
+  await expect(page).toHaveTitle("Graham's Filebrowser - Files - gray-sample.webp");
 
   await previous.click();
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - gray-sample.jpg");
@@ -111,6 +111,7 @@ test("next/previous follow the listing sort order", async({ page, checkForErrors
   expect(names).toEqual([
     "sample-640x480.mp4",
     "IMG_2578.JPG",
+    "gray-sample.webp",
     "gray-sample.jpg",
     "20130612_142406.jpg",
   ]);
@@ -119,7 +120,7 @@ test("next/previous follow the listing sort order", async({ page, checkForErrors
   await page.locator('a[aria-label="IMG_2578.JPG"]').dblclick();
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - IMG_2578.JPG");
   await page.locator('button[aria-label="Next"]').click();
-  await expect(page).toHaveTitle("Graham's Filebrowser - Files - gray-sample.jpg");
+  await expect(page).toHaveTitle("Graham's Filebrowser - Files - gray-sample.webp");
   await page.locator('button[aria-label="Previous"]').click();
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - IMG_2578.JPG");
   checkForErrors();
@@ -132,12 +133,12 @@ test("listing highlights the item we navigated with next/previous after closing"
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - gray-sample.jpg");
 
   await page.locator('button[aria-label="Next"]').click();
-  await expect(page).toHaveTitle("Graham's Filebrowser - Files - IMG_2578.JPG");
+  await expect(page).toHaveTitle("Graham's Filebrowser - Files - gray-sample.webp");
 
   await page.locator('button[aria-label="Close"]').click();
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - testdata");
   // the item we ended on, not the one we opened, is selected
-  await expect(page.locator('a[aria-label="IMG_2578.JPG"]')).toHaveAttribute("aria-selected", "true");
+  await expect(page.locator('a[aria-label="gray-sample.webp"]')).toHaveAttribute("aria-selected", "true");
   await expect(page.locator('a[aria-label="gray-sample.jpg"]')).not.toHaveAttribute("aria-selected", "true");
   checkForErrors();
 });
