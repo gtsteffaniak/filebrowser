@@ -975,6 +975,15 @@ export const mutations = {
         sortedNext.forEach((item: FileListItem & { index?: number }, index: number) => {
           item.index = index;
         });
+        const newIndexByName = new Map(sortedNext.map((item, index) => [item.name, index]));
+        const remap = (index: number) => {
+          const name = items[index]?.name;
+          return name !== undefined ? (newIndexByName.get(name) ?? index) : index;
+        };
+        state.selected = state.selected.map((entry) => (typeof entry === "number" ? remap(entry) : entry));
+        if (state.lastSelectedIndex !== null) {
+          state.lastSelectedIndex = remap(state.lastSelectedIndex);
+        }
       }
       state.req.items = markRaw(sortedNext);
       emitStateChanged();
