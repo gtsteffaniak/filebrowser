@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file. For commit 
 
  **Bug Fixes**:
  - Preview generation for webp broken (#3254) (#3259)
- - Share banner never shows to public visitors, eturns bannerUrl but not banner (#3246) (#3250)
+ - Share banner never shows to public visitors, returns bannerUrl but not banner (#3246) (#3250)
 
 ## v2.1.3
 
