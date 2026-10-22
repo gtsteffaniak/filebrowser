@@ -27,6 +27,7 @@ import { syncEventTheme } from "@/utils/theme";
 import { isRichTextPreviewMimeType } from "@/utils/mimetype";
 import { invalidateDirMetadataCache } from "@/utils/cache/metadataCache.ts";
 import { clearImageCache } from "@/utils/cache/imageCache.ts";
+import { markRaw, toRaw } from "vue";
 import { listingCacheKey, getCachedListing, cacheListing, deleteCachedListing, clearListingCache } from "@/utils/cache/listingCache.ts";
 import { showShareDownloadPrompt as openShareDownloadPrompt } from "@/utils/download.js";
 
@@ -595,9 +596,11 @@ export default {
           }
           document.title = `${globalVars.name} - ${this.$t("general.files")} - ${res.name}`;
           if (cached && res.type === "directory" && sameListing(state.req?.items, res.items)) {
-           const retainedItems = cached.res.items;
-           Object.assign(cached.res, res, { items: retainedItems });
-            cacheListing(cacheKey, cached.res);
+            if (Array.isArray(res.parentDirItems)) {
+              res.parentDirItems = markRaw(res.parentDirItems);
+            }
+            Object.assign(state.req, res, { items: state.req.items });
+            cacheListing(cacheKey, toRaw(state.req));
             await this.patchMediaMetadataIfNeeded(state.req, fetchSource);
           } else {
             if (cachedPending && !state.pendingHighlight && state.selected.length === 0) {
