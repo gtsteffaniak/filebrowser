@@ -362,7 +362,7 @@ func TestScopedLocksPublicTokenIsOpaqueURI(t *testing.T) {
 	now := time.Now()
 	root := scopeTestRoot(t)
 	base := webdav.NewMemLS()
-	ls := newScopedLockSystem(base, root, root).(*scopedLockSystem)
+	ls := newScopedLockSystem(base, root, root)
 	token, err := ls.Create(now, webdav.LockDetails{Root: "/file", Duration: time.Hour})
 	if err != nil {
 		t.Fatal(err)
