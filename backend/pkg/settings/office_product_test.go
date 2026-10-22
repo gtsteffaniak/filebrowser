@@ -17,6 +17,7 @@ func TestOfficeSecretRequiredOnlyForOnlyOffice(t *testing.T) {
 		{"onlyoffice without secret", OnlyOffice{Url: "https://oo.example"}, true},
 		{"explicit onlyoffice without secret", OnlyOffice{Url: "https://oo.example", Product: OfficeProductOnlyOffice}, true},
 		{"collabora without secret", OnlyOffice{Url: "https://cool.example", Product: OfficeProductCollabora}, false},
+		{"collabora with secret", OnlyOffice{Url: "https://cool.example", Secret: "unused", Product: OfficeProductCollabora}, false},
 		{"unknown product", OnlyOffice{Url: "https://x.example", Secret: "s", Product: "wps"}, true},
 	}
 	for _, c := range cases {
