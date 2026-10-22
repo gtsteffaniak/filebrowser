@@ -145,6 +145,13 @@ func (idx *Index) restoreScannerNextRuns() {
 			d := scanScheduleDuration(tier)
 			next = computeNextSlotTime(s.lastScanned, now, d)
 			s.nextRun = next
+			if s.lastScanned.Add(d).Before(now) {
+				// This scanner missed at least one scheduled run while the process
+				// was down. In-place file edits update file mtimes but not their
+				// parent directory mtime, so quick scans cannot see them — force
+				// the first run after restart to be a full scan.
+				s.fullScanCounter = 0
+			}
 		})
 		if !next.IsZero() {
 			idx.registerScannerNextRun(s, next)
@@ -197,6 +204,9 @@ func (idx *Index) pruneGoneChildScanners() {
 func (idx *Index) needsAdaptiveBootstrap() bool {
 	idx.mu.RLock()
 	defer idx.mu.RUnlock()
+	if idx.startupScanPending {
+		return true
+	}
 	for _, s := range idx.scanners {
 		if s.lastScanned.IsZero() {
 			return true
@@ -239,6 +249,9 @@ func (idx *Index) schedulerAdaptiveTick() {
 	idx.pruneGoneChildScanners()
 	if idx.needsAdaptiveBootstrap() {
 		logger.Debugf("[%s] scheduler: adaptive bootstrap (serial pass all scanners)", idx.Name)
+		idx.mu.Lock()
+		idx.startupScanPending = false
+		idx.mu.Unlock()
 		idx.runSerialScanPass()
 		return
 	}

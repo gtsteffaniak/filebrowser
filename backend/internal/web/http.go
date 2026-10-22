@@ -16,11 +16,11 @@ import (
 	"strings"
 	"time"
 
-	libErrors "github.com/gtsteffaniak/filebrowser/backend/internal/errors"
-	"github.com/gtsteffaniak/filebrowser/backend/internal/quota"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/share"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
+	libErrors "github.com/gtsteffaniak/filebrowser/backend/internal/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/preview"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/quota"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing/iteminfo"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 	"github.com/gtsteffaniak/go-cache/cache"
@@ -127,7 +127,7 @@ var (
 // Per-route-class token buckets (keys: IP or username). Expired entries are dropped by go-cache.
 var (
 	authRateLimitCredentialByIP       = cache.NewCache[*rate.Limiter](authLimiterEntryTTL)
-	authRateLimitCredentialByUsername   = cache.NewCache[*rate.Limiter](authLimiterEntryTTL)
+	authRateLimitCredentialByUsername = cache.NewCache[*rate.Limiter](authLimiterEntryTTL)
 	authRateLimitModerateByIP         = cache.NewCache[*rate.Limiter](authLimiterEntryTTL)
 	authRateLimitOIDCByIP             = cache.NewCache[*rate.Limiter](authLimiterEntryTTL)
 	authRateLimitAuthenticatedByUser  = cache.NewCache[*rate.Limiter](authLimiterEntryTTL)
@@ -258,9 +258,12 @@ func GetRemoteIP(r *http.Request) string {
 
 	xff := r.Header.Get("X-Forwarded-For")
 	if cfg.Http.TrustProxyHeaders && xff != "" {
-		// Use the rightmost hop: the trusted proxy appends the connecting client, so the
-		// leftmost value is attacker-controlled when clients send X-Forwarded-For.
-		if ip := lastForwardedValue(xff); ip != "" {
+		// Without http.trustedProxies this returns the rightmost XFF entry (the
+		// client as recorded by the single trusted proxy). With trusted proxies
+		// configured, the walk skips proxy hops so multi-hop deployments
+		// (CDN -> reverse proxy -> filebrowser) resolve the real client IP —
+		// keeping per-IP rate limits and auth lockouts per client, not per edge.
+		if ip := settings.TrustedProxyClientIP(xff); ip != "" {
 			return ip
 		}
 	}
