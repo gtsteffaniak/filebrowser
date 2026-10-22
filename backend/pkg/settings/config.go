@@ -528,6 +528,10 @@ func setupUrls() {
 	}
 	Config.Integrations.OnlyOffice.Url = strings.Trim(Config.Integrations.OnlyOffice.Url, "/")
 	Config.Integrations.OnlyOffice.InternalUrl = strings.Trim(Config.Integrations.OnlyOffice.InternalUrl, "/")
+	Config.Integrations.OnlyOffice.Product = strings.ToLower(strings.TrimSpace(Config.Integrations.OnlyOffice.Product))
+	if Config.Integrations.OnlyOffice.TokenExpirationHours <= 0 {
+		Config.Integrations.OnlyOffice.TokenExpirationHours = 10
+	}
 }
 
 func setupAuth(generate bool) {
@@ -903,6 +907,7 @@ func SetDefaults(generate bool) Settings {
 				BatchSize:             1000,
 				CacheSizeMB:           32,
 				DisableReuse:          false,
+				FTS5:                  false,
 				StartupIntegrityCheck: IndexStartupIntegrityQuickCheck,
 			},
 			Filesystem: Filesystem{

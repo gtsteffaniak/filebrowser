@@ -80,7 +80,7 @@ export default {
       return regularDisabled || shareDisabled || uploadShare;
     },
     isOnlyOffice() {
-      return getters.currentView() === "onlyOfficeEditor";
+      return ["onlyOfficeEditor", "wopiEditor"].includes(getters.currentView());
     },
     isListingView() {
       return getters.currentView() === "listingView";

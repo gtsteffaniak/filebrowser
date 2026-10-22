@@ -59,6 +59,7 @@ server:
     cacheSizeMB: 32                       # size of the SQLite cache in MB
     walMode: false                        # enable the more complex WAL journaling mode. Slower, more memory usage, but better for deployments with constant user activity.
     disableReuse: false                   # enable to always create a new indexing database on startup.
+    fts5: false                           # Enable FTS5 to provide faster search queries, but 40% slower indexing and 15% larger database size
     startupIntegrityCheck: "quickCheck"   # the method used to check the integrity of the index database on startup (default: quickCheck)  validate:omitempty,oneof=quickCheck probe off
   database:                               # SQLite database configuration
     path: "filebrowser.sqlite"            # path to SQLite database file
@@ -271,10 +272,12 @@ shareDefaults:                            # optional defaults for new shares; ma
   banner: ""
 integrations:
   office:                                 #  validate:omitempty
-    url: ""                               # The URL to the OnlyOffice Document Server, needs to be accessible to the user.  validate:required
-    internalUrl: ""                       # An optional internal address that the filebrowser server can use to communicate with the OnlyOffice Document Server, could be useful to bypass proxy.
-    secret: ""                            # secret: authentication key for OnlyOffice integration  validate:required
-    viewOnly: false                       # view only mode for OnlyOffice
+    url: ""                               # The URL to the office editor (OnlyOffice Document Server or Collabora Online), needs to be accessible to the user.  validate:required
+    internalUrl: ""                       # An optional internal address that the filebrowser server can use to communicate with the office editor, could be useful to bypass proxy.
+    secret: ""                            # secret: authentication key for OnlyOffice integration. For collabora, optional key signing editing sessions, derived from the server auth key when empty.  validate:required_unless=Product collabora
+    product: ""                           # office editor behind url: onlyoffice (default) or collabora  validate:omitempty,oneof=onlyoffice collabora
+    tokenExpirationHours: 10              # collabora only: lifetime of an editing session, in hours (default: 10)
+    viewOnly: false                       # view only mode for the office editor
   media:                                  #  validate:omitempty
     ffmpegPath: ""                        # path to ffmpeg directory with ffmpeg and ffprobe (eg. /usr/local/bin)
     convert:                              # config for ffmpeg conversion settings

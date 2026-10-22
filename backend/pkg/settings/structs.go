@@ -120,6 +120,7 @@ type IndexSqlConfig struct {
 	CacheSizeMB           int    `json:"cacheSizeMB"`                                                                     // size of the SQLite cache in MB
 	WalMode               bool   `json:"walMode"`                                                                         // enable the more complex WAL journaling mode. Slower, more memory usage, but better for deployments with constant user activity.
 	DisableReuse          bool   `json:"disableReuse"`                                                                    // enable to always create a new indexing database on startup.
+	FTS5                  bool   `json:"fts5"`                                                                            // Enable FTS5 to provide faster search queries, but 40% slower indexing and 15% larger database size
 	StartupIntegrityCheck string `json:"startupIntegrityCheck,omitempty" validate:"omitempty,oneof=quickCheck probe off"` // the method used to check the integrity of the index database on startup (default: quickCheck)
 }
 
@@ -128,13 +129,31 @@ type Integrations struct {
 	Media      Media      `json:"media" validate:"omitempty"`
 }
 
+// OnlyOffice configures the office editor documents open in. Despite the
+// type's name it is not tied to one product: product selects OnlyOffice Docs,
+// driven through its own document API, or Collabora Online, driven through
+// WOPI.
+//
 // onlyoffice secret is stored in the local.json file
 // docker exec <containerID> /var/www/onlyoffice/documentserver/npm/json -f /etc/onlyoffice/documentserver/local.json 'services.CoAuthoring.secret.session.string'
 type OnlyOffice struct {
-	Url         string `json:"url" validate:"required"`    // The URL to the OnlyOffice Document Server, needs to be accessible to the user.
-	InternalUrl string `json:"internalUrl"`                // An optional internal address that the filebrowser server can use to communicate with the OnlyOffice Document Server, could be useful to bypass proxy.
-	Secret      string `json:"secret" validate:"required"` // secret: authentication key for OnlyOffice integration
-	ViewOnly    bool   `json:"viewOnly"`                   // view only mode for OnlyOffice
+	Url                  string `json:"url" validate:"required"`                                 // The URL to the office editor (OnlyOffice Document Server or Collabora Online), needs to be accessible to the user.
+	InternalUrl          string `json:"internalUrl"`                                             // An optional internal address that the filebrowser server can use to communicate with the office editor, could be useful to bypass proxy.
+	Secret               string `json:"secret" validate:"required_unless=Product collabora"`     // secret: authentication key for OnlyOffice integration. For collabora, optional key signing editing sessions, derived from the server auth key when empty.
+	Product              string `json:"product" validate:"omitempty,oneof=onlyoffice collabora"` // office editor behind url: onlyoffice (default) or collabora
+	TokenExpirationHours int    `json:"tokenExpirationHours"`                                    // collabora only: lifetime of an editing session, in hours (default: 10)
+	ViewOnly             bool   `json:"viewOnly"`                                                // view only mode for the office editor
+}
+
+const (
+	OfficeProductOnlyOffice = "onlyoffice"
+	OfficeProductCollabora  = "collabora"
+)
+
+// IsCollabora reports whether documents open in Collabora Online (WOPI)
+// rather than in OnlyOffice Docs.
+func (o OnlyOffice) IsCollabora() bool {
+	return o.Url != "" && o.Product == OfficeProductCollabora
 }
 
 type Media struct {
