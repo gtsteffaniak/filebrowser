@@ -105,7 +105,7 @@ import SettingsTable from "@/components/settings/Table.vue";
 import SettingsButton from "@/components/settings/SettingsButton.vue";
 import ActivityViewerButton from "@/components/settings/ActivityViewerButton.vue";
 import { activityViewerPresets } from "@/utils/activityViewerLink";
-import { fromNow } from '@/utils/moment';
+import { fromNowSeconds } from '@/utils/moment';
 import { eventBus } from "@/store/eventBus";
 import { copyToClipboard } from "@/utils/clipboard";
 
@@ -277,7 +277,7 @@ export default {
      * @param {any} time
      */
     humanTime(time) {
-      return fromNow(time);
+      return fromNowSeconds(time);
     },
     /**
      * @param {any} share

@@ -43,7 +43,7 @@ const chunks: Record<string, string[]> = {
   highlightjs: ["node_modules/highlight.js"],
   mammoth: ["node_modules/mammoth"],
   epubts: ["node_modules/jszip", "node_modules/@likecoin/epub-ts"],
-  katex: ["node_modules/katex", "node_modules/marked-katex-extension"],
+  temml: ["node_modules/temml"],
 };
 
 // Better error handling in watch mode: suppress certain warnings in dev builds.

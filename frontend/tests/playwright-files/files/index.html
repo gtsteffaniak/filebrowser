@@ -1,15 +1,32 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Files</title>
-      <style>
-    body { background-color: green; color: #eee; padding: 2em; }
-    h1 { color: #e94560; }
-  </style>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <h1>relative path to image</h1>
-    <img src="../myfolder/testdata/IMG_2578.JPG" alt="Test">
+    <nav class="navbar">
+        <span class="brand">Relative paths</span>
+        <a href="nested/child.html">Child page</a>
+    </nav>
+
+    <main>
+        <h1>Relative path resolution</h1>
+        <p class="subtitle">Both media files below are referenced with paths relative to this document.</p>
+
+        <div class="media-grid">
+            <figure>
+                <img src="../myfolder/testdata/IMG_2578.JPG" alt="Loaded from a relative path">
+                <figcaption><strong>Image</strong> &middot; <code>../myfolder/testdata/IMG_2578.JPG</code></figcaption>
+            </figure>
+
+            <figure>
+                <video src="../myfolder/testdata/sample-640x480.mp4" controls muted loop playsinline preload="metadata"></video>
+                <figcaption><strong>Video</strong> &middot; <code>../myfolder/testdata/sample-640x480.mp4</code></figcaption>
+            </figure>
+        </div>
+    </main>
 </body>
 </html>
