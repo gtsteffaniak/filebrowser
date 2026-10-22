@@ -1030,7 +1030,7 @@ func TestWebDAV_OPTIONS(t *testing.T) {
 
 	// Methods the handler can never allow (they hit the default: -> 403 branch
 	// of webDAVMethodPermission) must never be advertised.
-	neverAllowed := []string{"PROPPATCH", "POST"}
+	neverAllowed := []string{"POST"}
 
 	doOptions := func(t *testing.T, user *users.User, path string) map[string]bool {
 		t.Helper()

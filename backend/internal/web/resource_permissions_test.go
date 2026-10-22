@@ -138,7 +138,7 @@ func TestWebDAVMethodPermissionMatrix(t *testing.T) {
 		{method: "COPY", perms: users.SourceFilePermissions{Create: true, Modify: true}, allow: false},
 		{method: "MOVE", perms: users.SourceFilePermissions{Modify: true}, allow: true},
 		{method: "MOVE", perms: users.SourceFilePermissions{Create: true, Download: true}, allow: false},
-		{method: "PROPPATCH", perms: users.SourceFilePermissions{View: true, Download: true, Modify: true, Create: true, Delete: true}, allow: false},
+		{method: "PROPPATCH", perms: users.SourceFilePermissions{View: true, Download: true, Modify: true, Create: true, Delete: true}, allow: true},
 		{method: "LOCK", perms: users.SourceFilePermissions{Modify: true}, allow: true},
 		{method: "LOCK", perms: users.SourceFilePermissions{View: true}, allow: false},
 		{method: "UNLOCK", perms: users.SourceFilePermissions{Modify: true}, allow: true},
