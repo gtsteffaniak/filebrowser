@@ -1,8 +1,8 @@
 import type { Page } from "@playwright/test";
 import { expect, test } from "../test-setup.ts";
 
-const MEDIA = "/files/playwright-media/media";
-const LISTING_TITLE = "Graham's Filebrowser - Files - media";
+const MEDIA = "/files/playwright-files/myfolder/testdata";
+const LISTING_TITLE = "Graham's Filebrowser - Files - testdata";
 
 declare global {
   interface Window {
