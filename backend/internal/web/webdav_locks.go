@@ -1,6 +1,8 @@
 package web
 
 import (
+	"crypto/rand"
+	"fmt"
 	"os"
 	"path"
 	"path/filepath"
@@ -20,13 +22,14 @@ type scopeLockStore struct {
 }
 
 type scopedLockRecord struct {
-	root    string
-	expires time.Time
-	held    int
+	root      string
+	baseToken string
+	expires   time.Time
+	held      int
 }
 
-func lockRecord(root string, now time.Time, duration time.Duration) scopedLockRecord {
-	record := scopedLockRecord{root: root}
+func lockRecord(root, baseToken string, now time.Time, duration time.Duration) scopedLockRecord {
+	record := scopedLockRecord{root: root, baseToken: baseToken}
 	if duration >= 0 {
 		record.expires = now.Add(duration)
 	}
@@ -156,11 +159,25 @@ func (s *scopedLockSystem) Create(now time.Time, details webdav.LockDetails) (st
 	if s.recursiveMutation && details.Duration < 0 && details.OwnerXML == "" {
 		details.ZeroDepth = false
 	}
-	token, err := s.store.base.Create(now, details)
-	if err == nil {
-		s.store.roots[token] = lockRecord(details.Root, now, details.Duration)
+	baseToken, err := s.store.base.Create(now, details)
+	if err != nil {
+		return "", err
 	}
-	return token, err
+	// The backing memory lock system uses a predictable counter. Expose only
+	// cryptographically random absolute URIs, as required by WebDAV clients.
+	for {
+		token, tokenErr := randomScopedLockToken()
+		if tokenErr != nil {
+			_ = s.store.base.Unlock(now, baseToken)
+			return "", tokenErr
+		}
+		if _, exists := s.store.roots[token]; exists {
+			continue
+		}
+		s.store.roots[token] = lockRecord(details.Root, baseToken, now, details.Duration)
+		return token, nil
+	}
+
 }
 
 func (s *scopedLockSystem) Confirm(now time.Time, name0, name1 string, conditions ...webdav.Condition) (func(), error) {
@@ -199,9 +216,18 @@ func (s *scopedLockSystem) Confirm(now time.Time, name0, name1 string, condition
 			}
 		}
 	}
-	// Unsupported conditions fail closed above; positive tokens pass unchanged.
-	// Inherited infinite-depth locks stay effective.
-	release, err := s.store.base.Confirm(now, name0, name1, conditions...)
+	// Never forward an unrecognized token: exposing or guessing the backing
+	// counter must not grant access to its lock. Keep caller conditions unchanged.
+	translated := make([]webdav.Condition, len(conditions))
+	for i, condition := range conditions {
+		record, exists := s.store.roots[condition.Token]
+		if !exists {
+			return nil, webdav.ErrConfirmationFailed
+		}
+		translated[i] = condition
+		translated[i].Token = record.baseToken
+	}
+	release, err := s.store.base.Confirm(now, name0, name1, translated...)
 	if err != nil {
 		return nil, err
 	}
@@ -263,14 +289,14 @@ func (s *scopedLockSystem) Refresh(now time.Time, token string, duration time.Du
 	if !exists || !visible || !s.tokenMatchesRequest(record.root, "LOCK") {
 		return webdav.LockDetails{}, webdav.ErrNoSuchLock
 	}
-	details, err := s.store.base.Refresh(now, token, duration)
+	details, err := s.store.base.Refresh(now, record.baseToken, duration)
 	if err != nil {
 		if err == webdav.ErrNoSuchLock {
 			delete(s.store.roots, token)
 		}
 		return webdav.LockDetails{}, err
 	}
-	s.store.roots[token] = lockRecord(record.root, now, duration)
+	s.store.roots[token] = lockRecord(record.root, record.baseToken, now, duration)
 	details.Root = relative
 	return details, nil
 }
@@ -285,9 +311,19 @@ func (s *scopedLockSystem) Unlock(now time.Time, token string) error {
 	if _, visible := s.relative(record.root); !exists || !visible || !s.tokenMatchesRequest(record.root, "UNLOCK") {
 		return webdav.ErrNoSuchLock
 	}
-	err := s.store.base.Unlock(now, token)
+	err := s.store.base.Unlock(now, record.baseToken)
 	if err == nil || err == webdav.ErrNoSuchLock {
 		delete(s.store.roots, token)
 	}
 	return err
+}
+
+func randomScopedLockToken() (string, error) {
+	var id [16]byte
+	if _, err := rand.Read(id[:]); err != nil {
+		return "", err
+	}
+	id[6] = (id[6] & 0x0f) | 0x40
+	id[8] = (id[8] & 0x3f) | 0x80
+	return fmt.Sprintf("urn:uuid:%x-%x-%x-%x-%x", id[0:4], id[4:6], id[6:8], id[8:10], id[10:16]), nil
 }

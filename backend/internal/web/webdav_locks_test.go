@@ -1,8 +1,10 @@
 package web
 
 import (
+	"net/url"
 	"os"
 	"path/filepath"
+	"regexp"
 	"testing"
 	"time"
 
@@ -353,5 +355,56 @@ func TestScopedLockRequestBindings(t *testing.T) {
 		if got := s.matchesRequest(tc.name0, tc.name1); got != tc.valid {
 			t.Fatalf("%+v: got %v", tc, got)
 		}
+	}
+}
+
+func TestScopedLocksPublicTokenIsOpaqueURI(t *testing.T) {
+	now := time.Now()
+	root := scopeTestRoot(t)
+	base := webdav.NewMemLS()
+	ls := newScopedLockSystem(base, root, root).(*scopedLockSystem)
+	token, err := ls.Create(now, webdav.LockDetails{Root: "/file", Duration: time.Hour})
+	if err != nil {
+		t.Fatal(err)
+	}
+	parsed, err := url.Parse(token)
+	if err != nil || !parsed.IsAbs() {
+		t.Fatalf("not absolute URI: %q %v", token, err)
+	}
+	pattern := regexp.MustCompile(`^urn:uuid:[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$`)
+	if !pattern.MatchString(token) {
+		t.Fatalf("invalid random UUID token: %q", token)
+	}
+	record := ls.store.roots[token]
+	if record.baseToken == "" || record.baseToken == token {
+		t.Fatal("backing token exposed")
+	}
+	for _, wrong := range []string{record.baseToken, "urn:uuid:00000000-0000-4000-8000-000000000000"} {
+		if release, confirmErr := ls.Confirm(now, "/file", "", webdav.Condition{Token: wrong}); confirmErr != webdav.ErrConfirmationFailed {
+			if release != nil {
+				release()
+			}
+			t.Fatalf("unknown token confirmed: %v", confirmErr)
+		}
+		if _, refreshErr := ls.Refresh(now, wrong, time.Hour); refreshErr != webdav.ErrNoSuchLock {
+			t.Fatalf("unknown token refreshed: %v", refreshErr)
+		}
+		if unlockErr := ls.Unlock(now, wrong); unlockErr != webdav.ErrNoSuchLock {
+			t.Fatalf("unknown token unlocked: %v", unlockErr)
+		}
+	}
+	release, err := ls.Confirm(now, "/file", "", webdav.Condition{Token: token})
+	if err != nil {
+		t.Fatal(err)
+	}
+	release()
+	if _, err = ls.Refresh(now, token, time.Minute); err != nil {
+		t.Fatal(err)
+	}
+	if ls.store.roots[token].baseToken != record.baseToken {
+		t.Fatal("refresh lost backing token")
+	}
+	if err = ls.Unlock(now, token); err != nil {
+		t.Fatal(err)
 	}
 }
