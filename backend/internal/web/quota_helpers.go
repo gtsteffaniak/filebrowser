@@ -170,6 +170,12 @@ func putResourceWithQuota(w http.ResponseWriter, r *http.Request, d *Context, so
 	if err != nil {
 		return sanitizePutPathError(err)
 	}
+	releaseMutation, lockErr := files.AcquireDAVMutation(sourceName, realPath)
+	if lockErr != nil {
+		return ErrToStatus(lockErr), lockErr
+	}
+	defer releaseMutation()
+
 	if stat, statErr := os.Stat(realPath); statErr == nil && stat.IsDir() {
 		return http.StatusMethodNotAllowed, errPutPathIsDirectory
 	}

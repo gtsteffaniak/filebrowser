@@ -650,6 +650,11 @@ func DeleteFiles(source, boundIndexPath, indexPath string, isDir bool) error {
 	if err != nil {
 		return err
 	}
+	release, lockErr := acquireMutation(mutationTarget{index: index, path: realPath, removeEntry: true})
+	if lockErr != nil {
+		return lockErr
+	}
+	defer release()
 
 	if index.Config.ResolvedRules.IndexingDisabled {
 		// Indexing disabled, just delete the file
@@ -788,6 +793,12 @@ func moveResourceImpl(isSrcDir bool, sourceIndex, destIndex, realsrc, realdst st
 		return fmt.Errorf("could not get destination index: %v", destIndex)
 	}
 
+	release, lockErr := acquireMutation(mutationTarget{index: srcIdx, path: realsrc}, mutationTarget{index: dstIdx, path: realdst})
+	if lockErr != nil {
+		return lockErr
+	}
+	defer release()
+
 	// Prepare paths for index operations
 	srcIndexPath := srcIdx.MakeIndexPath(realsrc, isSrcDir).String()
 	srcParentPath := filepath.Dir(realsrc)
@@ -863,6 +874,13 @@ func CopyResource(isSrcDir bool, sourceIndex, destIndex, realsrc, realdst string
 		return err
 	}
 
+	destGuardIndex := indexing.GetIndex(destIndex)
+	release, lockErr := acquireMutation(mutationTarget{index: destGuardIndex, path: realdst})
+	if lockErr != nil {
+		return lockErr
+	}
+	defer release()
+
 	// Perform the physical copy
 	err := fileutils.CopyFile(realsrc, realdst)
 	if err != nil {
@@ -918,6 +936,11 @@ func WriteDirectory(boundIndexPath string, opts utils.FileOptions) error {
 	if err != nil {
 		return err
 	}
+	release, lockErr := acquireMutation(mutationTarget{index: idx, path: realPath})
+	if lockErr != nil {
+		return lockErr
+	}
+	defer release()
 
 	var stat os.FileInfo
 	// Check if the destination exists and is a file
@@ -978,6 +1001,12 @@ func writeFile(source, boundIndexPath, path string, in io.Reader) error {
 	if err != nil {
 		return err
 	}
+	release, lockErr := acquireMutation(mutationTarget{index: idx, path: realPath})
+	if lockErr != nil {
+		return lockErr
+	}
+	defer release()
+
 	// Ensure the parent directories exist
 	parentDir := filepath.Dir(realPath)
 	err = os.MkdirAll(parentDir, fileutils.PermDir)

@@ -16,14 +16,15 @@ import (
 	"strings"
 	"time"
 
-	libErrors "github.com/gtsteffaniak/filebrowser/backend/internal/errors"
-	"github.com/gtsteffaniak/filebrowser/backend/internal/quota"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/share"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
+	libErrors "github.com/gtsteffaniak/filebrowser/backend/internal/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/preview"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/quota"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing/iteminfo"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 	"github.com/gtsteffaniak/go-cache/cache"
+	"golang.org/x/net/webdav"
 	"golang.org/x/time/rate"
 )
 
@@ -127,7 +128,7 @@ var (
 // Per-route-class token buckets (keys: IP or username). Expired entries are dropped by go-cache.
 var (
 	authRateLimitCredentialByIP       = cache.NewCache[*rate.Limiter](authLimiterEntryTTL)
-	authRateLimitCredentialByUsername   = cache.NewCache[*rate.Limiter](authLimiterEntryTTL)
+	authRateLimitCredentialByUsername = cache.NewCache[*rate.Limiter](authLimiterEntryTTL)
 	authRateLimitModerateByIP         = cache.NewCache[*rate.Limiter](authLimiterEntryTTL)
 	authRateLimitOIDCByIP             = cache.NewCache[*rate.Limiter](authLimiterEntryTTL)
 	authRateLimitAuthenticatedByUser  = cache.NewCache[*rate.Limiter](authLimiterEntryTTL)
@@ -138,6 +139,8 @@ func ErrToStatus(err error) int {
 	switch {
 	case err == nil:
 		return http.StatusOK
+	case errors.Is(err, webdav.ErrLocked):
+		return http.StatusLocked
 	case os.IsPermission(err):
 		return http.StatusForbidden
 	case errors.Is(err, libErrors.ErrAccessDenied):

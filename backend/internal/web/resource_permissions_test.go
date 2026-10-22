@@ -62,40 +62,40 @@ func TestResourcePatchPermCheck(t *testing.T) {
 		wantMsg    string
 	}{
 		{
-			name: "copy requires download and create",
+			name:   "copy requires download and create",
 			action: "copy", fromSource: "a", toSource: "b",
 			fromPerms: full, toPerms: full,
 		},
 		{
-			name: "copy denied without source download",
+			name:   "copy denied without source download",
 			action: "copy", fromSource: "a", toSource: "b",
 			fromPerms: createOnly, toPerms: full,
 			wantMsg: "user is not allowed to copy",
 		},
 		{
-			name: "copy denied without destination create",
+			name:   "copy denied without destination create",
 			action: "copy", fromSource: "a", toSource: "b",
 			fromPerms: downloadOnly, toPerms: modifyOnly,
 			wantMsg: "user is not allowed to copy",
 		},
 		{
-			name: "same-source move requires modify",
+			name:   "same-source move requires modify",
 			action: "move", fromSource: "a", toSource: "a",
 			fromPerms: modifyOnly, toPerms: modifyOnly,
 		},
 		{
-			name: "same-source rename requires modify",
+			name:   "same-source rename requires modify",
 			action: "rename", fromSource: "a", toSource: "a",
 			fromPerms: modifyOnly, toPerms: modifyOnly,
 		},
 		{
-			name: "move denied without source modify",
+			name:   "move denied without source modify",
 			action: "move", fromSource: "a", toSource: "a",
 			fromPerms: downloadOnly, toPerms: downloadOnly,
 			wantMsg: "user is not allowed to modify",
 		},
 		{
-			name: "cross-source move requires destination modify",
+			name:   "cross-source move requires destination modify",
 			action: "move", fromSource: "a", toSource: "b",
 			fromPerms: full, toPerms: downloadOnly,
 			wantMsg: "user is not allowed to modify destination source",
@@ -139,7 +139,10 @@ func TestWebDAVMethodPermissionMatrix(t *testing.T) {
 		{method: "MOVE", perms: users.SourceFilePermissions{Modify: true}, allow: true},
 		{method: "MOVE", perms: users.SourceFilePermissions{Create: true, Download: true}, allow: false},
 		{method: "PROPPATCH", perms: users.SourceFilePermissions{View: true, Download: true, Modify: true, Create: true, Delete: true}, allow: false},
-		{method: "LOCK", perms: users.SourceFilePermissions{View: true, Download: true, Modify: true, Create: true, Delete: true}, allow: false},
+		{method: "LOCK", perms: users.SourceFilePermissions{Modify: true}, allow: true},
+		{method: "LOCK", perms: users.SourceFilePermissions{View: true}, allow: false},
+		{method: "UNLOCK", perms: users.SourceFilePermissions{Modify: true}, allow: true},
+		{method: "UNLOCK", perms: users.SourceFilePermissions{View: true}, allow: false},
 	}
 
 	for _, tt := range tests {
