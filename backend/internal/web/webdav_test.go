@@ -1030,7 +1030,7 @@ func TestWebDAV_OPTIONS(t *testing.T) {
 
 	// Methods the handler can never allow (they hit the default: -> 403 branch
 	// of webDAVMethodPermission) must never be advertised.
-	neverAllowed := []string{"LOCK", "UNLOCK", "PROPPATCH", "POST"}
+	neverAllowed := []string{"PROPPATCH", "POST"}
 
 	doOptions := func(t *testing.T, user *users.User, path string) map[string]bool {
 		t.Helper()
@@ -1080,7 +1080,7 @@ func TestWebDAV_OPTIONS(t *testing.T) {
 
 	t.Run("directory advertises only supported methods", func(t *testing.T) {
 		allowed := doOptions(t, fullAccessUser, "/public/")
-		for _, m := range []string{"PROPFIND", http.MethodDelete, "COPY", "MOVE"} {
+		for _, m := range []string{"PROPFIND", http.MethodDelete, "COPY", "MOVE", "LOCK", "UNLOCK"} {
 			if !allowed[m] {
 				t.Errorf("expected %s in Allow for directory, got %v", m, allowed)
 			}
@@ -1095,7 +1095,7 @@ func TestWebDAV_OPTIONS(t *testing.T) {
 
 	t.Run("file advertises read and write methods", func(t *testing.T) {
 		allowed := doOptions(t, fullAccessUser, "/public/readme.txt")
-		for _, m := range []string{http.MethodGet, http.MethodHead, "PROPFIND", http.MethodPut, http.MethodDelete, "COPY", "MOVE"} {
+		for _, m := range []string{http.MethodGet, http.MethodHead, "PROPFIND", http.MethodPut, http.MethodDelete, "COPY", "MOVE", "LOCK", "UNLOCK"} {
 			if !allowed[m] {
 				t.Errorf("expected %s in Allow for file, got %v", m, allowed)
 			}
@@ -1104,7 +1104,7 @@ func TestWebDAV_OPTIONS(t *testing.T) {
 
 	t.Run("missing path advertises creation methods", func(t *testing.T) {
 		allowed := doOptions(t, fullAccessUser, "/public/newfile.txt")
-		for _, m := range []string{http.MethodPut, "MKCOL"} {
+		for _, m := range []string{http.MethodPut, "MKCOL", "LOCK"} {
 			if !allowed[m] {
 				t.Errorf("expected %s in Allow for missing path, got %v", m, allowed)
 			}
