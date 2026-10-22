@@ -3,7 +3,6 @@ package activity
 import (
 	"net"
 	"net/http"
-	"strings"
 
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 )
@@ -13,8 +12,9 @@ func remoteIP(r *http.Request) string {
 
 	xff := r.Header.Get("X-Forwarded-For")
 	if cfg.Http.TrustProxyHeaders && xff != "" {
-		ips := strings.Split(xff, ",")
-		return strings.TrimSpace(ips[0])
+		if ip := settings.TrustedProxyClientIP(xff); ip != "" {
+			return ip
+		}
 	}
 
 	xri := r.Header.Get("X-Real-IP")

@@ -9,14 +9,80 @@ import (
 )
 
 func TestGetRemoteIPUsesRightmostForwardedFor(t *testing.T) {
+	orig := settings.Config.Http
+	t.Cleanup(func() { settings.Config.Http = orig })
 	settings.Config.Http.TrustProxyHeaders = true
-	t.Cleanup(func() { settings.Config.Http.TrustProxyHeaders = false })
+	settings.Config.Http.TrustedProxies = nil
 
 	req := httptest.NewRequest("GET", "http://example.com/", nil)
 	req.RemoteAddr = "10.0.0.1:1234"
 	req.Header.Set("X-Forwarded-For", "203.0.113.50, 198.51.100.7")
 	if got := GetRemoteIP(req); got != "198.51.100.7" {
 		t.Fatalf("GetRemoteIP = %q, want 198.51.100.7", got)
+	}
+}
+
+// With http.trustedProxies set, GetRemoteIP walks the XFF chain past trusted
+// proxy hops so multi-hop deployments (CDN -> proxy -> filebrowser) resolve the
+// real client IP instead of collapsing everyone onto the shared edge address.
+func TestGetRemoteIPTrustedProxies(t *testing.T) {
+	orig := settings.Config.Http
+	t.Cleanup(func() { settings.Config.Http = orig })
+	settings.Config.Http.TrustProxyHeaders = true
+	settings.Config.Http.TrustedProxies = []string{"198.51.100.0/24"}
+
+	tests := []struct {
+		name string
+		xff  string
+		want string
+	}{
+		{"multi-hop resolves real client", "203.0.113.50, 198.51.100.7", "203.0.113.50"},
+		{"three hops", "192.0.2.10, 203.0.113.50, 198.51.100.7", "203.0.113.50"},
+		// Client-supplied XFF entries stay untrusted and cannot spoof identity.
+		{"spoofed prefix ignored", "1.2.3.4, 203.0.113.50, 198.51.100.7", "203.0.113.50"},
+		{"empty entries skipped", "203.0.113.50, , 198.51.100.7", "203.0.113.50"},
+		// Every hop trusted: leftmost is closest to the client.
+		{"all entries trusted", "198.51.100.7, 198.51.100.8", "198.51.100.7"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := httptest.NewRequest("GET", "http://example.com/", nil)
+			req.RemoteAddr = "10.0.0.1:1234"
+			req.Header.Set("X-Forwarded-For", tt.xff)
+			if got := GetRemoteIP(req); got != tt.want {
+				t.Fatalf("GetRemoteIP = %q, want %q", got, tt.want)
+			}
+		})
+	}
+}
+
+// Bare IPs (not just CIDRs) are accepted in http.trustedProxies.
+func TestGetRemoteIPTrustedProxiesBareIP(t *testing.T) {
+	orig := settings.Config.Http
+	t.Cleanup(func() { settings.Config.Http = orig })
+	settings.Config.Http.TrustProxyHeaders = true
+	settings.Config.Http.TrustedProxies = []string{"198.51.100.7"}
+
+	req := httptest.NewRequest("GET", "http://example.com/", nil)
+	req.RemoteAddr = "10.0.0.1:1234"
+	req.Header.Set("X-Forwarded-For", "203.0.113.50, 198.51.100.7")
+	if got := GetRemoteIP(req); got != "203.0.113.50" {
+		t.Fatalf("GetRemoteIP = %q, want 203.0.113.50", got)
+	}
+}
+
+// Without trustProxyHeaders the XFF chain is ignored entirely.
+func TestGetRemoteIPIgnoresForwardedForWhenUntrusted(t *testing.T) {
+	orig := settings.Config.Http
+	t.Cleanup(func() { settings.Config.Http = orig })
+	settings.Config.Http.TrustProxyHeaders = false
+	settings.Config.Http.TrustedProxies = []string{"198.51.100.0/24"}
+
+	req := httptest.NewRequest("GET", "http://example.com/", nil)
+	req.RemoteAddr = "10.0.0.1:1234"
+	req.Header.Set("X-Forwarded-For", "203.0.113.50, 198.51.100.7")
+	if got := GetRemoteIP(req); got != "10.0.0.1" {
+		t.Fatalf("GetRemoteIP = %q, want 10.0.0.1", got)
 	}
 }
 

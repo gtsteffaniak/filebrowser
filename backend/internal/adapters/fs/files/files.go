@@ -335,6 +335,19 @@ func fileInfoFasterImpl(opts utils.FileOptions, user *users.User, s *Service) (*
 		if info.Type == "directory" && opts.HideFileExt != "" {
 			response.Files = filterFilesByExt(response.Files, opts.HideFileExt)
 		}
+		if info.Type == "directory" && opts.Expand {
+			// Expanded listings without extended attrs skip persistDirectoryListing
+			// (their placeholder preview values must not overwrite index rows), so
+			// refresh the index lazily — otherwise folder sizes here never update.
+			// Capture indexPath now: the deferred finalizeResponse strips the user
+			// scope from response.Path before returning.
+			indexPath := idx.MakeIndexPath(response.Path, true).String()
+			go func() {
+				if err := idx.RefreshDirectory(indexPath, false); err != nil {
+					logger.Debugf("Failed to refresh directory for folder size update: %v", err)
+				}
+			}()
+		}
 		return response, nil
 	}
 	// Process directory metadata if requested
