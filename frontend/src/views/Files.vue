@@ -595,6 +595,8 @@ export default {
           }
           document.title = `${globalVars.name} - ${this.$t("general.files")} - ${res.name}`;
           if (cached && res.type === "directory" && sameListing(state.req?.items, res.items)) {
+           const retainedItems = cached.res.items;
+           Object.assign(cached.res, res, { items: retainedItems });
             cacheListing(cacheKey, cached.res);
             await this.patchMediaMetadataIfNeeded(state.req, fetchSource);
           } else {
