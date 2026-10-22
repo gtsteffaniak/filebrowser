@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v2.1.4
+
+ **Bug Fixes**:
+ - Preview generation for webp broken (#3254) (#3259)
+
 ## v2.1.3
 
  **Security**:
