@@ -48,7 +48,7 @@ func vodJobView(p *producer) ffmpeg.HLSVODJobView {
 		return ffmpeg.HLSVODJobView{}
 	}
 	return ffmpeg.HLSVODJobView{
-		Running:    vodJobRunning(p),
+		Running:    vodJobRunning(p) || p.jobStarting || p.vodRestartIndex >= 0,
 		StartIndex: p.startIndex,
 		EncodeHead: p.encodeHead,
 	}
@@ -133,10 +133,20 @@ func (m *Manager) openVODSegment(ctx context.Context, sess *playbackSession, job
 
 // signalVODRestart repositions the producer to segIndex and cancels the running
 // job; runProducerJob picks the pending restart up at its next job launch.
-// Segments at or after segIndex are cleared by the new job so a rewrite cannot
-// serve stale output.
+// Stale segments at or after segIndex are cleared by the new job so a rewrite
+// cannot serve stale output. The restart is deferred while another attached
+// session's playhead sits inside the job's servable window and the job still
+// has reposition cooldown left — repositioning sooner would pull the encode
+// out from under them before it produced anything there.
 func (m *Manager) signalVODRestart(sess *playbackSession, p *producer, segIndex int) {
 	m.mu.Lock()
+	defer m.mu.Unlock()
+	if ffmpeg.DecideHLSVODSegmentAction(vodDecisionConfig(sess.plan), vodJobView(p), segIndex, false) != ffmpeg.HLSVODActionRestart {
+		return
+	}
+	if m.vodRestartBlockedLocked(sess, p) {
+		return
+	}
 	p.vodRestartIndex = segIndex
 	p.startIndex = segIndex
 	p.startSec = vodPlaylistStartSec(sess.plan, segIndex)
@@ -146,14 +156,19 @@ func (m *Manager) signalVODRestart(sess *playbackSession, p *producer, segIndex 
 		p.job.Cancel()
 	}
 	m.resumeProducerLocked(p)
-	m.mu.Unlock()
 }
 
 func (m *Manager) refreshVODEncodeHead(p *producer, jobDir string, plan hlsPlan) {
 	if p == nil || plan.vodList.Count() == 0 {
 		return
 	}
+	// Encode head only advances over ready segments and is reset to startIndex
+	// on reposition, so the scan resumes where it left off instead of
+	// re-parsing every produced segment each tick.
 	head := p.startIndex
+	if p.encodeHead > head {
+		head = p.encodeHead
+	}
 	jobRunning := vodJobRunning(p)
 	explicitCopy := planUsesExplicitCopy(plan)
 	for head < plan.vodList.Count() {

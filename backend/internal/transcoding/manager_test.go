@@ -95,6 +95,13 @@ func TestManagerHeartbeatRequiresSession(t *testing.T) {
 }
 
 func TestSessionReusable(t *testing.T) {
+	mgr, _ := newTestManager(t, nil)
+	reusable := func(sess *playbackSession, startSec float64) bool {
+		mgr.mu.Lock()
+		defer mgr.mu.Unlock()
+		return mgr.sessionReusableLocked(sess, startSec)
+	}
+
 	plan := hlsPlan{
 		segmentSec:       4,
 		mediaDurationSec: 300,
@@ -109,38 +116,81 @@ func TestSessionReusable(t *testing.T) {
 	runningPartial := &playbackSession{state: StateRunning, startSec: 60, startIndex: 15, plan: plan}
 	failed := &playbackSession{state: StateFailed, plan: plan}
 
-	if !sessionReusable(running, 12) {
+	if !reusable(running, 12) {
 		t.Fatal("running session should be reusable for an in-bounds playhead")
 	}
-	if !sessionReusable(running, 130) {
-		t.Fatal("a live generation serves any in-bounds target (requests reposition the job)")
+	if !reusable(running, 130) {
+		t.Fatal("a session with no live producer serves any in-bounds target")
 	}
-	if !sessionReusable(running, 300) {
+	if !reusable(running, 300) {
 		t.Fatal("a target at the media end should still reuse the session")
 	}
-	if sessionReusable(running, 400) {
+	if reusable(running, 400) {
 		t.Fatal("an out-of-bounds target must not reuse the session")
 	}
-	if !sessionReusable(completedFromStart, 0) {
+	if !reusable(completedFromStart, 0) {
 		t.Fatal("completed session should be reusable from start")
 	}
-	if !sessionReusable(completedFromStart, 12) {
+	if !reusable(completedFromStart, 12) {
 		t.Fatal("a completed generation that covers the file should serve a later seek")
 	}
-	if sessionReusable(completedPartial, 12) {
+	if reusable(completedPartial, 12) {
 		t.Fatal("a mid-file generation must not be reused for an earlier playhead")
 	}
-	if !sessionReusable(completedPartial, 90) {
+	if !reusable(completedPartial, 90) {
 		t.Fatal("a completed mid-file generation should serve a later playhead")
 	}
-	if sessionReusable(runningPartial, 12) {
+	if reusable(runningPartial, 12) {
 		t.Fatal("a mid-file running generation must not be reused for an earlier playhead")
 	}
-	if !sessionReusable(runningPartial, 90) {
+	if !reusable(runningPartial, 90) {
 		t.Fatal("a mid-file running generation should serve a later playhead")
 	}
-	if sessionReusable(failed, 0) {
+	if reusable(failed, 0) {
 		t.Fatal("failed session should not be reused")
+	}
+
+	// Sessions on a live producer reuse only inside its servable window: a
+	// target beyond the encode head plus the forward gap would reposition the
+	// shared job, so that viewer gets its own generation instead.
+	live := &playbackSession{state: StateRunning, plan: plan}
+	live.info.ID = "live-producer"
+	mgr.producers["live-producer"] = &producer{
+		plan:       plan,
+		jobDir:     t.TempDir(),
+		startIndex: 0,
+		encodeHead: 10,
+	}
+	if !reusable(live, 40) {
+		t.Fatal("a target inside the produced range should reuse the live generation")
+	}
+	if !reusable(live, 60) {
+		t.Fatal("a target inside the forward wait gap should reuse the live generation")
+	}
+	if reusable(live, 130) {
+		t.Fatal("a target beyond the forward gap must not reuse — it gets its own generation")
+	}
+
+	// Below the job start a target still reuses when a previous run left the
+	// segment ready on disk — no reposition is needed to serve it.
+	jobDir := t.TempDir()
+	if err := os.MkdirAll(filepath.Join(jobDir, "seg"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	writeServeableSegment(t, filepath.Join(jobDir, "seg"), "00005.m4s")
+	backward := &playbackSession{state: StateRunning, plan: plan}
+	backward.info.ID = "backward-producer"
+	mgr.producers["backward-producer"] = &producer{
+		plan:       plan,
+		jobDir:     jobDir,
+		startIndex: 10,
+		encodeHead: 12,
+	}
+	if !reusable(backward, 20) {
+		t.Fatal("a ready segment below the job start should reuse the live generation")
+	}
+	if reusable(backward, 24) {
+		t.Fatal("a missing segment below the job start must not reuse")
 	}
 }
 
@@ -645,6 +695,158 @@ func TestManagerOutOfRangeSeekKeepsOtherClientSession(t *testing.T) {
 		t.Fatalf("the first session must survive another client's seek: %v", err)
 	}
 	waitForStarts(t, engine, 2)
+}
+
+// A viewer starting far beyond the shared job's servable window gets its own
+// generation — attaching it would let its segment requests restart the shared
+// job out from under the other viewers.
+func TestManagerFarViewerGetsOwnGeneration(t *testing.T) {
+	engine := NewFakeEngine()
+	list := ffmpeg.BuildVODSegmentList(300, 4, 0, nil)
+	engine.plan.vodList = list
+	engine.plan.mediaDurationSec = 300
+	engine.plan.playlistBody = ffmpeg.BuildVODPlaylist(list, ffmpeg.DefaultVODPlaylistOptions())
+	mgr, _ := newTestManager(t, engine)
+
+	in := testInput(t, "user-a", "/v.mp4")
+	in.UserLimit = 4
+	first := mustStart(t, mgr, in)
+	waitForStarts(t, engine, 1)
+
+	second := in
+	second.Username = "user-b"
+	second.ClientID = "b"
+	second.StartSec = 200
+	info, err := mgr.Start(context.Background(), second)
+	if err != nil {
+		t.Fatalf("far viewer start: %v", err)
+	}
+	if info.ID == first.ID {
+		t.Fatal("far viewer must not reuse the early session")
+	}
+	waitForStarts(t, engine, 2)
+	if sessionJobDir(t, mgr, first.ID) == sessionJobDir(t, mgr, info.ID) {
+		t.Fatal("far viewer must get its own generation dir")
+	}
+	if producerFor(t, mgr, first.ID) == producerFor(t, mgr, info.ID) {
+		t.Fatal("far viewer must not share the early producer")
+	}
+}
+
+// A segment-request restart is deferred while another attached session's
+// playhead sits inside the job's servable window and the job still has
+// reposition cooldown left — repositioning sooner would pull the encode out
+// from under them before it produced anything there. The requester's own
+// reposition goes through once the cooldown lapses or the rider goes stale.
+func TestSignalVODRestartSkipsWhileViewerRidesWindow(t *testing.T) {
+	mgr, _ := newTestManager(t, nil)
+	plan := hlsPlan{
+		segmentSec:       4,
+		mediaDurationSec: 300,
+		vodList:          ffmpeg.BuildVODSegmentList(300, 4, 0, nil),
+	}
+	p := &producer{
+		plan:            plan,
+		jobDir:          t.TempDir(),
+		startIndex:      0,
+		encodeHead:      10,
+		vodRestartIndex: -1,
+		job:             newFakeJob(),
+		jobStartedAt:    time.Now(),
+		resume:          make(chan struct{}, 1),
+	}
+	rider := &playbackSession{plan: plan, playheadSec: 40, lastHeartbeat: time.Now()}
+	rider.info.ID = "rider"
+	far := &playbackSession{plan: plan}
+	far.info.ID = "far"
+	mgr.sessions["rider"] = rider
+	mgr.sessions["far"] = far
+	mgr.producers["rider"] = p
+	mgr.producers["far"] = p
+
+	mgr.signalVODRestart(far, p, 70)
+	if p.vodRestartIndex >= 0 {
+		t.Fatal("restart must not land while another viewer rides the window")
+	}
+	if !p.job.Running() {
+		t.Fatal("the shared job must not be cancelled for a far viewer's request")
+	}
+
+	// Once the job has had its reposition cooldown, a contested request wins:
+	// produced coverage survives the reposition, so the rider converges back.
+	p.jobStartedAt = time.Now().Add(-vodRepositionCooldown - time.Second)
+	mgr.signalVODRestart(far, p, 70)
+	if p.vodRestartIndex != 70 {
+		t.Fatalf("restart index = %d, want 70 once the cooldown lapsed", p.vodRestartIndex)
+	}
+	if p.job.Running() {
+		t.Fatal("an unblocked restart must cancel the running job")
+	}
+
+	// A duplicate restart for the already-repositioned index is a no-op so
+	// polling while the new job starts cannot cancel the replacement job.
+	p.vodRestartIndex = -1
+	p.job = newFakeJob()
+	mgr.signalVODRestart(far, p, 70)
+	if !p.job.Running() {
+		t.Fatal("duplicate restart for covered index must not cancel the new job")
+	}
+
+	// A stale rider stops blocking: dead heartbeats are not demand.
+	p.startIndex = 0
+	p.encodeHead = 10
+	p.vodRestartIndex = -1
+	p.job = newFakeJob()
+	p.jobStartedAt = time.Now()
+	rider.lastHeartbeat = time.Now().Add(-reconnectGrace - time.Second)
+	mgr.signalVODRestart(far, p, 70)
+	if p.vodRestartIndex != 70 {
+		t.Fatalf("restart index = %d, want 70 once the rider went stale", p.vodRestartIndex)
+	}
+	if p.job.Running() {
+		t.Fatal("an unblocked restart must cancel the running job")
+	}
+}
+
+// A job that ends cleanly before covering the whole timeline — a bounded
+// restart stopping at an already-ready tail — parks for demand-driven resume
+// instead of finalizing an incomplete generation.
+func TestManagerParksProducerOnIncompleteJobEnd(t *testing.T) {
+	engine := NewFakeEngine()
+	list := ffmpeg.BuildVODSegmentList(300, 4, 0, nil)
+	engine.plan.vodList = list
+	engine.plan.mediaDurationSec = 300
+	engine.plan.playlistBody = ffmpeg.BuildVODPlaylist(list, ffmpeg.DefaultVODPlaylistOptions())
+	mgr, _ := newTestManager(t, engine)
+
+	in := testInput(t, "parker", "/v.mp4")
+	sess := mustStart(t, mgr, in)
+	waitForStarts(t, engine, 1)
+
+	genDir := sessionJobDir(t, mgr, sess.ID)
+	writeProducedRange(t, genDir, 0, 5, false)
+	pollUntil(t, 2*time.Second, func() bool {
+		return snapshotProducer(t, mgr, sess.ID).encodeHead >= 5
+	}, "encode head to advance over produced range")
+
+	engine.LastJob().Complete()
+	pollUntil(t, 2*time.Second, func() bool {
+		return snapshotProducer(t, mgr, sess.ID).suspended
+	}, "producer to park on incomplete coverage")
+	if got := sessionState(t, mgr, sess.ID); got == StateCompleted || got == StateFailed {
+		t.Fatalf("incomplete generation must not finalize, state=%s", got)
+	}
+
+	// Demand for a missing segment relaunches the producer at that index.
+	f, err := mgr.OpenSegment(context.Background(), in.Username, sess.ID, "00008.m4s")
+	if err != nil {
+		t.Fatalf("segment request on parked producer: %v", err)
+	}
+	f.Close()
+	waitForStarts(t, engine, 2)
+	if idx, _ := engine.LastStart(); idx != 8 {
+		t.Fatalf("resumed job start index = %d, want 8", idx)
+	}
 }
 
 // A completed VOD generation is reused for any in-range playhead without ffmpeg.

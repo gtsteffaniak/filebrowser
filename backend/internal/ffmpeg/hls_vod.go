@@ -61,6 +61,12 @@ func DecideHLSVODSegmentAction(cfg HLSVODDecisionConfig, job HLSVODJobView, k in
 	return ops.DecideHLSVODSegmentAction(cfg, job, k, ready)
 }
 
+// HLSVODMaxWaitSegmentGap returns how many segment indices ahead of EncodeHead
+// may wait instead of restarting (Jellyfin: 24s of media by default).
+func HLSVODMaxWaitSegmentGap(segmentSec, gapMediaSec float64) int {
+	return ops.HLSVODMaxWaitSegmentGap(segmentSec, gapMediaSec)
+}
+
 // BuildVODSegmentList plans segment boundaries (fixed grid or keyframe snap).
 func BuildVODSegmentList(mediaDurationSec, segmentSec, startTimeSec float64, keyframes []float64) VODSegmentList {
 	return goffmpeg.BuildVODSegmentList(mediaDurationSec, segmentSec, startTimeSec, keyframes)

@@ -37,6 +37,16 @@ type producer struct {
 	// encodeHead is the first not-yet-ready segment index at or after
 	// startIndex — the metric HLSVODJobView.EncodeHead carries.
 	encodeHead int
+	// jobStartedAt is when the current job launched. A repositioned job gets
+	// vodRepositionCooldown to produce at its position before another
+	// session's far request may move it again.
+	jobStartedAt time.Time
+	// jobStarting is true while runProducerJob is launching ffmpeg outside m.mu,
+	// so concurrent polls wait on the in-flight launch instead of re-restarting.
+	jobStarting bool
+	// lastDemandAt records the latest segment/resume demand so pause-suspension
+	// does not kill a producer while a seek or paused scrub is waiting on it.
+	lastDemandAt time.Time
 	// vodRestartIndex >= 0 means the job was cancelled to reposition; runProducer retries.
 	vodRestartIndex int
 	// clearSegmentsOnStart makes the next job unlink segments >= startIndex
@@ -338,7 +348,7 @@ func (m *Manager) tryReuseSessionLocked(in StartInput, reuseKey, clientID string
 		delete(m.byReuse, reuseKey)
 		return SessionInfo{}, false, nil
 	}
-	if sessionReusable(sess, in.StartSec) {
+	if m.sessionReusableLocked(sess, in.StartSec) {
 		now := time.Now()
 		sess.clients[clientID] = clientLease{seen: now, paused: true}
 		sess.lastActivity = now
@@ -427,6 +437,7 @@ func (m *Manager) commitStart(ctx context.Context, ps pendingStart) (SessionInfo
 		startIndex:      startIndex,
 		startSec:        ffmpegStartSec,
 		encodeHead:      startIndex,
+		lastDemandAt:    time.Now(),
 		vodRestartIndex: -1,
 		refs:            1,
 		vodSession:      vodSess,
@@ -517,11 +528,76 @@ func (m *Manager) attachCoveringGeneration(ps pendingStart) (SessionInfo, bool, 
 }
 
 // producerCoversTargetLocked reports whether a live generation can serve the
-// requested playhead. Under the synthetic VOD playlist any in-bounds target is
-// servable: segment requests wait within the forward gap and reposition the
-// job for anything outside it.
+// requested playhead without repositioning the job: the target is either
+// already produced (ready on disk below the job's start, or at or behind the
+// encode head) or close enough ahead of it to wait out inside the forward
+// gap. Anything further away would restart the shared job out from under the
+// other sessions attached to it, so those viewers get their own generation.
 func (m *Manager) producerCoversTargetLocked(p *producer, targetSec float64) bool {
-	return targetSec >= -seekBackwardEpsSec && targetSec <= p.plan.mediaDurationSec+seekBackwardEpsSec
+	if targetSec < -seekBackwardEpsSec || targetSec > p.plan.mediaDurationSec+seekBackwardEpsSec {
+		return false
+	}
+	if p.plan.vodList.Count() == 0 {
+		return true
+	}
+	targetIndex, _ := ffmpeg.SegmentIndexForTime(targetSec, p.plan.vodList.Starts)
+	if targetIndex < p.startIndex {
+		// Below the job's start the segment only exists when a previous run
+		// left it ready on disk; repositioning backwards would cancel the job
+		// for every attached session.
+		return m.vodSegmentReadyLocked(p, targetIndex)
+	}
+	return targetIndex <= p.encodeHead+vodForwardGap(p.plan)
+}
+
+// vodSegmentReadyLocked reports whether a previously produced segment is
+// publishable from a generation's output dir. Caller holds m.mu.
+func (m *Manager) vodSegmentReadyLocked(p *producer, idx int) bool {
+	if planUsesExplicitCopy(p.plan) {
+		ready, err := ffmpeg.HLSVODExplicitCopySegmentReady(p.jobDir, idx, vodJobRunning(p))
+		return err == nil && ready
+	}
+	ready, err := ffmpeg.HLSVODSegmentReady(ffmpeg.HLSVODSegmentPath(p.jobDir, idx))
+	return err == nil && ready
+}
+
+// vodRepositionCooldown is how long a repositioned job gets to produce at its
+// position while another session rides its window before a contested far
+// request may move it again. Denying the request indefinitely would starve
+// the requester for the incumbent's whole session; denying it never would let
+// viewers restart the job out from under each other before any coverage is
+// produced. The cooldown bounds both stall and thrash — produced segments
+// survive every reposition, so spaced repositions converge.
+const vodRepositionCooldown = 5 * time.Second
+
+// vodRestartBlockedLocked reports whether repositioning the shared job right
+// now would strand another attached session whose live playhead sits inside
+// the job's servable window [startIndex, encodeHead+gap]. The block lapses
+// once the job has run for vodRepositionCooldown at its current position.
+// Caller holds m.mu.
+func (m *Manager) vodRestartBlockedLocked(requester *playbackSession, p *producer) bool {
+	if time.Since(p.jobStartedAt) >= vodRepositionCooldown {
+		return false
+	}
+	gap := vodForwardGap(p.plan)
+	now := time.Now()
+	for _, other := range m.sessions {
+		if other == requester || m.producers[other.info.ID] != p {
+			continue
+		}
+		if now.Sub(other.lastHeartbeat) > reconnectGrace {
+			continue
+		}
+		idx, _ := ffmpeg.SegmentIndexForTime(other.playheadSec, p.plan.vodList.Starts)
+		if idx >= p.startIndex && idx <= p.encodeHead+gap {
+			return true
+		}
+	}
+	return false
+}
+
+func vodForwardGap(plan hlsPlan) int {
+	return ffmpeg.HLSVODMaxWaitSegmentGap(plan.segmentSec, ffmpeg.DefaultHLSVODForwardGapSec)
 }
 
 func (m *Manager) newSessionLocked(ps pendingStart, jobDir, generation string, startIndex int, startSec, endSec float64) *playbackSession {
@@ -606,7 +682,6 @@ func (m *Manager) runProducer(ctx context.Context, sess *playbackSession) {
 	// Snapshot session fields under the lock; runProducer runs concurrently with
 	// code that may read or replace these fields.
 	m.mu.Lock()
-	sessionID := sess.info.ID
 	gen := sess.generation
 	jobDir := sess.jobDir
 	realPath := sess.realPath
@@ -616,7 +691,7 @@ func (m *Manager) runProducer(ctx context.Context, sess *playbackSession) {
 
 	retriedVT := false
 	for {
-		outcome := m.runProducerJob(ctx, sessionID, gen, jobDir, realPath, plan, startIndex)
+		outcome := m.runProducerJob(ctx, gen, jobDir, realPath, plan, startIndex)
 		switch outcome {
 		case producerRestartSoftware:
 			if retriedVT {
@@ -632,7 +707,7 @@ func (m *Manager) runProducer(ctx context.Context, sess *playbackSession) {
 			// runProducerJob picks the pending vodRestartIndex back up.
 			continue
 		case producerSuspended:
-			if !m.waitProducerResume(ctx, sessionID, gen) {
+			if !m.waitProducerResume(ctx, gen) {
 				return
 			}
 			// Resume where the producer left off: relaunch at the encode head
@@ -640,7 +715,7 @@ func (m *Manager) runProducer(ctx context.Context, sess *playbackSession) {
 			// partial segment left at the head by the cancelled job. A pending
 			// restart index (request-driven reposition) wins.
 			m.mu.Lock()
-			if p := m.producers[sessionID]; p != nil && p.generation == gen && p.vodRestartIndex < 0 {
+			if p := m.producerForGenerationLocked(gen); p != nil && p.vodRestartIndex < 0 {
 				p.vodRestartIndex = p.encodeHead
 				p.clearSegmentsOnStart = true
 			}
@@ -676,12 +751,12 @@ const (
 // caller decides whether the outcome ends or retries the generation. A pending
 // vodRestartIndex signalled by a segment request is consumed here so the job
 // launches at the repositioned index.
-func (m *Manager) runProducerJob(ctx context.Context, sessionID, gen, jobDir, realPath string, plan hlsPlan, startIndex int) producerOutcome {
+func (m *Manager) runProducerJob(ctx context.Context, gen, jobDir, realPath string, plan hlsPlan, startIndex int) producerOutcome {
 	jobCtx, cancel := context.WithCancel(ctx)
 	planCopy := plan
 	var vodSess *ffmpeg.HLSVODSession
 	m.mu.Lock()
-	if p := m.producers[sessionID]; p != nil {
+	if p := m.producerForGenerationLocked(gen); p != nil {
 		if p.vodRestartIndex >= 0 {
 			startIndex = p.vodRestartIndex
 			p.startIndex = startIndex
@@ -691,6 +766,7 @@ func (m *Manager) runProducerJob(ctx context.Context, sessionID, gen, jobDir, re
 		}
 		// Launching a job means the producer is no longer parked.
 		p.suspended = false
+		p.jobStarting = true
 		planCopy.vodClearFromIndex = p.clearSegmentsOnStart
 		p.clearSegmentsOnStart = false
 		vodSess = p.vodSession
@@ -698,15 +774,22 @@ func (m *Manager) runProducerJob(ctx context.Context, sessionID, gen, jobDir, re
 	m.mu.Unlock()
 	job, err := m.engine.StartVODJob(jobCtx, realPath, jobDir, planCopy, startIndex, vodSess)
 	if err != nil {
+		m.mu.Lock()
+		if p := m.producerForGenerationLocked(gen); p != nil {
+			p.jobStarting = false
+		}
+		m.mu.Unlock()
 		cancel()
 		m.failSession(gen, err)
 		return producerDone
 	}
 
 	m.mu.Lock()
-	if p := m.producers[sessionID]; p != nil && p.generation == gen {
+	if p := m.producerForGenerationLocked(gen); p != nil {
+		p.jobStarting = false
 		p.job = job
 		p.cancel = cancel
+		p.jobStartedAt = time.Now()
 	} else {
 		// The session went away (or was superseded) while ffmpeg started.
 		job.Cancel()
@@ -733,9 +816,20 @@ func (m *Manager) runProducerJob(ctx context.Context, sessionID, gen, jobDir, re
 			m.mu.Lock()
 			restartSeek := false
 			suspended := false
-			if p := m.producers[sessionID]; p != nil {
+			if p := m.producerForGenerationLocked(gen); p != nil {
 				restartSeek = p.vodRestartIndex >= 0
 				suspended = p.suspended && !restartSeek
+				if !restartSeek && !suspended && err == nil && plan.vodList.Count() > 0 {
+					m.refreshVODEncodeHead(p, jobDir, plan)
+					if p.encodeHead < plan.vodList.Count() {
+						// A bounded job stopped at an already-ready tail, or
+						// ffmpeg otherwise ended without covering the whole
+						// timeline. Park the producer for demand-driven resume
+						// instead of finalizing an incomplete generation.
+						p.suspended = true
+						suspended = true
+					}
+				}
 			}
 			m.mu.Unlock()
 			if restartSeek {
@@ -765,7 +859,7 @@ func (m *Manager) runProducerJob(ctx context.Context, sessionID, gen, jobDir, re
 				m.markRunning(gen)
 			}
 			m.mu.Lock()
-			if p := m.producers[sessionID]; p != nil {
+			if p := m.producerForGenerationLocked(gen); p != nil {
 				m.refreshVODEncodeHead(p, jobDir, plan)
 			}
 			m.mu.Unlock()
@@ -776,11 +870,11 @@ func (m *Manager) runProducerJob(ctx context.Context, sessionID, gen, jobDir, re
 // waitProducerResume parks a producer suspended for all-paused playback until
 // demand (segment request or un-pause heartbeat) wakes it. Returns false when
 // the producer was detached or superseded while parked so the goroutine exits.
-func (m *Manager) waitProducerResume(ctx context.Context, sessionID, generation string) bool {
+func (m *Manager) waitProducerResume(ctx context.Context, generation string) bool {
 	m.mu.Lock()
-	p := m.producers[sessionID]
+	p := m.producerForGenerationLocked(generation)
 	m.mu.Unlock()
-	if p == nil || p.generation != generation {
+	if p == nil {
 		return false
 	}
 	select {
@@ -790,7 +884,7 @@ func (m *Manager) waitProducerResume(ctx context.Context, sessionID, generation 
 	}
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	return m.producers[sessionID] == p && p.generation == generation
+	return m.producerForGenerationLocked(generation) == p
 }
 
 // resumeProducerLocked wakes a producer suspended because every client was
@@ -800,6 +894,7 @@ func (m *Manager) resumeProducerLocked(p *producer) {
 	if p == nil {
 		return
 	}
+	p.lastDemandAt = time.Now()
 	select {
 	case p.resume <- struct{}{}:
 	default:
@@ -837,7 +932,7 @@ func (m *Manager) suspendPausedProducersLocked(now time.Time) {
 		if !ok || p.suspended || !vodJobRunning(p) {
 			continue
 		}
-		if now.Sub(pausedSince[p]) < producerPauseGrace {
+		if now.Sub(pausedSince[p]) < producerPauseGrace || now.Sub(p.lastDemandAt) < producerPauseGrace {
 			continue
 		}
 		p.suspended = true
@@ -912,6 +1007,19 @@ func (m *Manager) dropProducerLocked(generation string) {
 			delete(m.producers, id)
 		}
 	}
+}
+
+// producerForGenerationLocked finds the live producer for a generation. It is
+// keyed under every attached session, so the originating session's departure
+// must not orphan the goroutine while other sessions still share it. Caller
+// holds m.mu.
+func (m *Manager) producerForGenerationLocked(generation string) *producer {
+	for _, p := range m.producers {
+		if p.generation == generation {
+			return p
+		}
+	}
+	return nil
 }
 
 func (m *Manager) Stop(username, sessionID string) error {
@@ -1174,7 +1282,7 @@ func (m *Manager) OpenSegment(ctx context.Context, username, sessionID, name str
 		if parseErr != nil {
 			return nil, parseErr
 		}
-		waitCtx, cancel := context.WithTimeout(context.Background(), time.Duration(vodSegmentWaitTimeout)*time.Second)
+		waitCtx, cancel := context.WithTimeout(ctx, time.Duration(vodSegmentWaitTimeout)*time.Second)
 		defer cancel()
 		f, err := m.openVODSegment(waitCtx, sess, jobDir, segIndex)
 		if err != nil {
@@ -1267,11 +1375,12 @@ func (m *Manager) deliveryURL(sessionID string) string {
 	return fmt.Sprintf("%s/api/media/transcode/sessions/%s", m.baseURL, sessionID)
 }
 
-// sessionReusable reports whether a session's generation can serve the
-// requested playhead. Live generations serve any in-bounds target (segment
-// requests reposition the job as needed); a generation that began mid-file can
-// never serve segments before its start index, so such targets reposition.
-func sessionReusable(sess *playbackSession, startSec float64) bool {
+// sessionReusableLocked reports whether a session's generation can serve the
+// requested playhead. Sessions on a live producer reuse only targets inside
+// the producer's servable window — a far target gets its own generation
+// rather than restarting the shared job. Sessions on a completed generation
+// cover anything at or after its first index. Caller holds m.mu.
+func (m *Manager) sessionReusableLocked(sess *playbackSession, startSec float64) bool {
 	switch sess.state {
 	case StateStarting, StateRunning, StateCompleted:
 	default:
@@ -1279,6 +1388,9 @@ func sessionReusable(sess *playbackSession, startSec float64) bool {
 	}
 	if startSec < -seekBackwardEpsSec || startSec > sess.plan.mediaDurationSec+seekBackwardEpsSec {
 		return false
+	}
+	if p := m.producers[sess.info.ID]; p != nil {
+		return m.producerCoversTargetLocked(p, startSec)
 	}
 	return sess.startIndex <= 0 || startSec >= vodPlaylistStartSec(sess.plan, sess.startIndex)-seekBackwardEpsSec
 }
