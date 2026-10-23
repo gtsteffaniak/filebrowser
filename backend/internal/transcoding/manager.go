@@ -699,10 +699,25 @@ func (m *Manager) runProducer(ctx context.Context, sess *playbackSession) {
 			}
 			retriedVT = true
 			logger.Warningf("transcode generation=%s hardware decode unreliable, restarting with software decode", gen)
-			if err := m.store.ClearGenerationOutput(jobDir); err != nil {
-				logger.Warningf("transcode generation=%s clearing output before decode retry: %v", gen, err)
-			}
 			plan.decodeProfile.ForceSoftware = true
+			// Keep the segments the hardware-decode run already produced — they
+			// are valid output. Wiping the generation made every viewer refetch
+			// it and stranded the request for the segment in flight when the
+			// decoder failed (the client aborted it as a 503). Resume at the
+			// encode head so only the partial segment at the failure point is
+			// rewritten.
+			m.mu.Lock()
+			if p := m.producerForGenerationLocked(gen); p != nil {
+				// Refresh from disk first: the failing job may have published a
+				// segment since the last tick, and resuming behind it would
+				// re-encode output that is already good.
+				m.refreshVODEncodeHead(p, jobDir, plan)
+				if p.vodRestartIndex < 0 {
+					p.vodRestartIndex = p.encodeHead
+				}
+				p.clearSegmentsOnStart = true
+			}
+			m.mu.Unlock()
 		case producerRestartSeek:
 			// runProducerJob picks the pending vodRestartIndex back up.
 			continue

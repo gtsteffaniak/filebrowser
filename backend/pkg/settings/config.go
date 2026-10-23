@@ -414,18 +414,13 @@ const (
 )
 
 // clampTranscodeReadRate enforces throttled producers: unset or sub-realtime
-// read rates are raised, so a producer is never left unthrottled.
+// read rates are raised, so a producer is never left unthrottled. Burst and
+// catch-up pacing are left to ffmpeg's defaults.
 func clampTranscodeReadRate(t *MediaTranscode) {
 	if t.ReadRate <= 0 {
 		t.ReadRate = defaultTranscodeReadRate
 	} else if t.ReadRate < minTranscodeReadRate {
 		t.ReadRate = minTranscodeReadRate
-	}
-	if t.ReadRateInitialBurst < 0 {
-		t.ReadRateInitialBurst = 0
-	}
-	if t.ReadRateCatchup < 0 {
-		t.ReadRateCatchup = 0
 	}
 }
 
@@ -1071,6 +1066,7 @@ func SetDefaults(generate bool) Settings {
 		MaxConcurrentPerUser: 1,
 		CacheMaxSizeMB:       10240,
 		CacheRetentionH:      24,
+		ReadRate:             defaultTranscodeReadRate,
 		Profiles:             DefaultTranscodeProfiles(),
 	}
 	return s

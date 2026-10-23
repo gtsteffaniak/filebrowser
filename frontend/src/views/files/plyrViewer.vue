@@ -244,7 +244,7 @@ import {
   formatArtist
 } from '@/utils/playbackQueue.js';
 import { getTypeFromMime } from '@/utils/files.js';
-import { buildItemUrl } from '@/utils/url.js';
+import { buildItemUrl, removeTrailingSlash } from '@/utils/url.js';
 import AudioPanel from "@/components/files/AudioPanel.vue";
 import { getters, mutations, state } from '@/store';
 import { getObjectProperty } from '@/utils/object.js';
@@ -315,6 +315,19 @@ let pendingFullscreenResume = false;
 let pendingPipResume = false;
 let pendingResumeTimestamp = 0;
 let mediaSessionOwner = 0;
+
+/**
+ * Percent-decode a route path, tolerating malformed escapes. Vue Router and
+ * buildItemUrl do not always encode the same characters (spaces, quotes,
+ * parentheses), so route-leave checks compare both forms.
+ */
+function decodePathSafely(path) {
+  try {
+    return decodeURI(path);
+  } catch (_) {
+    return path;
+  }
+}
 
 export default {
   name: "plyrViewer",
@@ -1005,6 +1018,9 @@ export default {
   },
   async mounted() {
     initPipSession();
+    // Record the mounted file before any async prepare step so route-leave
+    // detection works while Plyr is still waiting on subtitles/metadata.
+    this.mountedPreviewKey = resolvePipMediaKey(this.req?.source, this.req?.path);
     if (this.previewType === 'video' || this.previewType === 'audio') {
       await this.preparePlyrMount();
     }
@@ -1178,7 +1194,21 @@ export default {
       }
       const expected = buildItemUrl(source, path);
       const current = state.route.path;
-      if (current === expected || current.startsWith(`${expected}#`)) {
+      const normalizedCurrent = removeTrailingSlash(current);
+      const normalizedExpected = removeTrailingSlash(expected);
+      if (
+        normalizedCurrent === normalizedExpected
+        || current === expected
+        || current.startsWith(`${expected}#`)
+      ) {
+        return;
+      }
+      // Encoding differences must not look like a route change while the file
+      // is still open, nor hide a real departure.
+      if (
+        decodePathSafely(normalizedCurrent) === decodePathSafely(normalizedExpected)
+        || decodePathSafely(current).startsWith(`${decodePathSafely(expected)}#`)
+      ) {
         return;
       }
       this.destroyPlyr();
@@ -1282,6 +1312,9 @@ export default {
           this.stopMediaElement(media);
           this.player.destroy();
           this.player = null;
+          // hls.js can re-attach its MediaSource while Plyr tears down; stop the
+          // element once more so no audio survives the unmount.
+          this.stopMediaElement(media);
         }
       } else if (leavingInPip && media) {
         registerPipSession(media, {

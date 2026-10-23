@@ -10,6 +10,13 @@ All notable changes to this project will be documented in this file. For commit 
  - Seeks inside a completed transcode generation now happen in place — the player treats the whole produced playlist as servable instead of clamping to the buffered window or needlessly restarting the transcode.
  - Fixed the seek bar dead on completed transcode sessions: pinning the element duration prevented hls.js from setting the MediaSource duration, which left `seekable` empty so the browser discarded every seek.
  - Media settings: acceleration device selector (CPU / auto / detected GPU devices) and per-preset encoder backend overrides, replacing the hardware acceleration toggle.
+- Transcoding producer rate limit now defaults to 2× realtime; the rate-limit burst and catch-up overrides were removed so ffmpeg's defaults apply.
+
+ **Bug Fixes**:
+ - Closing a video preview from the header bar now stops playback immediately instead of leaving audio running in the background.
+ - Closing a preview no longer navigates back to the same file when a stale "previous item" was remembered from an earlier navigation.
+ - Transcoding recovers from unreliable hardware decoding without discarding the segments already produced: the retry resumes at the encode head with software decode instead of wiping the generation and re-encoding from the start.
+ - The player no longer aborts a segment request after 10 seconds while the transcode producer is repositioning or restarting, which previously surfaced as a 503 and a skipped segment.
 
 ## v2.1.3
 

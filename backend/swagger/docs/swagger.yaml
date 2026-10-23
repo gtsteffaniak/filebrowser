@@ -748,14 +748,6 @@ definitions:
         description: 'VOD producer input pacing in Nx realtime (-readrate); unset
           or <1 clamps to >=1 (default: 2)'
         type: number
-      readRateCatchup:
-        description: post-stall recovery rate (-readrate_catchup, ffmpeg >= 8.0);
-          0 = ffmpeg default
-        type: number
-      readRateInitialBurst:
-        description: unthrottled media seconds at each producer start/restart (-readrate_initial_burst,
-          ffmpeg >= 6.1); 0 = none
-        type: number
     type: object
   settings.OidcConfig:
     properties:

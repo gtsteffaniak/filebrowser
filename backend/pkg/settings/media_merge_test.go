@@ -81,6 +81,10 @@ func TestSanitizeMediaSettings(t *testing.T) {
 	if out.Transcode.Profiles.Quality.AvgBitrateKbps != 0 {
 		t.Fatalf("quality avgBitrateKbps = %d, want 0", out.Transcode.Profiles.Quality.AvgBitrateKbps)
 	}
+	// An unset read rate is raised to the throttled default, not left off.
+	if out.Transcode.ReadRate != 2 {
+		t.Fatalf("readRate = %v, want the 2 default", out.Transcode.ReadRate)
+	}
 }
 
 func TestDefaultTranscodeProfiles(t *testing.T) {

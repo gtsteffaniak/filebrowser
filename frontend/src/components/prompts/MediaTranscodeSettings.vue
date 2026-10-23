@@ -50,24 +50,6 @@
             <input id="transcodeReadRate" class="sizeInput input" :disabled="isLocked('transcode.readRate')" :title="fieldTooltip('transcode.readRate')" v-model.number="media.transcode.readRate" type="number" min="1" step="0.5" />
           </div>
         </div>
-        <div class="settings-number-input item">
-          <div class="no-padding">
-            <label for="transcodeReadRateInitialBurst">{{ $t("media.transcodeReadRateInitialBurst") }}</label>
-            <HelpTooltipIcon :text="isLocked('transcode.readRateInitialBurst') ? lockMessageText : $t('media.transcodeReadRateInitialBurstHelp')" />
-          </div>
-          <div class="no-padding">
-            <input id="transcodeReadRateInitialBurst" class="sizeInput input" :disabled="isLocked('transcode.readRateInitialBurst')" :title="fieldTooltip('transcode.readRateInitialBurst')" v-model.number="media.transcode.readRateInitialBurst" type="number" min="0" step="1" />
-          </div>
-        </div>
-        <div class="settings-number-input item">
-          <div class="no-padding">
-            <label for="transcodeReadRateCatchup">{{ $t("media.transcodeReadRateCatchup") }}</label>
-            <HelpTooltipIcon :text="isLocked('transcode.readRateCatchup') ? lockMessageText : $t('media.transcodeReadRateCatchupHelp')" />
-          </div>
-          <div class="no-padding">
-            <input id="transcodeReadRateCatchup" class="sizeInput input" :disabled="isLocked('transcode.readRateCatchup')" :title="fieldTooltip('transcode.readRateCatchup')" v-model.number="media.transcode.readRateCatchup" type="number" min="0" step="0.5" />
-          </div>
-        </div>
       </div>
 
       <div v-for="profile in profiles" :key="profile.id" class="settings-items">

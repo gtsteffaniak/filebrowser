@@ -524,13 +524,20 @@ export default {
       mutations.closeHovers();
       this.hoverNav = false;
       mutations.setNavigationGestureHint({});
-      if (state.previousHistoryItem?.name) {
+      const prev = state.previousHistoryItem;
+      // Consume the remembered item so a later close does not return here.
+      mutations.setPreviousHistoryItem(null);
+      const current = state.req;
+      const prevIsCurrent = prev?.path && current?.path
+        && prev.source === current.source
+        && prev.path === current.path;
+      if (prev?.name && !prevIsCurrent) {
         url.goToItem(
-          state.previousHistoryItem.source,
-          state.previousHistoryItem.path,
-          state.previousHistoryItem,
+          prev.source,
+          prev.path,
+          prev,
           false,
-          state.previousHistoryItem.isShare
+          prev.isShare
         );
         return;
       }

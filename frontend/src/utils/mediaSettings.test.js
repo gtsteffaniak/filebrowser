@@ -82,6 +82,13 @@ describe('mediaSettings', () => {
       expect(merged.transcode.profiles.datasaver.encoderBackend).toBe('');
     });
 
+    it('defaults the producer rate limit to 2x realtime when unset or zero', () => {
+      expect(mergeMediaSettings(undefined).transcode.readRate).toBe(2);
+      expect(mergeMediaSettings({ transcode: { readRate: 0 } }).transcode.readRate).toBe(2);
+      expect(mergeMediaSettings({ transcode: { readRate: 1.5 } }).transcode.readRate).toBe(1.5);
+      expect(mergeMediaSettings({ transcode: { readRate: 4 } }).transcode.readRate).toBe(4);
+    });
+
     it('merges accelDevice and per-preset encoderBackend overrides', () => {
       const merged = mergeMediaSettings({
         accelDevice: 'renderD128',

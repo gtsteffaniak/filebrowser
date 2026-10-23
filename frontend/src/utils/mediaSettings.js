@@ -21,8 +21,6 @@ export function emptyMediaTranscode() {
     cacheRetentionH: 24,
     encoderBackend: '',
     readRate: 2,
-    readRateInitialBurst: 0,
-    readRateCatchup: 0,
     profiles: {
       quality: emptyTranscodeProfile(0, 0),
       // 720p balanced / 480p data saver: matches the backend defaults.
@@ -43,6 +41,12 @@ export function emptyMediaSettings() {
   };
 }
 
+/** Producer pacing is always throttled: unset or non-positive values fall back to 2x. */
+export function normalizeTranscodeReadRate(value) {
+  const rate = Number(value);
+  return Number.isFinite(rate) && rate > 0 ? rate : 2;
+}
+
 /** Overlay a server response onto the defaults so partial payloads stay usable. */
 export function mergeMediaSettings(loaded) {
   const base = emptyMediaSettings();
@@ -57,6 +61,7 @@ export function mergeMediaSettings(loaded) {
     transcode: {
       ...base.transcode,
       ...(value.transcode || {}),
+      readRate: normalizeTranscodeReadRate(value.transcode?.readRate),
       profiles: {
         quality: { ...base.transcode.profiles.quality, ...(value.transcode?.profiles?.quality || {}) },
         balanced: { ...base.transcode.profiles.balanced, ...(value.transcode?.profiles?.balanced || {}) },

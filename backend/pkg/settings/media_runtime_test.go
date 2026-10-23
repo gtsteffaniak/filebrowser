@@ -89,6 +89,31 @@ func TestTranscodeAccessorsUseDefaultsWhenUnset(t *testing.T) {
 	}
 }
 
+// SetDefaults ships a throttled producer rate of 2x realtime (never unthrottled).
+func TestSetDefaultsTranscodeReadRate(t *testing.T) {
+	defaults := SetDefaults(true)
+	if got := defaults.Integrations.Media.Transcode.ReadRate; got != 2 {
+		t.Fatalf("default readRate = %v, want 2", got)
+	}
+}
+
+// The throttle handed to ffmpeg carries only the rate; burst and catch-up stay
+// at ffmpeg's defaults.
+func TestTranscodeThrottleConfigUsesOnlyReadRate(t *testing.T) {
+	withMediaConfig(t)
+	media := CurrentMediaSettings()
+	media.Transcode.ReadRate = 1.5
+	ApplyMediaSettings(media)
+
+	cfg := TranscodeThrottleConfig()
+	if !cfg.Enabled || cfg.Rate != 1.5 {
+		t.Fatalf("throttle = %+v, want enabled at 1.5", cfg)
+	}
+	if cfg.InitialBurst != 0 || cfg.Catchup != 0 {
+		t.Fatalf("throttle = %+v, want ffmpeg-default burst/catchup", cfg)
+	}
+}
+
 // Zero means unlimited once a size has been set explicitly.
 func TestTranscodeCacheSizeZeroMeansUnlimited(t *testing.T) {
 	withMediaConfig(t)

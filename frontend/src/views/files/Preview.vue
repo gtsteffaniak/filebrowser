@@ -795,18 +795,29 @@ export default {
     /** Same navigation as header “back” in preview (Default.vue performNavigation). */
     exitPreviewFromImageGesture() {
       mutations.closeHovers();
-      if (state.previousHistoryItem?.name) {
+      const prev = state.previousHistoryItem;
+      // Consume the remembered item so a later close does not return here.
+      mutations.setPreviousHistoryItem(null);
+      if (prev?.name && !this.isCurrentPreviewItem(prev)) {
         goToItem(
-          state.previousHistoryItem.source,
-          state.previousHistoryItem.path,
-          state.previousHistoryItem,
+          prev.source,
+          prev.path,
+          prev,
           false,
-          state.previousHistoryItem.isShare
+          prev.isShare
         );
         return;
       }
       const parentPath = removeLastDir(state.route.path);
       this.$router.push({ path: parentPath });
+    },
+    /** True when a remembered history item points at the file being previewed. */
+    isCurrentPreviewItem(item) {
+      const current = state.req;
+      if (!item?.path || !current?.path) {
+        return false;
+      }
+      return item.source === current.source && item.path === current.path;
     },
     clearTranscodeFromUrl() {
       const hasTranscode = parseTranscodeModeFromQuery(this.$route?.query);

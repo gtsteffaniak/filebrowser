@@ -932,8 +932,10 @@ func TestManagerCompletionPublishesCoverageEnd(t *testing.T) {
 }
 
 // Sustained hardware decode failures must restart the generation once with
-// software decode: the corrupt partial output is wiped so it cannot be served
-// or counted toward coverage, and a second failure does not loop restarts.
+// software decode, keeping the segments already produced and resuming at the
+// encode head — wiping the generation would strand viewers that are already
+// playing, and restarting at the session start would re-encode the whole file.
+// A second failure does not loop restarts.
 func TestManagerRestartsProducerWithSoftwareDecode(t *testing.T) {
 	engine := NewFakeEngine()
 	mgr, _ := newTestManager(t, engine)
@@ -944,12 +946,26 @@ func TestManagerRestartsProducerWithSoftwareDecode(t *testing.T) {
 	// Seed output resembling produced coverage from the failing run.
 	jobDir := sessionJobDir(t, mgr, info.ID)
 	writeProducedRange(t, jobDir, 0, 3, false)
+	pollUntil(t, 2*time.Second, func() bool {
+		return snapshotProducer(t, mgr, info.ID).encodeHead >= 3
+	}, "encode head to advance past the produced segments")
 
 	engine.LastJob().SetVTUnreliable()
 
 	waitForStarts(t, engine, 2)
 	if got := engine.LastPlan().decodeProfile; !got.ForceSoftware {
 		t.Fatalf("retry decode profile = %+v, want ForceSoftware", got)
+	}
+	// Resume at the encode head, not the session's original start.
+	if idx, _ := engine.LastStart(); idx != 3 {
+		t.Fatalf("retry start index = %d, want 3 (the encode head)", idx)
+	}
+	// Already-produced segments survive the retry so viewers keep playing.
+	for i := 0; i < 3; i++ {
+		segPath := filepath.Join(jobDir, "seg", fmt.Sprintf("%05d.m4s", i))
+		if _, err := os.Stat(segPath); err != nil {
+			t.Fatalf("segment %d was removed by the decode retry: %v", i, err)
+		}
 	}
 	if sess := sessionFor(t, mgr, info.ID); sess == nil {
 		t.Fatal("session should survive the decode retry")
@@ -1360,7 +1376,7 @@ func writeProducedRange(t *testing.T, genDir string, firstIdx, count int, endLis
 		t.Fatal(err)
 	}
 	if endList {
-		if err := os.WriteFile(filepath.Join(genDir, vodCompleteMarker), []byte(fmt.Sprintf("%g\n", float64(count)*4)), 0o644); err != nil {
+		if err := os.WriteFile(filepath.Join(genDir, vodCompleteMarker), fmt.Appendf(nil, "%g\n", float64(count)*4), 0o644); err != nil {
 			t.Fatal(err)
 		}
 	}

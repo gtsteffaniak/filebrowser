@@ -157,7 +157,7 @@ func (s *Store) WriteVODComplete(jobDir string, durationSec float64) error {
 	if err := s.assertContained(s.root, path); err != nil {
 		return err
 	}
-	return os.WriteFile(path, []byte(fmt.Sprintf("%.6f\n", durationSec)), 0o644)
+	return os.WriteFile(path, fmt.Appendf(nil, "%.6f\n", durationSec), 0o644)
 }
 
 func (s *Store) vodCompleteDuration(jobDir string) (float64, bool) {

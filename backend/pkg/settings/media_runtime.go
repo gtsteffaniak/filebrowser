@@ -166,16 +166,15 @@ func TranscodeCacheMaxSizeBytes() int64 {
 }
 
 // TranscodeThrottleConfig returns the readrate pacing applied to VOD producers.
-// Enabled only when readRate > 0; burst/catchup flags are version-gated by ffmpeg.
+// Burst and catch-up pacing are left at ffmpeg's defaults. Enabled only when
+// readRate > 0; the configured rate is always >= 1.
 func TranscodeThrottleConfig() encode.ThrottleConfig {
 	mediaMu.RLock()
 	defer mediaMu.RUnlock()
 	t := Config.Integrations.Media.Transcode
 	return encode.ThrottleConfig{
-		Enabled:      t.ReadRate > 0,
-		Rate:         t.ReadRate,
-		InitialBurst: t.ReadRateInitialBurst,
-		Catchup:      t.ReadRateCatchup,
+		Enabled: t.ReadRate > 0,
+		Rate:    t.ReadRate,
 	}
 }
 

@@ -306,6 +306,26 @@ export function attachHlsToVideo({
           },
         },
       },
+      fragLoadPolicy: {
+        default: {
+          // Segments are produced on demand, so a seek or a producer restart
+          // (hardware→software decode retry) can keep the first byte waiting
+          // well past hls.js's 10s default. Aborting at 10s cancelled the
+          // request server-side and surfaced as a 503 + skipped segment.
+          maxTimeToFirstByteMs: 45_000,
+          maxLoadTimeMs: 120_000,
+          timeoutRetry: {
+            maxNumRetry: 4,
+            retryDelayMs: 1000,
+            maxRetryDelayMs: 8000,
+          },
+          errorRetry: {
+            maxNumRetry: 6,
+            retryDelayMs: 1000,
+            maxRetryDelayMs: 8000,
+          },
+        },
+      },
       xhrSetup(xhr, url) {
         xhr.withCredentials = true;
         for (const [key, value] of Object.entries(authHeaders())) {
@@ -322,6 +342,18 @@ export function attachHlsToVideo({
 
     const cleanup = () => {
       transcodeLog('hls destroy', { sessionId: session?.id });
+      // Detach before destroy: destroying with a live MediaSource attached can
+      // leave the element feeding buffered audio after the preview unmounts.
+      try {
+        hls.stopLoad();
+      } catch (_) {
+        // ignore
+      }
+      try {
+        hls.detachMedia();
+      } catch (_) {
+        // ignore
+      }
       hls.destroy();
     };
 
