@@ -17,6 +17,14 @@ All notable changes to this project will be documented in this file. For commit 
 
  **Bug Fixes**:
  - fix(auth): apply stored permission caps for customized API tokens with no global flags enabled; minimal tokens still inherit the owner's permissions
+ - Preview generation for WebP images (encode as JPEG thumbnail) ([#3259](https://github.com/gtsteffaniak/filebrowser/pull/3259), [#3254](https://github.com/gtsteffaniak/filebrowser/issues/3254))
+ - Public share pages show configured banner when API returns `bannerUrl` ([#3250](https://github.com/gtsteffaniak/filebrowser/pull/3250), [#3246](https://github.com/gtsteffaniak/filebrowser/issues/3246))
+ - Tar extraction creates hard-linked files instead of skipping `TypeLink` entries ([#3234](https://github.com/gtsteffaniak/filebrowser/pull/3234))
+ - Embedded JPEG previews for additional RAW/camera formats (ARW, RW2, RAW, RWL) ([#3243](https://github.com/gtsteffaniak/filebrowser/pull/3243))
+ - fix(preview): generate WebP image previews by encoding thumbnails as JPEG ([#3259](https://github.com/gtsteffaniak/filebrowser/pull/3259)) ([#3254](https://github.com/gtsteffaniak/filebrowser/issues/3254))
+ - fix(frontend): show configured share banner on public share pages when API returns `bannerUrl` ([#3250](https://github.com/gtsteffaniak/filebrowser/pull/3250)) ([#3246](https://github.com/gtsteffaniak/filebrowser/issues/3246))
+ - fix(archive): extract tar hard-linked files instead of skipping `TypeLink` entries ([#3234](https://github.com/gtsteffaniak/filebrowser/pull/3234))
+ - fix(preview): embedded JPEG previews for additional RAW/camera formats (RTF, RW2, RAW, RWL) ([#3243](https://github.com/gtsteffaniak/filebrowser/pull/3243))
  - fix(frontend): keep source named `files` in `extractSourceFromPath` ([#3143](https://github.com/gtsteffaniak/filebrowser/issues/3143), [#3099](https://github.com/gtsteffaniak/filebrowser/pull/3099))
  - fix(frontend): load the default source when browsing `/files/` with a single configured source ([#3178](https://github.com/gtsteffaniak/filebrowser/issues/3178)) (related: [#3144](https://github.com/gtsteffaniak/filebrowser/issues/3144))
  - fix(frontend): restore upload prompt close, tab-reload, and in-app navigation guards while uploads are active (including paused uploads)

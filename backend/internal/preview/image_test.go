@@ -159,6 +159,14 @@ func TestService_Resize(t *testing.T) {
 			},
 			matcher: sizeMatcher(100, 100),
 		},
+		"resize webp falls back to jpeg": {
+			options: ResizeOptions{Width: 100, Height: 100, ResizeMode: ResizeModeFill, Format: FormatWebp},
+			source: func(t *testing.T) afero.File {
+				t.Helper()
+				return openFile(t, "testdata/gray-sample.webp")
+			},
+			matcher: formatMatcher(FormatJpeg),
+		},
 		"resize with high quality": {
 			options: ResizeOptions{Width: 100, Height: 100, ResizeMode: ResizeModeFill, Quality: QualityHigh},
 			source: func(t *testing.T) afero.File {
