@@ -272,15 +272,6 @@ func (s *Service) generateRawPreview(ctx context.Context, file iteminfo.Extended
 	case previewTypeImage:
 		ext := strings.ToLower(filepath.Ext(file.Name))
 		if iteminfo.IsRawImage(ext) {
-			if s.ffmpegService != nil {
-				previewBytes, err := s.convertImageWithFFmpeg(ctx, file.RealPath, previewSize)
-				if err == nil && len(previewBytes) >= minPreviewSize {
-					return previewBytes, nil
-				}
-				if ctx.Err() != nil {
-					return nil, ctx.Err()
-				}
-			}
 			return nil, ErrUnsupportedFormat
 		}
 		return s.generateImagePreview(ctx, file, previewSize)

@@ -1118,6 +1118,46 @@ func extractArchivedSymlink(destRoot, destPath, target string, modTime time.Time
 	return applyArchivedTimesAndPerm(destPath, fs.ModeSymlink, modTime)
 }
 
+// extractArchivedHardLink writes a copy of a regular file extracted earlier from the same
+// archive, which is what a tar hard link entry stands for.
+func extractArchivedHardLink(destRoot, destPath string, h *tar.Header, extracted map[string]os.FileInfo) error {
+	targetPath, err := safeExtractPath(destRoot, h.Linkname)
+	if err != nil {
+		return err
+	}
+	notExtracted := fmt.Errorf("hard link %q points to %q, which is not a file earlier in the archive", h.Name, h.Linkname)
+	written, ok := extracted[targetPath]
+	if !ok {
+		return notExtracted
+	}
+	src, err := os.Open(targetPath)
+	if err != nil {
+		logger.Debugf("unarchive: open hard link target: %v", err)
+		return fmt.Errorf("failed to write file from archive entry")
+	}
+	// A later entry may have replaced the target, e.g. with a symlink to another file.
+	info, err := src.Stat()
+	if err != nil || !info.Mode().IsRegular() || !os.SameFile(info, written) {
+		_ = src.Close()
+		return notExtracted
+	}
+	// The entry may name its own target, directly (GNU tar does this for a file archived
+	// twice) or through a symlink. Writing it would truncate the file it copies from.
+	if dest, err := os.Stat(destPath); err == nil && os.SameFile(dest, info) {
+		return src.Close()
+	}
+	return extractArchivedRegularFile(destPath, h.FileInfo().Mode(), h.ModTime, src)
+}
+
+// recordExtractedFile remembers the regular file written at destPath for later hard links.
+func recordExtractedFile(extracted map[string]os.FileInfo, destPath string) {
+	if info, err := os.Lstat(destPath); err == nil && info.Mode().IsRegular() {
+		extracted[destPath] = info
+	} else {
+		delete(extracted, destPath)
+	}
+}
+
 func extractZip(archivePath, destDir string) error {
 	r, err := zip.OpenReader(archivePath)
 	if err != nil {
@@ -1221,6 +1261,8 @@ func extractTarGz(archivePath, destDir string) error {
 	defer gz.Close()
 
 	tr := tar.NewReader(gz)
+	// Regular files written so far, for hard links to point at.
+	extracted := make(map[string]os.FileInfo)
 	for {
 		h, err := tr.Next()
 		if err == io.EOF {
@@ -1246,6 +1288,12 @@ func extractTarGz(archivePath, destDir string) error {
 			if err = extractArchivedRegularFile(destPath, mode, h.ModTime, io.NopCloser(tr)); err != nil {
 				return err
 			}
+			recordExtractedFile(extracted, destPath)
+		case tar.TypeLink:
+			if err = extractArchivedHardLink(destDir, destPath, h, extracted); err != nil {
+				return err
+			}
+			recordExtractedFile(extracted, destPath)
 		case tar.TypeSymlink:
 			if err = extractArchivedSymlink(destDir, destPath, h.Linkname, h.ModTime); err != nil {
 				return err
