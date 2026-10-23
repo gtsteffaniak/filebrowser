@@ -1073,12 +1073,31 @@ func extractArchivedDir(destPath string, mode fs.FileMode, modTime time.Time) er
 	return applyArchivedTimesAndPerm(destPath, mode, modTime)
 }
 
+// removeSymlinkDestination removes destPath when it is a symlink so a regular-file
+// write creates the entry at destPath instead of following the link.
+func removeSymlinkDestination(destPath string) error {
+	info, err := os.Lstat(destPath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil
+		}
+		return err
+	}
+	if info.Mode()&fs.ModeSymlink == 0 {
+		return nil
+	}
+	return os.Remove(destPath)
+}
+
 // extractArchivedRegularFile writes one regular file from src (closed by this function) and reapplies mode and mtime.
 func extractArchivedRegularFile(destPath string, mode fs.FileMode, modTime time.Time, src io.ReadCloser) error {
 	defer func() { _ = src.Close() }()
 	parent := filepath.Dir(destPath)
 	if err := os.MkdirAll(parent, fileutils.EffectiveDirPerm()); err != nil {
 		return fmt.Errorf("mkdir %q: %w", parent, err)
+	}
+	if err := removeSymlinkDestination(destPath); err != nil {
+		return err
 	}
 	perm := mode.Perm()
 	if perm == 0 {
@@ -1142,8 +1161,9 @@ func extractArchivedHardLink(destRoot, destPath string, h *tar.Header, extracted
 		return notExtracted
 	}
 	// The entry may name its own target, directly (GNU tar does this for a file archived
-	// twice) or through a symlink. Writing it would truncate the file it copies from.
-	if dest, err := os.Stat(destPath); err == nil && os.SameFile(dest, info) {
+	// twice). Writing it would truncate the file it copies from. Symlinks at destPath
+	// are replaced by extractArchivedRegularFile instead of being left in place.
+	if dest, err := os.Lstat(destPath); err == nil && dest.Mode().IsRegular() && os.SameFile(dest, info) {
 		return src.Close()
 	}
 	return extractArchivedRegularFile(destPath, h.FileInfo().Mode(), h.ModTime, src)
