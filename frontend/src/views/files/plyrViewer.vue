@@ -2374,7 +2374,8 @@ export default {
         btn.setAttribute('aria-checked', btn.getAttribute('value') === this.transcodeMode);
       }
       if (this.transcodeModeValueSpan) {
-        this.transcodeModeValueSpan.textContent = label;
+        const encoder = this.transcodePlayback?.sessionController?.session?.encoder;
+        this.transcodeModeValueSpan.textContent = encoder ? `${label} · ${encoder}` : label;
       }
     },
     setTranscodeModeMenuDisabled(disabled) {
