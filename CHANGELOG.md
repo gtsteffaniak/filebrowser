@@ -8,6 +8,8 @@ All notable changes to this project will be documented in this file. For commit 
  - Preview generation for webp broken (#3254) (#3259)
  - Share banner never shows to public visitors, returns bannerUrl but not banner (#3246) (#3250)
  - fix html/markdwon relative file preview support (#3131) (#3129) (#2355)
+ - fix(auth): apply stored permission caps for customized API tokens with no global flags enabled
+ - Archive extraction writes regular and hard-link entries at the entry path instead of following an existing symlink at that path (tar and zip)
 
 ## v2.1.3
 
@@ -32,7 +34,6 @@ All notable changes to this project will be documented in this file. For commit 
  - chunked uploads for large files like rclone `--owncloud-chunk-size` (#3112)
 
  **Bug Fixes**:
- - fix(auth): apply stored permission caps for customized API tokens with no global flags enabled; minimal tokens still inherit the owner's permissions
  - keep requested permissions when creating a user (#3130)
  - add missing file modify logging to activity viewer (#3152)
  - fix(frontend): restore upload prompt close, tab-reload, and in-app navigation guards while uploads are active (including paused uploads)
