@@ -1,9 +1,12 @@
 package indexing
 
 import (
+	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"sort"
+	"sync"
 	"testing"
 
 	dbsql "github.com/gtsteffaniak/filebrowser/backend/internal/database/sql"
@@ -114,14 +117,150 @@ func TestGetDirInfoCore_FallsBackToNamesWhenReadDirFails(t *testing.T) {
 	wantOkEntries(t, listRoot(t, idx, root))
 }
 
+func listRootErr(t *testing.T, idx *Index, root string) error {
+	t.Helper()
+	dir, err := os.Open(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer dir.Close()
+	stat, err := dir.Stat()
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = idx.GetDirInfoCore(dir, stat, "/", Options{SkipExtendedAttrs: true}, nil)
+	return err
+}
+
+var errIO = errors.New("input/output error")
+
+// An I/O error on a network mount must fail the listing; skipping it would let the scanner prune
+// files that still exist.
+func TestGetDirInfoCore_FailsWhenEntryInfoHasIOError(t *testing.T) {
+	idx, root := lstatFixture(t)
+	orig := entryInfo
+	t.Cleanup(func() { entryInfo = orig })
+	entryInfo = func(e os.DirEntry) (os.FileInfo, error) {
+		if e.Name() == "broken-junction" {
+			return nil, &os.PathError{Op: "lstat", Path: e.Name(), Err: errIO}
+		}
+		return orig(e)
+	}
+	if err := listRootErr(t, idx, root); !errors.Is(err, errIO) {
+		t.Fatalf("got %v, want the I/O error", err)
+	}
+}
+
+func TestGetDirInfoCore_FailsWhenFallbackLstatHasIOError(t *testing.T) {
+	idx, root := lstatFixture(t)
+	origRead, origLstat := readDirEntries, lstatPath
+	t.Cleanup(func() { readDirEntries, lstatPath = origRead, origLstat })
+	readDirEntries = func(f *os.File) ([]os.DirEntry, error) {
+		_, _ = f.ReadDir(-1)
+		return nil, &os.PathError{Op: "lstat", Path: "broken-junction", Err: os.ErrPermission}
+	}
+	lstatPath = func(name string) (os.FileInfo, error) {
+		if filepath.Base(name) == "broken-junction" {
+			return nil, &os.PathError{Op: "lstat", Path: name, Err: errIO}
+		}
+		return origLstat(name)
+	}
+	if err := listRootErr(t, idx, root); !errors.Is(err, errIO) {
+		t.Fatalf("got %v, want the I/O error", err)
+	}
+}
+
+// An error reading the directory itself is not retried by name, even a permission error.
+func TestGetDirInfoCore_FailsWhenDirectoryReadFails(t *testing.T) {
+	idx, root := lstatFixture(t)
+	orig := readDirEntries
+	t.Cleanup(func() { readDirEntries = orig })
+	readDirEntries = func(f *os.File) ([]os.DirEntry, error) {
+		return nil, &os.PathError{Op: "readdirent", Path: f.Name(), Err: os.ErrPermission}
+	}
+	if err := listRootErr(t, idx, root); !errors.Is(err, os.ErrPermission) {
+		t.Fatalf("got %v, want the directory read error", err)
+	}
+}
+
+// ReadDir's own lstat failing with an I/O error is not retried by name either.
+func TestGetDirInfoCore_FailsWhenReadDirLstatHasIOError(t *testing.T) {
+	idx, root := lstatFixture(t)
+	orig := readDirEntries
+	t.Cleanup(func() { readDirEntries = orig })
+	readDirEntries = func(f *os.File) ([]os.DirEntry, error) {
+		_, _ = f.ReadDir(-1)
+		return nil, &os.PathError{Op: "lstat", Path: "broken-junction", Err: errIO}
+	}
+	if err := listRootErr(t, idx, root); !errors.Is(err, errIO) {
+		t.Fatalf("got %v, want the I/O error", err)
+	}
+}
+
+func warned(path string) bool {
+	unreadableMu.Lock()
+	defer unreadableMu.Unlock()
+	_, seen := unreadableWarned[path]
+	return seen
+}
+
+func warnedCount() int {
+	unreadableMu.Lock()
+	defer unreadableMu.Unlock()
+	return len(unreadableWarned)
+}
+
+func boundWarnedSet(t *testing.T, max int) {
+	t.Helper()
+	origMax := maxUnreadableWarned
+	t.Cleanup(func() { maxUnreadableWarned = origMax })
+	unreadableMu.Lock()
+	clear(unreadableWarned)
+	maxUnreadableWarned = max
+	unreadableMu.Unlock()
+}
+
+func TestSkipUnreadable_WarnedSetIsBounded(t *testing.T) {
+	boundWarnedSet(t, 2)
+	dir := t.TempDir()
+	for _, name := range []string{"a", "b", "c"} {
+		skipUnreadable(filepath.Join(dir, name), os.ErrPermission)
+	}
+	if warned(filepath.Join(dir, "a")) || !warned(filepath.Join(dir, "c")) || warnedCount() != 1 {
+		t.Fatalf("after 3 paths with bound 2, want only the last one recorded; have %d", warnedCount())
+	}
+}
+
+func TestSkipUnreadable_WarnedSetStaysBoundedUnderConcurrency(t *testing.T) {
+	boundWarnedSet(t, 50)
+	dir := t.TempDir()
+	var wg sync.WaitGroup
+	for g := 0; g < 16; g++ {
+		wg.Add(1)
+		go func(g int) {
+			defer wg.Done()
+			for i := 0; i < 500; i++ {
+				skipUnreadable(filepath.Join(dir, fmt.Sprintf("g%d-%d", g, i)), os.ErrPermission)
+			}
+		}(g)
+	}
+	wg.Wait()
+	if n := warnedCount(); n > 50 {
+		t.Fatalf("warned set holds %d paths, bound is 50", n)
+	}
+}
+
 func TestSkipUnreadable_WarnsOncePerPath(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "junction")
 	skipUnreadable(path, os.ErrPermission)
-	if _, seen := unreadableWarned.Load(path); !seen {
+	if !warned(path) {
 		t.Fatal("first failure was not recorded")
 	}
+	if firstWarning(path) {
+		t.Fatal("a second failure on the same path would warn again")
+	}
 	skipUnreadable(path+"-gone", &os.PathError{Op: "lstat", Path: path + "-gone", Err: os.ErrNotExist})
-	if _, seen := unreadableWarned.Load(path + "-gone"); seen {
+	if warned(path + "-gone") {
 		t.Fatal("a vanished entry must not be recorded as unreadable")
 	}
 }
