@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -63,41 +62,9 @@ func (s *Store) PlaylistPath(jobDir string) string {
 	return filepath.Join(jobDir, "index.m3u8")
 }
 
-var vodSegmentFilePattern = regexp.MustCompile(`^[0-9]{5}\.m4s$`)
-
-func (s *Store) SegmentPath(jobDir, name string) (string, error) {
-	name = filepath.Base(strings.TrimSpace(name))
-	if !vodSegmentFilePattern.MatchString(name) {
-		return "", ErrInvalidSegment
-	}
-	path := filepath.Join(jobDir, "seg", name)
-	if err := s.assertContained(jobDir, path); err != nil {
-		return "", ErrInvalidSegment
-	}
-	return path, nil
-}
-
 func (s *Store) InitReady(jobDir string) bool {
 	st, err := os.Stat(s.InitPath(jobDir))
 	return err == nil && st.Size() > 0
-}
-
-// OpenSegment opens a published segment. The publisher only lists a segment in
-// index.m3u8 after it lands in seg/, so a listed segment always exists —
-// a missing file here means the generation was cleared or evicted.
-func (s *Store) OpenSegment(jobDir, name string) (*os.File, error) {
-	path, err := s.SegmentPath(jobDir, name)
-	if err != nil {
-		return nil, err
-	}
-	f, err := os.Open(path)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return nil, ErrNotReady
-		}
-		return nil, err
-	}
-	return f, nil
 }
 
 func (s *Store) OpenInit(jobDir string) (*os.File, error) {
@@ -111,29 +78,22 @@ func (s *Store) OpenInit(jobDir string) (*os.File, error) {
 	return os.Open(path)
 }
 
-// ReadServePlaylist returns the publisher's index.m3u8 verbatim plus whether
-// it lists at least one segment. The publisher atomically rewrites it as
-// segments are validated, so serving never races with ffmpeg and needs no
-// per-request readiness filtering.
-func (s *Store) ReadServePlaylist(jobDir string) ([]byte, bool, error) {
+// ReadServePlaylist returns the synthetic VOD index.m3u8 verbatim. It is
+// written once at generation start and lists the full planned segment grid.
+func (s *Store) ReadServePlaylist(jobDir string) ([]byte, error) {
 	path := s.PlaylistPath(jobDir)
 	if err := s.assertContained(jobDir, path); err != nil {
-		return nil, false, err
+		return nil, err
 	}
 	data, err := os.ReadFile(path)
 	if err != nil {
-		// The publisher has not written the playlist yet; callers poll on
-		// ErrNotReady instead of treating a missing file as a hard 500.
+		// Callers poll on ErrNotReady instead of treating a missing file as a hard 500.
 		if os.IsNotExist(err) {
-			return nil, false, ErrNotReady
+			return nil, ErrNotReady
 		}
-		return nil, false, err
+		return nil, err
 	}
-	body := string(data)
-	if strings.Contains(body, "#EXT-X-PLAYLIST-TYPE:VOD") {
-		return data, true, nil
-	}
-	return data, strings.Contains(body, "seg/"), nil
+	return data, nil
 }
 
 // WriteServePlaylist atomically publishes the host-facing media playlist.
@@ -177,11 +137,8 @@ func (s *Store) vodCompleteDuration(jobDir string) (float64, bool) {
 // on the shared segment grid. Segments before FirstIndex were never produced
 // (generations that began mid-file).
 type GenerationCoverage struct {
-	FirstIndex  int     // first produced segment index; -1 when nothing was produced
-	StartSec    float64 // unused — the VOD grid makes coverage playlist-local
-	ProducedSec float64 // servable media duration from the vod.complete marker
-	Complete    bool    // the generation ran to EOF (vod.complete marker exists)
-	HasPlaylist bool    // the serve playlist exists
+	FirstIndex int  // first produced segment index; -1 when nothing was produced
+	Complete   bool // the generation ran to EOF (vod.complete marker exists)
 }
 
 // GenerationCoverage reads the vod.complete marker plus the produced segment
@@ -191,12 +148,8 @@ func (s *Store) GenerationCoverage(jobDir string) GenerationCoverage {
 	if jobDir == "" {
 		return cov
 	}
-	if _, err := os.Stat(s.PlaylistPath(jobDir)); err == nil {
-		cov.HasPlaylist = true
-	}
-	if dur, ok := s.vodCompleteDuration(jobDir); ok {
+	if _, ok := s.vodCompleteDuration(jobDir); ok {
 		cov.FirstIndex = s.firstProducedSegmentIndex(jobDir)
-		cov.ProducedSec = dur
 		cov.Complete = true
 	}
 	return cov
@@ -281,42 +234,6 @@ func (s *Store) TouchGeneration(jobDir string) {
 	}
 	now := time.Now()
 	_ = os.Chtimes(jobDir, now, now)
-}
-
-// ClearGenerationOutput wipes a generation's produced files — segments,
-// readiness markers, playlists, init — while keeping the job directory itself.
-// Used when a running producer must restart: coverage is computed from files
-// on disk, so stale output from the failed run would otherwise be served or
-// inflate the produced edge.
-func (s *Store) ClearGenerationOutput(jobDir string) error {
-	if jobDir == "" {
-		return nil
-	}
-	if err := s.assertContained(s.root, jobDir); err != nil {
-		return err
-	}
-	segDir := filepath.Join(jobDir, "seg")
-	entries, err := os.ReadDir(segDir)
-	if err != nil {
-		if !os.IsNotExist(err) {
-			return err
-		}
-	} else {
-		for _, entry := range entries {
-			if entry.IsDir() {
-				continue
-			}
-			if err := os.Remove(filepath.Join(segDir, entry.Name())); err != nil && !os.IsNotExist(err) {
-				return err
-			}
-		}
-	}
-	for _, name := range []string{"init.m4s", vodCompleteMarker, ".ffmpeg-vod-segments.csv"} {
-		if err := os.Remove(filepath.Join(jobDir, name)); err != nil && !os.IsNotExist(err) {
-			return err
-		}
-	}
-	return nil
 }
 
 func (s *Store) RemoveGeneration(jobDir string) error {

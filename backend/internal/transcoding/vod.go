@@ -15,7 +15,7 @@ const (
 
 // vodSeekParams maps a requested playlist time to the ffmpeg job anchor.
 func vodSeekParams(plan hlsPlan, requestedSec float64) (startIndex int, playlistStartSec float64) {
-	if requestedSec <= 0 || plan.vodList.Count() == 0 {
+	if requestedSec <= 0 {
 		return 0, 0
 	}
 	return ffmpeg.SegmentIndexForTime(requestedSec, plan.vodList.Starts)
@@ -43,7 +43,7 @@ func vodPlaylistStartSec(plan hlsPlan, index int) float64 {
 // planUsesExplicitCopy reports whether the plan runs copy/remux jobs with the
 // aligned -f segment muxer (SegmentList passed to the job).
 func planUsesExplicitCopy(plan hlsPlan) bool {
-	return (plan.remux || plan.videoCopy) && plan.vodList.Count() > 0
+	return plan.remux || plan.videoCopy
 }
 
 // vodDecisionConfig returns the Jellyfin-style wait/restart thresholds for a plan.

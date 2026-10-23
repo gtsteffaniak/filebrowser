@@ -145,8 +145,9 @@ function describeHlsError(data) {
  * Attach hls.js to a video element for a transcode session.
  * Resolves once enough media is buffered and playback can begin safely.
  *
- * go-ffmpeg v1.4.0+ publishes fMP4 with tfdt on the full-file decode timeline,
- * so the element and hls.js use source seconds directly (no timelineOffset).
+ * The backend serves a synthetic full-length VOD playlist; fragments carry
+ * tfdt on that playlist-local timeline (-output_ts_offset), so hls.js places
+ * them by playlist position and the element uses source seconds directly.
  */
 export function attachHlsToVideo({
   video,
@@ -410,14 +411,6 @@ export function attachHlsToVideo({
         video: describeVideo(video),
         bufferedFrags,
         minBufferFrags,
-        sessionStartSec: session?.startSec,
-        // If frag.start ≈ 0 while sessionStartSec is large, hls.js is on playlist-local
-        // time and absolute startSec math in the player will be wrong.
-        timelineCheck: bufferedFrags === 1 ? {
-          fragStart: fragInfo?.start,
-          videoCurrentTime: video?.currentTime,
-          sessionStartSec: session?.startSec,
-        } : undefined,
       });
       if (readyToPlay) {
         return;

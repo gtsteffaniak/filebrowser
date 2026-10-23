@@ -112,7 +112,6 @@ func (e *MediaEngine) BuildPlan(ctx context.Context, realPath string, profile Pr
 
 	plan.info = info
 	plan.params = params
-	plan.pipeline = pipeline
 	plan.profileMode = string(profile)
 	plan.maxHeight = maxHeightForProfile(profile)
 	plan.avgBitrateKbps = avgBitrateForProfile(profile)
@@ -121,30 +120,16 @@ func (e *MediaEngine) BuildPlan(ctx context.Context, realPath string, profile Pr
 	plan.needsTranscode = mustTranscode || (!plan.remux && !plan.videoCopy)
 
 	if plan.needsTranscode {
-		plan.encodeProfile = encodeProfileForMode(info, profile)
-		plan.decodeProfile = ffmpeg.HLSDecodeProfileForOnDemand(info)
-		// Hardware encoder limit checks need output height AND frame rate;
-		// OutputHeight comes from DefaultHLSVideoProfile, fps from the probe.
-		if fps, ferr := svc.ProbeVideoFPS(ctx, realPath); ferr == nil && fps > 0 {
-			plan.encodeProfile.FrameRate = fps
-		}
+		plan.setTranscodeProfiles(ctx, svc, realPath, profile)
 	}
 
 	var keyframes []float64
 	if plan.remux || plan.videoCopy {
 		rawKeyframes, _ := svc.ProbeVideoKeyframeTimes(ctx, realPath)
-		keyframes, plan.mediaDurationSec = ffmpeg.PrepareHLSMediaTimeline(rawKeyframes, info.Duration, info.StartTime)
-	} else {
-		_, plan.mediaDurationSec = ffmpeg.PrepareHLSMediaTimeline(nil, info.Duration, info.StartTime)
+		keyframes, _ = ffmpeg.PrepareHLSMediaTimeline(rawKeyframes, info.Duration, info.StartTime)
 	}
-	plan.keyframes = keyframes
 	plan.segmentSec = defaults.SegmentDurationSec
-	plan.vodList = ffmpeg.BuildVODSegmentList(info.Duration, plan.segmentSec, info.StartTime, keyframes)
-	if n := plan.vodList.Count(); n > 0 {
-		last := n - 1
-		plan.mediaDurationSec = plan.vodList.Starts[last] + plan.vodList.Durations[last]
-	}
-	plan.playlistBody = ffmpeg.BuildVODPlaylist(plan.vodList, ffmpeg.DefaultVODPlaylistOptions())
+	plan.buildTimeline(keyframes)
 	if plan.mediaDurationSec <= 0 {
 		return plan, ErrUnsupportedMedia
 	}
@@ -167,19 +152,8 @@ func (e *MediaEngine) BuildPlan(ctx context.Context, realPath string, profile Pr
 		plan.remux = params.Remux
 		plan.videoCopy = params.VideoCopy
 		plan.needsTranscode = true
-		plan.encodeProfile = encodeProfileForMode(info, profile)
-		plan.decodeProfile = ffmpeg.HLSDecodeProfileForOnDemand(info)
-		if fps, ferr := svc.ProbeVideoFPS(ctx, realPath); ferr == nil && fps > 0 {
-			plan.encodeProfile.FrameRate = fps
-		}
-		plan.keyframes = nil
-		_, plan.mediaDurationSec = ffmpeg.PrepareHLSMediaTimeline(nil, info.Duration, info.StartTime)
-		plan.vodList = ffmpeg.BuildVODSegmentList(info.Duration, plan.segmentSec, info.StartTime, nil)
-		if n := plan.vodList.Count(); n > 0 {
-			last := n - 1
-			plan.mediaDurationSec = plan.vodList.Starts[last] + plan.vodList.Durations[last]
-		}
-		plan.playlistBody = ffmpeg.BuildVODPlaylist(plan.vodList, ffmpeg.DefaultVODPlaylistOptions())
+		plan.setTranscodeProfiles(ctx, svc, realPath, profile)
+		plan.buildTimeline(nil)
 	}
 
 	cacheID := ffmpeg.HLSCacheIdentity{
@@ -196,6 +170,32 @@ func (e *MediaEngine) BuildPlan(ctx context.Context, realPath string, profile Pr
 	// unverifiable timelines, so the cache namespace is versioned.
 	plan.cacheFingerprint = "vod-" + ffmpeg.HLSCacheFingerprint(cacheID)
 	return plan, nil
+}
+
+// setTranscodeProfiles resolves the encode/decode profiles for a transcode plan.
+func (plan *hlsPlan) setTranscodeProfiles(ctx context.Context, svc *ffmpeg.Service, realPath string, profile Profile) {
+	plan.encodeProfile = encodeProfileForMode(plan.info, profile)
+	plan.decodeProfile = ffmpeg.HLSDecodeProfileForOnDemand(plan.info)
+	// Hardware encoder limit checks need output height AND frame rate;
+	// OutputHeight comes from DefaultHLSVideoProfile, fps from the probe.
+	if fps, ferr := svc.ProbeVideoFPS(ctx, realPath); ferr == nil && fps > 0 {
+		plan.encodeProfile.FrameRate = fps
+	}
+}
+
+// buildTimeline plans the VOD segment list, media duration and playlist body
+// from the probed info and the (already prepared) keyframes; nil keyframes
+// select the fixed transcode grid.
+func (plan *hlsPlan) buildTimeline(keyframes []float64) {
+	info := plan.info
+	plan.keyframes = keyframes
+	_, plan.mediaDurationSec = ffmpeg.PrepareHLSMediaTimeline(nil, info.Duration, info.StartTime)
+	plan.vodList = ffmpeg.BuildVODSegmentList(info.Duration, plan.segmentSec, info.StartTime, keyframes)
+	if n := plan.vodList.Count(); n > 0 {
+		last := n - 1
+		plan.mediaDurationSec = plan.vodList.Starts[last] + plan.vodList.Durations[last]
+	}
+	plan.playlistBody = ffmpeg.BuildVODPlaylist(plan.vodList, ffmpeg.DefaultVODPlaylistOptions())
 }
 
 func (e *MediaEngine) StartVODJob(ctx context.Context, realPath, outputDir string, plan hlsPlan, startIndex int, session *ffmpeg.HLSVODSession) (VODJob, error) {
@@ -241,7 +241,6 @@ func (e *MediaEngine) StartVODJob(ctx context.Context, realPath, outputDir strin
 type hlsPlan struct {
 	info              ffmpeg.StreamInfo
 	params            ffmpeg.HLSSegmentParams
-	pipeline          ffmpeg.HLSPipelineOptions
 	profileMode       string
 	maxHeight         int
 	avgBitrateKbps    int
@@ -364,12 +363,6 @@ func legacyAccelBackend(backend string) (capabilities.AccelType, bool) {
 	default:
 		return "", false
 	}
-}
-
-// preferredEncoderAccel returns the accel backend selected for a profile.
-func preferredEncoderAccel(profile Profile) capabilities.AccelType {
-	accel, _ := preferredEncoderSelection(profile)
-	return accel
 }
 
 // transcodeBitrateConfig resolves the target bitrate: explicit config wins, then the

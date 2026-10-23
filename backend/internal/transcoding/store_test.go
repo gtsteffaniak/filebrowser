@@ -31,7 +31,7 @@ func TestStoreCreatesRootOnDemand(t *testing.T) {
 	if _, _, ok := store.FindReusableGeneration("fp"); ok {
 		t.Fatal("no generation should be reusable for a missing root")
 	}
-	if _, _, err := store.ReadServePlaylist(filepath.Join(root, "fp", "gen")); err == nil {
+	if _, err := store.ReadServePlaylist(filepath.Join(root, "fp", "gen")); err == nil {
 		t.Fatal("reading a playlist from a missing generation must fail")
 	}
 
@@ -52,17 +52,6 @@ func TestStoreCreatesRootOnDemand(t *testing.T) {
 	}
 }
 
-func TestStoreRejectsInvalidSegment(t *testing.T) {
-	store, _ := NewStore(t.TempDir())
-	jobDir := t.TempDir()
-	if _, err := store.SegmentPath(jobDir, "../etc/passwd"); err == nil {
-		t.Fatal("expected invalid segment error")
-	}
-	if _, err := store.SegmentPath(jobDir, "bad.m4s"); err == nil {
-		t.Fatal("expected invalid segment name")
-	}
-}
-
 func TestStoreReadServePlaylistMissingIsNotReady(t *testing.T) {
 	store, err := NewStore(t.TempDir())
 	if err != nil {
@@ -72,7 +61,7 @@ func TestStoreReadServePlaylistMissingIsNotReady(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, _, err = store.ReadServePlaylist(jobDir)
+	_, err = store.ReadServePlaylist(jobDir)
 	if !errors.Is(err, ErrNotReady) {
 		t.Fatalf("missing playlist: got %v, want ErrNotReady", err)
 	}

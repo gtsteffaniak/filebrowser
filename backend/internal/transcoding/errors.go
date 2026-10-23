@@ -9,7 +9,6 @@ var (
 	ErrNotOwner         = errors.New("session not owned by user")
 	ErrUserLimit        = errors.New("user transcode limit reached")
 	ErrGlobalLimit      = errors.New("global transcode limit reached")
-	ErrReplaceRequired  = errors.New("replaceSessionId required")
 	ErrInvalidProfile   = errors.New("unsupported transcode profile")
 	ErrUnsupportedMedia = errors.New("unsupported media for transcoding")
 	ErrInvalidSegment   = errors.New("invalid segment name")

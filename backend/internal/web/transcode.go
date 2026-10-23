@@ -354,7 +354,7 @@ func transcodeErrorStatus(err error) int {
 		return http.StatusNotFound
 	case errors.Is(err, transcoding.ErrNotOwner):
 		return http.StatusNotFound
-	case errors.Is(err, transcoding.ErrUserLimit), errors.Is(err, transcoding.ErrReplaceRequired):
+	case errors.Is(err, transcoding.ErrUserLimit):
 		return http.StatusConflict
 	case errors.Is(err, transcoding.ErrGlobalLimit), errors.Is(err, transcoding.ErrUnavailable), errors.Is(err, transcoding.ErrDisabled):
 		return http.StatusServiceUnavailable

@@ -201,8 +201,7 @@ func writeServeableSegment(t *testing.T, dir, name string) string {
 	return path
 }
 
-// ReadServePlaylist returns the publisher's index.m3u8 verbatim — the
-// readiness filtering lives in the publisher, so serving is a plain read.
+// ReadServePlaylist returns the synthetic index.m3u8 verbatim.
 func TestStoreReadServePlaylistVerbatim(t *testing.T) {
 	store, storeErr := NewStore(t.TempDir())
 	if storeErr != nil {
@@ -215,35 +214,12 @@ func TestStoreReadServePlaylistVerbatim(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	data, hasSegments, err := store.ReadServePlaylist(jobDir)
+	data, err := store.ReadServePlaylist(jobDir)
 	if err != nil {
 		t.Fatal(err)
-	}
-	if !hasSegments {
-		t.Fatal("expected hasSegments for a playlist listing segments")
 	}
 	if string(data) != playlist {
 		t.Fatalf("serve playlist must be verbatim, got %q", string(data))
-	}
-}
-
-// An index.m3u8 exists before its first segment publishes; hasSegments gates
-// serving an empty playlist to hls.js.
-func TestStoreReadServePlaylistEmptyIsNotReady(t *testing.T) {
-	store, storeErr := NewStore(t.TempDir())
-	if storeErr != nil {
-		t.Fatal(storeErr)
-	}
-	jobDir := t.TempDir()
-	if err := os.WriteFile(filepath.Join(jobDir, "index.m3u8"), []byte("#EXTM3U\n#EXT-X-VERSION:7\n#EXT-X-TARGETDURATION:4\n"), 0o644); err != nil {
-		t.Fatal(err)
-	}
-	_, hasSegments, err := store.ReadServePlaylist(jobDir)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if hasSegments {
-		t.Fatal("an empty published playlist must read as not ready")
 	}
 }
 

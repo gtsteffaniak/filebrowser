@@ -20,6 +20,9 @@ type HLSVODJobOptions = ops.HLSVODJobOptions
 // HLSVODSegmentJob runs a forward ffmpeg HLS encode for on-demand VOD.
 type HLSVODSegmentJob = ops.HLSVODSegmentJob
 
+// NOTE: the transcoding manager runs its own wait/restart loop; it only uses
+// the session's AcquireServePath/ReleaseServePath leases and job installation.
+//
 // HLSVODSession coordinates one cache directory / transcode profile
 // (Jellyfin DynamicHls-style): job tracking, wait/restart decisions, partial
 // segment cleanup, and per-path read leases so in-flight readers survive
@@ -90,11 +93,6 @@ func BuildVODPlaylist(list VODSegmentList, opts VODPlaylistOptions) string {
 // HLSVODSegmentPath returns the absolute path to a segment under a job directory.
 func HLSVODSegmentPath(jobDir string, index int) string {
 	return ops.HLSVODSegmentPath(jobDir, index)
-}
-
-// HLSVODInitPath returns the absolute path to init.m4s under a job directory.
-func HLSVODInitPath(outDir string) string {
-	return ops.HLSVODInitPath(outDir)
 }
 
 // HLSVODSegmentReady reports whether a segment file is a complete fMP4 fragment.

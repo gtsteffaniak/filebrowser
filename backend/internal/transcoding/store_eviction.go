@@ -47,14 +47,14 @@ func (s *Store) EvictInactive(active map[string]struct{}, maxBytes int64, maxAge
 				totalSize += gen.size
 				continue
 			}
-			if err := s.removeGenerationLogged(gen.dir, "incomplete"); err == nil {
+			if err := s.RemoveGeneration(gen.dir); err == nil {
 				evicted = append(evicted, gen.dir)
 			}
 			continue
 		}
 		totalSize += gen.size
 		if maxAge > 0 && now.Sub(gen.modTime) >= maxAge {
-			if err := s.removeGenerationLogged(gen.dir, "retention"); err == nil {
+			if err := s.RemoveGeneration(gen.dir); err == nil {
 				evicted = append(evicted, gen.dir)
 				totalSize -= gen.size
 			}
@@ -73,7 +73,7 @@ func (s *Store) EvictInactive(active map[string]struct{}, maxBytes int64, maxAge
 		if totalSize <= maxBytes {
 			break
 		}
-		if err := s.removeGenerationLogged(gen.dir, "size"); err != nil {
+		if err := s.RemoveGeneration(gen.dir); err != nil {
 			continue
 		}
 		evicted = append(evicted, gen.dir)
@@ -110,13 +110,6 @@ func (s *Store) pruneEmptyFingerprintDirs() {
 			_ = os.RemoveAll(fpDir)
 		}
 	}
-}
-
-func (s *Store) removeGenerationLogged(dir, reason string) error {
-	if err := s.RemoveGeneration(dir); err != nil {
-		return err
-	}
-	return nil
 }
 
 func (s *Store) listGenerations() ([]cacheGeneration, error) {

@@ -234,6 +234,10 @@ func TestVODMaxSegmentDuration(t *testing.T) {
 }
 
 func TestPreferredEncoderAccel(t *testing.T) {
+	preferredEncoderAccel := func(profile Profile) capabilities.AccelType {
+		accel, _ := preferredEncoderSelection(profile)
+		return accel
+	}
 	withTranscodeProfiles(t)
 	origBackend := settings.Config.Integrations.Media.Transcode.EncoderBackend
 	t.Cleanup(func() { settings.Config.Integrations.Media.Transcode.EncoderBackend = origBackend })

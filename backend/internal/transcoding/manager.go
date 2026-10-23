@@ -537,9 +537,6 @@ func (m *Manager) producerCoversTargetLocked(p *producer, targetSec float64) boo
 	if targetSec < -seekBackwardEpsSec || targetSec > p.plan.mediaDurationSec+seekBackwardEpsSec {
 		return false
 	}
-	if p.plan.vodList.Count() == 0 {
-		return true
-	}
 	targetIndex, _ := ffmpeg.SegmentIndexForTime(targetSec, p.plan.vodList.Starts)
 	if targetIndex < p.startIndex {
 		// Below the job's start the segment only exists when a previous run
@@ -617,7 +614,7 @@ func (m *Manager) newSessionLocked(ps pendingStart, jobDir, generation string, s
 			StartSec:          ps.in.StartSec,
 			EndSec:            endSec,
 			DeliveryBaseURL:   m.deliveryURL(ps.sessionID),
-			VodPlaylist:       ps.plan.vodList.Count() > 0,
+			VodPlaylist:       true,
 		},
 		reuseKey:        ps.reuseKey,
 		generation:      generation,
@@ -834,7 +831,7 @@ func (m *Manager) runProducerJob(ctx context.Context, gen, jobDir, realPath stri
 			if p := m.producerForGenerationLocked(gen); p != nil {
 				restartSeek = p.vodRestartIndex >= 0
 				suspended = p.suspended && !restartSeek
-				if !restartSeek && !suspended && err == nil && plan.vodList.Count() > 0 {
+				if !restartSeek && !suspended && err == nil {
 					m.refreshVODEncodeHead(p, jobDir, plan)
 					if p.encodeHead < plan.vodList.Count() {
 						// A bounded job stopped at an already-ready tail, or
@@ -990,7 +987,7 @@ func (m *Manager) finishProducer(generation string, err error, jobDir string, pl
 	if err != nil {
 		logger.Warningf("transcode producer exited generation=%s: %v", generation, err)
 	}
-	if err == nil && plan.vodList.Count() > 0 {
+	if err == nil {
 		m.markVODComplete(jobDir, plan.mediaDurationSec)
 	}
 	m.mu.Lock()
@@ -1292,23 +1289,20 @@ func (m *Manager) OpenSegment(ctx context.Context, username, sessionID, name str
 	if sessErr != nil {
 		return nil, sessErr
 	}
-	if sess.plan.vodList.Count() > 0 {
-		segIndex, parseErr := parseSegmentIndex(name)
-		if parseErr != nil {
-			return nil, parseErr
-		}
-		waitCtx, cancel := context.WithTimeout(ctx, time.Duration(vodSegmentWaitTimeout)*time.Second)
-		defer cancel()
-		f, err := m.openVODSegment(waitCtx, sess, jobDir, segIndex)
-		if err != nil {
-			if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
-				return nil, ErrNotReady
-			}
-			return nil, err
-		}
-		return f, nil
+	segIndex, parseErr := parseSegmentIndex(name)
+	if parseErr != nil {
+		return nil, parseErr
 	}
-	return m.store.OpenSegment(jobDir, name)
+	waitCtx, cancel := context.WithTimeout(ctx, time.Duration(vodSegmentWaitTimeout)*time.Second)
+	defer cancel()
+	f, err := m.openVODSegment(waitCtx, sess, jobDir, segIndex)
+	if err != nil {
+		if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+			return nil, ErrNotReady
+		}
+		return nil, err
+	}
+	return f, nil
 }
 
 func (m *Manager) Playlist(username, sessionID string) ([]byte, error) {
@@ -1316,15 +1310,9 @@ func (m *Manager) Playlist(username, sessionID string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	data, hasSegments, err := m.store.ReadServePlaylist(jobDir)
+	data, err := m.store.ReadServePlaylist(jobDir)
 	if err != nil {
 		return nil, err
-	}
-	if !hasSegments && !strings.Contains(string(data), "#EXT-X-PLAYLIST-TYPE:VOD") {
-		// The playlist exists but lists no published segments yet; report
-		// not-ready so the caller keeps polling instead of serving an
-		// empty playlist.
-		return nil, ErrNotReady
 	}
 	return m.rewritePlaylist(sessionID, data), nil
 }

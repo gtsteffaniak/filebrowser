@@ -49,8 +49,8 @@ const (
 )
 
 const (
-	// seekBackwardEpsSec tolerates rounding when a playhead sits right on a
-	// generation's start boundary.
+	// seekBackwardEpsSec tolerates rounding when a requested playhead sits
+	// just outside the servable range or on a segment boundary.
 	seekBackwardEpsSec = 1.0
 )
 
@@ -66,14 +66,11 @@ type SessionInfo struct {
 	StartedAt         int64        `json:"startedAt"`
 	HeartbeatInterval int          `json:"heartbeatIntervalSec"`
 	DurationSec       float64      `json:"durationSec,omitempty"`
-	// StartSec is the media-time position of the generation's first segment —
-	// the source-time offset the client adds to the 0-based HLS element
-	// timeline to recover source positions.
+	// StartSec echoes the playhead the client requested at session start. The
+	// VOD playlist is playlist-local, so clients need no offset to recover
+	// source positions.
 	StartSec float64 `json:"startSec,omitempty"`
-	// EndSec is the produced coverage end of the attached generation — the
-	// start time of its last ready segment. For completed generations this
-	// bounds the whole servable range; the client uses it to decide whether a
-	// seek target can be satisfied in-session instead of repositioning.
+	// EndSec is the end of the servable timeline (the plan's media duration).
 	EndSec          float64 `json:"endSec,omitempty"`
 	DeliveryBaseURL string  `json:"deliveryBaseUrl,omitempty"`
 	Reused          bool    `json:"reused,omitempty"`

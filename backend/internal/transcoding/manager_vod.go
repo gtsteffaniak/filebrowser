@@ -29,13 +29,6 @@ func (f *leasedSegmentFile) Close() error {
 	return err
 }
 
-// vodProducerLive reports whether the generation's producer can still emit
-// segments. Producers leave m.producers as soon as their job finishes or
-// fails, so a non-nil entry can still write or restart.
-func vodProducerLive(p *producer) bool {
-	return p != nil
-}
-
 func vodJobRunning(p *producer) bool {
 	return p != nil && p.job != nil && p.job.Running()
 }
@@ -105,13 +98,14 @@ func (m *Manager) openVODSegment(ctx context.Context, sess *playbackSession, job
 
 		action := ffmpeg.DecideHLSVODSegmentAction(cfg, view, segIndex, false)
 		if action == ffmpeg.HLSVODActionRestart {
-			if !vodProducerLive(p) {
-				// No producer can ever write this segment (finished generation
-				// or completed-generation viewer).
+			// Producers leave m.producers once their job finishes or fails, so
+			// nil means no producer can ever write this segment (finished
+			// generation or completed-generation viewer).
+			if p == nil {
 				return nil, ErrNotReady
 			}
 			m.signalVODRestart(sess, p, segIndex)
-		} else if !vodProducerLive(p) {
+		} else if p == nil {
 			// Wait action only makes sense while a producer can still write.
 			return nil, ErrNotReady
 		}
@@ -159,7 +153,7 @@ func (m *Manager) signalVODRestart(sess *playbackSession, p *producer, segIndex 
 }
 
 func (m *Manager) refreshVODEncodeHead(p *producer, jobDir string, plan hlsPlan) {
-	if p == nil || plan.vodList.Count() == 0 {
+	if p == nil {
 		return
 	}
 	// Encode head only advances over ready segments and is reset to startIndex
