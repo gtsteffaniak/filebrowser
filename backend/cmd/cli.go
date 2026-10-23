@@ -294,19 +294,7 @@ func createConfig(configpath string, noInput bool) error {
 }
 
 func generateSetupConfigYAML(config *settings.Settings) (string, error) {
-	embeddedPaths := []string{
-		"frontend/public/config.generated.yaml",
-		"../frontend/public/config.generated.yaml",
-		"internal/web/dist/config.generated.yaml",
-		"../internal/web/dist/config.generated.yaml",
-	}
-	for _, path := range embeddedPaths {
-		embeddedYaml, err := os.ReadFile(path)
-		if err == nil && len(embeddedYaml) > 0 {
-			return settings.GenerateConfigYamlWithEmbedded(config, true, false, false, true, string(embeddedYaml))
-		}
-	}
-	return settings.GenerateConfigYaml(config, true, false, false, true)
+	return settings.GenerateSetupConfigYaml(config)
 }
 
 func generateYaml() {
