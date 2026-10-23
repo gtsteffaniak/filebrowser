@@ -159,8 +159,8 @@ func userDeleteHandler(w http.ResponseWriter, r *http.Request, d *Context) (int,
 // @Accept json
 // @Produce json
 // @Param X-Password header string false "Actor's current password (URL-encoded); required for password-login actors"
-// @Param data body users.User true "User data to create a new user"
-// @Success 201 {object} users.User "Created user"
+// @Param data body users.FrontendUser true "User data to create a new user"
+// @Success 201 "Created user"
 // @Failure 400 {object} map[string]string "Bad Request"
 // @Failure 401 {object} map[string]string "Unauthorized - invalid or missing actor password when required"
 // @Failure 500 {object} map[string]string "Internal Server Error"
@@ -353,7 +353,7 @@ func verifyActorPasswordForUserActions(r *http.Request, d *Context) (int, error)
 // @Param id query string false "user ID to update"
 // @Param id query string false "usename to update"
 // @Param X-Password header string false "Actor's current password (URL-encoded); required for password-login actors when updating password or any field outside NonAdminEditable"
-// @Param data body users.User true "User data to update"
+// @Param data body users.FrontendUser true "User data to update"
 // @Success 204 "No Content - User updated successfully"
 // @Failure 400 {object} map[string]string "Bad Request"
 // @Failure 401 {object} map[string]string "Unauthorized - invalid or missing actor password when required"
@@ -445,6 +445,12 @@ func userPatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 				return http.StatusForbidden, scopeErr
 			}
 			return http.StatusBadRequest, scopeErr
+		}
+	}
+
+	if state.FieldListIncludes(req.Which, "maxConcurrentTranscodes") {
+		if ceiling := settings.TranscodeMaxConcurrentPerUser(); ceiling > 0 && req.User.MaxConcurrentTranscodes > ceiling {
+			req.User.MaxConcurrentTranscodes = ceiling
 		}
 	}
 

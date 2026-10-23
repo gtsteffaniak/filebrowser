@@ -365,6 +365,17 @@ func wopiLocale(locale string) string {
 	return locale
 }
 
+// onlyOfficeUrlForSPA is the document-server URL the SPA passes to the
+// OnlyOffice editor component. Collabora opens files via WOPI instead, so the
+// URL must be blank or the frontend treats the setup as OnlyOffice.
+func onlyOfficeUrlForSPA() string {
+	office := settings.Config.Integrations.OnlyOffice
+	if office.IsCollabora() {
+		return ""
+	}
+	return office.Url
+}
+
 // officeProductForSPA names the editor office files open in: "collabora",
 // "onlyoffice", or "" when none is configured.
 func officeProductForSPA() string {

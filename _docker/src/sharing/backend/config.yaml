@@ -28,3 +28,6 @@ frontend:
       title: "Playwright"
   styling:
     disableEventThemes: true
+integrations:
+  media:
+    skipHwCheck: true

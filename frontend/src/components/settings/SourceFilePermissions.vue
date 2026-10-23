@@ -119,7 +119,7 @@ export default {
     },
     configLockTooltip(flag) {
       if (this.isConfigLocked(flag)) {
-        return this.$t("settings.userDefaultFieldLockedFromConfig");
+        return this.$t("settings.lockedFromConfig");
       }
       return "";
     },

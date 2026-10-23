@@ -140,7 +140,7 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 			Content:                  getContent,
 			Metadata:                 getMetadata,
 			AlbumArt:                 strings.Contains(r.URL.Path, "/preview"),
-			ExtractEmbeddedSubtitles: settings.Config.Integrations.Media.ExtractEmbeddedSubtitles && link.ExtractEmbeddedSubtitles,
+			ExtractEmbeddedSubtitles: settings.ExtractEmbeddedSubtitlesEnabled() && link.ExtractEmbeddedSubtitles,
 			ShowHidden:               link.ShowHidden,
 			HideFileExt:              link.HideFileExt,
 			FollowSymlinks:           true,
@@ -606,13 +606,9 @@ func getJwtUser(w http.ResponseWriter, r *http.Request, data *requestContext, fn
 	return fn(w, r, data)
 }
 
-// reusableSessionToken returns an existing FileBrowser session token carried by
-// the request when it is valid, registered, unexpired, and owned by the given
-// user. The expiry time is returned so callers can refresh the session cookie.
-// The session cookie is preferred over ExtractToken because ExtractToken would
-// otherwise select the external JwtAuth bearer (Authorization header or auth
-// query param), which is not a registered FileBrowser session and can never be
-// reused.
+// reusableSessionToken returns the request's FileBrowser session token when it
+// is valid, unexpired, and owned by the user — preferred over ExtractToken,
+// which would select a non-session JwtAuth bearer instead.
 func reusableSessionToken(r *http.Request, user *users.User) (string, time.Time) {
 	var existing string
 	var err error
@@ -849,6 +845,12 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 		// DEFER RECOVERY FUNCTION
 		defer func() {
 			if rcv := recover(); rcv != nil {
+				// ErrAbortHandler is the sentinel net/http panics with to abort a
+				// response whose client disconnected (e.g. ReverseProxy mid-copy).
+				// Re-panic so the server suppresses it instead of logging a crash.
+				if rcv == http.ErrAbortHandler {
+					panic(rcv)
+				}
 				method := r.Method
 				url := r.URL.Path
 				if r.URL.RawQuery != "" {

@@ -1065,7 +1065,7 @@ export default {
     },
     configLockTooltip(section, field) {
       if (this.isConfigLocked(section, field)) {
-        return this.$t("settings.userDefaultFieldLockedFromConfig");
+        return this.$t("settings.lockedFromConfig");
       }
       return "";
     },

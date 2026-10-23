@@ -39,3 +39,7 @@ userDefaults:
     office: true
     models: true
     highQuality: true
+
+integrations:
+  media:
+    skipHwCheck: true

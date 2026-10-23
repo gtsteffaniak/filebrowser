@@ -44,6 +44,7 @@ var userJSONFieldEnforcementPaths = map[string]string{
 	"disableSettings":            "account.disableSettings",
 	"disableUpdateNotifications": "account.disableUpdateNotifications",
 	"showAdvancedProfile":        "account.showAdvancedProfile",
+	"maxConcurrentTranscodes":    "account.maxConcurrentTranscodes",
 }
 
 var previewJSONSubfields = map[string]string{

@@ -240,19 +240,30 @@ export default {
           return;
         }
         if (getters.isPreviewView()) {
-          if (state.previousHistoryItem?.name) {
-            url.goToItem(state.previousHistoryItem.source, state.previousHistoryItem.path, state.previousHistoryItem, false, state.previousHistoryItem.isShare);
+          const prev = state.previousHistoryItem;
+          // Consume the remembered item: leaving it set would send the next
+          // close back to this same file instead of its parent directory.
+          mutations.setPreviousHistoryItem(null);
+          if (prev?.name && !this.isCurrentPreviewItem(prev)) {
+            url.goToItem(prev.source, prev.path, prev, false, prev.isShare);
             return;
-          } else {
-            // navigate to parent directory of current url
-            const parentPath = url.removeLastDir(state.route.path);
-            void router.push({ path: parentPath });
           }
+          // navigate to parent directory of current url
+          const parentPath = url.removeLastDir(state.route.path);
+          void router.push({ path: parentPath });
           return;
         }
 
         router.go(-1);
       }
+    },
+    /** True when a remembered history item points at the file being previewed. */
+    isCurrentPreviewItem(item) {
+      const current = state.req;
+      if (!item?.path || !current?.path) {
+        return false;
+      }
+      return item.source === current.source && item.path === current.path;
     },
     showSaveBeforeExitPrompt(onConfirmAction) {
       mutations.showPrompt({
