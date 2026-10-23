@@ -981,8 +981,32 @@ func GenerateYaml() {
 	fmt.Printf("Generated YAML with comments (deprecated fields filtered): %s\n", output)
 }
 
+// finalizeSecretFields returns secret field metadata for YAML redaction.
+// With no overrides, collected metadata is used (with reflection fallback). Pass nil to disable redaction.
+func finalizeSecretFields(collected SecretFieldsMap, config *Settings, secretFields ...SecretFieldsMap) SecretFieldsMap {
+	if len(secretFields) > 0 {
+		return secretFields[0]
+	}
+
+	secrets := collected
+	secretsEmpty := true
+	for typeName := range secrets {
+		if len(secrets[typeName]) > 0 {
+			secretsEmpty = false
+			break
+		}
+	}
+	if secretsEmpty {
+		if secrets == nil {
+			secrets = make(SecretFieldsMap)
+		}
+		identifySecretFieldsByReflection(reflect.ValueOf(config), "Settings", secrets)
+	}
+	return secrets
+}
+
 // GenerateConfigYaml generates YAML from a given config with options for comments and filtering
-func GenerateConfigYaml(config *Settings, showComments bool, showFull bool, filterDeprecated bool) (string, error) {
+func GenerateConfigYaml(config *Settings, showComments bool, showFull bool, filterDeprecated bool, secretFields ...SecretFieldsMap) (string, error) {
 	// Try different source paths to handle both runtime and test scenarios
 	sourcePaths := []string{
 		".",               // When running tests from settings directory
@@ -991,7 +1015,7 @@ func GenerateConfigYaml(config *Settings, showComments bool, showFull bool, filt
 	}
 
 	for _, sourcePath := range sourcePaths {
-		yamlOutput, err := GenerateConfigYamlWithSource(config, showComments, showFull, filterDeprecated, sourcePath)
+		yamlOutput, err := GenerateConfigYamlWithSource(config, showComments, showFull, filterDeprecated, sourcePath, secretFields...)
 		if err == nil {
 			return yamlOutput, nil
 		}
@@ -1002,11 +1026,11 @@ func GenerateConfigYaml(config *Settings, showComments bool, showFull bool, filt
 	}
 
 	// If all paths failed, try with empty maps to at least generate basic YAML
-	return GenerateConfigYamlWithEmptyMaps(config, showFull)
+	return GenerateConfigYamlWithEmptyMaps(config, showFull, secretFields...)
 }
 
 // GenerateConfigYamlWithEmbedded generates YAML from a given config using embedded YAML content as comment source
-func GenerateConfigYamlWithEmbedded(config *Settings, showComments bool, showFull bool, filterDeprecated bool, embeddedYaml string) (string, error) {
+func GenerateConfigYamlWithEmbedded(config *Settings, showComments bool, showFull bool, filterDeprecated bool, embeddedYaml string, secretFields ...SecretFieldsMap) (string, error) {
 	var comm CommentsMap
 	var secrets SecretFieldsMap
 	var deprecated DeprecatedFieldsMap
@@ -1034,6 +1058,8 @@ func GenerateConfigYamlWithEmbedded(config *Settings, showComments bool, showFul
 	if !filterDeprecated {
 		deprecated = make(DeprecatedFieldsMap)
 	}
+
+	secrets = finalizeSecretFields(secrets, config, secretFields...)
 
 	var node *yaml.Node
 
@@ -1165,14 +1191,13 @@ func identifyDeprecatedFieldsByReflection(v reflect.Value, typeName string, depr
 }
 
 // GenerateConfigYamlWithEmptyMaps generates YAML without comment parsing when source files are unavailable
-func GenerateConfigYamlWithEmptyMaps(config *Settings, showFull bool) (string, error) {
+func GenerateConfigYamlWithEmptyMaps(config *Settings, showFull bool, secretFields ...SecretFieldsMap) (string, error) {
 	// Create empty maps
 	comm := make(CommentsMap)
 	secrets := make(SecretFieldsMap)
 	deprecated := make(DeprecatedFieldsMap)
 
-	// Identify secret fields by reflection since we can't parse source files
-	identifySecretFieldsByReflection(reflect.ValueOf(config), "Settings", secrets)
+	secrets = finalizeSecretFields(secrets, config, secretFields...)
 
 	var node *yaml.Node
 	var err error
@@ -1217,7 +1242,7 @@ func GenerateConfigYamlWithEmptyMaps(config *Settings, showFull bool) (string, e
 }
 
 // GenerateConfigYamlWithSource generates YAML from a given config with options for comments and filtering, using a custom source path
-func GenerateConfigYamlWithSource(config *Settings, showComments bool, showFull bool, filterDeprecated bool, sourcePath string) (string, error) {
+func GenerateConfigYamlWithSource(config *Settings, showComments bool, showFull bool, filterDeprecated bool, sourcePath string, secretFields ...SecretFieldsMap) (string, error) {
 	var comm CommentsMap
 	var secrets SecretFieldsMap
 	var deprecated DeprecatedFieldsMap
@@ -1239,17 +1264,7 @@ func GenerateConfigYamlWithSource(config *Settings, showComments bool, showFull 
 		comm = make(CommentsMap)
 	}
 
-	// If secrets map is empty (directory parsing failed), use reflection to identify secrets
-	secretsEmpty := true
-	for typeName := range secrets {
-		if len(secrets[typeName]) > 0 {
-			secretsEmpty = false
-			break
-		}
-	}
-	if secretsEmpty {
-		identifySecretFieldsByReflection(reflect.ValueOf(config), "Settings", secrets)
-	}
+	secrets = finalizeSecretFields(secrets, config, secretFields...)
 
 	// If deprecated map is empty (directory parsing failed), use reflection to identify deprecated fields
 	deprecatedEmpty := true

@@ -515,3 +515,29 @@ func TestGenerateConfigYaml_OmitsEmptyRulesWhenFiltered(t *testing.T) {
 		t.Fatalf("expected empty rules to be omitted from filtered YAML, got:\n%s", out)
 	}
 }
+
+func TestGenerateSetupConfigYaml_IncludesSecretValues(t *testing.T) {
+	cfg := SetDefaults(false)
+	cfg.Server.Sources = []*Source{{Path: "./"}}
+	cfg.Auth.AdminUsername = "setup-admin"
+	cfg.Auth.AdminPassword = "setup-pass"
+
+	out, err := GenerateConfigYaml(&cfg, true, false, false, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(out, "**hidden**") {
+		t.Fatalf("expected setup YAML to include secret values, got:\n%s", out)
+	}
+	if !strings.Contains(out, "setup-admin") || !strings.Contains(out, "setup-pass") {
+		t.Fatalf("expected admin credentials in setup YAML, got:\n%s", out)
+	}
+
+	hidden, err := GenerateConfigYaml(&cfg, true, false, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(hidden, "**hidden**") {
+		t.Fatal("expected secrets to be redacted in default config YAML export")
+	}
+}

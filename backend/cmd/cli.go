@@ -303,10 +303,10 @@ func generateSetupConfigYAML(config *settings.Settings) (string, error) {
 	for _, path := range embeddedPaths {
 		embeddedYaml, err := os.ReadFile(path)
 		if err == nil && len(embeddedYaml) > 0 {
-			return settings.GenerateConfigYamlWithEmbedded(config, true, false, false, string(embeddedYaml))
+			return settings.GenerateConfigYamlWithEmbedded(config, true, false, false, string(embeddedYaml), nil)
 		}
 	}
-	return settings.GenerateConfigYaml(config, true, false, false)
+	return settings.GenerateConfigYaml(config, true, false, false, nil)
 }
 
 func generateYaml() {
