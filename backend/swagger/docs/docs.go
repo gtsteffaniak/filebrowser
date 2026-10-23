@@ -7635,6 +7635,10 @@ const docTemplate = `{
                     "description": "for backward compatibility",
                     "type": "string"
                 },
+                "minimal": {
+                    "description": "Minimal distinguishes owner-inheriting tokens from customized caps. Nil means legacy (infer from stored permissions).",
+                    "type": "boolean"
+                },
                 "name": {
                     "type": "string"
                 },
