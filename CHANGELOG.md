@@ -20,7 +20,7 @@ All notable changes to this project will be documented in this file. For commit 
  - Preview generation for WebP images (encode as JPEG thumbnail) ([#3259](https://github.com/gtsteffaniak/filebrowser/pull/3259), [#3254](https://github.com/gtsteffaniak/filebrowser/issues/3254))
  - Public share pages show configured banner when API returns `bannerUrl` ([#3250](https://github.com/gtsteffaniak/filebrowser/pull/3250), [#3246](https://github.com/gtsteffaniak/filebrowser/issues/3246))
  - Tar extraction creates hard-linked files instead of skipping `TypeLink` entries ([#3234](https://github.com/gtsteffaniak/filebrowser/pull/3234))
- - Embedded JPEG previews for additional RAW/camera formats (RTF, RW2, RAW, RWL) ([#3243](https://github.com/gtsteffaniak/filebrowser/pull/3243))
+ - Embedded JPEG previews for additional RAW/camera formats (ARW, RW2, RAW, RWL) ([#3243](https://github.com/gtsteffaniak/filebrowser/pull/3243))
  - fix(preview): generate WebP image previews by encoding thumbnails as JPEG ([#3259](https://github.com/gtsteffaniak/filebrowser/pull/3259)) ([#3254](https://github.com/gtsteffaniak/filebrowser/issues/3254))
  - fix(frontend): show configured share banner on public share pages when API returns `bannerUrl` ([#3250](https://github.com/gtsteffaniak/filebrowser/pull/3250)) ([#3246](https://github.com/gtsteffaniak/filebrowser/issues/3246))
  - fix(archive): extract tar hard-linked files instead of skipping `TypeLink` entries ([#3234](https://github.com/gtsteffaniak/filebrowser/pull/3234))
