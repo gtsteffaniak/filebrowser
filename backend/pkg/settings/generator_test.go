@@ -522,7 +522,7 @@ func TestGenerateSetupConfigYaml_IncludesSecretValues(t *testing.T) {
 	cfg.Auth.AdminUsername = "setup-admin"
 	cfg.Auth.AdminPassword = "setup-pass"
 
-	out, err := GenerateSetupConfigYaml(&cfg)
+	out, err := GenerateConfigYaml(&cfg, true, false, false, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
