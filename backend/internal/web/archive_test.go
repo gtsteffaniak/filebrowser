@@ -513,7 +513,7 @@ func TestExtractZip_symlinkDestination(t *testing.T) {
 	if err = f.Close(); err != nil {
 		t.Fatal(err)
 	}
-	if err := extractZip(zipPath, destDir); err != nil {
+	if err = extractZip(zipPath, destDir); err != nil {
 		t.Fatalf("extract: %v", err)
 	}
 	got, err := os.ReadFile(outPath)
