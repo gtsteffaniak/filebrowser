@@ -204,6 +204,28 @@ func TestOverdueScannerRunsFullScan(t *testing.T) {
 	}
 }
 
+// Serial bootstrap must reset fullScanCounter so the pass runs full scans and can rebuild
+// folderSizes; a restored counter in the quick-scan range would stat nothing.
+func TestSerialBootstrapPassResetsFullScanCounter(t *testing.T) {
+	idx := newRestoreTestIndex(t, "serial_reset", nil, persistedScanners("/"))
+	idx.setupMultiScanner(false)
+	idx.mu.Lock()
+	idx.startupScanPending = true
+	scanner := idx.scanners["/"]
+	idx.mu.Unlock()
+	scanner.withStatsLock(func() {
+		scanner.fullScanCounter = 2
+	})
+
+	idx.runSerialScanPass()
+
+	var counter int
+	scanner.withStatsRLock(func() { counter = scanner.fullScanCounter })
+	if counter != 1 {
+		t.Fatalf("after bootstrap full scan fullScanCounter = %d, want 1", counter)
+	}
+}
+
 // A scanner still within its schedule window keeps its persisted quick/full cadence.
 func TestOnScheduleScannerKeepsScanCounter(t *testing.T) {
 	idx := newRestoreTestIndex(t, "on_schedule", nil, nil)

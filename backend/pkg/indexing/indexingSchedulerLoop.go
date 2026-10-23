@@ -33,6 +33,14 @@ func computeNextSlotTime(lastScanned, ref time.Time, interval time.Duration) tim
 	return alignCeilToInterval(minNext, interval)
 }
 
+// scannerMissedAlignedSlot reports whether at least one aligned scan slot after
+// lastScanned has passed before now (e.g. process was down across a due time).
+func scannerMissedAlignedSlot(lastScanned, now time.Time, tier int) bool {
+	d := scanScheduleDuration(tier)
+	due := computeNextSlotTime(lastScanned, lastScanned, d)
+	return due.Before(now)
+}
+
 func (idx *Index) removeScannerFromSlotLocked(s *Scanner) {
 	sec := s.calendarSlotSec
 	if sec == 0 {
@@ -145,8 +153,8 @@ func (idx *Index) restoreScannerNextRuns() {
 			d := scanScheduleDuration(tier)
 			next = computeNextSlotTime(s.lastScanned, now, d)
 			s.nextRun = next
-			if s.lastScanned.Add(d).Before(now) {
-				// This scanner missed at least one scheduled run while the process
+			if scannerMissedAlignedSlot(s.lastScanned, now, tier) {
+				// This scanner missed at least one aligned slot while the process
 				// was down. In-place file edits update file mtimes but not their
 				// parent directory mtime, so quick scans cannot see them — force
 				// the first run after restart to be a full scan.
@@ -241,6 +249,10 @@ func (idx *Index) runSerialScanPass() {
 			s.removeSelf()
 			continue
 		}
+		// Folder sizes are not restored in this pass, so run a full scan.
+		s.withStatsLock(func() {
+			s.fullScanCounter = 0
+		})
 		s.executeScan()
 	}
 }

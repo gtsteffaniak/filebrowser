@@ -1,11 +1,30 @@
 package settings
 
 import (
+	"fmt"
 	"net"
 	"net/netip"
 	"strings"
 	"sync"
 )
+
+const ipv4MappedPrefixBits = 96
+
+// normalizeTrustedProxyPrefix converts IPv4-mapped IPv6 prefixes to IPv4 and
+// masks the result. Mapped prefixes must include the full ::ffff:0:0/96 anchor.
+func normalizeTrustedProxyPrefix(prefix netip.Prefix) (netip.Prefix, error) {
+	if prefix.Addr().Is4In6() {
+		if prefix.Bits() < ipv4MappedPrefixBits {
+			return netip.Prefix{}, fmt.Errorf("IPv4-mapped prefix must be at least /%d", ipv4MappedPrefixBits)
+		}
+		v4Bits := prefix.Bits() - ipv4MappedPrefixBits
+		if v4Bits > 32 {
+			v4Bits = 32
+		}
+		return netip.PrefixFrom(prefix.Addr().Unmap(), v4Bits).Masked(), nil
+	}
+	return prefix.Masked(), nil
+}
 
 var (
 	trustedProxiesMu    sync.Mutex
@@ -31,10 +50,17 @@ func TrustedProxyPrefixes() []netip.Prefix {
 			continue
 		}
 		if prefix, err := netip.ParsePrefix(entry); err == nil {
-			prefixes = append(prefixes, prefix.Masked())
+			normalized, normErr := normalizeTrustedProxyPrefix(prefix)
+			if normErr != nil {
+				continue
+			}
+			prefixes = append(prefixes, normalized)
 			continue
 		}
 		if addr, err := netip.ParseAddr(entry); err == nil {
+			if addr.Is4In6() {
+				addr = addr.Unmap()
+			}
 			prefixes = append(prefixes, netip.PrefixFrom(addr, addr.BitLen()))
 		}
 	}
@@ -96,6 +122,9 @@ func TrustedProxyClientIP(xff string) string {
 		if ip == "" {
 			continue
 		}
+		if !parseTrustedProxyHopIP(ip) {
+			return ""
+		}
 		if !ipMatchesPrefixes(ip, prefixes) {
 			return ip
 		}
@@ -107,4 +136,16 @@ func TrustedProxyClientIP(xff string) string {
 		}
 	}
 	return ""
+}
+
+func parseTrustedProxyHopIP(ip string) bool {
+	if _, err := netip.ParseAddr(ip); err == nil {
+		return true
+	}
+	host, _, err := net.SplitHostPort(ip)
+	if err != nil {
+		return false
+	}
+	_, err = netip.ParseAddr(host)
+	return err == nil
 }

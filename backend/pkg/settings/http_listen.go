@@ -27,10 +27,12 @@ func ValidateHttpConfig(h Http) error {
 		if entry == "" {
 			continue
 		}
-		if _, err := netip.ParsePrefix(entry); err != nil {
+		if prefix, err := netip.ParsePrefix(entry); err != nil {
 			if _, addrErr := netip.ParseAddr(entry); addrErr != nil {
 				return fmt.Errorf("http.trustedProxies entry %q is not a valid IP address or CIDR range", entry)
 			}
+		} else if _, err := normalizeTrustedProxyPrefix(prefix); err != nil {
+			return fmt.Errorf("http.trustedProxies entry %q: %v", entry, err)
 		}
 	}
 	return nil
