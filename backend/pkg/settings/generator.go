@@ -568,7 +568,7 @@ func readEmbeddedYaml() (string, error) {
 
 // BuildNode constructs a yaml.Node for any Go value, injecting comments on struct fields.
 func BuildNode(v reflect.Value, comm CommentsMap) (*yaml.Node, error) {
-	return buildNodeWithDefaults(v, comm, reflect.Value{}, SecretFieldsMap{}, DeprecatedFieldsMap{})
+	return buildNodeWithDefaults(v, comm, reflect.Value{}, SecretFieldsMap{}, DeprecatedFieldsMap{}, false)
 }
 
 func conditionalRulesAreUnset(rules []ConditionalRule) bool {
@@ -584,7 +584,7 @@ func conditionalRulesAreUnset(rules []ConditionalRule) bool {
 }
 
 // buildNodeWithDefaults constructs a yaml.Node for any Go value, skipping fields that match defaults, redacting secrets, and filtering deprecated fields
-func buildNodeWithDefaults(v reflect.Value, comm CommentsMap, defaults reflect.Value, secrets SecretFieldsMap, deprecated DeprecatedFieldsMap) (*yaml.Node, error) {
+func buildNodeWithDefaults(v reflect.Value, comm CommentsMap, defaults reflect.Value, secrets SecretFieldsMap, deprecated DeprecatedFieldsMap, showSecrets bool) (*yaml.Node, error) {
 	// Dereference pointers
 	if v.Kind() == reflect.Pointer {
 		if v.IsNil() {
@@ -594,7 +594,7 @@ func buildNodeWithDefaults(v reflect.Value, comm CommentsMap, defaults reflect.V
 		if defaults.IsValid() && !defaults.IsNil() {
 			defaultsElem = defaults.Elem()
 		}
-		return buildNodeWithDefaults(v.Elem(), comm, defaultsElem, secrets, deprecated)
+		return buildNodeWithDefaults(v.Elem(), comm, defaultsElem, secrets, deprecated, showSecrets)
 	}
 
 	switch v.Kind() {
@@ -728,7 +728,7 @@ func buildNodeWithDefaults(v reflect.Value, comm CommentsMap, defaults reflect.V
 					var valNode *yaml.Node
 					var err error
 					generateConfig := os.Getenv("FILEBROWSER_GENERATE_CONFIG") == "true"
-					if secrets[embeddedTypeName][embeddedField.Name] && !generateConfig {
+					if secrets[embeddedTypeName][embeddedField.Name] && !showSecrets && !generateConfig {
 						fieldValue := embeddedFieldValue.Interface()
 						if str, ok := fieldValue.(string); ok && str == "" {
 							valNode = &yaml.Node{
@@ -754,7 +754,7 @@ func buildNodeWithDefaults(v reflect.Value, comm CommentsMap, defaults reflect.V
 							}
 						}
 
-						valNode, err = buildNodeWithDefaults(embeddedFieldValue, comm, defaultEmbeddedField, secrets, deprecated)
+						valNode, err = buildNodeWithDefaults(embeddedFieldValue, comm, defaultEmbeddedField, secrets, deprecated, showSecrets)
 						if err != nil {
 							return nil, err
 						}
@@ -825,7 +825,7 @@ func buildNodeWithDefaults(v reflect.Value, comm CommentsMap, defaults reflect.V
 			var valNode *yaml.Node
 			var err error
 			generateConfig := os.Getenv("FILEBROWSER_GENERATE_CONFIG") == "true"
-			if secrets[typeName][sf.Name] && !generateConfig {
+			if secrets[typeName][sf.Name] && !showSecrets && !generateConfig {
 				// Check if the secret value is empty
 				fieldValue := currentField.Interface()
 				if str, ok := fieldValue.(string); ok && str == "" {
@@ -852,7 +852,7 @@ func buildNodeWithDefaults(v reflect.Value, comm CommentsMap, defaults reflect.V
 					defaultField = defaults.Field(i)
 				}
 
-				valNode, err = buildNodeWithDefaults(currentField, comm, defaultField, secrets, deprecated)
+				valNode, err = buildNodeWithDefaults(currentField, comm, defaultField, secrets, deprecated, showSecrets)
 				if err != nil {
 					return nil, err
 				}
@@ -881,7 +881,7 @@ func buildNodeWithDefaults(v reflect.Value, comm CommentsMap, defaults reflect.V
 			if defaults.IsValid() && i < defaults.Len() {
 				defaultElem = defaults.Index(i)
 			}
-			n, err := buildNodeWithDefaults(v.Index(i), comm, defaultElem, secrets, deprecated)
+			n, err := buildNodeWithDefaults(v.Index(i), comm, defaultElem, secrets, deprecated, showSecrets)
 			if err != nil {
 				return nil, err
 			}
@@ -925,7 +925,7 @@ func buildNodeWithDefaults(v reflect.Value, comm CommentsMap, defaults reflect.V
 				defaultVal = defaults.MapIndex(key)
 			}
 
-			valNode, err := buildNodeWithDefaults(mapVal, comm, defaultVal, secrets, deprecated)
+			valNode, err := buildNodeWithDefaults(mapVal, comm, defaultVal, secrets, deprecated, showSecrets)
 			if err != nil {
 				return nil, err
 			}
@@ -968,7 +968,7 @@ func GenerateYaml() {
 
 	// Generate YAML with comments enabled, full config, and deprecated fields filtered
 	// Use multi-directory comment parsing to get comments from all packages
-	yamlContent, err := GenerateConfigYamlWithSource(&Config, true, true, true, "pkg/settings")
+	yamlContent, err := GenerateConfigYamlWithSource(&Config, true, true, true, os.Getenv("FILEBROWSER_GENERATE_CONFIG") == "true", "pkg/settings")
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error generating YAML: %v\n", err)
 		os.Exit(1)
@@ -982,7 +982,7 @@ func GenerateYaml() {
 }
 
 // GenerateConfigYaml generates YAML from a given config with options for comments and filtering
-func GenerateConfigYaml(config *Settings, showComments bool, showFull bool, filterDeprecated bool) (string, error) {
+func GenerateConfigYaml(config *Settings, showComments bool, showFull bool, filterDeprecated bool, showSecrets bool) (string, error) {
 	// Try different source paths to handle both runtime and test scenarios
 	sourcePaths := []string{
 		".",               // When running tests from settings directory
@@ -991,7 +991,7 @@ func GenerateConfigYaml(config *Settings, showComments bool, showFull bool, filt
 	}
 
 	for _, sourcePath := range sourcePaths {
-		yamlOutput, err := GenerateConfigYamlWithSource(config, showComments, showFull, filterDeprecated, sourcePath)
+		yamlOutput, err := GenerateConfigYamlWithSource(config, showComments, showFull, filterDeprecated, showSecrets, sourcePath)
 		if err == nil {
 			return yamlOutput, nil
 		}
@@ -1002,11 +1002,11 @@ func GenerateConfigYaml(config *Settings, showComments bool, showFull bool, filt
 	}
 
 	// If all paths failed, try with empty maps to at least generate basic YAML
-	return GenerateConfigYamlWithEmptyMaps(config, showFull)
+	return GenerateConfigYamlWithEmptyMaps(config, showFull, showSecrets)
 }
 
 // GenerateConfigYamlWithEmbedded generates YAML from a given config using embedded YAML content as comment source
-func GenerateConfigYamlWithEmbedded(config *Settings, showComments bool, showFull bool, filterDeprecated bool, embeddedYaml string) (string, error) {
+func GenerateConfigYamlWithEmbedded(config *Settings, showComments bool, showFull bool, filterDeprecated bool, showSecrets bool, embeddedYaml string) (string, error) {
 	var comm CommentsMap
 	var secrets SecretFieldsMap
 	var deprecated DeprecatedFieldsMap
@@ -1039,7 +1039,7 @@ func GenerateConfigYamlWithEmbedded(config *Settings, showComments bool, showFul
 
 	if showFull {
 		// Show the full current config
-		node, err = buildNodeWithDefaults(reflect.ValueOf(config), comm, reflect.Value{}, secrets, deprecated)
+		node, err = buildNodeWithDefaults(reflect.ValueOf(config), comm, reflect.Value{}, secrets, deprecated, showSecrets)
 	} else {
 		// Show only non-default values by comparing with defaults from embedded YAML
 		defaultConfig, parseErr := parseDefaultsFromEmbeddedYaml(embeddedYaml)
@@ -1047,7 +1047,7 @@ func GenerateConfigYamlWithEmbedded(config *Settings, showComments bool, showFul
 			return "", fmt.Errorf("failed to parse defaults from embedded YAML: %v", parseErr)
 		}
 
-		node, err = buildNodeWithDefaults(reflect.ValueOf(config), comm, reflect.ValueOf(defaultConfig), secrets, deprecated)
+		node, err = buildNodeWithDefaults(reflect.ValueOf(config), comm, reflect.ValueOf(defaultConfig), secrets, deprecated, showSecrets)
 	}
 
 	if err != nil {
@@ -1165,7 +1165,7 @@ func identifyDeprecatedFieldsByReflection(v reflect.Value, typeName string, depr
 }
 
 // GenerateConfigYamlWithEmptyMaps generates YAML without comment parsing when source files are unavailable
-func GenerateConfigYamlWithEmptyMaps(config *Settings, showFull bool) (string, error) {
+func GenerateConfigYamlWithEmptyMaps(config *Settings, showFull bool, showSecrets bool) (string, error) {
 	// Create empty maps
 	comm := make(CommentsMap)
 	secrets := make(SecretFieldsMap)
@@ -1179,7 +1179,7 @@ func GenerateConfigYamlWithEmptyMaps(config *Settings, showFull bool) (string, e
 
 	if showFull {
 		// Show the full current config
-		node, err = buildNodeWithDefaults(reflect.ValueOf(config), comm, reflect.Value{}, secrets, deprecated)
+		node, err = buildNodeWithDefaults(reflect.ValueOf(config), comm, reflect.Value{}, secrets, deprecated, showSecrets)
 	} else {
 		// Show only non-default values by comparing with defaults during node building
 		// Try to use embedded YAML defaults for consistency, fallback to setDefaults
@@ -1195,7 +1195,7 @@ func GenerateConfigYamlWithEmptyMaps(config *Settings, showFull bool) (string, e
 			defaultConfig = &defaultConfigValue
 		}
 
-		node, err = buildNodeWithDefaults(reflect.ValueOf(config), comm, reflect.ValueOf(defaultConfig), secrets, deprecated)
+		node, err = buildNodeWithDefaults(reflect.ValueOf(config), comm, reflect.ValueOf(defaultConfig), secrets, deprecated, showSecrets)
 	}
 
 	if err != nil {
@@ -1217,7 +1217,7 @@ func GenerateConfigYamlWithEmptyMaps(config *Settings, showFull bool) (string, e
 }
 
 // GenerateConfigYamlWithSource generates YAML from a given config with options for comments and filtering, using a custom source path
-func GenerateConfigYamlWithSource(config *Settings, showComments bool, showFull bool, filterDeprecated bool, sourcePath string) (string, error) {
+func GenerateConfigYamlWithSource(config *Settings, showComments bool, showFull bool, filterDeprecated bool, showSecrets bool, sourcePath string) (string, error) {
 	var comm CommentsMap
 	var secrets SecretFieldsMap
 	var deprecated DeprecatedFieldsMap
@@ -1272,7 +1272,7 @@ func GenerateConfigYamlWithSource(config *Settings, showComments bool, showFull 
 
 	if showFull {
 		// Show the full current config
-		node, err = buildNodeWithDefaults(reflect.ValueOf(config), comm, reflect.Value{}, secrets, deprecated)
+		node, err = buildNodeWithDefaults(reflect.ValueOf(config), comm, reflect.Value{}, secrets, deprecated, showSecrets)
 	} else {
 		// Show only non-default values by comparing with defaults during node building
 		// Try to use embedded YAML defaults for consistency, fallback to setDefaults
@@ -1288,7 +1288,7 @@ func GenerateConfigYamlWithSource(config *Settings, showComments bool, showFull 
 			defaultConfig = &defaultConfigValue
 		}
 
-		node, err = buildNodeWithDefaults(reflect.ValueOf(config), comm, reflect.ValueOf(defaultConfig), secrets, deprecated)
+		node, err = buildNodeWithDefaults(reflect.ValueOf(config), comm, reflect.ValueOf(defaultConfig), secrets, deprecated, showSecrets)
 	}
 
 	if err != nil {
