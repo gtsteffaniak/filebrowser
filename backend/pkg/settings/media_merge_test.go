@@ -196,3 +196,10 @@ func TestEnabledTranscodeProfiles(t *testing.T) {
 		t.Fatalf("enabled profiles = %v, want [quality datasaver]", got)
 	}
 }
+
+func TestSetDefaultsEnablesAutoAcceleration(t *testing.T) {
+	m := SetDefaults(false).Integrations.Media
+	if !m.HardwareAcceleration || m.AccelDevice != "auto" {
+		t.Fatalf("defaults = hw %v device %q, want true/auto so go-ffmpeg picks the device hierarchy", m.HardwareAcceleration, m.AccelDevice)
+	}
+}

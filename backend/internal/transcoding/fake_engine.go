@@ -158,7 +158,7 @@ func (f *FakeEngine) StartVODJob(ctx context.Context, realPath, outputDir string
 	f.jobDirs = append(f.jobDirs, outputDir)
 	f.mu.Unlock()
 	_ = os.MkdirAll(filepath.Join(outputDir, "seg"), 0o755)
-	_ = os.WriteFile(filepath.Join(outputDir, "init.m4s"), []byte("fake-init-segment-bytes-for-test"), 0o644)
+	_ = os.WriteFile(filepath.Join(outputDir, "init.m4s"), fakeInitSegment(), 0o644)
 	playlist := plan.playlistBody
 	if playlist == "" {
 		playlist = "#EXTM3U\n"

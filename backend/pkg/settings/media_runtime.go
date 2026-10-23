@@ -165,16 +165,22 @@ func TranscodeCacheMaxSizeBytes() int64 {
 	return int64(mb) * 1024 * 1024
 }
 
+// transcodeInitialBurstSec is how much media a producer reads at full speed
+// before pacing starts. After a seek the player has no buffer, and with only
+// the base readrate every segment arrives just in time, so playback stalls.
+const transcodeInitialBurstSec = 20
+
 // TranscodeThrottleConfig returns the readrate pacing applied to VOD producers.
-// Burst and catch-up pacing are left at ffmpeg's defaults. Enabled only when
+// Catch-up pacing is left at ffmpeg's default. Enabled only when
 // readRate > 0; the configured rate is always >= 1.
 func TranscodeThrottleConfig() encode.ThrottleConfig {
 	mediaMu.RLock()
 	defer mediaMu.RUnlock()
 	t := Config.Integrations.Media.Transcode
 	return encode.ThrottleConfig{
-		Enabled: t.ReadRate > 0,
-		Rate:    t.ReadRate,
+		Enabled:      t.ReadRate > 0,
+		Rate:         t.ReadRate,
+		InitialBurst: transcodeInitialBurstSec,
 	}
 }
 

@@ -2,6 +2,13 @@ package transcoding
 
 import "github.com/gtsteffaniak/go-ffmpeg/mp4"
 
+// fakeInitSegment is a minimal structurally complete fMP4 init segment
+// (ftyp + moov{trak,mvex}) that passes InitSegmentComplete validation.
+func fakeInitSegment() []byte {
+	moov := makeAtom("moov", append(makeAtom("trak", nil), makeAtom("mvex", nil)...))
+	return append(makeAtom("ftyp", make([]byte, 16)), moov...)
+}
+
 // fakeVODSegmentPayload is a minimal fMP4 fragment for tests and FakeEngine.
 func fakeVODSegmentPayload() []byte {
 	return buildTestFragmentWithTFDTForTrack(0, 1, mp4.MinHLSSegmentMediaBytes)

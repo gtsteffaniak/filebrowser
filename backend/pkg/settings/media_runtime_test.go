@@ -97,9 +97,9 @@ func TestSetDefaultsTranscodeReadRate(t *testing.T) {
 	}
 }
 
-// The throttle handed to ffmpeg carries only the rate; burst and catch-up stay
-// at ffmpeg's defaults.
-func TestTranscodeThrottleConfigUsesOnlyReadRate(t *testing.T) {
+// The throttle handed to ffmpeg carries the rate plus a fixed initial burst so
+// a seek fills the player buffer quickly; catch-up stays at ffmpeg's default.
+func TestTranscodeThrottleConfigUsesRateAndInitialBurst(t *testing.T) {
 	withMediaConfig(t)
 	media := CurrentMediaSettings()
 	media.Transcode.ReadRate = 1.5
@@ -109,8 +109,8 @@ func TestTranscodeThrottleConfigUsesOnlyReadRate(t *testing.T) {
 	if !cfg.Enabled || cfg.Rate != 1.5 {
 		t.Fatalf("throttle = %+v, want enabled at 1.5", cfg)
 	}
-	if cfg.InitialBurst != 0 || cfg.Catchup != 0 {
-		t.Fatalf("throttle = %+v, want ffmpeg-default burst/catchup", cfg)
+	if cfg.InitialBurst != transcodeInitialBurstSec || cfg.Catchup != 0 {
+		t.Fatalf("throttle = %+v, want initial burst and ffmpeg-default catchup", cfg)
 	}
 }
 

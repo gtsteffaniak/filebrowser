@@ -1069,6 +1069,10 @@ func SetDefaults(generate bool) Settings {
 		ReadRate:             defaultTranscodeReadRate,
 		Profiles:             DefaultTranscodeProfiles(),
 	}
+	// Hardware acceleration is opt-out: "auto" lets go-ffmpeg follow its device
+	// hierarchy (integrated GPU, discrete GPU, then software).
+	s.Integrations.Media.HardwareAcceleration = true
+	s.Integrations.Media.AccelDevice = "auto"
 	return s
 }
 

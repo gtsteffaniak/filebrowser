@@ -121,11 +121,14 @@ func (e *MediaEngine) BuildPlan(ctx context.Context, realPath string, profile Pr
 
 	if plan.needsTranscode {
 		plan.setTranscodeProfiles(ctx, svc, realPath, profile)
+	} else {
+		plan.encoderName = "copy"
 	}
 
 	var keyframes []float64
 	if plan.remux || plan.videoCopy {
-		rawKeyframes, _ := svc.ProbeVideoKeyframeTimes(ctx, realPath)
+		rawKeyframes, _ := defaultKeyframeCache.get(ctx, keyframeKey{path: realPath, size: stat.Size(), modTime: stat.ModTime().UnixNano()},
+			func(ctx context.Context) ([]float64, error) { return svc.ProbeVideoKeyframeTimes(ctx, realPath) })
 		keyframes, _ = ffmpeg.PrepareHLSMediaTimeline(rawKeyframes, info.Duration, info.StartTime)
 	}
 	plan.segmentSec = defaults.SegmentDurationSec
@@ -176,6 +179,11 @@ func (e *MediaEngine) BuildPlan(ctx context.Context, realPath string, profile Pr
 func (plan *hlsPlan) setTranscodeProfiles(ctx context.Context, svc *ffmpeg.Service, realPath string, profile Profile) {
 	plan.encodeProfile = encodeProfileForMode(plan.info, profile)
 	plan.decodeProfile = ffmpeg.HLSDecodeProfileForOnDemand(plan.info)
+	logEncoderChoice(realPath, profile, plan.encodeProfile)
+	if sel, err := svc.ResolveVideoEncoder(plan.encodeProfile); err == nil {
+		plan.encoderName = sel.Encoder
+		plan.accelName = string(sel.Accel)
+	}
 	// Hardware encoder limit checks need output height AND frame rate;
 	// OutputHeight comes from DefaultHLSVideoProfile, fps from the probe.
 	if fps, ferr := svc.ProbeVideoFPS(ctx, realPath); ferr == nil && fps > 0 {
@@ -190,7 +198,9 @@ func (plan *hlsPlan) buildTimeline(keyframes []float64) {
 	info := plan.info
 	plan.keyframes = keyframes
 	_, plan.mediaDurationSec = ffmpeg.PrepareHLSMediaTimeline(nil, info.Duration, info.StartTime)
-	plan.vodList = ffmpeg.BuildVODSegmentList(info.Duration, plan.segmentSec, info.StartTime, keyframes)
+	// Duration and keyframes are already on the 0-based media timeline; passing
+	// the container start_time again would shift every boundary by it.
+	plan.vodList = ffmpeg.BuildVODSegmentList(plan.mediaDurationSec, plan.segmentSec, 0, keyframes)
 	if n := plan.vodList.Count(); n > 0 {
 		last := n - 1
 		plan.mediaDurationSec = plan.vodList.Starts[last] + plan.vodList.Durations[last]
@@ -230,12 +240,29 @@ func (e *MediaEngine) StartVODJob(ctx context.Context, realPath, outputDir strin
 		// Explicit-cut copy jobs align restarts to the synthetic playlist grid
 		// via -f segment -segment_times and the live .ffmpeg-vod-segments.csv.
 		opts.SegmentList = &plan.vodList
+		opts.StopIndex = copyJobStopIndex(startIndex, plan.vodList.Count())
 	}
 	job, err := svc.StartHLSVODSegmentJob(ctx, opts)
 	if err != nil {
 		return nil, err
 	}
 	return job, nil
+}
+
+// copyLookaheadSegments bounds how far a stream-copy job runs ahead of where it
+// started. Copy jobs are I/O-bound and otherwise race to EOF, writing the whole
+// file into the cache regardless of the playhead. A bounded job ends cleanly,
+// the producer parks, and the next segment request relaunches it.
+const copyLookaheadSegments = 15
+
+// copyJobStopIndex returns the segment index a copy job should stop before, or
+// 0 (unbounded) when the window already covers the rest of the file.
+func copyJobStopIndex(startIndex, count int) int {
+	stop := startIndex + copyLookaheadSegments
+	if stop >= count {
+		return 0
+	}
+	return stop
 }
 
 type hlsPlan struct {
@@ -249,6 +276,8 @@ type hlsPlan struct {
 	needsTranscode    bool
 	encodeProfile     encode.VideoProfile
 	decodeProfile     ffmpeg.VideoDecodeProfile
+	encoderName       string
+	accelName         string
 	keyframes         []float64
 	segmentSec        float64
 	mediaDurationSec  float64
@@ -317,6 +346,17 @@ func encodeProfileForMode(info ffmpeg.StreamInfo, profile Profile) encode.VideoP
 	base.Accel = accel
 	base.Encoder = encoder
 	return base
+}
+
+// logEncoderChoice records which encoder a plan will use and warns when a
+// configured backend was unavailable and silently degraded to auto.
+func logEncoderChoice(realPath string, profile Profile, p encode.VideoProfile) {
+	requested := settings.TranscodeEncoderBackend(string(profile))
+	if requested != "" && requested != "auto" && requested != "cpu" && p.Accel == "" && p.Encoder == "" {
+		logger.Warningf("transcode: encoder backend %q is unavailable for profile %s; falling back to automatic selection (%s)", requested, profile, realPath)
+		return
+	}
+	logger.Debugf("transcode: profile=%s requested backend=%q accel=%q encoder=%q", profile, requested, p.Accel, p.Encoder)
 }
 
 // preferredEncoderSelection resolves the configured encoder backend for a profile:

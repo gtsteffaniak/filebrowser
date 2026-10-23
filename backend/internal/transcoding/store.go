@@ -6,14 +6,25 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
+	"github.com/gtsteffaniak/go-ffmpeg/mp4"
 )
 
 // Store manages disk-backed HLS cache directories.
 type Store struct {
-	root string
+	root      string
+	initMu    sync.Mutex
+	initValid map[string]initStamp
+}
+
+// initStamp records the size/mtime of an init.m4s that already passed
+// structural validation so polling does not re-read the file.
+type initStamp struct {
+	size int64
+	mod  time.Time
 }
 
 // NewStore returns a store rooted at root (or the configured transcode cache
@@ -63,8 +74,30 @@ func (s *Store) PlaylistPath(jobDir string) string {
 }
 
 func (s *Store) InitReady(jobDir string) bool {
-	st, err := os.Stat(s.InitPath(jobDir))
-	return err == nil && st.Size() > 0
+	path := s.InitPath(jobDir)
+	st, err := os.Stat(path)
+	if err != nil || st.Size() == 0 {
+		return false
+	}
+	s.initMu.Lock()
+	stamp, ok := s.initValid[path]
+	s.initMu.Unlock()
+	if ok && stamp.size == st.Size() && stamp.mod.Equal(st.ModTime()) {
+		return true
+	}
+	data, err := os.ReadFile(path)
+	if err != nil || !mp4.InitSegmentComplete(data) {
+		// Only successful validations are cached: a partial init keeps
+		// reporting not-ready until ffmpeg finishes writing it.
+		return false
+	}
+	s.initMu.Lock()
+	if s.initValid == nil {
+		s.initValid = map[string]initStamp{}
+	}
+	s.initValid[path] = initStamp{size: st.Size(), mod: st.ModTime()}
+	s.initMu.Unlock()
+	return true
 }
 
 func (s *Store) OpenInit(jobDir string) (*os.File, error) {

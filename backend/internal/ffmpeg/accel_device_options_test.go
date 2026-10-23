@@ -1,9 +1,11 @@
 package ffmpeg
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/gtsteffaniak/go-ffmpeg/capabilities"
+	"github.com/gtsteffaniak/go-ffmpeg/platform"
 )
 
 func TestAccelDeviceOptionsOmitsAuto(t *testing.T) {
@@ -37,5 +39,40 @@ func TestResolveAccelDeviceWSLNVIDIA(t *testing.T) {
 	id, label := wslNVIDIAAccelDefault(caps)
 	if id != "dgpu" || label != "Dedicated GPU (NVIDIA GeForce RTX 3050)" {
 		t.Fatalf("wsl default = %q / %q", id, label)
+	}
+}
+
+func wslCaps() *capabilities.Capabilities {
+	caps := capabilities.NewCapabilities()
+	caps.Platform = capabilities.PlatformInfo{OS: "linux", WSL: true, NVIDIA: true}
+	caps.Platform.Details = map[string]string{"gpu": "NVIDIA GeForce RTX 3050"}
+	return caps
+}
+
+// WSL enumerates the NVIDIA GPU without a render node; the device menu must
+// list it once, whether it is resolved through enumeration or the WSL default.
+func TestAccelDeviceOptionsWSLListsNVIDIAOnce(t *testing.T) {
+	gpus := []platform.GPUDevice{{Name: "NVIDIA GeForce RTX 3050", Vendor: "nvidia", DeviceClass: "dgpu"}}
+	label, id, opts := resolvedAccelDeviceOptions(wslCaps(), gpus)
+	if id == "" || label == "" {
+		t.Fatalf("expected a resolved default, got %q/%q", id, label)
+	}
+	for _, o := range opts {
+		if o.ID == id || strings.Contains(o.Label, "RTX 3050") {
+			t.Fatalf("device listed twice: default=%q opts=%+v", id, opts)
+		}
+	}
+}
+
+func TestAccelDeviceOptionsKeepsDistinctGPUs(t *testing.T) {
+	gpus := []platform.GPUDevice{
+		{Name: "AMD Radeon Graphics", Vendor: "amd", DeviceClass: "igpu", Integrated: true, RenderNode: "/dev/dri/renderD128"},
+		{Name: "NVIDIA GeForce RTX 3050", Vendor: "nvidia", DeviceClass: "dgpu", RenderNode: "/dev/dri/renderD129"},
+	}
+	caps := capabilities.NewCapabilities()
+	caps.Platform.Details = map[string]string{"render_device": "/dev/dri/renderD128"}
+	_, id, opts := resolvedAccelDeviceOptions(caps, gpus)
+	if id != "/dev/dri/renderD128" || len(opts) != 1 || opts[0].ID != "/dev/dri/renderD129" {
+		t.Fatalf("id=%q opts=%+v", id, opts)
 	}
 }

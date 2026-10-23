@@ -266,3 +266,31 @@ func TestPreferredEncoderAccel(t *testing.T) {
 		t.Fatalf("unavailable nvenc = %q, want auto \"\"", got)
 	}
 }
+
+// Keyframes handed to buildTimeline are already normalized to the 0-based media
+// timeline, so a non-zero container start_time must not shift them again.
+func TestBuildTimelineDoesNotRenormalizeKeyframes(t *testing.T) {
+	plan := hlsPlan{
+		info:       ffmpeg.StreamInfo{Duration: 41.4, StartTime: 1.4},
+		segmentSec: 4,
+	}
+	plan.buildTimeline([]float64{0, 4.1, 8.2, 12.3, 16.4, 20.5, 24.6, 28.7, 32.8, 36.9})
+	want := []float64{0, 4.1, 8.2, 12.3, 16.4, 20.5, 24.6, 28.7, 32.8, 36.9}
+	if len(plan.vodList.Starts) != len(want) {
+		t.Fatalf("starts = %v, want %v", plan.vodList.Starts, want)
+	}
+	for i, s := range plan.vodList.Starts {
+		if s < want[i]-0.001 || s > want[i]+0.001 {
+			t.Fatalf("starts = %v, want %v", plan.vodList.Starts, want)
+		}
+	}
+}
+
+func TestCopyJobStopIndexWindowsTheJob(t *testing.T) {
+	if got := copyJobStopIndex(14, 200); got != 14+copyLookaheadSegments {
+		t.Fatalf("stop = %d, want %d", got, 14+copyLookaheadSegments)
+	}
+	if got := copyJobStopIndex(190, 200); got != 0 {
+		t.Fatalf("a window reaching the end must be unbounded, got %d", got)
+	}
+}

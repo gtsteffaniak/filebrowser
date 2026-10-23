@@ -1358,7 +1358,7 @@ func writeProducedRange(t *testing.T, genDir string, firstIdx, count int, endLis
 	if err := os.MkdirAll(segDir, 0o755); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(genDir, "init.m4s"), make([]byte, 1024), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(genDir, "init.m4s"), fakeInitSegment(), 0o644); err != nil {
 		t.Fatal(err)
 	}
 	var b strings.Builder
@@ -1385,3 +1385,28 @@ func writeProducedRange(t *testing.T, genDir string, firstIdx, count int, endLis
 // userIDKeyPattern matches a JSON key that looks like a user identifier, at any
 // depth — the guard TestSessionInfoOmitsUserID applies to session payloads.
 var userIDKeyPattern = regexp.MustCompile(`(?i)"user[-_ ]?id"\s*:`)
+
+// A tail job that reaches EOF must not finalize a generation with holes behind
+// it: segments 0 and 2 exist but 1 was never produced.
+func TestManagerDoesNotCompleteGenerationWithHoles(t *testing.T) {
+	engine := NewFakeEngine()
+	mgr, _ := newTestManager(t, engine)
+
+	in := testInput(t, "holes", "/v.mp4")
+	in.StartSec = 8
+	sess := mustStart(t, mgr, in)
+	waitForStarts(t, engine, 1)
+	genDir := sessionJobDir(t, mgr, sess.ID)
+	waitForPlaylistFile(t, genDir)
+	writeProducedRange(t, genDir, 0, 1, false)
+	writeServeableSegment(t, filepath.Join(genDir, "seg"), "00002.m4s")
+
+	engine.LastJob().Complete()
+	pollUntil(t, 2*time.Second, func() bool { s := snapshotProducer(t, mgr, sess.ID); return s.exists && s.suspended }, "producer to park with a hole")
+	if _, err := os.Stat(filepath.Join(genDir, vodCompleteMarker)); err == nil {
+		t.Fatal("a generation with a missing segment must not be marked complete")
+	}
+	if head := snapshotProducer(t, mgr, sess.ID).encodeHead; head != 1 {
+		t.Fatalf("encodeHead = %d, want first hole 1", head)
+	}
+}

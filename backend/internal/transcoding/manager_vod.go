@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/ffmpeg"
+	"github.com/gtsteffaniak/go-logger/logger"
 )
 
 // leasedSegmentFile wraps an opened VOD segment so Close() also releases the
@@ -61,6 +62,8 @@ func (m *Manager) openVODSegment(ctx context.Context, sess *playbackSession, job
 	segPath := ffmpeg.HLSVODSegmentPath(jobDir, segIndex)
 	explicitCopy := planUsesExplicitCopy(sess.plan)
 	cfg := vodDecisionConfig(sess.plan)
+	waitStart := time.Now()
+	waited := false
 	for {
 		if err := ctx.Err(); err != nil {
 			return nil, err
@@ -83,6 +86,10 @@ func (m *Manager) openVODSegment(ctx context.Context, sess *playbackSession, job
 			return nil, err
 		}
 		if ready && f != nil {
+			if waited {
+				logger.Debugf("transcode segment served after wait session=%s seg=%d elapsed=%s",
+					sess.info.ID, segIndex, time.Since(waitStart).Round(time.Millisecond))
+			}
 			if session == nil {
 				return f, nil
 			}
@@ -104,6 +111,8 @@ func (m *Manager) openVODSegment(ctx context.Context, sess *playbackSession, job
 			if p == nil {
 				return nil, ErrNotReady
 			}
+			logger.Debugf("transcode segment wait restart session=%s seg=%d head=%d jobStart=%d running=%v",
+				sess.info.ID, segIndex, view.EncodeHead, view.StartIndex, view.Running)
 			m.signalVODRestart(sess, p, segIndex)
 		} else if p == nil {
 			// Wait action only makes sense while a producer can still write.
@@ -117,6 +126,7 @@ func (m *Manager) openVODSegment(ctx context.Context, sess *playbackSession, job
 			m.resumeProducerLocked(p)
 			m.mu.Unlock()
 		}
+		waited = true
 		select {
 		case <-ctx.Done():
 			return nil, ctx.Err()
@@ -179,6 +189,29 @@ func (m *Manager) refreshVODEncodeHead(p *producer, jobDir string, plan hlsPlan)
 		head++
 	}
 	p.encodeHead = head
+}
+
+// firstVODHole returns the first missing segment that sits after a produced
+// one, or -1 when the produced range is contiguous through the end. A
+// generation that began mid-file has no hole: its range simply starts later.
+func (m *Manager) firstVODHole(jobDir string, plan hlsPlan) int {
+	explicitCopy := planUsesExplicitCopy(plan)
+	seen := false
+	for i := 0; i < plan.vodList.Count(); i++ {
+		var ready bool
+		var err error
+		if explicitCopy {
+			ready, err = ffmpeg.HLSVODExplicitCopySegmentReady(jobDir, i, false)
+		} else {
+			ready, err = ffmpeg.HLSVODSegmentReady(ffmpeg.HLSVODSegmentPath(jobDir, i))
+		}
+		if err == nil && ready {
+			seen = true
+		} else if seen {
+			return i
+		}
+	}
+	return -1
 }
 
 func (m *Manager) writeVODPlaylist(jobDir, body string) error {

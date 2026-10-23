@@ -76,6 +76,11 @@ type SessionInfo struct {
 	Reused          bool    `json:"reused,omitempty"`
 	// VodPlaylist marks Model A synthetic VOD playlists (playlist-local timeline).
 	VodPlaylist bool `json:"vodPlaylist,omitempty"`
+	// Encoder is the resolved video encoder for this session ("copy" for
+	// stream-copy, empty when resolution was unavailable).
+	Encoder string `json:"encoder,omitempty"`
+	// Accel is the acceleration backend behind Encoder ("nvenc", "vaapi", …).
+	Accel string `json:"accel,omitempty"`
 }
 
 // SnapshotResponse is returned by session list/status endpoints.

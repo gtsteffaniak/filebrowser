@@ -16,7 +16,7 @@ func writeCompleteGeneration(t *testing.T, genDir string, segmentBytes int) {
 	if err := os.MkdirAll(segDir, 0o755); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(genDir, "init.m4s"), make([]byte, 1024), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(genDir, "init.m4s"), fakeInitSegment(), 0o644); err != nil {
 		t.Fatal(err)
 	}
 	if err := os.WriteFile(filepath.Join(segDir, "00000.m4s"), make([]byte, segmentBytes), 0o644); err != nil {
@@ -102,6 +102,41 @@ func TestStoreEvictInactiveBySize(t *testing.T) {
 	}
 }
 
+// A partially written init.m4s must not be served: readiness requires a
+// structurally complete fMP4 init segment, not just a non-empty file.
+func TestStoreInitReadyRequiresCompleteInit(t *testing.T) {
+	store, storeErr := NewStore(t.TempDir())
+	if storeErr != nil {
+		t.Fatal(storeErr)
+	}
+	jobDir := t.TempDir()
+	initPath := store.InitPath(jobDir)
+	if store.InitReady(jobDir) {
+		t.Fatal("missing init.m4s must not be ready")
+	}
+	if err := os.WriteFile(initPath, []byte("still-writing"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if store.InitReady(jobDir) {
+		t.Fatal("garbage init.m4s must not be ready")
+	}
+	init := fakeInitSegment()
+	if err := os.WriteFile(initPath, init, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if !store.InitReady(jobDir) {
+		t.Fatal("complete init.m4s must be ready")
+	}
+	// A rewrite that truncates mid-init must flip readiness back to false —
+	// the validation cache keys on size+mtime and must not go stale.
+	if err := os.WriteFile(initPath, init[:len(init)-8], 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if store.InitReady(jobDir) {
+		t.Fatal("truncated init.m4s must not be ready")
+	}
+}
+
 // A cancelled or failed transcode leaves a generation that can never be reused;
 // it must be dropped on the next eviction instead of waiting out the retention
 // window (which defaults to 24 hours).
@@ -114,7 +149,7 @@ func TestStoreEvictsIncompleteGenerationsImmediately(t *testing.T) {
 	if err := os.MkdirAll(filepath.Join(partialDir, "seg"), 0o755); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(partialDir, "init.m4s"), make([]byte, 1024), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(partialDir, "init.m4s"), fakeInitSegment(), 0o644); err != nil {
 		t.Fatal(err)
 	}
 	// Old enough to be judged, but never completed.

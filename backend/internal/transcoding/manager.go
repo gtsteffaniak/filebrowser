@@ -615,6 +615,8 @@ func (m *Manager) newSessionLocked(ps pendingStart, jobDir, generation string, s
 			EndSec:            endSec,
 			DeliveryBaseURL:   m.deliveryURL(ps.sessionID),
 			VodPlaylist:       true,
+			Encoder:           ps.plan.encoderName,
+			Accel:             ps.plan.accelName,
 		},
 		reuseKey:        ps.reuseKey,
 		generation:      generation,
@@ -686,15 +688,10 @@ func (m *Manager) runProducer(ctx context.Context, sess *playbackSession) {
 	startIndex := sess.startIndex
 	m.mu.Unlock()
 
-	retriedVT := false
 	for {
 		outcome := m.runProducerJob(ctx, gen, jobDir, realPath, plan, startIndex)
 		switch outcome {
 		case producerRestartSoftware:
-			if retriedVT {
-				return
-			}
-			retriedVT = true
 			logger.Warningf("transcode generation=%s hardware decode unreliable, restarting with software decode", gen)
 			plan.decodeProfile.ForceSoftware = true
 			// Keep the segments the hardware-decode run already produced — they
@@ -828,6 +825,7 @@ func (m *Manager) runProducerJob(ctx context.Context, gen, jobDir, realPath stri
 			m.mu.Lock()
 			restartSeek := false
 			suspended := false
+			checkHoles := false
 			if p := m.producerForGenerationLocked(gen); p != nil {
 				restartSeek = p.vodRestartIndex >= 0
 				suspended = p.suspended && !restartSeek
@@ -840,10 +838,29 @@ func (m *Manager) runProducerJob(ctx context.Context, gen, jobDir, realPath stri
 						// instead of finalizing an incomplete generation.
 						p.suspended = true
 						suspended = true
+					} else {
+						checkHoles = true
 					}
 				}
 			}
 			m.mu.Unlock()
+			if checkHoles {
+				// The head only scans forward from the job start, so a tail job
+				// reaching EOF says nothing about segments produced before it.
+				// Scan outside the lock and park at the first hole.
+				hole := m.firstVODHole(jobDir, plan)
+				m.mu.Lock()
+				if p := m.producerForGenerationLocked(gen); p != nil && hole >= 0 {
+					if p.vodRestartIndex >= 0 {
+						restartSeek = true
+					} else {
+						p.suspended = true
+						p.encodeHead = hole
+						suspended = true
+					}
+				}
+				m.mu.Unlock()
+			}
 			if restartSeek {
 				return producerRestartSeek
 			}
@@ -984,7 +1001,9 @@ func (m *Manager) failSession(generation string, err error) {
 }
 
 func (m *Manager) finishProducer(generation string, err error, jobDir string, plan hlsPlan) {
-	if err != nil {
+	if errors.Is(err, context.Canceled) {
+		logger.Debugf("transcode producer cancelled generation=%s", generation)
+	} else if err != nil {
 		logger.Warningf("transcode producer exited generation=%s: %v", generation, err)
 	}
 	if err == nil {
@@ -1298,6 +1317,10 @@ func (m *Manager) OpenSegment(ctx context.Context, username, sessionID, name str
 	f, err := m.openVODSegment(waitCtx, sess, jobDir, segIndex)
 	if err != nil {
 		if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+			if errors.Is(waitCtx.Err(), context.DeadlineExceeded) {
+				logger.Debugf("transcode segment wait timed out session=%s seg=%d after %ds",
+					sessionID, segIndex, vodSegmentWaitTimeout)
+			}
 			return nil, ErrNotReady
 		}
 		return nil, err

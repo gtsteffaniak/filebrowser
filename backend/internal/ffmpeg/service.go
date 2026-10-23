@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"strings"
+	"sync"
 	"sync/atomic"
 
 	goffmpeg "github.com/gtsteffaniak/go-ffmpeg"
@@ -19,6 +20,21 @@ import (
 type Service struct {
 	inner    *goffmpeg.Service
 	cacheDir string
+
+	// gpus caches the host GPU enumeration, which shells out on some platforms
+	// (PowerShell on Windows) and so must not run per settings request.
+	gpusOnce sync.Once
+	gpus     []platform.GPUDevice
+}
+
+// gpuList returns the cached host GPU enumeration. A Service is replaced on
+// re-initialization, so the cache is refreshed whenever ffmpeg is re-detected.
+func (s *Service) gpuList() []platform.GPUDevice {
+	if s == nil {
+		return nil
+	}
+	s.gpusOnce.Do(func() { s.gpus, _ = platform.ListGPUs() })
+	return s.gpus
 }
 
 // FFmpegService is kept for existing callers.
@@ -129,6 +145,15 @@ func Get() *Service {
 	return global.Load()
 }
 
+// ResolveVideoEncoder returns the encoder selection for an encode profile so
+// callers can surface which encoder/accel a transcode will use.
+func (s *Service) ResolveVideoEncoder(profile goffmpeg.VideoProfile) (capabilities.EncoderSelection, error) {
+	if s == nil || s.inner == nil {
+		return capabilities.EncoderSelection{}, fmt.Errorf("ffmpeg service unavailable")
+	}
+	return s.inner.ResolveVideoEncoder(profile)
+}
+
 // Capabilities exposes the detected ffmpeg capability matrix, or nil when the
 // service is unavailable.
 func (s *Service) Capabilities() *capabilities.Capabilities {
@@ -150,7 +175,7 @@ type AccelDeviceOption struct {
 func (s *Service) AccelDeviceOptions() []AccelDeviceOption {
 	out := []AccelDeviceOption{}
 	if caps := s.Capabilities(); caps != nil {
-		defaultLabel, defaultID, gpuOpts := resolvedAccelDeviceOptions(caps)
+		defaultLabel, defaultID, gpuOpts := resolvedAccelDeviceOptions(caps, s.gpuList())
 		if defaultID != "" {
 			out = append(out, AccelDeviceOption{ID: defaultID, Label: defaultLabel})
 		}
@@ -175,7 +200,7 @@ func (s *Service) ResolveAccelDevice(device string) string {
 	if caps == nil {
 		return "software"
 	}
-	defaultLabel, defaultID, gpuOpts := resolvedAccelDeviceOptions(caps)
+	defaultLabel, defaultID, gpuOpts := resolvedAccelDeviceOptions(caps, s.gpuList())
 	if defaultID != "" {
 		return defaultID
 	}
@@ -195,13 +220,23 @@ func (s *Service) ResolveAccelDevice(device string) string {
 
 // resolvedAccelDeviceOptions labels the default auto-selected GPU and lists
 // every other enumerated device.
-func resolvedAccelDeviceOptions(caps *capabilities.Capabilities) (autoLabel, resolvedID string, opts []AccelDeviceOption) {
+func resolvedAccelDeviceOptions(caps *capabilities.Capabilities, gpus []platform.GPUDevice) (autoLabel, resolvedID string, opts []AccelDeviceOption) {
 	resolved := caps.Platform.Details["render_device"]
 	autoAccel := autoGPUAccel(caps)
-	gpus, _ := platform.ListGPUs()
+	wslID, wslLabel := wslNVIDIAAccelDefault(caps)
+	seen := map[string]bool{}
 	for _, g := range gpus {
 		label := gpuClassLabel(g) + " (" + gpuDisplayName(g) + ")"
+		if seen[accelDeviceID(g)] {
+			continue
+		}
+		seen[accelDeviceID(g)] = true
 		switch {
+		case resolvedID == "" && wslID != "" && g.Vendor == "nvidia" && g.RenderNode == "" && resolved == "" && autoAccel.Vendor == "":
+			// WSL exposes the NVIDIA GPU without a DRM node; the enumerated
+			// entry is the auto default, so it must not be listed twice.
+			autoLabel, resolvedID = label, accelDeviceID(g)
+			continue
 		case g.RenderNode != "" && g.RenderNode == resolved:
 			autoLabel, resolvedID = label, g.RenderNode
 			continue
@@ -220,11 +255,11 @@ func resolvedAccelDeviceOptions(caps *capabilities.Capabilities) (autoLabel, res
 		autoLabel = autoAccel.Name
 	}
 	if resolvedID == "" {
-		if id, label := wslNVIDIAAccelDefault(caps); id != "" {
+		if wslID != "" {
 			if autoLabel == "" {
-				autoLabel = label
+				autoLabel = wslLabel
 			}
-			resolvedID = id
+			resolvedID = wslID
 		}
 	}
 	return autoLabel, resolvedID, opts
