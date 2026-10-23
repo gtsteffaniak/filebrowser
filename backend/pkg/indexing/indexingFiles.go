@@ -134,6 +134,10 @@ type Index struct {
 	// WebDAV lock system for this source (isolated per source)
 	WebdavLock webdav.LockSystem
 
+	// DAVMutationMu arbitrates WebDAV and API mutations, including recursive
+	// operations whose descendant leases cannot be enumerated by LockSystem.
+	DAVMutationMu sync.Mutex
+
 	// Adaptive scheduler: shared slot map (UTC unix seconds -> scanners).
 	scheduleSlotsMu sync.Mutex
 	scheduleSlots   map[int64][]*Scanner

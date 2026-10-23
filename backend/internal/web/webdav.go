@@ -290,6 +290,24 @@ func (ff *filteredFile) Readdir(count int) ([]os.FileInfo, error) {
 		return ff.File.Readdir(count)
 	}
 
+	// COPY must enumerate the actual directory: a freshly moved/uploaded tree
+	// may not be indexed yet. Each entry still passes the normal access check;
+	// the recursive OpenFile/Stat calls retain their scope and ACL checks.
+	if ff.fs.httpReq != nil && ff.fs.httpReq.Method == "COPY" {
+		entries, err := ff.File.Readdir(count)
+		if err != nil {
+			return nil, err
+		}
+		visible := make([]os.FileInfo, 0, len(entries))
+		for _, entry := range entries {
+			child := path.Join(ff.requestPath, entry.Name())
+			if accessErr := ff.fs.checkAccess(child); accessErr == nil {
+				visible = append(visible, entry)
+			}
+		}
+		return visible, nil
+	}
+
 	// Pass the requestPath (without scope) to getCachedFileInfo
 	// FileInfoFaster will apply the user's scope internally
 	fileInfo, err := ff.fs.getFileInfo(ff.requestPath, true)
@@ -413,6 +431,11 @@ func (ffs *filteredFileSystem) Mkdir(ctx context.Context, name string, perm os.F
 		return err
 	}
 
+	if _, statErr := ffs.fs.Stat(ctx, name); os.IsNotExist(statErr) {
+		if err := ffs.deleteDAVProperties(name); err != nil {
+			return err
+		}
+	}
 	if err := ffs.fs.Mkdir(ctx, name, perm); err != nil {
 		return err
 	}
@@ -461,6 +484,14 @@ func (ffs *filteredFileSystem) OpenFile(ctx context.Context, requestPath string,
 		if err := ffs.checkScopePath(requestPath, false); errors.Is(err, os.ErrPermission) {
 			logger.Debugf("OpenFile: read denied by scope for %s", requestPath)
 			return nil, os.ErrPermission
+		}
+	}
+
+	if flag&os.O_CREATE != 0 {
+		if _, statErr := ffs.fs.Stat(ctx, requestPath); os.IsNotExist(statErr) {
+			if err := ffs.deleteDAVProperties(requestPath); err != nil {
+				return nil, err
+			}
 		}
 	}
 
@@ -538,6 +569,12 @@ func (ffs *filteredFileSystem) OpenFile(ctx context.Context, requestPath string,
 		}
 	}
 
+	// x/net opens PROPPATCH targets O_RDWR, including directories. Metadata
+	// updates must not open user content for writing. Access/scope checks above
+	// still use the original write flags.
+	if ffs.httpReq != nil && ffs.httpReq.Method == "PROPPATCH" {
+		flag = os.O_RDONLY
+	}
 	file, err := ffs.fs.OpenFile(ctx, requestPath, flag, perm)
 	if err != nil {
 		return nil, err
@@ -573,7 +610,7 @@ func (ffs *filteredFileSystem) RemoveAll(ctx context.Context, requestPath string
 	if err := ffs.checkScopePath(requestPath, true); err != nil {
 		logger.Debugf("RemoveAll: scope check denied for %s: %v", requestPath, err)
 		return err
-  }
+	}
 	// The API delete path frees the deleted bytes from the quota counters. Do the same
 	// here: a WebDAV DELETE, and the MOVE over an existing destination that the WebDAV
 	// library implements as RemoveAll + Rename, otherwise leave the old bytes charged
@@ -593,8 +630,11 @@ func (ffs *filteredFileSystem) RemoveAll(ctx context.Context, requestPath string
 		deleteBytes, _ = state.IndexedPathBytes(ffs.source, indexPath, true)
 	} else {
 		deleteBytes = info.Size()
-  }
+	}
 
+	if err := preflightDAVProperties(); err != nil {
+		return err
+	}
 	if err := ffs.fs.RemoveAll(ctx, requestPath); err != nil {
 		return err
 	}
@@ -605,6 +645,9 @@ func (ffs *filteredFileSystem) RemoveAll(ctx context.Context, requestPath string
 				logger.Warningf("quota adjust after webdav delete failed: %v", adjErr)
 			}
 		}
+	}
+	if err := ffs.deleteDAVProperties(requestPath); err != nil {
+		return err
 	}
 	activity.RecordWebDAVUser(ffs.httpReq, ffs.user, activitydb.Entry{
 		EventType: activitydb.EventDelete,
@@ -645,7 +688,13 @@ func (ffs *filteredFileSystem) Rename(ctx context.Context, oldPath, newPath stri
 		return err
 	}
 
+	if err := preflightDAVProperties(); err != nil {
+		return err
+	}
 	if err := ffs.fs.Rename(ctx, oldPath, newPath); err != nil {
+		return err
+	}
+	if err := ffs.moveDAVProperties(oldPath, newPath); err != nil {
 		return err
 	}
 	if ffs.skipRenameActivityFrom != "" && oldPath == ffs.skipRenameActivityFrom {
@@ -732,6 +781,17 @@ func webDAVHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, err
 		return http.StatusNotFound, fmt.Errorf("source %s not found", source)
 	}
 
+	switch r.Method {
+	case http.MethodGet, http.MethodHead, "PROPFIND", http.MethodOptions:
+	default:
+		releaseMutation := indexing.LockDAVMutations(idx)
+		defer releaseMutation()
+	}
+
+	if contextErr := r.Context().Err(); contextErr != nil {
+		return http.StatusRequestTimeout, contextErr
+	}
+
 	// Get the user's scope to determine the WebDAV root directory
 	// Resolve the scope path to get the real filesystem root for WebDAV
 	// This is the root directory that WebDAV will use to resolve relative paths.
@@ -761,10 +821,24 @@ func webDAVHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, err
 		return writeWebDAVOptions(w, r, filteredFS, prefix, filePerms)
 	}
 
+	conditionalFS := &conditionalDAVFS{FileSystem: filteredFS, request: r, name: strings.TrimPrefix(r.URL.Path, prefix)}
+	w = &conditionalDAVWriter{ResponseWriter: w, fs: conditionalFS}
+	locks := newScopedLockSystem(idx.WebdavLock, scopePath, idx.Path)
+	locks.enforceRequest = true
+	locks.requestMethod = r.Method
+	locks.requestSource = strings.TrimPrefix(r.URL.Path, prefix)
+	if destination, parseErr := url.Parse(r.Header.Get("Destination")); parseErr == nil {
+		if destination.Host == "" || destination.Host == r.Host {
+			if rest, ok := strings.CutPrefix(destination.Path, prefix); ok {
+				locks.requestDestination = rest
+			}
+		}
+	}
+	locks.recursiveMutation = r.Method == http.MethodDelete || r.Method == "MOVE" || r.Method == "COPY"
 	wd := &webdav.Handler{
 		Prefix:     prefix,
-		FileSystem: filteredFS,
-		LockSystem: idx.WebdavLock,
+		FileSystem: conditionalFS,
+		LockSystem: locks,
 		Logger: func(req *http.Request, err error) {
 			if err != nil {
 				errStr := err.Error()
@@ -791,14 +865,22 @@ func webDAVHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, err
 	}
 	if r.Method == "COPY" {
 		srcRealPath := filepath.Join(scopePath, requestPath)
-		sw := &statusResponseWriter{ResponseWriter: w, status: http.StatusOK}
+		sw := &davCopyResponse{header: make(http.Header)}
 		wd.ServeHTTP(sw, r)
 		if destRealPath, ok := resolveDestination(r, prefix, scopePath); sw.status < 300 && ok {
+			if err := davCopyPhysicalProperties(srcRealPath, destRealPath); err != nil {
+				logger.Errorf("WebDAV COPY property reconciliation failed: %v", err)
+				return http.StatusInternalServerError, err
+			}
 			if err := fileutils.PreserveModTimes(srcRealPath, destRealPath); err != nil {
 				logger.Debugf("could not preserve modification time on webdav copy: %v", err)
 			}
 		}
-		return 200, nil
+		sw.flushTo(w)
+		return 0, nil
+	}
+	if r.Method == "PROPPATCH" {
+		r.Body = http.MaxBytesReader(w, r.Body, 256*1024)
 	}
 	wd.ServeHTTP(w, r)
 	return 200, nil // errors and responses (XML-formatted) are handled by webdav handler
@@ -830,6 +912,11 @@ func writeWebDAVOptions(w http.ResponseWriter, r *http.Request, ffs *filteredFil
 		candidates = []string{http.MethodGet, http.MethodHead, "PROPFIND", http.MethodPut, http.MethodDelete, "COPY", "MOVE"}
 	}
 
+	candidates = append(candidates, "LOCK")
+	if err == nil {
+		candidates = append(candidates, "UNLOCK", "PROPPATCH")
+	}
+
 	_, roErr := denyIfSourceReadOnly(ffs.source)
 	allowed := []string{http.MethodOptions}
 	for _, m := range candidates {
@@ -850,7 +937,7 @@ func writeWebDAVOptions(w http.ResponseWriter, r *http.Request, ffs *filteredFil
 
 func isWebDAVWriteMethod(method string) bool {
 	switch method {
-	case "MKCOL", http.MethodPut, http.MethodDelete, "COPY", "MOVE":
+	case "MKCOL", http.MethodPut, http.MethodDelete, "COPY", "MOVE", "LOCK", "UNLOCK", "PROPPATCH":
 		return true
 	default:
 		return false
@@ -883,7 +970,7 @@ func webDAVMethodPermission(method string, perms users.SourceFilePermissions) (i
 		if !perms.Download || !perms.Create {
 			return http.StatusForbidden, fmt.Errorf("copy permission required")
 		}
-	case "MOVE":
+	case "MOVE", "LOCK", "UNLOCK", "PROPPATCH":
 		if !perms.Modify {
 			return http.StatusForbidden, fmt.Errorf("modify permission required")
 		}
