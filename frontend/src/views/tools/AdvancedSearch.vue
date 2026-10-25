@@ -157,6 +157,10 @@
             </div>
 
             <div class="advanced-search-actions-row">
+              <button type="button" class="button button--flat advanced-search-close" @click="closeSearch">
+                <i class="material-symbols">close</i>
+                <span>{{ $t("general.close") }}</span>
+              </button>
               <button type="submit" class="button search-submit" :disabled="loading" :aria-busy="loading">
                 <i v-if="loading" class="material-symbols spin">autorenew</i>
                 <span v-else>{{ $t("general.search") }}</span>
@@ -180,6 +184,20 @@
           <p>{{ $t("tools.advancedSearch.noResults") }}</p>
         </div>
         <div v-else class="advanced-search-listing-results">
+          <div class="advanced-search-selection-bar">
+            <button type="button" class="button button--flat" @click="selectAllResults">
+              <i class="material-symbols">select_all</i>
+              <span>{{ $t("buttons.selectAll") }}</span>
+            </button>
+            <button v-if="!isMultiple" type="button" class="button button--flat" @click="enableMultipleSelection">
+              <i class="material-symbols">check_circle</i>
+              <span>{{ $t("buttons.selectMultiple") }}</span>
+            </button>
+            <button v-if="isMultiple || selectedCount > 0" type="button" class="button button--flat" @click="clearSelectedResults">
+              <i class="material-symbols">check_box_outline_blank</i>
+              <span>{{ $t("general.clearSelection") }}</span>
+            </button>
+          </div>
           <ListingHeader class="advanced-search-inline-header" />
           <div class="advanced-search-inner no-select">
             <div
@@ -534,6 +552,12 @@ export default {
     };
   },
   computed: {
+    isMultiple() {
+      return state.multiple;
+    },
+    selectedCount() {
+      return getters.selectedCount();
+    },
     maxSearchResults() {
       return globalVars.searchResultsLimit || 1000;
     },
@@ -928,6 +952,25 @@ export default {
     mutations.replaceRequest(JSON.parse(this.initialReqFrozen));
   },
   methods: {
+    /** Leave the search and go back to where it was opened from (or to the files if there is no previous page). */
+    closeSearch() {
+      mutations.resetSelected();
+      if (window.history.state?.back) {
+        router.go(-1);
+        return;
+      }
+      void router.push({ path: "/files" }).catch(() => {});
+    },
+    selectAllResults() {
+      mutations.selectAllItems({ multiple: true });
+    },
+    /** With "open with a single click" on, a plain click opens the file; this makes clicks select instead. */
+    enableMultipleSelection() {
+      mutations.setMultiple(true);
+    },
+    clearSelectedResults() {
+      mutations.resetSelected();
+    },
     handleSearchResultsChanged(data) {
       if (!this.isAdvancedSearchRoute || !this.searchExecuted) {
         return;
@@ -1581,6 +1624,20 @@ export default {
 .advanced-search-inline-header {
   width: 100%;
   flex-shrink: 0;
+}
+
+.advanced-search-selection-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5em;
+  padding: 0.25em 0 0.5em;
+}
+
+.advanced-search-selection-bar .button,
+.advanced-search-close {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
 }
 
 .search-term-row {
