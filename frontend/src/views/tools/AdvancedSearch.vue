@@ -197,6 +197,18 @@
               <i class="material-symbols">check_box_outline_blank</i>
               <span>{{ $t("general.clearSelection") }}</span>
             </button>
+            <button v-if="canDownloadSelection" type="button" class="button button--flat" @click="downloadSelected">
+              <i class="material-symbols">file_download</i>
+              <span>{{ $t("general.download") }}</span>
+            </button>
+            <button v-if="canCopySelection" type="button" class="button button--flat" @click="copySelected">
+              <i class="material-symbols">file_copy</i>
+              <span>{{ $t("buttons.copyFile") }}</span>
+            </button>
+            <button v-if="canMoveSelection" type="button" class="button button--flat" @click="moveSelected">
+              <i class="material-symbols">forward</i>
+              <span>{{ $t("buttons.moveFile") }}</span>
+            </button>
           </div>
           <ListingHeader class="advanced-search-inline-header" />
           <div class="advanced-search-inner no-select">
@@ -293,6 +305,7 @@ import { removeTrailingSlash, removeLeadingSlash } from "@/utils/url.js";
 import ListingHeader from "@/components/files/ListingHeader.vue";
 import { utcStartOfDaySecondsFromDateInput } from "@/utils/moment";
 import { getObjectProperty, setObjectProperty } from '@/utils/object.js';
+import downloadFiles from "@/utils/download";
 
 /**
  * Builds a canonical browse path within the selected scope (mirror of Search.vue getItemUrl path join).
@@ -557,6 +570,40 @@ export default {
     },
     selectedCount() {
       return getters.selectedCount();
+    },
+    /** The selected results as items (same mapping the context menu uses). */
+    selectedResults() {
+      if (state.selected.length === 0) {
+        return [];
+      }
+      if (typeof state.selected[0] === "number") {
+        return state.selected.map((index) => state.req.items.at(index)).filter((item) => item != null);
+      }
+      return state.selected.filter((item) => item != null);
+    },
+    /** Results can come from several sources, so an action needs permission on all of them. */
+    selectionPermissions() {
+      const merged = { download: true, modify: true };
+      for (const item of this.selectedResults) {
+        const perms = getters.sourcePermissions(item.source || state.sources?.current || "");
+        merged.download = merged.download && !!perms.download;
+        merged.modify = merged.modify && !!perms.modify;
+      }
+      return merged;
+    },
+    canDownloadSelection() {
+      return this.selectedResults.length > 0 && this.selectionPermissions.download;
+    },
+    canMoveSelection() {
+      return this.selectedResults.length > 0 && this.selectionPermissions.modify;
+    },
+    // Copying only reads the sources, so it needs download there and some source that accepts the copy.
+    canCopySelection() {
+      return (
+        this.selectedResults.length > 0 &&
+        this.selectionPermissions.download &&
+        (state.user?.scopes ?? []).some((scope) => getters.canCreateInSource(scope.name))
+      );
     },
     maxSearchResults() {
       return globalVars.searchResultsLimit || 1000;
@@ -970,6 +1017,17 @@ export default {
     },
     clearSelectedResults() {
       mutations.resetSelected();
+    },
+    downloadSelected() {
+      downloadFiles(this.selectedResults);
+    },
+    copySelected() {
+      mutations.closeHovers();
+      mutations.showPrompt({ name: "copy", props: { items: this.selectedResults, operation: "copy" } });
+    },
+    moveSelected() {
+      mutations.closeHovers();
+      mutations.showPrompt({ name: "move", props: { items: this.selectedResults, operation: "move" } });
     },
     handleSearchResultsChanged(data) {
       if (!this.isAdvancedSearchRoute || !this.searchExecuted) {
