@@ -1535,6 +1535,8 @@ export default {
             name: nm,
             path: fullPath,
             type: isDir ? "directory" : String(searchResult.type || "application/octet-stream"),
+            // Download picks the archive path for folders from this flag.
+            isDir,
             size: typeof searchResult.size === "number" ? searchResult.size : 0,
             modified: typeof searchResult.modified === "string" ? searchResult.modified : "",
             created: typeof searchResult.created === "string" ? searchResult.created : "",
