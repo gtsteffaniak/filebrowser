@@ -257,6 +257,7 @@ export interface UserObject {
 export interface RouteObject {
   name?: string | symbol | null | undefined;
   path?: string;
+  fullPath?: string;
   params?: unknown;
   query?: unknown;
 }
@@ -278,10 +279,19 @@ export interface StoreState {
     source: string;
     path: string;
     isShare?: boolean;
+    returnTo?: string;
   } | null;
   contextMenuHasItems: boolean;
   deletedItem: boolean;
   pendingHighlight: { path: string; source?: string } | null;
+  searchResults: {
+    kind: "quick" | "advanced";
+    key?: string;
+    items: FileListItem[];
+    form?: Record<string, unknown>;
+    sorting?: { by: string; asc: boolean };
+    focus?: { source?: string; path: string };
+  } | null;
   showOverflowMenu: boolean;
   sessionId: string;
   isSafari: boolean;

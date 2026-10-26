@@ -4,6 +4,7 @@ import { globalVars } from "@/utils/constants.js";
 
 export default {
   pathsMatch,
+  isSameItem,
   removeTrailingSlash,
   removeLeadingSlash,
   encodeRFC5987ValueChars,
@@ -67,6 +68,10 @@ export function pathsMatch(url1, url2) {
     return false;
   }
   return removeTrailingSlash(url1) === removeTrailingSlash(url2);
+}
+
+export function isSameItem(a, b) {
+  return a?.source === b?.source && pathsMatch(a?.path, b?.path);
 }
 
 export function removePrefix(path, prefix = "") {
@@ -267,6 +272,20 @@ export function encodedPath(path) {
 
 // assume non-encoded input path and source
 export function goToItem(source, path, previousHistoryItem, newTab = false, isShare = false) {
+  if (previousHistoryItem?.returnTo && !newTab) {
+    let returnTo = previousHistoryItem.returnTo;
+    const search = state.searchResults;
+    mutations.resetAll();
+    if (search?.focus) {
+      // if not in search results go to its parent folder instead
+      const inResults = search.items.some((i) => isSameItem(i, state.req));
+      search.focus = inResults ? { source: state.req.source, path: state.req.path } : undefined;
+      if (!inResults) returnTo = buildItemUrl(state.req.source, getParentDir(state.req.path));
+    }
+    if (!search?.focus) mutations.setPreviousHistoryItem(null);
+    void router.push(returnTo);
+    return;
+  }
   const cv = getters.currentView();
   if (source === state.sources.current && path === state.req.path && cv === "listingView") {
     return;

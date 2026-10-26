@@ -179,8 +179,10 @@
         <div v-else-if="resultsEmpty" class="empty-state-message padded-message">
           <p>{{ $t("tools.advancedSearch.noResults") }}</p>
         </div>
-        <div v-else class="advanced-search-listing-results">
-          <ListingHeader class="advanced-search-inline-header" />
+        <div v-else ref="results" class="advanced-search-listing-results">
+          <div class="advanced-search-sticky-header" :class="{ 'header-hidden': headerHidden }">
+            <ListingHeader class="advanced-search-inline-header" />
+          </div>
           <div class="advanced-search-inner no-select">
             <div
               ref="listingView"
@@ -271,7 +273,8 @@ import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import PathPickerButton from "@/components/files/PathPickerButton.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import Item from "@/components/files/ListingItem.vue";
-import { removeTrailingSlash, removeLeadingSlash } from "@/utils/url.js";
+import { removeTrailingSlash, removeLeadingSlash, isSameItem } from "@/utils/url.js";
+import { selectAndScrollToIndex } from "@/utils/selectAndScroll.ts";
 import ListingHeader from "@/components/files/ListingHeader.vue";
 import { utcStartOfDaySecondsFromDateInput } from "@/utils/moment";
 import { getObjectProperty, setObjectProperty } from '@/utils/object.js';
@@ -531,6 +534,9 @@ export default {
       emptyCatalogHydrateTimer: null,
       advancedOptionsExpanded: false,
       refreshQueued: false,
+      headerHidden: false,
+      lastScrollTop: 0,
+      scrollContainer: null,
     };
   },
   computed: {
@@ -879,6 +885,9 @@ export default {
     };
     window.addEventListener("resize", this.resizeListener);
 
+    this.scrollContainer = this.$el.closest(".scroll-wrapper");
+    this.scrollContainer?.addEventListener("scroll", this.handleScroll, { passive: true });
+
     eventBus.on("itemsDeleted", this.handleSearchResultsChanged);
     eventBus.on("itemsMoved", this.handleSearchResultsChanged);
     eventBus.on("itemsRenamed", this.handleSearchResultsChanged);
@@ -913,6 +922,7 @@ export default {
       window.removeEventListener("resize", this.resizeListener);
       this.resizeListener = null;
     }
+    this.scrollContainer?.removeEventListener("scroll", this.handleScroll);
 
     eventBus.off("itemsDeleted", this.handleSearchResultsChanged);
     eventBus.off("itemsMoved", this.handleSearchResultsChanged);
@@ -928,6 +938,30 @@ export default {
     mutations.replaceRequest(JSON.parse(this.initialReqFrozen));
   },
   methods: {
+    async highlightPending() {
+      const p = state.pendingHighlight;
+      if (!p) return;
+      await this.$nextTick();
+      state.pendingHighlight = null;
+      const items = state.req?.items ?? [];
+      const idx = items.findIndex((i) => isSameItem(i, p));
+      if (idx === -1) return;
+      selectAndScrollToIndex(idx, true);
+    },
+    /** The sort header sticks under the app bar; hide it scrolling down and show it scrolling up (like FileList). */
+    handleScroll() {
+      const container = this.scrollContainer;
+      const top = container.scrollTop;
+      const stickyTop = container.getBoundingClientRect().top + parseFloat(getComputedStyle(container).paddingTop);
+      if (!(this.$refs.results?.getBoundingClientRect().top <= stickyTop)) {
+        this.headerHidden = false;
+      } else if (Math.abs(top - this.lastScrollTop) >= 30) {
+        this.headerHidden = top > this.lastScrollTop;
+      } else {
+        return;
+      }
+      this.lastScrollTop = top;
+    },
     handleSearchResultsChanged(data) {
       if (!this.isAdvancedSearchRoute || !this.searchExecuted) {
         return;
@@ -1025,13 +1059,41 @@ export default {
         )
       ) {
         void this.$nextTick().then(() => {
-          void this.runSearch();
+          if (!this.restoreSearchResults()) {
+            void this.runSearch();
+          }
         });
       }
       this.isInitializing = false;
       void this.$nextTick().then(() => {
         this.updateAdvancedSearchUrl();
       });
+    },
+    searchKey() {
+      return stableQueryStringFromObject(normalizeRouteQueryLoose(this.buildRouteQueryFromState()));
+    },
+    /** Reuse the last results when returning from a preview with the same query */
+    restoreSearchResults() {
+      const search = state.searchResults;
+      if (search?.kind !== "advanced" || search.key !== this.searchKey()) {
+        return false;
+      }
+      this.searchExecuted = true;
+      this.showResults(search.items);
+      return true;
+    },
+    showResults(listingItems) {
+      this.headerHidden = false;
+      mutations.replaceRequest({
+        type: "directory",
+        path: "/",
+        name: this.$t("tools.advancedSearch.resultsTitle"),
+        source: "",
+        items: listingItems,
+      });
+      this.didApplySearchListing = true;
+      this.resultsEmpty = listingItems.length === 0;
+      void this.highlightPending();
     },
     buildRouteQueryFromState() {
       /** @type {Record<string, string | string[]>} */
@@ -1443,20 +1505,8 @@ export default {
             hidden: false,
           };
         });
-
-        mutations.replaceRequest({
-          type: "directory",
-          path: "/",
-          name: this.$t("tools.advancedSearch.resultsTitle"),
-          source: "",
-          items: listingItems,
-        });
-        this.didApplySearchListing = true;
-        if (listingItems.length === 0) {
-          this.resultsEmpty = true;
-        } else {
-          this.resultsEmpty = false;
-        }
+        state.searchResults = { kind: "advanced", key: this.searchKey(), items: listingItems };
+        this.showResults(listingItems);
       } catch (err) {
         this.error =
           err && typeof err.message === "string"
@@ -1581,6 +1631,21 @@ export default {
 .advanced-search-inline-header {
   width: 100%;
   flex-shrink: 0;
+}
+
+.advanced-search-sticky-header {
+  position: sticky;
+  top: 0;
+  z-index: 999;
+  padding: 0.5em 0;
+  backdrop-filter: blur(8px);
+  transition: transform 0.25s ease, opacity 0.25s ease;
+}
+
+.advanced-search-sticky-header.header-hidden {
+  transform: translateY(-100%);
+  opacity: 0;
+  pointer-events: none;
 }
 
 .search-term-row {
