@@ -1,5 +1,15 @@
 <template>
   <div class="tools-wrapper" :class="{ 'tools-wrapper--advanced-search': isAdvancedSearchTool }">
+    <button
+      v-if="isAdvancedSearchTool"
+      type="button"
+      class="tools-close-button"
+      :aria-label="$t('general.close')"
+      :title="$t('general.close')"
+      @click="closeAdvancedSearch"
+    >
+      <i class="material-symbols">close</i>
+    </button>
     <!-- Show tools list when no tool is selected -->
     <div v-if="showToolsList" class="tools-list-container">
       <div class="card-title">
@@ -47,7 +57,7 @@
 <script>
 import { createAsyncComponent } from "@/utils/asyncComponent.js";
 import { tools as allTools } from "@/utils/constants";
-import { getters } from "@/store";
+import { getters, mutations } from "@/store";
 import { availableTools, hasToolAccess, toolIdFromPath } from "@/utils/toolAccess";
 import Errors from "@/views/Errors.vue";
 
@@ -88,6 +98,17 @@ export default {
     },
     isAdvancedSearchTool() {
       return this.$route.path === "/tools/advancedSearch";
+    },
+  },
+  methods: {
+    /** Leave the advanced search and go back to where it was opened from (or to the files if there is no previous page). */
+    closeAdvancedSearch() {
+      mutations.resetSelected();
+      if (window.history.state?.back) {
+        this.$router.go(-1);
+        return;
+      }
+      void this.$router.push({ path: "/files" }).catch(() => {});
     },
   },
 };
@@ -147,6 +168,28 @@ export default {
 
 .access-denied-message {
   margin: 0.5em 0 1em;
+}
+
+.tools-close-button {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25em;
+  height: 2.25em;
+  margin: 0.5em 0 0 0.75em;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: #546e7a;
+  cursor: pointer;
+}
+
+.tools-close-button:hover,
+.tools-close-button:focus-visible {
+  color: var(--textPrimary);
+  background: color-mix(in srgb, var(--surfaceSecondary) 75%, transparent);
 }
 
 .tools-wrapper--advanced-search {

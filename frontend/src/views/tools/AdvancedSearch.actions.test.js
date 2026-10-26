@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const { router, mutations, store, downloadFiles } = vi.hoisted(() => ({
-  router: { go: vi.fn(), push: vi.fn(() => Promise.resolve()) },
+  router: {},
   mutations: {
     resetSelected: vi.fn(),
     selectAllItems: vi.fn(),
@@ -58,31 +58,6 @@ vi.mock("@/components/files/ListingHeader.vue", () => ({ default: { render: () =
 import AdvancedSearch from "./AdvancedSearch.vue";
 
 const { methods, computed } = AdvancedSearch;
-
-describe("AdvancedSearch close", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    window.history.replaceState({}, "");
-  });
-
-  it("goes back to the page the search was opened from", () => {
-    window.history.replaceState({ back: "/files/data/photos/" }, "");
-    methods.closeSearch.call({});
-    expect(router.go).toHaveBeenCalledWith(-1);
-    expect(router.push).not.toHaveBeenCalled();
-  });
-
-  it("opens the files when there is no previous page, e.g. the search URL was opened directly", () => {
-    methods.closeSearch.call({});
-    expect(router.go).not.toHaveBeenCalled();
-    expect(router.push).toHaveBeenCalledWith({ path: "/files" });
-  });
-
-  it("drops the selection so it doesn't leak into the page it returns to", () => {
-    methods.closeSearch.call({});
-    expect(mutations.resetSelected).toHaveBeenCalled();
-  });
-});
 
 describe("AdvancedSearch selection", () => {
   beforeEach(() => {

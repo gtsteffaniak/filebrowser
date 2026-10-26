@@ -157,10 +157,6 @@
             </div>
 
             <div class="advanced-search-actions-row">
-              <button type="button" class="button button--flat advanced-search-close" @click="closeSearch">
-                <i class="material-symbols">close</i>
-                <span>{{ $t("general.close") }}</span>
-              </button>
               <button type="submit" class="button search-submit" :disabled="loading" :aria-busy="loading">
                 <i v-if="loading" class="material-symbols spin">autorenew</i>
                 <span v-else>{{ $t("general.search") }}</span>
@@ -999,15 +995,6 @@ export default {
     mutations.replaceRequest(JSON.parse(this.initialReqFrozen));
   },
   methods: {
-    /** Leave the search and go back to where it was opened from (or to the files if there is no previous page). */
-    closeSearch() {
-      mutations.resetSelected();
-      if (window.history.state?.back) {
-        router.go(-1);
-        return;
-      }
-      void router.push({ path: "/files" }).catch(() => {});
-    },
     selectAllResults() {
       mutations.selectAllItems({ multiple: true });
     },
@@ -1693,8 +1680,7 @@ export default {
   padding: 0.25em 0 0.5em;
 }
 
-.advanced-search-selection-bar .button,
-.advanced-search-close {
+.advanced-search-selection-bar .button {
   display: inline-flex;
   align-items: center;
   gap: 0.4em;
