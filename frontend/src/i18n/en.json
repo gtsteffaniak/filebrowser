@@ -897,6 +897,13 @@
       "wrapContentDescription": "Wraps the editor content to keep very long lines always visible",
       "indentedSoftWrap": "Indented soft wrap",
       "indentedSoftWrapDescription": "When this is enabled, adds indentation to the begin of the wrapped text",
+      "wrapMethod": {
+        "label": "Wrap method",
+        "description": "How long lines are broken when wrapping: 'Code' uses code-style wrapping, 'Text' wraps like regular, 'Auto' is based on the type of file",
+        "code": "Code",
+        "text": "Text",
+        "auto": "Auto"
+      },
       "autocompletion": "Autocompletion",
       "autocompletionDescription": "Enables autocompletion by manually pressing 'ctrl + space'",
       "liveAutocompletion": "Live autocompletion",

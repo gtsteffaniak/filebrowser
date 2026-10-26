@@ -855,6 +855,13 @@
       "customScrollbarDescription": "Byt ut webbläsarens inbyggda rullningslist mot Ace:s inbyggda",
       "wrapContent": "Bryt långa rader i redigeraren",
       "wrapContentDescription": "Bryter redigerarens innehåll så att mycket långa rader alltid är synliga",
+      "wrapMethod": {
+        "label": "Radbrytningsmetod",
+        "description": "Hur långa rader delas vid radbrytning: 'Code' använder radbrytning i kodstil, 'Text' radbryts som vanlig text, 'Auto' baseras på filtypen",
+        "code": "Kod",
+        "text": "Text",
+        "auto": "Auto"
+      },
       "indentedSoftWrap": "Indragen mjuk radbrytning",
       "indentedSoftWrapDescription": "När detta är aktiverat läggs en indragning till i början av den radbryta texten",
       "autocompletion": "Autokomplettering",

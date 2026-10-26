@@ -855,6 +855,13 @@
       "customScrollbarDescription": "Remplacer la barre de défilement native du navigateur par celle intégrée à Ace",
       "wrapContent": "Couper les longues lignes dans l'éditeur",
       "wrapContentDescription": "Coupe le contenu de l'éditeur pour que les très longues lignes restent toujours visibles",
+      "wrapMethod": {
+        "label": "Méthode de retour à la ligne",
+        "description": "Comment les longues lignes sont coupées lors du retour à la ligne : 'Code' utilise un retour à la ligne de style code, 'Text' se coupe comme du texte normal, 'Auto' est basé sur le type de fichier",
+        "code": "Code",
+        "text": "Texte",
+        "auto": "Auto"
+      },
       "indentedSoftWrap": "Retour à la ligne souple avec indentation",
       "indentedSoftWrapDescription": "Lorsque cette option est activée, ajoute une indentation au début du texte renvoyé à la ligne",
       "autocompletion": "Autocomplétion",

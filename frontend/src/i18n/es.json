@@ -855,6 +855,13 @@
       "customScrollbarDescription": "Reemplazar la barra de desplazamiento nativa del navegador por la integrada de Ace",
       "wrapContent": "Ajustar líneas largas en el editor",
       "wrapContentDescription": "Ajusta el contenido del editor para mantener siempre visibles las líneas muy largas",
+      "wrapMethod": {
+        "label": "Método de ajuste para líneas largas",
+        "description": "Cómo se dividen las líneas largas al ajustar: 'Código' usa ajuste estilo código, 'Texto' ajusta como prosa normal, 'Auto' elige uno según el tipo de archivo",
+        "code": "Código",
+        "text": "Texto",
+        "auto": "Auto"
+      },
       "indentedSoftWrap": "Ajustar líneas largas con sangría",
       "indentedSoftWrapDescription": "Cuando está habilitado, agrega una sangría al inicio de la línea del texto que fue ajustado",
       "autocompletion": "Autocompletado",

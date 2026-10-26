@@ -855,6 +855,13 @@
       "customScrollbarDescription": "Nahradí natívny posuvník prehliadača vstavaným posuvníkom Ace",
       "wrapContent": "Zalamovať dlhé riadky v editore",
       "wrapContentDescription": "Zalamuje obsah editora, aby veľmi dlhé riadky zostali vždy viditeľné",
+      "wrapMethod": {
+        "label": "Spôsob zalamovania",
+        "description": "Ako sa lámu dlhé riadky pri zalamovaní: 'Code' používa zalamovanie v štýle kódu, 'Text' sa zalamuje ako bežný text, 'Auto' je založené na type súboru",
+        "code": "Kód",
+        "text": "Text",
+        "auto": "Automaticky"
+      },
       "indentedSoftWrap": "Mäkké zalamovanie s odsadením",
       "indentedSoftWrapDescription": "Keď je táto možnosť povolená, pridá odsadenie na začiatok zalomeného textu",
       "autocompletion": "Automatické dopĺňanie",

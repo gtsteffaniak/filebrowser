@@ -855,6 +855,13 @@
       "customScrollbarDescription": "ブラウザのネイティブスクロールバーを Ace 組み込みのものに置き換えます",
       "wrapContent": "エディタで長い行を折り返す",
       "wrapContentDescription": "エディタのコンテンツを折り返して、非常に長い行を常に表示したままにします",
+      "wrapMethod": {
+        "label": "折り返し方法",
+        "description": "折り返し時に長い行をどのように分割するか：'Code' はコードスタイルの折り返し、'Text' は通常のテキストのように折り返し、'Auto' はファイルの種類に基づきます",
+        "code": "コード",
+        "text": "テキスト",
+        "auto": "自動"
+      },
       "indentedSoftWrap": "インデント付きソフト折り返し",
       "indentedSoftWrapDescription": "これが有効な場合、折り返されたテキストの先頭にインデントを追加します",
       "autocompletion": "自動補完",

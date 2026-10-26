@@ -895,6 +895,13 @@
       "customScrollbarDescription": "Vervang de native browser-schuifbalk door de ingebouwde van Ace",
       "wrapContent": "Lange regels in de editor laten doorlopen",
       "wrapContentDescription": "Zorgt dat de editorinhoud wordt doorlopen zodat zeer lange regels altijd zichtbaar blijven",
+      "wrapMethod": {
+        "label": "Terugloopmethode",
+        "description": "Hoe lange regels worden afgebroken bij terugloop: 'Code' gebruikt code-stijl terugloop, 'Text' loopt terug als normale tekst, 'Auto' is gebaseerd op het bestandstype",
+        "code": "Code",
+        "text": "Tekst",
+        "auto": "Automatisch"
+      },
       "indentedSoftWrap": "Ingesprongen zachte terugloop",
       "indentedSoftWrapDescription": "Wanneer dit is ingeschakeld, wordt een inspringing toegevoegd aan het begin van de teruggelopen tekst",
       "autocompletion": "Automatische aanvulling",

@@ -167,6 +167,7 @@ const editorAceOptions = computed(() => ({
   keybinding: editorConfig.keybinding,
   tabSize: editorConfig.tabSize,
   overscroll: editorConfig.overscroll,
+  wrapMethod: editorConfig.wrapMethod,
   indentedSoftWrap: editorConfig.indentedSoftWrap,
   showIndentGuides: editorConfig.showIndentGuides,
   showGutter: editorConfig.showGutter,
@@ -402,6 +403,7 @@ function initializeEditor(initialScrollRatio: number = state.editor.scrollRatio)
       keyboardHandler: editorConfig.keybinding || null,
       fontSize: `${state.editor.fontSize}px`,
     });
+    editorInstance.session.setOption('wrapMethod', editorConfig.wrapMethod);
     editor.value = editorInstance;
 
     savedContent = editorContent.value;
@@ -691,6 +693,7 @@ function applyAceOptions(cfg: Omit<EditorConfig, "wrapEditorContent"> = editorCo
   editor.value.setOption('keyboardHandler', cfg.keybinding || null);
   editor.value.setOption('tabSize', cfg.tabSize);
   editor.value.setOption('scrollPastEnd', cfg.overscroll);
+  editor.value.session.setOption('wrapMethod', cfg.wrapMethod);
   editor.value.setOption('indentedSoftWrap', cfg.indentedSoftWrap);
   editor.value.setOption('displayIndentGuides', cfg.showIndentGuides);
   editor.value.setOption('showGutter', cfg.showGutter);

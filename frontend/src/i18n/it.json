@@ -864,6 +864,13 @@
       "customScrollbarDescription": "Sostituisce la barra di scorrimento nativa del browser con quella integrata di Ace",
       "wrapContent": "A capo delle righe lunghe nell'editor",
       "wrapContentDescription": "Va a capo nel contenuto dell'editor per mantenere sempre visibili le righe molto lunghe",
+      "wrapMethod": {
+        "label": "Metodo di a capo",
+        "description": "Come vengono spezzate le righe lunghe durante l'a capo: 'Code' usa l'a capo in stile codice, 'Text' va a capo come testo normale, 'Auto' si basa sul tipo di file",
+        "code": "Codice",
+        "text": "Testo",
+        "auto": "Auto"
+      },
       "indentedSoftWrap": "A capo automatico con rientro",
       "indentedSoftWrapDescription": "Quando è abilitato, aggiunge un rientro all'inizio del testo mandato a capo",
       "autocompletion": "Completamento automatico",

@@ -855,6 +855,13 @@
       "customScrollbarDescription": "Die native Browser-Bildlaufleiste durch die integrierte Ace-Bildlaufleiste ersetzen",
       "wrapContent": "Lange Zeilen im Editor umbrechen",
       "wrapContentDescription": "Umbrüche den Editor-Inhalt, damit sehr lange Zeilen immer sichtbar bleiben",
+      "wrapMethod": {
+        "label": "Umbruchmethode",
+        "description": "Wie lange Zeilen beim Umbruch geteilt werden: 'Code' verwendet Code-Stil-Umbruch, 'Text' bricht wie normaler Text um, 'Auto' basiert auf dem Dateityp",
+        "code": "Code",
+        "text": "Text",
+        "auto": "Automatisch"
+      },
       "indentedSoftWrap": "Eingerückter weicher Umbruch",
       "indentedSoftWrapDescription": "Wenn dies aktiviert ist, wird am Anfang des umbrochenen Textes eine Einrückung hinzugefügt",
       "autocompletion": "Autovervollständigung",

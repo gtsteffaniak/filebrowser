@@ -1,43 +1,44 @@
 <template>
   <div class="card-content editor-settings-content settings-items">
-    <div v-for="field in fields" :key="field.key" class="setting-row item">
-      <div class="setting-label">
-        <span :id="`editor-${field.key}-label`">{{ field.label }}</span>
-        <i
-          class="no-select material-symbols-outlined tooltip-info-icon"
-          @mouseenter="showTooltip($event, field.desc)"
-          @mouseleave="hideTooltip"
-        >help</i>
+    <template v-for="field in settings" :key="field.key">
+      <div v-if="field.type" class="setting-row item">
+        <div class="setting-label">
+          <span :id="`editor-${field.key}-label`">{{ field.label }}</span>
+          <i
+            class="no-select material-symbols-outlined tooltip-info-icon"
+            @mouseenter="showTooltip($event, field.desc)"
+            @mouseleave="hideTooltip"
+          >help</i>
+        </div>
+        <div class="setting-control">
+          <ExpandDropdown
+            v-if="field.type === 'dropdown'"
+            :options="field.options"
+            :model-value="(config[field.key] as string | number)"
+            @update:model-value="setValue(field, $event)"
+            :aria-label="field.aria"
+          />
+          <input
+            v-else
+            type="number"
+            class="input"
+            :value="config[field.key]"
+            @change="setValue(field, ($event.target as HTMLInputElement).value)"
+            :min="field.min"
+            :max="field.max"
+            :aria-label="field.aria"
+          />
+        </div>
       </div>
-      <div class="setting-control">
-        <ExpandDropdown
-          v-if="field.type === 'dropdown'"
-          :options="field.options"
-          :model-value="(config[field.key] as string | number)"
-          @update:model-value="setValue(field, $event)"
-          :aria-label="field.aria"
-        />
-        <input
-          v-else
-          type="number"
-          class="input"
-          :value="config[field.key]"
-          @change="setValue(field, ($event.target as HTMLInputElement).value)"
-          :min="field.min"
-          :max="field.max"
-          :aria-label="field.aria"
-        />
-      </div>
-    </div>
-    <ToggleSwitch
-      v-for="toggle in toggles"
-      :key="toggle.key"
-      class="item"
-      :name="toggle.label"
-      :description="toggle.desc"
-      :model-value="(config[toggle.key] as boolean)"
-      @update:model-value="setValue(toggle, $event)"
-    />
+      <ToggleSwitch
+        v-else
+        class="item"
+        :name="field.label"
+        :description="field.desc"
+        :model-value="(config[field.key] as boolean)"
+        @update:model-value="setValue(field, $event)"
+      />
+    </template>
   </div>
   <div class="card-actions">
     <button
@@ -135,6 +136,18 @@ const toggles = computed<EditorSettingField[]>(() => {
       label: t("editor.settings.indentedSoftWrap"),
       desc: t("editor.settings.indentedSoftWrapDescription"),
     },
+    config.wrapEditorContent && {
+      key: "wrapMethod",
+      type: "dropdown",
+      label: t("editor.settings.wrapMethod.label"),
+      desc: t("editor.settings.wrapMethod.description"),
+      aria: t("editor.settings.wrapMethod.label"),
+      options: [
+        { value: "auto", label: t("editor.settings.wrapMethod.auto") },
+        { value: "code", label: t("editor.settings.wrapMethod.code") },
+        { value: "text", label: t("editor.settings.wrapMethod.text") },
+      ],
+    },
     { key: "showIndentGuides", label: t("editor.settings.showIndentGuides"), desc: t("editor.settings.showIndentGuidesDescription") },
     { key: "showGutter", label: t("editor.settings.showGutter"), desc: t("editor.settings.showGutterDescription") },
     { key: "fixedGutterWidth", label: t("editor.settings.fixedGutterWidth"), desc: t("editor.settings.fixedGutterWidthDescription") },
@@ -150,6 +163,8 @@ const toggles = computed<EditorSettingField[]>(() => {
   ];
   return items.filter((item): item is EditorSettingField => item !== false);
 });
+
+const settings = computed(() => [...fields.value, ...toggles.value]);
 
 function setValue(field: EditorSettingField, value: string | number | boolean) {
   let val: string | number | boolean = value;

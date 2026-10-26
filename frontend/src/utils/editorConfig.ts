@@ -5,6 +5,7 @@ const STORAGE_KEY = 'editorConfig';
 
 export interface EditorConfig {
   wrapEditorContent: boolean;
+  wrapMethod: 'code' | 'text' | 'auto';
   indentedSoftWrap: boolean;
   keybinding: string;
   tabSize: number;
@@ -21,6 +22,7 @@ export interface EditorConfig {
 
 const DEFAULTS: EditorConfig = {
   wrapEditorContent: false,
+  wrapMethod: 'auto',
   indentedSoftWrap: false,
   keybinding: '',
   tabSize: 4,

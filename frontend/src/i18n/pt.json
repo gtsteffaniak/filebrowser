@@ -855,6 +855,13 @@
       "customScrollbarDescription": "Substituir a barra de deslocamento nativa do navegador pela integrada do Ace",
       "wrapContent": "Quebrar linhas longas no editor",
       "wrapContentDescription": "Quebra o conteúdo do editor para manter linhas muito longas sempre visíveis",
+      "wrapMethod": {
+        "label": "Método de quebra",
+        "description": "Como as linhas longas são quebradas ao quebrar: 'Code' usa quebra estilo código, 'Text' quebra como texto normal, 'Auto' baseia-se no tipo de ficheiro",
+        "code": "Código",
+        "text": "Texto",
+        "auto": "Automático"
+      },
       "indentedSoftWrap": "Quebra suave com indentação",
       "indentedSoftWrapDescription": "Quando ativado, adiciona indentação ao início do texto quebrado",
       "autocompletion": "Preenchimento automático",

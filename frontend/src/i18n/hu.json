@@ -855,6 +855,13 @@
       "customScrollbarDescription": "A böngésző natív görgetősávjának cseréje az Ace beépítettjére",
       "wrapContent": "Hosszú sorok tördelése a szerkesztőben",
       "wrapContentDescription": "Tördeli a szerkesztő tartalmát, hogy a nagyon hosszú sorok mindig láthatóak maradjanak",
+      "wrapMethod": {
+        "label": "Tördelési mód",
+        "description": "Hogyan törnek a hosszú sorok tördeléskor: a 'Code' kódstílusú tördelést használ, a 'Text' normál szövegként tördel, az 'Auto' a fájl típusán alapul",
+        "code": "Kód",
+        "text": "Szöveg",
+        "auto": "Automatikus"
+      },
       "indentedSoftWrap": "Behúzott lágy tördelés",
       "indentedSoftWrapDescription": "Ha ez engedélyezve van, behúzást ad a tördelt szöveg elejéhez",
       "autocompletion": "Automatikus kiegészítés",

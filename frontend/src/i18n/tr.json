@@ -855,6 +855,13 @@
       "customScrollbarDescription": "Tarayıcının yerel kaydırma çubuğunu Ace'in yerleşik olanıyla değiştir",
       "wrapContent": "Düzenleyicide uzun satırları kaydır",
       "wrapContentDescription": "Düzenleyici içeriğini kaydırarak çok uzun satırların her zaman görünür kalmasını sağlar",
+      "wrapMethod": {
+        "label": "Kaydırma yöntemi",
+        "description": "Kaydırma sırasında uzun satırların nasıl bölüneceği: 'Code' kod tarzı kaydırma kullanır, 'Text' normal metin gibi kaydırır, 'Auto' dosya türüne göre belirlenir",
+        "code": "Kod",
+        "text": "Metin",
+        "auto": "Otomatik"
+      },
       "indentedSoftWrap": "Girintili yumuşak kaydırma",
       "indentedSoftWrapDescription": "Bu etkinleştirildiğinde, kaydırılan metnin başına girinti ekler",
       "autocompletion": "Otomatik tamamlama",

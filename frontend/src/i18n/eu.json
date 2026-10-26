@@ -895,6 +895,13 @@
       "customScrollbarDescription": "Ordeztu nabigatzailearen jatorrizko korritze-barra Ace-ren barneko korritze-barrarekin",
       "wrapContent": "Egokitu lerro luzeak editorean",
       "wrapContentDescription": "Editorearen edukia egokitzen du, lerro oso luzeak beti ikusgai egon daitezen",
+      "wrapMethod": {
+        "label": "Itzultze-metodoa",
+        "description": "Nola banatzen diren lerro luzeak itzultzean: 'Code'-k kode-estiloko itzultzea erabiltzen du, 'Text'-ek testu arrunt gisa itzultzen du, 'Auto' fitxategi motaren araberakoa da",
+        "code": "Kodea",
+        "text": "Testua",
+        "auto": "Automatikoa"
+      },
       "indentedSoftWrap": "Egokitze bigun koskaduna",
       "indentedSoftWrapDescription": "Gaituta dagoenean, koska gehitzen dio egokitutako testuaren hasierari",
       "autocompletion": "Osatze automatikoa",
