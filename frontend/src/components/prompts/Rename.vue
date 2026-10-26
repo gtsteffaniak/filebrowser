@@ -215,7 +215,9 @@ export default {
         .filter((r) => (r.source ?? result.source) === result.source && result.path.endsWith(r.path))
         .sort((a, b) => b.path.length - a.path.length)[0];
       if (raw) raw.path = `${url.removeLastDir(raw.path)}/${this.name}`;
-      Object.assign(result, { name: this.name, path: newPath });
+      state.searchResults.items = state.searchResults.items.map((i) =>
+        url.isSameItem(i, this.item) ? { ...i, name: this.name, path: newPath } : i
+      );
     },
     normalizePath(p) {
       return (p || '').replace(/^\/+|\/+$/g, '');

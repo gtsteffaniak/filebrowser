@@ -179,6 +179,7 @@ import { getters, mutations, state } from "@/store";
 import { url } from "@/utils/";
 import { globalVars } from "@/utils/constants";
 import { debounce } from "@/utils/debounce.js";
+import { sortedItems } from "@/utils/sort.ts";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { isTypeAheadSessionActive } from "@/utils/listingTypeAhead.js";
 import { utcStartOfDaySecondsFromDateInput } from "@/utils/moment";
@@ -674,7 +675,7 @@ export default {
         if (seq !== this.searchSeq) {
           return;
         }
-        this.results = results;
+        this.results = this.sortResults(results);
         this.setSearchResults();
         succeeded = true;
       } catch {
@@ -702,6 +703,15 @@ export default {
         hasPreview: s.hasPreview,
         source: s.source || this.selectedSource || state.sources.current,
       };
+    },
+    sortResults(results) {
+      const term = this.value.trim().toLowerCase();
+      const rank = ({ name }) => {
+        const lower = name.toLowerCase();
+        return lower === term ? 0 : lower.startsWith(term) ? 1 : 2;
+      };
+      const entries = results.map((s) => ({ s, name: this.baseName(s.path) }));
+      return sortedItems(entries, "name").sort((a, b) => rank(a) - rank(b)).map((e) => e.s);
     },
     setSearchResults() {
       state.searchResults = {
