@@ -91,6 +91,17 @@ export const mutations = {
     }
     emitStateChanged();
   },
+  removeFromSearchResults: (removed: { source?: string; path: string }[]) => {
+    const search = state.searchResults;
+    if (!search || !removed?.length) return;
+    const targets = removed.map((r) => ({ source: r.source, path: url.trimSlashes(r.path) }));
+    search.items = search.items.filter((item) => {
+      const path = url.trimSlashes(item.path);
+      return !targets.some(
+        (t) => t.source === item.source && (path === t.path || path.startsWith(`${t.path}/`))
+      );
+    });
+  },
   setPreviousHistoryItem: (value: StoreState['previousHistoryItem'] | null) => {
     if (value === state.previousHistoryItem) {
       return;

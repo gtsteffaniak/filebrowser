@@ -1464,6 +1464,7 @@ export default {
         });
       }
 
+      const searchRequestKey = this.searchKey();
       try {
         const rows = await toolsApi.search(
           null,
@@ -1505,7 +1506,7 @@ export default {
             hidden: false,
           };
         });
-        state.searchResults = { kind: "advanced", key: this.searchKey(), items: listingItems };
+        state.searchResults = { kind: "advanced", key: searchRequestKey, items: listingItems };
         this.showResults(listingItems);
       } catch (err) {
         this.error =

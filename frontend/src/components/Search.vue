@@ -176,7 +176,6 @@ import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import { router } from "@/router";
 import { getters, mutations, state } from "@/store";
-import { eventBus } from "@/store/eventBus";
 import { url } from "@/utils/";
 import { globalVars } from "@/utils/constants";
 import { debounce } from "@/utils/debounce.js";
@@ -190,8 +189,6 @@ const searchFormKeys = [
   "largerThan", "smallerThan", "modifiedOlderThan", "modifiedNewerThan",
   "useWildcardSearch", "caseExactSearch", "showPreviewImages", "advancedOptionsExpanded",
 ];
-
-const searchChangeEvents = ["itemsDeleted", "itemsMoved", "itemsRenamed"];
 
 const boxes = {
   folder: { label: "folders", icon: "folder" },
@@ -339,10 +336,6 @@ export default {
       }
     };
     document.addEventListener('keydown', this.handleKeydown);
-
-    for (const name of searchChangeEvents) {
-      eventBus.on(name, this.clearSearchResults);
-    }
   },
   beforeUnmount() {
     // If Safari, remove touchstart listener
@@ -359,9 +352,6 @@ export default {
     // Clean up keyboard event listener
     if (this.handleKeydown) {
       document.removeEventListener('keydown', this.handleKeydown);
-    }
-    for (const name of searchChangeEvents) {
-      eventBus.off(name, this.clearSearchResults);
     }
     this.debouncedSubmit.cancel();
     if (this.searchAbort) {
@@ -723,9 +713,6 @@ export default {
     },
     getSearchForm() {
       return Object.fromEntries(searchFormKeys.map((key) => [key, this[key]]));
-    },
-    clearSearchResults() {
-      state.searchResults = null;
     },
     async restoreSearchResults() {
       const search = state.searchResults;

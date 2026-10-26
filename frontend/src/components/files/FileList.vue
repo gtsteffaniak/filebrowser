@@ -231,6 +231,9 @@ export default {
       // Otherwise, any selection is valid (including folders)
       return !!this.selected;
     },
+    usesSearchNavigation() {
+      return !!state.req && !!getters.searchNavigationItems(state.req);
+    },
   },
   watch: {
     browseSource(newSource) {
@@ -665,7 +668,7 @@ export default {
     },
     isCurrentItem(item) {
       if (!this.fileList || !state.req) return false;
-      if (getters.searchNavigationItems(state.req)) {
+      if (this.usesSearchNavigation) {
         return item.source === state.req.source && item.path === state.req.path;
       }
       return item.name === state.req.name;

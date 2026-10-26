@@ -269,6 +269,7 @@ export default {
 
         const succeededCount = succeeded.length;
         const failedCount = failed.length;
+        mutations.removeFromSearchResults(succeeded);
 
         if (failedCount === 0) {
           // All succeeded - close prompt and handle navigation
