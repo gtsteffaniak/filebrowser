@@ -1,4 +1,4 @@
-import { attachHlsToVideo } from '@/plyr/hlsAdapter.js';
+import { attachDeadlineMs, attachHlsToVideo } from '@/plyr/hlsAdapter.js';
 import { continuePlay } from '@/plyr/playbackIntent.js';
 import { TranscodeSessionController } from '@/plyr/transcodeSession.js';
 import { transcodeError, transcodeLog, transcodeWarn } from '@/plyr/transcodeDebug.js';
@@ -6,6 +6,13 @@ import { getTranscodeSessions } from '@/api/transcode.js';
 import { isTranscodeHlsMode } from '@/plyr/transcodeMode.js';
 
 const TRANSCODE_PROFILES = { quality: 'quality', balanced: 'balanced', datasaver: 'datasaver' };
+
+/**
+ * A timed-out attach is retried in place rather than falling back to native
+ * playback: the failure is a race with producer warm-up, and the native source
+ * cannot decode a file that needed transcode in the first place.
+ */
+const MAX_ATTACH_RETRIES = 1;
 
 function profileFromTranscodeMode(mode) {
   return TRANSCODE_PROFILES[mode] ?? TRANSCODE_PROFILES.quality;
@@ -45,10 +52,10 @@ export class TranscodePlaybackController {
     this._startChain = Promise.resolve();
   }
 
-  dispose({ stopSession = false } = {}) {
+  dispose({ stopSession = false, keepalive = false } = {}) {
     this.disposed = true;
     this.attempt += 1;
-    this._cancelInFlight({ stopSession });
+    this._cancelInFlight({ stopSession, keepalive });
     this.active = false;
     this.startInProgress = false;
   }
@@ -58,14 +65,14 @@ export class TranscodePlaybackController {
       && attempt === this.attempt;
   }
 
-  _cancelInFlight({ stopSession = false } = {}) {
+  _cancelInFlight({ stopSession = false, keepalive = false } = {}) {
     this.attachAbort?.abort();
     this.attachAbort = null;
     this.hlsCleanup?.();
     this.hlsCleanup = null;
     if (this.sessionController) {
       if (stopSession) {
-        void this.sessionController.stop();
+        void this.sessionController.stop({ keepalive });
       } else {
         this.sessionController.detach();
       }
@@ -224,42 +231,92 @@ export class TranscodePlaybackController {
         el.removeAttribute('src');
       }
 
-      const attachAbort = new AbortController();
-      this.attachAbort = attachAbort;
-      const vodStart = controller.session?.vodPlaylist
-        && Number.isFinite(startSec)
-        && startSec > 0
-        ? startSec
-        : -1;
-      const hlsAttachPromise = attachHlsToVideo({
-        video: el,
-        session: controller.session,
-        startPosition: vodStart,
-        signal: attachAbort.signal,
-        onFirstBuffered: () => {
-          if (!this.isCurrentAttempt(attempt)) {
-            return;
-          }
-          transcodeLog('transcode onFirstBuffered', {
-            sessionId: controller.session?.id,
-            attempt,
-          });
-          // Mark the HLS session active before resuming the element. The
-          // resulting `play` event must not be mistaken for a new start.
-          this.active = true;
-          applyStartPosition(getVideoElement?.());
-          onFirstBuffered?.();
-          resumePlayback();
-        },
-        onFatal: (data) => {
-          if (!this.isCurrentAttempt(attempt)) {
-            return;
-          }
-          onFatal?.(data);
-        },
-      });
+      // Every session serves the full-length on-demand playlist, so an initial
+      // load must target the fragment containing the seek. Do not gate this on
+      // `session.vodPlaylist` (production session responses never set it): the
+      // post-buffer `applyStartPosition` seek is not a substitute, since it warms
+      // up from zero and only then seeks, forcing an extra producer reposition.
+      const vodStart = Number.isFinite(startSec) && startSec > 0 ? startSec : -1;
 
-      const hlsAttach = await hlsAttachPromise;
+      // One overall budget covers every attach attempt: retries share it rather
+      // than each getting a fresh seek-scaled deadline, so two attempts cannot
+      // consume 2x the allowed latency.
+      const attachBudgetMs = attachDeadlineMs(vodStart);
+      const attachDeadlineAt = performance.now() + attachBudgetMs;
+
+      // An attach timeout is a timing race against producer warm-up, not a
+      // format problem: the same session serves the fragment moments later.
+      // Retry the attach a bounded number of times before giving up, so a slow
+      // first fragment does not force a fallback that cannot decode the source.
+      let hlsAttach = null;
+      for (let attachAttempt = 0; attachAttempt <= MAX_ATTACH_RETRIES; attachAttempt += 1) {
+        const remainingMs = attachDeadlineAt - performance.now();
+        if (attachAttempt > 0 && remainingMs <= 0) {
+          transcodeWarn('HLS attach retry skipped — overall attach budget exhausted', {
+            sessionId: controller.session?.id,
+            attachAttempt,
+            attachBudgetMs,
+          });
+          break;
+        }
+        const attachAbort = new AbortController();
+        this.attachAbort = attachAbort;
+        if (attachAttempt > 0) {
+          transcodeLog('retrying HLS attach after timeout', {
+            sessionId: controller.session?.id,
+            attachAttempt,
+            maxRetries: MAX_ATTACH_RETRIES,
+            remainingMs: Math.round(remainingMs),
+          });
+        }
+        try {
+          hlsAttach = await attachHlsToVideo({
+            video: el,
+            session: controller.session,
+            startPosition: vodStart,
+            budgetMs: remainingMs,
+            signal: attachAbort.signal,
+            onFirstBuffered: () => {
+              if (!this.isCurrentAttempt(attempt)) {
+                return;
+              }
+              transcodeLog('transcode onFirstBuffered', {
+                sessionId: controller.session?.id,
+                attempt,
+              });
+              // Mark the HLS session active before resuming the element. The
+              // resulting `play` event must not be mistaken for a new start.
+              this.active = true;
+              applyStartPosition(getVideoElement?.());
+              onFirstBuffered?.();
+              resumePlayback();
+            },
+            onFatal: (data) => {
+              if (!this.isCurrentAttempt(attempt)) {
+                return;
+              }
+              onFatal?.(data);
+            },
+          });
+          break;
+        } catch (attachErr) {
+          const retryable = attachErr?.name === 'AttachTimeoutError'
+            && attachAttempt < MAX_ATTACH_RETRIES
+            && this.isCurrentAttempt(attempt);
+          if (!retryable) {
+            throw attachErr;
+          }
+          transcodeWarn('HLS attach timed out — reattaching', {
+            sessionId: controller.session?.id,
+            attachAttempt,
+          });
+          this.attachAbort = null;
+        }
+      }
+      if (!hlsAttach) {
+        // Every retry threw; the last error was re-thrown and handled below.
+        throw new Error('HLS attach failed');
+      }
       if (!this.isCurrentAttempt(attempt)) {
         hlsAttach.cleanup();
         return { ok: false, reason: 'stale' };
@@ -310,9 +367,9 @@ export class TranscodePlaybackController {
     }
   }
 
-  teardownLocal({ stopSession = false } = {}) {
+  teardownLocal({ stopSession = false, keepalive = false } = {}) {
     this.attempt += 1;
-    this._cancelInFlight({ stopSession });
+    this._cancelInFlight({ stopSession, keepalive });
     // Invalidate any in-flight start: its finally block compares attempts and
     // would otherwise leave the flag set, blocking every future start.
     this.startInProgress = false;

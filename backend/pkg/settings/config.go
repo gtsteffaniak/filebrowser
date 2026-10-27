@@ -1154,6 +1154,14 @@ func TranscodeCacheDir() string {
 	return filepath.Join(Config.Server.CacheDir, "transcoding")
 }
 
+// TranscodeKeyframeCacheDir is where probed per-file keyframe indexes are
+// persisted. It is separate from TranscodeCacheDir so the segment-cache
+// retention/eviction sweep (which owns the transcode tree) never treats a
+// keyframe index as a generation.
+func TranscodeKeyframeCacheDir() string {
+	return filepath.Join(Config.Server.CacheDir, "transcode-keyframes")
+}
+
 // PrepareDownloadSpoolDir creates the download spool directory and removes any leftover dl-archive-*
 func PrepareDownloadSpoolDir() error {
 	if err := os.MkdirAll(DownloadCacheDir(), fileutils.PermDir); err != nil {

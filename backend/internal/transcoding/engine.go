@@ -126,18 +126,31 @@ func (e *MediaEngine) BuildPlan(ctx context.Context, realPath string, profile Pr
 	}
 
 	var keyframes []float64
-	if plan.remux || plan.videoCopy {
-		rawKeyframes, _ := defaultKeyframeCache.get(ctx, keyframeKey{path: realPath, size: stat.Size(), modTime: stat.ModTime().UnixNano()},
-			func(ctx context.Context) ([]float64, error) { return svc.ProbeVideoKeyframeTimes(ctx, realPath) })
-		keyframes, _ = ffmpeg.PrepareHLSMediaTimeline(rawKeyframes, info.Duration, info.StartTime)
-	}
+	// copyImpossible is set when the keyframe timeline cannot support stream
+	// copy: either the pre-flight window already contains a gap past the copy
+	// cap, or the probe itself failed. Both cases fail safe toward transcode,
+	// since a copy plan with multi-minute #EXTINF values is unplayable.
+	copyImpossible := false
 	plan.segmentSec = defaults.SegmentDurationSec
+	if plan.remux || plan.videoCopy {
+		rawKeyframes, kfErr := probeKeyframesCached(ctx, svc, realPath, stat.Size(), stat.ModTime().UnixNano(), plan.segmentSec, true)
+		if kfErr != nil {
+			copyImpossible = true
+			logger.Warningf("transcode: keyframe probe failed on %s (%v) — forcing video transcode for HLS", realPath, kfErr)
+		} else if len(rawKeyframes) == 0 {
+			// Pre-flight (or a keyframe-free stream) proved copy impossible
+			// without paying for the full-file demux.
+			copyImpossible = true
+		} else {
+			keyframes, _ = ffmpeg.PrepareHLSMediaTimeline(rawKeyframes, info.Duration, info.StartTime)
+		}
+	}
 	plan.buildTimeline(keyframes)
 	if plan.mediaDurationSec <= 0 {
 		return plan, ErrUnsupportedMedia
 	}
 
-	if (plan.remux || plan.videoCopy) && vodMaxSegmentDuration(plan.vodList) > maxCopySegmentDurationSec(plan.segmentSec) {
+	if (plan.remux || plan.videoCopy) && (copyImpossible || vodMaxSegmentDuration(plan.vodList) > maxCopySegmentDurationSec(plan.segmentSec)) {
 		logger.Infof(
 			"transcode: longest keyframe segment %.1fs exceeds %.1fs cap on %s — forcing video transcode for HLS",
 			vodMaxSegmentDuration(plan.vodList),
@@ -179,11 +192,11 @@ func (e *MediaEngine) BuildPlan(ctx context.Context, realPath string, profile Pr
 func (plan *hlsPlan) setTranscodeProfiles(ctx context.Context, svc *ffmpeg.Service, realPath string, profile Profile) {
 	plan.encodeProfile = encodeProfileForMode(plan.info, profile)
 	plan.decodeProfile = ffmpeg.HLSDecodeProfileForOnDemand(plan.info)
-	logEncoderChoice(realPath, profile, plan.encodeProfile)
 	if sel, err := svc.ResolveVideoEncoder(plan.encodeProfile); err == nil {
 		plan.encoderName = sel.Encoder
 		plan.accelName = string(sel.Accel)
 	}
+	logEncoderChoice(realPath, profile, plan.encodeProfile, plan.encoderName, plan.accelName, svc)
 	// Hardware encoder limit checks need output height AND frame rate;
 	// OutputHeight comes from DefaultHLSVideoProfile, fps from the probe.
 	if fps, ferr := svc.ProbeVideoFPS(ctx, realPath); ferr == nil && fps > 0 {
@@ -348,15 +361,54 @@ func encodeProfileForMode(info ffmpeg.StreamInfo, profile Profile) encode.VideoP
 	return base
 }
 
-// logEncoderChoice records which encoder a plan will use and warns when a
-// configured backend was unavailable and silently degraded to auto.
-func logEncoderChoice(realPath string, profile Profile, p encode.VideoProfile) {
+// logEncoderChoice records which encoder a plan will actually use. A software
+// encoder chosen despite available hardware is the single most confusing
+// transcode outcome (the job is orders of magnitude slower), so that case is
+// logged at info with the reason; a normal hardware/copy choice stays at debug.
+func logEncoderChoice(realPath string, profile Profile, p encode.VideoProfile, encoderName, accelName string, svc *ffmpeg.Service) {
 	requested := settings.TranscodeEncoderBackend(string(profile))
-	if requested != "" && requested != "auto" && requested != "cpu" && p.Accel == "" && p.Encoder == "" {
-		logger.Warningf("transcode: encoder backend %q is unavailable for profile %s; falling back to automatic selection (%s)", requested, profile, realPath)
+	software := accelName == "" || accelName == string(capabilities.AccelNone) || accelName == "copy"
+
+	if software {
+		if requested != "" && requested != "auto" && requested != "cpu" {
+			logger.Warningf("transcode: encoder backend %q is unavailable for profile %s; falling back to automatic selection (%s)", requested, profile, realPath)
+		} else if hardwareEncodeAvailable(svc.Capabilities()) {
+			logger.Infof("transcode: using software encoder %q (%s) for profile=%s though hardware encode is available; check the configured accel device and encoder backend (%s)",
+				encoderName, requestedLabel(requested), profile, realPath)
+		} else {
+			logger.Infof("transcode: using software encoder %q for profile=%s (no hardware encoder available) (%s)", encoderName, profile, realPath)
+		}
 		return
 	}
-	logger.Debugf("transcode: profile=%s requested backend=%q accel=%q encoder=%q", profile, requested, p.Accel, p.Encoder)
+	logger.Infof("transcode: using encoder %q (accel=%s) for profile=%s (%s)", encoderName, accelName, profile, realPath)
+}
+
+func requestedLabel(requested string) string {
+	if requested == "" {
+		return "auto"
+	}
+	return requested
+}
+
+// hardwareEncodeAvailable reports whether any detected hardware path can encode
+// h264 — the codec every transcode profile outputs.
+func hardwareEncodeAvailable(caps *capabilities.Capabilities) bool {
+	if caps == nil {
+		return false
+	}
+	for _, accel := range []capabilities.AccelType{
+		capabilities.AccelNVENC,
+		capabilities.AccelAMF,
+		capabilities.AccelQSV,
+		capabilities.AccelVAAPI,
+		capabilities.AccelD3D12,
+		capabilities.AccelVideoToolbox,
+	} {
+		if caps.CodecEncodeAvailable(capabilities.CodecH264, accel) {
+			return true
+		}
+	}
+	return false
 }
 
 // preferredEncoderSelection resolves the configured encoder backend for a profile:

@@ -18,10 +18,18 @@ export async function getTranscodeSessions(params = {}) {
   return adjustedData(await res.json());
 }
 
-/** DELETE /api/media/transcode/sessions/{id} */
-export async function stopTranscodeSession(sessionId) {
+/**
+ * DELETE /api/media/transcode/sessions/{id}
+ *
+ * `keepalive` lets the request outlive the page (tab close / unload). It is
+ * required on the unload path because a plain fetch is cancelled the moment the
+ * document is torn down, which would leave the server session counted against
+ * the per-user limit until the janitor reclaims it.
+ */
+export async function stopTranscodeSession(sessionId, { keepalive = false } = {}) {
   await fetchURL(getApiPath(`media/transcode/sessions/${encodeURIComponent(sessionId)}`), {
     method: 'DELETE',
+    keepalive,
   });
 }
 

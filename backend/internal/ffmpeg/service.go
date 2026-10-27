@@ -114,7 +114,7 @@ func Initialize(ctx context.Context, opts InitOptions) error {
 		cacheDir: opts.CacheDir,
 	})
 
-	logCapabilities(svc, opts.HardwareAcceleration)
+	logCapabilities(svc, opts.HardwareAcceleration, opts.AccelDevice)
 	return nil
 }
 
@@ -433,12 +433,31 @@ func (s *Service) ProbeVideoFPS(ctx context.Context, path string) (float64, erro
 }
 
 // VideoPreview extracts a JPEG preview frame to w.
-// go-ffmpeg Service methods acquire concurrency slots automatically; do not Acquire before calling.
+//
+// go-ffmpeg deprecated Service.VideoPreview in favor of CaptureFrame, so this
+// wrapper keeps the PreviewOptions call shape used by the preview service while
+// delegating to the supported capture API. go-ffmpeg Service methods acquire
+// concurrency slots automatically; do not Acquire before calling.
 func (s *Service) VideoPreview(ctx context.Context, w io.Writer, opts ops.PreviewOptions) error {
 	if s == nil || s.inner == nil {
 		return fmt.Errorf("ffmpeg service not available")
 	}
-	return s.inner.VideoPreview(ctx, w, opts)
+
+	frame := ops.PreviewOptionsToFrame(opts, 0)
+	// Mirror the legacy ResolvePreviewSeekSec behavior: an explicit SeekSec
+	// wins, otherwise SeekPercent (defaulting to 10%) is resolved against the
+	// duration inside CaptureFrame.
+	if opts.SeekSec > 0 {
+		frame.At = ops.AtSec(opts.SeekSec)
+	} else {
+		percent := opts.SeekPercent
+		if percent <= 0 || percent > 100 {
+			percent = 10
+		}
+		frame.At = ops.AtPercent(percent)
+	}
+
+	return s.inner.CaptureFrame(ctx, w, frame)
 }
 
 // ExtractSubtitle returns embedded subtitle content as WebVTT.
@@ -465,13 +484,15 @@ func (s *Service) ExtractSubtitle(ctx context.Context, videoPath string, streamI
 	return content, nil
 }
 
-func logCapabilities(svc *goffmpeg.Service, wantsHardware bool) {
+func logCapabilities(svc *goffmpeg.Service, wantsHardware bool, accelDevice string) {
 	caps := svc.Capabilities()
 	if caps == nil {
 		return
 	}
 
 	logger.Debugf("Media Enabled: version %s @ %s", caps.FFmpegVersion, caps.FFmpegPath)
+
+	warnIfAccelDeviceUnavailable(caps, accelDevice)
 
 	hw := hardwareCodecSummary(svc)
 	if hw == "" {
@@ -480,9 +501,76 @@ func logCapabilities(svc *goffmpeg.Service, wantsHardware bool) {
 		} else {
 			logger.Debug("no ffmpeg hardware codec support found")
 		}
+		logHWEncodeProbeFailures(caps)
+		return
+	}
+	if wantsHardware {
+		// Info level: which hardware paths the machine can actually use, so a
+		// software-only transcode is diagnosable without raising the log level.
+		logger.Infof("ffmpeg hardware codecs: %s", hw)
+		logHWEncodeProbeFailures(caps)
 		return
 	}
 	logger.Debugf("supported ffmpeg hardware codecs: %s", hw)
+}
+
+// warnIfAccelDeviceUnavailable surfaces a stale configured device. The stored
+// device (e.g. a GPU name saved on another host) may no longer be present; the
+// resolver falls back to auto, but silently, so the transcodes look like a
+// plain software encode with no explanation. Resolve with no side effects and
+// report the fallback at info.
+func warnIfAccelDeviceUnavailable(caps *capabilities.Capabilities, accelDevice string) {
+	if reason, ok := accelDeviceFallbackReason(accelDevice); ok {
+		logger.Warningf("ffmpeg accel device %q is unavailable (%s); using automatic selection instead", strings.TrimSpace(accelDevice), reason)
+	}
+}
+
+// accelDeviceFallbackReason reports whether a configured accel device cannot be
+// used on this host and why. A blank/"auto"/"software" value is not a device
+// selection, so it never warns.
+func accelDeviceFallbackReason(accelDevice string) (string, bool) {
+	dev := strings.TrimSpace(accelDevice)
+	switch strings.ToLower(dev) {
+	case "", "auto", "software", "cpu", "none":
+		return "", false
+	}
+	sel, err := goffmpeg.ParseGPUSelector(dev)
+	if err != nil {
+		return fmt.Sprintf("unparseable device (%v)", err), true
+	}
+	choice, err := goffmpeg.ResolveGPUSelector(sel, goffmpeg.GPUFallbackOnUnavailable)
+	if err != nil {
+		return err.Error(), true
+	}
+	if choice.Fallback {
+		if choice.FallbackReason != "" {
+			return choice.FallbackReason, true
+		}
+		return "not present on this host", true
+	}
+	return "", false
+}
+
+// logHWEncodeProbeFailures lists hardware encoders that failed their functional
+// probe, distinctly from decoders, so a "hardware decode works but encode
+// silently used libx264" case is visible. Only reports when there is at least
+// one failure, and only for h264/hevc/av1 (the codecs transcode uses).
+func logHWEncodeProbeFailures(caps *capabilities.Capabilities) {
+	var failures []string
+	for _, row := range caps.EncoderProbeResults() {
+		if row.Available || row.Accel == "" || row.Accel == capabilities.AccelNone {
+			continue
+		}
+		entry := fmt.Sprintf("%s (%s, %s)", row.Encoder, row.Accel, row.Code)
+		if row.Hint != "" {
+			entry += ": " + row.Hint
+		}
+		failures = append(failures, entry)
+	}
+	if len(failures) == 0 {
+		return
+	}
+	logger.Infof("ffmpeg hardware encoders unavailable: %s", strings.Join(failures, "; "))
 }
 
 // hardwareCodecSummary lists detected hardware encode/decode paths. It reads

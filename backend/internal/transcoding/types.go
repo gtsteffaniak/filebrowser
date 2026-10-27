@@ -36,10 +36,18 @@ const (
 	startupTimeout           = 90 * time.Second
 	playingInactivityTimeout = 5 * time.Minute
 	pauseInactivityTimeout   = 30 * time.Minute
-	// reconnectGrace bounds how long a session survives once its clients stop
+	// reconnectGrace bounds how long a client lease survives once it stops
 	// heartbeating (tab closed, viewer unmounted). It must exceed the
-	// heartbeat interval with enough slack for a delayed tick.
-	reconnectGrace        = 15 * time.Second
+	// heartbeat interval with enough slack for a delayed tick, so it is not a
+	// reclamation deadline for the session itself.
+	reconnectGrace = 15 * time.Second
+	// orphanSessionGrace is how long a session with zero live clients is kept
+	// before it is reaped. It is deliberately short: the frontend stops its
+	// session explicitly on deliberate exit, so a zero-client session only
+	// remains after a crash/timeout, and holding its per-user slot longer than
+	// a couple of janitor ticks is pure latency. Distinct from reconnectGrace,
+	// which is a per-client lease floor and must stay above the heartbeat.
+	orphanSessionGrace    = 2 * time.Second
 	janitorInterval       = 5 * time.Second
 	cacheEvictionInterval = time.Minute
 	// producerPauseGrace is how long every client on a generation must stay

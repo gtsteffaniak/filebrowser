@@ -7,6 +7,46 @@ const ATTACH_TIMEOUT_MS = 45_000;
 /** Wait for decoded dimensions before declaring attach ready (MSE can buffer without painting). */
 const RENDERABLE_WAIT_MS = 8_000;
 const MAX_BUFFER_APPEND_RECOVERIES = 3;
+/**
+ * A mid-file start has to wait for the producer to seek, warm up and publish the
+ * first fragment that covers `startPosition`. The base attach budget is measured
+ * from attach time and knows nothing about how far into the file the seek lands,
+ * so a deep resume (e.g. datasaver resuming at ~10.5s) shares the same 45s as a
+ * start at 0s even though its first usable fragment is produced later. Scale the
+ * budget by the seek offset, bounded, so a deep seek is not killed while the
+ * producer is still working.
+ */
+const SEEK_WARMUP_MS_PER_SEC = 1_000;
+const MAX_SEEK_WARMUP_MS = 45_000;
+/**
+ * A stall guard for a producer that stops making progress: every fragment that
+ * actually arrives (or buffers) restarts this clock, so a slow-but-progressing
+ * attach is never aborted by the wall-clock deadline alone.
+ */
+const ATTACH_STALL_TIMEOUT_MS = 30_000;
+
+/**
+ * Total attach budget for a start position: the base deadline plus a bounded
+ * allowance for the seek/producer warm-up the first fragment needs.
+ */
+export function attachDeadlineMs(startPosition) {
+  const seek = Number.isFinite(startPosition) && startPosition > 0 ? startPosition : 0;
+  const warmup = Math.min(seek * SEEK_WARMUP_MS_PER_SEC, MAX_SEEK_WARMUP_MS);
+  return ATTACH_TIMEOUT_MS + warmup;
+}
+
+/**
+ * Resolve the hard-attach deadline for one attempt. An explicit `budgetMs`
+ * (a shared, already-decremented retry budget) wins when finite and positive;
+ * otherwise fall back to the seek-scaled default for the start position.
+ */
+function resolveAttachDeadlineMs(startPosition, budgetMs) {
+  if (Number.isFinite(budgetMs) && budgetMs > 0) {
+    return budgetMs;
+  }
+  return attachDeadlineMs(startPosition);
+}
+
 const RECOVERABLE_HLS_DETAILS = new Set([
   'bufferSeekOverHole',
   'bufferNudgeOnStall',
@@ -156,6 +196,7 @@ export function attachHlsToVideo({
   signal,
   onFatal,
   onFirstBuffered,
+  budgetMs,
 }) {
   const playlistURL = getTranscodePlaylistURL(session);
   const initialStart = Number.isFinite(startPosition) && startPosition >= 0
@@ -230,18 +271,60 @@ export function attachHlsToVideo({
       finish('reject', error);
     };
 
+    // Two independent guards, both funnelling into the same timeout handler:
+    // - hardTimeoutId: the absolute budget (seek-scaled) for this attach.
+    // - stallTimeoutId: reset by every fragment that arrives/buffers, so a slow
+    //   producer that keeps publishing is not killed by the wall clock alone.
+    const attachStartedAt = performance.now();
+    const deadlineMs = resolveAttachDeadlineMs(initialStart, budgetMs);
+    let hardTimeoutId = null;
+    let stallTimeoutId = null;
+
     const finish = (kind, payload) => {
       if (settled) {
         return;
       }
       settled = true;
-      clearTimeout(timeoutId);
+      clearTimeout(hardTimeoutId);
+      clearTimeout(stallTimeoutId);
       signal?.removeEventListener('abort', onAbort);
       if (kind === 'resolve') {
         resolve(payload);
       } else {
         reject(payload);
       }
+    };
+
+    const onAttachTimeout = () => {
+      transcodeError('hls attach timed out waiting for buffered fragments', {
+        sessionId: session?.id,
+        playlistURL,
+        startPosition: initialStart,
+        deadlineMs,
+        elapsedMs: Math.round(performance.now() - attachStartedAt),
+        bufferedFrags,
+        video: describeVideo(video),
+      });
+      cleanup();
+      const error = new Error('HLS attach timed out');
+      // Distinct name so the controller can retry a timed-out attach instead of
+      // falling back to native playback (which cannot decode the source at all).
+      error.name = 'AttachTimeoutError';
+      finish('reject', error);
+    };
+
+    // Progress restarts the stall guard, clamped so it can never outlive the
+    // hard deadline.
+    const noteAttachProgress = () => {
+      if (settled) {
+        return;
+      }
+      clearTimeout(stallTimeoutId);
+      const remaining = deadlineMs - (performance.now() - attachStartedAt);
+      if (remaining <= 0) {
+        return;
+      }
+      stallTimeoutId = setTimeout(onAttachTimeout, Math.min(ATTACH_STALL_TIMEOUT_MS, remaining));
     };
 
     let appendRecoveryAttempts = 0;
@@ -273,16 +356,8 @@ export function attachHlsToVideo({
       });
     };
 
-    const timeoutId = setTimeout(() => {
-      transcodeError('hls attach timed out waiting for buffered fragments', {
-        sessionId: session?.id,
-        playlistURL,
-        startPosition: initialStart,
-        video: describeVideo(video),
-      });
-      cleanup();
-      finish('reject', new Error('HLS attach timed out'));
-    }, ATTACH_TIMEOUT_MS);
+    hardTimeoutId = setTimeout(onAttachTimeout, deadlineMs);
+    noteAttachProgress();
 
     const hls = new Hls({
       enableWorker: true,
@@ -397,6 +472,9 @@ export function attachHlsToVideo({
     });
 
     hls.on(Hls.Events.FRAG_LOADED, (_event, data) => {
+      // First byte of the seek fragment arrived: the producer is making
+      // progress, so push the stall guard out.
+      noteAttachProgress();
       transcodeLog('hls frag loaded', {
         frag: describeFrag(data?.frag),
         bytes: data?.frag?.stats?.total,
@@ -405,6 +483,7 @@ export function attachHlsToVideo({
 
     hls.on(Hls.Events.FRAG_BUFFERED, (_event, data) => {
       bufferedFrags += 1;
+      noteAttachProgress();
       const fragInfo = describeFrag(data?.frag);
       transcodeLog('hls frag buffered', {
         frag: fragInfo,
@@ -454,8 +533,17 @@ export function attachHlsToVideo({
       // Init/segment 503 during startup is common; recover before MSE requires reset.
       if (data?.type === Hls.ErrorTypes.NETWORK_ERROR && data?.response?.code === 503) {
         transcodeWarn('hls 503 during transcode startup — retrying load', info);
+        // Resume at the fragment we were already waiting on. Do NOT use
+        // hls.liveSyncPosition here: this is a #EXT-X-PLAYLIST-TYPE:VOD playlist
+        // with #EXT-X-ENDLIST, so liveSyncPosition is the live-edge guess
+        // (edge - liveSyncDurationCount*targetduration, e.g. 18.6s for this
+        // 30.6s clip) — it jumps the playhead far ahead of the requested seek
+        // and abandons the not-yet-ready fragment hls.js was already retrying.
+        const resumeAt = Number.isFinite(data?.frag?.start)
+          ? data.frag.start
+          : hls.startPosition;
         try {
-          hls.startLoad(hls.liveSyncPosition ?? -1);
+          hls.startLoad(Number.isFinite(resumeAt) && resumeAt > 0 ? resumeAt : -1);
         } catch (err) {
           transcodeWarn('hls startLoad retry after 503 failed', { message: err?.message });
         }

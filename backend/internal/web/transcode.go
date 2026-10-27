@@ -296,9 +296,11 @@ func transcodeSegmentHandler(w http.ResponseWriter, r *http.Request, d *Context)
 	}
 	id := strings.TrimSpace(r.PathValue("id"))
 	name := strings.TrimSpace(r.PathValue("name"))
-	// index.m3u8 only lists segments after the publisher lands them in seg/,
-	// so a listed segment always exists — a miss means the generation was
-	// cleared, and hls.js retries fragment loads on its own.
+	// The playlist is the complete VOD list for the whole file: it is written
+	// before the job starts and lists every planned segment, so a listed index
+	// may not exist on disk yet. OpenSegment waits for (or repositions) the
+	// producer to materialize it; a readiness failure surfaces as 503 and
+	// hls.js retries the fragment on its own.
 	f, err := mgr.OpenSegment(r.Context(), d.User.Username, id, name)
 	if err != nil {
 		logger.Infof("[transcode] segment failed session=%s user=%s name=%s err=%v", id, d.User.Username, name, err)

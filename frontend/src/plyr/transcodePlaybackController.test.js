@@ -6,6 +6,7 @@ vi.mock('@/plyr/hlsAdapter.js', () => ({
   attachHlsToVideo: vi.fn(async () => ({
     cleanup: vi.fn(),
   })),
+  attachDeadlineMs: vi.fn(() => 45_000),
 }));
 
 vi.mock('@/api/transcode.js', () => ({
@@ -20,7 +21,7 @@ vi.mock('@/api/transcode.js', () => ({
 }));
 
 import { attachHlsToVideo } from '@/plyr/hlsAdapter.js';
-import { startTranscodeSession } from '@/api/transcode.js';
+import { startTranscodeSession, stopTranscodeSession } from '@/api/transcode.js';
 
 describe('TranscodePlaybackController', () => {
   beforeEach(() => {
@@ -270,6 +271,68 @@ describe('TranscodePlaybackController', () => {
     expect(restarted.ok).toBe(true);
   });
 
+  it('reattaches after an attach timeout instead of falling back', async () => {
+    const controller = new TranscodePlaybackController();
+    const video = document.createElement('video');
+    const timeoutError = new Error('HLS attach timed out');
+    timeoutError.name = 'AttachTimeoutError';
+    vi.mocked(attachHlsToVideo)
+      .mockRejectedValueOnce(timeoutError)
+      .mockImplementationOnce(async ({ onFirstBuffered }) => {
+        onFirstBuffered();
+        return { cleanup: vi.fn() };
+      });
+
+    const onAttachNative = vi.fn();
+    const result = await controller.start({
+      source: 's',
+      path: '/v.wmv',
+      viewToken: 'token',
+      mode: 'datasaver',
+      clientId: 'c1',
+      startSec: 10.508291,
+      getVideoElement: () => video,
+      nextTick: async () => {},
+      shouldAutoplay: false,
+      onAttachNative,
+    });
+
+    expect(result.ok).toBe(true);
+    expect(attachHlsToVideo).toHaveBeenCalledTimes(2);
+    // A timed-out attach is a race, not a format problem: never fall back.
+    expect(onAttachNative).not.toHaveBeenCalled();
+  });
+
+  it('gives up after the bounded reattach retries', async () => {
+    const controller = new TranscodePlaybackController();
+    const video = document.createElement('video');
+    const timeoutError = () => {
+      const err = new Error('HLS attach timed out');
+      err.name = 'AttachTimeoutError';
+      return err;
+    };
+    vi.mocked(attachHlsToVideo)
+      .mockRejectedValueOnce(timeoutError())
+      .mockRejectedValueOnce(timeoutError());
+
+    const onAttachNative = vi.fn();
+    const result = await controller.start({
+      source: 's',
+      path: '/v.wmv',
+      viewToken: 'token',
+      mode: 'datasaver',
+      clientId: 'c1',
+      startSec: 10.508291,
+      getVideoElement: () => video,
+      nextTick: async () => {},
+      shouldAutoplay: false,
+      onAttachNative,
+    });
+
+    expect(result.reason).toBe('fallback');
+    expect(attachHlsToVideo).toHaveBeenCalledTimes(2);
+  });
+
   it('applies a seek target past the buffered window on a reused completed session', async () => {
     const controller = new TranscodePlaybackController();
     const video = document.createElement('video');
@@ -347,5 +410,114 @@ describe('TranscodePlaybackController', () => {
     // waits/repositions the job for the segment, so the target is never
     // clamped to the produced edge.
     expect(video.currentTime).toBeCloseTo(2600, 1);
+  });
+
+  it('passes the requested seek to the initial attach even without a vodPlaylist flag', async () => {
+    const controller = new TranscodePlaybackController();
+    const video = document.createElement('video');
+    // Production session responses never set vodPlaylist; gating the seek on it
+    // forced a warm-up from zero followed by an after-the-fact seek.
+    vi.mocked(startTranscodeSession).mockResolvedValueOnce({
+      id: 'sess-3',
+      state: 'running',
+      durationSec: 300,
+      heartbeatIntervalSec: 12,
+      deliveryBaseUrl: '/api/media/transcode/sessions/sess-3',
+    });
+    vi.mocked(attachHlsToVideo).mockImplementationOnce(async ({ onFirstBuffered }) => {
+      onFirstBuffered();
+      return { cleanup: vi.fn() };
+    });
+
+    await controller.start({
+      source: 's',
+      path: '/v.mp4',
+      viewToken: 'token',
+      mode: 'datasaver',
+      clientId: 'c1',
+      startSec: 120.5,
+      getVideoElement: () => video,
+      nextTick: async () => {},
+      shouldAutoplay: false,
+    });
+
+    expect(attachHlsToVideo).toHaveBeenCalledWith(expect.objectContaining({
+      startPosition: 120.5,
+    }));
+  });
+
+  it('does not request a seek for a start at zero', async () => {
+    const controller = new TranscodePlaybackController();
+    const video = document.createElement('video');
+    vi.mocked(attachHlsToVideo).mockImplementationOnce(async ({ onFirstBuffered }) => {
+      onFirstBuffered();
+      return { cleanup: vi.fn() };
+    });
+
+    await controller.start({
+      source: 's',
+      path: '/v.mp4',
+      viewToken: 'token',
+      mode: 'quality',
+      clientId: 'c1',
+      startSec: 0,
+      getVideoElement: () => video,
+      nextTick: async () => {},
+      shouldAutoplay: false,
+    });
+
+    expect(attachHlsToVideo).toHaveBeenCalledWith(expect.objectContaining({
+      startPosition: -1,
+    }));
+  });
+
+  it('stops the server session on dispose when asked', async () => {
+    const controller = new TranscodePlaybackController();
+    const video = document.createElement('video');
+    vi.mocked(attachHlsToVideo).mockImplementationOnce(async ({ onFirstBuffered }) => {
+      onFirstBuffered();
+      return { cleanup: vi.fn() };
+    });
+
+    await controller.start({
+      source: 's',
+      path: '/v.mp4',
+      viewToken: 'token',
+      mode: 'quality',
+      clientId: 'c1',
+      startSec: 0,
+      getVideoElement: () => video,
+      nextTick: async () => {},
+      shouldAutoplay: false,
+    });
+
+    controller.dispose({ stopSession: true });
+    await Promise.resolve();
+    expect(stopTranscodeSession).toHaveBeenCalledWith('sess-1', { keepalive: false });
+  });
+
+  it('forwards keepalive to the session stop on unload', async () => {
+    const controller = new TranscodePlaybackController();
+    const video = document.createElement('video');
+    vi.mocked(attachHlsToVideo).mockImplementationOnce(async ({ onFirstBuffered }) => {
+      onFirstBuffered();
+      return { cleanup: vi.fn() };
+    });
+
+    await controller.start({
+      source: 's',
+      path: '/v.mp4',
+      viewToken: 'token',
+      mode: 'quality',
+      clientId: 'c1',
+      startSec: 0,
+      getVideoElement: () => video,
+      nextTick: async () => {},
+      shouldAutoplay: false,
+    });
+
+    controller.dispose({ stopSession: true, keepalive: true });
+    await Promise.resolve();
+    expect(stopTranscodeSession).toHaveBeenCalledWith('sess-1', { keepalive: true });
   });
 });

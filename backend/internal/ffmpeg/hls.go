@@ -92,6 +92,16 @@ func (s *Service) ProbeVideoKeyframeTimes(ctx context.Context, path string) ([]f
 	return s.inner.ProbeVideoKeyframeTimes(ctx, path)
 }
 
+// ProbeVideoKeyframeTimesBounded returns keyframe times from the first windowSec
+// of the file only. Used as a cheap pre-flight to prove stream copy impossible
+// before paying for the full-file keyframe demux.
+func (s *Service) ProbeVideoKeyframeTimesBounded(ctx context.Context, path string, windowSec float64) ([]float64, error) {
+	if s == nil || s.inner == nil {
+		return nil, errUnavailable()
+	}
+	return s.inner.ProbeVideoKeyframeTimesBounded(ctx, path, windowSec)
+}
+
 func errUnavailable() error {
 	return fmt.Errorf("ffmpeg service not available")
 }

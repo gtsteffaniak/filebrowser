@@ -42,6 +42,22 @@ func TestResolveAccelDeviceWSLNVIDIA(t *testing.T) {
 	}
 }
 
+func TestAccelDeviceFallbackReason(t *testing.T) {
+	// A blank or auto/software value is not a device selection.
+	for _, dev := range []string{"", "auto", "software", "cpu", "none", "AUTO"} {
+		if _, ok := accelDeviceFallbackReason(dev); ok {
+			t.Fatalf("%q must not report a fallback", dev)
+		}
+	}
+	// A GPU name that is not on this host must be reported as falling back.
+	// The synthetic device will not match host enumeration in CI.
+	if reason, ok := accelDeviceFallbackReason("Definitely Not A Real GPU 9999"); !ok {
+		t.Fatal("an unmatched device name must report a fallback reason")
+	} else if reason == "" {
+		t.Fatal("the fallback reason must be non-empty")
+	}
+}
+
 func wslCaps() *capabilities.Capabilities {
 	caps := capabilities.NewCapabilities()
 	caps.Platform = capabilities.PlatformInfo{OS: "linux", WSL: true, NVIDIA: true}

@@ -1031,6 +1031,12 @@ export default {
     this.pagehideHandler = (event) => {
       if (event.persisted) return;
       this.cleanupAudioVisualizer(); // to stop the visualizer when viewing another browser tab
+      // Tab close / page unload: stop the media element and fire a keepalive
+      // DELETE so the server session is released before the document tears down.
+      // A plain fetch would be cancelled mid-flight and leave the session
+      // counted against the per-user limit until the janitor reaps it.
+      this.teardownTranscodePlayback({ stopSession: true, keepalive: true });
+      this.stopMediaElement();
     };
     window.addEventListener('pagehide', this.pagehideHandler);
   },
@@ -1272,11 +1278,14 @@ export default {
         this.stopMediaElement(media);
       }
 
-      // keepAlive: leaving in PiP must keep hls.js + the session feeding the
-      // adopted element; otherwise invalidate the controller (shared included)
-      // so in-flight starts can't call play() on the orphaned element.
+      // Any deliberate teardown of this viewer (route leave, source swap, close)
+      // must stop the server session. The only exemption is the PiP handoff,
+      // which keeps hls.js + the session feeding the adopted element. This used
+      // to pass stopSession:false while a transcode was active, so closing a
+      // playing video only detached the client and left the session (and its
+      // per-user slot) alive until the 15-90s janitor reclaim.
       this.teardownTranscodePlayback({
-        stopSession: !this.transcodeActive && !this.transcodeStartInProgress,
+        stopSession: !leavingInPip,
         keepAlive: Boolean(leavingInPip),
       });
       if (!this.usesSharedTranscodePlayback()) {
@@ -2282,15 +2291,15 @@ export default {
         }
       }
     },
-    teardownTranscodePlayback({ stopSession = false, keepAlive = false } = {}) {
+    teardownTranscodePlayback({ stopSession = false, keepAlive = false, keepalive = false } = {}) {
       if (!this.transcodePlayback || keepAlive) {
         return;
       }
       if (this.usesSharedTranscodePlayback()) {
-        this.transcodePlayback.teardownLocal({ stopSession });
+        this.transcodePlayback.teardownLocal({ stopSession, keepalive });
         return;
       }
-      this.transcodePlayback.dispose({ stopSession });
+      this.transcodePlayback.dispose({ stopSession, keepalive });
     },
     onVideoPlaybackError(event) {
       if (
@@ -2374,8 +2383,9 @@ export default {
         btn.setAttribute('aria-checked', btn.getAttribute('value') === this.transcodeMode);
       }
       if (this.transcodeModeValueSpan) {
-        const encoder = this.transcodePlayback?.sessionController?.session?.encoder;
-        this.transcodeModeValueSpan.textContent = encoder ? `${label} · ${encoder}` : label;
+        // Only the profile name is shown; the resolved encoder/accel is a
+        // backend/ops detail and does not belong in the player's profile picker.
+        this.transcodeModeValueSpan.textContent = label;
       }
     },
     setTranscodeModeMenuDisabled(disabled) {

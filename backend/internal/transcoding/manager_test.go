@@ -74,6 +74,73 @@ func TestManagerConcurrentSameKeySingleSession(t *testing.T) {
 	}
 }
 
+// An abandoned session (every client lease expired) must be reaped within
+// orphanSessionGrace, not held for the whole reconnectGrace window. A stale
+// heartbeat is what makes the leases expire here.
+func TestManagerReapsAbandonedSessionQuickly(t *testing.T) {
+	mgr, _ := newTestManager(t, nil)
+	sess := mustStart(t, mgr, testInput(t, "abandoner", "/a.mp4"))
+
+	// Leases must be past reconnectGrace to be pruned, which is the real
+	// "client is gone" signal; lastHeartbeat past orphanSessionGrace then makes
+	// the session itself reclaimable.
+	leaseStale := time.Now().Add(-reconnectGrace - time.Second)
+	heartbeatStale := time.Now().Add(-orphanSessionGrace - time.Second)
+	mgr.mu.Lock()
+	live := mgr.sessions[sess.ID]
+	if live == nil {
+		mgr.mu.Unlock()
+		t.Fatal("session vanished before setup")
+	}
+	for id := range live.clients {
+		live.clients[id] = clientLease{seen: leaseStale, paused: true}
+	}
+	live.lastHeartbeat = heartbeatStale
+	live.lastActivity = heartbeatStale
+	// Model a slow-starting session: the old code exempted StateStarting
+	// sessions for the whole startupTimeout, holding the slot.
+	live.state = StateStarting
+	live.info.State = StateStarting
+	mgr.mu.Unlock()
+
+	mgr.expireSessions()
+
+	mgr.mu.Lock()
+	_, still := mgr.sessions[sess.ID]
+	_, producerStill := mgr.producers[sess.ID]
+	mgr.mu.Unlock()
+	if still || producerStill {
+		t.Fatal("an abandoned session must be reaped within orphanSessionGrace")
+	}
+}
+
+// A session whose client is merely between heartbeats (recent lastHeartbeat)
+// must survive the janitor so a slow tick does not kill live playback.
+func TestManagerKeepsSessionWithRecentHeartbeat(t *testing.T) {
+	mgr, _ := newTestManager(t, nil)
+	sess := mustStart(t, mgr, testInput(t, "fresh", "/fresh.mp4"))
+
+	mgr.mu.Lock()
+	live := mgr.sessions[sess.ID]
+	staleLease := time.Now().Add(-reconnectGrace - time.Second)
+	for id := range live.clients {
+		live.clients[id] = clientLease{seen: staleLease, paused: true}
+	}
+	// The lease just expired, but the heartbeat was moments ago.
+	live.lastHeartbeat = time.Now()
+	live.lastActivity = time.Now()
+	mgr.mu.Unlock()
+
+	mgr.expireSessions()
+
+	mgr.mu.Lock()
+	_, still := mgr.sessions[sess.ID]
+	mgr.mu.Unlock()
+	if !still {
+		t.Fatal("a session with a fresh heartbeat must not be reaped")
+	}
+}
+
 func TestManagerStopIdempotent(t *testing.T) {
 	mgr, _ := newTestManager(t, nil)
 

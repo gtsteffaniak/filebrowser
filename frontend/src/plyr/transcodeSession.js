@@ -117,13 +117,16 @@ export class TranscodeSessionController {
     this.stopHeartbeat();
   }
 
-  /** Explicitly stop the server session. */
-  async stop() {
+  /**
+   * Explicitly stop the server session. `keepalive` must be set on the unload
+   * path so the DELETE is not cancelled as the document is torn down.
+   */
+  async stop({ keepalive = false } = {}) {
     this.stopHeartbeat();
     const id = this.session?.id;
     this.session = null;
     if (id) {
-      await stopTranscodeSession(id).catch(() => {});
+      await stopTranscodeSession(id, { keepalive }).catch(() => {});
     }
   }
 }

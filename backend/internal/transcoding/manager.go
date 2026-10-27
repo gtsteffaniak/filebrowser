@@ -85,9 +85,8 @@ type playbackSession struct {
 	paused        bool
 	// pausedSince is when the session's live clients first became all-paused;
 	// zero while any client reports playing. Producer suspension uses it.
-	pausedSince     time.Time
-	startedAt       time.Time
-	startupDeadline time.Time
+	pausedSince time.Time
+	startedAt   time.Time
 	// startSec is the playlist-time anchor of this generation's first segment.
 	startSec float64
 	// startIndex is the first segment index produced by this generation. When it
@@ -618,19 +617,18 @@ func (m *Manager) newSessionLocked(ps pendingStart, jobDir, generation string, s
 			Encoder:           ps.plan.encoderName,
 			Accel:             ps.plan.accelName,
 		},
-		reuseKey:        ps.reuseKey,
-		generation:      generation,
-		jobDir:          jobDir,
-		realPath:        ps.in.RealPath,
-		plan:            ps.plan,
-		state:           StateStarting,
-		clients:         map[string]clientLease{ps.clientID: {seen: now, paused: true}},
-		lastActivity:    now,
-		lastHeartbeat:   now,
-		startedAt:       now,
-		startupDeadline: now.Add(startupTimeout),
-		startIndex:      startIndex,
-		startSec:        startSec,
+		reuseKey:      ps.reuseKey,
+		generation:    generation,
+		jobDir:        jobDir,
+		realPath:      ps.in.RealPath,
+		plan:          ps.plan,
+		state:         StateStarting,
+		clients:       map[string]clientLease{ps.clientID: {seen: now, paused: true}},
+		lastActivity:  now,
+		lastHeartbeat: now,
+		startedAt:     now,
+		startIndex:    startIndex,
+		startSec:      startSec,
 	}
 }
 
@@ -1505,9 +1503,6 @@ func (m *Manager) expireSessions() {
 // sessionExpired reports whether a session has outlived its clients and its
 // inactivity budget. As a side effect it prunes stale client claims.
 func sessionExpired(sess *playbackSession, now time.Time) bool {
-	if now.Before(sess.startupDeadline) && sess.state == StateStarting {
-		return false
-	}
 	// Client leases expire individually: a client that stops heartbeating
 	// (tab closed, heartbeat failing, player remounted) frees its claim
 	// after reconnectGrace instead of holding it until the inactivity
@@ -1538,8 +1533,16 @@ func sessionExpired(sess *playbackSession, now time.Time) bool {
 	}
 	idle := now.Sub(sess.lastActivity)
 	grace := now.Sub(sess.lastHeartbeat)
-	if len(sess.clients) == 0 && grace > reconnectGrace && idle > reconnectGrace {
-		return true
+	// A session with no live clients is an abandoned session. A deliberate
+	// exit stops the session explicitly, so reaching zero clients means a
+	// crash or a dead heartbeat; reap in orphanSessionGrace (a couple of
+	// janitor ticks) rather than the full reconnectGrace. Applies while
+	// StateStarting too, so an orphaned start cannot hold its slot for the
+	// whole startupTimeout. liveHeartbeat keeps a session whose client is
+	// merely between ticks (lastHeartbeat recent) from being reaped.
+	if len(sess.clients) == 0 {
+		liveHeartbeat := grace <= orphanSessionGrace && idle <= orphanSessionGrace
+		return !liveHeartbeat
 	}
 	limit := playingInactivityTimeout
 	if sess.paused {
