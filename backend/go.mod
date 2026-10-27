@@ -19,7 +19,7 @@ require (
 	github.com/google/go-cmp v0.7.0
 	github.com/google/uuid v1.6.0
 	github.com/gtsteffaniak/go-cache v1.1.0
-	github.com/gtsteffaniak/go-ffmpeg v1.5.3
+	github.com/gtsteffaniak/go-ffmpeg v1.5.4-0.20261027002108-ada073c779d0
 	github.com/gtsteffaniak/go-logger v1.1.0
 	github.com/kovidgoyal/imaging v1.9.0
 	github.com/mattn/go-sqlite3 v1.14.52
