@@ -3,7 +3,10 @@
 package indexing
 
 import (
+	"errors"
+	"io/fs"
 	"os"
+	"path/filepath"
 	"runtime"
 	"sync"
 	"sync/atomic"
@@ -106,6 +109,9 @@ const dirStatParallelThreshold = 256
 // slow filesystems do not overwhelm the kernel or I/O stack.
 const dirStatMaxWorkers = 16
 
+// statDirEntryFn is the implementation used by readDirFileInfos; tests may replace it.
+var statDirEntryFn = statDirEntry
+
 func readDirFileInfos(dir *os.File) ([]os.FileInfo, error) {
 	names, err := dir.Readdirnames(-1)
 	if err != nil {
@@ -113,28 +119,38 @@ func readDirFileInfos(dir *os.File) ([]os.FileInfo, error) {
 	}
 	dirFd := int(dir.Fd())
 	useStatx := statxDirListingAvailable(dirFd)
+	dirPath := dir.Name()
 
 	if len(names) < dirStatParallelThreshold {
 		infos := make([]os.FileInfo, 0, len(names))
+		var skippedNotExist int
 		for _, name := range names {
-			fi, err := statDirEntry(dirFd, name, useStatx)
+			fi, err := statDirEntryFn(dirFd, name, useStatx)
 			if err != nil {
-				if os.IsNotExist(err) {
+				if skippable(err) {
+					if skipIsNotExist(err) {
+						skippedNotExist++
+					} else {
+						warnSkippedUnreadable(filepath.Join(dirPath, name), err)
+					}
 					continue
 				}
 				return nil, err
 			}
 			infos = append(infos, fi)
 		}
+		if allNamesSkippedAsNotExist(len(names), len(infos), skippedNotExist) {
+			return nil, errAllEntriesVanished
+		}
 		return infos, nil
 	}
 
-	return statDirEntriesParallel(dirFd, names, useStatx)
+	return statDirEntriesParallel(dirFd, dirPath, names, useStatx)
 }
 
 // statDirEntriesParallel stats each name relative to dirFd across a bounded
-// worker pool. Entry order matches names; entries that vanished are skipped.
-func statDirEntriesParallel(dirFd int, names []string, useStatx bool) ([]os.FileInfo, error) {
+// worker pool. Entry order matches names; vanished or permission-denied entries are skipped.
+func statDirEntriesParallel(dirFd int, dirPath string, names []string, useStatx bool) ([]os.FileInfo, error) {
 	workers := runtime.GOMAXPROCS(0) * 2
 	if workers > dirStatMaxWorkers {
 		workers = dirStatMaxWorkers
@@ -144,6 +160,7 @@ func statDirEntriesParallel(dirFd int, names []string, useStatx bool) ([]os.File
 	}
 
 	results := make([]os.FileInfo, len(names))
+	skipNotExist := make([]bool, len(names))
 	var next atomic.Int64
 	var errMu sync.Mutex
 	var firstErr error
@@ -173,12 +190,16 @@ func statDirEntriesParallel(dirFd int, names []string, useStatx bool) ([]os.File
 				if i >= len(names) {
 					return
 				}
-				fi, err := statDirEntry(dirFd, names[i], useStatx)
+				fi, err := statDirEntryFn(dirFd, names[i], useStatx)
 				switch {
 				case err == nil:
 					results[i] = fi
-				case os.IsNotExist(err):
-					// Entry disappeared between readdir and stat; leave nil.
+				case skippable(err):
+					if skipIsNotExist(err) {
+						skipNotExist[i] = true
+					} else {
+						warnSkippedUnreadable(filepath.Join(dirPath, names[i]), err)
+					}
 				default:
 					recordErr(err)
 					return
@@ -192,10 +213,16 @@ func statDirEntriesParallel(dirFd int, names []string, useStatx bool) ([]os.File
 		return nil, firstErr
 	}
 	infos := make([]os.FileInfo, 0, len(names))
-	for _, fi := range results {
+	skippedNotExist := 0
+	for i, fi := range results {
 		if fi != nil {
 			infos = append(infos, fi)
+		} else if skipNotExist[i] {
+			skippedNotExist++
 		}
+	}
+	if allNamesSkippedAsNotExist(len(names), len(infos), skippedNotExist) {
+		return nil, errAllEntriesVanished
 	}
 	return infos, nil
 }
@@ -218,7 +245,7 @@ func statDirEntry(dirFd int, name string, useStatx bool) (os.FileInfo, error) {
 			}, nil
 		}
 		if err != unix.ENOSYS && err != syscall.EOPNOTSUPP {
-			return nil, err
+			return nil, errnoToStatErr(err)
 		}
 		// statx probe succeeded but this call lacks support (e.g. filesystem
 		// restrictions): fall through to fstatat for this entry.
@@ -226,9 +253,16 @@ func statDirEntry(dirFd int, name string, useStatx bool) (os.FileInfo, error) {
 
 	var st unix.Stat_t
 	if err := unix.Fstatat(dirFd, name, &st, unix.AT_SYMLINK_NOFOLLOW); err != nil {
-		return nil, err
+		return nil, errnoToStatErr(err)
 	}
 	return &fstatatFileInfo{name: name, stat: st}, nil
+}
+
+func errnoToStatErr(err error) error {
+	if errors.Is(err, syscall.EACCES) {
+		return fs.ErrPermission
+	}
+	return err
 }
 
 // fstatatFileInfo is used when the kernel does not support statx (no birth time).
