@@ -68,10 +68,6 @@ export function enablePlyrVideoLoadingIndicator(player, onLoadingChange) {
     seeking = false;
     sync();
   };
-  const onStalled = () => {
-    waiting = true;
-    sync();
-  };
   const onError = () => {
     waiting = false;
     seeking = false;
@@ -96,7 +92,6 @@ export function enablePlyrVideoLoadingIndicator(player, onLoadingChange) {
     canplay: onCanPlay,
     seeking: onSeeking,
     seeked: onSeeked,
-    stalled: onStalled,
     error: onError,
     emptied: onEmptied,
   };
