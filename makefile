@@ -21,7 +21,7 @@ backend_dev_tool = $$(cd $(BACKEND_BUILD) && go tool -n $(1))
 
 .PHONY: setup update build build-docker build-backend build-frontend dev run generate-docs
 .PHONY: lint-frontend lint-backend lint test test-backend test-frontend check-all
-.PHONY: check-translations sync-translations test-playwright test-playwright-performance playwright-base playwright-perf-base perf-check perf-smoke perf-baseline perf-dashboard run-proxy screenshots
+.PHONY: check-translations sync-translations test-playwright test-playwright-project test-playwright-performance playwright-base playwright-perf-base perf-check perf-smoke perf-baseline perf-dashboard run-proxy screenshots
 .PHONY: check-icons generate-icons sync-icons setup-gofitz-cgo
 
 setup:
@@ -132,18 +132,25 @@ test-backend:
 test-frontend:
 	cd frontend && npm run test
 
+# Playwright docker project names (match _docker/Dockerfile.playwright-<name>).
+PLAYWRIGHT_PROJECTS := sharing settings noauth general jwt proxy previews oidc no-config screenshots
+
+# Full matrix (default). To build/run a single project:
+#   make test-playwright-project PROJECT=previews
+# or:
+#   make test-playwright PROJECT=previews
 test-playwright: build-frontend
 	cd backend && GOOS=linux go build -o filebrowser .
-	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-sharing .
-	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-settings .
-	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-noauth .
-	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-general .
-	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-jwt .
-	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-proxy .
-	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-previews .
-	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-oidc .
-	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-no-config .
-	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-screenshots .
+ifeq ($(PROJECT),)
+	$(foreach p,$(PLAYWRIGHT_PROJECTS),docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-$(p) . ;)
+else
+	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-$(PROJECT) .
+endif
+
+# Single-project convenience target (same as test-playwright PROJECT=...).
+test-playwright-project:
+	@test -n "$(PROJECT)" || (echo "PROJECT is required, e.g. make test-playwright-project PROJECT=previews"; exit 1)
+	$(MAKE) test-playwright PROJECT=$(PROJECT)
 
 # --- Listing performance (optional; does not affect test-playwright / CI playwright matrix) ---
 

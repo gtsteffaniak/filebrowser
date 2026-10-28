@@ -38,7 +38,7 @@ export default {
     },
     valueTooltip() {
       if (this.profilePrefs.isConfigLocked(this.section, this.field)) {
-        return this.$t("settings.userDefaultFieldLockedFromConfig");
+        return this.$t("settings.lockedFromConfig");
       }
       if (
         this.valueDisabled

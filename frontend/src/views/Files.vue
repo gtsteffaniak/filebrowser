@@ -637,11 +637,10 @@ export default {
         mutations.replaceRequest({});
         this.loadingProgress = 0;
 
-        if (e.status === 404) {
-          void router.push({ name: "notFound" });
-        } else if (e.status === 403) {
-          void router.push({ name: "forbidden" });
-        } else if (e.status === 401 && isShare) {
+        // Keep the user on the current files/share URL and show <errors> inline.
+        // Do not navigate to /403|/404|/500 — those standalone routes have no Layout
+        // and leave users stranded after an access denial or missing path.
+        if (e.status === 401 && isShare) {
           // Handle share password requirement
           this.clearStoredSharePassword(state.shareInfo?.hash);
           this.attemptedPasswordLogin = this.sharePassword !== "";

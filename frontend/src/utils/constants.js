@@ -40,9 +40,17 @@ const settings = [
     icon: 'group',
     sections: [
       { id: 'main', label: 'general.users', permissions: { admin: true }, icon: 'person' },
-      { id: 'access', label: 'access.access', component: 'AccessSettings', permissions: { admin: true }, icon: 'lock' },
-      { id: 'groups', label: 'access.groups', component: 'GroupsSettings', permissions: { admin: true }, icon: 'groups' },
+      { id: 'access', label: 'general.access', component: 'AccessSettings', permissions: { admin: true }, icon: 'lock' },
+      { id: 'groups', label: 'general.groups', component: 'GroupsSettings', permissions: { admin: true }, icon: 'groups' },
     ],
+  },
+  {
+    id: 'media',
+    label: 'general.media',
+    component: 'MediaSettings',
+    permissions: { admin: true },
+    requiresMedia: true,
+    icon: 'movie',
   },
   { id: 'systemAdmin', label: 'settings.systemAdmin', component: 'SystemAdmin', permissions: { admin: true }, icon: 'admin_panel_settings' },
 ];
@@ -57,8 +65,8 @@ i18n.global.t('settings.systemAdmin');
 i18n.global.t('fileLoading.title');
 i18n.global.t('notifications.title');
 i18n.global.t('api.title');
-i18n.global.t('access.access');
-i18n.global.t('access.groups');
+i18n.global.t('general.access');
+i18n.global.t('general.groups');
 
 const previewViews = [
   'preview',

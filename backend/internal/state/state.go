@@ -75,6 +75,10 @@ func initialize(dbPath string) (bool, error) {
 		return existingDb, fmt.Errorf("failed to initialize share defaults settings: %w", err)
 	}
 
+	if err = InitMediaSettings(); err != nil {
+		return existingDb, fmt.Errorf("failed to initialize media settings: %w", err)
+	}
+
 	if err = InitAuthSigningKey(); err != nil {
 		return existingDb, fmt.Errorf("failed to initialize auth signing key: %w", err)
 	}

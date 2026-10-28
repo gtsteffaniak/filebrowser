@@ -117,7 +117,7 @@ func NewPreviewGenerator(concurrencyLimit int, cacheDir string) *Service {
 	return &Service{
 		fileCache:     fileCache,
 		cacheDir:      actualCacheDir,
-		debug:         settings.Config.Integrations.Media.Debug,
+		debug:         settings.MediaDebugEnabled(),
 		ffmpegService: ffmpegService,
 		imageSem:      imageSem,
 		imageLargeSem: imageLargeSem,
@@ -238,7 +238,7 @@ func determinePreviewType(file iteminfo.ExtendedFileInfo) filePreviewType {
 
 	// Check HEIC with conversion enabled
 	if strings.HasPrefix(file.Type, "image/heic") &&
-		*settings.Config.Integrations.Media.Convert.ImagePreview[settings.HEICImagePreview] {
+		settings.CanConvertImage(string(settings.HEICImagePreview)) {
 		return previewTypeHEIC
 	}
 
@@ -402,7 +402,7 @@ func (s *Service) generateImagePreview(ctx context.Context, file iteminfo.Extend
 // handleJPEGFallback attempts to use FFmpeg for problematic JPEG files
 // This is preview-specific logic for user files, not used for icon generation
 func handleJPEGFallback(ctx context.Context, s *Service, file iteminfo.ExtendedFileInfo, previewSize string, originalErr error) ([]byte, error) {
-	enableJPEGFallback := *settings.Config.Integrations.Media.Convert.ImagePreview[settings.JPEGImagePreview]
+	enableJPEGFallback := settings.CanConvertImage(string(settings.JPEGImagePreview))
 
 	if !enableJPEGFallback {
 		return nil, fmt.Errorf("failed to resize preview image (unsupported JPEG format, FFmpeg conversion disabled in settings): %w", originalErr)
