@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file. For commit 
 ## v2.1.4
 
  **Bug Fixes**:
+ - Directory listings skip entries that return permission denied or not-found on per-entry stat instead of failing the whole folder (e.g. unreadable NTFS junctions on CIFS); skipped entries are omitted from the index like `ls -l` (#3184)
  - Preview generation for webp broken (#3254) (#3259)
  - Share banner never shows to public visitors, returns bannerUrl but not banner (#3246) (#3250)
  - fix html/markdwon relative file preview support (#3131) (#3129) (#2355)

@@ -3,6 +3,8 @@
 package indexing
 
 import (
+	"errors"
+	"io/fs"
 	"os"
 	"runtime"
 	"sync"
@@ -106,35 +108,52 @@ const dirStatParallelThreshold = 256
 // slow filesystems do not overwhelm the kernel or I/O stack.
 const dirStatMaxWorkers = 16
 
+// statEntry is statDirEntry behind a seam so tests can inject per-entry stat failures (EACCES, EIO)
+// that are hard to produce on a real filesystem.
+var statEntry = statDirEntry
+
+// readDirFileInfos lists dir as FileInfos, statting each name relative to the open directory fd.
+//
+// An entry whose stat fails with a permission or not-exist error is skipped (see skipEntry), so one
+// unreadable junction does not fail the whole folder. Any other error fails the listing. If every name
+// was skipped as not-exist, the listing fails instead of returning an empty success.
 func readDirFileInfos(dir *os.File) ([]os.FileInfo, error) {
 	names, err := dir.Readdirnames(-1)
 	if err != nil {
 		return nil, err
 	}
+	dirPath := dir.Name()
 	dirFd := int(dir.Fd())
 	useStatx := statxDirListingAvailable(dirFd)
 
 	if len(names) < dirStatParallelThreshold {
 		infos := make([]os.FileInfo, 0, len(names))
+		vanished := 0
 		for _, name := range names {
-			fi, err := statDirEntry(dirFd, name, useStatx)
+			fi, err := statEntry(dirFd, name, useStatx)
 			if err != nil {
-				if os.IsNotExist(err) {
-					continue
+				if !skipEntry(dirPath, name, err) {
+					return nil, err
 				}
-				return nil, err
+				if errors.Is(err, fs.ErrNotExist) {
+					vanished++
+				}
+				continue
 			}
 			infos = append(infos, fi)
+		}
+		if err := checkNotAllVanished(dirPath, len(names), vanished); err != nil {
+			return nil, err
 		}
 		return infos, nil
 	}
 
-	return statDirEntriesParallel(dirFd, names, useStatx)
+	return statDirEntriesParallel(dirPath, dirFd, names, useStatx)
 }
 
 // statDirEntriesParallel stats each name relative to dirFd across a bounded
 // worker pool. Entry order matches names; entries that vanished are skipped.
-func statDirEntriesParallel(dirFd int, names []string, useStatx bool) ([]os.FileInfo, error) {
+func statDirEntriesParallel(dirPath string, dirFd int, names []string, useStatx bool) ([]os.FileInfo, error) {
 	workers := runtime.GOMAXPROCS(0) * 2
 	if workers > dirStatMaxWorkers {
 		workers = dirStatMaxWorkers
@@ -145,6 +164,7 @@ func statDirEntriesParallel(dirFd int, names []string, useStatx bool) ([]os.File
 
 	results := make([]os.FileInfo, len(names))
 	var next atomic.Int64
+	var vanished atomic.Int64
 	var errMu sync.Mutex
 	var firstErr error
 	recordErr := func(err error) {
@@ -173,12 +193,15 @@ func statDirEntriesParallel(dirFd int, names []string, useStatx bool) ([]os.File
 				if i >= len(names) {
 					return
 				}
-				fi, err := statDirEntry(dirFd, names[i], useStatx)
+				fi, err := statEntry(dirFd, names[i], useStatx)
 				switch {
 				case err == nil:
 					results[i] = fi
-				case os.IsNotExist(err):
-					// Entry disappeared between readdir and stat; leave nil.
+				case skipEntry(dirPath, names[i], err):
+					// Left nil: unreadable or vanished between readdir and stat.
+					if errors.Is(err, fs.ErrNotExist) {
+						vanished.Add(1)
+					}
 				default:
 					recordErr(err)
 					return
@@ -190,6 +213,9 @@ func statDirEntriesParallel(dirFd int, names []string, useStatx bool) ([]os.File
 
 	if firstErr != nil {
 		return nil, firstErr
+	}
+	if err := checkNotAllVanished(dirPath, len(names), int(vanished.Load())); err != nil {
+		return nil, err
 	}
 	infos := make([]os.FileInfo, 0, len(names))
 	for _, fi := range results {
