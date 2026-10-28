@@ -839,7 +839,7 @@
       },
       "tabSize": {
         "label": "Veľkosť tabulátora",
-        "description": "Koľko medzier by mal kláves 'TAB' predvolene vložiť"
+        "description": "Koľko medzier by mal kláves 'TAB' predvolene vložiť -- Je to aj veľkosť dodatočného odsadenia, keď nastavíte odsadenie zalamovania na 'Extra'"
       },
       "showIndentGuides": "Zobraziť vodítka odsadenia",
       "showIndentGuidesDescription": "Zobrazí vodítka odsadenia, čo vám poskytne lepšiu orientáciu pri úprave vnoreného kódu",
@@ -855,15 +855,13 @@
       "customScrollbarDescription": "Nahradí natívny posuvník prehliadača vstavaným posuvníkom Ace",
       "wrapContent": "Zalamovať dlhé riadky v editore",
       "wrapContentDescription": "Zalamuje obsah editora, aby veľmi dlhé riadky zostali vždy viditeľné",
-      "wrapMethod": {
-        "label": "Spôsob zalamovania",
-        "description": "Ako sa lámu dlhé riadky pri zalamovaní: 'Code' používa zalamovanie v štýle kódu, 'Text' sa zalamuje ako bežný text, 'Auto' je založené na type súboru",
-        "code": "Kód",
-        "text": "Text",
-        "auto": "Automaticky"
+      "wrapIndent": {
+        "label": "Odsadenie zalomených riadkov",
+        "description": "Ako sú zalomené riadky odsadené: 'None' zalamovanie slov bez odsadenia, 'Aligned' zachováva pôvodné odsadenie riadku, 'Extra' pridáva dodatočnú úroveň odsadenia podľa nastavenia veľkosti tabulátora",
+        "none": "Žiadne",
+        "aligned": "Zarovnané",
+        "extra": "Naviac"
       },
-      "indentedSoftWrap": "Mäkké zalamovanie s odsadením",
-      "indentedSoftWrapDescription": "Keď je táto možnosť povolená, pridá odsadenie na začiatok zalomeného textu",
       "autocompletion": "Automatické dopĺňanie",
       "autocompletionDescription": "Povolí automatické dopĺňanie manuálnym stlačením 'ctrl + space'",
       "liveAutocompletion": "Živé automatické dopĺňanie",

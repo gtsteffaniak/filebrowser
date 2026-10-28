@@ -839,7 +839,7 @@
       },
       "tabSize": {
         "label": "タブサイズ",
-        "description": "'TAB' キーがデフォルトで挿入するスペースの数"
+        "description": "'TAB' キーがデフォルトで挿入するスペースの数 -- 折り返しインデントを 'Extra' に設定したときの追加インデントのサイズでもあります"
       },
       "showIndentGuides": "インデントガイドを表示",
       "showIndentGuidesDescription": "インデントガイドを表示します。ネストされたコードを編集する際に視認性が向上します",
@@ -855,15 +855,13 @@
       "customScrollbarDescription": "ブラウザのネイティブスクロールバーを Ace 組み込みのものに置き換えます",
       "wrapContent": "エディタで長い行を折り返す",
       "wrapContentDescription": "エディタのコンテンツを折り返して、非常に長い行を常に表示したままにします",
-      "wrapMethod": {
-        "label": "折り返し方法",
-        "description": "折り返し時に長い行をどのように分割するか：'Code' はコードスタイルの折り返し、'Text' は通常のテキストのように折り返し、'Auto' はファイルの種類に基づきます",
-        "code": "コード",
-        "text": "テキスト",
-        "auto": "自動"
+      "wrapIndent": {
+        "label": "折り返し行のインデント",
+        "description": "折り返し行のインデント方法：'None' インデントなしのワードラップ、'Aligned' 元の行のインデントを保持、'Extra' タブサイズ設定に従って追加のインデントレベルを追加します",
+        "none": "なし",
+        "aligned": "整列",
+        "extra": "追加"
       },
-      "indentedSoftWrap": "インデント付きソフト折り返し",
-      "indentedSoftWrapDescription": "これが有効な場合、折り返されたテキストの先頭にインデントを追加します",
       "autocompletion": "自動補完",
       "autocompletionDescription": "手動で「ctrl + space」を押して自動補完を有効にします",
       "liveAutocompletion": "ライブ自動補完",

@@ -879,7 +879,7 @@
       },
       "tabSize": {
         "label": "Tabulazioaren tamaina",
-        "description": "'TAB' teklak berez zenbat zuriune sartu behar dituen"
+        "description": "Zenbat zuriune egin beharko lituzkeen 'TAB' tekla lehenespenez -- 'Extra' gisa ezartzen duzun itzultze-koska denean koska gehigarriaren tamaina ere bada"
       },
       "showIndentGuides": "Erakutsi koska-gidak",
       "showIndentGuidesDescription": "Erakutsi koska-gidak; orientazio hobea ematen dute kode habiaratua editatzean",
@@ -895,15 +895,13 @@
       "customScrollbarDescription": "Ordeztu nabigatzailearen jatorrizko korritze-barra Ace-ren barneko korritze-barrarekin",
       "wrapContent": "Egokitu lerro luzeak editorean",
       "wrapContentDescription": "Editorearen edukia egokitzen du, lerro oso luzeak beti ikusgai egon daitezen",
-      "wrapMethod": {
-        "label": "Itzultze-metodoa",
-        "description": "Nola banatzen diren lerro luzeak itzultzean: 'Code'-k kode-estiloko itzultzea erabiltzen du, 'Text'-ek testu arrunt gisa itzultzen du, 'Auto' fitxategi motaren araberakoa da",
-        "code": "Kodea",
-        "text": "Testua",
-        "auto": "Automatikoa"
+      "wrapIndent": {
+        "label": "Itzulitako lerroen koska",
+        "description": "Nola egiten zaien koska itzulitako lerroei: 'None' hitz-itzultzea koskarik gabe, 'Aligned' jatorrizko lerroaren koska mantentzen du, 'Extra' koska-maila gehigarri bat gehitzen du, zure tab tamaina ezarpenari jarraituz",
+        "none": "Bat ere ez",
+        "aligned": "Lerrokatuta",
+        "extra": "Gehigarria"
       },
-      "indentedSoftWrap": "Egokitze bigun koskaduna",
-      "indentedSoftWrapDescription": "Gaituta dagoenean, koska gehitzen dio egokitutako testuaren hasierari",
       "autocompletion": "Osatze automatikoa",
       "autocompletionDescription": "Osatze automatikoa gaitzen du, 'ctrl + space' eskuz sakatuta",
       "liveAutocompletion": "Zuzeneko osatze automatikoa",

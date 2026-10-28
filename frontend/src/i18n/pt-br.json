@@ -839,7 +839,7 @@
       },
       "tabSize": {
         "label": "Tamanho do Tab",
-        "description": "Quantos espaços a tecla 'TAB' deve fazer por padrão"
+        "description": "Quantos espaços a tecla 'TAB' deve fazer por predefinição -- É também o tamanho da indentação extra quando define a indentação de quebra para 'Extra'"
       },
       "showIndentGuides": "Mostrar guias de indentação",
       "showIndentGuidesDescription": "Mostra guias de indentação, o que lhe dá uma melhor orientação ao editar código aninhado",
@@ -855,15 +855,13 @@
       "customScrollbarDescription": "Substituir a barra de rolagem nativa do navegador pela integrada do Ace",
       "wrapContent": "Quebrar linhas longas no editor",
       "wrapContentDescription": "Quebra o conteúdo do editor para manter linhas muito longas sempre visíveis",
-      "wrapMethod": {
-        "label": "Método de quebra",
-        "description": "Como as linhas longas são quebradas ao quebrar: 'Code' usa quebra estilo código, 'Text' quebra como texto normal, 'Auto' baseia-se no tipo de ficheiro",
-        "code": "Código",
-        "text": "Texto",
-        "auto": "Automático"
+      "wrapIndent": {
+        "label": "Indentação de linhas quebradas",
+        "description": "Como as linhas quebradas são indentadas: 'None' quebra de palavras sem indentação, 'Aligned' preserva a indentação original da linha, 'Extra' adiciona um nível extra de indentação, seguindo a sua definição de tamanho do Tab",
+        "none": "Nenhuma",
+        "aligned": "Alinhada",
+        "extra": "Extra"
       },
-      "indentedSoftWrap": "Quebra suave com indentação",
-      "indentedSoftWrapDescription": "Quando ativado, adiciona indentação ao início do texto quebrado",
       "autocompletion": "Preenchimento automático",
       "autocompletionDescription": "Ativa o preenchimento automático pressionando manualmente 'ctrl + space'",
       "liveAutocompletion": "Preenchimento automático ao vivo",

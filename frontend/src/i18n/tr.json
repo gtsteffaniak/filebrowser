@@ -839,7 +839,7 @@
       },
       "tabSize": {
         "label": "Sekme Boyutu",
-        "description": "'TAB' tuşunun varsayılan olarak kaç boşluk yapması gerektiği"
+        "description": "'TAB' tuşunun varsayılan olarak kaç boşluk yapması gerektiği -- Ayrıca kaydırma girintisini 'Extra' olarak ayarladığınızda ek girintinin boyutudur"
       },
       "showIndentGuides": "Girinti Kılavuzlarını Göster",
       "showIndentGuidesDescription": "Girinti kılavuzlarını gösterir, iç içe kod düzenlerken daha iyi yönlendirme sağlar",
@@ -855,15 +855,13 @@
       "customScrollbarDescription": "Tarayıcının yerel kaydırma çubuğunu Ace'in yerleşik olanıyla değiştir",
       "wrapContent": "Düzenleyicide uzun satırları kaydır",
       "wrapContentDescription": "Düzenleyici içeriğini kaydırarak çok uzun satırların her zaman görünür kalmasını sağlar",
-      "wrapMethod": {
-        "label": "Kaydırma yöntemi",
-        "description": "Kaydırma sırasında uzun satırların nasıl bölüneceği: 'Code' kod tarzı kaydırma kullanır, 'Text' normal metin gibi kaydırır, 'Auto' dosya türüne göre belirlenir",
-        "code": "Kod",
-        "text": "Metin",
-        "auto": "Otomatik"
+      "wrapIndent": {
+        "label": "Kaydırılan satır girintisi",
+        "description": "Kaydırılan satırların nasıl girintileneceği: 'None' girintisiz kelime kaydırma, 'Aligned' satırın orijinal girintisini korur, 'Extra' sekme boyutu ayarınıza göre ek bir girinti düzeyi ekler",
+        "none": "Hiçbiri",
+        "aligned": "Hizalı",
+        "extra": "Ekstra"
       },
-      "indentedSoftWrap": "Girintili yumuşak kaydırma",
-      "indentedSoftWrapDescription": "Bu etkinleştirildiğinde, kaydırılan metnin başına girinti ekler",
       "autocompletion": "Otomatik tamamlama",
       "autocompletionDescription": "Manuel olarak 'ctrl + space' tuşlarına basarak otomatik tamamlamayı etkinleştirir",
       "liveAutocompletion": "Canlı otomatik tamamlama",

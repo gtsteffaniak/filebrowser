@@ -839,7 +839,7 @@
       },
       "tabSize": {
         "label": "Taille de tabulation",
-        "description": "Combien d'espaces la touche 'TAB' doit faire par défaut"
+        "description": "Combien d'espaces la touche 'TAB' doit faire par défaut -- C'est aussi la taille de l'indentation supplémentaire lorsque vous définissez l'indentation des retours à la ligne sur 'Extra'"
       },
       "showIndentGuides": "Afficher les guides de retrait",
       "showIndentGuidesDescription": "Affiche les guides de retrait, ce qui vous donne une meilleure orientation lors de l'édition de code imbriqué",
@@ -855,15 +855,13 @@
       "customScrollbarDescription": "Remplacer la barre de défilement native du navigateur par celle intégrée à Ace",
       "wrapContent": "Couper les longues lignes dans l'éditeur",
       "wrapContentDescription": "Coupe le contenu de l'éditeur pour que les très longues lignes restent toujours visibles",
-      "wrapMethod": {
-        "label": "Méthode de retour à la ligne",
-        "description": "Comment les longues lignes sont coupées lors du retour à la ligne : 'Code' utilise un retour à la ligne de style code, 'Text' se coupe comme du texte normal, 'Auto' est basé sur le type de fichier",
-        "code": "Code",
-        "text": "Texte",
-        "auto": "Auto"
+      "wrapIndent": {
+        "label": "Indentation des lignes renvoyées",
+        "description": "Comment les lignes renvoyées sont indentées : 'None' retour à la ligne sans indentation, 'Aligned' conserve l'indentation d'origine de la ligne, 'Extra' ajoute un niveau d'indentation supplémentaire, selon votre réglage de taille de tabulation",
+        "none": "Aucune",
+        "aligned": "Alignée",
+        "extra": "Extra"
       },
-      "indentedSoftWrap": "Retour à la ligne souple avec indentation",
-      "indentedSoftWrapDescription": "Lorsque cette option est activée, ajoute une indentation au début du texte renvoyé à la ligne",
       "autocompletion": "Autocomplétion",
       "autocompletionDescription": "Active l'autocomplétion en appuyant manuellement sur 'ctrl + space'",
       "liveAutocompletion": "Autocomplétion en direct",

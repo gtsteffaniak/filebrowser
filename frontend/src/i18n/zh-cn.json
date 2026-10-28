@@ -839,7 +839,7 @@
       },
       "tabSize": {
         "label": "制表符大小",
-        "description": "'TAB' 键默认应插入多少个空格"
+        "description": "'TAB' 键默认应插入多少个空格 -- 当您将换行缩进设置为 'Extra' 时，这也是额外缩进的大小"
       },
       "showIndentGuides": "显示缩进参考线",
       "showIndentGuidesDescription": "显示缩进参考线，在编辑嵌套代码时提供更好的方向感",
@@ -855,15 +855,13 @@
       "customScrollbarDescription": "将浏览器的原生滚动条替换为 Ace 内置滚动条",
       "wrapContent": "在编辑器中换行长行",
       "wrapContentDescription": "换行编辑器内容，使很长的行始终保持可见",
-      "wrapMethod": {
-        "label": "换行方式",
-        "description": "换行时长行的分割方式：'Code' 使用代码风格换行，'Text' 像普通文本一样换行，'Auto' 根据文件类型决定",
-        "code": "代码",
-        "text": "文本",
-        "auto": "自动"
+      "wrapIndent": {
+        "label": "换行行缩进",
+        "description": "换行行的缩进方式：'None' 无缩进的自动换行，'Aligned' 保留原始行缩进，'Extra' 根据您的制表符大小设置添加额外级别的缩进",
+        "none": "无",
+        "aligned": "对齐",
+        "extra": "额外"
       },
-      "indentedSoftWrap": "缩进软换行",
-      "indentedSoftWrapDescription": "启用后，在换行文本的开头添加缩进",
       "autocompletion": "自动补全",
       "autocompletionDescription": "通过手动按 'ctrl + space' 启用自动补全",
       "liveAutocompletion": "实时自动补全",

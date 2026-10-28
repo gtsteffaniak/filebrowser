@@ -132,20 +132,15 @@ const toggles = computed<EditorSettingField[]>(() => {
   const items: (EditorSettingField | false)[] = [
     { key: "wrapEditorContent", label: t("editor.settings.wrapContent"), desc: t("editor.settings.wrapContentDescription") },
     config.wrapEditorContent && {
-      key: "indentedSoftWrap",
-      label: t("editor.settings.indentedSoftWrap"),
-      desc: t("editor.settings.indentedSoftWrapDescription"),
-    },
-    config.wrapEditorContent && {
-      key: "wrapMethod",
+      key: "wrapIndent",
       type: "dropdown",
-      label: t("editor.settings.wrapMethod.label"),
-      desc: t("editor.settings.wrapMethod.description"),
-      aria: t("editor.settings.wrapMethod.label"),
+      label: t("editor.settings.wrapIndent.label"),
+      desc: t("editor.settings.wrapIndent.description"),
+      aria: t("editor.settings.wrapIndent.label"),
       options: [
-        { value: "auto", label: t("editor.settings.wrapMethod.auto") },
-        { value: "code", label: t("editor.settings.wrapMethod.code") },
-        { value: "text", label: t("editor.settings.wrapMethod.text") },
+        { value: "none", label: t("editor.settings.wrapIndent.none") },
+        { value: "aligned", label: t("editor.settings.wrapIndent.aligned") },
+        { value: "extra", label: t("editor.settings.wrapIndent.extra") },
       ],
     },
     { key: "showIndentGuides", label: t("editor.settings.showIndentGuides"), desc: t("editor.settings.showIndentGuidesDescription") },

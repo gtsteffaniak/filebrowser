@@ -839,7 +839,7 @@
       },
       "tabSize": {
         "label": "Tab-Größe",
-        "description": "Wie viele Leerzeichen die 'TAB'-Taste standardmäßig einfügen soll"
+        "description": "Wie viele Leerzeichen die 'TAB'-Taste standardmäßig einfügen soll -- Es ist auch die Größe der zusätzlichen Einrückung, wenn Sie die Einrückung für Zeilenumbrüche auf 'Extra' setzen"
       },
       "showIndentGuides": "Einrückungshilfen anzeigen",
       "showIndentGuidesDescription": "Einrückungshilfen anzeigen, die Ihnen bei der Bearbeitung von verschachteltem Code eine bessere Orientierung bieten",
@@ -855,15 +855,13 @@
       "customScrollbarDescription": "Die native Browser-Bildlaufleiste durch die integrierte Ace-Bildlaufleiste ersetzen",
       "wrapContent": "Lange Zeilen im Editor umbrechen",
       "wrapContentDescription": "Umbrüche den Editor-Inhalt, damit sehr lange Zeilen immer sichtbar bleiben",
-      "wrapMethod": {
-        "label": "Umbruchmethode",
-        "description": "Wie lange Zeilen beim Umbruch geteilt werden: 'Code' verwendet Code-Stil-Umbruch, 'Text' bricht wie normaler Text um, 'Auto' basiert auf dem Dateityp",
-        "code": "Code",
-        "text": "Text",
-        "auto": "Automatisch"
+      "wrapIndent": {
+        "label": "Einrückung umbrochener Zeilen",
+        "description": "Wie umbrochene Zeilen eingerückt werden: 'None' Wortumbruch ohne Einrückung, 'Aligned' behält die ursprüngliche Zeileneinrückung bei, 'Extra' fügt eine zusätzliche Einrückungsebene hinzu und folgt Ihrer Tab-Größe",
+        "none": "Keine",
+        "aligned": "Ausgerichtet",
+        "extra": "Extra"
       },
-      "indentedSoftWrap": "Eingerückter weicher Umbruch",
-      "indentedSoftWrapDescription": "Wenn dies aktiviert ist, wird am Anfang des umbrochenen Textes eine Einrückung hinzugefügt",
       "autocompletion": "Autovervollständigung",
       "autocompletionDescription": "Aktiviert die Autovervollständigung durch manuelles Drücken von 'Strg + Leertaste'",
       "liveAutocompletion": "Live-Autovervollständigung",

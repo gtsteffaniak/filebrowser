@@ -5,8 +5,7 @@ const STORAGE_KEY = 'editorConfig';
 
 export interface EditorConfig {
   wrapEditorContent: boolean;
-  wrapMethod: 'code' | 'text' | 'auto';
-  indentedSoftWrap: boolean;
+  wrapIndent: 'none' | 'aligned' | 'extra';
   keybinding: string;
   tabSize: number;
   overscroll: number;
@@ -22,8 +21,7 @@ export interface EditorConfig {
 
 const DEFAULTS: EditorConfig = {
   wrapEditorContent: false,
-  wrapMethod: 'auto',
-  indentedSoftWrap: false,
+  wrapIndent: 'none',
   keybinding: '',
   tabSize: 4,
   overscroll: 0,

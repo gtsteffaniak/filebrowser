@@ -839,7 +839,7 @@
       },
       "tabSize": {
         "label": "Tab mérete",
-        "description": "Hány szóközt tegyen a 'TAB' billentyű alapértelmezettként"
+        "description": "Hány szóközt tegyen a 'TAB' billentyű alapértelmezettként -- Ez egyben a további behúzás mérete is, amikor a tördelt behúzást 'Extra'-ra állítja"
       },
       "showIndentGuides": "Behúzási segédvonalak mutatása",
       "showIndentGuidesDescription": "Behúzási segédvonalak mutatása, jobb tájékozódást nyújt beágyazott kód szerkesztésekor",
@@ -855,15 +855,13 @@
       "customScrollbarDescription": "A böngésző natív görgetősávjának cseréje az Ace beépítettjére",
       "wrapContent": "Hosszú sorok tördelése a szerkesztőben",
       "wrapContentDescription": "Tördeli a szerkesztő tartalmát, hogy a nagyon hosszú sorok mindig láthatóak maradjanak",
-      "wrapMethod": {
-        "label": "Tördelési mód",
-        "description": "Hogyan törnek a hosszú sorok tördeléskor: a 'Code' kódstílusú tördelést használ, a 'Text' normál szövegként tördel, az 'Auto' a fájl típusán alapul",
-        "code": "Kód",
-        "text": "Szöveg",
-        "auto": "Automatikus"
+      "wrapIndent": {
+        "label": "Tördelt sorok behúzása",
+        "description": "Hogyan legyenek behúzva a tördelt sorok: 'None' szótördelés behúzás nélkül, 'Aligned' megtartja az eredeti sorbehúzást, 'Extra' további behúzási szintet ad hozzá a tab méret beállításának megfelelően",
+        "none": "Nincs",
+        "aligned": "Igazított",
+        "extra": "Extra"
       },
-      "indentedSoftWrap": "Behúzott lágy tördelés",
-      "indentedSoftWrapDescription": "Ha ez engedélyezve van, behúzást ad a tördelt szöveg elejéhez",
       "autocompletion": "Automatikus kiegészítés",
       "autocompletionDescription": "Engedélyezi az automatikus kiegészítést a 'ctrl + space' manuális megnyomásával",
       "liveAutocompletion": "Élő automatikus kiegészítés",
