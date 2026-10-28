@@ -55,6 +55,22 @@ func unixModeToFileMode(u uint32) os.FileMode {
 	return m
 }
 
+// removeDestinationSymlinkIfPresent deletes dest when it is a symlink so a copy or
+// cross-device move replaces the link entry instead of writing through it.
+func removeDestinationSymlinkIfPresent(dest string) error {
+	info, err := os.Lstat(dest)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil
+		}
+		return err
+	}
+	if info.Mode()&os.ModeSymlink != 0 {
+		return os.Remove(dest)
+	}
+	return nil
+}
+
 // MoveFile moves a file from src to dst.
 // By default, the rename system call is used. If src and dst are on different volumes,
 // CopyFile is used as a fallback and the source is removed synchronously on success.
@@ -131,6 +147,10 @@ func copySingleFile(source, dest string) error {
 	// Create the destination directory if needed.
 	err = os.MkdirAll(filepath.Dir(dest), EffectiveDirPerm())
 	if err != nil {
+		return err
+	}
+
+	if err = removeDestinationSymlinkIfPresent(dest); err != nil {
 		return err
 	}
 

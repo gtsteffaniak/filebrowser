@@ -13,6 +13,7 @@ import (
 	"testing"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/fileutils"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/testutil"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/image/bmp"
@@ -20,6 +21,7 @@ import (
 )
 
 func TestMain(m *testing.M) {
+	testutil.QuietLogging()
 	// Ensure fileutils permissions are set (needed by NewPreviewGenerator)
 	if fileutils.PermDir == 0 {
 		fileutils.SetFsPermissions(0644, 0755)
@@ -158,6 +160,14 @@ func TestService_Resize(t *testing.T) {
 				return newGrayBmp(t, 200, 150)
 			},
 			matcher: sizeMatcher(100, 100),
+		},
+		"resize webp falls back to jpeg": {
+			options: ResizeOptions{Width: 100, Height: 100, ResizeMode: ResizeModeFill, Format: FormatWebp},
+			source: func(t *testing.T) afero.File {
+				t.Helper()
+				return openFile(t, "testdata/gray-sample.webp")
+			},
+			matcher: formatMatcher(FormatJpeg),
 		},
 		"resize with high quality": {
 			options: ResizeOptions{Width: 100, Height: 100, ResizeMode: ResizeModeFill, Quality: QualityHigh},

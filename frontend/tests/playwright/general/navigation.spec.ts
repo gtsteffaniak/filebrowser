@@ -73,3 +73,72 @@ test("use quick jump", async({ page, checkForErrors }) => {
   await expect(quickJumpWindow).toBeHidden();
   checkForErrors();
 })
+
+const TEST_PATH = "/files/playwright%20%2B%20files/myfolder/testdata";
+
+test("next/previous follow the name order of the folder", async({ page, checkForErrors }) => {
+  const next = page.locator('button[aria-label="Next"]');
+  const previous = page.locator('button[aria-label="Previous"]');
+
+  await page.goto(`${TEST_PATH}/20130612_142406.jpg`);
+  await expect(page).toHaveTitle("Graham's Filebrowser - Files - 20130612_142406.jpg");
+  await next.waitFor({ state: "visible" });
+  await expect(previous).toBeHidden();
+
+  await next.click();
+  await expect(page).toHaveTitle("Graham's Filebrowser - Files - gray-sample.jpg");
+  await next.click();
+  await expect(page).toHaveTitle("Graham's Filebrowser - Files - gray-sample.webp");
+
+  await previous.click();
+  await expect(page).toHaveTitle("Graham's Filebrowser - Files - gray-sample.jpg");
+  await previous.click();
+  await expect(page).toHaveTitle("Graham's Filebrowser - Files - 20130612_142406.jpg");
+  await expect(previous).toBeHidden();
+  checkForErrors();
+});
+
+test("next/previous follow the listing sort order", async({ page, checkForErrors }) => {
+  await page.goto(`${TEST_PATH}/`);
+  await expect(page).toHaveTitle("Graham's Filebrowser - Files - testdata");
+  const items = page.locator('.listing-items a.listing-item');
+  await expect(items.first()).toHaveAttribute("aria-label", "20130612_142406.jpg");
+
+  // reverse name sorting
+  await page.locator('.listing-item-header .name').click();
+  await expect(items.first()).toHaveAttribute("aria-label", "sample-640x480.mp4");
+  const names = await items.evaluateAll((els) => els.map((el) => el.getAttribute("aria-label")));
+  expect(names).toEqual([
+    "sample-640x480.mp4",
+    "IMG_2578.JPG",
+    "gray-sample.webp",
+    "gray-sample.jpg",
+    "20130612_142406.jpg",
+  ]);
+
+  // open the second item
+  await page.locator('a[aria-label="IMG_2578.JPG"]').dblclick();
+  await expect(page).toHaveTitle("Graham's Filebrowser - Files - IMG_2578.JPG");
+  await page.locator('button[aria-label="Next"]').click();
+  await expect(page).toHaveTitle("Graham's Filebrowser - Files - gray-sample.webp");
+  await page.locator('button[aria-label="Previous"]').click();
+  await expect(page).toHaveTitle("Graham's Filebrowser - Files - IMG_2578.JPG");
+  checkForErrors();
+});
+
+test("listing highlights the item we navigated with next/previous after closing", async({ page, checkForErrors }) => {
+  await page.goto(`${TEST_PATH}/`);
+  await expect(page).toHaveTitle("Graham's Filebrowser - Files - testdata");
+  await page.locator('a[aria-label="gray-sample.jpg"]').dblclick();
+  await expect(page).toHaveTitle("Graham's Filebrowser - Files - gray-sample.jpg");
+
+  await page.locator('button[aria-label="Next"]').click();
+  await expect(page).toHaveTitle("Graham's Filebrowser - Files - gray-sample.webp");
+
+  await page.locator('button[aria-label="Close"]').click();
+  await expect(page).toHaveTitle("Graham's Filebrowser - Files - testdata");
+  // the item we ended on, not the one we opened, is selected
+  await expect(page.locator('a[aria-label="gray-sample.webp"]')).toHaveAttribute("aria-selected", "true");
+  await expect(page.locator('a[aria-label="gray-sample.jpg"]')).not.toHaveAttribute("aria-selected", "true");
+  checkForErrors();
+});

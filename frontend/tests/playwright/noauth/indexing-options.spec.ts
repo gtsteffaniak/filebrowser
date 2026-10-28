@@ -83,9 +83,9 @@ test("root indexing info is correct", async ({ page, checkForErrors }) => {
     await page.locator('a[aria-label="myfolder"]').waitFor({ state: 'visible' });
 
     // Check folder sizes
-    await expect(page.locator('a[aria-label="myfolder"]').locator('.size')).toHaveText("3.5 MB");
+    await expect(page.locator('a[aria-label="myfolder"]').locator('.size')).toHaveText("812.0 KB");
     await expect(page.locator('a[aria-label="folder#hash"]').locator('.size')).toHaveText("4.0 KB");
-    await expect(page.locator('a[aria-label="files"]').locator('.size')).toHaveText("12.0 KB");
+    await expect(page.locator('a[aria-label="files"]').locator('.size')).toHaveText("20.0 KB");
     await expect(page.locator('a[aria-label="share"]').locator('.size')).toHaveText("4.0 KB");
     await expect(page.locator('a[aria-label="text-files"]').locator('.size')).toHaveText("8.0 KB");
     await expect(page.locator('a[aria-label="subfolderExclusions"]').locator('.size')).toHaveText("16.0 KB"); // 16 not 24 due to excluded items
@@ -110,14 +110,14 @@ test("root indexing info is correct (logical size)", async ({ page, checkForErro
 
     // Check folder sizes
     await expect(page.locator('a[aria-label="folder#hash"]').locator('.size')).toHaveText("0.0 bytes");
-    await expect(page.locator('a[aria-label="files"]').locator('.size')).toHaveText("413.0 bytes");
+    await expect(page.locator('a[aria-label="files"]').locator('.size')).toHaveText("2.8 KB");
     await expect(page.locator('a[aria-label="subfolderExclusions"]').locator('.size')).toHaveText("0.0 bytes");
 
     await page.goto("/files/include/files");
     await expect(page).toHaveTitle("Graham's Filebrowser - Files - files");
 
     // Check folder sizes
-    await expect(page.locator('a[aria-label="nested"]').locator('.size')).toHaveText("1.0 bytes");
+    await expect(page.locator('a[aria-label="nested"]').locator('.size')).toHaveText("907.0 bytes");
     // Check file sizes
     await expect(page.locator('a[aria-label="for testing.md"]').locator('.size')).toHaveText("16.0 bytes");
 

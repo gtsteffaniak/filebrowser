@@ -229,6 +229,12 @@ func archiveCreateHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 	if destSource == "" {
 		destSource = req.FromSource
 	}
+	if status, roErr := denyIfSourceReadOnly(destSource); roErr != nil {
+		return status, roErr
+	}
+	if status, roErr := denyIfSourceReadOnly(req.FromSource); req.DeleteAfter && roErr != nil {
+		return status, roErr
+	}
 	destPerms, err := effectiveFilePerms(d, destSource)
 	if err != nil {
 		return http.StatusForbidden, err
@@ -273,7 +279,7 @@ func archiveCreateHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 	if fullDestParent != fullDestFile && !state.AccessPermitted(idxTo.Path, utils.IndexPathFromNormalized(fullDestParent, true), d.User.Username) {
 		return http.StatusForbidden, fmt.Errorf("access denied to destination parent of %s", req.Destination)
 	}
-	parentReal, _, err := idxTo.GetRealPath(fullDestParent)
+	parentReal, err := idxTo.GetRealPathForMutation(userScopeTo, fullDestParent)
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("destination parent path invalid: %v", err)
 	}
@@ -351,26 +357,26 @@ func archiveCreateHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 
 	if req.DeleteAfter {
 		type itemToDelete struct {
-			realPath string
-			isDir    bool
+			indexPath string
+			isDir     bool
 		}
 		var toDelete []itemToDelete
 		for _, full := range itemPaths {
-			realPath, isDir, err := idx.GetRealPath(full)
+			_, isDir, err := idx.GetRealPath(full)
 			if err != nil {
 				continue
 			}
-			toDelete = append(toDelete, itemToDelete{realPath: realPath, isDir: isDir})
+			toDelete = append(toDelete, itemToDelete{indexPath: full, isDir: isDir})
 		}
 		for i := 0; i < len(toDelete); i++ {
 			for j := i + 1; j < len(toDelete); j++ {
-				if len(toDelete[j].realPath) > len(toDelete[i].realPath) {
+				if len(toDelete[j].indexPath) > len(toDelete[i].indexPath) {
 					toDelete[i], toDelete[j] = toDelete[j], toDelete[i]
 				}
 			}
 		}
 		for _, item := range toDelete {
-			if err := files.DeleteFiles(req.FromSource, item.realPath, item.isDir); err != nil {
+			if err := files.DeleteFiles(req.FromSource, userScope, item.indexPath, item.isDir); err != nil {
 				logger.Errorf("Failed to delete source after archive: %v", err)
 			}
 		}
@@ -419,6 +425,14 @@ func unarchiveHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 	if req.ToSource == "" {
 		req.ToSource = req.FromSource
 	}
+	if !req.Preview {
+		if status, roErr := denyIfSourceReadOnly(req.ToSource); roErr != nil {
+			return status, roErr
+		}
+	}
+	if status, roErr := denyIfSourceReadOnly(req.FromSource); req.DeleteAfter && !req.Preview && roErr != nil {
+		return status, roErr
+	}
 	destPerms, err := effectiveFilePerms(d, req.ToSource)
 	if err != nil {
 		return http.StatusForbidden, err
@@ -461,7 +475,7 @@ func unarchiveHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 	if !state.AccessPermitted(idxFrom.Path, utils.IndexPathFromNormalized(fullArchivePath, true), d.User.Username) {
 		return http.StatusForbidden, fmt.Errorf("access denied to archive %s", req.Path)
 	}
-	archiveReal, _, err := idxFrom.GetRealPath(fullArchivePath)
+	archiveReal, _, err := idxFrom.GetRealPathScoped(userScopeFrom, fullArchivePath)
 	if err != nil {
 		return http.StatusNotFound, fmt.Errorf("archive path not found: %v", err)
 	}
@@ -478,7 +492,7 @@ func unarchiveHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 	if !state.AccessPermitted(idxTo.Path, utils.IndexPathFromNormalized(fullDestPath, true), d.User.Username) {
 		return http.StatusForbidden, fmt.Errorf("access denied to destination %s", req.Destination)
 	}
-	destReal, _, err := idxTo.GetRealPath(fullDestPath)
+	destReal, _, err := idxTo.GetRealPathScoped(userScopeTo, fullDestPath)
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("destination path invalid: %v", err)
 	}
@@ -521,11 +535,18 @@ func unarchiveHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 		defer zr.Close()
 		return RenderJSON(w, r, archiveencoding.Inspect(zr.File), http.StatusOK)
 	}
+	policy := &extractAccessPolicy{
+		idx:             idxTo,
+		destRealRoot:    destReal,
+		destIndexPrefix: fullDestPath,
+		username:        d.User.Username,
+		perms:           destPerms,
+	}
 	var extractErr error
 	if strings.HasSuffix(lower, ".zip") {
-		extractErr = extractZipWithEncoding(archiveReal, destReal, req.FilenameEncoding)
+		extractErr = extractZipWithEncoding(archiveReal, destReal, req.FilenameEncoding, policy)
 	} else if strings.HasSuffix(lower, ".tar.gz") || (strings.HasSuffix(lower, ".tgz")) {
-		extractErr = extractTarGz(archiveReal, destReal)
+		extractErr = extractTarGz(archiveReal, destReal, policy)
 	} else {
 		return http.StatusBadRequest, fmt.Errorf("unsupported archive format (use .zip or .tar.gz)")
 	}
@@ -533,7 +554,11 @@ func unarchiveHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 		if errors.Is(extractErr, archiveencoding.ErrEncoding) {
 			return http.StatusBadRequest, extractErr
 		}
-		return http.StatusInternalServerError, extractErr
+		if errors.Is(extractErr, errExtractAccessDenied) {
+			return http.StatusForbidden, extractErr
+		}
+		logger.Errorf("archive extraction failed: %v", extractErr)
+		return http.StatusInternalServerError, clientExtractError()
 	}
 
 	if req.DeleteAfter {
@@ -560,7 +585,23 @@ func addFile(source string, path string, d *Context, tarWriter *tar.Writer, zipW
 		return nil // Silently skip this file/folder
 	}
 
-	realPath, _, _ := idx.GetRealPath(path)
+	// Symlink resolution is contained to the share path for shares and the user
+	// scope otherwise; entries that resolve outside the bound are skipped.
+	boundIndexPath := ""
+	if d.Share.Hash != "" {
+		boundIndexPath = d.Share.Path
+	} else {
+		var err error
+		boundIndexPath, err = d.User.GetScopeForSourceName(source)
+		if err != nil {
+			return err
+		}
+	}
+
+	realPath, _, err := idx.GetRealPathScoped(boundIndexPath, path)
+	if err != nil {
+		return err
+	}
 	info, err := os.Stat(realPath)
 	if err != nil {
 		return err
@@ -590,17 +631,26 @@ func addFile(source string, path string, d *Context, tarWriter *tar.Writer, zipW
 				return nil
 			}
 
-			// Check access control for each file/folder during walk
-			if d.Share.Hash == "" {
-				indexRelPath := utils.JoinPathAsUnix(path, relPath)
-				indexRelPath = filepath.ToSlash(indexRelPath)
-				indexPath := utils.IndexPathFromNormalized(indexRelPath, true)
-				if !state.AccessPermitted(idx.Path, indexPath, permUser) {
-					if fileInfo.IsDir() {
-						return filepath.SkipDir
-					}
-					return nil
+			// A symlinked entry must resolve inside the bound before its
+			// contents are opened; escaping entries are silently skipped.
+			indexRelPath := utils.JoinPathAsUnix(path, relPath)
+			indexRelPath = filepath.ToSlash(indexRelPath)
+			if _, _, serr := idx.GetRealPathScoped(boundIndexPath, indexRelPath); serr != nil {
+				if fileInfo.IsDir() {
+					return filepath.SkipDir
 				}
+				return nil
+			}
+
+			// Check access control for each file/folder during walk. Share
+			// downloads are checked as the share owner via permUser, so the
+			// owner's deny rules apply to share visitors as well.
+			indexPath := utils.IndexPathFromNormalized(indexRelPath, true)
+			if !state.AccessPermitted(idx.Path, indexPath, permUser) {
+				if fileInfo.IsDir() {
+					return filepath.SkipDir
+				}
+				return nil
 			}
 
 			// Prepend base folder name unless flatten is true
@@ -1022,7 +1072,61 @@ func safeExtractPath(destDir, name string) (string, error) {
 	if rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
 		return "", fmt.Errorf("invalid entry path: %q", name)
 	}
+	if _, err = resolvedWritePathUnderDest(destDir, entryAbs); err != nil {
+		logger.Debugf("unarchive: entry %q path resolution: %v", name, err)
+		return "", fmt.Errorf("invalid entry path: %q", name)
+	}
 	return abs, nil
+}
+
+// resolvedWritePathUnderDest resolves symlink components on entryAbs and ensures the
+// effective write target stays under the resolved destination root.
+func resolvedWritePathUnderDest(destDir, entryAbs string) (string, error) {
+	destResolved, err := filepath.EvalSymlinks(destDir)
+	if err != nil {
+		logger.Debugf("unarchive: eval destination symlinks: %v", err)
+		return "", errEntryPathInvalid
+	}
+	check := entryAbs
+	if resolved, rerr := filepath.EvalSymlinks(check); rerr == nil {
+		check = resolved
+	} else if errors.Is(rerr, os.ErrNotExist) {
+		if li, lerr := os.Lstat(entryAbs); lerr == nil && li.Mode()&os.ModeSymlink != 0 {
+			return "", errEntryPathInvalid
+		}
+		parent := filepath.Dir(entryAbs)
+		leaf := filepath.Base(entryAbs)
+		for {
+			resolvedParent, perr := filepath.EvalSymlinks(parent)
+			if perr == nil {
+				check = filepath.Join(resolvedParent, leaf)
+				break
+			}
+			if !errors.Is(perr, os.ErrNotExist) {
+				logger.Debugf("unarchive: eval entry symlinks: %v", perr)
+				return "", errEntryPathInvalid
+			}
+			next := filepath.Dir(parent)
+			if next == parent {
+				logger.Debugf("unarchive: no existing ancestor for entry under %s", destDir)
+				return "", errEntryPathInvalid
+			}
+			leaf = filepath.Join(filepath.Base(parent), leaf)
+			parent = next
+		}
+	} else {
+		logger.Debugf("unarchive: eval entry symlinks: %v", rerr)
+		return "", errEntryPathInvalid
+	}
+	relCheck, err := filepath.Rel(destResolved, check)
+	if err != nil {
+		logger.Debugf("unarchive: relative path under destination: %v", err)
+		return "", errEntryPathInvalid
+	}
+	if relCheck == ".." || strings.HasPrefix(relCheck, ".."+string(filepath.Separator)) {
+		return "", errEntryPathEscape
+	}
+	return check, nil
 }
 
 // applyArchivedTimesAndPerm sets permission bits and modification time from an archive entry using
@@ -1088,9 +1192,30 @@ func extractArchivedDir(destPath string, mode fs.FileMode, modTime time.Time) er
 		perm = fileutils.EffectiveDirPerm()
 	}
 	if err := os.MkdirAll(destPath, perm); err != nil {
-		return fmt.Errorf("mkdir %q: %w", destPath, err)
+		logger.Debugf("unarchive: mkdir: %v", err)
+		return fmt.Errorf("failed to create directory from archive entry")
 	}
 	return applyArchivedTimesAndPerm(destPath, mode, modTime)
+}
+
+// removeSymlinkDestination removes destPath when it is a symlink so a regular-file
+// write creates the entry at destPath instead of following the link.
+func removeSymlinkDestination(destPath string) error {
+	info, err := os.Lstat(destPath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil
+		}
+		return err
+	}
+	if info.Mode()&fs.ModeSymlink == 0 {
+		return nil
+	}
+	if err := os.Remove(destPath); err != nil {
+		logger.Debugf("unarchive: remove symlink destination: %v", err)
+		return fmt.Errorf("failed to write file from archive entry")
+	}
+	return nil
 }
 
 // extractArchivedRegularFile writes one regular file from src (closed by this function) and reapplies mode and mtime.
@@ -1098,7 +1223,11 @@ func extractArchivedRegularFile(destPath string, mode fs.FileMode, modTime time.
 	defer func() { _ = src.Close() }()
 	parent := filepath.Dir(destPath)
 	if err := os.MkdirAll(parent, fileutils.EffectiveDirPerm()); err != nil {
-		return fmt.Errorf("mkdir %q: %w", parent, err)
+		logger.Debugf("unarchive: mkdir parent: %v", err)
+		return fmt.Errorf("failed to create directory from archive entry")
+	}
+	if err := removeSymlinkDestination(destPath); err != nil {
+		return err
 	}
 	perm := mode.Perm()
 	if perm == 0 {
@@ -1106,15 +1235,18 @@ func extractArchivedRegularFile(destPath string, mode fs.FileMode, modTime time.
 	}
 	out, err := os.OpenFile(destPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, perm)
 	if err != nil {
-		return err
+		logger.Debugf("unarchive: create file: %v", err)
+		return fmt.Errorf("failed to write file from archive entry")
 	}
 	_, copyErr := io.Copy(out, src)
 	cerr := out.Close()
 	if copyErr != nil {
-		return copyErr
+		logger.Debugf("unarchive: write file: %v", copyErr)
+		return fmt.Errorf("failed to write file from archive entry")
 	}
 	if cerr != nil {
-		return cerr
+		logger.Debugf("unarchive: close file: %v", cerr)
+		return fmt.Errorf("failed to write file from archive entry")
 	}
 	return applyArchivedTimesAndPerm(destPath, mode, modTime)
 }
@@ -1124,25 +1256,69 @@ func extractArchivedSymlink(destRoot, destPath, target string, modTime time.Time
 	target = strings.TrimSpace(target)
 	symParent := filepath.Dir(destPath)
 	if err := os.MkdirAll(symParent, fileutils.EffectiveDirPerm()); err != nil {
-		return fmt.Errorf("mkdir %q: %w", symParent, err)
+		logger.Debugf("unarchive: mkdir symlink parent: %v", err)
+		return fmt.Errorf("failed to create symlink from archive entry")
 	}
 	if err := symlinkTargetStaysUnderDest(destRoot, destPath, target); err != nil {
 		return err
 	}
 	if err := os.Remove(destPath); err != nil && !os.IsNotExist(err) {
-		return err
+		logger.Debugf("unarchive: remove symlink: %v", err)
+		return fmt.Errorf("failed to create symlink from archive entry")
 	}
 	if err := os.Symlink(target, destPath); err != nil {
-		return err
+		logger.Debugf("unarchive: symlink: %v", err)
+		return fmt.Errorf("failed to create symlink from archive entry")
 	}
 	return applyArchivedTimesAndPerm(destPath, fs.ModeSymlink, modTime)
 }
 
-func extractZip(archivePath, destDir string) error {
-	return extractZipWithEncoding(archivePath, destDir, "")
+// extractArchivedHardLink writes a copy of a regular file extracted earlier from the same
+// archive, which is what a tar hard link entry stands for.
+func extractArchivedHardLink(destRoot, destPath string, h *tar.Header, extracted map[string]os.FileInfo) error {
+	targetPath, err := safeExtractPath(destRoot, h.Linkname)
+	if err != nil {
+		return err
+	}
+	notExtracted := fmt.Errorf("hard link %q points to %q, which is not a file earlier in the archive", h.Name, h.Linkname)
+	written, ok := extracted[targetPath]
+	if !ok {
+		return notExtracted
+	}
+	src, err := os.Open(targetPath)
+	if err != nil {
+		logger.Debugf("unarchive: open hard link target: %v", err)
+		return fmt.Errorf("failed to write file from archive entry")
+	}
+	// A later entry may have replaced the target, e.g. with a symlink to another file.
+	info, err := src.Stat()
+	if err != nil || !info.Mode().IsRegular() || !os.SameFile(info, written) {
+		_ = src.Close()
+		return notExtracted
+	}
+	// The entry may name its own target, directly (GNU tar does this for a file archived
+	// twice). Writing it would truncate the file it copies from. Symlinks at destPath
+	// are replaced by extractArchivedRegularFile instead of being left in place.
+	if dest, err := os.Lstat(destPath); err == nil && dest.Mode().IsRegular() && os.SameFile(dest, info) {
+		return src.Close()
+	}
+	return extractArchivedRegularFile(destPath, h.FileInfo().Mode(), h.ModTime, src)
 }
 
-func extractZipWithEncoding(archivePath, destDir, charset string) error {
+// recordExtractedFile remembers the regular file written at destPath for later hard links.
+func recordExtractedFile(extracted map[string]os.FileInfo, destPath string) {
+	if info, err := os.Lstat(destPath); err == nil && info.Mode().IsRegular() {
+		extracted[destPath] = info
+	} else {
+		delete(extracted, destPath)
+	}
+}
+
+func extractZip(archivePath, destDir string) error {
+	return extractZipWithEncoding(archivePath, destDir, "", nil)
+}
+
+func extractZipWithEncoding(archivePath, destDir, charset string, policy *extractAccessPolicy) error {
 	r, err := zip.OpenReader(archivePath)
 	if err != nil {
 		return err
@@ -1200,6 +1376,23 @@ func extractZipWithEncoding(archivePath, destDir, charset string) error {
 	})
 
 	for _, o := range ordered {
+		destPath, pathErr := safeExtractPath(destDir, o.name)
+		if pathErr != nil {
+			return pathErr
+		}
+		fi := o.f.FileInfo()
+		mode := fi.Mode()
+		isDirEntry := mode.Type() == fs.ModeDir || strings.HasSuffix(o.name, "/") || strings.HasSuffix(o.name, "\\")
+		isSymlink := mode.Type() == fs.ModeSymlink
+		if !isDirEntry && !isSymlink && !mode.IsRegular() {
+			continue
+		}
+		if err = preflightExtractEntry(policy, o.name, destPath, isDirEntry, isSymlink); err != nil {
+			return err
+		}
+	}
+
+	for _, o := range ordered {
 		f := o.f
 		var destPath string
 		destPath, err = safeExtractPath(destDir, o.name)
@@ -1250,7 +1443,74 @@ func extractZipWithEncoding(archivePath, destDir, charset string) error {
 	return nil
 }
 
-func extractTarGz(archivePath, destDir string) error {
+func extractTarGz(archivePath, destDir string, policy *extractAccessPolicy) error {
+	if err := preflightTarGz(archivePath, destDir, policy); err != nil {
+		return err
+	}
+	f, err := os.Open(archivePath)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	gz, err := gzip.NewReader(f)
+	if err != nil {
+		return err
+	}
+	defer gz.Close()
+
+	tr := tar.NewReader(gz)
+	// Regular files written so far, for hard links to point at.
+	extracted := make(map[string]os.FileInfo)
+	for {
+		h, err := tr.Next()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return err
+		}
+		destPath, err := safeExtractPath(destDir, h.Name)
+		if err != nil {
+			return err
+		}
+
+		switch h.Typeflag {
+		case tar.TypeDir:
+			mode := h.FileInfo().Mode()
+			if err = extractArchivedDir(destPath, mode, h.ModTime); err != nil {
+				return err
+			}
+		case tar.TypeReg:
+			mode := h.FileInfo().Mode()
+			if err = extractArchivedRegularFile(destPath, mode, h.ModTime, io.NopCloser(tr)); err != nil {
+				return err
+			}
+			recordExtractedFile(extracted, destPath)
+		case tar.TypeLink:
+			if err = extractArchivedHardLink(destDir, destPath, h, extracted); err != nil {
+				return err
+			}
+			recordExtractedFile(extracted, destPath)
+		case tar.TypeSymlink:
+			if err = extractArchivedSymlink(destDir, destPath, h.Linkname, h.ModTime); err != nil {
+				return err
+			}
+		default:
+			if h.Size > 0 {
+				if _, err = io.CopyN(io.Discard, tr, h.Size); err != nil {
+					return err
+				}
+			}
+		}
+	}
+	return nil
+}
+
+func preflightTarGz(archivePath, destDir string, policy *extractAccessPolicy) error {
+	if policy == nil {
+		return nil
+	}
 	f, err := os.Open(archivePath)
 	if err != nil {
 		return err
@@ -1272,25 +1532,21 @@ func extractTarGz(archivePath, destDir string) error {
 		if err != nil {
 			return err
 		}
-		var destPath string
-		destPath, err = safeExtractPath(destDir, h.Name)
+		destPath, err := safeExtractPath(destDir, h.Name)
 		if err != nil {
 			return err
 		}
-
 		switch h.Typeflag {
 		case tar.TypeDir:
-			mode := h.FileInfo().Mode()
-			if err = extractArchivedDir(destPath, mode, h.ModTime); err != nil {
+			if err = preflightExtractEntry(policy, h.Name, destPath, true, false); err != nil {
 				return err
 			}
-		case tar.TypeReg:
-			mode := h.FileInfo().Mode()
-			if err = extractArchivedRegularFile(destPath, mode, h.ModTime, io.NopCloser(tr)); err != nil {
+		case tar.TypeReg, tar.TypeLink:
+			if err = preflightExtractEntry(policy, h.Name, destPath, false, false); err != nil {
 				return err
 			}
 		case tar.TypeSymlink:
-			if err = extractArchivedSymlink(destDir, destPath, h.Linkname, h.ModTime); err != nil {
+			if err = preflightExtractEntry(policy, h.Name, destPath, false, true); err != nil {
 				return err
 			}
 		default:

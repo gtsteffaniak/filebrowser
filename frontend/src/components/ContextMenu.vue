@@ -455,7 +455,12 @@ export default {
     },
     showCopy() {
       if (this.showLimitedOptions) return false;
-      return !this.showCreate && this.selectedCount > 0 && this.permissions.modify;
+      if (this.showCreate || this.selectedCount === 0) return false;
+      // A share refuses every change, copy included, unless it allows modify.
+      if (getters.isShare()) return !!this.permissions.modify;
+      // Copying only reads the source (the server checks download there and create on the destination),
+      // so it stays available in read-only sources as long as some source accepts the copy.
+      return !!this.permissions.download && (state.user?.scopes ?? []).some((scope) => getters.canCreateInSource(scope.name));
     },
     showCopyPath() {
       if (this.showLimitedOptions) return false;
@@ -907,9 +912,7 @@ export default {
         return;
       }
       mutations.closeHovers();
-      const directoryPath = state.req?.type === "directory"
-        ? state.req.path
-        : url.getParentDir(item.path);
+      const directoryPath = url.getParentDir(item.path);
       const action = item.pinned ? "remove" : "add";
       try {
         if (getters.isShare()) {

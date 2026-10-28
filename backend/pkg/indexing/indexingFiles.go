@@ -126,8 +126,6 @@ type Index struct {
 	schedulerStop     chan struct{}
 	schedulerStopOnce sync.Once
 	schedulerBatch    int // >0: serial pass in progress; suppresses PostScan inside executeScan
-	// Adaptive scheduler: run one serial scan on process start (then normal slot cadence).
-	schedulerStartupPassPending bool
 	// In-memory folder size tracking (not stored in SQLite)
 	folderSizes         map[string]uint64   // path -> size (in-memory only, calculated from children)
 	folderSizesUnsynced map[string]struct{} // Tracks which folder sizes have changed since last DB sync
@@ -640,7 +638,29 @@ func (idx *Index) getDirInfoFromContext(ctx *PathContext, isViewable, isIndexabl
 		HideFileExt:       req.HideFileExt,
 	}
 
-	return idx.GetDirInfoCore(dir, ctx.FileInfo, ctx.IndexPath, opts, nil)
+	dirFileInfo, indexableInfo, err := idx.GetDirInfoCore(dir, ctx.FileInfo, ctx.IndexPath, opts, nil)
+	if err != nil {
+		return nil, err
+	}
+	idx.persistDirectoryListing(ctx.IndexPath, indexableInfo, opts)
+	return dirFileInfo, nil
+}
+
+// persistDirectoryListing updates index rows and the in-memory folder size from
+// an already-built directory listing, avoiding the second directory walk that
+// RefreshDirectory performs. Listings without extended attributes carry
+// placeholder preview values and must not overwrite index rows.
+func (idx *Index) persistDirectoryListing(indexPath string, indexableInfo *iteminfo.FileInfo, opts Options) {
+	if indexableInfo == nil || opts.SkipExtendedAttrs || opts.IsRoutineScan || idx.db == nil {
+		return
+	}
+	idx.UpdateMetadata(indexableInfo, nil, true)
+	newSize := uint64(indexableInfo.Size)
+	if previousSize, exists := idx.GetFolderSize(indexPath); exists {
+		idx.updateFolderSizeAndParents(indexPath, newSize, previousSize, true)
+	} else {
+		idx.SetFolderSize(indexPath, newSize)
+	}
 }
 
 // getBasicDirInfo returns just directory metadata without children
@@ -761,7 +781,7 @@ func (idx *Index) GetFsInfoCore(indexPath string, opts Options) (*iteminfo.FileI
 	}
 
 	// Handle directory case
-	response, err := idx.GetDirInfoCore(dir, dirInfo, indexPath, opts, nil)
+	response, _, err := idx.GetDirInfoCore(dir, dirInfo, indexPath, opts, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -809,15 +829,25 @@ func (idx *Index) GetFsInfoViewableOnly(adjustedPath string, followSymlinks bool
 // fetchExtendedAttributes loads indexed subfolder has_preview for the current directory from GetMetadataInfo (database).
 // The listed directory's own HasPreview is derived only in GetDirInfoCore from children (never from a stale parent DB row).
 func (idx *Index) fetchExtendedAttributes(indexPath string, opts Options) map[string]bool {
+	subdirHasPreviewMap, _ := idx.fetchDirectoryCache(indexPath, opts)
+	return subdirHasPreviewMap
+}
+
+// fetchDirectoryCache loads the indexed directory row with all direct children in
+// a single GetMetadataInfo query and returns both the subfolder has_preview map
+// and a per-name cache of indexed file metadata. The file cache lets
+// processFileItem reuse type/preview fields for unchanged entries instead of
+// re-opening every file on each listing.
+func (idx *Index) fetchDirectoryCache(indexPath string, opts Options) (map[string]bool, map[string]*iteminfo.ItemInfo) {
 	subdirHasPreviewMap := make(map[string]bool)
 
 	if opts.SkipExtendedAttrs || opts.Recursive {
-		return subdirHasPreviewMap
+		return subdirHasPreviewMap, nil
 	}
 
 	realDirInfo, exists := idx.GetMetadataInfo(indexPath, true, false)
 	if !exists {
-		return subdirHasPreviewMap
+		return subdirHasPreviewMap, nil
 	}
 
 	for _, folder := range realDirInfo.Folders {
@@ -825,7 +855,16 @@ func (idx *Index) fetchExtendedAttributes(indexPath string, opts Options) map[st
 		subdirHasPreviewMap[key] = folder.HasPreview
 	}
 
-	return subdirHasPreviewMap
+	var cachedFiles map[string]*iteminfo.ItemInfo
+	if len(realDirInfo.Files) > 0 {
+		cachedFiles = make(map[string]*iteminfo.ItemInfo, len(realDirInfo.Files))
+		for i := range realDirInfo.Files {
+			file := &realDirInfo.Files[i]
+			cachedFiles[file.Name] = &file.ItemInfo
+		}
+	}
+
+	return subdirHasPreviewMap, cachedFiles
 }
 
 // processDirectoryItem processes a directory item and returns the itemInfo, size, and whether it should be counted
@@ -881,7 +920,9 @@ func (idx *Index) processDirectoryItem(file os.FileInfo, indexPath string, subdi
 }
 
 // processFileItem processes a file item and returns the itemInfo, size, shouldCount, and whether it bubbles up hasPreview
-func (idx *Index) processFileItem(file os.FileInfo, indexPath string, opts Options, scanner *Scanner) (*iteminfo.ItemInfo, int64, bool, bool) {
+// cachedFiles holds indexed metadata for this directory's children (nil when unavailable); unchanged files
+// reuse their cached type/preview instead of re-opening the file for detection.
+func (idx *Index) processFileItem(file os.FileInfo, indexPath string, opts Options, scanner *Scanner, cachedFiles map[string]*iteminfo.ItemInfo) (*iteminfo.ItemInfo, int64, bool, bool) {
 
 	fullCombined := utils.JoinPathAsUnix(idx.Path, indexPath, file.Name())
 	itemInfo := &iteminfo.ItemInfo{
@@ -890,7 +931,6 @@ func (idx *Index) processFileItem(file os.FileInfo, indexPath string, opts Optio
 		ModTime: file.ModTime(),
 		Hidden:  IsHidden(fullCombined),
 	}
-	itemInfo.DetectType(fullCombined, false)
 
 	// For API calls (non-recursive, no scanner), use appropriate size calculation
 	// For scanning (recursive or with scanner), use handleFile for hardlink detection
@@ -904,11 +944,32 @@ func (idx *Index) processFileItem(file os.FileInfo, indexPath string, opts Optio
 	}
 	itemInfo.Size = int64(size)
 
+	// The index row matches only when the file is unchanged (same size and
+	// mtime at index precision) - otherwise detection runs fresh below.
+	var cached *iteminfo.ItemInfo
+	if cachedFiles != nil {
+		if c, ok := cachedFiles[file.Name()]; ok && c.ModTime.Unix() == file.ModTime().Unix() && c.Size == itemInfo.Size {
+			cached = c
+		}
+	}
+	if cached != nil && cached.Type != "" {
+		itemInfo.Type = cached.Type
+	} else {
+		itemInfo.DetectType(fullCombined, false)
+	}
+	if cached != nil && itemInfo.Created == nil && cached.Created != nil {
+		created := *cached.Created
+		itemInfo.Created = &created
+	}
+
 	// Extended attributes for files
 	bubblesUpHasPreview := false
 	if !opts.SkipExtendedAttrs {
 		usedCachedPreview := false
-		if !idx.Config.ResolvedRules.IndexingDisabled && opts.Recursive {
+		if cached != nil {
+			itemInfo.HasPreview = cached.HasPreview
+			usedCachedPreview = true
+		} else if !idx.Config.ResolvedRules.IndexingDisabled && opts.Recursive {
 			simpleType := strings.Split(itemInfo.Type, "/")[0]
 			if simpleType == "audio" {
 				previousInfo, exists := idx.GetReducedMetadata(fullCombined, false)
@@ -1030,16 +1091,19 @@ func readDirSkippingUnreadable(dir *os.File) ([]os.FileInfo, error) {
 	return files, nil
 }
 
-// GetDirInfoCore is the consolidated implementation for both GetDirInfo and GetDirInfoViewableOnly
-func (idx *Index) GetDirInfoCore(dirInfo *os.File, stat os.FileInfo, indexPath string, opts Options, scanner *Scanner) (*iteminfo.FileInfo, error) {
+// GetDirInfoCore is the consolidated implementation for both GetDirInfo and GetDirInfoViewableOnly.
+// It returns the display listing plus, for non-recursive viewable listings, a second listing holding
+// only the items indexing would persist (non-hidden, non-skipped) so callers can keep the index in
+// sync without walking the directory again. The second return is nil when it would match the first.
+func (idx *Index) GetDirInfoCore(dirInfo *os.File, stat os.FileInfo, indexPath string, opts Options, scanner *Scanner) (*iteminfo.FileInfo, *iteminfo.FileInfo, error) {
 	if !strings.HasSuffix(indexPath, "/") {
 		indexPath = indexPath + "/"
 	}
-	files, err := readDirSkippingUnreadable(dirInfo)
+	files, err := readDirFileInfos(dirInfo)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	subdirHasPreviewMap := idx.fetchExtendedAttributes(indexPath, opts)
+	subdirHasPreviewMap, cachedFiles := idx.fetchDirectoryCache(indexPath, opts)
 
 	baseName := filepath.Base(indexPath)
 	if indexPath == "/" {
@@ -1047,10 +1111,17 @@ func (idx *Index) GetDirInfoCore(dirInfo *os.File, stat os.FileInfo, indexPath s
 	}
 
 	var totalSize int64
+	var indexableSize int64
 	fileInfos := []iteminfo.ExtendedItemInfo{}
 	dirInfos := []iteminfo.ItemInfo{}
+	// Items indexing would persist: API listings may include viewable-only or
+	// hidden entries that RefreshDirectory (ShowHidden=false) never indexes.
+	collectIndexable := opts.CheckViewable && !opts.Recursive && scanner == nil && !opts.SkipExtendedAttrs
+	var indexableFiles []iteminfo.ExtendedItemInfo
+	var indexableFolders []iteminfo.ItemInfo
 	processedCount := 0
 	hasPreview := false
+	indexableHasPreview := false
 
 	for _, file := range files {
 		subfileBaseName := file.Name()
@@ -1077,6 +1148,7 @@ func (idx *Index) GetDirInfoCore(dirInfo *os.File, stat os.FileInfo, indexPath s
 		}
 
 		// Check viewable/indexable rules
+		itemIndexable := false
 		if !shouldSkip {
 			isViewable := idx.IsViewable(isDir, fullCombined, isSymlink, hidden)
 			isSkipped := idx.ShouldSkip(isDir, fullCombined, hidden, isSymlink, opts.IsRoutineScan)
@@ -1085,6 +1157,7 @@ func (idx *Index) GetDirInfoCore(dirInfo *os.File, stat os.FileInfo, indexPath s
 			} else {
 				shouldSkip = isSkipped
 			}
+			itemIndexable = !hidden && !isSkipped
 		}
 		if shouldSkip {
 			continue
@@ -1098,20 +1171,36 @@ func (idx *Index) GetDirInfoCore(dirInfo *os.File, stat os.FileInfo, indexPath s
 			}
 			if shouldCount {
 				totalSize += size
+				if itemIndexable {
+					indexableSize += size
+				}
 			}
 			dirInfos = append(dirInfos, *itemInfo)
+			if collectIndexable && itemIndexable {
+				indexableFolders = append(indexableFolders, *itemInfo)
+			}
 			if opts.Recursive && opts.IsRoutineScan {
 				idx.incrementScannerDirs()
 			}
 		} else {
-			itemInfo, size, shouldCount, bubblesUp := idx.processFileItem(file, indexPath, opts, scanner)
+			itemInfo, size, shouldCount, bubblesUp := idx.processFileItem(file, indexPath, opts, scanner, cachedFiles)
 			if bubblesUp {
 				hasPreview = true
+				if itemIndexable {
+					indexableHasPreview = true
+				}
 			}
 			if shouldCount {
 				totalSize += size
+				if itemIndexable {
+					indexableSize += size
+				}
 			}
-			fileInfos = append(fileInfos, iteminfo.ExtendedItemInfo{ItemInfo: *itemInfo})
+			extItem := iteminfo.ExtendedItemInfo{ItemInfo: *itemInfo}
+			fileInfos = append(fileInfos, extItem)
+			if collectIndexable && itemIndexable {
+				indexableFiles = append(indexableFiles, extItem)
+			}
 			if opts.IsRoutineScan {
 				idx.incrementScannerFiles()
 			}
@@ -1135,7 +1224,7 @@ func (idx *Index) GetDirInfoCore(dirInfo *os.File, stat os.FileInfo, indexPath s
 		}
 
 		if isEmpty {
-			return nil, errors.ErrNotIndexed
+			return nil, nil, errors.ErrNotIndexed
 		}
 	}
 
@@ -1154,16 +1243,39 @@ func (idx *Index) GetDirInfoCore(dirInfo *os.File, stat os.FileInfo, indexPath s
 	}
 	dirFileInfo.SortItems()
 
-	return dirFileInfo, nil
+	var indexableInfo *iteminfo.FileInfo
+	if collectIndexable {
+		indexableInfo = &iteminfo.FileInfo{
+			Path:    indexPath,
+			Files:   indexableFiles,
+			Folders: indexableFolders,
+		}
+		indexableInfo.ItemInfo = iteminfo.ItemInfo{
+			Name:       baseName,
+			Type:       "directory",
+			Size:       indexableSize,
+			Created:    dirFileInfo.Created,
+			ModTime:    dirFileInfo.ModTime,
+			HasPreview: indexableHasPreview,
+		}
+	}
+
+	return dirFileInfo, indexableInfo, nil
 }
 
 // GetDirInfo returns directory information with index checks and extended attributes
 func (idx *Index) GetDirInfo(dirInfo *os.File, stat os.FileInfo, indexPath string, opts Options, scanner *Scanner) (*iteminfo.FileInfo, error) {
 	// Ensure filesystem options are set correctly for indexed paths
 	opts.SkipExtendedAttrs = false
-	return idx.GetDirInfoCore(dirInfo, stat, indexPath, opts, scanner)
+	dirFileInfo, _, err := idx.GetDirInfoCore(dirInfo, stat, indexPath, opts, scanner)
+	return dirFileInfo, err
 }
 
+// GetRealPath resolves an index path to a real filesystem path, enforcing
+// source-root containment. It is cached (RealPathCache) — use it for reads and
+// bookkeeping only. Mutating filesystem operations must use
+// GetRealPathForMutation or GetRealPathForRemoval, which resolve uncached and
+// enforce a caller-supplied scope bound.
 func (idx *Index) GetRealPath(relativePath ...string) (string, bool, error) {
 	return idx.getRealPathInternal("/", false, relativePath...)
 }
@@ -1208,6 +1320,86 @@ func (idx *Index) getRealPathInternal(boundIndexPath string, enforceScope bool, 
 	RealPathCache.Set(cacheKey, realPath)
 	IsDirCache.Set(cacheKey+":isdir", isDir)
 	return realPath, isDir, nil
+}
+
+// GetRealPathForMutation resolves an index path for a mutating filesystem
+// operation (create/overwrite/mkdir/move-into). When the leaf exists it is fully
+// resolved; otherwise the deepest existing ancestor is resolved and the missing
+// tail is re-joined, since non-existent components cannot be symlinks. The
+// resolved path is verified to stay inside the source root and boundIndexPath
+// ("" or "/" = source root only). Resolution is uncached so a returned path is
+// safe to mutate immediately.
+func (idx *Index) GetRealPathForMutation(boundIndexPath, indexPath string) (string, error) {
+	return idx.resolveForMutation(boundIndexPath, indexPath, true)
+}
+
+// GetRealPathForRemoval resolves an index path for entry-removal semantics
+// (delete/rename-of-entry): the parent chain is resolved and contained, but the
+// leaf name is preserved so that removing a symlink removes the link itself
+// rather than its target.
+func (idx *Index) GetRealPathForRemoval(boundIndexPath, indexPath string) (string, error) {
+	return idx.resolveForMutation(boundIndexPath, indexPath, false)
+}
+
+func (idx *Index) resolveForMutation(boundIndexPath, indexPath string, resolveLeaf bool) (string, error) {
+	abs, err := filepath.Abs(utils.JoinUnderSourceRoot(idx.Path, indexPath))
+	if err != nil {
+		return "", fmt.Errorf("could not get real path: %v, %s", indexPath, err)
+	}
+	// The source root has no leaf to preserve for entry-removal semantics;
+	// resolve it so callers can apply their own root handling.
+	if !resolveLeaf && abs == filepath.Clean(idx.Path) {
+		resolved, _, rerr := iteminfo.ResolveSymlinks(abs)
+		if rerr != nil {
+			return "", rerr
+		}
+		if cerr := idx.ensureResolvedContained(resolved, boundIndexPath); cerr != nil {
+			return "", cerr
+		}
+		return resolved, nil
+	}
+	if resolveLeaf {
+		resolved, _, rerr := iteminfo.ResolveSymlinks(abs)
+		if rerr == nil {
+			if cerr := idx.ensureResolvedContained(resolved, boundIndexPath); cerr != nil {
+				return "", cerr
+			}
+			return resolved, nil
+		} else if !stderrors.Is(rerr, os.ErrNotExist) {
+			return "", rerr
+		}
+		li, lerr := os.Lstat(abs)
+		if lerr == nil && li.Mode()&os.ModeSymlink != 0 {
+			return "", fmt.Errorf("%w: dangling symlink leaf", errors.ErrPathEscapesScope)
+		} else if lerr != nil && !stderrors.Is(lerr, os.ErrNotExist) {
+			return "", lerr
+		}
+	}
+	// Walk up to the deepest existing ancestor. Missing tail components cannot
+	// be symlinks since they do not exist, so re-joining them is safe.
+	tail := []string{filepath.Base(abs)}
+	ancestor := filepath.Dir(abs)
+	for {
+		resolved, isDir, aerr := iteminfo.ResolveSymlinks(ancestor)
+		if aerr == nil {
+			if !isDir {
+				return "", fmt.Errorf("parent path is not a directory")
+			}
+			if cerr := idx.ensureResolvedContained(resolved, boundIndexPath); cerr != nil {
+				return "", cerr
+			}
+			return filepath.Join(append([]string{resolved}, tail...)...), nil
+		}
+		if !stderrors.Is(aerr, os.ErrNotExist) {
+			return "", aerr
+		}
+		next := filepath.Dir(ancestor)
+		if next == ancestor {
+			return "", fmt.Errorf("no existing ancestor for path %s", indexPath)
+		}
+		tail = append([]string{filepath.Base(ancestor)}, tail...)
+		ancestor = next
+	}
 }
 
 func (idx *Index) RefreshFileInfo(opts utils.FileOptions) error {
@@ -1779,6 +1971,7 @@ func (idx *Index) writePersistedIndexInfo() error {
 			NumDirs:         scanner.numDirs,
 			NumFiles:        scanner.numFiles,
 			LastScanned:     scanner.lastScanned,
+			FullScanCounter: scanner.fullScanCounter,
 		}
 	}
 

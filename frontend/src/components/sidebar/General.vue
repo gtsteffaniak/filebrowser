@@ -81,6 +81,7 @@ import {
 } from "@/utils/tooltipHelp.js";
 import SidebarLinks from "./Links.vue";
 import { url } from "@/utils";
+import { expandLeave } from "@/utils/expandTransition";
 
 export default {
   name: "SidebarGeneral",
@@ -222,18 +223,10 @@ export default {
       });
     },
     leave(el, done) {
-      requestAnimationFrame(() => {
-        el.style.maxHeight = `${el.scrollHeight}px`;
-        void el.offsetHeight;
-        el.style.maxHeight = '0';
-        el.style.opacity = '0';
-
-        const onTransitionEnd = () => {
-          done();
-          el.removeEventListener('transitionend', onTransitionEnd);
-        };
-        el.addEventListener('transitionend', onTransitionEnd);
-      });
+      // Finish on a timer, not transitionend: a card shown on first render never ran enter() and has no
+      // transition, and sidebar resizing sets `transition: none`. Either way transitionend never fires,
+      // done() is never called, and the card stays mounted, invisible but still clickable.
+      expandLeave(el, done, 200);
     },
     showTooltip(event, text) {
       if (text) {

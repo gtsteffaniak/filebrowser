@@ -23,6 +23,7 @@ export const state: StoreState = reactive({
   },
   contextMenuHasItems: false,
   deletedItem: false,
+  pendingHighlight: null, // path, source of the item to select
   showOverflowMenu: false,
   sessionId: "",
   isSafari: /^((?!chrome|android).)*safari/i.test(navigator.userAgent),
@@ -170,6 +171,7 @@ export const state: StoreState = reactive({
     gestureHint: null,
     gestureHintCommitReady: false,
     gestureHintFlashClose: false,
+    sorting: null,
   },
   playbackQueue: loadPlaybackQueue(),
   shareInfo: {
