@@ -73,6 +73,9 @@ test("closing a result we opened returns and scrolls to it", async ({ page, chec
   await page.goto(advancedSearchUrl("jpg"));
   const items = resultItems(page);
   await expect(items.first()).toBeVisible();
+  const before = await namesOf(items);
+  await page.locator(".advanced-search-listing-results .listing-item-header .name").click();
+  await expect.poll(() => namesOf(items)).not.toEqual(before);
   const names = await namesOf(items);
   const last = names[names.length - 1];
   const beforeLast = names[names.length - 2];
@@ -84,6 +87,7 @@ test("closing a result we opened returns and scrolls to it", async ({ page, chec
 
   await page.locator('button[aria-label="Close"]').click();
   await expect(page).toHaveURL(/\/tools\/advancedSearch/);
+  await expect.poll(() => namesOf(items)).toEqual(names);
 
   const returned = page.locator(".advanced-search-listing-results").locator(`a.listing-item[aria-label="${beforeLast}"]`);
   await expect(returned).toHaveAttribute("aria-selected", "true");
