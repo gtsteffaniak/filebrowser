@@ -12,7 +12,8 @@ func TestGetRemoteIPUsesRightmostForwardedFor(t *testing.T) {
 	orig := settings.Config.Http
 	t.Cleanup(func() { settings.Config.Http = orig })
 	settings.Config.Http.TrustProxyHeaders = true
-	settings.Config.Http.TrustedProxies = nil
+	// The socket peer must be a trusted proxy for forwarded headers to be honored.
+	settings.Config.Http.TrustedProxies = []string{"10.0.0.0/8"}
 
 	req := httptest.NewRequest("GET", "http://example.com/", nil)
 	req.RemoteAddr = "10.0.0.1:1234"
@@ -29,7 +30,7 @@ func TestGetRemoteIPTrustedProxies(t *testing.T) {
 	orig := settings.Config.Http
 	t.Cleanup(func() { settings.Config.Http = orig })
 	settings.Config.Http.TrustProxyHeaders = true
-	settings.Config.Http.TrustedProxies = []string{"198.51.100.0/24"}
+	settings.Config.Http.TrustedProxies = []string{"198.51.100.0/24", "10.0.0.0/8"}
 
 	tests := []struct {
 		name string
@@ -61,7 +62,7 @@ func TestGetRemoteIPTrustedProxiesBareIP(t *testing.T) {
 	orig := settings.Config.Http
 	t.Cleanup(func() { settings.Config.Http = orig })
 	settings.Config.Http.TrustProxyHeaders = true
-	settings.Config.Http.TrustedProxies = []string{"198.51.100.7"}
+	settings.Config.Http.TrustedProxies = []string{"198.51.100.7", "10.0.0.1"}
 
 	req := httptest.NewRequest("GET", "http://example.com/", nil)
 	req.RemoteAddr = "10.0.0.1:1234"
@@ -83,6 +84,53 @@ func TestGetRemoteIPIgnoresForwardedForWhenUntrusted(t *testing.T) {
 	req.Header.Set("X-Forwarded-For", "203.0.113.50, 198.51.100.7")
 	if got := GetRemoteIP(req); got != "10.0.0.1" {
 		t.Fatalf("GetRemoteIP = %q, want 10.0.0.1", got)
+	}
+}
+
+// A direct client that is not a trusted proxy cannot spoof its address with
+// forwarded headers, even when trustProxyHeaders is enabled.
+func TestGetRemoteIPIgnoresForwardedHeadersFromUntrustedPeer(t *testing.T) {
+	orig := settings.Config.Http
+	t.Cleanup(func() { settings.Config.Http = orig })
+	settings.Config.Http.TrustProxyHeaders = true
+	settings.Config.Http.TrustedProxies = []string{"198.51.100.0/24"}
+
+	req := httptest.NewRequest("GET", "http://example.com/", nil)
+	req.RemoteAddr = "192.0.2.99:1234"
+	req.Header.Set("X-Forwarded-For", "1.2.3.4")
+	req.Header.Set("X-Real-IP", "5.6.7.8")
+	if got := GetRemoteIP(req); got != "192.0.2.99" {
+		t.Fatalf("GetRemoteIP = %q, want 192.0.2.99", got)
+	}
+}
+
+// With no trusted proxies configured, forwarded headers are never honored.
+func TestGetRemoteIPIgnoresForwardedHeadersWithoutTrustedProxies(t *testing.T) {
+	orig := settings.Config.Http
+	t.Cleanup(func() { settings.Config.Http = orig })
+	settings.Config.Http.TrustProxyHeaders = true
+	settings.Config.Http.TrustedProxies = nil
+
+	req := httptest.NewRequest("GET", "http://example.com/", nil)
+	req.RemoteAddr = "10.0.0.1:1234"
+	req.Header.Set("X-Forwarded-For", "203.0.113.50")
+	if got := GetRemoteIP(req); got != "10.0.0.1" {
+		t.Fatalf("GetRemoteIP = %q, want 10.0.0.1", got)
+	}
+}
+
+// An IPv4-mapped IPv6 trusted hop in the XFF chain must still be skipped.
+func TestGetRemoteIPMappedTrustedHop(t *testing.T) {
+	orig := settings.Config.Http
+	t.Cleanup(func() { settings.Config.Http = orig })
+	settings.Config.Http.TrustProxyHeaders = true
+	settings.Config.Http.TrustedProxies = []string{"::ffff:198.51.100.0/120"}
+
+	req := httptest.NewRequest("GET", "http://example.com/", nil)
+	req.RemoteAddr = "198.51.100.1:1234"
+	req.Header.Set("X-Forwarded-For", "203.0.113.50, ::ffff:198.51.100.7")
+	if got := GetRemoteIP(req); got != "203.0.113.50" {
+		t.Fatalf("GetRemoteIP = %q, want 203.0.113.50", got)
 	}
 }
 

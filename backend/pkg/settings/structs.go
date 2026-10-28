@@ -35,7 +35,7 @@ type Http struct {
 	InternalUrl       string   `json:"internalUrl"`       // used by integrations if set, this is the base domain that an integration service will use to communicate with filebrowser (eg. http://localhost:8080)
 	DisableWebDAV     bool     `json:"disableWebDAV"`     // disable webdav support (default: false)
 	TrustProxyHeaders bool     `json:"trustProxyHeaders"` // honor X-Forwarded-* and X-Real-IP from a reverse proxy (default: false)
-	TrustedProxies    []string `json:"trustedProxies"`    // IPs/CIDRs of trusted proxies; resolves the real client IP in multi-hop X-Forwarded-For chains (default: empty = single-hop, rightmost XFF entry)
+	TrustedProxies    []string `json:"trustedProxies"`    // IPs/CIDRs of trusted proxies; forwarded client headers are only honored when the socket peer matches one of these (default: empty = forwarded headers ignored)
 	DisableRateLimit  bool     `json:"disableRateLimit"`  // turns off built-in auth route rate limiting and failed-login lockout (default false).
 }
 

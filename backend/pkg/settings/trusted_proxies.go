@@ -69,24 +69,61 @@ func TrustedProxyPrefixes() []netip.Prefix {
 	return prefixes
 }
 
-// ipMatchesPrefixes reports whether ip falls inside any of the given prefixes.
-// Entries that are not valid IPs (optionally with a port) never match.
-func ipMatchesPrefixes(ip string, prefixes []netip.Prefix) bool {
-	addr, err := netip.ParseAddr(ip)
+// parseHopAddr parses an IP (optionally with a port, as in host:port) into a
+// canonical address. IPv4-mapped IPv6 addresses are unmapped to plain IPv4 so
+// they compare correctly against IPv4 prefixes.
+func parseHopAddr(hop string) (netip.Addr, bool) {
+	hop = strings.TrimSpace(hop)
+	addr, err := netip.ParseAddr(hop)
 	if err != nil {
-		if host, _, splitErr := net.SplitHostPort(ip); splitErr == nil {
-			addr, err = netip.ParseAddr(host)
+		host, _, splitErr := net.SplitHostPort(hop)
+		if splitErr != nil {
+			return netip.Addr{}, false
+		}
+		addr, err = netip.ParseAddr(host)
+		if err != nil {
+			return netip.Addr{}, false
 		}
 	}
-	if err != nil {
-		return false
-	}
+	return addr.Unmap(), true
+}
+
+// addrMatchesPrefixes reports whether addr falls inside any of the prefixes.
+func addrMatchesPrefixes(addr netip.Addr, prefixes []netip.Prefix) bool {
 	for _, prefix := range prefixes {
 		if prefix.Contains(addr) {
 			return true
 		}
 	}
 	return false
+}
+
+// ipMatchesPrefixes reports whether ip falls inside any of the given prefixes.
+// Entries that are not valid IPs (optionally with a port) never match.
+func ipMatchesPrefixes(ip string, prefixes []netip.Prefix) bool {
+	addr, ok := parseHopAddr(ip)
+	if !ok {
+		return false
+	}
+	return addrMatchesPrefixes(addr, prefixes)
+}
+
+// IsTrustedProxyPeer reports whether a socket peer address (RemoteAddr, either
+// host:port or a bare IP) belongs to a configured trusted proxy. Forwarded
+// client headers must only be honored when this returns true; otherwise any
+// client that can reach the listener directly could spoof its address.
+func IsTrustedProxyPeer(remoteAddr string) bool {
+	return ipMatchesPrefixes(remoteAddr, TrustedProxyPrefixes())
+}
+
+// canonicalHopIP returns the bare, unmapped IP for a forwarded hop, dropping
+// any source port. It returns "" when the hop is not a valid IP.
+func canonicalHopIP(hop string) string {
+	addr, ok := parseHopAddr(hop)
+	if !ok {
+		return ""
+	}
+	return addr.String()
 }
 
 // TrustedProxyClientIP resolves the originating client IP from an
@@ -115,37 +152,26 @@ func TrustedProxyClientIP(xff string) string {
 	}
 	prefixes := TrustedProxyPrefixes()
 	if len(prefixes) == 0 {
-		return strings.TrimSpace(parts[last])
+		return canonicalHopIP(parts[last])
 	}
 	for i := last; i >= 0; i-- {
 		ip := strings.TrimSpace(parts[i])
 		if ip == "" {
 			continue
 		}
-		if !parseTrustedProxyHopIP(ip) {
+		addr, ok := parseHopAddr(ip)
+		if !ok {
 			return ""
 		}
-		if !ipMatchesPrefixes(ip, prefixes) {
-			return ip
+		if !addrMatchesPrefixes(addr, prefixes) {
+			return addr.String()
 		}
 	}
 	// Every entry is a trusted proxy; the leftmost is closest to the client.
 	for _, part := range parts {
 		if ip := strings.TrimSpace(part); ip != "" {
-			return ip
+			return canonicalHopIP(ip)
 		}
 	}
 	return ""
-}
-
-func parseTrustedProxyHopIP(ip string) bool {
-	if _, err := netip.ParseAddr(ip); err == nil {
-		return true
-	}
-	host, _, err := net.SplitHostPort(ip)
-	if err != nil {
-		return false
-	}
-	_, err = netip.ParseAddr(host)
-	return err == nil
 }

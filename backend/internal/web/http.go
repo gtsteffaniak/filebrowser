@@ -256,8 +256,12 @@ func SetUserInResponseWriter(w http.ResponseWriter, user *users.User) {
 func GetRemoteIP(r *http.Request) string {
 	cfg := &settings.Config
 
+	// Forwarded client headers are only honored when the socket peer is a
+	// configured trusted proxy; otherwise a direct client could spoof its IP.
+	trustedPeer := cfg.Http.TrustProxyHeaders && settings.IsTrustedProxyPeer(r.RemoteAddr)
+
 	xff := r.Header.Get("X-Forwarded-For")
-	if cfg.Http.TrustProxyHeaders && xff != "" {
+	if trustedPeer && xff != "" {
 		// Without http.trustedProxies this returns the rightmost XFF entry (the
 		// client as recorded by the single trusted proxy). With trusted proxies
 		// configured, the walk skips proxy hops so multi-hop deployments
@@ -269,7 +273,7 @@ func GetRemoteIP(r *http.Request) string {
 	}
 
 	xri := r.Header.Get("X-Real-IP")
-	if cfg.Http.TrustProxyHeaders && xri != "" {
+	if trustedPeer && xri != "" {
 		return xri
 	}
 

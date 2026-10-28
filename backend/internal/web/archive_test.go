@@ -428,3 +428,132 @@ func TestExtractTarGz_hardLinks(t *testing.T) {
 		t.Fatalf("hard link to itself: got %q, %v", got, err)
 	}
 }
+
+func TestExtractTarGz_symlinkDestination(t *testing.T) {
+	t.Run("pre-existing symlink at destination", func(t *testing.T) {
+		destDir := t.TempDir()
+		victim := filepath.Join(destDir, "victim.txt")
+		if err := os.WriteFile(victim, []byte("untouched"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		outPath := filepath.Join(destDir, "out.txt")
+		if err := os.Symlink("victim.txt", outPath); err != nil {
+			t.Fatal(err)
+		}
+		archivePath := filepath.Join(t.TempDir(), "out.tar.gz")
+		writeTestTarGz(t, archivePath, func(tw *tar.Writer) error {
+			if err := tw.WriteHeader(&tar.Header{Name: "out.txt", Mode: 0o644, Size: 7, Typeflag: tar.TypeReg}); err != nil {
+				return err
+			}
+			_, err := io.WriteString(tw, "payload")
+			return err
+		})
+		if err := extractTarGz(archivePath, destDir, nil); err != nil {
+			t.Fatalf("extract: %v", err)
+		}
+		got, err := os.ReadFile(outPath)
+		if err != nil || string(got) != "payload" {
+			t.Fatalf("out.txt: got %q, %v", got, err)
+		}
+		victimData, err := os.ReadFile(victim)
+		if err != nil || string(victimData) != "untouched" {
+			t.Fatalf("victim.txt should be unchanged: %q, %v", victimData, err)
+		}
+		info, err := os.Lstat(outPath)
+		if err != nil || info.Mode()&os.ModeSymlink != 0 {
+			t.Fatalf("out.txt should be a regular file, mode=%v err=%v", info.Mode(), err)
+		}
+	})
+
+	t.Run("symlink entry then regular file at same path", func(t *testing.T) {
+		destDir := t.TempDir()
+		other := filepath.Join(destDir, "other.txt")
+		if err := os.WriteFile(other, []byte("keep"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		archivePath := filepath.Join(t.TempDir(), "link_then_reg.tar.gz")
+		writeTestTarGz(t, archivePath, func(tw *tar.Writer) error {
+			if err := tw.WriteHeader(&tar.Header{Name: "link", Mode: 0o777, Typeflag: tar.TypeSymlink, Linkname: "other.txt"}); err != nil {
+				return err
+			}
+			if err := tw.WriteHeader(&tar.Header{Name: "link", Mode: 0o644, Size: 7, Typeflag: tar.TypeReg}); err != nil {
+				return err
+			}
+			_, err := io.WriteString(tw, "written")
+			return err
+		})
+		if err := extractTarGz(archivePath, destDir, nil); err != nil {
+			t.Fatalf("extract: %v", err)
+		}
+		linkPath := filepath.Join(destDir, "link")
+		got, err := os.ReadFile(linkPath)
+		if err != nil || string(got) != "written" {
+			t.Fatalf("link: got %q, %v", got, err)
+		}
+		otherData, err := os.ReadFile(other)
+		if err != nil || string(otherData) != "keep" {
+			t.Fatalf("other.txt should be unchanged: %q, %v", otherData, err)
+		}
+	})
+
+	t.Run("hard link onto symlink to source", func(t *testing.T) {
+		destDir := t.TempDir()
+		archivePath := filepath.Join(t.TempDir(), "hardlink_symlink_dest.tar.gz")
+		writeTestTarGz(t, archivePath, func(tw *tar.Writer) error {
+			if err := tw.WriteHeader(&tar.Header{Name: "a.txt", Mode: 0o644, Size: 4, Typeflag: tar.TypeReg}); err != nil {
+				return err
+			}
+			if _, err := io.WriteString(tw, "same"); err != nil {
+				return err
+			}
+			if err := tw.WriteHeader(&tar.Header{Name: "b.txt", Mode: 0o777, Typeflag: tar.TypeSymlink, Linkname: "a.txt"}); err != nil {
+				return err
+			}
+			return tw.WriteHeader(&tar.Header{Name: "c.txt", Mode: 0o644, Typeflag: tar.TypeLink, Linkname: "a.txt"})
+		})
+		if err := extractTarGz(archivePath, destDir, nil); err != nil {
+			t.Fatalf("extract: %v", err)
+		}
+		cPath := filepath.Join(destDir, "c.txt")
+		got, err := os.ReadFile(cPath)
+		if err != nil || string(got) != "same" {
+			t.Fatalf("c.txt: got %q, %v", got, err)
+		}
+		info, err := os.Lstat(cPath)
+		if err != nil || info.Mode()&os.ModeSymlink != 0 {
+			t.Fatalf("c.txt should be a regular file")
+		}
+	})
+}
+
+func TestExtractZip_symlinkDestination(t *testing.T) {
+	destDir := t.TempDir()
+	victim := filepath.Join(destDir, "victim.txt")
+	if err := os.WriteFile(victim, []byte("untouched"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	outPath := filepath.Join(destDir, "out.txt")
+	if err := os.Symlink("victim.txt", outPath); err != nil {
+		t.Fatal(err)
+	}
+	zipPath := filepath.Join(t.TempDir(), "out.zip")
+	writeTestZip(t, zipPath, func(zw *zip.Writer) error {
+		w, err := zw.Create("out.txt")
+		if err != nil {
+			return err
+		}
+		_, err = w.Write([]byte("payload"))
+		return err
+	})
+	if err := extractZip(zipPath, destDir); err != nil {
+		t.Fatalf("extract: %v", err)
+	}
+	got, err := os.ReadFile(outPath)
+	if err != nil || string(got) != "payload" {
+		t.Fatalf("out.txt: got %q, %v", got, err)
+	}
+	victimData, err := os.ReadFile(victim)
+	if err != nil || string(victimData) != "untouched" {
+		t.Fatalf("victim.txt should be unchanged: %q, %v", victimData, err)
+	}
+}
