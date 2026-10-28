@@ -1,3 +1,4 @@
+import type { Page } from "@playwright/test";
 import { expect, test } from "../test-setup.ts";
 
 test("navigate with hash in file name", async({ page, checkForErrors }) => {
@@ -139,5 +140,65 @@ test("listing highlights the item we navigated with next/previous after closing"
   // the item we ended on, not the one we opened, is selected
   await expect(page.locator('a[aria-label="IMG_2578.JPG"]')).toHaveAttribute("aria-selected", "true");
   await expect(page.locator('a[aria-label="gray-sample.jpg"]')).not.toHaveAttribute("aria-selected", "true");
+  checkForErrors();
+});
+
+async function quickSearch(page: Page, term: string) {
+  await page.goto("/files/");
+  await page.locator('#search-bar-input').click();
+  await page.locator('#search-input').fill(term);
+  const entries = page.locator('#result-list li.search-entry');
+  await expect(entries.first()).toBeVisible();
+  await expect(page.locator('#search')).not.toHaveClass(/ongoing/);
+  return entries;
+}
+
+test("next/previous follow the quick search result order", async({ page, checkForErrors }) => {
+  const entries = await quickSearch(page, "jpg");
+  const names = await entries.evaluateAll((els) => els.map((el) => el.getAttribute("aria-label")));
+  // natural/alphabetical order, not the raw order that came from the api
+  expect(names).toEqual([
+    "20130612_142406.jpg",
+    "gray-sample.jpg",
+    "HAND_C.jpg",
+    "HAND_N .jpg",
+    "HAND_S.jpg",
+    "IMG_2578.JPG",
+  ]);
+
+  await entries.nth(1).locator("a").click();
+  await expect(page).toHaveTitle("Graham's Filebrowser - Files - gray-sample.jpg");
+
+  const next = page.locator('button[aria-label="Next"]');
+  const previous = page.locator('button[aria-label="Previous"]');
+  await next.waitFor({ state: "visible" });
+  await next.click();
+  await expect(page).toHaveTitle("Graham's Filebrowser - Files - HAND_C.jpg");
+  await previous.click();
+  await expect(page).toHaveTitle("Graham's Filebrowser - Files - gray-sample.jpg");
+  await previous.click();
+  await expect(page).toHaveTitle("Graham's Filebrowser - Files - 20130612_142406.jpg");
+  await expect(previous).toBeHidden();
+  checkForErrors();
+});
+
+test("closing a quick search result returns and scrolls to it in the panel", async({ page, checkForErrors }) => {
+  const entries = await quickSearch(page, "jpg");
+  const names = await entries.evaluateAll((els) => els.map((el) => el.getAttribute("aria-label")));
+  const last = names[names.length - 1];
+  const beforeLast = names[names.length - 2];
+
+  await entries.last().locator("a").click();
+  await expect(page).toHaveTitle(`Graham's Filebrowser - Files - ${last}`);
+  await page.locator('button[aria-label="Previous"]').click();
+  await expect(page).toHaveTitle(`Graham's Filebrowser - Files - ${beforeLast}`);
+
+  await page.locator('button[aria-label="Close"]').click();
+  await expect(page).toHaveTitle("Graham's Filebrowser - Files - playwright-files");
+  await expect(page.locator('#search-input')).toHaveValue("jpg");
+
+  const returned = page.locator(`#result-list li.search-entry[aria-label="${beforeLast}"]`);
+  await expect(returned).toHaveClass(/current-item/);
+  await expect(returned).toBeInViewport();
   checkForErrors();
 });
