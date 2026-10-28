@@ -60,7 +60,7 @@ test("config-locked source defaults show lock help and skip patch", async ({ pag
     await expectLockTooltipOnRowHover(
       page,
       modifyRow,
-      "This default is set in the config file and cannot be changed here.",
+      "This setting is set in the config file and cannot be changed here.",
     );
 
     let patchCount = 0;

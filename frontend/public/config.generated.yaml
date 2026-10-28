@@ -236,6 +236,7 @@ userDefaults:                             # optional signup/CLI defaults; per-us
     loginMethod: "password"               # login method to use: eg. password, proxy, oidc
     disableUpdateNotifications: false     # disable update notifications banner for admin users
     showAdvancedProfile: false            # show advanced profile settings in the user profile page
+    maxConcurrentTranscodes: 1            # per-user concurrent transcode sessions (default: 1)
 shareDefaults:                            # optional defaults for new shares; managed in the UI
   shareTheme: ""
   disableAnonymous: false
@@ -280,32 +281,12 @@ integrations:
     viewOnly: false                       # view only mode for the office editor
   media:                                  #  validate:omitempty
     ffmpegPath: ""                        # path to ffmpeg directory with ffmpeg and ffprobe (eg. /usr/local/bin)
-    convert:                              # config for ffmpeg conversion settings
-      imagePreview:                       # supported image preview formats. defaults vary by type (see individual type docs)
-        heic: false
-        jpeg: true
-      videoPreview:                       # supported video preview formats. defaults to true for all types unless explicitly disabled.
-        3g2: true
-        3gp: true
-        asf: true
-        avi: true
-        f4v: true
-        flv: true
-        m2ts: true
-        m4v: true
-        mkv: true
-        mov: true
-        mp4: true
-        mpeg: true
-        mpg: true
-        ogv: true
-        ts: true
-        vob: true
-        webm: true
-        wmv: true
-    debug: false                          # output ffmpeg stdout for media integration -- careful can produces lots of output!
-    extractEmbeddedSubtitles: false       # extract embedded subtitles from media files
-    hardwareAcceleration: false           # enable hardware acceleration for ffmpeg if available
+    skipHwCheck: false                    # SkipHwCheck skips the ffmpeg hardware codec probe entirely (software-only).
+                                          # Config-only, not a runtime setting — advanced use, e.g. keeping the
+                                          # multi-second probe out of CI startup.
+    accelDevice: "auto"                   # AccelDevice selects the acceleration device: "auto" (default), "software"/"cpu",
+                                          # "igpu", "dgpu", a Linux DRM render node (e.g. /dev/dri/renderD128), or a GPU
+                                          # name substring. Managed via the admin media settings API.
 http:
   socket: ""                              # socket to listen on - eg. /var/run/filebrowser.sock
   tlsKey: ""                              # path to TLS key

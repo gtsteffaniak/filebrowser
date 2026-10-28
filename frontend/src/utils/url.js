@@ -288,6 +288,11 @@ export function goToItem(source, path, previousHistoryItem, newTab = false, isSh
     return;
   }
   mutations.resetAll();
+  if (previousHistoryItem === null) {
+    // Opening an item from the listing must not keep an older remembered item
+    // alive; otherwise closing the next preview navigates back to this file.
+    mutations.setPreviousHistoryItem(null);
+  }
 
   if (previousHistoryItem === undefined) {
     // When undefined will not create browser history

@@ -88,7 +88,7 @@
 <script>
 import { state, getters, mutations } from "@/store";
 import { getObjectProperty } from '@/utils/object.js';
-import { settings } from "@/utils/constants";
+import { settings, globalVars } from "@/utils/constants";
 import { router } from "@/router";
 
 export default {
@@ -157,7 +157,13 @@ export default {
     shouldShow(setting) {
       const perm = setting?.permissions || {};
       // Check if all keys in setting.perm exist in state.user.perm and have truthy values
-      return Object.keys(perm).every((key) => getObjectProperty(state.user.permissions, key));
+      const permitted = Object.keys(perm).every((key) => getObjectProperty(state.user.permissions, key));
+      // Media settings require ffmpeg; hide the entry when media is unavailable so
+      // admins never hit 403/503 from the media settings APIs.
+      if (permitted && setting?.requiresMedia && globalVars.mediaAvailable !== true) {
+        return false;
+      }
+      return permitted;
     },
     active: (view) => state.activeSettingsView === view,
     setView(view) {

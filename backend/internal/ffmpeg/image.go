@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"strconv"
 	"strings"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/fileutils"
@@ -155,15 +154,4 @@ func (s *Service) runHEICConversion(ctx context.Context, inputPath string, targe
 		return nil, err
 	}
 	return os.ReadFile(outputFile)
-}
-
-func parseQuality(quality string) int {
-	n, err := strconv.Atoi(quality)
-	if err != nil || n < 1 {
-		return 5
-	}
-	if n > 10 {
-		return 10
-	}
-	return n
 }

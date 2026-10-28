@@ -16,6 +16,7 @@ const { store, router, notify } = vi.hoisted(() => {
         setCurrentUser: vi.fn((user) => { state.user = user; }),
         setSession: vi.fn(),
         syncEnforcedUserDefaults: vi.fn(),
+        syncMediaPlayerSettings: vi.fn(),
         syncSidebarLinkDefaultsPolicy: vi.fn(),
         syncToolAccessDefaultsPolicy: vi.fn(),
         syncShareDefaultsPolicy: vi.fn(),

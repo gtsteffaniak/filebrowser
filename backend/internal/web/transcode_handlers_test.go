@@ -1,0 +1,140 @@
+package web
+
+import (
+	"context"
+	"errors"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+	"time"
+
+	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/transcoding"
+)
+
+func setupTranscodeHandlerTest(t *testing.T) (*transcoding.Manager, func()) {
+	t.Helper()
+	ctx, cancel := context.WithCancel(context.Background())
+	store, err := transcoding.NewStore(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	mgr, err := transcoding.NewManager(ctx, transcoding.NewFakeEngine(), store, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	prev := transcoding.Default()
+	transcoding.SetDefault(mgr)
+	return mgr, func() {
+		transcoding.SetDefault(prev)
+		cancel()
+		_ = mgr.Close(context.Background())
+	}
+}
+
+func TestTranscodePlaylistHandlerEnforcesOwnership(t *testing.T) {
+	mgr, cleanup := setupTranscodeHandlerTest(t)
+	defer cleanup()
+
+	ctx := context.Background()
+	other := &users.User{FrontendUser: users.FrontendUser{Username: "other"}}
+
+	info, err := mgr.Start(ctx, transcoding.StartInput{
+		Username:  "owner",
+		UserLimit: 1,
+		Source:    "s",
+		Path:      "/clip.mp4",
+		RealPath:  t.TempDir() + "/clip.mp4",
+		Profile:   transcoding.ProfileQuality,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/api/media/transcode/sessions/"+info.ID+"/index.m3u8", nil)
+	req.SetPathValue("id", info.ID)
+	rec := httptest.NewRecorder()
+	status, handlerErr := transcodePlaylistHandler(rec, req, &Context{User: other})
+	if handlerErr != transcoding.ErrNotOwner {
+		t.Fatalf("err=%v status=%d", handlerErr, status)
+	}
+	if status != http.StatusNotFound {
+		t.Fatalf("status=%d want %d", status, http.StatusNotFound)
+	}
+}
+
+func TestTranscodeSegmentHandlerEnforcesOwnership(t *testing.T) {
+	mgr, cleanup := setupTranscodeHandlerTest(t)
+	defer cleanup()
+
+	ctx := context.Background()
+	other := &users.User{FrontendUser: users.FrontendUser{Username: "other"}}
+
+	info, err := mgr.Start(ctx, transcoding.StartInput{
+		Username:  "owner",
+		UserLimit: 1,
+		Source:    "s",
+		Path:      "/clip.mp4",
+		RealPath:  t.TempDir() + "/clip.mp4",
+		Profile:   transcoding.ProfileQuality,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/api/media/transcode/sessions/"+info.ID+"/seg/00000.m4s", nil)
+	req.SetPathValue("id", info.ID)
+	req.SetPathValue("name", "00000.m4s")
+	rec := httptest.NewRecorder()
+	status, handlerErr := transcodeSegmentHandler(rec, req, &Context{User: other})
+	if handlerErr != transcoding.ErrNotOwner {
+		t.Fatalf("err=%v status=%d", handlerErr, status)
+	}
+	if status != http.StatusNotFound {
+		t.Fatalf("status=%d want %d", status, http.StatusNotFound)
+	}
+}
+
+// Only a playlist that is still being produced is worth waiting for. Retrying a
+// terminal error (not the owner, unknown session) until the 15s deadline holds a
+// server goroutine and delays the 404 the client needs to recover.
+func TestTranscodePlaylistHandlerFailsFastOnTerminalErrors(t *testing.T) {
+	mgr, cleanup := setupTranscodeHandlerTest(t)
+	defer cleanup()
+
+	other := &users.User{FrontendUser: users.FrontendUser{Username: "other"}}
+	info, err := mgr.Start(context.Background(), transcoding.StartInput{
+		Username:  "owner",
+		UserLimit: 1,
+		Source:    "s",
+		Path:      "/clip.mp4",
+		RealPath:  t.TempDir() + "/clip.mp4",
+		Profile:   transcoding.ProfileQuality,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	cases := []struct {
+		name      string
+		sessionID string
+		wantErr   error
+	}{
+		{name: "not the owner", sessionID: info.ID, wantErr: transcoding.ErrNotOwner},
+		{name: "unknown session", sessionID: "does-not-exist", wantErr: transcoding.ErrNotFound},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodGet, "/api/media/transcode/sessions/"+tc.sessionID+"/index.m3u8", nil)
+			req.SetPathValue("id", tc.sessionID)
+			start := time.Now()
+			status, handlerErr := transcodePlaylistHandler(httptest.NewRecorder(), req, &Context{User: other})
+			if !errors.Is(handlerErr, tc.wantErr) {
+				t.Fatalf("err=%v status=%d, want %v", handlerErr, status, tc.wantErr)
+			}
+			if elapsed := time.Since(start); elapsed > time.Second {
+				t.Fatalf("terminal error took %v, want a fast failure", elapsed)
+			}
+		})
+	}
+}

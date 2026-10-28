@@ -231,18 +231,21 @@ type Preview struct {
 // FrontendUser holds fields safe to return from user APIs (embedded on User).
 type FrontendUser struct {
 	NonAdminEditable
-	DisableSettings       bool                             `json:"disableSettings"`
-	Username              string                           `json:"username"`
-	FrontendScopes        []FrontendScope                  `json:"scopes"`
-	LockPassword          bool                             `json:"lockPassword"`
-	RequirePasswordChange bool                             `json:"requirePasswordChange"`
-	Permissions           Permissions                      `json:"permissions"`                 // global: admin, api, share, realtime
-	SourcePermissions     map[string]SourceFilePermissions `json:"sourcePermissions,omitempty"` // deprecated: use scopes[].permissions
-	LoginMethod           LoginMethod                      `json:"loginMethod"`
-	OtpEnabled            bool                             `json:"otpEnabled"`
-	ShowFirstLogin        bool                             `json:"showFirstLogin"`
-	EffectiveToolAccess   map[string]bool                  `json:"effectiveToolAccess,omitempty"`
-	Perm                  Permissions                      `json:"perm,omitzero"`
+	DisableSettings bool `json:"disableSettings"`
+	// MaxConcurrentTranscodes is admin-set: it stays out of NonAdminEditable so a
+	// user cannot raise their own limit through a self-service PATCH.
+	MaxConcurrentTranscodes int                              `json:"maxConcurrentTranscodes"`
+	Username                string                           `json:"username"`
+	FrontendScopes          []FrontendScope                  `json:"scopes"`
+	LockPassword            bool                             `json:"lockPassword"`
+	RequirePasswordChange   bool                             `json:"requirePasswordChange"`
+	Permissions             Permissions                      `json:"permissions"`                 // global: admin, api, share, realtime
+	SourcePermissions       map[string]SourceFilePermissions `json:"sourcePermissions,omitempty"` // deprecated: use scopes[].permissions
+	LoginMethod             LoginMethod                      `json:"loginMethod"`
+	OtpEnabled              bool                             `json:"otpEnabled"`
+	ShowFirstLogin          bool                             `json:"showFirstLogin"`
+	EffectiveToolAccess     map[string]bool                  `json:"effectiveToolAccess,omitempty"`
+	Perm                    Permissions                      `json:"perm,omitzero"`
 }
 
 // PinnedItems maps source filesystem path -> index directory path -> pinned item names.

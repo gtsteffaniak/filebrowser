@@ -77,11 +77,12 @@ type UserDefaultsFileLoadingEnforcement struct {
 }
 
 type UserDefaultsAccountEnforcement struct {
-	LockPassword               bool                                  `json:"lockPassword,omitempty"`
-	RequirePasswordChange      bool                                  `json:"requirePasswordChange,omitempty"`
-	DisableSettings            bool                                  `json:"disableSettings,omitempty"`
-	DisableUpdateNotifications bool                                  `json:"disableUpdateNotifications,omitempty"`
-	ShowAdvancedProfile        bool                                  `json:"showAdvancedProfile,omitempty"`
+	LockPassword               bool                                      `json:"lockPassword,omitempty"`
+	RequirePasswordChange      bool                                      `json:"requirePasswordChange,omitempty"`
+	DisableSettings            bool                                      `json:"disableSettings,omitempty"`
+	DisableUpdateNotifications bool                                      `json:"disableUpdateNotifications,omitempty"`
+	ShowAdvancedProfile        bool                                      `json:"showAdvancedProfile,omitempty"`
+	MaxConcurrentTranscodes    bool                                      `json:"maxConcurrentTranscodes,omitempty"`
 	Permissions                UserDefaultsAccountPermissionsEnforcement `json:"permissions,omitempty"`
 }
 

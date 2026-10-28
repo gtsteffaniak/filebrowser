@@ -6,10 +6,10 @@ export const PLAYBACK_TIME_QUERY_KEY = 'time';
 /** Legacy numeric seconds key; still accepted when reading URLs. */
 export const LEGACY_PLAYBACK_TIME_QUERY_KEY = 't';
 
-/** Transcode profile in shareable links (`quality` | `datasaver`). */
+/** Transcode profile in shareable links (`quality` | `balanced` | `datasaver`). */
 export const PLAYBACK_TRANSCODE_QUERY_KEY = 'transcode';
 
-const VALID_TRANSCODE_MODES = new Set(['quality', 'datasaver']);
+const VALID_TRANSCODE_MODES = new Set(['quality', 'balanced', 'datasaver']);
 
 /** @param {string} part */
 function isValidClockPart(part) {

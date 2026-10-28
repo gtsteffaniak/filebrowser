@@ -17,6 +17,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/internal/icons"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/preview"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/transcoding"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/version"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/web"
@@ -51,6 +52,12 @@ func initializeDatabase(configFile string, cliMode bool) bool {
 	store, existingDb, err := state.Open(settings.Config.Server.DatabaseV2.Path)
 	if err != nil {
 		logger.Fatalf("could not initialize state: %v", err)
+	}
+	// state.Open applies persisted media settings, so initialize ffmpeg once here
+	// (before wiring, which reads Env.FFmpegAvailable) instead of during config
+	// load, which would run the multi-second hardware codec probe twice.
+	if !cliMode {
+		settings.InitFFmpeg()
 	}
 	runtimeApp, err = app.WireServices(store)
 	if err != nil {
@@ -180,6 +187,13 @@ func StartFilebrowser() {
 		fileutils.ClearCacheDir(settings.Config.Server.CacheDir)
 	}
 	<-shutdownComplete
+	if transcodeMgr := transcoding.Default(); transcodeMgr != nil {
+		shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 30*time.Second)
+		if err := transcodeMgr.Close(shutdownCtx); err != nil {
+			logger.Warningf("transcode shutdown: %v", err)
+		}
+		shutdownCancel()
+	}
 	if err := fileutils.ClearDirectoryContents(settings.DownloadCacheDir()); err != nil {
 		logger.Warningf("failed to clear download spool on shutdown: %v", err)
 	}
