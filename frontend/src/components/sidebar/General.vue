@@ -308,7 +308,7 @@ export default {
 }
 
 button.action {
-  border-radius: 0.5em;
+  border-radius: var(--borderRadius);
 }
 
 .quick-toggles .active {
@@ -328,6 +328,13 @@ button.action {
 
 .headline-card {
   padding: 1em;
+}
+
+/* Icon spacing comes from .action i — these buttons stay zero-padded */
+.person-button,
+.logout-button {
+  --button-padding-x: 0;
+  --button-padding-y: 0;
 }
 
 .person-button {

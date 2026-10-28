@@ -807,9 +807,10 @@ definitions:
         - collabora
         type: string
       secret:
-        description: 'secret: authentication key for OnlyOffice integration. For collabora,
-          optional key signing editing sessions, derived from the server auth key
-          when empty.'
+        description: 'secret: OnlyOffice only, the JWT secret shared with the Document
+          Server. Unused with collabora: editing sessions are signed with a key derived
+          from auth.key, and Collabora trusts FileBrowser through its storage.wopi.host
+          allow-list, where FileBrowser''s host must be added.'
         type: string
       tokenExpirationHours:
         description: 'collabora only: lifetime of an editing session, in hours (default:

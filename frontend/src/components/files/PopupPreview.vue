@@ -15,7 +15,7 @@
 <script>
 import { createAsyncComponent } from "@/utils/asyncComponent.js";
 import { state, getters } from "@/store";
-import { setImageLoaded } from "@/utils/imageCache";
+import { setImageLoaded } from "@/utils/cache/imageCache.ts";
 
 export default {
   name: "PopupPreview",
@@ -28,9 +28,13 @@ export default {
         top: "0px",
         left: "0px",
       },
-      cursorX: 0,
-      cursorY: 0,
     };
+  },
+  beforeCreate() {
+    // Plain fields on purpose cuz nothing in the template reads them
+    this.cursorX = 0;
+    this.cursorY = 0;
+    this.rafId = null;
   },
   watch: {
     async sourceInfo(newVal) {
@@ -53,12 +57,19 @@ export default {
   },
   beforeUnmount() {
     window.removeEventListener("mousemove", this.updateCursorPosition);
+    if (this.rafId !== null) {
+      cancelAnimationFrame(this.rafId);
+      this.rafId = null;
+    }
   },
   methods: {
     async onImageLoad() {
       if (!this.sourceInfo || this.sourceInfo.type === "3d") return;
       const { source, path, size, url, modified } = this.sourceInfo;
-      setImageLoaded(source, path, size, modified, url);
+      // images in motion aren't from the own item image so they're not cached
+      if (!url.includes("atPercentage")) {
+        setImageLoaded(source, path, size, modified, url);
+      }
       if (!getters.isMobile()) {
         await this.$nextTick();
         this.positionPopup();
@@ -67,7 +78,19 @@ export default {
     updateCursorPosition(event) {
       this.cursorX = event.clientX;
       this.cursorY = event.clientY;
-      if (!getters.isMobile()) this.positionPopup();
+      if (!this.sourceInfo || getters.isMobile() || this.rafId !== null) return;
+      this.rafId = requestAnimationFrame(() => {
+        this.rafId = null;
+        this.positionPopup();
+      });
+    },
+    applyPopupStyle(next) {
+      const current = this.popupStyle;
+      const nextKeys = Object.keys(next);
+      if (nextKeys.length === Object.keys(current).length && nextKeys.every((k) => current[k] === next[k])) {
+        return;
+      }
+      this.popupStyle = next;
     },
     positionPopup() {
       if (!this.sourceInfo) return;
@@ -85,7 +108,7 @@ export default {
       const minTop = padding + 100;
 
       if (getters.isMobile()) {
-        this.popupStyle = {
+        this.applyPopupStyle({
           top: "50%",
           left: "5%",
           right: "5%",
@@ -93,7 +116,7 @@ export default {
           "max-width": "90vw",
           "max-height": "75vh",
           transform: "translate(0, -50%)",
-        };
+        });
         return;
       }
 
@@ -126,13 +149,13 @@ export default {
 
       const maxW = Math.min(innerWidth - padding * 2, innerWidth * 0.5);
       const maxH = innerHeight - padding * 2;
-      this.popupStyle = {
+      this.applyPopupStyle({
         top: `${top}px`,
         left: `${left}px`,
         "max-width": `${maxW}px`,
         "max-height": `${maxH}px`,
         transform: "none",
-      };
+      });
     },
   },
 };

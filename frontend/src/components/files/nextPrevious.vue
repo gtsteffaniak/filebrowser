@@ -966,7 +966,7 @@ export default {
       // Get items from the current navigation listing (files in same directory)
       const listing = state.navigation.listing || [];
       return listing.map(item => ({
-        name: item.name, // Keep original names without emojis
+        name: item.name,
         path: item.path,
         source: item.source || state.req.source,
         type: item.type,
@@ -974,6 +974,8 @@ export default {
         size: item.size,
         modified: item.modified,
         created: item.created,
+        pinned: !!item.pinned,
+        metadata: item.metadata,
         originalItem: item
       }));
     },

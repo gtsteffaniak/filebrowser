@@ -17,7 +17,8 @@
       >close</i>
     </div>
     <div v-if="showPwaInstall" class="button release-banner">
-      <button type="button" @click="installPwa">{{ $t("pwa.install") }}</button>
+      <!-- biome-ignore lint/a11y/useValidAnchor: intentionally an anchor styled as a link, not a button -->
+      <a @click="installPwa">{{ $t("pwa.install") }}</a>
       <i @click="dismissPwaInstall" role="button" tabindex="0" aria-label="close-banner" class="material-symbols">close</i>
     </div>
     <SidebarSettings v-if="isSettings"></SidebarSettings>
@@ -245,7 +246,7 @@ body.rtl nav {
 }
 
 #sidebar .button {
-  width: 100%;
+  width: var(--button-width, 100%);
   text-overflow: ellipsis;
 }
 

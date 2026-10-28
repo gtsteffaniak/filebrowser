@@ -13,7 +13,7 @@
         ref="thumb"
         :class="{ ready: isReady, visible: isVisible && canScroll && showScrollbar }"
         @mousedown="startDrag"
-        @touchstart.prevent="startDrag"
+        @touchstart.passive="startDrag"
       >
         <div v-if="isNotListing" class="thumb-letters">
           <hr />
@@ -33,7 +33,8 @@
 
 <script>
 import { state, mutations, getters } from "@/store";
-import { isHtmlMimeType } from "@/utils/mimetype";
+import { eventBus } from "@/store/eventBus.ts";
+import { isHtmlMimeType } from "@/utils/mimetype.js";
 
 const offsetFromBottomListing = 110;
 const offsetFromBottomFull = 75;
@@ -58,10 +59,15 @@ export default {
       isReady: false,
       isVisible: false,
       scrollFrame: null,
+      overflowFrame: null,
       canScroll: false,
       resizeObserver: null,
       mutationObserver: null,
     };
+  },
+  created() {
+    this.wrapperRect = null;
+    this.readyTimeout = null;
   },
   computed: {
     isScrollable() {
@@ -135,8 +141,7 @@ export default {
     },
     handleMouseMove(e) {
       if (!this.showScrollbar || !this.canScroll) return;
-      const wrapper = this.$refs.wrapper;
-      const bounds = wrapper.getBoundingClientRect();
+      const bounds = this.wrapperRect ?? this.$refs.wrapper.getBoundingClientRect();
       const relativeX = e.clientX - bounds.left;
       if (relativeX >= bounds.width - 64) {
         this.isVisible = true;
@@ -161,7 +166,6 @@ export default {
     },
     handleScroll() {
       if (!this.isReady) return;
-      this.updateScrollableContent();
       if (!this.showScrollbar || !this.canScroll || this.scrollFrame) return;
       // Use requestAnimationFrame to throttle updates
       this.scrollFrame = requestAnimationFrame(() => {
@@ -174,13 +178,23 @@ export default {
           return;
         }
         mutations.setPreviewSource("");
-        mutations.updateListing({
-          ...state.listing,
-          scrolling: true,
-          scrollRatio: Math.trunc(
-            (content.scrollTop / (content.scrollHeight - content.clientHeight)) * 100
-          ),
-        });
+        const scrollRatio = Math.trunc(
+          (content.scrollTop / (content.scrollHeight - content.clientHeight)) * 100
+        );
+        // replace state.listing only when something changed
+        const scrollTop = content.scrollTop;
+        if (
+          !state.listing.scrolling ||
+          state.listing.scrollRatio !== scrollRatio ||
+          state.listing.listingScrollTop !== scrollTop
+        ) {
+          mutations.updateListing({
+            ...state.listing,
+            scrolling: true,
+            scrollRatio,
+            listingScrollTop: scrollTop,
+          });
+        }
         this.scrollFrame = null;
       });
     },
@@ -191,10 +205,9 @@ export default {
       this.startY = clientY;
       this.startScrollTop = this.$refs.wrapper.scrollTop;
       this.clearHideTimeout();
-
-      document.addEventListener("mousemove", this.onDrag);
+      document.addEventListener("mousemove", this.onDrag, { passive: true });
       document.addEventListener("mouseup", this.stopDrag);
-      document.addEventListener("touchmove", this.onDrag, { passive: false });
+      document.addEventListener("touchmove", this.onDrag, { passive: true });
       document.addEventListener("touchend", this.stopDrag);
     },
     onDrag(e) {
@@ -226,41 +239,77 @@ export default {
       document.removeEventListener("touchmove", this.onDrag);
       document.removeEventListener("touchend", this.stopDrag);
     },
-    updateScrollableContent() {
-      const wrapper = this.$refs.wrapper;
-      if (!wrapper) return;
-      const isOverflowing = wrapper.scrollHeight > wrapper.clientHeight;
-      if (this.canScroll !== isOverflowing) {
-        this.canScroll = isOverflowing;
-        if (!isOverflowing) this.isVisible = false;
+    observeMutations() {
+      if (!this.mutationObserver) return;
+      const options = { childList: true, subtree: true, characterData: true };
+      if (this.isNotListing) {
+        options.attributes = true;
+        options.attributeFilter = ['style', 'class'];
       }
+      this.mutationObserver.observe(this.$refs.wrapper, options);
+    },
+    updateScrollableContent() {
+      if (this.overflowFrame) return;
+      this.overflowFrame = requestAnimationFrame(() => {
+        this.overflowFrame = null;
+        const wrapper = this.$refs.wrapper;
+        if (!wrapper) return;
+        const isOverflowing = wrapper.scrollHeight > wrapper.clientHeight;
+        if (this.canScroll !== isOverflowing) {
+          this.canScroll = isOverflowing;
+          if (!isOverflowing) this.isVisible = false;
+        }
+        this.wrapperRect = wrapper.getBoundingClientRect();
+      });
     },
   },
   mounted() {
-    setTimeout(() => {
+    this.readyTimeout = setTimeout(() => {
       this.isReady = true;
     }, 100);
-    this.$refs.wrapper.addEventListener("mousemove", this.handleMouseMove);
+    this.$refs.wrapper.addEventListener("mousemove", this.handleMouseMove, { passive: true });
     this.$refs.wrapper.addEventListener("scroll", this.handleScroll, { passive: true });
     window.addEventListener("resize", this.handleResize);
-    // Observe container size changes
     this.resizeObserver = new ResizeObserver(() => this.updateScrollableContent());
     this.resizeObserver.observe(this.$refs.wrapper);
-    // Same here, but with DOM mutations
-    this.mutationObserver = new MutationObserver(() => this.updateScrollableContent());
-    this.mutationObserver.observe(this.$refs.wrapper, {
-      childList: true,
-      subtree: true,
-      attributes: true,
-      attributeFilter: ['style', 'class'],
-      characterData: true,
+
+    this.mutationObserver = new MutationObserver((records) => {
+      const scrollbarEl = this.$refs.scrollbar;
+      const relevant = records.some((r) => {
+        if (scrollbarEl?.contains(r.target)) return false;
+        return r.type !== "attributes" || !r.target.classList?.contains("listing-item");
+      });
+      if (relevant) this.updateScrollableContent();
     });
+    this.observeMutations();
+    // Attribute changes on the wrapper itself are always watched.
+    this.wrapperObserver = new MutationObserver(() => this.updateScrollableContent());
+    this.wrapperObserver.observe(this.$refs.wrapper, { attributes: true, attributeFilter: ['style', 'class'] });
+    // the listinh reports its own size changes, so item class/style isn't observed there
+    eventBus.on("scrollContentResized", this.updateScrollableContent);
     this.updateScrollableContent();
   },
+  watch: {
+    isNotListing() {
+      this.observeMutations();
+      this.updateScrollableContent();
+    },
+  },
   beforeUnmount() {
+    eventBus.off("scrollContentResized", this.updateScrollableContent);
+    this.wrapperObserver?.disconnect();
+    clearTimeout(this.readyTimeout);
+    this.clearHideTimeout();
+    document.removeEventListener("mousemove", this.onDrag);
+    document.removeEventListener("mouseup", this.stopDrag);
+    document.removeEventListener("touchmove", this.onDrag);
+    document.removeEventListener("touchend", this.stopDrag);
     // Cancel any pending animation frame
     if (this.scrollFrame) {
       cancelAnimationFrame(this.scrollFrame);
+    }
+    if (this.overflowFrame) {
+      cancelAnimationFrame(this.overflowFrame);
     }
     window.removeEventListener("resize", this.handleResize);
     this.$refs.wrapper.removeEventListener("mousemove", this.handleMouseMove);
@@ -313,9 +362,10 @@ export default {
   position: fixed;
   top: 4em;
   height: 6em;
-  border-radius: var(--borderRadius);
+  border-radius: 1em;
   cursor: pointer;
   pointer-events: auto;
+  touch-action: none;
   justify-content: center;
   align-items: center;
   transition: right 0.25s ease, opacity 0.2s;
@@ -351,7 +401,6 @@ export default {
 }
 
 .thumb, .thumb-section-id {
-  will-change: transform;
   background-color: var(--panel-bg);
   backdrop-filter: var(--panel-blur);
   border: var(--borderWidth) solid var(--background);
