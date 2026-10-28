@@ -6024,6 +6024,13 @@ const docTemplate = `{
                 "trustProxyHeaders": {
                     "description": "honor X-Forwarded-* and X-Real-IP from a reverse proxy (default: false)",
                     "type": "boolean"
+                },
+                "trustedProxies": {
+                    "description": "IPs/CIDRs of trusted proxies; forwarded client headers are only honored when the socket peer matches one of these (default: empty = forwarded headers ignored)",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },

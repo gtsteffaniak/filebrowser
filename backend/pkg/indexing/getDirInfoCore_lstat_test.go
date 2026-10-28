@@ -49,7 +49,7 @@ func listRoot(t *testing.T, idx *Index, root string) []string {
 	if err != nil {
 		t.Fatal(err)
 	}
-	info, err := idx.GetDirInfoCore(dir, stat, "/", Options{SkipExtendedAttrs: true}, nil)
+	info, _, err := idx.GetDirInfoCore(dir, stat, "/", Options{SkipExtendedAttrs: true}, nil)
 	if err != nil {
 		t.Fatalf("listing failed because of one unreadable entry: %v", err)
 	}
@@ -128,7 +128,7 @@ func listRootErr(t *testing.T, idx *Index, root string) error {
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = idx.GetDirInfoCore(dir, stat, "/", Options{SkipExtendedAttrs: true}, nil)
+	_, _, err = idx.GetDirInfoCore(dir, stat, "/", Options{SkipExtendedAttrs: true}, nil)
 	return err
 }
 

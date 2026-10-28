@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file. For commit 
  - Preview generation for webp broken (#3254) (#3259)
  - Share banner never shows to public visitors, returns bannerUrl but not banner (#3246) (#3250)
  - fix html/markdwon relative file preview support (#3131) (#3129) (#2355)
+ - fix(archive): extract tar hard links instead of dropping them (#3234)
  - fix(auth): apply stored permission caps for customized API tokens with no global flags enabled
  - Archive extraction writes regular and hard-link entries at the entry path instead of following an existing symlink at that path (tar and zip)
 
