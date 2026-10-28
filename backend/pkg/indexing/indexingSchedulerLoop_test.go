@@ -53,6 +53,18 @@ func TestScheduleTierBoundsForComplexity(t *testing.T) {
 	}
 }
 
+func TestScannerMissedAlignedSlot(t *testing.T) {
+	loc := time.UTC
+	last := time.Date(2026, 4, 14, 10, 1, 0, 0, loc)
+	now := time.Date(2026, 4, 14, 10, 7, 0, 0, loc)
+	if scannerMissedAlignedSlot(last, now, 0) {
+		t.Fatal("next aligned slot is still in the future; should not count as missed")
+	}
+	if !scannerMissedAlignedSlot(last, time.Date(2026, 4, 14, 10, 11, 0, 0, loc), 0) {
+		t.Fatal("aligned slot 10:10 should be treated as missed at 10:11")
+	}
+}
+
 func TestComputeNextSlotTimeHourUsesHourGrid(t *testing.T) {
 	loc := time.UTC
 	last := time.Date(2026, 4, 14, 12, 0, 0, 0, loc)

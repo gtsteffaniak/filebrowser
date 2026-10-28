@@ -115,6 +115,9 @@ func warnHttpProxyConfig() {
 	if Config.Http.BaseURL != "/" && !Config.Http.TrustProxyHeaders {
 		logger.Warning(`http.baseURL is not "/" but http.trustProxyHeaders is false. Behind a reverse proxy on a subpath, set trustProxyHeaders: true so cookies, client IP, OIDC redirects, and URLs resolve correctly. See https://filebrowserquantum.com/en/docs/configuration/http/#trustproxyheaders`)
 	}
+	if len(Config.Http.TrustedProxies) > 0 && !Config.Http.TrustProxyHeaders {
+		logger.Warning("http.trustedProxies is set but http.trustProxyHeaders is false; trusted proxy entries are ignored until trustProxyHeaders is enabled")
+	}
 	if !Env.IsDevMode {
 		if u := Config.Http.ExternalUrl; u != "" && strings.HasPrefix(strings.ToLower(u), "http://") {
 			logger.Warning("http.externalUrl uses http when the url should be https for a production environment")
@@ -381,7 +384,6 @@ func setupMedia(generate bool) {
 func isGoTest() bool {
 	return flag.Lookup("test.v") != nil
 }
-
 
 func setupFFmpegIntegration() {
 	n := Config.Server.NumImageProcessors

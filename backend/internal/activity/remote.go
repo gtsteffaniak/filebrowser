@@ -3,7 +3,6 @@ package activity
 import (
 	"net"
 	"net/http"
-	"strings"
 
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 )
@@ -11,14 +10,19 @@ import (
 func remoteIP(r *http.Request) string {
 	cfg := &settings.Config
 
+	// Forwarded client headers are only honored when the socket peer is a
+	// configured trusted proxy; otherwise a direct client could spoof its IP.
+	trustedPeer := cfg.Http.TrustProxyHeaders && settings.IsTrustedProxyPeer(r.RemoteAddr)
+
 	xff := r.Header.Get("X-Forwarded-For")
-	if cfg.Http.TrustProxyHeaders && xff != "" {
-		ips := strings.Split(xff, ",")
-		return strings.TrimSpace(ips[0])
+	if trustedPeer && xff != "" {
+		if ip := settings.TrustedProxyClientIP(xff); ip != "" {
+			return ip
+		}
 	}
 
 	xri := r.Header.Get("X-Real-IP")
-	if cfg.Http.TrustProxyHeaders && xri != "" {
+	if trustedPeer && xri != "" {
 		return xri
 	}
 
