@@ -69,3 +69,9 @@ func TestTranscodeErrorStatusNotReadyIsNotSuccess(t *testing.T) {
 		t.Fatalf("ErrNotReady status = %d, want a non-2xx status", got)
 	}
 }
+
+func TestTranscodeErrorStatusNeedsRestartIsConflict(t *testing.T) {
+	if got := transcodeErrorStatus(transcoding.ErrNeedsRestart); got != http.StatusConflict {
+		t.Fatalf("ErrNeedsRestart status = %d, want 409", got)
+	}
+}

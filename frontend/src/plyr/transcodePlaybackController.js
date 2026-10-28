@@ -112,6 +112,7 @@ export class TranscodePlaybackController {
     onResumePlayback,
     onPlaybackStarted,
     onFatal,
+    onRecoverPlayback,
     onCapacityStatus,
     onShowError,
     onAttachNative,
@@ -276,6 +277,29 @@ export class TranscodePlaybackController {
             startPosition: vodStart,
             budgetMs: remainingMs,
             signal: attachAbort.signal,
+            onRecoverPlayback: onRecoverPlayback
+              ? ({ startSec, sessionId }) => onRecoverPlayback({
+                startSec,
+                sessionId,
+                mode,
+                source,
+                path,
+                viewToken,
+                clientId,
+                playPrime,
+                getVideoElement,
+                nextTick,
+                shouldAutoplay,
+                onFirstBuffered,
+                onResumePlayback,
+                onPlaybackStarted,
+                onFatal,
+                onRecoverPlayback,
+                onCapacityStatus,
+                onShowError,
+                onAttachNative,
+              })
+              : undefined,
             onFirstBuffered: () => {
               if (!this.isCurrentAttempt(attempt)) {
                 return;
@@ -333,6 +357,9 @@ export class TranscodePlaybackController {
       if (err?.name === 'AbortError' || !this.isCurrentAttempt(attempt)) {
         transcodeLog('transcode playback attempt cancelled');
         return { ok: false, reason: 'cancelled' };
+      }
+      if (err?.name === 'TranscodeRecoverError') {
+        return { ok: false, reason: 'recovered' };
       }
 
       transcodeError('transcode playback start failed', {

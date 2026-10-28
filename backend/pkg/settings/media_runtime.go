@@ -217,11 +217,12 @@ func currentMediaSettingsLocked() MediaSettings {
 }
 
 // ApplyMediaSettings applies runtime media settings to the in-memory config.
-// ffmpeg re-initializes only when an init-affecting input changed, and the
-// probe runs after mediaMu is released so readers are not blocked behind it.
+// It never re-runs ffmpeg detection: codec/hardware detection happens exactly
+// once at startup (InitFFmpeg). hardwareAcceleration is read live per transcode;
+// ffmpegPath, accelDevice, debug and concurrency apply on the next restart.
 func ApplyMediaSettings(s MediaSettings) {
 	mediaMu.Lock()
-	before := currentFFmpegInitInputs()
+	defer mediaMu.Unlock()
 	Config.Integrations.Media.Convert = s.Convert
 	Config.Integrations.Media.Debug = s.Debug
 	Config.Integrations.Media.ExtractEmbeddedSubtitles = s.ExtractEmbeddedSubtitles
@@ -230,49 +231,6 @@ func ApplyMediaSettings(s MediaSettings) {
 	Config.Integrations.Media.Transcode = s.Transcode
 	applyMediaConvertDefaults()
 	setupMediaTranscode()
-
-	changed := currentFFmpegInitInputs() != before
-	if changed {
-		// Record that the new inputs have been applied so a later startup
-		// InitFFmpeg does not run a second probe.
-		ffmpegInitialized = true
-	}
-	mediaMu.Unlock()
-
-	if changed && !isGoTest() {
-		setupFFmpegIntegration()
-	}
-}
-
-// ffmpegInitInputs captures the settings that change how ffmpeg is initialized.
-// Re-initializing (and re-running the multi-second hardware probe) is only needed
-// when one of these changes, so unrelated media edits stay instant.
-type ffmpegInitInputs struct {
-	ffmpegPath           string
-	hardwareAcceleration bool
-	accelDevice          string
-	debug                bool
-	imageProcessors      int
-	maxEncode            int
-}
-
-func currentFFmpegInitInputs() ffmpegInitInputs {
-	n := Config.Server.NumImageProcessors
-	if n < 1 {
-		n = 4
-	}
-	maxEncode := Config.Integrations.Media.Transcode.MaxConcurrent
-	if maxEncode < 1 {
-		maxEncode = 2
-	}
-	return ffmpegInitInputs{
-		ffmpegPath:           Config.Integrations.Media.FfmpegPath,
-		hardwareAcceleration: Config.Integrations.Media.HardwareAcceleration,
-		accelDevice:          Config.Integrations.Media.AccelDevice,
-		debug:                Config.Integrations.Media.Debug,
-		imageProcessors:      n,
-		maxEncode:            maxEncode,
-	}
 }
 
 func isGoTest() bool {
@@ -282,7 +240,7 @@ func isGoTest() bool {
 // InitFFmpeg initializes ffmpeg with the effective media settings. Startup calls
 // it once, after persisted media settings have been applied, so the multi-second
 // hardware codec probe does not run twice. It is a no-op when ffmpeg has already
-// been initialized (for example when ApplyMediaSettings triggered it first).
+// been initialized.
 func InitFFmpeg() {
 	mediaMu.Lock()
 	if isGoTest() || ffmpegInitialized {
@@ -334,10 +292,11 @@ func setupFFmpegIntegration() {
 		AccelDevice:          accelDevice,
 		VerboseFFmpeg:        debug,
 	}
-	// Hardware codec detection always runs so the setting can be toggled at
-	// runtime; when it is off, software encoders are preferred instead.
-	// skipHwCheck (config-only) skips the probe entirely — e.g. for CI startup.
-	if !hardwareAcceleration || skipHwCheck {
+	// Hardware codec detection always runs once at startup so the
+	// hardwareAcceleration setting can be toggled live; it is applied per
+	// transcode, not by re-detecting. skipHwCheck (config-only) skips the probe
+	// entirely — e.g. for CI startup.
+	if skipHwCheck {
 		initOpts.EncoderHierarchy = []capabilities.AccelType{capabilities.AccelNone}
 	}
 	initOpts.SkipHWTests = skipHwCheck

@@ -848,13 +848,27 @@ func (m *Manager) runProducerJob(ctx context.Context, gen, jobDir, realPath stri
 				// Scan outside the lock and park at the first hole.
 				hole := m.firstVODHole(jobDir, plan)
 				m.mu.Lock()
-				if p := m.producerForGenerationLocked(gen); p != nil && hole >= 0 {
-					if p.vodRestartIndex >= 0 {
-						restartSeek = true
-					} else {
-						p.suspended = true
-						p.encodeHead = hole
-						suspended = true
+				if p := m.producerForGenerationLocked(gen); p != nil {
+					if hole >= 0 {
+						if p.vodRestartIndex >= 0 {
+							restartSeek = true
+						} else {
+							p.suspended = true
+							p.encodeHead = hole
+							suspended = true
+						}
+					} else if prefix := m.firstMissingSegmentBeforeIndex(jobDir, plan, p.startIndex); prefix >= 0 {
+						// Mid-file start reached EOF but segments before startIndex
+						// were never produced — park for seek-back demand.
+						if p.vodRestartIndex >= 0 {
+							restartSeek = true
+						} else {
+							p.suspended = true
+							p.encodeHead = prefix
+							suspended = true
+							logger.Debugf("transcode generation=%s suspended (mid-file start, segs before %d missing)",
+								gen, p.startIndex)
+						}
 					}
 				}
 				m.mu.Unlock()

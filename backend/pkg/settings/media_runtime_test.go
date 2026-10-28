@@ -182,85 +182,32 @@ func TestCurrentMediaSettingsReturnsIndependentConvertMaps(t *testing.T) {
 	}
 }
 
-// Only settings that change how ffmpeg is initialized should trigger a re-probe.
-func TestFFmpegInitInputsTrackOnlyInitRelevantFields(t *testing.T) {
-	withMediaConfig(t)
-	Config.Integrations.Media.HardwareAcceleration = false
-	Config.Integrations.Media.Debug = false
-	Config.Integrations.Media.Transcode.MaxConcurrent = 2
-	baseline := currentFFmpegInitInputs()
-
-	// A conversion-format or profile change must not look like an init change.
-	media := CurrentMediaSettings()
-	media.Transcode.Profiles.DataSaver.AvgBitrateKbps = 900
-	media.Transcode.CacheRetentionH = 12
-	ApplyMediaSettings(media)
-	if got := currentFFmpegInitInputs(); got != baseline {
-		t.Fatalf("non-init settings changed the init inputs: %+v vs %+v", got, baseline)
-	}
-
-	// Enabling hardware acceleration does.
-	media.HardwareAcceleration = true
-	ApplyMediaSettings(media)
-	if got := currentFFmpegInitInputs(); got == baseline {
-		t.Fatal("enabling hardware acceleration must register as an init change")
-	}
-
-	// So does raising the encode concurrency.
-	media2 := CurrentMediaSettings()
-	media2.Transcode.MaxConcurrent = 6
-	before := currentFFmpegInitInputs()
-	ApplyMediaSettings(media2)
-	if got := currentFFmpegInitInputs(); got == before {
-		t.Fatal("changing transcode concurrency must register as an init change")
-	}
-}
-
-// Changing an init-relevant input marks ffmpeg initialized (so a later startup
-// probe is skipped) and returns with mediaMu released, so media readers are never
-// blocked behind the multi-second hardware probe.
-func TestApplyMediaSettingsReleasesLockAndMarksInitialized(t *testing.T) {
+// Detection runs once at startup: applying media settings (even init-relevant
+// ones like hardware acceleration or the accel device) must never re-run it.
+func TestApplyMediaSettingsNeverReinitializesFFmpeg(t *testing.T) {
 	withMediaConfig(t)
 	ffmpegInitialized = false
 
 	media := CurrentMediaSettings()
 	media.HardwareAcceleration = !media.HardwareAcceleration
+	media.AccelDevice = "software"
+	media.Debug = !media.Debug
 	ApplyMediaSettings(media)
 
-	if !ffmpegInitialized {
-		t.Fatal("an init-input change must mark ffmpeg as initialized")
+	if ffmpegInitialized {
+		t.Fatal("ApplyMediaSettings must not initialize ffmpeg")
+	}
+	if got := CurrentMediaSettings(); got.AccelDevice != "software" || got.HardwareAcceleration != media.HardwareAcceleration {
+		t.Fatalf("settings were not applied: %+v", got)
 	}
 
-	// Reading through a locked accessor must not block: ApplyMediaSettings has
-	// returned and released mediaMu.
+	// mediaMu must be released after apply.
 	acquired := make(chan bool)
 	go func() { acquired <- HardwareAccelerationEnabled() }()
 	select {
 	case <-acquired:
 	case <-time.After(2 * time.Second):
 		t.Fatal("mediaMu is still held after ApplyMediaSettings returned")
-	}
-}
-
-// A patch that touches no init-relevant input must not trigger a re-probe.
-func TestApplyMediaSettingsSkipsInitWhenNothingRelevantChanged(t *testing.T) {
-	withMediaConfig(t)
-
-	media := CurrentMediaSettings()
-	media.Debug = !media.Debug // debug IS init-relevant
-	ffmpegInitialized = false
-	ApplyMediaSettings(media)
-	if !ffmpegInitialized {
-		t.Fatal("debug is an init input and must mark ffmpeg initialized")
-	}
-
-	ffmpegInitialized = false
-	media = CurrentMediaSettings()
-	media.Transcode.Profiles.DataSaver.AvgBitrateKbps = 1234
-	media.Transcode.CacheRetentionH = 12
-	ApplyMediaSettings(media)
-	if ffmpegInitialized {
-		t.Fatal("a profile/cache-only change must not trigger a re-probe")
 	}
 }
 

@@ -44,8 +44,8 @@ func MediaSettingsEqual(a, b MediaSettings) bool {
 	return string(ab) == string(bb)
 }
 
-// ApplyMediaSettingsIfChanged applies runtime media settings, re-initializing ffmpeg
-// only when they actually differ (avoids a redundant ffmpeg init on startup).
+// ApplyMediaSettingsIfChanged applies runtime media settings
+// only when they actually differ. It never re-runs ffmpeg detection.
 func ApplyMediaSettingsIfChanged(s MediaSettings) {
 	if MediaSettingsEqual(CurrentMediaSettings(), s) {
 		return

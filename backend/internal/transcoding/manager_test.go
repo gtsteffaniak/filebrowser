@@ -1453,6 +1453,69 @@ func writeProducedRange(t *testing.T, genDir string, firstIdx, count int, endLis
 // depth — the guard TestSessionInfoOmitsUserID applies to session payloads.
 var userIDKeyPattern = regexp.MustCompile(`(?i)"user[-_ ]?id"\s*:`)
 
+// A mid-file job that reaches EOF without producing the prefix must park (not
+// finalize) so a seek back to segment 0 can reposition the producer.
+func TestManagerParksWhenMidFileEOFLeavesPrefixMissing(t *testing.T) {
+	engine := NewFakeEngine()
+	mgr, _ := newTestManager(t, engine)
+
+	in := testInput(t, "seek-back", "/v.mp4")
+	in.StartSec = 4
+	sess := mustStart(t, mgr, in)
+	waitForStarts(t, engine, 1)
+	genDir := sessionJobDir(t, mgr, sess.ID)
+	waitForPlaylistFile(t, genDir)
+
+	// Job started at index 1; simulate ffmpeg running through EOF with segs 1–2 only.
+	writeProducedRange(t, genDir, 1, 2, false)
+	pollUntil(t, 2*time.Second, func() bool {
+		return snapshotProducer(t, mgr, sess.ID).encodeHead >= 3
+	}, "encode head to cover tail from mid-file start")
+
+	engine.LastJob().Complete()
+	pollUntil(t, 2*time.Second, func() bool {
+		s := snapshotProducer(t, mgr, sess.ID)
+		return s.exists && s.suspended
+	}, "producer to park when prefix segment 0 is missing")
+	if got := sessionState(t, mgr, sess.ID); got == StateCompleted {
+		t.Fatalf("must not finalize session while segment 0 is missing, state=%s", got)
+	}
+
+	f, err := mgr.OpenSegment(context.Background(), in.Username, sess.ID, "00000.m4s")
+	if err != nil {
+		t.Fatalf("segment 0 on parked mid-file generation: %v", err)
+	}
+	f.Close()
+	waitForStarts(t, engine, 2)
+	if idx, _ := engine.LastStart(); idx != 0 {
+		t.Fatalf("seek-back restart index = %d, want 0", idx)
+	}
+}
+
+// A generation that started at 0 and produced the full timeline still finalizes.
+func TestManagerCompletesWhenStartedFromZero(t *testing.T) {
+	engine := NewFakeEngine()
+	mgr, _ := newTestManager(t, engine)
+
+	in := testInput(t, "from-zero", "/v.mp4")
+	in.StartSec = 0
+	sess := mustStart(t, mgr, in)
+	waitForStarts(t, engine, 1)
+	genDir := sessionJobDir(t, mgr, sess.ID)
+	writeProducedRange(t, genDir, 0, 3, true)
+	pollUntil(t, 2*time.Second, func() bool {
+		return snapshotProducer(t, mgr, sess.ID).encodeHead >= 3
+	}, "encode head at EOF")
+
+	engine.LastJob().Complete()
+	pollUntil(t, 2*time.Second, func() bool {
+		return sessionState(t, mgr, sess.ID) == StateCompleted
+	}, "session completion from start")
+	if snapshotProducer(t, mgr, sess.ID).exists {
+		t.Fatal("producer must be dropped after full completion from index 0")
+	}
+}
+
 // A tail job that reaches EOF must not finalize a generation with holes behind
 // it: segments 0 and 2 exist but 1 was never produced.
 func TestManagerDoesNotCompleteGenerationWithHoles(t *testing.T) {

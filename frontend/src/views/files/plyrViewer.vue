@@ -2246,6 +2246,21 @@ export default {
           onFatal: () => {
             notify.showError(this.$t('player.transcodeFailed'));
           },
+          onRecoverPlayback: async (ctx) => {
+            transcodeLog('recovering transcode playback after HLS failure', {
+              startSec: ctx?.startSec,
+              sessionId: ctx?.sessionId,
+            });
+            await this.startTranscodePlayback({
+              mode: ctx?.mode ?? this.resolveActiveTranscodeMode(),
+              startSec: ctx?.startSec ?? this.player?.currentTime ?? 0,
+              replaceSessionId: ctx?.sessionId,
+              autoplay: ctx?.shouldAutoplay ?? this.shouldAutoplay,
+              manageSwitchState: true,
+              playPrime: ctx?.playPrime,
+            });
+            return true;
+          },
           onCapacityStatus: (status) => {
             this.$emit('needs-transcode', normalizeTranscodeSessionStatus(status, {
               source: this.req?.source,
@@ -2264,7 +2279,7 @@ export default {
 
         const result = await this.ensureTranscodePlaybackController().start(startParams);
 
-        if (!result.ok && result.reason !== 'cancelled' && result.reason !== 'disposed') {
+        if (!result.ok && result.reason !== 'cancelled' && result.reason !== 'disposed' && result.reason !== 'recovered') {
           transcodeWarn('transcode playback did not start', { reason: result.reason });
           if (result.reason === 'error') {
             notify.showError(this.$t('player.transcodeFailed'));

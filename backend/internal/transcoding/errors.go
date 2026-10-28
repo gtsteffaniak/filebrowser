@@ -13,5 +13,9 @@ var (
 	ErrUnsupportedMedia = errors.New("unsupported media for transcoding")
 	ErrInvalidSegment   = errors.New("invalid segment name")
 	ErrNotReady         = errors.New("segment not ready")
+	// ErrNeedsRestart is returned when the segment is before the generation's
+	// produced range and no live producer can reposition — the client should
+	// start a replacement session at the requested playhead.
+	ErrNeedsRestart = errors.New("segment needs session restart")
 	ErrInvalidPath      = errors.New("invalid cache path")
 )

@@ -505,9 +505,9 @@ func logCapabilities(svc *goffmpeg.Service, wantsHardware bool, accelDevice stri
 		return
 	}
 	if wantsHardware {
-		// Info level: which hardware paths the machine can actually use, so a
-		// software-only transcode is diagnosable without raising the log level.
-		logger.Infof("ffmpeg hardware codecs: %s", hw)
+		// go-ffmpeg already logs a single hardware support overview line at
+		// startup; keep the detailed per-codec list at debug only.
+		logger.Debugf("ffmpeg hardware codecs: %s", hw)
 		logHWEncodeProbeFailures(caps)
 		return
 	}
@@ -570,7 +570,7 @@ func logHWEncodeProbeFailures(caps *capabilities.Capabilities) {
 	if len(failures) == 0 {
 		return
 	}
-	logger.Infof("ffmpeg hardware encoders unavailable: %s", strings.Join(failures, "; "))
+	logger.Debugf("ffmpeg hardware encoders unavailable: %s", strings.Join(failures, "; "))
 }
 
 // hardwareCodecSummary lists detected hardware encode/decode paths. It reads

@@ -365,6 +365,8 @@ func transcodeErrorStatus(err error) int {
 	case errors.Is(err, transcoding.ErrNotReady):
 		// A 2xx would make hls.js treat the (non-segment) error body as media.
 		return http.StatusServiceUnavailable
+	case errors.Is(err, transcoding.ErrNeedsRestart):
+		return http.StatusConflict
 	default:
 		return http.StatusInternalServerError
 	}

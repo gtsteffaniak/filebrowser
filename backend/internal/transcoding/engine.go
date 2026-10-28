@@ -192,6 +192,9 @@ func (e *MediaEngine) BuildPlan(ctx context.Context, realPath string, profile Pr
 func (plan *hlsPlan) setTranscodeProfiles(ctx context.Context, svc *ffmpeg.Service, realPath string, profile Profile) {
 	plan.encodeProfile = encodeProfileForMode(plan.info, profile)
 	plan.decodeProfile = ffmpeg.HLSDecodeProfileForOnDemand(plan.info)
+	if !settings.HardwareAccelerationEnabled() {
+		plan.decodeProfile.ForceSoftware = true
+	}
 	if sel, err := svc.ResolveVideoEncoder(plan.encodeProfile); err == nil {
 		plan.encoderName = sel.Encoder
 		plan.accelName = string(sel.Accel)
@@ -417,6 +420,11 @@ func hardwareEncodeAvailable(caps *capabilities.Capabilities) bool {
 // explicit ffmpeg encoder name pins the encoder. Unavailable choices degrade to
 // auto instead of failing jobs.
 func preferredEncoderSelection(profile Profile) (capabilities.AccelType, string) {
+	// Hardware detection runs once at startup; the admin toggle is applied here,
+	// per transcode, so changing it takes effect immediately without re-probing.
+	if !settings.HardwareAccelerationEnabled() {
+		return capabilities.AccelNone, ""
+	}
 	backend := settings.TranscodeEncoderBackend(string(profile))
 	switch backend {
 	case "", "auto":

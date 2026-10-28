@@ -242,10 +242,21 @@ func TestPreferredEncoderAccel(t *testing.T) {
 	origBackend := settings.Config.Integrations.Media.Transcode.EncoderBackend
 	t.Cleanup(func() { settings.Config.Integrations.Media.Transcode.EncoderBackend = origBackend })
 
+	origHW := settings.Config.Integrations.Media.HardwareAcceleration
+	t.Cleanup(func() { settings.Config.Integrations.Media.HardwareAcceleration = origHW })
+	settings.Config.Integrations.Media.HardwareAcceleration = true
+
 	settings.Config.Integrations.Media.Transcode.EncoderBackend = ""
 	if got := preferredEncoderAccel(ProfileBalanced); got != "" {
 		t.Fatalf("auto backend = %q, want \"\"", got)
 	}
+
+	// Toggling hardware acceleration off takes effect immediately (no re-detect).
+	settings.Config.Integrations.Media.HardwareAcceleration = false
+	if got := preferredEncoderAccel(ProfileBalanced); got != capabilities.AccelNone {
+		t.Fatalf("hardware off = %q, want software", got)
+	}
+	settings.Config.Integrations.Media.HardwareAcceleration = true
 
 	settings.Config.Integrations.Media.Transcode.EncoderBackend = "cpu"
 	if got := preferredEncoderAccel(ProfileBalanced); got != capabilities.AccelNone {

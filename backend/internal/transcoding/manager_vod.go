@@ -103,12 +103,19 @@ func (m *Manager) openVODSegment(ctx context.Context, sess *playbackSession, job
 			f.Close()
 		}
 
+		if p == nil && !ready && segIndex < sess.startIndex {
+			return nil, ErrNeedsRestart
+		}
+
 		action := ffmpeg.DecideHLSVODSegmentAction(cfg, view, segIndex, false)
 		if action == ffmpeg.HLSVODActionRestart {
 			// Producers leave m.producers once their job finishes or fails, so
-			// nil means no producer can ever write this segment (finished
-			// generation or completed-generation viewer).
+			// nil means no producer can reposition; seek-back before the
+			// generation start needs a fresh session at that playhead.
 			if p == nil {
+				if segIndex < sess.startIndex {
+					return nil, ErrNeedsRestart
+				}
 				return nil, ErrNotReady
 			}
 			logger.Debugf("transcode segment wait restart session=%s seg=%d head=%d jobStart=%d running=%v",
@@ -189,6 +196,28 @@ func (m *Manager) refreshVODEncodeHead(p *producer, jobDir string, plan hlsPlan)
 		head++
 	}
 	p.encodeHead = head
+}
+
+// firstMissingSegmentBeforeIndex returns the smallest index in [0, before) that
+// is not publishable on disk, or -1 when that prefix is complete.
+func (m *Manager) firstMissingSegmentBeforeIndex(jobDir string, plan hlsPlan, before int) int {
+	if before <= 0 {
+		return -1
+	}
+	explicitCopy := planUsesExplicitCopy(plan)
+	for i := 0; i < before && i < plan.vodList.Count(); i++ {
+		var ready bool
+		var err error
+		if explicitCopy {
+			ready, err = ffmpeg.HLSVODExplicitCopySegmentReady(jobDir, i, false)
+		} else {
+			ready, err = ffmpeg.HLSVODSegmentReady(ffmpeg.HLSVODSegmentPath(jobDir, i))
+		}
+		if err != nil || !ready {
+			return i
+		}
+	}
+	return -1
 }
 
 // firstVODHole returns the first missing segment that sits after a produced

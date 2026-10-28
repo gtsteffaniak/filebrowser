@@ -195,6 +195,7 @@ export function attachHlsToVideo({
   startPosition = -1,
   signal,
   onFatal,
+  onRecoverPlayback,
   onFirstBuffered,
   budgetMs,
 }) {
@@ -264,6 +265,36 @@ export function attachHlsToVideo({
     // The synthetic VOD playlist lists the full media duration; a single
     // buffered fragment is enough to start playback.
     const minBufferFrags = 1;
+    let startup503Retries = 0;
+    let last503FragSn = null;
+
+    const tryRecoverPlayback = (data, reason) => {
+      if (!onRecoverPlayback || settled) {
+        return false;
+      }
+      const resumeAt = Number.isFinite(data?.frag?.start)
+        ? data.frag.start
+        : (Number.isFinite(initialStart) && initialStart >= 0 ? initialStart : 0);
+      transcodeWarn('hls requesting transcode session recovery', {
+        reason,
+        resumeAt,
+        sessionId: session?.id,
+        responseCode: data?.response?.code,
+      });
+      cleanup();
+      void onRecoverPlayback({ startSec: resumeAt, sessionId: session?.id })
+        .then((ok) => {
+          if (!ok) {
+            onFatal?.(data);
+          }
+        })
+        .catch(() => {
+          onFatal?.(data);
+        });
+      finish('reject', Object.assign(new Error('transcode session recovery'), { name: 'TranscodeRecoverError' }));
+      return true;
+    };
+
     const onAbort = () => {
       cleanup();
       const error = new Error('HLS attach aborted');
@@ -506,6 +537,12 @@ export function attachHlsToVideo({
       };
       if (data?.fatal) {
         transcodeError('hls fatal error', info);
+        const code = data?.response?.code;
+        if (code === 503 || code === 409) {
+          if (tryRecoverPlayback(data, 'fatal-network')) {
+            return;
+          }
+        }
         cleanup();
         onFatal?.(data);
         finish('reject', data);
@@ -530,8 +567,24 @@ export function attachHlsToVideo({
         transcodeVerbose('hls non-fatal media recovery', info);
         return;
       }
+      if (data?.type === Hls.ErrorTypes.NETWORK_ERROR && data?.response?.code === 409) {
+        tryRecoverPlayback(data, '409-needs-restart');
+        return;
+      }
       // Init/segment 503 during startup is common; recover before MSE requires reset.
       if (data?.type === Hls.ErrorTypes.NETWORK_ERROR && data?.response?.code === 503) {
+        const fragSn = data?.frag?.sn;
+        if (fragSn === last503FragSn) {
+          startup503Retries += 1;
+        } else {
+          last503FragSn = fragSn;
+          startup503Retries = 1;
+        }
+        if (startup503Retries >= 6) {
+          if (tryRecoverPlayback(data, '503-exhausted')) {
+            return;
+          }
+        }
         transcodeWarn('hls 503 during transcode startup — retrying load', info);
         // Resume at the fragment we were already waiting on. Do NOT use
         // hls.liveSyncPosition here: this is a #EXT-X-PLAYLIST-TYPE:VOD playlist
