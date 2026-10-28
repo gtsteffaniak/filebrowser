@@ -6026,7 +6026,7 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "trustedProxies": {
-                    "description": "IPs/CIDRs of trusted proxies; resolves the real client IP in multi-hop X-Forwarded-For chains (default: empty = single-hop, rightmost XFF entry)",
+                    "description": "IPs/CIDRs of trusted proxies; forwarded client headers are only honored when the socket peer matches one of these (default: empty = forwarded headers ignored)",
                     "type": "array",
                     "items": {
                         "type": "string"
