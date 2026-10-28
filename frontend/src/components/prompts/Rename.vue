@@ -228,6 +228,7 @@ export default {
           fromSource: this.item.source,
           to: newPath,
           toSource: this.item.source,
+          isDir: this.item.type === 'directory',
         }];
 
         if (getters.isShare()) {
