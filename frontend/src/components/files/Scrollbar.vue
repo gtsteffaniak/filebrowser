@@ -362,7 +362,7 @@ export default {
   position: fixed;
   top: 4em;
   height: 6em;
-  border-radius: var(--borderRadius);
+  border-radius: 1em;
   cursor: pointer;
   pointer-events: auto;
   touch-action: none;
