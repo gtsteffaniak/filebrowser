@@ -208,7 +208,9 @@ func TestOverdueScannerRunsFullScan(t *testing.T) {
 // folderSizes; a restored counter in the quick-scan range would stat nothing.
 func TestSerialBootstrapPassResetsFullScanCounter(t *testing.T) {
 	idx := newRestoreTestIndex(t, "serial_reset", nil, persistedScanners("/"))
-	idx.setupMultiScanner(false)
+	// No background scheduler: the test drives runSerialScanPass itself, and a running scheduler
+	// would scan the same scanner concurrently (data race on its stats).
+	idx.setupMultiScannerEx(false, false)
 	idx.mu.Lock()
 	idx.startupScanPending = true
 	scanner := idx.scanners["/"]
