@@ -3,8 +3,6 @@ package indexing
 import (
 	stderrors "errors"
 	"fmt"
-	"io"
-	"io/fs"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -988,107 +986,6 @@ func (idx *Index) processFileItem(file os.FileInfo, indexPath string, opts Optio
 	}
 
 	return itemInfo, itemInfo.Size, shouldCountSize, bubblesUpHasPreview
-}
-
-// Seams for tests: make a single entry, or the whole ReadDir, fail.
-var (
-	readDirEntries = func(f *os.File) ([]os.DirEntry, error) { return f.ReadDir(-1) }
-	entryInfo      = func(e os.DirEntry) (os.FileInfo, error) { return e.Info() }
-	lstatPath      = os.Lstat
-)
-
-// unreadableWarned keeps the warning to once per path; routine scans revisit the same entry forever.
-// It is cleared once it holds maxUnreadableWarned paths, so it cannot grow without bound.
-var (
-	unreadableMu        sync.Mutex
-	unreadableWarned    = map[string]struct{}{}
-	maxUnreadableWarned = 10000
-)
-
-// skippable reports whether an error means "we may not read it, or it is gone". Callers apply it
-// only to the stat of a single entry, which then drops just that entry. Any other error (EIO, ESTALE
-// on a network mount) fails the listing, so a flaky mount cannot make the scanner prune files that
-// still exist.
-func skippable(err error) bool {
-	return stderrors.Is(err, fs.ErrPermission) || stderrors.Is(err, fs.ErrNotExist)
-}
-
-// firstWarning records path and reports whether it was not recorded yet.
-func firstWarning(path string) bool {
-	unreadableMu.Lock()
-	defer unreadableMu.Unlock()
-	if _, seen := unreadableWarned[path]; seen {
-		return false
-	}
-	if len(unreadableWarned) >= maxUnreadableWarned {
-		clear(unreadableWarned)
-	}
-	unreadableWarned[path] = struct{}{}
-	return true
-}
-
-func skipUnreadable(path string, err error) {
-	if stderrors.Is(err, fs.ErrNotExist) {
-		return // removed between listing and stat, which Readdir also ignored
-	}
-	if !firstWarning(path) {
-		logger.Debugf("skipping unreadable entry %s: %v", path, err)
-		return
-	}
-	logger.Warningf("skipping unreadable entry %s: %v", path, err)
-}
-
-// readDirSkippingUnreadable returns the same entries Readdir(-1) did, except that an entry whose
-// lstat fails with a permission error (e.g. a Windows junction seen through a CIFS mount, whose
-// target the share user cannot read) is skipped instead of failing the whole directory. Errors
-// reading the directory itself, and any other stat error, are returned.
-//
-// The common path is ReadDir + Info(), which on Unix is one lstat per entry, as Readdir did. On Unix,
-// when the filesystem reports an unknown d_type, ReadDir lstats by itself and stops at the first
-// failure; only that case (an "lstat" error that is skippable) re-reads the directory by name and
-// lstats each entry.
-func readDirSkippingUnreadable(dir *os.File) ([]os.FileInfo, error) {
-	entries, err := readDirEntries(dir)
-	if err == nil {
-		files := make([]os.FileInfo, 0, len(entries))
-		for _, e := range entries {
-			info, ierr := entryInfo(e)
-			if ierr != nil {
-				if !skippable(ierr) {
-					return nil, ierr
-				}
-				skipUnreadable(filepath.Join(dir.Name(), e.Name()), ierr)
-				continue
-			}
-			files = append(files, info)
-		}
-		return files, nil
-	}
-	var pe *fs.PathError
-	if !stderrors.As(err, &pe) || pe.Op != "lstat" || !skippable(err) {
-		return nil, err
-	}
-	if _, serr := dir.Seek(0, io.SeekStart); serr != nil {
-		return nil, err
-	}
-	names, nerr := dir.Readdirnames(-1)
-	if nerr != nil {
-		return nil, err
-	}
-	files := make([]os.FileInfo, 0, len(names))
-	for _, name := range names {
-		path := filepath.Join(dir.Name(), name)
-		info, lerr := lstatPath(path)
-		if lerr != nil {
-			if !skippable(lerr) {
-				return nil, lerr
-			}
-			skipUnreadable(path, lerr)
-			continue
-		}
-		files = append(files, info)
-	}
-	return files, nil
 }
 
 // GetDirInfoCore is the consolidated implementation for both GetDirInfo and GetDirInfoViewableOnly.

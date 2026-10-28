@@ -3,9 +3,12 @@
 package indexing
 
 import (
+	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
+	"syscall"
 	"testing"
 	"time"
 
@@ -258,5 +261,226 @@ func TestReadDirFileInfos_Parallel(t *testing.T) {
 		if e.Size() != want.Size() || e.IsDir() != want.IsDir() || !e.ModTime().Equal(want.ModTime()) {
 			t.Errorf("%s: mismatch vs lstat", e.Name())
 		}
+	}
+}
+
+// writeNumberedFiles creates count files in dir and returns their names.
+func writeNumberedFiles(t *testing.T, dir string, count int) []string {
+	t.Helper()
+	names := make([]string, 0, count)
+	for i := 0; i < count; i++ {
+		name := fmt.Sprintf("file_%04d", i)
+		if err := os.WriteFile(filepath.Join(dir, name), []byte{byte(i % 251)}, 0o644); err != nil {
+			t.Fatal(err)
+		}
+		names = append(names, name)
+	}
+	return names
+}
+
+func openTestDir(t *testing.T, dir string) *os.File {
+	t.Helper()
+	f, err := os.Open(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { f.Close() })
+	return f
+}
+
+// injectStatErr makes the stat of entry bad fail with err, on both the serial and parallel paths.
+func injectStatErr(t *testing.T, bad string, err error) {
+	t.Helper()
+	orig := statEntry
+	t.Cleanup(func() { statEntry = orig })
+	statEntry = func(dirFd int, name string, useStatx bool) (os.FileInfo, error) {
+		if name == bad {
+			return nil, &fs.PathError{Op: "fstatat", Path: name, Err: err}
+		}
+		return orig(dirFd, name, useStatx)
+	}
+}
+
+// injectAllStatErr makes every entry's stat fail with err.
+func injectAllStatErr(t *testing.T, err error) {
+	t.Helper()
+	orig := statEntry
+	t.Cleanup(func() { statEntry = orig })
+	statEntry = func(dirFd int, name string, useStatx bool) (os.FileInfo, error) {
+		return nil, &fs.PathError{Op: "fstatat", Path: name, Err: err}
+	}
+}
+
+// listingSizes covers the serial path (below dirStatParallelThreshold) and the parallel path.
+var listingSizes = []int{3, dirStatParallelThreshold + 44}
+
+func TestReadDirFileInfos_SkipsPermissionDeniedEntry(t *testing.T) {
+	for _, count := range listingSizes {
+		t.Run(fmt.Sprintf("entries=%d", count), func(t *testing.T) {
+			dir := t.TempDir()
+			names := writeNumberedFiles(t, dir, count)
+			injectStatErr(t, names[0], syscall.EACCES)
+
+			infos, err := readDirFileInfos(openTestDir(t, dir))
+			if err != nil {
+				t.Fatalf("one EACCES entry failed the listing: %v", err)
+			}
+			if len(infos) != count-1 {
+				t.Fatalf("listed %d entries, want %d", len(infos), count-1)
+			}
+			for _, fi := range infos {
+				if fi.Name() == names[0] {
+					t.Fatal("unreadable entry was listed")
+				}
+			}
+		})
+	}
+}
+
+func TestReadDirFileInfos_SkipsVanishedEntry(t *testing.T) {
+	for _, count := range listingSizes {
+		t.Run(fmt.Sprintf("entries=%d", count), func(t *testing.T) {
+			dir := t.TempDir()
+			names := writeNumberedFiles(t, dir, count)
+			injectStatErr(t, names[0], syscall.ENOENT)
+
+			infos, err := readDirFileInfos(openTestDir(t, dir))
+			if err != nil {
+				t.Fatalf("one vanished entry failed the listing: %v", err)
+			}
+			if len(infos) != count-1 {
+				t.Fatalf("listed %d entries, want %d", len(infos), count-1)
+			}
+		})
+	}
+}
+
+// EIO on a network mount must fail the listing; skipping it would let the scanner prune files that
+// still exist.
+func TestReadDirFileInfos_IOErrorFailsListing(t *testing.T) {
+	for _, count := range listingSizes {
+		t.Run(fmt.Sprintf("entries=%d", count), func(t *testing.T) {
+			dir := t.TempDir()
+			names := writeNumberedFiles(t, dir, count)
+			injectStatErr(t, names[count/2], syscall.EIO)
+
+			if _, err := readDirFileInfos(openTestDir(t, dir)); !errors.Is(err, syscall.EIO) {
+				t.Fatalf("got %v, want EIO to fail the listing", err)
+			}
+		})
+	}
+}
+
+func TestReadDirFileInfos_StaleHandleFailsListing(t *testing.T) {
+	dir := t.TempDir()
+	names := writeNumberedFiles(t, dir, 3)
+	injectStatErr(t, names[1], syscall.ESTALE)
+
+	if _, err := readDirFileInfos(openTestDir(t, dir)); !errors.Is(err, syscall.ESTALE) {
+		t.Fatalf("got %v, want ESTALE to fail the listing", err)
+	}
+}
+
+// If every entry vanished, the directory was removed or renamed mid-scan. An empty success would make
+// the scanner prune all of its children.
+func TestReadDirFileInfos_AllEntriesVanishedFails(t *testing.T) {
+	for _, count := range listingSizes {
+		t.Run(fmt.Sprintf("entries=%d", count), func(t *testing.T) {
+			dir := t.TempDir()
+			writeNumberedFiles(t, dir, count)
+			injectAllStatErr(t, syscall.ENOENT)
+
+			if _, err := readDirFileInfos(openTestDir(t, dir)); !errors.Is(err, fs.ErrNotExist) {
+				t.Fatalf("got %v, want a not-exist error for an all-vanished listing", err)
+			}
+		})
+	}
+}
+
+func TestReadDirFileInfos_EmptyDirIsNotAnError(t *testing.T) {
+	infos, err := readDirFileInfos(openTestDir(t, t.TempDir()))
+	if err != nil || len(infos) != 0 {
+		t.Fatalf("empty dir: got %d entries, err %v", len(infos), err)
+	}
+}
+
+// Real EACCES, no seam: a directory that is readable but not searchable lists its names, while each
+// per-entry stat fails with EACCES. Root ignores directory permissions, so skip there.
+func TestReadDirFileInfos_RealPermissionDenied(t *testing.T) {
+	if os.Geteuid() == 0 {
+		t.Skip("root ignores directory permissions")
+	}
+	dir := t.TempDir()
+	writeNumberedFiles(t, dir, 2)
+	if err := os.Chmod(dir, 0o444); err != nil {
+		t.Fatal(err)
+	}
+	// Registered after TempDir's cleanup, so it runs first and the directory can be removed.
+	t.Cleanup(func() { _ = os.Chmod(dir, 0o755) })
+
+	infos, err := readDirFileInfos(openTestDir(t, dir))
+	if err != nil {
+		t.Fatalf("unsearchable directory failed the listing: %v", err)
+	}
+	if len(infos) != 0 {
+		t.Fatalf("listed %d entries, want 0", len(infos))
+	}
+}
+
+func TestCheckNotAllVanished(t *testing.T) {
+	if err := checkNotAllVanished("/d", 0, 0); err != nil {
+		t.Errorf("empty listing: got %v, want nil", err)
+	}
+	if err := checkNotAllVanished("/d", 3, 2); err != nil {
+		t.Errorf("partial vanish: got %v, want nil", err)
+	}
+	if err := checkNotAllVanished("/d", 3, 3); !errors.Is(err, fs.ErrNotExist) {
+		t.Errorf("all vanished: got %v, want not-exist", err)
+	}
+}
+
+func TestSkipEntry_Classification(t *testing.T) {
+	dir := t.TempDir()
+	if !skipEntry(dir, "perm", syscall.EACCES) {
+		t.Error("EACCES should skip")
+	}
+	if !skipEntry(dir, "gone", syscall.ENOENT) {
+		t.Error("ENOENT should skip")
+	}
+	if skipEntry(dir, "io", syscall.EIO) {
+		t.Error("EIO must not skip")
+	}
+	if skipEntry(dir, "stale", syscall.ESTALE) {
+		t.Error("ESTALE must not skip")
+	}
+	// A vanished entry is not recorded as unreadable.
+	unreadableMu.Lock()
+	_, recorded := unreadableWarned[filepath.Join(dir, "gone")]
+	unreadableMu.Unlock()
+	if recorded {
+		t.Error("ENOENT must not be recorded in the warned set")
+	}
+}
+
+func TestSkipEntry_WarnedSetIsBounded(t *testing.T) {
+	origMax := maxUnreadableWarned
+	t.Cleanup(func() {
+		maxUnreadableWarned = origMax
+		unreadableMu.Lock()
+		clear(unreadableWarned)
+		unreadableMu.Unlock()
+	})
+	maxUnreadableWarned = 2
+	dir := t.TempDir()
+	for _, name := range []string{"a", "b", "c"} {
+		skipEntry(dir, name, syscall.EACCES)
+	}
+	unreadableMu.Lock()
+	defer unreadableMu.Unlock()
+	if len(unreadableWarned) > 2 {
+		t.Fatalf("warned set holds %d paths, bound is 2", len(unreadableWarned))
+	}
+	if _, ok := unreadableWarned[filepath.Join(dir, "c")]; !ok {
+		t.Error("latest path should be recorded after the set was cleared")
 	}
 }
