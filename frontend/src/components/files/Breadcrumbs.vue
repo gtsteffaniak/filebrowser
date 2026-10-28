@@ -225,6 +225,7 @@ export default {
           to: url.joinPath(targetPath, selectedItem.name),
           toSource: source,
           itemType: selectedItem.type,
+          isDir: selectedItem.type === 'directory',
           name: selectedItem.name
         });
       }

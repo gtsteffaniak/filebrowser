@@ -314,6 +314,11 @@ export default {
           : await mediaApi.getDirectoryMetadataMap(dirPath, { source: state.req.source });
         if (this.listing !== listing) return;
         mutations.patchListingMetadata(listing, metaMap, state.req.path);
+        mutations.setupNavigation({
+          listing,
+          currentItem: state.req,
+          directoryPath: dirPath,
+        });
       } catch (e) {
         console.warn('dir items metadata fetch failed', e);
       }

@@ -1,0 +1,265 @@
+import { state } from "@/store/index.ts";
+
+/** Which source (or share) a folder belongs to */
+export interface DirMetadataScope {
+  isShare?: boolean;
+  source?: string;
+  hash?: string;
+}
+
+export interface DirMetadataKey extends DirMetadataScope {
+  path: string;
+}
+
+/** metadata by file name */
+export type DirMetadataMap = Map<string, object>;
+
+/** Per-item changes recorded since a folder was cached */
+export interface PendingDirChanges {
+  /** deleted or moved away */
+  removed: Set<string>;
+  /** uploaded, copied or moved */
+  dirty: Set<string>;
+  /** names without extension */
+  stems: Set<string>;
+}
+
+export interface DirMetadataEntry extends PendingDirChanges {
+  key: string;
+  promise: Promise<DirMetadataMap>;
+  size: number;
+  time: number;
+  settled: boolean;
+  pendingSince: number;
+}
+
+const TTL_MS = 300000;
+const PENDING_REUSE_MS = 120000;
+const MAX_TOTAL_ITEMS = 5000;
+const MAX_PENDING_CHANGES = 200;
+// least recently used first
+const cacheMap = new Map<string, DirMetadataEntry>();
+let cacheUser: string | null = null;
+
+// Entries are not keyed by user, the cache is dropped whenever the signed-in user logs out.
+// one account's metadata is never served to the other.
+function cache(): Map<string, DirMetadataEntry> {
+  const user = state.user?.username || "";
+  if (user !== cacheUser) {
+    cacheMap.clear();
+    cacheUser = user;
+  }
+  return cacheMap;
+}
+
+function scopePart({ isShare, source, hash }: DirMetadataScope): string {
+  return isShare ? `share:${hash}` : `src:${source}`;
+}
+
+function normalizePath(path: string | undefined): string {
+  const collapsed = `/${path || ""}`.replace(/\/+/g, "/");
+  return collapsed.length > 1 ? collapsed.replace(/\/$/, "") : "/";
+}
+
+function getCacheKey({ isShare, source, hash, path }: DirMetadataKey): string {
+  return `${scopePart({ isShare, source, hash })}|${normalizePath(path)}`;
+}
+
+function splitItemPath(itemPath: string | undefined): { dir: string; name: string; isDir: boolean } {
+  const raw = itemPath || "";
+  const full = normalizePath(raw);
+  const idx = full.lastIndexOf("/");
+  return {
+    dir: idx <= 0 ? "/" : full.slice(0, idx),
+    name: full.slice(idx + 1),
+    isDir: raw.endsWith("/"),
+  };
+}
+
+/** file name without its last extension, so "song.mp3" and "song.lrc" match */
+export function stemOf(name: string): string {
+  const dot = name.lastIndexOf(".");
+  return (dot > 0 ? name.slice(0, dot) : name).toLowerCase();
+}
+
+function trimToLimit(): void {
+  const entries = cache();
+  let total = 0;
+  for (const entry of entries.values()) {
+    total += entry.size;
+  }
+  for (const [key, entry] of entries) {
+    if (total <= MAX_TOTAL_ITEMS) {
+      break;
+    }
+    total -= entry.size;
+    entries.delete(key);
+  }
+}
+
+/** @param startsCache true for folder fetc. the TTL then counts from when its result arrived */
+function watchEntry(entry: DirMetadataEntry, startsCache = false): void {
+  const { promise } = entry;
+  entry.settled = false;
+  entry.pendingSince = Date.now();
+  promise.then(
+    (map) => {
+      if (entry.promise !== promise) {
+        return;
+      }
+      entry.settled = true;
+      if (cache().get(entry.key) === entry) {
+        if (startsCache) {
+          entry.time = Date.now();
+        }
+        entry.size = map.size;
+        if (map.size === 0) {
+          cache().delete(entry.key);
+        } else {
+          trimToLimit();
+        }
+      }
+    },
+    () => {
+      if (entry.promise !== promise) {
+        return;
+      }
+      entry.settled = true;
+      if (cache().get(entry.key) === entry) {
+        cache().delete(entry.key);
+      }
+    },
+  );
+}
+
+/** Looking an entry up counts as using it, so the folders you keep returning to are removed last */
+export function getDirMetadataEntry(opts: DirMetadataKey): DirMetadataEntry | null {
+  const entries = cache();
+  const key = getCacheKey(opts);
+  const entry = entries.get(key);
+  if (!entry) {
+    return null;
+  }
+  entries.delete(key);
+  if (Date.now() - entry.time > TTL_MS) {
+    return null;
+  }
+  if (!entry.settled && Date.now() - entry.pendingSince > PENDING_REUSE_MS) {
+    return null;
+  }
+  entries.set(key, entry);
+  return entry;
+}
+
+/** Stores a pending or resolved promise for this folder. */
+export function setCachedDirMetadata(opts: DirMetadataKey, promise: Promise<DirMetadataMap>): void {
+  const entries = cache();
+  const key = getCacheKey(opts);
+  entries.delete(key);
+  const entry: DirMetadataEntry = { key, promise, size: 0, time: Date.now(), settled: false, pendingSince: Date.now(), removed: new Set(), dirty: new Set(), stems: new Set() };
+  entries.set(key, entry);
+  watchEntry(entry, true);
+}
+
+/**
+ * Sends the per-item changes to the caller and starts clean.
+ * @returns the changes, or null when are none
+ */
+export function takePendingDirChanges(entry: DirMetadataEntry): PendingDirChanges | null {
+  if (entry.removed.size + entry.dirty.size + entry.stems.size === 0) {
+    return null;
+  }
+  const pending = { removed: entry.removed, dirty: entry.dirty, stems: entry.stems };
+  entry.removed = new Set();
+  entry.dirty = new Set();
+  entry.stems = new Set();
+  return pending;
+}
+
+/** Replaces the promise of an existing entry (after pending changes were applied). */
+export function setDirMetadataEntryPromise(entry: DirMetadataEntry, promise: Promise<DirMetadataMap>): void {
+  entry.promise = promise;
+  watchEntry(entry);
+}
+
+function dropSubtree(scope: DirMetadataScope, itemPath: string): void {
+  const entries = cache();
+  const prefix = `${scopePart(scope)}|`;
+  const root = normalizePath(itemPath);
+  for (const key of [...entries.keys()]) {
+    if (!key.startsWith(prefix)) {
+      continue;
+    }
+    const pathPart = key.slice(prefix.length);
+    if (pathPart === root || pathPart.startsWith(`${root}/`)) {
+      entries.delete(key);
+    }
+  }
+}
+
+function recordItemChange(scope: DirMetadataScope, itemPath: string, kind: "removed" | "changed"): void {
+  const { dir, name, isDir } = splitItemPath(itemPath);
+  if (!name) {
+    return;
+  }
+  dropSubtree(scope, itemPath);
+  if (kind === "changed" && isDir) {
+    return; // folders have no media metadata of their own
+  }
+  const key = getCacheKey({ ...scope, path: dir });
+  const entry = cache().get(key);
+  if (!entry) {
+    return;
+  }
+  if (kind === "removed") {
+    entry.removed.add(name);
+    entry.dirty.delete(name);
+  } else {
+    entry.dirty.add(name);
+    entry.removed.delete(name);
+  }
+  entry.stems.add(stemOf(name));
+  if (entry.removed.size + entry.dirty.size > MAX_PENDING_CHANGES) {
+    cache().delete(key);
+  }
+}
+
+/** An item was deleted or moved: drop only its entry */
+export function removeDirMetadataItem(scope: DirMetadataScope, itemPath: string): void {
+  recordItemChange(scope, itemPath, "removed");
+}
+
+/** An item was uploaded, copied or moved: refresh only its entry */
+export function markDirMetadataItemChanged(scope: DirMetadataScope, itemPath: string): void {
+  recordItemChange(scope, itemPath, "changed");
+}
+
+/** drops its folder's listing and everything cached below the item */
+export function invalidateDirMetadataItem(scope: DirMetadataScope, itemPath: string): void {
+  dropSubtree(scope, itemPath);
+  cache().delete(getCacheKey({ ...scope, path: splitItemPath(itemPath).dir }));
+}
+
+/**
+ * Invalidates cached dir metadata so the next call gets fresh data: one folder with `path`, a whole
+ * source or share without it, everything with no options.
+ */
+export function invalidateDirMetadataCache(opts: DirMetadataScope & { path?: string } = {}): void {
+  const entries = cache();
+  const { source, hash, path } = opts;
+  const isShare = opts.isShare ?? (hash !== undefined && source === undefined);
+  if (path !== undefined) {
+    entries.delete(getCacheKey({ isShare, source, hash, path }));
+    return;
+  }
+  if (source === undefined && hash === undefined) {
+    entries.clear();
+    return;
+  }
+  const prefix = `${scopePart({ isShare, source, hash })}|`;
+  for (const key of [...entries.keys()]) {
+    if (key.startsWith(prefix)) {
+      entries.delete(key);
+    }
+  }
+}

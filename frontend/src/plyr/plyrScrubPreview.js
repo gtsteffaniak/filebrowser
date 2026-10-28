@@ -1,4 +1,4 @@
-import { fetchPreviewImage } from "@/utils/previewRequests.js";
+import { fetchPreviewImage } from "@/utils/previewRequests.ts";
 import { getters } from "@/store/index.ts";
 
 const SCRUB_PREVIEW_CLASS = 'fb-scrub-preview';
