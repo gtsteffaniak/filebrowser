@@ -116,6 +116,7 @@ interface MoveItem {
   to: string;
   toSource?: string;
   name: string;
+  isDir?: boolean;
 }
 
 interface SelectionCandidate {
@@ -605,6 +606,7 @@ async function handleDrop(event: DragEvent, node: TreeNode) {
       to: joinPath(node.path, item.name),
       toSource: node.source || treeSource.value || undefined,
       name: item.name,
+      isDir: item.type === 'directory',
     });
   }
 

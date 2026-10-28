@@ -634,16 +634,14 @@ function extensionOf(filename) {
   return filename.slice(dot).toLowerCase();
 }
 
-export function getTypeInfo(mimeType) {
-  if (!mimeType) {
-    return EMPTY_MIME_TYPE_INFO;
-  }
+const TYPE_INFO_CACHE = new Map();
+const TYPE_INFO_CACHE_MAX = 1000;
 
+function resolveTypeInfo(mimeType) {
   const exact = MIME_EXACT_INDEX.get(mimeType);
   if (exact) {
     return toTypeInfo(exact);
   }
-
   for (const rule of PREFIX_RULES) {
     if (mimeType.startsWith(rule.prefix)) {
       return toTypeInfo(rule);
@@ -651,6 +649,21 @@ export function getTypeInfo(mimeType) {
   }
 
   return DEFAULT_TYPE_INFO;
+}
+
+export function getTypeInfo(mimeType) {
+  if (!mimeType) {
+    return EMPTY_MIME_TYPE_INFO;
+  }
+  let info = TYPE_INFO_CACHE.get(mimeType);
+  if (info === undefined) {
+    info = resolveTypeInfo(mimeType);
+    if (TYPE_INFO_CACHE.size >= TYPE_INFO_CACHE_MAX) {
+      TYPE_INFO_CACHE.clear();
+    }
+    TYPE_INFO_CACHE.set(mimeType, info);
+  }
+  return info;
 }
 
 export function getTypeInfoFromExt(filename) {
