@@ -73,14 +73,14 @@ function queueDarkModeUpdate(value: DarkModePref) {
 }
 
 async function runQueuedDarkModeSync() {
-  try {
-    while (queuedDarkModeTarget !== null) {
-      const target = queuedDarkModeTarget;
-      const snapshot = state.user;
-      if (!snapshot || snapshot.darkMode === syncedDarkMode) {
-        queuedDarkModeTarget = null;
-        continue;
-      }
+  while (queuedDarkModeTarget !== null) {
+    const target = queuedDarkModeTarget;
+    const snapshot = state.user;
+    if (!snapshot || snapshot.darkMode === syncedDarkMode) {
+      queuedDarkModeTarget = null;
+      continue;
+    }
+    try {
       await usersApi.update(snapshot, ["darkMode"]);
       // Only clear the queued target if it is still the one we just synced;
       // a click made while this request was in flight must survive.
@@ -88,15 +88,19 @@ async function runQueuedDarkModeSync() {
         queuedDarkModeTarget = null;
       }
       syncedDarkMode = target;
+    } catch (e) {
+      if (queuedDarkModeTarget === target) {
+        // No newer click survived this failed request: roll the optimistic
+        // state back to the last value known to be on the server and stop.
+        if (state.user && syncedDarkMode !== null && state.user.darkMode !== syncedDarkMode) {
+          state.user = { ...state.user, darkMode: syncedDarkMode };
+        }
+        queuedDarkModeTarget = null;
+        notify.showError(e);
+        emitStateChanged();
+      }
+      // A newer click is queued: keep it and let the next iteration try it.
     }
-  } catch (e) {
-    // Roll the optimistic state back to the last value known to be on the server.
-    if (state.user && syncedDarkMode !== null && state.user.darkMode !== syncedDarkMode) {
-      state.user = { ...state.user, darkMode: syncedDarkMode };
-    }
-    queuedDarkModeTarget = null;
-    notify.showError(e);
-    emitStateChanged();
   }
 }
 
