@@ -8,6 +8,7 @@ on:
 jobs:
   test-backend:
     runs-on: ubuntu-24.04-arm
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
@@ -17,6 +18,7 @@ jobs:
         run: go test -race -v ./... -timeout 30s
   lint-backend:
     runs-on: ubuntu-24.04-arm
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
@@ -28,6 +30,7 @@ jobs:
           cd backend && "$GOLANGCI_LINT" run --path-prefix=backend
   format-backend:
     runs-on: ubuntu-24.04-arm
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
@@ -37,6 +40,7 @@ jobs:
         run: go fmt ./...
   lint-frontend:
     runs-on: ubuntu-24.04-arm
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -46,6 +50,7 @@ jobs:
         run: npm i && npm run lint
   test-frontend:
     runs-on: ubuntu-24.04-arm
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -55,6 +60,7 @@ jobs:
         run: npm i && npm run test
   check-translations:
     runs-on: ubuntu-24.04-arm
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -64,6 +70,7 @@ jobs:
         run: npm i && npm run i18n:check
   check-docs:
     runs-on: ubuntu-24.04-arm
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
@@ -73,6 +80,7 @@ jobs:
       - run: git diff --exit-code
   check-icons:
     runs-on: ubuntu-24.04-arm
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

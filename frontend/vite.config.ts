@@ -43,7 +43,7 @@ const chunks: Record<string, string[]> = {
   highlightjs: ["node_modules/highlight.js"],
   mammoth: ["node_modules/mammoth"],
   epubts: ["node_modules/jszip", "node_modules/@likecoin/epub-ts"],
-  katex: ["node_modules/katex", "node_modules/marked-katex-extension"],
+  temml: ["node_modules/temml"],
 };
 
 // Better error handling in watch mode: suppress certain warnings in dev builds.
@@ -81,7 +81,6 @@ export default defineConfig(({ command }) => {
   ].filter(Boolean);
 
   if (isServe) {
-    const devOrigin = process.env.VITE_DEV_ORIGIN || "http://localhost:8080";
     const devPort = Number.parseInt(process.env.VITE_DEV_PORT || "5173", 10);
 
     return {
@@ -94,7 +93,6 @@ export default defineConfig(({ command }) => {
         host: "127.0.0.1",
         port: devPort,
         strictPort: true,
-        origin: devOrigin,
         // base already is /__vite/; do not set hmr.path or it becomes /__vite/__vite/
         hmr: {
           clientPort: Number.parseInt(process.env.VITE_DEV_CLIENT_PORT || "8080", 10),

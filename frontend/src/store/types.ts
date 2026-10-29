@@ -226,6 +226,7 @@ export interface UserObject {
   };
   // Optional properties that may be added dynamically
   disableViewingExt?: string;
+  disablePreviewExt?: string;
   disableOnlyOfficeExt?: string;
   displayNames?: string[];
   id?: number;
@@ -280,6 +281,7 @@ export interface StoreState {
   } | null;
   contextMenuHasItems: boolean;
   deletedItem: boolean;
+  pendingHighlight: { path: string; source?: string } | null;
   showOverflowMenu: boolean;
   sessionId: string;
   isSafari: boolean;
@@ -425,6 +427,7 @@ export interface StoreState {
     gestureHint: 'previous' | 'next' | 'close' | null;
     gestureHintCommitReady: boolean;
     gestureHintFlashClose: boolean;
+    sorting: { by: string; asc: boolean } | null;
   };
   playbackQueue: {
     queue: unknown[];
