@@ -708,7 +708,9 @@ func loadConfigWithDefaults(configFile string, generate bool) error {
 	}
 
 	// Second pass: Decode with strict validation (disallow unknown fields within valid sections)
-	decoder := yaml.NewDecoder(bytes.NewReader(filteredYAML), yaml.DisallowUnknownField())
+	// UseJSONUnmarshaler lets typed fields with custom UnmarshalJSON (e.g. users.DarkMode)
+	// handle YAML scalars like booleans instead of the generic decoder casting them to strings.
+	decoder := yaml.NewDecoder(bytes.NewReader(filteredYAML), yaml.DisallowUnknownField(), yaml.UseJSONUnmarshaler())
 	err = decoder.Decode(&Config)
 	if err != nil {
 		return fmt.Errorf("error unmarshaling YAML data: %v", err)
