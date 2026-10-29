@@ -59,7 +59,7 @@ func ProfileFromUser(u *users.User) UserProfile {
 			DisableOptions: u.DisableSearchOptions,
 		},
 		UI: UserDefaultsUI{
-			DarkMode:    boolPtr(u.DarkMode),
+			DarkMode:    u.DarkMode,
 			ThemeColor:  u.ThemeColor,
 			CustomTheme: u.CustomTheme,
 			Locale:      u.Locale,
@@ -138,7 +138,7 @@ func ExpandProfileIntoUser(u *users.User, p UserProfile) {
 
 	u.DisableSearchOptions = p.Search.DisableOptions
 
-	u.DarkMode = boolValueOrDefault(p.UI.DarkMode, true)
+	u.DarkMode = p.UI.DarkMode.Or(users.DarkModeDark)
 	u.ThemeColor = p.UI.ThemeColor
 	u.CustomTheme = p.UI.CustomTheme
 	u.Locale = p.UI.Locale

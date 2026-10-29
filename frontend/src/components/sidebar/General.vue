@@ -38,7 +38,7 @@
           <i class="material-symbols">ads_click</i>
         </div>
         <div aria-label="Toggle Theme" v-if="darkModeTogglePossible" class="clickable"
-          :class="{ active: user?.darkMode }" @click="toggleDarkMode"
+          :class="{ active: isDarkMode }" @click="toggleDarkMode"
           @mouseenter="showTooltip($event, $t('index.toggleDark'))" @mouseleave="hideTooltip">
           <i class="material-symbols">dark_mode</i>
         </div>
@@ -126,6 +126,7 @@ export default {
     route: () => state.route,
     realtimeActive: () => state.realtimeActive,
     darkModeTogglePossible: () => state.shareInfo?.enforceDarkLightMode !== "dark" && state.shareInfo?.enforceDarkLightMode !== "light",
+    isDarkMode: () => getters.isDarkMode(),
     shouldShowLogin() {
       if (getters.isShare()) {
         // Don't show login until shareInfo is fully loaded

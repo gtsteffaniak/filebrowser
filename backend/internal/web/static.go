@@ -245,6 +245,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"customCSS":          template.CSS(settings.Config.Frontend.Styling.CustomCSSRaw),
 		"userSelectedTheme":  template.CSS(userSelectedTheme),
 		"defaultDarkMode":    settings.DefaultDarkMode(),
+		"autoDarkMode":       settings.DefaultDarkModeIsAuto(),
 		"lightBackground":    settings.Config.Frontend.Styling.LightBackground,
 		"darkBackground":     settings.Config.Frontend.Styling.DarkBackground,
 		"staticURL":          staticURL,

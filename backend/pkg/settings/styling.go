@@ -8,6 +8,8 @@ import (
 	"strings"
 
 	"github.com/gtsteffaniak/go-logger/logger"
+
+	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 )
 
 // Strict hex color regex: #RGB, #RGBA, #RRGGBB, #RRGGBBAA
@@ -120,8 +122,16 @@ func readCustomCSS(path string) (string, error) {
 }
 
 // DefaultDarkMode reports whether the instance default theme is dark.
+// "auto" (follow system) resolves to light on the server; clients handle
+// "auto" by checking their own prefers-color-scheme media query.
 func DefaultDarkMode() bool {
-	return Config.UserDefaults.UI.DarkMode != nil && *Config.UserDefaults.UI.DarkMode
+	return Config.UserDefaults.UI.DarkMode == users.DarkModeDark
+}
+
+// DefaultDarkModeIsAuto reports whether the instance default theme follows
+// the client system preference.
+func DefaultDarkModeIsAuto() bool {
+	return Config.UserDefaults.UI.DarkMode == users.DarkModeAuto
 }
 
 // DefaultBackgroundColor returns the background color of the instance's default theme.

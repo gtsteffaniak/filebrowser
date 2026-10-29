@@ -9,7 +9,7 @@ import { getTypeInfo, isHtmlMimeType, isRichTextPreviewMimeType } from "@/utils/
 import { formatTimestamp, fromNow } from "@/utils/moment.ts";
 import { getNestedProperty, getObjectProperty } from '@/utils/object.js';
 import { buildItemUrl, removeLeadingSlash, removePrefix } from '@/utils/url.js';
-import { defaultDarkMode } from "@/utils/theme.js";
+import { defaultDarkMode, resolveDarkMode } from "@/utils/theme.js";
 import { isMobileLayout } from '@/utils/viewport.js';
 import type { DisplayPreference, FileListItem } from "./types.ts";
 
@@ -201,15 +201,15 @@ export const getters = {
     if (!getters.isLoggedIn()) {
       // Public shares honor an initialized anonymous preference so the sidebar
       // toggle reaches the document. Login and other logged-out routes, and a
-      // share whose user or darkMode boolean is not ready yet, stay on the
+      // share whose user or darkMode preference is not ready yet, stay on the
       // configured default.
       const sharePreference = getters.isShare() ? state.user?.darkMode : undefined
-      if (typeof sharePreference === "boolean") {
-        return sharePreference
+      if (sharePreference !== undefined && sharePreference !== null) {
+        return resolveDarkMode(sharePreference, defaultDarkMode())
       }
       return defaultDarkMode()
     }
-    return state.user.darkMode === true
+    return resolveDarkMode(state.user.darkMode, defaultDarkMode())
   },
   isLoggedIn: () => {
     if (state.user === null) {
