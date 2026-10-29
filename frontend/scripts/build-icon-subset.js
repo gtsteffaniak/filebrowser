@@ -28,6 +28,7 @@ const EXTRA_ICONS = [
   'arrow_downward',
   'arrow_upward',
   'autorenew',
+  'dark_mode',
   'light_mode',
   'routine',
   'build',

@@ -47,6 +47,55 @@ let navigationSortCache: {
   items: Partial<FileListItem>[];
 } | null = null;
 
+type DarkModePref = "auto" | "dark" | "light";
+
+/**
+ * Serialized dark-mode preference syncing for the sidebar quick toggle.
+ * Rapid clicks apply the choice optimistically and coalesce into at most one
+ * PATCH per settled request, so the saved preference always converges to the
+ * displayed one even when requests would otherwise race.
+ */
+let darkModeSyncQueue: Promise<void> = Promise.resolve();
+let queuedDarkModeTarget: DarkModePref | null = null;
+let syncedDarkMode: UserObject["darkMode"] | null = null;
+
+function queueDarkModeUpdate(value: DarkModePref) {
+  if (queuedDarkModeTarget === null) {
+    syncedDarkMode = state.user ? state.user.darkMode : null;
+    darkModeSyncQueue = darkModeSyncQueue.then(runQueuedDarkModeSync, runQueuedDarkModeSync);
+  }
+  queuedDarkModeTarget = value;
+  // Optimistic: show the chosen mode immediately; the queue reconciles the server.
+  if (state.user && state.user.darkMode !== value) {
+    state.user = { ...state.user, darkMode: value };
+  }
+  emitStateChanged();
+}
+
+async function runQueuedDarkModeSync() {
+  try {
+    while (queuedDarkModeTarget !== null) {
+      const target = queuedDarkModeTarget;
+      const snapshot = state.user;
+      if (!snapshot || snapshot.darkMode === syncedDarkMode) {
+        queuedDarkModeTarget = null;
+        continue;
+      }
+      await usersApi.update(snapshot, ["darkMode"]);
+      syncedDarkMode = target;
+      queuedDarkModeTarget = null;
+    }
+  } catch (e) {
+    // Roll the optimistic state back to the last value known to be on the server.
+    if (state.user && syncedDarkMode !== null && state.user.darkMode !== syncedDarkMode) {
+      state.user = { ...state.user, darkMode: syncedDarkMode };
+    }
+    queuedDarkModeTarget = null;
+    notify.showError(e);
+    emitStateChanged();
+  }
+}
+
 function getSortedNavigationItems(listing: Partial<FileListItem>[], by: string, asc: boolean): Partial<FileListItem>[] {
   const cache = navigationSortCache;
   if (cache && cache.listing === listing && cache.length === listing.length && cache.by === by && cache.asc === asc) {
@@ -383,7 +432,7 @@ export const mutations = {
     // Switch to the explicit opposite of the currently resolved mode. From
     // "auto", this picks the explicit counterpart of the system preference.
     const dark = getters.isDarkMode();
-    void mutations.updateCurrentUser({ "darkMode": dark ? "light" : "dark" });
+    queueDarkModeUpdate(dark ? "light" : "dark");
     emitStateChanged();
   },
   cycleDarkMode() {
@@ -392,8 +441,8 @@ export const mutations = {
     // and the dropdown stay in sync.
     const order = ["auto", "light", "dark"] as const;
     const current = normalizeDarkMode(state.user?.darkMode) as (typeof order)[number];
-    const next = order[(order.indexOf(current) + 1) % order.length];
-    void mutations.updateCurrentUser({ "darkMode": next });
+    const next = order[(order.indexOf(current) + 1) % order.length] as (typeof order)[number];
+    queueDarkModeUpdate(next);
     emitStateChanged();
   },
   toggleSidebar() {
