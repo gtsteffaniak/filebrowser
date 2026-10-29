@@ -82,8 +82,12 @@ async function runQueuedDarkModeSync() {
         continue;
       }
       await usersApi.update(snapshot, ["darkMode"]);
+      // Only clear the queued target if it is still the one we just synced;
+      // a click made while this request was in flight must survive.
+      if (queuedDarkModeTarget === target) {
+        queuedDarkModeTarget = null;
+      }
       syncedDarkMode = target;
-      queuedDarkModeTarget = null;
     }
   } catch (e) {
     // Roll the optimistic state back to the last value known to be on the server.
