@@ -25,8 +25,8 @@ func TestFinishUserLoad_legacyProfileRowPreservesAbsentSettingsFields(t *testing
 	if !loaded.ShowFirstLogin {
 		t.Fatal("expected top-level showFirstLogin to be preserved when settings omits it")
 	}
-	if !loaded.DarkMode {
-		t.Fatal("expected profile darkMode=true")
+	if !loaded.DarkMode.IsDark() {
+		t.Fatalf("expected profile darkMode=true, got %q", loaded.DarkMode)
 	}
 	if len(loaded.PasskeyCredentials) != 0 {
 		t.Fatalf("expected no passkeys when settings omits passkeyCredentials, got %#v", loaded.PasskeyCredentials)
@@ -95,7 +95,7 @@ func TestUserDataRoundTrip_profileSettingsOverlay(t *testing.T) {
 			LoginMethod:    users.LoginMethodPassword,
 			ShowFirstLogin: true,
 			NonAdminEditable: users.NonAdminEditable{
-				DarkMode: true,
+				DarkMode: users.DarkModeDark,
 				SidebarLinks: []users.SidebarLink{
 					{Name: "Home", Target: "/files"},
 				},

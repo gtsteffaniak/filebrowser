@@ -1,18 +1,22 @@
 import { createApp } from "vue";
 import i18n from "@/i18n/index.ts";
-import { state } from "@/store/index.ts";
+import { state, getters } from "@/store/index.ts";
 // biome-ignore lint/correctness/noUnresolvedImports: disabled temporarily
 import App from "./App.vue";
 import { router } from "./router/index.ts";
 
 import "./css/styles.css";
 import { initPwaInstall } from "@/utils/pwaInstall.js";
-import { defaultDarkMode, syncDocumentTheme } from "@/utils/theme.js";
+import { defaultDarkMode, syncDocumentTheme, watchSystemTheme } from "@/utils/theme.js";
 import { initViewportLayoutListener } from "@/utils/viewport.js";
 
 initPwaInstall();
 initViewportLayoutListener();
 syncDocumentTheme(defaultDarkMode());
+// Live-update the theme when the OS switches appearance while in "auto" mode.
+watchSystemTheme(() => {
+  syncDocumentTheme(getters.isDarkMode());
+});
 
 const app = createApp(App);
 

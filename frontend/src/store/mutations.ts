@@ -383,7 +383,11 @@ export const mutations = {
     state.settings = value;
   },
   toggleDarkMode() {
-    void mutations.updateCurrentUser({ "darkMode": !state.user.darkMode });
+    // Switch to the explicit opposite of the currently resolved mode. From
+    // "auto", this picks the explicit counterpart of the system preference.
+    const dark = getters.isDarkMode();
+    void mutations.updateCurrentUser({ "darkMode": dark ? "light" : "dark" });
+    emitStateChanged();
   },
   toggleSidebar() {
     state.showSidebar = !state.showSidebar;

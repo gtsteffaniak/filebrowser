@@ -1036,7 +1036,7 @@ func SetDefaults(generate bool) Settings {
 				DisableOptions: false,
 			},
 			UI: UserDefaultsUI{
-				DarkMode:    boolPtr(true),
+				DarkMode:    users.DarkModeDark,
 				ThemeColor:  "var(--blue)",
 				CustomTheme: "",
 				Locale:      "en",

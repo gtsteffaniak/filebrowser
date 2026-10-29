@@ -230,7 +230,8 @@ export interface UserObject {
   disableSearchOptions?: boolean;
   scopes: UserScope[];
   permissions: Permissions;
-  darkMode: boolean;
+  /** Theme preference: "auto" (follow system), "dark", "light". Legacy booleans are tolerated. */
+  darkMode: boolean | "auto" | "dark" | "light";
   disableSettings: boolean;
   showAdvancedProfile?: boolean;
   debugOffice: boolean;

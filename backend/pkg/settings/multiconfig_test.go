@@ -4,6 +4,8 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 )
 
 func TestMultiConfigLoad(t *testing.T) {
@@ -228,7 +230,7 @@ frontend:
 	}
 
 	// Verify user defaults
-	if Config.UserDefaults.UI.DarkMode == nil || !*Config.UserDefaults.UI.DarkMode {
+	if Config.UserDefaults.UI.DarkMode != users.DarkModeDark {
 		t.Errorf("Expected dark mode true, got %v", Config.UserDefaults.UI.DarkMode)
 	}
 
