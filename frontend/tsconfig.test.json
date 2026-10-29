@@ -1,0 +1,22 @@
+{
+  "extends": "./tsconfig.app.json",
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.js",
+    "src/**/*.d.ts",
+    "src/**/*.vue",
+    "tests/playwright/**/*.ts",
+    "playwright.config.ts",
+    "playwright.performance.config.ts"
+  ],
+  "exclude": [],
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.test.tsbuildinfo",
+    "types": [
+      "node",
+      "vite/client",
+      "vitest/globals",
+      "@intlify/unplugin-vue-i18n/messages"
+    ]
+  }
+}

@@ -43,5 +43,6 @@
     "src/**/*.js",
     "src/**/*.d.ts",
     "src/**/*.vue"
-  ]
+  ],
+  "exclude": ["src/**/*.test.ts"]
 }
