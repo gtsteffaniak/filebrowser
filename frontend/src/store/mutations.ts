@@ -10,6 +10,7 @@ import {
 import { detectLocale, setLocale } from "@/i18n/index.ts";
 import { notify } from "@/notify/index.ts";
 import { url } from "@/utils/index.ts";
+import { normalizeDarkMode } from "@/utils/theme.js";
 import { getTypeInfo } from "@/utils/mimetype.js";
 import { getObjectProperty, setObjectProperty, omitObjectProperty } from '@/utils/object.js';
 import { sortedItems } from "@/utils/sort.ts";
@@ -383,6 +384,16 @@ export const mutations = {
     // "auto", this picks the explicit counterpart of the system preference.
     const dark = getters.isDarkMode();
     void mutations.updateCurrentUser({ "darkMode": dark ? "light" : "dark" });
+    emitStateChanged();
+  },
+  cycleDarkMode() {
+    // Cycle the preference auto -> light -> dark -> auto, matching the order
+    // of the theme dropdown in profile settings, so the sidebar quick toggle
+    // and the dropdown stay in sync.
+    const order = ["auto", "light", "dark"] as const;
+    const current = normalizeDarkMode(state.user?.darkMode) as (typeof order)[number];
+    const next = order[(order.indexOf(current) + 1) % order.length];
+    void mutations.updateCurrentUser({ "darkMode": next });
     emitStateChanged();
   },
   toggleSidebar() {
