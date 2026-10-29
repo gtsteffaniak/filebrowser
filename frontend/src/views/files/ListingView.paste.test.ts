@@ -1,5 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createApp } from "vue";
+import { createApp, type App } from "vue";
+
+type Permissions = Partial<Record<"view" | "download" | "modify" | "create" | "delete", boolean>>;
 
 const { store, mutations } = vi.hoisted(() => ({
   store: {
@@ -8,7 +10,7 @@ const { store, mutations } = vi.hoisted(() => ({
     permissions: {
       data: { view: true, download: true, modify: false, create: false, delete: false },
       inbox: { view: true, download: true, modify: true, create: true, delete: true },
-    },
+    } as Record<string, Permissions>,
   },
   mutations: { showPrompt: vi.fn(), setSearch: vi.fn() },
 }));
@@ -40,15 +42,15 @@ vi.mock("@/store", () => ({
     currentView: () => "listingView",
     currentPromptName: () => "",
     globalPermissions: () => ({}),
-    sourcePermissions: (source) => store.permissions[source ?? store.current],
+    sourcePermissions: (source?: string) => store.permissions[source ?? store.current],
   },
 }));
-vi.mock("vue-i18n", () => ({ useI18n: () => ({ t: (key) => key }) }));
+vi.mock("vue-i18n", () => ({ useI18n: () => ({ t: (key: string) => key }) }));
 vi.mock("@/utils/download", () => ({ default: vi.fn() }));
 vi.mock("@/api", () => ({ resourcesApi: {} }));
 vi.mock("@/router", () => ({ router: {} }));
 vi.mock("@/utils/upload", () => ({ readAllDirectoryEntries: vi.fn(), checkConflict: vi.fn() }));
-vi.mock("@/utils/throttle", () => ({ default: (fn) => fn }));
+vi.mock("@/utils/throttle", () => ({ default: (fn: unknown) => fn }));
 vi.mock("@/utils", () => ({ url: {} }));
 vi.mock("@/components/files/ListingItem.vue", () => ({ default: { render: () => null } }));
 vi.mock("@/components/prompts/Upload.vue", () => ({ default: { render: () => null } }));
@@ -62,22 +64,22 @@ vi.mock("@/utils/appNotifications", () => ({ notifyMoveCopyFailure: vi.fn() }));
 import ListingView from "./ListingView.vue";
 
 // Ctrl+C / Ctrl+X in the source the item is copied from, then Ctrl+V in the current one.
-const copyOrCut = (key, fromSource) => {
+const copyOrCut = (key: "c" | "x", fromSource: string) => {
   store.current = fromSource;
   const which = key === "x" ? 88 : 67;
   const event = new KeyboardEvent("keydown", { key, ctrlKey: true, bubbles: true });
   Object.defineProperty(event, "which", { value: which });
   document.body.dispatchEvent(event);
 };
-const paste = (key, fromSource, toSource = store.current) => {
+const paste = (key: "c" | "x", fromSource: string, toSource = store.current) => {
   copyOrCut(key, fromSource);
   store.current = toSource;
   window.dispatchEvent(new Event("paste", { cancelable: true }));
 };
 
 describe("ListingView internal paste permissions", () => {
-  let host;
-  let app;
+  let host: HTMLElement;
+  let app: App;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -87,7 +89,7 @@ describe("ListingView internal paste permissions", () => {
     host = document.createElement("div");
     document.body.appendChild(host);
     app = createApp(ListingView);
-    app.config.globalProperties.$t = (key) => key;
+    app.config.globalProperties.$t = (key: string) => key;
     app.mount(host);
   });
 

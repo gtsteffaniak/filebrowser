@@ -1,5 +1,5 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
-import { createApp, nextTick } from "vue";
+import { afterEach, describe, expect, it, vi, type MockInstance } from "vitest";
+import { createApp, nextTick, type App } from "vue";
 
 const { store } = vi.hoisted(() => ({ store: { create: false } }));
 vi.mock("@/store", () => ({
@@ -24,12 +24,12 @@ vi.mock("@/store", () => ({
     sourcePermissions: () => ({ create: store.create }),
   },
 }));
-vi.mock("vue-i18n", () => ({ useI18n: () => ({ t: (key) => key }) }));
+vi.mock("vue-i18n", () => ({ useI18n: () => ({ t: (key: string) => key }) }));
 vi.mock("@/utils/download", () => ({ default: vi.fn() }));
 vi.mock("@/api", () => ({ resourcesApi: {} }));
 vi.mock("@/router", () => ({ router: {} }));
 vi.mock("@/utils/upload", () => ({ readAllDirectoryEntries: vi.fn(), checkConflict: vi.fn() }));
-vi.mock("@/utils/throttle", () => ({ default: (fn) => fn }));
+vi.mock("@/utils/throttle", () => ({ default: (fn: unknown) => fn }));
 vi.mock("@/utils", () => ({ url: {} }));
 vi.mock("@/components/files/ListingItem.vue", () => ({ default: { render: () => null } }));
 vi.mock("@/components/prompts/Upload.vue", () => ({ default: { render: () => null } }));
@@ -43,24 +43,24 @@ vi.mock("@/utils/appNotifications", () => ({ notifyMoveCopyFailure: vi.fn() }));
 import ListingView from "./ListingView.vue";
 
 const dropEvents = ["dragenter", "dragleave", "drop"];
-const typesOn = (spy, el) =>
-  spy.mock.calls.filter((_call, i) => spy.mock.contexts[i] === el).map(([type]) => type);
+const typesOn = (spy: MockInstance, el: Element) =>
+  spy.mock.calls.filter((_call, i) => spy.mock.contexts[i] === el).map((call) => call[0]);
 
-const fire = (el, type) => {
+const fire = (el: Element, type: string) => {
   const event = new Event(type, { bubbles: true, cancelable: true });
   Object.assign(event, { dataTransfer: { types: ["Files"] }, relatedTarget: null });
   el.dispatchEvent(event);
 };
 
-let mounted = null;
+let mounted: { app: App; host: HTMLElement } | null = null;
 const mountListing = () => {
   const host = document.createElement("div");
   document.body.appendChild(host);
   const app = createApp(ListingView);
-  app.config.globalProperties.$t = (key) => key;
+  app.config.globalProperties.$t = (key: string) => key;
   app.mount(host);
   mounted = { app, host };
-  return { app, root: host.firstElementChild };
+  return { app, root: host.firstElementChild as HTMLElement };
 };
 
 describe("ListingView drop listeners", () => {
