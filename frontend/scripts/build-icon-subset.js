@@ -28,6 +28,8 @@ const EXTRA_ICONS = [
   'arrow_downward',
   'arrow_upward',
   'autorenew',
+  'light_mode',
+  'routine',
   'build',
   'check',
   'cloud_off',
