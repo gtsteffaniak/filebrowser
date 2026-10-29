@@ -37,6 +37,7 @@ export function emptyMediaSettings() {
     extractEmbeddedSubtitles: false,
     hardwareAcceleration: true,
     accelDevice: 'auto',
+    alwaysUseFfmpeg: false,
     transcode: emptyMediaTranscode(),
   };
 }

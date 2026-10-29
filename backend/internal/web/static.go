@@ -295,7 +295,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"passwordAvailable":             settings.Config.Auth.Methods.PasswordAuth.Enabled,
 		"passwordMinLength":             settings.PasswordMinLength(),
 		"ldapAvailable":                 settings.Config.Auth.Methods.LdapAuth.Enabled,
-		"mediaAvailable":                settings.MediaEnabled(),
+		"ffmpegAvailable":               settings.FFmpegEnabled(),
 		"hardwareAccelerationAvailable": settings.HardwareAccelerationSupported(),
 		"transcodeEnabled":              settings.TranscodeEnabled(),
 		"transcodeProfiles":             settings.EnabledTranscodeProfiles(),

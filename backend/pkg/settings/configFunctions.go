@@ -26,9 +26,11 @@ func CanConvertVideo(ext string) bool {
 	return *val
 }
 
-// MediaEnabled reports whether ffmpeg initialized successfully. Read under the
-// media lock so it is consistent while an admin toggles media settings.
-func MediaEnabled() bool {
+// FFmpegEnabled reports whether ffmpeg initialized successfully. This gates only
+// the ffmpeg fallback and ffmpeg-only features (HEIC, transcoding). go-media does
+// not need it. Read under the media lock so it is consistent while an admin
+// toggles media settings.
+func FFmpegEnabled() bool {
 	mediaMu.RLock()
 	defer mediaMu.RUnlock()
 	return Env.FFmpegAvailable

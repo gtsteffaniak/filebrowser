@@ -505,9 +505,11 @@ func GeneratePreviewWithMD5(ctx context.Context, file iteminfo.ExtendedFileInfo,
 	// When we got bytes from an embedded preview, we still need to resize to small/large/xlarge (original is never converted).
 	// When we got bytes from type-specific path, regular images are already resized; others need resize below.
 	previewType := determinePreviewType(file)
+	// Video thumbnails come from go-media or ffmpeg already sized to the preview
+	// box, so they are final and need no ffmpeg gate here.
 	if !fromEmbeddedPreview && (previewType == previewTypeImage ||
 		(previewType == previewTypeDocument && settings.Env.MuPdfAvailable) ||
-		(previewType == previewTypeVideo && settings.Env.FFmpegAvailable)) {
+		previewType == previewTypeVideo) {
 		if err := service.fileCache.Store(ctx, cacheKey, imageBytes); err != nil {
 			logger.Errorf("failed to cache image: %v", err)
 		}

@@ -29,6 +29,16 @@ func TestResolveLocalMediaPath(t *testing.T) {
 		{name: "relative path", path: "video.mp4", wantErr: true},
 	}
 
+	trailingSpacePath := filepath.Join(filepath.Dir(tmpPath), "probe-trailing-space ")
+	if err := os.WriteFile(trailingSpacePath, []byte("x"), 0o644); err != nil {
+		t.Fatalf("WriteFile(trailing space) error = %v", err)
+	}
+	tests = append(tests, struct {
+		name    string
+		path    string
+		wantErr bool
+	}{name: "trailing space in filename", path: trailingSpacePath})
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()

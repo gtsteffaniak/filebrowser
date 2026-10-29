@@ -24,15 +24,14 @@ func ffmpegPreviewParamsForSize(previewSize string) (ffmpegPreviewParams, error)
 		return ffmpegPreviewParams{}, err
 	}
 
+	// Video thumbnails always fit within the box (aspect ratio kept). No crop, on
+	// either the go-media or the ffmpeg path, so the ResizeMode fill setting used
+	// by still-image previews does not apply here.
 	params := ffmpegPreviewParams{
-		width:   opts.Width,
-		height:  opts.Height,
-		quality: ffmpegMJPEGPreviewQuality, // ~legacy -q:v 10; visual quality comes from target dimensions
-	}
-	if opts.ResizeMode == ResizeModeFill {
-		params.scaleMode = ops.ScaleFill
-	} else {
-		params.scaleMode = ops.ScaleFit
+		width:     opts.Width,
+		height:    opts.Height,
+		scaleMode: ops.ScaleFit,
+		quality:   ffmpegMJPEGPreviewQuality, // ~legacy -q:v 10; visual quality comes from target dimensions
 	}
 	return params, nil
 }

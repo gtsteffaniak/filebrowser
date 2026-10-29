@@ -469,19 +469,10 @@ func mediaSettingsLockMeta() (paths []string, message string) {
 	return paths, settings.MediaConfigLockMessage
 }
 
-// requireMediaEnabled gates the media settings APIs on ffmpeg availability so
-// clients get a 503 they can hide UI behind instead of a 200 with dead data.
-func requireMediaEnabled() error {
-	if !settings.MediaEnabled() {
-		return fmt.Errorf("media features unavailable: ffmpeg not available")
-	}
-	return nil
-}
-
+// The media settings APIs no longer require ffmpeg. go-media serves probing,
+// metadata, subtitles, and video thumbnails without it. ffmpeg-only controls
+// (transcoding, hardware acceleration) report their own availability.
 func settingsMediaGetHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
-	if err := requireMediaEnabled(); err != nil {
-		return http.StatusServiceUnavailable, err
-	}
 	if !d.User.Permissions.Admin {
 		return RenderJSON(w, r, currentMediaPlayerSettings())
 	}
@@ -519,9 +510,6 @@ func currentMediaPlayerSettings() mediaPlayerSettings {
 // @Success 200 {object} mediaSettingsResponse "Updated media settings"
 // @Router /api/settings/media [patch]
 func settingsMediaPatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
-	if err := requireMediaEnabled(); err != nil {
-		return http.StatusServiceUnavailable, err
-	}
 	patchJSON, err := readSettingsPatchBody(w, r)
 	if err != nil {
 		if err.Error() == "request body too large" {

@@ -704,6 +704,8 @@
     "transcodeProfileEncoderBackendHelp": "Override the H.264 encoder for this preset. Default lets go-ffmpeg choose from the acceleration device and detected encoders.",
     "extractEmbeddedSubtitles": "Extract embedded subtitles",
     "extractEmbeddedSubtitlesDescription": "Extract embedded subtitles from media files.",
+    "alwaysUseFfmpeg": "Always use ffmpeg",
+    "alwaysUseFfmpegDescription": "Skip the go-media fast path and use ffmpeg for all probing, metadata, subtitles, and video thumbnails. Turn on if go-media gives wrong results for your files.",
     "debug": "Debug logging",
     "debugDescription": "Output ffmpeg stdout for the media integration. Warning: produces a lot of output.",
     "imagePreview": "Image preview formats",

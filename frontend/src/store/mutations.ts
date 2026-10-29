@@ -665,14 +665,6 @@ export const mutations = {
       emitStateChanged();
       return;
     }
-    // ffmpeg availability is fixed for the process lifetime; skip the API when
-    // media is unavailable (GET /settings/media answers 503 and shows up as a
-    // failed request / console error in Playwright and the browser).
-    if (globalVars.mediaAvailable !== true) {
-      state.mediaPlayerSettings = null;
-      emitStateChanged();
-      return;
-    }
     try {
       const settings = await getMediaPlayerSettings();
       // The request can resolve after logout/share transition — don't write

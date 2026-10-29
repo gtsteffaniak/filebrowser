@@ -174,7 +174,6 @@ const hasMotion = computed(() => {
   return Boolean(
     typeInfo.value.simpleType === "video" &&
       perms.video &&
-      globalVars.mediaAvailable &&
       perms.motionVideoPreview,
   );
 });

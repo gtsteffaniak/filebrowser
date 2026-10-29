@@ -287,6 +287,9 @@ integrations:
     accelDevice: "auto"                   # AccelDevice selects the acceleration device: "auto" (default), "software"/"cpu",
                                           # "igpu", "dgpu", a Linux DRM render node (e.g. /dev/dri/renderD128), or a GPU
                                           # name substring. Managed via the admin media settings API.
+    alwaysUseFfmpeg: false                # AlwaysUseFfmpeg forces ffmpeg for all probe, metadata, subtitle, and
+                                          # thumbnail work, skipping the go-media fast path. Managed via the admin
+                                          # media settings API.
 http:
   socket: ""                              # socket to listen on - eg. /var/run/filebrowser.sock
   tlsKey: ""                              # path to TLS key

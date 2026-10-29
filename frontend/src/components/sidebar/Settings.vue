@@ -158,11 +158,6 @@ export default {
       const perm = setting?.permissions || {};
       // Check if all keys in setting.perm exist in state.user.perm and have truthy values
       const permitted = Object.keys(perm).every((key) => getObjectProperty(state.user.permissions, key));
-      // Media settings require ffmpeg; hide the entry when media is unavailable so
-      // admins never hit 403/503 from the media settings APIs.
-      if (permitted && setting?.requiresMedia && globalVars.mediaAvailable !== true) {
-        return false;
-      }
       return permitted;
     },
     active: (view) => state.activeSettingsView === view,

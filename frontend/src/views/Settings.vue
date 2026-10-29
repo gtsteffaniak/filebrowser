@@ -125,9 +125,6 @@ export default {
       const perm = setting?.permissions || {};
       const userPermissions = /** @type {Record<string, boolean>} */ (state.user.permissions || {});
       const permitted = Object.keys(perm).every((key) => getObjectProperty(userPermissions, key));
-      if (permitted && setting?.requiresMedia && globalVars.mediaAvailable !== true) {
-        return false;
-      }
       return permitted;
     },
     findSection(setting, view) {

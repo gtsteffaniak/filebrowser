@@ -322,7 +322,6 @@
             :description="$t('profileSettings.previewDescription', { filetype: $t('general.images') })"
           />
           <ProfilePreferenceToggle
-            v-if="mediaEnabled"
             field="video"
             section="preview"
             :name="$t('general.videos')"
@@ -851,9 +850,6 @@ export default {
     halloweenActive() {
       return getters.eventTheme() === "halloween";
     },
-    mediaEnabled() {
-      return globalVars.mediaAvailable;
-    },
     onlyOfficeAvailable() {
       return globalVars.onlyOfficeUrl !== "";
     },
@@ -888,7 +884,7 @@ export default {
     },
     motionPreviewVisible() {
       const p = this.sections.preview || {};
-      return !!p.popup && ((this.mediaEnabled && p.video) || p.folder);
+      return !!p.popup && (p.video || p.folder);
     },
     showThumbnailsForPreviews: {
       get() {

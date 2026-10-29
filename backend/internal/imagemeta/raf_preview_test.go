@@ -54,10 +54,19 @@ func TestExtractRAFEmbeddedPreviewIgnoresInvalidMagic(t *testing.T) {
 	}
 }
 
-func TestExtractRAFEmbeddedPreviewDSCF1276(t *testing.T) {
-	path := "/Users/steffag/Downloads/DSCF1276.RAF"
+// TestExtractRAFEmbeddedPreviewRealSample runs against a real Fujifilm RAF file.
+// The file is not committed, so set FILEBROWSER_TEST_RAF to its path, for example:
+//
+//	FILEBROWSER_TEST_RAF=/path/to/DSCF1276.RAF go test ./internal/imagemeta/ -run RealSample
+//
+// The test is skipped when the variable is unset or the file does not exist.
+func TestExtractRAFEmbeddedPreviewRealSample(t *testing.T) {
+	path := os.Getenv("FILEBROWSER_TEST_RAF")
+	if path == "" {
+		t.Skip("set FILEBROWSER_TEST_RAF to a RAF sample to run this test")
+	}
 	if _, err := os.Stat(path); err != nil {
-		t.Skip(path)
+		t.Skipf("RAF sample not found: %s", path)
 	}
 
 	got, err := ExtractEmbeddedPreview(context.Background(), path)

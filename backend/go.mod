@@ -44,7 +44,10 @@ require (
 
 require (
 	github.com/Azure/go-ntlmssp v0.1.1 // indirect
+	github.com/Eyevinn/mp4ff v0.61.0 // indirect
 	github.com/KyleBanks/depth v1.2.1 // indirect
+	github.com/abema/go-mp4 v1.7.4 // indirect
+	github.com/at-wat/ebml-go v0.19.4 // indirect
 	github.com/boombuler/barcode v1.1.0 // indirect
 	github.com/dsoprea/go-logging v0.0.0-20200710184922-b02d349568dd // indirect
 	github.com/dsoprea/go-utility/v2 v2.0.0-20221003172846-a3e1774ef349 // indirect
@@ -52,6 +55,7 @@ require (
 	github.com/ebitengine/purego v0.11.2 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.6 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.16 // indirect
+	github.com/gen2brain/vpx v0.2.1 // indirect
 	github.com/go-asn1-ber/asn1-ber v1.5.8 // indirect
 	github.com/go-errors/errors v1.5.1 // indirect
 	github.com/go-jose/go-jose/v4 v4.1.6 // indirect
@@ -74,6 +78,7 @@ require (
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/go-tpm v0.9.8 // indirect
+	github.com/gtsteffaniak/go-media v1.0.1 // indirect
 	github.com/kovidgoyal/go-parallel v1.1.1 // indirect
 	github.com/kovidgoyal/go-shm v1.0.0 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
