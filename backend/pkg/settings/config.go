@@ -113,10 +113,13 @@ func warnHttpProxyConfig() {
 		return
 	}
 	if Config.Http.BaseURL != "/" && !Config.Http.TrustProxyHeaders {
-		logger.Warning(`http.baseURL is not "/" but http.trustProxyHeaders is false. Behind a reverse proxy on a subpath, set trustProxyHeaders: true so cookies, client IP, OIDC redirects, and URLs resolve correctly. See https://filebrowserquantum.com/en/docs/configuration/http/#trustproxyheaders`)
+		logger.Warning(`http.baseURL is not "/" but http.trustProxyHeaders is false. Behind a reverse proxy on a subpath, set trustProxyHeaders: true so cookies, OIDC redirects, and URLs resolve correctly, and list the proxy addresses in http.trustedProxies so the client IP resolves too. See https://filebrowserquantum.com/en/docs/configuration/http/#trustproxyheaders`)
 	}
 	if len(Config.Http.TrustedProxies) > 0 && !Config.Http.TrustProxyHeaders {
 		logger.Warning("http.trustedProxies is set but http.trustProxyHeaders is false; trusted proxy entries are ignored until trustProxyHeaders is enabled")
+	}
+	if Config.Http.TrustProxyHeaders && len(Config.Http.TrustedProxies) == 0 && Config.Http.Socket == "" {
+		logger.Warning("http.trustProxyHeaders is true but http.trustedProxies is empty; X-Forwarded-For and X-Real-IP are ignored, so client IPs (rate limits, activity logs) resolve to the proxy address. Add your reverse proxy addresses to http.trustedProxies.")
 	}
 	if !Env.IsDevMode {
 		if u := Config.Http.ExternalUrl; u != "" && strings.HasPrefix(strings.ToLower(u), "http://") {

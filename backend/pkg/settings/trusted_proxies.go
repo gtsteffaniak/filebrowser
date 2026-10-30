@@ -112,7 +112,14 @@ func ipMatchesPrefixes(ip string, prefixes []netip.Prefix) bool {
 // host:port or a bare IP) belongs to a configured trusted proxy. Forwarded
 // client headers must only be honored when this returns true; otherwise any
 // client that can reach the listener directly could spoof its address.
+//
+// When http.socket is set the server listens only on that Unix socket, whose
+// peers have no IP address. Only local processes with filesystem access to the
+// socket can connect, so every peer there is treated as the trusted proxy.
 func IsTrustedProxyPeer(remoteAddr string) bool {
+	if Config.Http.Socket != "" {
+		return true
+	}
 	return ipMatchesPrefixes(remoteAddr, TrustedProxyPrefixes())
 }
 
@@ -130,8 +137,9 @@ func canonicalHopIP(hop string) string {
 // X-Forwarded-For header value.
 //
 // When http.trustedProxies is empty, the rightmost entry is returned: that is
-// the peer recorded by the single trusted reverse proxy, which is correct for
-// a one-proxy deployment and ignores spoofed client-supplied XFF entries.
+// the peer recorded by the single trusted reverse proxy. Over TCP, callers only
+// reach this after IsTrustedProxyPeer, which needs a configured prefix, so the
+// empty case applies to Unix-socket listeners (http.socket) and direct callers.
 //
 // When trustedProxies is configured, the chain is walked right-to-left past
 // every entry that belongs to a trusted proxy; the first untrusted entry is

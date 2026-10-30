@@ -262,8 +262,8 @@ func GetRemoteIP(r *http.Request) string {
 
 	xff := r.Header.Get("X-Forwarded-For")
 	if trustedPeer && xff != "" {
-		// Without http.trustedProxies this returns the rightmost XFF entry (the
-		// client as recorded by the single trusted proxy). With trusted proxies
+		// Without http.trustedProxies (Unix-socket listener) this returns the
+		// rightmost XFF entry, the client as recorded by the proxy. With trusted proxies
 		// configured, the walk skips proxy hops so multi-hop deployments
 		// (CDN -> reverse proxy -> filebrowser) resolve the real client IP —
 		// keeping per-IP rate limits and auth lockouts per client, not per edge.

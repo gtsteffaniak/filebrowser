@@ -130,6 +130,25 @@ func TestIsTrustedProxyPeer(t *testing.T) {
 	}
 }
 
+// With http.socket set the only listener is a Unix socket, whose peers have no IP.
+func TestIsTrustedProxyPeerUnixSocket(t *testing.T) {
+	resetTrustedProxyCache()
+	Config.Http.TrustedProxies = nil
+	Config.Http.Socket = "/tmp/filebrowser.sock"
+	t.Cleanup(func() {
+		Config.Http.Socket = ""
+		resetTrustedProxyCache()
+	})
+	for _, peer := range []string{"", "@"} {
+		if !IsTrustedProxyPeer(peer) {
+			t.Fatalf("unix socket peer %q must be trusted", peer)
+		}
+	}
+	if got := TrustedProxyClientIP("203.0.113.50"); got != "203.0.113.50" {
+		t.Fatalf("got %q, want 203.0.113.50", got)
+	}
+}
+
 func TestValidateHttpConfigRejectsShortMappedPrefix(t *testing.T) {
 	err := ValidateHttpConfig(Http{TrustedProxies: []string{"::ffff:198.51.100.0/80"}})
 	if err == nil {
