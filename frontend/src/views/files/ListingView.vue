@@ -226,8 +226,6 @@ let itemNodes: HTMLCollectionOf<Element> | null = null; // .listing-item element
 let itemNodesHost: HTMLElement | null = null;
 let contentResizeObserver: ResizeObserver | null = null;
 let observedListing: HTMLElement | null = null;
-let resizeTimeout: ReturnType<typeof setTimeout> | null = null;
-let isResizing = false;
 
 const permissions = computed(() => ({ ...getters.globalPermissions(), ...getters.sourcePermissions() }));
 const shareInfo = computed(() => state.shareInfo);
@@ -241,14 +239,7 @@ const isDragging = computed(() => {
 });
 const scrolling = computed(() => state.listing.listingScrollTop);
 const isStickySidebar = computed(() => getters.isStickySidebar());
-const items = computed(
-  () =>
-    getters.reqItems() as {
-      pinned: fileListItemIndex[];
-      dirs: fileListItemIndex[];
-      files: fileListItemIndex[];
-    },
-);
+const items = computed(() => getters.reqItems());
 const pinnedItems = computed(() => items.value.pinned || []);
 const dirs = computed(() => items.value.dirs);
 const files = computed(() => items.value.files);
@@ -312,21 +303,7 @@ useListingKeyboard({
 
 useListingContextMenu(rootEl, { getProps: () => ({ createOnly: selectedCount.value === 0 }) });
 
-function onResize() {
-  if (!isResizing) {
-    isResizing = true;
-    listingView.value?.classList.add("resizing");
-  }
-  if (resizeTimeout) {
-    clearTimeout(resizeTimeout);
-  }
-  resizeTimeout = setTimeout(() => {
-    isResizing = false;
-    listingView.value?.classList.remove("resizing");
-  }, 150);
-}
-
-const { itemStyles } = useListingLayout({ onResize });
+const { itemStyles } = useListingLayout({ container: listingView });
 
 const { handleInternalPaste, hasInternalItems, isInternalRecent } = useListingClipboard();
 
@@ -404,12 +381,6 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   contentResizeObserver?.disconnect();
-
-  if (resizeTimeout) {
-    clearTimeout(resizeTimeout);
-    resizeTimeout = null;
-  }
-
   const el = rootEl.value;
 
   // Remove event listeners before destroying this page.

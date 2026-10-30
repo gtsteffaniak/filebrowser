@@ -1,8 +1,8 @@
-import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, watch, type Ref } from "vue";
 import { state, getters } from "@/store/index.ts";
 import throttle from "@/utils/throttle.js";
 
-export function useListingLayout(options: { onResize?: () => void } = {}) {
+export function useListingLayout(options: { container?: Ref<HTMLElement | null> } = {}) {
   const columnWidth = ref(250 + state.user.gallerySize * 50);
   const width = ref(window.innerWidth);
 
@@ -92,12 +92,29 @@ export function useListingLayout(options: { onResize?: () => void } = {}) {
     },
   );
 
+  let resizeTimeout: ReturnType<typeof setTimeout> | null = null;
+
   const windowsResize = throttle(() => {
     width.value = window.innerWidth;
-    options.onResize?.();
+    const el = options.container?.value;
+    if (!el) return;
+    el.classList.add("resizing");
+    if (resizeTimeout) {
+      clearTimeout(resizeTimeout);
+    }
+    resizeTimeout = setTimeout(() => {
+      resizeTimeout = null;
+      el.classList.remove("resizing");
+    }, 150);
   }, 100);
 
   onMounted(() => window.addEventListener("resize", windowsResize));
-  onBeforeUnmount(() => window.removeEventListener("resize", windowsResize));
+  onBeforeUnmount(() => {
+    window.removeEventListener("resize", windowsResize);
+    if (resizeTimeout) {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = null;
+    }
+  });
   return { numColumns, itemStyles };
 }

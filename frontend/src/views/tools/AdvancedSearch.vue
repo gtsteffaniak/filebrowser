@@ -620,11 +620,7 @@ const selectedSourceNames = computed({
 const isStickySidebar = computed(() => getters.isStickySidebar());
 const listingViewMode = computed(() => getters.viewMode());
 const reqListing = computed(() => {
-  const grouped = getters.reqItems() as {
-    pinned: fileListItemIndex[];
-    dirs: fileListItemIndex[];
-    files: fileListItemIndex[];
-  };
+  const grouped = getters.reqItems();
   if (!grouped.dirs || !grouped.files) {
     return { dirs: [], files: [] };
   }
@@ -633,7 +629,7 @@ const reqListing = computed(() => {
 
 const allItems = computed(() => [...reqListing.value.dirs, ...reqListing.value.files]);
 
-const { itemStyles: listingItemStyles } = useListingLayout();
+const { itemStyles: listingItemStyles } = useListingLayout({ container: listingView });
 
 const { isRectangleSelecting, rectangleStyle } = useMouseSelection({
   container: results,

@@ -1,5 +1,5 @@
 <template>
-  <div v-if="active" id="search" :class="{ active, ongoing, 'prompt-open': promptOpen, halloween: eventTheme === 'halloween' }" @click="clearContext">
+  <div v-if="active" id="search" ref="searchEl" :class="{ active, ongoing, 'prompt-open': promptOpen, halloween: eventTheme === 'halloween' }" @click="clearContext">
     <!-- Search input section -->
     <div class="search-input-container">
       <!-- Close button visible when search is active -->
@@ -166,7 +166,10 @@
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch, type Ref } from "vue";
+import { useI18n } from "vue-i18n";
+import { useListingContextMenu } from "@/composables/useListingContextMenu";
 import { resourcesApi, toolsApi } from "@/api";
 import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
 import Icon from "@/components/files/Icon.vue";
@@ -176,6 +179,7 @@ import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import { router } from "@/router";
 import { getters, mutations, state } from "@/store";
+import type { FileListItem } from "@/store/types";
 import { url } from "@/utils/";
 import { globalVars } from "@/utils/constants";
 import { debounce } from "@/utils/debounce.js";
@@ -185,697 +189,585 @@ import { isTypeAheadSessionActive } from "@/utils/listingTypeAhead.js";
 import { utcStartOfDaySecondsFromDateInput } from "@/utils/moment";
 import { shouldIgnoreOutsideTap } from "@/utils/tooltipHelp.js";
 
-const searchFormKeys = [
-  "value", "results", "noneMessage", "selectedSource", "entryTypeFilter", "selectedMediaTypes",
-  "largerThan", "smallerThan", "modifiedOlderThan", "modifiedNewerThan",
-  "useWildcardSearch", "caseExactSearch", "showPreviewImages", "advancedOptionsExpanded",
-];
+defineOptions({ name: "search" });
 
-const boxes = {
-  folder: { label: "folders", icon: "folder" },
-  file: { label: "files", icon: "insert_drive_file" },
-  archive: { label: "archives", icon: "archive" },
-  image: { label: "images", icon: "photo" },
-  audio: { label: "audio files", icon: "volume_up" },
-  video: { label: "videos", icon: "movie" },
-  doc: { label: "documents", icon: "picture_as_pdf" },
+interface SearchResult {
+  source?: string;
+  path: string;
+  type: string;
+  size?: number;
+  modified?: string;
+  created?: string;
+  hasPreview?: boolean;
+}
+
+const { t } = useI18n();
+
+const searchEl = ref<HTMLElement | null>(null);
+const input = ref<HTMLInputElement | null>(null);
+const largerThan = ref<string | number>("");
+const smallerThan = ref<string | number>("");
+const modifiedOlderThan = ref("");
+const modifiedNewerThan = ref("");
+const noneMessage = ref(t("search.typeToSearch", { minSearchLength: globalVars.minSearchLength }));
+const entryTypeFilter = ref("all");
+const selectedMediaTypes = ref<string[]>([]);
+const showPreviewImages = ref(false);
+const useWildcardSearch = ref(false);
+const caseExactSearch = ref(false);
+const value = ref("");
+const ongoing = ref(0);
+const results = ref<SearchResult[]>([]);
+const advancedOptionsExpanded = ref(false);
+const selectedSource = ref("");
+const highlightedIndex = ref(-1);
+let restoring = false;
+// Aborts the in-flight search so a superseded request doesn't hold a server connection.
+let searchAbort: AbortController | null = null;
+// Monotonic token so a late response can't overwrite newer results.
+let searchSeq = 0;
+// Coalesce keystrokes into one request 250ms after the last input.
+const debouncedSubmit = debounce(() => submit(), 250);
+
+const formRefs: Record<string, Ref<unknown>> = {
+  value, results, noneMessage, selectedSource, entryTypeFilter, selectedMediaTypes,
+  largerThan, smallerThan, modifiedOlderThan, modifiedNewerThan,
+  useWildcardSearch, caseExactSearch, showPreviewImages, advancedOptionsExpanded,
 };
 
-export default {
-  components: {
-    HelpTooltipIcon,
-    Icon,
-    ToggleSwitch,
-    SettingsItem,
-    LoadingSpinner,
-    ExpandDropdown,
-  },
-  name: "search",
-  data: function () {
-    return {
-      largerThan: "",
-      smallerThan: "",
-      modifiedOlderThan: "",
-      modifiedNewerThan: "",
-      noneMessage: this.$t("search.typeToSearch", { minSearchLength: globalVars.minSearchLength }),
-      entryTypeFilter: "all",
-      selectedMediaTypes: [],
-      showPreviewImages: false,
-      useWildcardSearch: false,
-      caseExactSearch: false,
-      value: "",
-      ongoing: 0,
-      results: [],
-      reload: false,
-      scrollable: null,
-      advancedOptionsExpanded: false,
-      selectedSource: "",
-      restoring: false,
-      highlightedIndex: -1,
-    };
-  },
-  watch: {
-    currentSourceState(){
-      this.selectedSource = state.sources.current;
-    },
-    largerThan() {
-      this.submitNow();
-    },
-    smallerThan() {
-      this.submitNow();
-    },
-    modifiedOlderThan() {
-      this.submitNow();
-    },
-    modifiedNewerThan() {
-      this.submitNow();
-    },
-    useWildcardSearch() {
-      this.submitNow();
-    },
-    caseExactSearch() {
-      this.submitNow();
-    },
-    entryTypeFilter(newValue) {
-      if (newValue === "type:folder" && this.selectedMediaTypes.length > 0) {
-        this.selectedMediaTypes = [];
-        return;
-      }
-      this.submitNow();
-    },
-    selectedMediaTypes: {
-      deep: true,
-      handler() {
-        this.submitNow();
-      },
-    },
-    value() {
-      if (this.results.length) {
-        this.ongoing = 0;
-        this.results = [];
-      }
-    },
-    active(isNowActive) {
-      if (isNowActive) {
-        if (state.searchResults?.focus) {
-          void this.restoreSearchResults();
-        } else {
-          this.resetSearchOnOpen();
-        }
-      }
-    },
-    hasPrompts(now, before) {
-      if (before && !now && state.isSearchActive) {
-        mutations.resetSelected();
-      }
-    },
-  },
-  created() {
-    // Coalesce keystrokes into one request 250ms after the last input.
-    this.debouncedSubmit = debounce(() => this.submit(), 250);
-    // Aborts the in-flight search so a superseded request doesn't hold a server connection.
-    this.searchAbort = null;
-    // Monotonic token so a late response can't overwrite newer results.
-    this.searchSeq = 0;
-  },
-  mounted() {
-    this.selectedSource = state.sources.current;
-    if (state.searchResults?.focus && state.previousHistoryItem?.returnTo === state.route.fullPath) {
-      mutations.setPreviousHistoryItem(null);
-      void this.$nextTick().then(() => mutations.setSearch(true));
-    }
-    // Adjust contextmenu listener based on browser
-    if (state.isSafari) {
-      // For Safari, add touchstart or mousedown to open the context menu
-      this.$el.addEventListener("touchstart", this.openContextForSafari, {
-        passive: true,
-      });
-      this.$el.addEventListener("mousedown", this.openContextForSafari);
-      this.$el.addEventListener("touchmove", this.handleTouchMove);
+const eventTheme = computed(() => getters.eventTheme());
+const disableSearchOptions = computed(() => state.user?.disableSearchOptions);
+const foldersOnly = computed(() => entryTypeFilter.value === "type:folder");
+const searchTypes = computed(() => {
+  const parts: string[] = [];
+  if (entryTypeFilter.value !== "all") {
+    parts.push(entryTypeFilter.value);
+  }
+  parts.push(...selectedMediaTypes.value);
+  return parts.length > 0 ? `${parts.join(" ")} ` : "";
+});
+const entryTypeOptions = computed(() => [
+  { value: "all", label: t("search.filesAndFolders") },
+  { value: "type:file", label: t("search.onlyFiles") },
+  { value: "type:folder", label: t("search.onlyFolders") },
+]);
+const mediaTypeOptions = computed(() => [
+  { value: "type:image", label: t("general.photos") },
+  { value: "type:audio", label: t("general.audio") },
+  { value: "type:video", label: t("general.videos") },
+  { value: "type:doc", label: t("general.documents") },
+  { value: "type:archive", label: t("general.archives") },
+]);
+const active = computed(() => state.isSearchActive);
+const isEmpty = computed(() => results.value.length === 0);
+const searchHelpText = computed(() =>
+  [
+    t("search.helpText1", { minSearchLength: globalVars.minSearchLength }),
+    t("search.helpText2"),
+  ].join("\n\n"),
+);
+const isRunning = computed(() => ongoing.value > 0);
+const activeStates = computed(() => {
+  const selectedItems = state.selected ? ([] as (number | FileListItem)[]).concat(state.selected) : [];
+  if (selectedItems.length === 0) {
+    // Return an array of all false if nothing is selected
+    return new Array<boolean>(results.value.length).fill(false);
+  }
 
-      // Also clear the timeout if the user clicks or taps quickly
-      this.$el.addEventListener("touchend", this.cancelContext);
-      this.$el.addEventListener("mouseup", this.cancelContext);
+  const selectedPaths = new Set(selectedItems.map((item) => (item as FileListItem).path));
+  return results.value.map((result) => {
+    return selectedPaths.has(resultToItem(result).path);
+  });
+});
+const hasPrompts = computed(() => state.prompts.length > 0);
+const promptOpen = computed(() =>
+  state.prompts.some((prompt) => prompt.name !== "ContextMenu" && prompt.name !== "OverflowMenu"),
+);
+const itemState = computed(() => (hasPrompts.value ? activeStates.value : results.value.map(() => false)));
+const sourceInfo = computed(() => state.sources.info);
+const multipleSources = computed(() => Object.keys(state.sources.info).length > 1);
+const searchSourceOptions = computed(() => {
+  const sources = Object.keys(sourceInfo.value).map((name) => ({
+    value: name,
+    label: name,
+  }));
+  return [{ value: "__all__", label: t("general.all") }, ...sources];
+});
+const isSearchingMultipleSources = computed(
+  () => selectedSource.value === "__all__" || (selectedSource.value === "" && multipleSources.value),
+);
+const getContext = computed(() => {
+  // If searching all sources (explicitly or by default), always use root context
+  if (selectedSource.value === "__all__" || (selectedSource.value === "" && multipleSources.value)) {
+    return "/";
+  }
+  const result = url.extractSourceFromPath(decodeURIComponent(state.route.path ?? ""), Object.keys(state.sources.info));
+  if (selectedSource.value === "" || result.source === selectedSource.value) {
+    return result.path;
+  } else {
+    return "/"; // if searching on non-current source, search the whole thing
+  }
+});
+
+useListingContextMenu(searchEl, { getProps: () => ({ showLimitedOptions: true }) });
+
+watch(
+  () => state.sources.current,
+  () => {
+    selectedSource.value = state.sources.current;
+  },
+);
+watch(
+  [largerThan, smallerThan, modifiedOlderThan, modifiedNewerThan, useWildcardSearch, caseExactSearch],
+  () => {
+    void submitNow();
+  },
+);
+watch(entryTypeFilter, (newValue) => {
+  if (newValue === "type:folder" && selectedMediaTypes.value.length > 0) {
+    selectedMediaTypes.value = [];
+    return;
+  }
+  void submitNow();
+});
+watch(
+  selectedMediaTypes,
+  () => {
+    void submitNow();
+  },
+  { deep: true },
+);
+watch(value, () => {
+  if (results.value.length) {
+    ongoing.value = 0;
+    results.value = [];
+  }
+});
+watch(active, (isNowActive) => {
+  if (isNowActive) {
+    if (state.searchResults?.focus) {
+      void restoreSearchResults();
     } else {
-      // For other browsers, use regular contextmenu
-      this.$el.addEventListener("contextmenu", this.openContext);
+      resetSearchOnOpen();
     }
+  }
+});
+watch(hasPrompts, (now, before) => {
+  if (before && !now && state.isSearchActive) {
+    mutations.resetSelected();
+  }
+});
 
-    // Add keyboard event listener for "/" to activate search
-    this.handleKeydown = (event) => {
-      if (
-        (event.key === '/' || event.key === ' ') &&
-        isTypeAheadSessionActive() &&
-        getters.currentView() === 'listingView'
-      ) {
-        event.preventDefault();
-        return;
-      }
-      if ((event.key === '/' || event.key === ' ') && !state.isSearchActive && !getters.currentPrompt()) {
-        event.preventDefault();
-        this.open();
-      }
-    };
-    document.addEventListener('keydown', this.handleKeydown);
-  },
-  beforeUnmount() {
-    // If Safari, remove touchstart listener
-    if (state.isSafari) {
-      this.$el.removeEventListener("touchstart", this.openContextForSafari);
-      this.$el.removeEventListener("mousedown", this.openContextForSafari);
-      this.$el.removeEventListener("touchend", this.cancelContext);
-      this.$el.removeEventListener("mouseup", this.cancelContext);
-      this.$el.removeEventListener("touchmove", this.handleTouchMove);
-    } else {
-      this.$el.removeEventListener("contextmenu", this.openContext);
+function handleKeydown(event: KeyboardEvent) {
+  if (
+    (event.key === "/" || event.key === " ") &&
+    isTypeAheadSessionActive() &&
+    getters.currentView() === "listingView"
+  ) {
+    event.preventDefault();
+    return;
+  }
+  if ((event.key === "/" || event.key === " ") && !state.isSearchActive && !getters.currentPrompt()) {
+    event.preventDefault();
+    void open();
+  }
+}
+
+onMounted(() => {
+  selectedSource.value = state.sources.current;
+  if (state.searchResults?.focus && state.previousHistoryItem?.returnTo === state.route.fullPath) {
+    mutations.setPreviousHistoryItem(null);
+    void nextTick().then(() => mutations.setSearch(true));
+  }
+  // Add keyboard event listener for "/" to activate search
+  document.addEventListener("keydown", handleKeydown);
+});
+
+onBeforeUnmount(() => {
+  // Clean up keyboard event listener
+  document.removeEventListener("keydown", handleKeydown);
+  debouncedSubmit.cancel();
+  if (searchAbort) {
+    searchAbort.abort();
+    searchAbort = null;
+  }
+});
+
+function openContext(event: MouseEvent) {
+  event.preventDefault();
+  event.stopPropagation();
+  mutations.showPrompt({
+    name: "ContextMenu",
+    props: {
+      posX: event.clientX,
+      posY: event.clientY,
+      showLimitedOptions: true,
+    },
+  });
+}
+
+function updateSource(newSource: string) {
+  selectedSource.value = newSource;
+  void submitNow();
+}
+
+function getItemUrl(s: SearchResult) {
+  const { source, path } = resultToItem(s);
+  return url.buildItemUrl(source, path, true);
+}
+
+function humanSize(size?: number) {
+  return getHumanReadableFilesize(size);
+}
+
+function basePath(str: string, isDir: boolean) {
+  let result = url.removeLastDir(str);
+  if (!isDir) {
+    result = url.removeLeadingSlash(result); // fix weird rtl thing
+  }
+  return `${result}/`;
+}
+
+function baseName(str: string) {
+  const parts = url.removeTrailingSlash(str).split("/");
+  return parts.pop() ?? "";
+}
+
+/** Clear query state whenever the overlay opens (open paths do not always call close()). */
+function resetSearchOnOpen() {
+  value.value = "";
+  results.value = [];
+  highlightedIndex.value = -1;
+  ongoing.value = 0;
+  debouncedSubmit.cancel();
+  abortSearch();
+  noneMessage.value = t("search.typeToSearch", {
+    minSearchLength: globalVars.minSearchLength,
+  });
+}
+
+function close(event: Event) {
+  value.value = "";
+  debouncedSubmit.cancel();
+  abortSearch();
+  event.stopPropagation();
+  mutations.setSearch(false);
+}
+
+function keyup(event: KeyboardEvent) {
+  if (event.keyCode === 27) {
+    close(event);
+    return;
+  }
+}
+
+/** Debounced entry point for the search input (fires 250ms after the last keystroke). */
+function onInput() {
+  // Invalidate any in-flight request immediately, so a late response cannot
+  // repopulate results for the previous query during the debounce window.
+  abortSearch();
+  debouncedSubmit();
+}
+
+/** Immediate search, used by filter/source changes; cancels any pending debounced call. */
+function submitNow(event?: Event) {
+  debouncedSubmit.cancel();
+  return submit(event);
+}
+
+function abortSearch() {
+  // A new query supersedes any in-flight request: bump the sequence so a late
+  // response is ignored, then abort it so it releases the server connection.
+  searchSeq++;
+  if (searchAbort) {
+    searchAbort.abort();
+    searchAbort = null;
+  }
+}
+
+async function submit(event?: Event) {
+  if (restoring) return;
+  results.value = [];
+  highlightedIndex.value = -1;
+  if (event !== undefined) {
+    event.preventDefault();
+  }
+  if (value.value === "" || value.value.length < globalVars.minSearchLength) {
+    noneMessage.value = t("search.notEnoughCharacters", { minSearchLength: globalVars.minSearchLength });
+    return;
+  }
+  let searchTypesFull = searchTypes.value;
+  if (largerThan.value !== "") {
+    searchTypesFull = `${searchTypesFull}type:largerThan=${largerThan.value} `;
+  }
+  if (smallerThan.value !== "") {
+    searchTypesFull = `${searchTypesFull}type:smallerThan=${smallerThan.value} `;
+  }
+  const dateParams: { olderThan?: number; newerThan?: number; useWildcard?: boolean } = {};
+  const olderUnix = utcStartOfDaySecondsFromDateInput(modifiedOlderThan.value);
+  if (olderUnix !== null) {
+    dateParams.olderThan = olderUnix;
+  }
+  const newerUnix = utcStartOfDaySecondsFromDateInput(modifiedNewerThan.value);
+  if (newerUnix !== null) {
+    dateParams.newerThan = newerUnix;
+  }
+  if (useWildcardSearch.value) {
+    dateParams.useWildcard = true;
+  }
+  let searchQuery = searchTypesFull + value.value;
+  if (caseExactSearch.value) {
+    searchQuery =
+      searchTypesFull.trim() === ""
+        ? `case:exact ${value.value}`
+        : `case:exact ${searchTypesFull}${value.value}`;
+  }
+  // Abort the previous request so a superseded search releases the server connection.
+  abortSearch();
+  const controller = new AbortController();
+  searchAbort = controller;
+  const seq = ++searchSeq;
+  ongoing.value++;
+
+  // Determine which sources to search
+  let sourcesToSearch: string[];
+  if (selectedSource.value === "__all__" || selectedSource.value === "") {
+    // Search all sources
+    sourcesToSearch = Object.keys(sourceInfo.value);
+  } else {
+    // Search single source
+    sourcesToSearch = [selectedSource.value || state.sources.current];
+  }
+
+  // Only pass scope if searching a single source
+  const scope = sourcesToSearch.length === 1 ? getContext.value : null;
+
+  let succeeded = false;
+  try {
+    const found = await toolsApi.search(
+      scope,
+      sourcesToSearch,
+      searchQuery,
+      false,
+      { ...dateParams, signal: controller.signal }
+    );
+    // Ignore a response that arrived after a newer search superseded it.
+    if (seq !== searchSeq) {
+      return;
     }
-
-    // Clean up keyboard event listener
-    if (this.handleKeydown) {
-      document.removeEventListener('keydown', this.handleKeydown);
+    results.value = sortResults(found);
+    setSearchResults();
+    succeeded = true;
+  } catch {
+    // Aborted/superseded requests are expected; real errors are surfaced by the API layer.
+  } finally {
+    if (searchAbort === controller) {
+      searchAbort = null;
     }
-    this.debouncedSubmit.cancel();
-    if (this.searchAbort) {
-      this.searchAbort.abort();
-      this.searchAbort = null;
+    ongoing.value = Math.max(0, ongoing.value - 1);
+    // Checked after the counter drops so the message only shows once nothing is in flight.
+    if (succeeded && results.value.length === 0 && ongoing.value === 0) {
+      noneMessage.value = t("search.noResults");
     }
-  },
-  computed: {
-    currentSourceState() {
-      return state.sources.current;
-    },
-    eventTheme() {
-      return getters.eventTheme();
-    },
-    disableSearchOptions() {
-      return state.user?.disableSearchOptions;
-    },
-    foldersOnly() {
-      return this.entryTypeFilter === "type:folder";
-    },
-    searchTypes() {
-      const parts = [];
-      if (this.entryTypeFilter !== "all") {
-        parts.push(this.entryTypeFilter);
-      }
-      parts.push(...this.selectedMediaTypes);
-      return parts.length > 0 ? `${parts.join(" ")} ` : "";
-    },
-    entryTypeOptions() {
-      return [
-        { value: "all", label: this.$t("search.filesAndFolders") },
-        { value: "type:file", label: this.$t("search.onlyFiles") },
-        { value: "type:folder", label: this.$t("search.onlyFolders") },
-      ];
-    },
-    mediaTypeOptions() {
-      return [
-        { value: "type:image", label: this.$t("general.photos") },
-        { value: "type:audio", label: this.$t("general.audio") },
-        { value: "type:video", label: this.$t("general.videos") },
-        { value: "type:doc", label: this.$t("general.documents") },
-        { value: "type:archive", label: this.$t("general.archives") },
-      ];
-    },
-    active() {
-      return state.isSearchActive;
-    },
-    showBoxes() {
-      return this.searchTypes === "";
-    },
-    boxes() {
-      return boxes;
-    },
-    isEmpty() {
-      return this.results.length === 0;
-    },
-    searchHelpText() {
-      return [
-        this.$t("search.helpText1", { minSearchLength: globalVars.minSearchLength }),
-        this.$t("search.helpText2"),
-      ].join("\n\n");
-    },
-    text() {
-      if (this.ongoing > 0) {
-        return "";
-      }
-      return this.$t("search.typeToSearch", { minSearchLength: globalVars.minSearchLength })
-    },
-    isRunning() {
-      return this.ongoing > 0;
-    },
-    activeStates() {
-      const selectedItems = state.selected ? [].concat(state.selected) : [];
-      if (selectedItems.length === 0) {
-        // Return an array of all false if nothing is selected
-        return new Array(this.results.length).fill(false);
-      }
+  }
+}
 
-      const selectedPaths = new Set(selectedItems.map((item) => item.path));
-      return this.results.map((result) => {
-        return selectedPaths.has(this.resultToItem(result).path);
-      });
-    },
-    hasPrompts() {
-      return state.prompts.length > 0;
-    },
-    promptOpen() {
-      return state.prompts.some((prompt) => prompt.name !== "ContextMenu" && prompt.name !== "OverflowMenu");
-    },
-    itemState() {
-      return this.hasPrompts ? this.activeStates : this.results.map(() => false);
-    },
-    sourceInfo() {
-      return state.sources.info;
-    },
-    multipleSources() {
-      return Object.keys(state.sources.info).length > 1;
-    },
-    searchSourceOptions() {
-      const sources = Object.keys(this.sourceInfo).map((name) => ({
-        value: name,
-        label: name,
-      }));
-      return [
-        { value: "__all__", label: this.$t("general.all") },
-        ...sources,
-      ];
-    },
-    isSearchingMultipleSources() {
-      return this.selectedSource === "__all__" || (this.selectedSource === "" && this.multipleSources);
-    },
-    getContext() {
-      // If searching all sources (explicitly or by default), always use root context
-      if (this.selectedSource === "__all__" || (this.selectedSource === "" && this.multipleSources)) {
-        return "/";
-      }
-      const result = url.extractSourceFromPath(decodeURIComponent(state.route.path), Object.keys(state.sources.info));
-      if (this.selectedSource === "" || result.source === this.selectedSource) {
-        return result.path;
-      } else {
-        return "/"; // if searching on non-current source, search the whole thing
-      }
-    },
-  },
-  methods: {
-    openContext(event) {
-      event.preventDefault();
-      event.stopPropagation();
-      mutations.showPrompt({
-        name: "ContextMenu",
-        props: {
-          posX: event.clientX,
-          posY: event.clientY,
-          showLimitedOptions: true,
-        },
-      });
-    },
-    cancelContext() {
-      if (this.contextTimeout) {
-        clearTimeout(this.contextTimeout);
-        this.contextTimeout = null;
-      }
-      this.isLongPress = false;
-    },
-    openContextForSafari(event) {
-      this.cancelContext(); // Clear any previous timeouts
-      this.isLongPress = false; // Reset state
-      this.isSwipe = false; // Reset swipe detection
+function resultToItem(s: SearchResult): FileListItem {
+  const context = url.removeTrailingSlash(getContext.value);
+  return {
+    name: baseName(s.path),
+    path: `${context}/${url.removeLeadingSlash(url.removeTrailingSlash(s.path))}`,
+    type: s.type,
+    size: s.size,
+    modified: s.modified,
+    created: s.created,
+    hasPreview: s.hasPreview,
+    source: s.source || selectedSource.value || state.sources.current,
+  };
+}
 
-      const touch = event.touches[0];
-      this.touchStartX = touch.clientX;
-      this.touchStartY = touch.clientY;
+function sortResults(found: SearchResult[]) {
+  const term = value.value.trim().toLowerCase();
+  const rank = ({ name }: { name: string }) => {
+    const lower = name.toLowerCase();
+    return lower === term ? 0 : lower.startsWith(term) ? 1 : 2;
+  };
+  const entries = found.map((s) => ({ s, name: baseName(s.path) }));
+  return sortedItems(entries, "name").sort((a, b) => rank(a) - rank(b)).map((e) => e.s);
+}
 
-      // Start the long press detection
-      this.contextTimeout = setTimeout(() => {
-        if (!this.isSwipe) {
-          this.isLongPress = true;
-          event.preventDefault(); // Suppress Safari's callout menu
-          this.openContext(event); // Open the custom context menu
-        }
-      }, 500); // Long press delay (adjust as needed)
-    },
-    handleTouchMove(event) {
-      const touch = event.touches[0];
-      const deltaX = Math.abs(touch.clientX - this.touchStartX);
-      const deltaY = Math.abs(touch.clientY - this.touchStartY);
-      // Set a threshold for movement to detect a swipe
-      const movementThreshold = 10; // Adjust as needed
-      if (deltaX > movementThreshold || deltaY > movementThreshold) {
-        this.isSwipe = true;
-        this.cancelContext(); // Cancel long press if swipe is detected
-      }
-    },
-    handleTouchEnd() {
-      this.cancelContext(); // Clear timeout
-      this.isSwipe = false; // Reset swipe state
-    },
-    updateSource(value) {
-      this.selectedSource = value;
-      void this.submitNow();
-    },
-    getItemUrl(s) {
-      const { source, path } = this.resultToItem(s);
-      return url.buildItemUrl(source, path, true);
-    },
-    humanSize(size) {
-      return getHumanReadableFilesize(size);
-    },
-    basePath(str, isDir) {
-      let result = url.removeLastDir(str);
-      if (!isDir) {
-        result = url.removeLeadingSlash(result); // fix weird rtl thing
-      }
-      return `${result}/`;
-    },
-    baseName(str) {
-      const parts = url.removeTrailingSlash(str).split("/");
-      const part = parts.pop();
-      return part;
-    },
-    /** Clear query state whenever the overlay opens (open paths do not always call close()). */
-    resetSearchOnOpen() {
-      this.value = "";
-      this.results = [];
-      this.highlightedIndex = -1;
-      this.ongoing = 0;
-      this.debouncedSubmit.cancel();
-      this.abortSearch();
-      this.noneMessage = this.$t("search.typeToSearch", {
-        minSearchLength: globalVars.minSearchLength,
-      });
-    },
-    close(event) {
-      this.value = "";
-      this.debouncedSubmit.cancel();
-      this.abortSearch();
-      event.stopPropagation();
-      mutations.setSearch(false);
-    },
-    keyup(event) {
-      if (event.keyCode === 27) {
-        this.close(event);
-        return;
-      }
-    },
-    /** Debounced entry point for the search input (fires 250ms after the last keystroke). */
-    onInput() {
-      // Invalidate any in-flight request immediately, so a late response cannot
-      // repopulate results for the previous query during the debounce window.
-      this.abortSearch();
-      this.debouncedSubmit();
-    },
-    /** Immediate search, used by filter/source changes; cancels any pending debounced call. */
-    submitNow(event) {
-      this.debouncedSubmit.cancel();
-      return this.submit(event);
-    },
-    abortSearch() {
-      // A new query supersedes any in-flight request: bump the sequence so a late
-      // response is ignored, then abort it so it releases the server connection.
-      this.searchSeq++;
-      if (this.searchAbort) {
-        this.searchAbort.abort();
-        this.searchAbort = null;
-      }
-    },
-    resetSearchFilters() {
-      this.entryTypeFilter = "all";
-      this.selectedMediaTypes = [];
-      this.advancedOptionsExpanded = false;
-      this.showPreviewImages = false;
-    },
-    async submit(event) {
-      if (this.restoring) return;
-      this.results = [];
-      this.highlightedIndex = -1;
-      if (event !== undefined) {
-        event.preventDefault();
-      }
-      if (this.value === "" || this.value.length < globalVars.minSearchLength) {
-        this.noneMessage = this.$t("search.notEnoughCharacters", { minSearchLength: globalVars.minSearchLength });
-        return;
-      }
-      let searchTypesFull = this.searchTypes;
-      if (this.largerThan !== "") {
-        searchTypesFull = `${searchTypesFull}type:largerThan=${this.largerThan} `;
-      }
-      if (this.smallerThan !== "") {
-        searchTypesFull = `${searchTypesFull}type:smallerThan=${this.smallerThan} `;
-      }
-      const dateParams = {};
-      const olderUnix = utcStartOfDaySecondsFromDateInput(this.modifiedOlderThan);
-      if (olderUnix !== null) {
-        dateParams.olderThan = olderUnix;
-      }
-      const newerUnix = utcStartOfDaySecondsFromDateInput(this.modifiedNewerThan);
-      if (newerUnix !== null) {
-        dateParams.newerThan = newerUnix;
-      }
-      if (this.useWildcardSearch) {
-        dateParams.useWildcard = true;
-      }
-      let searchQuery = searchTypesFull + this.value;
-      if (this.caseExactSearch) {
-        searchQuery =
-          searchTypesFull.trim() === ""
-            ? `case:exact ${this.value}`
-            : `case:exact ${searchTypesFull}${this.value}`;
-      }
-      // Abort the previous request so a superseded search releases the server connection.
-      this.abortSearch();
-      const controller = new AbortController();
-      this.searchAbort = controller;
-      const seq = ++this.searchSeq;
-      this.ongoing++;
+function setSearchResults() {
+  state.searchResults = {
+    kind: "quick",
+    sorting: { by: "none", asc: true },
+    items: results.value.map((s) => resultToItem(s)),
+    form: getSearchForm(),
+  };
+}
 
-      // Determine which sources to search
-      let sourcesToSearch;
-      if (this.selectedSource === "__all__" || this.selectedSource === "") {
-        // Search all sources
-        sourcesToSearch = Object.keys(this.sourceInfo);
-      } else {
-        // Search single source
-        sourcesToSearch = [this.selectedSource || state.sources.current];
-      }
+function getSearchForm() {
+  return Object.fromEntries(Object.entries(formRefs).map(([key, field]) => [key, field.value]));
+}
 
-      // Only pass scope if searching a single source
-      const scope = sourcesToSearch.length === 1 ? this.getContext : null;
+async function restoreSearchResults() {
+  const search = state.searchResults;
+  if (!search?.form) return;
+  const { results: savedResults, ...fields } = search.form as { results: SearchResult[] };
+  const focus = search.focus;
+  search.focus = undefined;
+  restoring = true;
+  for (const [key, field] of Object.entries(fields)) {
+    const target = formRefs[key];
+    if (target) target.value = field;
+  }
+  await nextTick();
+  restoring = false;
+  results.value = savedResults.filter((s) => search.items.some((i) => url.isSameItem(i, resultToItem(s))));
+  highlightedIndex.value = results.value.findIndex((s) => url.isSameItem(resultToItem(s), focus));
+  await nextTick();
+  const list = document.getElementById("result-list");
+  list?.classList.add("active");
+  list?.querySelectorAll(".search-entry")[highlightedIndex.value]?.scrollIntoView({ block: "center" });
+}
 
-      let succeeded = false;
-      try {
-        const results = await toolsApi.search(
-          scope,
-          sourcesToSearch,
-          searchQuery,
-          false,
-          { ...dateParams, signal: controller.signal }
-        );
-        // Ignore a response that arrived after a newer search superseded it.
-        if (seq !== this.searchSeq) {
-          return;
-        }
-        this.results = this.sortResults(results);
-        this.setSearchResults();
-        succeeded = true;
-      } catch {
-        // Aborted/superseded requests are expected; real errors are surfaced by the API layer.
-      } finally {
-        if (this.searchAbort === controller) {
-          this.searchAbort = null;
-        }
-        this.ongoing = Math.max(0, this.ongoing - 1);
-        // Checked after the counter drops so the message only shows once nothing is in flight.
-        if (succeeded && this.results.length === 0 && this.ongoing === 0) {
-          this.noneMessage = this.$t("search.noResults");
-        }
-      }
-    },
-    resultToItem(s) {
-      const context = url.removeTrailingSlash(this.getContext);
-      return {
-        name: this.baseName(s.path),
-        path: `${context}/${url.removeLeadingSlash(url.removeTrailingSlash(s.path))}`,
-        type: s.type,
-        size: s.size,
-        modified: s.modified,
-        created: s.created,
-        hasPreview: s.hasPreview,
-        source: s.source || this.selectedSource || state.sources.current,
-      };
-    },
-    sortResults(results) {
-      const term = this.value.trim().toLowerCase();
-      const rank = ({ name }) => {
-        const lower = name.toLowerCase();
-        return lower === term ? 0 : lower.startsWith(term) ? 1 : 2;
-      };
-      const entries = results.map((s) => ({ s, name: this.baseName(s.path) }));
-      return sortedItems(entries, "name").sort((a, b) => rank(a) - rank(b)).map((e) => e.s);
-    },
-    setSearchResults() {
-      state.searchResults = {
-        kind: "quick",
-        sorting: { by: "none", asc: true },
-        items: this.results.map((s) => this.resultToItem(s)),
-        form: this.getSearchForm(),
-      };
-    },
-    getSearchForm() {
-      return Object.fromEntries(searchFormKeys.map((key) => [key, this[key]]));
-    },
-    async restoreSearchResults() {
-      const search = state.searchResults;
-      const { results, ...fields } = search.form;
-      const focus = search.focus;
-      search.focus = undefined;
-      this.restoring = true;
-      Object.assign(this, fields);
-      await this.$nextTick();
-      this.restoring = false;
-      this.results = results.filter((s) => search.items.some((i) => url.isSameItem(i, this.resultToItem(s))));
-      this.highlightedIndex = this.results.findIndex((s) => url.isSameItem(this.resultToItem(s), focus));
-      await this.$nextTick();
-      const list = document.getElementById("result-list");
-      list?.classList.add("active");
-      list?.querySelectorAll(".search-entry")[this.highlightedIndex]?.scrollIntoView({ block: "center" });
-    },
-    openResult(event, index) {
-      if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) {
-        return;
-      }
-      event.preventDefault();
-      const item = this.resultToItem(this.results[index]);
-      if (state.searchResults) {
-        state.searchResults.form = this.getSearchForm();
-        state.searchResults.focus = { source: item.source, path: item.path };
-      }
-      mutations.setPreviousHistoryItem({
-        name: item.name,
-        source: item.source,
-        path: item.path,
-        returnTo: state.route.fullPath,
-      });
-      url.goToItem(item.source, item.path, null, false, getters.isShare());
-    },
-    clearContext(event) {
-      const target = event?.target;
-      if (target instanceof Element && target.closest(".tooltip-info-icon, .floating-tooltip")) {
-        return;
-      }
-      if (shouldIgnoreOutsideTap()) {
-        return;
-      }
-      mutations.closeHovers();
-    },
-    getThumbnailUrl(s) {
-      if (!s.hasPreview) {
-        return "";
-      }
-      try {
-        const { source, path } = this.resultToItem(s);
-        return resourcesApi.getPreviewURL(source, path, s.modified || "");
-      } catch (_err) {
-        return "";
-      }
-    },
-    async open() {
-      if (state.isSearchActive) return;
-      if (getters.currentPromptName()) return;
+function openResult(event: MouseEvent, index: number) {
+  if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) {
+    return;
+  }
+  const result = results.value[index];
+  if (!result) return;
+  event.preventDefault();
+  const item = resultToItem(result);
+  if (state.searchResults) {
+    state.searchResults.form = getSearchForm();
+    state.searchResults.focus = { source: item.source, path: item.path };
+  }
+  mutations.setPreviousHistoryItem({
+    name: item.name,
+    source: item.source as string,
+    path: item.path,
+    returnTo: state.route.fullPath,
+  });
+  url.goToItem(item.source, item.path, null, false, getters.isShare());
+}
 
-      mutations.closeHovers();
-      mutations.closeSidebar();
-      mutations.resetSelected();
-      mutations.setSearch(true);
+function clearContext(event?: Event) {
+  const target = event?.target;
+  if (target instanceof Element && target.closest(".tooltip-info-icon, .floating-tooltip")) {
+    return;
+  }
+  if (shouldIgnoreOutsideTap()) {
+    return;
+  }
+  mutations.closeHovers();
+}
 
-      await this.$nextTick();
-      const input = this.$refs.input;
-      if (input) {
-        input.focus();
-      }
-      const resultList = document.getElementById("result-list");
-      if (resultList) {
-        resultList.classList.add("active");
-      }
-    },
-    openInAdvancedSearch() {
-      let sourcesToSearch;
-      if (this.selectedSource === "__all__" || this.selectedSource === "") {
-        sourcesToSearch = Object.keys(this.sourceInfo || {});
-      } else {
-        sourcesToSearch = [this.selectedSource || state.sources.current];
-      }
+function getThumbnailUrl(s: SearchResult) {
+  if (!s.hasPreview) {
+    return "";
+  }
+  try {
+    const { source, path } = resultToItem(s);
+    return resourcesApi.getPreviewURL(source, path, s.modified || "");
+  } catch (_err) {
+    return "";
+  }
+}
 
-      const picked = [...sourcesToSearch].sort();
+async function open() {
+  if (state.isSearchActive) return;
+  if (getters.currentPromptName()) return;
 
-      /** @type {Record<string, string | string[]>} */
-      const query = {};
-      query.term = this.value.trim();
+  mutations.closeHovers();
+  mutations.closeSidebar();
+  mutations.resetSelected();
+  mutations.setSearch(true);
 
-      const trimmedTypes = String(this.searchTypes || "").trim();
-      if (trimmedTypes !== "") {
-        query.types = trimmedTypes;
-      }
-      if (this.largerThan !== "") {
-        query.largerThan = String(this.largerThan);
-      }
-      if (this.smallerThan !== "") {
-        query.smallerThan = String(this.smallerThan);
-      }
-      if (this.modifiedOlderThan !== "") {
-        query.dateOlder = String(this.modifiedOlderThan);
-      }
-      if (this.modifiedNewerThan !== "") {
-        query.dateNewer = String(this.modifiedNewerThan);
-      }
-      if (this.useWildcardSearch) {
-        query.wildcard = "1";
-      }
-      if (this.caseExactSearch) {
-        query.caseExact = "1";
-      }
-      if (this.foldersOnly) {
-        query.typeLock = "1";
-      }
+  await nextTick();
+  if (input.value) {
+    input.value.focus();
+  }
+  const resultList = document.getElementById("result-list");
+  if (resultList) {
+    resultList.classList.add("active");
+  }
+}
 
-      /** @type {string[]} */
-      const scopeClauses = [];
-      for (const sourceName of picked) {
-        let scopedFolderPath = "/";
-        if (picked.length === 1) {
-          const raw = String(this.getContext || "").trim();
-          if (raw !== "" && raw !== "/") {
-            const withSlash = raw.startsWith("/") ? raw : `/${raw}`;
-            scopedFolderPath = url.removeTrailingSlash(withSlash);
-          }
-        }
-        if (scopedFolderPath === "") {
-          scopedFolderPath = "/";
-        }
-        if (!scopedFolderPath.startsWith("/")) {
-          scopedFolderPath = `/${scopedFolderPath}`;
-        }
-        scopeClauses.push(`${sourceName}:${scopedFolderPath}`);
-      }
-      if (scopeClauses.length === 1) {
-        query.scope = scopeClauses[0];
-      } else {
-        query.scope = scopeClauses;
-      }
+function openInAdvancedSearch() {
+  let sourcesToSearch: string[];
+  if (selectedSource.value === "__all__" || selectedSource.value === "") {
+    sourcesToSearch = Object.keys(sourceInfo.value || {});
+  } else {
+    sourcesToSearch = [selectedSource.value || state.sources.current];
+  }
 
-      mutations.setSearch(false);
-      router
-        .push({ path: "/tools/advancedSearch", query })
-        .catch(() => {});
-    },
-    addSelected(event, s) {
-      event.preventDefault();
-      mutations.resetSelected();
-      mutations.addSelected(this.resultToItem(s));
-      this.openContext(event);
-    },
-  },
-};
+  const picked = [...sourcesToSearch].sort();
+
+  const query: Record<string, string | string[]> = {};
+  query.term = value.value.trim();
+
+  const trimmedTypes = String(searchTypes.value || "").trim();
+  if (trimmedTypes !== "") {
+    query.types = trimmedTypes;
+  }
+  if (largerThan.value !== "") {
+    query.largerThan = String(largerThan.value);
+  }
+  if (smallerThan.value !== "") {
+    query.smallerThan = String(smallerThan.value);
+  }
+  if (modifiedOlderThan.value !== "") {
+    query.dateOlder = String(modifiedOlderThan.value);
+  }
+  if (modifiedNewerThan.value !== "") {
+    query.dateNewer = String(modifiedNewerThan.value);
+  }
+  if (useWildcardSearch.value) {
+    query.wildcard = "1";
+  }
+  if (caseExactSearch.value) {
+    query.caseExact = "1";
+  }
+  if (foldersOnly.value) {
+    query.typeLock = "1";
+  }
+
+  const scopeClauses: string[] = [];
+  for (const sourceName of picked) {
+    let scopedFolderPath = "/";
+    if (picked.length === 1) {
+      const raw = String(getContext.value || "").trim();
+      if (raw !== "" && raw !== "/") {
+        const withSlash = raw.startsWith("/") ? raw : `/${raw}`;
+        scopedFolderPath = url.removeTrailingSlash(withSlash);
+      }
+    }
+    if (scopedFolderPath === "") {
+      scopedFolderPath = "/";
+    }
+    if (!scopedFolderPath.startsWith("/")) {
+      scopedFolderPath = `/${scopedFolderPath}`;
+    }
+    scopeClauses.push(`${sourceName}:${scopedFolderPath}`);
+  }
+  if (scopeClauses.length === 1) {
+    query.scope = scopeClauses[0] as string;
+  } else {
+    query.scope = scopeClauses;
+  }
+
+  mutations.setSearch(false);
+  router
+    .push({ path: "/tools/advancedSearch", query })
+    .catch(() => {});
+}
+
+function addSelected(event: MouseEvent, s: SearchResult) {
+  event.preventDefault();
+  mutations.resetSelected();
+  mutations.addSelected(resultToItem(s));
+  openContext(event);
+}
 </script>
 
 <style scoped>
@@ -1271,50 +1163,6 @@ body.rtl #search #result ul>* {
 
 #search.ongoing #renew {
   display: block;
-}
-
-/* Search Boxes */
-#search .boxes {
-  margin: 1em;
-  text-align: center;
-}
-
-#search .boxes h3 {
-  margin: 0;
-  font-weight: 500;
-  font-size: 1em;
-  padding: 0.5em;
-  color: var(--textPrimary);
-}
-
-body.rtl #search .boxes h3 {
-  text-align: right;
-}
-
-#search .boxes p {
-  margin: 1em 0 0;
-}
-
-#search .boxes i {
-  color: #fff !important;
-  font-size: 3.5em;
-}
-
-.mobile-boxes {
-  cursor: pointer;
-  overflow: hidden;
-  margin-bottom: 1em;
-  background: var(--primaryColor);
-  color: white;
-  padding: 1em;
-  border-radius: var(--borderRadius);
-  text-align: center;
-  scrollbar-width: none;
-}
-
-/* Hiding scrollbar for Chrome, Safari and Opera */
-.mobile-boxes::-webkit-scrollbar {
-  display: none;
 }
 
 .constraints {
