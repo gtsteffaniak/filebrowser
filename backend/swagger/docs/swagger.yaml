@@ -1288,8 +1288,9 @@ definitions:
         description: Name of theme to use chosen from custom themes config
         type: string
       darkMode:
-        description: should dark mode be enabled
-        type: boolean
+        allOf:
+        - $ref: '#/definitions/users.DarkMode'
+        description: 'theme preference: "auto" (follow system), "dark", or "light"'
       locale:
         description: 'language to use: eg. de, en, or fr'
         type: string
@@ -1678,6 +1679,16 @@ definitions:
         description: index path within that source
         type: string
     type: object
+  users.DarkMode:
+    enum:
+    - auto
+    - dark
+    - light
+    type: string
+    x-enum-varnames:
+    - DarkModeAuto
+    - DarkModeDark
+    - DarkModeLight
   users.FileLoading:
     properties:
       clearAll:
@@ -1708,8 +1719,9 @@ definitions:
         description: Name of theme to use chosen from custom themes config.
         type: string
       darkMode:
-        description: should dark mode be enabled
-        type: boolean
+        allOf:
+        - $ref: '#/definitions/users.DarkMode'
+        description: 'theme preference: "auto" (follow system), "dark", or "light"'
       dateFormat:
         description: when false, the date is relative, when true, the date is an exact
           timestamp
@@ -2033,8 +2045,9 @@ definitions:
         description: Name of theme to use chosen from custom themes config.
         type: string
       darkMode:
-        description: should dark mode be enabled
-        type: boolean
+        allOf:
+        - $ref: '#/definitions/users.DarkMode'
+        description: 'theme preference: "auto" (follow system), "dark", or "light"'
       dateFormat:
         description: when false, the date is relative, when true, the date is an exact
           timestamp

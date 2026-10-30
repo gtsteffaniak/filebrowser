@@ -447,11 +447,21 @@ export const mutations = {
     // Cycle the preference auto -> light -> dark -> auto, matching the order
     // of the theme dropdown in profile settings, so the sidebar quick toggle
     // and the dropdown stay in sync.
+    //
+    // Anonymous share visitors cannot persist a preference (the users PATCH is
+    // skipped for them), so "auto" would only survive until the next page load
+    // and cycling through it breaks the expected "click twice, back where you
+    // started" behaviour. Keep their quick toggle a plain light <-> dark flip of
+    // the resolved theme.
+    if (state.user?.username === "anonymous") {
+      const dark = getters.isDarkMode();
+      queueDarkModeUpdate(dark ? "light" : "dark");
+      return;
+    }
     const order = ["auto", "light", "dark"] as const;
     const current = normalizeDarkMode(state.user?.darkMode) as (typeof order)[number];
     const next = order[(order.indexOf(current) + 1) % order.length] as (typeof order)[number];
     queueDarkModeUpdate(next);
-    emitStateChanged();
   },
   toggleSidebar() {
     state.showSidebar = !state.showSidebar;

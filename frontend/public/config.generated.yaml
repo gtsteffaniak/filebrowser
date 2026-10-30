@@ -214,7 +214,7 @@ userDefaults:                             # optional signup/CLI defaults; per-us
   search:
     disableOptions: false                 # disable the search options in the search bar
   ui:
-    darkMode: true                        # should dark mode be enabled
+    darkMode: "dark"                      # theme preference: "auto" (follow system), "dark", or "light"
     themeColor: "var(--blue)"             # theme color to use: eg. #ff0000, or var(--red), var(--purple), etc
     customTheme: ""                       # Name of theme to use chosen from custom themes config
     locale: "en"                          # language to use: eg. de, en, or fr
