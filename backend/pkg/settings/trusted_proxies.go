@@ -3,6 +3,7 @@ package settings
 import (
 	"fmt"
 	"net"
+	"net/http"
 	"net/netip"
 	"strings"
 	"sync"
@@ -108,21 +109,29 @@ func ipMatchesPrefixes(ip string, prefixes []netip.Prefix) bool {
 	return addrMatchesPrefixes(addr, prefixes)
 }
 
-// IsTrustedProxyPeer reports whether a socket peer address (RemoteAddr, either
-// host:port or a bare IP) belongs to a configured trusted proxy. Forwarded
-// client headers must only be honored when this returns true; otherwise any
-// client that can reach the listener directly could spoof its address.
+// IsTrustedProxyPeer reports whether the HTTP connection peer may present trusted
+// proxy headers. Forwarded client headers must only be honored when this returns
+// true; otherwise any client that can reach the listener directly could spoof its address.
 //
-// When http.socket is set the server listens only on that Unix socket, whose
-// peers have no IP address. Only local processes with filesystem access to the
-// socket can connect, so every peer there is treated as the trusted proxy.
-// Linux abstract sockets ("@name") have no filesystem permissions, so any local
-// process could connect; their peers are never trusted.
-func IsTrustedProxyPeer(remoteAddr string) bool {
-	if socket := Config.Http.Socket; socket != "" {
-		return !strings.HasPrefix(socket, "@")
+// When http.socket is set the server listens only on that Unix socket. Filesystem
+// socket peers are trusted only when their UID or GID matches
+// http.unixSocketTrustedUIDs / http.unixSocketTrustedGIDs (Linux peer credentials).
+// Abstract sockets ("@name") have no filesystem permissions and their peers are never trusted.
+func IsTrustedProxyPeer(r *http.Request) bool {
+	if r == nil {
+		return false
 	}
-	return ipMatchesPrefixes(remoteAddr, TrustedProxyPrefixes())
+	if socket := Config.Http.Socket; socket != "" {
+		if strings.HasPrefix(socket, "@") {
+			return false
+		}
+		cred, ok := UnixPeerFromContext(r.Context())
+		if !ok {
+			return false
+		}
+		return unixPeerAllowed(cred.UID, cred.GID)
+	}
+	return ipMatchesPrefixes(r.RemoteAddr, TrustedProxyPrefixes())
 }
 
 // canonicalHopIP returns the bare, unmapped IP for a forwarded hop, dropping

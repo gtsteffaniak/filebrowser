@@ -36,7 +36,14 @@ type Http struct {
 	DisableWebDAV     bool     `json:"disableWebDAV"`     // disable webdav support (default: false)
 	TrustProxyHeaders bool     `json:"trustProxyHeaders"` // honor X-Forwarded-* and X-Real-IP from a reverse proxy (default: false)
 	TrustedProxies    []string `json:"trustedProxies"`    // IPs/CIDRs of trusted proxies; forwarded client headers are only honored when the socket peer matches one of these (default: empty = forwarded headers ignored)
-	DisableRateLimit  bool     `json:"disableRateLimit"`  // turns off built-in auth route rate limiting and failed-login lockout (default false).
+	// UnixSocketTrustedUIDs and UnixSocketTrustedGIDs list peer credentials (Linux SO_PEERCRED) allowed to
+	// present X-Forwarded-* on a filesystem http.socket listener. When both are empty, forwarded headers
+	// are not trusted on Unix sockets. Abstract sockets (@name) never trust forwarded headers.
+	UnixSocketTrustedUIDs []int  `json:"unixSocketTrustedUIDs"`
+	UnixSocketTrustedGIDs []int  `json:"unixSocketTrustedGIDs"`
+	SocketFileMode        string `json:"socketFileMode"`   // octal mode for filesystem http.socket (default "0660"); ignored for abstract sockets
+	SocketGroup           string `json:"socketGroup"`      // optional group name or numeric gid for the socket file (filesystem sockets only)
+	DisableRateLimit      bool   `json:"disableRateLimit"` // turns off built-in auth route rate limiting and failed-login lockout (default false).
 }
 
 type Environment struct {

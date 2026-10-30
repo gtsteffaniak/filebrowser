@@ -16,8 +16,8 @@ import (
 	_ "net/http/pprof"
 
 	"github.com/coreos/go-systemd/v22/activation"
-	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/fileutils"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/files"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/fileutils"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/auth"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/events"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
@@ -93,8 +93,9 @@ func StartHttp(ctx context.Context, deps Deps, shutdownComplete chan struct{}) {
 	configureHTTPRouter(router, api, publicRoutes, publicApi)
 
 	srv := &http.Server{
-		Addr:    settings.HTTPListenAddr(settings.Config.Http.ListenAddress, settings.Config.Http.Port),
-		Handler: muxWithMiddleware(router),
+		Addr:        settings.HTTPListenAddr(settings.Config.Http.ListenAddress, settings.Config.Http.Port),
+		Handler:     muxWithMiddleware(router),
+		ConnContext: settings.AttachConnContext,
 	}
 	listenAddress := settings.Config.Http.ListenAddress
 	go func() {
@@ -105,7 +106,7 @@ func StartHttp(ctx context.Context, deps Deps, shutdownComplete chan struct{}) {
 			if err = os.Remove(settings.Config.Http.Socket); err != nil && !os.IsNotExist(err) {
 				logger.Fatalf("Could not remove existing socket: %v", err)
 			}
-			listener, err = net.Listen("unix", settings.Config.Http.Socket)
+			listener, err = settings.ListenUnixFilesystem(settings.Config.Http.Socket)
 			if err != nil {
 				logger.Fatalf("Could not listen on unix socket: %v", err)
 			}

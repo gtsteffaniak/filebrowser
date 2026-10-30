@@ -1,6 +1,8 @@
 package settings
 
 import (
+	"context"
+	"net/http"
 	"net/netip"
 	"testing"
 )
@@ -113,36 +115,48 @@ func TestIsTrustedProxyPeer(t *testing.T) {
 		resetTrustedProxyCache()
 	})
 
-	if IsTrustedProxyPeer("10.0.0.1:1234") {
+	if IsTrustedProxyPeer(&http.Request{RemoteAddr: "10.0.0.1:1234"}) {
 		t.Fatal("no trusted proxies configured: peer must not be trusted")
 	}
 
 	Config.Http.TrustedProxies = []string{"10.0.0.0/8"}
 	resetTrustedProxyCache()
-	if !IsTrustedProxyPeer("10.0.0.1:1234") {
+	if !IsTrustedProxyPeer(&http.Request{RemoteAddr: "10.0.0.1:1234"}) {
 		t.Fatal("peer in configured range should be trusted")
 	}
-	if !IsTrustedProxyPeer("10.0.0.1") {
+	if !IsTrustedProxyPeer(&http.Request{RemoteAddr: "10.0.0.1"}) {
 		t.Fatal("bare IP peer in configured range should be trusted")
 	}
-	if IsTrustedProxyPeer("192.0.2.1:1234") {
+	if IsTrustedProxyPeer(&http.Request{RemoteAddr: "192.0.2.1:1234"}) {
 		t.Fatal("peer outside configured range must not be trusted")
 	}
 }
 
-// With http.socket set the only listener is a Unix socket, whose peers have no IP.
+// With http.socket set, forwarded headers require matching unixSocketTrustedUIDs/GIDs.
 func TestIsTrustedProxyPeerUnixSocket(t *testing.T) {
 	resetTrustedProxyCache()
 	Config.Http.TrustedProxies = nil
 	Config.Http.Socket = "/tmp/filebrowser.sock"
 	t.Cleanup(func() {
 		Config.Http.Socket = ""
+		Config.Http.UnixSocketTrustedUIDs = nil
+		Config.Http.UnixSocketTrustedGIDs = nil
 		resetTrustedProxyCache()
 	})
 	for _, peer := range []string{"", "@"} {
-		if !IsTrustedProxyPeer(peer) {
-			t.Fatalf("unix socket peer %q must be trusted", peer)
+		if IsTrustedProxyPeer(&http.Request{RemoteAddr: peer}) {
+			t.Fatalf("unix socket peer %q must not be trusted without peer credentials", peer)
 		}
+	}
+
+	Config.Http.UnixSocketTrustedUIDs = []int{33}
+	req := (&http.Request{}).WithContext(ContextWithUnixPeerForTest(context.Background(), 33, 1000))
+	if !IsTrustedProxyPeer(req) {
+		t.Fatal("peer with allowed UID should be trusted")
+	}
+	reqBad := (&http.Request{}).WithContext(ContextWithUnixPeerForTest(context.Background(), 34, 1000))
+	if IsTrustedProxyPeer(reqBad) {
+		t.Fatal("peer with disallowed UID must not be trusted")
 	}
 	if got := TrustedProxyClientIP("203.0.113.50"); got != "203.0.113.50" {
 		t.Fatalf("got %q, want 203.0.113.50", got)
@@ -157,7 +171,7 @@ func TestIsTrustedProxyPeerAbstractSocketNotTrusted(t *testing.T) {
 		Config.Http.Socket = ""
 		resetTrustedProxyCache()
 	})
-	if IsTrustedProxyPeer("@") {
+	if IsTrustedProxyPeer(&http.Request{RemoteAddr: "@"}) {
 		t.Fatal("abstract socket peers must not be trusted")
 	}
 }

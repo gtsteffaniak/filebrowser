@@ -122,6 +122,10 @@ func warnHttpProxyConfig() {
 	if Config.Http.TrustProxyHeaders && len(TrustedProxyPrefixes()) == 0 && Config.Http.Socket == "" {
 		logger.Warning("http.trustProxyHeaders is true but http.trustedProxies is empty; X-Forwarded-For and X-Real-IP are ignored, so client IPs (rate limits, activity logs) resolve to the proxy address. Add your reverse proxy addresses to http.trustedProxies.")
 	}
+	if Config.Http.TrustProxyHeaders && Config.Http.Socket != "" && !strings.HasPrefix(Config.Http.Socket, "@") &&
+		len(Config.Http.UnixSocketTrustedUIDs) == 0 && len(Config.Http.UnixSocketTrustedGIDs) == 0 {
+		logger.Warning("http.trustProxyHeaders is true and http.socket is a filesystem Unix socket, but http.unixSocketTrustedUIDs and http.unixSocketTrustedGIDs are empty; X-Forwarded-For and X-Real-IP are ignored until you list the reverse proxy's UID or GID (Linux peer credentials).")
+	}
 	if !Env.IsDevMode {
 		if u := Config.Http.ExternalUrl; u != "" && strings.HasPrefix(strings.ToLower(u), "http://") {
 			logger.Warning("http.externalUrl uses http when the url should be https for a production environment")
