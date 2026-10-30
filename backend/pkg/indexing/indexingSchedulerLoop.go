@@ -223,11 +223,7 @@ func (idx *Index) needsAdaptiveBootstrap() bool {
 	return false
 }
 
-// runSerialScanPass scans every scanner in path order. startup marks the post-restart
-// bootstrap, where folder sizes were not restored and every scanner must full-scan. A pass
-// triggered by a newly discovered scanner full-scans only scanners never scanned before and
-// leaves the quick/full cadence of existing scanners alone.
-func (idx *Index) runSerialScanPass(startup bool) {
+func (idx *Index) runSerialScanPass() {
 	idx.pruneGoneChildScanners()
 	paths := sortedScannerPaths(idx)
 	idx.mu.Lock()
@@ -245,7 +241,6 @@ func (idx *Index) runSerialScanPass(startup bool) {
 	for _, p := range paths {
 		idx.mu.RLock()
 		s, ok := idx.scanners[p]
-		neverScanned := ok && s.lastScanned.IsZero()
 		idx.mu.RUnlock()
 		if !ok {
 			continue
@@ -254,13 +249,10 @@ func (idx *Index) runSerialScanPass(startup bool) {
 			s.removeSelf()
 			continue
 		}
-		// Folder sizes are not restored at startup and a new scanner has none yet, so run
-		// a full scan for those; other scanners keep their cadence.
-		if startup || neverScanned {
-			s.withStatsLock(func() {
-				s.fullScanCounter = 0
-			})
-		}
+		// Folder sizes are not restored in this pass, so run a full scan.
+		s.withStatsLock(func() {
+			s.fullScanCounter = 0
+		})
 		s.executeScan()
 	}
 }
@@ -270,10 +262,9 @@ func (idx *Index) schedulerAdaptiveTick() {
 	if idx.needsAdaptiveBootstrap() {
 		logger.Debugf("[%s] scheduler: adaptive bootstrap (serial pass all scanners)", idx.Name)
 		idx.mu.Lock()
-		startup := idx.startupScanPending
 		idx.startupScanPending = false
 		idx.mu.Unlock()
-		idx.runSerialScanPass(startup)
+		idx.runSerialScanPass()
 		return
 	}
 	drainedAny := false
