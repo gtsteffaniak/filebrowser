@@ -9,7 +9,7 @@ import { getTypeInfo, isHtmlMimeType, isRichTextPreviewMimeType } from "@/utils/
 import { formatTimestamp, fromNow } from "@/utils/moment.ts";
 import { getNestedProperty, getObjectProperty } from '@/utils/object.js';
 import { buildItemUrl, removeLeadingSlash, removePrefix } from '@/utils/url.js';
-import { defaultDarkMode, resolveDarkMode } from "@/utils/theme.js";
+import { defaultDarkMode, normalizeDarkMode, resolveDarkMode } from "@/utils/theme.js";
 import { isMobileLayout } from '@/utils/viewport.js';
 import type { DisplayPreference, FileListItem } from "./types.ts";
 
@@ -592,7 +592,10 @@ export const getters = {
       deleteAfterArchive: true,
       stickySidebar: true,
       hideFilesInTree: false,
-      darkMode: defaultDarkMode(),
+      // Keep the raw preference ("auto" stays "auto") so isDarkMode re-resolves
+      // it against the system on every read; storing the resolved boolean would
+      // freeze the theme at page load for public shares.
+      darkMode: normalizeDarkMode(globalVars.darkMode),
       dateFormat: false,
       disableViewingExt: "",
       disableOfficePreviewExt: "",
