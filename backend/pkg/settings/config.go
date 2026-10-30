@@ -678,6 +678,7 @@ func loadConfigWithDefaults(configFile string, generate bool) error {
 		"integrations": true,
 		"frontend":     true,
 		"userDefaults": true,
+		"sharePolicy":  true,
 		"http":         true,
 	}
 
