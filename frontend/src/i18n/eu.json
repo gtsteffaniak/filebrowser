@@ -170,7 +170,20 @@
     "clearSelection": "Garbitu hautapena",
     "interval": "Tartea{suffix}",
     "none": "Bat ere ez",
-    "enforce": "Derrigortu{suffix}"
+    "enforce": "Derrigortu{suffix}",
+    "unknown": "Ezezaguna",
+    "simple": "Sinplea",
+    "normal": "Normala",
+    "complex": "Konplexua",
+    "access": "Sarbidea",
+    "groups": "Taldeak",
+    "transcode": "Bidali transkodetuta{suffix}",
+    "off": "Itzali{suffix}",
+    "quality": "Kalitatea{suffix}",
+    "balanced": "Orekatuta{suffix}",
+    "dataSaver": "Datu-gordetzailea{suffix}",
+    "media": "Komunikabideak",
+    "default": "Lehenetsia{suffix}"
   },
   "buttons": {
     "copySuccess": "Arbelean kopiatu da!",
@@ -644,7 +657,7 @@
     "userEditSidebarLinks": "Alboko barrako estekak",
     "userDefaultsDescription": "Konfiguratu erabiltzaile berriei aplikatzen zaizkien ezarpen lehenetsiak eta erabiltzaile guztiei derrigortutako gidalerroak.",
     "editAsYaml": "Editatu YAML gisa",
-    "userDefaultFieldLockedFromConfig": "Lehenespen hau konfigurazio-fitxategian ezarrita dago, eta ezin da hemen aldatu.",
+    "lockedFromConfig": "Lehenespen hau konfigurazio-fitxategian ezarrita dago, eta ezin da hemen aldatu.",
     "accountDefaults": "Kontuaren lehenespenak",
     "disableUserSettings": "Desgaitu erabiltzaile-ezarpenen orria",
     "analyticsView": "Ikusi analitikak",
@@ -659,9 +672,6 @@
     "passwordRequirementsMatch": "Pasahitzak bat datoz",
     "passwordRequirementsMinLength": "Gutxienez {min} karaktere",
     "loginMethod": "Saioa hasteko metodoa",
-    "loginMethods": {
-      "password": "Pasahitza"
-    },
     "modifyOtherUser": "Aldatu erabiltzailea:",
     "modifyOtherUserTitle": "Aldatu erabiltzailea: {username}",
     "themeColor": "Gaiaren kolorea",
@@ -764,10 +774,6 @@
     "minimalInfo": "Tokenaren pertsonalizazioak baztertzen ditu; baimenak lotutako erabiltzailearenak izango dira, eta ez du beste atributurik izango."
   },
   "index": {
-    "unknown": "Ezezaguna",
-    "simple": "Sinplea",
-    "normal": "Normala",
-    "complex": "Konplexua",
     "highlyComplex": "Oso konplexua",
     "assessment": "Ebaluazioa",
     "ready": "Prest",
@@ -794,12 +800,9 @@
     "passwordRequiredForGeneration": "Zure pasahitza behar da autentifikazio-kode bat sortzeko."
   },
   "access": {
-    "access": "Sarbidea",
-    "groups": "Taldeak",
     "newGroup": "Talde berria",
     "editGroup": "Editatu taldea",
     "groupName": "Taldearen izena",
-    "userGroups": "Taldeak",
     "userGroupsDescription": "Erabiltzaile hau zein taldetakoa den",
     "groupMembers": "Kideak",
     "membersCount": "Kideak: {count}",
@@ -811,7 +814,6 @@
     "groupExists": "Badago izen hori duen talde bat.",
     "deleteGroupConfirm": "Ezabatu \"{name}\" taldea? Sarbide-arau guztietatik ere kenduko da.",
     "groupsOidcNote": "SSO bidez sinkronizatutako taldeetako (OIDC, LDAP, JWT, proxy) kideak identitate-hornitzailetik berrezartzen dira erabiltzaile horiek saioa hasten duten bakoitzean.",
-    "selectEntities": "Hautatu",
     "selectUser": "Hautatu erabiltzailea",
     "selectUsers": "Hautatu erabiltzaileak",
     "selectGroup": "Hautatu taldea",
@@ -879,7 +881,7 @@
       },
       "tabSize": {
         "label": "Tabulazioaren tamaina",
-        "description": "'TAB' teklak berez zenbat zuriune sartu behar dituen"
+        "description": "Zenbat zuriune egin beharko lituzkeen 'TAB' tekla lehenespenez -- 'Extra' gisa ezartzen duzun itzultze-koska denean koska gehigarriaren tamaina ere bada"
       },
       "showIndentGuides": "Erakutsi koska-gidak",
       "showIndentGuidesDescription": "Erakutsi koska-gidak; orientazio hobea ematen dute kode habiaratua editatzean",
@@ -895,8 +897,13 @@
       "customScrollbarDescription": "Ordeztu nabigatzailearen jatorrizko korritze-barra Ace-ren barneko korritze-barrarekin",
       "wrapContent": "Egokitu lerro luzeak editorean",
       "wrapContentDescription": "Editorearen edukia egokitzen du, lerro oso luzeak beti ikusgai egon daitezen",
-      "indentedSoftWrap": "Egokitze bigun koskaduna",
-      "indentedSoftWrapDescription": "Gaituta dagoenean, koska gehitzen dio egokitutako testuaren hasierari",
+      "wrapIndent": {
+        "label": "Itzulitako lerroen koska",
+        "description": "Nola egiten zaien koska itzulitako lerroei: 'None' hitz-itzultzea koskarik gabe, 'Aligned' jatorrizko lerroaren koska mantentzen du, 'Extra' koska-maila gehigarri bat gehitzen du, zure tab tamaina ezarpenari jarraituz",
+        "none": "Bat ere ez",
+        "aligned": "Lerrokatuta",
+        "extra": "Gehigarria"
+      },
       "autocompletion": "Osatze automatikoa",
       "autocompletionDescription": "Osatze automatikoa gaitzen du, 'ctrl + space' eskuz sakatuta",
       "liveAutocompletion": "Zuzeneko osatze automatikoa",
@@ -987,7 +994,12 @@
       "maxDecibelsDescription": "Barrak erregistratzen duen mailarik altuena (dBFS)",
       "showScalesDescription": "Erakutsi ardatzak eta sareta-lerroak bistaratzailean",
       "showPeaksDescription": "Gailur-adierazle zuri txikiak barra bakoitzaren gainean"
-    }
+    },
+    "transcodeFailed": "Transkodaketa huts egin du",
+    "transcodeLoading": "Transkodatutako korrontea prestatzen",
+    "transcodeUnsupportedFormat": "Bideo-formatua ez dago zure nabigatzailean onartuta.",
+    "transcodeUserLimitReached": "Transkodetze-muga gainditu da. Dagoeneko transkodetze-saio aktibo bat duzu:",
+    "transcodeSystemLimitReached": "Zerbitzariaren transkodetze-muga gainditu da ({limit} aldi berean). Saiatu berriro saio bat amaitzean."
   },
   "fileSizeAnalyzer": {
     "title": "Fitxategi-tamainen analizatzailea",
@@ -1210,5 +1222,43 @@
   },
   "pwa": {
     "install": "Instalatu aplikazioa"
+  },
+  "media": {
+    "extractEmbeddedSubtitles": "Txertatutako azpitituluak atera",
+    "extractEmbeddedSubtitlesDescription": "Media fitxategietatik txertatutako azpitituluak atera.",
+    "debug": "Akatsen erregistroa",
+    "debugDescription": "Media integrazioarako ffmpeg-en stdout irteera. Oharra: irteera asko sortzen du.",
+    "imagePreview": "Irudi aurrebistako formatuak",
+    "videoPreview": "Bideo aurrebista formatuak",
+    "imageVideoConversionFormats": "Irudi eta bideo bihurketa formatuak",
+    "imageVideoConversionFormatsDescription": "Aukeratu ffmpeg-ek aurrebistetarako bihur ditzakeen irudi eta bideo formatuak.",
+    "updateFailed": "Ezarpenak eguneratzeko huts egin da.",
+    "maxConcurrentTranscodes": "Maximo aldi bereko transkodetzeak",
+    "maxConcurrentTranscodesHelp": "Erabiltzaile honentzako aldi berean exekutatu daitezkeen HLS transkodetze-erreprodukzio saioen kopuru maximoa.",
+    "transcode": "Bihurketa",
+    "transcodeEnabled": "Transkodaketa gaitzea",
+    "transcodeEnabledDescription": "Baimentu zerbitzari-aldiko HLS transkodaketa erreprodukzio autentifikaturako.",
+    "transcodeSettings": "Transkodifikazioko ezarpenak",
+    "transcodeSettingsDescription": "Paralelismo-mugak, disko-cachea eta profil bakoitzeko bereizmen- eta bitrate-mugak.",
+    "transcodeMaxConcurrent": "Munduko aldi bereko saioak",
+    "transcodeMaxConcurrentHelp": "Erabiltzaile guztietan zehar aldi berean exekutatzen diren transkodetze saioen kopuru maximoa.",
+    "transcodeMaxConcurrentPerUser": "Erabiltzaile bakoitzeko saio-muga",
+    "transcodeMaxConcurrentPerUserHelp": "Erabiltzaile bakar baterako aldi berean exekutatzen diren transkodetze saioetarako muga zorrotza. Erabiltzailearen ezarpenek ezin dute hori gainditu.",
+    "transcodeCacheMaxSizeMB": "Kaxearen tamaina-muga (MB)",
+    "transcodeCacheMaxSizeMBHelp": "Transkodetze-cache-rako disko-espazio maximoa MB-tan. 0k mugagabea adierazten du.",
+    "transcodeCacheRetentionH": "Gordailuaren iraupena (ordu)",
+    "transcodeCacheRetentionHHelp": "Zenbat denbora gordetzen dira inaktibo dauden transkodaketa-cache-generazioak kanporatu aurretik?",
+    "transcodeProfileEnabled": "Gaitu",
+    "transcodeProfileEnabledDescription": "Eman kalitatezko aurrezarpen hau erreproduzitzaile-menuan ikusteko.",
+    "transcodeProfileMaxResolution": "Maximo bereizmena",
+    "transcodeProfileMaxResolutionHelp": "Pixeletan irteerako altuera maximoa. 0-k iturburuaren bereizmena mantentzen du.",
+    "transcodeProfileAvgBitrate": "Batez besteko bitratea (kbps)",
+    "transcodeProfileAvgBitrateHelp": "Helburu bideoaren batez besteko bitratea kbps-tan. 0-k iturburuaren bitratea mantentzen du.",
+    "transcodeReadRate": "Producer rate limit (× realtime)",
+    "transcodeReadRateHelp": "Caps the transcode producer at N× realtime input pacing (ffmpeg -readrate) to limit CPU. Minimum 1; defaults to 2. Applies to transcode jobs only; stream-copy runs unthrottled.",
+    "accelDevice": "Azelerazio-gailua",
+    "accelDeviceDescription": "GPU gailua hardware bidez azeleratutako multimedia prozesamendurako erabiltzen da. CPUk (softwareak) hardware azelerazioa desgaitzen du.",
+    "encoderBackend": "Enkodatzaile atzealdea",
+    "transcodeProfileEncoderBackendHelp": "Aurrezarpen honen enkoder atzeko plana; hautemandako atzeko plan lehenetsira lehenetsita dago."
   }
 }

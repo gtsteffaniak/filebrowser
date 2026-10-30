@@ -207,6 +207,13 @@ func TestOfficeProductSelection(t *testing.T) {
 	}
 	for _, c := range cases {
 		settings.Config.Integrations.OnlyOffice = c.office
+		wantOnlyOfficeURL := ""
+		if c.product == "onlyoffice" {
+			wantOnlyOfficeURL = c.office.Url
+		}
+		if got := onlyOfficeUrlForSPA(); got != wantOnlyOfficeURL {
+			t.Errorf("%+v: onlyOfficeUrlForSPA = %q, want %q", c.office, got, wantOnlyOfficeURL)
+		}
 		if got := officeProductForSPA(); got != c.product {
 			t.Errorf("%+v: officeProductForSPA = %q, want %q", c.office, got, c.product)
 		}

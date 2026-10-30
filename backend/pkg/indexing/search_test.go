@@ -60,9 +60,8 @@ func BenchmarkSearchAllIndexes(b *testing.B) {
 	// Generate 100 random search terms
 	searchTerms := utils.GenerateRandomSearchTerms(100)
 
-	b.ResetTimer()
 	b.ReportAllocs()
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		// Execute the SearchAllIndexes function
 		for _, term := range searchTerms {
 			idx.Search(context.Background(), term, "/", false, DefaultSearchResults, 0, 0, false)

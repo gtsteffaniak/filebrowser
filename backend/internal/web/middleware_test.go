@@ -34,6 +34,7 @@ func setupTestEnv(t *testing.T) {
 	t.Cleanup(func() {
 		state.Close()
 	})
+	stopTranscodeManagerOnCleanup(t)
 
 	settings.Config.Server.SourceMap = map[string]*settings.Source{
 		"/srv": {

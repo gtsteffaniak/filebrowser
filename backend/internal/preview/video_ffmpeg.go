@@ -4,6 +4,9 @@ import (
 	"github.com/gtsteffaniak/go-ffmpeg/ops"
 )
 
+// ffmpegMJPEGPreviewQuality matches historical preview encode (-q:v 10 on the legacy 1–10 scale).
+const ffmpegMJPEGPreviewQuality = 72
+
 type ffmpegPreviewParams struct {
 	width     int
 	height    int
@@ -13,7 +16,7 @@ type ffmpegPreviewParams struct {
 
 func ffmpegPreviewParamsForSize(previewSize string) (ffmpegPreviewParams, error) {
 	if previewSize == "original" {
-		return ffmpegPreviewParams{quality: 10}, nil
+		return ffmpegPreviewParams{quality: ffmpegMJPEGPreviewQuality}, nil
 	}
 
 	opts, err := getPreviewOptions(previewSize)
@@ -24,7 +27,7 @@ func ffmpegPreviewParamsForSize(previewSize string) (ffmpegPreviewParams, error)
 	params := ffmpegPreviewParams{
 		width:   opts.Width,
 		height:  opts.Height,
-		quality: 10, // fastest MJPEG encode (-q:v 10); visual quality comes from target dimensions
+		quality: ffmpegMJPEGPreviewQuality, // ~legacy -q:v 10; visual quality comes from target dimensions
 	}
 	if opts.ResizeMode == ResizeModeFill {
 		params.scaleMode = ops.ScaleFill

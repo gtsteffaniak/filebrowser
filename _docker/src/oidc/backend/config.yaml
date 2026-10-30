@@ -51,3 +51,6 @@ userDefaults:
       admin: false
       share: false
       api: false
+integrations:
+  media:
+    skipHwCheck: true

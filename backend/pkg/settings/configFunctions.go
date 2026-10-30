@@ -1,7 +1,9 @@
 package settings
 
 func CanConvertImage(ext string) bool {
-	if !MediaEnabled() {
+	mediaMu.RLock()
+	defer mediaMu.RUnlock()
+	if !Env.FFmpegAvailable {
 		return false
 	}
 	val := Config.Integrations.Media.Convert.ImagePreview[ImagePreviewType(ext)]
@@ -12,7 +14,9 @@ func CanConvertImage(ext string) bool {
 }
 
 func CanConvertVideo(ext string) bool {
-	if !MediaEnabled() {
+	mediaMu.RLock()
+	defer mediaMu.RUnlock()
+	if !Env.FFmpegAvailable {
 		return false
 	}
 	val := Config.Integrations.Media.Convert.VideoPreview[VideoPreviewType(ext)]
@@ -22,6 +26,10 @@ func CanConvertVideo(ext string) bool {
 	return *val
 }
 
+// MediaEnabled reports whether ffmpeg initialized successfully. Read under the
+// media lock so it is consistent while an admin toggles media settings.
 func MediaEnabled() bool {
+	mediaMu.RLock()
+	defer mediaMu.RUnlock()
 	return Env.FFmpegAvailable
 }

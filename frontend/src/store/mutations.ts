@@ -3,12 +3,14 @@ import { markRaw } from "vue";
 import { resourcesApi, usersApi } from "@/api/index.js";
 import {
   getEnforcedUserDefaults,
+  getMediaPlayerSettings,
   getShareDefaultsPolicy,
   getSidebarLinkDefaultsPolicy,
   getToolAccessDefaultsPolicy,
 } from "@/api/settings.js";
 import { detectLocale, setLocale } from "@/i18n/index.ts";
 import { notify } from "@/notify/index.ts";
+import { globalVars } from "@/utils/constants.js";
 import { url } from "@/utils/index.ts";
 import { getTypeInfo } from "@/utils/mimetype.js";
 import { getObjectProperty, setObjectProperty, omitObjectProperty } from '@/utils/object.js';
@@ -660,6 +662,38 @@ export const mutations = {
       state.enforcedUserDefaults = data.enforced || {};
     } catch {
       state.enforcedUserDefaults = {};
+    }
+    emitStateChanged();
+  },
+  /**
+   * Load the effective media settings for playback. `globalVars` are static
+   * page constants, so runtime changes to media settings are read from the API
+   * (available to every authenticated user) instead.
+   */
+  syncMediaPlayerSettings: async () => {
+    if (!getters.isLoggedIn() || getters.isShare() || state.user?.username === "anonymous") {
+      state.mediaPlayerSettings = null;
+      emitStateChanged();
+      return;
+    }
+    // ffmpeg availability is fixed for the process lifetime; skip the API when
+    // media is unavailable (GET /settings/media answers 503 and shows up as a
+    // failed request / console error in Playwright and the browser).
+    if (globalVars.mediaAvailable !== true) {
+      state.mediaPlayerSettings = null;
+      emitStateChanged();
+      return;
+    }
+    try {
+      const settings = await getMediaPlayerSettings();
+      // The request can resolve after logout/share transition — don't write
+      // media settings into a logged-out state.
+      if (!getters.isLoggedIn() || getters.isShare() || state.user?.username === "anonymous") {
+        return;
+      }
+      state.mediaPlayerSettings = settings;
+    } catch {
+      state.mediaPlayerSettings = null;
     }
     emitStateChanged();
   },

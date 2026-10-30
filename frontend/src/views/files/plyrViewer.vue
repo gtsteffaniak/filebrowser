@@ -129,7 +129,10 @@
       v-else-if="previewType === 'video'"
       ref="videoPlayerContainer"
       class="video-player-container"
-      :class="{ 'no-captions': !hasSubtitles }"
+      :class="{
+        'no-captions': !hasSubtitles,
+        'video-player-container--transcode-switching': transcodeSwitchInProgress,
+      }"
     >
       <div class="plyr-video-container" ref="plyrVideoContainer">
         <video
@@ -140,6 +143,8 @@
           :poster="posterUrl"
           :autoplay="videoElementAutoplay"
           @play="handlePlay"
+          @error="onVideoPlaybackError"
+          @loadedmetadata="onVideoLoadedMetadata"
           playsinline
         >
           <track kind="captions" v-for="(sub, index) in subtitlesList" :key="index" :src="sub.src"
@@ -147,8 +152,10 @@
         </video>
       </div>
       <div
-        v-if="videoPlaybackLoading"
+        v-if="videoPlaybackLoading || transcodeSwitchInProgress"
         class="video-loading-overlay"
+        :class="{ 'video-loading-overlay--blocking': transcodeSwitchInProgress }"
+        :aria-label="transcodeSwitchInProgress ? $t('player.transcodeLoading') : undefined"
         aria-hidden="true"
         aria-busy="true"
       >
@@ -237,7 +244,7 @@ import {
   formatArtist
 } from '@/utils/playbackQueue.js';
 import { getTypeFromMime } from '@/utils/files.js';
-import { buildItemUrl } from '@/utils/url.js';
+import { buildItemUrl, removeTrailingSlash } from '@/utils/url.js';
 import AudioPanel from "@/components/files/AudioPanel.vue";
 import { getters, mutations, state } from '@/store';
 import { getObjectProperty } from '@/utils/object.js';
@@ -271,9 +278,30 @@ import {
 import LoadingSpinner from '@/components/LoadingSpinner.vue';
 import FloatingActionButton from '@/components/settings/FloatingActionButton.vue';
 import {
-  parsePlaybackTimeFromQuery,
+  parseTranscodeModeFromQuery,
+  buildPlaybackQueryPatch,
   playbackQueryChanged,
 } from '@/utils/playbackQuery';
+import {
+  resolveTranscodeModeForPlayback,
+  savePreferredTranscodeMode,
+} from '@/utils/transcodePreference.js';
+import { createTranscodeClientId } from '@/plyr/transcodeSession.js';
+import { TranscodePlaybackController } from '@/plyr/transcodePlaybackController.js';
+import {
+  TRANSCODE_MODES as PLYR_TRANSCODE_MODES,
+  TRANSCODE_HLS_MODES as PLYR_TRANSCODE_HLS_MODES,
+  normalizeTranscodeMode,
+  normalizeTranscodeSessionStatus,
+  isTranscodeHlsMode,
+  isTranscodeAvailable,
+} from '@/plyr/transcodeMode.js';
+import { transcodeLog, transcodeWarn } from '@/plyr/transcodeDebug.js';
+import { isPlayBlockedError, primePlay } from '@/plyr/playbackIntent.js';
+import { needsTranscodeFirst } from '@/utils/canBrowserPlayNative.js';
+import { getTranscodeSessions } from '@/api/transcode.js';
+import { getCachedViewToken } from '@/api/viewToken.js';
+import { notify } from '@/notify';
 import { isInLeftNavTapZone, isInRightNavTapZone } from '@/utils/navigationEdgeZones.js';
 import { zoneFromClientX } from '@/plyr/gestureZones.js';
 import { ownsMediaSession as ownsMediaSessionSlot } from '@/utils/mediaSessionOwnership';
@@ -287,6 +315,19 @@ let pendingFullscreenResume = false;
 let pendingPipResume = false;
 let pendingResumeTimestamp = 0;
 let mediaSessionOwner = 0;
+
+/**
+ * Percent-decode a route path, tolerating malformed escapes. Vue Router and
+ * buildItemUrl do not always encode the same characters (spaces, quotes,
+ * parentheses), so route-leave checks compare both forms.
+ */
+function decodePathSafely(path) {
+  try {
+    return decodeURI(path);
+  } catch (_) {
+    return path;
+  }
+}
 
 export default {
   name: "plyrViewer",
@@ -324,8 +365,16 @@ export default {
       type: Array,
       default: () => [],
     },
+    startTranscode: {
+      type: Boolean,
+      default: false,
+    },
+    sharedTranscodePlayback: {
+      type: Object,
+      default: null,
+    },
   },
-  emits: ['play', 'navigate-previous', 'navigate-next', 'close-preview'],
+  emits: ['play', 'navigate-previous', 'navigate-next', 'close-preview', 'needs-transcode'],
   data() {
     return {
       // Toast
@@ -406,6 +455,7 @@ export default {
       longPressPreviousSpeed: 1,
       speedToastVisible: false,
       speedToastMessage: '',
+      speedToastTimer: null,
 
       // Plyr instance
       player: null,
@@ -420,7 +470,6 @@ export default {
       seekOnReleaseCleanup: null,
       scrubPreviewCleanup: null,
       videoLoadingCleanup: null,
-      querySeekMetadataHandler: null,
       plyrTeardownDone: false,
       /** Inline resume after PiP handoff; applied when the video stream attaches. */
       inlineResumeSnapshot: null,
@@ -434,6 +483,19 @@ export default {
       pipHandoffApplying: false,
       /** Keeps :src stable after PiP handoff so Vue does not rebind without #t=. */
       lockedNativeVideoSrc: null,
+      transcodePlayback: null,
+      transcodeClientId: createTranscodeClientId(),
+      transcodeSwitchInProgress: false,
+      transcodeFallbackAttempted: false,
+      transcodeMode: 'native',
+      transcodeMenuInitialized: false,
+      transcodeModeButtons: null,
+      transcodeModeValueSpan: null,
+      transcodeOfferEmitted: false,
+      mountPlyrInProgress: false,
+      /** Armed when autoplay is blocked so the next user gesture can resume playback. */
+      resumeOnGestureArmed: false,
+      resumeOnGestureHandler: null,
     };
   },
   watch: {
@@ -503,11 +565,16 @@ export default {
       }
     },
     'req.path'() {
-      this.videoStreamAttached = false;
-      this.pipHandoffSeekSeconds = null;
-      this.lockedNativeVideoSrc = null;
-      this.hasStartedPlayback = false;
-      this.overlaidHintApi?.reset();
+      this.resetFilePlaybackState();
+    },
+    'req.source'(newSource, oldSource) {
+      if (!newSource || newSource === oldSource) {
+        return;
+      }
+      this.resetFilePlaybackState();
+      this.destroyPlyr();
+      this.plyrTeardownDone = false;
+      void this.initializePlyr();
     },
     routePath() {
       this.stopIfRouteLeftThisFile();
@@ -577,10 +644,26 @@ export default {
     },
     '$route.query': {
       handler(newQuery, oldQuery) {
-        if (playbackQueryChanged(oldQuery, newQuery)) {
-          this.applyQueryPlaybackSeek();
+        const urlTranscode = parseTranscodeModeFromQuery(newQuery);
+        const oldUrlTranscode = parseTranscodeModeFromQuery(oldQuery);
+        if (urlTranscode !== oldUrlTranscode) {
+          const requestedMode = urlTranscode || 'native';
+          if (requestedMode !== this.transcodeMode) {
+            void this.switchTranscodeMode(requestedMode);
+          }
         }
       },
+    },
+    transcodeSwitchInProgress(val) {
+      this.setTranscodeModeMenuDisabled(val);
+    },
+    transcodeMode() {
+      this.updateTranscodeModeMenuSelection();
+    },
+    transcodeMenuAvailable() {
+      if (this.player) {
+        this.applyCustomSettings(this.player);
+      }
     },
   },
   computed: {
@@ -722,8 +805,87 @@ export default {
         ? getPreviewURLPublic(this.req.path, 'original')
         : `${getPreviewURL(this.req.source, this.req.path, this.req.modified)}&size=original`;
     },
-    nativeVideoSrc() {
+    transcodeQueryMode() {
+      return parseTranscodeModeFromQuery(this.$route?.query);
+    },
+    transcodeEnabled() {
+      return isTranscodeAvailable();
+    },
+    transcodeActive() {
+      return this.transcodePlayback?.active === true;
+    },
+    transcodeStartInProgress() {
+      return this.transcodePlayback?.startInProgress === true;
+    },
+    transcodeMenuAvailable() {
+      return (
+        this.transcodeEnabled
+        && this.previewType === 'video'
+        && getters.isLoggedIn()
+        && !getters.isShare()
+      );
+    },
+    isTranscodePlaybackMode() {
+      return (
+        this.transcodeEnabled
+        && PLYR_TRANSCODE_HLS_MODES.includes(this.transcodeMode)
+      );
+    },
+    wantsTranscodePlayback() {
+      return this.previewType === 'video' && this.isTranscodePlaybackMode;
+    },
+    nativeVideoTranscodeEligible() {
+      return (
+        this.transcodeEnabled
+        && this.previewType === 'video'
+        && this.transcodeMode === 'native'
+        && !this.transcodeSwitchInProgress
+        && !getters.isShare()
+      );
+    },
+    formatNeedsTranscode() {
       if (this.previewType !== 'video') {
+        return false;
+      }
+      return needsTranscodeFirst(this.transcodeProbeParams());
+    },
+    transcodeProfileOptions() {
+      const live = state.mediaPlayerSettings?.profiles;
+      let configured;
+      if (Array.isArray(live)) {
+        configured = live;
+      } else {
+        configured = Array.isArray(globalVars.transcodeProfiles)
+          ? globalVars.transcodeProfiles
+          : PLYR_TRANSCODE_HLS_MODES;
+      }
+      const ids = configured.filter((id) => PLYR_TRANSCODE_HLS_MODES.includes(id));
+      return ids.length ? ids : PLYR_TRANSCODE_HLS_MODES;
+    },
+    shouldProactivelyOfferTranscode() {
+      if (this.previewType !== 'video' || this.startTranscode) {
+        return false;
+      }
+      if (this.isTranscodePlaybackMode || getters.isShare()) {
+        return false;
+      }
+      return this.formatNeedsTranscode;
+    },
+    plyrSettingsMenu() {
+      const base = ['captions', 'captionSize', 'quality', 'speed', 'playback', 'loop'];
+      // Register the slot whenever authenticated video can show it later.
+      // Plyr only builds settings panels at mount; applyCustomSettings toggles
+      // visibility when media/live settings settle (e.g. after syncMediaPlayerSettings).
+      if (this.previewType === 'video' && getters.isLoggedIn() && !getters.isShare()) {
+        return [...base, 'transcodeMode'];
+      }
+      return base;
+    },
+    nativeVideoSrc() {
+      if (this.previewType !== 'video' || this.transcodeActive || this.transcodeStartInProgress) {
+        return null;
+      }
+      if (isTranscodeHlsMode(this.transcodeMode) || this.formatNeedsTranscode) {
         return null;
       }
       if (this.lockedNativeVideoSrc) {
@@ -737,6 +899,9 @@ export default {
       return null;
     },
     shouldAttachVideoStream() {
+      if (this.formatNeedsTranscode) {
+        return false;
+      }
       if (
         this.previewType === 'video'
         && shouldDeferVideoStreamAttach(this.req?.source, this.req?.path)
@@ -757,6 +922,12 @@ export default {
     },
     videoElementAutoplay() {
       if (this.previewType !== 'video') {
+        return false;
+      }
+      if (isTranscodeHlsMode(this.transcodeMode) || this.transcodeStartInProgress) {
+        return false;
+      }
+      if (this.formatNeedsTranscode) {
         return false;
       }
       if (shouldDeferVideoStreamAttach(this.req?.source, this.req?.path)) {
@@ -802,11 +973,12 @@ export default {
       ];
       return {
         controls: this.isMobile ? controlsMobile : controlsDesktop,
-        settings: ['captions', 'captionSize', 'quality', 'speed', 'playback', 'loop'],
+        settings: this.plyrSettingsMenu,
         i18n: {
           playback: this.$t('player.playbackMode'),
           captionSize: this.$t('player.captionSize'),
           loop: this.$t('player.loop'),
+          transcodeMode: this.$t('general.transcode'),
         },
         speed: {
           selected: 1,
@@ -844,9 +1016,14 @@ export default {
       };
     },
   },
-  mounted() {
+  async mounted() {
     initPipSession();
-    this.hookEvents();
+    // Record the mounted file before any async prepare step so route-leave
+    // detection works while Plyr is still waiting on subtitles/metadata.
+    this.mountedPreviewKey = resolvePipMediaKey(this.req?.source, this.req?.path);
+    if (this.previewType === 'video' || this.previewType === 'audio') {
+      await this.preparePlyrMount();
+    }
     if (this.previewType === "audio") {
       this.loadAudioMetadata();
     }
@@ -854,6 +1031,12 @@ export default {
     this.pagehideHandler = (event) => {
       if (event.persisted) return;
       this.cleanupAudioVisualizer(); // to stop the visualizer when viewing another browser tab
+      // Tab close / page unload: stop the media element and fire a keepalive
+      // DELETE so the server session is released before the document tears down.
+      // A plain fetch would be cancelled mid-flight and leave the session
+      // counted against the per-user limit until the janitor reaps it.
+      this.teardownTranscodePlayback({ stopSession: true, keepalive: true });
+      this.stopMediaElement();
     };
     window.addEventListener('pagehide', this.pagehideHandler);
   },
@@ -867,11 +1050,16 @@ export default {
   ]) {
       if (timeout) clearTimeout(timeout);
     }
-    // Cleanup Plyr
-    this.destroyPlyr();
-    this.clearMediaSession();
-    document.removeEventListener('keydown', this.handleKeydown);
-    window.removeEventListener('pagehide', this.pagehideHandler);
+    // Cleanup Plyr. Always finish listener/media-session cleanup even if a
+    // teardown step throws, so an orphaned element cannot keep playing.
+    this.disarmResumeOnNextGesture();
+    try {
+      this.destroyPlyr();
+    } finally {
+      this.clearMediaSession();
+      document.removeEventListener('keydown', this.handleKeydown);
+      window.removeEventListener('pagehide', this.pagehideHandler);
+    }
   },
   methods: {
     /** Plyr captions menu: show format only (e.g. `.srt`, `.ass`), not the video basename. */
@@ -946,6 +1134,9 @@ export default {
         );
       } catch (_e) { /*ignore*/ }
     },
+    onRateChange() {
+      this.updateMediaSessionPlaybackState();
+    },
     updateMediaSessionPlaybackState() {
       if (!('mediaSession' in navigator)) return;
       if (!this.ownsMediaSession()) return;
@@ -979,6 +1170,15 @@ export default {
       navigator.mediaSession.playbackState = 'none';
       this.mediaSessionOwnerId = 0;
     },
+    resetFilePlaybackState() {
+      this.videoStreamAttached = false;
+      this.pipHandoffSeekSeconds = null;
+      this.lockedNativeVideoSrc = null;
+      this.hasStartedPlayback = false;
+      this.transcodeOfferEmitted = false;
+      this.transcodeFallbackAttempted = false;
+      this.overlaidHintApi?.reset();
+    },
     getActiveMediaElement() {
       return this.player?.media ?? this.mediaElement ?? null;
     },
@@ -987,12 +1187,34 @@ export default {
       return Boolean(el && document.pictureInPictureElement === el);
     },
     stopIfRouteLeftThisFile() {
-      if (this.plyrTeardownDone || !this.req?.path) {
+      if (this.plyrTeardownDone) {
         return;
       }
-      const expected = buildItemUrl(this.req.source, this.req.path);
+      // Preview.close() clears state.req before navigating; fall back to the
+      // file this instance mounted for so route changes still stop playback.
+      const source = this.req?.source ?? this.mountedPreviewKey?.source;
+      const path = this.req?.path ?? this.mountedPreviewKey?.path;
+      if (!path) {
+        this.destroyPlyr();
+        return;
+      }
+      const expected = buildItemUrl(source, path);
       const current = state.route.path;
-      if (current === expected || current.startsWith(`${expected}#`)) {
+      const normalizedCurrent = removeTrailingSlash(current);
+      const normalizedExpected = removeTrailingSlash(expected);
+      if (
+        normalizedCurrent === normalizedExpected
+        || current === expected
+        || current.startsWith(`${expected}#`)
+      ) {
+        return;
+      }
+      // Encoding differences must not look like a route change while the file
+      // is still open, nor hide a real departure.
+      if (
+        decodePathSafely(normalizedCurrent) === decodePathSafely(normalizedExpected)
+        || decodePathSafely(current).startsWith(`${decodePathSafely(expected)}#`)
+      ) {
         return;
       }
       this.destroyPlyr();
@@ -1037,7 +1259,6 @@ export default {
         this.videoLoadingCleanup = null;
       }
       this.videoPlaybackLoading = false;
-      this.teardownQueryPlaybackSeek();
       this.teardownOverlaidHintController();
       this.teardownPipControlGuard();
       this.pipPendingResumeCleanup?.();
@@ -1045,11 +1266,32 @@ export default {
       this.mountedPreviewKey = null;
       this.pipHandoffApplying = false;
       this.lockedNativeVideoSrc = null;
-
       const media = this.getActiveMediaElement();
       const inPip = this.isMediaInPictureInPicture(media);
       const isTransition = state.navigation.isTransitioning;
       const leavingInPip = inPip && this.req?.path;
+
+      // Stop the element before controller/player teardown. Those paths can
+      // throw or await, and a failure there must never leave audio playing on
+      // an element that is about to be detached from the DOM.
+      if (!leavingInPip && media) {
+        this.stopMediaElement(media);
+      }
+
+      // Any deliberate teardown of this viewer (route leave, source swap, close)
+      // must stop the server session. The only exemption is the PiP handoff,
+      // which keeps hls.js + the session feeding the adopted element. This used
+      // to pass stopSession:false while a transcode was active, so closing a
+      // playing video only detached the client and left the session (and its
+      // per-user slot) alive until the 15-90s janitor reclaim.
+      this.teardownTranscodePlayback({
+        stopSession: !leavingInPip,
+        keepAlive: Boolean(leavingInPip),
+      });
+      if (!this.usesSharedTranscodePlayback()) {
+        this.transcodePlayback = null;
+      }
+      this.disarmResumeOnNextGesture();
 
       if (this.player) {
         if (isTransition && !inPip) {
@@ -1079,6 +1321,9 @@ export default {
           this.stopMediaElement(media);
           this.player.destroy();
           this.player = null;
+          // hls.js can re-attach its MediaSource while Plyr tears down; stop the
+          // element once more so no audio survives the unmount.
+          this.stopMediaElement(media);
         }
       } else if (leavingInPip && media) {
         registerPipSession(media, {
@@ -1093,11 +1338,14 @@ export default {
       this.playbackMenuInitialized = false;
       this.captionSizeMenuInitialized = false;
       this.loopMenuInitialized = false;
+      this.transcodeMenuInitialized = false;
       this.lastAppliedMode = null;
       this.playbackButtons = null;
       this.playbackValueSpan = null;
       this.captionSizeButtons = null;
       this.captionSizeValueSpan = null;
+      this.transcodeModeButtons = null;
+      this.transcodeModeValueSpan = null;
       this.loopButtons = null;
       this.loopValueSpan = null;
     },
@@ -1119,6 +1367,9 @@ export default {
       this.audioGraphInitialized = false;
     },
     togglePlayPause() {
+      if (this.plyrTeardownDone) {
+        return;
+      }
       if (this.player) {
         this.player.togglePlay();
         return;
@@ -1128,7 +1379,18 @@ export default {
       if (media.paused) media.play(); else media.pause();
     },
     handlePlay() {
+      if (this.plyrTeardownDone) {
+        return;
+      }
       this.$emit('play');
+      if (
+        this.previewType === 'video'
+        && this.isTranscodePlaybackMode
+        && !this.transcodeActive
+        && !this.transcodeStartInProgress
+      ) {
+        void this.startTranscodePlayback({ autoplay: true });
+      }
       if (this.previewType === 'audio') {
         this.resumeAudioGraph();
       }
@@ -1140,6 +1402,7 @@ export default {
         const playbackBtn = this.player.elements.settings?.buttons?.playback;
         const captionSizeBtn = this.player.elements.settings?.buttons?.captionSize;
         const loopBtn = this.player.elements.settings?.buttons?.loop;
+        const transcodeBtn = this.player.elements.settings?.buttons?.transcodeMode;
         const menuOpen =
           settingsMenu
           && settingsMenu.style.display !== 'none'
@@ -1147,8 +1410,9 @@ export default {
         const needPlayback = playbackBtn && !this.playbackMenuInitialized;
         const needCaptionSize = captionSizeBtn && !this.captionSizeMenuInitialized;
         const needLoop = loopBtn && !this.loopMenuInitialized;
+        const needTranscodeMode = transcodeBtn && !this.transcodeMenuInitialized;
 
-        if (menuOpen || needPlayback || needCaptionSize || needLoop) {
+        if (menuOpen || needPlayback || needCaptionSize || needLoop || needTranscodeMode) {
           this.applyCustomSettings(this.player);
         }
       } catch (error) {
@@ -1420,6 +1684,9 @@ export default {
       this.metadata = null;
     },
     hookEvents() {
+      void this.preparePlyrMount();
+    },
+    async preparePlyrMount() {
       // For videos with subtitle metadata, wait for subtitles to load before initializing Plyr
       // This prevents Plyr from trying to access tracks before they have valid blob URLs
       const hasSubtitleMetadata = this.req?.subtitles?.length > 0;
@@ -1433,56 +1700,89 @@ export default {
       void this.initializePlyr();
     },
     async initializePlyr() {
-      if (!this.mediaElement || this.player) {
+      if (!this.mediaElement || this.player || this.plyrTeardownDone) {
         return;
       }
       await this.$nextTick();
-      if (this.player) {
+      if (!this.mediaElement || this.player || this.plyrTeardownDone) {
         return;
       }
       void this.mountPlyrPlayer();
     },
-    async mountPlyrPlayer() {
-      if (!this.mediaElement || this.player) {
+    usesSharedTranscodePlayback() {
+      return Boolean(
+        this.sharedTranscodePlayback
+        && this.transcodePlayback === this.sharedTranscodePlayback,
+      );
+    },
+    bindTranscodePlaybackController() {
+      if (this.sharedTranscodePlayback && !this.sharedTranscodePlayback.disposed) {
+        this.transcodePlayback = this.sharedTranscodePlayback;
         return;
       }
-      this.plyrTeardownDone = false;
-      this.mountedPreviewKey = resolvePipMediaKey(this.req?.source, this.req?.path);
-      this.pipHandoffApplying = false;
-      await this.reconcilePipSessionOnMount();
-      if (this.plyrTeardownDone || !this.mediaElement) return;
-      this.player = new Plyr(this.mediaElement, this.plyrOptions);
-      if (this.previewType === 'video' && !this.shouldAttachVideoStream) {
-        this.nativePlayerPlay = this.player.play.bind(this.player);
-        this.player.play = () => {
-          if (!this.videoStreamAttached) {
-            void this.attachVideoStreamAndPlay();
-            return Promise.resolve();
-          }
-          return this.nativePlayerPlay();
-        };
+      if (!this.transcodePlayback || this.transcodePlayback.disposed) {
+        this.transcodePlayback = new TranscodePlaybackController();
       }
-      this.setupMediaSession();
-      this.setupPlyrEvents();
-      if (this.previewType === 'video') {
-        this.setupPipControlGuard();
-        this.pipPendingResumeCleanup = onPendingInlineResume((snapshot) => {
-          if (!this.mountedPreviewMatchesPending(snapshot)) {
+    },
+    async mountPlyrPlayer() {
+      if (!this.mediaElement || this.player || this.mountPlyrInProgress || this.plyrTeardownDone) {
+        return;
+      }
+      this.mountPlyrInProgress = true;
+      try {
+        this.bindTranscodePlaybackController();
+        this.mountedPreviewKey = resolvePipMediaKey(this.req?.source, this.req?.path);
+        this.pipHandoffApplying = false;
+        this.initTranscodeModeFromRoute();
+        await this.stripPlaybackTimeFromUrl();
+        await this.reconcilePipSessionOnMount();
+        if (!this.mediaElement || this.plyrTeardownDone || this.player) {
+          return;
+        }
+        if (
+          this.previewType === 'video'
+          && !this.startTranscode
+          && !this.wantsTranscodePlayback
+          && this.shouldProactivelyOfferTranscode
+        ) {
+          await this.offerTranscodePlayback();
+          if (!this.mediaElement || this.plyrTeardownDone || this.player) {
             return;
           }
-          this.resumePlaybackAfterNavigation();
-        });
-      }
-      this.seekOnReleaseCleanup = enablePlyrSeekOnRelease(this.player);
-      this.setupScrubPreview();
-      this.setupVideoLoadingIndicator();
-      this.resumePlaybackAfterNavigation();
-      if (this.previewType === 'video') {
-        if (!this.inlineResumeSnapshot && !this.pipHandoffSeekSeconds) {
-          this.setupQueryPlaybackSeek();
         }
-      } else if (this.previewType === 'audio') {
-        this.setupQueryPlaybackSeek();
+        this.player = new Plyr(this.mediaElement, this.plyrOptions);
+        if (this.previewType === 'video' && !this.shouldAttachVideoStream) {
+          this.nativePlayerPlay = this.player.play.bind(this.player);
+          this.player.play = () => {
+            if (!this.videoStreamAttached) {
+              this.attachVideoStreamAndPlay();
+              return Promise.resolve();
+            }
+            return this.nativePlayerPlay();
+          };
+        }
+        this.setupMediaSession();
+        this.setupPlyrEvents();
+        if (this.previewType === 'video') {
+          this.setupPipControlGuard();
+          this.pipPendingResumeCleanup = onPendingInlineResume((snapshot) => {
+            if (!this.mountedPreviewMatchesPending(snapshot)) {
+              return;
+            }
+            this.resumePlaybackAfterNavigation();
+          });
+        }
+        this.seekOnReleaseCleanup = enablePlyrSeekOnRelease(this.player);
+        this.setupScrubPreview();
+        this.setupVideoLoadingIndicator();
+        if (this.previewType === 'video' && (this.startTranscode || (this.wantsTranscodePlayback && !this.shouldProactivelyOfferTranscode))) {
+          await this.startTranscodePlayback({
+            autoplay: this.shouldAutoplay,
+          });
+        }
+        this.resumePlaybackAfterNavigation();
+      } finally {
+        this.mountPlyrInProgress = false;
       }
     },
     applyInlineResumeSeek(el, snapshot, onDone) {
@@ -1594,7 +1894,7 @@ export default {
       }
     },
     async attachVideoStreamAndPlay() {
-      if (this.videoStreamAttached || this.previewType !== 'video' || !this.raw) {
+      if (this.plyrTeardownDone || this.videoStreamAttached || this.previewType !== 'video' || !this.raw) {
         if (this.inlineResumeSnapshot) {
           this.pipHandoffApplying = false;
         }
@@ -1604,6 +1904,9 @@ export default {
       this.videoLoadingCleanup?.expectPlayback?.();
       await this.$nextTick();
       await this.$nextTick();
+      if (this.plyrTeardownDone || !this.mediaElement) {
+        return;
+      }
       const el = this.mediaElement;
       if (!el) {
         return;
@@ -1629,7 +1932,9 @@ export default {
 
       const startDefault = () => {
         this.clearAttachVideoStreamWait();
-        this.applyQueryPlaybackSeek();
+        if (this.plyrTeardownDone) {
+          return;
+        }
         void el.play().catch(() => {});
       };
 
@@ -1664,6 +1969,577 @@ export default {
         el.removeEventListener('loadedmetadata', this.attachVideoStreamResume);
       }
       this.attachVideoStreamResume = null;
+    },
+    resolveViewTokenForTranscode() {
+      return this.req?.viewToken || getCachedViewToken(this.req?.source) || '';
+    },
+    transcodeProbeParams() {
+      const meta = this.req?.metadata || {};
+      return {
+        videoCodec: meta.videoCodec,
+        audioCodec: meta.audioCodec,
+        mimeType: this.req?.type,
+        fileName: this.req?.name,
+      };
+    },
+    ensureTranscodePlaybackController() {
+      this.bindTranscodePlaybackController();
+      return this.transcodePlayback;
+    },
+    async offerTranscodePlayback() {
+      if (this.plyrTeardownDone || this.transcodeSwitchInProgress || this.isTranscodePlaybackMode) {
+        return;
+      }
+      if (this.transcodeOfferEmitted) {
+        return;
+      }
+      if (this.previewType !== 'video' || getters.isShare() || !this.formatNeedsTranscode) {
+        return;
+      }
+      this.transcodeOfferEmitted = true;
+      if (!this.transcodeEnabled) {
+        // Transcoding is off on this server: show the unsupported notice without
+        // asking for sessions, which would answer 503.
+        this.$emit('needs-transcode', { enabled: false, canStart: false, sessions: [] });
+        return;
+      }
+      try {
+        const status = await getTranscodeSessions();
+        this.$emit('needs-transcode', normalizeTranscodeSessionStatus(status, {
+          source: this.req?.source,
+          path: this.req?.path,
+        }));
+      } catch (err) {
+        console.error('Failed to check transcode sessions:', err);
+        this.$emit('needs-transcode', { enabled: false, canStart: false, sessions: [] });
+      }
+    },
+    onVideoLoadedMetadata() {
+      if (this.transcodeOfferEmitted || getters.isShare()) {
+        return;
+      }
+      const video = this.mediaElement;
+      if (!video || video.videoWidth > 0 || video.videoHeight > 0) {
+        return;
+      }
+      if (!Number.isFinite(video.duration) || video.duration <= 0) {
+        return;
+      }
+      void this.offerTranscodePlayback();
+    },
+    syncPlyrAfterTranscodeReady() {
+      if (!this.transcodeActive || !this.player) {
+        return;
+      }
+      const video = this.player.media || this.mediaElement;
+      if (!video) {
+        return;
+      }
+      const container = this.player.elements?.container;
+      if (container && video.videoWidth > 0 && video.videoHeight > 0) {
+        container.style.aspectRatio = `${video.videoWidth} / ${video.videoHeight}`;
+      }
+      this.ensurePlaybackModeApplied();
+    },
+    resumeTranscodePlayback() {
+      const media = this.player?.media || this.mediaElement;
+      // After teardown the element is an orphan unless it was handed to PiP;
+      // a PiP-adopted element is intentionally alive and may still resume.
+      if (this.plyrTeardownDone && !this.isMediaInPictureInPicture(media)) {
+        return Promise.resolve();
+      }
+      transcodeLog('resumeTranscodePlayback', {
+        playerPaused: this.player?.paused,
+        mediaPaused: media?.paused,
+        readyState: media?.readyState,
+      });
+      const playResult = this.player?.play ? this.player.play() : media?.play();
+      return Promise.resolve(playResult).then(() => {
+        transcodeLog('resumeTranscodePlayback play resolved');
+      }).catch((playErr) => {
+        transcodeWarn('player.play failed during transcode attach', {
+          name: playErr?.name,
+          message: playErr?.message,
+        });
+        if (isPlayBlockedError(playErr)) {
+          this.armResumeOnNextGesture();
+        }
+        throw playErr;
+      });
+    },
+    /**
+     * Autoplay was blocked (Safari requires the play() call to come directly from
+     * a gesture handler). Arm a one-shot resume so a single tap or keypress
+     * anywhere restarts playback instead of the user hunting for the play button.
+     */
+    armResumeOnNextGesture() {
+      if (this.resumeOnGestureArmed) {
+        return;
+      }
+      this.resumeOnGestureArmed = true;
+      const handler = () => {
+        this.disarmResumeOnNextGesture();
+        const media = this.player?.media || this.mediaElement;
+        if (!this.transcodeActive || !media?.paused) {
+          return;
+        }
+        transcodeLog('resuming transcode playback after user gesture');
+        void this.resumeTranscodePlayback().catch(() => {});
+      };
+      this.resumeOnGestureHandler = handler;
+      window.addEventListener('pointerdown', handler, { once: true, capture: true });
+      window.addEventListener('keydown', handler, { once: true, capture: true });
+    },
+    disarmResumeOnNextGesture() {
+      const handler = this.resumeOnGestureHandler;
+      this.resumeOnGestureArmed = false;
+      this.resumeOnGestureHandler = null;
+      if (!handler) {
+        return;
+      }
+      window.removeEventListener('pointerdown', handler, { capture: true });
+      window.removeEventListener('keydown', handler, { capture: true });
+    },
+    syncTranscodePlaybackState() {
+      if (this.plyrTeardownDone) {
+        return;
+      }
+      mutations.setPlaybackState(true);
+      this.$emit('play');
+    },
+    initTranscodeModeFromRoute() {
+      if (this.previewType !== 'video' || !this.transcodeEnabled) {
+        this.transcodeMode = 'native';
+        return;
+      }
+      if (this.startTranscode) {
+        this.transcodeMode = resolveTranscodeModeForPlayback(this.$route?.query);
+        return;
+      }
+      if (needsTranscodeFirst(this.transcodeProbeParams())) {
+        this.transcodeMode = 'native';
+        return;
+      }
+      const urlTranscode = parseTranscodeModeFromQuery(this.$route?.query);
+      if (urlTranscode) {
+        this.transcodeMode = urlTranscode;
+        return;
+      }
+      this.transcodeMode = 'native';
+    },
+    resolveActiveTranscodeMode() {
+      const urlMode = parseTranscodeModeFromQuery(this.$route?.query);
+      if (urlMode) {
+        return urlMode;
+      }
+      if (PLYR_TRANSCODE_HLS_MODES.includes(this.transcodeMode)) {
+        return this.transcodeMode;
+      }
+      return resolveTranscodeModeForPlayback(this.$route?.query);
+    },
+    async resolveReuseSessionId() {
+      if (!this.req?.source || !this.req?.path) {
+        return undefined;
+      }
+      try {
+        const status = await getTranscodeSessions();
+        const sameFile = (status.sessions || []).filter(
+          (session) => session.source === this.req?.source && session.path === this.req?.path,
+        );
+        // Prefer a live session so a completed cache entry for another profile
+        // is not passed as replaceSessionId while an older profile is still active.
+        const active = sameFile.find(
+          (session) => session.state === 'starting' || session.state === 'running',
+        );
+        return active?.id ?? sameFile[0]?.id;
+      } catch {
+        return undefined;
+      }
+    },
+    async startTranscodePlayback({
+      replaceSessionId,
+      startSec,
+      mode,
+      autoplay,
+      playPrime,
+      manageSwitchState = true,
+    } = {}) {
+      if (this.plyrTeardownDone) {
+        return;
+      }
+      transcodeLog('startTranscodePlayback called', {
+        source: this.req?.source,
+        path: this.req?.path,
+        transcodeEnabled: this.transcodeEnabled,
+        transcodeMode: this.transcodeMode,
+        requestedMode: mode,
+        hasPlayer: Boolean(this.player),
+        replaceSessionId,
+        startSec,
+      });
+      if (this.previewType !== 'video' || !this.req?.source || !this.req?.path || !this.transcodeEnabled) {
+        transcodeWarn('startTranscodePlayback skipped — preconditions failed', {
+          previewType: this.previewType,
+          source: this.req?.source,
+          path: this.req?.path,
+          transcodeEnabled: this.transcodeEnabled,
+        });
+        return;
+      }
+      const activeMode = isTranscodeHlsMode(mode)
+        ? normalizeTranscodeMode(mode)
+        : this.resolveActiveTranscodeMode();
+      if (!isTranscodeHlsMode(activeMode)) {
+        transcodeWarn('startTranscodePlayback skipped — not an HLS mode', { activeMode });
+        return;
+      }
+      const viewToken = this.resolveViewTokenForTranscode();
+      if (!viewToken) {
+        transcodeWarn('startTranscodePlayback skipped — missing view token');
+        return;
+      }
+      const manageSwitch = manageSwitchState && !this.transcodeSwitchInProgress;
+      if (manageSwitch) {
+        this.transcodeSwitchInProgress = true;
+      }
+      const effectiveReplaceSessionId = replaceSessionId
+        ?? this.transcodePlayback?.sessionController?.session?.id
+        ?? await this.resolveReuseSessionId();
+      const seekSec = startSec ?? this.player?.currentTime ?? 0;
+      const shouldPlay = autoplay ?? this.shouldAutoplay;
+      transcodeLog('startTranscodePlayback params', {
+        activeMode,
+        manageSwitch,
+        shouldPlay,
+        seekSec,
+        hasPlayPrime: Boolean(playPrime),
+        transcodeSwitchInProgress: this.transcodeSwitchInProgress,
+      });
+
+      try {
+        transcodeLog('preparing video element for HLS', {
+          replaceSessionId: effectiveReplaceSessionId,
+          seekSec,
+        });
+        this.videoStreamAttached = true;
+        this.transcodeMode = activeMode;
+        this.lockedNativeVideoSrc = null;
+
+        const startParams = {
+          source: this.req.source,
+          path: this.req.path,
+          viewToken,
+          mode: activeMode,
+          clientId: this.transcodeClientId,
+          replaceSessionId: effectiveReplaceSessionId,
+          startSec: seekSec,
+          playPrime,
+          getVideoElement: () => this.player?.media || this.mediaElement,
+          nextTick: () => this.$nextTick(),
+          shouldAutoplay: shouldPlay,
+          onFirstBuffered: () => {
+            transcodeLog('first HLS fragment buffered — starting playback');
+            this.syncPlyrAfterTranscodeReady();
+          },
+          onResumePlayback: () => this.resumeTranscodePlayback(),
+          onPlaybackStarted: () => this.syncTranscodePlaybackState(),
+          onFatal: () => {
+            notify.showError(this.$t('player.transcodeFailed'));
+          },
+          onRecoverPlayback: async (ctx) => {
+            transcodeLog('recovering transcode playback after HLS failure', {
+              startSec: ctx?.startSec,
+              sessionId: ctx?.sessionId,
+            });
+            await this.startTranscodePlayback({
+              mode: ctx?.mode ?? this.resolveActiveTranscodeMode(),
+              startSec: ctx?.startSec ?? this.player?.currentTime ?? 0,
+              replaceSessionId: ctx?.sessionId,
+              autoplay: ctx?.shouldAutoplay ?? this.shouldAutoplay,
+              manageSwitchState: true,
+              playPrime: ctx?.playPrime,
+            });
+            return true;
+          },
+          onCapacityStatus: (status) => {
+            this.$emit('needs-transcode', normalizeTranscodeSessionStatus(status, {
+              source: this.req?.source,
+              path: this.req?.path,
+            }));
+          },
+          onShowError: (err) => {
+            notify.showError(err?.message || this.$t('player.transcodeFailed'));
+          },
+          onAttachNative: () => {
+            if (!this.transcodeFallbackAttempted && !this.wantsTranscodePlayback) {
+              this.attachVideoStreamAndPlay();
+            }
+          },
+        };
+
+        const result = await this.ensureTranscodePlaybackController().start(startParams);
+
+        if (!result.ok && result.reason !== 'cancelled' && result.reason !== 'disposed' && result.reason !== 'recovered') {
+          transcodeWarn('transcode playback did not start', { reason: result.reason });
+          if (result.reason === 'error') {
+            notify.showError(this.$t('player.transcodeFailed'));
+          }
+        }
+
+        if (result.reason === 'capacity' && isTranscodeHlsMode(this.transcodeMode)) {
+          // Fall back fully: leaving transcodeMode on an HLS profile would make
+          // the play event fired by attachVideoStreamAndPlay re-enter
+          // startTranscodePlayback and spin on the 409 limit.
+          this.transcodeMode = 'native';
+          this.updateTranscodeModeMenuSelection();
+          this.syncPlaybackUrl();
+          await this.switchToNativePlayback();
+          return;
+        }
+        if (result.ok) {
+          this.updateTranscodeModeMenuSelection();
+          this.syncPlaybackUrl({ transcodeMode: activeMode });
+        }
+      } finally {
+        if (manageSwitch) {
+          this.transcodeSwitchInProgress = false;
+        }
+      }
+    },
+    teardownTranscodePlayback({ stopSession = false, keepAlive = false, keepalive = false } = {}) {
+      if (!this.transcodePlayback || keepAlive) {
+        return;
+      }
+      if (this.usesSharedTranscodePlayback()) {
+        this.transcodePlayback.teardownLocal({ stopSession, keepalive });
+        return;
+      }
+      this.transcodePlayback.dispose({ stopSession, keepalive });
+    },
+    onVideoPlaybackError(event) {
+      if (
+        this.transcodeSwitchInProgress
+        || this.transcodeStartInProgress
+        || this.isTranscodePlaybackMode
+      ) {
+        return;
+      }
+      if (this.transcodeOfferEmitted || getters.isShare()) {
+        return;
+      }
+      const code = event?.target?.error?.code;
+      if (
+        code !== MediaError.MEDIA_ERR_DECODE
+        && code !== MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED
+      ) {
+        return;
+      }
+      void this.offerTranscodePlayback();
+    },
+    async stripPlaybackTimeFromUrl() {
+      const nextQuery = buildPlaybackQueryPatch(this.$route.query, { time: null });
+      if (!playbackQueryChanged(this.$route.query, nextQuery)) {
+        return;
+      }
+      await this.$router.replace({
+        path: this.$route.path,
+        query: nextQuery,
+        hash: this.$route.hash,
+      });
+    },
+    syncPlaybackUrl({ transcodeMode } = {}) {
+      if (this.previewType !== 'video' && this.previewType !== 'audio') {
+        return;
+      }
+      if (this.transcodeSwitchInProgress) {
+        return;
+      }
+      const explicitMode = transcodeMode !== undefined;
+      const resolvedMode = normalizeTranscodeMode(
+        explicitMode ? transcodeMode : this.transcodeMode,
+      );
+      let modeForQuery = null;
+      if (PLYR_TRANSCODE_HLS_MODES.includes(resolvedMode)) {
+        if (explicitMode || this.transcodeActive) {
+          modeForQuery = resolvedMode;
+        }
+      }
+      const nextQuery = buildPlaybackQueryPatch(this.$route.query, {
+        time: null,
+        transcodeMode: modeForQuery,
+      });
+      if (!playbackQueryChanged(this.$route.query, nextQuery)) {
+        return;
+      }
+      this.$router.replace({
+        path: this.$route.path,
+        query: nextQuery,
+        hash: this.$route.hash,
+      });
+    },
+    getTranscodeModeLabel(mode) {
+      switch (normalizeTranscodeMode(mode)) {
+        case 'datasaver':
+          return this.$t('general.dataSaver');
+        case 'balanced':
+          return this.$t('general.balanced');
+        case 'quality':
+          return this.$t('general.quality');
+        default:
+          return this.$t('general.off');
+      }
+    },
+    updateTranscodeModeMenuSelection() {
+      if (!this.transcodeModeButtons) {
+        return;
+      }
+      const label = this.getTranscodeModeLabel(this.transcodeMode);
+      for (const btn of this.transcodeModeButtons) {
+        btn.setAttribute('aria-checked', btn.getAttribute('value') === this.transcodeMode);
+      }
+      if (this.transcodeModeValueSpan) {
+        // Only the profile name is shown; the resolved encoder/accel is a
+        // backend/ops detail and does not belong in the player's profile picker.
+        this.transcodeModeValueSpan.textContent = label;
+      }
+    },
+    setTranscodeModeMenuDisabled(disabled) {
+      if (!this.transcodeModeButtons) {
+        return;
+      }
+      for (const btn of this.transcodeModeButtons) {
+        btn.disabled = disabled;
+        if (disabled) {
+          btn.setAttribute('aria-disabled', 'true');
+        } else {
+          btn.removeAttribute('aria-disabled');
+        }
+      }
+    },    async switchToNativePlayback({ autoplay } = {}) {
+      const currentTime = this.player?.currentTime ?? 0;
+      const shouldPlay = autoplay ?? !!this.player?.playing;
+      transcodeLog('switchToNativePlayback', { currentTime, shouldPlay });
+
+      // Release the HLS source even when a shared controller owns it. hls.js
+      // otherwise keeps its MediaSource attached to the element and the native
+      // source never loads, leaving the player frozen on the last frame.
+      const controller = this.transcodePlayback;
+      if (controller) {
+        if (this.usesSharedTranscodePlayback()) {
+          controller.teardownLocal({ stopSession: true });
+        } else {
+          controller.dispose({ stopSession: true });
+        }
+      }
+      this.lockedNativeVideoSrc = null;
+      this.videoStreamAttached = false;
+      // hls.js leaves its (now revoked) MediaSource blob URL on the element, and
+      // attachVideoStreamAndPlay only binds when no src is present.
+      const media = this.player?.media || this.mediaElement;
+      if (media?.hasAttribute('src')) {
+        media.removeAttribute('src');
+      }
+      await this.$nextTick();
+
+      // Restore the playhead through the inline-resume path, which waits for the
+      // new source to report metadata before seeking. Setting currentTime any
+      // earlier is discarded and playback restarts at 0:00.
+      const canResume = Number.isFinite(currentTime) && currentTime > 0;
+      if (canResume) {
+        this.pipHandoffSeekSeconds = currentTime;
+        this.inlineResumeSnapshot = {
+          source: this.req?.source,
+          path: this.req?.path,
+          currentTime,
+          wasPlaying: shouldPlay,
+          wasFullscreen: false,
+        };
+      }
+
+      await this.attachVideoStreamAndPlay();
+      if (!canResume && shouldPlay && this.player) {
+        await this.player.play().catch(() => {});
+      }
+    },
+    async switchTranscodeMode(mode, { playPrime } = {}) {
+      mode = normalizeTranscodeMode(mode);
+      if (!PLYR_TRANSCODE_MODES.includes(mode)) {
+        return;
+      }
+      if (mode === this.transcodeMode || this.transcodeSwitchInProgress) {
+        return;
+      }
+      const previousMode = this.transcodeMode;
+      const wasPlaying = !!this.player?.playing;
+      transcodeLog('switchTranscodeMode start', {
+        mode,
+        previousMode,
+        wasPlaying,
+        playerPaused: this.player?.paused,
+        mediaPaused: (this.player?.media || this.mediaElement)?.paused,
+        shouldAutoplay: this.shouldAutoplay,
+        currentTime: this.player?.currentTime,
+      });
+      this.transcodeSwitchInProgress = true;
+      // Capture before mode/teardown changes so same-file profile switches always
+      // send replaceSessionId even if the controller is mid-start.
+      const replaceSessionId = this.transcodePlayback?.sessionController?.session?.id
+        ?? await this.resolveReuseSessionId();
+      this.transcodeMode = mode;
+      if (PLYR_TRANSCODE_HLS_MODES.includes(mode)) {
+        savePreferredTranscodeMode(mode);
+      }
+      try {
+        if (PLYR_TRANSCODE_HLS_MODES.includes(mode)) {
+          await this.startTranscodePlayback({
+            replaceSessionId,
+            startSec: this.player?.currentTime ?? 0,
+            mode,
+            autoplay: wasPlaying || this.shouldAutoplay,
+            playPrime: wasPlaying ? playPrime : null,
+            manageSwitchState: false,
+          });
+        } else if (needsTranscodeFirst(this.transcodeProbeParams())) {
+          this.transcodeOfferEmitted = false;
+          if (!this.usesSharedTranscodePlayback()) {
+            this.teardownTranscodePlayback({ stopSession: true });
+          }
+          try {
+            const status = await getTranscodeSessions();
+            this.$emit('needs-transcode', normalizeTranscodeSessionStatus(status, {
+              source: this.req?.source,
+              path: this.req?.path,
+            }));
+          } catch (err) {
+            console.error('Failed to check transcode sessions:', err);
+          }
+        } else {
+          await this.switchToNativePlayback({ autoplay: wasPlaying || this.shouldAutoplay });
+        }
+        this.updateTranscodeModeMenuSelection();
+      } catch (err) {
+        console.error('Transcode mode switch failed:', err);
+        this.transcodeMode = previousMode;
+        this.updateTranscodeModeMenuSelection();
+        if (previousMode === 'native') {
+          await this.switchToNativePlayback();
+        } else {
+          await this.startTranscodePlayback({
+            startSec: this.player?.currentTime ?? 0,
+            manageSwitchState: false,
+          });
+        }
+      } finally {
+        this.transcodeSwitchInProgress = false;
+        this.syncPlaybackUrl({ transcodeMode: this.transcodeMode });
+        transcodeLog('switchTranscodeMode done', {
+          mode: this.transcodeMode,
+          transcodeActive: this.transcodeActive,
+          playerPaused: this.player?.paused,
+          mediaPaused: (this.player?.media || this.mediaElement)?.paused,
+          videoPlaybackLoading: this.videoPlaybackLoading,
+        });
+      }
     },
     async reconcilePipSessionOnMount() {
       if (!this.req?.path) {
@@ -1738,7 +2614,7 @@ export default {
       });
     },
     async requestPictureInPictureWhenReady() {
-      if (this.isPipControlBlocked()) {
+      if (this.plyrTeardownDone || this.isPipControlBlocked()) {
         return;
       }
       const el = this.mediaElement;
@@ -1812,10 +2688,13 @@ export default {
       }
     },
     attemptPipHandoffPlay(el, snapshot) {
-      if (!el || snapshot?.wasPlaying === false) {
+      if (this.plyrTeardownDone || !el || snapshot?.wasPlaying === false) {
         return;
       }
       const tryPlay = () => {
+        if (this.plyrTeardownDone) {
+          return;
+        }
         const playCall = this.nativePlayerPlay
           ?? (() => this.player?.play?.() ?? el.play());
         void Promise.resolve(playCall()).then(() => {
@@ -1883,57 +2762,6 @@ export default {
         }
       );
     },
-    teardownQueryPlaybackSeek() {
-      const media = this.mediaElement;
-      if (media && this.querySeekMetadataHandler) {
-        media.removeEventListener('loadedmetadata', this.querySeekMetadataHandler);
-      }
-      this.querySeekMetadataHandler = null;
-    },
-    getQueryPlaybackSeekSeconds() {
-      return parsePlaybackTimeFromQuery(this.$route?.query);
-    },
-    applyQueryPlaybackSeek() {
-      if (this.previewType !== 'video' && this.previewType !== 'audio') {
-        return;
-      }
-      const seconds = this.getQueryPlaybackSeekSeconds();
-      if (seconds === null || seconds < 0) {
-        return;
-      }
-
-      const media = this.mediaElement;
-      if (!media) {
-        return;
-      }
-
-      const duration = this.player?.duration
-        ?? media.duration
-        ?? this.req?.metadata?.duration
-        ?? 0;
-      const target = duration > 0 ? Math.min(seconds, duration) : seconds;
-
-      const apply = () => {
-        if (this.player) {
-          this.player.currentTime = target;
-        } else if (media) {
-          media.currentTime = target;
-        }
-      };
-
-      if (media.readyState >= HTMLMediaElement.HAVE_METADATA) {
-        apply();
-        return;
-      }
-
-      this.teardownQueryPlaybackSeek();
-      this.querySeekMetadataHandler = apply;
-      media.addEventListener('loadedmetadata', this.querySeekMetadataHandler, { once: true });
-    },
-    setupQueryPlaybackSeek() {
-      this.teardownQueryPlaybackSeek();
-      this.applyQueryPlaybackSeek();
-    },
     setupScrubPreview() {
       if (!this.scrubPreviewEnabled || !this.player) {
         return;
@@ -1991,18 +2819,32 @@ export default {
           this.hasStartedPlayback = true;
           mutations.setPlaybackState(true);
           this.updateMediaSessionPlaybackState();
+          this.transcodePlayback?.updatePlayback({
+            currentTime: this.player?.currentTime,
+            paused: false,
+          });
         },
         pause: () => {
           mutations.setPlaybackState(false);
           this.updateMediaSessionPlaybackState();
+          this.transcodePlayback?.updatePlayback({
+            currentTime: this.player?.currentTime,
+            paused: true,
+          });
         },
         timeupdate: () => {
           this.updateMediaSessionPlaybackState();
           this.syncLyrics();
+          if (this.transcodePlayback.sessionController) {
+            this.transcodePlayback.updatePlayback({
+              currentTime: this.player?.currentTime,
+              paused: !this.player?.playing,
+            });
+          }
         },
         seeked: this.updateMediaSessionPlaybackState,
         loadedmetadata: this.updateMediaSessionPlaybackState,
-        ratechange: this.updateMediaSessionPlaybackState,
+        ratechange: this.onRateChange,
         canplay: this.updateMediaSessionPlaybackState,
       };
       for (const [evt, fn] of Object.entries(eventMap)) {
@@ -2182,9 +3024,21 @@ export default {
       const togglePlayPause = () => {
         if (this.player.playing) {
           this.player.pause();
-        } else {
-          this.player.play();
+          return;
         }
+        // Only offer transcoding when the source cannot play natively and no
+        // transcode is already running. Otherwise a transcoded `.wmv` could never
+        // be resumed from the player surface or the overlaid play button.
+        if (this.formatNeedsTranscode && !this.isTranscodePlaybackMode && !this.transcodeActive) {
+          void this.offerTranscodePlayback();
+          return;
+        }
+        void this.player.play().catch((playErr) => {
+          transcodeWarn('player.play failed', { message: playErr?.message });
+          if (playErr?.name === 'NotSupportedError' && !this.transcodeActive) {
+            void this.offerTranscodePlayback();
+          }
+        });
       };
       const handleEdgeZoneTap = (zone, event) => {
         const now = Date.now();
@@ -3056,8 +3910,7 @@ export default {
           if (!visible) {
             captionSizeBtn.setAttribute('hidden', '');
             this.captionSizeMenuInitialized = true;
-            return;
-          }
+          } else {
           captionSizeBtn.removeAttribute('hidden');
           const title = player.config.i18n?.captionSize || 'Caption size';
           const currentSize = this.getStoredCaptionSize();
@@ -3113,6 +3966,83 @@ export default {
             }
           }
           this.applyCaptionSizeClass();
+          }
+        }
+
+        // --- Transcode mode menu (video + transcode enabled) ---
+        const transcodeBtn = player.elements.settings?.buttons?.transcodeMode;
+        const transcodePanel = player.elements.settings?.panels?.transcodeMode;
+        if (transcodeBtn && transcodePanel) {
+          // Stable hook for tests — Plyr stamps data-plyr="settings" on every menu item.
+          transcodeBtn.setAttribute('data-plyr-menu', 'transcodeMode');
+          if (!this.transcodeMenuAvailable) {
+            transcodeBtn.setAttribute('hidden', '');
+            // Availability flipped off after init (logout, live settings
+            // sync): the built buttons are stale, so a later availability flip
+            // must rebuild them.
+            this.transcodeMenuInitialized = false;
+            this.transcodeModeButtons = null;
+            this.transcodeModeValueSpan = null;
+          } else {
+            transcodeBtn.removeAttribute('hidden');
+            const currentLabel = this.getTranscodeModeLabel(this.transcodeMode);
+
+            if (!this.transcodeMenuInitialized) {
+              const menu = transcodePanel.querySelector('div[role="menu"]');
+              const modeButtons = [{ value: 'native', label: this.$t('general.off') }]
+                .concat(this.transcodeProfileOptions.map((id) => ({
+                  value: id,
+                  label: this.getTranscodeModeLabel(id),
+                })));
+              menu.innerHTML = modeButtons.map((opt) => `
+                <button data-plyr="transcode-mode" type="button" role="menuitemradio" class="plyr__control" value="${opt.value}">
+                  <span>${opt.label}</span>
+                </button>`).join('');
+              this.transcodeModeButtons = menu.querySelectorAll('button[data-plyr="transcode-mode"]');
+              for (const btn of this.transcodeModeButtons) {
+                btn.setAttribute('aria-checked', btn.getAttribute('value') === this.transcodeMode);
+              }
+              for (const btn of this.transcodeModeButtons) {
+                btn.addEventListener('click', (event) => {
+                  if (this.transcodeSwitchInProgress) {
+                    return;
+                  }
+                  const value = event.currentTarget.getAttribute('value');
+                  if (!PLYR_TRANSCODE_MODES.includes(value)) {
+                    return;
+                  }
+                  const wasPlaying = !!this.player?.playing;
+                  const el = this.player?.media || this.mediaElement;
+                  transcodeLog('transcode menu selection', {
+                    value,
+                    wasPlaying,
+                    playerPaused: this.player?.paused,
+                    mediaPaused: el?.paused,
+                    currentTime: this.player?.currentTime,
+                    shouldAutoplay: this.shouldAutoplay,
+                  });
+                  const playPrime = wasPlaying ? primePlay(el) : null;
+                  void this.switchTranscodeMode(value, { playPrime });
+                });
+              }
+              const valueSpan = transcodeBtn.querySelector('span .plyr__menu__value');
+              if (valueSpan) {
+                valueSpan.textContent = currentLabel;
+                this.transcodeModeValueSpan = valueSpan;
+              } else {
+                transcodeBtn.querySelector('span').innerHTML = `<span class="plyr__menu__value">${currentLabel}</span>`;
+                this.transcodeModeValueSpan = transcodeBtn.querySelector('span .plyr__menu__value');
+              }
+              this.transcodeMenuInitialized = true;
+            } else if (this.transcodeModeButtons) {
+              for (const btn of this.transcodeModeButtons) {
+                btn.setAttribute('aria-checked', btn.getAttribute('value') === this.transcodeMode);
+              }
+              if (this.transcodeModeValueSpan) {
+                this.transcodeModeValueSpan.textContent = currentLabel;
+              }
+            }
+          }
         }
       } catch (error) {
         console.error('Error applying custom settings:', error);
