@@ -12,9 +12,13 @@ export const HTML_SANITIZE_CONFIG = {
   FORBID_ATTR: ["target", "formaction"],
 };
 
-/** Sandboxed HTML preview iframe flags (no allow-scripts — scripts must never share an origin with the parent). */
+/**
+ * Sandboxed HTML preview iframe flags (no allow-scripts — scripts must never share an origin with the parent).
+ * allow-popups-to-escape-sandbox lets external links (target=_blank, rel=noopener) open as normal
+ * pages instead of inheriting the script-less sandbox and breaking.
+ */
 export const HTML_PREVIEW_SANDBOX =
-  "allow-same-origin allow-popups allow-top-navigation-by-user-activation";
+  "allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation";
 
 // Firefox does not match CSP 'self' against the parent origin inside synthetic
 // documents (blob:/about:srcdoc), so the concrete origin is listed as well.
@@ -276,7 +280,11 @@ export function rewriteDocumentStyles(
 
 function buildHtmlViewerUrl(source: string, filePath: string): string {
   const pathOnly = filePath.split(/[?#]/)[0];
-  return new URL(buildItemUrl(source, pathOnly, true), window.location.origin).href;
+  const hashIndex = filePath.indexOf("#");
+  const url = new URL(buildItemUrl(source, pathOnly, true), window.location.origin);
+  // Keep the in-page anchor (page.html#section) so cross-page links land on the target section.
+  if (hashIndex >= 0) url.hash = filePath.slice(hashIndex + 1);
+  return url.href;
 }
 
 /** Same-origin FileBrowser viewer routes only (used to gate target="_top"). */
@@ -353,7 +361,7 @@ export function buildHtmlPreview(
     if (!pathOnly || !/\.html?$/i.test(pathOnly)) continue;
     pageLinks.set(
       buildPreviewResourceUrl(href, filePath, source),
-      buildHtmlViewerUrl(source, pathOnly),
+      buildHtmlViewerUrl(source, resolved),
     );
   }
   rewriteHtmlResources(doc, filePath, source);
