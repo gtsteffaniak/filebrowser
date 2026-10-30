@@ -162,6 +162,8 @@ github.com/gtsteffaniak/go-ffmpeg v1.6.1-0.20261028172117-2eac12936d0e h1:NoWAIj
 github.com/gtsteffaniak/go-ffmpeg v1.6.1-0.20261028172117-2eac12936d0e/go.mod h1:FefhoD+KZzHWqBaUpntcKp6lXtUzdFW00F74axnENUQ=
 github.com/gtsteffaniak/go-ffmpeg v1.6.1 h1:YPNoNO7gCF15J5eG0OXZynmKuQxQTLyPaF0YBiErTjQ=
 github.com/gtsteffaniak/go-ffmpeg v1.6.1/go.mod h1:FefhoD+KZzHWqBaUpntcKp6lXtUzdFW00F74axnENUQ=
+github.com/gtsteffaniak/go-ffmpeg v1.6.2 h1:gtvBg3G4PHO1Z/ZIPEK/XP4XT/g+l9S0Rpmmq6v5tnA=
+github.com/gtsteffaniak/go-ffmpeg v1.6.2/go.mod h1:FefhoD+KZzHWqBaUpntcKp6lXtUzdFW00F74axnENUQ=
 github.com/gtsteffaniak/go-logger v1.1.0 h1:baFds+iibuLLNpNLwygz32bDqdsunI6dGWcdxwMIVKI=
 github.com/gtsteffaniak/go-logger v1.1.0/go.mod h1:rapapTju4D7bwt6h4JOdZNUXDjnp0WkTBd6TN5yWglI=
 github.com/gtsteffaniak/go-media v1.0.0 h1:MGnskwuZe4lbTRFuQrZcZjEQnEFC5RZeOWwXp9ikYDU=
@@ -176,6 +178,8 @@ github.com/gtsteffaniak/go-media v1.0.1-0.20261029180617-b19064e40b06 h1:5O4prkL
 github.com/gtsteffaniak/go-media v1.0.1-0.20261029180617-b19064e40b06/go.mod h1:USfxij0SS+NkX1ZqawLdjU1W7SU8C6R4nezG3MCRGP0=
 github.com/gtsteffaniak/go-media v1.0.1 h1:4LPLnBud5tRf5vOITn17KHh6R+eWSKI8t8u8sYS1XNs=
 github.com/gtsteffaniak/go-media v1.0.1/go.mod h1:USfxij0SS+NkX1ZqawLdjU1W7SU8C6R4nezG3MCRGP0=
+github.com/gtsteffaniak/go-media v1.0.2 h1:4TB2xne/MIsBbguG+8CkyABNuykQhNCMeff6bAffqVc=
+github.com/gtsteffaniak/go-media v1.0.2/go.mod h1:USfxij0SS+NkX1ZqawLdjU1W7SU8C6R4nezG3MCRGP0=
 github.com/hashicorp/go-uuid v1.0.3 h1:2gKiV6YVmrJ1i2CKKa9obLvRieoRGviZFL26PcT/Co8=
 github.com/hashicorp/go-uuid v1.0.3/go.mod h1:6SBZvOh/SIDV7/2o3Jml5SYk/TvGqwFJ/bN7x4byOro=
 github.com/hashicorp/golang-lru/v2 v2.0.7 h1:a+bsQ5rvGLjzHuww6tVxozPZFVghXaHOwFs4luLUK2k=

@@ -85,7 +85,8 @@ async function expectTrackedMediaPausedBeforeIndex(page: Page, endIndex: number)
           return false;
         }
         for (let i = 0; i < end; i += 1) {
-          if (!tracked[i].paused) {
+          const element = tracked[i];
+          if (element && !element.paused) {
             return false;
           }
         }
