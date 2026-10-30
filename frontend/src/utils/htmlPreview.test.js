@@ -65,6 +65,10 @@ describe("HTML_PREVIEW_SANDBOX", () => {
     expect(HTML_PREVIEW_SANDBOX).not.toContain("allow-scripts");
   });
 
+  it("lets external popups escape the sandbox so they render normally", () => {
+    expect(HTML_PREVIEW_SANDBOX.split(/\s+/)).toContain("allow-popups-to-escape-sandbox");
+  });
+
   it("never combines allow-scripts with allow-same-origin (XSS breakout risk)", () => {
     const tokens = HTML_PREVIEW_SANDBOX.split(/\s+/);
     expect(tokens.includes("allow-scripts") && tokens.includes("allow-same-origin")).toBe(false);
@@ -176,6 +180,13 @@ describe("isAllowedTopNavigationUrl", () => {
 });
 
 describe("buildHtmlPreview", () => {
+  it("keeps the fragment on cross-page viewer links", () => {
+    const { srcdoc } = buildHtmlPreview('<a href="other.html#section-2">Next</a>', "/pages/index.html", "src");
+    const anchor = new DOMParser().parseFromString(srcdoc, "text/html").querySelector("a");
+    expect(anchor.getAttribute("target")).toBe("_top");
+    expect(anchor.getAttribute("href")).toBe(`${window.location.origin}/files/src/pages/other.html#section-2`);
+  });
+
   it("routes same-source HTML links to the viewer with target=_top", () => {
     const { srcdoc } = buildHtmlPreview('<a href="other.html">Next</a>', "/pages/index.html", "src");
     const doc = new DOMParser().parseFromString(srcdoc, "text/html");

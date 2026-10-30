@@ -389,11 +389,33 @@ func TestReadDirFileInfos_AllEntriesVanishedFails(t *testing.T) {
 			dir := t.TempDir()
 			writeNumberedFiles(t, dir, count)
 			injectAllStatErr(t, syscall.ENOENT)
+			f := openTestDir(t, dir)
+			// The directory itself is renamed away mid-scan; the open handle still lists it.
+			if err := os.Rename(dir, dir+".moved"); err != nil {
+				t.Fatal(err)
+			}
+			t.Cleanup(func() { _ = os.RemoveAll(dir + ".moved") })
 
-			if _, err := readDirFileInfos(openTestDir(t, dir)); !errors.Is(err, fs.ErrNotExist) {
+			if _, err := readDirFileInfos(f); !errors.Is(err, fs.ErrNotExist) {
 				t.Fatalf("got %v, want a not-exist error for an all-vanished listing", err)
 			}
 		})
+	}
+}
+
+// Every entry vanishing from a directory that still exists (short-lived temp files) is a valid
+// empty listing, not a not-exist error for the directory.
+func TestReadDirFileInfos_AllEntriesVanishedDirPresentIsEmpty(t *testing.T) {
+	dir := t.TempDir()
+	writeNumberedFiles(t, dir, 1)
+	injectAllStatErr(t, syscall.ENOENT)
+
+	infos, err := readDirFileInfos(openTestDir(t, dir))
+	if err != nil {
+		t.Fatalf("got %v, want an empty success", err)
+	}
+	if len(infos) != 0 {
+		t.Fatalf("listed %d entries, want 0", len(infos))
 	}
 }
 
@@ -434,8 +456,21 @@ func TestCheckNotAllVanished(t *testing.T) {
 	if err := checkNotAllVanished("/d", 3, 2); err != nil {
 		t.Errorf("partial vanish: got %v, want nil", err)
 	}
-	if err := checkNotAllVanished("/d", 3, 3); !errors.Is(err, fs.ErrNotExist) {
-		t.Errorf("all vanished: got %v, want not-exist", err)
+	gone := filepath.Join(t.TempDir(), "gone")
+	if err := checkNotAllVanished(gone, 3, 3); !errors.Is(err, fs.ErrNotExist) {
+		t.Errorf("all vanished, directory gone: got %v, want not-exist", err)
+	}
+	// A one-entry directory whose only entry was deleted mid-scan still exists: empty success.
+	if err := checkNotAllVanished(t.TempDir(), 1, 1); err != nil {
+		t.Errorf("all vanished, directory present: got %v, want nil", err)
+	}
+	// A stat failure other than not-exist (here ENOTDIR) must fail the listing, not report empty.
+	file := filepath.Join(t.TempDir(), "file")
+	if err := os.WriteFile(file, nil, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := checkNotAllVanished(filepath.Join(file, "child"), 1, 1); err == nil {
+		t.Error("all vanished, stat error: got nil, want error")
 	}
 }
 

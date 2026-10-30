@@ -341,12 +341,8 @@ func fileInfoFasterImpl(opts utils.FileOptions, user *users.User, s *Service) (*
 			// refresh the index lazily — otherwise folder sizes here never update.
 			// Capture indexPath now: the deferred finalizeResponse strips the user
 			// scope from response.Path before returning.
-			indexPath := idx.MakeIndexPath(response.Path, true).String()
-			go func() {
-				if err := idx.RefreshDirectory(indexPath, false); err != nil {
-					logger.Debugf("Failed to refresh directory for folder size update: %v", err)
-				}
-			}()
+			// Coalesced per path so repeated listings do not run parallel refreshes.
+			idx.RefreshDirectoryAsync(idx.MakeIndexPath(response.Path, true).String())
 		}
 		return response, nil
 	}

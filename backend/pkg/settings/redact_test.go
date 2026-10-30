@@ -3,6 +3,7 @@ package settings
 import (
 	"encoding/json"
 	"os"
+	"path/filepath"
 	"reflect"
 	"strings"
 	"testing"
@@ -264,5 +265,54 @@ func TestSecretFieldNames_covers_yaml_marker_gaps(t *testing.T) {
 		if !secrets[tc.typ][tc.field] {
 			t.Errorf("%s.%s is not marked secret", tc.typ, tc.field)
 		}
+	}
+}
+
+// TestActiveSecretFields_fromEmbeddedYaml exercises the deployed-binary path, where the
+// secret markers come from the embedded config.generated.yaml rather than the Go sources.
+func TestActiveSecretFields_fromEmbeddedYaml(t *testing.T) {
+	data, err := os.ReadFile("../../../frontend/public/config.generated.yaml")
+	if err != nil {
+		t.Skipf("generated YAML not available: %v", err)
+	}
+	// Assert the YAML parser output directly: ActiveSecretFields also unions in the reflection
+	// fallback (SecretFieldNames), which would mask broken marker detection.
+	_, secrets, _, err := CollectCommentsFromEmbeddedYaml(string(data))
+	if err != nil {
+		t.Fatalf("parse embedded yaml: %v", err)
+	}
+	for _, tc := range []struct{ typ, field string }{
+		{"Auth", "Key"},
+		{"Recaptcha", "Secret"},
+		{"OidcConfig", "ClientSecret"},
+		{"LdapConfig", "UserPassword"},
+		{"OnlyOffice", "Secret"},
+		{"PasswordAuthConfig", "AdminPassword"},
+	} {
+		if !secrets[tc.typ][tc.field] {
+			t.Errorf("%s.%s is not marked secret via embedded YAML", tc.typ, tc.field)
+		}
+	}
+}
+
+func TestHasAnySecret_ignoresTypesWithoutMarkers(t *testing.T) {
+	if hasAnySecret(SecretFieldsMap{"Context": {}, "Other": {"Field": false}}) {
+		t.Fatal("per-type entries without secret markers must not count")
+	}
+	if !hasAnySecret(SecretFieldsMap{"Auth": {"Key": true}}) {
+		t.Fatal("a marked field must count")
+	}
+}
+
+func TestIsSettingsSourceDir_skipsUnrelatedPackage(t *testing.T) {
+	unrelated := t.TempDir()
+	if err := os.WriteFile(filepath.Join(unrelated, "http.go"), []byte("package web\n\n// Context x\ntype Context struct{ Token string }\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if isSettingsSourceDir(unrelated) {
+		t.Fatal("unrelated package must not be treated as the settings sources")
+	}
+	if !isSettingsSourceDir(".") {
+		t.Fatal("the settings package directory must be recognized")
 	}
 }

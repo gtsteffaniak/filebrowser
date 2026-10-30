@@ -3,6 +3,7 @@ package indexing
 import (
 	"errors"
 	"io/fs"
+	"os"
 	"sync"
 
 	"github.com/gtsteffaniak/go-logger/logger"
@@ -61,9 +62,20 @@ func skipEntry(dirPath, name string, err error) bool {
 // checkNotAllVanished fails a listing in which every one of total names was skipped as not-exist.
 // That is what a directory renamed or removed mid-scan looks like when entries are stat'ed by path.
 // Returning an empty success there would make the scanner prune all of its children.
+// When dirPath itself still exists, its entries really were deleted (e.g. short-lived temp
+// files), so the empty listing is correct and is returned as a success.
 func checkNotAllVanished(dirPath string, total, vanished int) error {
-	if total > 0 && vanished == total {
-		return &fs.PathError{Op: "readdir", Path: dirPath, Err: fs.ErrNotExist}
+	if total == 0 || vanished != total {
+		return nil
 	}
-	return nil
+	_, err := os.Stat(dirPath)
+	if err == nil {
+		return nil
+	}
+	if !errors.Is(err, fs.ErrNotExist) {
+		// Existence is unknown (I/O or permission error): fail the scan so indexed
+		// children are preserved instead of pruned by an empty "successful" listing.
+		return err
+	}
+	return &fs.PathError{Op: "readdir", Path: dirPath, Err: fs.ErrNotExist}
 }

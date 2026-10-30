@@ -350,3 +350,22 @@ func buildChainedTIFF(chainLen int) []byte {
 	}
 	return buf
 }
+
+// Non-TIFF files (e.g. a JPEG reaching the orientation fallback) must be rejected from the
+// 8-byte header, not after reading the whole scan window.
+func TestReadTIFFScanWindowRejectsNonTIFFFromHeader(t *testing.T) {
+	jpeg := append([]byte{0xff, 0xd8, 0xff, 0xe0}, make([]byte, 1<<20)...)
+	header, _, _, ok, err := readTIFFScanWindow(openBytesFile(t, jpeg))
+	if err != nil || ok || header != nil {
+		t.Fatalf("got header=%d bytes ok=%v err=%v, want nil/false/nil", len(header), ok, err)
+	}
+	if got := extractTIFFOrientation(openBytesFile(t, jpeg)); got != 0 {
+		t.Fatalf("orientation = %d, want 0", got)
+	}
+
+	tiff := buildSyntheticTIFF(tiffFixture{thumbnailJPEG: smallJPEG})
+	header, _, ifd0, ok, err := readTIFFScanWindow(openBytesFile(t, tiff))
+	if err != nil || !ok || ifd0 == 0 || len(header) != len(tiff) {
+		t.Fatalf("tiff: header=%d ok=%v ifd0=%d err=%v", len(header), ok, ifd0, err)
+	}
+}
