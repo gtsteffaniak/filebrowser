@@ -11,12 +11,12 @@ import { defineConfig, devices } from "@playwright/test";
  */
 export default defineConfig({
   globalSetup: "./tests/playwright/previews-setup",
-  timeout: 45_000,
+  timeout: 10000,
   testDir: "./tests/playwright/previews",
   fullyParallel: false,
   forbidOnly: false,
   retries: 2,
-  workers: 1,
+  workers: 10,
   reporter: "line",
   use: {
     launchOptions: {
