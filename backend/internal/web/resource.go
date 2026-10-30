@@ -286,19 +286,18 @@ func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *Context) (
 	}
 	var deleteBytes int64
 	if fileInfo.Type == "directory" {
-		deleteBytes, _ = state.IndexedPathBytes(source, fileInfo.Path, true)
+		deleteBytes, _ = state.IndexedPathBytes(source, fullIndexPath, true)
 	} else {
 		deleteBytes = fileInfo.Size
 	}
 
+	adjustments := state.PrepareAccountedDelete(principal, source, sourceInfo.Path, fullIndexPath, d.Share.Hash, fileInfo.Type == "directory", deleteBytes)
 	err = files.DeleteFiles(source, userScope, fullIndexPath, fileInfo.Type == "directory")
 	if err != nil {
 		return ErrToStatus(err), err
 	}
-	if deleteBytes > 0 {
-		if adjErr := state.ApplyAccountedUsageDelta(principal, source, sourceInfo.Path, fileInfo.Path, d.Share.Hash, -deleteBytes); adjErr != nil {
-			logger.Warningf("quota adjust after delete failed: %v", adjErr)
-		}
+	if adjErr := state.ApplyAccountedDelete(adjustments); adjErr != nil {
+		logger.Warningf("quota adjust after delete failed: %v", adjErr)
 	}
 	activity.RecordDelete(r, toActor(d), source, path)
 	return http.StatusOK, nil

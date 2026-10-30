@@ -1,6 +1,7 @@
 package web
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"net/http"
@@ -11,6 +12,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"golang.org/x/net/webdav"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/files"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/app"
@@ -1146,6 +1149,63 @@ func TestWebDAV_OPTIONS(t *testing.T) {
 			}
 		}
 	})
+}
+
+type failedDeleteFileSystem struct{ webdav.FileSystem }
+
+func (failedDeleteFileSystem) RemoveAll(context.Context, string) error { return os.ErrPermission }
+
+func TestWebDAVDeleteNestedQuota(t *testing.T) {
+	for _, scope := range []string{"/", "/scoped"} {
+		t.Run(scope, func(t *testing.T) {
+			sourcePath := setupDeleteQuotaTest(t)
+			user, err := state.GetUserByUsername("admin")
+			if err != nil {
+				t.Fatal(err)
+			}
+			user.BackendScopes[0].Scope = scope
+			nested, sibling := seedNestedQuotaFixture(t, sourcePath, scope, &user)
+			ffs := &filteredFileSystem{fs: failedDeleteFileSystem{webdav.Dir(filepath.Join(sourcePath, scope))}, source: "Downloads", user: &user}
+			if err = ffs.RemoveAll(context.Background(), "/public"); err == nil {
+				t.Fatal("expected forbidden deletion")
+			}
+			ffs.filePerms = users.SourceFilePermissions{Delete: true}
+			if err = ffs.RemoveAll(context.Background(), "/public"); err == nil {
+				t.Fatal("expected underlying deletion failure")
+			}
+			if used, _ := state.GetQuotaCounterSnapshot(nested.ID); used != 5 {
+				t.Fatalf("failed delete changed usage: %d", used)
+			}
+
+			req := httptest.NewRequest(http.MethodDelete, "/dav/Downloads/public", nil)
+			req.SetPathValue("source", "Downloads")
+			req.SetPathValue("path", "/public")
+			rec := httptest.NewRecorder()
+			_, err = webDAVHandler(rec, req, &requestContext{User: &user})
+			if err != nil || rec.Code != http.StatusNoContent {
+				t.Fatalf("delete: code=%d err=%v body=%s", rec.Code, err, rec.Body.String())
+			}
+			if _, err := os.Stat(filepath.Join(sourcePath, scope, "public")); !os.IsNotExist(err) {
+				t.Fatalf("ancestor still exists: %v", err)
+			}
+			if used, _ := state.GetQuotaCounterSnapshot(nested.ID); used != 0 {
+				t.Fatalf("nested usage=%d, want 0", used)
+			}
+			if used, _ := state.GetQuotaCounterSnapshot(sibling.ID); used != 7 {
+				t.Fatalf("sibling usage=%d, want 7", used)
+			}
+			req = httptest.NewRequest(http.MethodDelete, "/dav/Downloads/sibling/file", nil)
+			req.SetPathValue("source", "Downloads")
+			req.SetPathValue("path", "/sibling/file")
+			rec = httptest.NewRecorder()
+			if _, err := webDAVHandler(rec, req, &requestContext{User: &user}); err != nil || rec.Code != http.StatusNoContent {
+				t.Fatalf("file delete: code=%d err=%v", rec.Code, err)
+			}
+			if used, _ := state.GetQuotaCounterSnapshot(sibling.ID); used != 0 {
+				t.Fatalf("file delete usage=%d, want 0", used)
+			}
+		})
+	}
 }
 
 // A WebDAV DELETE must free the deleted bytes from the quota counters, the way the
