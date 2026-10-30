@@ -20,8 +20,15 @@ type Settings struct {
 	Frontend      Frontend      `json:"frontend"`
 	UserDefaults  UserDefaults  `json:"userDefaults"`  // optional signup/CLI defaults; per-user values are managed in the UI
 	ShareDefaults ShareDefaults `json:"shareDefaults"` // optional defaults for new shares; managed in the UI
+	SharePolicy   SharePolicy   `json:"sharePolicy"`   // rules every non-admin share must meet; config file only
 	Integrations  Integrations  `json:"integrations"`
 	Http          Http          `json:"http"`
+}
+
+// SharePolicy holds limits enforced on share creation and update for non-admin users.
+type SharePolicy struct {
+	MaxExpirationHours int  `json:"maxExpirationHours"` // shares must expire within this many hours; 0 disables the limit
+	RequirePassword    bool `json:"requirePassword"`    // shares must be password protected
 }
 
 type Http struct {
