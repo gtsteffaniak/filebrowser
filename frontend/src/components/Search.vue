@@ -1,5 +1,5 @@
 <template>
-  <div v-if="active" id="search" ref="searchEl" :class="{ active, ongoing, 'prompt-open': promptOpen, halloween: eventTheme === 'halloween' }" @click="clearContext">
+  <div v-if="active" id="search" ref="searchEl" :class="{ active, ongoing: isRunning, 'prompt-open': promptOpen, halloween: eventTheme === 'halloween' }" @click="clearContext">
     <!-- Search input section -->
     <div class="search-input-container">
       <!-- Close button visible when search is active -->
@@ -39,74 +39,20 @@
       <div id="result-list">
         <div v-if="!disableSearchOptions">
           <div v-if="active">
-            <SettingsItem
+            <SearchFilters
+              v-model:expanded="advancedOptionsExpanded"
               class="search-options-settings-item"
-              :title="advancedOptionsExpanded ? $t('buttons.showLess') : $t('buttons.showMore')"
-              :collapsable="true"
-              :start-collapsed="!advancedOptionsExpanded"
-              @toggle="advancedOptionsExpanded = $event"
+              :filters="filters"
             >
-              <div class="search-options-inner">
-                <div class="search-filter-dropdowns">
-                  <ExpandDropdown
-                    v-model="entryTypeFilter"
-                    :options="entryTypeOptions"
-                    all-value="all"
-                    :all-selected-label="$t('search.filesAndFolders')"
-                    :aria-label="$t('search.filesAndFolders')"
-                  />
-                  <ExpandDropdown
-                    v-model="selectedMediaTypes"
-                    :options="mediaTypeOptions"
-                    allow-multiple
-                    empty-means-all
-                    :all-selected-label="$t('search.allFileTypes')"
-                    :disabled="foldersOnly"
-                    :aria-label="$t('search.allFileTypes')"
-                  />
-                </div>
-                <div class="constraints">
-                  <div class="sizeInputWrapper">
-                    <p>{{ $t("search.smallerThan") }}</p>
-                    <input
-                      class="sizeInput input"
-                      v-model="smallerThan"
-                      type="number"
-                      min="0"
-                      placeholder="MB"
-                    />
-                    <p>{{ $t("search.largerThan") }}</p>
-                    <input class="sizeInput input" v-model="largerThan" type="number" placeholder="MB" />
-                  </div>
-                  <div class="sizeInputWrapper">
-                    <p>{{ $t("search.olderThanDate") }}</p>
-                    <input class="sizeInput input" v-model="modifiedOlderThan" type="date" />
-                    <p>{{ $t("search.newerThanDate") }}</p>
-                    <input class="sizeInput input" v-model="modifiedNewerThan" type="date" />
-                  </div>
-                </div>
-                <div class="settings-items">
-                  <ToggleSwitch
-                    class="item"
-                    v-model="showPreviewImages"
-                    :name="$t('search.showPreviewImages')"
-                    :description="$t('search.showPreviewImagesDescription')"
-                  />
-                  <ToggleSwitch
-                    class="item"
-                    v-model="useWildcardSearch"
-                    :name="$t('search.useWildcardSearch')"
-                    :description="$t('search.useWildcardSearchDescription')"
-                  />
-                  <ToggleSwitch
-                    class="item"
-                    v-model="caseExactSearch"
-                    :name="$t('search.caseExact')"
-                    :description="$t('search.caseExactDescription')"
-                  />
-                </div>
-              </div>
-            </SettingsItem>
+              <template #extra-settings>
+                <ToggleSwitch
+                  class="item"
+                  v-model="showPreviewImages"
+                  :name="$t('search.showPreviewImages')"
+                  :description="$t('search.showPreviewImagesDescription')"
+                />
+              </template>
+            </SearchFilters>
           </div>
         </div>
         <!-- Loading icon when search is ongoing -->
@@ -167,14 +113,16 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch, type Ref } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, toRefs, watch, type Ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { useListingContextMenu } from "@/composables/useListingContextMenu";
+import { useSearchFilters } from "@/composables/useSearchFilters";
+import { useSearchRequest } from "@/composables/useSearchRequest";
 import { resourcesApi, toolsApi } from "@/api";
 import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
 import Icon from "@/components/files/Icon.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
-import SettingsItem from "@/components/settings/SettingsItem.vue";
+import SearchFilters from "@/components/tools/SearchFilters.vue";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import { router } from "@/router";
@@ -186,7 +134,6 @@ import { debounce } from "@/utils/debounce.js";
 import { sortedItems } from "@/utils/sort.ts";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { isTypeAheadSessionActive } from "@/utils/listingTypeAhead.js";
-import { utcStartOfDaySecondsFromDateInput } from "@/utils/moment";
 import { shouldIgnoreOutsideTap } from "@/utils/tooltipHelp.js";
 
 defineOptions({ name: "search" });
@@ -205,59 +152,26 @@ const { t } = useI18n();
 
 const searchEl = ref<HTMLElement | null>(null);
 const input = ref<HTMLInputElement | null>(null);
-const largerThan = ref<string | number>("");
-const smallerThan = ref<string | number>("");
-const modifiedOlderThan = ref("");
-const modifiedNewerThan = ref("");
 const noneMessage = ref(t("search.typeToSearch", { minSearchLength: globalVars.minSearchLength }));
-const entryTypeFilter = ref("all");
-const selectedMediaTypes = ref<string[]>([]);
 const showPreviewImages = ref(false);
-const useWildcardSearch = ref(false);
-const caseExactSearch = ref(false);
-const value = ref("");
-const ongoing = ref(0);
-const results = ref<SearchResult[]>([]);
 const advancedOptionsExpanded = ref(false);
+const value = ref("");
+const results = ref<SearchResult[]>([]);
 const selectedSource = ref("");
 const highlightedIndex = ref(-1);
 let restoring = false;
-// Aborts the in-flight search so a superseded request doesn't hold a server connection.
-let searchAbort: AbortController | null = null;
-// Monotonic token so a late response can't overwrite newer results.
-let searchSeq = 0;
+
 // Coalesce keystrokes into one request 250ms after the last input.
 const debouncedSubmit = debounce(() => submit(), 250);
+const { filters, buildRequest, toRouteQuery } = useSearchFilters({ onChange: () => void submitNow() });
+const { isRunning, run: runSearchRequest, abort: abortSearch } = useSearchRequest();
 
 const formRefs: Record<string, Ref<unknown>> = {
-  value, results, noneMessage, selectedSource, entryTypeFilter, selectedMediaTypes,
-  largerThan, smallerThan, modifiedOlderThan, modifiedNewerThan,
-  useWildcardSearch, caseExactSearch, showPreviewImages, advancedOptionsExpanded,
+  value, results, noneMessage, selectedSource, ...toRefs(filters), showPreviewImages, advancedOptionsExpanded,
 };
 
 const eventTheme = computed(() => getters.eventTheme());
 const disableSearchOptions = computed(() => state.user?.disableSearchOptions);
-const foldersOnly = computed(() => entryTypeFilter.value === "type:folder");
-const searchTypes = computed(() => {
-  const parts: string[] = [];
-  if (entryTypeFilter.value !== "all") {
-    parts.push(entryTypeFilter.value);
-  }
-  parts.push(...selectedMediaTypes.value);
-  return parts.length > 0 ? `${parts.join(" ")} ` : "";
-});
-const entryTypeOptions = computed(() => [
-  { value: "all", label: t("search.filesAndFolders") },
-  { value: "type:file", label: t("search.onlyFiles") },
-  { value: "type:folder", label: t("search.onlyFolders") },
-]);
-const mediaTypeOptions = computed(() => [
-  { value: "type:image", label: t("general.photos") },
-  { value: "type:audio", label: t("general.audio") },
-  { value: "type:video", label: t("general.videos") },
-  { value: "type:doc", label: t("general.documents") },
-  { value: "type:archive", label: t("general.archives") },
-]);
 const active = computed(() => state.isSearchActive);
 const isEmpty = computed(() => results.value.length === 0);
 const searchHelpText = computed(() =>
@@ -266,7 +180,6 @@ const searchHelpText = computed(() =>
     t("search.helpText2"),
   ].join("\n\n"),
 );
-const isRunning = computed(() => ongoing.value > 0);
 const activeStates = computed(() => {
   const selectedItems = state.selected ? ([] as (number | FileListItem)[]).concat(state.selected) : [];
   if (selectedItems.length === 0) {
@@ -317,29 +230,8 @@ watch(
     selectedSource.value = state.sources.current;
   },
 );
-watch(
-  [largerThan, smallerThan, modifiedOlderThan, modifiedNewerThan, useWildcardSearch, caseExactSearch],
-  () => {
-    void submitNow();
-  },
-);
-watch(entryTypeFilter, (newValue) => {
-  if (newValue === "type:folder" && selectedMediaTypes.value.length > 0) {
-    selectedMediaTypes.value = [];
-    return;
-  }
-  void submitNow();
-});
-watch(
-  selectedMediaTypes,
-  () => {
-    void submitNow();
-  },
-  { deep: true },
-);
 watch(value, () => {
   if (results.value.length) {
-    ongoing.value = 0;
     results.value = [];
   }
 });
@@ -379,18 +271,12 @@ onMounted(() => {
     mutations.setPreviousHistoryItem(null);
     void nextTick().then(() => mutations.setSearch(true));
   }
-  // Add keyboard event listener for "/" to activate search
   document.addEventListener("keydown", handleKeydown);
 });
 
 onBeforeUnmount(() => {
-  // Clean up keyboard event listener
   document.removeEventListener("keydown", handleKeydown);
   debouncedSubmit.cancel();
-  if (searchAbort) {
-    searchAbort.abort();
-    searchAbort = null;
-  }
 });
 
 function openContext(event: MouseEvent) {
@@ -438,7 +324,6 @@ function resetSearchOnOpen() {
   value.value = "";
   results.value = [];
   highlightedIndex.value = -1;
-  ongoing.value = 0;
   debouncedSubmit.cancel();
   abortSearch();
   noneMessage.value = t("search.typeToSearch", {
@@ -463,8 +348,6 @@ function keyup(event: KeyboardEvent) {
 
 /** Debounced entry point for the search input (fires 250ms after the last keystroke). */
 function onInput() {
-  // Invalidate any in-flight request immediately, so a late response cannot
-  // repopulate results for the previous query during the debounce window.
   abortSearch();
   debouncedSubmit();
 }
@@ -473,16 +356,6 @@ function onInput() {
 function submitNow(event?: Event) {
   debouncedSubmit.cancel();
   return submit(event);
-}
-
-function abortSearch() {
-  // A new query supersedes any in-flight request: bump the sequence so a late
-  // response is ignored, then abort it so it releases the server connection.
-  searchSeq++;
-  if (searchAbort) {
-    searchAbort.abort();
-    searchAbort = null;
-  }
 }
 
 async function submit(event?: Event) {
@@ -496,38 +369,8 @@ async function submit(event?: Event) {
     noneMessage.value = t("search.notEnoughCharacters", { minSearchLength: globalVars.minSearchLength });
     return;
   }
-  let searchTypesFull = searchTypes.value;
-  if (largerThan.value !== "") {
-    searchTypesFull = `${searchTypesFull}type:largerThan=${largerThan.value} `;
-  }
-  if (smallerThan.value !== "") {
-    searchTypesFull = `${searchTypesFull}type:smallerThan=${smallerThan.value} `;
-  }
-  const dateParams: { olderThan?: number; newerThan?: number; useWildcard?: boolean } = {};
-  const olderUnix = utcStartOfDaySecondsFromDateInput(modifiedOlderThan.value);
-  if (olderUnix !== null) {
-    dateParams.olderThan = olderUnix;
-  }
-  const newerUnix = utcStartOfDaySecondsFromDateInput(modifiedNewerThan.value);
-  if (newerUnix !== null) {
-    dateParams.newerThan = newerUnix;
-  }
-  if (useWildcardSearch.value) {
-    dateParams.useWildcard = true;
-  }
-  let searchQuery = searchTypesFull + value.value;
-  if (caseExactSearch.value) {
-    searchQuery =
-      searchTypesFull.trim() === ""
-        ? `case:exact ${value.value}`
-        : `case:exact ${searchTypesFull}${value.value}`;
-  }
-  // Abort the previous request so a superseded search releases the server connection.
-  abortSearch();
-  const controller = new AbortController();
-  searchAbort = controller;
-  const seq = ++searchSeq;
-  ongoing.value++;
+  const { queryPrefix, dateParams } = buildRequest();
+  const searchQuery = queryPrefix + value.value;
 
   // Determine which sources to search
   let sourcesToSearch: string[];
@@ -542,33 +385,16 @@ async function submit(event?: Event) {
   // Only pass scope if searching a single source
   const scope = sourcesToSearch.length === 1 ? getContext.value : null;
 
-  let succeeded = false;
-  try {
-    const found = await toolsApi.search(
-      scope,
-      sourcesToSearch,
-      searchQuery,
-      false,
-      { ...dateParams, signal: controller.signal }
-    );
-    // Ignore a response that arrived after a newer search superseded it.
-    if (seq !== searchSeq) {
-      return;
-    }
-    results.value = sortResults(found);
-    setSearchResults();
-    succeeded = true;
-  } catch {
-    // Aborted/superseded requests are expected; real errors are surfaced by the API layer.
-  } finally {
-    if (searchAbort === controller) {
-      searchAbort = null;
-    }
-    ongoing.value = Math.max(0, ongoing.value - 1);
-    // Checked after the counter drops so the message only shows once nothing is in flight.
-    if (succeeded && results.value.length === 0 && ongoing.value === 0) {
-      noneMessage.value = t("search.noResults");
-    }
+  const succeeded = await runSearchRequest(
+    (signal) =>
+      toolsApi.search(scope, sourcesToSearch, searchQuery, false, { ...dateParams, signal }) as Promise<SearchResult[]>,
+    (found) => {
+      results.value = sortResults(found);
+      setSearchResults();
+    },
+  );
+  if (succeeded && results.value.length === 0 && !isRunning.value) {
+    noneMessage.value = t("search.noResults");
   }
 }
 
@@ -705,32 +531,7 @@ function openInAdvancedSearch() {
 
   const query: Record<string, string | string[]> = {};
   query.term = value.value.trim();
-
-  const trimmedTypes = String(searchTypes.value || "").trim();
-  if (trimmedTypes !== "") {
-    query.types = trimmedTypes;
-  }
-  if (largerThan.value !== "") {
-    query.largerThan = String(largerThan.value);
-  }
-  if (smallerThan.value !== "") {
-    query.smallerThan = String(smallerThan.value);
-  }
-  if (modifiedOlderThan.value !== "") {
-    query.dateOlder = String(modifiedOlderThan.value);
-  }
-  if (modifiedNewerThan.value !== "") {
-    query.dateNewer = String(modifiedNewerThan.value);
-  }
-  if (useWildcardSearch.value) {
-    query.wildcard = "1";
-  }
-  if (caseExactSearch.value) {
-    query.caseExact = "1";
-  }
-  if (foldersOnly.value) {
-    query.typeLock = "1";
-  }
+  Object.assign(query, toRouteQuery());
 
   const scopeClauses: string[] = [];
   for (const sourceName of picked) {
@@ -1165,7 +966,7 @@ body.rtl #search #result ul>* {
   display: block;
 }
 
-.constraints {
+.search-options-settings-item :deep(.constraints) {
   display: flex;
   flex-flow: row wrap;
   place-content: center center;
@@ -1212,30 +1013,8 @@ body.rtl #search #result ul>* {
   padding: 0.5em;
 }
 
-.search-options-inner {
-  box-sizing: border-box;
-  width: 100%;
+.search-options-settings-item :deep(.search-filters-inner) {
   overflow: hidden;
-}
-
-.search-filter-dropdowns {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5em;
-  align-items: flex-start;
-  justify-content: center;
-  margin-bottom: 0.5em;
-}
-
-.search-filter-dropdowns :deep(.expand-dropdown) {
-  width: auto;
-  flex: 0 1 auto;
-  min-width: 15em;
-  max-width: 15em;
-}
-
-.search-filter-dropdowns :deep(.expand-dropdown-anchor.menu-panel) {
-  min-width: 0;
 }
 
 @media (width <= 768px) {
