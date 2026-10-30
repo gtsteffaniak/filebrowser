@@ -1254,6 +1254,8 @@
     "accelDevice": "加速裝置",
     "accelDeviceDescription": "用於硬體加速媒體處理的 GPU 裝置。CPU（軟體）會停用硬體加速功能。",
     "encoderBackend": "編碼器後端",
-    "transcodeProfileEncoderBackendHelp": "此預設值的編碼器後端；預設為偵測到的首選後端。"
+    "transcodeProfileEncoderBackendHelp": "此預設值的編碼器後端；預設為偵測到的首選後端。",
+    "alwaysUseFfmpeg": "請務必使用 ffmpeg",
+    "alwaysUseFfmpegDescription": "跳過 go-media 的快速路徑，改用 ffmpeg 來處理所有檔案檢測、元資料、字幕及影片縮圖。若 go-media 對您的檔案產生錯誤結果，請啟用此選項。"
   }
 }

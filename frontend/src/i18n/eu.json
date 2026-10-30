@@ -1254,6 +1254,8 @@
     "accelDevice": "Azelerazio-gailua",
     "accelDeviceDescription": "GPU gailua hardware bidez azeleratutako multimedia prozesamendurako erabiltzen da. CPUk (softwareak) hardware azelerazioa desgaitzen du.",
     "encoderBackend": "Enkodatzaile atzealdea",
-    "transcodeProfileEncoderBackendHelp": "Aurrezarpen honen enkoder atzeko plana; hautemandako atzeko plan lehenetsira lehenetsita dago."
+    "transcodeProfileEncoderBackendHelp": "Aurrezarpen honen enkoder atzeko plana; hautemandako atzeko plan lehenetsira lehenetsita dago.",
+    "alwaysUseFfmpeg": "Erabili beti ffmpeg",
+    "alwaysUseFfmpegDescription": "Utzi go-mediaren bidea bazterrean eta erabili ffmpeg probak egiteko, metadatuak, azpitituluak eta bideo-miniatulak lortzeko. Aktibatu go-mediak zure fitxategientzat emaitza okerrak ematen baditu."
   }
 }

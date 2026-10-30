@@ -88,7 +88,7 @@
 <script>
 import { state, getters, mutations } from "@/store";
 import { getObjectProperty } from '@/utils/object.js';
-import { settings, globalVars } from "@/utils/constants";
+import { settings } from "@/utils/constants";
 import { router } from "@/router";
 
 export default {

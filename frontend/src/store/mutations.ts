@@ -10,7 +10,6 @@ import {
 } from "@/api/settings.js";
 import { detectLocale, setLocale } from "@/i18n/index.ts";
 import { notify } from "@/notify/index.ts";
-import { globalVars } from "@/utils/constants.js";
 import { url } from "@/utils/index.ts";
 import { getTypeInfo } from "@/utils/mimetype.js";
 import { getObjectProperty, setObjectProperty, omitObjectProperty } from '@/utils/object.js';

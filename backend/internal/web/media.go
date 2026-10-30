@@ -125,8 +125,8 @@ func subtitlesHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 			if svc == nil {
 				return "", false
 			}
-			vtt, err := svc.ExtractSubtitle(shadowCtx, fileInfo.RealPath, *track.Index)
-			return vtt, err == nil
+			vtt, extractErr := svc.ExtractSubtitle(shadowCtx, fileInfo.RealPath, *track.Index)
+			return vtt, extractErr == nil
 		}
 		if vtt, ok := gomedia.ExtractSubtitle(fileInfo.RealPath, *track.Index, legacy); ok {
 			content = vtt

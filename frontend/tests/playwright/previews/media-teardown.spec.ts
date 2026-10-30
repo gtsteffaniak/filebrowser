@@ -11,9 +11,8 @@ declare global {
 }
 
 /**
- * The Playwright CI image ships no ffmpeg, so media endpoints that probe or
- * transcode may fail there. Count those failures so the error assertion stays
- * precise instead of allowing API errors wholesale.
+ * Media endpoints that probe or transcode may fail. Count those failures so the
+ * error assertion stays precise instead of allowing API errors wholesale.
  */
 function trackMediaApiFailures(page: Page): () => number {
   let failures = 0;
@@ -76,6 +75,26 @@ async function expectNoMediaPlaying(page: Page) {
   expect(orphanedPlaying).toBe(0);
 }
 
+/** After gallery prev/next, the prior file's element must pause even if the new preview autoplays. */
+async function expectTrackedMediaPausedBeforeIndex(page: Page, endIndex: number) {
+  await expect.poll(
+    () =>
+      page.evaluate((end) => {
+        const tracked = window.__playedMedia || [];
+        if (end > 0 && tracked.length < end) {
+          return false;
+        }
+        for (let i = 0; i < end; i += 1) {
+          if (!tracked[i].paused) {
+            return false;
+          }
+        }
+        return true;
+      }, endIndex),
+    { timeout: 10_000, intervals: [50, 100, 250, 500] },
+  ).toBe(true);
+}
+
 test("closing the preview stops video playback", async ({ page, checkForErrors }) => {
   test.setTimeout(45_000);
   const mediaFailures = trackMediaApiFailures(page);
@@ -118,10 +137,12 @@ test("previous navigation stops video playback", async ({ page, checkForErrors }
   await page.goto(`${MEDIA}/clip-b.webm`);
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - clip-b.webm");
   await startPlayback(page);
+  const playedBeforeNav = await page.evaluate(() => window.__playedMedia?.length ?? 0);
+  expect(playedBeforeNav).toBeGreaterThan(0);
 
   await page.locator('button[aria-label="Previous"]').click();
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - clip-a.webm");
-  await expectNoMediaPlaying(page);
+  await expectTrackedMediaPausedBeforeIndex(page, playedBeforeNav);
 
   checkForErrors(0, mediaFailures());
 });

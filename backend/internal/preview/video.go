@@ -38,7 +38,7 @@ func (s *Service) GenerateVideoPreview(ctx context.Context, videoPath, previewSi
 			return nil, false
 		}
 		var buf bytes.Buffer
-		err := s.ffmpegService.VideoPreview(shadowCtx, &buf, ops.PreviewOptions{
+		previewErr := s.ffmpegService.VideoPreview(shadowCtx, &buf, ops.PreviewOptions{
 			Input:       videoPath,
 			SeekPercent: float64(percentageSeek),
 			// Exact seek: the default fast seek returns the keyframe before the
@@ -49,7 +49,7 @@ func (s *Service) GenerateVideoPreview(ctx context.Context, videoPath, previewSi
 			ScaleMode: params.scaleMode,
 			Quality:   params.quality,
 		})
-		return buf.Bytes(), err == nil
+		return buf.Bytes(), previewErr == nil
 	}
 	if data, ok := gomedia.VideoThumbnail(videoPath, params.width, params.height, params.quality, float64(percentageSeek), legacy); ok {
 		return data, nil

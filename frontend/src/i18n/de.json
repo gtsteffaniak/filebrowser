@@ -1254,6 +1254,8 @@
     "accelDevice": "Beschleunigungsvorrichtung",
     "accelDeviceDescription": "GPU-Gerät, das für die hardwarebeschleunigte Medienverarbeitung verwendet wird. Die CPU (Software) deaktiviert die Hardwarebeschleunigung.",
     "encoderBackend": "Encoder-Backend",
-    "transcodeProfileEncoderBackendHelp": "Encoder-Backend für diese Voreinstellung; standardmäßig wird das erkannte bevorzugte Backend verwendet."
+    "transcodeProfileEncoderBackendHelp": "Encoder-Backend für diese Voreinstellung; standardmäßig wird das erkannte bevorzugte Backend verwendet.",
+    "alwaysUseFfmpeg": "Verwende immer ffmpeg",
+    "alwaysUseFfmpegDescription": "Überspringen Sie den „go-media“-Schnellpfad und verwenden Sie ffmpeg für alle Abfragen, Metadaten, Untertitel und Video-Miniaturansichten. Aktivieren Sie diese Option, wenn „go-media“ für Ihre Dateien falsche Ergebnisse liefert."
   }
 }

@@ -1254,6 +1254,8 @@
     "accelDevice": "Hızlandırma cihazı",
     "accelDeviceDescription": "Donanım hızlandırmalı medya işleme için kullanılan GPU aygıtı. CPU (yazılım), donanım hızlandırmayı devre dışı bırakır.",
     "encoderBackend": "Enkoder arka ucu",
-    "transcodeProfileEncoderBackendHelp": "Bu ön ayar için kodlayıcı arka ucu; varsayılan olarak algılanan tercih edilen arka uç kullanılır."
+    "transcodeProfileEncoderBackendHelp": "Bu ön ayar için kodlayıcı arka ucu; varsayılan olarak algılanan tercih edilen arka uç kullanılır.",
+    "alwaysUseFfmpeg": "Her zaman ffmpeg'i kullanın",
+    "alwaysUseFfmpegDescription": "Go-media hızlı yolunu atlayın ve tüm tarama, meta veri, altyazı ve video küçük resimleri işlemleri için ffmpeg'i kullanın. Go-media, dosyalarınız için yanlış sonuçlar veriyorsa bu seçeneği etkinleştirin."
   }
 }

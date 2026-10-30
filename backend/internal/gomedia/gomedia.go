@@ -266,8 +266,8 @@ func lyricsFast(path string) (text, format string, ok bool) {
 	if !Enabled() {
 		return "", "", false
 	}
-	if text, ext, found := media.LyricsSidecar(path); found {
-		return text, ext, true
+	if sidecarText, ext, found := media.LyricsSidecar(path); found {
+		return sidecarText, ext, true
 	}
 	f, size, err := openFile(path)
 	if err != nil {

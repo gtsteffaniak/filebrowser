@@ -181,10 +181,18 @@ func meanLuma(img image.Image) float64 {
 		for i := 0; i < thumbSampleGrid; i++ {
 			x := b.Min.X + i*b.Dx()/thumbSampleGrid
 			y := b.Min.Y + j*b.Dy()/thumbSampleGrid
-			total += float64(color.GrayModel.Convert(img.At(x, y)).(color.Gray).Y)
+			total += float64(grayLuma(img.At(x, y)))
 		}
 	}
 	return total / float64(thumbSampleGrid*thumbSampleGrid)
+}
+
+// grayLuma returns the luma (Y) of a pixel. The comma-ok form avoids an
+// unchecked type assertion; GrayModel.Convert always yields color.Gray, so
+// the zero value is only a defensive fallback.
+func grayLuma(c color.Color) uint8 {
+	g, _ := color.GrayModel.Convert(c).(color.Gray)
+	return g.Y
 }
 
 // meanLumaDiff samples both images on the same relative grid and returns the
@@ -202,8 +210,8 @@ func meanLumaDiff(a, b image.Image) float64 {
 			ay := ab.Min.Y + j*ab.Dy()/thumbSampleGrid
 			bx := bb.Min.X + i*bb.Dx()/thumbSampleGrid
 			by := bb.Min.Y + j*bb.Dy()/thumbSampleGrid
-			la := color.GrayModel.Convert(a.At(ax, ay)).(color.Gray).Y
-			lb := color.GrayModel.Convert(b.At(bx, by)).(color.Gray).Y
+			la := grayLuma(a.At(ax, ay))
+			lb := grayLuma(b.At(bx, by))
 			total += math.Abs(float64(la) - float64(lb))
 			n++
 		}

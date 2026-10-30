@@ -26,7 +26,7 @@ export async function enableTranscodeUi(page: Page) {
       if (id === "app-config" && el && el.textContent && !el.dataset.transcodeUiPatched) {
         try {
           const cfg = JSON.parse(el.textContent);
-          cfg.mediaAvailable = true;
+          cfg.ffmpegAvailable = true;
           cfg.transcodeEnabled = true;
           if (!Array.isArray(cfg.transcodeProfiles) || cfg.transcodeProfiles.length === 0) {
             cfg.transcodeProfiles = ["quality", "balanced", "datasaver"];
@@ -190,6 +190,114 @@ export async function mockTranscodeSessions(
   });
 
   return { starts, sessions: () => sessions, playlistHits: () => playlistHits };
+}
+
+export function nativePlyrVideo(page: Page) {
+  return page.locator(".plyr-viewer video").first();
+}
+
+/**
+ * Playwright's chromium-headless-shell reports empty canPlayType for H.264/AAC.
+ * That makes needsTranscodeFirst true for MP4 and shows the WMV-style offer UI.
+ */
+export async function stubChromiumH264ProbeSupport(page: Page) {
+  await page.addInitScript(() => {
+    const nativeCanPlay = HTMLVideoElement.prototype.canPlayType;
+    HTMLVideoElement.prototype.canPlayType = function canPlayTypePatched(type: string) {
+      if (
+        typeof type === "string"
+        && (type.startsWith("video/mp4") || type.includes("avc1") || type.includes("mp4a"))
+      ) {
+        return "probably";
+      }
+      return nativeCanPlay.call(this, type);
+    };
+  });
+}
+
+/** Preview transcode-offer screen (not the in-player settings menu). */
+function previewTranscodeOfferButton(page: Page) {
+  return page.locator(".info button[aria-label='Transcode']");
+}
+
+/**
+ * Wait until Preview.vue finishes media enrichment and mounts the async plyrViewer
+ * chunk (not the WMV transcode-offer screen).
+ */
+export async function waitForNativePlyrMounted(page: Page) {
+  await expect(page.locator(".av-preview-loading")).toHaveCount(0, { timeout: 30_000 });
+  await expect.poll(async () => {
+    if (await previewTranscodeOfferButton(page).count()) {
+      return "offer";
+    }
+    if (await page.locator(".plyr-viewer").count()) {
+      return "plyr";
+    }
+    return "pending";
+  }, { timeout: 30_000, intervals: [100, 250, 500, 1000] }).toBe("plyr");
+  await expect(nativePlyrVideo(page)).toBeAttached({ timeout: 15_000 });
+}
+
+async function clickPlyrPlayControl(page: Page) {
+  const video = nativePlyrVideo(page);
+  await video.click({ force: true });
+  const playBtn = page.locator(
+    ".plyr-viewer .plyr__control--overlaid, .plyr-viewer button.plyr__control[data-plyr='play']",
+  ).first();
+  if (await playBtn.count()) {
+    await domClick(playBtn);
+  } else {
+    await page.keyboard.press("Space");
+  }
+  await video.evaluate((el: HTMLVideoElement) => {
+    void el.play().catch(() => {});
+  });
+}
+
+function videoIsActivelyPlaying() {
+  return (el: HTMLVideoElement) => {
+    if (el.paused || el.ended) {
+      return false;
+    }
+    return el.currentTime > 0.05 || el.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA;
+  };
+}
+
+export async function waitForNativeMediaStream(page: Page) {
+  return page.waitForResponse(
+    (res) =>
+      res.request().method() === "GET"
+      && res.url().includes("/api/media/stream")
+      && res.ok(),
+    { timeout: 15_000 },
+  );
+}
+
+/**
+ * Trusted play gesture so attachVideoStreamAndPlay runs and GET /api/media/stream fires.
+ */
+export async function startNativeVideoPlayback(page: Page) {
+  await waitForNativePlyrMounted(page);
+  const video = nativePlyrVideo(page);
+  const hasStreamSrc = () =>
+    video.evaluate((el: HTMLVideoElement) => (el.getAttribute("src") || "").includes("media/stream"));
+  const isPlaying = () => video.evaluate(videoIsActivelyPlaying());
+
+  if (await hasStreamSrc()) {
+    return;
+  }
+
+  const streamWait = waitForNativeMediaStream(page);
+
+  if (!(await isPlaying())) {
+    await clickPlyrPlayControl(page);
+  }
+
+  await streamWait;
+  await expect.poll(isPlaying, {
+    timeout: 15_000,
+    intervals: [100, 250, 500],
+  }).toBe(true);
 }
 
 /** Top-level settings gear only — Plyr also stamps data-plyr="settings" on menu back buttons. */

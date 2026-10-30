@@ -3,18 +3,25 @@ import {
   domClick,
   enableTranscodeUi,
   mockTranscodeSessions,
+  nativePlyrVideo,
   plyrSettingsButton,
   plyrTranscodeMenuButton,
   selectTranscodeMode,
+  startNativeVideoPlayback,
+  stubChromiumH264ProbeSupport,
+  waitForNativePlyrMounted,
 } from "./transcode-helpers.ts";
 
 const TESTDATA = "/files/playwright-files/myfolder/testdata";
 
+test.beforeEach(async ({ page }) => {
+  await stubChromiumH264ProbeSupport(page);
+});
+
 /**
- * The Playwright CI image ships no ffmpeg, so media endpoints that probe or
- * transcode (`/api/media/metadata`, `/api/media/transcode/sessions`) fail there.
- * Count those failures so the error assertion stays precise instead of allowing
- * API errors wholesale.
+ * Media endpoints that probe or transcode (`/api/media/metadata`,
+ * `/api/media/transcode/sessions`) can fail. Count those failures so the error
+ * assertion stays precise instead of allowing API errors wholesale.
  */
 function trackMediaApiFailures(page: import("@playwright/test").Page): () => number {
   let failures = 0;
@@ -27,16 +34,14 @@ function trackMediaApiFailures(page: import("@playwright/test").Page): () => num
 }
 
 test("mp4 preview mounts the native player", async ({ page, checkForErrors }) => {
-  test.setTimeout(30_000);
   const mediaFailures = trackMediaApiFailures(page);
 
   await page.goto(`${TESTDATA}/sample-640x480.mp4`);
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - sample-640x480.mp4");
 
-  const video = page.locator(".plyr-viewer video").first();
-  await expect(video).toBeVisible({ timeout: 15_000 });
-  // A browser-playable format streams straight from the media API, with no
-  // transcode session involved.
+  // Native previews lazy-bind /api/media/stream on first play, not at mount.
+  await startNativeVideoPlayback(page);
+  const video = nativePlyrVideo(page);
   await expect(video).toHaveAttribute("src", /media\/stream/, { timeout: 15_000 });
   await expect(page.locator(".transcode-offer-message")).toHaveCount(0);
 
@@ -52,9 +57,12 @@ test("wmv preview requires transcoding", async ({ page, checkForErrors }) => {
 
   // `.wmv` must be indexed as a video so the preview routes to the transcode UI
   // rather than the generic "no preview" screen.
-  const message = page.locator(".transcode-offer-message");
-  await expect(message).toBeVisible({ timeout: 15_000 });
-  await expect(message).toContainText("not supported by your browser");
+  // In offer mode the page shows the title (not .transcode-offer-message, which is
+  // only rendered for the other modes) and the Transcode button.
+  const title = page.locator(".info .title");
+  await expect(title).toBeVisible({ timeout: 15_000 });
+  await expect(title).toContainText("not supported by your browser");
+  await expect(page.locator('button[aria-label="Transcode"]')).toBeVisible();
 
   checkForErrors(0, mediaFailures());
 });
@@ -62,7 +70,6 @@ test("wmv preview requires transcoding", async ({ page, checkForErrors }) => {
 test("switching transcode modes sends replaceSessionId for the same file", async ({
   page,
 }) => {
-  test.setTimeout(60_000);
   await enableTranscodeUi(page);
   const mock = await mockTranscodeSessions(page, { playlistNotReadyFirst: true });
 
@@ -80,7 +87,7 @@ test("switching transcode modes sends replaceSessionId for the same file", async
 
   await page.goto(`${TESTDATA}/sample-640x480.mp4`);
   await expect(page).toHaveTitle("Graham's Filebrowser - Files - sample-640x480.mp4");
-  await expect(page.locator(".plyr-viewer video").first()).toBeVisible({ timeout: 15_000 });
+  await waitForNativePlyrMounted(page);
 
   await selectTranscodeMode(page, "datasaver");
   await expect.poll(() => mock.starts.length).toBe(1);
@@ -105,26 +112,23 @@ test("switching transcode modes sends replaceSessionId for the same file", async
   expect(playlistStatuses.some((status) => status === 200 || status === 503)).toBe(true);
 });
 
-test("transcode mode menu stays hidden when media is unavailable", async ({
+test("transcode mode menu is shown when the server enables transcoding", async ({
   page,
   checkForErrors,
 }) => {
-  test.setTimeout(30_000);
   const mediaFailures = trackMediaApiFailures(page);
 
+  // Real server config (no mocks): the preview image enables ffmpeg and transcoding.
   await page.goto(`${TESTDATA}/sample-640x480.mp4`);
-  await expect(page.locator(".plyr-viewer video").first()).toBeVisible({ timeout: 15_000 });
+  await waitForNativePlyrMounted(page);
 
-  const mediaAvailable = await page.evaluate(() => window.globalVars?.mediaAvailable === true);
-  if (mediaAvailable) {
-    test.skip(true, "ffmpeg is available in this environment; menu visibility is expected");
-  }
+  const ffmpegAvailable = await page.evaluate(() => window.globalVars?.ffmpegAvailable === true);
+  expect(ffmpegAvailable, "server reports ffmpeg unavailable").toBe(true);
 
   const settings = plyrSettingsButton(page);
   await expect(settings).toBeAttached({ timeout: 15_000 });
   await domClick(settings);
-  // Slot may exist but must stay hidden when ffmpeg/media is unavailable.
-  await expect(plyrTranscodeMenuButton(page)).toBeHidden();
+  await expect(plyrTranscodeMenuButton(page)).toBeVisible({ timeout: 10_000 });
 
   checkForErrors(0, mediaFailures());
 });
