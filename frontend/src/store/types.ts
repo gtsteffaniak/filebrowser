@@ -18,6 +18,28 @@ export interface FileListItem {
   metadata?: unknown;
 }
 
+/** from backend iteminfo.MediaMetadata. */
+export interface MediaMetadata {
+  title?: string;
+  artist?: string;
+  album?: string;
+  year?: number;
+  genre?: string;
+  track?: number;
+  duration?: number;
+  videoCodec?: string;
+  audioCodec?: string;
+  container?: string;
+  albumArt?: string;
+  hasLyrics?: boolean;
+}
+
+/** List items have their position in `req.items` (by mutations.replaceRequest) */
+export interface fileListItemIndex extends Omit<FileListItem, "metadata"> {
+  index: number;
+  metadata?: MediaMetadata;
+}
+
 export interface ReqObject {
   // Base properties always present
   sorting: {
@@ -60,6 +82,7 @@ export interface ShareInfoObject {
   disableSidebar: boolean;
   isValid: boolean;
   shareType: string;
+  hasPassword?: boolean;
   title: string;
   description: string;
   viewMode?: string;
@@ -203,6 +226,7 @@ export interface UserObject {
   locale: string;
   viewMode: string;
   showHidden: boolean;
+  disableSearchOptions?: boolean;
   scopes: UserScope[];
   permissions: Permissions;
   darkMode: boolean;

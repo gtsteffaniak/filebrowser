@@ -1,5 +1,5 @@
 <template>
-  <div class="advanced-search-root">
+  <div ref="rootEl" class="advanced-search-root">
     <div class="card advanced-search-toolbar padding-normal">
       <form class="card-content advanced-search-card-form" @submit.prevent="runSearch">
         <div class="advanced-search-config-row">
@@ -261,7 +261,11 @@
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import type { FileListItem, fileListItemIndex, ReqObject } from "@/store/types";
+import { useRoute } from "vue-router";
+import { useI18n } from "vue-i18n";
 import { toolsApi } from "@/api";
 import { router } from "@/router";
 import { state, getters, mutations } from "@/store";
@@ -279,10 +283,27 @@ import ListingHeader from "@/components/files/ListingHeader.vue";
 import { utcStartOfDaySecondsFromDateInput } from "@/utils/moment";
 import { getObjectProperty, setObjectProperty } from '@/utils/object.js';
 
+type QueryRecord = Record<string, unknown>;
+type NormalizedQuery = Record<string, string | string[]>;
+
+interface SearchResultRow {
+  source?: string;
+  path?: string;
+  type?: string;
+  size?: number;
+  modified?: string;
+  created?: string;
+  hasPreview?: boolean;
+}
+
+interface ItemsChangedEvent {
+  succeeded?: unknown[];
+}
+
 /**
  * Builds a canonical browse path within the selected scope (mirror of Search.vue getItemUrl path join).
  */
-function browsePath(scopePath, apiPath, isDirectory) {
+function browsePath(scopePath: string, apiPath: string, isDirectory: boolean) {
   const context =
     scopePath && scopePath !== "/" ? removeTrailingSlash(scopePath) : "";
   const trimmedApi = String(apiPath || "").trim();
@@ -308,18 +329,18 @@ function browsePath(scopePath, apiPath, isDirectory) {
   return resolvedBrowsePath;
 }
 
-function displayName(fullPath, isDirectory) {
+function displayName(fullPath: string, isDirectory: boolean) {
   const withoutTrailing =
     fullPath.endsWith("/") && fullPath.length > 1
       ? fullPath.slice(0, -1)
       : fullPath;
   const parts = withoutTrailing.split("/").filter(Boolean);
-  const name = parts.length ? parts[parts.length - 1] : "";
+  const name = parts[parts.length - 1] ?? "";
 
   return name !== "" ? name : (isDirectory ? "/" : "?");
 }
 
-function queryTruthy(v) {
+function queryTruthy(v: unknown) {
   if (v === undefined || v === null || v === "") {
     return false;
   }
@@ -330,10 +351,9 @@ function queryTruthy(v) {
   return s === "1" || s === "true" || s === "yes";
 }
 
-/** @param {Record<string, unknown>} routeQuery */
-function parseTermsFromRouteQuery(routeQuery) {
+function parseTermsFromRouteQuery(routeQuery: QueryRecord) {
   const q = routeQuery || {};
-  const out = [];
+  const out: string[] = [];
 
   const termRaw = q.term;
   if (Array.isArray(termRaw)) {
@@ -364,14 +384,12 @@ function parseTermsFromRouteQuery(routeQuery) {
   return out;
 }
 
-/** @param {Record<string, unknown>} q */
-function hasFilterOrTermSignalsForImplicitSources(q) {
+function hasFilterOrTermSignalsForImplicitSources(q: QueryRecord) {
   if (parseTermsFromRouteQuery(q).length > 0) {
     return true;
   }
 
-  /** @param {string} queryKey */
-  const nonempty = (queryKey) => {
+  const nonempty = (queryKey: string) => {
     const raw = getObjectProperty(q, queryKey);
     return raw !== undefined && raw !== null && String(raw).trim() !== "";
   };
@@ -394,14 +412,12 @@ function hasFilterOrTermSignalsForImplicitSources(q) {
   return false;
 }
 
-/** @param {Record<string, unknown>} q */
-function hasAnyAdvancedSearchRouteParams(q) {
+function hasAnyAdvancedSearchRouteParams(q: QueryRecord) {
   if (hasFilterOrTermSignalsForImplicitSources(q)) {
     return true;
   }
 
-  /** @param {string} queryKey */
-  const nonempty = (queryKey) => {
+  const nonempty = (queryKey: string) => {
     const raw = getObjectProperty(q, queryKey);
     return raw !== undefined && raw !== null && String(raw).trim() !== "";
   };
@@ -418,12 +434,10 @@ function hasAnyAdvancedSearchRouteParams(q) {
 }
 
 /** Canonicalize vue-router query for comparisons. */
-/** @param {Record<string, unknown>} routeQuery */
-function normalizeRouteQueryLoose(routeQuery) {
+function normalizeRouteQueryLoose(routeQuery: QueryRecord): NormalizedQuery {
   const q = routeQuery || {};
-  /** @type {string[]} */
   const entries = Object.entries(q).sort((a, b) => a[0].localeCompare(b[0]));
-  const nextEntries = [];
+  const nextEntries: [string, string | string[]][] = [];
   for (const [queryKey, rawValue] of entries) {
     if (rawValue === undefined || rawValue === null) continue;
     if (Array.isArray(rawValue)) {
@@ -432,7 +446,7 @@ function normalizeRouteQueryLoose(routeQuery) {
         .filter((entry) => entry !== "")
         .sort();
       if (sortedStrings.length === 1) {
-        nextEntries.push([queryKey, sortedStrings[0]]);
+        nextEntries.push([queryKey, sortedStrings[0] as string]);
       } else if (sortedStrings.length > 1) {
         nextEntries.push([queryKey, sortedStrings]);
       }
@@ -446,10 +460,8 @@ function normalizeRouteQueryLoose(routeQuery) {
   return Object.fromEntries(nextEntries);
 }
 
-/** @param {Record<string, string|string[]|unknown>} obj */
-function stableQueryStringFromObject(obj) {
-  /** @type {string[][]} */
-  let pairs = [];
+function stableQueryStringFromObject(obj: QueryRecord) {
+  let pairs: [string, string][] = [];
   const keys = Object.keys(obj).sort();
   for (const paramKey of keys) {
     const paramValue = getObjectProperty(obj, paramKey);
@@ -480,8 +492,7 @@ function stableQueryStringFromObject(obj) {
 }
 
 /** Raw `scope` query values (repeated or single). */
-/** @param {Record<string, unknown>} q */
-function collectScopeRawFromQuery(q) {
+function collectScopeRawFromQuery(q: QueryRecord) {
   const raw = q.scope;
   if (raw === undefined || raw === null) {
     return [];
@@ -492,1033 +503,966 @@ function collectScopeRawFromQuery(q) {
   return [String(raw)];
 }
 
-export default {
-  name: "AdvancedSearch",
-  components: {
-    ToggleSwitch,
-    SettingsItem,
-    ExpandDropdown,
-    PathPickerButton,
-    LoadingSpinner,
-    Item,
-    ListingHeader,
+const { t } = useI18n();
+const route = useRoute();
+
+const rootEl = ref<HTMLElement | null>(null);
+const results = ref<HTMLElement | null>(null);
+
+const resultLimit = ref(Math.min(500, globalVars.searchResultsLimit || 1000));
+const termInputs = ref<string[]>([""]);
+const termsJoinAnd = ref(false);
+const sourceEnabledFlags = ref<QueryRecord>({});
+const sourceScopedPaths = ref<Record<string, string>>({});
+const columnWidth = ref(250 + state.user.gallerySize * 50);
+const innerWidth = ref(typeof window !== "undefined" ? window.innerWidth : 1024);
+const largerThan = ref("");
+const smallerThan = ref("");
+const modifiedOlderThan = ref("");
+const modifiedNewerThan = ref("");
+const entryTypeFilter = ref("all");
+const selectedMediaTypes = ref<string[]>([]);
+const useWildcardSearch = ref(false);
+const caseExactSearch = ref(false);
+const loading = ref(false);
+const error = ref<string | null>(null);
+const searchExecuted = ref(false);
+const resultsEmpty = ref(false);
+const advancedOptionsExpanded = ref(false);
+const headerHidden = ref(false);
+
+let resizeListener: (() => void) | null = null;
+let didApplySearchListing = false;
+let hadInitialReq = false;
+let initialReqFrozen = "";
+let catalogRouteBootstrapDone = false;
+let isInitializing = true;
+let suppressRouteQueryNavigation = false;
+let emptyCatalogHydrateTimer: number | null = null;
+let refreshQueued = false;
+let lastScrollTop = 0;
+let scrollContainer: HTMLElement | null = null;
+
+const maxSearchResults = computed(() => globalVars.searchResultsLimit || 1000);
+const isAdvancedSearchRoute = computed(() => (route.path || "") === "/tools/advancedSearch");
+const shareInfo = computed(() => state.shareInfo);
+/** Keys from `state.sources.info`, sorted (sidebar catalogue). */
+const sourceNameList = computed(() => Object.keys(state.sources.info || {}).sort());
+const disableSearchOptions = computed(() => state.user.disableSearchOptions);
+const foldersOnly = computed(() => entryTypeFilter.value === "type:folder");
+const searchTypes = computed(() => {
+  const parts: string[] = [];
+  if (entryTypeFilter.value !== "all") {
+    parts.push(entryTypeFilter.value);
+  }
+  parts.push(...selectedMediaTypes.value);
+  return parts.length > 0 ? `${parts.join(" ")} ` : "";
+});
+const entryTypeOptions = computed(() => [
+  { value: "all", label: t("search.filesAndFolders") },
+  { value: "type:file", label: t("search.onlyFiles") },
+  { value: "type:folder", label: t("search.onlyFolders") },
+]);
+const mediaTypeOptions = computed(() => [
+  { value: "type:image", label: t("general.photos") },
+  { value: "type:audio", label: t("general.audio") },
+  { value: "type:video", label: t("general.videos") },
+  { value: "type:doc", label: t("general.documents") },
+  { value: "type:archive", label: t("general.archives") },
+]);
+const termJoinDividerLabel = computed(() => {
+  const raw = termsJoinAnd.value
+    ? t("general.and")
+    : t("general.or");
+  return String(raw ?? "").toUpperCase();
+});
+const activeSources = computed(() => {
+  const info = state.sources.info || {};
+  return Object.keys(info)
+    .filter((name) => getObjectProperty(sourceEnabledFlags.value, name) === true)
+    .sort();
+});
+const sourceOptions = computed(() =>
+  sourceNameList.value.map((name) => ({
+    value: name,
+    label: name,
+  })),
+);
+const selectedSourceNames = computed({
+  get() {
+    return activeSources.value;
   },
-  data() {
-    return {
-      resultLimit: Math.min(500, globalVars.searchResultsLimit || 1000),
-      termInputs: [""],
-      termsJoinAnd: false,
-      sourceEnabledFlags: {},
-      sourceScopedPaths: {},
-      columnWidth: 250 + state.user.gallerySize * 50,
-      innerWidth: typeof window !== "undefined" ? window.innerWidth : 1024,
-      resizeListener: null,
-      largerThan: "",
-      smallerThan: "",
-      modifiedOlderThan: "",
-      modifiedNewerThan: "",
-      entryTypeFilter: "all",
-      selectedMediaTypes: [],
-      useWildcardSearch: false,
-      caseExactSearch: false,
-      loading: false,
-      error: null,
-      searchExecuted: false,
-      resultsEmpty: false,
-      didApplySearchListing: false,
-      hadInitialReq: false,
-      initialReqFrozen: "",
-      catalogRouteBootstrapDone: false,
-      isInitializing: true,
-      suppressRouteQueryNavigation: false,
-      emptyCatalogHydrateTimer: null,
-      advancedOptionsExpanded: false,
-      refreshQueued: false,
-      headerHidden: false,
-      lastScrollTop: 0,
-      scrollContainer: null,
-    };
+  set(names: unknown) {
+    const selected = Array.isArray(names) ? (names as string[]) : [];
+    let nextFlags = { ...sourceEnabledFlags.value };
+    for (const name of sourceNameList.value) {
+      nextFlags = setObjectProperty(nextFlags, name, selected.includes(name));
+    }
+    sourceEnabledFlags.value = nextFlags;
+
+    let nextPaths = { ...sourceScopedPaths.value };
+    for (const name of selected) {
+      const currentPath = getObjectProperty(nextPaths, name);
+      if (currentPath === undefined || currentPath === null || currentPath === "") {
+        nextPaths = setObjectProperty(nextPaths, name, "/") as Record<string, string>;
+      }
+    }
+    sourceScopedPaths.value = nextPaths;
+
+    if (selected.length === 0) {
+      void nextTick().then(() => applyDefaultCurrentSourceIfNone());
+    }
   },
-  computed: {
-    maxSearchResults() {
-      return globalVars.searchResultsLimit || 1000;
-    },
-    isAdvancedSearchRoute() {
-      return (this.$route.path || "") === "/tools/advancedSearch";
-    },
-    shareInfo() {
-      return state.shareInfo;
-    },
-    sourcesInfoReactive() {
-      return state.sources.info;
-    },
-    gallerySizeBump() {
-      return state.user.gallerySize;
-    },
-    /** Keys from `state.sources.info`, sorted (sidebar catalogue). */
-    sourceNameList() {
-      return Object.keys(state.sources.info || {}).sort();
-    },
-    disableSearchOptions() {
-      return state.user.disableSearchOptions;
-    },
-    foldersOnly() {
-      return this.entryTypeFilter === "type:folder";
-    },
-    searchTypes() {
-      const parts = [];
-      if (this.entryTypeFilter !== "all") {
-        parts.push(this.entryTypeFilter);
-      }
-      parts.push(...this.selectedMediaTypes);
-      return parts.length > 0 ? `${parts.join(" ")} ` : "";
-    },
-    entryTypeOptions() {
-      return [
-        { value: "all", label: this.$t("search.filesAndFolders") },
-        { value: "type:file", label: this.$t("search.onlyFiles") },
-        { value: "type:folder", label: this.$t("search.onlyFolders") },
-      ];
-    },
-    mediaTypeOptions() {
-      return [
-        { value: "type:image", label: this.$t("general.photos") },
-        { value: "type:audio", label: this.$t("general.audio") },
-        { value: "type:video", label: this.$t("general.videos") },
-        { value: "type:doc", label: this.$t("general.documents") },
-        { value: "type:archive", label: this.$t("general.archives") },
-      ];
-    },
-    termJoinDividerLabel() {
-      const raw = this.termsJoinAnd
-        ? this.$t("general.and")
-        : this.$t("general.or");
-      return String(raw ?? "").toUpperCase();
-    },
-    activeSources() {
-      const info = state.sources.info || {};
-      return Object.keys(info)
-        .filter((name) => getObjectProperty(this.sourceEnabledFlags, name) === true)
-        .sort();
-    },
-    sourceOptions() {
-      return this.sourceNameList.map((name) => ({
-        value: name,
-        label: name,
-      }));
-    },
-    selectedSourceNames: {
-      get() {
-        return this.activeSources;
-      },
-      set(names) {
-        const selected = Array.isArray(names) ? names : [];
-        let nextFlags = { ...this.sourceEnabledFlags };
-        for (const name of this.sourceNameList) {
-          nextFlags = setObjectProperty(nextFlags, name, selected.includes(name));
-        }
-        this.sourceEnabledFlags = nextFlags;
+});
+const isStickySidebar = computed(() => getters.isStickySidebar());
+const listingViewMode = computed(() => getters.viewMode());
+const reqListing = computed(() => {
+  const grouped = getters.reqItems() as {
+    pinned: fileListItemIndex[];
+    dirs: fileListItemIndex[];
+    files: fileListItemIndex[];
+  };
+  if (!grouped.dirs || !grouped.files) {
+    return { dirs: [], files: [] };
+  }
+  return grouped;
+});
+const listingNumColumns = computed(() => {
+  void innerWidth.value;
+  if (!getters.isCardView()) {
+    return 1;
+  }
+  const elem = document.querySelector<HTMLElement>("#main");
+  if (!elem) {
+    return 1;
+  }
+  if (getters.viewMode() === "icons") {
+    const containerSize = 70 + state.user.gallerySize * 15;
+    let columns = Math.floor(elem.offsetWidth / containerSize);
+    if (columns === 0) {
+      columns = 1;
+    }
+    const minColumns = 3;
+    const maxColumns = 12;
+    return Math.max(minColumns, Math.min(columns, maxColumns));
+  }
+  let columns = Math.floor(elem.offsetWidth / columnWidth.value);
+  if (columns === 0) {
+    columns = 1;
+  }
+  return columns;
+});
+const listingItemStyles = computed(() => {
+  const viewMode = getters.viewMode();
+  const styles: Record<string, string> = {};
+  const size = state.user.gallerySize;
 
-        let nextPaths = { ...this.sourceScopedPaths };
-        for (const name of selected) {
-          const currentPath = getObjectProperty(nextPaths, name);
-          if (currentPath === undefined || currentPath === null || currentPath === "") {
-            nextPaths = setObjectProperty(nextPaths, name, "/");
-          }
-        }
-        this.sourceScopedPaths = nextPaths;
+  if (viewMode === "icons") {
+    const baseSize = 20 + size * 15;
+    const cellSize = baseSize + 30;
+    styles["--icon-size"] = `${baseSize}px`;
+    styles["--icon-font-size"] = `${baseSize}px`;
+    styles["--icons-view-cell-size"] = `${cellSize}px`;
+  } else if (viewMode === "gallery") {
+    const baseCalc = 80 + size * 25;
+    const extraScaling = Math.max(0, size - 5) * 15;
+    const baseSize = baseCalc + extraScaling;
+    const iconFontSize = (3 + size * 0.5).toFixed(2);
+    styles["--icon-font-size"] = `${iconFontSize}em`;
 
-        if (selected.length === 0) {
-          void this.$nextTick().then(() => this.applyDefaultCurrentSourceIfNone());
-        }
-      },
-    },
-    isStickySidebar() {
-      return getters.isStickySidebar();
-    },
-    listingViewMode() {
-      return getters.viewMode();
-    },
-    reqListing() {
-      const grouped = getters.reqItems();
-      if (!grouped.dirs || !grouped.files) {
-        return { dirs: [], files: [] };
-      }
-      return grouped;
-    },
-    listingNumColumns() {
-      void this.innerWidth;
-      if (!getters.isCardView()) {
-        return 1;
-      }
-      const elem = document.querySelector("#main");
-      if (!elem) {
-        return 1;
-      }
-      if (getters.viewMode() === "icons") {
-        const containerSize = 70 + state.user.gallerySize * 15;
-        let columns = Math.floor(elem.offsetWidth / containerSize);
-        if (columns === 0) {
-          columns = 1;
-        }
-        const minColumns = 3;
-        const maxColumns = 12;
-        return Math.max(minColumns, Math.min(columns, maxColumns));
-      }
-      let columns = Math.floor(elem.offsetWidth / this.columnWidth);
-      if (columns === 0) {
-        columns = 1;
-      }
-      return columns;
-    },
-    listingItemStyles() {
-      const viewMode = getters.viewMode();
-      const styles = {};
-      const size = state.user.gallerySize;
-
-      if (viewMode === "icons") {
-        const baseSize = 20 + size * 15;
-        const cellSize = baseSize + 30;
-        styles["--icon-size"] = `${baseSize}px`;
-        styles["--icon-font-size"] = `${baseSize}px`;
-        styles["--icons-view-cell-size"] = `${cellSize}px`;
-      } else if (viewMode === "gallery") {
-        const baseCalc = 80 + size * 25;
-        const extraScaling = Math.max(0, size - 5) * 15;
-        const baseSize = baseCalc + extraScaling;
-        const iconFontSize = (3 + size * 0.5).toFixed(2);
-        styles["--icon-font-size"] = `${iconFontSize}em`;
-
-        if (getters.isMobile()) {
-          const minWidth = size <= 3 ? 120 : size <= 7 ? 160 : 280;
-          const mobileHeight = 120 + size * 20;
-          styles["--gallery-mobile-min-width"] = `${minWidth}px`;
-          styles["--item-width"] = `${minWidth}px`;
-          styles["--item-height"] = `${mobileHeight}px`;
-        } else {
-          styles["--item-width"] = `${baseSize}px`;
-          styles["--item-height"] = `${Math.round(baseSize * 1.2)}px`;
-        }
-      } else if (viewMode === "list" || viewMode === "compact") {
-        const baseHeight =
-          viewMode === "compact" ? 40 + size * 2 : 50 + size * 3;
-        const iconSize = (2 + size * 0.12).toFixed(2);
-        const iconFontSize = (1.5 + size * 0.12).toFixed(2);
-
-        styles["--item-width"] = `calc(${(100 / this.listingNumColumns).toFixed(2)}% - 1em)`;
-        styles["--item-height"] = `${baseHeight}px`;
-        styles["--icon-size"] = `${iconSize}em`;
-        styles["--icon-font-size"] = `${iconFontSize}em`;
-      } else {
-        const iconSize = (3.2 + size * 0.15).toFixed(2);
-        const iconFontSize = (2.2 + size * 0.12).toFixed(2);
-
-        styles["--item-width"] = `calc(${(100 / this.listingNumColumns)}% - 1em)`;
-        styles["--item-height"] = "auto";
-        styles["--icon-size"] = `${iconSize}em`;
-        styles["--icon-font-size"] = `${iconFontSize}em`;
-      }
-
-      return styles;
-    },
-    reload() {
-      return state.reload;
-    },
-  },
-  watch: {
-    reload(shouldReload) {
-      if (!shouldReload || !this.isAdvancedSearchRoute || !this.searchExecuted) {
-        return;
-      }
-      mutations.setReload(false);
-      this.scheduleSearchRefresh();
-    },
-    termInputs: {
-      deep: true,
-      handler() {
-        if (this.termInputs.length <= 1) {
-          this.termsJoinAnd = false;
-        }
-        this.scheduleAdvancedSearchUrlUpdate();
-      },
-    },
-    termsJoinAnd() {
-      this.scheduleAdvancedSearchUrlUpdate();
-    },
-    sourceEnabledFlags: {
-      deep: true,
-      handler() {
-        this.scheduleAdvancedSearchUrlUpdate();
-      },
-    },
-    sourceScopedPaths: {
-      deep: true,
-      handler() {
-        this.scheduleAdvancedSearchUrlUpdate();
-      },
-    },
-    entryTypeFilter(newValue) {
-      if (newValue === "type:folder") {
-        this.selectedMediaTypes = [];
-      }
-      this.scheduleAdvancedSearchUrlUpdate();
-    },
-    selectedMediaTypes: {
-      deep: true,
-      handler() {
-        this.scheduleAdvancedSearchUrlUpdate();
-      },
-    },
-    largerThan() {
-      this.scheduleAdvancedSearchUrlUpdate();
-    },
-    resultLimit() {
-      this.scheduleAdvancedSearchUrlUpdate();
-    },
-    smallerThan() {
-      this.scheduleAdvancedSearchUrlUpdate();
-    },
-    modifiedOlderThan() {
-      this.scheduleAdvancedSearchUrlUpdate();
-    },
-    modifiedNewerThan() {
-      this.scheduleAdvancedSearchUrlUpdate();
-    },
-    useWildcardSearch() {
-      this.scheduleAdvancedSearchUrlUpdate();
-    },
-    caseExactSearch() {
-      this.scheduleAdvancedSearchUrlUpdate();
-    },
-    "$route.query": {
-      deep: true,
-      handler() {
-        if (!this.isAdvancedSearchRoute) {
-          return;
-        }
-        if (this.suppressRouteQueryNavigation || this.isInitializing) {
-          return;
-        }
-        if (!this.catalogRouteBootstrapDone) {
-          return;
-        }
-
-        const qRoute = normalizeRouteQueryLoose(
-          /** @type {Record<string, unknown>} */
-          this.$route.query,
-        );
-
-        /** @type {Record<string, unknown>} */
-        const qFormRebuild = normalizeRouteQueryLoose(
-          this.buildRouteQueryFromState(),
-        );
-
-        if (
-          stableQueryStringFromObject(qRoute) ===
-          stableQueryStringFromObject(qFormRebuild)
-        ) {
-          return;
-        }
-
-        this.applyQueryFromRoute();
-        if (hasAnyAdvancedSearchRouteParams(this.$route.query)) {
-          void this.$nextTick().then(() => {
-            void this.runSearch();
-          });
-        }
-        this.scheduleAdvancedSearchUrlUpdate();
-      },
-    },
-    sourcesInfoReactive: {
-      immediate: true,
-      deep: true,
-      handler() {
-        const info = state.sources.info || {};
-        const keys = Object.keys(info);
-        let next = this.sourceEnabledFlags;
-        for (const catalogueSourceName of keys) {
-          if (!(catalogueSourceName in next)) {
-            next = setObjectProperty(next, catalogueSourceName, false);
-          }
-        }
-        const nextEntries = Object.entries(next).filter(([key]) => key in info);
-        next = Object.fromEntries(nextEntries);
-        this.sourceEnabledFlags = next;
-        let pathNext = this.sourceScopedPaths;
-        for (const catalogueSourceName of keys) {
-          const current = getObjectProperty(pathNext, catalogueSourceName);
-          if (current === undefined || current === null || current === "") {
-            pathNext = setObjectProperty(pathNext, catalogueSourceName, "/");
-          }
-        }
-        const pathEntries = Object.entries(pathNext).filter(([key]) => key in info);
-        pathNext = Object.fromEntries(pathEntries);
-        this.sourceScopedPaths = pathNext;
-        this.applyDefaultCurrentSourceIfNone();
-        this.maybeFinishCatalogRouteBootstrapFromSources();
-      },
-    },
-    activeSources: {
-      deep: true,
-      handler(names) {
-        const list = Array.isArray(names) ? names : [];
-        let next = this.sourceScopedPaths;
-        for (const activeSourceName of list) {
-          const current = getObjectProperty(next, activeSourceName);
-          if (current === undefined || current === null || current === "") {
-            next = setObjectProperty(next, activeSourceName, "/");
-          }
-        }
-        this.sourceScopedPaths = next;
-      },
-    },
-    gallerySizeBump() {
-      this.columnWidth = 250 + state.user.gallerySize * 50;
-    },
-  },
-  mounted() {
-    document.title = `${globalVars.name} - ${this.$t("tools.title")} - ${this.$t("tools.advancedSearch.name")}`;
-    mutations.setSearch(false);
-
-    this.resizeListener = () => {
-      this.innerWidth = window.innerWidth;
-    };
-    window.addEventListener("resize", this.resizeListener);
-
-    this.scrollContainer = this.$el.closest(".scroll-wrapper");
-    this.scrollContainer?.addEventListener("scroll", this.handleScroll, { passive: true });
-
-    eventBus.on("itemsDeleted", this.handleSearchResultsChanged);
-    eventBus.on("itemsMoved", this.handleSearchResultsChanged);
-    eventBus.on("itemsRenamed", this.handleSearchResultsChanged);
-
-    if (state.req !== null && state.req !== undefined) {
-      this.hadInitialReq = true;
-      this.initialReqFrozen = JSON.stringify(state.req);
+    if (getters.isMobile()) {
+      const minWidth = size <= 3 ? 120 : size <= 7 ? 160 : 280;
+      const mobileHeight = 120 + size * 20;
+      styles["--gallery-mobile-min-width"] = `${minWidth}px`;
+      styles["--item-width"] = `${minWidth}px`;
+      styles["--item-height"] = `${mobileHeight}px`;
     } else {
-      this.hadInitialReq = false;
-      this.initialReqFrozen = "";
+      styles["--item-width"] = `${baseSize}px`;
+      styles["--item-height"] = `${Math.round(baseSize * 1.2)}px`;
     }
+  } else if (viewMode === "list" || viewMode === "compact") {
+    const baseHeight =
+      viewMode === "compact" ? 40 + size * 2 : 50 + size * 3;
+    const iconSize = (2 + size * 0.12).toFixed(2);
+    const iconFontSize = (1.5 + size * 0.12).toFixed(2);
 
-    if (typeof window !== "undefined") {
-      this.emptyCatalogHydrateTimer = window.setTimeout(() => {
-        this.emptyCatalogHydrateTimer = null;
-        if (!this.catalogRouteBootstrapDone && this.isAdvancedSearchRoute) {
-          this.finishCatalogBootstrapFromRoute();
-        }
-      }, 520);
+    styles["--item-width"] = `calc(${(100 / listingNumColumns.value).toFixed(2)}% - 1em)`;
+    styles["--item-height"] = `${baseHeight}px`;
+    styles["--icon-size"] = `${iconSize}em`;
+    styles["--icon-font-size"] = `${iconFontSize}em`;
+  } else {
+    const iconSize = (3.2 + size * 0.15).toFixed(2);
+    const iconFontSize = (2.2 + size * 0.12).toFixed(2);
+
+    styles["--item-width"] = `calc(${(100 / listingNumColumns.value)}% - 1em)`;
+    styles["--item-height"] = "auto";
+    styles["--icon-size"] = `${iconSize}em`;
+    styles["--icon-font-size"] = `${iconFontSize}em`;
+  }
+
+  return styles;
+});
+
+async function highlightPending() {
+  const p = state.pendingHighlight;
+  if (!p) return;
+  await nextTick();
+  state.pendingHighlight = null;
+  const items = state.req?.items ?? [];
+  const idx = items.findIndex((i) => isSameItem(i, p));
+  if (idx === -1) return;
+  selectAndScrollToIndex(idx, true);
+}
+
+/** The sort header sticks under the app bar; hide it scrolling down and show it scrolling up (like FileList). */
+function handleScroll() {
+  const container = scrollContainer;
+  if (!container) return;
+  const top = container.scrollTop;
+  const stickyTop = container.getBoundingClientRect().top + parseFloat(getComputedStyle(container).paddingTop);
+  const resultsTop = results.value?.getBoundingClientRect().top;
+  if (resultsTop === undefined || resultsTop > stickyTop) {
+    headerHidden.value = false;
+  } else if (Math.abs(top - lastScrollTop) >= 30) {
+    headerHidden.value = top > lastScrollTop;
+  } else {
+    return;
+  }
+  lastScrollTop = top;
+}
+
+function handleSearchResultsChanged(data?: ItemsChangedEvent) {
+  if (!isAdvancedSearchRoute.value || !searchExecuted.value) {
+    return;
+  }
+  if (data?.succeeded?.length === 0) {
+    return;
+  }
+  scheduleSearchRefresh();
+}
+
+function scheduleSearchRefresh() {
+  if (refreshQueued) {
+    return;
+  }
+  refreshQueued = true;
+  void nextTick().then(() => {
+    refreshQueued = false;
+    mutations.resetSelected();
+    void runSearch();
+  });
+}
+
+/** When no source is toggled on, enable `state.sources.current` if known in the catalogue. */
+function applyDefaultCurrentSourceIfNone() {
+  if (!isAdvancedSearchRoute.value) {
+    return;
+  }
+  const catalogue = [...sourceNameList.value];
+  if (catalogue.length === 0) {
+    return;
+  }
+
+  const enabledNames = catalogue.filter(
+    (sourceName) => getObjectProperty(sourceEnabledFlags.value, sourceName) === true,
+  );
+
+  if (enabledNames.length > 0) {
+    return;
+  }
+
+  const cur = state.sources.current;
+  if (typeof cur === "string" && cur !== "" && catalogue.includes(cur)) {
+    sourceEnabledFlags.value = setObjectProperty(sourceEnabledFlags.value, cur, true);
+    let pathsNext = sourceScopedPaths.value;
+    const currentPath = getObjectProperty(pathsNext, cur);
+    if (currentPath === undefined || currentPath === null || currentPath === "") {
+      pathsNext = setObjectProperty(pathsNext, cur, "/") as Record<string, string>;
     }
-  },
-  beforeUnmount() {
-    if (
-      typeof window !== "undefined" &&
-      this.emptyCatalogHydrateTimer !== null
-    ) {
-      window.clearTimeout(this.emptyCatalogHydrateTimer);
-      this.emptyCatalogHydrateTimer = null;
-    }
+    sourceScopedPaths.value = pathsNext;
+  }
+}
 
-    if (this.resizeListener) {
-      window.removeEventListener("resize", this.resizeListener);
-      this.resizeListener = null;
-    }
-    this.scrollContainer?.removeEventListener("scroll", this.handleScroll);
+function normalizedScopedPathForSource(sourceName: string) {
+  let scopedPath = String(getObjectProperty(sourceScopedPaths.value, sourceName) ?? "/").trim();
+  if (scopedPath === "") {
+    scopedPath = "/";
+  }
+  if (!scopedPath.startsWith("/")) {
+    scopedPath = `/${scopedPath}`;
+  }
+  return scopedPath;
+}
 
-    eventBus.off("itemsDeleted", this.handleSearchResultsChanged);
-    eventBus.off("itemsMoved", this.handleSearchResultsChanged);
-    eventBus.off("itemsRenamed", this.handleSearchResultsChanged);
+function maybeFinishCatalogRouteBootstrapFromSources() {
+  if (!isAdvancedSearchRoute.value) {
+    return;
+  }
+  if (catalogRouteBootstrapDone) {
+    return;
+  }
+  if (Object.keys(state.sources.info || {}).length === 0) {
+    return;
+  }
+  if (typeof window !== "undefined" && emptyCatalogHydrateTimer !== null) {
+    window.clearTimeout(emptyCatalogHydrateTimer);
+    emptyCatalogHydrateTimer = null;
+  }
+  finishCatalogBootstrapFromRoute();
+}
 
-    if (!this.didApplySearchListing) {
-      return;
-    }
-    if (!this.hadInitialReq) {
-      mutations.clearRequest();
-      return;
-    }
-    mutations.replaceRequest(JSON.parse(this.initialReqFrozen));
-  },
-  methods: {
-    async highlightPending() {
-      const p = state.pendingHighlight;
-      if (!p) return;
-      await this.$nextTick();
-      state.pendingHighlight = null;
-      const items = state.req?.items ?? [];
-      const idx = items.findIndex((i) => isSameItem(i, p));
-      if (idx === -1) return;
-      selectAndScrollToIndex(idx, true);
-    },
-    /** The sort header sticks under the app bar; hide it scrolling down and show it scrolling up (like FileList). */
-    handleScroll() {
-      const container = this.scrollContainer;
-      const top = container.scrollTop;
-      const stickyTop = container.getBoundingClientRect().top + parseFloat(getComputedStyle(container).paddingTop);
-      if (!(this.$refs.results?.getBoundingClientRect().top <= stickyTop)) {
-        this.headerHidden = false;
-      } else if (Math.abs(top - this.lastScrollTop) >= 30) {
-        this.headerHidden = top > this.lastScrollTop;
-      } else {
-        return;
-      }
-      this.lastScrollTop = top;
-    },
-    handleSearchResultsChanged(data) {
-      if (!this.isAdvancedSearchRoute || !this.searchExecuted) {
-        return;
-      }
-      if (data?.succeeded?.length === 0) {
-        return;
-      }
-      this.scheduleSearchRefresh();
-    },
-    scheduleSearchRefresh() {
-      if (this.refreshQueued) {
-        return;
-      }
-      this.refreshQueued = true;
-      void this.$nextTick().then(() => {
-        this.refreshQueued = false;
-        mutations.resetSelected();
-        void this.runSearch();
-      });
-    },
-    /** When no source is toggled on, enable `state.sources.current` if known in the catalogue. */
-    applyDefaultCurrentSourceIfNone() {
-      if (!this.isAdvancedSearchRoute) {
-        return;
-      }
-      const catalogue = [...this.sourceNameList];
-      if (catalogue.length === 0) {
-        return;
-      }
+function finishCatalogBootstrapFromRoute() {
+  if (!isAdvancedSearchRoute.value) {
+    return;
+  }
+  if (catalogRouteBootstrapDone) {
+    return;
+  }
+  catalogRouteBootstrapDone = true;
 
-      /** @type {string[]} */
-      const enabledNames = catalogue.filter(
-        (sourceName) => getObjectProperty(this.sourceEnabledFlags, sourceName) === true,
-      );
-
-      if (enabledNames.length > 0) {
-        return;
+  applyQueryFromRoute();
+  if (hasAnyAdvancedSearchRouteParams(route.query)) {
+    void nextTick().then(() => {
+      if (!restoreSearchResults()) {
+        void runSearch();
       }
+    });
+  }
+  isInitializing = false;
+  void nextTick().then(() => {
+    updateAdvancedSearchUrl();
+  });
+}
 
-      const cur = state.sources.current;
-      if (typeof cur === "string" && cur !== "" && catalogue.includes(cur)) {
-        this.sourceEnabledFlags = setObjectProperty(this.sourceEnabledFlags, cur, true);
-        let pathsNext = this.sourceScopedPaths;
-        const currentPath = getObjectProperty(pathsNext, cur);
-        if (currentPath === undefined || currentPath === null || currentPath === "") {
-          pathsNext = setObjectProperty(pathsNext, cur, "/");
-        }
-        this.sourceScopedPaths = pathsNext;
-      }
-    },
-    normalizedScopedPathForSource(sourceName) {
-      let scopedPath = String(getObjectProperty(this.sourceScopedPaths, sourceName) ?? "/").trim();
+function searchKey() {
+  return stableQueryStringFromObject(normalizeRouteQueryLoose(buildRouteQueryFromState()));
+}
+
+/** Reuse the last results when returning from a preview with the same query */
+function restoreSearchResults() {
+  const search = state.searchResults;
+  if (search?.kind !== "advanced" || search.key !== searchKey()) {
+    return false;
+  }
+  searchExecuted.value = true;
+  showResults(search.items);
+  return true;
+}
+
+function showResults(listingItems: FileListItem[]) {
+  headerHidden.value = false;
+  mutations.replaceRequest({
+    type: "directory",
+    path: "/",
+    name: t("tools.advancedSearch.resultsTitle"),
+    source: "",
+    items: listingItems,
+  } as ReqObject);
+  didApplySearchListing = true;
+  resultsEmpty.value = listingItems.length === 0;
+  void highlightPending();
+}
+
+function buildRouteQueryFromState() {
+  const query: NormalizedQuery = {};
+
+  const terms = termInputs.value
+    .map((termCell) => String(termCell || "").trim())
+    .filter((trimmedCell) => trimmedCell !== "");
+  if (terms.length === 1) {
+    query.term = terms[0] as string;
+  } else if (terms.length > 1) {
+    query.term = terms;
+  }
+
+  if (termsJoinAnd.value) {
+    query.termJoin = "and";
+  }
+
+  const catalogue = [...sourceNameList.value];
+  const enabled = catalogue
+    .filter((sourceName) => getObjectProperty(sourceEnabledFlags.value, sourceName) === true)
+    .sort();
+
+  if (enabled.length > 0) {
+    const scopeClauses: string[] = [];
+    for (const sourceName of enabled) {
+      let scopedPath = String(getObjectProperty(sourceScopedPaths.value, sourceName) ?? "/").trim();
       if (scopedPath === "") {
         scopedPath = "/";
       }
       if (!scopedPath.startsWith("/")) {
         scopedPath = `/${scopedPath}`;
       }
-      return scopedPath;
-    },
-    maybeFinishCatalogRouteBootstrapFromSources() {
-      if (!this.isAdvancedSearchRoute) {
-        return;
-      }
-      if (this.catalogRouteBootstrapDone) {
-        return;
-      }
-      if (Object.keys(state.sources.info || {}).length === 0) {
-        return;
-      }
-      if (
-        typeof window !== "undefined" &&
-        this.emptyCatalogHydrateTimer !== null &&
-        this.emptyCatalogHydrateTimer !== undefined
-      ) {
-        window.clearTimeout(this.emptyCatalogHydrateTimer);
-        this.emptyCatalogHydrateTimer = null;
-      }
-      this.finishCatalogBootstrapFromRoute();
-    },
-    finishCatalogBootstrapFromRoute() {
-      if (!this.isAdvancedSearchRoute) {
-        return;
-      }
-      if (this.catalogRouteBootstrapDone) {
-        return;
-      }
-      this.catalogRouteBootstrapDone = true;
+      scopeClauses.push(`${sourceName}:${scopedPath}`);
+    }
+    if (scopeClauses.length === 1) {
+      query.scope = scopeClauses[0] as string;
+    } else {
+      query.scope = scopeClauses;
+    }
+  }
 
-      this.applyQueryFromRoute();
-      if (
-        hasAnyAdvancedSearchRouteParams(
-          /** @type {Record<string, unknown>} */
-          this.$route.query,
-        )
-      ) {
-        void this.$nextTick().then(() => {
-          if (!this.restoreSearchResults()) {
-            void this.runSearch();
-          }
-        });
+  const trimmedTypes = String(searchTypes.value || "").trim();
+  if (trimmedTypes !== "") {
+    query.types = trimmedTypes;
+  }
+  if (largerThan.value !== "") {
+    query.largerThan = String(largerThan.value);
+  }
+  if (resultLimit.value !== Math.min(500, maxSearchResults.value)) {
+    query.limit = String(resultLimit.value);
+  }
+  if (smallerThan.value !== "") {
+    query.smallerThan = String(smallerThan.value);
+  }
+  if (modifiedOlderThan.value !== "") {
+    query.dateOlder = String(modifiedOlderThan.value);
+  }
+  if (modifiedNewerThan.value !== "") {
+    query.dateNewer = String(modifiedNewerThan.value);
+  }
+  if (useWildcardSearch.value) {
+    query.wildcard = "1";
+  }
+  if (caseExactSearch.value) {
+    query.caseExact = "1";
+  }
+  if (foldersOnly.value) {
+    query.typeLock = "1";
+  }
+
+  return query;
+}
+
+function applyQueryFromRoute() {
+  const q: QueryRecord = route.query || {};
+  const catalogue = [...sourceNameList.value];
+
+  const terms = parseTermsFromRouteQuery(q);
+  termInputs.value = terms.length > 0 ? terms.map((termCell) => String(termCell)) : [""];
+
+  const termJoinRaw = q.termJoin;
+  termsJoinAnd.value = String(termJoinRaw ?? "").trim().toLowerCase() === "and";
+
+  const sourcesStr = typeof q.sources === "string" ? q.sources.trim() : "";
+  const rawSources = sourcesStr === ""
+    ? []
+    : sourcesStr.split(",").map((segment) => segment.trim()).filter((segment) => segment !== "");
+
+  const validSel: string[] = [];
+  for (const rawSourceName of rawSources) {
+    if (catalogue.includes(rawSourceName)) {
+      validSel.push(rawSourceName);
+    }
+  }
+
+  const implicitAllSources = validSel.length === 0 && hasFilterOrTermSignalsForImplicitSources(q);
+
+  const scopeRaws = collectScopeRawFromQuery(q);
+
+  const colonPairs: { source: string; path: string }[] = [];
+
+  for (const scopeRaw of scopeRaws) {
+    const raw = String(scopeRaw || "").trim();
+    if (raw === "") continue;
+    const colonIndex = raw.indexOf(":");
+    if (colonIndex > 0) {
+      const sourceNameFromClause = raw.slice(0, colonIndex).trim();
+      let relativePath = raw.slice(colonIndex + 1).trim();
+      if (sourceNameFromClause === "") continue;
+      if (relativePath === "") relativePath = "/";
+      if (!relativePath.startsWith("/")) relativePath = `/${relativePath}`;
+      if (catalogue.includes(sourceNameFromClause)) {
+        colonPairs.push({ source: sourceNameFromClause, path: relativePath });
       }
-      this.isInitializing = false;
-      void this.$nextTick().then(() => {
-        this.updateAdvancedSearchUrl();
+    }
+  }
+
+  if (colonPairs.length > 0) {
+    let nextFlags: QueryRecord = Object.fromEntries(catalogue.map(name => [name, false]));
+    const scopedPathBySource = Object.fromEntries(
+      colonPairs.map(pair => [pair.source, pair.path])
+    );
+    for (const sourcePathPair of colonPairs) {
+      nextFlags = setObjectProperty(nextFlags, sourcePathPair.source, true);
+    }
+    sourceEnabledFlags.value = nextFlags;
+    sourceScopedPaths.value = scopedPathBySource;
+  } else {
+    const nextFlagsEntries = catalogue.map((catalogueSourceName): [string, boolean] => {
+      let sourceEnabled = false;
+      if (validSel.length > 0) {
+        sourceEnabled = validSel.includes(catalogueSourceName);
+      } else if (implicitAllSources) {
+        sourceEnabled = true;
+      }
+      return [catalogueSourceName, sourceEnabled];
+    });
+    const nextFlags = Object.fromEntries(nextFlagsEntries);
+    sourceEnabledFlags.value = nextFlags;
+
+    const enabledNames = catalogue.filter(
+      (sourceName) => getObjectProperty(nextFlags, sourceName) === true
+    );
+    const scopedPathEntries = enabledNames.map((enabledSourceName): [string, string] => [
+      enabledSourceName,
+      "/",
+    ]);
+    sourceScopedPaths.value = Object.fromEntries(scopedPathEntries);
+  }
+
+  const typesIncoming = q.types;
+  const typesStr = typeof typesIncoming === "string"
+    ? typesIncoming.trim()
+    : typesIncoming !== undefined && typesIncoming !== null
+      ? String(typesIncoming).trim()
+      : "";
+  const parsedFilters = parseTypeFiltersFromQuery(typesStr);
+  entryTypeFilter.value = parsedFilters.entryTypeFilter;
+  selectedMediaTypes.value = parsedFilters.selectedMediaTypes;
+  if (queryTruthy(q.typeLock)) {
+    entryTypeFilter.value = "type:folder";
+    selectedMediaTypes.value = [];
+  }
+
+  const largerThanRaw = q.largerThan;
+  largerThan.value = largerThanRaw !== undefined && largerThanRaw !== null
+    ? String(largerThanRaw).trim()
+    : "";
+
+  const requestedLimit = Number(q.limit);
+  resultLimit.value = Number.isSafeInteger(requestedLimit) && requestedLimit > 0
+    ? Math.min(requestedLimit, maxSearchResults.value)
+    : Math.min(500, maxSearchResults.value);
+
+  const smallerThanRaw = q.smallerThan;
+  smallerThan.value = smallerThanRaw !== undefined && smallerThanRaw !== null
+    ? String(smallerThanRaw).trim()
+    : "";
+
+  const dateOlderRaw = q.dateOlder;
+  modifiedOlderThan.value = dateOlderRaw !== undefined && dateOlderRaw !== null
+    ? String(dateOlderRaw).trim()
+    : "";
+
+  const dateNewerRaw = q.dateNewer;
+  modifiedNewerThan.value = dateNewerRaw !== undefined && dateNewerRaw !== null
+    ? String(dateNewerRaw).trim()
+    : "";
+
+  useWildcardSearch.value = queryTruthy(q.wildcard);
+  caseExactSearch.value = queryTruthy(q.caseExact);
+
+  applyDefaultCurrentSourceIfNone();
+}
+
+function parseTypeFiltersFromQuery(typesStr: string) {
+  const entryValues = new Set(["type:file", "type:folder"]);
+  const mediaValues = new Set([
+    "type:image",
+    "type:audio",
+    "type:video",
+    "type:doc",
+    "type:archive",
+  ]);
+  let parsedEntryTypeFilter = "all";
+  const parsedMediaTypes: string[] = [];
+  for (const token of String(typesStr || "").trim().split(/\s+/)) {
+    if (!token) {
+      continue;
+    }
+    if (entryValues.has(token)) {
+      parsedEntryTypeFilter = token;
+    } else if (mediaValues.has(token)) {
+      parsedMediaTypes.push(token);
+    }
+  }
+  return { entryTypeFilter: parsedEntryTypeFilter, selectedMediaTypes: parsedMediaTypes };
+}
+
+function updateAdvancedSearchUrl() {
+  if (!isAdvancedSearchRoute.value || isInitializing) {
+    return;
+  }
+
+  const nextPlain = normalizeRouteQueryLoose(buildRouteQueryFromState());
+
+  const curQ = Object.fromEntries(Object.entries(route.query || {}));
+  const curPlain = normalizeRouteQueryLoose(curQ);
+
+  if (
+    stableQueryStringFromObject(nextPlain) ===
+    stableQueryStringFromObject(curPlain)
+  ) {
+    return;
+  }
+
+  suppressRouteQueryNavigation = true;
+  router
+    .replace({
+      path: route.path,
+      query: Object.keys(nextPlain).length > 0 ? nextPlain : {},
+    })
+    .catch(() => {})
+    .finally(() => {
+      void nextTick().then(() => {
+        suppressRouteQueryNavigation = false;
       });
+    });
+}
+
+function scheduleAdvancedSearchUrlUpdate() {
+  if (!isAdvancedSearchRoute.value || isInitializing) {
+    return;
+  }
+  void nextTick().then(() => {
+    updateAdvancedSearchUrl();
+  });
+}
+
+function addTermField() {
+  termInputs.value.push("");
+}
+
+function removeTermAt(index: number) {
+  if (termInputs.value.length <= 1) {
+    return;
+  }
+  termInputs.value.splice(index, 1);
+}
+
+function listingItemKey(item: FileListItem) {
+  return `${item.source}::${item.path}`;
+}
+
+function openListingContext(event: MouseEvent) {
+  event.preventDefault();
+  event.stopPropagation();
+  if (getters.currentPromptName() === "ContextMenu") {
+    return;
+  }
+
+  mutations.showPrompt({
+    name: "ContextMenu",
+    props: {
+      showCentered: getters.isMobile(),
+      posX: event.clientX,
+      posY: event.clientY,
+      createOnly: state.selected.length === 0,
     },
-    searchKey() {
-      return stableQueryStringFromObject(normalizeRouteQueryLoose(this.buildRouteQueryFromState()));
-    },
-    /** Reuse the last results when returning from a preview with the same query */
-    restoreSearchResults() {
-      const search = state.searchResults;
-      if (search?.kind !== "advanced" || search.key !== this.searchKey()) {
-        return false;
-      }
-      this.searchExecuted = true;
-      this.showResults(search.items);
-      return true;
-    },
-    showResults(listingItems) {
-      this.headerHidden = false;
-      mutations.replaceRequest({
-        type: "directory",
-        path: "/",
-        name: this.$t("tools.advancedSearch.resultsTitle"),
-        source: "",
-        items: listingItems,
+  });
+}
+
+async function runSearch() {
+  error.value = null;
+
+  if (activeSources.value.length === 0) {
+    error.value = t("tools.advancedSearch.invalidSources");
+    searchExecuted.value = true;
+    resultsEmpty.value = false;
+    loading.value = false;
+    return;
+  }
+
+  const terms: string[] = [];
+  for (const rawTerm of termInputs.value) {
+    const trimmedTerm = String(rawTerm || "").trim();
+    if (trimmedTerm !== "") {
+      terms.push(trimmedTerm);
+    }
+  }
+
+  if (terms.length === 0) {
+    error.value = t("tools.advancedSearch.noTerms");
+    searchExecuted.value = true;
+    loading.value = false;
+    return;
+  }
+
+  for (const term of terms) {
+    if (term.length < globalVars.minSearchLength) {
+      error.value = t("tools.advancedSearch.termTooShort", {
+        minSearchLength: globalVars.minSearchLength,
       });
-      this.didApplySearchListing = true;
-      this.resultsEmpty = listingItems.length === 0;
-      void this.highlightPending();
-    },
-    buildRouteQueryFromState() {
-      /** @type {Record<string, string | string[]>} */
-      const query = {};
+      searchExecuted.value = true;
+      loading.value = false;
+      return;
+    }
+  }
 
-      const terms = this.termInputs
-        .map((termCell) => String(termCell || "").trim())
-        .filter((trimmedCell) => trimmedCell !== "");
-      if (terms.length === 1) {
-        query.term = terms[0];
-      } else if (terms.length > 1) {
-        query.term = terms;
+  searchExecuted.value = true;
+  loading.value = true;
+  error.value = null;
+
+  let searchTypesFull = searchTypes.value;
+  if (largerThan.value !== "") {
+    searchTypesFull = `${searchTypesFull}type:largerThan=${largerThan.value} `;
+  }
+  if (smallerThan.value !== "") {
+    searchTypesFull = `${searchTypesFull}type:smallerThan=${smallerThan.value} `;
+  }
+
+  const dateParams: { olderThan?: number; newerThan?: number; useWildcard?: boolean } = {};
+  const olderUnix = utcStartOfDaySecondsFromDateInput(modifiedOlderThan.value);
+  if (olderUnix !== null) {
+    dateParams.olderThan = olderUnix;
+  }
+  const newerUnix = utcStartOfDaySecondsFromDateInput(modifiedNewerThan.value);
+  if (newerUnix !== null) {
+    dateParams.newerThan = newerUnix;
+  }
+  if (useWildcardSearch.value) {
+    dateParams.useWildcard = true;
+  }
+
+  let typedQueryPrefix = `${searchTypesFull}`.trim();
+  if (caseExactSearch.value) {
+    typedQueryPrefix =
+      typedQueryPrefix === ""
+        ? "case:exact "
+        : `case:exact ${typedQueryPrefix} `;
+  }
+
+  const perSourceScopes = [];
+  for (const activeSourceName of activeSources.value) {
+    perSourceScopes.push({
+      source: activeSourceName,
+      path: normalizedScopedPathForSource(activeSourceName),
+    });
+  }
+
+  const searchRequestKey = searchKey();
+  try {
+    const rows: SearchResultRow[] = await toolsApi.search(
+      null,
+      activeSources.value,
+      typedQueryPrefix,
+      false,
+      {
+        ...dateParams,
+        limit: resultLimit.value,
+        terms,
+        termJoin: termsJoinAnd.value ? "and" : undefined,
+        perSourceScopes,
       }
+    );
 
-      if (this.termsJoinAnd) {
-        query.termJoin = "and";
-      }
+    if (!Array.isArray(rows)) {
+      throw new Error("Invalid search response");
+    }
 
-      const catalogue = [...this.sourceNameList];
-      const enabled = catalogue
-        .filter((sourceName) => getObjectProperty(this.sourceEnabledFlags, sourceName) === true)
-        .sort();
-
-      if (enabled.length > 0) {
-        /** @type {string[]} */
-        const scopeClauses = [];
-        for (const sourceName of enabled) {
-          let scopedPath = String(getObjectProperty(this.sourceScopedPaths, sourceName) ?? "/").trim();
-          if (scopedPath === "") {
-            scopedPath = "/";
-          }
-          if (!scopedPath.startsWith("/")) {
-            scopedPath = `/${scopedPath}`;
-          }
-          scopeClauses.push(`${sourceName}:${scopedPath}`);
-        }
-        if (scopeClauses.length === 1) {
-          query.scope = scopeClauses[0];
-        } else {
-          query.scope = scopeClauses;
-        }
-      }
-
-      const trimmedTypes = String(this.searchTypes || "").trim();
-      if (trimmedTypes !== "") {
-        query.types = trimmedTypes;
-      }
-      if (this.largerThan !== "") {
-        query.largerThan = String(this.largerThan);
-      }
-      if (this.resultLimit !== Math.min(500, this.maxSearchResults)) {
-        query.limit = String(this.resultLimit);
-      }
-      if (this.smallerThan !== "") {
-        query.smallerThan = String(this.smallerThan);
-      }
-      if (this.modifiedOlderThan !== "") {
-        query.dateOlder = String(this.modifiedOlderThan);
-      }
-      if (this.modifiedNewerThan !== "") {
-        query.dateNewer = String(this.modifiedNewerThan);
-      }
-      if (this.useWildcardSearch) {
-        query.wildcard = "1";
-      }
-      if (this.caseExactSearch) {
-        query.caseExact = "1";
-      }
-      if (this.foldersOnly) {
-        query.typeLock = "1";
-      }
-
-      return query;
-    },
-    applyQueryFromRoute() {
-      /** @type {Record<string, unknown>} */
-      const q = this.$route.query || {};
-      const catalogue = [...this.sourceNameList];
-
-      const terms = parseTermsFromRouteQuery(q);
-      this.termInputs = terms.length > 0 ? terms.map((termCell) => String(termCell)) : [""];
-
-      const termJoinRaw = q.termJoin;
-      this.termsJoinAnd = String(termJoinRaw ?? "").trim().toLowerCase() === "and";
-
-      const sourcesStr = typeof q.sources === "string" ? q.sources.trim() : "";
-      const rawSources = sourcesStr === ""
-        ? []
-        : sourcesStr.split(",").map((segment) => segment.trim()).filter((segment) => segment !== "");
-
-      /** @type {string[]} */
-      const validSel = [];
-      for (const rawSourceName of rawSources) {
-        if (catalogue.includes(rawSourceName)) {
-          validSel.push(rawSourceName);
-        }
-      }
-
-      const implicitAllSources = validSel.length === 0 && hasFilterOrTermSignalsForImplicitSources(q);
-
-      const scopeRaws = collectScopeRawFromQuery(q);
-
-      /** @type {{ source: string, path: string }[]} */
-      const colonPairs = [];
-
-      for (const scopeRaw of scopeRaws) {
-        const raw = String(scopeRaw || "").trim();
-        if (raw === "") continue;
-        const colonIndex = raw.indexOf(":");
-        if (colonIndex > 0) {
-          const sourceNameFromClause = raw.slice(0, colonIndex).trim();
-          let relativePath = raw.slice(colonIndex + 1).trim();
-          if (sourceNameFromClause === "") continue;
-          if (relativePath === "") relativePath = "/";
-          if (!relativePath.startsWith("/")) relativePath = `/${relativePath}`;
-          if (catalogue.includes(sourceNameFromClause)) {
-            colonPairs.push({ source: sourceNameFromClause, path: relativePath });
-          }
-        }
-      }
-
-      if (colonPairs.length > 0) {
-        let nextFlags = Object.fromEntries(catalogue.map(name => [name, false]));
-        const scopedPathBySource = Object.fromEntries(
-          colonPairs.map(pair => [pair.source, pair.path])
-        );
-        for (const sourcePathPair of colonPairs) {
-          nextFlags = setObjectProperty(nextFlags, sourcePathPair.source, true);
-        }
-        this.sourceEnabledFlags = nextFlags;
-        this.sourceScopedPaths = scopedPathBySource;
-      } else {
-        const nextFlagsEntries = catalogue.map(catalogueSourceName => {
-          let sourceEnabled = false;
-          if (validSel.length > 0) {
-            sourceEnabled = validSel.includes(catalogueSourceName);
-          } else if (implicitAllSources) {
-            sourceEnabled = true;
-          }
-          return [catalogueSourceName, sourceEnabled];
-        });
-        const nextFlags = Object.fromEntries(nextFlagsEntries);
-        this.sourceEnabledFlags = nextFlags;
-
-        const enabledNames = catalogue.filter(
-          (sourceName) => getObjectProperty(nextFlags, sourceName) === true
-        );
-        const scopedPathEntries = enabledNames.map((enabledSourceName) => [
-          enabledSourceName,
-          "/",
-        ]);
-        this.sourceScopedPaths = Object.fromEntries(scopedPathEntries);
-      }
-
-      const typesIncoming = q.types;
-      const typesStr = typeof typesIncoming === "string"
-        ? typesIncoming.trim()
-        : typesIncoming !== undefined && typesIncoming !== null
-          ? String(typesIncoming).trim()
-          : "";
-      const parsedFilters = this.parseTypeFiltersFromQuery(typesStr);
-      this.entryTypeFilter = parsedFilters.entryTypeFilter;
-      this.selectedMediaTypes = parsedFilters.selectedMediaTypes;
-      if (queryTruthy(q.typeLock)) {
-        this.entryTypeFilter = "type:folder";
-        this.selectedMediaTypes = [];
-      }
-
-      const largerThanRaw = q.largerThan;
-      this.largerThan = largerThanRaw !== undefined && largerThanRaw !== null
-        ? String(largerThanRaw).trim()
-        : "";
-
-      const requestedLimit = Number(q.limit);
-      this.resultLimit = Number.isSafeInteger(requestedLimit) && requestedLimit > 0
-        ? Math.min(requestedLimit, this.maxSearchResults)
-        : Math.min(500, this.maxSearchResults);
-
-      const smallerThanRaw = q.smallerThan;
-      this.smallerThan = smallerThanRaw !== undefined && smallerThanRaw !== null
-        ? String(smallerThanRaw).trim()
-        : "";
-
-      const dateOlderRaw = q.dateOlder;
-      this.modifiedOlderThan = dateOlderRaw !== undefined && dateOlderRaw !== null
-        ? String(dateOlderRaw).trim()
-        : "";
-
-      const dateNewerRaw = q.dateNewer;
-      this.modifiedNewerThan = dateNewerRaw !== undefined && dateNewerRaw !== null
-        ? String(dateNewerRaw).trim()
-        : "";
-
-      this.useWildcardSearch = queryTruthy(q.wildcard);
-      this.caseExactSearch = queryTruthy(q.caseExact);
-
-      this.applyDefaultCurrentSourceIfNone();
-    },
-    parseTypeFiltersFromQuery(typesStr) {
-      const entryValues = new Set(["type:file", "type:folder"]);
-      const mediaValues = new Set([
-        "type:image",
-        "type:audio",
-        "type:video",
-        "type:doc",
-        "type:archive",
-      ]);
-      let entryTypeFilter = "all";
-      const selectedMediaTypes = [];
-      for (const token of String(typesStr || "").trim().split(/\s+/)) {
-        if (!token) {
-          continue;
-        }
-        if (entryValues.has(token)) {
-          entryTypeFilter = token;
-        } else if (mediaValues.has(token)) {
-          selectedMediaTypes.push(token);
-        }
-      }
-      return { entryTypeFilter, selectedMediaTypes };
-    },
-    updateAdvancedSearchUrl() {
-      if (!this.isAdvancedSearchRoute || this.isInitializing) {
-        return;
-      }
-
-      const nextPlain = normalizeRouteQueryLoose(this.buildRouteQueryFromState());
-
-      /** @type {Record<string, string | string[]>} */
-      const rq = /** @type {Record<string, string | string[]>} */ (
-        this.$route.query
+    const listingItems = rows.map((searchResult): FileListItem => {
+      const resultSource = String(searchResult.source || "");
+      const isDir = String(searchResult.type) === "directory";
+      const fullPath = browsePath(
+        normalizedScopedPathForSource(resultSource),
+        searchResult.path || "",
+        isDir
       );
-      const curQ = Object.fromEntries(Object.entries(rq || {}));
-      const curPlain = normalizeRouteQueryLoose(curQ);
+      const nm = displayName(fullPath, isDir);
+      return {
+        name: nm,
+        path: fullPath,
+        type: isDir ? "directory" : String(searchResult.type || "application/octet-stream"),
+        size: typeof searchResult.size === "number" ? searchResult.size : 0,
+        modified: typeof searchResult.modified === "string" ? searchResult.modified : "",
+        created: typeof searchResult.created === "string" ? searchResult.created : "",
+        hasPreview: !!searchResult.hasPreview,
+        source: resultSource,
+        isShared: false,
+        hidden: false,
+      };
+    });
+    state.searchResults = { kind: "advanced", key: searchRequestKey, items: listingItems };
+    showResults(listingItems);
+  } catch (err) {
+    const message = (err as { message?: unknown } | null)?.message;
+    error.value = typeof message === "string" ? message : t("errors.internal");
+  } finally {
+    loading.value = false;
+  }
+}
 
-      if (
-        stableQueryStringFromObject(nextPlain) ===
-        stableQueryStringFromObject(curPlain)
-      ) {
-        return;
-      }
+watch(() => state.reload, (shouldReload) => {
+  if (!shouldReload || !isAdvancedSearchRoute.value || !searchExecuted.value) {
+    return;
+  }
+  mutations.setReload(false);
+  scheduleSearchRefresh();
+});
 
-      this.suppressRouteQueryNavigation = true;
-      router
-        .replace({
-          path: this.$route.path,
-          query: Object.keys(nextPlain).length > 0 ? nextPlain : {},
-        })
-        .catch(() => {})
-        .finally(() => {
-          void this.$nextTick().then(() => {
-            this.suppressRouteQueryNavigation = false;
-          });
-        });
-    },
-    scheduleAdvancedSearchUrlUpdate() {
-      if (!this.isAdvancedSearchRoute || this.isInitializing) {
-        return;
-      }
-      void this.$nextTick().then(() => {
-        this.updateAdvancedSearchUrl();
-      });
-    },
-    addTermField() {
-      this.termInputs.push("");
-    },
-    removeTermAt(index) {
-      if (this.termInputs.length <= 1) {
-        return;
-      }
-      this.termInputs.splice(index, 1);
-    },
-    listingItemKey(item) {
-      return `${item.source}::${item.path}`;
-    },
-    openListingContext(event) {
-      event.preventDefault();
-      event.stopPropagation();
-      if (getters.currentPromptName() === "ContextMenu") {
-        return;
-      }
+watch(termInputs, () => {
+  if (termInputs.value.length <= 1) {
+    termsJoinAnd.value = false;
+  }
+  scheduleAdvancedSearchUrlUpdate();
+}, { deep: true });
 
-      mutations.showPrompt({
-        name: "ContextMenu",
-        props: {
-          showCentered: getters.isMobile(),
-          posX: event.clientX,
-          posY: event.clientY,
-          createOnly: state.selected.length === 0,
-        },
-      });
-    },
-    async runSearch() {
-      this.error = null;
+watch(termsJoinAnd, scheduleAdvancedSearchUrlUpdate);
 
-      if (this.activeSources.length === 0) {
-        this.error = this.$t("tools.advancedSearch.invalidSources");
-        this.searchExecuted = true;
-        this.resultsEmpty = false;
-        this.loading = false;
-        return;
-      }
+watch(sourceEnabledFlags, scheduleAdvancedSearchUrlUpdate, { deep: true });
 
-      const terms = [];
-      for (const rawTerm of this.termInputs) {
-        const trimmedTerm = String(rawTerm || "").trim();
-        if (trimmedTerm !== "") {
-          terms.push(trimmedTerm);
-        }
-      }
+watch(sourceScopedPaths, scheduleAdvancedSearchUrlUpdate, { deep: true });
 
-      if (terms.length === 0) {
-        this.error = this.$t("tools.advancedSearch.noTerms");
-        this.searchExecuted = true;
-        this.loading = false;
-        return;
-      }
+watch(entryTypeFilter, (newValue) => {
+  if (newValue === "type:folder") {
+    selectedMediaTypes.value = [];
+  }
+  scheduleAdvancedSearchUrlUpdate();
+});
 
-      for (const term of terms) {
-        if (term.length < globalVars.minSearchLength) {
-          this.error = this.$t("tools.advancedSearch.termTooShort", {
-            minSearchLength: globalVars.minSearchLength,
-          });
-          this.searchExecuted = true;
-          this.loading = false;
-          return;
-        }
-      }
+watch(selectedMediaTypes, scheduleAdvancedSearchUrlUpdate, { deep: true });
 
-      this.searchExecuted = true;
-      this.loading = true;
-      this.error = null;
+watch(largerThan, scheduleAdvancedSearchUrlUpdate);
 
-      let searchTypesFull = this.searchTypes;
-      if (this.largerThan !== "") {
-        searchTypesFull = `${searchTypesFull}type:largerThan=${this.largerThan} `;
-      }
-      if (this.smallerThan !== "") {
-        searchTypesFull = `${searchTypesFull}type:smallerThan=${this.smallerThan} `;
-      }
+watch(resultLimit, scheduleAdvancedSearchUrlUpdate);
 
-      const dateParams = {};
-      const olderUnix = utcStartOfDaySecondsFromDateInput(this.modifiedOlderThan);
-      if (olderUnix !== null) {
-        dateParams.olderThan = olderUnix;
-      }
-      const newerUnix = utcStartOfDaySecondsFromDateInput(this.modifiedNewerThan);
-      if (newerUnix !== null) {
-        dateParams.newerThan = newerUnix;
-      }
-      if (this.useWildcardSearch) {
-        dateParams.useWildcard = true;
-      }
+watch(smallerThan, scheduleAdvancedSearchUrlUpdate);
 
-      let typedQueryPrefix = `${searchTypesFull}`.trim();
-      if (this.caseExactSearch) {
-        typedQueryPrefix =
-          typedQueryPrefix === ""
-            ? "case:exact "
-            : `case:exact ${typedQueryPrefix} `;
+watch(modifiedOlderThan, scheduleAdvancedSearchUrlUpdate);
+
+watch(modifiedNewerThan, scheduleAdvancedSearchUrlUpdate);
+
+watch(useWildcardSearch, scheduleAdvancedSearchUrlUpdate);
+
+watch(caseExactSearch, scheduleAdvancedSearchUrlUpdate);
+
+watch(() => route.query, () => {
+  if (!isAdvancedSearchRoute.value) {
+    return;
+  }
+  if (suppressRouteQueryNavigation || isInitializing) {
+    return;
+  }
+  if (!catalogRouteBootstrapDone) {
+    return;
+  }
+
+  const qRoute = normalizeRouteQueryLoose(route.query);
+
+  const qFormRebuild = normalizeRouteQueryLoose(buildRouteQueryFromState());
+
+  if (
+    stableQueryStringFromObject(qRoute) ===
+    stableQueryStringFromObject(qFormRebuild)
+  ) {
+    return;
+  }
+
+  applyQueryFromRoute();
+  if (hasAnyAdvancedSearchRouteParams(route.query)) {
+    void nextTick().then(() => {
+      void runSearch();
+    });
+  }
+  scheduleAdvancedSearchUrlUpdate();
+}, { deep: true });
+
+watch(() => state.sources.info, () => {
+  const info = state.sources.info || {};
+  const keys = Object.keys(info);
+  let next = sourceEnabledFlags.value;
+  for (const catalogueSourceName of keys) {
+    if (!(catalogueSourceName in next)) {
+      next = setObjectProperty(next, catalogueSourceName, false);
+    }
+  }
+  const nextEntries = Object.entries(next).filter(([key]) => key in info);
+  next = Object.fromEntries(nextEntries);
+  sourceEnabledFlags.value = next;
+  let pathNext = sourceScopedPaths.value;
+  for (const catalogueSourceName of keys) {
+    const current = getObjectProperty(pathNext, catalogueSourceName);
+    if (current === undefined || current === null || current === "") {
+      pathNext = setObjectProperty(pathNext, catalogueSourceName, "/") as Record<string, string>;
+    }
+  }
+  const pathEntries = Object.entries(pathNext).filter(([key]) => key in info);
+  pathNext = Object.fromEntries(pathEntries);
+  sourceScopedPaths.value = pathNext;
+  applyDefaultCurrentSourceIfNone();
+  maybeFinishCatalogRouteBootstrapFromSources();
+}, { immediate: true, deep: true });
+
+watch(activeSources, (names) => {
+  const list = Array.isArray(names) ? names : [];
+  let next = sourceScopedPaths.value;
+  for (const activeSourceName of list) {
+    const current = getObjectProperty(next, activeSourceName);
+    if (current === undefined || current === null || current === "") {
+      next = setObjectProperty(next, activeSourceName, "/") as Record<string, string>;
+    }
+  }
+  sourceScopedPaths.value = next;
+}, { deep: true });
+
+watch(() => state.user.gallerySize, () => {
+  columnWidth.value = 250 + state.user.gallerySize * 50;
+});
+
+onMounted(() => {
+  document.title = `${globalVars.name} - ${t("tools.title")} - ${t("tools.advancedSearch.name")}`;
+  mutations.setSearch(false);
+
+  resizeListener = () => {
+    innerWidth.value = window.innerWidth;
+  };
+  window.addEventListener("resize", resizeListener);
+
+  scrollContainer = rootEl.value?.closest<HTMLElement>(".scroll-wrapper") ?? null;
+  scrollContainer?.addEventListener("scroll", handleScroll, { passive: true });
+
+  eventBus.on("itemsDeleted", handleSearchResultsChanged);
+  eventBus.on("itemsMoved", handleSearchResultsChanged);
+  eventBus.on("itemsRenamed", handleSearchResultsChanged);
+
+  if (state.req !== null && state.req !== undefined) {
+    hadInitialReq = true;
+    initialReqFrozen = JSON.stringify(state.req);
+  } else {
+    hadInitialReq = false;
+    initialReqFrozen = "";
+  }
+
+  if (typeof window !== "undefined") {
+    emptyCatalogHydrateTimer = window.setTimeout(() => {
+      emptyCatalogHydrateTimer = null;
+      if (!catalogRouteBootstrapDone && isAdvancedSearchRoute.value) {
+        finishCatalogBootstrapFromRoute();
       }
+    }, 520);
+  }
+});
 
-      const perSourceScopes = [];
-      for (const activeSourceName of this.activeSources) {
-        perSourceScopes.push({
-          source: activeSourceName,
-          path: this.normalizedScopedPathForSource(activeSourceName),
-        });
-      }
+onBeforeUnmount(() => {
+  if (
+    typeof window !== "undefined" &&
+    emptyCatalogHydrateTimer !== null
+  ) {
+    window.clearTimeout(emptyCatalogHydrateTimer);
+    emptyCatalogHydrateTimer = null;
+  }
 
-      const searchRequestKey = this.searchKey();
-      try {
-        const rows = await toolsApi.search(
-          null,
-          this.activeSources,
-          typedQueryPrefix,
-          false,
-          {
-            ...dateParams,
-            limit: this.resultLimit,
-            terms,
-            termJoin: this.termsJoinAnd ? "and" : undefined,
-            perSourceScopes,
-          }
-        );
+  if (resizeListener) {
+    window.removeEventListener("resize", resizeListener);
+    resizeListener = null;
+  }
+  scrollContainer?.removeEventListener("scroll", handleScroll);
 
-        if (!Array.isArray(rows)) {
-          throw new Error("Invalid search response");
-        }
+  eventBus.off("itemsDeleted", handleSearchResultsChanged);
+  eventBus.off("itemsMoved", handleSearchResultsChanged);
+  eventBus.off("itemsRenamed", handleSearchResultsChanged);
 
-        const listingItems = rows.map((searchResult) => {
-          const resultSource = String(searchResult.source || "");
-          const isDir = String(searchResult.type) === "directory";
-          const fullPath = browsePath(
-            this.normalizedScopedPathForSource(resultSource),
-            searchResult.path || "",
-            isDir
-          );
-          const nm = displayName(fullPath, isDir);
-          return {
-            name: nm,
-            path: fullPath,
-            type: isDir ? "directory" : String(searchResult.type || "application/octet-stream"),
-            size: typeof searchResult.size === "number" ? searchResult.size : 0,
-            modified: typeof searchResult.modified === "string" ? searchResult.modified : "",
-            created: typeof searchResult.created === "string" ? searchResult.created : "",
-            hasPreview: !!(searchResult.hasPreview || searchResult.HasPreview),
-            source: resultSource,
-            isShared: false,
-            hidden: false,
-          };
-        });
-        state.searchResults = { kind: "advanced", key: searchRequestKey, items: listingItems };
-        this.showResults(listingItems);
-      } catch (err) {
-        this.error =
-          err && typeof err.message === "string"
-            ? err.message
-            : this.$t("errors.internal");
-      } finally {
-        this.loading = false;
-      }
-    },
-  },
-};
+  if (!didApplySearchListing) {
+    return;
+  }
+  if (!hadInitialReq) {
+    mutations.clearRequest();
+    return;
+  }
+  mutations.replaceRequest(JSON.parse(initialReqFrozen));
+});
 </script>
 
 <style scoped>

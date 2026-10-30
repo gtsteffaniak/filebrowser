@@ -282,7 +282,7 @@ export function goToItem(source, path, previousHistoryItem, newTab = false, isSh
       search.focus = inResults ? { source: state.req.source, path: state.req.path } : undefined;
       if (!inResults) returnTo = buildItemUrl(state.req.source, getParentDir(state.req.path));
     }
-    if (!search?.focus) mutations.setPreviousHistoryItem(null);
+    mutations.setPreviousHistoryItem(search?.focus ? previousHistoryItem : null);
     void router.push(returnTo);
     return;
   }
@@ -307,7 +307,7 @@ export function goToItem(source, path, previousHistoryItem, newTab = false, isSh
     return;
   }
   mutations.resetAll();
-  if (previousHistoryItem === null) {
+  if (previousHistoryItem === null && !state.previousHistoryItem?.returnTo) {
     // Opening an item from the listing must not keep an older remembered item
     // alive; otherwise closing the next preview navigates back to this file.
     mutations.setPreviousHistoryItem(null);
