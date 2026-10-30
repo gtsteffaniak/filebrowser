@@ -119,6 +119,7 @@ type Index struct {
 	previousNumFiles  uint64              // Track previous NumFiles to use when scan in progress (computed value is 0)
 	scanners          map[string]*Scanner // path -> scanner
 	mock              bool
+	bgWork            pathCoalescer // per-path background persistence and refreshes
 	mu                sync.RWMutex
 	activeScannerPath string
 	schedulerStop     chan struct{}
@@ -644,9 +645,24 @@ func (idx *Index) getDirInfoFromContext(ctx *PathContext, isViewable, isIndexabl
 		return nil, err
 	}
 	// Persist index rows and folder sizes in the background so API listing
-	// latency stays independent of index DB write throughput.
-	go idx.persistDirectoryListing(ctx.IndexPath, indexableInfo, opts)
+	// latency stays independent of index DB write throughput. Coalesced per path so a slow
+	// DB cannot accumulate one goroutine per request.
+	indexPath := ctx.IndexPath
+	idx.bgWork.submit("persist|"+indexPath, func() {
+		idx.persistDirectoryListing(indexPath, indexableInfo, opts)
+	})
 	return dirFileInfo, nil
+}
+
+// RefreshDirectoryAsync runs RefreshDirectory(indexPath, false) in the background, coalesced
+// per path: while a refresh for indexPath runs, further requests queue at most one more
+// refresh instead of starting parallel directory reads and index DB writes.
+func (idx *Index) RefreshDirectoryAsync(indexPath string) {
+	idx.bgWork.submit("refresh|"+indexPath, func() {
+		if err := idx.RefreshDirectory(indexPath, false); err != nil {
+			logger.Debugf("Failed to refresh directory for folder size update: %v", err)
+		}
+	})
 }
 
 // persistDirectoryListing updates index rows and the in-memory folder size from
