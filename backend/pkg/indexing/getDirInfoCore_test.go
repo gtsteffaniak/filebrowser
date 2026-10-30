@@ -503,7 +503,7 @@ func TestGetDirInfoCore_IndexableListing(t *testing.T) {
 	}
 
 	// Persisting must write only indexable rows and set the folder size.
-	idx.persistDirectoryListing("/", indexable, opts, 1)
+	idx.persistDirectoryListing("/", indexable, opts)
 
 	if size, ok := idx.GetFolderSize("/"); !ok || size != 4 {
 		t.Errorf("expected folder size 4, got %d (ok=%v)", size, ok)
@@ -556,7 +556,7 @@ func TestPersistDirectoryListing_PropagatesSizeToParents(t *testing.T) {
 	idx.SetFolderSize("/", 100)
 	idx.SetFolderSize("/sub/", 40)
 
-	idx.persistDirectoryListing("/sub/", listing(60), opts, 1)
+	idx.persistDirectoryListing("/sub/", listing(60), opts)
 	if size, _ := idx.GetFolderSize("/sub/"); size != 60 {
 		t.Errorf("expected /sub/ size 60, got %d", size)
 	}
@@ -565,61 +565,9 @@ func TestPersistDirectoryListing_PropagatesSizeToParents(t *testing.T) {
 	}
 
 	// Shrink propagates a negative delta too.
-	idx.persistDirectoryListing("/sub/", listing(30), opts, 2)
+	idx.persistDirectoryListing("/sub/", listing(30), opts)
 	if size, _ := idx.GetFolderSize("/"); size != 90 {
 		t.Errorf("expected / size 90 after -30 delta, got %d", size)
-	}
-}
-
-// TestPersistDirectoryListing_SkipsStaleGeneration verifies that an older listing
-// generation cannot overwrite folder or ancestor sizes after a newer one applied.
-func TestPersistDirectoryListing_SkipsStaleGeneration(t *testing.T) {
-	db, _, err := dbsql.NewIndexDB("test_persist_stale", "OFF", 1000, 32, false)
-	if err != nil {
-		t.Fatalf("Failed to create test database: %v", err)
-	}
-
-	idx := &Index{
-		Source: settings.Source{
-			Name: "test_persist_stale",
-			Path: t.TempDir(),
-			Config: settings.SourceConfig{
-				UseLogicalSize: true,
-			},
-		},
-		db:                  db,
-		scanUpdatedPaths:    make(map[string]bool),
-		folderSizes:         make(map[string]uint64),
-		folderSizesUnsynced: make(map[string]struct{}),
-		lastPersistGen:      make(map[string]uint64),
-	}
-
-	opts := Options{CheckViewable: true}
-	listing := func(size int64) *iteminfo.FileInfo {
-		return &iteminfo.FileInfo{
-			Path:     "/sub/",
-			ItemInfo: iteminfo.ItemInfo{Name: "sub", Type: "directory", Size: size},
-		}
-	}
-
-	idx.SetFolderSize("/", 100)
-	idx.SetFolderSize("/sub/", 40)
-
-	idx.persistDirectoryListing("/sub/", listing(60), opts, 2)
-	if size, _ := idx.GetFolderSize("/sub/"); size != 60 {
-		t.Fatalf("expected /sub/ size 60, got %d", size)
-	}
-	if size, _ := idx.GetFolderSize("/"); size != 120 {
-		t.Fatalf("expected / size 120, got %d", size)
-	}
-
-	// Simulate out-of-order background execution: older generation must no-op.
-	idx.persistDirectoryListing("/sub/", listing(10), opts, 1)
-	if size, _ := idx.GetFolderSize("/sub/"); size != 60 {
-		t.Fatalf("stale generation changed /sub/ size to %d, want 60", size)
-	}
-	if size, _ := idx.GetFolderSize("/"); size != 120 {
-		t.Fatalf("stale generation changed / size to %d, want 120", size)
 	}
 }
 

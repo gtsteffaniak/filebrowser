@@ -8,7 +8,6 @@ import (
 	"runtime"
 	"strings"
 	"sync"
-	"sync/atomic"
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/fileutils"
@@ -130,10 +129,6 @@ type Index struct {
 	folderSizes         map[string]uint64   // path -> size (in-memory only, calculated from children)
 	folderSizesUnsynced map[string]struct{} // Tracks which folder sizes have changed since last DB sync
 	folderSizesMu       sync.RWMutex        // Dedicated RWMutex allows concurrent reads, serializes writes
-	// Background directory listing persistence: monotonic generation per snapshot and last applied per path.
-	persistGen     atomic.Uint64
-	persistGenMu   sync.Mutex
-	lastPersistGen map[string]uint64
 	// Scan session tracking: timestamp when scan session started (for timestamp-based conflict detection)
 	scanSessionStartTime int64           // Unix timestamp when current scan session started (0 if no active scan)
 	scanUpdatedPaths     map[string]bool // Tracks directories updated by the scan (to distinguish from API updates)
@@ -407,8 +402,7 @@ func Initialize(source *settings.Source, mock bool, isNewDb bool) {
 		scanUpdatedPaths:    make(map[string]bool),
 		folderSizes:         make(map[string]uint64),   // In-memory folder size tracking
 		folderSizesUnsynced: make(map[string]struct{}), // Track changed folders
-		lastPersistGen:      make(map[string]uint64),
-		WebdavLock:          webdav.NewMemLS(), // Initialize WebDAV lock system for this source
+		WebdavLock:          webdav.NewMemLS(),         // Initialize WebDAV lock system for this source
 	}
 	newIndex.ReducedIndex = ReducedIndex{
 		Status:  "indexing",
@@ -654,9 +648,8 @@ func (idx *Index) getDirInfoFromContext(ctx *PathContext, isViewable, isIndexabl
 	// latency stays independent of index DB write throughput. Coalesced per path so a slow
 	// DB cannot accumulate one goroutine per request.
 	indexPath := ctx.IndexPath
-	gen := idx.nextPersistGeneration()
 	idx.bgWork.submit("persist|"+indexPath, func() {
-		idx.persistDirectoryListing(indexPath, indexableInfo, opts, gen)
+		idx.persistDirectoryListing(indexPath, indexableInfo, opts)
 	})
 	return dirFileInfo, nil
 }
@@ -672,34 +665,16 @@ func (idx *Index) RefreshDirectoryAsync(indexPath string) {
 	})
 }
 
-// nextPersistGeneration returns a monotonically increasing id for a directory listing snapshot.
-func (idx *Index) nextPersistGeneration() uint64 {
-	return idx.persistGen.Add(1)
-}
-
 // persistDirectoryListing updates index rows and the in-memory folder size from
 // an already-built directory listing, avoiding the second directory walk that
 // RefreshDirectory performs. Listings without extended attributes carry
 // placeholder preview values and must not overwrite index rows.
-//
-// gen orders concurrent persistence jobs for the same path: a job with a generation
-// older than one already applied is skipped so out-of-order background execution
-// cannot regress folder or ancestor sizes.
-func (idx *Index) persistDirectoryListing(indexPath string, indexableInfo *iteminfo.FileInfo, opts Options, gen uint64) {
+func (idx *Index) persistDirectoryListing(indexPath string, indexableInfo *iteminfo.FileInfo, opts Options) {
 	if indexableInfo == nil || opts.SkipExtendedAttrs || opts.IsRoutineScan || idx.db == nil {
-		return
-	}
-	idx.persistGenMu.Lock()
-	defer idx.persistGenMu.Unlock()
-	if idx.lastPersistGen == nil {
-		idx.lastPersistGen = make(map[string]uint64)
-	}
-	if gen <= idx.lastPersistGen[indexPath] {
 		return
 	}
 	idx.UpdateMetadata(indexableInfo, nil, true)
 	idx.updateFolderSizeDelta(indexPath, uint64(indexableInfo.Size))
-	idx.lastPersistGen[indexPath] = gen
 }
 
 // getBasicDirInfo returns just directory metadata without children
