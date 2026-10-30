@@ -56,6 +56,37 @@ func TestSettingsGetHandler_redactsSecrets(t *testing.T) {
 	}
 }
 
+// TestSettingsGetHandler_doesNotMutateLiveConfig is the regression guard for the live-config
+// mutation: the full settings request must redact only its response, never settings.Config,
+// otherwise JWT signing and the integrations break until the process restarts.
+func TestSettingsGetHandler_doesNotMutateLiveConfig(t *testing.T) {
+	setupTestEnv(t)
+
+	prev := settings.Config
+	t.Cleanup(func() { settings.Config = prev })
+	settings.Config.Auth.Key = settingsRedactSentinel
+
+	admin := &users.User{
+		FrontendUser: users.FrontendUser{
+			Username:    "settings_redact_admin3",
+			Permissions: users.Permissions{Admin: true},
+		},
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/api/settings", nil)
+	rec := httptest.NewRecorder()
+	status, err := settingsGetHandler(rec, req, &Context{User: admin})
+	if status != http.StatusOK {
+		t.Fatalf("status=%d err=%v want 200", status, err)
+	}
+	if strings.Contains(rec.Body.String(), settingsRedactSentinel) {
+		t.Fatal("response leaked a plaintext secret")
+	}
+	if settings.Config.Auth.Key != settingsRedactSentinel {
+		t.Fatalf("live config auth key was mutated by the settings response: %q", settings.Config.Auth.Key)
+	}
+}
+
 // TestSettingsGetHandler_redactsAuthKeyOnlyWherePresent confirms non-secret auth fields still
 // round-trip so the response stays usable for the UI.
 func TestSettingsGetHandler_keepsNonSecretAuthFields(t *testing.T) {

@@ -3,6 +3,7 @@ package settings
 import (
 	"encoding/json"
 	"os"
+	"reflect"
 	"strings"
 	"testing"
 )
@@ -28,14 +29,12 @@ func setSecretSentinels(t *testing.T) {
 	Config.Integrations.OnlyOffice.Secret = "SENTINEL-OFFICE-SECRET"
 }
 
-// TestRedactSettingsSecrets_marshalsWithoutPlaintextSecrets is the regression guard for
+// TestRedactedSettingsCopy_marshalsWithoutPlaintextSecrets is the regression guard for
 // GHSA-892f-9h5p-mfc8: GET /api/settings returned cleartext secrets.
-func TestRedactSettingsSecrets_marshalsWithoutPlaintextSecrets(t *testing.T) {
+func TestRedactedSettingsCopy_marshalsWithoutPlaintextSecrets(t *testing.T) {
 	setSecretSentinels(t)
 
-	RedactSettingsSecrets(&Config)
-
-	out, err := json.Marshal(&Config)
+	out, err := json.Marshal(RedactedSettingsCopy(&Config))
 	if err != nil {
 		t.Fatalf("marshal: %v", err)
 	}
@@ -49,15 +48,97 @@ func TestRedactSettingsSecrets_marshalsWithoutPlaintextSecrets(t *testing.T) {
 	}
 }
 
-func TestRedactSettingsSecrets_preservesNonSecretValues(t *testing.T) {
+// TestRedactedSettingsCopy_doesNotMutateLiveConfig is the regression guard for the live-config
+// mutation that broke JWT signing and the integrations after the first GET /api/settings.
+func TestRedactedSettingsCopy_doesNotMutateLiveConfig(t *testing.T) {
+	setSecretSentinels(t)
+
+	_ = RedactedSettingsCopy(&Config)
+
+	if Config.Auth.Key != "SENTINEL-AUTH-KEY" {
+		t.Fatalf("live config auth key was mutated: %q", Config.Auth.Key)
+	}
+	if Config.Auth.TotpSecret != "SENTINEL-TOTP-SECRET" {
+		t.Fatalf("live config totp secret was mutated: %q", Config.Auth.TotpSecret)
+	}
+	if Config.Auth.Methods.PasswordAuth.Recaptcha.Secret != "SENTINEL-RECAPTCHA-SECRET" {
+		t.Fatalf("live recaptcha secret was mutated: %q", Config.Auth.Methods.PasswordAuth.Recaptcha.Secret)
+	}
+	if Config.Auth.Methods.LdapAuth.UserPassword != "SENTINEL-LDAP-PASSWORD" {
+		t.Fatalf("live LDAP password was mutated: %q", Config.Auth.Methods.LdapAuth.UserPassword)
+	}
+	// The deprecated top-level password must survive too, since redaction of the copy must not
+	// alias back into the source struct.
+	if Config.Auth.AdminPassword != "SENTINEL-LEGACY-ADMIN-PW" {
+		t.Fatalf("live legacy admin password was mutated: %q", Config.Auth.AdminPassword)
+	}
+}
+
+// TestRedactedSettingsCopy_isFaithfulDeepCopy proves the reflection copy reproduces the whole
+// config graph (every field type) before redaction, so no field is silently dropped.
+func TestRedactedSettingsCopy_isFaithfulDeepCopy(t *testing.T) {
+	prev := Config
+	t.Cleanup(func() { Config = prev })
+	Config = SetDefaults(false)
+	Config.Integrations.OnlyOffice.Secret = "" // keep secrets empty so redaction is a no-op
+	Config.Auth.Key = ""
+	Config.Auth.TotpSecret = ""
+	Config.Auth.AdminPassword = ""
+	Config.Auth.AdminUsername = ""
+	Config.Auth.Methods.PasswordAuth.AdminPassword = ""
+	Config.Auth.Methods.PasswordAuth.AdminUsername = ""
+	Config.Auth.Methods.OidcAuth.ClientID = ""
+	Config.Auth.Methods.OidcAuth.ClientSecret = ""
+	Config.Auth.Methods.LdapAuth.UserPassword = ""
+	Config.Auth.Methods.JwtAuth.Secret = ""
+	Config.Auth.Methods.PasswordAuth.Recaptcha.Secret = ""
+	Config.Integrations.Media.Convert.ImagePreview[HEICImagePreview] = boolPtr(false)
+	Config.Server.Sources = []*Source{{Path: "/srv", Name: "srv"}}
+
+	cp := RedactedSettingsCopy(&Config)
+
+	if cp == &Config {
+		t.Fatal("expected a new Settings, got the same pointer")
+	}
+	if !reflect.DeepEqual(cp, &Config) {
+		t.Fatal("deep copy does not match the source config")
+	}
+}
+
+// TestRedactedSettingsCopy_isDeepCopy verifies nested maps/slices are copied, not aliased, so a
+// caller cannot corrupt the live config by mutating the returned copy.
+func TestRedactedSettingsCopy_isDeepCopy(t *testing.T) {
+	prev := Config
+	t.Cleanup(func() { Config = prev })
+	Config = SetDefaults(false)
+	Config.Server.Sources = []*Source{{Path: "/srv", Name: "original"}}
+	Config.Frontend.Styling.CustomThemes = map[string]CustomTheme{"a": {Description: "original"}}
+	Config.Server.SourceMap = map[string]*Source{"/srv": {Path: "/srv", Name: "original"}}
+
+	cp := RedactedSettingsCopy(&Config)
+
+	cp.Server.Sources[0].Name = "changed"
+	cp.Server.SourceMap["/srv"].Name = "changed"
+	cp.Frontend.Styling.CustomThemes["a"] = CustomTheme{Description: "changed"}
+
+	if Config.Server.Sources[0].Name != "original" {
+		t.Fatalf("source slice aliased the live config: %q", Config.Server.Sources[0].Name)
+	}
+	if Config.Server.SourceMap["/srv"].Name != "original" {
+		t.Fatalf("source map aliased the live config: %q", Config.Server.SourceMap["/srv"].Name)
+	}
+	if Config.Frontend.Styling.CustomThemes["a"].Description != "original" {
+		t.Fatalf("custom themes map aliased the live config: %q", Config.Frontend.Styling.CustomThemes["a"].Description)
+	}
+}
+
+func TestRedactedSettingsCopy_preservesNonSecretValues(t *testing.T) {
 	setSecretSentinels(t)
 	Config.Frontend.Name = "SENTINEL-NOT-A-SECRET"
 	Config.Http.Port = 8123
 	Config.Server.SearchResultsLimit = 4242
 
-	RedactSettingsSecrets(&Config)
-
-	out, err := json.Marshal(&Config)
+	out, err := json.Marshal(RedactedSettingsCopy(&Config))
 	if err != nil {
 		t.Fatalf("marshal: %v", err)
 	}
@@ -84,20 +165,19 @@ func TestRedactSettingsSecrets_preservesNonSecretValues(t *testing.T) {
 	}
 }
 
-// TestRedactSettingsSecrets_emptySecretsStayEmpty ensures an unset secret does not appear to be set.
-func TestRedactSettingsSecrets_emptySecretsStayEmpty(t *testing.T) {
+// TestRedactedSettingsCopy_emptySecretsStayEmpty ensures an unset secret does not appear to be set.
+func TestRedactedSettingsCopy_emptySecretsStayEmpty(t *testing.T) {
 	prev := Config
 	t.Cleanup(func() { Config = prev })
+	Config = SetDefaults(false)
 	Config.Auth.Key = ""
 	Config.Auth.TotpSecret = ""
 
-	RedactSettingsSecrets(&Config)
-
-	var got Settings
-	out, err := json.Marshal(&Config)
+	out, err := json.Marshal(RedactedSettingsCopy(&Config))
 	if err != nil {
 		t.Fatalf("marshal: %v", err)
 	}
+	var got Settings
 	if err := json.Unmarshal(out, &got); err != nil {
 		t.Fatalf("unmarshal: %v", err)
 	}

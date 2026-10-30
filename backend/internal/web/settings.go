@@ -77,8 +77,9 @@ func settingsGetHandler(w http.ResponseWriter, r *http.Request, d *Context) (int
 	}
 	// Redact secrets (auth.key, totpSecret, adminPassword, OIDC clientSecret, LDAP/recaptcha
 	// secrets, ...) so the admin response never echoes plaintext credentials (GHSA-892f-9h5p-mfc8).
-	settings.RedactSettingsSecrets(&settings.Config)
-	return RenderJSON(w, r, &settings.Config)
+	// RedactedSettingsCopy returns a copy: the live config keeps the real secrets, so auth and
+	// the OIDC/LDAP/OnlyOffice integrations keep working after this request.
+	return RenderJSON(w, r, settings.RedactedSettingsCopy(&settings.Config))
 }
 
 // readEmbeddedConfigYaml returns the config.generated.yaml shipped in the binary's asset

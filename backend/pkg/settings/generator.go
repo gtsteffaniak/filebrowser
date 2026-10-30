@@ -1089,15 +1089,19 @@ func GenerateConfigYamlWithEmbedded(config *Settings, showComments bool, showFul
 // redactPlaceholder replaces secret values in API responses without revealing the original.
 const redactPlaceholder = "**hidden**"
 
-// RedactSettingsSecrets replaces every secret-marked field in the running config with the
-// redaction placeholder. Handlers must pass &settings.Config; this mutates it in place.
-// See GHSA-892f-9h5p-mfc8.
-func RedactSettingsSecrets(conf *Settings) {
+// RedactedSettingsCopy returns a deep copy of the given config with every secret-marked field
+// replaced by the redaction placeholder. The live config is never modified, so callers can
+// render the result to an API response without disabling authentication (a mutated
+// settings.Config would break JWT signing/verification and the OIDC/LDAP/OnlyOffice integrations
+// until restart). See GHSA-892f-9h5p-mfc8.
+func RedactedSettingsCopy(conf *Settings) *Settings {
 	if conf == nil {
-		return
+		return nil
 	}
+	cp := deepCopyValue(reflect.ValueOf(conf)).Interface().(*Settings)
 	secrets := buildSecretFieldsFor(conf)
-	redactSecretsValue(reflect.ValueOf(conf), "Settings", secrets)
+	redactSecretsValue(reflect.ValueOf(cp), "Settings", secrets)
+	return cp
 }
 
 // RedactAuthSecrets returns a copy of the auth section with secret fields replaced by the
@@ -1107,6 +1111,66 @@ func RedactAuthSecrets(auth Auth) Auth {
 	secrets := buildSecretFieldsFor(&Settings{Auth: Config.Auth})
 	redactSecretsValue(reflect.ValueOf(&cp), "Auth", secrets)
 	return cp
+}
+
+// deepCopyValue returns a deep copy of v, preserving the exact field values (including unexported
+// fields) rather than round-tripping through JSON, which would run custom unmarshalers and change
+// semantics (e.g. users.Permissions.UnmarshalJSON sets Configured).
+func deepCopyValue(v reflect.Value) reflect.Value {
+	switch v.Kind() {
+	case reflect.Pointer:
+		if v.IsNil() {
+			return v
+		}
+		cp := reflect.New(v.Type().Elem())
+		cp.Elem().Set(deepCopyValue(v.Elem()))
+		return cp
+	case reflect.Interface:
+		if v.IsNil() {
+			return v
+		}
+		cp := deepCopyValue(v.Elem())
+		out := reflect.New(v.Type()).Elem()
+		out.Set(cp)
+		return out
+	case reflect.Struct:
+		out := reflect.New(v.Type()).Elem()
+		t := v.Type()
+		for i := 0; i < t.NumField(); i++ {
+			dst := out.Field(i)
+			if dst.CanSet() {
+				dst.Set(deepCopyValue(v.Field(i)))
+			}
+		}
+		return out
+	case reflect.Slice:
+		if v.IsNil() {
+			return v
+		}
+		out := reflect.MakeSlice(v.Type(), v.Len(), v.Len())
+		for i := 0; i < v.Len(); i++ {
+			out.Index(i).Set(deepCopyValue(v.Index(i)))
+		}
+		return out
+	case reflect.Array:
+		out := reflect.New(v.Type()).Elem()
+		for i := 0; i < v.Len(); i++ {
+			out.Index(i).Set(deepCopyValue(v.Index(i)))
+		}
+		return out
+	case reflect.Map:
+		if v.IsNil() {
+			return v
+		}
+		out := reflect.MakeMapWithSize(v.Type(), v.Len())
+		iter := v.MapRange()
+		for iter.Next() {
+			out.SetMapIndex(deepCopyValue(iter.Key()), deepCopyValue(iter.Value()))
+		}
+		return out
+	default:
+		return v
+	}
 }
 
 // SecretFieldNames are struct field names treated as secret regardless of comment markers.
