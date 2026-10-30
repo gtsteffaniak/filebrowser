@@ -8,6 +8,7 @@ import (
 	"mime"
 	"net/http"
 	"os"
+	"path"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -72,13 +73,15 @@ func normalizeViewGrantPath(p string) string {
 
 // shareRelativeDisplayName returns the client-facing filename for a path within a share.
 // Single-file shares use file=/ at the share root; the real name comes from the share path.
+// Both paths are slash-separated, so use path.Base: on Windows filepath.Base("/")
+// returns "\", which would skip the share-name fallback below.
 func shareRelativeDisplayName(d *Context, shareRelativePath string) string {
-	name := filepath.Base(normalizeViewGrantPath(shareRelativePath))
+	name := path.Base(normalizeViewGrantPath(shareRelativePath))
 	if name != "" && name != "." && name != "/" {
 		return name
 	}
 	if d != nil && d.Share.Hash != "" {
-		if shareName := filepath.Base(d.Share.Path); shareName != "" && shareName != "." && shareName != "/" {
+		if shareName := path.Base(normalizeViewGrantPath(d.Share.Path)); shareName != "" && shareName != "." && shareName != "/" {
 			return shareName
 		}
 	}
