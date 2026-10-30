@@ -1221,9 +1221,12 @@ func buildSecretFieldsFor(conf *Settings) SecretFieldsMap {
 	if len(secrets) == 0 {
 		// Fall back to the Go sources (repo layout / tests). CollectCommentsAndSecrets also
 		// unions in the reflection fallback, so this path never under-reports.
-		if srcPaths := settingsSourcePaths(); len(srcPaths) > 0 {
-			if _, s, _, err := CollectCommentsAndSecrets(srcPaths[0]); err == nil {
+		// Try each candidate directory until one parses with markers, so a missing or
+		// unparsable first candidate does not skip a valid later one.
+		for _, srcPath := range settingsSourcePaths() {
+			if _, s, _, err := CollectCommentsAndSecrets(srcPath); err == nil && len(s) > 0 {
 				secrets = s
+				break
 			}
 		}
 	}

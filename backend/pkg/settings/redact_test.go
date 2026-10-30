@@ -266,3 +266,29 @@ func TestSecretFieldNames_covers_yaml_marker_gaps(t *testing.T) {
 		}
 	}
 }
+
+// TestActiveSecretFields_fromEmbeddedYaml exercises the deployed-binary path, where the
+// secret markers come from the embedded config.generated.yaml rather than the Go sources.
+func TestActiveSecretFields_fromEmbeddedYaml(t *testing.T) {
+	data, err := os.ReadFile("../../../frontend/public/config.generated.yaml")
+	if err != nil {
+		t.Skipf("generated YAML not available: %v", err)
+	}
+	prev := SecretHintYaml
+	SecretHintYaml = string(data)
+	t.Cleanup(func() { SecretHintYaml = prev })
+
+	secrets := ActiveSecretFields()
+	for _, tc := range []struct{ typ, field string }{
+		{"Auth", "Key"},
+		{"Recaptcha", "Secret"},
+		{"OidcConfig", "ClientSecret"},
+		{"LdapConfig", "UserPassword"},
+		{"OnlyOffice", "Secret"},
+		{"PasswordAuthConfig", "AdminPassword"},
+	} {
+		if !secrets[tc.typ][tc.field] {
+			t.Errorf("%s.%s is not marked secret via embedded YAML", tc.typ, tc.field)
+		}
+	}
+}
