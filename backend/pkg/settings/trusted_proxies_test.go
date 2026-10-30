@@ -149,6 +149,19 @@ func TestIsTrustedProxyPeerUnixSocket(t *testing.T) {
 	}
 }
 
+func TestIsTrustedProxyPeerAbstractSocketNotTrusted(t *testing.T) {
+	resetTrustedProxyCache()
+	Config.Http.TrustedProxies = nil
+	Config.Http.Socket = "@filebrowser"
+	t.Cleanup(func() {
+		Config.Http.Socket = ""
+		resetTrustedProxyCache()
+	})
+	if IsTrustedProxyPeer("@") {
+		t.Fatal("abstract socket peers must not be trusted")
+	}
+}
+
 func TestValidateHttpConfigRejectsShortMappedPrefix(t *testing.T) {
 	err := ValidateHttpConfig(Http{TrustedProxies: []string{"::ffff:198.51.100.0/80"}})
 	if err == nil {

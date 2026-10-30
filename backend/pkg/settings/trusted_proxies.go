@@ -116,9 +116,11 @@ func ipMatchesPrefixes(ip string, prefixes []netip.Prefix) bool {
 // When http.socket is set the server listens only on that Unix socket, whose
 // peers have no IP address. Only local processes with filesystem access to the
 // socket can connect, so every peer there is treated as the trusted proxy.
+// Linux abstract sockets ("@name") have no filesystem permissions, so any local
+// process could connect; their peers are never trusted.
 func IsTrustedProxyPeer(remoteAddr string) bool {
-	if Config.Http.Socket != "" {
-		return true
+	if socket := Config.Http.Socket; socket != "" {
+		return !strings.HasPrefix(socket, "@")
 	}
 	return ipMatchesPrefixes(remoteAddr, TrustedProxyPrefixes())
 }
