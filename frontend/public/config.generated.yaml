@@ -93,7 +93,7 @@ auth:
       recaptcha:                          # recaptcha config. If configured will show up the checkbox verification in the login page  validate:omitempty
         host: ""                          # google recaptcha host, for example: https://www.google.com/recaptcha/api.js  validate:required
         key: ""                           # v2 site key  validate:required
-        secret: ""                        # v2 secret key  validate:required
+        secret: ""                        # secret: v2 secret key  validate:required
       enforcedOtp: false                  # if set to true, TOTP is enforced for all password users users. Otherwise, users can choose to enable TOTP.
     oidc:                                 #  validate:omitempty
       enabled: false                      # whether to enable this authentication method.
@@ -118,7 +118,7 @@ auth:
       server: ""                          # scheme://host:port of the LDAP server (e.g. ldap://localhost:389)
       baseDN: ""                          # LDAP search base DN (e.g. dc=ldap,dc=goauthentik,dc=io)
       userDN: ""                          # Bind DN for service account (e.g. cn=admin,ou=users,dc=ldap,dc=goauthentik,dc=io)
-      userPassword: ""                    # Bind password for service account
+      userPassword: ""                    # secret: bind password for the LDAP service account
       userFilter: ""                      # Search filter for finding user by username. Default (&(cn=%s)(objectClass=user)); override e.g. (email=%s) or (sAMAccountName=%s) for other directories.
     jwt:                                  #  validate:omitempty
       enabled: false                      # whether to enable this authentication method.

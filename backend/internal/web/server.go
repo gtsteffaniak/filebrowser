@@ -40,6 +40,8 @@ var (
 func initRuntime(deps Deps, assets fs.FS) {
 	runtimeDeps = deps
 	assetFs = assets
+	// Make the generated YAML's `secret:` markers available to the settings redactor.
+	initSettingsSecretMarkers()
 }
 
 // Embed the files in the frontend/dist directory

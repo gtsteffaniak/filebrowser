@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v2.1.4
 
+ **Security**:
+ - [Low] `GET /api/settings` and `GET /api/settings?property=auth` no longer return cleartext secrets (`auth.key`, `totpSecret`, `adminPassword`, OIDC `clientSecret`, LDAP bind password, recaptcha secret, OnlyOffice secret); secret fields are replaced with `**hidden**` in the response, and the YAML export now redacts the recaptcha and LDAP secrets whose comments lacked the `secret:` marker (GHSA-892f-9h5p-mfc8) reporter @paulmossman
+
  **New Features**:
  - feat(search): sidebar File actions and close button in advanced search (#3303) (#2479) (#3303)
 
