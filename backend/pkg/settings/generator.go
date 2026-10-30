@@ -1098,7 +1098,11 @@ func RedactedSettingsCopy(conf *Settings) *Settings {
 	if conf == nil {
 		return nil
 	}
-	cp := deepCopyValue(reflect.ValueOf(conf)).Interface().(*Settings)
+	cpVal := deepCopyValue(reflect.ValueOf(conf))
+	cp, ok := cpVal.Interface().(*Settings)
+	if !ok {
+		return nil
+	}
 	secrets := buildSecretFieldsFor(conf)
 	redactSecretsValue(reflect.ValueOf(cp), "Settings", secrets)
 	return cp

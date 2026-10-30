@@ -66,11 +66,17 @@ func TestGenerateMaskableIconKeepsCanvasOpaque(t *testing.T) {
 			if output.Bounds().Dx() != size || output.Bounds().Dy() != size {
 				t.Fatalf("got bounds %v, want %dx%d", output.Bounds(), size, size)
 			}
-			want := color.NRGBAModel.Convert(tt.background).(color.NRGBA)
+			want, ok := color.NRGBAModel.Convert(tt.background).(color.NRGBA)
+			if !ok {
+				t.Fatalf("background color %#v is not NRGBA", tt.background)
+			}
 			for y := 0; y < size; y++ {
 				for x := 0; x < size; x++ {
 					outsideArt := x < 16 || x >= 80 || y < 16 || y >= 80
-					got := color.NRGBAModel.Convert(output.At(x, y)).(color.NRGBA)
+					got, ok := color.NRGBAModel.Convert(output.At(x, y)).(color.NRGBA)
+					if !ok {
+						t.Fatalf("pixel (%d,%d) is not NRGBA", x, y)
+					}
 					if got.A != 255 {
 						t.Fatalf("pixel (%d,%d) has alpha %d, want opaque", x, y, got.A)
 					}
