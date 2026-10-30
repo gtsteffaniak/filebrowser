@@ -116,6 +116,7 @@ export function useMouseSelection(options: MouseSelectionOptions) {
     }
     // Don't start if it's a right click
     if (event.button !== 0) return;
+    if (!options.bounds.value) return;
 
     isRectangleSelecting.value = true;
     rectangleItemRects = null;

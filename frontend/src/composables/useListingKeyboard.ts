@@ -33,6 +33,11 @@ function isEditableTarget(target: EventTarget | null) {
   return tag === "input" || tag === "textarea" || tag === "select" || !!el?.isContentEditable;
 }
 
+function isOtherControl(target: EventTarget | null) {
+  const el = target as Element | null;
+  return !!el?.closest?.("button, a, summary, [role='button']") && !el.closest(".listing-item");
+}
+
 export function useListingKeyboard(options: ListingKeyboardOptions) {
   const { copyCut } = useListingClipboard();
 
@@ -269,6 +274,7 @@ export function useListingKeyboard(options: ListingKeyboardOptions) {
 
       case "Alt+ArrowDown":
       case "Enter": {
+        if (options.ignoreEditableTargets && isOtherControl(event.target)) break;
         event.preventDefault();
         if (state.selected.length === 1) {
           const selected = getters.getFirstSelected();
