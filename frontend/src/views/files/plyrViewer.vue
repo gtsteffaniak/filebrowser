@@ -828,6 +828,8 @@ export default {
         fullscreen: {
           enabled: true,
           fallback: true,
+          // iPhone Safari has no element Fullscreen API; only video.webkitEnterFullscreen() hides the browser UI.
+          iosNative: true,
           container: '.plyr-viewer',
         },
         iconUrl: `${globalVars.baseURL}public/static/img/plyr.svg`,
