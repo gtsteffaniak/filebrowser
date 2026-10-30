@@ -939,6 +939,10 @@ definitions:
         allOf:
         - $ref: '#/definitions/settings.ShareDefaults'
         description: optional defaults for new shares; managed in the UI
+      sharePolicy:
+        allOf:
+        - $ref: '#/definitions/settings.SharePolicy'
+        description: rules every non-admin share must meet; config file only
       userDefaults:
         allOf:
         - $ref: '#/definitions/settings.UserDefaults'
@@ -1017,6 +1021,15 @@ definitions:
         type: string
       viewMode:
         type: string
+    type: object
+  settings.SharePolicy:
+    properties:
+      maxExpirationHours:
+        description: shares must expire within this many hours; 0 disables the limit
+        type: integer
+      requirePassword:
+        description: shares must be password protected
+        type: boolean
     type: object
   settings.Source:
     properties:
