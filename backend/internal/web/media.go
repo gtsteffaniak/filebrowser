@@ -118,14 +118,16 @@ func subtitlesHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 			return http.StatusNotFound, fmt.Errorf("embedded subtitle track '%s' not found", name)
 		}
 		// go-media fast path (MKV, WebM, MP4). Falls back to ffmpeg when unsupported or failed.
-		// The shadow run can outlive the request, so it uses a context that is not cancelled with it.
-		shadowCtx := context.WithoutCancel(r.Context())
 		legacy := func() (string, bool) {
 			svc := ffmpeg.Get()
 			if svc == nil {
 				return "", false
 			}
-			vtt, extractErr := svc.ExtractSubtitle(shadowCtx, fileInfo.RealPath, *track.Index)
+			// Shadow ffmpeg runs after the fast path; bound it so a detached request cannot
+			// leave extraction running indefinitely (sync fallback still uses r.Context()).
+			legacyCtx, cancel := context.WithTimeout(context.WithoutCancel(r.Context()), time.Minute)
+			defer cancel()
+			vtt, extractErr := svc.ExtractSubtitle(legacyCtx, fileInfo.RealPath, *track.Index)
 			return vtt, extractErr == nil
 		}
 		if vtt, ok := gomedia.ExtractSubtitle(fileInfo.RealPath, *track.Index, legacy); ok {

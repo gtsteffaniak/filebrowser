@@ -8,15 +8,12 @@ import {
   plyrTranscodeMenuButton,
   selectTranscodeMode,
   startNativeVideoPlayback,
-  stubChromiumH264ProbeSupport,
   waitForNativePlyrMounted,
 } from "./transcode-helpers.ts";
 
 const TESTDATA = "/files/playwright-files/myfolder/testdata";
-
-test.beforeEach(async ({ page }) => {
-  await stubChromiumH264ProbeSupport(page);
-});
+/** VP8/WebM plays natively in Playwright Chromium; H.264 MP4 often does not in headless builds. */
+const NATIVE_PREVIEW_VIDEO = "clip-a.webm";
 
 /**
  * Media endpoints that probe or transcode (`/api/media/metadata`,
@@ -36,8 +33,8 @@ function trackMediaApiFailures(page: import("@playwright/test").Page): () => num
 test("mp4 preview mounts the native player", async ({ page, checkForErrors }) => {
   const mediaFailures = trackMediaApiFailures(page);
 
-  await page.goto(`${TESTDATA}/sample-640x480.mp4`);
-  await expect(page).toHaveTitle("Graham's Filebrowser - Files - sample-640x480.mp4");
+  await page.goto(`${TESTDATA}/${NATIVE_PREVIEW_VIDEO}`);
+  await expect(page).toHaveTitle(`Graham's Filebrowser - Files - ${NATIVE_PREVIEW_VIDEO}`);
 
   // Native previews lazy-bind /api/media/stream on first play, not at mount.
   await startNativeVideoPlayback(page);
@@ -85,8 +82,8 @@ test("switching transcode modes sends replaceSessionId for the same file", async
     }
   });
 
-  await page.goto(`${TESTDATA}/sample-640x480.mp4`);
-  await expect(page).toHaveTitle("Graham's Filebrowser - Files - sample-640x480.mp4");
+  await page.goto(`${TESTDATA}/${NATIVE_PREVIEW_VIDEO}`);
+  await expect(page).toHaveTitle(`Graham's Filebrowser - Files - ${NATIVE_PREVIEW_VIDEO}`);
   await waitForNativePlyrMounted(page);
 
   await selectTranscodeMode(page, "datasaver");
@@ -119,7 +116,7 @@ test("transcode mode menu is shown when the server enables transcoding", async (
   const mediaFailures = trackMediaApiFailures(page);
 
   // Real server config (no mocks): the preview image enables ffmpeg and transcoding.
-  await page.goto(`${TESTDATA}/sample-640x480.mp4`);
+  await page.goto(`${TESTDATA}/${NATIVE_PREVIEW_VIDEO}`);
   await waitForNativePlyrMounted(page);
 
   const ffmpegAvailable = await page.evaluate(() => window.globalVars?.ffmpegAvailable === true);

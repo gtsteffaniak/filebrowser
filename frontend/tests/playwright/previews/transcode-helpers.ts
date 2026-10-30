@@ -196,25 +196,6 @@ export function nativePlyrVideo(page: Page) {
   return page.locator(".plyr-viewer video").first();
 }
 
-/**
- * Playwright's chromium-headless-shell reports empty canPlayType for H.264/AAC.
- * That makes needsTranscodeFirst true for MP4 and shows the WMV-style offer UI.
- */
-export async function stubChromiumH264ProbeSupport(page: Page) {
-  await page.addInitScript(() => {
-    const nativeCanPlay = HTMLVideoElement.prototype.canPlayType;
-    HTMLVideoElement.prototype.canPlayType = function canPlayTypePatched(type: string) {
-      if (
-        typeof type === "string"
-        && (type.startsWith("video/mp4") || type.includes("avc1") || type.includes("mp4a"))
-      ) {
-        return "probably";
-      }
-      return nativeCanPlay.call(this, type);
-    };
-  });
-}
-
 /** Preview transcode-offer screen (not the in-player settings menu). */
 function previewTranscodeOfferButton(page: Page) {
   return page.locator(".info button[aria-label='Transcode']");
@@ -283,17 +264,18 @@ export async function startNativeVideoPlayback(page: Page) {
     video.evaluate((el: HTMLVideoElement) => (el.getAttribute("src") || "").includes("media/stream"));
   const isPlaying = () => video.evaluate(videoIsActivelyPlaying());
 
-  if (await hasStreamSrc()) {
-    return;
-  }
+  if (!(await hasStreamSrc())) {
+    const streamWait = waitForNativeMediaStream(page);
 
-  const streamWait = waitForNativeMediaStream(page);
+    if (!(await isPlaying())) {
+      await clickPlyrPlayControl(page);
+    }
 
-  if (!(await isPlaying())) {
+    await streamWait;
+  } else if (!(await isPlaying())) {
     await clickPlyrPlayControl(page);
   }
 
-  await streamWait;
   await expect.poll(isPlaying, {
     timeout: 15_000,
     intervals: [100, 250, 500],
