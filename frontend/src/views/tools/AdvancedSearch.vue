@@ -261,6 +261,7 @@
 
 <script>
 import { toolsApi } from "@/api";
+import { notify } from "@/notify/index.ts";
 import { router } from "@/router";
 import { state, getters, mutations } from "@/store";
 import { eventBus } from "@/store/eventBus";
@@ -1329,6 +1330,10 @@ export default {
       });
     },
     async runSearch() {
+      // Claim a sequence number first so an earlier in-flight search is stale even when this
+      // run exits early on validation.
+      const seq = ++this.searchSeq;
+      const isStale = () => this.isUnmounted || seq !== this.searchSeq;
       this.error = null;
 
       if (this.activeSources.length === 0) {
@@ -1406,8 +1411,9 @@ export default {
         });
       }
 
-      const seq = ++this.searchSeq;
-      const isStale = () => this.isUnmounted || seq !== this.searchSeq;
+      // Resolve result paths against the scopes sent with this request, not the live
+      // scope inputs, which may change while the request is in flight.
+      const scopeBySource = new Map(perSourceScopes.map(({ source, path }) => [source, path]));
       try {
         const rows = await toolsApi.search(
           null,
@@ -1420,6 +1426,8 @@ export default {
             terms,
             termJoin: this.termsJoinAnd ? "and" : undefined,
             perSourceScopes,
+            // Report errors below, after the stale check, so obsolete requests stay silent.
+            suppressNotify: true,
           }
         );
         // Do not overwrite the listing after leaving the tool or behind a newer search.
@@ -1433,7 +1441,7 @@ export default {
           const resultSource = String(searchResult.source || "");
           const isDir = String(searchResult.type) === "directory";
           const fullPath = browsePath(
-            this.normalizedScopedPathForSource(resultSource),
+            scopeBySource.get(resultSource) ?? this.normalizedScopedPathForSource(resultSource),
             searchResult.path || "",
             isDir
           );
@@ -1471,6 +1479,7 @@ export default {
           err && typeof err.message === "string"
             ? err.message
             : this.$t("errors.internal");
+        notify.showError(this.error);
       } finally {
         if (!isStale()) this.loading = false;
       }
