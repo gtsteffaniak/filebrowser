@@ -33,6 +33,19 @@ func readSettingsPatchBody(w http.ResponseWriter, r *http.Request) ([]byte, erro
 	return patchJSON, nil
 }
 
+// initSettingsSecretMarkers points the settings package at the generated YAML shipped in the
+// running binary's asset filesystem, so it can discover the `secret:` comment markers that
+// decide which config fields are redacted. The Go sources are absent in a deployed binary, so
+// this is the marker source that matters in production.
+func initSettingsSecretMarkers() {
+	if settings.SecretHintYaml != "" {
+		return
+	}
+	if embedded, err := readEmbeddedConfigYaml(); err == nil {
+		settings.SecretHintYaml = embedded
+	}
+}
+
 // settingsGetHandler retrieves the current system settings.
 // @Summary Get system settings
 // @Description Returns the current configuration settings for signup, user directories, rules, frontend.
@@ -44,6 +57,9 @@ func readSettingsPatchBody(w http.ResponseWriter, r *http.Request) ([]byte, erro
 // @Router /api/settings [get]
 func settingsGetHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
 	property := r.URL.Query().Get("property")
+	if property == "auth" {
+		return RenderJSON(w, r, settings.RedactAuthSecrets(settings.Config.Auth))
+	}
 	if property != "" {
 		// get property by name
 		switch property {
@@ -51,8 +67,6 @@ func settingsGetHandler(w http.ResponseWriter, r *http.Request, d *Context) (int
 			return RenderJSON(w, r, state.GetDefaultUserDefaults())
 		case "frontend":
 			return RenderJSON(w, r, settings.Config.Frontend)
-		case "auth":
-			return RenderJSON(w, r, settings.Config.Auth)
 		case "server":
 			return RenderJSON(w, r, settings.Config.Server)
 		case "sources":
@@ -61,7 +75,26 @@ func settingsGetHandler(w http.ResponseWriter, r *http.Request, d *Context) (int
 			return http.StatusNotFound, nil
 		}
 	}
-	return RenderJSON(w, r, &settings.Config)
+	// Redact secrets (auth.key, totpSecret, adminPassword, OIDC clientSecret, LDAP/recaptcha
+	// secrets, ...) so the admin response never echoes plaintext credentials (GHSA-892f-9h5p-mfc8).
+	// RedactedSettingsCopy returns a copy: the live config keeps the real secrets, so auth and
+	// the OIDC/LDAP/OnlyOffice integrations keep working after this request.
+	return RenderJSON(w, r, settings.RedactedSettingsCopy(&settings.Config))
+}
+
+// readEmbeddedConfigYaml returns the config.generated.yaml shipped in the binary's asset
+// filesystem. It is the comment/secret-marker source for both the YAML export and the settings
+// JSON redactor.
+func readEmbeddedConfigYaml() (string, error) {
+	path := "config.generated.yaml"
+	if settings.Env.EmbeddedFs {
+		path = "embed/config.generated.yaml"
+	}
+	content, err := fs.ReadFile(assetFs, path)
+	if err != nil {
+		return "", err
+	}
+	return string(content), nil
 }
 
 // settingsConfigHandler returns the current system settings as YAML.
@@ -85,22 +118,12 @@ func settingsConfigHandler(w http.ResponseWriter, r *http.Request, d *Context) (
 	var err error
 	var yamlConfig string
 
-	// Try to read the generated YAML file for comments (should always exist)
-	var embeddedYaml []byte
-	var readErr error
-
-	if settings.Env.EmbeddedFs {
-		embeddedYaml, readErr = fs.ReadFile(assetFs, "embed/config.generated.yaml")
-	} else {
-		embeddedYaml, readErr = fs.ReadFile(assetFs, "config.generated.yaml")
-		if readErr != nil {
-			return http.StatusInternalServerError, fmt.Errorf("error reading generated YAML: %v", readErr)
-		}
-	}
+	// Comment/secret-marker source, shared with settingsGetHandler's redactor.
+	embeddedYaml, _ := readEmbeddedConfigYaml()
 
 	// If we successfully read the generated YAML, use it as the comment source
-	if readErr == nil && len(embeddedYaml) > 0 {
-		yamlConfig, err = settings.GenerateConfigYamlWithEmbedded(&settings.Config, showComments, showFull, false, string(embeddedYaml))
+	if embeddedYaml != "" {
+		yamlConfig, err = settings.GenerateConfigYamlWithEmbedded(&settings.Config, showComments, showFull, false, embeddedYaml)
 		if err != nil {
 			return http.StatusInternalServerError, fmt.Errorf("error generating YAML: %v", err)
 		}

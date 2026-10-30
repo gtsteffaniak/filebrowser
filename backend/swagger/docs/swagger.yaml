@@ -616,7 +616,7 @@ definitions:
           "phone"
         type: string
       userPassword:
-        description: Bind password for service account
+        description: 'secret: bind password for the LDAP service account'
         type: string
     type: object
   settings.LogConfig:
@@ -852,7 +852,7 @@ definitions:
         description: v2 site key
         type: string
       secret:
-        description: v2 secret key
+        description: 'secret: v2 secret key'
         type: string
     required:
     - host

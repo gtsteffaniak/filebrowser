@@ -6182,7 +6182,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "userPassword": {
-                    "description": "Bind password for service account",
+                    "description": "secret: bind password for the LDAP service account",
                     "type": "string"
                 }
             }
@@ -6495,7 +6495,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "secret": {
-                    "description": "v2 secret key",
+                    "description": "secret: v2 secret key",
                     "type": "string"
                 }
             }
