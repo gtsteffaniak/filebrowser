@@ -66,7 +66,10 @@ func TestExtractRAFEmbeddedPreviewRealSample(t *testing.T) {
 		t.Skip("set FILEBROWSER_TEST_RAF to a RAF sample to run this test")
 	}
 	if _, err := os.Stat(path); err != nil {
-		t.Skipf("RAF sample not found: %s", path)
+		if os.IsNotExist(err) {
+			t.Skipf("RAF sample not found: %s", path)
+		}
+		t.Fatalf("RAF sample stat failed: %v", err)
 	}
 
 	got, err := ExtractEmbeddedPreview(context.Background(), path)
