@@ -68,8 +68,14 @@ func checkNotAllVanished(dirPath string, total, vanished int) error {
 	if total == 0 || vanished != total {
 		return nil
 	}
-	if _, err := os.Stat(dirPath); err == nil || !errors.Is(err, fs.ErrNotExist) {
+	_, err := os.Stat(dirPath)
+	if err == nil {
 		return nil
+	}
+	if !errors.Is(err, fs.ErrNotExist) {
+		// Existence is unknown (I/O or permission error): fail the scan so indexed
+		// children are preserved instead of pruned by an empty "successful" listing.
+		return err
 	}
 	return &fs.PathError{Op: "readdir", Path: dirPath, Err: fs.ErrNotExist}
 }

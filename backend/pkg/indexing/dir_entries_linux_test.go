@@ -464,6 +464,14 @@ func TestCheckNotAllVanished(t *testing.T) {
 	if err := checkNotAllVanished(t.TempDir(), 1, 1); err != nil {
 		t.Errorf("all vanished, directory present: got %v, want nil", err)
 	}
+	// A stat failure other than not-exist (here ENOTDIR) must fail the listing, not report empty.
+	file := filepath.Join(t.TempDir(), "file")
+	if err := os.WriteFile(file, nil, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := checkNotAllVanished(filepath.Join(file, "child"), 1, 1); err == nil {
+		t.Error("all vanished, stat error: got nil, want error")
+	}
 }
 
 func TestSkipEntry_Classification(t *testing.T) {
