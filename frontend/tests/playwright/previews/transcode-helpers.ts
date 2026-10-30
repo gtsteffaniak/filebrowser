@@ -276,7 +276,12 @@ export async function startNativeVideoPlayback(page: Page) {
     await clickPlyrPlayControl(page);
   }
 
-  await expect.poll(isPlaying, {
+  const playbackStartTime = await video.evaluate((el: HTMLVideoElement) => el.currentTime);
+  await expect.poll(() => video.evaluate(
+    (el: HTMLVideoElement, startTime: number) =>
+      !el.paused && !el.ended && el.currentTime > startTime + 0.05,
+    playbackStartTime,
+  ), {
     timeout: 15_000,
     intervals: [100, 250, 500],
   }).toBe(true);
