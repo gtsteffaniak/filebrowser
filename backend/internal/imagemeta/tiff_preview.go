@@ -59,13 +59,13 @@ func readTIFFScanWindow(f *os.File) (header []byte, order binary.ByteOrder, ifd0
 		return nil, nil, 0, false, nil
 	}
 	var magic [8]byte
-	if _, err := f.ReadAt(magic[:], 0); err != nil {
+	if _, err = f.ReadAt(magic[:], 0); err != nil {
 		if err == io.EOF {
 			return nil, nil, 0, false, nil
 		}
 		return nil, nil, 0, false, err
 	}
-	if _, _, ok := tiffHeaderIFD0(magic[:]); !ok {
+	if _, _, ok = tiffHeaderIFD0(magic[:]); !ok {
 		return nil, nil, 0, false, nil
 	}
 	header = make([]byte, scanSize)
