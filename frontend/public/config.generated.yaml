@@ -269,6 +269,9 @@ shareDefaults:                            # optional defaults for new shares; ma
   quotaLimitBytes: 0
   hideFileExt: ""
   banner: ""
+sharePolicy:                              # rules every non-admin share must meet; config file only
+  maxExpirationHours: 0                   # shares must expire within this many hours; 0 disables the limit
+  requirePassword: false                  # shares must be password protected
 integrations:
   office:                                 #  validate:omitempty
     url: ""                               # The URL to the OnlyOffice Document Server, needs to be accessible to the user.  validate:required
