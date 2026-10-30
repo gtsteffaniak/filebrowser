@@ -786,7 +786,7 @@ export default {
       return mutations.showPrompt(value);
     },
     onEscapeKey(event) {
-      if (event.key !== "Escape" || !this.showContext) return;
+      if (event.key !== "Escape" || (!this.showContext && !this.showOverflow)) return;
       event.preventDefault();
       event.stopPropagation();
       mutations.closeTopPrompt();
