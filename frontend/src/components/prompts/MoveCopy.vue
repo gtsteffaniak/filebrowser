@@ -58,11 +58,11 @@
     <button
       type="button"
       v-else
-      :disabled="destContainsSrc || isLoading"
+      :disabled="destContainsSrc || needsDestination || isLoading"
       class="button button--flat"
       @click="performOperation"
       :aria-label="operation === 'move' ? $t('general.move') : $t('general.copy')"
-      :title="operation === 'move' ? $t('general.move') : $t('general.copy')"
+      :title="needsDestination ? $t('sidebar.chooseSource') : (operation === 'move' ? $t('general.move') : $t('general.copy'))"
     >
       {{ operation === 'move' ? $t('general.move') : $t('general.copy') }}
     </button>
@@ -169,6 +169,15 @@ export default {
     },
     isShareContext() {
       return getters.isShare();
+    },
+    /**
+     * True when there is no source to fall back to and none has been chosen yet,
+     * e.g. in advanced search, where the open request is the list of results and
+     * has no source of its own. The user has to pick a destination first instead
+     * of the items silently going to the root of the first item's source.
+     */
+    needsDestination() {
+      return !this.isShareContext && !this.destSource && !state.req?.source;
     },
   },
   mounted() {
