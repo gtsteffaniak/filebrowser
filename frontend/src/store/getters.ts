@@ -12,7 +12,7 @@ import { getNestedProperty, getObjectProperty } from '@/utils/object.js';
 import { buildItemUrl, removeLeadingSlash, removePrefix } from '@/utils/url.js';
 import { defaultDarkMode } from "@/utils/theme.js";
 import { isMobileLayout } from '@/utils/viewport.js';
-import type { DisplayPreference, FileListItem } from "./types.ts";
+import type { DisplayPreference, FileListItem, fileListItemIndex } from "./types.ts";
 
 export interface PreviewPerms {
   audio: boolean;
@@ -333,12 +333,12 @@ export const getters = {
   },
   reqItems: () => {
     if (state.user === null) return { pinned: [], dirs: [], files: [] };
-    const pinned: FileListItem[] = [];
-    const dirs: FileListItem[] = [];
-    const files: FileListItem[] = [];
+    const pinned: fileListItemIndex[] = [];
+    const dirs: fileListItemIndex[] = [];
+    const files: fileListItemIndex[] = [];
     if (!state.req?.items) return { pinned, dirs, files };
 
-    for (const item of state.req.items) {
+    for (const item of state.req.items as fileListItemIndex[]) {
       if (item.pinned) {
         pinned.push(item);
         continue;

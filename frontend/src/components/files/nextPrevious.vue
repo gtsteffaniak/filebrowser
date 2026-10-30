@@ -528,7 +528,7 @@ export default {
       // Consume the remembered item so a later close does not return here.
       mutations.setPreviousHistoryItem(null);
       const current = state.req;
-      const prevIsCurrent = prev?.path && current?.path
+      const prevIsCurrent = prev?.path && current?.path && !prev.returnTo
         && prev.source === current.source
         && prev.path === current.path;
       if (prev?.name && !prevIsCurrent) {

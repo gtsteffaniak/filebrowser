@@ -763,6 +763,10 @@ export default {
       this.fullSize = !this.fullSize;
     },
     close() {
+      if (state.previousHistoryItem?.name) {
+        this.exitPreviewFromImageGesture();
+        return;
+      }
       mutations.replaceRequest({}); // Reset request data
       const uri = `${removeLastDir(state.route.path)}/`;
       this.$router.push({ path: uri });
@@ -819,9 +823,7 @@ export default {
     /** True when a remembered history item points at the file being previewed. */
     isCurrentPreviewItem(item) {
       const current = state.req;
-      if (!item?.path || !current?.path) {
-        return false;
-      }
+      if (!item?.path || !current?.path || item.returnTo) return false;
       return item.source === current.source && item.path === current.path;
     },
     clearTranscodeFromUrl() {

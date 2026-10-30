@@ -1,7 +1,7 @@
 <template>
   <div ref="rootEl" class="advanced-search-root">
     <div class="card advanced-search-toolbar padding-normal">
-      <form class="card-content advanced-search-card-form" @submit.prevent="runSearch">
+      <form class="card-content advanced-search-card-form" @submit.prevent="runSearch()">
         <div class="advanced-search-config-row">
           <div class="config-primary">
             <div class="as-section-label">{{ $t("tools.advancedSearch.searchTerms") }}</div>
@@ -79,81 +79,24 @@
             </div>
 
             <div v-if="!disableSearchOptions" class="advanced-search-options-section">
-              <SettingsItem
-                :title="advancedOptionsExpanded ? $t('buttons.showLess') : $t('buttons.showMore')"
-                :collapsable="true"
-                :start-collapsed="!advancedOptionsExpanded"
-                @toggle="advancedOptionsExpanded = $event"
-              >
-                <div class="advanced-search-options-pane">
-                  <div class="search-filter-dropdowns">
-                    <ExpandDropdown
-                      v-model="entryTypeFilter"
-                      :options="entryTypeOptions"
-                      all-value="all"
-                      :all-selected-label="$t('search.filesAndFolders')"
-                      :aria-label="$t('search.filesAndFolders')"
-                    />
-                    <ExpandDropdown
-                      v-model="selectedMediaTypes"
-                      :options="mediaTypeOptions"
-                      allow-multiple
-                      empty-means-all
-                      :all-selected-label="$t('search.allFileTypes')"
-                      :disabled="foldersOnly"
-                      :aria-label="$t('search.allFileTypes')"
-                    />
-                  </div>
-                  <div class="constraints">
-                    <div class="sizeInputWrapper">
-                      <p>{{ $t("search.smallerThan") }}</p>
+              <SearchFilters :filters="filters">
+                <template #extra-settings>
+                  <div class="settings-number-input item">
+                    <label for="advanced-search-limit">{{ $t('tools.advancedSearch.resultLimit') }}</label>
+                    <div>
                       <input
-                        class="sizeInput"
-                        v-model="smallerThan"
-                        type="number"
-                        min="0"
-                        placeholder="MB"
+                        id="advanced-search-limit"
+                        v-model.number="resultLimit"
+                        type="range"
+                        min="1"
+                        :max="maxSearchResults"
+                        :disabled="loading"
                       />
-                      <p>{{ $t("search.largerThan") }}</p>
-                      <input class="sizeInput" v-model="largerThan" type="number" placeholder="MB" />
-                    </div>
-                    <div class="sizeInputWrapper">
-                      <p>{{ $t("search.olderThanDate") }}</p>
-                      <input class="sizeInput" v-model="modifiedOlderThan" type="date" />
-                      <p>{{ $t("search.newerThanDate") }}</p>
-                      <input class="sizeInput" v-model="modifiedNewerThan" type="date" />
+                      <output for="advanced-search-limit" class="range-value">{{ resultLimit }}</output>
                     </div>
                   </div>
-                  <div class="settings-items">
-                    <div class="settings-number-input item">
-                      <label for="advanced-search-limit">{{ $t('tools.advancedSearch.resultLimit') }}</label>
-                      <div>
-                        <input
-                          id="advanced-search-limit"
-                          v-model.number="resultLimit"
-                          type="range"
-                          min="1"
-                          :max="maxSearchResults"
-                          :disabled="loading"
-                        />
-                        <output for="advanced-search-limit" class="range-value">{{ resultLimit }}</output>
-                      </div>
-                    </div>
-                    <ToggleSwitch
-                      v-model="useWildcardSearch"
-                      class="item"
-                      :name="$t('search.useWildcardSearch')"
-                      :description="$t('search.useWildcardSearchDescription')"
-                    />
-                    <ToggleSwitch
-                      v-model="caseExactSearch"
-                      class="item"
-                      :name="$t('search.caseExact')"
-                      :description="$t('search.caseExactDescription')"
-                    />
-                  </div>
-                </div>
-              </SettingsItem>
+                </template>
+              </SearchFilters>
             </div>
 
             <div class="advanced-search-actions-row">
@@ -188,12 +131,13 @@
               ref="listingView"
               :class="{
                 'add-padding': isStickySidebar,
+                'rectangle-selecting': isRectangleSelecting,
                 [listingViewMode]: true,
               }"
               :style="listingItemStyles"
               class="listing-items file-icons"
-              @contextmenu="openListingContext"
             >
+              <div v-if="isRectangleSelecting" class="selection-rectangle" :style="rectangleStyle"></div>
               <template v-if="reqListing.dirs.length > 0">
                 <div>
                   <h2>{{ $t("general.folders") }}</h2>
@@ -272,15 +216,20 @@ import { state, getters, mutations } from "@/store";
 import { eventBus } from "@/store/eventBus";
 import { globalVars } from "@/utils/constants";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
-import SettingsItem from "@/components/settings/SettingsItem.vue";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import PathPickerButton from "@/components/files/PathPickerButton.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import Item from "@/components/files/ListingItem.vue";
-import { removeTrailingSlash, removeLeadingSlash, isSameItem } from "@/utils/url.js";
+import { removeTrailingSlash, removeLeadingSlash, isSameItem, goToItem } from "@/utils/url.js";
 import { selectAndScrollToIndex } from "@/utils/selectAndScroll.ts";
 import ListingHeader from "@/components/files/ListingHeader.vue";
-import { utcStartOfDaySecondsFromDateInput } from "@/utils/moment";
+import SearchFilters from "@/components/tools/SearchFilters.vue";
+import { useSearchFilters } from "@/composables/useSearchFilters";
+import { useSearchRequest } from "@/composables/useSearchRequest";
+import { useListingKeyboard } from "@/composables/useListingKeyboard";
+import { useListingLayout } from "@/composables/useListingLayout";
+import { useMouseSelection } from "@/composables/useRectangleSelection";
+import { useListingContextMenu } from "@/composables/useListingContextMenu";
 import { getObjectProperty, setObjectProperty } from '@/utils/object.js';
 
 type QueryRecord = Record<string, unknown>;
@@ -340,17 +289,6 @@ function displayName(fullPath: string, isDirectory: boolean) {
   return name !== "" ? name : (isDirectory ? "/" : "?");
 }
 
-function queryTruthy(v: unknown) {
-  if (v === undefined || v === null || v === "") {
-    return false;
-  }
-  if (v === true || v === 1) {
-    return true;
-  }
-  const s = String(v).toLowerCase();
-  return s === "1" || s === "true" || s === "yes";
-}
-
 function parseTermsFromRouteQuery(routeQuery: QueryRecord) {
   const q = routeQuery || {};
   const out: string[] = [];
@@ -384,53 +322,22 @@ function parseTermsFromRouteQuery(routeQuery: QueryRecord) {
   return out;
 }
 
+function hasQueryValue(q: QueryRecord, queryKey: string) {
+  const raw = getObjectProperty(q, queryKey);
+  return raw !== undefined && raw !== null && String(raw).trim() !== "";
+}
+
 function hasFilterOrTermSignalsForImplicitSources(q: QueryRecord) {
-  if (parseTermsFromRouteQuery(q).length > 0) {
-    return true;
-  }
-
-  const nonempty = (queryKey: string) => {
-    const raw = getObjectProperty(q, queryKey);
-    return raw !== undefined && raw !== null && String(raw).trim() !== "";
-  };
-
-  if (
-    nonempty("types") ||
-    nonempty("largerThan") ||
-    nonempty("smallerThan") ||
-    nonempty("limit") ||
-    nonempty("dateOlder") ||
-    nonempty("dateNewer")
-  ) {
-    return true;
-  }
-
-  if (queryTruthy(q.wildcard) || queryTruthy(q.caseExact) || queryTruthy(q.typeLock)) {
-    return true;
-  }
-
-  return false;
+  return parseTermsFromRouteQuery(q).length > 0 || hasQueryValue(q, "limit") || hasRouteFilters(q);
 }
 
 function hasAnyAdvancedSearchRouteParams(q: QueryRecord) {
-  if (hasFilterOrTermSignalsForImplicitSources(q)) {
-    return true;
-  }
-
-  const nonempty = (queryKey: string) => {
-    const raw = getObjectProperty(q, queryKey);
-    return raw !== undefined && raw !== null && String(raw).trim() !== "";
-  };
-
-  if (
-    nonempty("sources") ||
-    nonempty("scope") ||
+  return (
+    hasFilterOrTermSignalsForImplicitSources(q) ||
+    hasQueryValue(q, "sources") ||
+    hasQueryValue(q, "scope") ||
     String(q.termJoin || "").toLowerCase() === "and"
-  ) {
-    return true;
-  }
-
-  return false;
+  );
 }
 
 /** Canonicalize vue-router query for comparisons. */
@@ -508,30 +415,24 @@ const route = useRoute();
 
 const rootEl = ref<HTMLElement | null>(null);
 const results = ref<HTMLElement | null>(null);
+const listingView = ref<HTMLElement | null>(null);
 
 const resultLimit = ref(Math.min(500, globalVars.searchResultsLimit || 1000));
 const termInputs = ref<string[]>([""]);
 const termsJoinAnd = ref(false);
 const sourceEnabledFlags = ref<QueryRecord>({});
 const sourceScopedPaths = ref<Record<string, string>>({});
-const columnWidth = ref(250 + state.user.gallerySize * 50);
-const innerWidth = ref(typeof window !== "undefined" ? window.innerWidth : 1024);
-const largerThan = ref("");
-const smallerThan = ref("");
-const modifiedOlderThan = ref("");
-const modifiedNewerThan = ref("");
-const entryTypeFilter = ref("all");
-const selectedMediaTypes = ref<string[]>([]);
-const useWildcardSearch = ref(false);
-const caseExactSearch = ref(false);
 const loading = ref(false);
 const error = ref<string | null>(null);
 const searchExecuted = ref(false);
 const resultsEmpty = ref(false);
-const advancedOptionsExpanded = ref(false);
 const headerHidden = ref(false);
 
-let resizeListener: (() => void) | null = null;
+// Updates the URL whenever a filter changes.
+const { filters, buildRequest, toRouteQuery, applyRouteQuery, hasRouteFilters } = useSearchFilters({ onChange: scheduleAdvancedSearchUrlUpdate });
+// Aborts a superseded search and keeps a late response from overwriting newer results.
+const { isRunning, run: runSearchRequest, abort: abortSearch } = useSearchRequest();
+
 let didApplySearchListing = false;
 let hadInitialReq = false;
 let initialReqFrozen = "";
@@ -549,27 +450,6 @@ const shareInfo = computed(() => state.shareInfo);
 /** Keys from `state.sources.info`, sorted (sidebar catalogue). */
 const sourceNameList = computed(() => Object.keys(state.sources.info || {}).sort());
 const disableSearchOptions = computed(() => state.user.disableSearchOptions);
-const foldersOnly = computed(() => entryTypeFilter.value === "type:folder");
-const searchTypes = computed(() => {
-  const parts: string[] = [];
-  if (entryTypeFilter.value !== "all") {
-    parts.push(entryTypeFilter.value);
-  }
-  parts.push(...selectedMediaTypes.value);
-  return parts.length > 0 ? `${parts.join(" ")} ` : "";
-});
-const entryTypeOptions = computed(() => [
-  { value: "all", label: t("search.filesAndFolders") },
-  { value: "type:file", label: t("search.onlyFiles") },
-  { value: "type:folder", label: t("search.onlyFolders") },
-]);
-const mediaTypeOptions = computed(() => [
-  { value: "type:image", label: t("general.photos") },
-  { value: "type:audio", label: t("general.audio") },
-  { value: "type:video", label: t("general.videos") },
-  { value: "type:doc", label: t("general.documents") },
-  { value: "type:archive", label: t("general.archives") },
-]);
 const termJoinDividerLabel = computed(() => {
   const raw = termsJoinAnd.value
     ? t("general.and")
@@ -617,90 +497,57 @@ const selectedSourceNames = computed({
 const isStickySidebar = computed(() => getters.isStickySidebar());
 const listingViewMode = computed(() => getters.viewMode());
 const reqListing = computed(() => {
-  const grouped = getters.reqItems() as {
-    pinned: fileListItemIndex[];
-    dirs: fileListItemIndex[];
-    files: fileListItemIndex[];
-  };
+  const grouped = getters.reqItems();
   if (!grouped.dirs || !grouped.files) {
     return { dirs: [], files: [] };
   }
   return grouped;
 });
-const listingNumColumns = computed(() => {
-  void innerWidth.value;
-  if (!getters.isCardView()) {
-    return 1;
-  }
-  const elem = document.querySelector<HTMLElement>("#main");
-  if (!elem) {
-    return 1;
-  }
-  if (getters.viewMode() === "icons") {
-    const containerSize = 70 + state.user.gallerySize * 15;
-    let columns = Math.floor(elem.offsetWidth / containerSize);
-    if (columns === 0) {
-      columns = 1;
-    }
-    const minColumns = 3;
-    const maxColumns = 12;
-    return Math.max(minColumns, Math.min(columns, maxColumns));
-  }
-  let columns = Math.floor(elem.offsetWidth / columnWidth.value);
-  if (columns === 0) {
-    columns = 1;
-  }
-  return columns;
+
+const allItems = computed(() => [...reqListing.value.dirs, ...reqListing.value.files]);
+
+const { itemStyles: listingItemStyles } = useListingLayout({ container: listingView });
+
+const { isRectangleSelecting, rectangleStyle } = useMouseSelection({
+  container: results,
+  bounds: listingView,
+  items: () => allItems.value,
+  isActive: () => isAdvancedSearchRoute.value,
 });
-const listingItemStyles = computed(() => {
-  const viewMode = getters.viewMode();
-  const styles: Record<string, string> = {};
-  const size = state.user.gallerySize;
 
-  if (viewMode === "icons") {
-    const baseSize = 20 + size * 15;
-    const cellSize = baseSize + 30;
-    styles["--icon-size"] = `${baseSize}px`;
-    styles["--icon-font-size"] = `${baseSize}px`;
-    styles["--icons-view-cell-size"] = `${cellSize}px`;
-  } else if (viewMode === "gallery") {
-    const baseCalc = 80 + size * 25;
-    const extraScaling = Math.max(0, size - 5) * 15;
-    const baseSize = baseCalc + extraScaling;
-    const iconFontSize = (3 + size * 0.5).toFixed(2);
-    styles["--icon-font-size"] = `${iconFontSize}em`;
-
-    if (getters.isMobile()) {
-      const minWidth = size <= 3 ? 120 : size <= 7 ? 160 : 280;
-      const mobileHeight = 120 + size * 20;
-      styles["--gallery-mobile-min-width"] = `${minWidth}px`;
-      styles["--item-width"] = `${minWidth}px`;
-      styles["--item-height"] = `${mobileHeight}px`;
-    } else {
-      styles["--item-width"] = `${baseSize}px`;
-      styles["--item-height"] = `${Math.round(baseSize * 1.2)}px`;
+useListingKeyboard({
+  container: results,
+  items: () => allItems.value,
+  isActive: () => isAdvancedSearchRoute.value,
+  // Results come from several sources and each with its own permissions
+  canModify: () =>
+    (state.selected as number[]).every(
+      (index) => !!getters.sourcePermissions(state.req.items.at(index)?.source).modify,
+    ),
+  ignoreEditableTargets: true,
+  parentNavigation: false,
+  openItem: (item) => {
+    state.pendingHighlight = { path: item.path, source: item.source };
+    if (state.searchResults) {
+      state.searchResults.sorting = { ...getters.sorting() };
     }
-  } else if (viewMode === "list" || viewMode === "compact") {
-    const baseHeight =
-      viewMode === "compact" ? 40 + size * 2 : 50 + size * 3;
-    const iconSize = (2 + size * 0.12).toFixed(2);
-    const iconFontSize = (1.5 + size * 0.12).toFixed(2);
+    mutations.setPreviousHistoryItem({
+      name: item.name,
+      source: item.source as string,
+      path: item.path,
+      returnTo: route.fullPath,
+    });
+    goToItem(item.source, item.path, null, false, getters.isShare());
+  },
+});
 
-    styles["--item-width"] = `calc(${(100 / listingNumColumns.value).toFixed(2)}% - 1em)`;
-    styles["--item-height"] = `${baseHeight}px`;
-    styles["--icon-size"] = `${iconSize}em`;
-    styles["--icon-font-size"] = `${iconFontSize}em`;
-  } else {
-    const iconSize = (3.2 + size * 0.15).toFixed(2);
-    const iconFontSize = (2.2 + size * 0.12).toFixed(2);
-
-    styles["--item-width"] = `calc(${(100 / listingNumColumns.value)}% - 1em)`;
-    styles["--item-height"] = "auto";
-    styles["--icon-size"] = `${iconSize}em`;
-    styles["--icon-font-size"] = `${iconFontSize}em`;
-  }
-
-  return styles;
+useListingContextMenu(listingView, {
+  getProps: () => ({ createOnly: state.selected.length === 0 }),
+  beforeOpen: () =>
+    state.selected.length > 0 ||
+    getters.isAdmin() ||
+    !!(state.user as { showSelectMultiple?: boolean } | undefined)?.showSelectMultiple ||
+    getters.isMobile(),
 });
 
 async function highlightPending() {
@@ -748,8 +595,7 @@ function scheduleSearchRefresh() {
   refreshQueued = true;
   void nextTick().then(() => {
     refreshQueued = false;
-    mutations.resetSelected();
-    void runSearch();
+    void runSearch({ silent: true });
   });
 }
 
@@ -887,14 +733,7 @@ function buildRouteQueryFromState() {
   if (enabled.length > 0) {
     const scopeClauses: string[] = [];
     for (const sourceName of enabled) {
-      let scopedPath = String(getObjectProperty(sourceScopedPaths.value, sourceName) ?? "/").trim();
-      if (scopedPath === "") {
-        scopedPath = "/";
-      }
-      if (!scopedPath.startsWith("/")) {
-        scopedPath = `/${scopedPath}`;
-      }
-      scopeClauses.push(`${sourceName}:${scopedPath}`);
+      scopeClauses.push(`${sourceName}:${normalizedScopedPathForSource(sourceName)}`);
     }
     if (scopeClauses.length === 1) {
       query.scope = scopeClauses[0] as string;
@@ -902,36 +741,10 @@ function buildRouteQueryFromState() {
       query.scope = scopeClauses;
     }
   }
-
-  const trimmedTypes = String(searchTypes.value || "").trim();
-  if (trimmedTypes !== "") {
-    query.types = trimmedTypes;
-  }
-  if (largerThan.value !== "") {
-    query.largerThan = String(largerThan.value);
-  }
+  Object.assign(query, toRouteQuery());
   if (resultLimit.value !== Math.min(500, maxSearchResults.value)) {
     query.limit = String(resultLimit.value);
   }
-  if (smallerThan.value !== "") {
-    query.smallerThan = String(smallerThan.value);
-  }
-  if (modifiedOlderThan.value !== "") {
-    query.dateOlder = String(modifiedOlderThan.value);
-  }
-  if (modifiedNewerThan.value !== "") {
-    query.dateNewer = String(modifiedNewerThan.value);
-  }
-  if (useWildcardSearch.value) {
-    query.wildcard = "1";
-  }
-  if (caseExactSearch.value) {
-    query.caseExact = "1";
-  }
-  if (foldersOnly.value) {
-    query.typeLock = "1";
-  }
-
   return query;
 }
 
@@ -1011,74 +824,14 @@ function applyQueryFromRoute() {
     ]);
     sourceScopedPaths.value = Object.fromEntries(scopedPathEntries);
   }
-
-  const typesIncoming = q.types;
-  const typesStr = typeof typesIncoming === "string"
-    ? typesIncoming.trim()
-    : typesIncoming !== undefined && typesIncoming !== null
-      ? String(typesIncoming).trim()
-      : "";
-  const parsedFilters = parseTypeFiltersFromQuery(typesStr);
-  entryTypeFilter.value = parsedFilters.entryTypeFilter;
-  selectedMediaTypes.value = parsedFilters.selectedMediaTypes;
-  if (queryTruthy(q.typeLock)) {
-    entryTypeFilter.value = "type:folder";
-    selectedMediaTypes.value = [];
-  }
-
-  const largerThanRaw = q.largerThan;
-  largerThan.value = largerThanRaw !== undefined && largerThanRaw !== null
-    ? String(largerThanRaw).trim()
-    : "";
+  applyRouteQuery(q);
 
   const requestedLimit = Number(q.limit);
   resultLimit.value = Number.isSafeInteger(requestedLimit) && requestedLimit > 0
     ? Math.min(requestedLimit, maxSearchResults.value)
     : Math.min(500, maxSearchResults.value);
 
-  const smallerThanRaw = q.smallerThan;
-  smallerThan.value = smallerThanRaw !== undefined && smallerThanRaw !== null
-    ? String(smallerThanRaw).trim()
-    : "";
-
-  const dateOlderRaw = q.dateOlder;
-  modifiedOlderThan.value = dateOlderRaw !== undefined && dateOlderRaw !== null
-    ? String(dateOlderRaw).trim()
-    : "";
-
-  const dateNewerRaw = q.dateNewer;
-  modifiedNewerThan.value = dateNewerRaw !== undefined && dateNewerRaw !== null
-    ? String(dateNewerRaw).trim()
-    : "";
-
-  useWildcardSearch.value = queryTruthy(q.wildcard);
-  caseExactSearch.value = queryTruthy(q.caseExact);
-
   applyDefaultCurrentSourceIfNone();
-}
-
-function parseTypeFiltersFromQuery(typesStr: string) {
-  const entryValues = new Set(["type:file", "type:folder"]);
-  const mediaValues = new Set([
-    "type:image",
-    "type:audio",
-    "type:video",
-    "type:doc",
-    "type:archive",
-  ]);
-  let parsedEntryTypeFilter = "all";
-  const parsedMediaTypes: string[] = [];
-  for (const token of String(typesStr || "").trim().split(/\s+/)) {
-    if (!token) {
-      continue;
-    }
-    if (entryValues.has(token)) {
-      parsedEntryTypeFilter = token;
-    } else if (mediaValues.has(token)) {
-      parsedMediaTypes.push(token);
-    }
-  }
-  return { entryTypeFilter: parsedEntryTypeFilter, selectedMediaTypes: parsedMediaTypes };
 }
 
 function updateAdvancedSearchUrl() {
@@ -1136,28 +889,28 @@ function listingItemKey(item: FileListItem) {
   return `${item.source}::${item.path}`;
 }
 
-function openListingContext(event: MouseEvent) {
-  event.preventDefault();
-  event.stopPropagation();
-  if (getters.currentPromptName() === "ContextMenu") {
-    return;
-  }
-
-  mutations.showPrompt({
-    name: "ContextMenu",
-    props: {
-      showCentered: getters.isMobile(),
-      posX: event.clientX,
-      posY: event.clientY,
-      createOnly: state.selected.length === 0,
-    },
-  });
+function selectedItemKeys() {
+  return (state.selected as number[])
+    .map((index) => state.req.items.at(index))
+    .filter((item): item is FileListItem => !!item)
+    .map(listingItemKey);
 }
 
-async function runSearch() {
+// Indexes change when the results do so the selection follows the items
+function restoreSelection(keys: string[]) {
+  const known = new Set(keys);
+  mutations.setSelected(
+    (state.req.items as fileListItemIndex[])
+      .filter((item) => known.has(listingItemKey(item)))
+      .map((item) => item.index),
+  );
+}
+
+async function runSearch(options: { silent?: boolean } = {}) {
   error.value = null;
 
   if (activeSources.value.length === 0) {
+    abortSearch();
     error.value = t("tools.advancedSearch.invalidSources");
     searchExecuted.value = true;
     resultsEmpty.value = false;
@@ -1174,6 +927,7 @@ async function runSearch() {
   }
 
   if (terms.length === 0) {
+    abortSearch();
     error.value = t("tools.advancedSearch.noTerms");
     searchExecuted.value = true;
     loading.value = false;
@@ -1182,6 +936,7 @@ async function runSearch() {
 
   for (const term of terms) {
     if (term.length < globalVars.minSearchLength) {
+      abortSearch();
       error.value = t("tools.advancedSearch.termTooShort", {
         minSearchLength: globalVars.minSearchLength,
       });
@@ -1192,94 +947,72 @@ async function runSearch() {
   }
 
   searchExecuted.value = true;
-  loading.value = true;
+  if (!options.silent) loading.value = true;
   error.value = null;
 
-  let searchTypesFull = searchTypes.value;
-  if (largerThan.value !== "") {
-    searchTypesFull = `${searchTypesFull}type:largerThan=${largerThan.value} `;
-  }
-  if (smallerThan.value !== "") {
-    searchTypesFull = `${searchTypesFull}type:smallerThan=${smallerThan.value} `;
-  }
-
-  const dateParams: { olderThan?: number; newerThan?: number; useWildcard?: boolean } = {};
-  const olderUnix = utcStartOfDaySecondsFromDateInput(modifiedOlderThan.value);
-  if (olderUnix !== null) {
-    dateParams.olderThan = olderUnix;
-  }
-  const newerUnix = utcStartOfDaySecondsFromDateInput(modifiedNewerThan.value);
-  if (newerUnix !== null) {
-    dateParams.newerThan = newerUnix;
-  }
-  if (useWildcardSearch.value) {
-    dateParams.useWildcard = true;
-  }
-
-  let typedQueryPrefix = `${searchTypesFull}`.trim();
-  if (caseExactSearch.value) {
-    typedQueryPrefix =
-      typedQueryPrefix === ""
-        ? "case:exact "
-        : `case:exact ${typedQueryPrefix} `;
-  }
-
-  const perSourceScopes = [];
+  const { queryPrefix, dateParams } = buildRequest();
+  const perSourceScopes: { source: string; path: string }[] = [];
   for (const activeSourceName of activeSources.value) {
     perSourceScopes.push({
       source: activeSourceName,
       path: normalizedScopedPathForSource(activeSourceName),
     });
   }
-
   const searchRequestKey = searchKey();
-  try {
-    const rows: SearchResultRow[] = await toolsApi.search(
-      null,
-      activeSources.value,
-      typedQueryPrefix,
-      false,
-      {
-        ...dateParams,
-        limit: resultLimit.value,
-        terms,
-        termJoin: termsJoinAnd.value ? "and" : undefined,
-        perSourceScopes,
-      }
-    );
-
-    if (!Array.isArray(rows)) {
-      throw new Error("Invalid search response");
-    }
-
-    const listingItems = rows.map((searchResult): FileListItem => {
-      const resultSource = String(searchResult.source || "");
-      const isDir = String(searchResult.type) === "directory";
-      const fullPath = browsePath(
-        normalizedScopedPathForSource(resultSource),
-        searchResult.path || "",
-        isDir
+  await runSearchRequest(
+    async (signal) => {
+      const rows: SearchResultRow[] = await toolsApi.search(
+        null,
+        activeSources.value,
+        queryPrefix,
+        false,
+        {
+          ...dateParams,
+          limit: resultLimit.value,
+          terms,
+          termJoin: termsJoinAnd.value ? "and" : undefined,
+          perSourceScopes,
+          signal,
+        }
       );
-      const nm = displayName(fullPath, isDir);
-      return {
-        name: nm,
-        path: fullPath,
-        type: isDir ? "directory" : String(searchResult.type || "application/octet-stream"),
-        size: typeof searchResult.size === "number" ? searchResult.size : 0,
-        modified: typeof searchResult.modified === "string" ? searchResult.modified : "",
-        created: typeof searchResult.created === "string" ? searchResult.created : "",
-        hasPreview: !!searchResult.hasPreview,
-        source: resultSource,
-        isShared: false,
-        hidden: false,
-      };
-    });
-    state.searchResults = { kind: "advanced", key: searchRequestKey, items: listingItems };
-    showResults(listingItems);
-  } catch (err) {
-    const message = (err as { message?: unknown } | null)?.message;
-    error.value = typeof message === "string" ? message : t("errors.internal");
-  } finally {
+      if (!Array.isArray(rows)) {
+        throw new Error("Invalid search response");
+      }
+      return rows;
+    },
+    (rows) => {
+      const listingItems = rows.map((searchResult): FileListItem => {
+        const resultSource = String(searchResult.source || "");
+        const isDir = String(searchResult.type) === "directory";
+        const fullPath = browsePath(
+          normalizedScopedPathForSource(resultSource),
+          searchResult.path || "",
+          isDir
+        );
+        return {
+          name: displayName(fullPath, isDir),
+          path: fullPath,
+          type: isDir ? "directory" : String(searchResult.type || "application/octet-stream"),
+          size: typeof searchResult.size === "number" ? searchResult.size : 0,
+          modified: typeof searchResult.modified === "string" ? searchResult.modified : "",
+          created: typeof searchResult.created === "string" ? searchResult.created : "",
+          hasPreview: !!searchResult.hasPreview,
+          source: resultSource,
+          isShared: false,
+          hidden: false,
+        };
+      });
+      state.searchResults = { kind: "advanced", key: searchRequestKey, items: listingItems };
+      const selectedKeys = options.silent ? selectedItemKeys() : [];
+      showResults(listingItems);
+      if (options.silent) restoreSelection(selectedKeys);
+    },
+    (err) => {
+      const message = (err as { message?: unknown } | null)?.message;
+      error.value = typeof message === "string" ? message : t("errors.internal");
+    },
+  );
+  if (!isRunning.value) {
     loading.value = false;
   }
 }
@@ -1305,28 +1038,7 @@ watch(sourceEnabledFlags, scheduleAdvancedSearchUrlUpdate, { deep: true });
 
 watch(sourceScopedPaths, scheduleAdvancedSearchUrlUpdate, { deep: true });
 
-watch(entryTypeFilter, (newValue) => {
-  if (newValue === "type:folder") {
-    selectedMediaTypes.value = [];
-  }
-  scheduleAdvancedSearchUrlUpdate();
-});
-
-watch(selectedMediaTypes, scheduleAdvancedSearchUrlUpdate, { deep: true });
-
-watch(largerThan, scheduleAdvancedSearchUrlUpdate);
-
 watch(resultLimit, scheduleAdvancedSearchUrlUpdate);
-
-watch(smallerThan, scheduleAdvancedSearchUrlUpdate);
-
-watch(modifiedOlderThan, scheduleAdvancedSearchUrlUpdate);
-
-watch(modifiedNewerThan, scheduleAdvancedSearchUrlUpdate);
-
-watch(useWildcardSearch, scheduleAdvancedSearchUrlUpdate);
-
-watch(caseExactSearch, scheduleAdvancedSearchUrlUpdate);
 
 watch(() => route.query, () => {
   if (!isAdvancedSearchRoute.value) {
@@ -1397,18 +1109,9 @@ watch(activeSources, (names) => {
   sourceScopedPaths.value = next;
 }, { deep: true });
 
-watch(() => state.user.gallerySize, () => {
-  columnWidth.value = 250 + state.user.gallerySize * 50;
-});
-
 onMounted(() => {
   document.title = `${globalVars.name} - ${t("tools.title")} - ${t("tools.advancedSearch.name")}`;
   mutations.setSearch(false);
-
-  resizeListener = () => {
-    innerWidth.value = window.innerWidth;
-  };
-  window.addEventListener("resize", resizeListener);
 
   scrollContainer = rootEl.value?.closest<HTMLElement>(".scroll-wrapper") ?? null;
   scrollContainer?.addEventListener("scroll", handleScroll, { passive: true });
@@ -1444,10 +1147,6 @@ onBeforeUnmount(() => {
     emptyCatalogHydrateTimer = null;
   }
 
-  if (resizeListener) {
-    window.removeEventListener("resize", resizeListener);
-    resizeListener = null;
-  }
   scrollContainer?.removeEventListener("scroll", handleScroll);
 
   eventBus.off("itemsDeleted", handleSearchResultsChanged);
@@ -1680,6 +1379,10 @@ onBeforeUnmount(() => {
   }
 }
 
+.advanced-search-listing-results .listing-items {
+  position: relative;
+}
+
 .advanced-search-listing-results {
   margin: 1em;
   margin-top: 0;
@@ -1689,32 +1392,7 @@ onBeforeUnmount(() => {
   margin-top: 0.5em;
 }
 
-.advanced-search-options-pane {
-  box-sizing: border-box;
-  width: 100%;
-}
-
-.search-filter-dropdowns {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5em;
-  align-items: flex-start;
-  justify-content: center;
-  margin-bottom: 0.5em;
-}
-
-.search-filter-dropdowns :deep(.expand-dropdown) {
-  width: auto;
-  flex: 0 1 auto;
-  min-width: 15em;
-  max-width: 15em;
-}
-
-.search-filter-dropdowns :deep(.expand-dropdown-anchor.menu-panel) {
-  min-width: 0;
-}
-
-.advanced-search-options-pane .constraints {
+.advanced-search-options-section :deep(.constraints) {
   box-sizing: border-box;
   margin-left: 1em;
   margin-right: 1em;
