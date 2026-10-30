@@ -850,7 +850,7 @@
       },
       "tabSize": {
         "label": "Dimensione Tab",
-        "description": "Quanti spazi dovrebbe inserire il tasto 'TAB' di default"
+        "description": "Quanti spazi deve inserire il tasto 'TAB' di default -- È anche la dimensione del rientro extra quando imposti il rientro a capo su 'Extra'"
       },
       "showIndentGuides": "Mostra guide di indentazione",
       "showIndentGuidesDescription": "Mostra guide di indentazione, che ti danno un migliore orientamento durante la modifica di codice annidato",
@@ -866,8 +866,13 @@
       "customScrollbarDescription": "Sostituisce la barra di scorrimento nativa del browser con quella integrata di Ace",
       "wrapContent": "A capo delle righe lunghe nell'editor",
       "wrapContentDescription": "Va a capo nel contenuto dell'editor per mantenere sempre visibili le righe molto lunghe",
-      "indentedSoftWrap": "A capo automatico con rientro",
-      "indentedSoftWrapDescription": "Quando è abilitato, aggiunge un rientro all'inizio del testo mandato a capo",
+      "wrapIndent": {
+        "label": "Rientro delle righe mandate a capo",
+        "description": "Come vengono rientrate le righe mandate a capo: 'None' a capo senza rientro, 'Aligned' mantiene il rientro originale della riga, 'Extra' aggiunge un livello extra di rientro, seguendo la tua impostazione di dimensione Tab",
+        "none": "Nessuno",
+        "aligned": "Allineato",
+        "extra": "Extra"
+      },
       "autocompletion": "Completamento automatico",
       "autocompletionDescription": "Abilita il completamento automatico premendo manualmente 'ctrl + space'",
       "liveAutocompletion": "Completamento automatico live",

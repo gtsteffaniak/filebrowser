@@ -841,7 +841,7 @@
       },
       "tabSize": {
         "label": "Rozmiar tabulacji",
-        "description": "Ile spacji powinien domyślnie wstawiać klawisz 'TAB'"
+        "description": "Ile spacji powinien domyślnie wstawiać klawisz 'TAB' -- Jest to również rozmiar dodatkowego wcięcia, gdy ustawisz wcięcie zawijania na 'Extra'"
       },
       "showIndentGuides": "Pokaż prowadnice wcięć",
       "showIndentGuidesDescription": "Pokazuje prowadnice wcięć, co ułatwia orientację podczas edycji zagnieżdżonego kodu",
@@ -857,8 +857,13 @@
       "customScrollbarDescription": "Zamień natywny pasek przewijania przeglądarki na wbudowany pasek Ace",
       "wrapContent": "Zawijanie długich wierszy w edytorze",
       "wrapContentDescription": "Zawija zawartość edytora, aby bardzo długie wiersze były zawsze widoczne",
-      "indentedSoftWrap": "Miękkie zawijanie z wcięciem",
-      "indentedSoftWrapDescription": "Gdy jest włączone, dodaje wcięcie na początku zawiniętego tekstu",
+      "wrapIndent": {
+        "label": "Wcięcie zawiniętych wierszy",
+        "description": "Jak wcinane są zawinięte wiersze: 'None' zawijanie wyrazów bez wcięcia, 'Aligned' zachowuje oryginalne wcięcie wiersza, 'Extra' dodaje dodatkowy poziom wcięcia zgodnie z ustawieniem rozmiaru tabulacji",
+        "none": "Brak",
+        "aligned": "Wyrównane",
+        "extra": "Dodatkowe"
+      },
       "autocompletion": "Autouzupełnianie",
       "autocompletionDescription": "Włącza autouzupełnianie poprzez ręczne naciśnięcie 'ctrl + space'",
       "liveAutocompletion": "Autouzupełnianie na żywo",

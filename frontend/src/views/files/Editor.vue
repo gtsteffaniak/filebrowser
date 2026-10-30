@@ -163,11 +163,12 @@ const showEditorToolbar = computed(() => !editorReadOnly.value);
 const isSplitActive = computed(() =>
   !props.viewerMode && isMarkdownFile.value && state.editor.markdownSplitView && !getters.isMobile() && permissions.value.modify
 );
+const WRAP_METHODS = { none: 'auto', aligned: 'text', extra: 'code' } as const;
 const editorAceOptions = computed(() => ({
   keybinding: editorConfig.keybinding,
   tabSize: editorConfig.tabSize,
   overscroll: editorConfig.overscroll,
-  indentedSoftWrap: editorConfig.indentedSoftWrap,
+  wrapIndent: editorConfig.wrapIndent,
   showIndentGuides: editorConfig.showIndentGuides,
   showGutter: editorConfig.showGutter,
   fixedGutterWidth: editorConfig.fixedGutterWidth,
@@ -385,7 +386,7 @@ function initializeEditor(initialScrollRatio: number = state.editor.scrollRatio)
       theme: isDarkMode.value ? THEME_DARK : THEME_LIGHT,
       readOnly: editorReadOnly.value,
       wrap: !!editorConfig.wrapEditorContent,
-      indentedSoftWrap: editorConfig.indentedSoftWrap,
+      indentedSoftWrap: editorConfig.wrapIndent !== 'none',
       enableMobileMenu: false,
       enableBasicAutocompletion: editorConfig.enableAutocompletion,
       enableLiveAutocompletion: editorConfig.enableAutocompletion && editorConfig.enableLiveAutocompletion,
@@ -402,6 +403,7 @@ function initializeEditor(initialScrollRatio: number = state.editor.scrollRatio)
       keyboardHandler: editorConfig.keybinding || null,
       fontSize: `${state.editor.fontSize}px`,
     });
+    editorInstance.session.setOption('wrapMethod', WRAP_METHODS[editorConfig.wrapIndent]);
     editor.value = editorInstance;
 
     savedContent = editorContent.value;
@@ -691,7 +693,8 @@ function applyAceOptions(cfg: Omit<EditorConfig, "wrapEditorContent"> = editorCo
   editor.value.setOption('keyboardHandler', cfg.keybinding || null);
   editor.value.setOption('tabSize', cfg.tabSize);
   editor.value.setOption('scrollPastEnd', cfg.overscroll);
-  editor.value.setOption('indentedSoftWrap', cfg.indentedSoftWrap);
+  editor.value.session.setOption('wrapMethod', WRAP_METHODS[cfg.wrapIndent]);
+  editor.value.setOption('indentedSoftWrap', cfg.wrapIndent !== 'none');
   editor.value.setOption('displayIndentGuides', cfg.showIndentGuides);
   editor.value.setOption('showGutter', cfg.showGutter);
   editor.value.setOption('fixedWidthGutter', cfg.fixedGutterWidth);

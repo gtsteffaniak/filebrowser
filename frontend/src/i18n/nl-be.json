@@ -841,7 +841,7 @@
       },
       "tabSize": {
         "label": "Tab-grootte",
-        "description": "Hoeveel spaties de 'TAB'-toets standaard moet invoegen"
+        "description": "Hoeveel spaties de 'TAB'-toets standaard moet invoegen -- Het is ook de grootte van de extra inspringing wanneer u de terugloopinspringing op 'Extra' instelt"
       },
       "showIndentGuides": "Inspringingshulplijnen weergeven",
       "showIndentGuidesDescription": "Toon inspringingshulplijnen, dit geeft u een betere oriëntatie bij het bewerken van geneste code",
@@ -857,8 +857,13 @@
       "customScrollbarDescription": "Vervang de native browser-schuifbalk door de ingebouwde van Ace",
       "wrapContent": "Lange regels in de editor laten doorlopen",
       "wrapContentDescription": "Zorgt dat de editorinhoud wordt doorlopen zodat zeer lange regels altijd zichtbaar blijven",
-      "indentedSoftWrap": "Ingesprongen zachte terugloop",
-      "indentedSoftWrapDescription": "Wanneer dit is ingeschakeld, wordt een inspringing toegevoegd aan het begin van de teruggelopen tekst",
+      "wrapIndent": {
+        "label": "Inspringing van teruggelopen regels",
+        "description": "Hoe teruggelopen regels worden ingesprongen: 'None' woordterugloop zonder inspringing, 'Aligned' behoudt de oorspronkelijke regelinspringing, 'Extra' voegt een extra inspringingsniveau toe, volgens uw tab-grootte-instelling",
+        "none": "Geen",
+        "aligned": "Uitgelijnd",
+        "extra": "Extra"
+      },
       "autocompletion": "Automatische aanvulling",
       "autocompletionDescription": "Schakelt automatische aanvulling in door handmatig op 'ctrl + space' te drukken",
       "liveAutocompletion": "Live automatische aanvulling",

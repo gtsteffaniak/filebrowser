@@ -841,7 +841,7 @@
       },
       "tabSize": {
         "label": "Velikost tabulátoru",
-        "description": "Kolik mezer by měla klávesa 'TAB' ve výchozím nastavení provést"
+        "description": "Kolik mezer by měla klávesa 'TAB' ve výchozím nastavení provést -- Je to také velikost dodatečného odsazení, když nastavíte odsazení zalamování na 'Extra'"
       },
       "showIndentGuides": "Zobrazit vodítka odsazení",
       "showIndentGuidesDescription": "Zobrazit vodítka odsazení, což vám usnadní orientaci při úpravě vnořeného kódu",
@@ -857,8 +857,13 @@
       "customScrollbarDescription": "Nahradit nativní posuvník prohlížeče vestavěným posuvníkem Ace",
       "wrapContent": "Zalamovat dlouhé řádky v editoru",
       "wrapContentDescription": "Zalamuje obsah editoru, aby velmi dlouhé řádky zůstaly vždy viditelné",
-      "indentedSoftWrap": "Měkké zalamování s odsazením",
-      "indentedSoftWrapDescription": "Když je tato možnost povolena, přidá odsazení na začátek zalomeného textu",
+      "wrapIndent": {
+        "label": "Odsazení zalomených řádků",
+        "description": "Jak jsou zalomené řádky odsazeny: 'None' zalamování slov bez odsazení, 'Aligned' zachovává původní odsazení řádku, 'Extra' přidává další úroveň odsazení podle nastavení velikosti tabulátoru",
+        "none": "Žádné",
+        "aligned": "Zarovnané",
+        "extra": "Navíc"
+      },
       "autocompletion": "Automatické doplňování",
       "autocompletionDescription": "Povolí automatické doplňování ručním stisknutím 'ctrl + space'",
       "liveAutocompletion": "Živé automatické doplňování",

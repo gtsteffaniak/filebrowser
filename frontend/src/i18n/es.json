@@ -841,7 +841,7 @@
       },
       "tabSize": {
         "label": "Tamaño de tabulación",
-        "description": "Cuántos espacios debe insertar la tecla 'TAB' por defecto"
+        "description": "Cuántos espacios debe insertar la tecla 'TAB' por defecto -- También es el tamaño de sangría cuando configuras 'Sangría de líneas' en 'Extra'"
       },
       "showIndentGuides": "Mostrar guías de sangría",
       "showIndentGuidesDescription": "Muestra guías de sangría, lo que te da una mejor orientación al editar código anidado",
@@ -857,8 +857,13 @@
       "customScrollbarDescription": "Reemplazar la barra de desplazamiento nativa del navegador por la integrada de Ace",
       "wrapContent": "Ajustar líneas largas en el editor",
       "wrapContentDescription": "Ajusta el contenido del editor para mantener siempre visibles las líneas muy largas",
-      "indentedSoftWrap": "Ajustar líneas largas con sangría",
-      "indentedSoftWrapDescription": "Cuando está habilitado, agrega una sangría al inicio de la línea del texto que fue ajustado",
+      "wrapIndent": {
+        "label": "Sangría de líneas",
+        "description": "Cómo se sangran las líneas ajustadas: 'None' ajuste de palabras sin sangría, 'Aligned' conserva la sangría original de la línea, 'Extra' añade un nivel extra, siguiendo tu configuración de tamaño de tabulación",
+        "none": "Ninguna",
+        "aligned": "Alineada",
+        "extra": "Extra"
+      },
       "autocompletion": "Autocompletado",
       "autocompletionDescription": "Habilita el autocompletado presionando manualmente las teclas 'ctrl + espacio'",
       "liveAutocompletion": "Autocompletado automático",

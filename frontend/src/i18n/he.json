@@ -841,7 +841,7 @@
       },
       "tabSize": {
         "label": "גודל Tab",
-        "description": "כמה רווחים מקש 'TAB' צריך לעשות כברירת מחדל"
+        "description": "כמה רווחים מקש 'TAB' צריך לעשות כברירת מחדל -- זה גם גודל ההזחה הנוספת כאשר מגדירים הזחת גלישה ל-'Extra'"
       },
       "showIndentGuides": "הצג מדריכי הזחה",
       "showIndentGuidesDescription": "הצג מדריכי הזחה, זה נותן לך כיוון טוב יותר בעת עריכת קוד מקונן",
@@ -857,8 +857,13 @@
       "customScrollbarDescription": "החלף את סרגל הגלילה המקורי של הדפדפן בזה המובנה של Ace",
       "wrapContent": "גלישת שורות ארוכות בעורך",
       "wrapContentDescription": "גולש את תוכן העורך כדי לשמור על שורות ארוכות מאוד תמיד גלויות",
-      "indentedSoftWrap": "גלישה רכה עם הזחה",
-      "indentedSoftWrapDescription": "כאשר זה מופעל, מוסיף הזחה לתחילת הטקסט הנגלש",
+      "wrapIndent": {
+        "label": "הזחת שורות נגלשות",
+        "description": "כיצד שורות נגלשות מוזחות: 'None' גלילת מילים ללא הזחה, 'Aligned' שומר על ההזחה המקורית של השורה, 'Extra' מוסיף רמת הזחה נוספת, בהתאם להגדרת גודל ה-Tab שלך",
+        "none": "ללא",
+        "aligned": "מיושר",
+        "extra": "נוסף"
+      },
       "autocompletion": "השלמה אוטומטית",
       "autocompletionDescription": "מאפשר השלמה אוטומטית על ידי לחיצה ידנית על 'ctrl + space'",
       "liveAutocompletion": "השלמה אוטומטית חיה",
