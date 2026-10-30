@@ -1214,17 +1214,20 @@ func buildSecretFieldsFor(conf *Settings) SecretFieldsMap {
 	// Prefer the embedded YAML: it is the only marker source available in a deployed binary,
 	// and the generator fixes the comments for every field real users configure.
 	if SecretHintYaml != "" {
-		if _, s, _, err := CollectCommentsFromEmbeddedYaml(SecretHintYaml); err == nil {
+		if _, s, _, err := CollectCommentsFromEmbeddedYaml(SecretHintYaml); err == nil && hasAnySecret(s) {
 			secrets = s
 		}
 	}
-	if len(secrets) == 0 {
+	if !hasAnySecret(secrets) {
 		// Fall back to the Go sources (repo layout / tests). CollectCommentsAndSecrets also
 		// unions in the reflection fallback, so this path never under-reports.
 		// Try each candidate directory until one parses with markers, so a missing or
 		// unparsable first candidate does not skip a valid later one.
 		for _, srcPath := range settingsSourcePaths() {
-			if _, s, _, err := CollectCommentsAndSecrets(srcPath); err == nil && len(s) > 0 {
+			if !isSettingsSourceDir(srcPath) {
+				continue
+			}
+			if _, s, _, err := CollectCommentsAndSecrets(srcPath); err == nil && hasAnySecret(s) {
 				secrets = s
 				break
 			}
@@ -1333,6 +1336,30 @@ func redactStringValue(v reflect.Value) {
 // fallback when the embedded YAML is unavailable during secret detection.
 func settingsSourcePaths() []string {
 	return []string{".", "pkg/settings", "../pkg/settings", "../../pkg/settings"}
+}
+
+// hasAnySecret reports whether the map holds at least one field marked secret. Parsers create
+// an entry for every struct they see, so a non-empty map alone does not mean markers were found.
+func hasAnySecret(secrets SecretFieldsMap) bool {
+	for _, fields := range secrets {
+		for _, secret := range fields {
+			if secret {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// isSettingsSourceDir reports whether dir looks like the settings package sources, so an
+// unrelated Go package earlier in the candidate list (e.g. the working directory) is skipped.
+func isSettingsSourceDir(dir string) bool {
+	info, err := os.Stat(filepath.Join(dir, "generator.go"))
+	if err != nil || info.IsDir() {
+		return false
+	}
+	info, err = os.Stat(filepath.Join(dir, "structs.go"))
+	return err == nil && !info.IsDir()
 }
 
 // identifySecretFieldsByReflection identifies secret fields by known field names
