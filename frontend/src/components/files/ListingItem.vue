@@ -309,7 +309,7 @@ export default {
       return !this.isSelected && this.reducedOpacity;
     },
     getID() {
-      return url.base64Encode(encodeURIComponent(this.name));
+      return url.base64Encode(encodeURIComponent(`${this.source}::${this.path}`));
     },
     quickNav() {
       return state.user.singleClick && !state.multiple;
@@ -888,12 +888,28 @@ export default {
 
       // Check if state.req.items exists and has the item at this index
       // This prevents errors when ListingItem is used outside of the main file listing (e.g., duplicate finder)
-      const currentItem = getObjectProperty(state.req.items, this.index);
-      if (currentItem) {
-        state.pendingHighlight = {
-          path: `${state.req.path.replace(/\/+$/, "")}/${currentItem.name}`,
-          source: state.req.source,
-        };
+      if ((state.route.path || "").startsWith("/tools/advancedSearch")) {
+        state.pendingHighlight = { path: this.path, source: this.source };
+        if (state.searchResults) {
+          state.searchResults.sorting = { ...getters.sorting() };
+        }
+        mutations.setPreviousHistoryItem({
+          name: this.name,
+          source: this.source,
+          path: this.path,
+          returnTo: state.route.fullPath,
+        });
+      } else {
+        if (state.previousHistoryItem?.returnTo) {
+          mutations.setPreviousHistoryItem(null);
+        }
+        const currentItem = getObjectProperty(state.req.items, this.index);
+        if (currentItem) {
+          state.pendingHighlight = {
+            path: `${state.req.path.replace(/\/+$/, "")}/${currentItem.name}`,
+            source: state.req.source,
+          };
+        }
       }
       url.goToItem(this.source, this.path, null, false, getters.isShare());
     },

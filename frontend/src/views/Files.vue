@@ -20,7 +20,8 @@ import Preview from "@/views/files/Preview.vue";
 import ListingView from "@/views/files/ListingView.vue";
 import { state, mutations, getters } from "@/store";
 import { router } from "@/router";
-import { extractSourceFromPath, removeLastDir, base64Encode, removeTrailingSlash, pathsMatch } from "@/utils/url.js";
+import { extractSourceFromPath, removeLastDir, removeTrailingSlash, pathsMatch } from "@/utils/url.js";
+import { selectAndScrollToIndex } from "@/utils/selectAndScroll.ts";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import { globalVars } from "@/utils/constants";
 import { syncEventTheme } from "@/utils/theme";
@@ -274,13 +275,7 @@ export default {
   methods: {
     selectAndScroll(name, replaceSelection = false) {
       const index = state.req?.items?.findIndex((item) => item.name === name) ?? -1;
-      if (index === -1) return false;
-      if (replaceSelection) mutations.resetSelected();
-      mutations.addSelected(index);
-      const el = document.getElementById(base64Encode(encodeURIComponent(name)));
-      if (!el) return false; // selected but item is not in DOM
-      el.scrollIntoView({ behavior: "instant", block: "center" });
-      return true;
+      return index !== -1 && selectAndScrollToIndex(index, replaceSelection);
     },
     async highlightPending(final = true) {
       const pHighlight = state.pendingHighlight;

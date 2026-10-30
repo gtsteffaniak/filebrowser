@@ -1,6 +1,7 @@
 // src/utils/playbackQueue.js
 import { getters, mutations, state } from "@/store/index.ts";
 import { url } from "@/utils/index.ts";
+import { sortedItems } from "@/utils/sort.ts";
 
 /**
  * Shuffles an array -- this is used for playback queue shuffle mode
@@ -26,6 +27,12 @@ export function shuffleArray(array) {
  * @returns {{ queue: Array, currentIndex: number }} The final queue and index of the current item.
  */
 export function buildPlaybackQueue(listing, currentItem, mode = false, isShare = false) {
+  const searchItems = getters.searchNavigationItems(currentItem);
+  if (searchItems) {
+    const sorting = state.searchResults.sorting;
+    listing = sorting ? sortedItems([...searchItems], sorting.by, sorting.asc) : searchItems;
+  }
+
   // Filter only audio/video files
   const mediaFiles = listing.filter(item => {
     const type = item?.type || '';

@@ -38,7 +38,7 @@
     >
       <ListingItem
         v-for="(item, index) in visibleItems"
-        :key="item.path"
+        :key="`${item.source}::${item.path}`"
         :name="item.name"
         :isDir="item.type === 'directory' || item.originalItem?.isDir"
         :source="item.source"
@@ -230,6 +230,9 @@ export default {
       }
       // Otherwise, any selection is valid (including folders)
       return !!this.selected;
+    },
+    usesSearchNavigation() {
+      return !!state.req && !!getters.searchNavigationItems(state.req);
     },
   },
   watch: {
@@ -664,7 +667,11 @@ export default {
       this.items = this.sortEntries(items);
     },
     isCurrentItem(item) {
-      return !!this.fileList && !!state.req && item.name === state.req.name;
+      if (!this.fileList || !state.req) return false;
+      if (this.usesSearchNavigation) {
+        return item.source === state.req.source && item.path === state.req.path;
+      }
+      return item.name === state.req.name;
     },
     // Items selected via right click or long press
     isContextItem(item) {
