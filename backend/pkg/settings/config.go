@@ -118,7 +118,8 @@ func warnHttpProxyConfig() {
 	if len(Config.Http.TrustedProxies) > 0 && !Config.Http.TrustProxyHeaders {
 		logger.Warning("http.trustedProxies is set but http.trustProxyHeaders is false; trusted proxy entries are ignored until trustProxyHeaders is enabled")
 	}
-	if Config.Http.TrustProxyHeaders && len(Config.Http.TrustedProxies) == 0 && Config.Http.Socket == "" {
+	// Check the parsed list: blank entries are accepted by validation but yield no prefixes.
+	if Config.Http.TrustProxyHeaders && len(TrustedProxyPrefixes()) == 0 && Config.Http.Socket == "" {
 		logger.Warning("http.trustProxyHeaders is true but http.trustedProxies is empty; X-Forwarded-For and X-Real-IP are ignored, so client IPs (rate limits, activity logs) resolve to the proxy address. Add your reverse proxy addresses to http.trustedProxies.")
 	}
 	if !Env.IsDevMode {
