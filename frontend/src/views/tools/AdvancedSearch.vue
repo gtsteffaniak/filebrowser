@@ -541,7 +541,15 @@ useListingKeyboard({
   },
 });
 
-useListingContextMenu(listingView, { getProps: () => ({ createOnly: state.selected.length === 0 }) });
+useListingContextMenu(listingView, {
+  getProps: () => ({ createOnly: state.selected.length === 0 }),
+  beforeOpen: () =>
+    state.selected.length > 0 ||
+    getters.isAdmin() ||
+    !!(state.user as { showSelectMultiple?: boolean } | undefined)?.showSelectMultiple ||
+    getters.isMobile(),
+});
+
 async function highlightPending() {
   const p = state.pendingHighlight;
   if (!p) return;

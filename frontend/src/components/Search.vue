@@ -1,5 +1,5 @@
 <template>
-  <div v-if="active" id="search" ref="searchEl" :class="{ active, ongoing: isRunning, 'prompt-open': promptOpen, halloween: eventTheme === 'halloween' }" @click="clearContext">
+  <div v-if="active" id="search" :class="{ active, ongoing: isRunning, 'prompt-open': promptOpen, halloween: eventTheme === 'halloween' }" @click="clearContext">
     <!-- Search input section -->
     <div class="search-input-container">
       <!-- Close button visible when search is active -->
@@ -36,7 +36,7 @@
         <div class="searchContext">{{ $t("search.searchContext", { context: getContext }) }}</div>
       </div>
 
-      <div id="result-list">
+      <div id="result-list" ref="resultListEl">
         <div v-if="!disableSearchOptions">
           <div v-if="active">
             <SearchFilters
@@ -76,11 +76,11 @@
               'small-icons': !showPreviewImages
             }"
             :aria-label="baseName(s.path)"
+            :data-result-index="k"
           >
             <a
               :href="getItemUrl(s)"
               @click="openResult($event, k)"
-              @contextmenu="addSelected($event, s)"
             >
               <Icon
                 :mimetype="s.type"
@@ -150,7 +150,7 @@ interface SearchResult {
 
 const { t } = useI18n();
 
-const searchEl = ref<HTMLElement | null>(null);
+const resultListEl = ref<HTMLElement | null>(null);
 const input = ref<HTMLInputElement | null>(null);
 const noneMessage = ref(t("search.typeToSearch", { minSearchLength: globalVars.minSearchLength }));
 const showPreviewImages = ref(false);
@@ -222,7 +222,10 @@ const getContext = computed(() => {
   }
 });
 
-useListingContextMenu(searchEl, { getProps: () => ({ showLimitedOptions: true }) });
+useListingContextMenu(resultListEl, {
+  getProps: () => ({ showLimitedOptions: true }),
+  beforeOpen: selectResultAt,
+});
 
 watch(
   () => state.sources.current,
@@ -278,19 +281,6 @@ onBeforeUnmount(() => {
   document.removeEventListener("keydown", handleKeydown);
   debouncedSubmit.cancel();
 });
-
-function openContext(event: MouseEvent) {
-  event.preventDefault();
-  event.stopPropagation();
-  mutations.showPrompt({
-    name: "ContextMenu",
-    props: {
-      posX: event.clientX,
-      posY: event.clientY,
-      showLimitedOptions: true,
-    },
-  });
-}
 
 function updateSource(newSource: string) {
   selectedSource.value = newSource;
@@ -563,11 +553,13 @@ function openInAdvancedSearch() {
     .catch(() => {});
 }
 
-function addSelected(event: MouseEvent, s: SearchResult) {
-  event.preventDefault();
+function selectResultAt(target: EventTarget | null): boolean {
+  const entry = (target as Element | null)?.closest<HTMLElement>("[data-result-index]");
+  const result = entry ? results.value[Number(entry.dataset.resultIndex)] : undefined;
+  if (!result) return false;
   mutations.resetSelected();
-  mutations.addSelected(resultToItem(s));
-  openContext(event);
+  mutations.addSelected(resultToItem(result));
+  return true;
 }
 </script>
 

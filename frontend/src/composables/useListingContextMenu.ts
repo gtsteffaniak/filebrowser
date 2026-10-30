@@ -3,6 +3,7 @@ import { state, getters, mutations } from "@/store/index.ts";
 
 interface ContextMenuTriggerOptions {
   getProps?: () => Record<string, unknown>;
+  beforeOpen?: (target: EventTarget | null) => boolean | undefined;
 }
 
 export function useListingContextMenu(
@@ -13,6 +14,7 @@ export function useListingContextMenu(
   let isSwipe = false;
   let touchStartX = 0;
   let touchStartY = 0;
+  let touchTarget: EventTarget | null = null;
 
   function openContext(position: { posX: number; posY: number }) {
     // Prevent opening if already open
@@ -29,7 +31,12 @@ export function useListingContextMenu(
     });
   }
 
+  function canOpen(target: EventTarget | null) {
+    return getters.currentPromptName() === "ContextMenu" || options.beforeOpen?.(target) !== false;
+  }
+
   function onContextMenu(event: MouseEvent) {
+    if (!canOpen(event.target)) return;
     event.preventDefault();
     event.stopPropagation();
     openContext({ posX: event.clientX, posY: event.clientY });
@@ -50,8 +57,9 @@ export function useListingContextMenu(
     if (!touch) return;
     touchStartX = touch.clientX;
     touchStartY = touch.clientY;
+    touchTarget = event.target;
     contextTimeout = setTimeout(() => {
-      if (!isSwipe) {
+      if (!isSwipe && canOpen(touchTarget)) {
         openContext({ posX: touchStartX, posY: touchStartY });
       }
     }, 500);
