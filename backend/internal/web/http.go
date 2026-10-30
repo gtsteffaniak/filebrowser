@@ -258,7 +258,7 @@ func GetRemoteIP(r *http.Request) string {
 
 	// Forwarded client headers are only honored when the socket peer is a
 	// configured trusted proxy; otherwise a direct client could spoof its IP.
-	trustedPeer := cfg.Http.TrustProxyHeaders && settings.IsTrustedProxyPeer(r.RemoteAddr)
+	trustedPeer := cfg.Http.TrustProxyHeaders && settings.IsTrustedProxyPeer(r)
 
 	xff := r.Header.Get("X-Forwarded-For")
 	if trustedPeer && xff != "" {

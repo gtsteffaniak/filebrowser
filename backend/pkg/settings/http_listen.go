@@ -35,5 +35,8 @@ func ValidateHttpConfig(h Http) error {
 			return fmt.Errorf("http.trustedProxies entry %q: %v", entry, err)
 		}
 	}
+	if _, err := parseSocketFileMode(h.SocketFileMode); err != nil {
+		return err
+	}
 	return nil
 }
