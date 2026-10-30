@@ -43,30 +43,47 @@ type tiffTag struct {
 	valueOffset uint32
 }
 
-// collectTIFFPreviewCandidates walks TIFF IFDs (including SubIFDs) for embedded
-// JPEG preview offset/length pairs that imagemeta does not surface.
-func collectTIFFPreviewCandidates(f *os.File) ([]previewCandidate, error) {
+// readTIFFScanWindow reads the bounded IFD scan window (up to tiffIFDScanLimit bytes) of f.
+// It validates the 8-byte TIFF header first, so non-TIFF files such as JPEGs are rejected
+// without allocating or reading the full window. ok is false for non-TIFF or too-short files.
+func readTIFFScanWindow(f *os.File) (header []byte, order binary.ByteOrder, ifd0 uint32, ok bool, err error) {
 	info, err := f.Stat()
 	if err != nil {
-		return nil, err
+		return nil, nil, 0, false, err
 	}
 	scanSize := info.Size()
 	if scanSize > tiffIFDScanLimit {
 		scanSize = tiffIFDScanLimit
 	}
 	if scanSize < 8 {
-		return nil, nil
+		return nil, nil, 0, false, nil
 	}
-	header := make([]byte, scanSize)
+	var magic [8]byte
+	if _, err := f.ReadAt(magic[:], 0); err != nil {
+		if err == io.EOF {
+			return nil, nil, 0, false, nil
+		}
+		return nil, nil, 0, false, err
+	}
+	if _, _, ok := tiffHeaderIFD0(magic[:]); !ok {
+		return nil, nil, 0, false, nil
+	}
+	header = make([]byte, scanSize)
 	n, err := f.ReadAt(header, 0)
 	if err != nil && err != io.EOF {
-		return nil, err
+		return nil, nil, 0, false, err
 	}
 	header = header[:n]
+	order, ifd0, ok = tiffHeaderIFD0(header)
+	return header, order, ifd0, ok, nil
+}
 
-	order, ifd0, ok := tiffHeaderIFD0(header)
-	if !ok {
-		return nil, nil
+// collectTIFFPreviewCandidates walks TIFF IFDs (including SubIFDs) for embedded
+// JPEG preview offset/length pairs that imagemeta does not surface.
+func collectTIFFPreviewCandidates(f *os.File) ([]previewCandidate, error) {
+	header, order, ifd0, ok, err := readTIFFScanWindow(f)
+	if err != nil || !ok {
+		return nil, err
 	}
 
 	seen := make(map[uint32]struct{})
@@ -115,26 +132,8 @@ func collectTIFFPreviewCandidates(f *os.File) ([]previewCandidate, error) {
 // extractTIFFOrientation reads standard TIFF IFD0 Orientation (0x0112) as a fallback
 // when full EXIF decoding fails.
 func extractTIFFOrientation(f *os.File) uint16 {
-	info, err := f.Stat()
-	if err != nil {
-		return 0
-	}
-	scanSize := info.Size()
-	if scanSize > tiffIFDScanLimit {
-		scanSize = tiffIFDScanLimit
-	}
-	if scanSize < 8 {
-		return 0
-	}
-	header := make([]byte, scanSize)
-	n, err := f.ReadAt(header, 0)
-	if err != nil && err != io.EOF {
-		return 0
-	}
-	header = header[:n]
-
-	order, ifd0, ok := tiffHeaderIFD0(header)
-	if !ok || ifd0 == 0 {
+	header, order, ifd0, ok, err := readTIFFScanWindow(f)
+	if err != nil || !ok || ifd0 == 0 {
 		return 0
 	}
 	ifd, _, _, err := parseTIFFIFD(header, order, ifd0)
