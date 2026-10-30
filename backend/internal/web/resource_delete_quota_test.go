@@ -8,7 +8,9 @@ import (
 	"testing"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/fileutils"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/database/quota"
 	dbsql "github.com/gtsteffaniak/filebrowser/backend/internal/database/sql"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/preview"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
@@ -46,6 +48,38 @@ func setupDeleteQuotaTest(t *testing.T) string {
 	return sourcePath
 }
 
+// seedNestedQuotaFixture writes files under scope, indexes them, and creates accounted
+// quotas on public/nested (5 bytes used) and sibling (7 bytes used).
+func seedNestedQuotaFixture(t *testing.T, sourcePath, scope string, user *users.User) (nested, sibling *quota.FolderQuota) {
+	t.Helper()
+	for path, content := range map[string]string{"public/direct": "123", "public/nested/file": "12345", "sibling/file": "1234567"} {
+		full := filepath.Join(sourcePath, scope, path)
+		if err := os.MkdirAll(filepath.Dir(full), 0755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(full, []byte(content), 0644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := indexing.GetIndex("Downloads").RefreshDirectory("/", true); err != nil {
+		t.Fatal(err)
+	}
+	nested, err := state.CreateFolderQuota(sourcePath, utils.JoinPathAsUnix(scope, "/public/nested"), user.ID, 100, "accounted")
+	if err != nil {
+		t.Fatal(err)
+	}
+	sibling, err = state.CreateFolderQuota(sourcePath, utils.JoinPathAsUnix(scope, "/sibling"), user.ID, 100, "accounted")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for path, size := range map[string]int64{"/public/nested/file": 5, "/sibling/file": 7} {
+		if err = state.ApplyAccountedUsageDelta(user, "Downloads", sourcePath, utils.JoinPathAsUnix(scope, path), "", size); err != nil {
+			t.Fatal(err)
+		}
+	}
+	return nested, sibling
+}
+
 // The API path is relative to the user's scope while quota paths and the index are
 // source-relative, so the scoped case checks that the delete joins the scope.
 func TestResourceDeleteNestedQuota(t *testing.T) {
@@ -62,32 +96,7 @@ func TestResourceDeleteNestedQuota(t *testing.T) {
 				t.Fatal(err)
 			}
 			user.BackendScopes[0].Scope = scope
-			for path, content := range map[string]string{"public/direct": "123", "public/nested/file": "12345", "sibling/file": "1234567"} {
-				full := filepath.Join(sourcePath, scope, path)
-				if err = os.MkdirAll(filepath.Dir(full), 0755); err != nil {
-					t.Fatal(err)
-				}
-				if err = os.WriteFile(full, []byte(content), 0644); err != nil {
-					t.Fatal(err)
-				}
-			}
-			idx := indexing.GetIndex("Downloads")
-			if err = idx.RefreshDirectory("/", true); err != nil {
-				t.Fatal(err)
-			}
-			nested, err := state.CreateFolderQuota(sourcePath, utils.JoinPathAsUnix(scope, "/public/nested"), user.ID, 100, "accounted")
-			if err != nil {
-				t.Fatal(err)
-			}
-			sibling, err := state.CreateFolderQuota(sourcePath, utils.JoinPathAsUnix(scope, "/sibling"), user.ID, 100, "accounted")
-			if err != nil {
-				t.Fatal(err)
-			}
-			for path, size := range map[string]int64{"/public/nested/file": 5, "/sibling/file": 7} {
-				if err = state.ApplyAccountedUsageDelta(&user, "Downloads", sourcePath, utils.JoinPathAsUnix(scope, path), "", size); err != nil {
-					t.Fatal(err)
-				}
-			}
+			nested, sibling := seedNestedQuotaFixture(t, sourcePath, scope, &user)
 			req := httptest.NewRequest(http.MethodDelete, "/api/resources?source=Downloads&path=/public", nil)
 			status, err := resourceDeleteHandler(httptest.NewRecorder(), req, &requestContext{User: &user})
 			if err != nil || status != http.StatusOK {

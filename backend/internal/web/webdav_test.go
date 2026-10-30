@@ -1164,32 +1164,7 @@ func TestWebDAVDeleteNestedQuota(t *testing.T) {
 				t.Fatal(err)
 			}
 			user.BackendScopes[0].Scope = scope
-			for path, content := range map[string]string{"public/direct": "123", "public/nested/file": "12345", "sibling/file": "1234567"} {
-				full := filepath.Join(sourcePath, scope, path)
-				if err = os.MkdirAll(filepath.Dir(full), 0755); err != nil {
-					t.Fatal(err)
-				}
-				if err = os.WriteFile(full, []byte(content), 0644); err != nil {
-					t.Fatal(err)
-				}
-			}
-			idx := indexing.GetIndex("Downloads")
-			if err = idx.RefreshDirectory("/", true); err != nil {
-				t.Fatal(err)
-			}
-			nested, err := state.CreateFolderQuota(sourcePath, utils.JoinPathAsUnix(scope, "/public/nested"), user.ID, 100, "accounted")
-			if err != nil {
-				t.Fatal(err)
-			}
-			sibling, err := state.CreateFolderQuota(sourcePath, utils.JoinPathAsUnix(scope, "/sibling"), user.ID, 100, "accounted")
-			if err != nil {
-				t.Fatal(err)
-			}
-			for path, size := range map[string]int64{"/public/nested/file": 5, "/sibling/file": 7} {
-				if err = state.ApplyAccountedUsageDelta(&user, "Downloads", sourcePath, utils.JoinPathAsUnix(scope, path), "", size); err != nil {
-					t.Fatal(err)
-				}
-			}
+			nested, sibling := seedNestedQuotaFixture(t, sourcePath, scope, &user)
 			ffs := &filteredFileSystem{fs: failedDeleteFileSystem{webdav.Dir(filepath.Join(sourcePath, scope))}, source: "Downloads", user: &user}
 			if err = ffs.RemoveAll(context.Background(), "/public"); err == nil {
 				t.Fatal("expected forbidden deletion")
