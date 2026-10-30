@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v2.1.4
 
+ **New Features**:
+ - feat(search): sidebar File actions and close button in advanced search (#3303) (#2479) (#3303)
+
  **Bug Fixes**:
  - Deleting a directory now releases folder quotas rooted inside it instead of leaving them charged for files that no longer exist; applies to API and WebDAV deletes (#3163) (#3235)
  - Bulk and public share deletes now release accounted quota usage; nested folder quotas reset when an ancestor is removed (#3163) (#3305)
