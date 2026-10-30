@@ -219,12 +219,34 @@ func TestSerialBootstrapPassResetsFullScanCounter(t *testing.T) {
 		scanner.fullScanCounter = 2
 	})
 
-	idx.runSerialScanPass()
+	idx.runSerialScanPass(true)
 
 	var counter int
 	scanner.withStatsRLock(func() { counter = scanner.fullScanCounter })
 	if counter != 1 {
 		t.Fatalf("after bootstrap full scan fullScanCounter = %d, want 1", counter)
+	}
+}
+
+// A serial pass triggered by a newly discovered scanner (not startup) must not reset the
+// cadence of a scanner that has already been scanned.
+func TestSerialPassForNewScannerKeepsExistingCadence(t *testing.T) {
+	idx := newRestoreTestIndex(t, "serial_keep", nil, persistedScanners("/"))
+	idx.setupMultiScannerEx(false, false)
+	idx.mu.Lock()
+	scanner := idx.scanners["/"]
+	scanner.lastScanned = time.Now()
+	idx.mu.Unlock()
+	scanner.withStatsLock(func() {
+		scanner.fullScanCounter = 2
+	})
+
+	idx.runSerialScanPass(false)
+
+	var counter int
+	scanner.withStatsRLock(func() { counter = scanner.fullScanCounter })
+	if counter == 1 {
+		t.Fatalf("fullScanCounter = 1: existing scanner was reset to a full scan by a non-startup pass")
 	}
 }
 
