@@ -626,6 +626,12 @@ export default {
       return getters.currentPrompt();
     },
   },
+  mounted() {
+    document.addEventListener("keydown", this.onEscapeKey, true);
+  },
+  beforeUnmount() {
+    document.removeEventListener("keydown", this.onEscapeKey, true);
+  },
   watch: {
     hasOverflowItems: {
       handler(hasItems) {
@@ -696,8 +702,8 @@ export default {
     showAccessPrompt() {
       mutations.closeHovers();
       const item = this.firstSelected;
-      const sourceName = item?.source || state.req.source || state.sources?.current || "";
-      const path = item?.path || state.req.path || "/";
+      const sourceName = item?.source || state.req.source;
+      const path = item?.path || state.req.path;
       mutations.showPrompt({
         name: "access",
         props: {
@@ -778,6 +784,12 @@ export default {
     },
     showPrompt(value) {
       return mutations.showPrompt(value);
+    },
+    onEscapeKey(event) {
+      if (event.key !== "Escape" || !this.showContext) return;
+      event.preventDefault();
+      event.stopPropagation();
+      mutations.closeTopPrompt();
     },
     showSharePrompt() {
       mutations.closeHovers();
