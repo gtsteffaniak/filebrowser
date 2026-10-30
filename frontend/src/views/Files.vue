@@ -20,7 +20,7 @@ import Preview from "@/views/files/Preview.vue";
 import ListingView from "@/views/files/ListingView.vue";
 import { state, mutations, getters } from "@/store";
 import { router } from "@/router";
-import { extractSourceFromPath, removeLastDir, base64Encode, removeTrailingSlash } from "@/utils/url.js";
+import { extractSourceFromPath, removeLastDir, base64Encode, removeTrailingSlash, buildItemUrl } from "@/utils/url.js";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import { globalVars } from "@/utils/constants";
 import { syncEventTheme } from "@/utils/theme";
@@ -441,7 +441,8 @@ export default {
                 if (!link.category.startsWith('source')) {
                   continue;
                 }
-                targetPath = `/files/${link.sourceName}${link.target}`;
+                // Encode source and path segments (names with spaces, #, ? etc.).
+                targetPath = buildItemUrl(link.sourceName, link.target);
                 break;
               }
             }
