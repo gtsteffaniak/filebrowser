@@ -6,14 +6,26 @@ All notable changes to this project will be documented in this file. For commit 
 
  **Bug Fixes**:
  - Deleting a directory now releases folder quotas rooted inside it instead of leaving them charged for files that no longer exist; applies to API and WebDAV deletes (#3163) (#3235)
- - Bulk and public share deletes now release accounted quota usage; nested folder quotas reset when an ancestor is removed (#3163)
+ - Bulk and public share deletes now release accounted quota usage; nested folder quotas reset when an ancestor is removed (#3163) (#3305)
  - Directory listings skip entries that return permission denied or not-found on per-entry stat instead of failing the whole folder (e.g. unreadable NTFS junctions on CIFS); skipped entries are omitted from the index like `ls -l` (#3184)
  - Preview generation for webp broken (#3254) (#3259)
  - Share banner never shows to public visitors, returns bannerUrl but not banner (#3246) (#3250)
- - fix html/markdwon relative file preview support (#3131) (#3129) (#2355)
+ - fix html/markdown relative file preview support (#3131) (#3129) (#2355)
  - fix(archive): extract tar hard links instead of dropping them (#3234)
- - fix(auth): apply stored permission caps for customized API tokens with no global flags enabled
- - Archive extraction writes regular and hard-link entries at the entry path instead of following an existing symlink at that path (tar and zip)
+ - fix(auth): apply stored permission caps for customized API tokens with no global flags enabled (#3255)
+ - Archive extraction writes regular and hard-link entries at the entry path instead of following an existing symlink at that path (tar and zip) (#3265)
+ - fix(move-copy): require choosing a destination source in advanced search when none can be inferred, instead of silently copying to the source root (#3276)
+ - fix(stream): single-file shares can now stream their own media on Windows by using slash-based path handling (#3270) (#3271)
+ - fix(users): `lockPassword` is now enforced on self-service password changes; non-admins get 403 while admin resets still work (#3279) (#3283)
+ - fix(analytics): the FreeBSD release binary now reports `freebsd` in `system.os` instead of `other` (#3244) (#3284)
+ - fix(frontend): share expiration now reads backend Unix-seconds timestamps correctly instead of showing dates decades off (#3247)
+ - fix(frontend): video on iPhone now uses the native fullscreen player instead of the in-page fallback (#3113) (#3288)
+ - fix(frontend): the video loading spinner no longer stays on for the rest of playback when the fetch stalls but the buffer can continue (#3287) (#3289)
+ - fix(frontend): the share banner is now shown to public visitors, using `bannerUrl` instead of the never-set `banner` field (#3246) (#3250)
+ - fix(preview): camera RAW files (Panasonic `.rw2`/`.raw`/`.rwl`, Olympus `.orf`, `.cr2`/`.dng`) extract embedded previews from TIFF strips/SubIFDs and no longer return 415 when EXIF decoding fails (#3219) (#3243)
+ - fix(indexing): restore lazy listing persistence with atomic folder-size deltas and ancestor propagation, and force a full scan for scanners that missed their slot while the process was down (#3260)
+ - fix(indexing): directory listings skip entries that cannot be accessed or have vanished instead of failing the whole listing; remaining errors still fail and fully-vanished nonempty directories return an error (#3292)
+ - fix(frontend): redirects from `/files` stay inside the files area so a source named "Files" no longer leaves an empty view after login (#3167) (#3304)
 
 ## v2.1.3
 
