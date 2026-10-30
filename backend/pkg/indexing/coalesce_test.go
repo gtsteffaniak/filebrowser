@@ -4,6 +4,7 @@ import (
 	"sync"
 	"sync/atomic"
 	"testing"
+	"time"
 )
 
 func TestPathCoalescerRunsLatestAndBoundsConcurrency(t *testing.T) {
@@ -50,9 +51,17 @@ func TestPathCoalescerRunsLatestAndBoundsConcurrency(t *testing.T) {
 	if got := maxRunning.Load(); got != 1 {
 		t.Fatalf("max concurrent = %d, want 1", got)
 	}
-	c.mu.Lock()
-	left := len(c.pending)
-	c.mu.Unlock()
+	// The final job's wg.Done runs before the coalescer drops the key, so poll briefly.
+	var left int
+	for deadline := time.Now().Add(2 * time.Second); ; {
+		c.mu.Lock()
+		left = len(c.pending)
+		c.mu.Unlock()
+		if left == 0 || time.Now().After(deadline) {
+			break
+		}
+		time.Sleep(time.Millisecond)
+	}
 	if left != 0 {
 		t.Fatalf("pending keys left = %d, want 0", left)
 	}
