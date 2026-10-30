@@ -502,6 +502,9 @@ export default {
   },
   data() {
     return {
+      // Guards async search results: drop responses after unmount or when a newer search started.
+      isUnmounted: false,
+      searchSeq: 0,
       resultLimit: Math.min(500, globalVars.searchResultsLimit || 1000),
       termInputs: [""],
       termsJoinAnd: false,
@@ -901,6 +904,7 @@ export default {
     }
   },
   beforeUnmount() {
+    this.isUnmounted = true;
     if (
       typeof window !== "undefined" &&
       this.emptyCatalogHydrateTimer !== null
@@ -1402,6 +1406,8 @@ export default {
         });
       }
 
+      const seq = ++this.searchSeq;
+      const isStale = () => this.isUnmounted || seq !== this.searchSeq;
       try {
         const rows = await toolsApi.search(
           null,
@@ -1416,6 +1422,8 @@ export default {
             perSourceScopes,
           }
         );
+        // Do not overwrite the listing after leaving the tool or behind a newer search.
+        if (isStale()) return;
 
         if (!Array.isArray(rows)) {
           throw new Error("Invalid search response");
@@ -1458,12 +1466,13 @@ export default {
           this.resultsEmpty = false;
         }
       } catch (err) {
+        if (isStale()) return;
         this.error =
           err && typeof err.message === "string"
             ? err.message
             : this.$t("errors.internal");
       } finally {
-        this.loading = false;
+        if (!isStale()) this.loading = false;
       }
     },
   },
