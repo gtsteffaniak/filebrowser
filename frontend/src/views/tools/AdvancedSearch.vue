@@ -1,7 +1,7 @@
 <template>
   <div ref="rootEl" class="advanced-search-root">
     <div class="card advanced-search-toolbar padding-normal">
-      <form class="card-content advanced-search-card-form" @submit.prevent="runSearch">
+      <form class="card-content advanced-search-card-form" @submit.prevent="runSearch()">
         <div class="advanced-search-config-row">
           <div class="config-primary">
             <div class="as-section-label">{{ $t("tools.advancedSearch.searchTerms") }}</div>
@@ -188,12 +188,13 @@
               ref="listingView"
               :class="{
                 'add-padding': isStickySidebar,
+                'rectangle-selecting': isRectangleSelecting,
                 [listingViewMode]: true,
               }"
               :style="listingItemStyles"
               class="listing-items file-icons"
-              @contextmenu="openListingContext"
             >
+              <div v-if="isRectangleSelecting" class="selection-rectangle" :style="rectangleStyle"></div>
               <template v-if="reqListing.dirs.length > 0">
                 <div>
                   <h2>{{ $t("general.folders") }}</h2>
@@ -277,10 +278,14 @@ import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import PathPickerButton from "@/components/files/PathPickerButton.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import Item from "@/components/files/ListingItem.vue";
-import { removeTrailingSlash, removeLeadingSlash, isSameItem } from "@/utils/url.js";
+import { removeTrailingSlash, removeLeadingSlash, isSameItem, goToItem } from "@/utils/url.js";
 import { selectAndScrollToIndex } from "@/utils/selectAndScroll.ts";
 import ListingHeader from "@/components/files/ListingHeader.vue";
 import { utcStartOfDaySecondsFromDateInput } from "@/utils/moment";
+import { useListingKeyboard } from "@/composables/useListingKeyboard";
+import { useListingLayout } from "@/composables/useListingLayout";
+import { useMouseSelection } from "@/composables/useRectangleSelection";
+import { useListingContextMenu } from "@/composables/useListingContextMenu";
 import { getObjectProperty, setObjectProperty } from '@/utils/object.js';
 
 type QueryRecord = Record<string, unknown>;
@@ -508,14 +513,13 @@ const route = useRoute();
 
 const rootEl = ref<HTMLElement | null>(null);
 const results = ref<HTMLElement | null>(null);
+const listingView = ref<HTMLElement | null>(null);
 
 const resultLimit = ref(Math.min(500, globalVars.searchResultsLimit || 1000));
 const termInputs = ref<string[]>([""]);
 const termsJoinAnd = ref(false);
 const sourceEnabledFlags = ref<QueryRecord>({});
 const sourceScopedPaths = ref<Record<string, string>>({});
-const columnWidth = ref(250 + state.user.gallerySize * 50);
-const innerWidth = ref(typeof window !== "undefined" ? window.innerWidth : 1024);
 const largerThan = ref("");
 const smallerThan = ref("");
 const modifiedOlderThan = ref("");
@@ -531,7 +535,6 @@ const resultsEmpty = ref(false);
 const advancedOptionsExpanded = ref(false);
 const headerHidden = ref(false);
 
-let resizeListener: (() => void) | null = null;
 let didApplySearchListing = false;
 let hadInitialReq = false;
 let initialReqFrozen = "";
@@ -627,82 +630,45 @@ const reqListing = computed(() => {
   }
   return grouped;
 });
-const listingNumColumns = computed(() => {
-  void innerWidth.value;
-  if (!getters.isCardView()) {
-    return 1;
-  }
-  const elem = document.querySelector<HTMLElement>("#main");
-  if (!elem) {
-    return 1;
-  }
-  if (getters.viewMode() === "icons") {
-    const containerSize = 70 + state.user.gallerySize * 15;
-    let columns = Math.floor(elem.offsetWidth / containerSize);
-    if (columns === 0) {
-      columns = 1;
-    }
-    const minColumns = 3;
-    const maxColumns = 12;
-    return Math.max(minColumns, Math.min(columns, maxColumns));
-  }
-  let columns = Math.floor(elem.offsetWidth / columnWidth.value);
-  if (columns === 0) {
-    columns = 1;
-  }
-  return columns;
-});
-const listingItemStyles = computed(() => {
-  const viewMode = getters.viewMode();
-  const styles: Record<string, string> = {};
-  const size = state.user.gallerySize;
 
-  if (viewMode === "icons") {
-    const baseSize = 20 + size * 15;
-    const cellSize = baseSize + 30;
-    styles["--icon-size"] = `${baseSize}px`;
-    styles["--icon-font-size"] = `${baseSize}px`;
-    styles["--icons-view-cell-size"] = `${cellSize}px`;
-  } else if (viewMode === "gallery") {
-    const baseCalc = 80 + size * 25;
-    const extraScaling = Math.max(0, size - 5) * 15;
-    const baseSize = baseCalc + extraScaling;
-    const iconFontSize = (3 + size * 0.5).toFixed(2);
-    styles["--icon-font-size"] = `${iconFontSize}em`;
+const allItems = computed(() => [...reqListing.value.dirs, ...reqListing.value.files]);
 
-    if (getters.isMobile()) {
-      const minWidth = size <= 3 ? 120 : size <= 7 ? 160 : 280;
-      const mobileHeight = 120 + size * 20;
-      styles["--gallery-mobile-min-width"] = `${minWidth}px`;
-      styles["--item-width"] = `${minWidth}px`;
-      styles["--item-height"] = `${mobileHeight}px`;
-    } else {
-      styles["--item-width"] = `${baseSize}px`;
-      styles["--item-height"] = `${Math.round(baseSize * 1.2)}px`;
-    }
-  } else if (viewMode === "list" || viewMode === "compact") {
-    const baseHeight =
-      viewMode === "compact" ? 40 + size * 2 : 50 + size * 3;
-    const iconSize = (2 + size * 0.12).toFixed(2);
-    const iconFontSize = (1.5 + size * 0.12).toFixed(2);
+const { itemStyles: listingItemStyles } = useListingLayout();
 
-    styles["--item-width"] = `calc(${(100 / listingNumColumns.value).toFixed(2)}% - 1em)`;
-    styles["--item-height"] = `${baseHeight}px`;
-    styles["--icon-size"] = `${iconSize}em`;
-    styles["--icon-font-size"] = `${iconFontSize}em`;
-  } else {
-    const iconSize = (3.2 + size * 0.15).toFixed(2);
-    const iconFontSize = (2.2 + size * 0.12).toFixed(2);
-
-    styles["--item-width"] = `calc(${(100 / listingNumColumns.value)}% - 1em)`;
-    styles["--item-height"] = "auto";
-    styles["--icon-size"] = `${iconSize}em`;
-    styles["--icon-font-size"] = `${iconFontSize}em`;
-  }
-
-  return styles;
+const { isRectangleSelecting, rectangleStyle } = useMouseSelection({
+  container: results,
+  bounds: listingView,
+  items: () => allItems.value,
+  isActive: () => isAdvancedSearchRoute.value,
 });
 
+useListingKeyboard({
+  container: results,
+  items: () => allItems.value,
+  isActive: () => isAdvancedSearchRoute.value,
+  // Results come from several sources and each with its own permissions
+  canModify: () =>
+    (state.selected as number[]).every(
+      (index) => !!getters.sourcePermissions(state.req.items.at(index)?.source).modify,
+    ),
+  ignoreEditableTargets: true,
+  parentNavigation: false,
+  openItem: (item) => {
+    state.pendingHighlight = { path: item.path, source: item.source };
+    if (state.searchResults) {
+      state.searchResults.sorting = { ...getters.sorting() };
+    }
+    mutations.setPreviousHistoryItem({
+      name: item.name,
+      source: item.source as string,
+      path: item.path,
+      returnTo: route.fullPath,
+    });
+    goToItem(item.source, item.path, null, false, getters.isShare());
+  },
+});
+
+useListingContextMenu(listingView, { getProps: () => ({ createOnly: state.selected.length === 0 }) });
 async function highlightPending() {
   const p = state.pendingHighlight;
   if (!p) return;
@@ -748,8 +714,7 @@ function scheduleSearchRefresh() {
   refreshQueued = true;
   void nextTick().then(() => {
     refreshQueued = false;
-    mutations.resetSelected();
-    void runSearch();
+    void runSearch({ silent: true });
   });
 }
 
@@ -1136,25 +1101,24 @@ function listingItemKey(item: FileListItem) {
   return `${item.source}::${item.path}`;
 }
 
-function openListingContext(event: MouseEvent) {
-  event.preventDefault();
-  event.stopPropagation();
-  if (getters.currentPromptName() === "ContextMenu") {
-    return;
-  }
-
-  mutations.showPrompt({
-    name: "ContextMenu",
-    props: {
-      showCentered: getters.isMobile(),
-      posX: event.clientX,
-      posY: event.clientY,
-      createOnly: state.selected.length === 0,
-    },
-  });
+function selectedItemKeys() {
+  return (state.selected as number[])
+    .map((index) => state.req.items.at(index))
+    .filter((item): item is FileListItem => !!item)
+    .map(listingItemKey);
 }
 
-async function runSearch() {
+// Indexes change when the results do so the selection follows the items
+function restoreSelection(keys: string[]) {
+  const known = new Set(keys);
+  mutations.setSelected(
+    (state.req.items as fileListItemIndex[])
+      .filter((item) => known.has(listingItemKey(item)))
+      .map((item) => item.index),
+  );
+}
+
+async function runSearch(options: { silent?: boolean } = {}) {
   error.value = null;
 
   if (activeSources.value.length === 0) {
@@ -1192,7 +1156,7 @@ async function runSearch() {
   }
 
   searchExecuted.value = true;
-  loading.value = true;
+  if (!options.silent) loading.value = true;
   error.value = null;
 
   let searchTypesFull = searchTypes.value;
@@ -1275,7 +1239,9 @@ async function runSearch() {
       };
     });
     state.searchResults = { kind: "advanced", key: searchRequestKey, items: listingItems };
+    const selectedKeys = options.silent ? selectedItemKeys() : [];
     showResults(listingItems);
+    if (options.silent) restoreSelection(selectedKeys);
   } catch (err) {
     const message = (err as { message?: unknown } | null)?.message;
     error.value = typeof message === "string" ? message : t("errors.internal");
@@ -1397,18 +1363,9 @@ watch(activeSources, (names) => {
   sourceScopedPaths.value = next;
 }, { deep: true });
 
-watch(() => state.user.gallerySize, () => {
-  columnWidth.value = 250 + state.user.gallerySize * 50;
-});
-
 onMounted(() => {
   document.title = `${globalVars.name} - ${t("tools.title")} - ${t("tools.advancedSearch.name")}`;
   mutations.setSearch(false);
-
-  resizeListener = () => {
-    innerWidth.value = window.innerWidth;
-  };
-  window.addEventListener("resize", resizeListener);
 
   scrollContainer = rootEl.value?.closest<HTMLElement>(".scroll-wrapper") ?? null;
   scrollContainer?.addEventListener("scroll", handleScroll, { passive: true });
@@ -1444,10 +1401,6 @@ onBeforeUnmount(() => {
     emptyCatalogHydrateTimer = null;
   }
 
-  if (resizeListener) {
-    window.removeEventListener("resize", resizeListener);
-    resizeListener = null;
-  }
   scrollContainer?.removeEventListener("scroll", handleScroll);
 
   eventBus.off("itemsDeleted", handleSearchResultsChanged);
@@ -1678,6 +1631,10 @@ onBeforeUnmount(() => {
   100% {
     transform: rotate(360deg);
   }
+}
+
+.advanced-search-listing-results .listing-items {
+  position: relative;
 }
 
 .advanced-search-listing-results {

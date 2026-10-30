@@ -763,6 +763,10 @@ export default {
       this.fullSize = !this.fullSize;
     },
     close() {
+      if (state.previousHistoryItem?.name) {
+        this.exitPreviewFromImageGesture();
+        return;
+      }
       mutations.replaceRequest({}); // Reset request data
       const uri = `${removeLastDir(state.route.path)}/`;
       this.$router.push({ path: uri });
