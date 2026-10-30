@@ -5,6 +5,8 @@ All notable changes to this project will be documented in this file. For commit 
 ## v2.1.4
 
  **Bug Fixes**:
+ - Deleting a directory now releases folder quotas rooted inside it instead of leaving them charged for files that no longer exist; applies to API and WebDAV deletes (#3163) (#3235)
+ - Bulk and public share deletes now release accounted quota usage; nested folder quotas reset when an ancestor is removed (#3163)
  - Directory listings skip entries that return permission denied or not-found on per-entry stat instead of failing the whole folder (e.g. unreadable NTFS junctions on CIFS); skipped entries are omitted from the index like `ls -l` (#3184)
  - Preview generation for webp broken (#3254) (#3259)
  - Share banner never shows to public visitors, returns bannerUrl but not banner (#3246) (#3250)

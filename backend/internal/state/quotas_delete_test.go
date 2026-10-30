@@ -2,6 +2,7 @@ package state
 
 import (
 	"reflect"
+	"slices"
 	"testing"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/quota"
@@ -43,21 +44,31 @@ func TestPrepareAccountedDelete(t *testing.T) {
 	shareID := quota.ShareQuotaID("share")
 	quotaCounters["scope"] = &quotaCounterMem{UsedBytes: 100, ReservedBytes: 7}
 	quotaCounters[shareID] = &quotaCounterMem{UsedBytes: 100, ReservedBytes: 7}
-	want := map[string]int64{"cover": -60, "exact": -60, "nested": -50, "deeper": -30, "scope": -60, shareID: -60}
+	wantDeltas := map[string]int64{"cover": -60, "scope": -60, shareID: -60}
+	wantResets := []string{"exact", "nested", "deeper", "missing"}
 	got := PrepareAccountedDelete(principal, "delete", "/source", "/public", "share", true, 60)
-	if !reflect.DeepEqual(got, want) {
-		t.Fatalf("adjustments = %v, want %v", got, want)
+	if !reflect.DeepEqual(got.Deltas, wantDeltas) {
+		t.Fatalf("deltas = %v, want %v", got.Deltas, wantDeltas)
 	}
-	for id, delta := range want {
+	if !slicesEqual(got.Resets, wantResets) {
+		t.Fatalf("resets = %v, want %v", got.Resets, wantResets)
+	}
+	for id, delta := range wantDeltas {
 		quotaCounters[id].UsedBytes = -delta
 	}
 	quotaCounters["cover"].UsedBytes += 40
+	for _, id := range wantResets {
+		quotaCounters[id].UsedBytes = 100
+	}
 	if err := ApplyAccountedDelete(got); err != nil {
 		t.Fatal(err)
 	}
 	for id, c := range quotaCounters {
 		expected := int64(100)
-		if _, ok := want[id]; ok {
+		if _, ok := wantDeltas[id]; ok {
+			expected = 0
+		}
+		if slices.Contains(wantResets, id) {
 			expected = 0
 		}
 		if id == "cover" {
@@ -69,15 +80,56 @@ func TestPrepareAccountedDelete(t *testing.T) {
 	}
 	for _, size := range []int64{0, -1} {
 		got = PrepareAccountedDelete(principal, "delete", "/source", "/public", "", true, size)
-		if !reflect.DeepEqual(got, map[string]int64{"nested": -50, "deeper": -30}) {
-			t.Fatalf("unavailable/zero ancestor: %v", got)
+		wantResetsUnknown := []string{"exact", "nested", "deeper", "missing"}
+		if len(got.Deltas) != 0 || !slicesEqual(got.Resets, wantResetsUnknown) {
+			t.Fatalf("unavailable/zero ancestor: deltas=%v resets=%v", got.Deltas, got.Resets)
 		}
 	}
 	got = PrepareAccountedDelete(principal, "delete", "/source", "/public/nested/file", "", false, 5)
-	if !reflect.DeepEqual(got, map[string]int64{"cover": -5, "exact": -5, "nested": -5, "scope": -5}) {
+	if !reflect.DeepEqual(got, DeleteAdjustments{
+		Deltas: map[string]int64{"cover": -5, "exact": -5, "nested": -5, "scope": -5},
+	}) {
 		t.Fatalf("file adjustments: %v", got)
 	}
-	if got := PrepareAccountedDelete(nil, "delete", "/source", "/public", "share", true, 60); len(got) != 0 {
-		t.Fatalf("nil principal: %v", got)
+	empty := PrepareAccountedDelete(nil, "delete", "/source", "/public", "share", true, 60)
+	if len(empty.Deltas) != 0 || len(empty.Resets) != 0 {
+		t.Fatalf("nil principal: %v", empty)
 	}
+}
+
+func TestPrepareAccountedDeleteResetsWithoutIndexedSizes(t *testing.T) {
+	oldFolders, oldSources, oldCounters := folderQuotasByID, folderQuotasBySource, quotaCounters
+	folderQuotasByID = make(map[string]*quota.FolderQuota)
+	folderQuotasBySource = make(map[string][]string)
+	quotaCounters = make(map[string]*quotaCounterMem)
+	t.Cleanup(func() {
+		folderQuotasByID, folderQuotasBySource, quotaCounters = oldFolders, oldSources, oldCounters
+		indexing.ClearTestIndices()
+	})
+	indexing.SetTestIndex("delete", "/source")
+	principal := &users.User{ID: 1}
+	nested := quota.FolderQuota{ID: "nested", Source: "/source", Path: "/public/nested", Meter: quota.MeterAccounted, LimitBytes: 1000}
+	storeFolderQuota(nested)
+	quotaCounters["nested"] = &quotaCounterMem{UsedBytes: 50, ReservedBytes: 3}
+	got := PrepareAccountedDelete(principal, "delete", "/source", "/public", "", true, 0)
+	if !slicesEqual(got.Resets, []string{"nested"}) {
+		t.Fatalf("resets = %v, want nested reset without index sizes", got.Resets)
+	}
+	if err := ApplyAccountedDelete(got); err != nil {
+		t.Fatal(err)
+	}
+	if used, reserved := GetQuotaCounterSnapshot("nested"); used != 0 || reserved != 3 {
+		t.Fatalf("nested used=%d reserved=%d, want 0/3", used, reserved)
+	}
+}
+
+func slicesEqual(a, b []string) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	ac := slices.Clone(a)
+	bc := slices.Clone(b)
+	slices.Sort(ac)
+	slices.Sort(bc)
+	return slices.Equal(ac, bc)
 }

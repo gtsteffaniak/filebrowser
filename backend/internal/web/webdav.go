@@ -573,7 +573,7 @@ func (ffs *filteredFileSystem) RemoveAll(ctx context.Context, requestPath string
 	if err := ffs.checkScopePath(requestPath, true); err != nil {
 		logger.Debugf("RemoveAll: scope check denied for %s: %v", requestPath, err)
 		return err
-  }
+	}
 	// The API delete path frees the deleted bytes from the quota counters. Do the same
 	// here: a WebDAV DELETE, and the MOVE over an existing destination that the WebDAV
 	// library implements as RemoveAll + Rename, otherwise leave the old bytes charged
@@ -599,7 +599,7 @@ func (ffs *filteredFileSystem) RemoveAll(ctx context.Context, requestPath string
 
 	// Collect the adjustments before deleting: a directory delete also has to release
 	// folder quotas nested under it, and their sizes come from the index.
-	var adjustments map[string]int64
+	var adjustments state.DeleteAdjustments
 	if sourceInfo, ok := settings.Config.Server.NameToSource[ffs.source]; ok {
 		adjustments = state.PrepareAccountedDelete(ffs.user, ffs.source, sourceInfo.Path, indexPath, "", isDir, deleteBytes)
 	}

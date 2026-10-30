@@ -1,6 +1,8 @@
 package web
 
 import (
+	"bytes"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -112,5 +114,73 @@ func TestResourceDeleteNestedQuota(t *testing.T) {
 				t.Fatalf("sibling usage=%d, want 7", used)
 			}
 		})
+	}
+}
+
+func TestResourceBulkDeleteNestedQuota(t *testing.T) {
+	for _, scope := range []string{"/", "/scoped"} {
+		t.Run(scope, func(t *testing.T) {
+			sourcePath := setupDeleteQuotaTest(t)
+			if preview.GetService() == nil {
+				if err := preview.StartPreviewGenerator(1, t.TempDir()); err != nil {
+					t.Fatal(err)
+				}
+			}
+			user, err := state.GetUserByUsername("admin")
+			if err != nil {
+				t.Fatal(err)
+			}
+			user.BackendScopes[0].Scope = scope
+			nested, sibling := seedNestedQuotaFixture(t, sourcePath, scope, &user)
+			body, err := json.Marshal([]BulkDeleteItem{{Source: "Downloads", Path: "/public"}})
+			if err != nil {
+				t.Fatal(err)
+			}
+			req := httptest.NewRequest(http.MethodDelete, "/api/resources/bulk", bytes.NewReader(body))
+			req.Header.Set("Content-Type", "application/json")
+			rec := httptest.NewRecorder()
+			status, err := ResourceBulkDeleteHandler(rec, req, &requestContext{User: &user})
+			if err != nil || status != http.StatusOK {
+				t.Fatalf("bulk delete: status=%d err=%v body=%s", status, err, rec.Body.String())
+			}
+			if _, err := os.Stat(filepath.Join(sourcePath, scope, "public")); !os.IsNotExist(err) {
+				t.Fatalf("ancestor still exists: %v", err)
+			}
+			if used, _ := state.GetQuotaCounterSnapshot(nested.ID); used != 0 {
+				t.Fatalf("nested usage=%d, want 0", used)
+			}
+			if used, _ := state.GetQuotaCounterSnapshot(sibling.ID); used != 7 {
+				t.Fatalf("sibling usage=%d, want 7", used)
+			}
+		})
+	}
+}
+
+func TestResourceBulkDeletePartialFailureKeepsQuota(t *testing.T) {
+	sourcePath := setupDeleteQuotaTest(t)
+	user, err := state.GetUserByUsername("admin")
+	if err != nil {
+		t.Fatal(err)
+	}
+	nested, sibling := seedNestedQuotaFixture(t, sourcePath, "/", &user)
+	body, err := json.Marshal([]BulkDeleteItem{
+		{Source: "Downloads", Path: "/no-such-path"},
+		{Source: "Downloads", Path: "/public"},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	req := httptest.NewRequest(http.MethodDelete, "/api/resources/bulk", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	rec := httptest.NewRecorder()
+	status, err := ResourceBulkDeleteHandler(rec, req, &requestContext{User: &user})
+	if err != nil || status != http.StatusMultiStatus {
+		t.Fatalf("bulk delete: status=%d err=%v", status, err)
+	}
+	if used, _ := state.GetQuotaCounterSnapshot(nested.ID); used != 0 {
+		t.Fatalf("nested usage=%d, want 0 after successful item", used)
+	}
+	if used, _ := state.GetQuotaCounterSnapshot(sibling.ID); used != 7 {
+		t.Fatalf("sibling usage=%d, want 7", used)
 	}
 }
