@@ -378,6 +378,8 @@ export default {
     showCreateFileActions() {
       if (this.showLimitedOptions) return false;
       if (!this.permissions.create) return false;
+      // Advanced search results are not a target folder; never offer create actions there.
+      if (this.isAdvancedSearch) return false;
       return this.showCreate && !this.isSearchActive;
     },
     req() {
@@ -820,7 +822,7 @@ export default {
     },
     initializeCreateState() {
       this.showNewFileTemplate = false;
-      if (this.createOnly) {
+      if (this.createOnly && !this.isAdvancedSearch) {
         this.showCreate = true;
         return;
       }
