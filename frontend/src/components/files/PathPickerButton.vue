@@ -172,4 +172,10 @@ export default {
   overflow-wrap: break-word;
   box-sizing: border-box;
 }
+
+/* .button removes the outline, so keyboard focus needs its own indicator. */
+.unified-path-picker:focus-visible {
+  outline: 2px solid var(--primaryColor);
+  outline-offset: 2px;
+}
 </style>
