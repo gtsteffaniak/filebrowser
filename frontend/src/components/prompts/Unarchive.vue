@@ -52,6 +52,17 @@
             <p v-else-if="!encodingCandidates.length" role="alert">{{ $t("prompts.zipEncodingUnavailable") }}</p>
           </template>
         </section>
+        <section v-if="supportsPassword" class="password-options">
+          <label for="archive-password" class="prompts-label">{{ $t("prompts.optionalPassword") }}</label>
+          <input
+            id="archive-password"
+            v-model="password"
+            class="input"
+            type="password"
+            autocomplete="off"
+            @keydown.enter.stop.prevent="submit"
+          />
+        </section>
         <div class="unarchive-options settings-items">
           <ToggleSwitch class="item" v-model="deleteAfter"
             :name="$t('profileSettings.deleteAfterArchive')"
@@ -180,6 +191,7 @@ export default {
       encodingCandidates: [],
       filenameEncoding: "",
       suggestedEncoding: "",
+      password: "",
       showFileList: false,
       showNewDirInput: false,
       newDirName: "",
@@ -205,6 +217,10 @@ export default {
   computed: {
     isZip() {
       return (this.itemPath || "").toLowerCase().endsWith(".zip");
+    },
+    supportsPassword() {
+      const lower = (this.itemPath || "").toLowerCase();
+      return lower.endsWith(".rar") || lower.endsWith(".7z");
     },
     encodingReady() {
       return !this.isZip || (!this.encodingLoading && !this.encodingError && !!this.filenameEncoding);
@@ -237,6 +253,10 @@ export default {
       if (lower.endsWith(".tar.gz")) return name.slice(0, -7);
       if (lower.endsWith(".tgz")) return name.slice(0, -4);
       if (lower.endsWith(".zip")) return name.slice(0, -4);
+      if (lower.endsWith(".7z")) return name.slice(0, -3);
+      const rarPart = /\.part\d+\.rar$/.exec(lower);
+      if (rarPart) return name.slice(0, -rarPart[0].length);
+      if (lower.endsWith(".rar")) return name.slice(0, -4);
       return name;
     },
   },
@@ -340,6 +360,7 @@ export default {
           destination: this.destPath,
           deleteAfter: this.deleteAfter,
           ...(this.isZip && { filenameEncoding: this.filenameEncoding }),
+          ...(this.supportsPassword && this.password && { password: this.password }),
         });
         mutations.setReload(true);
         mutations.closeTopPrompt();
@@ -370,11 +391,13 @@ export default {
 </script>
 
 <style scoped>
-.encoding-options {
+.encoding-options,
+.password-options {
   margin-top: 1em;
 }
 
-.encoding-options label {
+.encoding-options label,
+.password-options label {
   display: block;
 }
 

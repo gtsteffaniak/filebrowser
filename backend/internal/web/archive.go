@@ -389,14 +389,15 @@ func archiveCreateHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 // unarchiveHandler extracts an archive on the server. POST /resources/unarchive — server-side only.
 //
 // @Summary Extract an archive on the server
-// @Description Extracts a zip or tar.gz archive on the server into the given destination directory. Server-side only; no extracted bytes are returned. Supports extracting to a different source via toSource. Requires create permission. Archive size is checked against server.maxArchiveSizeGB limit if configured.
+// @Description Extracts a zip, tar.gz, rar, or 7z archive on the server into the given destination directory. Server-side only; no extracted bytes are returned. Supports extracting to a different source via toSource. Requires create permission. Archive size is checked against server.maxArchiveSizeGB limit if configured.
 // @Description
 // @Description **Request body parameters:**
 // @Description - **fromSource** (string, required): Source name where the archive file lives. Example: `"default"`
 // @Description - **toSource** (string, optional): Source name where contents will be extracted. Defaults to fromSource if omitted. Example: `"restored"`
-// @Description - **path** (string, required): Path to the archive file (on fromSource). Must be .zip, .tar.gz, or .tgz. Example: `"/downloads/data.zip"`
+// @Description - **path** (string, required): Path to the archive file (on fromSource). Must be .zip, .tar.gz, .tgz, .rar, or .7z. For multi-volume RAR archives, pass the first volume. Example: `"/downloads/data.zip"`
 // @Description - **destination** (string, required): Directory path (on toSource) to extract into. Example: `"/projects/imported"`
-// @Description - **deleteAfter** (boolean, optional): If true, delete the archive file after successful extraction. Default: false. Example: `true`
+// @Description - **deleteAfter** (boolean, optional): If true, delete the archive file (and every RAR volume read) after successful extraction. Default: false. Example: `true`
+// @Description - **password** (string, optional): Password for encrypted .rar or .7z archives. Encrypted archives without a password, or with a wrong one, return 400.
 // @Description - **filenameEncoding** (string, optional): Fallback ZIP filename encoding: utf-8, cp932, gb18030, big5, euc-kr, cp437, windows-1252. Unicode metadata takes precedence. Omit to use a suggestion; ambiguous encodings require a selection.
 // @Description - **preview** (boolean, optional): Return ZIP encoding candidates and sample filenames without extracting or deleting anything. Requires the same source/destination permissions as extraction.
 // @Tags Resources
@@ -542,19 +543,46 @@ func unarchiveHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 		username:        d.User.Username,
 		perms:           destPerms,
 	}
+	isRar := strings.HasSuffix(lower, ".rar")
+	is7z := strings.HasSuffix(lower, ".7z")
+	if req.Password != "" && !isRar && !is7z {
+		return http.StatusBadRequest, fmt.Errorf("password is only supported for .rar and .7z archives")
+	}
+	// Multi-volume RAR archives read sibling files; apply the same access rules to each.
+	archiveDirIndex := path.Dir(fullArchivePath)
+	volumeAllowed := func(name string) bool {
+		return state.AccessPermitted(idxFrom.Path, utils.IndexPathFromNormalized(utils.JoinPathAsUnix(archiveDirIndex, name), true), d.User.Username)
+	}
+	// Archive files to delete when deleteAfter is set.
+	archiveFiles := []string{archiveReal}
 	var extractErr error
-	if strings.HasSuffix(lower, ".zip") {
+	switch {
+	case strings.HasSuffix(lower, ".zip"):
 		extractErr = extractZipWithEncoding(archiveReal, destReal, req.FilenameEncoding, policy)
-	} else if strings.HasSuffix(lower, ".tar.gz") || (strings.HasSuffix(lower, ".tgz")) {
+	case strings.HasSuffix(lower, ".tar.gz"), strings.HasSuffix(lower, ".tgz"):
 		extractErr = extractTarGz(archiveReal, destReal, policy)
-	} else {
-		return http.StatusBadRequest, fmt.Errorf("unsupported archive format (use .zip or .tar.gz)")
+	case isRar:
+		var volumes []string
+		volumes, extractErr = extractRar(archiveReal, destReal, req.Password, policy, volumeAllowed)
+		if len(volumes) > 0 {
+			archiveFiles = archiveFiles[:0]
+			for _, v := range volumes {
+				archiveFiles = append(archiveFiles, filepath.Join(filepath.Dir(archiveReal), v))
+			}
+		}
+	case is7z:
+		extractErr = extract7z(archiveReal, destReal, req.Password, policy)
+	default:
+		return http.StatusBadRequest, fmt.Errorf("unsupported archive format (use .zip, .tar.gz, .rar, or .7z)")
 	}
 	if extractErr != nil {
 		if errors.Is(extractErr, archiveencoding.ErrEncoding) {
 			return http.StatusBadRequest, extractErr
 		}
-		if errors.Is(extractErr, errExtractAccessDenied) {
+		if errors.Is(extractErr, errArchivePasswordRequired) || errors.Is(extractErr, errArchiveBadPassword) {
+			return http.StatusBadRequest, extractErr
+		}
+		if errors.Is(extractErr, errExtractAccessDenied) || errors.Is(extractErr, errArchiveVolumeDenied) {
 			return http.StatusForbidden, extractErr
 		}
 		logger.Errorf("archive extraction failed: %v", extractErr)
@@ -562,8 +590,10 @@ func unarchiveHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 	}
 
 	if req.DeleteAfter {
-		if err := os.Remove(archiveReal); err != nil {
-			logger.Errorf("Failed to delete archive after extract: %v", err)
+		for _, f := range archiveFiles {
+			if err := os.Remove(f); err != nil {
+				logger.Errorf("Failed to delete archive after extract: %v", err)
+			}
 		}
 	}
 
@@ -997,7 +1027,7 @@ type unarchiveRequest struct {
 	FromSource string `json:"fromSource"`
 	// Source name where contents will be extracted (optional; default: fromSource). Example: "restored"
 	ToSource string `json:"toSource"`
-	// Path to the archive file on fromSource; .zip, .tar.gz, or .tgz (required). Example: "/downloads/data.zip"
+	// Path to the archive file on fromSource; .zip, .tar.gz, .tgz, .rar, or .7z (required). Example: "/downloads/data.zip"
 	Path string `json:"path"`
 	// Directory path on toSource to extract into (required). Example: "/projects/imported"
 	Destination string `json:"destination"`
@@ -1007,6 +1037,8 @@ type unarchiveRequest struct {
 	FilenameEncoding string `json:"filenameEncoding,omitempty"`
 	// Inspect ZIP names without writing or deleting files.
 	Preview bool `json:"preview,omitempty"`
+	// Password for encrypted .rar or .7z archives (optional).
+	Password string `json:"password,omitempty"`
 }
 
 // normalizeArchiveEntryName turns a raw zip/tar name into a safe relative path (slash-separated).
@@ -1274,13 +1306,13 @@ func extractArchivedSymlink(destRoot, destPath, target string, modTime time.Time
 }
 
 // extractArchivedHardLink writes a copy of a regular file extracted earlier from the same
-// archive, which is what a tar hard link entry stands for.
-func extractArchivedHardLink(destRoot, destPath string, h *tar.Header, extracted map[string]os.FileInfo) error {
-	targetPath, err := safeExtractPath(destRoot, h.Linkname)
+// archive, which is what a tar hard link (or RAR hard link / file copy) entry stands for.
+func extractArchivedHardLink(destRoot, destPath, name, linkname string, mode fs.FileMode, modTime time.Time, extracted map[string]os.FileInfo) error {
+	targetPath, err := safeExtractPath(destRoot, linkname)
 	if err != nil {
 		return err
 	}
-	notExtracted := fmt.Errorf("hard link %q points to %q, which is not a file earlier in the archive", h.Name, h.Linkname)
+	notExtracted := fmt.Errorf("hard link %q points to %q, which is not a file earlier in the archive", name, linkname)
 	written, ok := extracted[targetPath]
 	if !ok {
 		return notExtracted
@@ -1302,7 +1334,7 @@ func extractArchivedHardLink(destRoot, destPath string, h *tar.Header, extracted
 	if dest, err := os.Lstat(destPath); err == nil && dest.Mode().IsRegular() && os.SameFile(dest, info) {
 		return src.Close()
 	}
-	return extractArchivedRegularFile(destPath, h.FileInfo().Mode(), h.ModTime, src)
+	return extractArchivedRegularFile(destPath, mode, modTime, src)
 }
 
 // recordExtractedFile remembers the regular file written at destPath for later hard links.
@@ -1488,7 +1520,7 @@ func extractTarGz(archivePath, destDir string, policy *extractAccessPolicy) erro
 			}
 			recordExtractedFile(extracted, destPath)
 		case tar.TypeLink:
-			if err = extractArchivedHardLink(destDir, destPath, h, extracted); err != nil {
+			if err = extractArchivedHardLink(destDir, destPath, h.Name, h.Linkname, h.FileInfo().Mode(), h.ModTime, extracted); err != nil {
 				return err
 			}
 			recordExtractedFile(extracted, destPath)
