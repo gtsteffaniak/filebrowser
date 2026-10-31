@@ -1259,6 +1259,8 @@
     "accelDevice": "Accelerationsanordning",
     "accelDeviceDescription": "GPU-enhet som används för hårdvaruaccelererad mediebehandling. CPU (programvara) inaktiverar hårdvaruaccelerationen.",
     "encoderBackend": "Kodarens backend",
-    "transcodeProfileEncoderBackendHelp": "Encoder-backend för denna förinställning; standardinställningen är den upptäckta rekommenderade backenden."
+    "transcodeProfileEncoderBackendHelp": "Encoder-backend för denna förinställning; standardinställningen är den upptäckta rekommenderade backenden.",
+    "alwaysUseFfmpeg": "Använd alltid ffmpeg",
+    "alwaysUseFfmpegDescription": "Hoppa över snabbvägen via go-media och använd istället ffmpeg för all avläsning, metadata, undertexter och videominiatyrer. Aktivera detta om go-media ger felaktiga resultat för dina filer."
   }
 }

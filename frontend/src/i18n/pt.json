@@ -1259,6 +1259,8 @@
     "accelDevice": "Dispositivo de aceleração",
     "accelDeviceDescription": "Dispositivo GPU utilizado para o processamento de multimédia com aceleração por hardware. A CPU (software) desativa a aceleração por hardware.",
     "encoderBackend": "Backend do codificador",
-    "transcodeProfileEncoderBackendHelp": "Backend do codificador para esta predefinição; por predefinição, utiliza o backend preferencial detetado."
+    "transcodeProfileEncoderBackendHelp": "Backend do codificador para esta predefinição; por predefinição, utiliza o backend preferencial detetado.",
+    "alwaysUseFfmpeg": "Utilize sempre o ffmpeg",
+    "alwaysUseFfmpegDescription": "Ignore o caminho rápido do go-media e utilize o ffmpeg para todas as operações de análise, metadados, legendas e miniaturas de vídeo. Ative esta opção se o go-media apresentar resultados errados para os seus ficheiros."
   }
 }

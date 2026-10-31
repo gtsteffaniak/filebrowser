@@ -1259,6 +1259,8 @@
     "accelDevice": "Dispozitiv de accelerare",
     "accelDeviceDescription": "Dispozitiv GPU utilizat pentru procesarea conținutului media cu accelerare hardware. CPU (software) dezactivează accelerarea hardware.",
     "encoderBackend": "Backend-ul codificatorului",
-    "transcodeProfileEncoderBackendHelp": "Backend-ul encoderului pentru această presetare; implicit se utilizează backend-ul preferat detectat."
+    "transcodeProfileEncoderBackendHelp": "Backend-ul encoderului pentru această presetare; implicit se utilizează backend-ul preferat detectat.",
+    "alwaysUseFfmpeg": "Folosiți întotdeauna ffmpeg",
+    "alwaysUseFfmpegDescription": "Omiteți calea rapidă „go-media” și folosiți ffmpeg pentru toate operațiunile de analiză, metadate, subtitrări și miniaturi video. Activați această opțiune dacă „go-media” oferă rezultate eronate pentru fișierele dvs."
   }
 }

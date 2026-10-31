@@ -31,7 +31,6 @@
 import { computed, inject, onBeforeUnmount, ref, unref, watch, type Ref } from "vue";
 import { fetchPreviewImage } from "@/api/resources";
 import { createAsyncComponent } from "@/utils/asyncComponent.js";
-import { globalVars } from "@/utils/constants";
 import { getTypeInfo } from "@/utils/mimetype";
 import { getters, mutations, state } from "@/store";
 import {
@@ -174,7 +173,6 @@ const hasMotion = computed(() => {
   return Boolean(
     typeInfo.value.simpleType === "video" &&
       perms.video &&
-      globalVars.mediaAvailable &&
       perms.motionVideoPreview,
   );
 });

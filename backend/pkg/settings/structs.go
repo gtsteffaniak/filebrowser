@@ -178,6 +178,11 @@ type Media struct {
 	// "igpu", "dgpu", a Linux DRM render node (e.g. /dev/dri/renderD128), or a GPU
 	// name substring. Managed via the admin media settings API.
 	AccelDevice string `json:"accelDevice"`
+
+	// AlwaysUseFfmpeg forces ffmpeg for all probe, metadata, subtitle, and
+	// thumbnail work, skipping the go-media fast path. Managed via the admin
+	// media settings API.
+	AlwaysUseFfmpeg bool `json:"alwaysUseFfmpeg"`
 }
 
 // MediaSettings holds the runtime (DB-backed) media integration settings.
@@ -188,6 +193,7 @@ type MediaSettings struct {
 	ExtractEmbeddedSubtitles bool           `json:"extractEmbeddedSubtitles"` // extract embedded subtitles from media files
 	HardwareAcceleration     bool           `json:"hardwareAcceleration"`     // enable hardware acceleration for ffmpeg if available
 	AccelDevice              string         `json:"accelDevice"`              // acceleration device: "auto", "software"/"cpu", "igpu", "dgpu", a DRM render node, or a GPU name substring
+	AlwaysUseFfmpeg          bool           `json:"alwaysUseFfmpeg"`          // skip the go-media fast path and use ffmpeg for all probe, metadata, subtitle, and thumbnail work (default: false)
 	Transcode                MediaTranscode `json:"transcode"`                // HLS transcoding for media playback
 }
 

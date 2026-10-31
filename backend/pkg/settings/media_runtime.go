@@ -44,6 +44,14 @@ func HardwareAccelerationEnabled() bool {
 	return Config.Integrations.Media.HardwareAcceleration
 }
 
+// AlwaysUseFfmpegEnabled reports whether the admin has forced ffmpeg for all
+// media work, which skips the go-media fast path entirely.
+func AlwaysUseFfmpegEnabled() bool {
+	mediaMu.RLock()
+	defer mediaMu.RUnlock()
+	return Config.Integrations.Media.AlwaysUseFfmpeg
+}
+
 // HardwareAccelerationSupported reports whether the host has a usable ffmpeg
 // hardware encoder, as detected during initialization.
 func HardwareAccelerationSupported() bool {
@@ -212,6 +220,7 @@ func currentMediaSettingsLocked() MediaSettings {
 		ExtractEmbeddedSubtitles: m.ExtractEmbeddedSubtitles,
 		HardwareAcceleration:     m.HardwareAcceleration,
 		AccelDevice:              m.AccelDevice,
+		AlwaysUseFfmpeg:          m.AlwaysUseFfmpeg,
 		Transcode:                m.Transcode,
 	})
 }
@@ -228,6 +237,7 @@ func ApplyMediaSettings(s MediaSettings) {
 	Config.Integrations.Media.ExtractEmbeddedSubtitles = s.ExtractEmbeddedSubtitles
 	Config.Integrations.Media.HardwareAcceleration = s.HardwareAcceleration
 	Config.Integrations.Media.AccelDevice = s.AccelDevice
+	Config.Integrations.Media.AlwaysUseFfmpeg = s.AlwaysUseFfmpeg
 	Config.Integrations.Media.Transcode = s.Transcode
 	applyMediaConvertDefaults()
 	setupMediaTranscode()

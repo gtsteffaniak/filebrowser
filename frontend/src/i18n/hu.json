@@ -1259,6 +1259,8 @@
     "accelDevice": "Gyorsítóberendezés",
     "accelDeviceDescription": "A hardveresen gyorsított médiafeldolgozáshoz használt GPU-eszköz. A CPU (szoftver) letiltja a hardveres gyorsítást.",
     "encoderBackend": "Kódoló háttérrendszer",
-    "transcodeProfileEncoderBackendHelp": "A beállításhoz tartozó kódoló háttérprogram; alapértelmezés szerint az észlelt, előnyben részesített háttérprogramot használja."
+    "transcodeProfileEncoderBackendHelp": "A beállításhoz tartozó kódoló háttérprogram; alapértelmezés szerint az észlelt, előnyben részesített háttérprogramot használja.",
+    "alwaysUseFfmpeg": "Mindig használd az ffmpeg-et",
+    "alwaysUseFfmpegDescription": "Hagyja ki a go-media gyors útvonalat, és minden adatlekérdezéshez, metaadatokhoz, feliratokhoz és videó miniatűrökhöz használja az ffmpeg-et. Kapcsolja be, ha a go-media hibás eredményeket ad a fájljaival kapcsolatban."
   }
 }

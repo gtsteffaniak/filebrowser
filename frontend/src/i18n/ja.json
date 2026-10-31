@@ -1259,6 +1259,8 @@
     "accelDevice": "加速装置",
     "accelDeviceDescription": "ハードウェアアクセラレーションによるメディア処理に使用されるGPUデバイス。CPU（ソフトウェア）はハードウェアアクセラレーションを無効にします。",
     "encoderBackend": "エンコーダ・バックエンド",
-    "transcodeProfileEncoderBackendHelp": "このプリセット用のエンコーダー・バックエンド。デフォルトでは、検出された推奨バックエンドが設定されます。"
+    "transcodeProfileEncoderBackendHelp": "このプリセット用のエンコーダー・バックエンド。デフォルトでは、検出された推奨バックエンドが設定されます。",
+    "alwaysUseFfmpeg": "常にffmpegを使用してください",
+    "alwaysUseFfmpegDescription": "go-mediaの高速処理をスキップし、プロービング、メタデータ、字幕、動画のサムネイルのすべてにffmpegを使用します。お使いのファイルに対してgo-mediaが誤った結果を返す場合は、このオプションを有効にしてください。"
   }
 }

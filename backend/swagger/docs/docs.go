@@ -6370,6 +6370,10 @@ const docTemplate = `{
                     "description": "AccelDevice selects the acceleration device: \"auto\" (default), \"software\"/\"cpu\",\n\"igpu\", \"dgpu\", a Linux DRM render node (e.g. /dev/dri/renderD128), or a GPU\nname substring. Managed via the admin media settings API.",
                     "type": "string"
                 },
+                "alwaysUseFfmpeg": {
+                    "description": "AlwaysUseFfmpeg forces ffmpeg for all probe, metadata, subtitle, and\nthumbnail work, skipping the go-media fast path. Managed via the admin\nmedia settings API.",
+                    "type": "boolean"
+                },
                 "convert": {
                     "description": "deprecated: config for ffmpeg conversion settings. deprecated: manage via the admin media settings API",
                     "allOf": [
@@ -8728,6 +8732,10 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/ffmpeg.AccelDeviceOption"
                     }
+                },
+                "alwaysUseFfmpeg": {
+                    "description": "skip the go-media fast path and use ffmpeg for all probe, metadata, subtitle, and thumbnail work (default: false)",
+                    "type": "boolean"
                 },
                 "convert": {
                     "description": "config for ffmpeg conversion settings",

@@ -1259,6 +1259,8 @@
     "accelDevice": "Versnellingsapparaat",
     "accelDeviceDescription": "GPU-apparaat dat wordt gebruikt voor hardwareversnelde mediaverwerking. De CPU (software) schakelt de hardwareversnelling uit.",
     "encoderBackend": "Encoder-backend",
-    "transcodeProfileEncoderBackendHelp": "Encoder-backend voor deze voorinstelling; standaard is dit de gedetecteerde voorkeursbackend."
+    "transcodeProfileEncoderBackendHelp": "Encoder-backend voor deze voorinstelling; standaard is dit de gedetecteerde voorkeursbackend.",
+    "alwaysUseFfmpeg": "Gebruik altijd ffmpeg",
+    "alwaysUseFfmpegDescription": "Sla de snelle route via go-media over en gebruik ffmpeg voor alle analyses, metagegevens, ondertitels en videominiaturen. Schakel deze optie in als go-media onjuiste resultaten oplevert voor je bestanden."
   }
 }

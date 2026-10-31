@@ -21,7 +21,7 @@
 
 <script>
 import { state, getters, mutations } from "@/store";
-import { settings, globalVars } from "@/utils/constants";
+import { settings } from "@/utils/constants";
 import GlobalSettings from "@/views/settings/Global.vue";
 import ProfileSettings from "@/views/settings/Profile.vue";
 import SharesSettings from "@/views/settings/Shares.vue";
@@ -125,9 +125,6 @@ export default {
       const perm = setting?.permissions || {};
       const userPermissions = /** @type {Record<string, boolean>} */ (state.user.permissions || {});
       const permitted = Object.keys(perm).every((key) => getObjectProperty(userPermissions, key));
-      if (permitted && setting?.requiresMedia && globalVars.mediaAvailable !== true) {
-        return false;
-      }
       return permitted;
     },
     findSection(setting, view) {

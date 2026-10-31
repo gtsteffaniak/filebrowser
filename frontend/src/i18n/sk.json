@@ -1259,6 +1259,8 @@
     "accelDevice": "Zariadenie na zrýchlenie",
     "accelDeviceDescription": "Zariadenie GPU sa používa na hardvérovo akcelerované spracovanie multimédií. CPU (softvér) deaktivuje hardvérovú akceleráciu.",
     "encoderBackend": "Backend kodéra",
-    "transcodeProfileEncoderBackendHelp": "Backend enkodéra pre toto prednastavenie; predvolene sa nastaví na zistený preferovaný backend."
+    "transcodeProfileEncoderBackendHelp": "Backend enkodéra pre toto prednastavenie; predvolene sa nastaví na zistený preferovaný backend.",
+    "alwaysUseFfmpeg": "Vždy používajte ffmpeg",
+    "alwaysUseFfmpegDescription": "Vynechajte rýchlu cestu cez go-media a na všetky operácie s dátami, metadátami, titulkami a náhľadmi videí použite ffmpeg. Túto možnosť zapnite, ak go-media poskytuje nesprávne výsledky pre vaše súbory."
   }
 }

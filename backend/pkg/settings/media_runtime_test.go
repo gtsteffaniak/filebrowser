@@ -259,7 +259,7 @@ func TestMediaAccessorsAreRaceFree(t *testing.T) {
 				_ = CanConvertImage("heic")
 				_ = CanConvertVideo("mp4")
 				_ = CurrentMediaSettings()
-				_ = MediaEnabled()
+				_ = FFmpegEnabled()
 				_ = HardwareAccelerationSupported()
 				_ = ExtractEmbeddedSubtitlesEnabled()
 				_ = HardwareAccelerationEnabled()

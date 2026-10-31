@@ -1259,6 +1259,8 @@
     "accelDevice": "Urządzenie przyspieszające",
     "accelDeviceDescription": "Urządzenie GPU wykorzystywane do sprzętowo przyspieszanego przetwarzania multimediów. Procesor CPU (oprogramowanie) wyłącza przyspieszenie sprzętowe.",
     "encoderBackend": "Moduł zaplecza enkodera",
-    "transcodeProfileEncoderBackendHelp": "Moduł zaplecza enkodera dla tego ustawienia; domyślnie wybierany jest wykryty preferowany moduł zaplecza."
+    "transcodeProfileEncoderBackendHelp": "Moduł zaplecza enkodera dla tego ustawienia; domyślnie wybierany jest wykryty preferowany moduł zaplecza.",
+    "alwaysUseFfmpeg": "Zawsze używaj ffmpeg",
+    "alwaysUseFfmpegDescription": "Pomiń szybką ścieżkę go-media i użyj ffmpeg do wszystkich operacji sprawdzania, metadanych, napisów i miniatur filmów. Włącz tę opcję, jeśli go-media zwraca błędne wyniki dla twoich plików."
   }
 }

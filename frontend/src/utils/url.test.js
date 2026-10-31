@@ -5,7 +5,6 @@ vi.mock('@/utils/constants', () => {
     globalVars: {
       baseURL: "/files/",
       name: "Test App",
-      mediaAvailable: true,
       muPdfAvailable: true,
       onlyOfficeUrl: "",
       recaptcha: false,

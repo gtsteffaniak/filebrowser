@@ -1259,6 +1259,8 @@
     "accelDevice": "Dispositif d'accélération",
     "accelDeviceDescription": "Périphérique GPU utilisé pour le traitement multimédia accéléré par le matériel. Le CPU (logiciel) désactive l'accélération matérielle.",
     "encoderBackend": "Backend de l'encodeur",
-    "transcodeProfileEncoderBackendHelp": "Backend d'encodage pour ce préréglage ; la valeur par défaut correspond au backend préféré détecté."
+    "transcodeProfileEncoderBackendHelp": "Backend d'encodage pour ce préréglage ; la valeur par défaut correspond au backend préféré détecté.",
+    "alwaysUseFfmpeg": "Utilisez toujours ffmpeg",
+    "alwaysUseFfmpegDescription": "Ignorez la méthode rapide « go-media » et utilisez ffmpeg pour toutes les opérations de détection, les métadonnées, les sous-titres et les vignettes vidéo. Activez cette option si « go-media » donne des résultats erronés pour vos fichiers."
   }
 }

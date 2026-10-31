@@ -16,11 +16,13 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/ffmpeg"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/gomedia"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing/iteminfo"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 	"github.com/gtsteffaniak/go-logger/logger"
+	"github.com/gtsteffaniak/go-media/pkg/media"
 )
 
 // CheckPermissionsFunc allows tests to override CheckPermissions behavior
@@ -382,7 +384,12 @@ func processContent(info *iteminfo.ExtendedFileInfo, idx *indexing.Index, opts u
 			info.GetSubtitles(parentInfo)
 		}
 		if opts.ExtractEmbeddedSubtitles {
-			subtitles := ffmpeg.DetectEmbeddedSubtitles(info.RealPath, info.ModTime)
+			subtitles, ok := gomedia.EmbeddedSubtitles(info.RealPath, info.ModTime, func() ([]utils.SubtitleTrack, bool) {
+				return ffmpeg.DetectEmbeddedSubtitles(info.RealPath, info.ModTime), true
+			})
+			if !ok {
+				subtitles = ffmpeg.DetectEmbeddedSubtitles(info.RealPath, info.ModTime)
+			}
 			info.Subtitles = append(info.Subtitles, subtitles...)
 		}
 		return
@@ -454,6 +461,29 @@ func extractAudioMetadata(ctx context.Context, item *iteminfo.ExtendedItemInfo, 
 		return fmt.Errorf("file with size %d MB exceeds metadata check limit: %d MB", fileInfo.Size()/1024/1024, maxSize)
 	}
 
+	// go-media fast path: tags, lyrics availability, and artwork. Unsupported or
+	// failed reads fall through to the existing dhowden/tag code below.
+	if info, ok := gomedia.Audio(realPath, getArt, func() (gomedia.AudioInfo, bool) { return legacyAudioInfo(realPath, getArt) }); ok {
+		item.Metadata = &iteminfo.MediaMetadata{
+			Title:     info.Tags.Title,
+			Artist:    info.Tags.Artist,
+			Album:     info.Tags.Album,
+			Year:      info.Tags.Year,
+			Genre:     info.Tags.Genre,
+			Track:     info.Tags.Track,
+			HasLyrics: info.HasLyrics,
+		}
+		if getDuration {
+			audioDuration(ctx, item, realPath, ffmpegService)
+		}
+		if n := len(info.Artwork); n > 0 && n <= 5*1024*1024 {
+			item.Metadata.AlbumArt = info.Artwork
+		} else if n > 5*1024*1024 {
+			logger.Debugf("Skipping album art for %s: too large (%d bytes)", realPath, n)
+		}
+		return nil
+	}
+
 	m, err := tag.ReadFrom(file)
 	if err != nil {
 		return err
@@ -477,15 +507,7 @@ func extractAudioMetadata(ctx context.Context, item *iteminfo.ExtendedItemInfo, 
 	// Extract duration ONLY if explicitly requested using the ffmpeg VideoService
 	// This respects concurrency limits and gracefully handles missing ffmpeg
 	if getDuration {
-		service := ffmpegService
-		if service == nil {
-			service = ffmpeg.Get()
-		}
-		if service != nil {
-			if duration, err := service.GetMediaDuration(ctx, realPath); err == nil {
-				item.Metadata.Duration = int(duration)
-			}
-		}
+		audioDuration(ctx, item, realPath, ffmpegService)
 	}
 
 	if !getArt {
@@ -503,6 +525,30 @@ func extractAudioMetadata(ctx context.Context, item *iteminfo.ExtendedItemInfo, 
 	}
 
 	return nil
+}
+
+// audioDuration sets the duration on item.Metadata. go-media reads it from the
+// container header first, then ffmpeg is used.
+func audioDuration(ctx context.Context, item *iteminfo.ExtendedItemInfo, realPath string, ffmpegService *ffmpeg.FFmpegService) {
+	service := ffmpegService
+	if service == nil {
+		service = ffmpeg.Get()
+	}
+	// The shadow run can outlive the request, so it uses a context that is not cancelled with it.
+	shadowCtx := context.WithoutCancel(ctx)
+	legacy := func() (float64, bool) {
+		d, err := service.GetMediaDuration(shadowCtx, realPath)
+		return d, err == nil
+	}
+	if duration, ok := gomedia.Duration(realPath, legacy); ok {
+		item.Metadata.Duration = int(duration)
+		return
+	}
+	if service != nil {
+		if duration, err := service.GetMediaDuration(ctx, realPath); err == nil {
+			item.Metadata.Duration = int(duration)
+		}
+	}
 }
 
 var lyricsSidecarExts = []string{".elrc", ".lrc", ".srt", ".vtt"}
@@ -574,6 +620,11 @@ func hasLyricsSidecar(realPath string) bool {
 
 // Returns raw lyrics from an audio file (from embedded tags or from sidecar files with the same name).
 func ExtractLyrics(realPath string) (string, string, error) {
+	// go-media fast path: sidecar first, then embedded tags. Falls through to the
+	// existing code below when unsupported or failed.
+	if text, format, ok := gomedia.Lyrics(realPath, func() (gomedia.LyricsResult, bool) { return legacyLyrics(realPath) }); ok {
+		return text, format, nil
+	}
 	if data, ext, ok := findLyricsSidecar(realPath); ok {
 		return string(data), ext, nil
 	}
@@ -592,27 +643,100 @@ func ExtractLyrics(realPath string) (string, string, error) {
 	return "", "", nil
 }
 
+// legacyAudioInfo is the dhowden tag read used as the shadow-mode comparison
+// for gomedia.Audio. It returns the same fields go-media returns, so the two
+// can be compared. Cover bytes are read only when withArt is true.
+func legacyAudioInfo(realPath string, withArt bool) (gomedia.AudioInfo, bool) {
+	f, err := os.Open(realPath)
+	if err != nil {
+		return gomedia.AudioInfo{}, false
+	}
+	defer f.Close()
+	m, err := tag.ReadFrom(f)
+	if err != nil {
+		return gomedia.AudioInfo{}, false
+	}
+	track, _ := m.Track()
+	info := gomedia.AudioInfo{
+		Tags: media.Tags{
+			Title:  m.Title(),
+			Artist: m.Artist(),
+			Album:  m.Album(),
+			Year:   m.Year(),
+			Genre:  m.Genre(),
+			Track:  track,
+		},
+		HasLyrics: strings.TrimSpace(m.Lyrics()) != "" || hasLyricsSidecar(realPath),
+	}
+	if withArt {
+		if pic := m.Picture(); pic != nil {
+			info.Artwork = pic.Data
+		}
+	}
+	return info, true
+}
+
+// legacyLyrics is the sidecar and dhowden lyrics read used as the shadow-mode
+// comparison for gomedia.Lyrics. Sidecar first, then embedded, as in go-media.
+func legacyLyrics(realPath string) (gomedia.LyricsResult, bool) {
+	if data, ext, ok := findLyricsSidecar(realPath); ok {
+		return gomedia.LyricsResult{Text: strings.TrimSpace(string(data)), Format: ext}, true
+	}
+	f, err := os.Open(realPath)
+	if err != nil {
+		return gomedia.LyricsResult{}, false
+	}
+	defer f.Close()
+	m, err := tag.ReadFrom(f)
+	if err != nil {
+		return gomedia.LyricsResult{}, false
+	}
+	text := strings.TrimSpace(m.Lyrics())
+	if text == "" {
+		return gomedia.LyricsResult{}, false
+	}
+	return gomedia.LyricsResult{Text: text, Format: "embedded"}, true
+}
+
 // extractVideoMetadata extracts duration and codec info from video files using ffprobe.
 // If ffmpegService is nil, a new service will be created (for backward compatibility)
 func extractVideoMetadata(ctx context.Context, item *iteminfo.ExtendedItemInfo, realPath string, ffmpegService *ffmpeg.FFmpegService) error {
-	service := ffmpegService
-	if service == nil {
-		service = ffmpeg.Get()
+	// go-media fast path. Works without ffmpeg installed.
+	probeService := ffmpegService
+	if probeService == nil {
+		probeService = ffmpeg.Get()
 	}
-	if service == nil {
-		return nil
+	// The shadow run can outlive the request, so it uses a context that is not cancelled with it.
+	shadowCtx := context.WithoutCancel(ctx)
+	legacyProbe := func() (gomedia.ProbeResult, bool) {
+		info, err := probeService.ProbeFile(shadowCtx, realPath)
+		if err != nil || info == nil {
+			return gomedia.ProbeResult{}, false
+		}
+		return *info, true
 	}
+	info, ok := gomedia.Probe(realPath, legacyProbe)
+	if !ok {
+		service := ffmpegService
+		if service == nil {
+			service = ffmpeg.Get()
+		}
+		if service == nil {
+			return nil
+		}
 
-	info, err := service.ProbeFile(ctx, realPath)
-	if err != nil {
-		duration, durErr := service.GetMediaDuration(ctx, realPath)
-		if durErr != nil {
-			return err
+		probed, err := service.ProbeFile(ctx, realPath)
+		if err != nil {
+			duration, durErr := service.GetMediaDuration(ctx, realPath)
+			if durErr != nil {
+				return err
+			}
+			if duration > 0 {
+				item.Metadata = &iteminfo.MediaMetadata{Duration: int(duration)}
+			}
+			return nil
 		}
-		if duration > 0 {
-			item.Metadata = &iteminfo.MediaMetadata{Duration: int(duration)}
-		}
-		return nil
+		info = *probed
 	}
 
 	meta := &iteminfo.MediaMetadata{}

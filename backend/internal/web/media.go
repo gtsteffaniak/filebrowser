@@ -2,6 +2,7 @@ package web
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"net/http"
 	"path/filepath"
@@ -10,6 +11,7 @@ import (
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/files"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/ffmpeg"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/gomedia"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 )
@@ -115,13 +117,30 @@ func subtitlesHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 		if track.Index == nil {
 			return http.StatusNotFound, fmt.Errorf("embedded subtitle track '%s' not found", name)
 		}
-		svc := ffmpeg.Get()
-		if svc == nil {
-			return http.StatusInternalServerError, fmt.Errorf("ffmpeg service not available")
+		// go-media fast path (MKV, WebM, MP4). Falls back to ffmpeg when unsupported or failed.
+		legacy := func() (string, bool) {
+			svc := ffmpeg.Get()
+			if svc == nil {
+				return "", false
+			}
+			// Shadow ffmpeg runs after the fast path; bound it so a detached request cannot
+			// leave extraction running indefinitely (sync fallback still uses r.Context()).
+			legacyCtx, cancel := context.WithTimeout(context.WithoutCancel(r.Context()), time.Minute)
+			defer cancel()
+			vtt, extractErr := svc.ExtractSubtitle(legacyCtx, fileInfo.RealPath, *track.Index)
+			return vtt, extractErr == nil
 		}
-		content, err = svc.ExtractSubtitle(r.Context(), fileInfo.RealPath, *track.Index)
-		if err != nil {
-			return http.StatusInternalServerError, fmt.Errorf("failed to extract embedded subtitle: %v", err)
+		if vtt, ok := gomedia.ExtractSubtitle(fileInfo.RealPath, *track.Index, legacy); ok {
+			content = vtt
+		} else {
+			svc := ffmpeg.Get()
+			if svc == nil {
+				return http.StatusInternalServerError, fmt.Errorf("ffmpeg service not available")
+			}
+			content, err = svc.ExtractSubtitle(r.Context(), fileInfo.RealPath, *track.Index)
+			if err != nil {
+				return http.StatusInternalServerError, fmt.Errorf("failed to extract embedded subtitle: %v", err)
+			}
 		}
 	}
 
