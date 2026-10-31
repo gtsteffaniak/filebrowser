@@ -1,6 +1,8 @@
 <template>
   <div
     :aria-label="resolvedAriaLabel"
+    tabindex="0"
+    role="button"
     class="searchContext clickable button unified-path-picker"
     @click="openPicker"
     @keydown.enter.prevent="openPicker"
