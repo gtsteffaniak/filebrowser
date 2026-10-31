@@ -707,8 +707,10 @@ func wrapHandler(fn handleFunc) http.HandlerFunc {
 				return
 			}
 
-			// Write the JSON error response
-			if _, writeErr := w.Write(errorBytes); writeErr != nil {
+			// Write the JSON error response. A client that navigated away, seeked,
+			// or closed the tab aborts the connection mid-write; that surfaces here
+			// as a socket reset and is expected, so it is not logged.
+			if _, writeErr := w.Write(errorBytes); writeErr != nil && !isClientDisconnect(r, writeErr) {
 				logger.Debugf("Error writing error response: %v", writeErr)
 			}
 			return

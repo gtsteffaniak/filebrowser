@@ -122,6 +122,38 @@ func TestProbeMP4MatchesFFprobe(t *testing.T) {
 	require.Equal(t, wantAudio, got.AudioCodec)
 }
 
+// TestProbeUsesCache checks that a populated cache entry is returned without
+// re-reading the container.
+func TestProbeUsesCache(t *testing.T) {
+	withGate(t, false)
+	path := filepath.Join(t.TempDir(), "sample.mp4")
+	data, err := os.ReadFile(fixtureMP4)
+	require.NoError(t, err)
+	require.NoError(t, os.WriteFile(path, data, 0o644))
+
+	st, err := os.Stat(path)
+	require.NoError(t, err)
+	key := probeCacheKey(path, st.ModTime().UnixNano(), st.Size())
+	sentinel := ProbeResult{Duration: 123, VideoCodec: "sentinel", AudioCodec: "sentinel", FormatName: "sentinel"}
+	probeCache.Set(key, sentinel)
+	t.Cleanup(func() { probeCache.Delete(key) })
+
+	got, ok := Probe(path, nil)
+	require.True(t, ok)
+	require.Equal(t, sentinel, got, "probe must return the cached value for an unchanged file")
+}
+
+// TestProbeCacheKeyTracksFileIdentity checks that path, modtime, and size all
+// participate in the cache key, so an edited file is never served stale metadata.
+func TestProbeCacheKeyTracksFileIdentity(t *testing.T) {
+	base := probeCacheKey("f.mp4", 100, 200)
+	require.Equal(t, base, probeCacheKey("f.mp4", 100, 200), "identical identity must hash the same")
+	require.NotEqual(t, base, probeCacheKey("f.mp4", 101, 200), "modtime change must change the key")
+	require.NotEqual(t, base, probeCacheKey("f.mp4", 100, 201), "size change must change the key")
+	require.NotEqual(t, base, probeCacheKey("g.mp4", 100, 200), "path change must change the key")
+	require.NotEqual(t, base, probeCacheKey("f.mp4", 100, 201), "key must not collide across fields")
+}
+
 func TestProbeWebMMatchesFFprobe(t *testing.T) {
 	withGate(t, false)
 	wantDur, _, wantVideo, wantAudio := ffprobeMedia(t, fixtureWebM)

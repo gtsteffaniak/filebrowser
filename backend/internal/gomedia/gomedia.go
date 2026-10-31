@@ -25,11 +25,22 @@ import (
 	"github.com/gtsteffaniak/go-cache/cache"
 	"github.com/gtsteffaniak/go-logger/logger"
 	"github.com/gtsteffaniak/go-media/pkg/media"
+	"golang.org/x/sync/singleflight"
 )
 
 var (
 	subtitleListCache    = cache.NewCache[[]utils.SubtitleTrack](24 * time.Hour)
 	subtitleContentCache = cache.NewCache[string](24 * time.Hour)
+
+	// probeCache caches successful probe results by file identity (path, modtime,
+	// size). A directory listing probes every video child, and the preview flow
+	// probes the focused file again; without this each request re-read the same
+	// containers. Keying on modtime+size means an edited file is re-probed.
+	probeCache = cache.NewCache[ProbeResult](24 * time.Hour)
+
+	// probeGroup coalesces concurrent probes of the same file so a burst of
+	// requests for one container reads it once.
+	probeGroup singleflight.Group
 )
 
 // Enabled reports whether the go-media fast path may run. The admin
@@ -128,6 +139,7 @@ func probeFast(path string) (ProbeResult, bool) {
 	if !supportsVideoContainer(path) {
 		return ProbeResult{}, false
 	}
+
 	f, size, err := openFile(path)
 	if err != nil {
 		logFallback("probe", path, err)
@@ -135,6 +147,48 @@ func probeFast(path string) (ProbeResult, bool) {
 	}
 	defer f.Close()
 
+	info, err := f.Stat()
+	if err != nil {
+		logFallback("probe", path, err)
+		return ProbeResult{}, false
+	}
+	cacheKey := probeCacheKey(path, info.ModTime().UnixNano(), size)
+	if res, ok := probeCache.Get(cacheKey); ok {
+		return res, true
+	}
+
+	// Coalesce concurrent probes of the same file into one container read.
+	v, err, _ := probeGroup.Do(cacheKey, func() (any, error) {
+		res, ok := parseProbe(path, f, size)
+		if !ok {
+			return nil, errProbeUnsupported
+		}
+		probeCache.Set(cacheKey, res)
+		return res, nil
+	})
+	if err != nil {
+		return ProbeResult{}, false
+	}
+	res, ok := v.(ProbeResult)
+	if !ok {
+		return ProbeResult{}, false
+	}
+	return res, true
+}
+
+// errProbeUnsupported marks a probe that go-media chose not to answer. It carries
+// no detail because parseProbe already logged the specific reason.
+var errProbeUnsupported = errors.New("probe unsupported")
+
+// probeCacheKey identifies a file version for caching: path plus modtime and size.
+// An edited file gets a new key, so stale metadata is never served.
+func probeCacheKey(path string, modTimeNanos, size int64) string {
+	return fmt.Sprintf("probe:%s:%d:%d", path, modTimeNanos, size)
+}
+
+// parseProbe reads a container and builds a ProbeResult. It reports false when
+// go-media should defer to ffmpeg, having logged why.
+func parseProbe(path string, f *os.File, size int64) (ProbeResult, bool) {
 	info, err := media.Probe(f, size)
 	if err != nil {
 		logFallback("probe", path, err)

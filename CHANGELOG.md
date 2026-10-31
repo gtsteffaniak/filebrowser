@@ -18,6 +18,9 @@ All notable changes to this project will be documented in this file. For commit 
  - Closing a preview no longer navigates back to the same file when a stale "previous item" was remembered from an earlier navigation.
  - Transcoding recovers from unreliable hardware decoding without discarding the segments already produced: the retry resumes at the encode head with software decode instead of wiping the generation and re-encoding from the start.
  - The player no longer aborts a segment request after 10 seconds while the transcode producer is repositioning or restarting, which previously surfaced as a 503 and a skipped segment.
+ - getDirectoryPreview no longer requests metadata, so folder previews skip the per-file probe and subtitle scan.
+ - Media probes are cached by file identity and concurrent reads are coalesced, so opening a file no longer triggers repeated ffprobe runs.
+ - Client-initiated stream cancels (seek/navigation) no longer log spurious write-error responses.
 
 ## v2.1.3
 
