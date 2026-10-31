@@ -64,8 +64,8 @@ func TestEmbeddedPreviewWithinLimits(t *testing.T) {
 	}
 }
 
-func TestEmbeddedPreviewWithinLimitsUnparseableIsLetThrough(t *testing.T) {
-	if !embeddedPreviewWithinLimits([]byte{0xff, 0xd8, 0xff, 0xe0, 0x00}) {
-		t.Fatal("a header that can't be read keeps the previous behaviour")
+func TestEmbeddedPreviewWithinLimitsRejectsAnUnreadableHeader(t *testing.T) {
+	if embeddedPreviewWithinLimits([]byte{0xff, 0xd8, 0xff, 0xe0, 0x00}) {
+		t.Fatal("a header that can't be read can't be size-checked, so it is rejected")
 	}
 }

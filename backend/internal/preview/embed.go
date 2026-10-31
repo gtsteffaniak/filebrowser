@@ -27,12 +27,12 @@ func isJPEG(data []byte) bool {
 const maxEmbeddedPreviewPixels = 150_000_000
 
 // embeddedPreviewWithinLimits reports whether a JPEG's declared dimensions are small enough to decode.
-// Only the header is read. A JPEG whose header can't be parsed is let through, as before: the later
-// steps handle it or fail on it the same way.
+// Only the header is read. A JPEG whose header can't be parsed is rejected too: its size can't be
+// checked, and the decode steps that follow would run on it unbounded.
 func embeddedPreviewWithinLimits(data []byte) bool {
 	cfg, _, err := image.DecodeConfig(bytes.NewReader(data))
 	if err != nil {
-		return true
+		return false
 	}
 	return int64(cfg.Width)*int64(cfg.Height) <= maxEmbeddedPreviewPixels
 }
