@@ -449,7 +449,9 @@ func GeneratePreviewWithMD5(ctx context.Context, file iteminfo.ExtendedFileInfo,
 	}
 
 	// Enforce file size limit for image preview generation to prevent memory exhaustion
-	if strings.HasPrefix(file.Type, "image") && file.Size > iteminfo.LargeFileSizeThreshold {
+	// Camera RAW is exempt: its preview is the embedded JPEG and the RAW data is never decoded.
+	if strings.HasPrefix(file.Type, "image") && file.Size > iteminfo.LargeFileSizeThreshold &&
+		!iteminfo.IsRawImage(strings.ToLower(filepath.Ext(file.Name))) {
 		message := fmt.Sprintf("Image file too large for preview: %s (size: %d bytes, limit: %d bytes)",
 			file.Name, file.Size, iteminfo.LargeFileSizeThreshold)
 		logger.Warning(message)
