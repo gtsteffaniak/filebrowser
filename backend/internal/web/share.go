@@ -26,6 +26,27 @@ import (
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
+// checkSharePolicy enforces settings.Config.SharePolicy on the values a share will have once saved:
+// expire is its unix expiry, 0 meaning never, and hasPassword says whether it will be protected. The
+// caller works those out from the request and the stored share. Admins are exempt, as they are from
+// the enforced share defaults.
+func checkSharePolicy(u *users.User, expire int64, hasPassword bool) error {
+	if u == nil || u.Permissions.Admin {
+		return nil
+	}
+	policy := settings.Config.SharePolicy
+	if policy.RequirePassword && !hasPassword {
+		return fmt.Errorf("a password is required for shares")
+	}
+	if policy.MaxExpirationHours > 0 {
+		limit := time.Now().Unix() + int64(policy.MaxExpirationHours)*3600
+		if expire == 0 || expire > limit {
+			return fmt.Errorf("shares must expire within %d hours", policy.MaxExpirationHours)
+		}
+	}
+	return nil
+}
+
 func applyShareDefaultsPolicy(u *users.User, editable *share.ShareEditable, isCreate bool) (int, error) {
 	if u == nil || u.Permissions.Admin {
 		return 0, nil
@@ -272,6 +293,11 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 	if len(hash) > 0 {
 		stringHash = string(hash)
 	}
+	if req.Hash == "" {
+		if policyErr := checkSharePolicy(d.User, expire, stringHash != ""); policyErr != nil {
+			return http.StatusBadRequest, policyErr
+		}
+	}
 	if req.Hash != "" {
 		beforeShare, getErr := state.GetShare(req.Hash)
 		if getErr != nil {
@@ -293,6 +319,11 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 			}
 		} else {
 			expire = beforeShare.Expire
+		}
+		// a nil password keeps the current one, an empty one clears it
+		keepsPassword := req.Password == nil && beforeShare.PasswordHash != ""
+		if policyErr := checkSharePolicy(d.User, expire, keepsPassword || stringHash != ""); policyErr != nil {
+			return http.StatusBadRequest, policyErr
 		}
 		if status, policyErr := applyShareDefaultsPolicy(d.User, &req.ShareEditable, false); policyErr != nil {
 			return status, policyErr

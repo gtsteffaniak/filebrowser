@@ -6632,6 +6632,14 @@ const docTemplate = `{
                         }
                     ]
                 },
+                "sharePolicy": {
+                    "description": "rules every non-admin share must meet; config file only",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/settings.SharePolicy"
+                        }
+                    ]
+                },
                 "userDefaults": {
                     "description": "optional signup/CLI defaults; per-user values are managed in the UI",
                     "allOf": [
@@ -6749,6 +6757,19 @@ const docTemplate = `{
                 },
                 "viewMode": {
                     "type": "string"
+                }
+            }
+        },
+        "settings.SharePolicy": {
+            "type": "object",
+            "properties": {
+                "maxExpirationHours": {
+                    "description": "shares must expire within this many hours; 0 disables the limit",
+                    "type": "integer"
+                },
+                "requirePassword": {
+                    "description": "shares must be password protected",
+                    "type": "boolean"
                 }
             }
         },
