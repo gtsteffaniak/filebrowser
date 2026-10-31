@@ -469,7 +469,7 @@ func GeneratePreviewWithMD5(ctx context.Context, file iteminfo.ExtendedFileInfo,
 	var imageBytes []byte
 	fromEmbeddedPreview := false
 	if hasEmbeddedPreview(file.Type, file.Name) {
-		if previewBytes, _ := imagemeta.ExtractEmbeddedPreview(ctx, file.RealPath); len(previewBytes) >= minPreviewSize && isJPEG(previewBytes) {
+		if previewBytes, _ := imagemeta.ExtractEmbeddedPreview(ctx, file.RealPath); len(previewBytes) >= minPreviewSize && isJPEG(previewBytes) && embeddedPreviewWithinLimits(previewBytes) {
 			imageBytes = previewBytes
 			fromEmbeddedPreview = true
 			if orient := imagemeta.GetOrientation(ctx, file.RealPath); orient != "" {
