@@ -76,6 +76,18 @@ func (x Format) toImaging() imaging.Format {
 	}
 }
 
+// encodable reports whether imaging can encode this format.
+// imaging only encodes JPEG, PNG, GIF, TIFF and BMP; webp and the netpbm
+// formats are decode-only, so previews for them must be written as JPEG.
+func (x Format) encodable() bool {
+	switch x {
+	case FormatJpeg, FormatPng, FormatGif, FormatTiff, FormatBmp:
+		return true
+	default:
+		return false
+	}
+}
+
 /*
 ENUM(
 high
@@ -203,7 +215,9 @@ func (s *Service) resizeWithSize(in io.Reader, out io.Writer, fileSize int64, op
 	var wrappedReader = in
 	var err error
 
-	if opts.Format == FormatHeic {
+	// HEIC has no encoder and webp/netpbm are decode-only in imaging; fall back
+	// to JPEG so preview generation does not fail with ErrUnsupportedFormat.
+	if !opts.Format.encodable() {
 		opts.Format = FormatJpeg
 	}
 	// Ensure JPEG quality is set based on quality setting

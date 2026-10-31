@@ -32,7 +32,7 @@
     </div>
 
     <div v-if="!disableQuickToggles" class="card-wrapper" @mouseleave="hideTooltip">
-      <div class="quick-toggles" :class="{ 'extra-padding': hasCreateOptions }">
+      <div class="quick-toggles" :class="{ 'extra-padding': hasCreateOptions || isAdvancedSearch }">
         <div class="clickable" :class="{ active: user?.singleClick }" @click="toggleClick"
           @mouseenter="showTooltip($event, $t('index.toggleClick'))" @mouseleave="hideTooltip" v-if="!isInvalidShare">
           <i class="material-symbols">ads_click</i>
@@ -52,7 +52,7 @@
     <!-- Sidebar file actions -->
     <transition v-if="shareInfo.shareType !== 'upload'" name="expand" @before-enter="beforeEnter" @enter="enter"
       @leave="leave">
-      <div v-if="!hideSidebarFileActions && isListingView" class="card-wrapper">
+      <div v-if="showFileActions" class="card-wrapper">
         <button type="button" @click="openContextMenu" aria-label="File-Actions" data-testid="file-actions-button" class="action file-actions">
           <i class="material-symbols">add</i>
           {{ $t("sidebar.fileActions") }}
@@ -113,6 +113,14 @@ export default {
     hideSidebarFileActions() {
       return state.user?.hideSidebarFileActions || getters.isInvalidShare() || !this.hasCreateOptions;
     },
+    isAdvancedSearch: () => getters.currentTool()?.component === "AdvancedSearch",
+    showFileActions() {
+      // Advanced search offers the actions for the selected results (not create), so it doesn't depend on create permissions.
+      if (this.isAdvancedSearch) {
+        return !state.user?.hideSidebarFileActions && !getters.isShare();
+      }
+      return !this.hideSidebarFileActions && this.isListingView;
+    },
     settingsAllowed: () => !state.user?.disableSettings,
     isSettings: () => getters.isSettings(),
     isStickySidebar: () => getters.isStickySidebar(),
@@ -148,6 +156,11 @@ export default {
   },
   methods: {
     openContextMenu() {
+      // In advanced search the menu acts on the current selection of results, so keep it.
+      if (this.isAdvancedSearch) {
+        mutations.showPrompt({ name: "ContextMenu", props: { showCentered: true } });
+        return;
+      }
       mutations.resetSelected();
       mutations.showPrompt({
         name: "ContextMenu",

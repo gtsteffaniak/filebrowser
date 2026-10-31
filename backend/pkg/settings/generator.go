@@ -1041,6 +1041,11 @@ func GenerateConfigYamlWithEmbedded(config *Settings, showComments bool, showFul
 		deprecated = make(DeprecatedFieldsMap)
 	}
 
+	// The embedded YAML omits deprecated fields entirely, so the marker map has no entry for a
+	// deprecated field that is also a secret (e.g. the top-level auth.adminUsername/adminPassword).
+	// Union in the field-name fallback so those are redacted too.
+	identifySecretFieldsByReflection(reflect.ValueOf(config), "Settings", secrets)
+
 	var node *yaml.Node
 
 	if showFull {
@@ -1081,6 +1086,282 @@ func GenerateConfigYamlWithEmbedded(config *Settings, showComments bool, showFul
 	return yamlOutput, nil
 }
 
+// redactPlaceholder replaces secret values in API responses without revealing the original.
+const redactPlaceholder = "**hidden**"
+
+// RedactedSettingsCopy returns a deep copy of the given config with every secret-marked field
+// replaced by the redaction placeholder. The live config is never modified, so callers can
+// render the result to an API response without disabling authentication (a mutated
+// settings.Config would break JWT signing/verification and the OIDC/LDAP/OnlyOffice integrations
+// until restart). See GHSA-892f-9h5p-mfc8.
+func RedactedSettingsCopy(conf *Settings) *Settings {
+	if conf == nil {
+		return nil
+	}
+	cpVal := deepCopyValue(reflect.ValueOf(conf))
+	cp, ok := cpVal.Interface().(*Settings)
+	if !ok {
+		return nil
+	}
+	secrets := buildSecretFieldsFor(conf)
+	redactSecretsValue(reflect.ValueOf(cp), "Settings", secrets)
+	return cp
+}
+
+// RedactAuthSecrets returns a copy of the auth section with secret fields replaced by the
+// redaction placeholder, leaving the live config untouched.
+func RedactAuthSecrets(auth Auth) Auth {
+	cp := auth
+	secrets := buildSecretFieldsFor(&Settings{Auth: Config.Auth})
+	redactSecretsValue(reflect.ValueOf(&cp), "Auth", secrets)
+	return cp
+}
+
+// deepCopyValue returns a deep copy of v, preserving the exact field values (including unexported
+// fields) rather than round-tripping through JSON, which would run custom unmarshalers and change
+// semantics (e.g. users.Permissions.UnmarshalJSON sets Configured).
+func deepCopyValue(v reflect.Value) reflect.Value {
+	switch v.Kind() {
+	case reflect.Pointer:
+		if v.IsNil() {
+			return v
+		}
+		cp := reflect.New(v.Type().Elem())
+		cp.Elem().Set(deepCopyValue(v.Elem()))
+		return cp
+	case reflect.Interface:
+		if v.IsNil() {
+			return v
+		}
+		cp := deepCopyValue(v.Elem())
+		out := reflect.New(v.Type()).Elem()
+		out.Set(cp)
+		return out
+	case reflect.Struct:
+		out := reflect.New(v.Type()).Elem()
+		t := v.Type()
+		for i := 0; i < t.NumField(); i++ {
+			dst := out.Field(i)
+			if dst.CanSet() {
+				dst.Set(deepCopyValue(v.Field(i)))
+			}
+		}
+		return out
+	case reflect.Slice:
+		if v.IsNil() {
+			return v
+		}
+		out := reflect.MakeSlice(v.Type(), v.Len(), v.Len())
+		for i := 0; i < v.Len(); i++ {
+			out.Index(i).Set(deepCopyValue(v.Index(i)))
+		}
+		return out
+	case reflect.Array:
+		out := reflect.New(v.Type()).Elem()
+		for i := 0; i < v.Len(); i++ {
+			out.Index(i).Set(deepCopyValue(v.Index(i)))
+		}
+		return out
+	case reflect.Map:
+		if v.IsNil() {
+			return v
+		}
+		out := reflect.MakeMapWithSize(v.Type(), v.Len())
+		iter := v.MapRange()
+		for iter.Next() {
+			out.SetMapIndex(deepCopyValue(iter.Key()), deepCopyValue(iter.Value()))
+		}
+		return out
+	default:
+		return v
+	}
+}
+
+// SecretFieldNames are struct field names treated as secret regardless of comment markers.
+// Used both for YAML redaction and for redacting GET /api/settings responses.
+var SecretFieldNames = map[string]bool{
+	"Key":           true,
+	"AdminUsername": true,
+	"AdminPassword": true,
+	"TotpSecret":    true,
+	"ClientID":      true,
+	"ClientSecret":  true,
+	"Secret":        true,
+	"UserPassword":  true,
+	"Password":      true,
+	"ApiKey":        true,
+	"APIKey":        true,
+	"BearerToken":   true,
+	"PrivateKey":    true,
+}
+
+// SecretHintYaml holds the embedded config.generated.yaml text used to discover `secret:`
+// comment markers at runtime. The web layer sets it from the running binary's asset
+// filesystem; the settings sources are not present in a deployed binary.
+var SecretHintYaml string
+
+// ActiveSecretFields returns the struct type -> field name -> is secret mapping for the running
+// config. It combines the explicit `secret:` comment markers (from the embedded YAML when
+// available, otherwise the Go sources) with the SecretFieldNames reflection fallback, so a new
+// field named ApiKey/Secret/etc. is caught even without a marker.
+func ActiveSecretFields() SecretFieldsMap {
+	return buildSecretFieldsFor(&Config)
+}
+
+func buildSecretFieldsFor(conf *Settings) SecretFieldsMap {
+	var secrets SecretFieldsMap
+
+	// Prefer the embedded YAML: it is the only marker source available in a deployed binary,
+	// and the generator fixes the comments for every field real users configure.
+	if SecretHintYaml != "" {
+		if _, s, _, err := CollectCommentsFromEmbeddedYaml(SecretHintYaml); err == nil && hasAnySecret(s) {
+			secrets = s
+		}
+	}
+	if !hasAnySecret(secrets) {
+		// Fall back to the Go sources (repo layout / tests). CollectCommentsAndSecrets also
+		// unions in the reflection fallback, so this path never under-reports.
+		// Try each candidate directory until one parses with markers, so a missing or
+		// unparsable first candidate does not skip a valid later one.
+		for _, srcPath := range settingsSourcePaths() {
+			if !isSettingsSourceDir(srcPath) {
+				continue
+			}
+			if _, s, _, err := CollectCommentsAndSecrets(srcPath); err == nil && hasAnySecret(s) {
+				secrets = s
+				break
+			}
+		}
+	}
+	if secrets == nil {
+		secrets = make(SecretFieldsMap)
+	}
+	// Always apply the reflection fallback so the map is complete even when only the embedded
+	// YAML was consulted (it covers the deprecated-but-secret auth.adminUsername/adminPassword
+	// fields, which the filtered generated YAML omits entirely).
+	identifySecretFieldsByReflection(reflect.ValueOf(conf), "Settings", secrets)
+	return secrets
+}
+
+// redactSecretsValue walks a settings value and replaces every field marked secret with the
+// redaction placeholder, preserving the original structure for the JSON response.
+func redactSecretsValue(v reflect.Value, typeName string, secrets SecretFieldsMap) {
+	switch v.Kind() {
+	case reflect.Pointer, reflect.Interface:
+		if v.IsNil() {
+			return
+		}
+		redactSecretsValue(v.Elem(), typeName, secrets)
+	case reflect.Slice, reflect.Array:
+		for i := 0; i < v.Len(); i++ {
+			redactSecretsValue(v.Index(i), typeName, secrets)
+		}
+	case reflect.Map:
+		for _, key := range v.MapKeys() {
+			redactSecretsValue(v.MapIndex(key), typeName, secrets)
+		}
+	case reflect.Struct:
+		t := v.Type()
+		for i := 0; i < t.NumField(); i++ {
+			field := t.Field(i)
+			if field.PkgPath != "" {
+				continue
+			}
+			fieldValue := v.Field(i)
+			if !fieldValue.CanSet() {
+				continue
+			}
+			fieldTypeName := fieldTypeNameFor(field)
+			switch {
+			case isSecretField(typeName, field.Name, secrets):
+				redactStringValue(fieldValue)
+			case field.Anonymous && jsonTagIsInline(field):
+				// encoding/json flattens embedded inline structs into the parent object.
+				redactSecretsValue(fieldValue, fieldTypeName, secrets)
+			case fieldValue.Kind() == reflect.Struct:
+				redactSecretsValue(fieldValue, fieldTypeName, secrets)
+			case fieldValue.Kind() == reflect.Pointer && !fieldValue.IsNil() && fieldValue.Elem().Kind() == reflect.Struct:
+				redactSecretsValue(fieldValue, fieldTypeName, secrets)
+			case fieldValue.Kind() == reflect.Slice && fieldValue.Type().Elem().Kind() == reflect.Struct:
+				redactSecretsValue(fieldValue, fieldTypeName, secrets)
+			case fieldValue.Kind() == reflect.Map && fieldValue.Type().Elem().Kind() == reflect.Struct:
+				redactSecretsValue(fieldValue, fieldTypeName, secrets)
+			}
+		}
+	}
+}
+
+func isSecretField(typeName, fieldName string, secrets SecretFieldsMap) bool {
+	if secrets != nil && secrets[typeName][fieldName] {
+		return true
+	}
+	return SecretFieldNames[fieldName]
+}
+
+func fieldTypeNameFor(field reflect.StructField) string {
+	t := field.Type
+	if t.Kind() == reflect.Pointer {
+		t = t.Elem()
+	}
+	if t.Kind() == reflect.Slice || t.Kind() == reflect.Array || t.Kind() == reflect.Map {
+		t = t.Elem()
+	}
+	if t.Kind() == reflect.Pointer {
+		t = t.Elem()
+	}
+	return t.Name()
+}
+
+func jsonTagIsInline(field reflect.StructField) bool {
+	tag := field.Tag.Get("json")
+	return strings.Contains(tag, "inline") || tag == ""
+}
+
+// redactStringValue replaces a string-ish secret field's value with the placeholder. Non-empty
+// values are replaced; already-empty values are left empty so an unset secret does not appear set.
+func redactStringValue(v reflect.Value) {
+	if v.Kind() == reflect.Pointer {
+		if v.IsNil() {
+			return
+		}
+		v = v.Elem()
+	}
+	if v.Kind() != reflect.String || v.String() == "" {
+		return
+	}
+	v.SetString(redactPlaceholder)
+}
+
+// settingsSourcePaths returns candidate directories holding the settings Go sources, used as a
+// fallback when the embedded YAML is unavailable during secret detection.
+func settingsSourcePaths() []string {
+	return []string{".", "pkg/settings", "../pkg/settings", "../../pkg/settings"}
+}
+
+// hasAnySecret reports whether the map holds at least one field marked secret. Parsers create
+// an entry for every struct they see, so a non-empty map alone does not mean markers were found.
+func hasAnySecret(secrets SecretFieldsMap) bool {
+	for _, fields := range secrets {
+		for _, secret := range fields {
+			if secret {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// isSettingsSourceDir reports whether dir looks like the settings package sources, so an
+// unrelated Go package earlier in the candidate list (e.g. the working directory) is skipped.
+func isSettingsSourceDir(dir string) bool {
+	info, err := os.Stat(filepath.Join(dir, "generator.go"))
+	if err != nil || info.IsDir() {
+		return false
+	}
+	info, err = os.Stat(filepath.Join(dir, "structs.go"))
+	return err == nil && !info.IsDir()
+}
+
 // identifySecretFieldsByReflection identifies secret fields by known field names
 func identifySecretFieldsByReflection(v reflect.Value, typeName string, secrets SecretFieldsMap) {
 	if v.Kind() == reflect.Pointer {
@@ -1099,20 +1380,9 @@ func identifySecretFieldsByReflection(v reflect.Value, typeName string, secrets 
 		secrets[typeName] = make(map[string]bool)
 	}
 
-	// Known secret field names
-	secretFields := map[string]bool{
-		"Key":           true,
-		"AdminUsername": true,
-		"AdminPassword": true,
-		"TotpSecret":    true,
-		"ClientID":      true,
-		"ClientSecret":  true,
-		"Secret":        true,
-	}
-
 	for i := 0; i < t.NumField(); i++ {
 		field := t.Field(i)
-		if secretFields[field.Name] {
+		if SecretFieldNames[field.Name] {
 			secrets[typeName][field.Name] = true
 		}
 

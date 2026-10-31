@@ -1,7 +1,7 @@
 <template>
   <div class="share-info">
     <div class="share-info__box">
-      <div v-if="shareInfo.banner" class="banner">
+      <div v-if="shareInfo.bannerUrl" class="banner">
         <img :src="shareInfo.bannerUrl" aria-hidden="true" />
       </div>
       <div v-if="shareInfo.title" class="share-info__box__element">
@@ -12,7 +12,7 @@
       </div>
 
       <div>
-        <hr v-if="shareInfo.banner || shareInfo.title || shareInfo.description" />
+        <hr v-if="shareInfo.bannerUrl || shareInfo.title || shareInfo.description" />
         <div v-if="showShareInfo">
           <div class="share-info__box__element">
             <strong>{{ $t("prompts.displayName") }}</strong> {{ req.name }}

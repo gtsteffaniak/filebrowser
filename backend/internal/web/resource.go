@@ -279,27 +279,16 @@ func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *Context) (
 	// delete thumbnails
 	preview.DelThumbs(r.Context(), *fileInfo)
 
-	principal := quota.PrincipalForUpload(d.User, d.Share.UserID, d.Share.Hash)
-	sourceInfo, ok := settings.Config.Server.NameToSource[source]
-	if !ok {
+	if _, ok := settings.Config.Server.NameToSource[source]; !ok {
 		return http.StatusNotFound, fmt.Errorf("source %s not found", source)
 	}
-	var deleteBytes int64
-	if fileInfo.Type == "directory" {
-		deleteBytes, _ = state.IndexedPathBytes(source, fileInfo.Path, true)
-	} else {
-		deleteBytes = fileInfo.Size
-	}
 
+	adjustments := prepareDeleteQuotaAdjustments(d, source, fullIndexPath, fileInfo)
 	err = files.DeleteFiles(source, userScope, fullIndexPath, fileInfo.Type == "directory")
 	if err != nil {
 		return ErrToStatus(err), err
 	}
-	if deleteBytes > 0 {
-		if adjErr := state.ApplyAccountedUsageDelta(principal, source, sourceInfo.Path, fileInfo.Path, d.Share.Hash, -deleteBytes); adjErr != nil {
-			logger.Warningf("quota adjust after delete failed: %v", adjErr)
-		}
-	}
+	applyDeleteQuotaAdjustments(adjustments)
 	activity.RecordDelete(r, toActor(d), source, path)
 	return http.StatusOK, nil
 
@@ -326,11 +315,14 @@ func publicDeleteHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 	shareRelPath := strings.TrimPrefix(d.Share.Path, userScope)
 	fullIndexPath := utils.JoinScopedIndexPath(userScope, d.IndexPath)
 	boundIndexPath := utils.JoinScopedIndexPath(userScope, shareRelPath)
+	sourceName := d.Share.GetSourceName()
+	adjustments := prepareDeleteQuotaAdjustments(d, sourceName, fullIndexPath, fileInfo)
 	err = files.DeleteFiles(d.Share.SourcePath, boundIndexPath, fullIndexPath, fileInfo.Type == "directory")
 	if err != nil {
 		logger.Errorf("public delete handler: error deleting resource with error %v", err)
 		return http.StatusInternalServerError, fmt.Errorf("an error occured while deleting the resource")
 	}
+	applyDeleteQuotaAdjustments(adjustments)
 	preview.DelThumbs(r.Context(), *fileInfo)
 	activity.RecordDelete(r, toActor(d), d.Share.GetSourceName(), fileInfo.Path)
 	return http.StatusOK, nil
@@ -497,7 +489,7 @@ func ResourceBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *Contex
 			boundIndexPath := utils.JoinScopedIndexPath(userScope, withoutUserScope)
 			fullIndexPath := utils.JoinScopedIndexPath(userScope, indexPath)
 
-			// Delete the file/directory
+			adjustments := prepareDeleteQuotaAdjustments(d, sourceName, fullIndexPath, fileInfo)
 			err = files.DeleteFiles(sourceName, boundIndexPath, fullIndexPath, fileInfo.Type == "directory")
 			if err != nil {
 				logger.Errorf("resource bulk delete handler: error deleting file/directory: %v", err)
@@ -508,6 +500,7 @@ func ResourceBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *Contex
 				})
 				continue
 			}
+			applyDeleteQuotaAdjustments(adjustments)
 			// Delete thumbnails
 			preview.DelThumbs(r.Context(), *fileInfo)
 			activityPath = fileInfo.Path
@@ -577,6 +570,7 @@ func ResourceBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *Contex
 				continue
 			}
 			fullIndexPath := utils.JoinScopedIndexPath(userScope, sanitizedPath)
+			adjustments := prepareDeleteQuotaAdjustments(d, item.Source, fullIndexPath, fileInfo)
 			err = files.DeleteFiles(item.Source, userScope, fullIndexPath, fileInfo.Type == "directory")
 			if err != nil {
 				response.Failed = append(response.Failed, BulkDeleteItem{
@@ -586,6 +580,7 @@ func ResourceBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *Contex
 				})
 				continue
 			}
+			applyDeleteQuotaAdjustments(adjustments)
 			preview.DelThumbs(r.Context(), *fileInfo)
 		}
 		// Success — echo the client path in the response

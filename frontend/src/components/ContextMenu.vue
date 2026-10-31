@@ -378,6 +378,8 @@ export default {
     showCreateFileActions() {
       if (this.showLimitedOptions) return false;
       if (!this.permissions.create) return false;
+      // Advanced search results are not a target folder; never offer create actions there.
+      if (this.isAdvancedSearch) return false;
       return this.showCreate && !this.isSearchActive;
     },
     req() {
@@ -483,7 +485,8 @@ export default {
     },
     /** + control in listing / share directory context; disabled when the panel cannot be opened. */
     showCreateToggle() {
-      if (this.showLimitedOptions || this.createOnly) return false;
+      // Advanced search lists results from several folders, so there is no folder to create in.
+      if (this.showLimitedOptions || this.createOnly || this.isAdvancedSearch) return false;
       return !this.isSearchActive;
     },
     createToggleDisabled() {
@@ -497,6 +500,10 @@ export default {
       if (this.showLimitedOptions) return false;
       if (this.isMultiple || this.isSearchActive) {
         return false;
+      }
+      // With "open with a single click" a plain click opens the item, so this is the way to select single results.
+      if (this.isAdvancedSearch) {
+        return true;
       }
       if (state.user?.showSelectMultiple) {
         return true;
@@ -598,6 +605,9 @@ export default {
     },
     onlyofficeEnabled() {
       return globalVars.onlyOfficeUrl !== "";
+    },
+    isAdvancedSearch() {
+      return getters.currentTool()?.component === "AdvancedSearch";
     },
     isSearchActive() {
       return state.isSearchActive;
@@ -812,7 +822,7 @@ export default {
     },
     initializeCreateState() {
       this.showNewFileTemplate = false;
-      if (this.createOnly) {
+      if (this.createOnly && !this.isAdvancedSearch) {
         this.showCreate = true;
         return;
       }

@@ -406,6 +406,9 @@ func userPatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 	if err2 != nil {
 		return http.StatusInternalServerError, err2
 	}
+	if !d.User.Permissions.Admin && uValue.LockPassword && state.FieldListIncludes(req.Which, "password") {
+		return http.StatusForbidden, fmt.Errorf("password changes are disabled for this user")
+	}
 	req.User.ID = uValue.ID
 	req.User.Username = uValue.Username
 	if state.FieldListIncludes(req.Which, "otpEnabled") && !req.User.OtpEnabled {

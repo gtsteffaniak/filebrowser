@@ -113,7 +113,18 @@ func warnHttpProxyConfig() {
 		return
 	}
 	if Config.Http.BaseURL != "/" && !Config.Http.TrustProxyHeaders {
-		logger.Warning(`http.baseURL is not "/" but http.trustProxyHeaders is false. Behind a reverse proxy on a subpath, set trustProxyHeaders: true so cookies, client IP, OIDC redirects, and URLs resolve correctly. See https://filebrowserquantum.com/en/docs/configuration/http/#trustproxyheaders`)
+		logger.Warning(`http.baseURL is not "/" but http.trustProxyHeaders is false. Behind a reverse proxy on a subpath, set trustProxyHeaders: true so cookies, OIDC redirects, and URLs resolve correctly, and list the proxy addresses in http.trustedProxies so the client IP resolves too. See https://filebrowserquantum.com/en/docs/configuration/http/#trustproxyheaders`)
+	}
+	if len(Config.Http.TrustedProxies) > 0 && !Config.Http.TrustProxyHeaders {
+		logger.Warning("http.trustedProxies is set but http.trustProxyHeaders is false; trusted proxy entries are ignored until trustProxyHeaders is enabled")
+	}
+	// Check the parsed list: blank entries are accepted by validation but yield no prefixes.
+	if Config.Http.TrustProxyHeaders && len(TrustedProxyPrefixes()) == 0 && Config.Http.Socket == "" {
+		logger.Warning("http.trustProxyHeaders is true but http.trustedProxies is empty; X-Forwarded-For and X-Real-IP are ignored, so client IPs (rate limits, activity logs) resolve to the proxy address. Add your reverse proxy addresses to http.trustedProxies.")
+	}
+	if Config.Http.TrustProxyHeaders && Config.Http.Socket != "" && !strings.HasPrefix(Config.Http.Socket, "@") &&
+		len(Config.Http.UnixSocketTrustedUIDs) == 0 && len(Config.Http.UnixSocketTrustedGIDs) == 0 {
+		logger.Warning("http.trustProxyHeaders is true and http.socket is a filesystem Unix socket, but http.unixSocketTrustedUIDs and http.unixSocketTrustedGIDs are empty; X-Forwarded-For and X-Real-IP are ignored until you list the reverse proxy's UID or GID (Linux peer credentials).")
 	}
 	if !Env.IsDevMode {
 		if u := Config.Http.ExternalUrl; u != "" && strings.HasPrefix(strings.ToLower(u), "http://") {
@@ -381,7 +392,6 @@ func setupMedia(generate bool) {
 func isGoTest() bool {
 	return flag.Lookup("test.v") != nil
 }
-
 
 func setupFFmpegIntegration() {
 	n := Config.Server.NumImageProcessors

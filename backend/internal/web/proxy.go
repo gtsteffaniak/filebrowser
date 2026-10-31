@@ -19,17 +19,6 @@ func normalizeHTTPScheme(proto string) string {
 	}
 }
 
-func lastForwardedValue(v string) string {
-	parts := strings.Split(v, ",")
-	for i := len(parts) - 1; i >= 0; i-- {
-		ip := strings.TrimSpace(parts[i])
-		if ip != "" {
-			return ip
-		}
-	}
-	return ""
-}
-
 func firstForwardedValue(v string) string {
 	v = strings.TrimSpace(v)
 	if i := strings.Index(v, ","); i >= 0 {

@@ -25,17 +25,25 @@ type Settings struct {
 }
 
 type Http struct {
-	Socket            string `json:"socket"`            // socket to listen on - eg. /var/run/filebrowser.sock
-	TLSKey            string `json:"tlsKey"`            // path to TLS key
-	TLSCert           string `json:"tlsCert"`           // path to TLS cert
-	Port              int    `json:"port"`              // port to listen on
-	ListenAddress     string `json:"listen"`            // address to listen on (default: 0.0.0.0)
-	BaseURL           string `json:"baseURL"`           // base URL for the server, the subpath that the server is running on.
-	ExternalUrl       string `json:"externalUrl"`       // used by share links if set (eg. http://mydomain.com)
-	InternalUrl       string `json:"internalUrl"`       // used by integrations if set, this is the base domain that an integration service will use to communicate with filebrowser (eg. http://localhost:8080)
-	DisableWebDAV     bool   `json:"disableWebDAV"`     // disable webdav support (default: false)
-	TrustProxyHeaders bool   `json:"trustProxyHeaders"` // honor X-Forwarded-* and X-Real-IP from a reverse proxy (default: false)
-	DisableRateLimit  bool   `json:"disableRateLimit"`  // turns off built-in auth route rate limiting and failed-login lockout (default false).
+	Socket            string   `json:"socket"`            // socket to listen on - eg. /var/run/filebrowser.sock
+	TLSKey            string   `json:"tlsKey"`            // path to TLS key
+	TLSCert           string   `json:"tlsCert"`           // path to TLS cert
+	Port              int      `json:"port"`              // port to listen on
+	ListenAddress     string   `json:"listen"`            // address to listen on (default: 0.0.0.0)
+	BaseURL           string   `json:"baseURL"`           // base URL for the server, the subpath that the server is running on.
+	ExternalUrl       string   `json:"externalUrl"`       // used by share links if set (eg. http://mydomain.com)
+	InternalUrl       string   `json:"internalUrl"`       // used by integrations if set, this is the base domain that an integration service will use to communicate with filebrowser (eg. http://localhost:8080)
+	DisableWebDAV     bool     `json:"disableWebDAV"`     // disable webdav support (default: false)
+	TrustProxyHeaders bool     `json:"trustProxyHeaders"` // honor X-Forwarded-* and X-Real-IP from a reverse proxy (default: false)
+	TrustedProxies    []string `json:"trustedProxies"`    // IPs/CIDRs of trusted proxies; forwarded client headers are only honored when the socket peer matches one of these (default: empty = forwarded headers ignored)
+	// UnixSocketTrustedUIDs and UnixSocketTrustedGIDs list peer credentials (Linux SO_PEERCRED) allowed to
+	// present X-Forwarded-* on a filesystem http.socket listener. When both are empty, forwarded headers
+	// are not trusted on Unix sockets. Abstract sockets (@name) never trust forwarded headers.
+	UnixSocketTrustedUIDs []int  `json:"unixSocketTrustedUIDs"`
+	UnixSocketTrustedGIDs []int  `json:"unixSocketTrustedGIDs"`
+	SocketFileMode        string `json:"socketFileMode"`   // octal mode for filesystem http.socket (default "0660"); ignored for abstract sockets
+	SocketGroup           string `json:"socketGroup"`      // optional group name or numeric gid for the socket file (filesystem sockets only)
+	DisableRateLimit      bool   `json:"disableRateLimit"` // turns off built-in auth route rate limiting and failed-login lockout (default false).
 }
 
 type Environment struct {

@@ -47,15 +47,16 @@ func GetOrientation(ctx context.Context, path string) string {
 	default:
 		ex, err = extimagemeta.Decode(f)
 	}
-	if err != nil {
-		return ""
-	}
 	if ctx.Err() != nil {
 		return ""
 	}
-
-	if ex.IFD0.Orientation == 0 {
-		return ""
+	if err == nil && ex.IFD0.Orientation != 0 {
+		return tag.ValueNameFor(tag.IFD0, tag.TagOrientation, uint32(ex.IFD0.Orientation))
 	}
-	return tag.ValueNameFor(tag.IFD0, tag.TagOrientation, uint32(ex.IFD0.Orientation))
+	if !isHEICExtension(ext) {
+		if orient := extractTIFFOrientation(f); orient != 0 {
+			return tag.ValueNameFor(tag.IFD0, tag.TagOrientation, uint32(orient))
+		}
+	}
+	return ""
 }

@@ -84,7 +84,9 @@ export async function search(base, sources, query, largest = false, extraParams 
 
     return data;
   } catch (err) {
-    notify.showError(err.message || "Error occurred during search");
+    if (!extraParams.suppressNotify) {
+      notify.showError(err.message || "Error occurred during search");
+    }
     throw err;
   }
 }

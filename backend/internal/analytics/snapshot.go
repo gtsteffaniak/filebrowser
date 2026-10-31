@@ -301,7 +301,7 @@ func detectRuntime() string {
 
 func mapSystemOS(goos string) string {
 	switch goos {
-	case "linux", "windows", "darwin":
+	case "linux", "windows", "darwin", "freebsd":
 		return goos
 	default:
 		return "other"

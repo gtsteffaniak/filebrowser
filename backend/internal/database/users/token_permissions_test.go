@@ -45,6 +45,14 @@ func TestIsMinimalApiToken(t *testing.T) {
 		t.Fatal("custom token with global caps should not be minimal")
 	}
 	if !IsMinimalApiToken(AuthToken{Permissions: Permissions{Modify: true}}) {
-		t.Fatal("token without global caps should be minimal")
+		t.Fatal("legacy token without global caps should be minimal")
+	}
+	minimal := true
+	if !IsMinimalApiToken(AuthToken{Minimal: &minimal}) {
+		t.Fatal("explicit minimal token should be minimal")
+	}
+	customized := false
+	if IsMinimalApiToken(AuthToken{Minimal: &customized}) {
+		t.Fatal("explicit customized token with empty caps should not be minimal")
 	}
 }

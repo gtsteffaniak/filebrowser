@@ -6013,6 +6013,14 @@ const docTemplate = `{
                     "description": "socket to listen on - eg. /var/run/filebrowser.sock",
                     "type": "string"
                 },
+                "socketFileMode": {
+                    "description": "octal mode for filesystem http.socket (default \"0660\"); ignored for abstract sockets",
+                    "type": "string"
+                },
+                "socketGroup": {
+                    "description": "optional group name or numeric gid for the socket file (filesystem sockets only)",
+                    "type": "string"
+                },
                 "tlsCert": {
                     "description": "path to TLS cert",
                     "type": "string"
@@ -6024,6 +6032,26 @@ const docTemplate = `{
                 "trustProxyHeaders": {
                     "description": "honor X-Forwarded-* and X-Real-IP from a reverse proxy (default: false)",
                     "type": "boolean"
+                },
+                "trustedProxies": {
+                    "description": "IPs/CIDRs of trusted proxies; forwarded client headers are only honored when the socket peer matches one of these (default: empty = forwarded headers ignored)",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "unixSocketTrustedGIDs": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "unixSocketTrustedUIDs": {
+                    "description": "UnixSocketTrustedUIDs and UnixSocketTrustedGIDs list peer credentials (Linux SO_PEERCRED) allowed to\npresent X-Forwarded-* on a filesystem http.socket listener. When both are empty, forwarded headers\nare not trusted on Unix sockets. Abstract sockets (@name) never trust forwarded headers.",
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
                 }
             }
         },
@@ -6175,7 +6203,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "userPassword": {
-                    "description": "Bind password for service account",
+                    "description": "secret: bind password for the LDAP service account",
                     "type": "string"
                 }
             }
@@ -6488,7 +6516,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "secret": {
-                    "description": "v2 secret key",
+                    "description": "secret: v2 secret key",
                     "type": "string"
                 }
             }
@@ -7634,6 +7662,10 @@ const docTemplate = `{
                 "key": {
                     "description": "for backward compatibility",
                     "type": "string"
+                },
+                "minimal": {
+                    "description": "Minimal distinguishes owner-inheriting tokens from customized caps. Nil means legacy (infer from stored permissions).",
+                    "type": "boolean"
                 },
                 "name": {
                     "type": "string"
