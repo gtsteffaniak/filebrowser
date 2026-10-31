@@ -17,7 +17,7 @@
       >close</i>
     </div>
     <div v-if="showPwaInstall" class="button release-banner">
-      <button type="button" @click="installPwa">{{ $t("pwa.install") }}</button>
+      <a type="button" @click="installPwa">{{ $t("pwa.install") }}</a>
       <i @click="dismissPwaInstall" role="button" tabindex="0" aria-label="close-banner" class="material-symbols">close</i>
     </div>
     <SidebarSettings v-if="isSettings"></SidebarSettings>

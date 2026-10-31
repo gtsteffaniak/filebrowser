@@ -47,7 +47,8 @@
         "useGenericFontNames": "off",
         "useKeyWithClickEvents": "off",
         "useMediaCaption": "off",
-        "useSemanticElements": "off"
+        "useSemanticElements": "off",
+        "useValidAnchor": "off"
       },
       "complexity": {
         "noForEach": "on",
