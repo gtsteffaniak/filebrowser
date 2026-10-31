@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sync"
 	"testing"
 	"time"
 
@@ -177,4 +178,32 @@ func TestFileCacheDeleteAndOverwriteKeepTheSizeAccurate(t *testing.T) {
 	require.Equal(t, int64(2*kb), cache.size.Load(), "overwriting replaces the old size")
 	require.NoError(t, cache.Delete(ctx, "k"))
 	require.Zero(t, cache.size.Load())
+}
+
+// Stores that land while an eviction is measuring or deleting must not be lost from the tracked size,
+// and the cache must end up under its limit even though more files kept arriving during the eviction.
+func TestFileCacheStaysUnderTheLimitWithConcurrentStores(t *testing.T) {
+	const (
+		kb      = 1024
+		limit   = 100 * kb
+		workers = 16
+		stores  = 40
+	)
+	cache := newLimitedCache(t, limit)
+	var wg sync.WaitGroup
+	for w := 0; w < workers; w++ {
+		wg.Add(1)
+		go func(w int) {
+			defer wg.Done()
+			for i := 0; i < stores; i++ {
+				_ = cache.Store(context.Background(), fmt.Sprintf("worker-%d-key-%d", w, i), make([]byte, 4*kb))
+			}
+		}(w)
+	}
+	wg.Wait()
+	waitFor(t, func() bool { return !cache.evicting.Load() })
+
+	_, onDisk := cache.scan()
+	require.LessOrEqual(t, onDisk, int64(limit), "the files left on disk are within the limit")
+	require.Equal(t, onDisk, cache.size.Load(), "the tracked size matches what is on disk")
 }

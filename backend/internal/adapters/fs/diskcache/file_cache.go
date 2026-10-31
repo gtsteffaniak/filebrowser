@@ -38,8 +38,12 @@ type FileCache struct {
 	dir string
 	// maxBytes is the size limit of the cache in bytes. 0 means no limit.
 	maxBytes int64
-	// size is the approximate total size of the cached files in bytes. Only tracked when maxBytes > 0.
+	// size is the total size of the cached files in bytes. Only tracked when maxBytes > 0.
 	size atomic.Int64
+	// sizeMu keeps size consistent with the files on disk: stores and deletes hold it for reading while
+	// they change a file and its size, and eviction holds it for writing while it measures the directory,
+	// so a store can never fall between a measurement and the size being set from it.
+	sizeMu sync.RWMutex
 	// evicting is set while an eviction is running so only one runs at a time.
 	evicting atomic.Bool
 	// granular locks
@@ -71,12 +75,8 @@ func NewFileCacheWithLimit(dir string, maxBytes int64) (*FileCache, error) {
 	cache := &FileCache{dir: cacheDir}
 	if maxBytes > 0 {
 		cache.maxBytes = maxBytes
-		files, total := cache.scan()
-		cache.size.Store(total)
-		if total > maxBytes {
-			logger.Infof("preview cache is %d MB, over its limit of %d MB, removing the least recently used files", total>>20, maxBytes>>20)
-			cache.evict(files, total)
-		}
+		// measures the cache and trims it right away if it is already over the limit
+		cache.evictPass()
 	}
 	return cache, nil
 }
@@ -133,21 +133,41 @@ func (f *FileCache) Store(ctx context.Context, key string, value []byte) error {
 		return err
 	}
 
-	var previousSize int64
 	if f.maxBytes > 0 {
-		if info, err := os.Stat(fileName); err == nil {
-			previousSize = info.Size()
-		}
+		f.sizeMu.RLock()
+		defer f.sizeMu.RUnlock()
 	}
+	previousSize := f.fileSize(fileName)
 
 	if err := os.WriteFile(fileName, value, fileutils.PermFile); err != nil {
+		// a failed write can leave a truncated or partial file, so count what is actually there
+		f.sizeChanged(f.fileSize(fileName) - previousSize)
 		return err
 	}
+	f.sizeChanged(int64(len(value)) - previousSize)
+	return nil
+}
 
-	if f.maxBytes > 0 && f.size.Add(int64(len(value))-previousSize) > f.maxBytes {
+// fileSize returns the size of a cached file, or 0 if it doesn't exist or the size isn't tracked.
+func (f *FileCache) fileSize(fileName string) int64 {
+	if f.maxBytes <= 0 {
+		return 0
+	}
+	info, err := os.Stat(fileName)
+	if err != nil {
+		return 0
+	}
+	return info.Size()
+}
+
+// sizeChanged adds delta to the tracked size and starts an eviction if that put the cache over its limit.
+func (f *FileCache) sizeChanged(delta int64) {
+	if f.maxBytes <= 0 {
+		return
+	}
+	if f.size.Add(delta) > f.maxBytes {
 		f.evictAsync()
 	}
-	return nil
 }
 
 func (f *FileCache) Load(ctx context.Context, key string) (value []byte, exist bool, err error) {
@@ -170,13 +190,12 @@ func (f *FileCache) Delete(ctx context.Context, key string) error {
 	mu.Lock()
 	defer mu.Unlock()
 
-	fileName := f.getFileName(key)
-	var removedSize int64
 	if f.maxBytes > 0 {
-		if info, err := os.Stat(fileName); err == nil {
-			removedSize = info.Size()
-		}
+		f.sizeMu.RLock()
+		defer f.sizeMu.RUnlock()
 	}
+	fileName := f.getFileName(key)
+	removedSize := f.fileSize(fileName)
 	if err := os.Remove(fileName); err != nil && !errors.Is(err, os.ErrNotExist) {
 		return err
 	}
@@ -231,41 +250,50 @@ func (f *FileCache) evictAsync() {
 		return
 	}
 	go func() {
-		files, total := f.scan()
-		f.size.Store(total)
-		f.evict(files, total)
+		for {
+			removed := f.evictPass()
+			f.evicting.Store(false)
+			if removed == 0 {
+				return // under the limit, or nothing could be removed: don't spin
+			}
+			// Files stored while the pass was running were counted but not necessarily seen by it, and a
+			// store that came in just before the flag was cleared saw it set and didn't start another
+			// pass, so check again before stopping.
+			if f.size.Load() <= f.maxBytes || !f.evicting.CompareAndSwap(false, true) {
+				return
+			}
+		}
 	}()
 }
 
-// evict deletes the least recently used files until the cache is under evictTargetPercent of its limit.
-// Deleting a file that is being read or written is harmless: readers keep their open file and a
-// removed entry is simply rebuilt the next time it is requested.
-func (f *FileCache) evict(files []cachedFile, total int64) {
-	f.evicting.Store(true)
-	defer f.evicting.Store(false)
-	target := f.maxBytes / 100 * evictTargetPercent
-	if total <= target {
-		return
+// evictPass measures the cache and, if it is over the limit, deletes the least recently used files until
+// it is under evictTargetPercent of the limit. Deleting a file that is being read or written is harmless:
+// readers keep their open file and a removed entry is simply rebuilt the next time it is requested.
+func (f *FileCache) evictPass() (removed int) {
+	f.sizeMu.Lock()
+	files, total := f.scan()
+	f.size.Store(total)
+	f.sizeMu.Unlock()
+
+	if total <= f.maxBytes {
+		return 0
 	}
+	target := f.maxBytes / 100 * evictTargetPercent
 	sort.Slice(files, func(i, j int) bool { return files[i].modTime.Before(files[j].modTime) })
-	var removed int
 	var removedBytes int64
 	for _, file := range files {
-		if total <= target {
+		if f.size.Load() <= target {
 			break
 		}
 		if err := os.Remove(file.path); err != nil {
-			if errors.Is(err, os.ErrNotExist) {
-				total -= file.size
-			}
 			continue
 		}
-		total -= file.size
+		f.size.Add(-file.size)
 		removed++
 		removedBytes += file.size
 	}
-	f.size.Store(total)
-	logger.Debugf("preview cache limit: removed %d files (%d MB), now %d MB of %d MB", removed, removedBytes>>20, total>>20, f.maxBytes>>20)
+	logger.Debugf("preview cache limit: removed %d files (%d MB), now %d MB of %d MB", removed, removedBytes>>20, f.size.Load()>>20, f.maxBytes>>20)
+	return removed
 }
 
 func (f *FileCache) open(key string) (*os.File, bool, error) {
