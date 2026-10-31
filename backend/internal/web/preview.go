@@ -38,6 +38,30 @@ func isClientCancellation(ctx context.Context, err error) bool {
 	return errors.Is(err, context.Canceled)
 }
 
+// viewerConvertedDocExtensions are the documents the viewer opens as a rendered image through the
+// "original" preview (keep in sync with pdfConvertable in frontend Preview.vue).
+var viewerConvertedDocExtensions = map[string]bool{
+	".xps": true, ".mobi": true, ".fb2": true, ".cbz": true, ".svg": true,
+	".docx": true, ".pptx": true, ".xlsx": true, ".hwp": true, ".hwpx": true,
+}
+
+// isViewerOriginalPreview reports whether a preview request is the viewer opening a file the browser can't
+// display by itself (camera RAW, HEIC/HEIF, rendered documents). Unlike a thumbnail, without it the file can't
+// be opened at all, so it is served even when thumbnails are disabled.
+func isViewerOriginalPreview(previewSize, fileName, fileType string) bool {
+	if previewSize != "original" {
+		return false
+	}
+	ext := strings.ToLower(filepath.Ext(fileName))
+	if iteminfo.IsRawImage(ext) {
+		return true
+	}
+	if fileType == "image/heic" || fileType == "image/heif" {
+		return true
+	}
+	return settings.Env.MuPdfAvailable && viewerConvertedDocExtensions[ext]
+}
+
 // previewHandler handles the preview request for images.
 // @Summary Get image preview
 // @Description Returns a preview image based on the requested path and size.
@@ -55,7 +79,9 @@ func isClientCancellation(ctx context.Context, err error) bool {
 // @Failure 501 {object} map[string]string "Preview generation not implemented"
 // @Router /api/resources/preview [get]
 func previewHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
-	if settings.Config.Server.DisablePreviews {
+	previewsDisabled := settings.Config.Server.DisablePreviews
+	// Only the viewer's "original" requests can pass when previews are disabled (checked below once the file is known).
+	if previewsDisabled && r.URL.Query().Get("size") != "original" {
 		return http.StatusNotImplemented, fmt.Errorf("preview is disabled")
 	}
 	path := r.URL.Query().Get("path")
@@ -85,6 +111,9 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, er
 		return ErrToStatus(err), err
 	}
 	d.FileInfo = *fileInfo
+	if previewsDisabled && !isViewerOriginalPreview(r.URL.Query().Get("size"), fileInfo.Name, fileInfo.Type) {
+		return http.StatusNotImplemented, fmt.Errorf("preview is disabled")
+	}
 	status, err := PreviewHelperFunc(w, r, d)
 	if err != nil {
 		// Error already logged in PreviewHelperFunc or its callees
@@ -109,7 +138,9 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, er
 // @Failure 501 {object} map[string]string "Previews disabled globally, for this share, or for upload shares"
 // @Router /public/api/resources/preview [get]
 func publicPreviewHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
-	if settings.Config.Server.DisablePreviews || d.Share.DisableThumbnails {
+	previewSize := r.URL.Query().Get("size")
+	if (settings.Config.Server.DisablePreviews || d.Share.DisableThumbnails) &&
+		!isViewerOriginalPreview(previewSize, d.FileInfo.Name, d.FileInfo.Type) {
 		return http.StatusNotImplemented, fmt.Errorf("preview is disabled")
 	}
 	if d.Share.ShareType == "upload" {
