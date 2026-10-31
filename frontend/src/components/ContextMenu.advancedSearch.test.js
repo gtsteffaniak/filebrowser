@@ -63,4 +63,13 @@ describe("ContextMenu in advanced search", () => {
     expect(toggle(false)).toBe(true);
     expect(toggle(true)).toBe(false);
   });
+
+  it("hides Share when nothing is selected, since the results listing has no folder to share", () => {
+    const share = (isAdvancedSearch, selectedCount) =>
+      computed.showShareAction.call({ showLimitedOptions: false, isAdvancedSearch, selectedCount, showShare: true });
+    expect(share(true, 0)).toBe(false);
+    expect(share(true, 1)).toBe(true);
+    expect(share(true, 2)).toBe(false);
+    expect(share(false, 0)).toBe(true);
+  });
 });

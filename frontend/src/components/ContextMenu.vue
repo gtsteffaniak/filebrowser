@@ -423,6 +423,8 @@ export default {
     },
     showShareAction() {
       if (this.showLimitedOptions) return false;
+      // Advanced search results have no folder of their own to share, only the selected results do.
+      if (this.isAdvancedSearch && this.selectedCount === 0) return false;
       return this.selectedCount <= 1 && this.showShare;
     },
     showSendToApp() {
