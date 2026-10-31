@@ -3,6 +3,14 @@
 
 <head>
   <meta charset="utf-8">
+  {{- if .htmlVars.autoDarkMode }}
+  <!-- Default theme follows the system preference; resolve before first paint to avoid a flash -->
+  <script nonce="{{ .cspNonce }}">
+    if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      document.documentElement.classList.add("dark-mode");
+    }
+  </script>
+  {{- end }}
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover">
   <title>"{{ .htmlVars.title }}"</title>

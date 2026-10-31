@@ -38,9 +38,9 @@
           <i class="material-symbols">ads_click</i>
         </div>
         <div aria-label="Toggle Theme" v-if="darkModeTogglePossible" class="clickable"
-          :class="{ active: user?.darkMode }" @click="toggleDarkMode"
-          @mouseenter="showTooltip($event, $t('index.toggleDark'))" @mouseleave="hideTooltip">
-          <i class="material-symbols">dark_mode</i>
+          :class="{ active: isDarkMode }" @click="cycleDarkMode"
+          @mouseenter="showTooltip($event, darkModeTooltip)" @mouseleave="hideTooltip">
+          <i class="material-symbols">{{ darkModeIcon }}</i>
         </div>
         <div class="clickable" :class="{ active: isStickySidebar }" @click="toggleSticky"
           @mouseenter="showTooltip($event, $t('index.toggleSticky'))" @mouseleave="hideTooltip" v-if="!isMobile">
@@ -81,6 +81,7 @@ import {
 } from "@/utils/tooltipHelp.js";
 import SidebarLinks from "./Links.vue";
 import { url } from "@/utils";
+import { normalizeDarkMode } from "@/utils/theme.js";
 import { expandLeave } from "@/utils/expandTransition";
 
 export default {
@@ -134,6 +135,20 @@ export default {
     route: () => state.route,
     realtimeActive: () => state.realtimeActive,
     darkModeTogglePossible: () => state.shareInfo?.enforceDarkLightMode !== "dark" && state.shareInfo?.enforceDarkLightMode !== "light",
+    isDarkMode: () => getters.isDarkMode(),
+    darkModeIcon() {
+      const icons = { auto: "routine", light: "light_mode", dark: "dark_mode" };
+      return icons[normalizeDarkMode(state.user?.darkMode)];
+    },
+    darkModeTooltip() {
+      const labels = {
+        auto: this.$t("profileSettings.darkModeSystem"),
+        light: this.$t("profileSettings.darkModeLight"),
+        dark: this.$t("profileSettings.darkModeDark"),
+      };
+      const mode = labels[normalizeDarkMode(state.user?.darkMode)];
+      return `${this.$t("index.toggleDark")} — ${mode}`;
+    },
     shouldShowLogin() {
       if (getters.isShare()) {
         // Don't show login until shareInfo is fully loaded
@@ -176,8 +191,8 @@ export default {
     toggleClick() {
       void mutations.updateCurrentUser({ singleClick: !state.user.singleClick });
     },
-    toggleDarkMode() {
-      mutations.toggleDarkMode();
+    cycleDarkMode() {
+      mutations.cycleDarkMode();
     },
     toggleSticky() {
       // keep sidebar open if disabling sticky sidebar

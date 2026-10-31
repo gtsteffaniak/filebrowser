@@ -410,7 +410,7 @@ type UserDefaultsSearch struct {
 
 // UserDefaultsUI holds UI/appearance settings
 type UserDefaultsUI struct {
-	DarkMode    *bool  `json:"darkMode"`    // should dark mode be enabled
+	DarkMode    users.DarkMode `json:"darkMode"`    // theme preference: "auto" (follow system), "dark", or "light"
 	ThemeColor  string `json:"themeColor"`  // theme color to use: eg. #ff0000, or var(--red), var(--purple), etc
 	CustomTheme string `json:"customTheme"` // Name of theme to use chosen from custom themes config
 	Locale      string `json:"locale"`      // language to use: eg. de, en, or fr

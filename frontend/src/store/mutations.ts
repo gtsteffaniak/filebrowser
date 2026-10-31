@@ -10,6 +10,7 @@ import {
 import { detectLocale, setLocale } from "@/i18n/index.ts";
 import { notify } from "@/notify/index.ts";
 import { url } from "@/utils/index.ts";
+import { normalizeDarkMode } from "@/utils/theme.js";
 import { getTypeInfo } from "@/utils/mimetype.js";
 import { getObjectProperty, setObjectProperty, omitObjectProperty } from '@/utils/object.js';
 import { sortedItems } from "@/utils/sort.ts";
@@ -45,6 +46,63 @@ let navigationSortCache: {
   asc: boolean;
   items: Partial<FileListItem>[];
 } | null = null;
+
+type DarkModePref = "auto" | "dark" | "light";
+
+/**
+ * Serialized dark-mode preference syncing for the sidebar quick toggle.
+ * Rapid clicks apply the choice optimistically and coalesce into at most one
+ * PATCH per settled request, so the saved preference always converges to the
+ * displayed one even when requests would otherwise race.
+ */
+let darkModeSyncQueue: Promise<void> = Promise.resolve();
+let queuedDarkModeTarget: DarkModePref | null = null;
+let syncedDarkMode: UserObject["darkMode"] | null = null;
+
+function queueDarkModeUpdate(value: DarkModePref) {
+  if (queuedDarkModeTarget === null) {
+    syncedDarkMode = state.user ? state.user.darkMode : null;
+    darkModeSyncQueue = darkModeSyncQueue.then(runQueuedDarkModeSync, runQueuedDarkModeSync);
+  }
+  queuedDarkModeTarget = value;
+  // Optimistic: show the chosen mode immediately; the queue reconciles the server.
+  if (state.user && state.user.darkMode !== value) {
+    state.user = { ...state.user, darkMode: value };
+  }
+  emitStateChanged();
+}
+
+async function runQueuedDarkModeSync() {
+  while (queuedDarkModeTarget !== null) {
+    const target = queuedDarkModeTarget;
+    const snapshot = state.user;
+    if (!snapshot || snapshot.darkMode === syncedDarkMode) {
+      queuedDarkModeTarget = null;
+      continue;
+    }
+    try {
+      await usersApi.update(snapshot, ["darkMode"]);
+      // Only clear the queued target if it is still the one we just synced;
+      // a click made while this request was in flight must survive.
+      if (queuedDarkModeTarget === target) {
+        queuedDarkModeTarget = null;
+      }
+      syncedDarkMode = target;
+    } catch (e) {
+      if (queuedDarkModeTarget === target) {
+        // No newer click survived this failed request: roll the optimistic
+        // state back to the last value known to be on the server and stop.
+        if (state.user && syncedDarkMode !== null && state.user.darkMode !== syncedDarkMode) {
+          state.user = { ...state.user, darkMode: syncedDarkMode };
+        }
+        queuedDarkModeTarget = null;
+        notify.showError(e);
+        emitStateChanged();
+      }
+      // A newer click is queued: keep it and let the next iteration try it.
+    }
+  }
+}
 
 function getSortedNavigationItems(listing: Partial<FileListItem>[], by: string, asc: boolean): Partial<FileListItem>[] {
   const cache = navigationSortCache;
@@ -379,8 +437,31 @@ export const mutations = {
     emitStateChanged();
   },
   toggleDarkMode() {
-    void mutations.updateCurrentUser({ "darkMode": !state.user.darkMode });
+    // Switch to the explicit opposite of the currently resolved mode. From
+    // "auto", this picks the explicit counterpart of the system preference.
+    const dark = getters.isDarkMode();
+    queueDarkModeUpdate(dark ? "light" : "dark");
     emitStateChanged();
+  },
+  cycleDarkMode() {
+    // Cycle the preference auto -> light -> dark -> auto, matching the order
+    // of the theme dropdown in profile settings, so the sidebar quick toggle
+    // and the dropdown stay in sync.
+    //
+    // Anonymous share visitors cannot persist a preference (the users PATCH is
+    // skipped for them), so "auto" would only survive until the next page load
+    // and cycling through it breaks the expected "click twice, back where you
+    // started" behaviour. Keep their quick toggle a plain light <-> dark flip of
+    // the resolved theme.
+    if (state.user?.username === "anonymous") {
+      const dark = getters.isDarkMode();
+      queueDarkModeUpdate(dark ? "light" : "dark");
+      return;
+    }
+    const order = ["auto", "light", "dark"] as const;
+    const current = normalizeDarkMode(state.user?.darkMode) as (typeof order)[number];
+    const next = order[(order.indexOf(current) + 1) % order.length] as (typeof order)[number];
+    queueDarkModeUpdate(next);
   },
   toggleSidebar() {
     state.showSidebar = !state.showSidebar;
