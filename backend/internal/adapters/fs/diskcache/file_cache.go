@@ -285,12 +285,19 @@ func (f *FileCache) evictPass() (removed int) {
 		if f.size.Load() <= target {
 			break
 		}
-		if err := os.Remove(file.path); err != nil {
-			continue
+		// Hold the lock so no store or delete changes this file between measuring it and removing it, and
+		// subtract the size it has now: the listing is from the scan and the file may have been rewritten since.
+		f.sizeMu.Lock()
+		info, err := os.Stat(file.path)
+		if err == nil {
+			err = os.Remove(file.path)
 		}
-		f.size.Add(-file.size)
-		removed++
-		removedBytes += file.size
+		if err == nil {
+			f.size.Add(-info.Size())
+			removed++
+			removedBytes += info.Size()
+		}
+		f.sizeMu.Unlock()
 	}
 	logger.Debugf("preview cache limit: removed %d files (%d MB), now %d MB of %d MB", removed, removedBytes>>20, f.size.Load()>>20, f.maxBytes>>20)
 	return removed

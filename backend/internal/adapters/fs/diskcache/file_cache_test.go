@@ -207,3 +207,34 @@ func TestFileCacheStaysUnderTheLimitWithConcurrentStores(t *testing.T) {
 	require.LessOrEqual(t, onDisk, int64(limit), "the files left on disk are within the limit")
 	require.Equal(t, onDisk, cache.size.Load(), "the tracked size matches what is on disk")
 }
+
+// Files that are rewritten while an eviction is running must be subtracted at the size they have when
+// they are removed, not at the size the scan saw, or the tracked size drifts from the disk.
+func TestFileCacheKeepsTheSizeAccurateWhenFilesAreRewrittenDuringEviction(t *testing.T) {
+	const (
+		kb      = 1024
+		limit   = 60 * kb
+		workers = 8
+		rounds  = 300
+		keys    = 40
+	)
+	cache := newLimitedCache(t, limit)
+	var wg sync.WaitGroup
+	for w := 0; w < workers; w++ {
+		wg.Add(1)
+		go func(w int) {
+			defer wg.Done()
+			for i := 0; i < rounds; i++ {
+				// the same keys again and again, with a different size each time
+				key := fmt.Sprintf("key-%d", (w+i)%keys)
+				_ = cache.Store(context.Background(), key, make([]byte, (1+(w*7+i)%8)*kb))
+			}
+		}(w)
+	}
+	wg.Wait()
+	waitFor(t, func() bool { return !cache.evicting.Load() })
+
+	_, onDisk := cache.scan()
+	require.Equal(t, onDisk, cache.size.Load(), "the tracked size matches what is on disk")
+	require.LessOrEqual(t, onDisk, int64(limit))
+}
