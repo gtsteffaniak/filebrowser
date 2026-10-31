@@ -6524,6 +6524,10 @@
                     "description": "whether to automatically cleanup the cache directory. Note: docker must also mount a persistent volume to persist the cache (default: false)",
                     "type": "boolean"
                 },
+                "cacheDirMaxSizeMB": {
+                    "description": "maximum size in MB of the preview cache (cacheDir/diskcache). Past it, the least recently used files are deleted. 0 means no limit (default: 0)",
+                    "type": "integer"
+                },
                 "database": {
                     "description": "SQLite database configuration",
                     "allOf": [
