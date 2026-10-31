@@ -1589,7 +1589,10 @@ func setFilePreviewFlags(fileInfo *iteminfo.ItemInfo, realPath string) {
 	}
 	switch simpleType {
 	case "image":
-		if fileInfo.Size > iteminfo.LargeFileSizeThreshold {
+		// Camera RAW previews are the embedded JPEG, which is read without decoding the RAW data,
+		// so large RAW files (medium format, uncompressed) don't need the size limit.
+		isRaw := iteminfo.IsRawImage(strings.ToLower(filepath.Ext(fileInfo.Name)))
+		if fileInfo.Size > iteminfo.LargeFileSizeThreshold && !isRaw {
 			fileInfo.HasPreview = false
 			return
 		}
