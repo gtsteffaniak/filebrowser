@@ -65,7 +65,7 @@ func NewPreviewGenerator(concurrencyLimit int, cacheDir string) *Service {
 	var fileCache diskcache.Interface
 	// Use file cache if cacheDir is specified
 	var err error
-	fileCache, err = diskcache.NewFileCache(actualCacheDir)
+	fileCache, err = diskcache.NewFileCacheWithLimit(actualCacheDir, max(settings.Config.Server.CacheDirMaxSizeMB, 0)*1024*1024)
 	if err != nil {
 		logger.Error("The cache dir could not be created. Make sure the user that you executed the program with has access to create directories in the local path. See  ")
 		logger.Fatalf("failed to create file cache path, which is now require to run the server: %v", err)
