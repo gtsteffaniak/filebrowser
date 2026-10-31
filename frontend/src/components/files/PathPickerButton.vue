@@ -1,6 +1,8 @@
 <template>
   <div
     :aria-label="resolvedAriaLabel"
+    tabindex="0"
+    role="button"
     class="searchContext clickable button unified-path-picker"
     @click="openPicker"
     @keydown.enter.prevent="openPicker"
@@ -169,5 +171,11 @@ export default {
   min-width: 0;
   overflow-wrap: break-word;
   box-sizing: border-box;
+}
+
+/* .button removes the outline, so keyboard focus needs its own indicator. */
+.unified-path-picker:focus-visible {
+  outline: 2px solid var(--primaryColor);
+  outline-offset: 2px;
 }
 </style>
