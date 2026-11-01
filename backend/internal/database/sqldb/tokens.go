@@ -215,3 +215,14 @@ func (s *SQLStore) DeleteHashedTokensByUserID(userID uint64) error {
 	}
 	return nil
 }
+
+// DeleteSessionTokensByUserID removes the session token hashes for an owner user id,
+// except keepTokenHash when non-empty. Named API tokens are left untouched.
+func (s *SQLStore) DeleteSessionTokensByUserID(userID uint64, keepTokenHash string) error {
+	query := `DELETE FROM hashed_tokens WHERE user_id = ? AND is_session = 1 AND token_hash != ?`
+	_, err := s.db.Exec(query, strconv.FormatUint(userID, 10), keepTokenHash)
+	if err != nil {
+		return fmt.Errorf("failed to delete session tokens by user: %w", err)
+	}
+	return nil
+}

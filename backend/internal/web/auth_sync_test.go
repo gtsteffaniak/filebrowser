@@ -34,6 +34,7 @@ func (s *stubGroupSQL) DeleteRevokedToken(string) error                        {
 func (s *stubGroupSQL) SaveHashedToken(string, uint64, bool, int64) error { return nil }
 func (s *stubGroupSQL) DeleteHashedToken(string) error                         { return nil }
 func (s *stubGroupSQL) DeleteHashedTokensByUserID(uint64) error                { return nil }
+func (s *stubGroupSQL) DeleteSessionTokensByUserID(uint64, string) error       { return nil }
 
 func TestSetupJwtUser_OmittedGroupsClaimPreservesMembership(t *testing.T) {
 	setupTestEnv(t)

@@ -466,6 +466,18 @@ func userPatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 		return http.StatusBadRequest, err
 	}
 
+	// Sign out the user's other sessions after a password change, keeping the
+	// caller's session when they changed their own password
+	if state.FieldListIncludes(req.Which, "password") {
+		keepToken := ""
+		if req.User.ID == d.User.ID {
+			keepToken = d.Token
+		}
+		if err := state.RevokeOtherSessions(req.User.ID, keepToken); err != nil {
+			logger.Errorf("Failed to revoke sessions after password change: %v", err)
+		}
+	}
+
 	// Revoke all API keys if API permission was removed
 	if state.FieldListIncludes(req.Which, "permissions") && oldUser.Permissions.Api && !req.User.Permissions.Api {
 		users.EachNamedToken(oldUser.Tokens, func(_ string, tokenInfo users.AuthToken) {

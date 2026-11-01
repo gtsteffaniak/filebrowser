@@ -39,6 +39,9 @@ func (s *stubGroupSQL) DeleteHashedToken(string) error                        { 
 func (s *stubGroupSQL) DeleteHashedTokensByUserID(uint64) error {
 	return nil
 }
+func (s *stubGroupSQL) DeleteSessionTokensByUserID(uint64, string) error {
+	return nil
+}
 
 type recordingGroupSQL struct {
 	groups    map[string]access.StringSet
@@ -81,6 +84,7 @@ func (s *recordingGroupSQL) DeleteRevokedToken(string) error                    
 func (s *recordingGroupSQL) SaveHashedToken(string, uint64, bool, int64) error            { return nil }
 func (s *recordingGroupSQL) DeleteHashedToken(string) error                        { return nil }
 func (s *recordingGroupSQL) DeleteHashedTokensByUserID(uint64) error               { return nil }
+func (s *recordingGroupSQL) DeleteSessionTokensByUserID(uint64, string) error      { return nil }
 
 func cloneStringSet(src access.StringSet) access.StringSet {
 	if len(src) == 0 {
