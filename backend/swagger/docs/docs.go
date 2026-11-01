@@ -800,11 +800,6 @@ const docTemplate = `{
         },
         "/api/auth/otp/generate": {
             "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
                 "description": "Generates a new TOTP secret and QR code for the authenticated user. The password must be URL-encoded and sent in the X-Password header to support special characters.",
                 "consumes": [
                     "application/json"
@@ -851,16 +846,16 @@ const docTemplate = `{
                             }
                         }
                     }
-                }
-            }
-        },
-        "/api/auth/otp/verify": {
-            "post": {
+                },
                 "security": [
                     {
                         "ApiKeyAuth": []
                     }
-                ],
+                ]
+            }
+        },
+        "/api/auth/otp/verify": {
+            "post": {
                 "description": "Verifies the provided TOTP code for the authenticated user. The password must be URL-encoded and sent in the X-Password header to support special characters.",
                 "consumes": [
                     "application/json"
@@ -911,7 +906,12 @@ const docTemplate = `{
                             }
                         }
                     }
-                }
+                },
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ]
             }
         },
         "/api/auth/password/change-required": {
@@ -1824,11 +1824,6 @@ const docTemplate = `{
         },
         "/api/office/callback": {
             "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
                 "description": "Receives callbacks from OnlyOffice document server for document status changes and saves",
                 "consumes": [
                     "application/json"
@@ -1886,14 +1881,14 @@ const docTemplate = `{
                             }
                         }
                     }
-                }
+                },
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ]
             },
             "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
                 "description": "Receives callbacks from OnlyOffice document server for document status changes and saves",
                 "consumes": [
                     "application/json"
@@ -1951,16 +1946,16 @@ const docTemplate = `{
                             }
                         }
                     }
-                }
+                },
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ]
             }
         },
         "/api/office/config": {
             "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
                 "description": "Returns the configuration needed for OnlyOffice document editor client",
                 "consumes": [
                     "application/json"
@@ -2018,7 +2013,12 @@ const docTemplate = `{
                             }
                         }
                     }
-                }
+                },
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ]
             }
         },
         "/api/resources": {
@@ -4115,11 +4115,6 @@ const docTemplate = `{
         },
         "/api/wopi/session": {
             "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
                 "description": "Returns the editor URL and the access token the browser posts to it.",
                 "produces": [
                     "application/json"
@@ -4187,7 +4182,12 @@ const docTemplate = `{
                             }
                         }
                     }
-                }
+                },
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ]
             }
         },
         "/public/api/media/lyrics": {
