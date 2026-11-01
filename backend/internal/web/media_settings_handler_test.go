@@ -91,7 +91,7 @@ func TestSettingsMediaHandlerFullPayloadForAdmin(t *testing.T) {
 		t.Fatalf("admin transcode payload must include profiles, got %v", transcode["profiles"])
 	}
 	// Admin payload exposes the full settings surface, not the player subset.
-	for _, key := range []string{"convert", "debug", "extractEmbeddedSubtitles", "hardwareAcceleration"} {
+	for _, key := range []string{"convert", "debug", "hardwareAcceleration"} {
 		if _, ok := body[key]; !ok {
 			t.Fatalf("admin payload missing %q", key)
 		}

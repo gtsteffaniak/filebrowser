@@ -266,7 +266,6 @@ shareDefaults:                            # optional defaults for new shares; ma
   maxBandwidth: 0
   allowedUsernames:
   perUserDownloadLimit: false
-  extractEmbeddedSubtitles: false
   downloadsLimit: 0
   quotaLimitBytes: 0
   hideFileExt: ""
@@ -284,9 +283,6 @@ integrations:
     skipHwCheck: false                    # SkipHwCheck skips the ffmpeg hardware codec probe entirely (software-only).
                                           # Config-only, not a runtime setting — advanced use, e.g. keeping the
                                           # multi-second probe out of CI startup.
-    accelDevice: "auto"                   # AccelDevice selects the acceleration device: "auto" (default), "software"/"cpu",
-                                          # "igpu", "dgpu", a Linux DRM render node (e.g. /dev/dri/renderD128), or a GPU
-                                          # name substring. Managed via the admin media settings API.
 http:
   socket: ""                              # socket to listen on - eg. /var/run/filebrowser.sock
   tlsKey: ""                              # path to TLS key

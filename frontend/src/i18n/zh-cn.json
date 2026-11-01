@@ -423,8 +423,6 @@
     "perUserDownloadLimit": "为每个用户设置下载限制",
     "perUserDownloadLimitDescription": "启用后，下载限制将应用于每个用户。匿名用户将无法从该共享下载任何文件。",
     "descriptionUploadDefault": "已为您发送了上传文件的共享。",
-    "extractEmbeddedSubtitles": "提取嵌入式字幕",
-    "extractEmbeddedSubtitlesDescription": "在加载时从媒体文件中提取内嵌字幕--这对于大文件来说可能会比较慢。",
     "disableDownload": "禁止下载文件",
     "disableDownloadDescription": "任何人都无法下载文件或查看文件内容。",
     "allowModify": "允许编辑文件",
@@ -841,7 +839,7 @@
       },
       "tabSize": {
         "label": "制表符大小",
-        "description": "'TAB' 键默认应插入多少个空格"
+        "description": "'TAB' 键默认应插入多少个空格 -- 当您将换行缩进设置为 'Extra' 时，这也是额外缩进的大小"
       },
       "showIndentGuides": "显示缩进参考线",
       "showIndentGuidesDescription": "显示缩进参考线，在编辑嵌套代码时提供更好的方向感",
@@ -857,8 +855,13 @@
       "customScrollbarDescription": "将浏览器的原生滚动条替换为 Ace 内置滚动条",
       "wrapContent": "在编辑器中换行长行",
       "wrapContentDescription": "换行编辑器内容，使很长的行始终保持可见",
-      "indentedSoftWrap": "缩进软换行",
-      "indentedSoftWrapDescription": "启用后，在换行文本的开头添加缩进",
+      "wrapIndent": {
+        "label": "换行行缩进",
+        "description": "换行行的缩进方式：'None' 无缩进的自动换行，'Aligned' 保留原始行缩进，'Extra' 根据您的制表符大小设置添加额外级别的缩进",
+        "none": "无",
+        "aligned": "对齐",
+        "extra": "额外"
+      },
       "autocompletion": "自动补全",
       "autocompletionDescription": "通过手动按 'ctrl + space' 启用自动补全",
       "liveAutocompletion": "实时自动补全",
@@ -1219,8 +1222,6 @@
     }
   },
   "media": {
-    "extractEmbeddedSubtitles": "提取嵌入式字幕",
-    "extractEmbeddedSubtitlesDescription": "从媒体文件中提取嵌入式字幕。",
     "debug": "调试日志",
     "debugDescription": "将 ffmpeg 的标准输出用于媒体集成。警告：会产生大量输出。",
     "imagePreview": "图像预览格式",
@@ -1254,6 +1255,8 @@
     "accelDevice": "加速装置",
     "accelDeviceDescription": "用于硬件加速媒体处理的 GPU 设备。CPU（软件）禁用了硬件加速。",
     "encoderBackend": "编码器后端",
-    "transcodeProfileEncoderBackendHelp": "此预设的编码器后端；默认使用检测到的首选后端。"
+    "transcodeProfileEncoderBackendHelp": "此预设的编码器后端；默认使用检测到的首选后端。",
+    "alwaysUseFfmpeg": "请始终使用 ffmpeg",
+    "alwaysUseFfmpegDescription": "跳过 go-media 的快速路径，改用 ffmpeg 进行所有检测、元数据、字幕和视频缩略图的处理。如果 go-media 对您的文件返回了错误结果，请启用此选项。"
   }
 }

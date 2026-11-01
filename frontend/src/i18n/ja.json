@@ -423,8 +423,6 @@
     "perUserDownloadLimit": "各ユーザーにダウンロード制限を適用する",
     "perUserDownloadLimitDescription": "有効にすると、各ユーザーにダウンロード制限が適用されます。匿名ユーザーはこの共有からファイルをダウンロードできません。",
     "descriptionUploadDefault": "ファイルをアップロードするための共有が送信されました。",
-    "extractEmbeddedSubtitles": "埋め込み字幕の抽出",
-    "extractEmbeddedSubtitlesDescription": "読み込み時にメディアファイルから埋め込まれたサブタイトルを抽出する。",
     "disableDownload": "ファイルのダウンロードを無効にする",
     "disableDownloadDescription": "誰でもファイルをダウンロードしたり、ファイルの内容を見たりすることができなくなる。",
     "allowModify": "ファイルの編集を許可する",
@@ -841,7 +839,7 @@
       },
       "tabSize": {
         "label": "タブサイズ",
-        "description": "'TAB' キーがデフォルトで挿入するスペースの数"
+        "description": "'TAB' キーがデフォルトで挿入するスペースの数 -- 折り返しインデントを 'Extra' に設定したときの追加インデントのサイズでもあります"
       },
       "showIndentGuides": "インデントガイドを表示",
       "showIndentGuidesDescription": "インデントガイドを表示します。ネストされたコードを編集する際に視認性が向上します",
@@ -857,8 +855,13 @@
       "customScrollbarDescription": "ブラウザのネイティブスクロールバーを Ace 組み込みのものに置き換えます",
       "wrapContent": "エディタで長い行を折り返す",
       "wrapContentDescription": "エディタのコンテンツを折り返して、非常に長い行を常に表示したままにします",
-      "indentedSoftWrap": "インデント付きソフト折り返し",
-      "indentedSoftWrapDescription": "これが有効な場合、折り返されたテキストの先頭にインデントを追加します",
+      "wrapIndent": {
+        "label": "折り返し行のインデント",
+        "description": "折り返し行のインデント方法：'None' インデントなしのワードラップ、'Aligned' 元の行のインデントを保持、'Extra' タブサイズ設定に従って追加のインデントレベルを追加します",
+        "none": "なし",
+        "aligned": "整列",
+        "extra": "追加"
+      },
       "autocompletion": "自動補完",
       "autocompletionDescription": "手動で「ctrl + space」を押して自動補完を有効にします",
       "liveAutocompletion": "ライブ自動補完",
@@ -1219,8 +1222,6 @@
     }
   },
   "media": {
-    "extractEmbeddedSubtitles": "埋め込み字幕を抽出する",
-    "extractEmbeddedSubtitlesDescription": "メディアファイルから埋め込み字幕を抽出します。",
     "debug": "デバッグログ",
     "debugDescription": "メディア統合のためのffmpegの標準出力。警告：出力量が非常に多くなります。",
     "imagePreview": "画像プレビューの形式",
@@ -1254,6 +1255,8 @@
     "accelDevice": "加速装置",
     "accelDeviceDescription": "ハードウェアアクセラレーションによるメディア処理に使用されるGPUデバイス。CPU（ソフトウェア）はハードウェアアクセラレーションを無効にします。",
     "encoderBackend": "エンコーダ・バックエンド",
-    "transcodeProfileEncoderBackendHelp": "このプリセット用のエンコーダー・バックエンド。デフォルトでは、検出された推奨バックエンドが設定されます。"
+    "transcodeProfileEncoderBackendHelp": "このプリセット用のエンコーダー・バックエンド。デフォルトでは、検出された推奨バックエンドが設定されます。",
+    "alwaysUseFfmpeg": "常にffmpegを使用してください",
+    "alwaysUseFfmpegDescription": "go-mediaの高速処理をスキップし、プロービング、メタデータ、字幕、動画のサムネイルのすべてにffmpegを使用します。お使いのファイルに対してgo-mediaが誤った結果を返す場合は、このオプションを有効にしてください。"
   }
 }

@@ -423,8 +423,6 @@
     "perUserDownloadLimit": "Zastosowanie limitu pobrań do każdego użytkownika",
     "perUserDownloadLimitDescription": "Po włączeniu limit pobrań zostanie zastosowany do każdego użytkownika. Anonimowi użytkownicy nie będą mogli pobierać żadnych plików z tego folderu udostępnionego.",
     "descriptionUploadDefault": "Udział został wysłany w celu przesłania plików.",
-    "extractEmbeddedSubtitles": "Wyodrębnianie osadzonych napisów",
-    "extractEmbeddedSubtitlesDescription": "Wyodrębnianie osadzonych napisów z plików multimedialnych podczas ładowania - może to być powolne w przypadku dużych plików.",
     "disableDownload": "Wyłącz pobieranie plików",
     "disableDownloadDescription": "Nikt nie będzie mógł pobierać plików ani przeglądać ich zawartości.",
     "allowModify": "Zezwalaj na edycję plików",
@@ -841,7 +839,7 @@
       },
       "tabSize": {
         "label": "Rozmiar tabulacji",
-        "description": "Ile spacji powinien domyślnie wstawiać klawisz 'TAB'"
+        "description": "Ile spacji powinien domyślnie wstawiać klawisz 'TAB' -- Jest to również rozmiar dodatkowego wcięcia, gdy ustawisz wcięcie zawijania na 'Extra'"
       },
       "showIndentGuides": "Pokaż prowadnice wcięć",
       "showIndentGuidesDescription": "Pokazuje prowadnice wcięć, co ułatwia orientację podczas edycji zagnieżdżonego kodu",
@@ -857,8 +855,13 @@
       "customScrollbarDescription": "Zamień natywny pasek przewijania przeglądarki na wbudowany pasek Ace",
       "wrapContent": "Zawijanie długich wierszy w edytorze",
       "wrapContentDescription": "Zawija zawartość edytora, aby bardzo długie wiersze były zawsze widoczne",
-      "indentedSoftWrap": "Miękkie zawijanie z wcięciem",
-      "indentedSoftWrapDescription": "Gdy jest włączone, dodaje wcięcie na początku zawiniętego tekstu",
+      "wrapIndent": {
+        "label": "Wcięcie zawiniętych wierszy",
+        "description": "Jak wcinane są zawinięte wiersze: 'None' zawijanie wyrazów bez wcięcia, 'Aligned' zachowuje oryginalne wcięcie wiersza, 'Extra' dodaje dodatkowy poziom wcięcia zgodnie z ustawieniem rozmiaru tabulacji",
+        "none": "Brak",
+        "aligned": "Wyrównane",
+        "extra": "Dodatkowe"
+      },
       "autocompletion": "Autouzupełnianie",
       "autocompletionDescription": "Włącza autouzupełnianie poprzez ręczne naciśnięcie 'ctrl + space'",
       "liveAutocompletion": "Autouzupełnianie na żywo",
@@ -1219,8 +1222,6 @@
     }
   },
   "media": {
-    "extractEmbeddedSubtitles": "Wyodrębnij wbudowane napisy",
-    "extractEmbeddedSubtitlesDescription": "Wyodrębnij napisy osadzone w plikach multimedialnych.",
     "debug": "Rejestracja błędów",
     "debugDescription": "Wyjście stdout programu ffmpeg do integracji multimediów. Ostrzeżenie: generuje dużą ilość danych wyjściowych.",
     "imagePreview": "Formaty podglądu obrazów",
@@ -1254,6 +1255,8 @@
     "accelDevice": "Urządzenie przyspieszające",
     "accelDeviceDescription": "Urządzenie GPU wykorzystywane do sprzętowo przyspieszanego przetwarzania multimediów. Procesor CPU (oprogramowanie) wyłącza przyspieszenie sprzętowe.",
     "encoderBackend": "Moduł zaplecza enkodera",
-    "transcodeProfileEncoderBackendHelp": "Moduł zaplecza enkodera dla tego ustawienia; domyślnie wybierany jest wykryty preferowany moduł zaplecza."
+    "transcodeProfileEncoderBackendHelp": "Moduł zaplecza enkodera dla tego ustawienia; domyślnie wybierany jest wykryty preferowany moduł zaplecza.",
+    "alwaysUseFfmpeg": "Zawsze używaj ffmpeg",
+    "alwaysUseFfmpegDescription": "Pomiń szybką ścieżkę go-media i użyj ffmpeg do wszystkich operacji sprawdzania, metadanych, napisów i miniatur filmów. Włącz tę opcję, jeśli go-media zwraca błędne wyniki dla twoich plików."
   }
 }

@@ -423,8 +423,6 @@
     "perUserDownloadLimit": "각 사용자에게 다운로드 제한 적용",
     "perUserDownloadLimitDescription": "이 기능을 활성화하면 각 사용자에게 다운로드 제한이 적용됩니다. 익명 사용자는 이 공유에서 어떤 파일도 다운로드할 수 없습니다.",
     "descriptionUploadDefault": "파일을 업로드할 수 있는 공유가 전송되었습니다.",
-    "extractEmbeddedSubtitles": "임베디드 자막 추출",
-    "extractEmbeddedSubtitlesDescription": "로드 시 미디어 파일에서 임베디드 자막을 추출 - 대용량 파일의 경우 속도가 느려질 수 있습니다.",
     "disableDownload": "파일 다운로드 비활성화",
     "disableDownloadDescription": "누구도 파일을 다운로드하거나 파일의 콘텐츠를 볼 수 없습니다.",
     "allowModify": "파일 편집 허용",
@@ -841,7 +839,7 @@
       },
       "tabSize": {
         "label": "탭 크기",
-        "description": "'TAB' 키가 기본적으로 삽입할 공백 수"
+        "description": "'TAB' 키가 기본적으로 삽입할 공백 수 -- 줄 바꿈 들여쓰기를 'Extra'로 설정할 때 추가 들여쓰기의 크기이기도 합니다"
       },
       "showIndentGuides": "들여쓰기 가이드 표시",
       "showIndentGuidesDescription": "들여쓰기 가이드를 표시하여 중첩된 코드 편집 시 방향 감각을 향상시킵니다",
@@ -857,8 +855,13 @@
       "customScrollbarDescription": "브라우저 기본 스크롤바를 Ace 내장 스크롤바로 교체합니다",
       "wrapContent": "편집기에서 긴 줄 줄 바꿈",
       "wrapContentDescription": "편집기 콘텐츠를 줄 바꿈하여 매우 긴 줄이 항상 표시되도록 합니다",
-      "indentedSoftWrap": "들여쓰기 소프트 줄 바꿈",
-      "indentedSoftWrapDescription": "이것이 활성화되면 줄 바꿈된 텍스트의 시작 부분에 들여쓰기를 추가합니다",
+      "wrapIndent": {
+        "label": "줄 바꿈된 줄 들여쓰기",
+        "description": "줄 바꿈된 줄의 들여쓰기 방식: 'None' 들여쓰기 없는 단어 줄 바꿈, 'Aligned' 원래 줄 들여쓰기 유지, 'Extra' 탭 크기 설정에 따라 추가 들여쓰기 수준을 추가합니다",
+        "none": "없음",
+        "aligned": "정렬됨",
+        "extra": "추가"
+      },
       "autocompletion": "자동 완성",
       "autocompletionDescription": "수동으로 'ctrl + space'를 눌러 자동 완성을 활성화합니다",
       "liveAutocompletion": "실시간 자동 완성",
@@ -1219,8 +1222,6 @@
     }
   },
   "media": {
-    "extractEmbeddedSubtitles": "내장 자막 추출",
-    "extractEmbeddedSubtitlesDescription": "미디어 파일에서 내장 자막을 추출합니다.",
     "debug": "디버그 로깅",
     "debugDescription": "미디어 통합을 위해 ffmpeg의 stdout을 출력합니다. 주의: 출력량이 매우 많습니다.",
     "imagePreview": "이미지 미리보기 형식",
@@ -1254,6 +1255,8 @@
     "accelDevice": "가속 장치",
     "accelDeviceDescription": "하드웨어 가속 미디어 처리에 사용되는 GPU 장치. CPU(소프트웨어)가 하드웨어 가속을 비활성화합니다.",
     "encoderBackend": "인코더 백엔드",
-    "transcodeProfileEncoderBackendHelp": "이 프리셋에 대한 인코더 백엔드입니다. 기본값은 감지된 권장 백엔드로 설정됩니다."
+    "transcodeProfileEncoderBackendHelp": "이 프리셋에 대한 인코더 백엔드입니다. 기본값은 감지된 권장 백엔드로 설정됩니다.",
+    "alwaysUseFfmpeg": "항상 ffmpeg를 사용하세요",
+    "alwaysUseFfmpegDescription": "go-media의 빠른 경로를 건너뛰고, 모든 탐색, 메타데이터, 자막 및 동영상 썸네일 처리에 ffmpeg를 사용하십시오. go-media가 해당 파일에 대해 잘못된 결과를 반환할 경우 이 옵션을 활성화하십시오."
   }
 }

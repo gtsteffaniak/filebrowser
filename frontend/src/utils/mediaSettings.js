@@ -34,9 +34,9 @@ export function emptyMediaSettings() {
   return {
     convert: { imagePreview: {}, videoPreview: {} },
     debug: false,
-    extractEmbeddedSubtitles: false,
     hardwareAcceleration: true,
     accelDevice: 'auto',
+    alwaysUseFfmpeg: false,
     transcode: emptyMediaTranscode(),
   };
 }

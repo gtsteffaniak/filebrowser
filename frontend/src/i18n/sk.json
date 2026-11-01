@@ -423,8 +423,6 @@
     "perUserDownloadLimit": "Uplatnenie limitu stiahnutí pre každého používateľa",
     "perUserDownloadLimitDescription": "Ak je táto možnosť povolená, limit stiahnutí sa uplatní na každého používateľa. Anonymní používatelia nebudú môcť z tejto zdieľanej zložky sťahovať žiadne súbory.",
     "descriptionUploadDefault": "Bola vám odoslaná akcia na nahratie súborov.",
-    "extractEmbeddedSubtitles": "Výpis vložených titulkov",
-    "extractEmbeddedSubtitlesDescription": "Extrahovať vložené titulky z mediálnych súborov pri načítaní - pri veľkých súboroch to môže byť pomalé.",
     "disableDownload": "Zakázať preberanie súborov",
     "disableDownloadDescription": "Nikto nebude môcť sťahovať súbory ani zobrazovať ich obsah.",
     "allowModify": "Povolenie úprav súborov",
@@ -841,7 +839,7 @@
       },
       "tabSize": {
         "label": "Veľkosť tabulátora",
-        "description": "Koľko medzier by mal kláves 'TAB' predvolene vložiť"
+        "description": "Koľko medzier by mal kláves 'TAB' predvolene vložiť -- Je to aj veľkosť dodatočného odsadenia, keď nastavíte odsadenie zalamovania na 'Extra'"
       },
       "showIndentGuides": "Zobraziť vodítka odsadenia",
       "showIndentGuidesDescription": "Zobrazí vodítka odsadenia, čo vám poskytne lepšiu orientáciu pri úprave vnoreného kódu",
@@ -857,8 +855,13 @@
       "customScrollbarDescription": "Nahradí natívny posuvník prehliadača vstavaným posuvníkom Ace",
       "wrapContent": "Zalamovať dlhé riadky v editore",
       "wrapContentDescription": "Zalamuje obsah editora, aby veľmi dlhé riadky zostali vždy viditeľné",
-      "indentedSoftWrap": "Mäkké zalamovanie s odsadením",
-      "indentedSoftWrapDescription": "Keď je táto možnosť povolená, pridá odsadenie na začiatok zalomeného textu",
+      "wrapIndent": {
+        "label": "Odsadenie zalomených riadkov",
+        "description": "Ako sú zalomené riadky odsadené: 'None' zalamovanie slov bez odsadenia, 'Aligned' zachováva pôvodné odsadenie riadku, 'Extra' pridáva dodatočnú úroveň odsadenia podľa nastavenia veľkosti tabulátora",
+        "none": "Žiadne",
+        "aligned": "Zarovnané",
+        "extra": "Naviac"
+      },
       "autocompletion": "Automatické dopĺňanie",
       "autocompletionDescription": "Povolí automatické dopĺňanie manuálnym stlačením 'ctrl + space'",
       "liveAutocompletion": "Živé automatické dopĺňanie",
@@ -1219,8 +1222,6 @@
     }
   },
   "media": {
-    "extractEmbeddedSubtitles": "Extrahovať vložené titulky",
-    "extractEmbeddedSubtitlesDescription": "Extrahovať vložené titulky z mediálnych súborov.",
     "debug": "Protokolovanie ladenia",
     "debugDescription": "Výstup z ffmpeg stdout pre integráciu médií. Upozornenie: vytvára veľké množstvo výstupných údajov.",
     "imagePreview": "Formáty náhľadov obrázkov",
@@ -1254,6 +1255,8 @@
     "accelDevice": "Zariadenie na zrýchlenie",
     "accelDeviceDescription": "Zariadenie GPU sa používa na hardvérovo akcelerované spracovanie multimédií. CPU (softvér) deaktivuje hardvérovú akceleráciu.",
     "encoderBackend": "Backend kodéra",
-    "transcodeProfileEncoderBackendHelp": "Backend enkodéra pre toto prednastavenie; predvolene sa nastaví na zistený preferovaný backend."
+    "transcodeProfileEncoderBackendHelp": "Backend enkodéra pre toto prednastavenie; predvolene sa nastaví na zistený preferovaný backend.",
+    "alwaysUseFfmpeg": "Vždy používajte ffmpeg",
+    "alwaysUseFfmpegDescription": "Vynechajte rýchlu cestu cez go-media a na všetky operácie s dátami, metadátami, titulkami a náhľadmi videí použite ffmpeg. Túto možnosť zapnite, ak go-media poskytuje nesprávne výsledky pre vaše súbory."
   }
 }

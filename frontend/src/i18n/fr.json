@@ -423,8 +423,6 @@
     "perUserDownloadLimit": "Appliquer la limite de téléchargements à chaque utilisateur",
     "perUserDownloadLimitDescription": "Lorsque cette option est activée, la limite de téléchargements est appliquée à chaque utilisateur. Les utilisateurs anonymes ne pourront pas télécharger de fichiers à partir de ce partage.",
     "descriptionUploadDefault": "Un partage vous a été envoyé pour télécharger des fichiers.",
-    "extractEmbeddedSubtitles": "Extraire les sous-titres intégrés",
-    "extractEmbeddedSubtitlesDescription": "Extraire les sous-titres intégrés des fichiers multimédias lors du chargement - cette opération peut s'avérer lente pour les fichiers volumineux.",
     "disableDownload": "Désactiver le téléchargement de fichiers",
     "disableDownloadDescription": "Personne ne pourra télécharger des fichiers ou en visualiser le contenu.",
     "allowModify": "Permettre l'édition de fichiers",
@@ -841,7 +839,7 @@
       },
       "tabSize": {
         "label": "Taille de tabulation",
-        "description": "Combien d'espaces la touche 'TAB' doit faire par défaut"
+        "description": "Combien d'espaces la touche 'TAB' doit faire par défaut -- C'est aussi la taille de l'indentation supplémentaire lorsque vous définissez l'indentation des retours à la ligne sur 'Extra'"
       },
       "showIndentGuides": "Afficher les guides de retrait",
       "showIndentGuidesDescription": "Affiche les guides de retrait, ce qui vous donne une meilleure orientation lors de l'édition de code imbriqué",
@@ -857,8 +855,13 @@
       "customScrollbarDescription": "Remplacer la barre de défilement native du navigateur par celle intégrée à Ace",
       "wrapContent": "Couper les longues lignes dans l'éditeur",
       "wrapContentDescription": "Coupe le contenu de l'éditeur pour que les très longues lignes restent toujours visibles",
-      "indentedSoftWrap": "Retour à la ligne souple avec indentation",
-      "indentedSoftWrapDescription": "Lorsque cette option est activée, ajoute une indentation au début du texte renvoyé à la ligne",
+      "wrapIndent": {
+        "label": "Indentation des lignes renvoyées",
+        "description": "Comment les lignes renvoyées sont indentées : 'None' retour à la ligne sans indentation, 'Aligned' conserve l'indentation d'origine de la ligne, 'Extra' ajoute un niveau d'indentation supplémentaire, selon votre réglage de taille de tabulation",
+        "none": "Aucune",
+        "aligned": "Alignée",
+        "extra": "Extra"
+      },
       "autocompletion": "Autocomplétion",
       "autocompletionDescription": "Active l'autocomplétion en appuyant manuellement sur 'ctrl + space'",
       "liveAutocompletion": "Autocomplétion en direct",
@@ -1219,8 +1222,6 @@
     }
   },
   "media": {
-    "extractEmbeddedSubtitles": "Extraire les sous-titres intégrés",
-    "extractEmbeddedSubtitlesDescription": "Extraire les sous-titres intégrés des fichiers multimédias.",
     "debug": "Journalisation de débogage",
     "debugDescription": "Sortie stdout de ffmpeg pour l'intégration multimédia. Attention : génère un volume important de données de sortie.",
     "imagePreview": "Formats d'aperçu des images",
@@ -1254,6 +1255,8 @@
     "accelDevice": "Dispositif d'accélération",
     "accelDeviceDescription": "Périphérique GPU utilisé pour le traitement multimédia accéléré par le matériel. Le CPU (logiciel) désactive l'accélération matérielle.",
     "encoderBackend": "Backend de l'encodeur",
-    "transcodeProfileEncoderBackendHelp": "Backend d'encodage pour ce préréglage ; la valeur par défaut correspond au backend préféré détecté."
+    "transcodeProfileEncoderBackendHelp": "Backend d'encodage pour ce préréglage ; la valeur par défaut correspond au backend préféré détecté.",
+    "alwaysUseFfmpeg": "Utilisez toujours ffmpeg",
+    "alwaysUseFfmpegDescription": "Ignorez la méthode rapide « go-media » et utilisez ffmpeg pour toutes les opérations de détection, les métadonnées, les sous-titres et les vignettes vidéo. Activez cette option si « go-media » donne des résultats erronés pour vos fichiers."
   }
 }

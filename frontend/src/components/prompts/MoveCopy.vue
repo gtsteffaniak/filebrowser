@@ -395,18 +395,24 @@ export default {
           );
         }
 
+        const movedItems = hasFailures
+          ? this.localItems.filter(item =>
+              (result.succeeded || []).some(done =>
+                done.fromSource === item.fromSource && url.pathsMatch(done.fromPath, item.from)
+              )
+            )
+          : this.localItems;
+        if (this.operation === 'move') {
+          mutations.removeFromSearchResults(
+            movedItems.map(item => ({ source: item.fromSource, path: item.from }))
+          );
+        }
+
         // Determine if we should navigate (we can move items with fileTree context menu in previews)
         const shouldNavigate = getters.isPreviewView() && this.operation === 'move';
         let currentItemMoved = false;
 
         if (shouldNavigate) {
-          const movedItems = hasFailures
-            ? this.localItems.filter(item =>
-                (result.succeeded || []).some(done =>
-                  done.fromSource === item.fromSource && url.pathsMatch(done.fromPath, item.from)
-                )
-              )
-            : this.localItems;
           for (const item of movedItems) {
             removeFromFolderLists({ source: item.fromSource, path: item.from });
           }

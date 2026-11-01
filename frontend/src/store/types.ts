@@ -18,6 +18,28 @@ export interface FileListItem {
   metadata?: unknown;
 }
 
+/** from backend iteminfo.MediaMetadata. */
+export interface MediaMetadata {
+  title?: string;
+  artist?: string;
+  album?: string;
+  year?: number;
+  genre?: string;
+  track?: number;
+  duration?: number;
+  videoCodec?: string;
+  audioCodec?: string;
+  container?: string;
+  albumArt?: string;
+  hasLyrics?: boolean;
+}
+
+/** List items have their position in `req.items` (by mutations.replaceRequest) */
+export interface fileListItemIndex extends Omit<FileListItem, "metadata"> {
+  index: number;
+  metadata?: MediaMetadata;
+}
+
 export interface ReqObject {
   // Base properties always present
   sorting: {
@@ -60,6 +82,7 @@ export interface ShareInfoObject {
   disableSidebar: boolean;
   isValid: boolean;
   shareType: string;
+  hasPassword?: boolean;
   title: string;
   description: string;
   viewMode?: string;
@@ -203,6 +226,7 @@ export interface UserObject {
   locale: string;
   viewMode: string;
   showHidden: boolean;
+  disableSearchOptions?: boolean;
   scopes: UserScope[];
   permissions: Permissions;
   darkMode: boolean;
@@ -257,6 +281,7 @@ export interface UserObject {
 export interface RouteObject {
   name?: string | symbol | null | undefined;
   path?: string;
+  fullPath?: string;
   params?: unknown;
   query?: unknown;
 }
@@ -278,10 +303,19 @@ export interface StoreState {
     source: string;
     path: string;
     isShare?: boolean;
+    returnTo?: string;
   } | null;
   contextMenuHasItems: boolean;
   deletedItem: boolean;
   pendingHighlight: { path: string; source?: string } | null;
+  searchResults: {
+    kind: "quick" | "advanced";
+    key?: string;
+    items: FileListItem[];
+    form?: Record<string, unknown>;
+    sorting?: { by: string; asc: boolean };
+    focus?: { source?: string; path: string };
+  } | null;
   showOverflowMenu: boolean;
   sessionId: string;
   isSafari: boolean;

@@ -409,8 +409,6 @@
     "uploadShare": "Upload only",
     "perUserDownloadLimit": "Apply the downloads limit to each user",
     "perUserDownloadLimitDescription": "When enabled, the downloads limit will be applied to each user. Anonymous users will not be able to download any files from this share.",
-    "extractEmbeddedSubtitles": "Extract embedded subtitles",
-    "extractEmbeddedSubtitlesDescription": "Extract embedded subtitles from media files on load -- this can be slow for large files.",
     "disableLoginOption": "Hide login option",
     "disableLoginOptionDescription": "Hide the login button in the sidebar for anonymous users. When enabled, anonymous users won't see the option to log in.",
     "customizeSidebarLinksButton": "Customize Links",
@@ -702,8 +700,8 @@
     "accelDeviceDescription": "GPU device used for hardware-accelerated media processing. CPU (software) disables hardware acceleration.",
     "encoderBackend": "Encoder backend",
     "transcodeProfileEncoderBackendHelp": "Override the H.264 encoder for this preset. Default lets go-ffmpeg choose from the acceleration device and detected encoders.",
-    "extractEmbeddedSubtitles": "Extract embedded subtitles",
-    "extractEmbeddedSubtitlesDescription": "Extract embedded subtitles from media files.",
+    "alwaysUseFfmpeg": "Always use ffmpeg",
+    "alwaysUseFfmpegDescription": "Skip the go-media fast path and use ffmpeg for all probing, metadata, subtitles, and video thumbnails. Turn on if go-media gives wrong results for your files.",
     "debug": "Debug logging",
     "debugDescription": "Output ffmpeg stdout for the media integration. Warning: produces a lot of output.",
     "imagePreview": "Image preview formats",
@@ -919,7 +917,7 @@
       },
       "tabSize": {
         "label": "Tab Size",
-        "description": "How many spaces the 'TAB' key should do by default"
+        "description": "How many spaces the 'TAB' key should do by default -- It's also the size of the extra indent when you set wrapped indentation to 'Extra'"
       },
       "showIndentGuides": "Show Indent Guides",
       "showIndentGuidesDescription": "Show indent guides, it gives you better orientation when editing nested code",
@@ -935,8 +933,13 @@
       "customScrollbarDescription": "Swap the native browser scrollbar by the ace built-in one",
       "wrapContent": "Wrap long lines in the editor",
       "wrapContentDescription": "Wraps the editor content to keep very long lines always visible",
-      "indentedSoftWrap": "Indented soft wrap",
-      "indentedSoftWrapDescription": "When this is enabled, adds indentation to the begin of the wrapped text",
+      "wrapIndent": {
+        "label": "Wrapped line indentation",
+        "description": "How wrapped lines are indented: 'None' word wrap without indentation, 'Aligned' preserves the original line indentation, 'Extra' adds an extra level of indentation, it follows your tab size setting",
+        "none": "None",
+        "aligned": "Aligned",
+        "extra": "Extra"
+      },
       "autocompletion": "Autocompletion",
       "autocompletionDescription": "Enables autocompletion by manually pressing 'ctrl + space'",
       "liveAutocompletion": "Live autocompletion",

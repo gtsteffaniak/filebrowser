@@ -118,18 +118,39 @@
         </div>
         <!-- List of search results -->
         <ul v-show="results.length > 0">
-          <li v-for="(s, k) in results" :key="k" class="search-entry clickable"
-            :class="{ 'zebra-row': k % 2 === 1, active: activeStates[k], 'current-item': itemState[k], 'large-icons': showPreviewImages, 'small-icons': !showPreviewImages }" :aria-label="baseName(s.path)">
-            <a :href="getItemUrl(s)" @contextmenu="addSelected($event, s)">
-              <Icon :mimetype="s.type" :filename="baseName(s.path)" :path="s.path"
-                :hasPreview="showPreviewImages && (s.hasPreview || false)"
-                :thumbnailUrl="showPreviewImages ? getThumbnailUrl(s) : ''" />
+          <li
+            v-for="(s, k) in results"
+            :key="`${s.source}::${s.path}`"
+            class="search-entry clickable"
+            :class="{
+              'zebra-row': k % 2 === 1,
+              active: activeStates[k],
+              'current-item': itemState[k] || k === highlightedIndex,
+              'large-icons': showPreviewImages,
+              'small-icons': !showPreviewImages
+            }"
+            :aria-label="baseName(s.path)"
+          >
+            <a
+              :href="getItemUrl(s)"
+              @click="openResult($event, k)"
+              @contextmenu="addSelected($event, s)"
+            >
+              <Icon
+                :mimetype="s.type"
+                :filename="baseName(s.path)"
+                :path="s.path"
+                :has-preview="showPreviewImages && (s.hasPreview || false)"
+                :thumbnail-url="showPreviewImages ? getThumbnailUrl(s) : ''"
+              />
               <span class="text-container">
+                <!-- eslint-disable-next-line @intlify/vue-i18n/no-raw-text -->
                 {{ basePath(s.path, s.type === "directory") }}{{ baseName(s.path) }}
-                <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
               </span>
               <div class="filesize">{{ humanSize(s.size) }}</div>
-              <div v-if="isSearchingMultipleSources && s.source" class="source-badge">{{ s.source }}</div>
+              <div v-if="isSearchingMultipleSources && s.source" class="source-badge">
+                {{ s.source }}
+              </div>
             </a>
           </li>
         </ul>
@@ -158,10 +179,17 @@ import { getters, mutations, state } from "@/store";
 import { url } from "@/utils/";
 import { globalVars } from "@/utils/constants";
 import { debounce } from "@/utils/debounce.js";
+import { sortedItems } from "@/utils/sort.ts";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { isTypeAheadSessionActive } from "@/utils/listingTypeAhead.js";
 import { utcStartOfDaySecondsFromDateInput } from "@/utils/moment";
 import { shouldIgnoreOutsideTap } from "@/utils/tooltipHelp.js";
+
+const searchFormKeys = [
+  "value", "results", "noneMessage", "selectedSource", "entryTypeFilter", "selectedMediaTypes",
+  "largerThan", "smallerThan", "modifiedOlderThan", "modifiedNewerThan",
+  "useWildcardSearch", "caseExactSearch", "showPreviewImages", "advancedOptionsExpanded",
+];
 
 const boxes = {
   folder: { label: "folders", icon: "folder" },
@@ -202,6 +230,8 @@ export default {
       scrollable: null,
       advancedOptionsExpanded: false,
       selectedSource: "",
+      restoring: false,
+      highlightedIndex: -1,
     };
   },
   watch: {
@@ -247,7 +277,11 @@ export default {
     },
     active(isNowActive) {
       if (isNowActive) {
-        this.resetSearchOnOpen();
+        if (state.searchResults?.focus) {
+          void this.restoreSearchResults();
+        } else {
+          this.resetSearchOnOpen();
+        }
       }
     },
     hasPrompts(now, before) {
@@ -266,6 +300,10 @@ export default {
   },
   mounted() {
     this.selectedSource = state.sources.current;
+    if (state.searchResults?.focus && state.previousHistoryItem?.returnTo === state.route.fullPath) {
+      mutations.setPreviousHistoryItem(null);
+      void this.$nextTick().then(() => mutations.setSearch(true));
+    }
     // Adjust contextmenu listener based on browser
     if (state.isSafari) {
       // For Safari, add touchstart or mousedown to open the context menu
@@ -298,7 +336,6 @@ export default {
         this.open();
       }
     };
-
     document.addEventListener('keydown', this.handleKeydown);
   },
   beforeUnmount() {
@@ -396,11 +433,7 @@ export default {
 
       const selectedPaths = new Set(selectedItems.map((item) => item.path));
       return this.results.map((result) => {
-        // Construct the same full path as addSelected does
-        const context = url.removeTrailingSlash(this.getContext);
-        const pathStr = url.removeLeadingSlash(url.removeTrailingSlash(result.path));
-        const fullPath = `${context}/${pathStr}`;
-        return selectedPaths.has(fullPath);
+        return selectedPaths.has(this.resultToItem(result).path);
       });
     },
     hasPrompts() {
@@ -502,14 +535,8 @@ export default {
       void this.submitNow();
     },
     getItemUrl(s) {
-      // Use source from result if available, otherwise fall back to selectedSource
-      const source = s.source || this.selectedSource || state.sources.current;
-      // Combine context (scope) with the result path - needed when searching within a folder
-      // Ensure exactly one slash between context and path
-      const context = url.removeTrailingSlash(this.getContext);
-      const path = url.removeLeadingSlash(url.removeTrailingSlash(s.path));
-      const fullPath = `${context}/${path}`;
-      return url.buildItemUrl(source, fullPath, true);
+      const { source, path } = this.resultToItem(s);
+      return url.buildItemUrl(source, path, true);
     },
     humanSize(size) {
       return getHumanReadableFilesize(size);
@@ -530,6 +557,7 @@ export default {
     resetSearchOnOpen() {
       this.value = "";
       this.results = [];
+      this.highlightedIndex = -1;
       this.ongoing = 0;
       this.debouncedSubmit.cancel();
       this.abortSearch();
@@ -578,7 +606,9 @@ export default {
       this.showPreviewImages = false;
     },
     async submit(event) {
+      if (this.restoring) return;
       this.results = [];
+      this.highlightedIndex = -1;
       if (event !== undefined) {
         event.preventDefault();
       }
@@ -645,7 +675,8 @@ export default {
         if (seq !== this.searchSeq) {
           return;
         }
-        this.results = results;
+        this.results = this.sortResults(results);
+        this.setSearchResults();
         succeeded = true;
       } catch {
         // Aborted/superseded requests are expected; real errors are surfaced by the API layer.
@@ -659,6 +690,73 @@ export default {
           this.noneMessage = this.$t("search.noResults");
         }
       }
+    },
+    resultToItem(s) {
+      const context = url.removeTrailingSlash(this.getContext);
+      return {
+        name: this.baseName(s.path),
+        path: `${context}/${url.removeLeadingSlash(url.removeTrailingSlash(s.path))}`,
+        type: s.type,
+        size: s.size,
+        modified: s.modified,
+        created: s.created,
+        hasPreview: s.hasPreview,
+        source: s.source || this.selectedSource || state.sources.current,
+      };
+    },
+    sortResults(results) {
+      const term = this.value.trim().toLowerCase();
+      const rank = ({ name }) => {
+        const lower = name.toLowerCase();
+        return lower === term ? 0 : lower.startsWith(term) ? 1 : 2;
+      };
+      const entries = results.map((s) => ({ s, name: this.baseName(s.path) }));
+      return sortedItems(entries, "name").sort((a, b) => rank(a) - rank(b)).map((e) => e.s);
+    },
+    setSearchResults() {
+      state.searchResults = {
+        kind: "quick",
+        sorting: { by: "none", asc: true },
+        items: this.results.map((s) => this.resultToItem(s)),
+        form: this.getSearchForm(),
+      };
+    },
+    getSearchForm() {
+      return Object.fromEntries(searchFormKeys.map((key) => [key, this[key]]));
+    },
+    async restoreSearchResults() {
+      const search = state.searchResults;
+      const { results, ...fields } = search.form;
+      const focus = search.focus;
+      search.focus = undefined;
+      this.restoring = true;
+      Object.assign(this, fields);
+      await this.$nextTick();
+      this.restoring = false;
+      this.results = results.filter((s) => search.items.some((i) => url.isSameItem(i, this.resultToItem(s))));
+      this.highlightedIndex = this.results.findIndex((s) => url.isSameItem(this.resultToItem(s), focus));
+      await this.$nextTick();
+      const list = document.getElementById("result-list");
+      list?.classList.add("active");
+      list?.querySelectorAll(".search-entry")[this.highlightedIndex]?.scrollIntoView({ block: "center" });
+    },
+    openResult(event, index) {
+      if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) {
+        return;
+      }
+      event.preventDefault();
+      const item = this.resultToItem(this.results[index]);
+      if (state.searchResults) {
+        state.searchResults.form = this.getSearchForm();
+        state.searchResults.focus = { source: item.source, path: item.path };
+      }
+      mutations.setPreviousHistoryItem({
+        name: item.name,
+        source: item.source,
+        path: item.path,
+        returnTo: state.route.fullPath,
+      });
+      url.goToItem(item.source, item.path, null, false, getters.isShare());
     },
     clearContext(event) {
       const target = event?.target;
@@ -675,15 +773,8 @@ export default {
         return "";
       }
       try {
-        // Use source from result if available, otherwise fall back to selectedSource
-        const source = s.source || this.selectedSource || state.sources.current;
-        // Combine context (scope) with the result path - needed when searching within a folder
-        // Ensure exactly one slash between context and path
-        const context = url.removeTrailingSlash(this.getContext);
-        const path = url.removeLeadingSlash(url.removeTrailingSlash(s.path));
-        const fullPath = `${context}/${path}`;
-        const modified = s.modified || "";
-        return resourcesApi.getPreviewURL(source, fullPath, modified);
+        const { source, path } = this.resultToItem(s);
+        return resourcesApi.getPreviewURL(source, path, s.modified || "");
       } catch (_err) {
         return "";
       }
@@ -779,24 +870,8 @@ export default {
     },
     addSelected(event, s) {
       event.preventDefault();
-      const pathParts = url.removeTrailingSlash(s.path).split("/");
-      // Use source from result if available, otherwise fall back to selectedSource
-      const source = s.source || this.selectedSource || state.sources.current;
-      // Combine context (scope) with the result path - ensure exactly one slash between
-      const context = url.removeTrailingSlash(this.getContext);
-      const pathStr = url.removeLeadingSlash(url.removeTrailingSlash(s.path));
-      const path = `${context}/${pathStr}`;
-      const modifiedItem = {
-        name: pathParts.pop(),
-        path: path,
-        size: s.size,
-        type: s.type,
-        modified: s.modified,
-        created: s.created,
-        source: source,
-      };
       mutations.resetSelected();
-      mutations.addSelected(modifiedItem);
+      mutations.addSelected(this.resultToItem(s));
       this.openContext(event);
     },
   },

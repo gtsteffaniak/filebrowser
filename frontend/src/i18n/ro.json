@@ -423,8 +423,6 @@
     "perUserDownloadLimit": "Aplicați limita de descărcări pentru fiecare utilizator",
     "perUserDownloadLimitDescription": "Atunci când este activată, limita de descărcări va fi aplicată fiecărui utilizator. Utilizatorii anonimi nu vor putea descărca niciun fișier din această partajare.",
     "descriptionUploadDefault": "V-a fost trimisă o partajare pentru a încărca fișiere.",
-    "extractEmbeddedSubtitles": "Extragerea subtitrărilor încorporate",
-    "extractEmbeddedSubtitlesDescription": "Extragerea subtitrărilor încorporate din fișierele media la încărcare - acest lucru poate fi lent pentru fișierele mari.",
     "disableDownload": "Dezactivați descărcarea fișierelor",
     "disableDownloadDescription": "Oricine nu va putea să descarce fișiere sau să vizualizeze conținutul unui fișier.",
     "allowModify": "Permiteți editarea fișierelor",
@@ -841,7 +839,7 @@
       },
       "tabSize": {
         "label": "Dimensiune Tab",
-        "description": "Câte spații ar trebui să facă tasta 'TAB' în mod implicit"
+        "description": "Câte spații ar trebui să facă tasta 'TAB' în mod implicit -- Este și dimensiunea indentării suplimentare când setați indentarea împărțirii pe 'Extra'"
       },
       "showIndentGuides": "Afișează ghiduri de indentare",
       "showIndentGuidesDescription": "Afișează ghiduri de indentare, oferindu-vă o mai bună orientare la editarea codului imbricat",
@@ -857,8 +855,13 @@
       "customScrollbarDescription": "Înlocuiește bara de derulare nativă a browser-ului cu cea integrată a lui Ace",
       "wrapContent": "Împărțirea liniilor lungi în editor",
       "wrapContentDescription": "Împarte conținutul editorului pentru a menține liniile foarte lungi întotdeauna vizibile",
-      "indentedSoftWrap": "Împărțire soft cu indentare",
-      "indentedSoftWrapDescription": "Când este activat, adaugă indentare la începutul textului împărțit",
+      "wrapIndent": {
+        "label": "Indentarea liniilor împărțite",
+        "description": "Cum sunt indentate liniile împărțite: 'None' împărțirea cuvintelor fără indentare, 'Aligned' păstrează indentarea originală a liniei, 'Extra' adaugă un nivel suplimentar de indentare, urmând setarea dimensiunii Tab",
+        "none": "Niciuna",
+        "aligned": "Aliniată",
+        "extra": "Suplimentară"
+      },
       "autocompletion": "Completare automată",
       "autocompletionDescription": "Activează completarea automată prin apăsarea manuală a 'ctrl + space'",
       "liveAutocompletion": "Completare automată live",
@@ -1219,8 +1222,6 @@
     }
   },
   "media": {
-    "extractEmbeddedSubtitles": "Extragerea subtitrărilor încorporate",
-    "extractEmbeddedSubtitlesDescription": "Extrage subtitrările încorporate din fișierele media.",
     "debug": "Jurnalizarea erorilor de depanare",
     "debugDescription": "Ieșirea stdout din ffmpeg pentru integrarea fișierelor media. Atenție: generează un volum mare de date de ieșire.",
     "imagePreview": "Formate de previzualizare a imaginilor",
@@ -1254,6 +1255,8 @@
     "accelDevice": "Dispozitiv de accelerare",
     "accelDeviceDescription": "Dispozitiv GPU utilizat pentru procesarea conținutului media cu accelerare hardware. CPU (software) dezactivează accelerarea hardware.",
     "encoderBackend": "Backend-ul codificatorului",
-    "transcodeProfileEncoderBackendHelp": "Backend-ul encoderului pentru această presetare; implicit se utilizează backend-ul preferat detectat."
+    "transcodeProfileEncoderBackendHelp": "Backend-ul encoderului pentru această presetare; implicit se utilizează backend-ul preferat detectat.",
+    "alwaysUseFfmpeg": "Folosiți întotdeauna ffmpeg",
+    "alwaysUseFfmpegDescription": "Omiteți calea rapidă „go-media” și folosiți ffmpeg pentru toate operațiunile de analiză, metadate, subtitrări și miniaturi video. Activați această opțiune dacă „go-media” oferă rezultate eronate pentru fișierele dvs."
   }
 }

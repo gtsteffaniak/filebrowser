@@ -10,7 +10,6 @@ import {
 } from "@/api/settings.js";
 import { detectLocale, setLocale } from "@/i18n/index.ts";
 import { notify } from "@/notify/index.ts";
-import { globalVars } from "@/utils/constants.js";
 import { url } from "@/utils/index.ts";
 import { getTypeInfo } from "@/utils/mimetype.js";
 import { getObjectProperty, setObjectProperty, omitObjectProperty } from '@/utils/object.js';
@@ -92,6 +91,17 @@ export const mutations = {
       syncEventTheme(true);
     }
     emitStateChanged();
+  },
+  removeFromSearchResults: (removed: { source?: string; path: string }[]) => {
+    const search = state.searchResults;
+    if (!search || !removed?.length) return;
+    const targets = removed.map((r) => ({ source: r.source, path: url.trimSlashes(r.path) }));
+    search.items = search.items.filter((item) => {
+      const path = url.trimSlashes(item.path);
+      return !targets.some(
+        (t) => t.source === item.source && (path === t.path || path.startsWith(`${t.path}/`))
+      );
+    });
   },
   setPreviousHistoryItem: (value: StoreState['previousHistoryItem'] | null) => {
     if (value === state.previousHistoryItem) {
@@ -661,14 +671,6 @@ export const mutations = {
    */
   syncMediaPlayerSettings: async () => {
     if (!getters.isLoggedIn() || getters.isShare() || state.user?.username === "anonymous") {
-      state.mediaPlayerSettings = null;
-      emitStateChanged();
-      return;
-    }
-    // ffmpeg availability is fixed for the process lifetime; skip the API when
-    // media is unavailable (GET /settings/media answers 503 and shows up as a
-    // failed request / console error in Playwright and the browser).
-    if (globalVars.mediaAvailable !== true) {
       state.mediaPlayerSettings = null;
       emitStateChanged();
       return;
@@ -1249,7 +1251,12 @@ export const mutations = {
     }
     emitStateChanged();
   },
-  setupNavigation: ({ listing, currentItem, directoryPath }: { listing: unknown; currentItem: Partial<FileListItem>; directoryPath: string }) => {
+  setupNavigation: ({ listing, currentItem, directoryPath, useItemPaths = false }: { listing: unknown; currentItem: Partial<FileListItem>; directoryPath: string; useItemPaths?: boolean }) => {
+    const searchItems = getters.searchNavigationItems(currentItem);
+    if (searchItems) {
+      listing = searchItems;
+      useItemPaths = true;
+    }
     // Cancel any pending auto-hide from a previous setupNavigation; the raw
     // setTimeout used to leak and could fire setNavigationShow(false) right
     // after opening a new image (nextPrevious flicker).
@@ -1273,8 +1280,13 @@ export const mutations = {
     const items = getSortedNavigationItems(listing as Partial<FileListItem>[], sorting.by, sorting.asc);
 
     // Find current item index in the listing
+    const trimSlash = (p?: string) => (p || "").replace(/\/+$/, "");
     for (let i = 0; i < items.length; i++) {
-      if (items.at(i)?.name === currentItem.name) {
+      const candidate = items.at(i);
+      const isCurrent = useItemPaths
+        ? candidate?.source === currentItem.source && trimSlash(candidate?.path) === trimSlash(currentItem.path)
+        : candidate?.name === currentItem.name;
+      if (isCurrent) {
         state.navigation.currentIndex = i;
         break;
       }
@@ -1289,8 +1301,9 @@ export const mutations = {
     for (let i = state.navigation.currentIndex - 1; i >= 0; i--) {
       const item = items.at(i);
       if (!item || item.type === 'directory') continue;
-
-      item.path = url.joinPath(directoryPath, item.name);
+      if (!useItemPaths) {
+        item.path = url.joinPath(directoryPath, item.name);
+      }
       state.navigation.previousItem = item;
       state.navigation.previousLink = url.buildItemUrl(item.source, item.path);
 
@@ -1307,8 +1320,9 @@ export const mutations = {
     for (let i = state.navigation.currentIndex + 1; i < items.length; i++) {
       const item = items.at(i);
       if (!item || item.type === 'directory') continue;
-
-      item.path = url.joinPath(directoryPath, item.name);
+      if (!useItemPaths) {
+        item.path = url.joinPath(directoryPath, item.name);
+      }
       state.navigation.nextItem = item;
       state.navigation.nextLink = url.buildItemUrl(item.source, item.path);
 

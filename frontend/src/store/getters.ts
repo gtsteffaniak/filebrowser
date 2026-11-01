@@ -127,7 +127,7 @@ export const getters = {
     }
     let path = state.route.path ?? "";
 
-    if (state.req.type !== "directory") {
+    if (state.req.type && state.req.type !== "directory") {
       path = path.substring(0, path.lastIndexOf("/") + 1) || "/";
     }
 
@@ -175,7 +175,16 @@ export const getters = {
   },
   /** Sort used by nextPrevious and quick jump */
   navigationSorting: () => {
-    return state.navigation.sorting || getters.sorting();
+    const searchSorting = getters.searchNavigationItems(state.req) ? state.searchResults?.sorting : undefined;
+    return state.navigation.sorting || searchSorting || getters.sorting();
+  },
+  searchNavigationItems: (item: Partial<FileListItem>) => {
+    const items = state.searchResults?.items;
+    if (!state.previousHistoryItem?.returnTo || !items?.length) {
+      return null;
+    }
+    if (!item) return null;
+    return items.some((i) => url.isSameItem(i, item)) ? items : null;
   },
   /** Sort config for destination picker dialogs (copy/move/archive), independent of the main listing sort. */
   pickerSorting: () => {

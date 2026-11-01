@@ -21,21 +21,20 @@ var blockedMediaPathPrefixes = []string{
 
 // resolveLocalMediaPath restricts ffprobe to absolute local files (no remote protocols).
 func resolveLocalMediaPath(mediaPath string) (string, os.FileInfo, error) {
-	trimmed := strings.TrimSpace(mediaPath)
-	if trimmed == "" {
+	if strings.TrimSpace(mediaPath) == "" {
 		return "", nil, fmt.Errorf("media path is empty")
 	}
-	if strings.Contains(trimmed, "://") {
+	if strings.Contains(mediaPath, "://") {
 		return "", nil, fmt.Errorf("remote media URLs are not allowed")
 	}
-	lower := strings.ToLower(trimmed)
+	lower := strings.ToLower(strings.TrimSpace(mediaPath))
 	for _, prefix := range blockedMediaPathPrefixes {
 		if strings.HasPrefix(lower, prefix) {
 			return "", nil, fmt.Errorf("remote media protocols are not allowed")
 		}
 	}
 
-	clean := filepath.Clean(trimmed)
+	clean := filepath.Clean(mediaPath)
 	if !filepath.IsAbs(clean) {
 		return "", nil, fmt.Errorf("media path must be absolute")
 	}

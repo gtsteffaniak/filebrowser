@@ -33,9 +33,8 @@ type ShareDefaults struct {
 	DisableLoginOption       bool                `json:"disableLoginOption,omitempty"`
 	MaxBandwidth             int                 `json:"maxBandwidth,omitempty"`
 	AllowedUsernames         []string            `json:"allowedUsernames,omitempty"`
-	PerUserDownloadLimit     bool                `json:"perUserDownloadLimit,omitempty"`
-	ExtractEmbeddedSubtitles bool                `json:"extractEmbeddedSubtitles,omitempty"`
-	DownloadsLimit           int                 `json:"downloadsLimit,omitempty"`
+	PerUserDownloadLimit bool                `json:"perUserDownloadLimit,omitempty"`
+	DownloadsLimit       int                 `json:"downloadsLimit,omitempty"`
 	QuotaLimitBytes          int64               `json:"quotaLimitBytes,omitempty"`
 	HideFileExt              string              `json:"hideFileExt,omitempty"`
 	Banner                   string              `json:"banner,omitempty"`
@@ -70,9 +69,8 @@ type ShareDefaultsEnforcement struct {
 	DisableLoginOption       bool `json:"disableLoginOption,omitempty"`
 	MaxBandwidth             bool `json:"maxBandwidth,omitempty"`
 	AllowedUsernames         bool `json:"allowedUsernames,omitempty"`
-	PerUserDownloadLimit     bool `json:"perUserDownloadLimit,omitempty"`
-	ExtractEmbeddedSubtitles bool `json:"extractEmbeddedSubtitles,omitempty"`
-	DownloadsLimit           bool `json:"downloadsLimit,omitempty"`
+	PerUserDownloadLimit bool `json:"perUserDownloadLimit,omitempty"`
+	DownloadsLimit       bool `json:"downloadsLimit,omitempty"`
 	QuotaLimitBytes          bool `json:"quotaLimitBytes,omitempty"`
 	HideFileExt              bool `json:"hideFileExt,omitempty"`
 	Banner                   bool `json:"banner,omitempty"`

@@ -409,8 +409,6 @@
     "uploadShare": "Alleen uploaden",
     "perUserDownloadLimit": "Downloadlimiet op elke gebruiker toepassen",
     "perUserDownloadLimitDescription": "Indien ingeschakeld, wordt de downloadlimiet toegepast op elke gebruiker. Anonieme gebruikers kunnen geen bestanden downloaden van deze Share.",
-    "extractEmbeddedSubtitles": "Ingesloten ondertitels uitpakken",
-    "extractEmbeddedSubtitlesDescription": "Ingesloten ondertitels uit mediabestanden halen tijdens het laden -- dit kan traag zijn voor grote bestanden.",
     "disableLoginOption": "Aanmeldingsoptie verbergen",
     "disableLoginOptionDescription": "De aanmeldknop in de zijbalk verbergen voor anonieme gebruikers. Als deze optie is ingeschakeld, zien anonieme gebruikers geen optie om in te loggen.",
     "customizeSidebarLinksButton": "Koppelingen aanpassen",
@@ -881,7 +879,7 @@
       },
       "tabSize": {
         "label": "Tab-grootte",
-        "description": "Hoeveel spaties de 'TAB'-toets standaard moet invoegen"
+        "description": "Hoeveel spaties de 'TAB'-toets standaard moet invoegen -- Het is ook de grootte van de extra inspringing wanneer u de terugloopinspringing op 'Extra' instelt"
       },
       "showIndentGuides": "Inspringingshulplijnen weergeven",
       "showIndentGuidesDescription": "Toon inspringingshulplijnen, dit geeft u een betere oriëntatie bij het bewerken van geneste code",
@@ -897,8 +895,13 @@
       "customScrollbarDescription": "Vervang de native browser-schuifbalk door de ingebouwde van Ace",
       "wrapContent": "Lange regels in de editor laten doorlopen",
       "wrapContentDescription": "Zorgt dat de editorinhoud wordt doorlopen zodat zeer lange regels altijd zichtbaar blijven",
-      "indentedSoftWrap": "Ingesprongen zachte terugloop",
-      "indentedSoftWrapDescription": "Wanneer dit is ingeschakeld, wordt een inspringing toegevoegd aan het begin van de teruggelopen tekst",
+      "wrapIndent": {
+        "label": "Inspringing van teruggelopen regels",
+        "description": "Hoe teruggelopen regels worden ingesprongen: 'None' woordterugloop zonder inspringing, 'Aligned' behoudt de oorspronkelijke regelinspringing, 'Extra' voegt een extra inspringingsniveau toe, volgens uw tab-grootte-instelling",
+        "none": "Geen",
+        "aligned": "Uitgelijnd",
+        "extra": "Extra"
+      },
       "autocompletion": "Automatische aanvulling",
       "autocompletionDescription": "Schakelt automatische aanvulling in door handmatig op 'ctrl + space' te drukken",
       "liveAutocompletion": "Live automatische aanvulling",
@@ -1219,8 +1222,6 @@
     "install": "App installeren"
   },
   "media": {
-    "extractEmbeddedSubtitles": "Ingesloten ondertitels extraheren",
-    "extractEmbeddedSubtitlesDescription": "Ingebedde ondertitels uit mediabestanden extraheren.",
     "debug": "Foutlogboek",
     "debugDescription": "FFmpeg-stdout-uitvoer voor de media-integratie. Waarschuwing: dit levert veel uitvoer op.",
     "imagePreview": "Formaten voor afbeeldingsvoorbeelden",
@@ -1254,6 +1255,8 @@
     "accelDevice": "Versnellingsapparaat",
     "accelDeviceDescription": "GPU-apparaat dat wordt gebruikt voor hardwareversnelde mediaverwerking. De CPU (software) schakelt de hardwareversnelling uit.",
     "encoderBackend": "Encoder-backend",
-    "transcodeProfileEncoderBackendHelp": "Encoder-backend voor deze voorinstelling; standaard is dit de gedetecteerde voorkeursbackend."
+    "transcodeProfileEncoderBackendHelp": "Encoder-backend voor deze voorinstelling; standaard is dit de gedetecteerde voorkeursbackend.",
+    "alwaysUseFfmpeg": "Gebruik altijd ffmpeg",
+    "alwaysUseFfmpegDescription": "Sla de snelle route via go-media over en gebruik ffmpeg voor alle analyses, metagegevens, ondertitels en videominiaturen. Schakel deze optie in als go-media onjuiste resultaten oplevert voor je bestanden."
   }
 }

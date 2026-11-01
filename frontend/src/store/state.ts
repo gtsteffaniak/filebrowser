@@ -24,6 +24,7 @@ export const state: StoreState = reactive({
   contextMenuHasItems: false,
   deletedItem: false,
   pendingHighlight: null, // path, source of the item to select
+  searchResults: null, // last quick/adv search results
   showOverflowMenu: false,
   sessionId: "",
   isSafari: /^((?!chrome|android).)*safari/i.test(navigator.userAgent),

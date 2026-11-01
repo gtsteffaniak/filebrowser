@@ -204,6 +204,21 @@ export default {
 
       return { valid: true };
     },
+    syncSearchResults(newPath) {
+      if (this.item.type === "directory") {
+        mutations.removeFromSearchResults([this.item]);
+        return;
+      }
+      const result = state.searchResults?.items.find((i) => url.isSameItem(i, this.item));
+      if (!result) return;
+      const raw = (state.searchResults.form?.results || [])
+        .filter((r) => (r.source ?? result.source) === result.source && result.path.endsWith(r.path))
+        .sort((a, b) => b.path.length - a.path.length)[0];
+      if (raw) raw.path = `${url.removeLastDir(raw.path)}/${this.name}`;
+      state.searchResults.items = state.searchResults.items.map((i) =>
+        url.isSameItem(i, this.item) ? { ...i, name: this.name, path: newPath } : i
+      );
+    },
     normalizePath(p) {
       return (p || '').replace(/^\/+|\/+$/g, '');
     },
@@ -237,6 +252,7 @@ export default {
           await resourcesApi.moveCopy(items, "move");
         }
         notify.showSuccessToast(this.$t("prompts.renameSuccess"));
+        this.syncSearchResults(newPath);
         eventBus.emit('itemsRenamed');
         state.pendingHighlight = { path: newPath, source: getters.isShare() ? state.shareInfo.hash : this.item.source };
         mutations.closeTopPrompt();
