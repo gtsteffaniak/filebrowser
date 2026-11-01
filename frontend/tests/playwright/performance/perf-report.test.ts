@@ -110,4 +110,37 @@ describe("buildContributors", () => {
     expect(factors.some((f) => f.includes("updateScrollableContent"))).toBe(true);
     expect(factors.some((f) => f.includes("Garbage collection"))).toBe(true);
   });
+
+  it("does not blame listener volume per row when the listing is virtualized", () => {
+    const base = {
+      browser: "chromium",
+      scale: 1000,
+      scenario: "select",
+      timestamp: "",
+    };
+    const factorsFor = (listingItemCount: number) =>
+      buildContributors({
+        ...base,
+        metrics: {
+          select20Ms: 346,
+          dom: { listingItemCount },
+          probe: { intersectionObservers: 0, addListenerCalls: 2163 },
+        },
+      }).map((c) => c.factor);
+
+    // 20 rows mounted out of 2000: the registrations come from rows that are gone
+    expect(factorsFor(20)).not.toContain("High addEventListener volume");
+    // every row mounted: 2163 / 2000 is not high either, but 2163 / 200 would be
+    expect(
+      buildContributors({
+        ...base,
+        scale: 100,
+        metrics: {
+          select20Ms: 346,
+          dom: { listingItemCount: 200 },
+          probe: { intersectionObservers: 0, addListenerCalls: 2163 },
+        },
+      }).map((c) => c.factor),
+    ).toContain("High addEventListener volume");
+  });
 });

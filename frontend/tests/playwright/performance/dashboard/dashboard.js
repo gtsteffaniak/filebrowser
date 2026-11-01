@@ -513,12 +513,14 @@ let deltaBound = false;
 const DISPLAY_DELTA_PCT = 10;
 
 function signedPct(m) {
+  if (m.baseline === 0) return null;
   if (typeof m.deltaPct !== "number" || !Number.isFinite(m.deltaPct)) return null;
   return m.direction === "higher-is-better" ? -m.deltaPct : m.deltaPct;
 }
 
 function displayStatus(m) {
   if (m.status === "missing") return "missing";
+  if (m.baseline === 0) return m.status;
   const pct = signedPct(m);
   if (pct == null) return "pass";
   if (pct >= DISPLAY_DELTA_PCT) return "regression";
@@ -562,7 +564,7 @@ function flattenComparison(cmp) {
         scale: r.scale,
         scenario: r.scenario,
         signedPct: pct,
-        bucket: bucketOf(pct)?.id ?? "flat",
+        bucket: bucketOf(pct)?.id ?? null,
         klass: m.toleranceClass || "other",
       };
     }),
@@ -683,6 +685,7 @@ function renderDeltaHist() {
   );
   strip.innerHTML = "";
   for (const row of sorted) {
+    if (!row.bucket) continue;
     const tone = deltaTone(row.signedPct);
     const el = document.createElement("button");
     el.type = "button";

@@ -10,11 +10,12 @@ vi.mock("@/store", () => ({ state, mutations, getters }));
 import { useMouseSelection } from "../useRectangleSelection.ts";
 
 let active = true;
+let hitTest: ((rect: { left: number; top: number; right: number; bottom: number }, listing: DOMRect) => number[] | null) | undefined;
 const Host = defineComponent({
   setup() {
     const container = ref<HTMLElement | null>(null);
     const bounds = ref<HTMLElement | null>(null);
-    useMouseSelection({ container, bounds, items: () => [], isActive: () => active });
+    useMouseSelection({ container, bounds, items: () => [], isActive: () => active, hitTest: (...args) => hitTest?.(...args) ?? null });
     return () =>
       h("div", { ref: container, class: "container" }, [
         h("div", { ref: bounds, class: "bounds" }, [
@@ -41,6 +42,7 @@ describe("useMouseSelection", () => {
     vi.clearAllMocks();
     state.selected = [];
     active = true;
+    hitTest = undefined;
     host = document.createElement("div");
     document.body.appendChild(host);
     app = createApp(Host);
@@ -109,5 +111,29 @@ describe("useMouseSelection", () => {
     mouse(document.body, "click", 5, 5);
     expect(mutations.selectAllItems).not.toHaveBeenCalled();
     expect(mutations.resetSelected).not.toHaveBeenCalled();
+  });
+
+  // Virtual scrolling: most items have no element, so the listing works out which ones are under the rectangle
+  it("selects what the listing says is under the rectangle, even without elements", () => {
+    hitTest = vi.fn(() => [40, 41, 900]);
+    mouse(container, "mousedown", 0, 0);
+    mouse(document, "mouseup", 70, 70);
+    expect(hitTest).toHaveBeenLastCalledWith({ left: 0, top: 0, right: 70, bottom: 70 }, expect.anything());
+    expect(mutations.setSelected).toHaveBeenLastCalledWith([40, 41, 900]);
+  });
+
+  it("adds those to the selection with Ctrl", () => {
+    state.selected = [900, 5];
+    hitTest = () => [40, 900];
+    mouse(container, "mousedown", 0, 0, { ctrlKey: true });
+    mouse(document, "mouseup", 70, 70, { ctrlKey: true });
+    expect(mutations.setSelected).toHaveBeenLastCalledWith([900, 5, 40]);
+  });
+
+  it("measures the elements when the listing has no answer", () => {
+    hitTest = () => null;
+    mouse(container, "mousedown", 0, 0);
+    mouse(document, "mouseup", 70, 70);
+    expect(mutations.setSelected).toHaveBeenLastCalledWith([0]);
   });
 });

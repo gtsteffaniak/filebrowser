@@ -82,11 +82,29 @@ async function openMockListing(page: Page, scale: number): Promise<void> {
     .locator(".listing-items .listing-item")
     .first()
     .waitFor({ state: "visible", timeout });
+  await waitForListingRendered(page, count, timeout);
+}
+
+/**
+ * Waits until the listing has rendered. A virtual listing only renders the rows around the screen
+ * (`.listing-items.virtualized`), so it never holds every item: it is ready as soon as it has items.
+ * Without virtualization every item is rendered, wait for all of them.
+ */
+async function waitForListingRendered(
+  page: Page,
+  expected: number,
+  timeout: number,
+): Promise<void> {
   await page.waitForFunction(
-    (expected) =>
-      document.querySelectorAll(".listing-items .listing-item").length >=
-      expected,
-    count,
+    (total) => {
+      const listing = document.querySelector(".listing-items");
+      const rendered = document.querySelectorAll(
+        ".listing-items .listing-item",
+      ).length;
+      if (listing?.classList.contains("virtualized")) return rendered > 0;
+      return rendered >= total;
+    },
+    expected,
     { timeout },
   );
 }
@@ -237,13 +255,7 @@ export async function runLoadScenario(
             .locator(".listing-items .listing-item")
             .first()
             .waitFor({ state: "visible", timeout });
-          await page.waitForFunction(
-            (expected) =>
-              document.querySelectorAll(".listing-items .listing-item").length >=
-              expected,
-            count,
-            { timeout },
-          );
+          await waitForListingRendered(page, count, timeout);
         } else {
           await startFrameWindow(page);
         }

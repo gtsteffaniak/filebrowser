@@ -1,4 +1,4 @@
-import { reactive } from 'vue';
+import { markRaw, reactive } from 'vue';
 import { detectLocale } from "@/i18n/index.ts";
 import { globalVars } from "@/utils/constants.js";
 import type { StoreState } from "./types.ts";
@@ -129,7 +129,7 @@ export const state: StoreState = reactive({
   sharePassword: "",
   loading: {}, // map of loadType -> true, see mutations.setLoading
   reload: false,
-  selected: [],
+  selected: markRaw([]),
   lastSelectedIndex: null,
   multiple: false,
   upload: {

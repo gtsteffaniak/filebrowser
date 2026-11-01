@@ -26,7 +26,11 @@ interface MouseSelectionOptions {
   // Changes whenever the items do, so the cached item boxes are measured again
   items: () => unknown;
   isActive: () => boolean;
+  /** With virtual scrolling most items have no element to measure: this finds the items under the rectangle (relative to `bounds`) without them */
+  hitTest?: (rect: ItemRectArea, listingRect: DOMRect) => number[] | null;
 }
+
+type ItemRectArea = Omit<ItemRect, "index">;
 
 export function useMouseSelection(options: MouseSelectionOptions) {
   const isRectangleSelecting = ref(false);
@@ -234,21 +238,26 @@ export function useMouseSelection(options: MouseSelectionOptions) {
       bottom: Math.max(rectangleStart.value.y, rectangleEnd.value.y)
     };
 
-    const rectangleSelectedIndexes: number[] = [];
+    let rectangleSelectedIndexes: number[] = [];
 
-    // Measure the items once per layout
-    if (!rectangleItemRects) {
-      rectangleItemRects = measureItemRects(listingRect);
-    }
-    for (const box of rectangleItemRects) {
-      // Check if the item intersects with the rectangle
-      if (
-        box.left < rect.right &&
-        box.right > rect.left &&
-        box.top < rect.bottom &&
-        box.bottom > rect.top
-      ) {
-        rectangleSelectedIndexes.push(box.index);
+    const hits = options.hitTest?.(rect, listingRect) ?? null;
+    if (hits) {
+      rectangleSelectedIndexes = hits;
+    } else {
+      // Measure the items once per layout
+      if (!rectangleItemRects) {
+        rectangleItemRects = measureItemRects(listingRect);
+      }
+      for (const box of rectangleItemRects) {
+        // Check if the item intersects with the rectangle
+        if (
+          box.left < rect.right &&
+          box.right > rect.left &&
+          box.top < rect.bottom &&
+          box.bottom > rect.top
+        ) {
+          rectangleSelectedIndexes.push(box.index);
+        }
       }
     }
     // Compute the selection and only touch the store when it actually changed

@@ -21,7 +21,7 @@ import ListingView from "@/views/files/ListingView.vue";
 import { state, mutations, getters } from "@/store";
 import { router } from "@/router";
 import { extractSourceFromPath, removeLastDir, removeTrailingSlash, pathsMatch } from "@/utils/url.js";
-import { selectAndScrollToIndex } from "@/utils/selectAndScroll.ts";
+import { selectAndScrollToIndex } from "@/utils/listing/selectAndScroll.ts";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import { globalVars } from "@/utils/constants";
 import { syncEventTheme } from "@/utils/theme";

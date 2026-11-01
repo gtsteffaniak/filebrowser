@@ -8,6 +8,8 @@ import { cdpDurationSecondsToMs, type CdpDelta } from "./perf-cdp.ts";
 import type { FrameTimingStat } from "./perf-frames.ts";
 import type { TraceAnalysis, TraceFunction } from "./perf-trace.ts";
 
+const VIRTUALIZED_SHARE = 0.9;
+
 export interface PerfResultFile {
   scenario: string;
   browser: string;
@@ -256,7 +258,11 @@ export function buildContributors(
   }
 
   // --- Listener volume ----------------------------------------------------
-  if (listingItems > 0 && listeners / listingItems > 5) {
+  // `addListenerCalls` counts every call since the page started, including rows that were mounted and then unmounted,
+  // a virtual listing only keeps the rows around the screen mounted, so dividing by the rows that are
+  // left would blame handlers that are no longer there
+  const virtualized = listingItems > 0 && listingItems < result.scale * 2 * VIRTUALIZED_SHARE;
+  if (!virtualized && listingItems > 0 && listeners / listingItems > 5) {
     out.push({
       factor: "High addEventListener volume",
       detail:
