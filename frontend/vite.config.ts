@@ -8,7 +8,11 @@ import stripLegacyCSS from "./scripts/postcss-strip-legacy.ts";
 import protectTemplateStyles from "./scripts/vite-protect-template-styles.ts";
 
 const isDevBuild = process.env.DEV_BUILD === "true";
-const backendWebDist = path.resolve(import.meta.dirname, "../backend/internal/web/dist");
+// Local and release builds embed the frontend from internal/web/embed. Docker builds
+// (build:docker) write internal/web/dist and serve it from disk.
+const backendWebEmbed = path.resolve(import.meta.dirname, "../backend/internal/web/embed");
+// Docker builds skip vue-tsc here; CI type-checks in regular-tests.yaml.
+const skipTypecheck = process.env.SKIP_TYPECHECK === "1";
 
 const resolve = {
   alias: {
@@ -81,7 +85,7 @@ export default defineConfig(({ command }) => {
       deleteOriginalAssets: true,
     }),
     // Disable checker in watch mode to prevent task failures
-    !isDevBuild && !isServe && checker({
+    !isDevBuild && !isServe && !skipTypecheck && checker({
       typescript: false, // Disable redundant check
       vueTsc: {
         tsconfigPath: "./tsconfig.app.json",
@@ -120,7 +124,7 @@ export default defineConfig(({ command }) => {
     base: "",
     define,
     build: {
-      outDir: backendWebDist,
+      outDir: backendWebEmbed,
       emptyOutDir: true,
       // Optimize for watch mode stability
       watch: isDevBuild ? {

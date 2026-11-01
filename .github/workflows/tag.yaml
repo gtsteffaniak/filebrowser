@@ -75,50 +75,8 @@ jobs:
         id: modify-json
         run: |
           JSON='${{ steps.meta.outputs.json }}'
-          MODIFIED_JSON=$(echo "$JSON" | jq \
-            --argjson updateTrack '${{ steps.floating.outputs.update_track == 'true' }}' \
-            --argjson updateMajor '${{ steps.floating.outputs.update_major == 'true' }}' '
-            .tags |= map(
-              sub(":v"; ":")      # Strip the 'v'
-              | select(test(":latest") | not)
-            ) |
-            # Find all version tags with suffix (X.Y.Z-suffix) and add major.minor (always) and major tags (when allowed)
-            .tags += [
-              .tags[]
-              | select(test(":[0-9]+\\.[0-9]+\\.[0-9]+-"))
-              | split(":")
-              | .[-1] as $version
-              | ($version | split("-")) as $version_split
-              | ($version_split[0] | split(".")) as $version_parts
-              | ($version_split[1:] | join("-")) as $suffix
-              | ($version_parts | "\(.[0]).\(.[1])") as $major_minor
-              | ($version_parts[0]) as $major
-              | "gtstef/filebrowser:\($major_minor)-\($suffix)",
-                "ghcr.io/gtsteffaniak/filebrowser:\($major_minor)-\($suffix)",
-                if $updateMajor then
-                  "gtstef/filebrowser:\($major)-\($suffix)",
-                  "ghcr.io/gtsteffaniak/filebrowser:\($major)-\($suffix)"
-                else empty end
-            ] |
-            # Add suffix-only tags for beta when semver policy allows
-            if $updateTrack and any(.tags[]; split(":")[-1] | endswith("-beta")) then
-              .tags += [
-                "gtstef/filebrowser:beta",
-                "ghcr.io/gtsteffaniak/filebrowser:beta"
-              ]
-            else . end |
-            # Add suffix-only tags for stable (and latest) when semver policy allows
-            if $updateTrack and any(.tags[]; split(":")[-1] | endswith("-stable")) then
-              .tags += [
-                "gtstef/filebrowser:stable",
-                "ghcr.io/gtsteffaniak/filebrowser:stable",
-                "gtstef/filebrowser:latest",
-                "ghcr.io/gtsteffaniak/filebrowser:latest"
-              ]
-            else . end
-          ')
-          TAGS_CSV=$(echo "$MODIFIED_JSON" | jq -r '.tags | join(",")')
-          echo "$TAGS_CSV" > modified_tags.txt  # Optional debug output
+          printf '%s' "$JSON" > metadata.json
+          TAGS_CSV=$(bash .github/scripts/docker-release-tags.sh metadata.json default '${{ steps.floating.outputs.update_track }}' '${{ steps.floating.outputs.update_major }}')
           echo "cleaned_tag=$TAGS_CSV" >> $GITHUB_OUTPUT
       - name: Build and push
         uses: docker/build-push-action@v6
@@ -171,50 +129,8 @@ jobs:
         id: modify-json
         run: |
           JSON='${{ steps.meta.outputs.json }}'
-          MODIFIED_JSON=$(echo "$JSON" | jq \
-            --argjson updateTrack '${{ steps.floating.outputs.update_track == 'true' }}' \
-            --argjson updateMajor '${{ steps.floating.outputs.update_major == 'true' }}' '
-            .tags |= map(
-              sub(":v"; ":")      # Strip the 'v'
-              | select(test(":latest") | not)
-            ) |
-            # Find all version tags with suffix (X.Y.Z-suffix) and add major.minor (always) and major tags (when allowed)
-            .tags += [
-              .tags[]
-              | select(test(":[0-9]+\\.[0-9]+\\.[0-9]+-"))
-              | split(":")
-              | .[-1] as $version
-              | ($version | split("-")) as $version_split
-              | ($version_split[0] | split(".")) as $version_parts
-              | ($version_split[1:] | join("-")) as $suffix
-              | ($version_parts | "\(.[0]).\(.[1])") as $major_minor
-              | ($version_parts[0]) as $major
-              | "gtstef/filebrowser-media:\($major_minor)-\($suffix)",
-                "ghcr.io/gtsteffaniak/filebrowser-media:\($major_minor)-\($suffix)",
-                if $updateMajor then
-                  "gtstef/filebrowser-media:\($major)-\($suffix)",
-                  "ghcr.io/gtsteffaniak/filebrowser-media:\($major)-\($suffix)"
-                else empty end
-            ] |
-            # Add suffix-only tags for beta when semver policy allows
-            if $updateTrack and any(.tags[]; split(":")[-1] | endswith("-beta")) then
-              .tags += [
-                "gtstef/filebrowser-media:beta",
-                "ghcr.io/gtsteffaniak/filebrowser-media:beta"
-              ]
-            else . end |
-            # Add suffix-only tags for stable (and latest) when semver policy allows
-            if $updateTrack and any(.tags[]; split(":")[-1] | endswith("-stable")) then
-              .tags += [
-                "gtstef/filebrowser-media:stable",
-                "ghcr.io/gtsteffaniak/filebrowser-media:stable",
-                "gtstef/filebrowser-media:latest",
-                "ghcr.io/gtsteffaniak/filebrowser-media:latest"
-              ]
-            else . end
-          ')
-          TAGS_CSV=$(echo "$MODIFIED_JSON" | jq -r '.tags | join(",")')
-          echo "$TAGS_CSV" > modified_tags.txt  # Optional debug output
+          printf '%s' "$JSON" > metadata.json
+          TAGS_CSV=$(bash .github/scripts/docker-release-tags.sh metadata.json media '${{ steps.floating.outputs.update_track }}' '${{ steps.floating.outputs.update_major }}')
           echo "cleaned_tag=$TAGS_CSV" >> $GITHUB_OUTPUT
       - name: Build and push
         uses: docker/build-push-action@v6
@@ -267,48 +183,8 @@ jobs:
         id: modify-json-slim
         run: |
           JSON='${{ steps.meta.outputs.json }}'
-          MODIFIED_JSON=$(echo "$JSON" | jq \
-            --argjson updateTrack '${{ steps.floating.outputs.update_track == 'true' }}' \
-            --argjson updateMajor '${{ steps.floating.outputs.update_major == 'true' }}' '
-            .tags |= map(
-              sub(":v"; ":")                 # Strip the 'v'
-              | select(test(":latest") | not) # Remove the "latest" tag
-              | . + "-slim"                   # Append "-slim" to the versioned tag
-            ) |
-            # Find all version tags with suffix (X.Y.Z-suffix-slim) and add major.minor (always) and major tags (when allowed)
-            .tags += [
-              .tags[]
-              | select(test(":[0-9]+\\.[0-9]+\\.[0-9]+-"))
-              | split(":")
-              | .[-1] as $version
-              | ($version | split("-")) as $version_split
-              | ($version_split[0] | split(".")) as $version_parts
-              | ($version_split[1:] | join("-")) as $suffix
-              | ($version_parts | "\(.[0]).\(.[1])") as $major_minor
-              | ($version_parts[0]) as $major
-              | "gtstef/filebrowser:\($major_minor)-\($suffix)",
-                "ghcr.io/gtsteffaniak/filebrowser:\($major_minor)-\($suffix)",
-                if $updateMajor then
-                  "gtstef/filebrowser:\($major)-\($suffix)",
-                  "ghcr.io/gtsteffaniak/filebrowser:\($major)-\($suffix)"
-                else empty end
-            ] |
-            # Add suffix-only tags for beta-slim when semver policy allows
-            if $updateTrack and any(.tags[]; split(":")[-1] | endswith("-beta-slim")) then
-              .tags += [
-                "gtstef/filebrowser:beta-slim",
-                "ghcr.io/gtsteffaniak/filebrowser:beta-slim"
-              ]
-            else . end |
-            # Add suffix-only tags for stable-slim when semver policy allows
-            if $updateTrack and any(.tags[]; split(":")[-1] | endswith("-stable-slim")) then
-              .tags += [
-                "gtstef/filebrowser:stable-slim",
-                "ghcr.io/gtsteffaniak/filebrowser:stable-slim"
-              ]
-            else . end
-          ')
-          TAGS_CSV=$(echo "$MODIFIED_JSON" | jq -r '.tags | join(",")')
+          printf '%s' "$JSON" > metadata.json
+          TAGS_CSV=$(bash .github/scripts/docker-release-tags.sh metadata.json slim '${{ steps.floating.outputs.update_track }}' '${{ steps.floating.outputs.update_major }}')
           echo "cleaned_tag=$TAGS_CSV" >> $GITHUB_OUTPUT
       - name: Build and push slim image
         uses: docker/build-push-action@v6

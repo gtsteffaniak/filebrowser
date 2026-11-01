@@ -551,17 +551,24 @@ func parseDefaultsFromEmbeddedYaml(embeddedYaml string) (*Settings, error) {
 // readEmbeddedYaml attempts to read the embedded config.generated.yaml file
 func readEmbeddedYaml() (string, error) {
 	// Try to read from the relative path that should work when the binary includes embedded files
-	embeddedContent, err := os.ReadFile("internal/web/dist/config.generated.yaml")
-	if err != nil {
-		// Try alternative path
-		embeddedContent, err = os.ReadFile("backend/internal/web/dist/config.generated.yaml")
-		if err != nil {
-			// Try current directory path
-			embeddedContent, err = os.ReadFile("dist/config.generated.yaml")
-			if err != nil {
-				return "", fmt.Errorf("could not read embedded YAML from any path: %v", err)
-			}
+	// Local and release builds write the frontend to internal/web/embed; Docker builds write internal/web/dist.
+	candidates := []string{
+		"internal/web/embed/config.generated.yaml",
+		"backend/internal/web/embed/config.generated.yaml",
+		"internal/web/dist/config.generated.yaml",
+		"backend/internal/web/dist/config.generated.yaml",
+		"dist/config.generated.yaml",
+	}
+	var embeddedContent []byte
+	var err error
+	for _, path := range candidates {
+		embeddedContent, err = os.ReadFile(path)
+		if err == nil {
+			break
 		}
+	}
+	if err != nil {
+		return "", fmt.Errorf("could not read embedded YAML from any path: %v", err)
 	}
 	return string(embeddedContent), nil
 }
