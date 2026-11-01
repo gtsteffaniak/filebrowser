@@ -37,7 +37,7 @@ jobs:
           node-version-file: frontend/.nvmrc
       - name: Build frontend
         working-directory: frontend
-        run: npm i && npm run build
+        run: npm ci && npm run build
       - name: Upload frontend build artifact
         uses: actions/upload-artifact@v4
         with:
@@ -166,3 +166,30 @@ jobs:
             REVISION=${{ steps.meta.outputs.revision }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  build_media_docker_image:
+    name: Build media docker image
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3.0.0
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3.0.0
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./_docker/Dockerfile.media
+          push: false # Do not push the image for now
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            VERSION=${{ steps.meta.outputs.version }}
+            REVISION=${{ steps.meta.outputs.revision }}
+          cache-from: type=gha,scope=pr-media
+          cache-to: type=gha,mode=max,scope=pr-media

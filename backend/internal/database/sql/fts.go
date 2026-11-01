@@ -58,7 +58,7 @@ func (db *IndexDB) syncSearchIndex(enabled bool) {
 		return
 	}
 	if !db.supportsFTS5() {
-		logger.Errorf("indexSqlConfig.fts5 is enabled but FTS5 trigram support is unavailable in this build; search will use the unindexed fallback. For cgo builds use -tags \"cgosql sqlite_fts5\".")
+		logger.Errorf("indexSqlConfig.fts5 is enabled but FTS5 trigram support is unavailable in this build; search will use the unindexed fallback.")
 		db.ftsReady.Store(false)
 		return
 	}

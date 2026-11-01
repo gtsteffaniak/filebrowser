@@ -11,21 +11,23 @@ FROM golang:bookworm AS base
 ARG VERSION
 ARG REVISION
 WORKDIR /app
+COPY ./backend/go.mod ./backend/go.sum ./
+RUN --mount=type=cache,target=/go/pkg/mod go mod download
 COPY ./backend ./
 RUN apt-get update && apt-get install -y --no-install-recommends gcc libc6-dev \
   && rm -rf /var/lib/apt/lists/*
-RUN go mod download && go run ./scripts/setup-gofitz-cgo
+RUN --mount=type=cache,target=/go/pkg/mod --mount=type=cache,target=/root/.cache/go-build go run ./scripts/setup-gofitz-cgo
 ENV CGO_ENABLED=1
-RUN go build -tags analytics,mupdf -ldflags="-w -s \
+RUN --mount=type=cache,target=/go/pkg/mod --mount=type=cache,target=/root/.cache/go-build go build -trimpath -tags analytics,mupdf -ldflags="-w -s \
   -X 'github.com/gtsteffaniak/filebrowser/backend/internal/version.Version=${VERSION}' \
   -X 'github.com/gtsteffaniak/filebrowser/backend/internal/version.CommitSHA=${REVISION}'" \
   -o filebrowser .
 
-FROM node:jod-slim AS nbuild
+FROM --platform=$BUILDPLATFORM node:jod-slim AS nbuild
 WORKDIR /build
 COPY ./frontend/package.json ./frontend/package-lock.json ./frontend/
 RUN apt-get update && apt-get install -y --no-install-recommends git ca-certificates
-RUN cd frontend && npm ci --maxsockets 1
+RUN --mount=type=cache,target=/root/.npm cd frontend && npm ci --maxsockets 1
 COPY ./frontend/ ./frontend/
 WORKDIR /build/frontend
 RUN npm run build:docker

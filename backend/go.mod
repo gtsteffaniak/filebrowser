@@ -23,11 +23,9 @@ require (
 	github.com/gtsteffaniak/go-logger v1.1.0
 	github.com/gtsteffaniak/go-media v1.1.1-0.20261101153307-79181a6c2ed9
 	github.com/kovidgoyal/imaging v1.9.0
-	github.com/mattn/go-sqlite3 v1.14.52
 	github.com/pquerna/otp v1.5.0
 	github.com/spf13/afero v1.15.0
 	github.com/stretchr/testify v1.12.1
-	github.com/swaggo/http-swagger v1.3.4
 	github.com/swaggo/swag v1.16.6
 	golang.org/x/crypto v0.58.0
 	golang.org/x/image v0.47.0
@@ -94,7 +92,6 @@ require (
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/rogpeppe/go-internal v1.16.0 // indirect
 	github.com/rwcarlsen/goexif v0.0.0-20190401172101-9e8deecbddbd // indirect
-	github.com/swaggo/files v1.0.1 // indirect
 	github.com/tinylib/msgp v1.6.5 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	go.etcd.io/bbolt v1.5.0 // indirect

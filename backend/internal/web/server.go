@@ -13,8 +13,6 @@ import (
 	"os"
 	"time"
 
-	_ "net/http/pprof"
-
 	"github.com/coreos/go-systemd/v22/activation"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/files"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/fileutils"
@@ -56,13 +54,7 @@ func GetEmbeddedAssets() embed.FS {
 
 // StartHttp starts the HTTP server and blocks until ctx is cancelled.
 func StartHttp(ctx context.Context, deps Deps, shutdownComplete chan struct{}) {
-	if settings.Env.IsDevMode {
-		go func() {
-			if err := http.ListenAndServe("localhost:6060", nil); err != nil {
-				logger.Fatalf("pprof server error: %v", err)
-			}
-		}()
-	}
+	startDebugServer()
 
 	fs := fileutils.GetAssetFS()
 	if fs == nil {

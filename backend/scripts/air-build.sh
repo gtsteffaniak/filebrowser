@@ -28,8 +28,8 @@ if [[ "$USE_MUPDF" -eq 1 ]]; then
 	if [[ ! -f internal/preview/gofitzinclude/mupdf/fitz.h ]]; then
 		go run ./scripts/setup-gofitz-cgo
 	fi
-	go build -o "$OUT" --tags=mupdf --ldflags="$LDFLAGS" .
+	go build -o "$OUT" --tags=mupdf,debug --ldflags="$LDFLAGS" .
 else
 	export CGO_ENABLED=0
-	go build -o "$OUT" --ldflags="$LDFLAGS" .
+	go build -o "$OUT" --tags=debug --ldflags="$LDFLAGS" .
 fi

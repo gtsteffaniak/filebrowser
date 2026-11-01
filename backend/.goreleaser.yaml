@@ -21,19 +21,20 @@ builds:
       - -s -w -X github.com/gtsteffaniak/filebrowser/backend/internal/version.Version=v{{ .Version }} -X github.com/gtsteffaniak/filebrowser/backend/internal/version.CommitSHA={{ .ShortCommit }}
     main: main.go
     binary: filebrowser
+    flags:
+      - -trimpath
     goos:
       - linux
     goarch:
       - amd64
-    hooks:
-      post:
-        - upx {{ .Path }}
 
   # Build configuration for linux arm64
   - id: linux-arm64
     ldflags: *ldflags
     main: main.go
     binary: filebrowser
+    flags:
+      - -trimpath
     env:
       - CGO_ENABLED=1
       - CC=zig cc -target aarch64-linux-musl
@@ -45,15 +46,14 @@ builds:
       - linux
     goarch:
       - arm64
-    hooks:
-      post:
-        - upx {{ .Path }}
 
   # Build configuration for linux riscv64
   - id: linux-riscv64
     ldflags: *ldflags
     main: main.go
     binary: filebrowser
+    flags:
+      - -trimpath
     env:
       - CC=zig cc -target riscv64-linux-musl
     # go-fitz does not provide riscv64 MuPDF libraries yet: https://github.com/gen2brain/go-fitz/tree/master/libs
@@ -70,6 +70,8 @@ builds:
     ldflags: *ldflags
     main: main.go
     binary: filebrowser
+    flags:
+      - -trimpath
     tags:
       - analytics
     goos:
@@ -79,9 +81,6 @@ builds:
     goarm:
       - "6"
       - "7"
-    hooks:
-      post:
-        - upx {{ .Path }}  # Compress the binary with UPX
 
   # Build configuration for windows without arm
   - id: windows
@@ -95,19 +94,20 @@ builds:
     ldflags: *ldflags
     main: main.go
     binary: filebrowser
+    flags:
+      - -trimpath
     goos:
       - windows
     goarch:
       - amd64
-    hooks:
-      post:
-        - upx {{ .Path }}  # Compress the binary with UPX
 
-  # Build configuration for freebsd without arm & upx
+  # Build configuration for freebsd without arm
   - id: freeBSD and freebsd-arm
     ldflags: *ldflags
     main: main.go
     binary: filebrowser
+    flags:
+      - -trimpath
     tags:
       - analytics
     goos:
@@ -115,11 +115,13 @@ builds:
     goarch:
       - amd64
 
-  # Build configuration for macos without upx (no mupdf: CGO cross-compile from Linux CI is unsupported)
+  # Build configuration for macos (no mupdf: CGO cross-compile from Linux CI is unsupported)
   - id: macos
     ldflags: *ldflags
     main: main.go
     binary: filebrowser
+    flags:
+      - -trimpath
     tags:
       - analytics
     goos:

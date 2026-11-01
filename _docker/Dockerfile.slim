@@ -1,21 +1,24 @@
+# syntax=docker/dockerfile:1.4
 FROM golang:alpine AS base
 ARG VERSION
 ARG REVISION
 WORKDIR /app
+COPY ./backend/go.mod ./backend/go.sum ./
+RUN --mount=type=cache,target=/go/pkg/mod go mod download
 COPY ./backend ./
 RUN apk update && apk add
-RUN go build -tags analytics -ldflags="-w -s \
+RUN --mount=type=cache,target=/go/pkg/mod --mount=type=cache,target=/root/.cache/go-build go build -trimpath -tags analytics -ldflags="-w -s \
   -X 'github.com/gtsteffaniak/filebrowser/backend/internal/version.Version=${VERSION}' \
   -X 'github.com/gtsteffaniak/filebrowser/backend/internal/version.CommitSHA=${REVISION}'" \
   -o filebrowser .
 
-FROM node:jod-slim AS nbuild
+FROM --platform=$BUILDPLATFORM node:jod-slim AS nbuild
 WORKDIR /build
 COPY ./frontend/package.json ./frontend/package-lock.json ./frontend/
 RUN apt-get update && apt-get install -y --no-install-recommends git ca-certificates \
     && git config --global url."https://github.com/".insteadOf "git@github.com:" \
     && git config --global url."https://github.com/".insteadOf "ssh://git@github.com/"
-RUN cd frontend && npm ci
+RUN --mount=type=cache,target=/root/.npm cd frontend && npm ci
 COPY ./frontend/ ./frontend/
 WORKDIR /build/frontend
 RUN npm run build:docker

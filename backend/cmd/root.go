@@ -9,8 +9,6 @@ import (
 	"syscall"
 	"time"
 
-	_ "net/http/pprof"
-
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/fileutils"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/analytics"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/app"
