@@ -409,8 +409,6 @@
     "uploadShare": "Igotzeko soilik",
     "perUserDownloadLimit": "Aplikatu deskarga-muga erabiltzaile bakoitzari",
     "perUserDownloadLimitDescription": "Gaituta dagoenean, deskarga-muga erabiltzaile bakoitzari aplikatuko zaio. Erabiltzaile anonimoek ezin izango dute fitxategirik deskargatu partekatze honetatik.",
-    "extractEmbeddedSubtitles": "Erauzi txertatutako azpitituluak",
-    "extractEmbeddedSubtitlesDescription": "Erauzi multimedia-fitxategietan txertatutako azpitituluak kargatzean; motela izan daiteke fitxategi handietan.",
     "disableLoginOption": "Ezkutatu saioa hasteko aukera",
     "disableLoginOptionDescription": "Ezkutatu alboko barrako saioa hasteko botoia erabiltzaile anonimoentzat. Gaituta dagoenean, erabiltzaile anonimoek ez dute saioa hasteko aukera ikusiko.",
     "customizeSidebarLinksButton": "Pertsonalizatu estekak",
@@ -1224,8 +1222,6 @@
     "install": "Instalatu aplikazioa"
   },
   "media": {
-    "extractEmbeddedSubtitles": "Txertatutako azpitituluak atera",
-    "extractEmbeddedSubtitlesDescription": "Media fitxategietatik txertatutako azpitituluak atera.",
     "debug": "Akatsen erregistroa",
     "debugDescription": "Media integrazioarako ffmpeg-en stdout irteera. Oharra: irteera asko sortzen du.",
     "imagePreview": "Irudi aurrebistako formatuak",
@@ -1259,6 +1255,8 @@
     "accelDevice": "Azelerazio-gailua",
     "accelDeviceDescription": "GPU gailua hardware bidez azeleratutako multimedia prozesamendurako erabiltzen da. CPUk (softwareak) hardware azelerazioa desgaitzen du.",
     "encoderBackend": "Enkodatzaile atzealdea",
-    "transcodeProfileEncoderBackendHelp": "Aurrezarpen honen enkoder atzeko plana; hautemandako atzeko plan lehenetsira lehenetsita dago."
+    "transcodeProfileEncoderBackendHelp": "Aurrezarpen honen enkoder atzeko plana; hautemandako atzeko plan lehenetsira lehenetsita dago.",
+    "alwaysUseFfmpeg": "Erabili beti ffmpeg",
+    "alwaysUseFfmpegDescription": "Utzi go-mediaren bidea bazterrean eta erabili ffmpeg probak egiteko, metadatuak, azpitituluak eta bideo-miniatulak lortzeko. Aktibatu go-mediak zure fitxategientzat emaitza okerrak ematen baditu."
   }
 }

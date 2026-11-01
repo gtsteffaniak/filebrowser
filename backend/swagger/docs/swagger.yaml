@@ -682,6 +682,9 @@ definitions:
           "igpu", "dgpu", a Linux DRM render node (e.g. /dev/dri/renderD128), or a GPU
           name substring. Managed via the admin media settings API.
         type: string
+      alwaysUseFfmpeg:
+        description: 'deprecated: manage via the admin media settings API'
+        type: boolean
       convert:
         allOf:
         - $ref: '#/definitions/settings.FfmpegConvert'
@@ -692,8 +695,8 @@ definitions:
           manage via the admin media settings API'
         type: boolean
       extractEmbeddedSubtitles:
-        description: 'deprecated:extract embedded subtitles from media files. deprecated:
-          manage via the admin media settings API'
+        description: 'deprecated: no longer configurable; embedded subtitles are always
+          extracted'
         type: boolean
       ffmpegPath:
         description: path to ffmpeg directory with ffmpeg and ffprobe (eg. /usr/local/bin)
@@ -1060,8 +1063,6 @@ definitions:
         type: boolean
       enforceDarkLightMode:
         type: string
-      extractEmbeddedSubtitles:
-        type: boolean
       favicon:
         type: string
       hideFileExt:
@@ -1470,8 +1471,6 @@ definitions:
         type: string
       expire:
         type: integer
-      extractEmbeddedSubtitles:
-        type: boolean
       favicon:
         type: string
       faviconUrl:
@@ -1589,8 +1588,6 @@ definitions:
         type: integer
       expires:
         type: string
-      extractEmbeddedSubtitles:
-        type: boolean
       favicon:
         type: string
       faviconUrl:
@@ -1702,8 +1699,6 @@ definitions:
         type: string
       expires:
         type: string
-      extractEmbeddedSubtitles:
-        type: boolean
       favicon:
         type: string
       faviconUrl:
@@ -2377,6 +2372,10 @@ definitions:
         items:
           $ref: '#/definitions/ffmpeg.AccelDeviceOption'
         type: array
+      alwaysUseFfmpeg:
+        description: 'skip the go-media fast path and use ffmpeg for all probe, metadata,
+          subtitle, and thumbnail work (default: false)'
+        type: boolean
       convert:
         allOf:
         - $ref: '#/definitions/settings.FfmpegConvert'
@@ -2389,9 +2388,6 @@ definitions:
         items:
           $ref: '#/definitions/ffmpeg.EncoderBackendOption'
         type: array
-      extractEmbeddedSubtitles:
-        description: extract embedded subtitles from media files
-        type: boolean
       hardwareAcceleration:
         description: enable hardware acceleration for ffmpeg if available
         type: boolean

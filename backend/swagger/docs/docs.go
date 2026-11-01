@@ -6370,6 +6370,10 @@ const docTemplate = `{
                     "description": "AccelDevice selects the acceleration device: \"auto\" (default), \"software\"/\"cpu\",\n\"igpu\", \"dgpu\", a Linux DRM render node (e.g. /dev/dri/renderD128), or a GPU\nname substring. Managed via the admin media settings API.",
                     "type": "string"
                 },
+                "alwaysUseFfmpeg": {
+                    "description": "deprecated: manage via the admin media settings API",
+                    "type": "boolean"
+                },
                 "convert": {
                     "description": "deprecated: config for ffmpeg conversion settings. deprecated: manage via the admin media settings API",
                     "allOf": [
@@ -6383,7 +6387,7 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "extractEmbeddedSubtitles": {
-                    "description": "deprecated:extract embedded subtitles from media files. deprecated: manage via the admin media settings API",
+                    "description": "deprecated: no longer configurable; embedded subtitles are always extracted",
                     "type": "boolean"
                 },
                 "ffmpegPath": {
@@ -6865,9 +6869,6 @@ const docTemplate = `{
                 },
                 "enforceDarkLightMode": {
                     "type": "string"
-                },
-                "extractEmbeddedSubtitles": {
-                    "type": "boolean"
                 },
                 "favicon": {
                     "type": "string"
@@ -7433,9 +7434,6 @@ const docTemplate = `{
                 "expire": {
                     "type": "integer"
                 },
-                "extractEmbeddedSubtitles": {
-                    "type": "boolean"
-                },
                 "favicon": {
                     "type": "string"
                 },
@@ -7610,9 +7608,6 @@ const docTemplate = `{
                 "expires": {
                     "type": "string"
                 },
-                "extractEmbeddedSubtitles": {
-                    "type": "boolean"
-                },
                 "favicon": {
                     "type": "string"
                 },
@@ -7777,9 +7772,6 @@ const docTemplate = `{
                 },
                 "expires": {
                     "type": "string"
-                },
-                "extractEmbeddedSubtitles": {
-                    "type": "boolean"
                 },
                 "favicon": {
                     "type": "string"
@@ -8729,6 +8721,10 @@ const docTemplate = `{
                         "$ref": "#/definitions/ffmpeg.AccelDeviceOption"
                     }
                 },
+                "alwaysUseFfmpeg": {
+                    "description": "skip the go-media fast path and use ffmpeg for all probe, metadata, subtitle, and thumbnail work (default: false)",
+                    "type": "boolean"
+                },
                 "convert": {
                     "description": "config for ffmpeg conversion settings",
                     "allOf": [
@@ -8746,10 +8742,6 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/ffmpeg.EncoderBackendOption"
                     }
-                },
-                "extractEmbeddedSubtitles": {
-                    "description": "extract embedded subtitles from media files",
-                    "type": "boolean"
                 },
                 "hardwareAcceleration": {
                     "description": "enable hardware acceleration for ffmpeg if available",

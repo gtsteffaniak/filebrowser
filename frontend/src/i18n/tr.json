@@ -423,8 +423,6 @@
     "perUserDownloadLimit": "İndirme sınırını her kullanıcıya uygulayın",
     "perUserDownloadLimitDescription": "Etkinleştirildiğinde, indirme sınırı her kullanıcıya uygulanacaktır. Anonim kullanıcılar bu paylaşımdan herhangi bir dosya indiremeyecektir.",
     "descriptionUploadDefault": "Dosyaları yüklemeniz için size bir paylaşım gönderildi.",
-    "extractEmbeddedSubtitles": "Gömülü altyazıları çıkar",
-    "extractEmbeddedSubtitlesDescription": "Yüklenen medya dosyalarından gömülü altyazıları ayıklayın -- bu işlem büyük dosyalar için yavaş olabilir.",
     "disableDownload": "Dosya indirmeyi devre dışı bırak",
     "disableDownloadDescription": "Hiç kimse dosya indiremeyecek veya bir dosyanın içeriğini görüntüleyemeyecektir.",
     "allowModify": "Dosyaları düzenlemeye izin ver",
@@ -1224,8 +1222,6 @@
     }
   },
   "media": {
-    "extractEmbeddedSubtitles": "Gömülü altyazıları ayıklama",
-    "extractEmbeddedSubtitlesDescription": "Medya dosyalarından gömülü altyazıları ayıklayın.",
     "debug": "Hata ayıklama günlüğü",
     "debugDescription": "Medya entegrasyonu için ffmpeg stdout çıktısı. Uyarı: Çok fazla çıktı üretilir.",
     "imagePreview": "Görüntü önizleme biçimleri",
@@ -1259,6 +1255,8 @@
     "accelDevice": "Hızlandırma cihazı",
     "accelDeviceDescription": "Donanım hızlandırmalı medya işleme için kullanılan GPU aygıtı. CPU (yazılım), donanım hızlandırmayı devre dışı bırakır.",
     "encoderBackend": "Enkoder arka ucu",
-    "transcodeProfileEncoderBackendHelp": "Bu ön ayar için kodlayıcı arka ucu; varsayılan olarak algılanan tercih edilen arka uç kullanılır."
+    "transcodeProfileEncoderBackendHelp": "Bu ön ayar için kodlayıcı arka ucu; varsayılan olarak algılanan tercih edilen arka uç kullanılır.",
+    "alwaysUseFfmpeg": "Her zaman ffmpeg'i kullanın",
+    "alwaysUseFfmpegDescription": "Go-media hızlı yolunu atlayın ve tüm tarama, meta veri, altyazı ve video küçük resimleri işlemleri için ffmpeg'i kullanın. Go-media, dosyalarınız için yanlış sonuçlar veriyorsa bu seçeneği etkinleştirin."
   }
 }

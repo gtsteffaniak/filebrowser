@@ -35,22 +35,41 @@ func DetectEmbeddedSubtitles(videoPath string, modtime time.Time) []utils.Subtit
 	return subtitles
 }
 
-func mapSubtitleTracks(tracks []goffmpeg.SubtitleTrack) []utils.SubtitleTrack {
-	subtitles := make([]utils.SubtitleTrack, 0, len(tracks))
+// SubtitleStream is one embedded subtitle stream, independent of the probe
+// backend (ffprobe via go-ffmpeg, or go-media).
+type SubtitleStream struct {
+	Index    int
+	Codec    string
+	Language string
+	Title    string
+}
+
+// BuildSubtitleTracks maps embedded subtitle streams to track entries. Shared by
+// the ffmpeg and go-media paths so both produce identical track lists.
+func BuildSubtitleTracks(streams []SubtitleStream) []utils.SubtitleTrack {
+	subtitles := make([]utils.SubtitleTrack, 0, len(streams))
 	mapper := &subtitleTrackMapper{
 		seenLang: make(map[string]int),
 	}
-	for _, stream := range tracks {
+	for _, stream := range streams {
 		subtitles = append(subtitles, mapper.track(stream))
 	}
 	return subtitles
+}
+
+func mapSubtitleTracks(tracks []goffmpeg.SubtitleTrack) []utils.SubtitleTrack {
+	streams := make([]SubtitleStream, 0, len(tracks))
+	for _, t := range tracks {
+		streams = append(streams, SubtitleStream{Index: t.Index, Codec: t.Codec, Language: t.Language, Title: t.Title})
+	}
+	return BuildSubtitleTracks(streams)
 }
 
 type subtitleTrackMapper struct {
 	seenLang map[string]int
 }
 
-func (m *subtitleTrackMapper) track(stream goffmpeg.SubtitleTrack) utils.SubtitleTrack {
+func (m *subtitleTrackMapper) track(stream SubtitleStream) utils.SubtitleTrack {
 	index := stream.Index
 	lang := strings.TrimSpace(stream.Language)
 	return utils.SubtitleTrack{

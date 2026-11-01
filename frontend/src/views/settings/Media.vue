@@ -22,11 +22,11 @@
             :disabled="isLocked('hardwareAcceleration') || isLocked('accelDevice')"
             @update:modelValue="onAccelDeviceChange" />
         </div>
-        <ToggleSwitch class="item" v-model="media.extractEmbeddedSubtitles"
-          :disabled="isLocked('extractEmbeddedSubtitles')"
-          :value-tooltip="fieldTooltip('extractEmbeddedSubtitles')"
-          :name="$t('media.extractEmbeddedSubtitles')"
-          :description="$t('media.extractEmbeddedSubtitlesDescription')"
+        <ToggleSwitch class="item" v-model="media.alwaysUseFfmpeg"
+          :disabled="isLocked('alwaysUseFfmpeg')"
+          :value-tooltip="fieldTooltip('alwaysUseFfmpeg')"
+          :name="$t('media.alwaysUseFfmpeg')"
+          :description="$t('media.alwaysUseFfmpegDescription')"
           @update:modelValue="save" />
         <ToggleSwitch class="item" v-model="media.debug" :name="$t('media.debug')"
           :disabled="isLocked('debug')"
@@ -184,7 +184,7 @@ export default {
       try {
         const { skipped, media } = await saveMediaSettingsPatch({
           accelDevice: this.media.accelDevice,
-          extractEmbeddedSubtitles: this.media.extractEmbeddedSubtitles,
+          alwaysUseFfmpeg: this.media.alwaysUseFfmpeg,
           debug: this.media.debug,
           transcode: { enabled: this.media.transcode.enabled },
         }, this.lockedFromConfigPaths);

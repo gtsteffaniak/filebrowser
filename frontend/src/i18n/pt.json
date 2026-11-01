@@ -423,8 +423,6 @@
     "perUserDownloadLimit": "Aplicar o limite de descargas a cada utilizador",
     "perUserDownloadLimitDescription": "Quando ativado, o limite de transferências será aplicado a cada utilizador. Os utilizadores anónimos não poderão descarregar quaisquer ficheiros desta partilha.",
     "descriptionUploadDefault": "Foi-lhe enviada uma partilha para carregar ficheiros.",
-    "extractEmbeddedSubtitles": "Extrair legendas incorporadas",
-    "extractEmbeddedSubtitlesDescription": "Extrair legendas incorporadas de ficheiros multimédia ao carregar -- isto pode ser lento para ficheiros grandes.",
     "disableDownload": "Desativar a transferência de ficheiros",
     "disableDownloadDescription": "Qualquer pessoa não poderá descarregar ficheiros ou ver o conteúdo de um ficheiro.",
     "allowModify": "Permitir a edição de ficheiros",
@@ -1224,8 +1222,6 @@
     }
   },
   "media": {
-    "extractEmbeddedSubtitles": "Extrair legendas incorporadas",
-    "extractEmbeddedSubtitlesDescription": "Extrair legendas incorporadas de ficheiros multimédia.",
     "debug": "Registo de depuração",
     "debugDescription": "Saída do stdout do ffmpeg para a integração multimédia. Atenção: gera uma grande quantidade de dados de saída.",
     "imagePreview": "Formatos de pré-visualização de imagens",
@@ -1259,6 +1255,8 @@
     "accelDevice": "Dispositivo de aceleração",
     "accelDeviceDescription": "Dispositivo GPU utilizado para o processamento de multimédia com aceleração por hardware. A CPU (software) desativa a aceleração por hardware.",
     "encoderBackend": "Backend do codificador",
-    "transcodeProfileEncoderBackendHelp": "Backend do codificador para esta predefinição; por predefinição, utiliza o backend preferencial detetado."
+    "transcodeProfileEncoderBackendHelp": "Backend do codificador para esta predefinição; por predefinição, utiliza o backend preferencial detetado.",
+    "alwaysUseFfmpeg": "Utilize sempre o ffmpeg",
+    "alwaysUseFfmpegDescription": "Ignore o caminho rápido do go-media e utilize o ffmpeg para todas as operações de análise, metadados, legendas e miniaturas de vídeo. Ative esta opção se o go-media apresentar resultados errados para os seus ficheiros."
   }
 }

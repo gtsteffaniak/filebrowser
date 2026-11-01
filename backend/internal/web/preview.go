@@ -183,12 +183,14 @@ func getDirectoryPreview(ctx context.Context, r *http.Request, d *Context, frame
 		path = d.IndexPath + name
 		user = d.ShareUser
 	}
+	// AlbumArt is needed for audio previews; Metadata is intentionally left off.
+	// Thumbnails only read the file identity, so requesting full metadata would
+	// force an ffprobe probe and a subtitle scan per frame on the fast path.
 	fileInfo, err := files.FileInfoFaster(
 		utils.FileOptions{
 			Path:     path,
 			Source:   source,
 			AlbumArt: true,
-			Metadata: true,
 		}, user)
 	if err != nil {
 		return nil, err

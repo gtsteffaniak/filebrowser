@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/gtsteffaniak/filebrowser/backend/internal/gomedia"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 )
 
@@ -28,41 +29,25 @@ func (i *ExtendedFileInfo) GetSubtitles(parentInfo *FileInfo) {
 		return
 	}
 
-	// could be myvideo.mov
-	ext := filepath.Ext(i.Name)
-	baseWithoutExt := strings.TrimSuffix(i.Name, ext)
-
-	// Collect external subtitle files
-	var externalSubs []utils.SubtitleTrack
+	// Sidecar subtitles in formats go-media lists come from go-media. The other
+	// SubtitleExts (.sbv, .sub, .smi) keep the directory scan.
+	var names []string
 	if parentInfo != nil && parentInfo.Files != nil {
 		for _, f := range parentInfo.Files {
-			// handle case myvideo.srt
-			fileExt := filepath.Ext(f.Name)
-			fileBaseWithoutExt := strings.TrimSuffix(f.Name, fileExt)
-			// handle case myvideo.en.srt
-			langExt := filepath.Ext(fileBaseWithoutExt)
-			fileBaseWithoutExt2 := strings.TrimSuffix(fileBaseWithoutExt, langExt)
-			matches := fileBaseWithoutExt == baseWithoutExt || fileBaseWithoutExt2 == baseWithoutExt
-
-			// Check if this file has the same base name and a subtitle extension
-			if matches && SubtitleExts[strings.ToLower(fileExt)] {
-				track := utils.SubtitleTrack{
-					Name:     f.Name,
-					Embedded: false,
-				}
-
-				// Try to infer language from filename patterns like "video.en.srt"
-				parts := strings.Split(fileBaseWithoutExt, ".")
-				if len(parts) > 1 {
-					lastPart := parts[len(parts)-1]
-					if len(lastPart) == 2 || len(lastPart) == 3 {
-						track.Language = lastPart
-					}
-				}
-				externalSubs = append(externalSubs, track)
-			}
+			names = append(names, f.Name)
 		}
 	}
+	scanGoMedia := func(lowerExt string) bool { return gomedia.SidecarSubtitleExts[lowerExt] }
+	legacy := func() ([]utils.SubtitleTrack, bool) {
+		return scanSidecarSubtitles(i.Name, names, scanGoMedia), true
+	}
+	externalSubs, ok := gomedia.ExternalSubtitles(i.Name, names, legacy)
+	if !ok {
+		externalSubs, _ = legacy()
+	}
+	externalSubs = append(externalSubs, scanSidecarSubtitles(i.Name, names, func(lowerExt string) bool {
+		return !gomedia.SidecarSubtitleExts[lowerExt]
+	})...)
 
 	// Sort external subtitles alphabetically for consistent ordering
 	sort.Slice(externalSubs, func(i, j int) bool {
@@ -146,4 +131,36 @@ func ResolveSymlinks(path string) (string, bool, error) {
 		return resolvedPath, false, fmt.Errorf("could not stat resolved path %s: %w", resolvedPath, err)
 	}
 	return resolvedPath, IsDirectory(info), nil
+}
+
+// scanSidecarSubtitles returns the sidecar subtitle files in names that belong to
+// videoName (same base name, optionally with a language suffix such as .en) and
+// whose extension is accepted by want.
+func scanSidecarSubtitles(videoName string, names []string, want func(lowerExt string) bool) []utils.SubtitleTrack {
+	ext := filepath.Ext(videoName)
+	baseWithoutExt := strings.TrimSuffix(videoName, ext)
+	var out []utils.SubtitleTrack
+	for _, name := range names {
+		fileExt := filepath.Ext(name)
+		lowerExt := strings.ToLower(fileExt)
+		if !SubtitleExts[lowerExt] || !want(lowerExt) {
+			continue
+		}
+		fileBaseWithoutExt := strings.TrimSuffix(name, fileExt)
+		langExt := filepath.Ext(fileBaseWithoutExt)
+		fileBaseWithoutExt2 := strings.TrimSuffix(fileBaseWithoutExt, langExt)
+		if fileBaseWithoutExt != baseWithoutExt && fileBaseWithoutExt2 != baseWithoutExt {
+			continue
+		}
+		track := utils.SubtitleTrack{Name: name, Codec: strings.TrimPrefix(lowerExt, "."), Embedded: false}
+		// Language from names like "video.en.srt"
+		parts := strings.Split(fileBaseWithoutExt, ".")
+		if len(parts) > 1 {
+			if last := parts[len(parts)-1]; len(last) == 2 || len(last) == 3 {
+				track.Language = last
+			}
+		}
+		out = append(out, track)
+	}
+	return out
 }

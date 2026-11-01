@@ -276,7 +276,6 @@ export default {
       viewMode: "normal",
       enableOnlyOffice: false,
       shareType: "normal",
-      extractEmbeddedSubtitles: false,
       disableLoginOption: false,
       sidebarLinks: [],
       quotaEnabled: false,
@@ -343,7 +342,6 @@ export default {
           disableShareCard: this.disableShareCard,
           disableSidebar: this.disableSidebar,
           perUserDownloadLimit: this.perUserDownloadLimit,
-          extractEmbeddedSubtitles: this.extractEmbeddedSubtitles,
           disableLoginOption: this.disableLoginOption,
           downloadsLimit: this.downloadsLimit,
           maxBandwidth: this.maxBandwidth,
@@ -382,7 +380,6 @@ export default {
         this.disableShareCard = form.disableShareCard;
         this.disableSidebar = form.disableSidebar;
         this.perUserDownloadLimit = form.perUserDownloadLimit;
-        this.extractEmbeddedSubtitles = form.extractEmbeddedSubtitles;
         this.disableLoginOption = form.disableLoginOption;
         this.downloadsLimit = form.downloadsLimit;
         this.maxBandwidth = form.maxBandwidth;
@@ -563,7 +560,6 @@ export default {
           this.viewMode = this.link.viewMode || "normal";
           this.enableOnlyOffice = this.link.enableOnlyOffice || false;
           this.shareType = this.link.shareType || "normal";
-          this.extractEmbeddedSubtitles = this.link.extractEmbeddedSubtitles || false;
           this.disableLoginOption = this.link.disableLoginOption || false;
           this.applyQuotaFromLink(this.link);
           this.sidebarLinks = Array.isArray(this.link.sidebarLinks) ? [...this.link.sidebarLinks] : [];
@@ -703,7 +699,6 @@ export default {
           viewMode: this.viewMode,
           enableOnlyOffice: this.enableOnlyOffice,
           shareType: this.shareType,
-          extractEmbeddedSubtitles: this.extractEmbeddedSubtitles,
           disableLoginOption: this.disableLoginOption,
           sidebarLinks: this.sidebarLinks,
         };
@@ -812,7 +807,6 @@ export default {
       this.viewMode = link.viewMode || "normal";
       this.enableOnlyOffice = link.enableOnlyOffice || false;
       this.shareType = link.shareType || "normal";
-      this.extractEmbeddedSubtitles = link.extractEmbeddedSubtitles || false;
       this.disableLoginOption = link.disableLoginOption || false;
       this.applyQuotaFromLink(link);
       this.sidebarLinks = Array.isArray(link.sidebarLinks) ? [...link.sidebarLinks] : [];
@@ -927,7 +921,6 @@ export default {
       this.enforceDarkLightMode = form.enforceDarkLightMode;
       this.viewMode = form.viewMode;
       this.enableOnlyOffice = form.enableOnlyOffice;
-      this.extractEmbeddedSubtitles = form.extractEmbeddedSubtitles;
       this.disableLoginOption = form.disableLoginOption;
       this.quotaEnabled = form.quotaEnabled;
       this.quotaCustomAmount = form.quotaCustomAmount;

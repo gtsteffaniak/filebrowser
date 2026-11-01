@@ -423,8 +423,6 @@
     "perUserDownloadLimit": "Alkalmazza a letöltési korlátot minden egyes felhasználóra",
     "perUserDownloadLimitDescription": "Ha engedélyezve van, a letöltési limit minden egyes felhasználóra vonatkozik. A névtelen felhasználók nem tölthetnek le fájlokat erről a megosztásról.",
     "descriptionUploadDefault": "Megosztást küldtek Önnek fájlok feltöltéséhez.",
-    "extractEmbeddedSubtitles": "Beágyazott feliratok kivonása",
-    "extractEmbeddedSubtitlesDescription": "Beágyazott feliratok kivonása a médiafájlokból betöltéskor -- ez nagy fájlok esetén lassú lehet.",
     "disableDownload": "Letiltja a fájlok letöltését",
     "disableDownloadDescription": "Senki nem lesz képes letölteni fájlokat vagy megtekinteni egy fájl tartalmát.",
     "allowModify": "Fájlok szerkesztésének engedélyezése",
@@ -1224,8 +1222,6 @@
     }
   },
   "media": {
-    "extractEmbeddedSubtitles": "Beágyazott feliratok kivonása",
-    "extractEmbeddedSubtitlesDescription": "Beágyazott feliratok kivonása a médiafájlokból.",
     "debug": "Hibakeresési naplózás",
     "debugDescription": "Az ffmpeg stdout kimenete a médiaintegrációhoz. Figyelem: nagy mennyiségű kimenetet eredményez.",
     "imagePreview": "Képelőnézeti formátumok",
@@ -1259,6 +1255,8 @@
     "accelDevice": "Gyorsítóberendezés",
     "accelDeviceDescription": "A hardveresen gyorsított médiafeldolgozáshoz használt GPU-eszköz. A CPU (szoftver) letiltja a hardveres gyorsítást.",
     "encoderBackend": "Kódoló háttérrendszer",
-    "transcodeProfileEncoderBackendHelp": "A beállításhoz tartozó kódoló háttérprogram; alapértelmezés szerint az észlelt, előnyben részesített háttérprogramot használja."
+    "transcodeProfileEncoderBackendHelp": "A beállításhoz tartozó kódoló háttérprogram; alapértelmezés szerint az észlelt, előnyben részesített háttérprogramot használja.",
+    "alwaysUseFfmpeg": "Mindig használd az ffmpeg-et",
+    "alwaysUseFfmpegDescription": "Hagyja ki a go-media gyors útvonalat, és minden adatlekérdezéshez, metaadatokhoz, feliratokhoz és videó miniatűrökhöz használja az ffmpeg-et. Kapcsolja be, ha a go-media hibás eredményeket ad a fájljaival kapcsolatban."
   }
 }

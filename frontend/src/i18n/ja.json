@@ -423,8 +423,6 @@
     "perUserDownloadLimit": "各ユーザーにダウンロード制限を適用する",
     "perUserDownloadLimitDescription": "有効にすると、各ユーザーにダウンロード制限が適用されます。匿名ユーザーはこの共有からファイルをダウンロードできません。",
     "descriptionUploadDefault": "ファイルをアップロードするための共有が送信されました。",
-    "extractEmbeddedSubtitles": "埋め込み字幕の抽出",
-    "extractEmbeddedSubtitlesDescription": "読み込み時にメディアファイルから埋め込まれたサブタイトルを抽出する。",
     "disableDownload": "ファイルのダウンロードを無効にする",
     "disableDownloadDescription": "誰でもファイルをダウンロードしたり、ファイルの内容を見たりすることができなくなる。",
     "allowModify": "ファイルの編集を許可する",
@@ -1224,8 +1222,6 @@
     }
   },
   "media": {
-    "extractEmbeddedSubtitles": "埋め込み字幕を抽出する",
-    "extractEmbeddedSubtitlesDescription": "メディアファイルから埋め込み字幕を抽出します。",
     "debug": "デバッグログ",
     "debugDescription": "メディア統合のためのffmpegの標準出力。警告：出力量が非常に多くなります。",
     "imagePreview": "画像プレビューの形式",
@@ -1259,6 +1255,8 @@
     "accelDevice": "加速装置",
     "accelDeviceDescription": "ハードウェアアクセラレーションによるメディア処理に使用されるGPUデバイス。CPU（ソフトウェア）はハードウェアアクセラレーションを無効にします。",
     "encoderBackend": "エンコーダ・バックエンド",
-    "transcodeProfileEncoderBackendHelp": "このプリセット用のエンコーダー・バックエンド。デフォルトでは、検出された推奨バックエンドが設定されます。"
+    "transcodeProfileEncoderBackendHelp": "このプリセット用のエンコーダー・バックエンド。デフォルトでは、検出された推奨バックエンドが設定されます。",
+    "alwaysUseFfmpeg": "常にffmpegを使用してください",
+    "alwaysUseFfmpegDescription": "go-mediaの高速処理をスキップし、プロービング、メタデータ、字幕、動画のサムネイルのすべてにffmpegを使用します。お使いのファイルに対してgo-mediaが誤った結果を返す場合は、このオプションを有効にしてください。"
   }
 }

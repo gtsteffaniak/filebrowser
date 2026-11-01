@@ -423,8 +423,6 @@
     "perUserDownloadLimit": "將下載限制套用至每位使用者",
     "perUserDownloadLimitDescription": "啟用時，下載限制會套用至每位使用者。匿名使用者將無法從此分享下載任何檔案。",
     "descriptionUploadDefault": "有人傳送了上傳分享連結，可用來上傳檔案。",
-    "extractEmbeddedSubtitles": "擷取內嵌字幕",
-    "extractEmbeddedSubtitlesDescription": "載入時會從媒體檔案擷取內嵌字幕；大型檔案可能需要較久時間。",
     "disableDownload": "停用下載檔案",
     "disableDownloadDescription": "任何人都無法下載檔案或檢視檔案內容。",
     "allowModify": "允許編輯檔案",
@@ -1224,8 +1222,6 @@
     }
   },
   "media": {
-    "extractEmbeddedSubtitles": "擷取內嵌字幕",
-    "extractEmbeddedSubtitlesDescription": "從媒體檔案中擷取內嵌字幕。",
     "debug": "除錯記錄",
     "debugDescription": "將 ffmpeg 的標準輸出用於媒體整合。警告：會產生大量輸出。",
     "imagePreview": "圖片預覽格式",
@@ -1259,6 +1255,8 @@
     "accelDevice": "加速裝置",
     "accelDeviceDescription": "用於硬體加速媒體處理的 GPU 裝置。CPU（軟體）會停用硬體加速功能。",
     "encoderBackend": "編碼器後端",
-    "transcodeProfileEncoderBackendHelp": "此預設值的編碼器後端；預設為偵測到的首選後端。"
+    "transcodeProfileEncoderBackendHelp": "此預設值的編碼器後端；預設為偵測到的首選後端。",
+    "alwaysUseFfmpeg": "請務必使用 ffmpeg",
+    "alwaysUseFfmpegDescription": "跳過 go-media 的快速路徑，改用 ffmpeg 來處理所有檔案檢測、元資料、字幕及影片縮圖。若 go-media 對您的檔案產生錯誤結果，請啟用此選項。"
   }
 }

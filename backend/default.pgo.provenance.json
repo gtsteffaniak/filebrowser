@@ -1,0 +1,23 @@
+{
+  "generatedAt": "2026-10-27T14:46:52Z",
+  "gitHead": "880900c18dc7655899398cfb7327ab4e191fc3f0",
+  "profileSha256": "371d012d4ed5bc3907667f6d35876c998af98a6cc3c71f6ea4ddf57ab4ed4bbd",
+  "workloads": [
+    "internal/thumb BenchmarkMJPEGSmall/Large",
+    "internal/thumb BenchmarkMP4H264Large",
+    "internal/thumb BenchmarkMP4H264Small (full pipeline)",
+    "internal/thumb BenchmarkMP4H264Baseline1080Small (CAVLC + thumb)",
+    "internal/thumb BenchmarkMP4H264Main1080Large",
+    "internal/thumb BenchmarkMP4H264High1080Large",
+    "internal/thumb BenchmarkThumbnailLargeWebM",
+    "internal/h264 BenchmarkBaselineThumbnailDecode (CAVLC IDR)"
+  ],
+  "hotPathGlobs": [
+    "internal/thumb/**/*.go",
+    "internal/h264/**/*.go",
+    "internal/kernels/**/*.go",
+    "internal/isobmff/**/*.go",
+    "internal/matroska/**/*.go",
+    "internal/jpegfast/**/*.go"
+  ]
+}
