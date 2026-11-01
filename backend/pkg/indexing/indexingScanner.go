@@ -631,6 +631,10 @@ func (s *Scanner) checkFolderModtime(folderPath string) (bool, error) {
 		// Update metadata (will be batched)
 		s.idx.UpdateMetadata(dirInfo, s, true)
 
+		// Propagate the freshly computed folder size to ancestors so parent
+		// directories reflect changes below this directory.
+		s.idx.updateFolderSizeDelta(folderPath, uint64(dirInfo.Size))
+
 		// Track this directory as having been updated (for file purge logic)
 		s.idx.mu.Lock()
 		if s.idx.scanUpdatedPaths == nil {

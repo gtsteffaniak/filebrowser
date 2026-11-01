@@ -489,6 +489,14 @@ definitions:
       socket:
         description: socket to listen on - eg. /var/run/filebrowser.sock
         type: string
+      socketFileMode:
+        description: octal mode for filesystem http.socket (default "0660"); ignored
+          for abstract sockets
+        type: string
+      socketGroup:
+        description: optional group name or numeric gid for the socket file (filesystem
+          sockets only)
+        type: string
       tlsCert:
         description: path to TLS cert
         type: string
@@ -499,6 +507,25 @@ definitions:
         description: 'honor X-Forwarded-* and X-Real-IP from a reverse proxy (default:
           false)'
         type: boolean
+      trustedProxies:
+        description: 'IPs/CIDRs of trusted proxies; forwarded client headers are only
+          honored when the socket peer matches one of these (default: empty = forwarded
+          headers ignored)'
+        items:
+          type: string
+        type: array
+      unixSocketTrustedGIDs:
+        items:
+          type: integer
+        type: array
+      unixSocketTrustedUIDs:
+        description: |-
+          UnixSocketTrustedUIDs and UnixSocketTrustedGIDs list peer credentials (Linux SO_PEERCRED) allowed to
+          present X-Forwarded-* on a filesystem http.socket listener. When both are empty, forwarded headers
+          are not trusted on Unix sockets. Abstract sockets (@name) never trust forwarded headers.
+        items:
+          type: integer
+        type: array
     type: object
   settings.IndexSqlConfig:
     properties:
@@ -627,7 +654,7 @@ definitions:
           "phone"
         type: string
       userPassword:
-        description: Bind password for service account
+        description: 'secret: bind password for the LDAP service account'
         type: string
     type: object
   settings.LogConfig:
@@ -932,7 +959,7 @@ definitions:
         description: v2 site key
         type: string
       secret:
-        description: v2 secret key
+        description: 'secret: v2 secret key'
         type: string
     required:
     - host

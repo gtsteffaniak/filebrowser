@@ -1,8 +1,8 @@
 <template>
   <div class="card-content">
     <div class="share-info-content">
-      <div v-if="shareInfo.banner" class="banner">
-        <img :src="getShareBanner" aria-hidden="true" />
+      <div v-if="shareInfo.bannerUrl" class="banner">
+        <img :src="shareInfo.bannerUrl" aria-hidden="true" />
       </div>
       <div v-if="shareInfo.title" class="share-info-element">
         <h3>{{ shareInfo.title }}</h3>
@@ -12,7 +12,7 @@
       </div>
 
       <div v-if="showShareInfo">
-        <hr v-if="shareInfo.banner || shareInfo.title || shareInfo.description" />
+        <hr v-if="shareInfo.bannerUrl || shareInfo.title || shareInfo.description" />
         <div class="share-info-element">
           <strong>{{ $t("prompts.displayName") }}</strong> {{ req.name }}
         </div>
@@ -34,7 +34,6 @@
 </template>
 
 <script>
-import { resourcesApi } from "@/api";
 import { state, getters } from "@/store";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import QrcodeVue from "qrcode.vue";
@@ -59,12 +58,6 @@ export default {
         return true
       }
       return state.shareInfo?.passwordValid
-    },
-    getShareBanner() {
-      if (state.shareInfo?.banner.startsWith("http")) {
-        return state.shareInfo?.banner;
-      }
-      return resourcesApi.getDownloadURLPublic(state.shareInfo, [state.shareInfo?.banner]);
     },
     shareInfo() {
       return state.shareInfo;

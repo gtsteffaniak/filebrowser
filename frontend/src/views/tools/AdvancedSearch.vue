@@ -267,6 +267,7 @@ import type { FileListItem, fileListItemIndex, ReqObject } from "@/store/types";
 import { useRoute } from "vue-router";
 import { useI18n } from "vue-i18n";
 import { toolsApi } from "@/api";
+import { notify } from "@/notify/index.ts";
 import { router } from "@/router";
 import { state, getters, mutations } from "@/store";
 import { eventBus } from "@/store/eventBus";
@@ -539,6 +540,9 @@ let catalogRouteBootstrapDone = false;
 let isInitializing = true;
 let suppressRouteQueryNavigation = false;
 let emptyCatalogHydrateTimer: number | null = null;
+// Guards async search results: drop responses after unmount or when a newer search started.
+let isUnmounted = false;
+let searchSeq = 0;
 let refreshQueued = false;
 let lastScrollTop = 0;
 let scrollContainer: HTMLElement | null = null;
@@ -1155,6 +1159,10 @@ function openListingContext(event: MouseEvent) {
 }
 
 async function runSearch() {
+  // Claim a sequence number first so an earlier in-flight search is stale even when this
+  // run exits early on validation.
+  const seq = ++searchSeq;
+  const isStale = () => isUnmounted || seq !== searchSeq;
   error.value = null;
 
   if (activeSources.value.length === 0) {
@@ -1232,6 +1240,9 @@ async function runSearch() {
     });
   }
 
+  // Resolve result paths against the scopes sent with this request, not the live
+  // scope inputs, which may change while the request is in flight.
+  const scopeBySource = new Map(perSourceScopes.map(({ source, path }) => [source, path]));
   const searchRequestKey = searchKey();
   try {
     const rows: SearchResultRow[] = await toolsApi.search(
@@ -1245,8 +1256,12 @@ async function runSearch() {
         terms,
         termJoin: termsJoinAnd.value ? "and" : undefined,
         perSourceScopes,
+        // Report errors below, after the stale check, so obsolete requests stay silent.
+        suppressNotify: true,
       }
     );
+    // Do not overwrite the listing after leaving the tool or behind a newer search.
+    if (isStale()) return;
 
     if (!Array.isArray(rows)) {
       throw new Error("Invalid search response");
@@ -1256,7 +1271,7 @@ async function runSearch() {
       const resultSource = String(searchResult.source || "");
       const isDir = String(searchResult.type) === "directory";
       const fullPath = browsePath(
-        normalizedScopedPathForSource(resultSource),
+        scopeBySource.get(resultSource) ?? normalizedScopedPathForSource(resultSource),
         searchResult.path || "",
         isDir
       );
@@ -1277,10 +1292,12 @@ async function runSearch() {
     state.searchResults = { kind: "advanced", key: searchRequestKey, items: listingItems };
     showResults(listingItems);
   } catch (err) {
+    if (isStale()) return;
     const message = (err as { message?: unknown } | null)?.message;
     error.value = typeof message === "string" ? message : t("errors.internal");
+    notify.showError(error.value);
   } finally {
-    loading.value = false;
+    if (!isStale()) loading.value = false;
   }
 }
 
@@ -1436,6 +1453,7 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
+  isUnmounted = true;
   if (
     typeof window !== "undefined" &&
     emptyCatalogHydrateTimer !== null

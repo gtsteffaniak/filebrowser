@@ -3,7 +3,9 @@ package settings
 import (
 	"fmt"
 	"net"
+	"net/netip"
 	"strconv"
+	"strings"
 )
 
 // HTTPListenAddr returns a TCP listen address suitable for net.Listen.
@@ -19,6 +21,22 @@ func HTTPListenAddr(listen string, port int) string {
 func ValidateHttpConfig(h Http) error {
 	if h.Socket != "" && (h.TLSCert != "" || h.TLSKey != "") {
 		return fmt.Errorf("http.socket cannot be used with tlsCert or tlsKey")
+	}
+	for _, entry := range h.TrustedProxies {
+		entry = strings.TrimSpace(entry)
+		if entry == "" {
+			continue
+		}
+		if prefix, err := netip.ParsePrefix(entry); err != nil {
+			if _, addrErr := netip.ParseAddr(entry); addrErr != nil {
+				return fmt.Errorf("http.trustedProxies entry %q is not a valid IP address or CIDR range", entry)
+			}
+		} else if _, err := normalizeTrustedProxyPrefix(prefix); err != nil {
+			return fmt.Errorf("http.trustedProxies entry %q: %v", entry, err)
+		}
+	}
+	if _, err := parseSocketFileMode(h.SocketFileMode); err != nil {
+		return err
 	}
 	return nil
 }
