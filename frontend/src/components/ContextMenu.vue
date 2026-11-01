@@ -377,6 +377,7 @@ export default {
     /** New folder / new file / upload — requires permissions.create only (not admin alone). */
     showCreateFileActions() {
       if (this.showLimitedOptions) return false;
+      if (this.isAdvancedSearch) return false;
       if (!this.permissions.create) return false;
       // Advanced search results are not a target folder; never offer create actions there.
       if (this.isAdvancedSearch) return false;
@@ -474,7 +475,7 @@ export default {
       return (
         !this.showCreate &&
         this.selectedCount === 1 &&
-        (this.isSearchActive || this.showLimitedOptions || getters.currentTool()?.component === "AdvancedSearch")
+        (this.isSearchActive || this.showLimitedOptions || this.isAdvancedSearch)
       );
     },
     showMove() {
@@ -590,7 +591,7 @@ export default {
       if (this.selectedCount === 1) {
         return this.isFolderItem(this.firstSelected);
       }
-      // Create menu with no selection: quota on the current folder
+      if (this.isAdvancedSearch) return false;
       return true;
     },
     quotaActionLabel() {
@@ -608,11 +609,11 @@ export default {
     onlyofficeEnabled() {
       return globalVars.onlyOfficeUrl !== "";
     },
-    isAdvancedSearch() {
-      return getters.currentTool()?.component === "AdvancedSearch";
-    },
     isSearchActive() {
       return state.isSearchActive;
+    },
+    isAdvancedSearch() {
+      return getters.currentTool()?.component === "AdvancedSearch";
     },
     isMultiple() {
       return state.multiple;
@@ -632,6 +633,12 @@ export default {
     currentPrompt() {
       return getters.currentPrompt();
     },
+  },
+  mounted() {
+    document.addEventListener("keydown", this.onEscapeKey, true);
+  },
+  beforeUnmount() {
+    document.removeEventListener("keydown", this.onEscapeKey, true);
   },
   watch: {
     hasOverflowItems: {
@@ -785,6 +792,12 @@ export default {
     },
     showPrompt(value) {
       return mutations.showPrompt(value);
+    },
+    onEscapeKey(event) {
+      if (event.key !== "Escape" || (!this.showContext && !this.showOverflow)) return;
+      event.preventDefault();
+      event.stopPropagation();
+      mutations.closeTopPrompt();
     },
     showSharePrompt() {
       mutations.closeHovers();
@@ -1120,6 +1133,10 @@ export default {
 
 .context-menu-header > .action i {
   padding: 0.25em;
+}
+
+#context-menu .context-menu-create-toggle {
+  padding: 0.2em;
 }
 
 .context-menu-create-toggle--disabled {

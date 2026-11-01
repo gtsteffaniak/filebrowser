@@ -201,6 +201,10 @@ body.rtl .listing-items {
   border-color: var(--divider);
 }
 
+.listing-items.rectangle-selecting .listing-item {
+  pointer-events: none;
+}
+
 .listing-items.compact .listing-item:hover,
 .listing-items.list .listing-item:hover {
   width: 98% !important;
@@ -653,4 +657,19 @@ body.rtl .listing-items {
 
 .search-entry.zebra-row {
   background: color-mix(in srgb, var(--surfacePrimary) 80%, var(--background) 60%);
+}
+
+.selection-rectangle {
+  position: absolute;
+  border: 2px solid var(--primaryColor);
+  background-color: color-mix(in srgb, var(--primaryColor) 25%, transparent);
+  border-radius: var(--borderRadius);
+  pointer-events: none;
+  z-index: 10;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 15%);
+}
+
+.rectangle-selecting {
+  cursor: crosshair;
+  user-select: none;
 }
