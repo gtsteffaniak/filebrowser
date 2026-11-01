@@ -10,7 +10,6 @@ require (
 	github.com/dhowden/tag v0.0.0-20240417053706-3d75831295e8
 	github.com/dsoprea/go-exif/v3 v3.0.1
 	github.com/evanoberholster/imagemeta v1.1.0
-	github.com/gen2brain/go-fitz v1.28.2
 	github.com/go-ldap/ldap/v3 v3.4.15
 	github.com/go-playground/validator/v10 v10.30.5
 	github.com/go-webauthn/webauthn v0.18.2
@@ -20,6 +19,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/gtsteffaniak/go-cache v1.1.0
 	github.com/gtsteffaniak/go-ffmpeg v1.6.2
+	github.com/gtsteffaniak/go-fitz v1.0.1
 	github.com/gtsteffaniak/go-logger v1.1.0
 	github.com/gtsteffaniak/go-media v1.1.1-0.20261101153307-79181a6c2ed9
 	github.com/kovidgoyal/imaging v1.9.0
