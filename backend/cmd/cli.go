@@ -297,8 +297,6 @@ func generateSetupConfigYAML(config *settings.Settings) (string, error) {
 	embeddedPaths := []string{
 		"frontend/public/config.generated.yaml",
 		"../frontend/public/config.generated.yaml",
-		"internal/web/embed/config.generated.yaml",
-		"../internal/web/embed/config.generated.yaml",
 		"internal/web/dist/config.generated.yaml",
 		"../internal/web/dist/config.generated.yaml",
 	}
