@@ -24,11 +24,7 @@ const (
 )
 
 func init() {
-	if SqliteDriver == "sqlite3" {
-		logger.Debugf("CGO SQLite driver initialized")
-	} else {
-		logger.Debugf("Default SQLite driver initialized")
-	}
+	logger.Debugf("SQLite driver initialized (pure Go)")
 }
 
 // TempDB manages a temporary SQLite database for operations that need
@@ -228,7 +224,6 @@ func NewTempDB(id string, config ...*TempDBConfig) (*TempDB, error) {
 	}
 
 	// Open SQLite database with basic connection string.
-	// Driver is selected at compile time: "sqlite3" (CGO) or "sqlite" (pure Go).
 	// busy_timeout is set in the DSN so every pooled connection honors it.
 	db, err := sql.Open(SqliteDriver, sqlitebusy.WithBusyTimeout(tmpPath))
 	if err != nil {

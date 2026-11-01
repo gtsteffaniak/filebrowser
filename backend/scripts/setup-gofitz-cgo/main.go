@@ -55,7 +55,7 @@ func backendRoot() (string, error) {
 }
 
 func goFitzIncludeDir(backendDir string) (string, error) {
-	cmd := exec.Command("go", "mod", "download", "-json", "github.com/gen2brain/go-fitz")
+	cmd := exec.Command("go", "mod", "download", "-json", "github.com/gtsteffaniak/go-fitz")
 	cmd.Dir = backendDir
 	out, err := cmd.Output()
 	if err != nil {

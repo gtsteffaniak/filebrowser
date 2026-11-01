@@ -77,7 +77,7 @@ export default defineConfig(({ command }) => {
     // Only compress in production builds
     !isDevBuild && !isServe && compression({
       algorithms: ["gzip"],
-      include: /\.(js|woff2|woff)(\?|$)/i,
+      include: /\.(js|woff2)(\?|$)/i,
       deleteOriginalAssets: true,
     }),
     // Disable checker in watch mode to prevent task failures

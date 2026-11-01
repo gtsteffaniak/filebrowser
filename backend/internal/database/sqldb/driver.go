@@ -1,6 +1,3 @@
-//go:build !cgosql
-// +build !cgosql
-
 package sqldb
 
 import (

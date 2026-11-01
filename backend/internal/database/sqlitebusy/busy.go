@@ -14,7 +14,7 @@ var ErrBusy = errors.New("sqlite database is busy or locked")
 
 // WithBusyTimeout appends the busy_timeout connection parameter to dsn so that
 // every connection in the pool honors the timeout. Both supported drivers
-// (mattn/go-sqlite3 and modernc.org/sqlite) apply the parameter at
+// (modernc.org/sqlite) applies the parameter at
 // connection-open time, unlike a one-off PRAGMA which only configures the
 // single connection that database/sql happens to pick.
 func WithBusyTimeout(dsn string) string {

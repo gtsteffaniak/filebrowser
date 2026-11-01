@@ -23,7 +23,7 @@ jobs:
         with:
           node-version-file: frontend/.nvmrc
       - working-directory: frontend
-        run: npm i && npm run build
+        run: npm ci && npm run build
       - uses: actions/setup-go@v5
         with:
           go-version: 'stable'
