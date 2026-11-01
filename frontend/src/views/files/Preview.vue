@@ -211,7 +211,7 @@ export default {
     // Viewable when we can get embedded/original preview: (media + heic conversion) or Safari native
     isHeicAndViewable() {
       if (state.isSafari) return true;
-      if (globalVars.mediaAvailable && globalVars.enableHeicConversion) return true;
+      if (globalVars.ffmpegAvailable && globalVars.enableHeicConversion) return true;
       return false;
     },
     pdfConvertable() {
@@ -278,7 +278,7 @@ export default {
       }
 
       const getRawPreview = isRawImageMimeType(state.req.type);
-      const getHeicPreview = isHeicOrHeif && globalVars.mediaAvailable && globalVars.enableHeicConversion;
+      const getHeicPreview = isHeicOrHeif && globalVars.ffmpegAvailable && globalVars.enableHeicConversion;
       if (this.pdfConvertable || getRawPreview || getHeicPreview) {
         if (getters.isShare()) {
           const previewPath = removeTrailingSlash(state.req.path);

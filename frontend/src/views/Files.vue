@@ -523,7 +523,7 @@ export default {
                 if (!link.category.startsWith('source')) {
                   continue;
                 }
-                targetPath = `/${link.sourceName}${link.target}`;
+                targetPath = `/files/${link.sourceName}${link.target}`;
                 break;
               }
             }

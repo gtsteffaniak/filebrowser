@@ -94,7 +94,7 @@ auth:
       recaptcha:                          # recaptcha config. If configured will show up the checkbox verification in the login page  validate:omitempty
         host: ""                          # google recaptcha host, for example: https://www.google.com/recaptcha/api.js  validate:required
         key: ""                           # v2 site key  validate:required
-        secret: ""                        # v2 secret key  validate:required
+        secret: ""                        # secret: v2 secret key  validate:required
       enforcedOtp: false                  # if set to true, TOTP is enforced for all password users users. Otherwise, users can choose to enable TOTP.
     oidc:                                 #  validate:omitempty
       enabled: false                      # whether to enable this authentication method.
@@ -119,7 +119,7 @@ auth:
       server: ""                          # scheme://host:port of the LDAP server (e.g. ldap://localhost:389)
       baseDN: ""                          # LDAP search base DN (e.g. dc=ldap,dc=goauthentik,dc=io)
       userDN: ""                          # Bind DN for service account (e.g. cn=admin,ou=users,dc=ldap,dc=goauthentik,dc=io)
-      userPassword: ""                    # Bind password for service account
+      userPassword: ""                    # secret: bind password for the LDAP service account
       userFilter: ""                      # Search filter for finding user by username. Default (&(cn=%s)(objectClass=user)); override e.g. (email=%s) or (sAMAccountName=%s) for other directories.
     jwt:                                  #  validate:omitempty
       enabled: false                      # whether to enable this authentication method.
@@ -266,7 +266,6 @@ shareDefaults:                            # optional defaults for new shares; ma
   maxBandwidth: 0
   allowedUsernames:
   perUserDownloadLimit: false
-  extractEmbeddedSubtitles: false
   downloadsLimit: 0
   quotaLimitBytes: 0
   hideFileExt: ""
@@ -284,9 +283,6 @@ integrations:
     skipHwCheck: false                    # SkipHwCheck skips the ffmpeg hardware codec probe entirely (software-only).
                                           # Config-only, not a runtime setting — advanced use, e.g. keeping the
                                           # multi-second probe out of CI startup.
-    accelDevice: "auto"                   # AccelDevice selects the acceleration device: "auto" (default), "software"/"cpu",
-                                          # "igpu", "dgpu", a Linux DRM render node (e.g. /dev/dri/renderD128), or a GPU
-                                          # name substring. Managed via the admin media settings API.
 http:
   socket: ""                              # socket to listen on - eg. /var/run/filebrowser.sock
   tlsKey: ""                              # path to TLS key
@@ -298,4 +294,11 @@ http:
   internalUrl: ""                         # used by integrations if set, this is the base domain that an integration service will use to communicate with filebrowser (eg. http://localhost:8080)
   disableWebDAV: false                    # disable webdav support (default: false)
   trustProxyHeaders: false                # honor X-Forwarded-* and X-Real-IP from a reverse proxy (default: false)
+  trustedProxies:                         # IPs/CIDRs of trusted proxies; forwarded client headers are only honored when the socket peer matches one of these (default: empty = forwarded headers ignored)
+  unixSocketTrustedUIDs:                  # UnixSocketTrustedUIDs and UnixSocketTrustedGIDs list peer credentials (Linux SO_PEERCRED) allowed to
+                                          # present X-Forwarded-* on a filesystem http.socket listener. When both are empty, forwarded headers
+                                          # are not trusted on Unix sockets. Abstract sockets (@name) never trust forwarded headers.
+  unixSocketTrustedGIDs:
+  socketFileMode: ""                      # octal mode for filesystem http.socket (default "0660"); ignored for abstract sockets
+  socketGroup: ""                         # optional group name or numeric gid for the socket file (filesystem sockets only)
   disableRateLimit: false                 # turns off built-in auth route rate limiting and failed-login lockout (default false).

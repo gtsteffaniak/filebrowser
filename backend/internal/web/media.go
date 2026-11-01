@@ -2,6 +2,7 @@ package web
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"net/http"
 	"path/filepath"
@@ -10,6 +11,7 @@ import (
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/files"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/ffmpeg"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/gomedia"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 )
@@ -66,9 +68,8 @@ func subtitlesHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 			Source:                   source,
 			Expand:                   true,
 			Content:                  false,
-			Metadata:                 true,
-			ExtractEmbeddedSubtitles: settings.ExtractEmbeddedSubtitlesEnabled() && d.Share.ExtractEmbeddedSubtitles,
-			ShowHidden:               d.Share.ShowHidden,
+			Metadata: true,
+			ShowHidden: d.Share.ShowHidden,
 			HideFileExt:              d.User.HideFileExt,
 			FollowSymlinks:           false,
 			SkipExtendedAttrs:        false,
@@ -83,9 +84,8 @@ func subtitlesHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 			Source:                   source,
 			Expand:                   true,
 			Content:                  false,
-			Metadata:                 true,
-			ExtractEmbeddedSubtitles: settings.ExtractEmbeddedSubtitlesEnabled(),
-			ShowHidden:               d.User.ShowHidden,
+			Metadata: true,
+			ShowHidden: d.User.ShowHidden,
 			HideFileExt:              d.User.HideFileExt,
 			SkipExtendedAttrs:        false,
 		}
@@ -115,13 +115,30 @@ func subtitlesHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 		if track.Index == nil {
 			return http.StatusNotFound, fmt.Errorf("embedded subtitle track '%s' not found", name)
 		}
-		svc := ffmpeg.Get()
-		if svc == nil {
-			return http.StatusInternalServerError, fmt.Errorf("ffmpeg service not available")
+		// go-media fast path (MKV, WebM, MP4). Falls back to ffmpeg when unsupported or failed.
+		legacy := func() (string, bool) {
+			svc := ffmpeg.Get()
+			if svc == nil {
+				return "", false
+			}
+			// Shadow ffmpeg runs after the fast path; bound it so a detached request cannot
+			// leave extraction running indefinitely (sync fallback still uses r.Context()).
+			legacyCtx, cancel := context.WithTimeout(context.WithoutCancel(r.Context()), time.Minute)
+			defer cancel()
+			vtt, extractErr := svc.ExtractSubtitle(legacyCtx, fileInfo.RealPath, *track.Index)
+			return vtt, extractErr == nil
 		}
-		content, err = svc.ExtractSubtitle(r.Context(), fileInfo.RealPath, *track.Index)
-		if err != nil {
-			return http.StatusInternalServerError, fmt.Errorf("failed to extract embedded subtitle: %v", err)
+		if vtt, ok := gomedia.ExtractSubtitle(fileInfo.RealPath, *track.Index, legacy); ok {
+			content = vtt
+		} else {
+			svc := ffmpeg.Get()
+			if svc == nil {
+				return http.StatusInternalServerError, fmt.Errorf("ffmpeg service not available")
+			}
+			content, err = svc.ExtractSubtitle(r.Context(), fileInfo.RealPath, *track.Index)
+			if err != nil {
+				return http.StatusInternalServerError, fmt.Errorf("failed to extract embedded subtitle: %v", err)
+			}
 		}
 	}
 
@@ -174,10 +191,9 @@ func metadataHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, e
 		Source:                   source,
 		Expand:                   true,
 		Content:                  false,
-		Metadata:                 true,
-		AlbumArt:                 albumArt,
-		ExtractEmbeddedSubtitles: settings.ExtractEmbeddedSubtitlesEnabled(),
-		ShowHidden:               d.User.ShowHidden,
+		Metadata: true,
+		AlbumArt: albumArt,
+		ShowHidden: d.User.ShowHidden,
 		HideFileExt:              d.User.HideFileExt,
 		SkipExtendedAttrs:        false,
 		ShowSharedAttr:           true,
@@ -212,10 +228,9 @@ func publicMetadataHandler(w http.ResponseWriter, r *http.Request, d *Context) (
 		Source:                   sourceCfg.Name,
 		Expand:                   true,
 		Content:                  false,
-		Metadata:                 true,
-		AlbumArt:                 albumArt,
-		ExtractEmbeddedSubtitles: settings.ExtractEmbeddedSubtitlesEnabled() && d.Share.ExtractEmbeddedSubtitles,
-		ShowHidden:               d.Share.ShowHidden,
+		Metadata: true,
+		AlbumArt: albumArt,
+		ShowHidden: d.Share.ShowHidden,
 		HideFileExt:              d.User.HideFileExt,
 		FollowSymlinks:           false,
 	}, d.ShareUser)

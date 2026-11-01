@@ -5,9 +5,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	indexingdb "github.com/gtsteffaniak/filebrowser/backend/internal/database/dbindex"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/events"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
@@ -244,24 +244,32 @@ func (idx *Index) SendSourceUpdateEvent() error {
 
 // restoreFolderSizes loads the persisted directory sizes into the in-memory folderSizes map.
 // Quick scans iterate that map to decide which folders to stat, so leaving it empty after a
-// restart would make them blind until the next full scan.
-func (idx *Index) restoreFolderSizes() {
+// restart would make them blind until the next full scan. Returns false when nothing could
+// be restored (load failure or no persisted directory rows).
+func (idx *Index) restoreFolderSizes() bool {
 	if idx.db == nil {
-		return
+		return false
 	}
 	sizes, err := idx.db.LoadFolderSizes(idx.Name)
 	if err != nil {
 		logger.Errorf("[%s] Failed to load persisted folder sizes: %v", idx.Name, err)
-		return
+		return false
 	}
 	idx.folderSizesMu.Lock()
 	idx.folderSizes = sizes
 	idx.folderSizesMu.Unlock()
+	return len(sizes) > 0
 }
 
 // setupMultiScanner creates and starts the multi-scanner system
 // isNewDb: if true, skip loading persisted complexity values (database is new or recreated)
 func (idx *Index) setupMultiScanner(isNewDb bool) {
+	idx.setupMultiScannerEx(isNewDb, true)
+}
+
+// setupMultiScannerEx is setupMultiScanner with the scheduler goroutine made optional —
+// startSched=false lets tests inspect restored state without racing a running scheduler.
+func (idx *Index) setupMultiScannerEx(isNewDb bool, startSched bool) {
 	// Load persisted index-level stats from Bolt (complexity, numDirs/Files, used/usedAlt/total, etc.)
 	// Scanner-level stats below use a second GetByPath only for the Scanners map.
 	if err := idx.Load(); err != nil {
@@ -269,8 +277,9 @@ func (idx *Index) setupMultiScanner(isNewDb bool) {
 	}
 	// Quick scans only stat the directories present in folderSizes, which is in-memory only.
 	// Restoring it keeps change detection working after a restart without a full re-read.
+	sizesRestored := false
 	if !isNewDb {
-		idx.restoreFolderSizes()
+		sizesRestored = idx.restoreFolderSizes()
 	}
 
 	idx.mu.Lock()
@@ -313,6 +322,16 @@ func (idx *Index) setupMultiScanner(isNewDb bool) {
 	// Discover existing top-level directories (root scanner will create scanners for new ones dynamically)
 	topLevelDirs := rootScanner.getTopLevelDirs()
 
+	// Quick scans stat only the directories present in folderSizes. When the index
+	// was previously built but no folder sizes could be restored while directories
+	// exist, quick scans would run blind — and their unchanged-modtime path would
+	// write zero sizes back — so run one bounded serial pass to rebuild the map.
+	if !isNewDb && !sizesRestored && len(topLevelDirs) > 0 {
+		idx.mu.Lock()
+		idx.startupScanPending = true
+		idx.mu.Unlock()
+	}
+
 	// Create child scanner for each top-level directory
 	for _, dirPath := range topLevelDirs {
 		childScanner := idx.createScanner(dirPath)
@@ -341,7 +360,9 @@ func (idx *Index) setupMultiScanner(isNewDb bool) {
 	}
 
 	idx.restoreScannerNextRuns()
-	go idx.runIndexScheduler()
+	if startSched {
+		go idx.runIndexScheduler()
+	}
 
 	logger.Debugf("Created %d scanners for [%v] (1 root + %d children)", len(topLevelDirs)+1, idx.Name, len(topLevelDirs))
 }

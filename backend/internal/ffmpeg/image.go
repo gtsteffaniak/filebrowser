@@ -74,21 +74,25 @@ func (s *Service) ConvertHEICToJPEG(ctx context.Context, heicPath string, target
 		return nil, ctx.Err()
 	}
 
-	orientation, err := s.GetHEICOrientation(heicPath)
-	if err != nil {
-		orientation = "Horizontal (normal)"
-	}
-
 	jpegBytes, err := s.runHEICConversion(ctx, heicPath, targetWidth, targetHeight, quality, "")
 	if err != nil {
 		return nil, fmt.Errorf("ffmpeg image conversion failed: %w", err)
 	}
+	return s.CorrectHEICJPEGOrientation(ctx, heicPath, jpegBytes), nil
+}
 
+// CorrectHEICJPEGOrientation applies irot / display-matrix correction after a full-resolution
+// HEIC decode when pixels are still in coded orientation (go-media and ffmpeg filter-free paths).
+func (s *Service) CorrectHEICJPEGOrientation(ctx context.Context, heicPath string, jpegBytes []byte) []byte {
+	orientation, err := s.GetHEICOrientation(heicPath)
+	if err != nil {
+		orientation = "Horizontal (normal)"
+	}
 	displayRotation, displayKnown := s.GetHEICDisplayMatrixRotation(ctx, heicPath)
 	if orientationNeedsPostCorrection(orientation, displayRotation, displayKnown) {
-		jpegBytes = applyOrientationToJPEG(jpegBytes, orientation)
+		return applyOrientationToJPEG(jpegBytes, orientation)
 	}
-	return jpegBytes, nil
+	return jpegBytes
 }
 
 // ConvertImageToJPEG converts any supported image to JPEG using ffmpeg.

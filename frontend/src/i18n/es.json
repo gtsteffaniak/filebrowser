@@ -423,8 +423,6 @@
     "perUserDownloadLimit": "Limitar descargas para cada usuario",
     "perUserDownloadLimitDescription": "Cuando se activa, el límite de descargas se aplicará a cada usuario. Los usuarios anónimos no podrán descargar ningún archivo de este recurso compartido.",
     "descriptionUploadDefault": "Te han compartido un enlace para que subas archivos",
-    "extractEmbeddedSubtitles": "Extraer subtítulos incrustados",
-    "extractEmbeddedSubtitlesDescription": "Extrae los subtítulos incrustados de los archivos multimedia al cargarlos -- esto puede ser lento si el archivo es grande.",
     "disableDownload": "Desactivar la descarga de archivos",
     "disableDownloadDescription": "Nadie podrá descargar archivos ni ver su contenido.",
     "allowModify": "Permitir la edición de archivos",
@@ -1224,8 +1222,6 @@
     }
   },
   "media": {
-    "extractEmbeddedSubtitles": "Extraer subtítulos incrustados",
-    "extractEmbeddedSubtitlesDescription": "Extraer los subtítulos incrustados de los archivos multimedia.",
     "debug": "Registros de depuración",
     "debugDescription": "Salida de ffmpeg (stdout) para la integración multimedia. Advertencia: genera una gran cantidad de datos de salida.",
     "imagePreview": "Formatos de vista previa de imágenes",
@@ -1259,6 +1255,8 @@
     "accelDevice": "Dispositivo de aceleración",
     "accelDeviceDescription": "Dispositivo GPU utilizado para el procesamiento multimedia acelerado por hardware. La CPU (software) desactiva la aceleración por hardware.",
     "encoderBackend": "Backend del codificador",
-    "transcodeProfileEncoderBackendHelp": "Backend del codificador para este ajuste preestablecido; por defecto, se utiliza el backend preferido detectado."
+    "transcodeProfileEncoderBackendHelp": "Backend del codificador para este ajuste preestablecido; por defecto, se utiliza el backend preferido detectado.",
+    "alwaysUseFfmpeg": "Utiliza siempre ffmpeg",
+    "alwaysUseFfmpegDescription": "Omite la ruta rápida de go-media y utiliza ffmpeg para todas las operaciones de análisis, metadatos, subtítulos y miniaturas de vídeo. Actívalo si go-media ofrece resultados erróneos para tus archivos."
   }
 }

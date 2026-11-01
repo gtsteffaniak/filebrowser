@@ -49,7 +49,6 @@ const settings = [
     label: 'general.media',
     component: 'MediaSettings',
     permissions: { admin: true },
-    requiresMedia: true,
     icon: 'movie',
   },
   { id: 'systemAdmin', label: 'settings.systemAdmin', component: 'SystemAdmin', permissions: { admin: true }, icon: 'admin_panel_settings' },

@@ -120,6 +120,12 @@ func TestFolderSizesRestoredOnStartup(t *testing.T) {
 	if size != 4242 {
 		t.Fatalf("restored size for /sub/ = %d, want 4242", size)
 	}
+	idx.mu.RLock()
+	pending := idx.startupScanPending
+	idx.mu.RUnlock()
+	if pending {
+		t.Fatal("restored folder sizes must not trigger the startup bootstrap pass")
+	}
 }
 
 // fullScanCounter decides quick vs full for the next run; dropping it on restart means every
@@ -158,6 +164,86 @@ func TestFullScanCounterSurvivesRestart(t *testing.T) {
 	scanner.withStatsRLock(func() { restored = scanner.fullScanCounter })
 	if restored != 3 {
 		t.Fatalf("restored fullScanCounter = %d, want 3", restored)
+	}
+}
+
+// When persisted folder sizes cannot be restored but the source has directories, quick scans
+// would stat nothing (they iterate folderSizes) — so a bounded serial pass must be scheduled.
+func TestMissingFolderSizesTriggersBootstrap(t *testing.T) {
+	idx := newRestoreTestIndex(t, "missing_sizes", []string{"sub"}, persistedScanners("/", "/sub/"))
+	idx.setupMultiScannerEx(false, false)
+	idx.mu.RLock()
+	pending := idx.startupScanPending
+	idx.mu.RUnlock()
+	if !pending {
+		t.Fatal("unrestored folder sizes with existing dirs must schedule a bootstrap pass")
+	}
+	if !idx.needsAdaptiveBootstrap() {
+		t.Fatal("startupScanPending must make the adaptive scheduler run the serial pass")
+	}
+}
+
+// A scanner that missed a scheduled run while the process was down must run a full scan first:
+// in-place file edits update file mtimes but not parent directory mtimes, so quick scans
+// cannot detect them.
+func TestOverdueScannerRunsFullScan(t *testing.T) {
+	idx := newRestoreTestIndex(t, "overdue", nil, nil)
+	s := &Scanner{
+		scanPath:        "/",
+		idx:             idx,
+		currentSchedule: 0, // fastest tier: 5m — a lastScanned an hour ago is overdue
+		lastScanned:     time.Now().Add(-time.Hour),
+		fullScanCounter: 2,
+	}
+	idx.scanners = map[string]*Scanner{"/": s}
+	idx.restoreScannerNextRuns()
+	var counter int
+	s.withStatsRLock(func() { counter = s.fullScanCounter })
+	if counter != 0 {
+		t.Fatalf("overdue scanner fullScanCounter = %d, want 0 (full scan first)", counter)
+	}
+}
+
+// Serial bootstrap must reset fullScanCounter so the pass runs full scans and can rebuild
+// folderSizes; a restored counter in the quick-scan range would stat nothing.
+func TestSerialBootstrapPassResetsFullScanCounter(t *testing.T) {
+	idx := newRestoreTestIndex(t, "serial_reset", nil, persistedScanners("/"))
+	// No background scheduler: the test drives runSerialScanPass itself, and a running scheduler
+	// would scan the same scanner concurrently (data race on its stats).
+	idx.setupMultiScannerEx(false, false)
+	idx.mu.Lock()
+	idx.startupScanPending = true
+	scanner := idx.scanners["/"]
+	idx.mu.Unlock()
+	scanner.withStatsLock(func() {
+		scanner.fullScanCounter = 2
+	})
+
+	idx.runSerialScanPass()
+
+	var counter int
+	scanner.withStatsRLock(func() { counter = scanner.fullScanCounter })
+	if counter != 1 {
+		t.Fatalf("after bootstrap full scan fullScanCounter = %d, want 1", counter)
+	}
+}
+
+// A scanner still within its schedule window keeps its persisted quick/full cadence.
+func TestOnScheduleScannerKeepsScanCounter(t *testing.T) {
+	idx := newRestoreTestIndex(t, "on_schedule", nil, nil)
+	s := &Scanner{
+		scanPath:        "/",
+		idx:             idx,
+		currentSchedule: 0,
+		lastScanned:     time.Now(),
+		fullScanCounter: 2,
+	}
+	idx.scanners = map[string]*Scanner{"/": s}
+	idx.restoreScannerNextRuns()
+	var counter int
+	s.withStatsRLock(func() { counter = s.fullScanCounter })
+	if counter != 2 {
+		t.Fatalf("on-schedule scanner fullScanCounter = %d, want 2", counter)
 	}
 }
 

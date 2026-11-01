@@ -25,17 +25,25 @@ type Settings struct {
 }
 
 type Http struct {
-	Socket            string `json:"socket"`            // socket to listen on - eg. /var/run/filebrowser.sock
-	TLSKey            string `json:"tlsKey"`            // path to TLS key
-	TLSCert           string `json:"tlsCert"`           // path to TLS cert
-	Port              int    `json:"port"`              // port to listen on
-	ListenAddress     string `json:"listen"`            // address to listen on (default: 0.0.0.0)
-	BaseURL           string `json:"baseURL"`           // base URL for the server, the subpath that the server is running on.
-	ExternalUrl       string `json:"externalUrl"`       // used by share links if set (eg. http://mydomain.com)
-	InternalUrl       string `json:"internalUrl"`       // used by integrations if set, this is the base domain that an integration service will use to communicate with filebrowser (eg. http://localhost:8080)
-	DisableWebDAV     bool   `json:"disableWebDAV"`     // disable webdav support (default: false)
-	TrustProxyHeaders bool   `json:"trustProxyHeaders"` // honor X-Forwarded-* and X-Real-IP from a reverse proxy (default: false)
-	DisableRateLimit  bool   `json:"disableRateLimit"`  // turns off built-in auth route rate limiting and failed-login lockout (default false).
+	Socket            string   `json:"socket"`            // socket to listen on - eg. /var/run/filebrowser.sock
+	TLSKey            string   `json:"tlsKey"`            // path to TLS key
+	TLSCert           string   `json:"tlsCert"`           // path to TLS cert
+	Port              int      `json:"port"`              // port to listen on
+	ListenAddress     string   `json:"listen"`            // address to listen on (default: 0.0.0.0)
+	BaseURL           string   `json:"baseURL"`           // base URL for the server, the subpath that the server is running on.
+	ExternalUrl       string   `json:"externalUrl"`       // used by share links if set (eg. http://mydomain.com)
+	InternalUrl       string   `json:"internalUrl"`       // used by integrations if set, this is the base domain that an integration service will use to communicate with filebrowser (eg. http://localhost:8080)
+	DisableWebDAV     bool     `json:"disableWebDAV"`     // disable webdav support (default: false)
+	TrustProxyHeaders bool     `json:"trustProxyHeaders"` // honor X-Forwarded-* and X-Real-IP from a reverse proxy (default: false)
+	TrustedProxies    []string `json:"trustedProxies"`    // IPs/CIDRs of trusted proxies; forwarded client headers are only honored when the socket peer matches one of these (default: empty = forwarded headers ignored)
+	// UnixSocketTrustedUIDs and UnixSocketTrustedGIDs list peer credentials (Linux SO_PEERCRED) allowed to
+	// present X-Forwarded-* on a filesystem http.socket listener. When both are empty, forwarded headers
+	// are not trusted on Unix sockets. Abstract sockets (@name) never trust forwarded headers.
+	UnixSocketTrustedUIDs []int  `json:"unixSocketTrustedUIDs"`
+	UnixSocketTrustedGIDs []int  `json:"unixSocketTrustedGIDs"`
+	SocketFileMode        string `json:"socketFileMode"`   // octal mode for filesystem http.socket (default "0660"); ignored for abstract sockets
+	SocketGroup           string `json:"socketGroup"`      // optional group name or numeric gid for the socket file (filesystem sockets only)
+	DisableRateLimit      bool   `json:"disableRateLimit"` // turns off built-in auth route rate limiting and failed-login lockout (default false).
 }
 
 type Environment struct {
@@ -170,24 +178,25 @@ type Media struct {
 
 	Convert                  FfmpegConvert  `json:"convert"`                  // deprecated: config for ffmpeg conversion settings. deprecated: manage via the admin media settings API
 	Debug                    bool           `json:"debug"`                    // deprecated: output ffmpeg stdout for media integration. deprecated: manage via the admin media settings API
-	ExtractEmbeddedSubtitles bool           `json:"extractEmbeddedSubtitles"` // deprecated:extract embedded subtitles from media files. deprecated: manage via the admin media settings API
+	ExtractEmbeddedSubtitles bool `json:"extractEmbeddedSubtitles"` // deprecated: no longer configurable; embedded subtitles are always extracted
 	HardwareAcceleration     bool           `json:"hardwareAcceleration"`     // deprecated: enable hardware acceleration for ffmpeg if available. deprecated: manage via the admin media settings API
 	Transcode                MediaTranscode `json:"transcode"`                // deprecated: HLS transcoding for media playback. deprecated: manage via the admin media settings API
 
 	// AccelDevice selects the acceleration device: "auto" (default), "software"/"cpu",
 	// "igpu", "dgpu", a Linux DRM render node (e.g. /dev/dri/renderD128), or a GPU
 	// name substring. Managed via the admin media settings API.
-	AccelDevice string `json:"accelDevice"`
+	AccelDevice     string `json:"accelDevice"`     // deprecated: manage via the admin media settings API
+	AlwaysUseFfmpeg bool   `json:"alwaysUseFfmpeg"` // deprecated: manage via the admin media settings API
 }
 
 // MediaSettings holds the runtime (DB-backed) media integration settings.
 // FfmpegPath is config-only and intentionally excluded.
 type MediaSettings struct {
-	Convert                  FfmpegConvert  `json:"convert"`                  // config for ffmpeg conversion settings
-	Debug                    bool           `json:"debug"`                    // output ffmpeg stdout for media integration -- careful can produces lots of output!
-	ExtractEmbeddedSubtitles bool           `json:"extractEmbeddedSubtitles"` // extract embedded subtitles from media files
-	HardwareAcceleration     bool           `json:"hardwareAcceleration"`     // enable hardware acceleration for ffmpeg if available
-	AccelDevice              string         `json:"accelDevice"`              // acceleration device: "auto", "software"/"cpu", "igpu", "dgpu", a DRM render node, or a GPU name substring
+	Convert              FfmpegConvert `json:"convert"`              // config for ffmpeg conversion settings
+	Debug                bool          `json:"debug"`                // output ffmpeg stdout for media integration -- careful can produces lots of output!
+	HardwareAcceleration bool          `json:"hardwareAcceleration"` // enable hardware acceleration for ffmpeg if available
+	AccelDevice          string        `json:"accelDevice"`          // acceleration device: "auto", "software"/"cpu", "igpu", "dgpu", a DRM render node, or a GPU name substring
+	AlwaysUseFfmpeg          bool           `json:"alwaysUseFfmpeg"`          // skip the go-media fast path and use ffmpeg for all probe, metadata, subtitle, and thumbnail work (default: false)
 	Transcode                MediaTranscode `json:"transcode"`                // HLS transcoding for media playback
 }
 

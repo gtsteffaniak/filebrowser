@@ -41,6 +41,12 @@ func frameQualityForLegacyMJPEGQScale(legacy int) int {
 // parseQuality interprets a quality string for go-ffmpeg ConvertHEIC / MJPEG encode.
 // Values 1–10 are treated as the legacy -q:v scale (only used internally by preview today).
 // Values 11–100 use the new frame quality scale. Invalid or empty input keeps the historical default.
+// PreviewQualityFromLegacyQScale maps preview's legacy "1"–"10" quality strings to
+// frame quality 1–100 (same mapping as ConvertHEICToJPEG / MJPEG encode).
+func PreviewQualityFromLegacyQScale(quality string) int {
+	return parseQuality(quality)
+}
+
 func parseQuality(quality string) int {
 	if quality == "" {
 		return frameQualityForLegacyMJPEGQScale(defaultLegacyMJPEGQScale)

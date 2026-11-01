@@ -26,9 +26,8 @@ func TestMediaAccessorsReflectRuntimeSettings(t *testing.T) {
 	t.Cleanup(func() { Config.Integrations.Media.Transcode = originalTranscode })
 
 	ApplyMediaSettings(MediaSettings{
-		Debug:                    true,
-		ExtractEmbeddedSubtitles: true,
-		HardwareAcceleration:     true,
+		Debug:                true,
+		HardwareAcceleration: true,
 		Transcode: MediaTranscode{
 			Enabled:              true,
 			MaxConcurrent:        4,
@@ -41,9 +40,6 @@ func TestMediaAccessorsReflectRuntimeSettings(t *testing.T) {
 
 	if !MediaDebugEnabled() {
 		t.Fatal("debug accessor did not reflect the applied setting")
-	}
-	if !ExtractEmbeddedSubtitlesEnabled() {
-		t.Fatal("subtitle accessor did not reflect the applied setting")
 	}
 	if !HardwareAccelerationEnabled() {
 		t.Fatal("hardware accessor did not reflect the applied setting")
@@ -259,9 +255,8 @@ func TestMediaAccessorsAreRaceFree(t *testing.T) {
 				_ = CanConvertImage("heic")
 				_ = CanConvertVideo("mp4")
 				_ = CurrentMediaSettings()
-				_ = MediaEnabled()
+				_ = FFmpegEnabled()
 				_ = HardwareAccelerationSupported()
-				_ = ExtractEmbeddedSubtitlesEnabled()
 				_ = HardwareAccelerationEnabled()
 			}
 		}()

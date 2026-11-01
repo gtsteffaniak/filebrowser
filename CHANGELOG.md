@@ -4,19 +4,54 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v2.2.0
  **New Features**:
- - Authenticated HLS transcoding for media playback with quality presets (quality / balanced / data saver), including stream-copy of browser-compatible sources, realtime-paced ffmpeg jobs, and a size/retention-managed segment cache.
- - Seeking ahead of the transcoded region now restarts the transcode at the seek position instead of stalling; short skipped fragments are discarded automatically.
- - Fixed the player timeline for mid-file transcode sessions: the playhead and seekable range now reflect the true source position instead of starting at 0.
- - Seeks inside a completed transcode generation now happen in place — the player treats the whole produced playlist as servable instead of clamping to the buffered window or needlessly restarting the transcode.
- - Fixed the seek bar dead on completed transcode sessions: pinning the element duration prevented hls.js from setting the MediaSource duration, which left `seekable` empty so the browser discarded every seek.
- - Media settings: acceleration device selector (CPU / auto / detected GPU devices) and per-preset encoder backend overrides, replacing the hardware acceleration toggle.
-- Transcoding producer rate limit now defaults to 2× realtime; the rate-limit burst and catch-up overrides were removed so ffmpeg's defaults apply.
+ - Media enhancements
+   - All server media settings can be managed in settings by admins.
+   - Transcoding for media playback with quality presets -- requires ffmpeg.
+   - Hardware Acceleration device selector (Software / detected GPU devices)
+   - More operations use native api operations rather than ffmpeg, improving performance in many cases. Added temporary config option to force ffmpeg to be used
+   - Running without ffmpeg can still view metadata and create thumbnails for many common file formats.
+  # office previews can use embedded thumbnail if possible
+  # text file previews are more efficient direct creation
 
  **Bug Fixes**:
  - Closing a video preview from the header bar now stops playback immediately instead of leaving audio running in the background.
  - Closing a preview no longer navigates back to the same file when a stale "previous item" was remembered from an earlier navigation.
  - Transcoding recovers from unreliable hardware decoding without discarding the segments already produced: the retry resumes at the encode head with software decode instead of wiping the generation and re-encoding from the start.
  - The player no longer aborts a segment request after 10 seconds while the transcode producer is repositioning or restarting, which previously surfaced as a 503 and a skipped segment.
+ - getDirectoryPreview no longer requests metadata, so folder previews skip the per-file probe and subtitle scan.
+ - Media probes are cached by file identity and concurrent reads are coalesced, so opening a file no longer triggers repeated ffprobe runs.
+ - Client-initiated stream cancels (seek/navigation) no longer log spurious write-error responses.
+
+## v2.1.4
+
+ **Security**:
+ - [Low] `GET /api/settings` and `GET /api/settings?property=auth` no longer return cleartext secrets (`auth.key`, `totpSecret`, `adminPassword`, OIDC `clientSecret`, LDAP bind password, recaptcha secret, OnlyOffice secret); secret fields are replaced with `**hidden**` in the response, and the YAML export now redacts the recaptcha and LDAP secrets whose comments lacked the `secret:` marker (GHSA-892f-9h5p-mfc8) reporter @paulmossman
+
+ **New Features**:
+ - feat(search): sidebar File actions and close button in advanced search (#3303) (#2479) (#3303)
+
+ **Bug Fixes**:
+ - Deleting a directory now releases folder quotas rooted inside it instead of leaving them charged for files that no longer exist; applies to API and WebDAV deletes (#3163) (#3235)
+ - Bulk and public share deletes now release accounted quota usage; nested folder quotas reset when an ancestor is removed (#3163) (#3305)
+ - Directory listings skip entries that return permission denied or not-found on per-entry stat instead of failing the whole folder (e.g. unreadable NTFS junctions on CIFS); skipped entries are omitted from the index like `ls -l` (#3184)
+ - Preview generation for webp broken (#3254) (#3259)
+ - Share banner never shows to public visitors, returns bannerUrl but not banner (#3246) (#3250)
+ - fix html/markdown relative file preview support (#3131) (#3129) (#2355)
+ - fix(archive): extract tar hard links instead of dropping them (#3234)
+ - fix(auth): apply stored permission caps for customized API tokens with no global flags enabled (#3255)
+ - Archive extraction writes regular and hard-link entries at the entry path instead of following an existing symlink at that path (tar and zip) (#3265)
+ - fix(move-copy): require choosing a destination source in advanced search when none can be inferred, instead of silently copying to the source root (#3276)
+ - fix(stream): single-file shares can now stream their own media on Windows by using slash-based path handling (#3270) (#3271)
+ - fix(users): `lockPassword` is now enforced on self-service password changes; non-admins get 403 while admin resets still work (#3279) (#3283)
+ - fix(analytics): the FreeBSD release binary now reports `freebsd` in `system.os` instead of `other` (#3244) (#3284)
+ - fix(frontend): share expiration now reads backend Unix-seconds timestamps correctly instead of showing dates decades off (#3247)
+ - fix(frontend): video on iPhone now uses the native fullscreen player instead of the in-page fallback (#3113) (#3288)
+ - fix(frontend): the video loading spinner no longer stays on for the rest of playback when the fetch stalls but the buffer can continue (#3287) (#3289)
+ - fix(frontend): the share banner is now shown to public visitors, using `bannerUrl` instead of the never-set `banner` field (#3246) (#3250)
+ - fix(preview): camera RAW files (Panasonic `.rw2`/`.raw`/`.rwl`, Olympus `.orf`, `.cr2`/`.dng`) extract embedded previews from TIFF strips/SubIFDs and no longer return 415 when EXIF decoding fails (#3219) (#3243)
+ - fix(indexing): restore lazy listing persistence with atomic folder-size deltas and ancestor propagation, and force a full scan for scanners that missed their slot while the process was down (#3260)
+ - fix(indexing): directory listings skip entries that cannot be accessed or have vanished instead of failing the whole listing; remaining errors still fail and fully-vanished nonempty directories return an error (#3292)
+ - fix(frontend): redirects from `/files` stay inside the files area so a source named "Files" no longer leaves an empty view after login (#3167) (#3304)
 
 ## v2.1.3
 

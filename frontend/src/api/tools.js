@@ -88,8 +88,9 @@ export async function search(base, sources, query, largest = false, extraParams 
     return data;
   } catch (err) {
     // Aborted/superseded searches are expected; don't surface them as errors.
+    // Callers may also pass suppressNotify to report errors themselves.
     const aborted = extraParams?.signal?.aborted || err?.name === "AbortError";
-    if (!aborted) {
+    if (!aborted && !extraParams?.suppressNotify) {
       notify.showError(err.message || "Error occurred during search");
     }
     throw err;

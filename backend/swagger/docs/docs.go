@@ -800,6 +800,11 @@ const docTemplate = `{
         },
         "/api/auth/otp/generate": {
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Generates a new TOTP secret and QR code for the authenticated user. The password must be URL-encoded and sent in the X-Password header to support special characters.",
                 "consumes": [
                     "application/json"
@@ -846,16 +851,16 @@ const docTemplate = `{
                             }
                         }
                     }
-                },
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ]
+                }
             }
         },
         "/api/auth/otp/verify": {
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Verifies the provided TOTP code for the authenticated user. The password must be URL-encoded and sent in the X-Password header to support special characters.",
                 "consumes": [
                     "application/json"
@@ -906,12 +911,7 @@ const docTemplate = `{
                             }
                         }
                     }
-                },
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ]
+                }
             }
         },
         "/api/auth/password/change-required": {
@@ -1824,6 +1824,11 @@ const docTemplate = `{
         },
         "/api/office/callback": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Receives callbacks from OnlyOffice document server for document status changes and saves",
                 "consumes": [
                     "application/json"
@@ -1881,14 +1886,14 @@ const docTemplate = `{
                             }
                         }
                     }
-                },
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ]
+                }
             },
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Receives callbacks from OnlyOffice document server for document status changes and saves",
                 "consumes": [
                     "application/json"
@@ -1946,16 +1951,16 @@ const docTemplate = `{
                             }
                         }
                     }
-                },
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ]
+                }
             }
         },
         "/api/office/config": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Returns the configuration needed for OnlyOffice document editor client",
                 "consumes": [
                     "application/json"
@@ -2013,12 +2018,7 @@ const docTemplate = `{
                             }
                         }
                     }
-                },
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ]
+                }
             }
         },
         "/api/resources": {
@@ -4115,6 +4115,11 @@ const docTemplate = `{
         },
         "/api/wopi/session": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Returns the editor URL and the access token the browser posts to it.",
                 "produces": [
                     "application/json"
@@ -4182,12 +4187,7 @@ const docTemplate = `{
                             }
                         }
                     }
-                },
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ]
+                }
             }
         },
         "/public/api/media/lyrics": {
@@ -6132,6 +6132,14 @@ const docTemplate = `{
                     "description": "socket to listen on - eg. /var/run/filebrowser.sock",
                     "type": "string"
                 },
+                "socketFileMode": {
+                    "description": "octal mode for filesystem http.socket (default \"0660\"); ignored for abstract sockets",
+                    "type": "string"
+                },
+                "socketGroup": {
+                    "description": "optional group name or numeric gid for the socket file (filesystem sockets only)",
+                    "type": "string"
+                },
                 "tlsCert": {
                     "description": "path to TLS cert",
                     "type": "string"
@@ -6143,6 +6151,26 @@ const docTemplate = `{
                 "trustProxyHeaders": {
                     "description": "honor X-Forwarded-* and X-Real-IP from a reverse proxy (default: false)",
                     "type": "boolean"
+                },
+                "trustedProxies": {
+                    "description": "IPs/CIDRs of trusted proxies; forwarded client headers are only honored when the socket peer matches one of these (default: empty = forwarded headers ignored)",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "unixSocketTrustedGIDs": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "unixSocketTrustedUIDs": {
+                    "description": "UnixSocketTrustedUIDs and UnixSocketTrustedGIDs list peer credentials (Linux SO_PEERCRED) allowed to\npresent X-Forwarded-* on a filesystem http.socket listener. When both are empty, forwarded headers\nare not trusted on Unix sockets. Abstract sockets (@name) never trust forwarded headers.",
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
                 }
             }
         },
@@ -6298,7 +6326,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "userPassword": {
-                    "description": "Bind password for service account",
+                    "description": "secret: bind password for the LDAP service account",
                     "type": "string"
                 }
             }
@@ -6370,6 +6398,10 @@ const docTemplate = `{
                     "description": "AccelDevice selects the acceleration device: \"auto\" (default), \"software\"/\"cpu\",\n\"igpu\", \"dgpu\", a Linux DRM render node (e.g. /dev/dri/renderD128), or a GPU\nname substring. Managed via the admin media settings API.",
                     "type": "string"
                 },
+                "alwaysUseFfmpeg": {
+                    "description": "deprecated: manage via the admin media settings API",
+                    "type": "boolean"
+                },
                 "convert": {
                     "description": "deprecated: config for ffmpeg conversion settings. deprecated: manage via the admin media settings API",
                     "allOf": [
@@ -6383,7 +6415,7 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "extractEmbeddedSubtitles": {
-                    "description": "deprecated:extract embedded subtitles from media files. deprecated: manage via the admin media settings API",
+                    "description": "deprecated: no longer configurable; embedded subtitles are always extracted",
                     "type": "boolean"
                 },
                 "ffmpegPath": {
@@ -6683,7 +6715,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "secret": {
-                    "description": "v2 secret key",
+                    "description": "secret: v2 secret key",
                     "type": "string"
                 }
             }
@@ -6865,9 +6897,6 @@ const docTemplate = `{
                 },
                 "enforceDarkLightMode": {
                     "type": "string"
-                },
-                "extractEmbeddedSubtitles": {
-                    "type": "boolean"
                 },
                 "favicon": {
                     "type": "string"
@@ -7433,9 +7462,6 @@ const docTemplate = `{
                 "expire": {
                     "type": "integer"
                 },
-                "extractEmbeddedSubtitles": {
-                    "type": "boolean"
-                },
                 "favicon": {
                     "type": "string"
                 },
@@ -7610,9 +7636,6 @@ const docTemplate = `{
                 "expires": {
                     "type": "string"
                 },
-                "extractEmbeddedSubtitles": {
-                    "type": "boolean"
-                },
                 "favicon": {
                     "type": "string"
                 },
@@ -7777,9 +7800,6 @@ const docTemplate = `{
                 },
                 "expires": {
                     "type": "string"
-                },
-                "extractEmbeddedSubtitles": {
-                    "type": "boolean"
                 },
                 "favicon": {
                     "type": "string"
@@ -8729,6 +8749,10 @@ const docTemplate = `{
                         "$ref": "#/definitions/ffmpeg.AccelDeviceOption"
                     }
                 },
+                "alwaysUseFfmpeg": {
+                    "description": "skip the go-media fast path and use ffmpeg for all probe, metadata, subtitle, and thumbnail work (default: false)",
+                    "type": "boolean"
+                },
                 "convert": {
                     "description": "config for ffmpeg conversion settings",
                     "allOf": [
@@ -8746,10 +8770,6 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/ffmpeg.EncoderBackendOption"
                     }
-                },
-                "extractEmbeddedSubtitles": {
-                    "description": "extract embedded subtitles from media files",
-                    "type": "boolean"
                 },
                 "hardwareAcceleration": {
                     "description": "enable hardware acceleration for ffmpeg if available",

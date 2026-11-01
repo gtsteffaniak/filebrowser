@@ -36,6 +36,15 @@ const test = {
   exclude: ["src/**/*.vue"],
   environment: "jsdom",
   setupFiles: "tests/mocks/setup.js",
+  // The app's [transcode] diagnostics log via console.info/warn/error, which floods
+  // the reporter with stdout/stderr blocks even when every test passes. Keep those
+  // logs only for failing tests so real failures stay debuggable.
+  silent: "passed-only" as const,
+  // jsdom setup and per-file worker startup dominate the run, so Vitest suggests a
+  // `vm` pool or `isolate: false`. Both break this suite (tests rely on per-file
+  // module state and on redefining `globalThis.location`), so opt out of those two
+  // inapplicable suggestions rather than adopt changes that fail tests.
+  experimental: { diagnostics: { environment: false, isolate: false } },
 };
 
 const chunks: Record<string, string[]> = {

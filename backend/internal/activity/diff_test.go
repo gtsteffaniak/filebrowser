@@ -141,6 +141,14 @@ func TestUserUpdateChangesExpandsNestedStructFields(t *testing.T) {
 	}
 }
 
+// Mock source paths used only as lookup keys in tests. They never touch the
+// filesystem. They are relative (and not equal to the source names) so the
+// tests are portable across machines.
+const (
+	testDownloadsPath = "./testdata/Downloads"
+	testAccessPath    = "./testdata/playwright-files"
+)
+
 type activityChangePair struct {
 	from string
 	to   string
@@ -150,9 +158,9 @@ func testDownloadsSourceConfig() *users.SourceConfigProvider {
 	return &users.SourceConfigProvider{
 		GetSourceByPath: func(path string) (users.SourceInfo, bool) {
 			switch path {
-			case "/Users/steffag/Downloads":
+			case testDownloadsPath:
 				return users.SourceInfo{Path: path, Name: "Downloads"}, true
-			case "/Users/steffag/git/personal/filebrowser/frontend/tests/playwright-files":
+			case testAccessPath:
 				return users.SourceInfo{Path: path, Name: "access"}, true
 			default:
 				return users.SourceInfo{}, false
@@ -229,8 +237,8 @@ func TestUserUpdateChangesExpandsPreviewBulkToggle(t *testing.T) {
 func TestUserUpdateChangesExpandsBackendSourcePermissions(t *testing.T) {
 	withTestSourceConfig(t, testDownloadsSourceConfig())
 
-	downloadsPath := "/Users/steffag/Downloads"
-	accessPath := "/Users/steffag/git/personal/filebrowser/frontend/tests/playwright-files"
+	downloadsPath := testDownloadsPath
+	accessPath := testAccessPath
 	beforePerms := users.MarkSourceFilePermissionsConfigured(users.SourceFilePermissions{
 		View: true, Download: true,
 	})
@@ -274,8 +282,8 @@ func TestUserUpdateChangesExpandsBackendSourcePermissions(t *testing.T) {
 func TestUserUpdateChangesExpandsScopePermissions(t *testing.T) {
 	withTestSourceConfig(t, testDownloadsSourceConfig())
 
-	downloadsPath := "/Users/steffag/Downloads"
-	accessPath := "/Users/steffag/git/personal/filebrowser/frontend/tests/playwright-files"
+	downloadsPath := testDownloadsPath
+	accessPath := testAccessPath
 	basePerms := users.MarkSourceFilePermissionsConfigured(users.SourceFilePermissions{
 		View: true, Download: true,
 	})
@@ -353,9 +361,9 @@ func TestSidebarLinksFieldChangeIgnoresPathVsName(t *testing.T) {
 	withTestSourceConfig(t, &users.SourceConfigProvider{
 		GetSourceByPath: func(path string) (users.SourceInfo, bool) {
 			switch path {
-			case "/Users/steffag/Downloads":
+			case testDownloadsPath:
 				return users.SourceInfo{Path: path, Name: "Downloads"}, true
-			case "/Users/steffag/git/personal/filebrowser/frontend/tests/playwright-files":
+			case testAccessPath:
 				return users.SourceInfo{Path: path, Name: "access"}, true
 			default:
 				return users.SourceInfo{}, false
@@ -364,9 +372,9 @@ func TestSidebarLinksFieldChangeIgnoresPathVsName(t *testing.T) {
 		GetSourceByName: func(name string) (users.SourceInfo, bool) {
 			switch name {
 			case "Downloads":
-				return users.SourceInfo{Path: "/Users/steffag/Downloads", Name: "Downloads"}, true
+				return users.SourceInfo{Path: testDownloadsPath, Name: "Downloads"}, true
 			case "access":
-				return users.SourceInfo{Path: "/Users/steffag/git/personal/filebrowser/frontend/tests/playwright-files", Name: "access"}, true
+				return users.SourceInfo{Path: testAccessPath, Name: "access"}, true
 			default:
 				return users.SourceInfo{}, false
 			}
@@ -380,8 +388,8 @@ func TestSidebarLinksFieldChangeIgnoresPathVsName(t *testing.T) {
 				ShowToolsInSidebar: true,
 				SidebarLinks: []users.SidebarLink{
 					toolsLink,
-					{Name: "Downloads", Category: "source", Target: "/", SourceName: "/Users/steffag/Downloads"},
-					{Name: "access", Category: "source", Target: "/", SourceName: "/Users/steffag/git/personal/filebrowser/frontend/tests/playwright-files"},
+					{Name: "Downloads", Category: "source", Target: "/", SourceName: testDownloadsPath},
+					{Name: "access", Category: "source", Target: "/", SourceName: testAccessPath},
 				},
 			},
 		},

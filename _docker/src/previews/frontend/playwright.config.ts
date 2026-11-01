@@ -13,23 +13,20 @@ export default defineConfig({
   globalSetup: "./tests/playwright/previews-setup",
   timeout: 10000,
   testDir: "./tests/playwright/previews",
-  /* Run tests in files in parallel */
-  fullyParallel: true,
-  /* Fail the build on CI if you accidentally left test.only in the source code. */
+  fullyParallel: false,
   forbidOnly: false,
-  /* Retry on CI only */
   retries: 2,
   workers: 10,
   reporter: "line",
-  /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     launchOptions: {
       args: [
-        '--disable-gpu',
-        '--use-gl=swiftshader',  // CPU-based WebGL renderer built into Chromium
-        '--enable-webgl',
-        '--disable-dev-shm-usage',  // Overcome limited resource problems in Docker
-        '--no-sandbox',  // Required for Docker
+        "--autoplay-policy=no-user-gesture-required",
+        "--disable-gpu",
+        "--use-gl=swiftshader",
+        "--enable-webgl",
+        "--disable-dev-shm-usage",
+        "--no-sandbox",
       ],
     },
     storageState: "previews.json",

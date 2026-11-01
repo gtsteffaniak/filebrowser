@@ -423,8 +423,6 @@
     "perUserDownloadLimit": "Anwenden des Download-Limits auf jeden Benutzer",
     "perUserDownloadLimitDescription": "Wenn diese Option aktiviert ist, wird das Download-Limit auf jeden Benutzer angewendet. Anonyme Benutzer können keine Dateien von dieser Freigabe herunterladen.",
     "descriptionUploadDefault": "Sie haben eine Freigabe zum Hochladen von Dateien erhalten.",
-    "extractEmbeddedSubtitles": "Eingebettete Untertitel extrahieren",
-    "extractEmbeddedSubtitlesDescription": "Extrahieren von eingebetteten Untertiteln aus Mediendateien beim Laden - dies kann bei großen Dateien langsam sein.",
     "disableDownload": "Herunterladen von Dateien deaktivieren",
     "disableDownloadDescription": "Niemand wird in der Lage sein, Dateien herunterzuladen oder den Inhalt einer Datei einzusehen.",
     "allowModify": "Bearbeitung von Dateien zulassen",
@@ -1224,8 +1222,6 @@
     }
   },
   "media": {
-    "extractEmbeddedSubtitles": "Eingebettete Untertitel extrahieren",
-    "extractEmbeddedSubtitlesDescription": "Eingebettete Untertitel aus Mediendateien extrahieren.",
     "debug": "Debug-Protokollierung",
     "debugDescription": "ffmpeg-Standardausgabe für die Medienintegration. Warnung: Es entsteht eine große Datenmenge an Ausgabe.",
     "imagePreview": "Formate für Bildvorschauen",
@@ -1259,6 +1255,8 @@
     "accelDevice": "Beschleunigungsvorrichtung",
     "accelDeviceDescription": "GPU-Gerät, das für die hardwarebeschleunigte Medienverarbeitung verwendet wird. Die CPU (Software) deaktiviert die Hardwarebeschleunigung.",
     "encoderBackend": "Encoder-Backend",
-    "transcodeProfileEncoderBackendHelp": "Encoder-Backend für diese Voreinstellung; standardmäßig wird das erkannte bevorzugte Backend verwendet."
+    "transcodeProfileEncoderBackendHelp": "Encoder-Backend für diese Voreinstellung; standardmäßig wird das erkannte bevorzugte Backend verwendet.",
+    "alwaysUseFfmpeg": "Verwende immer ffmpeg",
+    "alwaysUseFfmpegDescription": "Überspringen Sie den „go-media“-Schnellpfad und verwenden Sie ffmpeg für alle Abfragen, Metadaten, Untertitel und Video-Miniaturansichten. Aktivieren Sie diese Option, wenn „go-media“ für Ihre Dateien falsche Ergebnisse liefert."
   }
 }

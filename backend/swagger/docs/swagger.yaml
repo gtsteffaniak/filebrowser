@@ -489,6 +489,14 @@ definitions:
       socket:
         description: socket to listen on - eg. /var/run/filebrowser.sock
         type: string
+      socketFileMode:
+        description: octal mode for filesystem http.socket (default "0660"); ignored
+          for abstract sockets
+        type: string
+      socketGroup:
+        description: optional group name or numeric gid for the socket file (filesystem
+          sockets only)
+        type: string
       tlsCert:
         description: path to TLS cert
         type: string
@@ -499,6 +507,25 @@ definitions:
         description: 'honor X-Forwarded-* and X-Real-IP from a reverse proxy (default:
           false)'
         type: boolean
+      trustedProxies:
+        description: 'IPs/CIDRs of trusted proxies; forwarded client headers are only
+          honored when the socket peer matches one of these (default: empty = forwarded
+          headers ignored)'
+        items:
+          type: string
+        type: array
+      unixSocketTrustedGIDs:
+        items:
+          type: integer
+        type: array
+      unixSocketTrustedUIDs:
+        description: |-
+          UnixSocketTrustedUIDs and UnixSocketTrustedGIDs list peer credentials (Linux SO_PEERCRED) allowed to
+          present X-Forwarded-* on a filesystem http.socket listener. When both are empty, forwarded headers
+          are not trusted on Unix sockets. Abstract sockets (@name) never trust forwarded headers.
+        items:
+          type: integer
+        type: array
     type: object
   settings.IndexSqlConfig:
     properties:
@@ -627,7 +654,7 @@ definitions:
           "phone"
         type: string
       userPassword:
-        description: Bind password for service account
+        description: 'secret: bind password for the LDAP service account'
         type: string
     type: object
   settings.LogConfig:
@@ -682,6 +709,9 @@ definitions:
           "igpu", "dgpu", a Linux DRM render node (e.g. /dev/dri/renderD128), or a GPU
           name substring. Managed via the admin media settings API.
         type: string
+      alwaysUseFfmpeg:
+        description: 'deprecated: manage via the admin media settings API'
+        type: boolean
       convert:
         allOf:
         - $ref: '#/definitions/settings.FfmpegConvert'
@@ -692,8 +722,8 @@ definitions:
           manage via the admin media settings API'
         type: boolean
       extractEmbeddedSubtitles:
-        description: 'deprecated:extract embedded subtitles from media files. deprecated:
-          manage via the admin media settings API'
+        description: 'deprecated: no longer configurable; embedded subtitles are always
+          extracted'
         type: boolean
       ffmpegPath:
         description: path to ffmpeg directory with ffmpeg and ffprobe (eg. /usr/local/bin)
@@ -929,7 +959,7 @@ definitions:
         description: v2 site key
         type: string
       secret:
-        description: v2 secret key
+        description: 'secret: v2 secret key'
         type: string
     required:
     - host
@@ -1060,8 +1090,6 @@ definitions:
         type: boolean
       enforceDarkLightMode:
         type: string
-      extractEmbeddedSubtitles:
-        type: boolean
       favicon:
         type: string
       hideFileExt:
@@ -1470,8 +1498,6 @@ definitions:
         type: string
       expire:
         type: integer
-      extractEmbeddedSubtitles:
-        type: boolean
       favicon:
         type: string
       faviconUrl:
@@ -1589,8 +1615,6 @@ definitions:
         type: integer
       expires:
         type: string
-      extractEmbeddedSubtitles:
-        type: boolean
       favicon:
         type: string
       faviconUrl:
@@ -1702,8 +1726,6 @@ definitions:
         type: string
       expires:
         type: string
-      extractEmbeddedSubtitles:
-        type: boolean
       favicon:
         type: string
       faviconUrl:
@@ -2377,6 +2399,10 @@ definitions:
         items:
           $ref: '#/definitions/ffmpeg.AccelDeviceOption'
         type: array
+      alwaysUseFfmpeg:
+        description: 'skip the go-media fast path and use ffmpeg for all probe, metadata,
+          subtitle, and thumbnail work (default: false)'
+        type: boolean
       convert:
         allOf:
         - $ref: '#/definitions/settings.FfmpegConvert'
@@ -2389,9 +2415,6 @@ definitions:
         items:
           $ref: '#/definitions/ffmpeg.EncoderBackendOption'
         type: array
-      extractEmbeddedSubtitles:
-        description: extract embedded subtitles from media files
-        type: boolean
       hardwareAcceleration:
         description: enable hardware acceleration for ffmpeg if available
         type: boolean

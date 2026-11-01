@@ -536,8 +536,8 @@ func ApplicableFolderQuotas(sourcePath, destIndexPath string, principalUserID ui
 }
 
 type reserveApplyPlan struct {
-	chk         QuotaReserveCheck
-	existingIdx int
+	chk          QuotaReserveCheck
+	existingIdx  int
 	counterDelta int64
 }
 
@@ -715,6 +715,98 @@ func ForceCommitSessionQuota(sessionID string, deltaBytes int64) error {
 	return nil
 }
 
+// DeleteAdjustments holds accounted quota updates to apply after a successful delete.
+type DeleteAdjustments struct {
+	Deltas map[string]int64
+	Resets []string
+}
+
+// PrepareAccountedDelete captures quota adjustments while deleted paths are still indexed.
+// Folder quotas rooted inside a deleted directory are reset; covering quotas use itemBytes.
+func PrepareAccountedDelete(principal *users.User, sourceName, sourcePath, indexPath, shareHash string, isDir bool, itemBytes int64) DeleteAdjustments {
+	adj := DeleteAdjustments{Deltas: make(map[string]int64)}
+	if principal == nil {
+		return adj
+	}
+	indexPath = normalizeQuotaPath(indexPath)
+	for _, fq := range ListFolderQuotasForSource(sourcePath) {
+		if fq.LimitBytes <= 0 || (fq.UserID != 0 && fq.UserID != principal.ID) {
+			continue
+		}
+		if isDir && indexPathCovers(indexPath, fq.Path) {
+			if quota.EffectiveMeter(configuredFolderMeter(fq), sourceName, fq.Path) != quota.MeterAccounted {
+				continue
+			}
+			adj.Resets = append(adj.Resets, fq.ID)
+			continue
+		}
+		if !indexPathCovers(fq.Path, indexPath) {
+			continue
+		}
+		if quota.EffectiveMeter(configuredFolderMeter(fq), sourceName, fq.Path) != quota.MeterAccounted {
+			continue
+		}
+		if itemBytes > 0 {
+			adj.Deltas[fq.ID] = -itemBytes
+		}
+	}
+	if itemBytes > 0 {
+		for _, id := range accountedScopeQuotaIDs(principal, sourceName, sourcePath) {
+			adj.Deltas[id] = -itemBytes
+		}
+		if shareHash != "" {
+			adj.Deltas[quota.ShareQuotaID(shareHash)] = -itemBytes
+		}
+	}
+	return adj
+}
+
+// ApplyAccountedDelete applies prepared adjustments only after a successful deletion.
+func ApplyAccountedDelete(adj DeleteAdjustments) error {
+	quotasMux.Lock()
+	defer quotasMux.Unlock()
+	defer signalQuotaFlush()
+	for id, delta := range adj.Deltas {
+		if err := applyCounterDeltaLocked(id, delta); err != nil {
+			return err
+		}
+	}
+	for _, id := range adj.Resets {
+		if err := resetAccountedUsageLocked(id); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func resetAccountedUsageLocked(quotaID string) error {
+	if err := ensureQuotaCounterMemLocked(quotaID); err != nil {
+		return err
+	}
+	c := quotaCounters[quotaID]
+	c.UsedBytes = 0
+	c.Dirty = true
+	markQuotaCounterDirty(quotaID)
+	return nil
+}
+
+func accountedScopeQuotaIDs(principal *users.User, sourceName, sourcePath string) []string {
+	var ids []string
+	for _, bs := range principal.BackendScopes {
+		if bs.Path != sourcePath || bs.Quota == nil || bs.Quota.LimitBytes <= 0 {
+			continue
+		}
+		configured := bs.Quota.Meter
+		if configured == "" {
+			configured = quota.MeterIndexScope
+		}
+		if quota.EffectiveMeter(configured, sourceName, scopeIndexPath(principal, sourceName)) == quota.MeterAccounted {
+			ids = append(ids, bs.Quota.ID)
+		}
+	}
+	return ids
+}
+
 // ApplyAccountedUsageDelta adjusts accounted and share quota counters for a path (negative delta frees space).
 func ApplyAccountedUsageDelta(principal *users.User, sourceName, sourcePath, indexPath, shareHash string, delta int64) error {
 	if delta == 0 || principal == nil {
@@ -735,21 +827,8 @@ func ApplyAccountedUsageDelta(principal *users.User, sourceName, sourcePath, ind
 		}
 	}
 
-	for _, bs := range principal.BackendScopes {
-		if bs.Path != sourcePath || bs.Quota == nil || bs.Quota.LimitBytes <= 0 {
-			continue
-		}
-		sq := bs.Quota
-		configured := sq.Meter
-		if configured == "" {
-			configured = quota.MeterIndexScope
-		}
-		scopePath := scopeIndexPath(principal, sourceName)
-		effective := quota.EffectiveMeter(configured, sourceName, scopePath)
-		if effective != quota.MeterAccounted {
-			continue
-		}
-		if err := applyCounterDeltaLocked(sq.ID, delta); err != nil {
+	for _, id := range accountedScopeQuotaIDs(principal, sourceName, sourcePath) {
+		if err := applyCounterDeltaLocked(id, delta); err != nil {
 			return err
 		}
 	}

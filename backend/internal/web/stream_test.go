@@ -197,7 +197,7 @@ func TestValidateViewGrantShareBinding(t *testing.T) {
 	}
 	t.Cleanup(func() { settings.Config.Server.SourceMap = nil })
 	d := &requestContext{
-		User:  testUserWithView(1, "srv"),
+		User: testUserWithView(1, "srv"),
 		Share: share.Share{
 			ShareColumns: share.ShareColumns{Hash: "abc123"},
 			SourcePath:   "/srv",
@@ -215,7 +215,7 @@ func TestValidateViewGrantShareBinding(t *testing.T) {
 		t.Fatalf("ValidateViewGrant: %v", err)
 	}
 	wrongShare := &requestContext{
-		User:  testUserWithView(1, "srv"),
+		User: testUserWithView(1, "srv"),
 		Share: share.Share{
 			ShareColumns: share.ShareColumns{Hash: "other"},
 			SourcePath:   "/srv",

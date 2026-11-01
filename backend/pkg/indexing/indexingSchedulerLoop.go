@@ -33,6 +33,14 @@ func computeNextSlotTime(lastScanned, ref time.Time, interval time.Duration) tim
 	return alignCeilToInterval(minNext, interval)
 }
 
+// scannerMissedAlignedSlot reports whether at least one aligned scan slot after
+// lastScanned has passed before now (e.g. process was down across a due time).
+func scannerMissedAlignedSlot(lastScanned, now time.Time, tier int) bool {
+	d := scanScheduleDuration(tier)
+	due := computeNextSlotTime(lastScanned, lastScanned, d)
+	return due.Before(now)
+}
+
 func (idx *Index) removeScannerFromSlotLocked(s *Scanner) {
 	sec := s.calendarSlotSec
 	if sec == 0 {
@@ -145,6 +153,13 @@ func (idx *Index) restoreScannerNextRuns() {
 			d := scanScheduleDuration(tier)
 			next = computeNextSlotTime(s.lastScanned, now, d)
 			s.nextRun = next
+			if scannerMissedAlignedSlot(s.lastScanned, now, tier) {
+				// This scanner missed at least one aligned slot while the process
+				// was down. In-place file edits update file mtimes but not their
+				// parent directory mtime, so quick scans cannot see them — force
+				// the first run after restart to be a full scan.
+				s.fullScanCounter = 0
+			}
 		})
 		if !next.IsZero() {
 			idx.registerScannerNextRun(s, next)
@@ -197,6 +212,9 @@ func (idx *Index) pruneGoneChildScanners() {
 func (idx *Index) needsAdaptiveBootstrap() bool {
 	idx.mu.RLock()
 	defer idx.mu.RUnlock()
+	if idx.startupScanPending {
+		return true
+	}
 	for _, s := range idx.scanners {
 		if s.lastScanned.IsZero() {
 			return true
@@ -231,6 +249,10 @@ func (idx *Index) runSerialScanPass() {
 			s.removeSelf()
 			continue
 		}
+		// Folder sizes are not restored in this pass, so run a full scan.
+		s.withStatsLock(func() {
+			s.fullScanCounter = 0
+		})
 		s.executeScan()
 	}
 }
@@ -239,6 +261,9 @@ func (idx *Index) schedulerAdaptiveTick() {
 	idx.pruneGoneChildScanners()
 	if idx.needsAdaptiveBootstrap() {
 		logger.Debugf("[%s] scheduler: adaptive bootstrap (serial pass all scanners)", idx.Name)
+		idx.mu.Lock()
+		idx.startupScanPending = false
+		idx.mu.Unlock()
 		idx.runSerialScanPass()
 		return
 	}

@@ -418,21 +418,6 @@
           @update:enforced="(v) => emitEnforced('perUserDownloadLimit', v)"
         />
         <ToggleSwitch
-          v-if="modelValue.shareType === 'normal'"
-          class="item"
-          :model-value="modelValue.extractEmbeddedSubtitles"
-          :name="$t('share.extractEmbeddedSubtitles')"
-          :description="$t('share.extractEmbeddedSubtitlesDescription')"
-          :disabled="fieldDisabled('extractEmbeddedSubtitles')"
-          :enforceable="enforceable"
-          :enforced="enforcedFlag('extractEmbeddedSubtitles')"
-          :enforcement-disabled="enforcementDisabled('extractEmbeddedSubtitles')"
-          :enforcement-locked="isEnforcementLocked('extractEmbeddedSubtitles')"
-          :value-tooltip="enforcementLockTooltip('extractEmbeddedSubtitles')"
-          @update:model-value="setField('extractEmbeddedSubtitles', $event)"
-          @update:enforced="(v) => emitEnforced('extractEmbeddedSubtitles', v)"
-        />
-        <ToggleSwitch
           class="item"
           :model-value="modelValue.disableLoginOption"
           :name="$t('share.disableLoginOption')"

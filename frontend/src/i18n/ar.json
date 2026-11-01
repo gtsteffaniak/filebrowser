@@ -423,8 +423,6 @@
     "perUserDownloadLimit": "تطبيق حد التنزيلات على كل مستخدم",
     "perUserDownloadLimitDescription": "عند التمكين، سيتم تطبيق حد التنزيلات على كل مستخدم. لن يتمكن المستخدمون المجهولون من تنزيل أي ملفات من هذه المشاركة.",
     "descriptionUploadDefault": "تم إرسال مشاركة إليك لتحميل الملفات.",
-    "extractEmbeddedSubtitles": "استخراج الترجمات المضمنة",
-    "extractEmbeddedSubtitlesDescription": "استخراج العناوين الفرعية المضمنة من ملفات الوسائط عند التحميل - قد يكون هذا بطيئًا بالنسبة للملفات الكبيرة.",
     "disableDownload": "تعطيل تنزيل الملفات",
     "disableDownloadDescription": "لن يتمكن أي شخص من تنزيل الملفات أو عرض محتوى الملف.",
     "allowModify": "السماح بتحرير الملفات",
@@ -1224,8 +1222,6 @@
     }
   },
   "media": {
-    "extractEmbeddedSubtitles": "استخراج الترجمة المضمنة",
-    "extractEmbeddedSubtitlesDescription": "استخراج الترجمات المضمنة من ملفات الوسائط.",
     "debug": "تسجيل أخطاء التصحيح",
     "debugDescription": "إخراج stdout لـ ffmpeg من أجل دمج الوسائط. تحذير: ينتج عن ذلك كمية كبيرة من الإخراج.",
     "imagePreview": "تنسيقات معاينة الصور",
@@ -1259,6 +1255,8 @@
     "accelDevice": "جهاز التسارع",
     "accelDeviceDescription": "يُستخدم جهاز GPU لمعالجة الوسائط المعتمدة على التسريع المادي. أما وحدة المعالجة المركزية (CPU) (برمجيًّا) فتقوم بتعطيل التسريع المادي.",
     "encoderBackend": "الجزء الخلفي للمشفّر",
-    "transcodeProfileEncoderBackendHelp": "الخلفية المشفرة لهذا الإعداد المسبق؛ يتم تعيين الخلفية المفضلة المكتشفة كخيار افتراضي."
+    "transcodeProfileEncoderBackendHelp": "الخلفية المشفرة لهذا الإعداد المسبق؛ يتم تعيين الخلفية المفضلة المكتشفة كخيار افتراضي.",
+    "alwaysUseFfmpeg": "استخدم دائمًا ffmpeg",
+    "alwaysUseFfmpegDescription": "تخطَّ المسار السريع لـ go-media واستخدم ffmpeg لجميع عمليات الفحص والبيانات الوصفية والترجمات والصور المصغرة للفيديو. قم بتفعيل هذه الخيار إذا أعطى go-media نتائج خاطئة لملفاتك."
   }
 }

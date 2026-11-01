@@ -958,6 +958,9 @@ async function runSearch(options: { silent?: boolean } = {}) {
       path: normalizedScopedPathForSource(activeSourceName),
     });
   }
+  // Resolve result paths against the scopes sent with this request, not the live
+  // scope inputs, which may change while the request is in flight.
+  const scopeBySource = new Map(perSourceScopes.map(({ source, path }) => [source, path]));
   const searchRequestKey = searchKey();
   await runSearchRequest(
     async (signal) => {
@@ -985,7 +988,7 @@ async function runSearch(options: { silent?: boolean } = {}) {
         const resultSource = String(searchResult.source || "");
         const isDir = String(searchResult.type) === "directory";
         const fullPath = browsePath(
-          normalizedScopedPathForSource(resultSource),
+          scopeBySource.get(resultSource) ?? normalizedScopedPathForSource(resultSource),
           searchResult.path || "",
           isDir
         );

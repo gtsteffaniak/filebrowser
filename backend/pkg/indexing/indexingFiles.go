@@ -119,6 +119,7 @@ type Index struct {
 	previousNumFiles  uint64              // Track previous NumFiles to use when scan in progress (computed value is 0)
 	scanners          map[string]*Scanner // path -> scanner
 	mock              bool
+	bgWork            pathCoalescer // per-path background persistence and refreshes
 	mu                sync.RWMutex
 	activeScannerPath string
 	schedulerStop     chan struct{}
@@ -137,6 +138,9 @@ type Index struct {
 	// Adaptive scheduler: shared slot map (UTC unix seconds -> scanners).
 	scheduleSlotsMu sync.Mutex
 	scheduleSlots   map[int64][]*Scanner
+	// startupScanPending requests one bounded serial scan pass on startup when the
+	// persisted folder-size map could not be restored (quick scans would be blind).
+	startupScanPending bool
 }
 
 var (
@@ -640,8 +644,25 @@ func (idx *Index) getDirInfoFromContext(ctx *PathContext, isViewable, isIndexabl
 	if err != nil {
 		return nil, err
 	}
-	idx.persistDirectoryListing(ctx.IndexPath, indexableInfo, opts)
+	// Persist index rows and folder sizes in the background so API listing
+	// latency stays independent of index DB write throughput. Coalesced per path so a slow
+	// DB cannot accumulate one goroutine per request.
+	indexPath := ctx.IndexPath
+	idx.bgWork.submit("persist|"+indexPath, func() {
+		idx.persistDirectoryListing(indexPath, indexableInfo, opts)
+	})
 	return dirFileInfo, nil
+}
+
+// RefreshDirectoryAsync runs RefreshDirectory(indexPath, false) in the background, coalesced
+// per path: while a refresh for indexPath runs, further requests queue at most one more
+// refresh instead of starting parallel directory reads and index DB writes.
+func (idx *Index) RefreshDirectoryAsync(indexPath string) {
+	idx.bgWork.submit("refresh|"+indexPath, func() {
+		if err := idx.RefreshDirectory(indexPath, false); err != nil {
+			logger.Debugf("Failed to refresh directory for folder size update: %v", err)
+		}
+	})
 }
 
 // persistDirectoryListing updates index rows and the in-memory folder size from
@@ -653,12 +674,7 @@ func (idx *Index) persistDirectoryListing(indexPath string, indexableInfo *itemi
 		return
 	}
 	idx.UpdateMetadata(indexableInfo, nil, true)
-	newSize := uint64(indexableInfo.Size)
-	if previousSize, exists := idx.GetFolderSize(indexPath); exists {
-		idx.updateFolderSizeAndParents(indexPath, newSize, previousSize, true)
-	} else {
-		idx.SetFolderSize(indexPath, newSize)
-	}
+	idx.updateFolderSizeDelta(indexPath, uint64(indexableInfo.Size))
 }
 
 // getBasicDirInfo returns just directory metadata without children
@@ -710,8 +726,14 @@ func (idx *Index) indexDirectory(indexPath string, opts Options, scanner *Scanne
 	idx.UpdateMetadata(dirFileInfo, scanner, !opts.Recursive)
 
 	// Always store the calculated directory size in the in-memory map
-	// This ensures parent directories are updated after copy/move operations
-	idx.SetFolderSize(indexPath, uint64(dirFileInfo.Size))
+	// This ensures parent directories are updated after copy/move operations.
+	// API-driven refreshes (no scanner) also propagate the delta to ancestors so
+	// parent folder sizes reflect changes below the refreshed directory.
+	if scanner == nil {
+		idx.updateFolderSizeDelta(indexPath, uint64(dirFileInfo.Size))
+	} else {
+		idx.SetFolderSize(indexPath, uint64(dirFileInfo.Size))
+	}
 
 	return dirFileInfo.Size, dirFileInfo.HasPreview, nil
 }
@@ -1363,8 +1385,29 @@ func (idx *Index) RefreshDirectory(indexPath string, recursive bool) error {
 	return err
 }
 
+// updateFolderSizeDelta atomically records a folder's newly computed size and
+// propagates the delta to all ancestors in the in-memory folderSizes map.
+func (idx *Index) updateFolderSizeDelta(indexPath string, newSize uint64) {
+	idx.folderSizesMu.Lock()
+	defer idx.folderSizesMu.Unlock()
+	previousSize, exists := idx.folderSizes[indexPath]
+	if !exists {
+		idx.folderSizes[indexPath] = newSize
+		idx.folderSizesUnsynced[indexPath] = struct{}{}
+		return
+	}
+	idx.updateFolderSizeAndParentsLocked(indexPath, newSize, previousSize, true)
+}
+
 // updateFolderSizeAndParents updates a folder size and propagates the change to all parents
 func (idx *Index) updateFolderSizeAndParents(path string, newSize uint64, previousSize uint64, updateTarget bool) {
+	idx.folderSizesMu.Lock()
+	defer idx.folderSizesMu.Unlock()
+	idx.updateFolderSizeAndParentsLocked(path, newSize, previousSize, updateTarget)
+}
+
+// updateFolderSizeAndParentsLocked is updateFolderSizeAndParents with folderSizesMu already held.
+func (idx *Index) updateFolderSizeAndParentsLocked(path string, newSize uint64, previousSize uint64, updateTarget bool) {
 	// Calculate the delta
 	var sizeDelta int64
 	if newSize >= previousSize {
@@ -1376,9 +1419,6 @@ func (idx *Index) updateFolderSizeAndParents(path string, newSize uint64, previo
 	if sizeDelta == 0 && !updateTarget {
 		return // No change, nothing to propagate
 	}
-
-	idx.folderSizesMu.Lock()
-	defer idx.folderSizesMu.Unlock()
 
 	// Optionally update the target folder itself
 	if updateTarget {

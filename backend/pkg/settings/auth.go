@@ -135,7 +135,7 @@ type ProxyAuthConfig struct {
 type Recaptcha struct {
 	Host   string `json:"host" validate:"required"`   // google recaptcha host, for example: https://www.google.com/recaptcha/api.js
 	Key    string `json:"key" validate:"required"`    // v2 site key
-	Secret string `json:"secret" validate:"required"` // v2 secret key
+	Secret string `json:"secret" validate:"required"` // secret: v2 secret key
 }
 
 // ValidateRecaptcha disables recaptcha at startup if the configured host isn't a valid https URL
@@ -168,7 +168,7 @@ type LdapConfig struct {
 	Server       string `json:"server"`       // scheme://host:port of the LDAP server (e.g. ldap://localhost:389)
 	BaseDN       string `json:"baseDN"`       // LDAP search base DN (e.g. dc=ldap,dc=goauthentik,dc=io)
 	UserDN       string `json:"userDN"`       // Bind DN for service account (e.g. cn=admin,ou=users,dc=ldap,dc=goauthentik,dc=io)
-	UserPassword string `json:"userPassword"` // Bind password for service account
+	UserPassword string `json:"userPassword"` // secret: bind password for the LDAP service account
 	UserFilter   string `json:"userFilter"`   // Search filter for finding user by username. Default (&(cn=%s)(objectClass=user)); override e.g. (email=%s) or (sAMAccountName=%s) for other directories.
 	Port         int    `json:"-"`            // derived from server
 	Scheme       string `json:"-"`            // derived from server

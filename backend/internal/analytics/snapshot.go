@@ -205,7 +205,7 @@ func collectPayload(versionLabel string) (snapshotPayload, error) {
 		Integrations: integrationsPayload{
 			OnlyOfficeConfigured: strings.TrimSpace(settings.Config.Integrations.OnlyOffice.Url) != "",
 			OnlyOfficeViewOnly:   settings.Config.Integrations.OnlyOffice.ViewOnly,
-			MediaEnabled:         settings.MediaEnabled(),
+			MediaEnabled:         settings.FFmpegEnabled(),
 			HardwareAcceleration: settings.HardwareAccelerationEnabled(),
 		},
 		Features: featuresPayload{
@@ -301,7 +301,7 @@ func detectRuntime() string {
 
 func mapSystemOS(goos string) string {
 	switch goos {
-	case "linux", "windows", "darwin":
+	case "linux", "windows", "darwin", "freebsd":
 		return goos
 	default:
 		return "other"
