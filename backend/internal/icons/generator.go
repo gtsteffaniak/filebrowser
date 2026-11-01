@@ -13,8 +13,8 @@ import (
 	"strings"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/fileutils"
-	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/preview"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 	"github.com/gtsteffaniak/go-logger/logger"
 	"github.com/kovidgoyal/imaging"
 )
@@ -209,7 +209,7 @@ func generateMaskableIcon(sourceData []byte, icon iconSize) error {
 	// Android adaptive-icon content ratio (72/108 ≈ 2/3) keeps square art inside every mask shape
 	inner := icon.size * 2 / 3
 	art := imaging.Fit(img, inner, inner, imaging.Lanczos)
-	canvas := imaging.PasteCenter(imaging.New(icon.size, icon.size, maskableBackground(img)), art)
+	canvas := imaging.OverlayCenter(imaging.New(icon.size, icon.size, maskableBackground(img)), art, 1)
 
 	outputPath := filepath.Join(settings.PWAIconsCacheDir(), icon.name)
 	outFile, err := os.Create(outputPath)

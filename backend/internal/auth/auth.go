@@ -57,6 +57,7 @@ func MakeSignedTokenAPI(user *users.User, name string, duration time.Duration, p
 			},
 		},
 	}
+	claim.Minimal = &minimal
 	if !minimal {
 		claim.Permissions = users.SanitizeTokenPermissions(perms)
 	}

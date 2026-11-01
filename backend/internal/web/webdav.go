@@ -573,7 +573,7 @@ func (ffs *filteredFileSystem) RemoveAll(ctx context.Context, requestPath string
 	if err := ffs.checkScopePath(requestPath, true); err != nil {
 		logger.Debugf("RemoveAll: scope check denied for %s: %v", requestPath, err)
 		return err
-  }
+	}
 	// The API delete path frees the deleted bytes from the quota counters. Do the same
 	// here: a WebDAV DELETE, and the MOVE over an existing destination that the WebDAV
 	// library implements as RemoveAll + Rename, otherwise leave the old bytes charged
@@ -587,24 +587,28 @@ func (ffs *filteredFileSystem) RemoveAll(ctx context.Context, requestPath string
 	}
 
 	var deleteBytes int64
+	var isDir bool
 	if info, err := ffs.fs.Stat(ctx, requestPath); err != nil {
 		logger.Debugf("RemoveAll: cannot stat %s before deleting, quota not adjusted: %v", requestPath, err)
 	} else if info.IsDir() {
+		isDir = true
 		deleteBytes, _ = state.IndexedPathBytes(ffs.source, indexPath, true)
 	} else {
 		deleteBytes = info.Size()
-  }
+	}
+
+	// Collect the adjustments before deleting: a directory delete also has to release
+	// folder quotas nested under it, and their sizes come from the index.
+	var adjustments state.DeleteAdjustments
+	if sourceInfo, ok := settings.Config.Server.NameToSource[ffs.source]; ok {
+		adjustments = state.PrepareAccountedDelete(ffs.user, ffs.source, sourceInfo.Path, indexPath, "", isDir, deleteBytes)
+	}
 
 	if err := ffs.fs.RemoveAll(ctx, requestPath); err != nil {
 		return err
 	}
-
-	if deleteBytes > 0 {
-		if sourceInfo, ok := settings.Config.Server.NameToSource[ffs.source]; ok {
-			if adjErr := state.ApplyAccountedUsageDelta(ffs.user, ffs.source, sourceInfo.Path, indexPath, "", -deleteBytes); adjErr != nil {
-				logger.Warningf("quota adjust after webdav delete failed: %v", adjErr)
-			}
-		}
+	if err := state.ApplyAccountedDelete(adjustments); err != nil {
+		logger.Warningf("quota adjust after webdav delete failed: %v", err)
 	}
 	activity.RecordWebDAVUser(ffs.httpReq, ffs.user, activitydb.Entry{
 		EventType: activitydb.EventDelete,

@@ -101,6 +101,42 @@ test("no viewer available", async ({ page, theme }) => {
   await page.screenshot({ path: `./generated/viewer/no-viewer-available-${theme}.jpg`, quality: jpgQuality });
 })
 
+test("html preview resolves relative media and links", async ({ page, theme }) => {
+  const previewBg = "rgb(13, 26, 18)";
+
+  await page.goto("/files/playwright/files/index.html");
+  await expect(page).toHaveTitle("FileBrowser Quantum - Files - index.html");
+
+  const preview = page.frameLocator('iframe.html-content');
+  const image = preview.locator('img').first();
+  await expect(image).toBeVisible();
+  // the relative image path resolved and the image decoded
+  await expect.poll(() => image.evaluate((el) => (el as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
+  await expect(preview.locator('video')).toHaveAttribute('src', /sample-640x480\.mp4/);
+  // the sidecar stylesheet was rewritten and applied
+  await expect.poll(() => preview.locator('body').evaluate((el) => getComputedStyle(el).backgroundColor)).toBe(previewBg);
+
+  await sleep(500);
+  await page.screenshot({ path: `./generated/viewer/html-preview-relative-paths-${theme}.jpg`, quality: jpgQuality });
+
+  // relative link to another local HTML file navigates the top-level viewer
+  await preview.getByRole("link", { name: "Child page" }).click();
+  await expect(page).toHaveTitle("FileBrowser Quantum - Files - child.html");
+
+  const child = page.frameLocator('iframe.html-content');
+  // the child page is one directory deeper and uses ../styles.css
+  await expect.poll(() => child.locator('body').evaluate((el) => getComputedStyle(el).backgroundColor)).toBe(previewBg);
+  // external https resources are left untouched instead of being rewritten
+  await expect(child.locator('img')).toHaveAttribute('src', /^https:\/\/filebrowserquantum\.com\//);
+  const backLink = child.getByRole("link", { name: "Back" });
+  await expect(backLink).toBeVisible();
+  // the viewer adjusts the iframe height after load, which can move the link
+  // while Playwright waits for stability; click it directly instead.
+  await sleep(500);
+  await backLink.click({ force: true });
+  await expect(page).toHaveTitle("FileBrowser Quantum - Files - index.html");
+})
+
 test("copy from listing to new folder", async ({ page, theme }) => {
   if (theme === 'light') {
     return;

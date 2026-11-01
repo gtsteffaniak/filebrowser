@@ -52,6 +52,11 @@ export function fromNow(date: DateInput, locale: string = 'en-us', { unit }: { u
   return 'just now';
 }
 
+/** Format Unix timestamps in seconds, such as share expiration values. */
+export function fromNowSeconds(timestamp: number, locale: string = 'en-us'): string {
+  return fromNow(timestamp, locale, { unit: "seconds" });
+}
+
 export function formatTimestamp(
   date: DateInput,
   locale: string = 'en-us',

@@ -24,7 +24,11 @@ func HasAnyGlobalPermission(p Permissions) bool {
 }
 
 // IsMinimalApiToken reports whether the token inherits the owner's globals at auth time
-// rather than embedding its own global permission caps in the JWT.
+// rather than applying stored global permission caps.
 func IsMinimalApiToken(t AuthToken) bool {
+	if t.Minimal != nil {
+		return *t.Minimal
+	}
+	// Legacy tokens lack minimal; empty stored global caps implied minimal (WebDAV-style).
 	return !HasAnyGlobalPermission(t.Permissions)
 }

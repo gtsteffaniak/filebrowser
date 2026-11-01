@@ -78,12 +78,10 @@ func extractTIFFEmbeddedPreview(f *os.File) ([]byte, error) {
 		return nil, err
 	}
 
-	ex, err := extimagemeta.Decode(f)
-	if err != nil {
-		return nil, err
+	var candidates []previewCandidate
+	if ex, err := extimagemeta.Decode(f); err == nil {
+		candidates = previewCandidates(ex)
 	}
-
-	candidates := previewCandidates(ex)
 	if scanCandidates, scanErr := collectTIFFPreviewCandidates(f); scanErr == nil {
 		candidates = append(candidates, scanCandidates...)
 	}
@@ -114,6 +112,9 @@ func previewCandidates(ex exif.Exif) []previewCandidate {
 		if ifd.ImageLength > 0 && ifd.ImageOffset > 0 {
 			out = append(out, previewCandidate{offset: ifd.ImageOffset, length: ifd.ImageLength})
 		}
+	}
+	for _, sub := range ex.SubIFDs {
+		appendIFD(sub)
 	}
 	appendIFD(ex.IFD1)
 	appendIFD(ex.IFD2)
