@@ -423,8 +423,6 @@
     "perUserDownloadLimit": "Pas de downloadlimiet toe op elke gebruiker",
     "perUserDownloadLimitDescription": "Indien ingeschakeld, wordt de downloadlimiet toegepast op elke gebruiker. Anonieme gebruikers kunnen geen bestanden downloaden van deze share.",
     "descriptionUploadDefault": "Je hebt een share ontvangen om bestanden te uploaden.",
-    "extractEmbeddedSubtitles": "Ingesloten ondertitels uitpakken",
-    "extractEmbeddedSubtitlesDescription": "Ingesloten ondertitels uit mediabestanden halen tijdens het laden -- dit kan traag zijn voor grote bestanden.",
     "disableDownload": "Het downloaden van bestanden uitschakelen",
     "disableDownloadDescription": "Iedereen kan geen bestanden downloaden of de inhoud van een bestand bekijken.",
     "allowModify": "Bestanden bewerken toestaan",
@@ -1219,8 +1217,6 @@
     }
   },
   "media": {
-    "extractEmbeddedSubtitles": "Ingesloten ondertitels extraheren",
-    "extractEmbeddedSubtitlesDescription": "Ingebedde ondertitels uit mediabestanden extraheren.",
     "debug": "Foutlogboek",
     "debugDescription": "FFmpeg-stdout-uitvoer voor de media-integratie. Waarschuwing: dit levert veel uitvoer op.",
     "imagePreview": "Formaten voor afbeeldingsvoorbeelden",

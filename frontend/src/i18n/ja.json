@@ -423,8 +423,6 @@
     "perUserDownloadLimit": "各ユーザーにダウンロード制限を適用する",
     "perUserDownloadLimitDescription": "有効にすると、各ユーザーにダウンロード制限が適用されます。匿名ユーザーはこの共有からファイルをダウンロードできません。",
     "descriptionUploadDefault": "ファイルをアップロードするための共有が送信されました。",
-    "extractEmbeddedSubtitles": "埋め込み字幕の抽出",
-    "extractEmbeddedSubtitlesDescription": "読み込み時にメディアファイルから埋め込まれたサブタイトルを抽出する。",
     "disableDownload": "ファイルのダウンロードを無効にする",
     "disableDownloadDescription": "誰でもファイルをダウンロードしたり、ファイルの内容を見たりすることができなくなる。",
     "allowModify": "ファイルの編集を許可する",
@@ -1219,8 +1217,6 @@
     }
   },
   "media": {
-    "extractEmbeddedSubtitles": "埋め込み字幕を抽出する",
-    "extractEmbeddedSubtitlesDescription": "メディアファイルから埋め込み字幕を抽出します。",
     "debug": "デバッグログ",
     "debugDescription": "メディア統合のためのffmpegの標準出力。警告：出力量が非常に多くなります。",
     "imagePreview": "画像プレビューの形式",

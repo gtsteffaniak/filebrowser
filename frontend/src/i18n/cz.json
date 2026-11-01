@@ -202,8 +202,6 @@
     "perUserDownloadLimit": "Použít limit stahování pro každého uživatele",
     "perUserDownloadLimitDescription": "Pokud je tato možnost povolena, bude limit stahování platit pro každého uživatele. Anonymní uživatelé nebudou moci z této sdílené složky stahovat žádné soubory.",
     "descriptionUploadDefault": "Byla vám zaslána sdílená složka pro nahrávání souborů.",
-    "extractEmbeddedSubtitles": "Výpis vložených titulků",
-    "extractEmbeddedSubtitlesDescription": "Extrahovat vložené titulky z mediálních souborů při načítání - u velkých souborů to může být pomalé.",
     "disableDownload": "Zakázat stahování souborů",
     "disableDownloadDescription": "Nikdo nebude moci stahovat soubory ani prohlížet jejich obsah.",
     "allowModify": "Povolení úprav souborů",
@@ -1219,8 +1217,6 @@
     }
   },
   "media": {
-    "extractEmbeddedSubtitles": "Extrahovat vložené titulky",
-    "extractEmbeddedSubtitlesDescription": "Extrahovat vložené titulky z mediálních souborů.",
     "debug": "Logování pro ladění",
     "debugDescription": "Výstup z ffmpeg stdout pro integraci médií. Upozornění: generuje velké množství výstupních dat.",
     "imagePreview": "Formáty náhledů obrázků",

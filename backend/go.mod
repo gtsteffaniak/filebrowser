@@ -21,7 +21,7 @@ require (
 	github.com/gtsteffaniak/go-cache v1.1.0
 	github.com/gtsteffaniak/go-ffmpeg v1.6.2
 	github.com/gtsteffaniak/go-logger v1.1.0
-	github.com/gtsteffaniak/go-media v1.0.2
+	github.com/gtsteffaniak/go-media v1.1.1-0.20261101153307-79181a6c2ed9
 	github.com/kovidgoyal/imaging v1.9.0
 	github.com/mattn/go-sqlite3 v1.14.52
 	github.com/pquerna/otp v1.5.0
@@ -57,6 +57,7 @@ require (
 	github.com/ebitengine/purego v0.11.2 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.6 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.16 // indirect
+	github.com/gen2brain/h265 v0.2.4 // indirect
 	github.com/gen2brain/vpx v0.2.1 // indirect
 	github.com/go-asn1-ber/asn1-ber v1.5.8 // indirect
 	github.com/go-errors/errors v1.5.1 // indirect
@@ -80,6 +81,8 @@ require (
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/go-tpm v0.9.8 // indirect
+	github.com/gtsteffaniak/go-av1 v0.0.0-20261101031208-03767868b89d // indirect
+	github.com/gtsteffaniak/go-vpx v1.0.1 // indirect
 	github.com/kovidgoyal/go-parallel v1.1.1 // indirect
 	github.com/kovidgoyal/go-shm v1.0.0 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
@@ -104,3 +107,5 @@ require (
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.1 // indirect
 )
+
+replace github.com/gtsteffaniak/go-media => ../../go-media

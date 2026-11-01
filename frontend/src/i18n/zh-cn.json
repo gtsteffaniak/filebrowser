@@ -423,8 +423,6 @@
     "perUserDownloadLimit": "为每个用户设置下载限制",
     "perUserDownloadLimitDescription": "启用后，下载限制将应用于每个用户。匿名用户将无法从该共享下载任何文件。",
     "descriptionUploadDefault": "已为您发送了上传文件的共享。",
-    "extractEmbeddedSubtitles": "提取嵌入式字幕",
-    "extractEmbeddedSubtitlesDescription": "在加载时从媒体文件中提取内嵌字幕--这对于大文件来说可能会比较慢。",
     "disableDownload": "禁止下载文件",
     "disableDownloadDescription": "任何人都无法下载文件或查看文件内容。",
     "allowModify": "允许编辑文件",
@@ -1219,8 +1217,6 @@
     }
   },
   "media": {
-    "extractEmbeddedSubtitles": "提取嵌入式字幕",
-    "extractEmbeddedSubtitlesDescription": "从媒体文件中提取嵌入式字幕。",
     "debug": "调试日志",
     "debugDescription": "将 ffmpeg 的标准输出用于媒体集成。警告：会产生大量输出。",
     "imagePreview": "图像预览格式",

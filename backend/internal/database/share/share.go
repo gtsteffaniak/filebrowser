@@ -45,9 +45,8 @@ type FrontendShareInfo struct {
 type ShareLimits struct {
 	MaxBandwidth             int      `json:"maxBandwidth,omitempty"`
 	AllowedUsernames         []string `json:"allowedUsernames,omitempty"`
-	PerUserDownloadLimit     bool     `json:"perUserDownloadLimit,omitempty"`
-	ExtractEmbeddedSubtitles bool     `json:"extractEmbeddedSubtitles,omitempty"`
-	DownloadsLimit           int      `json:"downloadsLimit,omitempty"`
+	PerUserDownloadLimit bool     `json:"perUserDownloadLimit,omitempty"`
+	DownloadsLimit       int      `json:"downloadsLimit,omitempty"`
 	QuotaLimitBytes          int64    `json:"quotaLimitBytes,omitempty"`
 	HideFileExt              string   `json:"hideFileExt,omitempty"` // show hidden files based on extensions in shares
 	Banner                   string   `json:"banner,omitempty"`

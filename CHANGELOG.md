@@ -5,13 +5,13 @@ All notable changes to this project will be documented in this file. For commit 
 ## v2.2.0
  **New Features**:
  - Media enhancements
+   - All server media settings can be managed in settings by admins.
    - Transcoding for media playback with quality presets -- requires ffmpeg.
    - Hardware Acceleration device selector (Software / detected GPU devices)
-   - More operations prefer native api operations rather than ffmpeg, improving performance by 50x or more in many cases.
+   - More operations use native api operations rather than ffmpeg, improving performance in many cases. Added temporary config option to force ffmpeg to be used
    - Running without ffmpeg can still view metadata and create thumbnails for many common file formats.
   # office previews can use embedded thumbnail if possible
   # text file previews are more efficient direct creation
-  # Themes overhaul
 
  **Bug Fixes**:
  - Closing a video preview from the header bar now stops playback immediately instead of leaving audio running in the background.

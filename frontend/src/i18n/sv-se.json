@@ -423,8 +423,6 @@
     "perUserDownloadLimit": "Tillämpa nedladdningsgränsen för varje användare",
     "perUserDownloadLimitDescription": "När den är aktiverad kommer nedladdningsgränsen att tillämpas på varje användare. Anonyma användare kan inte ladda ner några filer från den här delningen.",
     "descriptionUploadDefault": "En andel har skickats till dig för att ladda upp filer.",
-    "extractEmbeddedSubtitles": "Extrahera inbäddade undertexter",
-    "extractEmbeddedSubtitlesDescription": "Extrahera inbäddade undertexter från mediefiler vid laddning - detta kan vara långsamt för stora filer.",
     "disableDownload": "Inaktivera nedladdning av filer",
     "disableDownloadDescription": "Vem som helst kommer inte att kunna ladda ner filer eller visa innehållet i en fil.",
     "allowModify": "Tillåt redigering av filer",
@@ -1219,8 +1217,6 @@
     }
   },
   "media": {
-    "extractEmbeddedSubtitles": "Extrahera inbäddade undertexter",
-    "extractEmbeddedSubtitlesDescription": "Extrahera inbäddade undertexter från mediefiler.",
     "debug": "Felsökningsloggning",
     "debugDescription": "Utdata från ffmpeg:s stdout för medieintegrationen. Varning: genererar mycket utdata.",
     "imagePreview": "Format för bildförhandsvisning",

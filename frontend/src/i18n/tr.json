@@ -423,8 +423,6 @@
     "perUserDownloadLimit": "İndirme sınırını her kullanıcıya uygulayın",
     "perUserDownloadLimitDescription": "Etkinleştirildiğinde, indirme sınırı her kullanıcıya uygulanacaktır. Anonim kullanıcılar bu paylaşımdan herhangi bir dosya indiremeyecektir.",
     "descriptionUploadDefault": "Dosyaları yüklemeniz için size bir paylaşım gönderildi.",
-    "extractEmbeddedSubtitles": "Gömülü altyazıları çıkar",
-    "extractEmbeddedSubtitlesDescription": "Yüklenen medya dosyalarından gömülü altyazıları ayıklayın -- bu işlem büyük dosyalar için yavaş olabilir.",
     "disableDownload": "Dosya indirmeyi devre dışı bırak",
     "disableDownloadDescription": "Hiç kimse dosya indiremeyecek veya bir dosyanın içeriğini görüntüleyemeyecektir.",
     "allowModify": "Dosyaları düzenlemeye izin ver",
@@ -1219,8 +1217,6 @@
     }
   },
   "media": {
-    "extractEmbeddedSubtitles": "Gömülü altyazıları ayıklama",
-    "extractEmbeddedSubtitlesDescription": "Medya dosyalarından gömülü altyazıları ayıklayın.",
     "debug": "Hata ayıklama günlüğü",
     "debugDescription": "Medya entegrasyonu için ffmpeg stdout çıktısı. Uyarı: Çok fazla çıktı üretilir.",
     "imagePreview": "Görüntü önizleme biçimleri",

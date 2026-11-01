@@ -39,7 +39,7 @@ func timed[T any](op, path string, legacy Legacy[T], diff Differ[T], fast func()
 		return v, false
 	}
 	goLatency := time.Since(start)
-	logger.Debugf("go-media %s used for %s: %.2fms", op, path, ms(goLatency))
+	shadowLogf("go-media %s used for %s: %.2fms", op, path, ms(goLatency))
 
 	if !ShadowEnabled() || legacy == nil {
 		return v, true
@@ -59,7 +59,7 @@ func runShadow[T any](op, path string, goLatency time.Duration, fast T, legacy L
 	ffStart := time.Now()
 	legacyVal, ffOK := legacy()
 	ffLatency := time.Since(ffStart)
-	logger.Debugf("go-media shadow %s for %s: go-media=%.2fms legacy(ffmpeg/dhowden)=%.2fms diff(legacy-go)=%+.2fms legacy_ok=%t",
+	shadowLogf("go-media shadow %s for %s: go-media=%.2fms legacy(ffmpeg/dhowden)=%.2fms diff(legacy-go)=%+.2fms legacy_ok=%t",
 		op, path, ms(goLatency), ms(ffLatency), ms(ffLatency)-ms(goLatency), ffOK)
 
 	if !ffOK {
@@ -99,4 +99,9 @@ func diffNum(name string, fast, legacy float64, unit string) string {
 // ms converts a duration to fractional milliseconds.
 func ms(d time.Duration) float64 {
 	return float64(d) / float64(time.Millisecond)
+}
+
+// shadowLogf logs go-media timing at debug level (including dev shadow runs).
+func shadowLogf(format string, args ...any) {
+	logger.Debugf(format, args...)
 }

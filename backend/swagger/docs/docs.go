@@ -6371,7 +6371,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "alwaysUseFfmpeg": {
-                    "description": "AlwaysUseFfmpeg forces ffmpeg for all probe, metadata, subtitle, and\nthumbnail work, skipping the go-media fast path. Managed via the admin\nmedia settings API.",
+                    "description": "deprecated: manage via the admin media settings API",
                     "type": "boolean"
                 },
                 "convert": {
@@ -6387,7 +6387,7 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "extractEmbeddedSubtitles": {
-                    "description": "deprecated:extract embedded subtitles from media files. deprecated: manage via the admin media settings API",
+                    "description": "deprecated: no longer configurable; embedded subtitles are always extracted",
                     "type": "boolean"
                 },
                 "ffmpegPath": {
@@ -6869,9 +6869,6 @@ const docTemplate = `{
                 },
                 "enforceDarkLightMode": {
                     "type": "string"
-                },
-                "extractEmbeddedSubtitles": {
-                    "type": "boolean"
                 },
                 "favicon": {
                     "type": "string"
@@ -7437,9 +7434,6 @@ const docTemplate = `{
                 "expire": {
                     "type": "integer"
                 },
-                "extractEmbeddedSubtitles": {
-                    "type": "boolean"
-                },
                 "favicon": {
                     "type": "string"
                 },
@@ -7614,9 +7608,6 @@ const docTemplate = `{
                 "expires": {
                     "type": "string"
                 },
-                "extractEmbeddedSubtitles": {
-                    "type": "boolean"
-                },
                 "favicon": {
                     "type": "string"
                 },
@@ -7781,9 +7772,6 @@ const docTemplate = `{
                 },
                 "expires": {
                     "type": "string"
-                },
-                "extractEmbeddedSubtitles": {
-                    "type": "boolean"
                 },
                 "favicon": {
                     "type": "string"
@@ -8754,10 +8742,6 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/ffmpeg.EncoderBackendOption"
                     }
-                },
-                "extractEmbeddedSubtitles": {
-                    "description": "extract embedded subtitles from media files",
-                    "type": "boolean"
                 },
                 "hardwareAcceleration": {
                     "description": "enable hardware acceleration for ffmpeg if available",

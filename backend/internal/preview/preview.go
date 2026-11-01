@@ -200,15 +200,28 @@ func GetPreviewForFile(ctx context.Context, file iteminfo.ExtendedFileInfo, prev
 	}
 
 	cacheKey := CacheKey(cacheHash, previewSize, seekPercentage)
-	if data, found, err := service.fileCache.Load(ctx, cacheKey); err != nil {
-		return nil, fmt.Errorf("failed to load from cache: %w", err)
-	} else if found {
-		if len(data) < minPreviewSize {
-			return nil, ErrPreviewTooSmall
+	skipCache := skipPreviewCacheInDev(file)
+	if !skipCache {
+		if data, found, err := service.fileCache.Load(ctx, cacheKey); err != nil {
+			return nil, fmt.Errorf("failed to load from cache: %w", err)
+		} else if found {
+			if len(data) < minPreviewSize {
+				return nil, ErrPreviewTooSmall
+			}
+			return data, nil
 		}
-		return data, nil
 	}
 	return GeneratePreviewWithMD5(ctx, file, previewSize, url, seekPercentage, cacheHash)
+}
+
+// skipPreviewCacheInDev forces HEIC preview regeneration so go-media and shadow
+// logs are visible while developing. Disk cache still stores the result.
+func skipPreviewCacheInDev(file iteminfo.ExtendedFileInfo) bool {
+	if !settings.Env.IsDevMode {
+		return false
+	}
+	return strings.HasPrefix(file.Type, "image/hei") &&
+		settings.CanConvertImage(string(settings.HEICImagePreview))
 }
 
 // filePreviewType represents the type of preview generation needed
@@ -321,9 +334,9 @@ func (s *Service) generateOfficeFilePreview(ctx context.Context, file iteminfo.E
 	return imageBytes, nil
 }
 
-// generateHEICPreview generates preview for HEIC files using FFmpeg
+// generateHEICPreview generates preview for HEIC files using go-media with ffmpeg fallback.
 func (s *Service) generateHEICPreview(ctx context.Context, file iteminfo.ExtendedFileInfo, previewSize string) ([]byte, error) {
-	imageBytes, err := s.convertHEICToJPEGWithFFmpeg(ctx, file.RealPath, previewSize)
+	imageBytes, err := s.convertHEICToJPEG(ctx, file.RealPath, previewSize)
 	if err != nil {
 		return nil, fmt.Errorf("failed to process HEIC image file: %w", err)
 	}

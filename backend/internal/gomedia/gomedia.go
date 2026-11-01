@@ -1,5 +1,5 @@
 // Package gomedia is the go-media fast path for probing, duration, tags, lyrics,
-// embedded subtitles, and video thumbnails.
+// embedded subtitles, video thumbnails, HEIC decode, and camera RAW previews.
 //
 // Every function returns ok=false when the caller must use the existing ffmpeg
 // (or dhowden) code instead. That happens when:
@@ -71,9 +71,34 @@ var videoContainerExts = map[string]bool{
 	".webm": true,
 }
 
+// heifImageExts are still-image containers go-media decodes for HEIC preview.
+var heifImageExts = map[string]bool{
+	".heic":  true,
+	".heif":  true,
+	".heics": true,
+}
+
+const heicDecodeMaxEdge = 16384
+
+// cameraRawExts match go-media rawpreview formats (also iteminfo raw extensions).
+var cameraRawExts = map[string]bool{
+	".cr2": true, ".cr3": true, ".nef": true, ".nrw": true, ".arw": true, ".srf": true, ".sr2": true,
+	".orf": true, ".rw2": true, ".raw": true, ".dng": true, ".raf": true, ".pef": true, ".ptx": true,
+	".rwl": true, ".3fr": true, ".fff": true, ".erf": true, ".mrw": true, ".dcr": true, ".kdc": true,
+	".dc2": true, ".x3f": true, ".iiq": true, ".nkc": true, ".r3d": true,
+}
+
 // supportsVideoContainer reports whether go-media targets path's container.
 func supportsVideoContainer(path string) bool {
 	return videoContainerExts[strings.ToLower(filepath.Ext(path))]
+}
+
+func supportsHEIFImage(path string) bool {
+	return heifImageExts[strings.ToLower(filepath.Ext(path))]
+}
+
+func supportsCameraRAW(path string) bool {
+	return cameraRawExts[strings.ToLower(filepath.Ext(path))]
 }
 
 // logFallback records why go-media was not used for op on path.
@@ -504,6 +529,72 @@ func videoThumbnailFast(path string, width, height, quality int, seekPercent flo
 	}
 	if len(res.Data) == 0 {
 		logFallback("video thumbnail", path, errors.New("empty thumbnail output"))
+		return nil, false
+	}
+	return res.Data, true
+}
+
+// HEICJPEG decodes HEIC/HEIF to JPEG at full resolution (bounds heicDecodeMaxEdge).
+// Resize for small/large/xlarge previews is done later by the preview service.
+// legacy is ffmpeg full decode, run only in shadow mode.
+func HEICJPEG(path string, quality int, legacy Legacy[[]byte]) ([]byte, bool) {
+	return timed("heic jpeg", path, legacy, thumbnailDiff, func() ([]byte, bool) {
+		return heicJPEGFast(path, quality)
+	})
+}
+
+func heicJPEGFast(path string, quality int) ([]byte, bool) {
+	return stillImageJPEG(path, heicDecodeMaxEdge, heicDecodeMaxEdge, quality, "heic jpeg", supportsHEIFImage)
+}
+
+// CameraRAWJPEG decodes camera RAW to JPEG at the requested bounds (0 means full
+// resolution up to heicDecodeMaxEdge). legacy is ffmpeg ConvertImageToJPEG, shadow only.
+func CameraRAWJPEG(path string, width, height, quality int, legacy Legacy[[]byte]) ([]byte, bool) {
+	return timed("raw jpeg", path, legacy, thumbnailDiff, func() ([]byte, bool) {
+		return cameraRAWJPEGFast(path, width, height, quality)
+	})
+}
+
+func cameraRAWJPEGFast(path string, width, height, quality int) ([]byte, bool) {
+	maxW, maxH := width, height
+	if maxW <= 0 || maxH <= 0 {
+		maxW, maxH = heicDecodeMaxEdge, heicDecodeMaxEdge
+	}
+	return stillImageJPEG(path, maxW, maxH, quality, "raw jpeg", supportsCameraRAW)
+}
+
+func stillImageJPEG(path string, maxW, maxH, quality int, op string, supported func(string) bool) ([]byte, bool) {
+	if !Enabled() {
+		if ShadowEnabled() {
+			logger.Debugf("go-media skipped for %s (%s): always use ffmpeg enabled", op, path)
+		}
+		return nil, false
+	}
+	if !supported(path) {
+		return nil, false
+	}
+	f, size, err := openFile(path)
+	if err != nil {
+		logFallback(op, path, err)
+		return nil, false
+	}
+	defer f.Close()
+
+	if quality <= 0 {
+		quality = 85
+	}
+	res, err := media.Thumbnail(f, size, media.ThumbnailOptions{
+		MaxWidth:  maxW,
+		MaxHeight: maxH,
+		Format:    "jpeg",
+		Quality:   quality,
+	})
+	if err != nil {
+		logFallback(op, path, err)
+		return nil, false
+	}
+	if len(res.Data) == 0 {
+		logFallback(op, path, fmt.Errorf("empty %s output", op))
 		return nil, false
 	}
 	return res.Data, true

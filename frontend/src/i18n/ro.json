@@ -423,8 +423,6 @@
     "perUserDownloadLimit": "Aplicați limita de descărcări pentru fiecare utilizator",
     "perUserDownloadLimitDescription": "Atunci când este activată, limita de descărcări va fi aplicată fiecărui utilizator. Utilizatorii anonimi nu vor putea descărca niciun fișier din această partajare.",
     "descriptionUploadDefault": "V-a fost trimisă o partajare pentru a încărca fișiere.",
-    "extractEmbeddedSubtitles": "Extragerea subtitrărilor încorporate",
-    "extractEmbeddedSubtitlesDescription": "Extragerea subtitrărilor încorporate din fișierele media la încărcare - acest lucru poate fi lent pentru fișierele mari.",
     "disableDownload": "Dezactivați descărcarea fișierelor",
     "disableDownloadDescription": "Oricine nu va putea să descarce fișiere sau să vizualizeze conținutul unui fișier.",
     "allowModify": "Permiteți editarea fișierelor",
@@ -1219,8 +1217,6 @@
     }
   },
   "media": {
-    "extractEmbeddedSubtitles": "Extragerea subtitrărilor încorporate",
-    "extractEmbeddedSubtitlesDescription": "Extrage subtitrările încorporate din fișierele media.",
     "debug": "Jurnalizarea erorilor de depanare",
     "debugDescription": "Ieșirea stdout din ffmpeg pentru integrarea fișierelor media. Atenție: generează un volum mare de date de ieșire.",
     "imagePreview": "Formate de previzualizare a imaginilor",

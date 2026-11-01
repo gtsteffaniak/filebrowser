@@ -423,8 +423,6 @@
     "perUserDownloadLimit": "تطبيق حد التنزيلات على كل مستخدم",
     "perUserDownloadLimitDescription": "عند التمكين، سيتم تطبيق حد التنزيلات على كل مستخدم. لن يتمكن المستخدمون المجهولون من تنزيل أي ملفات من هذه المشاركة.",
     "descriptionUploadDefault": "تم إرسال مشاركة إليك لتحميل الملفات.",
-    "extractEmbeddedSubtitles": "استخراج الترجمات المضمنة",
-    "extractEmbeddedSubtitlesDescription": "استخراج العناوين الفرعية المضمنة من ملفات الوسائط عند التحميل - قد يكون هذا بطيئًا بالنسبة للملفات الكبيرة.",
     "disableDownload": "تعطيل تنزيل الملفات",
     "disableDownloadDescription": "لن يتمكن أي شخص من تنزيل الملفات أو عرض محتوى الملف.",
     "allowModify": "السماح بتحرير الملفات",
@@ -1219,8 +1217,6 @@
     }
   },
   "media": {
-    "extractEmbeddedSubtitles": "استخراج الترجمة المضمنة",
-    "extractEmbeddedSubtitlesDescription": "استخراج الترجمات المضمنة من ملفات الوسائط.",
     "debug": "تسجيل أخطاء التصحيح",
     "debugDescription": "إخراج stdout لـ ffmpeg من أجل دمج الوسائط. تحذير: ينتج عن ذلك كمية كبيرة من الإخراج.",
     "imagePreview": "تنسيقات معاينة الصور",

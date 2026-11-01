@@ -409,8 +409,6 @@
     "uploadShare": "Igotzeko soilik",
     "perUserDownloadLimit": "Aplikatu deskarga-muga erabiltzaile bakoitzari",
     "perUserDownloadLimitDescription": "Gaituta dagoenean, deskarga-muga erabiltzaile bakoitzari aplikatuko zaio. Erabiltzaile anonimoek ezin izango dute fitxategirik deskargatu partekatze honetatik.",
-    "extractEmbeddedSubtitles": "Erauzi txertatutako azpitituluak",
-    "extractEmbeddedSubtitlesDescription": "Erauzi multimedia-fitxategietan txertatutako azpitituluak kargatzean; motela izan daiteke fitxategi handietan.",
     "disableLoginOption": "Ezkutatu saioa hasteko aukera",
     "disableLoginOptionDescription": "Ezkutatu alboko barrako saioa hasteko botoia erabiltzaile anonimoentzat. Gaituta dagoenean, erabiltzaile anonimoek ez dute saioa hasteko aukera ikusiko.",
     "customizeSidebarLinksButton": "Pertsonalizatu estekak",
@@ -1219,8 +1217,6 @@
     "install": "Instalatu aplikazioa"
   },
   "media": {
-    "extractEmbeddedSubtitles": "Txertatutako azpitituluak atera",
-    "extractEmbeddedSubtitlesDescription": "Media fitxategietatik txertatutako azpitituluak atera.",
     "debug": "Akatsen erregistroa",
     "debugDescription": "Media integrazioarako ffmpeg-en stdout irteera. Oharra: irteera asko sortzen du.",
     "imagePreview": "Irudi aurrebistako formatuak",

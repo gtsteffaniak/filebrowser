@@ -388,8 +388,6 @@
     "uploadShare": "Solo caricamento",
     "perUserDownloadLimit": "Applica limite download a ogni utente",
     "perUserDownloadLimitDescription": "Se abilitato, il limite di download verrà applicato singolarmente a ogni utente.",
-    "extractEmbeddedSubtitles": "Estrai sottotitoli incorporati",
-    "extractEmbeddedSubtitlesDescription": "Estrai i sottotitoli dai file multimediali al caricamento (può essere lento per file grandi).",
     "disableLoginOption": "Nascondi opzione di login",
     "disableLoginOptionDescription": "Nasconde il pulsante di accesso nella barra laterale per gli utenti anonimi.",
     "customizeSidebarLinksButton": "Personalizza Link",
@@ -1219,8 +1217,6 @@
     }
   },
   "media": {
-    "extractEmbeddedSubtitles": "Estrai i sottotitoli incorporati",
-    "extractEmbeddedSubtitlesDescription": "Estrai i sottotitoli incorporati dai file multimediali.",
     "debug": "Registrazione dei messaggi di debug",
     "debugDescription": "Uscita stdout di ffmpeg per l'integrazione multimediale. Attenzione: genera una grande quantità di dati in uscita.",
     "imagePreview": "Formati di anteprima delle immagini",

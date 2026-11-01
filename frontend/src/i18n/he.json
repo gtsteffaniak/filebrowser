@@ -423,8 +423,6 @@
     "perUserDownloadLimit": "החל את מגבלת ההורדות על כל משתמש",
     "perUserDownloadLimitDescription": "כאשר אפשרות זו מופעלת, מגבלת ההורדות תחול על כל משתמש. משתמשים אנונימיים לא יוכלו להוריד קבצים משיתוף זה.",
     "descriptionUploadDefault": "נשלחה אליך שיתוף כדי להעלות קבצים.",
-    "extractEmbeddedSubtitles": "חלץ כתוביות מוטמעות",
-    "extractEmbeddedSubtitlesDescription": "חלץ כתוביות מוטמעות מקבצי מדיה בעת הטעינה - פעולה זו עשויה להיות איטית עבור קבצים גדולים.",
     "disableDownload": "השבת הורדת קבצים",
     "disableDownloadDescription": "אף אחד לא יוכל להוריד קבצים או להציג את תוכנם.",
     "allowModify": "אפשר עריכת קבצים",
@@ -1219,8 +1217,6 @@
     }
   },
   "media": {
-    "extractEmbeddedSubtitles": "חילוץ כתוביות מוטמעות",
-    "extractEmbeddedSubtitlesDescription": "לחלץ כתוביות מוטמעות מקבצי מדיה.",
     "debug": "רישום באגים",
     "debugDescription": "פלט ה-stdout של ffmpeg לצורך שילוב המדיה. אזהרה: יוצר כמות גדולה של פלט.",
     "imagePreview": "פורמטים לתצוגה מקדימה של תמונות",

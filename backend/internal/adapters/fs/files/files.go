@@ -383,15 +383,13 @@ func processContent(info *iteminfo.ExtendedFileInfo, idx *indexing.Index, opts u
 		if exists {
 			info.GetSubtitles(parentInfo)
 		}
-		if opts.ExtractEmbeddedSubtitles {
-			subtitles, ok := gomedia.EmbeddedSubtitles(info.RealPath, info.ModTime, func() ([]utils.SubtitleTrack, bool) {
-				return ffmpeg.DetectEmbeddedSubtitles(info.RealPath, info.ModTime), true
-			})
-			if !ok {
-				subtitles = ffmpeg.DetectEmbeddedSubtitles(info.RealPath, info.ModTime)
-			}
-			info.Subtitles = append(info.Subtitles, subtitles...)
+		subtitles, ok := gomedia.EmbeddedSubtitles(info.RealPath, info.ModTime, func() ([]utils.SubtitleTrack, bool) {
+			return ffmpeg.DetectEmbeddedSubtitles(info.RealPath, info.ModTime), true
+		})
+		if !ok {
+			subtitles = ffmpeg.DetectEmbeddedSubtitles(info.RealPath, info.ModTime)
 		}
+		info.Subtitles = append(info.Subtitles, subtitles...)
 		return
 	}
 

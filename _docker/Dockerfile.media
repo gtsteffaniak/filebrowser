@@ -1,0 +1,79 @@
+# syntax=docker/dockerfile:1.4
+# GPU-capable media image: mostly-static glibc FFmpeg + dynamic VA/Vulkan/OpenCL drivers (amd64).
+# Codecs/TLS are linked into gtstef/ffmpeg:<ver> (full track, not *-static).
+#
+# amd64: libva/Mesa/Vulkan/OpenCL userspace below; NVIDIA libs come from the host toolkit.
+# arm64 (e.g. Raspberry Pi): h264_v4l2m2m uses kernel V4L2 only — no extra GPU .debs; pass
+#   /dev/video10 or /dev/video11 (and group video). Pi 5 VAAPI via /dev/dri is optional (mesa on arm64).
+FROM gtstef/ffmpeg:9.0.2 AS ffmpeg
+
+FROM golang:bookworm AS base
+ARG VERSION
+ARG REVISION
+WORKDIR /app
+COPY ./backend ./
+RUN apt-get update && apt-get install -y --no-install-recommends gcc libc6-dev \
+  && rm -rf /var/lib/apt/lists/*
+RUN go mod download && go run ./scripts/setup-gofitz-cgo
+ENV CGO_ENABLED=1
+RUN go build -tags analytics,mupdf -ldflags="-w -s \
+  -X 'github.com/gtsteffaniak/filebrowser/backend/internal/version.Version=${VERSION}' \
+  -X 'github.com/gtsteffaniak/filebrowser/backend/internal/version.CommitSHA=${REVISION}'" \
+  -o filebrowser .
+
+FROM node:jod-slim AS nbuild
+WORKDIR /build
+COPY ./frontend/package.json ./frontend/package-lock.json ./frontend/
+RUN apt-get update && apt-get install -y --no-install-recommends git ca-certificates
+RUN cd frontend && npm ci --maxsockets 1
+COPY ./frontend/ ./frontend/
+WORKDIR /build/frontend
+RUN npm run build:docker
+
+FROM debian:bookworm-slim AS runtime
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+  ca-certificates \
+  curl \
+  mailcap \
+  tzdata \
+  && rm -rf /var/lib/apt/lists/* \
+  && (dpkg --print-architecture | grep -q amd64 \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends \
+      libva2 \
+      libva-drm2 \
+      libdrm2 \
+      libvulkan1 \
+      mesa-va-drivers \
+      mesa-vulkan-drivers \
+      ocl-icd-libopencl1 \
+      intel-media-va-driver \
+      libmfx1 \
+    && rm -rf /var/lib/apt/lists/* \
+    || true)
+COPY --from=ffmpeg [ "/ffmpeg", "/ffprobe", "/usr/local/bin/" ]
+ENV FILEBROWSER_FFMPEG_PATH="/usr/local/bin/"
+ENV FILEBROWSER_DATABASE_PATH="/home/filebrowser/data/database.sqlite"
+ENV FILEBROWSER_CONFIG="/home/filebrowser/data/config.yaml"
+ENV PATH="$PATH:/home/filebrowser"
+ENV NVIDIA_VISIBLE_DEVICES=all
+ENV NVIDIA_DRIVER_CAPABILITIES=compute,video,utility,graphics
+
+RUN useradd -m -u 1000 -s /usr/sbin/nologin filebrowser
+USER filebrowser
+WORKDIR /home/filebrowser
+
+COPY --from=base --chown=filebrowser:1000 [ "/app/filebrowser", "./" ]
+COPY --from=base --chown=filebrowser:1000 [ "/app/config.yaml", "./data/config.yaml" ]
+COPY --from=base --chown=filebrowser:1000 [ "/app/config.yaml", "./" ]
+COPY --from=base --chown=filebrowser:1000 [ "/app/reduce-rounded-corners.css", "./" ]
+COPY --from=nbuild --chown=filebrowser:1000 [ "/build/backend/internal/web/dist/", "./internal/web/dist/" ]
+
+RUN filebrowser version && ffmpeg -version && ffprobe -version
+
+EXPOSE 80
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+  CMD curl -f http://localhost:80/health || exit 1
+ENTRYPOINT [ "./filebrowser" ]

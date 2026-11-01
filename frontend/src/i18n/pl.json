@@ -423,8 +423,6 @@
     "perUserDownloadLimit": "Zastosowanie limitu pobrań do każdego użytkownika",
     "perUserDownloadLimitDescription": "Po włączeniu limit pobrań zostanie zastosowany do każdego użytkownika. Anonimowi użytkownicy nie będą mogli pobierać żadnych plików z tego folderu udostępnionego.",
     "descriptionUploadDefault": "Udział został wysłany w celu przesłania plików.",
-    "extractEmbeddedSubtitles": "Wyodrębnianie osadzonych napisów",
-    "extractEmbeddedSubtitlesDescription": "Wyodrębnianie osadzonych napisów z plików multimedialnych podczas ładowania - może to być powolne w przypadku dużych plików.",
     "disableDownload": "Wyłącz pobieranie plików",
     "disableDownloadDescription": "Nikt nie będzie mógł pobierać plików ani przeglądać ich zawartości.",
     "allowModify": "Zezwalaj na edycję plików",
@@ -1219,8 +1217,6 @@
     }
   },
   "media": {
-    "extractEmbeddedSubtitles": "Wyodrębnij wbudowane napisy",
-    "extractEmbeddedSubtitlesDescription": "Wyodrębnij napisy osadzone w plikach multimedialnych.",
     "debug": "Rejestracja błędów",
     "debugDescription": "Wyjście stdout programu ffmpeg do integracji multimediów. Ostrzeżenie: generuje dużą ilość danych wyjściowych.",
     "imagePreview": "Formaty podglądu obrazów",

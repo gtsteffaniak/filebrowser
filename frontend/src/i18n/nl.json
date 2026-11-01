@@ -409,8 +409,6 @@
     "uploadShare": "Alleen uploaden",
     "perUserDownloadLimit": "Downloadlimiet op elke gebruiker toepassen",
     "perUserDownloadLimitDescription": "Indien ingeschakeld, wordt de downloadlimiet toegepast op elke gebruiker. Anonieme gebruikers kunnen geen bestanden downloaden van deze Share.",
-    "extractEmbeddedSubtitles": "Ingesloten ondertitels uitpakken",
-    "extractEmbeddedSubtitlesDescription": "Ingesloten ondertitels uit mediabestanden halen tijdens het laden -- dit kan traag zijn voor grote bestanden.",
     "disableLoginOption": "Aanmeldingsoptie verbergen",
     "disableLoginOptionDescription": "De aanmeldknop in de zijbalk verbergen voor anonieme gebruikers. Als deze optie is ingeschakeld, zien anonieme gebruikers geen optie om in te loggen.",
     "customizeSidebarLinksButton": "Koppelingen aanpassen",
@@ -1219,8 +1217,6 @@
     "install": "App installeren"
   },
   "media": {
-    "extractEmbeddedSubtitles": "Ingesloten ondertitels extraheren",
-    "extractEmbeddedSubtitlesDescription": "Ingebedde ondertitels uit mediabestanden extraheren.",
     "debug": "Foutlogboek",
     "debugDescription": "FFmpeg-stdout-uitvoer voor de media-integratie. Waarschuwing: dit levert veel uitvoer op.",
     "imagePreview": "Formaten voor afbeeldingsvoorbeelden",

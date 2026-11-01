@@ -67,13 +67,6 @@ func MediaDebugEnabled() bool {
 	return Config.Integrations.Media.Debug
 }
 
-// ExtractEmbeddedSubtitlesEnabled reports whether embedded subtitles are extracted.
-func ExtractEmbeddedSubtitlesEnabled() bool {
-	mediaMu.RLock()
-	defer mediaMu.RUnlock()
-	return Config.Integrations.Media.ExtractEmbeddedSubtitles
-}
-
 // TranscodeEnabled reports whether authenticated HLS transcoding is enabled.
 func TranscodeEnabled() bool {
 	mediaMu.RLock()
@@ -215,10 +208,9 @@ func CurrentMediaSettings() MediaSettings {
 func currentMediaSettingsLocked() MediaSettings {
 	m := Config.Integrations.Media
 	return CloneMediaSettings(MediaSettings{
-		Convert:                  m.Convert,
-		Debug:                    m.Debug,
-		ExtractEmbeddedSubtitles: m.ExtractEmbeddedSubtitles,
-		HardwareAcceleration:     m.HardwareAcceleration,
+		Convert:              m.Convert,
+		Debug:                m.Debug,
+		HardwareAcceleration: m.HardwareAcceleration,
 		AccelDevice:              m.AccelDevice,
 		AlwaysUseFfmpeg:          m.AlwaysUseFfmpeg,
 		Transcode:                m.Transcode,
@@ -234,7 +226,6 @@ func ApplyMediaSettings(s MediaSettings) {
 	defer mediaMu.Unlock()
 	Config.Integrations.Media.Convert = s.Convert
 	Config.Integrations.Media.Debug = s.Debug
-	Config.Integrations.Media.ExtractEmbeddedSubtitles = s.ExtractEmbeddedSubtitles
 	Config.Integrations.Media.HardwareAcceleration = s.HardwareAcceleration
 	Config.Integrations.Media.AccelDevice = s.AccelDevice
 	Config.Integrations.Media.AlwaysUseFfmpeg = s.AlwaysUseFfmpeg

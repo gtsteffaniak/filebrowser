@@ -170,29 +170,24 @@ type Media struct {
 
 	Convert                  FfmpegConvert  `json:"convert"`                  // deprecated: config for ffmpeg conversion settings. deprecated: manage via the admin media settings API
 	Debug                    bool           `json:"debug"`                    // deprecated: output ffmpeg stdout for media integration. deprecated: manage via the admin media settings API
-	ExtractEmbeddedSubtitles bool           `json:"extractEmbeddedSubtitles"` // deprecated:extract embedded subtitles from media files. deprecated: manage via the admin media settings API
+	ExtractEmbeddedSubtitles bool `json:"extractEmbeddedSubtitles"` // deprecated: no longer configurable; embedded subtitles are always extracted
 	HardwareAcceleration     bool           `json:"hardwareAcceleration"`     // deprecated: enable hardware acceleration for ffmpeg if available. deprecated: manage via the admin media settings API
 	Transcode                MediaTranscode `json:"transcode"`                // deprecated: HLS transcoding for media playback. deprecated: manage via the admin media settings API
 
 	// AccelDevice selects the acceleration device: "auto" (default), "software"/"cpu",
 	// "igpu", "dgpu", a Linux DRM render node (e.g. /dev/dri/renderD128), or a GPU
 	// name substring. Managed via the admin media settings API.
-	AccelDevice string `json:"accelDevice"`
-
-	// AlwaysUseFfmpeg forces ffmpeg for all probe, metadata, subtitle, and
-	// thumbnail work, skipping the go-media fast path. Managed via the admin
-	// media settings API.
-	AlwaysUseFfmpeg bool `json:"alwaysUseFfmpeg"`
+	AccelDevice     string `json:"accelDevice"`     // deprecated: manage via the admin media settings API
+	AlwaysUseFfmpeg bool   `json:"alwaysUseFfmpeg"` // deprecated: manage via the admin media settings API
 }
 
 // MediaSettings holds the runtime (DB-backed) media integration settings.
 // FfmpegPath is config-only and intentionally excluded.
 type MediaSettings struct {
-	Convert                  FfmpegConvert  `json:"convert"`                  // config for ffmpeg conversion settings
-	Debug                    bool           `json:"debug"`                    // output ffmpeg stdout for media integration -- careful can produces lots of output!
-	ExtractEmbeddedSubtitles bool           `json:"extractEmbeddedSubtitles"` // extract embedded subtitles from media files
-	HardwareAcceleration     bool           `json:"hardwareAcceleration"`     // enable hardware acceleration for ffmpeg if available
-	AccelDevice              string         `json:"accelDevice"`              // acceleration device: "auto", "software"/"cpu", "igpu", "dgpu", a DRM render node, or a GPU name substring
+	Convert              FfmpegConvert `json:"convert"`              // config for ffmpeg conversion settings
+	Debug                bool          `json:"debug"`                // output ffmpeg stdout for media integration -- careful can produces lots of output!
+	HardwareAcceleration bool          `json:"hardwareAcceleration"` // enable hardware acceleration for ffmpeg if available
+	AccelDevice          string        `json:"accelDevice"`          // acceleration device: "auto", "software"/"cpu", "igpu", "dgpu", a DRM render node, or a GPU name substring
 	AlwaysUseFfmpeg          bool           `json:"alwaysUseFfmpeg"`          // skip the go-media fast path and use ffmpeg for all probe, metadata, subtitle, and thumbnail work (default: false)
 	Transcode                MediaTranscode `json:"transcode"`                // HLS transcoding for media playback
 }
