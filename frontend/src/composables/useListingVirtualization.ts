@@ -24,7 +24,7 @@ import {
   type VirtualScrollOptions,
 } from "@/utils/listing/virtualListing.ts";
 
-const DEFAULT_MIN_ITEMS = 100; // Listings with fewer items than this render all
+const DEFAULT_MIN_ITEMS = 50; // Listings with fewer items than this don't use virtual scrolling
 const ESTIMATED_ROW_PITCH = 56; // Row height guess until the first measurement
 const MIN_INITIAL_ROWS = 10;
 const MAX_INITIAL_ROWS = 30;

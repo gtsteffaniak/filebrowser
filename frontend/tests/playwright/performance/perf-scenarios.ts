@@ -85,10 +85,7 @@ async function openMockListing(page: Page, scale: number): Promise<void> {
   await waitForListingRendered(page, count, timeout);
 }
 
-/**
- * Waits until the listing has rendered. A virtual listing only renders the rows around the screen
- * (`.listing-items.virtualized`), so it never holds every item and is ready as soon as it has items.
- */
+/** Waits until the listing has rendered. A virtual listing only renders the rows around the screen (`.listing-items.virtualized`) */
 async function waitForListingRendered(
   page: Page,
   expected: number,

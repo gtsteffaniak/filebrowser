@@ -176,18 +176,18 @@ describe("useListingVirtualization", () => {
 
   it("renders everything while the listing is short", async () => {
     dirs.value = range(0, 20);
-    files.value = range(20, 30);
+    files.value = range(20, 20);
     await mount();
     expect(api.active.value).toBe(false);
-    expect(rendered()).toHaveLength(50);
+    expect(rendered()).toHaveLength(40);
     expect(group("dirs").style.marginTop).toBe("");
   });
 
   it("starts windowing when a short listing grows past the threshold", async () => {
     dirs.value = range(0, 20);
-    files.value = range(20, 30);
+    files.value = range(20, 20);
     await mount();
-    expect(rendered()).toHaveLength(50);
+    expect(rendered()).toHaveLength(40);
     dirs.value = range(0, 120);
     files.value = range(120, 400);
     await flush();
@@ -197,12 +197,12 @@ describe("useListingVirtualization", () => {
   });
 
   it("uses the threshold it is given", async () => {
-    minItems = 40;
+    minItems = 30;
     dirs.value = range(0, 20);
-    files.value = range(20, 30);
+    files.value = range(20, 20);
     await mount();
     expect(api.active.value).toBe(true);
-    expect(rendered().length).toBeLessThan(50);
+    expect(rendered().length).toBeLessThan(40);
   });
 
   it("renders a window of a long listing, with space for the rest", async () => {
@@ -335,11 +335,11 @@ describe("useListingVirtualization", () => {
   it("goes back to rendering everything when the listing gets short", async () => {
     await mount();
     expect(rendered().length).toBeLessThan(150);
-    dirs.value = range(0, 30);
-    files.value = range(30, 30);
+    dirs.value = range(0, 20);
+    files.value = range(20, 20);
     await flush();
     expect(api.active.value).toBe(false);
-    expect(rendered()).toHaveLength(60);
+    expect(rendered()).toHaveLength(40);
     expect(group("files").style.marginBottom).toBe("");
   });
 
