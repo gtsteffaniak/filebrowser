@@ -8,8 +8,8 @@
     "node": "^22.13.0 || ^24.0.0 || >=26.0.0"
   },
   "scripts": {
-    "build": "rm -rf ../backend/internal/web/dist && vite build && touch ../backend/internal/web/embed/.gitignore",
-    "build:docker": "SKIP_TYPECHECK=1 vite build --outDir ../backend/internal/web/dist",
+    "build": "vite build",
+    "build:docker": "SKIP_TYPECHECK=1 vite build",
     "dev": "vite",
     "watch": "vite build --watch",
     "typecheck": "vue-tsc --build",

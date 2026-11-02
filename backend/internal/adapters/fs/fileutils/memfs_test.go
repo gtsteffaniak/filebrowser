@@ -34,20 +34,20 @@ func TestLoadMemFSServesFromMemory(t *testing.T) {
 	}
 
 	// Remove everything from disk: the cache must still serve every file.
-	if err := os.RemoveAll(dir); err != nil {
-		t.Fatal(err)
+	if removeErr := os.RemoveAll(dir); removeErr != nil {
+		t.Fatal(removeErr)
 	}
 	for name, want := range files {
-		got, err := fs.ReadFile(m, name)
-		if err != nil {
-			t.Fatalf("ReadFile(%s) after disk removal: %v", name, err)
+		got, readErr := fs.ReadFile(m, name)
+		if readErr != nil {
+			t.Fatalf("ReadFile(%s) after disk removal: %v", name, readErr)
 		}
 		if string(got) != want {
 			t.Errorf("ReadFile(%s) = %q, want %q", name, got, want)
 		}
-		info, err := fs.Stat(m, name)
-		if err != nil {
-			t.Fatalf("Stat(%s): %v", name, err)
+		info, statErr := fs.Stat(m, name)
+		if statErr != nil {
+			t.Fatalf("Stat(%s): %v", name, statErr)
 		}
 		if info.IsDir() || info.Size() != int64(len(want)) || info.Name() != filepath.Base(name) {
 			t.Errorf("Stat(%s) = %+v, unexpected", name, info)
@@ -55,15 +55,15 @@ func TestLoadMemFSServesFromMemory(t *testing.T) {
 	}
 
 	// Template-style glob on a plain name must resolve via Stat.
-	matches, err := fs.Glob(m, "index.html")
-	if err != nil || len(matches) != 1 {
-		t.Fatalf("Glob(index.html) = %v, %v", matches, err)
+	matches, globErr := fs.Glob(m, "index.html")
+	if globErr != nil || len(matches) != 1 {
+		t.Fatalf("Glob(index.html) = %v, %v", matches, globErr)
 	}
 
-	if _, err := fs.ReadFile(m, "missing.css"); err == nil {
+	if _, readErr := fs.ReadFile(m, "missing.css"); readErr == nil {
 		t.Error("ReadFile(missing.css) should fail")
 	}
-	if _, err := fs.ReadFile(m, "../escape"); err == nil {
+	if _, readErr := fs.ReadFile(m, "../escape"); readErr == nil {
 		t.Error("invalid path should be rejected")
 	}
 }

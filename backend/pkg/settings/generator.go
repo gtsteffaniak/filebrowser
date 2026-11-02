@@ -548,22 +548,31 @@ func parseDefaultsFromEmbeddedYaml(embeddedYaml string) (*Settings, error) {
 	return &defaultConfig, nil
 }
 
-// readEmbeddedYaml attempts to read the embedded config.generated.yaml file
-func readEmbeddedYaml() (string, error) {
-	// Try to read from the relative path that should work when the binary includes embedded files
-	embeddedContent, err := os.ReadFile("internal/web/dist/config.generated.yaml")
-	if err != nil {
-		// Try alternative path
-		embeddedContent, err = os.ReadFile("backend/internal/web/dist/config.generated.yaml")
-		if err != nil {
-			// Try current directory path
-			embeddedContent, err = os.ReadFile("dist/config.generated.yaml")
-			if err != nil {
-				return "", fmt.Errorf("could not read embedded YAML from any path: %v", err)
-			}
+// embeddedGeneratedConfigYAMLCandidates lists on-disk template paths for config.generated.yaml.
+var embeddedGeneratedConfigYAMLCandidates = []string{
+	"internal/web/dist/config.generated.yaml",
+	"backend/internal/web/dist/config.generated.yaml",
+	"dist/config.generated.yaml",
+}
+
+// ReadFirstExistingFile returns the content of the first candidate path that exists and is non-empty.
+func ReadFirstExistingFile(candidates []string) (string, error) {
+	for _, path := range candidates {
+		content, err := os.ReadFile(path)
+		if err == nil && len(content) > 0 {
+			return string(content), nil
 		}
 	}
-	return string(embeddedContent), nil
+	return "", fmt.Errorf("no readable file among %d candidate path(s)", len(candidates))
+}
+
+// readEmbeddedYaml attempts to read the embedded config.generated.yaml file
+func readEmbeddedYaml() (string, error) {
+	content, err := ReadFirstExistingFile(embeddedGeneratedConfigYAMLCandidates)
+	if err != nil {
+		return "", fmt.Errorf("could not read embedded YAML from any path: %w", err)
+	}
+	return content, nil
 }
 
 // BuildNode constructs a yaml.Node for any Go value, injecting comments on struct fields.

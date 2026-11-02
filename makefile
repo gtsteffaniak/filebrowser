@@ -32,7 +32,7 @@ setup:
 	$(MAKE) setup-gofitz-cgo
 	echo "installing backend dev tooling..."
 	cd backend/build && go get tool
-	cd backend/internal/web && mkdir -p embed dist && touch embed/.gitignore
+	cd backend/internal/web && mkdir -p dist
 	echo "installing npm requirements for frontend..."
 	cd frontend && npm i
 
@@ -55,7 +55,7 @@ build-docker-slim:
 	docker build --build-arg="VERSION=testing" --build-arg="REVISION=n/a" -t gtstef/filebrowser -f _docker/Dockerfile.slim .
 
 build-docker-media:
-	docker build --build-arg="VERSION=testing" --build-arg="REVISION=n/a" -t gtstef/filebrowser-media -f _docker/Dockerfile.media .
+	DOCKER_BUILDKIT=1 docker build --build-arg="VERSION=testing" --build-arg="REVISION=n/a" -t gtstef/filebrowser-media -f _docker/Dockerfile.media .
 
 build-backend:
 	@echo "Building backend..."

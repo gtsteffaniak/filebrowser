@@ -30,8 +30,8 @@ func InitAssetFS(embeddedAssets fs.FS, useEmbedded bool, devMode bool) {
 		// Dev mode: serve frontend source assets (templates, fonts, icons)
 		assetFs = dirFS{Dir: http.Dir("../frontend/public")}
 	} else {
-		// Non-dev disk build (e.g. Docker): read the frontend once at startup and
-		// serve it from memory. Frontend changes need a rebuild in this mode anyway.
+		// Non-dev disk build (e.g. Docker): dist is shipped beside the binary. Preload it
+		// into memory when possible; otherwise serve from disk.
 		diskAssets := dirFS{Dir: http.Dir("internal/web/dist")}
 		cached, err := loadMemFS(diskAssets)
 		if err != nil {
