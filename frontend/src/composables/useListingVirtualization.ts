@@ -37,7 +37,7 @@ function initialRows(): number {
   return Math.max(MIN_INITIAL_ROWS, Math.min(MAX_INITIAL_ROWS, rows));
 }
 
-const OVERSCAN_VIEWPORTS = 0.45; // Screens of rows kept rendered above and below the visible ones
+const OVERSCAN_VIEWPORTS = 0.30; // Screens of rows kept rendered above and below the visible ones
 const BUFFER_VIEWPORT_SHARE = 0.15;
 const MAX_SETTLE_PASSES = 4; // Rendering and measuring (columns change, so rows change... etc)
 const MAX_MEASURE_RETRIES = 2; // A list that cannot be measured is tried again this many times
@@ -257,7 +257,7 @@ export function useListingVirtualization<T extends VirtualItem = fileListItemInd
   }
 
   /** Moves the rendered rows to follow the scroll position, true when they changed. `force` ignores what is rendered. */
-  function updateWindows({ force = false } = {}): boolean {
+  function updateWindows({ force = false, only }: { force?: boolean; only?: ReadonlySet<string> } = {}): boolean {
     const el = currentScroller();
     const m = metrics.value;
     if (!active.value || !el || !m) return false;
@@ -267,10 +267,12 @@ export function useListingVirtualization<T extends VirtualItem = fileListItemInd
     const viewportBottom = viewportTop + el.clientHeight;
     const overscan = el.clientHeight * OVERSCAN_VIEWPORTS;
     const buffer = Math.max(1, Math.floor((el.clientHeight * BUFFER_VIEWPORT_SHARE) / m.rowPitch));
+    const lastGroup = [...gridGroups.value].reverse().find((g) => g.count > 0);
 
     const next = { ...windows.value };
     let changed = false;
     for (const g of gridGroups.value) {
+      if (only && !only.has(g.key)) continue;
       const groupEl = groupElement(g.key);
       if (!groupEl || g.count === 0) continue;
       const rows = rowCount(g.count, m.columns);
@@ -280,7 +282,11 @@ export function useListingVirtualization<T extends VirtualItem = fileListItemInd
       const current = windowFor(g);
       const keep =
         !force && needed.endRow > needed.firstRow && windowCovers(current, needed, rows, buffer);
-      const target = keep ? current : visibleRows({ ...geometry, overscan });
+      let target = keep ? current : visibleRows({ ...geometry, overscan });
+      if (g === lastGroup && rows > 0 && target.endRow <= target.firstRow && target.firstRow >= rows) {
+        const screenRows = Math.ceil((el.clientHeight + overscan * 2) / m.rowPitch);
+        target = { firstRow: Math.max(0, rows - screenRows), endRow: rows };
+      }
       if (!sameWindow(current, target) || !windows.value[g.key]) {
         next[g.key] = target;
         changed = changed || !sameWindow(current, target);
@@ -389,17 +395,22 @@ export function useListingVirtualization<T extends VirtualItem = fileListItemInd
     if (!active.value) return false;
     if (!metrics.value && hasRenderedItems()) measure();
     if (!jumpToRow(located)) return false;
-    void bringIntoView(index, located, block);
+    void bringIntoView(index, located, block, behavior);
     return true;
   }
 
   /** Once the row is rendered the browser aligns it exactly. A jump based on wrong sizes is repeated with the new ones. */
-  async function bringIntoView(index: number, located: Located, block: ScrollLogicalPosition) {
+  async function bringIntoView(
+    index: number,
+    located: Located,
+    block: ScrollLogicalPosition,
+    behavior: ScrollBehavior,
+  ) {
     for (let pass = 0; pass < MAX_JUMP_PASSES; pass++) {
       await settle();
       const el = itemElement(index);
       if (el) {
-        el.scrollIntoView({ behavior: "instant", block, inline: "nearest" });
+        el.scrollIntoView({ behavior, block, inline: "nearest" });
         return;
       }
       if (!jumpToRow(located)) return;
@@ -472,7 +483,6 @@ export function useListingVirtualization<T extends VirtualItem = fileListItemInd
       unsupported.value = candidates.length === 0;
       unmeasurable.value = false;
       metrics.value = null;
-      windows.value = {};
       containerWidth.value = Math.round(el.clientWidth);
 
       let lastHeight = el.clientHeight;
@@ -509,8 +519,29 @@ export function useListingVirtualization<T extends VirtualItem = fileListItemInd
     { immediate: true, flush: "post" },
   );
 
+  let knownCounts = new Map(gridGroups.value.map((g) => [g.key, g.count] as const));
+
+  function takeChangedGroups(): Set<string> {
+    const changed = new Set<string>();
+    const counts = new Map<string, number>();
+    for (const g of gridGroups.value) {
+      counts.set(g.key, g.count);
+      if (knownCounts.get(g.key) !== g.count) changed.add(g.key);
+    }
+    knownCounts = counts;
+    return changed;
+  }
+
   // New items (sorting, deleting, new search)
-  watch([gridGroups, active], () => void settle(), { flush: "post" });
+  watch(
+    [gridGroups, active],
+    () => {
+      const changed = takeChangedGroups();
+      if (changed.size > 0) updateWindows({ force: true, only: changed });
+      void settle();
+    },
+    { flush: "post" },
+  );
 
   // Another view mode, gallery size...
   watch(

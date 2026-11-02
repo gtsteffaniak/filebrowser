@@ -39,23 +39,35 @@ function probeFrom(metrics: Record<string, unknown>): ProbeSnapshot | undefined 
   return metrics.probe as ProbeSnapshot | undefined;
 }
 
-function activeListenerCount(
-  probe: ProbeSnapshot | undefined,
-  gauge: { JSEventListeners?: number } | undefined,
+function listenerGrowth(
+  scenario: string,
+  metrics: Record<string, unknown>,
 ): { count: number; source: "JSEventListeners" | "probe" } | undefined {
-  if (typeof gauge?.JSEventListeners === "number") {
-    return { count: gauge.JSEventListeners, source: "JSEventListeners" };
+  if (scenario === "load") return undefined;
+  const cdp = cdpFrom(metrics);
+  const after = cdp?.gauge?.JSEventListeners;
+  const before = cdp?.gaugeBefore?.JSEventListeners;
+  if (typeof after === "number" && typeof before === "number") {
+    return { count: Math.max(0, after - before), source: "JSEventListeners" };
   }
+  const probe = probeFrom(metrics);
+  const probeBefore = metrics.probeBefore as ProbeSnapshot | undefined;
   if (
     typeof probe?.addListenerCalls === "number" &&
-    typeof probe.removeListenerCalls === "number"
+    typeof probe.removeListenerCalls === "number" &&
+    typeof probeBefore?.addListenerCalls === "number" &&
+    typeof probeBefore.removeListenerCalls === "number"
   ) {
-    return {
-      count: Math.max(0, probe.addListenerCalls - probe.removeListenerCalls),
-      source: "probe",
-    };
+    const net =
+      probe.addListenerCalls - probe.removeListenerCalls -
+      (probeBefore.addListenerCalls - probeBefore.removeListenerCalls);
+    return { count: Math.max(0, net), source: "probe" };
   }
   return undefined;
+}
+
+function isVirtualized(result: PerfResultFile, listingItems: number): boolean {
+  return listingItems > 0 && listingItems < result.scale * 2 * VIRTUALIZED_SHARE;
 }
 
 function cdpFrom(metrics: Record<string, unknown>): CdpDelta | null | undefined {
@@ -277,10 +289,7 @@ export function buildContributors(
   }
 
   // --- Listener volume ----------------------------------------------------
-  // `addListenerCalls` counts every call since the page started, including rows that were mounted and then unmounted,
-  // a virtual listing only keeps the rows around the screen mounted, so dividing by the rows that are
-  // left would blame handlers that are no longer there
-  const virtualized = listingItems > 0 && listingItems < result.scale * 2 * VIRTUALIZED_SHARE;
+  const virtualized = isVirtualized(result, listingItems);
   if (listingItems > 0 && !virtualized && listeners / listingItems > 5) {
     out.push({
       factor: "High addEventListener volume",
@@ -293,18 +302,18 @@ export function buildContributors(
       },
     });
   } else if (virtualized) {
-    const active = activeListenerCount(probe, gauge);
-    if (active && active.count / listingItems > 5) {
+    const growth = listenerGrowth(scenario, metrics);
+    if (growth && growth.count / listingItems > 5) {
       out.push({
         factor: "High addEventListener volume",
         detail:
-          "Many listeners are still registered relative to the mounted rows of a virtual listing; " +
-          "rows that scroll out may not be releasing their handlers, or per-row handlers could be delegated.",
-        severity: active.count / listingItems > 15 ? "high" : "medium",
+          "Listeners kept piling up during this scenario relative to the mounted rows of a virtual listing; " +
+          "rows that scroll out may not be releasing their handlers.",
+        severity: growth.count / listingItems > 15 ? "high" : "medium",
         evidence: {
-          activeListeners: active.count,
-          activeListenerSource: active.source,
-          perRow: Number((active.count / listingItems).toFixed(2)),
+          listenerGrowth: growth.count,
+          listenerGrowthSource: growth.source,
+          perRow: Number((growth.count / listingItems).toFixed(2)),
         },
       });
     }
@@ -581,10 +590,17 @@ export function buildRootCauseParagraph(
     lines.push(
       `- **Likely dominant cost:** one IntersectionObserver per listing item scales linearly with row count.`,
     );
-  } else if (listeners > listingItems * 5) {
+  } else if (!isVirtualized(result, listingItems) && listeners > listingItems * 5) {
     lines.push(
       `- **Likely dominant cost:** high listener registration rate relative to row count (check duplicate bindings).`,
     );
+  } else if (isVirtualized(result, listingItems)) {
+    const growth = listenerGrowth(scenario, metrics);
+    if (growth && growth.count > listingItems * 5) {
+      lines.push(
+        `- **Likely dominant cost:** ${growth.count} listeners added during the scenario for ${listingItems} mounted rows (rows may not release their handlers).`,
+      );
+    }
   }
 
   return lines.join("\n");
