@@ -302,8 +302,9 @@ watch(scrolling, () => {
     category = "pinned";
   }
   else if (numFiles.value > 0) {
-    const fileSection = root.querySelector(".file-items");
-    const fileTop = fileSection?.getBoundingClientRect().top ?? 0;
+    const fileSection = root.querySelector<HTMLElement>(".file-items");
+    const spacer = Number.parseFloat(fileSection?.style.marginTop || "0") || 0;
+    const fileTop = fileSection ? fileSection.getBoundingClientRect().top - spacer : 0;
     category = fileTop <= 0 ? "files" : "folders";
   }
   if (numDirs.value === 0 && category !== "pinned") {
