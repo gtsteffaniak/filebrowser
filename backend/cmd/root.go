@@ -92,14 +92,7 @@ func StartFilebrowser() {
 	done := make(chan struct{})             // Signals server has stopped
 	shutdownComplete := make(chan struct{}) // Signals shutdown process is complete
 
-	// Dev mode enables development features like template hot-reloading
-	_, err := os.Stat("internal/web/dist")
-	// In dev mode, always use filesystem assets. Otherwise, check if internal/web/dist exists
-	if !settings.Env.IsDevMode {
-		settings.Env.EmbeddedFs = os.IsNotExist(err)
-	}
-
-	err = utils.SetInvalidPasswordHash()
+	err := utils.SetInvalidPasswordHash()
 	if err != nil {
 		logger.Fatalf("Failed to set security hash: %v", err)
 	}
@@ -206,14 +199,16 @@ func rootCMD(ctx context.Context, serverConfig *settings.Server, a *app.App, shu
 	numWorkers := settings.Config.Server.NumImageProcessors
 
 	// Initialize asset filesystem before starting services
-	if settings.Env.EmbeddedFs {
+	if !settings.Env.IsDevMode && web.EmbeddedFrontendAvailable() {
 		embeddedAssets := web.GetEmbeddedAssets()
-		subAssets, err := fs.Sub(embeddedAssets, "embed")
+		subAssets, err := fs.Sub(embeddedAssets, "dist")
 		if err != nil {
 			logger.Fatalf("Failed to create sub filesystem: %v", err)
 		}
+		settings.Env.EmbeddedFs = true
 		fileutils.InitAssetFS(subAssets, true, false)
 	} else {
+		settings.Env.EmbeddedFs = false
 		fileutils.InitAssetFS(nil, false, settings.Env.IsDevMode)
 	}
 

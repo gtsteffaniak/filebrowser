@@ -97,7 +97,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: dist
-          path: frontend/dist
+          path: backend/internal/web/dist
       - name: Download backend build
         uses: actions/download-artifact@v4
         with:
@@ -105,10 +105,6 @@ jobs:
           path: backend/
       - name: Make backend executable
         run: chmod +x backend/filebrowser
-      - name: Copy frontend build to backend
-        run: |
-          mkdir -p backend/internal/web/embed
-          cp -r frontend/dist/* backend/internal/web/embed
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3.0.0
       - name: Set up Docker Buildx
