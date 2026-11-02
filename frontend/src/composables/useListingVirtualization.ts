@@ -3,7 +3,7 @@ import { getters, state } from "@/store/index.ts";
 import type { fileListItemIndex } from "@/store/types.ts";
 import {
   buildGridGroups,
-  clampWindow,
+  fitWindow,
   hitTest,
   itemRangeOfRows,
   locateFlat,
@@ -176,7 +176,7 @@ export function useListingVirtualization<T extends VirtualItem = fileListItemInd
   function windowFor(group: GridGroup): RowWindow {
     const rows = rowCount(group.count, columns.value);
     const stored = windows.value[group.key];
-    return clampWindow(stored ?? { firstRow: 0, endRow: initialEnds.value[group.key] ?? 0 }, rows);
+    return fitWindow(stored ?? { firstRow: 0, endRow: initialEnds.value[group.key] ?? 0 }, rows);
   }
 
   const visible = computed(() => {
@@ -300,21 +300,26 @@ export function useListingVirtualization<T extends VirtualItem = fileListItemInd
   let settleAgain = false;
 
   async function runSettle(): Promise<void> {
-    do {
-      settleAgain = false;
-      for (let pass = 0; pass < MAX_SETTLE_PASSES; pass++) {
-        await nextTick(); // let what changed get rendered
-        if (!active.value || !container.value) break;
-        const measured = measure();
-        if (!metrics.value && hasRenderedItems()) {
-          unmeasurable.value = true;
-          break;
+    try {
+      do {
+        settleAgain = false;
+        for (let pass = 0; pass < MAX_SETTLE_PASSES; pass++) {
+          await nextTick(); // let what changed get rendered
+          if (!active.value || !container.value) break;
+          const measured = measure();
+          if (!metrics.value && hasRenderedItems()) {
+            unmeasurable.value = true;
+            break;
+          }
+          if (metrics.value) retries = 0;
+          const moved = updateWindows({ force: measured });
+          if (!measured && !moved) break;
         }
-        if (metrics.value) retries = 0;
-        const moved = updateWindows({ force: measured });
-        if (!measured && !moved) break;
-      }
-    } while (settleAgain);
+      } while (settleAgain);
+    } finally {
+      settleRun = null;
+      settling.value = false;
+    }
   }
 
   function settle(): Promise<void> {
@@ -325,10 +330,7 @@ export function useListingVirtualization<T extends VirtualItem = fileListItemInd
     const run = { promise: Promise.resolve() };
     settleRun = run;
     settling.value = true;
-    run.promise = runSettle().finally(() => {
-      settleRun = null;
-      settling.value = false;
-    });
+    run.promise = runSettle();
     return run.promise;
   }
 
@@ -467,6 +469,10 @@ export function useListingVirtualization<T extends VirtualItem = fileListItemInd
     if (frame) return;
     frame = requestAnimationFrame(() => {
       frame = 0;
+      if (!metrics.value && active.value && !unmeasurable.value) {
+        void settle();
+        return;
+      }
       if (updateWindows()) void settle();
     });
   }
@@ -521,22 +527,30 @@ export function useListingVirtualization<T extends VirtualItem = fileListItemInd
 
   let knownCounts = new Map(gridGroups.value.map((g) => [g.key, g.count] as const));
 
-  function takeChangedGroups(): Set<string> {
+  function takeChangedGroups(): { changed: Set<string>; emptied: Set<string> } {
     const changed = new Set<string>();
+    const emptied = new Set<string>();
     const counts = new Map<string, number>();
     for (const g of gridGroups.value) {
       counts.set(g.key, g.count);
-      if (knownCounts.get(g.key) !== g.count) changed.add(g.key);
+      const before = knownCounts.get(g.key);
+      if (before !== g.count) changed.add(g.key);
+      if (before !== g.count && (g.count === 0 || before === 0)) emptied.add(g.key);
     }
     knownCounts = counts;
-    return changed;
+    return { changed, emptied };
   }
 
   // New items (sorting, deleting, new search)
   watch(
     [gridGroups, active],
     () => {
-      const changed = takeChangedGroups();
+      const { changed, emptied } = takeChangedGroups();
+      if (emptied.size > 0) {
+        const next = { ...windows.value };
+        for (const key of emptied) delete next[key];
+        windows.value = next;
+      }
       if (changed.size > 0) updateWindows({ force: true, only: changed });
       void settle();
     },

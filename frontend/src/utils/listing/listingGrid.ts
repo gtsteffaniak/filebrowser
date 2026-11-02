@@ -131,6 +131,15 @@ export function clampWindow(window: RowWindow, rows: number): RowWindow {
   return { firstRow, endRow };
 }
 
+export function fitWindow(window: RowWindow, rows: number): RowWindow {
+  if (rows <= 0) return { firstRow: 0, endRow: 0 };
+  if (window.endRow <= window.firstRow || (window.firstRow < rows && window.endRow <= rows)) {
+    return clampWindow(window, rows);
+  }
+  const size = Math.max(1, window.endRow - window.firstRow);
+  return { firstRow: Math.max(0, rows - size), endRow: rows };
+}
+
 export function sameWindow(a: RowWindow | undefined, b: RowWindow | undefined): boolean {
   return !!a && !!b && a.firstRow === b.firstRow && a.endRow === b.endRow;
 }

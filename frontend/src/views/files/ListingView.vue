@@ -13,7 +13,6 @@
       v-else
       ref="listingView"
       :class="{
-        'add-padding': isStickySidebar,
         [listingViewMode]: true,
         dropping: isDragging,
         'rectangle-selecting': isRectangleSelecting,
@@ -175,7 +174,6 @@ const isDragging = computed(() => {
   return dragTargets.has(el);
 });
 const scrolling = computed(() => state.listing.listingScrollTop);
-const isStickySidebar = computed(() => getters.isStickySidebar());
 const items = computed(() => getters.reqItems());
 const pinnedItems = computed(() => items.value.pinned || []);
 const dirs = computed(() => items.value.dirs);
@@ -584,11 +582,11 @@ async function handleDrop(event: Event) {
   height: 100%;
   display: flex;
   flex-direction: column;
-  padding-right: 0.5em;
+  padding: 0 0.25em;
 }
 
-.add-padding {
-  padding-left: 0.5em;
+.listing-view-root:has(.listing-items:is(.list, .compact)) {
+  padding: 0 0.75em;
 }
 
 .font-size-large h2 {

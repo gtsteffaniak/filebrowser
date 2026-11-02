@@ -1190,7 +1190,7 @@ onBeforeUnmount(() => {
 }
 
 .advanced-search-toolbar {
-  margin: 1em;
+  margin: 1em 0.75em;
 }
 
 .advanced-search-card-form {
@@ -1279,7 +1279,7 @@ onBeforeUnmount(() => {
   position: sticky;
   top: 0;
   z-index: 999;
-  padding: 0.5em 0;
+  padding: 0.5em 0.75em;
   backdrop-filter: blur(8px);
   transition: transform 0.25s ease, opacity 0.25s ease;
 }
@@ -1382,12 +1382,16 @@ onBeforeUnmount(() => {
 }
 
 .advanced-search-listing-results {
-  margin: 1em;
-  margin-top: 0;
+  margin: 0 0 1em;
 }
 
 .advanced-search-inner {
   margin-top: 0.5em;
+  padding: 0 0.25em;
+}
+
+.advanced-search-inner:has(.listing-items:is(.list, .compact)) {
+  padding: 0 0.75em;
 }
 
 .advanced-search-options-section :deep(.constraints) {

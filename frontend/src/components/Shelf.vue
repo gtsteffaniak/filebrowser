@@ -203,7 +203,7 @@ export default {
 #shelf {
   overflow: hidden visible;
   position: fixed;
-  padding: 0.5em;
+  padding: 0.5em 0.75em 0;
   z-index: 1000;
   right: 0;
   left: 0;

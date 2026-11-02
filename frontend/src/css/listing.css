@@ -164,7 +164,7 @@ body.rtl .listing-items {
   overflow: hidden;
   padding: 0.5em;
   margin: 0.25em;
-  width: 100%;
+  width: auto;
   height: auto;
   min-height: calc(var(--icon-size, 60px) + 2em);
 }
