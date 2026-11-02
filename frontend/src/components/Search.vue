@@ -739,7 +739,7 @@ function selectResultAt(target: EventTarget | null): boolean {
   border: var(--borderWidth) solid var(--surfaceSecondary);
   box-shadow: 0 2em 50px 10px rgb(0 0 0 / 30%);
   background-color: var(--surfacePrimary);
-  max-height: 80dvh;
+  max-height: min(80dvh, calc(100dvh - 3.5em - var(--safe-area-top) - var(--safe-area-bottom)));
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -1033,6 +1033,7 @@ body.rtl #search #result ul>* {
     border-radius: 0 !important;
   }
   #search.active #results {
+    max-height: min(80dvh, calc(100dvh - 4em - var(--safe-area-top) - var(--safe-area-bottom)));
     border-width: 0;
     box-shadow: none;
   }
