@@ -379,6 +379,7 @@ export async function runResizeScenario(
   options?: ScenarioOptions,
 ): Promise<void> {
   await ensureListing(page, scale, options);
+  const probeBefore = await readProbe(page);
   const windowStart = await pageNow(page);
   const sizes = [
     { width: 1280, height: 720 },
@@ -427,6 +428,7 @@ export async function runResizeScenario(
       windowStart,
       windowEnd,
       probe,
+      probeBefore,
       dom,
       cdp,
       cdpFlat: flattenCdp(cdp),
@@ -448,6 +450,7 @@ export async function runSelectScenario(
   options?: ScenarioOptions,
 ): Promise<void> {
   await ensureListing(page, scale, options);
+  const probeBefore = await readProbe(page);
   const modifier = process.platform === "darwin" ? "Meta" : "Control";
   const items = page.locator(".listing-items .listing-item");
   const count = await items.count();
@@ -503,6 +506,7 @@ export async function runSelectScenario(
       windowStart,
       windowEnd,
       probe,
+      probeBefore,
       dom,
       cdp,
       cdpFlat: flattenCdp(cdp),
