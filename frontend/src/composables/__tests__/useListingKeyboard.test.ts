@@ -1,8 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createApp, defineComponent, h, ref, type App } from "vue";
 import type { fileListItemIndex } from "@/store/types.ts";
+import type { VirtualListingHandle } from "@/utils/listing/virtualListing.ts";
 
-const { state, mutations, getters, router } = vi.hoisted(() => ({
+const { state, mutations, getters, router, typeAhead } = vi.hoisted(() => ({
+  typeAhead: { process: vi.fn((): { matches: Array<{ index: number }>; nextPos: number } => ({ matches: [], nextPos: 0 })) },
   state: {
     selected: [] as number[],
     isSearchActive: false,
@@ -18,7 +20,7 @@ const { state, mutations, getters, router } = vi.hoisted(() => ({
   },
   getters: {
     currentPromptName: () => "",
-    isCardView: () => false,
+    isCardView: vi.fn(() => false),
     isShare: () => false,
     getFirstSelected: vi.fn(),
   },
@@ -33,7 +35,7 @@ vi.mock("@/utils/download", () => ({ default: vi.fn() }));
 vi.mock("@/api", () => ({ resourcesApi: { getPreviewURL: vi.fn() } }));
 vi.mock("@/utils/listingTypeAhead.js", () => ({
   isTypeAheadSessionActive: () => false,
-  processTypeAheadKey: () => ({ matches: [], nextPos: 0 }),
+  processTypeAheadKey: () => typeAhead.process(),
   resetTypeAheadSession: vi.fn(),
 }));
 vi.mock("@/composables/useListingClipboard", () => ({
@@ -182,5 +184,93 @@ describe("useListingKeyboard", () => {
     mount({ canModify: () => true });
     press("Delete");
     expect(mutations.showPrompt).toHaveBeenCalledWith(expect.objectContaining({ name: "delete" }));
+  });
+
+  describe("with virtual scrolling", () => {
+    const makeVirtual = (overrides: Partial<VirtualListingHandle> = {}): VirtualListingHandle => ({
+      isActive: () => true,
+      scrollToIndex: vi.fn(() => true),
+      moveVertical: vi.fn(() => null),
+      hitTest: vi.fn(() => null),
+      ...overrides,
+    });
+
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+    afterEach(() => {
+      vi.useRealTimers();
+      getters.isCardView.mockReturnValue(false);
+    });
+
+    it("asks the listing where an up/down arrow goes in a grid, the target may not be rendered", () => {
+      getters.isCardView.mockReturnValue(true);
+      state.selected = [3];
+      const virtual = makeVirtual({ moveVertical: vi.fn(() => 41) });
+      mount({ virtual });
+      press("ArrowDown");
+      expect(virtual.moveVertical).toHaveBeenCalledWith(3, 1);
+      expect(mutations.addSelected).toHaveBeenCalledWith(41);
+      vi.advanceTimersByTime(60);
+      expect(virtual.scrollToIndex).toHaveBeenCalledWith(41, { behavior: "smooth", block: "nearest" });
+
+      press("ArrowUp");
+      expect(virtual.moveVertical).toHaveBeenLastCalledWith(3, -1);
+    });
+
+    it("stays where it is when there is nothing further", () => {
+      getters.isCardView.mockReturnValue(true);
+      state.selected = [0];
+      const virtual = makeVirtual();
+      mount({ virtual });
+      press("ArrowUp");
+      expect(mutations.addSelected).not.toHaveBeenCalled();
+      expect(mutations.resetSelected).not.toHaveBeenCalled();
+    });
+
+    it("scrolls to a selection made with Left/Right and on a list through the listing", () => {
+      state.selected = [0];
+      const virtual = makeVirtual();
+      mount({ virtual });
+      press("ArrowDown"); // list view: next item in the array
+      expect(mutations.addSelected).toHaveBeenCalledWith(1);
+      vi.advanceTimersByTime(60);
+      expect(virtual.scrollToIndex).toHaveBeenCalledWith(1, { behavior: "smooth", block: "nearest" });
+      expect(virtual.moveVertical).not.toHaveBeenCalled();
+    });
+
+    it("scrolls to the item type-ahead found even when it is far away", () => {
+      typeAhead.process.mockReturnValueOnce({ matches: [{ index: 1 }], nextPos: 0 });
+      const virtual = makeVirtual();
+      mount({ virtual });
+      press("b");
+      expect(mutations.addSelected).toHaveBeenCalledWith(1);
+      vi.advanceTimersByTime(60);
+      expect(virtual.scrollToIndex).toHaveBeenCalledWith(1, { behavior: "smooth", block: "nearest" });
+    });
+
+    it("uses the DOM when the listing renders everything", () => {
+      state.selected = [0];
+      const scrollIntoView = vi.fn();
+      Element.prototype.scrollIntoView = scrollIntoView;
+      const selected = document.createElement("div");
+      selected.className = "listing-item";
+      selected.setAttribute("aria-selected", "true");
+      document.body.appendChild(selected);
+      const virtual = makeVirtual({ isActive: () => false });
+      mount({ virtual });
+      press("ArrowDown");
+      vi.advanceTimersByTime(60);
+      expect(virtual.scrollToIndex).not.toHaveBeenCalled();
+      expect(scrollIntoView).toHaveBeenCalledWith({ behavior: "smooth", block: "nearest", inline: "nearest" });
+      selected.remove();
+    });
+
+    it("select all does not depend on what is rendered", () => {
+      const virtual = makeVirtual();
+      mount({ virtual });
+      ctrl("a", document.body);
+      expect(mutations.selectAllItems).toHaveBeenCalledOnce();
+    });
   });
 });

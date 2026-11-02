@@ -11,20 +11,20 @@ import {
   resetTypeAheadSession,
 } from "@/utils/listingTypeAhead.js";
 import { useListingClipboard } from "@/composables/useListingClipboard.ts";
+import type { VirtualListingHandle } from "@/utils/listing/virtualListing.ts";
 
 interface ListingKeyboardOptions {
   container: Ref<HTMLElement | null>;
   items: () => fileListItemIndex[];
   isActive: () => boolean;
   canModify: () => boolean;
-  // Views with text fields on the page must not hijack keys typed in them
   ignoreEditableTargets?: boolean;
-  // Backspace and Alt+ArrowUp go to the parent folder; search results has none
   parentNavigation?: boolean;
   // Return true when the key was consumed
   onEscape?: () => boolean;
   // For views that have to remember where to come back to when an item is opened
   openItem?: (item: FileListItem) => void;
+  virtual?: VirtualListingHandle;
 }
 
 function isEditableTarget(target: EventTarget | null) {
@@ -126,7 +126,7 @@ export function useListingKeyboard(options: ListingKeyboardOptions) {
     if (nextItemIndex >= 0 && targetItem) {
       mutations.resetSelected();
       mutations.addSelected(targetItem.index);
-      scrollSelectedIntoView();
+      scrollSelectedIntoView(targetItem.index);
       return true;
     }
     return false;
@@ -156,6 +156,17 @@ export function useListingKeyboard(options: ListingKeyboardOptions) {
       return;
     }
 
+    // Not every item is rendered with virtual scrolling, so the grid maths decide where we go
+    if (options.virtual?.isActive()) {
+      const target = options.virtual.moveVertical(selectedIndex as number, arrowKey === "ArrowUp" ? -1 : 1);
+      if (target !== null) {
+        mutations.resetSelected();
+        mutations.addSelected(target);
+        scrollSelectedIntoView(target);
+      }
+      return;
+    }
+
     // but for gallery, normal, icons views, we need to find the closest item
     // cuz the rows aren't always consistent (some have 1 item, others 5, etc)
     const selectedItem = options.container.value?.querySelector(`.listing-item[data-index="${selectedIndex}"]`);
@@ -176,12 +187,17 @@ export function useListingKeyboard(options: ListingKeyboardOptions) {
     if (!Number.isNaN(itemIndex)) {
       mutations.resetSelected();
       mutations.addSelected(itemIndex);
-      scrollSelectedIntoView();
+      scrollSelectedIntoView(itemIndex);
     }
   }
 
-  function scrollSelectedIntoView() {
+  // `index` is the item that just got selected
+  function scrollSelectedIntoView(index?: number) {
     setTimeout(() => {
+      if (index !== undefined && options.virtual?.isActive()) {
+        options.virtual.scrollToIndex(index, { behavior: "smooth", block: "nearest" });
+        return;
+      }
       const element = document.querySelector(
         '.listing-item[aria-selected="true"]'
       );
@@ -324,7 +340,7 @@ export function useListingKeyboard(options: ListingKeyboardOptions) {
     if (!target) return;
     mutations.resetSelected();
     mutations.addSelected(target.index);
-    scrollSelectedIntoView();
+    scrollSelectedIntoView(target.index);
   }
 
   onMounted(() => {

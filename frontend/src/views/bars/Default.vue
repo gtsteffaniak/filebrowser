@@ -157,10 +157,7 @@ export default {
         mutations.closeSidebar();
         mutations.resetSelected();
         mutations.setSearch(true);
-        // this is hear to allow for animation
         setTimeout(() => {
-          const resultList = document.getElementById("result-list");
-          resultList.classList.add("active");
           document.getElementById("search-input").focus();
         }, 100);
       }

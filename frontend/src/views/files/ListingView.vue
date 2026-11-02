@@ -13,13 +13,14 @@
       v-else
       ref="listingView"
       :class="{
-        'add-padding': isStickySidebar,
         [listingViewMode]: true,
         dropping: isDragging,
         'rectangle-selecting': isRectangleSelecting,
+        virtualized: virtual.active.value,
         'font-size-large': numDirs + numFiles + numPinned === 0
       }"
       :style="itemStyles"
+      :data-virtual-settled="virtual.active.value ? String(virtual.settled.value) : undefined"
       class="listing-items"
     >
       <!-- Rectangle selection overlay -->
@@ -57,109 +58,43 @@
       </template>
 
       <template v-else>
-        <!-- Pinned Items Section -->
-        <div v-if="numPinned > 0">
-          <h2>{{ pinnedHeaderText }}</h2>
-        </div>
-        <div
-          v-if="numPinned > 0"
-          class="pinned-items"
-          role="group"
-          aria-label="Pinned Items"
-          :class="{ lastGroup: numDirs === 0 && numFiles === 0, firstGroup: true }"
-        >
-          <Item
-            v-for="(item, idx) in pinnedItems"
-            :key="`pinned-${item.path || item.name}`"
-            :class="{ 'zebra-row': idx % 2 === 1 }"
-            v-bind:index="item.index"
-            v-bind:name="item.name"
-            v-bind:isDir="item.type === 'directory'"
-            v-bind:source="req.source"
-            v-bind:modified="item.modified"
-            v-bind:created="item.created"
-            v-bind:type="item.type"
-            v-bind:size="item.size"
-            v-bind:path="item.path"
-            v-bind:reducedOpacity="item.hidden"
-            v-bind:hash="shareInfo.hash"
-            v-bind:hasPreview="item.hasPreview"
-            v-bind:metadata="item.metadata"
-            v-bind:hasDuration="hasDuration"
-            v-bind:isShared="item.isShared"
-            v-bind:pinned="item.pinned"
-            v-bind:viewToken="item.viewToken"
-          />
-        </div>
-
-        <!-- Directories Section -->
-        <div v-if="numDirs > 0">
-          <h2>{{ $t("general.folders") }}</h2>
-        </div>
-        <div
-          v-if="numDirs > 0"
-          class="folder-items"
-          role="group"
-          aria-label="Folder Items"
-          :class="{ lastGroup: numFiles === 0, firstGroup: numPinned === 0 }"
-        >
-          <Item
-            v-for="(item, idx) in dirs"
-            :key="item.path || item.name"
-            :class="{ 'zebra-row': (numPinned + idx) % 2 === 1 }"
-            v-bind:index="item.index"
-            v-bind:name="item.name"
-            v-bind:isDir="item.type === 'directory'"
-            v-bind:source="req.source"
-            v-bind:modified="item.modified"
-            v-bind:created="item.created"
-            v-bind:type="item.type"
-            v-bind:size="item.size"
-            v-bind:path="item.path"
-            v-bind:reducedOpacity="item.hidden"
-            v-bind:hash="shareInfo.hash"
-            v-bind:hasPreview="item.hasPreview"
-            v-bind:hasDuration="hasDuration"
-            v-bind:isShared="item.isShared"
-            v-bind:pinned="item.pinned"
-            v-bind:viewToken="item.viewToken"
-          />
-        </div>
-
-        <!-- Files Section -->
-        <div v-if="numFiles > 0">
-          <h2>{{ $t("general.files") }}</h2>
-        </div>
-        <div
-          v-if="numFiles > 0"
-          class="file-items"
-          :class="{ lastGroup: numFiles > 0, firstGroup: numPinned === 0 && numDirs === 0 }"
-          role="group"
-          aria-label="File Items"
-        >
-          <Item
-            v-for="(item, idx) in files"
-            :key="item.path || item.name"
-            :class="{ 'zebra-row': (numPinned + numDirs + idx) % 2 === 1 }"
-            v-bind:index="item.index"
-            v-bind:name="item.name"
-            v-bind:isDir="item.type === 'directory'"
-            v-bind:modified="item.modified"
-            v-bind:created="item.created"
-            v-bind:source="req.source"
-            v-bind:type="item.type"
-            v-bind:size="item.size"
-            v-bind:path="item.path"
-            v-bind:reducedOpacity="item.hidden"
-            v-bind:hash="shareInfo.hash"
-            v-bind:hasPreview="item.hasPreview"
-            v-bind:metadata="item.metadata"
-            v-bind:hasDuration="hasDuration"
-            v-bind:isShared="item.isShared"
-            v-bind:pinned="item.pinned"
-            v-bind:viewToken="item.viewToken"
-          />
-        </div>
+        <template v-for="section in sections" :key="section.key">
+          <template v-if="section.count > 0">
+            <div>
+              <h2>{{ section.title }}</h2>
+            </div>
+            <div
+              :class="[section.class, { firstGroup: section.first, lastGroup: section.last }]"
+              :data-virtual-group="section.key"
+              :style="virtual.group(section.key).style"
+              role="group"
+              :aria-label="section.label"
+            >
+              <Item
+                v-for="(item, idx) in virtual.group(section.key).items"
+                :key="item.path || item.name"
+                :class="{ 'zebra-row': (virtual.group(section.key).position + idx) % 2 === 1 }"
+                v-bind:index="item.index"
+                v-bind:name="item.name"
+                v-bind:isDir="item.type === 'directory'"
+                v-bind:source="req.source"
+                v-bind:modified="item.modified"
+                v-bind:created="item.created"
+                v-bind:type="item.type"
+                v-bind:size="item.size"
+                v-bind:path="item.path"
+                v-bind:reducedOpacity="item.hidden"
+                v-bind:hash="shareInfo.hash"
+                v-bind:hasPreview="item.hasPreview"
+                v-bind:metadata="item.metadata"
+                v-bind:hasDuration="hasDuration"
+                v-bind:isShared="item.isShared"
+                v-bind:pinned="item.pinned"
+                v-bind:viewToken="item.viewToken"
+              />
+            </div>
+          </template>
+        </template>
 
         <input
           style="display: none"
@@ -200,6 +135,7 @@ import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import { useListingClipboard } from "@/composables/useListingClipboard";
 import { useListingKeyboard } from "@/composables/useListingKeyboard";
 import { useListingLayout } from "@/composables/useListingLayout";
+import { useListingVirtualization } from "@/composables/useListingVirtualization";
 import { useMouseSelection } from "@/composables/useRectangleSelection";
 import { useListingContextMenu } from "@/composables/useListingContextMenu";
 
@@ -238,7 +174,6 @@ const isDragging = computed(() => {
   return dragTargets.has(el);
 });
 const scrolling = computed(() => state.listing.listingScrollTop);
-const isStickySidebar = computed(() => getters.isStickySidebar());
 const items = computed(() => getters.reqItems());
 const pinnedItems = computed(() => items.value.pinned || []);
 const dirs = computed(() => items.value.dirs);
@@ -264,6 +199,11 @@ const pinnedHeaderText = computed(() => {
   }
   return t("general.pinned");
 });
+const sections = computed(() => [
+  { key: "pinned", class: "pinned-items", title: pinnedHeaderText.value, label: "Pinned Items", count: numPinned.value, first: true, last: numDirs.value + numFiles.value === 0 },
+  { key: "dirs", class: "folder-items", title: t("general.folders"), label: "Folder Items", count: numDirs.value, first: numPinned.value === 0, last: numFiles.value === 0 },
+  { key: "files", class: "file-items", title: t("general.files"), label: "File Items", count: numFiles.value, first: numPinned.value + numDirs.value === 0, last: true },
+]);
 const listingViewMode = computed(() => getters.viewMode());
 const selectedCount = computed(() => state.selected.length);
 const req = computed(() => state.req);
@@ -282,11 +222,25 @@ const containerStyles = computed(() => {
 });
 const isListingView = () => getters.currentView() === "listingView";
 
+const { itemStyles, numColumns } = useListingLayout({ container: listingView });
+
+// Only renders the rows around the screen when the folder is big
+const virtual = useListingVirtualization({
+  container: listingView,
+  groups: () => [
+    { key: "pinned", items: pinnedItems.value },
+    { key: "dirs", items: dirs.value },
+    { key: "files", items: files.value },
+  ],
+  columnsHint: () => numColumns.value,
+});
+
 const { isRectangleSelecting, rectangleStyle } = useMouseSelection({
   container: rootEl,
   bounds: listingView,
   items: () => allItems.value,
   isActive: isListingView,
+  hitTest: virtual.handle.hitTest,
 });
 
 useListingKeyboard({
@@ -294,6 +248,7 @@ useListingKeyboard({
   items: () => allItems.value,
   isActive: isListingView,
   canModify: () => !!permissions.value?.modify,
+  virtual: virtual.handle,
   onEscape: () => {
     if (dragTargets.size === 0) return false;
     dragTargets.clear();
@@ -302,8 +257,6 @@ useListingKeyboard({
 });
 
 useListingContextMenu(rootEl, { getProps: () => ({ createOnly: selectedCount.value === 0 }) });
-
-const { itemStyles } = useListingLayout({ container: listingView });
 
 const { handleInternalPaste, hasInternalItems, isInternalRecent } = useListingClipboard();
 
@@ -349,8 +302,9 @@ watch(scrolling, () => {
     category = "pinned";
   }
   else if (numFiles.value > 0) {
-    const fileSection = root.querySelector(".file-items");
-    const fileTop = fileSection?.getBoundingClientRect().top ?? 0;
+    const fileSection = root.querySelector<HTMLElement>(".file-items");
+    const spacer = Number.parseFloat(fileSection?.style.marginTop || "0") || 0;
+    const fileTop = fileSection ? fileSection.getBoundingClientRect().top - spacer : 0;
     category = fileTop <= 0 ? "files" : "folders";
   }
   if (numDirs.value === 0 && category !== "pinned") {
@@ -629,11 +583,11 @@ async function handleDrop(event: Event) {
   height: 100%;
   display: flex;
   flex-direction: column;
-  padding-right: 0.5em;
+  padding: 0 0.25em;
 }
 
-.add-padding {
-  padding-left: 0.5em;
+.listing-view-root:has(.listing-items:is(.list, .compact)) {
+  padding: 0 0.75em;
 }
 
 .font-size-large h2 {

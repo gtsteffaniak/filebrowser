@@ -111,10 +111,10 @@
     </div>
 
     <div v-if="searchExecuted" class="advanced-search-results-plane">
-      <div v-if="loading" class="results-loading">
+      <h2 v-if="loading" class="message delayed">
         <LoadingSpinner size="medium" />
         <span>{{ $t("general.loading", { suffix: "..." }) }}</span>
-      </div>
+      </h2>
       <template v-else>
         <div v-if="error" class="error-message padded-message">
           {{ error }}
@@ -132,70 +132,47 @@
               :class="{
                 'add-padding': isStickySidebar,
                 'rectangle-selecting': isRectangleSelecting,
+                virtualized: virtual.active.value,
                 [listingViewMode]: true,
               }"
               :style="listingItemStyles"
               class="listing-items file-icons"
             >
               <div v-if="isRectangleSelecting" class="selection-rectangle" :style="rectangleStyle"></div>
-              <template v-if="reqListing.dirs.length > 0">
-                <div>
-                  <h2>{{ $t("general.folders") }}</h2>
-                </div>
-                <div
-                  class="folder-items"
-                  aria-label="Folder Items"
-                  :class="{ lastGroup: reqListing.files.length === 0 }"
-                >
-                  <Item
-                    v-for="entry in reqListing.dirs"
-                    :key="listingItemKey(entry)"
-                    :index="entry.index"
-                    :name="entry.name"
-                    :is-dir="entry.type === 'directory'"
-                    :source="entry.source"
-                    :modified="entry.modified"
-                    :created="entry.created"
-                    :type="entry.type"
-                    :size="entry.size"
-                    :path="entry.path"
-                    :reduced-opacity="false"
-                    :hash="shareInfo.hash"
-                    :has-preview="entry.hasPreview"
-                    :has-duration="false"
-                    :is-shared="entry.isShared || false"
-                    :read-only="true"
-                    :force-files-api="true"
-                  />
-                </div>
-              </template>
-              <template v-if="reqListing.files.length > 0">
-                <div>
-                  <h2>{{ $t("general.files") }}</h2>
-                </div>
-                <div class="file-items" :class="{ lastGroup: true }" aria-label="File Items">
-                  <Item
-                    v-for="entry in reqListing.files"
-                    :key="listingItemKey(entry)"
-                    :index="entry.index"
-                    :name="entry.name"
-                    :is-dir="entry.type === 'directory'"
-                    :modified="entry.modified"
-                    :created="entry.created"
-                    :source="entry.source"
-                    :type="entry.type"
-                    :size="entry.size"
-                    :path="entry.path"
-                    :reduced-opacity="false"
-                    :hash="shareInfo.hash"
-                    :has-preview="entry.hasPreview"
-                    :metadata="entry.metadata"
-                    :has-duration="false"
-                    :is-shared="entry.isShared || false"
-                    :read-only="true"
-                    :force-files-api="true"
-                  />
-                </div>
+              <template v-for="section in sections" :key="section.key">
+                <template v-if="section.items.length > 0">
+                  <div>
+                    <h2>{{ $t(section.title) }}</h2>
+                  </div>
+                  <div
+                    :class="[section.class, { lastGroup: section.last }]"
+                    :data-virtual-group="section.key"
+                    :style="virtual.group(section.key).style"
+                    :aria-label="section.label"
+                  >
+                    <Item
+                      v-for="entry in virtual.group(section.key).items"
+                      :key="listingItemKey(entry)"
+                      :index="entry.index"
+                      :name="entry.name"
+                      :is-dir="entry.type === 'directory'"
+                      :source="entry.source"
+                      :modified="entry.modified"
+                      :created="entry.created"
+                      :type="entry.type"
+                      :size="entry.size"
+                      :path="entry.path"
+                      :reduced-opacity="false"
+                      :hash="shareInfo.hash"
+                      :has-preview="entry.hasPreview"
+                      :metadata="entry.metadata"
+                      :has-duration="false"
+                      :is-shared="entry.isShared || false"
+                      :read-only="true"
+                      :force-files-api="true"
+                    />
+                  </div>
+                </template>
               </template>
             </div>
           </div>
@@ -221,13 +198,14 @@ import PathPickerButton from "@/components/files/PathPickerButton.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import Item from "@/components/files/ListingItem.vue";
 import { removeTrailingSlash, removeLeadingSlash, isSameItem, goToItem } from "@/utils/url.js";
-import { selectAndScrollToIndex } from "@/utils/selectAndScroll.ts";
+import { selectAndScrollToIndex } from "@/utils/listing/selectAndScroll";
 import ListingHeader from "@/components/files/ListingHeader.vue";
 import SearchFilters from "@/components/tools/SearchFilters.vue";
 import { useSearchFilters } from "@/composables/useSearchFilters";
 import { useSearchRequest } from "@/composables/useSearchRequest";
 import { useListingKeyboard } from "@/composables/useListingKeyboard";
 import { useListingLayout } from "@/composables/useListingLayout";
+import { useListingVirtualization } from "@/composables/useListingVirtualization.ts";
 import { useMouseSelection } from "@/composables/useRectangleSelection";
 import { useListingContextMenu } from "@/composables/useListingContextMenu";
 import { getObjectProperty, setObjectProperty } from '@/utils/object.js';
@@ -504,15 +482,31 @@ const reqListing = computed(() => {
   return grouped;
 });
 
+const sections = computed(() => [
+  { key: "dirs", class: "folder-items", title: "general.folders", label: "Folder Items", items: reqListing.value.dirs, last: reqListing.value.files.length === 0 },
+  { key: "files", class: "file-items", title: "general.files", label: "File Items", items: reqListing.value.files, last: true },
+]);
+
 const allItems = computed(() => [...reqListing.value.dirs, ...reqListing.value.files]);
 
-const { itemStyles: listingItemStyles } = useListingLayout({ container: listingView });
+const { itemStyles: listingItemStyles, numColumns } = useListingLayout({ container: listingView });
+
+// only the rows around the screen are rendered when there are many results
+const virtual = useListingVirtualization({
+  container: listingView,
+  groups: () => [
+    { key: "dirs", items: reqListing.value.dirs },
+    { key: "files", items: reqListing.value.files },
+  ],
+  columnsHint: () => numColumns.value,
+});
 
 const { isRectangleSelecting, rectangleStyle } = useMouseSelection({
   container: results,
   bounds: listingView,
   items: () => allItems.value,
   isActive: () => isAdvancedSearchRoute.value,
+  hitTest: virtual.handle.hitTest,
 });
 
 useListingKeyboard({
@@ -526,6 +520,7 @@ useListingKeyboard({
     ),
   ignoreEditableTargets: true,
   parentNavigation: false,
+  virtual: virtual.handle,
   openItem: (item) => {
     state.pendingHighlight = { path: item.path, source: item.source };
     if (state.searchResults) {
@@ -1195,7 +1190,7 @@ onBeforeUnmount(() => {
 }
 
 .advanced-search-toolbar {
-  margin: 1em;
+  margin: 1em 0.75em;
 }
 
 .advanced-search-card-form {
@@ -1284,7 +1279,7 @@ onBeforeUnmount(() => {
   position: sticky;
   top: 0;
   z-index: 999;
-  padding: 0.5em 0;
+  padding: 0.5em 0.75em 0;
   backdrop-filter: blur(8px);
   transition: transform 0.25s ease, opacity 0.25s ease;
 }
@@ -1351,14 +1346,6 @@ onBeforeUnmount(() => {
   min-height: min(65vh, 800px);
 }
 
-.results-loading {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.75em;
-  padding: 2rem;
-}
-
 .padded-message {
   padding: 1.5rem;
 }
@@ -1387,12 +1374,16 @@ onBeforeUnmount(() => {
 }
 
 .advanced-search-listing-results {
-  margin: 1em;
-  margin-top: 0;
+  margin: 0 0 1em;
 }
 
 .advanced-search-inner {
   margin-top: 0.5em;
+  padding: 0 0.25em;
+}
+
+.advanced-search-inner:has(.listing-items:is(.list, .compact)) {
+  padding: 0 0.75em;
 }
 
 .advanced-search-options-section :deep(.constraints) {

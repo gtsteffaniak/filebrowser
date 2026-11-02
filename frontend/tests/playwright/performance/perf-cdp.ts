@@ -58,6 +58,8 @@ export interface CdpDelta {
   delta: CdpMetricMap;
   /** Absolute gauge readings taken after the scenario. */
   gauge: CdpMetricMap;
+  /** Gauge readings taken before the scenario, to tell what the scenario added from what was already there. */
+  gaugeBefore?: CdpMetricMap;
   /** Absolute cumulative readings before/after, for debugging. */
   before: CdpMetricMap;
   after: CdpMetricMap;
@@ -141,6 +143,7 @@ export async function withCdpDelta<T>(
       cdp: {
         delta,
         gauge: after.gauge,
+        gaugeBefore: before.gauge,
         before: before.cumulative,
         after: after.cumulative,
         windowMs,
