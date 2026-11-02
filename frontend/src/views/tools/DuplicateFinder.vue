@@ -61,49 +61,47 @@
               <strong>{{ $t('fileSizeAnalyzer.incompleteResults') }}</strong> {{ $t('messages.incompleteResultsDetails', { max: maxGroups }) }}
             </div>
           </div>
-
-                <div class="duplicate-groups">
-                  <div v-for="(group, index) in duplicateGroups" :key="index" class="duplicate-group">
-                    <div class="group-header">
-                      <span class="group-title">{{ $t('general.group') }} {{ index + 1 }}</span>
-                      <span class="group-size">{{ getGroupSizeText(group) }}</span>
-                      <span class="wasted-space">{{ $t('duplicateFinder.wasted', { suffix: ': ' }) }} {{ humanSize(group.size * (group.count - 1)) }}</span>
-                    </div>
-                    <div class="group-files">
-                      <div
-                        v-for="(file, fileIndex) in group.files"
-                        :key="`${index}-${fileIndex}`"
-                        class="file-item-wrapper"
-                        :class="{ 'deleted': isDeleted(file), 'failed': isFailed(file) }"
-                      >
-                        <ListingItem
-                          :name="getFileName(file.path)"
-                          :isDir="file.type === 'directory'"
-                          :source="file.source"
-                          :type="file.type"
-                          :size="file.size"
-                          :modified="file.modified"
-                          :created="file.created"
-                          :index="getUniqueIndex(index, fileIndex)"
-                          :path="getFullPath(file.path)"
-                          :hasPreview="shouldHavePreview(file)"
-                          :reducedOpacity="isDeleted(file)"
-                          :displayFullPath="true"
-                          :updateGlobalState="false"
-                          :isSelectedProp="selectedIndices.has(getUniqueIndex(index, fileIndex))"
-                          :clickable="false"
-                          :showLimitedOptions="true"
-                          @select="handleItemSelect"
-                          @clearSelection="clearSelection"
-                          @selectRange="handleSelectRange"
-                        />
-                      </div>
-                    </div>
-                  </div>
+          <div ref="list" class="duplicate-groups">
+            <template v-for="(group, index) in duplicateGroups" :key="index">
+              <div class="group-header">
+                <span class="group-title">{{ $t('general.group') }} {{ index + 1 }}</span>
+                <span class="group-size">{{ getGroupSizeText(group) }}</span>
+                <span class="wasted-space">{{ $t('duplicateFinder.wasted', { suffix: ': ' }) }} {{ humanSize(group.size * (group.count - 1)) }}</span>
+              </div>
+              <div class="group-files" :data-virtual-group="`g${index}`" :style="virtual.group(`g${index}`).style">
+                <div
+                  v-for="entry in virtual.group(`g${index}`).items"
+                  :key="entry.index"
+                  class="file-item-wrapper"
+                  :class="{ 'deleted': isDeleted(entry.file), 'failed': isFailed(entry.file) }"
+                >
+                  <ListingItem
+                    :name="getFileName(entry.file.path)"
+                    :isDir="entry.file.type === 'directory'"
+                    :source="entry.file.source"
+                    :type="entry.file.type"
+                    :size="entry.file.size"
+                    :modified="entry.file.modified"
+                    :created="entry.file.created"
+                    :index="entry.index"
+                    :path="getFullPath(entry.file.path)"
+                    :hasPreview="entry.file.hasPreview || false"
+                    :reducedOpacity="isDeleted(entry.file)"
+                    :displayFullPath="true"
+                    :updateGlobalState="false"
+                    :isSelectedProp="selectedIndices.has(entry.index)"
+                    :clickable="false"
+                    :showLimitedOptions="true"
+                    @select="handleItemSelect"
+                    @clearSelection="clearSelection"
+                    @selectRange="handleSelectRange"
+                  />
                 </div>
+              </div>
+            </template>
+          </div>
         </div>
       </div>
-
       <div v-else-if="!loading" class="empty-state">
         <i class="material-symbols-outlined">content_copy</i>
         <p>{{ $t('duplicateFinder.emptyState') }}</p>
@@ -112,395 +110,332 @@
   </div>
 </template>
 
-<script>
-import { toolsApi, resourcesApi } from "@/api";
+<script setup lang="ts">
+import { computed, onBeforeUnmount, onMounted, ref, shallowRef, watch } from "vue";
+import { useRoute } from "vue-router";
+import { useI18n } from "vue-i18n";
+import { toolsApi } from "@/api";
+import { router } from "@/router";
 import { state, mutations } from "@/store";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { eventBus } from "@/store/eventBus";
 import ListingItem from "@/components/files/ListingItem.vue";
 import PathPickerButton from "@/components/files/PathPickerButton.vue";
-import { getTypeInfo } from "@/utils/mimetype";
+import { useListingVirtualization } from "@/composables/useListingVirtualization.ts";
 import { globalVars } from "@/utils/constants";
 
-export default {
-  name: "DuplicateFinder",
-  components: {
-    ListingItem,
-    PathPickerButton,
-  },
-  data() {
-    return {
-      searchPath: "/",
-      selectedSource: "",
-      minSizeValue: 10,
-      loading: false,
-      error: null,
-      duplicateGroups: [],
-      isIncomplete: false,
-      incompleteReason: "",
-      lastRequestTime: 0,
-      maxGroups: 500,
-      selectedIndices: new Set(),
-      deletedFiles: new Set(),
-      failedFiles: new Map(),
-      deleting: false,
-      isInitializing: true,
-    };
-  },
-  computed: {
-    selectedCount() {
-      return this.selectedIndices.size;
-    },
-    totalWastedSpace() {
-      return this.duplicateGroups.reduce((sum, group) => {
-        // Wasted space = size × (count - 1)
-        // We keep one copy, so the rest is wasted
-        return sum + (group.size * (group.count - 1));
-      }, 0);
-    },
-    totalItems() {
-      return this.duplicateGroups.reduce((sum, group) => {
-        return sum + (group.files ? group.files.length : group.count);
-      }, 0);
-    },
-  },
-  watch: {
-    searchPath() {
-      if (!this.isInitializing) this.updateUrl();
-    },
-    selectedSource() {
-      if (!this.isInitializing) this.updateUrl();
-    },
-    minSizeValue() {
-      if (!this.isInitializing) this.updateUrl();
-    },
-  },
-  mounted() {
-    document.title = `${globalVars.name} - ${this.$t('tools.title')} - ${this.$t('tools.duplicateFinder.name')}`;
+defineOptions({ name: "DuplicateFinder" });
 
-    // Initialize from URL query params or use defaults
-    const query = this.$route.query;
+interface DuplicateFile {
+  path: string;
+  type?: string;
+  size?: number;
+  modified?: string;
+  created?: string;
+  source?: string;
+  hasPreview?: boolean;
+}
 
-    this.searchPath = (typeof query.path === 'string' ? query.path : null) || "/";
-    this.selectedSource = (typeof query.source === 'string' ? query.source : null) || state.sources.current || Object.keys(state.sources.info || {})[0] || "";
+interface DuplicateGroup {
+  size: number;
+  count: number;
+  files: DuplicateFile[];
+}
 
-    if (query.minSize) {
-      const parsed = parseInt(String(query.minSize), 10);
-      if (!Number.isNaN(parsed)) {
-        this.minSizeValue = parsed;
-      }
+interface BulkDeleteEntry {
+  source: string;
+  path: string;
+  message?: string;
+}
+
+interface BulkDeleteResult {
+  succeeded?: BulkDeleteEntry[];
+  failed?: BulkDeleteEntry[];
+}
+
+const GROUP_STRIDE = 1_000_000;
+
+const { t } = useI18n();
+const route = useRoute();
+
+const list = ref<HTMLElement | null>(null);
+const searchPath = ref("/");
+const selectedSource = ref("");
+const resultPath = ref("/");
+const resultSource = ref("");
+const minSizeValue = ref(10);
+const loading = ref(false);
+const error = ref<string | null>(null);
+const duplicateGroups = shallowRef<DuplicateGroup[]>([]);
+const isIncomplete = ref(false);
+const incompleteReason = ref("");
+let lastRequestTime = 0;
+const maxGroups = 500;
+const selectedIndices = ref(new Set<number>());
+const deletedFiles = ref(new Set<string>());
+const failedFiles = ref(new Map<string, string>());
+let isInitializing = true;
+
+const totalWastedSpace = computed(() => {
+  return duplicateGroups.value.reduce((sum, group) => {
+    // Wasted space = size × (count - 1)
+    // We keep one copy, so the rest is wasted
+    return sum + (group.size * (group.count - 1));
+  }, 0);
+});
+
+// one virtual group per duplicate group, only the rows around the screen are rendered
+const virtual = useListingVirtualization({
+  container: list,
+  groups: () =>
+    duplicateGroups.value.map((group, groupIndex) => ({
+      key: `g${groupIndex}`,
+      count: group.files.length,
+      at: (fileIndex: number) => ({
+        file: group.files.at(fileIndex) as DuplicateFile,
+        index: getUniqueIndex(groupIndex, fileIndex),
+      }),
+    })),
+  columnsHint: () => 1,
+  itemClass: "file-item-wrapper",
+  register: false,
+});
+
+watch([searchPath, selectedSource, minSizeValue], () => {
+  if (!isInitializing) updateUrl();
+});
+
+onMounted(() => {
+  document.title = `${globalVars.name} - ${t('tools.title')} - ${t('tools.duplicateFinder.name')}`;
+
+  // Initialize from URL query params or use defaults
+  const query = route.query;
+
+  searchPath.value = (typeof query.path === 'string' ? query.path : null) || "/";
+  selectedSource.value = (typeof query.source === 'string' ? query.source : null) || state.sources.current || Object.keys(state.sources.info || {})[0] || "";
+
+  if (query.minSize) {
+    const parsed = parseInt(String(query.minSize), 10);
+    if (!Number.isNaN(parsed)) {
+      minSizeValue.value = parsed;
     }
+  }
+  isInitializing = false;
+  eventBus.on('itemsDeleted', handleItemsDeleted);
+  eventBus.on('duplicateFinderDeleteRequested', showDeleteConfirm);
+  eventBus.on('duplicateFinderClearRequested', clearSelection);
+});
 
-    this.isInitializing = false;
+onBeforeUnmount(() => {
+  // Clear local selection when leaving
+  selectedIndices.value.clear();
 
-    // Listen for events
-    eventBus.on('itemsDeleted', this.handleItemsDeleted);
-    eventBus.on('duplicateFinderDeleteRequested', this.showDeleteConfirm);
-    eventBus.on('duplicateFinderClearRequested', this.clearSelection);
-  },
-  beforeUnmount() {
-    // Clear local selection when leaving
-    this.selectedIndices.clear();
+  eventBus.off('itemsDeleted', handleItemsDeleted);
+  eventBus.off('duplicateFinderDeleteRequested', showDeleteConfirm);
+  eventBus.off('duplicateFinderClearRequested', clearSelection);
 
-    eventBus.off('itemsDeleted', this.handleItemsDeleted);
-    eventBus.off('duplicateFinderDeleteRequested', this.showDeleteConfirm);
-    eventBus.off('duplicateFinderClearRequested', this.clearSelection);
+  // Notify Shelf.vue that selection is cleared
+  eventBus.emit('duplicateFinderSelectionChanged', 0);
+  eventBus.emit('duplicateFinderDeletingChanged', false);
+});
 
-    // Notify Files.vue that selection is cleared
-    eventBus.emit('duplicateFinderSelectionChanged', 0);
-    eventBus.emit('duplicateFinderDeletingChanged', false);
-  },
-  methods: {
-    handleItemsDeleted(data) {
-      // Update local state when items are deleted from the delete prompt
-      if (data?.succeeded) {
-        for (const item of data.succeeded) {
-          const key = `${item.source}::${item.path}`;
-          this.deletedFiles.add(key);
-          this.failedFiles.delete(key);
-        }
-      }
-      if (data?.failed) {
-        for (const item of data.failed) {
-          const key = `${item.source}::${item.path}`;
-          this.failedFiles.set(key, item.message || 'Unknown error');
-        }
-      }
-      // Clear selection after processing
-      this.selectedIndices.clear();
+function handleItemsDeleted(data?: BulkDeleteResult) {
+  // Update local state when items are deleted from the delete prompt
+  if (data?.succeeded) {
+    for (const item of data.succeeded) {
+      const key = `${item.source}::${item.path}`;
+      deletedFiles.value.add(key);
+      failedFiles.value.delete(key);
+    }
+  }
+  if (data?.failed) {
+    for (const item of data.failed) {
+      const key = `${item.source}::${item.path}`;
+      failedFiles.value.set(key, item.message || 'Unknown error');
+    }
+  }
+  clearSelection();
+}
+
+async function fetchData() {
+  // Prevent rapid-fire requests - require at least 1 second between requests
+  const now = Date.now();
+  if (loading.value) {
+    return; // Already loading
+  }
+  if (now - lastRequestTime < 1000) {
+    console.log("Duplicate search throttled - please wait before searching again");
+    return;
+  }
+
+  loading.value = true;
+  error.value = null;
+  lastRequestTime = now;
+  const requestPath = searchPath.value;
+  const requestSource = selectedSource.value;
+
+  try {
+    // API now expects minSizeMb directly (in megabytes)
+    // Always use false for checksums due to performance issues
+    const result = await toolsApi.duplicateFinder(
+      requestPath,
+      requestSource,
+      minSizeValue.value,
+      false // Checksum disabled
+    );
+
+    // Handle new response format with incomplete metadata
+    resultPath.value = requestPath;
+    resultSource.value = requestSource;
+    duplicateGroups.value = result.groups || [];
+    isIncomplete.value = result.incomplete || false;
+    incompleteReason.value = result.reason || "";
+
+    // Reset selection, deleted, and failed files when new results arrive
+    clearSelection();
+    deletedFiles.value.clear();
+    failedFiles.value.clear();
+  } catch (err) {
+    error.value = (err as Error).message || "Failed to find duplicates";
+    duplicateGroups.value = [];
+    isIncomplete.value = false;
+    incompleteReason.value = "";
+    clearSelection();
+    deletedFiles.value.clear();
+    failedFiles.value.clear();
+  } finally {
+    loading.value = false;
+  }
+}
+
+function updateUrl() {
+  if (!route.path.startsWith('/tools/duplicateFinder')) return;
+  const query: Record<string, string> = {};
+
+  if (searchPath.value && searchPath.value !== "/") {
+    query.path = searchPath.value;
+  }
+
+  if (selectedSource.value) {
+    query.source = selectedSource.value;
+  }
+
+  if (minSizeValue.value !== 1) {
+    query.minSize = String(minSizeValue.value);
+  }
+
+  router.replace({
+    path: route.path,
+    query: Object.keys(query).length > 0 ? query : undefined,
+  }).catch(() => {});
+}
+
+function humanSize(size: number) {
+  return getHumanReadableFilesize(size);
+}
+
+function getGroupSizeText(group: DuplicateGroup) {
+  return `${humanSize(group.size)} × ${group.count} = ${humanSize(group.size * group.count)}`;
+}
+
+function getFileName(path: string) {
+  const parts = path.split("/").filter(p => p);
+  return parts[parts.length - 1] || path;
+}
+
+function ensureLeadingSlash(path: string) {
+  return path.startsWith('/') ? path : `/${path}`;
+}
+
+function getFullPath(filePath: string) {
+  const basePath = resultPath.value || '/';
+  const normalizedSearchPath = basePath === '/' || basePath === ''
+    ? ''
+    : (basePath.endsWith('/') ? basePath.slice(0, -1) : basePath);
+
+  if (filePath.startsWith(`${normalizedSearchPath}/`) ||
+      filePath === normalizedSearchPath ||
+      (normalizedSearchPath === '' && filePath.startsWith('/'))) {
+    return ensureLeadingSlash(filePath);
+  }
+
+  if (normalizedSearchPath === '') {
+    return ensureLeadingSlash(filePath);
+  }
+
+  // Remove leading slash from file path if present before combining
+  const cleanFilePath = filePath.startsWith('/') ? filePath.substring(1) : filePath;
+  return `${normalizedSearchPath}/${cleanFilePath}`;
+}
+
+function getUniqueIndex(groupIndex: number, fileIndex: number) {
+  return groupIndex * GROUP_STRIDE + fileIndex;
+}
+
+function getFileKey(file: DuplicateFile) {
+  // Create a unique key for the file based on source and path
+  return `${resultSource.value}::${getFullPath(file.path)}`;
+}
+
+function handleItemSelect({ index }: { index: number }) {
+  if (selectedIndices.value.has(index)) {
+    selectedIndices.value.delete(index);
+  } else {
+    selectedIndices.value.add(index);
+  }
+  eventBus.emit('duplicateFinderSelectionChanged', selectedIndices.value.size);
+}
+
+function handleSelectRange({ startIndex, endIndex }: { startIndex: number; endIndex: number }) {
+  const start = Math.min(startIndex, endIndex);
+  const end = Math.max(startIndex, endIndex);
+  for (let groupIndex = Math.floor(start / GROUP_STRIDE); groupIndex <= Math.floor(end / GROUP_STRIDE); groupIndex++) {
+    const count = duplicateGroups.value.at(groupIndex)?.files.length ?? 0;
+    for (let fileIndex = 0; fileIndex < count; fileIndex++) {
+      const index = getUniqueIndex(groupIndex, fileIndex);
+      if (index >= start && index <= end) selectedIndices.value.add(index);
+    }
+  }
+  eventBus.emit('duplicateFinderSelectionChanged', selectedIndices.value.size);
+}
+
+function clearSelection() {
+  selectedIndices.value.clear();
+  eventBus.emit('duplicateFinderSelectionChanged', 0);
+}
+
+function isDeleted(file: DuplicateFile) {
+  return deletedFiles.value.has(getFileKey(file));
+}
+
+function isFailed(file: DuplicateFile) {
+  return failedFiles.value.has(getFileKey(file));
+}
+
+function showDeleteConfirm() {
+  if (selectedIndices.value.size === 0) {
+    return;
+  }
+  const items = [];
+  for (const selectedIndex of selectedIndices.value) {
+    const file = duplicateGroups.value.at(Math.floor(selectedIndex / GROUP_STRIDE))?.files.at(selectedIndex % GROUP_STRIDE);
+    if (!file) continue;
+    items.push({
+      source: resultSource.value,
+      path: getFullPath(file.path),
+      type: file.type,
+      size: file.size,
+      modified: file.modified,
+    });
+  }
+
+  mutations.showPrompt({
+    name: "delete",
+    props: {
+      items: items,
     },
-    async fetchData() {
-      // Prevent rapid-fire requests - require at least 1 second between requests
-      const now = Date.now();
-      if (this.loading) {
-        return; // Already loading
-      }
-      if (now - this.lastRequestTime < 1000) {
-        console.log("Duplicate search throttled - please wait before searching again");
-        return;
-      }
-
-      this.loading = true;
-      this.error = null;
-      this.lastRequestTime = now;
-
-      try {
-        // API now expects minSizeMb directly (in megabytes)
-        // Always use false for checksums due to performance issues
-        const result = await toolsApi.duplicateFinder(
-          this.searchPath,
-          this.selectedSource,
-          this.minSizeValue,
-          false // Checksum disabled
-        );
-
-        // Handle new response format with incomplete metadata
-        this.duplicateGroups = result.groups || [];
-        this.isIncomplete = result.incomplete || false;
-        this.incompleteReason = result.reason || "";
-
-        // Reset selection, deleted, and failed files when new results arrive
-        this.selectedIndices.clear();
-        this.deletedFiles.clear();
-        this.failedFiles.clear();
-      } catch (err) {
-        this.error = err.message || "Failed to find duplicates";
-        this.duplicateGroups = [];
-        this.isIncomplete = false;
-        this.incompleteReason = "";
-        this.selectedIndices.clear();
-        this.deletedFiles.clear();
-        this.failedFiles.clear();
-      } finally {
-        this.loading = false;
-      }
-    },
-    updateUrl() {
-      if (!this.$route.path.startsWith('/tools/duplicateFinder')) return;
-      const query = {};
-
-      if (this.searchPath && this.searchPath !== "/") {
-        query.path = this.searchPath;
-      }
-
-      if (this.selectedSource) {
-        query.source = this.selectedSource;
-      }
-
-      if (this.minSizeValue !== 1) {
-        query.minSize = String(this.minSizeValue);
-      }
-
-      this.$router.replace({
-        path: this.$route.path,
-        query: Object.keys(query).length > 0 ? query : undefined,
-      }).catch(() => {});
-    },
-    humanSize(size) {
-      return getHumanReadableFilesize(size);
-    },
-    getGroupSizeText(group) {
-      return `${this.humanSize(group.size)} × ${group.count} = ${this.humanSize(group.size * group.count)}`;
-    },
-    getFileName(path) {
-      const parts = path.split("/").filter(p => p);
-      return parts[parts.length - 1] || path;
-    },
-    ensureLeadingSlash(path) {
-      // Ensure path starts with / for proper URL generation in ListingItem
-      return path.startsWith('/') ? path : `/${path}`;
-    },
-    getFullPath(filePath) {
-      // Ensure the file path includes the full path from root
-      // If searching in a subpath, the backend may return relative paths
-      const searchPath = this.searchPath || '/';
-
-      // Normalize search path (ensure trailing slash is removed)
-      const normalizedSearchPath = searchPath === '/' || searchPath === ''
-        ? ''
-        : (searchPath.endsWith('/') ? searchPath.slice(0, -1) : searchPath);
-
-      // Check if the path already includes the search path prefix
-      if (filePath.startsWith(`${normalizedSearchPath}/`) ||
-          filePath === normalizedSearchPath ||
-          (normalizedSearchPath === '' && filePath.startsWith('/'))) {
-        // Path already has full context, just ensure leading slash
-        return this.ensureLeadingSlash(filePath);
-      }
-
-      // Path is relative to search path - prepend it
-      if (normalizedSearchPath === '') {
-        // Searching from root
-        return this.ensureLeadingSlash(filePath);
-      }
-
-      // Remove leading slash from file path if present before combining
-      const cleanFilePath = filePath.startsWith('/') ? filePath.substring(1) : filePath;
-      return `${normalizedSearchPath}/${cleanFilePath}`;
-    },
-    getUniqueIndex(groupIndex, fileIndex) {
-      // Create a unique index for each file across all groups
-      // This ensures selections work correctly even with multiple groups
-      return groupIndex * 1000 + fileIndex;
-    },
-    shouldHavePreview(file) {
-      // Compute hasPreview based on file type if backend doesn't provide it
-      if (file.hasPreview || file.HasPreview) {
-        return true;
-      }
-      // Check if file type supports previews using getTypeInfo
-      const type = file.type || '';
-      const typeInfo = getTypeInfo(type);
-      const simpleType = typeInfo.simpleType;
-
-      // Files that typically have previews
-      if (simpleType === 'image' || simpleType === 'video') {
-        return true;
-      }
-      // Office files and PDFs
-      if (simpleType === 'document' || simpleType === 'text' || type.includes('pdf')) {
-        return true;
-      }
-      return false;
-    },
-    getFileKey(file) {
-      // Create a unique key for the file based on source and path
-      return `${this.selectedSource}::${this.getFullPath(file.path)}`;
-    },
-    handleItemSelect({ index }) {
-      // Toggle selection - if already selected, remove it; if not selected, add it
-      if (this.selectedIndices.has(index)) {
-        this.selectedIndices.delete(index);
-      } else {
-        this.selectedIndices.add(index);
-      }
-      // Notify Files.vue of selection change
-      eventBus.emit('duplicateFinderSelectionChanged', this.selectedIndices.size);
-    },
-    handleSelectRange({ startIndex, endIndex }) {
-      // Select all indices between start and end
-      const start = Math.min(startIndex, endIndex);
-      const end = Math.max(startIndex, endIndex);
-      for (let i = start; i <= end; i++) {
-        this.selectedIndices.add(i);
-      }
-      // Notify Files.vue of selection change
-      eventBus.emit('duplicateFinderSelectionChanged', this.selectedIndices.size);
-    },
-    clearSelection() {
-      this.selectedIndices.clear();
-      // Notify Files.vue of selection change
-      eventBus.emit('duplicateFinderSelectionChanged', 0);
-    },
-    isDeleted(file) {
-      return this.deletedFiles.has(this.getFileKey(file));
-    },
-    isFailed(file) {
-      return this.failedFiles.has(this.getFileKey(file));
-    },
-    getFailureMessage(file) {
-      return this.failedFiles.get(this.getFileKey(file)) || '';
-    },
-    showDeleteConfirm() {
-      if (this.selectedIndices.size === 0 || this.deleting) {
-        return;
-      }
-
-      // Build items array with preview URLs from selected indices
-      const items = [];
-      for (const selectedIndex of this.selectedIndices) {
-        // Find the file corresponding to this index
-        for (const group of this.duplicateGroups) {
-          for (let fileIndex = 0; fileIndex < group.files.length; fileIndex++) {
-            const uniqueIndex = this.getUniqueIndex(this.duplicateGroups.indexOf(group), fileIndex);
-            if (uniqueIndex === selectedIndex) {
-              const file = group.files.at(fileIndex);
-              const fullPath = this.getFullPath(file.path);
-              const previewUrl = this.shouldHavePreview(file)
-                ? resourcesApi.getPreviewURL(this.selectedSource, fullPath, file.modified)
-                : null;
-              items.push({
-                source: this.selectedSource,
-                path: fullPath,
-                type: file.type,
-                size: file.size,
-                modified: file.modified,
-                previewUrl: previewUrl,
-              });
-              break;
-            }
-          }
-        }
-      }
-
-      mutations.showPrompt({
-        name: "delete",
-        props: {
-          items: items,
-        },
-      });
-    },
-    async deleteSelected() {
-      if (this.selectedIndices.size === 0 || this.deleting) {
-        return;
-      }
-
-      this.deleting = true;
-      // Notify Files.vue that deletion is in progress
-      eventBus.emit('duplicateFinderDeletingChanged', true);
-
-      const itemsToDelete = [];
-
-      // Map selected indices to files
-      for (const selectedIndex of this.selectedIndices) {
-        // Find the file corresponding to this index
-        for (const group of this.duplicateGroups) {
-          for (let fileIndex = 0; fileIndex < group.files.length; fileIndex++) {
-            const uniqueIndex = this.getUniqueIndex(this.duplicateGroups.indexOf(group), fileIndex);
-            if (uniqueIndex === selectedIndex) {
-              const file = group.files.at(fileIndex);
-              itemsToDelete.push({
-                source: this.selectedSource,
-                path: this.getFullPath(file.path),
-              });
-              break;
-            }
-          }
-        }
-      }
-
-      try {
-        const response = await resourcesApi.bulkDelete(itemsToDelete);
-
-        // Process succeeded items
-        if (response.succeeded && response.succeeded.length > 0) {
-          for (const item of response.succeeded) {
-            const key = `${item.source}::${item.path}`;
-            this.deletedFiles.add(key);
-            this.failedFiles.delete(key);
-          }
-        }
-
-        // Process failed items
-        if (response.failed && response.failed.length > 0) {
-          for (const item of response.failed) {
-            const key = `${item.source}::${item.path}`;
-            this.failedFiles.set(key, item.message || 'Unknown error');
-          }
-        }
-
-        // Clear selection after deletion attempt
-        this.selectedIndices.clear();
-        eventBus.emit('duplicateFinderSelectionChanged', 0);
-      } catch (err) {
-        this.error = err.message || 'Failed to delete files';
-      } finally {
-        this.deleting = false;
-        eventBus.emit('duplicateFinderDeletingChanged', false);
-      }
-    },
-  },
-};
+  });
+}
 </script>
 
 <style scoped>
@@ -552,15 +487,11 @@ export default {
 }
 
 .duplicate-groups {
+  --icon-size: 2.5em;
+  --icon-font-size: 1.8em;
+
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
-}
-
-.duplicate-group {
-  border: 1px solid var(--divider);
-  border-radius: var(--borderRadius);
-  overflow: hidden;
 }
 
 .group-header {
@@ -569,7 +500,14 @@ export default {
   display: flex;
   align-items: center;
   gap: 1rem;
-  border-radius: 0.5em;
+  margin-top: 1.5rem;
+  border: 1px solid var(--divider);
+  border-bottom-color: rgb(0 0 0 / 10%);
+  border-radius: var(--borderRadius) var(--borderRadius) 0 0;
+}
+
+.group-header:first-child {
+  margin-top: 0;
 }
 
 .group-title {
@@ -592,7 +530,12 @@ export default {
 .group-files {
   display: flex;
   flex-direction: column;
-  padding: 0;
+  padding-top: 0.3em;
+  padding-bottom: 0.3em;
+  border: 1px solid var(--divider);
+  border-top: 0;
+  border-radius: 0 0 var(--borderRadius) var(--borderRadius);
+  overflow: hidden;
 }
 
 .file-item-wrapper {
@@ -601,12 +544,8 @@ export default {
   gap: 0.5rem;
   border: 1px solid rgb(0 0 0 / 10%);
   border-top: 0;
-  padding: 0.5em;
+  padding: 0.2em 1.2%;
   border-radius: 0;
-}
-
-.file-item-wrapper:first-child {
-  border-top: 1px solid rgb(0 0 0 / 10%);
 }
 
 .file-item-wrapper.deleted {
@@ -628,8 +567,9 @@ export default {
 
 .group-files .listing-item {
   width: 100%;
-  margin: 0.25em;
+  margin: 0;
   cursor: pointer;
+  content-visibility: visible;
 }
 
 /* Highlight selected items */

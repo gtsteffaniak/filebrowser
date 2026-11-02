@@ -223,6 +223,7 @@ export interface UserObject {
   stickySidebar: boolean;
   hideFilesInTree: boolean,
   deleteAfterArchive: boolean,
+  deleteWithoutConfirming?: boolean;
   locale: string;
   viewMode: string;
   showHidden: boolean;

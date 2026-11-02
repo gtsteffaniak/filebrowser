@@ -12,36 +12,38 @@
         <p class="card-message" v-else>
           {{ $t("prompts.deleteMessageMultiple", { count: itemsToDelete.length }) }}
         </p>
-        <div class="delete-items-list">
-        <div
-          v-for="(item, index) in itemsToDelete"
-          :key="index"
-          class="delete-item-wrapper"
-          :class="{ 'has-error': getItemError(item) }"
-        >
-          <ListingItem
-            :name="getItemName(item.path)"
-            :isDir="item.type === 'directory'"
-            :source="item.source"
-            :type="item.type"
-            :size="item.size"
-            :modified="item.modified"
-            :index="index"
-            :path="item.path"
-            :hasPreview="item.hasPreview"
-            :displayFullPath="true"
-            :updateGlobalState="false"
-            :isSelectedProp="false"
-            :clickable="false"
-            @click="preventInteraction"
-            @select="preventInteraction"
-            class="delete-listing-item"
-          />
-          <div v-if="getItemError(item)" class="error-banner">
-            {{ getItemError(item) }}
+        <div ref="list" class="delete-items-list" @contextmenu.capture.prevent.stop>
+          <div data-virtual-group="items" :style="virtual.group('items').style">
+            <div
+              v-for="entry in virtual.group('items').items"
+              :key="`${entry.item.source}::${entry.item.path}`"
+              class="delete-item-wrapper"
+              :class="{ 'has-error': getItemError(entry.item) }"
+            >
+              <ListingItem
+                :name="getItemName(entry.item.path)"
+                :isDir="entry.item.type === 'directory'"
+                :source="entry.item.source"
+                :type="entry.item.type"
+                :size="entry.item.size"
+                :modified="entry.item.modified"
+                :index="entry.index"
+                :path="entry.item.path"
+                :hasPreview="entry.item.hasPreview"
+                :displayFullPath="true"
+                :updateGlobalState="false"
+                :isSelectedProp="false"
+                :clickable="false"
+                @click="preventInteraction"
+                @select="preventInteraction"
+                class="delete-listing-item"
+              />
+              <div v-if="getItemError(entry.item)" class="error-banner">
+                {{ getItemError(entry.item) }}
+              </div>
+            </div>
           </div>
         </div>
-      </div>
       </div>
     </div>
     <div class="card-actions">
@@ -66,320 +68,289 @@
     </div>
 </template>
 
-<script>
+<script setup lang="ts">
+import { computed, onMounted, ref } from "vue";
+import { useI18n } from "vue-i18n";
 import { resourcesApi } from "@/api";
 import buttons from "@/utils/buttons";
 import { state, getters, mutations } from "@/store";
+import type { FileListItem } from "@/store/types";
 import { notify } from "@/notify";
-import { getTypeInfo } from "@/utils/mimetype";
 import ListingItem from "@/components/files/ListingItem.vue";
 import { eventBus } from "@/store/eventBus";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
+import { useListingVirtualization } from "@/composables/useListingVirtualization.ts";
 import url from "@/utils/url";
 import { removeFromFolderLists } from "@/utils/cache/listingCache.ts";
 
-export default {
-  name: "delete",
-  components: {
-    ListingItem,
-    LoadingSpinner,
-  },
-  props: {
-    promptId: {
-      type: [String, Number],
-      default: null,
+interface DeleteItem {
+  source?: string;
+  path: string;
+  type?: string;
+  size?: number;
+  modified?: string;
+  created?: string;
+  hasPreview?: boolean;
+}
+
+interface FailedItem {
+  source?: string;
+  path: string;
+  message?: string;
+}
+
+const props = withDefaults(
+  defineProps<{
+    promptId?: string | number | null;
+    items?: DeleteItem[] | null;
+  }>(),
+  { promptId: null, items: null },
+);
+
+defineOptions({ name: "delete" });
+
+const { t } = useI18n();
+
+const list = ref<HTMLElement | null>(null);
+const failedItems = ref<FailedItem[]>([]);
+const deleting = ref(false);
+
+const failedMessages = computed(
+  () => new Map(failedItems.value.map((item) => [`${item.source}::${item.path}`, item.message || "Unknown error"])),
+);
+
+const itemsToDelete = computed<DeleteItem[]>(() => {
+  // If props.items is provided, use that
+  if (props.items?.length) {
+    return props.items;
+  }
+  // Otherwise, compute from state (backward compatibility)
+  let selectedItems: FileListItem[];
+  if (state.isSearchActive || getters.currentView() === "preview") {
+    const selected = state.selected[0] as number | FileListItem;
+    selectedItems = [(typeof selected === "number" ? state.req.items?.at(selected) : selected) as FileListItem];
+  } else if (!getters.isListing()) {
+    selectedItems = [state.req.items.at(state.selected[0] as number) as FileListItem];
+  } else {
+    selectedItems = state.selected.map((index) => state.req.items.at(index as number) as FileListItem);
+  }
+  return selectedItems.map((item) => ({
+    source: item.source || state.req.source,
+    path: item.path,
+    type: item.type,
+    size: item.size,
+    modified: item.modified,
+    created: item.created,
+    hasPreview: item.hasPreview,
+  }));
+});
+
+const virtual = useListingVirtualization({
+  container: list,
+  groups: () => [
+    {
+      key: "items",
+      count: itemsToDelete.value.length,
+      at: (index) => ({ item: itemsToDelete.value[index] as DeleteItem, index }),
     },
-    items: {
-      type: Array,
-      default: null, // If not provided, will compute from state
-    },
-  },
-  data() {
-    return {
-      failedItems: [], // Array of failed items with source, path, and message
-      deleting: false,
-    };
-  },
-  mounted() {
-    const count = this.itemsToDelete.length;
-    if (count > 0) {
-      if (state.user.deleteWithoutConfirming && count === 1) {
-        this.submit();
+  ],
+  columnsHint: () => 1,
+  scroller: (el) => el,
+  itemClass: "delete-item-wrapper",
+  register: false,
+});
+
+onMounted(() => {
+  if (itemsToDelete.value.length === 1 && state.user.deleteWithoutConfirming) {
+    void submit();
+  }
+});
+
+function preventInteraction(event?: Event) {
+  if (event && typeof event.preventDefault === 'function') {
+    event.preventDefault();
+  }
+  if (event && typeof event.stopPropagation === 'function') {
+    event.stopPropagation();
+  }
+  return false;
+}
+
+function closeTopPrompt() {
+  mutations.closeTopPrompt();
+}
+
+function getItemName(path: string) {
+  const parts = path.split("/").filter(p => p);
+  return parts[parts.length - 1] || path;
+}
+
+function getItemError(item: DeleteItem) {
+  return failedMessages.value.get(`${item.source}::${item.path}`) ?? null;
+}
+
+function parseBulkDeleteFailures(error: { failed?: FailedItem[]; message?: string }): FailedItem[] | null {
+  if (error?.failed?.length) {
+    return error.failed;
+  }
+  if (!error?.message) {
+    return null;
+  }
+  try {
+    const parsed = JSON.parse(error.message);
+    if (Array.isArray(parsed?.failed) && parsed.failed.length > 0) {
+      return parsed.failed;
+    }
+  } catch (_e) {
+    // Not JSON — fall through
+  }
+  return null;
+}
+
+async function submit() {
+  if (deleting.value) {
+    return;
+  }
+
+  deleting.value = true;
+  failedItems.value = [];
+  buttons.loading("delete");
+  // The selection and request change while deleting, so work on what was selected at the start
+  const toDelete = itemsToDelete.value;
+
+  try {
+    // Extract source and path from items
+    const itemsForDelete = toDelete.map((item) => ({
+      source: item.source,
+      path: item.path,
+    }));
+    if (itemsForDelete.length === 0) {
+      buttons.done("delete");
+      deleting.value = false;
+      return;
+    }
+    // Use bulk delete API for both regular files and shares
+    const response = getters.isShare()
+      ? await resourcesApi.bulkDeletePublic(itemsForDelete)
+      : await resourcesApi.bulkDelete(itemsForDelete);
+
+    const failed = Array.isArray(response?.failed) ? response.failed : [];
+    const succeeded = Array.isArray(response?.succeeded) ? response.succeeded : [];
+    failedItems.value = failed;
+
+    const succeededCount = succeeded.length;
+    const failedCount = failed.length;
+    mutations.removeFromSearchResults(succeeded);
+
+    if (failedCount === 0) {
+      // All succeeded - close prompt and handle navigation
+      buttons.success("delete");
+      notify.showSuccessToast(t('prompts.deleted'));
+
+      if (props.items && props.items.length > 0) {
+        eventBus.emit("itemsDeleted", {
+          succeeded,
+          failed,
+        });
+      }
+      mutations.closeTopPrompt();
+      if (!props.items) {
+        mutations.resetSelected();
+      }
+      if (getters.isPreviewView()) {
+        for (const deleted of toDelete) {
+          removeFromFolderLists(deleted);
+        }
+      }
+      // If we delete a item while in a preview
+      if (getters.isPreviewView() && toDelete.length === 1) {
+        const deletedItem = toDelete[0] as DeleteItem;
+        const currentItem = state.req;
+        // Only navigate if we delete the current item, not by deleting a different one (from fileTree)
+        if (currentItem && deletedItem.source === currentItem.source && deletedItem.path === currentItem.path) {
+          removeFromFolderLists(deletedItem);
+          mutations.setNavigationTransitioning(true);
+          // Try next, then previous, then parent directory
+          const next = state.navigation.nextItem as FileListItem | null;
+          const prev = state.navigation.previousItem as FileListItem | null;
+          if (next) {
+            url.goToItem(getters.isShare() ? getters.shareHash() : next.source, next.path, undefined, false, getters.isShare());
+          } else if (prev) {
+            url.goToItem(getters.isShare() ? getters.shareHash() : prev.source, prev.path, undefined, false, getters.isShare());
+          } else {
+            // Navigate to parent directory of deleted item
+            const parentPath = url.removeLastDir(deletedItem.path);
+            url.goToItem(getters.isShare() ? getters.shareHash() : deletedItem.source, parentPath, {}, false, getters.isShare());
+          }
+        } else {
+          removeFromFolderLists(deletedItem);
+          mutations.setReload(true);
+        }
+      } else {
+        // If someone deletes the current folder (from fileTree) that they're viewing, navigate to parent directory
+        if (!getters.isPreviewView() && toDelete.length === 1) {
+          const deletedItem = toDelete[0] as DeleteItem;
+          if (deletedItem.type === 'directory' && deletedItem.path === state.req.path) {
+            const parentPath = url.removeLastDir(deletedItem.path);
+            url.goToItem(getters.isShare() ? getters.shareHash() : deletedItem.source, parentPath, {}, false, getters.isShare());
+            deleting.value = false;
+            return; // return early to avoid extra reload (and 404)
+          }
+        }
+        mutations.setReload(true);
+      }
+    } else if (succeededCount > 0) {
+      // Partial success
+      buttons.done("delete");
+      // Emit event with partial results if items were passed as props
+      if (props.items && props.items.length > 0) {
+        eventBus.emit("itemsDeleted", {
+          succeeded,
+          failed,
+        });
+      }
+      if (failedCount > 0) {
+        notify.showError(
+          failed[0]?.message || t("prompts.operationFailed")
+        );
+      }
+    } else {
+      // All failed
+      buttons.done("delete");
+      if (failedCount > 0) {
+        notify.showError(
+          failed[0]?.message || t("prompts.operationFailed")
+        );
       }
     }
-  },
-  computed: {
-    isListing() {
-      return getters.isListing();
-    },
-    itemsToDelete() {
-      // If props.items is provided, use it
-      if (this.items && Array.isArray(this.items) && this.items.length > 0) {
-        return this.items;
-      }
-
-      // Otherwise, compute from state (backward compatibility)
-      const items = [];
-
-      if (state.isSearchActive || getters.currentView() === "preview") {
-        const selected = state.selected[0];
-        const item = state.req.items?.at(selected) || selected;
-        const previewUrl = this.getPreviewUrl(item.source || state.req.source, item.path, item.modified, item.type);
-        items.push({
-          source: item.source || state.req.source,
-          path: item.path,
-          type: item.type,
-          size: item.size,
-          modified: item.modified,
-          created: item.created,
-          previewUrl: previewUrl,
-          hasPreview: item.hasPreview,
-        });
-      } else if (!this.isListing) {
-        const item = state.req.items.at(state.selected[0]);
-        const previewUrl = this.getPreviewUrl(item.source || state.req.source, item.path, item.modified, item.type);
-        items.push({
-          source: item.source || state.req.source,
-          path: item.path,
-          type: item.type,
-          size: item.size,
-          modified: item.modified,
-          created: item.created,
-          previewUrl: previewUrl,
-          hasPreview: item.hasPreview,
-        });
-      } else {
-        for (const index of state.selected) {
-          const item = state.req.items.at(index);
-          const previewUrl = this.getPreviewUrl(item.source || state.req.source, item.path, item.modified, item.type);
-          items.push({
-            source: item.source || state.req.source,
-            path: item.path,
-            type: item.type,
-            size: item.size,
-            modified: item.modified,
-            created: item.created,
-            previewUrl: previewUrl,
-            hasPreview: item.hasPreview,
-          });
-        }
-      }
-
-      return items;
-    },
-  },
-
-  methods: {
-    preventInteraction(event) {
-      // Handle both DOM events and custom event objects
-      if (event && typeof event.preventDefault === 'function') {
-        event.preventDefault();
-      }
-      if (event && typeof event.stopPropagation === 'function') {
-        event.stopPropagation();
-      }
-      // For custom events (like @select), just return early
-      return false;
-    },
-    closeTopPrompt() {
-      mutations.closeTopPrompt();
-    },
-    getItemName(path) {
-      const parts = path.split("/").filter(p => p);
-      return parts[parts.length - 1] || path;
-    },
-    getItemError(item) {
-      for (const failedItem of this.failedItems.values()) {
-        if (failedItem.source === item.source && failedItem.path === item.path) {
-          return failedItem.message || "Unknown error";
-        }
-      }
-      return null;
-    },
-    parseBulkDeleteFailures(error) {
-      if (error?.failed?.length) {
-        return error.failed;
-      }
-      if (!error?.message) {
-        return null;
-      }
-      try {
-        const parsed = JSON.parse(error.message);
-        if (Array.isArray(parsed?.failed) && parsed.failed.length > 0) {
-          return parsed.failed;
-        }
-      } catch (_e) {
-        // Not JSON — fall through
-      }
-      return null;
-    },
-    getPreviewUrl(source, path, modified, type) {
-      if (!source || !path) return null;
-
-      // Check if file type supports previews
-      const typeInfo = getTypeInfo(type || '');
-      const simpleType = typeInfo.simpleType;
-
-      if (simpleType === 'directory') return null;
-      if (simpleType !== 'image' && simpleType !== 'video' && simpleType !== 'document' && simpleType !== 'text') {
-        return null;
-      }
-
-      // Check preview permissions
-      if (simpleType === 'video' && !getters.previewPerms().video) return null;
-      if (simpleType === 'image' && !getters.previewPerms().image) return null;
-      if ((simpleType === 'document' || simpleType === 'text') && !getters.previewPerms().office) return null;
-
-      try {
-        return resourcesApi.getPreviewURL(source, path, modified);
-      } catch (_e) {
-        return null;
-      }
-    },
-    async submit() {
-      if (this.deleting) {
-        return;
-      }
-
-      this.deleting = true;
-      this.failedItems = [];
-      buttons.loading("delete");
-
-      try {
-        // Extract source and path from items (ignore previewUrl)
-        const itemsForDelete = this.itemsToDelete.map((item) => ({
-          source: item.source,
-          path: item.path,
-        }));
-
-        if (itemsForDelete.length === 0) {
-          buttons.done("delete");
-          this.deleting = false;
-          return;
-        }
-
-        // Use bulk delete API for both regular files and shares
-        const response = getters.isShare()
-          ? await resourcesApi.bulkDeletePublic(itemsForDelete)
-          : await resourcesApi.bulkDelete(itemsForDelete);
-
-        const failed = Array.isArray(response?.failed) ? response.failed : [];
-        const succeeded = Array.isArray(response?.succeeded) ? response.succeeded : [];
-        this.failedItems = failed;
-
-        const succeededCount = succeeded.length;
-        const failedCount = failed.length;
-        mutations.removeFromSearchResults(succeeded);
-
-        if (failedCount === 0) {
-          // All succeeded - close prompt and handle navigation
-          buttons.success("delete");
-          notify.showSuccessToast(this.$t('prompts.deleted'));
-
-          if (this.items && this.items.length > 0) {
-            eventBus.emit("itemsDeleted", {
-              succeeded,
-              failed,
-            });
-          }
-          mutations.closeTopPrompt();
-          if (!this.items) {
-            mutations.resetSelected();
-          }
-          if (getters.isPreviewView()) {
-            for (const deleted of this.itemsToDelete) {
-              removeFromFolderLists(deleted);
-            }
-          }
-          // If we delete a item while in a preview
-          if (getters.isPreviewView() && this.itemsToDelete.length === 1) {
-            const deletedItem = this.itemsToDelete[0];
-            const currentItem = state.req;
-            // Only navigate if we delete the current item, not by deleting a different one (from fileTree)
-            if (currentItem && deletedItem.source === currentItem.source && deletedItem.path === currentItem.path) {
-              removeFromFolderLists(deletedItem);
-              mutations.setNavigationTransitioning(true);
-              // Try next, then previous, then parent directory
-              if (state.navigation.nextItem) {
-                url.goToItem(getters.isShare() ? getters.shareHash() : state.navigation.nextItem.source, state.navigation.nextItem.path, undefined, false, getters.isShare());
-              } else if (state.navigation.previousItem) {
-                url.goToItem(getters.isShare() ? getters.shareHash() : state.navigation.previousItem.source, state.navigation.previousItem.path, undefined, false, getters.isShare());
-              } else {
-                // Navigate to parent directory of deleted item
-                const parentPath = url.removeLastDir(deletedItem.path);
-                url.goToItem(getters.isShare() ? getters.shareHash() : deletedItem.source, parentPath, {}, false, getters.isShare());
-              }
-            } else {
-              removeFromFolderLists(deletedItem);
-              mutations.setReload(true);
-            }
-          } else {
-            // If someone deletes the current folder (from fileTree) that they're viewing, navigate to parent directory
-            if (!getters.isPreviewView() && this.itemsToDelete.length === 1) {
-              const deletedItem = this.itemsToDelete[0];
-              if (deletedItem.type === 'directory' && deletedItem.path === state.req.path) {
-                const parentPath = url.removeLastDir(deletedItem.path);
-                url.goToItem(getters.isShare() ? getters.shareHash() : deletedItem.source, parentPath, {}, false, getters.isShare());
-                this.deleting = false;
-                return; // return early to avoid extra reload (and 404)
-              }
-            }
-            // For listing view or multiple deletions, just reload
-            mutations.setReload(true);
-          }
-        } else if (succeededCount > 0) {
-          // Partial success - keep prompt open to show errors
-          buttons.done("delete");
-
-          // Emit event with partial results if items were passed as props
-          if (this.items && this.items.length > 0) {
-            eventBus.emit("itemsDeleted", {
-              succeeded,
-              failed,
-            });
-          }
-          if (failedCount > 0) {
-            notify.showError(
-              failed[0]?.message || this.$t("prompts.operationFailed")
-            );
-          }
-        } else {
-          // All failed
-          buttons.done("delete");
-          if (failedCount > 0) {
-            notify.showError(
-              failed[0]?.message || this.$t("prompts.operationFailed")
-            );
-          }
-        }
-
-        this.deleting = false;
-      } catch (e) {
-        buttons.done("delete");
-        this.deleting = false;
-        console.error(e);
-        const parsedFailures = this.parseBulkDeleteFailures(e);
-        if (parsedFailures) {
-          this.failedItems = parsedFailures;
-          notify.showError(
-            parsedFailures[0]?.message || this.$t("prompts.operationFailed")
-          );
-        } else {
-          this.failedItems = this.itemsToDelete.map((item) => ({
-            source: item.source,
-            path: item.path,
-            message: e.message || "Delete failed",
-          }));
-          notify.showError(e.message || this.$t("prompts.operationFailed"));
-        }
-      }
-    },
-  },
-};
+    deleting.value = false;
+  } catch (e) {
+    const error = e as { failed?: FailedItem[]; message?: string };
+    buttons.done("delete");
+    deleting.value = false;
+    console.error(e);
+    const parsedFailures = parseBulkDeleteFailures(error);
+    if (parsedFailures) {
+      failedItems.value = parsedFailures;
+      notify.showError(
+        parsedFailures[0]?.message || t("prompts.operationFailed")
+      );
+    } else {
+      failedItems.value = toDelete.map((item) => ({
+        source: item.source,
+        path: item.path,
+        message: error.message || "Delete failed",
+      }));
+      notify.showError(error.message || t("prompts.operationFailed"));
+    }
+  }
+}
 </script>
 
 <style scoped>
 .delete-items-list {
+  --icon-size: 2.5em;
+  --icon-font-size: 1.8em;
   max-height: 400px;
   overflow-y: auto;
   margin-top: 1rem;
@@ -407,6 +378,7 @@ export default {
 
 .delete-listing-item.listing-item {
   cursor: default !important;
+  content-visibility: visible;
 }
 
 .error-banner {
