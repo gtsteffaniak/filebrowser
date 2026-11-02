@@ -21,6 +21,7 @@
         'font-size-large': numDirs + numFiles + numPinned === 0
       }"
       :style="itemStyles"
+      :data-virtual-settled="virtual.active.value ? String(virtual.settled.value) : undefined"
       class="listing-items"
     >
       <!-- Rectangle selection overlay -->

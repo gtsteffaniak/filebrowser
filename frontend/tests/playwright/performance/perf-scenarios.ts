@@ -87,7 +87,10 @@ async function openMockListing(page: Page, scale: number): Promise<void> {
 
 /**
  * Waits until the listing has rendered. A virtual listing only renders the rows around the screen
- * (`.listing-items.virtualized`), so it never holds every item: it is ready as soon as it has items.
+ * (`.listing-items.virtualized`), so it never holds every item. It is ready once it has items and its
+ * measured window has settled (`data-virtual-settled`, set by useListingVirtualization): the first rows
+ * come from an estimated window, and measuring then moves it. The flag has to stay set across two
+ * animation frames, so a scroll or resize update queued by the mount cannot land after the scenario ends.
  * Without virtualization every item is rendered, wait for all of them.
  */
 async function waitForListingRendered(
@@ -101,8 +104,18 @@ async function waitForListingRendered(
       const rendered = document.querySelectorAll(
         ".listing-items .listing-item",
       ).length;
-      if (listing?.classList.contains("virtualized")) return rendered > 0;
-      return rendered >= total;
+      if (!listing?.classList.contains("virtualized")) return rendered >= total;
+      const isSettled = () =>
+        document
+          .querySelector(".listing-items")
+          ?.getAttribute("data-virtual-settled") === "true" &&
+        document.querySelectorAll(".listing-items .listing-item").length > 0;
+      if (!isSettled()) return false;
+      return new Promise<boolean>((resolve) => {
+        requestAnimationFrame(() =>
+          requestAnimationFrame(() => resolve(isSettled())),
+        );
+      });
     },
     expected,
     { timeout },

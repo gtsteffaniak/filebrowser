@@ -138,6 +138,7 @@ export function useListingVirtualization<T extends VirtualItem = fileListItemInd
   const containerWidth = shallowRef(0);
   const unsupported = shallowRef(false);
   const unmeasurable = shallowRef(false);
+  const settling = shallowRef(false);
   let retries = 0;
 
   const inputs = computed(() => options.groups());
@@ -147,6 +148,7 @@ export function useListingVirtualization<T extends VirtualItem = fileListItemInd
   const minItems = options.minItems ?? DEFAULT_MIN_ITEMS;
   const totalItems = computed(() => gridGroups.value.reduce((total, group) => total + group.count, 0));
   const active = computed(() => !unsupported.value && !unmeasurable.value && totalItems.value >= minItems);
+  const settled = computed(() => active.value && metrics.value !== null && !settling.value);
 
   function currentScroller(): HTMLElement | null {
     return pickScroller(scrollCandidates);
@@ -316,8 +318,10 @@ export function useListingVirtualization<T extends VirtualItem = fileListItemInd
     }
     const run = { promise: Promise.resolve() };
     settleRun = run;
+    settling.value = true;
     run.promise = runSettle().finally(() => {
       settleRun = null;
+      settling.value = false;
     });
     return run.promise;
   }
@@ -468,6 +472,7 @@ export function useListingVirtualization<T extends VirtualItem = fileListItemInd
       unsupported.value = candidates.length === 0;
       unmeasurable.value = false;
       metrics.value = null;
+      windows.value = {};
       containerWidth.value = Math.round(el.clientWidth);
 
       let lastHeight = el.clientHeight;
@@ -521,6 +526,7 @@ export function useListingVirtualization<T extends VirtualItem = fileListItemInd
 
   return {
     active,
+    settled,
     group,
     columns,
     handle,

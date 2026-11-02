@@ -39,6 +39,25 @@ function probeFrom(metrics: Record<string, unknown>): ProbeSnapshot | undefined 
   return metrics.probe as ProbeSnapshot | undefined;
 }
 
+function activeListenerCount(
+  probe: ProbeSnapshot | undefined,
+  gauge: { JSEventListeners?: number } | undefined,
+): { count: number; source: "JSEventListeners" | "probe" } | undefined {
+  if (typeof gauge?.JSEventListeners === "number") {
+    return { count: gauge.JSEventListeners, source: "JSEventListeners" };
+  }
+  if (
+    typeof probe?.addListenerCalls === "number" &&
+    typeof probe.removeListenerCalls === "number"
+  ) {
+    return {
+      count: Math.max(0, probe.addListenerCalls - probe.removeListenerCalls),
+      source: "probe",
+    };
+  }
+  return undefined;
+}
+
 function cdpFrom(metrics: Record<string, unknown>): CdpDelta | null | undefined {
   return metrics.cdp as CdpDelta | null | undefined;
 }
@@ -262,7 +281,7 @@ export function buildContributors(
   // a virtual listing only keeps the rows around the screen mounted, so dividing by the rows that are
   // left would blame handlers that are no longer there
   const virtualized = listingItems > 0 && listingItems < result.scale * 2 * VIRTUALIZED_SHARE;
-  if (!virtualized && listingItems > 0 && listeners / listingItems > 5) {
+  if (listingItems > 0 && !virtualized && listeners / listingItems > 5) {
     out.push({
       factor: "High addEventListener volume",
       detail:
@@ -273,6 +292,22 @@ export function buildContributors(
         perRow: Number((listeners / listingItems).toFixed(2)),
       },
     });
+  } else if (virtualized) {
+    const active = activeListenerCount(probe, gauge);
+    if (active && active.count / listingItems > 5) {
+      out.push({
+        factor: "High addEventListener volume",
+        detail:
+          "Many listeners are still registered relative to the mounted rows of a virtual listing; " +
+          "rows that scroll out may not be releasing their handlers, or per-row handlers could be delegated.",
+        severity: active.count / listingItems > 15 ? "high" : "medium",
+        evidence: {
+          activeListeners: active.count,
+          activeListenerSource: active.source,
+          perRow: Number((active.count / listingItems).toFixed(2)),
+        },
+      });
+    }
   }
 
   // --- Main-thread long tasks (scenario-scoped) ---------------------------
