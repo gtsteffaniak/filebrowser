@@ -436,7 +436,7 @@ export function useListingVirtualization<T extends VirtualItem = fileListItemInd
 
   function hitTestRect(rect: HitRect, listingRect: DOMRect): number[] | null {
     const m = metrics.value;
-    if (!active.value || !m || !(m.colPitch > 0)) return null; // right-to-left layouts use the DOM
+    if (!active.value || !m || !(Math.abs(m.colPitch) > 0)) return null;
     const geometry: HitGroup[] = gridGroups.value.map((g) => {
       const el = g.count > 0 ? groupElement(g.key) : null;
       if (!el) return { count: g.count, firstRowTop: 0, left: 0 };

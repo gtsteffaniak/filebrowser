@@ -190,15 +190,13 @@ export function hitTest(groups: GridGroup[], hitGroups: HitGroup[], metrics: Hit
 
     const rowMin = Math.max(0, Math.floor((rect.top - baseTop - metrics.itemHeight) / metrics.rowPitch) + 1);
     const rowMax = Math.min(rows - 1, Math.ceil((rect.bottom - baseTop) / metrics.rowPitch) - 1);
-    const colMin = Math.max(0, Math.floor((rect.left - baseLeft - metrics.itemWidth) / metrics.colPitch) + 1);
-    const colMax = Math.min(cols - 1, Math.ceil((rect.right - baseLeft) / metrics.colPitch) - 1);
 
     for (let row = rowMin; row <= rowMax; row++) {
       const top = baseTop + row * metrics.rowPitch;
       if (!(top < rect.bottom && top + metrics.itemHeight > rect.top)) continue;
-      for (let col = colMin; col <= colMax; col++) {
-        const local = row * cols + col;
-        if (local >= group.count) break;
+      const itemsInRow = Math.min(cols, group.count - row * cols);
+      for (let col = 0; col < itemsInRow; col++) {
+      const local = row * cols + col;
         const left = baseLeft + col * metrics.colPitch;
         if (left < rect.right && left + metrics.itemWidth > rect.left) {
           hits.push(group.start + local);
