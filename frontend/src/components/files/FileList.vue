@@ -750,8 +750,8 @@ defineExpose({ items, path, source, fillOptions, jumpTo });
   z-index: 5;
   display: flex;
   flex-direction: column;
-  gap: 0.5em;
-  padding: 0.5em 0;
+  padding: 0.5em 0 0;
+  margin-bottom: 0.5em;
   backdrop-filter: blur(8px);
   transition: transform 0.25s ease, opacity 0.25s ease;
 }

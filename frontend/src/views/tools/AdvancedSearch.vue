@@ -111,10 +111,10 @@
     </div>
 
     <div v-if="searchExecuted" class="advanced-search-results-plane">
-      <div v-if="loading" class="results-loading">
+      <h2 v-if="loading" class="message delayed">
         <LoadingSpinner size="medium" />
         <span>{{ $t("general.loading", { suffix: "..." }) }}</span>
-      </div>
+      </h2>
       <template v-else>
         <div v-if="error" class="error-message padded-message">
           {{ error }}
@@ -1279,7 +1279,7 @@ onBeforeUnmount(() => {
   position: sticky;
   top: 0;
   z-index: 999;
-  padding: 0.5em 0.75em;
+  padding: 0.5em 0.75em 0;
   backdrop-filter: blur(8px);
   transition: transform 0.25s ease, opacity 0.25s ease;
 }
@@ -1344,14 +1344,6 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   min-height: min(65vh, 800px);
-}
-
-.results-loading {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.75em;
-  padding: 2rem;
 }
 
 .padded-message {

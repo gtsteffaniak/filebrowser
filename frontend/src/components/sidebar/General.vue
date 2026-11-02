@@ -115,7 +115,6 @@ export default {
     },
     isAdvancedSearch: () => getters.currentTool()?.component === "AdvancedSearch",
     showFileActions() {
-      // Advanced search offers the actions for the selected results (not create), so it doesn't depend on create permissions.
       if (this.isAdvancedSearch) {
         return !state.user?.hideSidebarFileActions && !getters.isShare();
       }
@@ -156,12 +155,10 @@ export default {
   },
   methods: {
     openContextMenu() {
-      // In advanced search the menu acts on the current selection of results, so keep it.
       if (this.isAdvancedSearch) {
         mutations.showPrompt({ name: "ContextMenu", props: { showCentered: true } });
         return;
       }
-      mutations.resetSelected();
       mutations.showPrompt({
         name: "ContextMenu",
         props: {

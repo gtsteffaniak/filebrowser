@@ -441,9 +441,7 @@ async function restoreSearchResults() {
   results.value = savedResults.filter((s) => search.items.some((i) => url.isSameItem(i, resultToItem(s))));
   highlightedIndex.value = results.value.findIndex((s) => url.isSameItem(resultToItem(s), focus));
   await nextTick();
-  const list = document.getElementById("result-list");
-  list?.classList.add("active");
-  list?.querySelectorAll(".search-entry")[highlightedIndex.value]?.scrollIntoView({ block: "center" });
+  resultListEl.value?.querySelectorAll(".search-entry")[highlightedIndex.value]?.scrollIntoView({ block: "center" });
 }
 
 function openResult(event: MouseEvent, index: number) {
@@ -502,10 +500,6 @@ async function open() {
   await nextTick();
   if (input.value) {
     input.value.focus();
-  }
-  const resultList = document.getElementById("result-list");
-  if (resultList) {
-    resultList.classList.add("active");
   }
 }
 
@@ -719,22 +713,21 @@ function selectResultAt(target: EventTarget | null): boolean {
 
 .open-advanced-search-button {
   font-size: 0.875rem;
-  margin: auto
+  width: fit-content;
+  margin: 1em auto 0;
 }
 
 #result-list {
   scrollbar-width: none;
-  max-width: 95vw;
   background-color: var(--background);
   color: var(--textPrimary);
 }
 
 #results>#result-list {
-  max-height: 80vh;
-  width: 35em;
-  overflow: scroll;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
   padding-bottom: 1em;
-  transition: width 0.3s ease 0s;
 }
 
 #results {
@@ -746,7 +739,7 @@ function selectResultAt(target: EventTarget | null): boolean {
   border: var(--borderWidth) solid var(--surfaceSecondary);
   box-shadow: 0 2em 50px 10px rgb(0 0 0 / 30%);
   background-color: var(--surfacePrimary);
-  max-height: 80vh;
+  max-height: 80dvh;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -761,10 +754,6 @@ function selectResultAt(target: EventTarget | null): boolean {
   align-items: center;
 }
 
-#search #result-list.active {
-  width: 1000px;
-}
-
 /* Animations */
 @keyframes slide-down {
   0% {
@@ -777,15 +766,26 @@ function selectResultAt(target: EventTarget | null): boolean {
   }
 }
 
+@keyframes expand {
+  0% {
+    max-width: 35em;
+  }
+  100% {
+    max-width: 1000px;
+  }
+}
+
 /* Search */
 #search {
   background-color: unset !important;
   z-index: 5;
   position: fixed;
-  top: 0.5em;
-  min-width: 35em;
-  left: 50%;
-  transform: translateX(-50%);
+  top: calc(0.5em + var(--safe-area-top));
+  left: calc(2.5% + var(--safe-area-left));
+  right: calc(2.5% + var(--safe-area-right));
+  max-width: 1000px;
+  margin: 0 auto;
+  animation: expand 0.3s ease 0.1s backwards;
 }
 
 .search-input-container {
@@ -798,6 +798,7 @@ function selectResultAt(target: EventTarget | null): boolean {
   height: 3em;
   gap: 0.5em;
   width: 100%;
+  box-sizing: border-box;
 }
 
 .search-input-container .material-symbols {
@@ -1011,31 +1012,29 @@ body.rtl #search #result ul>* {
 
 @media (width <= 768px) {
   #search {
-    min-width: unset;
-    max-width: 60%;
-  }
-  #search.active {
-    display: block;
-    position: fixed;
     top: 0;
-    left: 50%;
-    width: 100%;
-    max-width: 100%;
+    left: 0;
+    right: 0;
+    max-width: none;
+    animation: none;
   }
   .search-input-container {
     transition: height 1s ease, background-color 1s ease, box-shadow 1s ease;
   }
   #search.active .search-input-container {
     box-shadow: 0 0 10px rgb(0 0 0 / 10%);
-    height: 4em;
-    background: var(--surfacePrimary)
+    height: calc(4em + var(--safe-area-top));
+    padding-top: var(--safe-area-top);
+    padding-left: calc(0.75em + var(--safe-area-left));
+    padding-right: calc(0.75em + var(--safe-area-right));
+    background: var(--surfacePrimary);
   }
   #search.active>div {
     border-radius: 0 !important;
   }
-  #search.active #result {
-    height: 100vh;
-    padding-top: 0;
+  #search.active #results {
+    border-width: 0;
+    box-shadow: none;
   }
   .search-input-container>.action,
   .search-input-container>i {
@@ -1053,15 +1052,5 @@ body.rtl #search #result ul>* {
     padding: .3em 0;
     margin-right: .3em;
   }
-  #result-list {
-    width: 100vw !important;
-    max-width: 100vw !important;
-    left: 0;
-    top: 4em;
-    overflow: scroll;
-    display: flex;
-    flex-direction: column;
-  }
-
 }
 </style>

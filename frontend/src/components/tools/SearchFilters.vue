@@ -119,4 +119,20 @@ const mediaTypeOptions = computed(() => [
 .search-filter-dropdowns :deep(.expand-dropdown-anchor.menu-panel) {
   min-width: 0;
 }
+
+@media (width <= 768px) {
+  .constraints .sizeInputWrapper {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 0.5em;
+    flex: 1 1 100%;
+  }
+
+  .constraints .sizeInputWrapper .sizeInput {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+  }
+}
 </style>
