@@ -365,6 +365,7 @@ func applyMediaConvertDefaults() {
 	// Re-initialize with defaults (gets wiped out during YAML unmarshal)
 	Config.Integrations.Media.Convert.ImagePreview = make(map[ImagePreviewType]*bool)
 	Config.Integrations.Media.Convert.ImagePreview[HEICImagePreview] = boolPtr(false) // HEIC defaults to disabled
+	Config.Integrations.Media.Convert.ImagePreview[JXLImagePreview] = boolPtr(true)   // JXL uses pure Go decode
 	Config.Integrations.Media.Convert.ImagePreview[JPEGImagePreview] = boolPtr(true)  // JPEG fallback defaults to enabled
 
 	// Apply user overrides (only for keys explicitly set in YAML). The pointers are
@@ -1065,6 +1066,7 @@ func SetDefaults(generate bool) Settings {
 	// Initialize ImagePreview map with defaults
 	s.Integrations.Media.Convert.ImagePreview = make(map[ImagePreviewType]*bool)
 	s.Integrations.Media.Convert.ImagePreview[HEICImagePreview] = boolPtr(false) // HEIC defaults to disabled
+	s.Integrations.Media.Convert.ImagePreview[JXLImagePreview] = boolPtr(true)   // JXL uses pure Go decode
 	s.Integrations.Media.Convert.ImagePreview[JPEGImagePreview] = boolPtr(true)  // JPEG fallback defaults to enabled
 	// Initialize VideoPreview map with defaults (all enabled)
 	s.Integrations.Media.Convert.VideoPreview = make(map[VideoPreviewType]*bool)

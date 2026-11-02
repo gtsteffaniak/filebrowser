@@ -305,6 +305,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"disableNavButtons":             disableNavButtons,
 		"userSelectableThemes":          settings.Config.Frontend.Styling.CustomThemeOptions,
 		"enableHeicConversion":          settings.CanConvertImage("heic"),
+		"enableJxlConversion":           settings.CanConvertImage("jxl"),
 		"eventBasedThemes":              !settings.Config.Frontend.Styling.DisableEventBasedThemes,
 		"loginIcon":                     loginIcon,
 		"disableSidebar":                disableSidebar,

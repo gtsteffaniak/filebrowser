@@ -60,6 +60,7 @@ var ResizableImageTypes = map[string]bool{
 	".tif":   true,
 	".heic":  true,
 	".heif":  true,
+	".jxl":   true,
 	".webp":  true,
 	".pbm":   true,
 	".pgm":   true,
@@ -447,6 +448,9 @@ func (i *ItemInfo) DetectType(realPath string, saveContent bool) {
 		return
 	case ".heic", ".heif":
 		i.Type = "image/heic"
+		return
+	case ".jxl":
+		i.Type = "image/jxl"
 		return
 	case ".kmz":
 		i.Type = "application/vnd.google-earth.kmz"

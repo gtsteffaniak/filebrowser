@@ -1586,6 +1586,13 @@ func setFilePreviewFlags(fileInfo *iteminfo.ItemInfo, realPath string) {
 		}
 		fileInfo.HasPreview = settings.CanConvertImage("heic")
 		return
+	case "image/jxl":
+		if fileInfo.Size > iteminfo.LargeFileSizeThreshold {
+			fileInfo.HasPreview = false
+			return
+		}
+		fileInfo.HasPreview = settings.CanConvertImage("jxl")
+		return
 	}
 	switch simpleType {
 	case "image":

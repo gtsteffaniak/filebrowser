@@ -31,9 +31,11 @@ const (
 	FormatPpm
 	// FormatPam is a Format of type Pam
 	FormatPam
+	// FormatJxl is a Format of type Jxl
+	FormatJxl
 )
 
-const _FormatName = "jpegpnggiftiffbmpheicwebppbmpgmppmpam"
+const _FormatName = "jpegpnggiftiffbmpheicwebppbmpgmppmpamjxl"
 
 var _FormatMap = map[Format]string{
 	0:  _FormatName[0:4],   // jpeg
@@ -47,6 +49,7 @@ var _FormatMap = map[Format]string{
 	8:  _FormatName[28:31], // pgm
 	9:  _FormatName[31:34], // ppm
 	10: _FormatName[34:37], // pam
+	11: _FormatName[37:40], // jxl
 }
 
 // String implements the Stringer interface.
@@ -69,6 +72,7 @@ var _FormatValue = map[string]Format{
 	_FormatName[28:31]: 8,  // pgm
 	_FormatName[31:34]: 9,  // ppm
 	_FormatName[34:37]: 10, // pam
+	_FormatName[37:40]: 11, // jxl
 }
 
 // ParseFormat attempts to convert a string to a Format

@@ -64,6 +64,8 @@ github.com/gabriel-vasile/mimetype v1.4.16 h1:5izNFuvA37st1dDRAcA7TtmngBmRgiIPDm
 github.com/gabriel-vasile/mimetype v1.4.16/go.mod h1:3oFFwxX8kTklZwzIl2aQEDZT0lKY8xH92ST88bAwba4=
 github.com/gen2brain/h265 v0.2.4 h1:JUSbGkRAYZpd7ucCL192yx4ViEo75ZO6OEdm1TQt9qM=
 github.com/gen2brain/h265 v0.2.4/go.mod h1:kefpLxLhGpNCUG/q/aabJcD6GqB9Nhet3fNi9xX9Wzw=
+github.com/gen2brain/jxl v0.2.0 h1:cXSQnfbcC0JGFzaI344VzPMbe7mh6rYc0tjPcBUsE4U=
+github.com/gen2brain/jxl v0.2.0/go.mod h1:VjJHRai/8I8Es01mULqyiOihRBOjJr1Zo+NoN/MyIwo=
 github.com/gen2brain/vpx v0.2.1 h1:UD6tibcs/zlaIOKNFXeVyZuHBEaW9GYfxKSxvAN9cc8=
 github.com/gen2brain/vpx v0.2.1/go.mod h1:EVIdqguMSiapbtjDm4AWgFgYYJ4d+k8trXqjxYZ/4XE=
 github.com/go-asn1-ber/asn1-ber v1.5.8 h1:H9AZkK22UOmfX8J84ubyaZxKJZ3FMHVwn8swoMML7iQ=
@@ -157,8 +159,6 @@ github.com/gtsteffaniak/go-av1 v0.0.0-20261101031208-03767868b89d h1:2Z15ATqB4V8
 github.com/gtsteffaniak/go-av1 v0.0.0-20261101031208-03767868b89d/go.mod h1:C/dIrjfdUcHgdyChr2YXwLY3pIVjENI9npSd98PU4lE=
 github.com/gtsteffaniak/go-cache v1.1.0 h1:ni/2cJpCxpGmaMZd92iTDIGOy+yUcMcxQuW7bSKhkCE=
 github.com/gtsteffaniak/go-cache v1.1.0/go.mod h1:rHUZvf4huhMX/bnNK4/oQ3sNAE2fYC2jFpAWZiBPWac=
-github.com/gtsteffaniak/go-ffmpeg v1.6.2 h1:gtvBg3G4PHO1Z/ZIPEK/XP4XT/g+l9S0Rpmmq6v5tnA=
-github.com/gtsteffaniak/go-ffmpeg v1.6.2/go.mod h1:FefhoD+KZzHWqBaUpntcKp6lXtUzdFW00F74axnENUQ=
 github.com/gtsteffaniak/go-fitz v1.0.1 h1:SKNVc0ES73Y99NQ1TtOwa2Uf8xpfQpFtMnTTwfVusBk=
 github.com/gtsteffaniak/go-fitz v1.0.1/go.mod h1:L3RzZGaMEY+KAzY1KR9hraHqcgG5VmoK9iw8SGjkiaI=
 github.com/gtsteffaniak/go-logger v1.1.0 h1:baFds+iibuLLNpNLwygz32bDqdsunI6dGWcdxwMIVKI=

@@ -56,6 +56,7 @@ require (
 	github.com/fxamacker/cbor/v2 v2.9.6 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.16 // indirect
 	github.com/gen2brain/h265 v0.2.4 // indirect
+	github.com/gen2brain/jxl v0.2.0 // indirect
 	github.com/gen2brain/vpx v0.2.1 // indirect
 	github.com/go-asn1-ber/asn1-ber v1.5.8 // indirect
 	github.com/go-errors/errors v1.5.1 // indirect
@@ -104,3 +105,5 @@ require (
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.1 // indirect
 )
+
+replace github.com/gtsteffaniak/go-ffmpeg => ../../go-ffmpeg

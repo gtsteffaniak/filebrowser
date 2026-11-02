@@ -43,6 +43,7 @@ pbm
 pgm
 ppm
 pam
+jxl
 )
 */
 type Format int
@@ -60,6 +61,8 @@ func (x Format) toImaging() imaging.Format {
 	case FormatBmp:
 		return imaging.BMP
 	case FormatHeic:
+		return imaging.JPEG
+	case FormatJxl:
 		return imaging.JPEG
 	case FormatWebp:
 		return imaging.WEBP
@@ -138,6 +141,8 @@ func (s *Service) FormatFromExtension(ext string) (Format, error) {
 	switch ext {
 	case ".heic", ".heif":
 		return FormatHeic, nil
+	case ".jxl":
+		return FormatJxl, nil
 	}
 
 	format, err := imaging.FormatFromExtension(ext)

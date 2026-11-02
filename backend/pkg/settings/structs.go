@@ -237,6 +237,7 @@ type ImagePreviewType string
 
 const (
 	HEICImagePreview ImagePreviewType = "heic"
+	JXLImagePreview  ImagePreviewType = "jxl"
 	JPEGImagePreview ImagePreviewType = "jpeg" // only used as fallback for JPEG formats that can't otherwise be decoded
 	//RAWImagePreview  ImagePreviewType = "raw"
 )
@@ -248,6 +249,7 @@ func (i ImagePreviewType) String() string {
 // AllImagePreviewTypes contains all supported image preview types.
 var AllImagePreviewTypes = []ImagePreviewType{
 	HEICImagePreview,
+	JXLImagePreview,
 	JPEGImagePreview,
 	//RAWImagePreview,
 }

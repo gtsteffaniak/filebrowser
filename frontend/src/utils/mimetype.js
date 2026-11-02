@@ -16,7 +16,7 @@ export function isRawImageMimeType(mimeType) {
 // Extensions browsers render natively in <img> (no server-side conversion).
 const IMAGE_FILE_EXTENSIONS = new Set([
   ".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg", ".bmp", ".ico", ".avif",
-  ".heic", ".heif",
+  ".heic", ".heif", ".jxl",
 ]);
 
 export function isImageFilePath(path) {
@@ -79,7 +79,7 @@ const TYPE_TABLE = [
   },
   {
     prefix: "image/",
-    extensions: [".jpg", ".jpeg", ".png", ".webp", ".bmp", ".ico", ".avif", ".heic", ".heif", ".tif", ".tiff", ".svg"],
+    extensions: [".jpg", ".jpeg", ".png", ".webp", ".bmp", ".ico", ".avif", ".heic", ".heif", ".jxl", ".tif", ".tiff", ".svg"],
     classes: "coral-icons material-symbols-outlined",
     materialSymbol: "image",
     simpleType: "image",
