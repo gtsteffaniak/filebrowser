@@ -67,6 +67,7 @@ func CreateMockDataSeeded(numDirs, numFilesPerDir int, seed int64) iteminfo.File
 	// Track names already used in this listing so random term collisions
 	// never produce duplicate file or folder names.
 	usedNames := make(map[string]bool, numDirs+numFilesPerDir)
+	nextSuffix := make(map[string]int)
 
 	// Folders must genuinely be directories. The frontend decides whether a row
 	// is navigable purely from `item.type === "directory"`, so emitting
@@ -74,7 +75,7 @@ func CreateMockDataSeeded(numDirs, numFilesPerDir int, seed int64) iteminfo.File
 	// like folders in the payload but behaved as files in the UI.
 	for i := 0; i < numDirs; i++ {
 		dir.Folders = append(dir.Folders, iteminfo.ItemInfo{
-			Name:    uniqueName("folder-"+utils.GetRandomTermSeeded(r), usedNames),
+			Name:    uniqueName("folder-"+utils.GetRandomTermSeeded(r), usedNames, nextSuffix),
 			Size:    0,
 			ModTime: baseTime.Add(-time.Duration(r.Intn(100)) * time.Hour),
 			Type:    "directory",
@@ -84,7 +85,7 @@ func CreateMockDataSeeded(numDirs, numFilesPerDir int, seed int64) iteminfo.File
 	// Files carry their real MIME type so the listing exercises preview
 	// eligibility, type-based icons and media handling.
 	for j := 0; j < numFilesPerDir; j++ {
-		name := uniqueName("file-"+utils.GetRandomTermSeeded(r)+utils.GetRandomExtensionSeeded(r), usedNames)
+		name := uniqueName("file-"+utils.GetRandomTermSeeded(r)+utils.GetRandomExtensionSeeded(r), usedNames, nextSuffix)
 		newFile := iteminfo.ExtendedItemInfo{
 			ItemInfo: iteminfo.ItemInfo{
 				Name:    name,
@@ -101,19 +102,27 @@ func CreateMockDataSeeded(numDirs, numFilesPerDir int, seed int64) iteminfo.File
 // uniqueName returns name unchanged if it is not yet in used. Otherwise it
 // inserts a numeric increment before the extension (e.g. "file-x.txt" becomes
 // "file-x-2.txt", then "file-x-3.txt", ...) and records the result in used.
-func uniqueName(name string, used map[string]bool) string {
+// nextSuffix tracks the next candidate suffix per original name so repeated
+// collisions do not rescan from 2 on every call (important at 10k-scale mocks).
+func uniqueName(name string, used map[string]bool, nextSuffix map[string]int) string {
 	if !used[name] {
 		used[name] = true
 		return name
 	}
 	ext := filepath.Ext(name)
 	base := strings.TrimSuffix(name, ext)
-	for n := 2; ; n++ {
+	n := nextSuffix[name]
+	if n < 2 {
+		n = 2
+	}
+	for {
 		candidate := fmt.Sprintf("%s-%d%s", base, n, ext)
+		nextSuffix[name] = n + 1
 		if !used[candidate] {
 			used[candidate] = true
 			return candidate
 		}
+		n++
 	}
 }
 
