@@ -1,6 +1,7 @@
 package indexing
 
 import (
+	"fmt"
 	"math/rand"
 	"mime"
 	"path/filepath"
@@ -63,13 +64,17 @@ func CreateMockDataSeeded(numDirs, numFilesPerDir int, seed int64) iteminfo.File
 	dir := iteminfo.FileInfo{}
 	dir.Path = "/here/is/your/mock/dir"
 
+	// Track names already used in this listing so random term collisions
+	// never produce duplicate file or folder names.
+	usedNames := make(map[string]bool, numDirs+numFilesPerDir)
+
 	// Folders must genuinely be directories. The frontend decides whether a row
 	// is navigable purely from `item.type === "directory"`, so emitting
 	// file-shaped names with a file MIME type here produced rows that looked
 	// like folders in the payload but behaved as files in the UI.
 	for i := 0; i < numDirs; i++ {
 		dir.Folders = append(dir.Folders, iteminfo.ItemInfo{
-			Name:    "folder-" + utils.GetRandomTermSeeded(r),
+			Name:    uniqueName("folder-"+utils.GetRandomTermSeeded(r), usedNames),
 			Size:    0,
 			ModTime: baseTime.Add(-time.Duration(r.Intn(100)) * time.Hour),
 			Type:    "directory",
@@ -79,7 +84,7 @@ func CreateMockDataSeeded(numDirs, numFilesPerDir int, seed int64) iteminfo.File
 	// Files carry their real MIME type so the listing exercises preview
 	// eligibility, type-based icons and media handling.
 	for j := 0; j < numFilesPerDir; j++ {
-		name := "file-" + utils.GetRandomTermSeeded(r) + utils.GetRandomExtensionSeeded(r)
+		name := uniqueName("file-"+utils.GetRandomTermSeeded(r)+utils.GetRandomExtensionSeeded(r), usedNames)
 		newFile := iteminfo.ExtendedItemInfo{
 			ItemInfo: iteminfo.ItemInfo{
 				Name:    name,
@@ -91,6 +96,25 @@ func CreateMockDataSeeded(numDirs, numFilesPerDir int, seed int64) iteminfo.File
 		dir.Files = append(dir.Files, newFile)
 	}
 	return dir
+}
+
+// uniqueName returns name unchanged if it is not yet in used. Otherwise it
+// inserts a numeric increment before the extension (e.g. "file-x.txt" becomes
+// "file-x-2.txt", then "file-x-3.txt", ...) and records the result in used.
+func uniqueName(name string, used map[string]bool) string {
+	if !used[name] {
+		used[name] = true
+		return name
+	}
+	ext := filepath.Ext(name)
+	base := strings.TrimSuffix(name, ext)
+	for n := 2; ; n++ {
+		candidate := fmt.Sprintf("%s-%d%s", base, n, ext)
+		if !used[candidate] {
+			used[candidate] = true
+			return candidate
+		}
+	}
 }
 
 // mockMimeType resolves a MIME type from a filename's extension.
