@@ -47,8 +47,9 @@ var viewerConvertedDocExtensions = map[string]bool{
 
 // isViewerOriginalPreview reports whether a preview request is the viewer opening a file the browser can't
 // display by itself (camera RAW, HEIC/HEIF, rendered documents). Unlike a thumbnail, without it the file can't
-// be opened at all, so it is served even when thumbnails are disabled.
-func isViewerOriginalPreview(previewSize, fileName, fileType string) bool {
+// be opened at all, so it is served even when thumbnails are disabled. documentRenderable tells whether the
+// server can render documents of this kind to an image (see iteminfo.HasDocConvertableExtension).
+func isViewerOriginalPreview(previewSize, fileName, fileType string, documentRenderable bool) bool {
 	if previewSize != "original" {
 		return false
 	}
@@ -59,7 +60,7 @@ func isViewerOriginalPreview(previewSize, fileName, fileType string) bool {
 	if fileType == "image/heic" || fileType == "image/heif" {
 		return true
 	}
-	return settings.Env.MuPdfAvailable && viewerConvertedDocExtensions[ext]
+	return documentRenderable && viewerConvertedDocExtensions[ext]
 }
 
 // previewHandler handles the preview request for images.
@@ -111,7 +112,7 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, er
 		return ErrToStatus(err), err
 	}
 	d.FileInfo = *fileInfo
-	if previewsDisabled && !isViewerOriginalPreview(r.URL.Query().Get("size"), fileInfo.Name, fileInfo.Type) {
+	if previewsDisabled && !isViewerOriginalPreview(r.URL.Query().Get("size"), fileInfo.Name, fileInfo.Type, iteminfo.HasDocConvertableExtension(fileInfo.Name, fileInfo.Type)) {
 		return http.StatusNotImplemented, fmt.Errorf("preview is disabled")
 	}
 	status, err := PreviewHelperFunc(w, r, d)
@@ -140,7 +141,7 @@ func previewHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, er
 func publicPreviewHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
 	previewSize := r.URL.Query().Get("size")
 	if (settings.Config.Server.DisablePreviews || d.Share.DisableThumbnails) &&
-		!isViewerOriginalPreview(previewSize, d.FileInfo.Name, d.FileInfo.Type) {
+		!isViewerOriginalPreview(previewSize, d.FileInfo.Name, d.FileInfo.Type, iteminfo.HasDocConvertableExtension(d.FileInfo.Name, d.FileInfo.Type)) {
 		return http.StatusNotImplemented, fmt.Errorf("preview is disabled")
 	}
 	if d.Share.ShareType == "upload" {

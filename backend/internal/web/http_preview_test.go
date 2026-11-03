@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/preview"
-	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 )
 
 func TestErrToStatusUnsupportedPreviewFormat(t *testing.T) {
@@ -25,50 +24,35 @@ func TestErrToStatusWrapsUnsupportedPreviewFormat(t *testing.T) {
 }
 
 func TestIsViewerOriginalPreview(t *testing.T) {
-	prev := settings.Env.MuPdfAvailable
-	defer func() { settings.Env.MuPdfAvailable = prev }()
-	settings.Env.MuPdfAvailable = true
-
 	tests := []struct {
 		name     string
 		size     string
 		file     string
 		fileType string
+		docs     bool // the server can render documents to an image
 		want     bool
 	}{
-		{"Fuji RAW viewer", "original", "DSCF0308.RAF", "image/x-fuji-raf", true},
-		{"Canon RAW viewer", "original", "IMG_0001.CR3", "image/x-canon-cr3", true},
-		{"Adobe DNG viewer", "original", "a.dng", "image/x-adobe-dng", true},
-		{"HEIC viewer", "original", "a.heic", "image/heic", true},
-		{"HEIF viewer", "original", "a.heif", "image/heif", true},
-		{"rendered document viewer", "original", "a.docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", true},
-		{"RAW thumbnail stays disabled", "small", "DSCF0308.RAF", "image/x-fuji-raf", false},
-		{"RAW large stays disabled", "large", "DSCF0308.RAF", "image/x-fuji-raf", false},
-		{"no size stays disabled", "", "DSCF0308.RAF", "image/x-fuji-raf", false},
-		{"video poster stays disabled", "original", "a.mov", "video/quicktime", false},
-		{"audio cover stays disabled", "original", "a.mp3", "audio/mpeg", false},
-		{"JPEG is opened directly, not through previews", "original", "a.jpg", "image/jpeg", false},
-		{"PDF is opened directly, not through previews", "original", "a.pdf", "application/pdf", false},
-		{"text stays disabled", "original", "a.txt", "text/plain", false},
+		{"Fuji RAW viewer", "original", "DSCF0308.RAF", "image/x-fuji-raf", false, true},
+		{"Canon RAW viewer", "original", "IMG_0001.CR3", "image/x-canon-cr3", false, true},
+		{"Adobe DNG viewer", "original", "a.dng", "image/x-adobe-dng", false, true},
+		{"HEIC viewer", "original", "a.heic", "image/heic", false, true},
+		{"HEIF viewer", "original", "a.heif", "image/heif", false, true},
+		{"rendered document viewer", "original", "a.docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", true, true},
+		{"documents need the server to be able to render them", "original", "a.docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", false, false},
+		{"RAW thumbnail stays disabled", "small", "DSCF0308.RAF", "image/x-fuji-raf", true, false},
+		{"RAW large stays disabled", "large", "DSCF0308.RAF", "image/x-fuji-raf", true, false},
+		{"no size stays disabled", "", "DSCF0308.RAF", "image/x-fuji-raf", true, false},
+		{"video poster stays disabled", "original", "a.mov", "video/quicktime", true, false},
+		{"audio cover stays disabled", "original", "a.mp3", "audio/mpeg", true, false},
+		{"JPEG is opened directly, not through previews", "original", "a.jpg", "image/jpeg", true, false},
+		{"PDF is opened directly, not through previews", "original", "a.pdf", "application/pdf", true, false},
+		{"text stays disabled", "original", "a.txt", "text/plain", true, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := isViewerOriginalPreview(tt.size, tt.file, tt.fileType); got != tt.want {
-				t.Fatalf("isViewerOriginalPreview(%q, %q, %q) = %v, want %v", tt.size, tt.file, tt.fileType, got, tt.want)
+			if got := isViewerOriginalPreview(tt.size, tt.file, tt.fileType, tt.docs); got != tt.want {
+				t.Fatalf("isViewerOriginalPreview(%q, %q, %q, %v) = %v, want %v", tt.size, tt.file, tt.fileType, tt.docs, got, tt.want)
 			}
 		})
-	}
-}
-
-func TestIsViewerOriginalPreviewDocumentsNeedMuPdf(t *testing.T) {
-	prev := settings.Env.MuPdfAvailable
-	defer func() { settings.Env.MuPdfAvailable = prev }()
-	settings.Env.MuPdfAvailable = false
-	if isViewerOriginalPreview("original", "a.docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
-		t.Fatal("documents can't be rendered without MuPDF")
-	}
-	// RAW and HEIC don't depend on MuPDF.
-	if !isViewerOriginalPreview("original", "a.raf", "image/x-fuji-raf") {
-		t.Fatal("RAW should still be served without MuPDF")
 	}
 }
