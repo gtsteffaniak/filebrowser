@@ -159,38 +159,3 @@ func (s *Service) runHEICConversion(ctx context.Context, inputPath string, targe
 	}
 	return os.ReadFile(outputFile)
 }
-
-// ConvertJXLToJPEG decodes JPEG XL to JPEG using pure Go (gen2brain/jxl).
-func (s *Service) ConvertJXLToJPEG(ctx context.Context, jxlPath string, targetWidth, targetHeight int, quality string) ([]byte, error) {
-	if s == nil || s.inner == nil {
-		return nil, fmt.Errorf("ffmpeg service not available")
-	}
-	if ctx.Err() != nil {
-		return nil, ctx.Err()
-	}
-
-	outputDir := s.cacheDir
-	if err := os.MkdirAll(outputDir, fileutils.PermDir); err != nil {
-		return nil, fmt.Errorf("failed to create cache directory: %w", err)
-	}
-
-	tmp, err := os.CreateTemp(outputDir, "ffmpeg_jxl_convert_*.jpg")
-	if err != nil {
-		return nil, fmt.Errorf("failed to create temp file: %w", err)
-	}
-	outputFile := tmp.Name()
-	_ = tmp.Close()
-	defer os.Remove(outputFile)
-
-	opts := goffmpeg.ConvertJXLOptions{
-		InputPath:  jxlPath,
-		OutputPath: outputFile,
-		Width:      targetWidth,
-		Height:     targetHeight,
-		Quality:    parseQuality(quality),
-	}
-	if err := s.inner.ConvertJXL(ctx, opts); err != nil {
-		return nil, fmt.Errorf("jxl image conversion failed: %w", err)
-	}
-	return os.ReadFile(outputFile)
-}

@@ -1,5 +1,5 @@
 // Package gomedia is the go-media fast path for probing, duration, tags, lyrics,
-// embedded subtitles, video thumbnails, HEIC decode, and camera RAW previews.
+// embedded subtitles, video thumbnails, HEIC/JXL decode, and camera RAW previews.
 //
 // Every function returns ok=false when the caller must use the existing ffmpeg
 // (or dhowden) code instead. That happens when:
@@ -78,6 +78,11 @@ var heifImageExts = map[string]bool{
 	".heics": true,
 }
 
+// jxlImageExts are JPEG XL stills go-media decodes for preview.
+var jxlImageExts = map[string]bool{
+	".jxl": true,
+}
+
 const heicDecodeMaxEdge = 16384
 
 // cameraRawExts match go-media rawpreview formats (also iteminfo raw extensions).
@@ -95,6 +100,10 @@ func supportsVideoContainer(path string) bool {
 
 func supportsHEIFImage(path string) bool {
 	return heifImageExts[strings.ToLower(filepath.Ext(path))]
+}
+
+func supportsJXLImage(path string) bool {
+	return jxlImageExts[strings.ToLower(filepath.Ext(path))]
 }
 
 func supportsCameraRAW(path string) bool {
@@ -545,6 +554,17 @@ func HEICJPEG(path string, quality int, legacy Legacy[[]byte]) ([]byte, bool) {
 
 func heicJPEGFast(path string, quality int) ([]byte, bool) {
 	return stillImageJPEG(path, heicDecodeMaxEdge, heicDecodeMaxEdge, quality, "heic jpeg", supportsHEIFImage)
+}
+
+// JXLJPEG decodes JPEG XL to JPEG at full resolution (bounds heicDecodeMaxEdge).
+func JXLJPEG(path string, quality int, legacy Legacy[[]byte]) ([]byte, bool) {
+	return timed("jxl jpeg", path, legacy, thumbnailDiff, func() ([]byte, bool) {
+		return jxlJPEGFast(path, quality)
+	})
+}
+
+func jxlJPEGFast(path string, quality int) ([]byte, bool) {
+	return stillImageJPEG(path, heicDecodeMaxEdge, heicDecodeMaxEdge, quality, "jxl jpeg", supportsJXLImage)
 }
 
 // CameraRAWJPEG decodes camera RAW to JPEG at the requested bounds (0 means full

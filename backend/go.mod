@@ -107,3 +107,5 @@ require (
 )
 
 replace github.com/gtsteffaniak/go-ffmpeg => ../../go-ffmpeg
+
+replace github.com/gtsteffaniak/go-media => ../../go-media
