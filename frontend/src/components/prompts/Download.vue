@@ -89,7 +89,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref, shallowRef, watch } from "vue";
+import { computed, onBeforeUnmount, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { getters } from "@/store";
 import { downloadManager } from "@/utils/downloadManager";
@@ -127,44 +127,13 @@ const hasClearable = computed(() =>
   ),
 );
 
-const orderedItems = computed(() => {
-  const active: DownloadItem[] = [];
-  const finished: DownloadItem[] = [];
-  for (const entry of downloads.value) {
-    if (entry.status === "completed") finished.push(entry);
-    else active.push(entry);
-  }
-  return [...active, ...finished];
-});
-
-const REORDER_INTERVAL_MS = 800;
-const sortedItems = shallowRef(orderedItems.value);
-let lastReorder = 0;
-let reorderTimer: ReturnType<typeof setTimeout> | undefined;
-
-function applyOrder() {
-  clearTimeout(reorderTimer);
-  reorderTimer = undefined;
-  sortedItems.value = orderedItems.value;
-  lastReorder = Date.now();
-}
-
-watch(orderedItems, (next) => {
-  if (next.length !== sortedItems.value.length) {
-    applyOrder();
-    return;
-  }
-  if (reorderTimer !== undefined) return;
-  reorderTimer = setTimeout(applyOrder, Math.max(0, REORDER_INTERVAL_MS - (Date.now() - lastReorder)));
-});
-
 const virtual = useListingVirtualization<{ download: DownloadItem; index: number }>({
   container: list,
   groups: () => [
     {
       key: "downloads",
-      count: sortedItems.value.length,
-      at: (index) => ({ download: sortedItems.value[index] as DownloadItem, index }),
+      count: downloads.value.length,
+      at: (index) => ({ download: downloads.value[index] as DownloadItem, index }),
     },
   ],
   columnsHint: () => 1,
@@ -174,7 +143,6 @@ const virtual = useListingVirtualization<{ download: DownloadItem; index: number
 });
 
 onBeforeUnmount(() => {
-  clearTimeout(reorderTimer);
   downloadManager.reset();
 });
 

@@ -181,7 +181,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, shallowRef, watch } from "vue";
+import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { readAllDirectoryEntries, uploadManager } from "@/utils/upload";
 import type { UploadConflictResolution, UploadEntry, UploadItem, UploadStatus } from "@/utils/upload.ts";
@@ -230,44 +230,13 @@ const showConflictPrompt = ref(false);
 let conflictResolver: ((resolution: UploadConflictResolution) => void) | null = null;
 let wakeLock: WakeLockSentinel | null = null;
 
-const orderedItems = computed(() => {
-  const active: UploadItem[] = [];
-  const finished: UploadItem[] = [];
-  for (const entry of files.value) {
-    if (entry.status === "completed") finished.push(entry);
-    else active.push(entry);
-  }
-  return [...active, ...finished];
-});
-
-const REORDER_INTERVAL_MS = 800;
-const sortedItems = shallowRef(orderedItems.value);
-let lastReorder = 0;
-let reorderTimer: ReturnType<typeof setTimeout> | undefined;
-
-function applyOrder() {
-  clearTimeout(reorderTimer);
-  reorderTimer = undefined;
-  sortedItems.value = orderedItems.value;
-  lastReorder = Date.now();
-}
-
-watch(orderedItems, (next) => {
-  if (next.length !== sortedItems.value.length) {
-    applyOrder();
-    return;
-  }
-  if (reorderTimer !== undefined) return;
-  reorderTimer = setTimeout(applyOrder, Math.max(0, REORDER_INTERVAL_MS - (Date.now() - lastReorder)));
-});
-
 const virtual = useListingVirtualization<{ file: UploadItem; index: number }>({
   container: list,
   groups: () => [
     {
       key: "uploads",
-      count: sortedItems.value.length,
-      at: (index) => ({ file: sortedItems.value[index] as UploadItem, index }),
+      count: files.value.length,
+      at: (index) => ({ file: files.value[index] as UploadItem, index }),
     },
   ],
   columnsHint: () => 1,
@@ -483,7 +452,6 @@ onMounted(async () => {
 });
 
 onUnmounted(() => {
-  clearTimeout(reorderTimer);
   document.removeEventListener("visibilitychange", handleVisibilityChange);
   uploadManager.setOnConflict(() => {}); // cleanup
   releaseWakeLock();
