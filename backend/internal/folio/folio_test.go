@@ -18,7 +18,7 @@ func TestRenderPageJPEG_txt(t *testing.T) {
 		MaxHeight:   256,
 		Fill:        true,
 		JpegQuality: 80,
-	})
+	}, "hello.txt", "text/plain")
 	require.NoError(t, err)
 	require.True(t, ok)
 	require.NotEmpty(t, data)
@@ -27,7 +27,7 @@ func TestRenderPageJPEG_txt(t *testing.T) {
 }
 
 func TestRenderPageJPEG_unsupportedExtension(t *testing.T) {
-	data, ok, err := RenderPageJPEG(t.Context(), "/nonexistent/file.xyz", 0, RenderOptions{})
+	data, ok, err := RenderPageJPEG(t.Context(), "/nonexistent/file.xyz", 0, RenderOptions{}, "file.xyz", "application/octet-stream")
 	require.NoError(t, err)
 	require.False(t, ok)
 	require.Nil(t, data)

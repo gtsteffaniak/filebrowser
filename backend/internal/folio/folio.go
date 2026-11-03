@@ -45,11 +45,6 @@ func SupportsExtension(ext string) bool {
 	return iteminfo.FolioConvertable[ext]
 }
 
-// SupportsPath reports whether folio targets path's extension.
-func SupportsPath(path string) bool {
-	return SupportsExtension(filepath.Ext(path))
-}
-
 func logFallback(op, path string, err error) {
 	if errors.Is(err, doc.ErrUnsupported) {
 		logger.Warningf("folio does not support %s for %s (%v); using office converter if configured", op, path, err)
@@ -59,11 +54,16 @@ func logFallback(op, path string, err error) {
 }
 
 // RenderPageJPEG renders one document page to JPEG. ok is true when folio returned bytes.
-func RenderPageJPEG(ctx context.Context, path string, pageNumber int, opts RenderOptions) (data []byte, ok bool, err error) {
+// name and mimetype should match the file being previewed; they control eligibility for
+// folio (content sniffing does not depend on the path extension).
+func RenderPageJPEG(ctx context.Context, path string, pageNumber int, opts RenderOptions, name, mimetype string) (data []byte, ok bool, err error) {
 	if !Enabled() {
 		return nil, false, nil
 	}
-	if !SupportsPath(path) {
+	if name == "" {
+		name = filepath.Base(path)
+	}
+	if !SupportsPreview(name, mimetype) {
 		return nil, false, nil
 	}
 	if ctx.Err() != nil {
@@ -81,7 +81,7 @@ func RenderPageJPEG(ctx context.Context, path string, pageNumber int, opts Rende
 				done <- result{err: fmt.Errorf("folio render panicked: %v", r)}
 			}
 		}()
-		data, err := renderPageJPEG(path, pageNumber, opts)
+		data, err := renderPageJPEG(path, name, mimetype, pageNumber, opts)
 		done <- result{data: data, err: err}
 	}()
 
@@ -100,11 +100,11 @@ func RenderPageJPEG(ctx context.Context, path string, pageNumber int, opts Rende
 	}
 }
 
-func renderPageJPEG(path string, pageNumber int, opts RenderOptions) ([]byte, error) {
+func renderPageJPEG(path, name, mimetype string, pageNumber int, opts RenderOptions) ([]byte, error) {
 	renderMu.Lock()
 	defer renderMu.Unlock()
 
-	d, err := doc.Open(path)
+	d, err := openDocument(path, name, mimetype)
 	if err != nil {
 		return nil, err
 	}

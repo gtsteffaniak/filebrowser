@@ -306,8 +306,7 @@ func (s *Service) generateRawPreview(ctx context.Context, file iteminfo.Extended
 
 // generateDocumentPreview generates preview via folio, with office converter fallback.
 func (s *Service) generateDocumentPreview(ctx context.Context, file iteminfo.ExtendedFileInfo, previewSize, officeUrl, hash string) ([]byte, error) {
-	tempFilePath := filepath.Join(s.cacheDir, "thumbnails", "docs", hash) + ".txt"
-	imageBytes, err := s.GenerateImageFromDoc(ctx, file, tempFilePath, 0, previewSize)
+	imageBytes, err := s.GenerateImageFromDoc(ctx, file, 0, previewSize)
 	if err != nil {
 		if file.OnlyOfficeId != "" {
 			return s.generateOfficeFilePreview(ctx, file, officeUrl)
@@ -320,7 +319,7 @@ func (s *Service) generateDocumentPreview(ctx context.Context, file iteminfo.Ext
 	if file.OnlyOfficeId != "" {
 		return s.generateOfficeFilePreview(ctx, file, officeUrl)
 	}
-	return nil, fmt.Errorf("failed to create image for document file: no folio or office preview")
+	return nil, ErrUnsupportedFormat
 }
 
 // generateOfficeFilePreview generates preview for office files via the office converter

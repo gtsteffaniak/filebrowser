@@ -502,11 +502,14 @@ func HasDocConvertableExtension(name, mimetype string) bool {
 	if settings.AlwaysUseOnlyOfficeEnabled() {
 		return false
 	}
-	if strings.HasPrefix(mimetype, "text") {
+	ext := strings.ToLower(filepath.Ext(name))
+	if FolioConvertable[ext] {
 		return true
 	}
-	ext := strings.ToLower(filepath.Ext(name))
-	return FolioConvertable[ext]
+	if strings.HasPrefix(mimetype, "text/") {
+		return true
+	}
+	return IsText(ext)
 }
 
 var ONLYOFFICE_READONLY_FILE_EXTENSIONS = map[string]bool{
