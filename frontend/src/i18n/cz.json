@@ -362,7 +362,7 @@
     "preferEditorForMarkdown": "Upřednostnit editor pro Markdown soubory",
     "preferEditorForMarkdownDescription": "Pokud je povoleno, otevřou se Markdown soubory nejprve v editoru místo v prohlížeči Markdown.",
     "deleteAfterArchive": "Smazat zdrojové soubory po vytvoření nebo rozbalení archivu",
-    "deleteAfterArchiveDescription": "Po úspěšném vytvoření nebo rozbalení archivu se zdrojové soubory smažou",
+    "deleteAfterArchiveDescription": "Pokud je povoleno, zdrojové soubory se po úspěšném vytvoření nebo rozbalení archivu smažou.",
     "hideFilesInTree": "Skrýt soubory ve stromové navigaci",
     "hideFilesInTreeDescription": "Pokud je povoleno, v postranním stromovém navigačním panelu se zobrazují pouze složky",
     "setDateFormat": "Nastavit formát data",
