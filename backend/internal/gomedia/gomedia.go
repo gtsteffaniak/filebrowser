@@ -110,15 +110,24 @@ func supportsCameraRAW(path string) bool {
 	return cameraRawExts[strings.ToLower(filepath.Ext(path))]
 }
 
-// logFallback records why go-media was not used for op on path.
+// logFallback records why go-media was not used for op on path, for operations
+// that fall back to ffmpeg.
 func logFallback(op, path string, err error) {
+	logFallbackTo(op, path, err, "using ffmpeg", "falling back to ffmpeg")
+}
+
+// logFallbackTo records a go-media failure. next is the outcome for an
+// unsupported input and failed is the outcome for a real error; both are
+// phrases appended to the message. JPEG XL has no fallback, so it passes
+// phrases that do not mention ffmpeg.
+func logFallbackTo(op, path string, err error, next, failed string) {
 	// ErrNotMedia means the file is not a container go-media reads. That is an
 	// expected fallback, not a failure, so it logs as a warning.
 	if errors.Is(err, media.ErrUnsupported) || errors.Is(err, media.ErrUnsupportedProfile) || errors.Is(err, media.ErrNotMedia) {
-		logger.Warningf("go-media does not support %s for %s (%v); using ffmpeg", op, path, err)
+		logger.Warningf("go-media does not support %s for %s (%v); %s", op, path, err, next)
 		return
 	}
-	logger.Errorf("go-media %s failed for %s: %v; falling back to ffmpeg", op, path, err)
+	logger.Errorf("go-media %s failed for %s: %v; %s", op, path, err, failed)
 }
 
 // logUnsupported records a container or codec that go-media does not handle.
@@ -553,10 +562,12 @@ func HEICJPEG(path string, quality int, legacy Legacy[[]byte]) ([]byte, bool) {
 }
 
 func heicJPEGFast(path string, quality int) ([]byte, bool) {
-	return stillImageJPEG(path, heicDecodeMaxEdge, heicDecodeMaxEdge, quality, "heic jpeg", supportsHEIFImage)
+	return gatedStillImageJPEG(path, heicDecodeMaxEdge, heicDecodeMaxEdge, quality, "heic jpeg", supportsHEIFImage)
 }
 
 // JXLJPEG decodes JPEG XL to JPEG at full resolution (bounds heicDecodeMaxEdge).
+// JPEG XL is decoded only by go-media, so the "Always use ffmpeg" setting does
+// not disable it.
 func JXLJPEG(path string, quality int, legacy Legacy[[]byte]) ([]byte, bool) {
 	return timed("jxl jpeg", path, legacy, thumbnailDiff, func() ([]byte, bool) {
 		return jxlJPEGFast(path, quality)
@@ -564,7 +575,7 @@ func JXLJPEG(path string, quality int, legacy Legacy[[]byte]) ([]byte, bool) {
 }
 
 func jxlJPEGFast(path string, quality int) ([]byte, bool) {
-	return stillImageJPEG(path, heicDecodeMaxEdge, heicDecodeMaxEdge, quality, "jxl jpeg", supportsJXLImage)
+	return stillImageJPEG(path, heicDecodeMaxEdge, heicDecodeMaxEdge, quality, "jxl jpeg", supportsJXLImage, false)
 }
 
 // CameraRAWJPEG decodes camera RAW to JPEG at the requested bounds (0 means full
@@ -580,22 +591,38 @@ func cameraRAWJPEGFast(path string, width, height, quality int) ([]byte, bool) {
 	if maxW <= 0 || maxH <= 0 {
 		maxW, maxH = heicDecodeMaxEdge, heicDecodeMaxEdge
 	}
-	return stillImageJPEG(path, maxW, maxH, quality, "raw jpeg", supportsCameraRAW)
+	return gatedStillImageJPEG(path, maxW, maxH, quality, "raw jpeg", supportsCameraRAW)
 }
 
-func stillImageJPEG(path string, maxW, maxH, quality int, op string, supported func(string) bool) ([]byte, bool) {
+// gatedStillImageJPEG applies the "Always use ffmpeg" setting before decoding.
+// Used for formats ffmpeg can also decode (HEIC, camera RAW). JPEG XL skips it.
+func gatedStillImageJPEG(path string, maxW, maxH, quality int, op string, supported func(string) bool) ([]byte, bool) {
 	if !Enabled() {
 		if ShadowEnabled() {
 			logger.Debugf("go-media skipped for %s (%s): always use ffmpeg enabled", op, path)
 		}
 		return nil, false
 	}
+	return stillImageJPEG(path, maxW, maxH, quality, op, supported, true)
+}
+
+// stillImageJPEG decodes a still image with go-media. ffmpegFallback selects the
+// log wording: formats ffmpeg can also decode say so; JPEG XL, which ffmpeg
+// cannot decode, does not.
+func stillImageJPEG(path string, maxW, maxH, quality int, op string, supported func(string) bool, ffmpegFallback bool) ([]byte, bool) {
+	logFail := func(err error) {
+		if ffmpegFallback {
+			logFallback(op, path, err)
+			return
+		}
+		logFallbackTo(op, path, err, "JPEG XL has no fallback", "JPEG XL has no fallback")
+	}
 	if !supported(path) {
 		return nil, false
 	}
 	f, size, err := openFile(path)
 	if err != nil {
-		logFallback(op, path, err)
+		logFail(err)
 		return nil, false
 	}
 	defer f.Close()
@@ -610,11 +637,11 @@ func stillImageJPEG(path string, maxW, maxH, quality int, op string, supported f
 		Quality:   quality,
 	})
 	if err != nil {
-		logFallback(op, path, err)
+		logFail(err)
 		return nil, false
 	}
 	if len(res.Data) == 0 {
-		logFallback(op, path, fmt.Errorf("empty %s output", op))
+		logFail(fmt.Errorf("empty %s output", op))
 		return nil, false
 	}
 	return res.Data, true

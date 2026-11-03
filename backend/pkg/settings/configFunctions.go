@@ -3,7 +3,8 @@ package settings
 func CanConvertImage(ext string) bool {
 	mediaMu.RLock()
 	defer mediaMu.RUnlock()
-	if !Env.FFmpegAvailable {
+	// JPEG XL previews are decoded by go-media and never need ffmpeg.
+	if !Env.FFmpegAvailable && ImagePreviewType(ext) != JXLImagePreview {
 		return false
 	}
 	val := Config.Integrations.Media.Convert.ImagePreview[ImagePreviewType(ext)]

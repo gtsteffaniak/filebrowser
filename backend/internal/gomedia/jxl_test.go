@@ -1,0 +1,54 @@
+package gomedia
+
+import (
+	"bytes"
+	"image/jpeg"
+	"os"
+	"path/filepath"
+	"testing"
+
+	"github.com/stretchr/testify/require"
+)
+
+const fixtureJXL = "testdata/zoltan_unsplash.jxl"
+
+// assertJPEG checks that data is a decodable JPEG.
+func assertJPEG(t *testing.T, data []byte) {
+	t.Helper()
+	require.NotEmpty(t, data)
+	_, err := jpeg.Decode(bytes.NewReader(data))
+	require.NoError(t, err, "go-media JXL output must be a valid JPEG")
+}
+
+func TestJXLJPEGDecodesFixture(t *testing.T) {
+	withGate(t, false)
+	data, ok := JXLJPEG(fixtureJXL, 85, nil)
+	require.True(t, ok, "go-media must decode the JPEG XL fixture")
+	assertJPEG(t, data)
+}
+
+// JPEG XL is decoded only by go-media, so the admin "Always use ffmpeg" setting
+// must not stop it. ffmpeg cannot decode JPEG XL at all.
+func TestJXLJPEGIgnoresAlwaysUseFfmpeg(t *testing.T) {
+	withGate(t, true)
+	data, ok := JXLJPEG(fixtureJXL, 85, nil)
+	require.True(t, ok, "JPEG XL decode must not be disabled by the ffmpeg gate")
+	assertJPEG(t, data)
+}
+
+func TestJXLJPEGInvalidFileReturnsFalse(t *testing.T) {
+	withGate(t, false)
+	path := filepath.Join(t.TempDir(), "broken.jxl")
+	require.NoError(t, os.WriteFile(path, []byte("not a jxl file"), 0o600))
+
+	data, ok := JXLJPEG(path, 85, nil)
+	require.False(t, ok, "a corrupt JPEG XL file must not decode")
+	require.Empty(t, data)
+}
+
+func TestJXLJPEGMissingFileReturnsFalse(t *testing.T) {
+	withGate(t, false)
+	data, ok := JXLJPEG(filepath.Join(t.TempDir(), "missing.jxl"), 85, nil)
+	require.False(t, ok)
+	require.Empty(t, data)
+}
