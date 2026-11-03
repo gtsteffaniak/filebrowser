@@ -168,6 +168,7 @@ class UploadManager {
   progressTimeouts = new Map<number, ReturnType<typeof setTimeout>>(); // Track progress timeouts per upload ID
   lastUploadActivityTime: number | null = null;
   PROGRESS_TIMEOUT_MS = 10000; // 10 seconds without upload activity = pause
+  DIRECTORY_PROGRESS_TIMEOUT_MS = 120000;
   quotaBatchAborted = false;
 
   setOnConflict(handler: UploadConflictHandler): void {
@@ -516,18 +517,22 @@ class UploadManager {
         this.activeUploads < maxConcurrent &&
         this.hasPending()
       ) {
-        if (this.queue.some((item) => item.type === "directory" && item.status === "uploading")) {
+        const openDirs = new Set(
+          this.queue
+            .filter((item) => item.type === "directory" && (item.status === "pending" || item.status === "uploading"))
+            .map((item) => item.path)
+        );
+        const isReady = (item: UploadItem) => item.status === "pending" && !this.hasOpenParent(item, openDirs);
+        const upload =
+          this.queue.find((item) => item.type === "directory" && isReady(item)) ||
+          this.queue.find((item) => item.type !== "directory" && isReady(item));
+        if (!upload) {
           break;
         }
-        const upload =
-          this.queue.find((item) => item.type === "directory" && item.status === "pending") ||
-          this.queue.find((item) => item.status === "pending");
-        if (upload) {
-          if (this.overwriteAll) {
-            upload.overwrite = true;
-          }
-          this.start(upload.id);
+        if (this.overwriteAll) {
+          upload.overwrite = true;
         }
+        this.start(upload.id);
       }
     }
 
@@ -571,6 +576,8 @@ class UploadManager {
     this.activeUploads++;
     this.hadActiveUploads = true; // Mark that we've had active uploads
     upload.status = "uploading";
+    upload.lastProgressTime = Date.now();
+    this.startProgressTimeout(upload, this.DIRECTORY_PROGRESS_TIMEOUT_MS);
 
     try {
       let promise: UploadRequest;
@@ -582,10 +589,12 @@ class UploadManager {
       upload.xhrPromise = promise;
       await promise;
 
+      this.clearProgressTimeout(upload.id);
       upload.status = "completed";
       upload.progress = 100;
       notifyUploadComplete(upload);
     } catch (err) {
+      this.clearProgressTimeout(upload.id);
       await this.handleUploadError(upload, err as RequestError);
     } finally {
       this.activeUploads--;
@@ -814,16 +823,18 @@ class UploadManager {
     const timeoutId = setTimeout(() => {
       this.progressTimeouts.delete(upload.id);
       if (upload.status === "uploading") {
-        const lastActivity = Math.max(
-          upload.lastProgressTime ?? 0,
-          this.lastUploadActivityTime ?? 0
-        );
+        const lastActivity =
+          upload.type === "directory"
+            ? upload.lastProgressTime ?? 0
+            : Math.max(upload.lastProgressTime ?? 0, this.lastUploadActivityTime ?? 0);
         const idleTime = Date.now() - lastActivity;
-        if (idleTime < this.PROGRESS_TIMEOUT_MS) {
-          this.startProgressTimeout(upload, this.PROGRESS_TIMEOUT_MS - idleTime);
+        const limitMs =
+          upload.type === "directory" ? this.DIRECTORY_PROGRESS_TIMEOUT_MS : this.PROGRESS_TIMEOUT_MS;
+        if (idleTime < limitMs) {
+          this.startProgressTimeout(upload, limitMs - idleTime);
           return;
         }
-        console.log(`Upload ${upload.id} stalled - no progress for ${this.PROGRESS_TIMEOUT_MS}ms, pausing`);
+        console.log(`Upload ${upload.id} stalled - no progress for ${limitMs}ms, pausing`);
         upload.connectionIssue = true;
         void this.pause(upload.id);
         upload.errorDetails = "Connection stalled - upload paused. Click resume to retry.";
@@ -927,6 +938,16 @@ class UploadManager {
 
   findById(id: number): UploadItem | undefined {
     return this.queue.find((item) => item.id === id);
+  }
+
+  hasOpenParent(upload: UploadItem, openDirs: Set<string>): boolean {
+    const path = upload.path;
+    for (let i = path.indexOf("/"); i !== -1 && i < path.length - 1; i = path.indexOf("/", i + 1)) {
+      if (openDirs.has(path.slice(0, i + 1))) {
+        return true;
+      }
+    }
+    return false;
   }
 
   hasPending(): boolean {

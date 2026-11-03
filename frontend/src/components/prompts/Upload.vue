@@ -472,7 +472,7 @@ async function processItems(items: UploadInput) {
   } else if (items) {
     // This case handles a FileList object from the upload prompt's own input fields.
     // It is not an array, so we convert it.
-    await processDroppedItems(Array.from(items) as unknown as DataTransferItem[], destination);
+    processFileList(items, destination);
   }
 }
 
