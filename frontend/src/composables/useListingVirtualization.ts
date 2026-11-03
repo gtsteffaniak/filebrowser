@@ -94,6 +94,7 @@ export interface ListingVirtualizationOptions<T extends VirtualItem = fileListIt
    */
   scroller?: (container: HTMLElement) => HTMLElement | HTMLElement[] | null;
   itemClass?: string;
+  trackViewMode?: boolean;
   register?: boolean;
   minItems?: number;
 }
@@ -156,7 +157,10 @@ export function useListingVirtualization<T extends VirtualItem = fileListItemInd
   const columns = computed(() => metrics.value?.columns ?? Math.max(1, Math.round(options.columnsHint?.() ?? 1)));
   const rowPitch = computed(() => metrics.value?.rowPitch ?? ESTIMATED_ROW_PITCH);
   // Anything that changes how the browser lays the items out
-  const layoutKey = computed(() => `${getters.viewMode()}|${state.user?.gallerySize}|${containerWidth.value}`);
+  const trackViewMode = options.trackViewMode ?? true;
+  const layoutKey = computed(
+    () => `${trackViewMode ? `${getters.viewMode()}|${state.user?.gallerySize}` : ""}|${containerWidth.value}`,
+  );
 
   const firstRows = initialRows();
 

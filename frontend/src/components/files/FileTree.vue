@@ -1,76 +1,78 @@
 <template>
-  <div ref="treeEl" class="file-tree" :class="{ 'file-tree-root': isRootInstance }">
+  <div ref="treeEl" class="file-tree file-tree-root">
     <!-- Loading root -->
-    <div v-if="isRootInstance && loading" class="tree-loading">
+    <div v-if="loading" class="tree-loading">
       <LoadingSpinner size="small" mode="placeholder" />
     </div>
     <!-- Error state -->
-    <div v-if="isRootInstance && error" class="tree-error">
+    <div v-if="error" class="tree-error">
       <i class="material-symbols">error</i>
       <span>{{ $t("prompts.error") }}</span>
     </div>
-    <ul v-if="effectiveNodes?.length" class="tree-list">
-      <li v-for="node in effectiveNodes" :key="node.path" class="tree-item">
-        <a
-          :href="getNodeUrl(node)"
-          class="tree-node"
-          :class="{
-            'current-item': isCurrentItem(node),
-            'has-children': node.childrenCount > 0,
-            'drag-over': node.dragOver,
-            'context-item': isSelected(node),
-            'hidden-file': node.isHidden,
-          }"
-          @click="onNodeClick($event, node)"
-          @contextmenu.prevent="handleContextMenu($event, node)"
-          @dragover.prevent="handleDragOver($event, node)"
-          @dragleave.prevent="handleDragLeave($event, node)"
-          @drop.prevent="handleDrop($event, node)"
+    <div v-if="rootNodes.length" ref="listEl" class="tree-list">
+      <div data-virtual-group="rows" :style="virtual.group('rows').style">
+        <div
+          v-for="row in virtual.group('rows').items"
+          :key="row.key"
+          class="tree-row"
+          :class="{ 'tree-placeholder': row.kind !== 'node' }"
+          :data-index="row.index"
         >
-          <!-- Expand/collapse arrow (only for folders) -->
-          <span
-            v-if="node.isDir"
-            class="expand-icon"
-            @click.stop.prevent="toggleExpand(node, true)"
+          <!-- Guide line per level of depth -->
+          <span v-for="level in row.depth" :key="level" class="tree-guide"></span>
+          <a
+            v-if="row.kind === 'node'"
+            :href="getNodeUrl(row.node)"
+            class="tree-node"
+            :class="{
+              'current-item': isCurrentItem(row.node),
+              'drag-over': row.node.dragOver,
+              'context-item': isSelected(row.node),
+              'hidden-file': row.node.isHidden,
+            }"
+            @click="onNodeClick($event, row.node)"
+            @contextmenu.prevent="handleContextMenu($event, row.node)"
+            @dragover.prevent="handleDragOver($event, row.node)"
+            @dragleave.prevent="handleDragLeave($event, row.node)"
+            @drop.prevent="handleDrop($event, row.node)"
           >
-            <i class="material-symbols" :class="{ rotated: node.expanded }">
-              chevron_right <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-            </i>
-          </span>
-          <span v-else class="expand-icon-placeholder"></span>
-          <Icon
-            :mimetype="node.isDir ? 'directory' : (node.type ?? '')"
-            :filename="node.name"
-            :isShared="node.isShared"
-            class="node-icon"
-          />
-          <i v-if="node.pinned" class="material-symbols pinned-indicator">push_pin</i>
-          <span class="node-name" :title="node.name">
-            {{ node.name }}
-          </span>
-        </a>
-        <!-- Recursive children if expanded -->
-        <FileTree
-          v-if="node.expanded && node.children && node.children.length > 0"
-          :nodes="node.children"
-          :currentSource="treeSource"
-          :shareHash="shareHash"
-          :currentPath="currentPath"
-        />
-        <div v-else-if="node.expanded && node.children && node.children.length === 0" class="tree-empty-folder">
-          <i class="material-symbols-outlined">sentiment_dissatisfied</i>
-          <span>{{ $t('files.lonely') }}</span>
+            <!-- Expand/collapse arrow for folders-->
+            <span
+              v-if="row.node.isDir"
+              class="expand-icon"
+              @click.stop.prevent="toggleExpand(row.node, true)"
+            >
+              <i class="material-symbols" :class="{ rotated: row.node.expanded }">
+                chevron_right
+              </i>
+            </span>
+            <span v-else class="expand-icon-placeholder"></span>
+            <Icon
+              :mimetype="row.node.isDir ? 'directory' : (row.node.type ?? '')"
+              :filename="row.node.name"
+              :isShared="row.node.isShared"
+              class="node-icon"
+            />
+            <i v-if="row.node.pinned" class="material-symbols pinned-indicator">push_pin</i>
+            <span class="node-name" :title="row.node.name">
+              {{ row.node.name }}
+            </span>
+          </a>
+          <div v-else-if="row.kind === 'empty'" class="tree-empty-folder">
+            <i class="material-symbols-outlined">sentiment_dissatisfied</i>
+            <span>{{ $t('files.lonely') }}</span>
+          </div>
+          <div v-else-if="row.kind === 'loading'" class="tree-loading">
+            <LoadingSpinner size="small" mode="placeholder" />
+          </div>
+          <div v-else class="tree-error small">
+            {{ row.node.childrenError }}
+          </div>
         </div>
-        <div v-else-if="node.expanded && node.loading" class="tree-loading">
-          <LoadingSpinner size="small" mode="placeholder" />
-        </div>
-        <div v-else-if="node.expanded && node.childrenError" class="tree-error small">
-          {{ node.childrenError }}
-        </div>
-      </li>
-    </ul>
+      </div>
+    </div>
     <!-- Empty state -->
-    <div v-if="isRootInstance && effectiveNodes && effectiveNodes.length === 0 && !loading && !error" class="tree-empty">
+    <div v-if="rootNodes.length === 0 && !loading && !error" class="tree-empty">
       <i class="material-symbols-outlined">sentiment_dissatisfied</i>
       {{ $t('files.lonely') }}
     </div>
@@ -92,16 +94,24 @@ import { notify } from '@/notify';
 import { notifyMoveCopyFailure } from '@/utils/appNotifications';
 import { getObjectProperty } from '@/utils/object.js';
 import { sortedItems } from '@/utils/sort.ts';
+import { findScrollParents, useListingVirtualization } from '@/composables/useListingVirtualization.ts';
 
 export interface TreeNode extends FileListItem {
   isDir: boolean;
   expanded: boolean;
   loading: boolean;
   children: TreeNode[] | null;
-  childrenCount: number;
   childrenError: string | null;
   dragOver: boolean;
   isHidden?: boolean;
+}
+
+interface TreeRow {
+  index: number;
+  key: string;
+  kind: 'node' | 'empty' | 'loading' | 'error';
+  depth: number;
+  node: TreeNode;
 }
 
 interface TreeScope {
@@ -139,16 +149,12 @@ const props = withDefaults(
   defineProps<{
     // Will be ignored if we are in a share
     currentSource?: string | null;
-    // Nodes to render (for recursion, root uses its own data and leaves this null)
-    // with 'root', I mean whole tree view component, the one that contains all the nodes/folders.
-    nodes?: TreeNode[] | null;
     currentPath?: string;
     // Root path to start from
     rootPath?: string;
   }>(),
   {
     currentSource: null,
-    nodes: null,
     currentPath: '/',
     rootPath: '/',
   }
@@ -157,6 +163,7 @@ const props = withDefaults(
 const t = i18n.global.t.bind(i18n.global);
 
 const treeEl = ref<HTMLElement | null>(null);
+const listEl = ref<HTMLElement | null>(null);
 const rootNodes = ref<TreeNode[]>([]);
 const loading = ref(false);
 const error = ref<string | null>(null);
@@ -165,39 +172,81 @@ const isRefreshing = ref(false);
 let refreshQueued = false;
 let unwatchReload: (() => void) | null = null;
 const expandTimeouts = new Map<TreeNode, ReturnType<typeof setTimeout>>(); // For auto-expand when dragging a item to a folder
+const dragOverPaths = new Set<string>();
 const pendingExpandPath = ref<string | null>(null);
 const rootLoaded = ref(false);
 
 const treeSource = computed(() => props.currentSource || state.sources.current || null);
 const shareHash = computed(() => getters.shareHash() || null);
 const isShare = computed(() => !!shareHash.value);
-// Determine if this instance is the root of the tree
-const isRootInstance = computed(() => props.nodes === null);
-const effectiveNodes = computed(() => (isRootInstance.value ? rootNodes.value : props.nodes));
 const canModify = computed(() => getters.sourcePermissions().modify);
-// Defaults to true
-const showFiles = computed(() => !state.user?.hideFilesInTree);
+const showFiles = computed(() => !state.user?.hideFilesInTree); // Defaults to true
 const normalizedCurrentPath = computed(() => normalizePath(props.currentPath));
+const rows = computed<TreeRow[]>(() => {
+  const result: TreeRow[] = [];
+  const add = (kind: TreeRow['kind'], depth: number, node: TreeNode, key: string) => {
+    result.push({ index: result.length, key, kind, depth, node });
+  };
+  const walk = (nodes: TreeNode[], depth: number) => {
+    for (const node of nodes) {
+      add('node', depth, node, node.path);
+      if (!node.expanded) continue;
+      if (node.children && node.children.length > 0) {
+        walk(node.children, depth + 1);
+      } else if (node.childrenError) {
+        add('error', depth, node, `${node.path}\u0000error`);
+      } else if (node.children) {
+        add('empty', depth, node, `${node.path}\u0000empty`);
+      } else if (node.loading) {
+        add('loading', depth, node, `${node.path}\u0000loading`);
+      }
+    }
+  };
+  walk(rootNodes.value, 0);
+  return result;
+});
+
+const virtual = useListingVirtualization<TreeRow>({
+  container: listEl,
+  groups: () => [{ key: 'rows', items: rows.value }],
+  columnsHint: () => 1,
+  scroller: (el) => findScrollParents(el),
+  itemClass: 'tree-row',
+  trackViewMode: false,
+  register: false,
+});
+
+let rootRequest = 0; // a slow answer for an old source must not replace the nodes of the current one
+let rootReloadPending = false;
 
 async function loadRoot() {
-  if (expanding.value) return;
+  if (expanding.value) {
+    rootReloadPending = true;
+    loading.value = true;
+    return;
+  }
+  const request = ++rootRequest;
   error.value = null;
   rootLoaded.value = false;
-  if ((!treeSource.value && !shareHash.value) || !isRootInstance.value) {
+  if (!treeSource.value && !shareHash.value) {
     rootNodes.value = [];
+    loading.value = false;
     return;
   }
   loading.value = true;
+  const scope = captureScope();
   try {
-    const items = await fetchItems(props.rootPath);
+    const items = await fetchItems(props.rootPath, scope);
+    if (request !== rootRequest) return;
     rootNodes.value = items.map(item => createNode(item));
     rootLoaded.value = true;
   } catch (err) {
+    if (request !== rootRequest) return;
     console.error('Failed to load tree root:', err);
     error.value = (err as Error).message || 'Failed to load';
     rootNodes.value = [];
   } finally {
-    loading.value = false;
+    if (request === rootRequest) loading.value = false;
   }
 }
 
@@ -235,7 +284,6 @@ function createNode(item: FileListItem): TreeNode {
     expanded: false,
     loading: false,
     children: null,
-    childrenCount: 0,
     childrenError: null,
     isShared: item.isShared,
     dragOver: false, // For drag highlight
@@ -262,11 +310,9 @@ async function toggleExpand(node: TreeNode, skipNavigate = false) {
     try {
       const items = await fetchItems(node.path);
       node.children = items.map(item => createNode(item));
-      node.childrenCount = node.children.length;
     } catch (err) {
       console.error('Failed to load children for', node.path, err);
       node.children = [];
-      node.childrenCount = 0;
       node.childrenError = (err as Error).message || 'Failed to load';
     } finally {
       node.loading = false;
@@ -313,11 +359,7 @@ function handleNodeClick(node: TreeNode) {
     }
     return;
   }
-  if (node.isDir) {
-    navigateTo(node);
-  } else {
-    navigateTo(node);
-  }
+  navigateTo(node);
 }
 
 function handleContextMenu(event: MouseEvent, node: TreeNode) {
@@ -337,11 +379,10 @@ function handleContextMenu(event: MouseEvent, node: TreeNode) {
 }
 
 function navigateTo(node: TreeNode) {
+  mutations.setNavigationTransitioning(true);
   if (isShare.value) {
-    mutations.setNavigationTransitioning(true);
     goToItem(shareHash.value, node.path, {}, false, true);
   } else {
-    mutations.setNavigationTransitioning(true);
     goToItem(treeSource.value, node.path, {});
   }
 }
@@ -351,26 +392,33 @@ function normalizePath(p?: string | null) {
   return p.replace(/\/+$/, '');
 }
 
-function isCurrentItem(node: TreeNode) {
-  const normalizedNodePath = normalizePath(node.path);
-  if (isShare.value) {
-    return normalizedNodePath === normalizedCurrentPath.value;
-  } else {
-    return node.source === treeSource.value && normalizedNodePath === normalizedCurrentPath.value;
+const normalizedNodePaths = new WeakMap<TreeNode, string>();
+
+function normalizedNodePath(node: TreeNode) {
+  let normalized = normalizedNodePaths.get(node);
+  if (normalized === undefined) {
+    normalized = normalizePath(node.path);
+    normalizedNodePaths.set(node, normalized);
   }
+  return normalized;
+}
+
+function isCurrentItem(node: TreeNode) {
+  if (!isShare.value && node.source !== treeSource.value) return false;
+  return normalizedNodePath(node) === normalizedCurrentPath.value;
 }
 
 async function expandToPath(targetPath: string) {
   if (!targetPath || targetPath === '/' || expanding.value) return;
   expanding.value = true;
   try {
-    if (isRootInstance.value && !rootNodes.value.length) {
+    if (!rootNodes.value.length) {
       await loadRoot();
     }
     const pathParts = targetPath.split('/').filter(p => p);
     if (pathParts.length === 0) return;
 
-    let currentLevel = (isRootInstance.value ? rootNodes.value : props.nodes) ?? [];
+    let currentLevel = rootNodes.value;
 
     for (const part of pathParts) {
       const node = currentLevel.find(n => n.name === part && n.isDir);
@@ -388,6 +436,13 @@ async function expandToPath(targetPath: string) {
     console.error('Error expanding path:', err);
   } finally {
     expanding.value = false;
+    if (rootReloadPending) {
+      rootReloadPending = false;
+      void loadRoot().then(() => {
+        pendingExpandPath.value = props.currentPath;
+        return tryExpandNodes();
+      });
+    }
   }
 }
 
@@ -403,15 +458,13 @@ function scrollToTop() {
 }
 
 function scrollToCurrent() {
-  if (!treeEl.value) return;
-  const current = treeEl.value.querySelector('.tree-node.current-item');
-  if (current) {
-    current.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  }
+  // The row may not be rendered, so it is found in the data
+  const index = rows.value.findIndex((row) => row.kind === 'node' && isCurrentItem(row.node));
+  if (index === -1) return;
+  virtual.scrollToIndex(index, { block: 'center', behavior: 'smooth' });
 }
 
 async function refresh() {
-  if (!isRootInstance.value) return;
   if (isRefreshing.value) {
     refreshQueued = true;
     return;
@@ -464,7 +517,6 @@ async function syncNodes(existing: TreeNode[], path: string, scope: TreeScope): 
       expanded: currentNode.expanded,
       loading: currentNode.loading,
       children: currentNode.children,
-      childrenCount: currentNode.childrenCount,
       childrenError: currentNode.childrenError,
       dragOver: currentNode.dragOver,
     };
@@ -472,7 +524,6 @@ async function syncNodes(existing: TreeNode[], path: string, scope: TreeScope): 
       node.expanded = false;
       node.loading = false;
       node.children = null;
-      node.childrenCount = 0;
       node.childrenError = null;
     }
     return node;
@@ -480,7 +531,6 @@ async function syncNodes(existing: TreeNode[], path: string, scope: TreeScope): 
   for (const node of merged) {
     if (node.isDir && !node.expanded && !node.loading && node.children) {
       node.children = null;
-      node.childrenCount = 0;
       node.childrenError = null;
     }
   }
@@ -495,7 +545,6 @@ async function syncNodes(existing: TreeNode[], path: string, scope: TreeScope): 
           if (!sameNodeList(previousChildren, children)) {
             node.children = children;
           }
-          node.childrenCount = children.length;
           node.childrenError = null;
         } catch (err) {
           console.error('Failed to refresh children for', node.path, err);
@@ -520,14 +569,10 @@ function handleDragOver(event: DragEvent, node: TreeNode) {
 
   event.preventDefault();
   node.dragOver = true;
+  dragOverPaths.add(node.path);
 
   // Auto-expand if collapsed and not loading
-  if (!node.expanded && !node.loading) {
-    // Clear any existing timeout for this node
-    if (expandTimeouts.has(node)) {
-      clearTimeout(expandTimeouts.get(node));
-    }
-    // Set a new timeout
+  if (!node.expanded && !node.loading && !expandTimeouts.has(node)) {
     const timeout = setTimeout(() => {
       void toggleExpand(node, true); // expand without navigating
       expandTimeouts.delete(node);
@@ -536,16 +581,25 @@ function handleDragOver(event: DragEvent, node: TreeNode) {
   }
 }
 
-function clearAllDragStates() {
-  if (!isRootInstance.value) return; // Only root should handle global reset
+function findNodeByPath(path: string): TreeNode | null {
+  let level: TreeNode[] | null = rootNodes.value;
+  while (level) {
+    const exact = level.find((n) => n.path === path);
+    if (exact) return exact;
+    const parent: TreeNode | undefined = level.find(
+      (n) => n.isDir && path.startsWith(`${normalizedNodePath(n)}/`)
+    );
+    level = parent?.children ?? null;
+  }
+  return null;
+}
 
-  const clearNode = (node: TreeNode) => {
-    node.dragOver = false;
-    if (node.children) {
-      node.children.forEach(clearNode);
-    }
-  };
-  rootNodes.value.forEach(clearNode);
+function clearAllDragStates() {
+  for (const path of dragOverPaths) {
+    const node = findNodeByPath(path);
+    if (node) node.dragOver = false;
+  }
+  dragOverPaths.clear();
 
   // Clear all pending expand timeouts
   for (const timeout of expandTimeouts.values()) {
@@ -561,6 +615,7 @@ function handleDragLeave(event: DragEvent, node: TreeNode) {
     return;
   }
   node.dragOver = false;
+  dragOverPaths.delete(node.path);
   // Clear auto-expand timeout
   if (expandTimeouts.has(node)) {
     clearTimeout(expandTimeouts.get(node));
@@ -572,6 +627,7 @@ async function handleDrop(event: DragEvent, node: TreeNode) {
   if (!node.isDir) return;
   if (!canModify.value) return;
   node.dragOver = false;
+  dragOverPaths.delete(node.path);
 
   // Clear any pending timeout
   if (expandTimeouts.has(node)) {
@@ -737,28 +793,19 @@ function isSelected(node: TreeNode) {
   return selectedKeys.value.has(selectionKey(node.source, node.path));
 }
 
-watch(treeSource, async (newVal) => {
-  if (isRootInstance.value && newVal) {
-    await loadRoot();
-    rootLoaded.value = true;
-    void tryExpandNodes();
-  }
-}, { immediate: true });
-
-watch(shareHash, async (newVal) => {
-  if (isRootInstance.value && newVal) {
-    await loadRoot();
-    rootLoaded.value = true;
-    void tryExpandNodes();
-  }
+watch([treeSource, shareHash], async ([source, hash]) => {
+  rootNodes.value = [];
+  rootLoaded.value = false;
+  if (!source && !hash) return;
+  await loadRoot();
+  void tryExpandNodes();
 }, { immediate: true });
 
 watch(() => props.rootPath, (newVal, oldVal) => {
-  if (isRootInstance.value && newVal !== oldVal) void loadRoot();
+  if (newVal !== oldVal) void loadRoot();
 });
 
 watch(() => props.currentPath, (newPath) => {
-  if (!isRootInstance.value) return;
   if (newPath !== '/') {
     pendingExpandPath.value = newPath;
     void tryExpandNodes();
@@ -768,14 +815,10 @@ watch(() => props.currentPath, (newPath) => {
 }, { immediate: true });
 
 watch(showFiles, () => {
-  if (isRootInstance.value) {
-    void refresh();
-  }
+  void refresh();
 });
 
 onMounted(() => {
-  // Only the root handles global events, child instances don't need them
-  if (!isRootInstance.value) return;
   unwatchReload = watch(
     () => state.reload,
     (newVal) => {
@@ -798,7 +841,6 @@ onBeforeUnmount(() => {
   }
   expandTimeouts.clear();
   refreshQueued = false;
-  if (!isRootInstance.value) return;
   if (unwatchReload) {
     unwatchReload();
   }
@@ -822,21 +864,30 @@ onBeforeUnmount(() => {
 }
 
 .tree-list {
-  list-style: none;
-  padding-left: 0;
-  margin: 0;
-}
-
-/* indent nested lists (children) */
-.tree-list .tree-list {
-  margin-left: 1.2em; /* this creates the tree effect */
-  border-left: 0.05em dotted var(--primaryColor); /* guide line */
-  padding-left: 0.2em;
-}
-
-.tree-item {
   margin: 0;
   padding: 0;
+  display: flow-root;
+}
+
+.tree-row {
+  display: flex;
+  align-items: stretch;
+  margin: 0;
+  padding: 0;
+}
+
+.tree-guide {
+  flex: 0 0 auto;
+  box-sizing: content-box;
+  width: 0.2em;
+  margin-left: 1.2em;
+  border-left: 0.05em dotted var(--primaryColor);
+}
+
+.tree-placeholder {
+  min-height: 2.1em;
+  box-sizing: border-box;
+  align-items: center;
 }
 
 .tree-node {
@@ -849,7 +900,8 @@ onBeforeUnmount(() => {
   overflow: hidden;
   text-overflow: ellipsis;
   line-height: 1.4;
-  width: 100%;
+  flex: 1 1 0;
+  min-width: 0;
   box-sizing: border-box;
   position: relative;
   text-decoration: none;
@@ -941,6 +993,11 @@ onBeforeUnmount(() => {
   justify-content: center;
   padding: 0.5em;
   opacity: 0.7;
+}
+
+.tree-placeholder .tree-loading {
+  flex: 1;
+  padding: 0;
 }
 
 .tree-error {
