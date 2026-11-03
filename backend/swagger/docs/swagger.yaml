@@ -1786,6 +1786,26 @@ definitions:
         description: default view mode for anonymous users
         type: string
     type: object
+  textpreview.Result:
+    properties:
+      content:
+        description: Content is plain text, or an HTML fragment when Format is "html".
+        type: string
+      format:
+        description: Format is "text" or "html". RTF is converted to HTML; everything
+          else is text.
+        type: string
+      kind:
+        description: 'Kind is the renderer the frontend should use: plain, csv, markdown,
+          html, css, code, or rtf.'
+        type: string
+      size:
+        description: Size is the full size of the file in bytes.
+        type: integer
+      truncated:
+        description: Truncated is true when the file is larger than the returned content.
+        type: boolean
+    type: object
   users.FileLoading:
     properties:
       clearAll:
@@ -4469,6 +4489,72 @@ paths:
       summary: Get image preview
       tags:
       - Resources
+  /api/resources/preview/text:
+    get:
+      consumes:
+      - application/json
+      description: 'Returns the first ~16KB of a text-like file as JSON. Markdown,
+        HTML, and CSS are returned as raw text; RTF is converted to HTML. The response
+        is NOT sanitized: clients must sanitize HTML before rendering it. Responses
+        are not cached on the server.'
+      parameters:
+      - description: File path of the text file to preview
+        in: query
+        name: path
+        required: true
+        type: string
+      - description: Source name
+        in: query
+        name: source
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Text preview content
+          schema:
+            $ref: '#/definitions/textpreview.Result'
+        "400":
+          description: Invalid request path
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: User is not allowed to view files in this source
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: File not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "415":
+          description: File type is not supported for text preview, or the file is
+            binary
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "501":
+          description: Previews are disabled
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get text preview
+      tags:
+      - Resources
   /api/resources/unarchive:
     post:
       consumes:
@@ -6069,6 +6155,65 @@ paths:
               type: string
             type: object
       summary: Get image/video preview from a public share
+      tags:
+      - Resources
+  /public/api/resources/preview/text:
+    get:
+      consumes:
+      - application/json
+      description: Returns the first ~16KB of a text-like file in a public share as
+        JSON. Same content rules as the authenticated endpoint. Not available for
+        upload-only shares.
+      parameters:
+      - description: Share hash for authentication
+        in: query
+        name: hash
+        required: true
+        type: string
+      - description: File path within the share to preview
+        in: query
+        name: path
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Text preview content
+          schema:
+            $ref: '#/definitions/textpreview.Result'
+        "403":
+          description: Share unavailable or access denied
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: File not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "415":
+          description: File type is not supported for text preview, or the file is
+            binary
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "501":
+          description: Previews disabled globally, for this share, or for upload shares
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get text preview from a public share
       tags:
       - Resources
   /public/api/resources/view:

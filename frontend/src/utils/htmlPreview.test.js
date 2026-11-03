@@ -259,3 +259,17 @@ describe("buildHtmlPreview", () => {
     expect(srcdoc).toContain("<circle");
   });
 });
+
+describe("buildHtmlPreview default colours", () => {
+  it("defaults the page to black text on a white background", () => {
+    const { srcdoc } = buildHtmlPreview("<p>hi</p>", "/index.html", "src");
+    expect(srcdoc).toContain("background-color:#fff");
+    expect(srcdoc).toContain("color:#000");
+  });
+
+  it("places the default colours before the page's own styles", () => {
+    const html = "<style>p{color:red}</style><p>hi</p>";
+    const { srcdoc } = buildHtmlPreview(html, "/index.html", "src");
+    expect(srcdoc.indexOf("color:#000")).toBeLessThan(srcdoc.indexOf("color:red"));
+  });
+});

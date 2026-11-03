@@ -1,6 +1,6 @@
 <template>
   <!-- Unified preview container for all types -->
-  <span v-if="hasPreviewImage || (shouldUse3DPreview && !threeJsError)" class="image-preview" @mouseenter="handleMouseEnter" @mouseleave="handleMouseLeave">
+  <span v-if="hasPreviewImage || (shouldUse3DPreview && !threeJsError) || shouldUseTextPreview" class="image-preview" @mouseenter="handleMouseEnter" @mouseleave="handleMouseLeave">
     <!-- Overlay icons (folder/animation) positioned top-left -->
     <i v-if="hasPreviewImage && hasMotion && isFile" class="material-symbols-outlined overlay-icon">animation</i>
     <i v-else-if="hasPreviewImage && !isFile" class="material-symbols overlay-icon">folder</i>
@@ -19,6 +19,10 @@
       :is-thumbnail="true"
       :add-load-delay="true"
       @error="handle3DError" />
+    <TextPreview v-else-if="shouldUseTextPreview"
+      :url="textPreviewUrl"
+      :modified="modified"
+      @error="handleTextPreviewError" />
   </span>
   <!-- Regular material icon (no preview) -->
   <span v-else class="image-preview">
@@ -41,6 +45,8 @@ import {
   storeThumbnailBlob,
 } from "@/utils/cache/imageCache.ts";
 import { queuedFetchPreview } from "@/utils/previewRequests.ts";
+import { textPreviewUrlFor } from "@/utils/textPreview.ts";
+import { globalVars } from "@/utils/constants";
 
 const props = withDefaults(
   defineProps<{
@@ -83,6 +89,7 @@ type ImageState = "loading" | "loaded" | "error";
 const injectedInView = inject<Ref<boolean> | null>("inView", null);
 
 const ThreeJs = createAsyncComponent(() => import("@/views/files/ThreeJs.vue"));
+const TextPreview = createAsyncComponent(() => import("@/components/files/TextPreview.vue"));
 
 const showLargeIcon = computed(() => getters.viewMode() === "gallery");
 
@@ -97,6 +104,7 @@ const imageBlobUrl = ref<string | null>(null);
 const imageState = ref<ImageState>("loading"); // Can be 'loading', 'loaded', or 'error'
 const imageTargetSrc = ref(buildImageTargetSrc(props.thumbnailUrl));
 const threeJsError = ref(false); // track if 3D preview failed
+const textPreviewError = ref(false); // track if text preview failed, falls back to the icon
 const everInView = ref<boolean>(unref(injectedInView) ?? props.inView);
 
 // non-reactive on purpose cuz never read by template
@@ -126,6 +134,10 @@ const previewExtDisabled = computed(() => {
 
 /** Everything that decides whether a thumbnail may be shown */
 const previewAllowed = computed(() => {
+  // Text-like files use the text preview endpoint. They never use the image endpoint.
+  if (isTextPreviewable.value) {
+    return false;
+  }
   if (state.shareInfo?.disableThumbnails) {
     return false;
   }
@@ -193,6 +205,33 @@ const shouldUse3DPreview = computed(() => {
 
   return typeInfo.value.simpleType === "3d-model";
 });
+
+/** Every extension the text preview endpoint supports, from the backend's kind map. */
+const textPreviewExtSet = computed(() => {
+  const groups = (globalVars.textPreviewExtensions ?? {}) as Record<string, string[]>;
+  return new Set(Object.values(groups).flat());
+});
+
+const isTextPreviewable = computed(() => {
+  if (props.mimetype === "directory" || !props.filename) return false;
+  const dot = props.filename.lastIndexOf(".");
+  if (dot <= 0) return false;
+  return textPreviewExtSet.value.has(props.filename.slice(dot + 1).toLowerCase());
+});
+
+const textPreviewUrl = computed(() => (props.thumbnailUrl ? textPreviewUrlFor(props.thumbnailUrl) : ""));
+
+const shouldUseTextPreview = computed(() => {
+  if (!isTextPreviewable.value || !props.hasPreview || !everInView.value) return false;
+  if (textPreviewError.value || props.thumbnailUrl === "") return false;
+  if (state.shareInfo?.disableThumbnails || previewExtDisabled.value) return false;
+  // Same permission as other document-style previews (txt/md/html were already gated by office).
+  return getters.previewPerms().office;
+});
+
+function handleTextPreviewError(): void {
+  textPreviewError.value = true;
+}
 
 /** Directory listing items for sibling viewToken lookup in 3D previews. */
 const parentDirItemsForPreview = computed(() => {
@@ -343,6 +382,18 @@ function showPopupPreview(): void {
   }
   const source = (getters.isShare() ? state.shareInfo?.hash : props.source || state.req?.source) ?? "";
   const modified = props.modified || state.req?.modified;
+
+  // Text-like file: popup shows the same text preview tile at a larger fixed size
+  if (shouldUseTextPreview.value) {
+    mutations.setPopupPreview({
+      type: "text",
+      source,
+      path,
+      textUrl: textPreviewUrl.value,
+      modified,
+    });
+    return;
+  }
 
   // 3D model: show ThreeJs in popup
   if (shouldUse3DPreview.value) {

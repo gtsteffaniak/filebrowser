@@ -16,6 +16,7 @@ import (
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/diskcache"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/fileutils"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/embeddedpreview"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/ffmpeg"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/folio"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/imagemeta"
@@ -491,18 +492,25 @@ func GeneratePreviewWithMD5(ctx context.Context, file iteminfo.ExtendedFileInfo,
 
 	cacheKey := CacheKey(fileMD5, previewSize, seekPercentage)
 
-	// If this file type might have an embedded preview, try extracting it before any type-specific path.
+	// Use an image stored inside the file (camera RAW/HEIC, Krita, CBZ, XPS, Office and ODF thumbnails)
+	// before any type-specific path. A miss, an error, or undecodable bytes falls through to the normal path.
 	var imageBytes []byte
 	fromEmbeddedPreview := false
-	if hasEmbeddedPreview(file.Type, file.Name) {
-		if previewBytes, _ := imagemeta.ExtractEmbeddedPreview(ctx, file.RealPath); len(previewBytes) >= minPreviewSize && isJPEG(previewBytes) {
-			imageBytes = previewBytes
+	if useEmbeddedPreview(file) {
+		embedded, err := embeddedpreview.Extract(ctx, file.Name, file.Type, file.RealPath)
+		switch {
+		case err == nil && len(embedded.Data) >= minPreviewSize && embeddedImageDecodes(embedded.Data):
+			imageBytes = embedded.Data
 			fromEmbeddedPreview = true
-			if orient := imagemeta.GetOrientation(ctx, file.RealPath); orient != "" {
-				if corrected := applyOrientationToPreviewBytes(imageBytes, orient); len(corrected) >= minPreviewSize {
-					imageBytes = corrected
+			if embedded.Oriented {
+				if orient := imagemeta.GetOrientation(ctx, file.RealPath); orient != "" {
+					if corrected := applyOrientationToPreviewBytes(imageBytes, orient); len(corrected) >= minPreviewSize {
+						imageBytes = corrected
+					}
 				}
 			}
+		case err != nil && !errors.Is(err, embeddedpreview.ErrNotFound):
+			logger.Debugf("embedded preview unavailable for '%s': %v", file.Name, err)
 		}
 	}
 
