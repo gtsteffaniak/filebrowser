@@ -478,7 +478,7 @@
     "analyticsPreviewFailed": "Nepodařilo se načíst diagnostické údaje o analytice",
     "scopePath": "Cesta v rámci zdroje",
     "sourcePermissionsHelp": "Rozbalte řádek zdroje, abyste mohli nastavit oprávnění k prohlížení, stahování, úpravám, vytváření a mazání pro daný zdroj.",
-    "permissionsHelp": "Globální oprávnění pro daného uživatele platí všude, včetně všech zdrojů a sdílených složek.",
+    "permissionsHelp": "Globální oprávnění pro daného uživatele platí všude, včetně všech zdrojů i sdílených položek.",
     "userDefaults": "Výchozí nastavení uživatele",
     "userDefaultsDescription": "Nastavte výchozí nastavení pro nové uživatele a vynuťte dodržování zásad pro všechny uživatele.",
     "accountDefaults": "Výchozí nastavení účtu",
