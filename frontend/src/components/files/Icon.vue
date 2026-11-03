@@ -132,8 +132,16 @@ const previewExtDisabled = computed(() => {
   return disabled.includes(ext);
 });
 
+/** Users without view access to the source get no previews, so none are requested (the backend would 403). */
+const canViewSource = computed(
+  () => !!getters.sourcePermissions(props.source ?? undefined).view,
+);
+
 /** Everything that decides whether a thumbnail may be shown */
 const previewAllowed = computed(() => {
+  if (!canViewSource.value) {
+    return false;
+  }
   // Text-like files use the text preview endpoint. They never use the image endpoint.
   if (isTextPreviewable.value) {
     return false;
@@ -197,7 +205,7 @@ const hasFolderMotion = computed(
 const shouldUse3DPreview = computed(() => {
   // Check if we should use 3D preview instead of regular icon
   if (props.mimetype === "directory" || !props.size || !props.path) return false;
-  if (!everInView.value) return false;
+  if (!canViewSource.value || !everInView.value) return false;
   if (!getters.previewPerms().models) return false;
 
   const MAX_SIZE = 250 * 1024; // 250KB in bytes
@@ -222,7 +230,7 @@ const isTextPreviewable = computed(() => {
 const textPreviewUrl = computed(() => (props.thumbnailUrl ? textPreviewUrlFor(props.thumbnailUrl) : ""));
 
 const shouldUseTextPreview = computed(() => {
-  if (!isTextPreviewable.value || !props.hasPreview || !everInView.value) return false;
+  if (!canViewSource.value || !isTextPreviewable.value || !props.hasPreview || !everInView.value) return false;
   if (textPreviewError.value || props.thumbnailUrl === "") return false;
   if (state.shareInfo?.disableThumbnails || previewExtDisabled.value) return false;
   // Same permission as other document-style previews (txt/md/html were already gated by office).
@@ -365,7 +373,7 @@ function loadImage(url: string): void {
 }
 
 function handleMouseEnter(): void {
-  if (!getters.previewPerms().popup || !props.path) {
+  if (!getters.previewPerms().popup || !props.path || !canViewSource.value) {
     return;
   }
   clearPopupHoverTimeout();

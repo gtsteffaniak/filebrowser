@@ -123,19 +123,18 @@ func NewPreviewGenerator(concurrencyLimit int, cacheDir string) *Service {
 	}
 }
 
-// embeddedDecodeAllowed reports whether embedded bytes pass embeddedImageDecodes. The full decode
-// allocates every pixel, so it runs under an image-processor permit. A caller that already holds
-// one (permitHeld) must not take a second, because the semaphore can have a single slot. Folio
-// documents skip the outer permit, so they take one here.
-func (s *Service) embeddedDecodeAllowed(ctx context.Context, data []byte, permitHeld bool) (bool, error) {
+// acquireEmbeddedPermit takes an image-processor permit for the embedded-image decode and the resize
+// that follows it, unless the caller already holds one (permitHeld). The semaphore can have a single
+// slot, so a caller that holds one must not take a second. Folio documents skip the outer permit, so
+// they take one here. The returned func releases whatever was taken; it is a no-op when nothing was.
+func (s *Service) acquireEmbeddedPermit(ctx context.Context, permitHeld bool) (func(), error) {
 	if permitHeld {
-		return embeddedImageDecodes(data), nil
+		return func() {}, nil
 	}
 	if err := s.acquireImageSem(ctx); err != nil {
-		return false, err
+		return nil, err
 	}
-	defer s.releaseImageSem()
-	return embeddedImageDecodes(data), nil
+	return s.releaseImageSem, nil
 }
 
 // Global image processor semaphore methods
@@ -517,10 +516,17 @@ func GeneratePreviewWithMD5(ctx context.Context, file iteminfo.ExtendedFileInfo,
 		embedded, err := embeddedpreview.Extract(ctx, file.Name, file.Type, file.RealPath)
 		decodable := false
 		if err == nil && len(embedded.Data) >= minPreviewSize {
-			// The full decode of an embedded image allocates every pixel, so it runs under an image permit.
-			decodable, err = service.embeddedDecodeAllowed(ctx, embedded.Data, imagePermitHeld)
-			if err != nil {
-				return nil, err
+			// The decode and the embedded-image resize allocate every pixel, so the permit is held
+			// until this function returns. A fallback to the normal path releases it straight away.
+			release, acqErr := service.acquireEmbeddedPermit(ctx, imagePermitHeld)
+			if acqErr != nil {
+				return nil, acqErr
+			}
+			decodable = embeddedImageDecodes(embedded.Data)
+			if decodable {
+				defer release()
+			} else {
+				release()
 			}
 		}
 		switch {

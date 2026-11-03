@@ -82,42 +82,64 @@ func TestEmbeddedImageDecodes_rejectsOversizedDeclaredDimensions(t *testing.T) {
 	require.False(t, embeddedImageDecodes(data))
 }
 
-// Folio documents skip the outer permit, so the embedded decode must take one.
-func TestEmbeddedDecodeAllowed_takesPermitWhenNotHeld(t *testing.T) {
+// Folio documents skip the outer permit, so acquiring for the embedded path must take one.
+func TestAcquireEmbeddedPermit_takesPermitWhenNotHeld(t *testing.T) {
 	svc := &Service{imageSem: make(chan struct{}, 1)}
-	src := newGrayJpeg(t, 64, 64)
-	defer src.Close()
-	jpg, err := io.ReadAll(src)
-	require.NoError(t, err)
 
-	ok, err := svc.embeddedDecodeAllowed(context.Background(), jpg, false)
+	release, err := svc.acquireEmbeddedPermit(context.Background(), false)
 	require.NoError(t, err)
-	require.True(t, ok)
-	require.Len(t, svc.imageSem, 0, "permit must be released after the decode")
+	require.Len(t, svc.imageSem, 1, "permit must be held until release")
+
+	release()
+	require.Len(t, svc.imageSem, 0, "release must return the permit")
 }
 
-// With the only permit taken elsewhere, a decode without a held permit waits and honours cancellation.
-func TestEmbeddedDecodeAllowed_waitsForPermit(t *testing.T) {
+// With the only permit taken elsewhere, acquiring without a held permit waits and honours cancellation.
+func TestAcquireEmbeddedPermit_waitsForPermit(t *testing.T) {
 	svc := &Service{imageSem: make(chan struct{}, 1)}
 	svc.imageSem <- struct{}{}
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
 
-	ok, err := svc.embeddedDecodeAllowed(ctx, []byte("ignored"), false)
+	release, err := svc.acquireEmbeddedPermit(ctx, false)
 	require.ErrorIs(t, err, context.Canceled)
-	require.False(t, ok)
+	require.Nil(t, release)
 }
 
-// A caller that already holds the permit decodes without taking another, so it never deadlocks.
-func TestEmbeddedDecodeAllowed_doesNotRetakeHeldPermit(t *testing.T) {
+// A caller that already holds the permit must not take another, so it never deadlocks.
+func TestAcquireEmbeddedPermit_doesNotRetakeHeldPermit(t *testing.T) {
 	svc := &Service{imageSem: make(chan struct{}, 1)}
 	svc.imageSem <- struct{}{}
-	src := newGrayJpeg(t, 64, 64)
+
+	release, err := svc.acquireEmbeddedPermit(context.Background(), true)
+	require.NoError(t, err)
+	release()
+	require.Len(t, svc.imageSem, 1, "a no-op release must leave the caller's permit alone")
+}
+
+// Validation followed by resizing runs under one permit: the permit stays held through the resize
+// and is released only once the caller is done.
+func TestAcquireEmbeddedPermit_heldThroughValidationAndResize(t *testing.T) {
+	src := newGrayJpeg(t, 400, 300)
 	defer src.Close()
 	jpg, err := io.ReadAll(src)
 	require.NoError(t, err)
 
-	ok, err := svc.embeddedDecodeAllowed(context.Background(), jpg, true)
+	svc := NewPreviewGenerator(1, t.TempDir())
+	svc.imageSem = make(chan struct{}, 1)
+
+	release, err := svc.acquireEmbeddedPermit(context.Background(), false)
 	require.NoError(t, err)
-	require.True(t, ok)
+	require.True(t, embeddedImageDecodes(jpg), "validation step")
+	require.Len(t, svc.imageSem, 1, "permit must still be held after validation")
+
+	options, err := getPreviewOptions("small")
+	require.NoError(t, err)
+	out, err := svc.CreatePreview(context.Background(), bytes.NewReader(jpg), int64(len(jpg)), options)
+	require.NoError(t, err)
+	require.NotEmpty(t, out)
+	require.Len(t, svc.imageSem, 1, "permit must still be held after resizing")
+
+	release()
+	require.Len(t, svc.imageSem, 0)
 }

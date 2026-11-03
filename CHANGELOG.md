@@ -25,6 +25,7 @@ All notable changes to this project will be documented in this file. For commit 
  - **Document preview formats:** New in-process support includes **`.azw3`**, **`.chm`**, **`.htm`**, and **`.html`**. However, `.doc` continues to require the office integration for thumbnails. **`.xps`** and **`.cbz`** previews come from embedded images. With **Always use office for document previews** enabled, office files still use the office converter
  - UPX compression is removed from release builds.
  - A `filebrowser-media` image is published alongside the main and slim images.
+ - Previews (thumbnails, popup, and text previews) are no longer requested for sources the user does not have view access to.
 
  **Bug Fixes**:
  - Closing a video preview from the header bar now stops playback immediately instead of leaving audio running in the background.
