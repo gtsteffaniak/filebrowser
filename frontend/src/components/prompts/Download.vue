@@ -18,53 +18,57 @@
     <span>{{ $t("files.lonely") }}</span>
   </div>
   <div v-if="hasDownloads" class="card-content">
-    <div class="download-list">
-      <div
-        v-for="download in downloads"
-        :key="download.id"
-        class="download-item-wrapper"
-        :class="{ 'has-error': download.status === 'error' }"
-      >
-        <div class="download-item">
-          <i class="material-symbols file-icon">insert_drive_file</i> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-          <div class="file-info">
-            <p class="file-name">{{ download.name }}</p>
-            <progress-bar
-              :val="download.status === 'completed'
-                ? $t('prompts.completed')
-                : download.status === 'error'
-                  ? $t('prompts.error')
-                  : download.loaded
-              "
-              :unit="download.status === 'completed' || download.status === 'error' ? '' : 'bytes'"
-              :max="download.size"
-              :status="download.status"
-              text-position="inside"
-              size="20">
-            </progress-bar>
+    <div ref="list" class="download-list">
+      <div data-virtual-group="downloads" :style="virtual.group('downloads').style">
+        <div
+          v-for="{ download, index } in virtual.group('downloads').items"
+          :key="download.id"
+          class="download-item-wrapper"
+          :class="{ 'has-error': download.status === 'error' }"
+          :data-index="index"
+        >
+          <div class="download-item">
+            <i class="material-symbols file-icon">insert_drive_file</i>
+            <div class="file-info">
+              <p class="file-name">{{ download.name }}</p>
+              <ProgressBar
+                :val="download.status === 'completed'
+                  ? $t('prompts.completed')
+                  : download.status === 'error'
+                    ? $t('prompts.error')
+                    : download.loaded
+                "
+                :unit="download.status === 'completed' || download.status === 'error' ? '' : 'bytes'"
+                :max="download.size"
+                :status="download.status"
+                :help-text="virtual.active.value ? formatDownloadError(download) : ''"
+                text-position="inside"
+                size="20">
+              </ProgressBar>
+            </div>
+            <div class="file-actions">
+              <button
+                type="button"
+                v-if="download.status === 'error'"
+                @click="retryDownload(download.id)"
+                class="action"
+                :aria-label="$t('general.retry')" :title="$t('general.retry')"
+              >
+                <i class="material-symbols">replay</i>
+              </button>
+              <button
+                type="button"
+                @click="downloadManager.cancel(download.id)"
+                class="action" :aria-label="$t('general.cancel')"
+                :title="$t('general.cancel')"
+              >
+                <i class="material-symbols">close</i>
+              </button>
+            </div>
           </div>
-          <div class="file-actions">
-            <button
-              type="button"
-              v-if="download.status === 'error'"
-              @click="retryDownload(download.id)"
-              class="action"
-              :aria-label="$t('general.retry')" :title="$t('general.retry')"
-            >
-              <i class="material-symbols">replay</i>
-            </button>
-            <button
-              type="button"
-              @click="cancelDownload(download.id)"
-              class="action" :aria-label="$t('general.cancel')"
-              :title="$t('general.cancel')"
-            >
-              <i class="material-symbols">close</i>
-            </button>
+          <div v-if="download.status === 'error' && !virtual.active.value" class="error-banner" role="alert">
+            {{ formatDownloadError(download) }}
           </div>
-        </div>
-        <div v-if="download.status === 'error'" class="error-banner" role="alert">
-          {{ formatDownloadError(download) }}
         </div>
       </div>
     </div>
@@ -74,7 +78,7 @@
     <button
       type="button"
       v-if="hasDownloads && hasClearable"
-      @click="clearCompleted"
+      @click="downloadManager.clearCompleted()"
       class="button button--flat"
       :disabled="!hasClearable"
       :aria-label="$t('buttons.clearCompleted')" :title="$t('buttons.clearCompleted')"
@@ -84,112 +88,133 @@
   </div>
 </template>
 
-<script>
-import { getters, mutations } from "@/store";
+<script setup lang="ts">
+import { computed, onBeforeUnmount, ref, shallowRef, watch } from "vue";
+import { useI18n } from "vue-i18n";
+import { getters } from "@/store";
 import { downloadManager } from "@/utils/downloadManager";
+import type { DownloadItem } from "@/utils/downloadManager";
 import { resourcesApi } from "@/api";
 import ProgressBar from "@/components/ProgressBar.vue";
+import { findScrollParents, useListingVirtualization } from "@/composables/useListingVirtualization.ts";
 
-export default {
-  name: "download",
-  components: {
-    ProgressBar,
-  },
-  props: {
-    promptId: {
-      type: [String, Number],
-      default: null,
-    },
-  },
-  data: () => ({
-    formats: {
-      zip: "zip",
-      targz: "tar.gz",
-    },
-  }),
-  computed: {
-    currentPrompt() {
-      return getters.currentPrompt();
-    },
-    downloads() {
-      return downloadManager.queue || [];
-    },
-    hasDownloads() {
-      return (downloadManager.queue.length || 0) > 0;
-    },
-    hasClearable() {
-      if (!downloadManager.queue) {
-        return false;
-      }
-      return downloadManager.queue.some((download) => 
-        download.status === "completed" || download.status === "error" || download.status === "cancelled"
-      );
-    },
-  },
-  beforeUnmount() {
-    downloadManager.reset();
-  },
-  methods: {
-    formatDownloadError(download) {
-      if (download.status !== "error") {
-        return "";
-      }
-      const detail = download.errorDetails ? String(download.errorDetails) : this.$t("prompts.error");
-      return this.$t("prompts.downloadFailed", { message: detail });
-    },
-    handleFormatSelect(format) {
-      if (this.currentPrompt?.confirm) {
-        this.currentPrompt.confirm(format);
-      }
-    },
-    cancelDownload(id) {
-      if (downloadManager) {
-        downloadManager.cancel(id);
-      }
-    },
-    async retryDownload(id) {
-      if (!downloadManager) return;
-      const download = downloadManager.findById(id);
-      if (download) {
-        // Re-trigger download by calling the download function again
-        downloadManager.remove(id);
-        try {
-          if (
-            download.archiveFormat !== null &&
-            Array.isArray(download.archiveFiles) &&
-            download.archiveFiles.length > 0
-          ) {
-            await resourcesApi.download(
-              download.archiveFormat,
-              download.archiveFiles,
-              download.shareHash || ""
-            );
-          } else {
-            await resourcesApi.download(null, [download.file], download.shareHash);
-          }
-        } catch (err) {
-          console.error('Retry download failed:', err);
-        }
-      }
-    },
-    clearCompleted() {
-      if (downloadManager) {
-        downloadManager.clearCompleted();
-      }
-    },
-    close() {
-      // Only close if no active downloads
-      if (!downloadManager.hasActive()) {
-        const prompt = getters.currentPrompt();
-        if (prompt?.name === 'download') {
-          mutations.closeTopPrompt();
-        } else {
-          prompt?.cancel?.();
-        }
-      }
-    },
+withDefaults(
+  defineProps<{
+    promptId?: string | number | null;
+  }>(),
+  { promptId: null },
+);
+
+defineOptions({ name: "download" });
+
+const { t } = useI18n();
+
+const vFocus = {
+  mounted: (el: HTMLElement) => {
+    setTimeout(() => el.focus(), 100);
   },
 };
+
+const formats = { zip: "zip", targz: "tar.gz" } as const;
+
+const list = ref<HTMLElement | null>(null);
+const currentPrompt = computed(() => getters.currentPrompt());
+const downloads = computed(() => downloadManager.queue);
+const hasDownloads = computed(() => downloads.value.length > 0);
+const hasClearable = computed(() =>
+  downloads.value.some(
+    (download) => download.status === "completed" || download.status === "error" || download.status === "cancelled",
+  ),
+);
+
+const orderedItems = computed(() => {
+  const running: DownloadItem[] = [];
+  const waiting: DownloadItem[] = [];
+  const finished: DownloadItem[] = [];
+  for (const entry of downloads.value) {
+    if (entry.status === "downloading") running.push(entry);
+    else if (entry.status === "completed") finished.push(entry);
+    else waiting.push(entry);
+  }
+  return [...running, ...waiting, ...finished];
+});
+
+const REORDER_INTERVAL_MS = 500;
+const sortedItems = shallowRef(orderedItems.value);
+let lastReorder = 0;
+let reorderTimer: ReturnType<typeof setTimeout> | undefined;
+
+function applyOrder() {
+  clearTimeout(reorderTimer);
+  reorderTimer = undefined;
+  sortedItems.value = orderedItems.value;
+  lastReorder = Date.now();
+}
+
+watch(orderedItems, (next) => {
+  if (next.length !== sortedItems.value.length) {
+    applyOrder();
+    return;
+  }
+  if (reorderTimer !== undefined) return;
+  reorderTimer = setTimeout(applyOrder, Math.max(0, REORDER_INTERVAL_MS - (Date.now() - lastReorder)));
+});
+
+const virtual = useListingVirtualization<{ download: DownloadItem; index: number }>({
+  container: list,
+  groups: () => [
+    {
+      key: "downloads",
+      count: sortedItems.value.length,
+      at: (index) => ({ download: sortedItems.value[index] as DownloadItem, index }),
+    },
+  ],
+  columnsHint: () => 1,
+  scroller: (container) => findScrollParents(container, true),
+  itemClass: "download-item-wrapper",
+  register: false,
+});
+
+onBeforeUnmount(() => {
+  clearTimeout(reorderTimer);
+  downloadManager.reset();
+});
+
+function formatDownloadError(download: DownloadItem): string {
+  if (download.status !== "error") {
+    return "";
+  }
+  const detail = download.errorDetails ? String(download.errorDetails) : t("prompts.error");
+  return t("prompts.downloadFailed", { message: detail });
+}
+
+function handleFormatSelect(format: string) {
+  const confirm = currentPrompt.value?.confirm;
+  if (typeof confirm === "function") {
+    confirm(format);
+  }
+}
+
+async function retryDownload(id: number) {
+  const download = downloadManager.findById(id);
+  if (!download) return;
+  // Re-trigger download by calling the download function again
+  downloadManager.remove(id);
+  try {
+    if (
+      download.archiveFormat !== null &&
+      download.archiveFormat !== undefined &&
+      Array.isArray(download.archiveFiles) &&
+      download.archiveFiles.length > 0
+    ) {
+      await resourcesApi.download(download.archiveFormat, download.archiveFiles, download.shareHash || "");
+    } else {
+      await resourcesApi.download(null, [download.file], download.shareHash);
+    }
+  } catch (err) {
+    console.error("Retry download failed:", err);
+  }
+}
 </script>
 
 <style scoped>
@@ -204,10 +229,6 @@ export default {
 
 .download-item-wrapper {
   margin-bottom: 0.5rem;
-}
-
-.download-item-wrapper:last-child {
-  margin-bottom: 0;
 }
 
 .download-item-wrapper.has-error {

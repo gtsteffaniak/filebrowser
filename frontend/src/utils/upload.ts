@@ -10,12 +10,74 @@ import {
 } from "@/utils/appNotifications.js";
 import { rejectUploadIfQuotaExceeded, isQuotaExceededError, extractQuotaErrorMessage } from "@/utils/uploadQuota.js";
 
+export type UploadStatus = "pending" | "uploading" | "paused" | "completed" | "error" | "conflict";
+
+/** A request from the API with the XMLHttpRequest, so it can be aborted */
+export type UploadRequest = Promise<unknown> & {
+  xhr?: XMLHttpRequest | null;
+  abort?: () => void;
+};
+
+export interface UploadItem {
+  id: number;
+  sessionId: string;
+  name: string;
+  size: number;
+  progress: number;
+  status: UploadStatus;
+  type?: string;
+  file?: File;
+  path: string;
+  source?: string;
+  overwrite?: boolean;
+  isToplevelDir?: boolean;
+  chunkOffset?: number;
+  xhr?: XMLHttpRequest | null;
+  xhrPromise?: UploadRequest | null;
+  lastProgressTime?: number | null;
+  connectionIssue?: boolean;
+  errorDetails?: string;
+}
+
+/** An upload of a file, as opposed to the creation of a folder */
+export interface FileUploadItem extends UploadItem {
+  file: File;
+  chunkOffset: number;
+}
+
+/** An entry given to `uploadManager.add` */
+export interface UploadEntry {
+  file: File;
+  relativePath: string;
+  /** Name to upload under when it differs from the file name (set when a numbered copy is made) */
+  uploadName?: string;
+  /** Replaces an existing file of the same name */
+  overwriteExisting?: boolean;
+}
+
+/** What the user chose for a conflict: overwrite or not, skip what exists, or upload a folder under a new name */
+export type UploadConflictResolution = boolean | { skip?: boolean; rename?: string };
+
+/** Asks the user what to do about a conflict, then calls `resolver` with the answer */
+export type UploadConflictHandler = (
+  resolver: (resolution: UploadConflictResolution) => void,
+  options?: { allowRename?: boolean },
+) => void;
+
+/** An error from the API, with the response when the server answered */
+export type RequestError = Error & {
+  response?: {
+    status?: number;
+    statusText?: string;
+    data?: { message?: string; error?: string };
+  };
+};
+
 /**
  * Upload session token for isolating concurrent uploads to the same path.
  * Prefers crypto.randomUUID(); falls back for older browsers / non-secure contexts.
- * @returns {string}
  */
-export function newUploadSessionId() {
+export function newUploadSessionId(): string {
   if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
     return crypto.randomUUID();
   }
@@ -23,8 +85,8 @@ export function newUploadSessionId() {
     const bytes = new Uint8Array(16);
     crypto.getRandomValues(bytes);
     // RFC 4122 version 4 bits
-    bytes[6] = (bytes[6] & 0x0f) | 0x40;
-    bytes[8] = (bytes[8] & 0x3f) | 0x80;
+    bytes[6] = ((bytes[6] ?? 0) & 0x0f) | 0x40;
+    bytes[8] = ((bytes[8] ?? 0) & 0x3f) | 0x80;
     const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
     return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
   }
@@ -37,24 +99,23 @@ export function newUploadSessionId() {
  * Chromium and Safari cap DirectoryReader.readEntries() at roughly one batch
  * (often 100 entries) per call — callers must loop until a batch is empty.
  *
- * @param {FileSystemDirectoryReader} reader
- * @param {string} [debugLabel] optional path/name for diagnostic logs
- * @returns {Promise<FileSystemEntry[]>}
+ * `debugLabel` is an optional path/name for diagnostic logs.
  */
-export async function readAllDirectoryEntries(reader, debugLabel = "") {
-  /** @type {FileSystemEntry[]} */
-  const all = [];
+export async function readAllDirectoryEntries(
+  reader: FileSystemDirectoryReader,
+  debugLabel = "",
+): Promise<FileSystemEntry[]> {
+  const all: FileSystemEntry[] = [];
   let nonemptyBatches = 0;
 
-  /** @type {FileSystemEntry[]} */
-  let batch = await new Promise((resolve, reject) => {
+  let batch = await new Promise<FileSystemEntry[]>((resolve, reject) => {
     reader.readEntries(resolve, reject);
   });
 
   while (batch.length > 0) {
     nonemptyBatches++;
     all.push(...batch);
-    batch = await new Promise((resolve, reject) => {
+    batch = await new Promise<FileSystemEntry[]>((resolve, reject) => {
       reader.readEntries(resolve, reject);
     });
   }
@@ -77,7 +138,7 @@ export async function readAllDirectoryEntries(reader, debugLabel = "") {
 // block-rounded one. Anything else (e.g. an empty leftover of a failed upload) differs.
 const DISK_BLOCK_SIZE = 4096;
 
-export function isSameSize(remoteSize, localSize) {
+export function isSameSize(remoteSize: number, localSize: number): boolean {
   return (
     remoteSize === localSize ||
     remoteSize === Math.ceil(localSize / DISK_BLOCK_SIZE) * DISK_BLOCK_SIZE
@@ -85,7 +146,7 @@ export function isSameSize(remoteSize, localSize) {
 }
 
 // "name.ext" -> "name_01.ext" (suffix goes before the extension).
-export function numberedName(name, n) {
+export function numberedName(name: string, n: number): string {
   const dot = name.lastIndexOf(".");
   const stem = dot > 0 ? name.slice(0, dot) : name;
   const ext = dot > 0 ? name.slice(dot) : "";
@@ -93,25 +154,23 @@ export function numberedName(name, n) {
 }
 
 class UploadManager {
-  constructor() {
-    this.queue = reactive([]);
-    this.activeUploads = 0;
-    this.nextId = 0;
-    this.overwriteAll = null; // null: ask, true: overwrite, false: skip
-    this.isPausedForConflict = false;
-    this.isOverallPaused = false;
-    this.onConflict = () => {}; // Callback for UI
-    this.hadActiveUploads = false; // Track if we've had active uploads
-    this.conflictingFolder = null; // Track the folder name that caused conflict
-    this.pendingItems = null; // Store pending items during conflict resolution
-    this.probedDirs = new Set(); // Track directories that were probed/created during conflict check
-    this.progressTimeouts = new Map(); // Track progress timeouts per upload ID
-    this.lastUploadActivityTime = null;
-    this.PROGRESS_TIMEOUT_MS = 10000; // 10 seconds without upload activity = pause
-    this.quotaBatchAborted = false;
-  }
+  queue: UploadItem[] = reactive<UploadItem[]>([]);
+  activeUploads = 0;
+  nextId = 0;
+  overwriteAll: boolean | null = null; // null: ask, true: overwrite, false: skip
+  isPausedForConflict = false;
+  isOverallPaused = false;
+  onConflict: UploadConflictHandler = () => {}; // Callback for UI
+  hadActiveUploads = false; // Track if we've had active uploads
+  conflictingFolder: string | null = null; // Track the folder name that caused conflict
+  pendingItems: UploadEntry[] | null = null; // Store pending items during conflict resolution
+  probedDirs = new Set<string>(); // Track directories that were probed/created during conflict check
+  progressTimeouts = new Map<number, ReturnType<typeof setTimeout>>(); // Track progress timeouts per upload ID
+  lastUploadActivityTime: number | null = null;
+  PROGRESS_TIMEOUT_MS = 10000; // 10 seconds without upload activity = pause
+  quotaBatchAborted = false;
 
-  setOnConflict(handler) {
+  setOnConflict(handler: UploadConflictHandler): void {
     this.onConflict = handler;
   }
 
@@ -122,17 +181,19 @@ class UploadManager {
    * - existing file is empty (leftover of a failed upload): replaced
    * - any other size: uploaded under the next free numbered name (name_01.ext, ...)
    *   so the existing file is never overwritten
-   * @returns {Promise<{items: object[], skipped: number, renamed: number}>}
    */
-  async filterExistingItems(basePath, items) {
-    const dirOf = (item) => {
+  async filterExistingItems(
+    basePath: string,
+    items: UploadEntry[],
+  ): Promise<{ items: UploadEntry[]; skipped: number; renamed: number }> {
+    const dirOf = (item: UploadEntry) => {
       const relativePath = item.relativePath || item.file.name;
       const slash = relativePath.lastIndexOf("/");
       return slash === -1 ? basePath : `${basePath}${relativePath.slice(0, slash + 1)}`;
     };
 
     const dirPaths = [...new Set(Array.from(items).map(dirOf))];
-    const listings = new Map();
+    const listings = new Map<string, Map<string, { size: number; type?: string }> | null>();
     const listBatchSize = 5;
     for (let i = 0; i < dirPaths.length; i += listBatchSize) {
       await Promise.all(
@@ -147,13 +208,13 @@ class UploadManager {
 
     let skipped = 0;
     let renamed = 0;
-    const remaining = [];
+    const remaining: UploadEntry[] = [];
     for (const item of items) {
       const dirPath = dirOf(item);
       const listing = listings.get(dirPath);
       const name = item.file.name;
       const existing = listing?.get(name);
-      if (!existing) {
+      if (!existing || !listing) {
         remaining.push(item);
         continue;
       }
@@ -172,7 +233,7 @@ class UploadManager {
       let alreadyUploaded = false;
       while (listing.has(numberedName(name, n))) {
         const copy = listing.get(numberedName(name, n));
-        if (copy.type !== "directory" && isSameSize(copy.size, item.file.size)) {
+        if (copy && copy.type !== "directory" && isSameSize(copy.size, item.file.size)) {
           alreadyUploaded = true;
           break;
         }
@@ -197,18 +258,18 @@ class UploadManager {
     return { items: remaining, skipped, renamed };
   }
 
-  resolveConflict(basePath, items, resolution) {
+  resolveConflict(basePath: string, items: UploadEntry[], resolution: UploadConflictResolution): void {
     if (resolution === true) {
       // User chose overwrite - set the flag and add with overwrite=true
       this.overwriteAll = true;
       void this.add(basePath, items, true);
-    } else if (resolution?.rename) {
+    } else if (typeof resolution === "object" && resolution.rename) {
       // User chose rename - continue with renamed items
       this.conflictingFolder = null;
-      void this.add(basePath, this.pendingItems, false);
-    } else if (resolution?.skip) {
+      void this.add(basePath, this.pendingItems ?? [], false);
+    } else if (typeof resolution === "object" && resolution.skip) {
       // User chose skip - only upload what is missing or incomplete
-      const pending = this.pendingItems;
+      const pending = this.pendingItems ?? [];
       this.conflictingFolder = null;
       void this.add(basePath, pending, false, true);
     } else {
@@ -219,7 +280,12 @@ class UploadManager {
     }
   }
 
-  async add(basePath, items, overwrite = false, skipExisting = false) {
+  async add(
+    basePath: string,
+    items: UploadEntry[],
+    overwrite = false,
+    skipExisting = false,
+  ): Promise<UploadItem[] | undefined> {
     // Handle undefined/null basePath
     if (!basePath) {
       basePath = "/";
@@ -237,10 +303,10 @@ class UploadManager {
     // Pre-upload conflict check for top-level directories
     // Skip probing if overwrite is already true or overwriteAll is set
     if (this.overwriteAll === null && !overwrite && !skipExisting) {
-      const topLevelDirs = new Set();
+      const topLevelDirs = new Set<string>();
       for (const item of items) {
         if (item.relativePath?.includes('/')) {
-          topLevelDirs.add(item.relativePath.split('/')[0]);
+          topLevelDirs.add(item.relativePath.split('/')[0] as string);
         }
       }
 
@@ -248,7 +314,7 @@ class UploadManager {
         // First try using state.req.items if available (regular uploads)
         const existingItems = new Set((state.req.items || []).map((i) => i.name));
         let conflictingDirs = [...topLevelDirs].filter(dir => existingItems.has(dir));
-        let probedDirs = new Set();
+        let probedDirs = new Set<string>();
 
         // If state.req.items is not available (upload shares), probe the server
         if (existingItems.size === 0 && topLevelDirs.size > 0) {
@@ -267,7 +333,7 @@ class UploadManager {
                 return { dirName, conflict: false, probed: true };
               } catch (err) {
                 // 409 means conflict
-                if (err?.response?.status === 409) {
+                if ((err as RequestError)?.response?.status === 409) {
                   return { dirName, conflict: true, probed: false };
                 }
                 // Other errors are actual failures, treat as no conflict for now
@@ -288,7 +354,7 @@ class UploadManager {
 
         if (conflictingDirs.length > 0) {
           // Store the conflicting folder name (take the first one for now)
-          this.conflictingFolder = conflictingDirs[0];
+          this.conflictingFolder = conflictingDirs[0] as string;
           this.pendingItems = items;
 
           this.onConflict(
@@ -343,7 +409,7 @@ class UploadManager {
     }
 
     const effectiveOverwrite = this.overwriteAll || overwrite;
-    const dirs = new Set();
+    const dirs = new Set<string>();
     for (const item of items) {
       if (item.relativePath) {
         const pathParts = item.relativePath.split("/");
@@ -357,7 +423,7 @@ class UploadManager {
       }
     }
 
-    const newUploads = [];
+    const newUploads: UploadItem[] = [];
 
     if (dirs.size > 0) {
       // Sort paths to ensure parent directories are created before children.
@@ -365,14 +431,14 @@ class UploadManager {
 
       for (const dir of sortedDirs) {
         const pathParts = dir.slice(0, -1).split("/");
-        const dirName = pathParts[pathParts.length - 1];
+        const dirName = pathParts[pathParts.length - 1] as string;
 
         // Skip top-level directories that were already created during probing
         if (pathParts.length === 1 && this.probedDirs.has(dirName)) {
           continue;
         }
 
-        const upload = {
+        const upload: UploadItem = {
           id: this.nextId++,
           sessionId: newUploadSessionId(),
           name: dirName,
@@ -396,7 +462,7 @@ class UploadManager {
       const file = item.file;
       const relativePath = item.relativePath || file.name;
       const destinationPath = `${basePath}${relativePath}`;
-      const upload = {
+      const upload: UploadItem = {
         id,
         sessionId: newUploadSessionId(),
         file,
@@ -433,7 +499,7 @@ class UploadManager {
     return newUploads;
   }
 
-  async processQueue() {
+  async processQueue(): Promise<void> {
     if (this.isPausedForConflict) {
       return;
     }
@@ -450,7 +516,12 @@ class UploadManager {
         this.activeUploads < maxConcurrent &&
         this.hasPending()
       ) {
-        const upload = this.queue.find((item) => item.status === "pending");
+        if (this.queue.some((item) => item.type === "directory" && item.status === "uploading")) {
+          break;
+        }
+        const upload =
+          this.queue.find((item) => item.type === "directory" && item.status === "pending") ||
+          this.queue.find((item) => item.status === "pending");
         if (upload) {
           if (this.overwriteAll) {
             upload.overwrite = true;
@@ -479,7 +550,7 @@ class UploadManager {
     }
   }
 
-  start(id) {
+  start(id: number): void {
     const upload = this.findById(id);
     if (upload?.status !== "pending") {
       console.log(
@@ -492,17 +563,17 @@ class UploadManager {
     if (upload.type === "directory") {
       void this.startDirectoryUpload(upload);
     } else {
-      void this.startFileUpload(upload);
+      void this.startFileUpload(upload as FileUploadItem);
     }
   }
 
-  async startDirectoryUpload(upload) {
+  async startDirectoryUpload(upload: UploadItem): Promise<void> {
     this.activeUploads++;
     this.hadActiveUploads = true; // Mark that we've had active uploads
     upload.status = "uploading";
 
     try {
-      let promise;
+      let promise: UploadRequest;
       if (getters.isShare()) {
         promise = resourcesApi.postPublic(state.shareInfo?.hash, upload.path, new Blob([]), upload.overwrite, undefined, {}, true);
       } else {
@@ -515,14 +586,14 @@ class UploadManager {
       upload.progress = 100;
       notifyUploadComplete(upload);
     } catch (err) {
-      await this.handleUploadError(upload, err);
+      await this.handleUploadError(upload, err as RequestError);
     } finally {
       this.activeUploads--;
       void this.processQueue();
     }
   }
 
-  async startFileUpload(upload) {
+  async startFileUpload(upload: FileUploadItem): Promise<void> {
     this.activeUploads++;
     this.hadActiveUploads = true; // Mark that we've had active uploads
     upload.status = "uploading";
@@ -533,7 +604,7 @@ class UploadManager {
 
     // Single-shot upload when chunking is disabled or file is smaller than chunk size.
     if (chunkSize === 0 || upload.size < chunkSize) {
-      const progress = (percent) => {
+      const progress = (percent: number) => {
         this.updateProgress(upload, percent);
       };
 
@@ -542,7 +613,7 @@ class UploadManager {
       this.startProgressTimeout(upload);
 
       try {
-        let promise;
+        let promise: UploadRequest;
         if (getters.isShare()) {
           promise = resourcesApi.postPublic(state.shareInfo?.hash, upload.path, upload.file, upload.overwrite, progress, {
             "X-File-Upload-Session": upload.sessionId,
@@ -568,7 +639,7 @@ class UploadManager {
         notifyUploadComplete(upload);
       } catch (err) {
         this.clearProgressTimeout(upload.id);
-        await this.handleUploadError(upload, err);
+        await this.handleUploadError(upload, err as RequestError);
       } finally {
         this.activeUploads--;
         upload.xhr = null;
@@ -593,7 +664,7 @@ class UploadManager {
         upload.chunkOffset + chunkSize
       );
 
-      const chunkProgress = (percent) => {
+      const chunkProgress = (percent: number) => {
         const chunkLoaded = (percent / 100) * chunk.size;
         const totalLoaded = upload.chunkOffset + chunkLoaded;
         const progress = (totalLoaded / upload.size) * 100;
@@ -601,7 +672,7 @@ class UploadManager {
       };
 
       try {
-        let promise;
+        let promise: UploadRequest;
         if (getters.isShare()) {
           promise = resourcesApi.postPublic(
             state.shareInfo?.hash,
@@ -641,7 +712,7 @@ class UploadManager {
         this.recordUploadActivity(upload);
       } catch (err) {
         this.clearProgressTimeout(upload.id);
-        await this.handleUploadError(upload, err);
+        await this.handleUploadError(upload, err as RequestError);
         break; // Exit loop on error or pause
       }
     }
@@ -663,12 +734,12 @@ class UploadManager {
     void this.processQueue();
   }
 
-  chunkSizeBytes() {
+  chunkSizeBytes(): number {
     const chunkSizeMb = state.user.fileLoading?.uploadChunkSizeMb ?? 5;
     return chunkSizeMb * 1024 * 1024;
   }
 
-  async pauseAll() {
+  async pauseAll(): Promise<void> {
     this.isOverallPaused = true;
     const jobs = this.queue
       .filter((upload) => upload.status === "uploading")
@@ -676,7 +747,7 @@ class UploadManager {
     await Promise.all(jobs);
   }
 
-  resumeAll() {
+  resumeAll(): void {
     this.isOverallPaused = false;
     for (const upload of this.queue) {
       if (upload.status === "paused") {
@@ -685,12 +756,12 @@ class UploadManager {
     }
   }
 
-  activeXhr(upload) {
+  activeXhr(upload?: UploadItem): XMLHttpRequest | null {
     return upload?.xhrPromise?.xhr || upload?.xhr || null;
   }
 
   /** Abort the in-flight upload operation, including a pending 401 renew+retry. */
-  abortUpload(upload) {
+  abortUpload(upload?: UploadItem): void {
     if (upload?.xhrPromise && typeof upload.xhrPromise.abort === "function") {
       upload.xhrPromise.abort();
       return;
@@ -701,7 +772,7 @@ class UploadManager {
     }
   }
 
-  async pause(id) {
+  async pause(id: number): Promise<void> {
     const upload = this.findById(id);
     if (upload?.status !== "uploading") {
       return;
@@ -722,7 +793,7 @@ class UploadManager {
     this.clearProgressTimeout(id);
   }
 
-  clearProgressTimeout(id) {
+  clearProgressTimeout(id: number): void {
     const timeoutId = this.progressTimeouts.get(id);
     if (timeoutId) {
       clearTimeout(timeoutId);
@@ -730,12 +801,12 @@ class UploadManager {
     }
   }
 
-  recordUploadActivity(upload) {
+  recordUploadActivity(upload: UploadItem): void {
     upload.lastProgressTime = Date.now();
     this.lastUploadActivityTime = upload.lastProgressTime;
   }
 
-  startProgressTimeout(upload, delay = this.PROGRESS_TIMEOUT_MS) {
+  startProgressTimeout(upload: UploadItem, delay = this.PROGRESS_TIMEOUT_MS): void {
     // Clear any existing timeout
     this.clearProgressTimeout(upload.id);
 
@@ -762,7 +833,7 @@ class UploadManager {
     this.progressTimeouts.set(upload.id, timeoutId);
   }
 
-  updateProgress(upload, progress) {
+  updateProgress(upload: UploadItem, progress: number): void {
     if (upload.status !== "uploading" || !this.findById(upload.id)) {
       return;
     }
@@ -773,20 +844,20 @@ class UploadManager {
     this.startProgressTimeout(upload);
   }
 
-  resume(id) {
+  resume(id: number): void {
     const upload = this.findById(id);
     if (upload?.status === "paused") {
       this.isOverallPaused = false;
       upload.status = "pending";
       upload.connectionIssue = false; // Clear connection issue on resume
       const progress =
-        upload.size > 0 ? (upload.chunkOffset / upload.size) * 100 : 0;
+        upload.size > 0 ? ((upload.chunkOffset ?? 0) / upload.size) * 100 : 0;
       upload.progress = Math.round(progress * 10) / 10;
       void this.processQueue();
     }
   }
 
-  cancel(id) {
+  cancel(id: number): void {
     const upload = this.findById(id);
     if (upload?.status === "uploading" || upload?.status === "paused") {
       this.abortUpload(upload);
@@ -800,15 +871,16 @@ class UploadManager {
     void this.processQueue();
   }
 
-  retry(id, overwrite = false) {
+  retry(id: number, overwrite = false): void {
     const upload = this.findById(id);
     if (upload && ["error", "conflict"].includes(upload.status)) {
+      this.quotaBatchAborted = false;
       upload.overwrite = overwrite;
       upload.status = "pending";
       upload.connectionIssue = false; // Clear connection issue on retry
       const isChunked =
         upload.type !== "directory" && upload.size >= this.chunkSizeBytes();
-      const canResume = isChunked && upload.chunkOffset > 0;
+      const canResume = isChunked && (upload.chunkOffset ?? 0) > 0;
       if (!canResume) {
         if (upload.type !== "directory") {
           upload.chunkOffset = 0;
@@ -818,17 +890,18 @@ class UploadManager {
         // Resume chunked uploads from the last successful chunk.
         upload.progress =
           upload.size > 0
-            ? Math.round((upload.chunkOffset / upload.size) * 1000) / 10
+            ? Math.round(((upload.chunkOffset ?? 0) / upload.size) * 1000) / 10
             : 0;
       }
       void this.processQueue();
     }
   }
 
-  clearCompleted() {
+  clearCompleted(): void {
     let hadCompleted = false;
     for (let i = this.queue.length - 1; i >= 0; i--) {
       const upload = this.queue.at(i);
+      if (!upload) continue;
       const status = upload.status;
       if (status === "completed") {
         this.clearProgressTimeout(upload.id);
@@ -852,16 +925,16 @@ class UploadManager {
     mutations.setIsUploading(this.hasOngoingUploads());
   }
 
-  findById(id) {
+  findById(id: number): UploadItem | undefined {
     return this.queue.find((item) => item.id === id);
   }
 
-  hasPending() {
+  hasPending(): boolean {
     return this.queue.some((item) => item.status === "pending");
   }
 
   /** True while uploads may still run (including user- or stall-paused jobs). */
-  hasOngoingUploads() {
+  hasOngoingUploads(): boolean {
     return (
       this.activeUploads > 0 ||
       this.queue.some(
@@ -873,11 +946,11 @@ class UploadManager {
     );
   }
 
-  getConflictingFolder() {
+  getConflictingFolder(): string | null {
     return this.conflictingFolder;
   }
 
-  async renameFolder(oldName, newName) {
+  async renameFolder(oldName: string, newName: string): Promise<boolean> {
     if (!oldName || !newName || !this.pendingItems) {
       throw new Error("Invalid parameters for folder rename");
     }
@@ -903,7 +976,7 @@ class UploadManager {
     return true;
   }
 
-  handleQuotaExceededBatch(err, upload) {
+  handleQuotaExceededBatch(err: RequestError, upload: UploadItem): void {
     const message = extractQuotaErrorMessage(err);
     if (!this.quotaBatchAborted) {
       this.quotaBatchAborted = true;
@@ -925,7 +998,7 @@ class UploadManager {
     upload.errorDetails = message;
   }
 
-  async handleUploadError(upload, err) {
+  async handleUploadError(upload: UploadItem, err: RequestError): Promise<void> {
     if (isQuotaExceededError(err)) {
       this.handleQuotaExceededBatch(err, upload);
       return;
@@ -948,7 +1021,7 @@ class UploadManager {
       const isChunked =
         upload.type !== "directory" && upload.size >= this.chunkSizeBytes();
       const canResumeChunked =
-        isChunked && upload.chunkOffset > 0 && upload.chunkOffset < upload.size;
+        isChunked && (upload.chunkOffset ?? 0) > 0 && (upload.chunkOffset ?? 0) < upload.size;
 
       // Connection drops on chunked uploads: pause so Resume continues from last chunk
       // (same semantics as the stall timeout path).
@@ -959,7 +1032,7 @@ class UploadManager {
           "Connection stalled - upload paused. Click resume to retry.";
         upload.progress =
           upload.size > 0
-            ? Math.round((upload.chunkOffset / upload.size) * 1000) / 10
+            ? Math.round(((upload.chunkOffset ?? 0) / upload.size) * 1000) / 10
             : 0;
         notifyUploadError(upload.name, upload.errorDetails);
         return;
@@ -986,7 +1059,7 @@ class UploadManager {
     }
   }
 
-  formatErrorMessage(err) {
+  formatErrorMessage(err?: RequestError): string {
     if (err?.response) {
       // API error with response
       const status = err.response.status;
@@ -1006,7 +1079,10 @@ class UploadManager {
 export const uploadManager = new UploadManager();
 
 // Check for conflicts between items to be uploaded/moved and existing items
-export function checkConflict(newItems, existingItems) {
+export function checkConflict(
+  newItems: Array<{ name?: string; file?: { name: string } }> | null | undefined,
+  existingItems: Array<{ name: string }> | null | undefined,
+): boolean {
   if (!newItems || !existingItems) {
     return false;
   }
