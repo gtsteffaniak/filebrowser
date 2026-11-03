@@ -81,3 +81,43 @@ func TestEmbeddedImageDecodes_rejectsOversizedDeclaredDimensions(t *testing.T) {
 	require.Equal(t, 10000, cfg.Width)
 	require.False(t, embeddedImageDecodes(data))
 }
+
+// Folio documents skip the outer permit, so the embedded decode must take one.
+func TestEmbeddedDecodeAllowed_takesPermitWhenNotHeld(t *testing.T) {
+	svc := &Service{imageSem: make(chan struct{}, 1)}
+	src := newGrayJpeg(t, 64, 64)
+	defer src.Close()
+	jpg, err := io.ReadAll(src)
+	require.NoError(t, err)
+
+	ok, err := svc.embeddedDecodeAllowed(context.Background(), jpg, false)
+	require.NoError(t, err)
+	require.True(t, ok)
+	require.Len(t, svc.imageSem, 0, "permit must be released after the decode")
+}
+
+// With the only permit taken elsewhere, a decode without a held permit waits and honours cancellation.
+func TestEmbeddedDecodeAllowed_waitsForPermit(t *testing.T) {
+	svc := &Service{imageSem: make(chan struct{}, 1)}
+	svc.imageSem <- struct{}{}
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	ok, err := svc.embeddedDecodeAllowed(ctx, []byte("ignored"), false)
+	require.ErrorIs(t, err, context.Canceled)
+	require.False(t, ok)
+}
+
+// A caller that already holds the permit decodes without taking another, so it never deadlocks.
+func TestEmbeddedDecodeAllowed_doesNotRetakeHeldPermit(t *testing.T) {
+	svc := &Service{imageSem: make(chan struct{}, 1)}
+	svc.imageSem <- struct{}{}
+	src := newGrayJpeg(t, 64, 64)
+	defer src.Close()
+	jpg, err := io.ReadAll(src)
+	require.NoError(t, err)
+
+	ok, err := svc.embeddedDecodeAllowed(context.Background(), jpg, true)
+	require.NoError(t, err)
+	require.True(t, ok)
+}

@@ -123,6 +123,21 @@ func NewPreviewGenerator(concurrencyLimit int, cacheDir string) *Service {
 	}
 }
 
+// embeddedDecodeAllowed reports whether embedded bytes pass embeddedImageDecodes. The full decode
+// allocates every pixel, so it runs under an image-processor permit. A caller that already holds
+// one (permitHeld) must not take a second, because the semaphore can have a single slot. Folio
+// documents skip the outer permit, so they take one here.
+func (s *Service) embeddedDecodeAllowed(ctx context.Context, data []byte, permitHeld bool) (bool, error) {
+	if permitHeld {
+		return embeddedImageDecodes(data), nil
+	}
+	if err := s.acquireImageSem(ctx); err != nil {
+		return false, err
+	}
+	defer s.releaseImageSem()
+	return embeddedImageDecodes(data), nil
+}
+
 // Global image processor semaphore methods
 // These are used to ensure FFmpeg and document operations also respect the global image processor limit
 func (s *Service) acquireImageSem(ctx context.Context) error {
@@ -458,6 +473,8 @@ func GeneratePreviewWithMD5(ctx context.Context, file iteminfo.ExtendedFileInfo,
 	// Folio document previews render at target size in-process; they skip imageSem.
 	previewTypeEarly := determinePreviewType(file)
 	skipImageSem := previewTypeEarly == previewTypeDocument && folio.Enabled() && iteminfo.HasDocConvertableExtension(file.Name, file.Type)
+	// True when the semaphore block below holds a permit for this whole function.
+	imagePermitHeld := !skipImageSem
 	if !skipImageSem {
 		const largeFileSizeThreshold = 8 * 1024 * 1024 // 8MB
 		if file.Size >= largeFileSizeThreshold && service.imageLargeSem != nil {
@@ -498,8 +515,16 @@ func GeneratePreviewWithMD5(ctx context.Context, file iteminfo.ExtendedFileInfo,
 	fromEmbeddedPreview := false
 	if useEmbeddedPreview(file) {
 		embedded, err := embeddedpreview.Extract(ctx, file.Name, file.Type, file.RealPath)
+		decodable := false
+		if err == nil && len(embedded.Data) >= minPreviewSize {
+			// The full decode of an embedded image allocates every pixel, so it runs under an image permit.
+			decodable, err = service.embeddedDecodeAllowed(ctx, embedded.Data, imagePermitHeld)
+			if err != nil {
+				return nil, err
+			}
+		}
 		switch {
-		case err == nil && len(embedded.Data) >= minPreviewSize && embeddedImageDecodes(embedded.Data):
+		case err == nil && decodable:
 			imageBytes = embedded.Data
 			fromEmbeddedPreview = true
 			if embedded.Oriented {
