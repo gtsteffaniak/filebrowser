@@ -16,6 +16,7 @@ import (
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/diskcache"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/fileutils"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/embeddedpreview"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/ffmpeg"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/folio"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/imagemeta"
@@ -120,6 +121,20 @@ func NewPreviewGenerator(concurrencyLimit int, cacheDir string) *Service {
 		imageSem:      imageSem,
 		imageLargeSem: imageLargeSem,
 	}
+}
+
+// acquireEmbeddedPermit takes an image-processor permit for the embedded-image decode and the resize
+// that follows it, unless the caller already holds one (permitHeld). The semaphore can have a single
+// slot, so a caller that holds one must not take a second. Folio documents skip the outer permit, so
+// they take one here. The returned func releases whatever was taken; it is a no-op when nothing was.
+func (s *Service) acquireEmbeddedPermit(ctx context.Context, permitHeld bool) (func(), error) {
+	if permitHeld {
+		return func() {}, nil
+	}
+	if err := s.acquireImageSem(ctx); err != nil {
+		return nil, err
+	}
+	return s.releaseImageSem, nil
 }
 
 // Global image processor semaphore methods
@@ -457,6 +472,8 @@ func GeneratePreviewWithMD5(ctx context.Context, file iteminfo.ExtendedFileInfo,
 	// Folio document previews render at target size in-process; they skip imageSem.
 	previewTypeEarly := determinePreviewType(file)
 	skipImageSem := previewTypeEarly == previewTypeDocument && folio.Enabled() && iteminfo.HasDocConvertableExtension(file.Name, file.Type)
+	// True when the semaphore block below holds a permit for this whole function.
+	imagePermitHeld := !skipImageSem
 	if !skipImageSem {
 		const largeFileSizeThreshold = 8 * 1024 * 1024 // 8MB
 		if file.Size >= largeFileSizeThreshold && service.imageLargeSem != nil {
@@ -491,18 +508,40 @@ func GeneratePreviewWithMD5(ctx context.Context, file iteminfo.ExtendedFileInfo,
 
 	cacheKey := CacheKey(fileMD5, previewSize, seekPercentage)
 
-	// If this file type might have an embedded preview, try extracting it before any type-specific path.
+	// Use an image stored inside the file (camera RAW/HEIC, Krita, CBZ, XPS, Office and ODF thumbnails)
+	// before any type-specific path. A miss, an error, or undecodable bytes falls through to the normal path.
 	var imageBytes []byte
 	fromEmbeddedPreview := false
-	if hasEmbeddedPreview(file.Type, file.Name) {
-		if previewBytes, _ := imagemeta.ExtractEmbeddedPreview(ctx, file.RealPath); len(previewBytes) >= minPreviewSize && isJPEG(previewBytes) {
-			imageBytes = previewBytes
+	if useEmbeddedPreview(file) {
+		embedded, err := embeddedpreview.Extract(ctx, file.Name, file.Type, file.RealPath)
+		decodable := false
+		if err == nil && len(embedded.Data) >= minPreviewSize {
+			// The decode and the embedded-image resize allocate every pixel, so the permit is held
+			// until this function returns. A fallback to the normal path releases it straight away.
+			release, acqErr := service.acquireEmbeddedPermit(ctx, imagePermitHeld)
+			if acqErr != nil {
+				return nil, acqErr
+			}
+			decodable = embeddedImageDecodes(embedded.Data)
+			if decodable {
+				defer release()
+			} else {
+				release()
+			}
+		}
+		switch {
+		case err == nil && decodable:
+			imageBytes = embedded.Data
 			fromEmbeddedPreview = true
-			if orient := imagemeta.GetOrientation(ctx, file.RealPath); orient != "" {
-				if corrected := applyOrientationToPreviewBytes(imageBytes, orient); len(corrected) >= minPreviewSize {
-					imageBytes = corrected
+			if embedded.Oriented {
+				if orient := imagemeta.GetOrientation(ctx, file.RealPath); orient != "" {
+					if corrected := applyOrientationToPreviewBytes(imageBytes, orient); len(corrected) >= minPreviewSize {
+						imageBytes = corrected
+					}
 				}
 			}
+		case err != nil && !errors.Is(err, embeddedpreview.ErrNotFound):
+			logger.Debugf("embedded preview unavailable for '%s': %v", file.Name, err)
 		}
 	}
 

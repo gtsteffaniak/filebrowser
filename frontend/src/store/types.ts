@@ -381,7 +381,9 @@ export interface StoreState {
     size?: string;
     url?: string;
     modified?: string;
-    type?: "3d";
+    type?: "3d" | "text";
+    /** Text preview API URL, set when type is "text". */
+    textUrl?: string;
     fbdata?: {
       name: string;
       path: string;

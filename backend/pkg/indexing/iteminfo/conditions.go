@@ -530,3 +530,50 @@ func CanEditOnlyOffice(modify bool, extention string) bool {
 	}
 	return !ONLYOFFICE_READONLY_FILE_EXTENSIONS[strings.ToLower(extention)]
 }
+
+// textPreviewKinds maps a lowercase extension (with dot) to the renderer kind the
+// frontend uses for the text preview endpoint. Every text type is previewable as
+// "code" unless it has a more specific kind below. .rtf is only in this map.
+var textPreviewKinds = buildTextPreviewKinds()
+
+func buildTextPreviewKinds() map[string]string {
+	kinds := make(map[string]string, len(textTypes)+1)
+	for ext := range textTypes {
+		kinds[ext] = "code"
+	}
+	for _, ext := range []string{".txt", ".log"} {
+		kinds[ext] = "plain"
+	}
+	kinds[".csv"] = "csv"
+	kinds[".tsv"] = "csv"
+	kinds[".md"] = "markdown"
+	kinds[".html"] = "html"
+	kinds[".htm"] = "html"
+	kinds[".css"] = "css"
+	kinds[".rtf"] = "rtf"
+	return kinds
+}
+
+// TextPreviewKind returns the renderer kind for a lowercase extension (with dot),
+// or "" when the file type has no text preview.
+func TextPreviewKind(ext string) string {
+	return textPreviewKinds[ext]
+}
+
+// IsTextPreviewable reports whether a file name uses the text preview endpoint.
+func IsTextPreviewable(name string) bool {
+	return textPreviewKinds[strings.ToLower(filepath.Ext(name))] != ""
+}
+
+// TextPreviewExtensionsForSPA groups text preview extensions (without dots) by renderer kind.
+// The frontend uses this to decide which items get a text preview container.
+func TextPreviewExtensionsForSPA() map[string][]string {
+	out := make(map[string][]string)
+	for ext, kind := range textPreviewKinds {
+		out[kind] = append(out[kind], strings.TrimPrefix(ext, "."))
+	}
+	for kind := range out {
+		sort.Strings(out[kind])
+	}
+	return out
+}

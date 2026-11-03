@@ -139,6 +139,14 @@ func shouldServeOriginalPreview(ext string, resizable bool, realPath, previewSiz
 	return preview.ShouldServeOriginalImage(realPath, previewSize)
 }
 
+// serveSVGPreview serves an SVG unchanged. The CSP stops scripts, external loads and
+// framing even when the URL is opened directly instead of through an <img> tag.
+func serveSVGPreview(w http.ResponseWriter, r *http.Request, file iteminfo.ExtendedFileInfo) (int, error) {
+	w.Header().Set("Content-Type", "image/svg+xml")
+	w.Header().Set("Content-Security-Policy", "default-src 'none'; style-src 'unsafe-inline'; img-src data:; sandbox")
+	return rawFileHandler(w, r, file)
+}
+
 func rawFileHandler(w http.ResponseWriter, r *http.Request, file iteminfo.ExtendedFileInfo) (int, error) {
 	fd, err := os.Open(file.RealPath)
 	if err != nil {
@@ -271,6 +279,11 @@ func PreviewHelperFunc(w http.ResponseWriter, r *http.Request, d *Context) (int,
 	ext := strings.ToLower(filepath.Ext(d.FileInfo.Name))
 	resizable := iteminfo.ResizableImageTypes[ext]
 
+	// SVG is served as the original file: browsers render it natively and no raster conversion is needed.
+	if ext == ".svg" && isImage {
+		return serveSVGPreview(w, r, d.FileInfo)
+	}
+
 	// For small displayable images (jpg, png, etc.) serve the original to avoid processing.
 	// Also serve the original when dimensions already fit the requested preview size.
 	if isImage && shouldServeOriginalPreview(ext, resizable, d.FileInfo.RealPath, previewSize, d.FileInfo.Size) {
@@ -312,7 +325,13 @@ func PreviewHelperFunc(w http.ResponseWriter, r *http.Request, d *Context) (int,
 		return http.StatusInternalServerError, err
 	}
 	w.Header().Set("Cache-Control", "private")
-	w.Header().Set("Content-Type", "image/jpeg")
+	// Embedded previews can be returned unchanged (PNG, GIF, WebP), so sniff the bytes
+	// instead of assuming JPEG. Generated previews are JPEG and sniff as such.
+	contentType := http.DetectContentType(previewImg)
+	if !strings.HasPrefix(contentType, "image/") {
+		contentType = "image/jpeg"
+	}
+	w.Header().Set("Content-Type", contentType)
 	http.ServeContent(w, r, d.FileInfo.Name+"-preview.jpg", d.FileInfo.ModTime, bytes.NewReader(previewImg))
 	return 0, nil
 }

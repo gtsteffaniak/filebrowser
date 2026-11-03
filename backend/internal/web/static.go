@@ -302,6 +302,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"transcodeProfiles":             settings.EnabledTranscodeProfiles(),
 		"transcodeMaxPerUser":           settings.TranscodeMaxConcurrentPerUser(),
 		"docPreviewExtensions":          iteminfo.DocPreviewExtensionsForSPA(),
+		"textPreviewExtensions":         iteminfo.TextPreviewExtensionsForSPA(),
 		"updateAvailable":               utils.GetUpdateAvailableUrl(),
 		"disableNavButtons":             disableNavButtons,
 		"userSelectableThemes":          settings.Config.Frontend.Styling.CustomThemeOptions,

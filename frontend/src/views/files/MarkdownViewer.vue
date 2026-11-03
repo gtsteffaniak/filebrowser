@@ -932,7 +932,6 @@ function applyScrollRatio(line: number) {
   box-sizing: border-box;
   border: none;
   min-height: 24em;
-  background: #fff;
   color-scheme: light dark;
 }
 

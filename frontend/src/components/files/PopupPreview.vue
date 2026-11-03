@@ -1,11 +1,19 @@
 <template>
   <div class="popup-preview" v-show="sourceInfo" ref="popup" :style="popupStyle"
-    :class="{ 'popup-preview--3d': sourceInfo && sourceInfo.type === '3d' }">
+    :class="{ 'popup-preview--3d': sourceInfo && sourceInfo.type === '3d', 'popup-preview--text': sourceInfo && sourceInfo.type === 'text' }">
     <div v-if="sourceInfo && sourceInfo.type === '3d' && sourceInfo.fbdata" class="popup-preview__3d">
       <ThreeJs
         :key="sourceInfo.path"
         :fbdata="sourceInfo.fbdata"
         :is-thumbnail="true"
+      />
+    </div>
+    <div v-else-if="sourceInfo && sourceInfo.type === 'text' && sourceInfo.textUrl" class="popup-preview__text">
+      <TextPreview
+        :key="sourceInfo.path"
+        :url="sourceInfo.textUrl"
+        :modified="sourceInfo.modified"
+        @error="onTextError"
       />
     </div>
     <img v-else-if="sourceInfo?.url" :src="sourceInfo.url" alt="Popup img" @load="onImageLoad" />
@@ -14,13 +22,14 @@
 
 <script>
 import { createAsyncComponent } from "@/utils/asyncComponent.js";
-import { state, getters } from "@/store";
+import { state, getters, mutations } from "@/store";
 import { setImageLoaded } from "@/utils/cache/imageCache.ts";
 
 export default {
   name: "PopupPreview",
   components: {
     ThreeJs: createAsyncComponent(() => import('@/views/files/ThreeJs.vue')),
+    TextPreview: createAsyncComponent(() => import('@/components/files/TextPreview.vue')),
   },
   data() {
     return {
@@ -63,6 +72,10 @@ export default {
     }
   },
   methods: {
+    onTextError() {
+      // Nothing to show if the text preview failed, so close the popup.
+      mutations.setPopupPreview(null);
+    },
     async onImageLoad() {
       if (!this.sourceInfo || this.sourceInfo.type === "3d") return;
       const { source, path, size, url, modified } = this.sourceInfo;
@@ -98,10 +111,11 @@ export default {
       if (!popup) return;
 
       const { innerWidth, innerHeight } = window;
-      // 3D popup has fixed dimensions; img popup sizes to content
+      // 3D and text popups have fixed dimensions; img popup sizes to content
       const size3d = 512;
-      const width = popup.offsetWidth || (this.sourceInfo.type === "3d" ? size3d : 0);
-      const height = popup.offsetHeight || (this.sourceInfo.type === "3d" ? size3d : 0);
+      const hasFixedSize = this.sourceInfo.type === "3d" || this.sourceInfo.type === "text";
+      const width = popup.offsetWidth || (hasFixedSize ? size3d : 0);
+      const height = popup.offsetHeight || (hasFixedSize ? size3d : 0);
       const padding = 10;
 
       const minLeft = getters.isSidebarVisible() ? 320 : padding;
@@ -196,6 +210,17 @@ export default {
   height: 100%;
   min-width: 512px;
   min-height: 512px;
+}
+
+/* Text popup: a fixed-size page, scaled down on small screens */
+.popup-preview--text {
+  background: var(--surfacePrimary);
+}
+
+/* Square frame, so the preview keeps one shape whatever the content */
+.popup-preview__text {
+  width: min(512px, 45vw, 75vh);
+  height: min(512px, 45vw, 75vh);
 }
 
 .popup-preview img {

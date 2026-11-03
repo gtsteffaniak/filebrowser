@@ -2842,6 +2842,99 @@
                 }
             }
         },
+        "/api/resources/preview/text": {
+            "get": {
+                "description": "Returns the first ~16KB of a text-like file as JSON. Markdown, HTML, and CSS are returned as raw text; RTF is converted to HTML. The response is NOT sanitized: clients must sanitize HTML before rendering it. Responses are not cached on the server.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Resources"
+                ],
+                "summary": "Get text preview",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "File path of the text file to preview",
+                        "name": "path",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Source name",
+                        "name": "source",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Text preview content",
+                        "schema": {
+                            "$ref": "#/definitions/textpreview.Result"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request path",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "User is not allowed to view files in this source",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "File not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "415": {
+                        "description": "File type is not supported for text preview, or the file is binary",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "501": {
+                        "description": "Previews are disabled",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/resources/unarchive": {
             "post": {
                 "description": "Extracts a zip or tar.gz archive on the server into the given destination directory. Server-side only; no extracted bytes are returned. Supports extracting to a different source via toSource. Requires create permission. Archive size is checked against server.maxArchiveSizeGB limit if configured.\n\n**Request body parameters:**\n- **fromSource** (string, required): Source name where the archive file lives. Example: `\"default\"`\n- **toSource** (string, optional): Source name where contents will be extracted. Defaults to fromSource if omitted. Example: `\"restored\"`\n- **path** (string, required): Path to the archive file (on fromSource). Must be .zip, .tar.gz, or .tgz. Example: `\"/downloads/data.zip\"`\n- **destination** (string, required): Directory path (on toSource) to extract into. Example: `\"/projects/imported\"`\n- **deleteAfter** (boolean, optional): If true, delete the archive file after successful extraction. Default: false. Example: `true`\n- **filenameEncoding** (string, optional): Fallback ZIP filename encoding: utf-8, cp932, gb18030, big5, euc-kr, cp437, windows-1252. Unicode metadata takes precedence. Omit to use a suggestion; ambiguous encodings require a selection.\n- **preview** (boolean, optional): Return ZIP encoding candidates and sample filenames without extracting or deleting anything. Requires the same source/destination permissions as extraction.",
@@ -5109,6 +5202,90 @@
                     },
                     "404": {
                         "description": "File not found or preview not available",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "501": {
+                        "description": "Previews disabled globally, for this share, or for upload shares",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/public/api/resources/preview/text": {
+            "get": {
+                "description": "Returns the first ~16KB of a text-like file in a public share as JSON. Same content rules as the authenticated endpoint. Not available for upload-only shares.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Resources"
+                ],
+                "summary": "Get text preview from a public share",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Share hash for authentication",
+                        "name": "hash",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "File path within the share to preview",
+                        "name": "path",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Text preview content",
+                        "schema": {
+                            "$ref": "#/definitions/textpreview.Result"
+                        }
+                    },
+                    "403": {
+                        "description": "Share unavailable, access denied, or the file viewer is disabled for this share",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "File not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "415": {
+                        "description": "File type is not supported for text preview, or the file is binary",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -7874,6 +8051,31 @@
                 "viewMode": {
                     "description": "default view mode for anonymous users",
                     "type": "string"
+                }
+            }
+        },
+        "textpreview.Result": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "description": "Content is plain text, or an HTML fragment when Format is \"html\".",
+                    "type": "string"
+                },
+                "format": {
+                    "description": "Format is \"text\" or \"html\". RTF is converted to HTML; everything else is text.",
+                    "type": "string"
+                },
+                "kind": {
+                    "description": "Kind is the renderer the frontend should use: plain, csv, markdown, html, css, code, or rtf.",
+                    "type": "string"
+                },
+                "size": {
+                    "description": "Size is the full size of the file in bytes.",
+                    "type": "integer"
+                },
+                "truncated": {
+                    "description": "Truncated is true when the file is larger than the returned content.",
+                    "type": "boolean"
                 }
             }
         },
