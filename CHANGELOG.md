@@ -8,7 +8,7 @@ All notable changes to this project will be documented in this file. For commit 
   - Core web assets are loaded into memory instead of served from disk.
   - Media enhancements
     - All server media settings can be managed in settings by admins.
-    - jxl imagve preview support (#3334) (#2551)
+    - JXL image preview support (#3334) (#2551)
     - Transcoding for media playback with quality presets -- requires ffmpeg.
     - Hardware Acceleration device selector (Software / detected GPU devices)
     - More operations use native api operations rather than ffmpeg, improving performance in many cases. Added temporary config option to force ffmpeg to be used

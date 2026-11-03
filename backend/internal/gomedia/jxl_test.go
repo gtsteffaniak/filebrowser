@@ -36,6 +36,20 @@ func TestJXLJPEGIgnoresAlwaysUseFfmpeg(t *testing.T) {
 	assertJPEG(t, data)
 }
 
+// A symlink such as photo.jxl can resolve to a JPEG XL file with another name.
+// Decoding must follow the content, not the resolved file's extension.
+func TestJXLJPEGDecodesWithoutJXLExtension(t *testing.T) {
+	withGate(t, false)
+	data, err := os.ReadFile(fixtureJXL)
+	require.NoError(t, err)
+	path := filepath.Join(t.TempDir(), "photo.bin")
+	require.NoError(t, os.WriteFile(path, data, 0o600))
+
+	out, ok := JXLJPEG(path, 85, nil)
+	require.True(t, ok, "JPEG XL content must decode regardless of the file extension")
+	assertJPEG(t, out)
+}
+
 func TestJXLJPEGInvalidFileReturnsFalse(t *testing.T) {
 	withGate(t, false)
 	path := filepath.Join(t.TempDir(), "broken.jxl")

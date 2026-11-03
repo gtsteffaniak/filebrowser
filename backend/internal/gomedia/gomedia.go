@@ -78,11 +78,6 @@ var heifImageExts = map[string]bool{
 	".heics": true,
 }
 
-// jxlImageExts are JPEG XL stills go-media decodes for preview.
-var jxlImageExts = map[string]bool{
-	".jxl": true,
-}
-
 const heicDecodeMaxEdge = 16384
 
 // cameraRawExts match go-media rawpreview formats (also iteminfo raw extensions).
@@ -100,10 +95,6 @@ func supportsVideoContainer(path string) bool {
 
 func supportsHEIFImage(path string) bool {
 	return heifImageExts[strings.ToLower(filepath.Ext(path))]
-}
-
-func supportsJXLImage(path string) bool {
-	return jxlImageExts[strings.ToLower(filepath.Ext(path))]
 }
 
 func supportsCameraRAW(path string) bool {
@@ -575,7 +566,10 @@ func JXLJPEG(path string, quality int, legacy Legacy[[]byte]) ([]byte, bool) {
 }
 
 func jxlJPEGFast(path string, quality int) ([]byte, bool) {
-	return stillImageJPEG(path, heicDecodeMaxEdge, heicDecodeMaxEdge, quality, "jxl jpeg", supportsJXLImage, false)
+	// No extension check: the caller's display name can be .jxl while the resolved
+	// path (for example a symlink target) has another name. go-media sniffs the
+	// content, so a non-JPEG XL file fails in decode and is logged there.
+	return stillImageJPEG(path, heicDecodeMaxEdge, heicDecodeMaxEdge, quality, "jxl jpeg", acceptAnyPath, false)
 }
 
 // CameraRAWJPEG decodes camera RAW to JPEG at the requested bounds (0 means full
@@ -605,6 +599,9 @@ func gatedStillImageJPEG(path string, maxW, maxH, quality int, op string, suppor
 	}
 	return stillImageJPEG(path, maxW, maxH, quality, op, supported, true)
 }
+
+// acceptAnyPath is the format gate for decoders that identify the file by content.
+func acceptAnyPath(string) bool { return true }
 
 // stillImageJPEG decodes a still image with go-media. ffmpegFallback selects the
 // log wording: formats ffmpeg can also decode say so; JPEG XL, which ffmpeg
