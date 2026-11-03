@@ -60,6 +60,7 @@ func openTextPreviewPrefix(path string) (doc.Document, error) {
 	if err != nil {
 		return nil, err
 	}
+	b = sanitizeFolioText(b)
 	b = repairFolioTextValidationWindow(b)
 	if len(b) == 0 {
 		return nil, fmt.Errorf("text document is empty or not valid utf-8")
@@ -82,6 +83,27 @@ func readTextPreviewPrefix(path string, max int) ([]byte, error) {
 		b = b[:len(b)-1]
 	}
 	return b, nil
+}
+
+// sanitizeFolioText strips control characters folio/html.readsAsText rejects (except tab and common whitespace).
+func sanitizeFolioText(b []byte) []byte {
+	if len(b) == 0 {
+		return b
+	}
+	out := make([]byte, 0, len(b))
+	for len(b) > 0 {
+		r, n := utf8.DecodeRune(b)
+		if r == utf8.RuneError && n == 1 {
+			break
+		}
+		if r < 0x20 && r != '\t' && r != '\n' && r != '\r' && r != '\f' {
+			out = append(out, ' ')
+		} else {
+			out = append(out, b[:n]...)
+		}
+		b = b[n:]
+	}
+	return out
 }
 
 // repairFolioTextValidationWindow fixes folio/html readsAsText, which validates only

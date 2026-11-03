@@ -58,8 +58,10 @@ func DocPreviewExtensionsForSPA() []string {
 	for ext := range FolioConvertable {
 		seen[strings.TrimPrefix(ext, ".")] = struct{}{}
 	}
-	for _, ext := range []string{".hwp", ".hwpx"} {
-		seen[strings.TrimPrefix(ext, ".")] = struct{}{}
+	if settings.OfficeIntegrationConfigured() {
+		for _, ext := range []string{".hwp", ".hwpx"} {
+			seen[strings.TrimPrefix(ext, ".")] = struct{}{}
+		}
 	}
 	out := make([]string, 0, len(seen))
 	for ext := range seen {

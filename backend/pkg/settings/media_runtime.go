@@ -3,6 +3,7 @@ package settings
 import (
 	"context"
 	"flag"
+	"strings"
 	"sync"
 	"time"
 
@@ -49,6 +50,11 @@ func AlwaysUseOnlyOfficeEnabled() bool {
 	mediaMu.RLock()
 	defer mediaMu.RUnlock()
 	return Config.Integrations.Media.AlwaysUseOnlyOffice
+}
+
+// OfficeIntegrationConfigured reports whether an office editor URL is configured.
+func OfficeIntegrationConfigured() bool {
+	return strings.TrimSpace(Config.Integrations.OnlyOffice.Url) != ""
 }
 
 // AlwaysUseFfmpegEnabled reports whether the admin has forced ffmpeg for all

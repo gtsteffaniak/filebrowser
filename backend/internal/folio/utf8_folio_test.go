@@ -33,6 +33,26 @@ func TestOpenDocument_cssRealPath(t *testing.T) {
 	require.NoError(t, d.Close())
 }
 
+func TestSanitizeFolioText_stripsNUL(t *testing.T) {
+	raw := []byte("hello\x00world")
+	got := sanitizeFolioText(raw)
+	require.Equal(t, []byte("hello world"), got)
+	opts, err := folioRenderOptionsForTest()
+	require.NoError(t, err)
+
+	dir := t.TempDir()
+	path := filepath.Join(dir, "nul.txt")
+	require.NoError(t, os.WriteFile(path, raw, 0o600))
+	data, ok, err := RenderPageJPEG(t.Context(), path, 0, opts, "nul.txt", "text/plain")
+	require.NoError(t, err)
+	require.True(t, ok, "err=%v", err)
+	require.NotEmpty(t, data)
+}
+
+func folioRenderOptionsForTest() (RenderOptions, error) {
+	return RenderOptions{MaxWidth: 256, MaxHeight: 256, Fill: true, JpegQuality: 80}, nil
+}
+
 func TestReadTextPreviewPrefix_cap(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "big.log")

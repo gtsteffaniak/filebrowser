@@ -81,7 +81,7 @@ func RenderPageJPEG(ctx context.Context, path string, pageNumber int, opts Rende
 				done <- result{err: fmt.Errorf("folio render panicked: %v", r)}
 			}
 		}()
-		data, err := renderPageJPEG(path, name, mimetype, pageNumber, opts)
+		data, err := renderPageJPEG(ctx, path, name, mimetype, pageNumber, opts)
 		done <- result{data: data, err: err}
 	}()
 
@@ -90,7 +90,9 @@ func RenderPageJPEG(ctx context.Context, path string, pageNumber int, opts Rende
 		return nil, false, ctx.Err()
 	case res := <-done:
 		if res.err != nil {
-			logFallback("render", path, res.err)
+			if !errors.Is(res.err, context.Canceled) && !errors.Is(res.err, context.DeadlineExceeded) {
+				logFallback("render", path, res.err)
+			}
 			return nil, false, res.err
 		}
 		if len(res.data) == 0 {
@@ -100,9 +102,12 @@ func RenderPageJPEG(ctx context.Context, path string, pageNumber int, opts Rende
 	}
 }
 
-func renderPageJPEG(path, name, mimetype string, pageNumber int, opts RenderOptions) ([]byte, error) {
+func renderPageJPEG(ctx context.Context, path, name, mimetype string, pageNumber int, opts RenderOptions) ([]byte, error) {
 	renderMu.Lock()
 	defer renderMu.Unlock()
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
 
 	d, err := openDocument(path, name, mimetype)
 	if err != nil {
