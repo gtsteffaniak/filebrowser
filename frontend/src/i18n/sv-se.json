@@ -1257,6 +1257,8 @@
     "encoderBackend": "Kodarens backend",
     "transcodeProfileEncoderBackendHelp": "Encoder-backend för denna förinställning; standardinställningen är den upptäckta rekommenderade backenden.",
     "alwaysUseFfmpeg": "Använd alltid ffmpeg",
-    "alwaysUseFfmpegDescription": "Hoppa över snabbvägen via go-media och använd istället ffmpeg för all avläsning, metadata, undertexter och videominiatyrer. Aktivera detta om go-media ger felaktiga resultat för dina filer."
+    "alwaysUseFfmpegDescription": "Använd alltid ffmpeg för att analysera filer, hämta metadata, undertexter och videominiatyrbilder. Detta tar längre tid men kan vara mer tillförlitligt.",
+    "alwaysUseOffice": "Använd alltid kontorsservern för miniatyrbilder av dokument",
+    "alwaysUseOfficeDescription": "Använd alltid kontorsservern för att skapa miniatyrbilder av dokument istället för att generera dem direkt i programmet. Detta tar längre tid men kan vara mer tillförlitligt."
   }
 }

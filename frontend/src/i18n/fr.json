@@ -1257,6 +1257,8 @@
     "encoderBackend": "Backend de l'encodeur",
     "transcodeProfileEncoderBackendHelp": "Backend d'encodage pour ce préréglage ; la valeur par défaut correspond au backend préféré détecté.",
     "alwaysUseFfmpeg": "Utilisez toujours ffmpeg",
-    "alwaysUseFfmpegDescription": "Ignorez la méthode rapide « go-media » et utilisez ffmpeg pour toutes les opérations de détection, les métadonnées, les sous-titres et les vignettes vidéo. Activez cette option si « go-media » donne des résultats erronés pour vos fichiers."
+    "alwaysUseFfmpegDescription": "Utilisez toujours ffmpeg pour l'analyse, les métadonnées, les sous-titres et les vignettes vidéo. Ce procédé sera plus lent, mais peut s'avérer plus fiable.",
+    "alwaysUseOffice": "Utilisez toujours le serveur de l'entreprise pour les vignettes des documents",
+    "alwaysUseOfficeDescription": "Utilisez toujours le serveur de l'entreprise pour générer les vignettes des documents, plutôt que la génération de vignettes en cours de traitement. Ce procédé sera certes plus lent, mais il peut s'avérer plus fiable."
   }
 }

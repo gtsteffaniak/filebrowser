@@ -3,6 +3,7 @@ package iteminfo
 import (
 	"mime"
 	"path/filepath"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -33,21 +34,41 @@ var SubtitleExts = map[string]bool{
 	".smi": true,
 }
 
-var MuPdfConvertable = map[string]bool{
-	".pdf":  true, // PDF
-	".xps":  true, // XPS
-	".epub": true, // EPUB
-	".mobi": true, // MOBI
-	".fb2":  true, // FB2
-	".cbz":  true, // CBZ
-	".svg":  true, // SVG
-	".txt":  true, // TXT
-	".docx": true, // DOCX
-	".pptx": true, // PPTX
-	".xlsx": true, // XLSX
-	".hwp":  true, // HWP
-	".hwpx": true, // HWPX
-	".md":   true, // Markdown
+var FolioConvertable = map[string]bool{
+	".pdf":  true,
+	".epub": true,
+	".mobi": true,
+	".azw3": true,
+	".chm":  true,
+	".fb2":  true,
+	".svg":  true,
+	".txt":  true,
+	".docx": true,
+	".pptx": true,
+	".xlsx": true,
+	".htm":  true,
+	".html": true,
+	".md":   true,
+}
+
+// DocPreviewExtensionsForSPA lists extensions the preview API can render locally
+// (folio) or via the office converter fallback. Values omit the leading dot.
+func DocPreviewExtensionsForSPA() []string {
+	seen := make(map[string]struct{}, len(FolioConvertable)+2)
+	for ext := range FolioConvertable {
+		seen[strings.TrimPrefix(ext, ".")] = struct{}{}
+	}
+	if settings.OfficeIntegrationConfigured() {
+		for _, ext := range []string{".hwp", ".hwpx"} {
+			seen[strings.TrimPrefix(ext, ".")] = struct{}{}
+		}
+	}
+	out := make([]string, 0, len(seen))
+	for ext := range seen {
+		out = append(out, ext)
+	}
+	sort.Strings(out)
+	return out
 }
 
 var ResizableImageTypes = map[string]bool{
@@ -480,18 +501,17 @@ func hasBundleExtension(name string) bool {
 }
 
 func HasDocConvertableExtension(name, mimetype string) bool {
-	if !settings.Env.MuPdfAvailable {
+	if settings.AlwaysUseOnlyOfficeEnabled() {
 		return false
 	}
-	if strings.HasPrefix(mimetype, "text") {
+	ext := strings.ToLower(filepath.Ext(name))
+	if FolioConvertable[ext] {
 		return true
 	}
-	ext := strings.ToLower(filepath.Ext(name))
-	val, ok := MuPdfConvertable[ext]
-	if ok {
-		return val
+	if strings.HasPrefix(mimetype, "text/") {
+		return true
 	}
-	return false
+	return IsText(ext)
 }
 
 var ONLYOFFICE_READONLY_FILE_EXTENSIONS = map[string]bool{

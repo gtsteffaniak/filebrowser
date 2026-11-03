@@ -1257,6 +1257,8 @@
     "encoderBackend": "Enkodatzaile atzealdea",
     "transcodeProfileEncoderBackendHelp": "Aurrezarpen honen enkoder atzeko plana; hautemandako atzeko plan lehenetsira lehenetsita dago.",
     "alwaysUseFfmpeg": "Erabili beti ffmpeg",
-    "alwaysUseFfmpegDescription": "Utzi go-mediaren bidea bazterrean eta erabili ffmpeg probak egiteko, metadatuak, azpitituluak eta bideo-miniatulak lortzeko. Aktibatu go-mediak zure fitxategientzat emaitza okerrak ematen baditu."
+    "alwaysUseFfmpegDescription": "Erabili beti ffmpeg probak egiteko, metadaturako, azpitituluetarako eta bideo-miniaturentzako. Hau motelagoa izango da, baina fidagarriagoa izan daiteke.",
+    "alwaysUseOffice": "Erabili beti bulegoko zerbitzaria dokumentu-miniaturak sortzeko.",
+    "alwaysUseOfficeDescription": "Erabili beti bulegoko zerbitzaria dokumentu-miniaturak sortzeko, prozesuan bertan miniaturak sortzearen ordez. Horrek motelagoa izango da, baina fidagarriagoa izan daiteke."
   }
 }

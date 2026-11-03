@@ -217,8 +217,6 @@ func rootCMD(ctx context.Context, serverConfig *settings.Server, a *app.App, shu
 	if err != nil {
 		logger.Fatalf("Error starting preview service: %v", err)
 	}
-	logger.Debugf("MuPDF Enabled            : %v", settings.Env.MuPdfAvailable)
-
 	// Generate PWA icons after preview service is initialized
 	if err := icons.GeneratePWAIcons(); err != nil {
 		logger.Warningf("Failed to generate PWA icons: %v", err)

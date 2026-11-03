@@ -6,10 +6,8 @@ WORKDIR /app
 COPY ./backend/go.mod ./backend/go.sum ./
 RUN --mount=type=cache,target=/go/pkg/mod go mod download
 COPY ./backend ./
-RUN apk update && apk add --no-cache gcc musl-dev
-RUN --mount=type=cache,target=/go/pkg/mod --mount=type=cache,target=/root/.cache/go-build go run ./scripts/setup-gofitz-cgo
-ENV CGO_ENABLED=1
-RUN --mount=type=cache,target=/go/pkg/mod --mount=type=cache,target=/root/.cache/go-build go build -trimpath -tags analytics,mupdf,musl -ldflags="-w -s \
+ENV CGO_ENABLED=0
+RUN --mount=type=cache,target=/go/pkg/mod --mount=type=cache,target=/root/.cache/go-build go build -trimpath -tags analytics -ldflags="-w -s \
   -X 'github.com/gtsteffaniak/filebrowser/backend/internal/version.Version=${VERSION}' \
   -X 'github.com/gtsteffaniak/filebrowser/backend/internal/version.CommitSHA=${REVISION}'" \
   -o filebrowser .

@@ -1257,6 +1257,8 @@
     "encoderBackend": "Backend dell'encoder",
     "transcodeProfileEncoderBackendHelp": "Backend dell'encoder per questa preimpostazione; per impostazione predefinita viene utilizzato il backend preferito rilevato.",
     "alwaysUseFfmpeg": "Utilizza sempre ffmpeg",
-    "alwaysUseFfmpegDescription": "Ignora il percorso veloce di go-media e utilizza ffmpeg per tutte le operazioni di analisi, i metadati, i sottotitoli e le miniature video. Attiva questa opzione se go-media fornisce risultati errati per i tuoi file."
+    "alwaysUseFfmpegDescription": "Utilizza sempre ffmpeg per l'analisi, i metadati, i sottotitoli e le miniature dei video. Questo metodo sarà più lento, ma può risultare più affidabile.",
+    "alwaysUseOffice": "Utilizzare sempre il server aziendale per le miniature dei documenti",
+    "alwaysUseOfficeDescription": "Utilizza sempre il server dell'ufficio per le miniature dei documenti, anziché la generazione delle miniature durante l'elaborazione. Questa operazione sarà più lenta, ma potrebbe risultare più affidabile."
   }
 }

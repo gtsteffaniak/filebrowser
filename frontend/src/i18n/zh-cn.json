@@ -1257,6 +1257,8 @@
     "encoderBackend": "编码器后端",
     "transcodeProfileEncoderBackendHelp": "此预设的编码器后端；默认使用检测到的首选后端。",
     "alwaysUseFfmpeg": "请始终使用 ffmpeg",
-    "alwaysUseFfmpegDescription": "跳过 go-media 的快速路径，改用 ffmpeg 进行所有检测、元数据、字幕和视频缩略图的处理。如果 go-media 对您的文件返回了错误结果，请启用此选项。"
+    "alwaysUseFfmpegDescription": "在进行信息检测、元数据处理、字幕处理和视频缩略图生成时，请始终使用 ffmpeg。虽然这样会稍微慢一些，但可靠性更高。",
+    "alwaysUseOffice": "始终使用办公服务器生成文档缩略图",
+    "alwaysUseOfficeDescription": "生成文档缩略图时，请始终使用办公服务器，而不是在进程内生成缩略图。虽然这样速度会稍慢，但可靠性更高。"
   }
 }

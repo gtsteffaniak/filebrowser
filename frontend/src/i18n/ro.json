@@ -1257,6 +1257,8 @@
     "encoderBackend": "Backend-ul codificatorului",
     "transcodeProfileEncoderBackendHelp": "Backend-ul encoderului pentru această presetare; implicit se utilizează backend-ul preferat detectat.",
     "alwaysUseFfmpeg": "Folosiți întotdeauna ffmpeg",
-    "alwaysUseFfmpegDescription": "Omiteți calea rapidă „go-media” și folosiți ffmpeg pentru toate operațiunile de analiză, metadate, subtitrări și miniaturi video. Activați această opțiune dacă „go-media” oferă rezultate eronate pentru fișierele dvs."
+    "alwaysUseFfmpegDescription": "Folosiți întotdeauna ffmpeg pentru analiză, metadate, subtitrări și miniaturi video. Acest proces va fi mai lent, dar poate fi mai fiabil.",
+    "alwaysUseOffice": "Folosiți întotdeauna serverul de birou pentru miniaturile documentelor",
+    "alwaysUseOfficeDescription": "Folosiți întotdeauna serverul de la birou pentru miniaturile documentelor, în loc să apelați la generarea de miniaturi în timpul procesării. Această metodă va fi mai lentă, dar poate fi mai fiabilă."
   }
 }

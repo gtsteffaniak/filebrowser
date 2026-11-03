@@ -1257,6 +1257,8 @@
     "encoderBackend": "Zadní část kodéru",
     "transcodeProfileEncoderBackendHelp": "Backend kodéru pro toto přednastavení; výchozí hodnotou je detekovaný preferovaný backend.",
     "alwaysUseFfmpeg": "Vždy používejte ffmpeg",
-    "alwaysUseFfmpegDescription": "Vynechte zrychlený postup go-media a pro všechny operace týkající se zjišťování informací, metadat, titulků a náhledů videa použijte ffmpeg. Tuto možnost zapněte, pokud go-media u vašich souborů poskytuje nesprávné výsledky."
+    "alwaysUseFfmpegDescription": "K analýze, získávání metadat, titulků a náhledů videí vždy používejte ffmpeg. Bude to sice pomalejší, ale může to být spolehlivější.",
+    "alwaysUseOffice": "Pro náhledy dokumentů vždy používejte kancelářský server",
+    "alwaysUseOfficeDescription": "Pro vytváření miniatur dokumentů vždy používejte kancelářský server namísto generování miniatur přímo v rámci procesu. Tento postup bude sice pomalejší, ale může být spolehlivější."
   }
 }

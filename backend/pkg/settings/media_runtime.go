@@ -3,6 +3,7 @@ package settings
 import (
 	"context"
 	"flag"
+	"strings"
 	"sync"
 	"time"
 
@@ -42,6 +43,18 @@ func HardwareAccelerationEnabled() bool {
 	mediaMu.RLock()
 	defer mediaMu.RUnlock()
 	return Config.Integrations.Media.HardwareAcceleration
+}
+
+// AlwaysUseOnlyOfficeEnabled reports whether folio document previews are skipped for the office converter.
+func AlwaysUseOnlyOfficeEnabled() bool {
+	mediaMu.RLock()
+	defer mediaMu.RUnlock()
+	return Config.Integrations.Media.AlwaysUseOnlyOffice
+}
+
+// OfficeIntegrationConfigured reports whether an office editor URL is configured.
+func OfficeIntegrationConfigured() bool {
+	return strings.TrimSpace(Config.Integrations.OnlyOffice.Url) != ""
 }
 
 // AlwaysUseFfmpegEnabled reports whether the admin has forced ffmpeg for all
@@ -213,6 +226,7 @@ func currentMediaSettingsLocked() MediaSettings {
 		HardwareAcceleration: m.HardwareAcceleration,
 		AccelDevice:              m.AccelDevice,
 		AlwaysUseFfmpeg:          m.AlwaysUseFfmpeg,
+		AlwaysUseOnlyOffice:      m.AlwaysUseOnlyOffice,
 		Transcode:                m.Transcode,
 	})
 }
@@ -229,6 +243,7 @@ func ApplyMediaSettings(s MediaSettings) {
 	Config.Integrations.Media.HardwareAcceleration = s.HardwareAcceleration
 	Config.Integrations.Media.AccelDevice = s.AccelDevice
 	Config.Integrations.Media.AlwaysUseFfmpeg = s.AlwaysUseFfmpeg
+	Config.Integrations.Media.AlwaysUseOnlyOffice = s.AlwaysUseOnlyOffice
 	Config.Integrations.Media.Transcode = s.Transcode
 	applyMediaConvertDefaults()
 	setupMediaTranscode()
