@@ -7,11 +7,10 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/internal/ffmpeg"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/gomedia"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing/iteminfo"
-	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
-	"github.com/gtsteffaniak/go-logger/logger"
 )
 
-// generateJXLPreview decodes JPEG XL via go-media (gen2brain/jxl) and returns JPEG bytes for CreatePreview.
+// generateJXLPreview decodes JPEG XL via go-media and returns JPEG bytes for CreatePreview.
+// There is no ffmpeg fallback: ffmpeg cannot decode JPEG XL.
 func (s *Service) generateJXLPreview(ctx context.Context, file iteminfo.ExtendedFileInfo, previewSize string) ([]byte, error) {
 	imageBytes, err := s.convertJXLToJPEG(ctx, file.RealPath, previewSize)
 	if err != nil {
@@ -21,27 +20,15 @@ func (s *Service) generateJXLPreview(ctx context.Context, file iteminfo.Extended
 }
 
 func (s *Service) convertJXLToJPEG(ctx context.Context, filePath string, previewSize string) ([]byte, error) {
-	if s.ffmpegService == nil {
-		return nil, fmt.Errorf("FFmpeg service is not available")
-	}
 	if ctx.Err() != nil {
 		return nil, ctx.Err()
 	}
 
-	qualityStr := heicLegacyQualityString(previewSize)
-	goQuality := ffmpeg.PreviewQualityFromLegacyQScale(qualityStr)
+	goQuality := ffmpeg.PreviewQualityFromLegacyQScale(heicLegacyQualityString(previewSize))
 
-	shadowCtx := context.WithoutCancel(ctx)
-	legacy := func() ([]byte, bool) {
-		data, err := s.ffmpegService.ConvertImageToJPEG(shadowCtx, filePath, 0, 0, qualityStr)
-		return data, err == nil && len(data) > 0
-	}
-	if data, ok := gomedia.JXLJPEG(filePath, goQuality, legacy); ok {
+	// legacy is nil: no ffmpeg shadow comparison for JXL.
+	if data, ok := gomedia.JXLJPEG(filePath, goQuality, nil); ok {
 		return data, nil
 	}
-
-	if settings.Env.IsDevMode {
-		logger.Debugf("go-media jxl jpeg unavailable for %s; using ffmpeg", filePath)
-	}
-	return s.ffmpegService.ConvertImageToJPEG(ctx, filePath, 0, 0, qualityStr)
+	return nil, fmt.Errorf("go-media could not decode JPEG XL file %s", filePath)
 }
