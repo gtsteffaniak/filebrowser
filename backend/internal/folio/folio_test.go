@@ -27,7 +27,6 @@ func TestRenderPageJPEG_txt(t *testing.T) {
 }
 
 func TestRenderPageJPEG_unsupportedExtension(t *testing.T) {
-	// Uses default settings in test; document that unsupported path returns ok=false.
 	data, ok, err := RenderPageJPEG(t.Context(), "/nonexistent/file.xyz", 0, RenderOptions{})
 	require.NoError(t, err)
 	require.False(t, ok)

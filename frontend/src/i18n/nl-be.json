@@ -1257,6 +1257,8 @@
     "encoderBackend": "Encoder-backend",
     "transcodeProfileEncoderBackendHelp": "Encoder-backend voor deze voorinstelling; standaard is dit de gedetecteerde voorkeursbackend.",
     "alwaysUseFfmpeg": "Gebruik altijd ffmpeg",
-    "alwaysUseFfmpegDescription": "Sla de snelle route via go-media over en gebruik ffmpeg voor alle analyses, metagegevens, ondertitels en videominiaturen. Schakel deze optie in als go-media onjuiste resultaten oplevert voor je bestanden."
+    "alwaysUseFfmpegDescription": "Gebruik altijd ffmpeg voor het analyseren van bestanden, metagegevens, ondertitels en videominiaturen. Dit gaat weliswaar langzamer, maar is vaak betrouwbaarder.",
+    "alwaysUseOffice": "Gebruik altijd de kantoorserver voor miniatuurafbeeldingen van documenten",
+    "alwaysUseOfficeDescription": "Gebruik altijd de kantoorserver voor miniatuurafbeeldingen van documenten in plaats van de miniatuurgeneratie tijdens de verwerking. Dit gaat weliswaar langzamer, maar is mogelijk betrouwbaarder."
   }
 }

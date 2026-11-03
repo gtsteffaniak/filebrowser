@@ -1257,6 +1257,8 @@
     "encoderBackend": "Backend kodéra",
     "transcodeProfileEncoderBackendHelp": "Backend enkodéra pre toto prednastavenie; predvolene sa nastaví na zistený preferovaný backend.",
     "alwaysUseFfmpeg": "Vždy používajte ffmpeg",
-    "alwaysUseFfmpegDescription": "Vynechajte rýchlu cestu cez go-media a na všetky operácie s dátami, metadátami, titulkami a náhľadmi videí použite ffmpeg. Túto možnosť zapnite, ak go-media poskytuje nesprávne výsledky pre vaše súbory."
+    "alwaysUseFfmpegDescription": "Na analýzu, metadáta, titulky a náhľady videí vždy používajte ffmpeg. Bude to síce pomalšie, ale môže to byť spoľahlivejšie.",
+    "alwaysUseOffice": "Na vytváranie náhľadov dokumentov vždy používajte firemný server",
+    "alwaysUseOfficeDescription": "Na vytváranie náhľadov dokumentov vždy používajte kancelársky server namiesto generovania náhľadov priamo v procese. Bude to síce pomalšie, ale môže to byť spoľahlivejšie."
   }
 }

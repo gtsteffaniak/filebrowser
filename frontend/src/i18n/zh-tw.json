@@ -1257,6 +1257,8 @@
     "encoderBackend": "編碼器後端",
     "transcodeProfileEncoderBackendHelp": "此預設值的編碼器後端；預設為偵測到的首選後端。",
     "alwaysUseFfmpeg": "請務必使用 ffmpeg",
-    "alwaysUseFfmpegDescription": "跳過 go-media 的快速路徑，改用 ffmpeg 來處理所有檔案檢測、元資料、字幕及影片縮圖。若 go-media 對您的檔案產生錯誤結果，請啟用此選項。"
+    "alwaysUseFfmpegDescription": "在進行探測、元資料處理、字幕處理及影片縮圖生成時，請務必使用 ffmpeg。雖然這樣會比較慢，但可靠性通常更高。",
+    "alwaysUseOffice": "請始終使用辦公室伺服器來生成文件縮圖",
+    "alwaysUseOfficeDescription": "生成文件縮圖時，請務必使用辦公室伺服器，而非在處理過程中直接生成縮圖。雖然這樣會較慢，但可靠性更高。"
   }
 }
