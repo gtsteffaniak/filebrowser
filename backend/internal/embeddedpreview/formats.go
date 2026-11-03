@@ -19,13 +19,19 @@ var imageExts = map[string]bool{".jpg": true, ".jpeg": true, ".png": true, ".web
 
 // pickFirstEntry returns the first named entry that exists and has data.
 func pickFirstEntry(zr *zip.Reader, names ...string) (Result, error) {
+	return pickFirstValidEntry(zr, func([]byte) bool { return true }, names...)
+}
+
+// pickFirstValidEntry returns the first named entry that exists, has data, and passes valid.
+// A candidate that fails valid is skipped, so the next name is tried.
+func pickFirstValidEntry(zr *zip.Reader, valid func([]byte) bool, names ...string) (Result, error) {
 	for _, name := range names {
 		f := findEntry(zr, name)
 		if f == nil {
 			continue
 		}
 		data, err := readEntry(f)
-		if err != nil || len(data) == 0 {
+		if err != nil || len(data) == 0 || !valid(data) {
 			continue
 		}
 		return Result{Data: data, Ext: strings.ToLower(path.Ext(f.Name))}, nil
@@ -34,8 +40,9 @@ func pickFirstEntry(zr *zip.Reader, names ...string) (Result, error) {
 }
 
 // Krita stores a flattened composite at the root. preview.png is the fallback.
+// An oversized or corrupt mergedimage.png is skipped in favour of preview.png.
 func pickKrita(zr *zip.Reader) (Result, error) {
-	return pickFirstEntry(zr, "mergedimage.png", "preview.png")
+	return pickFirstValidEntry(zr, Usable, "mergedimage.png", "preview.png")
 }
 
 // OpenRaster stores a merged image at the root and an optional thumbnail.

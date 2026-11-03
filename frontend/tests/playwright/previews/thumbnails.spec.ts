@@ -35,11 +35,19 @@ test("full html viewer shows relative images and videos", async ({ page }) => {
 
   const video = frame.locator("video");
   await expect(video).toHaveCount(1);
-  await expect(video).toHaveAttribute("src", /sample-640x480\.mp4$/);
+  // The src is the media stream URL, so the filename is followed by query parameters.
+  await expect(video).toHaveAttribute("src", /file=%2Fmyfolder%2Ftestdata%2Fsample-640x480\.mp4(&|$)/);
 });
 
 test("full html viewer shows the remote image", async ({ page }) => {
-  // Needs network access to filebrowserquantum.com; the image is not served from this server.
+  // The remote host is stubbed so the test does not need network access.
+  const png = Buffer.from(
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
+    "base64",
+  );
+  await page.route("https://filebrowserquantum.com/**", (route) =>
+    route.fulfill({ status: 200, contentType: "image/png", body: png }),
+  );
   await page.goto(`${FILES_DIR}nested/child.html`);
   const frame = page.frameLocator("iframe.html-content");
 

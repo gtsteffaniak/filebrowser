@@ -35,20 +35,46 @@ func extract(t *testing.T, name, path string) (Result, error) {
 }
 
 func TestKrita_mergedImageThenPreview(t *testing.T) {
+	merged, preview := pngBytes(t, 8, 8), pngBytes(t, 4, 4)
 	p := writeZip(t, "art.kra", map[string][]byte{
-		"mergedimage.png": []byte("merged"),
-		"preview.png":     []byte("preview"),
+		"mergedimage.png": merged,
+		"preview.png":     preview,
 	})
 	res, err := extract(t, "art.kra", p)
 	require.NoError(t, err)
-	require.Equal(t, []byte("merged"), res.Data)
+	require.Equal(t, merged, res.Data)
 	require.Equal(t, ".png", res.Ext)
 	require.False(t, res.Oriented)
 
-	p = writeZip(t, "fallback.kra", map[string][]byte{"preview.png": []byte("preview")})
+	p = writeZip(t, "fallback.kra", map[string][]byte{"preview.png": preview})
 	res, err = extract(t, "fallback.kra", p)
 	require.NoError(t, err)
-	require.Equal(t, []byte("preview"), res.Data)
+	require.Equal(t, preview, res.Data)
+}
+
+// An oversized mergedimage.png must not hide a usable preview.png.
+func TestKrita_oversizedMergedImageFallsBackToPreview(t *testing.T) {
+	preview := pngBytes(t, 4, 4)
+	p := writeZip(t, "big.kra", map[string][]byte{
+		"mergedimage.png": pngWithDeclaredSize(t, 10000, 10000),
+		"preview.png":     preview,
+	})
+	res, err := extract(t, "big.kra", p)
+	require.NoError(t, err)
+	require.Equal(t, preview, res.Data)
+}
+
+// A truncated mergedimage.png is skipped the same way.
+func TestKrita_truncatedMergedImageFallsBackToPreview(t *testing.T) {
+	full := pngBytes(t, 256, 256)
+	preview := pngBytes(t, 4, 4)
+	p := writeZip(t, "cut.kra", map[string][]byte{
+		"mergedimage.png": full[:len(full)/2],
+		"preview.png":     preview,
+	})
+	res, err := extract(t, "cut.kra", p)
+	require.NoError(t, err)
+	require.Equal(t, preview, res.Data)
 }
 
 func TestKrita_missingImage(t *testing.T) {

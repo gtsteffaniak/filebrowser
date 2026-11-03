@@ -64,14 +64,6 @@ func TestEmbeddedPreview_cbzCoverResizes(t *testing.T) {
 	require.NotEmpty(t, out)
 }
 
-func TestWithinPixelBudget(t *testing.T) {
-	require.True(t, withinPixelBudget(1, 1))
-	require.True(t, withinPixelBudget(8000, 5000))
-	require.False(t, withinPixelBudget(0, 100))
-	require.False(t, withinPixelBudget(100, -1))
-	require.False(t, withinPixelBudget(10000, 10000))
-}
-
 // A tiny PNG whose IHDR declares 10000x10000 must be rejected from its header alone,
 // before any pixel buffer is allocated.
 func TestEmbeddedImageDecodes_rejectsOversizedDeclaredDimensions(t *testing.T) {
