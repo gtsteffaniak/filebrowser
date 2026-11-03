@@ -128,18 +128,16 @@ const hasClearable = computed(() =>
 );
 
 const orderedItems = computed(() => {
-  const running: DownloadItem[] = [];
-  const waiting: DownloadItem[] = [];
+  const active: DownloadItem[] = [];
   const finished: DownloadItem[] = [];
   for (const entry of downloads.value) {
-    if (entry.status === "downloading") running.push(entry);
-    else if (entry.status === "completed") finished.push(entry);
-    else waiting.push(entry);
+    if (entry.status === "completed") finished.push(entry);
+    else active.push(entry);
   }
-  return [...running, ...waiting, ...finished];
+  return [...active, ...finished];
 });
 
-const REORDER_INTERVAL_MS = 500;
+const REORDER_INTERVAL_MS = 800;
 const sortedItems = shallowRef(orderedItems.value);
 let lastReorder = 0;
 let reorderTimer: ReturnType<typeof setTimeout> | undefined;

@@ -231,18 +231,16 @@ let conflictResolver: ((resolution: UploadConflictResolution) => void) | null = 
 let wakeLock: WakeLockSentinel | null = null;
 
 const orderedItems = computed(() => {
-  const running: UploadItem[] = [];
-  const waiting: UploadItem[] = [];
+  const active: UploadItem[] = [];
   const finished: UploadItem[] = [];
   for (const entry of files.value) {
-    if (entry.status === "uploading") running.push(entry);
-    else if (entry.status === "completed") finished.push(entry);
-    else waiting.push(entry);
+    if (entry.status === "completed") finished.push(entry);
+    else active.push(entry);
   }
-  return [...running, ...waiting, ...finished];
+  return [...active, ...finished];
 });
 
-const REORDER_INTERVAL_MS = 500;
+const REORDER_INTERVAL_MS = 800;
 const sortedItems = shallowRef(orderedItems.value);
 let lastReorder = 0;
 let reorderTimer: ReturnType<typeof setTimeout> | undefined;
