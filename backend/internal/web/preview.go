@@ -129,7 +129,7 @@ func shouldServeOriginalPreview(ext string, resizable bool, realPath, previewSiz
 	}
 	// HEIC/TIFF still need conversion for reliable web display.
 	switch ext {
-	case ".heic", ".heif", ".tiff", ".tif":
+	case ".heic", ".heif", ".jxl", ".tiff", ".tif":
 		return false
 	}
 	const maxSizeForOriginal = 256 * 1024 // 256KB

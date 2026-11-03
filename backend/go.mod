@@ -21,7 +21,7 @@ require (
 	github.com/gtsteffaniak/go-cache v1.1.0
 	github.com/gtsteffaniak/go-ffmpeg v1.6.2
 	github.com/gtsteffaniak/go-logger v1.1.0
-	github.com/gtsteffaniak/go-media v1.1.1-0.20261101153307-79181a6c2ed9
+	github.com/gtsteffaniak/go-media v1.2.0
 	github.com/kovidgoyal/imaging v1.9.0
 	github.com/pquerna/otp v1.5.0
 	github.com/spf13/afero v1.15.0
@@ -54,7 +54,9 @@ require (
 	github.com/dustin/go-humanize v1.1.0 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.6 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.16 // indirect
+	github.com/gen2brain/gav1d v0.2.6 // indirect
 	github.com/gen2brain/h265 v0.2.4 // indirect
+	github.com/gen2brain/jxl v0.2.0 // indirect
 	github.com/gen2brain/vpx v0.2.1 // indirect
 	github.com/go-asn1-ber/asn1-ber v1.5.8 // indirect
 	github.com/go-errors/errors v1.5.1 // indirect
@@ -78,7 +80,7 @@ require (
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/go-tpm v0.9.8 // indirect
-	github.com/gtsteffaniak/go-av1 v0.0.0-20261101031208-03767868b89d // indirect
+	github.com/gtsteffaniak/go-av1 v1.0.0 // indirect
 	github.com/gtsteffaniak/go-vpx v1.0.1 // indirect
 	github.com/kovidgoyal/go-parallel v1.1.1 // indirect
 	github.com/kovidgoyal/go-shm v1.0.0 // indirect

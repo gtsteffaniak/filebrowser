@@ -229,6 +229,7 @@ const (
 	previewTypeDocument filePreviewType = iota
 	previewTypeOffice
 	previewTypeHEIC
+	previewTypeJXL
 	previewTypeImage
 	previewTypeVideo
 	previewTypeAudio
@@ -251,6 +252,11 @@ func determinePreviewType(file iteminfo.ExtendedFileInfo) filePreviewType {
 	if strings.HasPrefix(file.Type, "image/heic") &&
 		settings.CanConvertImage(string(settings.HEICImagePreview)) {
 		return previewTypeHEIC
+	}
+
+	if (file.Type == "image/jxl" || strings.HasSuffix(strings.ToLower(file.Name), ".jxl")) &&
+		settings.CanConvertImage(string(settings.JXLImagePreview)) {
+		return previewTypeJXL
 	}
 
 	// Check by MIME type prefix
@@ -279,6 +285,9 @@ func (s *Service) generateRawPreview(ctx context.Context, file iteminfo.Extended
 
 	case previewTypeHEIC:
 		return s.generateHEICPreview(ctx, file, previewSize)
+
+	case previewTypeJXL:
+		return s.generateJXLPreview(ctx, file, previewSize)
 
 	case previewTypeImage:
 		ext := strings.ToLower(filepath.Ext(file.Name))

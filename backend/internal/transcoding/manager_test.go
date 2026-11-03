@@ -715,6 +715,8 @@ func TestManagerReusesWithinProducedCoverage(t *testing.T) {
 	in := testInput(t, "viewer", "/v.mp4")
 	in.UserLimit = 2
 	first := mustStart(t, mgr, in)
+	// The fake engine starts asynchronously; wait for that start before counting.
+	waitForStarts(t, engine, 1)
 	genDir := sessionJobDir(t, mgr, first.ID)
 	waitForPlaylistFile(t, genDir)
 	writeProducedRange(t, genDir, 0, 5, false)

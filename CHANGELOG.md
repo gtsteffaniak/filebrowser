@@ -5,19 +5,19 @@ All notable changes to this project will be documented in this file. For commit 
 ## v2.2.0
 
  **New Features**:
- - Core web assets are loaded into memory instead of served from disk.
- - Media enhancements
-   - All server media settings can be managed in settings by admins.
-   - Transcoding for media playback with quality presets -- requires ffmpeg.
-   - Hardware Acceleration device selector (Software / detected GPU devices)
-   - More operations use native api operations rather than ffmpeg, improving performance in many cases. Added temporary config option to force ffmpeg to be used
-   - Running without ffmpeg can still view metadata and create thumbnails for many common file formats.
-   - Document enhancements
-     - Official Collabora support using WOPI config.
-     - Document previews use a pure-go in-process package (all versions get it now).
-     - Added **Always use office for document previews** to force OnlyOffice/Collabora.
-     - Office previews can use embedded thumbnail if possible.
-     - Text file previews are more efficient direct creation.
+  - Core web assets are loaded into memory instead of served from disk.
+  - Media enhancements
+    - All server media settings can be managed in settings by admins.
+    - JXL image preview support (#3334) (#2551)
+    - Transcoding for media playback with quality presets -- requires ffmpeg.
+    - Hardware Acceleration device selector (Software / detected GPU devices)
+    - More operations use native api operations rather than ffmpeg, improving performance in many cases. Added temporary config option to force ffmpeg to be used
+  - Document enhancements
+    - Official Collabora support using WOPI config.
+    - Document previews use a pure-go in-process package (all versions get it now).
+    - Added **Always use office for document previews** to force OnlyOffice/Collabora.
+    - Office previews can use embedded thumbnail if possible.
+    - Text file previews are more efficient direct creation.
 
  **Notes**:
  - **Document preview formats:** In-process thumbnails no longer cover **`.xps`** or **`.cbz`** (previously via MuPDF). New in-process support includes **`.azw3`**, **`.chm`**, **`.htm`**, and **`.html`** (along with existing PDF, EPUB, MOBI, FB2, SVG, Office Open XML, Markdown, and plain text). **`.hwp`** and **`.hwpx`** still use the office converter when it is configured; other legacy office types (for example `.doc`, `.rtf`, `.odt`) continue to rely on the office integration for thumbnails.
