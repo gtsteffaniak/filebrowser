@@ -1257,6 +1257,8 @@
     "encoderBackend": "Enkoder arka ucu",
     "transcodeProfileEncoderBackendHelp": "Bu ön ayar için kodlayıcı arka ucu; varsayılan olarak algılanan tercih edilen arka uç kullanılır.",
     "alwaysUseFfmpeg": "Her zaman ffmpeg'i kullanın",
-    "alwaysUseFfmpegDescription": "Go-media hızlı yolunu atlayın ve tüm tarama, meta veri, altyazı ve video küçük resimleri işlemleri için ffmpeg'i kullanın. Go-media, dosyalarınız için yanlış sonuçlar veriyorsa bu seçeneği etkinleştirin."
+    "alwaysUseFfmpegDescription": "Deneme, meta veriler, altyazılar ve video küçük resimleri için her zaman ffmpeg'i kullanın. Bu işlem daha yavaş olacaktır ancak daha güvenilir olabilir.",
+    "alwaysUseOffice": "Belge küçük resimleri için her zaman ofis sunucusunu kullanın",
+    "alwaysUseOfficeDescription": "Belge küçük resimleri için her zaman işlem içi küçük resim oluşturma yerine ofis sunucusunu kullanın. Bu yöntem daha yavaş olacaktır ancak daha güvenilir olabilir."
   }
 }

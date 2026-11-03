@@ -6402,6 +6402,10 @@ const docTemplate = `{
                     "description": "deprecated: manage via the admin media settings API",
                     "type": "boolean"
                 },
+                "alwaysUseOnlyOffice": {
+                    "description": "deprecated: skip folio previews for office converter; manage via the admin media settings API",
+                    "type": "boolean"
+                },
                 "convert": {
                     "description": "deprecated: config for ffmpeg conversion settings. deprecated: manage via the admin media settings API",
                     "allOf": [
@@ -8751,6 +8755,10 @@ const docTemplate = `{
                 },
                 "alwaysUseFfmpeg": {
                     "description": "skip the go-media fast path and use ffmpeg for all probe, metadata, subtitle, and thumbnail work (default: false)",
+                    "type": "boolean"
+                },
+                "alwaysUseOnlyOffice": {
+                    "description": "skip folio document previews and use the office converter when configured (default: false)",
                     "type": "boolean"
                 },
                 "convert": {

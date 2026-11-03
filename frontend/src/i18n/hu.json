@@ -1257,6 +1257,8 @@
     "encoderBackend": "Kódoló háttérrendszer",
     "transcodeProfileEncoderBackendHelp": "A beállításhoz tartozó kódoló háttérprogram; alapértelmezés szerint az észlelt, előnyben részesített háttérprogramot használja.",
     "alwaysUseFfmpeg": "Mindig használd az ffmpeg-et",
-    "alwaysUseFfmpegDescription": "Hagyja ki a go-media gyors útvonalat, és minden adatlekérdezéshez, metaadatokhoz, feliratokhoz és videó miniatűrökhöz használja az ffmpeg-et. Kapcsolja be, ha a go-media hibás eredményeket ad a fájljaival kapcsolatban."
+    "alwaysUseFfmpegDescription": "A vizsgálatokhoz, a metaadatokhoz, a feliratokhoz és a videó miniatűrökhöz mindig az ffmpeg-et használd. Ez ugyan lassabb lesz, de megbízhatóbb lehet.",
+    "alwaysUseOffice": "A dokumentumok miniatűrjeinek létrehozásához mindig az irodai szervert használja",
+    "alwaysUseOfficeDescription": "A dokumentumok miniatűrjeinek létrehozásához mindig az irodai szervert használja a folyamaton belüli miniatűr-készítés helyett. Ez ugyan lassabb lesz, de megbízhatóbb lehet."
   }
 }

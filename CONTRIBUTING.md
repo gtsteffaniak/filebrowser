@@ -16,10 +16,7 @@ Thank you for your interest in contributing to FileBrowser Quantum! This guide w
   - macOS: `brew install ffmpeg`
   - Windows: Download from [ffmpeg.org](https://ffmpeg.org/download.html)
 
-- **mupdf-tools**: For PDF preview generation
-  - Ubuntu/Debian: `sudo apt-get install mupdf-tools`
-  - macOS: `brew install mupdf-tools`
-  - Windows: Download from [mupdf.com](https://mupdf.com/downloads/)
+Document thumbnails (PDF, EPUB, Office Open XML, and similar) are generated in-process via [folio](https://github.com/gen2brain/folio). An optional office integration is used as a fallback for formats folio does not handle and for in-browser editing.
 
 ## Quick Start
 

@@ -20,7 +20,7 @@ type officePreviewResponse struct {
 	Error      string `json:"error"`
 }
 
-// GenerateOfficePreview generates a preview for an office document using OnlyOffice.
+// GenerateOfficePreview generates a preview for an office document using the office converter.
 // Note: Global image processor semaphore is acquired at GeneratePreviewWithMD5 level
 func (s *Service) GenerateOfficePreview(ctx context.Context, filetype, key, title, url string) ([]byte, error) {
 	data := []byte{}
@@ -84,7 +84,7 @@ func (s *Service) GenerateOfficePreview(ctx context.Context, filetype, key, titl
 		return data, fmt.Errorf("could not decode JSON: %w", err)
 	}
 	if response.Error != "" {
-		return data, fmt.Errorf("error from OnlyOffice: %s", response.Error)
+		return data, fmt.Errorf("error from office converter: %s", response.Error)
 	}
 
 	thumbReq, err := http.NewRequestWithContext(ctx, http.MethodGet, response.FileURL, nil)

@@ -37,6 +37,7 @@ export function emptyMediaSettings() {
     hardwareAcceleration: true,
     accelDevice: 'auto',
     alwaysUseFfmpeg: false,
+    alwaysUseOnlyOffice: false,
     transcode: emptyMediaTranscode(),
   };
 }

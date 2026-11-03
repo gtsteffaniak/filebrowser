@@ -15,6 +15,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/internal/icons"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/version"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing/iteminfo"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 )
 
@@ -300,7 +301,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"transcodeEnabled":              settings.TranscodeEnabled(),
 		"transcodeProfiles":             settings.EnabledTranscodeProfiles(),
 		"transcodeMaxPerUser":           settings.TranscodeMaxConcurrentPerUser(),
-		"muPdfAvailable":                settings.Env.MuPdfAvailable,
+		"docPreviewExtensions":          iteminfo.DocPreviewExtensionsForSPA(),
 		"updateAvailable":               utils.GetUpdateAvailableUrl(),
 		"disableNavButtons":             disableNavButtons,
 		"userSelectableThemes":          settings.Config.Frontend.Styling.CustomThemeOptions,
