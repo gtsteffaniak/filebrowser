@@ -11,6 +11,7 @@ backend/dist
 backend/backend*
 backend/vendor/**
 backend/internal/web/dist/*
+!backend/internal/web/dist/.gitkeep
 
 frontend/dist/**
 frontend/node_modules/**
