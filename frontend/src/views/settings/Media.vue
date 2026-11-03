@@ -28,6 +28,12 @@
           :name="$t('media.alwaysUseFfmpeg')"
           :description="$t('media.alwaysUseFfmpegDescription')"
           @update:modelValue="save" />
+        <ToggleSwitch class="item" v-model="media.alwaysUseOnlyOffice"
+          :disabled="isLocked('alwaysUseOnlyOffice')"
+          :value-tooltip="fieldTooltip('alwaysUseOnlyOffice')"
+          :name="$t('media.alwaysUseOffice')"
+          :description="$t('media.alwaysUseOfficeDescription')"
+          @update:modelValue="save" />
         <ToggleSwitch class="item" v-model="media.debug" :name="$t('media.debug')"
           :disabled="isLocked('debug')"
           :value-tooltip="fieldTooltip('debug')"
@@ -185,6 +191,7 @@ export default {
         const { skipped, media } = await saveMediaSettingsPatch({
           accelDevice: this.media.accelDevice,
           alwaysUseFfmpeg: this.media.alwaysUseFfmpeg,
+          alwaysUseOnlyOffice: this.media.alwaysUseOnlyOffice,
           debug: this.media.debug,
           transcode: { enabled: this.media.transcode.enabled },
         }, this.lockedFromConfigPaths);

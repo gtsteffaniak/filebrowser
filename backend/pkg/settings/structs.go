@@ -56,7 +56,6 @@ type Environment struct {
 	ConfigMediaSpecifiedPaths        []string `json:"-"` // dot-paths explicitly set under integrations.media in config
 	// ConfigSourceDefaultPermissions maps permission flags explicitly set in config defaultPermissions (e.g. view -> true).
 	ConfigSourceDefaultPermissions map[string]bool `json:"-"`
-	MuPdfAvailable                 bool            `json:"-"` // used internally if compiled with mupdf support
 	EmbeddedFs                     bool            `json:"-"` // used internally if compiled with embedded fs support
 	FFmpegPath                     string          `json:"-"`
 	FFprobePath                    string          `json:"-"`
@@ -187,6 +186,7 @@ type Media struct {
 	// name substring. Managed via the admin media settings API.
 	AccelDevice     string `json:"accelDevice"`     // deprecated: manage via the admin media settings API
 	AlwaysUseFfmpeg bool   `json:"alwaysUseFfmpeg"` // deprecated: manage via the admin media settings API
+	AlwaysUseOnlyOffice bool `json:"alwaysUseOnlyOffice"` // deprecated: skip folio previews for office converter; manage via the admin media settings API
 }
 
 // MediaSettings holds the runtime (DB-backed) media integration settings.
@@ -197,6 +197,7 @@ type MediaSettings struct {
 	HardwareAcceleration bool          `json:"hardwareAcceleration"` // enable hardware acceleration for ffmpeg if available
 	AccelDevice          string        `json:"accelDevice"`          // acceleration device: "auto", "software"/"cpu", "igpu", "dgpu", a DRM render node, or a GPU name substring
 	AlwaysUseFfmpeg          bool           `json:"alwaysUseFfmpeg"`          // skip the go-media fast path and use ffmpeg for all probe, metadata, subtitle, and thumbnail work (default: false)
+	AlwaysUseOnlyOffice      bool           `json:"alwaysUseOnlyOffice"`      // skip folio document previews and use the office converter when configured (default: false)
 	Transcode                MediaTranscode `json:"transcode"`                // HLS transcoding for media playback
 }
 

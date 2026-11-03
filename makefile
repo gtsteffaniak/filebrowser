@@ -22,23 +22,18 @@ backend_dev_tool = $$(cd $(BACKEND_BUILD) && go tool -n $(1))
 .PHONY: setup update build build-docker build-docker-media build-backend build-frontend dev run generate-docs
 .PHONY: lint-frontend lint-backend lint test test-backend test-frontend check-all
 .PHONY: check-translations sync-translations test-playwright test-playwright-project test-playwright-performance playwright-base playwright-perf-base perf-check perf-smoke perf-baseline perf-dashboard run-proxy screenshots
-.PHONY: check-icons generate-icons sync-icons setup-gofitz-cgo
+.PHONY: check-icons generate-icons sync-icons
 
 setup:
 	echo "creating ./backend/test_config.yaml for local testing..."
 	if [ ! -f backend/test_config.yaml ]; then \
 		cp backend/config.yaml backend/test_config.yaml; \
 	fi
-	$(MAKE) setup-gofitz-cgo
 	echo "installing backend dev tooling..."
 	cd backend/build && go get tool
 	cd backend/internal/web && mkdir -p dist
 	echo "installing npm requirements for frontend..."
 	cd frontend && npm i
-
-setup-gofitz-cgo:
-	echo "linking go-fitz MuPDF headers for preview CGO..."
-	cd backend && go run ./scripts/setup-gofitz-cgo
 
 # todo: updating build causes issues.
 # 	cd backend/build && go get -u tool && go mod tidy
@@ -64,18 +59,18 @@ build-backend:
 
 # Local development: Vite HMR (frontend) + Air (backend)
 .NOTPARALLEL: dev
-dev: generate-docs generate-icons setup-gofitz-cgo
+dev: generate-docs generate-icons
 	@echo "Starting dev servers (Vite HMR + Air)... Press Ctrl+C to stop."
 	bash ./scripts/dev.sh
 
-run: build-frontend generate-docs setup-gofitz-cgo
+run: build-frontend generate-docs
 	cd backend && $(call backend_dev_tool,swag) init --output swagger/docs
 	@if [ "$$(uname)" = "Darwin" ]; then \
 		sed -i '' '/func init/,+3d' backend/swagger/docs/docs.go; \
 	else \
 		sed -i '/func init/,+3d' backend/swagger/docs/docs.go; \
 	fi
-	cd backend && CGO_ENABLED=1 go run --tags=mupdf,debug \
+	cd backend && CGO_ENABLED=0 go run --tags=debug \
 	--ldflags="-w -s -X 'github.com/gtsteffaniak/filebrowser/backend/internal/version.CommitSHA=testingCommit' -X 'github.com/gtsteffaniak/filebrowser/backend/internal/version.Version=testing'" . -c test_config.yaml
 
 generate-docs:

@@ -5,139 +5,61 @@ version: 2
 before:
   hooks:
     - go mod download
-    - go run ./scripts/setup-gofitz-cgo
 
 builds:
-  # Build configuration for linux amd64
-  - id: linux-amd64
+  - id: filebrowser
+    main: main.go
+    # Flat dist layout without GOAMD64/GOARM64/GORISCV64 suffix folders (e.g. _v1, _v8.0).
+    no_unique_dist_dir: true
+    binary: >-
+      {{ .Os }}-{{ .Arch }}{{ if eq .Arch "arm" }}-{{ .Arm }}{{ end }}/filebrowser
     env:
-      - CGO_ENABLED=1
-      - CC=zig cc -target x86_64-linux-musl
+      - CGO_ENABLED=0
+    flags:
+      - -trimpath
     tags:
       - analytics
-      - mupdf
-      - musl
-    ldflags: &ldflags
+    ldflags:
       - -s -w -X github.com/gtsteffaniak/filebrowser/backend/internal/version.Version=v{{ .Version }} -X github.com/gtsteffaniak/filebrowser/backend/internal/version.CommitSHA={{ .ShortCommit }}
-    main: main.go
-    binary: filebrowser
-    flags:
-      - -trimpath
     goos:
       - linux
-    goarch:
-      - amd64
-
-  # Build configuration for linux arm64
-  - id: linux-arm64
-    ldflags: *ldflags
-    main: main.go
-    binary: filebrowser
-    flags:
-      - -trimpath
-    env:
-      - CGO_ENABLED=1
-      - CC=zig cc -target aarch64-linux-musl
-    tags:
-      - analytics
-      - mupdf
-      - musl
-    goos:
-      - linux
-    goarch:
-      - arm64
-
-  # Build configuration for linux riscv64
-  - id: linux-riscv64
-    ldflags: *ldflags
-    main: main.go
-    binary: filebrowser
-    flags:
-      - -trimpath
-    env:
-      - CC=zig cc -target riscv64-linux-musl
-    # go-fitz does not provide riscv64 MuPDF libraries yet: https://github.com/gen2brain/go-fitz/tree/master/libs
-    tags:
-      - analytics
-      - musl
-    goos:
-      - linux
-    goarch:
-      - riscv64
-
-  # Build configuration for linux
-  - id: linux-arm32
-    ldflags: *ldflags
-    main: main.go
-    binary: filebrowser
-    flags:
-      - -trimpath
-    tags:
-      - analytics
-    goos:
-      - linux
-    goarch:
-      - arm
-    goarm:
-      - "6"
-      - "7"
-
-  # Build configuration for windows without arm
-  - id: windows
-    env:
-      - CGO_ENABLED=1
-      # windows-gnu avoids zig rejecting Go's -tsaware when cross-compiling from macOS
-      - CC=zig cc -target x86_64-windows-gnu -lc
-    tags:
-      - analytics
-      - mupdf
-    ldflags: *ldflags
-    main: main.go
-    binary: filebrowser
-    flags:
-      - -trimpath
-    goos:
       - windows
-    goarch:
-      - amd64
-
-  # Build configuration for freebsd without arm
-  - id: freeBSD and freebsd-arm
-    ldflags: *ldflags
-    main: main.go
-    binary: filebrowser
-    flags:
-      - -trimpath
-    tags:
-      - analytics
-    goos:
+      - darwin
       - freebsd
     goarch:
       - amd64
-
-  # Build configuration for macos (no mupdf: CGO cross-compile from Linux CI is unsupported)
-  - id: macos
-    ldflags: *ldflags
-    main: main.go
-    binary: filebrowser
-    flags:
-      - -trimpath
-    tags:
-      - analytics
-    goos:
-      - darwin
-    goarch:
       - arm64
-      - amd64
+      - arm
+      - riscv64
+    goarm:
+      - "6"
+      - "7"
+    ignore:
+      - goos: windows
+        goarch: arm
+      - goos: windows
+        goarch: riscv64
+      - goos: darwin
+        goarch: arm
+      - goos: darwin
+        goarch: riscv64
+      - goos: freebsd
+        goarch: arm
+      - goos: freebsd
+        goarch: arm64
+      - goos: freebsd
+        goarch: riscv64
 
 archives:
   - name_template: >
       {{- if eq .Os "windows" -}}
-      {{.ProjectName}}
+      {{.ProjectName}}{{ if ne .Arch "amd64" }}-{{ .Arch }}{{ end }}
+      {{- else if eq .Arch "arm" -}}
+      {{.Os}}-arm-{{ .Arm }}-{{.ProjectName}}
       {{- else -}}
-      {{.Os}}-{{.Arch}}{{if .Arm}}v{{.Arm}}{{end}}-{{.ProjectName}}
+      {{.Os}}-{{.Arch}}-{{.ProjectName}}
       {{- end -}}
-    formats: [ 'binary' ]
-
-checksum:
-  disable: true
+    formats: ["tar.gz"]
+    format_overrides:
+      - goos: windows
+        formats: ["zip"]

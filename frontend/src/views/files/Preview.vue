@@ -215,28 +215,12 @@ export default {
       return false;
     },
     pdfConvertable() {
-      if (!globalVars.muPdfAvailable) {
-        return false;
-      }
-      const ext = `.${state.req.name.split(".").pop().toLowerCase()}`; // Ensure lowercase and dot
+      const ext = `.${state.req.name.split(".").pop().toLowerCase()}`;
       if (state.user.disableViewingExt.includes(ext)) {
         return false;
       }
-      switch (ext) {
-        case '.xps':
-        case '.mobi':
-        case '.fb2':
-        case '.cbz':
-        case '.svg':
-        case '.docx':
-        case '.pptx':
-        case '.xlsx':
-        case '.hwp':
-        case '.hwpx':
-          return true;
-        default:
-          return false;
-      }
+      const list = globalVars.docPreviewExtensions || [];
+      return list.includes(ext.slice(1));
     },
     sidebarShowing() {
       return getters.isSidebarVisible();

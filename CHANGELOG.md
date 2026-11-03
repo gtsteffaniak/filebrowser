@@ -12,10 +12,15 @@ All notable changes to this project will be documented in this file. For commit 
    - Hardware Acceleration device selector (Software / detected GPU devices)
    - More operations use native api operations rather than ffmpeg, improving performance in many cases. Added temporary config option to force ffmpeg to be used
    - Running without ffmpeg can still view metadata and create thumbnails for many common file formats.
+  - Document enhancments
+   - Official Collabera support using WOPI config.
+   - document previews use a pure-go in-process package (all versions get it now)
+   - Added **Always use office for document previews** to force onlyoffice/collabra.
   # office previews can use embedded thumbnail if possible
   # text file previews are more efficient direct creation
 
  **Notes**:
+ - **Document preview formats:** In-process thumbnails no longer cover **`.xps`** or **`.cbz`** (previously via MuPDF). New in-process support includes **`.azw3`**, **`.chm`**, **`.htm`**, and **`.html`** (along with existing PDF, EPUB, MOBI, FB2, SVG, Office Open XML, Markdown, and plain text). **`.hwp`** and **`.hwpx`** still use the office converter when it is configured; other legacy office types (for example `.doc`, `.rtf`, `.odt`) continue to rely on the office integration for thumbnails.
  - Smaller binaries: the Swagger UI serves only the four files it needs instead of the full swagger-ui bundle
  - UPX compression is removed from release builds.
  - Runtime debug tooling (pprof) is only compiled in with `-tags debug`. Dev targets (`make run`, `make dev`) enable it automatically.

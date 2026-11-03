@@ -1,5 +1,3 @@
-//go:build mupdf
-
 package preview
 
 import (
@@ -10,83 +8,88 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gtsteffaniak/filebrowser/backend/internal/folio"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing/iteminfo"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
-func docEnabled() bool {
-	// This function checks if the PDF support is enabled.
-	// In a real implementation, this might check a build tag or configuration.
-	return true
-}
-
 func (s *Service) GenerateImageFromDoc(ctx context.Context, file iteminfo.ExtendedFileInfo, tempFilePath string, pageNumber int, previewSize string) ([]byte, error) {
-	// Check if context is cancelled before starting
 	if ctx.Err() != nil {
 		return nil, ctx.Err()
 	}
 
 	docPath := file.RealPath
-	// copy file to a temporary location if needed
 	if strings.HasPrefix(file.Type, "text") && !strings.HasSuffix(file.RealPath, ".txt") {
 		originalFile, err := os.Open(file.RealPath)
 		if err != nil {
 			logger.Errorf("text snippet preview: failed to open file '%s': %v", file.Name, err)
 			return nil, fmt.Errorf("text snippet: failed to open file")
 		}
-		defer originalFile.Close() // Ensure original file is closed
+		defer originalFile.Close()
 
-		buffer := make([]byte, 1024) // Buffer for up to 1KB
+		buffer := make([]byte, 1024)
 		n, readErr := originalFile.Read(buffer)
-		if readErr != nil && readErr != io.EOF { // io.EOF is not an error if some bytes were read
+		if readErr != nil && readErr != io.EOF {
 			logger.Errorf("text snippet preview: failed to read file '%s': %v", file.Name, readErr)
 			return nil, fmt.Errorf("text snippet: failed to read file")
 		}
-
 		if n == 0 {
 			return nil, fmt.Errorf("text snippet: file is empty or unreadable")
-		} else {
-			tempFile, err := os.Create(tempFilePath)
-			if err != nil {
-				logger.Errorf("text snippet preview: failed to create temp file for '%s': %v", file.Name, err)
-				return nil, fmt.Errorf("text snippet: failed to create temporary file")
-			}
-			defer os.Remove(tempFilePath) // Ensure cleanup on error
-			// Write the read content (up to 1KB or EOF) to the temporary file
-			if _, err := tempFile.Write(buffer[:n]); err != nil {
-				tempFile.Close()        // Attempt to close
-				os.Remove(tempFilePath) // Clean up on error
-				logger.Errorf("text snippet preview: failed to write temp file for '%s': %v", file.Name, err)
-				return nil, fmt.Errorf("text snippet: failed to write temporary file")
-			}
-
-			// Close the temporary file so it can be reliably opened by path by other processes/functions
-			if err := tempFile.Close(); err != nil {
-				os.Remove(tempFilePath) // Clean up on error
-				logger.Errorf("text snippet preview: failed to close temp file for '%s': %v", file.Name, err)
-				return nil, fmt.Errorf("text snippet: failed to close temporary file")
-			}
-
-			docPath = tempFilePath // Update docPath to point to the new temporary text snippet file
 		}
+
+		tempFile, err := os.Create(tempFilePath)
+		if err != nil {
+			logger.Errorf("text snippet preview: failed to create temp file for '%s': %v", file.Name, err)
+			return nil, fmt.Errorf("text snippet: failed to create temporary file")
+		}
+		defer os.Remove(tempFilePath)
+		if _, err := tempFile.Write(buffer[:n]); err != nil {
+			tempFile.Close()
+			os.Remove(tempFilePath)
+			logger.Errorf("text snippet preview: failed to write temp file for '%s': %v", file.Name, err)
+			return nil, fmt.Errorf("text snippet: failed to write temporary file")
+		}
+		if err := tempFile.Close(); err != nil {
+			os.Remove(tempFilePath)
+			logger.Errorf("text snippet preview: failed to close temp file for '%s': %v", file.Name, err)
+			return nil, fmt.Errorf("text snippet: failed to close temporary file")
+		}
+		docPath = tempFilePath
 	}
 
 	timeoutCtx, cancel := context.WithTimeout(ctx, 2*time.Second)
 	defer cancel()
 
-	if timeoutCtx.Err() != nil {
-		return nil, fmt.Errorf("document preview generation timed out after 2 seconds for '%s'", file.Name)
-	}
-
-	imageBytes, err := s.renderDocPageJPEG(timeoutCtx, docPath, pageNumber, previewSize)
+	opts, err := folioRenderOptions(previewSize)
 	if err != nil {
-		logger.Errorf("document preview render failed for '%s': %v", file.Name, err)
-		return nil, fmt.Errorf("failed to create document preview")
+		return nil, err
 	}
 
+	imageBytes, ok, err := folio.RenderPageJPEG(timeoutCtx, docPath, pageNumber, opts)
+	if !ok {
+		if err != nil {
+			return nil, err
+		}
+		return nil, nil
+	}
 	if timeoutCtx.Err() != nil {
 		return nil, fmt.Errorf("document preview generation timed out after 2 seconds for '%s'", file.Name)
 	}
-
 	return imageBytes, nil
+}
+
+func folioRenderOptions(previewSize string) (folio.RenderOptions, error) {
+	if previewSize == "original" {
+		return folio.RenderOptions{Original: true, JpegQuality: QualityHigh.jpegQuality()}, nil
+	}
+	opts, err := getPreviewOptions(previewSize)
+	if err != nil {
+		return folio.RenderOptions{}, err
+	}
+	return folio.RenderOptions{
+		MaxWidth:    opts.Width,
+		MaxHeight:   opts.Height,
+		Fill:        opts.ResizeMode == ResizeModeFill,
+		JpegQuality: opts.Quality.jpegQuality(),
+	}, nil
 }

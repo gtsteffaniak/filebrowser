@@ -12,12 +12,12 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/diskcache"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/fileutils"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/ffmpeg"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/folio"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/imagemeta"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing/iteminfo"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
@@ -37,7 +37,6 @@ type Service struct {
 	fileCache     diskcache.Interface
 	cacheDir      string // Cache directory used for thumbnails and temp files
 	debug         bool
-	docGenMutex   sync.Mutex            // Mutex to serialize access to doc generation (required for CGO thread safety with go-fitz)
 	ffmpegService *ffmpeg.FFmpegService // Shared FFmpeg service for video and HEIC/JPEG fallback
 	imageSem      chan struct{}         // Semaphore for small image decode/encode (<8MB)
 	imageLargeSem chan struct{}         // Semaphore for large image decode/encode (>=8MB), nil if only 1 processor
@@ -112,7 +111,6 @@ func NewPreviewGenerator(concurrencyLimit int, cacheDir string) *Service {
 
 	// Total max memory = concurrencyLimit × 50MB
 	// Example: concurrencyLimit=10 → ~500MB max
-	settings.Env.MuPdfAvailable = docEnabled()
 
 	return &Service{
 		fileCache:     fileCache,
@@ -274,7 +272,7 @@ func (s *Service) generateRawPreview(ctx context.Context, file iteminfo.Extended
 
 	switch previewType {
 	case previewTypeDocument:
-		return s.generateDocumentPreview(ctx, file, previewSize, hash)
+		return s.generateDocumentPreview(ctx, file, previewSize, officeUrl, hash)
 
 	case previewTypeOffice:
 		return s.generateOfficeFilePreview(ctx, file, officeUrl)
@@ -306,17 +304,26 @@ func (s *Service) generateRawPreview(ctx context.Context, file iteminfo.Extended
 	}
 }
 
-// generateDocumentPreview generates preview for PDF and document files
-func (s *Service) generateDocumentPreview(ctx context.Context, file iteminfo.ExtendedFileInfo, previewSize, hash string) ([]byte, error) {
+// generateDocumentPreview generates preview via folio, with office converter fallback.
+func (s *Service) generateDocumentPreview(ctx context.Context, file iteminfo.ExtendedFileInfo, previewSize, officeUrl, hash string) ([]byte, error) {
 	tempFilePath := filepath.Join(s.cacheDir, "thumbnails", "docs", hash) + ".txt"
-	imageBytes, err := s.GenerateImageFromDoc(ctx, file, tempFilePath, 0, previewSize) // 0 for the first page
+	imageBytes, err := s.GenerateImageFromDoc(ctx, file, tempFilePath, 0, previewSize)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create image for PDF file: %w", err)
+		if file.OnlyOfficeId != "" {
+			return s.generateOfficeFilePreview(ctx, file, officeUrl)
+		}
+		return nil, fmt.Errorf("failed to create image for document file: %w", err)
 	}
-	return imageBytes, nil
+	if len(imageBytes) > 0 {
+		return imageBytes, nil
+	}
+	if file.OnlyOfficeId != "" {
+		return s.generateOfficeFilePreview(ctx, file, officeUrl)
+	}
+	return nil, fmt.Errorf("failed to create image for document file: no folio or office preview")
 }
 
-// generateOfficeFilePreview generates preview for Office files via OnlyOffice
+// generateOfficeFilePreview generates preview for office files via the office converter
 func (s *Service) generateOfficeFilePreview(ctx context.Context, file iteminfo.ExtendedFileInfo, officeUrl string) ([]byte, error) {
 	imageBytes, err := s.GenerateOfficePreview(ctx, filepath.Ext(file.Name), file.OnlyOfficeId, file.Name, officeUrl)
 	if err != nil {
@@ -439,9 +446,9 @@ func GeneratePreviewWithMD5(ctx context.Context, file iteminfo.ExtendedFileInfo,
 		return nil, ctx.Err()
 	}
 
-	// MuPDF document previews render at target size in CGO; they only need docGenMutex.
+	// Folio document previews render at target size in-process; they skip imageSem.
 	previewTypeEarly := determinePreviewType(file)
-	skipImageSem := previewTypeEarly == previewTypeDocument && settings.Env.MuPdfAvailable
+	skipImageSem := previewTypeEarly == previewTypeDocument && folio.Enabled() && iteminfo.HasDocConvertableExtension(file.Name, file.Type)
 	if !skipImageSem {
 		const largeFileSizeThreshold = 8 * 1024 * 1024 // 8MB
 		if file.Size >= largeFileSizeThreshold && service.imageLargeSem != nil {
@@ -512,7 +519,7 @@ func GeneratePreviewWithMD5(ctx context.Context, file iteminfo.ExtendedFileInfo,
 	// Video thumbnails come from go-media or ffmpeg already sized to the preview
 	// box, so they are final and need no ffmpeg gate here.
 	if !fromEmbeddedPreview && (previewType == previewTypeImage ||
-		(previewType == previewTypeDocument && settings.Env.MuPdfAvailable) ||
+		(previewType == previewTypeDocument && folio.Enabled() && iteminfo.HasDocConvertableExtension(file.Name, file.Type)) ||
 		previewType == previewTypeVideo) {
 		if err := service.fileCache.Store(ctx, cacheKey, imageBytes); err != nil {
 			logger.Errorf("failed to cache image: %v", err)
