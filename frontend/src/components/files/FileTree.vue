@@ -217,9 +217,14 @@ const virtual = useListingVirtualization<TreeRow>({
 });
 
 let rootRequest = 0; // a slow answer for an old source must not replace the nodes of the current one
+let rootReloadPending = false;
 
 async function loadRoot() {
-  if (expanding.value) return;
+  if (expanding.value) {
+    rootReloadPending = true;
+    loading.value = true;
+    return;
+  }
   const request = ++rootRequest;
   error.value = null;
   rootLoaded.value = false;
@@ -431,6 +436,13 @@ async function expandToPath(targetPath: string) {
     console.error('Error expanding path:', err);
   } finally {
     expanding.value = false;
+    if (rootReloadPending) {
+      rootReloadPending = false;
+      void loadRoot().then(() => {
+        pendingExpandPath.value = props.currentPath;
+        return tryExpandNodes();
+      });
+    }
   }
 }
 
@@ -571,13 +583,15 @@ function handleDragOver(event: DragEvent, node: TreeNode) {
 
 function findNodeByPath(path: string): TreeNode | null {
   let level: TreeNode[] | null = rootNodes.value;
-  let found: TreeNode | null = null;
-  for (const part of path.split('/').filter(Boolean)) {
-    found = level?.find((n) => n.name === part) ?? null;
-    if (!found) return null;
-    level = found.children;
+  while (level) {
+    const exact = level.find((n) => n.path === path);
+    if (exact) return exact;
+    const parent: TreeNode | undefined = level.find(
+      (n) => n.isDir && path.startsWith(`${normalizedNodePath(n)}/`)
+    );
+    level = parent?.children ?? null;
   }
-  return found;
+  return null;
 }
 
 function clearAllDragStates() {
@@ -780,6 +794,8 @@ function isSelected(node: TreeNode) {
 }
 
 watch([treeSource, shareHash], async ([source, hash]) => {
+  rootNodes.value = [];
+  rootLoaded.value = false;
   if (!source && !hash) return;
   await loadRoot();
   void tryExpandNodes();
