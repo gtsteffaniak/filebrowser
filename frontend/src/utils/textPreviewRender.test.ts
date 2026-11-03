@@ -26,6 +26,37 @@ describe("sanitizeTileHtml", () => {
     expect(out).not.toContain("poster");
   });
 
+  it("removes legacy background attributes so table tiles make no requests", () => {
+    const out = sanitizeTileHtml('<table background="https://example.com/x.png"><tr><td background="https://example.com/x.png">a</td><th background="https://example.com/x.png">b</th></tr></table>');
+    expect(out).toContain("<td>a</td>");
+    expect(out).not.toContain("example.com");
+    expect(out).not.toContain("background");
+  });
+
+  it("never renders images, whether relative, absolute, or CSS backgrounds", () => {
+    const out = sanitizeTileHtml(
+      '<img src="rel.png"><picture><source srcset="https://example.com/a.webp"><img src="b.jpg"></picture>' +
+        '<svg><image href="https://example.com/c.png"></image><use href="https://example.com/s.svg#i"></use></svg>' +
+        '<div style="background:url(https://example.com/d.png)">x</div><input type="image" src="https://example.com/e.png">',
+    );
+    expect(out).not.toContain("<img");
+    expect(out).not.toContain("<picture");
+    expect(out).not.toContain("<image");
+    expect(out).not.toContain("example.com");
+    expect(out).not.toContain("rel.png");
+    expect(out).not.toContain("b.jpg");
+  });
+
+  it("omits video from thumbnails, including its fallback text", () => {
+    const out = sanitizeTileHtml(
+      '<video controls src="https://example.com/v.mp4" poster="https://example.com/p.jpg">fallback</video><source src="https://example.com/s.mp4"><p>after</p>',
+    );
+    expect(out).not.toContain("<video");
+    expect(out).not.toContain("fallback");
+    expect(out).not.toContain("example.com");
+    expect(out).toContain("<p>after</p>");
+  });
+
   it("drops document styles and style attributes", () => {
     const out = sanitizeTileHtml('<style>body{display:none}</style><p style="color:red">x</p>');
     expect(out).not.toContain("<style");
@@ -66,8 +97,9 @@ describe("renderMarkdownTile", () => {
   });
 
   it("removes images so markdown tiles do not fetch remote content", () => {
-    const out = renderMarkdownTile("![logo](https://example.com/logo.png)");
-    expect(out).toContain("<img");
+    const out = renderMarkdownTile("![logo](https://example.com/logo.png)\n\n![rel](images/a.png)");
+    expect(out).not.toContain("<img");
     expect(out).not.toContain("example.com");
+    expect(out).not.toContain("images/a.png");
   });
 });

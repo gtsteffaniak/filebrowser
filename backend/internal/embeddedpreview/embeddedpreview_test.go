@@ -6,6 +6,7 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -164,4 +165,24 @@ func TestSupports(t *testing.T) {
 
 func TestNaturalKey_ordersNumbers(t *testing.T) {
 	require.Less(t, naturalKey("page2.jpg"), naturalKey("page10.jpg"))
+	require.Less(t, naturalKey("page002.jpg"), naturalKey("page010.jpg"))
+}
+
+// Digit runs longer than any fixed padding width must not panic and must still sort numerically.
+func TestNaturalKey_longDigitRuns(t *testing.T) {
+	long := strings.Repeat("9", 40)
+	require.NotPanics(t, func() { naturalKey("p" + long + ".jpg") })
+	require.Less(t, naturalKey("page10.jpg"), naturalKey("page"+long+".jpg"))
+	require.Less(t, naturalKey("page"+long+".jpg"), naturalKey("page1"+long+".jpg"))
+}
+
+func TestCBZ_longPageNumbersDoNotPanic(t *testing.T) {
+	long := strings.Repeat("1", 25)
+	p := writeZip(t, "comic.cbz", map[string][]byte{
+		"page" + long + ".jpg": []byte("long"),
+		"page2.jpg":            []byte("two"),
+	})
+	res, err := extract(t, "comic.cbz", p)
+	require.NoError(t, err)
+	require.Equal(t, []byte("two"), res.Data)
 }

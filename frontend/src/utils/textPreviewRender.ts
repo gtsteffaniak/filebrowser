@@ -1,5 +1,6 @@
 import DOMPurify from "dompurify";
 import { Marked } from "marked";
+import { IMAGE_FORBID_ATTR, IMAGE_FORBID_TAGS, withImagePolicy } from "./imagePolicy.ts";
 
 /** Renderer kinds returned by GET /api/resources/preview/text. */
 export type TextPreviewKind = "plain" | "csv" | "markdown" | "html" | "css" | "code" | "rtf";
@@ -20,13 +21,17 @@ const TILE_SANITIZE_CONFIG = {
   FORBID_TAGS: [
     "style", "link", "meta", "base", "iframe", "object", "embed",
     "form", "button", "textarea", "select", "script",
+    ...IMAGE_FORBID_TAGS,
+    // Thumbnails omit video. The full viewer keeps it.
+    "video",
   ],
-  FORBID_ATTR: ["style"],
+  FORBID_ATTR: ["style", ...IMAGE_FORBID_ATTR],
 };
 
 // Attributes that make the browser fetch or navigate. Removed only while sanitizing tiles,
 // so the shared DOMPurify instance behaves the same for MarkdownViewer.vue.
-const URL_ATTRIBUTES = ["src", "srcset", "href", "xlink:href", "poster", "data", "action", "formaction"];
+// "background" is a legacy attribute on table, td, and th that browsers fetch as an image.
+const URL_ATTRIBUTES = ["src", "srcset", "href", "xlink:href", "poster", "data", "action", "formaction", "background"];
 
 let tileMode = false;
 DOMPurify.addHook("afterSanitizeAttributes", (node: Element) => {
@@ -47,7 +52,7 @@ DOMPurify.addHook("afterSanitizeAttributes", (node: Element) => {
 export function sanitizeTileHtml(html: string): string {
   tileMode = true;
   try {
-    return DOMPurify.sanitize(html, TILE_SANITIZE_CONFIG) as string;
+    return withImagePolicy(() => DOMPurify.sanitize(html, TILE_SANITIZE_CONFIG) as string);
   } finally {
     tileMode = false;
   }

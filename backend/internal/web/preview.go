@@ -325,7 +325,13 @@ func PreviewHelperFunc(w http.ResponseWriter, r *http.Request, d *Context) (int,
 		return http.StatusInternalServerError, err
 	}
 	w.Header().Set("Cache-Control", "private")
-	w.Header().Set("Content-Type", "image/jpeg")
+	// Embedded previews can be returned unchanged (PNG, GIF, WebP), so sniff the bytes
+	// instead of assuming JPEG. Generated previews are JPEG and sniff as such.
+	contentType := http.DetectContentType(previewImg)
+	if !strings.HasPrefix(contentType, "image/") {
+		contentType = "image/jpeg"
+	}
+	w.Header().Set("Content-Type", contentType)
 	http.ServeContent(w, r, d.FileInfo.Name+"-preview.jpg", d.FileInfo.ModTime, bytes.NewReader(previewImg))
 	return 0, nil
 }

@@ -3,6 +3,10 @@ package preview
 import (
 	"bytes"
 	"context"
+	"encoding/binary"
+	"hash/crc32"
+	"image"
+	"image/png"
 	"io"
 	"os"
 	"path/filepath"
@@ -58,4 +62,30 @@ func TestEmbeddedPreview_cbzCoverResizes(t *testing.T) {
 	out, err := svc.CreatePreview(context.Background(), bytes.NewReader(embedded.Data), int64(len(embedded.Data)), options)
 	require.NoError(t, err)
 	require.NotEmpty(t, out)
+}
+
+func TestWithinPixelBudget(t *testing.T) {
+	require.True(t, withinPixelBudget(1, 1))
+	require.True(t, withinPixelBudget(8000, 5000))
+	require.False(t, withinPixelBudget(0, 100))
+	require.False(t, withinPixelBudget(100, -1))
+	require.False(t, withinPixelBudget(10000, 10000))
+}
+
+// A tiny PNG whose IHDR declares 10000x10000 must be rejected from its header alone,
+// before any pixel buffer is allocated.
+func TestEmbeddedImageDecodes_rejectsOversizedDeclaredDimensions(t *testing.T) {
+	var buf bytes.Buffer
+	require.NoError(t, png.Encode(&buf, image.NewGray(image.Rect(0, 0, 1, 1))))
+	data := buf.Bytes()
+
+	// IHDR chunk: length(4) "IHDR"(4) width(4) height(4) ... crc(4). Chunk starts at offset 8.
+	binary.BigEndian.PutUint32(data[16:20], 10000)
+	binary.BigEndian.PutUint32(data[20:24], 10000)
+	binary.BigEndian.PutUint32(data[29:33], crc32.ChecksumIEEE(data[12:29]))
+
+	cfg, _, err := image.DecodeConfig(bytes.NewReader(data))
+	require.NoError(t, err)
+	require.Equal(t, 10000, cfg.Width)
+	require.False(t, embeddedImageDecodes(data))
 }

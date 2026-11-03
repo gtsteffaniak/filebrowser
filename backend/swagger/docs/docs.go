@@ -5278,7 +5278,7 @@ const docTemplate = `{
                         }
                     },
                     "403": {
-                        "description": "Share unavailable or access denied",
+                        "description": "Share unavailable, access denied, or the file viewer is disabled for this share",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {

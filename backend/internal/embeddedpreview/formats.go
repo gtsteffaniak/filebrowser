@@ -165,9 +165,16 @@ func readEntry(f *zip.File) ([]byte, error) {
 
 var digitRun = regexp.MustCompile(`\d+`)
 
-// naturalKey makes "page2" sort before "page10" by zero-padding digit runs.
+// naturalKey makes "page2" sort before "page10" by rewriting each digit run as a
+// fixed-width length prefix followed by the run without leading zeros. Comparing those
+// keys orders runs numerically, and it works for runs of any length (no padding that
+// could go negative on long digit runs).
 func naturalKey(name string) string {
 	return digitRun.ReplaceAllStringFunc(strings.ToLower(name), func(d string) string {
-		return strings.Repeat("0", 20-len(d)) + d
+		digits := strings.TrimLeft(d, "0")
+		if digits == "" {
+			digits = "0"
+		}
+		return fmt.Sprintf("%06d%s", len(digits), digits)
 	})
 }

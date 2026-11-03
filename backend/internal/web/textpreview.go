@@ -76,6 +76,7 @@ func textPreviewHandler(w http.ResponseWriter, r *http.Request, d *Context) (int
 // @Failure 404 {object} map[string]string "File not found"
 // @Failure 415 {object} map[string]string "File type is not supported for text preview, or the file is binary"
 // @Failure 500 {object} map[string]string "Internal server error"
+// @Failure 403 {object} map[string]string "Share unavailable, access denied, or the file viewer is disabled for this share"
 // @Failure 501 {object} map[string]string "Previews disabled globally, for this share, or for upload shares"
 // @Router /public/api/resources/preview/text [get]
 func publicTextPreviewHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
@@ -84,6 +85,12 @@ func publicTextPreviewHandler(w http.ResponseWriter, r *http.Request, d *Context
 	}
 	if d.Share.ShareType == "upload" {
 		return http.StatusNotImplemented, fmt.Errorf("preview is disabled for upload shares")
+	}
+	// A text preview shows file content, so it counts as viewing. Apply the same rules the
+	// share middleware uses to clear content: disabled file viewer, or download limit reached.
+	reachedDownloadsLimit := d.Share.Downloads >= d.Share.DownloadsLimit && d.Share.DownloadsLimit > 0
+	if d.Share.DisableFileViewer || reachedDownloadsLimit {
+		return http.StatusForbidden, fmt.Errorf("file viewer is disabled for this share")
 	}
 	return serveTextPreview(w, r, &d.FileInfo)
 }
