@@ -519,7 +519,7 @@ class UploadManager {
       ) {
         const openDirs = new Set(
           this.queue
-            .filter((item) => item.type === "directory" && (item.status === "pending" || item.status === "uploading"))
+            .filter((item) => item.type === "directory" && item.status !== "completed")
             .map((item) => item.path)
         );
         const isReady = (item: UploadItem) => item.status === "pending" && !this.hasOpenParent(item, openDirs);
@@ -874,6 +874,17 @@ class UploadManager {
       this.abortUpload(upload);
     }
     this.clearProgressTimeout(id);
+    // Cancelling a directory cancels everything under it
+    if (upload?.type === "directory") {
+      for (let i = this.queue.length - 1; i >= 0; i--) {
+        const child = this.queue[i];
+        if (child && child.id !== id && child.path.startsWith(upload.path)) {
+          this.abortUpload(child);
+          this.clearProgressTimeout(child.id);
+          this.queue.splice(i, 1);
+        }
+      }
+    }
     const index = this.queue.findIndex((item) => item.id === id);
     if (index !== -1) {
       this.queue.splice(index, 1);

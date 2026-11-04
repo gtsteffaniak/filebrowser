@@ -41,7 +41,6 @@
                 :unit="download.status === 'completed' || download.status === 'error' ? '' : 'bytes'"
                 :max="download.size"
                 :status="download.status"
-                :help-text="virtual.active.value ? formatDownloadError(download) : ''"
                 text-position="inside"
                 size="20">
               </ProgressBar>
@@ -66,7 +65,7 @@
               </button>
             </div>
           </div>
-          <div v-if="download.status === 'error' && !virtual.active.value" class="error-banner" role="alert">
+          <div v-if="download.status === 'error'" class="error-banner" role="alert">
             {{ formatDownloadError(download) }}
           </div>
         </div>
