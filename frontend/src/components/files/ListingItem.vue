@@ -98,6 +98,7 @@ import { globalVars } from "@/utils/constants";
 import downloadFiles from "@/utils/download";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { getKindKey } from "@/utils/mimetype";
+import { isTextPreviewableName } from "@/utils/textPreview";
 import { hasCachedThumbnailBlob } from "@/utils/cache/imageCache.ts";
 import { formatDuration } from "@/utils/files.js";
 import { getObjectProperty } from '@/utils/object.js';
@@ -380,6 +381,11 @@ export default {
       if (!globalVars.enableThumbs) {
         return "";
       }
+      // Only text-previewable names have a preview; other items must never build a URL
+      // (a DuplicateFinder row can pass a text-like name with no source).
+      if (!isTextPreviewableName(this.name)) {
+        return "";
+      }
       let previewPath;
       if (this.path) {
         previewPath = this.path;
@@ -388,13 +394,15 @@ export default {
       } else {
         return "";
       }
+      // getTextPreviewURL throws without a source; return "" so the icon falls back.
+      const source = this.source || state.req?.source;
       if (this.forceFilesApi) {
-        return resourcesApi.getTextPreviewURL(this.source || state.req?.source, previewPath);
+        return source ? resourcesApi.getTextPreviewURL(source, previewPath) : "";
       }
       if (getters.isShare()) {
         return resourcesApi.getTextPreviewURLPublic(previewPath);
       }
-      return resourcesApi.getTextPreviewURL(this.source || state.req?.source, previewPath);
+      return source ? resourcesApi.getTextPreviewURL(source, previewPath) : "";
     },
     isClickable() {
       return this.clickable;

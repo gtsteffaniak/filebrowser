@@ -5,7 +5,6 @@ import type { TextPreviewPayload } from "@/utils/textPreviewRender.ts";
 // Text previews are small (about 16KB), so the frontend keeps a bounded in-memory cache.
 // Each key includes the modified time, so a changed file is fetched again on next view.
 const MAX_CACHE_ENTRIES = 200;
-const cache = new Map<string, Promise<TextPreviewPayload>>();
 
 /** Tiles narrower than this show an indicator instead of rendered markdown/HTML/CSV. */
 export const MIN_TEXT_PREVIEW_WIDTH_PX = 60;
@@ -53,9 +52,29 @@ const MAX_CONCURRENT_LOADS = 8;
 let activeLoads = 0;
 const queue: Array<() => void> = [];
 
-function runQueued<T>(task: () => Promise<T>): Promise<T> {
+interface QueueEntry {
+  start: () => void;
+  started: boolean;
+}
+
+function runQueued<T>(task: () => Promise<T>, signal: AbortSignal | undefined): Promise<T> {
   return new Promise<T>((resolve, reject) => {
-    const start = () => {
+    const entry: QueueEntry = { start: () => {}, started: false };
+    const onAbort = () => {
+      // Drop the still-queued entry so an unmounted tile cannot hold a slot. When the
+      // request has already started, the abort signal rejects the in-flight fetch instead.
+      if (entry.started) {
+        return;
+      }
+      const i = queue.indexOf(entry.start);
+      if (i !== -1) {
+        queue.splice(i, 1);
+      }
+      reject(abortError());
+    };
+    entry.start = () => {
+      entry.started = true;
+      signal?.removeEventListener("abort", onAbort);
       activeLoads++;
       task()
         .then(resolve, reject)
@@ -65,10 +84,15 @@ function runQueued<T>(task: () => Promise<T>): Promise<T> {
           if (next) next();
         });
     };
+    if (signal?.aborted) {
+      reject(abortError());
+      return;
+    }
+    signal?.addEventListener("abort", onAbort, { once: true });
     if (activeLoads < MAX_CONCURRENT_LOADS) {
-      start();
+      entry.start();
     } else {
-      queue.push(start);
+      queue.push(entry.start);
     }
   });
 }
@@ -77,7 +101,7 @@ function abortError(): DOMException {
   return new DOMException("Aborted", "AbortError");
 }
 
-async function requestTextPreview(url: string, signal?: AbortSignal): Promise<TextPreviewPayload> {
+async function requestTextPreview(url: string, signal: AbortSignal | undefined): Promise<TextPreviewPayload> {
   if (signal?.aborted) {
     throw abortError();
   }
@@ -94,36 +118,80 @@ async function requestTextPreview(url: string, signal?: AbortSignal): Promise<Te
       throw new Error(`Text preview request failed: ${res.status}`);
     }
     return (await res.json()) as TextPreviewPayload;
-  });
+  }, signal);
 }
+
+interface TextPreviewCacheEntry {
+  promise: Promise<TextPreviewPayload>;
+  controller: AbortController;
+  /** Number of mounted consumers (tile and/or popup) that still need this request. */
+  refs: number;
+  /** True once the request has resolved or rejected and is safe to keep without a consumer. */
+  settled?: boolean;
+}
+
+const cache = new Map<string, TextPreviewCacheEntry>();
 
 /**
  * Fetches a text preview, reusing a cached result for the same URL and modified time.
- * Failed requests are not cached, so a later view can retry.
+ * Failed requests are not cached, so a later view can retry. Each call takes a
+ * reference; the matching releaseTextPreview call lets a still-pending request be
+ * aborted once every consumer has unmounted.
  */
 export function fetchTextPreview(url: string, modified: string | null): Promise<TextPreviewPayload> {
-  const key = `${url}|${modified ?? ""}`;
-  const cached = cache.get(key);
-  if (cached !== undefined) {
-    // Re-insert to mark as most recently used.
-    cache.delete(key);
-    cache.set(key, cached);
-    return cached;
+  const key = textPreviewCacheKey(url, modified);
+  const existing = cache.get(key);
+  if (existing !== undefined) {
+    existing.refs++;
+    return existing.promise;
   }
-  const request = requestTextPreview(url);
-  cache.set(key, request);
+  const controller = new AbortController();
+  const entry: TextPreviewCacheEntry = {
+    promise: new Promise<TextPreviewPayload>(() => {}),
+    controller,
+    refs: 1,
+    settled: false,
+  };
+  // Mark settled as soon as the request finishes so a later release never aborts a
+  // result that is already available (the popup reopen / scroll-back case).
+  entry.promise = requestTextPreview(url, controller.signal).finally(() => {
+    entry.settled = true;
+  });
+  cache.set(key, entry);
   if (cache.size > MAX_CACHE_ENTRIES) {
-    const oldest = cache.keys().next().value;
-    if (oldest !== undefined) {
-      cache.delete(oldest);
+    const oldestKey = cache.keys().next().value;
+    if (oldestKey !== undefined) {
+      cache.get(oldestKey)?.controller.abort();
+      cache.delete(oldestKey);
     }
   }
-  request.catch(() => {
-    if (cache.get(key) === request) {
+  entry.promise.catch(() => {
+    if (cache.get(key) === entry) {
       cache.delete(key);
     }
   });
-  return request;
+  return entry.promise;
+}
+
+/**
+ * Drops the reference taken by fetchTextPreview. When the last consumer releases, the
+ * in-flight request is aborted and removed, so queued work for unmounted tiles does not
+ * delay previews for the folder the user is actually looking at. Requests still shared
+ * by an active consumer are kept.
+ */
+export function releaseTextPreview(url: string, modified: string | null): void {
+  const key = textPreviewCacheKey(url, modified);
+  const entry = cache.get(key);
+  if (entry === undefined) {
+    return;
+  }
+  entry.refs--;
+  // Only abort a request that has not finished. A settled result stays cached so the
+  // popup can reopen (and virtualization can scroll back) without re-fetching.
+  if (entry.refs <= 0 && !entry.settled) {
+    entry.controller.abort();
+    cache.delete(key);
+  }
 }
 
 // Final sanitized/rendered HTML is the expensive part of a text preview. Virtualization
@@ -161,6 +229,9 @@ export function setRenderedTextPreview(key: string, html: string): void {
 
 /** Test helper: clears the in-memory text preview caches. */
 export function clearTextPreviewCache(): void {
+  for (const entry of cache.values()) {
+    entry.controller.abort();
+  }
   cache.clear();
   renderedCache.clear();
 }

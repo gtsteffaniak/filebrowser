@@ -7,6 +7,7 @@ import {
   languageFromPath,
   languageFromPreviewUrl,
   MIN_TEXT_PREVIEW_WIDTH_PX,
+  releaseTextPreview,
   setRenderedTextPreview,
   textPreviewCacheKey,
 } from "./textPreview.ts";
@@ -96,5 +97,43 @@ describe("fetchTextPreview cache", () => {
     await expect(fetchTextPreview("/u", null)).rejects.toThrow("415");
     await expect(fetchTextPreview("/u", null)).resolves.toMatchObject({ content: "ok" });
     expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe("releaseTextPreview", () => {
+  afterEach(() => {
+    clearTextPreviewCache();
+    vi.unstubAllGlobals();
+  });
+
+  it("keeps a settled result after the last consumer releases", async () => {
+    const fetchMock = vi.fn(async () => new Response(JSON.stringify({ content: "x", kind: "plain", format: "text", truncated: false, size: 1 }), { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await fetchTextPreview("/u", "1");
+    // The popup/tile unmounts after the fetch resolved.
+    releaseTextPreview("/u", "1");
+
+    // Reopening must reuse the cached result, not fetch again.
+    await fetchTextPreview("/u", "1");
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("aborts a pending request when its last consumer unmounts", async () => {
+    let observedSignal: AbortSignal | undefined;
+    const fetchMock = vi.fn((_url: string, init?: RequestInit) => {
+      observedSignal = init?.signal ?? undefined;
+      // Never resolves on its own; only aborts when the consumer goes away.
+      return new Promise<Response>((_resolve, reject) => {
+        observedSignal?.addEventListener("abort", () => reject(new DOMException("Aborted", "AbortError")));
+      });
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const pending = fetchTextPreview("/u", "1");
+    expect(observedSignal?.aborted).toBe(false);
+    releaseTextPreview("/u", "1");
+    expect(observedSignal?.aborted).toBe(true);
+    await expect(pending).rejects.toThrow(/Aborted/);
   });
 });

@@ -58,7 +58,9 @@ test("hovering a small tile still opens the text preview popup", async ({ page }
   await ensureListingViewMode(page, "list");
 
   const item = page.locator('a[aria-label="index.html"]');
-  await item.hover();
+  // The popup handler lives on the small .image-preview Icon, not the full-width list row,
+  // so hover the first preview icon (the quick-download icon can add a second one).
+  await item.locator(".image-preview").first().hover();
   const popup = page.locator(".popup-preview .text-preview");
   await popup.waitFor({ state: "visible" });
   await expect(popup).toContainText("Relative path resolution");

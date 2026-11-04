@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/files"
-	"github.com/gtsteffaniak/filebrowser/backend/internal/textpreview"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/preview"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing/iteminfo"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
@@ -24,7 +24,7 @@ import (
 // @Produce json
 // @Param path query string true "File path of the text file to preview"
 // @Param source query string true "Source name"
-// @Success 200 {object} textpreview.Result "Text preview content"
+// @Success 200 {object} preview.TextPreviewResult "Text preview content"
 // @Failure 400 {object} map[string]string "Invalid request path"
 // @Failure 403 {object} map[string]string "User is not allowed to view files in this source"
 // @Failure 404 {object} map[string]string "File not found"
@@ -71,7 +71,7 @@ func textPreviewHandler(w http.ResponseWriter, r *http.Request, d *Context) (int
 // @Produce json
 // @Param hash query string true "Share hash for authentication"
 // @Param path query string true "File path within the share to preview"
-// @Success 200 {object} textpreview.Result "Text preview content"
+// @Success 200 {object} preview.TextPreviewResult "Text preview content"
 // @Failure 403 {object} map[string]string "Share unavailable or access denied"
 // @Failure 404 {object} map[string]string "File not found"
 // @Failure 415 {object} map[string]string "File type is not supported for text preview, or the file is binary"
@@ -105,17 +105,13 @@ func serveTextPreview(w http.ResponseWriter, r *http.Request, info *iteminfo.Ext
 	if kind == "" {
 		return http.StatusUnsupportedMediaType, fmt.Errorf("unsupported file type for text preview")
 	}
-	// Bound concurrent reads and RTF conversions with the text preview's own
-	// limiter, so a listing of many text files cannot open an unbounded number
-	// of file handles at once. Separate from the image pipeline's semaphore.
-	if err := textpreview.Acquire(r.Context()); err != nil {
-		return http.StatusInternalServerError, err
-	}
-	defer textpreview.Release()
-	result, err := textpreview.Read(info.RealPath, kind)
+	// Bound concurrent reads and RTF conversions with the preview service's shared
+	// image-processor semaphore, so a listing of many text files cannot open an
+	// unbounded number of file handles at once.
+	result, err := preview.GetTextPreview(r.Context(), info.RealPath, kind)
 	if err != nil {
 		switch {
-		case errors.Is(err, textpreview.ErrNotText):
+		case errors.Is(err, preview.ErrNotText):
 			return http.StatusUnsupportedMediaType, err
 		case errors.Is(err, os.ErrNotExist):
 			return http.StatusNotFound, fmt.Errorf("file not found")

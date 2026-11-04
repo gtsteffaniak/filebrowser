@@ -15,7 +15,6 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/internal/icons"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/preview"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
-	"github.com/gtsteffaniak/filebrowser/backend/internal/textpreview"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/transcoding"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/version"
@@ -218,9 +217,6 @@ func rootCMD(ctx context.Context, serverConfig *settings.Server, a *app.App, shu
 	if err != nil {
 		logger.Fatalf("Error starting preview service: %v", err)
 	}
-	// Bound concurrent text preview reads/conversions with the same worker count
-	// the image pipeline uses, but on a separate limiter.
-	textpreview.SetConcurrency(numWorkers)
 	// Generate PWA icons after preview service is initialized
 	if err := icons.GeneratePWAIcons(); err != nil {
 		logger.Warningf("Failed to generate PWA icons: %v", err)

@@ -30,6 +30,7 @@ import {
   fetchTextPreview,
   getRenderedTextPreview,
   languageFromPreviewUrl,
+  releaseTextPreview,
   setRenderedTextPreview,
   textPreviewCacheKey,
 } from "@/utils/textPreview.ts";
@@ -129,7 +130,12 @@ async function updateHighlight(): Promise<void> {
   const cacheKeyWithLang = `${cacheKey.value}|hl`;
   const cached = getRenderedTextPreview(cacheKeyWithLang);
   if (cached !== undefined) {
-    highlighted.value = cached;
+    // The cached markup is theme-independent, but the highlight.js style element is not,
+    // so the theme must still be applied on a theme switch or when a tile mounts from cache.
+    await applyHighlightTheme(isDark.value);
+    if (token === highlightId) {
+      highlighted.value = cached;
+    }
     return;
   }
   highlighted.value = null;
@@ -157,7 +163,12 @@ watch([payload, language, isDark], () => {
 
 watch(
   [() => props.url, () => props.modified],
-  async ([url, modified]) => {
+  async ([url, modified], previous) => {
+    // Release the reference held for the previous url/modified pair (if any) so its
+    // queued request can be canceled once no mounted consumer still needs it.
+    if (previous) {
+      releaseTextPreview(previous[0] as string, (previous[1] as string | null) ?? null);
+    }
     const current = ++requestId;
     status.value = "loading";
     payload.value = null;
@@ -176,9 +187,12 @@ watch(
 );
 
 onBeforeUnmount(() => {
-  // Drop any in-flight result so it never updates an unmounted tile.
+  // Drop any in-flight result so it never updates an unmounted tile, and release the
+  // request reference so queued previews for unmounted tiles stop competing with the
+  // folder the user is actually viewing.
   requestId++;
   highlightId++;
+  releaseTextPreview(props.url, props.modified ?? null);
 });
 </script>
 
@@ -231,7 +245,9 @@ onBeforeUnmount(() => {
   overflow: hidden;
   /* Lay out at a readable width and let the tile clip, instead of wrapping aggressively */
   min-width: var(--text-preview-min-width, 320px);
-  font-size: 3.4cqw;
+  /* Scale with the tile, but never below a legible floor: at the 60px inline threshold
+     3.4cqw is only ~2px, so the floor keeps the smallest tiles readable. */
+  font-size: max(3.4cqw, 8px);
   line-height: 1.35;
   text-align: left;
   overflow-wrap: anywhere;

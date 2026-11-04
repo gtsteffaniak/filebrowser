@@ -1,6 +1,7 @@
-package textpreview
+package preview
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"strings"
@@ -43,15 +44,15 @@ func TestReadTruncatesAndKeepsUTF8Valid(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "big.txt")
 	// Multibyte characters so the 16KB cut is likely to land inside one.
-	content := strings.Repeat("\u00e9\n", MaxBytes)
+	content := strings.Repeat("\u00e9\n", MaxTextPreviewBytes)
 	require.NoError(t, os.WriteFile(path, []byte(content), 0o600))
 
-	res, err := Read(path, "plain")
+	res, err := ReadTextPreview(path, "plain")
 	require.NoError(t, err)
 	require.True(t, res.Truncated)
 	require.Equal(t, "plain", res.Kind)
 	require.Equal(t, "text", res.Format)
-	require.LessOrEqual(t, len(res.Content), MaxBytes)
+	require.LessOrEqual(t, len(res.Content), MaxTextPreviewBytes)
 	require.True(t, strings.HasSuffix(res.Content, "\u00e9"), "cut must land on a whole line")
 	require.Equal(t, int64(len(content)), res.Size)
 }
@@ -60,7 +61,7 @@ func TestReadSmallFileNotTruncated(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "small.md")
 	require.NoError(t, os.WriteFile(path, []byte("# Title\n"), 0o600))
 
-	res, err := Read(path, "markdown")
+	res, err := ReadTextPreview(path, "markdown")
 	require.NoError(t, err)
 	require.False(t, res.Truncated)
 	require.Equal(t, "# Title\n", res.Content)
@@ -70,7 +71,7 @@ func TestReadRTFReturnsHTML(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "doc.rtf")
 	require.NoError(t, os.WriteFile(path, []byte(`{\rtf1 Hi\par There}`), 0o600))
 
-	res, err := Read(path, "rtf")
+	res, err := ReadTextPreview(path, "rtf")
 	require.NoError(t, err)
 	require.Equal(t, "html", res.Format)
 	require.Equal(t, "<p>Hi</p><p>There</p>", res.Content)
@@ -80,7 +81,7 @@ func TestReadRejectsBinary(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "data.txt")
 	require.NoError(t, os.WriteFile(path, []byte("text\x00binary"), 0o600))
 
-	_, err := Read(path, "plain")
+	_, err := ReadTextPreview(path, "plain")
 	require.ErrorIs(t, err, ErrNotText)
 }
 
@@ -88,7 +89,44 @@ func TestReadReplacesInvalidUTF8(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "latin1.txt")
 	require.NoError(t, os.WriteFile(path, []byte("caf\xe9"), 0o600))
 
-	res, err := Read(path, "plain")
+	res, err := ReadTextPreview(path, "plain")
 	require.NoError(t, err)
 	require.Equal(t, "caf\uFFFD", res.Content)
+}
+
+// A single-processor service has a one-slot imageSem, so text previews must serialize
+// behind it rather than racing ahead of image work.
+func TestServiceReadTextPreviewSharesImageSemaphore(t *testing.T) {
+	svc := NewPreviewGenerator(1, t.TempDir())
+	path := filepath.Join(t.TempDir(), "notes.md")
+	require.NoError(t, os.WriteFile(path, []byte("# Title\n"), 0o600))
+
+	res, err := svc.ReadTextPreview(t.Context(), path, "markdown")
+	require.NoError(t, err)
+	require.Equal(t, "# Title\n", res.Content)
+	require.Equal(t, 0, len(svc.imageSem), "permit must be released after the read")
+}
+
+func TestServiceReadTextPreviewHonoursCancellation(t *testing.T) {
+	svc := NewPreviewGenerator(1, t.TempDir())
+	path := filepath.Join(t.TempDir(), "notes.md")
+	require.NoError(t, os.WriteFile(path, []byte("# Title\n"), 0o600))
+
+	// Hold the only permit, then confirm a cancelled caller does not block forever.
+	require.NoError(t, svc.acquireImageSem(t.Context()))
+	defer svc.releaseImageSem()
+
+	ctx, cancel := context.WithCancel(t.Context())
+	cancel()
+	_, err := svc.ReadTextPreview(ctx, path, "markdown")
+	require.ErrorIs(t, err, context.Canceled)
+}
+
+func TestGetTextPreviewWithoutService(t *testing.T) {
+	original := service
+	service = nil
+	t.Cleanup(func() { service = original })
+
+	_, err := GetTextPreview(t.Context(), "ignored.md", "markdown")
+	require.ErrorIs(t, err, ErrPreviewServiceUnavailable)
 }
