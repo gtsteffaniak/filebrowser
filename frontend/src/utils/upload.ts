@@ -885,7 +885,7 @@ class UploadManager {
     if (upload?.type === "directory") {
       for (let i = this.queue.length - 1; i >= 0; i--) {
         const child = this.queue[i];
-        if (child && child.id !== id && child.path.startsWith(upload.path)) {
+        if (child && child.id !== id && child.batchId === upload.batchId && child.path.startsWith(upload.path)) {
           this.abortUpload(child);
           this.clearProgressTimeout(child.id);
           this.queue.splice(i, 1);
