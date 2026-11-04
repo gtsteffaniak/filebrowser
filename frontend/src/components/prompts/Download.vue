@@ -88,7 +88,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref } from "vue";
+import { computed, onBeforeUnmount, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { getters } from "@/store";
 import { downloadManager } from "@/utils/downloadManager";
@@ -140,6 +140,11 @@ const virtual = useListingVirtualization<{ download: DownloadItem; index: number
   itemClass: "download-item-wrapper",
   minItems: 10,
 });
+
+watch(
+  () => downloads.value.map((download) => download.status).join(),
+  () => void virtual.refresh(),
+);
 
 onBeforeUnmount(() => {
   downloadManager.reset();

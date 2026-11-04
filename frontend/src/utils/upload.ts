@@ -1,4 +1,4 @@
-import { reactive } from "vue";
+import { reactive, toRaw } from "vue";
 import { resourcesApi } from "@/api/index.js";
 import { getters, mutations, state } from "@/store/index.ts";
 import { notify } from "@/notify/index.ts";
@@ -21,6 +21,7 @@ export type UploadRequest = Promise<unknown> & {
 export interface UploadItem {
   id: number;
   sessionId: string;
+  batchId?: number;
   name: string;
   size: number;
   progress: number;
@@ -157,6 +158,7 @@ class UploadManager {
   queue: UploadItem[] = reactive<UploadItem[]>([]);
   activeUploads = 0;
   nextId = 0;
+  nextBatchId = 0;
   overwriteAll: boolean | null = null; // null: ask, true: overwrite, false: skip
   isPausedForConflict = false;
   isOverallPaused = false;
@@ -424,6 +426,7 @@ class UploadManager {
       }
     }
 
+    const batchId = this.nextBatchId++;
     const newUploads: UploadItem[] = [];
 
     if (dirs.size > 0) {
@@ -442,6 +445,7 @@ class UploadManager {
         const upload: UploadItem = {
           id: this.nextId++,
           sessionId: newUploadSessionId(),
+          batchId,
           name: dirName,
           size: 0,
           progress: 0,
@@ -466,6 +470,7 @@ class UploadManager {
       const upload: UploadItem = {
         id,
         sessionId: newUploadSessionId(),
+        batchId,
         file,
         name: item.uploadName || file.name,
         size: file.size,
@@ -513,24 +518,26 @@ class UploadManager {
       // Still run batch bookkeeping below; only block scheduling new uploads.
     } else {
       const maxConcurrent = state.user.fileLoading?.maxConcurrentUpload || 3;
+      const queue = toRaw(this.queue);
+      // Directories stay open until completed
+      const openDirs = new Set(
+        queue
+          .filter((item) => item.type === "directory" && item.status !== "completed")
+          .map((item) => this.dirKey(item.batchId, item.path))
+      );
       while (
         this.activeUploads < maxConcurrent &&
         this.hasPending()
       ) {
-        const openDirs = new Set(
-          this.queue
-            .filter((item) => item.type === "directory" && item.status !== "completed")
-            .map((item) => item.path)
-        );
         const isReady = (item: UploadItem) => item.status === "pending" && !this.hasOpenParent(item, openDirs);
         const upload =
-          this.queue.find((item) => item.type === "directory" && isReady(item)) ||
-          this.queue.find((item) => item.type !== "directory" && isReady(item));
+          queue.find((item) => item.type === "directory" && isReady(item)) ||
+          queue.find((item) => item.type !== "directory" && isReady(item));
         if (!upload) {
           break;
         }
         if (this.overwriteAll) {
-          upload.overwrite = true;
+          reactive(upload).overwrite = true;
         }
         this.start(upload.id);
       }
@@ -951,10 +958,17 @@ class UploadManager {
     return this.queue.find((item) => item.id === id);
   }
 
+  dirKey(batchId: number | undefined, path: string): string {
+    return `${batchId}:${path}`;
+  }
+
   hasOpenParent(upload: UploadItem, openDirs: Set<string>): boolean {
+    if (openDirs.size === 0) {
+      return false;
+    }
     const path = upload.path;
     for (let i = path.indexOf("/"); i !== -1 && i < path.length - 1; i = path.indexOf("/", i + 1)) {
-      if (openDirs.has(path.slice(0, i + 1))) {
+      if (openDirs.has(this.dirKey(upload.batchId, path.slice(0, i + 1)))) {
         return true;
       }
     }
@@ -962,14 +976,14 @@ class UploadManager {
   }
 
   hasPending(): boolean {
-    return this.queue.some((item) => item.status === "pending");
+    return toRaw(this.queue).some((item) => item.status === "pending");
   }
 
   /** True while uploads may still run (including user- or stall-paused jobs). */
   hasOngoingUploads(): boolean {
     return (
       this.activeUploads > 0 ||
-      this.queue.some(
+      toRaw(this.queue).some(
         (item) =>
           item.status === "pending" ||
           item.status === "uploading" ||

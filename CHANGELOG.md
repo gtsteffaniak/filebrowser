@@ -49,6 +49,8 @@ All notable changes to this project will be documented in this file. For commit 
  - Context menu in iOS don't opening in Advanced Search (#2776) (#3299)
  - Improved mobile layout of inputs in search filters.
  - Doing actions in the main list/adv search, like move, copy, delete, or create a new file no longer reloads the entire listing, now updates in place and doesn't lost the position you were browsing at (#3193).
+ - Uploading lot of files freezing the UI for a few seconds (#3321).
+ - Directory uploads are prioritized, and files wait until their parent is ready (#3221).
 
 ## v2.1.4
 
