@@ -48,17 +48,14 @@ All notable changes to this project will be documented in this file. For commit 
  - Gzipped `.woff` font files are no longer generated without being served; only `.js` and `.woff2` are precompressed.
  - Text preview tiles no longer show the bottom truncation fade; truncated content is clipped at the tile edge instead.
  - Text preview tiles lay out at a minimum width and are clipped, instead of wrapping aggressively on narrow tiles.
-<<<<<<< HEAD
  - Queued text preview requests are canceled when their tiles unmount, so scrolling through a folder of text files and then opening another folder no longer delays the new folder's previews.
  - Removed the stale, unreferenced `backend/internal/web/embed/` build output that was accidentally re-added; the frontend is embedded from `backend/internal/web/dist/` as before.
-=======
  - Advanced search no longer loses the previously selected sorting (#3275)
  - Context menu in iOS don't opening in Advanced Search (#2776) (#3299)
  - Improved mobile layout of inputs in search filters.
  - Doing actions in the main list/adv search, like move, copy, delete, or create a new file no longer reloads the entire listing, now updates in place and doesn't lost the position you were browsing at (#3193).
  - Uploading lot of files freezing the UI for a few seconds (#3321).
  - Directory uploads are prioritized, and files wait until their parent is ready (#3221).
->>>>>>> 0d304337395e4054dd0e2f907b3a1c5a86385d43
 
 ## v2.1.4
 
