@@ -21,6 +21,15 @@ All notable changes to this project will be documented in this file. For commit 
     - New text preview API (`/api/resources/preview/text`) returns a 16KB text preview for text, Markdown, HTML, CSS, code and RTF files. Markdown and HTML render in the listing as sanitized previews. Previews are not cached on disk. SVG files are served directly as images.
     - Text previews only render inline on tiles at least 60px wide, so narrower tiles (list, compact, normal) show the file-type icon with a `saved_search` badge instead when popup previews are enabled, and hovering still opens the larger popup preview. The text preview endpoint is now bounded by its own concurrency limiter (`server.numImageProcessors`), and rendered preview HTML is cached in the browser so scrolling and hovering do not re-parse it.
     - Embedded previews for Krita (`.kra`, [#2431](https://github.com/gtsteffaniak/filebrowser/issues/2431)), OpenRaster (`.ora`), Sketch (`.sketch`), MuseScore (`.mscz`), CBZ (first page), XPS (embedded thumbnail, when present), ODF (`.odt`, `.ods`, `.odp`, `.odg`), and Office Open XML (`.docx`, `.xlsx`, `.pptx`) thumbnails.
+  - Virtual scrolling for large lists: like the main listing, advanced search, file tree, etc. Only render the rows on screen, so very large folders stay responsive, resolving some performance issues (#2879) (#1773) (#3320) (#3326).
+  - Search and navigation improvements:
+    - Next/previous in a preview follows the results of quick search and advanced search, playback queue also uses if there's media (#3275).
+    - Closing a preview opened from quick or advanced search returns to the results and scrolls to the item like the normal listing (#3275).
+    - Advanced search now has almost all the features of the normal listing, including rectangle selection, keyboard navigation, etc (#3299).
+    - Quick search results use natural ordering.
+    - Listings now are cached (with a cap) allowing a more responsive navigation between folders (#3193).
+  - Upload and download prompts list is reversed (#2998) (#3328).
+  - Replaced `indented soft wrap` editor setting by a dropdown with more wrap settings (#3183) (#3282).
 
  **Notes**:
  - **Document preview formats:** New in-process support includes **`.azw3`**, **`.chm`**, **`.htm`**, and **`.html`**. However, `.doc` continues to require the office integration for thumbnails. **`.xps`** and **`.cbz`** previews come from embedded images. With **Always use office for document previews** enabled, office files still use the office converter
@@ -39,6 +48,12 @@ All notable changes to this project will be documented in this file. For commit 
  - Gzipped `.woff` font files are no longer generated without being served; only `.js` and `.woff2` are precompressed.
  - Text preview tiles no longer show the bottom truncation fade; truncated content is clipped at the tile edge instead.
  - Text preview tiles lay out at a minimum width and are clipped, instead of wrapping aggressively on narrow tiles.
+ - Advanced search no longer loses the previously selected sorting (#3275)
+ - Context menu in iOS don't opening in Advanced Search (#2776) (#3299)
+ - Improved mobile layout of inputs in search filters.
+ - Doing actions in the main list/adv search, like move, copy, delete, or create a new file no longer reloads the entire listing, now updates in place and doesn't lost the position you were browsing at (#3193).
+ - Uploading lot of files freezing the UI for a few seconds (#3321).
+ - Directory uploads are prioritized, and files wait until their parent is ready (#3221).
 
 ## v2.1.4
 

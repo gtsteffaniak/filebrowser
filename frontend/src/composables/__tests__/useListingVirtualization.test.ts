@@ -91,6 +91,7 @@ const Host = defineComponent({
       ],
       columnsHint: () => columnsOnScreen,
       minItems,
+      register: true,
     });
     const renderGroup = (key: "dirs" | "files") => {
       const visible = api.group(key);
@@ -176,18 +177,18 @@ describe("useListingVirtualization", () => {
 
   it("renders everything while the listing is short", async () => {
     dirs.value = range(0, 20);
-    files.value = range(20, 20);
+    files.value = range(20, 10);
     await mount();
     expect(api.active.value).toBe(false);
-    expect(rendered()).toHaveLength(40);
+    expect(rendered()).toHaveLength(30);
     expect(group("dirs").style.marginTop).toBe("");
   });
 
   it("starts windowing when a short listing grows past the threshold", async () => {
     dirs.value = range(0, 20);
-    files.value = range(20, 20);
+    files.value = range(20, 10);
     await mount();
-    expect(rendered()).toHaveLength(40);
+    expect(rendered()).toHaveLength(30);
     dirs.value = range(0, 120);
     files.value = range(120, 400);
     await flush();
@@ -336,10 +337,10 @@ describe("useListingVirtualization", () => {
     await mount();
     expect(rendered().length).toBeLessThan(150);
     dirs.value = range(0, 20);
-    files.value = range(20, 20);
+    files.value = range(20, 10);
     await flush();
     expect(api.active.value).toBe(false);
-    expect(rendered()).toHaveLength(40);
+    expect(rendered()).toHaveLength(30);
     expect(group("files").style.marginBottom).toBe("");
   });
 

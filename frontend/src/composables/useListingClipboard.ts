@@ -1,5 +1,5 @@
 import { resourcesApi } from "@/api/index.js";
-import { checkConflict } from "@/utils/upload.js";
+import { checkConflict } from "@/utils/upload.ts";
 import { state, mutations, getters } from "@/store/index.ts";
 import { notifyMoveCopyFailure } from "@/utils/appNotifications.js";
 
