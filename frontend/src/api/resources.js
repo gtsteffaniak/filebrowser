@@ -1,7 +1,7 @@
 import { notify } from "@/notify/index.ts"
 import { getters, mutations, state } from "@/store/index.ts"
 import { globalVars } from "@/utils/constants.js"
-import { downloadManager } from "@/utils/downloadManager.js"
+import { downloadManager } from "@/utils/downloadManager.ts"
 import {
   notifyDownloadComplete,
   notifyDownloadError,

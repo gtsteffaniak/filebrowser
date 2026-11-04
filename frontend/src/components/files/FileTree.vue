@@ -213,7 +213,6 @@ const virtual = useListingVirtualization<TreeRow>({
   scroller: (el) => findScrollParents(el),
   itemClass: 'tree-row',
   trackViewMode: false,
-  register: false,
 });
 
 let rootRequest = 0; // a slow answer for an old source must not replace the nodes of the current one

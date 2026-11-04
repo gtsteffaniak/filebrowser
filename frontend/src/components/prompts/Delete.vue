@@ -69,7 +69,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { resourcesApi } from "@/api";
 import buttons from "@/utils/buttons";
@@ -157,8 +157,10 @@ const virtual = useListingVirtualization({
   columnsHint: () => 1,
   scroller: (el) => el,
   itemClass: "delete-item-wrapper",
-  register: false,
+  minItems: 10,
 });
+
+watch(failedItems, () => void virtual.refresh());
 
 onMounted(() => {
   if (itemsToDelete.value.length === 1 && state.user.deleteWithoutConfirming) {
