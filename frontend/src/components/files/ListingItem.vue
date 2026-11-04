@@ -45,6 +45,7 @@
         :size="size"
         :isShared="isShared"
         :viewToken="viewToken"
+        :textPreviewUrl="textPreviewUrl"
       />
       <button
         v-if="quickDownloadEnabled && galleryView"
@@ -372,6 +373,28 @@ export default {
         return resourcesApi.getPreviewURLPublic(previewPath);
       }
       return resourcesApi.getPreviewURL(this.source || state.req?.source, previewPath, this.modified);
+    },
+    textPreviewUrl() {
+      // The text preview endpoint is JSON, not an image, so it needs its own URL.
+      // Reuse the same path resolution as thumbnailUrl so duplicates/FileTree work.
+      if (!globalVars.enableThumbs) {
+        return "";
+      }
+      let previewPath;
+      if (this.path) {
+        previewPath = this.path;
+      } else if (state.req?.path && this.name) {
+        previewPath = url.joinPath(state.req.path, this.name);
+      } else {
+        return "";
+      }
+      if (this.forceFilesApi) {
+        return resourcesApi.getTextPreviewURL(this.source || state.req?.source, previewPath);
+      }
+      if (getters.isShare()) {
+        return resourcesApi.getTextPreviewURLPublic(previewPath);
+      }
+      return resourcesApi.getTextPreviewURL(this.source || state.req?.source, previewPath);
     },
     isClickable() {
       return this.clickable;

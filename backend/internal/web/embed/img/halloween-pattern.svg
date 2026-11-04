@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200">
+  <defs>
+    <pattern id="halloween-pattern" width="200" height="200" patternUnits="userSpaceOnUse">
+      <rect width="200" height="200" fill="#1a1a1a"/>
+      <g opacity="0.08" fill="#cccccc">
+        <!-- Ghost 1 (top-left) - straight sides ghost -->
+        <path d="M 60 60 A 15 15 0 1 1 90 60 L 90 90 C 80 100, 70 100, 60 90 L 60 60 Z" />
+        <circle cx="70" cy="55" r="2" fill="#1a1a1a"/>
+        <circle cx="80" cy="55" r="2" fill="#1a1a1a"/>
+        
+        <!-- Ghost 2 (bottom-right, offset for diagonal pattern) - straight sides ghost -->
+        <path d="M 160 160 A 15 15 0 1 1 190 160 L 190 190 C 180 200, 170 200, 160 190 L 160 160 Z" />
+        <circle cx="170" cy="155" r="2" fill="#1a1a1a"/>
+        <circle cx="180" cy="155" r="2" fill="#1a1a1a"/>
+      </g>
+    </pattern>
+  </defs>
+  <rect width="200" height="200" fill="url(#halloween-pattern)"/>
+</svg>
+

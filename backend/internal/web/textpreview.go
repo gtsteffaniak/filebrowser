@@ -105,6 +105,13 @@ func serveTextPreview(w http.ResponseWriter, r *http.Request, info *iteminfo.Ext
 	if kind == "" {
 		return http.StatusUnsupportedMediaType, fmt.Errorf("unsupported file type for text preview")
 	}
+	// Bound concurrent reads and RTF conversions with the text preview's own
+	// limiter, so a listing of many text files cannot open an unbounded number
+	// of file handles at once. Separate from the image pipeline's semaphore.
+	if err := textpreview.Acquire(r.Context()); err != nil {
+		return http.StatusInternalServerError, err
+	}
+	defer textpreview.Release()
 	result, err := textpreview.Read(info.RealPath, kind)
 	if err != nil {
 		switch {

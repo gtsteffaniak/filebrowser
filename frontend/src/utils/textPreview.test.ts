@@ -1,5 +1,15 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { clearTextPreviewCache, fetchTextPreview, languageFromPreviewUrl, textPreviewUrlFor } from "./textPreview.ts";
+import {
+  clearTextPreviewCache,
+  fetchTextPreview,
+  getRenderedTextPreview,
+  isTextPreviewableName,
+  languageFromPath,
+  languageFromPreviewUrl,
+  MIN_TEXT_PREVIEW_WIDTH_PX,
+  setRenderedTextPreview,
+  textPreviewCacheKey,
+} from "./textPreview.ts";
 
 describe("languageFromPreviewUrl", () => {
   it("reads the lowercase extension from the path parameter", () => {
@@ -12,17 +22,48 @@ describe("languageFromPreviewUrl", () => {
   });
 });
 
-describe("textPreviewUrlFor", () => {
-  it("maps the authenticated preview URL to the text endpoint and keeps params", () => {
-    const thumb = "http://localhost/api/resources/preview?path=%2Fa.md&key=123&source=main&inline=true";
-    expect(textPreviewUrlFor(thumb)).toBe(
-      "http://localhost/api/resources/preview/text?path=%2Fa.md&key=123&source=main&inline=true",
-    );
+describe("languageFromPath", () => {
+  it("derives the extension without parsing a URL", () => {
+    expect(languageFromPath("/src/Main.GO")).toBe("go");
+    expect(languageFromPath("data.TSV")).toBe("tsv");
+    expect(languageFromPath("Makefile")).toBeNull();
+    expect(languageFromPath(".env")).toBeNull();
+    expect(languageFromPath(null)).toBeNull();
+  });
+});
+
+describe("isTextPreviewableName", () => {
+  it("is true for extensions in the backend kind map", () => {
+    // The vitest setup stubs globalVars.textPreviewExtensions.
+    expect(isTextPreviewableName("notes.md")).toBe(true);
+    expect(isTextPreviewableName("image.png")).toBe(false);
+    expect(isTextPreviewableName("noext")).toBe(false);
+  });
+});
+
+describe("MIN_TEXT_PREVIEW_WIDTH_PX", () => {
+  it("is the tile width below which no inline preview is rendered", () => {
+    expect(MIN_TEXT_PREVIEW_WIDTH_PX).toBe(60);
+  });
+});
+
+describe("rendered HTML cache", () => {
+  afterEach(() => {
+    clearTextPreviewCache();
   });
 
-  it("maps the public share preview URL and keeps the hash", () => {
-    const thumb = "http://localhost/public/api/resources/preview?path=%2Fa.txt&hash=abc";
-    expect(textPreviewUrlFor(thumb)).toBe("http://localhost/public/api/resources/preview/text?path=%2Fa.txt&hash=abc");
+  it("round-trips a value and marks it most recently used", () => {
+    const key = textPreviewCacheKey("/api/resources/preview/text?path=a", "2026-01-01");
+    setRenderedTextPreview(key, "<p>hi</p>");
+    expect(getRenderedTextPreview(key)).toBe("<p>hi</p>");
+  });
+
+  it("keys by URL and modified time", () => {
+    const a = textPreviewCacheKey("/u", "1");
+    const b = textPreviewCacheKey("/u", "2");
+    expect(a).not.toBe(b);
+    setRenderedTextPreview(a, "<p>a</p>");
+    expect(getRenderedTextPreview(b)).toBeUndefined();
   });
 });
 
