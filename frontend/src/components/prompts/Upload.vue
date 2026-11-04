@@ -242,7 +242,7 @@ const virtual = useListingVirtualization<{ file: UploadItem; index: number }>({
   columnsHint: () => 1,
   scroller: (container) => findScrollParents(container, true),
   itemClass: "upload-item",
-  register: false,
+  minItems: 10,
 });
 
 const uploadSettingsDescription = computed(() => {

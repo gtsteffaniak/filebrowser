@@ -233,6 +233,7 @@ const virtual = useListingVirtualization({
     { key: "files", items: files.value },
   ],
   columnsHint: () => numColumns.value,
+  register: true,
 });
 
 const { isRectangleSelecting, rectangleStyle } = useMouseSelection({

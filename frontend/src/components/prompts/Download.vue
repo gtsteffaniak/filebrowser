@@ -123,7 +123,7 @@ const downloads = computed(() => downloadManager.queue);
 const hasDownloads = computed(() => downloads.value.length > 0);
 const hasClearable = computed(() =>
   downloads.value.some(
-    (download) => download.status === "completed" || download.status === "error" || download.status === "cancelled",
+    (download) => download.status === "completed" || download.status === "cancelled",
   ),
 );
 
@@ -139,7 +139,7 @@ const virtual = useListingVirtualization<{ download: DownloadItem; index: number
   columnsHint: () => 1,
   scroller: (container) => findScrollParents(container, true),
   itemClass: "download-item-wrapper",
-  register: false,
+  minItems: 10,
 });
 
 onBeforeUnmount(() => {

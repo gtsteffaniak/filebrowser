@@ -24,11 +24,11 @@ import {
   type VirtualScrollOptions,
 } from "@/utils/listing/virtualListing.ts";
 
-const DEFAULT_MIN_ITEMS = 50; // Listings with fewer items than this don't use virtual scrolling
+const DEFAULT_MIN_ITEMS = 40; // Listings with fewer items than this don't use virtual scrolling
 const ESTIMATED_ROW_PITCH = 56; // Row height guess until the first measurement
-const MIN_INITIAL_ROWS = 10;
-const MAX_INITIAL_ROWS = 30;
-const INITIAL_VIEWPORTS = 1.2;
+const MIN_INITIAL_ROWS = 5;
+const MAX_INITIAL_ROWS = 15;
+const INITIAL_VIEWPORTS = 1.0;
 
 function initialRows(): number {
   const height = typeof window === "undefined" ? 0 : window.innerHeight;
@@ -37,8 +37,8 @@ function initialRows(): number {
   return Math.max(MIN_INITIAL_ROWS, Math.min(MAX_INITIAL_ROWS, rows));
 }
 
-const OVERSCAN_VIEWPORTS = 0.30; // Screens of rows kept rendered above and below the visible ones
-const BUFFER_VIEWPORT_SHARE = 0.15;
+const OVERSCAN_VIEWPORTS = 0.16; // Screens of rows kept rendered above and below the visible ones
+const BUFFER_VIEWPORT_SHARE = 0.08; // margin before the window moves -- should be below OVERSCAN_VIEWPORTS
 const MAX_SETTLE_PASSES = 4; // Rendering and measuring (columns change, so rows change... etc)
 const MAX_MEASURE_RETRIES = 2; // A list that cannot be measured is tried again this many times
 const PITCH_NOISE_PX = 4; // A new measurement of the row size is ignored when it is this close to the one in use (rows of different heights)
@@ -95,6 +95,7 @@ export interface ListingVirtualizationOptions<T extends VirtualItem = fileListIt
   scroller?: (container: HTMLElement) => HTMLElement | HTMLElement[] | null;
   itemClass?: string;
   trackViewMode?: boolean;
+  /** Makes this the main listing that keyboard navigation, selection and drag-select use */
   register?: boolean;
   minItems?: number;
 }
@@ -465,7 +466,7 @@ export function useListingVirtualization<T extends VirtualItem = fileListItemInd
     moveVertical: moveFromIndex,
     hitTest: hitTestRect,
   };
-  const unregister = options.register === false ? () => {} : registerVirtualListing(handle);
+  const unregister = options.register ? registerVirtualListing(handle) : () => {};
 
   let frame = 0;
 
