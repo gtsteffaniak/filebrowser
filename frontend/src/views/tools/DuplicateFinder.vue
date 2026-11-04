@@ -198,7 +198,6 @@ const virtual = useListingVirtualization({
     })),
   columnsHint: () => 1,
   itemClass: "file-item-wrapper",
-  register: false,
 });
 
 watch([searchPath, selectedSource, minSizeValue], () => {

@@ -1,7 +1,7 @@
 import { notify } from "@/notify/index.ts"
 import { getters, mutations, state } from "@/store/index.ts"
 import { globalVars } from "@/utils/constants.js"
-import { downloadManager } from "@/utils/downloadManager.js"
+import { downloadManager } from "@/utils/downloadManager.ts"
 import {
   notifyDownloadComplete,
   notifyDownloadError,
@@ -796,6 +796,17 @@ async function downloadChunked(file, shareHash = "") {
   }
 }
 
+/**
+ * Uploads a file, one chunk of it, or creates a folder.
+ * @param {string | undefined} source
+ * @param {string} path
+ * @param {string | Blob} [content]
+ * @param {boolean} [overwrite]
+ * @param {((percent: number) => void) | undefined} [onupload]
+ * @param {Record<string, string | number>} [headers]
+ * @param {boolean} [isDir]
+ * @returns {Promise<any> & { xhr?: XMLHttpRequest | null, abort?: () => void }}
+ */
 export function post(
   source,
   path,
@@ -1348,6 +1359,17 @@ export function getPreviewURLPublic(path, size, viewToken = state.req?.viewToken
   }
 }
 
+/**
+ * Uploads a file, one chunk of it, or creates a folder.
+ * @param {string | undefined} hash
+ * @param {string} path
+ * @param {string | Blob} [content]
+ * @param {boolean} [overwrite]
+ * @param {((percent: number) => void) | undefined} [onupload]
+ * @param {Record<string, string | number>} [headers]
+ * @param {boolean} [isDir]
+ * @returns {Promise<any> & { xhr?: XMLHttpRequest | null, abort?: () => void }}
+ */
 export function postPublic(
   hash,
   path,

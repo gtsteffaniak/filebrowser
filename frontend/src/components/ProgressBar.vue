@@ -43,6 +43,7 @@ export default {
   components: { HelpTooltipIcon },
   props: {
     val: {
+      type: [Number, String],
       default: 0,
     },
     max: {

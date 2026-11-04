@@ -235,7 +235,7 @@ const virtual = useListingVirtualization({
   columnsHint: () => 1,
   // Lists in prompts scroll inside the prompt
   scroller: (el) => findScrollParents(el),
-  register: false,
+  minItems: 10,
 });
 
 watch(
