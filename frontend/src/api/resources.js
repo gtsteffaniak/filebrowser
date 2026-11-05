@@ -1,7 +1,7 @@
 import { notify } from "@/notify/index.ts"
 import { getters, mutations, state } from "@/store/index.ts"
 import { globalVars } from "@/utils/constants.js"
-import { downloadManager } from "@/utils/downloadManager.js"
+import { downloadManager } from "@/utils/downloadManager.ts"
 import {
   notifyDownloadComplete,
   notifyDownloadError,
@@ -796,6 +796,17 @@ async function downloadChunked(file, shareHash = "") {
   }
 }
 
+/**
+ * Uploads a file, one chunk of it, or creates a folder.
+ * @param {string | undefined} source
+ * @param {string} path
+ * @param {string | Blob} [content]
+ * @param {boolean} [overwrite]
+ * @param {((percent: number) => void) | undefined} [onupload]
+ * @param {Record<string, string | number>} [headers]
+ * @param {boolean} [isDir]
+ * @returns {Promise<any> & { xhr?: XMLHttpRequest | null, abort?: () => void }}
+ */
 export function post(
   source,
   path,
@@ -1196,6 +1207,28 @@ export function getPreviewURL(source, path, modified) {
   }
 }
 
+/**
+ * Build a text preview API URL. Use fetchTextPreview(url, modified) to load it.
+ * Separate from getPreviewURL: the text endpoint returns JSON, not an image.
+ */
+export function getTextPreviewURL(source, path) {
+  if (!source || source === undefined || source === null) {
+    throw new Error('no source provided')
+  }
+  try {
+    const params = {
+      path: path,
+      source: source,
+      inline: 'true'
+    }
+    const apiPath = getApiPath('resources/preview/text', params)
+    return window.origin + apiPath
+  } catch (err) {
+    notify.showError(err.message || 'Error getting text preview URL')
+    throw err
+  }
+}
+
 // POST /api/resources/archive - Create an archive
 export async function createArchive(opts) {
   const { fromSource, toSource, paths, destination, format, compression, deleteAfter } = opts;
@@ -1348,6 +1381,39 @@ export function getPreviewURLPublic(path, size, viewToken = state.req?.viewToken
   }
 }
 
+// Generate a text preview URL for public shares
+/**
+ * @param {string} path
+ * @param {string} [viewToken]
+ * @returns {string}
+ */
+export function getTextPreviewURLPublic(path, viewToken = state.req?.viewToken) {
+  try {
+    const params = {
+      path: path,
+      hash: state.shareInfo.hash,
+      inline: 'true',
+      ...(viewToken && { viewToken }),
+    }
+    const apiPath = getPublicApiPath('resources/preview/text', params)
+    return window.origin + apiPath
+  } catch (/** @type {any} */ err) {
+    notify.showError(err.message || 'Error getting text preview URL')
+    throw err
+  }
+}
+
+/**
+ * Uploads a file, one chunk of it, or creates a folder.
+ * @param {string | undefined} hash
+ * @param {string} path
+ * @param {string | Blob} [content]
+ * @param {boolean} [overwrite]
+ * @param {((percent: number) => void) | undefined} [onupload]
+ * @param {Record<string, string | number>} [headers]
+ * @param {boolean} [isDir]
+ * @returns {Promise<any> & { xhr?: XMLHttpRequest | null, abort?: () => void }}
+ */
 export function postPublic(
   hash,
   path,

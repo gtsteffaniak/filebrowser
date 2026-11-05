@@ -31,7 +31,7 @@ vi.mock("@/utils/appNotifications", async (importOriginal) => {
 import { resourcesApi } from "@/api/index.js";
 import { notify } from "@/notify/index.ts";
 import { mutations, state, getters } from "@/store/index.ts";
-import { isSameSize, numberedName, uploadManager } from "./upload.js";
+import { isSameSize, numberedName, uploadManager } from "./upload.ts";
 
 function addUpload(status = "uploading", file = new Blob(["a"])) {
   uploadManager.queue.push({

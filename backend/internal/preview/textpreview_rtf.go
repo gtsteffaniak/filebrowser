@@ -1,4 +1,4 @@
-package textpreview
+package preview
 
 import (
 	"html"

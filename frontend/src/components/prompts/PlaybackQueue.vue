@@ -178,8 +178,7 @@ const virtual = useListingVirtualization<VirtualItem>({
   groups: () => [{ key: "queue", count: state.playbackQueue.queue.length, at: (index) => ({ index }) }],
   scroller: (container) => findScrollParents(container, true),
   itemClass: "queue-item",
-  minItems: 100,
-  register: false,
+  minItems: 10,
 });
 
 const playbackQueue = computed(() => state.playbackQueue.queue as QueueItem[]);
