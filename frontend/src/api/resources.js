@@ -1207,6 +1207,28 @@ export function getPreviewURL(source, path, modified) {
   }
 }
 
+/**
+ * Build a text preview API URL. Use fetchTextPreview(url, modified) to load it.
+ * Separate from getPreviewURL: the text endpoint returns JSON, not an image.
+ */
+export function getTextPreviewURL(source, path) {
+  if (!source || source === undefined || source === null) {
+    throw new Error('no source provided')
+  }
+  try {
+    const params = {
+      path: path,
+      source: source,
+      inline: 'true'
+    }
+    const apiPath = getApiPath('resources/preview/text', params)
+    return window.origin + apiPath
+  } catch (err) {
+    notify.showError(err.message || 'Error getting text preview URL')
+    throw err
+  }
+}
+
 // POST /api/resources/archive - Create an archive
 export async function createArchive(opts) {
   const { fromSource, toSource, paths, destination, format, compression, deleteAfter } = opts;
@@ -1355,6 +1377,28 @@ export function getPreviewURLPublic(path, size, viewToken = state.req?.viewToken
     return window.origin + apiPath
   } catch (/** @type {any} */ err) {
     notify.showError(err.message || 'Error getting preview URL')
+    throw err
+  }
+}
+
+// Generate a text preview URL for public shares
+/**
+ * @param {string} path
+ * @param {string} [viewToken]
+ * @returns {string}
+ */
+export function getTextPreviewURLPublic(path, viewToken = state.req?.viewToken) {
+  try {
+    const params = {
+      path: path,
+      hash: state.shareInfo.hash,
+      inline: 'true',
+      ...(viewToken && { viewToken }),
+    }
+    const apiPath = getPublicApiPath('resources/preview/text', params)
+    return window.origin + apiPath
+  } catch (/** @type {any} */ err) {
+    notify.showError(err.message || 'Error getting text preview URL')
     throw err
   }
 }

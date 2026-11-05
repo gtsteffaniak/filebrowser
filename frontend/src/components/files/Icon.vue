@@ -1,6 +1,6 @@
 <template>
   <!-- Unified preview container for all types -->
-  <span v-if="hasPreviewImage || (shouldUse3DPreview && !threeJsError) || shouldUseTextPreview" class="image-preview" @mouseenter="handleMouseEnter" @mouseleave="handleMouseLeave">
+  <span v-if="hasPreviewImage || (shouldUse3DPreview && !threeJsError) || shouldUseTextPreview" ref="tileEl" class="image-preview" @mouseenter="handleMouseEnter" @mouseleave="handleMouseLeave">
     <!-- Overlay icons (folder/animation) positioned top-left -->
     <i v-if="hasPreviewImage && hasMotion && isFile" class="material-symbols-outlined overlay-icon">animation</i>
     <i v-else-if="hasPreviewImage && !isFile" class="material-symbols overlay-icon">folder</i>
@@ -21,18 +21,26 @@
       @error="handle3DError" />
     <TextPreview v-else-if="shouldUseTextPreview"
       :url="textPreviewUrl"
+      :language="textPreviewLanguage"
       :modified="modified"
       @error="handleTextPreviewError" />
   </span>
   <!-- Regular material icon (no preview) -->
-  <span v-else class="image-preview">
+  <span v-else ref="tileEl" class="image-preview" @mouseenter="hasTextPreview && handleMouseEnter()" @mouseleave="hasTextPreview && handleMouseLeave()">
     <i :class="[classes, { active: active, clickable: clickable }]"> {{ materialSymbol }} </i>
     <i v-if="isShared" class="material-symbols overlay-icon">group</i>
+    <!-- Text file with a popup preview, but the tile is too small to render it inline -->
+    <i
+      v-if="textPreviewHintVisible"
+      class="material-symbols overlay-icon overlay-icon--preview-hint"
+      :class="{ 'overlay-icon--preview-hint-shared': isShared }"
+      aria-hidden="true"
+    >saved_search</i>
   </span>
 </template>
 
 <script setup lang="ts">
-import { computed, inject, onBeforeUnmount, ref, unref, watch, type Ref } from "vue";
+import { computed, inject, onBeforeUnmount, onMounted, ref, unref, watch, type Ref } from "vue";
 import { fetchPreviewImage } from "@/api/resources";
 import { createAsyncComponent } from "@/utils/asyncComponent.js";
 import { getTypeInfo } from "@/utils/mimetype";
@@ -45,8 +53,7 @@ import {
   storeThumbnailBlob,
 } from "@/utils/cache/imageCache.ts";
 import { queuedFetchPreview } from "@/utils/previewRequests.ts";
-import { textPreviewUrlFor } from "@/utils/textPreview.ts";
-import { globalVars } from "@/utils/constants";
+import { isTextPreviewableName, languageFromPath, MIN_TEXT_PREVIEW_WIDTH_PX } from "@/utils/textPreview.ts";
 
 const props = withDefaults(
   defineProps<{
@@ -64,6 +71,8 @@ const props = withDefaults(
     isDir?: boolean;
     viewToken?: string;
     inView?: boolean;
+    /** Text preview API URL from getTextPreviewURL / getTextPreviewURLPublic. */
+    textPreviewUrl?: string;
   }>(),
   {
     hasPreview: false,
@@ -78,6 +87,7 @@ const props = withDefaults(
     isDir: false,
     viewToken: "",
     inView: true,
+    textPreviewUrl: "",
   },
 );
 
@@ -214,28 +224,56 @@ const shouldUse3DPreview = computed(() => {
   return typeInfo.value.simpleType === "3d-model";
 });
 
-/** Every extension the text preview endpoint supports, from the backend's kind map. */
-const textPreviewExtSet = computed(() => {
-  const groups = (globalVars.textPreviewExtensions ?? {}) as Record<string, string[]>;
-  return new Set(Object.values(groups).flat());
-});
+/** True when the filename has an extension the text preview endpoint supports. */
+const isTextPreviewable = computed(
+  () => props.mimetype !== "directory" && isTextPreviewableName(props.filename),
+);
 
-const isTextPreviewable = computed(() => {
-  if (props.mimetype === "directory" || !props.filename) return false;
-  const dot = props.filename.lastIndexOf(".");
-  if (dot <= 0) return false;
-  return textPreviewExtSet.value.has(props.filename.slice(dot + 1).toLowerCase());
-});
+/** Extension used for syntax highlighting and the CSV/TSV delimiter. */
+const textPreviewLanguage = computed(() => languageFromPath(props.filename));
 
-const textPreviewUrl = computed(() => (props.thumbnailUrl ? textPreviewUrlFor(props.thumbnailUrl) : ""));
+// Measured tile width; only observed for text-previewable files so image tiles pay nothing.
+const tileWidth = ref(0);
+const tileEl = ref<HTMLElement | null>(null);
+let tileResizeObserver: ResizeObserver | null = null;
 
-const shouldUseTextPreview = computed(() => {
+function observeTileWidth(el: HTMLElement | null): void {
+  tileResizeObserver?.disconnect();
+  tileResizeObserver = null;
+  if (!el || !isTextPreviewable.value || typeof ResizeObserver === "undefined") {
+    return;
+  }
+  // ResizeObserver fires once on observe, so no manual initial measurement is needed.
+  tileResizeObserver = new ResizeObserver((entries) => {
+    tileWidth.value = entries[0]?.contentRect.width ?? 0;
+  });
+  tileResizeObserver.observe(el);
+}
+
+// The tile element switches between the icon span and the preview span, so re-observe it.
+watch(tileEl, observeTileWidth, { flush: "post" });
+
+/** True when the tile is wide enough to render readable text instead of an icon. */
+const tileWideEnough = computed(() => tileWidth.value >= MIN_TEXT_PREVIEW_WIDTH_PX);
+
+/**
+ * True when this item has a text preview to show (inline or via the hover popup).
+ * Kept separate from shouldUseTextPreview so the popup still works on small tiles.
+ */
+const hasTextPreview = computed(() => {
   if (!canViewSource.value || !isTextPreviewable.value || !props.hasPreview || !everInView.value) return false;
-  if (textPreviewError.value || props.thumbnailUrl === "") return false;
+  if (textPreviewError.value || props.textPreviewUrl === "") return false;
   if (state.shareInfo?.disableThumbnails || previewExtDisabled.value) return false;
   // Same permission as other document-style previews (txt/md/html were already gated by office).
   return getters.previewPerms().office;
 });
+
+const shouldUseTextPreview = computed(() => hasTextPreview.value && tileWideEnough.value);
+
+/** Show the popup-preview badge on tiles too small for the inline text preview. */
+const textPreviewHintVisible = computed(
+  () => hasTextPreview.value && !shouldUseTextPreview.value && !hasPreviewImage.value && getters.previewPerms().popup,
+);
 
 function handleTextPreviewError(): void {
   textPreviewError.value = true;
@@ -391,13 +429,14 @@ function showPopupPreview(): void {
   const source = (getters.isShare() ? state.shareInfo?.hash : props.source || state.req?.source) ?? "";
   const modified = props.modified || state.req?.modified;
 
-  // Text-like file: popup shows the same text preview tile at a larger fixed size
-  if (shouldUseTextPreview.value) {
+  // Text-like file: popup shows the same text preview tile at a larger fixed size.
+  // Uses hasTextPreview, not shouldUseTextPreview, so small tiles still get a popup.
+  if (hasTextPreview.value) {
     mutations.setPopupPreview({
       type: "text",
       source,
       path,
-      textUrl: textPreviewUrl.value,
+      textUrl: props.textPreviewUrl,
       modified,
     });
     return;
@@ -526,7 +565,14 @@ watch(
   { immediate: true }, // Run on component mount
 );
 
+onMounted(() => {
+  // Only text previews need the measured width, so image tiles never create an observer.
+  observeTileWidth(tileEl.value);
+});
+
 onBeforeUnmount(() => {
+  tileResizeObserver?.disconnect();
+  tileResizeObserver = null;
   cancelActivePreviews();
   if (props.path && state.popupPreviewSourceInfo?.path === props.path) {
     mutations.setPopupPreview(null);
@@ -561,6 +607,19 @@ onBeforeUnmount(() => {
   margin: 0;
   background: none;
   line-height: 1;
+}
+
+/* "Preview available in popup" badge on tiles too small to render the text itself.
+   Top-left, matching the other overlay icons; offset when the shared badge shares that corner. */
+.overlay-icon--preview-hint {
+  inset: 0.2em auto auto 0.2em;
+  width: auto !important;
+  height: auto !important;
+  pointer-events: none;
+}
+
+.overlay-icon--preview-hint-shared {
+  inset: 0.2em auto auto 2.2em;
 }
 
 .overlay-icon--bottom.clickable:hover {

@@ -187,6 +187,16 @@ func GetService() *Service {
 	return service
 }
 
+// GetTextPreview returns a text preview for realPath, bounded by the preview service's
+// shared image-processor semaphore. It returns ErrPreviewServiceUnavailable when the
+// service has not been started.
+func GetTextPreview(ctx context.Context, realPath, kind string) (TextPreviewResult, error) {
+	if service == nil {
+		return TextPreviewResult{}, ErrPreviewServiceUnavailable
+	}
+	return service.ReadTextPreview(ctx, realPath, kind)
+}
+
 func GetPreviewForFile(ctx context.Context, file iteminfo.ExtendedFileInfo, previewSize, url string, seekPercentage int) ([]byte, error) {
 	if !file.HasPreview {
 		return nil, ErrUnsupportedMedia

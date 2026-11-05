@@ -19,6 +19,7 @@ All notable changes to this project will be documented in this file. For commit 
     - Office previews can use embedded thumbnail if possible.
     - Text file previews are more efficient direct creation.
     - New text preview API (`/api/resources/preview/text`) returns a 16KB text preview for text, Markdown, HTML, CSS, code and RTF files. Markdown and HTML render in the listing as sanitized previews. Previews are not cached on disk. SVG files are served directly as images.
+    - Text previews only render inline on tiles at least 60px wide, so narrower tiles (list, compact, normal) show the file-type icon with a `saved_search` badge instead when popup previews are enabled, and hovering still opens the larger popup preview. Text preview reads are bounded by the preview service's shared image-processor semaphore (`server.numImageProcessors`), and rendered preview HTML is cached in the browser so scrolling and hovering do not re-parse it.
     - Embedded previews for Krita (`.kra`, [#2431](https://github.com/gtsteffaniak/filebrowser/issues/2431)), OpenRaster (`.ora`), Sketch (`.sketch`), MuseScore (`.mscz`), CBZ (first page), XPS (embedded thumbnail, when present), ODF (`.odt`, `.ods`, `.odp`, `.odg`), and Office Open XML (`.docx`, `.xlsx`, `.pptx`) thumbnails.
   - Virtual scrolling for large lists: like the main listing, advanced search, file tree, etc. Only render the rows on screen, so very large folders stay responsive, resolving some performance issues (#2879) (#1773) (#3320) (#3326).
   - Search and navigation improvements:
@@ -45,6 +46,10 @@ All notable changes to this project will be documented in this file. For commit 
  - Media probes are cached by file identity and concurrent reads are coalesced, so opening a file no longer triggers repeated ffprobe runs.
  - Client-initiated stream cancels (seek/navigation) no longer log spurious write-error responses.
  - Gzipped `.woff` font files are no longer generated without being served; only `.js` and `.woff2` are precompressed.
+ - Text preview tiles no longer show the bottom truncation fade; truncated content is clipped at the tile edge instead.
+ - Text preview tiles lay out at a minimum width and are clipped, instead of wrapping aggressively on narrow tiles.
+ - Queued text preview requests are canceled when their tiles unmount, so scrolling through a folder of text files and then opening another folder no longer delays the new folder's previews.
+ - Removed the stale, unreferenced `backend/internal/web/embed/` build output that was accidentally re-added; the frontend is embedded from `backend/internal/web/dist/` as before.
  - Advanced search no longer loses the previously selected sorting (#3275)
  - Context menu in iOS don't opening in Advanced Search (#2776) (#3299)
  - Improved mobile layout of inputs in search filters.

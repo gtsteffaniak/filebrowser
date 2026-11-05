@@ -1,9 +1,7 @@
 <template>
   <div ref="root" class="text-preview" :class="{ 'text-preview--dark': isDark }" aria-hidden="true">
     <span v-if="status === 'loading'" class="material-symbols text-preview-placeholder">{{ PLACEHOLDER_ICON }}</span>
-    <!-- Small tiles: markdown/html cannot fit, so show the readable text only -->
-    <pre v-else-if="status === 'ready' && compactText !== null" class="text-preview-body text-preview-plain text-preview-compact">{{ compactText }}</pre>
-    <div v-else-if="status === 'ready' && csvTable" class="text-preview-body text-preview-table-wrap" :class="{ 'text-preview-compact': compact }">
+    <div v-else-if="status === 'ready' && csvTable" class="text-preview-body text-preview-table-wrap">
       <table class="text-preview-table">
         <thead>
           <tr>
@@ -17,39 +15,42 @@
         </tbody>
       </table>
     </div>
-    <div v-else-if="status === 'ready' && renderedHtml" class="text-preview-body text-preview-html" :class="{ 'text-preview-compact': compact }" v-html="renderedHtml"></div>
-    <pre v-else-if="status === 'ready' && highlighted !== null" class="text-preview-body text-preview-plain hljs" :class="{ 'text-preview-compact': compact }" v-html="highlighted"></pre>
-    <pre v-else-if="status === 'ready' && payload" class="text-preview-body text-preview-plain" :class="{ 'text-preview-compact': compact }">{{ payload.content }}</pre>
-    <div v-if="status === 'ready' && payload?.truncated" class="text-preview-fade"></div>
+    <div v-else-if="status === 'ready' && renderedHtml" class="text-preview-body text-preview-html" v-html="renderedHtml"></div>
+    <pre v-else-if="status === 'ready' && highlighted !== null" class="text-preview-body text-preview-plain hljs" v-html="highlighted"></pre>
+    <pre v-else-if="status === 'ready' && payload" class="text-preview-body text-preview-plain">{{ payload.content }}</pre>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, shallowRef, watch } from "vue";
+import { computed, onBeforeUnmount, ref, shallowRef, watch } from "vue";
 import { getters } from "@/store";
 import { applyHighlightTheme, loadHljs } from "@/utils/highlight.ts";
 import { parseDelimited } from "@/utils/delimited.ts";
-import { fetchTextPreview, languageFromPreviewUrl } from "@/utils/textPreview.ts";
 import {
-  plainTextFromHtml,
+  fetchTextPreview,
+  getRenderedTextPreview,
+  languageFromPreviewUrl,
+  releaseTextPreview,
+  setRenderedTextPreview,
+  textPreviewCacheKey,
+} from "@/utils/textPreview.ts";
+import {
   renderMarkdownTile,
   sanitizeTileHtml,
   type TextPreviewPayload,
 } from "@/utils/textPreviewRender.ts";
 
 const props = defineProps<{
-  /** Text preview API URL (see textPreviewUrlFor). */
+  /** Text preview API URL (see getTextPreviewURL / getTextPreviewURLPublic). */
   url: string;
   /** Modified time, used with the URL as the cache key. */
   modified?: string | null;
+  /** Lowercase extension without the dot; derived from the URL when omitted. */
+  language?: string | null;
 }>();
-
 
 const emit = defineEmits<(e: "error") => void>();
 
-
-// Tiles narrower than this cannot fit rendered markdown or HTML, so they show plain text.
-const COMPACT_WIDTH_PX = 240;
 // Only plain source files are syntax highlighted. Markdown and HTML are rendered instead.
 const HIGHLIGHT_KINDS = new Set(["code", "css"]);
 // Limits keep the DOM small; the tile only shows its top-left area anyway.
@@ -64,37 +65,30 @@ const status = ref<Status>("loading");
 const payload = shallowRef<TextPreviewPayload | null>(null);
 let requestId = 0;
 
+/** Cache key shared with the tile and the popup, so rendering happens once per file. */
+const cacheKey = computed(() => textPreviewCacheKey(props.url, props.modified ?? null));
+
+/** Language for highlighting/CSV, preferring the caller-provided extension. */
+const language = computed(() => props.language ?? languageFromPreviewUrl(props.url));
+
 // Only markdown, html, and rtf render as HTML. Everything else (plain, css, code) is shown as escaped text.
+// Rendered HTML is cached so scroll-back and hover do not re-parse and re-sanitize.
 const renderedHtml = computed(() => {
   const data = payload.value;
   if (!data) {
     return "";
   }
-  if (data.kind === "markdown") {
-    return renderMarkdownTile(data.content);
+  if (data.kind !== "markdown" && data.kind !== "html" && data.format !== "html") {
+    return "";
   }
-  if (data.kind === "html" || data.format === "html") {
-    return sanitizeTileHtml(data.content);
+  const key = cacheKey.value;
+  const cached = getRenderedTextPreview(key);
+  if (cached !== undefined) {
+    return cached;
   }
-  return "";
-});
-
-const root = ref<HTMLElement | null>(null);
-const compact = ref(false);
-let resizeObserver: ResizeObserver | null = null;
-
-// Plain text shown on compact tiles. Markdown is shown as its source, HTML as its visible text.
-const compactText = computed<string | null>(() => {
-  const data = payload.value;
-  // CSV keeps its table, HTML keeps its rendering, and code/css keep their highlighting on compact tiles.
-  if (!compact.value || !data || data.kind === "csv" || data.kind === "html" || HIGHLIGHT_KINDS.has(data.kind)) {
-    return null;
-  }
-  // Converted RTF is HTML too, so it still falls back to text on compact tiles.
-  if (data.format === "html") {
-    return plainTextFromHtml(sanitizeTileHtml(data.content));
-  }
-  return data.content;
+  const html = data.kind === "markdown" ? renderMarkdownTile(data.content) : sanitizeTileHtml(data.content);
+  setRenderedTextPreview(key, html);
+  return html;
 });
 
 // CSV/TSV as a table: first row is the header. A truncated file may end mid-row, so that row is dropped.
@@ -103,7 +97,7 @@ const csvTable = computed<{ header: string[]; body: string[][] } | null>(() => {
   if (data?.kind !== "csv") {
     return null;
   }
-  const delimiter = languageFromPreviewUrl(props.url) === "tsv" ? "\t" : ",";
+  const delimiter = language.value === "tsv" ? "\t" : ",";
   let rows = parseDelimited(data.content, delimiter);
   if (data.truncated && rows.length > 1) {
     rows = rows.slice(0, -1);
@@ -122,48 +116,59 @@ let highlightId = 0;
 
 async function updateHighlight(): Promise<void> {
   const token = ++highlightId;
-  highlighted.value = null;
   const data = payload.value;
   if (!data || !HIGHLIGHT_KINDS.has(data.kind)) {
+    highlighted.value = null;
     return;
   }
-  const language = languageFromPreviewUrl(props.url);
-  if (!language) {
+  const lang = language.value;
+  if (!lang) {
+    highlighted.value = null;
     return;
   }
+  // Highlighted output is theme-independent, so it can be cached and reused.
+  const cacheKeyWithLang = `${cacheKey.value}|hl`;
+  const cached = getRenderedTextPreview(cacheKeyWithLang);
+  if (cached !== undefined) {
+    // The cached markup is theme-independent, but the highlight.js style element is not,
+    // so the theme must still be applied on a theme switch or when a tile mounts from cache.
+    await applyHighlightTheme(isDark.value);
+    if (token === highlightId) {
+      highlighted.value = cached;
+    }
+    return;
+  }
+  highlighted.value = null;
   try {
     const hljs = await loadHljs();
-    if (!hljs.getLanguage(language)) {
+    if (!hljs.getLanguage(lang)) {
       return; // unknown language: keep the plain text
     }
     await applyHighlightTheme(isDark.value);
-    const html = hljs.highlight(data.content, { language, ignoreIllegals: true }).value;
+    const html = hljs.highlight(data.content, { language: lang, ignoreIllegals: true }).value;
     if (token === highlightId) {
       // highlight.js escapes its input; sanitizing again is cheap defense in depth.
-      highlighted.value = sanitizeTileHtml(html);
+      const safe = sanitizeTileHtml(html);
+      setRenderedTextPreview(cacheKeyWithLang, safe);
+      highlighted.value = safe;
     }
   } catch (err) {
     console.error("Failed to highlight text preview:", err);
   }
 }
 
-watch([payload, compact, isDark], () => {
+watch([payload, language, isDark], () => {
   void updateHighlight();
-});
-
-onMounted(() => {
-  if (root.value && typeof ResizeObserver !== "undefined") {
-    resizeObserver = new ResizeObserver((entries) => {
-      const width = entries[0]?.contentRect.width ?? 0;
-      compact.value = width > 0 && width < COMPACT_WIDTH_PX;
-    });
-    resizeObserver.observe(root.value);
-  }
 });
 
 watch(
   [() => props.url, () => props.modified],
-  async ([url, modified]) => {
+  async ([url, modified], previous) => {
+    // Release the reference held for the previous url/modified pair (if any) so its
+    // queued request can be canceled once no mounted consumer still needs it.
+    if (previous) {
+      releaseTextPreview(previous[0] as string, (previous[1] as string | null) ?? null);
+    }
     const current = ++requestId;
     status.value = "loading";
     payload.value = null;
@@ -182,11 +187,12 @@ watch(
 );
 
 onBeforeUnmount(() => {
-  // Drop any in-flight result so it never updates an unmounted tile.
+  // Drop any in-flight result so it never updates an unmounted tile, and release the
+  // request reference so queued previews for unmounted tiles stop competing with the
+  // folder the user is actually viewing.
   requestId++;
   highlightId++;
-  resizeObserver?.disconnect();
-  resizeObserver = null;
+  releaseTextPreview(props.url, props.modified ?? null);
 });
 </script>
 
@@ -237,7 +243,11 @@ onBeforeUnmount(() => {
   padding: 0.6em;
   margin: 0;
   overflow: hidden;
-  font-size: 3.4cqw;
+  /* Lay out at a readable width and let the tile clip, instead of wrapping aggressively */
+  min-width: var(--text-preview-min-width, 320px);
+  /* Scale with the tile, but never below a legible floor: at the 60px inline threshold
+     3.4cqw is only ~2px, so the floor keeps the smallest tiles readable. */
+  font-size: max(3.4cqw, 8px);
   line-height: 1.35;
   text-align: left;
   overflow-wrap: anywhere;
@@ -272,12 +282,6 @@ onBeforeUnmount(() => {
   background: var(--background);
   font-weight: 600;
   text-align: left;
-}
-
-/* Compact tiles: keep text at a readable minimum size and let the tile clip the rest */
-.text-preview-body.text-preview-compact {
-  font-size: max(6px, 3.4cqw);
-  line-height: 1.3;
 }
 
 .text-preview-html :deep(h1),
@@ -351,15 +355,5 @@ onBeforeUnmount(() => {
 .text-preview-html :deep(a) {
   color: var(--primaryColor);
   text-decoration: underline;
-}
-
-.text-preview-fade {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 30%;
-  background: linear-gradient(to bottom, transparent, var(--surfacePrimary));
-  pointer-events: none;
 }
 </style>

@@ -1,5 +1,16 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { clearTextPreviewCache, fetchTextPreview, languageFromPreviewUrl, textPreviewUrlFor } from "./textPreview.ts";
+import {
+  clearTextPreviewCache,
+  fetchTextPreview,
+  getRenderedTextPreview,
+  isTextPreviewableName,
+  languageFromPath,
+  languageFromPreviewUrl,
+  MIN_TEXT_PREVIEW_WIDTH_PX,
+  releaseTextPreview,
+  setRenderedTextPreview,
+  textPreviewCacheKey,
+} from "./textPreview.ts";
 
 describe("languageFromPreviewUrl", () => {
   it("reads the lowercase extension from the path parameter", () => {
@@ -12,17 +23,48 @@ describe("languageFromPreviewUrl", () => {
   });
 });
 
-describe("textPreviewUrlFor", () => {
-  it("maps the authenticated preview URL to the text endpoint and keeps params", () => {
-    const thumb = "http://localhost/api/resources/preview?path=%2Fa.md&key=123&source=main&inline=true";
-    expect(textPreviewUrlFor(thumb)).toBe(
-      "http://localhost/api/resources/preview/text?path=%2Fa.md&key=123&source=main&inline=true",
-    );
+describe("languageFromPath", () => {
+  it("derives the extension without parsing a URL", () => {
+    expect(languageFromPath("/src/Main.GO")).toBe("go");
+    expect(languageFromPath("data.TSV")).toBe("tsv");
+    expect(languageFromPath("Makefile")).toBeNull();
+    expect(languageFromPath(".env")).toBeNull();
+    expect(languageFromPath(null)).toBeNull();
+  });
+});
+
+describe("isTextPreviewableName", () => {
+  it("is true for extensions in the backend kind map", () => {
+    // The vitest setup stubs globalVars.textPreviewExtensions.
+    expect(isTextPreviewableName("notes.md")).toBe(true);
+    expect(isTextPreviewableName("image.png")).toBe(false);
+    expect(isTextPreviewableName("noext")).toBe(false);
+  });
+});
+
+describe("MIN_TEXT_PREVIEW_WIDTH_PX", () => {
+  it("is the tile width below which no inline preview is rendered", () => {
+    expect(MIN_TEXT_PREVIEW_WIDTH_PX).toBe(60);
+  });
+});
+
+describe("rendered HTML cache", () => {
+  afterEach(() => {
+    clearTextPreviewCache();
   });
 
-  it("maps the public share preview URL and keeps the hash", () => {
-    const thumb = "http://localhost/public/api/resources/preview?path=%2Fa.txt&hash=abc";
-    expect(textPreviewUrlFor(thumb)).toBe("http://localhost/public/api/resources/preview/text?path=%2Fa.txt&hash=abc");
+  it("round-trips a value and marks it most recently used", () => {
+    const key = textPreviewCacheKey("/api/resources/preview/text?path=a", "2026-01-01");
+    setRenderedTextPreview(key, "<p>hi</p>");
+    expect(getRenderedTextPreview(key)).toBe("<p>hi</p>");
+  });
+
+  it("keys by URL and modified time", () => {
+    const a = textPreviewCacheKey("/u", "1");
+    const b = textPreviewCacheKey("/u", "2");
+    expect(a).not.toBe(b);
+    setRenderedTextPreview(a, "<p>a</p>");
+    expect(getRenderedTextPreview(b)).toBeUndefined();
   });
 });
 
@@ -55,5 +97,43 @@ describe("fetchTextPreview cache", () => {
     await expect(fetchTextPreview("/u", null)).rejects.toThrow("415");
     await expect(fetchTextPreview("/u", null)).resolves.toMatchObject({ content: "ok" });
     expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe("releaseTextPreview", () => {
+  afterEach(() => {
+    clearTextPreviewCache();
+    vi.unstubAllGlobals();
+  });
+
+  it("keeps a settled result after the last consumer releases", async () => {
+    const fetchMock = vi.fn(async () => new Response(JSON.stringify({ content: "x", kind: "plain", format: "text", truncated: false, size: 1 }), { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await fetchTextPreview("/u", "1");
+    // The popup/tile unmounts after the fetch resolved.
+    releaseTextPreview("/u", "1");
+
+    // Reopening must reuse the cached result, not fetch again.
+    await fetchTextPreview("/u", "1");
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("aborts a pending request when its last consumer unmounts", async () => {
+    let observedSignal: AbortSignal | undefined;
+    const fetchMock = vi.fn((_url: string, init?: RequestInit) => {
+      observedSignal = init?.signal ?? undefined;
+      // Never resolves on its own; only aborts when the consumer goes away.
+      return new Promise<Response>((_resolve, reject) => {
+        observedSignal?.addEventListener("abort", () => reject(new DOMException("Aborted", "AbortError")));
+      });
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const pending = fetchTextPreview("/u", "1");
+    expect(observedSignal?.aborted).toBe(false);
+    releaseTextPreview("/u", "1");
+    expect(observedSignal?.aborted).toBe(true);
+    await expect(pending).rejects.toThrow(/Aborted/);
   });
 });

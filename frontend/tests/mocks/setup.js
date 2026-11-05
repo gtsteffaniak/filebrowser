@@ -86,6 +86,14 @@ vi.mock('@/utils/constants', () => {
   return {
     globalVars: {
       baseURL: "/files/",
+      textPreviewExtensions: {
+        markdown: ["md"],
+        code: ["go", "js", "ts"],
+        csv: ["csv", "tsv"],
+        html: ["html"],
+        plain: ["txt"],
+        rtf: ["rtf"],
+      },
     },
     baseURL: "/files/",
   };

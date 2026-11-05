@@ -93,6 +93,7 @@ build-frontend:
 lint-frontend:
 	cd frontend && npm run lint
 	cd frontend && npm run lint:css
+	cd frontend && npm run typecheck
 
 lint-backend:
 	cd backend && GOLANGCI_LINT="$$(cd $(BACKEND_BUILD) && go tool -n golangci-lint)" && "$$GOLANGCI_LINT" run --path-prefix=backend

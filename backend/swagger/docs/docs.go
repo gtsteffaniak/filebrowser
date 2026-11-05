@@ -2886,7 +2886,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Text preview content",
                         "schema": {
-                            "$ref": "#/definitions/textpreview.Result"
+                            "$ref": "#/definitions/preview.TextPreviewResult"
                         }
                     },
                     "400": {
@@ -5274,7 +5274,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Text preview content",
                         "schema": {
-                            "$ref": "#/definitions/textpreview.Result"
+                            "$ref": "#/definitions/preview.TextPreviewResult"
                         }
                     },
                     "403": {
@@ -6008,6 +6008,31 @@ const docTemplate = `{
                 "year": {
                     "description": "release year",
                     "type": "integer"
+                }
+            }
+        },
+        "preview.TextPreviewResult": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "description": "Content is plain text, or an HTML fragment when Format is \"html\".",
+                    "type": "string"
+                },
+                "format": {
+                    "description": "Format is \"text\" or \"html\". RTF is converted to HTML; everything else is text.",
+                    "type": "string"
+                },
+                "kind": {
+                    "description": "Kind is the renderer the frontend should use: plain, csv, markdown, html, css, code, or rtf.",
+                    "type": "string"
+                },
+                "size": {
+                    "description": "Size is the full size of the file in bytes.",
+                    "type": "integer"
+                },
+                "truncated": {
+                    "description": "Truncated is true when the file is larger than the returned content.",
+                    "type": "boolean"
                 }
             }
         },
@@ -8062,31 +8087,6 @@ const docTemplate = `{
                 "viewMode": {
                     "description": "default view mode for anonymous users",
                     "type": "string"
-                }
-            }
-        },
-        "textpreview.Result": {
-            "type": "object",
-            "properties": {
-                "content": {
-                    "description": "Content is plain text, or an HTML fragment when Format is \"html\".",
-                    "type": "string"
-                },
-                "format": {
-                    "description": "Format is \"text\" or \"html\". RTF is converted to HTML; everything else is text.",
-                    "type": "string"
-                },
-                "kind": {
-                    "description": "Kind is the renderer the frontend should use: plain, csv, markdown, html, css, code, or rtf.",
-                    "type": "string"
-                },
-                "size": {
-                    "description": "Size is the full size of the file in bytes.",
-                    "type": "integer"
-                },
-                "truncated": {
-                    "description": "Truncated is true when the file is larger than the returned content.",
-                    "type": "boolean"
                 }
             }
         },
