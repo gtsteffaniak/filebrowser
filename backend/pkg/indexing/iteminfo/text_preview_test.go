@@ -1,7 +1,6 @@
 package iteminfo
 
 import (
-	"slices"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -22,21 +21,16 @@ func TestTextPreviewKinds(t *testing.T) {
 }
 
 func TestIsTextPreviewable(t *testing.T) {
-	require.True(t, IsTextPreviewable("Notes.TXT"))
-	require.True(t, IsTextPreviewable("dir/readme.md"))
-	require.False(t, IsTextPreviewable("image.svg"))
-	require.False(t, IsTextPreviewable("noext"))
+	for _, mt := range []string{"text/plain", "text/markdown", "text/lyrics", "text/x-go", "text/html"} {
+		require.True(t, IsTextPreviewable(mt), mt)
+	}
+	for _, mt := range []string{"", "image/svg+xml", "application/pdf", "application/json", "application/x-sqlite3", "application/postscript", "application/backup", "application/wasm"} {
+		require.False(t, IsTextPreviewable(mt), mt)
+	}
 }
 
-func TestTextPreviewExtensionsForSPA(t *testing.T) {
-	groups := TextPreviewExtensionsForSPA()
-	require.Contains(t, groups["markdown"], "md")
-	require.Contains(t, groups["rtf"], "rtf")
-	require.True(t, slices.Contains(groups["code"], "go"))
-	require.False(t, slices.Contains(groups["code"], "svg"))
-	for _, exts := range groups {
-		for _, ext := range exts {
-			require.NotContains(t, ext, ".", "extensions must not have a leading dot")
-		}
-	}
+func TestTextPreviewRenderKind(t *testing.T) {
+	require.Equal(t, "markdown", TextPreviewRenderKind("notes.md"))
+	require.Equal(t, "plain", TextPreviewRenderKind("50. Holy Water.lrc"))
+	require.Equal(t, "plain", TextPreviewRenderKind("cert.pem"))
 }
