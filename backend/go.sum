@@ -167,6 +167,8 @@ github.com/gtsteffaniak/go-logger v1.1.0 h1:baFds+iibuLLNpNLwygz32bDqdsunI6dGWcd
 github.com/gtsteffaniak/go-logger v1.1.0/go.mod h1:rapapTju4D7bwt6h4JOdZNUXDjnp0WkTBd6TN5yWglI=
 github.com/gtsteffaniak/go-media v1.2.0 h1:lbNL/G86uzzH8NaT45DBHKm1r0P7yndIo9pNC7gdqQs=
 github.com/gtsteffaniak/go-media v1.2.0/go.mod h1:EH+5KAVLWfFl0g4W0Xni0qJJH8MUDIhAw4wPcC0mhxY=
+github.com/gtsteffaniak/go-media v1.2.1 h1:SjrPqgQTHnenAFuVh8fTRxk8+qXFEaCxiADx3zkM1OI=
+github.com/gtsteffaniak/go-media v1.2.1/go.mod h1:EH+5KAVLWfFl0g4W0Xni0qJJH8MUDIhAw4wPcC0mhxY=
 github.com/gtsteffaniak/go-vpx v1.0.1 h1:9lSI8yoz6omDChaeV0AJrhdfe2YTrWvJrDENI/bnkAM=
 github.com/gtsteffaniak/go-vpx v1.0.1/go.mod h1:tRCdDZ15oZZTsiwmQAwyH56PTt1jn1C1O0P03oOkoJ8=
 github.com/hashicorp/go-uuid v1.0.3 h1:2gKiV6YVmrJ1i2CKKa9obLvRieoRGviZFL26PcT/Co8=
