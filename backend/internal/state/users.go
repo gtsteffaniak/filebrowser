@@ -256,12 +256,17 @@ func CreateUser(user *users.User, plaintextPassword string) error {
 			requestedScopePermissions[backendScopeKeyFor(scope)] = scope.Permissions
 		}
 	}
+	// Snapshot profile fields the caller explicitly supplied; defaults only fill the rest.
+	requestedProfilePaths := user.ProfileFieldPaths
+	requestedProfile := settings.ProfileFromUser(user)
 	// Apply profile/scope defaults using the final account permissions (admin flag drives scope defaults).
 	if permissionsRequested {
 		settings.ApplyUserDefaultsFromKeepingAccountPermissions(user, EffectiveUserDefaults())
 	} else {
 		applyUserSettingsDefaults(user)
 	}
+	settings.ApplyProfilePathsFrom(user, requestedProfile, requestedProfilePaths)
+	user.ProfileFieldPaths = nil
 	if preserveRequirePasswordChange {
 		user.RequirePasswordChange = true
 	}

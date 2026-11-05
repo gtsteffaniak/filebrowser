@@ -263,6 +263,9 @@ type User struct {
 	// explicitly supplied; not persisted. JSON create requests record key presence on
 	// Permissions.PresentGlobalKeys during decode instead.
 	PermissionsFieldMask GlobalPermissionsFieldMask `json:"-"`
+	// ProfileFieldPaths marks profile dot-paths (e.g. "account.lockPassword") a create
+	// request explicitly supplied, so CreateUser keeps them instead of userDefaults; not persisted.
+	ProfileFieldPaths map[string]struct{} `json:"-"`
 	// BackendScopes is the authoritative, persisted access list (SourceScope.Name = backend source path).
 	// SQLite stores this inside user_data JSON under the key "scopes" (see sqldb.UserData).
 	BackendScopes            []BackendScope                   `json:"backendScopes,omitempty"`

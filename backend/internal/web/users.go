@@ -184,6 +184,13 @@ func usersPostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 	if req.User.Username == "" {
 		return http.StatusBadRequest, errors.ErrEmptyUsername
 	}
+	// Record which profile fields were sent so explicit values (including false) beat userDefaults.
+	var rawReq struct {
+		Data json.RawMessage `json:"data"`
+	}
+	if err = json.Unmarshal(body, &rawReq); err == nil {
+		req.User.ProfileFieldPaths = settings.ProfilePathsFromUserJSON(rawReq.Data)
+	}
 
 	if len(req.Which) != 0 {
 		return http.StatusBadRequest, nil
