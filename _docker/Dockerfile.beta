@@ -34,7 +34,7 @@ COPY --from=base --chown=filebrowser:1000 [ "/app/filebrowser", "./" ]
 COPY --from=base --chown=filebrowser:1000 [ "/app/config.yaml", "./data/config.yaml" ]
 COPY --from=base --chown=filebrowser:1000 [ "/app/config.yaml", "./" ]
 COPY --from=base --chown=filebrowser:1000 [ "/app/reduce-rounded-corners.css", "./" ]
-COPY --from=nbuild --chown=filebrowser:1000 [ "/build/backend/internal/web/dist/", "./internal/web/dist/" ]
+COPY --from=nbuild --chown=filebrowser:1000 [ "/build/frontend/dist/", "./internal/web/dist/" ]
 ## sanity checks
 RUN [ "filebrowser", "version" ]
 # exposing default port for auto discovery.

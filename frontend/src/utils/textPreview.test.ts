@@ -3,7 +3,7 @@ import {
   clearTextPreviewCache,
   fetchTextPreview,
   getRenderedTextPreview,
-  isTextPreviewableName,
+  isTextPreviewableType,
   languageFromPath,
   languageFromPreviewUrl,
   MIN_TEXT_PREVIEW_WIDTH_PX,
@@ -33,12 +33,17 @@ describe("languageFromPath", () => {
   });
 });
 
-describe("isTextPreviewableName", () => {
-  it("is true for extensions in the backend kind map", () => {
-    // The vitest setup stubs globalVars.textPreviewExtensions.
-    expect(isTextPreviewableName("notes.md")).toBe(true);
-    expect(isTextPreviewableName("image.png")).toBe(false);
-    expect(isTextPreviewableName("noext")).toBe(false);
+describe("isTextPreviewableType", () => {
+  it("is true for text/* mimetypes, with or without parameters", () => {
+    for (const mt of ["text/markdown", "text/lyrics", "text/plain; charset=utf-8", "text/x-go"]) {
+      expect(isTextPreviewableType(mt), mt).toBe(true);
+    }
+  });
+
+  it("is false for non-text mimetypes and missing types", () => {
+    for (const mt of ["application/x-sqlite3", "application/postscript", "application/wasm", "application/backup", "image/svg+xml", "image/png", "directory", "", null, undefined]) {
+      expect(isTextPreviewableType(mt), String(mt)).toBe(false);
+    }
   });
 });
 

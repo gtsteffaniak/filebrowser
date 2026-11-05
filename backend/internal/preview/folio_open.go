@@ -1,4 +1,4 @@
-package folio
+package preview
 
 import (
 	"fmt"
@@ -17,9 +17,9 @@ const folioTextCheckWindow = 4096 // html.readsAsText validation window
 // maxTextPreviewLoad is the most plain-text we read for a first-page thumbnail.
 const maxTextPreviewLoad = 32 << 10 // 32 KiB
 
-// SupportsPreview reports whether folio should attempt this file (name + MIME).
+// folioSupportsPreview reports whether folio should attempt this file (name + MIME).
 // doc.Open sniffs content; extensions like .css are not in FolioConvertable but still render.
-func SupportsPreview(name, mimetype string) bool {
+func folioSupportsPreview(name, mimetype string) bool {
 	ext := strings.ToLower(filepath.Ext(name))
 	if iteminfo.FolioConvertable[ext] {
 		return true

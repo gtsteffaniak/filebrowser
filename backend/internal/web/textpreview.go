@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"path/filepath"
-	"strings"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/files"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/preview"
@@ -101,10 +99,10 @@ func serveTextPreview(w http.ResponseWriter, r *http.Request, info *iteminfo.Ext
 	if info.Type == "directory" {
 		return http.StatusUnsupportedMediaType, fmt.Errorf("directories have no text preview")
 	}
-	kind := iteminfo.TextPreviewKind(strings.ToLower(filepath.Ext(info.Name)))
-	if kind == "" {
+	if !iteminfo.IsTextPreviewable(info.Type) {
 		return http.StatusUnsupportedMediaType, fmt.Errorf("unsupported file type for text preview")
 	}
+	kind := iteminfo.TextPreviewRenderKind(info.Name)
 	// Bound concurrent reads and RTF conversions with the preview service's shared
 	// image-processor semaphore, so a listing of many text files cannot open an
 	// unbounded number of file handles at once.

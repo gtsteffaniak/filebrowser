@@ -53,7 +53,7 @@ import {
   storeThumbnailBlob,
 } from "@/utils/cache/imageCache.ts";
 import { queuedFetchPreview } from "@/utils/previewRequests.ts";
-import { isTextPreviewableName, languageFromPath, MIN_TEXT_PREVIEW_WIDTH_PX } from "@/utils/textPreview.ts";
+import { isTextPreviewableType, languageFromPath, MIN_TEXT_PREVIEW_WIDTH_PX } from "@/utils/textPreview.ts";
 
 const props = withDefaults(
   defineProps<{
@@ -226,7 +226,7 @@ const shouldUse3DPreview = computed(() => {
 
 /** True when the filename has an extension the text preview endpoint supports. */
 const isTextPreviewable = computed(
-  () => props.mimetype !== "directory" && isTextPreviewableName(props.filename),
+  () => props.mimetype !== "directory" && isTextPreviewableType(props.mimetype),
 );
 
 /** Extension used for syntax highlighting and the CSV/TSV delimiter. */
