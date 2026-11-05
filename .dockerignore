@@ -10,6 +10,7 @@ backend/tmp
 backend/dist
 backend/backend*
 backend/vendor/**
+backend/internal/web/dist/*
 
 frontend/dist/**
 frontend/node_modules/**
