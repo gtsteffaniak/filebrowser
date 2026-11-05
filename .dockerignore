@@ -14,6 +14,5 @@ backend/internal/web/dist/*
 !backend/internal/web/dist/.gitkeep
 
 
-frontend/dist/**
 frontend/node_modules/**
 frontend/pkg/**

@@ -83,7 +83,7 @@ import { useListingVirtualization } from "@/composables/useListingVirtualization
 import url from "@/utils/url";
 import { removeFromFolderLists } from "@/utils/cache/listingCache.ts";
 
-interface DeleteItem {
+export interface DeleteItem {
   source?: string;
   path: string;
   type?: string;

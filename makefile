@@ -19,7 +19,7 @@ backend_dev_tool = $$(cd $(BACKEND_BUILD) && go tool -n $(1))
 
 .SILENT:
 
-.PHONY: setup update build build-docker build-docker-media build-backend build-frontend dev run generate-docs
+.PHONY: setup update build build-docker build-docker-media build-backend build-frontend embed-frontend dev run generate-docs
 .PHONY: lint-frontend lint-backend lint test test-backend test-frontend check-all
 .PHONY: check-translations sync-translations test-playwright test-playwright-project test-playwright-performance playwright-base playwright-perf-base perf-check perf-smoke perf-baseline perf-dashboard run-proxy screenshots
 .PHONY: check-icons generate-icons sync-icons
@@ -52,7 +52,13 @@ build-docker-slim:
 build-docker-media:
 	DOCKER_BUILDKIT=1 docker build --build-arg="VERSION=testing" --build-arg="REVISION=n/a" -t gtstef/filebrowser-media -f _docker/Dockerfile.media .
 
-build-backend:
+embed-frontend:
+	@test -d frontend/dist || (echo "Missing frontend/dist; run 'make build-frontend' first." >&2 && exit 1)
+	mkdir -p backend/internal/web/dist
+	find backend/internal/web/dist -mindepth 1 ! -name '.gitkeep' ! -name 'config.generated.yaml' -delete
+	cp -r frontend/dist/. backend/internal/web/dist/
+
+build-backend: embed-frontend
 	@echo "Building backend..."
 	cd backend && go build -o filebrowser --ldflags="-w -s -X 'github.com/gtsteffaniak/filebrowser/backend/internal/version.CommitSHA=testingCommit' -X 'github.com/gtsteffaniak/filebrowser/backend/internal/version.Version=testing'"
 	@echo "✓ Backend built successfully"
@@ -63,7 +69,7 @@ dev: generate-docs generate-icons
 	@echo "Starting dev servers (Vite HMR + Air)... Press Ctrl+C to stop."
 	bash ./scripts/dev.sh
 
-run: build-frontend generate-docs
+run: build-frontend generate-docs embed-frontend
 	cd backend && $(call backend_dev_tool,swag) init --output swagger/docs
 	@if [ "$$(uname)" = "Darwin" ]; then \
 		sed -i '' '/func init/,+3d' backend/swagger/docs/docs.go; \
@@ -138,7 +144,7 @@ PLAYWRIGHT_PROJECTS := sharing settings noauth general jwt proxy previews oidc n
 #   make test-playwright-project PROJECT=previews
 # or:
 #   make test-playwright PROJECT=previews
-test-playwright: build-frontend
+test-playwright: build-frontend embed-frontend
 	cd backend && GOOS=linux go build -o filebrowser .
 ifeq ($(PROJECT),)
 	$(foreach p,$(PLAYWRIGHT_PROJECTS),docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-$(p) . ;)
@@ -166,7 +172,7 @@ playwright-perf-base:
 		--build-arg PLAYWRIGHT_BROWSERS="$(PERF_PLAYWRIGHT_BROWSERS)" \
 		-f _docker/Dockerfile.playwright-perf-base .
 
-test-playwright-performance: build-frontend
+test-playwright-performance: build-frontend embed-frontend
 	cd backend && GOOS=linux go build -o filebrowser .
 	DOCKER_BUILDKIT=1 docker build --target ci -t filebrowser-playwright-performance \
 		-f _docker/Dockerfile.playwright-performance .
@@ -182,7 +188,9 @@ PERF_BROWSERS ?= chromium,firefox,webkit
 # Only chromium feeds the CI baseline; the others are advisory insight.
 perf-check:
 ifndef PERF_SKIP_BUILD
-	$(MAKE) build-frontend
+	$(MAKE) build-frontend embed-frontend
+else
+	$(MAKE) embed-frontend
 endif
 	cd backend && GOOS=linux go build -o filebrowser .
 ifndef PERF_SKIP_PLAYWRIGHT_BASE
@@ -213,7 +221,7 @@ perf-dashboard:
 # get version from environment variable, for example
 # cd frontend && npm i @playwright/test && npx playwright install --with-deps chromium
 # make PLAYWRIGHT_TEST=settings test-playwright-ui
-test-playwright-ui: build-frontend
+test-playwright-ui: build-frontend embed-frontend
 	docker stop local-playwright-tests || true
 	docker rm local-playwright-tests || true
 	rm -rf _docker/src/tmp/ || true && mkdir -p _docker/src/tmp/
@@ -234,7 +242,7 @@ run-jwt: build-frontend
 # optional: install playwright locally
 # once local playwright server is running, you can also watch the tests interactively with:
 # cd frontend && npx playwright test --project dark-screenshots --ui
-screenshots: build-frontend
+screenshots: build-frontend embed-frontend
 	cd backend && GOOS=linux go build -o filebrowser --ldflags="-w -s -X 'github.com/gtsteffaniak/filebrowser/backend/internal/version.Version=latest'" .
 	@echo "Running screenshots..."
 	cd _docker && docker compose down && docker compose up --build local-playwright-screenshots

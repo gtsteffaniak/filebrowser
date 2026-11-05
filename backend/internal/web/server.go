@@ -42,7 +42,7 @@ func initRuntime(deps Deps, assets fs.FS) {
 	initSettingsSecretMarkers()
 }
 
-// Embed the frontend build output under internal/web/dist (see frontend `npm run build`).
+// Embed the frontend build output under internal/web/dist (see `make embed-frontend` after `npm run build` in frontend/).
 //
 //go:embed dist/*
 var assets embed.FS
