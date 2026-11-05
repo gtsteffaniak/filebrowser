@@ -204,12 +204,17 @@ func (s *Service) ResizeWithSize(ctx context.Context, in io.Reader, out io.Write
 // (4 bytes per pixel of the cropped area, about 144 MB for a 48 MP photo) and only then resizes.
 // Here the crop is a SubImage view into the decoded pixels, so only the resize allocates. The
 // crop rectangle is computed as imaging's cropAndResize computes it, so the output is the same.
+//
+// Two cases still go through imaging.Fill: a crop that is already the target size (nothing to
+// scale, and Fill's small copy is what keeps the output type the same), and 4:4:4 YCbCr sources,
+// whose scanner in imaging v1.9.0 advances one full parent stride past the end of a SubImage's
+// last row and panics when the crop has an x offset and reaches the bottom row.
 func fillCenter(img image.Image, width, height int, filter imaging.ResampleFilter) image.Image {
 	b := img.Bounds()
 	sub, ok := img.(interface {
 		SubImage(image.Rectangle) image.Image
 	})
-	if !ok || width <= 0 || height <= 0 || b.Dx() < 100 || b.Dy() < 100 || (b.Dx() == width && b.Dy() == height) {
+	if !ok || is444(img) || width <= 0 || height <= 0 || b.Dx() < 100 || b.Dy() < 100 || (b.Dx() == width && b.Dy() == height) {
 		return imaging.Fill(img, width, height, imaging.Center, filter)
 	}
 	cropW, cropH := b.Dx(), b.Dy()
@@ -218,10 +223,24 @@ func fillCenter(img image.Image, width, height int, filter imaging.ResampleFilte
 	} else {
 		cropW = int(math.Max(1, float64(b.Dy())*float64(width)/float64(height)) + 0.5)
 	}
+	if cropW == width && cropH == height {
+		return imaging.Fill(img, width, height, imaging.Center, filter)
+	}
 	x0 := b.Min.X + (b.Dx()-cropW)/2
 	y0 := b.Min.Y + (b.Dy()-cropH)/2
 	crop := image.Rect(x0, y0, x0+cropW, y0+cropH).Intersect(b)
 	return imaging.Resize(sub.SubImage(crop), width, height, filter)
+}
+
+// is444 reports whether img is a YCbCr image without chroma subsampling.
+func is444(img image.Image) bool {
+	switch p := img.(type) {
+	case *image.YCbCr:
+		return p.SubsampleRatio == image.YCbCrSubsampleRatio444
+	case *image.NYCbCrA:
+		return p.SubsampleRatio == image.YCbCrSubsampleRatio444
+	}
+	return false
 }
 
 func (s *Service) resizeWithSize(in io.Reader, out io.Writer, fileSize int64, opts ResizeOptions) error {
