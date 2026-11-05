@@ -69,7 +69,8 @@ dev: generate-docs generate-icons
 	@echo "Starting dev servers (Vite HMR + Air)... Press Ctrl+C to stop."
 	bash ./scripts/dev.sh
 
-run: build-frontend generate-docs embed-frontend
+run: build-frontend generate-docs
+	$(MAKE) embed-frontend
 	cd backend && $(call backend_dev_tool,swag) init --output swagger/docs
 	@if [ "$$(uname)" = "Darwin" ]; then \
 		sed -i '' '/func init/,+3d' backend/swagger/docs/docs.go; \
