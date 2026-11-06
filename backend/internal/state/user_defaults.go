@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
+	"slices"
 	"strings"
 	"sync"
 
@@ -295,6 +296,17 @@ func ApplyUserDefaults(u *users.User) {
 	applyUserSettingsDefaults(u)
 	applySidebarLinkDefaults(u)
 	applyToolAccessDefaults(u)
+}
+
+// PrefillUserProfileDefaults seeds u with the effective profile defaults so a JSON decode
+// overlays only the keys the request sent (encoding/json leaves absent keys untouched).
+// Permissions are left zero so omitted permissions stay distinguishable; CreateUser merges them.
+func PrefillUserProfileDefaults(u *users.User) {
+	settings.ApplyFullProfileFromDefaults(u, EffectiveUserDefaults())
+	// json.Unmarshal reuses an existing slice's backing array, so clone it or a request
+	// would overwrite the shared in-memory defaults.
+	u.NewFileTemplate = slices.Clone(u.NewFileTemplate)
+	u.Permissions = users.Permissions{}
 }
 
 func applyUserSettingsDefaults(u *users.User) {
