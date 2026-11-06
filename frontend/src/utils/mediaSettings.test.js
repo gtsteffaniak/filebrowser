@@ -116,30 +116,25 @@ describe('mediaSettings', () => {
             datasaver: { enabled: true },
           },
         },
-        hardwareAcceleration: true,
       };
       expect(enabledTranscodeProfileIds(media)).toEqual(['quality', 'datasaver']);
       expect(normalizeSharedMediaSettings(media)).toEqual({
         enabled: true,
         profiles: ['quality', 'datasaver'],
         maxConcurrentPerUser: 2,
-        hardwareAcceleration: true,
         imagePreview: {},
       });
     });
 
     it('accepts the player-only shape returned to non-admin users', () => {
       expect(normalizeSharedMediaSettings({
-        enabled: false,
-        profiles: ['quality'],
-        maxConcurrentPerUser: 3,
-        hardwareAcceleration: false,
+        transcode: { enabled: false, maxConcurrentPerUser: 3, enabledProfiles: ['quality'] },
+        imagePreview: { heic: true },
       })).toEqual({
         enabled: false,
         profiles: ['quality'],
         maxConcurrentPerUser: 3,
-        hardwareAcceleration: false,
-        imagePreview: {},
+        imagePreview: { heic: true },
       });
     });
 
@@ -148,7 +143,6 @@ describe('mediaSettings', () => {
         enabled: false,
         profiles: [],
         maxConcurrentPerUser: 1,
-        hardwareAcceleration: false,
         imagePreview: {},
       });
     });

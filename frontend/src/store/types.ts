@@ -335,7 +335,6 @@ export interface StoreState {
     enabled: boolean;
     profiles: string[];
     maxConcurrentPerUser: number;
-    hardwareAcceleration: boolean;
     /** Per image preview type (e.g. heic, jxl): conversion active on this server. */
     imagePreview: Partial<Record<'heic' | 'jxl' | 'jpeg', boolean>>;
   } | null;

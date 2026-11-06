@@ -89,12 +89,14 @@ export function enabledTranscodeProfileIds(media) {
  * shapes collapse to the same fields here.
  */
 export function normalizeSharedMediaSettings(data) {
+  // Both payloads share the transcode keys: enabled, maxConcurrentPerUser, and the
+  // derived enabledProfiles. Admin payloads also carry the full profiles object, so
+  // fall back to deriving the ids from it when enabledProfiles is absent.
   const transcode = data?.transcode || {};
   return {
-    enabled: Boolean(data?.enabled ?? transcode.enabled),
-    profiles: Array.isArray(data?.profiles) ? data.profiles : enabledTranscodeProfileIds(data),
-    maxConcurrentPerUser: Number(data?.maxConcurrentPerUser ?? transcode.maxConcurrentPerUser) || 1,
-    hardwareAcceleration: Boolean(data?.hardwareAcceleration),
+    enabled: Boolean(transcode.enabled),
+    profiles: Array.isArray(transcode.enabledProfiles) ? transcode.enabledProfiles : enabledTranscodeProfileIds(data),
+    maxConcurrentPerUser: Number(transcode.maxConcurrentPerUser) || 1,
     imagePreview: { ...(data?.imagePreview || {}) },
   };
 }

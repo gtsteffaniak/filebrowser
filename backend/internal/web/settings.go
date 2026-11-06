@@ -455,45 +455,22 @@ func settingsShareDefaultsPatchHandler(w http.ResponseWriter, r *http.Request, d
 
 // settingsMediaGetHandler returns the runtime media settings.
 // @Summary Get runtime media settings
-// @Description Admins receive the DB-backed media integration settings; every authenticated user
-// @Description receives the player-relevant subset (transcode enabled, profiles, per-user limit).
+// @Description Admins receive the full DB-backed media settings (mediaSettingsResponse). Every
+// @Description authenticated user receives only the PUBLIC subset (UserMedia: transcode enabled,
+// @Description per-user limit, enabled profiles, and image preview availability).
 // @Tags Settings
 // @Produce json
 // @Success 200 {object} mediaSettingsResponse "Media settings"
 // @Router /api/settings/media [get]
-// mediaSettingsResponse is the runtime media settings plus config-lock metadata.
+// mediaSettingsResponse is the ADMIN ONLY media payload: the full stored settings
+// (FullAdminMedia, which embeds the public UserTranscode fields) plus config-lock
+// metadata and ffmpeg option lists. Non-admins never receive this type.
 type mediaSettingsResponse struct {
-	settings.MediaSettings
-	// Shared fields, identical to the ones every user receives (see mediaSettings).
-	Enabled               bool                               `json:"enabled"`
-	Profiles              []string                           `json:"profiles"`
-	MaxConcurrentPerUser  int                                `json:"maxConcurrentPerUser"`
-	ImagePreview          map[settings.ImagePreviewType]bool `json:"imagePreview"`
-	LockedFromConfigPaths []string                           `json:"lockedFromConfigPaths,omitempty"`
-	LockMessage           string                             `json:"lockMessage,omitempty"`
-	AccelDeviceOptions    []ffmpeg.AccelDeviceOption         `json:"accelDeviceOptions,omitempty"`
-	EncoderBackendOptions []ffmpeg.EncoderBackendOption      `json:"encoderBackendOptions,omitempty"`
-}
-
-// mediaSettings is the runtime media state every authenticated user receives, for
-// both the player and general UI (listings, previews, uploads). It is loaded once
-// at app start and returned with the same shape to admins and non-admins.
-type mediaSettings struct {
-	Enabled              bool                               `json:"enabled"`
-	Profiles             []string                           `json:"profiles"`
-	MaxConcurrentPerUser int                                `json:"maxConcurrentPerUser"`
-	HardwareAcceleration bool                               `json:"hardwareAcceleration"`
-	ImagePreview         map[settings.ImagePreviewType]bool `json:"imagePreview"`
-}
-
-// imagePreviewAvailability resolves each supported image preview type to whether
-// conversion is active right now, using the same check the preview pipeline uses.
-func imagePreviewAvailability() map[settings.ImagePreviewType]bool {
-	out := make(map[settings.ImagePreviewType]bool, len(settings.AllImagePreviewTypes))
-	for _, t := range settings.AllImagePreviewTypes {
-		out[t] = settings.CanConvertImage(string(t))
-	}
-	return out
+	settings.FullAdminMedia
+	LockedFromConfigPaths []string                      `json:"lockedFromConfigPaths,omitempty"`
+	LockMessage           string                        `json:"lockMessage,omitempty"`
+	AccelDeviceOptions    []ffmpeg.AccelDeviceOption    `json:"accelDeviceOptions,omitempty"`
+	EncoderBackendOptions []ffmpeg.EncoderBackendOption `json:"encoderBackendOptions,omitempty"`
 }
 
 func mediaSettingsLockMeta() (paths []string, message string) {
@@ -508,12 +485,14 @@ func mediaSettingsLockMeta() (paths []string, message string) {
 // metadata, subtitles, and video thumbnails without it. ffmpeg-only controls
 // (transcoding, hardware acceleration) report their own availability.
 func settingsMediaGetHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+	// PUBLIC payload: non-admins get only what the player and general UI read.
 	if !d.User.Permissions.Admin {
-		return RenderJSON(w, r, currentMediaSettings())
+		return RenderJSON(w, r, settings.CurrentUserMedia())
 	}
-	shared := currentMediaSettings()
+	// ADMIN payload: full stored settings with effective and derived values filled in
+	// by PrepMediaForFrontend (a read-only copy; never saved).
+	media := settings.PrepMediaForFrontend(state.GetMediaSettings())
 	lockedPaths, lockMessage := mediaSettingsLockMeta()
-	media := state.GetMediaSettings()
 	svc := ffmpeg.Get()
 	var accelDeviceOptions []ffmpeg.AccelDeviceOption
 	var encoderBackendOptions []ffmpeg.EncoderBackendOption
@@ -523,28 +502,12 @@ func settingsMediaGetHandler(w http.ResponseWriter, r *http.Request, d *Context)
 		encoderBackendOptions = svc.EncoderBackendOptions()
 	}
 	return RenderJSON(w, r, mediaSettingsResponse{
-		MediaSettings:         media,
-		Enabled:               shared.Enabled,
-		Profiles:              shared.Profiles,
-		MaxConcurrentPerUser:  shared.MaxConcurrentPerUser,
-		ImagePreview:          shared.ImagePreview,
+		FullAdminMedia:        media,
 		LockedFromConfigPaths: lockedPaths,
 		LockMessage:           lockMessage,
 		AccelDeviceOptions:    accelDeviceOptions,
 		EncoderBackendOptions: encoderBackendOptions,
 	})
-}
-
-// currentMediaSettings reads the live shared media state returned to every user.
-func currentMediaSettings() mediaSettings {
-	media := state.GetMediaSettings()
-	return mediaSettings{
-		Enabled:              settings.TranscodeEnabled(),
-		Profiles:             settings.EnabledTranscodeProfiles(),
-		MaxConcurrentPerUser: settings.TranscodeMaxConcurrentPerUser(),
-		HardwareAcceleration: media.HardwareAcceleration,
-		ImagePreview:         imagePreviewAvailability(),
-	}
 }
 
 // settingsMediaPatchHandler merges a partial update into the runtime media settings.

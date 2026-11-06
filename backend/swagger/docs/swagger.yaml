@@ -480,6 +480,46 @@ definitions:
       styling:
         $ref: '#/definitions/settings.StylingConfig'
     type: object
+  settings.FullAdminTranscode:
+    properties:
+      cacheMaxSizeMB:
+        description: 'disk cache size limit in MB; 0 = unlimited (default: 10240)'
+        type: integer
+      cacheRetentionH:
+        description: 'completed cache retention in hours (default: 24)'
+        type: integer
+      enabled:
+        description: 'enable HLS transcoding for authenticated playback (default:
+          false)'
+        type: boolean
+      enabledProfiles:
+        description: derived at read time (player-menu profile ids); never stored
+        items:
+          type: string
+        type: array
+      encoderBackend:
+        description: 'default video encoder backend for transcodes: "" (auto), "cpu",
+          or an accel backend (nvenc, amf, qsv, vaapi, d3d12, videotoolbox)'
+        type: string
+      maxConcurrent:
+        description: 'global concurrent transcode sessions (default: 2)'
+        type: integer
+      maxConcurrentPerUser:
+        description: 'hard per-user concurrent transcode ceiling (default: 1)'
+        type: integer
+      maxResolution:
+        description: 'superseded by profiles.<name>.maxResolution. deprecated: kept
+          for config compatibility'
+        type: integer
+      profiles:
+        allOf:
+        - $ref: '#/definitions/settings.TranscodeProfiles'
+        description: per-profile transcode settings shown in the player menu
+      readRate:
+        description: 'VOD producer input pacing in Nx realtime (-readrate); unset
+          or <1 clamps to >=1 (default: 2)'
+        type: number
+    type: object
   settings.Http:
     properties:
       baseURL:
@@ -764,44 +804,9 @@ definitions:
         type: boolean
       transcode:
         allOf:
-        - $ref: '#/definitions/settings.MediaTranscode'
+        - $ref: '#/definitions/settings.FullAdminTranscode'
         description: 'deprecated: HLS transcoding for media playback. deprecated:
           manage via the admin media settings API'
-    type: object
-  settings.MediaTranscode:
-    properties:
-      cacheMaxSizeMB:
-        description: 'disk cache size limit in MB; 0 = unlimited (default: 10240)'
-        type: integer
-      cacheRetentionH:
-        description: 'completed cache retention in hours (default: 24)'
-        type: integer
-      enabled:
-        description: 'enable HLS transcoding for authenticated playback (default:
-          false)'
-        type: boolean
-      encoderBackend:
-        description: 'default video encoder backend for transcodes: "" (auto), "cpu",
-          or an accel backend (nvenc, amf, qsv, vaapi, d3d12, videotoolbox)'
-        type: string
-      maxConcurrent:
-        description: 'global concurrent transcode sessions (default: 2)'
-        type: integer
-      maxConcurrentPerUser:
-        description: 'hard per-user concurrent transcode ceiling (default: 1)'
-        type: integer
-      maxResolution:
-        description: 'superseded by profiles.<name>.maxResolution. deprecated: kept
-          for config compatibility'
-        type: integer
-      profiles:
-        allOf:
-        - $ref: '#/definitions/settings.TranscodeProfiles'
-        description: per-profile transcode settings shown in the player menu
-      readRate:
-        description: 'VOD producer input pacing in Nx realtime (-readrate); unset
-          or <1 clamps to >=1 (default: 2)'
-        type: number
     type: object
   settings.OidcConfig:
     properties:
@@ -2411,9 +2416,9 @@ definitions:
         description: File metadata for non-text files
     type: object
   web.mediaSettingsResponse:
-    description: Admins receive the DB-backed media integration settings; every authenticated
-      user receives the player-relevant subset (transcode enabled, profiles, per-user
-      limit).
+    description: 'Admins receive the full DB-backed media settings (mediaSettingsResponse).
+      Every authenticated user receives only the PUBLIC subset (UserMedia: transcode
+      enabled, per-user limit, enabled profiles, and image preview availability).'
     properties:
       accelDevice:
         description: 'acceleration device: "auto", "software"/"cpu", "igpu", "dgpu",
@@ -2439,10 +2444,6 @@ definitions:
         description: output ffmpeg stdout for media integration -- careful can produces
           lots of output!
         type: boolean
-      enabled:
-        description: Shared fields, identical to the ones every user receives (see
-          mediaSettings).
-        type: boolean
       encoderBackendOptions:
         items:
           $ref: '#/definitions/ffmpeg.EncoderBackendOption'
@@ -2453,6 +2454,7 @@ definitions:
       imagePreview:
         additionalProperties:
           type: boolean
+        description: PUBLIC availability, derived; never stored
         type: object
       lockMessage:
         type: string
@@ -2460,15 +2462,9 @@ definitions:
         items:
           type: string
         type: array
-      maxConcurrentPerUser:
-        type: integer
-      profiles:
-        items:
-          type: string
-        type: array
       transcode:
         allOf:
-        - $ref: '#/definitions/settings.MediaTranscode'
+        - $ref: '#/definitions/settings.FullAdminTranscode'
         description: HLS transcoding for media playback
     type: object
   web.pinnedItemPatchRequest:

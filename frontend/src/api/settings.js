@@ -124,9 +124,10 @@ export function getMediaSettings() {
 }
 
 /**
- * Shared runtime media state (player + general UI). Every authenticated user receives
- * the same fields; admins get extra config fields on the same endpoint.
- * @returns {Promise<{ enabled: boolean, profiles: string[], maxConcurrentPerUser: number, hardwareAcceleration: boolean, imagePreview: object }>}
+ * Shared runtime media state (player + general UI), normalized to a flat shape.
+ * Non-admins receive the PUBLIC UserMedia payload; admins get the full payload on the
+ * same endpoint, which carries the same transcode and imagePreview keys.
+ * @returns {Promise<{ enabled: boolean, profiles: string[], maxConcurrentPerUser: number, imagePreview: object }>}
  */
 export async function getSharedMediaSettings() {
   const data = await fetchJSON(getApiPath("settings/media"));

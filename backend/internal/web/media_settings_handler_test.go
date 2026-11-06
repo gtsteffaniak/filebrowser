@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"sort"
 	"testing"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
@@ -19,11 +20,13 @@ func withMediaHandlerSettings(t *testing.T) {
 		settings.Env.FFmpegAvailable = originalFFmpeg
 	})
 	settings.Env.FFmpegAvailable = true
-	settings.Config.Integrations.Media.Transcode = settings.MediaTranscode{
-		Enabled:              true,
-		MaxConcurrent:        3,
-		MaxConcurrentPerUser: 2,
-		Profiles:             settings.DefaultTranscodeProfiles(),
+	settings.Config.Integrations.Media.Transcode = settings.FullAdminTranscode{
+		UserTranscode: settings.UserTranscode{
+			Enabled:              true,
+			MaxConcurrentPerUser: 2,
+		},
+		MaxConcurrent: 3,
+		Profiles:      settings.DefaultTranscodeProfiles(),
 	}
 }
 
@@ -52,50 +55,96 @@ func callMediaGet(t *testing.T, admin bool) map[string]any {
 	return body
 }
 
-// Non-admin users must be able to read the effective media values for the
-// player, but only the player-relevant subset.
+// keysOf returns the sorted keys of a JSON object.
+func keysOf(t *testing.T, v any, path string) []string {
+	t.Helper()
+	obj, ok := v.(map[string]any)
+	if !ok {
+		t.Fatalf("%s is %T, want object", path, v)
+	}
+	keys := make([]string, 0, len(obj))
+	for k := range obj {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	return keys
+}
+
+func assertKeys(t *testing.T, path string, got []string, want []string) {
+	t.Helper()
+	sort.Strings(want)
+	if len(got) != len(want) {
+		t.Fatalf("%s keys = %v, want %v", path, got, want)
+	}
+	for i := range got {
+		if got[i] != want[i] {
+			t.Fatalf("%s keys = %v, want %v", path, got, want)
+		}
+	}
+}
+
+// Non-admin users receive exactly the PUBLIC payload. Any new key fails this test,
+// which forces a conscious decision about whether it belongs in UserMedia.
 func TestSettingsMediaHandlerPlayerPayloadForNonAdmin(t *testing.T) {
 	withMediaHandlerSettings(t)
 
 	body := callMediaGet(t, false)
-	if _, ok := body["transcode"]; ok {
-		t.Fatal("non-admin must not receive the full transcode settings")
+	assertKeys(t, "top-level", keysOf(t, body, "body"), []string{"transcode", "imagePreview"})
+	assertKeys(t, "transcode", keysOf(t, body["transcode"], "transcode"),
+		[]string{"enabled", "maxConcurrentPerUser", "enabledProfiles"})
+
+	transcode := body["transcode"].(map[string]any)
+	if enabled, ok := transcode["enabled"].(bool); !ok || !enabled {
+		t.Fatalf("transcode.enabled = %v, want true", transcode["enabled"])
 	}
-	if _, ok := body["lockedFromConfigPaths"]; ok {
-		t.Fatal("non-admin must not receive config lock metadata")
+	if limit, ok := transcode["maxConcurrentPerUser"].(float64); !ok || limit != 2 {
+		t.Fatalf("transcode.maxConcurrentPerUser = %v, want 2", transcode["maxConcurrentPerUser"])
 	}
-	if _, ok := body["lockMessage"]; ok {
-		t.Fatal("non-admin must not receive the config lock message")
-	}
-	if enabled, ok := body["enabled"].(bool); !ok || !enabled {
-		t.Fatalf("enabled = %v, want true", body["enabled"])
-	}
-	if limit, ok := body["maxConcurrentPerUser"].(float64); !ok || limit != 2 {
-		t.Fatalf("maxConcurrentPerUser = %v, want 2", body["maxConcurrentPerUser"])
-	}
-	profiles, ok := body["profiles"].([]any)
+	profiles, ok := transcode["enabledProfiles"].([]any)
 	if !ok || len(profiles) != 3 {
-		t.Fatalf("profiles = %v, want 3 enabled ids", body["profiles"])
+		t.Fatalf("transcode.enabledProfiles = %v, want 3 enabled ids", transcode["enabledProfiles"])
 	}
 }
 
+// Admins receive the full stored config. The keys shared with users must have the
+// same names and values, so the admin payload is a strict superset of the user payload.
 func TestSettingsMediaHandlerFullPayloadForAdmin(t *testing.T) {
 	withMediaHandlerSettings(t)
 
-	body := callMediaGet(t, true)
-	transcode, ok := body["transcode"].(map[string]any)
-	if !ok {
-		t.Fatalf("admin must receive the full transcode settings, got %T", body["transcode"])
-	}
-	if _, ok := transcode["profiles"].(map[string]any); !ok {
-		t.Fatalf("admin transcode payload must include profiles, got %v", transcode["profiles"])
-	}
-	// Admin payload carries the full config surface plus the same shared fields
-	// every user receives, so the UI sees one consistent media state.
-	for _, key := range []string{"convert", "debug", "hardwareAcceleration", "enabled", "profiles", "maxConcurrentPerUser", "imagePreview"} {
-		if _, ok := body[key]; !ok {
+	admin := callMediaGet(t, true)
+	user := callMediaGet(t, false)
+
+	// lockedFromConfigPaths is omitted when config pins nothing, so it is not required here.
+	for _, key := range []string{"transcode", "imagePreview", "convert", "debug", "hardwareAcceleration", "accelDevice"} {
+		if _, ok := admin[key]; !ok {
 			t.Fatalf("admin payload missing %q", key)
 		}
+	}
+	if _, ok := admin["enabled"]; ok {
+		t.Fatal("admin payload must not repeat transcode.enabled at the top level")
+	}
+
+	adminTranscode := admin["transcode"].(map[string]any)
+	for _, key := range []string{"maxConcurrent", "profiles", "cacheMaxSizeMB", "encoderBackend", "readRate"} {
+		if _, ok := adminTranscode[key]; !ok {
+			t.Fatalf("admin transcode missing %q", key)
+		}
+	}
+	if _, ok := adminTranscode["profiles"].(map[string]any); !ok {
+		t.Fatalf("admin transcode.profiles must be an object, got %T", adminTranscode["profiles"])
+	}
+
+	// Superset rule: every key a user receives must also exist for admins. Values may
+	// differ by design: admins see stored config (so the UI can save it back unchanged),
+	// users see effective values (for example enabled is false when ffmpeg is missing).
+	userTranscode := user["transcode"].(map[string]any)
+	for key := range userTranscode {
+		if _, ok := adminTranscode[key]; !ok {
+			t.Fatalf("admin transcode missing shared key %q", key)
+		}
+	}
+	if admin["imagePreview"] == nil {
+		t.Fatal("imagePreview must be present for admins")
 	}
 }
 
@@ -105,7 +154,8 @@ func TestSettingsMediaHandlerReflectsDisabledTranscode(t *testing.T) {
 	settings.Config.Integrations.Media.Transcode.Enabled = false
 
 	body := callMediaGet(t, false)
-	if enabled, ok := body["enabled"].(bool); !ok || enabled {
-		t.Fatalf("enabled = %v, want false", body["enabled"])
+	transcode := body["transcode"].(map[string]any)
+	if enabled, ok := transcode["enabled"].(bool); !ok || enabled {
+		t.Fatalf("transcode.enabled = %v, want false", transcode["enabled"])
 	}
 }

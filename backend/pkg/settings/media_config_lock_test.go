@@ -60,11 +60,11 @@ func TestValidateMediaPatchNotConfigLockedWithoutLocks(t *testing.T) {
 func TestApplyConfigSpecifiedPathsToMedia(t *testing.T) {
 	withConfigMediaPaths(t, "hardwareAcceleration", "transcode.profiles.datasaver.avgBitrateKbps")
 
-	stored := MediaSettings{
+	stored := FullAdminMedia{
 		Debug:                true,
 		HardwareAcceleration: true,
-		Transcode: MediaTranscode{
-			Enabled: true,
+		Transcode: FullAdminTranscode{
+			UserTranscode: UserTranscode{Enabled: true},
 			Profiles: TranscodeProfiles{
 				DataSaver: TranscodeProfile{AvgBitrateKbps: 1500},
 			},
@@ -72,7 +72,7 @@ func TestApplyConfigSpecifiedPathsToMedia(t *testing.T) {
 	}
 	config := Media{
 		HardwareAcceleration: false,
-		Transcode: MediaTranscode{
+		Transcode: FullAdminTranscode{
 			Profiles: TranscodeProfiles{
 				DataSaver: TranscodeProfile{AvgBitrateKbps: 800},
 			},
@@ -97,7 +97,7 @@ func TestApplyConfigSpecifiedPathsToMedia(t *testing.T) {
 func TestApplyConfigSpecifiedPathsToMediaNoLocks(t *testing.T) {
 	withConfigMediaPaths(t)
 
-	stored := MediaSettings{HardwareAcceleration: true}
+	stored := FullAdminMedia{HardwareAcceleration: true}
 	overlaid, err := ApplyConfigSpecifiedPathsToMedia(stored, Media{HardwareAcceleration: false})
 	if err != nil {
 		t.Fatalf("ApplyConfigSpecifiedPathsToMedia: %v", err)

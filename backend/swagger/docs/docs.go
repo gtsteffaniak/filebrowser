@@ -800,6 +800,11 @@ const docTemplate = `{
         },
         "/api/auth/otp/generate": {
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Generates a new TOTP secret and QR code for the authenticated user. The password must be URL-encoded and sent in the X-Password header to support special characters.",
                 "consumes": [
                     "application/json"
@@ -846,16 +851,16 @@ const docTemplate = `{
                             }
                         }
                     }
-                },
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ]
+                }
             }
         },
         "/api/auth/otp/verify": {
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Verifies the provided TOTP code for the authenticated user. The password must be URL-encoded and sent in the X-Password header to support special characters.",
                 "consumes": [
                     "application/json"
@@ -906,12 +911,7 @@ const docTemplate = `{
                             }
                         }
                     }
-                },
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ]
+                }
             }
         },
         "/api/auth/password/change-required": {
@@ -1824,6 +1824,11 @@ const docTemplate = `{
         },
         "/api/office/callback": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Receives callbacks from OnlyOffice document server for document status changes and saves",
                 "consumes": [
                     "application/json"
@@ -1881,14 +1886,14 @@ const docTemplate = `{
                             }
                         }
                     }
-                },
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ]
+                }
             },
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Receives callbacks from OnlyOffice document server for document status changes and saves",
                 "consumes": [
                     "application/json"
@@ -1946,16 +1951,16 @@ const docTemplate = `{
                             }
                         }
                     }
-                },
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ]
+                }
             }
         },
         "/api/office/config": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Returns the configuration needed for OnlyOffice document editor client",
                 "consumes": [
                     "application/json"
@@ -2013,12 +2018,7 @@ const docTemplate = `{
                             }
                         }
                     }
-                },
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ]
+                }
             }
         },
         "/api/resources": {
@@ -4208,6 +4208,11 @@ const docTemplate = `{
         },
         "/api/wopi/session": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Returns the editor URL and the access token the browser posts to it.",
                 "produces": [
                     "application/json"
@@ -4275,12 +4280,7 @@ const docTemplate = `{
                             }
                         }
                     }
-                },
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ]
+                }
             }
         },
         "/public/api/media/lyrics": {
@@ -6299,6 +6299,58 @@ const docTemplate = `{
                 }
             }
         },
+        "settings.FullAdminTranscode": {
+            "type": "object",
+            "properties": {
+                "cacheMaxSizeMB": {
+                    "description": "disk cache size limit in MB; 0 = unlimited (default: 10240)",
+                    "type": "integer"
+                },
+                "cacheRetentionH": {
+                    "description": "completed cache retention in hours (default: 24)",
+                    "type": "integer"
+                },
+                "enabled": {
+                    "description": "enable HLS transcoding for authenticated playback (default: false)",
+                    "type": "boolean"
+                },
+                "enabledProfiles": {
+                    "description": "derived at read time (player-menu profile ids); never stored",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "encoderBackend": {
+                    "description": "default video encoder backend for transcodes: \"\" (auto), \"cpu\", or an accel backend (nvenc, amf, qsv, vaapi, d3d12, videotoolbox)",
+                    "type": "string"
+                },
+                "maxConcurrent": {
+                    "description": "global concurrent transcode sessions (default: 2)",
+                    "type": "integer"
+                },
+                "maxConcurrentPerUser": {
+                    "description": "hard per-user concurrent transcode ceiling (default: 1)",
+                    "type": "integer"
+                },
+                "maxResolution": {
+                    "description": "superseded by profiles.\u003cname\u003e.maxResolution. deprecated: kept for config compatibility",
+                    "type": "integer"
+                },
+                "profiles": {
+                    "description": "per-profile transcode settings shown in the player menu",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/settings.TranscodeProfiles"
+                        }
+                    ]
+                },
+                "readRate": {
+                    "description": "VOD producer input pacing in Nx realtime (-readrate); unset or \u003c1 clamps to \u003e=1 (default: 2)",
+                    "type": "number"
+                }
+            }
+        },
         "settings.Http": {
             "type": "object",
             "properties": {
@@ -6640,54 +6692,9 @@ const docTemplate = `{
                     "description": "deprecated: HLS transcoding for media playback. deprecated: manage via the admin media settings API",
                     "allOf": [
                         {
-                            "$ref": "#/definitions/settings.MediaTranscode"
+                            "$ref": "#/definitions/settings.FullAdminTranscode"
                         }
                     ]
-                }
-            }
-        },
-        "settings.MediaTranscode": {
-            "type": "object",
-            "properties": {
-                "cacheMaxSizeMB": {
-                    "description": "disk cache size limit in MB; 0 = unlimited (default: 10240)",
-                    "type": "integer"
-                },
-                "cacheRetentionH": {
-                    "description": "completed cache retention in hours (default: 24)",
-                    "type": "integer"
-                },
-                "enabled": {
-                    "description": "enable HLS transcoding for authenticated playback (default: false)",
-                    "type": "boolean"
-                },
-                "encoderBackend": {
-                    "description": "default video encoder backend for transcodes: \"\" (auto), \"cpu\", or an accel backend (nvenc, amf, qsv, vaapi, d3d12, videotoolbox)",
-                    "type": "string"
-                },
-                "maxConcurrent": {
-                    "description": "global concurrent transcode sessions (default: 2)",
-                    "type": "integer"
-                },
-                "maxConcurrentPerUser": {
-                    "description": "hard per-user concurrent transcode ceiling (default: 1)",
-                    "type": "integer"
-                },
-                "maxResolution": {
-                    "description": "superseded by profiles.\u003cname\u003e.maxResolution. deprecated: kept for config compatibility",
-                    "type": "integer"
-                },
-                "profiles": {
-                    "description": "per-profile transcode settings shown in the player menu",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/settings.TranscodeProfiles"
-                        }
-                    ]
-                },
-                "readRate": {
-                    "description": "VOD producer input pacing in Nx realtime (-readrate); unset or \u003c1 clamps to \u003e=1 (default: 2)",
-                    "type": "number"
                 }
             }
         },
@@ -8942,7 +8949,7 @@ const docTemplate = `{
             }
         },
         "web.mediaSettingsResponse": {
-            "description": "Admins receive the DB-backed media integration settings; every authenticated user receives the player-relevant subset (transcode enabled, profiles, per-user limit).",
+            "description": "Admins receive the full DB-backed media settings (mediaSettingsResponse). Every authenticated user receives only the PUBLIC subset (UserMedia: transcode enabled, per-user limit, enabled profiles, and image preview availability).",
             "type": "object",
             "properties": {
                 "accelDevice": {
@@ -8975,10 +8982,6 @@ const docTemplate = `{
                     "description": "output ffmpeg stdout for media integration -- careful can produces lots of output!",
                     "type": "boolean"
                 },
-                "enabled": {
-                    "description": "Shared fields, identical to the ones every user receives (see mediaSettings).",
-                    "type": "boolean"
-                },
                 "encoderBackendOptions": {
                     "type": "array",
                     "items": {
@@ -8990,6 +8993,7 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "imagePreview": {
+                    "description": "PUBLIC availability, derived; never stored",
                     "type": "object",
                     "additionalProperties": {
                         "type": "boolean"
@@ -9004,20 +9008,11 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
-                "maxConcurrentPerUser": {
-                    "type": "integer"
-                },
-                "profiles": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
                 "transcode": {
                     "description": "HLS transcoding for media playback",
                     "allOf": [
                         {
-                            "$ref": "#/definitions/settings.MediaTranscode"
+                            "$ref": "#/definitions/settings.FullAdminTranscode"
                         }
                     ]
                 }
