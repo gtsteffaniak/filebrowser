@@ -78,11 +78,12 @@ type Server struct {
 	DisableTypeDetectionByHeader bool           `json:"disableTypeDetectionByHeader"`                                  // disable type detection by header, useful if filesystem is slow.
 	Logging                      []LogConfig    `json:"logging" yaml:"logging"`
 	Sources                      []*Source      `json:"sources" validate:"required,dive"`
-	CacheDir                     string         `json:"cacheDir"`        // path to the cache directory, used for thumbnails and other cached files
-	CacheDirCleanup              bool           `json:"cacheDirCleanup"` // whether to automatically cleanup the cache directory. Note: docker must also mount a persistent volume to persist the cache (default: false)
-	MaxArchiveSizeGB             int64          `json:"maxArchiveSize"`  // maximum archive/unarchive size in GB. 0 means no limit. (default: 20)
-	Filesystem                   Filesystem     `json:"filesystem"`      // filesystem settings
-	IndexSqlConfig               IndexSqlConfig `json:"indexSqlConfig"`  // Index database SQL configuration
+	CacheDir                     string         `json:"cacheDir"`          // path to the cache directory, used for thumbnails and other cached files
+	CacheDirCleanup              bool           `json:"cacheDirCleanup"`   // whether to automatically cleanup the cache directory. Note: docker must also mount a persistent volume to persist the cache (default: false)
+	CacheDirMaxSizeMB            int64          `json:"cacheDirMaxSizeMB"` // maximum size in MB of the preview cache (cacheDir/diskcache). Past it, the least recently used files are deleted. 0 means no limit (default: 0)
+	MaxArchiveSizeGB             int64          `json:"maxArchiveSize"`    // maximum archive/unarchive size in GB. 0 means no limit. (default: 20)
+	Filesystem                   Filesystem     `json:"filesystem"`        // filesystem settings
+	IndexSqlConfig               IndexSqlConfig `json:"indexSqlConfig"`    // Index database SQL configuration
 	// not exposed to config
 	SourceMap    map[string]*Source `json:"-" validate:"omitempty"` // uses realpath as key
 	NameToSource map[string]*Source `json:"-" validate:"omitempty"` // uses name as key
