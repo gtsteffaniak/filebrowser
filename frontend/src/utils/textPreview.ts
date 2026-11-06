@@ -27,12 +27,32 @@ export function languageFromPath(path: string | null | undefined): string | null
 }
 
 /**
- * True when an item's mimetype is text/*. The backend uses the same rule, so an item the
- * listing marks as text is the one the text preview endpoint renders. Binary types such as
- * sqlite, postscript, wasm and backup are not text/* and never reach the endpoint.
+ * Non-text/* mimetypes that text-extension files resolve to (JSON, YAML, SQL, shell, ...).
+ * Keep in sync with textPreviewMimeTypes in backend/pkg/indexing/iteminfo/conditions.go.
+ * Do not add types shared with binaries (e.g. application/x-msdownload for .exe).
+ */
+const TEXT_PREVIEW_MIME_TYPES = new Set<string>([
+  "application/json",
+  "application/yaml",
+  "application/x-yaml",
+  "application/sql",
+  "application/x-sql",
+  "application/x-sh",
+  "application/x-php",
+  "application/x-powershell",
+  "application/x-tex",
+  "application/toml",
+  "application/x-ruby",
+]);
+
+/**
+ * True when an item's mimetype is text/* or on the text allowlist above. The backend uses
+ * the same rule, so an item the listing marks as text is the one the text preview endpoint
+ * renders. Binary types such as sqlite, postscript, wasm and backup never reach the endpoint.
  */
 export function isTextPreviewableType(mimetype: string | null | undefined): boolean {
-  return (mimetype ?? "").startsWith("text/");
+  const base = (mimetype ?? "").split(";")[0];
+  return base.startsWith("text/") || TEXT_PREVIEW_MIME_TYPES.has(base);
 }
 
 // Text fetches are queued so a folder full of text files does not fire dozens of

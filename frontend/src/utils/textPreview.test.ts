@@ -40,8 +40,14 @@ describe("isTextPreviewableType", () => {
     }
   });
 
+  it("is true for text-extension mimetypes that are not text/*", () => {
+    for (const mt of ["application/json", "application/yaml", "application/sql", "application/x-sh", "application/x-php", "application/x-powershell", "application/x-tex"]) {
+      expect(isTextPreviewableType(mt), mt).toBe(true);
+    }
+  });
+
   it("is false for non-text mimetypes and missing types", () => {
-    for (const mt of ["application/x-sqlite3", "application/postscript", "application/wasm", "application/backup", "image/svg+xml", "image/png", "directory", "", null, undefined]) {
+    for (const mt of ["application/x-sqlite3", "application/postscript", "application/wasm", "application/backup", "application/x-msdownload", "application/octet-stream", "image/svg+xml", "image/png", "directory", "", null, undefined]) {
       expect(isTextPreviewableType(mt), String(mt)).toBe(false);
     }
   });

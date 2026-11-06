@@ -271,57 +271,57 @@ var compressedFile = map[string]bool{
 
 // Raw camera image: extension -> MIME type (single source for IsRawImage + type detection)
 var rawImageMimeType = map[string]string{
-	".cr2":  "image/x-canon-cr2",
-	".cr3":  "image/x-canon-cr3",
-	".nef":  "image/x-nikon-nef",
-	".nrw":  "image/x-nikon-nef",
-	".arw":  "image/x-sony-arw",
-	".srf":  "image/x-sony-arw",
-	".sr2":  "image/x-sony-arw",
-	".orf":  "image/x-olympus-orf",
-	".rw2":  "image/x-panasonic-rw2",
-	".raw":  "image/x-panasonic-raw",
-	".dng":  "image/x-adobe-dng",
-	".raf":  "image/x-fuji-raf",
-	".pef":  "image/x-pentax-pef",
-	".ptx":  "image/x-pentax-pef",
-	".rwl":  "image/x-leica-rwl",
-	".3fr":  "image/x-hasselblad-3fr",
-	".fff":  "image/x-hasselblad-fff",
-	".erf":  "image/x-epson-erf",
-	".mrw":  "image/x-minolta-mrw",
-	".dcr":  "image/x-kodak-dcr",
-	".kdc":  "image/x-kodak-dcr",
-	".dc2":  "image/x-kodak-dc2",
-	".x3f":  "image/x-sigma-x3f",
-	".iiq":  "image/x-phaseone-iiq",
-	".nkc":  "image/x-kodak-nkc",
-	".r3d":  "image/x-red-r3d",
+	".cr2": "image/x-canon-cr2",
+	".cr3": "image/x-canon-cr3",
+	".nef": "image/x-nikon-nef",
+	".nrw": "image/x-nikon-nef",
+	".arw": "image/x-sony-arw",
+	".srf": "image/x-sony-arw",
+	".sr2": "image/x-sony-arw",
+	".orf": "image/x-olympus-orf",
+	".rw2": "image/x-panasonic-rw2",
+	".raw": "image/x-panasonic-raw",
+	".dng": "image/x-adobe-dng",
+	".raf": "image/x-fuji-raf",
+	".pef": "image/x-pentax-pef",
+	".ptx": "image/x-pentax-pef",
+	".rwl": "image/x-leica-rwl",
+	".3fr": "image/x-hasselblad-3fr",
+	".fff": "image/x-hasselblad-fff",
+	".erf": "image/x-epson-erf",
+	".mrw": "image/x-minolta-mrw",
+	".dcr": "image/x-kodak-dcr",
+	".kdc": "image/x-kodak-dcr",
+	".dc2": "image/x-kodak-dc2",
+	".x3f": "image/x-sigma-x3f",
+	".iiq": "image/x-phaseone-iiq",
+	".nkc": "image/x-kodak-nkc",
+	".r3d": "image/x-red-r3d",
 }
 
 // 3D model extension -> MIME type (single source for Is3DModel + type detection)
 var model3DMimeType = map[string]string{
-	".gltf":  "model/gltf+json",
-	".glb":   "model/gltf-binary",
-	".obj":   "model/obj",
-	".fbx":   "model/fbx",
-	".stl":   "model/stl",
-	".ply":   "model/ply",
-	".dae":   "model/vnd.collada+xml",
-	".3mf":   "model/3mf",
-	".3ds":   "model/3ds",
-	".usdz":  "model/vnd.usdz+zip",
-	".usd":   "model/vnd.usd+zip",
-	".usda":  "model/vnd.usd+zip",
-	".usdc":  "model/vnd.usd+zip",
-	".amf":   "model/x-amf",
-	".vrml":  "model/vrml",
-	".wrl":   "model/vrml",
-	".vtk":   "model/vtk",
-	".vtp":   "model/vtk",
-	".pcd":   "model/pcd",
-	".xyz":   "model/xyz",
-	".vox":   "model/vox",
+	".gltf": "model/gltf+json",
+	".glb":  "model/gltf-binary",
+	".obj":  "model/obj",
+	".fbx":  "model/fbx",
+	".stl":  "model/stl",
+	".ply":  "model/ply",
+	".dae":  "model/vnd.collada+xml",
+	".3mf":  "model/3mf",
+	".3ds":  "model/3ds",
+	".usdz": "model/vnd.usdz+zip",
+	".usd":  "model/vnd.usd+zip",
+	".usda": "model/vnd.usd+zip",
+	".usdc": "model/vnd.usd+zip",
+	".amf":  "model/x-amf",
+	".vrml": "model/vrml",
+	".wrl":  "model/vrml",
+	".vtk":  "model/vtk",
+	".vtp":  "model/vtk",
+	".pcd":  "model/pcd",
+	".xyz":  "model/xyz",
+	".vox":  "model/vox",
 }
 
 var audioMetadataTypes = map[string]bool{
@@ -560,10 +560,28 @@ func TextPreviewKind(ext string) string {
 	return textPreviewKinds[ext]
 }
 
+// textPreviewMimeTypes are non-text/* mimetypes that textTypes extensions resolve to
+// (see the custom table in backend/internal/adapters/fs/files/mime.go). Keep this in
+// sync with TEXT_PREVIEW_MIME_TYPES in frontend/src/utils/textPreview.ts.
+// Do not add mimetypes shared with binaries (e.g. application/x-msdownload for .exe).
+var textPreviewMimeTypes = map[string]bool{
+	"application/json":         true,
+	"application/yaml":         true,
+	"application/x-yaml":       true,
+	"application/sql":          true,
+	"application/x-sql":        true,
+	"application/x-sh":         true,
+	"application/x-php":        true,
+	"application/x-powershell": true,
+	"application/x-tex":        true,
+	"application/toml":         true,
+	"application/x-ruby":       true,
+}
+
 // IsTextPreviewable reports whether an item uses the text preview endpoint. The decision
-// is the item's mimetype: every text/* type is previewable, and everything else is not.
+// is the item's mimetype: every text/* type and the textPreviewMimeTypes allowlist.
 func IsTextPreviewable(mimetype string) bool {
-	return strings.HasPrefix(mimetype, "text/")
+	return strings.HasPrefix(mimetype, "text/") || textPreviewMimeTypes[mimetype]
 }
 
 // TextPreviewRenderKind returns the renderer kind for a text-previewable file: the
