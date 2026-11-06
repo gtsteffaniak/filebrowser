@@ -480,7 +480,7 @@
     "settingsHover": "用户设置",
     "toggleClick": "单击切换",
     "toggleDark": "切换黑暗模式",
-    "toggleSticky": "切换粘贴模式",
+    "toggleSticky": "切换固定侧边栏",
     "noSources": "该用户没有可用的信息源。要么为该用户添加一个信息源，要么配置一个默认为 true 的信息源。",
     "unknown": "未知",
     "simple": "简单",
@@ -516,11 +516,11 @@
   },
   "colors": {
     "red": "红",
-    "green": "绿化",
+    "green": "绿",
     "blue": "蓝",
-    "yellow": "黄的",
-    "violet": "紫色",
-    "orange": "橘色"
+    "yellow": "黄",
+    "violet": "紫",
+    "orange": "橙"
   },
   "profileSettings": {
     "showTypeColumn": "显示类型列",
