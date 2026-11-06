@@ -330,12 +330,14 @@ export interface StoreState {
       newFileTemplate?: boolean;
     };
   };
-  /** Effective media settings for playback, or null before the API reports them. */
-  mediaPlayerSettings: {
+  /** Runtime media state for all UI (player, listings, previews); null until loaded. */
+  mediaSettings: {
     enabled: boolean;
     profiles: string[];
     maxConcurrentPerUser: number;
     hardwareAcceleration: boolean;
+    /** Per image preview type (e.g. heic, jxl): conversion active on this server. */
+    imagePreview: Partial<Record<'heic' | 'jxl' | 'jpeg', boolean>>;
   } | null;
   sidebarLinkDefaultsPolicy: {
     items?: Array<{

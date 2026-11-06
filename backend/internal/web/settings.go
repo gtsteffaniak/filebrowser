@@ -464,20 +464,36 @@ func settingsShareDefaultsPatchHandler(w http.ResponseWriter, r *http.Request, d
 // mediaSettingsResponse is the runtime media settings plus config-lock metadata.
 type mediaSettingsResponse struct {
 	settings.MediaSettings
-	LockedFromConfigPaths []string                      `json:"lockedFromConfigPaths,omitempty"`
-	LockMessage           string                        `json:"lockMessage,omitempty"`
-	AccelDeviceOptions    []ffmpeg.AccelDeviceOption    `json:"accelDeviceOptions,omitempty"`
-	EncoderBackendOptions []ffmpeg.EncoderBackendOption `json:"encoderBackendOptions,omitempty"`
+	// Shared fields, identical to the ones every user receives (see mediaSettings).
+	Enabled               bool                               `json:"enabled"`
+	Profiles              []string                           `json:"profiles"`
+	MaxConcurrentPerUser  int                                `json:"maxConcurrentPerUser"`
+	ImagePreview          map[settings.ImagePreviewType]bool `json:"imagePreview"`
+	LockedFromConfigPaths []string                           `json:"lockedFromConfigPaths,omitempty"`
+	LockMessage           string                             `json:"lockMessage,omitempty"`
+	AccelDeviceOptions    []ffmpeg.AccelDeviceOption         `json:"accelDeviceOptions,omitempty"`
+	EncoderBackendOptions []ffmpeg.EncoderBackendOption      `json:"encoderBackendOptions,omitempty"`
 }
 
-// mediaPlayerSettings is the player-relevant subset of the runtime media
-// settings. It is safe to expose to any authenticated user so the player can
-// reflect admin changes without a page reload.
-type mediaPlayerSettings struct {
-	Enabled              bool     `json:"enabled"`
-	Profiles             []string `json:"profiles"`
-	MaxConcurrentPerUser int      `json:"maxConcurrentPerUser"`
-	HardwareAcceleration bool     `json:"hardwareAcceleration"`
+// mediaSettings is the runtime media state every authenticated user receives, for
+// both the player and general UI (listings, previews, uploads). It is loaded once
+// at app start and returned with the same shape to admins and non-admins.
+type mediaSettings struct {
+	Enabled              bool                               `json:"enabled"`
+	Profiles             []string                           `json:"profiles"`
+	MaxConcurrentPerUser int                                `json:"maxConcurrentPerUser"`
+	HardwareAcceleration bool                               `json:"hardwareAcceleration"`
+	ImagePreview         map[settings.ImagePreviewType]bool `json:"imagePreview"`
+}
+
+// imagePreviewAvailability resolves each supported image preview type to whether
+// conversion is active right now, using the same check the preview pipeline uses.
+func imagePreviewAvailability() map[settings.ImagePreviewType]bool {
+	out := make(map[settings.ImagePreviewType]bool, len(settings.AllImagePreviewTypes))
+	for _, t := range settings.AllImagePreviewTypes {
+		out[t] = settings.CanConvertImage(string(t))
+	}
+	return out
 }
 
 func mediaSettingsLockMeta() (paths []string, message string) {
@@ -493,8 +509,9 @@ func mediaSettingsLockMeta() (paths []string, message string) {
 // (transcoding, hardware acceleration) report their own availability.
 func settingsMediaGetHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
 	if !d.User.Permissions.Admin {
-		return RenderJSON(w, r, currentMediaPlayerSettings())
+		return RenderJSON(w, r, currentMediaSettings())
 	}
+	shared := currentMediaSettings()
 	lockedPaths, lockMessage := mediaSettingsLockMeta()
 	media := state.GetMediaSettings()
 	svc := ffmpeg.Get()
@@ -507,6 +524,10 @@ func settingsMediaGetHandler(w http.ResponseWriter, r *http.Request, d *Context)
 	}
 	return RenderJSON(w, r, mediaSettingsResponse{
 		MediaSettings:         media,
+		Enabled:               shared.Enabled,
+		Profiles:              shared.Profiles,
+		MaxConcurrentPerUser:  shared.MaxConcurrentPerUser,
+		ImagePreview:          shared.ImagePreview,
 		LockedFromConfigPaths: lockedPaths,
 		LockMessage:           lockMessage,
 		AccelDeviceOptions:    accelDeviceOptions,
@@ -514,14 +535,15 @@ func settingsMediaGetHandler(w http.ResponseWriter, r *http.Request, d *Context)
 	})
 }
 
-// currentMediaPlayerSettings reads the live media settings for the player UI.
-func currentMediaPlayerSettings() mediaPlayerSettings {
+// currentMediaSettings reads the live shared media state returned to every user.
+func currentMediaSettings() mediaSettings {
 	media := state.GetMediaSettings()
-	return mediaPlayerSettings{
+	return mediaSettings{
 		Enabled:              settings.TranscodeEnabled(),
 		Profiles:             settings.EnabledTranscodeProfiles(),
 		MaxConcurrentPerUser: settings.TranscodeMaxConcurrentPerUser(),
 		HardwareAcceleration: media.HardwareAcceleration,
+		ImagePreview:         imagePreviewAvailability(),
 	}
 }
 

@@ -88,13 +88,14 @@ export function enabledTranscodeProfileIds(media) {
  * the full object to admins and a player-only subset to everyone else, so both
  * shapes collapse to the same fields here.
  */
-export function normalizeMediaPlayerSettings(data) {
+export function normalizeSharedMediaSettings(data) {
   const transcode = data?.transcode || {};
   return {
     enabled: Boolean(data?.enabled ?? transcode.enabled),
     profiles: Array.isArray(data?.profiles) ? data.profiles : enabledTranscodeProfileIds(data),
     maxConcurrentPerUser: Number(data?.maxConcurrentPerUser ?? transcode.maxConcurrentPerUser) || 1,
     hardwareAcceleration: Boolean(data?.hardwareAcceleration),
+    imagePreview: { ...(data?.imagePreview || {}) },
   };
 }
 

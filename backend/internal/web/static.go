@@ -151,7 +151,14 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		externalLinks = newExternalLinks
 	}
 
-	defaultThemeColor := settings.DefaultBackgroundColor()
+	// Single source for the instance default dark mode. It drives the server-rendered
+	// <html> class (htmlVars.defaultDarkMode), the theme-color meta, and globalVars.darkMode,
+	// so the first paint and the SPA agree.
+	defaultDark := settings.DefaultDarkMode()
+	defaultThemeColor := settings.Config.Frontend.Styling.LightBackground
+	if defaultDark {
+		defaultThemeColor = settings.Config.Frontend.Styling.DarkBackground
+	}
 	staticURL := settings.Config.Http.BaseURL + "public/static"
 	description := settings.Config.Frontend.Description
 	title := settings.Config.Frontend.Name
@@ -250,7 +257,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"title":              title,
 		"customCSS":          template.CSS(settings.Config.Frontend.Styling.CustomCSSRaw),
 		"userSelectedTheme":  template.CSS(userSelectedTheme),
-		"defaultDarkMode":    settings.DefaultDarkMode(),
+		"defaultDarkMode":    defaultDark,
 		"lightBackground":    settings.Config.Frontend.Styling.LightBackground,
 		"darkBackground":     settings.Config.Frontend.Styling.DarkBackground,
 		"staticURL":          staticURL,
@@ -279,7 +286,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"minSearchLength":               settings.Config.Server.MinSearchLength,
 		"searchResultsLimit":            settings.Config.Server.SearchResultsLimit,
 		"disableExternal":               settings.Config.Frontend.DisableDefaultLinks,
-		"darkMode":                      settings.Config.UserDefaults.UI.DarkMode,
+		"darkMode":                      defaultDark,
 		"singleClick":                   settings.Config.UserDefaults.Listing.SingleClick,
 		"lightBackground":               settings.Config.Frontend.Styling.LightBackground,
 		"darkBackground":                settings.Config.Frontend.Styling.DarkBackground,
@@ -299,16 +306,10 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"passwordMinLength":             settings.PasswordMinLength(),
 		"ldapAvailable":                 settings.Config.Auth.Methods.LdapAuth.Enabled,
 		"ffmpegAvailable":               settings.FFmpegEnabled(),
-		"hardwareAccelerationAvailable": settings.HardwareAccelerationSupported(),
-		"transcodeEnabled":              settings.TranscodeEnabled(),
-		"transcodeProfiles":             settings.EnabledTranscodeProfiles(),
-		"transcodeMaxPerUser":           settings.TranscodeMaxConcurrentPerUser(),
 		"docPreviewExtensions":          iteminfo.DocPreviewExtensionsForSPA(),
 		"updateAvailable":               utils.GetUpdateAvailableUrl(),
 		"disableNavButtons":             disableNavButtons,
 		"userSelectableThemes":          settings.Config.Frontend.Styling.CustomThemeOptions,
-		"enableHeicConversion":          settings.CanConvertImage("heic"),
-		"enableJxlConversion":           settings.CanConvertImage("jxl"),
 		"eventBasedThemes":              !settings.Config.Frontend.Styling.DisableEventBasedThemes,
 		"loginIcon":                     loginIcon,
 		"disableSidebar":                disableSidebar,

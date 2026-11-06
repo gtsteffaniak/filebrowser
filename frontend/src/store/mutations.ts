@@ -3,7 +3,7 @@ import { markRaw } from "vue";
 import { resourcesApi, usersApi } from "@/api/index.js";
 import {
   getEnforcedUserDefaults,
-  getMediaPlayerSettings,
+  getSharedMediaSettings,
   getShareDefaultsPolicy,
   getSidebarLinkDefaultsPolicy,
   getToolAccessDefaultsPolicy,
@@ -622,25 +622,25 @@ export const mutations = {
     }
   },
   /**
-   * Load the effective media settings for playback. `globalVars` are static
-   * page constants, so runtime changes to media settings are read from the API
-   * (available to every authenticated user) instead.
+   * Load the runtime media settings. Runtime admin changes are read from the API
+   * rather than static page constants. Called at app start so the state is present
+   * in every view, not only the player.
    */
-  syncMediaPlayerSettings: async () => {
+  syncMediaSettings: async () => {
     if (!getters.isLoggedIn() || getters.isShare() || state.user?.username === "anonymous") {
-      state.mediaPlayerSettings = null;
+      state.mediaSettings = null;
       return;
     }
     try {
-      const settings = await getMediaPlayerSettings();
+      const settings = await getSharedMediaSettings();
       // The request can resolve after logout/share transition — don't write
       // media settings into a logged-out state.
       if (!getters.isLoggedIn() || getters.isShare() || state.user?.username === "anonymous") {
         return;
       }
-      state.mediaPlayerSettings = settings;
+      state.mediaSettings = settings;
     } catch {
-      state.mediaPlayerSettings = null;
+      state.mediaSettings = null;
     }
   },
   syncSidebarLinkDefaultsPolicy: async () => {

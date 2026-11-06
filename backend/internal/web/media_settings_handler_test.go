@@ -90,14 +90,12 @@ func TestSettingsMediaHandlerFullPayloadForAdmin(t *testing.T) {
 	if _, ok := transcode["profiles"].(map[string]any); !ok {
 		t.Fatalf("admin transcode payload must include profiles, got %v", transcode["profiles"])
 	}
-	// Admin payload exposes the full settings surface, not the player subset.
-	for _, key := range []string{"convert", "debug", "hardwareAcceleration"} {
+	// Admin payload carries the full config surface plus the same shared fields
+	// every user receives, so the UI sees one consistent media state.
+	for _, key := range []string{"convert", "debug", "hardwareAcceleration", "enabled", "profiles", "maxConcurrentPerUser", "imagePreview"} {
 		if _, ok := body[key]; !ok {
 			t.Fatalf("admin payload missing %q", key)
 		}
-	}
-	if _, ok := body["enabled"]; ok {
-		t.Fatal("the admin payload uses the full settings shape, not the player subset")
 	}
 }
 

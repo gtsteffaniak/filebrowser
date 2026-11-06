@@ -238,7 +238,7 @@ export default {
         if (!skipped) {
           this.media = media;
         }
-        void mutations.syncMediaPlayerSettings();
+        void mutations.syncMediaSettings();
         notify.showSuccess(this.$t("general.saved"));
         eventBus.emit(MEDIA_SETTINGS_CHANGED_EVENT);
         this.close();

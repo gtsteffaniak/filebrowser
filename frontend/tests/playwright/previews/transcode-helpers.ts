@@ -11,8 +11,9 @@ seg/00000.m4s
 `;
 
 /**
- * Force the static app-config (and live media settings API) to advertise
- * transcoding so the plyr mode menu appears even when the CI image lacks ffmpeg.
+ * Force ffmpeg availability in the static app-config and advertise transcoding via
+ * the live media settings API, so the plyr mode menu appears even when the CI image
+ * lacks ffmpeg. Transcode state is read only from the live API.
  *
  * Hook getElementById so the patch runs when constants.js reads `#app-config`.
  * Only rewrite the JSON text — do not replace `window.globalVars` with a new
@@ -27,10 +28,6 @@ export async function enableTranscodeUi(page: Page) {
         try {
           const cfg = JSON.parse(el.textContent);
           cfg.ffmpegAvailable = true;
-          cfg.transcodeEnabled = true;
-          if (!Array.isArray(cfg.transcodeProfiles) || cfg.transcodeProfiles.length === 0) {
-            cfg.transcodeProfiles = ["quality", "balanced", "datasaver"];
-          }
           el.textContent = JSON.stringify(cfg);
           el.dataset.transcodeUiPatched = "1";
         } catch (_) {
