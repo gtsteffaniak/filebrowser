@@ -1,3 +1,4 @@
+import { globalVars } from "@/utils/constants.js";
 import { state } from "@/store/index.ts";
 import type { TextPreviewPayload } from "@/utils/textPreviewRender.ts";
 
@@ -26,33 +27,28 @@ export function languageFromPath(path: string | null | undefined): string | null
   return name.slice(dot + 1).toLowerCase();
 }
 
-/**
- * Non-text/* mimetypes that text-extension files resolve to (JSON, YAML, SQL, shell, ...).
- * Keep in sync with textPreviewMimeTypes in backend/pkg/indexing/iteminfo/conditions.go.
- * Do not add types shared with binaries (e.g. application/x-msdownload for .exe).
- */
-const TEXT_PREVIEW_MIME_TYPES = new Set<string>([
-  "application/json",
-  "application/yaml",
-  "application/x-yaml",
-  "application/sql",
-  "application/x-sql",
-  "application/x-sh",
-  "application/x-php",
-  "application/x-powershell",
-  "application/x-tex",
-  "application/toml",
-  "application/x-ruby",
-]);
+// Non-text/* mimetypes (JSON, YAML, SQL, shell, ...) served by the backend in globalVars.
+// The backend is the single source of truth; the Set is rebuilt only when the served array changes.
+let allowlistSource: string[] | undefined;
+let allowlistSet = new Set<string>();
+
+function textPreviewMimeTypes(): Set<string> {
+  const source = globalVars?.textPreviewMimeTypes as string[] | undefined;
+  if (source !== allowlistSource) {
+    allowlistSource = source;
+    allowlistSet = new Set(source ?? []);
+  }
+  return allowlistSet;
+}
 
 /**
- * True when an item's mimetype is text/* or on the text allowlist above. The backend uses
+ * True when an item's mimetype is text/* or on the backend's text allowlist. The backend uses
  * the same rule, so an item the listing marks as text is the one the text preview endpoint
  * renders. Binary types such as sqlite, postscript, wasm and backup never reach the endpoint.
  */
 export function isTextPreviewableType(mimetype: string | null | undefined): boolean {
   const base = (mimetype ?? "").split(";")[0];
-  return base.startsWith("text/") || TEXT_PREVIEW_MIME_TYPES.has(base);
+  return base.startsWith("text/") || textPreviewMimeTypes().has(base);
 }
 
 // Text fetches are queued so a folder full of text files does not fire dozens of

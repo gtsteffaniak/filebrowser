@@ -561,8 +561,9 @@ func TextPreviewKind(ext string) string {
 }
 
 // textPreviewMimeTypes are non-text/* mimetypes that textTypes extensions resolve to
-// (see the custom table in backend/internal/adapters/fs/files/mime.go). Keep this in
-// sync with TEXT_PREVIEW_MIME_TYPES in frontend/src/utils/textPreview.ts.
+// (see the custom table in backend/internal/adapters/fs/files/mime.go). The frontend
+// receives this list through globalVars (backend/internal/web/static.go), so it is
+// the single source of truth.
 // Do not add mimetypes shared with binaries (e.g. application/x-msdownload for .exe).
 var textPreviewMimeTypes = map[string]bool{
 	"application/json":         true,
@@ -582,6 +583,17 @@ var textPreviewMimeTypes = map[string]bool{
 // is the item's mimetype: every text/* type and the textPreviewMimeTypes allowlist.
 func IsTextPreviewable(mimetype string) bool {
 	return strings.HasPrefix(mimetype, "text/") || textPreviewMimeTypes[mimetype]
+}
+
+// TextPreviewMimeTypes returns the non-text/* allowlist in sorted order, for the
+// frontend's globalVars. Sorting keeps the served value stable across restarts.
+func TextPreviewMimeTypes() []string {
+	types := make([]string, 0, len(textPreviewMimeTypes))
+	for mt := range textPreviewMimeTypes {
+		types = append(types, mt)
+	}
+	sort.Strings(types)
+	return types
 }
 
 // TextPreviewRenderKind returns the renderer kind for a text-previewable file: the

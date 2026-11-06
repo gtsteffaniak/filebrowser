@@ -1,6 +1,7 @@
 package iteminfo
 
 import (
+	"sort"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -37,4 +38,14 @@ func TestTextPreviewRenderKind(t *testing.T) {
 	require.Equal(t, "markdown", TextPreviewRenderKind("notes.md"))
 	require.Equal(t, "plain", TextPreviewRenderKind("50. Holy Water.lrc"))
 	require.Equal(t, "plain", TextPreviewRenderKind("cert.pem"))
+}
+
+func TestTextPreviewMimeTypesIsSortedAndMatchesAllowlist(t *testing.T) {
+	types := TextPreviewMimeTypes()
+	require.NotEmpty(t, types)
+	require.True(t, sort.StringsAreSorted(types), "list must be sorted for a stable globalVars value")
+	for _, mt := range types {
+		require.True(t, IsTextPreviewable(mt), mt)
+	}
+	require.Contains(t, types, "application/json")
 }

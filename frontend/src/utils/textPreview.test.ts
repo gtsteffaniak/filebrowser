@@ -1,4 +1,29 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+
+// The backend serves the text allowlist through globalVars (backend/internal/web/static.go).
+const { globalsMock } = vi.hoisted(() => ({
+  globalsMock: {
+    textPreviewMimeTypes: [
+      "application/json",
+      "application/yaml",
+      "application/x-yaml",
+      "application/sql",
+      "application/x-sql",
+      "application/x-sh",
+      "application/x-php",
+      "application/x-powershell",
+      "application/x-tex",
+      "application/toml",
+      "application/x-ruby",
+    ] as string[],
+  },
+}));
+
+vi.mock("@/utils/constants.js", async (importOriginal) => ({
+  ...(await importOriginal<object>()),
+  globalVars: globalsMock,
+}));
+
 import {
   clearTextPreviewCache,
   fetchTextPreview,
@@ -43,6 +68,17 @@ describe("isTextPreviewableType", () => {
   it("is true for text-extension mimetypes that are not text/*", () => {
     for (const mt of ["application/json", "application/yaml", "application/sql", "application/x-sh", "application/x-php", "application/x-powershell", "application/x-tex"]) {
       expect(isTextPreviewableType(mt), mt).toBe(true);
+    }
+  });
+
+  it("follows the allowlist served in globalVars", () => {
+    const original = globalsMock.textPreviewMimeTypes;
+    try {
+      globalsMock.textPreviewMimeTypes = ["application/x-custom"];
+      expect(isTextPreviewableType("application/x-custom")).toBe(true);
+      expect(isTextPreviewableType("application/json")).toBe(false);
+    } finally {
+      globalsMock.textPreviewMimeTypes = original;
     }
   });
 
