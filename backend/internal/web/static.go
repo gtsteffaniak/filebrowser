@@ -325,6 +325,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"playwrightTest":                settings.Env.IsPlaywright,
 		"officeProduct":                 officeProductForSPA(),
 		"officeExtensions":              wopiExtensionsForSPA(),
+		"textPreviewMimeTypes":          iteminfo.TextPreviewMimeTypes(),
 	}
 
 	cspNonce, err := utils.CSPNonce()

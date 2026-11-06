@@ -1,3 +1,4 @@
+import { globalVars } from "@/utils/constants.js";
 import { state } from "@/store/index.ts";
 import type { TextPreviewPayload } from "@/utils/textPreviewRender.ts";
 
@@ -26,13 +27,29 @@ export function languageFromPath(path: string | null | undefined): string | null
   return name.slice(dot + 1).toLowerCase();
 }
 
+// Non-text/* mimetypes (JSON, YAML, SQL, shell, ...) served by the backend in globalVars.
+// The backend is the single source of truth; the Set is rebuilt only when the served array changes.
+let allowlistSource: string[] | undefined;
+let allowlistSet = new Set<string>();
+
+function textPreviewMimeTypes(): Set<string> {
+  const source = globalVars?.textPreviewMimeTypes as string[] | undefined;
+  if (source !== allowlistSource) {
+    allowlistSource = source;
+    allowlistSet = new Set(source ?? []);
+  }
+  return allowlistSet;
+}
+
 /**
- * True when an item's mimetype is text/*. The backend uses the same rule, so an item the
- * listing marks as text is the one the text preview endpoint renders. Binary types such as
- * sqlite, postscript, wasm and backup are not text/* and never reach the endpoint.
+ * True when an item's mimetype is text/* or on the backend's text allowlist. The backend uses
+ * the same rule, so an item the listing marks as text is the one the text preview endpoint
+ * renders. Binary types such as sqlite, postscript, wasm and backup never reach the endpoint.
  */
 export function isTextPreviewableType(mimetype: string | null | undefined): boolean {
-  return (mimetype ?? "").startsWith("text/");
+  // split always yields at least one element; the ?? "" satisfies noUncheckedIndexedAccess.
+  const base = (mimetype ?? "").split(";")[0] ?? "";
+  return base.startsWith("text/") || textPreviewMimeTypes().has(base);
 }
 
 // Text fetches are queued so a folder full of text files does not fire dozens of

@@ -1,6 +1,7 @@
 package iteminfo
 
 import (
+	"sort"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -24,7 +25,11 @@ func TestIsTextPreviewable(t *testing.T) {
 	for _, mt := range []string{"text/plain", "text/markdown", "text/lyrics", "text/x-go", "text/html"} {
 		require.True(t, IsTextPreviewable(mt), mt)
 	}
-	for _, mt := range []string{"", "image/svg+xml", "application/pdf", "application/json", "application/x-sqlite3", "application/postscript", "application/backup", "application/wasm"} {
+	for _, mt := range []string{"application/json", "application/yaml", "application/sql", "application/x-sh", "application/x-php", "application/x-powershell", "application/x-tex"} {
+		require.True(t, IsTextPreviewable(mt), mt)
+	}
+	// Mimetypes shared with binaries (.exe, .bat via application/x-msdownload) must stay non-previewable.
+	for _, mt := range []string{"", "image/svg+xml", "application/pdf", "application/x-sqlite3", "application/postscript", "application/backup", "application/wasm", "application/x-msdownload", "application/x-msdos-program", "application/octet-stream"} {
 		require.False(t, IsTextPreviewable(mt), mt)
 	}
 }
@@ -33,4 +38,14 @@ func TestTextPreviewRenderKind(t *testing.T) {
 	require.Equal(t, "markdown", TextPreviewRenderKind("notes.md"))
 	require.Equal(t, "plain", TextPreviewRenderKind("50. Holy Water.lrc"))
 	require.Equal(t, "plain", TextPreviewRenderKind("cert.pem"))
+}
+
+func TestTextPreviewMimeTypesIsSortedAndMatchesAllowlist(t *testing.T) {
+	types := TextPreviewMimeTypes()
+	require.NotEmpty(t, types)
+	require.True(t, sort.StringsAreSorted(types), "list must be sorted for a stable globalVars value")
+	for _, mt := range types {
+		require.True(t, IsTextPreviewable(mt), mt)
+	}
+	require.Contains(t, types, "application/json")
 }
