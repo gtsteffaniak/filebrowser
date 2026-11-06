@@ -18,7 +18,6 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/fileutils"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/embeddedpreview"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/ffmpeg"
-	"github.com/gtsteffaniak/filebrowser/backend/internal/folio"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/imagemeta"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing/iteminfo"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
@@ -481,7 +480,7 @@ func GeneratePreviewWithMD5(ctx context.Context, file iteminfo.ExtendedFileInfo,
 
 	// Folio document previews render at target size in-process; they skip imageSem.
 	previewTypeEarly := determinePreviewType(file)
-	skipImageSem := previewTypeEarly == previewTypeDocument && folio.Enabled() && iteminfo.HasDocConvertableExtension(file.Name, file.Type)
+	skipImageSem := previewTypeEarly == previewTypeDocument && folioEnabled() && iteminfo.HasDocConvertableExtension(file.Name, file.Type)
 	// True when the semaphore block below holds a permit for this whole function.
 	imagePermitHeld := !skipImageSem
 	if !skipImageSem {
@@ -576,7 +575,7 @@ func GeneratePreviewWithMD5(ctx context.Context, file iteminfo.ExtendedFileInfo,
 	// Video thumbnails come from go-media or ffmpeg already sized to the preview
 	// box, so they are final and need no ffmpeg gate here.
 	if !fromEmbeddedPreview && (previewType == previewTypeImage ||
-		(previewType == previewTypeDocument && folio.Enabled() && iteminfo.HasDocConvertableExtension(file.Name, file.Type)) ||
+		(previewType == previewTypeDocument && folioEnabled() && iteminfo.HasDocConvertableExtension(file.Name, file.Type)) ||
 		previewType == previewTypeVideo) {
 		if err := service.fileCache.Store(ctx, cacheKey, imageBytes); err != nil {
 			logger.Errorf("failed to cache image: %v", err)

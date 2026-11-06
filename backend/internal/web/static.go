@@ -245,6 +245,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		manifestURL = staticURL + "/site.webmanifest?" + query.Encode()
 	}
 
+	// only include constant values that don't change during a users session
 	data["htmlVars"] = map[string]interface{}{
 		"title":              title,
 		"customCSS":          template.CSS(settings.Config.Frontend.Styling.CustomCSSRaw),
@@ -272,6 +273,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"devMode":            settings.Env.IsDevMode,
 	}
 
+	// only include constant values that don't change during a users session
 	data["globalVars"] = map[string]interface{}{
 		"name":                          settings.Config.Frontend.Name,
 		"minSearchLength":               settings.Config.Server.MinSearchLength,
@@ -302,7 +304,6 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"transcodeProfiles":             settings.EnabledTranscodeProfiles(),
 		"transcodeMaxPerUser":           settings.TranscodeMaxConcurrentPerUser(),
 		"docPreviewExtensions":          iteminfo.DocPreviewExtensionsForSPA(),
-		"textPreviewExtensions":         iteminfo.TextPreviewExtensionsForSPA(),
 		"updateAvailable":               utils.GetUpdateAvailableUrl(),
 		"disableNavButtons":             disableNavButtons,
 		"userSelectableThemes":          settings.Config.Frontend.Styling.CustomThemeOptions,

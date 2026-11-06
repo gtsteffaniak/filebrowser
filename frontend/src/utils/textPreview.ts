@@ -1,5 +1,4 @@
 import { state } from "@/store/index.ts";
-import { globalVars } from "@/utils/constants.js";
 import type { TextPreviewPayload } from "@/utils/textPreviewRender.ts";
 
 // Text previews are small (about 16KB), so the frontend keeps a bounded in-memory cache.
@@ -28,22 +27,12 @@ export function languageFromPath(path: string | null | undefined): string | null
 }
 
 /**
- * Every extension the text preview endpoint supports, from the backend's kind map.
- * Built once per page rather than once per listing item.
+ * True when an item's mimetype is text/*. The backend uses the same rule, so an item the
+ * listing marks as text is the one the text preview endpoint renders. Binary types such as
+ * sqlite, postscript, wasm and backup are not text/* and never reach the endpoint.
  */
-let textPreviewExtSet: Set<string> | null = null;
-export function getTextPreviewExtensions(): Set<string> {
-  if (textPreviewExtSet === null) {
-    const groups = (globalVars.textPreviewExtensions ?? {}) as Record<string, string[]>;
-    textPreviewExtSet = new Set(Object.values(groups).flat());
-  }
-  return textPreviewExtSet;
-}
-
-/** True when the filename has an extension the text preview endpoint supports. */
-export function isTextPreviewableName(filename: string | null | undefined): boolean {
-  const ext = languageFromPath(filename);
-  return ext !== null && getTextPreviewExtensions().has(ext);
+export function isTextPreviewableType(mimetype: string | null | undefined): boolean {
+  return (mimetype ?? "").startsWith("text/");
 }
 
 // Text fetches are queued so a folder full of text files does not fire dozens of

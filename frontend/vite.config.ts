@@ -8,7 +8,6 @@ import stripLegacyCSS from "./scripts/postcss-strip-legacy.ts";
 import protectTemplateStyles from "./scripts/vite-protect-template-styles.ts";
 
 const isDevBuild = process.env.DEV_BUILD === "true";
-const backendWebDist = path.resolve(import.meta.dirname, "../backend/internal/web/dist");
 // Docker builds skip vue-tsc here; CI type-checks in regular-tests.yaml.
 const skipTypecheck = process.env.SKIP_TYPECHECK === "1";
 
@@ -122,7 +121,6 @@ export default defineConfig(({ command }) => {
     base: "",
     define,
     build: {
-      outDir: backendWebDist,
       emptyOutDir: true,
       // Optimize for watch mode stability
       watch: isDevBuild ? {

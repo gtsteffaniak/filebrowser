@@ -560,20 +560,17 @@ func TextPreviewKind(ext string) string {
 	return textPreviewKinds[ext]
 }
 
-// IsTextPreviewable reports whether a file name uses the text preview endpoint.
-func IsTextPreviewable(name string) bool {
-	return textPreviewKinds[strings.ToLower(filepath.Ext(name))] != ""
+// IsTextPreviewable reports whether an item uses the text preview endpoint. The decision
+// is the item's mimetype: every text/* type is previewable, and everything else is not.
+func IsTextPreviewable(mimetype string) bool {
+	return strings.HasPrefix(mimetype, "text/")
 }
 
-// TextPreviewExtensionsForSPA groups text preview extensions (without dots) by renderer kind.
-// The frontend uses this to decide which items get a text preview container.
-func TextPreviewExtensionsForSPA() map[string][]string {
-	out := make(map[string][]string)
-	for ext, kind := range textPreviewKinds {
-		out[kind] = append(out[kind], strings.TrimPrefix(ext, "."))
+// TextPreviewRenderKind returns the renderer kind for a text-previewable file: the
+// extension-specific kind when one exists, otherwise "plain".
+func TextPreviewRenderKind(name string) string {
+	if kind := TextPreviewKind(strings.ToLower(filepath.Ext(name))); kind != "" {
+		return kind
 	}
-	for kind := range out {
-		sort.Strings(out[kind])
-	}
-	return out
+	return "plain"
 }

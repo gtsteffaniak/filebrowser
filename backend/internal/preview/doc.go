@@ -5,8 +5,14 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/gtsteffaniak/filebrowser/backend/internal/folio"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing/iteminfo"
+)
+
+const (
+	// docPreviewTimeout bounds small, large and xlarge page renders.
+	docPreviewTimeout = 2 * time.Second
+	// docOriginalTimeout bounds "original" renders, which are higher resolution.
+	docOriginalTimeout = 10 * time.Second
 )
 
 func (s *Service) GenerateImageFromDoc(ctx context.Context, file iteminfo.ExtendedFileInfo, pageNumber int, previewSize string) ([]byte, error) {
@@ -14,7 +20,11 @@ func (s *Service) GenerateImageFromDoc(ctx context.Context, file iteminfo.Extend
 		return nil, ctx.Err()
 	}
 
-	timeoutCtx, cancel := context.WithTimeout(ctx, 2*time.Second)
+	timeout := docPreviewTimeout
+	if previewSize == "original" {
+		timeout = docOriginalTimeout
+	}
+	timeoutCtx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
 	opts, err := folioRenderOptions(previewSize)
@@ -22,7 +32,7 @@ func (s *Service) GenerateImageFromDoc(ctx context.Context, file iteminfo.Extend
 		return nil, err
 	}
 
-	imageBytes, ok, err := folio.RenderPageJPEG(timeoutCtx, file.RealPath, pageNumber, opts, file.Name, file.Type)
+	imageBytes, ok, err := renderDocPageJPEG(timeoutCtx, file.RealPath, pageNumber, opts, file.Name, file.Type)
 	if !ok {
 		if err != nil {
 			return nil, err
@@ -30,20 +40,22 @@ func (s *Service) GenerateImageFromDoc(ctx context.Context, file iteminfo.Extend
 		return nil, nil
 	}
 	if timeoutCtx.Err() != nil {
-		return nil, fmt.Errorf("document preview generation timed out after 2 seconds for '%s'", file.Name)
+		return nil, fmt.Errorf("document preview generation timed out after %s for '%s'", timeout, file.Name)
 	}
 	return imageBytes, nil
 }
 
-func folioRenderOptions(previewSize string) (folio.RenderOptions, error) {
+// folioRenderOptions maps a preview size onto the same dimensions, fill mode and JPEG quality
+// the image pipeline uses (see getPreviewOptions); "original" renders at full resolution.
+func folioRenderOptions(previewSize string) (docRenderOptions, error) {
 	if previewSize == "original" {
-		return folio.RenderOptions{Original: true, JpegQuality: QualityHigh.jpegQuality()}, nil
+		return docRenderOptions{Original: true, JpegQuality: QualityHigh.jpegQuality()}, nil
 	}
 	opts, err := getPreviewOptions(previewSize)
 	if err != nil {
-		return folio.RenderOptions{}, err
+		return docRenderOptions{}, err
 	}
-	return folio.RenderOptions{
+	return docRenderOptions{
 		MaxWidth:    opts.Width,
 		MaxHeight:   opts.Height,
 		Fill:        opts.ResizeMode == ResizeModeFill,

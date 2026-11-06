@@ -1597,7 +1597,7 @@ func setFilePreviewFlags(fileInfo *iteminfo.ItemInfo, realPath string) {
 	}
 	// Text-like files are rendered by the text preview endpoint (not the image pipeline),
 	// so this runs before Folio/OnlyOffice. SVG is not a text preview type and stays an image.
-	if iteminfo.IsTextPreviewable(fileInfo.Name) {
+	if iteminfo.IsTextPreviewable(fileInfo.Type) {
 		fileInfo.HasPreview = true
 		return
 	}

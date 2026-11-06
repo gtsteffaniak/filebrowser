@@ -1,4 +1,4 @@
-package folio
+package preview
 
 import (
 	"os"
@@ -8,12 +8,12 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestRenderPageJPEG_txt(t *testing.T) {
+func TestRenderDocPageJPEG_txt(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "hello.txt")
 	require.NoError(t, os.WriteFile(path, []byte("Hello folio preview"), 0o644))
 
-	data, ok, err := RenderPageJPEG(t.Context(), path, 0, RenderOptions{
+	data, ok, err := renderDocPageJPEG(t.Context(), path, 0, docRenderOptions{
 		MaxWidth:    256,
 		MaxHeight:   256,
 		Fill:        true,
@@ -26,8 +26,8 @@ func TestRenderPageJPEG_txt(t *testing.T) {
 	require.Equal(t, byte(0xd8), data[1])
 }
 
-func TestRenderPageJPEG_unsupportedExtension(t *testing.T) {
-	data, ok, err := RenderPageJPEG(t.Context(), "/nonexistent/file.xyz", 0, RenderOptions{}, "file.xyz", "application/octet-stream")
+func TestRenderDocPageJPEG_unsupportedExtension(t *testing.T) {
+	data, ok, err := renderDocPageJPEG(t.Context(), "/nonexistent/file.xyz", 0, docRenderOptions{}, "file.xyz", "application/octet-stream")
 	require.NoError(t, err)
 	require.False(t, ok)
 	require.Nil(t, data)
