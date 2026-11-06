@@ -47,7 +47,8 @@ function textPreviewMimeTypes(): Set<string> {
  * renders. Binary types such as sqlite, postscript, wasm and backup never reach the endpoint.
  */
 export function isTextPreviewableType(mimetype: string | null | undefined): boolean {
-  const base = (mimetype ?? "").split(";")[0];
+  // split always yields at least one element; the ?? "" satisfies noUncheckedIndexedAccess.
+  const base = (mimetype ?? "").split(";")[0] ?? "";
   return base.startsWith("text/") || textPreviewMimeTypes().has(base);
 }
 
