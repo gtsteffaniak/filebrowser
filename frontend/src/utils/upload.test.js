@@ -79,6 +79,27 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
+describe("directory upload ordering", () => {
+  it("waits for each directory before starting its children", async () => {
+    // A populated listing avoids the separate top-level directory probe.
+    state.req.items = [{ name: "unrelated.txt" }];
+    const parent = deferred();
+    resourcesApi.post.mockReturnValueOnce(parent.promise).mockResolvedValue("");
+
+    await uploadManager.add("/base/", [
+      { file: new File(["a"], "a.txt"), relativePath: "folder/child/a.txt" },
+    ]);
+    expect(resourcesApi.post.mock.calls.map((call) => call[1])).toEqual(["/base/folder/"]);
+
+    parent.resolve("");
+    await vi.advanceTimersByTimeAsync(0);
+    expect(resourcesApi.post.mock.calls.map((call) => call[1])).toEqual([
+      "/base/folder/", "/base/folder/child/", "/base/folder/child/a.txt",
+    ]);
+    state.req.items = [];
+  });
+});
+
 describe("upload stall detection", () => {
   it("allows an upload to wait while another progresses, then detects a batch stall", async () => {
     const waiting = addUpload();

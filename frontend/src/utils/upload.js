@@ -450,7 +450,14 @@ class UploadManager {
         this.activeUploads < maxConcurrent &&
         this.hasPending()
       ) {
-        const upload = this.queue.find((item) => item.status === "pending");
+        // Create directories one at a time (parent first) before any files: the
+        // backend uses MkdirAll, so a child finishing first makes its parent 409.
+        if (this.queue.some((item) => item.type === "directory" && item.status === "uploading")) {
+          break;
+        }
+        const upload =
+          this.queue.find((item) => item.type === "directory" && item.status === "pending") ||
+          this.queue.find((item) => item.status === "pending");
         if (upload) {
           if (this.overwriteAll) {
             upload.overwrite = true;
