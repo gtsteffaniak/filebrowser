@@ -65,7 +65,7 @@ func NewPreviewGenerator(concurrencyLimit int, cacheDir string) *Service {
 	var fileCache diskcache.Interface
 	// Use file cache if cacheDir is specified
 	var err error
-	fileCache, err = diskcache.NewFileCache(actualCacheDir)
+	fileCache, err = diskcache.NewFileCacheWithLimit(actualCacheDir, max(settings.Config.Server.CacheDirMaxSizeMB, 0)*1024*1024)
 	if err != nil {
 		logger.Error("The cache dir could not be created. Make sure the user that you executed the program with has access to create directories in the local path. See  ")
 		logger.Fatalf("failed to create file cache path, which is now require to run the server: %v", err)
@@ -449,7 +449,9 @@ func GeneratePreviewWithMD5(ctx context.Context, file iteminfo.ExtendedFileInfo,
 	}
 
 	// Enforce file size limit for image preview generation to prevent memory exhaustion
-	if strings.HasPrefix(file.Type, "image") && file.Size > iteminfo.LargeFileSizeThreshold {
+	// Camera RAW is exempt: its preview is the embedded JPEG and the RAW data is never decoded.
+	if strings.HasPrefix(file.Type, "image") && file.Size > iteminfo.LargeFileSizeThreshold &&
+		!iteminfo.IsRawImage(strings.ToLower(filepath.Ext(file.Name))) {
 		message := fmt.Sprintf("Image file too large for preview: %s (size: %d bytes, limit: %d bytes)",
 			file.Name, file.Size, iteminfo.LargeFileSizeThreshold)
 		logger.Warning(message)
@@ -467,7 +469,7 @@ func GeneratePreviewWithMD5(ctx context.Context, file iteminfo.ExtendedFileInfo,
 	var imageBytes []byte
 	fromEmbeddedPreview := false
 	if hasEmbeddedPreview(file.Type, file.Name) {
-		if previewBytes, _ := imagemeta.ExtractEmbeddedPreview(ctx, file.RealPath); len(previewBytes) >= minPreviewSize && isJPEG(previewBytes) {
+		if previewBytes, _ := imagemeta.ExtractEmbeddedPreview(ctx, file.RealPath); len(previewBytes) >= minPreviewSize && isJPEG(previewBytes) && embeddedPreviewWithinLimits(previewBytes) {
 			imageBytes = previewBytes
 			fromEmbeddedPreview = true
 			if orient := imagemeta.GetOrientation(ctx, file.RealPath); orient != "" {
