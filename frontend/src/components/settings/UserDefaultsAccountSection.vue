@@ -194,7 +194,7 @@ export default {
   computed: {
     maxConcurrentTranscodesLimit() {
       // Prefer the live media settings; globalVars are static page constants.
-      const live = state.mediaPlayerSettings?.maxConcurrentPerUser;
+      const live = state.mediaSettings?.maxConcurrentPerUser;
       if (Number.isFinite(live) && live > 0) {
         return live;
       }

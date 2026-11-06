@@ -25,16 +25,15 @@ func TestMediaAccessorsReflectRuntimeSettings(t *testing.T) {
 	originalTranscode := Config.Integrations.Media.Transcode
 	t.Cleanup(func() { Config.Integrations.Media.Transcode = originalTranscode })
 
-	ApplyMediaSettings(MediaSettings{
+	ApplyMediaSettings(FullAdminMedia{
 		Debug:                true,
 		HardwareAcceleration: true,
-		Transcode: MediaTranscode{
-			Enabled:              true,
-			MaxConcurrent:        4,
-			MaxConcurrentPerUser: 2,
-			CacheMaxSizeMB:       512,
-			CacheRetentionH:      6,
-			Profiles:             DefaultTranscodeProfiles(),
+		Transcode: FullAdminTranscode{
+			UserTranscode:   UserTranscode{Enabled: true, MaxConcurrentPerUser: 2},
+			MaxConcurrent:   4,
+			CacheMaxSizeMB:  512,
+			CacheRetentionH: 6,
+			Profiles:        DefaultTranscodeProfiles(),
 		},
 	})
 
@@ -67,7 +66,7 @@ func TestMediaAccessorsReflectRuntimeSettings(t *testing.T) {
 
 func TestTranscodeAccessorsUseDefaultsWhenUnset(t *testing.T) {
 	withMediaConfig(t)
-	ApplyMediaSettings(MediaSettings{})
+	ApplyMediaSettings(FullAdminMedia{})
 
 	if got := TranscodeMaxConcurrent(); got != 2 {
 		t.Fatalf("TranscodeMaxConcurrent = %d, want the 2 default", got)
@@ -225,11 +224,11 @@ func TestMediaAccessorsAreRaceFree(t *testing.T) {
 			default:
 			}
 			enabled = !enabled
-			ApplyMediaSettings(MediaSettings{
+			ApplyMediaSettings(FullAdminMedia{
 				Debug:                enabled,
 				HardwareAcceleration: enabled,
-				Transcode: MediaTranscode{
-					Enabled:       enabled,
+				Transcode: FullAdminTranscode{
+					UserTranscode: UserTranscode{Enabled: enabled},
 					MaxConcurrent: 2,
 					Profiles:      DefaultTranscodeProfiles(),
 				},

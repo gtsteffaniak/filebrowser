@@ -428,7 +428,7 @@ const (
 // clampTranscodeReadRate enforces throttled producers: unset or sub-realtime
 // read rates are raised, so a producer is never left unthrottled. Burst and
 // catch-up pacing are left to ffmpeg's defaults.
-func clampTranscodeReadRate(t *MediaTranscode) {
+func clampTranscodeReadRate(t *FullAdminTranscode) {
 	if t.ReadRate <= 0 {
 		t.ReadRate = defaultTranscodeReadRate
 	} else if t.ReadRate < minTranscodeReadRate {
@@ -1073,14 +1073,16 @@ func SetDefaults(generate bool) Settings {
 	for _, t := range AllVideoPreviewTypes {
 		s.Integrations.Media.Convert.VideoPreview[t] = boolPtr(true)
 	}
-	s.Integrations.Media.Transcode = MediaTranscode{
-		Enabled:              false,
-		MaxConcurrent:        2,
-		MaxConcurrentPerUser: 1,
-		CacheMaxSizeMB:       10240,
-		CacheRetentionH:      24,
-		ReadRate:             defaultTranscodeReadRate,
-		Profiles:             DefaultTranscodeProfiles(),
+	s.Integrations.Media.Transcode = FullAdminTranscode{
+		UserTranscode: UserTranscode{
+			Enabled:              false,
+			MaxConcurrentPerUser: 1,
+		},
+		MaxConcurrent:   2,
+		CacheMaxSizeMB:  10240,
+		CacheRetentionH: 24,
+		ReadRate:        defaultTranscodeReadRate,
+		Profiles:        DefaultTranscodeProfiles(),
 	}
 	// Hardware acceleration is opt-out: "auto" lets go-ffmpeg follow its device
 	// hierarchy (integrated GPU, discrete GPU, then software).

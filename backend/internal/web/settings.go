@@ -455,29 +455,24 @@ func settingsShareDefaultsPatchHandler(w http.ResponseWriter, r *http.Request, d
 
 // settingsMediaGetHandler returns the runtime media settings.
 // @Summary Get runtime media settings
-// @Description Admins receive the DB-backed media integration settings; every authenticated user
-// @Description receives the player-relevant subset (transcode enabled, profiles, per-user limit).
+// @Description Returns the media settings the caller is allowed to see.
+// @Description Admins get the full settings, including ffmpeg and hardware options, so they can edit them.
+// @Description Everyone else gets a small read-only view: whether transcoding is on, how many
+// @Description transcodes they can run at once, which quality presets are enabled, and which image
+// @Description previews the server can generate. Keys in the view are the same for admins and users.
 // @Tags Settings
 // @Produce json
 // @Success 200 {object} mediaSettingsResponse "Media settings"
 // @Router /api/settings/media [get]
-// mediaSettingsResponse is the runtime media settings plus config-lock metadata.
+// mediaSettingsResponse is the ADMIN ONLY media payload: the full stored settings
+// (FullAdminMedia, which embeds the public UserTranscode fields) plus config-lock
+// metadata and ffmpeg option lists. Non-admins never receive this type.
 type mediaSettingsResponse struct {
-	settings.MediaSettings
+	settings.FullAdminMedia
 	LockedFromConfigPaths []string                      `json:"lockedFromConfigPaths,omitempty"`
 	LockMessage           string                        `json:"lockMessage,omitempty"`
 	AccelDeviceOptions    []ffmpeg.AccelDeviceOption    `json:"accelDeviceOptions,omitempty"`
 	EncoderBackendOptions []ffmpeg.EncoderBackendOption `json:"encoderBackendOptions,omitempty"`
-}
-
-// mediaPlayerSettings is the player-relevant subset of the runtime media
-// settings. It is safe to expose to any authenticated user so the player can
-// reflect admin changes without a page reload.
-type mediaPlayerSettings struct {
-	Enabled              bool     `json:"enabled"`
-	Profiles             []string `json:"profiles"`
-	MaxConcurrentPerUser int      `json:"maxConcurrentPerUser"`
-	HardwareAcceleration bool     `json:"hardwareAcceleration"`
 }
 
 func mediaSettingsLockMeta() (paths []string, message string) {
@@ -492,11 +487,14 @@ func mediaSettingsLockMeta() (paths []string, message string) {
 // metadata, subtitles, and video thumbnails without it. ffmpeg-only controls
 // (transcoding, hardware acceleration) report their own availability.
 func settingsMediaGetHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+	// PUBLIC payload: non-admins get only what the player and general UI read.
 	if !d.User.Permissions.Admin {
-		return RenderJSON(w, r, currentMediaPlayerSettings())
+		return RenderJSON(w, r, settings.CurrentUserMedia())
 	}
+	// ADMIN payload: full stored settings with effective and derived values filled in
+	// by PrepMediaForFrontend (a read-only copy; never saved).
+	media := settings.PrepMediaForFrontend(state.GetMediaSettings())
 	lockedPaths, lockMessage := mediaSettingsLockMeta()
-	media := state.GetMediaSettings()
 	svc := ffmpeg.Get()
 	var accelDeviceOptions []ffmpeg.AccelDeviceOption
 	var encoderBackendOptions []ffmpeg.EncoderBackendOption
@@ -506,23 +504,12 @@ func settingsMediaGetHandler(w http.ResponseWriter, r *http.Request, d *Context)
 		encoderBackendOptions = svc.EncoderBackendOptions()
 	}
 	return RenderJSON(w, r, mediaSettingsResponse{
-		MediaSettings:         media,
+		FullAdminMedia:        media,
 		LockedFromConfigPaths: lockedPaths,
 		LockMessage:           lockMessage,
 		AccelDeviceOptions:    accelDeviceOptions,
 		EncoderBackendOptions: encoderBackendOptions,
 	})
-}
-
-// currentMediaPlayerSettings reads the live media settings for the player UI.
-func currentMediaPlayerSettings() mediaPlayerSettings {
-	media := state.GetMediaSettings()
-	return mediaPlayerSettings{
-		Enabled:              settings.TranscodeEnabled(),
-		Profiles:             settings.EnabledTranscodeProfiles(),
-		MaxConcurrentPerUser: settings.TranscodeMaxConcurrentPerUser(),
-		HardwareAcceleration: media.HardwareAcceleration,
-	}
 }
 
 // settingsMediaPatchHandler merges a partial update into the runtime media settings.
