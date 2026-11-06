@@ -45,11 +45,14 @@ export async function enableTranscodeUi(page: Page) {
     await route.fulfill({
       status: 200,
       contentType: "application/json",
+      // Matches the PUBLIC UserMedia payload from GET /api/settings/media.
       body: JSON.stringify({
-        enabled: true,
-        profiles: ["quality", "balanced", "datasaver"],
-        maxConcurrentPerUser: 1,
-        hardwareAcceleration: false,
+        transcode: {
+          enabled: true,
+          maxConcurrentPerUser: 1,
+          enabledProfiles: ["quality", "balanced", "datasaver"],
+        },
+        imagePreview: {},
       }),
     });
   });

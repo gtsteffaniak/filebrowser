@@ -455,9 +455,11 @@ func settingsShareDefaultsPatchHandler(w http.ResponseWriter, r *http.Request, d
 
 // settingsMediaGetHandler returns the runtime media settings.
 // @Summary Get runtime media settings
-// @Description Admins receive the full DB-backed media settings (mediaSettingsResponse). Every
-// @Description authenticated user receives only the PUBLIC subset (UserMedia: transcode enabled,
-// @Description per-user limit, enabled profiles, and image preview availability).
+// @Description Returns the media settings the caller is allowed to see.
+// @Description Admins get the full settings, including ffmpeg and hardware options, so they can edit them.
+// @Description Everyone else gets a small read-only view: whether transcoding is on, how many
+// @Description transcodes they can run at once, which quality presets are enabled, and which image
+// @Description previews the server can generate. Keys in the view are the same for admins and users.
 // @Tags Settings
 // @Produce json
 // @Success 200 {object} mediaSettingsResponse "Media settings"

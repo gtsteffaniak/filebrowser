@@ -193,7 +193,7 @@ type Media struct {
 // ADMIN ONLY: non-admins receive UserMedia instead. FfmpegPath is config-only and intentionally excluded.
 // ImagePreview is derived at read time (see PrepMediaForFrontend) and is cleared before save.
 type FullAdminMedia struct {
-	ImagePreview         map[ImagePreviewType]bool `json:"imagePreview,omitempty"` // PUBLIC availability, derived; never stored
+	ImagePreview         map[ImagePreviewType]bool `json:"imagePreview,omitempty"` // image formats that can be converted
 	Convert              FfmpegConvert             `json:"convert"`                // config for ffmpeg conversion settings
 	Debug                bool                      `json:"debug"`                  // output ffmpeg stdout for media integration -- careful can produces lots of output!
 	HardwareAcceleration bool                      `json:"hardwareAcceleration"`   // enable hardware acceleration for ffmpeg if available

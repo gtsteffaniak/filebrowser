@@ -800,11 +800,6 @@ const docTemplate = `{
         },
         "/api/auth/otp/generate": {
             "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
                 "description": "Generates a new TOTP secret and QR code for the authenticated user. The password must be URL-encoded and sent in the X-Password header to support special characters.",
                 "consumes": [
                     "application/json"
@@ -851,16 +846,16 @@ const docTemplate = `{
                             }
                         }
                     }
-                }
-            }
-        },
-        "/api/auth/otp/verify": {
-            "post": {
+                },
                 "security": [
                     {
                         "ApiKeyAuth": []
                     }
-                ],
+                ]
+            }
+        },
+        "/api/auth/otp/verify": {
+            "post": {
                 "description": "Verifies the provided TOTP code for the authenticated user. The password must be URL-encoded and sent in the X-Password header to support special characters.",
                 "consumes": [
                     "application/json"
@@ -911,7 +906,12 @@ const docTemplate = `{
                             }
                         }
                     }
-                }
+                },
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ]
             }
         },
         "/api/auth/password/change-required": {
@@ -1824,11 +1824,6 @@ const docTemplate = `{
         },
         "/api/office/callback": {
             "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
                 "description": "Receives callbacks from OnlyOffice document server for document status changes and saves",
                 "consumes": [
                     "application/json"
@@ -1886,14 +1881,14 @@ const docTemplate = `{
                             }
                         }
                     }
-                }
+                },
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ]
             },
             "post": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
                 "description": "Receives callbacks from OnlyOffice document server for document status changes and saves",
                 "consumes": [
                     "application/json"
@@ -1951,16 +1946,16 @@ const docTemplate = `{
                             }
                         }
                     }
-                }
+                },
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ]
             }
         },
         "/api/office/config": {
             "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
                 "description": "Returns the configuration needed for OnlyOffice document editor client",
                 "consumes": [
                     "application/json"
@@ -2018,7 +2013,12 @@ const docTemplate = `{
                             }
                         }
                     }
-                }
+                },
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ]
             }
         },
         "/api/resources": {
@@ -4208,11 +4208,6 @@ const docTemplate = `{
         },
         "/api/wopi/session": {
             "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
                 "description": "Returns the editor URL and the access token the browser posts to it.",
                 "produces": [
                     "application/json"
@@ -4280,7 +4275,12 @@ const docTemplate = `{
                             }
                         }
                     }
-                }
+                },
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ]
             }
         },
         "/public/api/media/lyrics": {
@@ -8949,7 +8949,7 @@ const docTemplate = `{
             }
         },
         "web.mediaSettingsResponse": {
-            "description": "Admins receive the full DB-backed media settings (mediaSettingsResponse). Every authenticated user receives only the PUBLIC subset (UserMedia: transcode enabled, per-user limit, enabled profiles, and image preview availability).",
+            "description": "Returns the media settings the caller is allowed to see. Admins get the full settings, including ffmpeg and hardware options, so they can edit them. Everyone else gets a small read-only view: whether transcoding is on, how many transcodes they can run at once, which quality presets are enabled, and which image previews the server can generate. Keys in the view are the same for admins and users.",
             "type": "object",
             "properties": {
                 "accelDevice": {
@@ -8993,7 +8993,7 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "imagePreview": {
-                    "description": "PUBLIC availability, derived; never stored",
+                    "description": "image formats that can be converted",
                     "type": "object",
                     "additionalProperties": {
                         "type": "boolean"

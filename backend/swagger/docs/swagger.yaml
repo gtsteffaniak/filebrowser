@@ -2416,9 +2416,12 @@ definitions:
         description: File metadata for non-text files
     type: object
   web.mediaSettingsResponse:
-    description: 'Admins receive the full DB-backed media settings (mediaSettingsResponse).
-      Every authenticated user receives only the PUBLIC subset (UserMedia: transcode
-      enabled, per-user limit, enabled profiles, and image preview availability).'
+    description: 'Returns the media settings the caller is allowed to see. Admins
+      get the full settings, including ffmpeg and hardware options, so they can edit
+      them. Everyone else gets a small read-only view: whether transcoding is on,
+      how many transcodes they can run at once, which quality presets are enabled,
+      and which image previews the server can generate. Keys in the view are the same
+      for admins and users.'
     properties:
       accelDevice:
         description: 'acceleration device: "auto", "software"/"cpu", "igpu", "dgpu",
@@ -2454,7 +2457,7 @@ definitions:
       imagePreview:
         additionalProperties:
           type: boolean
-        description: PUBLIC availability, derived; never stored
+        description: image formats that can be converted
         type: object
       lockMessage:
         type: string

@@ -55,13 +55,18 @@ func callMediaGet(t *testing.T, admin bool) map[string]any {
 	return body
 }
 
-// keysOf returns the sorted keys of a JSON object.
-func keysOf(t *testing.T, v any, path string) []string {
+// objectField returns obj[key] as a JSON object, failing the test if it is missing or not an object.
+func objectField(t *testing.T, obj map[string]any, key string) map[string]any {
 	t.Helper()
-	obj, ok := v.(map[string]any)
+	child, ok := obj[key].(map[string]any)
 	if !ok {
-		t.Fatalf("%s is %T, want object", path, v)
+		t.Fatalf("%s is %T, want object", key, obj[key])
 	}
+	return child
+}
+
+// keysOf returns the sorted keys of a JSON object.
+func keysOf(obj map[string]any) []string {
 	keys := make([]string, 0, len(obj))
 	for k := range obj {
 		keys = append(keys, k)
@@ -89,11 +94,10 @@ func TestSettingsMediaHandlerPlayerPayloadForNonAdmin(t *testing.T) {
 	withMediaHandlerSettings(t)
 
 	body := callMediaGet(t, false)
-	assertKeys(t, "top-level", keysOf(t, body, "body"), []string{"transcode", "imagePreview"})
-	assertKeys(t, "transcode", keysOf(t, body["transcode"], "transcode"),
-		[]string{"enabled", "maxConcurrentPerUser", "enabledProfiles"})
+	assertKeys(t, "top-level", keysOf(body), []string{"transcode", "imagePreview"})
+	transcode := objectField(t, body, "transcode")
+	assertKeys(t, "transcode", keysOf(transcode), []string{"enabled", "maxConcurrentPerUser", "enabledProfiles"})
 
-	transcode := body["transcode"].(map[string]any)
 	if enabled, ok := transcode["enabled"].(bool); !ok || !enabled {
 		t.Fatalf("transcode.enabled = %v, want true", transcode["enabled"])
 	}
@@ -107,7 +111,7 @@ func TestSettingsMediaHandlerPlayerPayloadForNonAdmin(t *testing.T) {
 }
 
 // Admins receive the full stored config. The keys shared with users must have the
-// same names and values, so the admin payload is a strict superset of the user payload.
+// same names, so the admin payload is a strict superset of the user payload.
 func TestSettingsMediaHandlerFullPayloadForAdmin(t *testing.T) {
 	withMediaHandlerSettings(t)
 
@@ -124,7 +128,7 @@ func TestSettingsMediaHandlerFullPayloadForAdmin(t *testing.T) {
 		t.Fatal("admin payload must not repeat transcode.enabled at the top level")
 	}
 
-	adminTranscode := admin["transcode"].(map[string]any)
+	adminTranscode := objectField(t, admin, "transcode")
 	for _, key := range []string{"maxConcurrent", "profiles", "cacheMaxSizeMB", "encoderBackend", "readRate"} {
 		if _, ok := adminTranscode[key]; !ok {
 			t.Fatalf("admin transcode missing %q", key)
@@ -137,8 +141,7 @@ func TestSettingsMediaHandlerFullPayloadForAdmin(t *testing.T) {
 	// Superset rule: every key a user receives must also exist for admins. Values may
 	// differ by design: admins see stored config (so the UI can save it back unchanged),
 	// users see effective values (for example enabled is false when ffmpeg is missing).
-	userTranscode := user["transcode"].(map[string]any)
-	for key := range userTranscode {
+	for key := range objectField(t, user, "transcode") {
 		if _, ok := adminTranscode[key]; !ok {
 			t.Fatalf("admin transcode missing shared key %q", key)
 		}
@@ -153,8 +156,7 @@ func TestSettingsMediaHandlerReflectsDisabledTranscode(t *testing.T) {
 	withMediaHandlerSettings(t)
 	settings.Config.Integrations.Media.Transcode.Enabled = false
 
-	body := callMediaGet(t, false)
-	transcode := body["transcode"].(map[string]any)
+	transcode := objectField(t, callMediaGet(t, false), "transcode")
 	if enabled, ok := transcode["enabled"].(bool); !ok || enabled {
 		t.Fatalf("transcode.enabled = %v, want false", transcode["enabled"])
 	}
