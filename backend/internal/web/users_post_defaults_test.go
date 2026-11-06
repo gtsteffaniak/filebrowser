@@ -48,3 +48,26 @@ func TestUsersPostOmittedFieldsFallBackToDefaults(t *testing.T) {
 		t.Errorf("uploadChunkSizeMb = %d, want default 9", got.FileLoading.UploadChunkSize)
 	}
 }
+
+// A create request must not mutate the shared in-memory userDefaults (json.Unmarshal
+// reuses slice backing arrays).
+func TestUsersPostDoesNotMutateUserDefaults(t *testing.T) {
+	setupTestEnv(t)
+
+	defaults := settings.Config.UserDefaults
+	defaults.Listing.NewFileTemplate = []string{"default.txt"}
+	state.SetEffectiveUserDefaultsForTest(t, defaults)
+
+	admin := createPostTestAdmin(t)
+
+	body := []byte(`{"which":[],"data":{"username":"nomutate","password":"secret","loginMethod":"password",
+		"newFileTemplate":["custom.txt"]}}`)
+	req := httptest.NewRequest(http.MethodPost, "/api/users", bytes.NewReader(body))
+	status, err := usersPostHandler(httptest.NewRecorder(), req, &Context{User: admin})
+	if err != nil || status != http.StatusCreated {
+		t.Fatalf("usersPostHandler() status=%d err=%v", status, err)
+	}
+	if got := state.EffectiveUserDefaults().Listing.NewFileTemplate; len(got) != 1 || got[0] != "default.txt" {
+		t.Errorf("userDefaults newFileTemplate = %v, want [default.txt]", got)
+	}
+}
