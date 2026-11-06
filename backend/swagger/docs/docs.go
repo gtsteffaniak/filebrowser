@@ -8975,6 +8975,10 @@ const docTemplate = `{
                     "description": "output ffmpeg stdout for media integration -- careful can produces lots of output!",
                     "type": "boolean"
                 },
+                "enabled": {
+                    "description": "Shared fields, identical to the ones every user receives (see mediaSettings).",
+                    "type": "boolean"
+                },
                 "encoderBackendOptions": {
                     "type": "array",
                     "items": {
@@ -8985,10 +8989,25 @@ const docTemplate = `{
                     "description": "enable hardware acceleration for ffmpeg if available",
                     "type": "boolean"
                 },
+                "imagePreview": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "boolean"
+                    }
+                },
                 "lockMessage": {
                     "type": "string"
                 },
                 "lockedFromConfigPaths": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "maxConcurrentPerUser": {
+                    "type": "integer"
+                },
+                "profiles": {
                     "type": "array",
                     "items": {
                         "type": "string"

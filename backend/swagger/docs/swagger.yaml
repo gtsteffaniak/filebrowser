@@ -2439,6 +2439,10 @@ definitions:
         description: output ffmpeg stdout for media integration -- careful can produces
           lots of output!
         type: boolean
+      enabled:
+        description: Shared fields, identical to the ones every user receives (see
+          mediaSettings).
+        type: boolean
       encoderBackendOptions:
         items:
           $ref: '#/definitions/ffmpeg.EncoderBackendOption'
@@ -2446,9 +2450,19 @@ definitions:
       hardwareAcceleration:
         description: enable hardware acceleration for ffmpeg if available
         type: boolean
+      imagePreview:
+        additionalProperties:
+          type: boolean
+        type: object
       lockMessage:
         type: string
       lockedFromConfigPaths:
+        items:
+          type: string
+        type: array
+      maxConcurrentPerUser:
+        type: integer
+      profiles:
         items:
           type: string
         type: array
