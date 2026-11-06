@@ -599,7 +599,9 @@
     "clearAllDescription": "Tlačítko Vymazat dokončené vymaže všechna odesílání v dokončeném stavu, včetně chybových, pozastavených a konfliktních stavů.",
     "uploadSettings": "Nastavení nahrávání",
     "downloadChunkSizeMb": "Velikost stahovaného bloku v MB",
-    "downloadChunkSizeMbHelp": "Velikost kousků pro stahování v kouscích. Soubory větší než tato velikost se budou stahovat po částech, aby se předešlo problémům s časovým limitem (např. chybám Cloudflare 524). Nastavení na 0 zakáže stahování po částech."
+    "downloadChunkSizeMbHelp": "Velikost kousků pro stahování v kouscích. Soubory větší než tato velikost se budou stahovat po částech, aby se předešlo problémům s časovým limitem (např. chybám Cloudflare 524). Nastavení na 0 zakáže stahování po částech.",
+    "uploadStallTimeoutSeconds": "Časový limit zablokovaného nahrávání v sekundách",
+    "uploadStallTimeoutSecondsHelp": "Počet sekund, po které může nahrávání probíhat bez jakéhokoli postupu, než bude pozastaveno. Zvyšte jej u pomalých nebo nestabilních připojení nebo pokud se soubory čtou z pomalých disků. Hodnoty menší než 1 použijí výchozí hodnotu 10 sekund."
   },
   "colors": {
     "red": "červená",

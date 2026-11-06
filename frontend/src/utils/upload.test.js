@@ -509,3 +509,43 @@ describe("upload waiting for the server to save the data", () => {
     }
   });
 });
+
+describe("upload stall timeout setting", () => {
+  afterEach(() => {
+    delete state.user.fileLoading.uploadStallTimeoutSeconds;
+  });
+
+  it.each([undefined, 0, -5])("uses the default limit when the setting is %s", (value) => {
+    state.user.fileLoading.uploadStallTimeoutSeconds = value;
+    expect(uploadManager.progressTimeoutMs()).toBe(uploadManager.PROGRESS_TIMEOUT_MS);
+  });
+
+  it("pauses after the number of seconds the user chose", async () => {
+    state.user.fileLoading.uploadStallTimeoutSeconds = 45;
+    const upload = addUpload();
+    uploadManager.startProgressTimeout(upload);
+    await vi.advanceTimersByTimeAsync(44999);
+    expect(upload.status).toBe("uploading");
+    await vi.advanceTimersByTimeAsync(1);
+    expect(upload.status).toBe("paused");
+  });
+
+  it("applies a shorter limit as well", async () => {
+    state.user.fileLoading.uploadStallTimeoutSeconds = 3;
+    const upload = addUpload();
+    uploadManager.startProgressTimeout(upload);
+    await vi.advanceTimersByTimeAsync(2999);
+    expect(upload.status).toBe("uploading");
+    await vi.advanceTimersByTimeAsync(1);
+    expect(upload.status).toBe("paused");
+  });
+
+  it("keeps the longer limit while the server saves, and honors a setting above it", () => {
+    const upload = addUpload();
+    upload.awaitingServer = true;
+    state.user.fileLoading.uploadStallTimeoutSeconds = 30;
+    expect(uploadManager.stallLimitMs(upload)).toBe(uploadManager.SERVER_RESPONSE_TIMEOUT_MS);
+    state.user.fileLoading.uploadStallTimeoutSeconds = 1800;
+    expect(uploadManager.stallLimitMs(upload)).toBe(1800000);
+  });
+});

@@ -841,6 +841,8 @@
     "uploadChunkSizeMbHelp": "Normalean 5 eta 50 MB artean; txikiagoa hobea da konexio ezegonkor edo mugatuetarako. 0 ezarriz gero, zatikako igoera desgaitzen da.",
     "downloadChunkSizeMb": "Deskarga-zatien tamaina (MB)",
     "downloadChunkSizeMbHelp": "Zatikako deskargetarako zatien tamaina. Tamaina hau baino handiagoak diren fitxategiak zatika deskargatuko dira denbora-mugako arazoak saihesteko (adib. Cloudflare-ren 524 akatsak). 0 ezarriz gero, zatikako deskargak desgaitzen dira.",
+    "uploadStallTimeoutSeconds": "Igoeraren geldialdi-denbora segundotan",
+    "uploadStallTimeoutSecondsHelp": "Igoera bat aurrerapenik gabe egon daitekeen segundo kopurua, pausatu aurretik. Handitu ezazu konexio motel edo ezegonkorretan, edo fitxategiak disko motelretatik irakurtzen direnean. 1 baino txikiagoko balioek 10 segundoko balio lehenetsia erabiltzen dute.",
     "clearAll": "\"Garbitu osatuak\" aukerak akatsak, pausak eta gatazkak ere kendu behar ditu",
     "clearAllDescription": "\"Garbitu osatuak\" botoiak amaitutako egoeran dauden igoera guztiak garbituko ditu, akats, pausa eta gatazka egoerak barne.",
     "uploadSettings": "Igoeraren ezarpenak"

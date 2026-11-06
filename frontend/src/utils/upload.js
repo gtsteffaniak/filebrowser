@@ -107,7 +107,7 @@ class UploadManager {
     this.probedDirs = new Set(); // Track directories that were probed/created during conflict check
     this.progressTimeouts = new Map(); // Track progress timeouts per upload ID
     this.lastUploadActivityTime = null;
-    this.PROGRESS_TIMEOUT_MS = 10000; // 10 seconds without upload activity = pause
+    this.PROGRESS_TIMEOUT_MS = 10000; // default: 10 seconds without upload activity = pause (see progressTimeoutMs)
     // Once the whole body of a request has been sent there are no more progress events until the server
     // answers, and it only answers after saving the data (for the last chunk of a file, the whole file is
     // flushed to disk), which can take a long time on slow disks. Wait much longer for that answer.
@@ -755,9 +755,16 @@ class UploadManager {
     this.lastUploadActivityTime = upload.lastProgressTime;
   }
 
+  /** Time without upload activity before pausing: the user's setting, or the default when it is unset. */
+  progressTimeoutMs() {
+    const seconds = state.user?.fileLoading?.uploadStallTimeoutSeconds;
+    return seconds > 0 ? seconds * 1000 : this.PROGRESS_TIMEOUT_MS;
+  }
+
   /** How long an upload may go without activity: longer while the server is saving the data it received. */
   stallLimitMs(upload) {
-    return upload.awaitingServer ? this.SERVER_RESPONSE_TIMEOUT_MS : this.PROGRESS_TIMEOUT_MS;
+    const progressTimeout = this.progressTimeoutMs();
+    return upload.awaitingServer ? Math.max(this.SERVER_RESPONSE_TIMEOUT_MS, progressTimeout) : progressTimeout;
   }
 
   /** The request body was sent in full; the server is saving it and will answer when it is done. */

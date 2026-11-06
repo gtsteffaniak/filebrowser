@@ -810,6 +810,8 @@
     "uploadChunkSizeMbHelp": "In genere 5-50 MB. Valori bassi sono migliori per reti instabili. 0 disabilita il frazionamento.",
     "downloadChunkSizeMb": "Dimensione chunk download in MB",
     "downloadChunkSizeMbHelp": "I file più grandi verranno scaricati a pezzi per evitare timeout (es. errori Cloudflare 524). 0 disabilita.",
+    "uploadStallTimeoutSeconds": "Timeout di stallo del caricamento in secondi",
+    "uploadStallTimeoutSecondsHelp": "Secondi per cui un caricamento può restare senza alcun progresso prima di essere messo in pausa. Aumentalo con connessioni lente o instabili, o quando i file vengono letti da dischi lenti. I valori inferiori a 1 usano il valore predefinito di 10 secondi.",
     "clearAll": "Rimuovi tutto (errori, pause, conflitti)",
     "clearAllDescription": "Il pulsante pulisci completati rimuoverà anche gli upload in stato di errore, pausa o conflitto.",
     "uploadSettings": "Impostazioni Caricamento"
