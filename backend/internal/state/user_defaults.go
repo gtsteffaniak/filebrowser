@@ -297,6 +297,14 @@ func ApplyUserDefaults(u *users.User) {
 	applyToolAccessDefaults(u)
 }
 
+// PrefillUserProfileDefaults seeds u with the effective profile defaults so a JSON decode
+// overlays only the keys the request sent (encoding/json leaves absent keys untouched).
+// Permissions are left zero so omitted permissions stay distinguishable; CreateUser merges them.
+func PrefillUserProfileDefaults(u *users.User) {
+	settings.ApplyFullProfileFromDefaults(u, EffectiveUserDefaults())
+	u.Permissions = users.Permissions{}
+}
+
 func applyUserSettingsDefaults(u *users.User) {
 	settings.ApplyUserDefaultsFrom(u, EffectiveUserDefaults())
 }

@@ -176,6 +176,8 @@ func usersPostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 	}
 	// Parse the JSON into the UserRequest struct
 	var req UserRequest
+	// Seed with defaults so the decode below only overrides fields the request sent.
+	state.PrefillUserProfileDefaults(&req.User)
 	if err = json.Unmarshal(body, &req); err != nil {
 		return http.StatusBadRequest, err
 	}
@@ -199,7 +201,7 @@ func usersPostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 		return status, err
 	}
 	plaintextPassword := req.User.Password
-	err = state.CreateUser(&req.User, plaintextPassword)
+	err = state.CreateUserKeepingProfile(&req.User, plaintextPassword)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
