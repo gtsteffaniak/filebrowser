@@ -90,7 +90,7 @@ func TestStateInit_jwtYAML_organizedDefaultsOnNewUser(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !loaded.DarkMode || !loaded.Preview.Image {
+	if !loaded.DarkMode.IsDark() || !loaded.Preview.Image {
 		t.Fatalf("profile fields: darkMode=%v preview.image=%v", loaded.DarkMode, loaded.Preview.Image)
 	}
 	if loaded.BackendScopes[0].Permissions.Modify != access.Modify {
