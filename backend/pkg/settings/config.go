@@ -990,9 +990,10 @@ func SetDefaults(generate bool) Settings {
 				Locale:      "en",
 			},
 			FileLoading: users.FileLoading{
-				MaxConcurrent:     10,
-				UploadChunkSize:   10, // 10MB
-				DownloadChunkSize: 0,  // 0MB, default to no chunking
+				MaxConcurrent:             10,
+				UploadChunkSize:           10, // 10MB
+				DownloadChunkSize:         0,  // 0MB, default to no chunking
+				UploadStallTimeoutSeconds: 10, // pause an upload after 10 seconds without progress
 			},
 			Account: UserDefaultsAccount{
 				Permissions: UserDefaultsAccountPermissions{

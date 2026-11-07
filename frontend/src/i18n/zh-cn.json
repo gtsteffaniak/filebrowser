@@ -512,7 +512,9 @@
     "clearAllDescription": "清除已完成按钮将清除所有处于完成状态的上传，包括错误、暂停和冲突状态。",
     "uploadSettings": "上传设置",
     "downloadChunkSizeMb": "下载块大小（MB",
-    "downloadChunkSizeMbHelp": "分块下载的分块大小。大于此大小的文件将分块下载，以防止超时问题（如 Cloudflare 524 错误）。设置为 0 将禁用分块下载。"
+    "downloadChunkSizeMbHelp": "分块下载的分块大小。大于此大小的文件将分块下载，以防止超时问题（如 Cloudflare 524 错误）。设置为 0 将禁用分块下载。",
+    "uploadStallTimeoutSeconds": "上传停滞超时（秒）",
+    "uploadStallTimeoutSecondsHelp": "上传在没有任何进展的情况下可持续多少秒，超时后将被暂停。连接缓慢或不稳定，或从较慢的磁盘读取文件时，请调大该值。小于 1 的值将使用默认的 10 秒。"
   },
   "colors": {
     "red": "红",

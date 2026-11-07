@@ -512,7 +512,9 @@
     "clearAllDescription": "De knop Voltooid wissen wist alle uploads in een voltooide status, inclusief fout-, gepauzeerde en conflictstatussen.",
     "uploadSettings": "Instellingen uploaden",
     "downloadChunkSizeMb": "Grootte downloadbrok in MB",
-    "downloadChunkSizeMbHelp": "Chunk-grootte voor chunked downloads. Bestanden die groter zijn dan deze grootte worden in chunks gedownload om time-outproblemen te voorkomen (bijv. Cloudflare 524 fouten). Instellen op 0 schakelt chunked downloads uit."
+    "downloadChunkSizeMbHelp": "Chunk-grootte voor chunked downloads. Bestanden die groter zijn dan deze grootte worden in chunks gedownload om time-outproblemen te voorkomen (bijv. Cloudflare 524 fouten). Instellen op 0 schakelt chunked downloads uit.",
+    "uploadStallTimeoutSeconds": "Time-out voor vastgelopen uploads in seconden",
+    "uploadStallTimeoutSecondsHelp": "Aantal seconden dat een upload zonder voortgang kan blijven voordat hij wordt gepauzeerd. Verhoog dit bij trage of onstabiele verbindingen, of wanneer de bestanden van trage schijven worden gelezen. Waarden lager dan 1 gebruiken de standaardwaarde van 10 seconden."
   },
   "colors": {
     "red": "rood",

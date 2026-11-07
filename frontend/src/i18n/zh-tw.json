@@ -599,7 +599,9 @@
     "clearAllDescription": "清除完成按鈕將會清除所有處於完成狀態的上傳，包括錯誤、暫停和衝突狀態。",
     "uploadSettings": "上傳設定",
     "downloadChunkSizeMb": "下載區塊大小（以 MB 為單位）",
-    "downloadChunkSizeMbHelp": "分塊下載的分塊大小。大於此大小的檔案會分塊下載，以防止超時問題 (例如 Cloudflare 524 錯誤)。設定為 0 會停用分塊下載。"
+    "downloadChunkSizeMbHelp": "分塊下載的分塊大小。大於此大小的檔案會分塊下載，以防止超時問題 (例如 Cloudflare 524 錯誤)。設定為 0 會停用分塊下載。",
+    "uploadStallTimeoutSeconds": "上傳停滯逾時（秒）",
+    "uploadStallTimeoutSecondsHelp": "上傳在沒有任何進度的情況下可持續多少秒，逾時後將被暫停。連線緩慢或不穩定，或從較慢的磁碟讀取檔案時，請調高此值。小於 1 的值將使用預設的 10 秒。"
   },
   "colors": {
     "red": "紅色",

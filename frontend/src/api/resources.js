@@ -790,7 +790,8 @@ export function post(
   overwrite = false,
   onupload,
   headers = {},
-  isDir = false
+  isDir = false,
+  onsent
 ) {
   if (!source || source === undefined || source === null) {
     throw new Error('no source provided')
@@ -839,6 +840,10 @@ export function post(
               onupload(percentComplete);
             }
           };
+        }
+        if (typeof onsent === "function") {
+          // The whole body has been sent; from here the server answers when it is done saving it.
+          request.upload.onload = () => onsent();
         }
 
         request.onload = () => {
@@ -1330,7 +1335,8 @@ export function postPublic(
   overwrite = false,
   onupload,
   headers = {},
-  isDir = false
+  isDir = false,
+  onsent
 ) {
   if (!hash || hash === undefined || hash === null) {
     throw new Error('no hash provided')
@@ -1363,6 +1369,10 @@ export function postPublic(
           onupload(percentComplete);
         }
       };
+    }
+    if (typeof onsent === "function") {
+      // The whole body has been sent; from here the server answers when it is done saving it.
+      request.upload.onload = () => onsent();
     }
 
     const promise = new Promise((resolve, reject) => {

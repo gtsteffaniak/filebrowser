@@ -7715,6 +7715,10 @@ const docTemplate = `{
                 },
                 "uploadChunkSizeMb": {
                     "type": "integer"
+                },
+                "uploadStallTimeoutSeconds": {
+                    "description": "seconds without progress before an upload is paused, 0 uses the default (10)",
+                    "type": "integer"
                 }
             }
         },
