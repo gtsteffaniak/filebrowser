@@ -598,10 +598,8 @@
     "clearAll": "„Skrýt dokončené“ odebere i chybná, pozastavená a konfliktní nahrávání",
     "clearAllDescription": "Tlačítko „Skrýt dokončené“ odebere ze seznamu všechna ukončená nahrávání včetně chybných, pozastavených a konfliktních. Soubory se nemažou.",
     "uploadSettings": "Nastavení nahrávání",
-    "downloadChunkSizeMb": "Velikost stahovaného bloku v MB",
-    "downloadChunkSizeMbHelp": "Velikost kousků pro stahování v kouscích. Soubory větší než tato velikost se budou stahovat po částech, aby se předešlo problémům s časovým limitem (např. chybám Cloudflare 524). Nastavení na 0 zakáže stahování po částech.",
     "uploadStallTimeoutSeconds": "Časový limit zablokovaného nahrávání v sekundách",
-    "uploadStallTimeoutSecondsHelp": "Počet sekund, po které může nahrávání probíhat bez jakéhokoli postupu, než bude pozastaveno. Zvyšte jej u pomalých nebo nestabilních připojení nebo pokud se soubory čtou z pomalých disků. Hodnoty menší než 1 použijí výchozí hodnotu 10 sekund."
+    "uploadStallTimeoutSecondsHelp": "Počet sekund, po které může nahrávání probíhat bez jakéhokoli postupu, než bude pozastaveno. Zvyšte jej u pomalých nebo nestabilních připojení nebo pokud se soubory čtou z pomalých disků. Hodnoty menší než 1 použijí výchozí hodnotu 10 sekund.",
     "downloadChunkSizeMb": "Velikost části při stahování (MB)",
     "downloadChunkSizeMbHelp": "Soubory větší než tato velikost se stahují po částech, aby nevypršel časový limit (např. chyba Cloudflare 524). Hodnota 0 stahování po částech vypne."
   },
