@@ -25,7 +25,7 @@ func TestIsTextPreviewable(t *testing.T) {
 	for _, mt := range []string{"text/plain", "text/markdown", "text/lyrics", "text/x-go", "text/html"} {
 		require.True(t, IsTextPreviewable(mt), mt)
 	}
-	for _, mt := range []string{"application/json", "application/yaml", "application/sql", "application/x-sh", "application/x-php", "application/x-powershell", "application/x-tex"} {
+	for _, mt := range []string{"application/json", "application/yaml", "application/sql", "application/x-sh", "application/x-php", "application/x-powershell", "application/x-tex", "application/rtf", "text/rtf"} {
 		require.True(t, IsTextPreviewable(mt), mt)
 	}
 	// Mimetypes shared with binaries (.exe, .bat via application/x-msdownload) must stay non-previewable.

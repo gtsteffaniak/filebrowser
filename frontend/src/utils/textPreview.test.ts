@@ -5,6 +5,7 @@ const { globalsMock } = vi.hoisted(() => ({
   globalsMock: {
     textPreviewMimeTypes: [
       "application/json",
+      "application/rtf",
       "application/yaml",
       "application/x-yaml",
       "application/sql",
@@ -66,7 +67,13 @@ describe("isTextPreviewableType", () => {
   });
 
   it("is true for text-extension mimetypes that are not text/*", () => {
-    for (const mt of ["application/json", "application/yaml", "application/sql", "application/x-sh", "application/x-php", "application/x-powershell", "application/x-tex"]) {
+    for (const mt of ["application/json", "application/rtf", "application/yaml", "application/sql", "application/x-sh", "application/x-php", "application/x-powershell", "application/x-tex"]) {
+      expect(isTextPreviewableType(mt), mt).toBe(true);
+    }
+  });
+
+  it("is true for RTF mimetypes", () => {
+    for (const mt of ["application/rtf", "text/rtf", "application/rtf; charset=windows-1252"]) {
       expect(isTextPreviewableType(mt), mt).toBe(true);
     }
   });
