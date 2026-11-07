@@ -5,6 +5,7 @@ const { stateMock, globalVarsMock } = vi.hoisted(() => ({
     user: { username: '', darkMode: true },
     shareInfo: null,
     disableEventThemes: false,
+    systemDark: false,
     route: { path: '/login' },
   },
   globalVarsMock: { darkMode: false, noAuth: false, eventBasedThemes: false },
@@ -197,12 +198,12 @@ describe('getters.isDarkMode auto (follow system) behavior', () => {
     vi.unstubAllGlobals();
   });
 
-  it('resolves "auto" to the system preference when logged in', () => {
+  it('resolves "auto" to the system snapshot when logged in', () => {
     stateMock.user = { username: 'alice', darkMode: 'auto', locale: 'en' };
-    vi.stubGlobal('matchMedia', vi.fn(() => ({ matches: true })));
+    stateMock.systemDark = true;
     expect(getters.isDarkMode()).toBe(true);
 
-    vi.stubGlobal('matchMedia', vi.fn(() => ({ matches: false })));
+    stateMock.systemDark = false;
     expect(getters.isDarkMode()).toBe(false);
   });
 
@@ -210,7 +211,7 @@ describe('getters.isDarkMode auto (follow system) behavior', () => {
     stateMock.route = { path: '/public/share/hash/testdata/' };
     stateMock.shareInfo = { enforceDarkLightMode: '' };
     stateMock.user = { username: 'anonymous', darkMode: 'auto', locale: 'en' };
-    vi.stubGlobal('matchMedia', vi.fn(() => ({ matches: true })));
+    stateMock.systemDark = true;
     expect(getters.isDarkMode()).toBe(true);
   });
 
@@ -239,17 +240,30 @@ describe('anonymous share keeps "auto" unresolved', () => {
     expect(getters.anonymous().darkMode).toBe('dark');
   });
 
-  it('re-resolves the system preference on every read', () => {
+  it('re-resolves the reactive system snapshot on every read', () => {
     stateMock.route = { path: '/public/share/hash/testdata/' };
     stateMock.shareInfo = { enforceDarkLightMode: '' };
     globalVarsMock.darkMode = 'auto';
     stateMock.user = getters.anonymous();
 
-    vi.stubGlobal('matchMedia', vi.fn(() => ({ matches: true })));
+    stateMock.systemDark = true;
     expect(getters.isDarkMode()).toBe(true);
 
     // The OS switched appearance while the share page stayed open.
-    vi.stubGlobal('matchMedia', vi.fn(() => ({ matches: false })));
+    stateMock.systemDark = false;
     expect(getters.isDarkMode()).toBe(false);
+  });
+
+  it('re-resolves the logged-in user the same way', () => {
+    stateMock.route = { path: '/files/' };
+    stateMock.shareInfo = null;
+    globalVarsMock.darkMode = 'dark';
+    stateMock.user = { username: 'alice', darkMode: 'auto', locale: 'en' };
+
+    stateMock.systemDark = false;
+    expect(getters.isDarkMode()).toBe(false);
+
+    stateMock.systemDark = true;
+    expect(getters.isDarkMode()).toBe(true);
   });
 });

@@ -1,11 +1,12 @@
 import { markRaw, reactive } from 'vue';
 import { detectLocale } from "@/i18n/index.ts";
 import { globalVars } from "@/utils/constants.js";
-import { normalizeDarkMode } from "@/utils/theme.js";
+import { normalizeDarkMode, systemPrefersDark } from "@/utils/theme.js";
 import type { StoreState } from "./types.ts";
 
 export const state: StoreState = reactive({
   disableEventThemes: eventTheme(),
+  systemDark: systemPrefersDark(),
   tooltip: {
     show: false,
     content: "",

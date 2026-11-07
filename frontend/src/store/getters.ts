@@ -249,11 +249,11 @@ export const getters = {
       // configured default.
       const sharePreference = getters.isShare() ? state.user?.darkMode : undefined
       if (sharePreference !== undefined && sharePreference !== null) {
-        return resolveDarkMode(sharePreference, defaultDarkMode())
+        return resolveDarkMode(sharePreference, defaultDarkMode(state.systemDark), state.systemDark)
       }
-      return defaultDarkMode()
+      return defaultDarkMode(state.systemDark)
     }
-    return resolveDarkMode(state.user.darkMode, defaultDarkMode())
+    return resolveDarkMode(state.user.darkMode, defaultDarkMode(state.systemDark), state.systemDark)
   },
   isLoggedIn: () => {
     if (state.user === null) {

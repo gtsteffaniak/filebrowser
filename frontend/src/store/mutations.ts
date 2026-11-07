@@ -70,7 +70,6 @@ function queueDarkModeUpdate(value: DarkModePref) {
   if (state.user && state.user.darkMode !== value) {
     state.user = { ...state.user, darkMode: value };
   }
-  emitStateChanged();
 }
 
 async function runQueuedDarkModeSync() {
@@ -98,7 +97,6 @@ async function runQueuedDarkModeSync() {
         }
         queuedDarkModeTarget = null;
         notify.showError(e);
-        emitStateChanged();
       }
       // A newer click is queued: keep it and let the next iteration try it.
     }
@@ -445,7 +443,6 @@ export const mutations = {
     // "auto", this picks the explicit counterpart of the system preference.
     const dark = getters.isDarkMode();
     queueDarkModeUpdate(dark ? "light" : "dark");
-    emitStateChanged();
   },
   cycleDarkMode() {
     // Cycle the preference auto -> light -> dark -> auto, matching the order

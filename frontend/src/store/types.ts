@@ -290,6 +290,9 @@ export interface RouteObject {
 
 export interface StoreState {
   disableEventThemes: boolean;
+  // Reactive snapshot of the OS color-scheme, so "auto" re-resolves when the
+  // system switches appearance. Kept in the reactive store on purpose.
+  systemDark: boolean;
   tooltip: {
     show: boolean;
     content: string;

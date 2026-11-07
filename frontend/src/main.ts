@@ -1,7 +1,6 @@
 import { createApp } from "vue";
 import i18n from "@/i18n/index.ts";
 import { state, getters } from "@/store/index.ts";
-import { emitStateChanged } from "@/store/eventBus.ts";
 // biome-ignore lint/correctness/noUnresolvedImports: disabled temporarily
 import App from "./App.vue";
 import { router } from "./router/index.ts";
@@ -15,10 +14,11 @@ initPwaInstall();
 initViewportLayoutListener();
 syncDocumentTheme(defaultDarkMode());
 // Live-update the theme when the OS switches appearance while in "auto" mode.
-watchSystemTheme(() => {
+watchSystemTheme((systemDark: boolean) => {
+  // The store is reactive, so updating this snapshot re-renders everything bound
+  // to isDarkMode (sidebar toggle icon, active highlight) as well as the document.
+  state.systemDark = systemDark;
   syncDocumentTheme(getters.isDarkMode());
-  // Re-render bound components too (sidebar toggle icon, profile settings).
-  emitStateChanged();
 });
 
 const app = createApp(App);

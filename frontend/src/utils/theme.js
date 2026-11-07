@@ -9,12 +9,16 @@ export const DARK_MODE_LIGHT = "light";
  * Accepts legacy booleans as well as the "auto" / "dark" / "light" strings;
  * "auto" follows the client system preference.
  */
-export function defaultDarkMode() {
-  return resolveDarkMode(globalVars.darkMode, false);
+export function defaultDarkMode(systemDark = systemPrefersDark()) {
+  return resolveDarkMode(globalVars.darkMode, false, systemDark);
 }
 
-/** Resolves a darkMode preference value (boolean or string) to a boolean. */
-export function resolveDarkMode(value, fallback = false) {
+/**
+ * Resolves a darkMode preference value (boolean or string) to a boolean.
+ * `systemDark` lets callers pass a reactive snapshot of the system preference
+ * so "auto" can re-resolve when the OS switches appearance.
+ */
+export function resolveDarkMode(value, fallback = false, systemDark = systemPrefersDark()) {
   if (value === true || value === DARK_MODE_DARK) {
     return true;
   }
@@ -22,7 +26,7 @@ export function resolveDarkMode(value, fallback = false) {
     return false;
   }
   if (value === DARK_MODE_AUTO) {
-    return systemPrefersDark();
+    return systemDark;
   }
   return fallback;
 }
