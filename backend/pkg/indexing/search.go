@@ -16,6 +16,10 @@ var SearchResultsCache = cache.NewCache[[]string](15 * time.Second)
 
 var DefaultSearchResults = 100
 
+// MaxSearchResultsLimit is the hard upper bound for a requested search limit,
+// regardless of server.searchResultsLimit.
+const MaxSearchResultsLimit = 5000
+
 type SearchResult struct {
 	Path       string `json:"path"`
 	Type       string `json:"type"`
@@ -145,6 +149,10 @@ func itemMatchesSearchFilters(item iteminfo.ItemInfo, isDir bool, searchOptions 
 	if nameFiltered {
 		return item.MatchesSearchAuxiliaryFilters(searchOptions)
 	}
+	// A type-only query (for example "type:image") has no name terms. Match it on the type conditions alone.
+	if !hasNonEmptySearchTerm(searchOptions.Terms) && hasTypeCondition(searchOptions) {
+		return item.MatchesSearchAuxiliaryFilters(searchOptions)
+	}
 	if searchOptions.MatchAllTerms {
 		sawNonempty := false
 		for _, searchTerm := range searchOptions.Terms {
@@ -163,6 +171,24 @@ func itemMatchesSearchFilters(item iteminfo.ItemInfo, isDir bool, searchOptions 
 			continue
 		}
 		if item.ContainsSearchTerm(searchTerm, searchOptions) {
+			return true
+		}
+	}
+	return false
+}
+
+func hasNonEmptySearchTerm(terms []string) bool {
+	for _, t := range terms {
+		if t != "" {
+			return true
+		}
+	}
+	return false
+}
+
+func hasTypeCondition(opts iteminfo.SearchOptions) bool {
+	for k, v := range opts.Conditions {
+		if k != "exact" && v {
 			return true
 		}
 	}

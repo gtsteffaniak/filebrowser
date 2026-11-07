@@ -363,7 +363,9 @@ export const getters = {
     if (getters.currentPromptName() && !getters.isStickySidebar()) {
       visible = false
     }
-    if (previewViews.includes(cv) && !getters.previewPerms().disableHideSidebar) {
+    // The slideshow hides the sidebar like preview views do, unless the user chose "always show sidebar".
+    const hidesSidebar = previewViews.includes(cv) || cv === 'slideshow';
+    if (hidesSidebar && !getters.previewPerms().disableHideSidebar) {
       visible = false
     }
     if (state.shareInfo?.singleFileShare) {
@@ -444,7 +446,11 @@ export const getters = {
       const reqName = state.req.name ?? "";
       const ext = `.${reqName.split(".").pop()?.toLowerCase() ?? ""}`;
       if (state.user.disableViewingExt?.includes(ext)) return 'preview';
-      if (state.req.type === 'directory') return 'listingView';
+      if (state.req.type === 'directory') {
+        // ?slideshow=1 on a folder shows the fullscreen slideshow view.
+        const query = state.route?.query as Record<string, string | undefined> | undefined;
+        return query?.slideshow === '1' ? 'slideshow' : 'listingView';
+      }
       if (getters.isWopiFile(reqName) && !getters.isShare()) return 'wopiEditor';
       if (state.req.onlyOfficeId && !getters.officeViewingDisabled(reqName)) return 'onlyOfficeEditor';
       if (getTypeInfo(state.req.type).simpleType === '3d-model') return 'threeJsViewer';

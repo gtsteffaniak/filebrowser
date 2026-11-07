@@ -67,14 +67,14 @@ type scopedSourcePath struct {
 // @Tags Tools
 // @Accept json
 // @Produce json
-// @Param query query string false "Filter prefix or full search text (required when no terms are supplied)"
+// @Param query query string false "Filter prefix or full search text; no minimum length is enforced (clients enforce minSearchLength)"
 // @Param terms query []string false "Repeated: one literal search term per parameter; combined with OR unless termJoin=and"
 // @Param sources query string false "Comma-separated source names when not using repeated scope=source:path"
 // @Param scope query []string false "Repeated: 'sourceName:relativePath' per source"
 // @Param olderThan query int false "Unix seconds; only results modified strictly before this time"
 // @Param newerThan query int false "Unix seconds; only results modified on or after this time"
 // @Param useWildcard query bool false "When true, match indexed file names with SQLite GLOB (wildcard patterns)"
-// @Param limit query int false "Requested advanced search limit, capped by server.searchResultsLimit (default 1000); omitted for quick search (100)"
+// @Param limit query int false "Requested advanced search limit, capped by server.searchResultsLimit (default 1000) and a hard max of 5000; omitted for quick search (100)"
 // @Param termJoin query string false "Optional: 'and' to require all repeated 'terms' match; default is OR"
 // @Success 200 {array} indexing.SearchResult "List of search results with source field populated"
 // @Failure 400 {object} map[string]string "Bad Request"
@@ -93,10 +93,7 @@ func searchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, err
 		if err != nil || requested < 1 {
 			return http.StatusBadRequest, fmt.Errorf("limit must be a positive integer")
 		}
-		searchSize = requested
-		if searchSize > settings.Config.Server.SearchResultsLimit {
-			searchSize = settings.Config.Server.SearchResultsLimit
-		}
+		searchSize = min(requested, settings.Config.Server.SearchResultsLimit, indexing.MaxSearchResultsLimit)
 	}
 
 	ctx, cancel := context.WithTimeout(r.Context(), searchTimeout)
@@ -210,19 +207,6 @@ func prepSearchOptions(r *http.Request, d *Context) (*searchOptions, error) {
 	}
 
 	parsed := iteminfo.BuildSearchOptionsFromQuery(query, normalizedTerms, matchAllTerms)
-
-	minLen := settings.Config.Server.MinSearchLength
-	if !largest {
-		if len(normalizedTerms) > 0 {
-			for _, t := range normalizedTerms {
-				if len(t) < minLen {
-					return nil, fmt.Errorf("each term is too short, minimum length is %d", minLen)
-				}
-			}
-		} else if len(strings.TrimSpace(query)) < minLen {
-			return nil, fmt.Errorf("query is too short, minimum length is %d", minLen)
-		}
-	}
 
 	var sources []string
 	combinedPathMap := make(map[string]string)
