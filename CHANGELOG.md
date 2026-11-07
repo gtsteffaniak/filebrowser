@@ -13,6 +13,7 @@ All notable changes to this project will be documented in this file. For commit 
  - fix(upload): serialize directory creation before uploading files (#3321)
  - fix(preview): open RAW, HEIC and rendered documents in the viewer when previews are disabled (#3313)
  - fix(users): keep requested profile values when creating a user
+ - fix advanced user toggle duplicate (#3353) (#3324)
 
 ## v2.1.4
 
