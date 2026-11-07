@@ -13,6 +13,7 @@
     <UserProfilePreferences
       v-if="session"
       v-model="profileSections"
+      hide-account-options
       :enforced="enforcedPreferences"
       :default-expanded-section="null"
       respect-enforced-policy
