@@ -716,7 +716,9 @@
     "clearAllDescription": "Mit der Schaltfläche Abgeschlossen löschen werden alle Uploads im abgeschlossenen Zustand gelöscht, einschließlich Fehler-, Pausen- und Konfliktstatus.",
     "uploadSettings": "Upload-Einstellungen",
     "downloadChunkSizeMb": "Größe des heruntergeladenen Stücks in MB",
-    "downloadChunkSizeMbHelp": "Chunk-Größe für Chunked-Downloads. Dateien, die größer als diese Größe sind, werden in Chunks heruntergeladen, um Timeout-Probleme zu vermeiden (z. B. Cloudflare 524-Fehler). Mit dem Wert 0 werden Chunked Downloads deaktiviert."
+    "downloadChunkSizeMbHelp": "Chunk-Größe für Chunked-Downloads. Dateien, die größer als diese Größe sind, werden in Chunks heruntergeladen, um Timeout-Probleme zu vermeiden (z. B. Cloudflare 524-Fehler). Mit dem Wert 0 werden Chunked Downloads deaktiviert.",
+    "uploadStallTimeoutSeconds": "Zeitlimit für stockende Uploads in Sekunden",
+    "uploadStallTimeoutSecondsHelp": "Sekunden, die ein Upload ohne Fortschritt bleiben darf, bevor er pausiert wird. Erhöhen Sie den Wert bei langsamen oder instabilen Verbindungen oder wenn die Dateien von langsamen Datenträgern gelesen werden. Werte unter 1 verwenden den Standardwert von 10 Sekunden."
   },
   "colors": {
     "red": "rot",

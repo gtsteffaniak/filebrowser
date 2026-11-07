@@ -716,7 +716,9 @@
     "clearAllDescription": "Butonul șterge finalizat va șterge toate încărcările în stare finalizată, inclusiv stările de eroare, pauză și conflict.",
     "uploadSettings": "Setări de încărcare",
     "downloadChunkSizeMb": "Dimensiunea bucății de descărcare în MB",
-    "downloadChunkSizeMbHelp": "Dimensiunea bucăților pentru descărcări fragmentate. Fișierele mai mari decât această dimensiune vor fi descărcate în bucăți pentru a preveni problemele de timeout (de exemplu, erori Cloudflare 524). Setarea la 0 dezactivează descărcările fragmentate."
+    "downloadChunkSizeMbHelp": "Dimensiunea bucăților pentru descărcări fragmentate. Fișierele mai mari decât această dimensiune vor fi descărcate în bucăți pentru a preveni problemele de timeout (de exemplu, erori Cloudflare 524). Setarea la 0 dezactivează descărcările fragmentate.",
+    "uploadStallTimeoutSeconds": "Timp limită de blocare a încărcării în secunde",
+    "uploadStallTimeoutSecondsHelp": "Numărul de secunde în care o încărcare poate rămâne fără progres înainte de a fi pusă pe pauză. Măriți-l pentru conexiuni lente sau instabile sau când fișierele sunt citite de pe discuri lente. Valorile sub 1 folosesc valoarea implicită de 10 secunde."
   },
   "colors": {
     "red": "roșu",

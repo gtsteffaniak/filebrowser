@@ -841,6 +841,8 @@
     "uploadChunkSizeMbHelp": "Gewoonlijk 5 tot 50 MB, kleiner is beter voor onstabiele of beperkte verbindingen. Instellen op 0 schakelt uploads in brokken uit.",
     "downloadChunkSizeMb": "Grootte downloadbrok in MB",
     "downloadChunkSizeMbHelp": "Brok-grootte voor downloads in brokken. Bestanden die groter zijn dan deze grootte worden in brokken gedownload om time-outproblemen te voorkomen (bijv. Cloudflare 524 fouten). Instellen op 0 schakelt downloads in brokken uit.",
+    "uploadStallTimeoutSeconds": "Time-out voor vastgelopen uploads in seconden",
+    "uploadStallTimeoutSecondsHelp": "Aantal seconden dat een upload zonder voortgang kan blijven voordat hij wordt gepauzeerd. Verhoog dit bij trage of onstabiele verbindingen, of wanneer de bestanden van trage schijven worden gelezen. Waarden lager dan 1 gebruiken de standaardwaarde van 10 seconden.",
     "clearAll": "Wissen voltooid moet fout, pauze en conflict verhelpen",
     "clearAllDescription": "De knop Wissen voltooid wist alle uploads in een voltooide status, inclusief fout-, gepauzeerde en conflictstatussen.",
     "uploadSettings": "Instellingen uploaden"
