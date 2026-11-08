@@ -396,13 +396,27 @@ func getEmbeddedThumbnail(in io.Reader) ([]byte, io.Reader, error) {
 		return nil, wrappedReader, err
 	}
 
+	orientStr := ""
+	tags, err := index.RootIfd.FindTagWithName("Orientation")
+	if err == nil && len(tags) > 0 {
+		orientStr, _ = tags[0].FormatFirst()
+	}
+
 	ifd := index.RootIfd.NextIfd()
 	if ifd == nil {
 		return nil, wrappedReader, exif.ErrNoThumbnail
 	}
 
 	thm, err := ifd.Thumbnail()
-	return thm, wrappedReader, err
+	if err != nil {
+		return nil, wrappedReader, err
+	}
+
+	if orientStr != "" && orientStr != "1" {
+		thm = applyOrientationToPreviewBytes(thm, orientStr)
+	}
+
+	return thm, wrappedReader, nil
 }
 
 // CreateThumbnail decodes an image and creates a fixed-size thumbnail.
