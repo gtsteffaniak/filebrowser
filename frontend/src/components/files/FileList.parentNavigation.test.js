@@ -35,8 +35,8 @@ import FileList from "./FileList.vue";
 
 let app, root;
 const selection = vi.fn();
-function mount(items = []) {
-  state.req = { source: "data", path: "/child/", items };
+function mount(items = [], path = "/child/") {
+  state.req = { source: "data", path, items };
   root = document.createElement("div");
   document.body.append(root);
   app = createApp(FileList, { hidePathChrome: true, "onUpdate:selected": selection });
@@ -88,5 +88,25 @@ describe("file picker parent navigation", () => {
     parent.click();
     parent.dispatchEvent(new MouseEvent("dblclick", { bubbles: true }));
     expect(fetchFiles).toHaveBeenCalledExactlyOnceWith("data", "/");
+  });
+
+  it("ignores the rest of a double-click on a replacement parent row", async () => {
+    mount([], "/parent/child/");
+    fetchFiles.mockResolvedValue({ source: "data", items: [] });
+    await nextTick();
+    const firstParent = row("..");
+    firstParent.dispatchEvent(new MouseEvent("click", { bubbles: true, detail: 1 }));
+    await vi.waitFor(() => {
+      expect(row("..")).toBeDefined();
+      expect(row("..")).not.toBe(firstParent);
+    });
+    const nextParent = row("..");
+    nextParent.dispatchEvent(new MouseEvent("click", { bubbles: true, detail: 2 }));
+    nextParent.dispatchEvent(new MouseEvent("dblclick", { bubbles: true, detail: 2 }));
+    expect(fetchFiles).toHaveBeenCalledExactlyOnceWith("data", "/parent/");
+
+    nextParent.dispatchEvent(new MouseEvent("click", { bubbles: true, detail: 1 }));
+    expect(fetchFiles).toHaveBeenLastCalledWith("data", "/");
+    expect(fetchFiles).toHaveBeenCalledTimes(2);
   });
 });

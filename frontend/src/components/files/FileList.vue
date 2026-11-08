@@ -542,6 +542,7 @@ export default {
         this.next(event);
       }
     },
+    /** @param {MouseEvent} event */
     handleItemClick(item, _index, event) {
       event.preventDefault();
       event.stopPropagation();
@@ -562,17 +563,18 @@ export default {
         stopPropagation: () => {},
       };
       if (item.name === "..") {
-        if (this.path === item.path) return;
+        if (event.detail > 1 || this.path === item.path) return;
         this.select(syntheticEvent);
         this.next(syntheticEvent);
         return;
       }
       this.select(syntheticEvent);
     },
+    /** @param {MouseEvent} event */
     handleItemDblClick(item, _index, event) {
       event.preventDefault();
       event.stopPropagation();
-      if (item.name === ".." && this.path === item.path) return;
+      if (item.name === ".." && (!this.fileList || this.path === item.path)) return;
 
       const syntheticEvent = {
         currentTarget: {
