@@ -552,7 +552,6 @@ export default {
         return;
       }
 
-      // Browse mode: single click selects only, emit selected, do not navigate
       const syntheticEvent = {
         currentTarget: {
           dataset: {
@@ -562,11 +561,18 @@ export default {
         preventDefault: () => {},
         stopPropagation: () => {},
       };
+      if (item.name === "..") {
+        if (this.path === item.path) return;
+        this.select(syntheticEvent);
+        this.next(syntheticEvent);
+        return;
+      }
       this.select(syntheticEvent);
     },
     handleItemDblClick(item, _index, event) {
       event.preventDefault();
       event.stopPropagation();
+      if (item.name === ".." && this.path === item.path) return;
 
       const syntheticEvent = {
         currentTarget: {
