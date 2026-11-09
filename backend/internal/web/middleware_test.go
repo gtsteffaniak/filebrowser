@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -532,6 +534,52 @@ func newHTTPRequest(t *testing.T, hash string, requestModifiers ...func(*http.Re
 		modify(r)
 	}
 	return r
+}
+
+func TestPublicGetResourceChecksum(t *testing.T) {
+	setupTestEnv(t)
+
+	filePath := filepath.Join(t.TempDir(), "a.txt")
+	if err := os.WriteFile(filePath, []byte("hello\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	FileInfoFasterFunc = func(opts utils.FileOptions, user *users.User) (*iteminfo.ExtendedFileInfo, error) {
+		return &iteminfo.ExtendedFileInfo{
+			FileInfo: iteminfo.FileInfo{Path: opts.Path, ItemInfo: iteminfo.ItemInfo{Name: "a.txt", Type: "text/plain"}},
+			RealPath: filePath,
+		}, nil
+	}
+
+	if err := state.CreateUser(&users.User{
+		ID:            1,
+		FrontendUser:  users.FrontendUser{Username: "testuser"},
+		BackendScopes: []users.BackendScope{{Path: "/srv", Scope: "/"}},
+	}, ""); err != nil {
+		t.Fatal("failed to save user:", err)
+	}
+
+	if err := state.CreateShare(&share.Share{
+		ShareSettings: share.ShareSettings{ShareLimits: share.ShareLimits{SourceName: "srv"}},
+		ShareColumns:  share.ShareColumns{Hash: "checksum_hash", Path: "/"},
+		SourcePath:    "/srv",
+		UserID:        1,
+	}); err != nil {
+		t.Fatal("failed to create share:", err)
+	}
+
+	recorder := httptest.NewRecorder()
+	req := newTestRequest(t, "checksum_hash", "", "", nil)
+	q := req.URL.Query()
+	q.Set("checksum", "md5")
+	req.URL.RawQuery = q.Encode()
+	withHashFile(publicGetResourceHandler)(recorder, req)
+
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("expected status %d, got %d", http.StatusOK, recorder.Code)
+	}
+	if !strings.Contains(recorder.Body.String(), "b1946ac92492d2347c6235b4d2611184") {
+		t.Fatalf("checksum missing from response: %s", recorder.Body.String())
+	}
 }
 
 func TestWithTimeoutReturnsJSONTimeoutReason(t *testing.T) {

@@ -1032,6 +1032,15 @@ export async function checksum(source, path, algo) {
     throw new Error('no source provided')
   }
   try {
+    if (getters.isShare()) {
+      const hash = state.shareInfo?.hash
+      const params = { path, hash, checksum: algo }
+      const res = await fetchURL(getPublicApiPath('resources', params), {
+        headers: sharePublicAuthHeaders(hash),
+      })
+      const data = await res.json()
+      return getObjectProperty(data.checksums, algo)
+    }
     const params = {
       path: path,
       source: source,

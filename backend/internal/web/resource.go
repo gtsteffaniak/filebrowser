@@ -219,6 +219,18 @@ func publicGetResourceHandler(w http.ResponseWriter, r *http.Request, d *Context
 	if d.Share.ShareType == "upload" {
 		return http.StatusNotImplemented, fmt.Errorf("browsing is disabled for upload shares")
 	}
+	if algo := r.URL.Query().Get("checksum"); algo != "" && d.FileInfo.Type != "directory" {
+		if d.Share.DisableFileViewer {
+			return http.StatusForbidden, fmt.Errorf("file viewing is disabled for this share")
+		}
+		checksum, err := utils.GetChecksum(d.FileInfo.RealPath, algo)
+		if err == errors.ErrInvalidOption {
+			return http.StatusBadRequest, nil
+		} else if err != nil {
+			return http.StatusInternalServerError, err
+		}
+		d.FileInfo.Checksums = map[string]string{algo: checksum}
+	}
 	return RenderJSON(w, r, d.FileInfo)
 }
 
