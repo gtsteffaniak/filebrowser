@@ -396,15 +396,22 @@ func getEmbeddedThumbnail(in io.Reader) ([]byte, io.Reader, error) {
 		return nil, wrappedReader, err
 	}
 
-	orientStr := ""
-	tags, err := index.RootIfd.FindTagWithName("Orientation")
-	if err == nil && len(tags) > 0 {
-		orientStr, _ = tags[0].FormatFirst()
-	}
-
 	ifd := index.RootIfd.NextIfd()
 	if ifd == nil {
 		return nil, wrappedReader, exif.ErrNoThumbnail
+	}
+
+	// Read IFD1's Orientation first; fall back to IFD0's Orientation if not specified (per MWG guidelines)
+	orientStr := ""
+	tags1, err1 := ifd.FindTagWithName("Orientation")
+	if err1 == nil && len(tags1) > 0 {
+		orientStr, _ = tags1[0].FormatFirst()
+	}
+	if orientStr == "" {
+		tags0, err0 := index.RootIfd.FindTagWithName("Orientation")
+		if err0 == nil && len(tags0) > 0 {
+			orientStr, _ = tags0[0].FormatFirst()
+		}
 	}
 
 	thm, err := ifd.Thumbnail()
