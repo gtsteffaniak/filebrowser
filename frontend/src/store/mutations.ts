@@ -28,6 +28,7 @@ import { rawList, withEntry, withoutEntry } from "@/utils/listing/selection.ts";
 import type {
   DisplayPreference,
   FileListItem,
+  MediaMetadata,
   Prompt,
   ReqObject,
   RouteObject,
@@ -916,14 +917,12 @@ export const mutations = {
     state.req = value;
     setActiveViewGrantScope(value?.source ?? "");
   },
-  patchListingMetadata: (items: FileListItem[] | undefined, metadataMap: Map<string, unknown> | undefined, mergeForPath: string | null = null) => {
+  patchListingMetadata: (items: FileListItem[] | undefined, metadataMap: Map<string, MediaMetadata> | undefined, mergeForPath: string | null = null) => {
     if (!items?.length || !metadataMap?.size) {
       return;
     }
-    const resolveMetadata = (item: FileListItem, metadata: unknown) =>
-      item.path === mergeForPath
-        ? { ...(metadata as Record<string, unknown>), ...(item.metadata as Record<string, unknown>) }
-        : metadata;
+    const resolveMetadata = (item: FileListItem, metadata: MediaMetadata | undefined) =>
+      item.path === mergeForPath ? { ...metadata, ...item.metadata } : metadata;
     // state.req.items is markRaw so editing an item would not re-render its row.
     // For that, we swap the changed items for copies and replace the array
     if (items === state.req?.items) {
@@ -965,7 +964,7 @@ export const mutations = {
     }
     navigationSortCache = null;
   },
-  patchRequestMetadata: (metadataItems: Array<{ name: string; metadata: unknown }> | undefined) => {
+  patchRequestMetadata: (metadataItems: Array<{ name: string; metadata: MediaMetadata }> | undefined) => {
     if (!state.req?.items || !metadataItems?.length) {
       return;
     }

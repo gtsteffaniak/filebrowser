@@ -87,7 +87,7 @@ import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import { sortedItems } from "@/utils/sort.ts";
 import { findScrollParents, findScroller, useListingVirtualization } from "@/composables/useListingVirtualization.ts";
 
-type ItemInfo = Omit<FileListItem, "metadata"> & { metadata?: MediaMetadata; isDir?: boolean; hasDuration?: boolean };
+type ItemInfo = FileListItem & { isDir?: boolean; hasDuration?: boolean };
 
 export interface ListEntry {
   name: string;
@@ -98,7 +98,7 @@ export interface ListEntry {
   size?: number;
   modified?: string;
   created?: string;
-  metadata?: unknown;
+  metadata?: MediaMetadata;
   isDirectory?: boolean;
   originalItem?: ItemInfo;
 }
@@ -330,7 +330,8 @@ onMounted(async () => {
     if (currentSource.value !== state.req.source || props.browsePath) {
       void withLoading(() => resourcesApi.fetchFiles(sourceToUse, pathToUse).then(fillOptions));
     } else {
-      fillOptions(initialReq);
+      const pending = fillOptions(initialReq);
+      if (pending) void withLoading(() => pending);
     }
   }
   attachScrollListener();
@@ -417,7 +418,22 @@ function resetToShare(newHash: string) {
   void withLoading(() => resourcesApi.fetchFilesPublic("/", newHash).then(fillOptions));
 }
 
-function fillOptions(req: { source?: string; items?: FileListItem[] }) {
+function fillOptions(req: { source?: string; type?: string; items?: FileListItem[] }): Promise<unknown> | undefined {
+  // if the path points to a file browse its parent and highlight the item
+  if (req.type && req.type !== "directory" && path.value !== "/") {
+    const filePath = path.value;
+    const parent = `${url.removeLastDir(filePath)}/`;
+    path.value = parent
+    const showParent = (parentReq: Parameters<typeof fillOptions>[0]) => {
+      const pending = fillOptions(parentReq);
+      selectEntry(filePath);
+      return pending;
+    };
+    if (!props.browseSource && (props.browseShare || getters.isShare())) {
+      return resourcesApi.fetchFilesPublic(parent, props.browseShare || getters.shareHash()).then(showParent);
+    }
+    return resourcesApi.fetchFiles(source.value ?? currentSource.value, parent).then(showParent);
+  }
   // Sets the current path and resets the current items.
   // Use path (the path we're browsing) instead of req.path (which may be relative)
   current.value = path.value;
@@ -462,6 +478,16 @@ function fillOptions(req: { source?: string; items?: FileListItem[] }) {
       type: "directory",
     });
   }
+  return undefined;
+}
+
+function selectEntry(itemPath: string) {
+  const entry = items.value.find((item) => item.path === itemPath);
+  if (!entry || entry.type === "directory") return;
+  selected.value = entry.path;
+  selectedSource.value = entry.source;
+  selectedType.value = entry.type;
+  emit("update:selected", { path: entry.path, source: entry.source, type: entry.type, isValid: true });
 }
 
 function sortEntries(entries: ListEntry[]) {
@@ -625,8 +651,9 @@ function isContextItem(item: ListEntry) {
 }
 
 function attachScrollListener() {
-  const el = root.value?.closest<HTMLElement>(".floating-window > .card-content");
-  if (!el) return;
+  const prompt = root.value?.closest<HTMLElement>(".floating-window > .card-content");
+  if (!prompt || !root.value) return;
+  const el = findScrollParents(root.value).find((node) => node !== prompt && prompt.contains(node)) ?? prompt;
   el.addEventListener("scroll", handleScroll, { passive: true });
   scrollContainer = el;
 }

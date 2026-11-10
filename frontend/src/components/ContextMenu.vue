@@ -665,11 +665,14 @@ export default {
   },
   methods: {
     showInfoPrompt() {
+      const item = this.isPreview && !this.items?.length && (this.showOverflow || !this.firstSelected)
+        ? this.req
+        : this.firstSelected;
       mutations.closeHovers();
       mutations.showPrompt({
         name: "info",
         props: {
-          item: this.firstSelected,
+          item,
         },
       });
     },

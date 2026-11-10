@@ -7,14 +7,13 @@ import {
   notifyDownloadError,
 } from "@/utils/appNotifications.js"
 import { renew } from "@/utils/auth.js"
-import { getApiPath, getPublicApiPath, getParentDir } from '@/utils/url.js'
+import { getApiPath, getPublicApiPath } from '@/utils/url.js'
 import { adjustedData, fetchURL } from "./utils.ts"
 import { rememberViewToken } from "./viewToken.js"
 import { isMediaFile } from "@/utils/mediaFile.js"
 import { getObjectProperty } from "@/utils/object.js"
-import { getStreamURL, getStreamURLPublic } from "./media.js"
+import { getStreamURL } from "./media.ts"
 import {
-  invalidateDirMetadataCache,
   invalidateDirMetadataItem,
   markDirMetadataItemChanged,
   removeDirMetadataItem
@@ -1026,7 +1025,7 @@ export async function moveCopy(
           removeDirMetadataItem({ source: item.fromSource }, item.from)
         }
         if (rename) {
-          invalidateDirMetadataCache({ source: item.toSource, path: getParentDir(item.to) })
+          invalidateDirMetadataItem({ source: item.toSource }, item.to)
         } else {
           markDirMetadataItemChanged({ source: item.toSource }, item.isDir ? `${item.to}/` : item.to)
         }
@@ -1144,9 +1143,6 @@ export function getViewURL(source, path, viewToken, shareInfo = null, allowDownl
 
   if (viewToken) {
     if (isMediaFile(typeHint)) {
-      if (shareInfo) {
-        return getStreamURLPublic(shareInfo, [path], viewToken)
-      }
       return getStreamURL(source, path, viewToken)
     }
     if (shareInfo) {
@@ -1662,7 +1658,7 @@ export async function moveCopyPublic(
           removeDirMetadataItem({ isShare: true, hash }, item.from)
         }
         if (rename) {
-          invalidateDirMetadataCache({ isShare: true, hash, path: getParentDir(item.to) })
+          invalidateDirMetadataItem({ isShare: true, hash }, item.to)
         } else {
           markDirMetadataItemChanged({ isShare: true, hash }, item.isDir ? `${item.to}/` : item.to)
         }

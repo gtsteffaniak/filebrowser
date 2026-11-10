@@ -1,18 +1,13 @@
 <template>
-  <div class="card-content info-content">
-    <div class="settings-items">
-      <ActivityViewerButton
-        v-if="source && !isShare"
-        :href="activityViewerHref"
-      />
+  <div class="card-content no-buttons prompt-panel info-content">
+    <div class="info-tabs">
+      <SlidingTabs :model-value="activeTab" :tabs="tabs" @update:model-value="activeTab = $event as InfoTab" />
     </div>
-    <div class="info-grid">
-      <!-- Basic Information Section -->
-      <div class="info-section">
-        <h3 class="section-title">{{ $t("prompts.basicInfo") }}</h3>
+    <div class="info-grid" :class="{ 'info-grid--fill': activeTab === 'access' }">
+      <div class="info-section" v-if="activeTab === 'basic'">
         <div class="info-item">
           <strong>{{ $t("prompts.displayName") }}</strong>
-          <span role="group" aria-label="info display name">{{ displayName }}</span>
+          <span role="group" aria-label="info display name">{{ item.name }}</span>
         </div>
         <div class="info-item">
           <strong>{{ $t("general.size") }}</strong>
@@ -20,7 +15,7 @@
         </div>
         <div class="info-item">
           <strong>{{ $t("general.type") }}</strong>
-          <span role="group" aria-label="info type">{{ type }}</span>
+          <span role="group" aria-label="info type">{{ item.type }}</span>
         </div>
         <div class="info-item" v-if="humanTime">
           <strong>{{ $t("files.lastModified") }}</strong>
@@ -38,23 +33,54 @@
           <strong>{{ $t("general.path") }}</strong>
           <span role="group" aria-label="info path" class="break-word">{{ filePath }}</span>
         </div>
-        <div class="info-item" v-if="hidden !== undefined">
+        <div class="info-item" v-if="item.hidden !== undefined">
           <strong>{{ $t("prompts.hidden") }}</strong>
-          <span role="group" aria-label="info hidden">{{ hidden ? "✓" : "✗" }}</span><!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <span role="group" aria-label="info hidden">{{ item.hidden ? "✓" : "✗" }}</span><!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
         </div>
-        <div class="info-item" v-if="hasPreview !== undefined">
+        <div class="info-item" v-if="item.hasPreview !== undefined">
           <strong>{{ $t("prompts.hasPreview") }}</strong>
-          <span role="group" aria-label="info has preview">{{ hasPreview ? "✓" : "✗" }}</span><!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <span role="group" aria-label="info has preview">{{ item.hasPreview ? "✓" : "✗" }}</span><!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+        </div>
+        <div class="settings-items" v-if="source && !isShare">
+          <ActivityViewerButton :href="activityViewerHref" />
         </div>
       </div>
-
-      <!-- Storage quota (admin, folders) -->
-      <div v-if="showQuotaSection" class="info-section">
-        <h3 class="section-title">{{ $t("quotas.title") }}</h3>
+      <!-- Media metadata -->
+      <div class="info-section" v-else-if="activeTab === 'media'">
+        <div class="info-item" v-for="info in mediaInfo" :key="info.key">
+          <strong>{{ info.label }}</strong>
+          <span>{{ info.value }}</span>
+        </div>
+        <!-- Lyrics -->
+        <div class="info-item" v-if="hasLyrics">
+          <strong>{{ $t("player.lyrics") }}</strong>
+          <span>
+            <a class="info-toggle" role="button" tabindex="0" @click="toggleLyrics" @keydown.enter="toggleLyrics">
+              {{ showLyrics ? $t("general.hide") : $t("general.show") }}
+            </a>
+            <span v-if="showLyrics" class="info-multiline">{{ lyricsText }}</span>
+          </span>
+        </div>
+        <!-- Subtitles -->
+        <div class="info-item" v-for="(track, idx) in subtitleTracks" :key="track.name">
+          <strong>{{ $t("prompts.subtitle", { n: idx + 1 }) }}</strong>
+          <span>
+            {{ subtitleLabel(track) }}
+            <a class="info-toggle" role="button" tabindex="0" @click="toggleSubtitle(track)" @keydown.enter="toggleSubtitle(track)">
+              {{ subtitleContent[track.name] !== undefined ? $t("general.hide") : $t("general.show") }}
+            </a>
+            <span v-if="subtitleContent[track.name] !== undefined" class="info-multiline">{{ subtitleContent[track.name] }}</span>
+          </span>
+        </div>
+        <div class="info-item" v-if="!showMediaContent">
+          <span>{{ $t("general.none") }}</span>
+        </div>
+      </div>
+      <div v-else-if="activeTab === 'quota'" class="info-section">
         <div class="settings-items">
           <SettingsButton
             class="info-manage-link"
-            :name="$t('quotas.title')"
+            :name="t('quotas.title')"
             :description="$t('quotas.openDescription')"
             @click="openQuotaPrompt"
           />
@@ -74,43 +100,13 @@
           />
         </div>
       </div>
-
-      <!-- Access rules (admin) -->
-      <div v-if="showAccessSection" class="info-section settings-items">
-        <h3 class="section-title">{{ $t("access.rules") }}</h3>
-        <SettingsButton
-          class="info-manage-link"
-          :name="$t('access.accessManagement')"
-          :description="$t('access.manageDescription')"
-          @click="openAccessPrompt"
-        />
-        <div class="info-item">
-          <strong>{{ $t("access.hasRules") }}</strong>
-          <span>{{ hasAccessRules ? $t("general.yes") : $t("general.no") }}</span>
-        </div>
-        <div v-if="accessRuleEntries.length" class="access-rules-list">
-          <div
-            v-for="entry in accessRuleEntries"
-            :key="accessEntryKey(entry)"
-            class="info-item access-rule-entry"
-          >
-            <strong>{{ entry.allow ? $t("access.allow") : $t("access.deny") }}</strong>
-            <span>{{ accessEntryLabel(entry) }}</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Additional Information Section -->
-      <div class="info-section" v-if="additionalInfo.length > 0">
-        <h3 class="section-title">{{ $t("prompts.additionalInfo") }}</h3>
+      <div class="info-section" v-else-if="activeTab === 'additional'">
         <div class="info-item" v-for="info in additionalInfo" :key="info.key">
           <strong>{{ info.label }}</strong>
           <span>{{ info.value }}</span>
         </div>
       </div>
-      <!-- Hash Generator Section -->
-      <div class="info-section" v-if="!dir">
-        <h3 class="section-title">{{ $t("prompts.checksums") }}</h3>
+      <div class="info-section" v-else-if="activeTab === 'checksums'">
         <div class="hash-generator">
           <div class="hash-select">
             <label for="hash-algo">{{ $t("prompts.hashAlgorithm") }}</label>
@@ -128,7 +124,6 @@
               </button>
             </div>
           </div>
-
           <div class="hash-result">
             <label for="hash-result">{{ $t("prompts.hashValue") }}</label>
             <div class="form-flex-group">
@@ -137,7 +132,7 @@
               <button
                 type="button"
                 class="button form-button flat-left"
-                @click="copyToClipboard"
+                @click="copyHash"
                 :disabled="!hashResult"
                 :title="$t('buttons.copyToClipboard')"
                 :aria-label="$t('buttons.copyToClipboard')"
@@ -148,271 +143,300 @@
           </div>
         </div>
       </div>
+      <div v-if="accessVisited" v-show="activeTab === 'access'" class="info-section">
+        <Access embedded :source-name="source" :path="filePath" />
+      </div>
     </div>
   </div>
 
 </template>
-<script>
+<script setup lang="ts">
+import { computed, onMounted, ref, watch } from "vue";
+import { useI18n } from "vue-i18n";
 import { getHumanReadableFilesize } from "@/utils/filesizes";
 import { formatTimestamp, fromNow } from "@/utils/moment";
 import { copyToClipboard } from "@/utils/clipboard";
-import { resourcesApi, quotasApi, accessApi } from "@/api";
+import { formatDuration } from "@/utils/files";
+import { resourcesApi, quotasApi, mediaApi } from "@/api";
 import { getters, mutations, state } from "@/store";
+import type { FileListItem, SubtitleTrack } from "@/store/types.ts";
 import { notify } from "@/notify";
 import { activityViewerPresets } from "@/utils/activityViewerLink";
+import SlidingTabs from "@/components/settings/SlidingTabs.vue";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import ActivityViewerButton from "@/components/settings/ActivityViewerButton.vue";
 import SettingsButton from "@/components/settings/SettingsButton.vue";
 import QuotaFolderBar from "@/components/prompts/QuotaFolderBar.vue";
+import Access from "@/components/prompts/Access.vue";
 
-export default {
-  name: "info",
-  components: {
-    ExpandDropdown,
-    ActivityViewerButton,
-    SettingsButton,
-    QuotaFolderBar,
-  },
-  props: {
-    promptId: {
-      type: [String, Number],
-      default: null,
-    },
-    item: {
-      type: Object,
-      required: true,
-    },
-  },
-  data() {
-    return {
-      selectedHashAlgo: "md5",
-      hashResult: "",
-      generatingHash: false,
-      quotaSnapshot: {},
-      quotaExists: false,
-      accessRule: {
-        denyAll: false,
-        deny: { users: [], groups: [] },
-        allow: { users: [], groups: [] },
-      },
-    };
-  },
-  async mounted() {
-    if (this.showQuotaSection) {
-      await this.loadQuota();
+type InfoTab = "basic" | "media" | "quota" | "access" | "additional" | "checksums";
+type HashAlgo = "md5" | "sha1" | "sha256" | "sha512";
+
+interface InfoItem extends FileListItem {
+  subtitles?: SubtitleTrack[];
+  token?: string;
+  hash?: string;
+  onlyOfficeId?: string;
+}
+
+interface QuotaSnapshot {
+  usedBytes?: number;
+  reservedBytes?: number;
+  measurementStatus?: string;
+  limitBytes?: number;
+}
+
+interface InfoRow {
+  key: string;
+  label: string;
+  value: string | number;
+}
+
+const props = defineProps<{
+  item: InfoItem;
+  promptId?: string | number | null;
+}>();
+
+const { t } = useI18n();
+
+const hashAlgoOptions: { value: HashAlgo; label: string }[] = [
+  { value: "md5", label: "MD5" },
+  { value: "sha1", label: "SHA1" },
+  { value: "sha256", label: "SHA256" },
+  { value: "sha512", label: "SHA512" },
+];
+
+const activeTab = ref<InfoTab>("basic");
+const accessVisited = ref(false);
+const selectedHashAlgo = ref<HashAlgo>("md5");
+const hashResult = ref("");
+const generatingHash = ref(false);
+const quotaSnapshot = ref<QuotaSnapshot>({});
+const quotaExists = ref(false);
+const lyricsText = ref("");
+const lyricsLoading = ref(false);
+const showLyrics = ref(false);
+// Subtitle content by track name
+const subtitleContent = ref<Record<string, string>>({});
+// Listing items carry no subtitles, they're fetched when the tab opens
+const mediaDetails = ref<InfoItem | null>(null);
+let mediaRequested = false;
+
+const isShare = getters.isShare();
+const source = computed(() => props.item.source || "");
+const filePath = computed(() => props.item.path || "");
+const isDir = computed(() => props.item.type === "directory");
+const isAudio = computed(() => !!props.item.type?.startsWith("audio"));
+const isVideo = computed(() => !!props.item.type?.startsWith("video"));
+const isAdmin = computed(() => getters.isAdmin());
+
+const humanSize = computed(() => getHumanReadableFilesize(props.item.size || 0));
+const humanTime = computed(() => formatDate(props.item.modified));
+const modTime = computed(() => relativeDate(props.item.modified));
+const humanCreatedTime = computed(() => formatDate(props.item.created));
+const createdTime = computed(() => relativeDate(props.item.created));
+const activityViewerHref = computed(() => activityViewerPresets.files(source.value, filePath.value));
+
+const additionalInfo = computed<InfoRow[]>(() => {
+  const { token, hash, onlyOfficeId } = props.item;
+  const rows: [string, string, string | undefined][] = [
+    ["token", t("prompts.token"), token],
+    ["hash", t("general.hash"), hash],
+    ["onlyOfficeId", t("prompts.onlyOfficeId"), onlyOfficeId],
+  ];
+  return rows.flatMap(([key, label, value]) => (value ? [{ key, label, value }] : []));
+});
+
+// the fresh response wins over the (older) listing metadata
+const mediaMetadata = computed(() => mediaDetails.value?.metadata || props.item.metadata);
+const hasLyrics = computed(() => isAudio.value && !!mediaMetadata.value?.hasLyrics);
+const subtitleTracks = computed<SubtitleTrack[]>(() =>
+  isVideo.value ? props.item.subtitles || mediaDetails.value?.subtitles || [] : []
+);
+
+const mediaInfo = computed<InfoRow[]>(() => {
+  const meta = mediaMetadata.value;
+  if (!meta || !(isAudio.value || isVideo.value)) return [];
+  const rows: [string, string, string | number | undefined][] = [
+    ["title", t("prompts.mediaTitle"), meta.title],
+    ["artist", t("prompts.artist"), meta.artist],
+    ["album", t("prompts.album"), meta.album],
+    ["year", t("prompts.year"), meta.year],
+    ["genre", t("prompts.genre"), meta.genre],
+    ["track", t("prompts.track"), meta.track],
+    ["duration", t("files.duration"), meta.duration ? formatDuration(meta.duration) : ""],
+    ["container", t("prompts.container"), meta.container],
+    ["videoCodec", t("prompts.videoCodec"), meta.videoCodec],
+    ["audioCodec", t("prompts.audioCodec"), meta.audioCodec],
+  ];
+  return rows.flatMap(([key, label, value]) => (value ? [{ key, label, value }] : []));
+});
+const showMediaContent = computed(
+  () => mediaInfo.value.length > 0 || hasLyrics.value || subtitleTracks.value.length > 0
+);
+
+const showQuotaSection = computed(
+  () => isAdmin.value && !isShare && isDir.value && !!source.value && !!filePath.value
+);
+const showAccessSection = computed(() => isAdmin.value && !isShare && !!source.value && !!filePath.value);
+const quotaLimitBytes = computed(() => quotaSnapshot.value.limitBytes || 0);
+const quotaEnabled = computed(() => quotaExists.value && quotaLimitBytes.value > 0);
+
+const tabs = computed(() => {
+  const list: { id: InfoTab; label: string }[] = [{ id: "basic", label: t("prompts.basicInfo") }];
+  if (isAudio.value || isVideo.value) list.push({ id: "media", label: t("prompts.mediaInfo") });
+  if (showQuotaSection.value) list.push({ id: "quota", label: t("quotas.title") });
+  if (showAccessSection.value) list.push({ id: "access", label: t("access.rules") });
+  if (additionalInfo.value.length > 0) list.push({ id: "additional", label: t("prompts.additionalInfo") });
+  if (!isDir.value) list.push({ id: "checksums", label: t("prompts.checksums") });
+  return list;
+});
+
+watch(activeTab, (tab) => {
+  if (tab === "access") accessVisited.value = true;
+  if (tab === "media" && !mediaRequested) {
+    mediaRequested = true;
+    void loadMediaDetails();
+  }
+});
+
+onMounted(async () => {
+  if (showQuotaSection.value) await loadQuota();
+});
+
+function formatDate(date?: string) {
+  return date ? formatTimestamp(date, state.user.locale) : "";
+}
+
+function relativeDate(date?: string) {
+  return date ? fromNow(date, state.user.locale) : "";
+}
+
+async function loadMediaDetails() {
+  const { item } = props;
+  if (!(isAudio.value || isVideo.value)) return;
+  if (item.metadata && (!isVideo.value || item.subtitles)) return;
+  try {
+    const data = (await mediaApi.getItemMediaMetadata(filePath.value, { source: source.value })) as InfoItem;
+    if (data && data.type !== "directory") {
+      mediaDetails.value = data;
     }
-    if (this.showAccessSection) {
-      await this.loadAccessRules();
+  } catch (err) {
+    console.warn("Failed to fetch media details:", err);
+  }
+}
+
+// Raw lyrics (sidecar or embedded) are fetched on first show
+async function toggleLyrics() {
+  if (lyricsLoading.value) return;
+  if (showLyrics.value) {
+    showLyrics.value = false;
+    return;
+  }
+  if (!lyricsText.value) {
+    lyricsLoading.value = true;
+    try {
+      const { lyrics } = await mediaApi.getLyrics(source.value, filePath.value);
+      lyricsText.value = lyrics;
+    } catch (err) {
+      console.warn("Failed to fetch lyrics:", err);
+    } finally {
+      lyricsLoading.value = false;
     }
-  },
-  computed: {
-    hashAlgoOptions() {
-      return [
-        { value: "md5", label: "MD5" },
-        { value: "sha1", label: "SHA1" },
-        { value: "sha256", label: "SHA256" },
-        { value: "sha512", label: "SHA512" },
-      ];
-    },
-    humanSize() {
-      return getHumanReadableFilesize(this.item?.size || 0);
-    },
-    humanTime() {
-      if (!this.item?.modified) return "";
-      return formatTimestamp(this.item.modified, state.user.locale);
-    },
-    modTime() {
-      if (!this.item?.modified) return "";
-      return fromNow(this.item.modified, state.user.locale);
-    },
-    humanCreatedTime() {
-      if (!this.item?.created) return "";
-      return formatTimestamp(this.item.created, state.user.locale);
-    },
-    createdTime() {
-      if (!this.item?.created) return "";
-      return fromNow(this.item.created, state.user.locale);
-    },
-    name() {
-      return this.item?.name || "";
-    },
-    type() {
-      return this.item?.type || "";
-    },
-    displayName() {
-      return this.item?.name || "";
-    },
-    dir() {
-      return this.item?.type === "directory";
-    },
-    source() {
-      return this.item?.source || "";
-    },
-    isShare() {
-      return getters.isShare();
-    },
-    filePath() {
-      return this.item?.path || "";
-    },
-    activityViewerHref() {
-      return activityViewerPresets.files(this.source, this.filePath);
-    },
-    hidden() {
-      return this.item?.hidden;
-    },
-    hasPreview() {
-      return this.item?.hasPreview;
-    },
-    additionalInfo() {
-      const info = [];
+  }
+  showLyrics.value = !!lyricsText.value;
+}
 
-      if (this.item?.token) {
-        info.push({ key: "token", label: this.$t("prompts.token"), value: this.item.token });
-      }
-      if (this.item?.hash) {
-        info.push({ key: "hash", label: this.$t("general.hash"), value: this.item.hash });
-      }
-      if (this.item?.onlyOfficeId) {
-        info.push({ key: "onlyOfficeId", label: this.$t("prompts.onlyOfficeId"), value: this.item.onlyOfficeId });
-      }
+function subtitleLabel(track: SubtitleTrack) {
+  const extras = [track.language, track.codec].filter(Boolean).join(", ");
+  return track.embedded ? extras : [track.name, extras && `(${extras})`].filter(Boolean).join(" ");
+}
 
-      return info;
-    },
-    isAdmin() {
-      return getters.isAdmin();
-    },
-    showQuotaSection() {
-      return this.isAdmin && !this.isShare && this.dir && this.source && this.filePath;
-    },
-    showAccessSection() {
-      return this.isAdmin && !this.isShare && this.source && this.filePath;
-    },
-    quotaEnabled() {
-      return this.quotaExists && (this.quotaSnapshot.limitBytes || 0) > 0;
-    },
-    quotaLimitBytes() {
-      return this.quotaSnapshot.limitBytes || 0;
-    },
-    accessRuleEntries() {
-      /** @type {{allow: boolean, type: "user" | "group" | "all", name: string}[]} */
-      const entries = [];
-      if (this.accessRule.denyAll) {
-        entries.push({ allow: false, type: "all", name: this.$t("access.all") });
-      }
-      for (const name of this.accessRule.deny?.users || []) {
-        entries.push({ allow: false, type: "user", name });
-      }
-      for (const name of this.accessRule.deny?.groups || []) {
-        entries.push({ allow: false, type: "group", name });
-      }
-      for (const name of this.accessRule.allow?.users || []) {
-        entries.push({ allow: true, type: "user", name });
-      }
-      for (const name of this.accessRule.allow?.groups || []) {
-        entries.push({ allow: true, type: "group", name });
-      }
-      return entries;
-    },
-    hasAccessRules() {
-      return this.accessRuleEntries.length > 0;
-    },
-  },
-  methods: {
-    async loadQuota() {
-      try {
-        const raw = await quotasApi.get(this.source, this.filePath);
-        const data = Array.isArray(raw) ? raw[0] : raw;
-        if (!data) return;
-        this.quotaSnapshot = {
-          usedBytes: data.usedBytes,
-          reservedBytes: data.reservedBytes,
-          measurementStatus: data.measurementStatus,
-          limitBytes: data.limitBytes,
-        };
-        if ((data.limitBytes || 0) > 0) {
-          this.quotaExists = true;
-        }
-      } catch {
-        // no quota or preview unavailable
-      }
-    },
-    async loadAccessRules() {
-      try {
-        const response = await accessApi.get(this.source, this.filePath);
-        this.accessRule = response;
-      } catch {
-        this.accessRule = {
-          denyAll: false,
-          deny: { users: [], groups: [] },
-          allow: { users: [], groups: [] },
-        };
-      }
-    },
-    openQuotaPrompt() {
-      mutations.showPrompt({
-        name: "Quota",
-        props: {
-          item: this.item,
-          source: this.source,
-          path: this.filePath,
-        },
-      });
-    },
-    openAccessPrompt() {
-      mutations.showPrompt({
-        name: "access",
-        props: {
-          sourceName: this.source,
-          path: this.filePath,
-        },
-      });
-    },
-    accessEntryKey(entry) {
-      return `${entry.type}-${entry.name}-${entry.allow}`;
-    },
-    accessEntryLabel(entry) {
-      if (entry.type === "user") {
-        return `${this.$t("general.user")}: ${entry.name}`;
-      }
-      if (entry.type === "group") {
-        return `${this.$t("general.group")}: ${entry.name}`;
-      }
-      return entry.name;
-    },
-    async generateHash() {
-      if (this.generatingHash || !this.item) return;
+// Raw subtitle content are fetched on first show
+async function toggleSubtitle(track: SubtitleTrack) {
+  if (track.name in subtitleContent.value) {
+    delete subtitleContent.value[track.name];
+    return;
+  }
+  try {
+    const content: string = await mediaApi.getSubtitleContent(source.value, filePath.value, track.name, track.embedded);
+    if (content) {
+      subtitleContent.value[track.name] = content;
+    }
+  } catch (err) {
+    console.warn("Failed to fetch subtitle:", err);
+  }
+}
 
-      this.hashResult = "";
-      this.generatingHash = true;
+async function loadQuota() {
+  try {
+    const raw = await quotasApi.get(source.value, filePath.value);
+    const data = Array.isArray(raw) ? raw[0] : raw;
+    if (!data) return;
+    const { usedBytes, reservedBytes, measurementStatus, limitBytes } = data;
+    quotaSnapshot.value = { usedBytes, reservedBytes, measurementStatus, limitBytes };
+    quotaExists.value = (limitBytes || 0) > 0;
+  } catch {
+    // no quota or preview unavailable
+  }
+}
 
-      try {
-        const source = this.item.source;
-        const path = this.item.path;
+function openQuotaPrompt() {
+  mutations.showPrompt({
+    name: "Quota",
+    props: { item: props.item, source: source.value, path: filePath.value },
+  });
+}
 
-        const hash = await resourcesApi.checksum(source, path, this.selectedHashAlgo);
-        this.hashResult = hash;
-      } catch (err) {
-        this.hashResult = this.$t("prompts.errorGeneratingHash");
-        const errorMessage = err instanceof Error ? err.message : "Error generating hash";
-        notify.showError(errorMessage);
-      } finally {
-        this.generatingHash = false;
-      }
-    },
-    async copyToClipboard() {
-      if (!this.hashResult) return;
-      await copyToClipboard(this.hashResult);
-    },
-  },
-};
+async function generateHash() {
+  if (generatingHash.value) return;
+  hashResult.value = "";
+  generatingHash.value = true;
+  try {
+    hashResult.value = (await resourcesApi.checksum(source.value, filePath.value, selectedHashAlgo.value)) as string;
+  } catch (err) {
+    hashResult.value = t("prompts.errorGeneratingHash");
+    notify.showError(err instanceof Error ? err.message : "Error generating hash");
+  } finally {
+    generatingHash.value = false;
+  }
+}
+
+async function copyHash() {
+  if (hashResult.value) await copyToClipboard(hashResult.value);
+}
 </script>
 
 <style scoped>
 .info-content {
-  height: 100%;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
+  gap: 0.5em;
+}
+
+.info-tabs {
+  flex-shrink: 0;
+  padding: 0 0.5em 0.5em;
+  border-bottom: 1px solid var(--divider);
+}
+
+.info-toggle {
+  color: var(--primaryColor);
+  font-size: 0.85em;
+  font-weight: 600;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.info-toggle:hover {
+  text-decoration: underline;
+}
+
+.info-multiline {
+  display: block;
+  margin-top: 0.5em;
+  max-height: 16em;
+  overflow: auto;
+  white-space: pre-wrap;
+  user-select: text;
 }
 
 .info-manage-link {
@@ -423,27 +447,18 @@ export default {
   padding: 0.5em;
 }
 
-.access-rules-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25em;
-}
-
-.access-rule-entry strong {
-  min-width: 72px;
-}
-
-.info-description {
-  margin-bottom: 1.5em;
-  color: var(--textSecondary);
-  line-height: 1.5;
-  text-align: center;
-}
-
 .info-grid {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
   gap: 1.5em;
-  flex: 1;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.info-grid--fill {
+  grid-template-rows: minmax(0, 1fr);
 }
 
 .info-section {
@@ -452,14 +467,8 @@ export default {
   gap: 0.5em;
 }
 
-.section-title {
-  font-size: 0.95em;
-  font-weight: 600;
-  color: var(--textPrimary);
-  margin: 0 0 0.75em;
-  padding-bottom: 0.5em;
-  padding-top: 0.5em;
-  border-bottom: 1px solid var(--divider);
+.info-grid--fill > .info-section {
+  min-height: 0;
 }
 
 .info-item {
@@ -515,10 +524,9 @@ export default {
   font-family: monospace;
 }
 
-/* Responsive adjustments */
 @media (width <= 768px) {
   .info-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
   .info-item strong {
     min-width: 100px;

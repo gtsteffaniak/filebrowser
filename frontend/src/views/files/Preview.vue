@@ -381,14 +381,7 @@ export default {
     async attachDirMediaMetadata(listing, dirPath) {
       if (!listing?.length) return;
       try {
-        const isShare = getters.isShare();
-        const metaMap = isShare
-          ? await mediaApi.getDirectoryMetadataMap(dirPath, {
-              isShare: true,
-              hash: state.shareInfo.hash,
-              password: localStorage.getItem(`sharepass:${state.shareInfo.hash}`) || '',
-            })
-          : await mediaApi.getDirectoryMetadataMap(dirPath, { source: state.req.source });
+        const metaMap = await mediaApi.getDirectoryMetadataMap(dirPath, { source: state.req.source });
         if (this.listing !== listing) return;
         mutations.patchListingMetadata(listing, metaMap, state.req.path);
         mutations.setupNavigation({
@@ -498,15 +491,8 @@ export default {
         this.lyricsFetchedForPath = state.req.path;
         if (state.req.metadata?.hasLyrics) {
           try {
-            if (getters.isShare()) {
-              const hash = state.shareInfo.hash;
-              const password = localStorage.getItem(`sharepass:${hash}`) || "";
-              const { lyrics: raw, format } = await mediaApi.getLyricsPublic(state.req.path, hash, password);
-              this.lyrics = parseLyrics(raw, format);
-            } else {
-              const { lyrics: raw, format } = await mediaApi.getLyrics(state.req.source, state.req.path);
-              this.lyrics = parseLyrics(raw, format);
-            }
+            const { lyrics: raw, format } = await mediaApi.getLyrics(state.req.source, state.req.path);
+            this.lyrics = parseLyrics(raw, format);
           } catch (err) {
             console.warn("Failed to fetch lyrics:", err);
             this.lyrics = [];
@@ -533,27 +519,14 @@ export default {
         return;
       }
       const req = state.req;
+      if (!getters.isShare() && !getters.isLoggedIn()) {
+        return;
+      }
       try {
-        let enriched;
-        if (getters.isShare()) {
-          const pwd =
-            localStorage.getItem(`sharepass:${state.shareInfo.hash}`) || "";
-          enriched = await mediaApi.fetchDirectoryMediaMetadataPublic(
-            req.path,
-            state.shareInfo.hash,
-            pwd,
-            true,
-          );
-        } else {
-          if (!getters.isLoggedIn()) {
-            return;
-          }
-          enriched = await mediaApi.fetchDirectoryMediaMetadata(
-            req.source,
-            req.path,
-            true,
-          );
-        }
+        const enriched = await mediaApi.getItemMediaMetadata(req.path, {
+          source: req.source,
+          albumArt: true,
+        });
         if (state.req.path !== expectedPath) {
           return;
         }

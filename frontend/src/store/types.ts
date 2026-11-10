@@ -15,7 +15,18 @@ export interface FileListItem {
   isShared?: boolean;
   pinned?: boolean;
   hidden?: boolean;
-  metadata?: unknown;
+  metadata?: MediaMetadata;
+}
+
+/** from backend utils.SubtitleTrack. */
+export interface SubtitleTrack {
+  name: string;
+  language?: string;
+  srclang?: string;
+  title?: string;
+  index?: number;
+  codec?: string;
+  embedded: boolean;
 }
 
 /** from backend iteminfo.MediaMetadata. */
@@ -35,9 +46,8 @@ export interface MediaMetadata {
 }
 
 /** List items have their position in `req.items` (by mutations.replaceRequest) */
-export interface fileListItemIndex extends Omit<FileListItem, "metadata"> {
+export interface fileListItemIndex extends FileListItem {
   index: number;
-  metadata?: MediaMetadata;
 }
 
 export interface ReqObject {
@@ -60,12 +70,12 @@ export interface ReqObject {
   modified?: string;
   created?: string;
   hasPreview?: boolean;
-  subtitles?: unknown[];
+  subtitles?: SubtitleTrack[];
   viewToken?: string;
   parentDirItems?: FileListItem[];
   onlyOfficeId?: string;
   hasUpdate?: boolean;
-  metadata?: unknown;
+  metadata?: MediaMetadata;
 
   // Directory listing properties
   listing?: FileListItem[];

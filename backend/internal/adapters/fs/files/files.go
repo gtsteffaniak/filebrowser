@@ -52,7 +52,7 @@ func addMetadataToChildren(response *iteminfo.ExtendedFileInfo, opts utils.FileO
 					logger.Debugf("failed to extract metadata for file: %s, error: %v", fileItem.Name, err)
 				}
 			} else {
-				if err := extractVideoMetadata(context.Background(), fileItem, fullPath, sharedFFmpegService); err != nil {
+				if err := extractVideoMetadata(context.Background(), fileItem, fullPath, opts.AlbumArt, sharedFFmpegService); err != nil {
 					logger.Debugf("failed to extract video metadata for file: %s, error: %v", fileItem.Name, err)
 				}
 			}
@@ -380,7 +380,7 @@ func processContent(info *iteminfo.ExtendedFileInfo, idx *indexing.Index, opts u
 		extItem := &iteminfo.ExtendedItemInfo{
 			ItemInfo: info.ItemInfo,
 		}
-		err := extractVideoMetadata(context.Background(), extItem, info.RealPath, nil)
+		err := extractVideoMetadata(context.Background(), extItem, info.RealPath, opts.AlbumArt, nil)
 		if err != nil {
 			logger.Debugf("failed to extract video metadata for file: %s (%s): %v", info.RealPath, info.Name, err)
 		} else {
@@ -471,22 +471,10 @@ func extractAudioMetadata(ctx context.Context, item *iteminfo.ExtendedItemInfo, 
 	// go-media fast path: tags, lyrics availability, and artwork. Unsupported or
 	// failed reads fall through to the existing dhowden/tag code below.
 	if info, ok := gomedia.Audio(realPath, getArt, func() (gomedia.AudioInfo, bool) { return legacyAudioInfo(realPath, getArt) }); ok {
-		item.Metadata = &iteminfo.MediaMetadata{
-			Title:     info.Tags.Title,
-			Artist:    info.Tags.Artist,
-			Album:     info.Tags.Album,
-			Year:      info.Tags.Year,
-			Genre:     info.Tags.Genre,
-			Track:     info.Tags.Track,
-			HasLyrics: info.HasLyrics,
-		}
+		item.Metadata = &iteminfo.MediaMetadata{HasLyrics: info.HasLyrics}
+		applyMediaTags(item.Metadata, info, realPath)
 		if getDuration {
 			audioDuration(ctx, item, realPath, ffmpegService)
-		}
-		if n := len(info.Artwork); n > 0 && n <= 5*1024*1024 {
-			item.Metadata.AlbumArt = info.Artwork
-		} else if n > 5*1024*1024 {
-			logger.Debugf("Skipping album art for %s: too large (%d bytes)", realPath, n)
 		}
 		return nil
 	}
@@ -707,7 +695,7 @@ func legacyLyrics(realPath string) (gomedia.LyricsResult, bool) {
 
 // extractVideoMetadata extracts duration and codec info from video files using ffprobe.
 // If ffmpegService is nil, a new service will be created (for backward compatibility)
-func extractVideoMetadata(ctx context.Context, item *iteminfo.ExtendedItemInfo, realPath string, ffmpegService *ffmpeg.FFmpegService) error {
+func extractVideoMetadata(ctx context.Context, item *iteminfo.ExtendedItemInfo, realPath string, getArt bool, ffmpegService *ffmpeg.FFmpegService) error {
 	// go-media fast path. Works without ffmpeg installed.
 	probeService := ffmpegService
 	if probeService == nil {
@@ -759,10 +747,29 @@ func extractVideoMetadata(ctx context.Context, item *iteminfo.ExtendedItemInfo, 
 	if info.FormatName != "" {
 		meta.Container = info.FormatName
 	}
+	if tags, ok := gomedia.VideoTags(realPath, getArt); ok {
+		applyMediaTags(meta, tags, realPath)
+	}
 	if meta.Duration > 0 || meta.VideoCodec != "" || meta.AudioCodec != "" || meta.Container != "" {
 		item.Metadata = meta
 	}
 	return nil
+}
+
+// applyMediaTags copies go-media tags and embedded cover art into meta. Covers
+// over 8MB are skipped.
+func applyMediaTags(meta *iteminfo.MediaMetadata, info gomedia.AudioInfo, realPath string) {
+	meta.Title = info.Tags.Title
+	meta.Artist = info.Tags.Artist
+	meta.Album = info.Tags.Album
+	meta.Year = info.Tags.Year
+	meta.Genre = info.Tags.Genre
+	meta.Track = info.Tags.Track
+	if n := len(info.Artwork); n > 0 && n <= 8*1024*1024 {
+		meta.AlbumArt = info.Artwork
+	} else if n > 8*1024*1024 {
+		logger.Debugf("Skipping album art for %s: too large (%d bytes)", realPath, n)
+	}
 }
 
 // DeleteFiles deletes the file or directory at indexPath. boundIndexPath limits

@@ -38,6 +38,11 @@ var (
 	// containers. Keying on modtime+size means an edited file is re-probed.
 	probeCache = cache.NewCache[ProbeResult](24 * time.Hour)
 
+	// tagsCache caches the embedded part of a tag read by file identity, like probeCache.
+    // A listing reads tags for every media child on each uncached request. Sidecar lyrics
+	// are not cached: adding an .lrc next to a file does not change its modtime.
+	tagsCache = cache.NewCache[AudioInfo](24 * time.Hour)
+
 	// probeGroup coalesces concurrent probes of the same file so a burst of
 	// requests for one container reads it once.
 	probeGroup singleflight.Group
@@ -133,16 +138,26 @@ func logUnsupported(op, path, reason string) {
 
 // openFile opens path for go-media, which reads through io.ReaderAt.
 func openFile(path string) (*os.File, int64, error) {
-	f, err := os.Open(path)
+	f, info, err := openFileInfo(path)
 	if err != nil {
 		return nil, 0, err
+	}
+	return f, info.Size(), nil
+}
+
+// openFileInfo is openFile for callers that also need the modtime (cache keys),
+// so they do not stat the file a second time.
+func openFileInfo(path string) (*os.File, os.FileInfo, error) {
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, nil, err
 	}
 	info, err := f.Stat()
 	if err != nil {
 		_ = f.Close()
-		return nil, 0, err
+		return nil, nil, err
 	}
-	return f, info.Size(), nil
+	return f, info, nil
 }
 
 // ffprobeFormatNames maps go-media containers to the format_name strings ffprobe
@@ -179,18 +194,14 @@ func probeFast(path string) (ProbeResult, bool) {
 		return ProbeResult{}, false
 	}
 
-	f, size, err := openFile(path)
+	f, info, err := openFileInfo(path)
 	if err != nil {
 		logFallback("probe", path, err)
 		return ProbeResult{}, false
 	}
 	defer f.Close()
 
-	info, err := f.Stat()
-	if err != nil {
-		logFallback("probe", path, err)
-		return ProbeResult{}, false
-	}
+	size := info.Size()
 	cacheKey := probeCacheKey(path, info.ModTime().UnixNano(), size)
 	if res, ok := probeCache.Get(cacheKey); ok {
 		return res, true
@@ -311,36 +322,64 @@ type AudioInfo struct {
 // is true. A missing cover is not an error.
 // legacy is the dhowden tag read, run only in shadow mode.
 func Audio(path string, withArt bool, legacy Legacy[AudioInfo]) (AudioInfo, bool) {
-	return timed("tags", path, legacy, audioDiffer(withArt), func() (AudioInfo, bool) { return audioFast(path, withArt) })
+	return timed("tags", path, legacy, audioDiffer(withArt), func() (AudioInfo, bool) { return audioFast(path, withArt, true) })
 }
 
-func audioFast(path string, withArt bool) (AudioInfo, bool) {
+func audioFast(path string, withArt, withSidecar bool) (AudioInfo, bool) {
 	if !Enabled() {
 		return AudioInfo{}, false
 	}
-	f, size, err := openFile(path)
+	f, st, err := openFileInfo(path)
 	if err != nil {
 		logFallback("tags", path, err)
 		return AudioInfo{}, false
 	}
 	defer f.Close()
 
-	// One container parse gives tags, the embedded lyrics flag, and cover bytes.
-	// Separate ReadTags/HasLyrics/EmbeddedArtwork calls each re-parsed the file.
-	audio, err := media.InspectAudio(f, size, media.AudioOptions{WithArtwork: withArt})
-	if err != nil {
-		logFallback("tags", path, err)
-		return AudioInfo{}, false
+	size := st.Size()
+	cacheKey := tagsCacheKey(path, st.ModTime().UnixNano(), size)
+	var info AudioInfo
+	cached := false
+	if !withArt {
+		info, cached = tagsCache.Get(cacheKey)
 	}
-	info := AudioInfo{Tags: audio.Tags, HasLyrics: audio.HasEmbeddedLyrics}
-	if !info.HasLyrics {
+	if !cached {
+		// One container parse gives tags, the embedded lyrics flag, and cover bytes.
+		// Separate ReadTags/HasLyrics/EmbeddedArtwork calls each re-parsed the file.
+		audio, err := media.InspectAudio(f, size, media.AudioOptions{WithArtwork: withArt})
+		if err != nil {
+			logFallback("tags", path, err)
+			return AudioInfo{}, false
+		}
+		info = AudioInfo{Tags: audio.Tags, HasLyrics: audio.HasEmbeddedLyrics}
+		stored := info
+		stored.Tags.Raw = nil
+		tagsCache.Set(cacheKey, stored)
+		if withArt {
+			info.Artwork = audio.Artwork
+		}
+	}
+	if withSidecar && !info.HasLyrics {
 		// Sidecar lyrics are only checked when the file has no embedded lyrics.
 		_, _, info.HasLyrics = media.LyricsSidecar(path)
 	}
-	if withArt {
-		info.Artwork = audio.Artwork
-	}
 	return info, true
+}
+
+// tagsCacheKey identifies a file version for the tag cache: path plus modtime and size.
+func tagsCacheKey(path string, modTimeNanos, size int64) string {
+	return fmt.Sprintf("tags:%s:%d:%d", path, modTimeNanos, size)
+}
+
+// videoTagExts are the containers go-media can read tags from
+var videoTagExts = map[string]bool{".mp4": true, ".m4v": true, ".mov": true}
+
+// VideoTags reads embedded tags and cover from a video container
+func VideoTags(path string, withArt bool) (AudioInfo, bool) {
+	if !videoTagExts[strings.ToLower(filepath.Ext(path))] {
+		return AudioInfo{}, false
+	}
+	return timed("tags", path, nil, nil, func() (AudioInfo, bool) { return audioFast(path, withArt, false) })
 }
 
 // Lyrics returns lyrics from a sidecar file, or else from embedded tags. The
