@@ -75,7 +75,10 @@ func getChecksumFromCache(key checksumCacheKey) (string, bool) {
 	if !ok {
 		return "", false
 	}
-	entry := v.(cachedChecksumEntry)
+	entry, ok := v.(cachedChecksumEntry)
+	if !ok {
+		return "", false
+	}
 	if time.Now().After(entry.expiry) {
 		checksumTypedCache.Delete(key)
 		return "", false
@@ -118,7 +121,11 @@ func readFileSampleDigests(ctx context.Context, sourcePath, filePath string, siz
 	}
 	defer file.Close()
 
-	bufPtr := checksumBufPool.Get().(*[]byte)
+	raw := checksumBufPool.Get()
+	bufPtr, ok := raw.(*[]byte)
+	if !ok {
+		return fileSampleDigests{}, fmt.Errorf("invalid checksum buffer pool type")
+	}
 	buf := *bufPtr
 	defer checksumBufPool.Put(bufPtr)
 

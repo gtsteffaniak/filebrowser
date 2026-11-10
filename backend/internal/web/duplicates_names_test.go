@@ -75,7 +75,7 @@ var filenameCorpus = []string{
 func TestFilenameSimilarMatchesLegacyOnCorpus(t *testing.T) {
 	names := append([]string{}, filenameCorpus...)
 	for i := 0; i < 50; i++ {
-		names = append(names, randomNormalizedName(5+rand.Intn(40)))
+		names = append(names, randomNormalizedName(5+corpusRand.Intn(40)))
 	}
 
 	var buf levenshteinRowBuf
@@ -118,7 +118,7 @@ func randomNormalizedName(n int) string {
 	const alphabet = "abcdefghijklmnopqrstuvwxyz0123456789 -"
 	b := make([]byte, n)
 	for i := range b {
-		b[i] = alphabet[rand.Intn(len(alphabet))]
+		b[i] = alphabet[corpusRand.Intn(len(alphabet))]
 	}
 	return string(b)
 }
@@ -137,6 +137,4 @@ func TestGroupFilesByFilenameOversizedExcluded(t *testing.T) {
 	}
 }
 
-func init() {
-	rand.Seed(42)
-}
+var corpusRand = rand.New(rand.NewSource(42))
