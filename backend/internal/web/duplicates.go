@@ -345,8 +345,8 @@ func findDuplicatesInIndex(index *indexing.Index, opts *duplicatesOptions, stats
 				continue
 			}
 
-			// Group files by MIME type in memory (already ordered by type from SQL)
-			filesByType := groupFilesByType(files)
+			// Group files by MIME (+ extension when MIME is ambiguous) within this size bucket.
+			filesByType := groupFilesByTypeBucket(files)
 
 			// Process each MIME type group
 			for _, typeFiles := range filesByType {
@@ -955,16 +955,6 @@ func max(a, b int) int {
 		return a
 	}
 	return b
-}
-
-// groupFilesByType groups files by MIME type
-// Assumes files are already sorted by type (from SQL ORDER BY)
-func groupFilesByType(files []*iteminfo.FileInfo) map[string][]*iteminfo.FileInfo {
-	grouped := make(map[string][]*iteminfo.FileInfo)
-	for _, file := range files {
-		grouped[file.Type] = append(grouped[file.Type], file)
-	}
-	return grouped
 }
 
 // filterFilesByPermission filters files to only include those the user is permitted to access
