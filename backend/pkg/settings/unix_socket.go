@@ -38,7 +38,7 @@ func ContextWithUnixPeerForTest(ctx context.Context, uid, gid int) context.Conte
 func parseSocketFileMode(mode string) (os.FileMode, error) {
 	mode = strings.TrimSpace(mode)
 	if mode == "" {
-		return 0o660, nil
+		return 0o666, nil
 	}
 	v, err := strconv.ParseUint(mode, 8, 32)
 	if err != nil {
@@ -69,14 +69,11 @@ func ListenUnixFilesystem(socketPath string) (net.Listener, error) {
 		}
 		setGroup = true
 	}
-	oldMask := unixUmask(0o077)
-	defer unixUmask(oldMask)
 	listener, err := net.Listen("unix", socketPath)
 	if err != nil {
 		return nil, err
 	}
 	closeListener := func() { _ = listener.Close() }
-	// Assign group ownership while the socket is still owner-only (umask 077), then grant mode bits.
 	if setGroup {
 		if err := os.Chown(socketPath, -1, gid); err != nil {
 			closeListener()

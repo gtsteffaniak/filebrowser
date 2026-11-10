@@ -1,14 +1,18 @@
 package settings
 
-import "testing"
+import (
+	"os"
+	"path/filepath"
+	"testing"
+)
 
 func TestParseSocketFileModeDefaults(t *testing.T) {
 	mode, err := parseSocketFileMode("")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if mode != 0o660 {
-		t.Fatalf("got %o, want 0660", mode)
+	if mode != 0o666 {
+		t.Fatalf("got %o, want 0666", mode)
 	}
 }
 
@@ -49,5 +53,31 @@ func TestUnixPeerAllowed(t *testing.T) {
 	Config.Http.UnixSocketTrustedGIDs = nil
 	if unixPeerAllowed(0, 0) {
 		t.Fatal("empty allowlists must deny")
+	}
+}
+
+func TestListenUnixFilesystemSetsModeWithoutUmask(t *testing.T) {
+	if os.Getenv("GOOS") == "windows" {
+		t.Skip("filesystem unix sockets are not used on Windows")
+	}
+	dir := t.TempDir()
+	socketPath := filepath.Join(dir, "fb.sock")
+	orig := Config.Http
+	Config.Http.SocketFileMode = ""
+	t.Cleanup(func() {
+		Config.Http = orig
+		_ = os.Remove(socketPath)
+	})
+	ln, err := ListenUnixFilesystem(socketPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = ln.Close() })
+	st, err := os.Stat(socketPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if st.Mode().Perm() != 0o666 {
+		t.Fatalf("socket perm = %o, want 0666", st.Mode().Perm())
 	}
 }

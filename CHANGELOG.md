@@ -9,11 +9,16 @@ All notable changes to this project will be documented in this file. For commit 
  - Square image previews: avoid the full-resolution crop copy in imaging.Fill (#3340)
 
  **Bug Fixes**:
+ - fix(http): restore pre-#3309 Unix socket behavior for reverse proxies — empty `http.unixSocketTrustedUIDs` / `http.unixSocketTrustedGIDs` again honor `X-Forwarded-For` and `X-Real-IP` when `http.trustProxyHeaders` is enabled (with a startup warning); default `http.socketFileMode` is `0666` instead of `0660`; socket permissions are applied with `chmod` after listen rather than process-wide `umask` (#3309)
  - fix(users): save the prompt close button and new file templates when editing a user (#3342) (#3323)
  - fix(upload): serialize directory creation before uploading files (#3321)
  - fix(preview): open RAW, HEIC and rendered documents in the viewer when previews are disabled (#3313)
  - fix(users): keep requested profile values when creating a user
  - fix advanced user toggle duplicate (#3353) (#3324)
+
+ **Upgrade notes** (Unix socket listeners):
+ - If you listen on a filesystem `http.socket` with `http.trustProxyHeaders: true`, set `http.unixSocketTrustedUIDs` and/or `http.unixSocketTrustedGIDs` to the reverse proxy's UID/GID (from Linux peer credentials) so only that proxy can set `X-Forwarded-*`. Leaving both lists empty keeps legacy behavior (all local peers trusted; a warning is logged).
+ - Tighten filesystem socket access with `http.socketFileMode` (default `0666`) and optional `http.socketGroup`; use e.g. `0660` plus the proxy's group when the proxy runs as another user.
 
 ## v2.1.4
 

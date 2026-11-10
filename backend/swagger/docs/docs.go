@@ -6014,7 +6014,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "socketFileMode": {
-                    "description": "octal mode for filesystem http.socket (default \"0660\"); ignored for abstract sockets",
+                    "description": "octal mode for filesystem http.socket (default \"0666\"); ignored for abstract sockets",
                     "type": "string"
                 },
                 "socketGroup": {
@@ -6047,7 +6047,7 @@ const docTemplate = `{
                     }
                 },
                 "unixSocketTrustedUIDs": {
-                    "description": "UnixSocketTrustedUIDs and UnixSocketTrustedGIDs list peer credentials (Linux SO_PEERCRED) allowed to\npresent X-Forwarded-* on a filesystem http.socket listener. When both are empty, forwarded headers\nare not trusted on Unix sockets. Abstract sockets (@name) never trust forwarded headers.",
+                    "description": "UnixSocketTrustedUIDs and UnixSocketTrustedGIDs list peer credentials (Linux SO_PEERCRED) allowed to\npresent X-Forwarded-* on a filesystem http.socket listener. When both are empty, every local peer may\npresent forwarded headers. Abstract sockets (@name) never trust forwarded headers.",
                     "type": "array",
                     "items": {
                         "type": "integer"

@@ -104,6 +104,21 @@ func TestGetRemoteIPIgnoresForwardedHeadersFromUntrustedPeer(t *testing.T) {
 	}
 }
 
+func TestGetRemoteIPUnixSocketHonorsForwardedWhenAllowlistsEmpty(t *testing.T) {
+	orig := settings.Config.Http
+	t.Cleanup(func() { settings.Config.Http = orig })
+	settings.Config.Http.TrustProxyHeaders = true
+	settings.Config.Http.Socket = "/var/run/filebrowser.sock"
+	settings.Config.Http.TrustedProxies = nil
+
+	req := httptest.NewRequest("GET", "http://example.com/", nil)
+	req.RemoteAddr = "@"
+	req.Header.Set("X-Forwarded-For", "203.0.113.50")
+	if got := GetRemoteIP(req); got != "203.0.113.50" {
+		t.Fatalf("GetRemoteIP = %q, want 203.0.113.50", got)
+	}
+}
+
 // With no trusted proxies configured, forwarded headers are never honored.
 func TestGetRemoteIPIgnoresForwardedHeadersWithoutTrustedProxies(t *testing.T) {
 	orig := settings.Config.Http
