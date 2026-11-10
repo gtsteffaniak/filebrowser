@@ -157,6 +157,17 @@
     "requirePasswordChangeMustDiffer": "Yeni şifreniz, mevcut şifrenizden farklı olmalıdır"
   },
   "prompts": {
+    "mediaInfo": "Medya Bilgisi",
+    "mediaTitle": "Başlık",
+    "subtitle": "Altyazı {n}",
+    "artist": "Sanatçı",
+    "album": "Albüm",
+    "year": "Yıl",
+    "genre": "Tür",
+    "track": "Parça",
+    "container": "Kapsayıcı",
+    "videoCodec": "Video Kodeği",
+    "audioCodec": "Ses Kodeği",
     "noTemplate": "Şablonunuz boş!",
     "newFileTemplate": "Yeni dosya şablonu",
     "newFileTemplateMessage": "Buraya yeni dosya adları ekleyin, bunlar bağlam menüsünde yeni dosya oluşturmak için şablon olarak kullanılacaktır!",
@@ -494,6 +505,8 @@
     "passwordRequiredForGeneration": "Kimlik doğrulayıcı kodu oluşturmak için parolanız gereklidir."
   },
   "general": {
+    "show": "Göster",
+    "hide": "Gizle",
     "import": "İçe Aktar",
     "export": "Dışa Aktar",
     "name": "İsim{suffix}",
@@ -676,7 +689,6 @@
     "allow": "İzin ver",
     "allowDeny": "İzin Ver / Reddet",
     "userGroup": "Kullanıcı/Grup",
-    "accessManagement": "Erişim Yönetimi",
     "totalDenied": "Reddedildi",
     "totalAllowed": "İzin verildi",
     "all": "Tümünü Reddet",
@@ -684,8 +696,6 @@
     "defaultBehavior": "Varsayılan eylem{suffix}",
     "cascadeDelete": "Yinelemeli Silme",
     "cascadeDeleteDescription": "Etkinleştirildiğinde, bir erişim kuralı silindiğinde tüm alt dizinlerden de kaldırılır. Bu, bir kullanıcıyı veya grubu tüm dizin ağacından tamamen kaldırmanıza olanak tanır.",
-    "hasRules": "Erişim kuralları yapılandırıldı",
-    "manageDescription": "Bu yol için açık erişim kuralları.",
     "newGroup": "Yeni grup",
     "editGroup": "Grubu düzenle",
     "groupName": "Grup adı",

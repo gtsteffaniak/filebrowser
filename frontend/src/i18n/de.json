@@ -157,6 +157,17 @@
     "requirePasswordChangeMustDiffer": "Das neue Passwort muss sich von Ihrem aktuellen Passwort unterscheiden."
   },
   "prompts": {
+    "mediaInfo": "Medieninformationen",
+    "mediaTitle": "Titel",
+    "subtitle": "Untertitel {n}",
+    "artist": "Künstler",
+    "album": "Album",
+    "year": "Jahr",
+    "genre": "Genre",
+    "track": "Titel",
+    "container": "Container",
+    "videoCodec": "Video-Codec",
+    "audioCodec": "Audio-Codec",
     "noTemplate": "Ihre Vorlage ist leer!",
     "newFileTemplate": "Vorlage für neue Dateien",
     "newFileTemplateMessage": "Fügen Sie hier neue Dateinamen hinzu, diese werden als Vorlage für die Erstellung neuer Dateien im Kontextmenü verwendet!",
@@ -494,6 +505,8 @@
     "passwordRequiredForGeneration": "Ihr Passwort ist erforderlich, um einen Authentifizierungscode zu generieren."
   },
   "general": {
+    "show": "Anzeigen",
+    "hide": "Ausblenden",
     "import": "Importieren",
     "export": "Exportieren",
     "name": "Name",
@@ -676,7 +689,6 @@
     "allow": "Zulassen",
     "allowDeny": "Zulassen/Verweigern",
     "userGroup": "Benutzer/Gruppe",
-    "accessManagement": "Zugangsverwaltung",
     "totalDenied": "Verweigert",
     "totalAllowed": "Erlaubt",
     "all": "Alle ablehnen",
@@ -684,8 +696,6 @@
     "defaultBehavior": "Standard-Aktion{suffix}",
     "cascadeDelete": "Rekursives Löschen",
     "cascadeDeleteDescription": "Wenn diese Funktion aktiviert ist, wird beim Löschen einer Zugriffsregel diese auch aus allen Unterverzeichnissen entfernt. Auf diese Weise können Sie einen Benutzer oder eine Gruppe vollständig aus dem gesamten Verzeichnisbaum entfernen.",
-    "hasRules": "Zugriffsregeln konfiguriert",
-    "manageDescription": "Zugangsregeln für diesen Pfad.",
     "newGroup": "Neue Gruppe",
     "editGroup": "Gruppe bearbeiten",
     "groupName": "Gruppenname",

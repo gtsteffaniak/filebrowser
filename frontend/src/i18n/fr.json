@@ -157,6 +157,17 @@
     "requirePasswordChangeMustDiffer": "Le nouveau mot de passe doit être différent de votre mot de passe actuel"
   },
   "prompts": {
+    "mediaInfo": "Infos média",
+    "mediaTitle": "Titre",
+    "subtitle": "Sous-titre {n}",
+    "artist": "Artiste",
+    "album": "Album",
+    "year": "Année",
+    "genre": "Genre",
+    "track": "Piste",
+    "container": "Conteneur",
+    "videoCodec": "Codec vidéo",
+    "audioCodec": "Codec audio",
     "noTemplate": "Votre modèle est vide !",
     "newFileTemplate": "Modèle de nouveau fichier",
     "newFileTemplateMessage": "Ajoutez ici de nouveaux noms de fichiers, ils seront utilisés comme modèle pour la création de nouveaux fichiers dans le menu contextuel !",
@@ -494,6 +505,8 @@
     "passwordRequiredForGeneration": "Votre mot de passe est nécessaire pour générer un code d'authentification."
   },
   "general": {
+    "show": "Afficher",
+    "hide": "Masquer",
     "import": "Importer",
     "export": "Exporter",
     "name": "Nom",
@@ -676,7 +689,6 @@
     "allow": "Autoriser",
     "allowDeny": "Autoriser/refuser",
     "userGroup": "Utilisateur/Groupe",
-    "accessManagement": "Gestion de l'accès",
     "totalDenied": "Refusé",
     "totalAllowed": "Autorisé",
     "all": "Refuser tout",
@@ -684,8 +696,6 @@
     "defaultBehavior": "Action par défaut{suffix}",
     "cascadeDelete": "Suppression récursive",
     "cascadeDeleteDescription": "Lorsque cette option est activée, la suppression d'une règle d'accès s'applique également à tous les sous-répertoires. Cela vous permet de supprimer complètement un utilisateur ou un groupe de toute l'arborescence des répertoires.",
-    "hasRules": "Règles d'accès configurées",
-    "manageDescription": "Règles d'accès libre pour ce chemin.",
     "newGroup": "Nouveau groupe",
     "editGroup": "Modifier le groupe",
     "groupName": "Nom du groupe",

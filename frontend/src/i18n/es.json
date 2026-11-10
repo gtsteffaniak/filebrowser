@@ -157,6 +157,17 @@
     "requirePasswordChangeMustDiffer": "La nueva contraseña debe ser diferente de tu contraseña actual"
   },
   "prompts": {
+    "mediaInfo": "Información multimedia",
+    "mediaTitle": "Título",
+    "subtitle": "Subtítulo {n}",
+    "artist": "Artista",
+    "album": "Álbum",
+    "year": "Año",
+    "genre": "Género",
+    "track": "Pista",
+    "container": "Contenedor",
+    "videoCodec": "Códec de vídeo",
+    "audioCodec": "Códec de audio",
     "noTemplate": "¡Tu plantilla está vacía!",
     "newFileTemplate": "Plantilla para nuevos archivos",
     "newFileTemplateMessage": "¡Añade nuevos nombres de archivo aquí, se usarán como plantilla para crear nuevos archivos en el menú contextual!",
@@ -494,6 +505,8 @@
     "passwordRequiredForGeneration": "Su contraseña es necesaria para generar un código autenticador."
   },
   "general": {
+    "show": "Mostrar",
+    "hide": "Ocultar",
     "import": "Importar",
     "export": "Exportar",
     "name": "Nombre{suffix}",
@@ -676,7 +689,6 @@
     "allow": "Permitir",
     "allowDeny": "Permitir/Bloquear",
     "userGroup": "Usuario/Grupo",
-    "accessManagement": "Gestión de accesos",
     "totalDenied": "Bloqueados",
     "totalAllowed": "Permitidos",
     "all": "Bloquear todo",
@@ -684,8 +696,6 @@
     "defaultBehavior": "Regla por defecto {suffix}",
     "cascadeDelete": "Eliminación en cascada",
     "cascadeDeleteDescription": "Si eliminas una regla de acceso con esta opción, también la eliminará para todo el contenido (archivos y carpetas), lo cual nos permite eliminar por completo un usuario o grupo de todo el árbol de directorios",
-    "hasRules": "Normas de acceso configuradas",
-    "manageDescription": "Abrir las reglas de acceso de esta ruta.",
     "newGroup": "Nuevo grupo",
     "editGroup": "Editar grupo",
     "groupName": "Nombre del grupo",

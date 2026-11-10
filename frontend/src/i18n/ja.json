@@ -157,6 +157,17 @@
     "requirePasswordChangeMustDiffer": "新しいパスワードは、現在のパスワードとは異なるものにしてください"
   },
   "prompts": {
+    "mediaInfo": "メディア情報",
+    "mediaTitle": "タイトル",
+    "subtitle": "字幕 {n}",
+    "artist": "アーティスト",
+    "album": "アルバム",
+    "year": "年",
+    "genre": "ジャンル",
+    "track": "トラック",
+    "container": "コンテナ",
+    "videoCodec": "ビデオコーデック",
+    "audioCodec": "オーディオコーデック",
     "noTemplate": "テンプレートが空です！",
     "newFileTemplate": "新規ファイルテンプレート",
     "newFileTemplateMessage": "新しいファイル名をここに追加すると、コンテキストメニューでの新規ファイル作成のテンプレートとして使用されます！",
@@ -494,6 +505,8 @@
     "passwordRequiredForGeneration": "認証コードを生成するにはパスワードが必要です。"
   },
   "general": {
+    "show": "表示",
+    "hide": "非表示",
     "import": "インポート",
     "export": "エクスポート",
     "name": "名前",
@@ -676,7 +689,6 @@
     "allow": "許可",
     "allowDeny": "許可/拒否",
     "userGroup": "ユーザー/グループ",
-    "accessManagement": "アクセス管理",
     "totalDenied": "拒否済み",
     "totalAllowed": "許可済み",
     "all": "すべて拒否",
@@ -684,8 +696,6 @@
     "defaultBehavior": "デフォルト動作{suffix}",
     "cascadeDelete": "再帰的削除",
     "cascadeDeleteDescription": "有効な場合、アクセスルールを削除すると、すべてのサブディレクトリからも削除される。これにより、ディレクトリツリー全体からユーザーまたはグループを 完全に削除することができる。",
-    "hasRules": "アクセスルールが設定されました",
-    "manageDescription": "この経路に関するオープンアクセスに関する規則。",
     "newGroup": "新規グループ",
     "editGroup": "グループを編集",
     "groupName": "グループ名",

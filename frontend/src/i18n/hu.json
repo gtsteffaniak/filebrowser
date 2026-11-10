@@ -157,6 +157,17 @@
     "requirePasswordChangeMustDiffer": "Az új jelszónak különböznie kell a jelenlegi jelszótól"
   },
   "prompts": {
+    "mediaInfo": "Média információ",
+    "mediaTitle": "Cím",
+    "subtitle": "{n}. felirat",
+    "artist": "Előadó",
+    "album": "Album",
+    "year": "Év",
+    "genre": "Műfaj",
+    "track": "Szám",
+    "container": "Konténer",
+    "videoCodec": "Videó kodek",
+    "audioCodec": "Audió kodek",
     "noTemplate": "A sablon üres!",
     "newFileTemplate": "Új fájl sablon",
     "newFileTemplateMessage": "Adjon hozzá új fájlneveket itt, ezek sablonként szolgálnak az új fájlok létrehozásához a helyi menüben!",
@@ -494,6 +505,8 @@
     "passwordRequiredForGeneration": "A hitelesítési kód generálásához a jelszóra van szükség."
   },
   "general": {
+    "show": "Mutat",
+    "hide": "Elrejt",
     "import": "Importálás",
     "export": "Exportálás",
     "name": "Név",
@@ -676,7 +689,6 @@
     "allow": "Engedélyezze a",
     "allowDeny": "Engedélyezés/Tiltás",
     "userGroup": "Felhasználó/csoport",
-    "accessManagement": "Hozzáférés-kezelés",
     "totalDenied": "Elutasítva",
     "totalAllowed": "Engedélyezett",
     "all": "Mindent megtagadni",
@@ -684,8 +696,6 @@
     "defaultBehavior": "Alapértelmezett cselekvés{suffix}",
     "cascadeDelete": "Rekurzív törlés",
     "cascadeDeleteDescription": "Ha engedélyezve van, egy hozzáférési szabály törlése az összes alkönyvtárból is eltávolítja azt. Ez lehetővé teszi egy felhasználó vagy csoport teljes eltávolítását a teljes könyvtárfából.",
-    "hasRules": "A hozzáférési szabályok beállítása",
-    "manageDescription": "A hozzáférésre vonatkozó szabályok ezen az útvonalon.",
     "newGroup": "Új csoport",
     "editGroup": "Csoport szerkesztése",
     "groupName": "Csoport neve",

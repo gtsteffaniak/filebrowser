@@ -157,6 +157,17 @@
     "requirePasswordChangeMustDiffer": "Nové heslo sa nesmie zhodovať s vaším súčasným heslom"
   },
   "prompts": {
+    "mediaInfo": "Informácie o médiu",
+    "mediaTitle": "Názov",
+    "subtitle": "Titulky {n}",
+    "artist": "Interpret",
+    "album": "Album",
+    "year": "Rok",
+    "genre": "Žáner",
+    "track": "Stopa",
+    "container": "Kontajner",
+    "videoCodec": "Video kodek",
+    "audioCodec": "Audio kodek",
     "noTemplate": "Vaša šablóna je prázdna!",
     "newFileTemplate": "Šablóna nového súboru",
     "newFileTemplateMessage": "Tu pridajte nové názvy súborov, budú sa používať ako šablóna na vytváranie nových súborov v kontextovej ponuke!",
@@ -494,6 +505,8 @@
     "passwordRequiredForGeneration": "Na vygenerovanie autentifikačného kódu je potrebné vaše heslo."
   },
   "general": {
+    "show": "Zobraziť",
+    "hide": "Skryť",
     "import": "Importovať",
     "export": "Exportovať",
     "name": "Názov",
@@ -676,7 +689,6 @@
     "allow": "Povoľte",
     "allowDeny": "Povoliť/odmietnuť",
     "userGroup": "Používateľ/skupina",
-    "accessManagement": "Správa prístupu",
     "totalDenied": "Odmietnuté",
     "totalAllowed": "Povolené",
     "all": "Odmietnuť všetko",
@@ -684,8 +696,6 @@
     "defaultBehavior": "Predvolená akcia{suffix}",
     "cascadeDelete": "Rekurzívne vymazanie",
     "cascadeDeleteDescription": "Ak je táto možnosť povolená, odstránením pravidla prístupu sa odstráni aj zo všetkých podadresárov. To umožňuje úplne odstrániť používateľa alebo skupinu z celého stromu adresárov.",
-    "hasRules": "Nastavené pravidlá prístupu",
-    "manageDescription": "Pravidlá otvoreného prístupu pre túto trasu.",
     "newGroup": "Nová skupina",
     "editGroup": "Upraviť skupinu",
     "groupName": "Názov skupiny",

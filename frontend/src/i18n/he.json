@@ -157,6 +157,17 @@
     "requirePasswordChangeMustDiffer": "הסיסמה החדשה חייבת להיות שונה מהסיסמה הנוכחית שלך"
   },
   "prompts": {
+    "mediaInfo": "מידע מדיה",
+    "mediaTitle": "כותרת",
+    "subtitle": "כתובית {n}",
+    "artist": "אמן",
+    "album": "אלבום",
+    "year": "שנה",
+    "genre": "ז'אנר",
+    "track": "רצועה",
+    "container": "מכל",
+    "videoCodec": "קודק וידאו",
+    "audioCodec": "קודק אודיו",
     "noTemplate": "התבנית שלך ריקה!",
     "newFileTemplate": "תבנית קובץ חדש",
     "newFileTemplateMessage": "הוסף שמות קבצים חדשים כאן, הם ישמשו כתבנית ליצירת קבצים חדשים בתפריט ההקשר!",
@@ -494,6 +505,8 @@
     "passwordRequiredForGeneration": "יש להזין את הסיסמה שלך כדי ליצור קוד אימות."
   },
   "general": {
+    "show": "הצג",
+    "hide": "הסתר",
     "import": "ייבוא",
     "export": "ייצוא",
     "name": "שם",
@@ -676,7 +689,6 @@
     "allow": "אפשר",
     "allowDeny": "אפשר/דחה",
     "userGroup": "משתמש/קבוצה",
-    "accessManagement": "ניהול גישה",
     "totalDenied": "נדחה",
     "totalAllowed": "מותר",
     "all": "דחה הכל",
@@ -684,8 +696,6 @@
     "defaultBehavior": "פעולה ברירת מחדל{suffix}",
     "cascadeDelete": "מחיקה רקורסיבית",
     "cascadeDeleteDescription": "כאשר אפשרות זו מופעלת, מחיקת כלל גישה תסיר אותו גם מכל הספריות המשנה. כך תוכל להסיר משתמש או קבוצה לחלוטין מכל עץ הספריות.",
-    "hasRules": "כללי הגישה הוגדרו",
-    "manageDescription": "כללי הגישה הפתוחה לנתיב זה.",
     "newGroup": "קבוצה חדשה",
     "editGroup": "עריכת קבוצה",
     "groupName": "שם הקבוצה",
