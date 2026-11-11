@@ -121,12 +121,12 @@ func (s *duplicateProcessingStats) shouldStop() (bool, string) {
 //     identical content but different filenames)
 //
 // Performance Optimizations:
-// - Checksums are cached for 1 hour (keyed by path/size/modtime) to speed up subsequent requests
-//   The checksum budget counts only cache misses (real disk I/O); cached digests are free,
-//   so a re-run proceeds past the previously-examined files instead of stalling at the limit.
-// - Files are processed in batches to balance memory usage vs SQL query count
-// - Resource limits prevent timeouts: max 2 minutes, max 10K checksum operations
-// - Large fuzzy groups are skipped to avoid expensive checksum operations on false positives
+//   - Checksums are cached for 1 hour (keyed by path/size/modtime) to speed up subsequent requests
+//     The checksum budget counts only cache misses (real disk I/O); cached digests are free,
+//     so a re-run proceeds past the previously-examined files instead of stalling at the limit.
+//   - Files are processed in batches to balance memory usage vs SQL query count
+//   - Resource limits prevent timeouts: max 2 minutes, max 10K checksum operations
+//   - Large fuzzy groups are skipped to avoid expensive checksum operations on false positives
 //
 // Response includes incomplete flag if processing was stopped early due to resource limits.
 //
@@ -259,8 +259,7 @@ func duplicatesHandler(w http.ResponseWriter, r *http.Request, d *Context) (int,
 		Reason:     stats.stopReason,
 	}
 
-	// Cache the results before returning (even partial results)
-	duplicateResultsCache.Set(cacheKey, response)
+	cacheDuplicateResponse(r.Context(), cacheKey, response)
 
 	if stats.stopped {
 		w.Header().Set("X-Search-Incomplete", "true")
@@ -483,6 +482,14 @@ func findDuplicatesInIndex(ctx context.Context, index *indexing.Index, opts *dup
 	}
 
 	return duplicateGroups
+}
+
+// cacheDuplicateResponse stores a duplicate search response when the client context is still active.
+func cacheDuplicateResponse(ctx context.Context, cacheKey string, response duplicateResponse) {
+	if ctx.Err() != nil {
+		return
+	}
+	duplicateResultsCache.Set(cacheKey, response)
 }
 
 func prepDuplicatesOptions(r *http.Request, d *Context) (*duplicatesOptions, error) {
