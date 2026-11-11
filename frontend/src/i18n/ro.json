@@ -1116,7 +1116,8 @@
     "groupsFound": "Grupuri duplicate găsite{suffix}",
     "totalWastedSpace": "Spațiu total irosit{suffix}",
     "wasted": "irosit{suffix}",
-    "emptyState": "Introduceți criteriile de căutare și faceți clic pe Find Duplicates pentru a identifica fișierele duplicate"
+    "emptyState": "Introduceți criteriile de căutare și faceți clic pe Find Duplicates pentru a identifica fișierele duplicate",
+    "noResults": "Căutarea s-a încheiat — nu s-au găsit fișiere duplicate."
   },
   "notifications": {
     "title": "Notificări",

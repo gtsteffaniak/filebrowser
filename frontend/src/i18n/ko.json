@@ -1116,7 +1116,8 @@
     "groupsFound": "중복 그룹 발견{suffix}",
     "totalWastedSpace": "낭비되는 총 공간{suffix}",
     "wasted": "낭비{suffix}",
-    "emptyState": "검색 기준을 입력하고 중복 파일 찾기를 클릭하여 중복 파일을 식별합니다."
+    "emptyState": "검색 기준을 입력하고 중복 파일 찾기를 클릭하여 중복 파일을 식별합니다.",
+    "noResults": "검색이 완료되었습니다. 중복 파일은 발견되지 않았습니다."
   },
   "notifications": {
     "title": "알림",

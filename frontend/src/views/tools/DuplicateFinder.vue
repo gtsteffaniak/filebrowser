@@ -103,8 +103,9 @@
         </div>
       </div>
       <div v-else-if="!loading" class="empty-state">
-        <i class="material-symbols-outlined">content_copy</i>
-        <p>{{ $t('duplicateFinder.emptyState') }}</p>
+        <i v-if="!hasSearched" class="material-symbols-outlined">content_copy</i>
+        <i v-else class="material-symbols-outlined">check_circle</i>
+        <p>{{ hasSearched ? $t('duplicateFinder.noResults') : $t('duplicateFinder.emptyState') }}</p>
       </div>
     </div>
   </div>
@@ -165,6 +166,7 @@ const resultPath = ref("/");
 const resultSource = ref("");
 const minSizeValue = ref(10);
 const loading = ref(false);
+const hasSearched = ref(false);
 const error = ref<string | null>(null);
 const duplicateGroups = shallowRef<DuplicateGroup[]>([]);
 const isIncomplete = ref(false);
@@ -291,6 +293,7 @@ async function fetchData() {
     incompleteReason.value = result.reason || "";
 
     // Reset selection, deleted, and failed files when new results arrive
+    hasSearched.value = true;
     clearSelection();
     deletedFiles.value.clear();
     failedFiles.value.clear();
@@ -299,6 +302,7 @@ async function fetchData() {
     duplicateGroups.value = [];
     isIncomplete.value = false;
     incompleteReason.value = "";
+    hasSearched.value = false;
     clearSelection();
     deletedFiles.value.clear();
     failedFiles.value.clear();

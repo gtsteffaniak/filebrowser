@@ -122,6 +122,8 @@ func (s *duplicateProcessingStats) shouldStop() (bool, string) {
 //
 // Performance Optimizations:
 // - Checksums are cached for 1 hour (keyed by path/size/modtime) to speed up subsequent requests
+//   The checksum budget counts only cache misses (real disk I/O); cached digests are free,
+//   so a re-run proceeds past the previously-examined files instead of stalling at the limit.
 // - Files are processed in batches to balance memory usage vs SQL query count
 // - Resource limits prevent timeouts: max 2 minutes, max 10K checksum operations
 // - Large fuzzy groups are skipped to avoid expensive checksum operations on false positives
@@ -164,7 +166,10 @@ func duplicatesHandler(w http.ResponseWriter, r *http.Request, d *Context) (int,
 
 	// Safety check: Reject duplicate search during active indexing to prevent resource contention
 	// This protects against CPU/memory spikes and ensures indexing performance is not degraded
-	if string(index.Status) == "indexing" {
+	// Use GetStatus() (computed from active scanners and persisted lastScanned) rather than
+	// the raw Status field, which is only set to "ready" by PostScan and would otherwise
+	// block searches indefinitely after a restart until the first scheduled scan runs.
+	if index.GetStatus() == indexing.INDEXING {
 		return http.StatusServiceUnavailable, fmt.Errorf("duplicate search is not available while indexing is in progress - please try again when indexing completes")
 	}
 
@@ -233,6 +238,12 @@ func duplicatesHandler(w http.ResponseWriter, r *http.Request, d *Context) (int,
 		uniqueChecksums: make(map[string]bool),
 	}
 	duplicateGroups := findDuplicatesInIndex(r.Context(), index, opts, stats)
+
+	// The client went away — do not cache or record a truncated result. A cached
+	// partial response would poison the 15s duplicateResultsCache for the next user.
+	if err := r.Context().Err(); err != nil {
+		return http.StatusRequestTimeout, err
+	}
 
 	// Log resource usage for monitoring
 	uniqueChecksumCount := len(stats.uniqueChecksums)

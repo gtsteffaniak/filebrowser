@@ -14,7 +14,7 @@ import (
 	"github.com/cespare/xxhash/v2"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing/iteminfo"
-	"github.com/gtsteffaniak/go-logger/logger"
+	"github.com/gtsteffaniak/go-cache/cache"
 )
 
 const (
@@ -39,13 +39,12 @@ type checksumCacheKey struct {
 	kind       checksumSampleKind
 }
 
-type cachedChecksumEntry struct {
-	digest string
-	expiry time.Time
-}
-
 var (
-	checksumTypedCache sync.Map
+	// checksumTypedCache stores sample digests keyed by string-encoded checksumCacheKey.
+	// The go-cache backend sweeps expired entries on an hourly ticker, so stale keys from
+	// renamed/deleted/modified files are evicted without a lookup — unlike a bare sync.Map
+	// which would grow without bound. Cleanup interval is the second arg (1h, matching TTL).
+	checksumTypedCache = cache.NewCache[string](checksumCacheTTL, checksumCacheTTL)
 	checksumBufPool    = sync.Pool{
 		New: func() any {
 			buf := make([]byte, checksumSampleSize)
@@ -70,27 +69,20 @@ func digestHex(h hash.Hash) string {
 	return string(dst)
 }
 
+// checksumCacheKeyString encodes a typed cache key as a single string so it can
+// be stored in the TTL-sweeping go-cache. Length prefixes keep fields unambiguous.
+func checksumCacheKeyString(key checksumCacheKey) string {
+	return fmt.Sprintf("%d|%d|%d|%d|%s|%s",
+		key.kind, key.size, key.modTime, len(key.sourcePath),
+		key.sourcePath, key.filePath)
+}
+
 func getChecksumFromCache(key checksumCacheKey) (string, bool) {
-	v, ok := checksumTypedCache.Load(key)
-	if !ok {
-		return "", false
-	}
-	entry, ok := v.(cachedChecksumEntry)
-	if !ok {
-		return "", false
-	}
-	if time.Now().After(entry.expiry) {
-		checksumTypedCache.Delete(key)
-		return "", false
-	}
-	return entry.digest, true
+	return checksumTypedCache.Get(checksumCacheKeyString(key))
 }
 
 func setChecksumCache(key checksumCacheKey, digest string) {
-	checksumTypedCache.Store(key, cachedChecksumEntry{
-		digest: digest,
-		expiry: time.Now().Add(checksumCacheTTL),
-	})
+	checksumTypedCache.Set(checksumCacheKeyString(key), digest)
 }
 
 func readFileSampleDigests(ctx context.Context, sourcePath, filePath string, size int64, modTime time.Time, stats *duplicateProcessingStats) (fileSampleDigests, error) {
@@ -111,6 +103,10 @@ func readFileSampleDigests(ctx context.Context, sourcePath, filePath string, siz
 	if ctx.Err() != nil {
 		return fileSampleDigests{}, ctx.Err()
 	}
+	// Only count operations that actually touch disk. Cache hits are O(1) lookups
+	// and must not consume the checksum budget — otherwise a second search over
+	// the same files stalls at the limit without reading a single new byte.
+	// The budget check lives here (post-cache) so cached digests are always served.
 	if shouldStop, _ := stats.shouldStop(); shouldStop {
 		return fileSampleDigests{}, fmt.Errorf("duplicate search budget exhausted")
 	}
@@ -120,6 +116,9 @@ func readFileSampleDigests(ctx context.Context, sourcePath, filePath string, siz
 		return fileSampleDigests{}, err
 	}
 	defer file.Close()
+
+	// A disk read is happening — charge it against the checksum budget.
+	stats.checksumOperations++
 
 	raw := checksumBufPool.Get()
 	bufPtr, ok := raw.(*[]byte)
@@ -206,13 +205,9 @@ func groupFilesByChecksum(ctx context.Context, files []*iteminfo.FileInfo, index
 		if ctx.Err() != nil {
 			return nil
 		}
-		if stats.checksumOperations >= maxChecksumOperations {
-			logger.Warningf("[Duplicates] Reached checksum operation limit (%d) in header pass", maxChecksumOperations)
-			break
-		}
-		if shouldStop, _ := stats.shouldStop(); shouldStop {
-			break
-		}
+		// Budget checks live inside readFileSampleDigests (after the cache lookup)
+		// so cached digests still count toward grouping without consuming budget.
+		// Checking here would stall on cached files and look stuck.
 
 		if file.Size != fileSize {
 			continue
@@ -223,7 +218,6 @@ func groupFilesByChecksum(ctx context.Context, files []*iteminfo.FileInfo, index
 		if err != nil {
 			continue
 		}
-		stats.checksumOperations++
 		digestByPath[file.Path] = digests
 		stats.uniqueChecksums[digests.header] = true
 		headerGroups[digests.header] = append(headerGroups[digests.header], file)

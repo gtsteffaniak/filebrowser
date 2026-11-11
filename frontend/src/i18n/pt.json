@@ -1116,7 +1116,8 @@
     "groupsFound": "Grupos duplicados encontrados{suffix}",
     "totalWastedSpace": "Total de espaço desperdiçado{suffix}",
     "wasted": "Desperdiçado{suffix}",
-    "emptyState": "Introduza os critérios de pesquisa e clique em Encontrar Duplicados para identificar ficheiros duplicados"
+    "emptyState": "Introduza os critérios de pesquisa e clique em Encontrar Duplicados para identificar ficheiros duplicados",
+    "noResults": "Pesquisa concluída — não foram encontrados ficheiros duplicados."
   },
   "notifications": {
     "title": "Notificações",

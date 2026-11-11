@@ -1165,7 +1165,8 @@
     "groupsFound": "Dubbele groepen gevonden{suffix}",
     "totalWastedSpace": "Totale verspilde ruimte{suffix}",
     "wasted": "Verspild{suffix}",
-    "emptyState": "Voer zoekcriteria in en klik op Dubbele bestanden zoeken om deze te vinden"
+    "emptyState": "Voer zoekcriteria in en klik op Dubbele bestanden zoeken om deze te vinden",
+    "noResults": "Zoekopdracht voltooid — er zijn geen dubbele bestanden gevonden."
   },
   "events": {
     "serverShutdown": "De server is uitgeschakeld.",

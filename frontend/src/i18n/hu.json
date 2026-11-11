@@ -1116,7 +1116,8 @@
     "groupsFound": "Duplikált csoportokat találtak{suffix}",
     "totalWastedSpace": "Teljes elpazarolt hely{suffix}",
     "wasted": "Elpazarolt{suffix}",
-    "emptyState": "Adja meg a keresési feltételeket, és kattintson a Duplikátumok keresése gombra a duplikált fájlok azonosításához."
+    "emptyState": "Adja meg a keresési feltételeket, és kattintson a Duplikátumok keresése gombra a duplikált fájlok azonosításához.",
+    "noResults": "A keresés befejeződött — nem találtak duplikált fájlokat."
   },
   "notifications": {
     "title": "Értesítések",
