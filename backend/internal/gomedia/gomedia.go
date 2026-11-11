@@ -371,14 +371,8 @@ func tagsCacheKey(path string, modTimeNanos, size int64) string {
 	return fmt.Sprintf("tags:%s:%d:%d", path, modTimeNanos, size)
 }
 
-// videoTagExts are the containers go-media can read tags from
-var videoTagExts = map[string]bool{".mp4": true, ".m4v": true, ".mov": true}
-
 // VideoTags reads embedded tags and cover from a video container
 func VideoTags(path string, withArt bool) (AudioInfo, bool) {
-	if !videoTagExts[strings.ToLower(filepath.Ext(path))] {
-		return AudioInfo{}, false
-	}
 	return timed("tags", path, nil, nil, func() (AudioInfo, bool) { return audioFast(path, withArt, false) })
 }
 

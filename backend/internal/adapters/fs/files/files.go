@@ -747,8 +747,10 @@ func extractVideoMetadata(ctx context.Context, item *iteminfo.ExtendedItemInfo, 
 	if info.FormatName != "" {
 		meta.Container = info.FormatName
 	}
-	if tags, ok := gomedia.VideoTags(realPath, getArt); ok {
-		applyMediaTags(meta, tags, realPath)
+	if ok {
+		if tags, tagsOK := gomedia.VideoTags(realPath, getArt); tagsOK {
+			applyMediaTags(meta, tags, realPath)
+		}
 	}
 	if meta.Duration > 0 || meta.VideoCodec != "" || meta.AudioCodec != "" || meta.Container != "" {
 		item.Metadata = meta
