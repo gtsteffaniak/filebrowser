@@ -814,6 +814,9 @@
     "singleClick": "Dosyaları tek tıklamayla aç",
     "stickySidebar": "Sabit kenar çubuğu",
     "darkMode": "Koyu mod",
+    "darkModeSystem": "Sistemi takip et",
+    "darkModeLight": "Açık",
+    "darkModeDark": "Koyu",
     "defaultViewMode": "Varsayılan görüntüleme modu",
     "defaultViewModeDescription": "Yeni tarayıcılarda veya cihazlarda ilk görüntüleme modu. Yerel olarak önceden kaydedilmiş görüntüleme tercihlerini geçersiz kılmaz.",
     "defaultGallerySize": "Varsayılan küçük resim boyutu",
@@ -1126,7 +1129,8 @@
     "groupsFound": "Yinelenen Gruplar Bulundu{suffix}",
     "totalWastedSpace": "Toplam Boşa Harcanan Alan{suffix}",
     "wasted": "Boşa Harcanan{suffix}",
-    "emptyState": "Yinelenen dosyaları belirlemek için arama kriterlerini girin ve Yinelenenleri Bul'a tıklayın"
+    "emptyState": "Yinelenen dosyaları belirlemek için arama kriterlerini girin ve Yinelenenleri Bul'a tıklayın",
+    "noResults": "Arama tamamlandı — yinelenen dosya bulunamadı."
   },
   "notifications": {
     "title": "Bildirimler",

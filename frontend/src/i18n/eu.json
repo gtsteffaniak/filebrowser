@@ -594,6 +594,9 @@
     "singleClick": "Klik bakarra fitxategiak irekitzeko",
     "stickySidebar": "Alboko barra finkoa",
     "darkMode": "Modu iluna",
+    "darkModeSystem": "Sistema jarraitu",
+    "darkModeLight": "Argia",
+    "darkModeDark": "Iluna",
     "showHiddenFiles": "Erakutsi ezkutuko fitxategiak",
     "showHiddenFilesDescription": "Erakutsi ezkutuko fitxategiak zerrendan (adib. .thumbnails, ProgramData); hala ere, eskuz eskuragarri daude indexatzeko konfiguratuta badaude.",
     "showQuickDownload": "Erakutsi deskarga-ikonoa sarbide azkarrerako",
@@ -1175,7 +1178,8 @@
     "groupsFound": "Aurkitutako bikoiztu-taldeak{suffix}",
     "totalWastedSpace": "Alferrik galdutako lekua guztira{suffix}",
     "wasted": "Alferrik galdua{suffix}",
-    "emptyState": "Idatzi bilaketa-irizpideak eta egin klik Bilatu bikoiztuak botoian fitxategi bikoiztuak identifikatzeko"
+    "emptyState": "Idatzi bilaketa-irizpideak eta egin klik Bilatu bikoiztuak botoian fitxategi bikoiztuak identifikatzeko",
+    "noResults": "Bilaketa amaituta — ez da fitxategi bikoizturik aurkitu."
   },
   "events": {
     "serverShutdown": "Zerbitzaria itzali da.",

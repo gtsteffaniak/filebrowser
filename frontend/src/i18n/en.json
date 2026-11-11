@@ -594,6 +594,9 @@
     "singleClick": "Single-click to open files",
     "stickySidebar": "Sticky sidebar",
     "darkMode": "Dark mode",
+    "darkModeSystem": "Follow system",
+    "darkModeLight": "Light",
+    "darkModeDark": "Dark",
     "showHiddenFiles": "Show hidden files",
     "showHiddenFilesDescription": "Show hidden files in listing (e.g. .thumbnails, ProgramData), but they are still manually accessible if configured to be indexed.",
     "showQuickDownload": "Show download icon for quick access",
@@ -1215,7 +1218,8 @@
     "groupsFound": "Duplicate Groups Found{suffix}",
     "totalWastedSpace": "Total Wasted Space{suffix}",
     "wasted": "Wasted{suffix}",
-    "emptyState": "Enter search criteria and click Find Duplicates to identify duplicate files"
+    "emptyState": "Enter search criteria and click Find Duplicates to identify duplicate files",
+    "noResults": "Search complete — no duplicate files found."
   },
   "events": {
     "serverShutdown": "The server was shutdown.",

@@ -814,6 +814,9 @@
     "singleClick": "Abre los archivos con un solo clic",
     "stickySidebar": "Barra lateral fija",
     "darkMode": "Modo oscuro",
+    "darkModeSystem": "Seguir el sistema",
+    "darkModeLight": "Claro",
+    "darkModeDark": "Oscuro",
     "defaultViewMode": "Modo de visualización predeterminado",
     "defaultViewModeDescription": "Modo de visualización inicial en navegadores o dispositivos nuevos. No anula las preferencias de visualización ya guardadas localmente.",
     "defaultGallerySize": "Tamaño predeterminado de las miniaturas",
@@ -1126,7 +1129,8 @@
     "groupsFound": "Grupos de duplicados{suffix}",
     "totalWastedSpace": "Espacio desperdiciado{suffix}",
     "wasted": "Desperdiciado{suffix}",
-    "emptyState": "Introduce los criterios de búsqueda y haz clic en \"Buscar duplicados\" para encontrar que archivos pueden estar gastando espacio."
+    "emptyState": "Introduce los criterios de búsqueda y haz clic en \"Buscar duplicados\" para encontrar que archivos pueden estar gastando espacio.",
+    "noResults": "Búsqueda completada: no se han encontrado archivos duplicados."
   },
   "notifications": {
     "title": "Notificaciones",

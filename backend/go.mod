@@ -49,6 +49,7 @@ require (
 	github.com/abema/go-mp4 v1.7.4 // indirect
 	github.com/at-wat/ebml-go v0.19.4 // indirect
 	github.com/boombuler/barcode v1.1.0 // indirect
+	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/dsoprea/go-logging v0.0.0-20200710184922-b02d349568dd // indirect
 	github.com/dsoprea/go-utility/v2 v2.0.0-20221003172846-a3e1774ef349 // indirect
 	github.com/dustin/go-humanize v1.1.0 // indirect

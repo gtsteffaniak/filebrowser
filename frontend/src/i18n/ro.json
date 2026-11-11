@@ -814,6 +814,9 @@
     "singleClick": "Deschideți fișierele cu un singur clic",
     "stickySidebar": "Bară laterală fixă",
     "darkMode": "Modul întunecat",
+    "darkModeSystem": "Urmează sistemul",
+    "darkModeLight": "Luminoasă",
+    "darkModeDark": "Întunecată",
     "defaultViewMode": "Modul de vizualizare implicit",
     "defaultViewModeDescription": "Modul de afișare inițial pe browserele sau dispozitivele noi. Nu înlocuiește preferințele de afișare salvate deja local.",
     "defaultGallerySize": "Dimensiunea implicită a miniaturilor",
@@ -1126,7 +1129,8 @@
     "groupsFound": "Grupuri duplicate găsite{suffix}",
     "totalWastedSpace": "Spațiu total irosit{suffix}",
     "wasted": "irosit{suffix}",
-    "emptyState": "Introduceți criteriile de căutare și faceți clic pe Find Duplicates pentru a identifica fișierele duplicate"
+    "emptyState": "Introduceți criteriile de căutare și faceți clic pe Find Duplicates pentru a identifica fișierele duplicate",
+    "noResults": "Căutarea s-a încheiat — nu s-au găsit fișiere duplicate."
   },
   "notifications": {
     "title": "Notificări",

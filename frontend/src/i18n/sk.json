@@ -814,6 +814,9 @@
     "singleClick": "Otvorenie súborov jedným kliknutím",
     "stickySidebar": "Lepivý bočný panel",
     "darkMode": "Tmavý režim",
+    "darkModeSystem": "Podľa systému",
+    "darkModeLight": "Svetlý",
+    "darkModeDark": "Tmavý",
     "defaultViewMode": "Predvolený režim zobrazenia",
     "defaultViewModeDescription": "Režim počiatočného zobrazenia v nových prehliadačoch alebo na nových zariadeniach. Neprepisuje nastavenia zobrazenia, ktoré sú už uložené lokálne.",
     "defaultGallerySize": "Predvolená veľkosť náhľadu",
@@ -1126,7 +1129,8 @@
     "groupsFound": "Nájdené duplicitné skupiny{suffix}",
     "totalWastedSpace": "Celkový premrhaný priestor{suffix}",
     "wasted": "Plytvanie{suffix}",
-    "emptyState": "Zadajte kritériá vyhľadávania a kliknite na tlačidlo Nájsť duplikáty, aby ste identifikovali duplicitné súbory"
+    "emptyState": "Zadajte kritériá vyhľadávania a kliknite na tlačidlo Nájsť duplikáty, aby ste identifikovali duplicitné súbory",
+    "noResults": "Vyhľadávanie bolo dokončené — neboli nájdené žiadne duplicitné súbory."
   },
   "notifications": {
     "title": "Oznámenia",
