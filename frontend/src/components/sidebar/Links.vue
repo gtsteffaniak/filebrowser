@@ -30,6 +30,21 @@
         aria-label="Edit Links"
         @click="openSidebarLinksPrompt" class="material-symbols action">edit</i>
     </div>
+    <!-- Source switcher only in navigation mode and when multiple sources exist (hidden in shares).
+         Kept outside the scrollable content area so it does not scroll horizontally with the folder tree. -->
+    <div
+      v-if="mode === 'navigation' && !isShare && sourceNames.length > 1"
+      class="source-card-container"
+      ref="sourceCardContainer"
+    >
+      <ExpandDropdown
+        class="sidebar-source-switcher"
+        :model-value="activeSource"
+        :options="sourceDropdownOptions"
+        :aria-label="$t('general.source')"
+        @update:model-value="navigateToSource"
+      />
+    </div>
     <!-- Scrollable Content Area -->
     <div class="sidebar-links-content">
       <!-- Links Mode -->
@@ -131,20 +146,6 @@
       </template>
       <!-- Navigation Mode -->
       <template v-else>
-        <!-- Source switcher only when multiple sources (hidden in shares) -->
-        <div
-          v-if="!isShare && sourceNames.length > 1"
-          class="source-card-container"
-          ref="sourceCardContainer"
-        >
-          <ExpandDropdown
-            class="sidebar-source-switcher"
-            :model-value="activeSource"
-            :options="sourceDropdownOptions"
-            :aria-label="$t('general.source')"
-            @update:model-value="navigateToSource"
-          />
-        </div>
         <FileTree
           :currentPath="currentPath"
           :currentSource="currentSource"
@@ -897,9 +898,15 @@ a.sidebar-link-button {
 
 .source-card-container {
   position: relative;
+  margin-top: 0.5em;
   margin-bottom: 0;
   padding-bottom: 0;
   border-bottom: 1px solid var(--divider);
+}
+
+/* When the source switcher sits above the scroll area, the content keeps its tree flush under the divider. */
+.source-card-container + .sidebar-links-content {
+  margin-top: 0;
 }
 
 .sidebar-source-switcher {
