@@ -1116,7 +1116,8 @@
     "groupsFound": "Dubbele groepen gevonden{suffix}",
     "totalWastedSpace": "Totale verspilde ruimte{suffix}",
     "wasted": "Verspild{suffix}",
-    "emptyState": "Voer zoekcriteria in en klik op Duplicaten zoeken om dubbele bestanden te identificeren"
+    "emptyState": "Voer zoekcriteria in en klik op Duplicaten zoeken om dubbele bestanden te identificeren",
+    "noResults": "Zoekopdracht voltooid — er zijn geen dubbele bestanden gevonden."
   },
   "notifications": {
     "title": "Meldingen",

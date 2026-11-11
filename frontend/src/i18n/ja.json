@@ -1116,7 +1116,8 @@
     "groupsFound": "重複グループが見つかりました{suffix}",
     "totalWastedSpace": "無駄なスペース{suffix}",
     "wasted": "無駄{suffix}",
-    "emptyState": "検索条件を入力し、「重複ファイルの検索」をクリックすると、重複ファイルが特定されます。"
+    "emptyState": "検索条件を入力し、「重複ファイルの検索」をクリックすると、重複ファイルが特定されます。",
+    "noResults": "検索が完了しました。重複するファイルは見つかりませんでした。"
   },
   "notifications": {
     "title": "お知らせ",

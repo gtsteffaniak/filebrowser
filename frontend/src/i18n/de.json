@@ -1116,7 +1116,8 @@
     "groupsFound": "Doppelte Gruppen gefunden{suffix}",
     "totalWastedSpace": "Insgesamt verschwendeter Platz{suffix}",
     "wasted": "Vergeudet{suffix}",
-    "emptyState": "Geben Sie Suchkriterien ein und klicken Sie auf Duplikate suchen, um doppelte Dateien zu identifizieren"
+    "emptyState": "Geben Sie Suchkriterien ein und klicken Sie auf Duplikate suchen, um doppelte Dateien zu identifizieren",
+    "noResults": "Suche abgeschlossen – es wurden keine doppelten Dateien gefunden."
   },
   "notifications": {
     "title": "Benachrichtigungen",

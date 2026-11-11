@@ -1116,7 +1116,8 @@
     "groupsFound": "重複群組數{suffix}",
     "totalWastedSpace": "可回收空間總量{suffix}",
     "wasted": "浪費空間{suffix}",
-    "emptyState": "輸入搜尋條件後，按一下 [尋找重複檔案] 即可找出重複檔案。"
+    "emptyState": "輸入搜尋條件後，按一下 [尋找重複檔案] 即可找出重複檔案。",
+    "noResults": "搜尋完成 — 未發現重複檔案。"
   },
   "notifications": {
     "title": "通知",

@@ -1116,7 +1116,8 @@
     "groupsFound": "Znaleziono zduplikowane grupy{suffix}",
     "totalWastedSpace": "Całkowita zmarnowana przestrzeń{suffix}",
     "wasted": "Zmarnowany{suffix}",
-    "emptyState": "Wprowadź kryteria wyszukiwania i kliknij Znajdź duplikaty, aby zidentyfikować zduplikowane pliki."
+    "emptyState": "Wprowadź kryteria wyszukiwania i kliknij Znajdź duplikaty, aby zidentyfikować zduplikowane pliki.",
+    "noResults": "Wyszukiwanie zakończone — nie znaleziono zduplikowanych plików."
   },
   "notifications": {
     "title": "Powiadomienia",

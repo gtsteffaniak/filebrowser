@@ -1116,7 +1116,8 @@
     "groupsFound": "发现重复组{suffix}",
     "totalWastedSpace": "浪费空间总计{suffix}",
     "wasted": "浪费{suffix}",
-    "emptyState": "输入搜索条件，然后单击查找重复文件，以识别重复文件"
+    "emptyState": "输入搜索条件，然后单击查找重复文件，以识别重复文件",
+    "noResults": "搜索完成——未找到重复文件。"
   },
   "notifications": {
     "title": "通知",

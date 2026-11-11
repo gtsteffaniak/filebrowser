@@ -1116,7 +1116,8 @@
     "groupsFound": "Yinelenen Gruplar Bulundu{suffix}",
     "totalWastedSpace": "Toplam Boşa Harcanan Alan{suffix}",
     "wasted": "Boşa Harcanan{suffix}",
-    "emptyState": "Yinelenen dosyaları belirlemek için arama kriterlerini girin ve Yinelenenleri Bul'a tıklayın"
+    "emptyState": "Yinelenen dosyaları belirlemek için arama kriterlerini girin ve Yinelenenleri Bul'a tıklayın",
+    "noResults": "Arama tamamlandı — yinelenen dosya bulunamadı."
   },
   "notifications": {
     "title": "Bildirimler",

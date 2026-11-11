@@ -1116,7 +1116,8 @@
     "groupsFound": "Nalezeny duplicitní skupiny{suffix}",
     "totalWastedSpace": "Celkový promarněný prostor{suffix}",
     "wasted": "Promarněné{suffix}",
-    "emptyState": "Zadejte kritéria vyhledávání a kliknutím na tlačítko Najít duplikáty identifikujte duplicitní soubory."
+    "emptyState": "Zadejte kritéria vyhledávání a kliknutím na tlačítko Najít duplikáty identifikujte duplicitní soubory.",
+    "noResults": "Vyhledávání dokončeno – nebyly nalezeny žádné duplicitní soubory."
   },
   "notifications": {
     "title": "Oznámení",

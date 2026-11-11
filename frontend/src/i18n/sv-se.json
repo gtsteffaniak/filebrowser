@@ -1116,7 +1116,8 @@
     "groupsFound": "Duplicerade grupper hittades{suffix}",
     "totalWastedSpace": "Totalt bortkastat utrymme{suffix}",
     "wasted": "Bortkastad{suffix}",
-    "emptyState": "Ange sökkriterier och klicka på Find Duplicates för att identifiera dubbletter av filer"
+    "emptyState": "Ange sökkriterier och klicka på Find Duplicates för att identifiera dubbletter av filer",
+    "noResults": "Sökningen är klar – inga dubbletter hittades."
   },
   "notifications": {
     "title": "Meddelanden",
