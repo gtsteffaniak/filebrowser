@@ -51,7 +51,7 @@
           <i class="material-symbols">{{ btn.icon }}</i>
         </button>
         <Teleport to="body">
-          <transition name="expand" @before-enter="expandBeforeEnter" @enter="expandEnter" @leave="expandLeave">
+          <transition :css="false" @enter="popEnter" @leave="popLeave">
             <ul v-if="openMenu === btn.menu" :ref="(el) => setIconMenuEl(btn.menu as 'align' | 'clipboard', el as HTMLElement | null)" class="editor-toolbar-menu editor-toolbar-menu--icon-menu floating-window border-radius" :style="menuStyle">
               <li v-for="item in iconMenuItems(btn.menu)" :key="item.id">
                 <button
@@ -112,7 +112,7 @@
         <i class="material-symbols">more_horiz</i>
       </button>
       <Teleport to="body">
-        <transition name="expand" @before-enter="expandBeforeEnter" @enter="expandEnter" @leave="expandLeave">
+        <transition :css="false" @enter="popEnter" @leave="popLeave">
           <ul v-if="openMenu === 'extra'" ref="extraMenu" class="editor-toolbar-menu floating-window border-radius" :style="menuStyle">
             <li v-for="item in extraMenuItems" :key="item.id">
               <button
@@ -141,7 +141,7 @@ import type { Ace } from "ace-builds";
 import { mutations, state, getters } from "@/store";
 import { eventBus } from "@/store/eventBus";
 import { removeLastDir } from "@/utils/url.js";
-import { expandBeforeEnter, expandEnter, expandLeave } from "@/utils/expandTransition";
+import { popEnter, popLeave } from "@/utils/transitions.ts";
 import { copyToClipboard } from "@/utils/clipboard.js";
 import { notify } from "@/notify";
 
@@ -329,7 +329,7 @@ const extraMenuItems = computed((): ToolbarButton[] => {
 
 const menuStyle = computed(() => {
   if (openMenu.value === "align" || openMenu.value === "clipboard") {
-    return { top: `${menuPosition.value.top}px`, left: `${menuPosition.value.left}px`, transform: "translateX(-50%)" };
+    return { top: `${menuPosition.value.top}px`, left: `${menuPosition.value.left}px`, translate: "-50% 0" };
   }
   return { top: `${menuPosition.value.top}px`, right: `${menuPosition.value.right}px` };
 });
@@ -984,9 +984,11 @@ defineExpose({ save });
   padding-bottom: 0.65em;
   list-style: none;
   z-index: 9999;
+  transform-origin: top right;
 }
 
 .editor-toolbar-menu--icon-menu {
+  transform-origin: top center;
   display: flex;
   gap: 0.15em;
   padding-bottom: 0.5em;
@@ -1003,10 +1005,5 @@ defineExpose({ save });
 
 .editor-toolbar-menu-btn .material-symbols {
   font-size: 1.1em;
-}
-
-.expand-enter-active,
-.expand-leave-active {
-  overflow: hidden;
 }
 </style>

@@ -1,7 +1,7 @@
 <template>
   <div :class="{ 'sidebar-overlay': floatingSidebar }" @dragover.prevent @drop.prevent>
     <transition name="overlay-fade">
-      <div v-show="showOverlay" @contextmenu.prevent="resetItems" @click="resetItems" class="overlay"></div>
+      <div v-show="showOverlay" @contextmenu.prevent="resetItems" @click="resetItems" class="overlay" :class="{ 'overlay-menu': menuOnlyOpen }"></div>
     </transition>
     <transition name="overlay-fade">
       <div v-if="overlayOverPrompt" @contextmenu.prevent="closeContextMenu" @click="closeContextMenu" class="overlay overlay-prompt"></div>
@@ -115,7 +115,7 @@ export default {
       const shouldMove = getters.isSidebarVisible() && getters.isStickySidebar();
       return {
         shouldMove,
-        style: shouldMove ? { paddingLeft: `${state.sidebar.width}em` } : {}
+        style: shouldMove ? { paddingLeft: "var(--sidebar-width)" } : {}
       };
     },
     spaceForEditorStatusBar() {
@@ -143,8 +143,18 @@ export default {
     showOverlay() {
       return getters.showOverlay();
     },
+    sidebarWidth() {
+      return getters.sidebarWidth();
+    },
     floatingSidebar() {
       return getters.isSidebarVisible() && !getters.isStickySidebar() && !state.prompts.length && !state.isSearchActive;
+    },
+    // True while the only thing open is a context/overflow menu (no dialog underneath).
+    menuOnlyOpen() {
+      return (
+        state.prompts.length > 0 &&
+        state.prompts.every((prompt) => prompt.name === "ContextMenu" || prompt.name === "OverflowMenu")
+      );
     },
     overlayOverPrompt() {
       if (getters.currentPromptName() !== "ContextMenu") return false;
@@ -178,6 +188,12 @@ export default {
       immediate: true,
       handler(dark) {
         syncDocumentTheme(dark);
+      },
+    },
+    sidebarWidth: {
+      immediate: true,
+      handler(width) {
+        document.documentElement.style.setProperty("--sidebar-width", `${width}em`);
       },
     },
   },
@@ -301,16 +317,8 @@ export default {
 #main {
   overflow: unset;
   scrollbar-width: none;
-  transition: padding-left 0.2s ease;
+  transition: padding-left 0.22s cubic-bezier(0.2, 0, 0, 1);
   color: var(--textPrimary);
-}
-
-#main.moveWithSidebar {
-  transition: padding-left 0.2s ease;
-}
-
-#main.moveWithSidebar.resizing {
-  transition: none;
 }
 
 #main::-webkit-scrollbar {

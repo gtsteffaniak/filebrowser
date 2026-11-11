@@ -37,7 +37,6 @@
       dragging: dragState.type === 'previous',
       active: (dragState.atFullExtent && dragState.type === 'previous') || (gestureHint === 'previous' && gestureHintCommitReady),
       'media-mode': isMediaQueueMode,
-      'sidebar-resizing': isSidebarResizing,
       'nav-button--hidden': !showNav,
     }"
     :style="previousButtonStyle"
@@ -87,7 +86,6 @@
       active: gestureHint === 'close' && gestureHintCommitReady,
       'media-mode': isMediaQueueMode,
       'gesture-flash': gestureHintFlashClose,
-      'sidebar-resizing': isSidebarResizing,
       'nav-button--hidden': !showCloseNavChrome,
     }"
     :style="closeButtonStyle"
@@ -146,7 +144,6 @@ export default {
         tapTimeout: null,
         triggered: false
       },
-      isSidebarResizing: false, // Track if sidebar is being resized
     };
   },
   computed: {
@@ -199,8 +196,7 @@ export default {
     closeButtonStyle() {
       const styles = { right: 'auto' };
       if (this.moveWithSidebar) {
-        const half = this.sidebarWidth / 2;
-        styles.left = `calc(50% + ${half}em)`;
+        styles.left = 'calc(50% + var(--sidebar-width) / 2)';
       } else {
         styles.left = '50%';
       }
@@ -246,7 +242,7 @@ export default {
         width: '5em',
       };
       if (this.moveWithSidebar) {
-        styles.left = `${this.sidebarWidth}em`;
+        styles.left = 'var(--sidebar-width)';
       } else {
         styles.left = '0';
       }
@@ -259,7 +255,7 @@ export default {
       }
       // Calculate left position based on sidebar
       if (this.moveWithSidebar) {
-        styles.left = `calc(${this.sidebarWidth}em + 1em)`; // When sidebar is sticky the position of the button will have a tiny padding
+        styles.left = 'calc(var(--sidebar-width) + 1em)'; // tiny padding next to the sticky sidebar
       } else {
         styles.left = '1em';
       }
@@ -324,10 +320,6 @@ export default {
     },
     'state.navigation.nextLink'() {
       this.showInitialNavigation();
-    },
-    'state.sidebar.isResizing'(newVal) {
-      // Track when sidebar is being resized to disable transitions
-      this.isSidebarResizing = newVal;
     },
   },
   async mounted() {
@@ -1070,11 +1062,6 @@ export default {
   box-shadow: var(--fab-elevation-hover);
   color: white;
   opacity: 1;
-}
-
-/* Disable transitions during sidebar resizing */
-.nav-button.sidebar-resizing {
-  transition: opacity 0.4s ease, transform 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .nav-button.nav-close {

@@ -38,7 +38,7 @@
         <div v-if="isShare && !disableShareCard" class="share-info-section">
           <ShareInfo :hash="hash" :token="token" :sub-path="subPath" />
         </div>
-        <transition-group name="expand" tag="div" class="inner-card">
+        <transition-group :css="false" tag="div" class="inner-card" @enter="slideEnter" @leave="slideLeave">
           <template v-for="(link, index) in sidebarLinksToDisplay" :key="`link-${index}-${link.category}`">
             <!-- Divider: renders as hr line or text label -->
             <div v-if="link.category === 'divider'" class="sidebar-divider-container">
@@ -178,6 +178,7 @@ import { showShareDownloadPrompt } from "@/utils/download.js";
 import ShareInfo from "@/components/files/ShareInfo.vue";
 import FileTree from '@/components/files/FileTree.vue';
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
+import { slideEnter, slideLeave } from "@/utils/transitions";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 export default {
   name: "SidebarLinks",
@@ -297,6 +298,8 @@ export default {
     hideInteractiveTooltip(true);
   },
   methods: {
+    slideEnter,
+    slideLeave,
     isSourceCategory(category) {
       return isSourceSidebarCategory(category);
     },
@@ -531,32 +534,6 @@ export default {
         name: "SidebarLinks",
       });
     },
-    beforeEnter(el) {
-      el.style.height = '0';
-      el.style.opacity = '0';
-    },
-    enter(el, done) {
-      el.style.transition = '';
-      el.style.height = '0';
-      el.style.opacity = '0';
-      // Force reflow
-      void el.offsetHeight;
-      el.style.transition = 'height 0.3s, opacity 0.3s';
-      el.style.height = `${el.scrollHeight}px`;
-      el.style.opacity = '1';
-      setTimeout(() => {
-        el.style.height = 'auto';
-        done();
-      }, 300);
-    },
-    leave(el, done) {
-      el.style.transition = 'height 0.3s, opacity 0.3s';
-      el.style.height = `${el.scrollHeight}px`;
-      void el.offsetHeight;
-      el.style.height = '0';
-      el.style.opacity = '0';
-      setTimeout(done, 300);
-    },
     showTooltip(event, text) {
       if (text) {
         showHoverTooltip(text, event);
@@ -789,19 +766,6 @@ a.sidebar-link-button {
   background: var(--hoverOverlay);
   box-shadow: none !important;
   transform: none !important;
-}
-
-.expand-enter-active,
-.expand-leave-active {
-  transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  overflow: hidden;
-  will-change: opacity, max-height;
-}
-
-.expand-enter,
-.expand-leave-to {
-  height: 0 !important;
-  opacity: 0;
 }
 
 .source-button {
