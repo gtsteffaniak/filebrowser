@@ -122,7 +122,7 @@ func TestApplyEnforcedDefaultsFrom_onlyEnforcedSubset(t *testing.T) {
 			Username: "alice",
 			NonAdminEditable: users.NonAdminEditable{
 				ShowHidden: false,
-				DarkMode:   false,
+				DarkMode:   users.DarkModeLight,
 			},
 		},
 	}
@@ -136,7 +136,7 @@ func TestApplyEnforcedDefaultsFrom_onlyEnforcedSubset(t *testing.T) {
 	if !u.ShowHidden {
 		t.Fatal("expected enforced ShowHidden true")
 	}
-	if u.DarkMode {
+	if u.DarkMode == users.DarkModeDark {
 		t.Fatal("expected non-enforced DarkMode unchanged")
 	}
 }
@@ -177,7 +177,7 @@ func TestProfileRoundTrip_expandCollapse(t *testing.T) {
 			Username: "alice",
 			NonAdminEditable: users.NonAdminEditable{
 				ShowHidden:         true,
-				DarkMode:           true,
+				DarkMode:           users.DarkModeDark,
 				ShowToolsInSidebar: true,
 				Preview: users.Preview{
 					Image:              true,
@@ -191,7 +191,7 @@ func TestProfileRoundTrip_expandCollapse(t *testing.T) {
 	var u2 users.User
 	u2.Username = "alice"
 	ExpandProfileIntoUser(&u2, p)
-	if !u2.ShowHidden || !u2.DarkMode || !u2.DisableSettings {
+	if !u2.ShowHidden || !u2.DarkMode.IsDark() || !u2.DisableSettings {
 		t.Fatal("round trip lost fields")
 	}
 }
