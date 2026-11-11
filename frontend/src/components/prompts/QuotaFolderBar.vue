@@ -27,43 +27,45 @@
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
+import { computed } from "vue";
+import { useI18n } from "vue-i18n";
 import ProgressBar from "@/components/ProgressBar.vue";
+import type { QuotaSnapshot } from "@/store/types.ts";
 
-export default {
-  name: "QuotaFolderBar",
-  components: { ProgressBar },
-  props: {
-    promptId: { type: [String, Number], default: null },
-    source: { type: String, required: true },
-    path: { type: String, required: true },
-    enabled: { type: Boolean, default: false },
-    limitBytes: { type: Number, default: 0 },
-    snapshot: { type: Object, default: () => ({}) },
-  },
-  computed: {
-    barVal() {
-      if (!this.enabled) return 0;
-      return this.snapshot.usedBytes || 0;
-    },
-    barMax() {
-      if (!this.enabled) return 1;
-      return this.limitBytes > 0 ? this.limitBytes : 1;
-    },
-    barValText() {
-      if (!this.enabled) return this.$t("general.disabled");
-      return null;
-    },
-    barStatus() {
-      if (!this.enabled) return "disk";
-      const used = (this.snapshot.usedBytes || 0) + (this.snapshot.reservedBytes || 0);
-      const max = this.barMax;
-      if (used / max >= 0.95) return "error";
-      if (used / max >= 0.8) return "warning";
-      return "normal";
-    },
-  },
-};
+type BarStatus = "disk" | "error" | "warning" | "normal";
+
+const props = withDefaults(
+  defineProps<{
+    source: string;
+    path: string;
+    enabled?: boolean;
+    limitBytes?: number;
+    snapshot?: QuotaSnapshot;
+  }>(),
+  {
+    enabled: false,
+    limitBytes: 0,
+    snapshot: () => ({}),
+  }
+);
+
+const { t } = useI18n();
+
+const barVal = computed(() => (props.enabled ? props.snapshot.usedBytes || 0 : 0));
+const barMax = computed(() => {
+  if (!props.enabled) return 1;
+  return props.limitBytes > 0 ? props.limitBytes : 1;
+});
+const barValText = computed(() => (props.enabled ? null : t("general.disabled")));
+const barStatus = computed<BarStatus>(() => {
+  if (!props.enabled) return "disk";
+  const used = (props.snapshot.usedBytes || 0) + (props.snapshot.reservedBytes || 0);
+  const max = barMax.value;
+  if (used / max >= 0.95) return "error";
+  if (used / max >= 0.8) return "warning";
+  return "normal";
+});
 </script>
 
 <style scoped>
