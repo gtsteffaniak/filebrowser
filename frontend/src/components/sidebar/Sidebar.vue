@@ -101,7 +101,11 @@ export default {
   },
   beforeUnmount() {
     cancelAnimationFrame(this.resizeFrame);
-    // Clean up event listener
+    if (state.sidebar.isResizing) {
+      document.documentElement.style.setProperty("--sidebar-width", `${state.sidebar.width}em`);
+      mutations.setSidebarResizing(false);
+      document.body.classList.remove('sidebar-resizing');
+    }
     if (this.handleKeydown) {
       document.removeEventListener('keydown', this.handleKeydown);
     }
@@ -281,17 +285,13 @@ body.rtl .action {
   cursor: col-resize;
 }
 
-body.sidebar-resizing :is(#main, #status-bar, #shelf, .progress-line) {
+body.sidebar-resizing :is(#main, #status-bar, #shelf, .progress-line, .nav-button) {
   transition: none !important;
 }
 
 #sidebar .action > * {
   vertical-align: middle;
 }
-
-/* * * * * * * * * * * * * * * *
- *            FOOTER           *
- * * * * * * * * * * * * * * * */
 
 .credits {
   font-size: 1em;

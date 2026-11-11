@@ -175,8 +175,9 @@ function collapse(el: HTMLElement, from: Keyframe, to: Keyframe, durationMs: num
 export function collapseEnter(node: Element, done: () => void, durationMs = COLLAPSE_MS_IN): void {
   const el = node as HTMLElement;
   el.style.opacity = "";
+  const from = running.has(el) ? currentFrame(el) : collapsedFrame(0);
   running.get(el)?.cancel();
-  collapse(el, collapsedFrame(0), { ...currentFrame(el), opacity: 1 }, durationMs, done);
+  collapse(el, from, { ...currentFrame(el), opacity: 1 }, durationMs, done);
 }
 
 export function collapseLeave(node: Element, done: () => void, durationMs = COLLAPSE_MS_OUT): void {

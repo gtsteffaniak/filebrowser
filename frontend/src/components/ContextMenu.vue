@@ -550,7 +550,7 @@ function showRenamePrompt(
 /** Folder the new item is created in, when the menu was opened on a directory. */
 function templateBase() {
   const item = firstSelected.value;
-  return item?.isDir ? { path: item.path, source: item.source } : null;
+  return item && isFolderItem(item) ? { path: item.path, source: item.source } : null;
 }
 
 function showNewDirPrompt() {
@@ -574,7 +574,7 @@ function createEmptyFile() {
 function showUploadPrompt() {
   mutations.closeHovers();
   const item = firstSelected.value;
-  const target = item?.isDir ? item : state.req;
+  const target = item && isFolderItem(item) ? item : state.req;
   mutations.showPrompt({
     name: "upload",
     props: { targetPath: target.path, targetSource: target.source },
