@@ -115,10 +115,9 @@ func ipMatchesPrefixes(ip string, prefixes []netip.Prefix) bool {
 //
 // When http.socket is set the server listens only on that Unix socket. Abstract
 // sockets ("@name") have no filesystem permissions and their peers are never trusted.
-// On filesystem sockets, if http.unixSocketTrustedUIDs and http.unixSocketTrustedGIDs
-// are both empty, every local peer may present forwarded headers (legacy behavior).
-// When either allowlist is set, only peers whose Linux SO_PEERCRED UID or GID matches
-// may present forwarded headers.
+// On filesystem sockets, when either allowlist is set, only peers whose Linux SO_PEERCRED
+// UID or GID matches may present forwarded headers. When both allowlists are empty,
+// peers are trusted only if http.unixSocketTrustAllLocalPeers is true (legacy opt-in).
 func IsTrustedProxyPeer(r *http.Request) bool {
 	if r == nil {
 		return false
@@ -128,7 +127,7 @@ func IsTrustedProxyPeer(r *http.Request) bool {
 			return false
 		}
 		if len(Config.Http.UnixSocketTrustedUIDs) == 0 && len(Config.Http.UnixSocketTrustedGIDs) == 0 {
-			return true
+			return Config.Http.UnixSocketTrustAllLocalPeers
 		}
 		cred, ok := UnixPeerFromContext(r.Context())
 		if !ok {

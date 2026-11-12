@@ -3,6 +3,7 @@ package settings
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 )
 
@@ -11,8 +12,8 @@ func TestParseSocketFileModeDefaults(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if mode != 0o666 {
-		t.Fatalf("got %o, want 0666", mode)
+	if mode != 0o660 {
+		t.Fatalf("got %o, want 0660", mode)
 	}
 }
 
@@ -56,8 +57,8 @@ func TestUnixPeerAllowed(t *testing.T) {
 	}
 }
 
-func TestListenUnixFilesystemSetsModeWithoutUmask(t *testing.T) {
-	if os.Getenv("GOOS") == "windows" {
+func TestListenUnixFilesystemSetsModeWithRestrictiveUmask(t *testing.T) {
+	if runtime.GOOS == "windows" {
 		t.Skip("filesystem unix sockets are not used on Windows")
 	}
 	dir := t.TempDir()
@@ -77,7 +78,7 @@ func TestListenUnixFilesystemSetsModeWithoutUmask(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if st.Mode().Perm() != 0o666 {
-		t.Fatalf("socket perm = %o, want 0666", st.Mode().Perm())
+	if st.Mode().Perm() != 0o660 {
+		t.Fatalf("socket perm = %o, want 0660", st.Mode().Perm())
 	}
 }

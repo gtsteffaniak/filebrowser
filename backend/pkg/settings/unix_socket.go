@@ -38,7 +38,7 @@ func ContextWithUnixPeerForTest(ctx context.Context, uid, gid int) context.Conte
 func parseSocketFileMode(mode string) (os.FileMode, error) {
 	mode = strings.TrimSpace(mode)
 	if mode == "" {
-		return 0o666, nil
+		return 0o660, nil
 	}
 	v, err := strconv.ParseUint(mode, 8, 32)
 	if err != nil {
@@ -69,6 +69,8 @@ func ListenUnixFilesystem(socketPath string) (net.Listener, error) {
 		}
 		setGroup = true
 	}
+	oldMask := unixUmask(0o077)
+	defer unixUmask(oldMask)
 	listener, err := net.Listen("unix", socketPath)
 	if err != nil {
 		return nil, err

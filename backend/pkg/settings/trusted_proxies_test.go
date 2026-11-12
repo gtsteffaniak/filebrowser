@@ -132,7 +132,6 @@ func TestIsTrustedProxyPeer(t *testing.T) {
 	}
 }
 
-// With http.socket set, empty UID/GID allowlists trust any filesystem-socket peer (legacy).
 func TestIsTrustedProxyPeerUnixSocket(t *testing.T) {
 	resetTrustedProxyCache()
 	Config.Http.TrustedProxies = nil
@@ -141,11 +140,17 @@ func TestIsTrustedProxyPeerUnixSocket(t *testing.T) {
 		Config.Http.Socket = ""
 		Config.Http.UnixSocketTrustedUIDs = nil
 		Config.Http.UnixSocketTrustedGIDs = nil
+		Config.Http.UnixSocketTrustAllLocalPeers = false
 		resetTrustedProxyCache()
 	})
-	if !IsTrustedProxyPeer(&http.Request{RemoteAddr: "@"}) {
-		t.Fatal("filesystem unix socket with empty allowlists should trust forwarded headers")
+	if IsTrustedProxyPeer(&http.Request{RemoteAddr: "@"}) {
+		t.Fatal("filesystem unix socket with empty allowlists must not trust forwarded headers without opt-in")
 	}
+	Config.Http.UnixSocketTrustAllLocalPeers = true
+	if !IsTrustedProxyPeer(&http.Request{RemoteAddr: "@"}) {
+		t.Fatal("unixSocketTrustAllLocalPeers should restore legacy trust-all behavior")
+	}
+	Config.Http.UnixSocketTrustAllLocalPeers = false
 
 	Config.Http.UnixSocketTrustedUIDs = []int{33}
 	reqNoCred := &http.Request{RemoteAddr: "@"}
