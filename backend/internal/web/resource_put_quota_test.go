@@ -17,6 +17,7 @@ import (
 
 func setupPutQuotaTest(t *testing.T) string {
 	t.Helper()
+	lockWebGlobals(t)
 	downloadsPath := filepath.Join(t.TempDir(), "downloads")
 
 	dbPath := filepath.Join(t.TempDir(), "quota-http-test.sqlite")

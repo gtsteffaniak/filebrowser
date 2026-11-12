@@ -22,6 +22,7 @@ import (
 )
 
 func setupTestEnv(t *testing.T) {
+	lockWebGlobals(t)
 	utils.BcryptCost = bcrypt.MinCost
 	dbPath := filepath.Join(t.TempDir(), "test.sqlite")
 

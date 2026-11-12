@@ -9,6 +9,7 @@ import (
 )
 
 func TestGetRemoteIPUsesRightmostForwardedFor(t *testing.T) {
+	lockWebGlobals(t)
 	orig := settings.Config.Http
 	t.Cleanup(func() { settings.Config.Http = orig })
 	settings.Config.Http.TrustProxyHeaders = true
@@ -27,6 +28,7 @@ func TestGetRemoteIPUsesRightmostForwardedFor(t *testing.T) {
 // proxy hops so multi-hop deployments (CDN -> proxy -> filebrowser) resolve the
 // real client IP instead of collapsing everyone onto the shared edge address.
 func TestGetRemoteIPTrustedProxies(t *testing.T) {
+	lockWebGlobals(t)
 	orig := settings.Config.Http
 	t.Cleanup(func() { settings.Config.Http = orig })
 	settings.Config.Http.TrustProxyHeaders = true
@@ -59,6 +61,7 @@ func TestGetRemoteIPTrustedProxies(t *testing.T) {
 
 // Bare IPs (not just CIDRs) are accepted in http.trustedProxies.
 func TestGetRemoteIPTrustedProxiesBareIP(t *testing.T) {
+	lockWebGlobals(t)
 	orig := settings.Config.Http
 	t.Cleanup(func() { settings.Config.Http = orig })
 	settings.Config.Http.TrustProxyHeaders = true
@@ -74,6 +77,7 @@ func TestGetRemoteIPTrustedProxiesBareIP(t *testing.T) {
 
 // Without trustProxyHeaders the XFF chain is ignored entirely.
 func TestGetRemoteIPIgnoresForwardedForWhenUntrusted(t *testing.T) {
+	lockWebGlobals(t)
 	orig := settings.Config.Http
 	t.Cleanup(func() { settings.Config.Http = orig })
 	settings.Config.Http.TrustProxyHeaders = false
@@ -90,6 +94,7 @@ func TestGetRemoteIPIgnoresForwardedForWhenUntrusted(t *testing.T) {
 // A direct client that is not a trusted proxy cannot spoof its address with
 // forwarded headers, even when trustProxyHeaders is enabled.
 func TestGetRemoteIPIgnoresForwardedHeadersFromUntrustedPeer(t *testing.T) {
+	lockWebGlobals(t)
 	orig := settings.Config.Http
 	t.Cleanup(func() { settings.Config.Http = orig })
 	settings.Config.Http.TrustProxyHeaders = true
@@ -104,11 +109,13 @@ func TestGetRemoteIPIgnoresForwardedHeadersFromUntrustedPeer(t *testing.T) {
 	}
 }
 
-func TestGetRemoteIPUnixSocketHonorsForwardedWhenAllowlistsEmpty(t *testing.T) {
+func TestGetRemoteIPUnixSocketHonorsForwardedWithTrustAllLocalPeers(t *testing.T) {
+	lockWebGlobals(t)
 	orig := settings.Config.Http
 	t.Cleanup(func() { settings.Config.Http = orig })
 	settings.Config.Http.TrustProxyHeaders = true
 	settings.Config.Http.Socket = "/var/run/filebrowser.sock"
+	settings.Config.Http.UnixSocketTrustAllLocalPeers = true
 	settings.Config.Http.TrustedProxies = nil
 
 	req := httptest.NewRequest("GET", "http://example.com/", nil)
@@ -121,6 +128,7 @@ func TestGetRemoteIPUnixSocketHonorsForwardedWhenAllowlistsEmpty(t *testing.T) {
 
 // With no trusted proxies configured, forwarded headers are never honored.
 func TestGetRemoteIPIgnoresForwardedHeadersWithoutTrustedProxies(t *testing.T) {
+	lockWebGlobals(t)
 	orig := settings.Config.Http
 	t.Cleanup(func() { settings.Config.Http = orig })
 	settings.Config.Http.TrustProxyHeaders = true
@@ -136,6 +144,7 @@ func TestGetRemoteIPIgnoresForwardedHeadersWithoutTrustedProxies(t *testing.T) {
 
 // An IPv4-mapped IPv6 trusted hop in the XFF chain must still be skipped.
 func TestGetRemoteIPMappedTrustedHop(t *testing.T) {
+	lockWebGlobals(t)
 	orig := settings.Config.Http
 	t.Cleanup(func() { settings.Config.Http = orig })
 	settings.Config.Http.TrustProxyHeaders = true
@@ -150,6 +159,7 @@ func TestGetRemoteIPMappedTrustedHop(t *testing.T) {
 }
 
 func TestGetScheme(t *testing.T) {
+	lockWebGlobals(t)
 	t.Run("trusted proto", func(t *testing.T) {
 		settings.Config.Http.TrustProxyHeaders = true
 		t.Cleanup(func() { settings.Config.Http.TrustProxyHeaders = false })
@@ -173,6 +183,7 @@ func TestGetScheme(t *testing.T) {
 }
 
 func TestRequestSchemeTLSFallback(t *testing.T) {
+	lockWebGlobals(t)
 	settings.Config.Http.TrustProxyHeaders = false
 
 	req := httptest.NewRequest("GET", "https://example.com/", nil)
@@ -183,6 +194,7 @@ func TestRequestSchemeTLSFallback(t *testing.T) {
 }
 
 func TestRequestSchemeIgnoresInvalidProto(t *testing.T) {
+	lockWebGlobals(t)
 	settings.Config.Http.TrustProxyHeaders = true
 	t.Cleanup(func() { settings.Config.Http.TrustProxyHeaders = false })
 
@@ -194,6 +206,7 @@ func TestRequestSchemeIgnoresInvalidProto(t *testing.T) {
 }
 
 func TestRequestHostTrustProxyHeaders(t *testing.T) {
+	lockWebGlobals(t)
 	settings.Config.Http.TrustProxyHeaders = true
 	t.Cleanup(func() { settings.Config.Http.TrustProxyHeaders = false })
 
@@ -207,6 +220,7 @@ func TestRequestHostTrustProxyHeaders(t *testing.T) {
 }
 
 func TestRequestSchemeForPublicURL(t *testing.T) {
+	lockWebGlobals(t)
 	orig := settings.Config.Http.TrustProxyHeaders
 	t.Cleanup(func() { settings.Config.Http.TrustProxyHeaders = orig })
 
@@ -240,6 +254,7 @@ func TestRequestSchemeForPublicURL(t *testing.T) {
 }
 
 func TestRequestPageFullURL(t *testing.T) {
+	lockWebGlobals(t)
 	orig := settings.Config.Http
 	t.Cleanup(func() { settings.Config.Http = orig })
 	settings.Config.Http.ExternalUrl = ""

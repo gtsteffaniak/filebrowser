@@ -30,6 +30,7 @@ import (
 
 // setupWebDAVTestEnv sets up the test environment with multiple sources and users
 func setupWebDAVTestEnv(t *testing.T) (string, string) {
+	lockWebGlobals(t)
 	// Create temp directories for test sources
 	tempDir := t.TempDir()
 	source1Path := filepath.Join(tempDir, "source1")

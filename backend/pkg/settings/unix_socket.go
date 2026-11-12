@@ -8,7 +8,10 @@ import (
 	"os/user"
 	"strconv"
 	"strings"
+	"sync"
 )
+
+var unixListenUmaskMu sync.Mutex
 
 type unixPeerCredKey struct{}
 
@@ -69,9 +72,11 @@ func ListenUnixFilesystem(socketPath string) (net.Listener, error) {
 		}
 		setGroup = true
 	}
+	unixListenUmaskMu.Lock()
 	oldMask := unixUmask(0o077)
-	defer unixUmask(oldMask)
 	listener, err := net.Listen("unix", socketPath)
+	unixUmask(oldMask)
+	unixListenUmaskMu.Unlock()
 	if err != nil {
 		return nil, err
 	}
