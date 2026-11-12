@@ -126,14 +126,16 @@ export default {
       if (!state?.req) {
         return null;
       }
-      if (!this.path || !state.req.hasPreview) {
+      const isHeicOrHeif = state.req?.type === "image/heic" || state.req?.type === "image/heif";
+      const heicNativeInSafari = isHeicOrHeif && state.isSafari;
+      if (!this.path || (!state.req.hasPreview && !heicNativeInSafari)) {
         return null;
       }
-      // Don't use thumbnail when we show original embedded preview (HEIC/HEIF or raw)
-      const isHeicOrHeif = state.req?.type === "image/heic" || state.req?.type === "image/heif";
-      const useOriginalForHeic = isHeicOrHeif && (state.isSafari || state.req?.hasPreview);
-      const useOriginalForRaw = isRawImageMimeType(state.req?.type);
-      if (useOriginalForHeic || useOriginalForRaw) {
+      // Skip the listing thumbnail while the full image loads (native HEIC on Safari, else converted original).
+      const skipHeicThumbnail =
+        heicNativeInSafari || (isHeicOrHeif && state.req?.hasPreview);
+      const skipRawThumbnail = isRawImageMimeType(state.req?.type);
+      if (skipHeicThumbnail || skipRawThumbnail) {
         return null;
       }
       // For shares, use shareInfo.hash as the source; otherwise use this.source
