@@ -42,7 +42,7 @@
 
 <script lang="ts">
 import { reactive } from "vue";
-import { state, getters } from "@/store";
+import { getters } from "@/store/index.js";
 
 const buttonGroup = new Map<string, { visible: boolean; zoneActive: boolean; timer: ReturnType<typeof setTimeout> | null }>();
 
@@ -211,7 +211,7 @@ export default {
       const isLeftPositioned = this.position === "top-left" || this.position === "bottom-left";
       const pushedBySidebar = isLeftPositioned && getters.isSidebarVisible() && getters.isStickySidebar();
       if (pushedBySidebar && style.left === undefined) {
-        style.left = `calc(var(--fab-edge-offset-media) + ${state.sidebar.width}em)`;
+        style.left = `calc(var(--fab-edge-offset-media) + var(--sidebar-width))`;
       }
 
       return style;

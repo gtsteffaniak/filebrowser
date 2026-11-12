@@ -65,6 +65,7 @@ export interface ReqObject {
   parentDirItems?: FileListItem[];
   onlyOfficeId?: string;
   hasUpdate?: boolean;
+  isDir?: boolean;
   metadata?: unknown;
 
   // Directory listing properties
@@ -92,6 +93,7 @@ export interface ShareInfoObject {
   allowCreate?: boolean;
   allowReplacements?: boolean;
   allowDelete?: boolean;
+  canEditShare?: boolean;
   disableDownload?: boolean;
   showHidden?: boolean;
   quotaLimitBytes?: number;
@@ -237,6 +239,7 @@ export interface UserObject {
   debugOffice: boolean;
   preferEditorForMarkdown: boolean;
   showCopyPath?: boolean;
+  showSelectMultiple?: boolean;
   showTypeColumn?: boolean;
   showCreationDateColumn?: boolean;
   hideFileExt?: string;

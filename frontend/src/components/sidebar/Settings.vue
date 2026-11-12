@@ -41,27 +41,29 @@
           keyboard_arrow_down
         </i>
       </div>
-      <div class="settings-card-sub-item" :class="{ 'settings-card-collapsible--expanded': expandedSections[setting.id] }">
-        <div class="settings-card-sub-item-inner">
-          <div
-            v-for="section in visibleSections(setting)"
-            :key="section.id"
-            role="button"
-            tabindex="0"
-            class="settings-card-collapsible-sub-item settings-card clickable"
-            :class="{ 'active-settings': active(`${setting.id}-${section.id}`) }"
-            @click.stop="setView(`${setting.id}-${section.id}`)"
-            @keydown.enter.stop.prevent="!$event.repeat && setView(`${setting.id}-${section.id}`)"
-            @keydown.space.stop.prevent
-            @keyup.space.stop="setView(`${setting.id}-${section.id}`)"
-          >
-            <span class="settings-item-content">
-              <span class="material-symbols-outlined settings-icon">{{ section.icon }}</span>
-              {{ $t(section.label, { suffix: "" }) }}
-            </span>
+      <transition :css="false" @enter="collapseEnter" @leave="collapseLeave">
+        <div v-show="expandedSections[setting.id]" class="settings-card-sub-item">
+          <div class="settings-card-sub-item-inner">
+            <div
+              v-for="section in visibleSections(setting)"
+              :key="section.id"
+              role="button"
+              tabindex="0"
+              class="settings-card-collapsible-sub-item settings-card clickable"
+              :class="{ 'active-settings': active(`${setting.id}-${section.id}`) }"
+              @click.stop="setView(`${setting.id}-${section.id}`)"
+              @keydown.enter.stop.prevent="!$event.repeat && setView(`${setting.id}-${section.id}`)"
+              @keydown.space.stop.prevent
+              @keyup.space.stop="setView(`${setting.id}-${section.id}`)"
+            >
+              <span class="settings-item-content">
+                <span class="material-symbols-outlined settings-icon">{{ section.icon }}</span>
+                {{ $t(section.label, { suffix: "" }) }}
+              </span>
+            </div>
           </div>
         </div>
-      </div>
+      </transition>
     </div>
     <div
       v-else
@@ -90,6 +92,7 @@ import { state, getters, mutations } from "@/store";
 import { getObjectProperty } from '@/utils/object.js';
 import { settings } from "@/utils/constants";
 import { router } from "@/router";
+import { collapseEnter, collapseLeave } from "@/utils/transitions";
 
 export default {
   name: "SidebarSettings",
@@ -122,6 +125,8 @@ export default {
     requestAnimationFrame(() => this.syncExpanded());
   },
   methods: {
+    collapseEnter,
+    collapseLeave,
     syncExpanded() {
       for (const setting of this.expandableSettings) {
         this.expandedSections[setting.id] = this.isSectionActive(setting) && this.canExpand(setting);
@@ -231,21 +236,7 @@ export default {
   transform: rotate(180deg);
 }
 
-.settings-card-sub-item {
-  display: grid;
-  grid-template-rows: 0fr;
-  transition: grid-template-rows 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.settings-card-collapsible--expanded {
-  grid-template-rows: 1fr;
-}
-
 .settings-card-sub-item-inner {
-  overflow: hidden;
-}
-
-.settings-card-collapsible--expanded .settings-card-sub-item-inner {
   border-top: 1px solid var(--divider);
 }
 
