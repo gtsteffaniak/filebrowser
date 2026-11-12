@@ -1,6 +1,7 @@
 package sql
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"strings"
@@ -44,6 +45,11 @@ func appendNameGlobSQL(query string, args []interface{}, patterns []string, join
 // When nameGlobPatterns is non-empty (and largest is false), rows are restricted with SQLite name GLOB ... OR ....
 // Returns rows that can be iterated to scan search results.
 func (db *IndexDB) SearchItems(source string, scope string, largest bool, nameGlobPatterns []string, nameGlobPatternsAnd, caseExact bool) (*sql.Rows, error) {
+	return db.SearchItemsContext(context.Background(), source, scope, largest, nameGlobPatterns, nameGlobPatternsAnd, caseExact)
+}
+
+// SearchItemsContext is SearchItems with cancellation and deadlines propagated to SQLite.
+func (db *IndexDB) SearchItemsContext(ctx context.Context, source string, scope string, largest bool, nameGlobPatterns []string, nameGlobPatternsAnd, caseExact bool) (*sql.Rows, error) {
 	query := `
 		SELECT path, name, size, created_time, mod_time, type, is_dir, has_preview
 		FROM index_items
@@ -66,13 +72,18 @@ func (db *IndexDB) SearchItems(source string, scope string, largest bool, nameGl
 		query += " ORDER BY size DESC"
 	}
 
-	return db.Query(query, args...)
+	return db.QueryContext(ctx, query, args...)
 }
 
 // SearchItemsMultiSource queries the database for items matching the search criteria across multiple sources.
 // When nameGlobPatterns is non-empty (and largest is false), restricts rows with SQLite name GLOB ... OR ....
 // Returns rows that can be iterated to scan search results.
 func (db *IndexDB) SearchItemsMultiSource(sources []string, sourceScopes map[string]string, largest bool, nameGlobPatterns []string, nameGlobPatternsAnd, caseExact bool) (*sql.Rows, error) {
+	return db.SearchItemsMultiSourceContext(context.Background(), sources, sourceScopes, largest, nameGlobPatterns, nameGlobPatternsAnd, caseExact)
+}
+
+// SearchItemsMultiSourceContext is SearchItemsMultiSource with cancellation and deadlines propagated to SQLite.
+func (db *IndexDB) SearchItemsMultiSourceContext(ctx context.Context, sources []string, sourceScopes map[string]string, largest bool, nameGlobPatterns []string, nameGlobPatternsAnd, caseExact bool) (*sql.Rows, error) {
 	if len(sources) == 0 {
 		return nil, fmt.Errorf("at least one source is required")
 	}
@@ -131,5 +142,5 @@ func (db *IndexDB) SearchItemsMultiSource(sources []string, sourceScopes map[str
 		query += " ORDER BY size DESC"
 	}
 
-	return db.Query(query, args...)
+	return db.QueryContext(ctx, query, args...)
 }

@@ -6,6 +6,7 @@ vi.mock("@/utils/url.js", () => ({
 }));
 vi.mock("./utils", () => ({ fetchURL: vi.fn(), fetchJSON: vi.fn() }));
 
+import { notify } from "@/notify/index.ts";
 import { fetchURL } from "./utils.ts";
 import { search } from "./tools.js";
 
@@ -35,5 +36,24 @@ describe("search result limit", () => {
     await search("/", "one", "", true);
     expect(JSON.parse(fetchURL.mock.calls[0][0])).toMatchObject({ largest: "true" });
     expect(JSON.parse(fetchURL.mock.calls[0][0])).not.toHaveProperty("limit");
+  });
+
+  it("forwards an abort signal to the request", async () => {
+    const controller = new AbortController();
+
+    await search("/", "one", "document", false, { signal: controller.signal });
+
+    expect(fetchURL).toHaveBeenCalledWith(expect.any(String), { signal: controller.signal });
+  });
+
+  it("does not show an error notification when the request is aborted", async () => {
+    const controller = new AbortController();
+    const abortError = new Error("The operation was aborted");
+    abortError.name = "AbortError";
+    fetchURL.mockRejectedValueOnce(abortError);
+
+    await expect(search("/", "one", "document", false, { signal: controller.signal })).rejects.toBe(abortError);
+
+    expect(notify.showError).not.toHaveBeenCalled();
   });
 });

@@ -1,6 +1,7 @@
 package sql
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"os"
@@ -403,6 +404,13 @@ func (t *TempDB) Query(query string, args ...interface{}) (*sql.Rows, error) {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 	return t.db.Query(query, args...)
+}
+
+// QueryContext executes a query that returns rows and supports cancellation.
+func (t *TempDB) QueryContext(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error) {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	return t.db.QueryContext(ctx, query, args...)
 }
 
 // QueryRow executes a query that is expected to return at most one row.

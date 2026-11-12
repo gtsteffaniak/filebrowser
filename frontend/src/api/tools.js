@@ -79,12 +79,12 @@ export async function search(base, sources, query, largest = false, extraParams 
     }
 
     const apiPath = getApiPath("tools/search", params);
-    const res = await fetchURL(apiPath);
+    const res = await fetchURL(apiPath, { signal: extraParams.signal });
     const data = await res.json();
 
     return data;
   } catch (err) {
-    if (!extraParams.suppressNotify) {
+    if (!extraParams.suppressNotify && err?.name !== "AbortError" && !extraParams.signal?.aborted) {
       notify.showError(err.message || "Error occurred during search");
     }
     throw err;

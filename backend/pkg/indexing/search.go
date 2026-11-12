@@ -1,6 +1,7 @@
 package indexing
 
 import (
+	"context"
 	"sort"
 	"strings"
 	"sync"
@@ -36,6 +37,11 @@ func (idx *Index) Search(search string, scope string, sourceSession string, larg
 
 // SearchParsed runs indexing search using pre-built options (e.g. repeated HTTP term parameters plus filter prefix).
 func (idx *Index) SearchParsed(baseOpts iteminfo.SearchOptions, scope string, sourceSession string, largest bool, limit int, olderThanUnix, newerThanUnix int64, useWildcard bool) []*SearchResult {
+	return idx.SearchParsedContext(context.Background(), baseOpts, scope, sourceSession, largest, limit, olderThanUnix, newerThanUnix, useWildcard)
+}
+
+// SearchParsedContext runs indexing search with cancellation propagated to the database query.
+func (idx *Index) SearchParsedContext(ctx context.Context, baseOpts iteminfo.SearchOptions, scope string, sourceSession string, largest bool, limit int, olderThanUnix, newerThanUnix int64, useWildcard bool) []*SearchResult {
 	scope = utils.AddTrailingSlashIfNotExists(scope)
 
 	runningHash := utils.InsecureRandomIdentifier(4)
@@ -60,13 +66,16 @@ func (idx *Index) SearchParsed(baseOpts iteminfo.SearchOptions, scope string, so
 	caseExact := searchOptions.Conditions["exact"]
 	globAnd := len(nameGlobPatterns) > 0 && searchOptions.MatchAllTerms
 
-	rows, err := idx.db.SearchItems(idx.Name, scope, largest, nameGlobPatterns, globAnd, caseExact)
+	rows, err := idx.db.SearchItemsContext(ctx, idx.Name, scope, largest, nameGlobPatterns, globAnd, caseExact)
 	if err != nil {
 		return []*SearchResult{}
 	}
 	defer rows.Close()
 
 	for rows.Next() {
+		if ctx.Err() != nil {
+			return []*SearchResult{}
+		}
 		value, found := sessionInProgress.Load(sourceSession)
 		if !found || value != runningHash {
 			return []*SearchResult{}
@@ -195,6 +204,11 @@ func SearchMultiSources(search string, sources []string, sourceScopes map[string
 
 // SearchMultiSourcesParsed searches multiple sources using pre-built options.
 func SearchMultiSourcesParsed(baseOpts iteminfo.SearchOptions, sources []string, sourceScopes map[string]string, sourceSession string, largest bool, limit int, olderThanUnix, newerThanUnix int64, useWildcard bool) []*SearchResult {
+	return SearchMultiSourcesParsedContext(context.Background(), baseOpts, sources, sourceScopes, sourceSession, largest, limit, olderThanUnix, newerThanUnix, useWildcard)
+}
+
+// SearchMultiSourcesParsedContext searches multiple sources with cancellation propagated to the database query.
+func SearchMultiSourcesParsedContext(ctx context.Context, baseOpts iteminfo.SearchOptions, sources []string, sourceScopes map[string]string, sourceSession string, largest bool, limit int, olderThanUnix, newerThanUnix int64, useWildcard bool) []*SearchResult {
 	if len(sources) == 0 {
 		return []*SearchResult{}
 	}
@@ -231,13 +245,16 @@ func SearchMultiSourcesParsed(baseOpts iteminfo.SearchOptions, sources []string,
 	caseExact := searchOptions.Conditions["exact"]
 	globAnd := len(nameGlobPatterns) > 0 && searchOptions.MatchAllTerms
 
-	rows, err := db.SearchItemsMultiSource(sources, normalizedScopes, largest, nameGlobPatterns, globAnd, caseExact)
+	rows, err := db.SearchItemsMultiSourceContext(ctx, sources, normalizedScopes, largest, nameGlobPatterns, globAnd, caseExact)
 	if err != nil {
 		return []*SearchResult{}
 	}
 	defer rows.Close()
 
 	for rows.Next() {
+		if ctx.Err() != nil {
+			return []*SearchResult{}
+		}
 		value, found := sessionInProgress.Load(sourceSession)
 		if !found || value != runningHash {
 			return []*SearchResult{}

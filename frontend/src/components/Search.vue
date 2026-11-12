@@ -11,7 +11,7 @@
       <i v-else class="material-symbols">search</i>
       <!-- Input field for search -->
       <input id="search-input" type="text"
-        @keyup.exact="keyup" @input="submit" ref="input" :autofocus="active" v-model.trim="value"
+        @keyup.exact="keyup" @input="scheduleSearch" ref="input" :autofocus="active" v-model.trim="value"
         aria-label="search input" :placeholder="$t('general.search', { suffix: '...' })" />
       <div v-if="eventTheme === 'halloween'" class="halloween-eyes" aria-hidden="true">
         <div class="eye"><div class="pupil"></div></div>
@@ -162,6 +162,8 @@ import { isTypeAheadSessionActive } from "@/utils/listingTypeAhead.js";
 import { utcStartOfDaySecondsFromDateInput } from "@/utils/moment";
 import { shouldIgnoreOutsideTap } from "@/utils/tooltipHelp.js";
 
+const QUICK_SEARCH_DEBOUNCE_MS = 300;
+
 const boxes = {
   folder: { label: "folders", icon: "folder" },
   file: { label: "files", icon: "insert_drive_file" },
@@ -238,15 +240,11 @@ export default {
         this.submit();
       },
     },
-    value() {
-      if (this.results.length) {
-        this.ongoing = 0;
-        this.results = [];
-      }
-    },
     active(isNowActive) {
       if (isNowActive) {
         this.resetSearchOnOpen();
+      } else {
+        this.cancelSearch();
       }
     },
     hasPrompts(now, before) {
@@ -293,6 +291,8 @@ export default {
     document.addEventListener('keydown', this.handleKeydown);
   },
   beforeUnmount() {
+    this.cancelSearch();
+
     // If Safari, remove touchstart listener
     if (state.isSafari) {
       this.$el.removeEventListener("touchstart", this.openContextForSafari);
@@ -514,17 +514,42 @@ export default {
     },
     /** Clear query state whenever the overlay opens (open paths do not always call close()). */
     resetSearchOnOpen() {
+      this.cancelSearch();
       this.value = "";
       this.results = [];
-      this.ongoing = 0;
       this.noneMessage = this.$t("search.typeToSearch", {
         minSearchLength: globalVars.minSearchLength,
       });
     },
     close(event) {
+      this.cancelSearch();
       this.value = "";
+      this.results = [];
       event.stopPropagation();
       mutations.setSearch(false);
+    },
+    scheduleSearch() {
+      this.cancelSearch();
+      this.results = [];
+      this.noneMessage = "";
+      this.ongoing = 1;
+      this.searchTimeout = setTimeout(() => {
+        this.searchTimeout = null;
+        this.submit();
+      }, QUICK_SEARCH_DEBOUNCE_MS);
+    },
+    cancelSearch() {
+      if (this.searchTimeout !== undefined && this.searchTimeout !== null) {
+        clearTimeout(this.searchTimeout);
+        this.searchTimeout = null;
+      }
+
+      this.searchRequestId = (this.searchRequestId || 0) + 1;
+      if (this.searchController) {
+        this.searchController.abort();
+        this.searchController = null;
+      }
+      this.ongoing = 0;
     },
     keyup(event) {
       if (event.keyCode === 27) {
@@ -539,14 +564,16 @@ export default {
       this.showPreviewImages = false;
     },
     async submit(event) {
-      this.results = [];
       if (event !== undefined) {
         event.preventDefault();
       }
+      this.cancelSearch();
+      this.results = [];
       if (this.value === "" || this.value.length < globalVars.minSearchLength) {
         this.noneMessage = this.$t("search.notEnoughCharacters", { minSearchLength: globalVars.minSearchLength });
         return;
       }
+      const requestId = this.searchRequestId;
       let searchTypesFull = this.searchTypes;
       if (this.largerThan !== "") {
         searchTypesFull = `${searchTypesFull}type:largerThan=${this.largerThan} `;
@@ -573,7 +600,9 @@ export default {
             ? `case:exact ${this.value}`
             : `case:exact ${searchTypesFull}${this.value}`;
       }
-      this.ongoing++;
+      const controller = new AbortController();
+      this.searchController = controller;
+      this.ongoing = 1;
 
       // Determine which sources to search
       let sourcesToSearch;
@@ -588,17 +617,31 @@ export default {
       // Only pass scope if searching a single source
       const scope = sourcesToSearch.length === 1 ? this.getContext : null;
 
-      this.results = await toolsApi.search(
-        scope,
-        sourcesToSearch,
-        searchQuery,
-        false,
-        dateParams
-      );
-
-      this.ongoing--;
-      if (this.results.length === 0 && this.ongoing === 0) {
-        this.noneMessage = this.$t("search.noResults");
+      try {
+        const results = await toolsApi.search(
+          scope,
+          sourcesToSearch,
+          searchQuery,
+          false,
+          { ...dateParams, signal: controller.signal }
+        );
+        if (this.searchRequestId === requestId && !controller.signal.aborted) {
+          this.results = results;
+          if (results.length === 0) {
+            this.noneMessage = this.$t("search.noResults");
+          }
+        }
+      } catch (error) {
+        if (error?.name !== "AbortError") {
+          throw error;
+        }
+      } finally {
+        if (this.searchRequestId === requestId) {
+          this.ongoing = 0;
+          if (this.searchController === controller) {
+            this.searchController = null;
+          }
+        }
       }
     },
     clearContext(event) {
