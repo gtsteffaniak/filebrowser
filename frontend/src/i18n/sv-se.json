@@ -591,6 +591,9 @@
     "singleClick": "Öppna filer med ett enda klick",
     "stickySidebar": "Fast sidomeny",
     "darkMode": "Mörkt läge",
+    "darkModeSystem": "Följ systemet",
+    "darkModeLight": "Ljust",
+    "darkModeDark": "Mörkt",
     "defaultViewMode": "Standardvisningsläge",
     "defaultViewModeDescription": "Standardvisningsläge i nya webbläsare eller på nya enheter. Åsidosätter inte visningsinställningar som redan sparats lokalt.",
     "defaultGallerySize": "Standardstorlek på miniatyrbilder",
@@ -1116,7 +1119,8 @@
     "groupsFound": "Duplicerade grupper hittades{suffix}",
     "totalWastedSpace": "Totalt bortkastat utrymme{suffix}",
     "wasted": "Bortkastad{suffix}",
-    "emptyState": "Ange sökkriterier och klicka på Find Duplicates för att identifiera dubbletter av filer"
+    "emptyState": "Ange sökkriterier och klicka på Find Duplicates för att identifiera dubbletter av filer",
+    "noResults": "Sökningen är klar – inga dubbletter hittades."
   },
   "notifications": {
     "title": "Meddelanden",

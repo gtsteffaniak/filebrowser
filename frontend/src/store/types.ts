@@ -65,6 +65,7 @@ export interface ReqObject {
   parentDirItems?: FileListItem[];
   onlyOfficeId?: string;
   hasUpdate?: boolean;
+  isDir?: boolean;
   metadata?: unknown;
 
   // Directory listing properties
@@ -92,6 +93,7 @@ export interface ShareInfoObject {
   allowCreate?: boolean;
   allowReplacements?: boolean;
   allowDelete?: boolean;
+  canEditShare?: boolean;
   disableDownload?: boolean;
   showHidden?: boolean;
   quotaLimitBytes?: number;
@@ -230,12 +232,14 @@ export interface UserObject {
   disableSearchOptions?: boolean;
   scopes: UserScope[];
   permissions: Permissions;
-  darkMode: boolean;
+  /** Theme preference: "auto" (follow system), "dark", "light". Legacy booleans are tolerated. */
+  darkMode: boolean | "auto" | "dark" | "light";
   disableSettings: boolean;
   showAdvancedProfile?: boolean;
   debugOffice: boolean;
   preferEditorForMarkdown: boolean;
   showCopyPath?: boolean;
+  showSelectMultiple?: boolean;
   showTypeColumn?: boolean;
   showCreationDateColumn?: boolean;
   hideFileExt?: string;
@@ -289,6 +293,9 @@ export interface RouteObject {
 
 export interface StoreState {
   disableEventThemes: boolean;
+  // Reactive snapshot of the OS color-scheme, so "auto" re-resolves when the
+  // system switches appearance. Kept in the reactive store on purpose.
+  systemDark: boolean;
   tooltip: {
     show: boolean;
     content: string;

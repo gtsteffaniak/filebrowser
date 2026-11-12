@@ -804,6 +804,9 @@
     "singleClick": "한 번의 클릭으로 파일 열기",
     "stickySidebar": "고정 사이드바",
     "darkMode": "다크 모드",
+    "darkModeSystem": "시스템 설정 따르기",
+    "darkModeLight": "라이트",
+    "darkModeDark": "다크",
     "defaultViewMode": "기본 보기 모드",
     "defaultViewModeDescription": "새로운 브라우저나 기기에서 초기 보기 모드로 설정됩니다. 이미 로컬에 저장된 보기 환경설정은 무시되지 않습니다.",
     "defaultGallerySize": "기본 썸네일 크기",
@@ -1116,7 +1119,8 @@
     "groupsFound": "중복 그룹 발견{suffix}",
     "totalWastedSpace": "낭비되는 총 공간{suffix}",
     "wasted": "낭비{suffix}",
-    "emptyState": "검색 기준을 입력하고 중복 파일 찾기를 클릭하여 중복 파일을 식별합니다."
+    "emptyState": "검색 기준을 입력하고 중복 파일 찾기를 클릭하여 중복 파일을 식별합니다.",
+    "noResults": "검색이 완료되었습니다. 중복 파일은 발견되지 않았습니다."
   },
   "notifications": {
     "title": "알림",

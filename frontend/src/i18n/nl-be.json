@@ -591,6 +591,9 @@
     "singleClick": "Bestanden openen met één muisklik",
     "stickySidebar": "Vaste zijbalk",
     "darkMode": "Donkere modus",
+    "darkModeSystem": "Systeem volgen",
+    "darkModeLight": "Licht",
+    "darkModeDark": "Donker",
     "defaultViewMode": "Standaardweergavemodus",
     "defaultViewModeDescription": "Standaardweergavemodus in nieuwe browsers of op nieuwe apparaten. Hiermee worden de lokaal opgeslagen weergavevoorkeuren niet overschreven.",
     "defaultGallerySize": "Standaardgrootte van miniatuurafbeeldingen",
@@ -1116,7 +1119,8 @@
     "groupsFound": "Dubbele groepen gevonden{suffix}",
     "totalWastedSpace": "Totale verspilde ruimte{suffix}",
     "wasted": "Verspild{suffix}",
-    "emptyState": "Voer zoekcriteria in en klik op Duplicaten zoeken om dubbele bestanden te identificeren"
+    "emptyState": "Voer zoekcriteria in en klik op Duplicaten zoeken om dubbele bestanden te identificeren",
+    "noResults": "Zoekopdracht voltooid — er zijn geen dubbele bestanden gevonden."
   },
   "notifications": {
     "title": "Meldingen",

@@ -612,6 +612,9 @@
     "singleClick": "Basta un clic per aprire i file",
     "stickySidebar": "Barra laterale fissa",
     "darkMode": "Modalità scura",
+    "darkModeSystem": "Segui il sistema",
+    "darkModeLight": "Chiaro",
+    "darkModeDark": "Scuro",
     "defaultViewMode": "Modalità di visualizzazione predefinita",
     "defaultViewModeDescription": "Modalità di visualizzazione iniziale su nuovi browser o dispositivi. Non sovrascrive le preferenze di visualizzazione già salvate localmente.",
     "defaultGallerySize": "Dimensione predefinita delle miniature",
@@ -1134,7 +1137,8 @@
     "groupsFound": "Gruppi Duplicati Trovati{suffix}",
     "totalWastedSpace": "Spazio Sprecato Totale{suffix}",
     "wasted": "Sprecato{suffix}",
-    "emptyState": "Inserisci i criteri e clicca Trova Duplicati per identificare i file"
+    "emptyState": "Inserisci i criteri e clicca Trova Duplicati per identificare i file",
+    "noResults": "Ricerca completata — non sono stati trovati file duplicati."
   },
   "events": {
     "serverShutdown": "Il server è stato spento.",

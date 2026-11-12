@@ -6,6 +6,8 @@ import (
 	"regexp"
 	"strings"
 	"testing"
+
+	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 )
 
 // Test structs for comprehensive testing
@@ -215,11 +217,10 @@ type UserDefaults struct {
 	sourcePath := tmpFile[:strings.LastIndex(tmpFile, "/")]
 
 	// Create a config with both default and non-default values
-	trueVal := true
 	config := &Settings{
 		UserDefaults: UserDefaults{
 			UI: UserDefaultsUI{
-				DarkMode: &trueVal,
+				DarkMode: users.DarkModeDark,
 				Locale:   "es",
 			},
 		},
@@ -294,12 +295,11 @@ func TestGenerateConfigYaml_CommentsOnOff(t *testing.T) {
 func TestGenerateConfigYaml_IntegrationTest(t *testing.T) {
 	reNumber := regexp.MustCompile(`^-?\d+(\.\d+)?$`)
 	// Comprehensive test with all features
-	trueVal := true
 	config := &Settings{
 		UserDefaults: UserDefaults{
 			UI: UserDefaultsUI{
 				Locale:   "es",
-				DarkMode: &trueVal,
+				DarkMode: users.DarkModeDark,
 			},
 			FileViewer: UserDefaultsFileViewer{
 				DisableOnlyOfficeExt: ".docx .xlsx",
@@ -464,7 +464,7 @@ func TestGenerateConfigYaml_EdgeCases(t *testing.T) {
 			config: &Settings{
 				UserDefaults: UserDefaults{
 					UI: UserDefaultsUI{
-						DarkMode: boolPtr(true), // default value
+						DarkMode: users.DarkModeDark, // default value
 						Locale:   "en",          // default value
 					},
 				},

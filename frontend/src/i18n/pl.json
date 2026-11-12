@@ -804,6 +804,9 @@
     "singleClick": "Wystarczy jedno kliknięcie, aby otworzyć pliki",
     "stickySidebar": "Przyklejony pasek boczny",
     "darkMode": "Tryb ciemny",
+    "darkModeSystem": "Zgodnie z systemem",
+    "darkModeLight": "Jasny",
+    "darkModeDark": "Ciemny",
     "defaultViewMode": "Domyślny tryb wyświetlania",
     "defaultViewModeDescription": "Tryb wyświetlania domyślnego w nowych przeglądarkach lub na nowych urządzeniach. Nie zastępuje preferencji wyświetlania zapisanych już lokalnie.",
     "defaultGallerySize": "Domyślny rozmiar miniatury",
@@ -1116,7 +1119,8 @@
     "groupsFound": "Znaleziono zduplikowane grupy{suffix}",
     "totalWastedSpace": "Całkowita zmarnowana przestrzeń{suffix}",
     "wasted": "Zmarnowany{suffix}",
-    "emptyState": "Wprowadź kryteria wyszukiwania i kliknij Znajdź duplikaty, aby zidentyfikować zduplikowane pliki."
+    "emptyState": "Wprowadź kryteria wyszukiwania i kliknij Znajdź duplikaty, aby zidentyfikować zduplikowane pliki.",
+    "noResults": "Wyszukiwanie zakończone — nie znaleziono zduplikowanych plików."
   },
   "notifications": {
     "title": "Powiadomienia",

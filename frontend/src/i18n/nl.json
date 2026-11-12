@@ -585,6 +585,9 @@
     "singleClick": "Bestanden openen met één muisklik",
     "stickySidebar": "Vaste zijbalk",
     "darkMode": "Donkere modus",
+    "darkModeSystem": "Systeem volgen",
+    "darkModeLight": "Licht",
+    "darkModeDark": "Donker",
     "showHiddenFiles": "Verborgen bestanden weergeven",
     "showHiddenFilesDescription": "Toon verborgen bestanden in de lijst (bijv. .thumbnails, ProgramData), maar ze zijn nog steeds handmatig toegankelijk als ze zijn geconfigureerd om te worden geïndexeerd.",
     "showQuickDownload": "Downloadpictogram weergeven voor snelle toegang",
@@ -1165,7 +1168,8 @@
     "groupsFound": "Dubbele groepen gevonden{suffix}",
     "totalWastedSpace": "Totale verspilde ruimte{suffix}",
     "wasted": "Verspild{suffix}",
-    "emptyState": "Voer zoekcriteria in en klik op Dubbele bestanden zoeken om deze te vinden"
+    "emptyState": "Voer zoekcriteria in en klik op Dubbele bestanden zoeken om deze te vinden",
+    "noResults": "Zoekopdracht voltooid — er zijn geen dubbele bestanden gevonden."
   },
   "events": {
     "serverShutdown": "De server is uitgeschakeld.",

@@ -1085,6 +1085,9 @@ export async function checksum(source, path, algo) {
 /**
  * URL to open a file inline in a new browser tab via the download endpoint.
  * Uses inline disposition and respects download permissions and share limits.
+ * @param {string} source
+ * @param {string} path
+ * @param {{ path?: string, hash?: string } | null} [shareInfo]
  */
 export function getOpenFileURL(source, path, shareInfo = null) {
   if (isMediaFile(path)) {

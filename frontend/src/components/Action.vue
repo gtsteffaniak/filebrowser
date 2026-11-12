@@ -3,7 +3,7 @@
     v-if="icon === 'close_back'"
     type="button"
     :disabled="isDisabled"
-    @click="actionMultiIcon"
+    @click="onClick"
     :aria-label="label"
     :title="label"
     class="action no-select"
@@ -31,7 +31,7 @@
     :aria-label="label"
     :title="label"
     class="action no-select"
-    @click="action"
+    @click="onClick"
   >
     <i :class="iconClass">{{ icon }}</i>
     <span>{{ label }}</span>
@@ -39,58 +39,59 @@
   </button>
 </template>
 
-<script>
-import { getters, mutations, state } from "@/store";
+<script lang="ts">
+const OUTLINED_ICONS = new Set([
+  "table_rows_narrow",
+  "content_copy",
+  "file_copy",
+  "copy_all",
+  "insert_drive_file",
+]);
 
-export default {
-  name: "action",
-  props: ["icon", "label", "counter", "show", "isDisabled", "customIconClass"],
-  computed: {
-    req() {
-      return state.req;
-    },
-    multistate() {
-      return getters.multibuttonState();
-    },
-    stickSidebar() {
-      return state.user?.stickySidebar;
-    },
-    currentView() {
-      return getters.currentView();
-    },
-    iconClass() {
-      if (this.customIconClass) {
-        return this.customIconClass;
-      }
-      const outlinedIcons = [
-        'table_rows_narrow',
-        'content_copy',
-        'file_copy',
-        'copy_all',
-        'insert_drive_file'
-      ];
-      return outlinedIcons.includes(this.icon)
-        ? 'material-symbols-outlined'
-        : 'material-symbols';
-    },
+export function actionIconClass(icon: string, customIconClass?: string): string {
+  if (customIconClass) return customIconClass;
+  return OUTLINED_ICONS.has(icon) ? "material-symbols-outlined" : "material-symbols";
+}
+</script>
+
+<script setup lang="ts">
+import { computed } from "vue";
+import { getters, mutations } from "@/store";
+import type { Prompt } from "@/store/types";
+
+const props = withDefaults(
+  defineProps<{
+    icon?: string;
+    label?: string;
+    counter?: number;
+    show?: Prompt | string | null;
+    isDisabled?: boolean;
+    customIconClass?: string;
+  }>(),
+  {
+    icon: "",
+    label: "",
+    counter: 0,
+    show: null,
+    isDisabled: false,
+    customIconClass: "",
   },
-  methods: {
-    actionMultiIcon() {
-      if (this.show) {
-        mutations.closeHovers();
-        mutations.showPrompt(this.show);
-      }
-      this.$emit("action");
-    },
-    action() {
-      if (this.show) {
-        mutations.closeHovers();
-        mutations.showPrompt(this.show);
-      }
-      this.$emit("action");
-    },
-  },
-};
+);
+
+const emit = defineEmits<{
+  action: [];
+}>();
+
+const multistate = computed(() => getters.multibuttonState());
+const iconClass = computed(() => actionIconClass(props.icon, props.customIconClass));
+
+function onClick() {
+  if (props.show) {
+    mutations.closeHovers();
+    mutations.showPrompt(props.show);
+  }
+  emit("action");
+}
 </script>
 
 <style>

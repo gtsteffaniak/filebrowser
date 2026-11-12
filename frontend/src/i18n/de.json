@@ -804,6 +804,9 @@
     "singleClick": "Dateien mit einem Klick öffnen",
     "stickySidebar": "Feste Seitenleiste",
     "darkMode": "Dunkler Modus",
+    "darkModeSystem": "Systemeinstellung folgen",
+    "darkModeLight": "Hell",
+    "darkModeDark": "Dunkel",
     "defaultViewMode": "Standard-Anzeigemodus",
     "defaultViewModeDescription": "Standardansichtsmodus in neuen Browsern oder auf neuen Geräten. Überschreibt keine bereits lokal gespeicherten Anzeigeeinstellungen.",
     "defaultGallerySize": "Standardgröße der Miniaturansicht",
@@ -1116,7 +1119,8 @@
     "groupsFound": "Doppelte Gruppen gefunden{suffix}",
     "totalWastedSpace": "Insgesamt verschwendeter Platz{suffix}",
     "wasted": "Vergeudet{suffix}",
-    "emptyState": "Geben Sie Suchkriterien ein und klicken Sie auf Duplikate suchen, um doppelte Dateien zu identifizieren"
+    "emptyState": "Geben Sie Suchkriterien ein und klicken Sie auf Duplikate suchen, um doppelte Dateien zu identifizieren",
+    "noResults": "Suche abgeschlossen – es wurden keine doppelten Dateien gefunden."
   },
   "notifications": {
     "title": "Benachrichtigungen",

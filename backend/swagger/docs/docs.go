@@ -7580,8 +7580,12 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "darkMode": {
-                    "description": "should dark mode be enabled",
-                    "type": "boolean"
+                    "description": "theme preference: \"auto\" (follow system), \"dark\", or \"light\"",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/users.DarkMode"
+                        }
+                    ]
                 },
                 "locale": {
                     "description": "language to use: eg. de, en, or fr",
@@ -8097,6 +8101,19 @@ const docTemplate = `{
                 }
             }
         },
+        "users.DarkMode": {
+            "type": "string",
+            "enum": [
+                "auto",
+                "dark",
+                "light"
+            ],
+            "x-enum-varnames": [
+                "DarkModeAuto",
+                "DarkModeDark",
+                "DarkModeLight"
+            ]
+        },
         "users.FileLoading": {
             "type": "object",
             "properties": {
@@ -8141,8 +8158,12 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "darkMode": {
-                    "description": "should dark mode be enabled",
-                    "type": "boolean"
+                    "description": "theme preference: \"auto\" (follow system), \"dark\", or \"light\"",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/users.DarkMode"
+                        }
+                    ]
                 },
                 "dateFormat": {
                     "description": "when false, the date is relative, when true, the date is an exact timestamp",

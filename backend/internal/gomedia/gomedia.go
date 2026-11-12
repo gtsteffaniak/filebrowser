@@ -80,6 +80,11 @@ var heifImageExts = map[string]bool{
 
 const heicDecodeMaxEdge = 16384
 
+// stillImageMaxSourcePixels caps the original image area (width×height) passed to
+// go-media for HEIC, JPEG XL, and camera RAW decode. JPEG XL honors it today
+// (~50 MiB of 8-bit RGB at 4096×4096); other still formats ignore the field.
+const stillImageMaxSourcePixels = 4096 * 4096
+
 // cameraRawExts match go-media rawpreview formats (also iteminfo raw extensions).
 var cameraRawExts = map[string]bool{
 	".cr2": true, ".cr3": true, ".nef": true, ".nrw": true, ".arw": true, ".srf": true, ".sr2": true,
@@ -628,10 +633,11 @@ func stillImageJPEG(path string, maxW, maxH, quality int, op string, supported f
 		quality = 85
 	}
 	res, err := media.Thumbnail(f, size, media.ThumbnailOptions{
-		MaxWidth:  maxW,
-		MaxHeight: maxH,
-		Format:    "jpeg",
-		Quality:   quality,
+		MaxWidth:        maxW,
+		MaxHeight:       maxH,
+		Format:          "jpeg",
+		Quality:         quality,
+		MaxSourcePixels: stillImageMaxSourcePixels,
 	})
 	if err != nil {
 		logFail(err)

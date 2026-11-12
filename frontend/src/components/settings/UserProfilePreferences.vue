@@ -27,18 +27,29 @@
       :name="$t('profileSettings.disableHideSidebar')"
       :description="$t('profileSettings.disableHideSidebarDescription')"
     />
-    <ToggleSwitch
-      class="item"
-      :enforceable="enforceable"
-      :enforced="enforcedFlag('ui', 'darkMode')"
-      v-model="darkMode"
-      @change="() => emitSectionChange('ui', 'darkMode')"
-      @update:enforced="(v) => emitEnforced('ui', 'darkMode', v)"
-      :disabled="fieldDisabled('ui', 'darkMode')"
-      :enforcement-locked="isEnforcementLocked('ui', 'darkMode')"
-      :name="$t('profileSettings.darkMode')"
-      :description="helpText('ui', 'darkMode', $t('index.toggleDark'))"
-    />
+    <ProfileEnforceableField :enforceable="enforceable">
+      <h4>{{ $t('profileSettings.darkMode') }}</h4>
+      <div
+        class="form-flex-group"
+        @mouseenter="showEnforcedTooltipIfLocked($event, 'ui', 'darkMode')"
+        @mouseleave="hideTooltip"
+      >
+        <ExpandDropdown
+          v-model="darkMode"
+          :options="darkModeChoices"
+          :aria-label="$t('profileSettings.darkMode')"
+          :disabled="fieldDisabled('ui', 'darkMode')"
+        />
+      </div>
+      <template #enforce>
+        <ProfileEnforceSwitch
+          :visible="enforceable"
+          :enforced="enforcedFlag('ui', 'darkMode')"
+          :disabled="disabled"
+          @update:enforced="(v) => emitEnforced('ui', 'darkMode', v)"
+        />
+      </template>
+    </ProfileEnforceableField>
     <ProfileEnforceableField :enforceable="enforceable">
       <h4>{{ $t("settings.themeColor") }}</h4>
       <div
@@ -626,18 +637,29 @@
       :start-collapsed="sectionStartsCollapsed('themeLanguage')"
     >
       <div class="settings-items">
-        <ToggleSwitch
-          class="item"
-          :enforceable="enforceable"
-          :enforced="enforcedFlag('ui', 'darkMode')"
-          v-model="darkMode"
-          @change="() => emitSectionChange('ui', 'darkMode')"
-          @update:enforced="(v) => emitEnforced('ui', 'darkMode', v)"
-          :disabled="fieldDisabled('ui', 'darkMode')"
-          :enforcement-locked="isEnforcementLocked('ui', 'darkMode')"
-          :name="$t('profileSettings.darkMode')"
-          :description="helpText('ui', 'darkMode', $t('index.toggleDark'))"
-        />
+        <ProfileEnforceableField :enforceable="enforceable">
+          <h4>{{ $t('profileSettings.darkMode') }}</h4>
+          <div
+            class="form-flex-group"
+            @mouseenter="showEnforcedTooltipIfLocked($event, 'ui', 'darkMode')"
+            @mouseleave="hideTooltip"
+          >
+            <ExpandDropdown
+              v-model="darkMode"
+              :options="darkModeChoices"
+              :aria-label="$t('profileSettings.darkMode')"
+              :disabled="fieldDisabled('ui', 'darkMode')"
+            />
+          </div>
+          <template #enforce>
+            <ProfileEnforceSwitch
+              :visible="enforceable"
+              :enforced="enforcedFlag('ui', 'darkMode')"
+              :disabled="disabled"
+              @update:enforced="(v) => emitEnforced('ui', 'darkMode', v)"
+            />
+          </template>
+        </ProfileEnforceableField>
         <ProfileEnforceableField :enforceable="enforceable">
           <h4>{{ $t("settings.themeColor") }}</h4>
           <div
@@ -745,6 +767,7 @@ import {
 } from "@/utils/tooltipHelp.js";
 import { getters, mutations } from "@/store";
 import { getObjectProperty, setObjectProperty } from "@/utils/object.js";
+import { normalizeDarkMode } from "@/utils/theme.js";
 import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
 import ProfilePreferenceToggle from "@/components/settings/ProfilePreferenceToggle.vue";
 import ProfileEnforceSwitch from "@/components/settings/ProfileEnforceSwitch.vue";
@@ -920,13 +943,20 @@ export default {
     },
     darkMode: {
       get() {
-        const v = this.sections.ui?.darkMode;
-        return v === undefined || v === null ? true : !!v;
+        return normalizeDarkMode(this.sections.ui?.darkMode);
       },
       set(val) {
         const next = { ...this.sections, ui: { ...(this.sections.ui || {}), darkMode: val } };
         this.sections = next;
+        this.emitSectionChange("ui", "darkMode");
       },
+    },
+    darkModeChoices() {
+      return [
+        { value: "auto", label: this.$t("profileSettings.darkModeSystem") },
+        { value: "light", label: this.$t("profileSettings.darkModeLight") },
+        { value: "dark", label: this.$t("profileSettings.darkModeDark") },
+      ];
     },
     autoplayMedia: {
       get() {

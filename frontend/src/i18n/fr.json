@@ -804,6 +804,9 @@
     "singleClick": "Un simple clic pour ouvrir les fichiers",
     "stickySidebar": "Barre latérale fixe",
     "darkMode": "Mode sombre",
+    "darkModeSystem": "Suivre le système",
+    "darkModeLight": "Clair",
+    "darkModeDark": "Sombre",
     "defaultViewMode": "Mode d'affichage par défaut",
     "defaultViewModeDescription": "Mode d'affichage par défaut sur les nouveaux navigateurs ou appareils. Ne remplace pas les préférences d'affichage déjà enregistrées localement.",
     "defaultGallerySize": "Taille par défaut des vignettes",
@@ -1116,7 +1119,8 @@
     "groupsFound": "Groupes en double trouvés{suffix}",
     "totalWastedSpace": "Total de l'espace perdu{suffix}",
     "wasted": "Gaspillage{suffix}",
-    "emptyState": "Saisissez des critères de recherche et cliquez sur Rechercher les doublons pour identifier les fichiers en double."
+    "emptyState": "Saisissez des critères de recherche et cliquez sur Rechercher les doublons pour identifier les fichiers en double.",
+    "noResults": "Recherche terminée — aucun fichier en double n'a été trouvé."
   },
   "notifications": {
     "title": "Notifications",

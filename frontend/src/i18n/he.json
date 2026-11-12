@@ -804,6 +804,9 @@
     "singleClick": "לחיצה אחת לפתיחת קבצים",
     "stickySidebar": "סרגל צדדי קבוע",
     "darkMode": "מצב כהה",
+    "darkModeSystem": "לפי המערכת",
+    "darkModeLight": "בהיר",
+    "darkModeDark": "כהה",
     "defaultViewMode": "מצב תצוגה ברירת מחדל",
     "defaultViewModeDescription": "מצב תצוגה ראשוני בדפדפנים או במכשירים חדשים. אינו מבטל את הגדרות התצוגה שכבר נשמרו באופן מקומי.",
     "defaultGallerySize": "גודל תמונה ממוזערת ברירת מחדל",
@@ -1116,7 +1119,8 @@
     "groupsFound": "נמצאו קבוצות כפולות{suffix}",
     "totalWastedSpace": "סך השטח המבוזבז{suffix}",
     "wasted": "מבוזבז{suffix}",
-    "emptyState": "הזן את קריטריוני החיפוש ולחץ על 'מצא כפילויות' כדי לזהות קבצים כפולים."
+    "emptyState": "הזן את קריטריוני החיפוש ולחץ על 'מצא כפילויות' כדי לזהות קבצים כפולים.",
+    "noResults": "החיפוש הסתיים — לא נמצאו קבצים כפולים."
   },
   "notifications": {
     "title": "הודעות",
