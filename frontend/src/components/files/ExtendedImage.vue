@@ -40,7 +40,6 @@
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import { notify } from "@/notify";
 import { getters, mutations, state } from '@/store';
-import { globalVars } from "@/utils/constants";
 import { acquireBestCachedThumbnailBlob, getBestCachedImage, releaseThumbnailBlob } from "@/utils/cache/imageCache.ts";
 import { isRawImageMimeType } from "@/utils/mimetype";
 import { refreshViewToken, requestViewIdentity } from "@/api/viewToken.js";

@@ -151,9 +151,8 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		externalLinks = newExternalLinks
 	}
 
-	// Single source for the instance default dark mode. It drives the server-rendered
-	// <html> class (htmlVars.defaultDarkMode), the theme-color meta, and globalVars.darkMode,
-	// so the first paint and the SPA agree.
+	// Instance default dark mode: htmlVars/defaultDark use a boolean for first paint;
+	// globalVars.darkMode carries the full preference (including "auto") for the SPA.
 	defaultDark := settings.DefaultDarkMode()
 	defaultThemeColor := settings.Config.Frontend.Styling.LightBackground
 	if defaultDark {
@@ -287,7 +286,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"minSearchLength":        settings.Config.Server.MinSearchLength,
 		"searchResultsLimit":     settings.Config.Server.SearchResultsLimit,
 		"disableExternal":        settings.Config.Frontend.DisableDefaultLinks,
-		"darkMode":               defaultDark,
+		"darkMode":               settings.DefaultDarkModePreference(),
 		"singleClick":            settings.Config.UserDefaults.Listing.SingleClick,
 		"lightBackground":        settings.Config.Frontend.Styling.LightBackground,
 		"darkBackground":         settings.Config.Frontend.Styling.DarkBackground,
