@@ -150,7 +150,6 @@ import { isPdfFile } from "@/utils/mediaFile";
 import { shouldUsePdfPreviewFallback } from "@/utils/pdfPreview.js";
 import { TranscodePlaybackController } from "@/plyr/transcodePlaybackController.js";
 import { isTranscodeAvailable } from "@/plyr/transcodeMode.js";
-
 export default {
   name: "preview",
   components: {
@@ -208,11 +207,10 @@ export default {
       const isSafari = /^((?!chrome|android).)*safari/i.test(userAgent);
       return isIOS && isSafari;
     },
-    // Viewable when we can get embedded/original preview: (media + heic conversion) or Safari native
+    // Safari: native HEIC in ExtendedImage. Other browsers: converted original when hasPreview.
     isHeicAndViewable() {
       if (state.isSafari) return true;
-      if (globalVars.ffmpegAvailable && globalVars.enableHeicConversion) return true;
-      return false;
+      return Boolean(state.req?.hasPreview);
     },
     pdfConvertable() {
       const ext = `.${state.req.name.split(".").pop().toLowerCase()}`;
@@ -244,26 +242,10 @@ export default {
       const typeHint = state.req.type || state.req.name;
       const isHeicOrHeif = state.req.type === "image/heic" || state.req.type === "image/heif";
 
-      if (state.isSafari && isHeicOrHeif) {
-        if (getters.isShare()) {
-          return resourcesApi.getViewURL(
-            state.req.source,
-            state.req.path,
-            viewToken,
-            {
-              path: state.shareInfo.subPath,
-              hash: state.shareInfo.hash,
-            },
-            false,
-            typeHint,
-          );
-        }
-        return resourcesApi.getViewURL(state.req.source, state.req.path, viewToken, null, false, typeHint);
-      }
-
       const getRawPreview = isRawImageMimeType(state.req.type);
-      const getHeicPreview = isHeicOrHeif && globalVars.ffmpegAvailable && globalVars.enableHeicConversion;
-      if (this.pdfConvertable || getRawPreview || getHeicPreview) {
+      // HEIC/HEIF at size=original for non-Safari; Safari full size is resolved in ExtendedImage.
+      const getHeicConvertedPreview = isHeicOrHeif && !state.isSafari && state.req?.hasPreview;
+      if (this.pdfConvertable || getRawPreview || getHeicConvertedPreview) {
         if (getters.isShare()) {
           const previewPath = removeTrailingSlash(state.req.path);
           return resourcesApi.getPreviewURLPublic(previewPath, "original", state.req.viewToken);

@@ -121,8 +121,8 @@ export default {
   mounted() {
     this.mediaSettingsHandler = () => {
       void this.load({ silent: true });
-      // Keep the player's live view of media settings in sync after a save.
-      void mutations.syncMediaPlayerSettings();
+      // Keep the shared live view of media settings in sync after a save.
+      void mutations.syncMediaSettings();
     };
     eventBus.on(MEDIA_SETTINGS_CHANGED_EVENT, this.mediaSettingsHandler);
     void this.load();
@@ -200,7 +200,7 @@ export default {
           return;
         }
         this.media = media;
-        void mutations.syncMediaPlayerSettings();
+        void mutations.syncMediaSettings();
         notify.showSuccessToast(this.$t("settings.settingsUpdated"));
       } catch (e) {
         notify.showError(e?.message || this.$t("media.updateFailed"));

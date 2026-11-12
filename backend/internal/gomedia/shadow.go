@@ -59,8 +59,8 @@ func runShadow[T any](op, path string, goLatency time.Duration, fast T, legacy L
 	ffStart := time.Now()
 	legacyVal, ffOK := legacy()
 	ffLatency := time.Since(ffStart)
-	shadowLogf("go-media shadow %s for %s: go-media=%.2fms legacy(ffmpeg/dhowden)=%.2fms diff(legacy-go)=%+.2fms legacy_ok=%t",
-		op, path, ms(goLatency), ms(ffLatency), ms(ffLatency)-ms(goLatency), ffOK)
+	shadowLogf("go-media shadow %s for %s: go-media=%.2fms legacy(ffmpeg/dhowden)=%.2fms diff(go-legacy)=%+.2fms",
+		op, path, ms(goLatency), ms(ffLatency), ms(goLatency)-ms(ffLatency))
 
 	if !ffOK {
 		// go-media read the file but the legacy path failed. That is an outcome

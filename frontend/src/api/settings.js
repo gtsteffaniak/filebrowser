@@ -1,6 +1,6 @@
 import { notify } from "@/notify/index.ts";
 import { getApiPath, getPublicApiPath } from "@/utils/url.js";
-import { normalizeMediaPlayerSettings } from "@/utils/mediaSettings.js";
+import { normalizeSharedMediaSettings } from "@/utils/mediaSettings.js";
 import { fetchJSON, fetchURL, requestTimeoutSignal } from "./utils.ts";
 
 const analyticsRequestTimeoutMs = 5000;
@@ -124,13 +124,14 @@ export function getMediaSettings() {
 }
 
 /**
- * Effective media settings for playback. Every authenticated user may read this;
- * admins receive the full settings object and everyone else the player subset.
- * @returns {Promise<{ enabled: boolean, profiles: string[], maxConcurrentPerUser: number, hardwareAcceleration: boolean }>}
+ * Shared runtime media state (player + general UI), normalized to a flat shape.
+ * Non-admins receive the PUBLIC UserMedia payload; admins get the full payload on the
+ * same endpoint, which carries the same transcode and imagePreview keys.
+ * @returns {Promise<{ enabled: boolean, profiles: string[], maxConcurrentPerUser: number, imagePreview: object }>}
  */
-export async function getMediaPlayerSettings() {
+export async function getSharedMediaSettings() {
   const data = await fetchJSON(getApiPath("settings/media"));
-  return normalizeMediaPlayerSettings(data);
+  return normalizeSharedMediaSettings(data);
 }
 
 export async function patchMediaSettings(partial) {

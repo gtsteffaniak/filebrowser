@@ -7,18 +7,18 @@ import (
 )
 
 // MergeMediaSettingsPatchJSON merges a partial JSON patch into base media settings.
-func MergeMediaSettingsPatchJSON(base MediaSettings, patchJSON []byte) (MediaSettings, error) {
+func MergeMediaSettingsPatchJSON(base FullAdminMedia, patchJSON []byte) (FullAdminMedia, error) {
 	baseBytes, err := json.Marshal(base)
 	if err != nil {
-		return MediaSettings{}, err
+		return FullAdminMedia{}, err
 	}
 	mergedBytes, err := mergeUserDefaultsJSON(baseBytes, patchJSON)
 	if err != nil {
-		return MediaSettings{}, err
+		return FullAdminMedia{}, err
 	}
-	var merged MediaSettings
+	var merged FullAdminMedia
 	if err := json.Unmarshal(mergedBytes, &merged); err != nil {
-		return MediaSettings{}, fmt.Errorf("unmarshal merged media settings: %w", err)
+		return FullAdminMedia{}, fmt.Errorf("unmarshal merged media settings: %w", err)
 	}
 	// An explicit accelDevice wins over the legacy hardwareAcceleration bool in
 	// the base settings, which would otherwise force the device back to software.
@@ -35,7 +35,7 @@ func MergeMediaSettingsPatchJSON(base MediaSettings, patchJSON []byte) (MediaSet
 }
 
 // MediaSettingsEqual reports whether two runtime media settings are equivalent.
-func MediaSettingsEqual(a, b MediaSettings) bool {
+func MediaSettingsEqual(a, b FullAdminMedia) bool {
 	ab, errA := json.Marshal(a)
 	bb, errB := json.Marshal(b)
 	if errA != nil || errB != nil {
@@ -46,7 +46,7 @@ func MediaSettingsEqual(a, b MediaSettings) bool {
 
 // ApplyMediaSettingsIfChanged applies runtime media settings
 // only when they actually differ. It never re-runs ffmpeg detection.
-func ApplyMediaSettingsIfChanged(s MediaSettings) {
+func ApplyMediaSettingsIfChanged(s FullAdminMedia) {
 	if MediaSettingsEqual(CurrentMediaSettings(), s) {
 		return
 	}
@@ -55,7 +55,7 @@ func ApplyMediaSettingsIfChanged(s MediaSettings) {
 
 // CloneMediaSettings returns a deep copy of m — the conversion maps hold *bool
 // values, so a shallow copy would alias the live config's reference state.
-func CloneMediaSettings(m MediaSettings) MediaSettings {
+func CloneMediaSettings(m FullAdminMedia) FullAdminMedia {
 	out := m
 	out.Convert = FfmpegConvert{
 		ImagePreview: cloneBoolMap(m.Convert.ImagePreview),
@@ -84,7 +84,7 @@ func cloneBoolPtr(v *bool) *bool {
 }
 
 // SanitizeMediaSettings clamps runtime media settings into supported ranges.
-func SanitizeMediaSettings(m MediaSettings) MediaSettings {
+func SanitizeMediaSettings(m FullAdminMedia) FullAdminMedia {
 	t := &m.Transcode
 	if t.MaxConcurrent < 1 {
 		t.MaxConcurrent = 2

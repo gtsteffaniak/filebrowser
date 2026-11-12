@@ -850,17 +850,9 @@ export default {
       return needsTranscodeFirst(this.transcodeProbeParams());
     },
     transcodeProfileOptions() {
-      const live = state.mediaPlayerSettings?.profiles;
-      let configured;
-      if (Array.isArray(live)) {
-        configured = live;
-      } else {
-        configured = Array.isArray(globalVars.transcodeProfiles)
-          ? globalVars.transcodeProfiles
-          : PLYR_TRANSCODE_HLS_MODES;
-      }
-      const ids = configured.filter((id) => PLYR_TRANSCODE_HLS_MODES.includes(id));
-      return ids.length ? ids : PLYR_TRANSCODE_HLS_MODES;
+      const live = state.mediaSettings?.profiles;
+      const configured = Array.isArray(live) ? live : PLYR_TRANSCODE_HLS_MODES;
+      return configured.filter((id) => PLYR_TRANSCODE_HLS_MODES.includes(id));
     },
     shouldProactivelyOfferTranscode() {
       if (this.previewType !== 'video' || this.startTranscode) {
@@ -875,7 +867,7 @@ export default {
       const base = ['captions', 'captionSize', 'quality', 'speed', 'playback', 'loop'];
       // Register the slot whenever authenticated video can show it later.
       // Plyr only builds settings panels at mount; applyCustomSettings toggles
-      // visibility when media/live settings settle (e.g. after syncMediaPlayerSettings).
+      // visibility when media/live settings settle (e.g. after syncMediaSettings).
       if (this.previewType === 'video' && getters.isLoggedIn() && !getters.isShare()) {
         return [...base, 'transcodeMode'];
       }

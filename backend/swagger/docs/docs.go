@@ -3217,6 +3217,24 @@ const docTemplate = `{
             }
         },
         "/api/settings/media": {
+            "get": {
+                "description": "Returns the media settings the caller is allowed to see.\nAdmins get the full settings, including ffmpeg and hardware options, so they can edit them.\nEveryone else gets a small read-only view: whether transcoding is on, how many\ntranscodes they can run at once, which quality presets are enabled, and which image\npreviews the server can generate. Keys in the view are the same for admins and users.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Settings"
+                ],
+                "summary": "Get runtime media settings",
+                "responses": {
+                    "200": {
+                        "description": "Media settings",
+                        "schema": {
+                            "$ref": "#/definitions/web.mediaSettingsResponse"
+                        }
+                    }
+                }
+            },
             "patch": {
                 "description": "Merges a partial JSON patch into the DB-backed media settings and applies them at runtime.",
                 "consumes": [
@@ -6299,6 +6317,58 @@ const docTemplate = `{
                 }
             }
         },
+        "settings.FullAdminTranscode": {
+            "type": "object",
+            "properties": {
+                "cacheMaxSizeMB": {
+                    "description": "disk cache size limit in MB; 0 = unlimited (default: 10240)",
+                    "type": "integer"
+                },
+                "cacheRetentionH": {
+                    "description": "completed cache retention in hours (default: 24)",
+                    "type": "integer"
+                },
+                "enabled": {
+                    "description": "enable HLS transcoding for authenticated playback (default: false)",
+                    "type": "boolean"
+                },
+                "enabledProfiles": {
+                    "description": "derived at read time (player-menu profile ids); never stored",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "encoderBackend": {
+                    "description": "default video encoder backend for transcodes: \"\" (auto), \"cpu\", or an accel backend (nvenc, amf, qsv, vaapi, d3d12, videotoolbox)",
+                    "type": "string"
+                },
+                "maxConcurrent": {
+                    "description": "global concurrent transcode sessions (default: 2)",
+                    "type": "integer"
+                },
+                "maxConcurrentPerUser": {
+                    "description": "hard per-user concurrent transcode ceiling (default: 1)",
+                    "type": "integer"
+                },
+                "maxResolution": {
+                    "description": "superseded by profiles.\u003cname\u003e.maxResolution. deprecated: kept for config compatibility",
+                    "type": "integer"
+                },
+                "profiles": {
+                    "description": "per-profile transcode settings shown in the player menu",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/settings.TranscodeProfiles"
+                        }
+                    ]
+                },
+                "readRate": {
+                    "description": "VOD producer input pacing in Nx realtime (-readrate); unset or \u003c1 clamps to \u003e=1 (default: 2)",
+                    "type": "number"
+                }
+            }
+        },
         "settings.Http": {
             "type": "object",
             "properties": {
@@ -6640,54 +6710,9 @@ const docTemplate = `{
                     "description": "deprecated: HLS transcoding for media playback. deprecated: manage via the admin media settings API",
                     "allOf": [
                         {
-                            "$ref": "#/definitions/settings.MediaTranscode"
+                            "$ref": "#/definitions/settings.FullAdminTranscode"
                         }
                     ]
-                }
-            }
-        },
-        "settings.MediaTranscode": {
-            "type": "object",
-            "properties": {
-                "cacheMaxSizeMB": {
-                    "description": "disk cache size limit in MB; 0 = unlimited (default: 10240)",
-                    "type": "integer"
-                },
-                "cacheRetentionH": {
-                    "description": "completed cache retention in hours (default: 24)",
-                    "type": "integer"
-                },
-                "enabled": {
-                    "description": "enable HLS transcoding for authenticated playback (default: false)",
-                    "type": "boolean"
-                },
-                "encoderBackend": {
-                    "description": "default video encoder backend for transcodes: \"\" (auto), \"cpu\", or an accel backend (nvenc, amf, qsv, vaapi, d3d12, videotoolbox)",
-                    "type": "string"
-                },
-                "maxConcurrent": {
-                    "description": "global concurrent transcode sessions (default: 2)",
-                    "type": "integer"
-                },
-                "maxConcurrentPerUser": {
-                    "description": "hard per-user concurrent transcode ceiling (default: 1)",
-                    "type": "integer"
-                },
-                "maxResolution": {
-                    "description": "superseded by profiles.\u003cname\u003e.maxResolution. deprecated: kept for config compatibility",
-                    "type": "integer"
-                },
-                "profiles": {
-                    "description": "per-profile transcode settings shown in the player menu",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/settings.TranscodeProfiles"
-                        }
-                    ]
-                },
-                "readRate": {
-                    "description": "VOD producer input pacing in Nx realtime (-readrate); unset or \u003c1 clamps to \u003e=1 (default: 2)",
-                    "type": "number"
                 }
             }
         },
@@ -8963,7 +8988,6 @@ const docTemplate = `{
             }
         },
         "web.mediaSettingsResponse": {
-            "description": "Admins receive the DB-backed media integration settings; every authenticated user receives the player-relevant subset (transcode enabled, profiles, per-user limit).",
             "type": "object",
             "properties": {
                 "accelDevice": {
@@ -9006,6 +9030,13 @@ const docTemplate = `{
                     "description": "enable hardware acceleration for ffmpeg if available",
                     "type": "boolean"
                 },
+                "imagePreview": {
+                    "description": "image formats that can be converted",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "boolean"
+                    }
+                },
                 "lockMessage": {
                     "type": "string"
                 },
@@ -9019,7 +9050,7 @@ const docTemplate = `{
                     "description": "HLS transcoding for media playback",
                     "allOf": [
                         {
-                            "$ref": "#/definitions/settings.MediaTranscode"
+                            "$ref": "#/definitions/settings.FullAdminTranscode"
                         }
                     ]
                 }

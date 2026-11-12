@@ -134,6 +134,12 @@ func DefaultDarkModeIsAuto() bool {
 	return Config.UserDefaults.UI.DarkMode == users.DarkModeAuto
 }
 
+// DefaultDarkModePreference is the configured instance default for globalVars.darkMode
+// ("auto", "dark", or "light"). Unlike DefaultDarkMode, it preserves "auto" for the SPA.
+func DefaultDarkModePreference() users.DarkMode {
+	return Config.UserDefaults.UI.DarkMode.Or(users.DarkModeDark)
+}
+
 // DefaultBackgroundColor returns the background color of the instance's default theme.
 func DefaultBackgroundColor() string {
 	if DefaultDarkMode() {

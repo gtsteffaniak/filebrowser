@@ -2,17 +2,16 @@ package settings
 
 import "testing"
 
-func testMediaSettings() MediaSettings {
-	return MediaSettings{
+func testMediaSettings() FullAdminMedia {
+	return FullAdminMedia{
 		Debug:                true,
 		HardwareAcceleration: true,
-		Transcode: MediaTranscode{
-			Enabled:              true,
-			MaxConcurrent:        2,
-			MaxConcurrentPerUser: 1,
-			CacheMaxSizeMB:       10240,
-			CacheRetentionH:      24,
-			Profiles:             DefaultTranscodeProfiles(),
+		Transcode: FullAdminTranscode{
+			UserTranscode:   UserTranscode{Enabled: true, MaxConcurrentPerUser: 1},
+			MaxConcurrent:   2,
+			CacheMaxSizeMB:  10240,
+			CacheRetentionH: 24,
+			Profiles:        DefaultTranscodeProfiles(),
 		},
 	}
 }
@@ -54,11 +53,11 @@ func TestMergeMediaSettingsPatchJSONProfile(t *testing.T) {
 }
 
 func TestSanitizeMediaSettings(t *testing.T) {
-	in := MediaSettings{
-		Transcode: MediaTranscode{
-			MaxConcurrent:        -1,
-			MaxConcurrentPerUser: 0,
-			CacheRetentionH:      0,
+	in := FullAdminMedia{
+		Transcode: FullAdminTranscode{
+			UserTranscode:   UserTranscode{MaxConcurrentPerUser: 0},
+			MaxConcurrent:   -1,
+			CacheRetentionH: 0,
 			Profiles: TranscodeProfiles{
 				Quality: TranscodeProfile{MaxResolution: -5, AvgBitrateKbps: -1},
 			},
@@ -116,10 +115,10 @@ func TestSanitizeMediaSettingsAccelDevice(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			out := SanitizeMediaSettings(MediaSettings{
+			out := SanitizeMediaSettings(FullAdminMedia{
 				AccelDevice:          tc.device,
 				HardwareAcceleration: tc.hwAccel,
-				Transcode:            MediaTranscode{MaxConcurrent: 1, MaxConcurrentPerUser: 1, CacheRetentionH: 1},
+				Transcode:            FullAdminTranscode{UserTranscode: UserTranscode{MaxConcurrentPerUser: 1}, MaxConcurrent: 1, CacheRetentionH: 1},
 			})
 			if out.AccelDevice != tc.wantDevice || out.HardwareAcceleration != tc.wantHW {
 				t.Fatalf("accelDevice = %q/%v, want %q/%v", out.AccelDevice, out.HardwareAcceleration, tc.wantDevice, tc.wantHW)

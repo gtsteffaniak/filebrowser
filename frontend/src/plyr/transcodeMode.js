@@ -4,20 +4,17 @@ import { state } from '@/store/index.ts';
 import { globalVars } from '@/utils/constants.js';
 
 /**
- * `globalVars` are static page constants, and `ffmpegAvailable` mirrors ffmpeg
- * availability, which cannot change without a restart. Transcoding is ffmpeg-only,
- * so it gates the feature outright. The transcode toggle itself is read from the
- * live media settings so an admin change applies without a page reload.
+ * `ffmpegAvailable` is a static page constant that mirrors ffmpeg availability, which
+ * cannot change without a restart. Transcoding is ffmpeg-only, so it gates the feature
+ * outright. The transcode toggle is read only from the live media settings, so an admin
+ * change applies without a page reload. Before those settings load (or for anonymous
+ * users and shares, which never load them) transcoding reports unavailable.
  */
 export function isTranscodeAvailable() {
   if (globalVars?.ffmpegAvailable !== true) {
     return false;
   }
-  const live = state?.mediaPlayerSettings;
-  if (live) {
-    return live.enabled === true;
-  }
-  return globalVars.transcodeEnabled === true;
+  return state?.mediaSettings?.enabled === true;
 }
 
 /** Supported transcode playback modes in the player UI. */

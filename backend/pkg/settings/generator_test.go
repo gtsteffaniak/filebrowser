@@ -331,7 +331,7 @@ func TestGenerateConfigYaml_IntegrationTest(t *testing.T) {
 			showComments:     false,
 			showFull:         true,
 			filterDeprecated: false,
-			expectSecret:     true,  // secrets should be hidden
+			expectSecret:     true, // secrets should be hidden
 			expectDeprecated: false,
 			expectFull:       true,  // all fields shown
 			expectComments:   false, // no comments
