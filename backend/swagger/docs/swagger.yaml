@@ -2428,12 +2428,6 @@ definitions:
         description: File metadata for non-text files
     type: object
   web.mediaSettingsResponse:
-    description: 'Returns the media settings the caller is allowed to see. Admins
-      get the full settings, including ffmpeg and hardware options, so they can edit
-      them. Everyone else gets a small read-only view: whether transcoding is on,
-      how many transcodes they can run at once, which quality presets are enabled,
-      and which image previews the server can generate. Keys in the view are the same
-      for admins and users.'
     properties:
       accelDevice:
         description: 'acceleration device: "auto", "software"/"cpu", "igpu", "dgpu",
@@ -4780,6 +4774,23 @@ paths:
       tags:
       - Settings
   /api/settings/media:
+    get:
+      description: |-
+        Returns the media settings the caller is allowed to see.
+        Admins get the full settings, including ffmpeg and hardware options, so they can edit them.
+        Everyone else gets a small read-only view: whether transcoding is on, how many
+        transcodes they can run at once, which quality presets are enabled, and which image
+        previews the server can generate. Keys in the view are the same for admins and users.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Media settings
+          schema:
+            $ref: '#/definitions/web.mediaSettingsResponse'
+      summary: Get runtime media settings
+      tags:
+      - Settings
     patch:
       consumes:
       - application/json

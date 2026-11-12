@@ -132,7 +132,7 @@ export default {
       }
       // Don't use thumbnail when we show original embedded preview (HEIC/HEIF or raw)
       const isHeicOrHeif = state.req?.type === "image/heic" || state.req?.type === "image/heif";
-      const useOriginalForHeic = isHeicOrHeif && (state.isSafari || state.mediaSettings?.imagePreview?.heic === true);
+      const useOriginalForHeic = isHeicOrHeif && (state.isSafari || state.req?.hasPreview);
       const useOriginalForRaw = isRawImageMimeType(state.req?.type);
       if (useOriginalForHeic || useOriginalForRaw) {
         return null;

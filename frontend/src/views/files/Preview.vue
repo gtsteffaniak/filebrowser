@@ -150,7 +150,6 @@ import { isPdfFile } from "@/utils/mediaFile";
 import { shouldUsePdfPreviewFallback } from "@/utils/pdfPreview.js";
 import { TranscodePlaybackController } from "@/plyr/transcodePlaybackController.js";
 import { isTranscodeAvailable } from "@/plyr/transcodeMode.js";
-
 export default {
   name: "preview",
   components: {
@@ -208,11 +207,10 @@ export default {
       const isSafari = /^((?!chrome|android).)*safari/i.test(userAgent);
       return isIOS && isSafari;
     },
-    // Viewable when we can get embedded/original preview: (media + heic conversion) or Safari native
+    // Safari plays HEIC natively; otherwise trust index hasPreview (same rule as thumbnails).
     isHeicAndViewable() {
       if (state.isSafari) return true;
-      if (state.mediaSettings?.imagePreview?.heic === true) return true;
-      return false;
+      return Boolean(state.req?.hasPreview);
     },
     pdfConvertable() {
       const ext = `.${state.req.name.split(".").pop().toLowerCase()}`;
@@ -262,7 +260,7 @@ export default {
       }
 
       const getRawPreview = isRawImageMimeType(state.req.type);
-      const getHeicPreview = isHeicOrHeif && state.mediaSettings?.imagePreview?.heic === true;
+      const getHeicPreview = isHeicOrHeif && state.req?.hasPreview;
       if (this.pdfConvertable || getRawPreview || getHeicPreview) {
         if (getters.isShare()) {
           const previewPath = removeTrailingSlash(state.req.path);

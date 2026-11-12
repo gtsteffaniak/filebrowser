@@ -852,8 +852,7 @@ export default {
     transcodeProfileOptions() {
       const live = state.mediaSettings?.profiles;
       const configured = Array.isArray(live) ? live : PLYR_TRANSCODE_HLS_MODES;
-      const ids = configured.filter((id) => PLYR_TRANSCODE_HLS_MODES.includes(id));
-      return ids.length ? ids : PLYR_TRANSCODE_HLS_MODES;
+      return configured.filter((id) => PLYR_TRANSCODE_HLS_MODES.includes(id));
     },
     shouldProactivelyOfferTranscode() {
       if (this.previewType !== 'video' || this.startTranscode) {

@@ -3206,6 +3206,24 @@
             }
         },
         "/api/settings/media": {
+            "get": {
+                "description": "Returns the media settings the caller is allowed to see.\nAdmins get the full settings, including ffmpeg and hardware options, so they can edit them.\nEveryone else gets a small read-only view: whether transcoding is on, how many\ntranscodes they can run at once, which quality presets are enabled, and which image\npreviews the server can generate. Keys in the view are the same for admins and users.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Settings"
+                ],
+                "summary": "Get runtime media settings",
+                "responses": {
+                    "200": {
+                        "description": "Media settings",
+                        "schema": {
+                            "$ref": "#/definitions/web.mediaSettingsResponse"
+                        }
+                    }
+                }
+            },
             "patch": {
                 "description": "Merges a partial JSON patch into the DB-backed media settings and applies them at runtime.",
                 "consumes": [
@@ -8959,7 +8977,6 @@
             }
         },
         "web.mediaSettingsResponse": {
-            "description": "Returns the media settings the caller is allowed to see. Admins get the full settings, including ffmpeg and hardware options, so they can edit them. Everyone else gets a small read-only view: whether transcoding is on, how many transcodes they can run at once, which quality presets are enabled, and which image previews the server can generate. Keys in the view are the same for admins and users.",
             "type": "object",
             "properties": {
                 "accelDevice": {

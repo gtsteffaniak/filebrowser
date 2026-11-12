@@ -77,7 +77,7 @@
             step="1"
             :value="account.maxConcurrentTranscodes"
             @change="emitAccountChange('maxConcurrentTranscodes', clampMaxConcurrentTranscodes($event.target.value))"
-            :disabled="isFieldDisabled('maxConcurrentTranscodes')"
+            :disabled="isFieldDisabled('maxConcurrentTranscodes') || !maxConcurrentTranscodesLimitKnown"
           />
         </div>
       </div>
@@ -138,7 +138,6 @@ import SettingsItem from "@/components/settings/SettingsItem.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
 import { getObjectProperty } from "@/utils/object.js";
-import { globalVars } from "@/utils/constants";
 import { state } from "@/store";
 
 let transcodeInputCounter = 0;
@@ -192,14 +191,15 @@ export default {
     };
   },
   computed: {
+    maxConcurrentTranscodesLimitKnown() {
+      return this.maxConcurrentTranscodesLimit !== undefined;
+    },
     maxConcurrentTranscodesLimit() {
-      // Prefer the live media settings; globalVars are static page constants.
       const live = state.mediaSettings?.maxConcurrentPerUser;
       if (Number.isFinite(live) && live > 0) {
         return live;
       }
-      const limit = globalVars?.transcodeMaxPerUser;
-      return Number.isFinite(limit) && limit > 0 ? limit : undefined;
+      return undefined;
     },
   },
   methods: {

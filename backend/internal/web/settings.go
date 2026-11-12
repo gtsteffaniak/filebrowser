@@ -453,17 +453,6 @@ func settingsShareDefaultsPatchHandler(w http.ResponseWriter, r *http.Request, d
 	return settingsShareDefaultsGetHandler(w, r, d)
 }
 
-// settingsMediaGetHandler returns the runtime media settings.
-// @Summary Get runtime media settings
-// @Description Returns the media settings the caller is allowed to see.
-// @Description Admins get the full settings, including ffmpeg and hardware options, so they can edit them.
-// @Description Everyone else gets a small read-only view: whether transcoding is on, how many
-// @Description transcodes they can run at once, which quality presets are enabled, and which image
-// @Description previews the server can generate. Keys in the view are the same for admins and users.
-// @Tags Settings
-// @Produce json
-// @Success 200 {object} mediaSettingsResponse "Media settings"
-// @Router /api/settings/media [get]
 // mediaSettingsResponse is the ADMIN ONLY media payload: the full stored settings
 // (FullAdminMedia, which embeds the public UserTranscode fields) plus config-lock
 // metadata and ffmpeg option lists. Non-admins never receive this type.
@@ -486,6 +475,16 @@ func mediaSettingsLockMeta() (paths []string, message string) {
 // The media settings APIs no longer require ffmpeg. go-media serves probing,
 // metadata, subtitles, and video thumbnails without it. ffmpeg-only controls
 // (transcoding, hardware acceleration) report their own availability.
+// @Summary Get runtime media settings
+// @Description Returns the media settings the caller is allowed to see.
+// @Description Admins get the full settings, including ffmpeg and hardware options, so they can edit them.
+// @Description Everyone else gets a small read-only view: whether transcoding is on, how many
+// @Description transcodes they can run at once, which quality presets are enabled, and which image
+// @Description previews the server can generate. Keys in the view are the same for admins and users.
+// @Tags Settings
+// @Produce json
+// @Success 200 {object} mediaSettingsResponse "Media settings"
+// @Router /api/settings/media [get]
 func settingsMediaGetHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
 	// PUBLIC payload: non-admins get only what the player and general UI read.
 	if !d.User.Permissions.Admin {

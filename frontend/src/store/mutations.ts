@@ -25,6 +25,9 @@ import {
 } from "@/utils/uploadNavigationGuard.ts";
 import { getters } from "./getters.ts";
 import { state } from "./state.ts";
+
+/** Monotonic id so stale syncMediaSettings responses cannot overwrite newer state. */
+let mediaSettingsSyncGeneration = 0;
 import { rawList, withEntry, withoutEntry } from "@/utils/listing/selection.ts";
 import type {
   DisplayPreference,
@@ -707,11 +710,16 @@ export const mutations = {
    */
   syncMediaSettings: async () => {
     if (!getters.isLoggedIn() || getters.isShare() || state.user?.username === "anonymous") {
+      mediaSettingsSyncGeneration += 1;
       state.mediaSettings = null;
       return;
     }
+    const generation = ++mediaSettingsSyncGeneration;
     try {
       const settings = await getSharedMediaSettings();
+      if (generation !== mediaSettingsSyncGeneration) {
+        return;
+      }
       // The request can resolve after logout/share transition — don't write
       // media settings into a logged-out state.
       if (!getters.isLoggedIn() || getters.isShare() || state.user?.username === "anonymous") {
@@ -719,6 +727,9 @@ export const mutations = {
       }
       state.mediaSettings = settings;
     } catch {
+      if (generation !== mediaSettingsSyncGeneration) {
+        return;
+      }
       state.mediaSettings = null;
     }
   },
