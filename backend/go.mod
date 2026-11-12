@@ -5,6 +5,7 @@ go 1.27.1
 require (
 	github.com/alecthomas/kong v1.16.1
 	github.com/asdine/storm/v3 v3.2.1
+	github.com/cespare/xxhash/v2 v2.3.0
 	github.com/coreos/go-oidc/v3 v3.21.0
 	github.com/coreos/go-systemd/v22 v22.7.0
 	github.com/dhowden/tag v0.0.0-20240417053706-3d75831295e8
@@ -21,21 +22,21 @@ require (
 	github.com/gtsteffaniak/go-cache v1.1.0
 	github.com/gtsteffaniak/go-ffmpeg v1.6.2
 	github.com/gtsteffaniak/go-logger v1.1.0
-	github.com/gtsteffaniak/go-media v1.2.1
+	github.com/gtsteffaniak/go-media v1.2.2
 	github.com/kovidgoyal/imaging v1.9.0
 	github.com/pquerna/otp v1.5.0
 	github.com/spf13/afero v1.15.0
 	github.com/stretchr/testify v1.12.1
 	github.com/swaggo/swag v1.16.6
 	golang.org/x/crypto v0.58.0
-	golang.org/x/image v0.47.0
+	golang.org/x/image v0.48.0
 	golang.org/x/mod v0.42.0
 	golang.org/x/net v0.61.0
 	golang.org/x/oauth2 v0.37.0
-	golang.org/x/sync v0.24.0
-	golang.org/x/sys v0.49.0
+	golang.org/x/sync v0.25.0
+	golang.org/x/sys v0.50.0
 	golang.org/x/term v0.47.0
-	golang.org/x/text v0.43.0
+	golang.org/x/text v0.44.0
 	golang.org/x/time v0.16.0
 	golang.org/x/tools v0.52.0
 	gopkg.in/yaml.v3 v3.0.1
@@ -44,21 +45,20 @@ require (
 
 require (
 	github.com/Azure/go-ntlmssp v0.1.1 // indirect
-	github.com/Eyevinn/mp4ff v0.61.0 // indirect
+	github.com/Eyevinn/mp4ff v0.62.1 // indirect
 	github.com/KyleBanks/depth v1.2.1 // indirect
 	github.com/abema/go-mp4 v1.7.4 // indirect
 	github.com/at-wat/ebml-go v0.19.4 // indirect
 	github.com/boombuler/barcode v1.1.0 // indirect
-	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/dsoprea/go-logging v0.0.0-20200710184922-b02d349568dd // indirect
 	github.com/dsoprea/go-utility/v2 v2.0.0-20221003172846-a3e1774ef349 // indirect
 	github.com/dustin/go-humanize v1.1.0 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.6 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.16 // indirect
-	github.com/gen2brain/gav1d v0.2.6 // indirect
-	github.com/gen2brain/h265 v0.2.4 // indirect
-	github.com/gen2brain/jxl v0.2.0 // indirect
-	github.com/gen2brain/vpx v0.2.1 // indirect
+	github.com/gen2brain/gav1d v0.2.7 // indirect
+	github.com/gen2brain/h265 v0.2.5 // indirect
+	github.com/gen2brain/jxl v0.2.1 // indirect
+	github.com/gen2brain/vpx v0.2.2 // indirect
 	github.com/go-asn1-ber/asn1-ber v1.5.8 // indirect
 	github.com/go-errors/errors v1.5.1 // indirect
 	github.com/go-jose/go-jose/v4 v4.1.6 // indirect
@@ -81,7 +81,6 @@ require (
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/go-tpm v0.9.8 // indirect
-	github.com/gtsteffaniak/go-av1 v1.0.0 // indirect
 	github.com/gtsteffaniak/go-vpx v1.0.1 // indirect
 	github.com/kovidgoyal/go-parallel v1.1.1 // indirect
 	github.com/kovidgoyal/go-shm v1.0.0 // indirect

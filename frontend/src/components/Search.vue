@@ -731,7 +731,7 @@ function selectResultAt(target: EventTarget | null): boolean {
 }
 
 #results {
-  animation: slide-down 0.5s forwards;
+  animation: slide-down 0.22s cubic-bezier(0.2, 0, 0, 1) forwards;
   border-radius: var(--borderRadius);
   border-top: none;
   border-top-left-radius: 0;
@@ -785,7 +785,7 @@ function selectResultAt(target: EventTarget | null): boolean {
   right: calc(2.5% + var(--safe-area-right));
   max-width: 1000px;
   margin: 0 auto;
-  animation: expand 0.3s ease 0.1s backwards;
+  animation: expand 0.22s cubic-bezier(0.2, 0, 0, 1) backwards;
 }
 
 .search-input-container {
@@ -1019,7 +1019,7 @@ body.rtl #search #result ul>* {
     animation: none;
   }
   .search-input-container {
-    transition: height 1s ease, background-color 1s ease, box-shadow 1s ease;
+    transition: height 0.22s cubic-bezier(0.2, 0, 0, 1), background-color 0.22s ease, box-shadow 0.22s ease;
   }
   #search.active .search-input-container {
     box-shadow: 0 0 10px rgb(0 0 0 / 10%);

@@ -209,7 +209,7 @@ export default {
         width: `${this.loadingProgress}%`,
       };
       if (getters.isStickySidebar() && getters.isSidebarVisible()) {
-        style.left = `${state.sidebar.width}em`;
+        style.left = "var(--sidebar-width)";
       }
       return style;
     },
@@ -823,7 +823,7 @@ export default {
   height: 1px;
   background: var(--primaryColor);
   z-index: 2000;
-  transition: width 0.3s ease, left 0.2s ease;
+  transition: width 0.3s ease, left 0.22s cubic-bezier(0.2, 0, 0, 1);
   box-shadow: 0 0 10px var(--primaryColor);
 }
 

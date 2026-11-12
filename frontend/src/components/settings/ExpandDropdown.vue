@@ -76,8 +76,7 @@
             </button>
           </div>
           <transition
-            name="expand"
-            @before-enter="beforeEnter"
+            :css="false"
             @enter="enter"
             @leave="leave"
             @after-leave="onPanelAfterLeave"
@@ -109,8 +108,7 @@
         </div>
         <transition
           v-else
-          name="expand"
-          @before-enter="beforeEnter"
+          :css="false"
           @enter="enter"
           @leave="leave"
           @after-leave="onPanelAfterLeave"
@@ -146,15 +144,12 @@
 
 <script>
 import MenuOptionList from "@/components/MenuOptionList.vue";
-import {
-  expandBeforeEnter,
-  expandEnter,
-  expandLeave,
-} from "@/utils/expandTransition";
+import { popEnter, popLeave } from "@/utils/transitions.ts";
 
 let expandDropdownIdCounter = 0;
-const EXPAND_OPEN_MS = 300;
-const EXPAND_CLOSE_MS = 150;
+const EXPAND_OPEN_MS = 200;
+const EXPAND_CLOSE_MS = 120;
+const PANEL_FROM_SCALE_X = 1;
 
 export default {
   name: "ExpandDropdown",
@@ -534,13 +529,13 @@ export default {
       if (this.allowSearch) {
         this.$refs.menuOptions?.focusSearch();
       }
-      expandEnter(el, () => {
+      popEnter(el, () => {
         this.updateOverlayPosition();
         done();
-      }, EXPAND_OPEN_MS);
+      }, EXPAND_OPEN_MS, PANEL_FROM_SCALE_X);
     },
     leave(el, done) {
-      expandLeave(el, done, EXPAND_CLOSE_MS);
+      popLeave(el, done, EXPAND_CLOSE_MS, PANEL_FROM_SCALE_X);
     },
     observePanelResize() {
       const panel = this.$refs.panel;
@@ -626,7 +621,6 @@ export default {
       this.$emit("update:modelValue", option.value);
       this.close();
     },
-    beforeEnter: expandBeforeEnter,
   },
 };
 </script>
@@ -770,6 +764,7 @@ export default {
 }
 
 .expand-dropdown-body:not(.expand-upward) {
+  transform-origin: top center;
   margin-top: -2px;
   border-width: 0 var(--borderWidth) var(--borderWidth);
   border-top-left-radius: 0 !important;
@@ -777,6 +772,7 @@ export default {
 }
 
 .expand-dropdown-body.expand-upward {
+  transform-origin: bottom center;
   margin-bottom: -2px;
   border-width: var(--borderWidth) var(--borderWidth) 0;
   border-bottom-left-radius: 0 !important;
@@ -830,21 +826,5 @@ export default {
 .expand-dropdown--transparent:not(.expand-dropdown--open) .expand-dropdown-trigger-label,
 .expand-dropdown--transparent:not(.expand-dropdown--open) .expand-dropdown-chevron {
   color: inherit;
-}
-
-.expand-enter-active {
-  transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  overflow: hidden;
-}
-
-.expand-leave-active {
-  transition: height 0.15s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-  overflow: hidden;
-}
-
-.expand-enter,
-.expand-leave-to {
-  height: 0 !important;
-  opacity: 0;
 }
 </style>

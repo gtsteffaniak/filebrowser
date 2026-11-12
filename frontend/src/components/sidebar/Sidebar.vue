@@ -2,7 +2,7 @@
   <nav
     id="sidebar"
     :class="{ active: active, 'behind-overlay': behindOverlay, 'scrollable': isSettings }"
-    :style="{ width: `${sidebarWidth}em`, left: active ? '0' : `-${sidebarWidth}em` }"
+    :style="{ width: 'var(--sidebar-width)', translate: active ? 'none' : '-100%' }"
   >
     <div v-if="shouldShow" class="button release-banner">
       <a :href="releaseUrl">{{ $t("sidebar.updateIsAvailable") }}</a>
@@ -44,6 +44,9 @@
     <div v-if="active && !isMobile" class="sidebar-resizer" @mousedown="startResize" @touchstart="startResize" >
       <div class="resizer-handle"></div>
     </div>
+    <Teleport to="body">
+      <div v-if="isResizing" class="sidebar-is-resizing"></div>
+    </Teleport>
   </nav>
 </template>
 
@@ -64,6 +67,9 @@ export default {
     return {
       resizeStartX: 0,
       resizeStartWidth: 0,
+      resizeBaseFontSize: 16,
+      resizePendingWidth: 0,
+      resizeFrame: 0,
       previousSidebarSize: null, // Remember the previous width when switching from desktop to mobile.
       pwaInstallDismissed: localStorage.getItem("pwaInstallDismissed") === "true",
     };
@@ -94,7 +100,12 @@ export default {
     document.addEventListener('touchend', this.stopResize);
   },
   beforeUnmount() {
-    // Clean up event listener
+    cancelAnimationFrame(this.resizeFrame);
+    if (state.sidebar.isResizing) {
+      document.documentElement.style.setProperty("--sidebar-width", `${state.sidebar.width}em`);
+      mutations.setSidebarResizing(false);
+      document.body.classList.remove('sidebar-resizing');
+    }
     if (this.handleKeydown) {
       document.removeEventListener('keydown', this.handleKeydown);
     }
@@ -122,6 +133,7 @@ export default {
     active: () => getters.isSidebarVisible(),
     behindOverlay: () => state.isSearchActive || (state.prompts && state.prompts.length > 0),
     sidebarWidth: () => getters.sidebarWidth(),
+    isResizing: () => state.sidebar.isResizing,
     shouldShow() {
       return (
         globalVars.updateAvailable !== "" &&
@@ -159,6 +171,8 @@ export default {
       const clientX = event.clientX || (event.touches?.[0].clientX);
       this.resizeStartX = clientX;
       this.resizeStartWidth = this.sidebarWidth;
+      this.resizePendingWidth = this.sidebarWidth;
+      this.resizeBaseFontSize = this.getBaseFontSize();
       mutations.setSidebarResizing(true);
       document.body.classList.add('sidebar-resizing');
     },
@@ -168,15 +182,23 @@ export default {
       // Same here
       const clientX = event.clientX || (event.touches?.[0].clientX);
       if (!clientX) return;
-      const deltaX = clientX - this.resizeStartX;
-      // Convert pixels to em
-      const baseFontSize = this.getBaseFontSize();
-      const deltaEm = deltaX / baseFontSize;
+      const deltaEm = (clientX - this.resizeStartX) / this.resizeBaseFontSize;
       const newWidth = this.resizeStartWidth + deltaEm;
-      mutations.setSidebarWidth(newWidth);
+      this.resizePendingWidth = Math.max(state.sidebar.minWidth, Math.min(newWidth, state.sidebar.maxWidth));
+      if (!this.resizeFrame) {
+        this.resizeFrame = requestAnimationFrame(this.applyResizeWidth);
+      }
+    },
+    // Only the CSS variable moves during the drag, so no component re-renders per mouse move.
+    applyResizeWidth() {
+      this.resizeFrame = 0;
+      document.documentElement.style.setProperty("--sidebar-width", `${this.resizePendingWidth}em`);
     },
     stopResize() {
       if (!state.sidebar.isResizing) return;
+      cancelAnimationFrame(this.resizeFrame);
+      this.applyResizeWidth();
+      mutations.setSidebarWidth(this.resizePendingWidth);
       mutations.setSidebarResizing(false);
       mutations.persistSidebarWidth();
       document.body.classList.remove('sidebar-resizing');
@@ -209,22 +231,24 @@ export default {
   padding: 1em;
   width: 20em;
   position: fixed;
+  left: 0;
   z-index: 4;
   transform: translateZ(0);
   height: 100%;
-  transition: left 0.4s ease, width 0.4s ease, z-index 0s linear 0.2s;
+  /* `translate` slides on the compositor; animating `left`/`width` re-lays out every frame. */
+  transition: translate 0.22s cubic-bezier(0.2, 0, 0, 1), z-index 0s linear 0.11s;
   top: var(--header-height);
   padding-bottom: 4em;
   background-color: var(--panel-bg);
   backdrop-filter: var(--panel-blur);
-  will-change: left;
+  will-change: translate;
   backface-visibility: hidden;
   isolation: isolate;
 }
 
 #sidebar.behind-overlay {
   z-index: 3;
-  transition: left 0.4s ease, width 0.4s ease, z-index 0s;
+  transition: translate 0.22s cubic-bezier(0.2, 0, 0, 1), z-index 0s;
 }
 
 #sidebar.sticky {
@@ -254,20 +278,20 @@ body.rtl .action {
   text-align: right;
 }
 
-body.sidebar-resizing,
-body.sidebar-resizing * {
-  cursor: col-resize !important;
-  pointer-events: none;
+.sidebar-is-resizing {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  cursor: col-resize;
+}
+
+body.sidebar-resizing :is(#main, #status-bar, #shelf, .progress-line, .nav-button) {
   transition: none !important;
 }
 
 #sidebar .action > * {
   vertical-align: middle;
 }
-
-/* * * * * * * * * * * * * * * *
- *            FOOTER           *
- * * * * * * * * * * * * * * * */
 
 .credits {
   font-size: 1em;
