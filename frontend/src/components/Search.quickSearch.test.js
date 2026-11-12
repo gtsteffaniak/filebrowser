@@ -16,7 +16,7 @@ describe("quick search debounce", () => {
       ongoing: 1,
       results: [{ path: "/old" }],
       noneMessage: "No results",
-      submit: vi.fn(),
+      submit: vi.fn().mockResolvedValue(undefined),
     };
 
     Search.methods.scheduleSearch.call(search);
@@ -28,6 +28,22 @@ describe("quick search debounce", () => {
     vi.advanceTimersByTime(299);
     expect(search.submit).not.toHaveBeenCalled();
     vi.advanceTimersByTime(1);
+
+    expect(search.submit).toHaveBeenCalledOnce();
+  });
+
+  it("handles a rejected request from the debounce timer", async () => {
+    vi.useFakeTimers();
+    const search = {
+      cancelSearch: Search.methods.cancelSearch,
+      searchTimeout: undefined,
+      searchRequestId: 0,
+      ongoing: 0,
+      submit: vi.fn().mockRejectedValue(new Error("network failure")),
+    };
+
+    Search.methods.scheduleSearch.call(search);
+    await vi.runAllTimersAsync();
 
     expect(search.submit).toHaveBeenCalledOnce();
   });

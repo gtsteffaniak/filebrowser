@@ -535,7 +535,9 @@ export default {
       this.ongoing = 1;
       this.searchTimeout = setTimeout(() => {
         this.searchTimeout = null;
-        this.submit();
+        // The search API reports request failures through notifications. Consume
+        // the rethrown error here because this timer has no caller to handle it.
+        void this.submit().catch(() => {});
       }, QUICK_SEARCH_DEBOUNCE_MS);
     },
     cancelSearch() {
