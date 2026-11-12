@@ -42,6 +42,7 @@ import { notify } from "@/notify";
 import { getters, mutations, state } from '@/store';
 import { acquireBestCachedThumbnailBlob, getBestCachedImage, releaseThumbnailBlob } from "@/utils/cache/imageCache.ts";
 import { isRawImageMimeType } from "@/utils/mimetype";
+import { resourcesApi } from "@/api";
 import { refreshViewToken, requestViewIdentity } from "@/api/viewToken.js";
 import throttle from "@/utils/throttle";
 
@@ -121,19 +122,48 @@ export default {
     isLoaded() {
       return !("preview-img" in (state?.loading || {}));
     },
-    // Which cached entry to look, or null when no thumbnail should be shown
+    isHeicOrHeif() {
+      const type = state.req?.type;
+      return type === "image/heic" || type === "image/heif";
+    },
+    /** Full-resolution source for the viewer (Safari HEIC/HEIF uses the native file, not size=original). */
+    fullImageSrc() {
+      if (!this.isHeicOrHeif || !state.isSafari || !state.req) {
+        return this.src;
+      }
+      const viewToken = state.req.viewToken;
+      const typeHint = state.req.type || state.req.name;
+      if (getters.isShare()) {
+        return resourcesApi.getViewURL(
+          state.req.source,
+          state.req.path,
+          viewToken,
+          {
+            path: state.shareInfo.subPath,
+            hash: state.shareInfo.hash,
+          },
+          false,
+          typeHint,
+        );
+      }
+      return resourcesApi.getViewURL(
+        state.req.source,
+        state.req.path,
+        viewToken,
+        null,
+        false,
+        typeHint,
+      );
+    },
+    // Cached preview thumbs (from listing's preview API) shown while the full image loads.
     thumbnailLookup() {
       if (!state?.req) {
         return null;
       }
-      const isHeicOrHeif = state.req?.type === "image/heic" || state.req?.type === "image/heif";
-      const heicNativeInSafari = isHeicOrHeif && state.isSafari;
-      if (!this.path || (!state.req.hasPreview && !heicNativeInSafari)) {
+      if (!this.path || !state.req.hasPreview) {
         return null;
       }
-      // Skip the listing thumbnail while the full image loads (native HEIC on Safari, else converted original).
-      const skipHeicThumbnail =
-        heicNativeInSafari || (isHeicOrHeif && state.req?.hasPreview);
+      const skipHeicThumbnail = this.isHeicOrHeif && !state.isSafari && state.req.hasPreview;
       const skipRawThumbnail = isRawImageMimeType(state.req?.type);
       if (skipHeicThumbnail || skipRawThumbnail) {
         return null;
@@ -300,7 +330,8 @@ export default {
       }
     },
     async loadFullImage() {
-      if (!this.src) return;
+      const fullSrc = this.fullImageSrc;
+      if (!fullSrc) return;
       mutations.setLoading("preview-img", true);
 
       // Set src directly via JavaScript to avoid Vue's HTML entity encoding in template bindings
@@ -308,7 +339,7 @@ export default {
       await this.$nextTick();
       if (this.$refs.imgex && 'src' in this.$refs.imgex) {
         // Decode any HTML entities (Vue shouldn't encode props, but decode just in case)
-        const cleanSrc = String(this.src).replace(/&amp;/g, '&');
+        const cleanSrc = String(fullSrc).replace(/&amp;/g, '&');
         this.$refs.imgex.src = cleanSrc;
       }
     },

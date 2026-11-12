@@ -207,7 +207,7 @@ export default {
       const isSafari = /^((?!chrome|android).)*safari/i.test(userAgent);
       return isIOS && isSafari;
     },
-    // Safari loads HEIC/HEIF via the view URL (no preview endpoint). Other browsers need conversion.
+    // Safari: native HEIC in ExtendedImage. Other browsers: converted original when hasPreview.
     isHeicAndViewable() {
       if (state.isSafari) return true;
       return Boolean(state.req?.hasPreview);
@@ -242,25 +242,8 @@ export default {
       const typeHint = state.req.type || state.req.name;
       const isHeicOrHeif = state.req.type === "image/heic" || state.req.type === "image/heif";
 
-      if (state.isSafari && isHeicOrHeif) {
-        if (getters.isShare()) {
-          return resourcesApi.getViewURL(
-            state.req.source,
-            state.req.path,
-            viewToken,
-            {
-              path: state.shareInfo.subPath,
-              hash: state.shareInfo.hash,
-            },
-            false,
-            typeHint,
-          );
-        }
-        return resourcesApi.getViewURL(state.req.source, state.req.path, viewToken, null, false, typeHint);
-      }
-
       const getRawPreview = isRawImageMimeType(state.req.type);
-      // Non-Safari only: server converts HEIC to JPEG at size=original (Safari handled above).
+      // HEIC/HEIF at size=original for non-Safari; Safari full size is resolved in ExtendedImage.
       const getHeicConvertedPreview = isHeicOrHeif && !state.isSafari && state.req?.hasPreview;
       if (this.pdfConvertable || getRawPreview || getHeicConvertedPreview) {
         if (getters.isShare()) {
