@@ -487,9 +487,16 @@ func ServeSingleFile(w http.ResponseWriter, r *http.Request, d *Context, source 
 		bound = userScope
 	}
 
-	realPath, _, err := idx.GetRealPathScoped(bound, scopedFilePath)
+	realPath, isDir, err := idx.GetRealPathScoped(bound, scopedFilePath)
 	if err != nil {
 		return realPathErrStatus(err), err
+	}
+	if st, statErr := os.Stat(realPath); statErr == nil {
+		isDir = st.IsDir()
+	}
+	if !accessPermittedAtRealPath(idx, permUser, realPath, isDir) {
+		logger.Debugf("user %s denied access to resolved path for %s", permUser, scopedFilePath)
+		return http.StatusForbidden, fmt.Errorf("access denied to path %s", scopedFilePath)
 	}
 
 	isOnlyOffice := IsOnlyOfficeCompatibleFile(displayFileName) && settings.Config.Integrations.OnlyOffice.Url != ""

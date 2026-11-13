@@ -171,6 +171,10 @@ func putResourceWithQuota(w http.ResponseWriter, r *http.Request, d *Context, so
 	if err != nil {
 		return sanitizePutPathError(err)
 	}
+	permUser := accessCheckUsername(d)
+	if !accessPermittedAtRealPath(idx, permUser, realPath, isDirAtRealPath(realPath)) {
+		return http.StatusForbidden, fmt.Errorf("access denied to path %s", fullIndexPath)
+	}
 	if stat, statErr := os.Stat(realPath); statErr == nil && stat.IsDir() {
 		return http.StatusMethodNotAllowed, errPutPathIsDirectory
 	}

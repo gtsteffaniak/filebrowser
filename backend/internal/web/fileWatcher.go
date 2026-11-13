@@ -187,16 +187,19 @@ func fileWatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 		return http.StatusForbidden, fmt.Errorf("access denied to file")
 	}
 
-	// Get real file path
-	realPath, _, err := idx.GetRealPath(scopePath)
+	// Get real file path (scoped) and enforce ACL on the resolved target
+	realPath, _, err := idx.GetRealPathScoped(userScope, scopePath)
 	if err != nil {
-		return http.StatusNotFound, fmt.Errorf("file not found: %v", err)
+		return realPathErrStatus(err), err
 	}
 
 	// Get file/directory info
 	info, err := os.Stat(realPath)
 	if err != nil {
 		return http.StatusNotFound, fmt.Errorf("path not found: %v", err)
+	}
+	if !accessPermittedAtRealPath(idx, d.User.Username, realPath, info.IsDir()) {
+		return http.StatusForbidden, fmt.Errorf("access denied to file")
 	}
 
 	// Get MIME type from the index if available
@@ -335,16 +338,19 @@ func fileWatchSSEHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 		return http.StatusForbidden, fmt.Errorf("access denied to file")
 	}
 
-	// Get real file path
-	realPath, _, err := idx.GetRealPath(scopePath)
+	// Get real file path (scoped) and enforce ACL on the resolved target
+	realPath, _, err := idx.GetRealPathScoped(userScope, scopePath)
 	if err != nil {
-		return http.StatusNotFound, fmt.Errorf("path not found: %v", err)
+		return realPathErrStatus(err), err
 	}
 
 	// Get file/directory info
 	info, err := os.Stat(realPath)
 	if err != nil {
 		return http.StatusNotFound, fmt.Errorf("path not found: %v", err)
+	}
+	if !accessPermittedAtRealPath(idx, d.User.Username, realPath, info.IsDir()) {
+		return http.StatusForbidden, fmt.Errorf("access denied to file")
 	}
 
 	// Set up SSE headers
