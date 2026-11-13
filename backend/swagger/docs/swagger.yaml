@@ -5589,8 +5589,8 @@ paths:
         in: query
         name: metadata
         type: string
-      - description: Optional checksum algorithm (md5, sha1, sha256, sha512); requires a
-          logged-in session
+      - description: Optional checksum algorithm (md5, sha1, sha256, sha512); requires
+          a logged-in session
         in: query
         name: checksum
         type: string
