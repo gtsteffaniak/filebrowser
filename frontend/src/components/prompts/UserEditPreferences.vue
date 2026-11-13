@@ -7,6 +7,7 @@
       :account="editAccount"
       :enforced="enforcedAccount"
       :enforced-permissions="enforcedAccountPermissions"
+      :show-require-password-change="session.user?.loginMethod === 'password'"
       respect-enforced-policy
       @account-change="onEditAccountChange"
     />
@@ -62,6 +63,7 @@ export default {
       sessionUnsubscribe: null,
       editAccount: {
         lockPassword: false,
+        requirePasswordChange: false,
         disableSettings: false,
         disableUpdateNotifications: false,
         showAdvancedProfile: false,
@@ -114,6 +116,7 @@ export default {
       const user = this.session?.user || {};
       const permissions = user.permissions || {};
       this.editAccount.lockPassword = !!user.lockPassword;
+      this.editAccount.requirePasswordChange = !!user.requirePasswordChange;
       this.editAccount.disableSettings = !!user.disableSettings;
       this.editAccount.disableUpdateNotifications = !!user.disableUpdateNotifications;
       this.editAccount.showAdvancedProfile = !!user.showAdvancedProfile;
@@ -131,6 +134,7 @@ export default {
       const user = {
         ...this.session.user,
         lockPassword: this.editAccount.lockPassword,
+        requirePasswordChange: this.editAccount.requirePasswordChange,
         disableSettings: this.editAccount.disableSettings,
         disableUpdateNotifications: this.editAccount.disableUpdateNotifications,
         showAdvancedProfile: this.editAccount.showAdvancedProfile,
@@ -144,6 +148,7 @@ export default {
       sections.account = {
         ...(sections.account || {}),
         lockPassword: this.editAccount.lockPassword,
+        requirePasswordChange: this.editAccount.requirePasswordChange,
         disableSettings: this.editAccount.disableSettings,
         disableUpdateNotifications: this.editAccount.disableUpdateNotifications,
         showAdvancedProfile: this.editAccount.showAdvancedProfile,
