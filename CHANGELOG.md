@@ -9,11 +9,16 @@ All notable changes to this project will be documented in this file. For commit 
  - Square image previews: avoid the full-resolution crop copy in imaging.Fill (#3340)
 
  **Bug Fixes**:
+ - fix(http): Unix socket hardening — default `http.socketFileMode` is `0660`; the socket is created under a restrictive umask and then `chmod`/`chown` apply your configured mode; on filesystem sockets, forwarded headers require `http.unixSocketTrustedUIDs` and/or `http.unixSocketTrustedGIDs`, with `http.unixSocketTrustAllLocalPeers: true` as an explicit opt-in for pre-#3309 trust-all behavior (startup warning) (#3309)
  - fix(users): save the prompt close button and new file templates when editing a user (#3342) (#3323)
  - fix(upload): serialize directory creation before uploading files (#3321)
  - fix(preview): open RAW, HEIC and rendered documents in the viewer when previews are disabled (#3313)
  - fix(users): keep requested profile values when creating a user
  - fix advanced user toggle duplicate (#3353) (#3324)
+
+ **Upgrade notes** (Unix socket listeners):
+ - If you listen on a filesystem `http.socket` with `http.trustProxyHeaders: true`, set `http.unixSocketTrustedUIDs` and/or `http.unixSocketTrustedGIDs` to the UID/GID(s) from Linux peer credentials (`SO_PEERCRED`) that may set `X-Forwarded-*`. A GID allowlist trusts every peer with that GID (for example when the proxy and FileBrowser share a group), not only one process. If you relied on empty allowlists before, set `http.unixSocketTrustAllLocalPeers: true` (a warning is logged).
+ - Default `http.socketFileMode` is `0660`; use optional `http.socketGroup` when the proxy runs as another user in the same group.
 
 ## v2.1.4
 

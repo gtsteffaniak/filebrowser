@@ -132,7 +132,6 @@ func TestIsTrustedProxyPeer(t *testing.T) {
 	}
 }
 
-// With http.socket set, forwarded headers require matching unixSocketTrustedUIDs/GIDs.
 func TestIsTrustedProxyPeerUnixSocket(t *testing.T) {
 	resetTrustedProxyCache()
 	Config.Http.TrustedProxies = nil
@@ -141,15 +140,23 @@ func TestIsTrustedProxyPeerUnixSocket(t *testing.T) {
 		Config.Http.Socket = ""
 		Config.Http.UnixSocketTrustedUIDs = nil
 		Config.Http.UnixSocketTrustedGIDs = nil
+		Config.Http.UnixSocketTrustAllLocalPeers = false
 		resetTrustedProxyCache()
 	})
-	for _, peer := range []string{"", "@"} {
-		if IsTrustedProxyPeer(&http.Request{RemoteAddr: peer}) {
-			t.Fatalf("unix socket peer %q must not be trusted without peer credentials", peer)
-		}
+	if IsTrustedProxyPeer(&http.Request{RemoteAddr: "@"}) {
+		t.Fatal("filesystem unix socket with empty allowlists must not trust forwarded headers without opt-in")
 	}
+	Config.Http.UnixSocketTrustAllLocalPeers = true
+	if !IsTrustedProxyPeer(&http.Request{RemoteAddr: "@"}) {
+		t.Fatal("unixSocketTrustAllLocalPeers should restore legacy trust-all behavior")
+	}
+	Config.Http.UnixSocketTrustAllLocalPeers = false
 
 	Config.Http.UnixSocketTrustedUIDs = []int{33}
+	reqNoCred := &http.Request{RemoteAddr: "@"}
+	if IsTrustedProxyPeer(reqNoCred) {
+		t.Fatal("with allowlists set, peer without credentials must not be trusted")
+	}
 	req := (&http.Request{}).WithContext(ContextWithUnixPeerForTest(context.Background(), 33, 1000))
 	if !IsTrustedProxyPeer(req) {
 		t.Fatal("peer with allowed UID should be trusted")

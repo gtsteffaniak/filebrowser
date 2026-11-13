@@ -124,7 +124,11 @@ func warnHttpProxyConfig() {
 	}
 	if Config.Http.TrustProxyHeaders && Config.Http.Socket != "" && !strings.HasPrefix(Config.Http.Socket, "@") &&
 		len(Config.Http.UnixSocketTrustedUIDs) == 0 && len(Config.Http.UnixSocketTrustedGIDs) == 0 {
-		logger.Warning("http.trustProxyHeaders is true and http.socket is a filesystem Unix socket, but http.unixSocketTrustedUIDs and http.unixSocketTrustedGIDs are empty; X-Forwarded-For and X-Real-IP are ignored until you list the reverse proxy's UID or GID (Linux peer credentials).")
+		if Config.Http.UnixSocketTrustAllLocalPeers {
+			logger.Warning("http.unixSocketTrustAllLocalPeers is true: any local process that can connect to the filesystem socket may present X-Forwarded-For and X-Real-IP. Prefer http.unixSocketTrustedUIDs and/or http.unixSocketTrustedGIDs so only peers with allowed Linux credentials can set forwarded headers.")
+		} else {
+			logger.Warning("http.trustProxyHeaders is true on a filesystem Unix socket, but http.unixSocketTrustedUIDs and http.unixSocketTrustedGIDs are empty; forwarded client headers from socket peers are ignored. List allowed peer UIDs and/or GIDs (Linux SO_PEERCRED), or set http.unixSocketTrustAllLocalPeers: true only if you accept legacy trust-all behavior.")
+		}
 	}
 	if !Env.IsDevMode {
 		if u := Config.Http.ExternalUrl; u != "" && strings.HasPrefix(strings.ToLower(u), "http://") {

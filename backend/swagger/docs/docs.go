@@ -6040,6 +6040,10 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
+                "unixSocketTrustAllLocalPeers": {
+                    "description": "default false: set true to trust forwarded headers from any local filesystem socket peer when allowlists are empty",
+                    "type": "boolean"
+                },
                 "unixSocketTrustedGIDs": {
                     "type": "array",
                     "items": {
@@ -6047,7 +6051,7 @@ const docTemplate = `{
                     }
                 },
                 "unixSocketTrustedUIDs": {
-                    "description": "UnixSocketTrustedUIDs and UnixSocketTrustedGIDs list peer credentials (Linux SO_PEERCRED) allowed to\npresent X-Forwarded-* on a filesystem http.socket listener. When both are empty, forwarded headers\nare not trusted on Unix sockets. Abstract sockets (@name) never trust forwarded headers.",
+                    "description": "UnixSocketTrustedUIDs and UnixSocketTrustedGIDs list peer credentials (Linux SO_PEERCRED) allowed to\npresent X-Forwarded-* on a filesystem http.socket listener. When both are empty, peers are not trusted\nunless UnixSocketTrustAllLocalPeers is true (legacy; startup logs a warning). A GID allowlist trusts\nevery peer with that GID, not only a single reverse-proxy process. Abstract sockets (@name) never trust\nforwarded headers.",
                     "type": "array",
                     "items": {
                         "type": "integer"

@@ -25,6 +25,7 @@ import (
 
 func setupShareArchiveDownloadTest(t *testing.T) (sourceRoot string, sourceName string, owner *users.User) {
 	t.Helper()
+	lockWebGlobals(t)
 	dbPath := filepath.Join(t.TempDir(), "share-dl-test.sqlite")
 	if _, err := state.Initialize(dbPath); err != nil {
 		t.Fatal(err)
