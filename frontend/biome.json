@@ -1,5 +1,11 @@
 {
 	"$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true,
+    "root": "../"
+  },
 	"files": {
 		"ignoreUnknown": true,
 		"includes": [
@@ -30,14 +36,18 @@
 			"complexity": {
 				"noForEach": "on",
 				"noImportantStyles": "off",
-				"noRedundantDefaultExport": "warn"
+				"noRedundantDefaultExport": "warn",
+        "noUnnecessaryTemplateExpression": "error",
+        "noUselessStringConcat": "warn",
+        "useMathMinMax": "warn"
 			},
 			"correctness": {
 				"noUnknownPseudoClass": "off",
 				"noVueImportCompilerMacros": "error",
 				"noVueRefAsOperand": "error",
 				"noVueVOnNumberValues": "error",
-				"useVueValidVFor": "error"
+				"useVueValidVFor": "error",
+        "noVueVIfWithVFor": "error"
 			},
 			"nursery": {
 				"noFloatingPromises": "error",
@@ -47,19 +57,123 @@
 				"noVueDeprecatedScopedSlots": "error",
 				"noVueUndeclaredDirectives": "off",
 				"useConsistentObjectKeys": "error",
-				"useVueBaseImport": "warn"
+				"useVueBaseImport": "warn",
+        "noDoubleComparison": "on",
+        "noNestedSwitch": "on",
+        "noVueLifecycleAfterAwait": "error",
+        "noVueShadowNativeEvents": "warn",
+        "noVueVHtml": "error",
+        "noVueVText": "warn",
+        "noVueVTextVHtmlOnComponent": "error",
+        "useSimplifiedBooleanReturn": "warn",
+        "useVueConsistentEventHyphenation": "warn",
+        "noPromiseExecutorReturn": "warn",
+        "noArgumentsCallerOrCallee": "warn",
+        "noVueRequiredPropWithDefault": "warn",
+        "noBooleanSortComparator": "error",
+        "noObsoleteAttributes": "error",
+        "noPlaywrightNthMethods": "warn",
+        "noUnsafeReturn": "warn",
+        "noUselessSplice": "warn",
+        "noVueWatchAfterAwait": "error",
+        "useMathAbs": "warn",
+        "useMathTrunc": "warn",
+        "useVueComponentIs": "error",
+        "useVueTypedRef": "error",
+        "noReturnArrayPush": "warn",
+        "noUselessRecursion": "error",
+        "noVueComputedPropertiesInData": "error",
+        "noVueDeprecatedDeleteSet": "error",
+        "noVueDeprecatedRouterLinkTagProp": "error",
+        "noVueMutatingProps": "error",
+        "noVueMultipleSlotArgs": "warn",
+        "noVueSideEffectsInComputed": "error",
+        "noVueUnusedRefs": "error",
+        "useVueTemplateRef": "warn",
+        "useVueTypedProps": "warn",
+        "useVueVModel": "warn",
+        "useVueValidDefineEmits": "error",
+        "useVueValidDefineProps": "error",
+        "useVueValidVIs": "error",
+        "useVueValidVModel": "error",
+        "useVueValidVShow": "error",
+        "useVueValidVSlot": "error",
+        "noVueDeprecatedListeners": "error",
+        "noArrayForEach": "error",
+        "noChainedComparison": "error",
+        "noDynamicDelete": "warn",
+        "noLateEventControl": "error",
+        "noObjectLiteralComparison": "error",
+        "noPlaywrightUnsafeReferences": "error",
+        "noUnnecessaryStringTrim": "warn",
+        "noUselessLengthCheck": "info",
+        "noUselessTypeAssertion": "warn",
+        "noVueChildContent": "error",
+        "noVueDeprecatedConfigKeyCodes": "info",
+        "noVueDeprecatedEventsApi": "error",
+        "noVueDeprecatedHtmlElementIs": "error",
+        "noVueDeprecatedModelDefinition": "error",
+        "noVueDeprecatedPropsDefaultThis": "error",
+        "noVueDeprecatedVBindSync": "error",
+        "noVueLoneTemplate": "error",
+        "noVueMixin": "error",
+        "noVueMultipleObjectsInClass": "warn",
+        "noVueRefObjectReactivityLoss": "error",
+        "noVueRestrictedCallAfterAwait": "error",
+        "noVueRestrictedVOn": "warn",
+        "noVueTemplateKey": "error",
+        "noVueTemplateShadow": "warn",
+        "noVueThisInTemplate": "warn",
+        "noVueUndeclaredEmits": "warn",
+        "noVueUndeclaredProperties": "error",
+        "noVueUndeclaredSlots": "warn",
+        "noVueUselessVBind": "warn",
+        "noVueUselessTemplateAttributes": "error",
+        "noVueVForTemplateKeyOnChild": "error",
+        "useObjectFromEntries": "warn",
+        "useVueBlockOrder": {
+          "level": "on",
+          "options": {
+            "order": [
+              "template",
+              "script",
+              "style"
+            ]
+          }
+        },
+      "useVueBooleanPropTypeFirst": "warn",
+      "useVueComputedPropertyReturn": "error",
+      "useVueEmitValidator": "warn",
+      "useVueEmitsValidatorReturn": "error",
+      "useVuePropTypeConstructor": "error",
+      "useVueRenderReturn": "error",
+      "useVueSingleEventPayload": "warn",
+      "useVueTypedObjectProps": "warn",
+      "useVueValidDefaultProp": "error",
+      "useVueValidNextTick": "error",
+      "useVueValidDefineOptions": "error",
+      "noRedundantTypeConstituents": "warn",
+      "noUselessSpread": "warn",
+      "noVueExposeAfterAwait": "error"
 			},
 			"performance": { "useVueVapor": "off" },
-			"security": { "preset": "recommended" },
+			"security": {
+        "preset": "recommended",
+        "useIframeSandbox": "off"
+      },
 			"style": {
 				"noDescendingSpecificity": "off",
 				"noTopLevelLiterals": "error",
 				"noVueOptionsApi": "off",
-				"useVueConsistentDefinePropsDeclaration": "off",
+				"useVueConsistentDefinePropsDeclaration": "on",
 				"useVueConsistentVBindStyle": "off",
 				"useVueHyphenatedAttributes": "off",
 				"useVueMultiWordComponentNames": "off",
-				"useVueNextTickPromise": "warn"
+				"useVueNextTickPromise": "warn",
+        "useImportsFirst": "off",
+        "useVarsOnTop": "on",
+        "useDomQuerySelector": "warn",
+        "useVueDefineMacrosOrder": "warn"
 			},
 			"suspicious": {
 				"noEmptyObjectKeys": "error",
@@ -70,7 +184,8 @@
 				"noShadow": "off",
 				"noUnnecessaryConditions": "off",
 				"useArraySortCompare": "error",
-				"useScopedStyles": "off"
+				"useScopedStyles": "off",
+        "noConfusingVoidType": "warn"
 			}
 		},
 		"domains": { "vue": "all", "project": "all", "types": "all" }
@@ -107,7 +222,8 @@
 						"noPlaywrightNetworkidle": "error",
 						"noPlaywrightPagePause": "error",
 						"noPlaywrightWaitForNavigation": "error",
-						"noPlaywrightWaitForTimeout": "warn"
+						"noPlaywrightWaitForTimeout": "warn",
+            "noEmptyObjectKeys": "error"
 					}
 				}
 			}
@@ -130,8 +246,12 @@
 			}
 		}
 	],
-	"assist": {
-		"enabled": true,
-		"actions": { "source": { "organizeImports": "off" } }
-	}
+  "assist": {
+    "actions": {
+      "source": {
+        "organizeImports": "off",
+        "useGraphqlSortedDefinitions": "on"
+      }
+    }
+  }
 }
