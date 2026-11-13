@@ -78,6 +78,35 @@ type scopedSourcePath struct {
 // @Success 200 {array} indexing.SearchResult "List of search results with source field populated"
 // @Failure 400 {object} map[string]string "Bad Request"
 // @Router /api/tools/search [get]
+// cursorKeyAfter reports whether a sorts after b under the search cursor key
+// (length(path), path, source), using code-point lengths like SQLite length().
+func cursorKeyAfter(a, b *indexing.SearchResult) bool {
+	if la, lb := utf8.RuneCountInString(a.Path), utf8.RuneCountInString(b.Path); la != lb {
+		return la > lb
+	}
+	if a.Path != b.Path {
+		return a.Path > b.Path
+	}
+	return a.Source > b.Source
+}
+
+// searchPageSize picks how many candidates the first page reads. Widening keeps
+// inaccessible hits from consuming the whole limit, but never applies to largest
+// searches: they are ranked by size, and the handler keeps results in depth order, so
+// a wider candidate set would let small shallow files displace larger deeper ones.
+func searchPageSize(opts *searchOptions, searchSize int, explicitLimit bool) int {
+	if !opts.largest && !opts.useWildcard && len(opts.parsed.Terms) > 0 && !explicitLimit {
+		if perSource := settings.Config.Server.SearchResultsLimit / len(opts.sources); perSource > searchSize {
+			return perSource
+		}
+		return searchSize
+	}
+	if !opts.largest && searchSize < accessFilterPageSize {
+		return accessFilterPageSize
+	}
+	return searchSize
+}
+
 // accessFilterPageSize is the smallest first page read when a caller passes an explicit
 // limit, so access filtering still has candidates to fill the requested results.
 const accessFilterPageSize = 500
@@ -112,14 +141,7 @@ func searchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, err
 	// The first page is widened so inaccessible hits cannot consume the whole limit.
 	// ponytail: bounded widening, not an exhaustive scan; raise it if access rules are
 	// dense enough to starve a page.
-	pageSize := searchSize
-	if !searchOptions.largest && !searchOptions.useWildcard && len(searchOptions.parsed.Terms) > 0 && r.URL.Query().Get("limit") == "" {
-		if perSource := settings.Config.Server.SearchResultsLimit / len(searchOptions.sources); perSource > pageSize {
-			pageSize = perSource
-		}
-	} else if pageSize < accessFilterPageSize {
-		pageSize = accessFilterPageSize
-	}
+	pageSize := searchPageSize(searchOptions, searchSize, r.URL.Query().Get("limit") != "")
 	searchPage := func() []*indexing.SearchResult {
 		if len(searchOptions.sources) == 1 {
 			index := indexing.GetIndex(searchOptions.sources[0])
@@ -139,20 +161,20 @@ func searchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, err
 		if len(page) < pageSize || len(response) >= searchSize {
 			break
 		}
-		// Everything up to the largest (length, path) key returned was inspected.
-		// Rune count matches SQLite length(); comparing byte lengths would place
+		// Everything up to the largest (length(path), path, source) key returned was
+		// inspected. Rune count matches SQLite length(); byte lengths would place
 		// non-ASCII paths on the wrong side of the cursor.
-		var deepestPath string
-		deepestLen := -1
+		var deepest *indexing.SearchResult
 		for _, result := range page {
-			if l := utf8.RuneCountInString(result.Path); l > deepestLen || (l == deepestLen && result.Path > deepestPath) {
-				deepestPath, deepestLen = result.Path, l
+			if deepest == nil || cursorKeyAfter(result, deepest) {
+				deepest = result
 			}
 		}
-		if deepestLen < 0 || searchOptions.parsed.CursorPath == deepestPath {
+		if deepest == nil ||
+			(searchOptions.parsed.CursorPath == deepest.Path && searchOptions.parsed.CursorSource == deepest.Source) {
 			break
 		}
-		searchOptions.parsed.CursorPath = deepestPath
+		searchOptions.parsed.CursorPath, searchOptions.parsed.CursorSource = deepest.Path, deepest.Source
 	}
 
 	// Filter out items that are not permitted according to access rules and trim user scope from paths

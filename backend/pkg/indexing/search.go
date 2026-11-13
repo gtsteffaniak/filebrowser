@@ -5,6 +5,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"unicode/utf8"
 
 	dbsql "github.com/gtsteffaniak/filebrowser/backend/internal/database/sql"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
@@ -84,13 +85,15 @@ func (idx *Index) SearchParsed(baseOpts iteminfo.SearchOptions, scope string, so
 		defer rows.Close()
 	}
 
+	// Name rows are read to the end of the page before any content page is fetched:
+	// db.Query holds the DB mutex for the life of the rows, so interleaving would
+	// deadlock. Both streams are then merged by the cursor key so a shallower
+	// content-only hit is never displaced by a deeper name hit filling the page.
+	var nameRows []*SearchResult
 	for err == nil && rows.Next() {
 		value, found := sessionInProgress.Load(sourceSession)
 		if !found || value != runningHash {
 			return []*SearchResult{}
-		}
-		if limit > 0 && count >= limit {
-			break
 		}
 
 		var path string
@@ -115,12 +118,9 @@ func (idx *Index) SearchParsed(baseOpts iteminfo.SearchOptions, scope string, so
 		}
 		// The name query returns every row of the scope; a content-matched path is a
 		// match even when its name does not contain the term.
-		matches := itemMatchesSearchFilters(item, isDir, searchOptions, largest, nameGlobPatterns) ||
-			content.claim(path)
-		if !matches {
+		if !itemMatchesSearchFilters(item, isDir, searchOptions, largest, nameGlobPatterns) && !content.has(path) {
 			continue
 		}
-
 		resType := mimeType
 		if isDir {
 			resType = "directory"
@@ -136,16 +136,78 @@ func (idx *Index) SearchParsed(baseOpts iteminfo.SearchOptions, scope string, so
 		if createdTime > 0 {
 			res.Created = time.Unix(createdTime, 0).Format(time.RFC3339)
 		}
-		results[path] = res
+		nameRows = append(nameRows, res)
+	}
+	for _, res := range mergeByNameKey(content, nameRows) {
+		if limit > 0 && count >= limit {
+			break
+		}
+		if _, dup := results[res.Path]; dup {
+			continue
+		}
+		results[res.Path] = res
 		count++
 	}
 
-	// Content-only hits are appended, in depth order, until the page is full. They are
+	// Content-only hits are appended, in cursor order, until the page is full. They are
 	// still returned when the name query failed.
 	if limit <= 0 || count < limit {
 		appendContentResults([]*contentSearch{content}, limit, results, &count)
 	}
 	return sortSearchResults(results)
+}
+
+// mergeMulti interleaves multi-source name hits with content hits by (length, path,
+// source). Content hits already returned by the name pass are skipped, and the caller
+// applies the result limit.
+func mergeMulti(searches []*contentSearch, nameRows []*SearchResult) []*SearchResult {
+	seen := make(map[string]bool, len(nameRows))
+	merged := make([]*SearchResult, 0, len(nameRows))
+	for _, row := range nameRows {
+		seen[row.Source+":"+row.Path] = true
+	}
+	i := 0
+	room := len(nameRows) + 1
+	for {
+		cs, path, ok := smallestCandidate(searches, room)
+		if !ok {
+			break
+		}
+		if seen[cs.source+":"+path] {
+			// Already returned as a name hit; drop it without spending page budget.
+			cs.claim(path)
+			room++
+			continue
+		}
+		if i >= len(nameRows) {
+			cs.claim(path)
+			seen[cs.source+":"+path] = true
+			merged = append(merged, contentResult(cs, path))
+			continue
+		}
+		next := nameRows[i]
+		if sourceKeyLess(path, cs.source, next.Path, next.Source) {
+			cs.claim(path)
+			seen[cs.source+":"+path] = true
+			merged = append(merged, contentResult(cs, path))
+			continue
+		}
+		merged = append(merged, next)
+		i++
+		room++
+	}
+	merged = append(merged, nameRows[i:]...)
+	return merged
+}
+
+// contentHit reports whether path in source is a pending content hit.
+func contentHit(searches []*contentSearch, source, path string) bool {
+	for _, cs := range searches {
+		if cs.source == source {
+			return cs.has(path)
+		}
+	}
+	return false
 }
 
 // contentSearch resolves paths whose content matches the terms when full-text search
@@ -165,7 +227,9 @@ type contentSearch struct {
 	last      string          // (length, path) cursor of the last page read
 	exhausted bool
 	pagesRead int
+	freed     int  // hits claimed by the name pass, available to appendContentResults
 	multi     bool // results of these searches are keyed source:path
+	at        bool // resume at last (inclusive) instead of strictly after it
 }
 
 // contentLookupPages bounds how many FTS pages are read for one search.
@@ -182,14 +246,27 @@ func newContentSearch(db *dbsql.IndexDB, source, scope string, opts iteminfo.Sea
 	if limit <= 0 {
 		limit = contentFillPage
 	}
-	return &contentSearch{db: db, source: source, opts: opts, scope: scope, pageSize: limit, set: make(map[string]bool)}
+	// Resume where the caller's cursor left off, or a later page would re-read hits
+	// the name query already excluded. A multi-source cursor also names a source: a
+	// source ordered before it still owns the hit at that path, so start there.
+	atCursor := opts.CursorSource == "" || opts.CursorSource == source
+	return &contentSearch{
+		db: db, source: source, opts: opts, scope: scope, pageSize: limit,
+		set:  make(map[string]bool),
+		last: opts.CursorPath,
+		at:   !atCursor,
+	}
 }
 
 // nextPage reads another FTS page and queues the candidates that pass the filters.
 // It reports whether anything was queued.
 func (cs *contentSearch) nextPage() bool {
 	for !cs.exhausted && cs.pagesRead < contentLookupPages {
-		paths, err := cs.db.SearchFullText(cs.source, cs.scope, cs.opts.Terms, cs.opts.MatchAllTerms, cs.pageSize, cs.last)
+		mode := dbsql.StartingAfter
+		if cs.at {
+			mode = dbsql.StartingAt
+		}
+		paths, err := cs.db.SearchFullTextFrom(cs.source, cs.scope, cs.opts.Terms, cs.opts.MatchAllTerms, cs.pageSize, cs.last, mode)
 		if err != nil {
 			logger.Errorf("full-text search failed for source %s: %v", cs.source, err)
 			cs.exhausted = true
@@ -214,6 +291,7 @@ func (cs *contentSearch) nextPage() bool {
 }
 
 // claim reports whether path is a pending content hit and stops it from being returned again.
+// The freed budget lets a later appendContentResults read another page.
 func (cs *contentSearch) claim(path string) bool {
 	if cs == nil || !cs.set[path] {
 		return false
@@ -225,7 +303,61 @@ func (cs *contentSearch) claim(path string) bool {
 			break
 		}
 	}
+	cs.freed++
 	return true
+}
+
+// len reports how many content hits are queued right now.
+func (cs *contentSearch) len() int {
+	if cs == nil {
+		return 0
+	}
+	return len(cs.order)
+}
+
+// has reports whether path is currently a pending content hit.
+func (cs *contentSearch) has(path string) bool {
+	return cs != nil && cs.set[path]
+}
+
+// peek returns the pending content hit that sorts first under the search cursor
+// order, loading more pages while budget remains. Hits read from different sources
+// are not globally ordered, so the smallest key is chosen explicitly.
+func (cs *contentSearch) peek(budget int) (string, bool) {
+	if cs == nil {
+		return "", false
+	}
+	// nextPage can return true without queueing anything (its kept hits were already
+	// claimed), so bounded by pages rather than by its return value alone.
+	for len(cs.order) == 0 && budget > 0 && !cs.exhausted && cs.pagesRead < contentLookupPages {
+		cs.nextPage()
+	}
+	if len(cs.order) == 0 {
+		return "", false
+	}
+	best := 0
+	for i := 1; i < len(cs.order); i++ {
+		if pathKeyLess(cs.order[i], cs.order[best]) {
+			best = i
+		}
+	}
+	return cs.order[best], true
+}
+
+// sourceKeyLess orders multi-source results by (length(path), path, source).
+func sourceKeyLess(pathA, sourceA, pathB, sourceB string) bool {
+	if pathKeyLess(pathA, pathB) {
+		return true
+	}
+	return pathA == pathB && sourceA < sourceB
+}
+
+// pathKeyLess orders by the search cursor key: SQLite length(path) (code points), then path.
+func pathKeyLess(a, b string) bool {
+	if la, lb := utf8.RuneCountInString(a), utf8.RuneCountInString(b); la != lb {
+		return la < lb
+	}
+	return a < b
 }
 
 // hasPending reports whether content hits may still remain.
@@ -298,60 +430,92 @@ func parentIndexPath(p string) string {
 	return p[:i+1]
 }
 
-// appendContentResults adds content-only hits in depth order until the limit is reached.
-// Several searches (multi-source) are merged by path depth.
+// appendContentResults adds content-only hits in cursor order until the limit is reached.
+// Content hits from several sources are merged here because the name query saw only the
+// paths it returned; the remaining hits are ordered by the same (length, path) key.
 func appendContentResults(searches []*contentSearch, limit int, results map[string]*SearchResult, count *int) {
-	var pending []*SearchResult
-	for _, cs := range searches {
-		for {
-			path, ok := cs.pop(limit - len(pending))
-			if !ok {
-				break
-			}
-			// Single-source results are keyed by path; multi-source by source:path.
-			key := path
-			if _, ok := results[key]; !ok {
-				key = cs.source + ":" + path
-				if _, ok := results[key]; !ok {
-					key = path
-				}
-			}
-			if _, ok := results[key]; ok {
-				continue
-			}
-			pending = append(pending, contentResult(cs, path))
-		}
-	}
-	sort.SliceStable(pending, func(i, j int) bool {
-		return strings.Count(pending[i].Path, "/") < strings.Count(pending[j].Path, "/")
-	})
-	for _, res := range pending {
-		if limit > 0 && *count >= limit {
+	for budget := limit; budget > 0 || limit <= 0; {
+		cs, path, ok := smallestCandidate(searches, budget)
+		if !ok {
 			return
 		}
-		key := res.Path
-		if _, ok := results[key]; !ok && searches[0].multi {
-			key = res.Source + ":" + res.Path
+		cs.claim(path)
+		key := resultKey(cs, path, results)
+		if _, exists := results[key]; exists {
+			continue
 		}
-		results[key] = res
+		// The candidate is already the smallest remaining key, so appending keeps order.
+		results[key] = contentResult(cs, path)
 		*count++
+		budget--
 	}
 }
 
-// pop returns the next pending content hit, loading more pages while room remains.
-func (cs *contentSearch) pop(room int) (string, bool) {
-	if cs == nil {
-		return "", false
+// mergeByNameKey interleaves the name hits with content hits already loaded for this
+// page, ordered by (length(path), path) so the merged page keeps the cursor order.
+func mergeByNameKey(cs *contentSearch, nameRows []*SearchResult) []*SearchResult {
+	if cs == nil || len(cs.order) == 0 {
+		return nameRows
 	}
-	for len(cs.order) == 0 {
-		if room <= 0 || !cs.nextPage() {
-			return "", false
+	// Merge may load further content pages; the page limit is applied by the caller.
+	room := len(nameRows) + 1
+	merged := make([]*SearchResult, 0, len(nameRows)+cs.len())
+	i := 0
+	for {
+		path, ok := cs.peek(room)
+		if !ok || i >= len(nameRows) {
+			break
+		}
+		if pathKeyLess(path, nameRows[i].Path) {
+			cs.claim(path)
+			merged = append(merged, contentResult(cs, path))
+			continue
+		}
+		merged = append(merged, nameRows[i])
+		i++
+		room++
+	}
+	for i < len(nameRows) {
+		merged = append(merged, nameRows[i])
+		i++
+	}
+	for {
+		path, ok := cs.peek(room)
+		if !ok {
+			break
+		}
+		cs.claim(path)
+		merged = append(merged, contentResult(cs, path))
+	}
+	return merged
+}
+
+// smallestCandidate returns the content hit with the smallest cursor key across all
+// searches, reading more pages only while a search still has budget.
+func smallestCandidate(searches []*contentSearch, budget int) (*contentSearch, string, bool) {
+	var (
+		bestCS   *contentSearch
+		bestPath string
+	)
+	for _, cs := range searches {
+		path, ok := cs.peek(budget)
+		if !ok {
+			continue
+		}
+		if bestCS == nil || pathKeyLess(path, bestPath) {
+			bestCS, bestPath = cs, path
 		}
 	}
-	path := cs.order[0]
-	cs.order = cs.order[1:]
-	delete(cs.set, path)
-	return path, true
+	return bestCS, bestPath, bestCS != nil
+}
+
+// resultKey matches how each search keys its result map: single-source by path,
+// multi-source by source:path.
+func resultKey(cs *contentSearch, path string, results map[string]*SearchResult) string {
+	if !cs.multi {
+		return path
+	}
+	return cs.source + ":" + path
 }
 
 // contentResult builds a result for a content-only hit from its index row.
@@ -482,7 +646,13 @@ func SearchMultiSourcesParsed(baseOpts iteminfo.SearchOptions, sources []string,
 	var content []*contentSearch
 	if searchContent {
 		for _, source := range sources {
-			cs := newContentSearch(db, source, normalizedScopes[source], searchOptions, largest, useWildcard, limit)
+			// The cursor advanced past (path, source): the cursor's own source resumes
+			// strictly after it, every other source still owns a hit at that same path.
+			csOpts := searchOptions
+			if csOpts.CursorSource == "" {
+				csOpts.CursorSource = source
+			}
+			cs := newContentSearch(db, source, normalizedScopes[source], csOpts, largest, useWildcard, limit)
 			if cs != nil {
 				cs.multi = true
 				cs.nextPage()
@@ -500,7 +670,7 @@ func SearchMultiSourcesParsed(baseOpts iteminfo.SearchOptions, sources []string,
 	if largest {
 		cursorPath = ""
 	}
-	rows, err := db.SearchItemsMultiSource(sources, normalizedScopes, largest, nameGlobPatterns, globAnd, caseExact, cursorPath)
+	rows, err := db.SearchItemsMultiSource(sources, normalizedScopes, largest, nameGlobPatterns, globAnd, caseExact, cursorPath, searchOptions.CursorSource)
 	if err != nil && !hasContent {
 		return []*SearchResult{}
 	}
@@ -508,31 +678,30 @@ func SearchMultiSourcesParsed(baseOpts iteminfo.SearchOptions, sources []string,
 		defer rows.Close()
 	}
 
+	// Name and content candidates are merged by (length, path, source), so a shallower
+	// content-only hit is never displaced by a deeper name hit filling the page.
+	var (
+		rowSource   string
+		rowPath     string
+		name        string
+		size        int64
+		createdTime int64
+		modTime     int64
+		mimeType    string
+		isDir       bool
+		hasPreview  bool
+	)
+	var nameRows []*SearchResult
 	for err == nil && rows.Next() {
 		value, found := sessionInProgress.Load(sourceSession)
 		if !found || value != runningHash {
 			return []*SearchResult{}
 		}
 
-		if limit > 0 && count >= limit {
-			break
-		}
-
-		var source string
-		var path string
-		var name string
-		var size int64
-		var createdTime int64
-		var modTime int64
-		var mimeType string
-		var isDir bool
-		var hasPreview bool
-
-		if err := rows.Scan(&source, &path, &name, &size, &createdTime, &modTime, &mimeType, &isDir, &hasPreview); err != nil {
+		if err := rows.Scan(&rowSource, &rowPath, &name, &size, &createdTime, &modTime, &mimeType, &isDir, &hasPreview); err != nil {
 			logger.Errorf("Failed to scan search result row: %v", err)
 			continue
 		}
-
 		item := iteminfo.ItemInfo{
 			Name:       name,
 			Size:       size,
@@ -540,33 +709,40 @@ func SearchMultiSourcesParsed(baseOpts iteminfo.SearchOptions, sources []string,
 			Type:       mimeType,
 			HasPreview: hasPreview,
 		}
-
-		matches := itemMatchesSearchFilters(item, isDir, searchOptions, largest, nameGlobPatterns) ||
-			claimFrom(content, source, path)
-
-		if matches {
-			resType := mimeType
-			if isDir {
-				resType = "directory"
-			}
-
-			key := source + ":" + path
-			results[key] = &SearchResult{
-				Path:       path,
-				Type:       resType,
-				Size:       size,
-				Modified:   item.ModTime.Format(time.RFC3339),
-				HasPreview: hasPreview,
-				Source:     source,
-			}
-			if createdTime > 0 {
-				results[key].Created = time.Unix(createdTime, 0).Format(time.RFC3339)
-			}
-			count++
+		matchedContent := contentHit(content, rowSource, rowPath)
+		if !itemMatchesSearchFilters(item, isDir, searchOptions, largest, nameGlobPatterns) && !matchedContent {
+			continue
 		}
+		resType := mimeType
+		if isDir {
+			resType = "directory"
+		}
+		res := &SearchResult{
+			Path:       rowPath,
+			Type:       resType,
+			Size:       size,
+			Modified:   item.ModTime.Format(time.RFC3339),
+			HasPreview: hasPreview,
+			Source:     rowSource,
+		}
+		if createdTime > 0 {
+			res.Created = time.Unix(createdTime, 0).Format(time.RFC3339)
+		}
+		nameRows = append(nameRows, res)
+	}
+	for _, res := range mergeMulti(content, nameRows) {
+		if limit > 0 && count >= limit {
+			break
+		}
+		key := res.Source + ":" + res.Path
+		if _, dup := results[key]; dup {
+			continue
+		}
+		results[key] = res
+		count++
 	}
 
-	// Content-only hits are appended, in depth order, until the page is full.
+	// Content-only hits are appended, in cursor order, until the page is full.
 	if limit <= 0 || count < limit {
 		appendContentResults(content, limit, results, &count)
 	}

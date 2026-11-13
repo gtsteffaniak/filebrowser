@@ -25,6 +25,9 @@ type SearchOptions struct {
 	// CursorPath pages past earlier results: only items ordered after it by
 	// (length(path), path) are returned. Length is computed in SQL, never passed in.
 	CursorPath string
+	// CursorSource disambiguates the cursor in multi-source searches: (length(path),
+	// path, source) is the ordering, so equal paths in two sources page independently.
+	CursorSource string
 }
 
 // BuildSearchOptionsFromQuery merges optional repeated literal terms (HTTP "terms" parameters) with structured filter text ("query" prefix).

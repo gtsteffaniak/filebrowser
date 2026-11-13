@@ -102,6 +102,38 @@ func TestFullTextUpsertReplacesAndDeletesRemove(t *testing.T) {
 	}
 }
 
+// The stale sweep purges FTS rows by (source, path). A re-indexed item keeps its
+// index_items row but gets a new FTS row, so the purge must not take it out with
+// the stale row it was compared against by rowid before.
+func TestFullTextStaleSweepKeepsReindexedRow(t *testing.T) {
+	db := newFullTextTestDB(t)
+	a := &iteminfo.FileInfo{Path: "/a.txt", ItemInfo: iteminfo.ItemInfo{Name: "a.txt", ModTime: time.Unix(100, 0), Type: "text/plain"}, FullTextBody: body("a.txt\nalpha")}
+	b := &iteminfo.FileInfo{Path: "/b.txt", ItemInfo: iteminfo.ItemInfo{Name: "b.txt", ModTime: time.Unix(100, 0), Type: "text/plain"}, FullTextBody: body("b.txt\nbeta")}
+	for _, item := range []*iteminfo.FileInfo{a, b, b, a} {
+		if err := db.BulkInsertItems("src", []*iteminfo.FileInfo{item}); err != nil {
+			t.Fatal(err)
+		}
+	}
+	a.FullTextBody = body("a.txt\nalpha updated")
+	if err := db.BulkInsertItems("src", []*iteminfo.FileInfo{a}); err != nil {
+		t.Fatal(err)
+	}
+	// Stale sweep removes B, then purges FTS rows with no matching index_items key.
+	if _, err := db.Exec(`DELETE FROM index_items WHERE path = '/b.txt'`); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := db.deleteFullText(`NOT EXISTS (
+		SELECT 1 FROM index_items i WHERE i.source = index_fts.source AND i.path = index_fts.path)`); err != nil {
+		t.Fatalf("purge: %v", err)
+	}
+	if hits, err := db.SearchFullText("src", "/", []string{"updated"}, true, 10, ""); err != nil || len(hits) != 1 || hits[0] != "/a.txt" {
+		t.Fatalf("re-indexed row was purged: %v %v", hits, err)
+	}
+	if hits, _ := db.SearchFullText("src", "/", []string{"beta"}, true, 10, ""); len(hits) != 0 {
+		t.Fatalf("stale row survived: %v", hits)
+	}
+}
+
 func TestFullTextOrphansArePurged(t *testing.T) {
 	db := newFullTextTestDB(t)
 	if err := db.BulkInsertItems("src", []*iteminfo.FileInfo{

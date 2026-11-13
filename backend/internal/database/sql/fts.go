@@ -37,7 +37,20 @@ func (db *IndexDB) CreateFullTextTable() error {
 // (prefix matching; AND when matchAll is set, OR otherwise).
 // scope is a directory index path ending in "/".
 // Results are ordered by (length(path), path); startingAfter pages past that key.
+// StartingAfter selects the resume predicate: rows ordered after startingAfter for
+// sources at or past the cursor source, and rows from startingAfter itself for sources
+// ordered before it (multi-source cursor (length(path), path, source)).
+const (
+	StartingAfter = iota
+	StartingAt
+)
+
 func (db *IndexDB) SearchFullText(source, scope string, terms []string, matchAll bool, limit int, startingAfter string) ([]string, error) {
+	return db.SearchFullTextFrom(source, scope, terms, matchAll, limit, startingAfter, StartingAfter)
+}
+
+// searchFullTextFrom pages content hits starting strictly after, or at, startingAfter.
+func (db *IndexDB) SearchFullTextFrom(source, scope string, terms []string, matchAll bool, limit int, startingAfter string, mode int) ([]string, error) {
 	expr := fullTextMatchExpr(terms, matchAll)
 	if db.fullTextOff() || expr == "" {
 		return nil, nil
@@ -54,9 +67,9 @@ func (db *IndexDB) SearchFullText(source, scope string, terms []string, matchAll
 	rows, err := db.Query(`
 		SELECT path FROM index_fts
 		WHERE body MATCH ? AND source = ? AND path GLOB ?
-		AND (length(path) > length(?) OR (length(path) = length(?) AND path > ?))
+		AND (length(path) > length(?) OR (length(path) = length(?) AND (path > ? OR (? = 1 AND path = ?))))
 		ORDER BY length(path), path
-		LIMIT ?`, expr, source, nameGlob, startingAfter, startingAfter, startingAfter, limit)
+		LIMIT ?`, expr, source, nameGlob, startingAfter, startingAfter, startingAfter, mode, startingAfter, limit)
 	if err != nil {
 		return nil, err
 	}
@@ -96,14 +109,15 @@ func sqliteGlobEscape(s string) string {
 }
 
 // upsertFullText writes the content row for one freshly upserted index_items row.
-// Rows are keyed by (source, path) rather than index_items.rowid: after
-// ON CONFLICT DO UPDATE LastInsertId can point at an earlier row. An empty body
-// writes nothing; the FTS row was already dropped by the caller's deleteItemRowsTx.
-func upsertFullText(stmt *sql.Stmt, source string, info *iteminfo.FileInfo) error {
+// rowid comes from an indexed (source, path) lookup of index_items, never from
+// LastInsertId: after ON CONFLICT DO UPDATE that reports an earlier row.
+// source/path are stored alongside for FTS queries that cannot join index_items.
+// An empty body writes nothing; the old FTS row was already deleted by the caller.
+func upsertFullText(stmt *sql.Stmt, rowid int64, source string, info *iteminfo.FileInfo) error {
 	if info.FullTextBody == nil {
 		return nil
 	}
-	_, err := stmt.Exec(source, info.Path, *info.FullTextBody)
+	_, err := stmt.Exec(rowid, source, info.Path, *info.FullTextBody)
 	return err
 }
 

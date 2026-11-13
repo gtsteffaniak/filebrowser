@@ -448,13 +448,19 @@ func (db *IndexDB) attemptBulkInsert(source string, items []*iteminfo.FileInfo) 
 	// is configured, so a name-only scan does no FTS work at all.
 	// A missing FTS table (index built without it) only disables content indexing.
 	var (
-		ftsDel  *sql.Stmt
-		ftsStmt *sql.Stmt
+		ftsRowID *sql.Stmt
+		ftsDel   *sql.Stmt
+		ftsStmt  *sql.Stmt
 	)
 	if settings.Config.Server.IndexSqlConfig.FullTextSearch && !db.fullTextOff() {
-		ftsDel, err = tx.Prepare(`DELETE FROM index_fts WHERE source = ? AND path = ?`)
+		// index_items keys on (source, path), so this lookup is indexed; deleting and
+		// inserting FTS rows by rowid keeps an unindexed column scan out of every upsert.
+		ftsRowID, err = tx.Prepare(`SELECT rowid FROM index_items WHERE source = ? AND path = ?`)
 		if err == nil {
-			ftsStmt, err = tx.Prepare(`INSERT INTO index_fts(source, path, body) VALUES (?, ?, ?)`)
+			ftsDel, err = tx.Prepare(`DELETE FROM index_fts WHERE rowid = ?`)
+		}
+		if err == nil {
+			ftsStmt, err = tx.Prepare(`INSERT INTO index_fts(rowid, source, path, body) VALUES (?, ?, ?, ?)`)
 		}
 		if err != nil {
 			// Prepare does not take a write lock; a busy error here is not retryable by rerunning.
@@ -462,10 +468,11 @@ func (db *IndexDB) attemptBulkInsert(source string, items []*iteminfo.FileInfo) 
 			db.fullTextDisabled = true
 			db.fullTextMu.Unlock()
 			logger.Warningf("[DB_TX] BulkInsertItems: full-text index unavailable, writing names only: %v", err)
-			ftsDel, ftsStmt = nil, nil
+			ftsRowID, ftsDel, ftsStmt = nil, nil, nil
 		}
 	}
-	if ftsDel != nil {
+	if ftsRowID != nil {
+		defer ftsRowID.Close()
 		defer ftsDel.Close()
 		defer ftsStmt.Close()
 	}
@@ -498,14 +505,22 @@ func (db *IndexDB) attemptBulkInsert(source string, items []*iteminfo.FileInfo) 
 		if ftsStmt == nil || info.IsDir || info.Type == "directory" {
 			continue
 		}
-		if _, err := ftsDel.Exec(source, info.Path); err != nil {
+		var rowid int64
+		if err := ftsRowID.QueryRow(source, info.Path).Scan(&rowid); err != nil {
+			if sqlitebusy.IsBusyOrLocked(err) {
+				return false, true, nil
+			}
+			logger.Errorf("[DB] BulkInsertItems: FTS rowid lookup failed for path=%s, source=%s, error=%v", info.Path, source, err)
+			return false, false, err
+		}
+		if _, err := ftsDel.Exec(rowid); err != nil {
 			if sqlitebusy.IsBusyOrLocked(err) {
 				return false, true, nil
 			}
 			logger.Errorf("[DB] BulkInsertItems: FTS delete failed for path=%s, source=%s, error=%v", info.Path, source, err)
 			return false, false, err
 		}
-		if err := upsertFullText(ftsStmt, source, info); err != nil {
+		if err := upsertFullText(ftsStmt, rowid, source, info); err != nil {
 			if sqlitebusy.IsBusyOrLocked(err) {
 				return false, true, nil
 			}
@@ -933,7 +948,10 @@ func (db *IndexDB) DeleteStaleItemsOlderThan(olderThan time.Duration) (int, erro
 
 	rowsAffected, _ := result.RowsAffected()
 	if rowsAffected > 0 {
-		if _, err := db.deleteFullText("rowid NOT IN (SELECT rowid FROM index_items)"); err != nil {
+		// Compare keys, not rowids: an FTS row's rowid is independent of index_items
+		// after a re-index, so a rowid comparison would purge live content rows.
+		if _, err := db.deleteFullText(`NOT EXISTS (
+			SELECT 1 FROM index_items i WHERE i.source = index_fts.source AND i.path = index_fts.path)`); err != nil {
 			logger.Debugf("[DB_MAINTENANCE] DeleteStaleItemsOlderThan: full-text purge failed: %v", err)
 		}
 	}

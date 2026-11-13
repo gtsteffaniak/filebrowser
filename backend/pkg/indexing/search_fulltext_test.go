@@ -147,3 +147,67 @@ func TestContentHitsFilledAfterFilters(t *testing.T) {
 		t.Fatal("expected a content hit")
 	}
 }
+
+func TestSearchContentHitSortsBeforeNameHit(t *testing.T) {
+	idx := newFullTextSearchTestIndex(t, "fulltext_merge")
+	// /deep/budget.txt matches by name; /a.txt only by content and sorts first by
+	// (length, path). With limit 1 the shallower content hit must fill the page.
+	insertOne := func(path string, info iteminfo.ItemInfo, ftBody string) {
+		info.ModTime = time.Unix(1700000000, 0)
+		file := &iteminfo.FileInfo{Path: path, ItemInfo: info}
+		if ftBody != "" {
+			file.FullTextBody = &ftBody
+		}
+		if err := indexDB.BulkInsertItems("fulltext_merge", []*iteminfo.FileInfo{file}); err != nil {
+			t.Fatal(err)
+		}
+	}
+	insertOne("/deep/budget.txt", iteminfo.ItemInfo{Name: "budget.txt", Type: "text/plain", Size: 10}, "")
+	insertOne("/a.txt", iteminfo.ItemInfo{Name: "a.txt", Type: "text/plain", Size: 10}, "a.txt\nbudget")
+
+	got := idx.SearchParsed(iteminfo.SearchOptions{Terms: []string{"budget"}}, "/", "", false, 1, 0, 0, false, true)
+	if len(got) != 1 || got[0].Path != "/a.txt" {
+		t.Fatalf("limit 1 should keep the shallower content hit, got %#v", got)
+	}
+}
+
+func TestSearchContentResumesAfterCursor(t *testing.T) {
+	idx := newFullTextSearchTestIndex(t, "fulltext_cursor_resume")
+	opts := iteminfo.SearchOptions{Terms: []string{"budget"}, CursorPath: "/docs/other.txt"}
+	got := idx.SearchParsed(opts, "/", "", false, 100, 0, 0, false, true)
+	for _, r := range got {
+		if !pathKeyLess("/docs/other.txt", r.Path) {
+			t.Fatalf("resumed search returned a path at or before the cursor: %#v", got)
+		}
+	}
+	// /docs/report.txt sorts after the cursor and is content-only for "budget".
+	found := false
+	for _, r := range got {
+		found = found || r.Path == "/docs/report.txt"
+	}
+	if !found {
+		t.Fatalf("content hit after the cursor was lost: %#v", got)
+	}
+}
+
+func TestSearchContentMultiSourceSamePathPages(t *testing.T) {
+	a := newFullTextSearchTestIndex(t, "fulltext_samepath_a")
+	b := newFullTextSearchTestIndex(t, "fulltext_samepath_b")
+	_ = a
+	_ = b
+	sources := []string{"fulltext_samepath_a", "fulltext_samepath_b"}
+	scopes := map[string]string{"fulltext_samepath_a": "/", "fulltext_samepath_b": "/"}
+	terms := iteminfo.SearchOptions{Terms: []string{"quarterly"}}
+
+	first := SearchMultiSourcesParsed(terms, sources, scopes, "", false, 1, 0, 0, false, true)
+	if len(first) != 1 {
+		t.Fatalf("first page = %#v", first)
+	}
+	// Both sources hold /docs/budget.txt; the cursor must carry the source so the
+	// second source's identical path is still reachable.
+	terms.CursorPath, terms.CursorSource = first[0].Path, first[0].Source
+	second := SearchMultiSourcesParsed(terms, sources, scopes, "", false, 1, 0, 0, false, true)
+	if len(second) != 1 || second[0].Path != first[0].Path || second[0].Source == first[0].Source {
+		t.Fatalf("same path in the other source was skipped: first=%#v second=%#v", first, second)
+	}
+}

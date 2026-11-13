@@ -41,10 +41,14 @@ func appendNameGlobSQL(query string, args []interface{}, patterns []string, join
 }
 
 // orderByPathDepth returns the ORDER BY clause matching the search cursor contract:
-// largest searches rank by size, everything else by (length(path), path).
-func orderByPathDepth(largest bool) string {
+// largest searches rank by size; everything else by (length(path), path, source), so
+// identical paths in several sources each take their own cursor slot.
+func orderByPathDepth(largest, multiSource bool) string {
 	if largest {
 		return " ORDER BY size DESC"
+	}
+	if multiSource {
+		return " ORDER BY length(path), path, source"
 	}
 	return " ORDER BY length(path), path"
 }
@@ -79,7 +83,7 @@ func (db *IndexDB) SearchItems(source string, scope string, largest bool, nameGl
 	}
 	// Without this ORDER BY the row limit would truncate an arbitrary subset, and the
 	// caller's (length(path), path) cursor would skip whatever was never read.
-	query += orderByPathDepth(largest)
+	query += orderByPathDepth(largest, false)
 
 	return db.Query(query, args...)
 }
@@ -87,7 +91,7 @@ func (db *IndexDB) SearchItems(source string, scope string, largest bool, nameGl
 // SearchItemsMultiSource queries the database for items matching the search criteria across multiple sources.
 // When nameGlobPatterns is non-empty (and largest is false), restricts rows with SQLite name GLOB ... OR ....
 // Returns rows that can be iterated to scan search results.
-func (db *IndexDB) SearchItemsMultiSource(sources []string, sourceScopes map[string]string, largest bool, nameGlobPatterns []string, nameGlobPatternsAnd, caseExact bool, cursorPath string) (*sql.Rows, error) {
+func (db *IndexDB) SearchItemsMultiSource(sources []string, sourceScopes map[string]string, largest bool, nameGlobPatterns []string, nameGlobPatternsAnd, caseExact bool, cursorPath, cursorSource string) (*sql.Rows, error) {
 	if len(sources) == 0 {
 		return nil, fmt.Errorf("at least one source is required")
 	}
@@ -142,15 +146,15 @@ func (db *IndexDB) SearchItemsMultiSource(sources []string, sourceScopes map[str
 		query, args = appendNameGlobSQL(query, args, nameGlobPatterns, nameGlobPatternsAnd, caseExact)
 	}
 
-	// cursorPath pages past everything ordered at or before it; compare with the same
-	// SQL length unit, so callers never have to compute a length themselves.
+	// The cursor carries the source, so equal paths in two sources each advance it.
 	if cursorPath != "" {
-		query += " AND (length(path) > length(?) OR (length(path) = length(?) AND path > ?))"
-		args = append(args, cursorPath, cursorPath, cursorPath)
+		query += " AND (length(path) > length(?) OR (length(path) = length(?) AND path > ?)" +
+			" OR (length(path) = length(?) AND path = ? AND source > ?))"
+		args = append(args, cursorPath, cursorPath, cursorPath, cursorPath, cursorPath, cursorSource)
 	}
 	// Without this ORDER BY the row limit would truncate an arbitrary subset, and the
-	// caller's (length(path), path) cursor would skip whatever was never read.
-	query += orderByPathDepth(largest)
+	// caller's (length(path), path, source) cursor would skip whatever was never read.
+	query += orderByPathDepth(largest, true)
 
 	return db.Query(query, args...)
 }
