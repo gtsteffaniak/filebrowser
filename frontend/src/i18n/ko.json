@@ -157,6 +157,17 @@
     "requirePasswordChangeMustDiffer": "새 비밀번호는 현재 비밀번호와 달라야 합니다."
   },
   "prompts": {
+    "mediaInfo": "미디어 정보",
+    "mediaTitle": "제목",
+    "subtitle": "자막 {n}",
+    "artist": "아티스트",
+    "album": "앨범",
+    "year": "연도",
+    "genre": "장르",
+    "track": "트랙",
+    "container": "컨테이너",
+    "videoCodec": "비디오 코덱",
+    "audioCodec": "오디오 코덱",
     "noTemplate": "템플릿이 비어 있습니다!",
     "newFileTemplate": "새 파일 템플릿",
     "newFileTemplateMessage": "여기에 새 파일 이름을 추가하면 컨텍스트 메뉴에서 새 파일 생성 템플릿으로 사용됩니다!",
@@ -494,6 +505,8 @@
     "passwordRequiredForGeneration": "인증 코드를 생성하려면 비밀번호가 필요합니다."
   },
   "general": {
+    "show": "표시",
+    "hide": "숨기기",
     "import": "가져오기",
     "export": "내보내기",
     "name": "이름",
@@ -676,7 +689,6 @@
     "allow": "허용",
     "allowDeny": "허용/거부",
     "userGroup": "사용자/그룹",
-    "accessManagement": "액세스 관리",
     "totalDenied": "거부됨",
     "totalAllowed": "허용됨",
     "all": "모두 거부",
@@ -684,8 +696,6 @@
     "defaultBehavior": "기본 작업{suffix}",
     "cascadeDelete": "재귀적 삭제",
     "cascadeDeleteDescription": "이 기능을 활성화하면 액세스 규칙을 삭제하면 모든 하위 디렉터리에서도 해당 규칙이 제거됩니다. 이렇게 하면 전체 디렉터리 트리에서 사용자 또는 그룹을 완전히 제거할 수 있습니다.",
-    "hasRules": "액세스 규칙이 구성되었습니다.",
-    "manageDescription": "이 경로에 적용되는 오픈 액세스 규칙.",
     "newGroup": "새 그룹",
     "editGroup": "그룹 편집",
     "groupName": "그룹 이름",

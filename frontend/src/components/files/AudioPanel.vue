@@ -1,26 +1,7 @@
 <template>
   <div class="audio-side-panel">
     <div class="panel-tabs">
-      <div class="tab-container">
-        <input type="radio" id="tab-queue" v-model="activeTab" value="queue" hidden />
-        <label for="tab-queue" class="tab-btn" :class="{ active: activeTab === 'queue' }" :title="$t('player.QueuePlayback')">
-          <i class="material-symbols">queue_music</i>
-          <span>{{ $t('player.queue') }}</span>
-          <!-- eslint-disable-next-line @intlify/vue-i18n/no-raw-text -->
-          <span v-if="queueCount > 0">({{ queueCount }})</span>
-        </label>
-        <input type="radio" id="tab-lyrics" v-model="activeTab" value="lyrics" hidden />
-        <label for="tab-lyrics" class="tab-btn" :class="{ active: activeTab === 'lyrics' }" :title="$t('player.lyrics')">
-          <i class="material-symbols">lyrics</i>
-          <span>{{ $t('player.lyrics') }}</span>
-        </label>
-        <input type="radio" id="tab-visualizer" v-model="activeTab" value="visualizer" hidden />
-        <label for="tab-visualizer" class="tab-btn" :class="{ active: activeTab === 'visualizer' }" :title="$t('player.visualizer.title')">
-          <i class="material-symbols">equalizer</i>
-          <span>{{ $t('player.visualizer.title') }}</span>
-        </label>
-        <div class="tab-indicator" :style="indicatorStyle"></div>
-      </div>
+      <SlidingTabs v-model="activeTab" :tabs="panelTabs" />
     </div>
 
     <div class="panel-content">
@@ -90,6 +71,7 @@
 </template>
 
 <script>
+import SlidingTabs from "@/components/settings/SlidingTabs.vue";
 import PlaybackQueue from "@/components/prompts/PlaybackQueue.vue";
 import FloatingActionButton from "@/components/settings/FloatingActionButton.vue";
 import { mutations, state } from "@/store/index.ts";
@@ -119,7 +101,7 @@ const FREQ_LABELS = [
 
 export default {
   name: "AudioPanel",
-  components: { PlaybackQueue, FloatingActionButton },
+  components: { SlidingTabs, PlaybackQueue, FloatingActionButton },
   props: {
     lyrics: { type: Array, default: () => [] },
     lyricsMeta: { type: String, default: '' },
@@ -183,12 +165,18 @@ export default {
     visualizerSettingsLabel() {
       return this.$t('player.visualizer.settings');
     },
-    // tabs in the panel
-    indicatorStyle() {
-      const tabCount = 3;
-      const width = 100 / tabCount;
-      const tabIndex = ['queue', 'lyrics', 'visualizer'].indexOf(this.activeTab);
-      return { width: `${width}%`, left: `${tabIndex * width}%` };
+    panelTabs() {
+      return [
+        {
+          id: 'queue',
+          icon: 'queue_music',
+          label: this.$t('player.queue'),
+          title: this.$t('player.QueuePlayback'),
+          suffix: this.queueCount > 0 ? `(${this.queueCount})` : undefined,
+        },
+        { id: 'lyrics', icon: 'lyrics', label: this.$t('player.lyrics') },
+        { id: 'visualizer', icon: 'equalizer', label: this.$t('player.visualizer.title') },
+      ];
     },
   },
   watch: {
@@ -788,62 +776,6 @@ export default {
   border-bottom: 1px solid var(--divider);
 }
 
-/* Container for the sliding indicator */
-.tab-container {
-  position: relative;
-  display: flex;
-  gap: 0.5em;
-}
-
-.tab-btn {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.3em;
-  padding: 0.5em;
-  border: none;
-  background: transparent;
-  color: var(--textSecondary);
-  border-radius: var(--borderRadius);
-  cursor: pointer;
-  font-size: 0.9rem;
-  transition: color 0.2s ease, transform 0.2s ease;
-  position: relative;
-  z-index: 1;
-  user-select: none;
-  width: 100%;
-  min-width: 0;
-  white-space: nowrap;
-}
-
-.tab-btn > i,
-.tab-btn > span + span {
-  flex-shrink: 0;
-}
-
-.tab-btn > span:first-of-type {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.tab-btn.active {
-  color: white;
-}
-
-.tab-indicator {
-  position: absolute;
-  top: 0; bottom: 0;
-  left: 0;
-  background: var(--primaryColor);
-  border-radius: var(--borderRadius);
-  z-index: 0;
-  transition: left 0.35s cubic-bezier(0.25, 0.8, 0.25, 1),
-              width 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
-  pointer-events: none;
-}
-
 .panel-content {
   flex: 1;
   overflow: hidden;
@@ -972,11 +904,6 @@ export default {
 
 .lyric-line.no-seek {
   cursor: default;
-}
-
-.tab-btn:hover:not(.active) {
-  color: var(--primaryColor);
-  transform: scale(1.02);
 }
 
 .tab-visualizer {

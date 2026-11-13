@@ -157,6 +157,17 @@
     "requirePasswordChangeMustDiffer": "Noua parolă trebuie să fie diferită de parola actuală"
   },
   "prompts": {
+    "mediaInfo": "Informații media",
+    "mediaTitle": "Titlu",
+    "subtitle": "Subtitrare {n}",
+    "artist": "Artist",
+    "album": "Album",
+    "year": "An",
+    "genre": "Gen",
+    "track": "Piesă",
+    "container": "Container",
+    "videoCodec": "Codec video",
+    "audioCodec": "Codec audio",
     "noTemplate": "Șablonul tău este gol!",
     "newFileTemplate": "Șablon fișier nou",
     "newFileTemplateMessage": "Adăugați nume de fișiere noi aici, acestea vor fi folosite ca șablon pentru crearea de fișiere noi în meniul contextual!",
@@ -494,6 +505,8 @@
     "passwordRequiredForGeneration": "Parola dvs. este necesară pentru a genera un cod de autentificare."
   },
   "general": {
+    "show": "Afișează",
+    "hide": "Ascunde",
     "import": "Import",
     "export": "Export",
     "name": "Nume și prenume",
@@ -676,7 +689,6 @@
     "allow": "Permiteți",
     "allowDeny": "Permiteți/Negați",
     "userGroup": "Utilizator/grup",
-    "accessManagement": "Gestionarea accesului",
     "totalDenied": "Refuzat",
     "totalAllowed": "Permise",
     "all": "Refuzați toate",
@@ -684,8 +696,6 @@
     "defaultBehavior": "Acțiune implicită{suffix}",
     "cascadeDelete": "Ștergere recursivă",
     "cascadeDeleteDescription": "Atunci când este activată, ștergerea unei reguli de acces o va elimina și din toate subdirectoarele. Acest lucru vă permite să eliminați complet un utilizator sau un grup din întregul arbore de directoare.",
-    "hasRules": "Reguli de acces configurate",
-    "manageDescription": "Reguli de acces liber pentru această cale.",
     "newGroup": "Grup nou",
     "editGroup": "Editează grupul",
     "groupName": "Numele grupului",

@@ -19,7 +19,6 @@ vi.mock("@/store", () => ({
 vi.mock("@/api/media", () => ({
   getStreamURL: (_source, path, viewToken) =>
     `http://localhost/api/media/stream?file=${encodeURIComponent(path)}&viewToken=${viewToken}`,
-  getStreamURLPublic: () => "http://localhost/public/stream",
 }));
 
 import { getViewURL, getOpenFileURL } from "@/api/resources.js";

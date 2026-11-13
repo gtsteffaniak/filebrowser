@@ -24,7 +24,7 @@
         <div class="audio-left-column">
           <!-- Album art with a generic icon if no image/metadata -->
           <div class="album-art-container"
-              :class="{ 'no-artwork': !albumArtUrl }"
+              :class="{ 'no-artwork': !artworkUrl }"
               :style="{
                 width: `${displayArtSize}em`,
                 maxWidth: '100%',
@@ -33,7 +33,7 @@
               @mouseenter="onAlbumArtHover"
               @mouseleave="onAlbumArtLeave"
               @wheel="onAlbumArtScroll">
-            <img class="no-select album-art" v-if="albumArtUrl" :src="albumArtUrl" :alt="metadata.album || 'Album art'" />
+            <img class="no-select album-art" v-if="artworkUrl" :src="artworkUrl" :alt="metadata.album || 'Album art'" />
             <div v-else class="album-art-fallback">
               <i class="material-symbols">music_note</i>
             </div>
@@ -138,9 +138,8 @@
         <video
           ref="videoElement"
           :type="req.type"
-          preload="none"
           :src="nativeVideoSrc"
-          :poster="posterUrl"
+          :poster="artworkUrl"
           :autoplay="videoElementAutoplay"
           @play="handlePlay"
           @error="onVideoPlaybackError"
@@ -799,7 +798,8 @@ export default {
         && getters.previewPerms().video
       );
     },
-    posterUrl() {
+    artworkUrl() {
+      if (this.albumArtUrl) return this.albumArtUrl;
       if (!this.scrubPreviewEnabled) return undefined;
       return getters.isShare()
         ? getPreviewURLPublic(this.req.path, 'original')
@@ -988,7 +988,7 @@ export default {
         playsinline: true,
         clickToPlay: false, // we manage this ourselves with the gestures, plyr has a issue where this doesn't work in mobile.
         resetOnEnd: false,
-        preload: this.previewType === 'video' ? 'none' : 'metadata',
+        preload: 'none',
         fullscreen: {
           enabled: true,
           fallback: true,
@@ -1015,11 +1015,9 @@ export default {
     // Record the mounted file before any async prepare step so route-leave
     // detection works while Plyr is still waiting on subtitles/metadata.
     this.mountedPreviewKey = resolvePipMediaKey(this.req?.source, this.req?.path);
+    this.loadMediaMetadata();
     if (this.previewType === 'video' || this.previewType === 'audio') {
       await this.preparePlyrMount();
-    }
-    if (this.previewType === "audio") {
-      this.loadAudioMetadata();
     }
     document.addEventListener('keydown', this.handleKeydown);
     this.pagehideHandler = (event) => {
@@ -1078,8 +1076,8 @@ export default {
       const fallbackUrl = fallbackIcon.includes('?')
         ? `${fallbackIcon}&t=${timestamp}`
         : `${fallbackIcon}?t=${timestamp}`;
-      // Video uses the same thumbnail as the poster; audio uses embedded album art (if any).
-      const artworkSrc = this.previewType === 'video' ? this.posterUrl : this.albumArtUrl;
+      // Video and audio uses the embedded artwork (if any), otherwise will fallback to the thumbnail/preview url.
+      const artworkSrc = this.artworkUrl;
       const metadata = {
         title: this.metadata?.title || this.fileName,
         artist: this.metadata?.artist || globalVars.name || "Filebrowser Quantum",
@@ -1239,6 +1237,7 @@ export default {
         return;
       }
       this.plyrTeardownDone = true;
+      this.cleanupAlbumArt();
 
       if (this.scrubPreviewCleanup) {
         this.scrubPreviewCleanup();
@@ -1302,7 +1301,6 @@ export default {
         this.clearRewindForwardFeedback();
         this.cleanupAudioVisualizer();
         this.clearMediaSession();
-        this.cleanupAlbumArt();
         this.player.off();
         if (leavingInPip && media) {
           registerPipSession(media, {
@@ -1638,39 +1636,25 @@ export default {
       this.albumArtSize = Math.max(10, Math.min(50, newSize));
     },
     // Load metadata from the backend response
-    loadAudioMetadata() {
-      if (this.previewType !== "audio") return;
-      // Check if metadata is already provided by the backend
-      if (this.req.metadata) {
-        this.metadata = {
-          title: this.req.metadata.title || this.fileName, // Fallback to filename
-          artist: this.req.metadata.artist || null,
-          album: this.req.metadata.album || null,
-          year: this.req.metadata.year || null
-        };
-        // Handle base64 encoded album art
-        if (this.req.metadata.albumArt) {
-          try {
-            const byteCharacters = atob(this.req.metadata.albumArt);
-            const byteArray = Uint8Array.from(byteCharacters, (c) => c.charCodeAt(0));
-            const blob = new Blob([byteArray], { type: 'image/jpeg' });
-            this.albumArtUrl = URL.createObjectURL(blob);
-          } catch (error) {
-            console.error("Failed to decode album art:", error);
-            this.albumArtUrl = null;
-          }
-        }
-      } else {
-        this.metadata = {
-          title: this.fileName,
-          artist: null,
-          album: null,
-          year: null,
-        };
+    loadMediaMetadata() {
+      const meta = this.req.metadata;
+      this.metadata = {
+        title: meta?.title || this.fileName, // Fallback to filename
+        artist: meta?.artist || null,
+        album: meta?.album || null,
+        year: meta?.year || null,
+      };
+      if (!meta?.albumArt) return;
+      // Base64 encoded art
+      try {
+        const bytes = Uint8Array.from(atob(meta.albumArt), (c) => c.charCodeAt(0));
+        this.albumArtUrl = URL.createObjectURL(new Blob([bytes], { type: 'image/jpeg' }));
+      } catch (error) {
+        console.error("Failed to decode album art:", error);
+        this.albumArtUrl = null;
       }
     },
     cleanupAlbumArt() {
-      if (this.previewType !== "audio") return;
       if (typeof this.albumArtUrl === 'string' && this.albumArtUrl.startsWith('blob:')) {
         URL.revokeObjectURL(this.albumArtUrl);
       }
@@ -2890,12 +2874,9 @@ export default {
       return !!el.closest(
         '.plyr__controls, .plyr__control, .plyr__menu__container, .plyr__menu, ' +
         '[data-plyr="seek"], .plyr__progress, [data-plyr="volume"], .plyr__volume, ' +
-        '.audio-side-panel .tab-btn, ' +
+        '.audio-side-panel .sliding-tab, ' +
         '.audio-side-panel .fab-button, ' +
         '.audio-side-panel .lyric-line, ' +
-        '.audio-side-panel input[type="radio"], ' +
-        '.audio-side-panel label[for^="tab-"], ' +
-        '.audio-side-panel .mode-btn, ' +
         '.audio-side-panel .repeat-one-btn, ' +
         '.audio-side-panel .queue-item, ' +
         '.audio-side-panel .clear-queue-btn, ' +
@@ -4141,6 +4122,13 @@ export default {
 .plyr .plyr__progress__container {
   flex: 100%;
   margin: 0;
+}
+
+/* this is just a workaround, the own plyr poster was hiding the video poster and showing black
+   when it didn't loaded (somehow happens); but summarizing, this a bug of plyr, it also loads the poster image 2 times
+   cuz it sets the URL on the html video tags and in their own */
+.plyr__poster {
+  display: none !important;
 }
 
 /* Scrub preview popup (mounted on Plyr container / fullscreen root while scrubbing) */
