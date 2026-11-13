@@ -91,7 +91,6 @@
         </div>
         <div v-if="quotaEnabled" class="info-quota-usage">
           <QuotaFolderBar
-            class="info-quota-bar"
             :source="source"
             :path="filePath"
             :enabled="true"
@@ -159,7 +158,7 @@ import { copyToClipboard } from "@/utils/clipboard";
 import { formatDuration } from "@/utils/files";
 import { resourcesApi, quotasApi, mediaApi } from "@/api";
 import { getters, mutations, state } from "@/store";
-import type { FileListItem, SubtitleTrack } from "@/store/types.ts";
+import type { FileListItem, QuotaSnapshot, SubtitleTrack } from "@/store/types.ts";
 import { notify } from "@/notify";
 import { activityViewerPresets } from "@/utils/activityViewerLink";
 import SlidingTabs from "@/components/settings/SlidingTabs.vue";
@@ -177,13 +176,6 @@ interface InfoItem extends FileListItem {
   token?: string;
   hash?: string;
   onlyOfficeId?: string;
-}
-
-interface QuotaSnapshot {
-  usedBytes?: number;
-  reservedBytes?: number;
-  measurementStatus?: string;
-  limitBytes?: number;
 }
 
 interface InfoRow {

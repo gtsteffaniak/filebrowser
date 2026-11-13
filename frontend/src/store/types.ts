@@ -45,6 +45,43 @@ export interface MediaMetadata {
   hasLyrics?: boolean;
 }
 
+export type QuotaMeter = "index_size" | "index_scope" | "accounted";
+export type QuotaUnit = "mb" | "gb";
+
+/** from backend web.folderQuotaResponse */
+export interface QuotaSnapshot {
+  limitBytes?: number;
+  usedBytes?: number;
+  reservedBytes?: number;
+  meter?: QuotaMeter;
+  configuredMeter?: QuotaMeter;
+  effectiveMeter?: QuotaMeter;
+  measurementStatus?: "ready" | "accounted_fallback";
+}
+
+export interface FolderQuota extends QuotaSnapshot {
+  source: string;
+  path: string;
+  limitBytes: number;
+}
+
+export type AccessRuleCategory = "user" | "group" | "all";
+
+/** from backend access.FrontendRuleSet */
+export interface AccessRuleSet {
+  users: string[];
+  groups: string[];
+}
+
+/** from backend access.FrontendAccessRule */
+export interface AccessRule {
+  denyAll?: boolean;
+  deny: AccessRuleSet;
+  allow: AccessRuleSet;
+  sourceDenyDefault: boolean;
+  pathExists: boolean;
+}
+
 /** List items have their position in `req.items` (by mutations.replaceRequest) */
 export interface fileListItemIndex extends FileListItem {
   index: number;
