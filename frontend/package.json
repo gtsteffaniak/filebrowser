@@ -14,7 +14,7 @@
     "watch": "vite build --watch",
     "typecheck": "vue-tsc --build",
     "lint": "biome check && eslint src/",
-    "lint:fix": "biome check --write && eslint --fix src/",
+    "lint:fix": "biome check --write",
     "lint:biome": "biome check",
     "lint:biome:fix": "biome check --write",
     "lint:eslint": "eslint src/",
@@ -81,7 +81,6 @@
     "vite-plugin-checker": "^1.0.0",
     "vite-plugin-compression2": "^2.5.4",
     "vitest": "^5.1.0",
-    "vue-eslint-parser": "^10.4.2",
     "vue-tsc": "^3.3.14",
     "wawoff2": "^2.0.1"
   }
