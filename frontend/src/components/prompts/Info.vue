@@ -109,7 +109,7 @@
         </div>
       </div>
       <!-- Hash Generator Section -->
-      <div class="info-section" v-if="!dir">
+      <div class="info-section" v-if="showChecksumSection">
         <h3 class="section-title">{{ $t("prompts.checksums") }}</h3>
         <div class="hash-generator">
           <div class="hash-select">
@@ -244,6 +244,12 @@ export default {
     },
     dir() {
       return this.item?.type === "directory";
+    },
+    showChecksumSection() {
+      return !this.dir && (!this.isShare || this.isLoggedIn);
+    },
+    isLoggedIn() {
+      return getters.isLoggedIn();
     },
     source() {
       return this.item?.source || "";

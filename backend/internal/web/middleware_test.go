@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -533,6 +535,88 @@ func newHTTPRequest(t *testing.T, hash string, requestModifiers ...func(*http.Re
 		modify(r)
 	}
 	return r
+}
+
+func TestPublicGetResourceChecksum(t *testing.T) {
+	setupTestEnv(t)
+
+	filePath := filepath.Join(t.TempDir(), "a.txt")
+	if err := os.WriteFile(filePath, []byte("hello\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	originalFileInfoFaster := FileInfoFasterFunc
+	t.Cleanup(func() { FileInfoFasterFunc = originalFileInfoFaster })
+	FileInfoFasterFunc = func(opts utils.FileOptions, user *users.User) (*iteminfo.ExtendedFileInfo, error) {
+		return &iteminfo.ExtendedFileInfo{
+			FileInfo: iteminfo.FileInfo{
+				Path: opts.Path,
+				ItemInfo: iteminfo.ItemInfo{
+					Name: "a.txt",
+					Type: "text/plain",
+				},
+			},
+			RealPath: filePath,
+		}, nil
+	}
+
+	newOwner := &users.User{
+		FrontendUser: users.FrontendUser{
+			Username:    "checksum_owner",
+			Permissions: users.Permissions{Admin: false},
+		},
+		BackendScopes: []users.BackendScope{{Path: "/srv", Scope: "/"}},
+	}
+	if err := state.CreateUser(newOwner, ""); err != nil {
+		t.Fatal("failed to save user:", err)
+	}
+	ownerValue, err := state.GetUserByUsername("checksum_owner")
+	if err != nil {
+		t.Fatal(err)
+	}
+	owner := &ownerValue
+
+	if err := state.CreateShare(&share.Share{
+		ShareSettings: share.ShareSettings{ShareLimits: share.ShareLimits{SourceName: "srv"}},
+		ShareColumns:  share.ShareColumns{Hash: "checksum_hash", Path: "/"},
+		SourcePath:    "/srv",
+		UserID:        owner.ID,
+	}); err != nil {
+		t.Fatal("failed to create share:", err)
+	}
+
+	originalAuthKey := settings.Config.Auth.Key
+	settings.Config.Auth.Key = "key"
+	t.Cleanup(func() { settings.Config.Auth.Key = originalAuthKey })
+
+	t.Run("anonymous", func(t *testing.T) {
+		recorder := httptest.NewRecorder()
+		req := newTestRequest(t, "checksum_hash", "", "", nil)
+		q := req.URL.Query()
+		q.Set("checksum", "md5")
+		req.URL.RawQuery = q.Encode()
+		withHashFile(publicGetResourceHandler)(recorder, req)
+		if recorder.Code != http.StatusUnauthorized {
+			t.Fatalf("expected status %d, got %d body=%s", http.StatusUnauthorized, recorder.Code, recorder.Body.String())
+		}
+	})
+
+	t.Run("authenticated", func(t *testing.T) {
+		token := testSessionToken(t, owner, time.Hour)
+		recorder := httptest.NewRecorder()
+		req := newTestRequest(t, "checksum_hash", "", "", map[string]string{
+			"Authorization": "Bearer " + token,
+		})
+		q := req.URL.Query()
+		q.Set("checksum", "md5")
+		req.URL.RawQuery = q.Encode()
+		withHashFile(publicGetResourceHandler)(recorder, req)
+		if recorder.Code != http.StatusOK {
+			t.Fatalf("expected status %d, got %d body=%s", http.StatusOK, recorder.Code, recorder.Body.String())
+		}
+		if !strings.Contains(recorder.Body.String(), "b1946ac92492d2347c6235b4d2611184") {
+			t.Fatalf("checksum missing from response: %s", recorder.Body.String())
+		}
+	})
 }
 
 func TestWithTimeoutReturnsJSONTimeoutReason(t *testing.T) {

@@ -210,7 +210,9 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *Context) (int
 // @Param path query string false "Path within the share to retrieve information for. Defaults to share root."
 // @Param content query string false "Include file content if true"
 // @Param metadata query string false "Extract audio/video metadata if true"
+// @Param checksum query string false "Optional checksum algorithm (md5, sha1, sha256, sha512); requires a logged-in session"
 // @Success 200 {object} iteminfo.FileInfo "File or directory metadata"
+// @Failure 401 {object} map[string]string "Login required for checksum generation"
 // @Failure 403 {object} map[string]string "Share unavailable or access denied"
 // @Failure 404 {object} map[string]string "Share not found or file not found"
 // @Failure 500 {object} map[string]string "Internal server error"
@@ -219,6 +221,24 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *Context) (int
 func publicGetResourceHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
 	if d.Share.ShareType == "upload" {
 		return http.StatusNotImplemented, fmt.Errorf("browsing is disabled for upload shares")
+	}
+	if algo := r.URL.Query().Get("checksum"); algo != "" {
+		if d.User == nil || d.User.Username == "" || d.User.Username == "anonymous" {
+			return http.StatusUnauthorized, fmt.Errorf("login required to generate checksums")
+		}
+		if d.FileInfo.Type == "directory" {
+			return http.StatusBadRequest, fmt.Errorf("checksum is only supported for files")
+		}
+		if d.Share.DisableFileViewer {
+			return http.StatusForbidden, fmt.Errorf("file viewing is disabled for this share")
+		}
+		checksum, err := utils.GetChecksum(d.FileInfo.RealPath, algo)
+		if err == errors.ErrInvalidOption {
+			return http.StatusBadRequest, nil
+		} else if err != nil {
+			return http.StatusInternalServerError, err
+		}
+		d.FileInfo.Checksums = map[string]string{algo: checksum}
 	}
 	return RenderJSON(w, r, d.FileInfo)
 }
