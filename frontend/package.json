@@ -48,6 +48,7 @@
     "vue-router": "^5.5.0"
   },
   "overrides": {
+    "stylelint-config-recommended": "^19.0.0",
     "minimatch": "^11.0.8",
     "@xmldom/xmldom": "^0.8.15",
     "mammoth": {
