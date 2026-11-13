@@ -4,22 +4,21 @@
       <ToggleSwitch
         class="item"
         v-model="showFull"
-        @update:modelValue="fetchConfig"
+        @update:model-value="fetchConfig"
         :name="$t('settings.configViewerShowFull')"
       />
       <ToggleSwitch
         class="item"
         v-model="showComments"
-        @update:modelValue="fetchConfig"
+        @update:model-value="fetchConfig"
         :name="$t('settings.configViewerShowComments')"
       />
     </div>
-
     <div class="editor-container">
       <Editor
         :viewer-mode="true"
         :content="configContent"
-        :editor-mode="'yaml'"
+        editor-mode="yaml"
         :read-only="true"
       />
     </div>

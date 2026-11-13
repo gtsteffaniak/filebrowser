@@ -123,7 +123,10 @@ export default {
       default: true,
     },
   },
-  emits: ["update:modelValue", "enter"],
+  emits: {
+    "update:modelValue": (names) => Array.isArray(names),
+    enter: () => true,
+  },
   data() {
     return {
       loading: true,

@@ -82,7 +82,7 @@
             class="info-manage-link"
             :name="t('quotas.title')"
             :description="$t('quotas.openDescription')"
-            @click="openQuotaPrompt"
+            @activate="openQuotaPrompt"
           />
         </div>
         <div class="info-item">
@@ -355,7 +355,7 @@ function subtitleLabel(track: SubtitleTrack) {
 // Raw subtitle content are fetched on first show
 async function toggleSubtitle(track: SubtitleTrack) {
   if (track.name in subtitleContent.value) {
-    delete subtitleContent.value[track.name];
+    Reflect.deleteProperty(subtitleContent.value, track.name);
     return;
   }
   try {

@@ -12,7 +12,7 @@
           :section-key="sectionKeyProp"
           :show-extension-inputs="showAdvancedProfile"
           show-thumbnail-master
-          @change="onPreferenceChange"
+          @changed="onPreferenceChange"
           @theme-color="onThemeColor"
         />
       </div>

@@ -23,7 +23,6 @@
         <span>{{ $t("general.zoom") }}</span>
       </div>
     </div>
-
     <div class="shortcut-section">
       <h3 class="section-title">🎨 {{ $t("general.background") }}</h3> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
       <div class="color-control">
@@ -60,6 +59,9 @@ export default {
       type: Boolean,
       default: false,
     },
+  },
+  emits: {
+    "update:backgroundColor": (color) => typeof color === "string",
   },
   computed: {
     spaceText() {

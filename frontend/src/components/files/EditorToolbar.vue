@@ -134,7 +134,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
+import { computed, onBeforeUnmount, onMounted, reactive, ref, useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import ace from "ace-builds";
 import type { Ace } from "ace-builds";
@@ -221,8 +221,8 @@ const lastColors = reactive(new Map<string, string>([
 const colorInputRefs = new Map<string, HTMLInputElement>();
 const iconMenuTriggerEls = new Map<"align" | "clipboard", HTMLElement>();
 const iconMenuEls = new Map<"align" | "clipboard", HTMLElement>();
-const extraMenuTrigger = ref<HTMLElement | null>(null);
-const extraMenu = ref<HTMLElement | null>(null);
+const extraMenuTrigger = useTemplateRef<HTMLElement>("extraMenuTrigger");
+const extraMenu = useTemplateRef<HTMLElement>("extraMenu");
 
 const toolbarButtons = computed((): ToolbarButton[] => {
   // alwaysAvailable are for buttons that will be available for all filetypes, not just markdown.

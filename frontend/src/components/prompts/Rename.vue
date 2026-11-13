@@ -74,7 +74,6 @@ export default {
     },
     item: {
       type: Object,
-      required: true,
       default: () => ({ source: "", path: "", name: "" })
     },
     parentItems: {  // Parent items for comparison of filenames in a preview

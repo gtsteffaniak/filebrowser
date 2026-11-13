@@ -96,7 +96,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref, watch } from "vue";
+import { computed, nextTick, onMounted, useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { state, mutations, getters } from "@/store/index.ts";
 import type { MediaMetadata } from "@/store/types.ts";
@@ -145,7 +145,7 @@ const props = withDefaults(
 
 const { t } = useI18n();
 
-const QueueList = ref<HTMLElement | null>(null);
+const QueueList = useTemplateRef<HTMLElement>("QueueList");
 // Only renders the rows around the screen when the queue is long
 const virtual = useListingVirtualization<VirtualItem>({
   container: QueueList,

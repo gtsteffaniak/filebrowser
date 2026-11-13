@@ -8,9 +8,9 @@
         @update:modelValue="updateAnalytics" :name="$t('settings.analyticsEnabled')"
         :description="$t('settings.analyticsEnabledDescription')" />
       <SettingsButton class="item" :name="$t('settings.analyticsView')"
-        :description="$t('settings.analyticsViewDescription')" @click="openAnalyticsPrompt" />
+        :description="$t('settings.analyticsViewDescription')" @activate="openAnalyticsPrompt" />
       <SettingsButton class="item" :name="$t('settings.configViewerOpen')"
-        :description="$t('settings.configViewerDescription')" @click="openConfigViewerPrompt" />
+        :description="$t('settings.configViewerDescription')" @activate="openConfigViewerPrompt" />
     </div>
   </div>
 </template>

@@ -3,7 +3,7 @@
     :title="expanded ? $t('buttons.showLess') : $t('buttons.showMore')"
     :collapsable="true"
     :start-collapsed="!expanded"
-    @toggle="expanded = $event"
+    @toggled="expanded = $event"
   >
     <div class="search-filters-inner">
       <div class="search-filter-dropdowns">
@@ -74,6 +74,7 @@ import type { SearchFilters } from "@/composables/useSearchFilters.ts";
 // Whether the options are open
 const expanded = defineModel<boolean>("expanded", { default: false });
 const props = defineProps<{ filters: SearchFilters }>();
+defineSlots<{ "extra-settings"?(): unknown }>();
 defineOptions({ name: "search-filters" });
 const filters = props.filters;
 

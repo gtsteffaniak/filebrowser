@@ -34,11 +34,9 @@
       <p>{{ $t("general.limit") }}</p>
       <div class="quota-custom-row">
         <QuotaCustomLimitInput
-          :amount="customAmount"
-          :unit="customUnit"
+          v-model:amount="customAmount"
+          v-model:unit="customUnit"
           :aria-label="$t('general.limit')"
-          @update:amount="customAmount = $event"
-          @update:unit="customUnit = $event"
         />
       </div>
     </div>

@@ -20,19 +20,19 @@
         class="item"
         :name="$t('settings.userDefaults')"
         :description="$t('settings.userDefaultsDescription')"
-        @click="openUserDefaultsPrompt"
+        @activate="openUserDefaultsPrompt"
       />
       <SettingsButton
         class="item"
         :name="$t('sidebar.sidebarLinkDefaults')"
         :description="$t('sidebar.sidebarLinkDefaultsDescription')"
-        @click="openSidebarLinkDefaultsPrompt"
+        @activate="openSidebarLinkDefaultsPrompt"
       />
       <SettingsButton
         class="item"
         :name="$t('tools.toolAccessDefaults')"
         :description="$t('tools.toolAccessDefaultsDescription')"
-        @click="openToolAccessDefaultsPrompt"
+        @activate="openToolAccessDefaultsPrompt"
       />
       <ActivityViewerButton class="item" :href="activityViewerHref" />
     </div>

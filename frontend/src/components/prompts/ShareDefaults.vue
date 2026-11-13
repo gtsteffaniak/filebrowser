@@ -8,7 +8,7 @@
       enforceable
       :enforced="enforced"
       :read-only-source="false"
-      @enforced-change="onEnforcedChange"
+      @enforced-change="({ field, value }) => onEnforcedChange(field, value)"
       @customize-sidebar-links="openSidebarLinksCustomization"
     />
   </div>

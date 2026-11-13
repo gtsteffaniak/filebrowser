@@ -42,7 +42,7 @@
         <SettingsButton class="item"
           :name="$t('media.imageVideoConversionFormats')"
           :description="$t('media.imageVideoConversionFormatsDescription')"
-          @click="openConversionFormats" />
+          @activate="openConversionFormats" />
       </div>
 
       <div class="settings-items">
@@ -57,7 +57,7 @@
           :name="$t('media.transcodeSettings')"
           :description="$t('media.transcodeSettingsDescription')"
           :disabled="!media.transcode.enabled"
-          @click="openTranscodeSettings" />
+          @activate="openTranscodeSettings" />
       </div>
     </template>
   </div>

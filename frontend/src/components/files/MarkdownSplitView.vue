@@ -62,7 +62,9 @@ export default {
       default: null,
     },
   },
-  emits: ["resize"],
+  emits: {
+    resize: (percent: number) => typeof percent === "number",
+  },
   data: () => ({
     liveMarkdownContent: "", // editor current buffer
     liveContentTimer: null as ReturnType<typeof setTimeout> | null,

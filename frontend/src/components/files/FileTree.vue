@@ -80,7 +80,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from 'vue';
 import { resourcesApi } from "@/api/index.js";
 import Icon from '@/components/files/Icon.vue';
 import LoadingSpinner from '@/components/LoadingSpinner.vue';
@@ -162,8 +162,8 @@ const props = withDefaults(
 
 const t = i18n.global.t.bind(i18n.global);
 
-const treeEl = ref<HTMLElement | null>(null);
-const listEl = ref<HTMLElement | null>(null);
+const treeEl = useTemplateRef<HTMLElement>("treeEl");
+const listEl = useTemplateRef<HTMLElement>("listEl");
 const rootNodes = ref<TreeNode[]>([]);
 const loading = ref(false);
 const error = ref<string | null>(null);

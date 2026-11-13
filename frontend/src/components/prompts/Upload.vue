@@ -181,7 +181,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, watch } from "vue";
+import { computed, onMounted, onUnmounted, ref, useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { readAllDirectoryEntries, uploadManager } from "@/utils/upload.ts";
 import type { UploadConflictResolution, UploadEntry, UploadItem, UploadStatus } from "@/utils/upload.ts";
@@ -219,11 +219,11 @@ defineOptions({ name: "UploadFiles" });
 
 const { t } = useI18n();
 
-const fileInput = ref<HTMLInputElement | null>(null);
-const folderInput = ref<HTMLInputElement | null>(null);
-const cameraInput = ref<HTMLInputElement | null>(null);
-const videoInput = ref<HTMLInputElement | null>(null);
-const list = ref<HTMLElement | null>(null);
+const fileInput = useTemplateRef<HTMLInputElement>("fileInput");
+const folderInput = useTemplateRef<HTMLInputElement>("folderInput");
+const cameraInput = useTemplateRef<HTMLInputElement>("cameraInput");
+const videoInput = useTemplateRef<HTMLInputElement>("videoInput");
+const list = useTemplateRef<HTMLElement>("list");
 const files = computed(() => uploadManager.queue);
 const isDragging = ref(false);
 const showConflictPrompt = ref(false);

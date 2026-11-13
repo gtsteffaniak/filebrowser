@@ -34,7 +34,7 @@ function parseMockDataCount(value, defaultCount) {
   if (value === undefined || value === null || value === '') {
     return defaultCount;
   }
-  const n = parseInt(String(value), 10);
+  const n = Math.trunc(Number(value));
   if (!Number.isFinite(n) || n < 0) {
     return defaultCount;
   }

@@ -37,8 +37,8 @@
         :permissions="sourceAccessDefaults"
         :enforced-permissions="sourceAccessEnforced"
         :config-locked-paths="lockedFromConfigPaths"
-        @changed="onSourceAccessDefaultsChange"
-        @enforced-change="onSourceAccessEnforcedChange"
+        @changed="({ key, value }) => onSourceAccessDefaultsChange(key, value)"
+        @enforced-change="({ field, value }) => onSourceAccessEnforcedChange(field, value)"
       />
       <div v-else class="loading-hint">{{ $t('general.loading') }}</div>
     </SettingsItem>

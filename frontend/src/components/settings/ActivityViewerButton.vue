@@ -3,7 +3,7 @@
     :name="name || $t('tools.activityViewer.viewActivity')"
     :description="description || $t('tools.activityViewer.description')"
     :disabled="disabled"
-    @click="openActivityViewer"
+    @activate="openActivityViewer"
   />
 </template>
 

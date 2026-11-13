@@ -132,7 +132,7 @@
             v-model:shareHash="filterShareHash"
             aria-label="activity-share-picker"
             :placeholder="activityAllSharesLabel()"
-            @select="resetPageAndLoad"
+            @selected="resetPageAndLoad"
           />
         </div>
 

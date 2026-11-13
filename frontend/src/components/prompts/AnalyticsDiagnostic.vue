@@ -4,7 +4,7 @@
       <Editor
         :viewer-mode="true"
         :content="previewContent"
-        :editor-mode="'json'"
+        editor-mode="json"
         :read-only="true"
       />
     </div>

@@ -97,7 +97,7 @@
             :options="backendSelectOptions"
             :aria-label="$t('media.encoderBackend')"
             :disabled="isLocked(`transcode.profiles.${profile.id}.encoderBackend`)"
-            @update:modelValue="onProfileBackendChange(profile.id, $event)" />
+            @update:model-value="onProfileBackendChange(profile.id, $event)" />
         </div>
       </div>
     </template>

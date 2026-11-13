@@ -80,9 +80,12 @@ interface EditorSettingField {
   options?: { value: string | number; label: string }[];
 }
 
-defineProps({
-  promptId: { type: [String, Number], default: null },
-});
+withDefaults(
+  defineProps<{
+    promptId?: string | number | null;
+  }>(),
+  { promptId: null },
+);
 
 defineOptions({ name: "EditorSettings" });
 

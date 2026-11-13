@@ -28,7 +28,9 @@ export default {
       default: false,
     },
   },
-  emits: ["update:viewMode"],
+  emits: {
+    "update:viewMode": (viewMode) => typeof viewMode === "string",
+  },
   computed: {
     viewModeOptions() {
       return this.viewModes.map((mode) => ({

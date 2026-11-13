@@ -83,7 +83,12 @@ export default {
       default: null,
     },
   },
-  emits: ["update:modelValue", "update:userToolAccess", "save", "cancel"],
+  emits: {
+    "update:modelValue": (items) => typeof items === "object" && items !== null,
+    "update:userToolAccess": (access) => typeof access === "object" && access !== null,
+    save: () => true,
+    cancel: () => true,
+  },
   computed: {
     isDefaultsMode() {
       return this.mode === "defaults";

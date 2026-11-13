@@ -69,7 +69,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, onMounted, ref, useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { resourcesApi } from "@/api/index.js";
 import buttons from "@/utils/buttons.js";
@@ -111,7 +111,7 @@ defineOptions({ name: "delete" });
 
 const { t } = useI18n();
 
-const list = ref<HTMLElement | null>(null);
+const list = useTemplateRef<HTMLElement>("list");
 const failedItems = ref<FailedItem[]>([]);
 const deleting = ref(false);
 

@@ -48,7 +48,12 @@ export default {
       dragOverItem: null, // Track which breadcrumb is being dragged over
     };
   },
-  props: ["noLink"],
+  props: {
+    noLink: {
+      type: Boolean,
+      default: false,
+    },
+  },
   mounted() {
     this.updatePaths();
     window.addEventListener('dragend', this.clearDragState);

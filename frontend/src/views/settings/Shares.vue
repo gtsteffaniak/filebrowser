@@ -10,7 +10,7 @@
         class="item"
         :name="$t('share.shareDefaults')"
         :description="$t('share.shareDefaultsDescription')"
-        @click="openShareDefaultsPrompt"
+        @activate="openShareDefaultsPrompt"
       />
       <ActivityViewerButton class="item" :href="activityViewerHref" />
     </div>

@@ -19,7 +19,6 @@ export default {
   props: {
     toasts: {
       type: Array,
-      required: true,
       default: () => [],
     },
   },

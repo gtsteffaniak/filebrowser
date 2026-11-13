@@ -121,7 +121,7 @@
               </div>
               <source-file-permissions
                 :permissions="sourcePermissionsFor(source.name)"
-                @changed="(key, value) => onSourcePermissionChange(source.name, key, value)"
+                @changed="({ key, value }) => onSourcePermissionChange(source.name, key, value)"
               />
               <div class="scope-quota-block">
                 <ToggleSwitch
@@ -172,19 +172,19 @@
           class="item"
           :name="$t('settings.userEditPreferences')"
           :description="$t('settings.userDefaultsDescription')"
-          @click="openPreferencesPrompt"
+          @activate="openPreferencesPrompt"
         />
         <SettingsButton
           class="item"
           :name="$t('settings.userEditTools')"
           :description="$t('settings.userEditToolsDescription')"
-          @click="openToolsPrompt"
+          @activate="openToolsPrompt"
         />
         <SettingsButton
           class="item"
           :name="$t('settings.userEditSidebarLinks')"
           :description="$t('sidebar.customizeLinksDescription')"
-          @click="openSidebarLinksPrompt"
+          @activate="openSidebarLinksPrompt"
         />
         <UserGroupsField
           class="item"
@@ -205,7 +205,7 @@
         :enforced-permissions="enforcedAccountPermissions"
         :show-require-password-change="user.loginMethod === 'password'"
         respect-enforced-policy
-        @account-change="onEditAccountChange"
+        @account-change="({ field, value }) => onEditAccountChange(field, value)"
       />
     </div>
   </div>

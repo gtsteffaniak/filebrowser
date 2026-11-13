@@ -51,7 +51,10 @@ export default {
     },
   },
 
-  emits: ["update:shareHash", "select"],
+  emits: {
+    "update:shareHash": (hash) => typeof hash === "string",
+    selected: () => true,
+  },
 
   data() {
     return {
@@ -167,7 +170,7 @@ export default {
           title: data.title,
         }) || data.hash;
       }
-      this.$emit("select");
+      this.$emit("selected");
     },
 
     onSharePickerCancelled(data) {
@@ -183,7 +186,7 @@ export default {
     clearSelection() {
       this.selectedLabel = "";
       this.$emit("update:shareHash", "");
-      this.$emit("select");
+      this.$emit("selected");
     },
   },
 };

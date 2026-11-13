@@ -8,7 +8,7 @@
       :enforced="enforcedAccount"
       :enforced-permissions="enforcedAccountPermissions"
       respect-enforced-policy
-      @account-change="onEditAccountChange"
+      @account-change="({ field, value }) => onEditAccountChange(field, value)"
     />
     <UserProfilePreferences
       v-if="session"
@@ -18,7 +18,7 @@
       respect-enforced-policy
       show-extension-inputs
       :show-thumbnail-master="false"
-      @change="onPreferenceChange"
+      @changed="onPreferenceChange"
     />
   </div>
   <div class="card-actions">

@@ -67,7 +67,11 @@ export default {
     },
   },
 
-  emits: ["update:path", "update:source", "navigate"],
+  emits: {
+    "update:path": (path) => typeof path === "string",
+    "update:source": (source) => typeof source === "string",
+    navigate: () => true,
+  },
 
   data() {
     return {
