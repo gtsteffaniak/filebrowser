@@ -92,7 +92,7 @@
 <script>
 import PlaybackQueue from "@/components/prompts/PlaybackQueue.vue";
 import FloatingActionButton from "@/components/settings/FloatingActionButton.vue";
-import { mutations, state } from "@/store";
+import { mutations, state } from "@/store/index.ts";
 import { visualizerConfig } from "@/utils/visualizerConfig.js";
 
 const LAST_TAB_KEY = 'plyrSidePanelActiveTab';

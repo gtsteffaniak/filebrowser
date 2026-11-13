@@ -27,9 +27,9 @@
 </template>
 
 <script>
-import { notify } from "@/notify";
-import { state } from "@/store";
-import { authApi } from "@/api";
+import { notify } from "@/notify/index.ts";
+import { state } from "@/store/index.ts";
+import { authApi } from "@/api/index.js";
 import { isPasskeyActorPasswordCancelled } from "@/api/auth.js";
 
 export default {

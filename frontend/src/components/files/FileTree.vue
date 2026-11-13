@@ -81,17 +81,17 @@
 
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
-import { resourcesApi } from '@/api';
+import { resourcesApi } from "@/api/index.js";
 import Icon from '@/components/files/Icon.vue';
 import LoadingSpinner from '@/components/LoadingSpinner.vue';
 import i18n from '@/i18n/index.ts';
-import { state, getters, mutations } from '@/store';
-import { eventBus } from '@/store/eventBus';
+import { state, getters, mutations } from "@/store/index.ts";
+import { eventBus } from "@/store/eventBus.ts";
 import type { FileListItem } from '@/store/types.ts';
-import { buildItemUrl, goToItem, joinPath } from '@/utils/url';
-import { goToItemNotificationButton } from '@/utils/notificationActions';
-import { notify } from '@/notify';
-import { notifyMoveCopyFailure } from '@/utils/appNotifications';
+import { buildItemUrl, goToItem, joinPath } from "@/utils/url.js";
+import { goToItemNotificationButton } from "@/utils/notificationActions.js";
+import { notify } from "@/notify/index.ts";
+import { notifyMoveCopyFailure } from "@/utils/appNotifications.js";
 import { getObjectProperty } from '@/utils/object.js';
 import { sortedItems } from '@/utils/sort.ts';
 import { findScrollParents, useListingVirtualization } from '@/composables/useListingVirtualization.ts';

@@ -49,10 +49,10 @@
 </template>
 
 <script>
-import { accessApi } from "@/api";
-import { mutations } from "@/store";
-import { notify } from "@/notify";
-import { eventBus } from "@/store/eventBus";
+import { accessApi } from "@/api/index.js";
+import { mutations } from "@/store/index.ts";
+import { notify } from "@/notify/index.ts";
+import { eventBus } from "@/store/eventBus.ts";
 import EntityPickerList from "./EntityPickerList.vue";
 import { groupNameErrorText } from "@/utils/groups.js";
 

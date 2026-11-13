@@ -22,7 +22,7 @@
 import { computed, nextTick, ref, watch } from "vue";
 import type { CSSProperties } from "vue";
 import { useRoute } from "vue-router";
-import { state } from "@/store";
+import { state } from "@/store/index.ts";
 import { hideInteractiveTooltip } from "@/utils/tooltipHelp.js";
 
 const margin = 15;

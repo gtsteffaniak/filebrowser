@@ -183,11 +183,11 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { readAllDirectoryEntries, uploadManager } from "@/utils/upload";
+import { readAllDirectoryEntries, uploadManager } from "@/utils/upload.ts";
 import type { UploadConflictResolution, UploadEntry, UploadItem, UploadStatus } from "@/utils/upload.ts";
-import { getTypeInfo, getTypeInfoFromExt } from "@/utils/mimetype";
-import { getters, mutations, state } from "@/store";
-import { notify } from "@/notify";
+import { getTypeInfo, getTypeInfoFromExt } from "@/utils/mimetype.js";
+import { getters, mutations, state } from "@/store/index.ts";
+import { notify } from "@/notify/index.ts";
 import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
 import ProgressBar from "@/components/ProgressBar.vue";
 import SettingsItem from "@/components/settings/SettingsItem.vue";

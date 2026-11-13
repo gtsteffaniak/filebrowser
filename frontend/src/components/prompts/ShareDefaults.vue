@@ -38,17 +38,17 @@
 </template>
 
 <script>
-import { notify } from "@/notify";
-import { mutations } from "@/store";
-import { eventBus } from "@/store/eventBus";
-import { getShareDefaults, patchShareDefaults } from "@/api/settings";
+import { notify } from "@/notify/index.ts";
+import { mutations } from "@/store/index.ts";
+import { eventBus } from "@/store/eventBus.ts";
+import { getShareDefaults, patchShareDefaults } from "@/api/settings.js";
 import ShareOptionsForm from "@/components/share/ShareOptionsForm.vue";
 import {
   emptyShareDefaultsEnforced,
   emptyShareDefaultsValues,
   shareDefaultsFromApi,
   shareDefaultsToApiPayload,
-} from "@/utils/shareDefaultsForm";
+} from "@/utils/shareDefaultsForm.js";
 
 export default {
   name: "share-defaults",

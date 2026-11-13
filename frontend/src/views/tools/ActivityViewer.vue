@@ -307,7 +307,7 @@ import {
   Tooltip,
   Filler,
 } from "chart.js";
-import { toolsApi, usersApi } from "@/api";
+import { toolsApi, usersApi } from "@/api/index.js";
 import ActivityDetailsInfo from "@/components/tools/ActivityDetailsInfo.vue";
 import ActivityTableValueCell from "@/components/tools/ActivityTableValueCell.vue";
 import SettingsTable from "@/components/settings/Table.vue";
@@ -316,8 +316,8 @@ import {
   hideInteractiveTooltip,
   showHoverComponentTooltip,
 } from "@/utils/tooltipHelp.js";
-import { getters, mutations, state } from "@/store";
-import { toStandardLocale } from "@/i18n";
+import { getters, mutations, state } from "@/store/index.ts";
+import { toStandardLocale } from "@/i18n/index.ts";
 import {
   buildActivityDetailBadges,
   activityEventLabel,
@@ -333,7 +333,7 @@ import {
   rowsStateFromOptionalColumns,
   allOptionalColumnsSelected,
   formatOptionalColumnsParam,
-} from "@/utils/activityDetails";
+} from "@/utils/activityDetails.js";
 import {
   generateActivityTimeline,
   activityBucketLookup,
@@ -341,12 +341,12 @@ import {
   chartBarLayout,
   clampActivityChartInterval,
   activityChartIntervalAllowed,
-} from "@/utils/activityChartTime";
-import { formatTimestamp } from "@/utils/moment";
+} from "@/utils/activityChartTime.js";
+import { formatTimestamp } from "@/utils/moment.ts";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import SharePickerButton from "@/components/tools/SharePickerButton.vue";
 import PathPickerButton from "@/components/files/PathPickerButton.vue";
-import { globalVars } from "@/utils/constants";
+import { globalVars } from "@/utils/constants.js";
 import { getObjectProperty } from "@/utils/object.js";
 import {
   filterEventTypesForScope,

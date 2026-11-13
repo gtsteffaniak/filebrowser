@@ -24,7 +24,7 @@
 <script>
 import FileList from "@/components/files/FileList.vue";
 import ListingFilter from "@/components/files/ListingFilter.vue";
-import { mutations } from "@/store";
+import { mutations } from "@/store/index.ts";
 
 export default {
   name: "file-list",

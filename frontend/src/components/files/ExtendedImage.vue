@@ -38,13 +38,13 @@
 
 <script>
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
-import { notify } from "@/notify";
-import { getters, mutations, state } from '@/store';
+import { notify } from "@/notify/index.ts";
+import { getters, mutations, state } from "@/store/index.ts";
 import { acquireBestCachedThumbnailBlob, getBestCachedImage, releaseThumbnailBlob } from "@/utils/cache/imageCache.ts";
-import { isRawImageMimeType } from "@/utils/mimetype";
-import { resourcesApi } from "@/api";
+import { isRawImageMimeType } from "@/utils/mimetype.js";
+import { resourcesApi } from "@/api/index.js";
 import { refreshViewToken, requestViewIdentity } from "@/api/viewToken.js";
-import throttle from "@/utils/throttle";
+import throttle from "@/utils/throttle.js";
 
 export default {
   components: {

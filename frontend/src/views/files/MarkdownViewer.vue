@@ -45,12 +45,12 @@ import { computed, nextTick, onBeforeUnmount, onMounted, onUnmounted, ref, watch
 import { useI18n } from "vue-i18n";
 import { Marked } from "marked";
 import DOMPurify from 'dompurify';
-import { state, mutations, getters } from "@/store";
-import { createScrollSyncGuard } from "@/utils/markdownScrollSync";
-import { copyToClipboard } from "@/utils/clipboard";
-import { globalVars } from "@/utils/constants";
-import { isHtmlMimeType } from "@/utils/mimetype";
-import { createHtmlPreviewLoader } from "@/utils/htmlPreviewLoader";
+import { state, mutations, getters } from "@/store/index.ts";
+import { createScrollSyncGuard } from "@/utils/markdownScrollSync.ts";
+import { copyToClipboard } from "@/utils/clipboard.js";
+import { globalVars } from "@/utils/constants.js";
+import { isHtmlMimeType } from "@/utils/mimetype.js";
+import { createHtmlPreviewLoader } from "@/utils/htmlPreviewLoader.ts";
 import FloatingActionButton from "@/components/settings/FloatingActionButton.vue";
 import {
   HTML_PREVIEW_SANDBOX,
@@ -58,7 +58,7 @@ import {
   buildPreviewResourceUrl,
   rewriteHtmlResources,
   rewriteDocumentStyles,
-} from "@/utils/htmlPreview";
+} from "@/utils/htmlPreview.ts";
 
 const props = withDefaults(
   defineProps<{

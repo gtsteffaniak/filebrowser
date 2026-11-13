@@ -28,7 +28,7 @@
 
 <script>
 import { createAsyncComponent } from "@/utils/asyncComponent.js";
-import { config } from "@/api/settings";
+import { config } from "@/api/settings.js";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 
 export default {

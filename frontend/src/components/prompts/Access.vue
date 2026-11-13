@@ -112,9 +112,9 @@
 </template>
 
 <script>
-import { notify } from "@/notify";
-import { mutations } from "@/store";
-import { accessApi } from "@/api";
+import { notify } from "@/notify/index.ts";
+import { mutations } from "@/store/index.ts";
+import { accessApi } from "@/api/index.js";
 import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
 import FileList from "../files/FileList.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
@@ -124,8 +124,8 @@ import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import ActivityViewerButton from "@/components/settings/ActivityViewerButton.vue";
 import SettingsTable from "@/components/settings/Table.vue";
 import EntityPickerButton from "@/components/settings/EntityPickerButton.vue";
-import { activityViewerPresets } from "@/utils/activityViewerLink";
-import { eventBus } from "@/store/eventBus";
+import { activityViewerPresets } from "@/utils/activityViewerLink.js";
+import { eventBus } from "@/store/eventBus.ts";
 
 export default {
   name: "access",

@@ -97,8 +97,8 @@
 import {
   materialSymbols,
   getIconClass,
-} from "@/utils/material-symbols";
-import { mutations } from "@/store";
+} from "@/utils/material-symbols.js";
+import { mutations } from "@/store/index.ts";
 
 export default {
   name: "IconPicker",

@@ -97,17 +97,17 @@
 </template>
 
 <script>
-import { notify } from "@/notify";
-import { shareApi } from "@/api";
-import { state, mutations, getters } from "@/store";
+import { notify } from "@/notify/index.ts";
+import { shareApi } from "@/api/index.js";
+import { state, mutations, getters } from "@/store/index.ts";
 import Errors from "@/views/Errors.vue";
 import SettingsTable from "@/components/settings/Table.vue";
 import SettingsButton from "@/components/settings/SettingsButton.vue";
 import ActivityViewerButton from "@/components/settings/ActivityViewerButton.vue";
-import { activityViewerPresets } from "@/utils/activityViewerLink";
-import { fromNowSeconds } from '@/utils/moment';
-import { eventBus } from "@/store/eventBus";
-import { copyToClipboard } from "@/utils/clipboard";
+import { activityViewerPresets } from "@/utils/activityViewerLink.js";
+import { fromNowSeconds } from "@/utils/moment.ts";
+import { eventBus } from "@/store/eventBus.ts";
+import { copyToClipboard } from "@/utils/clipboard.js";
 
 export default {
   name: "shares",

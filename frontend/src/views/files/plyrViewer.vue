@@ -246,18 +246,18 @@ import {
 import { getTypeFromMime } from '@/utils/files.js';
 import { buildItemUrl, removeTrailingSlash } from '@/utils/url.js';
 import AudioPanel from "@/components/files/AudioPanel.vue";
-import { getters, mutations, state } from '@/store';
+import { getters, mutations, state } from "@/store/index.ts";
 import { getObjectProperty } from '@/utils/object.js';
-import { globalVars } from '@/utils/constants';
-import { getSubtitleFormatExtension } from '@/utils/subtitles';
-import { getPreviewURL, getPreviewURLPublic } from '@/api/resources';
+import { globalVars } from "@/utils/constants.js";
+import { getSubtitleFormatExtension } from "@/utils/subtitles.js";
+import { getPreviewURL, getPreviewURLPublic } from "@/api/resources.js";
 import {
   blockPlyrSeekOnInput,
   enablePlyrSeekOnRelease,
-} from '@/plyr/plyrSeekOnRelease';
-import { enablePlyrScrubPreview } from '@/plyr/plyrScrubPreview';
-import { enablePlyrVideoLoadingIndicator } from '@/plyr/plyrVideoLoading';
-import { enableOverlaidHintController } from '@/plyr/overlaidHintController';
+} from "@/plyr/plyrSeekOnRelease.js";
+import { enablePlyrScrubPreview } from "@/plyr/plyrScrubPreview.js";
+import { enablePlyrVideoLoadingIndicator } from "@/plyr/plyrVideoLoading.js";
+import { enableOverlaidHintController } from "@/plyr/overlaidHintController.js";
 import {
   appendMediaFragment,
   clearPendingInlineResumeFor,
@@ -281,7 +281,7 @@ import {
   parseTranscodeModeFromQuery,
   buildPlaybackQueryPatch,
   playbackQueryChanged,
-} from '@/utils/playbackQuery';
+} from "@/utils/playbackQuery.js";
 import {
   resolveTranscodeModeForPlayback,
   savePreferredTranscodeMode,
@@ -301,10 +301,10 @@ import { isPlayBlockedError, primePlay } from '@/plyr/playbackIntent.js';
 import { needsTranscodeFirst } from '@/utils/canBrowserPlayNative.js';
 import { getTranscodeSessions } from '@/api/transcode.js';
 import { getCachedViewToken } from '@/api/viewToken.js';
-import { notify } from '@/notify';
+import { notify } from "@/notify/index.ts";
 import { isInLeftNavTapZone, isInRightNavTapZone } from '@/utils/navigationEdgeZones.js';
 import { zoneFromClientX } from '@/plyr/gestureZones.js';
-import { ownsMediaSession as ownsMediaSessionSlot } from '@/utils/mediaSessionOwnership';
+import { ownsMediaSession as ownsMediaSessionSlot } from "@/utils/mediaSessionOwnership.js";
 
 const PLYR_CAPTION_SIZE_IDS = ['small', 'medium', 'large', 'xlarge'];
 /** Same localStorage key Plyr uses for `captions`, `language`, etc. (see Plyr defaults `storage.key`). */

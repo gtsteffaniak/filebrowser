@@ -97,7 +97,7 @@
 </template>
 
 <script>
-import { state, getters, mutations } from "@/store";
+import { state, getters, mutations } from "@/store/index.ts";
 
 export default {
   name: "ListingHeader",

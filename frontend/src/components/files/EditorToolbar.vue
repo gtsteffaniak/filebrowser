@@ -138,12 +138,12 @@ import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue"
 import { useI18n } from "vue-i18n";
 import ace from "ace-builds";
 import type { Ace } from "ace-builds";
-import { mutations, state, getters } from "@/store";
-import { eventBus } from "@/store/eventBus";
+import { mutations, state, getters } from "@/store/index.ts";
+import { eventBus } from "@/store/eventBus.ts";
 import { removeLastDir } from "@/utils/url.js";
 import { popEnter, popLeave } from "@/utils/transitions.ts";
 import { copyToClipboard } from "@/utils/clipboard.js";
-import { notify } from "@/notify";
+import { notify } from "@/notify/index.ts";
 
 interface AnchorRange {
   start: Ace.Anchor;

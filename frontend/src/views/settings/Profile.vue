@@ -22,10 +22,10 @@
 </template>
 
 <script>
-import { notify } from "@/notify";
-import { mutations, state } from "@/store";
+import { notify } from "@/notify/index.ts";
+import { mutations, state } from "@/store/index.ts";
 import UserProfilePreferences from "@/components/settings/UserProfilePreferences.vue";
-import { settings } from "@/utils/constants";
+import { settings } from "@/utils/constants.js";
 import {
   sectionsFromFlatUser,
   applySectionsToFlatUser,

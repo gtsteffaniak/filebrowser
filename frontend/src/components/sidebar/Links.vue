@@ -157,7 +157,7 @@
 
 <script>
 import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
-import { state, getters, mutations } from "@/store";
+import { state, getters, mutations } from "@/store/index.ts";
 import {
   hideInteractiveTooltip,
   onComponentTooltipClick,
@@ -167,18 +167,18 @@ import {
   useTapForTooltip,
 } from "@/utils/tooltipHelp.js";
 import ProgressBar from "@/components/ProgressBar.vue";
-import { goToItem } from "@/utils/url";
-import { getIconClass } from "@/utils/material-symbols";
-import { baseSidebarCategory, isRootOnlySidebarCategory, isSourceSidebarCategory } from "@/utils/sidebarCategory";
+import { goToItem } from "@/utils/url.js";
+import { getIconClass } from "@/utils/material-symbols.js";
+import { baseSidebarCategory, isRootOnlySidebarCategory, isSourceSidebarCategory } from "@/utils/sidebarCategory.ts";
 import { getObjectProperty } from '@/utils/object.js';
 import IndexInfo from "@/components/files/IndexInfo.vue";
-import { globalVars } from "@/utils/constants";
-import { availableTools, hasToolAccess, toolIdFromPath } from "@/utils/toolAccess";
+import { globalVars } from "@/utils/constants.js";
+import { availableTools, hasToolAccess, toolIdFromPath } from "@/utils/toolAccess.js";
 import { showShareDownloadPrompt } from "@/utils/download.js";
 import ShareInfo from "@/components/files/ShareInfo.vue";
 import FileTree from '@/components/files/FileTree.vue';
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
-import { slideEnter, slideLeave } from "@/utils/transitions";
+import { slideEnter, slideLeave } from "@/utils/transitions.ts";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 export default {
   name: "SidebarLinks",

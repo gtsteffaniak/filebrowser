@@ -44,12 +44,12 @@ import Tooltip from "@/components/Tooltip.vue";
 import NextPrevious from "@/components/files/nextPrevious.vue";
 import PopupPreview from "@/components/files/PopupPreview.vue";
 import Shelf from "@/components/Shelf.vue";
-import { settingsApi } from "@/api";
-import { state, getters, mutations } from "@/store";
-import { events, notify } from "@/notify";
-import { generateRandomCode } from "@/utils/auth";
-import { globalVars } from "@/utils/constants";
-import { syncDocumentTheme, syncEventTheme } from "@/utils/theme";
+import { settingsApi } from "@/api/index.js";
+import { state, getters, mutations } from "@/store/index.ts";
+import { events, notify } from "@/notify/index.ts";
+import { generateRandomCode } from "@/utils/auth.js";
+import { globalVars } from "@/utils/constants.js";
+import { syncDocumentTheme, syncEventTheme } from "@/utils/theme.js";
 import Search from "@/components/Search.vue";
 
 export default {

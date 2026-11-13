@@ -128,10 +128,10 @@
 </template>
 
 <script>
-import { notify } from "@/notify";
-import { mutations } from "@/store";
-import { eventBus } from "@/store/eventBus";
-import { getMediaSettings } from "@/api/settings";
+import { notify } from "@/notify/index.ts";
+import { mutations } from "@/store/index.ts";
+import { eventBus } from "@/store/eventBus.ts";
+import { getMediaSettings } from "@/api/settings.js";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
@@ -142,7 +142,7 @@ import {
   emptyMediaSettings,
   mergeMediaSettings,
   saveMediaSettingsPatch,
-} from "@/utils/mediaSettings";
+} from "@/utils/mediaSettings.js";
 
 export default {
   name: "MediaTranscodeSettings",

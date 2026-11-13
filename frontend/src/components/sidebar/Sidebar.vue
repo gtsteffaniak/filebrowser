@@ -51,9 +51,9 @@
 </template>
 
 <script>
-import { globalVars } from "@/utils/constants";
-import { getters, mutations, state } from "@/store"; // Import your custom store
-import { installAvailable, promptInstall } from "@/utils/pwaInstall";
+import { globalVars } from "@/utils/constants.js";
+import { getters, mutations, state } from "@/store/index.ts"; // Import your custom store
+import { installAvailable, promptInstall } from "@/utils/pwaInstall.js";
 import SidebarGeneral from "./General.vue";
 import SidebarSettings from "./Settings.vue";
 

@@ -34,8 +34,8 @@
 </template>
 
 <script>
-import { state, getters } from "@/store";
-import { getHumanReadableFilesize } from "@/utils/filesizes";
+import { state, getters } from "@/store/index.ts";
+import { getHumanReadableFilesize } from "@/utils/filesizes.js";
 import QrcodeVue from "qrcode.vue";
 
 export default {

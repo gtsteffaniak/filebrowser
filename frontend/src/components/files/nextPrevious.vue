@@ -99,11 +99,11 @@
 </template>
 
 <script>
-import { state, getters, mutations } from "@/store";
-import throttle from "@/utils/throttle";
-import { previewViews } from "@/utils/constants";
-import { url } from "@/utils";
-import { resourcesApi } from "@/api";
+import { state, getters, mutations } from "@/store/index.ts";
+import throttle from "@/utils/throttle.js";
+import { previewViews } from "@/utils/constants.js";
+import { url } from "@/utils/index.ts";
+import { resourcesApi } from "@/api/index.js";
 import { navigatePlaybackQueue } from "@/utils/playbackQueue.js";
 import {
   isInLeftNavHoverZone,

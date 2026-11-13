@@ -22,10 +22,10 @@
 </template>
 
 <script>
-import { mutations, getters } from "@/store";
+import { mutations, getters } from "@/store/index.ts";
 import FileList from "../files/FileList.vue";
 import ListingFilter from "@/components/files/ListingFilter.vue";
-import { eventBus } from "@/store/eventBus";
+import { eventBus } from "@/store/eventBus.ts";
 
 export default {
   name: "path-picker",

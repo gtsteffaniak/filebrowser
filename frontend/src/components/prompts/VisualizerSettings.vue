@@ -121,7 +121,7 @@
 
 <script>
 import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
-import { mutations } from "@/store";
+import { mutations } from "@/store/index.ts";
 import { visualizerConfig, saveVisualizerConfig, resetVisualizerConfig } from "@/utils/visualizerConfig.js";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";

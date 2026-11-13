@@ -420,11 +420,11 @@
 </template>
 
 <script>
-import { state, getters, mutations } from "@/store";
-import { notify } from "@/notify";
-import { shareApi } from "@/api";
-import { availableTools } from "@/utils/toolAccess";
-import { getIconClass } from "@/utils/material-symbols";
+import { state, getters, mutations } from "@/store/index.ts";
+import { notify } from "@/notify/index.ts";
+import { shareApi } from "@/api/index.js";
+import { availableTools } from "@/utils/toolAccess.js";
+import { getIconClass } from "@/utils/material-symbols.js";
 import FileList from "../files/FileList.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
@@ -437,7 +437,7 @@ import {
   isRootOnlySidebarCategory,
   isSourceSidebarCategory,
   withRootOnlySuffix,
-} from "@/utils/sidebarCategory";
+} from "@/utils/sidebarCategory.ts";
 
 export default {
   name: "SidebarLinksEditor",

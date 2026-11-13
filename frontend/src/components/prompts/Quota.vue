@@ -53,19 +53,19 @@
 </template>
 
 <script>
-import { mutations, state } from "@/store";
-import { quotasApi } from "@/api";
+import { mutations, state } from "@/store/index.ts";
+import { quotasApi } from "@/api/index.js";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import QuotaFolderBar from "@/components/prompts/QuotaFolderBar.vue";
 import ActivityViewerButton from "@/components/settings/ActivityViewerButton.vue";
 import QuotaCustomLimitInput from "@/components/settings/QuotaCustomLimitInput.vue";
-import { activityViewerPresets } from "@/utils/activityViewerLink";
-import { notify } from "@/notify";
+import { activityViewerPresets } from "@/utils/activityViewerLink.js";
+import { notify } from "@/notify/index.ts";
 import {
   bytesFromCustomAmount,
   customAmountFromBytes,
-} from "@/utils/quotaUnits";
+} from "@/utils/quotaUnits.js";
 
 export default {
   name: "Quota",

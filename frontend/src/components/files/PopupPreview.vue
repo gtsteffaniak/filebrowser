@@ -22,7 +22,7 @@
 
 <script>
 import { createAsyncComponent } from "@/utils/asyncComponent.js";
-import { state, getters, mutations } from "@/store";
+import { state, getters, mutations } from "@/store/index.ts";
 import { setImageLoaded } from "@/utils/cache/imageCache.ts";
 
 export default {

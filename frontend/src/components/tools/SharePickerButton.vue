@@ -25,9 +25,9 @@
 </template>
 
 <script>
-import { shareApi } from "@/api";
-import { mutations } from "@/store";
-import { eventBus } from "@/store/eventBus";
+import { shareApi } from "@/api/index.js";
+import { mutations } from "@/store/index.ts";
+import { eventBus } from "@/store/eventBus.ts";
 
 function normalizeContextId() {
   return `share-picker-btn-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;

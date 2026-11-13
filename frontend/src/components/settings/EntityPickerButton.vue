@@ -29,8 +29,8 @@
 </template>
 
 <script>
-import { mutations } from "@/store";
-import { eventBus } from "@/store/eventBus";
+import { mutations } from "@/store/index.ts";
+import { eventBus } from "@/store/eventBus.ts";
 import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
 
 export default {

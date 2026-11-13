@@ -79,24 +79,24 @@
 </template>
 
 <script>
-import { mutations, state, getters } from "@/store";
+import { mutations, state, getters } from "@/store/index.ts";
 import FileList from "../files/FileList.vue";
-import { resourcesApi } from "@/api";
-import buttons from "@/utils/buttons";
-import { checkConflict } from "@/utils/upload";
-import { url } from "@/utils";
-import { notify } from "@/notify";
+import { resourcesApi } from "@/api/index.js";
+import buttons from "@/utils/buttons.js";
+import { checkConflict } from "@/utils/upload.ts";
+import { url } from "@/utils/index.ts";
+import { notify } from "@/notify/index.ts";
 import {
   notifyMoveCopyComplete,
   notifyOperationError,
   notifyMoveCopyFailure,
   extractMoveCopyErrorMessage,
-} from "@/utils/appNotifications";
-import { goToItemNotificationButton } from "@/utils/notificationActions";
+} from "@/utils/appNotifications.js";
+import { goToItemNotificationButton } from "@/utils/notificationActions.js";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import PathPickerButton from "@/components/files/PathPickerButton.vue";
 import ListingFilter from "@/components/files/ListingFilter.vue";
-import { eventBus } from '@/store/eventBus';
+import { eventBus } from "@/store/eventBus.ts";
 import { removeFromFolderLists } from "@/utils/cache/listingCache.ts";
 
 export default {

@@ -37,9 +37,9 @@
 </template>
 
 <script>
-import { notify } from "@/notify";
-import { mutations } from "@/store";
-import { getSidebarLinkDefaults, patchSidebarLinkDefaults } from "@/api/settings";
+import { notify } from "@/notify/index.ts";
+import { mutations } from "@/store/index.ts";
+import { getSidebarLinkDefaults, patchSidebarLinkDefaults } from "@/api/settings.js";
 import SidebarLinksEditor from "@/components/sidebar/SidebarLinksEditor.vue";
 
 export default {

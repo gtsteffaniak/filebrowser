@@ -125,15 +125,15 @@
 import { computed, onBeforeUnmount, onMounted, ref, shallowRef, watch } from "vue";
 import { useRoute } from "vue-router";
 import { useI18n } from "vue-i18n";
-import { toolsApi } from "@/api";
-import { router } from "@/router";
-import { state, mutations } from "@/store";
-import { getHumanReadableFilesize } from "@/utils/filesizes";
-import { eventBus } from "@/store/eventBus";
+import { toolsApi } from "@/api/index.js";
+import { router } from "@/router/index.ts";
+import { state, mutations } from "@/store/index.ts";
+import { getHumanReadableFilesize } from "@/utils/filesizes.js";
+import { eventBus } from "@/store/eventBus.ts";
 import ListingItem from "@/components/files/ListingItem.vue";
 import PathPickerButton from "@/components/files/PathPickerButton.vue";
 import { useListingVirtualization } from "@/composables/useListingVirtualization.ts";
-import { globalVars } from "@/utils/constants";
+import { globalVars } from "@/utils/constants.js";
 
 defineOptions({ name: "DuplicateFinder" });
 

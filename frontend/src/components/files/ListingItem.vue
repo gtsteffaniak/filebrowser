@@ -94,22 +94,22 @@
 
 <script>
 import { computed, shallowRef } from "vue";
-import { globalVars } from "@/utils/constants";
-import downloadFiles from "@/utils/download";
-import { getHumanReadableFilesize } from "@/utils/filesizes";
-import { getKindKey } from "@/utils/mimetype";
-import { isTextPreviewableType } from "@/utils/textPreview";
+import { globalVars } from "@/utils/constants.js";
+import downloadFiles from "@/utils/download.js";
+import { getHumanReadableFilesize } from "@/utils/filesizes.js";
+import { getKindKey } from "@/utils/mimetype.js";
+import { isTextPreviewableType } from "@/utils/textPreview.ts";
 import { hasCachedThumbnailBlob } from "@/utils/cache/imageCache.ts";
 import { formatDuration } from "@/utils/files.js";
 import { getObjectProperty } from '@/utils/object.js';
-import { resourcesApi } from "@/api";
-import { checkConflict } from "@/utils/upload";
-import { state, getters, mutations } from "@/store"; // Import your custom store
-import { url } from "@/utils";
-import { formatTimestamp, fromNow } from "@/utils/moment";
-import { notify } from "@/notify";
-import { goToItemNotificationButton } from "@/utils/notificationActions";
-import { notifyMoveCopyFailure } from "@/utils/appNotifications";
+import { resourcesApi } from "@/api/index.js";
+import { checkConflict } from "@/utils/upload.ts";
+import { state, getters, mutations } from "@/store/index.ts"; // Import your custom store
+import { url } from "@/utils/index.ts";
+import { formatTimestamp, fromNow } from "@/utils/moment.ts";
+import { notify } from "@/notify/index.ts";
+import { goToItemNotificationButton } from "@/utils/notificationActions.js";
+import { notifyMoveCopyFailure } from "@/utils/appNotifications.js";
 import Icon from "@/components/files/Icon.vue";
 
 const selectedIndexSet = computed(() => {

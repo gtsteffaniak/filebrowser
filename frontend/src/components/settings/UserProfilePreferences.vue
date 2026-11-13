@@ -759,13 +759,13 @@
 </template>
 
 <script>
-import { notify } from "@/notify";
+import { notify } from "@/notify/index.ts";
 import { globalVars } from "@/utils/constants.js";
 import {
   hideInteractiveTooltip,
   showHoverTooltip,
 } from "@/utils/tooltipHelp.js";
-import { getters, mutations } from "@/store";
+import { getters, mutations } from "@/store/index.ts";
 import { getObjectProperty, setObjectProperty } from "@/utils/object.js";
 import { normalizeDarkMode } from "@/utils/theme.js";
 import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";

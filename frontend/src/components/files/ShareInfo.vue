@@ -30,9 +30,9 @@
 </template>
 
 <script>
-import { state, getters } from "@/store";
-import { getHumanReadableFilesize } from "@/utils/filesizes";
-import { getTypeInfo } from "@/utils/mimetype";
+import { state, getters } from "@/store/index.ts";
+import { getHumanReadableFilesize } from "@/utils/filesizes.js";
+import { getTypeInfo } from "@/utils/mimetype.js";
 
 export default {
   name: "ShareInfo",

@@ -76,10 +76,10 @@
 
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
-import { state, mutations, getters } from "@/store";
+import { state, mutations, getters } from "@/store/index.ts";
 import type { FileListItem, MediaMetadata } from "@/store/types.ts";
-import { url } from "@/utils";
-import { resourcesApi } from "@/api";
+import { url } from "@/utils/index.ts";
+import { resourcesApi } from "@/api/index.js";
 import ListingHeader from "@/components/files/ListingHeader.vue";
 import ListingItem from "@/components/files/ListingItem.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";

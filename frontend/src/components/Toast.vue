@@ -12,7 +12,7 @@
 </template>
 
 <script>
-import { getIconClass } from "@/utils/material-symbols";
+import { getIconClass } from "@/utils/material-symbols.js";
 
 export default {
   name: "Toast",

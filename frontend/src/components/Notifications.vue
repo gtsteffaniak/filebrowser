@@ -55,7 +55,7 @@
 </template>
 
 <script>
-import { notify } from "@/notify";
+import { notify } from "@/notify/index.ts";
 
 export default {
   name: "notifications",

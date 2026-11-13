@@ -52,11 +52,11 @@
 </template>
 
 <script>
-import { shareApi } from "@/api";
+import { shareApi } from "@/api/index.js";
 import SettingsTable from "@/components/settings/Table.vue";
 import Errors from "@/views/Errors.vue";
-import { mutations } from "@/store";
-import { eventBus } from "@/store/eventBus";
+import { mutations } from "@/store/index.ts";
+import { eventBus } from "@/store/eventBus.ts";
 
 export default {
   name: "share-picker",

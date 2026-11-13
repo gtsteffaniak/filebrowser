@@ -27,11 +27,11 @@
 <script lang="ts">
 import type { PropType } from "vue";
 import type { Ace } from "ace-builds";
-import { state, getters, mutations } from "@/store";
+import { state, getters, mutations } from "@/store/index.ts";
 import { createAsyncComponent } from "@/utils/asyncComponent.js";
 import Scrollbar from "@/components/files/Scrollbar.vue";
 import FloatingActionButton from "@/components/settings/FloatingActionButton.vue";
-import { createScrollSyncGuard } from "@/utils/markdownScrollSync";
+import { createScrollSyncGuard } from "@/utils/markdownScrollSync.ts";
 
 const MD_SPLIT_PERCENT_KEY = "mdSplitPercent";
 const LIVE_CONTENT_INTERVAL_MS = 185; // Throttle preview updates to avoid performance issues

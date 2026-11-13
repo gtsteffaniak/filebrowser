@@ -93,14 +93,14 @@
 </template>
 
 <script>
-import { state, getters } from "@/store";
-import { toolsApi } from "@/api";
-import { getHumanReadableFilesize } from "@/utils/filesizes";
-import { formatTimestamp, fromNow } from "@/utils/moment";
-import { notify } from "@/notify";
+import { state, getters } from "@/store/index.ts";
+import { toolsApi } from "@/api/index.js";
+import { getHumanReadableFilesize } from "@/utils/filesizes.js";
+import { formatTimestamp, fromNow } from "@/utils/moment.ts";
+import { notify } from "@/notify/index.ts";
 import PathPickerButton from "@/components/files/PathPickerButton.vue";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
-import { globalVars } from "@/utils/constants";
+import { globalVars } from "@/utils/constants.js";
 
 export default {
   name: "FileWatcher",

@@ -115,24 +115,24 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, toRefs, watch, type Ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { useListingContextMenu } from "@/composables/useListingContextMenu";
-import { useSearchFilters } from "@/composables/useSearchFilters";
-import { useSearchRequest } from "@/composables/useSearchRequest";
-import { resourcesApi, toolsApi } from "@/api";
+import { useListingContextMenu } from "@/composables/useListingContextMenu.ts";
+import { useSearchFilters } from "@/composables/useSearchFilters.ts";
+import { useSearchRequest } from "@/composables/useSearchRequest.ts";
+import { resourcesApi, toolsApi } from "@/api/index.js";
 import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
 import Icon from "@/components/files/Icon.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import SearchFilters from "@/components/tools/SearchFilters.vue";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
-import { router } from "@/router";
-import { getters, mutations, state } from "@/store";
-import type { FileListItem } from "@/store/types";
-import { url } from "@/utils/";
-import { globalVars } from "@/utils/constants";
+import { router } from "@/router/index.ts";
+import { getters, mutations, state } from "@/store/index.ts";
+import type { FileListItem } from "@/store/types.ts";
+import { url } from "@/utils/index.ts";
+import { globalVars } from "@/utils/constants.js";
 import { debounce } from "@/utils/debounce.js";
 import { sortedItems } from "@/utils/sort.ts";
-import { getHumanReadableFilesize } from "@/utils/filesizes";
+import { getHumanReadableFilesize } from "@/utils/filesizes.js";
 import { isTypeAheadSessionActive } from "@/utils/listingTypeAhead.js";
 import { shouldIgnoreOutsideTap } from "@/utils/tooltipHelp.js";
 

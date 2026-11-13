@@ -28,8 +28,8 @@
 </template>
 
 <script>
-import { notify } from "@/notify";
-import { getUserDefaults, patchUserDefaults } from "@/api/settings";
+import { notify } from "@/notify/index.ts";
+import { getUserDefaults, patchUserDefaults } from "@/api/settings.js";
 import { getObjectProperty } from "@/utils/object.js";
 import UserProfilePreferences from "@/components/settings/UserProfilePreferences.vue";
 import UserDefaultsAccountSection from "@/components/settings/UserDefaultsAccountSection.vue";

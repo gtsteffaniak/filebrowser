@@ -24,7 +24,7 @@
 </template>
 
 <script>
-import { getters } from "@/store";
+import { getters } from "@/store/index.ts";
 
 export default {
   name: "closeWithActiveUploads",

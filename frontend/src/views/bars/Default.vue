@@ -39,11 +39,11 @@
 </template>
 
 <script>
-import { router } from "@/router";
-import { getters, state, mutations } from "@/store";
+import { router } from "@/router/index.ts";
+import { getters, state, mutations } from "@/store/index.ts";
 import Action from "@/components/Action.vue";
-import { globalVars } from "@/utils/constants";
-import { url } from "@/utils";
+import { globalVars } from "@/utils/constants.js";
+import { url } from "@/utils/index.ts";
 
 export default {
   name: "UnifiedHeader",

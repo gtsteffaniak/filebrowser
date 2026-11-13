@@ -11,7 +11,7 @@
 
 <script>
 import SettingsTable from "@/components/settings/Table.vue";
-import { buildActivityDetailRows } from "@/utils/activityDetails";
+import { buildActivityDetailRows } from "@/utils/activityDetails.js";
 
 export default {
   name: "ActivityDetailsInfo",

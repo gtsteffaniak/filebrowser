@@ -24,10 +24,10 @@ import { computed, nextTick, onBeforeUnmount, onMounted, onUnmounted, ref, shall
 import { useRoute, useRouter, type RouteLocationNormalized } from "vue-router";
 import { useI18n } from "vue-i18n";
 import type { Ace } from "ace-builds";
-import { state, getters, mutations } from "@/store";
-import { resourcesApi } from "@/api";
+import { state, getters, mutations } from "@/store/index.ts";
+import { resourcesApi } from "@/api/index.js";
 import { pathsMatch, removeLastDir } from "@/utils/url.js";
-import { notify } from "@/notify";
+import { notify } from "@/notify/index.ts";
 import ace, { version as ace_version } from "ace-builds";
 import modelist from "ace-builds/src-noconflict/ext-modelist";
 import "ace-builds/src-noconflict/ext-searchbox";
@@ -39,8 +39,8 @@ import "ace-builds/src-min-noconflict/mode-json";
 import "ace-builds/src-min-noconflict/mode-markdown";
 import EditorToolbar from "@/components/files/EditorToolbar.vue";
 import MarkdownSplitView from "@/components/files/MarkdownSplitView.vue";
-import { editorConfig, type EditorConfig } from "@/utils/editorConfig";
-import { rejectPutIfQuotaExceeded } from "@/utils/uploadQuota";
+import { editorConfig, type EditorConfig } from "@/utils/editorConfig.ts";
+import { rejectPutIfQuotaExceeded } from "@/utils/uploadQuota.js";
 
 type Req = typeof state.req;
 interface AceRendererInternal { $gutterLayer: { $renderer: unknown } }

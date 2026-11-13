@@ -75,9 +75,9 @@
 </template>
 
 <script>
-import { accessApi } from "@/api";
-import { getSourceSettings, patchSourceSettings } from "@/api/settings";
-import { state, mutations } from "@/store";
+import { accessApi } from "@/api/index.js";
+import { getSourceSettings, patchSourceSettings } from "@/api/settings.js";
+import { state, mutations } from "@/store/index.ts";
 import Errors from "@/views/Errors.vue";
 import SettingsTable from "@/components/settings/Table.vue";
 import SettingsItem from "@/components/settings/SettingsItem.vue";
@@ -85,9 +85,9 @@ import SourceFilePermissions from "@/components/settings/SourceFilePermissions.v
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import ActivityViewerButton from "@/components/settings/ActivityViewerButton.vue";
 import FloatingActionButton from "@/components/settings/FloatingActionButton.vue";
-import { notify } from "@/notify";
-import { activityViewerPresets } from "@/utils/activityViewerLink";
-import { eventBus } from "@/store/eventBus";
+import { notify } from "@/notify/index.ts";
+import { activityViewerPresets } from "@/utils/activityViewerLink.js";
+import { eventBus } from "@/store/eventBus.ts";
 export default {
   name: "accessSettings",
   components: {

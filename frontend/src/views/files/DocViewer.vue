@@ -8,10 +8,10 @@
 
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref, watch } from "vue";
-import { resourcesApi } from "@/api";
+import { resourcesApi } from "@/api/index.js";
 import { ensureViewToken, refreshViewToken, requestViewIdentity } from "@/api/viewToken.js";
-import { state, mutations, getters } from "@/store";
-import { sanitizeDocxHtml } from "@/utils/docxPreview";
+import { state, mutations, getters } from "@/store/index.ts";
+import { sanitizeDocxHtml } from "@/utils/docxPreview.ts";
 import { removeLastDir } from "@/utils/url.js";
 
 defineOptions({ name: "docViewer" });

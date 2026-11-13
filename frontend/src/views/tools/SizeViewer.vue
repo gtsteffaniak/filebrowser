@@ -165,15 +165,15 @@
 </template>
 
 <script>
-import { toolsApi } from "@/api";
-import { state, mutations } from "@/store";
+import { toolsApi } from "@/api/index.js";
+import { state, mutations } from "@/store/index.ts";
 import {
   hideInteractiveTooltip,
   showHoverTooltip,
 } from "@/utils/tooltipHelp.js";
-import { getHumanReadableFilesize } from "@/utils/filesizes";
-import { getTypeInfo } from "@/utils/mimetype";
-import { globalVars } from "@/utils/constants";
+import { getHumanReadableFilesize } from "@/utils/filesizes.js";
+import { getTypeInfo } from "@/utils/mimetype.js";
+import { globalVars } from "@/utils/constants.js";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import PathPickerButton from "@/components/files/PathPickerButton.vue";
 

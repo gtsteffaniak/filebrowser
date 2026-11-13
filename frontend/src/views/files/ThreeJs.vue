@@ -65,10 +65,10 @@ import { VOXLoader } from 'three/addons/loaders/VOXLoader.js';
 import { KMZLoader } from 'three/addons/loaders/KMZLoader.js';
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import FloatingActionButton from "@/components/settings/FloatingActionButton.vue";
-import { state, mutations, getters } from "@/store";
-import { resourcesApi } from "@/api";
-import { getCachedViewToken, ensureViewToken, requestViewIdentity } from "@/api/viewToken";
-import { removeLastDir, resolveRelativePath } from "@/utils/url";
+import { state, mutations, getters } from "@/store/index.ts";
+import { resourcesApi } from "@/api/index.js";
+import { getCachedViewToken, ensureViewToken, requestViewIdentity } from "@/api/viewToken.js";
+import { removeLastDir, resolveRelativePath } from "@/utils/url.js";
 import { getObjectProperty } from '@/utils/object.js';
 
 const LOADERS = {

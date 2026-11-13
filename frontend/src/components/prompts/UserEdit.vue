@@ -226,8 +226,8 @@
 </template>
 
 <script>
-import { mutations, state } from "@/store";
-import { usersApi, settingsApi, authApi, accessApi } from "@/api";
+import { mutations, state } from "@/store/index.ts";
+import { usersApi, settingsApi, authApi, accessApi } from "@/api/index.js";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import SourceFilePermissions from "@/components/settings/SourceFilePermissions.vue";
 import SettingsItem from "@/components/settings/SettingsItem.vue";
@@ -240,16 +240,16 @@ import PasswordRequirementsHint from "@/components/PasswordRequirementsHint.vue"
 import UserGroupsField from "@/components/settings/UserGroupsField.vue";
 import Errors from "@/views/Errors.vue";
 import { evaluatePasswordPolicy } from "@/utils/passwordPolicy.js";
-import { notify } from "@/notify";
-import { validateLogin } from "@/utils/auth";
-import { globalVars } from "@/utils/constants";
-import { eventBus } from "@/store/eventBus";
+import { notify } from "@/notify/index.ts";
+import { validateLogin } from "@/utils/auth.js";
+import { globalVars } from "@/utils/constants.js";
+import { eventBus } from "@/store/eventBus.ts";
 import { getObjectProperty, setObjectProperty } from "@/utils/object.js";
 import {
   GB,
   bytesFromCustomAmount,
   customAmountFromBytes,
-} from "@/utils/quotaUnits";
+} from "@/utils/quotaUnits.js";
 import {
   sectionsFromFlatUser,
   applySectionsToFlatUser,

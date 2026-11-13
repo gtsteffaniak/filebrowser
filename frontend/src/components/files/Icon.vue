@@ -41,10 +41,10 @@
 
 <script setup lang="ts">
 import { computed, inject, onBeforeUnmount, onMounted, ref, unref, watch, type Ref } from "vue";
-import { fetchPreviewImage } from "@/api/resources";
+import { fetchPreviewImage } from "@/api/resources.js";
 import { createAsyncComponent } from "@/utils/asyncComponent.js";
-import { getTypeInfo } from "@/utils/mimetype";
-import { getters, mutations, state } from "@/store";
+import { getTypeInfo } from "@/utils/mimetype.js";
+import { getters, mutations, state } from "@/store/index.ts";
 import {
   acquireThumbnailBlob,
   getThumbnailBlobKey,

@@ -90,10 +90,10 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { getters } from "@/store";
-import { downloadManager } from "@/utils/downloadManager";
-import type { DownloadItem } from "@/utils/downloadManager";
-import { resourcesApi } from "@/api";
+import { getters } from "@/store/index.ts";
+import { downloadManager } from "@/utils/downloadManager.ts";
+import type { DownloadItem } from "@/utils/downloadManager.ts";
+import { resourcesApi } from "@/api/index.js";
 import ProgressBar from "@/components/ProgressBar.vue";
 import { findScrollParents, useListingVirtualization } from "@/composables/useListingVirtualization.ts";
 

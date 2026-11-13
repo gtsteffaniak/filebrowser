@@ -16,8 +16,8 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref, watch } from "vue";
 import type { Book, Rendition } from "@likecoin/epub-ts";
-import { state, mutations, getters } from "@/store";
-import { resourcesApi } from "@/api";
+import { state, mutations, getters } from "@/store/index.ts";
+import { resourcesApi } from "@/api/index.js";
 import { ensureViewToken, requestViewIdentity, getCachedViewToken, getRequestViewToken } from "@/api/viewToken.js";
 
 defineOptions({ name: "epubViewer" });

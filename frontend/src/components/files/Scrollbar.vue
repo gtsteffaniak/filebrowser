@@ -32,7 +32,7 @@
 </template>
 
 <script>
-import { state, mutations, getters } from "@/store";
+import { state, mutations, getters } from "@/store/index.ts";
 import { eventBus } from "@/store/eventBus.ts";
 import { isHtmlMimeType } from "@/utils/mimetype.js";
 

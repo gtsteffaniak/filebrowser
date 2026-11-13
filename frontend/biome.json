@@ -56,32 +56,31 @@
         "noRedundantDefaultExport": "warn"
       },
       "correctness": {
-        "noUnknownPseudoClass": "off"
+        "noUnknownPseudoClass": "off",
+        "noVueImportCompilerMacros": "error",
+        "noVueRefAsOperand": "error",
+        "noVueVOnNumberValues": "error",
+        "useVueValidVFor": "error"
       },
       "nursery": {
-        "noEmptyObjectKeys": "error",
         "noFloatingPromises": "error",
         "noImpliedEval": "error",
         "noJsonUnsafeValues": "error",
         "noMisusedPromises": "error",
-        "noTopLevelLiterals": "error",
         "noVueDeprecatedScopedSlots": "error",
-        "noVueImportCompilerMacros": "error",
-        "noVueRefAsOperand": "error",
         "noVueUndeclaredDirectives": "off",
-        "noVueVOnNumberValues": "error",
         "useConsistentObjectKeys": "error",
-        "useVueBaseImport": "warn",
-        "useVueConsistentDefinePropsDeclaration": "off",
-        "useVueNextTickPromise": "warn",
-        "useVueValidVFor": "error"
+        "useVueBaseImport": "warn"
       },
       "style": {
         "noDescendingSpecificity": "off",
         "noVueOptionsApi": "off",
         "useVueConsistentVBindStyle": "off",
         "useVueHyphenatedAttributes": "off",
-        "useVueMultiWordComponentNames": "off"
+        "useVueMultiWordComponentNames": "off",
+        "noTopLevelLiterals": "error",
+        "useVueConsistentDefinePropsDeclaration": "off",
+        "useVueNextTickPromise": "warn"
       },
       "suspicious": {
         "noExplicitAny": "warn",
@@ -90,7 +89,9 @@
         "noParametersOnlyUsedInRecursion": "error",
         "noShadow": "off",
         "noUnnecessaryConditions": "off",
-        "useArraySortCompare": "error"
+        "useArraySortCompare": "error",
+        "noEmptyObjectKeys": "error",
+        "useScopedStyles": "off"
       }
     }
   },
@@ -101,20 +102,24 @@
         "rules": {
           "correctness": {
             "noEmptyPattern": "off",
-            "noUnresolvedImports": "off"
+            "noUnresolvedImports": "off",
+            "noPlaywrightMissingAwait": "error",
+            "usePlaywrightValidDescribeCallback": "error"
           },
-          "nursery": {
+          "style": {
             "noPlaywrightElementHandle": "error",
             "noPlaywrightEval": "error",
+            "noPlaywrightWaitForSelector": "error"
+          },
+          "suspicious": {
             "noPlaywrightForceOption": "error",
-            "noPlaywrightMissingAwait": "error",
             "noPlaywrightNetworkidle": "error",
             "noPlaywrightPagePause": "error",
-            "noPlaywrightUselessAwait": "error",
             "noPlaywrightWaitForNavigation": "error",
-            "noPlaywrightWaitForSelector": "error",
-            "noPlaywrightWaitForTimeout": "warn",
-            "usePlaywrightValidDescribeCallback": "error"
+            "noPlaywrightWaitForTimeout": "warn"
+          },
+          "complexity": {
+            "noPlaywrightUselessAwait": "error"
           }
         }
       }

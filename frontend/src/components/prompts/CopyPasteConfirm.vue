@@ -44,8 +44,8 @@
 </template>
 
 <script>
-import { mutations } from "@/store";
-import { notifyMoveCopyFailure } from "@/utils/appNotifications";
+import { mutations } from "@/store/index.ts";
+import { notifyMoveCopyFailure } from "@/utils/appNotifications.js";
 
 export default {
   name: "copy-paste-confirm",

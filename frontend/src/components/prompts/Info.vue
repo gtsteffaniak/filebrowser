@@ -153,13 +153,13 @@
 
 </template>
 <script>
-import { getHumanReadableFilesize } from "@/utils/filesizes";
-import { formatTimestamp, fromNow } from "@/utils/moment";
-import { copyToClipboard } from "@/utils/clipboard";
-import { resourcesApi, quotasApi, accessApi } from "@/api";
-import { getters, mutations, state } from "@/store";
-import { notify } from "@/notify";
-import { activityViewerPresets } from "@/utils/activityViewerLink";
+import { getHumanReadableFilesize } from "@/utils/filesizes.js";
+import { formatTimestamp, fromNow } from "@/utils/moment.ts";
+import { copyToClipboard } from "@/utils/clipboard.js";
+import { resourcesApi, quotasApi, accessApi } from "@/api/index.js";
+import { getters, mutations, state } from "@/store/index.ts";
+import { notify } from "@/notify/index.ts";
+import { activityViewerPresets } from "@/utils/activityViewerLink.js";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import ActivityViewerButton from "@/components/settings/ActivityViewerButton.vue";
 import SettingsButton from "@/components/settings/SettingsButton.vue";

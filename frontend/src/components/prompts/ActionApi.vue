@@ -72,11 +72,11 @@
 </template>
 
 <script>
-import { mutations } from "@/store";
-import { notify } from "@/notify";
-import { authApi } from "@/api";
-import { eventBus } from "@/store/eventBus";
-import { copyToClipboard } from "@/utils/clipboard";
+import { mutations } from "@/store/index.ts";
+import { notify } from "@/notify/index.ts";
+import { authApi } from "@/api/index.js";
+import { eventBus } from "@/store/eventBus.ts";
+import { copyToClipboard } from "@/utils/clipboard.js";
 
 export default {
   name: "ActionApi",

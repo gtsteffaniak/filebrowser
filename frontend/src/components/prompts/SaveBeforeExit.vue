@@ -32,7 +32,7 @@
 </template>
 
 <script>
-import { getters, mutations } from "@/store";
+import { getters, mutations } from "@/store/index.ts";
 
 export default {
   name: "saveBeforeExit",

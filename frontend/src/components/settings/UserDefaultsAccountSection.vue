@@ -138,7 +138,7 @@ import SettingsItem from "@/components/settings/SettingsItem.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
 import { getObjectProperty } from "@/utils/object.js";
-import { state } from "@/store";
+import { state } from "@/store/index.ts";
 
 let transcodeInputCounter = 0;
 

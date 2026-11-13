@@ -4,8 +4,8 @@
 
 <script>
 import { onMounted } from "vue";
-import { mutations } from "@/store"; // Import your store's mutations
-import { scheduleFullIcons } from "@/utils/loadFullIcons";
+import { mutations } from "@/store/index.ts"; // Import your store's mutations
+import { scheduleFullIcons } from "@/utils/loadFullIcons.js";
 
 mutations.setLoading("main-app", true);
 export default {

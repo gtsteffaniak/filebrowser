@@ -69,15 +69,15 @@
 </template>
 
 <script>
-import { state, mutations } from "@/store";
-import { usersApi } from "@/api";
+import { state, mutations } from "@/store/index.ts";
+import { usersApi } from "@/api/index.js";
 import Errors from "@/views/Errors.vue";
 import SettingsTable from "@/components/settings/Table.vue";
 import SettingsButton from "@/components/settings/SettingsButton.vue";
 import ActivityViewerButton from "@/components/settings/ActivityViewerButton.vue";
 import FloatingActionButton from "@/components/settings/FloatingActionButton.vue";
-import { activityViewerPresets } from "@/utils/activityViewerLink";
-import { eventBus } from "@/store/eventBus";
+import { activityViewerPresets } from "@/utils/activityViewerLink.js";
+import { eventBus } from "@/store/eventBus.ts";
 
 export default {
   name: "users",

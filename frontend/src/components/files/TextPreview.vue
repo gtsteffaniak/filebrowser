@@ -23,7 +23,7 @@
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, shallowRef, watch } from "vue";
-import { getters } from "@/store";
+import { getters } from "@/store/index.ts";
 import { applyHighlightTheme, loadHljs } from "@/utils/highlight.ts";
 import { parseDelimited } from "@/utils/delimited.ts";
 import {

@@ -16,9 +16,9 @@
 </template>
 
 <script>
-import { notify } from "@/notify";
-import { state, mutations } from "@/store";
-import { getAnalytics, updateAnalytics } from "@/api/settings";
+import { notify } from "@/notify/index.ts";
+import { state, mutations } from "@/store/index.ts";
+import { getAnalytics, updateAnalytics } from "@/api/settings.js";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import SettingsButton from "@/components/settings/SettingsButton.vue";
 

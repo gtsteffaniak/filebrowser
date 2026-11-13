@@ -124,20 +124,20 @@
 
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
-import type { fileListItemIndex } from "@/store/types";
+import type { fileListItemIndex } from "@/store/types.ts";
 import { useI18n } from "vue-i18n";
-import { readAllDirectoryEntries } from "@/utils/upload";
-import { state, mutations, getters } from "@/store";
-import { eventBus } from "@/store/eventBus";
+import { readAllDirectoryEntries } from "@/utils/upload.ts";
+import { state, mutations, getters } from "@/store/index.ts";
+import { eventBus } from "@/store/eventBus.ts";
 import Item from "@/components/files/ListingItem.vue";
 import Upload from "@/components/prompts/Upload.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
-import { useListingClipboard } from "@/composables/useListingClipboard";
-import { useListingKeyboard } from "@/composables/useListingKeyboard";
-import { useListingLayout } from "@/composables/useListingLayout";
-import { useListingVirtualization } from "@/composables/useListingVirtualization";
-import { useMouseSelection } from "@/composables/useRectangleSelection";
-import { useListingContextMenu } from "@/composables/useListingContextMenu";
+import { useListingClipboard } from "@/composables/useListingClipboard.ts";
+import { useListingKeyboard } from "@/composables/useListingKeyboard.ts";
+import { useListingLayout } from "@/composables/useListingLayout.ts";
+import { useListingVirtualization } from "@/composables/useListingVirtualization.ts";
+import { useMouseSelection } from "@/composables/useRectangleSelection.ts";
+import { useListingContextMenu } from "@/composables/useListingContextMenu.ts";
 
 defineOptions({ name: "listingView" });
 
