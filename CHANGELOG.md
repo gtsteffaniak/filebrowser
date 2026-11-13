@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file. For commit 
 ## v2.1.5
 
  **Security**:
+ - [High] Server-side archive create (`POST /api/resources/archive`) now resolves the full destination path for writes via symlink-scoped mutation resolution, closing arbitrary host file overwrite through an in-scope symlink leaf (GHSA-jg32-ppcc-ph62) reporter @manus-use
  - [Moderate] `GET /api/media/subtitles` no longer follows symlink external subtitle sidecars beside the video file, and public share requests resolve sidecar paths under the share prefix before read (GHSA-hfvf-2639-p2mq) reporter @manus-use
  - [Moderate] Directory motion-preview now resolves symlinked children within the caller's scope, closing the incomplete GHSA-g2q5 remediation path through `getDirectoryPreview` (GHSA-2546-vf4j-vh9v) reporter @manus-use
  - [Moderate] RealPathCache entries for affected index paths are invalidated after symlink-scoped mutations so stale resolved paths cannot bypass containment on subsequent create, write, delete, or move operations (GHSA-j764-qg3m-rhv7 follow-up, #3381)
