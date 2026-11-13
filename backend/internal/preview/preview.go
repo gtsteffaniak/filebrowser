@@ -272,8 +272,9 @@ func determinePreviewType(file iteminfo.ExtendedFileInfo) filePreviewType {
 		return previewTypeOffice
 	}
 
-	// Check HEIC with conversion enabled
-	if strings.HasPrefix(file.Type, "image/heic") &&
+	// Check HEIC with conversion enabled. AVIF is a HEIF container too and uses
+	// the same path (go-media decode, ffmpeg fallback) under the HEIC setting.
+	if (strings.HasPrefix(file.Type, "image/heic") || file.Type == "image/avif") &&
 		settings.CanConvertImage(string(settings.HEICImagePreview)) {
 		return previewTypeHEIC
 	}

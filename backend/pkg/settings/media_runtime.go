@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/ffmpeg"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/mediacache"
 	goffmpeg "github.com/gtsteffaniak/go-ffmpeg"
 	"github.com/gtsteffaniak/go-ffmpeg/capabilities"
 	"github.com/gtsteffaniak/go-ffmpeg/encode"
@@ -288,6 +289,11 @@ func ApplyMediaSettings(s FullAdminMedia) {
 	Config.Integrations.Media.Debug = s.Debug
 	Config.Integrations.Media.HardwareAcceleration = s.HardwareAcceleration
 	Config.Integrations.Media.AccelDevice = s.AccelDevice
+	if Config.Integrations.Media.AlwaysUseFfmpeg != s.AlwaysUseFfmpeg {
+		// The shared media cache holds values from whichever backend answered
+		// first. Switching backends drops them so the selected one answers fresh.
+		mediacache.ClearAll()
+	}
 	Config.Integrations.Media.AlwaysUseFfmpeg = s.AlwaysUseFfmpeg
 	Config.Integrations.Media.AlwaysUseOnlyOffice = s.AlwaysUseOnlyOffice
 	Config.Integrations.Media.Transcode = s.Transcode

@@ -4,6 +4,8 @@ import (
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/gtsteffaniak/filebrowser/backend/internal/mediacache"
 )
 
 func withMediaConfig(t *testing.T) {
@@ -306,5 +308,28 @@ func TestInitFFmpegIsIdempotent(t *testing.T) {
 	InitFFmpeg()
 	if ffmpegInitialized || Env.FFmpegAvailable {
 		t.Fatal("InitFFmpeg must not run the probe during tests")
+	}
+}
+
+// TestApplyMediaSettingsClearsMediaCacheOnBackendSwitch checks that toggling
+// "Always use ffmpeg" drops values the other backend cached, and that an
+// unrelated settings change keeps them.
+func TestApplyMediaSettingsClearsMediaCacheOnBackendSwitch(t *testing.T) {
+	withMediaConfig(t)
+	key := mediacache.Key{Path: "/settings-test.mp4", Size: 1, ModTime: 1}.String()
+	t.Cleanup(func() { mediacache.Durations.Delete(key) })
+
+	media := CurrentMediaSettings()
+	mediacache.Durations.Set(key, 1)
+	media.Debug = !media.Debug
+	ApplyMediaSettings(media)
+	if _, ok := mediacache.Durations.Get(key); !ok {
+		t.Fatal("an unrelated media settings change must keep the shared media cache")
+	}
+
+	media.AlwaysUseFfmpeg = !media.AlwaysUseFfmpeg
+	ApplyMediaSettings(media)
+	if _, ok := mediacache.Durations.Get(key); ok {
+		t.Fatal("switching Always use ffmpeg must clear the shared media cache")
 	}
 }

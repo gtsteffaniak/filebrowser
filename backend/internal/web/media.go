@@ -12,6 +12,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/files"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/ffmpeg"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/gomedia"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/mediacache"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 )
@@ -123,7 +124,8 @@ func subtitlesHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 			}
 			// Shadow ffmpeg runs after the fast path; bound it so a detached request cannot
 			// leave extraction running indefinitely (sync fallback still uses r.Context()).
-			legacyCtx, cancel := context.WithTimeout(context.WithoutCancel(r.Context()), time.Minute)
+			// WithoutCache: compare against a fresh extraction, not the value go-media stored.
+			legacyCtx, cancel := context.WithTimeout(mediacache.WithoutCache(context.WithoutCancel(r.Context())), time.Minute)
 			defer cancel()
 			vtt, extractErr := svc.ExtractSubtitle(legacyCtx, fileInfo.RealPath, *track.Index)
 			return vtt, extractErr == nil

@@ -22,7 +22,7 @@ require (
 	github.com/gtsteffaniak/go-cache v1.1.0
 	github.com/gtsteffaniak/go-ffmpeg v1.6.2
 	github.com/gtsteffaniak/go-logger v1.1.0
-	github.com/gtsteffaniak/go-media v1.2.2
+	github.com/gtsteffaniak/go-media v1.3.0
 	github.com/kovidgoyal/imaging v1.9.0
 	github.com/pquerna/otp v1.5.0
 	github.com/spf13/afero v1.15.0

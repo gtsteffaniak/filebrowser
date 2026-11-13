@@ -133,7 +133,7 @@ func (e *MediaEngine) BuildPlan(ctx context.Context, realPath string, profile Pr
 	copyImpossible := false
 	plan.segmentSec = defaults.SegmentDurationSec
 	if plan.remux || plan.videoCopy {
-		rawKeyframes, kfErr := probeKeyframesCached(ctx, svc, realPath, stat.Size(), stat.ModTime().UnixNano(), plan.segmentSec, true)
+		rawKeyframes, kfErr := probeKeyframesCached(ctx, svc, realPath, stat.Size(), stat.ModTime().UnixNano(), plan.segmentSec, mediaSpan{durationSec: info.Duration, startTimeSec: info.StartTime}, true)
 		if kfErr != nil {
 			copyImpossible = true
 			logger.Warningf("transcode: keyframe probe failed on %s (%v) — forcing video transcode for HLS", realPath, kfErr)
