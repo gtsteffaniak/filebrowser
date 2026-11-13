@@ -1,11 +1,15 @@
 # syntax=docker/dockerfile:1.4
-# GPU-capable media image: mostly-static glibc FFmpeg + dynamic VA/Vulkan/OpenCL drivers (amd64).
-# Codecs/TLS are linked into gtstef/ffmpeg:<ver> (full track, not *-static).
+# GPU-capable media image: Debian GPU FFmpeg as runtime base (x86_64 only).
+# Track G in gtsteffaniak/ffmpeg (docker/dockerfile.gpu): mostly-static
+# codecs + dynamic VA/Vulkan/OpenCL/NVIDIA userspace. Pi 4 (V4L2) stays
+# on the static Alpine image (`Dockerfile`, not this file).
 #
-# amd64: libva/Mesa/Vulkan/OpenCL userspace below; NVIDIA libs come from the host toolkit.
-# arm64 (e.g. Raspberry Pi): h264_v4l2m2m uses kernel V4L2 only — no extra GPU .debs; pass
-#   /dev/video10 or /dev/video11 (and group video). Pi 5 VAAPI via /dev/dri is optional (mesa on arm64).
-FROM gtstef/ffmpeg:9.0.2 AS ffmpeg
+# Build after the ffmpeg GPU image is published and smoke-tested:
+#   docker build -f _docker/Dockerfile.media --build-arg VERSION=... --build-arg REVISION=... .
+# Runtime flags: Intel/AMD need /dev/dri (see _docker/docker-compose.media.yaml);
+# NVIDIA needs the host toolkit (`--gpus all` / `runtime: nvidia`).
+
+ARG FFMPEG_GPU_IMAGE=gtstef/ffmpeg:9.0.2-gpu
 
 FROM golang:bookworm AS base
 ARG VERSION
@@ -29,36 +33,14 @@ COPY ./frontend/ ./frontend/
 WORKDIR /build/frontend
 RUN npm run build:docker
 
-FROM debian:bookworm-slim AS runtime
+FROM ${FFMPEG_GPU_IMAGE} AS runtime
 ENV DEBIAN_FRONTEND=noninteractive
-
-RUN apt-get update && apt-get install -y --no-install-recommends \
-  ca-certificates \
-  curl \
-  mailcap \
-  tzdata \
-  && rm -rf /var/lib/apt/lists/* \
-  && (dpkg --print-architecture | grep -q amd64 \
-    && apt-get update \
-    && apt-get install -y --no-install-recommends \
-      libva2 \
-      libva-drm2 \
-      libdrm2 \
-      libvulkan1 \
-      mesa-va-drivers \
-      mesa-vulkan-drivers \
-      ocl-icd-libopencl1 \
-      intel-media-va-driver \
-      libmfx1 \
-    && rm -rf /var/lib/apt/lists/* \
-    || true)
-COPY --from=ffmpeg [ "/ffmpeg", "/ffprobe", "/usr/local/bin/" ]
-ENV FILEBROWSER_FFMPEG_PATH="/usr/local/bin/"
+ENV FILEBROWSER_FFMPEG_PATH="/usr/local/bin"
 ENV FILEBROWSER_DATABASE_PATH="/home/filebrowser/data/database.sqlite"
 ENV FILEBROWSER_CONFIG="/home/filebrowser/data/config.yaml"
 ENV PATH="$PATH:/home/filebrowser"
 ENV NVIDIA_VISIBLE_DEVICES=all
-ENV NVIDIA_DRIVER_CAPABILITIES=compute,video,utility,graphics
+ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility,video,graphics
 
 RUN useradd -m -u 1000 -s /usr/sbin/nologin filebrowser
 USER filebrowser

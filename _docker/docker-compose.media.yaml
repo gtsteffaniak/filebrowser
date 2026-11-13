@@ -1,0 +1,67 @@
+# Compose snippets for the GPU media image (`_docker/Dockerfile.media`).
+#
+# filebrowser-media runs on the Debian GPU FFmpeg image
+# (gtstef/ffmpeg:<version>-gpu). Pi 4 production stays on the static
+# Alpine `Dockerfile` (V4L2). Copy the service you need into your
+# docker-compose.yaml.
+#
+#   docker compose -f _docker/docker-compose.media.yaml run --rm filebrowser-media \
+#     -f lavfi -i testsrc=size=640x480:rate=1 -c:v h264_vulkan -t 1 -f null -
+#   (replace service flags with your image name)
+
+services:
+  # Intel / AMD VAAPI (needs host /dev/dri)
+  # Find render group GID: getent group render
+  filebrowser-media-intel:
+    image: filebrowser-media:latest
+    build:
+      context: ../
+      dockerfile: ./_docker/Dockerfile.media
+      args:
+        VERSION: ${VERSION:-latest}
+        REVISION: ${REVISION:-local}
+        FFMPEG_GPU_IMAGE: ${FFMPEG_GPU_IMAGE:-gtstef/ffmpeg:9.0.2-gpu}
+    devices:
+      - /dev/dri:/dev/dri
+    group_add:
+      - "993" # render group GID placeholder — set to `getent group render`
+    environment:
+      # fallback when /dev/dri is not bind-mounted: LIBVA_DRIVER_NAME=radeonsi
+      LIBVA_DRIVER_NAME: ${LIBVA_DRIVER_NAME:-}
+    ports:
+      - "80:80"
+
+  # NVIDIA NVENC/NVDEC (needs NVIDIA driver + nvidia-container-toolkit on host)
+  # `runtime: nvidia` or `deploy.resources.reservations.devices` + NVIDIA_* env.
+  filebrowser-media-nvidia:
+    image: filebrowser-media:latest
+    build:
+      context: ../
+      dockerfile: ./_docker/Dockerfile.media
+      args:
+        VERSION: ${VERSION:-latest}
+        REVISION: ${REVISION:-local}
+        FFMPEG_GPU_IMAGE: ${FFMPEG_GPU_IMAGE:-gtstef/ffmpeg:9.0.2-gpu}
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    environment:
+      NVIDIA_VISIBLE_DEVICES: all
+      NVIDIA_DRIVER_CAPABILITIES: compute,utility,video,graphics
+      # runtime: nvidia  (legacy alternative to deploy above)
+    ports:
+      - "80:80"
+
+  # Pi 4 V4L2 — NOT the GPU image. Production Pi stays on the static Alpine
+  # Dockerfile (h264_v4l2m2m via kernel V4L2, /dev/video10 or /dev/video11):
+  filebrowser-pi-static:
+    image: filebrowser-static:latest # placeholder for the existing Alpine build
+    devices:
+      - /dev/video10:/dev/video10
+      - /dev/video11:/dev/video11
+    ports:
+      - "80:80"
