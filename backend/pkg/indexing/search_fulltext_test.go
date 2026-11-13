@@ -211,3 +211,84 @@ func TestSearchContentMultiSourceSamePathPages(t *testing.T) {
 		t.Fatalf("same path in the other source was skipped: first=%#v second=%#v", first, second)
 	}
 }
+
+// A source ordered after the cursor source still owns the hit at the cursor path;
+// a source ordered before it must not return that path again.
+func TestSearchContentCursorSourceOrdering(t *testing.T) {
+	for _, name := range []string{"fulltext_ord_a", "fulltext_ord_b"} {
+		newFullTextSearchTestIndex(t, name)
+	}
+	sources := []string{"fulltext_ord_a", "fulltext_ord_b"}
+	scopes := map[string]string{"fulltext_ord_a": "/", "fulltext_ord_b": "/"}
+
+	// Cursor at source b: a < b must resume strictly after the path.
+	before := SearchMultiSourcesParsed(
+		iteminfo.SearchOptions{Terms: []string{"quarterly"}, CursorPath: "/docs/budget.txt", CursorSource: "fulltext_ord_b"},
+		sources, scopes, "", false, 100, 0, 0, false, true)
+	for _, r := range before {
+		if r.Source == "fulltext_ord_a" && r.Path == "/docs/budget.txt" {
+			t.Fatalf("source before the cursor source re-returned the cursor path: %#v", before)
+		}
+	}
+
+	// Cursor at source a: b > a still owns /docs/budget.txt.
+	after := SearchMultiSourcesParsed(
+		iteminfo.SearchOptions{Terms: []string{"quarterly"}, CursorPath: "/docs/budget.txt", CursorSource: "fulltext_ord_a"},
+		sources, scopes, "", false, 100, 0, 0, false, true)
+	found := false
+	for _, r := range after {
+		found = found || (r.Source == "fulltext_ord_b" && r.Path == "/docs/budget.txt")
+	}
+	if !found {
+		t.Fatalf("source after the cursor source lost the shared path: %#v", after)
+	}
+}
+
+// The inclusive first lookup must not repeat after it advances: pageSize=1 with an
+// inclusive cursor would otherwise re-fetch the same path on every page.
+func TestSearchContentInclusiveCursorAdvancesOnce(t *testing.T) {
+	idx := newFullTextSearchTestIndex(t, "fulltext_incl3")
+	opts := iteminfo.SearchOptions{
+		// "budget" matches budget.txt by name+content and report.txt by content.
+		Terms:        []string{"budget"},
+		CursorPath:   "/docs/budget.txt",
+		CursorSource: "fulltext_incl3",
+	}
+	cs := newContentSearch(idx.db, "fulltext_incl3", "/", opts, false, false, 1)
+	cs.at = true // inclusive, as a source ordered after the cursor source gets
+
+	cs.nextPage()
+	if cs.at {
+		t.Fatal("inclusive mode must be cleared after the first lookup")
+	}
+	// The first page yields the next content hit; the one after it must also be
+	// reachable, which a cursor stuck in inclusive mode would never get to.
+	var seen []string
+	for pages := 0; pages < contentLookupPages && len(seen) < 2; pages++ {
+		for len(cs.order) == 0 && !cs.exhausted {
+			cs.nextPage()
+		}
+		if len(cs.order) == 0 {
+			break
+		}
+		seen = append(seen, cs.order[0])
+		cs.claim(cs.order[0])
+	}
+	if len(seen) < 2 {
+		t.Fatalf("only %v reached; inclusive cursor never advanced past the first hit", seen)
+	}
+	_ = idx
+}
+
+// When two sources hold the same content-only path, the smaller source wins the
+// cursor tie so paging follows (length(path), path, source).
+func TestSmallestCandidateBreaksTiesBySource(t *testing.T) {
+	searches := []*contentSearch{
+		{source: "b", order: []string{"/p.txt"}, set: map[string]bool{"/p.txt": true}},
+		{source: "a", order: []string{"/p.txt"}, set: map[string]bool{"/p.txt": true}},
+	}
+	cs, path, ok := smallestCandidate(searches, 10)
+	if !ok || path != "/p.txt" || cs.source != "a" {
+		t.Fatalf("tie broke on %q from %q, want a:/p.txt", path, cs.source)
+	}
+}

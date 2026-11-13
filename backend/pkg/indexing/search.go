@@ -89,8 +89,13 @@ func (idx *Index) SearchParsed(baseOpts iteminfo.SearchOptions, scope string, so
 	// db.Query holds the DB mutex for the life of the rows, so interleaving would
 	// deadlock. Both streams are then merged by the cursor key so a shallower
 	// content-only hit is never displaced by a deeper name hit filling the page.
+	// Rows arrive in the same order the result page keeps, so reading past the limit
+	// would only build SearchResults that are dropped later.
 	var nameRows []*SearchResult
 	for err == nil && rows.Next() {
+		if limit > 0 && len(nameRows) >= limit {
+			break
+		}
 		value, found := sessionInProgress.Load(sourceSession)
 		if !found || value != runningHash {
 			return []*SearchResult{}
@@ -137,6 +142,9 @@ func (idx *Index) SearchParsed(baseOpts iteminfo.SearchOptions, scope string, so
 			res.Created = time.Unix(createdTime, 0).Format(time.RFC3339)
 		}
 		nameRows = append(nameRows, res)
+	}
+	if err == nil {
+		rows.Close()
 	}
 	for _, res := range mergeByNameKey(content, nameRows) {
 		if limit > 0 && count >= limit {
@@ -247,14 +255,14 @@ func newContentSearch(db *dbsql.IndexDB, source, scope string, opts iteminfo.Sea
 		limit = contentFillPage
 	}
 	// Resume where the caller's cursor left off, or a later page would re-read hits
-	// the name query already excluded. A multi-source cursor also names a source: a
-	// source ordered before it still owns the hit at that path, so start there.
-	atCursor := opts.CursorSource == "" || opts.CursorSource == source
+	// the name query already excluded. A multi-source cursor also names a source: only
+	// sources ordered after it still own a hit at that same path, so they start there.
+	inclusive := opts.CursorSource != "" && source > opts.CursorSource
 	return &contentSearch{
 		db: db, source: source, opts: opts, scope: scope, pageSize: limit,
 		set:  make(map[string]bool),
 		last: opts.CursorPath,
-		at:   !atCursor,
+		at:   inclusive,
 	}
 }
 
@@ -273,6 +281,9 @@ func (cs *contentSearch) nextPage() bool {
 			return false
 		}
 		cs.pagesRead++
+		// Only the first lookup may include the cursor path itself; later pages resume
+		// strictly past the last path they returned.
+		cs.at = false
 		kept := filterContentPaths(cs.db, cs.source, cs.scope, paths, cs.opts)
 		for _, p := range kept {
 			cs.set[p] = true
@@ -502,7 +513,7 @@ func smallestCandidate(searches []*contentSearch, budget int) (*contentSearch, s
 		if !ok {
 			continue
 		}
-		if bestCS == nil || pathKeyLess(path, bestPath) {
+		if bestCS == nil || sourceKeyLess(path, cs.source, bestPath, bestCS.source) {
 			bestCS, bestPath = cs, path
 		}
 	}
@@ -691,8 +702,13 @@ func SearchMultiSourcesParsed(baseOpts iteminfo.SearchOptions, sources []string,
 		isDir       bool
 		hasPreview  bool
 	)
+	// Rows arrive in the same order the result page keeps, so reading past the limit
+	// would only build SearchResults that are dropped later.
 	var nameRows []*SearchResult
 	for err == nil && rows.Next() {
+		if limit > 0 && len(nameRows) >= limit {
+			break
+		}
 		value, found := sessionInProgress.Load(sourceSession)
 		if !found || value != runningHash {
 			return []*SearchResult{}
@@ -729,6 +745,9 @@ func SearchMultiSourcesParsed(baseOpts iteminfo.SearchOptions, sources []string,
 			res.Created = time.Unix(createdTime, 0).Format(time.RFC3339)
 		}
 		nameRows = append(nameRows, res)
+	}
+	if err == nil {
+		rows.Close()
 	}
 	for _, res := range mergeMulti(content, nameRows) {
 		if limit > 0 && count >= limit {
