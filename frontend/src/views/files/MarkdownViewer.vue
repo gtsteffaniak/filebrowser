@@ -18,14 +18,8 @@
     ></iframe>
     <div v-else class="markdown-content-container">
       <div ref="viewerEl" class="markdown-content">
-        <div
-          v-for="block in renderedContent"
-          :key="block.key"
-          class="md-block"
-          :data-line="block.line"
-          :data-code-line="block.codeLine"
-          v-html="block.html"
-        ></div>
+        <!-- biome-ignore lint/nursery/noVueVHtml: block.html is sanitized with DOMPurify -->
+        <div v-for="block in renderedContent" :key="block.key" class="md-block" :data-line="block.line" :data-code-line="block.codeLine" v-html="block.html"></div>
       </div>
     </div>
     <div v-if="!splitMode && !isHtml" class="spacer" :style="{ height: `${spaceForStatusBar}em` }"></div>
@@ -34,14 +28,14 @@
     v-if="!splitMode && showSplitViewToggle"
     icon="vertical_split"
     :label="splitViewActionLabel"
-    @click="toggleSplitView"
+    @press="toggleSplitView"
   />
 </template>
 
 <script setup lang="ts">
 import type { HLJSApi } from 'highlight.js';
 import type { Token } from "marked";
-import { computed, nextTick, onBeforeUnmount, onMounted, onUnmounted, ref, watch } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, onUnmounted, ref, useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { Marked } from "marked";
 import DOMPurify from 'dompurify';
@@ -217,7 +211,7 @@ function htmlTagBalance(raw: string): number {
 function hashText(text: string): string {
   let hash = 5381;
   for (let i = 0; i < text.length; i++) {
-    hash = ((hash << 5) + hash + text.charCodeAt(i)) | 0;
+    hash = Math.imul(hash, 33) ^ text.charCodeAt(i);
   }
   return hash.toString(36);
 }
@@ -234,8 +228,8 @@ defineOptions({ name: "markdownViewer", inheritAttrs: false });
 
 const { t } = useI18n();
 
-const scrollContainer = ref<HTMLElement | null>(null);
-const viewerEl = ref<HTMLElement | null>(null);
+const scrollContainer = useTemplateRef<HTMLElement>("scrollContainer");
+const viewerEl = useTemplateRef<HTMLElement>("viewerEl");
 
 const content = ref("");
 const mathReady = ref(false);
@@ -443,7 +437,7 @@ async function setHighlightTheme(isDark: boolean) {
     typeof globalVars.cspNonce === "string" && globalVars.cspNonce !== ""
       ? globalVars.cspNonce
       : "";
-  let style = document.getElementById(THEME_STYLE_ID) as HTMLStyleElement | null;
+  let style = document.querySelector<HTMLStyleElement>(`#${THEME_STYLE_ID}`);
   if (!style) {
     style = document.createElement("style");
     style.id = THEME_STYLE_ID;
@@ -802,7 +796,7 @@ function attachScrollListener(el: HTMLElement | null) {
 function getScrollContainer(): HTMLElement | null {
   return props.splitMode
     ? (props.scrollTarget as HTMLElement | null) || scrollContainer.value
-    : document.getElementById("main");
+    : document.querySelector<HTMLElement>("#main");
 }
 
 function getLineAnchors(): { line: number; top: number }[] {

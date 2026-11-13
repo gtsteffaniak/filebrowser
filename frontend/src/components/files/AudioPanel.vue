@@ -18,7 +18,7 @@
           position-mode="absolute"
           :edge-offset="{ top: '0.5em', right: '0.5em' }"
           :auto-hide="false"
-          @click="lyricsScrollLocked = !lyricsScrollLocked"
+          @press="lyricsScrollLocked = !lyricsScrollLocked"
           :label="lyricsLockToggleLabel"
         />
         <!-- Scrollable area -->
@@ -61,7 +61,7 @@
           position-mode="absolute"
           :edge-offset="{ top: '0.5em', right: '0.5em' }"
           :auto-hide="false"
-          @click="showVisualizerSettings"
+          @press="showVisualizerSettings"
           :label="visualizerSettingsLabel"
         />
         <canvas ref="visualizerCanvas" class="visualizer-canvas"></canvas>

@@ -426,8 +426,8 @@ export const mutations = {
     state.activeSettingsView = value;
     // Update the hash in the URL without reloading or changing history state
     window.history.replaceState(history.state, "", `#${value}`);
-    const container = document.getElementById("main");
-    const element = document.getElementById(value);
+    const container = document.querySelector<HTMLElement>("#main");
+    const element = document.querySelector<HTMLElement>(`#${CSS.escape(value)}`);
     if (container && element) {
       const offset = 4 * parseFloat(getComputedStyle(document.documentElement).fontSize); // 4em in px
       const containerTop = container.getBoundingClientRect().top;
@@ -1001,9 +1001,9 @@ export const mutations = {
     const sortedDirs = sortedItems(dirs, sortby, asc);
     const sortedFiles = sortedItems(files, sortby, asc);
     value.items = markRaw([...sortedDirs, ...sortedFiles]);
-    value.items.forEach((item: FileListItem & { index?: number }, index: number) => {
-      item.index = index;
-    });
+    for (const [index, item] of value.items.entries()) {
+      (item as FileListItem & { index?: number }).index = index;
+    }
     state.req = value;
     setActiveViewGrantScope(value?.source ?? "");
   },
@@ -1031,9 +1031,9 @@ export const mutations = {
           ...sortedItems(nextItems.filter((i) => i.type === "directory"), by, asc),
           ...sortedItems(nextItems.filter((i) => i.type !== "directory"), by, asc),
         ];
-        sortedNext.forEach((item: FileListItem & { index?: number }, index: number) => {
-          item.index = index;
-        });
+        for (const [index, item] of sortedNext.entries()) {
+          (item as FileListItem & { index?: number }).index = index;
+        }
         const newIndexByName = new Map(sortedNext.map((item, index) => [item.name, index]));
         const remap = (index: number) => {
           const name = items[index]?.name;

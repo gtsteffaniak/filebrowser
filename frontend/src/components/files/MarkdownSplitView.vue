@@ -20,7 +20,7 @@
     v-if="showSplitViewToggle"
     icon="vertical_split"
     :label="splitViewActionLabel"
-    @click="toggleSplitView"
+    @press="toggleSplitView"
   />
 </template>
 

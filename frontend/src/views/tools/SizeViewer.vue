@@ -58,7 +58,7 @@
             </div>
           </div>
 
-          <div class="treemap" ref="treemap" :class="{ 'has-expanded': expandedItem !== null }">
+          <div class="treemap" :class="{ 'has-expanded': expandedItem !== null }">
             <!-- Overlay that blocks interaction with other items when one is expanded -->
             <div v-if="expandedItem !== null" class="treemap-overlay"
               @click="collapseExpanded"
@@ -332,7 +332,7 @@ export default {
 
       // Initialize largerThanValue: query > prop > default
       if (query.largerThan !== undefined && query.largerThan !== null) {
-        const parsed = parseInt(String(query.largerThan), 10);
+        const parsed = parseInt(query.largerThan, 10);
         if (!Number.isNaN(parsed)) {
           this.largerThanValue = parsed;
         }
@@ -635,7 +635,7 @@ export default {
         const syntheticEvent = {
           clientX: touch.clientX,
           clientY: touch.clientY,
-          preventDefault: () => event.preventDefault(),
+          preventDefault: () => {}, // too late to cancel the original touchstart
         };
         this.onRightClick(syntheticEvent, item);
         this.touchHoldTimer = null;

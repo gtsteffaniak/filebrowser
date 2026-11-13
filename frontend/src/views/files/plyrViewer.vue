@@ -14,7 +14,7 @@
         :badge="!showDesktopPanel ? queueCount : null"
         :auto-hide="!showDesktopPanel"
         :offset="{ zIndex: 9999 }"
-        @click="showDesktopPanel = !showDesktopPanel"
+        @press="showDesktopPanel = !showDesktopPanel"
         :label="desktopPanelToggleLabel"
       />
 
@@ -178,7 +178,7 @@
       icon="queue_music"
       :badge="queueCount"
       group="plyr-controls"
-      @click="showQueuePrompt"
+      @press="showQueuePrompt"
       :label="queueButtonLabel"
     />
 
@@ -189,7 +189,7 @@
       position="top-left"
       zone-height="8.5em"
       group="plyr-controls"
-      @click="showMobileLyrics = !showMobileLyrics"
+      @press="showMobileLyrics = !showMobileLyrics"
       :label="lyricsToggleLabel"
     />
 
@@ -202,7 +202,7 @@
       size="small"
       :offset="{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 6rem)' }"
       :auto-hide="false"
-      @click="mobileLyricsScrollLocked = !mobileLyricsScrollLocked"
+      @press="mobileLyricsScrollLocked = !mobileLyricsScrollLocked"
       :label="mobileLyricsLockToggleLabel"
     />
 

@@ -1,6 +1,5 @@
 <template>
   <SidebarLinksEditor
-    ref="editor"
     embedded
     :mode="context"
     :share-data="shareData"

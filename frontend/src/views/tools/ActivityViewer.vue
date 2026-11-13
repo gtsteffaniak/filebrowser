@@ -9,7 +9,7 @@
             v-model="activityScope"
             :options="activityScopeOptions"
             all-value="all"
-            @update:modelValue="onScopeChange"
+            @update:model-value="onScopeChange"
           />
         </div>
 
@@ -18,7 +18,7 @@
           <ExpandDropdown
             v-model="timePreset"
             :options="timePresetOptions"
-            @update:modelValue="onTimePresetChange"
+            @update:model-value="onTimePresetChange"
           />
         </div>
 
@@ -35,7 +35,7 @@
           <ExpandDropdown
             v-model="selectedUsername"
             :options="usernameOptions"
-            :all-value="''"
+            all-value=""
           />
         </div>
 
@@ -109,7 +109,7 @@
                 <ExpandDropdown
                   v-model="filterSource"
                   :options="filterSourceOptions"
-                  :default-value="''"
+                  default-value=""
                   :default-placeholder-if-empty="$t('general.allSources')"
                 />
               </div>
@@ -470,7 +470,7 @@ function cssColorWithAlpha(color, alpha) {
 }
 
 function chartThemeStyles() {
-  const themeEl = document.getElementById("main") || document.body;
+  const themeEl = document.querySelector("#main") || document.body;
   return getComputedStyle(themeEl);
 }
 
@@ -499,15 +499,15 @@ const pieSliceLabelsPlugin = {
       return;
     }
 
-    args.meta.data.forEach((arc, index) => {
+    for (const [index, arc] of args.meta.data.entries()) {
       const value = Number(dataset.data.at(index) || 0);
       if (value <= 0) {
-        return;
+        continue;
       }
 
       const percentage = (value / total) * 100;
       if (percentage < 3.5) {
-        return;
+        continue;
       }
 
       const { x, y } = arc.tooltipPosition();
@@ -527,7 +527,7 @@ const pieSliceLabelsPlugin = {
       ctx.font = "500 10px system-ui, -apple-system, sans-serif";
       ctx.fillText(valueLine, x, label ? y + 8 : y);
       ctx.restore();
-    });
+    }
   },
 };
 
@@ -1261,7 +1261,7 @@ export default {
       }
       this.clampUserFiltersForRole();
       if (queryValuePresent(query.page)) {
-        const page = parseInt(String(query.page), 10);
+        const page = parseInt(query.page, 10);
         if (!Number.isNaN(page) && page >= 1) {
           this.currentPage = page;
         }

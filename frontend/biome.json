@@ -72,7 +72,6 @@
         "noVueRequiredPropWithDefault": "warn",
         "noBooleanSortComparator": "error",
         "noObsoleteAttributes": "error",
-        "noPlaywrightNthMethods": "warn",
         "noUnsafeReturn": "warn",
         "noUselessSplice": "warn",
         "noVueWatchAfterAwait": "error",

@@ -6,7 +6,7 @@
     :edge-offset="{ bottom: '1rem', right: '1rem' }"
     :auto-hide="false"
     :label="$t('general.new')"
-    @click="addAccess"
+    @press="addAccess"
   />
   <errors v-if="error" :errorCode="error.status" />
   <div class="card-title">

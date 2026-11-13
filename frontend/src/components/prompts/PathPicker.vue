@@ -1,6 +1,6 @@
 <template>
   <div class="card-content">
-    <file-list ref="fileList" @update:selected="updateSelection" :browseSource="listBrowseSource"
+    <file-list @update:selected="updateSelection" :browseSource="listBrowseSource"
       :browse-path="initialBrowsePath" :hide-destination-source="hideDestinationSource" :showFiles="showFiles"
       :showFolders="showFolders" :require-file-selection="requireFileSelection"
       :allowed-file-types="allowedFileTypes" :title="listTitle" v-model:filter-query="filterQuery">

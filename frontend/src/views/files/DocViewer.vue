@@ -2,6 +2,7 @@
   <div class="viewer-background">
     <div v-if="loading" class="status-text">{{ $t('general.loading', { suffix: "..." }) }}</div>
     <div v-else-if="error" class="status-text error">{{ error }}</div>
+    <!-- biome-ignore lint/nursery/noVueVHtml: sanitized by sanitizeDocxHtml -->
     <div v-else class="docx-page" v-html="docxHtml"></div>
   </div>
 </template>

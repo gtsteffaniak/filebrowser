@@ -6,7 +6,7 @@
     :edge-offset="{ bottom: '1rem', right: '1rem' }"
     :auto-hide="false"
     :label="$t('access.newGroup')"
-    @click="openPrompt(null)"
+    @press="openPrompt(null)"
   />
   <errors v-if="error" :errorCode="error.status" />
   <div class="card-title">

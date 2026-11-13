@@ -50,12 +50,12 @@ function inlineMd(text) {
 
 function fillMeta() {
   const browsers = data.browsers?.join(", ") ?? "—";
-  document.getElementById("meta").textContent =
+  document.querySelector("#meta").textContent =
     `Generated ${new Date(data.generatedAt).toLocaleString()} · browsers: ${browsers} · scales ${data.scales.join(", ")}`;
 }
 
 function fillSummary() {
-  const ul = document.getElementById("summary");
+  const ul = document.querySelector("#summary");
   ul.innerHTML = "";
   for (const row of data.summary ?? []) {
     const li = document.createElement("li");
@@ -73,7 +73,7 @@ function severityClass(sev) {
 }
 
 function fillSlowestContributors() {
-  const root = document.getElementById("slowest-root");
+  const root = document.querySelector("#slowest-root");
   root.innerHTML = "";
   for (const row of data.summary ?? []) {
     const card = document.createElement("article");
@@ -122,7 +122,7 @@ function repeatSamples(browser, scale, scenario) {
 }
 
 function fillRuns() {
-  const tbody = document.getElementById("runs-body");
+  const tbody = document.querySelector("#runs-body");
   tbody.innerHTML = "";
   const runs = [...(data.runs ?? [])].sort((a, b) => {
     const scale = a.scale - b.scale;
@@ -158,7 +158,7 @@ function fillRuns() {
 }
 
 function showRunDetail(run) {
-  const panel = document.getElementById("run-detail");
+  const panel = document.querySelector("#run-detail");
   panel.hidden = false;
   panel.innerHTML = "";
 
@@ -207,7 +207,7 @@ function showRunDetail(run) {
 }
 
 function fillAnalysisTable() {
-  const tbody = document.getElementById("analysis-body");
+  const tbody = document.querySelector("#analysis-body");
   tbody.innerHTML = "";
   const rows = data.analysisTable ?? [];
   const max = 500;
@@ -303,7 +303,7 @@ function lineChartOptions(yTitle) {
 }
 
 function renderScalingCharts() {
-  const root = document.getElementById("scaling-grid");
+  const root = document.querySelector("#scaling-grid");
   if (!root) return;
   root.innerHTML = "";
   const browsers = data.browsers ?? [];
@@ -361,7 +361,7 @@ function renderScalingCharts() {
         spanGaps: true,
       });
 
-      scales.forEach((scale, idx) => {
+      for (const [idx, scale] of scales.entries()) {
         for (const sample of repeatSamples(browser, scale, scenario)) {
           datasets.push({
             label: `${browser} repeat`,
@@ -373,7 +373,7 @@ function renderScalingCharts() {
             showLine: false,
           });
         }
-      });
+      }
     }
 
     makeChart(canvas, {
@@ -385,7 +385,7 @@ function renderScalingCharts() {
 }
 
 function renderPerRowCharts() {
-  const root = document.getElementById("per-row-grid");
+  const root = document.querySelector("#per-row-grid");
   if (!root) return;
   root.innerHTML = "";
   const browsers = data.browsers ?? [];
@@ -432,7 +432,7 @@ function renderPerRowCharts() {
 }
 
 function renderDomCharts() {
-  const root = document.getElementById("dom-grid");
+  const root = document.querySelector("#dom-grid");
   root.innerHTML = "";
   for (const browser of data.browsers ?? []) {
     const d = data.charts.domAtLoad[browser];
@@ -642,7 +642,7 @@ function chip(group, value, label, count) {
 function renderDeltaPills() {
   const counts = { all: deltaAll.length, regression: 0, improvement: 0, pass: 0, missing: 0 };
   for (const r of deltaAll) counts[r.status] = (counts[r.status] ?? 0) + 1;
-  document.getElementById("delta-pills").innerHTML =
+  document.querySelector("#delta-pills").innerHTML =
     `<div class="filter-group"><span class="lbl">Status</span>` +
     chip("status", "all", "all", counts.all) +
     chip("status", "regression", "regression", counts.regression) +
@@ -661,7 +661,7 @@ function renderDeltaHist() {
     if (r.bucket) counts[r.bucket] += 1;
   }
   const max = Math.max(1, ...Object.values(counts));
-  const root = document.getElementById("delta-hist");
+  const root = document.querySelector("#delta-hist");
   root.innerHTML = "";
   for (const b of DELTA_BUCKETS) {
     const n = counts[b.id];
@@ -679,7 +679,7 @@ function renderDeltaHist() {
     root.appendChild(btn);
   }
 
-  const strip = document.getElementById("delta-strip");
+  const strip = document.querySelector("#delta-strip");
   const sorted = [...visibleForHist].sort(
     (a, b) => (b.signedPct ?? -Infinity) - (a.signedPct ?? -Infinity),
   );
@@ -709,7 +709,7 @@ function renderDeltaFilters() {
   const scales = [...new Set(deltaAll.map((r) => r.scale))].sort((a, b) => a - b);
   const scenarios = [...new Set(deltaAll.map((r) => r.scenario))];
   const klasses = [...new Set(deltaAll.map((r) => r.klass))];
-  const root = document.getElementById("delta-filters");
+  const root = document.querySelector("#delta-filters");
   root.innerHTML =
     `<div class="filter-group"><span class="lbl">Scale</span>` +
     chip("scale", "all", "all") +
@@ -726,9 +726,9 @@ function renderDeltaFilters() {
 }
 
 function renderDeltaTable() {
-  const tbody = document.getElementById("delta-body");
+  const tbody = document.querySelector("#delta-body");
   const rows = sortDeltaRows(deltaAll.filter(matchesDeltaFilter));
-  document.getElementById("delta-shown").textContent =
+  document.querySelector("#delta-shown").textContent =
     `Showing ${rows.length} of ${deltaAll.length} compared metrics` +
     (deltaFilter.bucket === "all" ? "" : ` · bucket ${DELTA_BUCKETS.find((b) => b.id === deltaFilter.bucket)?.label ?? ""}`);
 
@@ -810,28 +810,28 @@ function onDeltaSort(ev) {
  */
 function fillDelta() {
   const cmp = data.comparison;
-  const section = document.getElementById("delta-section");
-  const heading = document.getElementById("delta-heading");
-  const note = document.getElementById("delta-note");
+  const section = document.querySelector("#delta-section");
+  const heading = document.querySelector("#delta-heading");
+  const note = document.querySelector("#delta-note");
 
   section.hidden = false;
   if (!deltaBound) {
-    document.getElementById("delta-pills").addEventListener("click", onDeltaClick);
-    document.getElementById("delta-filters").addEventListener("click", onDeltaClick);
-    document.getElementById("delta-hist").addEventListener("click", onDeltaClick);
-    document.getElementById("delta-strip").addEventListener("click", onDeltaClick);
-    document.getElementById("delta-table").querySelector("thead").addEventListener("click", onDeltaSort);
+    document.querySelector("#delta-pills").addEventListener("click", onDeltaClick);
+    document.querySelector("#delta-filters").addEventListener("click", onDeltaClick);
+    document.querySelector("#delta-hist").addEventListener("click", onDeltaClick);
+    document.querySelector("#delta-strip").addEventListener("click", onDeltaClick);
+    document.querySelector("#delta-table").querySelector("thead").addEventListener("click", onDeltaSort);
     deltaBound = true;
   }
 
   if (!cmp?.hasBaseline) {
     if (heading) heading.textContent = "Baseline comparison";
-    document.getElementById("delta-hist").innerHTML = "";
-    document.getElementById("delta-strip").innerHTML = "";
-    document.getElementById("delta-pills").innerHTML = "";
-    document.getElementById("delta-filters").innerHTML = "";
-    document.getElementById("delta-shown").textContent = "";
-    document.getElementById("delta-body").innerHTML =
+    document.querySelector("#delta-hist").innerHTML = "";
+    document.querySelector("#delta-strip").innerHTML = "";
+    document.querySelector("#delta-pills").innerHTML = "";
+    document.querySelector("#delta-filters").innerHTML = "";
+    document.querySelector("#delta-shown").textContent = "";
+    document.querySelector("#delta-body").innerHTML =
       '<tr><td colspan="8">No baseline yet — run <code>make perf-baseline</code> ' +
       "(chromium, in CI).</td></tr>";
     if (note) {
@@ -879,8 +879,8 @@ function fmtPct(n) {
 
 /** Ranked cross-browser findings. */
 function fillHeadlines() {
-  const list = document.getElementById("headlines");
-  const section = document.getElementById("headlines-section");
+  const list = document.querySelector("#headlines");
+  const section = document.querySelector("#headlines-section");
   if (!list || !section) return;
   const items = data.headlines ?? [];
   if (items.length === 0) {
@@ -907,7 +907,7 @@ function fillHeadlines() {
 
 /** Reproducibility header. */
 function fillEnvironment() {
-  const el = document.getElementById("env-line");
+  const el = document.querySelector("#env-line");
   if (!el) return;
   const env = data.environment ?? {};
   const git = data.git ?? {};
@@ -936,9 +936,9 @@ async function main() {
     renderDomCharts();
     fillRuns();
     fillAnalysisTable();
-    document.getElementById("content").hidden = false;
+    document.querySelector("#content").hidden = false;
   } catch (e) {
-    const el = document.getElementById("load-error");
+    const el = document.querySelector("#load-error");
     el.hidden = false;
     el.textContent = String(e.message || e);
   }

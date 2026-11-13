@@ -18,7 +18,7 @@
         <div class="eye right"><div class="pupil"></div></div>
       </div>
     </div>
-    <div v-show="active" id="results" ref="result">
+    <div v-show="active" id="results">
       <div class="inputWrapper">
         <ExpandDropdown
           v-if="multipleSources"
@@ -113,7 +113,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, toRefs, watch, type Ref } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, toRefs, useTemplateRef, watch, type Ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { useListingContextMenu } from "@/composables/useListingContextMenu.ts";
 import { useSearchFilters } from "@/composables/useSearchFilters.ts";
@@ -150,8 +150,8 @@ interface SearchResult {
 
 const { t } = useI18n();
 
-const resultListEl = ref<HTMLElement | null>(null);
-const input = ref<HTMLInputElement | null>(null);
+const resultListEl = useTemplateRef<HTMLElement>("resultListEl");
+const input = useTemplateRef<HTMLInputElement>("input");
 const noneMessage = ref(t("search.typeToSearch", { minSearchLength: globalVars.minSearchLength }));
 const showPreviewImages = ref(false);
 const advancedOptionsExpanded = ref(false);

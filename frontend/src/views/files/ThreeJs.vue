@@ -18,7 +18,7 @@
       icon="settings"
       position="bottom-left"
       :auto-hide="false"
-      @click="showControlsPrompt"
+      @press="showControlsPrompt"
       :label="$t('threejs.controls')"
     />
   </div>

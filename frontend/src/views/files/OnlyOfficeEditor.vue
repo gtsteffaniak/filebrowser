@@ -15,7 +15,7 @@
     interactive-zone
     :auto-hide="false"
     :label="$t('general.close', { suffix: '' })"
-    @click="close"
+    @press="close"
   />
 </template>
 

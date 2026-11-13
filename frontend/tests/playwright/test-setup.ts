@@ -302,7 +302,7 @@ export async function createShareAndGetHash(
 
   await expect(async () => {
     if ((await rows.count()) === 1) {
-      const existingHash = (await rows.first().locator("td").first().textContent())?.trim();
+      const existingHash = (await rows.locator("td:first-child").textContent())?.trim();
       if (existingHash) {
         shareHash = existingHash;
         return;
@@ -317,7 +317,7 @@ export async function createShareAndGetHash(
     await confirmButton.click();
 
     await expect(rows).toHaveCount(1);
-    const hash = (await rows.first().locator("td").first().textContent())?.trim();
+    const hash = (await rows.locator("td:first-child").textContent())?.trim();
     if (!hash) {
       throw new Error("Share hash not yet available");
     }
@@ -476,19 +476,19 @@ export function setupErrorTracking(page: Page) {
     checkForErrors: (expectedConsoleErrors = 0, expectedApiErrors = 0) => {
       if (consoleErrors.length !== expectedConsoleErrors) {
         console.error(`\n=== Unexpected Console Errors (Expected: ${expectedConsoleErrors}, Got: ${consoleErrors.length}) ===`);
-        consoleErrors.forEach((error, index) => {
+        for (const [index, error] of consoleErrors.entries()) {
           console.error(`\nError ${index + 1}:`);
           console.error(error);
           console.error('---');
-        });
+        }
         console.error('=== End Console Errors ===\n');
       }
 
       if (failedResponses.length !== expectedApiErrors) {
         console.error(`\n=== Unexpected Failed API Calls (Expected: ${expectedApiErrors}, Got: ${failedResponses.length}) ===`);
-        failedResponses.forEach((response, index) => {
+        for (const [index, response] of failedResponses.entries()) {
           console.error(`\nFailed Request ${index + 1}: ${response.status} - ${response.url}`);
-        });
+        }
         console.error('=== End Failed API Calls ===\n');
       }
 
@@ -549,10 +549,8 @@ export async function waitForListing3dThumbnails(
 ): Promise<void> {
   const timeout = options?.timeout ?? 20_000;
   const viewers = page.locator(".listing-items .threejs-viewer");
-  await expect(viewers.first()).toBeVisible({ timeout });
-  const count = await viewers.count();
-  for (let i = 0; i < count; i++) {
-    const viewer = viewers.nth(i);
+  await expect(viewers.filter({ visible: true })).not.toHaveCount(0, { timeout });
+  for (const viewer of await viewers.all()) {
     await viewer.scrollIntoViewIfNeeded();
     await expect(viewer.locator(".loading-overlay")).toBeHidden({ timeout });
     await expect(viewer.locator("canvas")).toBeVisible({ timeout });
@@ -634,12 +632,10 @@ export async function checkForNotification(page: Page, message: string | RegExp)
     } else {
       // For RegExp, we need to check all and find the match
       // Wait for at least one notification or toast first
-      await allMessages.first().waitFor({ state: 'visible', timeout: 5000 });
+      await expect(allMessages.filter({ visible: true })).not.toHaveCount(0, { timeout: 5000 });
 
       // Then check all messages
-      const count = await allMessages.count();
-      for (let i = 0; i < count; i++) {
-        const messageElement = allMessages.nth(i);
+      for (const messageElement of await allMessages.all()) {
         const text = await messageElement.textContent();
         if (text && message.test(text)) {
           matchingMessage = messageElement;
@@ -741,10 +737,8 @@ export async function checkForToast(page: Page, message: string | RegExp): Promi
     if (typeof message === 'string') {
       matchingToast = toastMessage.filter({ hasText: message }).first();
     } else {
-      await toastMessage.first().waitFor({ state: 'visible', timeout: 5000 });
-      const count = await toastMessage.count();
-      for (let i = 0; i < count; i++) {
-        const toast = toastMessage.nth(i);
+      await expect(toastMessage.filter({ visible: true })).not.toHaveCount(0, { timeout: 5000 });
+      for (const toast of await toastMessage.all()) {
         const text = await toast.textContent();
         if (text && message.test(text)) {
           matchingToast = toast;

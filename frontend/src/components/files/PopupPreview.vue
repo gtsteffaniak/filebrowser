@@ -13,7 +13,7 @@
         :key="sourceInfo.path"
         :url="sourceInfo.textUrl"
         :modified="sourceInfo.modified"
-        @error="onTextError"
+        @load-error="onTextError"
       />
     </div>
     <img v-else-if="sourceInfo?.url" :src="sourceInfo.url" alt="Popup img" @load="onImageLoad" />

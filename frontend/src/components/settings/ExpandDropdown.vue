@@ -95,12 +95,11 @@
                 :options="normalizedOptions"
                 :selected-keys="selectedKeys"
                 :allow-search="allowSearch"
-                :search-query="searchQuery"
+                v-model:search-query="searchQuery"
                 :search-placeholder="searchPlaceholder"
                 :empty-label="emptyLabel"
                 :max-height="dropdownMaxHeight"
-                @select="selectOption"
-                @update:search-query="searchQuery = $event"
+                @option-select="selectOption"
                 @close="close"
               />
             </div>
@@ -127,12 +126,11 @@
               :options="normalizedOptions"
               :selected-keys="selectedKeys"
               :allow-search="allowSearch"
-              :search-query="searchQuery"
+              v-model:search-query="searchQuery"
               :search-placeholder="searchPlaceholder"
               :empty-label="emptyLabel"
               :max-height="dropdownMaxHeight"
-              @select="selectOption"
-              @update:search-query="searchQuery = $event"
+              @option-select="selectOption"
               @close="close"
             />
           </div>
@@ -227,7 +225,7 @@ export default {
     },
   },
 
-  emits: ["update:modelValue"],
+  emits: { "update:modelValue": (_value) => true },
 
   data() {
     expandDropdownIdCounter += 1;
