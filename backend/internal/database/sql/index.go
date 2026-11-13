@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/sqlitebusy"
@@ -19,6 +20,10 @@ import (
 // It wraps the underlying sql.DB connection and provides type-safe methods.
 type IndexDB struct {
 	*TempDB
+	// fullTextDisabled is set when FTS5 is unavailable (e.g. a SQLite build without it);
+	// search then falls back to name matching only. Guarded by fullTextMu.
+	fullTextDisabled bool
+	fullTextMu       sync.Mutex
 }
 
 func createIndexDB(name string, journalMode string, lockingMode string, batchSize int, cacheSizeMB int, disableReuse bool) (*IndexDB, error) {
@@ -263,7 +268,10 @@ func (db *IndexDB) CreateIndexTable() error {
 	if err != nil {
 		return err
 	}
-	return db.ensureCreatedTimeColumn()
+	if err := db.ensureCreatedTimeColumn(); err != nil {
+		return err
+	}
+	return db.CreateFullTextTable()
 }
 
 // ensureCreatedTimeColumn adds the created_time column to index_items when it is
@@ -436,10 +444,30 @@ func (db *IndexDB) attemptBulkInsert(source string, items []*iteminfo.FileInfo) 
 	}
 	defer stmt.Close()
 
+	// Full-text rows share index_items.rowid so search and deletes stay trivial.
+	// A missing FTS table (index built without it) only disables content indexing.
+	var ftsStmt *sql.Stmt
+	if !db.fullTextDisabled {
+		ftsStmt, err = tx.Prepare(`INSERT INTO index_fts(rowid, source, path, body) VALUES (?, ?, ?, ?)`)
+		if err != nil {
+			if sqlitebusy.IsBusyOrLocked(err) {
+				logger.Debugf("[DB_TX] BulkInsertItems: FTS prepare busy/locked: %v", err)
+				return false, true, nil
+			}
+			db.fullTextMu.Lock()
+			db.fullTextDisabled = true
+			db.fullTextMu.Unlock()
+			logger.Warningf("[DB_TX] BulkInsertItems: full-text index unavailable, writing names only: %v", err)
+		}
+	}
+	if ftsStmt != nil {
+		defer ftsStmt.Close()
+	}
+
 	nowUnix := time.Now().Unix()
 	for _, info := range items {
 		parentPath := getParentPath(info.Path)
-		_, err := stmt.Exec(
+		res, err := stmt.Exec(
 			source,
 			info.Path,
 			parentPath,
@@ -459,6 +487,16 @@ func (db *IndexDB) attemptBulkInsert(source string, items []*iteminfo.FileInfo) 
 				return false, true, nil
 			}
 			logger.Errorf("[DB] BulkInsertItems: Exec failed for path=%s, source=%s, error=%v", info.Path, source, err)
+			return false, false, err
+		}
+		if ftsStmt == nil || info.IsDir || info.Type == "directory" {
+			continue
+		}
+		if err := upsertFullText(tx, ftsStmt, res, source, info); err != nil {
+			if sqlitebusy.IsBusyOrLocked(err) {
+				return false, true, nil
+			}
+			logger.Errorf("[DB] BulkInsertItems: FTS write failed for path=%s, source=%s, error=%v", info.Path, source, err)
 			return false, false, err
 		}
 	}
@@ -562,8 +600,10 @@ func (db *IndexDB) GetDirectoryChildren(source, dirPath string) ([]*iteminfo.Fil
 // DeleteItem removes an item and optionally its children (recursive) for a specific source.
 func (db *IndexDB) DeleteItem(source, path string, recursive bool) error {
 	if !recursive {
-		_, err := db.Exec("DELETE FROM index_items WHERE source = ? AND path = ?", source, path)
-		return err
+		if _, err := db.Exec("DELETE FROM index_items WHERE source = ? AND path = ?", source, path); err != nil {
+			return err
+		}
+		return db.deleteFullText("source = ? AND path = ?", source, path)
 	}
 
 	// Recursive delete
@@ -581,8 +621,10 @@ func (db *IndexDB) DeleteItem(source, path string, recursive bool) error {
 
 	// Delete children - use range query on PRIMARY KEY (source, path) for optimal index utilization
 	nextPrefix := getNextPathPrefix(dirPrefix)
-	_, err := db.Exec("DELETE FROM index_items WHERE source = ? AND path >= ? AND path < ?", source, dirPrefix, nextPrefix)
-	return err
+	if _, err := db.Exec("DELETE FROM index_items WHERE source = ? AND path >= ? AND path < ?", source, dirPrefix, nextPrefix); err != nil {
+		return err
+	}
+	return db.deleteFullText("source = ? AND path >= ? AND path < ?", source, dirPrefix, nextPrefix)
 }
 
 // helps prevent SQLite page cache memory leaks by shrinking memory
@@ -705,6 +747,12 @@ func (db *IndexDB) DeleteStaleFolders(source string, pathPrefix string, scanStar
 		}
 	}
 
+	if totalDeleted > 0 {
+		if err := db.purgeFullTextOrphans(source, pathPrefix); err != nil {
+			logger.Debugf("[DB_MAINTENANCE] DeleteStaleFolders: full-text purge failed: %v", err)
+		}
+	}
+
 	return totalDeleted, nil
 }
 
@@ -769,6 +817,12 @@ func (db *IndexDB) DeleteStaleFilesInDirs(source string, updatedDirs []string, s
 
 			if rowsAffected < deleteLimit {
 				break // No more files to delete in this batch
+			}
+		}
+
+		for _, dir := range batch {
+			if err := db.purgeFullTextOrphans(source, dir); err != nil {
+				logger.Debugf("[DB_MAINTENANCE] DeleteStaleFilesInDirs: full-text purge failed: %v", err)
 			}
 		}
 	}
@@ -837,6 +891,14 @@ func (db *IndexDB) DeleteStaleEntries(source string, pathPrefix string, scanStar
 		}
 	}
 
+	// Stale sweeps also drop rows written by API updates between scans, so only
+	// purge full-text rows when a scan actually removed something.
+	if totalDeleted > 0 {
+		if err := db.purgeFullTextOrphans(source, pathPrefix); err != nil {
+			logger.Debugf("[DB_MAINTENANCE] DeleteStaleEntries: full-text purge failed: %v", err)
+		}
+	}
+
 	return totalDeleted, nil
 }
 
@@ -859,6 +921,11 @@ func (db *IndexDB) DeleteStaleItemsOlderThan(olderThan time.Duration) (int, erro
 	}
 
 	rowsAffected, _ := result.RowsAffected()
+	if rowsAffected > 0 {
+		if err := db.deleteFullText("rowid NOT IN (SELECT rowid FROM index_items)"); err != nil {
+			logger.Debugf("[DB_MAINTENANCE] DeleteStaleItemsOlderThan: full-text purge failed: %v", err)
+		}
+	}
 	return int(rowsAffected), nil
 }
 

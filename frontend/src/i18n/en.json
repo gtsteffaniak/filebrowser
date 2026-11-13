@@ -537,6 +537,8 @@
     "showPreviewImagesDescription": "Display thumbnail previews for search results when available, and show larger icons for all results.",
     "useWildcardSearch": "Wildcard search",
     "useWildcardSearchDescription": "Supported wildcard options:\n\n• Match any sequence: *\n\n• Match one character: ?\n\n• Character class: [a-z], [0-9]\n\n• Negation: [^0-9]\n\n• Literal *, ?, or [ need to be wrapped in brackets, e.g. [*], [?], [[]",
+    "searchContent": "Search file contents",
+    "searchContentDescription": "Also match text inside files (text, code, markdown, and PDF/Office documents when enabled on the server). Requires the server to have full-text search turned on; not available with wildcard search.",
     "caseExact": "Case-sensitive match",
     "caseExactDescription": "Match file and folder names using exact letter casing instead of ignoring upper and lower case.",
     "helpText1": "Search occurs on each character you type ({minSearchLength} character minimum).",

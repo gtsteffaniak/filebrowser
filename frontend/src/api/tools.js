@@ -3,7 +3,7 @@ import { getApiPath } from "@/utils/url.js";
 import { fetchURL, fetchJSON } from "./utils.ts";
 
 // GET /api/tools/search
-// extraParams: optional { limit, olderThan, newerThan, useWildcard, terms, termJoin, perSourceScopes }
+// extraParams: optional { limit, olderThan, newerThan, useWildcard, searchContent, terms, termJoin, perSourceScopes }
 // perSourceScopes: non-empty array of { source, path } sends repeated scope=source:path.
 export async function search(base, sources, query, largest = false, extraParams = {}) {
   try {
@@ -76,6 +76,9 @@ export async function search(base, sources, query, largest = false, extraParams 
     }
     if (extraParams.useWildcard === true) {
       params.useWildcard = "true";
+    }
+    if (extraParams.searchContent === true) {
+      params.searchContent = "true";
     }
 
     const apiPath = getApiPath("tools/search", params);

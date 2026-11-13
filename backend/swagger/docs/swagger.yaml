@@ -525,6 +525,10 @@ definitions:
       disableReuse:
         description: enable to always create a new indexing database on startup.
         type: boolean
+      fullTextSearch:
+        description: 'index file contents (text, markdown, code, PDF/Office when built
+          with mupdf) into SQLite FTS5 so searches match inside files (default: false)'
+        type: boolean
       startupIntegrityCheck:
         description: 'the method used to check the integrity of the index database
           on startup (default: quickCheck)'
@@ -5154,6 +5158,11 @@ paths:
           patterns)
         in: query
         name: useWildcard
+        type: boolean
+      - description: When true, search terms must match file contents (text, code,
+          PDF/Office when indexed); requires server.indexSqlConfig.fullTextSearch
+        in: query
+        name: searchContent
         type: boolean
       - description: Requested advanced search limit, capped by server.searchResultsLimit
           (default 1000); omitted for quick search (100)

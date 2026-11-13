@@ -34,6 +34,9 @@ type FileInfo struct {
 	Path    string             `json:"path,omitempty"`    // path scoped to the associated index
 	// IsDir is the index DB is_dir column; Type alone can disagree (legacy or malformed rows).
 	IsDir bool `json:"-"`
+	// FullTextBody is optional extracted content written to the search index; nil keeps
+	// the existing content row (or leaves the item name-only).
+	FullTextBody *string `json:"-"`
 }
 
 // MediaMetadata contains metadata extracted from audio and video files

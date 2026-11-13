@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/fileutils"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/fulltext"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing/iteminfo"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
@@ -40,6 +41,9 @@ func (idx *Index) UpdateMetadata(info *iteminfo.FileInfo, scanner *Scanner, pers
 		fileItem := &iteminfo.FileInfo{
 			ItemInfo: f.ItemInfo,
 			Path:     filePath,
+		}
+		if settings.Config.Server.IndexSqlConfig.FullTextSearch {
+			fileItem.FullTextBody = fulltext.Extract(filepath.Join(idx.Path, strings.TrimPrefix(filePath, "/")), f.Name, f.Type)
 		}
 		items = append(items, fileItem)
 	}

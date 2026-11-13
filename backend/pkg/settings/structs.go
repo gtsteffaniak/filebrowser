@@ -129,6 +129,7 @@ type IndexSqlConfig struct {
 	WalMode               bool   `json:"walMode"`                                                                         // enable the more complex WAL journaling mode. Slower, more memory usage, but better for deployments with constant user activity.
 	DisableReuse          bool   `json:"disableReuse"`                                                                    // enable to always create a new indexing database on startup.
 	StartupIntegrityCheck string `json:"startupIntegrityCheck,omitempty" validate:"omitempty,oneof=quickCheck probe off"` // the method used to check the integrity of the index database on startup (default: quickCheck)
+	FullTextSearch        bool   `json:"fullTextSearch"`                                                                  // index file contents (text, markdown, code, PDF/Office when built with mupdf) into SQLite FTS5 so searches match inside files (default: false)
 }
 
 type Integrations struct {

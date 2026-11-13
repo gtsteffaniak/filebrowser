@@ -23,6 +23,7 @@ type searchOptions struct {
 	sessionId     string
 	largest       bool
 	useWildcard   bool
+	searchContent bool
 	olderThanUnix int64 // optional; 0 = unset. Modified time must be strictly before this Unix second.
 	newerThanUnix int64 // optional; 0 = unset. Modified time must be >= this Unix second.
 }
@@ -56,6 +57,7 @@ type scopedSourcePath struct {
 // - olderThan: Optional Unix time in seconds; only items modified strictly before this instant
 // - newerThan: Optional Unix time in seconds; only items modified on or after this instant
 // - useWildcard: Optional; when true, file names are matched with SQLite GLOB (wildcards) instead of substring search
+// - searchContent: Optional; require server.indexSqlConfig.fullTextSearch. Terms must also match file contents (FTS5)
 //
 // @Summary Search Files
 // @Description Searches for files matching the provided query. Returns file paths and metadata based on the user's session and scope. Supports searching across multiple sources when using the 'sources' parameter.
@@ -69,6 +71,7 @@ type scopedSourcePath struct {
 // @Param olderThan query int false "Unix seconds; only results modified strictly before this time"
 // @Param newerThan query int false "Unix seconds; only results modified on or after this time"
 // @Param useWildcard query bool false "When true, match indexed file names with SQLite GLOB (wildcard patterns)"
+// @Param searchContent query bool false "When true, search terms must match file contents (text, code, PDF/Office when indexed); requires server.indexSqlConfig.fullTextSearch"
 // @Param limit query int false "Requested advanced search limit, capped by server.searchResultsLimit (default 1000); omitted for quick search (100)"
 // @Param termJoin query string false "Optional: 'and' to require all repeated 'terms' match; default is OR"
 // @Success 200 {array} indexing.SearchResult "List of search results with source field populated"
@@ -78,6 +81,10 @@ func searchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, err
 	searchOptions, err := prepSearchOptions(r, d)
 	if err != nil {
 		return http.StatusBadRequest, err
+	}
+
+	if searchOptions.searchContent && !settings.Config.Server.IndexSqlConfig.FullTextSearch {
+		return http.StatusBadRequest, fmt.Errorf("content search is disabled on this server; enable server.indexSqlConfig.fullTextSearch")
 	}
 
 	searchSize := indexing.DefaultSearchResults
@@ -94,6 +101,16 @@ func searchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, err
 		}
 	}
 
+	// Full-text hits are only filtered for access after the DB query, so a quick
+	// search reads more per-source rows and trims to searchSize after the access
+	// filter. Advanced (explicit limit) searches keep their existing DB-side cap.
+	dbLimit := searchSize
+	if !searchOptions.largest && !searchOptions.useWildcard && len(searchOptions.parsed.Terms) > 0 && r.URL.Query().Get("limit") == "" {
+		if perSource := settings.Config.Server.SearchResultsLimit / len(searchOptions.sources); perSource > searchSize {
+			dbLimit = perSource
+		}
+	}
+
 	var response []*indexing.SearchResult
 	if len(searchOptions.sources) == 1 {
 		index := indexing.GetIndex(searchOptions.sources[0])
@@ -101,9 +118,9 @@ func searchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, err
 			return http.StatusBadRequest, fmt.Errorf("index not found for source %s", searchOptions.sources[0])
 		}
 		combinedPath := searchOptions.combinedPath[searchOptions.sources[0]]
-		response = index.SearchParsed(searchOptions.parsed, combinedPath, searchOptions.sessionId, searchOptions.largest, searchSize, searchOptions.olderThanUnix, searchOptions.newerThanUnix, searchOptions.useWildcard)
+		response = index.SearchParsed(searchOptions.parsed, combinedPath, searchOptions.sessionId, searchOptions.largest, dbLimit, searchOptions.olderThanUnix, searchOptions.newerThanUnix, searchOptions.useWildcard, searchOptions.searchContent)
 	} else {
-		response = indexing.SearchMultiSourcesParsed(searchOptions.parsed, searchOptions.sources, searchOptions.combinedPath, searchOptions.sessionId, searchOptions.largest, searchSize, searchOptions.olderThanUnix, searchOptions.newerThanUnix, searchOptions.useWildcard)
+		response = indexing.SearchMultiSourcesParsed(searchOptions.parsed, searchOptions.sources, searchOptions.combinedPath, searchOptions.sessionId, searchOptions.largest, dbLimit, searchOptions.olderThanUnix, searchOptions.newerThanUnix, searchOptions.useWildcard, searchOptions.searchContent)
 	}
 
 	// Filter out items that are not permitted according to access rules and trim user scope from paths
@@ -114,6 +131,9 @@ func searchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, err
 		indexPath := utils.JoinPathAsUnix(combinedPath, result.Path)
 		if !state.AccessPermitted(index.Path, utils.IndexPathFromNormalized(indexPath, true), d.User.Username) {
 			continue // Silently skip this file/folder
+		}
+		if len(filteredResponse) >= searchSize {
+			break
 		}
 		// Remove the user scope from the path (modifying in place is safe - these are fresh allocations)
 		result.Path = strings.TrimPrefix(result.Path, combinedPath)
@@ -179,6 +199,8 @@ func prepSearchOptions(r *http.Request, d *Context) (*searchOptions, error) {
 	largest := r.URL.Query().Get("largest") == "true"
 	wildRaw := strings.TrimSpace(r.URL.Query().Get("useWildcard"))
 	useWildcard := strings.EqualFold(wildRaw, "true") || wildRaw == "1"
+	contentRaw := strings.TrimSpace(r.URL.Query().Get("searchContent"))
+	searchContent := strings.EqualFold(contentRaw, "true") || contentRaw == "1"
 	olderThanUnix, err := parseOptionalUnixQueryParam("olderThan", r.URL.Query().Get("olderThan"))
 	if err != nil {
 		return nil, err
@@ -282,6 +304,7 @@ func prepSearchOptions(r *http.Request, d *Context) (*searchOptions, error) {
 		sessionId:     sessionId,
 		largest:       largest,
 		useWildcard:   useWildcard,
+		searchContent: searchContent,
 		olderThanUnix: olderThanUnix,
 		newerThanUnix: newerThanUnix,
 	}, nil

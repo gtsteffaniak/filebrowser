@@ -151,6 +151,13 @@
                       :name="$t('search.caseExact')"
                       :description="$t('search.caseExactDescription')"
                     />
+                    <ToggleSwitch
+                      v-model="searchContent"
+                      class="item"
+                      :disabled="useWildcardSearch"
+                      :name="$t('search.searchContent')"
+                      :description="$t('search.searchContentDescription')"
+                    />
                   </div>
                 </div>
               </SettingsItem>
@@ -522,6 +529,7 @@ export default {
       selectedMediaTypes: [],
       useWildcardSearch: false,
       caseExactSearch: false,
+      searchContent: false,
       loading: false,
       error: null,
       searchExecuted: false,
@@ -783,6 +791,12 @@ export default {
       this.scheduleAdvancedSearchUrlUpdate();
     },
     useWildcardSearch() {
+      if (this.useWildcardSearch) {
+        this.searchContent = false;
+      }
+      this.scheduleAdvancedSearchUrlUpdate();
+    },
+    searchContent() {
       this.scheduleAdvancedSearchUrlUpdate();
     },
     caseExactSearch() {
@@ -1102,6 +1116,9 @@ export default {
       if (this.useWildcardSearch) {
         query.wildcard = "1";
       }
+      if (this.searchContent) {
+        query.content = "1";
+      }
       if (this.caseExactSearch) {
         query.caseExact = "1";
       }
@@ -1232,6 +1249,7 @@ export default {
 
       this.useWildcardSearch = queryTruthy(q.wildcard);
       this.caseExactSearch = queryTruthy(q.caseExact);
+      this.searchContent = queryTruthy(q.content);
 
       this.applyDefaultCurrentSourceIfNone();
     },
@@ -1422,6 +1440,7 @@ export default {
           false,
           {
             ...dateParams,
+            searchContent: this.searchContent,
             limit: this.resultLimit,
             terms,
             termJoin: this.termsJoinAnd ? "and" : undefined,
