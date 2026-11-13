@@ -147,7 +147,7 @@ describe('TranscodePlaybackController', () => {
     });
 
     // Let the first start reach HLS attach before superseding it.
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    await new Promise((resolve) => { setTimeout(resolve, 0); });
 
     const second = controller.start({
       source: 's',
@@ -245,7 +245,7 @@ describe('TranscodePlaybackController', () => {
     });
 
     // Let the start reach the HLS attach stage before tearing it down.
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    await new Promise((resolve) => { setTimeout(resolve, 0); });
     expect(attachHlsToVideo).toHaveBeenCalledOnce();
 
     // teardownLocal invalidates the attempt; its finally block skips the reset.

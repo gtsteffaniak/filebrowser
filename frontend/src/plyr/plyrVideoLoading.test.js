@@ -11,7 +11,7 @@ function fakePlayer() {
   return {
     media,
     on: (evt, fn) => { handlers[evt] = fn; },
-    off: (evt) => { delete handlers[evt]; },
+    off: (evt) => { Reflect.deleteProperty(handlers, evt); },
     emit: (evt) => handlers[evt]?.(),
   };
 }
@@ -19,7 +19,7 @@ function fakePlayer() {
 function startPlayback() {
   const player = fakePlayer();
   const states = [];
-  enablePlyrVideoLoadingIndicator(player, (show) => states.push(show));
+  enablePlyrVideoLoadingIndicator(player, (show) => { states.push(show); });
   player.emit('play');
   player.media.readyState = HTMLMediaElement.HAVE_ENOUGH_DATA;
   player.media.networkState = HTMLMediaElement.NETWORK_LOADING;
