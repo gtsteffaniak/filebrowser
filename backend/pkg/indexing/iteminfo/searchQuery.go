@@ -22,9 +22,10 @@ type SearchOptions struct {
 	MatchAllTerms bool
 	// Quoted is true when the search query was a double-quoted phrase; spaces are kept literal in name matching.
 	Quoted bool
-	// ExcludeThroughPath, when non-empty, drops items whose path is not deeper than this
-	// index path. Used to page through results already examined by a previous request.
-	ExcludeThroughPath string
+	// CursorPath/CursorLen page past earlier results: only items ordered after
+	// (length(path), path) = (CursorLen, CursorPath) are returned.
+	CursorPath string
+	CursorLen  int
 }
 
 // BuildSearchOptionsFromQuery merges optional repeated literal terms (HTTP "terms" parameters) with structured filter text ("query" prefix).

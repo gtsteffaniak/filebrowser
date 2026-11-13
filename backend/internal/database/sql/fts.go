@@ -36,10 +36,9 @@ func (db *IndexDB) CreateFullTextTable() error {
 // SearchFullText returns index paths for source whose body matches the terms
 // (prefix matching; AND when matchAll is set, OR otherwise).
 // scope is a directory index path ending in "/".
-// SearchFullText returns index paths for source whose body matches the terms
-// (prefix matching; AND when matchAll is set, OR otherwise). scope is a directory
-// index path ending in "/". excludePath keeps only deeper paths (result paging).
-func (db *IndexDB) SearchFullText(source, scope string, terms []string, matchAll bool, limit int, excludePath string) ([]string, error) {
+// cursorPath/cursorLen page past an earlier result: paths ordered after the
+// (length, path) cursor key are returned, including equal-length paths after it.
+func (db *IndexDB) SearchFullText(source, scope string, terms []string, matchAll bool, limit int, cursorPath string, cursorLen int) ([]string, error) {
 	expr := fullTextMatchExpr(terms, matchAll)
 	if db.fullTextDisabled || expr == "" {
 		return nil, nil
@@ -51,12 +50,13 @@ func (db *IndexDB) SearchFullText(source, scope string, terms []string, matchAll
 	// instead of using the FTS index; scope filtering is a cheap GLOB on the FTS rows.
 	nameGlob := sqliteGlobEscape(scope) + "*"
 	// Order by path length so LIMIT keeps the shallowest matches, matching the
-	// caller's final result ordering.
+	// caller's final result ordering; the cursor key is (length(path), path).
 	rows, err := db.Query(`
 		SELECT path FROM index_fts
-		WHERE body MATCH ? AND source = ? AND path GLOB ? AND length(path) > ?
+		WHERE body MATCH ? AND source = ? AND path GLOB ?
+		AND (length(path) > ? OR (length(path) = ? AND path > ?))
 		ORDER BY length(path), path
-		LIMIT ?`, expr, source, nameGlob, len(excludePath), limit)
+		LIMIT ?`, expr, source, nameGlob, cursorLen, cursorLen, cursorPath, limit)
 	if err != nil {
 		return nil, err
 	}
@@ -120,6 +120,8 @@ func upsertFullText(tx *sql.Tx, stmt *sql.Stmt, source string, info *iteminfo.Fi
 func (db *IndexDB) deleteItemRowsTx(whereClause string, args ...interface{}) error {
 	tx, err := db.BeginTransaction()
 	if err != nil {
+		// BeginTransaction locks mu before Begin and does not unlock on error.
+		db.mu.Unlock()
 		return err
 	}
 	committed := false

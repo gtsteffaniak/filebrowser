@@ -43,7 +43,7 @@ func appendNameGlobSQL(query string, args []interface{}, patterns []string, join
 // SearchItems queries the database for items matching the search criteria for a single source.
 // When nameGlobPatterns is non-empty (and largest is false), rows are restricted with SQLite name GLOB ... OR ....
 // Returns rows that can be iterated to scan search results.
-func (db *IndexDB) SearchItems(source string, scope string, largest bool, nameGlobPatterns []string, nameGlobPatternsAnd, caseExact bool, excludePath string) (*sql.Rows, error) {
+func (db *IndexDB) SearchItems(source string, scope string, largest bool, nameGlobPatterns []string, nameGlobPatternsAnd, caseExact bool, cursorPath string, cursorLen int) (*sql.Rows, error) {
 	query := `
 		SELECT path, name, size, created_time, mod_time, type, is_dir, has_preview
 		FROM index_items
@@ -62,12 +62,12 @@ func (db *IndexDB) SearchItems(source string, scope string, largest bool, nameGl
 		query, args = appendNameGlobSQL(query, args, nameGlobPatterns, nameGlobPatternsAnd, caseExact)
 	}
 
+	if cursorPath != "" {
+		query += " AND (length(path) > ? OR (length(path) = ? AND path > ?))"
+		args = append(args, cursorLen, cursorLen, cursorPath)
+	}
 	if largest {
 		query += " ORDER BY size DESC"
-	}
-	if excludePath != "" {
-		query += " AND length(path) > length(?)"
-		args = append(args, excludePath)
 	}
 
 	return db.Query(query, args...)
@@ -76,7 +76,7 @@ func (db *IndexDB) SearchItems(source string, scope string, largest bool, nameGl
 // SearchItemsMultiSource queries the database for items matching the search criteria across multiple sources.
 // When nameGlobPatterns is non-empty (and largest is false), restricts rows with SQLite name GLOB ... OR ....
 // Returns rows that can be iterated to scan search results.
-func (db *IndexDB) SearchItemsMultiSource(sources []string, sourceScopes map[string]string, largest bool, nameGlobPatterns []string, nameGlobPatternsAnd, caseExact bool, excludePath string) (*sql.Rows, error) {
+func (db *IndexDB) SearchItemsMultiSource(sources []string, sourceScopes map[string]string, largest bool, nameGlobPatterns []string, nameGlobPatternsAnd, caseExact bool, cursorPath string, cursorLen int) (*sql.Rows, error) {
 	if len(sources) == 0 {
 		return nil, fmt.Errorf("at least one source is required")
 	}
@@ -131,12 +131,12 @@ func (db *IndexDB) SearchItemsMultiSource(sources []string, sourceScopes map[str
 		query, args = appendNameGlobSQL(query, args, nameGlobPatterns, nameGlobPatternsAnd, caseExact)
 	}
 
+	if cursorPath != "" {
+		query += " AND (length(path) > ? OR (length(path) = ? AND path > ?))"
+		args = append(args, cursorLen, cursorLen, cursorPath)
+	}
 	if largest {
 		query += " ORDER BY size DESC"
-	}
-	if excludePath != "" {
-		query += " AND length(path) > length(?)"
-		args = append(args, excludePath)
 	}
 
 	return db.Query(query, args...)

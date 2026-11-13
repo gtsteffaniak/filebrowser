@@ -33,7 +33,12 @@ var textExtensions = map[string]bool{
 // Extract returns indexable text for the file: the file name (always searchable)
 // followed by its content for supported types. Nil means the name alone is indexed.
 // Called with symlink targets already resolved and containment-checked by the caller.
+// The opened descriptor is verified to be a regular file, so a path swapped for a
+// FIFO between check and open cannot block the scan.
 func Extract(realPath, name, mimeType string) *string {
+	if info, err := os.Lstat(realPath); err != nil || !info.Mode().IsRegular() {
+		return nil
+	}
 	ext := strings.ToLower(filepath.Ext(name))
 
 	// O_NONBLOCK keeps the open from waiting if the path was swapped for a
@@ -56,7 +61,7 @@ func Extract(realPath, name, mimeType string) *string {
 		if info.Size() == 0 || info.Size() > MaxDocumentBytes {
 			return nameOnly(name)
 		}
-		content = documentText(realPath, extractTimeout)
+		content = documentText(f, extractTimeout)
 	default:
 		return nil
 	}

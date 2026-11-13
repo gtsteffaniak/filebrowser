@@ -74,3 +74,20 @@ func TestExtract(t *testing.T) {
 		}
 	})
 }
+
+func TestExtractSymlinkToOutsideIsCallerChecked(t *testing.T) {
+	dir := t.TempDir()
+	outside := filepath.Join(t.TempDir(), "secret.txt")
+	if err := os.WriteFile(outside, []byte("outside secret"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	link := filepath.Join(dir, "link.txt")
+	if err := os.Symlink(outside, link); err != nil {
+		t.Skip("symlinks unavailable:", err)
+	}
+	// Extract itself refuses the symlink entry; callers must resolve and contain the
+	// target before handing it over.
+	if got := Extract(link, "link.txt", "text/plain"); got != nil {
+		t.Fatalf("symlink entry should not be read directly, got %v", *got)
+	}
+}

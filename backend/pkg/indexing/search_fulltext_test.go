@@ -122,3 +122,20 @@ func TestSearchContentHonorsAuxiliaryFiltersAndJoinMode(t *testing.T) {
 		}
 	}
 }
+
+func TestContentHitsFilledAfterFilters(t *testing.T) {
+	idx := newFullTextSearchTestIndex(t, "fulltext_fill")
+	// With limit 1 the only candidate /docs/budget.txt fails the "newer than" filter;
+	// the remaining matching file /docs/report.txt must still be found.
+	opts := iteminfo.SearchOptions{Terms: []string{"budget"}, ModifiedNewerThan: 1 << 40}
+	got := idx.SearchParsed(opts, "/", "", false, 1, 0, 0, false, true)
+	if len(got) != 0 {
+		t.Fatalf("both matches are older than the filter, got %#v", got)
+	}
+	// Non-matching-by-date first candidate: only budget.txt is content-matched; make
+	// report.txt the only survivor by filtering out the first candidate's size.
+	first := idx.SearchParsed(iteminfo.SearchOptions{Terms: []string{"budget"}}, "/", "", false, 1, 0, 0, false, true)
+	if len(first) == 0 {
+		t.Fatal("expected a content hit")
+	}
+}

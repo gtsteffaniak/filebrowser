@@ -34,7 +34,7 @@ func TestFullTextSearchMatchesContentAndName(t *testing.T) {
 		t.Fatalf("BulkInsertItems: %v", err)
 	}
 
-	paths, err := db.SearchFullText("src", "/", []string{"budget"}, true, 100, "")
+	paths, err := db.SearchFullText("src", "/", []string{"budget"}, true, 100, "", 0)
 	if err != nil {
 		t.Fatalf("SearchFullText: %v", err)
 	}
@@ -43,7 +43,7 @@ func TestFullTextSearchMatchesContentAndName(t *testing.T) {
 	}
 
 	// Scope restricts to the given folder prefix.
-	scoped, err := db.SearchFullText("src", "/notes/", []string{"budget"}, true, 100, "")
+	scoped, err := db.SearchFullText("src", "/notes/", []string{"budget"}, true, 100, "", 0)
 	if err != nil {
 		t.Fatalf("SearchFullText scoped: %v", err)
 	}
@@ -52,7 +52,7 @@ func TestFullTextSearchMatchesContentAndName(t *testing.T) {
 	}
 
 	// Every term must match (AND).
-	both, err := db.SearchFullText("src", "/", []string{"budget", "quarter"}, true, 100, "")
+	both, err := db.SearchFullText("src", "/", []string{"budget", "quarter"}, true, 100, "", 0)
 	if err != nil {
 		t.Fatalf("SearchFullText AND: %v", err)
 	}
@@ -72,10 +72,10 @@ func TestFullTextUpsertReplacesAndDeletesRemove(t *testing.T) {
 	if err := db.BulkInsertItems("src", []*iteminfo.FileInfo{item}); err != nil {
 		t.Fatal(err)
 	}
-	if hits, _ := db.SearchFullText("src", "/", []string{"oldword"}, true, 10, ""); len(hits) != 0 {
+	if hits, _ := db.SearchFullText("src", "/", []string{"oldword"}, true, 10, "", 0); len(hits) != 0 {
 		t.Fatalf("stale body still matches: %v", hits)
 	}
-	if hits, _ := db.SearchFullText("src", "/", []string{"newword"}, true, 10, ""); len(hits) != 1 {
+	if hits, _ := db.SearchFullText("src", "/", []string{"newword"}, true, 10, "", 0); len(hits) != 1 {
 		t.Fatalf("updated body not searchable: %v", hits)
 	}
 
@@ -84,7 +84,7 @@ func TestFullTextUpsertReplacesAndDeletesRemove(t *testing.T) {
 	if err := db.BulkInsertItems("src", []*iteminfo.FileInfo{item}); err != nil {
 		t.Fatal(err)
 	}
-	if hits, _ := db.SearchFullText("src", "/", []string{"newword"}, true, 10, ""); len(hits) != 0 {
+	if hits, _ := db.SearchFullText("src", "/", []string{"newword"}, true, 10, "", 0); len(hits) != 0 {
 		t.Fatalf("body not cleared on nil: %v", hits)
 	}
 
@@ -114,7 +114,7 @@ func TestFullTextOrphansArePurged(t *testing.T) {
 	if _, err := db.PurgeFullTextOrphans("src", "/dir/"); err != nil {
 		t.Fatal(err)
 	}
-	if hits, _ := db.SearchFullText("src", "/", []string{"stale"}, true, 10, ""); len(hits) != 0 {
+	if hits, _ := db.SearchFullText("src", "/", []string{"stale"}, true, 10, "", 0); len(hits) != 0 {
 		t.Fatalf("orphan still matches: %v", hits)
 	}
 }
@@ -127,11 +127,11 @@ func TestFullTextQuerySafety(t *testing.T) {
 		t.Fatal(err)
 	}
 	for _, term := range []string{`key:`, `AND`, `OR`, `NOT`, `"quoted"`, "q.txt"} {
-		if _, err := db.SearchFullText("src", "/", []string{term}, true, 10, ""); err != nil {
+		if _, err := db.SearchFullText("src", "/", []string{term}, true, 10, "", 0); err != nil {
 			t.Fatalf("term %q broke FTS query: %v", term, err)
 		}
 	}
-	if hits, err := db.SearchFullText("src", "/", []string{`key:`}, true, 10, ""); err != nil || len(hits) != 1 {
+	if hits, err := db.SearchFullText("src", "/", []string{`key:`}, true, 10, "", 0); err != nil || len(hits) != 1 {
 		t.Fatalf("colon term hits = %v, err %v", hits, err)
 	}
 }
@@ -151,13 +151,13 @@ func TestFullTextUpsertAfterConflictKeepsEachRow(t *testing.T) {
 	if err := db.BulkInsertItems("src", []*iteminfo.FileInfo{a}); err != nil {
 		t.Fatal(err)
 	}
-	if hits, _ := db.SearchFullText("src", "/", []string{"beta"}, true, 10, ""); len(hits) != 1 || hits[0] != "/b.txt" {
+	if hits, _ := db.SearchFullText("src", "/", []string{"beta"}, true, 10, "", 0); len(hits) != 1 || hits[0] != "/b.txt" {
 		t.Fatalf("b.txt content lost or misplaced: %v", hits)
 	}
-	if hits, _ := db.SearchFullText("src", "/", []string{"updated"}, true, 10, ""); len(hits) != 1 || hits[0] != "/a.txt" {
+	if hits, _ := db.SearchFullText("src", "/", []string{"updated"}, true, 10, "", 0); len(hits) != 1 || hits[0] != "/a.txt" {
 		t.Fatalf("a.txt content not updated: %v", hits)
 	}
-	if hits, _ := db.SearchFullText("src", "/", []string{"alpha"}, true, 10, ""); len(hits) != 1 {
+	if hits, _ := db.SearchFullText("src", "/", []string{"alpha"}, true, 10, "", 0); len(hits) != 1 {
 		t.Fatalf("stale a.txt body still matches: %v", hits)
 	}
 }
@@ -172,14 +172,14 @@ func TestFullTextLimitKeepsShallowest(t *testing.T) {
 	if err := db.BulkInsertItems("src", items); err != nil {
 		t.Fatal(err)
 	}
-	hits, err := db.SearchFullText("src", "/", []string{"needle"}, true, 1, "")
+	hits, err := db.SearchFullText("src", "/", []string{"needle"}, true, 1, "", 0)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if len(hits) != 1 || hits[0] != "/top.txt" {
 		t.Fatalf("limited hits should keep the shallowest match, got %v", hits)
 	}
-	paged, err := db.SearchFullText("src", "/", []string{"needle"}, true, 10, "/top.txt")
+	paged, err := db.SearchFullText("src", "/", []string{"needle"}, true, 10, "/top.txt", len("/top.txt"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -196,10 +196,10 @@ func TestFullTextJoinMode(t *testing.T) {
 		t.Fatal(err)
 	}
 	terms := []string{"alpha", "beta"}
-	if hits, err := db.SearchFullText("src", "/", terms, false, 10, ""); err != nil || len(hits) != 1 {
+	if hits, err := db.SearchFullText("src", "/", terms, false, 10, "", 0); err != nil || len(hits) != 1 {
 		t.Fatalf("OR mode should match single-term content: %v %v", hits, err)
 	}
-	if hits, err := db.SearchFullText("src", "/", terms, true, 10, ""); err != nil || len(hits) != 0 {
+	if hits, err := db.SearchFullText("src", "/", terms, true, 10, "", 0); err != nil || len(hits) != 0 {
 		t.Fatalf("AND mode should require every term: %v %v", hits, err)
 	}
 }
@@ -215,13 +215,72 @@ func TestDeleteItemKeepsFullTextInSync(t *testing.T) {
 	if err := db.DeleteItem("src", "/dir/drop.txt", false); err != nil {
 		t.Fatal(err)
 	}
-	if hits, _ := db.SearchFullText("src", "/", []string{"dropword"}, true, 10, ""); len(hits) != 0 {
+	if hits, _ := db.SearchFullText("src", "/", []string{"dropword"}, true, 10, "", 0); len(hits) != 0 {
 		t.Fatalf("deleted file still searchable: %v", hits)
 	}
 	if err := db.DeleteItem("src", "/dir/", true); err != nil {
 		t.Fatal(err)
 	}
-	if hits, _ := db.SearchFullText("src", "/", []string{"keepword"}, true, 10, ""); len(hits) != 0 {
+	if hits, _ := db.SearchFullText("src", "/", []string{"keepword"}, true, 10, "", 0); len(hits) != 0 {
 		t.Fatalf("recursive delete left content: %v", hits)
+	}
+}
+
+func TestFullTextCursorKeepsEqualLengthPaths(t *testing.T) {
+	db := newFullTextTestDB(t)
+	items := []*iteminfo.FileInfo{
+		{Path: "/a.txt", ItemInfo: iteminfo.ItemInfo{Name: "a.txt", ModTime: time.Unix(100, 0), Type: "text/plain"}, FullTextBody: body("a.txt\nneedle")},
+		{Path: "/b.txt", ItemInfo: iteminfo.ItemInfo{Name: "b.txt", ModTime: time.Unix(100, 0), Type: "text/plain"}, FullTextBody: body("b.txt\nneedle")},
+	}
+	if err := db.BulkInsertItems("src", items); err != nil {
+		t.Fatal(err)
+	}
+	first, err := db.SearchFullText("src", "/", []string{"needle"}, true, 1, "", 0)
+	if err != nil || len(first) != 1 || first[0] != "/a.txt" {
+		t.Fatalf("first page = %v, %v", first, err)
+	}
+	second, err := db.SearchFullText("src", "/", []string{"needle"}, true, 1, first[0], len(first[0]))
+	if err != nil || len(second) != 1 || second[0] != "/b.txt" {
+		t.Fatalf("second page should return the equal-length /b.txt, got %v, %v", second, err)
+	}
+}
+
+func TestSearchItemsLargestWithCursor(t *testing.T) {
+	db := newFullTextTestDB(t)
+	if err := db.BulkInsertItems("src", []*iteminfo.FileInfo{
+		{Path: "/a.txt", ItemInfo: iteminfo.ItemInfo{Name: "a.txt", Size: 20, ModTime: time.Unix(100, 0), Type: "text/plain"}},
+		{Path: "/b.txt", ItemInfo: iteminfo.ItemInfo{Name: "b.txt", Size: 10, ModTime: time.Unix(100, 0), Type: "text/plain"}},
+	}); err != nil {
+		t.Fatal(err)
+	}
+	rows, err := db.SearchItems("src", "/", true, nil, false, false, "/b.txt", len("/b.txt"))
+	if err != nil {
+		t.Fatalf("largest search with cursor generated invalid SQL: %v", err)
+	}
+	defer rows.Close()
+	if rows.Next() {
+		t.Fatalf("cursor /a.txt should exclude paths up to and including /a.txt")
+	}
+}
+
+func TestDeleteItemRowsTxReleasesLockOnBeginFailure(t *testing.T) {
+	db := newFullTextTestDB(t)
+	if err := db.Close(); err != nil {
+		t.Fatal(err)
+	}
+	// Closed DB: BeginTransaction fails after locking mu; the call must not leave mu held.
+	if err := db.deleteItemRowsTx("source = ? AND path = ?", "src", "/x"); err == nil {
+		t.Fatal("expected error on closed database")
+	}
+	done := make(chan struct{})
+	go func() {
+		db.mu.Lock()
+		db.mu.Unlock()
+		close(done)
+	}()
+	select {
+	case <-done:
+	case <-time.After(2 * time.Second):
+		t.Fatal("db.mu left locked after BeginTransaction failure")
 	}
 }

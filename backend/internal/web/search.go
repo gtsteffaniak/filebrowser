@@ -129,17 +129,18 @@ func searchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, err
 		if len(page) < pageSize || len(response) >= searchSize {
 			break
 		}
-		// Everything up to the deepest returned path was already inspected.
-		deepest := ""
+		// Everything up to the largest (length, path) key returned was inspected.
+		var deepestPath string
+		deepestLen := -1
 		for _, result := range page {
-			if len(result.Path) > len(deepest) {
-				deepest = result.Path
+			if l := len(result.Path); l > deepestLen || (l == deepestLen && result.Path > deepestPath) {
+				deepestPath, deepestLen = result.Path, l
 			}
 		}
-		if deepest == "" || deepest == searchOptions.parsed.ExcludeThroughPath {
+		if deepestLen < 0 || (searchOptions.parsed.CursorPath == deepestPath && searchOptions.parsed.CursorLen == deepestLen) {
 			break
 		}
-		searchOptions.parsed.ExcludeThroughPath = deepest
+		searchOptions.parsed.CursorPath, searchOptions.parsed.CursorLen = deepestPath, deepestLen
 	}
 
 	// Filter out items that are not permitted according to access rules and trim user scope from paths

@@ -100,7 +100,7 @@ curl -G 'http://host/api/tools/search' \
 
 ## 七、已知限制
 
-- 只索引：文本/代码/Markdown（前 1 MiB）、CSV，以及启用 MuPDF 构建时的 PDF/XPS/EPUB/MOBI/FB2/CBZ/DOCX/PPTX/XLSX/HWP/HWPX（前 50 页、≤ 50 MiB、单文件 ≤ 5 秒）。
+- 只索引：文本/代码/Markdown（前 1 MiB）、CSV，以及启用 MuPDF 构建时的 PDF/XPS/EPUB/MOBI/FB2/CBZ/DOCX/PPTX/XLSX/HWP/HWPX（前 50 页、≤ 50 MiB；单文件 5 秒是**页间检查的时间预算**，无法中断正在执行的单次 MuPDF 调用）。
 - 其他类型（图片、音视频、压缩包）只按文件名匹配。
-- 搜索词按前缀匹配、多词为 AND；同样遵循 `server.minSearchLength` 与 `server.searchResultsLimit`。
+- 搜索词按前缀匹配；多个词默认按 **OR** 合并，传 `termJoin=and` 才是 AND。同样遵循 `server.minSearchLength` 与 `server.searchResultsLimit`。
 - 内容命中与文件名命中遵循同一套用户 scope 与访问规则过滤，不会越权返回。

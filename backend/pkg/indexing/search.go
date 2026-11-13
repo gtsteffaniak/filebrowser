@@ -57,18 +57,10 @@ func (idx *Index) SearchParsed(baseOpts iteminfo.SearchOptions, scope string, so
 
 	// Content hits are resolved to paths first; they participate in the name scan
 	// below so ordering and limits behave exactly like name matches.
+	// Content hits still obey type/size/date filters; folders-only must not return files.
 	var contentPaths []string
 	if searchContent {
-		var err error
-		contentPaths, err = contentSearchPaths(idx.db, idx.Name, scope, searchOptions, largest, useWildcard, limit)
-		if err != nil {
-			logger.Errorf("full-text search failed for source %s: %v", idx.Name, err)
-			contentPaths = nil
-		}
-	}
-	// Content hits still obey type/size/date filters; folders-only must not return files.
-	if searchContent {
-		contentPaths = filterContentPaths(idx.db, idx.Name, contentPaths, searchOptions)
+		contentPaths = filteredContentPaths(idx.db, idx.Name, scope, searchOptions, largest, useWildcard, limit)
 	}
 	contentSet := make(map[string]bool, len(contentPaths))
 	for _, p := range contentPaths {
@@ -81,7 +73,7 @@ func (idx *Index) SearchParsed(baseOpts iteminfo.SearchOptions, scope string, so
 	caseExact := searchOptions.Conditions["exact"]
 	globAnd := len(nameGlobPatterns) > 0 && searchOptions.MatchAllTerms
 
-	rows, err := idx.db.SearchItems(idx.Name, scope, largest, nameGlobPatterns, globAnd, caseExact, searchOptions.ExcludeThroughPath)
+	rows, err := idx.db.SearchItems(idx.Name, scope, largest, nameGlobPatterns, globAnd, caseExact, searchOptions.CursorPath, searchOptions.CursorLen)
 	if err != nil && len(contentPaths) == 0 {
 		return []*SearchResult{}
 	}
@@ -157,8 +149,40 @@ func contentSearchPaths(db *dbsql.IndexDB, source, scope string, opts iteminfo.S
 	if largest || useWildcard || len(opts.Terms) == 0 {
 		return nil, nil
 	}
-	return db.SearchFullText(source, scope, opts.Terms, opts.MatchAllTerms, limit, opts.ExcludeThroughPath)
+	return db.SearchFullText(source, scope, opts.Terms, opts.MatchAllTerms, limit, opts.CursorPath, opts.CursorLen)
 }
+
+// filteredContentPaths returns up to limit content hits that pass the type/size/date
+// filters. The FTS limit is applied before filtering, so candidates are fetched page
+// by page until enough survive; contentLookupPages caps the work.
+func filteredContentPaths(db *dbsql.IndexDB, source, scope string, opts iteminfo.SearchOptions, largest, useWildcard bool, limit int) []string {
+	var kept []string
+	for pages := 0; pages < contentLookupPages; pages++ {
+		paths, err := contentSearchPaths(db, source, scope, opts, largest, useWildcard, limit)
+		if err != nil {
+			logger.Errorf("full-text search failed for source %s: %v", source, err)
+			return kept
+		}
+		kept = append(kept, filterContentPaths(db, source, paths, opts)...)
+		if len(kept) >= limit || len(paths) < limit {
+			break
+		}
+		cursorPath, cursorLen := paths[0], len(paths[0])
+		for _, p := range paths {
+			if len(p) > cursorLen || (len(p) == cursorLen && p > cursorPath) {
+				cursorPath, cursorLen = p, len(p)
+			}
+		}
+		if cursorPath == opts.CursorPath && cursorLen == opts.CursorLen {
+			break
+		}
+		opts.CursorPath, opts.CursorLen = cursorPath, cursorLen
+	}
+	return kept
+}
+
+// contentLookupPages bounds how many FTS pages are read to fill one result page.
+const contentLookupPages = 5
 
 // filterContentPaths drops content hits whose item fails the type/size/date filters.
 // It loads rows in chunks so a large match set does not need one huge IN clause.
@@ -354,16 +378,11 @@ func SearchMultiSourcesParsed(baseOpts iteminfo.SearchOptions, sources []string,
 	contentPathsBySource := make(map[string][]string)
 	if searchContent {
 		for _, source := range sources {
-			paths, err := contentSearchPaths(db, source, normalizedScopes[source], searchOptions, largest, useWildcard, limit)
-			if err != nil {
-				logger.Errorf("full-text search failed for source %s: %v", source, err)
-				continue
-			}
-			contentPathsBySource[source] = filterContentPaths(db, source, paths, searchOptions)
+			contentPathsBySource[source] = filteredContentPaths(db, source, normalizedScopes[source], searchOptions, largest, useWildcard, limit)
 		}
 	}
 
-	rows, err := db.SearchItemsMultiSource(sources, normalizedScopes, largest, nameGlobPatterns, globAnd, caseExact, searchOptions.ExcludeThroughPath)
+	rows, err := db.SearchItemsMultiSource(sources, normalizedScopes, largest, nameGlobPatterns, globAnd, caseExact, searchOptions.CursorPath, searchOptions.CursorLen)
 	if err != nil && !hasContentPaths(contentPathsBySource) {
 		return []*SearchResult{}
 	}

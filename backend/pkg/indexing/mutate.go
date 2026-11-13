@@ -40,19 +40,21 @@ func (idx *Index) UpdateMetadata(info *iteminfo.FileInfo, scanner *Scanner, pers
 	// Pending bodies are flushed by size so a directory of large files cannot hold
 	// gigabytes of extracted text in memory before the batch threshold trips.
 	pendingBytes := 0
-	flush := func() {
+	flush := func() error {
+		pending := items
+		items = items[:0]
 		if scanner != nil {
-			scanner.batchItems = append(scanner.batchItems, items...)
-			items = items[:0]
+			scanner.batchItems = append(scanner.batchItems, pending...)
 			if len(scanner.batchItems) >= idx.db.BatchSize {
 				scanner.flushBatch()
 			}
-			return
+			return nil
 		}
-		if err := idx.db.BulkInsertItems(idx.Name, items); err != nil {
+		if err := idx.db.BulkInsertItems(idx.Name, pending); err != nil {
 			logger.Errorf("Failed to update metadata for %s: %v", info.Path, err)
+			return err
 		}
-		items = items[:0]
+		return nil
 	}
 
 	for i := range info.Files {
@@ -72,7 +74,9 @@ func (idx *Index) UpdateMetadata(info *iteminfo.FileInfo, scanner *Scanner, pers
 		}
 		items = append(items, fileItem)
 		if pendingBytes >= maxPendingTextBytes {
-			flush()
+			if err := flush(); err != nil {
+				return false
+			}
 			pendingBytes = 0
 		}
 	}
@@ -86,12 +90,10 @@ func (idx *Index) UpdateMetadata(info *iteminfo.FileInfo, scanner *Scanner, pers
 		idx.scanUpdatedPaths[normalizedPath] = true
 		idx.mu.Unlock()
 
-		flush()
-		return true
+		return flush() == nil
 	}
 
-	flush()
-	return true
+	return flush() == nil
 }
 
 // maxPendingTextBytes bounds extracted text held in memory before a batch flush (32 MiB).
@@ -102,18 +104,17 @@ const maxPendingTextBytes = 32 << 20
 // a non-nil body may still be just the name.
 func (idx *Index) extractContent(filePath string, f *iteminfo.ExtendedItemInfo) (*string, bool) {
 	realPath := filepath.Join(idx.Path, strings.TrimPrefix(filePath, "/"))
-	info, err := os.Lstat(realPath)
-	if err != nil || !info.Mode().IsRegular() && info.Mode()&os.ModeSymlink == 0 {
+	// Resolve every path, not just symlinked final components: a symlinked parent
+	// directory must not let content from outside the source into the index.
+	resolved, err := filepath.EvalSymlinks(realPath)
+	if err != nil || iteminfo.PathWithinRoot(idx.Path, resolved) != nil {
 		return nil, false
 	}
-	if info.Mode()&os.ModeSymlink != 0 {
-		resolved, err := filepath.EvalSymlinks(realPath)
-		if err != nil || iteminfo.PathWithinRoot(idx.Path, resolved) != nil {
-			return nil, false
-		}
-		realPath = resolved
+	info, err := os.Stat(resolved)
+	if err != nil || !info.Mode().IsRegular() {
+		return nil, false
 	}
-	return fulltext.Extract(realPath, f.Name, f.Type), true
+	return fulltext.Extract(resolved, f.Name, f.Type), true
 }
 
 // flushBatch writes all remaining batch items to the database (Scanner method)

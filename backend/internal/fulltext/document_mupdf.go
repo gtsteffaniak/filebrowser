@@ -3,24 +3,26 @@
 package fulltext
 
 import (
+	"os"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/gen2brain/go-fitz"
 )
 
-// documentText extracts text from the first pages of a document.
-// ponytail: first 50 pages only; raise maxDocumentPages if full-document search matters.
+// maxDocumentPages caps how many pages are extracted.
+// ponytail: first 50 pages only; raise it if full-document search matters.
 const maxDocumentPages = 50
 
-// documentText extracts up to maxDocumentPages of text, within timeout and the
-// MaxPlainTextBytes budget.
+// documentText extracts up to maxDocumentPages of text from the already-open,
+// verified file, within timeout and the MaxPlainTextBytes budget.
 //
-// ponytail: MuPDF calls cannot be interrupted, so the timeout is checked between
+// ponytail: MuPDF calls cannot be interrupted, so timeout is checked between
 // pages, not enforced mid-call; a hung page blocks extraction (and with it the
 // scan) until MuPDF returns. Isolating that needs a worker process.
-func documentText(path string, timeout time.Duration) string {
-	doc, err := fitz.New(path)
+func documentText(f *os.File, timeout time.Duration) string {
+	doc, err := fitz.NewFromReader(f)
 	if err != nil {
 		return ""
 	}
@@ -40,19 +42,24 @@ func documentText(path string, timeout time.Duration) string {
 		if err != nil {
 			continue
 		}
-		// Truncate at a rune boundary so the body never exceeds the cap.
-		remaining := MaxPlainTextBytes - sb.Len()
-		if len(text) > remaining {
-			text = text[:remaining]
-			for len(text) > 0 && !utf8Start(text[len(text)-1]) {
-				text = text[:len(text)-1]
-			}
-		}
-		sb.WriteString(text)
+		sb.WriteString(truncateRunes(text, MaxPlainTextBytes-sb.Len()))
 		sb.WriteByte('\n')
 	}
 	return strings.ToValidUTF8(sb.String(), "")
 }
 
-// utf8Start reports whether b can start a UTF-8 sequence (not a continuation byte).
-func utf8Start(b byte) bool { return b&0xC0 != 0x80 }
+// truncateRunes returns at most maxBytes of s, ending on a rune boundary so a
+// complete multibyte rune that fits is never dropped.
+func truncateRunes(s string, maxBytes int) string {
+	if maxBytes <= 0 {
+		return ""
+	}
+	if len(s) <= maxBytes {
+		return s
+	}
+	s = s[:maxBytes]
+	for len(s) > 0 && !utf8.ValidString(s) {
+		s = s[:len(s)-1]
+	}
+	return s
+}
