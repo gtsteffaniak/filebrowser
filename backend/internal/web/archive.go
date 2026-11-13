@@ -279,19 +279,18 @@ func archiveCreateHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 	if fullDestParent != fullDestFile && !state.AccessPermitted(idxTo.Path, utils.IndexPathFromNormalized(fullDestParent, true), d.User.Username) {
 		return http.StatusForbidden, fmt.Errorf("access denied to destination parent of %s", req.Destination)
 	}
-	parentReal, err := idxTo.GetRealPathForMutation(userScopeTo, fullDestParent)
-	if err != nil {
-		return http.StatusBadRequest, fmt.Errorf("destination parent path invalid: %v", err)
-	}
-	if err = os.MkdirAll(parentReal, fileutils.EffectiveDirPerm()); err != nil {
-		return http.StatusInternalServerError, fmt.Errorf("cannot create destination parent directory: %v", err)
-	}
 	destRel := strings.TrimLeft(filepath.ToSlash(req.Destination), "/")
 	fileName := path.Base(destRel)
 	if fileName == "." || fileName == "/" {
 		return http.StatusBadRequest, fmt.Errorf("invalid destination file name")
 	}
-	destFileReal := filepath.Join(parentReal, fileName)
+	destFileReal, err := idxTo.GetRealPathForMutation(userScopeTo, fullDestFile)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("destination path invalid: %v", err)
+	}
+	if err = os.MkdirAll(filepath.Dir(destFileReal), fileutils.EffectiveDirPerm()); err != nil {
+		return http.StatusInternalServerError, fmt.Errorf("cannot create destination parent directory: %v", err)
+	}
 
 	format := strings.ToLower(strings.TrimSpace(req.Format))
 	if format == "" {
