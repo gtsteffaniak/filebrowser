@@ -104,6 +104,13 @@
                     :name="$t('search.caseExact')"
                     :description="$t('search.caseExactDescription')"
                   />
+                  <ToggleSwitch
+                    class="item"
+                    v-model="searchContent"
+                    :disabled="useWildcardSearch || !contentSearchAvailable"
+                    :name="$t('search.searchContent')"
+                    :description="contentSearchAvailable ? $t('search.searchContentDescription') : $t('search.searchContentUnavailableDescription')"
+                  />
                 </div>
               </div>
             </SettingsItem>
@@ -194,6 +201,8 @@ export default {
       showPreviewImages: false,
       useWildcardSearch: false,
       caseExactSearch: false,
+      // Content search is on by default whenever the server supports it.
+      searchContent: globalVars.contentSearchAvailable !== false,
       value: "",
       ongoing: 0,
       results: [],
@@ -220,9 +229,18 @@ export default {
       this.submit();
     },
     useWildcardSearch() {
+      if (this.useWildcardSearch && this.searchContent) {
+        // Wildcard and content search are mutually exclusive; the searchContent
+        // watcher re-runs the search, so avoid submitting twice.
+        this.searchContent = false;
+        return;
+      }
       this.submit();
     },
     caseExactSearch() {
+      this.submit();
+    },
+    searchContent() {
       this.submit();
     },
     entryTypeFilter(newValue) {
@@ -318,6 +336,9 @@ export default {
     },
     disableSearchOptions() {
       return state.user?.disableSearchOptions;
+    },
+    contentSearchAvailable() {
+      return globalVars.contentSearchAvailable !== false;
     },
     foldersOnly() {
       return this.entryTypeFilter === "type:folder";
@@ -566,6 +587,9 @@ export default {
       if (this.useWildcardSearch) {
         dateParams.useWildcard = true;
       }
+      if (this.searchContent && this.contentSearchAvailable) {
+        dateParams.searchContent = true;
+      }
       let searchQuery = searchTypesFull + this.value;
       if (this.caseExactSearch) {
         searchQuery =
@@ -683,6 +707,9 @@ export default {
       }
       if (this.caseExactSearch) {
         query.caseExact = "1";
+      }
+      if (this.searchContent) {
+        query.content = "1";
       }
       if (this.foldersOnly) {
         query.typeLock = "1";
