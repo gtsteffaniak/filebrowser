@@ -38,6 +38,7 @@ const EXTRA_ICONS = [
   'create_new_folder',
   'do_not_disturb_on',
   'done',
+  'equalizer',
   'error_outline',
   'file',
   'file_copy',

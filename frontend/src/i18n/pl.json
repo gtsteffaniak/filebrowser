@@ -157,6 +157,17 @@
     "requirePasswordChangeMustDiffer": "Nowe hasło musi różnić się od obecnego hasła"
   },
   "prompts": {
+    "mediaInfo": "Informacje o mediach",
+    "mediaTitle": "Tytuł",
+    "subtitle": "Napisy {n}",
+    "artist": "Wykonawca",
+    "album": "Album",
+    "year": "Rok",
+    "genre": "Gatunek",
+    "track": "Ścieżka",
+    "container": "Kontener",
+    "videoCodec": "Kodek wideo",
+    "audioCodec": "Kodek audio",
     "noTemplate": "Twój szablon jest pusty!",
     "newFileTemplate": "Szablon nowego pliku",
     "newFileTemplateMessage": "Dodaj tutaj nowe nazwy plików, będą one używane jako szablon do tworzenia nowych plików w menu kontekstowym!",
@@ -494,6 +505,8 @@
     "passwordRequiredForGeneration": "Hasło jest wymagane do wygenerowania kodu uwierzytelniającego."
   },
   "general": {
+    "show": "Pokaż",
+    "hide": "Ukryj",
     "import": "Importuj",
     "export": "Eksportuj",
     "name": "Nazwa",
@@ -676,7 +689,6 @@
     "allow": "Zezwalaj",
     "allowDeny": "Zezwól/Odmów",
     "userGroup": "Użytkownik/Grupa",
-    "accessManagement": "Zarządzanie dostępem",
     "totalDenied": "Odmowa",
     "totalAllowed": "Dozwolone",
     "all": "Odmów wszystkim",
@@ -684,8 +696,6 @@
     "defaultBehavior": "Działanie domyślne{suffix}",
     "cascadeDelete": "Usuwanie rekursywne",
     "cascadeDeleteDescription": "Po włączeniu tej opcji usunięcie reguły dostępu spowoduje również usunięcie jej ze wszystkich podkatalogów. Pozwala to na całkowite usunięcie użytkownika lub grupy z całego drzewa katalogów.",
-    "hasRules": "Skonfigurowane reguły dostępu",
-    "manageDescription": "Zasady otwartego dostępu dla tej ścieżki.",
     "newGroup": "Nowa grupa",
     "editGroup": "Edytuj grupę",
     "groupName": "Nazwa grupy",

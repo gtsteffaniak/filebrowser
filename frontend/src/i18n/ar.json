@@ -157,6 +157,17 @@
     "requirePasswordChangeMustDiffer": "يجب أن تكون كلمة المرور الجديدة مختلفة عن كلمة المرور الحالية"
   },
   "prompts": {
+    "mediaInfo": "معلومات الوسائط",
+    "mediaTitle": "العنوان",
+    "subtitle": "الترجمة {n}",
+    "artist": "الفنان",
+    "album": "الألبوم",
+    "year": "السنة",
+    "genre": "النوع",
+    "track": "المقطع",
+    "container": "الحاوية",
+    "videoCodec": "ترميز الفيديو",
+    "audioCodec": "ترميز الصوت",
     "noTemplate": "قالبك فارغ!",
     "newFileTemplate": "قالب الملف الجديد",
     "newFileTemplateMessage": "أضف أسماء ملفات جديدة هنا، سيتم استخدامها كقالب لإنشاء ملفات جديدة في قائمة السياق!",
@@ -494,6 +505,8 @@
     "passwordRequiredForGeneration": "كلمة المرور الخاصة بك مطلوبة لإنشاء رمز المصادقة."
   },
   "general": {
+    "show": "إظهار",
+    "hide": "إخفاء",
     "import": "استيراد",
     "export": "تصدير",
     "name": "الاسم",
@@ -676,7 +689,6 @@
     "allow": "السماح",
     "allowDeny": "السماح/الرفض",
     "userGroup": "المستخدم/المجموعة",
-    "accessManagement": "إدارة الوصول",
     "totalDenied": "مرفوض",
     "totalAllowed": "المسموح به",
     "all": "رفض الكل",
@@ -684,8 +696,6 @@
     "defaultBehavior": "الإجراء الافتراضي{suffix}",
     "cascadeDelete": "الحذف التكراري",
     "cascadeDeleteDescription": "عند التمكين، سيؤدي حذف قاعدة وصول إلى إزالتها أيضًا من جميع الدلائل الفرعية. يتيح لك ذلك إزالة مستخدم أو مجموعة بالكامل من شجرة الدليل بأكملها.",
-    "hasRules": "تم تكوين قواعد الوصول",
-    "manageDescription": "قواعد الوصول المفتوح لهذا المسار.",
     "newGroup": "مجموعة جديدة",
     "editGroup": "تعديل المجموعة",
     "groupName": "اسم المجموعة",

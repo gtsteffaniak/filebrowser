@@ -308,13 +308,10 @@ export default {
         ? getters.isShare() && state.shareInfo?.hash === currentHash && state.req?.path === path
         : !getters.isShare() && state.req?.source === currentSource && state.req?.path === path;
       try {
-        const metaMap = isShare
-          ? await mediaApi.getDirectoryMetadataMap(state.shareInfo.subPath, {
-              isShare: true,
-              hash: state.shareInfo.hash,
-              password: this.sharePassword,
-            })
-          : await mediaApi.getDirectoryMetadataMap(path, { source: currentSource });
+        const metaMap = await mediaApi.getDirectoryMetadataMap(
+          isShare ? state.shareInfo.subPath : path,
+          { source: currentSource },
+        );
         if (!isCurrentListing()) {
           return;
         }

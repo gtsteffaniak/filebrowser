@@ -495,8 +495,12 @@ function itemsForPrompt(): MenuItem[] {
 }
 
 function showInfoPrompt() {
+  const item =
+    isPreview.value && !props.items?.length && (showOverflow.value || !firstSelected.value)
+      ? state.req
+      : firstSelected.value;
   mutations.closeHovers();
-  mutations.showPrompt({ name: "info", props: { item: firstSelected.value } });
+  mutations.showPrompt({ name: "info", props: { item } });
 }
 
 function navToItem() {
