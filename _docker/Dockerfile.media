@@ -1,8 +1,13 @@
 # syntax=docker/dockerfile:1.4
-# GPU-capable media image: Debian GPU FFmpeg as runtime base (x86_64 only).
-# Track G in gtsteffaniak/ffmpeg (docker/dockerfile.gpu): mostly-static
-# codecs + dynamic VA/Vulkan/OpenCL/NVIDIA userspace. Pi 4 (V4L2) stays
-# on the static Alpine image (`Dockerfile`, not this file).
+# GPU-capable media image: Debian 13 Trixie GPU FFmpeg as runtime base
+# (x86_64 only). Track G in gtsteffaniak/ffmpeg (docker/dockerfile.gpu,
+# ARG DEBIAN_VERSION=trixie): mostly-static codecs + dynamic
+# VA/Vulkan/OpenCL/NVIDIA userspace. Pi 4 (V4L2) stays on the static
+# Alpine image (`Dockerfile`, not this file).
+# NOTE: the golang:bookworm stage below is build-time only — the Go
+# binary is built with CGO_ENABLED=0 (static), so it runs unchanged
+# on the Trixie runtime. No structural change needed for the Trixie
+# retarget of the FFmpeg GPU image (PR gtsteffaniak/ffmpeg#49).
 #
 # Build after the ffmpeg GPU image is published and smoke-tested:
 #   docker build -f _docker/Dockerfile.media --build-arg VERSION=... --build-arg REVISION=... .

@@ -1,7 +1,8 @@
 # Filebrowser media image (GPU)
 
-`Dockerfile.media` builds a media image on top of the Debian GPU FFmpeg image
-(`gtstef/ffmpeg:<version>-gpu`, Track G in `gtsteffaniak/ffmpeg`). The
+`Dockerfile.media` builds a media image on top of the Debian 13 Trixie GPU
+FFmpeg image (`gtstef/ffmpeg:<version>-gpu`, Track G in
+`gtsteffaniak/ffmpeg`, `ARG DEBIAN_VERSION=trixie`). The
 production Pi 4 setup stays on the static Alpine `Dockerfile` (V4L2).
 
 ## Prereq (sequencing)
