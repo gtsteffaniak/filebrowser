@@ -34,7 +34,7 @@ func TestProbeKeyframesCachedUsesGoMedia(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	times, err := probeKeyframesCached(context.Background(), nil, path, st.Size(), st.ModTime().UnixNano(), 4, true)
+	times, err := probeKeyframesCached(context.Background(), nil, path, st.Size(), st.ModTime().UnixNano(), 4, mediaSpan{}, true)
 	if err != nil {
 		t.Fatalf("probeKeyframesCached: %v", err)
 	}
@@ -68,14 +68,44 @@ func TestGomediaKeyframesDefersCopyDecision(t *testing.T) {
 		t.Skipf("ffmpeg cannot encode libx264: %v: %s", err, out)
 	}
 
-	if times, ok := gomediaKeyframes(context.Background(), nil, path, 4, true); ok {
+	if times, ok := gomediaKeyframes(context.Background(), nil, path, 4, mediaSpan{}, true); ok {
 		t.Fatalf("pre-flight must defer a 30s GOP to ffprobe, got %v", times)
 	}
-	times, ok := gomediaKeyframes(context.Background(), nil, path, 4, false)
+	times, ok := gomediaKeyframes(context.Background(), nil, path, 4, mediaSpan{}, false)
 	if !ok {
 		t.Fatal("a plain probe must return the go-media timeline")
 	}
 	if len(times) != 2 || times[0] != 0 || times[1] < 29.9 || times[1] > 30.1 {
 		t.Fatalf("unexpected keyframes %v, want [0 30]", times)
+	}
+}
+
+// TestGomediaKeyframesDefersTrailingGap checks that a go-media index whose
+// last keyframe is more than the copy cap before the end of the media is not
+// used for the pre-flight decision, so ffprobe can confirm it, while the
+// same index is used when it reaches the end.
+func TestGomediaKeyframesDefersTrailingGap(t *testing.T) {
+	if testing.Short() {
+		t.Skip("encodes a clip with ffmpeg")
+	}
+	if settings.AlwaysUseFfmpegEnabled() {
+		t.Skip("go-media disabled by settings")
+	}
+	if _, err := exec.LookPath("ffmpeg"); err != nil {
+		t.Skip("ffmpeg not installed")
+	}
+	path := filepath.Join(t.TempDir(), "short.mp4")
+	out, err := exec.Command("ffmpeg", "-v", "error", "-y", "-f", "lavfi", "-i", "testsrc2=size=128x96:rate=25:duration=4",
+		"-c:v", "libx264", "-g", "50", "-keyint_min", "50", "-sc_threshold", "0", "-pix_fmt", "yuv420p", path).CombinedOutput()
+	if err != nil {
+		t.Skipf("ffmpeg cannot encode libx264: %v: %s", err, out)
+	}
+	// The index ends at 2 s; a 60 s span leaves a 58 s final segment.
+	if times, ok := gomediaKeyframes(context.Background(), nil, path, 4, mediaSpan{durationSec: 60}, true); ok {
+		t.Fatalf("pre-flight must defer a 58s trailing gap to ffprobe, got %v", times)
+	}
+	times, ok := gomediaKeyframes(context.Background(), nil, path, 4, mediaSpan{durationSec: 4}, true)
+	if !ok || len(times) != 2 {
+		t.Fatalf("index reaching the end must be used, got %v, %v", times, ok)
 	}
 }

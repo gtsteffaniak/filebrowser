@@ -2,14 +2,17 @@ package mediacache
 
 import (
 	"context"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"testing"
 	"time"
 )
 
-// TestStatKeyChangesWithSizeAndModTime checks that a size change or a 1 ns
-// mtime change gives a new key.
+// TestStatKeyChangesWithSizeAndModTime checks on disk that a size change
+// or an mtime change gives a new key. The mtimes differ by whole seconds so
+// the check holds on filesystems with coarse timestamps; the 1 ns case is
+// covered by TestFromFileInfoNanosecondModTime.
 func TestStatKeyChangesWithSizeAndModTime(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "a.mp4")
 	if err := os.WriteFile(path, []byte("one"), 0o600); err != nil {
@@ -23,8 +26,8 @@ func TestStatKeyChangesWithSizeAndModTime(t *testing.T) {
 		t.Fatalf("unexpected key %+v", k1)
 	}
 
-	// Same size, different mtime (nanosecond precision).
-	mt := time.Unix(1_700_000_000, 123)
+	// Same size, different mtime.
+	mt := time.Unix(1_700_000_000, 0)
 	if err = os.Chtimes(path, mt, mt); err != nil {
 		t.Fatal(err)
 	}
@@ -35,13 +38,13 @@ func TestStatKeyChangesWithSizeAndModTime(t *testing.T) {
 	if k2.String() == k1.String() {
 		t.Fatalf("mtime change kept key %s", k2)
 	}
-	mt2 := time.Unix(1_700_000_000, 124)
+	mt2 := mt.Add(time.Second)
 	if err = os.Chtimes(path, mt2, mt2); err != nil {
 		t.Fatal(err)
 	}
 	k3, _ := Stat(path)
 	if k3.String() == k2.String() {
-		t.Fatalf("1ns mtime change kept key %s", k3)
+		t.Fatalf("1s mtime change kept key %s", k3)
 	}
 
 	// Same mtime, different size.
@@ -54,6 +57,43 @@ func TestStatKeyChangesWithSizeAndModTime(t *testing.T) {
 	k4, _ := Stat(path)
 	if k4.String() == k3.String() {
 		t.Fatalf("size change kept key %s", k4)
+	}
+}
+
+// stubFileInfo is an fs.FileInfo with a fixed size and mtime.
+type stubFileInfo struct {
+	size    int64
+	modTime time.Time
+}
+
+// Name implements fs.FileInfo.
+func (s stubFileInfo) Name() string { return "a.mp4" }
+
+// Size implements fs.FileInfo.
+func (s stubFileInfo) Size() int64 { return s.size }
+
+// Mode implements fs.FileInfo.
+func (s stubFileInfo) Mode() fs.FileMode { return 0o600 }
+
+// ModTime implements fs.FileInfo.
+func (s stubFileInfo) ModTime() time.Time { return s.modTime }
+
+// IsDir implements fs.FileInfo.
+func (s stubFileInfo) IsDir() bool { return false }
+
+// Sys implements fs.FileInfo.
+func (s stubFileInfo) Sys() any { return nil }
+
+// TestFromFileInfoNanosecondModTime checks that mtimes 1 ns apart give
+// different keys, independent of what a filesystem can store.
+func TestFromFileInfoNanosecondModTime(t *testing.T) {
+	a := FromFileInfo("/m/a.mp4", stubFileInfo{size: 3, modTime: time.Unix(1_700_000_000, 123)})
+	b := FromFileInfo("/m/a.mp4", stubFileInfo{size: 3, modTime: time.Unix(1_700_000_000, 124)})
+	if a.String() == b.String() {
+		t.Fatalf("1ns mtime change kept key %s", a)
+	}
+	if a.ModTime != time.Unix(1_700_000_000, 123).UnixNano() {
+		t.Fatalf("ModTime = %d, want nanoseconds", a.ModTime)
 	}
 }
 
