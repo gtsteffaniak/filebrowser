@@ -12,6 +12,11 @@ All notable changes to this project will be documented in this file. For commit 
     - Transcoding for media playback with quality presets -- requires ffmpeg.
     - Hardware Acceleration device selector (Software / detected GPU devices)
     - More operations use native api operations rather than ffmpeg, improving performance in many cases. Added temporary config option to force ffmpeg to be used
+      - HLS keyframe indexes for MP4/MOV/M4V/MKV/WebM are read from the container index with go-media instead of demuxing every packet with ffprobe; ffprobe still runs when go-media cannot read the file or reports a keyframe gap that would rule out stream copy.
+      - HEIC/AVIF rotation (irot) for the ffmpeg decode fallback is read with go-media instead of a full `ffmpeg -f null` decode.
+      - AVIF images get previews through the HEIC preview path (go-media decode, ffmpeg fallback) when HEIC previews are enabled.
+      - WMV/ASF video thumbnails use go-media for WMV3; WMV1/WMV2 still use ffmpeg.
+      - ffmpeg and go-media share one media metadata cache keyed by path, size and modification time, so a probe, duration or subtitle result from either backend is reused by the other.
   - Document enhancements
     - Official Collabora support using WOPI config.
     - Document previews use a pure-go in-process package (all versions get it now).

@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/ffmpeg"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/gomedia"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
@@ -55,6 +56,9 @@ type keyframeCache struct {
 
 var defaultKeyframeCache = &keyframeCache{entries: map[keyframeKey]*keyframeEntry{}}
 
+// get returns the keyframe timeline for key from memory, then disk, then
+// probe. Concurrent callers for one key wait on a single probe; failures are
+// not cached.
 func (c *keyframeCache) get(ctx context.Context, key keyframeKey, probe func(context.Context) ([]float64, error)) ([]float64, error) {
 	c.mu.Lock()
 	e := c.entries[key]
@@ -105,12 +109,15 @@ func keyframeDiskCacheEnabled() bool {
 	return settings.Config.Server.CacheDir != ""
 }
 
+// keyframeDiskPath returns the disk cache file for key's path.
 func keyframeDiskPath(key keyframeKey) string {
 	sum := sha256.Sum256([]byte(key.path))
 	name := hex.EncodeToString(sum[:])[:32] + ".json"
 	return filepath.Join(settings.TranscodeKeyframeCacheDir(), name)
 }
 
+// readKeyframeDiskCache returns the persisted timeline for key when it exists
+// and matches the file's size, mtime, and the cache version.
 func readKeyframeDiskCache(key keyframeKey) ([]float64, bool) {
 	if !keyframeDiskCacheEnabled() {
 		return nil, false
@@ -132,6 +139,8 @@ func readKeyframeDiskCache(key keyframeKey) ([]float64, bool) {
 	return stamp.Times, true
 }
 
+// writeKeyframeDiskCache persists a timeline for key atomically. Errors are
+// ignored; the cache is an optimization.
 func writeKeyframeDiskCache(key keyframeKey, times []float64) {
 	if len(times) == 0 || !keyframeDiskCacheEnabled() {
 		return
@@ -224,14 +233,52 @@ func probeKeyframesWithPreflight(ctx context.Context, svc *ffmpeg.Service, realP
 // stall plan building (and the client's session POST) indefinitely.
 const keyframeProbeTimeout = 2 * time.Minute
 
+// probeKeyframesCached returns the keyframe timeline of a file version from
+// the memory or disk cache, or probes it: go-media reads the container index
+// first, and ffprobe runs only when go-media cannot answer or reports a gap
+// that would rule out stream copy.
 func probeKeyframesCached(ctx context.Context, svc *ffmpeg.Service, realPath string, size, modTime int64, segmentSec float64, preflight bool) ([]float64, error) {
 	key := keyframeKey{path: realPath, size: size, modTime: modTime}
 	return defaultKeyframeCache.get(ctx, key, func(ctx context.Context) ([]float64, error) {
 		probeCtx, cancel := context.WithTimeout(ctx, keyframeProbeTimeout)
 		defer cancel()
+		if times, ok := gomediaKeyframes(probeCtx, svc, realPath, segmentSec, preflight); ok {
+			return times, nil
+		}
 		if preflight {
 			return probeKeyframesWithPreflight(probeCtx, svc, realPath, segmentSec)
 		}
 		return svc.ProbeVideoKeyframeTimes(probeCtx, realPath)
 	})
+}
+
+// gomediaKeyframes reads the keyframe timeline from the container index with
+// go-media. It reports ok=false when go-media cannot answer, and also when
+// preflight is set and the timeline has a gap past the copy cap: go-media can
+// miss keyframes that ffprobe's parsers flag (IDR frames not in the index,
+// partial Matroska Cues) but never adds one, so only ffprobe may decide that
+// stream copy is impossible. A bounded go-media read runs first, so a file
+// whose head already shows such a gap does not pay for a full index walk.
+func gomediaKeyframes(ctx context.Context, svc *ffmpeg.Service, realPath string, segmentSec float64, preflight bool) ([]float64, bool) {
+	if preflight {
+		if head, ok := gomedia.KeyframeTimesWithin(ctx, realPath, keyframeBoundedPreflightWindowSec); ok && keyframesExceedCopyCap(head, segmentSec) {
+			logger.Debugf("transcode: go-media keyframe pre-flight shows a gap past the copy cap on %s; confirming with ffprobe", realPath)
+			return nil, false
+		}
+	}
+	legacy := func() ([]float64, bool) {
+		shadowCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), keyframeProbeTimeout)
+		defer cancel()
+		times, err := svc.ProbeVideoKeyframeTimes(shadowCtx, realPath)
+		return times, err == nil
+	}
+	times, ok := gomedia.KeyframeTimes(ctx, realPath, legacy)
+	if !ok {
+		return nil, false
+	}
+	if preflight && keyframesExceedCopyCap(times, segmentSec) {
+		logger.Debugf("transcode: go-media keyframe index shows a gap past the copy cap on %s; confirming with ffprobe", realPath)
+		return nil, false
+	}
+	return times, true
 }

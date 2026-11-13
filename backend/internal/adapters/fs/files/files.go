@@ -17,6 +17,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/internal/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/ffmpeg"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/gomedia"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/mediacache"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing/iteminfo"
@@ -393,7 +394,8 @@ func processContent(info *iteminfo.ExtendedFileInfo, idx *indexing.Index, opts u
 			info.GetSubtitles(parentInfo)
 		}
 		subtitles, ok := gomedia.EmbeddedSubtitles(info.RealPath, info.ModTime, func() ([]utils.SubtitleTrack, bool) {
-			return ffmpeg.DetectEmbeddedSubtitles(info.RealPath, info.ModTime), true
+			// Shadow run: bypass the shared cache so ffprobe is compared fresh.
+			return ffmpeg.DetectEmbeddedSubtitlesContext(mediacache.WithoutCache(context.Background()), info.RealPath), true
 		})
 		if !ok {
 			subtitles = ffmpeg.DetectEmbeddedSubtitles(info.RealPath, info.ModTime)
@@ -529,8 +531,9 @@ func audioDuration(ctx context.Context, item *iteminfo.ExtendedItemInfo, realPat
 	if service == nil {
 		service = ffmpeg.Get()
 	}
-	// The shadow run can outlive the request, so it uses a context that is not cancelled with it.
-	shadowCtx := context.WithoutCancel(ctx)
+	// The shadow run can outlive the request, so it uses a context that is not
+	// cancelled with it. It bypasses the shared cache so ffmpeg is compared fresh.
+	shadowCtx := mediacache.WithoutCache(context.WithoutCancel(ctx))
 	legacy := func() (float64, bool) {
 		d, err := service.GetMediaDuration(shadowCtx, realPath)
 		return d, err == nil
@@ -701,8 +704,9 @@ func extractVideoMetadata(ctx context.Context, item *iteminfo.ExtendedItemInfo, 
 	if probeService == nil {
 		probeService = ffmpeg.Get()
 	}
-	// The shadow run can outlive the request, so it uses a context that is not cancelled with it.
-	shadowCtx := context.WithoutCancel(ctx)
+	// The shadow run can outlive the request, so it uses a context that is not
+	// cancelled with it. It bypasses the shared cache so ffprobe is compared fresh.
+	shadowCtx := mediacache.WithoutCache(context.WithoutCancel(ctx))
 	legacyProbe := func() (gomedia.ProbeResult, bool) {
 		info, err := probeService.ProbeFile(shadowCtx, realPath)
 		if err != nil || info == nil {
