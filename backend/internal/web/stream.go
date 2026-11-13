@@ -494,8 +494,7 @@ func ServeSingleFile(w http.ResponseWriter, r *http.Request, d *Context, source 
 	if st, statErr := os.Stat(realPath); statErr == nil {
 		isDir = st.IsDir()
 	}
-	if !accessPermittedAtRealPath(idx, permUser, realPath, isDir) {
-		logger.Debugf("user %s denied access to resolved path for %s", permUser, scopedFilePath)
+	if !state.AccessPermittedAtRealPath(idx, permUser, realPath, isDir) {
 		return http.StatusForbidden, fmt.Errorf("access denied to path %s", scopedFilePath)
 	}
 

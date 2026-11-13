@@ -16,6 +16,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/internal/activity"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/files"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/fileutils"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/database/access"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/preview"
@@ -793,7 +794,7 @@ func ResourcePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 	if !state.AccessPermitted(idx.Path, utils.IndexPathFromNormalized(fullIndexPath, true), filePermUser.Username) {
 		return http.StatusForbidden, fmt.Errorf("access denied to path %s", path)
 	}
-	if !accessPermittedAtRealPath(idx, filePermUser.Username, realPath, isDirAtRealPath(realPath)) {
+	if !state.AccessPermittedAtRealPath(idx, filePermUser.Username, realPath, access.IsDirAtRealPath(realPath)) {
 		return http.StatusForbidden, fmt.Errorf("access denied to path %s", path)
 	}
 
@@ -1532,7 +1533,7 @@ func ResourcePatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 			response.Failed = append(response.Failed, moveCopyWithClientPaths(item, clientFromPath, clientToPath))
 			continue
 		}
-		if !accessPermittedAtRealPath(srcIdx, d.User.Username, realSrc, isSrcDir) {
+		if !state.AccessPermittedAtRealPath(srcIdx, d.User.Username, realSrc, isSrcDir) {
 			item.Message = "access denied to source path"
 			if d.Share.Hash != "" {
 				response.Failed = append(response.Failed, MoveCopyItem{Message: item.Message})
@@ -1561,7 +1562,7 @@ func ResourcePatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 			response.Failed = append(response.Failed, moveCopyWithClientPaths(item, clientFromPath, clientToPath))
 			continue
 		}
-		if !accessPermittedAtRealPath(dstIdx, d.User.Username, realDest, isDirAtRealPath(realDest)) {
+		if !state.AccessPermittedAtRealPath(dstIdx, d.User.Username, realDest, access.IsDirAtRealPath(realDest)) {
 			item.Message = "access denied to destination path"
 			if d.Share.Hash != "" {
 				response.Failed = append(response.Failed, MoveCopyItem{Message: item.Message})

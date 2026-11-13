@@ -19,6 +19,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/internal/activity"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/files"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/fileutils"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/database/access"
 	activitydb "github.com/gtsteffaniak/filebrowser/backend/internal/database/activity"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 	commonerrors "github.com/gtsteffaniak/filebrowser/backend/internal/errors"
@@ -260,7 +261,7 @@ func (ffs *filteredFileSystem) checkResolvedAccess(requestPath string, forRemova
 		}
 		return err
 	}
-	if !accessPermittedAtRealPath(idx, ffs.user.Username, realPath, isDirAtRealPath(realPath)) {
+	if !state.AccessPermittedAtRealPath(idx, ffs.user.Username, realPath, access.IsDirAtRealPath(realPath)) {
 		return os.ErrPermission
 	}
 	return nil
@@ -442,7 +443,6 @@ func (ffs *filteredFileSystem) Mkdir(ctx context.Context, name string, perm os.F
 		return err
 	}
 	if err := ffs.checkResolvedAccess(name, false); err != nil {
-		logger.Debugf("Mkdir: resolved access denied for %s: %v", name, err)
 		return err
 	}
 
@@ -484,7 +484,6 @@ func (ffs *filteredFileSystem) OpenFile(ctx context.Context, requestPath string,
 			return nil, err
 		}
 		if err := ffs.checkResolvedAccess(requestPath, false); err != nil {
-			logger.Debugf("OpenFile: resolved access denied for %s: %v", requestPath, err)
 			return nil, err
 		}
 
@@ -500,7 +499,6 @@ func (ffs *filteredFileSystem) OpenFile(ctx context.Context, requestPath string,
 			return nil, os.ErrPermission
 		}
 		if err := ffs.checkResolvedAccess(requestPath, false); err != nil {
-			logger.Debugf("OpenFile: read denied at resolved path for %s: %v", requestPath, err)
 			return nil, err
 		}
 	}

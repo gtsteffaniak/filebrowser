@@ -198,7 +198,7 @@ func fileWatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 	if err != nil {
 		return http.StatusNotFound, fmt.Errorf("path not found: %v", err)
 	}
-	if !accessPermittedAtRealPath(idx, d.User.Username, realPath, info.IsDir()) {
+	if !state.AccessPermittedAtRealPath(idx, d.User.Username, realPath, info.IsDir()) {
 		return http.StatusForbidden, fmt.Errorf("access denied to file")
 	}
 
@@ -349,7 +349,7 @@ func fileWatchSSEHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 	if err != nil {
 		return http.StatusNotFound, fmt.Errorf("path not found: %v", err)
 	}
-	if !accessPermittedAtRealPath(idx, d.User.Username, realPath, info.IsDir()) {
+	if !state.AccessPermittedAtRealPath(idx, d.User.Username, realPath, info.IsDir()) {
 		return http.StatusForbidden, fmt.Errorf("access denied to file")
 	}
 
