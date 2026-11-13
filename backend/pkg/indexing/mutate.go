@@ -37,15 +37,20 @@ func (idx *Index) UpdateMetadata(info *iteminfo.FileInfo, scanner *Scanner, pers
 	}
 
 	fullText := settings.Config.Server.IndexSqlConfig.FullTextSearch
-	// Pending bodies are flushed by size so a directory of large files cannot hold
-	// gigabytes of extracted text in memory before the batch threshold trips.
+	// Items are flushed by count and by extracted text bytes, so a directory of large
+	// files cannot hold gigabytes of bodies until the whole listing is processed.
 	pendingBytes := 0
-	flush := func() error {
+	dirFlushed := false
+	flush := func(force bool) error {
 		pending := items
 		items = items[:0]
+		pendingBytes = 0
+		if len(pending) == 0 {
+			return nil
+		}
 		if scanner != nil {
 			scanner.batchItems = append(scanner.batchItems, pending...)
-			if len(scanner.batchItems) >= idx.db.BatchSize {
+			if force || len(scanner.batchItems) >= idx.db.BatchSize {
 				scanner.flushBatch()
 			}
 			return nil
@@ -73,11 +78,16 @@ func (idx *Index) UpdateMetadata(info *iteminfo.FileInfo, scanner *Scanner, pers
 			}
 		}
 		items = append(items, fileItem)
-		if pendingBytes >= maxPendingTextBytes {
-			if err := flush(); err != nil {
+		if len(items) >= maxPendingItems || pendingBytes >= maxPendingTextBytes {
+			// The directory row is written with the first flush so the flushed files
+			// have an indexed parent folder.
+			if !dirFlushed && scanner == nil {
+				items = append([]*iteminfo.FileInfo{&dirItem}, items...)
+				dirFlushed = true
+			}
+			if err := flush(true); err != nil {
 				return false
 			}
-			pendingBytes = 0
 		}
 	}
 
@@ -89,15 +99,16 @@ func (idx *Index) UpdateMetadata(info *iteminfo.FileInfo, scanner *Scanner, pers
 		}
 		idx.scanUpdatedPaths[normalizedPath] = true
 		idx.mu.Unlock()
-
-		return flush() == nil
 	}
 
-	return flush() == nil
+	return flush(false) == nil
 }
 
 // maxPendingTextBytes bounds extracted text held in memory before a batch flush (32 MiB).
 const maxPendingTextBytes = 32 << 20
+
+// maxPendingItems bounds how many listing entries are held before a flush.
+const maxPendingItems = 1000
 
 // extractContent returns the searchable body for a listed file. ok is false when the
 // entry must be indexed by name only (not a regular file inside the source root);

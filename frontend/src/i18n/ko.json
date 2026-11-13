@@ -274,6 +274,7 @@
     "useWildcardSearchDescription": "지원되는 와일드카드 옵션:\n\n- 모든 시퀀스와 일치합니다: *\n\n- 한 문자 일치: ?\n\n- 문자 클래스: [a-z], [0-9]\n\n- 부정: [^0-9]\n\n- 리터럴 *, ? 또는 [는 괄호로 묶어야 합니다(예: [*], [?], [[]).\n\n- 모든 결과는 대소문자를 구분합니다.",
     "searchContent": "파일 내용 검색",
     "searchContentDescription": "파일 이름 외에 파일 내부 텍스트(텍스트, 코드, Markdown, 서버에서 활성화된 경우 PDF/Office 문서)도 일치시킵니다. 서버에서 전체 텍스트 검색이 켜져 있어야 하며, 와일드카드 검색과는 함께 쓸 수 없습니다.",
+    "searchContentUnavailableDescription": "이 서버에서는 콘텐츠 검색이 활성화되어 있지 않습니다. 관리자에게 전체 텍스트 검색(server.indexSqlConfig.fullTextSearch) 활성화를 요청하세요.",
     "openInAdvancedSearch": "고급 검색에서 열기",
     "caseExact": "대소문자를 구분하는 일치",
     "caseExactDescription": "대소문자를 구분하지 않고 무시하는 대신, 파일 및 폴더 이름을 대소문자를 정확히 일치시켜 검색합니다.",

@@ -444,23 +444,29 @@ func (db *IndexDB) attemptBulkInsert(source string, items []*iteminfo.FileInfo) 
 	}
 	defer stmt.Close()
 
-	// Full-text rows share index_items.rowid so search and deletes stay trivial.
+	// Full-text rows are keyed by (source, path). Only written when content search
+	// is configured, so a name-only scan does no FTS work at all.
 	// A missing FTS table (index built without it) only disables content indexing.
-	var ftsStmt *sql.Stmt
-	if !db.fullTextOff() {
-		ftsStmt, err = tx.Prepare(`INSERT INTO index_fts(rowid, source, path, body) VALUES (?, ?, ?, ?)`)
+	var (
+		ftsDel  *sql.Stmt
+		ftsStmt *sql.Stmt
+	)
+	if settings.Config.Server.IndexSqlConfig.FullTextSearch && !db.fullTextOff() {
+		ftsDel, err = tx.Prepare(`DELETE FROM index_fts WHERE source = ? AND path = ?`)
+		if err == nil {
+			ftsStmt, err = tx.Prepare(`INSERT INTO index_fts(source, path, body) VALUES (?, ?, ?)`)
+		}
 		if err != nil {
-			if sqlitebusy.IsBusyOrLocked(err) {
-				logger.Debugf("[DB_TX] BulkInsertItems: FTS prepare busy/locked: %v", err)
-				return false, true, nil
-			}
+			// Prepare does not take a write lock; a busy error here is not retryable by rerunning.
 			db.fullTextMu.Lock()
 			db.fullTextDisabled = true
 			db.fullTextMu.Unlock()
 			logger.Warningf("[DB_TX] BulkInsertItems: full-text index unavailable, writing names only: %v", err)
+			ftsDel, ftsStmt = nil, nil
 		}
 	}
-	if ftsStmt != nil {
+	if ftsDel != nil {
+		defer ftsDel.Close()
 		defer ftsStmt.Close()
 	}
 
@@ -492,7 +498,14 @@ func (db *IndexDB) attemptBulkInsert(source string, items []*iteminfo.FileInfo) 
 		if ftsStmt == nil || info.IsDir || info.Type == "directory" {
 			continue
 		}
-		if err := upsertFullText(tx, ftsStmt, source, info); err != nil {
+		if _, err := ftsDel.Exec(source, info.Path); err != nil {
+			if sqlitebusy.IsBusyOrLocked(err) {
+				return false, true, nil
+			}
+			logger.Errorf("[DB] BulkInsertItems: FTS delete failed for path=%s, source=%s, error=%v", info.Path, source, err)
+			return false, false, err
+		}
+		if err := upsertFullText(ftsStmt, source, info); err != nil {
 			if sqlitebusy.IsBusyOrLocked(err) {
 				return false, true, nil
 			}

@@ -12,6 +12,11 @@ import (
 
 func newFullTextSearchTestIndex(t *testing.T, name string) *Index {
 	t.Helper()
+	// FTS rows are only written when content search is configured.
+	if prev := settings.Config.Server.IndexSqlConfig.FullTextSearch; !prev {
+		settings.Config.Server.IndexSqlConfig.FullTextSearch = true
+		t.Cleanup(func() { settings.Config.Server.IndexSqlConfig.FullTextSearch = false })
+	}
 	if indexDB == nil {
 		var err error
 		indexDB, _, err = dbsql.NewIndexDB("test_search_fulltext", "OFF", 1000, 32, false)
@@ -35,6 +40,9 @@ func newFullTextSearchTestIndex(t *testing.T, name string) *Index {
 		}
 	}
 
+	// Directory rows exist in the index only when listed; content hits require their
+	// parent folder to still be indexed.
+	insert("/docs/", iteminfo.ItemInfo{Name: "docs", Type: "directory"}, "")
 	insert("/docs/budget.txt", iteminfo.ItemInfo{Name: "budget.txt", Type: "text/plain", Size: 10}, "budget.txt\nquarterly numbers")
 	insert("/docs/other.txt", iteminfo.ItemInfo{Name: "other.txt", Type: "text/plain", Size: 10}, "other.txt\nunrelated")
 	insert("/docs/report.txt", iteminfo.ItemInfo{Name: "report.txt", Type: "text/plain", Size: 10}, "report.txt\nthe budget summary")

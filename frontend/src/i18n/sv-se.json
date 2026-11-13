@@ -274,6 +274,7 @@
     "useWildcardSearchDescription": "Alternativ för jokertecken som stöds:\n\n- Matchar vilken sekvens som helst: *\n\n- Matcha ett tecken: ?\n\n- Teckenklass: [a-z], [0-9]\n\n- Negation: [^0-9]\n\n- Bokstavliga *, ? eller [ måste omslutas av parenteser, t.ex. [*], [?], [[]\n\n- Alla resultat är skiftlägeskänsliga",
     "searchContent": "Sök i filinnehåll",
     "searchContentDescription": "Utöver filnamn matchar detta även text inuti filer (text, kod, Markdown och PDF-/Officedokument om det är aktiverat på servern). Kräver fulltextsökning på servern; inte tillgängligt med jokerteckensökning.",
+    "searchContentUnavailableDescription": "Innehållssökning är inte aktiverad på den här servern. Be en administratör att aktivera fulltextsökning (server.indexSqlConfig.fullTextSearch).",
     "openInAdvancedSearch": "Öppna i avancerad sökning",
     "caseExact": "Skillnad mellan stora och små bokstäver",
     "caseExactDescription": "Jämför fil- och mappnamn med exakt bokstavsstorlek istället för att bortse från skillnaden mellan stora och små bokstäver.",

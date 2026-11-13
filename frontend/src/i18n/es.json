@@ -274,6 +274,7 @@
     "useWildcardSearchDescription": "Opciones de comodín admitidas:\n\n- Coinciden con cualquier secuencia: *\n\n- Coincidir con un carácter: ?\n\n- Clase de caracteres: [a-z], [0-9]\n\n- Negación: [^0-9]\n\n- Los caracteres *, ? o [ deben ir entre paréntesis, por ejemplo [*], [?], [[].\n\n- Todos los resultados distinguen entre mayúsculas y minúsculas",
     "searchContent": "Buscar en el contenido de los archivos",
     "searchContentDescription": "Además de los nombres, coincide con el texto dentro de los archivos (texto, código, Markdown y documentos PDF/Office si están habilitados en el servidor). Requiere la búsqueda de texto completo en el servidor; no disponible con la búsqueda comodín.",
+    "searchContentUnavailableDescription": "La búsqueda de contenido no está habilitada en este servidor. Pida a un administrador que active la búsqueda de texto completo (server.indexSqlConfig.fullTextSearch).",
     "openInAdvancedSearch": "Abrir en búsqueda avanzada",
     "caseExact": "Coincidencia que distingue entre mayúsculas y minúsculas",
     "caseExactDescription": "Compara los nombres de archivos y carpetas utilizando el uso exacto de mayúsculas y minúsculas, en lugar de ignorar la distinción entre mayúsculas y minúsculas.",

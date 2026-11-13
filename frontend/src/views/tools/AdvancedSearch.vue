@@ -154,9 +154,9 @@
                     <ToggleSwitch
                       v-model="searchContent"
                       class="item"
-                      :disabled="useWildcardSearch"
+                      :disabled="useWildcardSearch || !contentSearchAvailable"
                       :name="$t('search.searchContent')"
-                      :description="$t('search.searchContentDescription')"
+                      :description="contentSearchAvailable ? $t('search.searchContentDescription') : $t('search.searchContentUnavailableDescription')"
                     />
                   </div>
                 </div>
@@ -548,6 +548,11 @@ export default {
   computed: {
     maxSearchResults() {
       return globalVars.searchResultsLimit || 1000;
+    },
+    // Server capability injected via globalVars. Older backends omit the flag,
+    // so anything but an explicit false keeps the previous behavior.
+    contentSearchAvailable() {
+      return globalVars.contentSearchAvailable !== false;
     },
     isAdvancedSearchRoute() {
       return (this.$route.path || "") === "/tools/advancedSearch";
@@ -1249,7 +1254,7 @@ export default {
 
       this.useWildcardSearch = queryTruthy(q.wildcard);
       this.caseExactSearch = queryTruthy(q.caseExact);
-      this.searchContent = queryTruthy(q.content);
+      this.searchContent = queryTruthy(q.content) && this.contentSearchAvailable;
 
       this.applyDefaultCurrentSourceIfNone();
     },
@@ -1440,7 +1445,7 @@ export default {
           false,
           {
             ...dateParams,
-            searchContent: this.searchContent,
+            searchContent: this.searchContent && this.contentSearchAvailable,
             limit: this.resultLimit,
             terms,
             termJoin: this.termsJoinAnd ? "and" : undefined,

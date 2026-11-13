@@ -3,6 +3,7 @@ package fulltext
 
 import (
 	"bytes"
+	"errors"
 	"io"
 	"os"
 	"path/filepath"
@@ -70,6 +71,23 @@ func Extract(realPath, name, mimeType string) *string {
 		body += "\n" + content
 	}
 	return &body
+}
+
+// errDocumentTooLarge reports a document that grew past MaxDocumentBytes after the
+// caller's stat, so it is skipped instead of buffered whole.
+var errDocumentTooLarge = errors.New("document exceeds MaxDocumentBytes")
+
+// readLimited reads f up to limit bytes and fails if there is more, so a file that grew
+// after the caller's size check cannot be read into memory in full.
+func readLimited(f *os.File, limit int64) ([]byte, error) {
+	data, err := io.ReadAll(io.LimitReader(f, limit+1))
+	if err != nil {
+		return nil, err
+	}
+	if int64(len(data)) > limit {
+		return nil, errDocumentTooLarge
+	}
+	return data, nil
 }
 
 // nameOnly returns the name-only body for an eligible file that could not be read.

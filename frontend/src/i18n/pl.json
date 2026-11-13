@@ -274,6 +274,7 @@
     "useWildcardSearchDescription": "Obsługiwane opcje symboli wieloznacznych:\n\n- Dopasuj dowolną sekwencję: *\n\n- Dopasowanie jednego znaku: ?\n\n- Klasa znaków: [a-z], [0-9]\n\n- Negacja: [^0-9]\n\n- Dosłowne *, ? lub [ muszą być ujęte w nawiasy, np. [*], [?], [[]\n\n- We wszystkich wynikach rozróżniana jest wielkość liter",
     "searchContent": "Przeszukuj zawartość plików",
     "searchContentDescription": "Oprócz nazw dopasowuje także tekst wewnątrz plików (tekst, kod, Markdown oraz dokumenty PDF/Office, jeśli są włączone na serwerze). Wymaga wyszukiwania pełnotekstowego na serwerze; niedostępne z wyszukiwaniem wieloznacznym.",
+    "searchContentUnavailableDescription": "Wyszukiwanie zawartości nie jest włączone na tym serwerze. Poproś administratora o włączenie wyszukiwania pełnotekstowego (server.indexSqlConfig.fullTextSearch).",
     "openInAdvancedSearch": "Otwórz w wyszukiwaniu zaawansowanym",
     "caseExact": "Wyszukiwanie z uwzględnieniem wielkości liter",
     "caseExactDescription": "Porównuj nazwy plików i folderów, uwzględniając dokładną wielkość liter, zamiast ignorować różnicę między wielkimi a małymi literami.",

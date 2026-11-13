@@ -274,6 +274,7 @@
     "useWildcardSearchDescription": "Options de caractères génériques prises en charge :\n\n- Correspond à n'importe quelle séquence : *\n\n- Correspondre à un seul caractère : ?\n\n- Classe de caractères : [a-z], [0-9]\n\n- Négation : [^0-9]\n\n- Les valeurs littérales *, ? ou [ doivent être mises entre parenthèses, par exemple [*], [ ?], [[]].\n\n- Tous les résultats sont sensibles à la casse",
     "searchContent": "Rechercher dans le contenu des fichiers",
     "searchContentDescription": "En plus des noms, correspond au texte contenu dans les fichiers (texte, code, Markdown et documents PDF/Office si activés sur le serveur). Nécessite la recherche plein texte sur le serveur ; indisponible avec la recherche par jokers.",
+    "searchContentUnavailableDescription": "La recherche dans le contenu n'est pas activée sur ce serveur. Demandez à un administrateur d'activer la recherche plein texte (server.indexSqlConfig.fullTextSearch).",
     "openInAdvancedSearch": "Ouvrir en recherche avancée",
     "caseExact": "Correspondance sensible à la casse",
     "caseExactDescription": "Comparer les noms de fichiers et de dossiers en tenant compte de la casse exacte, plutôt qu'en ignorant la distinction entre majuscules et minuscules.",

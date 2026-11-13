@@ -539,6 +539,7 @@
     "useWildcardSearchDescription": "Ondersteunde jokertekenopties:\n\n- Overeenstemming met een willekeurige reeks: *\n\n- Overeenstemming met één teken: ?\n\n- Tekenklasse: [a-z], [0-9]\n\n- Negatie: [^0-9]\n\n- Letterlijke *, ?, of [ moeten tussen haakjes staan, bijv. [*], [?], [[]\n\n- Alle resultaten zijn hoofdlettergevoelig",
     "searchContent": "Bestandsinhoud doorzoeken",
     "searchContentDescription": "Naast bestandsnamen komt dit ook overeen met tekst in bestanden (tekst, code, Markdown en PDF-/Officedocumenten indien ingeschakeld op de server). Vereist volledige tekstzoekopdrachten op de server; niet beschikbaar met zoeken met jokertekens.",
+    "searchContentUnavailableDescription": "Zoeken in inhoud is niet ingeschakeld op deze server. Vraag een beheerder om volledig zoeken in tekst (server.indexSqlConfig.fullTextSearch) in te schakelen.",
     "caseExact": "Hoofdlettergevoelige zoekopdracht",
     "caseExactDescription": "Zoek overeenkomende bestands- en mapnamen met exacte letterovereenkomst in plaats van hoofd- en kleine letters te negeren.",
     "helpText1": "Er wordt gezocht op elk teken dat je typt (minimaal {minSearchLength} tekens).",

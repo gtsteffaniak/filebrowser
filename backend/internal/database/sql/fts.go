@@ -36,11 +36,10 @@ func (db *IndexDB) CreateFullTextTable() error {
 // SearchFullText returns index paths for source whose body matches the terms
 // (prefix matching; AND when matchAll is set, OR otherwise).
 // scope is a directory index path ending in "/".
-// cursorPath/cursorLen page past an earlier result: paths ordered after the
-// (length, path) cursor key are returned, including equal-length paths after it.
-func (db *IndexDB) SearchFullText(source, scope string, terms []string, matchAll bool, limit int, cursorPath string, cursorLen int) ([]string, error) {
+// Results are ordered by (length(path), path); startingAfter pages past that key.
+func (db *IndexDB) SearchFullText(source, scope string, terms []string, matchAll bool, limit int, startingAfter string) ([]string, error) {
 	expr := fullTextMatchExpr(terms, matchAll)
-	if db.fullTextDisabled || expr == "" {
+	if db.fullTextOff() || expr == "" {
 		return nil, nil
 	}
 	if limit <= 0 {
@@ -49,14 +48,15 @@ func (db *IndexDB) SearchFullText(source, scope string, terms []string, matchAll
 	// index_items is not joined here: doing so made the planner scan index_fts
 	// instead of using the FTS index; scope filtering is a cheap GLOB on the FTS rows.
 	nameGlob := sqliteGlobEscape(scope) + "*"
-	// Order by path length so LIMIT keeps the shallowest matches, matching the
-	// caller's final result ordering; the cursor key is (length(path), path).
+	// Order by (length(path), path) before LIMIT so a limited page keeps the
+	// shallowest, then lexicographically first, matches. The cursor is the last path
+	// returned; its length is computed by SQLite so both sides share one length unit.
 	rows, err := db.Query(`
 		SELECT path FROM index_fts
 		WHERE body MATCH ? AND source = ? AND path GLOB ?
-		AND (length(path) > ? OR (length(path) = ? AND path > ?))
+		AND (length(path) > length(?) OR (length(path) = length(?) AND path > ?))
 		ORDER BY length(path), path
-		LIMIT ?`, expr, source, nameGlob, cursorLen, cursorLen, cursorPath, limit)
+		LIMIT ?`, expr, source, nameGlob, startingAfter, startingAfter, startingAfter, limit)
 	if err != nil {
 		return nil, err
 	}
@@ -95,36 +95,28 @@ func sqliteGlobEscape(s string) string {
 	return strings.NewReplacer("*", "[*]", "?", "[?]", "[", "[[]").Replace(s)
 }
 
-// upsertFullText replaces the content row for one freshly upserted index_items row.
-// The old row is dropped first so an upsert without a body never leaves stale text searchable.
-// The rowid is looked up by (source, path): on ON CONFLICT DO UPDATE SQLite does not insert,
-// so LastInsertId can still point at an earlier row.
-func upsertFullText(tx *sql.Tx, stmt *sql.Stmt, source string, info *iteminfo.FileInfo) error {
-	empty := info.FullTextBody == nil || *info.FullTextBody == ""
-	var rowid int64
-	if err := tx.QueryRow(`SELECT rowid FROM index_items WHERE source = ? AND path = ?`, source, info.Path).Scan(&rowid); err != nil {
-		return err
-	}
-	if _, err := tx.Exec(`DELETE FROM index_fts WHERE rowid = ?`, rowid); err != nil {
-		return err
-	}
-	if empty {
+// upsertFullText writes the content row for one freshly upserted index_items row.
+// Rows are keyed by (source, path) rather than index_items.rowid: after
+// ON CONFLICT DO UPDATE LastInsertId can point at an earlier row. An empty body
+// writes nothing; the FTS row was already dropped by the caller's deleteItemRowsTx.
+func upsertFullText(stmt *sql.Stmt, source string, info *iteminfo.FileInfo) error {
+	if info.FullTextBody == nil {
 		return nil
 	}
-	_, err := stmt.Exec(rowid, source, info.Path, *info.FullTextBody)
+	_, err := stmt.Exec(source, info.Path, *info.FullTextBody)
 	return err
 }
 
 // deleteItemRowsTx deletes matching index_items and index_fts rows in one transaction so a
 // concurrent insert cannot interleave between the two deletes.
 func (db *IndexDB) deleteItemRowsTx(whereClause string, args ...interface{}) error {
+	committed := false
 	tx, err := db.BeginTransaction()
 	if err != nil {
 		// BeginTransaction locks mu before Begin and does not unlock on error.
 		db.mu.Unlock()
 		return err
 	}
-	committed := false
 	defer func() {
 		if !committed {
 			_ = tx.Rollback()

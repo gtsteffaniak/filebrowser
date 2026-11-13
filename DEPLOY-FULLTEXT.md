@@ -67,12 +67,12 @@ server:
 ```
 
 3. **重启一次**服务。
-4. **触发一次完整扫描回填**：旧索引条目是在该开关打开之前写入的，没有正文。把 `server.indexSqlConfig.disableReuse` 设为 `true` 并重启（只有它是完整扫描；手动触发的增量扫描会跳过未变更目录）。回填完成后可以把 `disableReuse` 改回 `false`（或删除该项）。
+4. **触发一次完整扫描回填**：旧索引条目是在该开关打开之前写入的，没有正文。把 `server.indexSqlConfig.disableReuse` 设为 `true` 并重启（这是完整扫描；手动触发 / API 触发的扫描是增量模式，会跳过目录时间未变的文件，回填不到它们）。回填完成后可以把 `disableReuse` 改回 `false`（或删除该项）。
 
    - 回填只会索引「扫描时能读到」的文件；被 include/exclude 规则挡掉的、或超过大小上限的不会被索引。
    - 扫描期间搜索仍可用，只是内容命中会逐步变多。
 
-5. 用户侧：打开「高级搜索」，勾选 **Search file contents / 搜索文件内容**（与通配符搜索互斥），或调用 API：
+5. 用户侧：打开「高级搜索」，勾选 **Search file contents / 搜索文件内容**（与通配符搜索互斥；服务端未开启全文检索时该开关自动置灰并提示原因，不会发出无效请求），或调用 API：
 
 ```bash
 curl -G 'http://host/api/tools/search' \

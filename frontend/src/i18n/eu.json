@@ -539,6 +539,7 @@
     "useWildcardSearchDescription": "Onartutako komodin-aukerak:\n\n• Edozein sekuentzia: *\n\n• Karaktere bakarra: ?\n\n• Karaktere-klasea: [a-z], [0-9]\n\n• Ukapena: [^0-9]\n\n• *, ? edo [ literalak kortxete artean jarri behar dira, adib. [*], [?], [[]",
     "searchContent": "Fitxategien edukia bilatu",
     "searchContentDescription": "Izenez gain, fitxategien barruko testuarekin ere bat egiten du (testua, kodea, Markdown eta PDF/Office dokumentuak zerbitzarian gaituta badaude). Zerbitzariko testu osoaren bilaketa behar du; ezin da komodin bidezko bilaketarekin erabili.",
+    "searchContentUnavailableDescription": "Edukian bilatzea ez dago gaituta zerbitzari honetan. Eskatu administratzaile bati testu osoko bilaketa (server.indexSqlConfig.fullTextSearch) gaitzeko.",
     "caseExact": "Bereizi maiuskulak eta minuskulak",
     "caseExactDescription": "Fitxategi eta karpeten izenak bilatzean, maiuskulak eta minuskulak zehazki bereizten ditu, kontuan hartu gabe bilatu beharrean.",
     "helpText1": "Idazten duzun karaktere bakoitzean bilatzen da (gutxienez {minSearchLength} karaktere).",

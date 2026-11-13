@@ -22,10 +22,9 @@ type SearchOptions struct {
 	MatchAllTerms bool
 	// Quoted is true when the search query was a double-quoted phrase; spaces are kept literal in name matching.
 	Quoted bool
-	// CursorPath/CursorLen page past earlier results: only items ordered after
-	// (length(path), path) = (CursorLen, CursorPath) are returned.
+	// CursorPath pages past earlier results: only items ordered after it by
+	// (length(path), path) are returned. Length is computed in SQL, never passed in.
 	CursorPath string
-	CursorLen  int
 }
 
 // BuildSearchOptionsFromQuery merges optional repeated literal terms (HTTP "terms" parameters) with structured filter text ("query" prefix).

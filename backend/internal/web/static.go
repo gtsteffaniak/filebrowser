@@ -293,6 +293,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"ldapAvailable":          settings.Config.Auth.Methods.LdapAuth.Enabled,
 		"mediaAvailable":         settings.MediaEnabled(),
 		"muPdfAvailable":         settings.Env.MuPdfAvailable,
+		"contentSearchAvailable": settings.Config.Server.IndexSqlConfig.FullTextSearch,
 		"updateAvailable":        utils.GetUpdateAvailableUrl(),
 		"disableNavButtons":      disableNavButtons,
 		"userSelectableThemes":   settings.Config.Frontend.Styling.CustomThemeOptions,

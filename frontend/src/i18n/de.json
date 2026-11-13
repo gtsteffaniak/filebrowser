@@ -274,6 +274,7 @@
     "useWildcardSearchDescription": "Unterstützte Platzhalteroptionen:\n\n- Entspricht einer beliebigen Sequenz: *\n\n- Übereinstimmung mit einem Zeichen: ?\n\n- Zeichenklasse: [a-z], [0-9]\n\n- Negation: [^0-9]\n\n- Buchstäbliche *, ? oder [ müssen in Klammern eingeschlossen werden, z. B. [*], [?], [[]\n\n- Bei allen Ergebnissen wird zwischen Groß- und Kleinschreibung unterschieden.",
     "searchContent": "Dateiinhalte durchsuchen",
     "searchContentDescription": "Trifft neben Dateinamen auch auf Text innerhalb von Dateien zu (Text, Code, Markdown und PDF-/Office-Dokumente, wenn auf dem Server aktiviert). Erfordert die Volltextsuche auf dem Server; nicht mit Platzhaltersuche verfügbar.",
+    "searchContentUnavailableDescription": "Die Inhaltssuche ist auf diesem Server nicht aktiviert. Bitten Sie einen Administrator, die Volltextsuche (server.indexSqlConfig.fullTextSearch) zu aktivieren.",
     "openInAdvancedSearch": "In der erweiterten Suche öffnen",
     "caseExact": "Groß-/Kleinschreibung beachten",
     "caseExactDescription": "Datei- und Ordnernamen anhand der genauen Groß- und Kleinschreibung abgleichen, anstatt Groß- und Kleinschreibung zu ignorieren.",

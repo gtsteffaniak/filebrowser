@@ -37,3 +37,20 @@ describe("search result limit", () => {
     expect(JSON.parse(fetchURL.mock.calls[0][0])).not.toHaveProperty("limit");
   });
 });
+
+describe("content search flag", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    fetchURL.mockResolvedValue({ json: async () => [] });
+  });
+
+  it("sends searchContent=true when requested", async () => {
+    await search("/", "one", "budget", false, { searchContent: true });
+    expect(JSON.parse(fetchURL.mock.calls[0][0])).toMatchObject({ searchContent: "true" });
+  });
+
+  it("omits searchContent when the toggle is off", async () => {
+    await search("/", "one", "budget", false, { searchContent: false });
+    expect(JSON.parse(fetchURL.mock.calls[0][0])).not.toHaveProperty("searchContent");
+  });
+});

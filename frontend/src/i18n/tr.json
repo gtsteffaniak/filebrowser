@@ -274,6 +274,7 @@
     "useWildcardSearchDescription": "Desteklenen joker karakter seçenekleri:\n\n• Herhangi bir diziyi eşleştir: *\n\n• Bir karakteri eşleştir: ?\n\n• Karakter sınıfı: [a-z], [0-9]\n\n• Olumsuzlama: [^0-9]\n\n• Literal *, ? veya [ karakterleri köşeli parantez içine alınmalıdır, örn. [*], [?], [[]",
     "searchContent": "Dosya içeriğinde ara",
     "searchContentDescription": "Dosya adlarının yanı sıra dosyaların içindeki metinle de (sunucuda etkinse metin, kod, Markdown ve PDF/Office belgeleri) eşleşir. Sunucuda tam metin araması gerektirir; joker karakter aramasıyla kullanılamaz.",
+    "searchContentUnavailableDescription": "Bu sunucuda içerik araması etkin değil. Bir yöneticiden tam metin aramasını (server.indexSqlConfig.fullTextSearch) etkinleştirmesini isteyin.",
     "openInAdvancedSearch": "Gelişmiş Aramada Aç",
     "caseExact": "Büyük/küçük harf duyarlı eşleştirme",
     "caseExactDescription": "Büyük ve küçük harfleri göz ardı etmek yerine, dosya ve klasör adlarını tam harf büyük/küçük yazımına göre eşleştirin.",

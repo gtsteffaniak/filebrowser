@@ -274,6 +274,7 @@
     "useWildcardSearchDescription": "Támogatott helyettesítő opciók:\n\n- Bármilyen sorozatra illeszkedik: *\n\n- Egy karakterrel való egyezés: ?\n\n- Karakterosztály: [a-z], [0-9]\n\n- Negáció: [^0-9]\n\n- A szó szerinti *, ? vagy [ karaktereket zárójelbe kell tenni, pl. [*], [?], [[]\n\n- Minden eredmény nagy- és kisbetű-érzékeny",
     "searchContent": "Fájltartalom keresése",
     "searchContentDescription": "A fájlnevek mellett a fájlokon belüli szövegre is illeszkedik (szöveg, kód, Markdown és PDF/Office dokumentumok, ha a kiszolgálón engedélyezett). A kiszolgálón futó teljes szöveges keresést igényel; helyettesítő karakteres kereséssel nem használható.",
+    "searchContentUnavailableDescription": "A tartalomban való keresés nincs engedélyezve ezen a kiszolgálón. Kérjen meg egy rendszergazdát, hogy engedélyezze a teljes szöveges keresést (server.indexSqlConfig.fullTextSearch).",
     "openInAdvancedSearch": "Megnyitás a bővített keresőben",
     "caseExact": "Kis- és nagybetűk közötti különbséget figyelembe vevő keresés",
     "caseExactDescription": "A fájl- és mappanevek összehasonlításakor vegye figyelembe a betűk pontos írásmódját, ne pedig a kis- és nagybetűk közötti különbséget.",

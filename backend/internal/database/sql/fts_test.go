@@ -9,7 +9,9 @@ import (
 
 func newFullTextTestDB(t *testing.T) *IndexDB {
 	t.Helper()
-	t.Cleanup(pushTestIndexConfig(t, t.TempDir(), testIndexSQLConfig(settingsOff)))
+	cfg := testIndexSQLConfig(settingsOff)
+	cfg.FullTextSearch = true
+	t.Cleanup(pushTestIndexConfig(t, t.TempDir(), cfg))
 	db, _, err := NewIndexDB("fts_test", "OFF", 1000, 32, false)
 	if err != nil {
 		t.Fatalf("NewIndexDB: %v", err)
@@ -34,7 +36,7 @@ func TestFullTextSearchMatchesContentAndName(t *testing.T) {
 		t.Fatalf("BulkInsertItems: %v", err)
 	}
 
-	paths, err := db.SearchFullText("src", "/", []string{"budget"}, true, 100, "", 0)
+	paths, err := db.SearchFullText("src", "/", []string{"budget"}, true, 100, "")
 	if err != nil {
 		t.Fatalf("SearchFullText: %v", err)
 	}
@@ -43,7 +45,7 @@ func TestFullTextSearchMatchesContentAndName(t *testing.T) {
 	}
 
 	// Scope restricts to the given folder prefix.
-	scoped, err := db.SearchFullText("src", "/notes/", []string{"budget"}, true, 100, "", 0)
+	scoped, err := db.SearchFullText("src", "/notes/", []string{"budget"}, true, 100, "")
 	if err != nil {
 		t.Fatalf("SearchFullText scoped: %v", err)
 	}
@@ -52,7 +54,7 @@ func TestFullTextSearchMatchesContentAndName(t *testing.T) {
 	}
 
 	// Every term must match (AND).
-	both, err := db.SearchFullText("src", "/", []string{"budget", "quarter"}, true, 100, "", 0)
+	both, err := db.SearchFullText("src", "/", []string{"budget", "quarter"}, true, 100, "")
 	if err != nil {
 		t.Fatalf("SearchFullText AND: %v", err)
 	}
@@ -72,10 +74,10 @@ func TestFullTextUpsertReplacesAndDeletesRemove(t *testing.T) {
 	if err := db.BulkInsertItems("src", []*iteminfo.FileInfo{item}); err != nil {
 		t.Fatal(err)
 	}
-	if hits, _ := db.SearchFullText("src", "/", []string{"oldword"}, true, 10, "", 0); len(hits) != 0 {
+	if hits, _ := db.SearchFullText("src", "/", []string{"oldword"}, true, 10, ""); len(hits) != 0 {
 		t.Fatalf("stale body still matches: %v", hits)
 	}
-	if hits, _ := db.SearchFullText("src", "/", []string{"newword"}, true, 10, "", 0); len(hits) != 1 {
+	if hits, _ := db.SearchFullText("src", "/", []string{"newword"}, true, 10, ""); len(hits) != 1 {
 		t.Fatalf("updated body not searchable: %v", hits)
 	}
 
@@ -84,7 +86,7 @@ func TestFullTextUpsertReplacesAndDeletesRemove(t *testing.T) {
 	if err := db.BulkInsertItems("src", []*iteminfo.FileInfo{item}); err != nil {
 		t.Fatal(err)
 	}
-	if hits, _ := db.SearchFullText("src", "/", []string{"newword"}, true, 10, "", 0); len(hits) != 0 {
+	if hits, _ := db.SearchFullText("src", "/", []string{"newword"}, true, 10, ""); len(hits) != 0 {
 		t.Fatalf("body not cleared on nil: %v", hits)
 	}
 
@@ -114,7 +116,7 @@ func TestFullTextOrphansArePurged(t *testing.T) {
 	if _, err := db.PurgeFullTextOrphans("src", "/dir/"); err != nil {
 		t.Fatal(err)
 	}
-	if hits, _ := db.SearchFullText("src", "/", []string{"stale"}, true, 10, "", 0); len(hits) != 0 {
+	if hits, _ := db.SearchFullText("src", "/", []string{"stale"}, true, 10, ""); len(hits) != 0 {
 		t.Fatalf("orphan still matches: %v", hits)
 	}
 }
@@ -127,11 +129,11 @@ func TestFullTextQuerySafety(t *testing.T) {
 		t.Fatal(err)
 	}
 	for _, term := range []string{`key:`, `AND`, `OR`, `NOT`, `"quoted"`, "q.txt"} {
-		if _, err := db.SearchFullText("src", "/", []string{term}, true, 10, "", 0); err != nil {
+		if _, err := db.SearchFullText("src", "/", []string{term}, true, 10, ""); err != nil {
 			t.Fatalf("term %q broke FTS query: %v", term, err)
 		}
 	}
-	if hits, err := db.SearchFullText("src", "/", []string{`key:`}, true, 10, "", 0); err != nil || len(hits) != 1 {
+	if hits, err := db.SearchFullText("src", "/", []string{`key:`}, true, 10, ""); err != nil || len(hits) != 1 {
 		t.Fatalf("colon term hits = %v, err %v", hits, err)
 	}
 }
@@ -151,13 +153,13 @@ func TestFullTextUpsertAfterConflictKeepsEachRow(t *testing.T) {
 	if err := db.BulkInsertItems("src", []*iteminfo.FileInfo{a}); err != nil {
 		t.Fatal(err)
 	}
-	if hits, _ := db.SearchFullText("src", "/", []string{"beta"}, true, 10, "", 0); len(hits) != 1 || hits[0] != "/b.txt" {
+	if hits, _ := db.SearchFullText("src", "/", []string{"beta"}, true, 10, ""); len(hits) != 1 || hits[0] != "/b.txt" {
 		t.Fatalf("b.txt content lost or misplaced: %v", hits)
 	}
-	if hits, _ := db.SearchFullText("src", "/", []string{"updated"}, true, 10, "", 0); len(hits) != 1 || hits[0] != "/a.txt" {
+	if hits, _ := db.SearchFullText("src", "/", []string{"updated"}, true, 10, ""); len(hits) != 1 || hits[0] != "/a.txt" {
 		t.Fatalf("a.txt content not updated: %v", hits)
 	}
-	if hits, _ := db.SearchFullText("src", "/", []string{"alpha"}, true, 10, "", 0); len(hits) != 1 {
+	if hits, _ := db.SearchFullText("src", "/", []string{"alpha"}, true, 10, ""); len(hits) != 1 {
 		t.Fatalf("stale a.txt body still matches: %v", hits)
 	}
 }
@@ -172,14 +174,14 @@ func TestFullTextLimitKeepsShallowest(t *testing.T) {
 	if err := db.BulkInsertItems("src", items); err != nil {
 		t.Fatal(err)
 	}
-	hits, err := db.SearchFullText("src", "/", []string{"needle"}, true, 1, "", 0)
+	hits, err := db.SearchFullText("src", "/", []string{"needle"}, true, 1, "")
 	if err != nil {
 		t.Fatal(err)
 	}
 	if len(hits) != 1 || hits[0] != "/top.txt" {
 		t.Fatalf("limited hits should keep the shallowest match, got %v", hits)
 	}
-	paged, err := db.SearchFullText("src", "/", []string{"needle"}, true, 10, "/top.txt", len("/top.txt"))
+	paged, err := db.SearchFullText("src", "/", []string{"needle"}, true, 10, "/top.txt")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -196,10 +198,10 @@ func TestFullTextJoinMode(t *testing.T) {
 		t.Fatal(err)
 	}
 	terms := []string{"alpha", "beta"}
-	if hits, err := db.SearchFullText("src", "/", terms, false, 10, "", 0); err != nil || len(hits) != 1 {
+	if hits, err := db.SearchFullText("src", "/", terms, false, 10, ""); err != nil || len(hits) != 1 {
 		t.Fatalf("OR mode should match single-term content: %v %v", hits, err)
 	}
-	if hits, err := db.SearchFullText("src", "/", terms, true, 10, "", 0); err != nil || len(hits) != 0 {
+	if hits, err := db.SearchFullText("src", "/", terms, true, 10, ""); err != nil || len(hits) != 0 {
 		t.Fatalf("AND mode should require every term: %v %v", hits, err)
 	}
 }
@@ -215,13 +217,13 @@ func TestDeleteItemKeepsFullTextInSync(t *testing.T) {
 	if err := db.DeleteItem("src", "/dir/drop.txt", false); err != nil {
 		t.Fatal(err)
 	}
-	if hits, _ := db.SearchFullText("src", "/", []string{"dropword"}, true, 10, "", 0); len(hits) != 0 {
+	if hits, _ := db.SearchFullText("src", "/", []string{"dropword"}, true, 10, ""); len(hits) != 0 {
 		t.Fatalf("deleted file still searchable: %v", hits)
 	}
 	if err := db.DeleteItem("src", "/dir/", true); err != nil {
 		t.Fatal(err)
 	}
-	if hits, _ := db.SearchFullText("src", "/", []string{"keepword"}, true, 10, "", 0); len(hits) != 0 {
+	if hits, _ := db.SearchFullText("src", "/", []string{"keepword"}, true, 10, ""); len(hits) != 0 {
 		t.Fatalf("recursive delete left content: %v", hits)
 	}
 }
@@ -235,31 +237,67 @@ func TestFullTextCursorKeepsEqualLengthPaths(t *testing.T) {
 	if err := db.BulkInsertItems("src", items); err != nil {
 		t.Fatal(err)
 	}
-	first, err := db.SearchFullText("src", "/", []string{"needle"}, true, 1, "", 0)
+	first, err := db.SearchFullText("src", "/", []string{"needle"}, true, 1, "")
 	if err != nil || len(first) != 1 || first[0] != "/a.txt" {
 		t.Fatalf("first page = %v, %v", first, err)
 	}
-	second, err := db.SearchFullText("src", "/", []string{"needle"}, true, 1, first[0], len(first[0]))
+	second, err := db.SearchFullText("src", "/", []string{"needle"}, true, 1, first[0])
 	if err != nil || len(second) != 1 || second[0] != "/b.txt" {
 		t.Fatalf("second page should return the equal-length /b.txt, got %v, %v", second, err)
 	}
 }
 
-func TestSearchItemsLargestWithCursor(t *testing.T) {
+func TestSearchItemsPagesInCursorOrder(t *testing.T) {
 	db := newFullTextTestDB(t)
+	// Inserted deepest-first: without ORDER BY, a LIMIT would keep an arbitrary subset
+	// and the (length, path) cursor would skip whatever the first page never read.
 	if err := db.BulkInsertItems("src", []*iteminfo.FileInfo{
-		{Path: "/a.txt", ItemInfo: iteminfo.ItemInfo{Name: "a.txt", Size: 20, ModTime: time.Unix(100, 0), Type: "text/plain"}},
-		{Path: "/b.txt", ItemInfo: iteminfo.ItemInfo{Name: "b.txt", Size: 10, ModTime: time.Unix(100, 0), Type: "text/plain"}},
+		{Path: "/deep/nested/longer-name.txt", ItemInfo: iteminfo.ItemInfo{Name: "longer-name.txt", ModTime: time.Unix(100, 0), Type: "text/plain"}},
+		{Path: "/mid/level.txt", ItemInfo: iteminfo.ItemInfo{Name: "level.txt", ModTime: time.Unix(100, 0), Type: "text/plain"}},
+		{Path: "/b.txt", ItemInfo: iteminfo.ItemInfo{Name: "b.txt", ModTime: time.Unix(100, 0), Type: "text/plain"}},
+		{Path: "/a.txt", ItemInfo: iteminfo.ItemInfo{Name: "a.txt", ModTime: time.Unix(100, 0), Type: "text/plain"}},
 	}); err != nil {
 		t.Fatal(err)
 	}
-	rows, err := db.SearchItems("src", "/", true, nil, false, false, "/b.txt", len("/b.txt"))
-	if err != nil {
-		t.Fatalf("largest search with cursor generated invalid SQL: %v", err)
+
+	seen := map[string]bool{}
+	cursor := ""
+	for page := 0; page < 5; page++ {
+		rows, err := db.SearchItems("src", "/", false, nil, false, false, cursor)
+		if err != nil {
+			t.Fatalf("SearchItems page %d: %v", page, err)
+		}
+		n := 0
+		var last string
+		for rows.Next() {
+			var path, name, mimeType string
+			var size, createdTime, modTime int64
+			var isDir, hasPreview bool
+			if err := rows.Scan(&path, &name, &size, &createdTime, &modTime, &mimeType, &isDir, &hasPreview); err != nil {
+				rows.Close()
+				t.Fatal(err)
+			}
+			if seen[path] {
+				rows.Close()
+				t.Fatalf("path %q returned twice", path)
+			}
+			seen[path] = true
+			last = path
+			n++
+			if n == 2 {
+				break
+			}
+		}
+		rows.Close()
+		if n < 2 {
+			break
+		}
+		cursor = last
 	}
-	defer rows.Close()
-	if rows.Next() {
-		t.Fatalf("cursor /a.txt should exclude paths up to and including /a.txt")
+	for _, want := range []string{"/a.txt", "/b.txt", "/mid/level.txt", "/deep/nested/longer-name.txt"} {
+		if !seen[want] {
+			t.Fatalf("paging skipped %q (seen %v)", want, seen)
+		}
 	}
 }
 

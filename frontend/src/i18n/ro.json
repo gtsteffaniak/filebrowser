@@ -274,6 +274,7 @@
     "useWildcardSearchDescription": "Opțiuni de wildcard acceptate:\n\n- Potrivește orice secvență: *\n\n- Potrivește un singur caracter: ?\n\n- Clasa de caractere: [a-z], [0-9]\n\n- Negație: [^0-9]\n\n- Literele *, ? sau [ trebuie să fie puse între paranteze, de exemplu [*], [?], [[]\n\n- Toate rezultatele sunt sensibile la majuscule",
     "searchContent": "Caută în conținutul fișierelor",
     "searchContentDescription": "Pe lângă nume, se potrivește și cu textul din interiorul fișierelor (text, cod, Markdown și documente PDF/Office dacă sunt activate pe server). Necesită căutare full-text pe server; nu este disponibilă cu căutarea cu caractere joker.",
+    "searchContentUnavailableDescription": "Căutarea în conținut nu este activată pe acest server. Cereți unui administrator să activeze căutarea full-text (server.indexSqlConfig.fullTextSearch).",
     "openInAdvancedSearch": "Deschidere în căutarea avansată",
     "caseExact": "Căutare cu diferențiere între majuscule și minuscule",
     "caseExactDescription": "Compară numele fișierelor și folderelor folosind exact litere mari și mici, în loc să ignore diferențele dintre ele.",

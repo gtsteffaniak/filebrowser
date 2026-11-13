@@ -1,7 +1,6 @@
 package indexing
 
 import (
-	"slices"
 	"sort"
 	"strings"
 	"sync"
@@ -58,13 +57,12 @@ func (idx *Index) SearchParsed(baseOpts iteminfo.SearchOptions, scope string, so
 	// Content hits are resolved to paths first; they participate in the name scan
 	// below so ordering and limits behave exactly like name matches.
 	// Content hits still obey type/size/date filters; folders-only must not return files.
-	var contentPaths []string
+	var content *contentSearch
 	if searchContent {
-		contentPaths = filteredContentPaths(idx.db, idx.Name, scope, searchOptions, largest, useWildcard, limit)
-	}
-	contentSet := make(map[string]bool, len(contentPaths))
-	for _, p := range contentPaths {
-		contentSet[p] = true
+		content = newContentSearch(idx.db, idx.Name, scope, searchOptions, largest, useWildcard, limit)
+		if content != nil {
+			content.nextPage()
+		}
 	}
 
 	results := make(map[string]*SearchResult)
@@ -73,8 +71,13 @@ func (idx *Index) SearchParsed(baseOpts iteminfo.SearchOptions, scope string, so
 	caseExact := searchOptions.Conditions["exact"]
 	globAnd := len(nameGlobPatterns) > 0 && searchOptions.MatchAllTerms
 
-	rows, err := idx.db.SearchItems(idx.Name, scope, largest, nameGlobPatterns, globAnd, caseExact, searchOptions.CursorPath, searchOptions.CursorLen)
-	if err != nil && len(contentPaths) == 0 {
+	// Largest mode is ordered by size in Go, so it cannot resume from a path cursor.
+	cursorPath := searchOptions.CursorPath
+	if largest {
+		cursorPath = ""
+	}
+	rows, err := idx.db.SearchItems(idx.Name, scope, largest, nameGlobPatterns, globAnd, caseExact, cursorPath)
+	if err != nil && !content.hasPending() {
 		return []*SearchResult{}
 	}
 	if err == nil {
@@ -112,8 +115,9 @@ func (idx *Index) SearchParsed(baseOpts iteminfo.SearchOptions, scope string, so
 		}
 		// The name query returns every row of the scope; a content-matched path is a
 		// match even when its name does not contain the term.
-		matches := itemMatchesSearchFilters(item, isDir, searchOptions, largest, nameGlobPatterns)
-		if !matches && !contentSet[path] {
+		matches := itemMatchesSearchFilters(item, isDir, searchOptions, largest, nameGlobPatterns) ||
+			content.claim(path)
+		if !matches {
 			continue
 		}
 
@@ -136,57 +140,102 @@ func (idx *Index) SearchParsed(baseOpts iteminfo.SearchOptions, scope string, so
 		count++
 	}
 
-	// Content hits are appended even if the name query failed.
-	if searchContent {
-		appendContentResults(idx.db, idx.Name, contentPaths, limit, searchOptions, results, &count)
+	// Content-only hits are appended, in depth order, until the page is full. They are
+	// still returned when the name query failed.
+	if limit <= 0 || count < limit {
+		appendContentResults([]*contentSearch{content}, limit, results, &count)
 	}
 	return sortSearchResults(results)
 }
 
-// contentSearchPaths returns index paths whose content matches the terms when
-// full-text search is requested; otherwise nil. Name-only matches are left to the name query.
-func contentSearchPaths(db *dbsql.IndexDB, source, scope string, opts iteminfo.SearchOptions, largest, useWildcard bool, limit int) ([]string, error) {
-	if largest || useWildcard || len(opts.Terms) == 0 {
-		return nil, nil
-	}
-	return db.SearchFullText(source, scope, opts.Terms, opts.MatchAllTerms, limit, opts.CursorPath, opts.CursorLen)
+// contentSearch resolves paths whose content matches the terms when full-text search
+// applies; nil otherwise (wildcard and term-less searches never use content).
+//
+// The FTS query itself is limited, so candidates are read page by page and filtered
+// (auxiliary filters, folders still indexed) before anything is kept: filtered-out
+// hits never consume the caller's limit.
+type contentSearch struct {
+	db        *dbsql.IndexDB
+	source    string
+	opts      iteminfo.SearchOptions
+	scope     string
+	pageSize  int
+	set       map[string]bool // pending hits, for O(1) membership
+	order     []string        // pending hits in match order
+	last      string          // (length, path) cursor of the last page read
+	exhausted bool
+	pagesRead int
+	multi     bool // results of these searches are keyed source:path
 }
 
-// filteredContentPaths returns up to limit content hits that pass the type/size/date
-// filters. The FTS limit is applied before filtering, so candidates are fetched page
-// by page until enough survive; contentLookupPages caps the work.
-func filteredContentPaths(db *dbsql.IndexDB, source, scope string, opts iteminfo.SearchOptions, largest, useWildcard bool, limit int) []string {
-	var kept []string
-	for pages := 0; pages < contentLookupPages; pages++ {
-		paths, err := contentSearchPaths(db, source, scope, opts, largest, useWildcard, limit)
-		if err != nil {
-			logger.Errorf("full-text search failed for source %s: %v", source, err)
-			return kept
-		}
-		kept = append(kept, filterContentPaths(db, source, paths, opts)...)
-		if len(kept) >= limit || len(paths) < limit {
-			break
-		}
-		cursorPath, cursorLen := paths[0], len(paths[0])
-		for _, p := range paths {
-			if len(p) > cursorLen || (len(p) == cursorLen && p > cursorPath) {
-				cursorPath, cursorLen = p, len(p)
-			}
-		}
-		if cursorPath == opts.CursorPath && cursorLen == opts.CursorLen {
-			break
-		}
-		opts.CursorPath, opts.CursorLen = cursorPath, cursorLen
-	}
-	return kept
-}
-
-// contentLookupPages bounds how many FTS pages are read to fill one result page.
+// contentLookupPages bounds how many FTS pages are read for one search.
 const contentLookupPages = 5
 
-// filterContentPaths drops content hits whose item fails the type/size/date filters.
-// It loads rows in chunks so a large match set does not need one huge IN clause.
-func filterContentPaths(db *dbsql.IndexDB, source string, paths []string, opts iteminfo.SearchOptions) []string {
+// contentFillPage bounds content-only results appended when the caller passes no limit.
+const contentFillPage = 1000
+
+// newContentSearch returns nil when content search does not apply to this search.
+func newContentSearch(db *dbsql.IndexDB, source, scope string, opts iteminfo.SearchOptions, largest, useWildcard bool, limit int) *contentSearch {
+	if largest || useWildcard || len(opts.Terms) == 0 {
+		return nil
+	}
+	if limit <= 0 {
+		limit = contentFillPage
+	}
+	return &contentSearch{db: db, source: source, opts: opts, scope: scope, pageSize: limit, set: make(map[string]bool)}
+}
+
+// nextPage reads another FTS page and queues the candidates that pass the filters.
+// It reports whether anything was queued.
+func (cs *contentSearch) nextPage() bool {
+	for !cs.exhausted && cs.pagesRead < contentLookupPages {
+		paths, err := cs.db.SearchFullText(cs.source, cs.scope, cs.opts.Terms, cs.opts.MatchAllTerms, cs.pageSize, cs.last)
+		if err != nil {
+			logger.Errorf("full-text search failed for source %s: %v", cs.source, err)
+			cs.exhausted = true
+			return false
+		}
+		cs.pagesRead++
+		kept := filterContentPaths(cs.db, cs.source, cs.scope, paths, cs.opts)
+		for _, p := range kept {
+			cs.set[p] = true
+			cs.order = append(cs.order, p)
+		}
+		if len(paths) < cs.pageSize {
+			cs.exhausted = true
+			return len(kept) > 0
+		}
+		cs.last = paths[len(paths)-1]
+		if len(kept) > 0 {
+			return true
+		}
+	}
+	return false
+}
+
+// claim reports whether path is a pending content hit and stops it from being returned again.
+func (cs *contentSearch) claim(path string) bool {
+	if cs == nil || !cs.set[path] {
+		return false
+	}
+	delete(cs.set, path)
+	for i, p := range cs.order {
+		if p == path {
+			cs.order = append(cs.order[:i], cs.order[i+1:]...)
+			break
+		}
+	}
+	return true
+}
+
+// hasPending reports whether content hits may still remain.
+func (cs *contentSearch) hasPending() bool {
+	return cs != nil && (len(cs.order) > 0 || !cs.exhausted)
+}
+
+// filterContentPaths keeps content hits whose item row exists, is a file, passes the
+// type/size/date filters, and still has a parent folder that is indexed.
+func filterContentPaths(db *dbsql.IndexDB, source, scope string, paths []string, opts iteminfo.SearchOptions) []string {
 	const chunk = 500
 	kept := make([]string, 0, len(paths))
 	for start := 0; start < len(paths); start += chunk {
@@ -197,73 +246,129 @@ func filterContentPaths(db *dbsql.IndexDB, source string, paths []string, opts i
 			return nil
 		}
 		for _, p := range paths[start:end] {
-			if info := items[p]; info != nil && !info.IsDir && info.Type != "directory" &&
-				info.MatchesSearchAuxiliaryFilters(opts) {
-				kept = append(kept, p)
+			info, ok := items[p]
+			if !ok || info.IsDir || info.Type == "directory" || !info.MatchesSearchAuxiliaryFilters(opts) {
+				continue
 			}
+			kept = append(kept, p)
+		}
+	}
+	return dropMissingParents(db, source, scope, kept)
+}
+
+// dropMissingParents keeps hits whose parent folder is still indexed, so content from a
+// directory removed from the index is not returned. The scope root is always in scope.
+func dropMissingParents(db *dbsql.IndexDB, source, scope string, paths []string) []string {
+	scopeKey := strings.TrimSuffix(scope, "/")
+	if scopeKey == "" {
+		scopeKey = "/"
+	}
+	parents := make(map[string]bool)
+	var check []string
+	for _, p := range paths {
+		parent := parentIndexPath(p)
+		if _, seen := parents[parent]; !seen && strings.TrimSuffix(parent, "/") != scopeKey {
+			parents[parent] = false
+			check = append(check, parent)
+		}
+	}
+	if len(check) > 0 {
+		if items, err := db.GetItemsByPaths(source, check); err == nil {
+			for parent := range items {
+				parents[parent] = true
+			}
+		}
+	}
+	kept := paths[:0]
+	for _, p := range paths {
+		// A top-level file ("/a.txt") has no parent folder row.
+		if parent := parentIndexPath(p); parent == "" || strings.TrimSuffix(parent, "/") == scopeKey || parents[parent] {
+			kept = append(kept, p)
 		}
 	}
 	return kept
 }
 
-func hasContentPaths(bySource map[string][]string) bool {
-	for _, paths := range bySource {
-		if len(paths) > 0 {
-			return true
-		}
+// parentIndexPath returns p's parent index path (with trailing slash), or "" at the root.
+func parentIndexPath(p string) string {
+	i := strings.LastIndex(strings.TrimSuffix(p, "/"), "/")
+	if i <= 0 {
+		return ""
 	}
-	return false
+	return p[:i+1]
 }
 
-// appendContentResults loads index rows for content-matched paths and adds the files
-// that were not already matched by name (call after the name-based loop).
-func appendContentResults(db *dbsql.IndexDB, source string, paths []string, limit int, opts iteminfo.SearchOptions, results map[string]*SearchResult, count *int) {
-	const chunk = 500
-	for start := 0; start < len(paths); start += chunk {
-		end := min(start+chunk, len(paths))
-		items, err := db.GetItemsByPaths(source, paths[start:end])
-		if err != nil {
-			logger.Errorf("full-text search: load items for source %s: %v", source, err)
-			return
+// appendContentResults adds content-only hits in depth order until the limit is reached.
+// Several searches (multi-source) are merged by path depth.
+func appendContentResults(searches []*contentSearch, limit int, results map[string]*SearchResult, count *int) {
+	var pending []*SearchResult
+	for _, cs := range searches {
+		for {
+			path, ok := cs.pop(limit - len(pending))
+			if !ok {
+				break
+			}
+			// Single-source results are keyed by path; multi-source by source:path.
+			key := path
+			if _, ok := results[key]; !ok {
+				key = cs.source + ":" + path
+				if _, ok := results[key]; !ok {
+					key = path
+				}
+			}
+			if _, ok := results[key]; ok {
+				continue
+			}
+			pending = append(pending, contentResult(cs, path))
 		}
-		appendContentChunk(paths[start:end], items, source, limit, opts, results, count)
+	}
+	sort.SliceStable(pending, func(i, j int) bool {
+		return strings.Count(pending[i].Path, "/") < strings.Count(pending[j].Path, "/")
+	})
+	for _, res := range pending {
 		if limit > 0 && *count >= limit {
 			return
 		}
-	}
-}
-
-func appendContentChunk(paths []string, items map[string]*iteminfo.FileInfo, source string, limit int, opts iteminfo.SearchOptions, results map[string]*SearchResult, count *int) {
-	for _, path := range paths {
-		if limit > 0 && *count >= limit {
-			return
-		}
-		info := items[path]
-		if info == nil || info.IsDir || info.Type == "directory" || !info.MatchesSearchAuxiliaryFilters(opts) {
-			continue
-		}
-		// Single-source results are keyed by path; multi-source by source:path.
-		key := path
-		if _, ok := results[key]; !ok {
-			key = source + ":" + path // multi-source callers key by source:path
-		}
-		if _, ok := results[key]; ok {
-			continue
-		}
-		res := &SearchResult{
-			Path:       path,
-			Type:       info.Type,
-			Size:       info.Size,
-			Modified:   info.ModTime.Format(time.RFC3339),
-			HasPreview: info.HasPreview,
-			Source:     source,
-		}
-		if info.Created != nil && !info.Created.IsZero() {
-			res.Created = info.Created.Format(time.RFC3339)
+		key := res.Path
+		if _, ok := results[key]; !ok && searches[0].multi {
+			key = res.Source + ":" + res.Path
 		}
 		results[key] = res
 		*count++
 	}
+}
+
+// pop returns the next pending content hit, loading more pages while room remains.
+func (cs *contentSearch) pop(room int) (string, bool) {
+	if cs == nil {
+		return "", false
+	}
+	for len(cs.order) == 0 {
+		if room <= 0 || !cs.nextPage() {
+			return "", false
+		}
+	}
+	path := cs.order[0]
+	cs.order = cs.order[1:]
+	delete(cs.set, path)
+	return path, true
+}
+
+// contentResult builds a result for a content-only hit from its index row.
+func contentResult(cs *contentSearch, path string) *SearchResult {
+	res := &SearchResult{Path: path, Source: cs.source}
+	if items, err := cs.db.GetItemsByPaths(cs.source, []string{path}); err == nil {
+		if info := items[path]; info != nil {
+			res.Type = info.Type
+			res.Size = info.Size
+			res.Modified = info.ModTime.Format(time.RFC3339)
+			res.HasPreview = info.HasPreview
+			if info.Created != nil && !info.Created.IsZero() {
+				res.Created = info.Created.Format(time.RFC3339)
+			}
+		}
+	}
+	return res
 }
 
 func sortSearchResults(results map[string]*SearchResult) []*SearchResult {
@@ -373,17 +478,30 @@ func SearchMultiSourcesParsed(baseOpts iteminfo.SearchOptions, sources []string,
 	caseExact := searchOptions.Conditions["exact"]
 	globAnd := len(nameGlobPatterns) > 0 && searchOptions.MatchAllTerms
 
-	// Content hits are resolved per source first (same guards as single-source);
-	// their index rows are fetched by path below.
-	contentPathsBySource := make(map[string][]string)
+	// Content hits are resolved per source with the same guards as single-source.
+	var content []*contentSearch
 	if searchContent {
 		for _, source := range sources {
-			contentPathsBySource[source] = filteredContentPaths(db, source, normalizedScopes[source], searchOptions, largest, useWildcard, limit)
+			cs := newContentSearch(db, source, normalizedScopes[source], searchOptions, largest, useWildcard, limit)
+			if cs != nil {
+				cs.multi = true
+				cs.nextPage()
+				content = append(content, cs)
+			}
 		}
 	}
+	hasContent := false
+	for _, cs := range content {
+		hasContent = hasContent || cs.hasPending()
+	}
 
-	rows, err := db.SearchItemsMultiSource(sources, normalizedScopes, largest, nameGlobPatterns, globAnd, caseExact, searchOptions.CursorPath, searchOptions.CursorLen)
-	if err != nil && !hasContentPaths(contentPathsBySource) {
+	// Largest mode is ordered by size in Go, so it cannot resume from a path cursor.
+	cursorPath := searchOptions.CursorPath
+	if largest {
+		cursorPath = ""
+	}
+	rows, err := db.SearchItemsMultiSource(sources, normalizedScopes, largest, nameGlobPatterns, globAnd, caseExact, cursorPath)
+	if err != nil && !hasContent {
 		return []*SearchResult{}
 	}
 	if err == nil {
@@ -424,7 +542,7 @@ func SearchMultiSourcesParsed(baseOpts iteminfo.SearchOptions, sources []string,
 		}
 
 		matches := itemMatchesSearchFilters(item, isDir, searchOptions, largest, nameGlobPatterns) ||
-			slices.Contains(contentPathsBySource[source], path)
+			claimFrom(content, source, path)
 
 		if matches {
 			resType := mimeType
@@ -448,12 +566,20 @@ func SearchMultiSourcesParsed(baseOpts iteminfo.SearchOptions, sources []string,
 		}
 	}
 
-	// Content hits are appended even if the name query failed.
-	if searchContent {
-		for _, source := range sources {
-			appendContentResults(db, source, contentPathsBySource[source], limit, searchOptions, results, &count)
-		}
+	// Content-only hits are appended, in depth order, until the page is full.
+	if limit <= 0 || count < limit {
+		appendContentResults(content, limit, results, &count)
 	}
 
 	return sortSearchResults(results)
+}
+
+// claimFrom marks path as returned by the content search of source, if any.
+func claimFrom(searches []*contentSearch, source, path string) bool {
+	for _, cs := range searches {
+		if cs.source == source {
+			return cs.claim(path)
+		}
+	}
+	return false
 }

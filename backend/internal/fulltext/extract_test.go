@@ -91,3 +91,27 @@ func TestExtractSymlinkToOutsideIsCallerChecked(t *testing.T) {
 		t.Fatalf("symlink entry should not be read directly, got %v", *got)
 	}
 }
+
+// A file that grows after Extract's size check must not be read whole: readLimited caps
+// the read, so NewFromMemory never buffers more than MaxDocumentBytes.
+func TestReadLimitedRejectsGrowthAfterSizeCheck(t *testing.T) {
+	p := filepath.Join(t.TempDir(), "growing.bin")
+	if err := os.WriteFile(p, []byte("x"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	f, err := os.Open(p)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer f.Close()
+
+	if _, err := readLimited(f, 4); err != nil {
+		t.Fatalf("file within the limit should read: %v", err)
+	}
+	if _, err := f.Seek(0, 0); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := readLimited(f, 0); err != errDocumentTooLarge {
+		t.Fatalf("file past the limit must be rejected, got %v", err)
+	}
+}

@@ -40,10 +40,19 @@ func appendNameGlobSQL(query string, args []interface{}, patterns []string, join
 	return query + " AND (" + strings.Join(parts, join) + ")", args
 }
 
+// orderByPathDepth returns the ORDER BY clause matching the search cursor contract:
+// largest searches rank by size, everything else by (length(path), path).
+func orderByPathDepth(largest bool) string {
+	if largest {
+		return " ORDER BY size DESC"
+	}
+	return " ORDER BY length(path), path"
+}
+
 // SearchItems queries the database for items matching the search criteria for a single source.
 // When nameGlobPatterns is non-empty (and largest is false), rows are restricted with SQLite name GLOB ... OR ....
 // Returns rows that can be iterated to scan search results.
-func (db *IndexDB) SearchItems(source string, scope string, largest bool, nameGlobPatterns []string, nameGlobPatternsAnd, caseExact bool, cursorPath string, cursorLen int) (*sql.Rows, error) {
+func (db *IndexDB) SearchItems(source string, scope string, largest bool, nameGlobPatterns []string, nameGlobPatternsAnd, caseExact bool, cursorPath string) (*sql.Rows, error) {
 	query := `
 		SELECT path, name, size, created_time, mod_time, type, is_dir, has_preview
 		FROM index_items
@@ -62,13 +71,15 @@ func (db *IndexDB) SearchItems(source string, scope string, largest bool, nameGl
 		query, args = appendNameGlobSQL(query, args, nameGlobPatterns, nameGlobPatternsAnd, caseExact)
 	}
 
+	// cursorPath pages past everything ordered at or before it; compare with the same
+	// SQL length unit, so callers never have to compute a length themselves.
 	if cursorPath != "" {
-		query += " AND (length(path) > ? OR (length(path) = ? AND path > ?))"
-		args = append(args, cursorLen, cursorLen, cursorPath)
+		query += " AND (length(path) > length(?) OR (length(path) = length(?) AND path > ?))"
+		args = append(args, cursorPath, cursorPath, cursorPath)
 	}
-	if largest {
-		query += " ORDER BY size DESC"
-	}
+	// Without this ORDER BY the row limit would truncate an arbitrary subset, and the
+	// caller's (length(path), path) cursor would skip whatever was never read.
+	query += orderByPathDepth(largest)
 
 	return db.Query(query, args...)
 }
@@ -76,7 +87,7 @@ func (db *IndexDB) SearchItems(source string, scope string, largest bool, nameGl
 // SearchItemsMultiSource queries the database for items matching the search criteria across multiple sources.
 // When nameGlobPatterns is non-empty (and largest is false), restricts rows with SQLite name GLOB ... OR ....
 // Returns rows that can be iterated to scan search results.
-func (db *IndexDB) SearchItemsMultiSource(sources []string, sourceScopes map[string]string, largest bool, nameGlobPatterns []string, nameGlobPatternsAnd, caseExact bool, cursorPath string, cursorLen int) (*sql.Rows, error) {
+func (db *IndexDB) SearchItemsMultiSource(sources []string, sourceScopes map[string]string, largest bool, nameGlobPatterns []string, nameGlobPatternsAnd, caseExact bool, cursorPath string) (*sql.Rows, error) {
 	if len(sources) == 0 {
 		return nil, fmt.Errorf("at least one source is required")
 	}
@@ -131,13 +142,15 @@ func (db *IndexDB) SearchItemsMultiSource(sources []string, sourceScopes map[str
 		query, args = appendNameGlobSQL(query, args, nameGlobPatterns, nameGlobPatternsAnd, caseExact)
 	}
 
+	// cursorPath pages past everything ordered at or before it; compare with the same
+	// SQL length unit, so callers never have to compute a length themselves.
 	if cursorPath != "" {
-		query += " AND (length(path) > ? OR (length(path) = ? AND path > ?))"
-		args = append(args, cursorLen, cursorLen, cursorPath)
+		query += " AND (length(path) > length(?) OR (length(path) = length(?) AND path > ?))"
+		args = append(args, cursorPath, cursorPath, cursorPath)
 	}
-	if largest {
-		query += " ORDER BY size DESC"
-	}
+	// Without this ORDER BY the row limit would truncate an arbitrary subset, and the
+	// caller's (length(path), path) cursor would skip whatever was never read.
+	query += orderByPathDepth(largest)
 
 	return db.Query(query, args...)
 }

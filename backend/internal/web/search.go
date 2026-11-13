@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
@@ -77,6 +78,10 @@ type scopedSourcePath struct {
 // @Success 200 {array} indexing.SearchResult "List of search results with source field populated"
 // @Failure 400 {object} map[string]string "Bad Request"
 // @Router /api/tools/search [get]
+// accessFilterPageSize is the smallest first page read when a caller passes an explicit
+// limit, so access filtering still has candidates to fill the requested results.
+const accessFilterPageSize = 500
+
 func searchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
 	searchOptions, err := prepSearchOptions(r, d)
 	if err != nil {
@@ -104,11 +109,16 @@ func searchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, err
 	// Access rules are applied after the DB query, so search runs in pages until
 	// searchSize accessible results are collected. Results are ordered by path
 	// depth; each page excludes everything up to the deepest path seen so far.
+	// The first page is widened so inaccessible hits cannot consume the whole limit.
+	// ponytail: bounded widening, not an exhaustive scan; raise it if access rules are
+	// dense enough to starve a page.
 	pageSize := searchSize
 	if !searchOptions.largest && !searchOptions.useWildcard && len(searchOptions.parsed.Terms) > 0 && r.URL.Query().Get("limit") == "" {
 		if perSource := settings.Config.Server.SearchResultsLimit / len(searchOptions.sources); perSource > pageSize {
 			pageSize = perSource
 		}
+	} else if pageSize < accessFilterPageSize {
+		pageSize = accessFilterPageSize
 	}
 	searchPage := func() []*indexing.SearchResult {
 		if len(searchOptions.sources) == 1 {
@@ -130,17 +140,19 @@ func searchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, err
 			break
 		}
 		// Everything up to the largest (length, path) key returned was inspected.
+		// Rune count matches SQLite length(); comparing byte lengths would place
+		// non-ASCII paths on the wrong side of the cursor.
 		var deepestPath string
 		deepestLen := -1
 		for _, result := range page {
-			if l := len(result.Path); l > deepestLen || (l == deepestLen && result.Path > deepestPath) {
+			if l := utf8.RuneCountInString(result.Path); l > deepestLen || (l == deepestLen && result.Path > deepestPath) {
 				deepestPath, deepestLen = result.Path, l
 			}
 		}
-		if deepestLen < 0 || (searchOptions.parsed.CursorPath == deepestPath && searchOptions.parsed.CursorLen == deepestLen) {
+		if deepestLen < 0 || searchOptions.parsed.CursorPath == deepestPath {
 			break
 		}
-		searchOptions.parsed.CursorPath, searchOptions.parsed.CursorLen = deepestPath, deepestLen
+		searchOptions.parsed.CursorPath = deepestPath
 	}
 
 	// Filter out items that are not permitted according to access rules and trim user scope from paths
