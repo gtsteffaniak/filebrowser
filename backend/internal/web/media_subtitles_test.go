@@ -10,6 +10,7 @@ import (
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/files"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/app"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/database/share"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
@@ -165,5 +166,47 @@ func TestSubtitlesHandler_ReturnsInScopeSidecar(t *testing.T) {
 	}
 	if !strings.Contains(rec.Body.String(), "Hello in scope") {
 		t.Fatalf("body=%q want in-scope subtitle text", rec.Body.String())
+	}
+}
+
+func TestSubtitlesHandler_ShareRejectsSidecarPastEscapingDirSymlink(t *testing.T) {
+	sourceRoot, adminUser := setupSubtitlesHTTPTest(t)
+	videoIndexPath := "/shared/link/clip.mov"
+	mockVideoWithExternalSubtitle(t, "clip.srt", filepath.Join(sourceRoot, "shared", "link", "clip.mov"))
+
+	sharedDir := filepath.Join(sourceRoot, "shared")
+	if err := os.MkdirAll(sharedDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+	outside := filepath.Join(filepath.Dir(sourceRoot), "outside-share")
+	if err := os.MkdirAll(outside, 0755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(outside, "clip.srt"), []byte("SECRET_PAST_DIR_SYMLINK"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Symlink(outside, filepath.Join(sharedDir, "link")); err != nil {
+		t.Fatal(err)
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/public/api/media/subtitles?hash=h&path=link/clip.mov&name=clip.srt&embedded=false", nil)
+	rec := httptest.NewRecorder()
+	status, handlerErr := subtitlesHandler(rec, req, &Context{
+		User:      adminUser,
+		ShareUser: adminUser,
+		IndexPath: videoIndexPath,
+		Share: share.Share{
+			ShareColumns: share.ShareColumns{
+				Hash: "h",
+				Path: "/shared",
+			},
+			SourcePath: sourceRoot,
+		},
+	})
+	if status != http.StatusForbidden {
+		t.Fatalf("status=%d err=%v body=%q", status, handlerErr, rec.Body.String())
+	}
+	if strings.Contains(rec.Body.String(), "SECRET_PAST_DIR_SYMLINK") {
+		t.Fatalf("response leaked subtitle past directory symlink")
 	}
 }

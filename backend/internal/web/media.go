@@ -12,6 +12,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/files"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/ffmpeg"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 )
 
@@ -107,7 +108,23 @@ func subtitlesHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 
 	var content string
 	if !embedded {
-		subtitlePath := filepath.Join(filepath.Dir(fileInfo.RealPath), filepath.Base(track.Name))
+		var subtitlePath string
+		if d.Share.Hash != "" {
+			if d.Share.Path == "" {
+				return http.StatusForbidden, fmt.Errorf("share has no path scope")
+			}
+			idx := indexing.GetIndex(source)
+			if idx == nil {
+				return http.StatusInternalServerError, fmt.Errorf("source %s is not available", source)
+			}
+			sidecarIndexPath := utils.JoinPathAsUnix(utils.GetParentDirectoryPath(path), filepath.Base(track.Name))
+			subtitlePath, _, err = idx.GetRealPathScoped(d.Share.Path, sidecarIndexPath)
+			if err != nil {
+				return realPathErrStatus(err), err
+			}
+		} else {
+			subtitlePath = filepath.Join(filepath.Dir(fileInfo.RealPath), filepath.Base(track.Name))
+		}
 		content, err = utils.GetSubtitleSidecarContent(subtitlePath)
 		if err != nil {
 			if errors.Is(err, utils.ErrSubtitleSidecarNotRegular) {
