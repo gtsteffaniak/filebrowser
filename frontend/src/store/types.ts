@@ -247,6 +247,7 @@ export interface UserObject {
   fileLoading?: {
     maxConcurrentUpload?: number;
     uploadChunkSizeMb?: number;
+    uploadStallTimeoutSeconds?: number;
     clearAll?: boolean;
     downloadChunkSizeMb?: number;
     maxConcurrent?: number;

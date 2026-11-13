@@ -512,7 +512,9 @@
     "clearAllDescription": "Knappen Clear Completed rensar alla uppladdningar som är klara, inklusive fel-, paus- och konflikttillstånd.",
     "uploadSettings": "Inställningar för uppladdning",
     "downloadChunkSizeMb": "Nedladdningens storlek i MB",
-    "downloadChunkSizeMbHelp": "Bitstorlek för nedladdningar i bitar. Filer som är större än denna storlek laddas ner i bitar för att förhindra timeout-problem (t.ex. Cloudflare 524-fel). Inställning till 0 inaktiverar nedladdningar i bitar."
+    "downloadChunkSizeMbHelp": "Bitstorlek för nedladdningar i bitar. Filer som är större än denna storlek laddas ner i bitar för att förhindra timeout-problem (t.ex. Cloudflare 524-fel). Inställning till 0 inaktiverar nedladdningar i bitar.",
+    "uploadStallTimeoutSeconds": "Tidsgräns för avstannad uppladdning i sekunder",
+    "uploadStallTimeoutSecondsHelp": "Antal sekunder som en uppladdning får vara utan framsteg innan den pausas. Öka värdet vid långsamma eller instabila anslutningar, eller när filerna läses från långsamma diskar. Värden under 1 använder standardvärdet 10 sekunder."
   },
   "colors": {
     "red": "röd",

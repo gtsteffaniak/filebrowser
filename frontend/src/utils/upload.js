@@ -107,7 +107,11 @@ class UploadManager {
     this.probedDirs = new Set(); // Track directories that were probed/created during conflict check
     this.progressTimeouts = new Map(); // Track progress timeouts per upload ID
     this.lastUploadActivityTime = null;
-    this.PROGRESS_TIMEOUT_MS = 10000; // 10 seconds without upload activity = pause
+    this.PROGRESS_TIMEOUT_MS = 10000; // default: 10 seconds without upload activity = pause (see progressTimeoutMs)
+    // Once the whole body of a request has been sent there are no more progress events until the server
+    // answers, and it only answers after saving the data (for the last chunk of a file, the whole file is
+    // flushed to disk), which can take a long time on slow disks. Wait much longer for that answer.
+    this.SERVER_RESPONSE_TIMEOUT_MS = 600000; // 10 minutes
     this.quotaBatchAborted = false;
   }
 
@@ -450,7 +454,14 @@ class UploadManager {
         this.activeUploads < maxConcurrent &&
         this.hasPending()
       ) {
-        const upload = this.queue.find((item) => item.status === "pending");
+        // Create directories one at a time (parent first) before any files: the
+        // backend uses MkdirAll, so a child finishing first makes its parent 409.
+        if (this.queue.some((item) => item.type === "directory" && item.status === "uploading")) {
+          break;
+        }
+        const upload =
+          this.queue.find((item) => item.type === "directory" && item.status === "pending") ||
+          this.queue.find((item) => item.status === "pending");
         if (upload) {
           if (this.overwriteAll) {
             upload.overwrite = true;
@@ -536,6 +547,7 @@ class UploadManager {
       const progress = (percent) => {
         this.updateProgress(upload, percent);
       };
+      const onSent = () => this.markSentToServer(upload);
 
       // Start progress timeout monitoring
       upload.lastProgressTime = Date.now();
@@ -547,18 +559,19 @@ class UploadManager {
           promise = resourcesApi.postPublic(state.shareInfo?.hash, upload.path, upload.file, upload.overwrite, progress, {
             "X-File-Upload-Session": upload.sessionId,
             "X-File-Total-Size": upload.size,
-          });
+          }, false, onSent);
         } else {
           promise = resourcesApi.post(upload.source, upload.path, upload.file, upload.overwrite, progress, {
             "X-File-Upload-Session": upload.sessionId,
             "X-File-Total-Size": upload.size,
-          });
+          }, false, onSent);
         }
 
         upload.xhrPromise = promise;
         upload.xhr = promise.xhr;
         await promise;
 
+        upload.awaitingServer = false;
         this.recordUploadActivity(upload);
         // Clear timeout on successful completion
         this.clearProgressTimeout(upload.id);
@@ -567,6 +580,7 @@ class UploadManager {
         upload.connectionIssue = false;
         notifyUploadComplete(upload);
       } catch (err) {
+        upload.awaitingServer = false;
         this.clearProgressTimeout(upload.id);
         await this.handleUploadError(upload, err);
       } finally {
@@ -600,6 +614,8 @@ class UploadManager {
         this.updateProgress(upload, Math.round(progress * 10) / 10);
       };
 
+      const onSent = () => this.markSentToServer(upload);
+
       try {
         let promise;
         if (getters.isShare()) {
@@ -613,7 +629,9 @@ class UploadManager {
               "X-File-Upload-Session": upload.sessionId,
               "X-File-Chunk-Offset": upload.chunkOffset,
               "X-File-Total-Size": upload.size,
-            }
+            },
+            false,
+            onSent
           );
         } else {
           promise = resourcesApi.post(
@@ -626,7 +644,9 @@ class UploadManager {
               "X-File-Upload-Session": upload.sessionId,
               "X-File-Chunk-Offset": upload.chunkOffset,
               "X-File-Total-Size": upload.size,
-            }
+            },
+            false,
+            onSent
           );
         }
 
@@ -637,9 +657,15 @@ class UploadManager {
         // Only increment chunkOffset after successful chunk upload.
         // This ensures that if we pause/error mid-chunk, we'll retry that chunk on resume.
         upload.chunkOffset += chunk.size;
+        // The server answered: back to the normal limit for the next chunk.
+        upload.awaitingServer = false;
         // A completed chunk is activity even when no progress event was emitted.
         this.recordUploadActivity(upload);
+        if (upload.chunkOffset < upload.size) {
+          this.startProgressTimeout(upload);
+        }
       } catch (err) {
+        upload.awaitingServer = false;
         this.clearProgressTimeout(upload.id);
         await this.handleUploadError(upload, err);
         break; // Exit loop on error or pause
@@ -719,6 +745,7 @@ class UploadManager {
     }
     this.abortUpload(upload);
     upload.status = "paused";
+    upload.awaitingServer = false;
     this.clearProgressTimeout(id);
   }
 
@@ -735,7 +762,29 @@ class UploadManager {
     this.lastUploadActivityTime = upload.lastProgressTime;
   }
 
-  startProgressTimeout(upload, delay = this.PROGRESS_TIMEOUT_MS) {
+  /** Time without upload activity before pausing: the user's setting, or the default when it is unset. */
+  progressTimeoutMs() {
+    const seconds = state.user?.fileLoading?.uploadStallTimeoutSeconds;
+    return seconds > 0 ? seconds * 1000 : this.PROGRESS_TIMEOUT_MS;
+  }
+
+  /** How long an upload may go without activity: longer while the server is saving the data it received. */
+  stallLimitMs(upload) {
+    const progressTimeout = this.progressTimeoutMs();
+    return upload.awaitingServer ? Math.max(this.SERVER_RESPONSE_TIMEOUT_MS, progressTimeout) : progressTimeout;
+  }
+
+  /** The request body was sent in full; the server is saving it and will answer when it is done. */
+  markSentToServer(upload) {
+    if (upload.status !== "uploading" || !this.findById(upload.id)) {
+      return;
+    }
+    upload.awaitingServer = true;
+    this.recordUploadActivity(upload);
+    this.startProgressTimeout(upload);
+  }
+
+  startProgressTimeout(upload, delay = this.stallLimitMs(upload)) {
     // Clear any existing timeout
     this.clearProgressTimeout(upload.id);
 
@@ -748,11 +797,12 @@ class UploadManager {
           this.lastUploadActivityTime ?? 0
         );
         const idleTime = Date.now() - lastActivity;
-        if (idleTime < this.PROGRESS_TIMEOUT_MS) {
-          this.startProgressTimeout(upload, this.PROGRESS_TIMEOUT_MS - idleTime);
+        const limit = this.stallLimitMs(upload);
+        if (idleTime < limit) {
+          this.startProgressTimeout(upload, limit - idleTime);
           return;
         }
-        console.log(`Upload ${upload.id} stalled - no progress for ${this.PROGRESS_TIMEOUT_MS}ms, pausing`);
+        console.log(`Upload ${upload.id} stalled - no progress for ${limit}ms, pausing`);
         upload.connectionIssue = true;
         void this.pause(upload.id);
         upload.errorDetails = "Connection stalled - upload paused. Click resume to retry.";

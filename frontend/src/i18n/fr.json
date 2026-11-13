@@ -717,6 +717,8 @@
     "uploadSettings": "Paramètres d'importation",
     "downloadChunkSizeMb": "Taille des morceaux de téléchargement (Mo)",
     "downloadChunkSizeMbHelp": "Taille des morceaux pour les téléchargements par morceaux. Les fichiers dont la taille est supérieure à cette valeur seront téléchargés par morceaux afin d'éviter les problèmes de dépassement de délai (par exemple, les erreurs Cloudflare 524). La valeur 0 désactive les téléchargements par morceaux."
+    "uploadStallTimeoutSeconds": "Délai d'inactivité du téléversement en secondes",
+    "uploadStallTimeoutSecondsHelp": "Nombre de secondes pendant lesquelles un téléversement peut rester sans progression avant d'être mis en pause. Augmentez-le sur les connexions lentes ou instables, ou lorsque les fichiers sont lus depuis des disques lents. Les valeurs inférieures à 1 utilisent la valeur par défaut de 10 secondes."
   },
   "colors": {
     "red": "rouge",

@@ -480,7 +480,7 @@
     "settingsHover": "用户设置",
     "toggleClick": "单击切换",
     "toggleDark": "切换黑暗模式",
-    "toggleSticky": "切换粘贴模式",
+    "toggleSticky": "切换固定侧边栏",
     "noSources": "该用户没有可用的信息源。要么为该用户添加一个信息源，要么配置一个默认为 true 的信息源。",
     "unknown": "未知",
     "simple": "简单",
@@ -512,15 +512,17 @@
     "clearAllDescription": "清除已完成按钮将清除所有处于完成状态的上传，包括错误、暂停和冲突状态。",
     "uploadSettings": "上传设置",
     "downloadChunkSizeMb": "下载块大小（MB",
-    "downloadChunkSizeMbHelp": "分块下载的分块大小。大于此大小的文件将分块下载，以防止超时问题（如 Cloudflare 524 错误）。设置为 0 将禁用分块下载。"
+    "downloadChunkSizeMbHelp": "分块下载的分块大小。大于此大小的文件将分块下载，以防止超时问题（如 Cloudflare 524 错误）。设置为 0 将禁用分块下载。",
+    "uploadStallTimeoutSeconds": "上传停滞超时（秒）",
+    "uploadStallTimeoutSecondsHelp": "上传在没有任何进展的情况下可持续多少秒，超时后将被暂停。连接缓慢或不稳定，或从较慢的磁盘读取文件时，请调大该值。小于 1 的值将使用默认的 10 秒。"
   },
   "colors": {
     "red": "红",
-    "green": "绿化",
+    "green": "绿",
     "blue": "蓝",
-    "yellow": "黄的",
-    "violet": "紫色",
-    "orange": "橘色"
+    "yellow": "黄",
+    "violet": "紫",
+    "orange": "橙"
   },
   "profileSettings": {
     "showTypeColumn": "显示类型列",

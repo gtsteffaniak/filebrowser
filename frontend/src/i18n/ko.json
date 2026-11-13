@@ -716,7 +716,9 @@
     "clearAllDescription": "완료 지우기 버튼은 오류, 일시 중지, 충돌 상태를 포함하여 완료된 상태의 모든 업로드를 지웁니다.",
     "uploadSettings": "업로드 설정",
     "downloadChunkSizeMb": "다운로드 청크 크기(MB)",
-    "downloadChunkSizeMbHelp": "청크 다운로드를 위한 청크 크기. 이 크기보다 큰 파일은 시간 초과 문제(예: Cloudflare 524 오류)를 방지하기 위해 청크 단위로 다운로드됩니다. 0으로 설정하면 청크 다운로드가 비활성화됩니다."
+    "downloadChunkSizeMbHelp": "청크 다운로드를 위한 청크 크기. 이 크기보다 큰 파일은 시간 초과 문제(예: Cloudflare 524 오류)를 방지하기 위해 청크 단위로 다운로드됩니다. 0으로 설정하면 청크 다운로드가 비활성화됩니다.",
+    "uploadStallTimeoutSeconds": "업로드 정체 제한 시간(초)",
+    "uploadStallTimeoutSecondsHelp": "진행이 없는 상태로 업로드가 일시 중지되기까지 허용되는 시간(초)입니다. 느리거나 불안정한 연결이거나 파일을 느린 디스크에서 읽는 경우 값을 늘리세요. 1보다 작은 값은 기본값인 10초를 사용합니다."
   },
   "colors": {
     "red": "빨간색",

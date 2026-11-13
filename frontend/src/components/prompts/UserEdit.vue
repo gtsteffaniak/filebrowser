@@ -295,6 +295,8 @@ const PROFILE_SNAPSHOT_FIELDS = [
   "debugOffice",
   "viewMode",
   "gallerySize",
+  "promptRightCloseButton",
+  "newFileTemplate",
 ];
 
 export default {

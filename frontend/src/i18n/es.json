@@ -716,7 +716,9 @@
     "clearAllDescription": "Hará que el botón de \"Limpiar completados\" en la ventana de subir archivos borre todos los estados: Finalizado, error, pausa y conflicto.",
     "uploadSettings": "Opciones de subida",
     "downloadChunkSizeMb": "Tamaño del fragmento de descarga en MB",
-    "downloadChunkSizeMbHelp": "Tamaño de fragmento para descargas. Los archivos mayores que este tamaño se descargarán en fragmentos, lo cual puede ayudar a evitar problemas de tiempo de espera (por ejemplo, errores Cloudflare 524). Si lo pones en 0, se desactivarán las descargas fragmentadas."
+    "downloadChunkSizeMbHelp": "Tamaño de fragmento para descargas. Los archivos mayores que este tamaño se descargarán en fragmentos, lo cual puede ayudar a evitar problemas de tiempo de espera (por ejemplo, errores Cloudflare 524). Si lo pones en 0, se desactivarán las descargas fragmentadas.",
+    "uploadStallTimeoutSeconds": "Tiempo de espera sin avance de la subida en segundos",
+    "uploadStallTimeoutSecondsHelp": "Segundos que una subida puede estar sin avanzar antes de pausarse. Auméntalo en conexiones lentas o inestables, o si los archivos se leen de discos lentos. Con valores menores que 1 se usa el valor por defecto de 10 segundos."
   },
   "colors": {
     "red": "Rojo",

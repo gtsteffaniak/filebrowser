@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v2.1.5
+
+ **New Features**:
+ - feat(cache): add server.cacheDirMaxSizeMB to cap the preview cache size (#3314)
+ - Square image previews: avoid the full-resolution crop copy in imaging.Fill (#3340)
+
+ **Bug Fixes**:
+ - fix(users): save the prompt close button and new file templates when editing a user (#3342) (#3323)
+ - fix(upload): serialize directory creation before uploading files (#3321)
+ - fix(preview): open RAW, HEIC and rendered documents in the viewer when previews are disabled (#3313)
+ - fix(users): keep requested profile values when creating a user
+ - fix advanced user toggle duplicate (#3353) (#3324)
+
 ## v2.1.4
 
  **Security**:
