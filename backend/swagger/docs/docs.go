@@ -4344,6 +4344,12 @@ const docTemplate = `{
                         "description": "Extract audio/video metadata if true",
                         "name": "metadata",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Optional checksum algorithm (md5, sha1, sha256, sha512); requires a logged-in session",
+                        "name": "checksum",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -4351,6 +4357,15 @@ const docTemplate = `{
                         "description": "File or directory metadata",
                         "schema": {
                             "$ref": "#/definitions/iteminfo.FileInfo"
+                        }
+                    },
+                    "401": {
+                        "description": "Login required for checksum generation",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
                         }
                     },
                     "403": {

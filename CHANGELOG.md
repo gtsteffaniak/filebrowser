@@ -28,6 +28,7 @@ All notable changes to this project will be documented in this file. For commit 
  - fix(users): show password-change requirement in edit preferences (#3354)
  - fix(sidebar): keep source selector stationary during horizontal tree scrolling (#3368)
  - fix(http): restore Unix socket reverse-proxy behavior after #3309 hardening (#3365)
+ - fix(share): file checksum generation on public shares uses `GET /public/api/resources?checksum=…` with the share hash and session cookie; anonymous visitors receive 401 and no longer see the checksum section in the file info dialog (#3360)
 
  **Upgrade notes** (Unix socket listeners):
  - If you listen on a filesystem `http.socket` with `http.trustProxyHeaders: true`, set `http.unixSocketTrustedUIDs` and/or `http.unixSocketTrustedGIDs` to the UID/GID(s) from Linux peer credentials (`SO_PEERCRED`) that may set `X-Forwarded-*`. A GID allowlist trusts every peer with that GID (for example when the proxy and FileBrowser share a group), not only one process. If you relied on empty allowlists before, set `http.unixSocketTrustAllLocalPeers: true` (a warning is logged).
