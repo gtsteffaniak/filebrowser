@@ -2,8 +2,10 @@ package web
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"net/http"
+	"os"
 	"path/filepath"
 	"strings"
 	"time"
@@ -11,7 +13,6 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/files"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/ffmpeg"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
-	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 )
 
@@ -107,30 +108,12 @@ func subtitlesHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 
 	var content string
 	if !embedded {
-		sidecarIndexPath := utils.JoinPathAsUnix(utils.GetParentDirectoryPath(path), filepath.Base(track.Name))
-		idx := indexing.GetIndex(source)
-		if idx == nil {
-			return http.StatusInternalServerError, fmt.Errorf("source %s is not available", source)
-		}
-		var bound string
-		if d.Share.Hash != "" {
-			if d.Share.Path == "" {
-				return http.StatusForbidden, fmt.Errorf("share has no path scope")
-			}
-			bound = d.Share.Path
-		} else {
-			userScope, scopeErr := d.User.GetScopeForSourceName(source)
-			if scopeErr != nil || userScope == "" {
-				return http.StatusForbidden, fmt.Errorf("user has no access to source: %s", source)
-			}
-			bound = userScope
-		}
-		subtitleRealPath, _, scopeErr := idx.GetRealPathScoped(bound, sidecarIndexPath)
-		if scopeErr != nil {
-			return realPathErrStatus(scopeErr), scopeErr
-		}
-		content, err = utils.GetSubtitleSidecarContent(subtitleRealPath)
+		subtitlePath := filepath.Join(filepath.Dir(fileInfo.RealPath), filepath.Base(track.Name))
+		content, err = utils.GetSubtitleSidecarContent(subtitlePath)
 		if err != nil {
+			if errors.Is(err, os.ErrPermission) {
+				return http.StatusForbidden, fmt.Errorf("subtitle sidecar is not a regular file")
+			}
 			return http.StatusInternalServerError, fmt.Errorf("failed to get subtitle sidecar content: %v", err)
 		}
 	} else {

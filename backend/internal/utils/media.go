@@ -16,10 +16,13 @@ type SubtitleTrack struct {
 }
 
 func GetSubtitleSidecarContent(subtitlePath string) (string, error) {
-	// validate the size is not too large
-	info, err := os.Stat(subtitlePath)
+	// Sidecars sit beside the media file; do not follow symlink leaves (see lyricsSidecar).
+	info, err := os.Lstat(subtitlePath)
 	if err != nil {
 		return "", err
+	}
+	if !info.Mode().IsRegular() {
+		return "", os.ErrPermission
 	}
 	if info.Size() > 1024*1024*50 { // 50MB
 		return "", errors.New("subtitle file is too large")

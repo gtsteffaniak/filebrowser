@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file. For commit 
 ## v2.1.5
 
  **Security**:
- - [Moderate] `GET /api/media/subtitles` now resolves external subtitle sidecars with scoped path containment before read, so a symlink sidecar cannot exfiltrate arbitrary host files (GHSA-hfvf-2639-p2mq) reporter @manus-use
+ - [Moderate] `GET /api/media/subtitles` no longer follows symlink external subtitle sidecars beside the video file, closing arbitrary host file read when an escape symlink is present (GHSA-hfvf-2639-p2mq) reporter @manus-use
 
  **New Features**:
  - feat(cache): add server.cacheDirMaxSizeMB to cap the preview cache size (#3314)

@@ -93,7 +93,7 @@ func setupSubtitlesHTTPTest(t *testing.T) (downloadsPath string, admin *users.Us
 	return downloadsPath, &loaded
 }
 
-func mockVideoWithExternalSubtitle(t *testing.T, trackName string) {
+func mockVideoWithExternalSubtitle(t *testing.T, trackName, videoRealPath string) {
 	t.Helper()
 	prev := files.FileInfoFasterFunc
 	t.Cleanup(func() { files.FileInfoFasterFunc = prev })
@@ -108,13 +108,15 @@ func mockVideoWithExternalSubtitle(t *testing.T, trackName string) {
 			Subtitles: []utils.SubtitleTrack{
 				{Name: trackName, Embedded: false},
 			},
+			RealPath: videoRealPath,
 		}, nil
 	}
 }
 
 func TestSubtitlesHandler_RejectsEscapingSidecarSymlink(t *testing.T) {
 	downloadsPath, adminUser := setupSubtitlesHTTPTest(t)
-	mockVideoWithExternalSubtitle(t, "clip.srt")
+	videoPath := filepath.Join(downloadsPath, "clip.mov")
+	mockVideoWithExternalSubtitle(t, "clip.srt", videoPath)
 
 	outside := filepath.Join(filepath.Dir(downloadsPath), "outside-secret")
 	if err := os.MkdirAll(outside, 0755); err != nil {
@@ -124,7 +126,7 @@ func TestSubtitlesHandler_RejectsEscapingSidecarSymlink(t *testing.T) {
 	if err := os.WriteFile(secret, []byte("SECRET_OUTSIDE_SUBTITLE"), 0644); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(downloadsPath, "clip.mov"), []byte("video"), 0644); err != nil {
+	if err := os.WriteFile(videoPath, []byte("video"), 0644); err != nil {
 		t.Fatal(err)
 	}
 	if err := os.Symlink(secret, filepath.Join(downloadsPath, "clip.srt")); err != nil {
@@ -144,10 +146,11 @@ func TestSubtitlesHandler_RejectsEscapingSidecarSymlink(t *testing.T) {
 
 func TestSubtitlesHandler_ReturnsInScopeSidecar(t *testing.T) {
 	downloadsPath, adminUser := setupSubtitlesHTTPTest(t)
-	mockVideoWithExternalSubtitle(t, "clip.srt")
+	videoPath := filepath.Join(downloadsPath, "clip.mov")
+	mockVideoWithExternalSubtitle(t, "clip.srt", videoPath)
 
 	srtBody := "1\n00:00:01,000 --> 00:00:02,000\nHello in scope"
-	if err := os.WriteFile(filepath.Join(downloadsPath, "clip.mov"), []byte("video"), 0644); err != nil {
+	if err := os.WriteFile(videoPath, []byte("video"), 0644); err != nil {
 		t.Fatal(err)
 	}
 	if err := os.WriteFile(filepath.Join(downloadsPath, "clip.srt"), []byte(srtBody), 0644); err != nil {
