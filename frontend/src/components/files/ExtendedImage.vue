@@ -525,7 +525,7 @@ export default {
           this.showDismissHint = false;
         } else {
           this.dragOffsetX = 0;
-          const downward = this.edgeDy > 0 ? this.edgeDy : 0;
+          const downward = Math.max(this.edgeDy, 0);
           this.dragOffsetY = this.rubberband(downward, this.edgeRubberMax);
           this.showDismissHint = this.edgeDy >= this.edgeHintPx;
           this.showNavHint = false;
@@ -549,7 +549,7 @@ export default {
         this.showDismissHint = false;
       } else {
         this.dragOffsetX = 0;
-        const downward = this.edgeDy > 0 ? this.edgeDy : 0;
+        const downward = Math.max(this.edgeDy, 0);
         this.dragOffsetY = this.rubberband(downward, this.edgeRubberMax);
         this.showDismissHint = this.edgeDy >= this.edgeHintPx;
         this.showNavHint = false;

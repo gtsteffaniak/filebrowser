@@ -355,9 +355,9 @@ async function readAccessRuleRows(page: Page): Promise<AccessRuleExpectation[]> 
     for (let i = 0; i < count; i++) {
         const row = rows.nth(i);
         result.push({
-            path: (await row.locator("td").nth(0).innerText()).trim(),
-            denyTotal: parseRuleTotal(await row.locator("td").nth(1).innerText()),
-            allowTotal: parseRuleTotal(await row.locator("td").nth(2).innerText()),
+            path: ((await row.locator("td").nth(0).textContent()) ?? "").trim(),
+            denyTotal: parseRuleTotal((await row.locator("td").nth(1).textContent()) ?? ""),
+            allowTotal: parseRuleTotal((await row.locator("td").nth(2).textContent()) ?? ""),
         });
     }
     return result;
@@ -369,7 +369,7 @@ async function selectAccessSource(page: Page, sourceName: string) {
     });
     const sourceButton = accessCard.locator('button[aria-label="Source"]');
     const currentSource = (
-        await sourceButton.locator(".expand-dropdown-trigger-label").innerText()
+        (await sourceButton.locator(".expand-dropdown-trigger-label").textContent()) ?? ""
     ).trim();
     if (currentSource === sourceName) {
         await expect(accessRulesTable(page)).not.toHaveAttribute("aria-busy", "true");

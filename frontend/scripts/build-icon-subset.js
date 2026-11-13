@@ -184,7 +184,7 @@ function collectIcons() {
   scanSearchFilters(icons);
   scanMarkdownViewer(icons);
   icons.delete('close_back');
-  return [...icons].sort();
+  return [...icons].sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
 }
 
 function readInventory() {
