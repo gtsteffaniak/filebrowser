@@ -49,18 +49,18 @@ export default {
   },
   created() {
     // Listen for ESC key to treat it as "Keep Editing"
-    this.escKeyHandler = (event) => {
-      if (event.keyCode === 27 && getters.currentPromptName() === "SaveBeforeExit") {
-        event.stopImmediatePropagation();
-        this.keepEditing();
-      }
-    };
     window.addEventListener("keydown", this.escKeyHandler, true);
   },
   beforeUnmount() {
     window.removeEventListener("keydown", this.escKeyHandler, true);
   },
   methods: {
+    escKeyHandler(event) {
+      if (event.keyCode === 27 && getters.currentPromptName() === "SaveBeforeExit") {
+        event.stopImmediatePropagation();
+        this.keepEditing();
+      }
+    },
     keepEditing() {
       if (this.currentPrompt?.cancel) {
         this.currentPrompt.cancel();

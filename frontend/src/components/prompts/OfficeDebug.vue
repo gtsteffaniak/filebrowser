@@ -111,7 +111,7 @@ export default {
     return {
       debugInfo: [{ text: `⏳ ${this.$t("onlyoffice.startingInit")}` }],
       wikiLink,
-      clientConfig: {},
+      clientConfig: { document: null, editorConfig: null },
       hasErrors: false,
       onlyOfficeLogs: [],
       documentId: null,

@@ -63,11 +63,10 @@ export default {
       canScroll: false,
       resizeObserver: null,
       mutationObserver: null,
+      wrapperObserver: null,
+      wrapperRect: null,
+      readyTimeout: null,
     };
-  },
-  created() {
-    this.wrapperRect = null;
-    this.readyTimeout = null;
   },
   computed: {
     isScrollable() {

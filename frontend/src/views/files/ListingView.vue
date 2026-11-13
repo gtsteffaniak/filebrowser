@@ -123,7 +123,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, reactive, useTemplateRef, watch } from "vue";
 import type { fileListItemIndex } from "@/store/types.ts";
 import { useI18n } from "vue-i18n";
 import { readAllDirectoryEntries } from "@/utils/upload.ts";
@@ -152,8 +152,8 @@ type PastedItem =
 
 const { t } = useI18n();
 
-const rootEl = ref<HTMLElement | null>(null);
-const listingView = ref<HTMLElement | null>(null);
+const rootEl = useTemplateRef<HTMLElement>("rootEl");
+const listingView = useTemplateRef<HTMLElement>("listingView");
 
 const dragTargets = reactive(new Set<Element>());
 
@@ -372,6 +372,7 @@ function handleGlobalDragEnd() {
 function getListingItemNodes(container: HTMLElement) {
   if (itemNodesHost !== container || !itemNodes) {
     itemNodesHost = container;
+    // biome-ignore lint/style/useDomQuerySelector: a live HTMLCollection is the point here, querySelectorAll returns a static snapshot
     itemNodes = container.getElementsByClassName("listing-item");
   }
   return itemNodes;
@@ -432,18 +433,9 @@ async function handlePaste(event: ClipboardEvent) {
 
   const internalRecent = isInternalRecent();
 
-  // If internal is recent (<20s), use it immediately, in case someone have both: internal and external clipboard with a file entry.
-  // After those 20s, if the OS clipboard has a file as most recent entry, will use that.
-  if (internalRecent) {
-    await handleInternalPaste();
-    event.preventDefault();
-    event.stopPropagation();
-    return;
-  }
-
-  if (event.clipboardData?.items) {
-    // Collect all items from clipboard
-    const collectedItems: PastedItem[] = [];
+  // Collect all items from clipboard (skipped when the internal clipboard wins below)
+  const collectedItems: PastedItem[] = [];
+  if (!internalRecent && event.clipboardData?.items) {
     // And loop through all items
     for (const item of Array.from(event.clipboardData.items)) {
       if (item.kind !== "file") continue;
@@ -458,16 +450,30 @@ async function handlePaste(event: ClipboardEvent) {
         }
       }
     }
+  }
 
+  // We handle this paste when the internal clipboard is recent, when the OS clipboard has files,
+  // or when we'll fall back to the internal clipboard. preventDefault()/stopPropagation() only work
+  // while the event is still being dispatched, so this has to run before the first await.
+  if (internalRecent || collectedItems.length > 0 || hasInternalItems()) {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+
+  // If internal is recent (<20s), use it immediately, in case someone have both: internal and external clipboard with a file entry.
+  // After those 20s, if the OS clipboard has a file as most recent entry, will use that.
+  if (internalRecent) {
+    await handleInternalPaste();
+    return;
+  }
+
+  if (collectedItems.length > 0) {
     // Then process the collected items (files and folders) asynchronously
     const itemsFromClipboard = await getClipboardItems(collectedItems);
     const pastedFiles = itemsFromClipboard.map((item) => item.file);
 
     // If found external files, upload them
     if (pastedFiles.length > 0) {
-      event.preventDefault();
-      event.stopPropagation();
-
       const canUpload = getters.sourcePermissions()?.modify;
       if (canUpload) {
         // Pass the full array of {file, relativePath} to preserve directory structure
@@ -486,9 +492,6 @@ async function handlePaste(event: ClipboardEvent) {
   if (hasInternalItems()) {
     console.log("No external files, using internal clipboard.");
     await handleInternalPaste();
-    event.preventDefault();
-    event.stopPropagation();
-    return;
   }
 }
 

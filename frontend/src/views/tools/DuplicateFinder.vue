@@ -92,9 +92,9 @@
                     :isSelectedProp="selectedIndices.has(entry.index)"
                     :clickable="false"
                     :showLimitedOptions="true"
-                    @select="handleItemSelect"
+                    @item-select="handleItemSelect"
                     @clearSelection="clearSelection"
-                    @selectRange="handleSelectRange"
+                    @select-range="handleSelectRange"
                   />
                 </div>
               </div>

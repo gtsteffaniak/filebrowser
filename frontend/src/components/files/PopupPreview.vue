@@ -37,13 +37,10 @@ export default {
         top: "0px",
         left: "0px",
       },
+      cursorX: 0,
+      cursorY: 0,
+      rafId: null,
     };
-  },
-  beforeCreate() {
-    // Plain fields on purpose cuz nothing in the template reads them
-    this.cursorX = 0;
-    this.cursorY = 0;
-    this.rafId = null;
   },
   watch: {
     async sourceInfo(newVal) {

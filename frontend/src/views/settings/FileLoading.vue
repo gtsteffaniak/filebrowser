@@ -66,7 +66,14 @@ export default {
 
   data() {
     return {
-      localuser: { fileLoading: { clearAll: false } },
+      localuser: {
+        fileLoading: {
+          clearAll: false,
+          maxConcurrentUpload: null,
+          uploadChunkSizeMb: null,
+          downloadChunkSizeMb: null,
+        },
+      },
     };
   },
   computed: {

@@ -41,18 +41,18 @@ export default {
   },
   created() {
     // Listen for ESC key to treat it as "Stay on Prompt"
-    this.escKeyHandler = (event) => {
-      if (event.keyCode === 27 && getters.currentPromptName() === "CloseWithActiveUploads") {
-        event.stopImmediatePropagation();
-        this.stayOnPrompt();
-      }
-    };
     window.addEventListener("keydown", this.escKeyHandler, true);
   },
   beforeUnmount() {
     window.removeEventListener("keydown", this.escKeyHandler, true);
   },
   methods: {
+    escKeyHandler(event) {
+      if (event.keyCode === 27 && getters.currentPromptName() === "CloseWithActiveUploads") {
+        event.stopImmediatePropagation();
+        this.stayOnPrompt();
+      }
+    },
     stayOnPrompt() {
       if (this.currentPrompt?.cancel) {
         this.currentPrompt.cancel();

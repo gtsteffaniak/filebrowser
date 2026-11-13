@@ -6,7 +6,6 @@
       v-if="thumbnailSrc && !fullImageLoaded && !isTiff"
       :src="thumbnailSrc"
       class="image-ex-img"
-      ref="thumbnail"
       aria-hidden="true"
     />
 
@@ -56,8 +55,14 @@ export default {
       default: null,
     },
   },
+  emits: {
+    "navigate-previous": () => true,
+    "navigate-next": () => true,
+    "close-preview": () => true,
+  },
   data() {
     return {
+      thumbBlobKey: null, // only read in lifecycle/sync code, never during render
       moveDisabledTime: 200,
       classList: [],
       zoomStep: 0.25,
@@ -212,9 +217,6 @@ export default {
       const ay = Math.abs(this.edgeDy);
       return this.edgeDy >= this.edgeCommitY && ay >= ax;
     },
-  },
-  beforeCreate() {
-    this.thumbBlobKey = null;
   },
   created() {
     this.syncThumbnailBlob();

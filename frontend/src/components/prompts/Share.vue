@@ -603,7 +603,6 @@ export default {
   },
   beforeUnmount() {
     // Clean up event listeners
-    eventBus.off('apiKeysChanged', this.reloadApiKeys);
     eventBus.off('shareSidebarLinksUpdated', this.handleSidebarLinksUpdate);
     eventBus.off('pathSelected', this.onBannerFaviconPathSelected);
     eventBus.off('pathPickerCancelled', this.onBannerFaviconPathPickerCancelled);

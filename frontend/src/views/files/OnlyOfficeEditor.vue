@@ -39,7 +39,7 @@ export default {
   data() {
     return {
       ready: false,
-      clientConfig: {},
+      clientConfig: { document: null, editorConfig: null },
       floatIn: false,
       source: "",
       path: "",

@@ -19,7 +19,6 @@
   <!-- Previous button -->
   <button
     v-if="enabled && hasPrevious"
-    ref="prevButton"
     type="button"
     :tabindex="showNav ? 0 : -1"
     @click.prevent="handlePrevClick"
@@ -51,7 +50,6 @@
   <!-- Next button -->
   <button
     v-if="enabled && hasNext"
-    ref="nextButton"
     type="button"
     :tabindex="showNav ? 0 : -1"
     @click.prevent="handleNextClick"
@@ -77,7 +75,6 @@
   <!-- Close preview (same control as swipe-down / back) -->
   <button
     v-if="enabled && showPreviewCloseButton"
-    ref="closeButton"
     type="button"
     :tabindex="showCloseNavChrome ? 0 : -1"
     @click.prevent="handleClosePreviewClick"
@@ -127,6 +124,7 @@ export default {
         threshold: 0, // Will be calculated as 10em in pixels
         atFullExtent: false,
         triggered: false,
+        wasDrag: false,
       },
       // State tracking
       navigationTimeout: null,
@@ -281,18 +279,6 @@ export default {
         await this.setupNavigationForCurrentItem();
       }
     },
-    'state.req': {
-      async handler() {
-        this.updateNavigationEnabled();
-        // Auto-setup navigation when request changes and we're enabled
-        if (this.enabled) {
-          await this.$nextTick();
-          await this.setupNavigationForCurrentItem();
-        }
-      },
-      deep: true,
-      immediate: false
-    },
     async enabled(newEnabled) {
       if (newEnabled && state.req) {
         await this.$nextTick();
@@ -313,13 +299,6 @@ export default {
       if (this.enabled && state.req) {
         void this.setupNavigationForCurrentItem();
       }
-    },
-    // Watch for when navigation links are set up
-    'state.navigation.previousLink'() {
-      this.showInitialNavigation();
-    },
-    'state.navigation.nextLink'() {
-      this.showInitialNavigation();
     },
   },
   async mounted() {

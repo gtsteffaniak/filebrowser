@@ -93,7 +93,7 @@
 </template>
 
 <script>
-import { computed, shallowRef } from "vue";
+import { computed, provide, shallowRef } from "vue";
 import { globalVars } from "@/utils/constants.js";
 import downloadFiles from "@/utils/download.js";
 import { getHumanReadableFilesize } from "@/utils/filesizes.js";
@@ -204,25 +204,29 @@ export default {
       localSelected: false,
     };
   },
-  beforeCreate() {
-    // runs before provide(), non-reactive holder on purpose
-    this.viewportRef = shallowRef(false);
+  emits: {
+    "item-select": (payload) => payload != null && "index" in payload,
+    "select-range": (payload) => payload != null && "startIndex" in payload && "endIndex" in payload,
   },
-  provide() {
-    // the Icons inside this item inject it, see Icon.vue
-    return { inView: this.viewportRef };
-  },
-  created() {
-    // non-reactive on purpose, they're never read by the template
-    this.touches = 0;
-    this.touchStartX = 0;
-    this.touchStartY = 0;
-    this.isLongPress = false;
-    this.isSwipe = false;
-    this.contextTimeout = null;
-    this.observedEl = null;
-    this.observer = null;
-    this.isUnmounted = false;
+  setup() {
+    // The Icons inside this item inject it with Icon.vue
+    // we're using setup for now temporarily as is more easy than convert the whole component to script setup.
+    const viewportRef = shallowRef(false);
+    provide("inView", viewportRef);
+    return {
+      setInView(visible) {
+        viewportRef.value = visible;
+      },
+      touches: 0,
+      touchStartX: 0,
+      touchStartY: 0,
+      isLongPress: false,
+      isSwipe: false,
+      contextTimeout: null,
+      observedEl: null,
+      observer: null,
+      isUnmounted: false,
+    };
   },
   props: {
     name: String,
@@ -491,7 +495,7 @@ export default {
       if (this.$el && this.$el instanceof Element) {
         this.observedEl = this.$el;
         viewportCallbacks.set(this.$el, (visible) => {
-          this.viewportRef.value = visible;
+          this.setInView(visible);
           if (visible) {
             this.isThumbnailInView = true;
           }
@@ -516,7 +520,7 @@ export default {
         downloadFiles(state.selected);
       } else {
         // Emit selection event for local handling
-        this.$emit('select', { index: this.index, selected: true });
+        this.$emit('item-select', { index: this.index, selected: true });
       }
     },
     /** @param {TouchEvent} event */
@@ -614,7 +618,7 @@ export default {
       } else {
         // Emit selection event for local handling
         if (!this.localSelected) {
-          this.$emit('select', { index: this.index, selected: true });
+          this.$emit('item-select', { index: this.index, selected: true });
         }
       }
       if (event.dataTransfer) {
@@ -687,11 +691,7 @@ export default {
         const destinationDir = this.path;
 
         // If destination dir is the same as or contains the source path, skip
-        if (fromPath === destinationDir || fromPath.startsWith(`${destinationDir}/`)) {
-          return false;
-        }
-
-        return true;
+        return !(fromPath === destinationDir || fromPath.startsWith(`${destinationDir}/`));
       });
 
       // If all items were filtered out, silently skip the operation
@@ -805,7 +805,7 @@ export default {
               mutations.resetSelected();
               mutations.addSelected(this.index);
             } else {
-              this.$emit('select', { index: this.index, selected: true });
+              this.$emit('item-select', { index: this.index, selected: true });
             }
           }
         }
@@ -899,7 +899,7 @@ export default {
         // Local selection handling - emit events instead of updating global state
         if (event.shiftKey) {
           // Shift-click: select range (emit event for parent to handle)
-          this.$emit('selectRange', {
+          this.$emit('select-range', {
             startIndex: state.lastSelectedIndex !== null ? state.lastSelectedIndex : this.index,
             endIndex: this.index
           });
@@ -908,7 +908,7 @@ export default {
 
         // Always toggle - parent component will handle the toggle logic
         // Just emit the index, parent will check current state and toggle
-        this.$emit('select', { index: this.index });
+        this.$emit('item-select', { index: this.index });
       }
     },
     open() {

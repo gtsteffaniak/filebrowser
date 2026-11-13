@@ -336,6 +336,16 @@ export default {
         permissions: { admin: false },
         otpEnabled: false,
         loginMethod: null, // Will be set based on available methods
+        // Placeholders: the whole object is replaced by the loaded/default user
+        lockPassword: false,
+        requirePasswordChange: false,
+        disableSettings: false,
+        disableUpdateNotifications: false,
+        showAdvancedProfile: false,
+        maxConcurrentTranscodes: 1,
+        toolAccess: {},
+        sidebarLinks: [],
+        passkeyCredentials: [],
       },
       showDelete: false,
       createUserDir: false,

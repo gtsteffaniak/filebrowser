@@ -186,6 +186,9 @@ export default {
       sharePassword: "",
       attemptedPasswordLogin: false,
       lastShareHash: "",
+      fetchId: 0,
+      loadingFetchId: 0,
+      fetchController: null,
     };
   },
   computed: {
@@ -215,9 +218,6 @@ export default {
     },
   },
   created() {
-    this.fetchId = 0;
-    this.loadingFetchId = 0;
-    this.fetchController = null;
     const isHalloween = getters.eventTheme() === "halloween";
     syncEventTheme(isHalloween);
     if (isHalloween && !localStorage.getItem("seenHalloweenMessage")) {

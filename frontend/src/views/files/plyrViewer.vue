@@ -105,7 +105,7 @@
 
       <!-- Audio controls -->
       <div class="audio-controls-container">
-        <div class="plyr-audio-container" ref="plyrAudioContainer">
+        <div class="plyr-audio-container">
           <audio :src="raw" :type="req.type" :autoplay="shouldAutoplay" @play="handlePlay" ref="audioElement"></audio>
         </div>
       </div>
@@ -127,14 +127,13 @@
     <!-- Video with plyr -->
     <div
       v-else-if="previewType === 'video'"
-      ref="videoPlayerContainer"
       class="video-player-container"
       :class="{
         'no-captions': !hasSubtitles,
         'video-player-container--transcode-switching': transcodeSwitchInProgress,
       }"
     >
-      <div class="plyr-video-container" ref="plyrVideoContainer">
+      <div class="plyr-video-container">
         <video
           ref="videoElement"
           :type="req.type"
@@ -161,7 +160,6 @@
         <LoadingSpinner size="large" />
       </div>
       <div
-        ref="skipFeedbackLayer"
         class="video-skip-feedback-layer"
         :class="{
           'video-skip-feedback-layer--visible': skipFeedbackVisible,
@@ -373,7 +371,13 @@ export default {
       default: null,
     },
   },
-  emits: ['play', 'navigate-previous', 'navigate-next', 'close-preview', 'needs-transcode'],
+  emits: {
+    'playback-start': () => true,
+    'navigate-previous': () => true,
+    'navigate-next': () => true,
+    'close-preview': () => true,
+    'needs-transcode': () => true,
+  },
   data() {
     return {
       // Toast
@@ -490,6 +494,12 @@ export default {
       transcodeMenuInitialized: false,
       transcodeModeButtons: null,
       transcodeModeValueSpan: null,
+      playbackButtons: null,
+      playbackValueSpan: null,
+      captionSizeButtons: null,
+      captionSizeValueSpan: null,
+      loopButtons: null,
+      loopValueSpan: null,
       transcodeOfferEmitted: false,
       mountPlyrInProgress: false,
       /** Armed when autoplay is blocked so the next user gesture can resume playback. */
@@ -689,11 +699,9 @@ export default {
     },
     showQueueButton() {
       if (this.previewType === 'video') {
-        if (this.isFullscreen) return false;
-        return true;
+        return !this.isFullscreen;
       }
-      if (this.isMobile && this.previewType === 'audio') return true;
-      return false;
+      return this.isMobile && this.previewType === 'audio';
     },
     mobileLyricsActive() {
       return this.isMobile && this.showMobileLyrics && this.lyrics.length > 0;
@@ -1020,17 +1028,7 @@ export default {
       await this.preparePlyrMount();
     }
     document.addEventListener('keydown', this.handleKeydown);
-    this.pagehideHandler = (event) => {
-      if (event.persisted) return;
-      this.cleanupAudioVisualizer(); // to stop the visualizer when viewing another browser tab
-      // Tab close / page unload: stop the media element and fire a keepalive
-      // DELETE so the server session is released before the document tears down.
-      // A plain fetch would be cancelled mid-flight and leave the session
-      // counted against the per-user limit until the janitor reaps it.
-      this.teardownTranscodePlayback({ stopSession: true, keepalive: true });
-      this.stopMediaElement();
-    };
-    window.addEventListener('pagehide', this.pagehideHandler);
+    window.addEventListener('pagehide', this.onPageHide);
   },
   beforeUnmount() {
     // Cleanup timeouts
@@ -1050,10 +1048,16 @@ export default {
     } finally {
       this.clearMediaSession();
       document.removeEventListener('keydown', this.handleKeydown);
-      window.removeEventListener('pagehide', this.pagehideHandler);
+      window.removeEventListener('pagehide', this.onPageHide);
     }
   },
   methods: {
+    onPageHide(event) {
+      if (event.persisted) return;
+      this.cleanupAudioVisualizer(); // to stop the visualizer when viewing another browser tab
+      this.teardownTranscodePlayback({ stopSession: true, keepalive: true });
+      this.stopMediaElement();
+    },
     /** Plyr captions menu: show format only (e.g. `.srt`, `.ass`), not the video basename. */
     subtitleTrackLabel(sub) {
       const ext = getSubtitleFormatExtension(sub?.name || '');
@@ -1374,7 +1378,7 @@ export default {
       if (this.plyrTeardownDone) {
         return;
       }
-      this.$emit('play');
+      this.$emit('playback-start');
       if (
         this.previewType === 'video'
         && this.isTranscodePlaybackMode
@@ -2083,7 +2087,7 @@ export default {
         return;
       }
       mutations.setPlaybackState(true);
-      this.$emit('play');
+      this.$emit('playback-start');
     },
     initTranscodeModeFromRoute() {
       if (this.previewType !== 'video' || !this.transcodeEnabled) {
@@ -2677,7 +2681,7 @@ export default {
           ?? (() => this.player?.play?.() ?? el.play());
         void Promise.resolve(playCall()).then(() => {
           mutations.setPlaybackState(true);
-          this.$emit('play');
+          this.$emit('playback-start');
         }).catch(() => {});
       };
       if (el.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA && !el.paused) {

@@ -134,6 +134,9 @@ export default {
     isMobile() {
       return getters.isMobile();
     },
+    userPermissions() {
+      return state.user?.permissions;
+    },
     canStart() {
       // Can start watching if we have source, path, and not already watching
       // Allow both files and directories to be watched
@@ -221,7 +224,7 @@ export default {
       }
     },
     // Watch for user permission changes and validate interval
-    'state.user.permissions'() {
+    userPermissions() {
       if (!this.isInitializing) {
         this.selectedInterval = this.validateInterval(this.selectedInterval);
       }
@@ -295,7 +298,7 @@ export default {
       }
 
       if (query.interval !== undefined && query.interval !== null) {
-        const parsed = parseInt(String(query.interval), 10);
+        const parsed = Math.trunc(Number(query.interval));
         if (!Number.isNaN(parsed) && parsed > 0) {
           // Validate interval based on permissions
           this.selectedInterval = this.validateInterval(parsed);
@@ -306,7 +309,7 @@ export default {
       }
 
       if (query.lines !== undefined && query.lines !== null) {
-        const parsed = parseInt(String(query.lines), 10);
+        const parsed = Math.trunc(Number(query.lines));
         if (!Number.isNaN(parsed) && parsed >= 1 && parsed <= 50) {
           this.selectedLines = parsed;
         }

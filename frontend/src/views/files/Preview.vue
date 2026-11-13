@@ -29,7 +29,7 @@
           :autoPlayEnabled="autoPlay"
           :startTranscode="transcodePlaybackActive"
           :sharedTranscodePlayback="transcodePlaybackController"
-          @play="playbackStarted = true"
+          @playback-start="playbackStarted = true"
           @needs-transcode="handleVideoTranscodeOffer"
           :class="{ 'plyr-background': previewType === 'audio' }"
           @navigate-previous="navigatePrevious"

@@ -78,21 +78,6 @@ export default {
     // Ensure the sidebar is initialized correctly
     mutations.setSeenUpdate(localStorage.getItem("seenUpdate"));
     // Add keyboard event listener for Ctrl+B to toggle sidebar
-    this.handleKeydown = (event) => {
-      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'b') {
-        event.preventDefault();
-        const sidebarVisible = getters.isSidebarVisible();
-        const isSticky = getters.isStickySidebar();
-        if (!sidebarVisible) {
-          void mutations.updateCurrentUser({ stickySidebar: true });
-          mutations.toggleSidebar();
-        } else if (sidebarVisible && isSticky) {
-          void mutations.updateCurrentUser({ stickySidebar: false });
-        } else {
-          mutations.toggleSidebar();
-        }
-      }
-    };
     document.addEventListener('keydown', this.handleKeydown);
     document.addEventListener('mousemove', this.handleResize);
     document.addEventListener('touchmove', this.handleResize, { passive: true });
@@ -106,9 +91,7 @@ export default {
       mutations.setSidebarResizing(false);
       document.body.classList.remove('sidebar-resizing');
     }
-    if (this.handleKeydown) {
-      document.removeEventListener('keydown', this.handleKeydown);
-    }
+    document.removeEventListener('keydown', this.handleKeydown);
     document.removeEventListener('mousemove', this.handleResize);
     document.removeEventListener('touchmove', this.handleResize);
     document.removeEventListener('mouseup', this.stopResize);
@@ -147,6 +130,21 @@ export default {
     },
   },
   methods: {
+    handleKeydown(event) {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'b') {
+        event.preventDefault();
+        const sidebarVisible = getters.isSidebarVisible();
+        const isSticky = getters.isStickySidebar();
+        if (!sidebarVisible) {
+          void mutations.updateCurrentUser({ stickySidebar: true });
+          mutations.toggleSidebar();
+        } else if (isSticky) {
+          void mutations.updateCurrentUser({ stickySidebar: false });
+        } else {
+          mutations.toggleSidebar();
+        }
+      }
+    },
     getBaseFontSize() {
       const rootFontSize = getComputedStyle(document.documentElement).fontSize;
       return parseFloat(rootFontSize);

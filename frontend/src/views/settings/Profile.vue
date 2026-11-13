@@ -44,7 +44,14 @@ export default {
   },
   data() {
     return {
-      localuser: { preview: {}, permissions: {} },
+      localuser: {
+        preview: {},
+        permissions: {},
+        showAdvancedProfile: false,
+        showToolsInSidebar: true,
+        themeColor: "",
+        customTheme: "",
+      },
     };
   },
   computed: {
