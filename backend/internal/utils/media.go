@@ -15,6 +15,9 @@ type SubtitleTrack struct {
 	Embedded bool   `json:"embedded"`        // true for embedded subtitles, false for external files
 }
 
+// ErrSubtitleSidecarNotRegular is returned when an external subtitle path is not a regular file (e.g. symlink).
+var ErrSubtitleSidecarNotRegular = errors.New("subtitle sidecar is not a regular file")
+
 func GetSubtitleSidecarContent(subtitlePath string) (string, error) {
 	// Sidecars sit beside the media file; do not follow symlink leaves (see lyricsSidecar).
 	info, err := os.Lstat(subtitlePath)
@@ -22,7 +25,7 @@ func GetSubtitleSidecarContent(subtitlePath string) (string, error) {
 		return "", err
 	}
 	if !info.Mode().IsRegular() {
-		return "", os.ErrPermission
+		return "", ErrSubtitleSidecarNotRegular
 	}
 	if info.Size() > 1024*1024*50 { // 50MB
 		return "", errors.New("subtitle file is too large")

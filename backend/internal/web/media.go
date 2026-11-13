@@ -2,6 +2,7 @@ package web
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"net/http"
 	"path/filepath"
@@ -109,6 +110,9 @@ func subtitlesHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 		subtitlePath := filepath.Join(filepath.Dir(fileInfo.RealPath), filepath.Base(track.Name))
 		content, err = utils.GetSubtitleSidecarContent(subtitlePath)
 		if err != nil {
+			if errors.Is(err, utils.ErrSubtitleSidecarNotRegular) {
+				return http.StatusForbidden, err
+			}
 			return http.StatusInternalServerError, fmt.Errorf("failed to get subtitle sidecar content: %v", err)
 		}
 	} else {
