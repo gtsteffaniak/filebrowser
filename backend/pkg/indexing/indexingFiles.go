@@ -1241,6 +1241,61 @@ func (idx *Index) getRealPathInternal(boundIndexPath string, enforceScope bool, 
 	return realPath, isDir, nil
 }
 
+// realPathCacheJoinedPath builds the filesystem join used in RealPathCache keys.
+func realPathCacheJoinedPath(sourceRoot, indexPath string) string {
+	seg := utils.CleanIndexPathSegment(indexPath)
+	if seg == "" {
+		return sourceRoot
+	}
+	return filepath.Join(sourceRoot, seg)
+}
+
+func realPathCacheIndexAncestors(indexPath string) []string {
+	rel := utils.CleanIndexPathSegment(indexPath)
+	if rel == "" {
+		return []string{"/"}
+	}
+	parts := strings.Split(rel, "/")
+	ancestors := []string{"/"}
+	for i := range parts {
+		ancestors = append(ancestors, "/"+strings.Join(parts[:i+1], "/"))
+	}
+	return ancestors
+}
+
+// InvalidateRealPathCache drops cached symlink resolutions for indexPath and its
+// ancestors. scopeBounds should include any caller scope prefixes used with
+// GetRealPathScoped (e.g. user or share path).
+func (idx *Index) InvalidateRealPathCache(indexPath string, scopeBounds ...string) {
+	boundSet := map[string]struct{}{"/": {}, "": {}}
+	for _, b := range scopeBounds {
+		b = strings.TrimRight(strings.TrimSpace(b), "/")
+		if b == "" || b == "/" {
+			boundSet["/"] = struct{}{}
+			boundSet[""] = struct{}{}
+			continue
+		}
+		if !strings.HasPrefix(b, "/") {
+			b = "/" + b
+		}
+		boundSet[b] = struct{}{}
+	}
+	bounds := make([]string, 0, len(boundSet))
+	for b := range boundSet {
+		bounds = append(bounds, b)
+	}
+	for _, ip := range realPathCacheIndexAncestors(indexPath) {
+		joined := realPathCacheJoinedPath(idx.Path, ip)
+		for _, enforceScope := range []bool{false, true} {
+			for _, bound := range bounds {
+				key := fmt.Sprintf("realpath|scoped=%t|bound=%q|path=%q", enforceScope, bound, joined)
+				RealPathCache.Delete(key)
+				IsDirCache.Delete(key + ":isdir")
+			}
+		}
+	}
+}
+
 // GetRealPathForMutation resolves an index path for a mutating filesystem
 // operation (create/overwrite/mkdir/move-into). When the leaf exists it is fully
 // resolved; otherwise the deepest existing ancestor is resolved and the missing
