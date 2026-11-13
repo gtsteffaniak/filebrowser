@@ -117,8 +117,11 @@ func subtitlesHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 			if idx == nil {
 				return http.StatusInternalServerError, fmt.Errorf("source %s is not available", source)
 			}
-			sidecarIndexPath := utils.JoinPathAsUnix(utils.GetParentDirectoryPath(path), filepath.Base(track.Name))
-			subtitlePath, _, err = idx.GetRealPathScoped(d.Share.Path, sidecarIndexPath)
+			bound, sidecarIndexPath, scopeErr := shareSubtitleSidecarIndexPaths(d, source, path, track.Name)
+			if scopeErr != nil {
+				return http.StatusForbidden, scopeErr
+			}
+			subtitlePath, _, err = idx.GetRealPathScoped(bound, sidecarIndexPath)
 			if err != nil {
 				return realPathErrStatus(err), err
 			}
@@ -162,6 +165,34 @@ func findSubtitleTrack(subtitles []utils.SubtitleTrack, name string, embedded bo
 		}
 	}
 	return nil
+}
+
+// shareSubtitleSidecarIndexPaths maps middleware IndexPath (user-scope-relative) and Share.Path
+// to scoped index paths for sidecar containment (see publicDeleteHandler).
+func shareSubtitleSidecarIndexPaths(d *Context, sourceName, videoIndexPath, sidecarFileName string) (bound, sidecarIndexPath string, err error) {
+	userScope, scopeErr := d.ShareUser.GetScopeForSourceName(sourceName)
+	if scopeErr != nil || userScope == "" {
+		return "", "", fmt.Errorf("user has no access to source: %s", sourceName)
+	}
+	if d.Share.Path == "" {
+		return "", "", fmt.Errorf("share has no path scope")
+	}
+	shareRel := strings.TrimPrefix(d.Share.Path, userScope)
+	bound = utils.JoinScopedIndexPath(userScope, shareRel)
+	videoRel := strings.Trim(strings.TrimSpace(videoIndexPath), "/")
+	fullVideo := utils.JoinScopedIndexPath(userScope, videoRel)
+	if strings.TrimSuffix(bound, "/") == strings.TrimSuffix(fullVideo, "/") {
+		parent := utils.GetParentDirectoryPath(strings.TrimSuffix(bound, "/"))
+		if parent == "" {
+			parent = "/"
+		}
+		bound = parent
+	}
+	sidecarIndexPath = utils.JoinPathAsUnix(
+		utils.GetParentDirectoryPath(strings.TrimSuffix(fullVideo, "/")),
+		filepath.Base(sidecarFileName),
+	)
+	return bound, sidecarIndexPath, nil
 }
 
 // metadataHandler returns the same directory resource shape as GET /api/resources with metadata enabled,

@@ -169,9 +169,82 @@ func TestSubtitlesHandler_ReturnsInScopeSidecar(t *testing.T) {
 	}
 }
 
+func TestSubtitlesHandler_ShareScopedOwnerLoadsSidecar(t *testing.T) {
+	sourceRoot, adminUser := setupSubtitlesHTTPTest(t)
+	aliceRoot := filepath.Join(sourceRoot, "users", "alice", "shared")
+	if err := os.MkdirAll(aliceRoot, 0755); err != nil {
+		t.Fatal(err)
+	}
+	srtBody := "1\n00:00:01,000 --> 00:00:02,000\nScoped share OK"
+	videoPath := filepath.Join(aliceRoot, "clip.mov")
+	if err := os.WriteFile(videoPath, []byte("video"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(aliceRoot, "clip.srt"), []byte(srtBody), 0644); err != nil {
+		t.Fatal(err)
+	}
+	mockVideoWithExternalSubtitle(t, "clip.srt", videoPath)
+
+	adminUser.BackendScopes = []users.BackendScope{{Path: sourceRoot, Scope: "/users/alice"}}
+	req := httptest.NewRequest(http.MethodGet, "/public/api/media/subtitles?hash=h&path=clip.mov&name=clip.srt&embedded=false", nil)
+	rec := httptest.NewRecorder()
+	status, handlerErr := subtitlesHandler(rec, req, &Context{
+		User:      adminUser,
+		ShareUser: adminUser,
+		IndexPath: "/shared/clip.mov/",
+		Share: share.Share{
+			ShareColumns: share.ShareColumns{
+				Hash: "h",
+				Path: "/users/alice/shared",
+			},
+			SourcePath: sourceRoot,
+		},
+	})
+	if status != http.StatusOK || handlerErr != nil {
+		t.Fatalf("status=%d err=%v body=%q", status, handlerErr, rec.Body.String())
+	}
+	if !strings.Contains(rec.Body.String(), "Scoped share OK") {
+		t.Fatalf("body=%q", rec.Body.String())
+	}
+}
+
+func TestSubtitlesHandler_ShareSingleFileLoadsSidecar(t *testing.T) {
+	sourceRoot, adminUser := setupSubtitlesHTTPTest(t)
+	srtBody := "single-file share subtitle"
+	videoPath := filepath.Join(sourceRoot, "clip.mov")
+	if err := os.WriteFile(videoPath, []byte("video"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(sourceRoot, "clip.srt"), []byte(srtBody), 0644); err != nil {
+		t.Fatal(err)
+	}
+	mockVideoWithExternalSubtitle(t, "clip.srt", videoPath)
+
+	req := httptest.NewRequest(http.MethodGet, "/public/api/media/subtitles?hash=h&path=/&name=clip.srt&embedded=false", nil)
+	rec := httptest.NewRecorder()
+	status, handlerErr := subtitlesHandler(rec, req, &Context{
+		User:      adminUser,
+		ShareUser: adminUser,
+		IndexPath: "/clip.mov/",
+		Share: share.Share{
+			ShareColumns: share.ShareColumns{
+				Hash: "h",
+				Path: "/clip.mov",
+			},
+			SourcePath: sourceRoot,
+		},
+	})
+	if status != http.StatusOK || handlerErr != nil {
+		t.Fatalf("status=%d err=%v body=%q", status, handlerErr, rec.Body.String())
+	}
+	if !strings.Contains(rec.Body.String(), "single-file share subtitle") {
+		t.Fatalf("body=%q", rec.Body.String())
+	}
+}
+
 func TestSubtitlesHandler_ShareRejectsSidecarPastEscapingDirSymlink(t *testing.T) {
 	sourceRoot, adminUser := setupSubtitlesHTTPTest(t)
-	videoIndexPath := "/shared/link/clip.mov"
+	videoIndexPath := "/shared/link/clip.mov/"
 	mockVideoWithExternalSubtitle(t, "clip.srt", filepath.Join(sourceRoot, "shared", "link", "clip.mov"))
 
 	sharedDir := filepath.Join(sourceRoot, "shared")
