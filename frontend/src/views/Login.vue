@@ -337,7 +337,7 @@ export default {
     collapseEnter,
     collapseLeave,
     renderRecaptcha() {
-      const container = document.getElementById("globalVars.recaptcha");
+      const container = document.querySelector('[id="globalVars.recaptcha"]');
       if (!container) return;
       window.grecaptcha.ready(() => {
         this.recaptchaId = window.grecaptcha.render(container, {

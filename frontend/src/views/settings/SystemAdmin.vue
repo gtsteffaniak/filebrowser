@@ -5,7 +5,7 @@
         :name="$t('profileSettings.disableUpdateNotifications')"
         :description="$t('profileSettings.disableUpdateNotificationsDescription')" />
       <ToggleSwitch class="item" v-model="analyticsEnabled" :disabled="analyticsLoading || !publishSupported"
-        @update:modelValue="updateAnalytics" :name="$t('settings.analyticsEnabled')"
+        @update:model-value="updateAnalytics" :name="$t('settings.analyticsEnabled')"
         :description="$t('settings.analyticsEnabledDescription')" />
       <SettingsButton class="item" :name="$t('settings.analyticsView')"
         :description="$t('settings.analyticsViewDescription')" @activate="openAnalyticsPrompt" />

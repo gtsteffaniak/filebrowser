@@ -183,7 +183,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from "vue";
 import type { FileListItem, fileListItemIndex, ReqObject } from "@/store/types.ts";
 import { useRoute } from "vue-router";
 import { useI18n } from "vue-i18n";
@@ -391,9 +391,9 @@ function collectScopeRawFromQuery(q: QueryRecord) {
 const { t } = useI18n();
 const route = useRoute();
 
-const rootEl = ref<HTMLElement | null>(null);
-const results = ref<HTMLElement | null>(null);
-const listingView = ref<HTMLElement | null>(null);
+const rootEl = useTemplateRef<HTMLElement>("rootEl");
+const results = useTemplateRef<HTMLElement>("results");
+const listingView = useTemplateRef<HTMLElement>("listingView");
 
 const resultLimit = ref(Math.min(500, globalVars.searchResultsLimit || 1000));
 const termInputs = ref<string[]>([""]);

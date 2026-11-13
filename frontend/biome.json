@@ -228,6 +228,14 @@
 			}
 		},
 		{
+			"includes": ["**/*.js"],
+			"linter": {
+				"rules": {
+					"nursery": { "noUnsafeReturn": "off" }
+				}
+			}
+		},
+		{
 			"includes": [
 				"scripts/postcss-strip-legacy.ts",
 				"playwright.config.ts",

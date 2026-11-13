@@ -99,6 +99,7 @@ const LOADERS = {
 export default {
   name: "threeJsViewer",
   components: { LoadingSpinner, FloatingActionButton },
+  emits: { "load-error": () => true },
   props: {
     fbdata: { type: Object, required: true },
     isThumbnail: { type: Boolean, default: false },
@@ -354,7 +355,7 @@ export default {
       }
       this.loading = false;
       if (this.isThumbnail) {
-        this.$emit('error', err);
+        this.$emit('load-error', err);
       }
     },
 

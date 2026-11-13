@@ -158,7 +158,7 @@ export default {
         mutations.resetSelected();
         mutations.setSearch(true);
         setTimeout(() => {
-          document.getElementById("search-input").focus();
+          document.querySelector("#search-input").focus();
         }, 100);
       }
     },

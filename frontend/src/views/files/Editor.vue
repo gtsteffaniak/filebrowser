@@ -20,7 +20,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, onUnmounted, ref, shallowRef, watch } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, onUnmounted, ref, shallowRef, useTemplateRef, watch } from "vue";
 import { useRoute, useRouter, type RouteLocationNormalized } from "vue-router";
 import { useI18n } from "vue-i18n";
 import type { Ace } from "ace-builds";
@@ -45,23 +45,16 @@ import { rejectPutIfQuotaExceeded } from "@/utils/uploadQuota.js";
 type Req = typeof state.req;
 interface AceRendererInternal { $gutterLayer: { $renderer: unknown } }
 
-const props = defineProps({
-  viewerMode: {
-    type: Boolean,
-    default: false
-  },
-  content: {
-    type: String,
-    default: ""
-  },
-  editorMode: {
-    type: String,
-    default: "yaml" // Default to YAML for config viewing
-  },
-  readOnly: {
-    type: Boolean,
-    default: null // null means auto-determine
-  }
+const props = withDefaults(defineProps<{
+  viewerMode?: boolean;
+  content?: string;
+  editorMode?: string;
+  readOnly?: boolean | null;
+}>(), {
+  viewerMode: false,
+  content: "",
+  editorMode: "yaml", // Default to YAML for config viewing
+  readOnly: null, // null means auto-determine
 });
 
 const THEME_DARK = "ace/theme/tomorrow_night_bright";
@@ -73,10 +66,10 @@ const route = useRoute();
 const router = useRouter();
 const { t } = useI18n();
 
-const editorRoot = ref<HTMLElement | null>(null);
-const editorEl = ref<HTMLElement | null>(null);
-const splitView = ref<InstanceType<typeof MarkdownSplitView> | null>(null);
-const toolbar = ref<InstanceType<typeof EditorToolbar> | null>(null);
+const editorRoot = useTemplateRef<HTMLElement>("editorRoot");
+const editorEl = useTemplateRef<HTMLElement>("editorEl");
+const splitView = useTemplateRef<InstanceType<typeof MarkdownSplitView>>("splitView");
+const toolbar = useTemplateRef<InstanceType<typeof EditorToolbar>>("toolbar");
 
 const editor = shallowRef<Ace.Editor | null>(null); // The editor instance
 const originalReq = ref<Req | null>(null);

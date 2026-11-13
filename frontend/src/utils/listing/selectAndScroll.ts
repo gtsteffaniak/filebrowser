@@ -13,8 +13,8 @@ export function selectAndScrollToIndex(index: number, replaceSelection = false):
   const scrollOptions = { behavior: "instant", block: "center" } as const;
   const listing = getVirtualListing();
   if (listing) return listing.scrollToIndex(index, scrollOptions);
-  const el = document.getElementById(
-    base64Encode(encodeURIComponent(`${item.source}::${item.path}`)),
+  const el = document.querySelector(
+    `#${CSS.escape(base64Encode(encodeURIComponent(`${item.source}::${item.path}`)))}`,
   );
   if (!el) return false;
   el.scrollIntoView(scrollOptions);

@@ -18,7 +18,7 @@
       :fbdata="threeDFbdata"
       :is-thumbnail="true"
       :add-load-delay="true"
-      @error="handle3DError" />
+      @load-error="handle3DError" />
     <TextPreview v-else-if="shouldUseTextPreview"
       :url="textPreviewUrl"
       :language="textPreviewLanguage"

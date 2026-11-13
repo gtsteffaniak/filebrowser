@@ -93,7 +93,7 @@
                     :clickable="false"
                     :showLimitedOptions="true"
                     @item-select="handleItemSelect"
-                    @clearSelection="clearSelection"
+                    @clear-selection="clearSelection"
                     @select-range="handleSelectRange"
                   />
                 </div>
@@ -122,7 +122,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, shallowRef, watch } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, shallowRef, useTemplateRef, watch } from "vue";
 import { useRoute } from "vue-router";
 import { useI18n } from "vue-i18n";
 import { toolsApi } from "@/api/index.js";
@@ -169,7 +169,7 @@ const GROUP_STRIDE = 1_000_000;
 const { t } = useI18n();
 const route = useRoute();
 
-const list = ref<HTMLElement | null>(null);
+const list = useTemplateRef<HTMLElement>("list");
 const searchPath = ref("/");
 const selectedSource = ref("");
 const resultPath = ref("/");
@@ -241,7 +241,7 @@ onMounted(() => {
   selectedSource.value = (typeof query.source === 'string' ? query.source : null) || state.sources.current || Object.keys(state.sources.info || {})[0] || "";
 
   if (query.minSize) {
-    const parsed = parseInt(String(query.minSize), 10);
+    const parsed = Math.trunc(Number(query.minSize));
     if (!Number.isNaN(parsed)) {
       minSizeValue.value = parsed;
     }

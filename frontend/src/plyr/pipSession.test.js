@@ -68,9 +68,13 @@ describe('pipSession', () => {
   async function flushHandoffNavigation() {
     for (let i = 0; i < 4; i++) {
       await Promise.resolve();
-      await new Promise((r) => requestAnimationFrame(r));
+      await new Promise((r) => {
+        requestAnimationFrame(r);
+      });
     }
-    await new Promise((r) => setTimeout(r, 10));
+    await new Promise((r) => {
+      setTimeout(r, 10);
+    });
   }
 
   it('registerSession adopts media into a hidden document host', async () => {
@@ -84,7 +88,7 @@ describe('pipSession', () => {
     expect(mod.hasActiveSession('src', 'a.mp4')).toBe(true);
     expect(mod.hasActiveSession('src', '/b.mp4')).toBe(false);
     expect(document.body.contains(media)).toBe(true);
-    expect(document.getElementById('pip-session-host')?.contains(media)).toBe(true);
+    expect(document.querySelector('#pip-session-host')?.contains(media)).toBe(true);
     expect(wrapper.contains(media)).toBe(false);
   });
 
@@ -95,14 +99,14 @@ describe('pipSession', () => {
     const mediaB = document.createElement('video');
 
     mod.registerSession(mediaA, { source: 'src', path: '/a.mp4' });
-    expect(document.getElementById('pip-session-host')?.contains(mediaA)).toBe(true);
+    expect(document.querySelector('#pip-session-host')?.contains(mediaA)).toBe(true);
 
     mod.registerSession(mediaB, { source: 'src', path: '/b.mp4' });
 
     expect(mediaA.pause).toHaveBeenCalled();
     expect(mediaA.hasAttribute('src')).toBe(false);
     expect(mediaA.load).toHaveBeenCalled();
-    expect(document.getElementById('pip-session-host')?.contains(mediaA)).toBe(false);
+    expect(document.querySelector('#pip-session-host')?.contains(mediaA)).toBe(false);
     expect(mod.hasActiveSession('src', '/a.mp4')).toBe(false);
     expect(mod.hasActiveSession('src', '/b.mp4')).toBe(true);
   });

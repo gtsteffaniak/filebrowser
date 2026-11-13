@@ -19,7 +19,10 @@ const errors = {
 
 export default {
   name: "errors",
-  props: ["errorCode", "showHeader"],
+  props: {
+    errorCode: [Number, String],
+    showHeader: Boolean,
+  },
   computed: {
     info() {
       return errors[this.errorCode] || errors[500];

@@ -20,25 +20,25 @@
             :options="accelDeviceSelectOptions"
             :aria-label="$t('media.accelDevice')"
             :disabled="isLocked('hardwareAcceleration') || isLocked('accelDevice')"
-            @update:modelValue="onAccelDeviceChange" />
+            @update:model-value="onAccelDeviceChange" />
         </div>
         <ToggleSwitch class="item" v-model="media.alwaysUseFfmpeg"
           :disabled="isLocked('alwaysUseFfmpeg')"
           :value-tooltip="fieldTooltip('alwaysUseFfmpeg')"
           :name="$t('media.alwaysUseFfmpeg')"
           :description="$t('media.alwaysUseFfmpegDescription')"
-          @update:modelValue="save" />
+          @update:model-value="save" />
         <ToggleSwitch class="item" v-model="media.alwaysUseOnlyOffice"
           :disabled="isLocked('alwaysUseOnlyOffice')"
           :value-tooltip="fieldTooltip('alwaysUseOnlyOffice')"
           :name="$t('media.alwaysUseOffice')"
           :description="$t('media.alwaysUseOfficeDescription')"
-          @update:modelValue="save" />
+          @update:model-value="save" />
         <ToggleSwitch class="item" v-model="media.debug" :name="$t('media.debug')"
           :disabled="isLocked('debug')"
           :value-tooltip="fieldTooltip('debug')"
           :description="$t('media.debugDescription')"
-          @update:modelValue="save" />
+          @update:model-value="save" />
         <SettingsButton class="item"
           :name="$t('media.imageVideoConversionFormats')"
           :description="$t('media.imageVideoConversionFormatsDescription')"
@@ -52,7 +52,7 @@
           :value-tooltip="fieldTooltip('transcode.enabled')"
           :name="$t('media.transcodeEnabled')"
           :description="$t('media.transcodeEnabledDescription')"
-          @update:modelValue="save" />
+          @update:model-value="save" />
         <SettingsButton class="item"
           :name="$t('media.transcodeSettings')"
           :description="$t('media.transcodeSettingsDescription')"

@@ -90,7 +90,7 @@ export async function mockTranscodeSessions(
         sessions.delete(body.replaceSessionId);
       }
       // Mirror backend same-file handover when replaceSessionId is omitted.
-      for (const [id, sess] of [...sessions.entries()]) {
+      for (const [id, sess] of sessions.entries()) {
         if (sess.source === body.source && sess.path === body.path) {
           sessions.delete(id);
         }

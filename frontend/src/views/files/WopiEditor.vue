@@ -84,7 +84,7 @@ export default {
   },
   methods: {
     frameWindow() {
-      return document.getElementsByName(this.frameName)[0]?.contentWindow;
+      return document.querySelector(`iframe[name="${this.frameName}"]`)?.contentWindow;
     },
     postToEditor(messageId, values = {}) {
       const target = this.frameWindow();

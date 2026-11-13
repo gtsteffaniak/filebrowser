@@ -7,7 +7,7 @@
       <div v-if="overlayOverPrompt" @contextmenu.prevent="closeContextMenu" @click="closeContextMenu" class="overlay overlay-prompt"></div>
     </transition>
     <div v-if="progress" class="progress">
-      <div v-bind:style="{ width: `${this.progress}%` }"></div>
+      <div v-bind:style="{ width: `${progress}%` }"></div>
     </div>
     <defaultBar></defaultBar>
     <sidebar v-if="!invalidShare"></sidebar>
@@ -209,7 +209,7 @@ export default {
         mutations.closeTopPrompt();
       }
       if (window.location.hash === "" && currentView === "listingView" || currentView === "share") {
-        const element = document.getElementById("main");
+        const element = document.querySelector("#main");
         if (element) {
           element.scrollTop = 0;
         }
