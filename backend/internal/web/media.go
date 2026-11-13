@@ -11,6 +11,7 @@ import (
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/files"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/ffmpeg"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
@@ -124,6 +125,9 @@ func subtitlesHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 			subtitlePath, _, err = idx.GetRealPathScoped(bound, sidecarIndexPath)
 			if err != nil {
 				return realPathErrStatus(err), err
+			}
+			if !state.AccessPermittedAtRealPath(idx, d.ShareUser.Username, subtitlePath, false) {
+				return http.StatusForbidden, fmt.Errorf("access denied")
 			}
 		} else {
 			subtitlePath = filepath.Join(filepath.Dir(fileInfo.RealPath), filepath.Base(track.Name))

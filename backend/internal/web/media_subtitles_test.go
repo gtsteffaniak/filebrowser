@@ -242,6 +242,54 @@ func TestSubtitlesHandler_ShareSingleFileLoadsSidecar(t *testing.T) {
 	}
 }
 
+func TestSubtitlesHandler_ShareDeniesSidecarSymlinkToDeniedTarget(t *testing.T) {
+	sourceRoot, adminUser := setupSubtitlesHTTPTest(t)
+	sharedDir := filepath.Join(sourceRoot, "shared")
+	privateDir := filepath.Join(sourceRoot, "private")
+	for _, dir := range []string{sharedDir, privateDir} {
+		if err := os.MkdirAll(dir, 0755); err != nil {
+			t.Fatal(err)
+		}
+	}
+	secret := filepath.Join(privateDir, "clip.srt")
+	if err := os.WriteFile(secret, []byte("SECRET_DENIED_SUBTITLE"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	videoPath := filepath.Join(sharedDir, "clip.mov")
+	if err := os.WriteFile(videoPath, []byte("video"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Symlink(filepath.Join("..", "private", "clip.srt"), filepath.Join(sharedDir, "clip.srt")); err != nil {
+		t.Fatal(err)
+	}
+	if err := state.DenyUser(sourceRoot, utils.IndexPathFromNormalized("/private", true), "admin"); err != nil {
+		t.Fatal(err)
+	}
+	mockVideoWithExternalSubtitle(t, "clip.srt", videoPath)
+
+	adminUser.BackendScopes = []users.BackendScope{{Path: sourceRoot, Scope: "/"}}
+	req := httptest.NewRequest(http.MethodGet, "/public/api/media/subtitles?hash=h&path=clip.mov&name=clip.srt&embedded=false", nil)
+	rec := httptest.NewRecorder()
+	status, handlerErr := subtitlesHandler(rec, req, &Context{
+		User:      adminUser,
+		ShareUser: adminUser,
+		IndexPath: "/shared/clip.mov/",
+		Share: share.Share{
+			ShareColumns: share.ShareColumns{
+				Hash: "h",
+				Path: "/shared",
+			},
+			SourcePath: sourceRoot,
+		},
+	})
+	if status != http.StatusForbidden {
+		t.Fatalf("status=%d err=%v body=%q", status, handlerErr, rec.Body.String())
+	}
+	if strings.Contains(rec.Body.String(), "SECRET_DENIED_SUBTITLE") {
+		t.Fatalf("response leaked denied subtitle")
+	}
+}
+
 func TestSubtitlesHandler_ShareRejectsSidecarPastEscapingDirSymlink(t *testing.T) {
 	sourceRoot, adminUser := setupSubtitlesHTTPTest(t)
 	videoIndexPath := "/shared/link/clip.mov/"

@@ -2,6 +2,8 @@ package access
 
 import (
 	"os"
+	"path/filepath"
+	"strings"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing"
@@ -13,7 +15,22 @@ func (s *Storage) PermittedAtRealPath(index *indexing.Index, username, realPath 
 	if s == nil || index == nil || username == "" || realPath == "" {
 		return false
 	}
-	indexPath := index.MakeIndexPath(realPath, isDir).String()
+	lexical := realPath
+	if !strings.HasPrefix(realPath, index.Path) {
+		root, err := filepath.EvalSymlinks(index.Path)
+		if err != nil {
+			return false
+		}
+		rel, err := filepath.Rel(root, realPath)
+		if err != nil || rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
+			return false
+		}
+		lexical = index.Path
+		if rel != "." {
+			lexical = filepath.Join(index.Path, rel)
+		}
+	}
+	indexPath := index.MakeIndexPath(lexical, isDir).String()
 	return s.Permitted(index.Path, utils.IndexPathFromNormalized(indexPath, true), username)
 }
 

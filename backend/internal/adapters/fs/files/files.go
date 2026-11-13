@@ -674,6 +674,9 @@ func DeleteFiles(source, boundIndexPath, indexPath string, isDir bool) error {
 		return err
 	}
 
+	if isDir {
+		indexing.ClearRealPathCaches()
+	}
 	index.InvalidateRealPathCache(deleteIndexPath, boundIndexPath)
 	if parent := utils.GetParentDirectoryPath(deleteIndexPath); parent != "" && parent != "/" {
 		index.InvalidateRealPathCache(parent, boundIndexPath)
@@ -806,6 +809,9 @@ func moveResourceImpl(isSrcDir bool, sourceIndex, destIndex, realsrc, realdst st
 	err := fileutils.MoveFile(realsrc, realdst)
 	if err != nil {
 		return err
+	}
+	if isSrcDir {
+		indexing.ClearRealPathCaches()
 	}
 
 	// Handle SOURCE cleanup (treat as deletion)

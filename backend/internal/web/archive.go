@@ -288,6 +288,9 @@ func archiveCreateHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("destination path invalid: %v", err)
 	}
+	if !state.AccessPermittedAtRealPath(idxTo, d.User.Username, destFileReal, false) {
+		return http.StatusForbidden, fmt.Errorf("access denied to destination %s", req.Destination)
+	}
 	if err = os.MkdirAll(filepath.Dir(destFileReal), fileutils.EffectiveDirPerm()); err != nil {
 		return http.StatusInternalServerError, fmt.Errorf("cannot create destination parent directory: %v", err)
 	}
@@ -1269,6 +1272,7 @@ func extractArchivedSymlink(destRoot, destPath, target string, modTime time.Time
 		logger.Debugf("unarchive: symlink: %v", err)
 		return fmt.Errorf("failed to create symlink from archive entry")
 	}
+	indexing.ClearRealPathCaches()
 	return applyArchivedTimesAndPerm(destPath, fs.ModeSymlink, modTime)
 }
 
