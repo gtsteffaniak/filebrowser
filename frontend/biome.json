@@ -1,145 +1,145 @@
 {
-  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
-  "files": {
-    "ignoreUnknown": true,
-    "includes": [
-      "**",
-      "!dist",
-      "!public/config.generated.yaml",
-      "!public/index.html",
-      "!node_modules",
-      "!test-results"
-    ]
-  },
-  "formatter": {
-    "enabled": false
-  },
-  "assist": {
-    "enabled": true,
-    "actions": { "source": { "organizeImports": "off" } }
-  },
-  "css": {
-    "linter": { "enabled": false },
-    "formatter": { "enabled": false },
-    "assist": { "enabled": false }
-  },
-  "html": {
-    "experimentalFullSupportEnabled": true,
-    "parser": { "interpolation": true },
-    "linter": { "enabled": true }
-  },
-  "linter": {
-    "enabled": true,
-    "domains": { "vue": "all", "project": "all", "types": "all" },
-    "rules": {
-      "performance": {
-        "useVueVapor": "off"
-      },
-      "security": {
-        "preset": "recommended"
-      },
-      "a11y": {
-        "noAutofocus": "off",
-        "noNoninteractiveElementToInteractiveRole": "off",
-        "noStaticElementInteractions": "off",
-        "noSvgWithoutTitle": "off",
-        "useAriaPropsSupportedByRole": "off",
-        "useGenericFontNames": "off",
-        "useKeyWithClickEvents": "off",
-        "useMediaCaption": "off",
-        "useSemanticElements": "off",
-        "useValidAnchor": "off"
-      },
-      "complexity": {
-        "noForEach": "on",
-        "noImportantStyles": "off",
-        "noRedundantDefaultExport": "warn"
-      },
-      "correctness": {
-        "noUnknownPseudoClass": "off",
-        "noVueImportCompilerMacros": "error",
-        "noVueRefAsOperand": "error",
-        "noVueVOnNumberValues": "error",
-        "useVueValidVFor": "error"
-      },
-      "nursery": {
-        "noFloatingPromises": "error",
-        "noImpliedEval": "error",
-        "noJsonUnsafeValues": "error",
-        "noMisusedPromises": "error",
-        "noVueDeprecatedScopedSlots": "error",
-        "noVueUndeclaredDirectives": "off",
-        "useConsistentObjectKeys": "error",
-        "useVueBaseImport": "warn"
-      },
-      "style": {
-        "noDescendingSpecificity": "off",
-        "noVueOptionsApi": "off",
-        "useVueConsistentVBindStyle": "off",
-        "useVueHyphenatedAttributes": "off",
-        "useVueMultiWordComponentNames": "off",
-        "noTopLevelLiterals": "error",
-        "useVueConsistentDefinePropsDeclaration": "off",
-        "useVueNextTickPromise": "warn"
-      },
-      "suspicious": {
-        "noExplicitAny": "warn",
-        "noImportCycles": "off",
-        "noNestedPromises": "error",
-        "noParametersOnlyUsedInRecursion": "error",
-        "noShadow": "off",
-        "noUnnecessaryConditions": "off",
-        "useArraySortCompare": "error",
-        "noEmptyObjectKeys": "error",
-        "useScopedStyles": "off"
-      }
-    }
-  },
-  "overrides": [
-    {
-      "includes": ["tests/playwright/**"],
-      "linter": {
-        "rules": {
-          "correctness": {
-            "noEmptyPattern": "off",
-            "noUnresolvedImports": "off",
-            "noPlaywrightMissingAwait": "error",
-            "usePlaywrightValidDescribeCallback": "error"
-          },
-          "style": {
-            "noPlaywrightElementHandle": "error",
-            "noPlaywrightEval": "error",
-            "noPlaywrightWaitForSelector": "error"
-          },
-          "suspicious": {
-            "noPlaywrightForceOption": "error",
-            "noPlaywrightNetworkidle": "error",
-            "noPlaywrightPagePause": "error",
-            "noPlaywrightWaitForNavigation": "error",
-            "noPlaywrightWaitForTimeout": "warn"
-          },
-          "complexity": {
-            "noPlaywrightUselessAwait": "error"
-          }
-        }
-      }
-    },
-    {
-      "includes": [
-        "scripts/postcss-strip-legacy.ts",
-        "playwright.config.ts",
-        "playwright.performance.config.ts",
-        "**/*.test.js",
-        "**/*.test.ts"
-      ],
-      "linter": {
-        "rules": {
-          "correctness": {
-            "noUnresolvedImports": "off",
-            "noUndeclaredDependencies": "off"
-          }
-        }
-      }
-    }
-  ]
+	"$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+	"files": {
+		"ignoreUnknown": true,
+		"includes": [
+			"**",
+			"!dist",
+			"!public/config.generated.yaml",
+			"!public/index.html",
+			"!node_modules",
+			"!test-results"
+		]
+	},
+	"formatter": {
+		"enabled": false
+	},
+	"assist": {
+		"enabled": true,
+		"actions": { "source": { "organizeImports": "off" } }
+	},
+	"css": {
+		"linter": { "enabled": false },
+		"formatter": { "enabled": false },
+		"assist": { "enabled": false }
+	},
+	"html": {
+		"experimentalFullSupportEnabled": true,
+		"parser": { "interpolation": true },
+		"linter": { "enabled": true }
+	},
+	"linter": {
+		"enabled": true,
+		"domains": { "vue": "all", "project": "all", "types": "all" },
+		"rules": {
+			"performance": {
+				"useVueVapor": "off"
+			},
+			"security": {
+				"preset": "recommended"
+			},
+			"a11y": {
+				"noAutofocus": "off",
+				"noNoninteractiveElementToInteractiveRole": "off",
+				"noStaticElementInteractions": "off",
+				"noSvgWithoutTitle": "off",
+				"useAriaPropsSupportedByRole": "off",
+				"useGenericFontNames": "off",
+				"useKeyWithClickEvents": "off",
+				"useMediaCaption": "off",
+				"useSemanticElements": "off",
+				"useValidAnchor": "off"
+			},
+			"complexity": {
+				"noForEach": "on",
+				"noImportantStyles": "off",
+				"noRedundantDefaultExport": "warn"
+			},
+			"correctness": {
+				"noUnknownPseudoClass": "off",
+				"noVueImportCompilerMacros": "error",
+				"noVueRefAsOperand": "error",
+				"noVueVOnNumberValues": "error",
+				"useVueValidVFor": "error"
+			},
+			"nursery": {
+				"noFloatingPromises": "error",
+				"noImpliedEval": "error",
+				"noJsonUnsafeValues": "error",
+				"noMisusedPromises": "error",
+				"noVueDeprecatedScopedSlots": "error",
+				"noVueUndeclaredDirectives": "off",
+				"useConsistentObjectKeys": "error",
+				"useVueBaseImport": "warn"
+			},
+			"style": {
+				"noDescendingSpecificity": "off",
+				"noVueOptionsApi": "off",
+				"useVueConsistentVBindStyle": "off",
+				"useVueHyphenatedAttributes": "off",
+				"useVueMultiWordComponentNames": "off",
+				"noTopLevelLiterals": "error",
+				"useVueConsistentDefinePropsDeclaration": "off",
+				"useVueNextTickPromise": "warn"
+			},
+			"suspicious": {
+				"noExplicitAny": "warn",
+				"noImportCycles": "off",
+				"noNestedPromises": "error",
+				"noParametersOnlyUsedInRecursion": "error",
+				"noShadow": "off",
+				"noUnnecessaryConditions": "off",
+				"useArraySortCompare": "error",
+				"noEmptyObjectKeys": "error",
+				"useScopedStyles": "off"
+			}
+		}
+	},
+	"overrides": [
+		{
+			"includes": ["tests/playwright/**"],
+			"linter": {
+				"rules": {
+					"correctness": {
+						"noEmptyPattern": "off",
+						"noUnresolvedImports": "off",
+						"noPlaywrightMissingAwait": "error",
+						"usePlaywrightValidDescribeCallback": "error"
+					},
+					"style": {
+						"noPlaywrightElementHandle": "error",
+						"noPlaywrightEval": "error",
+						"noPlaywrightWaitForSelector": "error"
+					},
+					"suspicious": {
+						"noPlaywrightForceOption": "error",
+						"noPlaywrightNetworkidle": "error",
+						"noPlaywrightPagePause": "error",
+						"noPlaywrightWaitForNavigation": "error",
+						"noPlaywrightWaitForTimeout": "warn"
+					},
+					"complexity": {
+						"noPlaywrightUselessAwait": "error"
+					}
+				}
+			}
+		},
+		{
+			"includes": [
+				"scripts/postcss-strip-legacy.ts",
+				"playwright.config.ts",
+				"playwright.performance.config.ts",
+				"**/*.test.js",
+				"**/*.test.ts"
+			],
+			"linter": {
+				"rules": {
+					"correctness": {
+						"noUnresolvedImports": "off",
+						"noUndeclaredDependencies": "off"
+					}
+				}
+			}
+		}
+	]
 }
