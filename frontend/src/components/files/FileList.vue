@@ -542,6 +542,7 @@ export default {
         this.next(event);
       }
     },
+    /** @param {MouseEvent} event */
     handleItemClick(item, _index, event) {
       event.preventDefault();
       event.stopPropagation();
@@ -552,7 +553,6 @@ export default {
         return;
       }
 
-      // Browse mode: single click selects only, emit selected, do not navigate
       const syntheticEvent = {
         currentTarget: {
           dataset: {
@@ -562,11 +562,19 @@ export default {
         preventDefault: () => {},
         stopPropagation: () => {},
       };
+      if (item.name === "..") {
+        if (event.detail > 1 || this.path === item.path) return;
+        this.select(syntheticEvent);
+        this.next(syntheticEvent);
+        return;
+      }
       this.select(syntheticEvent);
     },
+    /** @param {MouseEvent} event */
     handleItemDblClick(item, _index, event) {
       event.preventDefault();
       event.stopPropagation();
+      if (item.name === ".." && (!this.fileList || this.path === item.path)) return;
 
       const syntheticEvent = {
         currentTarget: {
