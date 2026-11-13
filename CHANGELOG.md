@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file. For commit 
 
 ## v2.1.5
 
+ **Security**:
+ - [Moderate] `GET /api/media/subtitles` no longer follows symlink external subtitle sidecars beside the video file, and public share requests resolve sidecar paths under the share prefix before read (GHSA-hfvf-2639-p2mq) reporter @manus-use
+
  **New Features**:
  - feat(cache): add server.cacheDirMaxSizeMB to cap the preview cache size (#3314)
  - Square image previews: avoid the full-resolution crop copy in imaging.Fill (#3340)
