@@ -549,3 +549,41 @@ func TestReadImageFileDimensions(t *testing.T) {
 	require.Greater(t, width, 0)
 	require.Greater(t, height, 0)
 }
+
+func TestApplyOrientationToPreviewBytes(t *testing.T) {
+	t.Parallel()
+
+	// Generate a 100x60 test JPEG image in memory (landscape)
+	img := image.NewRGBA(image.Rect(0, 0, 100, 60))
+	var buf bytes.Buffer
+	err := jpeg.Encode(&buf, img, nil)
+	require.NoError(t, err)
+	rawBytes := buf.Bytes()
+
+	tests := []struct {
+		orientation string
+		wantWidth   int
+		wantHeight  int
+	}{
+		{orientation: "1", wantWidth: 100, wantHeight: 60},
+		{orientation: "Horizontal (normal)", wantWidth: 100, wantHeight: 60},
+		{orientation: "8", wantWidth: 60, wantHeight: 100},
+		{orientation: "Rotate 270 CW", wantWidth: 60, wantHeight: 100},
+		{orientation: "6", wantWidth: 60, wantHeight: 100},
+		{orientation: "Rotate 90 CW", wantWidth: 60, wantHeight: 100},
+		{orientation: "3", wantWidth: 100, wantHeight: 60},
+		{orientation: "Rotate 180", wantWidth: 100, wantHeight: 60},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.orientation, func(t *testing.T) {
+			rotated := applyOrientationToPreviewBytes(rawBytes, tt.orientation)
+			require.NotEmpty(t, rotated)
+
+			cfg, _, decodeErr := image.DecodeConfig(bytes.NewReader(rotated))
+			require.NoError(t, decodeErr)
+			require.Equal(t, tt.wantWidth, cfg.Width)
+			require.Equal(t, tt.wantHeight, cfg.Height)
+		})
+	}
+}
