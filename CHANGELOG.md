@@ -6,6 +6,8 @@ All notable changes to this project will be documented in this file. For commit 
 
  **Security**:
  - [Moderate] `GET /api/media/subtitles` no longer follows symlink external subtitle sidecars beside the video file, and public share requests resolve sidecar paths under the share prefix before read (GHSA-hfvf-2639-p2mq) reporter @manus-use
+ - [Moderate] Directory motion-preview now resolves symlinked children within the caller's scope, closing the incomplete GHSA-g2q5 remediation path through `getDirectoryPreview` (GHSA-2546-vf4j-vh9v) reporter @manus-use
+ - [Moderate] RealPathCache entries for affected index paths are invalidated after symlink-scoped mutations so stale resolved paths cannot bypass containment on subsequent create, write, delete, or move operations (GHSA-j764-qg3m-rhv7 follow-up, #3381)
 
  **New Features**:
  - feat(cache): add server.cacheDirMaxSizeMB to cap the preview cache size (#3314)
@@ -18,6 +20,12 @@ All notable changes to this project will be documented in this file. For commit 
  - fix(preview): open RAW, HEIC and rendered documents in the viewer when previews are disabled (#3313)
  - fix(users): keep requested profile values when creating a user
  - fix advanced user toggle duplicate (#3353) (#3324)
+ - fix(upload): don't pause while the server saves, and make the stall timeout a setting (#3346)
+ - fix(preview): respect EXIF orientation on embedded JPEG thumbnails (#3358)
+ - fix(picker): open the parent folder on a single click (#3355)
+ - fix(users): show password-change requirement in edit preferences (#3354)
+ - fix(sidebar): keep source selector stationary during horizontal tree scrolling (#3368)
+ - fix(http): restore Unix socket reverse-proxy behavior after #3309 hardening (#3365)
 
  **Upgrade notes** (Unix socket listeners):
  - If you listen on a filesystem `http.socket` with `http.trustProxyHeaders: true`, set `http.unixSocketTrustedUIDs` and/or `http.unixSocketTrustedGIDs` to the UID/GID(s) from Linux peer credentials (`SO_PEERCRED`) that may set `X-Forwarded-*`. A GID allowlist trusts every peer with that GID (for example when the proxy and FileBrowser share a group), not only one process. If you relied on empty allowlists before, set `http.unixSocketTrustAllLocalPeers: true` (a warning is logged).
@@ -67,9 +75,8 @@ All notable changes to this project will be documented in this file. For commit 
  - [Moderate] Authenticated `GET /api/resources/view` no longer accepts view tokens minted for a public share when the caller lacks view permission on the requested source (GHSA-wxj5-g3qp-g732) reporter @BlueN0r
  - [Low] SSE source-update and user-targeted delivery hold the client registry lock through nonblocking sends, preventing concurrent map mutation and send-on-closed-channel panics when Realtime clients connect, disconnect, or shut down (GHSA-p9wm-f5jj-75pj) reporter @tao0845
  - [High] Incomplete symlink-containment remediation: an authenticated non-admin user could create a relative symlink via archive extraction, relocate it with WebDAV MOVE, and write through it to arbitrary host paths with the service account's privileges (GHSA-3j46-5w28-f8p2) reporter @Saku0512
- - [Moderate] Source-root containment bypass: create, write, delete, and move operations now resolve symlinks uncached and enforce the caller's scope, closing API escapes through pre-existing out-of-source symlinks on upload, PUT, PATCH, delete, and WebDAV endpoints; RealPathCache entries for affected index paths are invalidated after mutations (GHSA-j764-qg3m-rhv7) reporter @chaoming0625
+ - [Moderate] Source-root containment bypass: create, write, delete, and move operations now resolve symlinks uncached and enforce the caller's scope, closing API escapes through pre-existing out-of-source symlinks on upload, PUT, PATCH, delete, and WebDAV endpoints (GHSA-j764-qg3m-rhv7) reporter @chaoming0625
  - [Moderate] Preview reads resolve symlinks within the caller's scope so authenticated preview cannot follow an out-of-scope symlink target (GHSA-g2q5-r6ch-v25f) reporter @tao0845
- - [Moderate] Directory motion-preview now resolves symlinked children within the caller's scope, closing the incomplete GHSA-g2q5 remediation path through `getDirectoryPreview` (GHSA-2546-vf4j-vh9v) reporter @manus-use
  - [Moderate] Archive downloads and extraction no longer read or write through symlinks that resolve outside the caller's share or user scope; escaping archive-walk entries are skipped (GHSA-qqf3-2wvq-q4w9) reporter @SmokinCaterpillar
  - [Moderate] Share directory-archive downloads now apply the share owner's access rules to every entry, closing a bypass where anonymous share visitors could download admin-denied content (GHSA-9fcr-gm58-p839) reporter @Tan-JunWei
  - [Moderate] Access rule paths are stored and matched case-insensitively so rules cannot be bypassed via path casing on case-insensitive filesystems; existing rules are migrated at startup (GHSA-4vrc-935w-xxq2) reporter @FrogApprentice
