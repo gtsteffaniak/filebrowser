@@ -217,10 +217,11 @@ func getDirectoryPreview(ctx context.Context, r *http.Request, d *Context, frame
 	}
 	fileInfo, err := files.FileInfoFaster(
 		utils.FileOptions{
-			Path:     path,
-			Source:   source,
-			AlbumArt: true,
-			Metadata: true,
+			Path:           path,
+			Source:         source,
+			AlbumArt:       true,
+			Metadata:       true,
+			FollowSymlinks: true,
 		}, user)
 	if err != nil {
 		return nil, err
