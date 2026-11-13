@@ -55,7 +55,7 @@ func TestSearchHandlerContentSearch(t *testing.T) {
 
 	run := func(params string) []indexing.SearchResult {
 		t.Helper()
-			req := httptest.NewRequest("GET", "/api/tools/search?sources="+source.Name+"&"+params, nil)
+		req := httptest.NewRequest("GET", "/api/tools/search?sources="+source.Name+"&"+params, nil)
 		recorder := httptest.NewRecorder()
 		status, err := searchHandler(recorder, req, &Context{User: user})
 		if err != nil {

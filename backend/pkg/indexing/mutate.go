@@ -2,6 +2,7 @@ package indexing
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -35,6 +36,25 @@ func (idx *Index) UpdateMetadata(info *iteminfo.FileInfo, scanner *Scanner, pers
 		}
 	}
 
+	fullText := settings.Config.Server.IndexSqlConfig.FullTextSearch
+	// Pending bodies are flushed by size so a directory of large files cannot hold
+	// gigabytes of extracted text in memory before the batch threshold trips.
+	pendingBytes := 0
+	flush := func() {
+		if scanner != nil {
+			scanner.batchItems = append(scanner.batchItems, items...)
+			items = items[:0]
+			if len(scanner.batchItems) >= idx.db.BatchSize {
+				scanner.flushBatch()
+			}
+			return
+		}
+		if err := idx.db.BulkInsertItems(idx.Name, items); err != nil {
+			logger.Errorf("Failed to update metadata for %s: %v", info.Path, err)
+		}
+		items = items[:0]
+	}
+
 	for i := range info.Files {
 		f := &info.Files[i]
 		filePath := strings.TrimRight(info.Path, "/") + "/" + f.Name
@@ -42,10 +62,19 @@ func (idx *Index) UpdateMetadata(info *iteminfo.FileInfo, scanner *Scanner, pers
 			ItemInfo: f.ItemInfo,
 			Path:     filePath,
 		}
-		if settings.Config.Server.IndexSqlConfig.FullTextSearch {
-			fileItem.FullTextBody = fulltext.Extract(filepath.Join(idx.Path, strings.TrimPrefix(filePath, "/")), f.Name, f.Type)
+		if fullText {
+			if body, ok := idx.extractContent(filePath, f); ok {
+				fileItem.FullTextBody = body
+				if body != nil {
+					pendingBytes += len(*body)
+				}
+			}
 		}
 		items = append(items, fileItem)
+		if pendingBytes >= maxPendingTextBytes {
+			flush()
+			pendingBytes = 0
+		}
 	}
 
 	if scanner != nil {
@@ -57,18 +86,34 @@ func (idx *Index) UpdateMetadata(info *iteminfo.FileInfo, scanner *Scanner, pers
 		idx.scanUpdatedPaths[normalizedPath] = true
 		idx.mu.Unlock()
 
-		scanner.batchItems = append(scanner.batchItems, items...)
-		if len(scanner.batchItems) >= idx.db.BatchSize {
-			scanner.flushBatch()
-		}
+		flush()
 		return true
 	}
 
-	if err := idx.db.BulkInsertItems(idx.Name, items); err != nil {
-		logger.Errorf("Failed to update metadata for %s: %v", info.Path, err)
-		return false
-	}
+	flush()
 	return true
+}
+
+// maxPendingTextBytes bounds extracted text held in memory before a batch flush (32 MiB).
+const maxPendingTextBytes = 32 << 20
+
+// extractContent returns the searchable body for a listed file. ok is false when the
+// entry must be indexed by name only (not a regular file inside the source root);
+// a non-nil body may still be just the name.
+func (idx *Index) extractContent(filePath string, f *iteminfo.ExtendedItemInfo) (*string, bool) {
+	realPath := filepath.Join(idx.Path, strings.TrimPrefix(filePath, "/"))
+	info, err := os.Lstat(realPath)
+	if err != nil || !info.Mode().IsRegular() && info.Mode()&os.ModeSymlink == 0 {
+		return nil, false
+	}
+	if info.Mode()&os.ModeSymlink != 0 {
+		resolved, err := filepath.EvalSymlinks(realPath)
+		if err != nil || iteminfo.PathWithinRoot(idx.Path, resolved) != nil {
+			return nil, false
+		}
+		realPath = resolved
+	}
+	return fulltext.Extract(realPath, f.Name, f.Type), true
 }
 
 // flushBatch writes all remaining batch items to the database (Scanner method)

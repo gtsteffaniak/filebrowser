@@ -1,6 +1,7 @@
 package indexing
 
 import (
+	"slices"
 	"sort"
 	"strings"
 	"sync"
@@ -65,6 +66,10 @@ func (idx *Index) SearchParsed(baseOpts iteminfo.SearchOptions, scope string, so
 			contentPaths = nil
 		}
 	}
+	// Content hits still obey type/size/date filters; folders-only must not return files.
+	if searchContent {
+		contentPaths = filterContentPaths(idx.db, idx.Name, contentPaths, searchOptions)
+	}
 	contentSet := make(map[string]bool, len(contentPaths))
 	for _, p := range contentPaths {
 		contentSet[p] = true
@@ -76,7 +81,7 @@ func (idx *Index) SearchParsed(baseOpts iteminfo.SearchOptions, scope string, so
 	caseExact := searchOptions.Conditions["exact"]
 	globAnd := len(nameGlobPatterns) > 0 && searchOptions.MatchAllTerms
 
-	rows, err := idx.db.SearchItems(idx.Name, scope, largest, nameGlobPatterns, globAnd, caseExact)
+	rows, err := idx.db.SearchItems(idx.Name, scope, largest, nameGlobPatterns, globAnd, caseExact, searchOptions.ExcludeThroughPath)
 	if err != nil && len(contentPaths) == 0 {
 		return []*SearchResult{}
 	}
@@ -113,9 +118,10 @@ func (idx *Index) SearchParsed(baseOpts iteminfo.SearchOptions, scope string, so
 			Type:       mimeType,
 			HasPreview: hasPreview,
 		}
-		// Content-matched paths match by definition; the name query returns every row of
-		// the scope, so they must not be filtered by name here.
-		if !itemMatchesSearchFilters(item, isDir, searchOptions, largest, nameGlobPatterns) && !contentSet[path] {
+		// The name query returns every row of the scope; a content-matched path is a
+		// match even when its name does not contain the term.
+		matches := itemMatchesSearchFilters(item, isDir, searchOptions, largest, nameGlobPatterns)
+		if !matches && !contentSet[path] {
 			continue
 		}
 
@@ -138,38 +144,78 @@ func (idx *Index) SearchParsed(baseOpts iteminfo.SearchOptions, scope string, so
 		count++
 	}
 
-	if err == nil && searchContent {
-		appendContentResults(idx.db, idx.Name, contentPaths, limit, results, &count)
+	// Content hits are appended even if the name query failed.
+	if searchContent {
+		appendContentResults(idx.db, idx.Name, contentPaths, limit, searchOptions, results, &count)
 	}
 	return sortSearchResults(results)
 }
 
-// contentSearchPaths returns index paths whose content matches every search term when
-// full-text search is enabled; otherwise nil. Name-only matches are left to the name query.
+// contentSearchPaths returns index paths whose content matches the terms when
+// full-text search is requested; otherwise nil. Name-only matches are left to the name query.
 func contentSearchPaths(db *dbsql.IndexDB, source, scope string, opts iteminfo.SearchOptions, largest, useWildcard bool, limit int) ([]string, error) {
 	if largest || useWildcard || len(opts.Terms) == 0 {
 		return nil, nil
 	}
-	return db.SearchFullText(source, scope, opts.Terms, limit)
+	return db.SearchFullText(source, scope, opts.Terms, opts.MatchAllTerms, limit, opts.ExcludeThroughPath)
+}
+
+// filterContentPaths drops content hits whose item fails the type/size/date filters.
+// It loads rows in chunks so a large match set does not need one huge IN clause.
+func filterContentPaths(db *dbsql.IndexDB, source string, paths []string, opts iteminfo.SearchOptions) []string {
+	const chunk = 500
+	kept := make([]string, 0, len(paths))
+	for start := 0; start < len(paths); start += chunk {
+		end := min(start+chunk, len(paths))
+		items, err := db.GetItemsByPaths(source, paths[start:end])
+		if err != nil {
+			logger.Errorf("full-text search: load items for source %s: %v", source, err)
+			return nil
+		}
+		for _, p := range paths[start:end] {
+			if info := items[p]; info != nil && !info.IsDir && info.Type != "directory" &&
+				info.MatchesSearchAuxiliaryFilters(opts) {
+				kept = append(kept, p)
+			}
+		}
+	}
+	return kept
+}
+
+func hasContentPaths(bySource map[string][]string) bool {
+	for _, paths := range bySource {
+		if len(paths) > 0 {
+			return true
+		}
+	}
+	return false
 }
 
 // appendContentResults loads index rows for content-matched paths and adds the files
 // that were not already matched by name (call after the name-based loop).
-func appendContentResults(db *dbsql.IndexDB, source string, paths []string, limit int, results map[string]*SearchResult, count *int) {
-	if len(paths) == 0 {
-		return
+func appendContentResults(db *dbsql.IndexDB, source string, paths []string, limit int, opts iteminfo.SearchOptions, results map[string]*SearchResult, count *int) {
+	const chunk = 500
+	for start := 0; start < len(paths); start += chunk {
+		end := min(start+chunk, len(paths))
+		items, err := db.GetItemsByPaths(source, paths[start:end])
+		if err != nil {
+			logger.Errorf("full-text search: load items for source %s: %v", source, err)
+			return
+		}
+		appendContentChunk(paths[start:end], items, source, limit, opts, results, count)
+		if limit > 0 && *count >= limit {
+			return
+		}
 	}
-	items, err := db.GetItemsByPaths(source, paths)
-	if err != nil {
-		logger.Errorf("full-text search: load items for source %s: %v", source, err)
-		return
-	}
+}
+
+func appendContentChunk(paths []string, items map[string]*iteminfo.FileInfo, source string, limit int, opts iteminfo.SearchOptions, results map[string]*SearchResult, count *int) {
 	for _, path := range paths {
 		if limit > 0 && *count >= limit {
 			return
 		}
 		info := items[path]
-		if info == nil || info.IsDir || info.Type == "directory" {
+		if info == nil || info.IsDir || info.Type == "directory" || !info.MatchesSearchAuxiliaryFilters(opts) {
 			continue
 		}
 		// Single-source results are keyed by path; multi-source by source:path.
@@ -303,25 +349,22 @@ func SearchMultiSourcesParsed(baseOpts iteminfo.SearchOptions, sources []string,
 	caseExact := searchOptions.Conditions["exact"]
 	globAnd := len(nameGlobPatterns) > 0 && searchOptions.MatchAllTerms
 
-	// Content hits are resolved per source first; their index rows are fetched by path below.
-	contentPathsBySource := make(map[string]map[string]bool)
+	// Content hits are resolved per source first (same guards as single-source);
+	// their index rows are fetched by path below.
+	contentPathsBySource := make(map[string][]string)
 	if searchContent {
 		for _, source := range sources {
-			paths, err := db.SearchFullText(source, normalizedScopes[source], searchOptions.Terms, limit)
+			paths, err := contentSearchPaths(db, source, normalizedScopes[source], searchOptions, largest, useWildcard, limit)
 			if err != nil {
 				logger.Errorf("full-text search failed for source %s: %v", source, err)
 				continue
 			}
-			set := make(map[string]bool, len(paths))
-			for _, p := range paths {
-				set[p] = true
-			}
-			contentPathsBySource[source] = set
+			contentPathsBySource[source] = filterContentPaths(db, source, paths, searchOptions)
 		}
 	}
 
-	rows, err := db.SearchItemsMultiSource(sources, normalizedScopes, largest, nameGlobPatterns, globAnd, caseExact)
-	if err != nil && len(contentPathsBySource) == 0 {
+	rows, err := db.SearchItemsMultiSource(sources, normalizedScopes, largest, nameGlobPatterns, globAnd, caseExact, searchOptions.ExcludeThroughPath)
+	if err != nil && !hasContentPaths(contentPathsBySource) {
 		return []*SearchResult{}
 	}
 	if err == nil {
@@ -361,7 +404,8 @@ func SearchMultiSourcesParsed(baseOpts iteminfo.SearchOptions, sources []string,
 			HasPreview: hasPreview,
 		}
 
-		matches := itemMatchesSearchFilters(item, isDir, searchOptions, largest, nameGlobPatterns) || contentPathsBySource[source][path]
+		matches := itemMatchesSearchFilters(item, isDir, searchOptions, largest, nameGlobPatterns) ||
+			slices.Contains(contentPathsBySource[source], path)
 
 		if matches {
 			resType := mimeType
@@ -385,13 +429,10 @@ func SearchMultiSourcesParsed(baseOpts iteminfo.SearchOptions, sources []string,
 		}
 	}
 
-	if err == nil && searchContent {
+	// Content hits are appended even if the name query failed.
+	if searchContent {
 		for _, source := range sources {
-			paths := make([]string, 0, len(contentPathsBySource[source]))
-			for p := range contentPathsBySource[source] {
-				paths = append(paths, p)
-			}
-			appendContentResults(db, source, paths, limit, results, &count)
+			appendContentResults(db, source, contentPathsBySource[source], limit, searchOptions, results, &count)
 		}
 	}
 

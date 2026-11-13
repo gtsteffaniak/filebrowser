@@ -3728,7 +3728,7 @@
                     },
                     {
                         "type": "boolean",
-                        "description": "When true, search terms must match file contents (text, code, PDF/Office when indexed); requires server.indexSqlConfig.fullTextSearch",
+                        "description": "When true, also return files whose content matches the terms (text, code, PDF/Office when indexed), in addition to name matches; requires server.indexSqlConfig.fullTextSearch",
                         "name": "searchContent",
                         "in": "query"
                     },

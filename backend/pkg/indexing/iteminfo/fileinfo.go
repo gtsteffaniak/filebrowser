@@ -21,8 +21,8 @@ type ItemInfo struct {
 // This avoids adding memory overhead to indexed items
 type ExtendedItemInfo struct {
 	ItemInfo
-	Metadata    *MediaMetadata `json:"metadata,omitempty"`  // optional media metadata (audio/video only)
-	ViewToken   string         `json:"viewToken,omitempty"` // opaque token for inline viewing via /resources/view or /media/stream
+	Metadata  *MediaMetadata `json:"metadata,omitempty"`  // optional media metadata (audio/video only)
+	ViewToken string         `json:"viewToken,omitempty"` // opaque token for inline viewing via /resources/view or /media/stream
 }
 
 // FileInfo describes a file.
@@ -34,25 +34,25 @@ type FileInfo struct {
 	Path    string             `json:"path,omitempty"`    // path scoped to the associated index
 	// IsDir is the index DB is_dir column; Type alone can disagree (legacy or malformed rows).
 	IsDir bool `json:"-"`
-	// FullTextBody is optional extracted content written to the search index; nil keeps
-	// the existing content row (or leaves the item name-only).
+	// FullTextBody is optional extracted content written to the search index. Nil or empty
+	// clears the existing content row; the item stays searchable by name only.
 	FullTextBody *string `json:"-"`
 }
 
 // MediaMetadata contains metadata extracted from audio and video files
 type MediaMetadata struct {
-	Title     string  `json:"title,omitempty"`     // track/video title
-	Artist    string  `json:"artist,omitempty"`    // track artist
-	Album     string  `json:"album,omitempty"`     // album name
-	Year      int     `json:"year,omitempty"`      // release year
-	Genre     string  `json:"genre,omitempty"`     // music/video genre
-	Track     int     `json:"track,omitempty"`     // track number
-	Duration  int     `json:"duration,omitempty"`  // duration in seconds
+	Title      string `json:"title,omitempty"`      // track/video title
+	Artist     string `json:"artist,omitempty"`     // track artist
+	Album      string `json:"album,omitempty"`      // album name
+	Year       int    `json:"year,omitempty"`       // release year
+	Genre      string `json:"genre,omitempty"`      // music/video genre
+	Track      int    `json:"track,omitempty"`      // track number
+	Duration   int    `json:"duration,omitempty"`   // duration in seconds
 	VideoCodec string `json:"videoCodec,omitempty"` // video codec name (e.g. h264)
 	AudioCodec string `json:"audioCodec,omitempty"` // audio codec name (e.g. aac)
 	Container  string `json:"container,omitempty"`  // container/format name (e.g. mov,mp4,m4a,3gp,3g2,mj2)
-	AlbumArt  []byte  `json:"albumArt,omitempty"`  // album art image data (automatically base64-encoded in JSON)
-	HasLyrics bool    `json:"hasLyrics,omitempty"` // checks if lyrics are available without parse them
+	AlbumArt   []byte `json:"albumArt,omitempty"`   // album art image data (automatically base64-encoded in JSON)
+	HasLyrics  bool   `json:"hasLyrics,omitempty"`  // checks if lyrics are available without parse them
 }
 
 // for efficiency, a response will be a pointer to the data

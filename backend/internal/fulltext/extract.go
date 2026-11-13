@@ -32,21 +32,31 @@ var textExtensions = map[string]bool{
 
 // Extract returns indexable text for the file: the file name (always searchable)
 // followed by its content for supported types. Nil means the name alone is indexed.
+// Called with symlink targets already resolved and containment-checked by the caller.
 func Extract(realPath, name, mimeType string) *string {
 	ext := strings.ToLower(filepath.Ext(name))
-	target := realPath
-	if info, err := os.Stat(realPath); err == nil && info.Mode()&os.ModeSymlink != 0 {
-		if resolved, err := filepath.EvalSymlinks(realPath); err == nil {
-			target = resolved
-		}
+
+	// O_NONBLOCK keeps the open from waiting if the path was swapped for a
+	// FIFO after the stat; the regular-file check below rejects it.
+	f, err := os.OpenFile(realPath, os.O_RDONLY|oNonBlock, 0)
+	if err != nil {
+		return nil
+	}
+	defer f.Close()
+	info, err := f.Stat()
+	if err != nil || !info.Mode().IsRegular() {
+		return nil
 	}
 
 	var content string
 	switch {
 	case textExtensions[ext] || strings.HasPrefix(mimeType, "text/"):
-		content = readPlainText(target)
+		content = readPlainText(f)
 	case iteminfo.IsDoc(ext) || iteminfo.MuPdfConvertable[ext]:
-		content = extractDocument(target)
+		if info.Size() == 0 || info.Size() > MaxDocumentBytes {
+			return nameOnly(name)
+		}
+		content = documentText(realPath, extractTimeout)
 	default:
 		return nil
 	}
@@ -57,14 +67,14 @@ func Extract(realPath, name, mimeType string) *string {
 	return &body
 }
 
+// nameOnly returns the name-only body for an eligible file that could not be read.
+func nameOnly(name string) *string {
+	return &name
+}
+
 // readPlainText reads at most MaxPlainTextBytes. Binary content (NUL in the head)
 // yields "" so the file is indexed by name only.
-func readPlainText(path string) string {
-	f, err := os.Open(path)
-	if err != nil {
-		return ""
-	}
-	defer f.Close()
+func readPlainText(f *os.File) string {
 	buf := make([]byte, MaxPlainTextBytes)
 	n, err := io.ReadFull(f, buf)
 	if err != nil && err != io.ErrUnexpectedEOF && err != io.EOF {
@@ -75,14 +85,4 @@ func readPlainText(path string) string {
 		return ""
 	}
 	return strings.ToValidUTF8(string(buf), "")
-}
-
-// extractDocument extracts text through MuPDF (PDF, DOCX, PPTX, XLSX, EPUB, ...).
-// It returns "" when preview support is not compiled in or extraction fails.
-func extractDocument(path string) string {
-	info, err := os.Stat(path)
-	if err != nil || info.Size() == 0 || info.Size() > MaxDocumentBytes {
-		return ""
-	}
-	return documentText(path, extractTimeout)
 }

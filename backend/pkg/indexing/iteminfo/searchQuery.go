@@ -16,12 +16,15 @@ type SearchOptions struct {
 	ModifiedOlderThan int64
 	// ModifiedNewerThan is Unix seconds (UTC start of day). If > 0, item must have ModTime >= this instant.
 	ModifiedNewerThan int64
-	Terms []string
+	Terms             []string
 	// MatchAllTerms, when true and non-wildcard search, an item must contain every term (AND). When false (default), any term matches (OR).
 	// For name GLOB wildcard search, name must match every pattern when true; when false, patterns are OR-combined in SQL.
 	MatchAllTerms bool
 	// Quoted is true when the search query was a double-quoted phrase; spaces are kept literal in name matching.
 	Quoted bool
+	// ExcludeThroughPath, when non-empty, drops items whose path is not deeper than this
+	// index path. Used to page through results already examined by a previous request.
+	ExcludeThroughPath string
 }
 
 // BuildSearchOptionsFromQuery merges optional repeated literal terms (HTTP "terms" parameters) with structured filter text ("query" prefix).

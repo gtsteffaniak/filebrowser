@@ -93,3 +93,32 @@ func TestSearchContentMultiSource(t *testing.T) {
 		}
 	}
 }
+
+func TestSearchContentHonorsAuxiliaryFiltersAndJoinMode(t *testing.T) {
+	idx := newFullTextSearchTestIndex(t, "fulltext_filters")
+	// Folders-only must not return content hits from files.
+	foldersOnly := iteminfo.SearchOptions{Conditions: map[string]bool{"dir": true}, Terms: []string{"budget"}}
+	for _, r := range idx.SearchParsed(foldersOnly, "/", "", false, 100, 0, 0, false, true) {
+		if r.Type != "directory" {
+			t.Fatalf("folders-only search returned a file %#v", r)
+		}
+	}
+	// OR mode matches a content-only file on any single term.
+	orHits := idx.SearchParsed(iteminfo.SearchOptions{Terms: []string{"quarterly", "nonexistentterm"}}, "/", "", false, 100, 0, 0, false, true)
+	found := false
+	for _, r := range orHits {
+		if r.Path == "/docs/budget.txt" {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatalf("OR mode missed content-only match: %#v", orHits)
+	}
+	// AND mode requires every term.
+	andHits := idx.SearchParsed(iteminfo.SearchOptions{Terms: []string{"quarterly", "nonexistentterm"}, MatchAllTerms: true}, "/", "", false, 100, 0, 0, false, true)
+	for _, r := range andHits {
+		if r.Path == "/docs/budget.txt" {
+			t.Fatalf("AND mode returned a partial content match: %#v", andHits)
+		}
+	}
+}

@@ -67,7 +67,7 @@ server:
 ```
 
 3. **重启一次**服务。
-4. **触发一次完整扫描回填**：旧索引条目是在该开关打开之前写入的，没有正文。把 `server.indexSqlConfig.disableReuse` 设为 `true` 并重启，或对每个 source 手动触发重新扫描，让扫描器把文本写入 FTS 索引。回填完成后可以把 `disableReuse` 改回 `false`（或删除该项）。
+4. **触发一次完整扫描回填**：旧索引条目是在该开关打开之前写入的，没有正文。把 `server.indexSqlConfig.disableReuse` 设为 `true` 并重启（只有它是完整扫描；手动触发的增量扫描会跳过未变更目录）。回填完成后可以把 `disableReuse` 改回 `false`（或删除该项）。
 
    - 回填只会索引「扫描时能读到」的文件；被 include/exclude 规则挡掉的、或超过大小上限的不会被索引。
    - 扫描期间搜索仍可用，只是内容命中会逐步变多。

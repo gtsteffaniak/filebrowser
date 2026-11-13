@@ -57,7 +57,7 @@ type scopedSourcePath struct {
 // - olderThan: Optional Unix time in seconds; only items modified strictly before this instant
 // - newerThan: Optional Unix time in seconds; only items modified on or after this instant
 // - useWildcard: Optional; when true, file names are matched with SQLite GLOB (wildcards) instead of substring search
-// - searchContent: Optional; require server.indexSqlConfig.fullTextSearch. Terms must also match file contents (FTS5)
+// - searchContent: Optional; adds file-content matches (FTS5) to name matches. Requires server.indexSqlConfig.fullTextSearch
 //
 // @Summary Search Files
 // @Description Searches for files matching the provided query. Returns file paths and metadata based on the user's session and scope. Supports searching across multiple sources when using the 'sources' parameter.
@@ -71,7 +71,7 @@ type scopedSourcePath struct {
 // @Param olderThan query int false "Unix seconds; only results modified strictly before this time"
 // @Param newerThan query int false "Unix seconds; only results modified on or after this time"
 // @Param useWildcard query bool false "When true, match indexed file names with SQLite GLOB (wildcard patterns)"
-// @Param searchContent query bool false "When true, search terms must match file contents (text, code, PDF/Office when indexed); requires server.indexSqlConfig.fullTextSearch"
+// @Param searchContent query bool false "When true, also return files whose content matches the terms (text, code, PDF/Office when indexed), in addition to name matches; requires server.indexSqlConfig.fullTextSearch"
 // @Param limit query int false "Requested advanced search limit, capped by server.searchResultsLimit (default 1000); omitted for quick search (100)"
 // @Param termJoin query string false "Optional: 'and' to require all repeated 'terms' match; default is OR"
 // @Success 200 {array} indexing.SearchResult "List of search results with source field populated"
@@ -101,32 +101,54 @@ func searchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, err
 		}
 	}
 
-	// Full-text hits are only filtered for access after the DB query, so a quick
-	// search reads more per-source rows and trims to searchSize after the access
-	// filter. Advanced (explicit limit) searches keep their existing DB-side cap.
-	dbLimit := searchSize
+	// Access rules are applied after the DB query, so search runs in pages until
+	// searchSize accessible results are collected. Results are ordered by path
+	// depth; each page excludes everything up to the deepest path seen so far.
+	pageSize := searchSize
 	if !searchOptions.largest && !searchOptions.useWildcard && len(searchOptions.parsed.Terms) > 0 && r.URL.Query().Get("limit") == "" {
-		if perSource := settings.Config.Server.SearchResultsLimit / len(searchOptions.sources); perSource > searchSize {
-			dbLimit = perSource
+		if perSource := settings.Config.Server.SearchResultsLimit / len(searchOptions.sources); perSource > pageSize {
+			pageSize = perSource
 		}
 	}
-
-	var response []*indexing.SearchResult
-	if len(searchOptions.sources) == 1 {
-		index := indexing.GetIndex(searchOptions.sources[0])
-		if index == nil {
-			return http.StatusBadRequest, fmt.Errorf("index not found for source %s", searchOptions.sources[0])
+	searchPage := func() []*indexing.SearchResult {
+		if len(searchOptions.sources) == 1 {
+			index := indexing.GetIndex(searchOptions.sources[0])
+			if index == nil {
+				return nil
+			}
+			combinedPath := searchOptions.combinedPath[searchOptions.sources[0]]
+			return index.SearchParsed(searchOptions.parsed, combinedPath, searchOptions.sessionId, searchOptions.largest, pageSize, searchOptions.olderThanUnix, searchOptions.newerThanUnix, searchOptions.useWildcard, searchOptions.searchContent)
 		}
-		combinedPath := searchOptions.combinedPath[searchOptions.sources[0]]
-		response = index.SearchParsed(searchOptions.parsed, combinedPath, searchOptions.sessionId, searchOptions.largest, dbLimit, searchOptions.olderThanUnix, searchOptions.newerThanUnix, searchOptions.useWildcard, searchOptions.searchContent)
-	} else {
-		response = indexing.SearchMultiSourcesParsed(searchOptions.parsed, searchOptions.sources, searchOptions.combinedPath, searchOptions.sessionId, searchOptions.largest, dbLimit, searchOptions.olderThanUnix, searchOptions.newerThanUnix, searchOptions.useWildcard, searchOptions.searchContent)
+		return indexing.SearchMultiSourcesParsed(searchOptions.parsed, searchOptions.sources, searchOptions.combinedPath, searchOptions.sessionId, searchOptions.largest, pageSize, searchOptions.olderThanUnix, searchOptions.newerThanUnix, searchOptions.useWildcard, searchOptions.searchContent)
+	}
+	const maxSearchPages = 10
+	var response []*indexing.SearchResult
+	for pages := 0; pages < maxSearchPages; pages++ {
+		page := searchPage()
+		response = append(response, page...)
+		if len(page) < pageSize || len(response) >= searchSize {
+			break
+		}
+		// Everything up to the deepest returned path was already inspected.
+		deepest := ""
+		for _, result := range page {
+			if len(result.Path) > len(deepest) {
+				deepest = result.Path
+			}
+		}
+		if deepest == "" || deepest == searchOptions.parsed.ExcludeThroughPath {
+			break
+		}
+		searchOptions.parsed.ExcludeThroughPath = deepest
 	}
 
 	// Filter out items that are not permitted according to access rules and trim user scope from paths
 	filteredResponse := make([]*indexing.SearchResult, 0, len(response))
 	for _, result := range response {
 		index := indexing.GetIndex(result.Source)
+		if index == nil {
+			continue
+		}
 		combinedPath := searchOptions.combinedPath[result.Source]
 		indexPath := utils.JoinPathAsUnix(combinedPath, result.Path)
 		if !state.AccessPermitted(index.Path, utils.IndexPathFromNormalized(indexPath, true), d.User.Username) {

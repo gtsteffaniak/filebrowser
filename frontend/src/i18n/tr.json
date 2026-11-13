@@ -272,6 +272,8 @@
     "helpText2": "Yalnızca dosya veya klasör adlarında büyük/küçük harfe duyarsız alt dize eşleşmesi (tam yollarda değil). Boşlukla ayrılmış kelimeler; nokta, alt çizgi ve tire gibi yaygın ayraçlar arasında eşleşir (örn. \"Blade Runner\" araması Blade.Runner.mkv dosyasını bulur). Büyük/küçük harfe duyarlı eşleştirme için case:exact kullanın.\n\nTerimler arasında VEYA için dik çizgi karakterini kullanın; boşluk içeren tam bir ifade için çift tırnak kullanın.\n\nGelişmiş glob kalıpları (*, ?, [a-z]) için joker karakter aramasını etkinleştirin.",
     "useWildcardSearch": "Joker karakter araması",
     "useWildcardSearchDescription": "Desteklenen joker karakter seçenekleri:\n\n• Herhangi bir diziyi eşleştir: *\n\n• Bir karakteri eşleştir: ?\n\n• Karakter sınıfı: [a-z], [0-9]\n\n• Olumsuzlama: [^0-9]\n\n• Literal *, ? veya [ karakterleri köşeli parantez içine alınmalıdır, örn. [*], [?], [[]",
+    "searchContent": "Dosya içeriğinde ara",
+    "searchContentDescription": "Dosya adlarının yanı sıra dosyaların içindeki metinle de (sunucuda etkinse metin, kod, Markdown ve PDF/Office belgeleri) eşleşir. Sunucuda tam metin araması gerektirir; joker karakter aramasıyla kullanılamaz.",
     "openInAdvancedSearch": "Gelişmiş Aramada Aç",
     "caseExact": "Büyük/küçük harf duyarlı eşleştirme",
     "caseExactDescription": "Büyük ve küçük harfleri göz ardı etmek yerine, dosya ve klasör adlarını tam harf büyük/küçük yazımına göre eşleştirin.",

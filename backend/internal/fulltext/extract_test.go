@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"syscall"
 	"testing"
 )
 
@@ -48,10 +49,19 @@ func TestExtract(t *testing.T) {
 		}
 	})
 
-	t.Run("missing file still indexes name", func(t *testing.T) {
-		got := Extract(filepath.Join(dir, "gone.txt"), "gone.txt", "text/plain")
-		if got == nil || *got != "gone.txt" {
-			t.Fatalf("got %v", got)
+	t.Run("missing file returns nil", func(t *testing.T) {
+		if got := Extract(filepath.Join(dir, "gone.txt"), "gone.txt", "text/plain"); got != nil {
+			t.Fatalf("got %v", *got)
+		}
+	})
+
+	t.Run("fifo is not opened", func(t *testing.T) {
+		p := filepath.Join(dir, "pipe.txt")
+		if err := syscall.Mkfifo(p, 0o600); err != nil {
+			t.Skip("mkfifo unavailable:", err)
+		}
+		if got := Extract(p, "pipe.txt", "text/plain"); got != nil {
+			t.Fatalf("fifo should be name-only, got %v", *got)
 		}
 	})
 
