@@ -11,33 +11,10 @@
 			"!test-results"
 		]
 	},
-	"formatter": {
-		"enabled": false
-	},
-	"assist": {
-		"enabled": true,
-		"actions": { "source": { "organizeImports": "off" } }
-	},
-	"css": {
-		"linter": { "enabled": false },
-		"formatter": { "enabled": false },
-		"assist": { "enabled": false }
-	},
-	"html": {
-		"experimentalFullSupportEnabled": true,
-		"parser": { "interpolation": true },
-		"linter": { "enabled": true }
-	},
+	"formatter": { "enabled": false },
 	"linter": {
 		"enabled": true,
-		"domains": { "vue": "all", "project": "all", "types": "all" },
 		"rules": {
-			"performance": {
-				"useVueVapor": "off"
-			},
-			"security": {
-				"preset": "recommended"
-			},
 			"a11y": {
 				"noAutofocus": "off",
 				"noNoninteractiveElementToInteractiveRole": "off",
@@ -72,17 +49,20 @@
 				"useConsistentObjectKeys": "error",
 				"useVueBaseImport": "warn"
 			},
+			"performance": { "useVueVapor": "off" },
+			"security": { "preset": "recommended" },
 			"style": {
 				"noDescendingSpecificity": "off",
+				"noTopLevelLiterals": "error",
 				"noVueOptionsApi": "off",
+				"useVueConsistentDefinePropsDeclaration": "off",
 				"useVueConsistentVBindStyle": "off",
 				"useVueHyphenatedAttributes": "off",
 				"useVueMultiWordComponentNames": "off",
-				"noTopLevelLiterals": "error",
-				"useVueConsistentDefinePropsDeclaration": "off",
 				"useVueNextTickPromise": "warn"
 			},
 			"suspicious": {
+				"noEmptyObjectKeys": "error",
 				"noExplicitAny": "warn",
 				"noImportCycles": "off",
 				"noNestedPromises": "error",
@@ -90,20 +70,31 @@
 				"noShadow": "off",
 				"noUnnecessaryConditions": "off",
 				"useArraySortCompare": "error",
-				"noEmptyObjectKeys": "error",
 				"useScopedStyles": "off"
 			}
-		}
+		},
+		"domains": { "vue": "all", "project": "all", "types": "all" }
+	},
+	"css": {
+		"formatter": { "enabled": false },
+		"linter": { "enabled": false },
+		"assist": { "enabled": false }
+	},
+	"html": {
+		"experimentalFullSupportEnabled": true,
+		"parser": { "interpolation": true },
+		"linter": { "enabled": true }
 	},
 	"overrides": [
 		{
 			"includes": ["tests/playwright/**"],
 			"linter": {
 				"rules": {
+					"complexity": { "noPlaywrightUselessAwait": "error" },
 					"correctness": {
 						"noEmptyPattern": "off",
-						"noUnresolvedImports": "off",
 						"noPlaywrightMissingAwait": "error",
+						"noUnresolvedImports": "off",
 						"usePlaywrightValidDescribeCallback": "error"
 					},
 					"style": {
@@ -117,9 +108,6 @@
 						"noPlaywrightPagePause": "error",
 						"noPlaywrightWaitForNavigation": "error",
 						"noPlaywrightWaitForTimeout": "warn"
-					},
-					"complexity": {
-						"noPlaywrightUselessAwait": "error"
 					}
 				}
 			}
@@ -135,11 +123,15 @@
 			"linter": {
 				"rules": {
 					"correctness": {
-						"noUnresolvedImports": "off",
-						"noUndeclaredDependencies": "off"
+						"noUndeclaredDependencies": "off",
+						"noUnresolvedImports": "off"
 					}
 				}
 			}
 		}
-	]
+	],
+	"assist": {
+		"enabled": true,
+		"actions": { "source": { "organizeImports": "off" } }
+	}
 }
