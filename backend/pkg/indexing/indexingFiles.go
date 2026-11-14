@@ -8,6 +8,7 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/fileutils"
@@ -23,8 +24,9 @@ import (
 )
 
 var (
-	RealPathCache = cache.NewCache[string](48*time.Hour, 72*time.Hour)
-	IsDirCache    = cache.NewCache[bool](48*time.Hour, 72*time.Hour)
+	RealPathCache      = cache.NewCache[string](48*time.Hour, 72*time.Hour)
+	IsDirCache         = cache.NewCache[bool](48*time.Hour, 72*time.Hour)
+	realPathGeneration atomic.Uint64
 )
 
 // getDiskUsage returns the actual disk space used by a file in bytes
@@ -1221,6 +1223,7 @@ func (idx *Index) getRealPathInternal(boundIndexPath string, enforceScope bool, 
 	if ok && cached != "" {
 		return cached, isDir, nil
 	}
+	generation := realPathGeneration.Load()
 	absolutePath, err := filepath.Abs(joinedPath)
 	if err != nil {
 		return absolutePath, false, fmt.Errorf("could not get real path: %v, %s", joinedPath, err)
@@ -1238,6 +1241,10 @@ func (idx *Index) getRealPathInternal(boundIndexPath string, enforceScope bool, 
 	}
 	RealPathCache.Set(cacheKey, realPath)
 	IsDirCache.Set(cacheKey+":isdir", isDir)
+	if realPathGeneration.Load() != generation {
+		RealPathCache.Delete(cacheKey)
+		IsDirCache.Delete(cacheKey + ":isdir")
+	}
 	return realPath, isDir, nil
 }
 
@@ -1263,17 +1270,19 @@ func realPathCacheIndexAncestors(indexPath string) []string {
 	return ancestors
 }
 
-// InvalidateRealPathCache drops cached symlink resolutions for indexPath and its
-// ancestors. scopeBounds should include any caller scope prefixes used with
-// GetRealPathScoped (e.g. user or share path).
 // ClearRealPathCaches drops every cached symlink resolution. The cache library has no
 // prefix delete, so subtree invalidation uses a full clear; entries repopulate lazily.
 func ClearRealPathCaches() {
+	realPathGeneration.Add(1)
 	RealPathCache.ClearAll()
 	IsDirCache.ClearAll()
 }
 
+// InvalidateRealPathCache drops cached symlink resolutions for indexPath and its
+// ancestors. scopeBounds should include any caller scope prefixes used with
+// GetRealPathScoped (e.g. user or share path).
 func (idx *Index) InvalidateRealPathCache(indexPath string, scopeBounds ...string) {
+	realPathGeneration.Add(1)
 	boundSet := map[string]struct{}{"/": {}, "": {}}
 	for _, b := range scopeBounds {
 		b = strings.TrimRight(strings.TrimSpace(b), "/")
