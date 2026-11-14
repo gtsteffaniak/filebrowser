@@ -64,33 +64,75 @@ const blank = (text: string) => text.replace(/[^\n]/g, " ");
 
 /** Replaces the comments of JS/TS code by spaces and, with `strings`, the content of '...' and "..." literals too */
 export function maskJs(text: string, strings = false): string {
-  let out = "";
-  let i = 0;
-  while (i < text.length) {
-    const ch = text.charAt(i);
-    const next = text.charAt(i + 1);
-    if (ch === "/" && (next === "/" || next === "*")) {
-      const close = next === "/" ? text.indexOf("\n", i) : text.indexOf("*/", i + 2);
-      const end = close === -1 ? text.length : next === "/" ? close : close + 2;
-      out += blank(text.slice(i, end));
-      i = end;
-    } else if (ch === '"' || ch === "'" || ch === "`") {
-      let end = i + 1;
-      while (end < text.length && text.charAt(end) !== ch) {
-        if (text.charAt(end) === "\\") end++;
-        else if (ch !== "`" && text.charAt(end) === "\n") break; // it's not a string
-        end++;
+  const scan = (start: number, inExpression: boolean): [string, number] => {
+    let out = "";
+    let i = start;
+    let depth = 0;
+    while (i < text.length) {
+      const ch = text.charAt(i);
+      const next = text.charAt(i + 1);
+      if (ch === "/" && (next === "/" || next === "*")) {
+        const close = next === "/" ? text.indexOf("\n", i) : text.indexOf("*/", i + 2);
+        const end = close === -1 ? text.length : next === "/" ? close : close + 2;
+        out += blank(text.slice(i, end));
+        i = end;
+      } else if (ch === "`") {
+        const [masked, end] = maskTemplate(i);
+        out += masked;
+        i = end;
+      } else if (ch === '"' || ch === "'") {
+        let end = i + 1;
+        while (end < text.length && text.charAt(end) !== ch) {
+          if (text.charAt(end) === "\\") end++;
+          else if (text.charAt(end) === "\n") break; // it's not a string
+          end++;
+        }
+        const closed = text.charAt(end) === ch;
+        const literal = text.slice(i, closed ? end + 1 : end);
+        out += strings && !inExpression && closed ? ch + blank(literal.slice(1, -1)) + ch : literal;
+        i += literal.length;
+      } else {
+        if (inExpression && ch === "{") depth++;
+        else if (inExpression && ch === "}") {
+          if (depth === 0) return [out, i];
+          depth--;
+        }
+        out += ch;
+        i++;
       }
-      const closed = text.charAt(end) === ch;
-      const literal = text.slice(i, closed ? end + 1 : end);
-      out += strings && ch !== "`" && closed ? ch + blank(literal.slice(1, -1)) + ch : literal;
-      i += literal.length;
-    } else {
-      out += ch;
-      i++;
     }
-  }
-  return out;
+    return [out, i];
+  };
+
+  // A template literal from its opening backtick -- its `${...}` expressions are scanned
+  const maskTemplate = (start: number): [string, number] => {
+    const keep = (chunk: string) => (strings ? blank(chunk) : chunk);
+    let out = "`";
+    let i = start + 1;
+    while (i < text.length) {
+      const ch = text.charAt(i);
+      if (ch === "\\") {
+        out += keep(text.slice(i, i + 2));
+        i += 2;
+      } else if (ch === "`") {
+        return [`${out}\``, i + 1];
+      } else if (ch === "$" && text.charAt(i + 1) === "{") {
+        const [code, end] = scan(i + 2, true);
+        out += `\${${code}`;
+        i = end;
+        if (text.charAt(i) === "}") {
+          out += "}";
+          i++;
+        }
+      } else {
+        out += keep(ch);
+        i++;
+      }
+    }
+    return [out, i];
+  };
+
+  return scan(0, false)[0];
 }
 
 /**
