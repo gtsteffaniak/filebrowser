@@ -14,6 +14,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
+	"github.com/gtsteffaniak/go-logger/logger"
 )
 
 type changeRequiredPasswordBody struct {
@@ -87,6 +88,10 @@ func changeRequiredPasswordHandler(w http.ResponseWriter, r *http.Request, d *Co
 	patch.RequirePasswordChange = false
 	if err = state.UpdateUser(&patch, body.Password, "password", "requirePasswordChange"); err != nil {
 		return http.StatusInternalServerError, err
+	}
+	// Sign out sessions issued before the change; a fresh token is printed below
+	if err = state.RevokeOtherSessions(user.ID, ""); err != nil {
+		logger.Errorf("Failed to revoke sessions after password change: %v", err)
 	}
 
 	updated, getErr := state.GetUserByUsername(user.Username)

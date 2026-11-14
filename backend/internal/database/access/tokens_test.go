@@ -35,6 +35,7 @@ func (failingRevokePersister) DeleteRevokedToken(string) error      { return nil
 func (failingRevokePersister) SaveHashedToken(string, uint64, bool, int64) error { return nil }
 func (failingRevokePersister) DeleteHashedToken(string) error         { return nil }
 func (failingRevokePersister) DeleteHashedTokensByUserID(uint64) error { return nil }
+func (failingRevokePersister) DeleteSessionTokensByUserID(uint64, string) error { return nil }
 
 func TestSessionAndApiTokenMetadata(t *testing.T) {
 	store, _ := createTestStorage(t)
@@ -156,5 +157,62 @@ func TestExpiredTokenPastGraceNeverRegistered(t *testing.T) {
 	}
 	if _, ok := store.HashedTokens[utils.HashSHA256(token)]; ok {
 		t.Fatal("token expired past grace must not be registered")
+	}
+}
+
+func TestRemoveSessionTokensForUserKeepsCurrentSessionAndApiTokens(t *testing.T) {
+	store, _, sqlStore := createTestStorageWithSQL(t)
+
+	for _, tok := range []string{"current-session", "other-session"} {
+		if err := store.AddSessionToken(tok, 42); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := store.AddApiToken("api-token", 42); err != nil {
+		t.Fatal(err)
+	}
+	if err := store.AddSessionToken("someone-else", 7); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := store.RemoveSessionTokensForUser(42, "current-session"); err != nil {
+		t.Fatal(err)
+	}
+
+	want := map[string]bool{
+		"current-session": true,
+		"other-session":   false,
+		"api-token":       true,
+		"someone-else":    true,
+	}
+	persisted, err := sqlStore.GetAllHashedTokens()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for tok, kept := range want {
+		if _, ok := store.GetHashedTokenInfo(tok); ok != kept {
+			t.Errorf("in-memory %q present = %v, want %v", tok, ok, kept)
+		}
+		if _, ok := persisted[utils.HashSHA256(tok)]; ok != kept {
+			t.Errorf("persisted %q present = %v, want %v", tok, ok, kept)
+		}
+	}
+}
+
+func TestRemoveSessionTokensForUserWithoutKeepRemovesAllSessions(t *testing.T) {
+	store, _ := createTestStorage(t)
+
+	for _, tok := range []string{"session-a", "session-b"} {
+		if err := store.AddSessionToken(tok, 42); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := store.RemoveSessionTokensForUser(42, ""); err != nil {
+		t.Fatal(err)
+	}
+	for _, tok := range []string{"session-a", "session-b"} {
+		if _, ok := store.GetHashedTokenInfo(tok); ok {
+			t.Errorf("session %q still resolves after revoke", tok)
+		}
 	}
 }

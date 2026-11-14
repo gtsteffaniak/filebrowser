@@ -214,6 +214,14 @@ func RevokeToken(token string) error {
 	return accessDb.RevokeToken(token)
 }
 
+// RevokeOtherSessions signs out every session of the user except keepToken (when non-empty).
+func RevokeOtherSessions(userID uint64, keepToken string) error {
+	if accessDb == nil {
+		return nil
+	}
+	return accessDb.RemoveSessionTokensForUser(userID, keepToken)
+}
+
 // CheckChildItemAccess filters directory listings using in-memory access rules.
 func CheckChildItemAccess(response *iteminfo.FileInfo, idx *indexing.Index, username string) error {
 	if accessDb == nil {

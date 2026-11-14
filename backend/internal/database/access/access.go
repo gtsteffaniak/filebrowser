@@ -137,6 +137,7 @@ type SQLPersister interface {
 	SaveHashedToken(tokenHash string, userID uint64, isSession bool, expiresAt int64) error
 	DeleteHashedToken(tokenHash string) error
 	DeleteHashedTokensByUserID(userID uint64) error
+	DeleteSessionTokensByUserID(userID uint64, keepTokenHash string) error
 }
 
 // SetSQLStore sets the SQL store for persistence operations
@@ -1949,6 +1950,31 @@ func (s *Storage) RemoveHashedTokensForUser(userID uint64) error {
 	s.mux.Unlock()
 	if sqlStore != nil {
 		return sqlStore.DeleteHashedTokensByUserID(userID)
+	}
+	return nil
+}
+
+// RemoveSessionTokensForUser removes every session token mapping for that owner except
+// keepToken (when non-empty), so those sessions stop resolving to a user. Named API
+// tokens are kept. Call after a password change to sign out the user's other sessions.
+func (s *Storage) RemoveSessionTokensForUser(userID uint64, keepToken string) error {
+	if userID == 0 {
+		return nil
+	}
+	keepHash := ""
+	if keepToken != "" {
+		keepHash = utils.HashSHA256(keepToken)
+	}
+	s.mux.Lock()
+	for hash, info := range s.HashedTokens {
+		if info.UserID == userID && info.IsSession && hash != keepHash {
+			delete(s.HashedTokens, hash)
+		}
+	}
+	sqlStore := s.sqlStore
+	s.mux.Unlock()
+	if sqlStore != nil {
+		return sqlStore.DeleteSessionTokensByUserID(userID, keepHash)
 	}
 	return nil
 }
