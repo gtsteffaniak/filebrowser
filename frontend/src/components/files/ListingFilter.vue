@@ -7,7 +7,6 @@
     :aria-label="open ? $t('general.cancel') : $t('general.search')"
     :title="open ? $t('general.cancel') : $t('general.search')"
   >
-    <!-- eslint-disable-next-line @intlify/vue-i18n/no-raw-text -->
     <i class="material-symbols">{{ open ? "close" : "search" }}</i>
   </button>
   <input

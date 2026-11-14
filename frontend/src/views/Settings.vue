@@ -21,7 +21,7 @@
 
 <script>
 import { state, getters, mutations } from "@/store/index.ts";
-import { settings } from "@/utils/constants.js";
+import { settings } from "@/utils/constants.ts";
 import GlobalSettings from "@/views/settings/Global.vue";
 import ProfileSettings from "@/views/settings/Profile.vue";
 import SharesSettings from "@/views/settings/Shares.vue";

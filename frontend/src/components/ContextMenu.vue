@@ -22,7 +22,7 @@
         </div>
         <hr class="divider">
         <p v-if="newFileTemplates.length === 0 && isLoggedIn" class="context-menu-empty-message">
-          {{ $t('prompts.noTemplate') }}
+          {{ t('prompts.noTemplate') }}
         </p>
         <button
           v-for="(item, index) in newFileTemplateItems"
@@ -39,12 +39,12 @@
         <button
           type="button"
           class="action no-select"
-          :aria-label="$t('files.emptyFile')"
-          :title="$t('files.emptyFile')"
+          :aria-label="t('files.emptyFile')"
+          :title="t('files.emptyFile')"
           @click="createEmptyFile"
         >
           <i :class="actionIconClass('insert_drive_file')">insert_drive_file</i>
-          <span>{{ $t('files.emptyFile') }}</span>
+          <span>{{ t('files.emptyFile') }}</span>
         </button>
       </template>
       <template v-else>
@@ -66,7 +66,7 @@
           <div
             v-if="selectedCount > 0"
             @mouseleave="hideInteractiveTooltip()"
-            @mouseenter="showHoverTooltip($t('buttons.selectedCount'), $event)"
+            @mouseenter="showHoverTooltip(t('buttons.selectedCount'), $event)"
             class="button selected-count-header"
             :class="{ 'selected-count-header--circle': selectedCount <= 99 }"
           >
@@ -112,7 +112,7 @@
 
 <script setup lang="ts">
 import { computed, markRaw, onBeforeUnmount, onMounted, ref, toRaw, watch } from "vue";
-import { useI18n } from "vue-i18n";
+import { useI18n } from "@/i18n/index.ts";
 import { useRouter } from "vue-router";
 import { resourcesApi, shareApi, usersApi } from "@/api/index.js";
 import { notify } from "@/notify/index.ts";

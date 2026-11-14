@@ -1,5 +1,5 @@
 import { getters, mutations, state } from "@/store/index.ts";
-import { globalVars } from "@/utils/constants.js";
+import { globalVars } from "@/utils/constants.ts";
 import { getApiPath } from "@/utils/url.js";
 import { sanitizeLogoutDestination, sanitizePostLoginRedirect } from "@/utils/safeRedirect.js";
 

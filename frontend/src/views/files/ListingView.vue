@@ -4,7 +4,7 @@
     <div v-if="loading">
       <h2 class="message delayed">
         <LoadingSpinner size="medium" />
-        <span>{{ $t("general.loading", { suffix: "..." }) }}</span>
+        <span>{{ t("general.loading", { suffix: "..." }) }}</span>
       </h2>
     </div>
 
@@ -30,7 +30,7 @@
       <div v-if="isDragging" class="drop-indicator">
         <div class="drop-indicator-content">
           <i class="material-symbols">cloud_upload</i>
-          <p>{{ $t("prompts.dragAndDrop") }}</p>
+          <p>{{ t("prompts.dragAndDrop") }}</p>
         </div>
       </div>
 
@@ -38,7 +38,7 @@
       <template v-if="numDirs + numFiles + numPinned === 0">
         <h2 class="message font-size-large">
           <i class="material-symbols-outlined">sentiment_dissatisfied</i>
-          <span>{{ $t("files.lonely") }}</span>
+          <span>{{ t("files.lonely") }}</span>
         </h2>
         <input
           style="display: none"
@@ -125,7 +125,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, useTemplateRef, watch } from "vue";
 import type { fileListItemIndex } from "@/store/types.ts";
-import { useI18n } from "vue-i18n";
+import { useI18n } from "@/i18n/index.ts";
 import { readAllDirectoryEntries } from "@/utils/upload.ts";
 import { state, mutations, getters } from "@/store/index.ts";
 import { eventBus } from "@/store/eventBus.ts";

@@ -2,11 +2,9 @@
 
 import { patchMediaSettings } from '@/api/settings.js';
 
-export const MEDIA_TRANSCODE_PROFILES = [
-  { id: 'quality', label: 'general.quality' },
-  { id: 'balanced', label: 'general.balanced' },
-  { id: 'datasaver', label: 'general.dataSaver' },
-];
+// We can inline this when we convert to typescript
+import { MEDIA_TRANSCODE_PROFILES } from '@/utils/mediaTranscodeProfiles.ts';
+export { MEDIA_TRANSCODE_PROFILES };
 
 export function emptyTranscodeProfile(maxResolution = 0, avgBitrateKbps = 0) {
   return { enabled: true, maxResolution, avgBitrateKbps, encoderBackend: '' };

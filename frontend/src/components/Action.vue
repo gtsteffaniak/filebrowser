@@ -18,7 +18,7 @@
         close: multistate === 'close',
       }"
     >
-      <title id="toggle-navbar-title">{{ $t('general.close') }}</title>
+      <title id="toggle-navbar-title">{{ t('general.close') }}</title>
       <path class="line top" d="M 30,33 H 70" />
       <path class="line middle" d="M 30,50 H 70" />
       <path class="line bottom" d="M 30,67 H 70" />
@@ -58,6 +58,7 @@ export function actionIconClass(icon: string, customIconClass?: string): string 
 import { computed } from "vue";
 import { getters, mutations } from "@/store/index.ts";
 import type { Prompt } from "@/store/types.ts";
+import { useI18n } from "@/i18n/index.ts";
 
 const props = withDefaults(
   defineProps<{
@@ -81,6 +82,8 @@ const props = withDefaults(
 const emit = defineEmits<{
   action: [];
 }>();
+
+const { t } = useI18n();
 
 const multistate = computed(() => getters.multibuttonState());
 const iconClass = computed(() => actionIconClass(props.icon, props.customIconClass));

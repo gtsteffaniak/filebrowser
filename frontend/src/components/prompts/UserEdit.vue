@@ -242,7 +242,7 @@ import Errors from "@/views/Errors.vue";
 import { evaluatePasswordPolicy } from "@/utils/passwordPolicy.js";
 import { notify } from "@/notify/index.ts";
 import { validateLogin } from "@/utils/auth.js";
-import { globalVars } from "@/utils/constants.js";
+import { globalVars } from "@/utils/constants.ts";
 import { eventBus } from "@/store/eventBus.ts";
 import { getObjectProperty, setObjectProperty } from "@/utils/object.js";
 import {
@@ -1166,7 +1166,7 @@ export default {
         name: "generic",
         props: {
           title: this.$t("general.delete"),
-          body: this.$t("prompts.deleteUserMessage", { username: this.user.username }),
+          body: this.$t("prompts.deleteUserMessage"),
           buttons: [
             {
               label: this.$t("general.delete"),

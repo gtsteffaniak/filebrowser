@@ -104,8 +104,8 @@
         ref="extraMenuTrigger"
         type="button"
         class="editor-toolbar-btn"
-        :title="$t('editor.md.moreOptions')"
-        :aria-label="$t('editor.md.moreOptions')"
+        :title="t('editor.md.moreOptions')"
+        :aria-label="t('editor.md.moreOptions')"
         @mousedown.prevent
         @click="toggleMenu('extra')"
       >
@@ -135,7 +135,7 @@
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, reactive, ref, useTemplateRef, watch } from "vue";
-import { useI18n } from "vue-i18n";
+import { useI18n } from "@/i18n/index.ts";
 import ace from "ace-builds";
 import type { Ace } from "ace-builds";
 import { mutations, state, getters } from "@/store/index.ts";

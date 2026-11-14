@@ -21,7 +21,7 @@ backend_dev_tool = $$(cd $(BACKEND_BUILD) && go tool -n $(1))
 
 .PHONY: setup update build build-docker build-docker-media build-backend build-frontend embed-frontend dev run generate-docs
 .PHONY: lint-frontend lint-backend lint test test-backend test-frontend check-all
-.PHONY: check-translations sync-translations test-playwright test-playwright-project test-playwright-performance playwright-base playwright-perf-base perf-check perf-smoke perf-baseline perf-dashboard run-proxy screenshots
+.PHONY: check-translations sync-translations generate-translation-types test-playwright test-playwright-project test-playwright-performance playwright-base playwright-perf-base perf-check perf-smoke perf-baseline perf-dashboard run-proxy screenshots
 .PHONY: check-icons generate-icons sync-icons
 
 setup:
@@ -125,6 +125,9 @@ check-translations:
 
 sync-translations:
 	cd frontend && npm run i18n:sync
+
+generate-translation-types:
+	cd frontend && npm run i18n:types
 
 reorder-translations:
 	cd frontend && npm run i18n:enforce-order

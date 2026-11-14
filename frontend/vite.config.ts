@@ -32,6 +32,7 @@ const test = {
   globals: true,
   include: [
     "src/**/*.test.{js,ts}",
+    "scripts/**/*.test.ts",
     "tests/playwright/performance/**/*.test.ts",
   ],
   exclude: ["src/**/*.vue"],

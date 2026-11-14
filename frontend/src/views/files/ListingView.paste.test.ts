@@ -45,7 +45,10 @@ vi.mock("@/store", () => ({
     sourcePermissions: (source?: string) => store.permissions[source ?? store.current],
   },
 }));
-vi.mock("vue-i18n", () => ({ useI18n: () => ({ t: (key: string) => key }) }));
+vi.mock("@/i18n/index.ts", () => ({
+  default: { global: { t: (key: string) => key } },
+  useI18n: () => ({ t: (key: string) => key }),
+}));
 vi.mock("@/utils/download", () => ({ default: vi.fn() }));
 vi.mock("@/api", () => ({ resourcesApi: {} }));
 vi.mock("@/router", () => ({ router: {} }));

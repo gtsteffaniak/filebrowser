@@ -142,7 +142,7 @@ function scanMimetype(icons) {
 }
 
 function scanConstants(icons) {
-  const content = fs.readFileSync(path.join(srcDir, 'utils/constants.js'), 'utf8');
+  const content = fs.readFileSync(path.join(srcDir, 'utils/constants.ts'), 'utf8');
   const iconField = new RegExp(`\\bicon:\\s*["'](${ICON_NAME})["']`, 'g');
   for (const match of content.matchAll(iconField)) addIcon(icons, match[1]);
 }

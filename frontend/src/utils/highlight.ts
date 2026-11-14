@@ -1,5 +1,5 @@
 import { getters } from "@/store/index.ts";
-import { globalVars } from "@/utils/constants.js";
+import { globalVars } from "@/utils/constants.ts";
 
 type HLJSApi = typeof import("highlight.js").default;
 

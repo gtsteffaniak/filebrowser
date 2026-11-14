@@ -3,8 +3,8 @@
     <!-- Search input section -->
     <div class="search-input-container">
       <!-- Close button visible when search is active -->
-      <button v-if="active" type="button" class="action" @click="close" :aria-label="$t('general.close')"
-        :title="$t('general.close')">
+      <button v-if="active" type="button" class="action" @click="close" :aria-label="t('general.close')"
+        :title="t('general.close')">
         <i class="material-symbols">close</i>
       </button>
       <!-- Search icon when search is not active -->
@@ -12,7 +12,7 @@
       <!-- Input field for search -->
       <input id="search-input" type="text"
         @keyup.exact="keyup" @input="onInput" ref="input" :autofocus="active" v-model.trim="value"
-        aria-label="search input" :placeholder="$t('general.search', { suffix: '...' })" />
+        aria-label="search input" :placeholder="t('general.search', { suffix: '...' })" />
       <div v-if="eventTheme === 'halloween'" class="halloween-eyes" aria-hidden="true">
         <div class="eye"><div class="pupil"></div></div>
         <div class="eye right"><div class="pupil"></div></div>
@@ -27,13 +27,13 @@
           transparent
           :options="searchSourceOptions"
           all-value="__all__"
-          :all-selected-label="$t('general.all')"
+          :all-selected-label="t('general.all')"
           aria-label="search sources dropdown"
           @update:model-value="updateSource"
         />
 
         <!-- Formatted display of selected value -->
-        <div class="searchContext">{{ $t("search.searchContext", { context: getContext }) }}</div>
+        <div class="searchContext">{{ t("search.searchContext", { context: getContext }) }}</div>
       </div>
 
       <div id="result-list" ref="resultListEl">
@@ -48,8 +48,8 @@
                 <ToggleSwitch
                   class="item"
                   v-model="showPreviewImages"
-                  :name="$t('search.showPreviewImages')"
-                  :description="$t('search.showPreviewImagesDescription')"
+                  :name="t('search.showPreviewImages')"
+                  :description="t('search.showPreviewImagesDescription')"
                 />
               </template>
             </SearchFilters>
@@ -90,7 +90,6 @@
                 :thumbnail-url="showPreviewImages ? getThumbnailUrl(s) : ''"
               />
               <span class="text-container">
-                <!-- eslint-disable-next-line @intlify/vue-i18n/no-raw-text -->
                 {{ basePath(s.path, s.type === "directory") }}{{ baseName(s.path) }}
               </span>
               <div class="filesize">{{ humanSize(s.size) }}</div>
@@ -105,7 +104,7 @@
           class="button open-advanced-search-button"
           @click.stop.prevent="openInAdvancedSearch"
         >
-          {{ $t("search.openInAdvancedSearch") }}
+          {{ t("search.openInAdvancedSearch") }}
         </button>
       </div>
     </div>
@@ -114,7 +113,7 @@
 
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, toRefs, useTemplateRef, watch, type Ref } from "vue";
-import { useI18n } from "vue-i18n";
+import { useI18n } from "@/i18n/index.ts";
 import { useListingContextMenu } from "@/composables/useListingContextMenu.ts";
 import { useSearchFilters } from "@/composables/useSearchFilters.ts";
 import { useSearchRequest } from "@/composables/useSearchRequest.ts";
@@ -129,7 +128,7 @@ import { router } from "@/router/index.ts";
 import { getters, mutations, state } from "@/store/index.ts";
 import type { FileListItem } from "@/store/types.ts";
 import { url } from "@/utils/index.ts";
-import { globalVars } from "@/utils/constants.js";
+import { globalVars } from "@/utils/constants.ts";
 import { debounce } from "@/utils/debounce.js";
 import { sortedItems } from "@/utils/sort.ts";
 import { getHumanReadableFilesize } from "@/utils/filesizes.js";

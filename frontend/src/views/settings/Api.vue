@@ -45,7 +45,7 @@
               {{ showResult(value) }}
             </span>
           </template>
-          <span v-else>-</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <span v-else>-</span>
         </template>
         <template #cell-actions="{ row }">
           <div class="api-table-actions">

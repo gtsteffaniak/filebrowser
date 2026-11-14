@@ -72,7 +72,7 @@
 <script>
 import { materialSymbols, getIconClass } from "@/utils/material-symbols.js";
 import { copyToClipboard } from "@/utils/clipboard.js";
-import { globalVars } from "@/utils/constants.js";
+import { globalVars } from "@/utils/constants.ts";
 
 export default {
   name: "MaterialIconPicker",

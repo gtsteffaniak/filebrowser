@@ -6,40 +6,40 @@
     <div class="info-grid" :class="{ 'info-grid--fill': activeTab === 'access' }">
       <div class="info-section" v-if="activeTab === 'basic'">
         <div class="info-item">
-          <strong>{{ $t("prompts.displayName") }}</strong>
+          <strong>{{ t("prompts.displayName") }}</strong>
           <span role="group" aria-label="info display name">{{ item.name }}</span>
         </div>
         <div class="info-item">
-          <strong>{{ $t("general.size") }}</strong>
+          <strong>{{ t("general.size") }}</strong>
           <span role="group" aria-label="info size">{{ humanSize }}</span>
         </div>
         <div class="info-item">
-          <strong>{{ $t("general.type") }}</strong>
+          <strong>{{ t("general.type") }}</strong>
           <span role="group" aria-label="info type">{{ item.type }}</span>
         </div>
         <div class="info-item" v-if="humanTime">
-          <strong>{{ $t("files.lastModified") }}</strong>
+          <strong>{{ t("files.lastModified") }}</strong>
           <span role="group" aria-label="info last modified" :title="modTime">{{ humanTime }}</span>
         </div>
         <div class="info-item" v-if="humanCreatedTime">
-          <strong>{{ $t("files.creationTime") }}</strong>
+          <strong>{{ t("files.creationTime") }}</strong>
           <span aria-label="info date added" :title="createdTime">{{ humanCreatedTime }}</span>
         </div>
         <div class="info-item" v-if="source">
-          <strong>{{ $t("general.source") }}</strong>
+          <strong>{{ t("general.source") }}</strong>
           <span role="group" aria-label="info source">{{ source }}</span>
         </div>
         <div class="info-item" v-if="filePath">
-          <strong>{{ $t("general.path") }}</strong>
+          <strong>{{ t("general.path") }}</strong>
           <span role="group" aria-label="info path" class="break-word">{{ filePath }}</span>
         </div>
         <div class="info-item" v-if="item.hidden !== undefined">
-          <strong>{{ $t("prompts.hidden") }}</strong>
-          <span role="group" aria-label="info hidden">{{ item.hidden ? "✓" : "✗" }}</span><!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <strong>{{ t("prompts.hidden") }}</strong>
+          <span role="group" aria-label="info hidden">{{ item.hidden ? "✓" : "✗" }}</span>
         </div>
         <div class="info-item" v-if="item.hasPreview !== undefined">
-          <strong>{{ $t("prompts.hasPreview") }}</strong>
-          <span role="group" aria-label="info has preview">{{ item.hasPreview ? "✓" : "✗" }}</span><!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <strong>{{ t("prompts.hasPreview") }}</strong>
+          <span role="group" aria-label="info has preview">{{ item.hasPreview ? "✓" : "✗" }}</span>
         </div>
         <div class="settings-items" v-if="source && !isShare">
           <ActivityViewerButton :href="activityViewerHref" />
@@ -53,27 +53,27 @@
         </div>
         <!-- Lyrics -->
         <div class="info-item" v-if="hasLyrics">
-          <strong>{{ $t("player.lyrics") }}</strong>
+          <strong>{{ t("player.lyrics") }}</strong>
           <span>
             <a class="info-toggle" role="button" tabindex="0" @click="toggleLyrics" @keydown.enter="toggleLyrics">
-              {{ showLyrics ? $t("general.hide") : $t("general.show") }}
+              {{ showLyrics ? t("general.hide") : t("general.show") }}
             </a>
             <span v-if="showLyrics" class="info-multiline">{{ lyricsText }}</span>
           </span>
         </div>
         <!-- Subtitles -->
         <div class="info-item" v-for="(track, idx) in subtitleTracks" :key="track.name">
-          <strong>{{ $t("prompts.subtitle", { n: idx + 1 }) }}</strong>
+          <strong>{{ t("prompts.subtitle", { n: idx + 1 }) }}</strong>
           <span>
             {{ subtitleLabel(track) }}
             <a class="info-toggle" role="button" tabindex="0" @click="toggleSubtitle(track)" @keydown.enter="toggleSubtitle(track)">
-              {{ subtitleContent[track.name] !== undefined ? $t("general.hide") : $t("general.show") }}
+              {{ subtitleContent[track.name] !== undefined ? t("general.hide") : t("general.show") }}
             </a>
             <span v-if="subtitleContent[track.name] !== undefined" class="info-multiline">{{ subtitleContent[track.name] }}</span>
           </span>
         </div>
         <div class="info-item" v-if="!showMediaContent">
-          <span>{{ $t("general.none") }}</span>
+          <span>{{ t("general.none") }}</span>
         </div>
       </div>
       <div v-else-if="activeTab === 'quota'" class="info-section">
@@ -81,13 +81,13 @@
           <SettingsButton
             class="info-manage-link"
             :name="t('quotas.title')"
-            :description="$t('quotas.openDescription')"
+            :description="t('quotas.openDescription')"
             @activate="openQuotaPrompt"
           />
         </div>
         <div class="info-item">
-          <strong>{{ $t("general.enabled") }}</strong>
-          <span>{{ quotaEnabled ? $t("general.yes") : $t("general.no") }}</span>
+          <strong>{{ t("general.enabled") }}</strong>
+          <span>{{ quotaEnabled ? t("general.yes") : t("general.no") }}</span>
         </div>
         <div v-if="quotaEnabled" class="info-quota-usage">
           <QuotaFolderBar
@@ -109,33 +109,33 @@
       <div class="info-section" v-else-if="activeTab === 'checksums'">
         <div class="hash-generator">
           <div class="hash-select">
-            <label for="hash-algo">{{ $t("prompts.hashAlgorithm") }}</label>
+            <label for="hash-algo">{{ t("prompts.hashAlgorithm") }}</label>
             <div class="form-flex-group">
               <ExpandDropdown
                 input-id="hash-algo"
                 v-model="selectedHashAlgo"
                 class="form-form flat-right"
                 :options="hashAlgoOptions"
-                :aria-label="$t('prompts.hashAlgorithm')"
+                :aria-label="t('prompts.hashAlgorithm')"
               />
               <button type="button" class="button form-button flat-left" @click="generateHash"
-                :title="$t('prompts.generate')" :aria-label="$t('prompts.generate')">
-                {{ $t("prompts.generate") }}
+                :title="t('prompts.generate')" :aria-label="t('prompts.generate')">
+                {{ t("prompts.generate") }}
               </button>
             </div>
           </div>
           <div class="hash-result">
-            <label for="hash-result">{{ $t("prompts.hashValue") }}</label>
+            <label for="hash-result">{{ t("prompts.hashValue") }}</label>
             <div class="form-flex-group">
               <input id="hash-result" class="input form-form flat-right" type="text" :value="hashResult" readonly
-                :placeholder="$t('prompts.selectHashAlgorithm')" />
+                :placeholder="t('prompts.selectHashAlgorithm')" />
               <button
                 type="button"
                 class="button form-button flat-left"
                 @click="copyHash"
                 :disabled="!hashResult"
-                :title="$t('buttons.copyToClipboard')"
-                :aria-label="$t('buttons.copyToClipboard')"
+                :title="t('buttons.copyToClipboard')"
+                :aria-label="t('buttons.copyToClipboard')"
               >
                 <i class="material-symbols-outlined" style="font-size: 16px;">content_copy</i>
               </button>
@@ -152,7 +152,7 @@
 </template>
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
-import { useI18n } from "vue-i18n";
+import { useI18n } from "@/i18n/index.ts";
 import { getHumanReadableFilesize } from "@/utils/filesizes.js";
 import { formatTimestamp, fromNow } from "@/utils/moment.ts";
 import { copyToClipboard } from "@/utils/clipboard.js";

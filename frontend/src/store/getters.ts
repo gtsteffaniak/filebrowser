@@ -3,7 +3,7 @@ import { detectLocale } from "@/i18n/index.ts";
 import { mutations } from "./mutations.ts";
 import { state } from "./state.ts";
 import { url } from "@/utils/index.ts";
-import { globalVars, previewViews, tools } from "@/utils/constants.js";
+import { globalVars, previewViews, tools } from "@/utils/constants.ts";
 import { hasToolAccess, toolIdFromPath } from "@/utils/toolAccess.js";
 import { getFileExtension } from '@/utils/files.js';
 import { getTypeInfo, isHtmlMimeType, isRichTextPreviewMimeType } from "@/utils/mimetype.js";
