@@ -164,6 +164,20 @@ func TestGetRealPathScoped_CacheKeyDoesNotCollideWithUnscoped(t *testing.T) {
 	}
 }
 
+func TestRealPathCacheGeneration_BumpsOnInvalidateAndClear(t *testing.T) {
+	idx := symlinkTestIndex(t.TempDir())
+	gen := realPathGeneration.Load()
+	idx.InvalidateRealPathCache("/any")
+	if realPathGeneration.Load() != gen+1 {
+		t.Fatalf("InvalidateRealPathCache: gen=%d want %d", realPathGeneration.Load(), gen+1)
+	}
+	gen = realPathGeneration.Load()
+	ClearRealPathCaches()
+	if realPathGeneration.Load() != gen+1 {
+		t.Fatalf("ClearRealPathCaches: gen=%d want %d", realPathGeneration.Load(), gen+1)
+	}
+}
+
 func TestClearRealPathCaches_ClearsWarmEntries(t *testing.T) {
 	sourceRoot, userScope := setupSymlinkEscapeFixture(t)
 	idx := symlinkTestIndex(sourceRoot)
