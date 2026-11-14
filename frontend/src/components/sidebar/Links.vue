@@ -171,7 +171,7 @@ import { getIconClass } from "@/utils/material-symbols.js";
 import { baseSidebarCategory, isRootOnlySidebarCategory, isSourceSidebarCategory } from "@/utils/sidebarCategory.ts";
 import { getObjectProperty } from '@/utils/object.js';
 import IndexInfo from "@/components/files/IndexInfo.vue";
-import { globalVars } from "@/utils/constants.js";
+import { globalVars } from "@/utils/constants.ts";
 import { availableTools, hasToolAccess, toolIdFromPath } from "@/utils/toolAccess.js";
 import { showShareDownloadPrompt } from "@/utils/download.js";
 import ShareInfo from "@/components/files/ShareInfo.vue";

@@ -1,6 +1,6 @@
 <template>
   <div class="viewer-background">
-    <div v-if="loading" class="status-text">{{ $t('general.loading', { suffix: "..." }) }}</div>
+    <div v-if="loading" class="status-text">{{ t('general.loading', { suffix: "..." }) }}</div>
     <div v-else-if="error" class="status-text error">{{ error }}</div>
     <!-- biome-ignore lint/nursery/noVueVHtml: sanitized by sanitizeDocxHtml -->
     <div v-else class="docx-page" v-html="docxHtml"></div>
@@ -14,6 +14,9 @@ import { ensureViewToken, refreshViewToken, requestViewIdentity } from "@/api/vi
 import { state, mutations, getters } from "@/store/index.ts";
 import { sanitizeDocxHtml } from "@/utils/docxPreview.ts";
 import { removeLastDir } from "@/utils/url.js";
+import { useI18n } from "@/i18n/index.ts";
+
+const { t } = useI18n();
 
 defineOptions({ name: "docViewer" });
 

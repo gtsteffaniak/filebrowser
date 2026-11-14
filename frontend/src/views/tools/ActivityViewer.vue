@@ -241,7 +241,7 @@
                 >{{ badge.text }}</span>
               </div>
             </div>
-            <span v-else class="details-muted">—</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+            <span v-else class="details-muted">—</span>
           </template>
           </settings-table>
         </div>
@@ -346,7 +346,7 @@ import { formatTimestamp } from "@/utils/moment.ts";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import SharePickerButton from "@/components/tools/SharePickerButton.vue";
 import PathPickerButton from "@/components/files/PathPickerButton.vue";
-import { globalVars } from "@/utils/constants.js";
+import { globalVars } from "@/utils/constants.ts";
 import { getObjectProperty } from "@/utils/object.js";
 import {
   filterEventTypesForScope,

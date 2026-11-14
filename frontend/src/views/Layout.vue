@@ -48,7 +48,7 @@ import { settingsApi } from "@/api/index.js";
 import { state, getters, mutations } from "@/store/index.ts";
 import { events, notify } from "@/notify/index.ts";
 import { generateRandomCode } from "@/utils/auth.js";
-import { globalVars } from "@/utils/constants.js";
+import { globalVars } from "@/utils/constants.ts";
 import { syncDocumentTheme, syncEventTheme } from "@/utils/theme.js";
 import Search from "@/components/Search.vue";
 

@@ -36,7 +36,8 @@
             max="24"
             step="1"
           />
-          <span class="size-label">{{ editorFontSize }}px</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <!-- i18n-ignore -->
+          <span class="size-label">{{ editorFontSize }}px</span>
         </div>
       </div>
     </div>

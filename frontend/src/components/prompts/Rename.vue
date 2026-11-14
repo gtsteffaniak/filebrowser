@@ -11,7 +11,7 @@
       <div v-if="item.type !== 'directory'" class="filename-inputs">
       <i class="file-type-icon" :class="typeInfo.classes" aria-hidden="true">{{ typeInfo.materialSymbol }}</i>
       <input ref="filenameInput" aria-label="New Name" class="input" :class="{ 'form-invalid': !validation.valid }" v-focus type="text" @keydown="onKeydown" @keyup="onKeyup" v-model.trim="fileName" @input="updateFullName" />
-      <span class="extension-separator">.</span> <!--eslint-disable-line @intlify/vue-i18n/no-raw-text-->
+      <span class="extension-separator">.</span>
       <input
         class="input extension-input"
         type="text"

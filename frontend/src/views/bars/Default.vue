@@ -42,7 +42,7 @@
 import { router } from "@/router/index.ts";
 import { getters, state, mutations } from "@/store/index.ts";
 import Action from "@/components/Action.vue";
-import { globalVars } from "@/utils/constants.js";
+import { globalVars } from "@/utils/constants.ts";
 import { url } from "@/utils/index.ts";
 
 export default {

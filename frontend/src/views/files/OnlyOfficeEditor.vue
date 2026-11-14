@@ -21,7 +21,7 @@
 
 <script>
 import { DocumentEditor } from "@onlyoffice/document-editor-vue";
-import { globalVars } from "@/utils/constants.js";
+import { globalVars } from "@/utils/constants.ts";
 import { router } from "@/router/index.ts";
 import { state, mutations, getters } from "@/store/index.ts";
 import { removeLastDir } from "@/utils/url.js";

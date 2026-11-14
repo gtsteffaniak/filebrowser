@@ -22,7 +22,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, onUnmounted, ref, shallowRef, useTemplateRef, watch } from "vue";
 import { useRoute, useRouter, type RouteLocationNormalized } from "vue-router";
-import { useI18n } from "vue-i18n";
+import { useI18n } from "@/i18n/index.ts";
 import type { Ace } from "ace-builds";
 import { state, getters, mutations } from "@/store/index.ts";
 import { resourcesApi } from "@/api/index.js";

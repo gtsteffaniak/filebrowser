@@ -16,8 +16,8 @@
         type="button"
         class="clear-queue-btn"
         @click="clearQueue"
-        :title="$t('player.clearQueue')"
-        :aria-label="$t('player.clearQueue')"
+        :title="t('player.clearQueue')"
+        :aria-label="t('player.clearQueue')"
       >
         <i class="material-symbols">delete</i>
       </button>
@@ -63,7 +63,6 @@
               <span v-if="item.fileType" class="file-type-badge">{{ item.fileType }}</span>
               <span class="queue-item-indicator">
                 <span v-if="item.index === currentQueueIndex" class="current-track">
-                  <!-- eslint-disable-next-line @intlify/vue-i18n/no-raw-text -->
                   <i class="material-symbols">{{ isPlaying ? 'pause' : 'play_arrow' }}</i>
                 </span>
                 <span v-else class="track-number">{{ item.index + 1 }}</span>
@@ -76,7 +75,7 @@
     <!-- Empty state -->
     <div v-else class="empty">
       <i class="material-symbols">queue_music</i>
-      <p>{{ $t('player.emptyQueue') }}</p>
+      <p>{{ t('player.emptyQueue') }}</p>
     </div>
   </div>
 
@@ -97,7 +96,7 @@
 
 <script setup lang="ts">
 import { computed, nextTick, onMounted, useTemplateRef, watch } from "vue";
-import { useI18n } from "vue-i18n";
+import { useI18n } from "@/i18n/index.ts";
 import { state, mutations, getters } from "@/store/index.ts";
 import type { MediaMetadata } from "@/store/types.ts";
 import { url } from "@/utils/index.ts";
@@ -115,7 +114,7 @@ import {
 import Icon from "@/components/files/Icon.vue";
 import SlidingTabs from "@/components/settings/SlidingTabs.vue";
 import { resourcesApi } from "@/api/index.js";
-import { globalVars } from "@/utils/constants.js";
+import { globalVars } from "@/utils/constants.ts";
 import { formatDuration, getTypeFromMime, removeExtension } from "@/utils/files.js";
 import { findScrollParents, useListingVirtualization } from "@/composables/useListingVirtualization.ts";
 import type { VirtualItem } from "@/composables/useListingVirtualization.ts";

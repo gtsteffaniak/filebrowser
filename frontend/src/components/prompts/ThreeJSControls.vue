@@ -1,30 +1,30 @@
 <template>
   <div class="card-content no-buttons">
     <div v-if="!isMobile" class="shortcut-section">
-      <h3 class="section-title">⌨️ {{ $t("threejs.keyboard") }}</h3> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+      <h3 class="section-title">⌨️ {{ $t("threejs.keyboard") }}</h3>
       <div class="shortcut-item">
         <kbd>{{ $t("general.space") }}</kbd>
         <span>{{ spaceText }}</span>
       </div>
       <div class="shortcut-item">
-        <kbd>R</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+        <kbd>R</kbd>
         <span>{{ $t("general.reset") }}</span>
       </div>
       <div class="shortcut-item">
-        <kbd>Q / E</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+        <kbd>Q / E</kbd>
         <span>{{ $t("threejs.rotateY") }}</span>
       </div>
       <div class="shortcut-item">
-        <kbd>W / S</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+        <kbd>W / S</kbd>
         <span>{{ $t("threejs.rotateX") }}</span>
       </div>
       <div class="shortcut-item">
-        <kbd>+ / -</kbd> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+        <kbd>+ / -</kbd>
         <span>{{ $t("general.zoom") }}</span>
       </div>
     </div>
     <div class="shortcut-section">
-      <h3 class="section-title">🎨 {{ $t("general.background") }}</h3> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+      <h3 class="section-title">🎨 {{ $t("general.background") }}</h3>
       <div class="color-control">
         <input
           type="color"

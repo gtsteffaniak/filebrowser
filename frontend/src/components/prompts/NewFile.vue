@@ -12,7 +12,7 @@
         <input ref="filenameInput" class="input" aria-label="FileName Field" v-focus type="text" @keyup.enter="submit"
           v-model.trim="fileName" @input="updateFullName" />
         <template v-if="fileExtension">
-          <span class="extension-separator">.</span> <!--eslint-disable-line @intlify/vue-i18n/no-raw-text-->
+          <span class="extension-separator">.</span>
           <input
             class="input extension-input"
             type="text"

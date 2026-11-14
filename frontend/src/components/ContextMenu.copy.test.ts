@@ -47,7 +47,10 @@ vi.mock("@/store", () => ({
     isSplitViewActive: () => false,
   },
 }));
-vi.mock("vue-i18n", () => ({ useI18n: () => ({ t: (key: string) => key }) }));
+vi.mock("@/i18n/index.ts", () => ({
+  default: { global: { t: (key: string) => key } },
+  useI18n: () => ({ t: (key: string) => key }),
+}));
 vi.mock("vue-router", () => ({ useRouter: () => ({ push: vi.fn(), replace: vi.fn() }) }));
 vi.mock("@/api", () => ({ resourcesApi: {}, shareApi: {}, usersApi: {} }));
 vi.mock("@/notify", () => ({ notify: {} }));

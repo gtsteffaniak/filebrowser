@@ -173,7 +173,7 @@ import {
 } from "@/utils/tooltipHelp.js";
 import { getHumanReadableFilesize } from "@/utils/filesizes.js";
 import { getTypeInfo } from "@/utils/mimetype.js";
-import { globalVars } from "@/utils/constants.js";
+import { globalVars } from "@/utils/constants.ts";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import PathPickerButton from "@/components/files/PathPickerButton.vue";
 

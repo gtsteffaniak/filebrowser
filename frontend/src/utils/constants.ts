@@ -1,0 +1,155 @@
+import i18n, { type PlainMessageKey } from "@/i18n/index.ts";
+import { getIconClass } from "./material-symbols.js";
+
+declare global {
+  interface Window {
+    // biome-ignore lint/suspicious/noExplicitAny: server-provided config, not yet typed
+    globalVars?: any;
+  }
+}
+
+const appConfigEl = document.querySelector('#app-config');
+// biome-ignore lint/suspicious/noExplicitAny: server-provided config, not yet typed
+const globalVars: any = appConfigEl?.textContent
+  ? JSON.parse(appConfigEl.textContent)
+  : window.globalVars;
+if (typeof window !== 'undefined') {
+  window.globalVars = globalVars;
+}
+const origin = window.location.origin;
+
+export interface SettingsSection {
+  id: string;
+  label?: PlainMessageKey;
+  component?: string;
+  icon: string;
+  permissions?: Record<string, boolean>;
+}
+
+export interface SettingsEntry extends SettingsSection {
+  sections?: (SettingsSection & { label: PlainMessageKey })[];
+}
+
+const settings: SettingsEntry[] = [
+  {
+    id: 'profile',
+    component: 'ProfileSettings',
+    icon: 'person',
+    sections: [
+      { id: 'listingOptions', label: 'settings.listingOptions', icon: 'view_list' },
+      { id: 'thumbnailOptions', label: 'profileSettings.thumbnailOptions', icon: 'image' },
+      { id: 'sidebarOptions', label: 'profileSettings.sidebarOptions', icon: 'dock_to_right' },
+      { id: 'searchOptions', label: 'settings.searchOptions', icon: 'search' },
+      { id: 'fileViewerOptions', label: 'profileSettings.fileViewerOptions', icon: 'play_circle' },
+      { id: 'themeLanguage', label: 'profileSettings.themeAndLanguage', icon: 'palette' },
+      { id: 'accountOptions', label: 'profileSettings.accountOptions', icon: 'person' },
+    ],
+  },
+  { id: 'fileLoading', label: 'fileLoading.title', component: 'FileLoading', icon: 'cloud_download' },
+  { id: 'notifications', label: 'notifications.title', component: 'NotificationsSettings', icon: 'notifications' },
+  { id: 'shares', component: 'SharesSettings', permissions: { share: true }, icon: 'share' },
+  { id: 'api', label: 'api.title', component: 'ApiKeys', permissions: { api: true }, icon: 'key' },
+  {
+    id: 'users',
+    component: 'UserManagement',
+    icon: 'group',
+    sections: [
+      { id: 'main', label: 'general.users', permissions: { admin: true }, icon: 'person' },
+      { id: 'access', label: 'general.access', component: 'AccessSettings', permissions: { admin: true }, icon: 'lock' },
+      { id: 'groups', label: 'general.groups', component: 'GroupsSettings', permissions: { admin: true }, icon: 'groups' },
+    ],
+  },
+  {
+    id: 'media',
+    label: 'general.media',
+    component: 'MediaSettings',
+    permissions: { admin: true },
+    icon: 'movie',
+  },
+  { id: 'systemAdmin', label: 'settings.systemAdmin', component: 'SystemAdmin', permissions: { admin: true }, icon: 'admin_panel_settings' },
+];
+
+const previewViews = [
+  'preview',
+  'markdownViewer',
+  'epubViewer',
+  'docViewer',
+  'onlyOfficeEditor',
+  'wopiEditor',
+  'editor',
+  'loading',
+  'threeJsViewer'
+];
+
+export interface Tool {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  path: string;
+  component: string;
+}
+
+// Translated on every call, so the names follow the current locale
+const getTools = (): Tool[] => [
+  {
+    id: "sizeViewer",
+    name: i18n.global.t("tools.sizeAnalyzer.name"),
+    description: i18n.global.t("tools.sizeAnalyzer.description"),
+    icon: "analytics",
+    path: "/tools/sizeViewer",
+    component: "SizeViewer",
+  },
+  {
+    id: "duplicateFinder",
+    name: i18n.global.t("tools.duplicateFinder.name"),
+    description: i18n.global.t("tools.duplicateFinder.description"),
+    icon: "content_copy",
+    path: "/tools/duplicateFinder",
+    component: "DuplicateFinder",
+  },
+  {
+    id: "advancedSearch",
+    name: i18n.global.t("tools.advancedSearch.name"),
+    description: i18n.global.t("tools.advancedSearch.description"),
+    icon: "manage_search",
+    path: "/tools/advancedSearch",
+    component: "AdvancedSearch",
+  },
+  {
+    id: "materialIconPicker",
+    name: i18n.global.t("tools.materialIconPicker.name"),
+    description: i18n.global.t("tools.materialIconPicker.description"),
+    icon: "interests",
+    path: "/tools/materialIconPicker",
+    component: "MaterialIconPicker",
+  },
+  {
+    id: "fileWatcher",
+    name: i18n.global.t("tools.fileWatcher.name"),
+    description: i18n.global.t("tools.fileWatcher.description"),
+    icon: "visibility",
+    path: "/tools/fileWatcher",
+    component: "FileWatcher",
+  },
+  {
+    id: "activityViewer",
+    name: i18n.global.t("tools.activityViewer.name"),
+    description: i18n.global.t("tools.activityViewer.description"),
+    icon: "monitoring",
+    path: "/tools/activityViewer",
+    component: "ActivityViewer",
+  },
+];
+
+// Resolve tools lazily each call so locale and new registrations stay accurate
+const tools = () => getTools();
+
+export {
+  getIconClass, // Re-exported from material-symbols.js for convenience
+  globalVars,
+  origin,
+  previewViews,
+  settings,
+  tools,
+};

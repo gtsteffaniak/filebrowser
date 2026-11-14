@@ -41,7 +41,7 @@
 
 <script>
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
-import { tools } from "@/utils/constants.js";
+import { tools } from "@/utils/constants.ts";
 import { normalizeUserToolAccess } from "@/utils/toolAccess.js";
 
 export default {

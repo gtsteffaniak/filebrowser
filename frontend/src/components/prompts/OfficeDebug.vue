@@ -2,38 +2,38 @@
   <div class="card-content no-buttons">
     <div class="debug-tooltip">
       <div class="debug-header">
-        <h3 class="debug-title">🔧 {{ $t("onlyoffice.debugTitle") }}</h3> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+        <h3 class="debug-title">🔧 {{ $t("onlyoffice.debugTitle") }}</h3>
       </div>
       <div class="debug-section debug-section-basic">
         <div class="debug-section-header">
-          <strong class="debug-section-title">⚙️ {{ $t("onlyoffice.basicConfiguration") }}</strong> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <strong class="debug-section-title">⚙️ {{ $t("onlyoffice.basicConfiguration") }}</strong>
         </div>
-        {{ $t("onlyoffice.onlyOffice") }} {{ $t("general.path", { suffix: ":" }) }} {{ onlyOfficeUrl }}<br/> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-        {{ $t("onlyoffice.internalUrl") }}: {{ internalUrlInfo.message }}<br/> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-        {{ $t("general.path", { suffix: ":" }) }} {{ baseURL }}<br/> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-        {{ $t("general.source", { suffix: ":" }) }} {{ source }}<br/> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-        {{ $t("general.path", { suffix: ":" }) }} {{ path }}<br/> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-        {{ $t("general.name", { suffix: ":" }) }} {{ filename }}<br/> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-        {{ isShare ? `${shareHashLabel()}: ${shareHash}` : $t("onlyoffice.userRequest") }}<br/> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+        {{ $t("onlyoffice.onlyOffice") }} {{ $t("general.path", { suffix: ":" }) }} {{ onlyOfficeUrl }}<br/>
+        {{ $t("onlyoffice.internalUrl") }}: {{ internalUrlInfo.message }}<br/>
+        {{ $t("general.path", { suffix: ":" }) }} {{ baseURL }}<br/>
+        {{ $t("general.source", { suffix: ":" }) }} {{ source }}<br/>
+        {{ $t("general.path", { suffix: ":" }) }} {{ path }}<br/>
+        {{ $t("general.name", { suffix: ":" }) }} {{ filename }}<br/>
+        {{ isShare ? `${shareHashLabel()}: ${shareHash}` : $t("onlyoffice.userRequest") }}<br/>
       </div>
 
       <div v-if="clientConfig?.document" class="debug-section debug-section-config">
         <div class="debug-section-header">
-          <strong class="debug-section-title">🔧 {{ $t("onlyoffice.configurationDetails") }}</strong> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <strong class="debug-section-title">🔧 {{ $t("onlyoffice.configurationDetails") }}</strong>
         </div>
-        {{ $t("onlyoffice.documentKey") }}: {{ clientConfig.document.key }}<br/> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-        {{ $t("onlyoffice.fileType") }}: {{ clientConfig.document.fileType }}<br/> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-        {{ $t("onlyoffice.editMode") }}: {{ clientConfig.editorConfig ? clientConfig.editorConfig.mode : 'N/A' }}<br/> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-        {{ $t("onlyoffice.downloadURL") }}: {{ clientConfig.document.url ? `${clientConfig.document.url.substring(0, 80)}...` : 'N/A' }}<br/> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-        {{ $t("onlyoffice.callbackURL") }}: {{ clientConfig.editorConfig?.callbackUrl ? `${clientConfig.editorConfig.callbackUrl.substring(0, 80)}...` : 'N/A' }}<br/> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+        {{ $t("onlyoffice.documentKey") }}: {{ clientConfig.document.key }}<br/>
+        {{ $t("onlyoffice.fileType") }}: {{ clientConfig.document.fileType }}<br/>
+        {{ $t("onlyoffice.editMode") }}: {{ clientConfig.editorConfig ? clientConfig.editorConfig.mode : 'N/A' }}<br/>
+        {{ $t("onlyoffice.downloadURL") }}: {{ clientConfig.document.url ? `${clientConfig.document.url.substring(0, 80)}...` : 'N/A' }}<br/>
+        {{ $t("onlyoffice.callbackURL") }}: {{ clientConfig.editorConfig?.callbackUrl ? `${clientConfig.editorConfig.callbackUrl.substring(0, 80)}...` : 'N/A' }}<br/>
         <br/>
-        <strong>{{ $t("onlyoffice.networkFlow") }}:</strong><br/> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-        {{ $t("onlyoffice.browser") }} ({{ windowOrigin }}) ↔ {{ $t("onlyoffice.onlyOffice") }}: {{ onlyOfficeUrl }}<br/> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-        {{ $t("onlyoffice.onlyOffice") }} → {{ $t("onlyoffice.fileBrowser") }}: {{ downloadDomain }}<br/> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+        <strong>{{ $t("onlyoffice.networkFlow") }}:</strong><br/>
+        {{ $t("onlyoffice.browser") }} ({{ windowOrigin }}) ↔ {{ $t("onlyoffice.onlyOffice") }}: {{ onlyOfficeUrl }}<br/>
+        {{ $t("onlyoffice.onlyOffice") }} → {{ $t("onlyoffice.fileBrowser") }}: {{ downloadDomain }}<br/>
       </div>
 
       <div class="debug-section">
-        <strong>{{ $t("onlyoffice.processSteps") }}:</strong><br/> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+        <strong>{{ $t("onlyoffice.processSteps") }}:</strong><br/>
         <div v-for="(step, i) in debugInfo" :key="i">
           {{ step.text }}
           <template v-for="(line, j) in step.lines" :key="j">
@@ -42,20 +42,20 @@
           </template>
           <template v-if="step.link">
             <br/>
-            <a :href="wikiLink" target="_blank" rel="noopener noreferrer">📖 {{ $t("onlyoffice.troubleshootingGuide") }}</a> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+            <a :href="wikiLink" target="_blank" rel="noopener noreferrer">📖 {{ $t("onlyoffice.troubleshootingGuide") }}</a>
           </template>
         </div>
       </div>
 
       <div v-if="onlyOfficeLogs.length > 0" class="debug-section debug-section-logs">
         <div class="debug-section-header-logs">
-          <strong class="debug-section-title-logs">📋 {{ $t("onlyoffice.backendLogs") }}</strong> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <strong class="debug-section-title-logs">📋 {{ $t("onlyoffice.backendLogs") }}</strong>
           <span class="debug-section-counter">{{ onlyOfficeLogs.length }} {{ $t("onlyoffice.entries") }}</span>
         </div>
         <div v-for="log in displayedLogs" :key="log.id" class="debug-log-entry">
-          <span class="debug-log-level" :style="{ color: getLogLevelColor(log.level) }">[{{ log.level }}]</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <span class="debug-log-level" :style="{ color: getLogLevelColor(log.level) }">[{{ log.level }}]</span>
           <span class="debug-log-timestamp">{{ formatTimestamp(log.timestamp) }}</span>
-          <span class="debug-log-component">[{{ log.component }}]</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <span class="debug-log-component">[{{ log.component }}]</span>
           <span class="debug-log-message">{{ log.message }}</span>
         </div>
       </div>
@@ -64,15 +64,14 @@
       </div>
 
       <div v-if="overallStatus === 'error'" class="debug-status-error">
-        <strong>❌ {{ $t("onlyoffice.errorDetected") }}</strong><br/> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+        <strong>❌ {{ $t("onlyoffice.errorDetected") }}</strong><br/>
         {{ $t("onlyoffice.integrationFailed") }}<br/>
         <a :href="wikiLink" target="_blank" rel="noopener noreferrer">
-          <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
           📖 {{ $t("onlyoffice.troubleshootingGuide") }}
         </a>
       </div>
       <div v-else-if="overallStatus === 'success'" class="debug-status-success">
-        <strong>🎉 {{ $t("onlyoffice.documentInitialized") }}</strong><br/> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+        <strong>🎉 {{ $t("onlyoffice.documentInitialized") }}</strong><br/>
         {{ $t("onlyoffice.integrationSuccess") }}
       </div>
     </div>
@@ -81,7 +80,7 @@
 
 <script>
 import { state, getters } from "@/store/index.ts";
-import { globalVars } from "@/utils/constants.js";
+import { globalVars } from "@/utils/constants.ts";
 import { officeApi } from "@/api/index.js";
 import { events } from "@/notify/index.ts";
 

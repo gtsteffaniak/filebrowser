@@ -1,9 +1,51 @@
-// i18n.js
-import { createI18n } from 'vue-i18n';
+import { createI18n, useI18n as useVueI18n, type Composer } from 'vue-i18n';
 import { nextTick } from 'vue';
-import en from './en.json' with { type: "json" };
+import en from './locales/en.json' with { type: "json" };
+import type { MessageParams, OptionalParam } from './messages.generated.ts';
 
 type MessageSchema = typeof en;
+
+// Type vue-i18n' against en.json
+declare module 'vue-i18n' {
+  export interface DefineLocaleMessage extends MessageSchema {}
+}
+
+/** Every valid translation key generated from en.json */
+export type MessageKey = keyof MessageParams;
+
+type RequiredParams<K extends MessageKey> = Exclude<MessageParams[K], OptionalParam>;
+
+/** Keys that can be translated without params. Use it for data that is later passed to `t(key)` on its own */
+export type PlainMessageKey = {
+  [K in MessageKey]: [RequiredParams<K>] extends [never] ? K : never;
+}[MessageKey];
+
+type MessageArgs<K extends MessageKey> = MessageKey extends K
+  ? [named?: never]
+  : [MessageParams[K]] extends [never]
+  ? []
+  : [RequiredParams<K>] extends [never]
+    ? [named?: { [P in MessageParams[K]]?: unknown }]
+    : [
+        named: { [P in RequiredParams<K>]: unknown } & {
+          [P in Extract<MessageParams[K], OptionalParam>]?: unknown;
+        },
+      ];
+
+type ExactKey<K extends MessageKey> = MessageKey extends K ? never : K;
+
+/** `t()` with the key and the named params type-checked against en.json */
+export type StrictTranslate = <K extends MessageKey>(
+  key: K & ExactKey<K>,
+  ...args: MessageArgs<K>
+) => string;
+
+type StrictComposer = Omit<Composer, 't'> & { t: StrictTranslate };
+
+/** vue-i18n's `useI18n()`, with a `t()` that type-checks keys and params. */
+export function useI18n(): StrictComposer {
+  return useVueI18n() as unknown as StrictComposer;
+}
 
 // All the locales in alphabetical order
 export const availableLocales: Record<string, string> = {
@@ -99,8 +141,8 @@ setLanguage('en');
 
 // import.meta.glob is vite-specific
 // here we are preloading all json files as lazy chunks, except 'en.json' since this one will be always loaded.
-const localeModules = import.meta.glob<{ default: Record<string, unknown> }>(
-  ['./*.json', '!./en.json'],
+const localeModules = import.meta.glob<{ default: MessageSchema }>(
+  ['./locales/*.json', '!./locales/en.json'],
 );
 
 export async function setLocale(locale: string) {
@@ -121,7 +163,7 @@ export async function setLocale(locale: string) {
       setLanguage('en');
       return;
     }
-    const loadMessages = localeModules[`./${fileName}.json`];
+    const loadMessages = localeModules[`./locales/${fileName}.json`];
     if (!loadMessages) {
       setLanguage('en');
       return;
@@ -139,4 +181,7 @@ export async function setLocale(locale: string) {
 const detected = detectLocale();
 if (detected !== 'en') void setLocale(detected);
 
-export default i18n;
+// The default export exposes the strict `t()`: `i18n.global.t(key, params)`
+export default i18n as unknown as Omit<typeof i18n, 'global'> & {
+  global: Omit<typeof i18n.global, 't'> & { t: StrictTranslate };
+};

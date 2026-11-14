@@ -39,7 +39,7 @@ import { mutations } from "@/store/index.ts";
 import { notify } from "@/notify/index.ts";
 import { authApi } from "@/api/index.js";
 import { initAuth } from "@/utils/auth.js";
-import { globalVars } from "@/utils/constants.js";
+import { globalVars } from "@/utils/constants.ts";
 import QrcodeVue from "qrcode.vue";
 
 export default {

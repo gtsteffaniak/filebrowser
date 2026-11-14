@@ -654,7 +654,7 @@
 <script>
 import { getters } from "@/store/index.ts";
 import { getObjectProperty } from "@/utils/object.js";
-import { globalVars } from "@/utils/constants.js";
+import { globalVars } from "@/utils/constants.ts";
 import { bytesFromCustomAmount } from "@/utils/quotaUnits.js";
 import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";

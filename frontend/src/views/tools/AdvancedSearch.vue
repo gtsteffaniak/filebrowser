@@ -4,7 +4,7 @@
       <form class="card-content advanced-search-card-form" @submit.prevent="runSearch()">
         <div class="advanced-search-config-row">
           <div class="config-primary">
-            <div class="as-section-label">{{ $t("tools.advancedSearch.searchTerms") }}</div>
+            <div class="as-section-label">{{ t("tools.advancedSearch.searchTerms") }}</div>
             <template v-for="(term, idx) in termInputs" :key="`term-${idx}`">
               <div
                 v-if="idx > 0"
@@ -22,13 +22,13 @@
                   :class="{ 'flat-right': termInputs.length > 1 }"
                   type="search"
                   autocomplete="off"
-                  :placeholder="$t('general.search', { suffix: '...' })"
+                  :placeholder="t('general.search', { suffix: '...' })"
                 />
                 <button
                   v-if="termInputs.length > 1"
                   type="button"
                   class="button flat-left no-height"
-                  :aria-label="$t('general.delete')"
+                  :aria-label="t('general.delete')"
                   @click="removeTermAt(idx)"
                 >
                   <i class="material-symbols material-size">delete</i>
@@ -46,21 +46,21 @@
               v-if="termInputs.length > 1"
               v-model="termsJoinAnd"
               class="advanced-search-switch"
-              :name="$t('tools.advancedSearch.matchAllTerms')"
-              :description="$t('tools.advancedSearch.matchAllTermsDescription')"
+              :name="t('tools.advancedSearch.matchAllTerms')"
+              :description="t('tools.advancedSearch.matchAllTermsDescription')"
             />
           </div>
 
           <div class="config-secondary">
             <div class="as-sources-block">
-              <div class="as-section-label">{{ $t("general.sources") }}</div>
+              <div class="as-section-label">{{ t("general.sources") }}</div>
               <ExpandDropdown
                 v-model="selectedSourceNames"
                 class="source-dropdown-select"
                 :options="sourceOptions"
                 allow-multiple
-                :all-selected-label="$t('general.allSources')"
-                :aria-label="$t('general.sources', { suffix: '' })"
+                :all-selected-label="t('general.allSources')"
+                :aria-label="t('general.sources', { suffix: '' })"
               />
               <template
                 v-for="srcName in activeSources"
@@ -72,8 +72,8 @@
                   :source="srcName"
                   :show-files="false"
                   :show-folders="true"
-                  :aria-label="$t('tools.advancedSearch.scopeAria')"
-                  :placeholder="$t('sidebar.chooseSource')"
+                  :aria-label="t('tools.advancedSearch.scopeAria')"
+                  :placeholder="t('sidebar.chooseSource')"
                 />
               </template>
             </div>
@@ -82,7 +82,7 @@
               <SearchFilters :filters="filters">
                 <template #extra-settings>
                   <div class="settings-number-input item">
-                    <label for="advanced-search-limit">{{ $t('tools.advancedSearch.resultLimit') }}</label>
+                    <label for="advanced-search-limit">{{ t('tools.advancedSearch.resultLimit') }}</label>
                     <div>
                       <input
                         id="advanced-search-limit"
@@ -102,7 +102,7 @@
             <div class="advanced-search-actions-row">
               <button type="submit" class="button search-submit" :disabled="loading" :aria-busy="loading">
                 <i v-if="loading" class="material-symbols spin">autorenew</i>
-                <span v-else>{{ $t("general.search") }}</span>
+                <span v-else>{{ t("general.search") }}</span>
               </button>
             </div>
           </div>
@@ -113,14 +113,14 @@
     <div v-if="searchExecuted" class="advanced-search-results-plane">
       <h2 v-if="loading" class="message delayed">
         <LoadingSpinner size="medium" />
-        <span>{{ $t("general.loading", { suffix: "..." }) }}</span>
+        <span>{{ t("general.loading", { suffix: "..." }) }}</span>
       </h2>
       <template v-else>
         <div v-if="error" class="error-message padded-message">
           {{ error }}
         </div>
         <div v-else-if="resultsEmpty" class="empty-state-message padded-message">
-          <p>{{ $t("tools.advancedSearch.noResults") }}</p>
+          <p>{{ t("tools.advancedSearch.noResults") }}</p>
         </div>
         <div v-else ref="results" class="advanced-search-listing-results">
           <div class="advanced-search-sticky-header" :class="{ 'header-hidden': headerHidden }">
@@ -142,7 +142,7 @@
               <template v-for="section in sections" :key="section.key">
                 <template v-if="section.items.length > 0">
                   <div>
-                    <h2>{{ $t(section.title) }}</h2>
+                    <h2>{{ t(section.title) }}</h2>
                   </div>
                   <div
                     :class="[section.class, { lastGroup: section.last }]"
@@ -186,12 +186,12 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from "vue";
 import type { FileListItem, fileListItemIndex, ReqObject } from "@/store/types.ts";
 import { useRoute } from "vue-router";
-import { useI18n } from "vue-i18n";
+import { type PlainMessageKey, useI18n } from "@/i18n/index.ts";
 import { toolsApi } from "@/api/index.js";
 import { router } from "@/router/index.ts";
 import { state, getters, mutations } from "@/store/index.ts";
 import { eventBus } from "@/store/eventBus.ts";
-import { globalVars } from "@/utils/constants.js";
+import { globalVars } from "@/utils/constants.ts";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import PathPickerButton from "@/components/files/PathPickerButton.vue";
@@ -482,7 +482,9 @@ const reqListing = computed(() => {
   return grouped;
 });
 
-const sections = computed(() => [
+const sections = computed<
+  { key: string; class: string; title: PlainMessageKey; label: string; items: typeof reqListing.value.dirs; last: boolean }[]
+>(() => [
   { key: "dirs", class: "folder-items", title: "general.folders", label: "Folder Items", items: reqListing.value.dirs, last: reqListing.value.files.length === 0 },
   { key: "files", class: "file-items", title: "general.files", label: "File Items", items: reqListing.value.files, last: true },
 ]);
