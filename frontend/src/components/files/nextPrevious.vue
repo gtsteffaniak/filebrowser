@@ -218,6 +218,9 @@ export default {
     nextRaw() {
       return state.navigation.nextRaw;
     },
+    navigationRequestKey() {
+      return state.req ? `${state.req.source ?? ""}\u0000${state.req.path ?? ""}` : "";
+    },
     currentView() {
       const view = getters.currentView();
       return view;
@@ -294,6 +297,11 @@ export default {
           }
         });
       }, 100);
+    },
+    navigationRequestKey() {
+      if (this.enabled && state.req) {
+        void this.setupNavigationForCurrentItem();
+      }
     },
     navigationSortOverride() {
       if (this.enabled && state.req) {

@@ -13,7 +13,7 @@
         :icon="showDesktopPanel ? 'close' : 'queue_music'"
         :badge="!showDesktopPanel ? queueCount : null"
         :auto-hide="!showDesktopPanel"
-        :offset="{ zIndex: 9999 }"
+        :offset="{ zIndex: '9999' }"
         @press="showDesktopPanel = !showDesktopPanel"
         :label="desktopPanelToggleLabel"
       />

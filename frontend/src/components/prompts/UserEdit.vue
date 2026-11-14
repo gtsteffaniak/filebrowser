@@ -1159,6 +1159,7 @@ export default {
       this.applyEditAccountField(field, value);
       this.applyEditAccountToUser();
       this.emitUpdate();
+      this.syncSessionState();
     },
     deletePrompt() {
       mutations.showPrompt({

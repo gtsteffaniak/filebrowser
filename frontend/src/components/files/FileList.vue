@@ -14,7 +14,7 @@
     </div>
 
     <!-- Sortable Column Header (opt-in via sortable prop, e.g. destination pickers) -->
-    <div v-if="(!hidePathChrome && !fileList) || sortable || $slots.pinned" class="sticky-header" :class="{ 'header-hidden': headerHidden }">
+    <div v-if="(!hidePathChrome && !fileList) || sortable || $slots.sticky" class="sticky-header" :class="{ 'header-hidden': headerHidden }">
       <!-- Current Path Display -->
       <div v-if="!hidePathChrome && !fileList" aria-label="filelist-path" class="searchContext button clickable">
         {{ $t('general.path', { suffix: ':' }) }} {{ sourcePath.path }}

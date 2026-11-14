@@ -455,7 +455,10 @@ async function handlePaste(event: ClipboardEvent) {
   // We handle this paste when the internal clipboard is recent, when the OS clipboard has files,
   // or when we'll fall back to the internal clipboard. preventDefault()/stopPropagation() only work
   // while the event is still being dispatched, so this has to run before the first await.
-  if (internalRecent || collectedItems.length > 0 || hasInternalItems()) {
+  const target = event.target;
+  const isEditableTarget =
+    target instanceof HTMLElement && (target.isContentEditable || target.matches("input, textarea"));
+  if (!isEditableTarget && (internalRecent || collectedItems.length > 0 || hasInternalItems())) {
     event.preventDefault();
     event.stopPropagation();
   }

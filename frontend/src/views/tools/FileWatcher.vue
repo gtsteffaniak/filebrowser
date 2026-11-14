@@ -299,7 +299,7 @@ export default {
 
       if (query.interval !== undefined && query.interval !== null) {
         const parsed = Math.trunc(Number(query.interval));
-        if (!Number.isNaN(parsed) && parsed > 0) {
+        if (Number.isFinite(parsed) && parsed > 0) {
           // Validate interval based on permissions
           this.selectedInterval = this.validateInterval(parsed);
         }
