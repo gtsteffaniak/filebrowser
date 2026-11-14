@@ -431,7 +431,7 @@ class UploadManager {
 
     if (dirs.size > 0) {
       // Sort paths to ensure parent directories are created before children.
-      const sortedDirs = [...dirs].sort();
+      const sortedDirs = [...dirs].sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
 
       for (const dir of sortedDirs) {
         const pathParts = dir.slice(0, -1).split("/");

@@ -15,18 +15,18 @@
     interactive-zone
     :auto-hide="false"
     :label="$t('general.close', { suffix: '' })"
-    @click="close"
+    @press="close"
   />
 </template>
 
 <script>
 import { DocumentEditor } from "@onlyoffice/document-editor-vue";
-import { globalVars } from "@/utils/constants";
-import { router } from "@/router";
-import { state, mutations, getters } from "@/store";
-import { removeLastDir } from "@/utils/url";
-import { officeApi } from "@/api";
-import { toStandardLocale } from "@/i18n";
+import { globalVars } from "@/utils/constants.js";
+import { router } from "@/router/index.ts";
+import { state, mutations, getters } from "@/store/index.ts";
+import { removeLastDir } from "@/utils/url.js";
+import { officeApi } from "@/api/index.js";
+import { toStandardLocale } from "@/i18n/index.ts";
 import FloatingActionButton from "@/components/settings/FloatingActionButton.vue";
 
 export default {
@@ -39,7 +39,7 @@ export default {
   data() {
     return {
       ready: false,
-      clientConfig: {},
+      clientConfig: { document: null, editorConfig: null },
       floatIn: false,
       source: "",
       path: "",

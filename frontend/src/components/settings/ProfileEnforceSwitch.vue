@@ -43,7 +43,9 @@ export default {
       default: "",
     },
   },
-  emits: ["update:enforced"],
+  emits: {
+    "update:enforced": (enforced) => typeof enforced === "boolean",
+  },
   data() {
     idCounter += 1;
     return {

@@ -29,7 +29,7 @@ function stubFetch(data: unknown) {
 
 async function flush() {
   // Wait for the fetch promise chain and queued limiter to settle.
-  await new Promise((resolve) => setTimeout(resolve, 0));
+  await new Promise((resolve) => { setTimeout(resolve, 0); });
   await nextTick();
   await nextTick();
 }

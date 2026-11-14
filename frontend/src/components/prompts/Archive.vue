@@ -142,10 +142,10 @@
 </template>
 
 <script>
-import { state, mutations, getters } from "@/store";
-import { notify } from "@/notify";
-import { resourcesApi } from "@/api";
-import { goToItemNotificationButton } from "@/utils/notificationActions";
+import { state, mutations, getters } from "@/store/index.ts";
+import { notify } from "@/notify/index.ts";
+import { resourcesApi } from "@/api/index.js";
+import { goToItemNotificationButton } from "@/utils/notificationActions.js";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import FileList from "@/components/files/FileList.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";

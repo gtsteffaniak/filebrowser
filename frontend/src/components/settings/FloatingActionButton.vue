@@ -11,7 +11,6 @@
   ></div>
 
   <button
-    ref="fabButton"
     type="button"
     class="fab-button floating"
     :class="[
@@ -41,8 +40,8 @@
 </template>
 
 <script lang="ts">
-import { reactive } from "vue";
-import { getters } from "@/store/index.js";
+import { reactive, type PropType } from "vue";
+import { getters } from "@/store/index.ts";
 
 const buttonGroup = new Map<string, { visible: boolean; zoneActive: boolean; timer: ReturnType<typeof setTimeout> | null }>();
 
@@ -59,7 +58,7 @@ const POSITIONS = ["top-right", "top-left", "bottom-right", "bottom-left", "top-
 
 export default {
   name: "floatingActionButton",
-  emits: ["click"],
+  emits: { press: (_event: MouseEvent) => true },
   props: {
     icon: {
       type: String,
@@ -92,7 +91,7 @@ export default {
       validator: (v: string) => ["fixed", "absolute"].includes(v),
     },
     edgeOffset: {
-      type: [String, Object],
+      type: [String, Object] as PropType<string | { top?: string; right?: string; bottom?: string; left?: string }>,
       default: null,
     },
     size: {
@@ -114,7 +113,7 @@ export default {
       default: "",
     },
     offset: {
-      type: Object,
+      type: Object as PropType<Record<string, string>>,
       default: () => ({}),
     },
     autoHide: {
@@ -317,7 +316,7 @@ export default {
     },
     handleClick(event: MouseEvent) {
       this.resetButtonTimer();
-      this.$emit("click", event);
+      this.$emit("press", event);
     },
     handleZoneEnter() {
       if (!this.interactiveZone) return;

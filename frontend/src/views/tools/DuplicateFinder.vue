@@ -92,9 +92,9 @@
                     :isSelectedProp="selectedIndices.has(entry.index)"
                     :clickable="false"
                     :showLimitedOptions="true"
-                    @select="handleItemSelect"
-                    @clearSelection="clearSelection"
-                    @selectRange="handleSelectRange"
+                    @item-select="handleItemSelect"
+                    @clear-selection="clearSelection"
+                    @select-range="handleSelectRange"
                   />
                 </div>
               </div>
@@ -122,18 +122,18 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, shallowRef, watch } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, shallowRef, useTemplateRef, watch } from "vue";
 import { useRoute } from "vue-router";
 import { useI18n } from "vue-i18n";
-import { toolsApi } from "@/api";
-import { router } from "@/router";
-import { state, mutations } from "@/store";
-import { getHumanReadableFilesize } from "@/utils/filesizes";
-import { eventBus } from "@/store/eventBus";
+import { toolsApi } from "@/api/index.js";
+import { router } from "@/router/index.ts";
+import { state, mutations } from "@/store/index.ts";
+import { getHumanReadableFilesize } from "@/utils/filesizes.js";
+import { eventBus } from "@/store/eventBus.ts";
 import ListingItem from "@/components/files/ListingItem.vue";
 import PathPickerButton from "@/components/files/PathPickerButton.vue";
 import { useListingVirtualization } from "@/composables/useListingVirtualization.ts";
-import { globalVars } from "@/utils/constants";
+import { globalVars } from "@/utils/constants.js";
 
 defineOptions({ name: "DuplicateFinder" });
 
@@ -169,7 +169,7 @@ const GROUP_STRIDE = 1_000_000;
 const { t } = useI18n();
 const route = useRoute();
 
-const list = ref<HTMLElement | null>(null);
+const list = useTemplateRef<HTMLElement>("list");
 const searchPath = ref("/");
 const selectedSource = ref("");
 const resultPath = ref("/");
@@ -241,7 +241,7 @@ onMounted(() => {
   selectedSource.value = (typeof query.source === 'string' ? query.source : null) || state.sources.current || Object.keys(state.sources.info || {})[0] || "";
 
   if (query.minSize) {
-    const parsed = parseInt(String(query.minSize), 10);
+    const parsed = Math.trunc(Number(query.minSize));
     if (!Number.isNaN(parsed)) {
       minSizeValue.value = parsed;
     }

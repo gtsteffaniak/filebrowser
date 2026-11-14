@@ -14,7 +14,7 @@
     </div>
 
     <!-- Sortable Column Header (opt-in via sortable prop, e.g. destination pickers) -->
-    <div v-if="(!hidePathChrome && !fileList) || sortable || $slots.pinned" class="sticky-header" :class="{ 'header-hidden': headerHidden }">
+    <div v-if="(!hidePathChrome && !fileList) || sortable || $slots.sticky" class="sticky-header" :class="{ 'header-hidden': headerHidden }">
       <!-- Current Path Display -->
       <div v-if="!hidePathChrome && !fileList" aria-label="filelist-path" class="searchContext button clickable">
         {{ $t('general.path', { suffix: ':' }) }} {{ sourcePath.path }}
@@ -75,11 +75,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
-import { state, mutations, getters } from "@/store";
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from "vue";
+import { state, mutations, getters } from "@/store/index.ts";
 import type { FileListItem, MediaMetadata } from "@/store/types.ts";
-import { url } from "@/utils";
-import { resourcesApi } from "@/api";
+import { url } from "@/utils/index.ts";
+import { resourcesApi } from "@/api/index.js";
 import ListingHeader from "@/components/files/ListingHeader.vue";
 import ListingItem from "@/components/files/ListingItem.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
@@ -161,8 +161,12 @@ const emit = defineEmits<{
   "update:filterQuery": [value: string];
 }>();
 
-const root = ref<HTMLElement | null>(null);
-const list = ref<HTMLElement | null>(null);
+defineSlots<{
+  sticky?(): unknown;
+}>();
+
+const root = useTemplateRef<HTMLElement>("root");
+const list = useTemplateRef<HTMLElement>("list");
 
 const fallbackModified = new Date().toISOString();
 const initialSource = props.browseSource || state.req.source;
@@ -373,7 +377,7 @@ async function withLoading(operation: () => Promise<unknown>) {
   } finally {
     const elapsed = Date.now() - startTime;
     const remaining = Math.max(0, 200 - elapsed);
-    await new Promise((resolve) => setTimeout(resolve, remaining));
+    await new Promise((resolve) => { setTimeout(resolve, remaining); });
     loading.value = false;
   }
 }

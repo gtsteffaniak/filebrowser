@@ -53,7 +53,7 @@
 </template>
 
 <script>
-import { getters, mutations } from "@/store";
+import { getters, mutations } from "@/store/index.ts";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
 

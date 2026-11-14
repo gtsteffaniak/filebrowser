@@ -6,7 +6,6 @@
       v-if="thumbnailSrc && !fullImageLoaded && !isTiff"
       :src="thumbnailSrc"
       class="image-ex-img"
-      ref="thumbnail"
       aria-hidden="true"
     />
 
@@ -38,13 +37,13 @@
 
 <script>
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
-import { notify } from "@/notify";
-import { getters, mutations, state } from '@/store';
+import { notify } from "@/notify/index.ts";
+import { getters, mutations, state } from "@/store/index.ts";
 import { acquireBestCachedThumbnailBlob, getBestCachedImage, releaseThumbnailBlob } from "@/utils/cache/imageCache.ts";
-import { isRawImageMimeType } from "@/utils/mimetype";
-import { resourcesApi } from "@/api";
+import { isRawImageMimeType } from "@/utils/mimetype.js";
+import { resourcesApi } from "@/api/index.js";
 import { refreshViewToken, requestViewIdentity } from "@/api/viewToken.js";
-import throttle from "@/utils/throttle";
+import throttle from "@/utils/throttle.js";
 
 export default {
   components: {
@@ -56,8 +55,14 @@ export default {
       default: null,
     },
   },
+  emits: {
+    "navigate-previous": () => true,
+    "navigate-next": () => true,
+    "close-preview": () => true,
+  },
   data() {
     return {
+      thumbBlobKey: null, // only read in lifecycle/sync code, never during render
       moveDisabledTime: 200,
       classList: [],
       zoomStep: 0.25,
@@ -212,9 +217,6 @@ export default {
       const ay = Math.abs(this.edgeDy);
       return this.edgeDy >= this.edgeCommitY && ay >= ax;
     },
-  },
-  beforeCreate() {
-    this.thumbBlobKey = null;
   },
   created() {
     this.syncThumbnailBlob();
@@ -525,7 +527,7 @@ export default {
           this.showDismissHint = false;
         } else {
           this.dragOffsetX = 0;
-          const downward = this.edgeDy > 0 ? this.edgeDy : 0;
+          const downward = Math.max(this.edgeDy, 0);
           this.dragOffsetY = this.rubberband(downward, this.edgeRubberMax);
           this.showDismissHint = this.edgeDy >= this.edgeHintPx;
           this.showNavHint = false;
@@ -549,7 +551,7 @@ export default {
         this.showDismissHint = false;
       } else {
         this.dragOffsetX = 0;
-        const downward = this.edgeDy > 0 ? this.edgeDy : 0;
+        const downward = Math.max(this.edgeDy, 0);
         this.dragOffsetY = this.rubberband(downward, this.edgeRubberMax);
         this.showDismissHint = this.edgeDy >= this.edgeHintPx;
         this.showNavHint = false;

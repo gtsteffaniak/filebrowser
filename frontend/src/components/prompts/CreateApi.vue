@@ -62,12 +62,12 @@
 </template>
 
 <script>
-import { mutations } from "@/store";
-import { notify } from "@/notify";
-import { authApi } from "@/api";
+import { mutations } from "@/store/index.ts";
+import { notify } from "@/notify/index.ts";
+import { authApi } from "@/api/index.js";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
-import { eventBus } from "@/store/eventBus";
+import { eventBus } from "@/store/eventBus.ts";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 
 export default {

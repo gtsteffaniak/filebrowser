@@ -88,12 +88,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref, watch } from "vue";
+import { computed, onBeforeUnmount, useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { getters } from "@/store";
-import { downloadManager } from "@/utils/downloadManager";
-import type { DownloadItem } from "@/utils/downloadManager";
-import { resourcesApi } from "@/api";
+import { getters } from "@/store/index.ts";
+import { downloadManager } from "@/utils/downloadManager.ts";
+import type { DownloadItem } from "@/utils/downloadManager.ts";
+import { resourcesApi } from "@/api/index.js";
 import ProgressBar from "@/components/ProgressBar.vue";
 import { findScrollParents, useListingVirtualization } from "@/composables/useListingVirtualization.ts";
 
@@ -116,7 +116,7 @@ const vFocus = {
 
 const formats = { zip: "zip", targz: "tar.gz" } as const;
 
-const list = ref<HTMLElement | null>(null);
+const list = useTemplateRef<HTMLElement>("list");
 const currentPrompt = computed(() => getters.currentPrompt());
 const downloads = computed(() => downloadManager.queue);
 const hasDownloads = computed(() => downloads.value.length > 0);

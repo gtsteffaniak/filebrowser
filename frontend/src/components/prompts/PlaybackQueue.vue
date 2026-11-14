@@ -96,11 +96,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref, watch } from "vue";
+import { computed, nextTick, onMounted, useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { state, mutations, getters } from "@/store";
+import { state, mutations, getters } from "@/store/index.ts";
 import type { MediaMetadata } from "@/store/types.ts";
-import { url } from "@/utils";
+import { url } from "@/utils/index.ts";
 import {
   cyclePlaybackModes,
   cycleLoopState,
@@ -114,8 +114,8 @@ import {
 } from '@/utils/playbackQueue.js';
 import Icon from "@/components/files/Icon.vue";
 import SlidingTabs from "@/components/settings/SlidingTabs.vue";
-import { resourcesApi } from "@/api";
-import { globalVars } from "@/utils/constants";
+import { resourcesApi } from "@/api/index.js";
+import { globalVars } from "@/utils/constants.js";
 import { formatDuration, getTypeFromMime, removeExtension } from "@/utils/files.js";
 import { findScrollParents, useListingVirtualization } from "@/composables/useListingVirtualization.ts";
 import type { VirtualItem } from "@/composables/useListingVirtualization.ts";
@@ -145,7 +145,7 @@ const props = withDefaults(
 
 const { t } = useI18n();
 
-const QueueList = ref<HTMLElement | null>(null);
+const QueueList = useTemplateRef<HTMLElement>("QueueList");
 // Only renders the rows around the screen when the queue is long
 const virtual = useListingVirtualization<VirtualItem>({
   container: QueueList,

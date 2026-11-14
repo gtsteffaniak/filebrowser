@@ -32,7 +32,7 @@
 </template>
 
 <script>
-import { state, mutations, getters } from "@/store";
+import { state, mutations, getters } from "@/store/index.ts";
 import { eventBus } from "@/store/eventBus.ts";
 import { isHtmlMimeType } from "@/utils/mimetype.js";
 
@@ -63,11 +63,10 @@ export default {
       canScroll: false,
       resizeObserver: null,
       mutationObserver: null,
+      wrapperObserver: null,
+      wrapperRect: null,
+      readyTimeout: null,
     };
-  },
-  created() {
-    this.wrapperRect = null;
-    this.readyTimeout = null;
   },
   computed: {
     isScrollable() {

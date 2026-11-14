@@ -181,7 +181,7 @@
 </template>
 
 <script>
-import { mutations } from "@/store"; // Import the mutations
+import { mutations } from "@/store/index.ts"; // Import the mutations
 
 export default {
   name: "help",

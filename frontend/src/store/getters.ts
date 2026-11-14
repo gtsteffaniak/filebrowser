@@ -110,15 +110,9 @@ export const getters = {
   },
   isScrollable: () => {
     if (getters.currentView() === 'markdownViewer') {
-      if (isHtmlMimeType(state.req?.type)) {
-        return false;
-      }
-      return true;
+      return !isHtmlMimeType(state.req?.type);
     }
-    if (getters.isPreviewView()) {
-      return false
-    }
-    return true
+    return !getters.isPreviewView();
   },
   displayPreference: () => {
     let source = state.sources.current;

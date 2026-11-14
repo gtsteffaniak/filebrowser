@@ -66,7 +66,7 @@
           :icon="addType === 'group' ? 'group_add' : 'person_add'"
           class="flat-left form-compact"
           :exclude="existingNames"
-          @select="addEntries"
+          @selected="addEntries"
         />
         <button v-else type="button" class="button form-button flat-left form-compact" @click="addEntries([])">
           <i class="material-symbols-outlined">add</i>
@@ -115,9 +115,9 @@
 </template>
 
 <script>
-import { notify } from "@/notify";
-import { mutations } from "@/store";
-import { accessApi } from "@/api";
+import { notify } from "@/notify/index.ts";
+import { mutations } from "@/store/index.ts";
+import { accessApi } from "@/api/index.js";
 import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
 import FileList from "../files/FileList.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
@@ -127,8 +127,8 @@ import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import ActivityViewerButton from "@/components/settings/ActivityViewerButton.vue";
 import SettingsTable from "@/components/settings/Table.vue";
 import EntityPickerButton from "@/components/settings/EntityPickerButton.vue";
-import { activityViewerPresets } from "@/utils/activityViewerLink";
-import { eventBus } from "@/store/eventBus";
+import { activityViewerPresets } from "@/utils/activityViewerLink.js";
+import { eventBus } from "@/store/eventBus.ts";
 
 export default {
   name: "access",
@@ -146,7 +146,7 @@ export default {
   props: {
     promptId: { type: [String, Number], default: null },
     sourceName: { type: String, required: true },
-    path: { type: String, required: true, default: "/" },
+    path: { type: String, default: "/" },
     embedded: { type: Boolean, default: false }
   },
   data() {
@@ -402,7 +402,7 @@ export default {
       this.saving = true;
       let failed = false;
       try {
-        for (const op of [...this.pendingDeletes]) {
+        for (const op of this.pendingDeletes.slice()) {
           await accessApi.del(this.currentSource, this.currentPath, {
             allow: op.allow,
             ruleCategory: op.ruleCategory,
@@ -411,7 +411,7 @@ export default {
           });
           this.pendingDeletes.splice(this.pendingDeletes.indexOf(op), 1);
         }
-        for (const op of [...this.pendingAdds]) {
+        for (const op of this.pendingAdds.slice()) {
           await accessApi.add(this.currentSource, this.currentPath, {
             allow: op.allow,
             ruleCategory: op.ruleCategory,

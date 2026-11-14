@@ -5,20 +5,20 @@
         :name="$t('profileSettings.disableUpdateNotifications')"
         :description="$t('profileSettings.disableUpdateNotificationsDescription')" />
       <ToggleSwitch class="item" v-model="analyticsEnabled" :disabled="analyticsLoading || !publishSupported"
-        @update:modelValue="updateAnalytics" :name="$t('settings.analyticsEnabled')"
+        @update:model-value="updateAnalytics" :name="$t('settings.analyticsEnabled')"
         :description="$t('settings.analyticsEnabledDescription')" />
       <SettingsButton class="item" :name="$t('settings.analyticsView')"
-        :description="$t('settings.analyticsViewDescription')" @click="openAnalyticsPrompt" />
+        :description="$t('settings.analyticsViewDescription')" @activate="openAnalyticsPrompt" />
       <SettingsButton class="item" :name="$t('settings.configViewerOpen')"
-        :description="$t('settings.configViewerDescription')" @click="openConfigViewerPrompt" />
+        :description="$t('settings.configViewerDescription')" @activate="openConfigViewerPrompt" />
     </div>
   </div>
 </template>
 
 <script>
-import { notify } from "@/notify";
-import { state, mutations } from "@/store";
-import { getAnalytics, updateAnalytics } from "@/api/settings";
+import { notify } from "@/notify/index.ts";
+import { state, mutations } from "@/store/index.ts";
+import { getAnalytics, updateAnalytics } from "@/api/settings.js";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import SettingsButton from "@/components/settings/SettingsButton.vue";
 

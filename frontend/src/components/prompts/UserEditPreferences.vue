@@ -8,7 +8,7 @@
       :enforced="enforcedAccount"
       :enforced-permissions="enforcedAccountPermissions"
       respect-enforced-policy
-      @account-change="onEditAccountChange"
+      @account-change="({ field, value }) => onEditAccountChange(field, value)"
     />
     <UserProfilePreferences
       v-if="session"
@@ -18,7 +18,7 @@
       respect-enforced-policy
       show-extension-inputs
       :show-thumbnail-master="false"
-      @change="onPreferenceChange"
+      @changed="onPreferenceChange"
     />
   </div>
   <div class="card-actions">
@@ -35,7 +35,7 @@
 </template>
 
 <script>
-import { mutations, state } from "@/store";
+import { mutations, state } from "@/store/index.ts";
 import UserDefaultsAccountSection from "@/components/settings/UserDefaultsAccountSection.vue";
 import UserProfilePreferences from "@/components/settings/UserProfilePreferences.vue";
 import {
@@ -43,7 +43,7 @@ import {
   subscribeUserEditSession,
   updateUserEditSession,
   cloneUserEditSessionValue,
-} from "@/utils/userEditSession";
+} from "@/utils/userEditSession.js";
 import {
   sectionsFromFlatUser,
   applySectionsToFlatUser,

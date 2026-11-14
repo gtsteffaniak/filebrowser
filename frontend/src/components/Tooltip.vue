@@ -19,16 +19,16 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, ref, watch } from "vue";
+import { computed, nextTick, ref, useTemplateRef, watch } from "vue";
 import type { CSSProperties } from "vue";
 import { useRoute } from "vue-router";
-import { state } from "@/store";
+import { state } from "@/store/index.ts";
 import { hideInteractiveTooltip } from "@/utils/tooltipHelp.js";
 
 const margin = 15;
 const adjustedX = ref(0);
 const adjustedY = ref(0);
-const tooltipRef = ref<HTMLElement | null>(null);
+const tooltipRef = useTemplateRef<HTMLElement>("tooltipRef");
 const route = useRoute();
 
 const tooltip = computed(() => state.tooltip);

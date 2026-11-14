@@ -183,24 +183,24 @@
   </div>
 </template>
 <script>
-import { notify } from "@/notify";
-import { state, getters, mutations } from "@/store";
-import { shareApi } from "@/api";
-import { copyToClipboard } from "@/utils/clipboard";
-import { fromNowSeconds } from "@/utils/moment";
-import { buildItemUrl } from "@/utils/url";
+import { notify } from "@/notify/index.ts";
+import { state, getters, mutations } from "@/store/index.ts";
+import { shareApi } from "@/api/index.js";
+import { copyToClipboard } from "@/utils/clipboard.js";
+import { fromNowSeconds } from "@/utils/moment.ts";
+import { buildItemUrl } from "@/utils/url.js";
 import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
 import SettingsTable from "@/components/settings/Table.vue";
 import ActivityViewerButton from "@/components/settings/ActivityViewerButton.vue";
 import ShareOptionsForm from "@/components/share/ShareOptionsForm.vue";
-import { activityViewerPresets } from "@/utils/activityViewerLink";
+import { activityViewerPresets } from "@/utils/activityViewerLink.js";
 import FileList from "../files/FileList.vue";
-import { eventBus } from "@/store/eventBus";
+import { eventBus } from "@/store/eventBus.ts";
 import {
   bytesFromCustomAmount,
   customAmountFromBytes,
-} from "@/utils/quotaUnits";
-import { applyShareDefaultsToForm } from "@/utils/shareDefaultsForm";
+} from "@/utils/quotaUnits.js";
+import { applyShareDefaultsToForm } from "@/utils/shareDefaultsForm.js";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 //import ViewMode from "@/components/settings/ViewMode.vue";
 
@@ -603,7 +603,6 @@ export default {
   },
   beforeUnmount() {
     // Clean up event listeners
-    eventBus.off('apiKeysChanged', this.reloadApiKeys);
     eventBus.off('shareSidebarLinksUpdated', this.handleSidebarLinksUpdate);
     eventBus.off('pathSelected', this.onBannerFaviconPathSelected);
     eventBus.off('pathPickerCancelled', this.onBannerFaviconPathPickerCancelled);

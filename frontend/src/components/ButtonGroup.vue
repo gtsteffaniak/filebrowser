@@ -44,6 +44,12 @@ export default {
       default: false,
     },
   },
+  emits: {
+    "button-clicked": (_value) => true,
+    "remove-button-clicked": (_value) => true,
+    disableAll: () => true,
+    enableAll: () => true,
+  },
   data() {
     return {
       activeButton: null, // Initially no button is active
@@ -77,12 +83,11 @@ export default {
         this.$emit("remove-button-clicked", value);
       } else {
         // Emit remove-button-clicked for all other indexes
-        this.buttons.forEach((button, idx) => {
+        for (const [idx, button] of this.buttons.entries()) {
           if (idx !== index) {
             this.$emit("remove-button-clicked", button.value);
           }
-        });
-
+        }
         this.activeButton = index;
         this.$emit("button-clicked", value);
       }

@@ -2,16 +2,17 @@
   <div class="viewer-background">
     <div v-if="loading" class="status-text">{{ $t('general.loading', { suffix: "..." }) }}</div>
     <div v-else-if="error" class="status-text error">{{ error }}</div>
+    <!-- biome-ignore lint/nursery/noVueVHtml: sanitized by sanitizeDocxHtml -->
     <div v-else class="docx-page" v-html="docxHtml"></div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref, watch } from "vue";
-import { resourcesApi } from "@/api";
+import { resourcesApi } from "@/api/index.js";
 import { ensureViewToken, refreshViewToken, requestViewIdentity } from "@/api/viewToken.js";
-import { state, mutations, getters } from "@/store";
-import { sanitizeDocxHtml } from "@/utils/docxPreview";
+import { state, mutations, getters } from "@/store/index.ts";
+import { sanitizeDocxHtml } from "@/utils/docxPreview.ts";
 import { removeLastDir } from "@/utils/url.js";
 
 defineOptions({ name: "docViewer" });

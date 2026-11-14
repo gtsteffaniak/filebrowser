@@ -3,7 +3,7 @@
     :title="expanded ? $t('buttons.showLess') : $t('buttons.showMore')"
     :collapsable="true"
     :start-collapsed="!expanded"
-    @toggle="expanded = $event"
+    @toggled="expanded = $event"
   >
     <div class="search-filters-inner">
       <div class="search-filter-dropdowns">
@@ -69,11 +69,12 @@ import { useI18n } from "vue-i18n";
 import SettingsItem from "@/components/settings/SettingsItem.vue";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
-import type { SearchFilters } from "@/composables/useSearchFilters";
+import type { SearchFilters } from "@/composables/useSearchFilters.ts";
 
 // Whether the options are open
 const expanded = defineModel<boolean>("expanded", { default: false });
 const props = defineProps<{ filters: SearchFilters }>();
+defineSlots<{ "extra-settings"?(): unknown }>();
 defineOptions({ name: "search-filters" });
 const filters = props.filters;
 

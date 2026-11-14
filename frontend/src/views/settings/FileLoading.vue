@@ -52,9 +52,9 @@
 </template>
 
 <script>
-import { notify } from "@/notify";
+import { notify } from "@/notify/index.ts";
 import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
-import { state, mutations } from "@/store";
+import { state, mutations } from "@/store/index.ts";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 
 export default {
@@ -66,7 +66,14 @@ export default {
 
   data() {
     return {
-      localuser: { fileLoading: { clearAll: false } },
+      localuser: {
+        fileLoading: {
+          clearAll: false,
+          maxConcurrentUpload: null,
+          uploadChunkSizeMb: null,
+          downloadChunkSizeMb: null,
+        },
+      },
     };
   },
   computed: {

@@ -37,7 +37,9 @@ export default {
       default: false,
     },
   },
-  emits: ["update:modelValue"],
+  emits: {
+    "update:modelValue": (value) => typeof value === "string",
+  },
   data() {
     return {
       open: false,

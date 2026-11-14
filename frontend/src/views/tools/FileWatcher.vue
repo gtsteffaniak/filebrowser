@@ -93,14 +93,14 @@
 </template>
 
 <script>
-import { state, getters } from "@/store";
-import { toolsApi } from "@/api";
-import { getHumanReadableFilesize } from "@/utils/filesizes";
-import { formatTimestamp, fromNow } from "@/utils/moment";
-import { notify } from "@/notify";
+import { state, getters } from "@/store/index.ts";
+import { toolsApi } from "@/api/index.js";
+import { getHumanReadableFilesize } from "@/utils/filesizes.js";
+import { formatTimestamp, fromNow } from "@/utils/moment.ts";
+import { notify } from "@/notify/index.ts";
 import PathPickerButton from "@/components/files/PathPickerButton.vue";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
-import { globalVars } from "@/utils/constants";
+import { globalVars } from "@/utils/constants.js";
 
 export default {
   name: "FileWatcher",
@@ -133,6 +133,9 @@ export default {
   computed: {
     isMobile() {
       return getters.isMobile();
+    },
+    userPermissions() {
+      return state.user?.permissions;
     },
     canStart() {
       // Can start watching if we have source, path, and not already watching
@@ -221,7 +224,7 @@ export default {
       }
     },
     // Watch for user permission changes and validate interval
-    'state.user.permissions'() {
+    userPermissions() {
       if (!this.isInitializing) {
         this.selectedInterval = this.validateInterval(this.selectedInterval);
       }
@@ -295,8 +298,8 @@ export default {
       }
 
       if (query.interval !== undefined && query.interval !== null) {
-        const parsed = parseInt(String(query.interval), 10);
-        if (!Number.isNaN(parsed) && parsed > 0) {
+        const parsed = Math.trunc(Number(query.interval));
+        if (Number.isFinite(parsed) && parsed > 0) {
           // Validate interval based on permissions
           this.selectedInterval = this.validateInterval(parsed);
         }
@@ -306,7 +309,7 @@ export default {
       }
 
       if (query.lines !== undefined && query.lines !== null) {
-        const parsed = parseInt(String(query.lines), 10);
+        const parsed = Math.trunc(Number(query.lines));
         if (!Number.isNaN(parsed) && parsed >= 1 && parsed <= 50) {
           this.selectedLines = parsed;
         }

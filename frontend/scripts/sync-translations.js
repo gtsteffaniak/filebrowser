@@ -2,7 +2,7 @@
 import path from 'node:path';
 import { globSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { Translator } from 'deepl-node';
+import { DeepLClient } from 'deepl-node';
 import fs from 'fs-extra';
 
 // Parse command line arguments
@@ -27,7 +27,7 @@ if (requireApiKey && !DEEPL_API_KEY) {
   process.exit(1);
 }
 
-const translator = requireApiKey ? new Translator(DEEPL_API_KEY) : null;
+const translator = requireApiKey ? new DeepLClient(DEEPL_API_KEY) : null;
 
 const deeplLangMap = {
   'zh-cn': 'ZH-HANS',
@@ -80,7 +80,7 @@ async function translateText(text, targetLanguage, keyPath = '') {
     const result = await translator.translateText(textToTranslate, masterLanguageCode, deeplTargetLang, options);
 
     // Delay to avoid rate-limiting
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise(resolve => { setTimeout(resolve, 100); });
 
     let translatedText = result.text;
 
@@ -219,7 +219,7 @@ async function processKeys(masterObj, targetObj, targetLangCode, currentPathPart
       meaningfulChanges++; // Removing obsolete keys is meaningful
     } else {
       console.log(`🗑️  Removing obsolete key "${currentKeyPath}" from ${targetLangCode}.json`);
-      delete targetObj[key];
+      Reflect.deleteProperty(targetObj, key);
     }
     changesMade = true;
   }

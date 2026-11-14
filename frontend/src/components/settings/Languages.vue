@@ -28,7 +28,9 @@ export default defineComponent({
       default: false,
     },
   },
-  emits: ["update:locale"],
+  emits: {
+    "update:locale": (locale) => typeof locale === "string",
+  },
   computed: {
     languageOptions() {
       return Object.keys(this.locales).map((label) => ({

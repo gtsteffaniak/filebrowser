@@ -18,7 +18,7 @@
           position-mode="absolute"
           :edge-offset="{ top: '0.5em', right: '0.5em' }"
           :auto-hide="false"
-          @click="lyricsScrollLocked = !lyricsScrollLocked"
+          @press="lyricsScrollLocked = !lyricsScrollLocked"
           :label="lyricsLockToggleLabel"
         />
         <!-- Scrollable area -->
@@ -61,7 +61,7 @@
           position-mode="absolute"
           :edge-offset="{ top: '0.5em', right: '0.5em' }"
           :auto-hide="false"
-          @click="showVisualizerSettings"
+          @press="showVisualizerSettings"
           :label="visualizerSettingsLabel"
         />
         <canvas ref="visualizerCanvas" class="visualizer-canvas"></canvas>
@@ -74,7 +74,7 @@
 import SlidingTabs from "@/components/settings/SlidingTabs.vue";
 import PlaybackQueue from "@/components/prompts/PlaybackQueue.vue";
 import FloatingActionButton from "@/components/settings/FloatingActionButton.vue";
-import { mutations, state } from "@/store";
+import { mutations, state } from "@/store/index.ts";
 import { visualizerConfig } from "@/utils/visualizerConfig.js";
 
 const LAST_TAB_KEY = 'plyrSidePanelActiveTab';
@@ -111,7 +111,10 @@ export default {
     audioContext: { type: Object, default: null },
     audioSource: { type: Object, default: null }, // MediaElementAudioSourceNode, see https://developer.mozilla.org/en-US/docs/Web/API/MediaElementAudioSourceNode
   },
-  emits: ["seek", "needs-audio-graph"],
+  emits: {
+    seek: (timestamp) => typeof timestamp === "number",
+    "needs-audio-graph": () => true,
+  },
   data() {
     return {
       activeTab: (() => {
@@ -119,6 +122,7 @@ export default {
         return stored && ['queue', 'lyrics', 'visualizer'].includes(stored) ? stored : 'queue';
       })(),
       lyricsScrollLocked: false,
+      resizeObserver: null,
       // Visualizer state
       visualizerAnalyserLeft: null,
       visualizerAnalyserRight: null,
@@ -244,19 +248,8 @@ export default {
     this.resizeObserver = new ResizeObserver(() => {
       if (this.activeTab === 'visualizer' && this.visualizerAnalyserLeft) this.resizeVisualizer();
     });
-    this.windowResizeHandler = () => {
-      if (this.activeTab === 'visualizer' && this.visualizerAnalyserLeft) this.resizeVisualizer();
-    };
-    window.addEventListener('resize', this.windowResizeHandler);
-    this.visibilityChangeHandler = () => {
-      if (this.activeTab !== 'visualizer') return;
-      if (document.hidden) {
-        this.stopVisualizer();
-      } else {
-        this.startVisualizer();
-      }
-    };
-    document.addEventListener('visibilitychange', this.visibilityChangeHandler);
+    window.addEventListener('resize', this.onWindowResize);
+    document.addEventListener('visibilitychange', this.onVisibilityChange);
     await this.$nextTick();
     const container = this.$el?.querySelector('.tab-visualizer');
     if (container) this.resizeObserver.observe(container);
@@ -264,12 +257,23 @@ export default {
   beforeUnmount() {
     document.removeEventListener('keydown', this.onKeyDown);
     this.resizeObserver?.disconnect();
-    window.removeEventListener('resize', this.windowResizeHandler);
-    document.removeEventListener('visibilitychange', this.visibilityChangeHandler);
+    window.removeEventListener('resize', this.onWindowResize);
+    document.removeEventListener('visibilitychange', this.onVisibilityChange);
     this.stopVisualizer();
     this.fullCleanup();
   },
   methods: {
+    onWindowResize() {
+      if (this.activeTab === 'visualizer' && this.visualizerAnalyserLeft) this.resizeVisualizer();
+    },
+    onVisibilityChange() {
+      if (this.activeTab !== 'visualizer') return;
+      if (document.hidden) {
+        this.stopVisualizer();
+      } else {
+        this.startVisualizer();
+      }
+    },
     scrollToActiveLine() {
       if (this.lyricsScrollLocked) return;
       const el = this.$refs.lyricsScrollable;

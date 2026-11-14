@@ -69,18 +69,18 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, onMounted, ref, useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { resourcesApi } from "@/api";
-import buttons from "@/utils/buttons";
-import { state, getters, mutations } from "@/store";
-import type { FileListItem } from "@/store/types";
-import { notify } from "@/notify";
+import { resourcesApi } from "@/api/index.js";
+import buttons from "@/utils/buttons.js";
+import { state, getters, mutations } from "@/store/index.ts";
+import type { FileListItem } from "@/store/types.ts";
+import { notify } from "@/notify/index.ts";
 import ListingItem from "@/components/files/ListingItem.vue";
-import { eventBus } from "@/store/eventBus";
+import { eventBus } from "@/store/eventBus.ts";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import { useListingVirtualization } from "@/composables/useListingVirtualization.ts";
-import url from "@/utils/url";
+import url from "@/utils/url.js";
 import { removeFromFolderLists } from "@/utils/cache/listingCache.ts";
 
 export interface DeleteItem {
@@ -111,7 +111,7 @@ defineOptions({ name: "delete" });
 
 const { t } = useI18n();
 
-const list = ref<HTMLElement | null>(null);
+const list = useTemplateRef<HTMLElement>("list");
 const failedItems = ref<FailedItem[]>([]);
 const deleting = ref(false);
 

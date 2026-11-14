@@ -183,31 +183,31 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
-import type { FileListItem, fileListItemIndex, ReqObject } from "@/store/types";
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from "vue";
+import type { FileListItem, fileListItemIndex, ReqObject } from "@/store/types.ts";
 import { useRoute } from "vue-router";
 import { useI18n } from "vue-i18n";
-import { toolsApi } from "@/api";
-import { router } from "@/router";
-import { state, getters, mutations } from "@/store";
-import { eventBus } from "@/store/eventBus";
-import { globalVars } from "@/utils/constants";
+import { toolsApi } from "@/api/index.js";
+import { router } from "@/router/index.ts";
+import { state, getters, mutations } from "@/store/index.ts";
+import { eventBus } from "@/store/eventBus.ts";
+import { globalVars } from "@/utils/constants.js";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import PathPickerButton from "@/components/files/PathPickerButton.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import Item from "@/components/files/ListingItem.vue";
 import { removeTrailingSlash, removeLeadingSlash, isSameItem, goToItem } from "@/utils/url.js";
-import { selectAndScrollToIndex } from "@/utils/listing/selectAndScroll";
+import { selectAndScrollToIndex } from "@/utils/listing/selectAndScroll.ts";
 import ListingHeader from "@/components/files/ListingHeader.vue";
 import SearchFilters from "@/components/tools/SearchFilters.vue";
-import { useSearchFilters } from "@/composables/useSearchFilters";
-import { useSearchRequest } from "@/composables/useSearchRequest";
-import { useListingKeyboard } from "@/composables/useListingKeyboard";
-import { useListingLayout } from "@/composables/useListingLayout";
+import { useSearchFilters } from "@/composables/useSearchFilters.ts";
+import { useSearchRequest } from "@/composables/useSearchRequest.ts";
+import { useListingKeyboard } from "@/composables/useListingKeyboard.ts";
+import { useListingLayout } from "@/composables/useListingLayout.ts";
 import { useListingVirtualization } from "@/composables/useListingVirtualization.ts";
-import { useMouseSelection } from "@/composables/useRectangleSelection";
-import { useListingContextMenu } from "@/composables/useListingContextMenu";
+import { useMouseSelection } from "@/composables/useRectangleSelection.ts";
+import { useListingContextMenu } from "@/composables/useListingContextMenu.ts";
 import { getObjectProperty, setObjectProperty } from '@/utils/object.js';
 
 type QueryRecord = Record<string, unknown>;
@@ -391,9 +391,9 @@ function collectScopeRawFromQuery(q: QueryRecord) {
 const { t } = useI18n();
 const route = useRoute();
 
-const rootEl = ref<HTMLElement | null>(null);
-const results = ref<HTMLElement | null>(null);
-const listingView = ref<HTMLElement | null>(null);
+const rootEl = useTemplateRef<HTMLElement>("rootEl");
+const results = useTemplateRef<HTMLElement>("results");
+const listingView = useTemplateRef<HTMLElement>("listingView");
 
 const resultLimit = ref(Math.min(500, globalVars.searchResultsLimit || 1000));
 const termInputs = ref<string[]>([""]);

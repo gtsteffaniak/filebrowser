@@ -14,10 +14,10 @@
 </template>
 
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from "vue";
 import type { Book, Rendition } from "@likecoin/epub-ts";
-import { state, mutations, getters } from "@/store";
-import { resourcesApi } from "@/api";
+import { state, mutations, getters } from "@/store/index.ts";
+import { resourcesApi } from "@/api/index.js";
 import { ensureViewToken, requestViewIdentity, getCachedViewToken, getRequestViewToken } from "@/api/viewToken.js";
 
 defineOptions({ name: "epubViewer" });
@@ -52,7 +52,7 @@ function cfiToString(cfi: unknown): string {
 
 const isReady = ref(false); // to indicate when the book is loaded
 const floatIn = ref(false); // for the animation
-const viewer = ref<HTMLElement | null>(null);
+const viewer = useTemplateRef<HTMLElement>("viewer");
 
 let book: Book | null = null;
 let rendition: Rendition | null = null;

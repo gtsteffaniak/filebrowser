@@ -13,8 +13,8 @@
         :icon="showDesktopPanel ? 'close' : 'queue_music'"
         :badge="!showDesktopPanel ? queueCount : null"
         :auto-hide="!showDesktopPanel"
-        :offset="{ zIndex: 9999 }"
-        @click="showDesktopPanel = !showDesktopPanel"
+        :offset="{ zIndex: '9999' }"
+        @press="showDesktopPanel = !showDesktopPanel"
         :label="desktopPanelToggleLabel"
       />
 
@@ -105,7 +105,7 @@
 
       <!-- Audio controls -->
       <div class="audio-controls-container">
-        <div class="plyr-audio-container" ref="plyrAudioContainer">
+        <div class="plyr-audio-container">
           <audio :src="raw" :type="req.type" :autoplay="shouldAutoplay" @play="handlePlay" ref="audioElement"></audio>
         </div>
       </div>
@@ -127,14 +127,13 @@
     <!-- Video with plyr -->
     <div
       v-else-if="previewType === 'video'"
-      ref="videoPlayerContainer"
       class="video-player-container"
       :class="{
         'no-captions': !hasSubtitles,
         'video-player-container--transcode-switching': transcodeSwitchInProgress,
       }"
     >
-      <div class="plyr-video-container" ref="plyrVideoContainer">
+      <div class="plyr-video-container">
         <video
           ref="videoElement"
           :type="req.type"
@@ -161,7 +160,6 @@
         <LoadingSpinner size="large" />
       </div>
       <div
-        ref="skipFeedbackLayer"
         class="video-skip-feedback-layer"
         :class="{
           'video-skip-feedback-layer--visible': skipFeedbackVisible,
@@ -180,7 +178,7 @@
       icon="queue_music"
       :badge="queueCount"
       group="plyr-controls"
-      @click="showQueuePrompt"
+      @press="showQueuePrompt"
       :label="queueButtonLabel"
     />
 
@@ -191,7 +189,7 @@
       position="top-left"
       zone-height="8.5em"
       group="plyr-controls"
-      @click="showMobileLyrics = !showMobileLyrics"
+      @press="showMobileLyrics = !showMobileLyrics"
       :label="lyricsToggleLabel"
     />
 
@@ -204,7 +202,7 @@
       size="small"
       :offset="{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 6rem)' }"
       :auto-hide="false"
-      @click="mobileLyricsScrollLocked = !mobileLyricsScrollLocked"
+      @press="mobileLyricsScrollLocked = !mobileLyricsScrollLocked"
       :label="mobileLyricsLockToggleLabel"
     />
 
@@ -245,18 +243,18 @@ import {
 import { getTypeFromMime } from '@/utils/files.js';
 import { buildItemUrl, removeTrailingSlash } from '@/utils/url.js';
 import AudioPanel from "@/components/files/AudioPanel.vue";
-import { getters, mutations, state } from '@/store';
+import { getters, mutations, state } from "@/store/index.ts";
 import { getObjectProperty } from '@/utils/object.js';
-import { globalVars } from '@/utils/constants';
-import { getSubtitleFormatExtension } from '@/utils/subtitles';
-import { getPreviewURL, getPreviewURLPublic } from '@/api/resources';
+import { globalVars } from "@/utils/constants.js";
+import { getSubtitleFormatExtension } from "@/utils/subtitles.js";
+import { getPreviewURL, getPreviewURLPublic } from "@/api/resources.js";
 import {
   blockPlyrSeekOnInput,
   enablePlyrSeekOnRelease,
-} from '@/plyr/plyrSeekOnRelease';
-import { enablePlyrScrubPreview } from '@/plyr/plyrScrubPreview';
-import { enablePlyrVideoLoadingIndicator } from '@/plyr/plyrVideoLoading';
-import { enableOverlaidHintController } from '@/plyr/overlaidHintController';
+} from "@/plyr/plyrSeekOnRelease.js";
+import { enablePlyrScrubPreview } from "@/plyr/plyrScrubPreview.js";
+import { enablePlyrVideoLoadingIndicator } from "@/plyr/plyrVideoLoading.js";
+import { enableOverlaidHintController } from "@/plyr/overlaidHintController.js";
 import {
   appendMediaFragment,
   clearPendingInlineResumeFor,
@@ -280,7 +278,7 @@ import {
   parseTranscodeModeFromQuery,
   buildPlaybackQueryPatch,
   playbackQueryChanged,
-} from '@/utils/playbackQuery';
+} from "@/utils/playbackQuery.js";
 import {
   resolveTranscodeModeForPlayback,
   savePreferredTranscodeMode,
@@ -300,10 +298,10 @@ import { isPlayBlockedError, primePlay } from '@/plyr/playbackIntent.js';
 import { needsTranscodeFirst } from '@/utils/canBrowserPlayNative.js';
 import { getTranscodeSessions } from '@/api/transcode.js';
 import { getCachedViewToken } from '@/api/viewToken.js';
-import { notify } from '@/notify';
+import { notify } from "@/notify/index.ts";
 import { isInLeftNavTapZone, isInRightNavTapZone } from '@/utils/navigationEdgeZones.js';
 import { zoneFromClientX } from '@/plyr/gestureZones.js';
-import { ownsMediaSession as ownsMediaSessionSlot } from '@/utils/mediaSessionOwnership';
+import { ownsMediaSession as ownsMediaSessionSlot } from "@/utils/mediaSessionOwnership.js";
 
 const PLYR_CAPTION_SIZE_IDS = ['small', 'medium', 'large', 'xlarge'];
 /** Same localStorage key Plyr uses for `captions`, `language`, etc. (see Plyr defaults `storage.key`). */
@@ -373,7 +371,13 @@ export default {
       default: null,
     },
   },
-  emits: ['play', 'navigate-previous', 'navigate-next', 'close-preview', 'needs-transcode'],
+  emits: {
+    'playback-start': () => true,
+    'navigate-previous': () => true,
+    'navigate-next': () => true,
+    'close-preview': () => true,
+    'needs-transcode': () => true,
+  },
   data() {
     return {
       // Toast
@@ -490,6 +494,12 @@ export default {
       transcodeMenuInitialized: false,
       transcodeModeButtons: null,
       transcodeModeValueSpan: null,
+      playbackButtons: null,
+      playbackValueSpan: null,
+      captionSizeButtons: null,
+      captionSizeValueSpan: null,
+      loopButtons: null,
+      loopValueSpan: null,
       transcodeOfferEmitted: false,
       mountPlyrInProgress: false,
       /** Armed when autoplay is blocked so the next user gesture can resume playback. */
@@ -689,11 +699,9 @@ export default {
     },
     showQueueButton() {
       if (this.previewType === 'video') {
-        if (this.isFullscreen) return false;
-        return true;
+        return !this.isFullscreen;
       }
-      if (this.isMobile && this.previewType === 'audio') return true;
-      return false;
+      return this.isMobile && this.previewType === 'audio';
     },
     mobileLyricsActive() {
       return this.isMobile && this.showMobileLyrics && this.lyrics.length > 0;
@@ -1020,17 +1028,7 @@ export default {
       await this.preparePlyrMount();
     }
     document.addEventListener('keydown', this.handleKeydown);
-    this.pagehideHandler = (event) => {
-      if (event.persisted) return;
-      this.cleanupAudioVisualizer(); // to stop the visualizer when viewing another browser tab
-      // Tab close / page unload: stop the media element and fire a keepalive
-      // DELETE so the server session is released before the document tears down.
-      // A plain fetch would be cancelled mid-flight and leave the session
-      // counted against the per-user limit until the janitor reaps it.
-      this.teardownTranscodePlayback({ stopSession: true, keepalive: true });
-      this.stopMediaElement();
-    };
-    window.addEventListener('pagehide', this.pagehideHandler);
+    window.addEventListener('pagehide', this.onPageHide);
   },
   beforeUnmount() {
     // Cleanup timeouts
@@ -1050,10 +1048,16 @@ export default {
     } finally {
       this.clearMediaSession();
       document.removeEventListener('keydown', this.handleKeydown);
-      window.removeEventListener('pagehide', this.pagehideHandler);
+      window.removeEventListener('pagehide', this.onPageHide);
     }
   },
   methods: {
+    onPageHide(event) {
+      if (event.persisted) return;
+      this.cleanupAudioVisualizer(); // to stop the visualizer when viewing another browser tab
+      this.teardownTranscodePlayback({ stopSession: true, keepalive: true });
+      this.stopMediaElement();
+    },
     /** Plyr captions menu: show format only (e.g. `.srt`, `.ass`), not the video basename. */
     subtitleTrackLabel(sub) {
       const ext = getSubtitleFormatExtension(sub?.name || '');
@@ -1374,7 +1378,7 @@ export default {
       if (this.plyrTeardownDone) {
         return;
       }
-      this.$emit('play');
+      this.$emit('playback-start');
       if (
         this.previewType === 'video'
         && this.isTranscodePlaybackMode
@@ -2083,7 +2087,7 @@ export default {
         return;
       }
       mutations.setPlaybackState(true);
-      this.$emit('play');
+      this.$emit('playback-start');
     },
     initTranscodeModeFromRoute() {
       if (this.previewType !== 'video' || !this.transcodeEnabled) {
@@ -2677,7 +2681,7 @@ export default {
           ?? (() => this.player?.play?.() ?? el.play());
         void Promise.resolve(playCall()).then(() => {
           mutations.setPlaybackState(true);
-          this.$emit('play');
+          this.$emit('playback-start');
         }).catch(() => {});
       };
       if (el.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA && !el.paused) {

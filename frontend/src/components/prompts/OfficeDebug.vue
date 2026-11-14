@@ -80,10 +80,10 @@
 </template>
 
 <script>
-import { state, getters } from "@/store";
-import { globalVars } from "@/utils/constants";
-import { officeApi } from "@/api";
-import { events } from "@/notify";
+import { state, getters } from "@/store/index.ts";
+import { globalVars } from "@/utils/constants.js";
+import { officeApi } from "@/api/index.js";
+import { events } from "@/notify/index.ts";
 
 const wikiLink = "https://filebrowserquantum.com/en/docs/integrations/office/troubleshooting/";
 
@@ -111,7 +111,7 @@ export default {
     return {
       debugInfo: [{ text: `⏳ ${this.$t("onlyoffice.startingInit")}` }],
       wikiLink,
-      clientConfig: {},
+      clientConfig: { document: null, editorConfig: null },
       hasErrors: false,
       onlyOfficeLogs: [],
       documentId: null,

@@ -29,7 +29,7 @@
           :autoPlayEnabled="autoPlay"
           :startTranscode="transcodePlaybackActive"
           :sharedTranscodePlayback="transcodePlaybackController"
-          @play="playbackStarted = true"
+          @playback-start="playbackStarted = true"
           @needs-transcode="handleVideoTranscodeOffer"
           :class="{ 'plyr-background': previewType === 'audio' }"
           @navigate-previous="navigatePrevious"
@@ -123,15 +123,15 @@
 </template>
 <script>
 import { createAsyncComponent } from "@/utils/asyncComponent.js";
-import { resourcesApi, mediaApi } from "@/api";
+import { resourcesApi, mediaApi } from "@/api/index.js";
 import { ensureViewToken, requestViewIdentity } from "@/api/viewToken.js";
 import { goToItem, removeTrailingSlash, removeLastDir } from "@/utils/url.js";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
-import { state, getters, mutations } from "@/store";
-import { isRawImageMimeType } from "@/utils/mimetype";
-import { convertToVTT, getSubtitleFormatExtension } from "@/utils/subtitles";
-import { parseLyrics } from "@/utils/lyrics";
-import { globalVars } from "@/utils/constants";
+import { state, getters, mutations } from "@/store/index.ts";
+import { isRawImageMimeType } from "@/utils/mimetype.js";
+import { convertToVTT, getSubtitleFormatExtension } from "@/utils/subtitles.js";
+import { parseLyrics } from "@/utils/lyrics.ts";
+import { globalVars } from "@/utils/constants.js";
 import { navigatePlaybackQueue } from "@/utils/playbackQueue.js";
 import { shouldAutoPlayPreview } from "@/utils/previewAutoplay.js";
 import { getTranscodeSessions } from "@/api/transcode.js";
@@ -146,7 +146,7 @@ import {
   hasActiveSession as hasActivePipSession,
   pendingInlineResumeFor,
 } from "@/plyr/pipSession.js";
-import { isPdfFile } from "@/utils/mediaFile";
+import { isPdfFile } from "@/utils/mediaFile.js";
 import { shouldUsePdfPreviewFallback } from "@/utils/pdfPreview.js";
 import { TranscodePlaybackController } from "@/plyr/transcodePlaybackController.js";
 import { isTranscodeAvailable } from "@/plyr/transcodeMode.js";

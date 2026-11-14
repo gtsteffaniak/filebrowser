@@ -19,7 +19,6 @@
   <!-- Previous button -->
   <button
     v-if="enabled && hasPrevious"
-    ref="prevButton"
     type="button"
     :tabindex="showNav ? 0 : -1"
     @click.prevent="handlePrevClick"
@@ -51,7 +50,6 @@
   <!-- Next button -->
   <button
     v-if="enabled && hasNext"
-    ref="nextButton"
     type="button"
     :tabindex="showNav ? 0 : -1"
     @click.prevent="handleNextClick"
@@ -77,7 +75,6 @@
   <!-- Close preview (same control as swipe-down / back) -->
   <button
     v-if="enabled && showPreviewCloseButton"
-    ref="closeButton"
     type="button"
     :tabindex="showCloseNavChrome ? 0 : -1"
     @click.prevent="handleClosePreviewClick"
@@ -99,11 +96,11 @@
 </template>
 
 <script>
-import { state, getters, mutations } from "@/store";
-import throttle from "@/utils/throttle";
-import { previewViews } from "@/utils/constants";
-import { url } from "@/utils";
-import { resourcesApi } from "@/api";
+import { state, getters, mutations } from "@/store/index.ts";
+import throttle from "@/utils/throttle.js";
+import { previewViews } from "@/utils/constants.js";
+import { url } from "@/utils/index.ts";
+import { resourcesApi } from "@/api/index.js";
 import { navigatePlaybackQueue } from "@/utils/playbackQueue.js";
 import {
   isInLeftNavHoverZone,
@@ -127,6 +124,7 @@ export default {
         threshold: 0, // Will be calculated as 10em in pixels
         atFullExtent: false,
         triggered: false,
+        wasDrag: false,
       },
       // State tracking
       navigationTimeout: null,
@@ -220,6 +218,12 @@ export default {
     nextRaw() {
       return state.navigation.nextRaw;
     },
+    navigationRequestKey() {
+      return state.req ? `${state.req.source ?? ""}\u0000${state.req.path ?? ""}` : "";
+    },
+    navigationParentItems() {
+      return state.req?.parentDirItems;
+    },
     currentView() {
       const view = getters.currentView();
       return view;
@@ -281,18 +285,6 @@ export default {
         await this.setupNavigationForCurrentItem();
       }
     },
-    'state.req': {
-      async handler() {
-        this.updateNavigationEnabled();
-        // Auto-setup navigation when request changes and we're enabled
-        if (this.enabled) {
-          await this.$nextTick();
-          await this.setupNavigationForCurrentItem();
-        }
-      },
-      deep: true,
-      immediate: false
-    },
     async enabled(newEnabled) {
       if (newEnabled && state.req) {
         await this.$nextTick();
@@ -309,17 +301,20 @@ export default {
         });
       }, 100);
     },
-    navigationSortOverride() {
+    navigationRequestKey() {
       if (this.enabled && state.req) {
         void this.setupNavigationForCurrentItem();
       }
     },
-    // Watch for when navigation links are set up
-    'state.navigation.previousLink'() {
-      this.showInitialNavigation();
+    navigationParentItems() {
+      if (this.enabled && state.req) {
+        void this.setupNavigationForCurrentItem();
+      }
     },
-    'state.navigation.nextLink'() {
-      this.showInitialNavigation();
+    navigationSortOverride() {
+      if (this.enabled && state.req) {
+        void this.setupNavigationForCurrentItem();
+      }
     },
   },
   async mounted() {

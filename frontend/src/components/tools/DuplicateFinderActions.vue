@@ -24,6 +24,10 @@ export default {
       default: false,
     },
   },
+  emits: {
+    delete: () => true,
+    clear: () => true,
+  },
   methods: {
     handleDelete() {
       this.$emit('delete');

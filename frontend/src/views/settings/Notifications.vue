@@ -80,9 +80,9 @@
 </template>
 
 <script>
-import { state } from "@/store";
-import { fromNow } from "@/utils/moment";
-import { notify } from "@/notify";
+import { state } from "@/store/index.ts";
+import { fromNow } from "@/utils/moment.ts";
+import { notify } from "@/notify/index.ts";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import {
   formatNotificationCount,
@@ -91,8 +91,8 @@ import {
   isNotificationSupported,
   requestNotificationPermission,
   setAppNotificationsEnabled,
-} from "@/utils/appNotifications";
-import { restoreNotificationButtonAction } from "@/utils/notificationActions";
+} from "@/utils/appNotifications.js";
+import { restoreNotificationButtonAction } from "@/utils/notificationActions.js";
 
 export default {
   name: "Notifications",

@@ -97,7 +97,7 @@
       :title="showMoreExpanded ? $t('buttons.showLess') : $t('buttons.showMore')"
       :collapsable="true"
       :start-collapsed="!showMoreExpanded"
-      @toggle="showMoreExpanded = $event"
+      @toggled="showMoreExpanded = $event"
     >
       <div class="settings-items">
         <div
@@ -652,10 +652,10 @@
 </template>
 
 <script>
-import { getters } from "@/store";
+import { getters } from "@/store/index.ts";
 import { getObjectProperty } from "@/utils/object.js";
-import { globalVars } from "@/utils/constants";
-import { bytesFromCustomAmount } from "@/utils/quotaUnits";
+import { globalVars } from "@/utils/constants.js";
+import { bytesFromCustomAmount } from "@/utils/quotaUnits.js";
 import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import SettingsItem from "@/components/settings/SettingsItem.vue";
@@ -717,14 +717,14 @@ export default {
       default: true,
     },
   },
-  emits: [
-    "update:modelValue",
-    "enforced-change",
-    "customize-sidebar-links",
-    "pick-banner",
-    "pick-favicon",
-    "change",
-  ],
+  emits: {
+    "update:modelValue": (values) => typeof values === "object" && values !== null,
+    "enforced-change": (change) => typeof change?.field === "string",
+    "customize-sidebar-links": () => true,
+    "pick-banner": () => true,
+    "pick-favicon": () => true,
+    changed: () => true,
+  },
   data() {
     return {
       showMoreExpanded: false,
@@ -785,10 +785,10 @@ export default {
   methods: {
     setField(field, value) {
       this.$emit("update:modelValue", { ...this.modelValue, [field]: value });
-      this.$emit("change");
+      this.$emit("changed");
     },
     emitEnforced(field, value) {
-      this.$emit("enforced-change", field, value);
+      this.$emit("enforced-change", { field, value });
     },
     enforcedFlag(field) {
       return !!getObjectProperty(this.enforced, field);

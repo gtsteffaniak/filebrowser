@@ -78,9 +78,9 @@
 </template>
 
 <script>
-import { accessApi, usersApi } from "@/api";
-import { eventBus } from "@/store/eventBus";
-import { notify } from "@/notify";
+import { accessApi, usersApi } from "@/api/index.js";
+import { eventBus } from "@/store/eventBus.ts";
+import { notify } from "@/notify/index.ts";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import { groupNameErrorText } from "@/utils/groups.js";
 
@@ -123,7 +123,10 @@ export default {
       default: true,
     },
   },
-  emits: ["update:modelValue", "enter"],
+  emits: {
+    "update:modelValue": (names) => Array.isArray(names),
+    enter: () => true,
+  },
   data() {
     return {
       loading: true,

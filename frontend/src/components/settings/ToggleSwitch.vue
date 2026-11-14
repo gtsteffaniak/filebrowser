@@ -183,6 +183,10 @@ export default {
       return this.$t("general.enforce");
     },
   },
+  emits: {
+    "update:modelValue": (checked) => typeof checked === "boolean",
+    "update:enforced": (enforced) => typeof enforced === "boolean",
+  },
   methods: {
     updateValue(event) {
       this.$emit("update:modelValue", event.target.checked);

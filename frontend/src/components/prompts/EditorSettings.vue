@@ -63,8 +63,8 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
-import { mutations } from "@/store";
-import { editorConfig, saveEditorConfig, resetEditorConfig, type EditorConfig } from "@/utils/editorConfig";
+import { mutations } from "@/store/index.ts";
+import { editorConfig, saveEditorConfig, resetEditorConfig, type EditorConfig } from "@/utils/editorConfig.ts";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 
@@ -80,9 +80,12 @@ interface EditorSettingField {
   options?: { value: string | number; label: string }[];
 }
 
-defineProps({
-  promptId: { type: [String, Number], default: null },
-});
+withDefaults(
+  defineProps<{
+    promptId?: string | number | null;
+  }>(),
+  { promptId: null },
+);
 
 defineOptions({ name: "EditorSettings" });
 

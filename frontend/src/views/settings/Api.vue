@@ -6,7 +6,7 @@
     :edge-offset="{ bottom: '1rem', right: '1rem' }"
     :auto-hide="false"
     :label="$t('general.new')"
-    @click="createPrompt"
+    @press="createPrompt"
   />
   <errors v-if="error" :errorCode="error.status" />
   <div class="card-title">
@@ -75,15 +75,15 @@
 </template>
 
 <script>
-import { authApi } from "@/api";
-import { state, mutations, getters } from "@/store";
-import { copyToClipboard } from "@/utils/clipboard";
+import { authApi } from "@/api/index.js";
+import { state, mutations, getters } from "@/store/index.ts";
+import { copyToClipboard } from "@/utils/clipboard.js";
 import Errors from "@/views/Errors.vue";
 import SettingsTable from "@/components/settings/Table.vue";
 import ActivityViewerButton from "@/components/settings/ActivityViewerButton.vue";
 import FloatingActionButton from "@/components/settings/FloatingActionButton.vue";
-import { activityViewerPresets } from "@/utils/activityViewerLink";
-import { eventBus } from "@/store/eventBus";
+import { activityViewerPresets } from "@/utils/activityViewerLink.js";
+import { eventBus } from "@/store/eventBus.ts";
 
 export default {
   name: "api",

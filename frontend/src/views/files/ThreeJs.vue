@@ -18,7 +18,7 @@
       icon="settings"
       position="bottom-left"
       :auto-hide="false"
-      @click="showControlsPrompt"
+      @press="showControlsPrompt"
       :label="$t('threejs.controls')"
     />
   </div>
@@ -65,10 +65,10 @@ import { VOXLoader } from 'three/addons/loaders/VOXLoader.js';
 import { KMZLoader } from 'three/addons/loaders/KMZLoader.js';
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import FloatingActionButton from "@/components/settings/FloatingActionButton.vue";
-import { state, mutations, getters } from "@/store";
-import { resourcesApi } from "@/api";
-import { getCachedViewToken, ensureViewToken, requestViewIdentity } from "@/api/viewToken";
-import { removeLastDir, resolveRelativePath } from "@/utils/url";
+import { state, mutations, getters } from "@/store/index.ts";
+import { resourcesApi } from "@/api/index.js";
+import { getCachedViewToken, ensureViewToken, requestViewIdentity } from "@/api/viewToken.js";
+import { removeLastDir, resolveRelativePath } from "@/utils/url.js";
 import { getObjectProperty } from '@/utils/object.js';
 
 const LOADERS = {
@@ -99,6 +99,7 @@ const LOADERS = {
 export default {
   name: "threeJsViewer",
   components: { LoadingSpinner, FloatingActionButton },
+  emits: { "load-error": () => true },
   props: {
     fbdata: { type: Object, required: true },
     isThumbnail: { type: Boolean, default: false },
@@ -354,7 +355,7 @@ export default {
       }
       this.loading = false;
       if (this.isThumbnail) {
-        this.$emit('error', err);
+        this.$emit('load-error', err);
       }
     },
 

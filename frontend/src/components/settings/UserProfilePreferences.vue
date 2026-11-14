@@ -222,7 +222,7 @@
               :name="$t('profileSettings.defaultViewMode')"
               :description="$t('profileSettings.defaultViewModeDescription')"
               :disabled="fieldDisabled('listing', 'viewMode') && fieldDisabled('listing', 'gallerySize')"
-              @click="openDefaultViewPref"
+              @activate="openDefaultViewPref"
               @mouseenter="showEnforcedTooltipIfLocked($event, 'listing', 'viewMode')"
               @mouseleave="hideTooltip"
             />
@@ -246,7 +246,7 @@
               :name="$t('prompts.newFileTemplate')"
               :description="$t('prompts.newFileTemplateMessage')"
               :disabled="fieldDisabled('listing', 'newFileTemplate')"
-              @click="openNewFileTemplateEditor"
+              @activate="openNewFileTemplateEditor"
               @mouseenter="showEnforcedTooltipIfLocked($event, 'listing', 'newFileTemplate')"
               @mouseleave="hideTooltip"
             />
@@ -759,13 +759,13 @@
 </template>
 
 <script>
-import { notify } from "@/notify";
+import { notify } from "@/notify/index.ts";
 import { globalVars } from "@/utils/constants.js";
 import {
   hideInteractiveTooltip,
   showHoverTooltip,
 } from "@/utils/tooltipHelp.js";
-import { getters, mutations } from "@/store";
+import { getters, mutations } from "@/store/index.ts";
 import { getObjectProperty, setObjectProperty } from "@/utils/object.js";
 import { normalizeDarkMode } from "@/utils/theme.js";
 import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
@@ -848,7 +848,13 @@ export default {
       default: null,
     },
   },
-  emits: ["update:modelValue", "change", "enforced-change", "theme-color", "locale-change"],
+  emits: {
+    "update:modelValue": (sections) => typeof sections === "object" && sections !== null,
+    changed: (change) => typeof change?.section === "string",
+    "enforced-change": (change) => typeof change?.section === "string",
+    "theme-color": (color) => typeof color === "string",
+    "locale-change": (locale) => typeof locale === "string",
+  },
   data() {
     return {
       expandedSection: null,
@@ -1132,10 +1138,7 @@ export default {
       const sectionData = getObjectProperty(this.sections, section);
       const val = getObjectProperty(sectionData, field);
       if (val === undefined || val === null) {
-        if (section === "preview") {
-          return true;
-        }
-        return false;
+        return section === "preview";
       }
       return !!val;
     },
@@ -1163,7 +1166,7 @@ export default {
       this.sections = setObjectProperty(this.sections, section, updatedSection);
     },
     emitSectionChange(section, field) {
-      this.$emit("change", { section, field });
+      this.$emit("changed", { section, field });
     },
     emitEnforced(section, field, value) {
       this.$emit("enforced-change", { section, field, value });
