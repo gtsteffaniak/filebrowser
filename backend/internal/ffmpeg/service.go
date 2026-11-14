@@ -10,6 +10,7 @@ import (
 	goffmpeg "github.com/gtsteffaniak/go-ffmpeg"
 	"github.com/gtsteffaniak/go-ffmpeg/capabilities"
 	"github.com/gtsteffaniak/go-ffmpeg/ops"
+	"github.com/gtsteffaniak/go-ffmpeg/probe"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
@@ -118,7 +119,37 @@ func (s *Service) VideoPreview(ctx context.Context, w io.Writer, opts ops.Previe
 	if s == nil || s.inner == nil {
 		return fmt.Errorf("ffmpeg service not available")
 	}
-	return s.inner.VideoPreview(ctx, w, opts)
+	return s.inner.CaptureFrame(ctx, w, previewOptionsToFrame(opts))
+}
+
+func previewOptionsToFrame(opts ops.PreviewOptions) ops.FrameOptions {
+	var at ops.FramePosition
+	if opts.SeekSec > 0 {
+		at = ops.AtSec(opts.SeekSec)
+	} else {
+		pct := opts.SeekPercent
+		if pct <= 0 || pct > 100 {
+			pct = 10
+		}
+		at = ops.AtPercent(pct)
+	}
+	q := opts.Quality
+	if q == 0 {
+		q = ops.LegacyPreviewDefaultQuality
+	}
+	return ops.FrameOptions{
+		Input:       ops.InputSource{URL: opts.Input, StreamType: probe.StreamFile},
+		At:          at,
+		DurationSec: opts.DurationSec,
+		Width:       opts.Width,
+		Height:      opts.Height,
+		ScaleMode:   opts.ScaleMode,
+		Quality:     q,
+		Timeout:     opts.Timeout,
+		LightProbe:  opts.LightProbe,
+		Accuracy:    opts.Accuracy,
+		Format:      ops.FrameJPEG,
+	}
 }
 
 // ExtractSubtitle returns embedded subtitle content as WebVTT.

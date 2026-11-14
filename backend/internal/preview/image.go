@@ -7,6 +7,7 @@ import (
 	"image"
 	"image/jpeg"
 	"io"
+	"math"
 
 	exif "github.com/dsoprea/go-exif/v3"
 	exifcommon "github.com/dsoprea/go-exif/v3/common"
@@ -198,6 +199,50 @@ func (s *Service) ResizeWithSize(ctx context.Context, in io.Reader, out io.Write
 	return err
 }
 
+// fillCenter is imaging.Fill(img, width, height, imaging.Center, filter) without a full-size copy
+// of the source. For sources of 100px or more, imaging.Fill first crops into a new NRGBA image
+// (4 bytes per pixel of the cropped area, about 144 MB for a 48 MP photo) and only then resizes.
+// Here the crop is a SubImage view into the decoded pixels, so only the resize allocates. The
+// crop rectangle is computed as imaging's cropAndResize computes it, so the output is the same.
+//
+// Two cases still go through imaging.Fill: a crop that is already the target size (nothing to
+// scale, and Fill's small copy is what keeps the output type the same), and 4:4:4 YCbCr sources,
+// whose scanner in imaging v1.9.0 advances one full parent stride past the end of a SubImage's
+// last row and panics when the crop has an x offset and reaches the bottom row.
+func fillCenter(img image.Image, width, height int, filter imaging.ResampleFilter) image.Image {
+	b := img.Bounds()
+	sub, ok := img.(interface {
+		SubImage(image.Rectangle) image.Image
+	})
+	if !ok || is444(img) || width <= 0 || height <= 0 || b.Dx() < 100 || b.Dy() < 100 || (b.Dx() == width && b.Dy() == height) {
+		return imaging.Fill(img, width, height, imaging.Center, filter)
+	}
+	cropW, cropH := b.Dx(), b.Dy()
+	if float64(b.Dx())/float64(b.Dy()) < float64(width)/float64(height) {
+		cropH = int(math.Max(1, float64(b.Dx())*float64(height)/float64(width)) + 0.5)
+	} else {
+		cropW = int(math.Max(1, float64(b.Dy())*float64(width)/float64(height)) + 0.5)
+	}
+	if cropW == width && cropH == height {
+		return imaging.Fill(img, width, height, imaging.Center, filter)
+	}
+	x0 := b.Min.X + (b.Dx()-cropW)/2
+	y0 := b.Min.Y + (b.Dy()-cropH)/2
+	crop := image.Rect(x0, y0, x0+cropW, y0+cropH).Intersect(b)
+	return imaging.Resize(sub.SubImage(crop), width, height, filter)
+}
+
+// is444 reports whether img is a YCbCr image without chroma subsampling.
+func is444(img image.Image) bool {
+	switch p := img.(type) {
+	case *image.YCbCr:
+		return p.SubsampleRatio == image.YCbCrSubsampleRatio444
+	case *image.NYCbCrA:
+		return p.SubsampleRatio == image.YCbCrSubsampleRatio444
+	}
+	return false
+}
+
 func (s *Service) resizeWithSize(in io.Reader, out io.Writer, fileSize int64, opts ResizeOptions) error {
 	// Set defaults
 	if opts.ResizeMode == 0 {
@@ -275,7 +320,7 @@ func (s *Service) resizeWithSize(in io.Reader, out io.Writer, fileSize int64, op
 	resampleFilter := opts.Quality.resampleFilter()
 	switch opts.ResizeMode {
 	case ResizeModeFill:
-		img = imaging.Fill(img, opts.Width, opts.Height, imaging.Center, resampleFilter)
+		img = fillCenter(img, opts.Width, opts.Height, resampleFilter)
 	case ResizeModeFit:
 		fallthrough
 	default:
@@ -401,8 +446,32 @@ func getEmbeddedThumbnail(in io.Reader) ([]byte, io.Reader, error) {
 		return nil, wrappedReader, exif.ErrNoThumbnail
 	}
 
+	// Read IFD1's Orientation first; fall back to IFD0's Orientation if not specified (per MWG guidelines)
+	orientStr := ""
+	tags1, err1 := ifd.FindTagWithName("Orientation")
+	if err1 == nil && len(tags1) > 0 {
+		orientStr, _ = tags1[0].FormatFirst()
+	}
+	if orientStr == "" {
+		tags0, err0 := index.RootIfd.FindTagWithName("Orientation")
+		if err0 == nil && len(tags0) > 0 {
+			orientStr, _ = tags0[0].FormatFirst()
+		}
+	}
+
 	thm, err := ifd.Thumbnail()
-	return thm, wrappedReader, err
+	if err != nil {
+		return nil, wrappedReader, err
+	}
+
+	if orientStr != "" && orientStr != "1" {
+		if !embeddedPreviewWithinLimits(thm) {
+			return nil, wrappedReader, fmt.Errorf("embedded thumbnail exceeds decode limits")
+		}
+		thm = applyOrientationToPreviewBytes(thm, orientStr)
+	}
+
+	return thm, wrappedReader, nil
 }
 
 // CreateThumbnail decodes an image and creates a fixed-size thumbnail.

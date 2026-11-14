@@ -202,6 +202,18 @@ func UserForShareOwner(link share.Share) (users.User, error) {
 // may apply default-enabled sources. In-memory/cache users always keep FrontendScopes nil; GET handlers use
 // PrepForFrontend to repopulate FrontendScopes from BackendScopes for responses.
 func CreateUser(user *users.User, plaintextPassword string) error {
+	return createUser(user, plaintextPassword, false)
+}
+
+// CreateUserKeepingProfile is CreateUser for callers whose user was seeded with
+// PrefillUserProfileDefaults before decoding the request: the profile fields already hold
+// defaults overlaid with the request, so they are not replaced by userDefaults again.
+// Enforced defaults still win.
+func CreateUserKeepingProfile(user *users.User, plaintextPassword string) error {
+	return createUser(user, plaintextPassword, true)
+}
+
+func createUser(user *users.User, plaintextPassword string, keepProfile bool) error {
 	if err := users.ValidateUsername(user.Username); err != nil {
 		return err
 	}
@@ -256,11 +268,18 @@ func CreateUser(user *users.User, plaintextPassword string) error {
 			requestedScopePermissions[backendScopeKeyFor(scope)] = scope.Permissions
 		}
 	}
+	var requestedProfile settings.UserProfile
+	if keepProfile {
+		requestedProfile = settings.ProfileFromUser(user)
+	}
 	// Apply profile/scope defaults using the final account permissions (admin flag drives scope defaults).
 	if permissionsRequested {
 		settings.ApplyUserDefaultsFromKeepingAccountPermissions(user, EffectiveUserDefaults())
 	} else {
 		applyUserSettingsDefaults(user)
+	}
+	if keepProfile {
+		settings.ExpandProfileIntoUser(user, requestedProfile)
 	}
 	if preserveRequirePasswordChange {
 		user.RequirePasswordChange = true

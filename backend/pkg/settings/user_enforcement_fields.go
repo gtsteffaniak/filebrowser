@@ -60,9 +60,10 @@ var previewJSONSubfields = map[string]string{
 }
 
 var fileLoadingJSONSubfields = map[string]string{
-	"maxConcurrentUpload": "fileLoading.maxConcurrentUpload",
-	"uploadChunkSizeMb":   "fileLoading.uploadChunkSizeMb",
-	"downloadChunkSizeMb": "fileLoading.downloadChunkSizeMb",
+	"maxConcurrentUpload":       "fileLoading.maxConcurrentUpload",
+	"uploadChunkSizeMb":         "fileLoading.uploadChunkSizeMb",
+	"downloadChunkSizeMb":       "fileLoading.downloadChunkSizeMb",
+	"uploadStallTimeoutSeconds": "fileLoading.uploadStallTimeoutSeconds",
 }
 
 // EnforcedPathsTouchedByUserJSONField returns enforcement paths a user JSON field name may affect.

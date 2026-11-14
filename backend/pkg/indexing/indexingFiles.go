@@ -8,6 +8,7 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/fileutils"
@@ -23,8 +24,9 @@ import (
 )
 
 var (
-	RealPathCache = cache.NewCache[string](48*time.Hour, 72*time.Hour)
-	IsDirCache    = cache.NewCache[bool](48*time.Hour, 72*time.Hour)
+	RealPathCache      = cache.NewCache[string](48*time.Hour, 72*time.Hour)
+	IsDirCache         = cache.NewCache[bool](48*time.Hour, 72*time.Hour)
+	realPathGeneration atomic.Uint64
 )
 
 // getDiskUsage returns the actual disk space used by a file in bytes
@@ -1221,6 +1223,7 @@ func (idx *Index) getRealPathInternal(boundIndexPath string, enforceScope bool, 
 	if ok && cached != "" {
 		return cached, isDir, nil
 	}
+	generation := realPathGeneration.Load()
 	absolutePath, err := filepath.Abs(joinedPath)
 	if err != nil {
 		return absolutePath, false, fmt.Errorf("could not get real path: %v, %s", joinedPath, err)
@@ -1238,7 +1241,75 @@ func (idx *Index) getRealPathInternal(boundIndexPath string, enforceScope bool, 
 	}
 	RealPathCache.Set(cacheKey, realPath)
 	IsDirCache.Set(cacheKey+":isdir", isDir)
+	if realPathGeneration.Load() != generation {
+		RealPathCache.Delete(cacheKey)
+		IsDirCache.Delete(cacheKey + ":isdir")
+	}
 	return realPath, isDir, nil
+}
+
+// realPathCacheJoinedPath builds the filesystem join used in RealPathCache keys.
+func realPathCacheJoinedPath(sourceRoot, indexPath string) string {
+	seg := utils.CleanIndexPathSegment(indexPath)
+	if seg == "" {
+		return sourceRoot
+	}
+	return filepath.Join(sourceRoot, seg)
+}
+
+func realPathCacheIndexAncestors(indexPath string) []string {
+	rel := utils.CleanIndexPathSegment(indexPath)
+	if rel == "" {
+		return []string{"/"}
+	}
+	parts := strings.Split(rel, "/")
+	ancestors := []string{"/"}
+	for i := range parts {
+		ancestors = append(ancestors, "/"+strings.Join(parts[:i+1], "/"))
+	}
+	return ancestors
+}
+
+// ClearRealPathCaches drops every cached symlink resolution. The cache library has no
+// prefix delete, so subtree invalidation uses a full clear; entries repopulate lazily.
+func ClearRealPathCaches() {
+	realPathGeneration.Add(1)
+	RealPathCache.ClearAll()
+	IsDirCache.ClearAll()
+}
+
+// InvalidateRealPathCache drops cached symlink resolutions for indexPath and its
+// ancestors. scopeBounds should include any caller scope prefixes used with
+// GetRealPathScoped (e.g. user or share path).
+func (idx *Index) InvalidateRealPathCache(indexPath string, scopeBounds ...string) {
+	realPathGeneration.Add(1)
+	boundSet := map[string]struct{}{"/": {}, "": {}}
+	for _, b := range scopeBounds {
+		b = strings.TrimRight(strings.TrimSpace(b), "/")
+		if b == "" || b == "/" {
+			boundSet["/"] = struct{}{}
+			boundSet[""] = struct{}{}
+			continue
+		}
+		if !strings.HasPrefix(b, "/") {
+			b = "/" + b
+		}
+		boundSet[b] = struct{}{}
+	}
+	bounds := make([]string, 0, len(boundSet))
+	for b := range boundSet {
+		bounds = append(bounds, b)
+	}
+	for _, ip := range realPathCacheIndexAncestors(indexPath) {
+		joined := realPathCacheJoinedPath(idx.Path, ip)
+		for _, enforceScope := range []bool{false, true} {
+			for _, bound := range bounds {
+				key := fmt.Sprintf("realpath|scoped=%t|bound=%q|path=%q", enforceScope, bound, joined)
+				RealPathCache.Delete(key)
+				IsDirCache.Delete(key + ":isdir")
+			}
+		}
+	}
 }
 
 // GetRealPathForMutation resolves an index path for a mutating filesystem
@@ -1589,7 +1660,10 @@ func setFilePreviewFlags(fileInfo *iteminfo.ItemInfo, realPath string) {
 	}
 	switch simpleType {
 	case "image":
-		if fileInfo.Size > iteminfo.LargeFileSizeThreshold {
+		// Camera RAW previews are the embedded JPEG, which is read without decoding the RAW data,
+		// so large RAW files (medium format, uncompressed) don't need the size limit.
+		isRaw := iteminfo.IsRawImage(strings.ToLower(filepath.Ext(fileInfo.Name)))
+		if fileInfo.Size > iteminfo.LargeFileSizeThreshold && !isRaw {
 			fileInfo.HasPreview = false
 			return
 		}

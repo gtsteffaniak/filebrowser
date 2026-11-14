@@ -71,9 +71,10 @@ type UserDefaultsUIEnforcement struct {
 }
 
 type UserDefaultsFileLoadingEnforcement struct {
-	MaxConcurrent     bool `json:"maxConcurrentUpload,omitempty"`
-	UploadChunkSize   bool `json:"uploadChunkSizeMb,omitempty"`
-	DownloadChunkSize bool `json:"downloadChunkSizeMb,omitempty"`
+	MaxConcurrent             bool `json:"maxConcurrentUpload,omitempty"`
+	UploadChunkSize           bool `json:"uploadChunkSizeMb,omitempty"`
+	DownloadChunkSize         bool `json:"downloadChunkSizeMb,omitempty"`
+	UploadStallTimeoutSeconds bool `json:"uploadStallTimeoutSeconds,omitempty"`
 }
 
 type UserDefaultsAccountEnforcement struct {

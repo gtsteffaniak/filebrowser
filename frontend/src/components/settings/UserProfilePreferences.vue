@@ -111,7 +111,7 @@
         />
       </template>
     </ProfileEnforceableField>
-    <div class="preference-field-block">
+    <div v-if="!hideAccountOptions" class="preference-field-block">
       <h4>{{ $t("profileSettings.accountOptions") }}</h4>
       <div class="settings-items">
         <ProfilePreferenceToggle
@@ -715,7 +715,7 @@
     </SettingsItem>
 
     <SettingsItem
-      v-if="sectionVisible('accountOptions')"
+      v-if="sectionVisible('accountOptions') && !hideAccountOptions"
       aria-label="accountOptions"
       name="accountOptions"
       :accordion="!sectionKey"
@@ -824,6 +824,11 @@ export default {
     sectionKey: {
       type: String,
       default: null,
+    },
+    /** Suppress the account options block when a parent renders UserDefaultsAccountSection alongside this component. */
+    hideAccountOptions: {
+      type: Boolean,
+      default: false,
     },
   },
   emits: ["update:modelValue", "change", "enforced-change", "theme-color", "locale-change"],

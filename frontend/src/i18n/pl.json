@@ -716,7 +716,9 @@
     "clearAllDescription": "Przycisk wyczyść ukończone spowoduje wyczyszczenie wszystkich przesłanych plików w stanie ukończenia, w tym w stanie błędu, wstrzymania i konfliktu.",
     "uploadSettings": "Ustawienia przesyłania",
     "downloadChunkSizeMb": "Rozmiar pobieranego fragmentu w MB",
-    "downloadChunkSizeMbHelp": "Rozmiar fragmentu dla pobierania fragmentarycznego. Pliki większe niż ten rozmiar będą pobierane w kawałkach, aby zapobiec problemom z przekroczeniem limitu czasu (np. błędy Cloudflare 524). Ustawienie wartości 0 wyłącza pobieranie fragmentaryczne."
+    "downloadChunkSizeMbHelp": "Rozmiar fragmentu dla pobierania fragmentarycznego. Pliki większe niż ten rozmiar będą pobierane w kawałkach, aby zapobiec problemom z przekroczeniem limitu czasu (np. błędy Cloudflare 524). Ustawienie wartości 0 wyłącza pobieranie fragmentaryczne.",
+    "uploadStallTimeoutSeconds": "Limit czasu zablokowanego przesyłania w sekundach",
+    "uploadStallTimeoutSecondsHelp": "Liczba sekund, przez które przesyłanie może trwać bez postępu, zanim zostanie wstrzymane. Zwiększ ją przy wolnych lub niestabilnych połączeniach albo gdy pliki są odczytywane z wolnych dysków. Wartości mniejsze niż 1 powodują użycie domyślnej wartości 10 sekund."
   },
   "colors": {
     "red": "czerwony",

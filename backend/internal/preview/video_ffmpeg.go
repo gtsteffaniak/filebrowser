@@ -13,7 +13,7 @@ type ffmpegPreviewParams struct {
 
 func ffmpegPreviewParamsForSize(previewSize string) (ffmpegPreviewParams, error) {
 	if previewSize == "original" {
-		return ffmpegPreviewParams{quality: 10}, nil
+		return ffmpegPreviewParams{quality: ops.LegacyPreviewDefaultQuality}, nil
 	}
 
 	opts, err := getPreviewOptions(previewSize)
@@ -24,7 +24,7 @@ func ffmpegPreviewParamsForSize(previewSize string) (ffmpegPreviewParams, error)
 	params := ffmpegPreviewParams{
 		width:   opts.Width,
 		height:  opts.Height,
-		quality: 10, // fastest MJPEG encode (-q:v 10); visual quality comes from target dimensions
+		quality: ops.LegacyPreviewDefaultQuality, // 1–100 scale; equivalent to historic MJPEG -q:v 10
 	}
 	if opts.ResizeMode == ResizeModeFill {
 		params.scaleMode = ops.ScaleFill

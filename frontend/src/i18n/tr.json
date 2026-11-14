@@ -716,7 +716,9 @@
     "clearAllDescription": "Tamamlananları temizle düğmesi hata, duraklatılmış ve çakışma durumları da dahil olmak üzere bitmiş durumdaki tüm yüklemeleri temizler.",
     "uploadSettings": "Yükleme Ayarları",
     "downloadChunkSizeMb": "MB cinsinden indirme yığın boyutu",
-    "downloadChunkSizeMbHelp": "Parçalı indirmeler için yığın boyutu. Bu boyuttan daha büyük dosyalar, zaman aşımı sorunlarını (örn. Cloudflare 524 hataları) önlemek için parçalar halinde indirilecektir. 0 olarak ayarlamak yığın indirmeleri devre dışı bırakır."
+    "downloadChunkSizeMbHelp": "Parçalı indirmeler için yığın boyutu. Bu boyuttan daha büyük dosyalar, zaman aşımı sorunlarını (örn. Cloudflare 524 hataları) önlemek için parçalar halinde indirilecektir. 0 olarak ayarlamak yığın indirmeleri devre dışı bırakır.",
+    "uploadStallTimeoutSeconds": "Yükleme takılma zaman aşımı (saniye)",
+    "uploadStallTimeoutSecondsHelp": "Bir yüklemenin duraklatılmadan önce hiç ilerleme olmadan geçebileceği saniye sayısı. Yavaş veya kararsız bağlantılarda ya da dosyalar yavaş disklerden okunurken artırın. 1'den küçük değerler varsayılan 10 saniyeyi kullanır."
   },
   "colors": {
     "red": "kırmızı",

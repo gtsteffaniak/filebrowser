@@ -716,7 +716,9 @@
     "clearAllDescription": "A befejezett állapot törlése gomb az összes befejezett állapotban lévő feltöltést törli, beleértve a hiba, a szüneteltetés és a konfliktus állapotokat is.",
     "uploadSettings": "Feltöltési beállítások",
     "downloadChunkSizeMb": "Letöltési darabok mérete MB-ban",
-    "downloadChunkSizeMbHelp": "Darabolt letöltések esetén a darabolt méret. Az ennél nagyobb méretű fájlok letöltése darabokban történik, hogy elkerülhetők legyenek az időkorlátozási problémák (pl. Cloudflare 524 hiba). A 0-ra állítás kikapcsolja a darabolt letöltéseket."
+    "downloadChunkSizeMbHelp": "Darabolt letöltések esetén a darabolt méret. Az ennél nagyobb méretű fájlok letöltése darabokban történik, hogy elkerülhetők legyenek az időkorlátozási problémák (pl. Cloudflare 524 hiba). A 0-ra állítás kikapcsolja a darabolt letöltéseket.",
+    "uploadStallTimeoutSeconds": "Feltöltés elakadási időkorlátja másodpercben",
+    "uploadStallTimeoutSecondsHelp": "Hány másodpercig maradhat egy feltöltés előrehaladás nélkül, mielőtt szüneteltetjük. Növelje lassú vagy instabil kapcsolatoknál, illetve ha a fájlokat lassú lemezekről olvassák. Az 1-nél kisebb értékek az alapértelmezett 10 másodpercet használják."
   },
   "colors": {
     "red": "piros",

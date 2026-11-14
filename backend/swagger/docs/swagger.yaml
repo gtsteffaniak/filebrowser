@@ -500,6 +500,10 @@ definitions:
         items:
           type: string
         type: array
+      unixSocketTrustAllLocalPeers:
+        description: 'default false: set true to trust forwarded headers from any
+          local filesystem socket peer when allowlists are empty'
+        type: boolean
       unixSocketTrustedGIDs:
         items:
           type: integer
@@ -507,8 +511,10 @@ definitions:
       unixSocketTrustedUIDs:
         description: |-
           UnixSocketTrustedUIDs and UnixSocketTrustedGIDs list peer credentials (Linux SO_PEERCRED) allowed to
-          present X-Forwarded-* on a filesystem http.socket listener. When both are empty, forwarded headers
-          are not trusted on Unix sockets. Abstract sockets (@name) never trust forwarded headers.
+          present X-Forwarded-* on a filesystem http.socket listener. When both are empty, peers are not trusted
+          unless UnixSocketTrustAllLocalPeers is true (legacy; startup logs a warning). A GID allowlist trusts
+          every peer with that GID, not only a single reverse-proxy process. Abstract sockets (@name) never trust
+          forwarded headers.
         items:
           type: integer
         type: array
@@ -890,6 +896,11 @@ definitions:
           docker must also mount a persistent volume to persist the cache (default:
           false)'
         type: boolean
+      cacheDirMaxSizeMB:
+        description: 'maximum size in MB of the preview cache (cacheDir/diskcache).
+          Past it, the least recently used files are deleted. 0 means no limit (default:
+          0)'
+        type: integer
       database:
         allOf:
         - $ref: '#/definitions/settings.Database'
@@ -1718,6 +1729,10 @@ definitions:
       maxConcurrentUpload:
         type: integer
       uploadChunkSizeMb:
+        type: integer
+      uploadStallTimeoutSeconds:
+        description: seconds without progress before an upload is paused, 0 uses the
+          default (10)
         type: integer
     type: object
   users.FrontendScope:
@@ -5574,6 +5589,11 @@ paths:
         in: query
         name: metadata
         type: string
+      - description: Optional checksum algorithm (md5, sha1, sha256, sha512); requires
+          a logged-in session
+        in: query
+        name: checksum
+        type: string
       produces:
       - application/json
       responses:
@@ -5581,6 +5601,12 @@ paths:
           description: File or directory metadata
           schema:
             $ref: '#/definitions/iteminfo.FileInfo'
+        "401":
+          description: Login required for checksum generation
+          schema:
+            additionalProperties:
+              type: string
+            type: object
         "403":
           description: Share unavailable or access denied
           schema:

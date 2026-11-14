@@ -716,7 +716,9 @@
     "clearAllDescription": "O botão limpar concluído limpará todos os uploads em um estado concluído, inclusive os estados de erro, pausa e conflito.",
     "uploadSettings": "Configurações de upload",
     "downloadChunkSizeMb": "Tamanho do bloco de download em MB",
-    "downloadChunkSizeMbHelp": "Tamanho do bloco para downloads em blocos. Arquivos maiores que esse tamanho serão baixados em partes para evitar problemas de tempo limite (por exemplo, erros 524 do Cloudflare). A configuração como 0 desativa os downloads em blocos."
+    "downloadChunkSizeMbHelp": "Tamanho do bloco para downloads em blocos. Arquivos maiores que esse tamanho serão baixados em partes para evitar problemas de tempo limite (por exemplo, erros 524 do Cloudflare). A configuração como 0 desativa os downloads em blocos.",
+    "uploadStallTimeoutSeconds": "Tempo limite de travamento do envio em segundos",
+    "uploadStallTimeoutSecondsHelp": "Segundos que um envio pode ficar sem nenhum progresso antes de ser pausado. Aumente em conexões lentas ou instáveis, ou quando os arquivos são lidos de discos lentos. Valores menores que 1 usam o padrão de 10 segundos."
   },
   "colors": {
     "red": "vermelho",

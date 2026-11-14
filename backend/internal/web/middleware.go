@@ -122,7 +122,10 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 			pathWithoutUserScope = pathWithoutUserScope + "/"
 		}
 		data.IndexPath = pathWithoutUserScope
-		// skip file fetch for certain apis
+		// Skip FileInfoFaster prefetch for performance; handlers must apply equivalent
+		// checks (access rules + GetRealPathScoped with d.Share.Path where bytes are read).
+		// TODO: align all skipped public-share routes on one bound (Share.Path) or stop
+		// skipping FileInfoFaster here for media/metadata/items.
 		if (r.Method == "POST" && strings.Contains(r.URL.Path, "/resources")) ||
 			(r.Method == "POST" && strings.Contains(r.URL.Path, "/resources/view-token")) ||
 			(r.Method == "GET" && strings.Contains(r.URL.Path, "/resources/items")) ||
