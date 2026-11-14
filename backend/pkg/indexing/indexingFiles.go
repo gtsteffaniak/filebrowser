@@ -1266,6 +1266,13 @@ func realPathCacheIndexAncestors(indexPath string) []string {
 // InvalidateRealPathCache drops cached symlink resolutions for indexPath and its
 // ancestors. scopeBounds should include any caller scope prefixes used with
 // GetRealPathScoped (e.g. user or share path).
+// ClearRealPathCaches drops every cached symlink resolution. The cache library has no
+// prefix delete, so subtree invalidation uses a full clear; entries repopulate lazily.
+func ClearRealPathCaches() {
+	RealPathCache.ClearAll()
+	IsDirCache.ClearAll()
+}
+
 func (idx *Index) InvalidateRealPathCache(indexPath string, scopeBounds ...string) {
 	boundSet := map[string]struct{}{"/": {}, "": {}}
 	for _, b := range scopeBounds {

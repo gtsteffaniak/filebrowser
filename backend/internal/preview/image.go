@@ -465,6 +465,9 @@ func getEmbeddedThumbnail(in io.Reader) ([]byte, io.Reader, error) {
 	}
 
 	if orientStr != "" && orientStr != "1" {
+		if !embeddedPreviewWithinLimits(thm) {
+			return nil, wrappedReader, fmt.Errorf("embedded thumbnail exceeds decode limits")
+		}
 		thm = applyOrientationToPreviewBytes(thm, orientStr)
 	}
 

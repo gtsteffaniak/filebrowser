@@ -16,6 +16,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/files"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/preview"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing/iteminfo"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 	"github.com/gtsteffaniak/go-logger/logger"
@@ -225,6 +226,27 @@ func getDirectoryPreview(ctx context.Context, r *http.Request, d *Context, frame
 		}, user)
 	if err != nil {
 		return nil, err
+	}
+	if d.Share.Hash != "" {
+		idx := indexing.GetIndex(source)
+		if idx == nil {
+			return nil, fmt.Errorf("source not available")
+		}
+		userScope, scopeErr := d.ShareUser.GetScopeForSourceName(source)
+		if scopeErr != nil {
+			return nil, scopeErr
+		}
+		shareRel := strings.TrimPrefix(d.Share.Path, userScope)
+		bound := utils.JoinScopedIndexPath(userScope, shareRel)
+		childIndexPath := utils.JoinScopedIndexPath(userScope, path)
+		realPath, _, rerr := idx.GetRealPathScoped(bound, childIndexPath)
+		if rerr != nil {
+			if index != 0 {
+				return getDirectoryPreview(ctx, r, d, 0)
+			}
+			return nil, rerr
+		}
+		fileInfo.RealPath = realPath
 	}
 	tempCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	_, previewErr := preview.GetPreviewForFile(tempCtx, *fileInfo, "small", "", 0)

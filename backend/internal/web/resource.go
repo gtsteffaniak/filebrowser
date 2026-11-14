@@ -1595,6 +1595,15 @@ func ResourcePatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 		// Auto-rename if requested
 		if req.Rename {
 			realDest = addVersionSuffix(realDest)
+			if !state.AccessPermittedAtRealPath(dstIdx, d.User.Username, realDest, isSrcDir) {
+				item.Message = "access denied to destination path"
+				if d.Share.Hash != "" {
+					response.Failed = append(response.Failed, MoveCopyItem{Message: item.Message})
+					continue
+				}
+				response.Failed = append(response.Failed, moveCopyWithClientPaths(item, clientFromPath, clientToPath))
+				continue
+			}
 		}
 
 		// Validate move/rename operation to prevent circular references

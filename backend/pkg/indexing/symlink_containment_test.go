@@ -164,6 +164,28 @@ func TestGetRealPathScoped_CacheKeyDoesNotCollideWithUnscoped(t *testing.T) {
 	}
 }
 
+func TestClearRealPathCaches_ClearsWarmEntries(t *testing.T) {
+	sourceRoot, userScope := setupSymlinkEscapeFixture(t)
+	idx := symlinkTestIndex(sourceRoot)
+
+	userDir := filepath.Join(sourceRoot, "user1")
+	if err := os.WriteFile(filepath.Join(userDir, "foo"), []byte("x"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if _, _, err := idx.GetRealPathScoped(userScope, "/user1/foo"); err != nil {
+		t.Fatalf("warm cache: %v", err)
+	}
+	joined := filepath.Join(sourceRoot, "user1", "foo")
+	key := fmt.Sprintf("realpath|scoped=%t|bound=%q|path=%q", true, userScope, joined)
+	if _, ok := RealPathCache.Get(key); !ok {
+		t.Fatalf("expected cache key %q", key)
+	}
+	ClearRealPathCaches()
+	if _, ok := RealPathCache.Get(key); ok {
+		t.Fatal("ClearRealPathCaches should drop warm entries")
+	}
+}
+
 func TestInvalidateRealPathCache_ClearsGetRealPathEntry(t *testing.T) {
 	sourceRoot, userScope := setupSymlinkEscapeFixture(t)
 	idx := symlinkTestIndex(sourceRoot)
