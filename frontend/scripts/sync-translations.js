@@ -2,7 +2,7 @@
 import path from 'node:path';
 import { globSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { Translator } from 'deepl-node';
+import { DeepLClient } from 'deepl-node';
 import fs from 'fs-extra';
 
 // Parse command line arguments
@@ -27,7 +27,7 @@ if (requireApiKey && !DEEPL_API_KEY) {
   process.exit(1);
 }
 
-const translator = requireApiKey ? new Translator(DEEPL_API_KEY) : null;
+const translator = requireApiKey ? new DeepLClient(DEEPL_API_KEY) : null;
 
 const deeplLangMap = {
   'zh-cn': 'ZH-HANS',

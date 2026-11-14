@@ -813,7 +813,8 @@ export function post(
   overwrite = false,
   onupload,
   headers = {},
-  isDir = false
+  isDir = false,
+  onsent
 ) {
   if (!source || source === undefined || source === null) {
     throw new Error('no source provided')
@@ -862,6 +863,10 @@ export function post(
               onupload(percentComplete);
             }
           };
+        }
+        if (typeof onsent === "function") {
+          // The whole body has been sent; from here the server answers when it is done saving it.
+          request.upload.onload = () => onsent();
         }
 
         request.onload = () => {
@@ -1066,6 +1071,21 @@ export async function checksum(source, path, algo) {
     throw new Error('no source provided')
   }
   try {
+    if (getters.isShare()) {
+      if (!getters.isLoggedIn()) {
+        throw new Error('login required to generate checksums')
+      }
+      const hash = state.shareInfo?.hash
+      if (!hash) {
+        throw new Error('no share hash provided')
+      }
+      const params = { path, hash, checksum: algo }
+      const res = await fetchURL(getPublicApiPath('resources', params), {
+        headers: sharePublicAuthHeaders(hash),
+      })
+      const data = await res.json()
+      return getObjectProperty(data.checksums, algo)
+    }
     const params = {
       path: path,
       source: source,
@@ -1420,7 +1440,8 @@ export function postPublic(
   overwrite = false,
   onupload,
   headers = {},
-  isDir = false
+  isDir = false,
+  onsent
 ) {
   if (!hash || hash === undefined || hash === null) {
     throw new Error('no hash provided')
@@ -1453,6 +1474,10 @@ export function postPublic(
           onupload(percentComplete);
         }
       };
+    }
+    if (typeof onsent === "function") {
+      // The whole body has been sent; from here the server answers when it is done saving it.
+      request.upload.onload = () => onsent();
     }
 
     const promise = new Promise((resolve, reject) => {

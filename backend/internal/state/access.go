@@ -19,6 +19,15 @@ func AccessPermitted(sourcePath string, indexPath utils.IndexPath, username stri
 	return accessDb.Permitted(sourcePath, indexPath, username)
 }
 
+// AccessPermittedAtRealPath reports whether username may access realPath after symlink
+// resolution on the given index. When accessDb is not initialized, access is allowed.
+func AccessPermittedAtRealPath(idx *indexing.Index, username, realPath string, isDir bool) bool {
+	if accessDb == nil {
+		return true
+	}
+	return accessDb.PermittedAtRealPath(idx, username, realPath, isDir)
+}
+
 func AllowUser(sourcePath string, indexPath utils.IndexPath, username string) error {
 	return accessDb.AllowUser(sourcePath, indexPath, username)
 }

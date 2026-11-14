@@ -111,6 +111,22 @@ test("2x copy from listing to new folder", async({ page, checkForErrors }) => {
   await checkForNotification(page, "Files copied successfully!");
   await page.goto("/files/playwright%20%2B%20files/myfolder/newfolder/");
   await expect(page).toHaveTitle(/.* - newfolder/);
+  await page.locator('a[aria-label="copyme.txt"]').click({ button: "right" });
+  await page.locator('button[aria-label="Copy file"]').click();
+  const parentRow = page.locator('div[aria-label="copy-prompt"] .listing-item[aria-label=".."]');
+  const originalParentRow = await parentRow.elementHandle();
+  await parentRow.click();
+  await expect(copyDestLabel(page)).toHaveText(`/myfolder/ (${GENERAL_COPY_SOURCE})`);
+  await expect(parentRow).toBeVisible();
+  expect(await originalParentRow?.evaluate((row) => row.isConnected)).toBe(false);
+  await parentRow.evaluate((row) => {
+    for (const type of ["click", "dblclick"]) {
+      row.dispatchEvent(new MouseEvent(type, { bubbles: true, detail: 2 }));
+    }
+  });
+  await expect(copyDestLabel(page)).toHaveText(`/myfolder/ (${GENERAL_COPY_SOURCE})`);
+  await parentRow.click();
+  await expect(copyDestLabel(page)).toHaveText(`/ (${GENERAL_COPY_SOURCE})`);
   checkForErrors();
 })
 
