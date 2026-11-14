@@ -89,7 +89,7 @@ export function maskJs(text: string, strings = false): string {
         }
         const closed = text.charAt(end) === ch;
         const literal = text.slice(i, closed ? end + 1 : end);
-        out += strings && !inExpression && closed ? ch + blank(literal.slice(1, -1)) + ch : literal;
+        out += strings && closed ? ch + blank(literal.slice(1, -1)) + ch : literal;
         i += literal.length;
       } else {
         if (inExpression && ch === "{") depth++;
