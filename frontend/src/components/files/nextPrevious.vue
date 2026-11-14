@@ -221,6 +221,9 @@ export default {
     navigationRequestKey() {
       return state.req ? `${state.req.source ?? ""}\u0000${state.req.path ?? ""}` : "";
     },
+    navigationParentItems() {
+      return state.req?.parentDirItems;
+    },
     currentView() {
       const view = getters.currentView();
       return view;
@@ -299,6 +302,11 @@ export default {
       }, 100);
     },
     navigationRequestKey() {
+      if (this.enabled && state.req) {
+        void this.setupNavigationForCurrentItem();
+      }
+    },
+    navigationParentItems() {
       if (this.enabled && state.req) {
         void this.setupNavigationForCurrentItem();
       }
