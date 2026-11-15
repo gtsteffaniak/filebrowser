@@ -58,13 +58,13 @@ func TestIsTextFileReadsOnlySample(t *testing.T) {
 	if err != nil {
 		t.Fatalf("creating sample: %v", err)
 	}
-	if _, err := f.WriteString(strings.Repeat("log line\n", 1024)); err != nil {
+	if _, err = f.WriteString(strings.Repeat("log line\n", 1024)); err != nil {
 		t.Fatalf("writing sample: %v", err)
 	}
-	if err := f.Truncate(fileSize); err != nil {
+	if err = f.Truncate(fileSize); err != nil {
 		t.Fatalf("growing sample: %v", err)
 	}
-	if err := f.Close(); err != nil {
+	if err = f.Close(); err != nil {
 		t.Fatalf("closing sample: %v", err)
 	}
 
