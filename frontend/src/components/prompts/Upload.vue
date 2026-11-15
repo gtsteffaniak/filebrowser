@@ -193,6 +193,7 @@ import {
   formatRemainingTime,
   readAllDirectoryEntries,
   summarizeUploads,
+  uploadedBytesById,
   UploadRateMeter,
   uploadManager,
 } from "@/utils/upload.ts";
@@ -386,19 +387,34 @@ function releaseWakeLock() {
 
 const isUploading = computed(() => state.upload.isUploading);
 
-// Overall progress of the queue, with the speed sampled every second while uploading
+// Overall progress of the queue, with the speed sampled every second while a file is transferring
 const summary = computed(() => summarizeUploads(files.value));
+// isUploading stays true while uploads are paused; only a file in "uploading" moves bytes.
+const isTransferring = computed(() => files.value.some((item) => item.status === "uploading"));
 const rateMeter = new UploadRateMeter();
 const bytesPerSecond = ref(0);
 let rateTimer: ReturnType<typeof setInterval> | null = null;
+
+function resetRate() {
+  rateMeter.reset();
+  bytesPerSecond.value = 0;
+}
+
+function sampleRate() {
+  if (!isTransferring.value) {
+    // Paused or waiting: start over with a fresh sample when transfers resume.
+    resetRate();
+    return;
+  }
+  bytesPerSecond.value = rateMeter.sample(uploadedBytesById(files.value), Date.now());
+}
 
 function stopRateSampling() {
   if (rateTimer !== null) {
     clearInterval(rateTimer);
     rateTimer = null;
   }
-  rateMeter.reset();
-  bytesPerSecond.value = 0;
+  resetRate();
 }
 
 watch(
@@ -406,10 +422,8 @@ watch(
   (active) => {
     stopRateSampling();
     if (active) {
-      rateMeter.sample(summary.value.uploadedBytes, Date.now());
-      rateTimer = setInterval(() => {
-        bytesPerSecond.value = rateMeter.sample(summary.value.uploadedBytes, Date.now());
-      }, 1000);
+      sampleRate();
+      rateTimer = setInterval(sampleRate, 1000);
     }
   },
   { immediate: true },
@@ -421,7 +435,7 @@ const summaryText = computed(() => {
   if (s.failedFiles > 0) {
     parts.push(t("prompts.uploadSummaryFailed", { count: s.failedFiles }));
   }
-  if (isUploading.value && bytesPerSecond.value > 0) {
+  if (isTransferring.value && bytesPerSecond.value > 0) {
     parts.push(`${getHumanReadableFilesize(bytesPerSecond.value)}/s`);
     const remainingSeconds = (s.totalBytes - s.uploadedBytes) / bytesPerSecond.value;
     parts.push(t("prompts.uploadSummaryRemaining", { time: formatRemainingTime(remainingSeconds, locale.value) }));

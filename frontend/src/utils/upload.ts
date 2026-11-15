@@ -165,44 +165,61 @@ export interface UploadSummary {
   uploadedBytes: number;
 }
 
+/** Bytes of a file already sent: all of it once completed, otherwise its progress */
+function uploadedBytesOf(item: UploadItem): number {
+  if (item.status === "completed") {
+    return item.size;
+  }
+  const progress = Math.min(Math.max(item.progress, 0), 100);
+  return (progress / 100) * item.size;
+}
+
 export function summarizeUploads(queue: readonly UploadItem[]): UploadSummary {
   const summary: UploadSummary = { totalFiles: 0, completedFiles: 0, failedFiles: 0, totalBytes: 0, uploadedBytes: 0 };
   for (const item of queue) {
     if (item.type === "directory") continue;
     summary.totalFiles++;
     summary.totalBytes += item.size;
+    summary.uploadedBytes += uploadedBytesOf(item);
     if (item.status === "completed") {
       summary.completedFiles++;
-      summary.uploadedBytes += item.size;
-      continue;
-    }
-    if (item.status === "error" || item.status === "conflict") {
+    } else if (item.status === "error" || item.status === "conflict") {
       summary.failedFiles++;
     }
-    const progress = Math.min(Math.max(item.progress, 0), 100);
-    summary.uploadedBytes += (progress / 100) * item.size;
   }
   return summary;
 }
 
-/** Smoothed upload speed, computed from samples of the number of bytes sent so far */
+/** Bytes sent so far for each file of the queue, by upload id */
+export function uploadedBytesById(queue: readonly UploadItem[]): Map<number, number> {
+  const bytes = new Map<number, number>();
+  for (const item of queue) {
+    if (item.type !== "directory") {
+      bytes.set(item.id, uploadedBytesOf(item));
+    }
+  }
+  return bytes;
+}
+
+/** Smoothed upload speed, computed from samples of the bytes sent so far by each file */
 export class UploadRateMeter {
   bytesPerSecond = 0;
-  private last: { bytes: number; time: number } | null = null;
+  private last: { bytes: Map<number, number>; time: number } | null = null;
 
   constructor(private readonly smoothing = 0.3) {}
 
-  /** Records `bytes` sent at `time` (ms) and returns the smoothed speed in bytes per second */
-  sample(bytes: number, time: number): number {
+  /** Records the bytes sent by each file (by upload id) at `time` (ms) and returns the smoothed speed in bytes per second */
+  sample(bytesById: ReadonlyMap<number, number>, time: number): number {
     const last = this.last;
-    this.last = { bytes, time };
+    this.last = { bytes: new Map(bytesById), time };
     if (!last || time <= last.time) {
       return this.bytesPerSecond;
     }
-    const delta = bytes - last.bytes;
-    // Fewer bytes than before: items were removed from the queue, not a speed change.
-    if (delta < 0) {
-      return this.bytesPerSecond;
+    // Sum per-file progress, so a file removed from the queue (cleared, cancelled)
+    // or restarted from zero does not hide what the other files sent.
+    let delta = 0;
+    for (const [id, sent] of bytesById) {
+      delta += Math.max(0, sent - (last.bytes.get(id) ?? 0));
     }
     const rate = (delta * 1000) / (time - last.time);
     this.bytesPerSecond =

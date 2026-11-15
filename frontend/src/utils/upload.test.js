@@ -36,6 +36,7 @@ import {
   isSameSize,
   numberedName,
   summarizeUploads,
+  uploadedBytesById,
   UploadRateMeter,
   uploadManager,
 } from "./upload.ts";
@@ -479,28 +480,54 @@ describe("summarizeUploads", () => {
 });
 
 describe("UploadRateMeter", () => {
+  const MiB = 1024 * 1024;
+  const bytes = (entries) => new Map(entries);
+
   it("measures the speed between samples and smooths it", () => {
     const meter = new UploadRateMeter(0.5);
-    expect(meter.sample(0, 0)).toBe(0);
-    expect(meter.sample(1000, 1000)).toBe(1000);
-    expect(meter.sample(4000, 2000)).toBe(2000); // 0.5 * 3000 + 0.5 * 1000
+    expect(meter.sample(bytes([[1, 0]]), 0)).toBe(0);
+    expect(meter.sample(bytes([[1, 1000]]), 1000)).toBe(1000);
+    expect(meter.sample(bytes([[1, 4000]]), 2000)).toBe(2000); // 0.5 * 3000 + 0.5 * 1000
   });
 
-  it("ignores samples where bytes went down (items removed from the queue)", () => {
-    const meter = new UploadRateMeter(0.5);
-    meter.sample(0, 0);
-    meter.sample(1000, 1000);
-    expect(meter.sample(200, 2000)).toBe(1000);
-    expect(meter.sample(1200, 3000)).toBe(1000);
+  it("keeps counting what other files sent when finished files are cleared from the queue", () => {
+    const meter = new UploadRateMeter();
+    // A completed 100 MiB file and two files at 0%...
+    meter.sample(bytes([[1, 100 * MiB], [2, 0], [3, 0]]), 0);
+    // ...the completed one is cleared while each of the others sends 60 MiB in one second.
+    expect(meter.sample(bytes([[2, 60 * MiB], [3, 60 * MiB]]), 1000)).toBe(120 * MiB);
+  });
+
+  it("does not count a file restarted from zero as negative progress", () => {
+    const meter = new UploadRateMeter();
+    meter.sample(bytes([[1, 500], [2, 0]]), 0);
+    expect(meter.sample(bytes([[1, 0], [2, 1000]]), 1000)).toBe(1000);
+  });
+
+  it("counts a file added since the last sample from zero", () => {
+    const meter = new UploadRateMeter();
+    meter.sample(bytes([[1, 0]]), 0);
+    expect(meter.sample(bytes([[1, 1000], [2, 500]]), 1000)).toBe(1500);
   });
 
   it("starts over after reset", () => {
     const meter = new UploadRateMeter();
-    meter.sample(0, 0);
-    meter.sample(1000, 1000);
+    meter.sample(bytes([[1, 0]]), 0);
+    meter.sample(bytes([[1, 1000]]), 1000);
     meter.reset();
     expect(meter.bytesPerSecond).toBe(0);
-    expect(meter.sample(5000, 5000)).toBe(0);
+    expect(meter.sample(bytes([[1, 5000]]), 5000)).toBe(0);
+  });
+});
+
+describe("uploadedBytesById", () => {
+  it("maps each file to the bytes it sent, ignoring folders", () => {
+    const queue = [
+      { id: 1, status: "completed", size: 100, progress: 100, type: "file" },
+      { id: 2, status: "uploading", size: 200, progress: 25, type: "file" },
+      { id: 3, status: "completed", size: 0, progress: 100, type: "directory" },
+    ];
+    expect(uploadedBytesById(queue)).toEqual(new Map([[1, 100], [2, 50]]));
   });
 });
 
