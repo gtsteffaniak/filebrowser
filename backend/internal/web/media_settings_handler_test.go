@@ -13,14 +13,15 @@ import (
 
 func withMediaHandlerSettings(t *testing.T) {
 	t.Helper()
-	originalTranscode := settings.Config.Integrations.Media.Transcode
+	originalMedia := settings.CurrentMediaSettings()
 	originalFFmpeg := settings.Env.FFmpegAvailable
 	t.Cleanup(func() {
-		settings.Config.Integrations.Media.Transcode = originalTranscode
 		settings.Env.FFmpegAvailable = originalFFmpeg
+		settings.ApplyMediaSettings(originalMedia)
 	})
 	settings.Env.FFmpegAvailable = true
-	settings.Config.Integrations.Media.Transcode = settings.FullAdminTranscode{
+	media := originalMedia
+	media.Transcode = settings.FullAdminTranscode{
 		UserTranscode: settings.UserTranscode{
 			Enabled:              true,
 			MaxConcurrentPerUser: 2,
@@ -28,6 +29,7 @@ func withMediaHandlerSettings(t *testing.T) {
 		MaxConcurrent: 3,
 		Profiles:      settings.DefaultTranscodeProfiles(),
 	}
+	settings.ApplyMediaSettings(media)
 }
 
 func mediaHandlerContext(admin bool) *Context {
@@ -154,7 +156,9 @@ func TestSettingsMediaHandlerFullPayloadForAdmin(t *testing.T) {
 // Disabling transcoding at runtime must be visible to non-admin players.
 func TestSettingsMediaHandlerReflectsDisabledTranscode(t *testing.T) {
 	withMediaHandlerSettings(t)
-	settings.Config.Integrations.Media.Transcode.Enabled = false
+	disabled := settings.CurrentMediaSettings()
+	disabled.Transcode.Enabled = false
+	settings.ApplyMediaSettings(disabled)
 
 	transcode := objectField(t, callMediaGet(t, false), "transcode")
 	if enabled, ok := transcode["enabled"].(bool); !ok || enabled {

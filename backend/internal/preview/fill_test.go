@@ -93,6 +93,7 @@ func TestFillCenter_MatchesImagingFill(t *testing.T) {
 		for _, tg := range targets {
 			for fname, f := range filters {
 				t.Run(fmt.Sprintf("%s/%dx%d/%s", name, tg[0], tg[1], fname), func(t *testing.T) {
+					t.Parallel()
 					want := imaging.Fill(src, tg[0], tg[1], imaging.Center, f)
 					got := fillCenter(src, tg[0], tg[1], f)
 					require.Equal(t, fmt.Sprintf("%T", want), fmt.Sprintf("%T", got), "image type")
