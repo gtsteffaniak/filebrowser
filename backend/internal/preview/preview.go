@@ -221,11 +221,18 @@ const (
 	previewTypeImage
 	previewTypeVideo
 	previewTypeAudio
+	previewTypeCAD
 	previewTypeUnsupported
 )
 
 // determinePreviewType determines what type of preview generation is needed
 func determinePreviewType(file iteminfo.ExtendedFileInfo) filePreviewType {
+	// SolidWorks documents carry their preview image inside the file.
+	switch file.Type {
+	case "model/x-solidworks-part", "model/x-solidworks-assembly", "application/x-solidworks-drawing":
+		return previewTypeCAD
+	}
+
 	// Check document conversion first
 	if iteminfo.HasDocConvertableExtension(file.Name, file.Type) {
 		return previewTypeDocument
@@ -284,6 +291,10 @@ func (s *Service) generateRawPreview(ctx context.Context, file iteminfo.Extended
 			return file.Metadata.AlbumArt, nil
 		}
 		return nil, nil
+
+	case previewTypeCAD:
+		return ExtractSolidWorksPreview(file.RealPath)
+
 	case previewTypeUnsupported:
 		ext := strings.ToLower(filepath.Ext(file.Name))
 		return nil, fmt.Errorf("unsupported media type: %s", ext)

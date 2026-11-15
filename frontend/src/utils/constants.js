@@ -68,7 +68,8 @@ const previewViews = [
   'onlyOfficeEditor',
   'editor',
   'loading',
-  'threeJsViewer'
+  'threeJsViewer',
+  'drawingViewer'
 ];
 
 // Function that returns tools array with i18n validation

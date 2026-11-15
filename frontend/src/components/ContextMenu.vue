@@ -136,6 +136,12 @@
           @action="showUnarchivePrompt"
         />
         <action
+          v-if="showCadConvert"
+          icon="change_circle"
+          :label="$t('cad.convert')"
+          @action="showCadConvertPrompt"
+        />
+        <action
           v-if="showShareAction"
           icon="share"
           :label="$t('general.share')"
@@ -228,6 +234,7 @@
       <action v-if="hasDownload" icon="file_download" :label="$t('general.download')" @action="startDownload" />
       <action v-if="showSendToAppInPreview" icon="ios_share" :label="$t('buttons.sendToApp')" @action="sendToAppFromPreview" />
       <action v-if="showUnarchiveInOverflow" icon="folder_open" :label="$t('prompts.unarchive')" @action="showUnarchivePromptFromPreview" />
+      <action v-if="showCadConvertInPreview" icon="change_circle" :label="$t('cad.convert')" @action="showCadConvertPromptFromPreview" />
       <action v-if="showEditButton" icon="edit" :label="$t('general.edit')" @action="goToEdit" />
       <action v-if="showPreviewButton" icon="visibility" :label="$t('general.preview')" @action="goToPreview" />
       <action v-if="showDelete" icon="delete" :label="$t('general.delete')" @action="showDeletePrompt" />
@@ -248,6 +255,7 @@ import { url } from "@/utils";
 import { copyToClipboard } from "@/utils/clipboard";
 import { globalVars } from "@/utils/constants.js";
 import downloadFiles from "@/utils/download";
+import { isCadFile } from "@/utils/cadService.ts";
 import { canNativeShare, nativeShareFile } from "@/utils/nativeShare";
 import { isRichTextPreviewMimeType, getTypeInfoFromExt } from "@/utils/mimetype";
 import { isMediaRequest } from "@/utils/mediaFile";
@@ -421,6 +429,12 @@ export default {
       const item = this.firstSelected;
       return item && isArchivePath(item.path || item.from || item.name);
     },
+    showCadConvert() {
+      if (this.showLimitedOptions || this.showCreate) return false;
+      if (this.selectedCount !== 1) return false;
+      const item = this.firstSelected;
+      return item && isCadFile(item.name || item.path || "");
+    },
     showShareAction() {
       if (this.showLimitedOptions) return false;
       // Advanced search results have no folder of their own to share, only the selected results do.
@@ -438,6 +452,10 @@ export default {
       if (!canNativeShare()) return false;
       if (!this.hasDownload || this.req?.isDir) return false;
       return this.isPreview;
+    },
+    showCadConvertInPreview() {
+      if (this.showLimitedOptions) return false;
+      return this.isPreview && isCadFile(this.req?.name || "");
     },
     showRename() {
       if (this.showLimitedOptions) return false;
@@ -1013,6 +1031,36 @@ export default {
         name: "unarchive",
         props: {
           item: { path, source, name: item.name },
+        },
+      });
+    },
+    showCadConvertPrompt() {
+      mutations.closeTopPrompt();
+      const item = this.firstSelected;
+      if (!item) return;
+      mutations.showPrompt({
+        name: "CadConvert",
+        props: {
+          item: {
+            ...item,
+            source: item.source || state.req.source,
+          },
+        },
+      });
+    },
+    showCadConvertPromptFromPreview() {
+      mutations.closeTopPrompt();
+      const req = state.req;
+      if (!req) return;
+      mutations.showPrompt({
+        name: "CadConvert",
+        props: {
+          item: {
+            path: req.path,
+            source: req.source,
+            name: req.name,
+            viewToken: req.viewToken,
+          },
         },
       });
     },

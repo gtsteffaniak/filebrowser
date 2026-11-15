@@ -1650,6 +1650,11 @@ func setFilePreviewFlags(fileInfo *iteminfo.ItemInfo, realPath string) {
 	}
 	simpleType := strings.Split(fileInfo.Type, "/")[0]
 	switch fileInfo.Type {
+	case "model/x-solidworks-part", "model/x-solidworks-assembly", "application/x-solidworks-drawing":
+		// SolidWorks documents embed their own preview image, read straight
+		// from the container (see preview.ExtractSolidWorksPreview).
+		fileInfo.HasPreview = true
+		return
 	case "image/heic", "image/heif":
 		if fileInfo.Size > iteminfo.LargeFileSizeThreshold {
 			fileInfo.HasPreview = false
