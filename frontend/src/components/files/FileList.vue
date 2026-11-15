@@ -554,6 +554,16 @@ function handleItemClick(item: ListEntry, _index: number, event: MouseEvent) {
     navigateToItem(item);
     return;
   }
+  // Picker #3355: the ".." row is the parent-folder shortcut; a single click
+  // navigates to it so the copy/move destination picker can go up a level.
+  // `event.detail > 1` swallows the second half of a double-click, and the
+  // path check swallows clicks on a stale row that was replaced.
+  if (item.name === "..") {
+    if (event.detail > 1 || path.value === item.path) return;
+    select(item.path);
+    next(item.path);
+    return;
+  }
   // Browse mode: single click selects only, emit selected, do not navigate
   select(item.path);
 }
@@ -561,6 +571,9 @@ function handleItemClick(item: ListEntry, _index: number, event: MouseEvent) {
 function handleItemDblClick(item: ListEntry, _index: number, event: MouseEvent) {
   event.preventDefault();
   event.stopPropagation();
+  // In browse mode ".." is the single-click parent shortcut; a double-click on it
+  // navigates nothing extra (main's `if (.. && (!fileList || path === item.path)) return`).
+  if (item.name === ".." && (!props.fileList || path.value === item.path)) return;
 
   next(item.path);
 }

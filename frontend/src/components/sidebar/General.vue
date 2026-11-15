@@ -175,7 +175,9 @@ export default {
         mutations.showPrompt({ name: "ContextMenu", props: { showCentered: true } });
         return;
       }
-      mutations.resetSelected();
+      // Listing: keep the caller's selection — `createOnly` already makes the menu
+      // act on nothing but create options (Kurami32: wiping it lost the selection
+      // on mobile when using the actions menu).
       mutations.showPrompt({
         name: "ContextMenu",
         props: {
