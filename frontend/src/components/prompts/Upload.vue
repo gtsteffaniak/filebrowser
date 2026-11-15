@@ -43,6 +43,12 @@
         </div>
       </div>
     </div>
+    <div v-if="summary.totalFiles > 1" class="upload-summary">
+      <ProgressBar :val="summary.uploadedBytes" :max="summary.totalBytes" unit="bytes"
+        :status="summary.completedFiles === summary.totalFiles ? 'completed' : 'uploading'"
+        text-position="inside" size="20" />
+      <p class="upload-summary-text">{{ summaryText }}</p>
+    </div>
     <div v-if="files.length > 0" style="position: relative;">
       <div v-if="showConflictPrompt" class="conflict-overlay">
         <div class="card">
@@ -183,7 +189,14 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, useTemplateRef, watch } from "vue";
 import { useI18n } from "@/i18n/index.ts";
-import { readAllDirectoryEntries, uploadManager } from "@/utils/upload.ts";
+import {
+  formatRemainingTime,
+  readAllDirectoryEntries,
+  summarizeUploads,
+  UploadRateMeter,
+  uploadManager,
+} from "@/utils/upload.ts";
+import { getHumanReadableFilesize } from "@/utils/filesizes.js";
 import type { UploadConflictResolution, UploadEntry, UploadItem, UploadStatus } from "@/utils/upload.ts";
 import { getTypeInfo, getTypeInfoFromExt } from "@/utils/mimetype.js";
 import { getters, mutations, state } from "@/store/index.ts";
@@ -217,7 +230,7 @@ const props = withDefaults(
 
 defineOptions({ name: "UploadFiles" });
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 
 const fileInput = useTemplateRef<HTMLInputElement>("fileInput");
 const folderInput = useTemplateRef<HTMLInputElement>("folderInput");
@@ -373,6 +386,49 @@ function releaseWakeLock() {
 
 const isUploading = computed(() => state.upload.isUploading);
 
+// Overall progress of the queue, with the speed sampled every second while uploading
+const summary = computed(() => summarizeUploads(files.value));
+const rateMeter = new UploadRateMeter();
+const bytesPerSecond = ref(0);
+let rateTimer: ReturnType<typeof setInterval> | null = null;
+
+function stopRateSampling() {
+  if (rateTimer !== null) {
+    clearInterval(rateTimer);
+    rateTimer = null;
+  }
+  rateMeter.reset();
+  bytesPerSecond.value = 0;
+}
+
+watch(
+  isUploading,
+  (active) => {
+    stopRateSampling();
+    if (active) {
+      rateMeter.sample(summary.value.uploadedBytes, Date.now());
+      rateTimer = setInterval(() => {
+        bytesPerSecond.value = rateMeter.sample(summary.value.uploadedBytes, Date.now());
+      }, 1000);
+    }
+  },
+  { immediate: true },
+);
+
+const summaryText = computed(() => {
+  const s = summary.value;
+  const parts = [t("prompts.uploadSummaryFiles", { completed: s.completedFiles, total: s.totalFiles })];
+  if (s.failedFiles > 0) {
+    parts.push(t("prompts.uploadSummaryFailed", { count: s.failedFiles }));
+  }
+  if (isUploading.value && bytesPerSecond.value > 0) {
+    parts.push(`${getHumanReadableFilesize(bytesPerSecond.value)}/s`);
+    const remainingSeconds = (s.totalBytes - s.uploadedBytes) / bytesPerSecond.value;
+    parts.push(t("prompts.uploadSummaryRemaining", { time: formatRemainingTime(remainingSeconds, locale.value) }));
+  }
+  return parts.join(" · ");
+});
+
 watch(isUploading, (active) => {
   if (active) {
     void acquireWakeLock();
@@ -455,6 +511,7 @@ onUnmounted(() => {
   document.removeEventListener("visibilitychange", handleVisibilityChange);
   uploadManager.setOnConflict(() => {}); // cleanup
   releaseWakeLock();
+  stopRateSampling();
 });
 
 const uploadActionButtons = computed(() => [
@@ -656,6 +713,17 @@ function getHelpText(file: UploadItem): string {
 
 .upload-list {
   min-height: 0;
+}
+
+.upload-summary {
+  margin-bottom: 1em;
+}
+
+.upload-summary-text {
+  margin: 0.3em 0 0;
+  color: #777;
+  font-size: 0.8em;
+  text-align: center;
 }
 
 .upload-item {

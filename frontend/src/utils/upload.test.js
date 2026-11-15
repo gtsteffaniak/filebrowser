@@ -31,7 +31,14 @@ vi.mock("@/utils/appNotifications", async (importOriginal) => {
 import { resourcesApi } from "@/api/index.js";
 import { notify } from "@/notify/index.ts";
 import { mutations, state, getters } from "@/store/index.ts";
-import { isSameSize, numberedName, uploadManager } from "./upload.ts";
+import {
+  formatRemainingTime,
+  isSameSize,
+  numberedName,
+  summarizeUploads,
+  UploadRateMeter,
+  uploadManager,
+} from "./upload.ts";
 
 function addUpload(status = "uploading", file = new Blob(["a"])) {
   uploadManager.queue.push({
@@ -436,5 +443,73 @@ describe("hasOngoingUploads", () => {
     uploadManager.clearCompleted();
     expect(mutations.setIsUploading).toHaveBeenCalledWith(false);
     state.user.fileLoading.clearAll = false;
+  });
+});
+
+describe("summarizeUploads", () => {
+  const item = (status, size, progress = 0, type = "file") => ({ status, size, progress, type });
+
+  it("counts files and bytes, ignoring folders", () => {
+    const summary = summarizeUploads([
+      item("completed", 100, 100),
+      item("uploading", 200, 50),
+      item("pending", 300),
+      item("error", 400, 25),
+      item("conflict", 500),
+      item("completed", 0, 100, "directory"),
+    ]);
+    expect(summary).toEqual({
+      totalFiles: 5,
+      completedFiles: 1,
+      failedFiles: 2,
+      totalBytes: 1500,
+      uploadedBytes: 100 + 100 + 100,
+    });
+  });
+
+  it("returns zeros for an empty queue", () => {
+    expect(summarizeUploads([])).toEqual({
+      totalFiles: 0,
+      completedFiles: 0,
+      failedFiles: 0,
+      totalBytes: 0,
+      uploadedBytes: 0,
+    });
+  });
+});
+
+describe("UploadRateMeter", () => {
+  it("measures the speed between samples and smooths it", () => {
+    const meter = new UploadRateMeter(0.5);
+    expect(meter.sample(0, 0)).toBe(0);
+    expect(meter.sample(1000, 1000)).toBe(1000);
+    expect(meter.sample(4000, 2000)).toBe(2000); // 0.5 * 3000 + 0.5 * 1000
+  });
+
+  it("ignores samples where bytes went down (items removed from the queue)", () => {
+    const meter = new UploadRateMeter(0.5);
+    meter.sample(0, 0);
+    meter.sample(1000, 1000);
+    expect(meter.sample(200, 2000)).toBe(1000);
+    expect(meter.sample(1200, 3000)).toBe(1000);
+  });
+
+  it("starts over after reset", () => {
+    const meter = new UploadRateMeter();
+    meter.sample(0, 0);
+    meter.sample(1000, 1000);
+    meter.reset();
+    expect(meter.bytesPerSecond).toBe(0);
+    expect(meter.sample(5000, 5000)).toBe(0);
+  });
+});
+
+describe("formatRemainingTime", () => {
+  it("rounds up to seconds, then minutes, then hours and minutes", () => {
+    expect(formatRemainingTime(0.2, "en")).toBe("1 sec");
+    expect(formatRemainingTime(44.1, "en")).toBe("45 sec");
+    expect(formatRemainingTime(61, "en")).toBe("2 min");
+    expect(formatRemainingTime(3600, "en")).toBe("1 hr");
+    expect(formatRemainingTime(3900, "en")).toBe("1 hr 5 min");
   });
 });

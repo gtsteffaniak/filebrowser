@@ -155,6 +155,82 @@ export function numberedName(name: string, n: number): string {
   return `${stem}_${String(n).padStart(2, "0")}${ext}`;
 }
 
+/** Totals of the files in an upload queue; folders are not counted */
+export interface UploadSummary {
+  totalFiles: number;
+  completedFiles: number;
+  /** Files in error or in conflict */
+  failedFiles: number;
+  totalBytes: number;
+  uploadedBytes: number;
+}
+
+export function summarizeUploads(queue: readonly UploadItem[]): UploadSummary {
+  const summary: UploadSummary = { totalFiles: 0, completedFiles: 0, failedFiles: 0, totalBytes: 0, uploadedBytes: 0 };
+  for (const item of queue) {
+    if (item.type === "directory") continue;
+    summary.totalFiles++;
+    summary.totalBytes += item.size;
+    if (item.status === "completed") {
+      summary.completedFiles++;
+      summary.uploadedBytes += item.size;
+      continue;
+    }
+    if (item.status === "error" || item.status === "conflict") {
+      summary.failedFiles++;
+    }
+    const progress = Math.min(Math.max(item.progress, 0), 100);
+    summary.uploadedBytes += (progress / 100) * item.size;
+  }
+  return summary;
+}
+
+/** Smoothed upload speed, computed from samples of the number of bytes sent so far */
+export class UploadRateMeter {
+  bytesPerSecond = 0;
+  private last: { bytes: number; time: number } | null = null;
+
+  constructor(private readonly smoothing = 0.3) {}
+
+  /** Records `bytes` sent at `time` (ms) and returns the smoothed speed in bytes per second */
+  sample(bytes: number, time: number): number {
+    const last = this.last;
+    this.last = { bytes, time };
+    if (!last || time <= last.time) {
+      return this.bytesPerSecond;
+    }
+    const delta = bytes - last.bytes;
+    // Fewer bytes than before: items were removed from the queue, not a speed change.
+    if (delta < 0) {
+      return this.bytesPerSecond;
+    }
+    const rate = (delta * 1000) / (time - last.time);
+    this.bytesPerSecond =
+      this.bytesPerSecond === 0 ? rate : this.smoothing * rate + (1 - this.smoothing) * this.bytesPerSecond;
+    return this.bytesPerSecond;
+  }
+
+  reset(): void {
+    this.bytesPerSecond = 0;
+    this.last = null;
+  }
+}
+
+/** Formats a remaining time for display: "45 sec", "12 min", "1 hr 5 min" in English */
+export function formatRemainingTime(seconds: number, locale?: string): string {
+  const format = (value: number, unit: string) =>
+    new Intl.NumberFormat(locale, { style: "unit", unit, unitDisplay: "short", maximumFractionDigits: 0 }).format(value);
+  if (seconds < 60) {
+    return format(Math.max(1, Math.ceil(seconds)), "second");
+  }
+  if (seconds < 3600) {
+    return format(Math.ceil(seconds / 60), "minute");
+  }
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.round((seconds % 3600) / 60);
+  return minutes > 0 ? `${format(hours, "hour")} ${format(minutes, "minute")}` : format(hours, "hour");
+}
+
 class UploadManager {
   queue: UploadItem[] = reactive<UploadItem[]>([]);
   activeUploads = 0;
