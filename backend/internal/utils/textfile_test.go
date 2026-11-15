@@ -3,6 +3,7 @@ package utils
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 )
@@ -44,5 +45,41 @@ func TestIsTextFile(t *testing.T) {
 				t.Fatalf("IsTextFile(%s) = %v, want %v", tt.name, got, tt.want)
 			}
 		})
+	}
+}
+
+// TestIsTextFileReadsOnlySample guards against loading the whole file into memory:
+// on a multi-GB file (e.g. a video opened in the file watcher) that exhausts RAM.
+func TestIsTextFileReadsOnlySample(t *testing.T) {
+	const fileSize = 256 << 20 // 256 MiB, sparse: no real disk usage
+
+	path := filepath.Join(t.TempDir(), "large.log")
+	f, err := os.Create(path)
+	if err != nil {
+		t.Fatalf("creating sample: %v", err)
+	}
+	if _, err := f.WriteString(strings.Repeat("log line\n", 1024)); err != nil {
+		t.Fatalf("writing sample: %v", err)
+	}
+	if err := f.Truncate(fileSize); err != nil {
+		t.Fatalf("growing sample: %v", err)
+	}
+	if err := f.Close(); err != nil {
+		t.Fatalf("closing sample: %v", err)
+	}
+
+	var before, after runtime.MemStats
+	runtime.ReadMemStats(&before)
+	got, err := IsTextFile(path)
+	runtime.ReadMemStats(&after)
+
+	if err != nil {
+		t.Fatalf("IsTextFile: %v", err)
+	}
+	if !got {
+		t.Fatalf("IsTextFile(large text file) = false, want true")
+	}
+	if allocated := after.TotalAlloc - before.TotalAlloc; allocated > 1<<20 {
+		t.Fatalf("IsTextFile allocated %d bytes for a %d-byte file, want only the sample", allocated, fileSize)
 	}
 }
