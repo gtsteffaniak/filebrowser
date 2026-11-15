@@ -56,8 +56,8 @@ vi.mock("@/components/files/ListingHeader.vue", () => ({ default: { render: () =
 vi.mock("@/components/files/ListingItem.vue", () => ({
   default: {
     props: ["name"],
-    render() {
-      return h("button", {}, this.name);
+    render(props: { name: string }) {
+      return h("button", {}, props.name);
     },
   },
 }));
@@ -85,6 +85,13 @@ function row(name: string): HTMLElement | undefined {
   ) as HTMLElement | undefined;
 }
 
+/** Assert-and-return: every spec clicks a row that must exist after mount. */
+function mustRow(name: string): HTMLElement {
+  const found = row(name);
+  expect(found).toBeDefined();
+  return found as HTMLElement;
+}
+
 afterEach(() => {
   app?.unmount();
   root?.remove();
@@ -102,7 +109,7 @@ describe("file picker parent navigation", () => {
       items: [{ name: "sibling", path: "/sibling/", type: "directory" }],
     });
     await nextTick();
-    row("..")!.click();
+    mustRow("..").click();
     expect(selection).toHaveBeenLastCalledWith(expect.objectContaining({ path: "/", source: "data" }));
     expect(fetchFiles).toHaveBeenCalledTimes(1);
     expect(fetchFiles).toHaveBeenCalledWith("data", "/");
@@ -113,9 +120,9 @@ describe("file picker parent navigation", () => {
     mount([{ name: "nested", path: "/child/nested/", type: "directory" }]);
     fetchFiles.mockResolvedValue({ source: "data", items: [] });
     await nextTick();
-    row("nested")!.click();
+    mustRow("nested").click();
     expect(fetchFiles).not.toHaveBeenCalled();
-    row("nested")!.dispatchEvent(new MouseEvent("dblclick", { bubbles: true }));
+    mustRow("nested").dispatchEvent(new MouseEvent("dblclick", { bubbles: true }));
     expect(fetchFiles).toHaveBeenCalledTimes(1);
     expect(fetchFiles).toHaveBeenCalledWith("data", "/child/nested/");
   });
@@ -124,7 +131,7 @@ describe("file picker parent navigation", () => {
     mount();
     fetchFiles.mockResolvedValue({ source: "data", items: [] });
     await nextTick();
-    const parent = row("..")!;
+    const parent = mustRow("..");
     parent.click();
     parent.click();
     parent.dispatchEvent(new MouseEvent("dblclick", { bubbles: true }));
@@ -136,7 +143,7 @@ describe("file picker parent navigation", () => {
     mount([], "/parent/child/");
     fetchFiles.mockResolvedValue({ source: "data", items: [] });
     await nextTick();
-    const firstParent = row("..")!;
+    const firstParent = mustRow("..");
     firstParent.dispatchEvent(new MouseEvent("click", { bubbles: true, detail: 1 }));
     // `withLoading` keeps `loading=true` for 200ms, so the listing container is
     // unmounted — the `..` row only returns once it clears, then Vue re-renders it.
@@ -148,7 +155,7 @@ describe("file picker parent navigation", () => {
     // The second click of the double-click lands on the *new* `..` row whose path
     // is the parent itself, so it must not refetch the parent — the row still
     // carries `path="/parent/"`. The count stays at the single "/parent/" fetch.
-    const nextParent = row("..")!;
+    const nextParent = mustRow("..");
     nextParent.dispatchEvent(new MouseEvent("click", { bubbles: true, detail: 2 }));
     nextParent.dispatchEvent(new MouseEvent("dblclick", { bubbles: true, detail: 2 }));
     expect(fetchFiles.mock.calls).toEqual([["data", "/parent/"]]);

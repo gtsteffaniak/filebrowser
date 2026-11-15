@@ -329,9 +329,9 @@ class UploadManager {
               try {
                 const testPath = `${basePath}${dirName}`;
                 if (getters.isShare()) {
-                  await resourcesApi.postPublic(state.shareInfo?.hash, testPath, new Blob([]), false, undefined, {}, true);
+                  await resourcesApi.postPublic(state.shareInfo?.hash, testPath, new Blob([]), false, undefined, {}, true, undefined);
                 } else {
-                  await resourcesApi.post(state.req?.source, testPath, new Blob([]), false, undefined, {}, true);
+                  await resourcesApi.post(state.req?.source, testPath, new Blob([]), false, undefined, {}, true, undefined);
                 }
                 // No conflict - directory was created successfully
                 // Mark it so we can skip it later in the queue
@@ -839,7 +839,7 @@ class UploadManager {
   }
 
   progressTimeoutMs(): number {
-    const seconds = state.user?.fileLoading?.uploadStallTimeoutSeconds;
+    const seconds = state.user?.fileLoading?.uploadStallTimeoutSeconds ?? 0;
     return seconds > 0 ? seconds * 1000 : this.PROGRESS_TIMEOUT_MS;
   }
 

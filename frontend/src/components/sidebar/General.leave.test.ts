@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { collapseEnter, collapseLeave } from "@/utils/transitions";
+import { collapseEnter, collapseLeave } from "@/utils/transitions.ts";
 
 // The old Options API test called `General.methods.leave` — that helper moved to
 // `@/utils/transitions` (`collapseLeave`) in the composition-API pass, and there is
