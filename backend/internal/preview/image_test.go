@@ -26,6 +26,7 @@ func TestMain(m *testing.M) {
 	if fileutils.PermDir == 0 {
 		fileutils.SetFsPermissions(0644, 0755)
 	}
+	configureImagingParallelism()
 
 	// Run the tests
 	code := m.Run()
