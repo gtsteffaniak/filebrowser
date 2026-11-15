@@ -27,6 +27,18 @@ func TestIsTextFile(t *testing.T) {
 			content: append([]byte("%PDF-1.3\n"+asciiPageStream), 0xFF, 0xD8, 0xFF, 0xE0),
 			want:    false,
 		},
+		{
+			// Only the first 8KB is inspected, so a large text file is text.
+			name:    "large text file larger than the sample",
+			content: []byte(strings.Repeat("hello world\n", 10000)),
+			want:    true,
+		},
+		{
+			// Likewise, binary content past the first 8KB does not matter.
+			name:    "binary content only after the sample",
+			content: append([]byte(strings.Repeat("plain text\n", 750)), make([]byte, 64)...),
+			want:    true,
+		},
 	}
 
 	for _, tt := range tests {

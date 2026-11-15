@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"io"
 	"net/http"
 	"os"
 	"unicode/utf8"
@@ -14,19 +15,24 @@ import (
 func IsTextFile(realPath string) (bool, error) {
 	const sampleSize = 8192       // Read first 8KB to check
 	const maxNullByteRatio = 0.05 // Reject if more than 5% null bytes
-	// Read sample from file
-	content, err := os.ReadFile(realPath)
+	// Read only the first sampleSize bytes. The previous implementation
+	// used os.ReadFile, which loaded the entire file into memory and
+	// only then sliced off the first 8KB — so checking a multi-GB file
+	// (e.g. on a file-watcher event) read the whole file for no reason.
+	f, err := os.Open(realPath)
 	if err != nil {
 		return false, err
 	}
-	// Empty files are considered text
-	if len(content) == 0 {
-		return true, nil
+	defer f.Close()
+	buf := make([]byte, sampleSize)
+	n, err := io.ReadFull(f, buf)
+	if err != nil && err != io.EOF && err != io.ErrUnexpectedEOF {
+		return false, err
 	}
-	// Use sample for large files to avoid reading entire file into memory
-	sample := content
-	if len(content) > sampleSize {
-		sample = content[:sampleSize]
+	sample := buf[:n]
+	// Empty files are considered text
+	if len(sample) == 0 {
+		return true, nil
 	}
 	// Check 1: Reject PDFs. A PDF with a long ASCII text layer looks like text
 	// for far more than sampleSize bytes.
