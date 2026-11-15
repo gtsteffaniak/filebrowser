@@ -804,6 +804,7 @@ async function downloadChunked(file, shareHash = "") {
  * @param {((percent: number) => void) | undefined} [onupload]
  * @param {Record<string, string | number>} [headers]
  * @param {boolean} [isDir]
+ * @param {(() => void) | undefined} [onsent]
  * @returns {Promise<any> & { xhr?: XMLHttpRequest | null, abort?: () => void }}
  */
 export function post(
@@ -1431,6 +1432,7 @@ export function getTextPreviewURLPublic(path, viewToken = state.req?.viewToken) 
  * @param {((percent: number) => void) | undefined} [onupload]
  * @param {Record<string, string | number>} [headers]
  * @param {boolean} [isDir]
+ * @param {(() => void) | undefined} [onsent]
  * @returns {Promise<any> & { xhr?: XMLHttpRequest | null, abort?: () => void }}
  */
 export function postPublic(
