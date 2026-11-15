@@ -73,19 +73,28 @@ func TestFillCenter_MatchesImagingFill(t *testing.T) {
 		"exact target size":                  patternNRGBA(256, 256),
 		"offset origin":                      patternNRGBA(900, 700).SubImage(image.Rect(37, 11, 837, 611)),
 	}
-	// Every subsampling ratio, in shapes whose centered crop has an x (or y) offset and reaches
-	// the source's last row (or column) -- where a SubImage's buffer ends short of a full stride.
-	for _, r := range []image.YCbCrSubsampleRatio{
-		image.YCbCrSubsampleRatio444, image.YCbCrSubsampleRatio422, image.YCbCrSubsampleRatio420,
-		image.YCbCrSubsampleRatio440, image.YCbCrSubsampleRatio411, image.YCbCrSubsampleRatio410,
-	} {
-		for _, sz := range [][2]int{{600, 264}, {264, 600}, {601, 263}} {
-			sources[fmt.Sprintf("ycbcr %v %dx%d", r, sz[0], sz[1])] = patternYCbCrRatio(sz[0], sz[1], r)
+	if fillCenterMatchFullMatrix {
+		// Every subsampling ratio, in shapes whose centered crop has an x (or y) offset and reaches
+		// the source's last row (or column) -- where a SubImage's buffer ends short of a full stride.
+		for _, r := range []image.YCbCrSubsampleRatio{
+			image.YCbCrSubsampleRatio444, image.YCbCrSubsampleRatio422, image.YCbCrSubsampleRatio420,
+			image.YCbCrSubsampleRatio440, image.YCbCrSubsampleRatio411, image.YCbCrSubsampleRatio410,
+		} {
+			for _, sz := range [][2]int{{600, 264}, {264, 600}, {601, 263}} {
+				sources[fmt.Sprintf("ycbcr %v %dx%d", r, sz[0], sz[1])] = patternYCbCrRatio(sz[0], sz[1], r)
+			}
 		}
+		sources["nycbcra 444 600x264"] = &image.NYCbCrA{YCbCr: *patternYCbCrRatio(600, 264, image.YCbCrSubsampleRatio444), A: make([]uint8, 600*264), AStride: 600}
+	} else {
+		// CI (-race, 30s): spot-check 4:1:0 and 4:2:0, which caught the centered-crop bug in #3340.
+		sources["ycbcr YCbCrSubsampleRatio410 601x263"] = patternYCbCrRatio(601, 263, image.YCbCrSubsampleRatio410)
+		sources["ycbcr YCbCrSubsampleRatio420 600x264"] = patternYCbCrRatio(600, 264, image.YCbCrSubsampleRatio420)
 	}
-	sources["nycbcra 444 600x264"] = &image.NYCbCrA{YCbCr: *patternYCbCrRatio(600, 264, image.YCbCrSubsampleRatio444), A: make([]uint8, 600*264), AStride: 600}
 	// 264x264 is the crop of the 600x264 and 264x600 sources itself: nothing to scale.
 	targets := [][2]int{{256, 256}, {320, 180}, {180, 320}, {264, 264}}
+	if !fillCenterMatchFullMatrix {
+		targets = [][2]int{{256, 256}, {264, 264}}
+	}
 	filters := map[string]imaging.ResampleFilter{
 		"nearest": imaging.NearestNeighbor, "box": imaging.Box, "catmullrom": imaging.CatmullRom,
 	}
@@ -93,7 +102,6 @@ func TestFillCenter_MatchesImagingFill(t *testing.T) {
 		for _, tg := range targets {
 			for fname, f := range filters {
 				t.Run(fmt.Sprintf("%s/%dx%d/%s", name, tg[0], tg[1], fname), func(t *testing.T) {
-					t.Parallel()
 					want := imaging.Fill(src, tg[0], tg[1], imaging.Center, f)
 					got := fillCenter(src, tg[0], tg[1], f)
 					require.Equal(t, fmt.Sprintf("%T", want), fmt.Sprintf("%T", got), "image type")
