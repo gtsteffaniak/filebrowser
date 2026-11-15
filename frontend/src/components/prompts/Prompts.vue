@@ -124,6 +124,7 @@ import Archive from "./Archive.vue";
 import Unarchive from "./Unarchive.vue";
 import OfficeDebug from "./OfficeDebug.vue";
 import ThreeJSControls from "./ThreeJSControls.vue";
+import CadProperties from "./CadProperties.vue";
 import ActivityEventDetails from "./ActivityEventDetails.vue";
 import AnalyticsDiagnostic from "./AnalyticsDiagnostic.vue";
 import ConfigViewer from "./ConfigViewer.vue";
@@ -137,6 +138,7 @@ import UserEditSidebarLinks from "./UserEditSidebarLinks.vue";
 import Quota from "./Quota.vue";
 import NewFileTemplate from "./NewFileTemplate.vue";
 import DefaultViewPrefs from "./DefaultViewPrefs.vue";
+import CadConvert from "./CadConvert.vue";
 import { state, getters, mutations } from "@/store";
 import { getObjectProperty, omitObjectProperty, setObjectProperty } from "@/utils/object.js";
 
@@ -183,6 +185,7 @@ export default {
     Unarchive,
     OfficeDebug,
     ThreeJSControls,
+    CadProperties,
     ActivityEventDetails,
     AnalyticsDiagnostic,
     ConfigViewer,
@@ -196,6 +199,7 @@ export default {
     Quota,
     NewFileTemplate,
     DefaultViewPrefs,
+    CadConvert,
   },
   data() {
     return {
@@ -454,6 +458,8 @@ export default {
           return this.$t("prompts.unarchive");
         case "threejscontrols":
           return this.$t("threejs.controls");
+        case "cadconvert":
+          return this.$t("cad.convert");
         case "activityeventdetails":
           return this.$t("general.details");
         case "new-file-template":

@@ -125,6 +125,8 @@ export default {
     DocViewer: createAsyncComponent(() => import('@/views/files/DocViewer.vue')),
     MarkdownViewer: createAsyncComponent(() => import('@/views/files/MarkdownViewer.vue')),
     ThreeJsViewer: createAsyncComponent(() => import('@/views/files/ThreeJs.vue')),
+    CadViewer: createAsyncComponent(() => import('@/views/files/CadWebGLViewer.vue')),
+    DrawingViewer: createAsyncComponent(() => import('@/views/files/DrawingViewer.vue')),
   },
   data() {
     return {
