@@ -1163,8 +1163,11 @@ func applyArchivedTimesAndPerm(path string, mode fs.FileMode, modTime time.Time)
 	}
 }
 
-// maxSymlinkResolveDepth bounds symlink target resolution during archive extraction (GHSA-jg32 / #3384).
-const maxSymlinkResolveDepth = 40
+// Bounds symlink target resolution during archive extraction (GHSA-jg32 / #3384).
+const (
+	maxSymlinkResolveDepth      = 40
+	maxSymlinkResolveExpansions = 255
+)
 
 // symlinkTargetStaysUnderDest rejects absolute targets and symlink text that would resolve
 // outside destRoot after following symlinks already created under the destination tree.
@@ -1189,7 +1192,8 @@ func symlinkTargetStaysUnderDest(destRoot, destPath, linkname string) error {
 	if err != nil {
 		return fmt.Errorf("symlink target escapes destination directory")
 	}
-	resolved, err := resolveSymlinkTargetAt(linkDir, linkname, 0)
+	expansionsLeft := maxSymlinkResolveExpansions
+	resolved, err := resolveSymlinkTargetAt(linkDir, linkname, 0, &expansionsLeft)
 	if err != nil {
 		return err
 	}
@@ -1224,11 +1228,30 @@ func resolvedSymlinkParentDir(destPath string) (string, error) {
 	return filepath.Dir(linkPath), nil
 }
 
+func errSymlinkTargetEscape() error {
+	return fmt.Errorf("symlink target escapes destination directory")
+}
+
+func consumeSymlinkExpansion(expansionsLeft *int) error {
+	if expansionsLeft == nil {
+		return nil
+	}
+	if *expansionsLeft <= 0 {
+		return errSymlinkTargetEscape()
+	}
+	*expansionsLeft--
+	return nil
+}
+
 // resolveSymlinkTargetAt walks linkname relative to linkDir, following existing symlinks at
 // each component without collapsing ".." lexically first (closes chained-link extraction bypass).
-func resolveSymlinkTargetAt(linkDir, linkname string, depth int) (string, error) {
+// expansionsLeft is decremented on every symlink expansion and shared across recursion.
+func resolveSymlinkTargetAt(linkDir, linkname string, depth int, expansionsLeft *int) (string, error) {
 	if depth > maxSymlinkResolveDepth {
-		return "", fmt.Errorf("symlink target escapes destination directory")
+		return "", errSymlinkTargetEscape()
+	}
+	if filepath.IsAbs(linkname) {
+		return resolveSymlinkTargetAbsolute(linkname, depth, expansionsLeft)
 	}
 	linkDir = filepath.Clean(linkDir)
 	cur := linkDir
@@ -1250,15 +1273,19 @@ func resolveSymlinkTargetAt(linkDir, linkname string, depth int) (string, error)
 				return "", err
 			}
 			if info.Mode()&os.ModeSymlink != 0 {
+				if err := consumeSymlinkExpansion(expansionsLeft); err != nil {
+					return "", err
+				}
 				target, err := os.Readlink(next)
 				if err != nil {
 					return "", err
 				}
-				target = strings.TrimSpace(target)
+				var nested string
 				if filepath.IsAbs(target) {
-					return "", fmt.Errorf("symlink has absolute target")
+					nested, err = resolveSymlinkTargetAbsolute(target, depth+1, expansionsLeft)
+				} else {
+					nested, err = resolveSymlinkTargetAt(filepath.Dir(next), target, depth+1, expansionsLeft)
 				}
-				nested, err := resolveSymlinkTargetAt(filepath.Dir(next), target, depth+1)
 				if err != nil {
 					return "", err
 				}
@@ -1269,6 +1296,36 @@ func resolveSymlinkTargetAt(linkDir, linkname string, depth int) (string, error)
 		}
 	}
 	return filepath.Clean(cur), nil
+}
+
+// resolveSymlinkTargetAbsolute continues resolution from an absolute path without treating
+// leading slash-separated components as relative to linkDir.
+func resolveSymlinkTargetAbsolute(path string, depth int, expansionsLeft *int) (string, error) {
+	if depth > maxSymlinkResolveDepth {
+		return "", errSymlinkTargetEscape()
+	}
+	path = filepath.Clean(path)
+	info, err := os.Lstat(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return path, nil
+		}
+		return "", err
+	}
+	if info.Mode()&os.ModeSymlink == 0 {
+		return path, nil
+	}
+	if cerr := consumeSymlinkExpansion(expansionsLeft); cerr != nil {
+		return "", cerr
+	}
+	target, err := os.Readlink(path)
+	if err != nil {
+		return "", err
+	}
+	if filepath.IsAbs(target) {
+		return resolveSymlinkTargetAbsolute(target, depth+1, expansionsLeft)
+	}
+	return resolveSymlinkTargetAt(filepath.Dir(path), target, depth+1, expansionsLeft)
 }
 
 // extractArchivedDir creates a directory from an archive entry and reapplies mode and mtime.
