@@ -65,12 +65,14 @@ const blank = (text: string) => text.replace(/[^\n]/g, " ");
 
 // What can precede a regex literal, anything else (an identifier, `)`, a number, a string) makes `/` a division
 const REGEX_PRECEDER = /[(,=:[!&|?{};+\-*%<>~^]$/;
+const POSTFIX = /(?:\+\+|--)$/;
 const REGEX_KEYWORD = /(?:^|[^\w$.])(?:return|typeof|case|do|else|in|of|void|delete|throw|new|instanceof|yield|await)$/;
 
 /** Replaces the comments of JS/TS code by spaces and, with `strings`, the content of '...' and "..." literals too */
 export function maskJs(text: string, strings = false): string {
   const isRegexStart = (index: number) => {
     const before = text.slice(0, index).trimEnd();
+    if (POSTFIX.test(before)) return false;
     return before === "" || REGEX_PRECEDER.test(before) || REGEX_KEYWORD.test(before);
   };
 
