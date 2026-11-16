@@ -11,7 +11,7 @@ const TEXT_ATTRIBUTES = new Set(["placeholder", "title", "alt"]);
 const ELEMENT = 1;
 const TEXT = 2;
 const COMMENT = 3;
-const INTERPOLATION = 5;
+export const INTERPOLATION = 5;
 const ATTRIBUTE = 6;
 const DIRECTIVE = 7;
 

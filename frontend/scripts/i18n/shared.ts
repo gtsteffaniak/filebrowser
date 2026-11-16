@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { parse } from "vue/compiler-sfc";
+import { INTERPOLATION } from "./check.ts"
 
 export const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 export const srcDir = path.join(root, "src");
@@ -62,8 +63,17 @@ export function report(problems: string[]): void {
 
 const blank = (text: string) => text.replace(/[^\n]/g, " ");
 
+// What can precede a regex literal, anything else (an identifier, `)`, a number, a string) makes `/` a division
+const REGEX_PRECEDER = /[(,=:[!&|?{};+\-*%<>~^]$/;
+const REGEX_KEYWORD = /(?:^|[^\w$.])(?:return|typeof|case|do|else|in|of|void|delete|throw|new|instanceof|yield|await)$/;
+
 /** Replaces the comments of JS/TS code by spaces and, with `strings`, the content of '...' and "..." literals too */
 export function maskJs(text: string, strings = false): string {
+  const isRegexStart = (index: number) => {
+    const before = text.slice(0, index).trimEnd();
+    return before === "" || REGEX_PRECEDER.test(before) || REGEX_KEYWORD.test(before);
+  };
+
   const scan = (start: number, inExpression: boolean): [string, number] => {
     let out = "";
     let i = start;
@@ -76,6 +86,19 @@ export function maskJs(text: string, strings = false): string {
         const end = close === -1 ? text.length : next === "/" ? close : close + 2;
         out += blank(text.slice(i, end));
         i = end;
+      } else if (ch === "/" && isRegexStart(i)) {
+        let end = i + 1;
+        let inClass = false;
+        while (end < text.length && text.charAt(end) !== "\n" && (inClass || text.charAt(end) !== "/")) {
+          if (text.charAt(end) === "\\") end++;
+          else if (text.charAt(end) === "[") inClass = true;
+          else if (text.charAt(end) === "]") inClass = false;
+          end++;
+        }
+        const closed = text.charAt(end) === "/";
+        const literal = closed ? text.slice(i, end + 1) : ch; // an unclosed one is a division
+        out += strings && closed ? `/${blank(literal.slice(1, -1))}/` : literal;
+        i += literal.length;
       } else if (ch === "`") {
         const [masked, end] = maskTemplate(i);
         out += masked;
@@ -135,6 +158,17 @@ export function maskJs(text: string, strings = false): string {
   return scan(0, false)[0];
 }
 
+interface Span {
+  loc: { start: { offset: number }; end: { offset: number } };
+}
+
+interface TemplateNode {
+  type: number;
+  content?: unknown;
+  props?: { exp?: Span }[];
+  children?: TemplateNode[];
+}
+
 /**
  * The code of a source file without comments at the same offsets as the file. In .vue files only the template and the scripts
  * are kept while styles no
@@ -144,7 +178,7 @@ export function maskSource(file: string, text: string, strings = false): string 
   const { descriptor } = parse(text, { filename: file });
   let out = text;
   // each replacement keeps the length of what it replaces, so the blocks can be masked one after the other
-  const mask = ({ start, end }: { start: { offset: number }; end: { offset: number } }, apply: (code: string) => string) => {
+  const mask = ({ start, end }: Span["loc"], apply: (code: string) => string) => {
     out = out.slice(0, start.offset) + apply(text.slice(start.offset, end.offset)) + out.slice(end.offset);
   };
   for (const style of descriptor.styles) mask(style.loc, blank);
@@ -152,5 +186,13 @@ export function maskSource(file: string, text: string, strings = false): string 
     if (script) mask(script.loc, (code) => maskJs(code, strings));
   }
   if (descriptor.template) mask(descriptor.template.loc, (code) => code.replace(/<!--[\s\S]*?-->/g, blank));
+  if (strings && descriptor.template?.ast) {
+    const walk = (node: TemplateNode) => {
+      if (node.type === INTERPOLATION) mask((node.content as Span).loc, (code) => maskJs(code, true));
+      for (const prop of node.props ?? []) if (prop.exp) mask(prop.exp.loc, (code) => maskJs(code, true));
+      for (const child of node.children ?? []) walk(child);
+    };
+    walk(descriptor.template.ast as unknown as TemplateNode);
+  }
   return out;
 }

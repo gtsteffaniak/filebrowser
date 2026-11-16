@@ -5,7 +5,7 @@ import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { maskJs, maskSource } from "../shared.ts";
 import { syncTranslations } from "../sync.ts";
-import { dynamicCalls, isPassedAround, literalCalls } from "../types.ts";
+import { checkCall, dynamicCalls, isPassedAround, literalCalls } from "../types.ts";
 
 // The sync reads and writes the locales folder: point it at a temporary one.
 const dir = await vi.hoisted(async () => {
@@ -117,6 +117,19 @@ describe("maskJs", () => {
   it("does not take an apostrophe left open on a line for a string", () => {
     expect(maskJs(`don't\nt("k")`, true)).toContain('t("');
   });
+
+  it("does not take a quote in a regex literal for the start of a string", () => {
+    const code = `const quote = /"/; t("k");`;
+    const bare = maskJs(code, true);
+    expect(bare).toHaveLength(code.length);
+    expect(bare).toContain('t("');
+    expect(maskJs(`const a = /[/"]+/g; t("k");`, true)).toContain('t("');
+  });
+
+  it("keeps a division as a division", () => {
+    expect(maskJs(`const a = (b / 2) + c / 4; t("k"); // x`, true)).toContain('t("');
+    expect(maskJs(`const a = b / "x" / c; t('k');`, true)).toContain("t('");
+  });
 });
 
 describe("maskJs with template literals", () => {
@@ -209,6 +222,22 @@ describe("maskSource for .vue files", () => {
     for (const dropped of ["a.b", "e.f", "i.j"]) expect(masked).not.toContain(dropped);
     for (const kept of ["c.d", "g.h"]) expect(masked.indexOf(kept)).toBe(vue.indexOf(kept));
   });
+
+  it("blanks the strings inside template expressions in the bare output only, and keeps the calls and the attributes", () => {
+    const source = [
+      "<template>",
+      "  <p :title=\"t('real.title', { v: 'x' })\" class=\"it's\">{{ t('real.key', { value: \"t('example.only')\" }) }}</p>",
+      "</template>",
+    ].join("\n");
+    const bare = maskSource("A.vue", source, true);
+    expect(bare).toHaveLength(source.length);
+    expect(bare).not.toContain("example.only");
+    expect(bare).toContain(":title=\"t('");
+    expect(bare).toContain('class="it\'s">{{ t(\'');
+    expect(maskSource("A.vue", source)).toContain("example.only");
+    const text = maskSource("A.vue", source);
+    expect([...literalCalls(text, bare)].map((call) => call.key)).toEqual(["real.title", "real.key"]);
+  });
 });
 
 describe("literalCalls", () => {
@@ -237,6 +266,12 @@ describe("literalCalls", () => {
   it("finds a call in an expression nested in a template, not in the template nested in that", () => {
     const found = calls("const a = `${ cond ? `t('nested.text')` : t('real.key', { count: 1 }) }`;");
     expect(found.map((call) => call.key)).toEqual(["real.key"]);
+  });
+
+  it("finds the call after a regex literal that holds a quote", () => {
+    const [call] = calls(`const quote = /"/; t("missing.key");`);
+    expect(call?.key).toBe("missing.key");
+    expect(call && checkCall(call.key, call.params, {})).toEqual(['unknown translation key "missing.key"']);
   });
 
   it("is not confused by a comment in the params", () => {

@@ -259,7 +259,7 @@ export function* dynamicCalls(text: string, bare: string): Generator<{ index: nu
   }
 }
 
-function checkCall(key: string, params: Params, messages: Messages): string[] {
+export function checkCall(key: string, params: Params, messages: Messages): string[] {
   const expected = messages[key];
   if (expected === undefined) return [`unknown translation key "${key}"`];
   if (params.dynamic) return []; // spread or variable: names unknown

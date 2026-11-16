@@ -28,7 +28,7 @@ const isTree = (value: unknown): value is Tree => typeof value === "object" && v
 
 /** Reports what syncTranslations would change */
 export function checkTranslations(): string[] {
-  const master = Object.keys(readLocale("en.json"));
+  const master = readLocale("en.json");
   const problems: string[] = [];
   for (const file of translationFiles()) {
     let target: Record<string, string>;
@@ -38,11 +38,11 @@ export function checkTranslations(): string[] {
       problems.push(`${file}: cannot be read (${error instanceof Error ? error.message : error})`);
       continue;
     }
-    for (const key of master) {
-      if (!target[key]) problems.push(`${file}: missing "${key}"`);
+    for (const [key, message] of Object.entries(master)) {
+      if (!target[key] && (message || !Object.hasOwn(target, key))) problems.push(`${file}: missing "${key}"`);
     }
     for (const key of Object.keys(target)) {
-      if (!master.includes(key)) problems.push(`${file}: obsolete key "${key}"`);
+      if (!Object.hasOwn(master, key)) problems.push(`${file}: obsolete key "${key}"`);
     }
   }
   return problems;
