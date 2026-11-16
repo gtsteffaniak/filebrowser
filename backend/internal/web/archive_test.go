@@ -4,11 +4,13 @@ import (
 	"archive/tar"
 	"archive/zip"
 	"errors"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	commonerrors "github.com/gtsteffaniak/filebrowser/backend/internal/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing"
@@ -560,6 +562,317 @@ func TestExtractZip_symlinkDestination(t *testing.T) {
 	victimData, err := os.ReadFile(victim)
 	if err != nil || string(victimData) != "untouched" {
 		t.Fatalf("victim.txt should be unchanged: %q, %v", victimData, err)
+	}
+}
+
+func writeChainedSymlinkEscapeTar(t *testing.T, path string) {
+	t.Helper()
+	writeTestTarGz(t, path, func(tw *tar.Writer) error {
+		if err := tw.WriteHeader(&tar.Header{Name: "a/b/", Mode: 0o755, Typeflag: tar.TypeDir}); err != nil {
+			return err
+		}
+		if err := tw.WriteHeader(&tar.Header{Name: "a/b/l1", Mode: 0o777, Typeflag: tar.TypeSymlink, Linkname: "../.."}); err != nil {
+			return err
+		}
+		return tw.WriteHeader(&tar.Header{Name: "esc", Mode: 0o777, Typeflag: tar.TypeSymlink, Linkname: "a/b/l1/../x"})
+	})
+}
+
+func writeChainedSymlinkEscapeZip(t *testing.T, path string) {
+	t.Helper()
+	writeTestZip(t, path, func(zw *zip.Writer) error {
+		hdr := &zip.FileHeader{Name: "a/b/l1", Method: zip.Store}
+		hdr.SetMode(0o777 | os.ModeSymlink)
+		w, err := zw.CreateHeader(hdr)
+		if err != nil {
+			return err
+		}
+		if _, err = w.Write([]byte("../..")); err != nil {
+			return err
+		}
+		hdr = &zip.FileHeader{Name: "esc", Method: zip.Store}
+		hdr.SetMode(0o777 | os.ModeSymlink)
+		w, err = zw.CreateHeader(hdr)
+		if err != nil {
+			return err
+		}
+		_, err = w.Write([]byte("a/b/l1/../x"))
+		return err
+	})
+}
+
+func assertNoEscapingSymlinksUnderDest(t *testing.T, destDir string) {
+	t.Helper()
+	destResolved, err := filepath.EvalSymlinks(destDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	sep := string(filepath.Separator)
+	walkErr := filepath.WalkDir(destDir, func(path string, d os.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if d.Type()&os.ModeSymlink == 0 {
+			return nil
+		}
+		target, err := os.Readlink(path)
+		if err != nil {
+			return err
+		}
+		linkDir, err := resolvedSymlinkParentDir(path)
+		if err != nil {
+			return err
+		}
+		expansionsLeft := maxSymlinkResolveExpansions
+		resolved, err := resolveSymlinkTargetAt(linkDir, target, 0, &expansionsLeft)
+		if err != nil {
+			return nil
+		}
+		rel, err := filepath.Rel(destResolved, resolved)
+		if err != nil || rel == ".." || strings.HasPrefix(rel, ".."+sep) {
+			t.Fatalf("symlink %q resolves outside destination to %q", path, resolved)
+		}
+		return nil
+	})
+	if walkErr != nil {
+		t.Fatal(walkErr)
+	}
+}
+
+func TestSymlinkTargetStaysUnderDest_rejectsChainedRelativeEscape(t *testing.T) {
+	destDir := t.TempDir()
+	if err := os.MkdirAll(filepath.Join(destDir, "a", "b"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	l1 := filepath.Join(destDir, "a", "b", "l1")
+	if err := os.Symlink("../..", l1); err != nil {
+		t.Fatal(err)
+	}
+	escPath := filepath.Join(destDir, "esc")
+	if err := symlinkTargetStaysUnderDest(destDir, escPath, "a/b/l1/../x"); err == nil {
+		t.Fatal("expected chained symlink target to be rejected")
+	}
+}
+
+func TestExtractZip_rejectsChainedSymlinkEscape(t *testing.T) {
+	destDir := t.TempDir()
+	zipPath := filepath.Join(t.TempDir(), "chain.zip")
+	writeChainedSymlinkEscapeZip(t, zipPath)
+	err := extractZip(zipPath, destDir)
+	if err == nil || !strings.Contains(err.Error(), "escapes destination") {
+		t.Fatalf("expected rejection, got %v", err)
+	}
+	if _, statErr := os.Lstat(filepath.Join(destDir, "esc")); !os.IsNotExist(statErr) {
+		t.Fatal("escaping symlink should not be created")
+	}
+	assertNoEscapingSymlinksUnderDest(t, destDir)
+}
+
+func TestExtractTarGz_rejectsChainedSymlinkEscape(t *testing.T) {
+	destDir := t.TempDir()
+	archivePath := filepath.Join(t.TempDir(), "chain.tar.gz")
+	writeChainedSymlinkEscapeTar(t, archivePath)
+	err := extractTarGz(archivePath, destDir, nil)
+	if err == nil || !strings.Contains(err.Error(), "escapes destination") {
+		t.Fatalf("expected rejection, got %v", err)
+	}
+	if _, statErr := os.Lstat(filepath.Join(destDir, "esc")); !os.IsNotExist(statErr) {
+		t.Fatal("escaping symlink should not be created")
+	}
+	assertNoEscapingSymlinksUnderDest(t, destDir)
+}
+
+func TestExtractZip_rejectsChainedSymlinkEscape_preExistingHop(t *testing.T) {
+	destDir := t.TempDir()
+	if err := os.MkdirAll(filepath.Join(destDir, "a", "b"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Symlink("../..", filepath.Join(destDir, "a", "b", "l1")); err != nil {
+		t.Fatal(err)
+	}
+	zipPath := filepath.Join(t.TempDir(), "hop.zip")
+	writeTestZip(t, zipPath, func(zw *zip.Writer) error {
+		hdr := &zip.FileHeader{Name: "esc", Method: zip.Store}
+		hdr.SetMode(0o777 | os.ModeSymlink)
+		w, err := zw.CreateHeader(hdr)
+		if err != nil {
+			return err
+		}
+		_, err = w.Write([]byte("a/b/l1/../x"))
+		return err
+	})
+	err := extractZip(zipPath, destDir)
+	if err == nil || !strings.Contains(err.Error(), "escapes destination") {
+		t.Fatalf("expected rejection, got %v", err)
+	}
+	if _, statErr := os.Lstat(filepath.Join(destDir, "esc")); !os.IsNotExist(statErr) {
+		t.Fatal("escaping symlink should not be created")
+	}
+	assertNoEscapingSymlinksUnderDest(t, destDir)
+}
+
+func TestResolveSymlinkTargetAt_rejectsSymlinkExpansionBomb(t *testing.T) {
+	dest := t.TempDir()
+	if err := os.Symlink(".", filepath.Join(dest, "l0")); err != nil {
+		t.Fatal(err)
+	}
+	prev := "l0"
+	for i := 1; i <= 25; i++ {
+		name := fmt.Sprintf("l%d", i)
+		target := prev + "/" + prev
+		if err := os.Symlink(target, filepath.Join(dest, name)); err != nil {
+			t.Fatal(err)
+		}
+		prev = name
+	}
+	expansionsLeft := maxSymlinkResolveExpansions
+	start := time.Now()
+	_, err := resolveSymlinkTargetAt(dest, "l25/l25", 0, &expansionsLeft)
+	elapsed := time.Since(start)
+	if err == nil || !strings.Contains(err.Error(), "escapes destination") {
+		t.Fatalf("expected rejection, got %v after %v", err, elapsed)
+	}
+	if elapsed > 2*time.Second {
+		t.Fatalf("symlink expansion bomb took too long: %v", elapsed)
+	}
+}
+
+func TestSymlinkTargetStaysUnderDest_rejectsAbsolutePreExistingHop(t *testing.T) {
+	destDir := t.TempDir()
+	outside := filepath.Join(filepath.Dir(destDir), "outside-abs-hop")
+	if err := os.MkdirAll(outside, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Symlink(outside, filepath.Join(destDir, "bad")); err != nil {
+		t.Fatal(err)
+	}
+	newLink := filepath.Join(destDir, "newlink")
+	if err := symlinkTargetStaysUnderDest(destDir, newLink, "bad"); err == nil {
+		t.Fatal("expected absolute pre-existing hop outside dest to be rejected")
+	}
+}
+
+func TestSymlinkTargetStaysUnderDest_hopTargetVerbatimReadlink(t *testing.T) {
+	destDir := t.TempDir()
+	allowed := filepath.Join(destDir, "allowed.txt")
+	if err := os.WriteFile(allowed, []byte("ok"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	hop := filepath.Join(destDir, "hop")
+	// Trailing space must be preserved (no TrimSpace on Readlink); the literal name is not allowed.txt.
+	if err := os.Symlink("allowed.txt ", hop); err != nil {
+		t.Fatal(err)
+	}
+	got, err := os.Readlink(hop)
+	if err != nil || got != "allowed.txt " {
+		t.Fatalf("readlink verbatim target: %q err=%v", got, err)
+	}
+	expansionsLeft := maxSymlinkResolveExpansions
+	resolved, err := resolveSymlinkTargetAt(destDir, "hop", 0, &expansionsLeft)
+	if err != nil {
+		t.Fatalf("resolve hop: %v", err)
+	}
+	want := filepath.Join(destDir, "allowed.txt ")
+	if resolved != want {
+		t.Fatalf("hop should resolve to literal spaced name %q, got %q", want, resolved)
+	}
+	if _, statErr := os.Stat(resolved); !os.IsNotExist(statErr) {
+		t.Fatalf("spaced target should not alias allowed.txt without trimming: stat %v", statErr)
+	}
+	if _, statErr := os.Stat(allowed); statErr != nil {
+		t.Fatalf("allowed.txt should exist: %v", statErr)
+	}
+}
+
+func setupAbsoluteHopThroughOutsidePivot(t *testing.T) (destDir, outside string, hopLeafAbs string) {
+	t.Helper()
+	destDir = t.TempDir()
+	outside = filepath.Join(filepath.Dir(destDir), "abs-pivot-outside")
+	if err := os.MkdirAll(outside, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	pivot := filepath.Join(destDir, "pivot")
+	if err := os.Symlink(outside, pivot); err != nil {
+		t.Fatal(err)
+	}
+	leafAbs, err := filepath.Abs(filepath.Join(pivot, "leaf"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	return destDir, outside, leafAbs
+}
+
+func TestSymlinkTargetStaysUnderDest_rejectsAbsoluteHopThroughOutsidePivot_fileExists(t *testing.T) {
+	destDir, outside, hopLeafAbs := setupAbsoluteHopThroughOutsidePivot(t)
+	if err := os.WriteFile(filepath.Join(outside, "leaf"), []byte("secret"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Symlink(hopLeafAbs, filepath.Join(destDir, "hop")); err != nil {
+		t.Fatal(err)
+	}
+	newLink := filepath.Join(destDir, "newlink")
+	if err := symlinkTargetStaysUnderDest(destDir, newLink, "hop"); err == nil {
+		t.Fatal("expected rejection when hop resolves through outside pivot to existing file")
+	}
+}
+
+func TestSymlinkTargetStaysUnderDest_rejectsAbsoluteHopThroughOutsidePivot_fileMissing(t *testing.T) {
+	destDir, _, hopLeafAbs := setupAbsoluteHopThroughOutsidePivot(t)
+	if err := os.Symlink(hopLeafAbs, filepath.Join(destDir, "hop")); err != nil {
+		t.Fatal(err)
+	}
+	newLink := filepath.Join(destDir, "newlink")
+	if err := symlinkTargetStaysUnderDest(destDir, newLink, "hop"); err == nil {
+		t.Fatal("expected rejection when hop resolves through outside pivot to missing leaf")
+	}
+}
+
+func TestSymlinkTargetStaysUnderDest_rejectsAbsoluteHopWithDotDotAfterOutsidePivot(t *testing.T) {
+	destDir, outside, _ := setupAbsoluteHopThroughOutsidePivot(t)
+	sibling := filepath.Join(filepath.Dir(outside), "sibling-out")
+	if err := os.MkdirAll(sibling, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	pivot := filepath.Join(destDir, "pivot")
+	sep := string(filepath.Separator)
+	// Build without filepath.Clean/Join collapsing pivot before sibling resolution.
+	hopTarget := pivot + sep + ".." + sep + filepath.Base(outside) + sep + ".." + sep + filepath.Base(sibling)
+	if err := os.Symlink(hopTarget, filepath.Join(destDir, "hop")); err != nil {
+		t.Fatal(err)
+	}
+	newLink := filepath.Join(destDir, "newlink")
+	if err := symlinkTargetStaysUnderDest(destDir, newLink, "hop"); err == nil {
+		t.Fatal("expected rejection for absolute hop with .. after ancestor symlink")
+	}
+}
+
+func TestSymlinkTargetStaysUnderDest_allowsInDestAbsoluteHopChain(t *testing.T) {
+	destDir := t.TempDir()
+	inner := filepath.Join(destDir, "inner")
+	if err := os.MkdirAll(inner, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	targetFile := filepath.Join(inner, "data.txt")
+	if err := os.WriteFile(targetFile, []byte("ok"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	innerAbs, err := filepath.Abs(inner)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err = os.Symlink(innerAbs, filepath.Join(destDir, "pivot")); err != nil {
+		t.Fatal(err)
+	}
+	hopTarget, err := filepath.Abs(targetFile)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err = os.Symlink(hopTarget, filepath.Join(destDir, "hop")); err != nil {
+		t.Fatal(err)
+	}
+	newLink := filepath.Join(destDir, "ref")
+	if err := symlinkTargetStaysUnderDest(destDir, newLink, "hop"); err != nil {
+		t.Fatalf("in-dest absolute hop chain should be allowed: %v", err)
 	}
 }
 
