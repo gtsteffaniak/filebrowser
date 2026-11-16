@@ -184,7 +184,7 @@ function closeTopPrompt() {
 
 function getItemName(path: string) {
   const parts = path.split("/").filter(p => p);
-  return parts[parts.length - 1] || path;
+  return parts.at(-1) || path;
 }
 
 function getItemError(item: DeleteItem) {

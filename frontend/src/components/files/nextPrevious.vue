@@ -329,7 +329,7 @@ export default {
     window.addEventListener("mousemove", this.handleGlobalMouseMove, true);
 
     // Calculate 10em threshold in pixels
-    const emSize = parseFloat(getComputedStyle(document.documentElement).fontSize);
+    const emSize = Number.parseFloat(getComputedStyle(document.documentElement).fontSize);
     this.dragState.threshold = 10 * emSize;
 
     this.updateNavigationEnabled();
@@ -726,7 +726,7 @@ export default {
         if (!this.dragState.isDragging) {
           // Calculate 10em threshold in pixels if not set
           if (!this.dragState.threshold) {
-            const emSize = parseFloat(getComputedStyle(document.documentElement).fontSize);
+            const emSize = Number.parseFloat(getComputedStyle(document.documentElement).fontSize);
             this.dragState.threshold = 10 * emSize;
           }
 

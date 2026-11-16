@@ -305,7 +305,7 @@ export default {
     },
     isTopmost(id) {
       const allPrompts = this.prompts;
-      return allPrompts[allPrompts.length - 1]?.id === id;
+      return allPrompts.at(-1)?.id === id;
     },
     isDragging(id) {
       return this.draggingIds.has(id);
@@ -528,7 +528,7 @@ export default {
       if (!buttons.length) {
         return null;
       }
-      const last = buttons[buttons.length - 1];
+      const last = buttons.at(-1);
       if (last.disabled) {
         return null;
       }

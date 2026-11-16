@@ -262,7 +262,7 @@ function displayName(fullPath: string, isDirectory: boolean) {
       ? fullPath.slice(0, -1)
       : fullPath;
   const parts = withoutTrailing.split("/").filter(Boolean);
-  const name = parts[parts.length - 1] ?? "";
+  const name = parts.at(-1) ?? "";
 
   return name !== "" ? name : (isDirectory ? "/" : "?");
 }
@@ -565,7 +565,7 @@ function handleScroll() {
   const container = scrollContainer;
   if (!container) return;
   const top = container.scrollTop;
-  const stickyTop = container.getBoundingClientRect().top + parseFloat(getComputedStyle(container).paddingTop);
+  const stickyTop = container.getBoundingClientRect().top + Number.parseFloat(getComputedStyle(container).paddingTop);
   const resultsTop = results.value?.getBoundingClientRect().top;
   if (resultsTop === undefined || resultsTop > stickyTop) {
     headerHidden.value = false;

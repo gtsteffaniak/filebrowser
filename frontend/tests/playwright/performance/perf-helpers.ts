@@ -58,7 +58,7 @@ export function baselineUpdateRequested(): boolean {
  */
 export function repeatCount(): number {
   if (process.env.PERF_REPEATS) {
-    const n = parseInt(process.env.PERF_REPEATS, 10);
+    const n = Number.parseInt(process.env.PERF_REPEATS, 10);
     if (Number.isFinite(n) && n > 0) return n;
   }
   return process.env.CI ? 1 : 3;

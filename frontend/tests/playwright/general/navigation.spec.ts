@@ -201,8 +201,8 @@ test("next/previous follow the quick search result order", async({ page, checkFo
 test("closing a quick search result returns and scrolls to it in the panel", async({ page, checkForErrors }) => {
   const entries = await quickSearch(page, "jpg");
   const names = await entries.evaluateAll((els) => els.map((el) => el.getAttribute("aria-label")));
-  const last = names[names.length - 1];
-  const beforeLast = names[names.length - 2];
+  const last = names.at(-1);
+  const beforeLast = names.at(-2);
 
   await entries.last().locator("a").click();
   await expect(page).toHaveTitle(`Graham's Filebrowser - Files - ${last}`);

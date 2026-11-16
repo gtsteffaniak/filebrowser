@@ -10,7 +10,7 @@ export function getFileExtension(filename) {
   }
 
   // Default: Get everything after the first dot
-  const firstDotExtension = filename.substring(firstDotIndex)
+  const firstDotExtension = filename.slice(firstDotIndex)
 
   if (firstDotExtension === '.') {
     return ""
@@ -22,7 +22,7 @@ export function getFileExtension(filename) {
 
   // Otherwise, return everything after the last dot
   const lastDotIndex = filename.lastIndexOf('.')
-  return filename.substring(lastDotIndex)
+  return filename.slice(lastDotIndex)
 }
 
 export function removePrefix(filename, prefix = "") {
@@ -60,5 +60,5 @@ export function removeExtension(filename) {
   const lastDot = filename.lastIndexOf('.');
   if (lastDot === -1) return filename;
   if (lastDot === 0) return filename;
-  return filename.substring(0, lastDot);
+  return filename.slice(0, lastDot);
 }

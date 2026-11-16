@@ -51,7 +51,7 @@ export const state: StoreState = reactive({
       words: 0,
       chars: 0,
     },
-    fontSize: parseInt(localStorage.getItem('editorFontSize') ?? '', 10) || 14,
+    fontSize: Number.parseInt(localStorage.getItem('editorFontSize') ?? '', 10) || 14,
     markdownSplitView: loadMarkdownSplitView(),
     scrollRatio: 0,
     scrollSource: null,
@@ -228,7 +228,7 @@ function loadMarkdownSplitView() {
  */
 function getSidebarWidth() {
   const savedWidth = localStorage.getItem("sidebarWidth");
-  return savedWidth ? parseFloat(savedWidth) : 20; // 20em
+  return savedWidth ? Number.parseFloat(savedWidth) : 20; // 20em
 }
 
 function getSidebarMode() {

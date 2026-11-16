@@ -257,7 +257,7 @@ body.rtl .listing-items {
 }
 
 .listing-items .name {
-  font-weight: normal;
+  font-weight: 400;
 }
 
 .listing-items.list .listing-item .name,

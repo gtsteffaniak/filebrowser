@@ -332,7 +332,7 @@ export default {
 
       // Initialize largerThanValue: query > prop > default
       if (query.largerThan !== undefined && query.largerThan !== null) {
-        const parsed = parseInt(query.largerThan, 10);
+        const parsed = Number.parseInt(query.largerThan, 10);
         if (!Number.isNaN(parsed)) {
           this.largerThanValue = parsed;
         }
@@ -433,7 +433,7 @@ export default {
       }
     },
     worst(row, container) {
-      if (row.length === 0) return Infinity;
+      if (row.length === 0) return Number.POSITIVE_INFINITY;
 
       const total = row.reduce((sum, item) => sum + item.value, 0);
       const min = Math.min(...row.map(item => item.value));
@@ -545,7 +545,7 @@ export default {
     getDisplayPath(path) {
       // Show just the filename/directory name for cleaner display
       const parts = path.split("/").filter(p => p);
-      return parts[parts.length - 1] || path;
+      return parts.at(-1) || path;
     },
     humanSize(size) {
       return getHumanReadableFilesize(size);

@@ -604,7 +604,7 @@ async function getFilesFromDirectoryEntry(entry: FileSystemEntry): Promise<Uploa
   if (entry.isFile) {
     return new Promise((resolve) => {
       (entry as FileSystemFileEntry).file((file) => {
-        const relativePath = entry.fullPath.startsWith("/") ? entry.fullPath.substring(1) : entry.fullPath;
+        const relativePath = entry.fullPath.startsWith("/") ? entry.fullPath.slice(1) : entry.fullPath;
         resolve([{ file, relativePath }]);
       });
     });
@@ -844,7 +844,7 @@ function getHelpText(file: UploadItem): string {
   margin-left: 1em;
   min-width: 2ch;
   text-align: center;
-  font-weight: bold;
+  font-weight: 700;
 }
 
 .sizeInput {

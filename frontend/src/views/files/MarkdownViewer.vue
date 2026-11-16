@@ -137,11 +137,11 @@ function loadMath(): Promise<void> {
                 const index = indexSrc.indexOf("$");
                 if (index === -1) return undefined;
                 if (index === 0 || indexSrc.charAt(index - 1) === " ") {
-                  if (INLINE_MATH_RULE.test(indexSrc.substring(index))) {
+                  if (INLINE_MATH_RULE.test(indexSrc.slice(index))) {
                     return index;
                   }
                 }
-                indexSrc = indexSrc.substring(index + 1).replace(/^\$+/, "");
+                indexSrc = indexSrc.slice(index + 1).replace(/^\$+/, "");
               }
               return undefined;
             },
@@ -484,7 +484,7 @@ function addLineNumbers(codeBlock: HTMLElement) {
   const lines = code.split('\n');
 
   // Remove trailing empty lines
-  if (lines[lines.length - 1] === '') {
+  if (lines.at(-1) === '') {
     lines.pop();
   }
 
@@ -621,7 +621,7 @@ function splitHighlightedHTML(html: string, expectedLines: number): string[] {
   const textLines = textContent.split('\n');
 
   // Remove trailing empty line from textLines if present
-  if (textLines[textLines.length - 1] === '') {
+  if (textLines.at(-1) === '') {
     textLines.pop();
   }
 
@@ -639,8 +639,8 @@ function splitHighlightedHTML(html: string, expectedLines: number): string[] {
     } else {
       const lineBreakIndex = currentHTML.indexOf('\n');
       if (lineBreakIndex !== -1) {
-        htmlLines.push(currentHTML.substring(0, lineBreakIndex));
-        currentHTML = currentHTML.substring(lineBreakIndex + 1);
+        htmlLines.push(currentHTML.slice(0, lineBreakIndex));
+        currentHTML = currentHTML.slice(lineBreakIndex + 1);
       } else {
         htmlLines.push(escapeHtml(lineText));
       }

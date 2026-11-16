@@ -244,9 +244,9 @@ function medianOf(values) {
 
 function hexAlpha(hex, a) {
   const n = (hex || "#888").replace("#", "");
-  const r = parseInt(n.slice(0, 2), 16);
-  const g = parseInt(n.slice(2, 4), 16);
-  const b = parseInt(n.slice(4, 6), 16);
+  const r = Number.parseInt(n.slice(0, 2), 16);
+  const g = Number.parseInt(n.slice(2, 4), 16);
+  const b = Number.parseInt(n.slice(4, 6), 16);
   return `rgba(${r}, ${g}, ${b}, ${a})`;
 }
 
@@ -681,7 +681,7 @@ function renderDeltaHist() {
 
   const strip = document.querySelector("#delta-strip");
   const sorted = [...visibleForHist].sort(
-    (a, b) => (b.signedPct ?? -Infinity) - (a.signedPct ?? -Infinity),
+    (a, b) => (b.signedPct ?? Number.NEGATIVE_INFINITY) - (a.signedPct ?? Number.NEGATIVE_INFINITY),
   );
   strip.innerHTML = "";
   for (const row of sorted) {

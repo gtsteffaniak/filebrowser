@@ -69,7 +69,7 @@ export function setToastUpdateCallback(callback) {
  * @returns {string}
  */
 function generateId() {
-  return `notification-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+  return `notification-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`
 }
 
 /**
@@ -363,7 +363,7 @@ export function showError(message, options = {}) {
 export function showMultipleSelection() {
   const message = i18n.global.t('files.multipleSelectionEnabled');
   showPopup('success', message, { persistent: true });
-  const Notification = notifications[notifications.length - 1];
+  const Notification = notifications.at(-1);
   if (Notification) {
     Notification.isMultipleSelection = true;
   }

@@ -396,7 +396,7 @@ function totalFromContentRange(headerVal) {
   if (!headerVal || typeof headerVal !== 'string') return 0
   const idx = headerVal.lastIndexOf('/')
   if (idx === -1) return 0
-  const n = parseInt(headerVal.slice(idx + 1), 10)
+  const n = Number.parseInt(headerVal.slice(idx + 1), 10)
   return Number.isFinite(n) ? n : 0
 }
 
@@ -414,7 +414,7 @@ async function resolveDownloadContentLength(url) {
     token = res.headers.get('X-Archive-Token')
     const cl = res.headers.get('Content-Length')
     if (cl) {
-      const n = parseInt(cl, 10)
+      const n = Number.parseInt(cl, 10)
       if (Number.isFinite(n) && n > 0) {
         return { size: n, token }
       }
@@ -438,7 +438,7 @@ async function resolveDownloadContentLength(url) {
     if (res.ok) {
       const cl = res.headers.get('Content-Length')
       if (cl) {
-        const n = parseInt(cl, 10)
+        const n = Number.parseInt(cl, 10)
         if (Number.isFinite(n) && n > 0) {
           cancelBody()
           return { size: n, token }
@@ -466,7 +466,7 @@ function archiveDisplayFileName(format, files) {
   if (first?.path) {
     const parts = first.path.split('/').filter(Boolean)
     if (parts.length >= 2) {
-      return `${parts[parts.length - 2]}${ext}`
+      return `${parts.at(-2)}${ext}`
     }
     if (parts.length === 1) {
       return `${parts[0]}${ext}`
@@ -536,7 +536,7 @@ async function chunkedRangeDownloadToBlob(
     } else if (response.status === 200) {
       const clFull = response.headers.get('Content-Length')
       if (clFull) {
-        const n = parseInt(clFull, 10)
+        const n = Number.parseInt(clFull, 10)
         if (Number.isFinite(n) && n > 0) {
           totalSize = n
           const dl = downloadManager.findById(downloadId)
@@ -550,7 +550,7 @@ async function chunkedRangeDownloadToBlob(
     const cl = response.headers.get('Content-Length')
     let expectedChunkSize = end - offset + 1
     if (cl) {
-      const n = parseInt(cl, 10)
+      const n = Number.parseInt(cl, 10)
       if (Number.isFinite(n) && n > 0) {
         expectedChunkSize = n
       }

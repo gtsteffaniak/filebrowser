@@ -24,8 +24,8 @@
         {{ $t("onlyoffice.documentKey") }}: {{ clientConfig.document.key }}<br/>
         {{ $t("onlyoffice.fileType") }}: {{ clientConfig.document.fileType }}<br/>
         {{ $t("onlyoffice.editMode") }}: {{ clientConfig.editorConfig ? clientConfig.editorConfig.mode : 'N/A' }}<br/>
-        {{ $t("onlyoffice.downloadURL") }}: {{ clientConfig.document.url ? `${clientConfig.document.url.substring(0, 80)}...` : 'N/A' }}<br/>
-        {{ $t("onlyoffice.callbackURL") }}: {{ clientConfig.editorConfig?.callbackUrl ? `${clientConfig.editorConfig.callbackUrl.substring(0, 80)}...` : 'N/A' }}<br/>
+        {{ $t("onlyoffice.downloadURL") }}: {{ clientConfig.document.url ? `${clientConfig.document.url.slice(0, 80)}...` : 'N/A' }}<br/>
+        {{ $t("onlyoffice.callbackURL") }}: {{ clientConfig.editorConfig?.callbackUrl ? `${clientConfig.editorConfig.callbackUrl.slice(0, 80)}...` : 'N/A' }}<br/>
         <br/>
         <strong>{{ $t("onlyoffice.networkFlow") }}:</strong><br/>
         {{ $t("onlyoffice.browser") }} ({{ windowOrigin }}) ↔ {{ $t("onlyoffice.onlyOffice") }}: {{ onlyOfficeUrl }}<br/>
@@ -504,7 +504,7 @@ export default {
 }
 
 .debug-log-level {
-  font-weight: bold;
+  font-weight: 700;
 }
 
 .debug-log-timestamp {

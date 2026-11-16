@@ -358,6 +358,6 @@ p:hover i,
 
 .active,
 p:hover {
-  font-weight: bold;
+  font-weight: 700;
 }
 </style>

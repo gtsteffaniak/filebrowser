@@ -388,7 +388,7 @@ class UploadManager {
     if (!basePath) {
       basePath = "/";
     }
-    if (basePath.slice(-1) !== "/") {
+    if (!basePath.endsWith("/")) {
       basePath += "/";
     }
 
@@ -530,7 +530,7 @@ class UploadManager {
 
       for (const dir of sortedDirs) {
         const pathParts = dir.slice(0, -1).split("/");
-        const dirName = pathParts[pathParts.length - 1] as string;
+        const dirName = pathParts.at(-1) as string;
 
         // Skip top-level directories that were already created during probing
         if (pathParts.length === 1 && this.probedDirs.has(dirName)) {

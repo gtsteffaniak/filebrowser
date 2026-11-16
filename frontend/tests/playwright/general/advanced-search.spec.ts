@@ -77,8 +77,8 @@ test("closing a result we opened returns and scrolls to it", async ({ page, chec
   await page.locator(".advanced-search-listing-results .listing-item-header .name").click();
   await expect.poll(() => namesOf(items)).not.toEqual(before);
   const names = await namesOf(items);
-  const last = names[names.length - 1];
-  const beforeLast = names[names.length - 2];
+  const last = names.at(-1);
+  const beforeLast = names.at(-2);
 
   await items.last().dblclick();
   await expect(page).toHaveTitle(`${TITLE}${last}`);

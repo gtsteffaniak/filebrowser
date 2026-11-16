@@ -109,7 +109,7 @@ function deleteAtPath(target, path) {
     node = node[parts[i]];
   }
   if (node && typeof node === 'object') {
-    Reflect.deleteProperty(node, parts[parts.length - 1]);
+    Reflect.deleteProperty(node, parts.at(-1));
   }
 }
 

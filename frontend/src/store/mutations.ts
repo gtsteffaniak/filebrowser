@@ -429,7 +429,7 @@ export const mutations = {
     const container = document.querySelector<HTMLElement>("#main");
     const element = document.querySelector<HTMLElement>(`#${CSS.escape(value)}`);
     if (container && element) {
-      const offset = 4 * parseFloat(getComputedStyle(document.documentElement).fontSize); // 4em in px
+      const offset = 4 * Number.parseFloat(getComputedStyle(document.documentElement).fontSize); // 4em in px
       const containerTop = container.getBoundingClientRect().top;
       const elementTop = element.getBoundingClientRect().top;
       const scrollOffset = elementTop - containerTop - offset;
@@ -506,7 +506,7 @@ export const mutations = {
   closeTopPrompt: (id?: number, options?: { force?: boolean; skipCancel?: boolean }) => {
     if (!options?.force && state.prompts.length > 0) {
       const targetId =
-        id ?? state.prompts[state.prompts.length - 1]?.id;
+        id ?? state.prompts.at(-1)?.id;
       const promptToClose = state.prompts.find((p) => p.id === targetId);
       if (
         promptToClose?.name === "upload" &&
@@ -532,7 +532,7 @@ export const mutations = {
       // close topmost prompt
       if (state.prompts.length === 0) return;
       mutations.closeHovers();
-      closed = state.prompts[state.prompts.length - 1];
+      closed = state.prompts.at(-1);
       state.prompts.pop();
     } else {
       // close prompt by ID
@@ -560,7 +560,7 @@ export const mutations = {
     // Set parentId to the current topmost prompt, unless the prompt is pinned.
     let parentId = prompt.parentId;
     if (!parentId && !prompt.pinned) {
-      const topPrompt = state.prompts[state.prompts.length - 1];
+      const topPrompt = state.prompts.at(-1);
       if (topPrompt) {
         parentId = topPrompt.id;
       }
@@ -665,7 +665,7 @@ export const mutations = {
       const isAnonymous = state.user.username === 'anonymous';
       const encoded = !isAnonymous ? url.base64Encode(state.user.username) : '';
       let viewMode = (!isAnonymous && localStorage.getItem(`ViewMode_${encoded}`)) || state.user.viewMode || 'normal';
-      let gallerySize = (!isAnonymous && parseInt(localStorage.getItem(`GallerySize_${encoded}`) ?? '', 10)) || state.user.gallerySize || 3;
+      let gallerySize = (!isAnonymous && Number.parseInt(localStorage.getItem(`GallerySize_${encoded}`) ?? '', 10)) || state.user.gallerySize || 3;
       gallerySize = Math.min(9, Math.max(1, gallerySize)); // ensure 1–9 since this is the slider min and max size
 
       // Normalize to use the view families too

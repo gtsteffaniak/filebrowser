@@ -147,7 +147,7 @@ export default {
     },
     getBaseFontSize() {
       const rootFontSize = getComputedStyle(document.documentElement).fontSize;
-      return parseFloat(rootFontSize);
+      return Number.parseFloat(rootFontSize);
     },
     handleMobileStateChange(isMobile) {
       if (isMobile) {

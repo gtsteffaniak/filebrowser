@@ -102,7 +102,7 @@ export default {
         originalParts.shift();
         encodedParts.shift();
       }
-      if (originalParts[originalParts.length - 1] === "") {
+      if (originalParts.at(-1) === "") {
         originalParts.pop();
         encodedParts.pop();
       }

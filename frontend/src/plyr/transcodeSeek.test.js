@@ -19,7 +19,7 @@ describe('servableCoverage', () => {
 
   it('returns null without a usable duration', () => {
     expect(servableCoverage({ durationSec: 0 })).toBeNull();
-    expect(servableCoverage({ durationSec: NaN })).toBeNull();
+    expect(servableCoverage({ durationSec: Number.NaN })).toBeNull();
     expect(servableCoverage(null)).toBeNull();
   });
 });

@@ -40,7 +40,8 @@
 				"noRedundantDefaultExport": "warn",
 				"noUnnecessaryTemplateExpression": "error",
 				"noUselessStringConcat": "warn",
-				"useMathMinMax": "warn"
+				"useMathMinMax": "warn",
+				"useRegexpTest": "warn"
 			},
 			"correctness": {
 				"noInvalidDirectionInLinearGradient": "error",
@@ -180,7 +181,29 @@
 				"noSelfNestedLayer": "warn",
 				"noUndeclaredCustomProperties": "off",
 				"noUnusedClasses": "off",
-				"useLogicalProperties": "off"
+				"useLogicalProperties": "off",
+				"noVueDeprecatedDestroyedLifecycle": "error",
+				"noVueDeprecatedFilter": "error",
+				"noVueDeprecatedFunctionalTemplate": "error",
+				"noVueDeprecatedInlineTemplate": "error",
+				"noVueDeprecatedScopeAttribute": "error",
+				"noVueDeprecatedSlotAttribute": "error",
+				"noVueDeprecatedSlotScope": "error",
+				"noVueDeprecatedVOnNativeModifier": "error",
+				"noObsoleteTags": "error",
+				"noNonScalableViewport": "warn",
+				"noShortTimeValues": "warn",
+				"useNamedLayer": "warn",
+				"useVueDefineOptions": "warn",
+				"useVueConsistentDefineEmitsDeclaration": "warn",
+				"useVueConsistentVSlotStyle": "warn",
+				"useVueSlotsAsFunctions": "warn",
+				"useVueMacroVariableName": "warn",
+				"useVueVOnExact": "warn",
+				"useConsistentFontWeightNotation": "warn",
+				"useIncludes": "warn",
+				"useStringStartsEndsWith": "warn",
+				"useModernMathApis": "warn"
 			},
 			"performance": { "useVueVapor": "off" },
 			"security": { "preset": "recommended", "useIframeSandbox": "off" },
@@ -199,7 +222,13 @@
 				"useVueMultiWordComponentNames": "off",
 				"useVueNextTickPromise": "warn",
 				"noValueAtRule": "warn",
-				"noHexColors": "off"
+				"noHexColors": "off",
+				"useObjectSpread": "warn",
+				"useSpreadOverApply": "warn",
+				"noSubstr": "warn",
+				"useNumberNamespace": "warn",
+				"useAtIndex": "warn",
+				"useForOf": "warn"
 			},
 			"suspicious": {
 				"noConfusingVoidType": "warn",
@@ -226,7 +255,9 @@
 				"useArraySortCompare": "error",
 				"useScopedStyles": "off",
 				"noUselessEscapeInString": "warn",
-				"useBaseline": "off"
+				"useBaseline": "off",
+				"noVar": "error",
+				"noForIn": "warn"
 			}
 		},
 		"domains": { "vue": "all", "project": "all", "types": "all" }

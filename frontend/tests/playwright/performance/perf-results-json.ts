@@ -164,7 +164,7 @@ export function buildHeadlines(input: {
   };
 
   // --- Cross-browser comparison at the largest scale ----------------------
-  const maxScale = scales[scales.length - 1] ?? 0;
+  const maxScale = scales.at(-1) ?? 0;
   for (const scenario of SCENARIOS) {
     const values = browsers
       .map((b) => ({ browser: b, ms: durationOf(b, maxScale, scenario) }))
@@ -204,9 +204,9 @@ export function buildHeadlines(input: {
       const ratio = superlinearity(scales, durations);
       if (ratio !== null && ratio > 1.5) {
         const firstScale = scales[0] ?? 0;
-        const lastScale = scales[scales.length - 1] ?? 0;
+        const lastScale = scales.at(-1) ?? 0;
         const firstMs = durations[0] ?? 0;
-        const lastMs = durations[durations.length - 1] ?? 0;
+        const lastMs = durations.at(-1) ?? 0;
         findings.push({
           severity: ratio > 3 ? "high" : "medium",
           category: "scaling",

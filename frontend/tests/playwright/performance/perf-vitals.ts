@@ -68,7 +68,7 @@ export function installWebVitals(page: {
     try {
       const po = new PerformanceObserver((list) => {
         const entries = list.getEntries();
-        const last = entries[entries.length - 1];
+        const last = entries.at(-1);
         if (last) state.lcp = last.startTime;
       });
       po.observe({ type: "largest-contentful-paint", buffered: true } as PerformanceObserverInit);

@@ -169,7 +169,7 @@ export default {
   },
   methods: {
     updateGallerySize(event) {
-      const newValue = parseInt(event.target.value, 10);
+      const newValue = Number.parseInt(event.target.value, 10);
       this.gallerySize = newValue;
     },
     commitGallerySize() {
@@ -278,7 +278,7 @@ export default {
 .button {
   padding: 0 0.5em;
   font-size: 0.9em;
-  font-weight: bold;
+  font-weight: 700;
   cursor: unset;
 }
 
