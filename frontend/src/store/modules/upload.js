@@ -4,7 +4,7 @@ import throttle from "@/utils/throttle.js";
 
 const UPLOADS_LIMIT = 5;
 
-const state = {
+const initialState = {
   id: 0,
   sizes: [],
   progress: [],
@@ -103,4 +103,4 @@ const actions = {
   },
 };
 
-export default { state, mutations, actions, namespaced: true };
+export default { state: initialState, mutations, actions, namespaced: true };

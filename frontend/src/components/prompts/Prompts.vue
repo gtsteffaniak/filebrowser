@@ -601,8 +601,8 @@ export default {
       });
       this.draggingIds.add(id);
 
-      const move = (e) => this.onPointerMove(e, id, type);
-      const end = (e) => this.onPointerEnd(e, id, type, move, end);
+      const move = (moveEvent) => this.onPointerMove(moveEvent, id, type);
+      const end = (endEvent) => this.onPointerEnd(endEvent, id, type, move, end);
 
       if (type === "mouse") {
         window.addEventListener("mousemove", move);
@@ -684,8 +684,8 @@ export default {
         clientY: pos.y,
       };
 
-      const moveHandler = (e) => this.onResizeMove(e, type);
-      const endHandler = (e) => this.onResizeEnd(e, type, moveHandler, endHandler);
+      const moveHandler = (moveEvent) => this.onResizeMove(moveEvent, type);
+      const endHandler = (endEvent) => this.onResizeEnd(endEvent, type, moveHandler, endHandler);
 
       if (type === 'mouse') {
         window.addEventListener('mousemove', moveHandler);

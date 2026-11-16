@@ -115,8 +115,8 @@ marked.use({
 const MATH_PATTERN = /\$\$[\s\S]+?\$\$|\$[^\s$][^$\n]*\$/;
 const INLINE_MATH_RULE = /^(\${1,2})(?!\$)((?:\\.|[^\\\n])*?(?:\\.|[^\\\n$]))\1(?=[\s?!.,:？！。，：]|$)/;
 const BLOCK_MATH_RULE = /^(\${1,2})\n((?:\\[\s\S]|[^\\])+?)\n\1(?:\n|$)/;
-function contentHasMath(content: string): boolean {
-  return MATH_PATTERN.test(content);
+function contentHasMath(markdown: string): boolean {
+  return MATH_PATTERN.test(markdown);
 }
 let mathLoaded = false;
 let mathPromise: Promise<void> | null = null;
@@ -657,12 +657,12 @@ function escapeHtml(text: string): string {
   return div.innerHTML;
 }
 
-function parseMarkdown(content: string, filePath: string, source: string): { key: string; line: number; html: string; codeLine?: number }[] {
+function parseMarkdown(markdown: string, filePath: string, source: string): { key: string; line: number; html: string; codeLine?: number }[] {
   const parser = marked;
   // Tag each top level block with its source line for scroll-sync
   let tokens: Token[] | null;
   try {
-    tokens = parser.lexer(content);
+    tokens = parser.lexer(markdown);
   } catch (err) {
     console.error("Failed to lex markdown:", err);
     tokens = null;

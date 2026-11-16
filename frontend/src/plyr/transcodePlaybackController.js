@@ -278,8 +278,8 @@ export class TranscodePlaybackController {
             budgetMs: remainingMs,
             signal: attachAbort.signal,
             onRecoverPlayback: onRecoverPlayback
-              ? ({ startSec, sessionId }) => onRecoverPlayback({
-                startSec,
+              ? ({ startSec: recoverStartSec, sessionId }) => onRecoverPlayback({
+                startSec: recoverStartSec,
                 sessionId,
                 mode,
                 source,

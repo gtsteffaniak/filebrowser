@@ -755,14 +755,14 @@ export default {
           name: "replace-rename",
           pinned: true,
           /**
-           * @param {Event} event
+           * @param {Event} e
            * @param {string} option
            */
-          confirm: async (event, option) => {
+          confirm: async (e, option) => {
             const overwrite = option === "overwrite";
             const rename = option === "rename";
 
-            event.preventDefault();
+            e.preventDefault();
             mutations.closeTopPrompt();
             try {
               await action(overwrite, rename);

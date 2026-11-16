@@ -1867,7 +1867,7 @@ export default {
               backgroundColor: hexToRgba(color, 0.88),
               borderColor: color,
               borderWidth: 1,
-              borderRadius: (ctx) => this.stackedBarBorderRadius(ctx, barRadius, stacked),
+              borderRadius: (chartCtx) => this.stackedBarBorderRadius(chartCtx, barRadius, stacked),
               borderSkipped: false,
               minBarLength: 0,
               stack: stacked ? "activity" : undefined,

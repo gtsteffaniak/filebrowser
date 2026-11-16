@@ -496,8 +496,8 @@ async function chunkedRangeDownloadToBlob(
   let totalSize = fileSize
 
   while (offset < totalSize) {
-    const download = downloadManager.findById(downloadId)
-    if (download?.status === 'cancelled') {
+    const downloadItem = downloadManager.findById(downloadId)
+    if (downloadItem?.status === 'cancelled') {
       return null
     }
 
@@ -586,8 +586,8 @@ async function chunkedRangeDownloadToBlob(
         }
       }
     } catch (readError) {
-      const download = downloadManager.findById(downloadId)
-      if (readError.name === 'AbortError' || (download?.status === 'cancelled')) {
+      const currentDownload = downloadManager.findById(downloadId)
+      if (readError.name === 'AbortError' || (currentDownload?.status === 'cancelled')) {
         downloadManager.setStatus(downloadId, 'cancelled')
         return null
       }
@@ -689,8 +689,8 @@ async function downloadChunkedArchive(url, format, files, filePaths, source, sha
       URL.revokeObjectURL(blobUrl)
     }, 100)
   } catch (error) {
-    const download = downloadManager.findById(downloadId)
-    if (error.name === 'AbortError' || (download?.status === 'cancelled')) {
+    const downloadItem = downloadManager.findById(downloadId)
+    if (error.name === 'AbortError' || (downloadItem?.status === 'cancelled')) {
       downloadManager.setStatus(downloadId, 'cancelled')
       return
     }
@@ -744,9 +744,9 @@ async function downloadChunked(file, shareHash = "") {
     mutations.showPrompt({ name: 'download' })
   }
 
-  const download = downloadManager.findById(downloadId)
+  const downloadItem = downloadManager.findById(downloadId)
   const abortController = new AbortController()
-  download.abortController = abortController
+  downloadItem.abortController = abortController
 
   try {
     const blob = await chunkedRangeDownloadToBlob(
@@ -781,8 +781,8 @@ async function downloadChunked(file, shareHash = "") {
     }, 100)
   } catch (error) {
     // Check if download was cancelled by user
-    const download = downloadManager.findById(downloadId);
-    if (error.name === 'AbortError' || (download?.status === "cancelled")) {
+    const currentDownload = downloadManager.findById(downloadId);
+    if (error.name === 'AbortError' || (currentDownload?.status === "cancelled")) {
       downloadManager.setStatus(downloadId, "cancelled")
       // Don't throw error or show notification for user-initiated cancellation
       return;

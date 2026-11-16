@@ -322,13 +322,13 @@ export default {
           };
         });
         // Define the action function
-        const action = async (overwrite, rename) => {
+        const action = async (shouldOverwrite, shouldRename) => {
           buttons.loading(this.operation);
           let result;
           if (getters.isShare()) {
-            result = await resourcesApi.moveCopyPublic(getters.shareHash(), itemsToProcess, this.operation, overwrite, rename);
+            result = await resourcesApi.moveCopyPublic(getters.shareHash(), itemsToProcess, this.operation, shouldOverwrite, shouldRename);
           } else {
-            result = await resourcesApi.moveCopy(itemsToProcess, this.operation, overwrite, rename);
+            result = await resourcesApi.moveCopy(itemsToProcess, this.operation, shouldOverwrite, shouldRename);
           }
           return result; // Return the result to check for failures
         };
@@ -362,16 +362,16 @@ export default {
                 operation: this.operation,
                 destSource: this.destSource,
               },
-              confirm: async (event, option) => {
+              confirm: async (e, option) => {
                 overwrite = option === "overwrite";
                 rename = option === "rename";
-                event.preventDefault();
+                e.preventDefault();
                 try {
                   this.isLoading = true;
                   result = await action(overwrite, rename);
                   resolve(); // Resolve the promise if action succeeds
-                } catch (e) {
-                  reject(e); // Reject the promise if an error occurs
+                } catch (err) {
+                  reject(err); // Reject the promise if an error occurs
                 } finally {
                   this.isLoading = false;
                 }

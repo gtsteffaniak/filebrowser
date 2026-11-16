@@ -248,7 +248,7 @@
 				"noIrregularWhitespace": "error",
 				"noNestedPromises": "error",
 				"noParametersOnlyUsedInRecursion": "error",
-				"noShadow": "off",
+				"noShadow": "error",
 				"noShorthandPropertyOverrides": "error",
 				"noUnknownAtRules": "error",
 				"noUnnecessaryConditions": "off",

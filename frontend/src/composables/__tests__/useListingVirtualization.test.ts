@@ -26,11 +26,11 @@ const num = (value: string) => Number.parseFloat(value) || 0;
 const rect = (left: number, top: number, width: number, height: number) =>
   ({ left, top, width, height, right: left + width, bottom: top + height, x: left, y: top, toJSON: () => ({}) }) as DOMRect;
 
-function itemsOf(group: HTMLElement) {
-  return group.querySelectorAll(":scope > .listing-item").length;
+function itemsOf(target: HTMLElement) {
+  return target.querySelectorAll(":scope > .listing-item").length;
 }
-function boxHeight(group: HTMLElement) {
-  const rows = Math.ceil(itemsOf(group) / columnsOnScreen);
+function boxHeight(target: HTMLElement) {
+  const rows = Math.ceil(itemsOf(target) / columnsOnScreen);
   return PADDING * 2 + (rows > 0 ? rows * PITCH - GAP : 0);
 }
 /** Where the border box of a group starts, in the scrolled content */
@@ -370,8 +370,8 @@ describe("useListingVirtualization", () => {
 
   it("renders the last items after a jump straight to the bottom", async () => {
     await mount();
-    const files = group("files");
-    const bottom = groupTop(files) + boxHeight(files) + Number.parseFloat(files.style.marginBottom || "0") + PADDING - VIEWPORT;
+    const filesGroup = group("files");
+    const bottom = groupTop(filesGroup) + boxHeight(filesGroup) + Number.parseFloat(filesGroup.style.marginBottom || "0") + PADDING - VIEWPORT;
     await scrollTo(bottom);
     expect(present(519)).toBe(true);
     expect(present(510)).toBe(true); // the screen at the bottom
@@ -380,8 +380,8 @@ describe("useListingVirtualization", () => {
 
   it("keeps a window of about three screens around a jump, and never the whole listing", async () => {
     await mount();
-    const files = group("files");
-    const bottom = groupTop(files) + boxHeight(files) + Number.parseFloat(files.style.marginBottom || "0") + PADDING - VIEWPORT;
+    const filesGroup = group("files");
+    const bottom = groupTop(filesGroup) + boxHeight(filesGroup) + Number.parseFloat(filesGroup.style.marginBottom || "0") + PADDING - VIEWPORT;
     await scrollTo(bottom);
     expect(present(519)).toBe(true);
     expect(rendered().length).toBeLessThan(150);
