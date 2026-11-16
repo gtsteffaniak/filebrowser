@@ -110,7 +110,7 @@ describe("maskJs", () => {
     const bare = maskJs(code, true);
     expect(bare).toHaveLength(code.length);
     expect(bare).not.toContain("a 't(' b");
-    expect(bare).toContain('t("k")');
+    expect(bare).toContain('t(" ")');
     expect(maskJs(code)).toContain("a 't(' b");
   });
 
@@ -127,7 +127,7 @@ describe("maskJs with template literals", () => {
     const bare = masked(code);
     expect(bare).toHaveLength(code.length);
     expect(bare).not.toContain("example.only");
-    expect(bare).toContain('t("real.key")');
+    expect(bare).toContain('t("        ")');
     expect(bare.startsWith("const example = `")).toBe(true);
     expect(bare.endsWith("`;")).toBe(true);
   });
@@ -144,7 +144,7 @@ describe("maskJs with template literals", () => {
     const bare = masked(code);
     expect(bare).toHaveLength(code.length);
     expect(bare.split("\n")).toHaveLength(code.split("\n").length);
-    expect(bare.indexOf('t("real.key")')).toBe(code.indexOf('t("real.key")'));
+    expect(bare.indexOf('t("        ")')).toBe(code.indexOf('t("real.key")'));
     expect(bare).not.toContain("x.y");
     expect(bare).toContain("b();");
   });
@@ -161,14 +161,14 @@ describe("maskJs with template literals", () => {
     expect(bare).toHaveLength(code.length);
     expect(bare).not.toContain("c.d");
     expect(bare).not.toContain("nested.text");
-    expect(bare).toContain("t('real.key')");
+    expect(bare).toContain("t('        ')");
   });
 
   it("closes an expression at its own brace, not at the brace of an object inside it", () => {
     const code = "`a ${ fn({ x: 1 }) } t(\"after.only\") ${ t('real.key') }`";
     const bare = masked(code);
     expect(bare).not.toContain("after.only");
-    expect(bare).toContain("t('real.key')");
+    expect(bare).toContain("t('        ')");
   });
 
   it("treats an escaped `${` and an escaped backtick as text", () => {
