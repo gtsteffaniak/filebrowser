@@ -563,6 +563,151 @@ func TestExtractZip_symlinkDestination(t *testing.T) {
 	}
 }
 
+func writeChainedSymlinkEscapeTar(t *testing.T, path string) {
+	t.Helper()
+	writeTestTarGz(t, path, func(tw *tar.Writer) error {
+		if err := tw.WriteHeader(&tar.Header{Name: "a/b/", Mode: 0o755, Typeflag: tar.TypeDir}); err != nil {
+			return err
+		}
+		if err := tw.WriteHeader(&tar.Header{Name: "a/b/l1", Mode: 0o777, Typeflag: tar.TypeSymlink, Linkname: "../.."}); err != nil {
+			return err
+		}
+		return tw.WriteHeader(&tar.Header{Name: "esc", Mode: 0o777, Typeflag: tar.TypeSymlink, Linkname: "a/b/l1/../x"})
+	})
+}
+
+func writeChainedSymlinkEscapeZip(t *testing.T, path string) {
+	t.Helper()
+	writeTestZip(t, path, func(zw *zip.Writer) error {
+		hdr := &zip.FileHeader{Name: "a/b/l1", Method: zip.Store}
+		hdr.SetMode(0o777 | os.ModeSymlink)
+		w, err := zw.CreateHeader(hdr)
+		if err != nil {
+			return err
+		}
+		if _, err = w.Write([]byte("../..")); err != nil {
+			return err
+		}
+		hdr = &zip.FileHeader{Name: "esc", Method: zip.Store}
+		hdr.SetMode(0o777 | os.ModeSymlink)
+		w, err = zw.CreateHeader(hdr)
+		if err != nil {
+			return err
+		}
+		_, err = w.Write([]byte("a/b/l1/../x"))
+		return err
+	})
+}
+
+func assertNoEscapingSymlinksUnderDest(t *testing.T, destDir string) {
+	t.Helper()
+	destResolved, err := filepath.EvalSymlinks(destDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	sep := string(filepath.Separator)
+	walkErr := filepath.WalkDir(destDir, func(path string, d os.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if d.Type()&os.ModeSymlink == 0 {
+			return nil
+		}
+		target, err := os.Readlink(path)
+		if err != nil {
+			return err
+		}
+		linkDir, err := resolvedSymlinkParentDir(path)
+		if err != nil {
+			return err
+		}
+		resolved, err := resolveSymlinkTargetAt(linkDir, target, 0)
+		if err != nil {
+			return nil
+		}
+		rel, err := filepath.Rel(destResolved, resolved)
+		if err != nil || rel == ".." || strings.HasPrefix(rel, ".."+sep) {
+			t.Fatalf("symlink %q resolves outside destination to %q", path, resolved)
+		}
+		return nil
+	})
+	if walkErr != nil {
+		t.Fatal(walkErr)
+	}
+}
+
+func TestSymlinkTargetStaysUnderDest_rejectsChainedRelativeEscape(t *testing.T) {
+	destDir := t.TempDir()
+	if err := os.MkdirAll(filepath.Join(destDir, "a", "b"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	l1 := filepath.Join(destDir, "a", "b", "l1")
+	if err := os.Symlink("../..", l1); err != nil {
+		t.Fatal(err)
+	}
+	escPath := filepath.Join(destDir, "esc")
+	if err := symlinkTargetStaysUnderDest(destDir, escPath, "a/b/l1/../x"); err == nil {
+		t.Fatal("expected chained symlink target to be rejected")
+	}
+}
+
+func TestExtractZip_rejectsChainedSymlinkEscape(t *testing.T) {
+	destDir := t.TempDir()
+	zipPath := filepath.Join(t.TempDir(), "chain.zip")
+	writeChainedSymlinkEscapeZip(t, zipPath)
+	err := extractZip(zipPath, destDir)
+	if err == nil || !strings.Contains(err.Error(), "escapes destination") {
+		t.Fatalf("expected rejection, got %v", err)
+	}
+	if _, statErr := os.Lstat(filepath.Join(destDir, "esc")); !os.IsNotExist(statErr) {
+		t.Fatal("escaping symlink should not be created")
+	}
+	assertNoEscapingSymlinksUnderDest(t, destDir)
+}
+
+func TestExtractTarGz_rejectsChainedSymlinkEscape(t *testing.T) {
+	destDir := t.TempDir()
+	archivePath := filepath.Join(t.TempDir(), "chain.tar.gz")
+	writeChainedSymlinkEscapeTar(t, archivePath)
+	err := extractTarGz(archivePath, destDir, nil)
+	if err == nil || !strings.Contains(err.Error(), "escapes destination") {
+		t.Fatalf("expected rejection, got %v", err)
+	}
+	if _, statErr := os.Lstat(filepath.Join(destDir, "esc")); !os.IsNotExist(statErr) {
+		t.Fatal("escaping symlink should not be created")
+	}
+	assertNoEscapingSymlinksUnderDest(t, destDir)
+}
+
+func TestExtractZip_rejectsChainedSymlinkEscape_preExistingHop(t *testing.T) {
+	destDir := t.TempDir()
+	if err := os.MkdirAll(filepath.Join(destDir, "a", "b"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Symlink("../..", filepath.Join(destDir, "a", "b", "l1")); err != nil {
+		t.Fatal(err)
+	}
+	zipPath := filepath.Join(t.TempDir(), "hop.zip")
+	writeTestZip(t, zipPath, func(zw *zip.Writer) error {
+		hdr := &zip.FileHeader{Name: "esc", Method: zip.Store}
+		hdr.SetMode(0o777 | os.ModeSymlink)
+		w, err := zw.CreateHeader(hdr)
+		if err != nil {
+			return err
+		}
+		_, err = w.Write([]byte("a/b/l1/../x"))
+		return err
+	})
+	err := extractZip(zipPath, destDir)
+	if err == nil || !strings.Contains(err.Error(), "escapes destination") {
+		t.Fatalf("expected rejection, got %v", err)
+	}
+	if _, statErr := os.Lstat(filepath.Join(destDir, "esc")); !os.IsNotExist(statErr) {
+		t.Fatal("escaping symlink should not be created")
+	}
+	assertNoEscapingSymlinksUnderDest(t, destDir)
+}
+
 func TestArchiveCreateDestination_RejectsEscapingSymlinkLeaf(t *testing.T) {
 	t.Parallel()
 	root := t.TempDir()
