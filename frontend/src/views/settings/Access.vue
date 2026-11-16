@@ -6,7 +6,7 @@
     :edge-offset="{ bottom: '1rem', right: '1rem' }"
     :auto-hide="false"
     :label="$t('general.new')"
-    @click="addAccess"
+    @press="addAccess"
   />
   <errors v-if="error" :errorCode="error.status" />
   <div class="card-title">
@@ -37,8 +37,8 @@
         :permissions="sourceAccessDefaults"
         :enforced-permissions="sourceAccessEnforced"
         :config-locked-paths="lockedFromConfigPaths"
-        @changed="onSourceAccessDefaultsChange"
-        @enforced-change="onSourceAccessEnforcedChange"
+        @changed="({ key, value }) => onSourceAccessDefaultsChange(key, value)"
+        @enforced-change="({ field, value }) => onSourceAccessEnforcedChange(field, value)"
       />
       <div v-else class="loading-hint">{{ $t('general.loading') }}</div>
     </SettingsItem>
@@ -75,9 +75,9 @@
 </template>
 
 <script>
-import { accessApi } from "@/api";
-import { getSourceSettings, patchSourceSettings } from "@/api/settings";
-import { state, mutations } from "@/store";
+import { accessApi } from "@/api/index.js";
+import { getSourceSettings, patchSourceSettings } from "@/api/settings.js";
+import { state, mutations } from "@/store/index.ts";
 import Errors from "@/views/Errors.vue";
 import SettingsTable from "@/components/settings/Table.vue";
 import SettingsItem from "@/components/settings/SettingsItem.vue";
@@ -85,9 +85,9 @@ import SourceFilePermissions from "@/components/settings/SourceFilePermissions.v
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import ActivityViewerButton from "@/components/settings/ActivityViewerButton.vue";
 import FloatingActionButton from "@/components/settings/FloatingActionButton.vue";
-import { notify } from "@/notify";
-import { activityViewerPresets } from "@/utils/activityViewerLink";
-import { eventBus } from "@/store/eventBus";
+import { notify } from "@/notify/index.ts";
+import { activityViewerPresets } from "@/utils/activityViewerLink.js";
+import { eventBus } from "@/store/eventBus.ts";
 export default {
   name: "accessSettings",
   components: {

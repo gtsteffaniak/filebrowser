@@ -1,15 +1,10 @@
 import i18n from "@/i18n/index.ts";
 import { getIconClass } from "./material-symbols.js";
 
-function readAppConfig() {
-  const el = document.getElementById('app-config');
-  if (el?.textContent) {
-    return JSON.parse(el.textContent);
-  }
-  return window.globalVars;
-}
-
-const globalVars = readAppConfig();
+const appConfigEl = document.querySelector('#app-config');
+const globalVars = appConfigEl?.textContent
+  ? JSON.parse(appConfigEl.textContent)
+  : window.globalVars;
 if (typeof window !== 'undefined') {
   window.globalVars = globalVars;
 }

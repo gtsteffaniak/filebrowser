@@ -51,7 +51,7 @@ function readCacheForScope(scope) {
     if (!parsed?.viewToken || !parsed?.expiresAt) {
       return null;
     }
-    return parsed;
+    return { viewToken: parsed.viewToken, expiresAt: parsed.expiresAt };
   } catch {
     return null;
   }

@@ -1,6 +1,5 @@
 <template>
   <SidebarLinksEditor
-    ref="editor"
     embedded
     :mode="context"
     :share-data="shareData"
@@ -11,10 +10,10 @@
 </template>
 
 <script>
-import { notify } from "@/notify";
-import { mutations } from "@/store";
-import { shareApi } from "@/api";
-import { eventBus } from "@/store/eventBus";
+import { notify } from "@/notify/index.ts";
+import { mutations } from "@/store/index.ts";
+import { shareApi } from "@/api/index.js";
+import { eventBus } from "@/store/eventBus.ts";
 import SidebarLinksEditor from "@/components/sidebar/SidebarLinksEditor.vue";
 
 export default {

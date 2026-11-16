@@ -1,5 +1,3 @@
-// biome-ignore lint/correctness/noUnresolvedImports: disabled temporarily
-import Vue from "vue";
 import { resourcesApi } from "@/api/index.js";
 import buttons from "@/utils/buttons.js";
 import throttle from "@/utils/throttle.js";
@@ -16,7 +14,7 @@ const state = {
 
 const mutations = {
   setProgress(state, { id, loaded }) {
-    Vue.set(state.progress, id, loaded);
+    state.progress[id] = loaded;
   },
   reset: (state) => {
     state.id = 0;
@@ -31,10 +29,11 @@ const mutations = {
   moveJob(state) {
     const item = state.queue[0];
     state.queue.shift();
-    Vue.set(state.uploads, item.id, item);
+    state.uploads[item.id] = item;
   },
   removeJob(state, id) {
-    Vue.delete(state.uploads, id);
+    const { [id]: _removed, ...rest } = state.uploads;
+    state.uploads = rest;
   },
 };
 

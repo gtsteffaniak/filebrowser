@@ -20,29 +20,29 @@
             :options="accelDeviceSelectOptions"
             :aria-label="$t('media.accelDevice')"
             :disabled="isLocked('hardwareAcceleration') || isLocked('accelDevice')"
-            @update:modelValue="onAccelDeviceChange" />
+            @update:model-value="onAccelDeviceChange" />
         </div>
         <ToggleSwitch class="item" v-model="media.alwaysUseFfmpeg"
           :disabled="isLocked('alwaysUseFfmpeg')"
           :value-tooltip="fieldTooltip('alwaysUseFfmpeg')"
           :name="$t('media.alwaysUseFfmpeg')"
           :description="$t('media.alwaysUseFfmpegDescription')"
-          @update:modelValue="save" />
+          @update:model-value="save" />
         <ToggleSwitch class="item" v-model="media.alwaysUseOnlyOffice"
           :disabled="isLocked('alwaysUseOnlyOffice')"
           :value-tooltip="fieldTooltip('alwaysUseOnlyOffice')"
           :name="$t('media.alwaysUseOffice')"
           :description="$t('media.alwaysUseOfficeDescription')"
-          @update:modelValue="save" />
+          @update:model-value="save" />
         <ToggleSwitch class="item" v-model="media.debug" :name="$t('media.debug')"
           :disabled="isLocked('debug')"
           :value-tooltip="fieldTooltip('debug')"
           :description="$t('media.debugDescription')"
-          @update:modelValue="save" />
+          @update:model-value="save" />
         <SettingsButton class="item"
           :name="$t('media.imageVideoConversionFormats')"
           :description="$t('media.imageVideoConversionFormatsDescription')"
-          @click="openConversionFormats" />
+          @activate="openConversionFormats" />
       </div>
 
       <div class="settings-items">
@@ -52,22 +52,22 @@
           :value-tooltip="fieldTooltip('transcode.enabled')"
           :name="$t('media.transcodeEnabled')"
           :description="$t('media.transcodeEnabledDescription')"
-          @update:modelValue="save" />
+          @update:model-value="save" />
         <SettingsButton class="item"
           :name="$t('media.transcodeSettings')"
           :description="$t('media.transcodeSettingsDescription')"
           :disabled="!media.transcode.enabled"
-          @click="openTranscodeSettings" />
+          @activate="openTranscodeSettings" />
       </div>
     </template>
   </div>
 </template>
 
 <script>
-import { notify } from "@/notify";
-import { mutations } from "@/store";
-import { eventBus } from "@/store/eventBus";
-import { getMediaSettings } from "@/api/settings";
+import { notify } from "@/notify/index.ts";
+import { mutations } from "@/store/index.ts";
+import { eventBus } from "@/store/eventBus.ts";
+import { getMediaSettings } from "@/api/settings.js";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import SettingsButton from "@/components/settings/SettingsButton.vue";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
@@ -79,7 +79,7 @@ import {
   emptyMediaSettings,
   mergeMediaSettings,
   saveMediaSettingsPatch,
-} from "@/utils/mediaSettings";
+} from "@/utils/mediaSettings.js";
 
 export default {
   name: "mediaSettings",

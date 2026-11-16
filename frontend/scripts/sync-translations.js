@@ -80,7 +80,7 @@ async function translateText(text, targetLanguage, keyPath = '') {
     const result = await translator.translateText(textToTranslate, masterLanguageCode, deeplTargetLang, options);
 
     // Delay to avoid rate-limiting
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise(resolve => { setTimeout(resolve, 100); });
 
     let translatedText = result.text;
 
@@ -219,7 +219,7 @@ async function processKeys(masterObj, targetObj, targetLangCode, currentPathPart
       meaningfulChanges++; // Removing obsolete keys is meaningful
     } else {
       console.log(`🗑️  Removing obsolete key "${currentKeyPath}" from ${targetLangCode}.json`);
-      delete targetObj[key];
+      Reflect.deleteProperty(targetObj, key);
     }
     changesMade = true;
   }

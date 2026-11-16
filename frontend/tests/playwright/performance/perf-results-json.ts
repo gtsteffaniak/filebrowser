@@ -320,7 +320,7 @@ export function buildPerfResultsDocument(input: {
   } = input;
 
   const scales = [...new Set(parsed.map((r) => r.scale))].sort((a, b) => a - b);
-  const browsers = [...new Set(parsed.map((r) => r.browser))].sort();
+  const browsers = [...new Set(parsed.map((r) => r.browser))].sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
 
   const traceForRun = (r: PerfResultFile) =>
     traceAnalyses[`${r.browser}@${r.scale}:${r.scenario}`];

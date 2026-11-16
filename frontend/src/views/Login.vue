@@ -219,16 +219,16 @@
 </template>
 
 <script>
-import { router } from "@/router";
-import { mutations, state, getters } from "@/store";
+import { router } from "@/router/index.ts";
+import { mutations, state, getters } from "@/store/index.ts";
 import Prompts from "@/components/prompts/Prompts.vue";
-import { authApi } from "@/api";
-import { initAuth } from "@/utils/auth";
+import { authApi } from "@/api/index.js";
+import { initAuth } from "@/utils/auth.js";
 import { postLoginRedirectForServer, sanitizePostLoginRedirect } from "@/utils/safeRedirect.js";
-import { globalVars } from "@/utils/constants";
+import { globalVars } from "@/utils/constants.js";
 import { evaluatePasswordPolicy } from "@/utils/passwordPolicy.js";
-import { defaultDarkMode, syncDocumentTheme } from "@/utils/theme";
-import { collapseEnter, collapseLeave } from "@/utils/transitions";
+import { defaultDarkMode, syncDocumentTheme } from "@/utils/theme.js";
+import { collapseEnter, collapseLeave } from "@/utils/transitions.ts";
 import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
 import Tooltip from "@/components/Tooltip.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
@@ -337,7 +337,7 @@ export default {
     collapseEnter,
     collapseLeave,
     renderRecaptcha() {
-      const container = document.getElementById("globalVars.recaptcha");
+      const container = document.querySelector('[id="globalVars.recaptcha"]');
       if (!container) return;
       window.grecaptcha.ready(() => {
         this.recaptchaId = window.grecaptcha.render(container, {

@@ -138,7 +138,7 @@ import SettingsItem from "@/components/settings/SettingsItem.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
 import { getObjectProperty } from "@/utils/object.js";
-import { state } from "@/store";
+import { state } from "@/store/index.ts";
 
 let transcodeInputCounter = 0;
 
@@ -183,7 +183,11 @@ export default {
       default: false,
     },
   },
-  emits: ["account-change", "enforced-change", "enforced-permission-change"],
+  emits: {
+    "account-change": (change) => typeof change?.field === "string",
+    "enforced-change": (change) => typeof change?.field === "string",
+    "enforced-permission-change": (change) => typeof change?.field === "string",
+  },
   data() {
     transcodeInputCounter += 1;
     return {
@@ -251,13 +255,13 @@ export default {
       return "";
     },
     emitAccountChange(field, value) {
-      this.$emit("account-change", field, value);
+      this.$emit("account-change", { field, value });
     },
     emitEnforced(field, value) {
-      this.$emit("enforced-change", field, value);
+      this.$emit("enforced-change", { field, value });
     },
     emitEnforcedPermission(field, value) {
-      this.$emit("enforced-permission-change", field, value);
+      this.$emit("enforced-permission-change", { field, value });
     },
   },
 };

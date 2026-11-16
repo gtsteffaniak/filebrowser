@@ -6,7 +6,7 @@
     :edge-offset="{ bottom: '1rem', right: '1rem' }"
     :auto-hide="false"
     :label="$t('access.newGroup')"
-    @click="openPrompt(null)"
+    @press="openPrompt(null)"
   />
   <errors v-if="error" :errorCode="error.status" />
   <div class="card-title">
@@ -51,13 +51,13 @@
 </template>
 
 <script>
-import { mutations } from "@/store";
-import { accessApi } from "@/api";
-import { notify } from "@/notify";
+import { mutations } from "@/store/index.ts";
+import { accessApi } from "@/api/index.js";
+import { notify } from "@/notify/index.ts";
 import Errors from "@/views/Errors.vue";
 import SettingsTable from "@/components/settings/Table.vue";
 import FloatingActionButton from "@/components/settings/FloatingActionButton.vue";
-import { eventBus } from "@/store/eventBus";
+import { eventBus } from "@/store/eventBus.ts";
 
 export default {
   name: "groups",

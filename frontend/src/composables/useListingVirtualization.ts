@@ -187,11 +187,11 @@ export function useListingVirtualization<T extends VirtualItem = fileListItemInd
   const visible = computed(() => {
     const result: Record<string, VisibleGroup<T>> = {};
     const grid = gridGroups.value;
-    inputs.value.forEach((input, i) => {
+    for (const [i, input] of inputs.value.entries()) {
       const group = grid[i] as GridGroup;
       if (!active.value) {
         result[input.key] = { items: groupSlice(input, 0, group.count), position: group.start, style: undefined };
-        return;
+        continue;
       }
       const rows = rowCount(group.count, columns.value);
       const window = windowFor(group);
@@ -209,7 +209,7 @@ export function useListingVirtualization<T extends VirtualItem = fileListItemInd
         position: group.start + range.start,
         style: { marginTop: `${above}px`, marginBottom: `${below}px` },
       };
-    });
+    }
     return result;
   });
 
@@ -530,6 +530,7 @@ export function useListingVirtualization<T extends VirtualItem = fileListItemInd
     { immediate: true, flush: "post" },
   );
 
+  // biome-ignore lint/nursery/noVueRefObjectReactivityLoss: initial snapshot, kept up to date by takeChangedGroups
   let knownCounts = new Map(gridGroups.value.map((g) => [g.key, g.count] as const));
 
   function takeChangedGroups(): { changed: Set<string>; emptied: Set<string> } {
@@ -552,9 +553,7 @@ export function useListingVirtualization<T extends VirtualItem = fileListItemInd
     () => {
       const { changed, emptied } = takeChangedGroups();
       if (emptied.size > 0) {
-        const next = { ...windows.value };
-        for (const key of emptied) delete next[key];
-        windows.value = next;
+        windows.value = Object.fromEntries(Object.entries(windows.value).filter(([key]) => !emptied.has(key)));
       }
       if (changed.size > 0) updateWindows({ force: true, only: changed });
       void settle();

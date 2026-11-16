@@ -20,18 +20,18 @@
     v-if="showSplitViewToggle"
     icon="vertical_split"
     :label="splitViewActionLabel"
-    @click="toggleSplitView"
+    @press="toggleSplitView"
   />
 </template>
 
 <script lang="ts">
 import type { PropType } from "vue";
 import type { Ace } from "ace-builds";
-import { state, getters, mutations } from "@/store";
+import { state, getters, mutations } from "@/store/index.ts";
 import { createAsyncComponent } from "@/utils/asyncComponent.js";
 import Scrollbar from "@/components/files/Scrollbar.vue";
 import FloatingActionButton from "@/components/settings/FloatingActionButton.vue";
-import { createScrollSyncGuard } from "@/utils/markdownScrollSync";
+import { createScrollSyncGuard } from "@/utils/markdownScrollSync.ts";
 
 const MD_SPLIT_PERCENT_KEY = "mdSplitPercent";
 const LIVE_CONTENT_INTERVAL_MS = 185; // Throttle preview updates to avoid performance issues
@@ -62,7 +62,9 @@ export default {
       default: null,
     },
   },
-  emits: ["resize"],
+  emits: {
+    resize: (percent: number) => typeof percent === "number",
+  },
   data: () => ({
     liveMarkdownContent: "", // editor current buffer
     liveContentTimer: null as ReturnType<typeof setTimeout> | null,

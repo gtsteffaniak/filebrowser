@@ -40,7 +40,7 @@ function loadThemeCss(variant: "light" | "dark"): Promise<string> {
 export async function applyHighlightTheme(isDark: boolean = getters.isDarkMode()): Promise<void> {
   const css = await loadThemeCss(isDark ? "dark" : "light");
   const nonce = typeof globalVars.cspNonce === "string" ? globalVars.cspNonce : "";
-  let style = document.getElementById(THEME_STYLE_ID) as HTMLStyleElement | null;
+  let style = document.querySelector<HTMLStyleElement>(`#${THEME_STYLE_ID}`);
   if (!style) {
     style = document.createElement("style");
     style.id = THEME_STYLE_ID;

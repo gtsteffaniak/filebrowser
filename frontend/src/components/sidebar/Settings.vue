@@ -88,11 +88,11 @@
 </template>
 
 <script>
-import { state, getters, mutations } from "@/store";
+import { state, getters, mutations } from "@/store/index.ts";
 import { getObjectProperty } from '@/utils/object.js';
-import { settings } from "@/utils/constants";
-import { router } from "@/router";
-import { collapseEnter, collapseLeave } from "@/utils/transitions";
+import { settings } from "@/utils/constants.js";
+import { router } from "@/router/index.ts";
+import { collapseEnter, collapseLeave } from "@/utils/transitions.ts";
 
 export default {
   name: "SidebarSettings",

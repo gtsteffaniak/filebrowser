@@ -11,7 +11,7 @@
         @keydown.esc.prevent="$emit('close')"
       />
     </div>
-    <div ref="scroll" class="menu-option-list-scroll" :style="scrollStyle">
+    <div class="menu-option-list-scroll" :style="scrollStyle">
       <button
         v-for="option in filteredOptions"
         :key="optionKey(option.value)"
@@ -24,7 +24,7 @@
         }"
         :aria-selected="isSelected(option.value) ? 'true' : 'false'"
         :disabled="option.disabled"
-        @click="$emit('select', option)"
+        @click="$emit('option-select', option)"
       >
         <span>{{ option.label }}</span>
       </button>
@@ -69,9 +69,11 @@ export default {
       default: undefined,
     },
   },
-
-  emits: ["select", "update:searchQuery", "close"],
-
+  emits: {
+    "option-select": (_option) => true,
+    "update:searchQuery": (_query) => true,
+    close: () => true,
+  },
   computed: {
     resolvedSearchPlaceholder() {
       return this.searchPlaceholder || this.$t("general.search");

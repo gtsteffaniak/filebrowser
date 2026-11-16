@@ -207,10 +207,11 @@ export const state: StoreState = reactive({
  * Load notification history from sessionStorage
  * @returns {Array}
  */
-function loadNotificationHistory() {
+function loadNotificationHistory(): unknown[] {
   try {
     const stored = sessionStorage.getItem('notificationHistory');
-    return stored ? JSON.parse(stored) : [];
+    const parsed: unknown = stored ? JSON.parse(stored) : [];
+    return Array.isArray(parsed) ? parsed : [];
   } catch (error) {
     console.error('Failed to load notification history:', error);
     return [];

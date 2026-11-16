@@ -71,17 +71,17 @@
 </template>
 
 <script>
-import { logout } from "@/utils/auth";
-import { globalVars } from "@/utils/constants";
-import { state, getters, mutations } from "@/store";
+import { logout } from "@/utils/auth.js";
+import { globalVars } from "@/utils/constants.js";
+import { state, getters, mutations } from "@/store/index.ts";
 import {
   hideInteractiveTooltip,
   showHoverTooltip,
 } from "@/utils/tooltipHelp.js";
 import SidebarLinks from "./Links.vue";
-import { url } from "@/utils";
+import { url } from "@/utils/index.ts";
 import { normalizeDarkMode } from "@/utils/theme.js";
-import { collapseEnter, collapseLeave } from "@/utils/transitions";
+import { collapseEnter, collapseLeave } from "@/utils/transitions.ts";
 
 export default {
   name: "SidebarGeneral",

@@ -70,9 +70,9 @@
 </template>
 
 <script>
-import { materialSymbols, getIconClass } from "@/utils/material-symbols";
-import { copyToClipboard } from "@/utils/clipboard";
-import { globalVars } from "@/utils/constants";
+import { materialSymbols, getIconClass } from "@/utils/material-symbols.js";
+import { copyToClipboard } from "@/utils/clipboard.js";
+import { globalVars } from "@/utils/constants.js";
 
 export default {
   name: "MaterialIconPicker",

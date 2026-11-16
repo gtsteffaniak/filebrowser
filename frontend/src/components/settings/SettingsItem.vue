@@ -56,7 +56,9 @@ export default {
       default: null,
     },
   },
-  emits: ['toggle'],
+  emits: {
+    toggled: (state) => typeof state === 'string' || typeof state === 'boolean',
+  },
   data() {
     return {
       isCollapsed: this.startCollapsed
@@ -84,11 +86,11 @@ export default {
     toggleCollapse() {
       if (this.inAccordion) {
         this.settingsAccordion.toggle(this.name);
-        this.$emit('toggle', this.name);
+        this.$emit('toggled', this.name);
         return;
       }
       this.isCollapsed = !this.isCollapsed;
-      this.$emit('toggle', !this.isCollapsed);
+      this.$emit('toggled', !this.isCollapsed);
     },
     collapseEnter,
     collapseLeave,

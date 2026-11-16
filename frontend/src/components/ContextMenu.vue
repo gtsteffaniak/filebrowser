@@ -114,19 +114,19 @@
 import { computed, markRaw, onBeforeUnmount, onMounted, ref, toRaw, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
-import { resourcesApi, shareApi, usersApi } from "@/api";
-import { notify } from "@/notify";
-import { getters, mutations, state } from "@/store/index.js";
+import { resourcesApi, shareApi, usersApi } from "@/api/index.js";
+import { notify } from "@/notify/index.ts";
+import { getters, mutations, state } from "@/store/index.ts";
 import type { FileListItem, ReqObject } from "@/store/types.ts";
 import { hideInteractiveTooltip, showHoverTooltip } from "@/utils/tooltipHelp.js";
 import { goToItem, getParentDir, removeLastDir } from "@/utils/url.js";
-import { copyToClipboard } from "@/utils/clipboard";
-import downloadFiles from "@/utils/download";
-import { canNativeShare, nativeShareFile } from "@/utils/nativeShare";
-import { isRichTextPreviewMimeType, getTypeInfoFromExt } from "@/utils/mimetype";
-import { isMediaRequest } from "@/utils/mediaFile";
+import { copyToClipboard } from "@/utils/clipboard.js";
+import downloadFiles from "@/utils/download.js";
+import { canNativeShare, nativeShareFile } from "@/utils/nativeShare.js";
+import { isRichTextPreviewMimeType, getTypeInfoFromExt } from "@/utils/mimetype.js";
+import { isMediaRequest } from "@/utils/mediaFile.js";
 import { actionIconClass } from "@/components/Action.vue";
-import { popEnter, popLeave } from "@/utils/transitions";
+import { popEnter, popLeave } from "@/utils/transitions.ts";
 
 type MenuItem = FileListItem & { isDir?: boolean; from?: string };
 

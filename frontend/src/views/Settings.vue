@@ -20,8 +20,8 @@
 </template>
 
 <script>
-import { state, getters, mutations } from "@/store";
-import { settings } from "@/utils/constants";
+import { state, getters, mutations } from "@/store/index.ts";
+import { settings } from "@/utils/constants.js";
 import GlobalSettings from "@/views/settings/Global.vue";
 import ProfileSettings from "@/views/settings/Profile.vue";
 import SharesSettings from "@/views/settings/Shares.vue";
@@ -36,7 +36,7 @@ import MediaSettings from "@/views/settings/Media.vue";
 import NotificationsSettings from "@/views/settings/Notifications.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import { getObjectProperty } from '@/utils/object.js';
-import { router } from "@/router";
+import { router } from "@/router/index.ts";
 
 export default {
   name: "settings",

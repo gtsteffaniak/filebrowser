@@ -21,10 +21,8 @@ seg/00000.m4s
  */
 export async function enableTranscodeUi(page: Page) {
   await page.addInitScript(() => {
-    const original = Document.prototype.getElementById;
-    Document.prototype.getElementById = function patchedGetElementById(id) {
-      const el = original.call(this, id);
-      if (id === "app-config" && el && el.textContent && !el.dataset.transcodeUiPatched) {
+    const patchAppConfig = (el: HTMLElement | null) => {
+      if (el?.textContent && !el.dataset.transcodeUiPatched) {
         try {
           const cfg = JSON.parse(el.textContent);
           cfg.ffmpegAvailable = true;
@@ -36,6 +34,16 @@ export async function enableTranscodeUi(page: Page) {
       }
       return el;
     };
+    const originalGetElementById = Document.prototype.getElementById;
+    Document.prototype.getElementById = function patchedGetElementById(this: Document, id: string) {
+      const el = originalGetElementById.call(this, id);
+      return id === "app-config" ? patchAppConfig(el) : el;
+    };
+    const originalQuerySelector = Document.prototype.querySelector;
+    Document.prototype.querySelector = function patchedQuerySelector(this: Document, selector: string) {
+      const el = originalQuerySelector.call(this, selector) as HTMLElement | null;
+      return selector === "#app-config" ? patchAppConfig(el) : el;
+    } as typeof Document.prototype.querySelector;
   });
 
   await page.route("**/api/settings/media", async (route) => {
@@ -90,7 +98,7 @@ export async function mockTranscodeSessions(
         sessions.delete(body.replaceSessionId);
       }
       // Mirror backend same-file handover when replaceSessionId is omitted.
-      for (const [id, sess] of [...sessions.entries()]) {
+      for (const [id, sess] of sessions.entries()) {
         if (sess.source === body.source && sess.path === body.path) {
           sessions.delete(id);
         }

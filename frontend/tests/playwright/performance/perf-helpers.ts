@@ -95,7 +95,7 @@ export async function readDomSnapshot(page: Page): Promise<DomSnapshot> {
   return page.evaluate(() => ({
     listingItemCount: document.querySelectorAll(".listing-items .listing-item")
       .length,
-    documentElementCount: document.getElementsByTagName("*").length,
+    documentElementCount: document.querySelectorAll("*").length,
     bodyDescendantCount: document.body
       ? document.body.querySelectorAll("*").length
       : 0,

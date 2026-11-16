@@ -82,7 +82,7 @@
             class="info-manage-link"
             :name="t('quotas.title')"
             :description="$t('quotas.openDescription')"
-            @click="openQuotaPrompt"
+            @activate="openQuotaPrompt"
           />
         </div>
         <div class="info-item">
@@ -153,15 +153,15 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { getHumanReadableFilesize } from "@/utils/filesizes";
-import { formatTimestamp, fromNow } from "@/utils/moment";
-import { copyToClipboard } from "@/utils/clipboard";
-import { formatDuration } from "@/utils/files";
-import { resourcesApi, quotasApi, mediaApi } from "@/api";
-import { getters, mutations, state } from "@/store";
+import { getHumanReadableFilesize } from "@/utils/filesizes.js";
+import { formatTimestamp, fromNow } from "@/utils/moment.ts";
+import { copyToClipboard } from "@/utils/clipboard.js";
+import { formatDuration } from "@/utils/files.js";
+import { resourcesApi, quotasApi, mediaApi } from "@/api/index.js";
+import { getters, mutations, state } from "@/store/index.ts";
 import type { FileListItem, SubtitleTrack } from "@/store/types.ts";
-import { notify } from "@/notify";
-import { activityViewerPresets } from "@/utils/activityViewerLink";
+import { notify } from "@/notify/index.ts";
+import { activityViewerPresets } from "@/utils/activityViewerLink.js";
 import SlidingTabs from "@/components/settings/SlidingTabs.vue";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import ActivityViewerButton from "@/components/settings/ActivityViewerButton.vue";
@@ -355,7 +355,7 @@ function subtitleLabel(track: SubtitleTrack) {
 // Raw subtitle content are fetched on first show
 async function toggleSubtitle(track: SubtitleTrack) {
   if (track.name in subtitleContent.value) {
-    delete subtitleContent.value[track.name];
+    Reflect.deleteProperty(subtitleContent.value, track.name);
     return;
   }
   try {

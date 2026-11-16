@@ -44,8 +44,8 @@
 </template>
 
 <script>
-import { getters, mutations, state } from "@/store";
-import { getHumanReadableFilesize } from "@/utils/filesizes";
+import { getters, mutations, state } from "@/store/index.ts";
+import { getHumanReadableFilesize } from "@/utils/filesizes.js";
 
 export default {
   name: "StatusBar",

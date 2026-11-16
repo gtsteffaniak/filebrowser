@@ -10,8 +10,8 @@
 </template>
 
 <script>
-import { state } from "@/store";
-import { fromNow } from "@/utils/moment";
+import { state } from "@/store/index.ts";
+import { fromNow } from "@/utils/moment.ts";
 import SettingsTable from "@/components/settings/Table.vue";
 
 export default {

@@ -54,13 +54,13 @@
   </div>
 </template>
 <script>
-import { resourcesApi } from "@/api";
-import { mutations, state, getters } from "@/store";
-import { eventBus } from '@/store/eventBus';
-import { notify } from "@/notify";
+import { resourcesApi } from "@/api/index.js";
+import { mutations, state, getters } from "@/store/index.ts";
+import { eventBus } from "@/store/eventBus.ts";
+import { notify } from "@/notify/index.ts";
 import { getFileExtension, removePrefix } from '@/utils/files.js';
-import { getTypeInfo, getTypeInfoFromExt } from "@/utils/mimetype";
-import { url } from "@/utils";
+import { getTypeInfo, getTypeInfoFromExt } from "@/utils/mimetype.js";
+import { url } from "@/utils/index.ts";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 export default {
   name: "rename",
@@ -74,7 +74,6 @@ export default {
     },
     item: {
       type: Object,
-      required: true,
       default: () => ({ source: "", path: "", name: "" })
     },
     parentItems: {  // Parent items for comparison of filenames in a preview

@@ -62,7 +62,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   vi.spyOn(console, "log").mockImplementation(() => {});
   getters.isShare.mockReturnValue(false);
-  uploadManager.queue.splice(0);
+  uploadManager.queue.length = 0;
   uploadManager.activeUploads = 0;
   uploadManager.nextId = 0;
   uploadManager.isOverallPaused = false;

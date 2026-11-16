@@ -14,18 +14,18 @@
 
 <script>
 import { createAsyncComponent } from "@/utils/asyncComponent.js";
-import { resourcesApi, shareApi, mediaApi } from "@/api";
+import { resourcesApi, shareApi, mediaApi } from "@/api/index.js";
 import Errors from "@/views/Errors.vue";
 import Preview from "@/views/files/Preview.vue";
 import ListingView from "@/views/files/ListingView.vue";
-import { state, mutations, getters } from "@/store";
-import { router } from "@/router";
+import { state, mutations, getters } from "@/store/index.ts";
+import { router } from "@/router/index.ts";
 import { extractSourceFromPath, removeLastDir, removeTrailingSlash, pathsMatch } from "@/utils/url.js";
 import { selectAndScrollToIndex } from "@/utils/listing/selectAndScroll.ts";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
-import { globalVars } from "@/utils/constants";
-import { syncEventTheme } from "@/utils/theme";
-import { isRichTextPreviewMimeType } from "@/utils/mimetype";
+import { globalVars } from "@/utils/constants.js";
+import { syncEventTheme } from "@/utils/theme.js";
+import { isRichTextPreviewMimeType } from "@/utils/mimetype.js";
 import { invalidateDirMetadataCache } from "@/utils/cache/metadataCache.ts";
 import { clearImageCache } from "@/utils/cache/imageCache.ts";
 import { markRaw, toRaw } from "vue";
@@ -186,6 +186,9 @@ export default {
       sharePassword: "",
       attemptedPasswordLogin: false,
       lastShareHash: "",
+      fetchId: 0,
+      loadingFetchId: 0,
+      fetchController: null,
     };
   },
   computed: {
@@ -215,9 +218,6 @@ export default {
     },
   },
   created() {
-    this.fetchId = 0;
-    this.loadingFetchId = 0;
-    this.fetchController = null;
     const isHalloween = getters.eventTheme() === "halloween";
     syncEventTheme(isHalloween);
     if (isHalloween && !localStorage.getItem("seenHalloweenMessage")) {

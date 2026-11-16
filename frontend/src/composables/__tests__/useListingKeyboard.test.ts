@@ -87,6 +87,7 @@ describe("useListingKeyboard", () => {
     vi.clearAllMocks();
     state.selected = [];
     state.req.items = [];
+    vi.useFakeTimers();
     host = document.createElement("div");
     document.body.appendChild(host);
   });
@@ -94,6 +95,7 @@ describe("useListingKeyboard", () => {
   afterEach(() => {
     app.unmount();
     host.remove();
+    vi.useRealTimers();
   });
 
   it("selects the first item on an arrow key when nothing is selected", () => {

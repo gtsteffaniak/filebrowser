@@ -56,8 +56,8 @@ export function actionIconClass(icon: string, customIconClass?: string): string 
 
 <script setup lang="ts">
 import { computed } from "vue";
-import { getters, mutations } from "@/store";
-import type { Prompt } from "@/store/types";
+import { getters, mutations } from "@/store/index.ts";
+import type { Prompt } from "@/store/types.ts";
 
 const props = withDefaults(
   defineProps<{

@@ -104,7 +104,7 @@ export function useMouseSelection(options: MouseSelectionOptions) {
 
   function measureSelectionBounds() {
     const listingRect = (options.bounds.value as HTMLElement).getBoundingClientRect();
-    const statusBar = document.getElementById("status-bar");
+    const statusBar = document.querySelector("#status-bar");
     const statusBarVisible = statusBar && getComputedStyle(statusBar).display !== "none";
     const maxY = statusBarVisible
       ? Math.max(0, statusBar.getBoundingClientRect().top - listingRect.top)

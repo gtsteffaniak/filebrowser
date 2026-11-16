@@ -23,8 +23,8 @@
 import Breadcrumbs from "@/components/files/Breadcrumbs.vue";
 import ListingHeader from "@/components/files/ListingHeader.vue";
 import DuplicateFinderActions from "@/components/tools/DuplicateFinderActions.vue";
-import { getters, state } from "@/store";
-import { eventBus } from "@/store/eventBus";
+import { getters, state } from "@/store/index.ts";
+import { eventBus } from "@/store/eventBus.ts";
 
 export default {
   name: "Shelf",

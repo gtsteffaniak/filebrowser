@@ -127,7 +127,7 @@ const Host = defineComponent({
 async function flush() {
   for (let i = 0; i < 6; i++) {
     await nextTick();
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    await new Promise((resolve) => { setTimeout(resolve, 0); });
   }
 }
 

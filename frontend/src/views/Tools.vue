@@ -56,9 +56,9 @@
 
 <script>
 import { createAsyncComponent } from "@/utils/asyncComponent.js";
-import { tools as allTools } from "@/utils/constants";
-import { getters, mutations } from "@/store";
-import { availableTools, hasToolAccess, toolIdFromPath } from "@/utils/toolAccess";
+import { tools as allTools } from "@/utils/constants.js";
+import { getters, mutations } from "@/store/index.ts";
+import { availableTools, hasToolAccess, toolIdFromPath } from "@/utils/toolAccess.js";
 import Errors from "@/views/Errors.vue";
 
 export default {

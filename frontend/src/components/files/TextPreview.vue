@@ -1,5 +1,5 @@
 <template>
-  <div ref="root" class="text-preview" :class="{ 'text-preview--dark': isDark }" aria-hidden="true">
+  <div class="text-preview" :class="{ 'text-preview--dark': isDark }" aria-hidden="true">
     <span v-if="status === 'loading'" class="material-symbols text-preview-placeholder">{{ PLACEHOLDER_ICON }}</span>
     <div v-else-if="status === 'ready' && csvTable" class="text-preview-body text-preview-table-wrap">
       <table class="text-preview-table">
@@ -15,7 +15,9 @@
         </tbody>
       </table>
     </div>
+    <!-- biome-ignore lint/nursery/noVueVHtml: renderedHtml is sanitized -->
     <div v-else-if="status === 'ready' && renderedHtml" class="text-preview-body text-preview-html" v-html="renderedHtml"></div>
+    <!-- biome-ignore lint/nursery/noVueVHtml: highlighted is sanitized -->
     <pre v-else-if="status === 'ready' && highlighted !== null" class="text-preview-body text-preview-plain hljs" v-html="highlighted"></pre>
     <pre v-else-if="status === 'ready' && payload" class="text-preview-body text-preview-plain">{{ payload.content }}</pre>
   </div>
@@ -23,7 +25,7 @@
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, shallowRef, watch } from "vue";
-import { getters } from "@/store";
+import { getters } from "@/store/index.ts";
 import { applyHighlightTheme, loadHljs } from "@/utils/highlight.ts";
 import { parseDelimited } from "@/utils/delimited.ts";
 import {
@@ -49,7 +51,7 @@ const props = defineProps<{
   language?: string | null;
 }>();
 
-const emit = defineEmits<(e: "error") => void>();
+const emit = defineEmits<(e: "load-error") => void>();
 
 // Only plain source files are syntax highlighted. Markdown and HTML are rendered instead.
 const HIGHLIGHT_KINDS = new Set(["code", "css"]);
@@ -180,7 +182,7 @@ watch(
     } catch {
       if (current !== requestId) return;
       status.value = "error";
-      emit("error");
+      emit("load-error");
     }
   },
   { immediate: true },

@@ -33,7 +33,7 @@
 </template>
 
 <script>
-import { mutations } from "@/store";
+import { mutations } from "@/store/index.ts";
 
 export default {
   name: "password",
