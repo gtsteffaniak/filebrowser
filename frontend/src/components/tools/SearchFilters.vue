@@ -72,7 +72,7 @@ import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import type { SearchFilters } from "@/composables/useSearchFilters.ts";
 
 // Whether the options are open
-const expanded = defineModel<boolean>("expanded", { default: false });
+const expanded = defineModel<boolean>("expanded", { required: true });
 const props = defineProps<{ filters: SearchFilters }>();
 defineSlots<{ "extra-settings"?(): unknown }>();
 defineOptions({ name: "search-filters" });

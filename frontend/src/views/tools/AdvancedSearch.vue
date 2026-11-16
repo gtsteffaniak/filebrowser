@@ -79,7 +79,7 @@
             </div>
 
             <div v-if="!disableSearchOptions" class="advanced-search-options-section">
-              <SearchFilters :filters="filters">
+              <SearchFilters v-model:expanded="filtersExpanded" :filters="filters">
                 <template #extra-settings>
                   <div class="settings-number-input item">
                     <label for="advanced-search-limit">{{ $t('tools.advancedSearch.resultLimit') }}</label>
@@ -405,6 +405,7 @@ const error = ref<string | null>(null);
 const searchExecuted = ref(false);
 const resultsEmpty = ref(false);
 const headerHidden = ref(false);
+const filtersExpanded = ref(false);
 
 // Updates the URL whenever a filter changes.
 const { filters, buildRequest, toRouteQuery, applyRouteQuery, hasRouteFilters } = useSearchFilters({ onChange: scheduleAdvancedSearchUrlUpdate });

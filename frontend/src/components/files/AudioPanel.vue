@@ -716,7 +716,7 @@ export default {
       const decay = 0.98;
       const prev = peaks.at(index) ?? 0;
       const newValue = Math.max(currentNorm, prev * decay);
-      peaks.splice(index, 1, newValue);
+      peaks[index] = newValue;
     },
     drawPeaks(ctx) {
       const { showPeaks } = this.visualizerConfig;
