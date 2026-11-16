@@ -321,6 +321,7 @@
 			}
 		}
 	],
+	"plugins": ["./scripts/biome/css-legacy.grit"],
 	"assist": {
 		"actions": {
 			"source": {

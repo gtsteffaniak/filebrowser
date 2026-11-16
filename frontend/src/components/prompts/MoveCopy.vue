@@ -362,10 +362,10 @@ export default {
                 operation: this.operation,
                 destSource: this.destSource,
               },
-              confirm: async (e, option) => {
+              confirm: async (confirmEvent, option) => {
                 overwrite = option === "overwrite";
                 rename = option === "rename";
-                e.preventDefault();
+                confirmEvent.preventDefault();
                 try {
                   this.isLoading = true;
                   result = await action(overwrite, rename);
