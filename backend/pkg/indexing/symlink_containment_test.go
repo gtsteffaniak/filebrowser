@@ -2,6 +2,7 @@ package indexing
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -160,6 +161,66 @@ func TestGetRealPathScoped_CacheKeyDoesNotCollideWithUnscoped(t *testing.T) {
 	}
 	if realPath != want {
 		t.Fatalf("scoped lookup returned %q, want in-scope file %q", realPath, want)
+	}
+}
+
+func TestRealPathCacheGeneration_BumpsOnInvalidateAndClear(t *testing.T) {
+	idx := symlinkTestIndex(t.TempDir())
+	gen := realPathGeneration.Load()
+	idx.InvalidateRealPathCache("/any")
+	if realPathGeneration.Load() != gen+1 {
+		t.Fatalf("InvalidateRealPathCache: gen=%d want %d", realPathGeneration.Load(), gen+1)
+	}
+	gen = realPathGeneration.Load()
+	ClearRealPathCaches()
+	if realPathGeneration.Load() != gen+1 {
+		t.Fatalf("ClearRealPathCaches: gen=%d want %d", realPathGeneration.Load(), gen+1)
+	}
+}
+
+func TestClearRealPathCaches_ClearsWarmEntries(t *testing.T) {
+	sourceRoot, userScope := setupSymlinkEscapeFixture(t)
+	idx := symlinkTestIndex(sourceRoot)
+
+	userDir := filepath.Join(sourceRoot, "user1")
+	if err := os.WriteFile(filepath.Join(userDir, "foo"), []byte("x"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if _, _, err := idx.GetRealPathScoped(userScope, "/user1/foo"); err != nil {
+		t.Fatalf("warm cache: %v", err)
+	}
+	joined := filepath.Join(sourceRoot, "user1", "foo")
+	key := fmt.Sprintf("realpath|scoped=%t|bound=%q|path=%q", true, userScope, joined)
+	if _, ok := RealPathCache.Get(key); !ok {
+		t.Fatalf("expected cache key %q", key)
+	}
+	ClearRealPathCaches()
+	if _, ok := RealPathCache.Get(key); ok {
+		t.Fatal("ClearRealPathCaches should drop warm entries")
+	}
+}
+
+func TestInvalidateRealPathCache_ClearsGetRealPathEntry(t *testing.T) {
+	sourceRoot, userScope := setupSymlinkEscapeFixture(t)
+	idx := symlinkTestIndex(sourceRoot)
+
+	userDir := filepath.Join(sourceRoot, "user1")
+	if err := os.WriteFile(filepath.Join(userDir, "foo"), []byte("x"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	if _, _, err := idx.GetRealPath("/user1/foo"); err != nil {
+		t.Fatalf("warm cache: %v", err)
+	}
+	joined := realPathCacheJoinedPath(sourceRoot, "/user1/foo")
+	key := fmt.Sprintf("realpath|scoped=%t|bound=%q|path=%q", false, "/", joined)
+	if _, ok := RealPathCache.Get(key); !ok {
+		t.Fatalf("expected cache key %q", key)
+	}
+
+	idx.InvalidateRealPathCache("/user1/foo", userScope)
+	if _, ok := RealPathCache.Get(key); ok {
+		t.Fatal("InvalidateRealPathCache should drop unscoped cache entry")
 	}
 }
 

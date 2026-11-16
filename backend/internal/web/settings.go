@@ -87,7 +87,11 @@ func settingsGetHandler(w http.ResponseWriter, r *http.Request, d *Context) (int
 // filesystem. It is the comment/secret-marker source for both the YAML export and the settings
 // JSON redactor.
 func readEmbeddedConfigYaml() (string, error) {
-	content, err := fs.ReadFile(assetFs, "config.generated.yaml")
+	path := "config.generated.yaml"
+	if settings.Env.EmbeddedFs {
+		path = "embed/config.generated.yaml"
+	}
+	content, err := fs.ReadFile(assetFs, path)
 	if err != nil {
 		return "", err
 	}

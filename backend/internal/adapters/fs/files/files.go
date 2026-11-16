@@ -790,6 +790,7 @@ func DeleteFiles(source, boundIndexPath, indexPath string, isDir bool) error {
 	if utils.CleanIndexPathSegment(indexPath) == "" {
 		return fmt.Errorf("refusing to delete source root directory: %s", indexPath)
 	}
+	deleteIndexPath := indexPath
 	realPath, err := index.GetRealPathForRemoval(boundIndexPath, indexPath)
 	if err != nil {
 		return err
@@ -808,9 +809,13 @@ func DeleteFiles(source, boundIndexPath, indexPath string, isDir bool) error {
 		return err
 	}
 
-	// Clear cache entries
-	indexing.RealPathCache.Delete(realPath)
-	indexing.IsDirCache.Delete(realPath + ":isdir")
+	if isDir {
+		indexing.ClearRealPathCaches()
+	}
+	index.InvalidateRealPathCache(deleteIndexPath, boundIndexPath)
+	if parent := utils.GetParentDirectoryPath(deleteIndexPath); parent != "" && parent != "/" {
+		index.InvalidateRealPathCache(parent, boundIndexPath)
+	}
 
 	// Remove metadata from index
 	deleteSuccess := index.DeleteMetadata(indexPath, isDir, isDir)
@@ -862,8 +867,7 @@ func RefreshIndex(source string, path string, isDir bool, recursive bool) error 
 			if !Exists(realPath) {
 				// Directory no longer exists, remove it from the index
 				// This clears both Directories and DirectoriesLedger maps
-				indexing.RealPathCache.Delete(realPath)
-				indexing.IsDirCache.Delete(realPath + ":isdir")
+				idx.InvalidateRealPathCache(path)
 				idx.DeleteMetadata(path, true, false)
 				return nil
 			}
@@ -940,6 +944,9 @@ func moveResourceImpl(isSrcDir bool, sourceIndex, destIndex, realsrc, realdst st
 	err := fileutils.MoveFile(realsrc, realdst)
 	if err != nil {
 		return err
+	}
+	if isSrcDir {
+		indexing.ClearRealPathCaches()
 	}
 
 	// Handle SOURCE cleanup (treat as deletion)
@@ -1101,6 +1108,11 @@ func WriteDirectory(boundIndexPath string, opts utils.FileOptions) error {
 		}
 	}
 
+	idx.InvalidateRealPathCache(opts.Path, boundIndexPath)
+	if parent := utils.GetParentDirectoryPath(opts.Path); parent != "" && parent != "/" {
+		idx.InvalidateRealPathCache(parent, boundIndexPath)
+	}
+
 	return nil
 }
 
@@ -1174,6 +1186,11 @@ func writeFile(source, boundIndexPath, path string, in io.Reader) error {
 		if err := RefreshIndex(source, parentPath, true, false); err != nil {
 			logger.Debugf("Could not refresh parent directory %s: %v", parentPath, err)
 		}
+	}
+
+	idx.InvalidateRealPathCache(path, boundIndexPath)
+	if parent := utils.GetParentDirectoryPath(path); parent != "" && parent != "/" {
+		idx.InvalidateRealPathCache(parent, boundIndexPath)
 	}
 
 	return nil

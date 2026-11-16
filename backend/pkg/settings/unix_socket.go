@@ -8,7 +8,10 @@ import (
 	"os/user"
 	"strconv"
 	"strings"
+	"sync"
 )
+
+var unixListenUmaskMu sync.Mutex
 
 type unixPeerCredKey struct{}
 
@@ -69,14 +72,15 @@ func ListenUnixFilesystem(socketPath string) (net.Listener, error) {
 		}
 		setGroup = true
 	}
+	unixListenUmaskMu.Lock()
 	oldMask := unixUmask(0o077)
-	defer unixUmask(oldMask)
 	listener, err := net.Listen("unix", socketPath)
+	unixUmask(oldMask)
+	unixListenUmaskMu.Unlock()
 	if err != nil {
 		return nil, err
 	}
 	closeListener := func() { _ = listener.Close() }
-	// Assign group ownership while the socket is still owner-only (umask 077), then grant mode bits.
 	if setGroup {
 		if err := os.Chown(socketPath, -1, gid); err != nil {
 			closeListener()
