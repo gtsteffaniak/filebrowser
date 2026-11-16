@@ -5,17 +5,19 @@ import { isTestFile, maskSource, readLocale, rel, sourceFiles } from "./shared.t
 const IGNORED_KEYS = [/^languages\./];
 const IGNORED_ELEMENTS = new Set(["i", "v-icon", "kbd"]);
 const IGNORE_COMMENT = "i18n-ignore";
+const TEXT_ATTRIBUTES = new Set(["placeholder", "title", "alt"]);
 
 // Vue's NodeTypes values
 const ELEMENT = 1;
 const TEXT = 2;
 const COMMENT = 3;
+const ATTRIBUTE = 6;
 
 interface TemplateNode {
   type: number;
   tag?: string;
   content?: unknown;
-  props?: { name?: string; value?: { content: string } }[];
+  props?: { type?: number; name?: string; value?: { content: string }; loc?: { start: { line: number } } }[];
   children?: TemplateNode[];
   loc: { start: { line: number } };
 }
@@ -47,6 +49,11 @@ export function checkRawText(): string[] {
     const ast = parse(fs.readFileSync(file, "utf8"), { filename: file }).descriptor.template?.ast;
     const walk = (node: TemplateNode) => {
       if (node.type === ELEMENT && isIgnored(node)) return;
+      for (const prop of node.type === ELEMENT ? (node.props ?? []) : []) {
+        if (prop.type === ATTRIBUTE && TEXT_ATTRIBUTES.has(prop.name ?? "") && /\p{L}/u.test(prop.value?.content ?? "")) {
+          problems.push(`${rel(file)}:${prop.loc?.start.line ?? node.loc.start.line}: raw ${prop.name} "${prop.value?.content.trim()}", use t()`);
+        }
+      }
       if (node.type === TEXT && typeof node.content === "string" && /\p{L}/u.test(node.content)) {
         problems.push(`${rel(file)}:${node.loc.start.line}: raw text "${node.content.trim()}", use t()`);
       }

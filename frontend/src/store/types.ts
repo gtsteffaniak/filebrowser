@@ -18,6 +18,13 @@ export interface FileListItem {
   metadata?: MediaMetadata;
 }
 
+export interface InfoItem extends FileListItem {
+  subtitles?: SubtitleTrack[];
+  token?: string;
+  hash?: string;
+  onlyOfficeId?: string;
+}
+
 /** from backend utils.SubtitleTrack. */
 export interface SubtitleTrack {
   name: string;

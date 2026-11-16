@@ -27,6 +27,7 @@
       <div class="constraints">
         <div class="sizeInputWrapper">
           <p>{{ t("search.smallerThan") }}</p>
+          <!-- i18n-ignore -->
           <input
             class="sizeInput input"
             v-model="filters.smallerThan"
@@ -35,6 +36,7 @@
             placeholder="MB"
           />
           <p>{{ t("search.largerThan") }}</p>
+          <!-- i18n-ignore -->
           <input class="sizeInput input" v-model="filters.largerThan" type="number" placeholder="MB" />
         </div>
         <div class="sizeInputWrapper">

@@ -15,7 +15,7 @@
       <!-- i18n-ignore -->
       <span v-if="eventTheme === 'halloween'" class="tombstone-rip" aria-hidden="true">R.I.P.</span>
       <div class="login-brand">
-        <img :src="loginIconUrl" alt="Login Icon" class="login-icon" />
+        <img :src="loginIconUrl" :alt="$t('general.login')" class="login-icon" />
       </div>
       <div v-if="!inProgress" class="login-brand brand-text">
         <h3>{{ loginName }}</h3>

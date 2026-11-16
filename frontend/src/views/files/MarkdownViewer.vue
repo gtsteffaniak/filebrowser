@@ -13,7 +13,7 @@
       src="about:blank"
       :sandbox="HTML_PREVIEW_SANDBOX"
       referrerpolicy="no-referrer"
-      title="HTML preview"
+      :title="t('general.preview')"
       @load="applyHtmlPreviewHeight"
     ></iframe>
     <div v-else class="markdown-content-container">

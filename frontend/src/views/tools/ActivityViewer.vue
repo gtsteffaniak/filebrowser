@@ -115,6 +115,7 @@
               </div>
               <div class="config-field glob-field glob-field-wide">
                 <h3>{{ $t("tools.activityViewer.pathGlob") }}</h3>
+                <!-- i18n-ignore -->
                 <input
                   v-model="filterPathGlob"
                   type="text"
