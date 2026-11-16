@@ -49,7 +49,7 @@
             <div class="header-left"></div>
             <div v-if="fileName" class="header-center">
               <span class="header-filename">{{ fileName }}</span>
-              <span v-if="fileSize" class="header-filesize">({{ fileSize }})</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+              <span v-if="fileSize" class="header-filesize">({{ fileSize }})</span>
             </div>
             <div class="header-right"></div>
           </div>
@@ -65,7 +65,7 @@
             <div class="header-left">
               <span class="header-label">{{ $t('general.latency',{suffix: ':'}) }}</span>
               <span class="header-value" :class="latencyClass">
-                {{ watching ? `${currentLatency}ms` : '-' }} <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+                {{ watching ? `${currentLatency}ms` : '-' }}
               </span>
             </div>
             <div v-if="!isMobile && fileModified" class="header-center">
@@ -100,7 +100,7 @@ import { formatTimestamp, fromNow } from "@/utils/moment.ts";
 import { notify } from "@/notify/index.ts";
 import PathPickerButton from "@/components/files/PathPickerButton.vue";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
-import { globalVars } from "@/utils/constants.js";
+import { globalVars } from "@/utils/constants.ts";
 
 export default {
   name: "FileWatcher",

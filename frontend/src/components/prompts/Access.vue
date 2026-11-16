@@ -38,7 +38,7 @@
       <!-- Default behavior banner -->
       <div class="card item">
         <div class="card-content banner-content">
-          <i class="material-symbols-outlined">{{ sourceDenyDefault ? 'do_not_disturb_on' : 'check_circle' }}</i>  <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <i class="material-symbols-outlined">{{ sourceDenyDefault ? 'do_not_disturb_on' : 'check_circle' }}</i>
           {{ $t("access.defaultBehavior", { suffix: ":" }) }} {{ sourceDenyDefault ? $t("access.deny") : $t("access.allow")
           }}
           <HelpTooltipIcon :text="$t('access.defaultBehaviorDescription')" />

@@ -245,7 +245,7 @@ import { buildItemUrl, removeTrailingSlash } from '@/utils/url.js';
 import AudioPanel from "@/components/files/AudioPanel.vue";
 import { getters, mutations, state } from "@/store/index.ts";
 import { getObjectProperty } from '@/utils/object.js';
-import { globalVars } from "@/utils/constants.js";
+import { globalVars } from "@/utils/constants.ts";
 import { getSubtitleFormatExtension } from "@/utils/subtitles.js";
 import { getPreviewURL, getPreviewURLPublic } from "@/api/resources.js";
 import {

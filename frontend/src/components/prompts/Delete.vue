@@ -3,14 +3,14 @@
       <!-- Loading spinner overlay -->
       <div v-show="deleting" class="loading-content">
         <LoadingSpinner size="small" />
-        <p class="loading-text">{{ $t("prompts.operationInProgress") }}</p>
+        <p class="loading-text">{{ t("prompts.operationInProgress") }}</p>
       </div>
       <div v-show="!deleting">
         <p class="card-message" v-if="itemsToDelete.length === 1">
-          {{ $t("prompts.deleteMessageSingle") }}
+          {{ t("prompts.deleteMessageSingle") }}
         </p>
         <p class="card-message" v-else>
-          {{ $t("prompts.deleteMessageMultiple", { count: itemsToDelete.length }) }}
+          {{ t("prompts.deleteMessageMultiple", { count: itemsToDelete.length }) }}
         </p>
         <div ref="list" class="delete-items-list" @contextmenu.capture.prevent.stop>
           <div data-virtual-group="items" :style="virtual.group('items').style">
@@ -52,9 +52,9 @@
         @click="closeTopPrompt"
         class="button button--flat button--grey"
         :disabled="deleting"
-        :aria-label="$t('general.cancel')"
-        :title="$t('general.cancel')">
-        {{ $t("general.cancel") }}
+        :aria-label="t('general.cancel')"
+        :title="t('general.cancel')">
+        {{ t("general.cancel") }}
       </button>
       <button
         type="button"
@@ -62,15 +62,15 @@
         class="button button--flat button--red"
         :disabled="deleting"
         aria-label="Confirm-Delete"
-        :title="$t('general.delete')">
-        {{ $t("general.delete") }}
+        :title="t('general.delete')">
+        {{ t("general.delete") }}
       </button>
     </div>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted, ref, useTemplateRef, watch } from "vue";
-import { useI18n } from "vue-i18n";
+import { useI18n } from "@/i18n/index.ts";
 import { resourcesApi } from "@/api/index.js";
 import buttons from "@/utils/buttons.js";
 import { state, getters, mutations } from "@/store/index.ts";

@@ -2,11 +2,11 @@
 import type { RouteLocation, RouteRecordRaw } from "vue-router";
 import { createRouter, createWebHistory } from "vue-router";
 
-import i18n from "@/i18n/index.ts";
+import i18n, { type PlainMessageKey } from "@/i18n/index.ts";
 import { getters, mutations, state } from "@/store/index.ts";
 import { validateLogin } from "@/utils/auth.js";
 import { sanitizePostLoginRedirect } from "@/utils/safeRedirect.js";
-import { globalVars } from "@/utils/constants.js";
+import { globalVars } from "@/utils/constants.ts";
 import {
   evaluateUploadNavigationGuard,
   isDifferentAppRoute,
@@ -19,7 +19,7 @@ import Login from "@/views/Login.vue";
 import Settings from "@/views/Settings.vue";
 import Tools from "@/views/Tools.vue";
 
-const translate = (key: string): string => i18n.global.t(key) as string;
+const translate = (key: PlainMessageKey): string => i18n.global.t(key);
 const t = i18n.global.t.bind(i18n.global);
 
 const titles = (): Record<string, string> => ({

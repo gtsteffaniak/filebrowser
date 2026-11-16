@@ -23,7 +23,7 @@ import { router } from "@/router/index.ts";
 import { extractSourceFromPath, removeLastDir, removeTrailingSlash, pathsMatch } from "@/utils/url.js";
 import { selectAndScrollToIndex } from "@/utils/listing/selectAndScroll.ts";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
-import { globalVars } from "@/utils/constants.js";
+import { globalVars } from "@/utils/constants.ts";
 import { syncEventTheme } from "@/utils/theme.js";
 import { isRichTextPreviewMimeType } from "@/utils/mimetype.js";
 import { invalidateDirMetadataCache } from "@/utils/cache/metadataCache.ts";

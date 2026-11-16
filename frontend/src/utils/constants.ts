@@ -1,8 +1,16 @@
-import i18n from "@/i18n/index.ts";
+import i18n, { type PlainMessageKey } from "@/i18n/index.ts";
 import { getIconClass } from "./material-symbols.js";
 
+declare global {
+  interface Window {
+    // biome-ignore lint/suspicious/noExplicitAny: server-provided config, not yet typed
+    globalVars?: any;
+  }
+}
+
 const appConfigEl = document.querySelector('#app-config');
-const globalVars = appConfigEl?.textContent
+// biome-ignore lint/suspicious/noExplicitAny: server-provided config, not yet typed
+const globalVars: any = appConfigEl?.textContent
   ? JSON.parse(appConfigEl.textContent)
   : window.globalVars;
 if (typeof window !== 'undefined') {
@@ -10,7 +18,19 @@ if (typeof window !== 'undefined') {
 }
 const origin = window.location.origin;
 
-const settings = [
+export interface SettingsSection {
+  id: string;
+  label?: PlainMessageKey;
+  component?: string;
+  icon: string;
+  permissions?: Record<string, boolean>;
+}
+
+export interface SettingsEntry extends SettingsSection {
+  sections?: (SettingsSection & { label: PlainMessageKey })[];
+}
+
+const settings: SettingsEntry[] = [
   {
     id: 'profile',
     component: 'ProfileSettings',
@@ -49,19 +69,6 @@ const settings = [
   { id: 'systemAdmin', label: 'settings.systemAdmin', component: 'SystemAdmin', permissions: { admin: true }, icon: 'admin_panel_settings' },
 ];
 
-// Mark composed labels as used for i18n lint checks.
-i18n.global.t('general.profile');
-i18n.global.t('general.settings');
-i18n.global.t('general.share');
-i18n.global.t('general.user');
-i18n.global.t('general.management');
-i18n.global.t('settings.systemAdmin');
-i18n.global.t('fileLoading.title');
-i18n.global.t('notifications.title');
-i18n.global.t('api.title');
-i18n.global.t('general.access');
-i18n.global.t('general.groups');
-
 const previewViews = [
   'preview',
   'markdownViewer',
@@ -74,9 +81,17 @@ const previewViews = [
   'threeJsViewer'
 ];
 
-// Function that returns tools array with i18n validation
-// This ensures the linter checks the translation keys
-const getTools = () => [
+export interface Tool {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  path: string;
+  component: string;
+}
+
+// Translated on every call, so the names follow the current locale
+const getTools = (): Tool[] => [
   {
     id: "sizeViewer",
     name: i18n.global.t("tools.sizeAnalyzer.name"),

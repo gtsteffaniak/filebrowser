@@ -12,7 +12,7 @@
     </div>
 
     <form class="card login-card" :class="{ 'tombstone': eventTheme === 'halloween' }" @submit="submit">
-      <!-- eslint-disable-next-line @intlify/vue-i18n/no-raw-text -->
+      <!-- i18n-ignore -->
       <span v-if="eventTheme === 'halloween'" class="tombstone-rip" aria-hidden="true">R.I.P.</span>
       <div class="login-brand">
         <img :src="loginIconUrl" alt="Login Icon" class="login-icon" />
@@ -225,7 +225,7 @@ import Prompts from "@/components/prompts/Prompts.vue";
 import { authApi } from "@/api/index.js";
 import { initAuth } from "@/utils/auth.js";
 import { postLoginRedirectForServer, sanitizePostLoginRedirect } from "@/utils/safeRedirect.js";
-import { globalVars } from "@/utils/constants.js";
+import { globalVars } from "@/utils/constants.ts";
 import { evaluatePasswordPolicy } from "@/utils/passwordPolicy.js";
 import { defaultDarkMode, syncDocumentTheme } from "@/utils/theme.js";
 import { collapseEnter, collapseLeave } from "@/utils/transitions.ts";

@@ -1,6 +1,6 @@
 import { router } from "@/router/index.ts";
 import { getters, mutations, state } from "@/store/index.ts";
-import { globalVars } from "@/utils/constants.js";
+import { globalVars } from "@/utils/constants.ts";
 
 export default {
   pathsMatch,

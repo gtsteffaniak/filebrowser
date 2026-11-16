@@ -1,6 +1,6 @@
 <template>
   <div v-if="!hasDownloads && currentPrompt && currentPrompt.confirm" class="card-content">
-    <p>{{ $t("prompts.downloadMessage") }}</p>
+    <p>{{ t("prompts.downloadMessage") }}</p>
 
     <button
       type="button"
@@ -15,7 +15,7 @@
     </button>
   </div>
   <div v-if="!hasDownloads && (!currentPrompt?.confirm)" class="card-content lonely-message">
-    <span>{{ $t("files.lonely") }}</span>
+    <span>{{ t("files.lonely") }}</span>
   </div>
   <div v-if="hasDownloads" class="card-content">
     <div ref="list" class="download-list">
@@ -33,9 +33,9 @@
               <p class="file-name">{{ download.name }}</p>
               <ProgressBar
                 :val="download.status === 'completed'
-                  ? $t('prompts.completed')
+                  ? t('prompts.completed')
                   : download.status === 'error'
-                    ? $t('prompts.error')
+                    ? t('prompts.error')
                     : download.loaded
                 "
                 :unit="download.status === 'completed' || download.status === 'error' ? '' : 'bytes'"
@@ -51,15 +51,15 @@
                 v-if="download.status === 'error'"
                 @click="retryDownload(download.id)"
                 class="action"
-                :aria-label="$t('general.retry')" :title="$t('general.retry')"
+                :aria-label="t('general.retry')" :title="t('general.retry')"
               >
                 <i class="material-symbols">replay</i>
               </button>
               <button
                 type="button"
                 @click="downloadManager.cancel(download.id)"
-                class="action" :aria-label="$t('general.cancel')"
-                :title="$t('general.cancel')"
+                class="action" :aria-label="t('general.cancel')"
+                :title="t('general.cancel')"
               >
                 <i class="material-symbols">close</i>
               </button>
@@ -80,16 +80,16 @@
       @click="downloadManager.clearCompleted()"
       class="button button--flat"
       :disabled="!hasClearable"
-      :aria-label="$t('buttons.clearCompleted')" :title="$t('buttons.clearCompleted')"
+      :aria-label="t('buttons.clearCompleted')" :title="t('buttons.clearCompleted')"
     >
-      {{ $t("buttons.clearCompleted") }}
+      {{ t("buttons.clearCompleted") }}
     </button>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, useTemplateRef, watch } from "vue";
-import { useI18n } from "vue-i18n";
+import { useI18n } from "@/i18n/index.ts";
 import { getters } from "@/store/index.ts";
 import { downloadManager } from "@/utils/downloadManager.ts";
 import type { DownloadItem } from "@/utils/downloadManager.ts";

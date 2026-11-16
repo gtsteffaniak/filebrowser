@@ -72,7 +72,7 @@
 
 <script>
 import { logout } from "@/utils/auth.js";
-import { globalVars } from "@/utils/constants.js";
+import { globalVars } from "@/utils/constants.ts";
 import { state, getters, mutations } from "@/store/index.ts";
 import {
   hideInteractiveTooltip,

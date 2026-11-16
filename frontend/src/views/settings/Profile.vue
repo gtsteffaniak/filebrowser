@@ -25,7 +25,7 @@
 import { notify } from "@/notify/index.ts";
 import { mutations, state } from "@/store/index.ts";
 import UserProfilePreferences from "@/components/settings/UserProfilePreferences.vue";
-import { settings } from "@/utils/constants.js";
+import { settings } from "@/utils/constants.ts";
 import {
   sectionsFromFlatUser,
   applySectionsToFlatUser,

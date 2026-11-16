@@ -43,7 +43,7 @@
     :title="$t('general.previous')"
   >
     <i class="material-symbols">
-      {{ dragState.type === 'previous' && dragState.atFullExtent ? 'list_alt' : 'chevron_left' }} <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+      {{ dragState.type === 'previous' && dragState.atFullExtent ? 'list_alt' : 'chevron_left' }}
     </i>
   </button>
 
@@ -68,7 +68,7 @@
     :title="$t('general.next')"
   >
     <i class="material-symbols">
-      {{ dragState.type === 'next' && dragState.atFullExtent ? 'list_alt' : 'chevron_right' }} <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+      {{ dragState.type === 'next' && dragState.atFullExtent ? 'list_alt' : 'chevron_right' }}
     </i>
   </button>
 
@@ -98,7 +98,7 @@
 <script>
 import { state, getters, mutations } from "@/store/index.ts";
 import throttle from "@/utils/throttle.js";
-import { previewViews } from "@/utils/constants.js";
+import { previewViews } from "@/utils/constants.ts";
 import { url } from "@/utils/index.ts";
 import { resourcesApi } from "@/api/index.js";
 import { navigatePlaybackQueue } from "@/utils/playbackQueue.js";

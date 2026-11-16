@@ -20,7 +20,7 @@ const { globalsMock } = vi.hoisted(() => ({
   },
 }));
 
-vi.mock("@/utils/constants.js", async (importOriginal) => ({
+vi.mock("@/utils/constants.ts", async (importOriginal) => ({
   ...(await importOriginal<object>()),
   globalVars: globalsMock,
 }));

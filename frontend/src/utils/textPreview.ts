@@ -1,4 +1,4 @@
-import { globalVars } from "@/utils/constants.js";
+import { globalVars } from "@/utils/constants.ts";
 import { state } from "@/store/index.ts";
 import type { TextPreviewPayload } from "@/utils/textPreviewRender.ts";
 
