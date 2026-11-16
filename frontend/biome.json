@@ -179,9 +179,6 @@
 				"noInvalidPropertyInitValue": "warn",
 				"noPseudoElementInFunctionalPseudoClass": "error",
 				"noSelfNestedLayer": "warn",
-				"noUndeclaredCustomProperties": "off",
-				"noUnusedClasses": "off",
-				"useLogicalProperties": "off",
 				"noVueDeprecatedDestroyedLifecycle": "error",
 				"noVueDeprecatedFilter": "error",
 				"noVueDeprecatedFunctionalTemplate": "error",
@@ -255,7 +252,6 @@
 				"useArraySortCompare": "error",
 				"useScopedStyles": "off",
 				"noUselessEscapeInString": "warn",
-				"useBaseline": "off",
 				"noVar": "error",
 				"noForIn": "warn"
 			}
@@ -263,7 +259,11 @@
 		"domains": { "vue": "all", "project": "all", "types": "all" }
 	},
 	"css": {
-		"formatter": { "enabled": false },
+		"formatter": {
+			"enabled": true,
+			"indentStyle": "space",
+			"indentWidth": 2
+		},
 		"linter": { "enabled": true },
 		"assist": { "enabled": true }
 	},
@@ -279,7 +279,6 @@
 				"rules": {
 					"complexity": { "noPlaywrightUselessAwait": "error" },
 					"correctness": {
-						"noEmptyPattern": "off",
 						"noPlaywrightMissingAwait": "error",
 						"noUnresolvedImports": "off",
 						"usePlaywrightValidDescribeCallback": "error"

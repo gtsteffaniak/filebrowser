@@ -1,17 +1,21 @@
 /* Button chrome is themeable: every value below is a --button-* hook.
    --hover-transform / --hover-shadow (consumed in styles.css) cover :hover. */
 .button {
-  display:flex;
+  display: flex;
   align-items: center;
   justify-content: center;
   outline: 0;
-  padding: var(--button-padding-y, .5em) var(--button-padding-x, 1em);
+  padding: var(--button-padding-y, 0.5em) var(--button-padding-x, 1em);
   border-radius: var(--borderRadius);
   cursor: pointer;
   background: var(--button-background, var(--primaryColor));
   color: var(--button-color, white);
   box-shadow: var(--button-shadow, 0 0 5px rgb(0 0 0 / 5%));
-  transition: transform 0.1s ease, opacity 0.1s ease, background-color 0.1s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.1s ease,
+    opacity 0.1s ease,
+    background-color 0.1s ease,
+    box-shadow 0.2s ease;
   min-width: var(--button-min-width, 2em);
   min-height: var(--button-min-height, 2em);
 }
@@ -76,6 +80,6 @@ button:disabled {
 }
 
 .button[disabled] {
-  opacity: .5;
+  opacity: 0.5;
   cursor: not-allowed;
 }

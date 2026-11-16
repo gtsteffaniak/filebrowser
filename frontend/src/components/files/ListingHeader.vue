@@ -286,7 +286,6 @@ span {
 
 /* Column widths are shared with the list/compact rows (see listing.css) so the
    header lines up with the items and the name column gets the remaining space. */
-/* stylelint-disable no-unknown-custom-properties -- defined in css/listing.css */
 .desktop-view {
   /* same right inset as the list/compact rows */
   padding-right: var(--listing-col-gap);
@@ -339,7 +338,6 @@ span {
 .desktop-view .duration {
   width: var(--listing-col-duration);
 }
-/* stylelint-enable no-unknown-custom-properties */
 
 i {
   font-size: 1.2em;
