@@ -49,7 +49,7 @@ export function checkTranslations(): string[] {
   return problems;
 }
 
-async function translateText(text: string, targetLanguage: string, keyPath: string): Promise<string> {
+async function translateText(text: string, targetLanguage: string, keyPath: string): Promise<string | null> {
   if (!text.trim()) {
     console.warn(`Skipping translation for empty text: "${text}"`);
     return text;
@@ -76,10 +76,14 @@ async function translateText(text: string, targetLanguage: string, keyPath: stri
       // the translator might add spaces around the tags
       translated = translated.replace(/<ph>\s*(\{[^}]+\})\s*<\/ph>/g, "$1");
     }
+    if (!translated.trim()) {
+      console.error(`⚠️ Translation failed for "${text}" (${keyPath}): empty result`);
+      return null;
+    }
     return translated;
   } catch (error) {
     console.error(`⚠️ Translation failed for "${text}" (${keyPath}):`, error instanceof Error ? error.message : error);
-    return "";
+    return null;
   }
 }
 
@@ -143,9 +147,11 @@ async function processKeys(
             console.log(`Skipping new key "${keyPath}" for ${lang}.json`);
           } else {
             const translated = await translateText(masterValue, lang, keyPath);
-            if (translated === "") return "UNSUPPORTED";
-            target[key] = translated;
-            changed = true;
+            if (translated === null) return "UNSUPPORTED";
+            if (target[key] !== translated) {
+              target[key] = translated;
+              changed = true;
+            }
           }
         }
       } else if (!Object.hasOwn(target, key)) {
@@ -183,23 +189,32 @@ export async function syncTranslations({ enforceOrder, cleanup }: { enforceOrder
   }
 
   const master = readJson(path.join(localesDir, "en.json")) as Tree;
+  const failed: string[] = [];
 
   for (const file of translationFiles()) {
     const targetFile = path.join(localesDir, file);
     const lang = path.basename(file, ".json");
-    let original: Tree | null = null;
-    let target: Tree = {};
+    let original: Tree;
     try {
-      original = readJson(targetFile) as Tree;
-      target = structuredClone(original);
+      const parsed = readJson(targetFile);
+      if (!isTree(parsed)) throw new Error("the root must be an object");
+      original = parsed;
     } catch (error) {
-      console.warn(`Warning: Could not parse ${targetFile}. Starting fresh. Error: ${error instanceof Error ? error.message : error}`);
+      console.error(`❌ Could not read ${targetFile}, leaving it unchanged: ${error instanceof Error ? error.message : error}`);
+      failed.push(file);
+      continue;
     }
+    let target = structuredClone(original);
 
     const result = await processKeys(master, target, lang, [], reorder, cleanup);
+    if (result === "UNSUPPORTED") {
+      console.error(`❌ ${targetFile} was left unchanged: a translation failed.`);
+      failed.push(file);
+      continue;
+    }
 
     let orderChanged = false;
-    if (reorder && original) {
+    if (reorder) {
       target = reorderObject(target, master) as Tree;
       orderChanged = JSON.stringify(original) !== JSON.stringify(target);
       if (orderChanged) console.log(`- Reordered keys in ${lang}.json`);
@@ -211,6 +226,10 @@ export async function syncTranslations({ enforceOrder, cleanup }: { enforceOrder
     } else {
       console.log(`No changes needed for ${targetFile}`);
     }
+  }
+  if (failed.length) {
+    console.error(`\n❌ Synchronization incomplete, ${failed.length} locale(s) were not changed: ${failed.join(", ")}`);
+    return 1;
   }
 
   if (cleanup) console.log("\n✅ Cleanup complete (obsolete keys removed).");

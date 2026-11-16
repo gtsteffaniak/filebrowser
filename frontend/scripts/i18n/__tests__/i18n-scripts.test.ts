@@ -1,3 +1,5 @@
+/** biome-ignore-all lint/suspicious/noTemplateCurlyInString: the tests need it */
+
 import fs from "node:fs";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -117,6 +119,75 @@ describe("maskJs", () => {
   });
 });
 
+describe("maskJs with template literals", () => {
+  const masked = (code: string) => maskJs(code, true);
+
+  it("template literal keeps its ${} expressions", () => {
+    const code = 'const example = `t("example.only") ${t("real.key")} end`;';
+    const bare = masked(code);
+    expect(bare).toHaveLength(code.length);
+    expect(bare).not.toContain("example.only");
+    expect(bare).toContain('t("real.key")');
+    expect(bare.startsWith("const example = `")).toBe(true);
+    expect(bare.endsWith("`;")).toBe(true);
+  });
+
+  it("keeps the text of a template literal when the strings are not masked", () => {
+    const code = 'const example = `t("example.only") ${t("real.key")}`; // t("c.d")';
+    const plain = maskJs(code);
+    expect(plain).toContain('`t("example.only") ${t("real.key")}`');
+    expect(plain).not.toContain("c.d");
+  });
+
+  it("keeps the offsets and the newlines of a template literal that spans lines", () => {
+    const code = "const a = `first t(\"x.y\")\nsecond ${\n  t(\"real.key\")\n} third`;\nb();";
+    const bare = masked(code);
+    expect(bare).toHaveLength(code.length);
+    expect(bare.split("\n")).toHaveLength(code.split("\n").length);
+    expect(bare.indexOf('t("real.key")')).toBe(code.indexOf('t("real.key")'));
+    expect(bare).not.toContain("x.y");
+    expect(bare).toContain("b();");
+  });
+
+  it("does not take `//` or `/*` in the text of a template for a comment", () => {
+    const code = "const u = `https://example.com/*path*/` + t('k');";
+    expect(maskJs(code)).toBe(code);
+    expect(masked(code)).toMatch(/` \+ t\(' '\);$/);
+  });
+
+  it("masks a comment inside an expression and the text of a template nested in it", () => {
+    const code = "`${ /* t('c.d') */ cond ? `t(\"nested.text\")` : t('real.key') }`";
+    const bare = masked(code);
+    expect(bare).toHaveLength(code.length);
+    expect(bare).not.toContain("c.d");
+    expect(bare).not.toContain("nested.text");
+    expect(bare).toContain("t('real.key')");
+  });
+
+  it("closes an expression at its own brace, not at the brace of an object inside it", () => {
+    const code = "`a ${ fn({ x: 1 }) } t(\"after.only\") ${ t('real.key') }`";
+    const bare = masked(code);
+    expect(bare).not.toContain("after.only");
+    expect(bare).toContain("t('real.key')");
+  });
+
+  it("treats an escaped `${` and an escaped backtick as text", () => {
+    const code = "`\\${t('escaped.key')} \\` t('after.escape')` + t('real.key')";
+    const bare = masked(code);
+    expect(bare).toHaveLength(code.length);
+    expect(bare).not.toContain("escaped.key");
+    expect(bare).not.toContain("after.escape");
+    expect(bare).toMatch(/` \+ t\(' +'\)$/);
+  });
+
+  it("copes with a template or an expression that is never closed", () => {
+    for (const code of ["const a = `t('x.y')", "const a = `${t('x.y')", "const a = `trailing \\"]) {
+      expect(masked(code)).toHaveLength(code.length);
+      expect(maskJs(code)).toHaveLength(code.length);
+    }
+  });
+});
+
 describe("maskSource for .vue files", () => {
   const vue = [
     "<template>",
@@ -155,6 +226,16 @@ describe("literalCalls", () => {
 
   it("ignores calls in comments and strings, and finds those in template literals", () => {
     const found = calls(`// t('example.key')\nconst s = "t('example.str')";\nconst u = \`\${t("real.key")}\`;`);
+    expect(found.map((call) => call.key)).toEqual(["real.key"]);
+  });
+
+  it("does not check the text of a template literal as a call", () => {
+    expect(calls('const example = `t("example.only")`;')).toEqual([]);
+    expect(calls('const example = `see t("example.only") and ${t("real.key")}`;').map((call) => call.key)).toEqual(["real.key"]);
+  });
+
+  it("finds a call in an expression nested in a template, not in the template nested in that", () => {
+    const found = calls("const a = `${ cond ? `t('nested.text')` : t('real.key', { count: 1 }) }`;");
     expect(found.map((call) => call.key)).toEqual(["real.key"]);
   });
 
