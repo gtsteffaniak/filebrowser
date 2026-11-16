@@ -188,7 +188,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, useTemplateRef, watch } from "vue";
-import { useI18n } from "@/i18n/index.ts";
+import { toStandardLocale, useI18n } from "@/i18n/index.ts";
 import {
   formatRemainingTime,
   readAllDirectoryEntries,
@@ -409,6 +409,15 @@ function sampleRate() {
   bytesPerSecond.value = rateMeter.sample(uploadedBytesById(files.value), Date.now());
 }
 
+// Reset as soon as no file is transferring (all paused or waiting), not at the next
+// tick: a pause and resume between two ticks would otherwise keep the previous rate
+// and count the paused time in the next sample.
+watch(isTransferring, (transferring) => {
+  if (!transferring) {
+    resetRate();
+  }
+});
+
 function stopRateSampling() {
   if (rateTimer !== null) {
     clearInterval(rateTimer);
@@ -438,7 +447,7 @@ const summaryText = computed(() => {
   if (isTransferring.value && bytesPerSecond.value > 0) {
     parts.push(`${getHumanReadableFilesize(bytesPerSecond.value)}/s`);
     const remainingSeconds = (s.totalBytes - s.uploadedBytes) / bytesPerSecond.value;
-    parts.push(t("prompts.uploadSummaryRemaining", { time: formatRemainingTime(remainingSeconds, locale.value) }));
+    parts.push(t("prompts.uploadSummaryRemaining", { time: formatRemainingTime(remainingSeconds, toStandardLocale(locale.value)) }));
   }
   return parts.join(" · ");
 });

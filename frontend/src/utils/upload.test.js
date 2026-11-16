@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { locales } from "@/i18n/locales.ts";
 
 vi.mock("@/api", () => ({
   resourcesApi: {
@@ -538,5 +539,13 @@ describe("formatRemainingTime", () => {
     expect(formatRemainingTime(61, "en")).toBe("2 min");
     expect(formatRemainingTime(3600, "en")).toBe("1 hr");
     expect(formatRemainingTime(3900, "en")).toBe("1 hr 5 min");
+  });
+
+  it("works with the standard tag of every app locale, not with the registry ids", () => {
+    for (const { tag } of Object.values(locales)) {
+      expect(() => formatRemainingTime(3900, tag)).not.toThrow();
+    }
+    // Registry ids such as ptBR are not language tags: Intl rejects them.
+    expect(() => formatRemainingTime(60, "ptBR")).toThrow(RangeError);
   });
 });
