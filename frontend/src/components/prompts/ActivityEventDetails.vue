@@ -50,7 +50,7 @@ export default {
   },
   computed: {
     eventLabel() {
-      return activityEventLabel(this.row.eventType, this.$t);
+      return activityEventLabel(this.row.eventType);
     },
     detailColumns() {
       return [
@@ -102,7 +102,7 @@ export default {
       return rows;
     },
     detailRows() {
-      return buildActivityDetailRows(this.row, this.$t);
+      return buildActivityDetailRows(this.row);
     },
   },
 };

@@ -58,7 +58,7 @@
             >
               <span class="settings-item-content">
                 <span class="material-symbols-outlined settings-icon">{{ section.icon }}</span>
-                {{ $t(section.label, { suffix: "" }) }}
+                {{ section.label() }}
               </span>
             </div>
           </div>
@@ -180,7 +180,7 @@ export default {
         case "users":
           return this.$t("general.userManagement");
         default:
-          return this.$t(setting.label);
+          return setting.label?.() ?? "";
       }
     },
   },

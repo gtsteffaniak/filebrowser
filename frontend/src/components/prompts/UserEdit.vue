@@ -1172,9 +1172,7 @@ export default {
               label: this.$t("general.delete"),
               action: async () => {
                 try {
-                  await usersApi.deleteUser(this.user.username, {
-                    actorPasswordPromptI18nKey: "prompts.confirmPasswordToSaveUser",
-                  });
+                  await usersApi.deleteUser(this.user.username);
                   notify.showSuccessToast(this.$t("settings.userDeleted"));
                   eventBus.emit('usersChanged');
                   mutations.closeTopPrompt(); // close delete user prompt confirmation
@@ -1267,12 +1265,7 @@ export default {
           }
           // Skip creation on a retry after the user was created but a group change failed.
           if (!this.createdUser) {
-            await usersApi.create(
-              payload,
-              {
-                actorPasswordPromptI18nKey: "prompts.confirmPasswordToSaveUser",
-              }
-            );
+            await usersApi.create(payload);
             this.createdUser = true;
           }
           await this.saveGroups(payload.username);
@@ -1327,9 +1320,7 @@ export default {
         return;
       }
       try {
-        await usersApi.update(this.user, ["password"], {
-          actorPasswordPromptI18nKey: "prompts.confirmPasswordToSaveUser",
-        });
+        await usersApi.update(this.user, ["password"]);
         eventBus.emit("usersChanged");
         notify.showSuccessToast(this.$t("settings.userUpdated"));
       } catch (e) {

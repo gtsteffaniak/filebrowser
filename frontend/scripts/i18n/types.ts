@@ -109,6 +109,10 @@ const BYPASS_RULES = [
   },
 ];
 
+/** `$t` that isn't called: `helper(this.$t)`, `this.$t.bind(this)` or a `$t` parameter. The helper keys can't be type-checked */
+const PASSED_AROUND = /(^|[^\w$])\$t\b(?!\s*\()/;
+export const isPassedAround = (line: string) => PASSED_AROUND.test(line);
+
 // The start of a t(...) call: t(, $t(, this.$t( or i18n.global.t(
 const CALL_START = /(?:(?<![\w$.])(?:\$t|t|i18n\.global\.t)|\bthis\.\$t)\(/g;
 
@@ -241,6 +245,16 @@ export function* literalCalls(text: string, bare: string): Generator<{ key: stri
   }
 }
 
+export function* dynamicCalls(text: string, bare: string): Generator<{ index: number }> {
+  const literal = new Set<number>();
+  for (const call of literalCalls(text, bare)) literal.add(call.index);
+  for (const match of bare.matchAll(CALL_START)) {
+    if (literal.has(match.index)) continue;
+    if (text.charAt(skipSpaces(text, match.index + match[0].length)) === ")") continue; // t() without a key, vue-tsc reports it
+    yield { index: match.index };
+  }
+}
+
 function checkCall(key: string, params: Params, messages: Messages): string[] {
   const expected = messages[key];
   if (expected === undefined) return [`unknown translation key "${key}"`];
@@ -273,10 +287,18 @@ function checkTypedUsage(messages: Messages, strict: boolean): string[] {
         }
       }
     }
+    if (!strict && !isTypeScript(file, text)) {
+      for (const [index, line] of bare.split("\n").entries()) {
+        if (isPassedAround(line)) problems.push(`${rel(file)}:${index + 1}: $t is passed around as a value, import i18n from '@/i18n/index.ts' and call t() with a literal key in the helper instead`);
+      }
+    }
     for (const call of literalCalls(code, bare)) {
       for (const problem of checkCall(call.key, call.params, messages)) {
         problems.push(`${rel(file)}:${lineOf(text, call.index)}: ${problem}`);
       }
+    }
+    for (const call of dynamicCalls(code, bare)) {
+      problems.push(`${rel(file)}:${lineOf(text, call.index)}: dynamic translation key, call t() with a string literal so the key is type-checked and found by the unused keys check`);
     }
   }
   return problems;

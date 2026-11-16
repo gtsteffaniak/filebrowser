@@ -5,7 +5,7 @@ import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { maskJs, maskSource } from "../shared.ts";
 import { syncTranslations } from "../sync.ts";
-import { literalCalls } from "../types.ts";
+import { dynamicCalls, isPassedAround, literalCalls } from "../types.ts";
 
 // The sync reads and writes the locales folder: point it at a temporary one.
 const dir = await vi.hoisted(async () => {
@@ -242,5 +242,56 @@ describe("literalCalls", () => {
   it("is not confused by a comment in the params", () => {
     const [call] = calls(`t("k", { count, /* it's */ other })`);
     expect(call?.params.names).toEqual(new Set(["count", "other"]));
+  });
+});
+
+describe("dynamicCalls", () => {
+  const dynamic = (source: string) => [...dynamicCalls(maskJs(source), maskJs(source, true))].map((call) => call.index);
+
+  it("flags a key held in a variable or a property", () => {
+    expect(dynamic("t(key)")).toEqual([0]);
+    expect(dynamic("this.$t(tool.name)")).toEqual([0]);
+    expect(dynamic("i18n.global.t(i18nKey || 'a.b')")).toEqual([0]);
+  });
+
+  it("flags a key built from a template literal or a concatenation", () => {
+    expect(dynamic("t(`tools.${view}View`)")).toEqual([0]);
+    expect(dynamic("$t('prompts.' + name)")).toEqual([0]);
+    expect(dynamic("t(`a.b` + suffix)")).toEqual([0]);
+  });
+
+  it("flags a dynamic key whatever its params are", () => {
+    expect(dynamic('$t(section.label, { suffix: "" })')).toEqual([0]);
+  });
+
+  it("accepts string literals, with or without params", () => {
+    expect(dynamic("t('a.b')")).toEqual([]);
+    expect(dynamic('$t("a.b", { count: n })')).toEqual([]);
+    expect(dynamic("t(`a.b`)")).toEqual([]);
+    expect(dynamic("this.$t( 'a.b' )")).toEqual([]);
+  });
+
+  it("ignores calls in comments and strings, and names that only end in t", () => {
+    expect(dynamic('// t(key)\nconst s = "t(key)";')).toEqual([]);
+    expect(dynamic("list.insert(key); sort(key); a.t(key)")).toEqual([]);
+  });
+
+  it("finds a dynamic call inside a template expression and reports each call", () => {
+    expect(dynamic("const a = `${t(key)}`;")).toEqual([13]);
+    expect(dynamic("t(a); t('ok.key'); $t(b)")).toEqual([0, 19]);
+  });
+});
+
+describe("isPassedAround", () => {
+  it("flags $t used as a value", () => {
+    expect(isPassedAround("return buildRows(this.info, this.$t, locale);")).toBe(true);
+    expect(isPassedAround("this.$t.bind(this)")).toBe(true);
+    expect(isPassedAround("export function label(value, $t) {")).toBe(true);
+  });
+
+  it("accepts calls and unrelated names", () => {
+    expect(isPassedAround('return this.$t("a.b");')).toBe(false);
+    expect(isPassedAround("$t ('a.b')")).toBe(false);
+    expect(isPassedAround("const $total = 1; const a$t = 2;")).toBe(false);
   });
 });

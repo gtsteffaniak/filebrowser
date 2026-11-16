@@ -1,7 +1,8 @@
-import type { PlainMessageKey } from "@/i18n/index.ts";
+import i18n from "@/i18n/index.ts";
 
-export const MEDIA_TRANSCODE_PROFILES: { id: string; label: PlainMessageKey }[] = [
-  { id: "quality", label: "general.quality" },
-  { id: "balanced", label: "general.balanced" },
-  { id: "datasaver", label: "general.dataSaver" },
+/** `label` is translated on every call, so it follows the current locale */
+export const MEDIA_TRANSCODE_PROFILES: { id: string; label: () => string }[] = [
+  { id: "quality", label: () => i18n.global.t("general.quality") },
+  { id: "balanced", label: () => i18n.global.t("general.balanced") },
+  { id: "datasaver", label: () => i18n.global.t("general.dataSaver") },
 ];

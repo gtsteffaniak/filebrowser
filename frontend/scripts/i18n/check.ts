@@ -34,13 +34,10 @@ interface TemplateNode {
 /** The code of a source file that can use a key -- comments and <style> blocks are dropped */
 const codeOf = (file: string) => maskSource(file, fs.readFileSync(file, "utf8"));
 
-/** Every key in en.json must appear as a string literal in src/ or match a dynamic prefix */
+/** Every key in en.json must appear as a string literal in src/ */
 export function checkUnusedKeys(): string[] {
   const code = [...sourceFiles()].filter((file) => !isTestFile(file)).map(codeOf).join("\n");
-  const prefixes = [...code.matchAll(/\bt\(\s*["'`]([\w.-]+\.)(?:\$\{|["'`]\s*\+)/g)].map((match) => match[1] ?? "");
-  const isUsed = (key: string) =>
-    ["'", '"', "`"].some((quote) => code.includes(`${quote}${key}${quote}`)) ||
-    prefixes.some((prefix) => key.startsWith(prefix));
+  const isUsed = (key: string) => ["'", '"', "`"].some((quote) => code.includes(`${quote}${key}${quote}`));
   return Object.keys(readLocale("en.json"))
     .filter((key) => !isUsed(key))
     .map((key) => `en.json: unused key ${key}`);

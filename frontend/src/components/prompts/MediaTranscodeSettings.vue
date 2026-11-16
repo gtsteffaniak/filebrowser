@@ -53,7 +53,7 @@
       </div>
 
       <div v-for="profile in profiles" :key="profile.id" class="settings-items">
-        <h3>{{ $t(profile.label) }}</h3>
+        <h3>{{ profile.label() }}</h3>
         <ToggleSwitch
           class="item"
           v-model="media.transcode.profiles[profile.id].enabled"

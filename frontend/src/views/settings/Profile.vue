@@ -86,7 +86,7 @@ export default {
     },
     activeSectionLabel() {
       const def = this.profileSectionDefs.find((s) => s.id === this.activeSectionKey);
-      return def ? this.$t(def.label) : this.profileSettingsLabel();
+      return def ? def.label() : this.profileSettingsLabel();
     },
     profileSectionDefs() {
       return settings.find((setting) => setting.id === 'profile')?.sections || [];

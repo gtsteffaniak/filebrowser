@@ -190,7 +190,7 @@
             :loading="loading"
             row-clickable
             :aria-label="$t('tools.activityViewer.name')"
-            :lonely-message-key="!loading && items.length === 0 ? 'files.lonely' : undefined"
+            :lonely-message="!loading && items.length === 0 ? $t('files.lonely') : undefined"
             @row-click="openEventDetails"
           >
           <template #cell-createdAt="{ row, column }">
@@ -903,13 +903,10 @@ export default {
       return (this.statsBuckets || []).reduce((sum, b) => sum + b.count, 0);
     },
     chartAriaLabel() {
-      return this.$t(`tools.activityViewer.${this.viewType}View`);
+      return this.viewTypeOptions.find((option) => option.value === this.viewType)?.label ?? "";
     },
     chartTitle() {
-      return activityChartTitle(
-        { viewType: this.viewType, splitBy: this.splitBy },
-        this.$t.bind(this),
-      );
+      return activityChartTitle({ viewType: this.viewType, splitBy: this.splitBy });
     },
   },
   watch: {
@@ -1575,7 +1572,7 @@ export default {
             const normalized = normalizeActivityTableRow(row);
             return {
               ...normalized,
-              tokenDisplay: activityTokenDisplay(normalized, this.$t),
+              tokenDisplay: activityTokenDisplay(normalized),
             };
           });
           this.totalEvents = listRes.total || 0;
@@ -1748,7 +1745,7 @@ export default {
       return this.formatTime(n);
     },
     eventTypeLabel(eventType) {
-      return activityEventLabel(eventType, this.$t);
+      return activityEventLabel(eventType);
     },
     eventTypeBadgeClass(eventType) {
       return activityEventTypeBadgeClass(eventType);

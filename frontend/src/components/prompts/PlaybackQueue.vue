@@ -159,10 +159,10 @@ const currentQueueIndex = computed(() => state.playbackQueue.currentIndex);
 const playbackMode = computed(() => state.playbackQueue.mode || 'single');
 const loop = computed(() => state.playbackQueue.loop || 'off');
 const queueCount = computed(() => playbackQueue.value.length);
-const currentModeLabel = computed(() => getModeLabel(playbackMode.value, t, queueCount.value));
+const currentModeLabel = computed(() => getModeLabel(playbackMode.value, queueCount.value));
 const currentModeIcon = computed(() => getModeIcon(playbackMode.value));
 const loopIcon = computed(() => getLoopIcon(loop.value));
-const loopLabel = computed(() => getLoopLabel(loop.value, t));
+const loopLabel = computed(() => getLoopLabel(loop.value));
 const isPlaying = computed(() => state.playbackQueue.isPlaying || false);
 const isPromptVisible = computed(() => state.prompts.some(prompt => prompt.name === 'PlaybackQueue'));
 const modeTabs = computed(() => [

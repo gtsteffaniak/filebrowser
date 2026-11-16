@@ -153,10 +153,10 @@ export default {
       type: String,
       default: "",
     },
-    /** i18n key for empty-state caption (icon + label), default `files.lonely`. */
-    lonelyMessageKey: {
+    /** Translated empty-state caption (icon + label), default `files.lonely`. */
+    lonelyMessage: {
       type: String,
-      default: "files.lonely",
+      default: undefined,
     },
     /** Override default sort detection: first column sortable ascending. */
     defaultSortKey: {
@@ -199,7 +199,7 @@ export default {
       return Math.max(n, 1);
     },
     lonelyCaption() {
-      return this.$t(this.lonelyMessageKey);
+      return this.lonelyMessage ?? this.$t("files.lonely");
     },
     sortedItems() {
       const list = [...(this.items ?? [])];

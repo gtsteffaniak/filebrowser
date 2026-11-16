@@ -3,7 +3,7 @@
  *   npm run i18n:sync            regenerate the types, translate new keys (DEEPL_API_KEY)
  *   npm run i18n:enforce-order   regenerate the types, reorder locales like en.json
  *   npm run i18n:cleanup         regenerate the types, remove obsolete keys
- *   npm run i18n:check           locale list, translations, types, unused keys and raw text
+ *   npm run i18n:check           locale list, translations, types, dynamic keys, unused keys and raw text
  *   npm run i18n:check:strict    checks for raw `$t` and 'vue-i18n' imports, including JS files
  */
 

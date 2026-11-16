@@ -1,4 +1,4 @@
-import i18n, { type PlainMessageKey } from "@/i18n/index.ts";
+import i18n from "@/i18n/index.ts";
 import { getIconClass } from "./material-symbols.js";
 
 declare global {
@@ -20,14 +20,15 @@ const origin = window.location.origin;
 
 export interface SettingsSection {
   id: string;
-  label?: PlainMessageKey;
+  /** Translated on every call, so the label follows the current locale */
+  label?: () => string;
   component?: string;
   icon: string;
   permissions?: Record<string, boolean>;
 }
 
 export interface SettingsEntry extends SettingsSection {
-  sections?: (SettingsSection & { label: PlainMessageKey })[];
+  sections?: (SettingsSection & { label: () => string })[];
 }
 
 const settings: SettingsEntry[] = [
@@ -36,37 +37,37 @@ const settings: SettingsEntry[] = [
     component: 'ProfileSettings',
     icon: 'person',
     sections: [
-      { id: 'listingOptions', label: 'settings.listingOptions', icon: 'view_list' },
-      { id: 'thumbnailOptions', label: 'profileSettings.thumbnailOptions', icon: 'image' },
-      { id: 'sidebarOptions', label: 'profileSettings.sidebarOptions', icon: 'dock_to_right' },
-      { id: 'searchOptions', label: 'settings.searchOptions', icon: 'search' },
-      { id: 'fileViewerOptions', label: 'profileSettings.fileViewerOptions', icon: 'play_circle' },
-      { id: 'themeLanguage', label: 'profileSettings.themeAndLanguage', icon: 'palette' },
-      { id: 'accountOptions', label: 'profileSettings.accountOptions', icon: 'person' },
+      { id: 'listingOptions', label: () => i18n.global.t('settings.listingOptions'), icon: 'view_list' },
+      { id: 'thumbnailOptions', label: () => i18n.global.t('profileSettings.thumbnailOptions'), icon: 'image' },
+      { id: 'sidebarOptions', label: () => i18n.global.t('profileSettings.sidebarOptions'), icon: 'dock_to_right' },
+      { id: 'searchOptions', label: () => i18n.global.t('settings.searchOptions'), icon: 'search' },
+      { id: 'fileViewerOptions', label: () => i18n.global.t('profileSettings.fileViewerOptions'), icon: 'play_circle' },
+      { id: 'themeLanguage', label: () => i18n.global.t('profileSettings.themeAndLanguage'), icon: 'palette' },
+      { id: 'accountOptions', label: () => i18n.global.t('profileSettings.accountOptions'), icon: 'person' },
     ],
   },
-  { id: 'fileLoading', label: 'fileLoading.title', component: 'FileLoading', icon: 'cloud_download' },
-  { id: 'notifications', label: 'notifications.title', component: 'NotificationsSettings', icon: 'notifications' },
+  { id: 'fileLoading', label: () => i18n.global.t('fileLoading.title'), component: 'FileLoading', icon: 'cloud_download' },
+  { id: 'notifications', label: () => i18n.global.t('notifications.title'), component: 'NotificationsSettings', icon: 'notifications' },
   { id: 'shares', component: 'SharesSettings', permissions: { share: true }, icon: 'share' },
-  { id: 'api', label: 'api.title', component: 'ApiKeys', permissions: { api: true }, icon: 'key' },
+  { id: 'api', label: () => i18n.global.t('api.title'), component: 'ApiKeys', permissions: { api: true }, icon: 'key' },
   {
     id: 'users',
     component: 'UserManagement',
     icon: 'group',
     sections: [
-      { id: 'main', label: 'general.users', permissions: { admin: true }, icon: 'person' },
-      { id: 'access', label: 'general.access', component: 'AccessSettings', permissions: { admin: true }, icon: 'lock' },
-      { id: 'groups', label: 'general.groups', component: 'GroupsSettings', permissions: { admin: true }, icon: 'groups' },
+      { id: 'main', label: () => i18n.global.t('general.users', { suffix: '' }), permissions: { admin: true }, icon: 'person' },
+      { id: 'access', label: () => i18n.global.t('general.access'), component: 'AccessSettings', permissions: { admin: true }, icon: 'lock' },
+      { id: 'groups', label: () => i18n.global.t('general.groups'), component: 'GroupsSettings', permissions: { admin: true }, icon: 'groups' },
     ],
   },
   {
     id: 'media',
-    label: 'general.media',
+    label: () => i18n.global.t('general.media'),
     component: 'MediaSettings',
     permissions: { admin: true },
     icon: 'movie',
   },
-  { id: 'systemAdmin', label: 'settings.systemAdmin', component: 'SystemAdmin', permissions: { admin: true }, icon: 'admin_panel_settings' },
+  { id: 'systemAdmin', label: () => i18n.global.t('settings.systemAdmin'), component: 'SystemAdmin', permissions: { admin: true }, icon: 'admin_panel_settings' },
 ];
 
 const previewViews = [

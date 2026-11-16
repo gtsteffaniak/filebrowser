@@ -735,12 +735,12 @@ export default {
     },
     playbackModeMessage() {
       if (this.toastType === 'loop') {
-        return getLoopLabel(this.loop, this.$t);
+        return getLoopLabel(this.loop);
       }
       if (this.toastType === 'cleared') {
         return this.$t('player.queueCleared');
       }
-      return getModeLabel(this.playbackMode, this.$t);
+      return getModeLabel(this.playbackMode);
     },
     toastIcon() {
       if (this.toastType === 'loop') {
@@ -3754,19 +3754,19 @@ export default {
         if (playbackBtn && playbackPanel) {
           playbackBtn.removeAttribute('hidden');
           const title = player.config.i18n?.playback || 'Playback';
-          const currentLabel = getModeLabel(this.playbackMode, this.$t, this.queueCount);
+          const currentLabel = getModeLabel(this.playbackMode, this.queueCount);
 
           if (!this.playbackMenuInitialized) {
             const menu = playbackPanel.querySelector('div[role="menu"]');
             menu.innerHTML = `
               <button data-plyr="playback" type="button" role="menuitemradio" class="plyr__control" value="single">
-                <span>${getModeLabel('single', this.$t)}</span>
+                <span>${getModeLabel('single')}</span>
               </button>
               <button data-plyr="playback" type="button" role="menuitemradio" class="plyr__control" value="sequential">
-                <span>${getModeLabel('sequential', this.$t)}</span>
+                <span>${getModeLabel('sequential')}</span>
               </button>
               <button data-plyr="playback" type="button" role="menuitemradio" class="plyr__control" value="shuffle">
-                <span>${getModeLabel('shuffle', this.$t)}</span>
+                <span>${getModeLabel('shuffle')}</span>
               </button>
             `;
             this.playbackButtons = menu.querySelectorAll('button[data-plyr="playback"]');
@@ -3788,7 +3788,7 @@ export default {
                     targetMode: value
                   });
                 }
-                const newLabel = getModeLabel(value, this.$t);
+                const newLabel = getModeLabel(value);
                 if (this.playbackValueSpan) this.playbackValueSpan.textContent = newLabel;
                 for (const b of this.playbackButtons) {
                   b.setAttribute('aria-checked', b.getAttribute('value') === value);
@@ -3823,19 +3823,19 @@ export default {
         if (loopBtn && loopPanel) {
           loopBtn.removeAttribute('hidden');
           const loopTitle = this.$t('player.loop');
-          const currentLoopLabel = getLoopLabel(this.loop, this.$t);
+          const currentLoopLabel = getLoopLabel(this.loop);
 
           if (!this.loopMenuInitialized) {
             const menu = loopPanel.querySelector('div[role="menu"]');
             menu.innerHTML = `
               <button data-plyr="loop" type="button" role="menuitemradio" class="plyr__control" value="off">
-                <span>${getLoopLabel('off', this.$t)}</span>
+                <span>${getLoopLabel('off')}</span>
               </button>
               <button data-plyr="loop" type="button" role="menuitemradio" class="plyr__control" value="all">
-                <span>${getLoopLabel('all', this.$t)}</span>
+                <span>${getLoopLabel('all')}</span>
               </button>
               <button data-plyr="loop" type="button" role="menuitemradio" class="plyr__control" value="single">
-                <span>${getLoopLabel('single', this.$t)}</span>
+                <span>${getLoopLabel('single')}</span>
               </button>
             `;
             this.loopButtons = menu.querySelectorAll('button[data-plyr="loop"]');
@@ -3855,7 +3855,7 @@ export default {
                     loop: value
                   });
                 }
-                const newLabel = getLoopLabel(value, this.$t);
+                const newLabel = getLoopLabel(value);
                 if (this.loopValueSpan) this.loopValueSpan.textContent = newLabel;
                 for (const b of this.loopButtons) {
                   b.setAttribute('aria-checked', b.getAttribute('value') === value);

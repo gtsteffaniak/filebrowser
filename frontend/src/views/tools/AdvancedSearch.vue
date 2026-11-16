@@ -142,7 +142,7 @@
               <template v-for="section in sections" :key="section.key">
                 <template v-if="section.items.length > 0">
                   <div>
-                    <h2>{{ t(section.title) }}</h2>
+                    <h2>{{ section.title }}</h2>
                   </div>
                   <div
                     :class="[section.class, { lastGroup: section.last }]"
@@ -186,7 +186,7 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from "vue";
 import type { FileListItem, fileListItemIndex, ReqObject } from "@/store/types.ts";
 import { useRoute } from "vue-router";
-import { type PlainMessageKey, useI18n } from "@/i18n/index.ts";
+import { useI18n } from "@/i18n/index.ts";
 import { toolsApi } from "@/api/index.js";
 import { router } from "@/router/index.ts";
 import { state, getters, mutations } from "@/store/index.ts";
@@ -484,10 +484,10 @@ const reqListing = computed(() => {
 });
 
 const sections = computed<
-  { key: string; class: string; title: PlainMessageKey; label: string; items: typeof reqListing.value.dirs; last: boolean }[]
+  { key: string; class: string; title: string; label: string; items: typeof reqListing.value.dirs; last: boolean }[]
 >(() => [
-  { key: "dirs", class: "folder-items", title: "general.folders", label: "Folder Items", items: reqListing.value.dirs, last: reqListing.value.files.length === 0 },
-  { key: "files", class: "file-items", title: "general.files", label: "File Items", items: reqListing.value.files, last: true },
+  { key: "dirs", class: "folder-items", title: t("general.folders"), label: "Folder Items", items: reqListing.value.dirs, last: reqListing.value.files.length === 0 },
+  { key: "files", class: "file-items", title: t("general.files"), label: "File Items", items: reqListing.value.files, last: true },
 ]);
 
 const allItems = computed(() => [...reqListing.value.dirs, ...reqListing.value.files]);

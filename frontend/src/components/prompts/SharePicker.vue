@@ -12,7 +12,6 @@
       default-sort-key="path"
       :aria-label="$t('sidebar.chooseShare')"
       row-clickable
-      :lonely-message-key="shares.length === 0 ? 'tools.activityViewer.noShares' : undefined"
       @row-click="selectShare"
     >
       <template #cell-path="{ row }">
