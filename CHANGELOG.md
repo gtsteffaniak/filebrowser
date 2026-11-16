@@ -9,7 +9,7 @@ All notable changes to this project will be documented in this file. For commit 
 
  **Bug Fixes**:
  - fix(utils): `IsTextFile` reads only an 8KB sample instead of the whole file, avoiding excessive memory use when classifying large files for the editor, file watcher, and subtitle checks (#3405)
- - fix(frontend): sidebar source usage bar now shows per-user scope quota (used vs cap) from `GET /api/settings/sources` instead of the parent source partition size when a scope quota is configured (#3402)
+ - fix(frontend): standard source usage bar (`source` and `source-alt` sidebar categories) now shows per-user scope quota (used vs cap) from `GET /api/settings/sources` instead of the parent source partition size when a scope quota is configured, and keeps that quota across realtime `sourceUpdate` events (#3402)
 
 ## v2.1.5
 
