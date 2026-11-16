@@ -477,6 +477,8 @@
     "saveBeforeExitMessage": "Du har osparade ändringar i redigeringsverktyget. Vad skulle du vilja göra?",
     "uploadSettingsChunked": "Max samtidiga uppladdningar: {maxConcurrentUpload}, chunkstorlek: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Max samtidiga uppladdningar: {maxConcurrentUpload}, chunked uppladdning inaktiverad",
+    "uploadSummaryFailed": "{count} misslyckades",
+    "uploadSummaryRemaining": "{time} kvar",
     "optionalPassword": "Valfritt lösenord",
     "deleted": "Raderad framgångsrikt!",
     "conflictsDetected": "Konflikter upptäckta",

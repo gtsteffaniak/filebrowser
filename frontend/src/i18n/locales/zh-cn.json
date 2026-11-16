@@ -477,6 +477,8 @@
     "saveBeforeExitMessage": "编辑器中还有未保存的更改。您想怎么做？",
     "uploadSettingsChunked": "最大并发上传：{maxConcurrentUpload}块大小 {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "最大并发上传：{maxConcurrentUpload}已禁用分块上传",
+    "uploadSummaryFailed": "{count} 个失败",
+    "uploadSummaryRemaining": "剩余 {time}",
     "optionalPassword": "密码（选填，不填即无密码）",
     "deleted": "已成功删除！",
     "conflictsDetected": "检测到冲突",

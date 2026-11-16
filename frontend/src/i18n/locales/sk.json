@@ -477,6 +477,8 @@
     "saveBeforeExitMessage": "V editore máte neuložené zmeny. Čo by ste chceli urobiť?",
     "uploadSettingsChunked": "Maximálne súbežné nahrávanie: {maxConcurrentUpload}, veľkosť chunk: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Maximálne súbežné nahrávanie: {maxConcurrentUpload}, chunked upload vypnuté",
+    "uploadSummaryFailed": "{count} zlyhalo",
+    "uploadSummaryRemaining": "zostáva {time}",
     "optionalPassword": "Voliteľné heslo",
     "deleted": "Úspešne vymazané!",
     "conflictsDetected": "Zistené konflikty",

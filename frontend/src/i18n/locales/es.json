@@ -477,6 +477,8 @@
     "saveBeforeExitMessage": "Tienes cambios sin guardar. ¿Qué quieres hacer?",
     "uploadSettingsChunked": "Subidas simultáneas: {maxConcurrentUpload} - Tamaño de fragmento: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Subidas simultáneas: {maxConcurrentUpload} - Subida fragmentada: Desactivada",
+    "uploadSummaryFailed": "{count} con error",
+    "uploadSummaryRemaining": "quedan {time}",
     "optionalPassword": "Contraseña (opcional):",
     "deleted": "¡Borrado con éxito!",
     "conflictsDetected": "Se detectaron conflictos",

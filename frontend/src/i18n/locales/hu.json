@@ -477,6 +477,8 @@
     "saveBeforeExitMessage": "A szerkesztőben elmentetlen módosítások vannak. Mit szeretne tenni?",
     "uploadSettingsChunked": "Maximális egyidejű feltöltés: {maxConcurrentUpload}, chunk méret: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Maximális egyidejű feltöltés: {maxConcurrentUpload}, chunked upload disabled",
+    "uploadSummaryFailed": "{count} sikertelen",
+    "uploadSummaryRemaining": "még {time}",
     "optionalPassword": "Választható jelszó",
     "deleted": "Sikeresen törölve!",
     "conflictsDetected": "Feltárt konfliktusok",

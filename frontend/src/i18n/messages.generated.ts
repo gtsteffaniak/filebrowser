@@ -456,6 +456,8 @@ export interface MessageParams {
   "prompts.saveBeforeExitMessage": never;
   "prompts.uploadSettingsChunked": "maxConcurrentUpload" | "uploadChunkSizeMb";
   "prompts.uploadSettingsNoChunk": "maxConcurrentUpload";
+  "prompts.uploadSummaryFailed": "count";
+  "prompts.uploadSummaryRemaining": "time";
   "prompts.optionalPassword": never;
   "prompts.deleted": never;
   "prompts.conflictsDetected": never;

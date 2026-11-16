@@ -477,6 +477,8 @@
     "saveBeforeExitMessage": "У вас есть несохраненные изменения в редакторе. Что бы вы хотели сделать?",
     "uploadSettingsChunked": "Максимальное количество одновременных загрузок: {maxConcurrentUpload}, размер чанка: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Максимальное количество одновременных загрузок: {maxConcurrentUpload}, загрузка по частям отключена",
+    "uploadSummaryFailed": "ошибок: {count}",
+    "uploadSummaryRemaining": "осталось {time}",
     "optionalPassword": "Необязательный пароль",
     "deleted": "Удалено успешно!",
     "conflictsDetected": "Обнаруженные конфликты",

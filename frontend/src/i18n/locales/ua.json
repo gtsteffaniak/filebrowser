@@ -477,6 +477,8 @@
     "saveBeforeExitMessage": "У вас є незбережені зміни в редакторі. Що ви хочете зробити?",
     "uploadSettingsChunked": "Максимальна кількість одночасних завантажень: {maxConcurrentUpload}, розмір фрагмента: {uploadChunkSizeMb} МБ",
     "uploadSettingsNoChunk": "Максимальне одночасне завантаження: {maxConcurrentUpload}, chunked upload вимкнено",
+    "uploadSummaryFailed": "помилок: {count}",
+    "uploadSummaryRemaining": "залишилось {time}",
     "optionalPassword": "Необов'язковий пароль",
     "deleted": "Видалено успішно!",
     "conflictsDetected": "Виявлені конфлікти",

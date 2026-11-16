@@ -477,6 +477,8 @@
     "saveBeforeExitMessage": "Aveți modificări nesalvate în editor. Ce doriți să faceți?",
     "uploadSettingsChunked": "Încărcări simultane maxime: {maxConcurrentUpload}, dimensiunea bucăților: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Încărcări simultane maxime: {maxConcurrentUpload}, încărcare fragmentată dezactivată",
+    "uploadSummaryFailed": "{count} eșuate",
+    "uploadSummaryRemaining": "{time} rămase",
     "optionalPassword": "Parolă opțională",
     "deleted": "Șterse cu succes!",
     "conflictsDetected": "Conflicte detectate",

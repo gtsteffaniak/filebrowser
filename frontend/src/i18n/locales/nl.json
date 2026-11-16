@@ -477,6 +477,8 @@
     "saveBeforeExitMessage": "U hebt niet-opgeslagen wijzigingen in de editor. Wat wilt u doen?",
     "uploadSettingsChunked": "Max. aantal gelijktijdige uploads: {maxConcurrentUpload}, brokgrootte: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Max. aantal gelijktijdige uploads: {maxConcurrentUpload}, upload in brokken uitgeschakeld",
+    "uploadSummaryFailed": "{count} mislukt",
+    "uploadSummaryRemaining": "nog {time}",
     "optionalPassword": "Optioneel wachtwoord",
     "deleted": "Met succes verwijderd!",
     "conflictsDetected": "Conflicten gedetecteerd",

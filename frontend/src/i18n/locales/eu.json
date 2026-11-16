@@ -477,6 +477,8 @@
     "saveBeforeExitMessage": "Gorde gabeko aldaketak dituzu editorean. Zer egin nahi duzu?",
     "uploadSettingsChunked": "Aldibereko igoerak gehienez: {maxConcurrentUpload}, zatien tamaina: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Aldibereko igoerak gehienez: {maxConcurrentUpload}, zatikako igoera desgaituta",
+    "uploadSummaryFailed": "{count} huts egin dute",
+    "uploadSummaryRemaining": "{time} falta dira",
     "optionalPassword": "Aukerako pasahitza",
     "deleted": "Ondo ezabatu da!",
     "conflictsDetected": "Gatazkak hauteman dira",

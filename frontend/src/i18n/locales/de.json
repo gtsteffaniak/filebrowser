@@ -477,6 +477,8 @@
     "saveBeforeExitMessage": "Sie haben ungespeicherte Änderungen im Editor. Was würden Sie gerne tun?",
     "uploadSettingsChunked": "Max. gleichzeitige Uploads: {maxConcurrentUpload}, Chunk-Größe: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Max. gleichzeitige Uploads: {maxConcurrentUpload}, Chunked Upload deaktiviert",
+    "uploadSummaryFailed": "{count} fehlgeschlagen",
+    "uploadSummaryRemaining": "noch {time}",
     "optionalPassword": "Optionales Kennwort",
     "deleted": "Erfolgreich gelöscht!",
     "conflictsDetected": "Erkannte Widersprüche",

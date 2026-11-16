@@ -477,6 +477,8 @@
     "saveBeforeExitMessage": "Vous avez des modifications non enregistrées dans l'éditeur. Que souhaitez-vous faire ?",
     "uploadSettingsChunked": "Nombre maximum d'importations simultanées : {maxConcurrentUpload}, taille des morceaux : {uploadChunkSizeMb} Mo",
     "uploadSettingsNoChunk": "Nombre maximum d'importations simultanées : {maxConcurrentUpload}, importation par morceaux désactivée",
+    "uploadSummaryFailed": "{count} en échec",
+    "uploadSummaryRemaining": "{time} restantes",
     "optionalPassword": "Mot de passe facultatif",
     "deleted": "Supprimé avec succès !",
     "conflictsDetected": "Conflits détectés",

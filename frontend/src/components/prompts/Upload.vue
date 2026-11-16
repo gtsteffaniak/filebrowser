@@ -431,7 +431,7 @@ watch(
 
 const summaryText = computed(() => {
   const s = summary.value;
-  const parts = [t("prompts.uploadSummaryFiles", { completed: s.completedFiles, total: s.totalFiles })];
+  const parts = [`${s.completedFiles} / ${s.totalFiles} ${t("general.files", { suffix: "" })}`];
   if (s.failedFiles > 0) {
     parts.push(t("prompts.uploadSummaryFailed", { count: s.failedFiles }));
   }
