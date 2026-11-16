@@ -19,6 +19,7 @@ export const locales: Record<string, Locale> = {
   en: { name: 'English', file: 'en', tag: 'en' },
   es: { name: 'Español', file: 'es', tag: 'es' },
   eu: { name: 'Euskara', file: 'eu', tag: 'eu' },
+  fi: { name: 'Suomi', file: 'fi', tag: 'fi' },
   fr: { name: 'Français', file: 'fr', tag: 'fr' },
   he: { name: 'עברית', file: 'he', tag: 'he' },
   hu: { name: 'Magyar', file: 'hu', tag: 'hu' },
