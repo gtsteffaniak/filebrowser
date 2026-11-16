@@ -113,8 +113,12 @@ const BYPASS_RULES = [
 const PASSED_AROUND = /(^|[^\w$])\$t\b(?!\s*\()/;
 export const isPassedAround = (line: string) => PASSED_AROUND.test(line);
 
+function* passedAroundIndexes(bare: string): Generator<number> {
+  for (const match of bare.matchAll(new RegExp(PASSED_AROUND.source, "g"))) yield match.index + (match[1] ?? "").length;
+}
+
 // The start of a t(...) call: t(, $t(, this.$t( or i18n.global.t(
-const CALL_START = /(?:(?<![\w$.])(?:\$t|t|i18n\.global\.t)|\bthis\.\$t)\(/g;
+const CALL_START = /(?:(?<![\w$.])(?:\$t|t|i18n\.global\.t)|\bthis\.\$t)\s*\(/g;
 
 interface Params {
   names: Set<string>;
@@ -288,8 +292,9 @@ function checkTypedUsage(messages: Messages, strict: boolean): string[] {
       }
     }
     if (!strict && !isTypeScript(file, text)) {
-      for (const [index, line] of bare.split("\n").entries()) {
-        if (isPassedAround(line)) problems.push(`${rel(file)}:${index + 1}: $t is passed around as a value, import i18n from '@/i18n/index.ts' and call t() with a literal key in the helper instead`);
+      const lines = new Set([...passedAroundIndexes(bare)].map((index) => lineOf(text, index)));
+      for (const line of lines) {
+        problems.push(`${rel(file)}:${line}: $t is passed around as a value, import i18n from '@/i18n/index.ts' and call t() with a literal key in the helper instead`);
       }
     }
     for (const call of literalCalls(code, bare)) {

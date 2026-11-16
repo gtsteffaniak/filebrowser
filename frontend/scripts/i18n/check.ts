@@ -70,8 +70,9 @@ function rawAttributeMessage(name: string, value: string): string {
 }
 
 function stringLiteralOf(expression: string): string | null {
-  const match = /^\s*(?:'([^'\\\n]*)'|"([^"\\\n]*)"|`([^`$\\]*)`)\s*$/.exec(expression);
-  return match ? (match[1] ?? match[2] ?? match[3] ?? "") : null;
+  const match = /^\s*(?:'((?:[^'\\\n]|\\['\\])*)'|"((?:[^"\\\n]|\\["\\])*)"|`((?:[^`$\\]|\\[`$\\])*)`)\s*$/.exec(expression);
+  const text = match ? (match[1] ?? match[2] ?? match[3] ?? "") : null;
+  return text === null ? null : text.replace(/\\(['"`$\\])/g, "$1");
 }
 
 const hasLetters = (text: string) => /\p{L}/u.test(text);
@@ -106,7 +107,7 @@ export function checkRawText(): string[] {
       for (const child of node.children ?? []) {
         if (!skip) walk(child);
         if (child.type === COMMENT) skip = typeof child.content === "string" && child.content.trim() === IGNORE_COMMENT;
-        else if (child.type === ELEMENT || (child.type === TEXT && String(child.content).trim())) skip = false;
+        else if (child.type === ELEMENT || child.type === INTERPOLATION || (child.type === TEXT && String(child.content).trim())) skip = false;
       }
     };
     if (ast) walk(ast as unknown as TemplateNode);

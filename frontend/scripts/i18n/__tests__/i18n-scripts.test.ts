@@ -265,6 +265,7 @@ describe("dynamicCalls", () => {
   });
 
   it("accepts string literals, with or without params", () => {
+    expect(dynamic("this.$t (\"a.b\")")).toEqual([]);
     expect(dynamic("t('a.b')")).toEqual([]);
     expect(dynamic('$t("a.b", { count: n })')).toEqual([]);
     expect(dynamic("t(`a.b`)")).toEqual([]);
