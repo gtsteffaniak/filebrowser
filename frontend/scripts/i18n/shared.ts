@@ -70,8 +70,8 @@ const REGEX_KEYWORD = /(?:^|[^\w$.])(?:return|typeof|case|do|else|in|of|void|del
 
 /** Replaces the comments of JS/TS code by spaces and, with `strings`, the content of '...' and "..." literals too */
 export function maskJs(text: string, strings = false): string {
-  const isRegexStart = (index: number) => {
-    const before = text.slice(0, index).trimEnd();
+  const isRegexStart = (emitted: string) => {
+    const before = emitted.trimEnd();
     if (POSTFIX.test(before)) return false;
     return before === "" || REGEX_PRECEDER.test(before) || REGEX_KEYWORD.test(before);
   };
@@ -88,7 +88,7 @@ export function maskJs(text: string, strings = false): string {
         const end = close === -1 ? text.length : next === "/" ? close : close + 2;
         out += blank(text.slice(i, end));
         i = end;
-      } else if (ch === "/" && isRegexStart(i)) {
+      } else if (ch === "/" && isRegexStart(out)) {
         let end = i + 1;
         let inClass = false;
         while (end < text.length && text.charAt(end) !== "\n" && (inClass || text.charAt(end) !== "/")) {
