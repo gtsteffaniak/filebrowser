@@ -216,7 +216,7 @@
 				"useImportsFirst": "off",
 				"useVarsOnTop": "on",
 				"useVueConsistentDefinePropsDeclaration": "on",
-				"useVueConsistentVBindStyle": "off",
+				"useVueConsistentVBindStyle": "warn",
 				"useVueDefineMacrosOrder": "warn",
 				"useVueHyphenatedAttributes": "off",
 				"useVueMultiWordComponentNames": "off",

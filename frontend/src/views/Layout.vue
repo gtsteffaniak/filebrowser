@@ -7,7 +7,7 @@
       <div v-if="overlayOverPrompt" @contextmenu.prevent="closeContextMenu" @click="closeContextMenu" class="overlay overlay-prompt"></div>
     </transition>
     <div v-if="progress" class="progress">
-      <div v-bind:style="{ width: `${progress}%` }"></div>
+      <div :style="{ width: `${progress}%` }"></div>
     </div>
     <defaultBar></defaultBar>
     <sidebar v-if="!invalidShare"></sidebar>
