@@ -820,6 +820,8 @@ export interface MessageParams {
   "fileLoading.uploadChunkSizeMbHelp": never;
   "fileLoading.downloadChunkSizeMb": never;
   "fileLoading.downloadChunkSizeMbHelp": never;
+  "fileLoading.uploadStallTimeoutSeconds": never;
+  "fileLoading.uploadStallTimeoutSecondsHelp": never;
   "fileLoading.clearAll": never;
   "fileLoading.clearAllDescription": never;
   "fileLoading.uploadSettings": never;

@@ -535,7 +535,7 @@
     "caseExact": "Porovnání s rozlišováním velkých a malých písmen",
     "caseExactDescription": "Porovnává názvy souborů a složek s rozlišením velkých a malých písmen.",
     "helpText1": "Hledá se průběžně při psaní (min. počet znaků: {minSearchLength}).",
-    "helpText2": "Hledá podřetězec jen v názvech souborů a složek (ne v celých cestách) bez ohledu na velká a malá písmena. Slova oddělená mezerou se shodují i přes běžné oddělovače, jako jsou tečky, podtržítka a pomlčky (např. „Blade Runner“ najde Blade.Runner.mkv). Pro rozlišení velkých a malých písmen použijte case:exact.\n\nPro NEBO mezi výrazy použijte svislou čáru |; přesnou frázi s mezerami dejte do dvojitých uvozovek.\n\nPro pokročilé vzory (*, ?, [a-z]) zapněte hledání se zástupnými znaky.",
+    "helpText2": "Hledá podřetězec jen v názvech souborů a složek (ne v celých cestách) bez ohledu na velká a malá písmena. Slova oddělená mezerou se shodují i přes běžné oddělovače, jako jsou tečky, podtržítka a pomlčky (např. „Blade Runner“ najde Blade.Runner.mkv). Pro rozlišení velkých a malých písmen použijte case:exact.\n\nPro NEBO mezi výrazy použijte svislou čáru {'|'}; přesnou frázi s mezerami dejte do dvojitých uvozovek.\n\nPro pokročilé vzory (*, ?, [a-z]) zapněte hledání se zástupnými znaky.",
     "openInAdvancedSearch": "Otevřít v rozšířeném vyhledávání"
   },
   "profileSettings": {
