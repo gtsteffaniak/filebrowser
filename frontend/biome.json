@@ -47,7 +47,8 @@
 				"noVueRefAsOperand": "error",
 				"noVueVOnNumberValues": "error",
 				"useVueValidVFor": "error",
-        "noVueVIfWithVFor": "error"
+        "noVueVIfWithVFor": "error",
+        "noVueDuplicateKeys": "error"
 			},
 			"nursery": {
 				"noFloatingPromises": "error",
@@ -153,7 +154,17 @@
       "useVueValidDefineOptions": "error",
       "noRedundantTypeConstituents": "warn",
       "noUselessSpread": "warn",
-      "noVueExposeAfterAwait": "error"
+      "noVueExposeAfterAwait": "error",
+      "noBufferConstructor": "warn",
+      "noConfusingArraySplice": "warn",
+      "noDynamicRequire": "error",
+      "noLateCurrentTargetAccess": "error",
+      "noVueAsyncComputed": "error",
+      "noVueDefineModelDefault": "warn",
+      "noVueDeprecatedVIs": "error",
+      "noVueExportInScriptSetup": "error",
+      "useValidNamespaceImports": "error",
+      "noVueUnusedEmitDeclarations": "error"
 			},
 			"performance": { "useVueVapor": "off" },
 			"security": {
@@ -172,7 +183,8 @@
         "useImportsFirst": "off",
         "useVarsOnTop": "on",
         "useDomQuerySelector": "warn",
-        "useVueDefineMacrosOrder": "warn"
+        "useVueDefineMacrosOrder": "warn",
+        "noCommonJs": "warn"
 			},
 			"suspicious": {
 				"noEmptyObjectKeys": "error",
