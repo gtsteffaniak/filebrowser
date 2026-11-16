@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "engines": {
-    "npm": ">=12.0.0",
+    "npm": ">=10.9.0",
     "node": "^22.22.2 || ^24.15.0 || >=26.0.0"
   },
   "scripts": {
@@ -29,11 +29,11 @@
     "test": "vitest run "
   },
   "dependencies": {
-    "@likecoin/epub-ts": "^0.7.3",
+    "@likecoin/epub-ts": "^0.7.4",
     "@onlyoffice/document-editor-vue": "^1.7.0",
     "ace-builds": "^1.45.2",
     "chart.js": "^4.6.1",
-    "dompurify": "^3.4.17",
+    "dompurify": "^3.4.18",
     "highlight.js": "^11.12.0",
     "hls.js": "^1.7.4",
     "js-yaml": "^5.5.0",
@@ -44,8 +44,8 @@
     "temml": "^0.14.0",
     "three": "^0.187.0",
     "vue": "^3.5.45",
-    "vue-i18n": "^11.4.19",
-    "vue-router": "^5.5.0"
+    "vue-i18n": "^11.4.20",
+    "vue-router": "^5.5.1"
   },
   "overrides": {
     "stylelint-config-recommended": "^19.0.0",
@@ -60,10 +60,10 @@
     "glob": "^14.0.6"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.6.7",
+    "@biomejs/biome": "2.6.8",
     "@intlify/eslint-plugin-vue-i18n": "^4.5.1",
     "@intlify/unplugin-vue-i18n": "^11.2.8",
-    "@playwright/test": "^1.65.0",
+    "@playwright/test": "^1.65.1",
     "@types/node": "^26.6.6",
     "@typescript-eslint/parser": "^8.72.2",
     "@vitejs/plugin-vue": "^6.0.11",

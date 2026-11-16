@@ -35,7 +35,6 @@
     <div
       v-if="mode === 'navigation' && !isShare && sourceNames.length > 1"
       class="source-card-container"
-      ref="sourceCardContainer"
     >
       <ExpandDropdown
         class="sidebar-source-switcher"
@@ -146,19 +145,6 @@
       </template>
       <!-- Navigation Mode -->
       <template v-else>
-        <!-- Source switcher only when multiple sources (hidden in shares) -->
-        <div
-          v-if="!isShare && sourceNames.length > 1"
-          class="source-card-container"
-        >
-          <ExpandDropdown
-            class="sidebar-source-switcher"
-            :model-value="activeSource"
-            :options="sourceDropdownOptions"
-            :aria-label="$t('general.source')"
-            @update:model-value="navigateToSource"
-          />
-        </div>
         <FileTree
           :currentPath="currentPath"
           :currentSource="currentSource"

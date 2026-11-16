@@ -82,6 +82,7 @@ export default {
           maxConcurrentUpload: null,
           uploadChunkSizeMb: null,
           downloadChunkSizeMb: null,
+          uploadStallTimeoutSeconds: null,
         },
       },
     };
