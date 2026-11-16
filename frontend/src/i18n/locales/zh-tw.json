@@ -477,6 +477,8 @@
     "saveBeforeExitMessage": "您在編輯器中有未儲存的變更。您想做什麼？",
     "uploadSettingsChunked": "最大同時上傳數：{maxConcurrentUpload}，分塊大小：{uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "最大同時上傳數：{maxConcurrentUpload}，已停用分塊上傳",
+    "uploadSummaryFailed": "{count} 個失敗",
+    "uploadSummaryRemaining": "剩餘 {time}",
     "optionalPassword": "選填密碼",
     "deleted": "已成功刪除！",
     "conflictsDetected": "偵測到衝突",

@@ -477,6 +477,8 @@
     "saveBeforeExitMessage": "Έχετε μη αποθηκευμένες αλλαγές στον επεξεργαστή. Τι θα θέλατε να κάνετε;",
     "uploadSettingsChunked": "Μέγιστες ταυτόχρονες μεταφορτώσεις: {maxConcurrentUpload}, μέγεθος τεμαχίου: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Μέγιστες ταυτόχρονες μεταφορτώσεις: {maxConcurrentUpload}, chunked upload disabled",
+    "uploadSummaryFailed": "{count} απέτυχαν",
+    "uploadSummaryRemaining": "απομένουν {time}",
     "optionalPassword": "Προαιρετικός κωδικός πρόσβασης",
     "deleted": "Διαγράφηκε με επιτυχία!",
     "conflictsDetected": "Ανιχνεύονται συγκρούσεις",

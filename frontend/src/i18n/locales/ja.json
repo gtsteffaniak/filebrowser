@@ -477,6 +477,8 @@
     "saveBeforeExitMessage": "エディタに未保存の変更があります。どうしますか？",
     "uploadSettingsChunked": "最大同時アップロード数：{maxConcurrentUpload}、チャンクサイズ：{uploadChunkSizeMb}MB",
     "uploadSettingsNoChunk": "最大同時アップロード数：{maxConcurrentUpload}、チャンクアップロード無効",
+    "uploadSummaryFailed": "{count} 件失敗",
+    "uploadSummaryRemaining": "残り {time}",
     "optionalPassword": "任意のパスワード",
     "deleted": "正常に削除されました！",
     "conflictsDetected": "競合が検出されました",

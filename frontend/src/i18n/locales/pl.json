@@ -477,6 +477,8 @@
     "saveBeforeExitMessage": "Masz niezapisane zmiany w edytorze. Co chcesz zrobić?",
     "uploadSettingsChunked": "Maks. jednoczesne przesyłanie: {maxConcurrentUpload}, rozmiar fragmentu: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Maksymalny jednoczesny upload: {maxConcurrentUpload}, przesyłanie fragmentaryczne wyłączone",
+    "uploadSummaryFailed": "{count} nieudanych",
+    "uploadSummaryRemaining": "pozostało {time}",
     "optionalPassword": "Hasło opcjonalne",
     "deleted": "Usunięto pomyślnie!",
     "conflictsDetected": "Wykryte konflikty",

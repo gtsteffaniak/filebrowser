@@ -477,6 +477,8 @@
     "saveBeforeExitMessage": "편집기에 저장되지 않은 변경 내용이 있습니다. 어떻게 하시겠습니까?",
     "uploadSettingsChunked": "최대 동시 업로드: {maxConcurrentUpload}, 청크 크기: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "최대 동시 업로드: {maxConcurrentUpload}, 청크 업로드 비활성화",
+    "uploadSummaryFailed": "{count}개 실패",
+    "uploadSummaryRemaining": "{time} 남음",
     "optionalPassword": "선택적 비밀번호",
     "deleted": "성공적으로 삭제되었습니다!",
     "conflictsDetected": "충돌 감지",

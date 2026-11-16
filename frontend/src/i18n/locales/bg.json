@@ -477,6 +477,8 @@
     "saveBeforeExitMessage": "Имате незапазени промени в редактора. Какво искате да направите?",
     "uploadSettingsChunked": "Максимални едновременни качвания: {maxConcurrentUpload}, размер на частите: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Максимални едновременни качвания: {maxConcurrentUpload}, качването на части е изключено",
+    "uploadSummaryFailed": "{count} неуспешни",
+    "uploadSummaryRemaining": "остават {time}",
     "optionalPassword": "Незадължителна парола",
     "deleted": "Изтрито успешно!",
     "conflictsDetected": "Открити конфликти",

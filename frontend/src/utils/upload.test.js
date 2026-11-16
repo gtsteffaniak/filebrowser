@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { locales } from "@/i18n/locales.ts";
 
 vi.mock("@/api", () => ({
   resourcesApi: {
@@ -31,7 +32,15 @@ vi.mock("@/utils/appNotifications", async (importOriginal) => {
 import { resourcesApi } from "@/api/index.js";
 import { notify } from "@/notify/index.ts";
 import { mutations, state, getters } from "@/store/index.ts";
-import { isSameSize, numberedName, uploadManager } from "./upload.ts";
+import {
+  formatRemainingTime,
+  isSameSize,
+  numberedName,
+  summarizeUploads,
+  uploadedBytesById,
+  UploadRateMeter,
+  uploadManager,
+} from "./upload.ts";
 
 function addUpload(status = "uploading", file = new Blob(["a"])) {
   uploadManager.queue.push({
@@ -436,5 +445,107 @@ describe("hasOngoingUploads", () => {
     uploadManager.clearCompleted();
     expect(mutations.setIsUploading).toHaveBeenCalledWith(false);
     state.user.fileLoading.clearAll = false;
+  });
+});
+
+describe("summarizeUploads", () => {
+  const item = (status, size, progress = 0, type = "file") => ({ status, size, progress, type });
+
+  it("counts files and bytes, ignoring folders", () => {
+    const summary = summarizeUploads([
+      item("completed", 100, 100),
+      item("uploading", 200, 50),
+      item("pending", 300),
+      item("error", 400, 25),
+      item("conflict", 500),
+      item("completed", 0, 100, "directory"),
+    ]);
+    expect(summary).toEqual({
+      totalFiles: 5,
+      completedFiles: 1,
+      failedFiles: 2,
+      totalBytes: 1500,
+      uploadedBytes: 100 + 100 + 100,
+    });
+  });
+
+  it("returns zeros for an empty queue", () => {
+    expect(summarizeUploads([])).toEqual({
+      totalFiles: 0,
+      completedFiles: 0,
+      failedFiles: 0,
+      totalBytes: 0,
+      uploadedBytes: 0,
+    });
+  });
+});
+
+describe("UploadRateMeter", () => {
+  const MiB = 1024 * 1024;
+  const bytes = (entries) => new Map(entries);
+
+  it("measures the speed between samples and smooths it", () => {
+    const meter = new UploadRateMeter(0.5);
+    expect(meter.sample(bytes([[1, 0]]), 0)).toBe(0);
+    expect(meter.sample(bytes([[1, 1000]]), 1000)).toBe(1000);
+    expect(meter.sample(bytes([[1, 4000]]), 2000)).toBe(2000); // 0.5 * 3000 + 0.5 * 1000
+  });
+
+  it("keeps counting what other files sent when finished files are cleared from the queue", () => {
+    const meter = new UploadRateMeter();
+    // A completed 100 MiB file and two files at 0%...
+    meter.sample(bytes([[1, 100 * MiB], [2, 0], [3, 0]]), 0);
+    // ...the completed one is cleared while each of the others sends 60 MiB in one second.
+    expect(meter.sample(bytes([[2, 60 * MiB], [3, 60 * MiB]]), 1000)).toBe(120 * MiB);
+  });
+
+  it("does not count a file restarted from zero as negative progress", () => {
+    const meter = new UploadRateMeter();
+    meter.sample(bytes([[1, 500], [2, 0]]), 0);
+    expect(meter.sample(bytes([[1, 0], [2, 1000]]), 1000)).toBe(1000);
+  });
+
+  it("counts a file added since the last sample from zero", () => {
+    const meter = new UploadRateMeter();
+    meter.sample(bytes([[1, 0]]), 0);
+    expect(meter.sample(bytes([[1, 1000], [2, 500]]), 1000)).toBe(1500);
+  });
+
+  it("starts over after reset", () => {
+    const meter = new UploadRateMeter();
+    meter.sample(bytes([[1, 0]]), 0);
+    meter.sample(bytes([[1, 1000]]), 1000);
+    meter.reset();
+    expect(meter.bytesPerSecond).toBe(0);
+    expect(meter.sample(bytes([[1, 5000]]), 5000)).toBe(0);
+  });
+});
+
+describe("uploadedBytesById", () => {
+  it("maps each file to the bytes it sent, ignoring folders", () => {
+    const queue = [
+      { id: 1, status: "completed", size: 100, progress: 100, type: "file" },
+      { id: 2, status: "uploading", size: 200, progress: 25, type: "file" },
+      { id: 3, status: "completed", size: 0, progress: 100, type: "directory" },
+    ];
+    expect(uploadedBytesById(queue)).toEqual(new Map([[1, 100], [2, 50]]));
+  });
+});
+
+describe("formatRemainingTime", () => {
+  it("rounds up to seconds, then minutes, then hours and minutes", () => {
+    expect(formatRemainingTime(0.2, "en")).toBe("1 sec");
+    expect(formatRemainingTime(44.1, "en")).toBe("45 sec");
+    expect(formatRemainingTime(61, "en")).toBe("2 min");
+    expect(formatRemainingTime(3600, "en")).toBe("1 hr");
+    expect(formatRemainingTime(3900, "en")).toBe("1 hr 5 min");
+  });
+
+  it("works with the standard tag of every app locale, not with the registry ids", () => {
+    for (const { tag } of Object.values(locales)) {
+      expect(() => formatRemainingTime(3900, tag)).not.toThrow();
+    }
+    // Registry ids such as ptBR are not language tags: Intl rejects them.
+    expect(() => formatRemainingTime(60, "ptBR")).toThrow(RangeError);
   });
 });

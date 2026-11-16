@@ -477,6 +477,8 @@
     "saveBeforeExitMessage": "Düzenleyicide kaydedilmemiş değişiklikleriniz var. Ne yapmak istiyorsunuz?",
     "uploadSettingsChunked": "Maksimum eşzamanlı yükleme: {maxConcurrentUpload}, yığın boyutu: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Maksimum eşzamanlı yükleme: {maxConcurrentUpload}, yığınlanmış yükleme devre dışı",
+    "uploadSummaryFailed": "{count} başarısız",
+    "uploadSummaryRemaining": "{time} kaldı",
     "optionalPassword": "İsteğe bağlı şifre",
     "deleted": "Başarıyla silindi!",
     "conflictsDetected": "Çakışmalar tespit edildi",

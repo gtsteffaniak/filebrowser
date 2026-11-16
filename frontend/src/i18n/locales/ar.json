@@ -477,6 +477,8 @@
     "saveBeforeExitMessage": "لديك تغييرات غير محفوظة في المحرر. ماذا تريد أن تفعل؟",
     "uploadSettingsChunked": "الحد الأقصى للتحميلات المتزامنة: {maxConcurrentUpload} ، حجم القطعة: {uploadChunkSizeMb} ميغابايت",
     "uploadSettingsNoChunk": "الحد الأقصى للتحميلات المتزامنة: {maxConcurrentUpload} ، تم تعطيل التحميل المقطّع",
+    "uploadSummaryFailed": "فشل {count}",
+    "uploadSummaryRemaining": "متبقٍ {time}",
     "optionalPassword": "كلمة مرور اختيارية",
     "deleted": "تم الحذف بنجاح!",
     "conflictsDetected": "التعارضات المكتشفة",

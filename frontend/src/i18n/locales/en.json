@@ -477,6 +477,8 @@
     "saveBeforeExitMessage": "You have unsaved changes in the editor. What would you like to do?",
     "uploadSettingsChunked": "Max concurrent uploads: {maxConcurrentUpload}, chunk size: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "Max concurrent uploads: {maxConcurrentUpload}, chunked upload disabled",
+    "uploadSummaryFailed": "{count} failed",
+    "uploadSummaryRemaining": "{time} remaining",
     "optionalPassword": "Optional password",
     "deleted": "Deleted successfully!",
     "conflictsDetected": "Conflicts detected",

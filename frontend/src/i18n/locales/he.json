@@ -477,6 +477,8 @@
     "saveBeforeExitMessage": "יש לך שינויים שלא נשמרו בעורך. מה ברצונך לעשות?",
     "uploadSettingsChunked": "מספר העלאות מקסימלי בו-זמנית: {maxConcurrentUpload}, גודל קובץ: {uploadChunkSizeMb} MB",
     "uploadSettingsNoChunk": "מספר העלאות מקסימלי בו-זמנית: {maxConcurrentUpload}, העלאה מקוטעת מושבתת",
+    "uploadSummaryFailed": "{count} נכשלו",
+    "uploadSummaryRemaining": "נותרו {time}",
     "optionalPassword": "סיסמא אופציונלית",
     "deleted": "נמחק בהצלחה!",
     "conflictsDetected": "סכסוכים שזוהו",

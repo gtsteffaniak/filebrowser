@@ -155,6 +155,99 @@ export function numberedName(name: string, n: number): string {
   return `${stem}_${String(n).padStart(2, "0")}${ext}`;
 }
 
+/** Totals of the files in an upload queue; folders are not counted */
+export interface UploadSummary {
+  totalFiles: number;
+  completedFiles: number;
+  /** Files in error or in conflict */
+  failedFiles: number;
+  totalBytes: number;
+  uploadedBytes: number;
+}
+
+/** Bytes of a file already sent: all of it once completed, otherwise its progress */
+function uploadedBytesOf(item: UploadItem): number {
+  if (item.status === "completed") {
+    return item.size;
+  }
+  const progress = Math.min(Math.max(item.progress, 0), 100);
+  return (progress / 100) * item.size;
+}
+
+export function summarizeUploads(queue: readonly UploadItem[]): UploadSummary {
+  const summary: UploadSummary = { totalFiles: 0, completedFiles: 0, failedFiles: 0, totalBytes: 0, uploadedBytes: 0 };
+  for (const item of queue) {
+    if (item.type === "directory") continue;
+    summary.totalFiles++;
+    summary.totalBytes += item.size;
+    summary.uploadedBytes += uploadedBytesOf(item);
+    if (item.status === "completed") {
+      summary.completedFiles++;
+    } else if (item.status === "error" || item.status === "conflict") {
+      summary.failedFiles++;
+    }
+  }
+  return summary;
+}
+
+/** Bytes sent so far for each file of the queue, by upload id */
+export function uploadedBytesById(queue: readonly UploadItem[]): Map<number, number> {
+  const bytes = new Map<number, number>();
+  for (const item of queue) {
+    if (item.type !== "directory") {
+      bytes.set(item.id, uploadedBytesOf(item));
+    }
+  }
+  return bytes;
+}
+
+/** Smoothed upload speed, computed from samples of the bytes sent so far by each file */
+export class UploadRateMeter {
+  bytesPerSecond = 0;
+  private last: { bytes: Map<number, number>; time: number } | null = null;
+
+  constructor(private readonly smoothing = 0.3) {}
+
+  /** Records the bytes sent by each file (by upload id) at `time` (ms) and returns the smoothed speed in bytes per second */
+  sample(bytesById: ReadonlyMap<number, number>, time: number): number {
+    const last = this.last;
+    this.last = { bytes: new Map(bytesById), time };
+    if (!last || time <= last.time) {
+      return this.bytesPerSecond;
+    }
+    // Sum per-file progress, so a file removed from the queue (cleared, cancelled)
+    // or restarted from zero does not hide what the other files sent.
+    let delta = 0;
+    for (const [id, sent] of bytesById) {
+      delta += Math.max(0, sent - (last.bytes.get(id) ?? 0));
+    }
+    const rate = (delta * 1000) / (time - last.time);
+    this.bytesPerSecond =
+      this.bytesPerSecond === 0 ? rate : this.smoothing * rate + (1 - this.smoothing) * this.bytesPerSecond;
+    return this.bytesPerSecond;
+  }
+
+  reset(): void {
+    this.bytesPerSecond = 0;
+    this.last = null;
+  }
+}
+
+/** Formats a remaining time for display: "45 sec", "12 min", "1 hr 5 min" in English */
+export function formatRemainingTime(seconds: number, locale?: string): string {
+  const format = (value: number, unit: string) =>
+    new Intl.NumberFormat(locale, { style: "unit", unit, unitDisplay: "short", maximumFractionDigits: 0 }).format(value);
+  if (seconds < 60) {
+    return format(Math.max(1, Math.ceil(seconds)), "second");
+  }
+  if (seconds < 3600) {
+    return format(Math.ceil(seconds / 60), "minute");
+  }
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.round((seconds % 3600) / 60);
+  return minutes > 0 ? `${format(hours, "hour")} ${format(minutes, "minute")}` : format(hours, "hour");
+}
+
 class UploadManager {
   queue: UploadItem[] = reactive<UploadItem[]>([]);
   activeUploads = 0;
