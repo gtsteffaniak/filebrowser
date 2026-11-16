@@ -57,13 +57,13 @@ export default {
   min-width: 0;
 }
 
+.profile-enforceable-field.toggle-container--enforceable :deep(.profile-enforce-row) {
+  margin-top: 0;
+}
+
 .profile-enforceable-field.toggle-container--enforceable:hover :deep(.profile-enforce-row),
 .profile-enforceable-field.toggle-container--enforceable:hover :deep(.profile-enforce-row:hover) {
   background-color: transparent;
-}
-
-.profile-enforceable-field.toggle-container--enforceable :deep(.profile-enforce-row) {
-  margin-top: 0;
 }
 
 .profile-enforceable-field.toggle-container--enforceable :deep(.settings-items) {

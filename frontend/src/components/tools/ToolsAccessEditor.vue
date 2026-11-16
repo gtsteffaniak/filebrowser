@@ -226,6 +226,10 @@ export default {
   background-color: var(--surfaceSecondary);
 }
 
+.tool-access-toggle :deep(.toggle-container--enforceable) {
+  padding: 0;
+}
+
 .tool-access-item:hover :deep(.toggle-container--enforceable),
 .tool-access-item:hover :deep(.toggle-container--enforceable:hover) {
   background-color: transparent;
@@ -239,9 +243,5 @@ export default {
 .tool-access-toggle {
   flex: 1 1 auto;
   min-width: 0;
-}
-
-.tool-access-toggle :deep(.toggle-container--enforceable) {
-  padding: 0;
 }
 </style>

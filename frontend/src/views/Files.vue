@@ -43,16 +43,16 @@ function sameListing(a, b) {
   if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length) {
     return false;
   }
-  const describe = (i) =>
+  const describeItem = (i) =>
     [ i.type, i.size, i.modified,
       i.created, i.pinned, i.hasPreview,
       i.isShared, i.hidden, i.viewToken,
     ].join("|");
   const known = new Map();
   for (const item of a) {
-    known.set(item.name, describe(item));
+    known.set(item.name, describeItem(item));
   }
-  return b.every((item) => known.get(item.name) === describe(item));
+  return b.every((item) => known.get(item.name) === describeItem(item));
 }
 
 function reusableParentItems(inScope, filePath) {
