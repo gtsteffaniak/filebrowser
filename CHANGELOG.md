@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v2.1.6
+
+ **Security**:
+ - [High] Archive extraction now bounds symlink target resolution under the extract destination and rejects absolute or `..` link text, including chained symlinks created during the same extract, closing a follow-up escape path related to GHSA-jg32-ppcc-ph62 (#3404)
+
+ **Bug Fixes**:
+ - fix(utils): `IsTextFile` reads only an 8KB sample instead of the whole file, avoiding excessive memory use when classifying large files for the editor, file watcher, and subtitle checks (#3405)
+ - fix(frontend): sidebar source usage bar now shows per-user scope quota (used vs cap) from `GET /api/settings/sources` instead of the parent source partition size when a scope quota is configured (#3402)
+
 ## v2.1.5
 
  **Security**:
