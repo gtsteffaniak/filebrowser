@@ -23,6 +23,7 @@ import (
 
 func setupExtractAccessPolicyTest(t *testing.T) (destDir, sourceRoot, sourceName, username string) {
 	t.Helper()
+	lockWebGlobals(t)
 	tempDir := t.TempDir()
 	dbPath := filepath.Join(tempDir, "access.sqlite")
 	if _, err := state.Initialize(dbPath); err != nil {

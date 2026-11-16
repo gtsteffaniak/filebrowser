@@ -6,6 +6,7 @@
       <UserProfilePreferences
           v-model="preferenceSections"
           enforceable
+          hide-account-options
           :enforced="enforced"
           :config-locked-paths="lockedFromConfigPaths"
           show-extension-inputs

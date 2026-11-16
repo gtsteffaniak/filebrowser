@@ -3,11 +3,16 @@ package web
 import (
 	"archive/tar"
 	"archive/zip"
+	"errors"
 	"io"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+
+	commonerrors "github.com/gtsteffaniak/filebrowser/backend/internal/errors"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 )
 
 func TestNormalizeArchiveEntryName(t *testing.T) {
@@ -555,5 +560,21 @@ func TestExtractZip_symlinkDestination(t *testing.T) {
 	victimData, err := os.ReadFile(victim)
 	if err != nil || string(victimData) != "untouched" {
 		t.Fatalf("victim.txt should be unchanged: %q, %v", victimData, err)
+	}
+}
+
+func TestArchiveCreateDestination_RejectsEscapingSymlinkLeaf(t *testing.T) {
+	t.Parallel()
+	root := t.TempDir()
+	outside := filepath.Join(filepath.Dir(root), "outside-archive")
+	if err := os.MkdirAll(outside, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Symlink(outside, filepath.Join(root, "report.zip")); err != nil {
+		t.Fatal(err)
+	}
+	idx := &indexing.Index{Source: settings.Source{Path: root}}
+	if _, err := idx.GetRealPathForMutation("", "/report.zip"); !errors.Is(err, commonerrors.ErrPathEscapesScope) {
+		t.Fatalf("expected ErrPathEscapesScope, got %v", err)
 	}
 }
