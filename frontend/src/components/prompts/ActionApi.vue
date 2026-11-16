@@ -52,7 +52,7 @@
         >
           <span class="permission-name">{{ permission }}</span>
           <span class="permission-status" :class="{ enabled: isEnabled, disabled: !isEnabled }">
-            {{ isEnabled ? '✓' : '✗' }} <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+            {{ isEnabled ? '✓' : '✗' }}
           </span>
         </div>
       </div>

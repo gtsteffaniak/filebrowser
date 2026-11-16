@@ -1,7 +1,7 @@
 /** Whether this server can serve transcoded playback right now. */
 
 import { state } from '@/store/index.ts';
-import { globalVars } from '@/utils/constants.js';
+import { globalVars } from '@/utils/constants.ts';
 
 /**
  * `ffmpegAvailable` is a static page constant that mirrors ffmpeg availability, which

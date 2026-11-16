@@ -9,6 +9,7 @@ const { fetchFiles, state } = vi.hoisted(() => ({
 // The virtual composable needs measured DOM (jsdom has none), so it just forwards
 // groups() as all-items — same seam as the real `useListingVirtualization`.
 vi.mock("@/api", () => ({ resourcesApi: { fetchFiles } }));
+vi.mock("@/i18n/index.ts", () => ({ useI18n: () => ({ t: (key: string) => key }) }));
 vi.mock("@/composables/useListingVirtualization.ts", () => ({
   findScrollParents: () => [],
   findScroller: () => null,
@@ -75,7 +76,6 @@ function mount(items: unknown[] = [], path = "/child/") {
   root = document.createElement("div");
   document.body.append(root);
   app = createApp(FileList as never, { hidePathChrome: true, "onUpdate:selected": selection });
-  app.config.globalProperties.$t = (key: string) => key;
   app.mount(root);
 }
 

@@ -33,7 +33,6 @@ export async function get(username, options = {}) {
 // POST /api/users (create user)
 // Password-login: tries without X-Password first; on 401 requiring X-Password, opens the prompt and retries.
 // options.skipActorPasswordConfirm / pre-set X-Password skip that flow.
-// options.actorPasswordPromptI18nKey — optional vue-i18n key (default: confirmPasswordToSaveUser).
 export async function create(user, options = {}) {
   const mergedHeaders = { ...(options.headers || {}) }
   const apiPath = getApiPath('users')
@@ -64,13 +63,11 @@ export async function create(user, options = {}) {
     if (!needsActorPasswordRetry(e)) {
       throw e
     }
-    const promptKey =
-      options.actorPasswordPromptI18nKey || 'prompts.confirmPasswordToSaveUser'
     return new Promise((resolve, reject) => {
       mutations.showPrompt({
         name: 'password',
         props: {
-          infoText: i18n.global.t(promptKey),
+          infoText: i18n.global.t('prompts.confirmPasswordToSaveUser'),
           submitLabel: i18n.global.t('general.confirm'),
           submitCallback: async (actorPassword) => {
             try {
@@ -96,7 +93,6 @@ export async function create(user, options = {}) {
 // PATCH /api/users (update user)
 // Password-login: tries without X-Password first; on 401 requiring X-Password, opens the prompt and retries.
 // options.skipActorPasswordConfirm / pre-set X-Password skip that flow.
-// options.actorPasswordPromptI18nKey — optional vue-i18n key (default: confirmPasswordToSaveUser).
 export async function update(user, which, options = {}) {
   if (!Array.isArray(which) || which.length === 0) {
     throw new Error('users.update requires a non-empty which array of field names')
@@ -145,13 +141,11 @@ export async function update(user, which, options = {}) {
     if (!needsActorPasswordRetry(e)) {
       throw e
     }
-    const promptKey =
-      options.actorPasswordPromptI18nKey || 'prompts.confirmPasswordToSaveUser'
     return new Promise((resolve, reject) => {
       mutations.showPrompt({
         name: 'password',
         props: {
-          infoText: i18n.global.t(promptKey),
+          infoText: i18n.global.t('prompts.confirmPasswordToSaveUser'),
           submitLabel: i18n.global.t('general.confirm'),
           submitCallback: async (actorPassword) => {
             try {
@@ -187,7 +181,6 @@ export async function patchPinnedItem({ source, path, name, action = 'add' }) {
 // DELETE /api/users (remove user)
 // Password-login: tries without X-Password first; on 401 requiring X-Password, opens the prompt and retries.
 // options.skipActorPasswordConfirm / pre-set X-Password skip that flow.
-// options.actorPasswordPromptI18nKey — optional vue-i18n key (default: confirmPasswordToSaveUser).
 export async function deleteUser(username, options = {}) {
   const mergedHeaders = { ...(options.headers || {}) }
   const apiPath = getApiPath('users', { username: username })
@@ -209,13 +202,11 @@ export async function deleteUser(username, options = {}) {
     if (!needsActorPasswordRetry(e)) {
       throw e
     }
-    const promptKey =
-      options.actorPasswordPromptI18nKey || 'prompts.confirmPasswordToSaveUser'
     return new Promise((resolve, reject) => {
       mutations.showPrompt({
         name: 'password',
         props: {
-          infoText: i18n.global.t(promptKey),
+          infoText: i18n.global.t('prompts.confirmPasswordToSaveUser'),
           submitLabel: i18n.global.t('general.confirm'),
           submitCallback: async (actorPassword) => {
             try {

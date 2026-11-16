@@ -1,4 +1,4 @@
-import { globalVars } from "@/utils/constants.js";
+import { globalVars } from "@/utils/constants.ts";
 
 export const DARK_MODE_AUTO = "auto";
 export const DARK_MODE_DARK = "dark";

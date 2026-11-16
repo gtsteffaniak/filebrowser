@@ -513,7 +513,7 @@ export default {
         sourcePath: "",
       },
       availableTools: [
-        { id: 'tools-hub', name: 'tools.title', path: '/tools', icon: 'build' },
+        { id: 'tools-hub', name: this.$t('tools.title'), path: '/tools', icon: 'build' },
         ...availableTools(),
       ],
       availableShares: [],
@@ -656,7 +656,7 @@ export default {
     toolTargetOptions() {
       return this.availableTools.map((tool) => ({
         value: tool.path,
-        label: this.$t(tool.name),
+        label: tool.name,
       }));
     },
     usageTextModeOptions() {
@@ -805,7 +805,7 @@ export default {
         return;
       }
       const mainEntry = this.availableTools.find((t) => t.path === "/tools");
-      const name = mainEntry ? this.$t(mainEntry.name) : this.$t("tools.title");
+      const name = mainEntry ? mainEntry.name : this.$t("tools.title");
       const icon = mainEntry ? mainEntry.icon : "build";
       this.links.push({
         name,
@@ -1042,23 +1042,12 @@ export default {
         return link.name || this.$t('general.divider');
       }
 
-      // Check if the name looks like a translation key that needs translating
+      // Links saved with the translation key as their name
       if (link.category === 'shareInfo' && link.name === 'share.shareInfo') {
         return this.$t('share.shareInfo');
       }
       if (link.category === 'download' && link.name === 'general.download') {
         return this.$t('general.download');
-      }
-      // Check if it's a general translation key pattern
-      if (typeof link.name === 'string' && link.name.includes('.') && link.name.split('.').length === 2) {
-        // Try to translate, if it fails, return original
-        try {
-          const translated = this.$t(link.name);
-          // If translation returns the same key, it means it doesn't exist, return original
-          return translated !== link.name ? translated : link.name;
-        } catch (_e) {
-          return link.name;
-        }
       }
       return link.name;
     },
@@ -1126,7 +1115,7 @@ export default {
       if (tool) {
         // Only set default name and icon if user hasn't entered them yet
         if (!this.newLink.name) {
-          this.newLink.name = this.$t(tool.name);
+          this.newLink.name = tool.name;
         }
         if (!this.newLink.icon) {
           this.newLink.icon = tool.icon;

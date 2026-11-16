@@ -3,13 +3,13 @@
     <!-- Source Selection Dropdown (hidden when browsing a fixed source, e.g. user scope row) -->
     <div v-if="!hidePathChrome && showSourceSelector" class="source-selector" style="margin-bottom: 1rem;">
       <label for="destinationSource" style="display: block; margin-bottom: 0.5rem; font-weight: bold;">
-        {{ $t("prompts.destinationSource") }}
+        {{ t("prompts.destinationSource") }}
       </label>
       <ExpandDropdown
         input-id="destinationSource"
         v-model="currentSource"
         :options="sourceOptions"
-        :aria-label="$t('prompts.destinationSource')"
+        :aria-label="t('prompts.destinationSource')"
       />
     </div>
 
@@ -17,7 +17,7 @@
     <div v-if="(!hidePathChrome && !fileList) || sortable || $slots.sticky" class="sticky-header" :class="{ 'header-hidden': headerHidden }">
       <!-- Current Path Display -->
       <div v-if="!hidePathChrome && !fileList" aria-label="filelist-path" class="searchContext button clickable">
-        {{ $t('general.path', { suffix: ':' }) }} {{ sourcePath.path }}
+        {{ t('general.path', { suffix: ':' }) }} {{ sourcePath.path }}
       </div>
       <slot name="sticky" />
       <ListingHeader v-if="sortable && !loading" :use-picker-sorting="!fileList" :use-navigation-sorting="!!fileList" />
@@ -68,7 +68,7 @@
       </div>
       <h2 v-if="filterQuery && !visibleItems.some((item) => item.name !== '..')" class="no-results">
         <i class="material-symbols-outlined">search_off</i>
-        <span>{{ $t("tools.advancedSearch.noResults") }}</span>
+        <span>{{ t("tools.advancedSearch.noResults") }}</span>
       </h2>
     </div>
   </div>
@@ -86,6 +86,7 @@ import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import { sortedItems } from "@/utils/sort.ts";
 import { findScrollParents, findScroller, useListingVirtualization } from "@/composables/useListingVirtualization.ts";
+import { useI18n } from "@/i18n/index.ts";
 
 type ItemInfo = FileListItem & { isDir?: boolean; hasDuration?: boolean };
 
@@ -164,6 +165,8 @@ const emit = defineEmits<{
 defineSlots<{
   sticky?(): unknown;
 }>();
+
+const { t } = useI18n();
 
 const root = useTemplateRef<HTMLElement>("root");
 const list = useTemplateRef<HTMLElement>("list");

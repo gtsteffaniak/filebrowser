@@ -1,6 +1,6 @@
 import { markRaw, reactive } from 'vue';
 import { detectLocale } from "@/i18n/index.ts";
-import { globalVars } from "@/utils/constants.js";
+import { globalVars } from "@/utils/constants.ts";
 import { normalizeDarkMode, systemPrefersDark } from "@/utils/theme.js";
 import type { StoreState } from "./types.ts";
 

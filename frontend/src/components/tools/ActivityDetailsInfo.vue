@@ -39,7 +39,7 @@ export default {
       ];
     },
     rows() {
-      return buildActivityDetailRows(this.row, this.$t);
+      return buildActivityDetailRows(this.row);
     },
   },
 };

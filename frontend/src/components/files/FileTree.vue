@@ -7,7 +7,7 @@
     <!-- Error state -->
     <div v-if="error" class="tree-error">
       <i class="material-symbols">error</i>
-      <span>{{ $t("prompts.error") }}</span>
+      <span>{{ t("prompts.error") }}</span>
     </div>
     <div v-if="rootNodes.length" ref="listEl" class="tree-list">
       <div data-virtual-group="rows" :style="virtual.group('rows').style">
@@ -60,7 +60,7 @@
           </a>
           <div v-else-if="row.kind === 'empty'" class="tree-empty-folder">
             <i class="material-symbols-outlined">sentiment_dissatisfied</i>
-            <span>{{ $t('files.lonely') }}</span>
+            <span>{{ t('files.lonely') }}</span>
           </div>
           <div v-else-if="row.kind === 'loading'" class="tree-loading">
             <LoadingSpinner size="small" mode="placeholder" />
@@ -74,7 +74,7 @@
     <!-- Empty state -->
     <div v-if="rootNodes.length === 0 && !loading && !error" class="tree-empty">
       <i class="material-symbols-outlined">sentiment_dissatisfied</i>
-      {{ $t('files.lonely') }}
+      {{ t('files.lonely') }}
     </div>
   </div>
 </template>

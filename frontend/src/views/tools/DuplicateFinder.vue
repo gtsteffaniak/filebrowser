@@ -8,11 +8,11 @@
           aria-label="duplicate-finder-path"
           :show-files="false"
           :show-folders="true"
-          :placeholder="$t('sidebar.chooseSource')"
+          :placeholder="t('sidebar.chooseSource')"
         />
-        <h3>{{ $t('duplicateFinder.minSize') }}</h3>
+        <h3>{{ t('duplicateFinder.minSize') }}</h3>
         <input aria-label="Minimum size input" v-model.number="minSizeValue" type="number" min="0" placeholder="1" class="input" />
-        <p class="hint">{{ $t('duplicateFinder.minSizeHint') }}</p>
+        <p class="hint">{{ t('duplicateFinder.minSizeHint') }}</p>
         <button
           type="button"
           aria-label="Find duplicates button"
@@ -21,7 +21,7 @@
           :disabled="loading"
         >
           <i v-if="loading" class="material-symbols spin">autorenew</i>
-          <span v-else>{{ $t('duplicateFinder.findDuplicates') }}</span>
+          <span v-else>{{ t('duplicateFinder.findDuplicates') }}</span>
         </button>
       </div>
     </div>
@@ -33,40 +33,40 @@
 
       <div v-if="duplicateGroups.length > 0 && resultsApplyToInputs">
         <div class="card-title">
-          <h2>{{ $t('general.results') }}</h2>
+          <h2>{{ t('general.results') }}</h2>
         </div>
         <div class="card-content">
           <div class="stats">
-            <span>{{ $t('duplicateFinder.groupsFound', { suffix: ': ' }) }}<strong>{{ duplicateGroups.length }}</strong></span>
-            <span>{{ $t('duplicateFinder.totalWastedSpace', { suffix: ': ' }) }}<strong>{{ humanSize(totalWastedSpace) }}</strong></span>
+            <span>{{ t('duplicateFinder.groupsFound', { suffix: ': ' }) }}<strong>{{ duplicateGroups.length }}</strong></span>
+            <span>{{ t('duplicateFinder.totalWastedSpace', { suffix: ': ' }) }}<strong>{{ humanSize(totalWastedSpace) }}</strong></span>
           </div>
 
           <!-- Show timeout/limit warning first if applicable -->
           <div v-if="isIncomplete" class="warning-message">
             <i class="material-symbols">warning</i>
             <div>
-              <strong>{{ $t('fileSizeAnalyzer.incompleteResults') }}</strong> {{ incompleteReason }}
+              <strong>{{ t('fileSizeAnalyzer.incompleteResults') }}</strong> {{ incompleteReason }}
             </div>
           </div>
           <!-- Show complete/maxGroups warning if no timeout -->
           <div v-else-if="duplicateGroups.length < maxGroups" class="success-message">
             <i class="material-symbols">check_circle</i>
             <div>
-              <strong>{{ $t('fileSizeAnalyzer.completeResults') }}</strong>
+              <strong>{{ t('fileSizeAnalyzer.completeResults') }}</strong>
             </div>
           </div>
           <div v-else class="warning-message">
             <i class="material-symbols">warning</i>
             <div>
-              <strong>{{ $t('fileSizeAnalyzer.incompleteResults') }}</strong> {{ $t('messages.incompleteResultsDetails', { max: maxGroups }) }}
+              <strong>{{ t('fileSizeAnalyzer.incompleteResults') }}</strong> {{ t('messages.incompleteResultsDetails', { max: maxGroups }) }}
             </div>
           </div>
           <div ref="list" class="duplicate-groups">
             <template v-for="(group, index) in duplicateGroups" :key="index">
               <div class="group-header">
-                <span class="group-title">{{ $t('general.group') }} {{ index + 1 }}</span>
+                <span class="group-title">{{ t('general.group') }} {{ index + 1 }}</span>
                 <span class="group-size">{{ getGroupSizeText(group) }}</span>
-                <span class="wasted-space">{{ $t('duplicateFinder.wasted', { suffix: ': ' }) }} {{ humanSize(group.size * (group.count - 1)) }}</span>
+                <span class="wasted-space">{{ t('duplicateFinder.wasted', { suffix: ': ' }) }} {{ humanSize(group.size * (group.count - 1)) }}</span>
               </div>
               <div class="group-files" :data-virtual-group="`g${index}`" :style="virtual.group(`g${index}`).style">
                 <div
@@ -107,14 +107,14 @@
           <i v-if="isIncomplete" class="material-symbols-outlined">warning</i>
           <i v-else class="material-symbols-outlined">check_circle</i>
           <template v-if="isIncomplete">
-            <p><strong>{{ $t('fileSizeAnalyzer.incompleteResults') }}</strong></p>
+            <p><strong>{{ t('fileSizeAnalyzer.incompleteResults') }}</strong></p>
             <p v-if="incompleteReason">{{ incompleteReason }}</p>
           </template>
-          <p v-else>{{ $t('duplicateFinder.noResults') }}</p>
+          <p v-else>{{ t('duplicateFinder.noResults') }}</p>
         </template>
         <template v-else>
           <i class="material-symbols-outlined">content_copy</i>
-          <p>{{ $t('duplicateFinder.emptyState') }}</p>
+          <p>{{ t('duplicateFinder.emptyState') }}</p>
         </template>
       </div>
     </div>
@@ -124,7 +124,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, shallowRef, useTemplateRef, watch } from "vue";
 import { useRoute } from "vue-router";
-import { useI18n } from "vue-i18n";
+import { useI18n } from "@/i18n/index.ts";
 import { toolsApi } from "@/api/index.js";
 import { router } from "@/router/index.ts";
 import { state, mutations } from "@/store/index.ts";
@@ -133,7 +133,7 @@ import { eventBus } from "@/store/eventBus.ts";
 import ListingItem from "@/components/files/ListingItem.vue";
 import PathPickerButton from "@/components/files/PathPickerButton.vue";
 import { useListingVirtualization } from "@/composables/useListingVirtualization.ts";
-import { globalVars } from "@/utils/constants.js";
+import { globalVars } from "@/utils/constants.ts";
 
 defineOptions({ name: "DuplicateFinder" });
 

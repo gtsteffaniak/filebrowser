@@ -53,7 +53,7 @@
         class="material-symbols overlay-icon overlay-icon--bottom clickable"
         aria-label="Download"
         @click.stop.prevent="downloadFile"
-      >file_download</button> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+      >file_download</button>
     </div>
 
     <div class="text">
@@ -94,7 +94,7 @@
 
 <script>
 import { computed, provide, shallowRef } from "vue";
-import { globalVars } from "@/utils/constants.js";
+import { globalVars } from "@/utils/constants.ts";
 import downloadFiles from "@/utils/download.js";
 import { getHumanReadableFilesize } from "@/utils/filesizes.js";
 import { getKindKey } from "@/utils/mimetype.js";

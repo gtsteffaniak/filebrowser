@@ -2,7 +2,7 @@
   <div v-if="isMobile" role="button" tabindex="0" class="card item clickable settings-card" @click="closeSettings"
     @keydown.enter.prevent="!$event.repeat && closeSettings()" @keydown.space.prevent @keyup.space="closeSettings">
     <span class="settings-item-content">
-      <span class="material-symbols-outlined settings-icon">close</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+      <span class="material-symbols-outlined settings-icon">close</span>
       {{ $t("general.exit") }}
     </span>
   </div>
@@ -58,7 +58,7 @@
             >
               <span class="settings-item-content">
                 <span class="material-symbols-outlined settings-icon">{{ section.icon }}</span>
-                {{ $t(section.label, { suffix: "" }) }}
+                {{ section.label() }}
               </span>
             </div>
           </div>
@@ -90,7 +90,7 @@
 <script>
 import { state, getters, mutations } from "@/store/index.ts";
 import { getObjectProperty } from '@/utils/object.js';
-import { settings } from "@/utils/constants.js";
+import { settings } from "@/utils/constants.ts";
 import { router } from "@/router/index.ts";
 import { collapseEnter, collapseLeave } from "@/utils/transitions.ts";
 
@@ -180,7 +180,7 @@ export default {
         case "users":
           return this.$t("general.userManagement");
         default:
-          return this.$t(setting.label);
+          return setting.label?.() ?? "";
       }
     },
   },

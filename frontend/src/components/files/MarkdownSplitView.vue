@@ -27,6 +27,7 @@
 <script lang="ts">
 import type { PropType } from "vue";
 import type { Ace } from "ace-builds";
+import i18n from "@/i18n/index.ts";
 import { state, getters, mutations } from "@/store/index.ts";
 import { createAsyncComponent } from "@/utils/asyncComponent.js";
 import Scrollbar from "@/components/files/Scrollbar.vue";
@@ -114,7 +115,7 @@ export default {
       return getters.showSplitViewToggle();
     },
     splitViewActionLabel() {
-      return getters.isSplitViewActive() ? this.$t("editor.exitSplitView") : this.$t("editor.splitView");
+      return getters.isSplitViewActive() ? i18n.global.t("editor.exitSplitView") : i18n.global.t("editor.splitView");
     },
   },
   methods: {

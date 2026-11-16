@@ -115,6 +115,7 @@
               </div>
               <div class="config-field glob-field glob-field-wide">
                 <h3>{{ $t("tools.activityViewer.pathGlob") }}</h3>
+                <!-- i18n-ignore -->
                 <input
                   v-model="filterPathGlob"
                   type="text"
@@ -189,7 +190,7 @@
             :loading="loading"
             row-clickable
             :aria-label="$t('tools.activityViewer.name')"
-            :lonely-message-key="!loading && items.length === 0 ? 'files.lonely' : undefined"
+            :lonely-message="!loading && items.length === 0 ? $t('files.lonely') : undefined"
             @row-click="openEventDetails"
           >
           <template #cell-createdAt="{ row, column }">
@@ -241,7 +242,7 @@
                 >{{ badge.text }}</span>
               </div>
             </div>
-            <span v-else class="details-muted">—</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+            <span v-else class="details-muted">—</span>
           </template>
           </settings-table>
         </div>
@@ -346,7 +347,7 @@ import { formatTimestamp } from "@/utils/moment.ts";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import SharePickerButton from "@/components/tools/SharePickerButton.vue";
 import PathPickerButton from "@/components/files/PathPickerButton.vue";
-import { globalVars } from "@/utils/constants.js";
+import { globalVars } from "@/utils/constants.ts";
 import { getObjectProperty } from "@/utils/object.js";
 import {
   filterEventTypesForScope,
@@ -902,13 +903,10 @@ export default {
       return (this.statsBuckets || []).reduce((sum, b) => sum + b.count, 0);
     },
     chartAriaLabel() {
-      return this.$t(`tools.activityViewer.${this.viewType}View`);
+      return this.viewTypeOptions.find((option) => option.value === this.viewType)?.label ?? "";
     },
     chartTitle() {
-      return activityChartTitle(
-        { viewType: this.viewType, splitBy: this.splitBy },
-        this.$t.bind(this),
-      );
+      return activityChartTitle({ viewType: this.viewType, splitBy: this.splitBy });
     },
   },
   watch: {
@@ -1574,7 +1572,7 @@ export default {
             const normalized = normalizeActivityTableRow(row);
             return {
               ...normalized,
-              tokenDisplay: activityTokenDisplay(normalized, this.$t),
+              tokenDisplay: activityTokenDisplay(normalized),
             };
           });
           this.totalEvents = listRes.total || 0;
@@ -1747,7 +1745,7 @@ export default {
       return this.formatTime(n);
     },
     eventTypeLabel(eventType) {
-      return activityEventLabel(eventType, this.$t);
+      return activityEventLabel(eventType);
     },
     eventTypeBadgeClass(eventType) {
       return activityEventTypeBadgeClass(eventType);

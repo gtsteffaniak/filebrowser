@@ -45,24 +45,24 @@
       type="button"
       class="button button--flat button--grey"
       @click="resetEditorConfig"
-      :aria-label="$t('player.visualizer.resetDefaults')"
-      :title="$t('player.visualizer.resetDefaults')"
-    > {{ $t("player.visualizer.resetDefaults") }}
+      :aria-label="t('player.visualizer.resetDefaults')"
+      :title="t('player.visualizer.resetDefaults')"
+    > {{ t("player.visualizer.resetDefaults") }}
     </button>
     <button
       type="button"
       class="button button--flat"
       @click="closeTopPrompt"
-      :aria-label="$t('general.ok')"
-      :title="$t('general.ok')"
-    > {{ $t("general.ok") }}
+      :aria-label="t('general.ok')"
+      :title="t('general.ok')"
+    > {{ t("general.ok") }}
     </button>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from "vue";
-import { useI18n } from "vue-i18n";
+import { useI18n } from "@/i18n/index.ts";
 import { mutations } from "@/store/index.ts";
 import { editorConfig, saveEditorConfig, resetEditorConfig, type EditorConfig } from "@/utils/editorConfig.ts";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";

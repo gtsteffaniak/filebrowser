@@ -16,7 +16,7 @@
         @load-error="onTextError"
       />
     </div>
-    <img v-else-if="sourceInfo?.url" :src="sourceInfo.url" alt="Popup img" @load="onImageLoad" />
+    <img v-else-if="sourceInfo?.url" :src="sourceInfo.url" :alt="$t('profileSettings.popupPreview')" @load="onImageLoad" />
   </div>
 </template>
 

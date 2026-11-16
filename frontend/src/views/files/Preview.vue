@@ -131,7 +131,7 @@ import { state, getters, mutations } from "@/store/index.ts";
 import { isRawImageMimeType } from "@/utils/mimetype.js";
 import { convertToVTT, getSubtitleFormatExtension } from "@/utils/subtitles.js";
 import { parseLyrics } from "@/utils/lyrics.ts";
-import { globalVars } from "@/utils/constants.js";
+import { globalVars } from "@/utils/constants.ts";
 import { navigatePlaybackQueue } from "@/utils/playbackQueue.js";
 import { shouldAutoPlayPreview } from "@/utils/previewAutoplay.js";
 import { getTranscodeSessions } from "@/api/transcode.js";

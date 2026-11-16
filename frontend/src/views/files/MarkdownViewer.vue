@@ -13,7 +13,7 @@
       src="about:blank"
       :sandbox="HTML_PREVIEW_SANDBOX"
       referrerpolicy="no-referrer"
-      title="HTML preview"
+      :title="t('general.preview')"
       @load="applyHtmlPreviewHeight"
     ></iframe>
     <div v-else class="markdown-content-container">
@@ -36,13 +36,13 @@
 import type { HLJSApi } from 'highlight.js';
 import type { Token } from "marked";
 import { computed, nextTick, onBeforeUnmount, onMounted, onUnmounted, ref, useTemplateRef, watch } from "vue";
-import { useI18n } from "vue-i18n";
+import { useI18n } from "@/i18n/index.ts";
 import { Marked } from "marked";
 import DOMPurify from 'dompurify';
 import { state, mutations, getters } from "@/store/index.ts";
 import { createScrollSyncGuard } from "@/utils/markdownScrollSync.ts";
 import { copyToClipboard } from "@/utils/clipboard.js";
-import { globalVars } from "@/utils/constants.js";
+import { globalVars } from "@/utils/constants.ts";
 import { isHtmlMimeType } from "@/utils/mimetype.js";
 import { createHtmlPreviewLoader } from "@/utils/htmlPreviewLoader.ts";
 import FloatingActionButton from "@/components/settings/FloatingActionButton.vue";
