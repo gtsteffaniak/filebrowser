@@ -1,8 +1,8 @@
 import fs from "node:fs";
 import { parse } from "vue/compiler-sfc";
-import { isTestFile, maskSource, readLocale, rel, sourceFiles } from "./shared.ts";
+import { locales } from "../../src/i18n/locales.ts";
+import { isTestFile, maskSource, readLocale, rel, sourceFiles, translationFiles } from "./shared.ts";
 
-const IGNORED_KEYS = [/^languages\./];
 const IGNORED_ELEMENTS = new Set(["i", "v-icon", "kbd"]);
 const IGNORE_COMMENT = "i18n-ignore";
 const TEXT_ATTRIBUTES = new Set(["placeholder", "title", "alt"]);
@@ -33,8 +33,20 @@ export function checkUnusedKeys(): string[] {
     ["'", '"', "`"].some((quote) => code.includes(`${quote}${key}${quote}`)) ||
     prefixes.some((prefix) => key.startsWith(prefix));
   return Object.keys(readLocale("en.json"))
-    .filter((key) => !IGNORED_KEYS.some((pattern) => pattern.test(key)) && !isUsed(key))
+    .filter((key) => !isUsed(key))
     .map((key) => `en.json: unused key ${key}`);
+}
+
+
+export function checkLocaleRegistry(): string[] {
+  const files = new Set(["en.json", ...translationFiles()]);
+  const listed = new Set(Object.values(locales).map(({ file }) => `${file}.json`));
+  return [
+    ...[...files].filter((file) => !listed.has(file)).map((file) => `${file}: not listed in src/i18n/locales.ts`),
+    ...Object.entries(locales)
+      .filter(([, { file }]) => !files.has(`${file}.json`))
+      .map(([id, { file }]) => `locales.ts: ${id} has no file ${file}.json`),
+  ];
 }
 
 const isIgnored = (node: TemplateNode) =>

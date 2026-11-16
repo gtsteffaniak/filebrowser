@@ -1,6 +1,7 @@
 import { createI18n, useI18n as useVueI18n, type Composer } from 'vue-i18n';
 import { nextTick } from 'vue';
 import en from './locales/en.json' with { type: "json" };
+import { locales } from './locales.ts';
 import type { MessageParams, OptionalParam } from './messages.generated.ts';
 
 type MessageSchema = typeof en;
@@ -47,74 +48,22 @@ export function useI18n(): StrictComposer {
   return useVueI18n() as unknown as StrictComposer;
 }
 
-// All the locales in alphabetical order
-export const availableLocales: Record<string, string> = {
-  // internal keys: 'display value'
-  ar: 'ar',
-  bg: 'bg',
-  cz: 'cz',
-  de: 'de',
-  el: 'el',
-  en: 'en',
-  es: 'es',
-  eu: 'eu',
-  fr: 'fr',
-  he: 'he',
-  hu: 'hu',
-  it: 'it',
-  ja: 'ja',
-  ko: 'ko',
-  nl: 'nl',
-  nlBE: 'nl-be',
-  pl: 'pl',
-  pt: 'pt',
-  ptBR: 'pt-br',
-  ro: 'ro',
-  ru: 'ru',
-  sk: 'sk',
-  svSE: 'sv-se',
-  tr: 'tr',
-  ua: 'ua',
-  zhCN: 'zh-cn',
-  zhTW: 'zh-tw',
-};
+const tagOf = (id: string) => locales[id]?.tag ?? id;
+const idByTag = (tag: string) => Object.keys(locales).find((id) => tagOf(id) === tag);
 
-const availableLocalesMap = new Map(Object.entries(availableLocales));
-
-// Maps internal locale names to standard BCP 47 codes (for navigator.language)
-const internalToStandard = new Map<string, string>([
-  ['nlBE', 'nl-be'],
-  ['ptBR', 'pt-br'],
-  ['svSE', 'sv-se'],
-  ['zhCN', 'zh-cn'],
-  ['zhTW', 'zh-tw'],
-  ['cz', 'cs'],
-  ['ua', 'uk'],
-]);
-
-export function toStandardLocale(locale: string): string {
-  return internalToStandard.get(locale) ?? locale;
-}
+// Converts a locale id to its BCP 47 tag (for the html lang, moment, OnlyOffice)
+export const toStandardLocale = tagOf;
 
 export function detectLocale(): string {
   const browserLocale = navigator.language.toLowerCase();
-
-  // Map of browser locale codes to internal locale keys
-  const browserToInternalMap = new Map<string, string>([
-    ['pt-br', 'ptBR'],
-    ['zh-tw', 'zhTW'],
-    ['zh-cn', 'zhCN'],
-    ['zh',    'zhCN'],
-    ['sv-se', 'svSE'],
-    ['sv',    'svSE'],
-    ['nl-be', 'nlBE'],
-  ]);
-  const mappedLocale = browserToInternalMap.get(browserLocale);
-  if (mappedLocale !== undefined) {
-    return mappedLocale;
-  }
   const prefix = browserLocale.split('-')[0] ?? '';
-  return availableLocalesMap.get(prefix) ?? 'en';
+  return (
+    idByTag(browserLocale) ??
+    idByTag(prefix) ??
+    // 'zh' -> zhCN, 'sv' -> svSE: the first regional variant
+    Object.keys(locales).find((id) => tagOf(id).startsWith(`${prefix}-`)) ??
+    'en'
+  );
 }
 
 // List of RTL languages
@@ -146,8 +95,9 @@ const localeModules = import.meta.glob<{ default: MessageSchema }>(
 );
 
 export async function setLocale(locale: string) {
+  const file = locales[locale]?.file;
   // If the locale doesn't exist in our list, fallback to English
-  if (!availableLocalesMap.has(locale)) {
+  if (!file) {
     setLanguage('en');
     return;
   }
@@ -158,12 +108,7 @@ export async function setLocale(locale: string) {
   }
   // But if isn't loaded, we will load it dynamically.
   try {
-    const fileName = availableLocalesMap.get(locale);
-    if (!fileName) {
-      setLanguage('en');
-      return;
-    }
-    const loadMessages = localeModules[`./locales/${fileName}.json`];
+    const loadMessages = localeModules[`./locales/${file}.json`];
     if (!loadMessages) {
       setLanguage('en');
       return;

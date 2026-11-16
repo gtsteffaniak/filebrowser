@@ -30,7 +30,6 @@ const isTree = (value: unknown): value is Tree => typeof value === "object" && v
 export function checkTranslations(): string[] {
   const master = Object.keys(readLocale("en.json"));
   const problems: string[] = [];
-  const translatable = (key: string) => !key.startsWith("languages.");
   for (const file of translationFiles()) {
     let target: Record<string, string>;
     try {
@@ -39,10 +38,10 @@ export function checkTranslations(): string[] {
       problems.push(`${file}: cannot be read (${error instanceof Error ? error.message : error})`);
       continue;
     }
-    for (const key of master.filter(translatable)) {
+    for (const key of master) {
       if (!target[key]) problems.push(`${file}: missing "${key}"`);
     }
-    for (const key of Object.keys(target).filter(translatable)) {
+    for (const key of Object.keys(target)) {
       if (!master.includes(key)) problems.push(`${file}: obsolete key "${key}"`);
     }
   }
@@ -54,7 +53,6 @@ async function translateText(text: string, targetLanguage: string, keyPath: stri
     console.warn(`Skipping translation for empty text: "${text}"`);
     return text;
   }
-  if (keyPath === "languages" || keyPath.startsWith("languages.")) return text;
 
   const hasPlaceholders = /\{[^}]+\}/.test(text);
   let textToTranslate = text;
@@ -112,13 +110,6 @@ async function processKeys(
     const masterValue = master[key];
     const keyPath = [...parents, key].join(".");
 
-    // the "languages" block is always copied from master
-    if (key === "languages" && parents.length === 0 && !cleanup) {
-      if (!enforceOrder) console.log(`Copying entire "languages" object from master to ${lang}.json`);
-      target[key] = structuredClone(masterValue);
-      changed = true;
-      continue;
-    }
     if (Object.hasOwn(target, key) && isTree(masterValue) !== isTree(target[key])) {
       console.log(`🗑️  Removing "${keyPath}" from ${lang}.json: its structure differs from en.json`);
       Reflect.deleteProperty(target, key);
