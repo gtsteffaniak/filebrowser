@@ -1298,34 +1298,20 @@ func resolveSymlinkTargetAt(linkDir, linkname string, depth int, expansionsLeft 
 	return filepath.Clean(cur), nil
 }
 
-// resolveSymlinkTargetAbsolute continues resolution from an absolute path without treating
-// leading slash-separated components as relative to linkDir.
+// resolveSymlinkTargetAbsolute walks an absolute path from the volume root so every path
+// component is resolved, including ancestor symlinks (a single Lstat on the full path would skip them).
+// The path must not be filepath.Clean'd before walking or ".." segments collapse before symlinks are seen.
 func resolveSymlinkTargetAbsolute(path string, depth int, expansionsLeft *int) (string, error) {
 	if depth > maxSymlinkResolveDepth {
 		return "", errSymlinkTargetEscape()
 	}
-	path = filepath.Clean(path)
-	info, err := os.Lstat(path)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return path, nil
-		}
-		return "", err
+	path = filepath.FromSlash(filepath.ToSlash(path))
+	root := filepath.VolumeName(path) + string(filepath.Separator)
+	if !strings.HasPrefix(path, root) {
+		return "", errSymlinkTargetEscape()
 	}
-	if info.Mode()&os.ModeSymlink == 0 {
-		return path, nil
-	}
-	if cerr := consumeSymlinkExpansion(expansionsLeft); cerr != nil {
-		return "", cerr
-	}
-	target, err := os.Readlink(path)
-	if err != nil {
-		return "", err
-	}
-	if filepath.IsAbs(target) {
-		return resolveSymlinkTargetAbsolute(target, depth+1, expansionsLeft)
-	}
-	return resolveSymlinkTargetAt(filepath.Dir(path), target, depth+1, expansionsLeft)
+	rel := path[len(root):]
+	return resolveSymlinkTargetAt(root, rel, depth, expansionsLeft)
 }
 
 // extractArchivedDir creates a directory from an archive entry and reapplies mode and mtime.

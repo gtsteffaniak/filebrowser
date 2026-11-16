@@ -784,6 +784,98 @@ func TestSymlinkTargetStaysUnderDest_hopTargetVerbatimReadlink(t *testing.T) {
 	}
 }
 
+func setupAbsoluteHopThroughOutsidePivot(t *testing.T) (destDir, outside string, hopLeafAbs string) {
+	t.Helper()
+	destDir = t.TempDir()
+	outside = filepath.Join(filepath.Dir(destDir), "abs-pivot-outside")
+	if err := os.MkdirAll(outside, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	pivot := filepath.Join(destDir, "pivot")
+	if err := os.Symlink(outside, pivot); err != nil {
+		t.Fatal(err)
+	}
+	leafAbs, err := filepath.Abs(filepath.Join(pivot, "leaf"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	return destDir, outside, leafAbs
+}
+
+func TestSymlinkTargetStaysUnderDest_rejectsAbsoluteHopThroughOutsidePivot_fileExists(t *testing.T) {
+	destDir, outside, hopLeafAbs := setupAbsoluteHopThroughOutsidePivot(t)
+	if err := os.WriteFile(filepath.Join(outside, "leaf"), []byte("secret"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Symlink(hopLeafAbs, filepath.Join(destDir, "hop")); err != nil {
+		t.Fatal(err)
+	}
+	newLink := filepath.Join(destDir, "newlink")
+	if err := symlinkTargetStaysUnderDest(destDir, newLink, "hop"); err == nil {
+		t.Fatal("expected rejection when hop resolves through outside pivot to existing file")
+	}
+}
+
+func TestSymlinkTargetStaysUnderDest_rejectsAbsoluteHopThroughOutsidePivot_fileMissing(t *testing.T) {
+	destDir, _, hopLeafAbs := setupAbsoluteHopThroughOutsidePivot(t)
+	if err := os.Symlink(hopLeafAbs, filepath.Join(destDir, "hop")); err != nil {
+		t.Fatal(err)
+	}
+	newLink := filepath.Join(destDir, "newlink")
+	if err := symlinkTargetStaysUnderDest(destDir, newLink, "hop"); err == nil {
+		t.Fatal("expected rejection when hop resolves through outside pivot to missing leaf")
+	}
+}
+
+func TestSymlinkTargetStaysUnderDest_rejectsAbsoluteHopWithDotDotAfterOutsidePivot(t *testing.T) {
+	destDir, outside, _ := setupAbsoluteHopThroughOutsidePivot(t)
+	sibling := filepath.Join(filepath.Dir(outside), "sibling-out")
+	if err := os.MkdirAll(sibling, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	pivot := filepath.Join(destDir, "pivot")
+	sep := string(filepath.Separator)
+	// Build without filepath.Clean/Join collapsing pivot before sibling resolution.
+	hopTarget := pivot + sep + ".." + sep + filepath.Base(outside) + sep + ".." + sep + filepath.Base(sibling)
+	if err := os.Symlink(hopTarget, filepath.Join(destDir, "hop")); err != nil {
+		t.Fatal(err)
+	}
+	newLink := filepath.Join(destDir, "newlink")
+	if err := symlinkTargetStaysUnderDest(destDir, newLink, "hop"); err == nil {
+		t.Fatal("expected rejection for absolute hop with .. after ancestor symlink")
+	}
+}
+
+func TestSymlinkTargetStaysUnderDest_allowsInDestAbsoluteHopChain(t *testing.T) {
+	destDir := t.TempDir()
+	inner := filepath.Join(destDir, "inner")
+	if err := os.MkdirAll(inner, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	targetFile := filepath.Join(inner, "data.txt")
+	if err := os.WriteFile(targetFile, []byte("ok"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	innerAbs, err := filepath.Abs(inner)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err = os.Symlink(innerAbs, filepath.Join(destDir, "pivot")); err != nil {
+		t.Fatal(err)
+	}
+	hopTarget, err := filepath.Abs(targetFile)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err = os.Symlink(hopTarget, filepath.Join(destDir, "hop")); err != nil {
+		t.Fatal(err)
+	}
+	newLink := filepath.Join(destDir, "ref")
+	if err := symlinkTargetStaysUnderDest(destDir, newLink, "hop"); err != nil {
+		t.Fatalf("in-dest absolute hop chain should be allowed: %v", err)
+	}
+}
+
 func TestArchiveCreateDestination_RejectsEscapingSymlinkLeaf(t *testing.T) {
 	t.Parallel()
 	root := t.TempDir()
