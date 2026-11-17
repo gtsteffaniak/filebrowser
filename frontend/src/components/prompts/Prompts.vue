@@ -127,6 +127,7 @@ import ThreeJSControls from "./ThreeJSControls.vue";
 import ActivityEventDetails from "./ActivityEventDetails.vue";
 import AnalyticsDiagnostic from "./AnalyticsDiagnostic.vue";
 import ConfigViewer from "./ConfigViewer.vue";
+import ShadowRegressions from "./ShadowRegressions.vue";
 import UserDefaults from "./UserDefaults.vue";
 import ShareDefaults from "./ShareDefaults.vue";
 import SidebarLinkDefaults from "./SidebarLinkDefaults.vue";
@@ -188,6 +189,7 @@ export default {
     ActivityEventDetails,
     AnalyticsDiagnostic,
     ConfigViewer,
+    ShadowRegressions,
     UserDefaults,
     SidebarLinkDefaults,
     ToolAccessDefaults,
@@ -318,7 +320,7 @@ export default {
       return false;
     },
     isEditorPrompt(prompt) {
-      return prompt?.name === "analytics-diagnostic" || prompt?.name === "config-viewer" || prompt?.name === "user-defaults" || prompt?.name === "sidebar-link-defaults" || prompt?.name === "tool-access-defaults" || prompt?.name === "share-defaults" || prompt?.name === "sidebarLinks" || prompt?.name === "sidebarlinks" || prompt?.name === "user-edit-preferences" || prompt?.name === "user-edit-tools" || prompt?.name === "user-edit-sidebar-links";
+      return prompt?.name === "analytics-diagnostic" || prompt?.name === "config-viewer" || prompt?.name === "shadow-regressions" || prompt?.name === "user-defaults" || prompt?.name === "sidebar-link-defaults" || prompt?.name === "tool-access-defaults" || prompt?.name === "share-defaults" || prompt?.name === "sidebarLinks" || prompt?.name === "sidebarlinks" || prompt?.name === "user-edit-preferences" || prompt?.name === "user-edit-tools" || prompt?.name === "user-edit-sidebar-links";
     },
     ensureEditorPromptSize(id) {
       if (getObjectProperty(this.sizes, id)) {
@@ -396,6 +398,8 @@ export default {
           return this.$t("settings.analyticsView");
         case "config-viewer":
           return this.$t("settings.configViewer");
+        case "shadow-regressions":
+          return this.$t("media.shadowRegressionsView");
         case "user-defaults":
           return this.$t("settings.userDefaults");
         case "sidebar-link-defaults":

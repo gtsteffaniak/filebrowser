@@ -668,6 +668,12 @@ export interface MessageParams {
   "media.videoPreview": never;
   "media.imageVideoConversionFormats": never;
   "media.imageVideoConversionFormatsDescription": never;
+  "media.shadowRegressions": never;
+  "media.shadowRegressionsView": never;
+  "media.shadowRegressionsViewDescription": never;
+  "media.shadowRegressionsLoadFailed": never;
+  "media.shadowRegressionsClearFailed": never;
+  "media.shadowRegressionsCleared": never;
   "media.updateFailed": never;
   "media.maxConcurrentTranscodes": never;
   "media.maxConcurrentTranscodesHelp": never;

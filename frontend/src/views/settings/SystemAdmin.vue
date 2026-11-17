@@ -11,6 +11,12 @@
         :description="$t('settings.analyticsViewDescription')" @activate="openAnalyticsPrompt" />
       <SettingsButton class="item" :name="$t('settings.configViewerOpen')"
         :description="$t('settings.configViewerDescription')" @activate="openConfigViewerPrompt" />
+      <ToggleSwitch class="item" v-model="media.alwaysUseOnlyOffice"
+        :disabled="isLocked('alwaysUseOnlyOffice')"
+        :value-tooltip="isLocked('alwaysUseOnlyOffice') ? $t('settings.lockedFromConfig') : ''"
+        :name="$t('media.alwaysUseOffice')"
+        :description="$t('media.alwaysUseOfficeDescription')"
+        @update:model-value="saveAlwaysUseOnlyOffice" />
     </div>
   </div>
 </template>
@@ -18,7 +24,8 @@
 <script>
 import { notify } from "@/notify/index.ts";
 import { state, mutations } from "@/store/index.ts";
-import { getAnalytics, updateAnalytics } from "@/api/settings.js";
+import { getAnalytics, updateAnalytics, getMediaSettings } from "@/api/settings.js";
+import { emptyMediaSettings, mergeMediaSettings, saveMediaSettingsPatch } from "@/utils/mediaSettings.js";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import SettingsButton from "@/components/settings/SettingsButton.vue";
 
@@ -34,6 +41,10 @@ export default {
       analyticsEnabled: false,
       publishSupported: false,
       analyticsLoading: false,
+      media: emptyMediaSettings(),
+      /** Media settings pinned in the config file cannot be changed here. */
+      lockedFromConfigPaths: [],
+      lockMessage: "",
     };
   },
   async mounted() {
@@ -42,8 +53,42 @@ export default {
       ...state.user,
     };
     await this.loadAnalytics();
+    await this.loadMedia();
   },
   methods: {
+    async loadMedia() {
+      try {
+        const data = await getMediaSettings();
+        this.media = mergeMediaSettings(data);
+        this.lockedFromConfigPaths = Array.isArray(data?.lockedFromConfigPaths)
+          ? data.lockedFromConfigPaths
+          : [];
+        this.lockMessage = typeof data?.lockMessage === "string" ? data.lockMessage : "";
+      } catch (e) {
+        console.error(e);
+        notify.showErrorToast(this.$t("media.updateFailed"));
+      }
+    },
+    isLocked(path) {
+      return this.lockedFromConfigPaths.includes(path);
+    },
+    async saveAlwaysUseOnlyOffice() {
+      try {
+        const { skipped, media } = await saveMediaSettingsPatch(
+          { alwaysUseOnlyOffice: this.media.alwaysUseOnlyOffice },
+          this.lockedFromConfigPaths,
+        );
+        if (skipped) {
+          notify.showSuccessToast(this.lockMessage || this.$t("settings.lockedFromConfig"));
+          return;
+        }
+        this.media = media;
+        void mutations.syncMediaSettings();
+        notify.showSuccessToast(this.$t("settings.settingsUpdated"));
+      } catch (e) {
+        notify.showError(e?.message || this.$t("media.updateFailed"));
+      }
+    },
     async updateSettings(event) {
       if (event && typeof event.preventDefault === "function") {
         event.preventDefault();

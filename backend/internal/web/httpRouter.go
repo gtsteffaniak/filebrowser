@@ -18,6 +18,8 @@ const (
 
 // configureHTTPRouter registers all API, public, and static routes.
 func configureHTTPRouter(router, api, publicRoutes, publicApi *http.ServeMux) {
+	registerShadowRegressionSink()
+
 	// health routes
 	api.HandleFunc("GET /health", healthHandler)
 	publicApi.HandleFunc("GET /health", healthHandler)
@@ -124,6 +126,8 @@ func configureHTTPRouter(router, api, publicRoutes, publicApi *http.ServeMux) {
 	api.HandleFunc("PUT /settings/analytics", withTimeout(time5s, withAdminHelper(settingsAnalyticsUpdateHandler)))
 	api.HandleFunc("PATCH /settings/analytics", withTimeout(time5s, withAdminHelper(settingsAnalyticsUpdateHandler)))
 	api.HandleFunc("GET /settings/analytics/preview", withTimeout(time30s, withAdminHelper(settingsAnalyticsPreviewHandler)))
+	api.HandleFunc("GET /settings/shadow-regressions", withTimeout(time5s, withAdminHelper(settingsShadowRegressionsGetHandler)))
+	api.HandleFunc("DELETE /settings/shadow-regressions", withTimeout(time5s, withAdminHelper(settingsShadowRegressionsClearHandler)))
 	api.HandleFunc("GET /settings/source", withTimeout(time5s, withUserHelper(settingsSourceGetHandler)))
 	api.HandleFunc("PATCH /settings/source", withTimeout(time5s, withAdminHelper(settingsSourcePatchHandler)))
 	api.HandleFunc("GET /settings/sources", withUser(getSourceInfoHandler))
