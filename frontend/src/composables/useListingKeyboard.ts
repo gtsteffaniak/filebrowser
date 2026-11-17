@@ -86,7 +86,7 @@ export function useListingKeyboard(options: ListingKeyboardOptions) {
     const down = direction === "down";
 
     let closestItem: Element | null = null;
-    let closestDistance = Infinity;
+    let closestDistance = Number.POSITIVE_INFINITY;
 
     const step = down ? 1 : -1;
     for (let i = selectedIndex + step; i >= 0 && i < listItems.length; i += step) {
@@ -183,7 +183,7 @@ export function useListingKeyboard(options: ListingKeyboardOptions) {
         break;
     }
 
-    const itemIndex = parseInt((nextItem as HTMLElement | null)?.dataset.index as string, 10);
+    const itemIndex = Number.parseInt((nextItem as HTMLElement | null)?.dataset.index as string, 10);
     if (!Number.isNaN(itemIndex)) {
       mutations.resetSelected();
       mutations.addSelected(itemIndex);

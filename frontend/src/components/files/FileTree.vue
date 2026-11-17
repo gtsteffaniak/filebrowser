@@ -730,10 +730,10 @@ async function handleDrop(event: DragEvent, node: TreeNode) {
     mutations.showPrompt({
       name: 'replace-rename',
       pinned: true,
-      confirm: async (event: Event, option: string) => {
+      confirm: async (e: Event, option: string) => {
         const overwrite = option === 'overwrite';
         const rename = option === 'rename';
-        event.preventDefault();
+        e.preventDefault();
         mutations.closeTopPrompt();
         try {
           await performAction(overwrite, rename);

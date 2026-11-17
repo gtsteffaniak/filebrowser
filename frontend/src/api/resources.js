@@ -396,7 +396,7 @@ function totalFromContentRange(headerVal) {
   if (!headerVal || typeof headerVal !== 'string') return 0
   const idx = headerVal.lastIndexOf('/')
   if (idx === -1) return 0
-  const n = parseInt(headerVal.slice(idx + 1), 10)
+  const n = Number.parseInt(headerVal.slice(idx + 1), 10)
   return Number.isFinite(n) ? n : 0
 }
 
@@ -414,7 +414,7 @@ async function resolveDownloadContentLength(url) {
     token = res.headers.get('X-Archive-Token')
     const cl = res.headers.get('Content-Length')
     if (cl) {
-      const n = parseInt(cl, 10)
+      const n = Number.parseInt(cl, 10)
       if (Number.isFinite(n) && n > 0) {
         return { size: n, token }
       }
@@ -438,7 +438,7 @@ async function resolveDownloadContentLength(url) {
     if (res.ok) {
       const cl = res.headers.get('Content-Length')
       if (cl) {
-        const n = parseInt(cl, 10)
+        const n = Number.parseInt(cl, 10)
         if (Number.isFinite(n) && n > 0) {
           cancelBody()
           return { size: n, token }
@@ -466,7 +466,7 @@ function archiveDisplayFileName(format, files) {
   if (first?.path) {
     const parts = first.path.split('/').filter(Boolean)
     if (parts.length >= 2) {
-      return `${parts[parts.length - 2]}${ext}`
+      return `${parts.at(-2)}${ext}`
     }
     if (parts.length === 1) {
       return `${parts[0]}${ext}`
@@ -496,8 +496,8 @@ async function chunkedRangeDownloadToBlob(
   let totalSize = fileSize
 
   while (offset < totalSize) {
-    const download = downloadManager.findById(downloadId)
-    if (download?.status === 'cancelled') {
+    const downloadItem = downloadManager.findById(downloadId)
+    if (downloadItem?.status === 'cancelled') {
       return null
     }
 
@@ -536,7 +536,7 @@ async function chunkedRangeDownloadToBlob(
     } else if (response.status === 200) {
       const clFull = response.headers.get('Content-Length')
       if (clFull) {
-        const n = parseInt(clFull, 10)
+        const n = Number.parseInt(clFull, 10)
         if (Number.isFinite(n) && n > 0) {
           totalSize = n
           const dl = downloadManager.findById(downloadId)
@@ -550,7 +550,7 @@ async function chunkedRangeDownloadToBlob(
     const cl = response.headers.get('Content-Length')
     let expectedChunkSize = end - offset + 1
     if (cl) {
-      const n = parseInt(cl, 10)
+      const n = Number.parseInt(cl, 10)
       if (Number.isFinite(n) && n > 0) {
         expectedChunkSize = n
       }
@@ -586,8 +586,8 @@ async function chunkedRangeDownloadToBlob(
         }
       }
     } catch (readError) {
-      const download = downloadManager.findById(downloadId)
-      if (readError.name === 'AbortError' || (download?.status === 'cancelled')) {
+      const currentDownload = downloadManager.findById(downloadId)
+      if (readError.name === 'AbortError' || (currentDownload?.status === 'cancelled')) {
         downloadManager.setStatus(downloadId, 'cancelled')
         return null
       }
@@ -689,8 +689,8 @@ async function downloadChunkedArchive(url, format, files, filePaths, source, sha
       URL.revokeObjectURL(blobUrl)
     }, 100)
   } catch (error) {
-    const download = downloadManager.findById(downloadId)
-    if (error.name === 'AbortError' || (download?.status === 'cancelled')) {
+    const downloadItem = downloadManager.findById(downloadId)
+    if (error.name === 'AbortError' || (downloadItem?.status === 'cancelled')) {
       downloadManager.setStatus(downloadId, 'cancelled')
       return
     }
@@ -744,9 +744,9 @@ async function downloadChunked(file, shareHash = "") {
     mutations.showPrompt({ name: 'download' })
   }
 
-  const download = downloadManager.findById(downloadId)
+  const downloadItem = downloadManager.findById(downloadId)
   const abortController = new AbortController()
-  download.abortController = abortController
+  downloadItem.abortController = abortController
 
   try {
     const blob = await chunkedRangeDownloadToBlob(
@@ -781,8 +781,8 @@ async function downloadChunked(file, shareHash = "") {
     }, 100)
   } catch (error) {
     // Check if download was cancelled by user
-    const download = downloadManager.findById(downloadId);
-    if (error.name === 'AbortError' || (download?.status === "cancelled")) {
+    const currentDownload = downloadManager.findById(downloadId);
+    if (error.name === 'AbortError' || (currentDownload?.status === "cancelled")) {
       downloadManager.setStatus(downloadId, "cancelled")
       // Don't throw error or show notification for user-initiated cancellation
       return;

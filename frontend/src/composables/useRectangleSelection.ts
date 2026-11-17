@@ -88,7 +88,7 @@ export function useMouseSelection(options: MouseSelectionOptions) {
   function measureItemRects(listingRect: DOMRect) {
     const rects: ItemRect[] = [];
     for (const element of options.container.value?.querySelectorAll(".listing-item[data-index]") ?? []) {
-      const index = parseInt(element.getAttribute("data-index") as string, 10);
+      const index = Number.parseInt(element.getAttribute("data-index") as string, 10);
       if (Number.isNaN(index)) continue;
       const r = element.getBoundingClientRect();
       rects.push({

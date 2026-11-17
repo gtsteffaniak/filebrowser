@@ -2,7 +2,7 @@
   <div ref="root" class="card-content" aria-label="file-list-prompt">
     <!-- Source Selection Dropdown (hidden when browsing a fixed source, e.g. user scope row) -->
     <div v-if="!hidePathChrome && showSourceSelector" class="source-selector" style="margin-bottom: 1rem;">
-      <label for="destinationSource" style="display: block; margin-bottom: 0.5rem; font-weight: bold;">
+      <label for="destinationSource" style="display: block; margin-bottom: 0.5rem; font-weight: 700;">
         {{ t("prompts.destinationSource") }}
       </label>
       <ExpandDropdown

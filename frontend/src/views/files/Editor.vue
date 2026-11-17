@@ -854,7 +854,7 @@ defineExpose({ getValue });
 .ace_editor .ace_gutter-active-line {
   background-color: color-mix(in srgb, var(--primaryColor) 20%, transparent) !important;
   color: var(--primaryColor) !important;
-  font-weight: bold !important;
+  font-weight: 700 !important;
 }
 
 /* Indent lines */

@@ -21,7 +21,7 @@ body.rtl .listing-items {
 
 .listing-items h2 {
   margin: 0 0 0 0.5em;
-  font-size: .9em;
+  font-size: 0.9em;
   font-weight: 500;
   padding-bottom: 0.25em;
   background: transparent;
@@ -32,7 +32,7 @@ body.rtl .listing-items {
   overflow: hidden;
 }
 
-.listing-items>div {
+.listing-items > div {
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-start;
@@ -41,13 +41,17 @@ body.rtl .listing-items {
 .listing-item {
   display: flex;
   flex-wrap: nowrap;
-  transition: width 0.25s ease, margin-left 0.25s ease, padding-left 0.25s ease, transform 0.25s ease;
+  transition:
+    width 0.25s ease,
+    margin-left 0.25s ease,
+    padding-left 0.25s ease,
+    transform 0.25s ease;
   align-items: center;
   cursor: pointer;
   user-select: none;
   overflow: hidden;
-  width: var(--item-width); /* stylelint-disable-line no-unknown-custom-properties */
-  height: var(--item-height); /* stylelint-disable-line no-unknown-custom-properties */
+  width: var(--item-width);
+  height: var(--item-height);
   border-radius: var(--borderRadius);
   padding: 0.5em;
   color: var(--textPrimary);
@@ -109,7 +113,7 @@ body.rtl .listing-items {
 
 .message i {
   font-size: 2.5em;
-  margin-bottom: .2em;
+  margin-bottom: 0.2em;
   display: block;
 }
 
@@ -132,9 +136,11 @@ body.rtl .listing-items {
 .listing-items.compact .listing-item,
 .listing-items.normal .listing-item,
 .listing-items.icons .listing-item {
-  margin: .5em;
+  margin: 0.5em;
   padding: 0.5em;
-  box-shadow: rgb(0 0 0 / 6%) 0 1px 3px, rgb(0 0 0 / 12%) 0 1px 2px;
+  box-shadow:
+    rgb(0 0 0 / 6%) 0 1px 3px,
+    rgb(0 0 0 / 12%) 0 1px 2px;
 }
 
 /* Rows join into one panel — no radius of their own, even if a theme
@@ -153,7 +159,7 @@ body.rtl .listing-items {
   margin: 0;
   padding: 0;
   width: 100%;
-  height: var(--item-height); /* stylelint-disable-line no-unknown-custom-properties */
+  height: var(--item-height);
   flex-shrink: 0;
 }
 
@@ -172,7 +178,11 @@ body.rtl .listing-items {
 .listing-items.normal .listing-item,
 .listing-items.gallery .listing-item,
 .listing-items.icons .listing-item {
-  transition: width 0.25s ease-out, height 0.25s ease-out, box-shadow 0.2s ease-in-out, transform 0.1s ease-in-out;
+  transition:
+    width 0.25s ease-out,
+    height 0.25s ease-out,
+    box-shadow 0.2s ease-in-out,
+    transform 0.1s ease-in-out;
 }
 
 .listing-items.resizing .listing-item {
@@ -185,7 +195,7 @@ body.rtl .listing-items {
   border-left: var(--borderWidth) solid var(--divider);
   border-right: var(--borderWidth) solid var(--divider);
   padding: 0;
-  padding-left: .5em;
+  padding-left: 0.5em;
 }
 
 .listing-items.list .listing-item {
@@ -193,7 +203,7 @@ body.rtl .listing-items {
   margin: 0;
   border-left: var(--borderWidth) solid var(--divider);
   border-right: var(--borderWidth) solid var(--divider);
-  padding: .5em;
+  padding: 0.5em;
 }
 
 .listing-items:not(.list, .compact) .listing-item {
@@ -201,7 +211,9 @@ body.rtl .listing-items {
 }
 
 .listing-items:not(.list, .compact) :where(.folder-items) .listing-item,
-.listing-items:not(.list, .compact) :where(.pinned-items) .listing-item[data-type="directory"] {
+.listing-items:not(.list, .compact)
+  :where(.pinned-items)
+  .listing-item[data-type="directory"] {
   border-color: var(--divider);
 }
 
@@ -229,7 +241,9 @@ body.rtl .listing-items {
   border-radius: 50%;
   width: 1.8em;
   height: 1.8em;
-  box-shadow: 0 0 4px rgb(0 0 0 / 30%), 0 0 10px rgb(0 0 0 / 15%);
+  box-shadow:
+    0 0 4px rgb(0 0 0 / 30%),
+    0 0 10px rgb(0 0 0 / 15%);
 }
 
 .listing-items.gallery .listing-item .gallery-div {
@@ -239,7 +253,9 @@ body.rtl .listing-items {
   width: 100%;
   height: 100%;
   aspect-ratio: 1;
-  transition: width 0.25s ease-out, height 0.25s ease-out;
+  transition:
+    width 0.25s ease-out,
+    height 0.25s ease-out;
   position: relative;
 }
 
@@ -257,7 +273,7 @@ body.rtl .listing-items {
 }
 
 .listing-items .name {
-  font-weight: normal;
+  font-weight: 400;
 }
 
 .listing-items.list .listing-item .name,
@@ -317,7 +333,9 @@ body.rtl .listing-items {
   max-width: 100%;
   max-height: 100%;
   aspect-ratio: 1;
-  transition: width 0.25s ease-out, height 0.25s ease-out;
+  transition:
+    width 0.25s ease-out,
+    height 0.25s ease-out;
 }
 
 .listing-items.gallery .image-preview {
@@ -338,7 +356,10 @@ body.rtl .listing-items {
 .listing-items.gallery .file-items,
 .listing-items.gallery .pinned-items {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(var(--item-width, 200px), 1fr));
+  grid-template-columns: repeat(
+      auto-fill,
+      minmax(var(--item-width, 200px), 1fr)
+    );
   gap: 1em;
   padding: 0.5em;
   width: 100%;
@@ -368,21 +389,24 @@ body.rtl .listing-items {
 }
 
 .listing-items.icons .image-preview.download-icon {
-    width: 100%;
-    height: 2em;
+  width: 100%;
+  height: 2em;
 }
 
 .listing-items.icons .image-preview.download-icon .material-symbols {
-    font-size: 2em;
-    width: 100%;
-    text-align: center;
+  font-size: 2em;
+  width: 100%;
+  text-align: center;
 }
 
 .listing-items.icons .folder-items,
 .listing-items.icons .file-items,
 .listing-items.icons .pinned-items {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(var(--icons-view-cell-size, 100px), 1fr));
+  grid-template-columns: repeat(
+      auto-fill,
+      minmax(var(--icons-view-cell-size, 100px), 1fr)
+    );
   gap: 0.5em;
   padding: 0.25em;
   width: 100%;
@@ -448,16 +472,20 @@ body.rtl .listing-items {
 }
 
 .listing-items.list > .listing-item:first-child,
-.listing-items.list :where(.pinned-items, .folder-items, .file-items, [data-virtual-group]) .listing-item:first-child {
+.listing-items.list
+  :where(.pinned-items, .folder-items, .file-items, [data-virtual-group])
+  .listing-item:first-child {
   border-top: var(--borderWidth) solid var(--divider);
   border-top-left-radius: var(--borderRadius) !important;
   border-top-right-radius: var(--borderRadius) !important;
 }
 
 .listing-items.list > .listing-item:not(:has(~ .listing-item)),
-.listing-items.list :where(.pinned-items, .folder-items, .file-items, [data-virtual-group]) .listing-item:last-child {
+.listing-items.list
+  :where(.pinned-items, .folder-items, .file-items, [data-virtual-group])
+  .listing-item:last-child {
   border-bottom: var(--borderWidth) solid var(--divider);
-  margin-bottom: .5em;
+  margin-bottom: 0.5em;
   border-bottom-left-radius: var(--borderRadius) !important;
   border-bottom-right-radius: var(--borderRadius) !important;
 }
@@ -537,7 +565,9 @@ body.rtl .listing-items {
   overflow: visible;
   line-height: 1;
   margin-left: 0.25em;
-  box-shadow: 0 0 4px rgb(0 0 0 / 30%), 0 0 10px rgb(0 0 0 / 15%);
+  box-shadow:
+    0 0 4px rgb(0 0 0 / 30%),
+    0 0 10px rgb(0 0 0 / 15%);
 }
 
 .placeholder {
@@ -552,16 +582,23 @@ body.rtl .listing-items {
   scroll-margin-bottom: 3em;
 }
 
-.listing-items .listing-item.listing-item:is([aria-selected="true"], .context-item),
+.listing-items
+  .listing-item.listing-item:is([aria-selected="true"], .context-item),
 #results .search-entry.current-item {
   border-color: var(--primaryColor);
 }
 
-.listing-items.gallery .listing-item.listing-item:is([aria-selected="true"], .context-item) {
+.listing-items.gallery
+  .listing-item.listing-item:is([aria-selected="true"], .context-item) {
   border-width: 0;
 }
 
-:is(.listing-item, .search-entry, .tree-node):is([aria-selected="true"], .context-item, .drag-over, .search-entry.current-item) {
+:is(.listing-item, .search-entry, .tree-node):is(
+  [aria-selected="true"],
+  .context-item,
+  .drag-over,
+  .search-entry.current-item
+) {
   &::before {
     content: "";
     position: absolute;
@@ -595,15 +632,20 @@ body.rtl .listing-items {
     border-right-width: 0;
   }
 
-  :where(.listing-items.list, .listing-items.compact .firstGroup, #results) &:where(:first-child)::before,
+  :where(.listing-items.list, .listing-items.compact .firstGroup, #results)
+    &:where(:first-child)::before,
   :where(:is(.listing-items:is(.list, .compact), #results) &) + &::before,
-  :where(.listing-items.compact > div:has(> &:last-child) + div + div) > &:where(:first-child)::before {
+  :where(.listing-items.compact > div:has(> &:last-child) + div + div)
+    > &:where(:first-child)::before {
     border-top: 0;
   }
 
-  :where(.listing-items.list, .listing-items.compact .lastGroup, #results) &:where(:last-child)::before,
-  :where(:is(.listing-items:is(.list, .compact), #results)) &:where(:has(+ &))::before,
-  :where(.listing-items.compact > div:has(+ div + div > &:first-child)) > &:where(:last-child)::before {
+  :where(.listing-items.list, .listing-items.compact .lastGroup, #results)
+    &:where(:last-child)::before,
+  :where(:is(.listing-items:is(.list, .compact), #results))
+    &:where(:has(+ &))::before,
+  :where(.listing-items.compact > div:has(+ div + div > &:first-child))
+    > &:where(:last-child)::before {
     border-bottom: 0;
   }
 
@@ -638,12 +680,18 @@ body.rtl .listing-items {
   .listing-items.gallery .folder-items,
   .listing-items.gallery .file-items,
   .listing-items.gallery .pinned-items {
-    grid-template-columns: repeat(auto-fill, minmax(var(--gallery-mobile-min-width, 140px), 1fr));
+    grid-template-columns: repeat(
+        auto-fill,
+        minmax(var(--gallery-mobile-min-width, 140px), 1fr)
+      );
   }
   .listing-items.icons .folder-items,
   .listing-items.icons .file-items,
   .listing-items.icons .pinned-items {
-    grid-template-columns: repeat(auto-fill, minmax(var(--icons-view-cell-size, 100px), 1fr));
+    grid-template-columns: repeat(
+        auto-fill,
+        minmax(var(--icons-view-cell-size, 100px), 1fr)
+      );
   }
 }
 
@@ -656,11 +704,19 @@ body.rtl .listing-items {
 
 .listing-items.list .listing-item.zebra-row:not([aria-selected="true"]),
 .listing-items.compact .listing-item.zebra-row:not([aria-selected="true"]) {
-  background: color-mix(in srgb, var(--surfacePrimary) 20%, var(--background) 60%);
+  background: color-mix(
+    in srgb,
+    var(--surfacePrimary) 20%,
+    var(--background) 60%
+  );
 }
 
 .search-entry.zebra-row {
-  background: color-mix(in srgb, var(--surfacePrimary) 80%, var(--background) 60%);
+  background: color-mix(
+    in srgb,
+    var(--surfacePrimary) 80%,
+    var(--background) 60%
+  );
 }
 
 .selection-rectangle {

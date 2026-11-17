@@ -85,7 +85,7 @@ export default {
     let fileExtension = "";
     if (usesTemplate) {
       const ext = getFileExtension(this.initialName);
-      fileName = this.initialName.substring(0, this.initialName.length - ext.length);
+      fileName = this.initialName.slice(0, this.initialName.length - ext.length);
       fileExtension = removePrefix(ext, ".");
     }
     return {
@@ -317,7 +317,7 @@ export default {
 }
 
 .extension-separator {
-  font-weight: bold;
+  font-weight: 700;
 }
 
 .file-type-icon {

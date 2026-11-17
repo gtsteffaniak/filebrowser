@@ -93,7 +93,7 @@ export function getDirectoryMetadataMap(path: string, { source }: { source?: str
     path,
     async () => {
       const payload = await fetchMetadata(scope, path);
-      const withMetadata = (payload.items || []).filter((i) => i.metadata);
+      const withMetadata = (payload.items ?? []).filter((i) => i.metadata);
       return new Map(withMetadata.map((i) => [i.name, i.metadata as object]));
     },
     async (name) => {

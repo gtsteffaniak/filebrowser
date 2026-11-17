@@ -542,7 +542,7 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: bold;
+  font-weight: 700;
   text-shadow:
     0 0 3px rgb(0 0 0 / 90%),
     0 0 5px rgb(0 0 0 / 70%),

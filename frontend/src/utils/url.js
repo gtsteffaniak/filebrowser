@@ -248,12 +248,12 @@ export function extractSourceFromPath(url, knownSources = []) {
 
 export function buildItemUrl(source, path, includeBaseURL = false) {
   path = removeLeadingSlash(path);
-  const encodedPath = encodePath(path);
+  const encodedItemPath = encodePath(path);
   let urlPath;
   if (getters.isShare()) {
-    urlPath = `public/share/${state.shareInfo.hash}/${encodedPath}`;
+    urlPath = `public/share/${state.shareInfo.hash}/${encodedItemPath}`;
   } else {
-    urlPath = `files/${encodeURIComponent(source)}/${encodedPath}`;
+    urlPath = `files/${encodeURIComponent(source)}/${encodedItemPath}`;
   }
   if (includeBaseURL) {
     return `${globalVars.baseURL}${urlPath}`;

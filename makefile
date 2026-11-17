@@ -99,7 +99,6 @@ build-frontend:
 
 lint-frontend:
 	cd frontend && npm run lint
-	cd frontend && npm run lint:css
 	cd frontend && npm run typecheck
 
 lint-backend:

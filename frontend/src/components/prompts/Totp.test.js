@@ -13,7 +13,7 @@ const { store, router, notify } = vi.hoisted(() => {
         showPrompt: vi.fn(),
         closeTopPrompt: vi.fn(),
         updateCurrentUser: vi.fn(),
-        setCurrentUser: vi.fn((user) => { state.user = user; }),
+        setCurrentUser: vi.fn((nextUser) => { state.user = nextUser; }),
         setSession: vi.fn(),
         syncEnforcedUserDefaults: vi.fn(),
         syncMediaSettings: vi.fn(),

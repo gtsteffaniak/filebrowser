@@ -46,7 +46,7 @@ export function parsePerfScales(): number[] {
   const raw = process.env.PERF_SCALES ?? "100,1000,10000";
   const scales = raw
     .split(",")
-    .map((s) => parseInt(s.trim(), 10))
+    .map((s) => Number.parseInt(s.trim(), 10))
     .filter((n) => Number.isFinite(n) && n > 0);
   return scales.length > 0 ? scales : [100, 1000, 10000];
 }
@@ -55,7 +55,7 @@ export function parsePerfScales(): number[] {
 export function seedForScale(scale: number): number {
   const env = process.env.PERF_MOCK_SEED;
   if (env) {
-    const n = parseInt(env, 10);
+    const n = Number.parseInt(env, 10);
     if (Number.isFinite(n)) return n + scale;
   }
   return scale * 1_000_003 + scale;

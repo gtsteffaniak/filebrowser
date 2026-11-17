@@ -381,7 +381,7 @@ function getGroupSizeText(group: DuplicateGroup) {
 
 function getFileName(path: string) {
   const parts = path.split("/").filter(p => p);
-  return parts[parts.length - 1] || path;
+  return parts.at(-1) || path;
 }
 
 function ensureLeadingSlash(path: string) {
@@ -405,7 +405,7 @@ function getFullPath(filePath: string) {
   }
 
   // Remove leading slash from file path if present before combining
-  const cleanFilePath = filePath.startsWith('/') ? filePath.substring(1) : filePath;
+  const cleanFilePath = filePath.startsWith('/') ? filePath.slice(1) : filePath;
   return `${normalizedSearchPath}/${cleanFilePath}`;
 }
 

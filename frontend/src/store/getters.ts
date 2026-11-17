@@ -122,7 +122,7 @@ export const getters = {
     let path = state.route.path ?? "";
 
     if (state.req.type && state.req.type !== "directory") {
-      path = path.substring(0, path.lastIndexOf("/") + 1) || "/";
+      path = path.slice(0, path.lastIndexOf("/") + 1) || "/";
     }
 
     return getters.displayPreferenceFor(source, path);
@@ -504,7 +504,7 @@ export const getters = {
     if (state.prompts.length === 0) {
       return null
     }
-    return state.prompts[state.prompts.length - 1]
+    return state.prompts.at(-1)
   },
   currentPromptName: () => {
     // Ensure state.prompts is an array
@@ -512,7 +512,7 @@ export const getters = {
       return ""
     }
     // Check if the name property is a string
-    const lastPrompt = state.prompts[state.prompts.length - 1] as { name?: string };
+    const lastPrompt = state.prompts.at(-1) as { name?: string };
     if (typeof lastPrompt?.name !== 'string') {
       return ""
     }

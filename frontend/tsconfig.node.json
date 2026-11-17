@@ -25,7 +25,6 @@
     "vite.config.ts",
     "scripts/**/*.js",
     "scripts/**/*.ts",
-    "src/i18n/locales.ts",
-    "stylelint.config.js"
+    "src/i18n/locales.ts"
   ]
 }

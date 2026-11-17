@@ -115,8 +115,8 @@ marked.use({
 const MATH_PATTERN = /\$\$[\s\S]+?\$\$|\$[^\s$][^$\n]*\$/;
 const INLINE_MATH_RULE = /^(\${1,2})(?!\$)((?:\\.|[^\\\n])*?(?:\\.|[^\\\n$]))\1(?=[\s?!.,:？！。，：]|$)/;
 const BLOCK_MATH_RULE = /^(\${1,2})\n((?:\\[\s\S]|[^\\])+?)\n\1(?:\n|$)/;
-function contentHasMath(content: string): boolean {
-  return MATH_PATTERN.test(content);
+function contentHasMath(markdown: string): boolean {
+  return MATH_PATTERN.test(markdown);
 }
 let mathLoaded = false;
 let mathPromise: Promise<void> | null = null;
@@ -137,11 +137,11 @@ function loadMath(): Promise<void> {
                 const index = indexSrc.indexOf("$");
                 if (index === -1) return undefined;
                 if (index === 0 || indexSrc.charAt(index - 1) === " ") {
-                  if (INLINE_MATH_RULE.test(indexSrc.substring(index))) {
+                  if (INLINE_MATH_RULE.test(indexSrc.slice(index))) {
                     return index;
                   }
                 }
-                indexSrc = indexSrc.substring(index + 1).replace(/^\$+/, "");
+                indexSrc = indexSrc.slice(index + 1).replace(/^\$+/, "");
               }
               return undefined;
             },
@@ -484,7 +484,7 @@ function addLineNumbers(codeBlock: HTMLElement) {
   const lines = code.split('\n');
 
   // Remove trailing empty lines
-  if (lines[lines.length - 1] === '') {
+  if (lines.at(-1) === '') {
     lines.pop();
   }
 
@@ -621,7 +621,7 @@ function splitHighlightedHTML(html: string, expectedLines: number): string[] {
   const textLines = textContent.split('\n');
 
   // Remove trailing empty line from textLines if present
-  if (textLines[textLines.length - 1] === '') {
+  if (textLines.at(-1) === '') {
     textLines.pop();
   }
 
@@ -639,8 +639,8 @@ function splitHighlightedHTML(html: string, expectedLines: number): string[] {
     } else {
       const lineBreakIndex = currentHTML.indexOf('\n');
       if (lineBreakIndex !== -1) {
-        htmlLines.push(currentHTML.substring(0, lineBreakIndex));
-        currentHTML = currentHTML.substring(lineBreakIndex + 1);
+        htmlLines.push(currentHTML.slice(0, lineBreakIndex));
+        currentHTML = currentHTML.slice(lineBreakIndex + 1);
       } else {
         htmlLines.push(escapeHtml(lineText));
       }
@@ -657,12 +657,12 @@ function escapeHtml(text: string): string {
   return div.innerHTML;
 }
 
-function parseMarkdown(content: string, filePath: string, source: string): { key: string; line: number; html: string; codeLine?: number }[] {
+function parseMarkdown(markdown: string, filePath: string, source: string): { key: string; line: number; html: string; codeLine?: number }[] {
   const parser = marked;
   // Tag each top level block with its source line for scroll-sync
   let tokens: Token[] | null;
   try {
-    tokens = parser.lexer(content);
+    tokens = parser.lexer(markdown);
   } catch (err) {
     console.error("Failed to lex markdown:", err);
     tokens = null;

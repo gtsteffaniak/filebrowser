@@ -345,14 +345,14 @@ export default {
         const sourceInfo = this.sourceInfo[link.sourceName];
         if (!sourceInfo) return '#'; // Source not found
         const encodedSourceName = encodeURIComponent(link.sourceName);
-        const targetPath = link.target.startsWith('/') ? link.target.substring(1) : link.target;
+        const targetPath = link.target.startsWith('/') ? link.target.slice(1) : link.target;
         fullPath = `/files/${encodedSourceName}/${targetPath}`;
       } else {
         // For other links (tools, custom, share), use target as-is
         fullPath = link.target;
       }
 
-      const target = fullPath.startsWith('/') ? fullPath.substring(1) : fullPath;
+      const target = fullPath.startsWith('/') ? fullPath.slice(1) : fullPath;
       return baseURL + target;
     },
     goHome() {

@@ -1,0 +1,10 @@
+language css;
+
+`$prop: $value` where {
+    $prop <: r"^(?:-ms-.*|-moz-osx-font-smoothing)$",
+    register_diagnostic(
+        span = $prop,
+        message = "Don't use vendor legacy properties",
+        severity = "warn"
+    )
+}

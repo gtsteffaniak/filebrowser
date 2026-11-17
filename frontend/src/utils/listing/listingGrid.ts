@@ -194,8 +194,8 @@ export function hitTest(groups: GridGroup[], hitGroups: HitGroup[], metrics: Hit
     for (let row = rowMin; row <= rowMax; row++) {
       const top = baseTop + row * metrics.rowPitch;
       if (!(top < rect.bottom && top + metrics.itemHeight > rect.top)) continue;
-      const itemsInRow = Math.min(cols, group.count - row * cols);
-      for (let col = 0; col < itemsInRow; col++) {
+      const rowItems = Math.min(cols, group.count - row * cols);
+      for (let col = 0; col < rowItems; col++) {
       const local = row * cols + col;
         const left = baseLeft + col * metrics.colPitch;
         if (left < rect.right && left + metrics.itemWidth > rect.left) {

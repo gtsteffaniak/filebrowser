@@ -47,10 +47,10 @@ async function globalSetup() {
 
   // Authenticated sharing tests read these from loginAuth.json localStorage.
   await page.evaluate(
-    ({ shareHash, shareHashFile, rootShareHash }) => {
-      localStorage.setItem("shareHash", shareHash);
-      localStorage.setItem("shareHashFile", shareHashFile);
-      localStorage.setItem("rootShareHash", rootShareHash);
+    (hashes) => {
+      localStorage.setItem("shareHash", hashes.shareHash);
+      localStorage.setItem("shareHashFile", hashes.shareHashFile);
+      localStorage.setItem("rootShareHash", hashes.rootShareHash);
     },
     { shareHash, shareHashFile, rootShareHash },
   );

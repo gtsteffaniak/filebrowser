@@ -388,7 +388,7 @@ export default {
       // Metadata & Art
       metadata: null, // Null by default, will be loaded from the audio file.
       albumArtUrl: null,
-      albumArtSize: parseFloat(sessionStorage.getItem('plyrAlbumArtSize')) || 24,
+      albumArtSize: Number.parseFloat(sessionStorage.getItem('plyrAlbumArtSize')) || 24,
       isHovering: false, // Track hover state
 
       // Lyrics
@@ -4652,7 +4652,7 @@ export default {
 
 .lyric-line.active {
   opacity: 1;
-  font-weight: bold;
+  font-weight: 700;
   color: var(--primaryColor);
   font-size: 1.35rem;
   animation: lyric-line-in 0.3s ease;
@@ -4784,7 +4784,7 @@ export default {
 /* Metadata */
 .audio-title {
   font-size: max(1.4rem, 3.1vmin);
-  font-weight: bold;
+  font-weight: 700;
   margin-bottom: 8px;
   overflow-wrap: break-word;
 }

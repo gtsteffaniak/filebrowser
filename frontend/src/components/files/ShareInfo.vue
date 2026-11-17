@@ -121,7 +121,7 @@ export default {
 
 .share-info__box__header {
   font-size: 1.2em;
-  font-weight: bold;
+  font-weight: 700;
   text-align: center;
   padding-bottom: 1em;
   border-bottom: 1px solid var(--divider);

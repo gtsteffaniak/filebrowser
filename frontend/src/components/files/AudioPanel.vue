@@ -675,7 +675,7 @@ export default {
       };
 
       // right half - ascending hz means x increases (center to right edge)
-      let lastXRight = -Infinity;
+      let lastXRight = Number.NEGATIVE_INFINITY;
       for (const { hz, label } of visibleTicks) {
         const x = hzToBarX(hz, halfCount);
         if (x === null || x - lastXRight < 20) continue; // if too near on this side, skip
@@ -686,7 +686,7 @@ export default {
       }
 
       // left half - ascending hz means x decreases (center to left edge)
-      let lastXLeft = Infinity;
+      let lastXLeft = Number.POSITIVE_INFINITY;
       for (const { hz, label } of visibleTicks) {
         const x = hzToBarX(hz, 0);
         if (x === null || lastXLeft - x < 20) continue;
@@ -864,7 +864,7 @@ export default {
 
 .lyric-line.active {
   opacity: 1;
-  font-weight: bold;
+  font-weight: 700;
   color: var(--primaryColor);
   font-size: 1.33rem;
   animation: lyric-line-in 0.3s ease;

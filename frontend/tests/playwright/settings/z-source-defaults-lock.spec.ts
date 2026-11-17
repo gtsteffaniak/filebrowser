@@ -10,7 +10,7 @@ async function openAccessSettings(page: import("@playwright/test").Page) {
   await expect(page).toHaveTitle("Graham's Filebrowser - Settings");
 
   const defaultsResponse = page.waitForResponse(
-    (response) => isExactSettingsApiResponse(response, "settings/source", "GET"),
+    (apiResponse) => isExactSettingsApiResponse(apiResponse, "settings/source", "GET"),
   );
   const usersCard = page
     .locator(".settings-card-collapsible")

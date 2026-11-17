@@ -105,7 +105,7 @@ test("switching transcode modes sends replaceSessionId for the same file", async
   expect(sessionStatuses.every((status) => status === 201 || status === 200)).toBe(true);
   // First playlist poll may be 503 (not ready); later polls must be 200, never 500.
   await expect.poll(() => mock.playlistHits()).toBeGreaterThanOrEqual(1);
-  expect(playlistStatuses.some((status) => status === 500)).toBe(false);
+  expect(playlistStatuses.includes(500)).toBe(false);
   expect(playlistStatuses.some((status) => status === 200 || status === 503)).toBe(true);
 });
 

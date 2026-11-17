@@ -98,7 +98,7 @@ export function getPerfConfig(): PerfConfig {
 export function selectCountForScale(scale: number): number {
   const env = process.env.PERF_SELECT_COUNT;
   if (env) {
-    const n = parseInt(env, 10);
+    const n = Number.parseInt(env, 10);
     if (Number.isFinite(n) && n > 0) return n;
   }
   const cfg = getPerfConfig();

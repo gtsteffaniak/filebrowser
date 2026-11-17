@@ -631,7 +631,7 @@ export default {
 
         // Verify Magic Number
         const magic = new TextDecoder().decode(new Uint8Array(data, 0, 4));
-        const modelDir = this.fbdata.path.substring(0, this.fbdata.path.lastIndexOf('/') + 1);
+        const modelDir = this.fbdata.path.slice(0, this.fbdata.path.lastIndexOf('/') + 1);
 
         if (magic !== 'glTF') {
           // Try text parse

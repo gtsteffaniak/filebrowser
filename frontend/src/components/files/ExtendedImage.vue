@@ -815,7 +815,7 @@ export default {
 
         const p1 = event.targetTouches[0];
         const p2 = event.targetTouches[1];
-        const touchDistance = Math.sqrt((p2.pageX - p1.pageX) ** 2 + (p2.pageY - p1.pageY) ** 2);
+        const touchDistance = Math.hypot(p2.pageX - p1.pageX, p2.pageY - p1.pageY);
 
         if (!this.lastTouchDistance) {
           this.lastTouchDistance = touchDistance;

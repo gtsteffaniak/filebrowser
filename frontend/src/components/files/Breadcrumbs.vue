@@ -102,7 +102,7 @@ export default {
         originalParts.shift();
         encodedParts.shift();
       }
-      if (originalParts[originalParts.length - 1] === "") {
+      if (originalParts.at(-1) === "") {
         originalParts.pop();
         encodedParts.pop();
       }
@@ -309,10 +309,10 @@ export default {
         mutations.showPrompt({
           name: "replace-rename",
           pinned: true,
-          confirm: (event, option) => {
+          confirm: (e, option) => {
             const overwrite = option === "overwrite";
             const rename = option === "rename";
-            event.preventDefault();
+            e.preventDefault();
             mutations.closeTopPrompt();
             void moveAction(overwrite, rename);
           },

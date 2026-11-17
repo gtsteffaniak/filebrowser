@@ -46,8 +46,8 @@ export function enableOverlaidHintController({
     const btn = getOverlaidButton();
     const use = btn?.querySelector('use');
     if (!use) return;
-    const isPlaying = currentlyPlaying ? 'pause' : 'play';
-    const href = `${baseUrl}public/static/img/plyr.svg#plyr-${isPlaying}`;
+    const icon = currentlyPlaying ? 'pause' : 'play';
+    const href = `${baseUrl}public/static/img/plyr.svg#plyr-${icon}`;
     use.setAttribute('href', href);
     use.setAttribute('xlink:href', href);
   };

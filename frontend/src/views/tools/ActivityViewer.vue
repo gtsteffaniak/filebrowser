@@ -447,9 +447,9 @@ const CHART_COLORS = [
 
 function hexToRgba(hex, alpha) {
   const normalized = hex.replace("#", "");
-  const r = parseInt(normalized.slice(0, 2), 16);
-  const g = parseInt(normalized.slice(2, 4), 16);
-  const b = parseInt(normalized.slice(4, 6), 16);
+  const r = Number.parseInt(normalized.slice(0, 2), 16);
+  const g = Number.parseInt(normalized.slice(2, 4), 16);
+  const b = Number.parseInt(normalized.slice(4, 6), 16);
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
@@ -1259,7 +1259,7 @@ export default {
       }
       this.clampUserFiltersForRole();
       if (queryValuePresent(query.page)) {
-        const page = parseInt(query.page, 10);
+        const page = Number.parseInt(query.page, 10);
         if (!Number.isNaN(page) && page >= 1) {
           this.currentPage = page;
         }
@@ -1867,7 +1867,7 @@ export default {
               backgroundColor: hexToRgba(color, 0.88),
               borderColor: color,
               borderWidth: 1,
-              borderRadius: (ctx) => this.stackedBarBorderRadius(ctx, barRadius, stacked),
+              borderRadius: (chartCtx) => this.stackedBarBorderRadius(chartCtx, barRadius, stacked),
               borderSkipped: false,
               minBarLength: 0,
               stack: stacked ? "activity" : undefined,

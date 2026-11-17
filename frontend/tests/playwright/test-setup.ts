@@ -88,7 +88,7 @@ async function waitForContextMenuReady(page: Page, contextMenu: Locator): Promis
   await contextMenu.waitFor({ state: "visible", timeout: 5000 });
   await page.waitForFunction(() => {
     const menus = document.querySelectorAll("#context-menu");
-    const menu = menus[menus.length - 1];
+    const menu = Array.from(menus).at(-1);
     if (!(menu instanceof HTMLElement)) {
       return false;
     }

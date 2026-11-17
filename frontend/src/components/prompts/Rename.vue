@@ -87,7 +87,7 @@ export default {
     let fileExtension = "";
     if (this.item.type !== 'directory') {
       const ext = getFileExtension(this.item.name);
-      const filenamePrefix = this.item.name.substring(0, this.item.name.length - ext.length);
+      const filenamePrefix = this.item.name.slice(0, this.item.name.length - ext.length);
       fileName = filenamePrefix;
       fileExtension = removePrefix(ext, ".");
     }
@@ -224,16 +224,16 @@ export default {
     async submit() {
       // remove trailing slashes
       if (this.name.endsWith("/") || this.name.endsWith("\\")) {
-        this.name = this.name.substring(0, this.name.length - 1);
+        this.name = this.name.slice(0, -1);
       }
       if (!this.validation.valid || !this.canRename) return;
       // Remove trailing slashes from the source path before calculating parent directory
       let sourcePath = this.item.path;
       while (sourcePath.endsWith("/") || sourcePath.endsWith("\\")) {
-        sourcePath = sourcePath.substring(0, sourcePath.length - 1);
+        sourcePath = sourcePath.slice(0, -1);
       }
 
-      let newPath = sourcePath.substring(0, sourcePath.lastIndexOf("/"));
+      let newPath = sourcePath.slice(0, Math.max(0, sourcePath.lastIndexOf("/")));
       newPath = `${newPath}/${this.name}`;
       this.renaming = true;
       try {
@@ -325,7 +325,7 @@ export default {
 }
 
 .extension-separator {
-  font-weight: bold;
+  font-weight: 700;
 }
 
 .file-type-icon {

@@ -28,7 +28,7 @@ const LEVEL_NAMES = [
   "level-6-directory-name-long-enough-to-overflow-content",
   "level-7-leaf-directory-with-the-longest-name-in-tree-x",
 ];
-const DEEPEST_LEVEL_NAME = LEVEL_NAMES[LEVEL_NAMES.length - 1];
+const DEEPEST_LEVEL_NAME = LEVEL_NAMES.at(-1);
 const DEEP_PATH = `${FIXTURE_ROOT}${LEVEL_NAMES.join("/")}/`;
 
 // API paths are absolute, so they resolve under the configured baseURL (the app is served under /files/).
