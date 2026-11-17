@@ -235,6 +235,8 @@
       <action v-if="showSendToAppInPreview" icon="ios_share" :label="$t('buttons.sendToApp')" @action="sendToAppFromPreview" />
       <action v-if="showUnarchiveInOverflow" icon="folder_open" :label="$t('prompts.unarchive')" @action="showUnarchivePromptFromPreview" />
       <action v-if="showCadConvertInPreview" icon="change_circle" :label="$t('cad.convert')" @action="showCadConvertPromptFromPreview" />
+      <action v-if="showCadPropertiesInPreview" icon="analytics" :label="$t('threejs.properties')" @action="showCadPropertiesFromPreview" />
+      <action v-if="showCadMeasureInPreview" icon="architecture" :label="$t('threejs.measure')" @action="showCadMeasureFromPreview" />
       <action v-if="showEditButton" icon="edit" :label="$t('general.edit')" @action="goToEdit" />
       <action v-if="showPreviewButton" icon="visibility" :label="$t('general.preview')" @action="goToPreview" />
       <action v-if="showDelete" icon="delete" :label="$t('general.delete')" @action="showDeletePrompt" />
@@ -247,6 +249,7 @@ import { resourcesApi, shareApi, usersApi } from "@/api";
 import Action from "@/components/Action.vue";
 import { notify } from "@/notify";
 import { getters, mutations, state } from "@/store";
+import { eventBus } from "@/store/eventBus";
 import {
   hideInteractiveTooltip,
   showHoverTooltip,
@@ -453,9 +456,20 @@ export default {
       if (!this.hasDownload || this.req?.isDir) return false;
       return this.isPreview;
     },
+    isCadViewer() {
+      return getters.currentView() === "cadViewer" && isCadFile(this.req?.name || "");
+    },
     showCadConvertInPreview() {
       if (this.showLimitedOptions) return false;
-      return this.isPreview && isCadFile(this.req?.name || "");
+      return (this.isPreview || this.isCadViewer) && isCadFile(this.req?.name || "");
+    },
+    showCadPropertiesInPreview() {
+      if (this.showLimitedOptions) return false;
+      return (this.isPreview || this.isCadViewer) && isCadFile(this.req?.name || "");
+    },
+    showCadMeasureInPreview() {
+      if (this.showLimitedOptions) return false;
+      return (this.isPreview || this.isCadViewer) && isCadFile(this.req?.name || "");
     },
     showRename() {
       if (this.showLimitedOptions) return false;
@@ -1049,19 +1063,23 @@ export default {
       });
     },
     showCadConvertPromptFromPreview() {
-      mutations.closeTopPrompt();
+      this.emitCadViewerAction("convert");
+    },
+    showCadPropertiesFromPreview() {
+      this.emitCadViewerAction("properties");
+    },
+    showCadMeasureFromPreview() {
+      this.emitCadViewerAction("measure");
+    },
+    emitCadViewerAction(action) {
       const req = state.req;
-      if (!req) return;
-      mutations.showPrompt({
-        name: "CadConvert",
-        props: {
-          item: {
-            path: req.path,
-            source: req.source,
-            name: req.name,
-            viewToken: req.viewToken,
-          },
-        },
+      if (!req || !isCadFile(req.name || "")) return;
+      mutations.closeTopPrompt();
+      eventBus.emit("cadViewerAction", {
+        action,
+        path: req.path,
+        source: req.source,
+        name: req.name,
       });
     },
     goToRaw() {

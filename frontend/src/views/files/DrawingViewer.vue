@@ -11,7 +11,7 @@
       <i class="material-symbols-outlined error-icon">error</i>
       <h3>{{ $t("cad.drawingLoadError") }}</h3>
       <p class="error-detail">{{ error }}</p>
-      <button class="button button--flat" @click="loadDrawing">{{ $t("general.retry") }}</button>
+      <button type="button" class="button button--flat" @click="loadDrawing">{{ $t("general.retry") }}</button>
     </div>
 
     <!-- Main Content -->
@@ -21,6 +21,7 @@
         <!-- Sheet Selector -->
         <div class="drawing-sheets" v-if="sheets.length > 1">
           <button
+            type="button"
             v-for="(sheet, index) in sheets"
             :key="sheet.nom || index"
             class="sheet-tab"
@@ -39,25 +40,25 @@
 
         <!-- Zoom Controls -->
         <div class="drawing-controls">
-          <button class="icon-button" @click="zoomIn" :title="$t('cad.zoomIn')">
+          <button type="button" class="icon-button" @click="zoomIn" :title="$t('cad.zoomIn')">
             <i class="material-symbols">zoom_in</i>
           </button>
-          <button class="icon-button" @click="zoomOut" :title="$t('cad.zoomOut')">
+          <button type="button" class="icon-button" @click="zoomOut" :title="$t('cad.zoomOut')">
             <i class="material-symbols">zoom_out</i>
           </button>
-          <button class="icon-button" @click="resetView" :title="$t('cad.resetView')">
+          <button type="button" class="icon-button" @click="resetView" :title="$t('cad.resetView')">
             <i class="material-symbols">fit_screen</i>
           </button>
-          <span class="zoom-level">{{ Math.round(scale * 100) }}%</span>
+          <span class="zoom-level">{{ Math.round(scale * 100) }}{{ $t("cad.percentUnit") }}</span>
 
           <!-- Export Actions -->
-          <button class="action-btn" @click="exportCurrentSvg" :title="$t('cad.exportSvg')">
+          <button type="button" class="action-btn" @click="exportCurrentSvg" :title="$t('cad.exportSvg')">
             <i class="material-symbols">image</i>
-            <span>SVG</span>
+            <span>{{ $t("cad.svgFormat") }}</span>
           </button>
-          <button v-if="hasDxf" class="action-btn" @click="exportDxf" :title="$t('cad.exportDxf')">
+          <button v-if="hasDxf" type="button" class="action-btn" @click="exportDxf" :title="$t('cad.exportDxf')">
             <i class="material-symbols">architecture</i>
-            <span>DXF</span>
+            <span>{{ $t("cad.dxfFormat") }}</span>
           </button>
         </div>
       </div>
@@ -81,8 +82,8 @@
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import { loadCadDrawing } from "@/utils/cadService.ts";
 import { resourcesApi } from "@/api";
-import { getters, mutations, state } from "@/store";
-import { ensureViewToken, requestViewIdentity } from "@/api/viewToken.js";
+import { getters, state } from "@/store";
+import { ensureViewToken, } from "@/api/viewToken.js";
 
 export default {
   name: "DrawingViewer",
@@ -261,7 +262,7 @@ export default {
   flex-direction: column;
   width: 100%;
   height: 100%;
-  background-color: var(--surface-primary, #ffffff);
+  background-color: var(--surface-primary, #fff);
   color: var(--text-primary, #202124);
   overflow: hidden;
   position: relative;
@@ -337,12 +338,12 @@ export default {
 }
 
 .sheet-tab:hover {
-  background-color: var(--surface-hover, rgba(0, 0, 0, 0.05));
+  background-color: var(--surface-hover, rgb(0 0 0 / 5%));
 }
 
 .sheet-tab.active {
   background-color: var(--primary, #1a73e8);
-  color: #ffffff;
+  color: #fff;
 }
 
 .single-sheet-title {
@@ -374,7 +375,7 @@ export default {
 }
 
 .icon-button:hover {
-  background-color: var(--surface-hover, rgba(0, 0, 0, 0.08));
+  background-color: var(--surface-hover, rgb(0 0 0 / 8%));
 }
 
 .zoom-level {
@@ -391,7 +392,7 @@ export default {
   padding: 0.35rem 0.75rem;
   border-radius: 4px;
   border: 1px solid var(--border-color, #dadce0);
-  background: var(--surface-primary, #ffffff);
+  background: var(--surface-primary, #fff);
   color: var(--text-primary, #202124);
   cursor: pointer;
   font-size: 0.8rem;
@@ -399,14 +400,14 @@ export default {
 }
 
 .action-btn:hover {
-  background-color: var(--surface-hover, rgba(0, 0, 0, 0.05));
+  background-color: var(--surface-hover, rgb(0 0 0 / 5%));
 }
 
 .drawing-canvas-wrapper {
   flex: 1;
   position: relative;
   overflow: hidden;
-  background-color: #ffffff;
+  background-color: #fff;
   cursor: grab;
 }
 
@@ -423,7 +424,7 @@ export default {
 
 .drawing-viewport :deep(svg) {
   display: block;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  background-color: #ffffff;
+  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
+  background-color: #fff;
 }
 </style>

@@ -3,8 +3,8 @@ import { globalVars } from "@/utils/constants.js";
 let workerInstance: Worker | null = null;
 let messageIdCounter = 0;
 const pendingRequests = new Map<number, {
-  resolve: (val: any) => void;
-  reject: (err: any) => void;
+  resolve: (val: unknown) => void;
+  reject: (err: unknown) => void;
   onProgress?: (msg: string, kind: string) => void;
 }>();
 
@@ -133,7 +133,7 @@ export interface Cad3DResult {
   mesh: CadMeshResult;
   stepBytes?: Uint8Array;
   stlBytes?: Uint8Array;
-  composants?: any[];
+  composants?: Array<Record<string, unknown>>;
   properties?: CadStoredProperties[];
 }
 

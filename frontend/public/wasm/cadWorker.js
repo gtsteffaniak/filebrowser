@@ -1,6 +1,6 @@
 // cadWorker.js - Unified Web Worker for CAD file previews & conversions
 // Uses occt-import-js (OpenCASCADE in WebAssembly) and OpenSW (Pyodide Python in WebAssembly).
-"use strict";
+
 
 let PYODIDE = "https://cdn.jsdelivr.net/pyodide/v0.29.5/full/";
 let OCCT = "https://cdn.jsdelivr.net/npm/occt-import-js@0.0.23/dist/";
@@ -19,7 +19,7 @@ function chargerOcct(dire) {
   if (!occtPromise) {
     occtPromise = (async () => {
       log(dire, "Loading OpenCASCADE WebAssembly engine...", "step");
-      importScripts(OCCT + "occt-import-js.js");
+      importScripts(`${OCCT}occt-import-js.js`);
       const occt = await occtimportjs({ locateFile: (f) => OCCT + f });
       log(dire, "OpenCASCADE WASM engine ready", "ok");
       return occt;
@@ -33,11 +33,11 @@ function preparerPython(dire) {
     pythonPromise = (async () => {
       const t0 = performance.now();
       log(dire, "Loading Python WebAssembly (Pyodide)...", "step");
-      importScripts(PYODIDE + "pyodide.js");
+      importScripts(`${PYODIDE}pyodide.js`);
       const py = await loadPyodide({ indexURL: PYODIDE });
       log(dire, "Fetching OpenSW CAD engine...", "step");
       const archive = await fetch(OPENSW_ZIP).then((r) => {
-        if (!r.ok) throw new Error("Failed to load opensw.zip: HTTP " + r.status);
+        if (!r.ok) throw new Error(`Failed to load opensw.zip: HTTP ${r.status}`);
         return r.arrayBuffer();
       });
       py.unpackArchive(archive, "zip", { extractDir: "/opensw" });
@@ -73,11 +73,11 @@ function chargerGo(dire) {
       const t0 = performance.now();
       log(dire, "Loading OpenSW-Go WebAssembly engine...", "step");
       const base = GO_OPENSW.slice(0, GO_OPENSW.lastIndexOf("/") + 1);
-      importScripts(base + "wasm_exec.js");
+      importScripts(`${base}wasm_exec.js`);
       const ready = new Promise((resolve) => { self.__openswGoResolve = resolve; });
       const go = new Go();
       const resp = await fetch(GO_OPENSW);
-      if (!resp.ok) throw new Error("Failed to load opensw.wasm: HTTP " + resp.status);
+      if (!resp.ok) throw new Error(`Failed to load opensw.wasm: HTTP ${resp.status}`);
       const bytes = await resp.arrayBuffer();
       const { instance } = await WebAssembly.instantiate(bytes, go.importObject);
       go.run(instance); // resolves when Go's main signals readiness
@@ -95,8 +95,8 @@ function chargerGo(dire) {
 async function vueAssemblageGo(octets, dire) {
   await chargerGo(dire);
   const r = openswGoAssembly(octets, (text, kind) => dire(text, kind));
-  if (!r || r.ok !== true) {
-    throw new Error((r && r.error) || "OpenSW-Go could not read the assembly");
+  if (r?.ok !== true) {
+    throw new Error((r?.error) || "OpenSW-Go could not read the assembly");
   }
   const vue = r.vue;
   const mesh = {
@@ -131,7 +131,7 @@ async function mailler(octets, table, dire) {
   });
   if (!res.success) throw new Error("OpenCASCADE could not read the STEP model");
 
-  let min = [Infinity, Infinity, Infinity], max = [-Infinity, -Infinity, -Infinity];
+  const min = [Infinity, Infinity, Infinity], max = [-Infinity, -Infinity, -Infinity];
   let total = 0;
   for (const m of res.meshes) {
     const p = m.attributes.position.array;
@@ -167,7 +167,7 @@ async function mailler(octets, table, dire) {
         corps: f ? f.corps : rangMaillage + 1,
         triangles: bf.last - bf.first + 1,
       };
-      if (f && f.couleur) face.couleur = f.couleur;
+      if (f?.couleur) face.couleur = f.couleur;
       corpsMax = Math.max(corpsMax, face.corps);
       faces.push(face);
     }
@@ -195,7 +195,7 @@ async function maillerStepDirect(octets, dire) {
   });
   if (!res.success) throw new Error("OpenCASCADE could not read the STEP file");
 
-  let min = [Infinity, Infinity, Infinity], max = [-Infinity, -Infinity, -Infinity];
+  const min = [Infinity, Infinity, Infinity], max = [-Infinity, -Infinity, -Infinity];
   let total = 0;
   for (const m of res.meshes) {
     const p = m.attributes.position.array;
@@ -269,7 +269,7 @@ async function maillerStepDirect(octets, dire) {
   };
 }
 
-onmessage = async (e) => {
+self.onmessage = async (e) => {
   const m = e.data;
   if (!m) return;
 
@@ -295,7 +295,7 @@ onmessage = async (e) => {
       try {
         await chargerGo(dire);
         const p = openswGoProperties(rawBytes);
-        if (p && p.ok) {
+        if (p?.ok) {
           postMessage({ id, type: "properties", properties: p.properties });
           return;
         }
@@ -356,7 +356,7 @@ onmessage = async (e) => {
           const octets = new Uint8Array(brut.length);
           for (let i = 0; i < brut.length; i++) octets[i] = brut.charCodeAt(i);
           const sommets = new Float32Array(octets.buffer);
-          let stlBytes = r.resultat ? new Uint8Array(r.resultat) : null;
+          const stlBytes = r.resultat ? new Uint8Array(r.resultat) : null;
           const mesh = {
             faces: vue.faces,
             corps: vue.corps,
@@ -387,7 +387,7 @@ onmessage = async (e) => {
             dire("Meshing STEP in browser with OpenCASCADE...", "step");
             const facesTable = JSON.parse(r.faces || "[]");
             const mesh = await mailler(new Uint8Array(r.etiquete), facesTable, dire);
-            let stepBytes = r.resultat ? new Uint8Array(r.resultat) : null;
+            const stepBytes = r.resultat ? new Uint8Array(r.resultat) : null;
             const transfer = [mesh.sommets];
             if (stepBytes) transfer.push(stepBytes.buffer);
             postMessage({ id, type: "preview3d", mesh, stepBytes }, transfer);
@@ -529,7 +529,7 @@ onmessage = async (e) => {
           return;
         } else if (target === "svg") {
           const plan = r.plan ? JSON.parse(r.plan) : null;
-          if (!plan || !plan.feuilles || !plan.feuilles.length) throw new Error("No SVG sheets found in drawing");
+          if (!plan?.feuilles?.length) throw new Error("No SVG sheets found in drawing");
           const activeSheet = plan.feuilles.find((f) => f.active) || plan.feuilles[0];
           const enc = new TextEncoder().encode(activeSheet.svg);
           const outName = `${filename.replace(/\.slddrw$/i, '')}_${activeSheet.nom}.svg`;

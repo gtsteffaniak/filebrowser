@@ -36,6 +36,7 @@
     />
     <div v-if="!isThumbnail && !error && !loading" class="mode-switcher" :title="$t('threejs.viewMode')">
       <button
+        type="button"
         :class="['mode-btn', { active: displayMode === 'standard' }]"
         @click="setDisplayMode('standard')"
       >
@@ -43,6 +44,7 @@
         <span class="mode-name">{{ $t("threejs.modeStandard") }}</span>
       </button>
       <button
+        type="button"
         :class="['mode-btn', { active: displayMode === 'occt' }]"
         @click="setDisplayMode('occt')"
       >
@@ -70,10 +72,12 @@
     />
     <div v-if="measuring" class="measure-toolbar">
       <button
+        type="button"
         :class="['measure-mode-btn', { active: measureMode === 'points' }]"
         @click="setMeasureMode('points')"
       >{{ $t("threejs.measurePoints") }}</button>
       <button
+        type="button"
         :class="['measure-mode-btn', { active: measureMode === 'faces' }]"
         @click="setMeasureMode('faces')"
       >{{ $t("threejs.measureFaces") }}</button>
@@ -82,7 +86,7 @@
     <div class="measure-layer">
       <div
         v-for="(label, i) in measureLabels"
-        :key="'ml' + i"
+        :key="`ml${i}`"
         class="measure-label"
         :style="label.style"
       >{{ label.text }}</div>
@@ -645,7 +649,7 @@ export default {
       const step = () => {
         if (!this.camera) return;
         const k = Math.min(1, (performance.now() - t0) / dur);
-        const e = k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+        const e = k < 0.5 ? 2 * k * k : 1 - (-2 * k + 2) ** 2 / 2;
         const pos = from.clone().lerp(to, e).sub(target).normalize().multiplyScalar(dist).add(target);
         this.camera.position.copy(pos);
         this.controls.update();
@@ -680,7 +684,7 @@ export default {
         this.measureLine.material.dispose();
         this.measureLine = null;
       }
-      if (this.highlightMesh && this.highlightMesh.parent) {
+      if (this.highlightMesh?.parent) {
         this.highlightMesh.parent.remove(this.highlightMesh);
         this.highlightMesh.material.dispose();
         this.highlightMesh = null;
@@ -772,7 +776,7 @@ export default {
     highlightFace(range) {
       const source = this.cadSourceMesh();
       if (!source) return;
-      if (this.highlightMesh && this.highlightMesh.parent) {
+      if (this.highlightMesh?.parent) {
         this.highlightMesh.parent.remove(this.highlightMesh);
         this.highlightMesh.material.dispose();
       }
@@ -1782,7 +1786,7 @@ export default {
   gap: 2px;
   padding: 2px;
   border-radius: 8px;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgb(0 0 0 / 40%);
   backdrop-filter: blur(4px);
   z-index: 5;
 }
@@ -1793,7 +1797,7 @@ export default {
   gap: 5px;
   border: none;
   background: transparent;
-  color: #ffffff;
+  color: #fff;
   padding: 4px 10px;
   border-radius: 6px;
   cursor: pointer;
@@ -1807,7 +1811,7 @@ export default {
 }
 
 .mode-btn.active {
-  background: rgba(255, 255, 255, 0.25);
+  background: rgb(255 255 255 / 25%);
   opacity: 1;
 }
 
@@ -1815,7 +1819,7 @@ export default {
   font-size: 18px;
 }
 
-@media (max-width: 600px) {
+@media (width <= 600px) {
   .mode-name {
     display: none;
   }
@@ -1830,7 +1834,7 @@ export default {
   gap: 2px;
   padding: 2px;
   border-radius: 8px;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgb(0 0 0 / 40%);
   backdrop-filter: blur(4px);
   z-index: 5;
 }
@@ -1847,7 +1851,7 @@ export default {
 }
 
 .measure-mode-btn.active {
-  background: rgba(255, 255, 255, 0.25);
+  background: rgb(255 255 255 / 25%);
   opacity: 1;
 }
 
@@ -1857,7 +1861,7 @@ export default {
   left: 50%;
   transform: translateX(-50%);
   color: #fff;
-  background: rgba(0, 0, 0, 0.45);
+  background: rgb(0 0 0 / 45%);
   border-radius: 6px;
   padding: 3px 10px;
   font-size: 0.78rem;
@@ -1876,9 +1880,9 @@ export default {
 .measure-label {
   position: absolute;
   transform: translate(-50%, -130%);
-  background: rgba(21, 30, 40, 0.92);
+  background: rgb(21 30 40 / 92%);
   color: #ffd54f;
-  border: 1px solid rgba(255, 213, 79, 0.55);
+  border: 1px solid rgb(255 213 79 / 55%);
   border-radius: 6px;
   padding: 2px 8px;
   font-size: 0.78rem;

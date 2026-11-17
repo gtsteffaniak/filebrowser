@@ -12,9 +12,9 @@
         </div>
       </div>
     </div>
-    <button class="cube-iso" @click="$emit('select', 'iso')">
+    <button type="button" class="cube-iso" @click="$emit('select', 'iso')">
       <i class="material-symbols-outlined">view_in_ar</i>
-      <span>ISO</span>
+      <span>{{ $t("threejs.iso") }}</span>
     </button>
   </div>
 </template>
@@ -106,8 +106,8 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(38, 68, 120, 0.55);
-  border: 1px solid rgba(255, 255, 255, 0.45);
+  background: rgb(38 68 120 / 55%);
+  border: 1px solid rgb(255 255 255 / 45%);
   color: #fff;
   font-size: 0.62rem;
   font-weight: 600;
@@ -117,7 +117,7 @@ export default {
 }
 
 .cube-face:hover {
-  background: rgba(90, 150, 235, 0.75);
+  background: rgb(90 150 235 / 75%);
 }
 
 .cube-face span {
@@ -135,8 +135,8 @@ export default {
   display: flex;
   align-items: center;
   gap: 4px;
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgb(255 255 255 / 40%);
+  background: rgb(0 0 0 / 40%);
   color: #fff;
   border-radius: 7px;
   padding: 3px 9px;
@@ -145,7 +145,7 @@ export default {
 }
 
 .cube-iso:hover {
-  background: rgba(90, 150, 235, 0.6);
+  background: rgb(90 150 235 / 60%);
 }
 
 .cube-iso i {
