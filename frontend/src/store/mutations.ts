@@ -252,9 +252,17 @@ export const mutations = {
             readOnly: source.readOnly || false,
             private: source.private || false,
             indexingDisabled: source.indexingDisabled || false,
+            scopeQuota: source.scopeQuota,
           };
           info = setObjectProperty(info, k, updated) as Record<string, SourceInfo>;
-          if (updated.total > 0 || updated.used > 0 || updated.usedAlt > 0) hasAny = true;
+          if (
+            updated.total > 0 ||
+            updated.used > 0 ||
+            updated.usedAlt > 0 ||
+            (updated.scopeQuota?.limitBytes ?? 0) > 0
+          ) {
+            hasAny = true;
+          }
         }
       }
       state.sources.info = info;
@@ -319,12 +327,19 @@ export const mutations = {
         readOnly: prev ? prev.readOnly : false,
         private: prev ? prev.private : false,
         indexingDisabled: prev ? prev.indexingDisabled : false,
+        scopeQuota: prev?.scopeQuota,
       };
     }
     // Sidebar usage bar uses hasSourceInfo + per-source used/total; must survive object replace
     sources.hasSourceInfo = user.scopes.some((s: UserScope) => {
       const e = sources.info[s.name];
-      return e && (e.total > 0 || e.used > 0 || e.usedAlt > 0);
+      return (
+        e &&
+        (e.total > 0 ||
+          e.used > 0 ||
+          e.usedAlt > 0 ||
+          (e.scopeQuota?.limitBytes ?? 0) > 0)
+      );
     });
     // Check if user has custom sidebar links with sources
     let targetSource = sources.current;
