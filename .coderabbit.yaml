@@ -18,7 +18,8 @@ reviews:
   enable_prompt_for_ai_agents: true
   path_filters:
     - "!backend/swagger/**"
-    - "!frontend/src/i18n/**.json"
+    - "!frontend/src/i18n/**/*.json"
+    - "!frontend/src/i18n/messages.generated.ts"
   path_instructions:
     - path: "**/*.go"
       instructions: |
