@@ -524,7 +524,7 @@ export default {
       if (!root) {
         return null;
       }
-      const buttons = root.querySelectorAll('.card-actions button');
+      const buttons = Array.from(root.querySelectorAll('.card-actions button'));
       if (!buttons.length) {
         return null;
       }
