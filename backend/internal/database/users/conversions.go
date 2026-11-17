@@ -169,15 +169,17 @@ func (u *User) GetFrontendSourcePermissions() map[string]SourceFilePermissions {
 }
 
 // FilePermsForSourcePath returns per-source file permissions for a backend source path.
-// When indexPath is provided, it matches scopes by longest-prefix path (nested scope support).
+// When indexPath is provided, matches scopes by longest-prefix (nested scope support)
+// and returns (deny, false) when no scope matches; otherwise returns the first scope.
 func (u *User) FilePermsForSourcePath(sourcePath string, indexPath ...string) (SourceFilePermissions, bool) {
 	var currentPath string
-	if len(indexPath) > 0 {
+	pathProvided := len(indexPath) > 0 && indexPath[0] != ""
+	if pathProvided {
 		currentPath = indexPath[0]
 	}
 
 	// If a path is provided, find the scope with the longest matching prefix
-	if currentPath != "" {
+	if pathProvided {
 		var bestScope *BackendScope
 		var bestLen int
 		for i, scope := range u.BackendScopes {
@@ -192,20 +194,22 @@ func (u *User) FilePermsForSourcePath(sourcePath string, indexPath ...string) (S
 				}
 			}
 		}
-		if bestScope != nil {
-			perms := bestScope.Permissions
-			if perms.IsUnset() {
-				if u.BackendSourcePermissions != nil {
-					if legacy, ok := u.BackendSourcePermissions[sourcePath]; ok {
-						return legacy, true
-					}
+		if bestScope == nil {
+			// Path was provided but no scope matched — deny
+			return DenyAllSourceFilePermissions(), false
+		}
+		perms := bestScope.Permissions
+		if perms.IsUnset() {
+			if u.BackendSourcePermissions != nil {
+				if legacy, ok := u.BackendSourcePermissions[sourcePath]; ok {
+					return legacy, true
 				}
 			}
-			return perms, true
 		}
+		return perms, true
 	}
 
-	// Fallback: no path provided or no scope matched — return first scope for source
+	// No path provided (backward compat): return first scope for source
 	for _, scope := range u.BackendScopes {
 		if scope.Path == sourcePath {
 			perms := scope.Permissions
