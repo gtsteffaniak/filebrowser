@@ -29,6 +29,19 @@ func EffectiveFilePermissions(user *users.User, link *Share, sourceName string) 
 	return user.FilePermsForSourceName(sourceName)
 }
 
+// EffectiveFilePermissionsForPath is like EffectiveFilePermissions but resolves user
+// permissions using longest-prefix scope matching for nested scopes.
+// Share permissions are path-independent, so link-based shares ignore indexPath.
+func EffectiveFilePermissionsForPath(user *users.User, link *Share, sourceName string, indexPath string) (users.SourceFilePermissions, error) {
+	if link != nil && link.Hash != "" {
+		return link.FilePermissions(), nil
+	}
+	if user == nil {
+		return users.DenyAllSourceFilePermissions(), fmt.Errorf("user context not set")
+	}
+	return user.FilePermsForSourceName(sourceName, indexPath)
+}
+
 // ClampShareEditable limits client-requested share flags to what the owner is allowed on the source.
 func ClampShareEditable(ownerPerms users.SourceFilePermissions, editable *ShareEditable) {
 	if editable == nil {

@@ -421,9 +421,36 @@ func SourceConfigLoaded() bool {
 	return sourceConfig != nil
 }
 
-// GetScopeForSourcePath returns the scope for a given source path (backend-style)
-// This method works with backend-style scopes where Name is the source path
-func (u *User) GetScopeForSourcePath(sourcePath string) (string, error) {
+// GetScopeForSourcePath returns the scope for a given source path (backend-style).
+// When indexPath is provided, returns the deepest matching scope (longest-prefix).
+func (u *User) GetScopeForSourcePath(sourcePath string, indexPath ...string) (string, error) {
+	var currentPath string
+	if len(indexPath) > 0 {
+		currentPath = indexPath[0]
+	}
+
+	// If a path is provided, find the scope with the longest matching prefix
+	if currentPath != "" {
+		var bestScope *BackendScope
+		var bestLen int
+		for i, scope := range u.BackendScopes {
+			if scope.Path == sourcePath {
+				// Check if currentPath starts with this scope's Scope prefix
+				if strings.HasPrefix(currentPath, scope.Scope) || currentPath == scope.Scope {
+					scopeLen := len(scope.Scope)
+					if scopeLen > bestLen {
+						bestLen = scopeLen
+						bestScope = &u.BackendScopes[i]
+					}
+				}
+			}
+		}
+		if bestScope != nil {
+			return bestScope.Scope, nil
+		}
+	}
+
+	// Fallback: no path provided or no scope matched — return first scope for source
 	for _, scope := range u.BackendScopes {
 		if scope.Path == sourcePath {
 			return scope.Scope, nil
@@ -432,9 +459,10 @@ func (u *User) GetScopeForSourcePath(sourcePath string) (string, error) {
 	return "", fmt.Errorf("scope not found for source %v", sourcePath)
 }
 
-// GetScopeForSourceName returns the scope for a given source name (frontend-style)
+// GetScopeForSourceName returns the scope for a given source name (frontend-style).
+// When indexPath is provided, returns the deepest matching scope (longest-prefix).
 // Uses the global SourceNameResolver to convert source names to paths
-func (u *User) GetScopeForSourceName(sourceName string) (string, error) {
+func (u *User) GetScopeForSourceName(sourceName string, indexPath ...string) (string, error) {
 	if sourceNameResolver == nil {
 		return "", fmt.Errorf("source name resolver not initialized")
 	}
@@ -444,6 +472,9 @@ func (u *User) GetScopeForSourceName(sourceName string) (string, error) {
 		return "", err
 	}
 
+	if len(indexPath) > 0 {
+		return u.GetScopeForSourcePath(sourcePath, indexPath[0])
+	}
 	return u.GetScopeForSourcePath(sourcePath)
 }
 

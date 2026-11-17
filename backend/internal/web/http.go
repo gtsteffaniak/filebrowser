@@ -44,13 +44,18 @@ type Context struct {
 // HandleFunc is the signature used by middleware-wrapped handlers.
 type HandleFunc func(w http.ResponseWriter, r *http.Request, d *Context) (int, error)
 
-func effectiveFilePerms(d *Context, sourceName string) (users.SourceFilePermissions, error) {
+// effectiveFilePerms resolves file permissions for a source. When indexPath is provided,
+// scopes are matched by longest-prefix so nested scopes override their parent's permissions.
+func effectiveFilePerms(d *Context, sourceName string, indexPath ...string) (users.SourceFilePermissions, error) {
 	if d == nil {
 		return users.DenyAllSourceFilePermissions(), fmt.Errorf("user context not set")
 	}
 	var link *share.Share
 	if d.Share.Hash != "" {
 		link = &d.Share
+	}
+	if len(indexPath) > 0 && indexPath[0] != "" {
+		return share.EffectiveFilePermissionsForPath(d.User, link, sourceName, indexPath[0])
 	}
 	return share.EffectiveFilePermissions(d.User, link, sourceName)
 }
