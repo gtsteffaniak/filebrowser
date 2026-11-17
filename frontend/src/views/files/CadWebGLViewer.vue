@@ -6,9 +6,9 @@
     <div class="measure-layer">
       <div
         v-for="(label, i) in labelBoxes"
-        :key="'ml' + i"
+        :key="`ml${i}`"
         class="measure-label"
-        :style="{ left: label.x + 'px', top: label.y + 'px', visibility: label.visible ? 'visible' : 'hidden' }"
+        :style="{ left: `${label.x}px`, top: `${label.y}px`, visibility: label.visible ? 'visible' : 'hidden' }"
       >{{ label.text }}</div>
     </div>
 
@@ -30,6 +30,7 @@
     <template v-if="!loading && !error">
       <div class="mode-switcher" :title="$t('threejs.viewMode')">
         <button
+          type="button"
           :class="['mode-btn', { active: displayMode === 'standard' }]"
           @click="setDisplayMode('standard')"
         >
@@ -37,6 +38,7 @@
           <span class="mode-name">{{ $t("threejs.modeStandard") }}</span>
         </button>
         <button
+          type="button"
           :class="['mode-btn', { active: displayMode === 'occt' }]"
           @click="setDisplayMode('occt')"
         >
@@ -47,36 +49,15 @@
 
       <div class="status-bar">{{ statusText }}</div>
 
-      <FloatingActionButton
-        icon="change_circle"
-        position="bottom-left"
-        :style="{ bottom: '5.2rem' }"
-        :auto-hide="false"
-        @click="showCadConvertPrompt"
-        :label="$t('cad.convert')"
-      />
-      <FloatingActionButton
-        icon="analytics"
-        position="bottom-left"
-        :style="{ bottom: '10.4rem' }"
-        :auto-hide="false"
-        @click="showCadProperties"
-        :label="$t('threejs.properties')"
-      />
-      <FloatingActionButton
-        :icon="measuring ? 'close' : 'architecture'"
-        position="bottom-left"
-        :style="{ bottom: '15.6rem' }"
-        :auto-hide="false"
-        @click="toggleMeasure"
-        :label="measuring ? $t('threejs.measureExit') : $t('threejs.measure')"
-      />
+      <!-- Keep actions away from the OpenSW triad (bottom-left) and view cube (bottom-right). -->
       <div v-if="measuring" class="measure-toolbar">
         <button
+          type="button"
           :class="['measure-mode-btn', { active: measureMode === 'points' }]"
           @click="setMeasureMode('points')"
         >{{ $t("threejs.measurePoints") }}</button>
         <button
+          type="button"
           :class="['measure-mode-btn', { active: measureMode === 'faces' }]"
           @click="setMeasureMode('faces')"
         >{{ $t("threejs.measureFaces") }}</button>
@@ -90,9 +71,9 @@
 
 <script>
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
-import FloatingActionButton from "@/components/settings/FloatingActionButton.vue";
 import ViewCube from "@/components/files/ViewCube.vue";
 import { state, mutations, getters } from "@/store";
+import { eventBus } from "@/store/eventBus";
 import { resourcesApi } from "@/api";
 import { fetchPreviewImage } from "@/utils/previewRequests.js";
 import { ensureViewToken, getCachedViewToken, requestViewIdentity } from "@/api/viewToken";
@@ -101,7 +82,7 @@ import { CadWebGLRenderer } from "@/utils/cadWebGLRenderer.js";
 
 export default {
   name: "cadViewer",
-  components: { LoadingSpinner, FloatingActionButton, ViewCube },
+  components: { LoadingSpinner, ViewCube },
   props: {
     fbdata: { type: Object, required: true },
   },
@@ -164,6 +145,7 @@ export default {
     },
   },
   async mounted() {
+    eventBus.on("cadViewerAction", this.handleCadViewerAction);
     this.updateSelectedState();
     this.loadPreviewBackground();
     try {
@@ -173,6 +155,7 @@ export default {
     }
   },
   beforeUnmount() {
+    eventBus.off("cadViewerAction", this.handleCadViewerAction);
     this.clearPreviewBackground();
     this.renderer?.dispose();
     this.renderer = null;
@@ -559,6 +542,13 @@ export default {
 
     // --- prompts ------------------------------------------------------------
 
+    handleCadViewerAction(payload) {
+      if (!payload || payload.source !== this.fbdata.source || payload.path !== this.fbdata.path) return;
+      if (payload.action === "properties") this.showCadProperties();
+      else if (payload.action === "measure") this.toggleMeasure();
+      else if (payload.action === "convert") this.showCadConvertPrompt();
+    },
+
     showCadConvertPrompt() {
       mutations.showPrompt({
         name: "CadConvert",
@@ -677,9 +667,9 @@ export default {
 .measure-label {
   position: absolute;
   transform: translate(-50%, -130%);
-  background: rgba(21, 30, 40, 0.92);
+  background: rgb(21 30 40 / 92%);
   color: #ffd54f;
-  border: 1px solid rgba(255, 213, 79, 0.55);
+  border: 1px solid rgb(255 213 79 / 55%);
   border-radius: 6px;
   padding: 2px 8px;
   font-size: 0.78rem;
@@ -753,7 +743,7 @@ export default {
   gap: 2px;
   padding: 2px;
   border-radius: 8px;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgb(0 0 0 / 40%);
   backdrop-filter: blur(4px);
   z-index: 5;
 }
@@ -764,7 +754,7 @@ export default {
   gap: 5px;
   border: none;
   background: transparent;
-  color: #ffffff;
+  color: #fff;
   padding: 4px 10px;
   border-radius: 6px;
   cursor: pointer;
@@ -778,7 +768,7 @@ export default {
 }
 
 .mode-btn.active {
-  background: rgba(255, 255, 255, 0.25);
+  background: rgb(255 255 255 / 25%);
   opacity: 1;
 }
 
@@ -786,7 +776,7 @@ export default {
   font-size: 18px;
 }
 
-@media (max-width: 600px) {
+@media (width <= 600px) {
   .mode-name {
     display: none;
   }
@@ -802,7 +792,7 @@ export default {
   text-overflow: ellipsis;
   white-space: nowrap;
   color: var(--textPrimary, #fff);
-  background: rgba(0, 0, 0, 0.4);
+  background: rgb(0 0 0 / 40%);
   border-radius: 6px;
   padding: 3px 12px;
   font-size: 0.8rem;
@@ -819,7 +809,7 @@ export default {
   gap: 2px;
   padding: 2px;
   border-radius: 8px;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgb(0 0 0 / 40%);
   backdrop-filter: blur(4px);
   z-index: 5;
 }
@@ -836,7 +826,7 @@ export default {
 }
 
 .measure-mode-btn.active {
-  background: rgba(255, 255, 255, 0.25);
+  background: rgb(255 255 255 / 25%);
   opacity: 1;
 }
 
@@ -846,7 +836,7 @@ export default {
   left: 50%;
   transform: translateX(-50%);
   color: #fff;
-  background: rgba(0, 0, 0, 0.45);
+  background: rgb(0 0 0 / 45%);
   border-radius: 6px;
   padding: 3px 10px;
   font-size: 0.78rem;

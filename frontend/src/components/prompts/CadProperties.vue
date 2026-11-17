@@ -8,7 +8,7 @@
     <div class="props-grid">
       <div v-if="storedMass" class="stored-banner">
         {{ $t("threejs.propStored") }}
-        <span v-if="storedConfiguration"> · {{ storedConfiguration }}</span>
+        <span v-if="storedConfiguration"> {{ $t("threejs.propConfigurationSeparator") }} {{ storedConfiguration }}</span>
       </div>
       <div class="prop-row">
         <span>{{ $t("threejs.propVolume") }}</span>
@@ -28,7 +28,7 @@
       </div>
       <div v-if="hasStoredInertia" class="prop-row">
         <span>{{ $t("threejs.propInertia") }}</span>
-          <b>{{ storedMass.inertiaKgM2.map(v => Number(v).toExponential(3)).join(", ") }} kg·m²</b>
+          <b>{{ storedMass.inertiaKgM2.map(v => Number(v).toExponential(3)).join(", ") }} {{ $t("threejs.inertiaUnit") }}</b>
       </div>
       <div v-if="storedMass" class="prop-row">
         <span>{{ $t("threejs.propMaterial") }}</span>
@@ -38,7 +38,7 @@
         <span>{{ $t("threejs.propDensity") }}</span>
         <select v-model="density" class="density-select">
           <option v-for="m in materials" :key="m.name" :value="m.density">
-            {{ m.name }} ({{ m.density }} g/cm³)
+            {{ m.name }} {{ $t("threejs.densityValue", { value: m.density, unit: $t("threejs.densityUnit") }) }}
           </option>
           <option :value="customDensity">{{ $t("threejs.propCustom") }}</option>
         </select>
@@ -181,7 +181,7 @@ export default {
   padding: 0.4rem 0.6rem;
   border-radius: 6px;
   color: var(--green, #2e7d32);
-  background: rgba(46, 125, 50, 0.12);
+  background: rgb(46 125 50 / 12%);
   font-size: 0.8rem;
   font-weight: 600;
 }
@@ -199,7 +199,7 @@ export default {
   gap: 1rem;
   padding: 0.35rem 0.55rem;
   border-radius: 6px;
-  background: var(--altBackground, rgba(127, 127, 127, 0.1));
+  background: var(--altBackground, rgb(127 127 127 / 10%));
   font-size: 0.88rem;
 }
 

@@ -29,8 +29,8 @@ const swNS = "http://www.solidworks.com/sw2003/schema"
 // utf16Mark is the mark of an MFC UTF-16 string: FF FE FF then its length.
 var utf16Mark = []byte{0xFF, 0xFE, 0xFF}
 
-// AssemblyError marks files that are not assemblies this reader supports.
-var AssemblyError = errors.New("opensw: not a readable assembly")
+// ErrAssembly marks files that are not assemblies this reader supports.
+var ErrAssembly = errors.New("opensw: not a readable assembly")
 
 // Component is a placed part instance.
 type Component struct {
@@ -120,13 +120,13 @@ func parseXMLTree(data []byte) (*xmlNode, error) {
 func swMatrix(text string) ([16]float64, error) {
 	fields := strings.Fields(text)
 	if len(fields) != 16 {
-		return [16]float64{}, fmt.Errorf("%w: swTransform with %d numbers", AssemblyError, len(fields))
+		return [16]float64{}, fmt.Errorf("%w: swTransform with %d numbers", ErrAssembly, len(fields))
 	}
 	var v [16]float64
 	for i, f := range fields {
 		x, err := strconv.ParseFloat(f, 64)
 		if err != nil {
-			return [16]float64{}, fmt.Errorf("%w: swTransform number %q", AssemblyError, f)
+			return [16]float64{}, fmt.Errorf("%w: swTransform number %q", ErrAssembly, f)
 		}
 		v[i] = x
 	}
@@ -193,7 +193,7 @@ func treeComponents(xmldata []byte) ([]*Component, error) {
 		}
 	}
 	if head == nil {
-		return nil, fmt.Errorf("%w: no ASSEMBLY file in the tree", AssemblyError)
+		return nil, fmt.Errorf("%w: no ASSEMBLY file in the tree", ErrAssembly)
 	}
 	fileByID := map[string]*xmlNode{}
 	for _, f := range files {
@@ -257,7 +257,7 @@ func treeComponents(xmldata []byte) ([]*Component, error) {
 	}
 	model := modelOf(head.attrs["id"])
 	if model == nil {
-		return nil, fmt.Errorf("%w: the assembly model has no reference", AssemblyError)
+		return nil, fmt.Errorf("%w: the assembly model has no reference", ErrAssembly)
 	}
 	descend(model, identityMatrix, "", false, false)
 	return out, nil
@@ -428,7 +428,7 @@ func tessellations(streams map[string][]byte) (map[string][][][3][3]float64, err
 		if dl := streams["Contents/DisplayLists"]; dl != nil {
 			return legacyTessellations(dl)
 		}
-		return nil, fmt.Errorf("%w: no display mesh streams", AssemblyError)
+		return nil, fmt.Errorf("%w: no display mesh streams", ErrAssembly)
 	}
 
 	// Entry keys, found again in the data: an eight-byte window with at most
@@ -487,7 +487,7 @@ func tessellations(streams map[string][]byte) (map[string][][][3][3]float64, err
 		}
 	}
 	if len(out) == 0 {
-		return nil, fmt.Errorf("%w: no display mesh decoded", AssemblyError)
+		return nil, fmt.Errorf("%w: no display mesh decoded", ErrAssembly)
 	}
 	return out, nil
 }
@@ -537,7 +537,7 @@ func legacyTessellations(d []byte) (map[string][][][3][3]float64, error) {
 		}
 	}
 	if len(tetes) == 0 {
-		return nil, fmt.Errorf("%w: no display mesh in DisplayLists", AssemblyError)
+		return nil, fmt.Errorf("%w: no display mesh in DisplayLists", ErrAssembly)
 	}
 	// The mesh of a part follows its first instance only; the other
 	// instances share it.
@@ -562,7 +562,7 @@ func legacyTessellations(d []byte) (map[string][][][3][3]float64, error) {
 		}
 	}
 	if len(out) == 0 {
-		return nil, fmt.Errorf("%w: no display mesh decoded from DisplayLists", AssemblyError)
+		return nil, fmt.Errorf("%w: no display mesh decoded from DisplayLists", ErrAssembly)
 	}
 	return out, nil
 }
@@ -605,7 +605,7 @@ func ReadAssembly(data []byte) (*Assembly, error) {
 	}
 	xmlTree := c.Get("swXmlContents/COMPINSTANCETREE")
 	if xmlTree == nil {
-		return nil, fmt.Errorf("%w: no swXmlContents/COMPINSTANCETREE stream", AssemblyError)
+		return nil, fmt.Errorf("%w: no swXmlContents/COMPINSTANCETREE stream", ErrAssembly)
 	}
 	components, err := treeComponents(xmlTree)
 	if err != nil {
@@ -673,7 +673,7 @@ type View struct {
 func (a *Assembly) ToView() (*View, error) {
 	lo, hi, ok := a.BoundingBox()
 	if !ok {
-		return nil, fmt.Errorf("%w: no visible component has a mesh", AssemblyError)
+		return nil, fmt.Errorf("%w: no visible component has a mesh", ErrAssembly)
 	}
 	var centre [3]float64
 	diag := 0.0
@@ -690,7 +690,7 @@ func (a *Assembly) ToView() (*View, error) {
 		}
 	}
 	if len(visible) == 0 {
-		return nil, fmt.Errorf("%w: no visible component has a mesh", AssemblyError)
+		return nil, fmt.Errorf("%w: no visible component has a mesh", ErrAssembly)
 	}
 	v := &View{Bodies: len(visible), Radius: diag / 2}
 	for rang, c := range visible {
@@ -726,7 +726,7 @@ func (a *Assembly) ToSTL() ([]byte, error) {
 		}
 	}
 	if count == 0 {
-		return nil, fmt.Errorf("%w: no visible component has a mesh", AssemblyError)
+		return nil, fmt.Errorf("%w: no visible component has a mesh", ErrAssembly)
 	}
 	var out bytes.Buffer
 	header := []byte("openSW: SolidWorks display mesh, mm")

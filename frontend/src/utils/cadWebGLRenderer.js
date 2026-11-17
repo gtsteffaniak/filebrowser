@@ -6,7 +6,7 @@
 // carries its face index; picking renders the scene offscreen with each
 // face painted with its index and reads the pixel under the mouse.
 
-"use strict";
+
 
 const SW = {
   defaut: [0.894, 0.894, 0.894], // face with no colour in the file
@@ -138,7 +138,7 @@ function preparer(faces, pos) {
       for (let j = 0; j < 3; j++) {
         const v = v0 + j,
           s = 3 * v;
-        const cle = bits[s] + "," + bits[s + 1] + "," + bits[s + 2];
+        const cle = `${bits[s]},${bits[s + 1]},${bits[s + 2]}`;
         let id = ids.get(cle);
         if (id === undefined) {
           id = ids.size;
@@ -272,7 +272,7 @@ export class CadWebGLRenderer {
       if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS)) throw gl.getShaderInfoLog(sh);
       gl.attachShader(p, sh);
     }
-    ["aPos", "aNor", "aFace", "aCoul"].forEach((nom, i) => gl.bindAttribLocation(p, i, nom));
+    ["aPos", "aNor", "aFace", "aCoul"].forEach((nom, i) => { gl.bindAttribLocation(p, i, nom); });
     gl.linkProgram(p);
     if (!gl.getProgramParameter(p, gl.LINK_STATUS)) throw gl.getProgramInfoLog(p);
     return p;
@@ -766,7 +766,7 @@ export class CadWebGLRenderer {
 
   // Dynamic highlight. An offscreen pass per mouse move is costly, so wait
   // for the mouse to settle.
-  survoler(c, e) {
+  survoler(_c, e) {
     clearTimeout(this.minuteur);
     this.minuteur = setTimeout(() => {
       const rang = this.sous(e);

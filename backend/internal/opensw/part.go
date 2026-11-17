@@ -20,11 +20,11 @@ func ReadPartDisplayMesh(data []byte) (*View, error) {
 	}
 	dl := c.Get("Contents/DisplayLists")
 	if dl == nil {
-		return nil, fmt.Errorf("%w: no Contents/DisplayLists stream", AssemblyError)
+		return nil, fmt.Errorf("%w: no Contents/DisplayLists stream", ErrAssembly)
 	}
 	faces := blockFaces(dl, 0, len(dl))
 	if len(faces) == 0 {
-		return nil, fmt.Errorf("%w: no display mesh decoded from part", AssemblyError)
+		return nil, fmt.Errorf("%w: no display mesh decoded from part", ErrAssembly)
 	}
 	lo := [3]float64{math.Inf(1), math.Inf(1), math.Inf(1)}
 	hi := [3]float64{math.Inf(-1), math.Inf(-1), math.Inf(-1)}

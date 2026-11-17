@@ -202,19 +202,19 @@ export default {
   padding: 0.75rem 1rem;
   border-radius: 6px;
   border: 1px solid var(--border-color, #dadce0);
-  background-color: var(--surface-primary, #ffffff);
+  background-color: var(--surface-primary, #fff);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .target-card:hover {
-  background-color: var(--surface-hover, rgba(0, 0, 0, 0.03));
+  background-color: var(--surface-hover, rgb(0 0 0 / 3%));
   border-color: var(--primary, #1a73e8);
 }
 
 .target-card.selected {
   border-color: var(--primary, #1a73e8);
-  background-color: rgba(26, 115, 232, 0.08);
+  background-color: rgb(26 115 232 / 8%);
 }
 
 .target-card-header {

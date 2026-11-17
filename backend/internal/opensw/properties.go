@@ -1,13 +1,11 @@
 package opensw
 
 import (
-	"encoding/binary"
 	"encoding/xml"
 	"fmt"
 	"io"
 	"strconv"
 	"strings"
-	"unicode/utf16"
 )
 
 // MassProperties are the values SolidWorks persisted, in SI units. They are
@@ -26,17 +24,6 @@ type StoredProperties struct {
 	Mass           *MassProperties `json:"mass,omitempty"`
 	Material       string          `json:"material,omitempty"`
 	MaterialBase   string          `json:"materialBase,omitempty"`
-}
-
-const swPropertiesNS = "http://www.solidworks.com/sw2003/schema"
-
-type propXML struct {
-	XMLName  xml.Name
-	Name     string `xml:"name,attr"`
-	SWID     string `xml:"swID,attr"`
-	Value    string `xml:"value,attr"`
-	Text     string `xml:",chardata"`
-	Children []propXML `xml:"property"`
 }
 
 type featureXML struct {
@@ -76,14 +63,6 @@ func collectNamedProperties(raw []byte) (map[string]string, error) {
 	}
 }
 
-func xmlPropertyValue(p propXML) string {
-	if strings.TrimSpace(p.Text) != "" { return strings.TrimSpace(p.Text) }
-	for _, c := range p.Children {
-		if strings.TrimSpace(c.Text) != "" { return strings.TrimSpace(c.Text) }
-	}
-	return p.Value
-}
-
 func parseMass(raw string) *MassProperties {
 	fields := strings.Split(raw, ",")
 	if len(fields) < 6 { return nil }
@@ -99,13 +78,6 @@ func parseMass(raw string) *MassProperties {
 	}
 	if len(values) >= 12 { m.InertiaKgM2 = append([]float64(nil), values[6:12]...) }
 	return m
-}
-
-func decodeUTF16(data []byte) string {
-	if len(data) < 2 { return string(data) }
-	u := make([]uint16, len(data)/2)
-	for i := range u { u[i] = binary.LittleEndian.Uint16(data[2*i:]) }
-	return string(utf16.Decode(u))
 }
 
 // ReadStoredProperties reads the same SolidWorks streams as OpenSW's
