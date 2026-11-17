@@ -808,7 +808,18 @@ export const getters = {
     if (!activeSource || !Array.isArray(state.user?.scopes)) {
       return denyFile;
     }
-    const scopeEntry = state.user.scopes.find((entry) => entry?.name === activeSource);
+    // Find scope with longest-prefix match for nested scopes
+    const currentPath = state.req?.path ?? "/";
+    const matchingScopes = state.user.scopes
+      .filter((entry) => entry?.name === activeSource)
+      .filter((entry) => {
+        // Check if currentPath starts with this scope's path (or is exact match)
+        const scopePath = entry.scope || "/";
+        return currentPath === scopePath || currentPath.startsWith(scopePath + "/");
+      })
+      .sort((a, b) => (b.scope?.length ?? 0) - (a.scope?.length ?? 0));
+
+    const scopeEntry = matchingScopes[0];
     const permissions = scopeEntry?.permissions ?? denyFile;
     // The server refuses writes to a read-only source whatever the scope grants, so do not offer them.
     if (state.sources?.info?.[activeSource]?.readOnly) {
