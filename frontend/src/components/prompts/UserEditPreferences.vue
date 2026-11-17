@@ -7,18 +7,20 @@
       :account="editAccount"
       :enforced="enforcedAccount"
       :enforced-permissions="enforcedAccountPermissions"
+      :show-require-password-change="session.user?.loginMethod === 'password'"
       respect-enforced-policy
-      @account-change="onEditAccountChange"
+      @account-change="({ field, value }) => onEditAccountChange(field, value)"
     />
     <UserProfilePreferences
       v-if="session"
       v-model="profileSections"
+      hide-account-options
       :enforced="enforcedPreferences"
       :default-expanded-section="null"
       respect-enforced-policy
       show-extension-inputs
       :show-thumbnail-master="false"
-      @change="onPreferenceChange"
+      @changed="onPreferenceChange"
     />
   </div>
   <div class="card-actions">
@@ -35,7 +37,7 @@
 </template>
 
 <script>
-import { mutations, state } from "@/store";
+import { mutations, state } from "@/store/index.ts";
 import UserDefaultsAccountSection from "@/components/settings/UserDefaultsAccountSection.vue";
 import UserProfilePreferences from "@/components/settings/UserProfilePreferences.vue";
 import {
@@ -43,7 +45,7 @@ import {
   subscribeUserEditSession,
   updateUserEditSession,
   cloneUserEditSessionValue,
-} from "@/utils/userEditSession";
+} from "@/utils/userEditSession.js";
 import {
   sectionsFromFlatUser,
   applySectionsToFlatUser,
@@ -61,6 +63,7 @@ export default {
       sessionUnsubscribe: null,
       editAccount: {
         lockPassword: false,
+        requirePasswordChange: false,
         disableSettings: false,
         disableUpdateNotifications: false,
         showAdvancedProfile: false,
@@ -113,6 +116,7 @@ export default {
       const user = this.session?.user || {};
       const permissions = user.permissions || {};
       this.editAccount.lockPassword = !!user.lockPassword;
+      this.editAccount.requirePasswordChange = !!user.requirePasswordChange;
       this.editAccount.disableSettings = !!user.disableSettings;
       this.editAccount.disableUpdateNotifications = !!user.disableUpdateNotifications;
       this.editAccount.showAdvancedProfile = !!user.showAdvancedProfile;
@@ -130,6 +134,7 @@ export default {
       const user = {
         ...this.session.user,
         lockPassword: this.editAccount.lockPassword,
+        requirePasswordChange: this.editAccount.requirePasswordChange,
         disableSettings: this.editAccount.disableSettings,
         disableUpdateNotifications: this.editAccount.disableUpdateNotifications,
         showAdvancedProfile: this.editAccount.showAdvancedProfile,
@@ -143,6 +148,7 @@ export default {
       sections.account = {
         ...(sections.account || {}),
         lockPassword: this.editAccount.lockPassword,
+        requirePasswordChange: this.editAccount.requirePasswordChange,
         disableSettings: this.editAccount.disableSettings,
         disableUpdateNotifications: this.editAccount.disableUpdateNotifications,
         showAdvancedProfile: this.editAccount.showAdvancedProfile,

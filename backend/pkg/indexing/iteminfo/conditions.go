@@ -567,6 +567,7 @@ func TextPreviewKind(ext string) string {
 // Do not add mimetypes shared with binaries (e.g. application/x-msdownload for .exe).
 var textPreviewMimeTypes = map[string]bool{
 	"application/json":         true,
+	"application/rtf":          true,
 	"application/yaml":         true,
 	"application/x-yaml":       true,
 	"application/sql":          true,

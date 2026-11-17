@@ -9,7 +9,7 @@
             v-model="activityScope"
             :options="activityScopeOptions"
             all-value="all"
-            @update:modelValue="onScopeChange"
+            @update:model-value="onScopeChange"
           />
         </div>
 
@@ -18,7 +18,7 @@
           <ExpandDropdown
             v-model="timePreset"
             :options="timePresetOptions"
-            @update:modelValue="onTimePresetChange"
+            @update:model-value="onTimePresetChange"
           />
         </div>
 
@@ -35,7 +35,7 @@
           <ExpandDropdown
             v-model="selectedUsername"
             :options="usernameOptions"
-            :all-value="''"
+            all-value=""
           />
         </div>
 
@@ -109,12 +109,13 @@
                 <ExpandDropdown
                   v-model="filterSource"
                   :options="filterSourceOptions"
-                  :default-value="''"
+                  default-value=""
                   :default-placeholder-if-empty="$t('general.allSources')"
                 />
               </div>
               <div class="config-field glob-field glob-field-wide">
                 <h3>{{ $t("tools.activityViewer.pathGlob") }}</h3>
+                <!-- i18n-ignore -->
                 <input
                   v-model="filterPathGlob"
                   type="text"
@@ -132,7 +133,7 @@
             v-model:shareHash="filterShareHash"
             aria-label="activity-share-picker"
             :placeholder="activityAllSharesLabel()"
-            @select="resetPageAndLoad"
+            @selected="resetPageAndLoad"
           />
         </div>
 
@@ -189,7 +190,7 @@
             :loading="loading"
             row-clickable
             :aria-label="$t('tools.activityViewer.name')"
-            :lonely-message-key="!loading && items.length === 0 ? 'files.lonely' : undefined"
+            :lonely-message="!loading && items.length === 0 ? $t('files.lonely') : undefined"
             @row-click="openEventDetails"
           >
           <template #cell-createdAt="{ row, column }">
@@ -241,7 +242,7 @@
                 >{{ badge.text }}</span>
               </div>
             </div>
-            <span v-else class="details-muted">—</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+            <span v-else class="details-muted">—</span>
           </template>
           </settings-table>
         </div>
@@ -307,7 +308,7 @@ import {
   Tooltip,
   Filler,
 } from "chart.js";
-import { toolsApi, usersApi } from "@/api";
+import { toolsApi, usersApi } from "@/api/index.js";
 import ActivityDetailsInfo from "@/components/tools/ActivityDetailsInfo.vue";
 import ActivityTableValueCell from "@/components/tools/ActivityTableValueCell.vue";
 import SettingsTable from "@/components/settings/Table.vue";
@@ -316,8 +317,8 @@ import {
   hideInteractiveTooltip,
   showHoverComponentTooltip,
 } from "@/utils/tooltipHelp.js";
-import { getters, mutations, state } from "@/store";
-import { toStandardLocale } from "@/i18n";
+import { getters, mutations, state } from "@/store/index.ts";
+import { toStandardLocale } from "@/i18n/index.ts";
 import {
   buildActivityDetailBadges,
   activityEventLabel,
@@ -333,7 +334,7 @@ import {
   rowsStateFromOptionalColumns,
   allOptionalColumnsSelected,
   formatOptionalColumnsParam,
-} from "@/utils/activityDetails";
+} from "@/utils/activityDetails.js";
 import {
   generateActivityTimeline,
   activityBucketLookup,
@@ -341,12 +342,12 @@ import {
   chartBarLayout,
   clampActivityChartInterval,
   activityChartIntervalAllowed,
-} from "@/utils/activityChartTime";
-import { formatTimestamp } from "@/utils/moment";
+} from "@/utils/activityChartTime.js";
+import { formatTimestamp } from "@/utils/moment.ts";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import SharePickerButton from "@/components/tools/SharePickerButton.vue";
 import PathPickerButton from "@/components/files/PathPickerButton.vue";
-import { globalVars } from "@/utils/constants";
+import { globalVars } from "@/utils/constants.ts";
 import { getObjectProperty } from "@/utils/object.js";
 import {
   filterEventTypesForScope,
@@ -446,9 +447,9 @@ const CHART_COLORS = [
 
 function hexToRgba(hex, alpha) {
   const normalized = hex.replace("#", "");
-  const r = parseInt(normalized.slice(0, 2), 16);
-  const g = parseInt(normalized.slice(2, 4), 16);
-  const b = parseInt(normalized.slice(4, 6), 16);
+  const r = Number.parseInt(normalized.slice(0, 2), 16);
+  const g = Number.parseInt(normalized.slice(2, 4), 16);
+  const b = Number.parseInt(normalized.slice(4, 6), 16);
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
@@ -470,7 +471,7 @@ function cssColorWithAlpha(color, alpha) {
 }
 
 function chartThemeStyles() {
-  const themeEl = document.getElementById("main") || document.body;
+  const themeEl = document.querySelector("#main") || document.body;
   return getComputedStyle(themeEl);
 }
 
@@ -499,15 +500,15 @@ const pieSliceLabelsPlugin = {
       return;
     }
 
-    args.meta.data.forEach((arc, index) => {
+    for (const [index, arc] of args.meta.data.entries()) {
       const value = Number(dataset.data.at(index) || 0);
       if (value <= 0) {
-        return;
+        continue;
       }
 
       const percentage = (value / total) * 100;
       if (percentage < 3.5) {
-        return;
+        continue;
       }
 
       const { x, y } = arc.tooltipPosition();
@@ -527,7 +528,7 @@ const pieSliceLabelsPlugin = {
       ctx.font = "500 10px system-ui, -apple-system, sans-serif";
       ctx.fillText(valueLine, x, label ? y + 8 : y);
       ctx.restore();
-    });
+    }
   },
 };
 
@@ -902,13 +903,10 @@ export default {
       return (this.statsBuckets || []).reduce((sum, b) => sum + b.count, 0);
     },
     chartAriaLabel() {
-      return this.$t(`tools.activityViewer.${this.viewType}View`);
+      return this.viewTypeOptions.find((option) => option.value === this.viewType)?.label ?? "";
     },
     chartTitle() {
-      return activityChartTitle(
-        { viewType: this.viewType, splitBy: this.splitBy },
-        this.$t.bind(this),
-      );
+      return activityChartTitle({ viewType: this.viewType, splitBy: this.splitBy });
     },
   },
   watch: {
@@ -1261,7 +1259,7 @@ export default {
       }
       this.clampUserFiltersForRole();
       if (queryValuePresent(query.page)) {
-        const page = parseInt(String(query.page), 10);
+        const page = Number.parseInt(query.page, 10);
         if (!Number.isNaN(page) && page >= 1) {
           this.currentPage = page;
         }
@@ -1574,7 +1572,7 @@ export default {
             const normalized = normalizeActivityTableRow(row);
             return {
               ...normalized,
-              tokenDisplay: activityTokenDisplay(normalized, this.$t),
+              tokenDisplay: activityTokenDisplay(normalized),
             };
           });
           this.totalEvents = listRes.total || 0;
@@ -1747,7 +1745,7 @@ export default {
       return this.formatTime(n);
     },
     eventTypeLabel(eventType) {
-      return activityEventLabel(eventType, this.$t);
+      return activityEventLabel(eventType);
     },
     eventTypeBadgeClass(eventType) {
       return activityEventTypeBadgeClass(eventType);
@@ -1869,7 +1867,7 @@ export default {
               backgroundColor: hexToRgba(color, 0.88),
               borderColor: color,
               borderWidth: 1,
-              borderRadius: (ctx) => this.stackedBarBorderRadius(ctx, barRadius, stacked),
+              borderRadius: (chartCtx) => this.stackedBarBorderRadius(chartCtx, barRadius, stacked),
               borderSkipped: false,
               minBarLength: 0,
               stack: stacked ? "activity" : undefined,

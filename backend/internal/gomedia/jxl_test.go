@@ -2,11 +2,13 @@ package gomedia
 
 import (
 	"bytes"
+	"errors"
 	"image/jpeg"
 	"os"
 	"path/filepath"
 	"testing"
 
+	"github.com/gtsteffaniak/go-media/pkg/media"
 	"github.com/stretchr/testify/require"
 )
 
@@ -65,4 +67,25 @@ func TestJXLJPEGMissingFileReturnsFalse(t *testing.T) {
 	data, ok := JXLJPEG(filepath.Join(t.TempDir(), "missing.jxl"), 85, nil)
 	require.False(t, ok)
 	require.Empty(t, data)
+}
+
+// JPEG XL above stillImageMaxSourcePixels must fail with go-media's ErrUnsupported
+// and return ok=false (no ffmpeg fallback).
+func TestJXLJPEGRejectsOversizedSource(t *testing.T) {
+	withGate(t, false)
+	f, err := os.Open(fixtureJXL)
+	require.NoError(t, err)
+	defer f.Close()
+	info, err := f.Stat()
+	require.NoError(t, err)
+
+	_, err = media.Thumbnail(f, info.Size(), media.ThumbnailOptions{
+		MaxWidth:        256,
+		MaxHeight:       256,
+		Format:          "jpeg",
+		Quality:         85,
+		MaxSourcePixels: 1,
+	})
+	require.Error(t, err)
+	require.True(t, errors.Is(err, media.ErrUnsupported), "oversized JXL must surface ErrUnsupported, got %v", err)
 }

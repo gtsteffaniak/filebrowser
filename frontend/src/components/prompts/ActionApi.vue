@@ -52,7 +52,7 @@
         >
           <span class="permission-name">{{ permission }}</span>
           <span class="permission-status" :class="{ enabled: isEnabled, disabled: !isEnabled }">
-            {{ isEnabled ? '✓' : '✗' }} <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+            {{ isEnabled ? '✓' : '✗' }}
           </span>
         </div>
       </div>
@@ -72,11 +72,11 @@
 </template>
 
 <script>
-import { mutations } from "@/store";
-import { notify } from "@/notify";
-import { authApi } from "@/api";
-import { eventBus } from "@/store/eventBus";
-import { copyToClipboard } from "@/utils/clipboard";
+import { mutations } from "@/store/index.ts";
+import { notify } from "@/notify/index.ts";
+import { authApi } from "@/api/index.js";
+import { eventBus } from "@/store/eventBus.ts";
+import { copyToClipboard } from "@/utils/clipboard.js";
 
 export default {
   name: "ActionApi",

@@ -6,7 +6,7 @@ import i18n from "@/i18n/index.ts";
 import { getters, mutations, state } from "@/store/index.ts";
 import { validateLogin } from "@/utils/auth.js";
 import { sanitizePostLoginRedirect } from "@/utils/safeRedirect.js";
-import { globalVars } from "@/utils/constants.js";
+import { globalVars } from "@/utils/constants.ts";
 import {
   evaluateUploadNavigationGuard,
   isDifferentAppRoute,
@@ -19,27 +19,26 @@ import Login from "@/views/Login.vue";
 import Settings from "@/views/Settings.vue";
 import Tools from "@/views/Tools.vue";
 
-const translate = (key: string): string => i18n.global.t(key) as string;
 const t = i18n.global.t.bind(i18n.global);
 
 const titles = (): Record<string, string> => ({
-  Login: translate("general.login"),
-  Share: translate("general.share"),
+  Login: t("general.login"),
+  Share: t("general.share"),
   /** Same component as Share; name differs for /public optional-auth routes. */
-  PublicShare: translate("general.share"),
-  Files: translate("general.files"),
-  Tools: translate("tools.title"),
-  ChildTool: translate("tools.title"),
-  Settings: translate("general.settings"),
+  PublicShare: t("general.share"),
+  Files: t("general.files"),
+  Tools: t("tools.title"),
+  ChildTool: t("tools.title"),
+  Settings: t("general.settings"),
   ProfileSettings: `${t("general.profile")} ${t("general.settings")}`,
   Shares: `${t("general.share")} ${t("general.management")}`,
   GlobalSettings: `${t("general.global")} ${t("general.settings")}`,
-  Users: translate("general.users"),
-  User: translate("general.user"),
-  Forbidden: translate("errors.forbidden"),
-  NotFound: translate("errors.notFound"),
-  ShareNotFound: translate("errors.shareNotFound"),
-  InternalServerError: translate("errors.internal"),
+  Users: t("general.users"),
+  User: t("general.user"),
+  Forbidden: t("errors.forbidden"),
+  NotFound: t("errors.notFound"),
+  ShareNotFound: t("errors.shareNotFound"),
+  InternalServerError: t("errors.internal"),
 });
 
 const routes: RouteRecordRaw[] = [

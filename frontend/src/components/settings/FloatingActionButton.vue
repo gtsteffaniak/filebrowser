@@ -11,7 +11,6 @@
   ></div>
 
   <button
-    ref="fabButton"
     type="button"
     class="fab-button floating"
     :class="[
@@ -41,8 +40,8 @@
 </template>
 
 <script lang="ts">
-import { reactive } from "vue";
-import { state, getters } from "@/store";
+import { reactive, type PropType } from "vue";
+import { getters } from "@/store/index.ts";
 
 const buttonGroup = new Map<string, { visible: boolean; zoneActive: boolean; timer: ReturnType<typeof setTimeout> | null }>();
 
@@ -59,7 +58,7 @@ const POSITIONS = ["top-right", "top-left", "bottom-right", "bottom-left", "top-
 
 export default {
   name: "floatingActionButton",
-  emits: ["click"],
+  emits: { press: (_event: MouseEvent) => true },
   props: {
     icon: {
       type: String,
@@ -92,7 +91,7 @@ export default {
       validator: (v: string) => ["fixed", "absolute"].includes(v),
     },
     edgeOffset: {
-      type: [String, Object],
+      type: [String, Object] as PropType<string | { top?: string; right?: string; bottom?: string; left?: string }>,
       default: null,
     },
     size: {
@@ -114,7 +113,7 @@ export default {
       default: "",
     },
     offset: {
-      type: Object,
+      type: Object as PropType<Record<string, string>>,
       default: () => ({}),
     },
     autoHide: {
@@ -211,7 +210,7 @@ export default {
       const isLeftPositioned = this.position === "top-left" || this.position === "bottom-left";
       const pushedBySidebar = isLeftPositioned && getters.isSidebarVisible() && getters.isStickySidebar();
       if (pushedBySidebar && style.left === undefined) {
-        style.left = `calc(var(--fab-edge-offset-media) + ${state.sidebar.width}em)`;
+        style.left = `calc(var(--fab-edge-offset-media) + var(--sidebar-width))`;
       }
 
       return style;
@@ -317,7 +316,7 @@ export default {
     },
     handleClick(event: MouseEvent) {
       this.resetButtonTimer();
-      this.$emit("click", event);
+      this.$emit("press", event);
     },
     handleZoneEnter() {
       if (!this.interactiveZone) return;
@@ -543,7 +542,7 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: bold;
+  font-weight: 700;
   text-shadow:
     0 0 3px rgb(0 0 0 / 90%),
     0 0 5px rgb(0 0 0 / 70%),

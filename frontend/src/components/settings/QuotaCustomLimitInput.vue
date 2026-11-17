@@ -32,7 +32,10 @@ export default {
     ariaLabel: { type: String, default: "" },
     disabled: { type: Boolean, default: false },
   },
-  emits: ["update:amount", "update:unit"],
+  emits: {
+    "update:amount": (amount) => typeof amount === "number",
+    "update:unit": (unit) => typeof unit === "string",
+  },
   computed: {
     unitOptions() {
       return [

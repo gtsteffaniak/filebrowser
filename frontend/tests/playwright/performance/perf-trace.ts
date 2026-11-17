@@ -298,7 +298,7 @@ function categorize(name: string, location: string | null): string {
   if (/^(Layout|UpdateLayoutTree|RecalcStyle|Paint|CompositeLayers)/.test(name)) {
     return "rendering";
   }
-  if (/GC$/.test(name)) return "gc";
+  if (name.endsWith("GC")) return "gc";
   if (/^(ParseHTML|ParseAuthorStyleSheet|EvaluateScript|CompileScript|v8)/.test(name)) {
     return "parse/compile";
   }

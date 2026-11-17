@@ -168,7 +168,7 @@ export function installFrameTiming(page: {
           p50: round2(pct(50)),
           p95: round2(pct(95)),
           p99: round2(pct(99)),
-          max: round2(sorted[sorted.length - 1] ?? 0),
+          max: round2(sorted.at(-1) ?? 0),
           droppedFrames: durations.filter((d) => d > droppedThreshold).length,
           longFrameMs: Math.round(state.longFrameMs),
           effectiveFps: round2(durations.length / (windowMs / 1000)),

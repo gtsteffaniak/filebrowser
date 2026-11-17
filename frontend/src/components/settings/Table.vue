@@ -47,9 +47,9 @@
             :class="{ 'settings-table__row--clickable': rowClickable }"
             :tabindex="rowClickable ? 0 : undefined"
             :role="rowClickable ? 'button' : undefined"
-            @click="onRowClick(item, $event)"
-            @keydown.enter.prevent="onRowClick(item, $event)"
-            @keydown.space.prevent="onRowClick(item, $event)"
+            @click="onRowClick(item)"
+            @keydown.enter.prevent="onRowClick(item)"
+            @keydown.space.prevent="onRowClick(item)"
           >
             <td
               v-for="column in columns"
@@ -153,10 +153,10 @@ export default {
       type: String,
       default: "",
     },
-    /** i18n key for empty-state caption (icon + label), default `files.lonely`. */
-    lonelyMessageKey: {
+    /** Translated empty-state caption (icon + label), default `files.lonely`. */
+    lonelyMessage: {
       type: String,
-      default: "files.lonely",
+      default: undefined,
     },
     /** Override default sort detection: first column sortable ascending. */
     defaultSortKey: {
@@ -182,7 +182,9 @@ export default {
     },
   },
 
-  emits: ["row-click"],
+  emits: {
+    "row-click": (item) => typeof item === "object",
+  },
 
   data() {
     return {
@@ -197,7 +199,7 @@ export default {
       return Math.max(n, 1);
     },
     lonelyCaption() {
-      return this.$t(this.lonelyMessageKey);
+      return this.lonelyMessage ?? this.$t("files.lonely");
     },
     sortedItems() {
       const list = [...(this.items ?? [])];
@@ -269,11 +271,11 @@ export default {
       return JSON.stringify(row);
     },
 
-    onRowClick(item, event) {
+    onRowClick(item) {
       if (!this.rowClickable) {
         return;
       }
-      this.$emit("row-click", item, event);
+      this.$emit("row-click", item);
     },
 
     isSortEnabled(column) {

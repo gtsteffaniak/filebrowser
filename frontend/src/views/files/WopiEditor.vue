@@ -20,15 +20,15 @@
     interactive-zone
     :auto-hide="false"
     :label="$t('general.close', { suffix: '' })"
-    @click="close"
+    @press="close"
   />
 </template>
 
 <script>
-import { router } from "@/router";
-import { state, mutations } from "@/store";
-import { removeLastDir } from "@/utils/url";
-import { wopiApi } from "@/api";
+import { router } from "@/router/index.ts";
+import { state, mutations } from "@/store/index.ts";
+import { removeLastDir } from "@/utils/url.js";
+import { wopiApi } from "@/api/index.js";
 import FloatingActionButton from "@/components/settings/FloatingActionButton.vue";
 
 // Opens the current file in a WOPI editor (Collabora Online, OnlyOffice in
@@ -84,7 +84,7 @@ export default {
   },
   methods: {
     frameWindow() {
-      return document.getElementsByName(this.frameName)[0]?.contentWindow;
+      return document.querySelector(`iframe[name="${this.frameName}"]`)?.contentWindow;
     },
     postToEditor(messageId, values = {}) {
       const target = this.frameWindow();

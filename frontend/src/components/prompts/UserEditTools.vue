@@ -29,15 +29,15 @@
 </template>
 
 <script>
-import { mutations, state } from "@/store";
-import { getToolAccessDefaults } from "@/api/settings";
+import { mutations, state } from "@/store/index.ts";
+import { getToolAccessDefaults } from "@/api/settings.js";
 import ToolsAccessEditor from "@/components/tools/ToolsAccessEditor.vue";
 import {
   getUserEditSession,
   subscribeUserEditSession,
   updateUserEditSession,
-} from "@/utils/userEditSession";
-import { normalizeUserToolAccess } from "@/utils/toolAccess";
+} from "@/utils/userEditSession.js";
+import { normalizeUserToolAccess } from "@/utils/toolAccess.js";
 
 export default {
   name: "user-edit-tools",

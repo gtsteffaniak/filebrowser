@@ -192,7 +192,7 @@ export function getScrubPreviewHorizontalBounds(player) {
   }
   if (getters.isSidebarVisible() && !player?.fullscreen?.active) {
     if (!getScrubPreviewHorizontalBounds.cachedRemPx) {
-      getScrubPreviewHorizontalBounds.cachedRemPx = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+      getScrubPreviewHorizontalBounds.cachedRemPx = Number.parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
       if (!getScrubPreviewHorizontalBounds.isResizeBound) {
         window.addEventListener('resize', () => { getScrubPreviewHorizontalBounds.cachedRemPx = null; }, { passive: true });
         getScrubPreviewHorizontalBounds.isResizeBound = true;

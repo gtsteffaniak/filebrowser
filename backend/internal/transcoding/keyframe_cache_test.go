@@ -177,3 +177,33 @@ func TestKeyframeCacheDoesNotCacheFailures(t *testing.T) {
 		t.Fatalf("retry after failure: %v, %v", got, err)
 	}
 }
+
+// TestTrailingGapExceedsCopyCap checks the gap from the last keyframe to the
+// end of the media, on the planner's start-time-normalized timeline.
+func TestTrailingGapExceedsCopyCap(t *testing.T) {
+	every2 := func(from, to float64) []float64 {
+		var out []float64
+		for v := from; v < to; v += 2 {
+			out = append(out, v)
+		}
+		return out
+	}
+	cases := []struct {
+		name string
+		kf   []float64
+		span mediaSpan
+		want bool
+	}{
+		{"partial index", []float64{0, 2}, mediaSpan{durationSec: 60}, true},
+		{"full index", every2(0, 60), mediaSpan{durationSec: 60}, false},
+		{"unknown span", []float64{0, 2}, mediaSpan{}, false},
+		{"start time, partial", []float64{10, 12}, mediaSpan{durationSec: 70, startTimeSec: 10}, true},
+		{"start time, full", every2(10, 70), mediaSpan{durationSec: 70, startTimeSec: 10}, false},
+		{"no keyframes", nil, mediaSpan{durationSec: 60}, false},
+	}
+	for _, c := range cases {
+		if got := trailingGapExceedsCopyCap(c.kf, c.span, 4); got != c.want {
+			t.Errorf("%s: got %v, want %v", c.name, got, c.want)
+		}
+	}
+}

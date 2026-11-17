@@ -114,7 +114,7 @@ class DownloadManager {
         }
       }
     }
-    this.queue.splice(0, this.queue.length);
+    this.queue.length = 0;
     this.nextId = 0;
   }
 

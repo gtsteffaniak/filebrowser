@@ -18,12 +18,12 @@
       :fbdata="threeDFbdata"
       :is-thumbnail="true"
       :add-load-delay="true"
-      @error="handle3DError" />
+      @load-error="handle3DError" />
     <TextPreview v-else-if="shouldUseTextPreview"
       :url="textPreviewUrl"
       :language="textPreviewLanguage"
       :modified="modified"
-      @error="handleTextPreviewError" />
+      @load-error="handleTextPreviewError" />
   </span>
   <!-- Regular material icon (no preview) -->
   <span v-else ref="tileEl" class="image-preview" @mouseenter="hasTextPreview && handleMouseEnter()" @mouseleave="hasTextPreview && handleMouseLeave()">
@@ -40,11 +40,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, onBeforeUnmount, onMounted, ref, unref, watch, type Ref } from "vue";
-import { fetchPreviewImage } from "@/api/resources";
+import { computed, inject, onBeforeUnmount, onMounted, ref, unref, useTemplateRef, watch, type Ref } from "vue";
+import { fetchPreviewImage } from "@/api/resources.js";
 import { createAsyncComponent } from "@/utils/asyncComponent.js";
-import { getTypeInfo } from "@/utils/mimetype";
-import { getters, mutations, state } from "@/store";
+import { getTypeInfo } from "@/utils/mimetype.js";
+import { getters, mutations, state } from "@/store/index.ts";
 import {
   acquireThumbnailBlob,
   getThumbnailBlobKey,
@@ -234,7 +234,7 @@ const textPreviewLanguage = computed(() => languageFromPath(props.filename));
 
 // Measured tile width; only observed for text-previewable files so image tiles pay nothing.
 const tileWidth = ref(0);
-const tileEl = ref<HTMLElement | null>(null);
+const tileEl = useTemplateRef<HTMLElement>("tileEl");
 let tileResizeObserver: ResizeObserver | null = null;
 
 function observeTileWidth(el: HTMLElement | null): void {
@@ -319,7 +319,7 @@ function clearPopupHoverTimeout(): void {
 
 function cancelPreloadRequests(): void {
   clearPopupHoverTimeout();
-  previewTimeouts.forEach(clearTimeout);
+  for (const timeoutId of previewTimeouts) clearTimeout(timeoutId);
   previewTimeouts = [];
   for (const controller of preloadAbortControllers) {
     controller.abort();
@@ -483,7 +483,7 @@ function showPopupPreview(): void {
 
   const updateThumbnail = () => {
     if (!state.popupPreviewSourceInfo || state.popupPreviewSourceInfo.path !== props.path) {
-      previewTimeouts.forEach(clearTimeout);
+      for (const timeoutId of previewTimeouts) clearTimeout(timeoutId);
       previewTimeouts = [];
       return;
     }

@@ -1,23 +1,28 @@
 <template>
-  <div class="card-content">
+  <div class="card-content" :class="{ 'embedded-content': embedded }">
     <div v-if="loading" class="loading-spinner-wrapper">
       <LoadingSpinner size="medium" />
     </div>
     <template v-else>
-      <!-- Warning banner for missing path -->
-      <div v-if="!pathExists && !isEditingPath" class="warning-banner">
+      <div v-if="!pathExists && baseEntries.length > 0 && !isEditingPath" class="warning-banner">
         <i class="material-symbols-outlined">warning</i>
         <span>{{ $t("messages.pathNotFoundMessage") }}</span>
         <button type="button" class="button button--flat button--blue" @click="startPathReassignment">
           {{ $t("messages.reassignPath") }}
         </button>
       </div>
-
-      <div v-if="isEditingPath">
-        <file-list @update:selected="updateTempPath" :browseSource="sourceName" :showFiles="true"></file-list>
+      <div v-if="isEditingPath" :class="{ 'embedded-list': embedded }">
+        <file-list
+          @update:selected="updateTempPath"
+          :browseSource="sourceName"
+          :browsePath="embedded ? currentPath : null"
+          :hideDestinationSource="true"
+          :showFiles="true"
+        ></file-list>
       </div>
       <div v-else>
       <PathPickerButton
+        v-if="!embedded"
         class="path-picker"
         v-model:path="currentPath"
         v-model:source="currentSource"
@@ -27,20 +32,18 @@
         :placeholder="$t('sidebar.chooseSource')"
         @navigate="onPathPickerNavigate"
       />
-      <div class="settings-items">
+      <div v-if="!embedded" class="settings-items">
         <ActivityViewerButton class="item" :href="activityViewerHref" />
       </div>
       <!-- Default behavior banner -->
       <div class="card item">
         <div class="card-content banner-content">
-          <i class="material-symbols-outlined">{{ sourceDenyDefault ? 'do_not_disturb_on' : 'check_circle' }}</i>  <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <i class="material-symbols-outlined">{{ sourceDenyDefault ? 'do_not_disturb_on' : 'check_circle' }}</i>
           {{ $t("access.defaultBehavior", { suffix: ":" }) }} {{ sourceDenyDefault ? $t("access.deny") : $t("access.allow")
           }}
           <HelpTooltipIcon :text="$t('access.defaultBehaviorDescription')" />
         </div>
-
       </div>
-      <!-- Add Form -->
       <div class="form-flex-group">
         <ExpandDropdown
           v-model="addType"
@@ -63,15 +66,15 @@
           :icon="addType === 'group' ? 'group_add' : 'person_add'"
           class="flat-left form-compact"
           :exclude="existingNames"
-          @select="addEntries"
+          @selected="addEntries"
         />
         <button v-else type="button" class="button form-button flat-left form-compact" @click="addEntries([])">
           <i class="material-symbols-outlined">add</i>
         </button>
       </div>
       <!-- Cascade Delete Toggle -->
-      <div v-if="entries.length > 0" class="cascade-toggle-section">
-        <ToggleSwitch v-model="cascadeDelete"
+      <div v-if="entries.length > 0" class="cascade-toggle-section settings-items">
+        <ToggleSwitch class="item" v-model="cascadeDelete"
           :name="$t('access.cascadeDelete')"
           :description="$t('access.cascadeDeleteDescription')" />
       </div>
@@ -91,7 +94,7 @@
       </div>
     </template>
   </div>
-  <div class="card-actions">
+  <div class="card-actions" :class="{ 'embedded-actions': embedded }">
     <template v-if="isEditingPath">
       <button type="button" class="button button--flat button--grey" @click="cancelPathChange" :aria-label="$t('general.cancel')" :title="$t('general.cancel')">
         {{ $t("general.cancel") }}
@@ -101,7 +104,7 @@
       </button>
     </template>
     <template v-else>
-      <button type="button" class="button button--flat button--grey" @click="cancelChanges" :aria-label="$t('general.cancel')" :title="$t('general.cancel')">
+      <button v-if="!embedded" type="button" class="button button--flat button--grey" @click="cancelChanges" :aria-label="$t('general.cancel')" :title="$t('general.cancel')">
         {{ $t("general.cancel") }}
       </button>
       <button type="button" class="button button--flat" :disabled="!dirty || saving" @click="saveChanges" :aria-label="$t('general.save')" :title="$t('general.save')">
@@ -112,9 +115,9 @@
 </template>
 
 <script>
-import { notify } from "@/notify";
-import { mutations } from "@/store";
-import { accessApi } from "@/api";
+import { notify } from "@/notify/index.ts";
+import { mutations } from "@/store/index.ts";
+import { accessApi } from "@/api/index.js";
 import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
 import FileList from "../files/FileList.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
@@ -124,8 +127,8 @@ import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import ActivityViewerButton from "@/components/settings/ActivityViewerButton.vue";
 import SettingsTable from "@/components/settings/Table.vue";
 import EntityPickerButton from "@/components/settings/EntityPickerButton.vue";
-import { activityViewerPresets } from "@/utils/activityViewerLink";
-import { eventBus } from "@/store/eventBus";
+import { activityViewerPresets } from "@/utils/activityViewerLink.js";
+import { eventBus } from "@/store/eventBus.ts";
 
 export default {
   name: "access",
@@ -143,7 +146,8 @@ export default {
   props: {
     promptId: { type: [String, Number], default: null },
     sourceName: { type: String, required: true },
-    path: { type: String, required: true, default: "/" }
+    path: { type: String, default: "/" },
+    embedded: { type: Boolean, default: false }
   },
   data() {
     return {
@@ -244,6 +248,10 @@ export default {
         name: entry.name,
         entry,
       }));
+    },
+    parentPath() {
+      const trimmed = this.currentPath.replace(/\/+$/, "");
+      return trimmed.slice(0, trimmed.lastIndexOf("/")) || "/";
     },
     activityViewerHref() {
       return activityViewerPresets.access(this.currentSource, this.currentPath);
@@ -392,8 +400,9 @@ export default {
     async saveChanges() {
       if (this.saving) return;
       this.saving = true;
+      let failed = false;
       try {
-        for (const op of [...this.pendingDeletes]) {
+        for (const op of this.pendingDeletes.slice()) {
           await accessApi.del(this.currentSource, this.currentPath, {
             allow: op.allow,
             ruleCategory: op.ruleCategory,
@@ -402,7 +411,7 @@ export default {
           });
           this.pendingDeletes.splice(this.pendingDeletes.indexOf(op), 1);
         }
-        for (const op of [...this.pendingAdds]) {
+        for (const op of this.pendingAdds.slice()) {
           await accessApi.add(this.currentSource, this.currentPath, {
             allow: op.allow,
             ruleCategory: op.ruleCategory,
@@ -411,6 +420,7 @@ export default {
           this.pendingAdds.splice(this.pendingAdds.indexOf(op), 1);
         }
       } catch (e) {
+        failed = true;
         notify.showError(e);
         console.error(e);
       }
@@ -418,7 +428,10 @@ export default {
       // Emit event to refresh access rules list
       eventBus.emit('accessRulesChanged');
       this.saving = false;
-      if (!this.dirty) {
+      if (!failed && this.embedded) {
+        notify.showSuccessToast(this.$t("settings.settingsUpdated"));
+      }
+      if (!this.dirty && !this.embedded) {
         mutations.closeTopPrompt(this.promptId ?? undefined);
       }
     },
@@ -465,6 +478,26 @@ export default {
 .cascade-toggle-section {
   margin-top: 1em;
   margin-bottom: 1em;
+}
+
+.embedded-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.embedded-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.embedded-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.25em;
 }
 
 .loading-spinner-wrapper {

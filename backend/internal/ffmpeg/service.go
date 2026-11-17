@@ -9,6 +9,7 @@ import (
 	"sync"
 	"sync/atomic"
 
+	"github.com/gtsteffaniak/filebrowser/backend/internal/mediacache"
 	goffmpeg "github.com/gtsteffaniak/go-ffmpeg"
 	"github.com/gtsteffaniak/go-ffmpeg/capabilities"
 	"github.com/gtsteffaniak/go-ffmpeg/ops"
@@ -460,7 +461,8 @@ func (s *Service) VideoPreview(ctx context.Context, w io.Writer, opts ops.Previe
 	return s.inner.CaptureFrame(ctx, w, frame)
 }
 
-// ExtractSubtitle returns embedded subtitle content as WebVTT.
+// ExtractSubtitle returns embedded subtitle content as WebVTT. Results are
+// stored in the shared media cache unless ctx is mediacache.WithoutCache.
 func (s *Service) ExtractSubtitle(ctx context.Context, videoPath string, streamIndex int) (string, error) {
 	if s == nil || s.inner == nil {
 		return "", fmt.Errorf("ffmpeg service not available")
@@ -470,9 +472,12 @@ func (s *Service) ExtractSubtitle(ctx context.Context, videoPath string, streamI
 	if err != nil {
 		return "", fmt.Errorf("failed to stat file: %w", err)
 	}
-	cacheKey := fmt.Sprintf("subtitle_content:%s:%d:%d", videoPath, streamIndex, fileInfo.ModTime().Unix())
-	if content, ok := SubtitleContentCache.Get(cacheKey); ok {
-		return content, nil
+	useCache := !mediacache.Bypassed(ctx)
+	cacheKey := mediacache.FromFileInfo(videoPath, fileInfo).Stream(streamIndex)
+	if useCache {
+		if content, ok := mediacache.SubtitleContent.Get(cacheKey); ok {
+			return content, nil
+		}
 	}
 
 	content, err := s.inner.ExtractSubtitle(ctx, videoPath, streamIndex)
@@ -480,7 +485,9 @@ func (s *Service) ExtractSubtitle(ctx context.Context, videoPath string, streamI
 		return "", err
 	}
 
-	SubtitleContentCache.Set(cacheKey, content)
+	if useCache {
+		mediacache.SubtitleContent.Set(cacheKey, content)
+	}
 	return content, nil
 }
 

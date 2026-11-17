@@ -4,22 +4,21 @@
       <ToggleSwitch
         class="item"
         v-model="showFull"
-        @update:modelValue="fetchConfig"
+        @update:model-value="fetchConfig"
         :name="$t('settings.configViewerShowFull')"
       />
       <ToggleSwitch
         class="item"
         v-model="showComments"
-        @update:modelValue="fetchConfig"
+        @update:model-value="fetchConfig"
         :name="$t('settings.configViewerShowComments')"
       />
     </div>
-
     <div class="editor-container">
       <Editor
         :viewer-mode="true"
         :content="configContent"
-        :editor-mode="'yaml'"
+        editor-mode="yaml"
         :read-only="true"
       />
     </div>
@@ -28,7 +27,7 @@
 
 <script>
 import { createAsyncComponent } from "@/utils/asyncComponent.js";
-import { config } from "@/api/settings";
+import { config } from "@/api/settings.js";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 
 export default {

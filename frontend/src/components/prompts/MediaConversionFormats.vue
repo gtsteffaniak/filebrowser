@@ -56,10 +56,10 @@
 </template>
 
 <script>
-import { notify } from "@/notify";
-import { mutations } from "@/store";
-import { eventBus } from "@/store/eventBus";
-import { getMediaSettings } from "@/api/settings";
+import { notify } from "@/notify/index.ts";
+import { mutations } from "@/store/index.ts";
+import { eventBus } from "@/store/eventBus.ts";
+import { getMediaSettings } from "@/api/settings.js";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import {
@@ -67,7 +67,7 @@ import {
   emptyMediaSettings,
   mergeMediaSettings,
   saveMediaSettingsPatch,
-} from "@/utils/mediaSettings";
+} from "@/utils/mediaSettings.js";
 
 export default {
   name: "MediaConversionFormats",
@@ -138,7 +138,7 @@ export default {
         if (!skipped) {
           this.media = media;
         }
-        void mutations.syncMediaPlayerSettings();
+        void mutations.syncMediaSettings();
         notify.showSuccess(this.$t("general.saved"));
         eventBus.emit(MEDIA_SETTINGS_CHANGED_EVENT);
         this.close();

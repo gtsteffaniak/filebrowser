@@ -13,21 +13,31 @@ import (
 
 const settingsRedactSentinel = "SENTINEL-SETTINGS-SECRET"
 
+func swapSettingsConfigForTest(t *testing.T, mutate func(*settings.Settings)) {
+	t.Helper()
+	cfg := settings.Config
+	if mutate != nil {
+		mutate(&cfg)
+	}
+	prev := settings.SwapConfigForTest(cfg)
+	t.Cleanup(func() { settings.SwapConfigForTest(prev) })
+}
+
 // TestSettingsGetHandler_redactsSecrets is the end-to-end regression guard for
 // GHSA-892f-9h5p-mfc8: GET /api/settings (and ?property=auth) must not return cleartext secrets.
 func TestSettingsGetHandler_redactsSecrets(t *testing.T) {
 	setupTestEnv(t)
 
-	prev := settings.Config
-	t.Cleanup(func() { settings.Config = prev })
-	settings.Config.Auth.Key = settingsRedactSentinel
-	settings.Config.Auth.TotpSecret = settingsRedactSentinel
-	settings.Config.Auth.Methods.PasswordAuth.AdminPassword = settingsRedactSentinel
-	settings.Config.Auth.Methods.PasswordAuth.Recaptcha.Secret = settingsRedactSentinel
-	settings.Config.Auth.Methods.OidcAuth.ClientSecret = settingsRedactSentinel
-	settings.Config.Auth.Methods.LdapAuth.UserPassword = settingsRedactSentinel
-	settings.Config.Auth.Methods.JwtAuth.Secret = settingsRedactSentinel
-	settings.Config.Integrations.OnlyOffice.Secret = settingsRedactSentinel
+	swapSettingsConfigForTest(t, func(cfg *settings.Settings) {
+		cfg.Auth.Key = settingsRedactSentinel
+		cfg.Auth.TotpSecret = settingsRedactSentinel
+		cfg.Auth.Methods.PasswordAuth.AdminPassword = settingsRedactSentinel
+		cfg.Auth.Methods.PasswordAuth.Recaptcha.Secret = settingsRedactSentinel
+		cfg.Auth.Methods.OidcAuth.ClientSecret = settingsRedactSentinel
+		cfg.Auth.Methods.LdapAuth.UserPassword = settingsRedactSentinel
+		cfg.Auth.Methods.JwtAuth.Secret = settingsRedactSentinel
+		cfg.Integrations.OnlyOffice.Secret = settingsRedactSentinel
+	})
 
 	admin := &users.User{
 		FrontendUser: users.FrontendUser{
@@ -62,9 +72,9 @@ func TestSettingsGetHandler_redactsSecrets(t *testing.T) {
 func TestSettingsGetHandler_doesNotMutateLiveConfig(t *testing.T) {
 	setupTestEnv(t)
 
-	prev := settings.Config
-	t.Cleanup(func() { settings.Config = prev })
-	settings.Config.Auth.Key = settingsRedactSentinel
+	swapSettingsConfigForTest(t, func(cfg *settings.Settings) {
+		cfg.Auth.Key = settingsRedactSentinel
+	})
 
 	admin := &users.User{
 		FrontendUser: users.FrontendUser{
@@ -92,10 +102,10 @@ func TestSettingsGetHandler_doesNotMutateLiveConfig(t *testing.T) {
 func TestSettingsGetHandler_keepsNonSecretAuthFields(t *testing.T) {
 	setupTestEnv(t)
 
-	prev := settings.Config
-	t.Cleanup(func() { settings.Config = prev })
-	settings.Config.Auth.Key = settingsRedactSentinel
-	settings.Config.Auth.TokenExpirationHours = 7
+	swapSettingsConfigForTest(t, func(cfg *settings.Settings) {
+		cfg.Auth.Key = settingsRedactSentinel
+		cfg.Auth.TokenExpirationHours = 7
+	})
 
 	admin := &users.User{
 		FrontendUser: users.FrontendUser{

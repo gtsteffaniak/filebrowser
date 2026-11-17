@@ -2,22 +2,22 @@
   <div ref="root" class="card-content" aria-label="file-list-prompt">
     <!-- Source Selection Dropdown (hidden when browsing a fixed source, e.g. user scope row) -->
     <div v-if="!hidePathChrome && showSourceSelector" class="source-selector" style="margin-bottom: 1rem;">
-      <label for="destinationSource" style="display: block; margin-bottom: 0.5rem; font-weight: bold;">
-        {{ $t("prompts.destinationSource") }}
+      <label for="destinationSource" style="display: block; margin-bottom: 0.5rem; font-weight: 700;">
+        {{ t("prompts.destinationSource") }}
       </label>
       <ExpandDropdown
         input-id="destinationSource"
         v-model="currentSource"
         :options="sourceOptions"
-        :aria-label="$t('prompts.destinationSource')"
+        :aria-label="t('prompts.destinationSource')"
       />
     </div>
 
     <!-- Sortable Column Header (opt-in via sortable prop, e.g. destination pickers) -->
-    <div v-if="(!hidePathChrome && !fileList) || sortable || $slots.pinned" class="sticky-header" :class="{ 'header-hidden': headerHidden }">
+    <div v-if="(!hidePathChrome && !fileList) || sortable || $slots.sticky" class="sticky-header" :class="{ 'header-hidden': headerHidden }">
       <!-- Current Path Display -->
       <div v-if="!hidePathChrome && !fileList" aria-label="filelist-path" class="searchContext button clickable">
-        {{ $t('general.path', { suffix: ':' }) }} {{ sourcePath.path }}
+        {{ t('general.path', { suffix: ':' }) }} {{ sourcePath.path }}
       </div>
       <slot name="sticky" />
       <ListingHeader v-if="sortable && !loading" :use-picker-sorting="!fileList" :use-navigation-sorting="!!fileList" />
@@ -68,26 +68,27 @@
       </div>
       <h2 v-if="filterQuery && !visibleItems.some((item) => item.name !== '..')" class="no-results">
         <i class="material-symbols-outlined">search_off</i>
-        <span>{{ $t("tools.advancedSearch.noResults") }}</span>
+        <span>{{ t("tools.advancedSearch.noResults") }}</span>
       </h2>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
-import { state, mutations, getters } from "@/store";
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from "vue";
+import { state, mutations, getters } from "@/store/index.ts";
 import type { FileListItem, MediaMetadata } from "@/store/types.ts";
-import { url } from "@/utils";
-import { resourcesApi } from "@/api";
+import { url } from "@/utils/index.ts";
+import { resourcesApi } from "@/api/index.js";
 import ListingHeader from "@/components/files/ListingHeader.vue";
 import ListingItem from "@/components/files/ListingItem.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import { sortedItems } from "@/utils/sort.ts";
 import { findScrollParents, findScroller, useListingVirtualization } from "@/composables/useListingVirtualization.ts";
+import { useI18n } from "@/i18n/index.ts";
 
-type ItemInfo = Omit<FileListItem, "metadata"> & { metadata?: MediaMetadata; isDir?: boolean; hasDuration?: boolean };
+type ItemInfo = FileListItem & { isDir?: boolean; hasDuration?: boolean };
 
 export interface ListEntry {
   name: string;
@@ -98,7 +99,7 @@ export interface ListEntry {
   size?: number;
   modified?: string;
   created?: string;
-  metadata?: unknown;
+  metadata?: MediaMetadata;
   isDirectory?: boolean;
   originalItem?: ItemInfo;
 }
@@ -161,8 +162,14 @@ const emit = defineEmits<{
   "update:filterQuery": [value: string];
 }>();
 
-const root = ref<HTMLElement | null>(null);
-const list = ref<HTMLElement | null>(null);
+defineSlots<{
+  sticky?(): unknown;
+}>();
+
+const { t } = useI18n();
+
+const root = useTemplateRef<HTMLElement>("root");
+const list = useTemplateRef<HTMLElement>("list");
 
 const fallbackModified = new Date().toISOString();
 const initialSource = props.browseSource || state.req.source;
@@ -330,7 +337,8 @@ onMounted(async () => {
     if (currentSource.value !== state.req.source || props.browsePath) {
       void withLoading(() => resourcesApi.fetchFiles(sourceToUse, pathToUse).then(fillOptions));
     } else {
-      fillOptions(initialReq);
+      const pending = fillOptions(initialReq);
+      if (pending) void withLoading(() => pending);
     }
   }
   attachScrollListener();
@@ -372,7 +380,7 @@ async function withLoading(operation: () => Promise<unknown>) {
   } finally {
     const elapsed = Date.now() - startTime;
     const remaining = Math.max(0, 200 - elapsed);
-    await new Promise((resolve) => setTimeout(resolve, remaining));
+    await new Promise((resolve) => { setTimeout(resolve, remaining); });
     loading.value = false;
   }
 }
@@ -417,7 +425,22 @@ function resetToShare(newHash: string) {
   void withLoading(() => resourcesApi.fetchFilesPublic("/", newHash).then(fillOptions));
 }
 
-function fillOptions(req: { source?: string; items?: FileListItem[] }) {
+function fillOptions(req: { source?: string; type?: string; items?: FileListItem[] }): Promise<unknown> | undefined {
+  // if the path points to a file browse its parent and highlight the item
+  if (req.type && req.type !== "directory" && path.value !== "/") {
+    const filePath = path.value;
+    const parent = `${url.removeLastDir(filePath)}/`;
+    path.value = parent
+    const showParent = (parentReq: Parameters<typeof fillOptions>[0]) => {
+      const pending = fillOptions(parentReq);
+      selectEntry(filePath);
+      return pending;
+    };
+    if (!props.browseSource && (props.browseShare || getters.isShare())) {
+      return resourcesApi.fetchFilesPublic(parent, props.browseShare || getters.shareHash()).then(showParent);
+    }
+    return resourcesApi.fetchFiles(source.value ?? currentSource.value, parent).then(showParent);
+  }
   // Sets the current path and resets the current items.
   // Use path (the path we're browsing) instead of req.path (which may be relative)
   current.value = path.value;
@@ -462,6 +485,16 @@ function fillOptions(req: { source?: string; items?: FileListItem[] }) {
       type: "directory",
     });
   }
+  return undefined;
+}
+
+function selectEntry(itemPath: string) {
+  const entry = items.value.find((item) => item.path === itemPath);
+  if (!entry || entry.type === "directory") return;
+  selected.value = entry.path;
+  selectedSource.value = entry.source;
+  selectedType.value = entry.type;
+  emit("update:selected", { path: entry.path, source: entry.source, type: entry.type, isValid: true });
 }
 
 function sortEntries(entries: ListEntry[]) {
@@ -528,6 +561,16 @@ function handleItemClick(item: ListEntry, _index: number, event: MouseEvent) {
     navigateToItem(item);
     return;
   }
+  // Picker #3355: the ".." row is the parent-folder shortcut; a single click
+  // navigates to it so the copy/move destination picker can go up a level.
+  // `event.detail > 1` swallows the second half of a double-click, and the
+  // path check swallows clicks on a stale row that was replaced.
+  if (item.name === "..") {
+    if (event.detail > 1 || path.value === item.path) return;
+    select(item.path);
+    next(item.path);
+    return;
+  }
   // Browse mode: single click selects only, emit selected, do not navigate
   select(item.path);
 }
@@ -535,6 +578,9 @@ function handleItemClick(item: ListEntry, _index: number, event: MouseEvent) {
 function handleItemDblClick(item: ListEntry, _index: number, event: MouseEvent) {
   event.preventDefault();
   event.stopPropagation();
+  // In browse mode ".." is the single-click parent shortcut; a double-click on it
+  // navigates nothing extra (main's `if (.. && (!fileList || path === item.path)) return`).
+  if (item.name === ".." && (!props.fileList || path.value === item.path)) return;
 
   next(item.path);
 }
@@ -625,8 +671,9 @@ function isContextItem(item: ListEntry) {
 }
 
 function attachScrollListener() {
-  const el = root.value?.closest<HTMLElement>(".floating-window > .card-content");
-  if (!el) return;
+  const prompt = root.value?.closest<HTMLElement>(".floating-window > .card-content");
+  if (!prompt || !root.value) return;
+  const el = findScrollParents(root.value).find((node) => node !== prompt && prompt.contains(node)) ?? prompt;
   el.addEventListener("scroll", handleScroll, { passive: true });
   scrollContainer = el;
 }

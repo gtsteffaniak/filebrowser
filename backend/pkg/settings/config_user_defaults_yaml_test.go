@@ -54,8 +54,8 @@ func TestYAMLConfig_jwt_organizedUserDefaults(t *testing.T) {
 	if !ud.Account.Permissions.Share {
 		t.Fatal("expected account.permissions.share true")
 	}
-	if ud.UI.DarkMode == nil || !*ud.UI.DarkMode {
-		t.Fatal("expected ui.darkMode true")
+	if ud.UI.DarkMode != users.DarkModeDark {
+		t.Fatalf("expected ui.darkMode true, got %q", ud.UI.DarkMode)
 	}
 	if ud.Listing.SingleClick {
 		t.Fatal("expected listing.singleClick false")
@@ -106,8 +106,8 @@ func TestYAMLConfig_applyUserDefaultsFrom_proxyAndJwt(t *testing.T) {
 		if !u.Permissions.Share {
 			t.Fatal("Share=false after ApplyUserDefaultsFrom")
 		}
-		if !u.DarkMode {
-			t.Fatal("expected darkMode from ui defaults")
+		if u.DarkMode != users.DarkModeDark {
+			t.Fatalf("expected darkMode from ui defaults, got %q", u.DarkMode)
 		}
 		if !u.Preview.Image || !u.Preview.PopUp {
 			t.Fatalf("preview: %+v", u.Preview)
@@ -126,7 +126,7 @@ func TestYAMLConfig_profileMerge_matchesApplyUserDefaults(t *testing.T) {
 	fromDefaults := ProfileFromUserDefaults(Config.UserDefaults)
 	u := &users.User{FrontendUser: users.FrontendUser{Username: "merge-check"}}
 	ExpandProfileIntoUser(u, fromDefaults)
-	if !u.DarkMode || !u.Preview.Image {
+	if !u.DarkMode.IsDark() || !u.Preview.Image {
 		t.Fatalf("ExpandProfileIntoUser: darkMode=%v preview.image=%v", u.DarkMode, u.Preview.Image)
 	}
 	u2 := &users.User{FrontendUser: users.FrontendUser{Username: "merge-check"}}
@@ -166,7 +166,7 @@ func TestLoadConfig_partialUserDefaults_preservesPreviewAndAutoplayDefaults(t *t
 func TestLoadConfig_partialUserDefaults_preservesOtherSetDefaults(t *testing.T) {
 	loadPartialUserDefaultsConfig(t, partialUserDefaultsYAML(""))
 	ud := Config.UserDefaults
-	if ud.UI.DarkMode == nil || !*ud.UI.DarkMode {
+	if ud.UI.DarkMode != users.DarkModeDark {
 		t.Fatalf("ui.darkMode: %v", ud.UI.DarkMode)
 	}
 	if ud.Sidebar.ShowTools == nil || !*ud.Sidebar.ShowTools {

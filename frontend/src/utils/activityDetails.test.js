@@ -33,7 +33,7 @@ describe("access activity detail formatting", () => {
   };
 
   it("shows create properties without from/to arrows", () => {
-    const rows = buildActivityDetailRows(createRow, (key) => key);
+    const rows = buildActivityDetailRows(createRow);
     expect(rows.find((row) => row.id === "change-ruleType")?.value).toBe("deny");
     expect(rows.find((row) => row.id === "change-value")?.value).toBe("admin");
   });
@@ -46,7 +46,7 @@ describe("access activity detail formatting", () => {
   });
 
   it("shows update changes with from/to arrows", () => {
-    const rows = buildActivityDetailRows(updateRow, (key) => key);
+    const rows = buildActivityDetailRows(updateRow);
     expect(rows.find((row) => row.id === "change-oldPath")?.value).toBe("/a → /b");
   });
 });

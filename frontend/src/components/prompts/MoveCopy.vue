@@ -79,24 +79,24 @@
 </template>
 
 <script>
-import { mutations, state, getters } from "@/store";
+import { mutations, state, getters } from "@/store/index.ts";
 import FileList from "../files/FileList.vue";
-import { resourcesApi } from "@/api";
-import buttons from "@/utils/buttons";
-import { checkConflict } from "@/utils/upload";
-import { url } from "@/utils";
-import { notify } from "@/notify";
+import { resourcesApi } from "@/api/index.js";
+import buttons from "@/utils/buttons.js";
+import { checkConflict } from "@/utils/upload.ts";
+import { url } from "@/utils/index.ts";
+import { notify } from "@/notify/index.ts";
 import {
   notifyMoveCopyComplete,
   notifyOperationError,
   notifyMoveCopyFailure,
   extractMoveCopyErrorMessage,
-} from "@/utils/appNotifications";
-import { goToItemNotificationButton } from "@/utils/notificationActions";
+} from "@/utils/appNotifications.js";
+import { goToItemNotificationButton } from "@/utils/notificationActions.js";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import PathPickerButton from "@/components/files/PathPickerButton.vue";
 import ListingFilter from "@/components/files/ListingFilter.vue";
-import { eventBus } from '@/store/eventBus';
+import { eventBus } from "@/store/eventBus.ts";
 import { removeFromFolderLists } from "@/utils/cache/listingCache.ts";
 
 export default {
@@ -322,13 +322,13 @@ export default {
           };
         });
         // Define the action function
-        const action = async (overwrite, rename) => {
+        const action = async (shouldOverwrite, shouldRename) => {
           buttons.loading(this.operation);
           let result;
           if (getters.isShare()) {
-            result = await resourcesApi.moveCopyPublic(getters.shareHash(), itemsToProcess, this.operation, overwrite, rename);
+            result = await resourcesApi.moveCopyPublic(getters.shareHash(), itemsToProcess, this.operation, shouldOverwrite, shouldRename);
           } else {
-            result = await resourcesApi.moveCopy(itemsToProcess, this.operation, overwrite, rename);
+            result = await resourcesApi.moveCopy(itemsToProcess, this.operation, shouldOverwrite, shouldRename);
           }
           return result; // Return the result to check for failures
         };
@@ -362,16 +362,16 @@ export default {
                 operation: this.operation,
                 destSource: this.destSource,
               },
-              confirm: async (event, option) => {
+              confirm: async (confirmEvent, option) => {
                 overwrite = option === "overwrite";
                 rename = option === "rename";
-                event.preventDefault();
+                confirmEvent.preventDefault();
                 try {
                   this.isLoading = true;
                   result = await action(overwrite, rename);
                   resolve(); // Resolve the promise if action succeeds
-                } catch (e) {
-                  reject(e); // Reject the promise if an error occurs
+                } catch (err) {
+                  reject(err); // Reject the promise if an error occurs
                 } finally {
                   this.isLoading = false;
                 }

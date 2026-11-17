@@ -14,18 +14,18 @@
 
 <script>
 import { createAsyncComponent } from "@/utils/asyncComponent.js";
-import { resourcesApi, shareApi, mediaApi } from "@/api";
+import { resourcesApi, shareApi, mediaApi } from "@/api/index.js";
 import Errors from "@/views/Errors.vue";
 import Preview from "@/views/files/Preview.vue";
 import ListingView from "@/views/files/ListingView.vue";
-import { state, mutations, getters } from "@/store";
-import { router } from "@/router";
+import { state, mutations, getters } from "@/store/index.ts";
+import { router } from "@/router/index.ts";
 import { extractSourceFromPath, removeLastDir, removeTrailingSlash, pathsMatch } from "@/utils/url.js";
 import { selectAndScrollToIndex } from "@/utils/listing/selectAndScroll.ts";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
-import { globalVars } from "@/utils/constants";
-import { syncEventTheme } from "@/utils/theme";
-import { isRichTextPreviewMimeType } from "@/utils/mimetype";
+import { globalVars } from "@/utils/constants.ts";
+import { syncEventTheme } from "@/utils/theme.js";
+import { isRichTextPreviewMimeType } from "@/utils/mimetype.js";
 import { invalidateDirMetadataCache } from "@/utils/cache/metadataCache.ts";
 import { clearImageCache } from "@/utils/cache/imageCache.ts";
 import { markRaw, toRaw } from "vue";
@@ -43,16 +43,16 @@ function sameListing(a, b) {
   if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length) {
     return false;
   }
-  const describe = (i) =>
+  const describeItem = (i) =>
     [ i.type, i.size, i.modified,
       i.created, i.pinned, i.hasPreview,
       i.isShared, i.hidden, i.viewToken,
     ].join("|");
   const known = new Map();
   for (const item of a) {
-    known.set(item.name, describe(item));
+    known.set(item.name, describeItem(item));
   }
-  return b.every((item) => known.get(item.name) === describe(item));
+  return b.every((item) => known.get(item.name) === describeItem(item));
 }
 
 function reusableParentItems(inScope, filePath) {
@@ -186,6 +186,9 @@ export default {
       sharePassword: "",
       attemptedPasswordLogin: false,
       lastShareHash: "",
+      fetchId: 0,
+      loadingFetchId: 0,
+      fetchController: null,
     };
   },
   computed: {
@@ -209,15 +212,12 @@ export default {
         width: `${this.loadingProgress}%`,
       };
       if (getters.isStickySidebar() && getters.isSidebarVisible()) {
-        style.left = `${state.sidebar.width}em`;
+        style.left = "var(--sidebar-width)";
       }
       return style;
     },
   },
   created() {
-    this.fetchId = 0;
-    this.loadingFetchId = 0;
-    this.fetchController = null;
     const isHalloween = getters.eventTheme() === "halloween";
     syncEventTheme(isHalloween);
     if (isHalloween && !localStorage.getItem("seenHalloweenMessage")) {
@@ -308,13 +308,10 @@ export default {
         ? getters.isShare() && state.shareInfo?.hash === currentHash && state.req?.path === path
         : !getters.isShare() && state.req?.source === currentSource && state.req?.path === path;
       try {
-        const metaMap = isShare
-          ? await mediaApi.getDirectoryMetadataMap(state.shareInfo.subPath, {
-              isShare: true,
-              hash: state.shareInfo.hash,
-              password: this.sharePassword,
-            })
-          : await mediaApi.getDirectoryMetadataMap(path, { source: currentSource });
+        const metaMap = await mediaApi.getDirectoryMetadataMap(
+          isShare ? state.shareInfo.subPath : path,
+          { source: currentSource },
+        );
         if (!isCurrentListing()) {
           return;
         }
@@ -826,7 +823,7 @@ export default {
   height: 1px;
   background: var(--primaryColor);
   z-index: 2000;
-  transition: width 0.3s ease, left 0.2s ease;
+  transition: width 0.3s ease, left 0.22s cubic-bezier(0.2, 0, 0, 1);
   box-shadow: 0 0 10px var(--primaryColor);
 }
 

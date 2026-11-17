@@ -36,6 +36,7 @@ export interface UploadItem {
   xhr?: XMLHttpRequest | null;
   xhrPromise?: UploadRequest | null;
   lastProgressTime?: number | null;
+  awaitingServer?: boolean;
   connectionIssue?: boolean;
   errorDetails?: string;
 }
@@ -154,6 +155,99 @@ export function numberedName(name: string, n: number): string {
   return `${stem}_${String(n).padStart(2, "0")}${ext}`;
 }
 
+/** Totals of the files in an upload queue; folders are not counted */
+export interface UploadSummary {
+  totalFiles: number;
+  completedFiles: number;
+  /** Files in error or in conflict */
+  failedFiles: number;
+  totalBytes: number;
+  uploadedBytes: number;
+}
+
+/** Bytes of a file already sent: all of it once completed, otherwise its progress */
+function uploadedBytesOf(item: UploadItem): number {
+  if (item.status === "completed") {
+    return item.size;
+  }
+  const progress = Math.min(Math.max(item.progress, 0), 100);
+  return (progress / 100) * item.size;
+}
+
+export function summarizeUploads(queue: readonly UploadItem[]): UploadSummary {
+  const summary: UploadSummary = { totalFiles: 0, completedFiles: 0, failedFiles: 0, totalBytes: 0, uploadedBytes: 0 };
+  for (const item of queue) {
+    if (item.type === "directory") continue;
+    summary.totalFiles++;
+    summary.totalBytes += item.size;
+    summary.uploadedBytes += uploadedBytesOf(item);
+    if (item.status === "completed") {
+      summary.completedFiles++;
+    } else if (item.status === "error" || item.status === "conflict") {
+      summary.failedFiles++;
+    }
+  }
+  return summary;
+}
+
+/** Bytes sent so far for each file of the queue, by upload id */
+export function uploadedBytesById(queue: readonly UploadItem[]): Map<number, number> {
+  const bytes = new Map<number, number>();
+  for (const item of queue) {
+    if (item.type !== "directory") {
+      bytes.set(item.id, uploadedBytesOf(item));
+    }
+  }
+  return bytes;
+}
+
+/** Smoothed upload speed, computed from samples of the bytes sent so far by each file */
+export class UploadRateMeter {
+  bytesPerSecond = 0;
+  private last: { bytes: Map<number, number>; time: number } | null = null;
+
+  constructor(private readonly smoothing = 0.3) {}
+
+  /** Records the bytes sent by each file (by upload id) at `time` (ms) and returns the smoothed speed in bytes per second */
+  sample(bytesById: ReadonlyMap<number, number>, time: number): number {
+    const last = this.last;
+    this.last = { bytes: new Map(bytesById), time };
+    if (!last || time <= last.time) {
+      return this.bytesPerSecond;
+    }
+    // Sum per-file progress, so a file removed from the queue (cleared, cancelled)
+    // or restarted from zero does not hide what the other files sent.
+    let delta = 0;
+    for (const [id, sent] of bytesById) {
+      delta += Math.max(0, sent - (last.bytes.get(id) ?? 0));
+    }
+    const rate = (delta * 1000) / (time - last.time);
+    this.bytesPerSecond =
+      this.bytesPerSecond === 0 ? rate : this.smoothing * rate + (1 - this.smoothing) * this.bytesPerSecond;
+    return this.bytesPerSecond;
+  }
+
+  reset(): void {
+    this.bytesPerSecond = 0;
+    this.last = null;
+  }
+}
+
+/** Formats a remaining time for display: "45 sec", "12 min", "1 hr 5 min" in English */
+export function formatRemainingTime(seconds: number, locale?: string): string {
+  const format = (value: number, unit: string) =>
+    new Intl.NumberFormat(locale, { style: "unit", unit, unitDisplay: "short", maximumFractionDigits: 0 }).format(value);
+  if (seconds < 60) {
+    return format(Math.max(1, Math.ceil(seconds)), "second");
+  }
+  if (seconds < 3600) {
+    return format(Math.ceil(seconds / 60), "minute");
+  }
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.round((seconds % 3600) / 60);
+  return minutes > 0 ? `${format(hours, "hour")} ${format(minutes, "minute")}` : format(hours, "hour");
+}
+
 class UploadManager {
   queue: UploadItem[] = reactive<UploadItem[]>([]);
   activeUploads = 0;
@@ -169,8 +263,9 @@ class UploadManager {
   probedDirs = new Set<string>(); // Track directories that were probed/created during conflict check
   progressTimeouts = new Map<number, ReturnType<typeof setTimeout>>(); // Track progress timeouts per upload ID
   lastUploadActivityTime: number | null = null;
-  PROGRESS_TIMEOUT_MS = 10000; // 10 seconds without upload activity = pause
+  PROGRESS_TIMEOUT_MS = 10000; // default stall pause; see progressTimeoutMs()
   DIRECTORY_PROGRESS_TIMEOUT_MS = 120000;
+  SERVER_RESPONSE_TIMEOUT_MS = 600000; // whole body sent; server may be saving to disk
   quotaBatchAborted = false;
 
   setOnConflict(handler: UploadConflictHandler): void {
@@ -293,7 +388,7 @@ class UploadManager {
     if (!basePath) {
       basePath = "/";
     }
-    if (basePath.slice(-1) !== "/") {
+    if (!basePath.endsWith("/")) {
       basePath += "/";
     }
 
@@ -327,9 +422,9 @@ class UploadManager {
               try {
                 const testPath = `${basePath}${dirName}`;
                 if (getters.isShare()) {
-                  await resourcesApi.postPublic(state.shareInfo?.hash, testPath, new Blob([]), false, undefined, {}, true);
+                  await resourcesApi.postPublic(state.shareInfo?.hash, testPath, new Blob([]), false, undefined, {}, true, undefined);
                 } else {
-                  await resourcesApi.post(state.req?.source, testPath, new Blob([]), false, undefined, {}, true);
+                  await resourcesApi.post(state.req?.source, testPath, new Blob([]), false, undefined, {}, true, undefined);
                 }
                 // No conflict - directory was created successfully
                 // Mark it so we can skip it later in the queue
@@ -431,11 +526,11 @@ class UploadManager {
 
     if (dirs.size > 0) {
       // Sort paths to ensure parent directories are created before children.
-      const sortedDirs = [...dirs].sort();
+      const sortedDirs = [...dirs].sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
 
       for (const dir of sortedDirs) {
         const pathParts = dir.slice(0, -1).split("/");
-        const dirName = pathParts[pathParts.length - 1] as string;
+        const dirName = pathParts.at(-1) as string;
 
         // Skip top-level directories that were already created during probing
         if (pathParts.length === 1 && this.probedDirs.has(dirName)) {
@@ -584,23 +679,26 @@ class UploadManager {
     this.hadActiveUploads = true; // Mark that we've had active uploads
     upload.status = "uploading";
     upload.lastProgressTime = Date.now();
-    this.startProgressTimeout(upload, this.DIRECTORY_PROGRESS_TIMEOUT_MS);
+    this.startProgressTimeout(upload);
 
     try {
+      const onSent = () => this.markSentToServer(upload);
       let promise: UploadRequest;
       if (getters.isShare()) {
-        promise = resourcesApi.postPublic(state.shareInfo?.hash, upload.path, new Blob([]), upload.overwrite, undefined, {}, true);
+        promise = resourcesApi.postPublic(state.shareInfo?.hash, upload.path, new Blob([]), upload.overwrite, undefined, {}, true, onSent);
       } else {
-        promise = resourcesApi.post(upload.source, upload.path, new Blob([]), upload.overwrite, undefined, {}, true);
+        promise = resourcesApi.post(upload.source, upload.path, new Blob([]), upload.overwrite, undefined, {}, true, onSent);
       }
       upload.xhrPromise = promise;
       await promise;
 
       this.clearProgressTimeout(upload.id);
+      upload.awaitingServer = false;
       upload.status = "completed";
       upload.progress = 100;
       notifyUploadComplete(upload);
     } catch (err) {
+      upload.awaitingServer = false;
       this.clearProgressTimeout(upload.id);
       await this.handleUploadError(upload, err as RequestError);
     } finally {
@@ -629,17 +727,18 @@ class UploadManager {
       this.startProgressTimeout(upload);
 
       try {
+        const onSent = () => this.markSentToServer(upload);
         let promise: UploadRequest;
         if (getters.isShare()) {
           promise = resourcesApi.postPublic(state.shareInfo?.hash, upload.path, upload.file, upload.overwrite, progress, {
             "X-File-Upload-Session": upload.sessionId,
             "X-File-Total-Size": upload.size,
-          });
+          }, false, onSent);
         } else {
           promise = resourcesApi.post(upload.source, upload.path, upload.file, upload.overwrite, progress, {
             "X-File-Upload-Session": upload.sessionId,
             "X-File-Total-Size": upload.size,
-          });
+          }, false, onSent);
         }
 
         upload.xhrPromise = promise;
@@ -649,11 +748,13 @@ class UploadManager {
         this.recordUploadActivity(upload);
         // Clear timeout on successful completion
         this.clearProgressTimeout(upload.id);
+        upload.awaitingServer = false;
         upload.status = "completed";
         upload.progress = 100;
         upload.connectionIssue = false;
         notifyUploadComplete(upload);
       } catch (err) {
+        upload.awaitingServer = false;
         this.clearProgressTimeout(upload.id);
         await this.handleUploadError(upload, err as RequestError);
       } finally {
@@ -688,6 +789,7 @@ class UploadManager {
       };
 
       try {
+        const onSent = () => this.markSentToServer(upload);
         let promise: UploadRequest;
         if (getters.isShare()) {
           promise = resourcesApi.postPublic(
@@ -700,7 +802,9 @@ class UploadManager {
               "X-File-Upload-Session": upload.sessionId,
               "X-File-Chunk-Offset": upload.chunkOffset,
               "X-File-Total-Size": upload.size,
-            }
+            },
+            false,
+            onSent
           );
         } else {
           promise = resourcesApi.post(
@@ -713,7 +817,9 @@ class UploadManager {
               "X-File-Upload-Session": upload.sessionId,
               "X-File-Chunk-Offset": upload.chunkOffset,
               "X-File-Total-Size": upload.size,
-            }
+            },
+            false,
+            onSent
           );
         }
 
@@ -724,9 +830,11 @@ class UploadManager {
         // Only increment chunkOffset after successful chunk upload.
         // This ensures that if we pause/error mid-chunk, we'll retry that chunk on resume.
         upload.chunkOffset += chunk.size;
+        upload.awaitingServer = false;
         // A completed chunk is activity even when no progress event was emitted.
         this.recordUploadActivity(upload);
       } catch (err) {
+        upload.awaitingServer = false;
         this.clearProgressTimeout(upload.id);
         await this.handleUploadError(upload, err as RequestError);
         break; // Exit loop on error or pause
@@ -738,6 +846,7 @@ class UploadManager {
 
     if (upload.status === "uploading") {
       // If the loop finished without being paused/errored
+      upload.awaitingServer = false;
       upload.status = "completed";
       upload.progress = 100;
       notifyUploadComplete(upload);
@@ -822,7 +931,32 @@ class UploadManager {
     this.lastUploadActivityTime = upload.lastProgressTime;
   }
 
-  startProgressTimeout(upload: UploadItem, delay = this.PROGRESS_TIMEOUT_MS): void {
+  progressTimeoutMs(): number {
+    const seconds = state.user?.fileLoading?.uploadStallTimeoutSeconds ?? 0;
+    return seconds > 0 ? seconds * 1000 : this.PROGRESS_TIMEOUT_MS;
+  }
+
+  stallLimitMs(upload: UploadItem): number {
+    const progressTimeout = this.progressTimeoutMs();
+    if (upload.awaitingServer) {
+      return Math.max(this.SERVER_RESPONSE_TIMEOUT_MS, progressTimeout);
+    }
+    if (upload.type === "directory") {
+      return Math.max(this.DIRECTORY_PROGRESS_TIMEOUT_MS, progressTimeout);
+    }
+    return progressTimeout;
+  }
+
+  markSentToServer(upload: UploadItem): void {
+    if (upload.status !== "uploading" || !this.findById(upload.id)) {
+      return;
+    }
+    upload.awaitingServer = true;
+    this.recordUploadActivity(upload);
+    this.startProgressTimeout(upload);
+  }
+
+  startProgressTimeout(upload: UploadItem, delay = this.stallLimitMs(upload)): void {
     // Clear any existing timeout
     this.clearProgressTimeout(upload.id);
 
@@ -835,8 +969,7 @@ class UploadManager {
             ? upload.lastProgressTime ?? 0
             : Math.max(upload.lastProgressTime ?? 0, this.lastUploadActivityTime ?? 0);
         const idleTime = Date.now() - lastActivity;
-        const limitMs =
-          upload.type === "directory" ? this.DIRECTORY_PROGRESS_TIMEOUT_MS : this.PROGRESS_TIMEOUT_MS;
+        const limitMs = this.stallLimitMs(upload);
         if (idleTime < limitMs) {
           this.startProgressTimeout(upload, limitMs - idleTime);
           return;

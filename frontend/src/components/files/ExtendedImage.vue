@@ -6,7 +6,6 @@
       v-if="thumbnailSrc && !fullImageLoaded && !isTiff"
       :src="thumbnailSrc"
       class="image-ex-img"
-      ref="thumbnail"
       aria-hidden="true"
     />
 
@@ -38,13 +37,13 @@
 
 <script>
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
-import { notify } from "@/notify";
-import { getters, mutations, state } from '@/store';
-import { globalVars } from "@/utils/constants";
+import { notify } from "@/notify/index.ts";
+import { getters, mutations, state } from "@/store/index.ts";
 import { acquireBestCachedThumbnailBlob, getBestCachedImage, releaseThumbnailBlob } from "@/utils/cache/imageCache.ts";
-import { isRawImageMimeType } from "@/utils/mimetype";
+import { isRawImageMimeType } from "@/utils/mimetype.js";
+import { resourcesApi } from "@/api/index.js";
 import { refreshViewToken, requestViewIdentity } from "@/api/viewToken.js";
-import throttle from "@/utils/throttle";
+import throttle from "@/utils/throttle.js";
 
 export default {
   components: {
@@ -56,8 +55,14 @@ export default {
       default: null,
     },
   },
+  emits: {
+    "navigate-previous": () => true,
+    "navigate-next": () => true,
+    "close-preview": () => true,
+  },
   data() {
     return {
+      thumbBlobKey: null, // only read in lifecycle/sync code, never during render
       moveDisabledTime: 200,
       classList: [],
       zoomStep: 0.25,
@@ -122,7 +127,40 @@ export default {
     isLoaded() {
       return !("preview-img" in (state?.loading || {}));
     },
-    // Which cached entry to look, or null when no thumbnail should be shown
+    isHeicOrHeif() {
+      const type = state.req?.type;
+      return type === "image/heic" || type === "image/heif";
+    },
+    /** Full-resolution source for the viewer (Safari HEIC/HEIF uses the native file, not size=original). */
+    fullImageSrc() {
+      if (!this.isHeicOrHeif || !state.isSafari || !state.req) {
+        return this.src;
+      }
+      const viewToken = state.req.viewToken;
+      const typeHint = state.req.type || state.req.name;
+      if (getters.isShare()) {
+        return resourcesApi.getViewURL(
+          state.req.source,
+          state.req.path,
+          viewToken,
+          {
+            path: state.shareInfo.subPath,
+            hash: state.shareInfo.hash,
+          },
+          false,
+          typeHint,
+        );
+      }
+      return resourcesApi.getViewURL(
+        state.req.source,
+        state.req.path,
+        viewToken,
+        null,
+        false,
+        typeHint,
+      );
+    },
+    // Cached preview thumbs (from listing's preview API) shown while the full image loads.
     thumbnailLookup() {
       if (!state?.req) {
         return null;
@@ -130,11 +168,9 @@ export default {
       if (!this.path || !state.req.hasPreview) {
         return null;
       }
-      // Don't use thumbnail when we show original embedded preview (HEIC/HEIF or raw)
-      const isHeicOrHeif = state.req?.type === "image/heic" || state.req?.type === "image/heif";
-      const useOriginalForHeic = isHeicOrHeif && (state.isSafari || (globalVars.ffmpegAvailable && globalVars.enableHeicConversion));
-      const useOriginalForRaw = isRawImageMimeType(state.req?.type);
-      if (useOriginalForHeic || useOriginalForRaw) {
+      const skipHeicThumbnail = this.isHeicOrHeif && !state.isSafari && state.req.hasPreview;
+      const skipRawThumbnail = isRawImageMimeType(state.req?.type);
+      if (skipHeicThumbnail || skipRawThumbnail) {
         return null;
       }
       // For shares, use shareInfo.hash as the source; otherwise use this.source
@@ -181,9 +217,6 @@ export default {
       const ay = Math.abs(this.edgeDy);
       return this.edgeDy >= this.edgeCommitY && ay >= ax;
     },
-  },
-  beforeCreate() {
-    this.thumbBlobKey = null;
   },
   created() {
     this.syncThumbnailBlob();
@@ -299,7 +332,8 @@ export default {
       }
     },
     async loadFullImage() {
-      if (!this.src) return;
+      const fullSrc = this.fullImageSrc;
+      if (!fullSrc) return;
       mutations.setLoading("preview-img", true);
 
       // Set src directly via JavaScript to avoid Vue's HTML entity encoding in template bindings
@@ -307,7 +341,7 @@ export default {
       await this.$nextTick();
       if (this.$refs.imgex && 'src' in this.$refs.imgex) {
         // Decode any HTML entities (Vue shouldn't encode props, but decode just in case)
-        const cleanSrc = String(this.src).replace(/&amp;/g, '&');
+        const cleanSrc = String(fullSrc).replace(/&amp;/g, '&');
         this.$refs.imgex.src = cleanSrc;
       }
     },
@@ -493,7 +527,7 @@ export default {
           this.showDismissHint = false;
         } else {
           this.dragOffsetX = 0;
-          const downward = this.edgeDy > 0 ? this.edgeDy : 0;
+          const downward = Math.max(this.edgeDy, 0);
           this.dragOffsetY = this.rubberband(downward, this.edgeRubberMax);
           this.showDismissHint = this.edgeDy >= this.edgeHintPx;
           this.showNavHint = false;
@@ -517,7 +551,7 @@ export default {
         this.showDismissHint = false;
       } else {
         this.dragOffsetX = 0;
-        const downward = this.edgeDy > 0 ? this.edgeDy : 0;
+        const downward = Math.max(this.edgeDy, 0);
         this.dragOffsetY = this.rubberband(downward, this.edgeRubberMax);
         this.showDismissHint = this.edgeDy >= this.edgeHintPx;
         this.showNavHint = false;
@@ -781,7 +815,7 @@ export default {
 
         const p1 = event.targetTouches[0];
         const p2 = event.targetTouches[1];
-        const touchDistance = Math.sqrt((p2.pageX - p1.pageX) ** 2 + (p2.pageY - p1.pageY) ** 2);
+        const touchDistance = Math.hypot(p2.pageX - p1.pageX, p2.pageY - p1.pageY);
 
         if (!this.lastTouchDistance) {
           this.lastTouchDistance = touchDistance;

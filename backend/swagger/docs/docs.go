@@ -3217,6 +3217,24 @@ const docTemplate = `{
             }
         },
         "/api/settings/media": {
+            "get": {
+                "description": "Returns the media settings the caller is allowed to see.\nAdmins get the full settings, including ffmpeg and hardware options, so they can edit them.\nEveryone else gets a small read-only view: whether transcoding is on, how many\ntranscodes they can run at once, which quality presets are enabled, and which image\npreviews the server can generate. Keys in the view are the same for admins and users.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Settings"
+                ],
+                "summary": "Get runtime media settings",
+                "responses": {
+                    "200": {
+                        "description": "Media settings",
+                        "schema": {
+                            "$ref": "#/definitions/web.mediaSettingsResponse"
+                        }
+                    }
+                }
+            },
             "patch": {
                 "description": "Merges a partial JSON patch into the DB-backed media settings and applies them at runtime.",
                 "consumes": [
@@ -4534,6 +4552,12 @@ const docTemplate = `{
                         "description": "Extract audio/video metadata if true",
                         "name": "metadata",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Optional checksum algorithm (md5, sha1, sha256, sha512); requires a logged-in session",
+                        "name": "checksum",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -4541,6 +4565,15 @@ const docTemplate = `{
                         "description": "File or directory metadata",
                         "schema": {
                             "$ref": "#/definitions/iteminfo.FileInfo"
+                        }
+                    },
+                    "401": {
+                        "description": "Login required for checksum generation",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
                         }
                     },
                     "403": {
@@ -6299,6 +6332,58 @@ const docTemplate = `{
                 }
             }
         },
+        "settings.FullAdminTranscode": {
+            "type": "object",
+            "properties": {
+                "cacheMaxSizeMB": {
+                    "description": "disk cache size limit in MB; 0 = unlimited (default: 10240)",
+                    "type": "integer"
+                },
+                "cacheRetentionH": {
+                    "description": "completed cache retention in hours (default: 24)",
+                    "type": "integer"
+                },
+                "enabled": {
+                    "description": "enable HLS transcoding for authenticated playback (default: false)",
+                    "type": "boolean"
+                },
+                "enabledProfiles": {
+                    "description": "derived at read time (player-menu profile ids); never stored",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "encoderBackend": {
+                    "description": "default video encoder backend for transcodes: \"\" (auto), \"cpu\", or an accel backend (nvenc, amf, qsv, vaapi, d3d12, videotoolbox)",
+                    "type": "string"
+                },
+                "maxConcurrent": {
+                    "description": "global concurrent transcode sessions (default: 2)",
+                    "type": "integer"
+                },
+                "maxConcurrentPerUser": {
+                    "description": "hard per-user concurrent transcode ceiling (default: 1)",
+                    "type": "integer"
+                },
+                "maxResolution": {
+                    "description": "superseded by profiles.\u003cname\u003e.maxResolution. deprecated: kept for config compatibility",
+                    "type": "integer"
+                },
+                "profiles": {
+                    "description": "per-profile transcode settings shown in the player menu",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/settings.TranscodeProfiles"
+                        }
+                    ]
+                },
+                "readRate": {
+                    "description": "VOD producer input pacing in Nx realtime (-readrate); unset or \u003c1 clamps to \u003e=1 (default: 2)",
+                    "type": "number"
+                }
+            }
+        },
         "settings.Http": {
             "type": "object",
             "properties": {
@@ -6361,6 +6446,10 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
+                "unixSocketTrustAllLocalPeers": {
+                    "description": "default false: set true to trust forwarded headers from any local filesystem socket peer when allowlists are empty",
+                    "type": "boolean"
+                },
                 "unixSocketTrustedGIDs": {
                     "type": "array",
                     "items": {
@@ -6368,7 +6457,7 @@ const docTemplate = `{
                     }
                 },
                 "unixSocketTrustedUIDs": {
-                    "description": "UnixSocketTrustedUIDs and UnixSocketTrustedGIDs list peer credentials (Linux SO_PEERCRED) allowed to\npresent X-Forwarded-* on a filesystem http.socket listener. When both are empty, forwarded headers\nare not trusted on Unix sockets. Abstract sockets (@name) never trust forwarded headers.",
+                    "description": "UnixSocketTrustedUIDs and UnixSocketTrustedGIDs list peer credentials (Linux SO_PEERCRED) allowed to\npresent X-Forwarded-* on a filesystem http.socket listener. When both are empty, peers are not trusted\nunless UnixSocketTrustAllLocalPeers is true (legacy; startup logs a warning). A GID allowlist trusts\nevery peer with that GID, not only a single reverse-proxy process. Abstract sockets (@name) never trust\nforwarded headers.",
                     "type": "array",
                     "items": {
                         "type": "integer"
@@ -6640,54 +6729,9 @@ const docTemplate = `{
                     "description": "deprecated: HLS transcoding for media playback. deprecated: manage via the admin media settings API",
                     "allOf": [
                         {
-                            "$ref": "#/definitions/settings.MediaTranscode"
+                            "$ref": "#/definitions/settings.FullAdminTranscode"
                         }
                     ]
-                }
-            }
-        },
-        "settings.MediaTranscode": {
-            "type": "object",
-            "properties": {
-                "cacheMaxSizeMB": {
-                    "description": "disk cache size limit in MB; 0 = unlimited (default: 10240)",
-                    "type": "integer"
-                },
-                "cacheRetentionH": {
-                    "description": "completed cache retention in hours (default: 24)",
-                    "type": "integer"
-                },
-                "enabled": {
-                    "description": "enable HLS transcoding for authenticated playback (default: false)",
-                    "type": "boolean"
-                },
-                "encoderBackend": {
-                    "description": "default video encoder backend for transcodes: \"\" (auto), \"cpu\", or an accel backend (nvenc, amf, qsv, vaapi, d3d12, videotoolbox)",
-                    "type": "string"
-                },
-                "maxConcurrent": {
-                    "description": "global concurrent transcode sessions (default: 2)",
-                    "type": "integer"
-                },
-                "maxConcurrentPerUser": {
-                    "description": "hard per-user concurrent transcode ceiling (default: 1)",
-                    "type": "integer"
-                },
-                "maxResolution": {
-                    "description": "superseded by profiles.\u003cname\u003e.maxResolution. deprecated: kept for config compatibility",
-                    "type": "integer"
-                },
-                "profiles": {
-                    "description": "per-profile transcode settings shown in the player menu",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/settings.TranscodeProfiles"
-                        }
-                    ]
-                },
-                "readRate": {
-                    "description": "VOD producer input pacing in Nx realtime (-readrate); unset or \u003c1 clamps to \u003e=1 (default: 2)",
-                    "type": "number"
                 }
             }
         },
@@ -6939,6 +6983,10 @@ const docTemplate = `{
                 "cacheDirCleanup": {
                     "description": "whether to automatically cleanup the cache directory. Note: docker must also mount a persistent volume to persist the cache (default: false)",
                     "type": "boolean"
+                },
+                "cacheDirMaxSizeMB": {
+                    "description": "maximum size in MB of the preview cache (cacheDir/diskcache). Past it, the least recently used files are deleted. 0 means no limit (default: 0)",
+                    "type": "integer"
                 },
                 "database": {
                     "description": "SQLite database configuration",
@@ -7573,8 +7621,12 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "darkMode": {
-                    "description": "should dark mode be enabled",
-                    "type": "boolean"
+                    "description": "theme preference: \"auto\" (follow system), \"dark\", or \"light\"",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/users.DarkMode"
+                        }
+                    ]
                 },
                 "locale": {
                     "description": "language to use: eg. de, en, or fr",
@@ -8090,6 +8142,19 @@ const docTemplate = `{
                 }
             }
         },
+        "users.DarkMode": {
+            "type": "string",
+            "enum": [
+                "auto",
+                "dark",
+                "light"
+            ],
+            "x-enum-varnames": [
+                "DarkModeAuto",
+                "DarkModeDark",
+                "DarkModeLight"
+            ]
+        },
         "users.FileLoading": {
             "type": "object",
             "properties": {
@@ -8103,6 +8168,10 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "uploadChunkSizeMb": {
+                    "type": "integer"
+                },
+                "uploadStallTimeoutSeconds": {
+                    "description": "seconds without progress before an upload is paused, 0 uses the default (10)",
                     "type": "integer"
                 }
             }
@@ -8134,8 +8203,12 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "darkMode": {
-                    "description": "should dark mode be enabled",
-                    "type": "boolean"
+                    "description": "theme preference: \"auto\" (follow system), \"dark\", or \"light\"",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/users.DarkMode"
+                        }
+                    ]
                 },
                 "dateFormat": {
                     "description": "when false, the date is relative, when true, the date is an exact timestamp",
@@ -8942,7 +9015,6 @@ const docTemplate = `{
             }
         },
         "web.mediaSettingsResponse": {
-            "description": "Admins receive the DB-backed media integration settings; every authenticated user receives the player-relevant subset (transcode enabled, profiles, per-user limit).",
             "type": "object",
             "properties": {
                 "accelDevice": {
@@ -8985,6 +9057,13 @@ const docTemplate = `{
                     "description": "enable hardware acceleration for ffmpeg if available",
                     "type": "boolean"
                 },
+                "imagePreview": {
+                    "description": "image formats that can be converted",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "boolean"
+                    }
+                },
                 "lockMessage": {
                     "type": "string"
                 },
@@ -8998,7 +9077,7 @@ const docTemplate = `{
                     "description": "HLS transcoding for media playback",
                     "allOf": [
                         {
-                            "$ref": "#/definitions/settings.MediaTranscode"
+                            "$ref": "#/definitions/settings.FullAdminTranscode"
                         }
                     ]
                 }

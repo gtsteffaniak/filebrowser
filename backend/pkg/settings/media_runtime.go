@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/ffmpeg"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/mediacache"
 	goffmpeg "github.com/gtsteffaniak/go-ffmpeg"
 	"github.com/gtsteffaniak/go-ffmpeg/capabilities"
 	"github.com/gtsteffaniak/go-ffmpeg/encode"
@@ -209,8 +210,10 @@ func TranscodeCacheRetention() time.Duration {
 	return time.Duration(h) * time.Hour
 }
 
-// CurrentMediaSettings returns the runtime media settings (excluding ffmpegPath).
-func CurrentMediaSettings() MediaSettings {
+// CurrentMediaSettings returns the stored runtime media settings (excluding ffmpegPath).
+// Derived fields (ImagePreview, EnabledProfiles) are not populated; use CurrentFullAdminMedia
+// or CurrentUserMedia for response payloads.
+func CurrentMediaSettings() FullAdminMedia {
 	mediaMu.RLock()
 	defer mediaMu.RUnlock()
 	return currentMediaSettingsLocked()
@@ -218,30 +221,79 @@ func CurrentMediaSettings() MediaSettings {
 
 // currentMediaSettingsLocked snapshots the live media settings. Callers must hold
 // mediaMu. The returned value is deep-copied so it cannot alias the live config.
-func currentMediaSettingsLocked() MediaSettings {
+func currentMediaSettingsLocked() FullAdminMedia {
 	m := Config.Integrations.Media
-	return CloneMediaSettings(MediaSettings{
+	return CloneMediaSettings(FullAdminMedia{
 		Convert:              m.Convert,
 		Debug:                m.Debug,
 		HardwareAcceleration: m.HardwareAcceleration,
-		AccelDevice:              m.AccelDevice,
-		AlwaysUseFfmpeg:          m.AlwaysUseFfmpeg,
-		AlwaysUseOnlyOffice:      m.AlwaysUseOnlyOffice,
-		Transcode:                m.Transcode,
+		AccelDevice:          m.AccelDevice,
+		AlwaysUseFfmpeg:      m.AlwaysUseFfmpeg,
+		AlwaysUseOnlyOffice:  m.AlwaysUseOnlyOffice,
+		Transcode:            m.Transcode,
 	})
+}
+
+// ImagePreviewAvailability resolves each supported image preview type to whether
+// conversion is active right now, using the same check the preview pipeline uses.
+func ImagePreviewAvailability() map[ImagePreviewType]bool {
+	out := make(map[ImagePreviewType]bool, len(AllImagePreviewTypes))
+	for _, t := range AllImagePreviewTypes {
+		out[t] = CanConvertImage(string(t))
+	}
+	return out
+}
+
+// CurrentUserMedia builds the PUBLIC media payload for non-admin users. Values come
+// from the same accessors as the admin payload, so the shared fields always agree.
+// The getters take mediaMu themselves, so they are called here without holding it.
+func CurrentUserMedia() UserMedia {
+	return UserMedia{
+		Transcode: UserTranscode{
+			Enabled:              TranscodeEnabled(),
+			MaxConcurrentPerUser: TranscodeMaxConcurrentPerUser(),
+			EnabledProfiles:      EnabledTranscodeProfiles(),
+		},
+		ImagePreview: ImagePreviewAvailability(),
+	}
+}
+
+// PrepMediaForFrontend returns a read-only copy of m with derived values filled in,
+// following PrepForFrontend in internal/web/users.go. The caller's value is not modified.
+// Stored config (transcode.enabled, maxConcurrentPerUser) is deliberately NOT replaced
+// with effective values: the admin UI edits these fields and sends them back, so they
+// must stay the stored values. Only derived fields are filled.
+// NEVER pass the result to SaveSetting without ClearMediaDerived first.
+func PrepMediaForFrontend(m FullAdminMedia) FullAdminMedia {
+	m.Transcode.EnabledProfiles = EnabledTranscodeProfiles()
+	m.ImagePreview = ImagePreviewAvailability()
+	return m
+}
+
+// ClearMediaDerived zeroes the fields that PrepMediaForFrontend derives at read time so
+// they are never written to the database. Enabled and MaxConcurrentPerUser are stored
+// config and are not cleared here.
+func ClearMediaDerived(m *FullAdminMedia) {
+	m.Transcode.EnabledProfiles = nil
+	m.ImagePreview = nil
 }
 
 // ApplyMediaSettings applies runtime media settings to the in-memory config.
 // It never re-runs ffmpeg detection: codec/hardware detection happens exactly
 // once at startup (InitFFmpeg). hardwareAcceleration is read live per transcode;
 // ffmpegPath, accelDevice, debug and concurrency apply on the next restart.
-func ApplyMediaSettings(s MediaSettings) {
+func ApplyMediaSettings(s FullAdminMedia) {
 	mediaMu.Lock()
 	defer mediaMu.Unlock()
 	Config.Integrations.Media.Convert = s.Convert
 	Config.Integrations.Media.Debug = s.Debug
 	Config.Integrations.Media.HardwareAcceleration = s.HardwareAcceleration
 	Config.Integrations.Media.AccelDevice = s.AccelDevice
+	if Config.Integrations.Media.AlwaysUseFfmpeg != s.AlwaysUseFfmpeg {
+		// The shared media cache holds values from whichever backend answered
+		// first. Switching backends drops them so the selected one answers fresh.
+		mediacache.ClearAll()
+	}
 	Config.Integrations.Media.AlwaysUseFfmpeg = s.AlwaysUseFfmpeg
 	Config.Integrations.Media.AlwaysUseOnlyOffice = s.AlwaysUseOnlyOffice
 	Config.Integrations.Media.Transcode = s.Transcode

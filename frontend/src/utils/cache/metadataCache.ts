@@ -1,58 +1,49 @@
 import { state } from "@/store/index.ts";
 
-/** Which source (or share) a folder belongs to */
-export interface DirMetadataScope {
+/** Which source (or share) a path belongs to */
+export interface MetadataScope {
   isShare?: boolean;
   source?: string;
   hash?: string;
 }
 
-export interface DirMetadataKey extends DirMetadataScope {
-  path: string;
-}
-
 /** metadata by file name */
 export type DirMetadataMap = Map<string, object>;
 
-/** Per-item changes recorded since a folder was cached */
-export interface PendingDirChanges {
-  /** deleted or moved away */
-  removed: Set<string>;
-  /** uploaded, copied or moved */
-  dirty: Set<string>;
-  /** names without extension */
-  stems: Set<string>;
-}
+type Change = "removed" | "changed";
 
-export interface DirMetadataEntry extends PendingDirChanges {
-  key: string;
-  promise: Promise<DirMetadataMap>;
-  size: number;
+interface Entry {
+  scope: string;
+  /** normalized path of the folder or file */
+  path: string;
+  promise: Promise<unknown>;
   time: number;
-  settled: boolean;
-  pendingSince: number;
+  /** items in a folder entry, they count against MAX_FOLDER_ITEMS */
+  size: number;
+  /** folder entries only: items deleted or uploaded since it was fetched */
+  changes?: Map<string, Change>;
 }
 
-const TTL_MS = 300000;
-const PENDING_REUSE_MS = 120000;
-const MAX_TOTAL_ITEMS = 5000;
+const TTL_MS = 600000;
+const MAX_FILE_ENTRIES = 30;
+const MAX_FOLDER_ITEMS = 5000;
 const MAX_PENDING_CHANGES = 200;
-// least recently used first
-const cacheMap = new Map<string, DirMetadataEntry>();
+const DIR = "dir";
+// folders and single files, least recently used first
+const cache = new Map<string, Entry>();
 let cacheUser: string | null = null;
 
-// Entries are not keyed by user, the cache is dropped whenever the signed-in user logs out.
+// Entries are not keyed by user, the cache is dropped whenever the signed-in user changes,
 // one account's metadata is never served to the other.
-function cache(): Map<string, DirMetadataEntry> {
+function checkUser(): void {
   const user = state.user?.username || "";
   if (user !== cacheUser) {
-    cacheMap.clear();
+    cache.clear();
     cacheUser = user;
   }
-  return cacheMap;
 }
 
-function scopePart({ isShare, source, hash }: DirMetadataScope): string {
+function scopePart({ isShare, source, hash }: MetadataScope): string {
   return isShare ? `share:${hash}` : `src:${source}`;
 }
 
@@ -61,8 +52,8 @@ function normalizePath(path: string | undefined): string {
   return collapsed.length > 1 ? collapsed.replace(/\/$/, "") : "/";
 }
 
-function getCacheKey({ isShare, source, hash, path }: DirMetadataKey): string {
-  return `${scopePart({ isShare, source, hash })}|${normalizePath(path)}`;
+function keyOf(scope: MetadataScope, path: string, kind: string): string {
+  return `${scopePart(scope)}|${normalizePath(path)}|${kind}`;
 }
 
 function splitItemPath(itemPath: string | undefined): { dir: string; name: string; isDir: boolean } {
@@ -77,189 +68,241 @@ function splitItemPath(itemPath: string | undefined): { dir: string; name: strin
 }
 
 /** file name without its last extension, so "song.mp3" and "song.lrc" match */
-export function stemOf(name: string): string {
+function stemOf(name: string): string {
   const dot = name.lastIndexOf(".");
   return (dot > 0 ? name.slice(0, dot) : name).toLowerCase();
 }
 
-function trimToLimit(): void {
-  const entries = cache();
-  let total = 0;
-  for (const entry of entries.values()) {
-    total += entry.size;
+function trim(): void {
+  let files = 0;
+  let folderItems = 0;
+  for (const { changes, size } of cache.values()) {
+    if (changes) {
+      folderItems += size;
+    } else {
+      files++;
+    }
   }
-  for (const [key, entry] of entries) {
-    if (total <= MAX_TOTAL_ITEMS) {
+  for (const [key, entry] of cache) {
+    if (files <= MAX_FILE_ENTRIES && folderItems <= MAX_FOLDER_ITEMS) {
       break;
     }
-    total -= entry.size;
-    entries.delete(key);
+    if (entry.changes ? folderItems > MAX_FOLDER_ITEMS : files > MAX_FILE_ENTRIES) {
+      cache.delete(key);
+      if (entry.changes) {
+        folderItems -= entry.size;
+      } else {
+        files--;
+      }
+    }
   }
 }
 
-/** @param startsCache true for folder fetc. the TTL then counts from when its result arrived */
-function watchEntry(entry: DirMetadataEntry, startsCache = false): void {
+/** @param fresh true for a new fetch, the TTL then counts from when its result arrived */
+function track(key: string, entry: Entry, fresh: boolean): void {
   const { promise } = entry;
-  entry.settled = false;
-  entry.pendingSince = Date.now();
   promise.then(
-    (map) => {
-      if (entry.promise !== promise) {
+    (payload) => {
+      if (cache.get(key) !== entry || entry.promise !== promise) {
         return;
       }
-      entry.settled = true;
-      if (cache().get(entry.key) === entry) {
-        if (startsCache) {
-          entry.time = Date.now();
-        }
-        entry.size = map.size;
-        if (map.size === 0) {
-          cache().delete(entry.key);
-        } else {
-          trimToLimit();
-        }
+      // An empty folder answer is a valid answer, dropping it made every consumer
+      // (listing, preview, next/previous) request the whole folder again. It counts as one item.
+      if (!entry.changes && !payload) {
+        cache.delete(key);
+        return;
       }
+      if (fresh) {
+        entry.time = Date.now();
+      }
+      entry.size = payload instanceof Map ? Math.max(1, payload.size) : 1;
+      trim();
     },
     () => {
-      if (entry.promise !== promise) {
-        return;
-      }
-      entry.settled = true;
-      if (cache().get(entry.key) === entry) {
-        cache().delete(entry.key);
+      if (cache.get(key) === entry && entry.promise === promise) {
+        cache.delete(key);
       }
     },
   );
 }
 
-/** Looking an entry up counts as using it, so the folders you keep returning to are removed last */
-export function getDirMetadataEntry(opts: DirMetadataKey): DirMetadataEntry | null {
-  const entries = cache();
-  const key = getCacheKey(opts);
-  const entry = entries.get(key);
+/** Looking an entry up counts as using it, so the ones you keep returning to are removed last */
+function lookup(key: string): Entry | null {
+  const entry = cache.get(key);
   if (!entry) {
     return null;
   }
-  entries.delete(key);
+  cache.delete(key);
   if (Date.now() - entry.time > TTL_MS) {
     return null;
   }
-  if (!entry.settled && Date.now() - entry.pendingSince > PENDING_REUSE_MS) {
-    return null;
-  }
-  entries.set(key, entry);
+  cache.set(key, entry);
   return entry;
 }
 
-/** Stores a pending or resolved promise for this folder. */
-export function setCachedDirMetadata(opts: DirMetadataKey, promise: Promise<DirMetadataMap>): void {
-  const entries = cache();
-  const key = getCacheKey(opts);
-  entries.delete(key);
-  const entry: DirMetadataEntry = { key, promise, size: 0, time: Date.now(), settled: false, pendingSince: Date.now(), removed: new Set(), dirty: new Set(), stems: new Set() };
-  entries.set(key, entry);
-  watchEntry(entry, true);
+function add(key: string, scope: MetadataScope, path: string, promise: Promise<unknown>, changes?: Map<string, Change>): Entry {
+  const entry: Entry = { scope: scopePart(scope), path: normalizePath(path), promise, time: Date.now(), size: 0, changes };
+  cache.set(key, entry);
+  track(key, entry, true);
+  return entry;
 }
 
 /**
- * Sends the per-item changes to the caller and starts clean.
- * @returns the changes, or null when are none
+ * Runs once per file and kind within the TTL, so the info prompt, the preview and repeated opens share one request. Failed or empty results are not kept.
+ * Entries go when the file, or a sidecar with its name, changes.
  */
-export function takePendingDirChanges(entry: DirMetadataEntry): PendingDirChanges | null {
-  if (entry.removed.size + entry.dirty.size + entry.stems.size === 0) {
-    return null;
+export function cachedItem<T>(scope: MetadataScope, path: string, kind: string, fetcher: () => Promise<T>): Promise<T> {
+  checkUser();
+  const key = keyOf(scope, path, kind);
+  const hit = lookup(key);
+  return (hit ?? add(key, scope, path, fetcher())).promise as Promise<T>;
+}
+
+// Applies the per-item changes recorded since the folder was cached, fetching only the changed items.
+async function applyChanges(
+  base: Promise<DirMetadataMap>,
+  changes: Map<string, Change>,
+  fetchAll: () => Promise<DirMetadataMap>,
+  fetchOne: (name: string) => Promise<object | null>,
+): Promise<DirMetadataMap> {
+  const map = new Map(await base);
+  const toRefresh = new Set<string>();
+  for (const [name, change] of changes) {
+    if (change === "removed") {
+      map.delete(name);
+    } else {
+      toRefresh.add(name);
+    }
   }
-  const pending = { removed: entry.removed, dirty: entry.dirty, stems: entry.stems };
-  entry.removed = new Set();
-  entry.dirty = new Set();
-  entry.stems = new Set();
-  return pending;
+  const stems = new Set([...changes.keys()].map(stemOf));
+  for (const name of map.keys()) {
+    if (stems.has(stemOf(name))) {
+      toRefresh.add(name);
+    }
+  }
+  // returns the names that failed, others are applied
+  const refresh = async (names: string[]): Promise<string[]> => {
+    const failed: string[] = [];
+    await Promise.all(
+      names.map(async (name) => {
+        try {
+          const metadata = await fetchOne(name);
+          if (metadata) {
+            map.set(name, metadata);
+          } else {
+            map.delete(name);
+          }
+        } catch {
+          failed.push(name);
+        }
+      }),
+    );
+    return failed;
+  };
+  const failed = await refresh([...toRefresh]);
+  if (failed.length && (await refresh(failed)).length) {
+    return fetchAll();
+  }
+  return map;
 }
 
-/** Replaces the promise of an existing entry (after pending changes were applied). */
-export function setDirMetadataEntryPromise(entry: DirMetadataEntry, promise: Promise<DirMetadataMap>): void {
-  entry.promise = promise;
-  watchEntry(entry);
+/**
+ * Metadata of a folder's items by name, cached and shared for all the callers to avoid unnecessary
+ * requests. Items changed (deleted, uploaded, moved) are patched with `fetchOne` instead of
+ * refetching the whole folder with `fetchAll`.
+ */
+export function cachedDirectory(
+  scope: MetadataScope,
+  path: string,
+  fetchAll: () => Promise<DirMetadataMap>,
+  fetchOne: (name: string) => Promise<object | null>,
+): Promise<DirMetadataMap> {
+  checkUser();
+  const key = keyOf(scope, path, DIR);
+  const entry = lookup(key) ?? add(key, scope, path, fetchAll(), new Map());
+  const { changes } = entry;
+  if (changes?.size) {
+    entry.changes = new Map();
+    entry.promise = applyChanges(entry.promise as Promise<DirMetadataMap>, changes, fetchAll, fetchOne);
+    track(key, entry, false);
+  }
+  return entry.promise as Promise<DirMetadataMap>;
 }
 
-function dropSubtree(scope: DirMetadataScope, itemPath: string): void {
-  const entries = cache();
-  const prefix = `${scopePart(scope)}|`;
+function drop(match: (entry: Entry) => boolean): void {
+  checkUser();
+  for (const [key, entry] of cache) {
+    if (match(entry)) {
+      cache.delete(key);
+    }
+  }
+}
+
+/** an item and everything cached below it, for folders and files alike */
+function dropSubtree(scope: MetadataScope, itemPath: string): void {
+  const scopeKey = scopePart(scope);
   const root = normalizePath(itemPath);
-  for (const key of [...entries.keys()]) {
-    if (!key.startsWith(prefix)) {
-      continue;
-    }
-    const pathPart = key.slice(prefix.length);
-    if (pathPart === root || pathPart.startsWith(`${root}/`)) {
-      entries.delete(key);
-    }
-  }
+  const prefix = root === "/" ? "/" : `${root}/`;
+  drop((entry) => entry.scope === scopeKey && (entry.path === root || entry.path.startsWith(prefix)));
 }
 
-function recordItemChange(scope: DirMetadataScope, itemPath: string, kind: "removed" | "changed"): void {
+/** cached entries go when the file or a sidecar sharing its stem changes */
+function dropFilesByStem(scope: MetadataScope, dir: string, stem: string): void {
+  const scopeKey = scopePart(scope);
+  const dirPath = normalizePath(dir);
+  drop((entry) => {
+    if (entry.changes || entry.scope !== scopeKey) {
+      return false;
+    }
+    const parts = splitItemPath(entry.path);
+    const entryStem = stemOf(parts.name);
+    // "movie.en.srt" (stem "movie.en") changes the subtitles of "movie.mkv" (stem "movie")
+    return parts.dir === dirPath && (entryStem === stem || stem.startsWith(`${entryStem}.`));
+  });
+}
+
+function recordChange(scope: MetadataScope, itemPath: string, change: Change): void {
   const { dir, name, isDir } = splitItemPath(itemPath);
   if (!name) {
     return;
   }
   dropSubtree(scope, itemPath);
-  if (kind === "changed" && isDir) {
+  if (change === "changed" && isDir) {
     return; // folders have no media metadata of their own
   }
-  const key = getCacheKey({ ...scope, path: dir });
-  const entry = cache().get(key);
-  if (!entry) {
+  dropFilesByStem(scope, dir, stemOf(name));
+  const key = keyOf(scope, dir, DIR);
+  const changes = cache.get(key)?.changes;
+  if (!changes) {
     return;
   }
-  if (kind === "removed") {
-    entry.removed.add(name);
-    entry.dirty.delete(name);
-  } else {
-    entry.dirty.add(name);
-    entry.removed.delete(name);
-  }
-  entry.stems.add(stemOf(name));
-  if (entry.removed.size + entry.dirty.size > MAX_PENDING_CHANGES) {
-    cache().delete(key);
+  changes.set(name, change);
+  if (changes.size > MAX_PENDING_CHANGES) {
+    cache.delete(key);
   }
 }
 
-/** An item was deleted or moved: drop only its entry */
-export function removeDirMetadataItem(scope: DirMetadataScope, itemPath: string): void {
-  recordItemChange(scope, itemPath, "removed");
+/** An item was deleted or moved away: drop only its entry */
+export function removeDirMetadataItem(scope: MetadataScope, itemPath: string): void {
+  recordChange(scope, itemPath, "removed");
 }
 
 /** An item was uploaded, copied or moved: refresh only its entry */
-export function markDirMetadataItemChanged(scope: DirMetadataScope, itemPath: string): void {
-  recordItemChange(scope, itemPath, "changed");
+export function markDirMetadataItemChanged(scope: MetadataScope, itemPath: string): void {
+  recordChange(scope, itemPath, "changed");
 }
 
 /** drops its folder's listing and everything cached below the item */
-export function invalidateDirMetadataItem(scope: DirMetadataScope, itemPath: string): void {
+export function invalidateDirMetadataItem(scope: MetadataScope, itemPath: string): void {
+  const { dir, name } = splitItemPath(itemPath);
   dropSubtree(scope, itemPath);
-  cache().delete(getCacheKey({ ...scope, path: splitItemPath(itemPath).dir }));
+  if (name) {
+    dropFilesByStem(scope, dir, stemOf(name));
+  }
+  cache.delete(keyOf(scope, dir, DIR));
 }
 
-/**
- * Invalidates cached dir metadata so the next call gets fresh data: one folder with `path`, a whole
- * source or share without it, everything with no options.
- */
-export function invalidateDirMetadataCache(opts: DirMetadataScope & { path?: string } = {}): void {
-  const entries = cache();
-  const { source, hash, path } = opts;
-  const isShare = opts.isShare ?? (hash !== undefined && source === undefined);
-  if (path !== undefined) {
-    entries.delete(getCacheKey({ isShare, source, hash, path }));
-    return;
-  }
-  if (source === undefined && hash === undefined) {
-    entries.clear();
-    return;
-  }
-  const prefix = `${scopePart({ isShare, source, hash })}|`;
-  for (const key of [...entries.keys()]) {
-    if (key.startsWith(prefix)) {
-      entries.delete(key);
-    }
-  }
+/** Drops everything cached, so the next calls get fresh data */
+export function invalidateDirMetadataCache(): void {
+  cache.clear();
 }

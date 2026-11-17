@@ -15,7 +15,25 @@ export interface FileListItem {
   isShared?: boolean;
   pinned?: boolean;
   hidden?: boolean;
-  metadata?: unknown;
+  metadata?: MediaMetadata;
+}
+
+export interface InfoItem extends FileListItem {
+  subtitles?: SubtitleTrack[];
+  token?: string;
+  hash?: string;
+  onlyOfficeId?: string;
+}
+
+/** from backend utils.SubtitleTrack. */
+export interface SubtitleTrack {
+  name: string;
+  language?: string;
+  srclang?: string;
+  title?: string;
+  index?: number;
+  codec?: string;
+  embedded: boolean;
 }
 
 /** from backend iteminfo.MediaMetadata. */
@@ -35,9 +53,8 @@ export interface MediaMetadata {
 }
 
 /** List items have their position in `req.items` (by mutations.replaceRequest) */
-export interface fileListItemIndex extends Omit<FileListItem, "metadata"> {
+export interface fileListItemIndex extends FileListItem {
   index: number;
-  metadata?: MediaMetadata;
 }
 
 export interface ReqObject {
@@ -60,12 +77,13 @@ export interface ReqObject {
   modified?: string;
   created?: string;
   hasPreview?: boolean;
-  subtitles?: unknown[];
+  subtitles?: SubtitleTrack[];
   viewToken?: string;
   parentDirItems?: FileListItem[];
   onlyOfficeId?: string;
   hasUpdate?: boolean;
-  metadata?: unknown;
+  isDir?: boolean;
+  metadata?: MediaMetadata;
 
   // Directory listing properties
   listing?: FileListItem[];
@@ -92,6 +110,7 @@ export interface ShareInfoObject {
   allowCreate?: boolean;
   allowReplacements?: boolean;
   allowDelete?: boolean;
+  canEditShare?: boolean;
   disableDownload?: boolean;
   showHidden?: boolean;
   quotaLimitBytes?: number;
@@ -230,12 +249,14 @@ export interface UserObject {
   disableSearchOptions?: boolean;
   scopes: UserScope[];
   permissions: Permissions;
-  darkMode: boolean;
+  /** Theme preference: "auto" (follow system), "dark", "light". Legacy booleans are tolerated. */
+  darkMode: boolean | "auto" | "dark" | "light";
   disableSettings: boolean;
   showAdvancedProfile?: boolean;
   debugOffice: boolean;
   preferEditorForMarkdown: boolean;
   showCopyPath?: boolean;
+  showSelectMultiple?: boolean;
   showTypeColumn?: boolean;
   showCreationDateColumn?: boolean;
   hideFileExt?: string;
@@ -272,6 +293,7 @@ export interface UserObject {
   fileLoading?: {
     maxConcurrentUpload?: number;
     uploadChunkSizeMb?: number;
+    uploadStallTimeoutSeconds?: number;
     clearAll?: boolean;
     downloadChunkSizeMb?: number;
     maxConcurrent?: number;
@@ -289,6 +311,9 @@ export interface RouteObject {
 
 export interface StoreState {
   disableEventThemes: boolean;
+  // Reactive snapshot of the OS color-scheme, so "auto" re-resolves when the
+  // system switches appearance. Kept in the reactive store on purpose.
+  systemDark: boolean;
   tooltip: {
     show: boolean;
     content: string;
@@ -330,12 +355,13 @@ export interface StoreState {
       newFileTemplate?: boolean;
     };
   };
-  /** Effective media settings for playback, or null before the API reports them. */
-  mediaPlayerSettings: {
+  /** Runtime media state for all UI (player, listings, previews); null until loaded. */
+  mediaSettings: {
     enabled: boolean;
     profiles: string[];
     maxConcurrentPerUser: number;
-    hardwareAcceleration: boolean;
+    /** Per image preview type (e.g. heic, jxl): conversion active on this server. */
+    imagePreview: Partial<Record<'heic' | 'jxl' | 'jpeg', boolean>>;
   } | null;
   sidebarLinkDefaultsPolicy: {
     items?: Array<{

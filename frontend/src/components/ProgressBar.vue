@@ -47,12 +47,15 @@ export default {
       default: 0,
     },
     max: {
+      type: [Number, String],
       default: 100,
     },
-    "val-background": {
+    valBackground: {
+      type: [Number, String],
       default: null,
     },
-    "val-text": {
+    valText: {
+      type: [Number, String],
       default: null,
     },
     unit: {
@@ -60,23 +63,24 @@ export default {
       default: "",
     },
     size: {
+      type: [Number, String],
       // either a number (pixel width/height) or 'tiny', 'small',
       // 'medium', 'large', 'huge', 'massive' for common sizes
       default: "big",
     },
-    "bg-color": {
+    bgColor: {
       type: String,
       default: "#eee",
     },
-    "bar-color": {
+    barColor: {
       type: String,
       default: "var(--primaryColor)", // match .blue color to Material Design's 'Blue 500' color
     },
-    "bar-transition": {
+    barTransition: {
       type: String,
       default: "all 0.5s ease",
     },
-    "bar-border-radius": {
+    barBorderRadius: {
       type: Number,
       default: 8, // ~0.5em at default font size
     },
@@ -88,19 +92,19 @@ export default {
       type: String,
       default: "",
     },
-    "text-align": {
+    textAlign: {
       type: String,
       default: "center", // 'left', 'right'
     },
-    "text-position": {
+    textPosition: {
       type: String,
       default: "inside", // 'bottom', 'top', 'middle', 'inside'
     },
-    "font-size": {
+    fontSize: {
       type: Number,
       default: 13,
     },
-    "text-fg-color": {
+    textFgColor: {
       type: String,
       default: "#000",
     },
@@ -108,7 +112,7 @@ export default {
       type: String,
       default: 'default',
     },
-    "help-text": {
+    helpText: {
       type: String,
       default: "",
     },
@@ -133,7 +137,7 @@ export default {
     displayed_text() {
       // Use valText if provided (for hybrid mode text override), otherwise use val
       const displayVal = this.valText !== null ? this.valText : this.val;
-      
+
       if (!isNumber(displayVal)) return displayVal;
 
       // Cap % like the bar fill so nested-mount indexed size > partition total

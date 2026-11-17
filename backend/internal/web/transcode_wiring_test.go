@@ -33,7 +33,7 @@ func TestTranscodeManagerIsWiredWithoutFFmpeg(t *testing.T) {
 	// Startup with ffmpeg missing and transcoding disabled.
 	settings.Env.FFmpegAvailable = false
 	disabled := originalMedia
-	disabled.Transcode = settings.MediaTranscode{Enabled: false}
+	disabled.Transcode = settings.FullAdminTranscode{UserTranscode: settings.UserTranscode{Enabled: false}}
 	settings.ApplyMediaSettings(disabled)
 
 	setupTestEnv(t)

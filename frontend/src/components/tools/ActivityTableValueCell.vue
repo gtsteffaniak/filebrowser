@@ -1,5 +1,5 @@
 <template>
-  <span v-if="isBlank" class="details-muted">—</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+  <span v-if="isBlank" class="details-muted">—</span>
   <div v-else class="table-value-cell">
     <span
       :class="badgeClasses"

@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gtsteffaniak/filebrowser/backend/internal/mediacache"
 	goffmpeg "github.com/gtsteffaniak/go-ffmpeg"
 )
 
@@ -49,23 +50,28 @@ func resolveLocalMediaPath(mediaPath string) (string, os.FileInfo, error) {
 	return clean, info, nil
 }
 
-// FileProbeInfo holds ffprobe results for a local media file.
-type FileProbeInfo struct {
-	Duration   float64
-	VideoCodec string
-	AudioCodec string
-	FormatName string
-}
+// FileProbeInfo holds probe results for a local media file. It is the shared
+// cache type, so go-media and ffprobe results are interchangeable.
+type FileProbeInfo = mediacache.ProbeInfo
 
-// ProbeFile extracts duration and codec info from a media file.
+// ProbeFile extracts duration and codec info from a media file. Results are
+// stored in the shared media cache, which the go-media probe also reads, unless
+// ctx is mediacache.WithoutCache.
 func (s *Service) ProbeFile(ctx context.Context, mediaPath string) (*FileProbeInfo, error) {
 	if s == nil || s.inner == nil {
 		return nil, fmt.Errorf("ffmpeg service not available")
 	}
 
-	localPath, _, err := resolveLocalMediaPath(mediaPath)
+	localPath, fileInfo, err := resolveLocalMediaPath(mediaPath)
 	if err != nil {
 		return nil, err
+	}
+	useCache := !mediacache.Bypassed(ctx)
+	cacheKey := mediacache.FromFileInfo(localPath, fileInfo).String()
+	if useCache {
+		if cached, ok := mediacache.Probes.Get(cacheKey); ok {
+			return &cached, nil
+		}
 	}
 
 	info, err := s.inner.ProbeStream(ctx, goffmpeg.ProbeStreamOptions{
@@ -77,15 +83,20 @@ func (s *Service) ProbeFile(ctx context.Context, mediaPath string) (*FileProbeIn
 		return nil, err
 	}
 
-	return &FileProbeInfo{
+	res := FileProbeInfo{
 		Duration:   info.Duration,
 		VideoCodec: info.VideoCodec,
 		AudioCodec: info.AudioCodec,
 		FormatName: info.FormatName,
-	}, nil
+	}
+	if useCache {
+		mediacache.Probes.Set(cacheKey, res)
+	}
+	return &res, nil
 }
 
-// GetMediaDuration extracts the duration of a media file in seconds.
+// GetMediaDuration extracts the duration of a media file in seconds. Results
+// are stored in the shared media cache unless ctx is mediacache.WithoutCache.
 func (s *Service) GetMediaDuration(ctx context.Context, mediaPath string) (float64, error) {
 	if s == nil || s.inner == nil {
 		return 0, fmt.Errorf("ffmpeg service not available")
@@ -95,9 +106,12 @@ func (s *Service) GetMediaDuration(ctx context.Context, mediaPath string) (float
 	if err != nil {
 		return 0, err
 	}
-	cacheKey := fmt.Sprintf("%s:%d", localPath, fileInfo.ModTime().Unix())
-	if duration, found := MetadataCache.Get(cacheKey); found {
-		return duration, nil
+	useCache := !mediacache.Bypassed(ctx)
+	cacheKey := mediacache.FromFileInfo(localPath, fileInfo).String()
+	if useCache {
+		if duration, found := mediacache.Durations.Get(cacheKey); found {
+			return duration, nil
+		}
 	}
 
 	duration, err := s.inner.GetMediaDuration(ctx, localPath)
@@ -105,6 +119,8 @@ func (s *Service) GetMediaDuration(ctx context.Context, mediaPath string) (float
 		return 0, err
 	}
 
-	MetadataCache.Set(cacheKey, duration)
+	if useCache {
+		mediacache.Durations.Set(cacheKey, duration)
+	}
 	return duration, nil
 }

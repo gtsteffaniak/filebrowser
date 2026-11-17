@@ -1,140 +1,333 @@
 {
-  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
-  "files": {
-    "ignoreUnknown": true,
-    "includes": [
-      "**",
-      "!dist",
-      "!public/config.generated.yaml",
-      "!public/index.html",
-      "!node_modules",
-      "!test-results"
-    ]
-  },
-  "formatter": {
-    "enabled": false
-  },
-  "assist": {
-    "enabled": true,
-    "actions": { "source": { "organizeImports": "off" } }
-  },
-  "css": {
-    "linter": { "enabled": false },
-    "formatter": { "enabled": false },
-    "assist": { "enabled": false }
-  },
-  "html": {
-    "experimentalFullSupportEnabled": true,
-    "parser": { "interpolation": true },
-    "linter": { "enabled": true }
-  },
-  "linter": {
-    "enabled": true,
-    "domains": { "vue": "all", "project": "all", "types": "all" },
-    "rules": {
-      "performance": {
-        "useVueVapor": "off"
-      },
-      "security": {
-        "preset": "recommended"
-      },
-      "a11y": {
-        "noAutofocus": "off",
-        "noNoninteractiveElementToInteractiveRole": "off",
-        "noStaticElementInteractions": "off",
-        "noSvgWithoutTitle": "off",
-        "useAriaPropsSupportedByRole": "off",
-        "useGenericFontNames": "off",
-        "useKeyWithClickEvents": "off",
-        "useMediaCaption": "off",
-        "useSemanticElements": "off",
-        "useValidAnchor": "off"
-      },
-      "complexity": {
-        "noForEach": "on",
-        "noImportantStyles": "off",
-        "noRedundantDefaultExport": "warn"
-      },
-      "correctness": {
-        "noUnknownPseudoClass": "off"
-      },
-      "nursery": {
-        "noEmptyObjectKeys": "error",
-        "noFloatingPromises": "error",
-        "noImpliedEval": "error",
-        "noJsonUnsafeValues": "error",
-        "noMisusedPromises": "error",
-        "noTopLevelLiterals": "error",
-        "noVueDeprecatedScopedSlots": "error",
-        "noVueImportCompilerMacros": "error",
-        "noVueRefAsOperand": "error",
-        "noVueUndeclaredDirectives": "off",
-        "noVueVOnNumberValues": "error",
-        "useConsistentObjectKeys": "error",
-        "useVueBaseImport": "warn",
-        "useVueConsistentDefinePropsDeclaration": "off",
-        "useVueNextTickPromise": "warn",
-        "useVueValidVFor": "error"
-      },
-      "style": {
-        "noDescendingSpecificity": "off",
-        "noVueOptionsApi": "off",
-        "useVueConsistentVBindStyle": "off",
-        "useVueHyphenatedAttributes": "off",
-        "useVueMultiWordComponentNames": "off"
-      },
-      "suspicious": {
-        "noExplicitAny": "warn",
-        "noImportCycles": "off",
-        "noNestedPromises": "error",
-        "noParametersOnlyUsedInRecursion": "error",
-        "noShadow": "off",
-        "noUnnecessaryConditions": "off",
-        "useArraySortCompare": "error"
-      }
-    }
-  },
-  "overrides": [
-    {
-      "includes": ["tests/playwright/**"],
-      "linter": {
-        "rules": {
-          "correctness": {
-            "noEmptyPattern": "off",
-            "noUnresolvedImports": "off"
-          },
-          "nursery": {
-            "noPlaywrightElementHandle": "error",
-            "noPlaywrightEval": "error",
-            "noPlaywrightForceOption": "error",
-            "noPlaywrightMissingAwait": "error",
-            "noPlaywrightNetworkidle": "error",
-            "noPlaywrightPagePause": "error",
-            "noPlaywrightUselessAwait": "error",
-            "noPlaywrightWaitForNavigation": "error",
-            "noPlaywrightWaitForSelector": "error",
-            "noPlaywrightWaitForTimeout": "warn",
-            "usePlaywrightValidDescribeCallback": "error"
-          }
-        }
-      }
-    },
-    {
-      "includes": [
-        "scripts/postcss-strip-legacy.ts",
-        "playwright.config.ts",
-        "playwright.performance.config.ts",
-        "**/*.test.js",
-        "**/*.test.ts"
-      ],
-      "linter": {
-        "rules": {
-          "correctness": {
-            "noUnresolvedImports": "off",
-            "noUndeclaredDependencies": "off"
-          }
-        }
-      }
-    }
-  ]
+	"$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+	"vcs": {
+		"enabled": true,
+		"clientKind": "git",
+		"useIgnoreFile": true,
+		"root": "../"
+	},
+	"files": {
+		"ignoreUnknown": true,
+		"includes": [
+			"**",
+			"!dist",
+			"!public/config.generated.yaml",
+			"!public/index.html",
+			"!node_modules",
+			"!test-results"
+		]
+	},
+	"formatter": { "enabled": false },
+	"linter": {
+		"enabled": true,
+		"rules": {
+			"preset": "recommended",
+			"a11y": {
+				"noAutofocus": "off",
+				"noNoninteractiveElementToInteractiveRole": "off",
+				"noStaticElementInteractions": "off",
+				"noSvgWithoutTitle": "off",
+				"useAriaPropsSupportedByRole": "off",
+				"useGenericFontNames": "off",
+				"useKeyWithClickEvents": "off",
+				"useMediaCaption": "off",
+				"useSemanticElements": "off",
+				"useValidAnchor": "off"
+			},
+			"complexity": {
+				"noForEach": "on",
+				"noImportantStyles": "off",
+				"noRedundantDefaultExport": "warn",
+				"noUnnecessaryTemplateExpression": "error",
+				"noUselessStringConcat": "warn",
+				"useMathMinMax": "warn",
+				"useRegexpTest": "warn"
+			},
+			"correctness": {
+				"noInvalidDirectionInLinearGradient": "error",
+				"noInvalidGridAreas": "error",
+				"noInvalidPositionAtImportRule": "error",
+				"noMissingVarFunction": "error",
+				"noUnknownFunction": "error",
+				"noUnknownMediaFeatureName": "error",
+				"noUnknownProperty": "error",
+				"noUnknownPseudoClass": "error",
+				"noUnknownPseudoElement": "error",
+				"noUnknownTypeSelector": "error",
+				"noUnknownUnit": "error",
+				"noUnmatchableAnbSelector": "error",
+				"noVueDuplicateKeys": "error",
+				"noVueImportCompilerMacros": "error",
+				"noVueRefAsOperand": "error",
+				"noVueVIfWithVFor": "error",
+				"noVueVOnNumberValues": "error",
+				"useVueValidVFor": "error"
+			},
+			"nursery": {
+				"noArgumentsCallerOrCallee": "warn",
+				"noArrayForEach": "error",
+				"noBooleanSortComparator": "error",
+				"noBufferConstructor": "warn",
+				"noChainedComparison": "error",
+				"noConfusingArraySplice": "warn",
+				"noDoubleComparison": "on",
+				"noDynamicDelete": "warn",
+				"noDynamicRequire": "error",
+				"noFloatingPromises": "error",
+				"noImpliedEval": "error",
+				"noJsonUnsafeValues": "error",
+				"noLateCurrentTargetAccess": "error",
+				"noLateEventControl": "error",
+				"noMisusedPromises": "error",
+				"noNestedSwitch": "on",
+				"noObjectLiteralComparison": "error",
+				"noObsoleteAttributes": "error",
+				"noPlaywrightUnsafeReferences": "error",
+				"noPromiseExecutorReturn": "warn",
+				"noRedundantTypeConstituents": "warn",
+				"noReturnArrayPush": "warn",
+				"noUnnecessaryStringTrim": "warn",
+				"noUnsafeReturn": "warn",
+				"noUselessLengthCheck": "info",
+				"noUselessRecursion": "error",
+				"noUselessSplice": "warn",
+				"noUselessSpread": "warn",
+				"noUselessTypeAssertion": "warn",
+				"noVueAsyncComputed": "error",
+				"noVueChildContent": "error",
+				"noVueComputedPropertiesInData": "error",
+				"noVueDefineModelDefault": "warn",
+				"noVueDeprecatedConfigKeyCodes": "info",
+				"noVueDeprecatedDeleteSet": "error",
+				"noVueDeprecatedEventsApi": "error",
+				"noVueDeprecatedHtmlElementIs": "error",
+				"noVueDeprecatedListeners": "error",
+				"noVueDeprecatedModelDefinition": "error",
+				"noVueDeprecatedPropsDefaultThis": "error",
+				"noVueDeprecatedRouterLinkTagProp": "error",
+				"noVueDeprecatedScopedSlots": "error",
+				"noVueDeprecatedVBindSync": "error",
+				"noVueDeprecatedVIs": "error",
+				"noVueExportInScriptSetup": "error",
+				"noVueExposeAfterAwait": "error",
+				"noVueLifecycleAfterAwait": "error",
+				"noVueLoneTemplate": "error",
+				"noVueMixin": "error",
+				"noVueMultipleObjectsInClass": "warn",
+				"noVueMultipleSlotArgs": "warn",
+				"noVueMutatingProps": "error",
+				"noVueRefObjectReactivityLoss": "error",
+				"noVueRequiredPropWithDefault": "warn",
+				"noVueRestrictedCallAfterAwait": "error",
+				"noVueRestrictedVOn": "warn",
+				"noVueShadowNativeEvents": "warn",
+				"noVueSideEffectsInComputed": "error",
+				"noVueTemplateKey": "error",
+				"noVueTemplateShadow": "warn",
+				"noVueThisInTemplate": "warn",
+				"noVueUndeclaredDirectives": "off",
+				"noVueUndeclaredEmits": "warn",
+				"noVueUndeclaredProperties": "error",
+				"noVueUndeclaredSlots": "warn",
+				"noVueUnusedEmitDeclarations": "error",
+				"noVueUnusedRefs": "error",
+				"noVueUselessTemplateAttributes": "error",
+				"noVueUselessVBind": "warn",
+				"noVueVForTemplateKeyOnChild": "error",
+				"noVueVHtml": "error",
+				"noVueVText": "warn",
+				"noVueVTextVHtmlOnComponent": "error",
+				"noVueWatchAfterAwait": "error",
+				"useConsistentLightnessNotation": {
+					"level": "error",
+					"options": { "notation": "percentage" }
+				},
+				"useConsistentObjectKeys": "error",
+				"useMathAbs": "warn",
+				"useMathTrunc": "warn",
+				"useObjectFromEntries": "warn",
+				"useSimplifiedBooleanReturn": "warn",
+				"useValidNamespaceImports": "error",
+				"useVueBaseImport": "warn",
+				"useVueBlockOrder": {
+					"level": "on",
+					"options": { "order": ["template", "script", "style"] }
+				},
+				"useVueBooleanPropTypeFirst": "warn",
+				"useVueComponentIs": "error",
+				"useVueComputedPropertyReturn": "error",
+				"useVueConsistentEventHyphenation": "warn",
+				"useVueEmitValidator": "warn",
+				"useVueEmitsValidatorReturn": "error",
+				"useVuePropTypeConstructor": "error",
+				"useVueRenderReturn": "error",
+				"useVueSingleEventPayload": "warn",
+				"useVueTemplateRef": "warn",
+				"useVueTypedObjectProps": "warn",
+				"useVueTypedProps": "warn",
+				"useVueTypedRef": "error",
+				"useVueVModel": "warn",
+				"useVueValidDefaultProp": "error",
+				"useVueValidDefineEmits": "error",
+				"useVueValidDefineOptions": "error",
+				"useVueValidDefineProps": "error",
+				"useVueValidNextTick": "error",
+				"useVueValidVIs": "error",
+				"useVueValidVModel": "error",
+				"useVueValidVShow": "error",
+				"useVueValidVSlot": "error",
+				"noInvalidPropertyInitValue": "warn",
+				"noPseudoElementInFunctionalPseudoClass": "error",
+				"noSelfNestedLayer": "warn",
+				"noVueDeprecatedDestroyedLifecycle": "error",
+				"noVueDeprecatedFilter": "error",
+				"noVueDeprecatedFunctionalTemplate": "error",
+				"noVueDeprecatedInlineTemplate": "error",
+				"noVueDeprecatedScopeAttribute": "error",
+				"noVueDeprecatedSlotAttribute": "error",
+				"noVueDeprecatedSlotScope": "error",
+				"noVueDeprecatedVOnNativeModifier": "error",
+				"noObsoleteTags": "error",
+				"noNonScalableViewport": "warn",
+				"noShortTimeValues": "warn",
+				"useNamedLayer": "warn",
+				"useVueDefineOptions": "warn",
+				"useVueConsistentDefineEmitsDeclaration": "warn",
+				"useVueConsistentVSlotStyle": "warn",
+				"useVueSlotsAsFunctions": "warn",
+				"useVueMacroVariableName": "warn",
+				"useVueVOnExact": "warn",
+				"useConsistentFontWeightNotation": "warn",
+				"useIncludes": "warn",
+				"useStringStartsEndsWith": "warn",
+				"useModernMathApis": "warn"
+			},
+			"performance": { "useVueVapor": "off" },
+			"security": { "preset": "recommended", "useIframeSandbox": "off" },
+			"style": {
+				"noCommonJs": "warn",
+				"noDescendingSpecificity": "error",
+				"noTopLevelLiterals": "error",
+				"noVueOptionsApi": "off",
+				"useDomQuerySelector": "warn",
+				"useImportsFirst": "off",
+				"useVarsOnTop": "on",
+				"useVueConsistentDefinePropsDeclaration": "on",
+				"useVueConsistentVBindStyle": "warn",
+				"useVueDefineMacrosOrder": "warn",
+				"useVueHyphenatedAttributes": "off",
+				"useVueMultiWordComponentNames": "off",
+				"useVueNextTickPromise": "warn",
+				"noValueAtRule": "warn",
+				"noHexColors": "off",
+				"useObjectSpread": "warn",
+				"useSpreadOverApply": "warn",
+				"noSubstr": "warn",
+				"useNumberNamespace": "warn",
+				"useAtIndex": "warn",
+				"useForOf": "warn"
+			},
+			"suspicious": {
+				"noConfusingVoidType": "warn",
+				"noDeprecatedMediaType": "error",
+				"noDuplicateAtImportRules": "error",
+				"noDuplicateCustomProperties": "error",
+				"noDuplicateFontNames": "error",
+				"noDuplicateProperties": "error",
+				"noDuplicateSelectors": "error",
+				"noDuplicateSelectorsKeyframeBlock": "error",
+				"noEmptyBlock": "error",
+				"noEmptyObjectKeys": "error",
+				"noEmptySource": "error",
+				"noExplicitAny": "warn",
+				"noImportCycles": "off",
+				"noImportantInKeyframe": "error",
+				"noIrregularWhitespace": "error",
+				"noNestedPromises": "error",
+				"noParametersOnlyUsedInRecursion": "error",
+				"noShadow": "error",
+				"noShorthandPropertyOverrides": "error",
+				"noUnknownAtRules": "error",
+				"noUnnecessaryConditions": "off",
+				"useArraySortCompare": "error",
+				"useScopedStyles": "off",
+				"noUselessEscapeInString": "warn",
+				"noVar": "error",
+				"noForIn": "warn"
+			}
+		},
+		"domains": { "vue": "all", "project": "all", "types": "all" }
+	},
+	"css": {
+		"formatter": {
+			"enabled": true,
+			"indentStyle": "space",
+			"indentWidth": 2
+		},
+		"linter": { "enabled": true },
+		"assist": { "enabled": true }
+	},
+	"html": {
+		"experimentalFullSupportEnabled": true,
+		"parser": { "interpolation": true, "vue": true },
+		"linter": { "enabled": true }
+	},
+	"overrides": [
+		{
+			"includes": ["tests/playwright/**"],
+			"linter": {
+				"rules": {
+					"complexity": { "noPlaywrightUselessAwait": "error" },
+					"correctness": {
+						"noPlaywrightMissingAwait": "error",
+						"noUnresolvedImports": "off",
+						"usePlaywrightValidDescribeCallback": "error"
+					},
+					"style": {
+						"noPlaywrightElementHandle": "error",
+						"noPlaywrightEval": "error",
+						"noPlaywrightWaitForSelector": "error"
+					},
+					"suspicious": {
+						"noEmptyObjectKeys": "error",
+						"noPlaywrightForceOption": "error",
+						"noPlaywrightNetworkidle": "error",
+						"noPlaywrightPagePause": "error",
+						"noPlaywrightWaitForNavigation": "error",
+						"noPlaywrightWaitForTimeout": "warn"
+					}
+				}
+			}
+		},
+		{
+			"includes": ["**/*.js"],
+			"linter": { "rules": { "nursery": { "noUnsafeReturn": "off" } } }
+		},
+		{
+			"includes": [
+				"scripts/postcss-strip-legacy.ts",
+				"playwright.config.ts",
+				"playwright.performance.config.ts",
+				"**/*.test.js",
+				"**/*.test.ts"
+			],
+			"linter": {
+				"rules": {
+					"correctness": {
+						"noUndeclaredDependencies": "off",
+						"noUnresolvedImports": "off"
+					}
+				}
+			}
+		}
+	],
+	"plugins": ["./scripts/biome/css-legacy.grit"],
+	"assist": {
+		"actions": {
+			"source": {
+				"organizeImports": "off",
+				"useGraphqlSortedDefinitions": "on"
+			}
+		}
+	}
 }

@@ -22,7 +22,7 @@ export function getSubtitleFormatExtension(filename) {
   if (lastDot === -1) {
     return ''
   }
-  return filename.substring(lastDot).toLowerCase()
+  return filename.slice(lastDot).toLowerCase()
 }
 
 /**
@@ -52,7 +52,7 @@ export function convertToVTT (ext, text) {
         .replace(
           /\d+\n(\d{2}):(\d{2}):(\d{2}),(\d{3}) --> (\d{2}):(\d{2}):(\d{2}),(\d{3})/g,
           (_match, h1, m1, s1, ms1, h2, m2, s2, ms2) => {
-            return `${parseInt(h1, 10)}:${m1}:${s1}.${ms1} --> ${parseInt(h2, 10)}:${m2}:${s2}.${ms2}`
+            return `${Number.parseInt(h1, 10)}:${m1}:${s1}.${ms1} --> ${Number.parseInt(h2, 10)}:${m2}:${s2}.${ms2}`
           }
         ) // Fix timestamps (remove leading zeros)
         .replace(/\n\n+/g, '\n\n') // Ensure proper spacing
@@ -135,11 +135,11 @@ export function convertToVTT (ext, text) {
           // Use next SYNC start time as the end time if available
           const currentTag = `<SYNC Start=${startTime}>`
           const tagPos = text.indexOf(currentTag)
-          let endTime = parseInt(startTime, 10) + 3000 // Default to +3s
+          let endTime = Number.parseInt(startTime, 10) + 3000 // Default to +3s
           if (tagPos >= 0) {
             const nextMatch = text.slice(tagPos + currentTag.length).match(/<SYNC Start=(\d+)>/)
             if (nextMatch) {
-              endTime = parseInt(nextMatch[1], 10)
+              endTime = Number.parseInt(nextMatch[1], 10)
             }
           }
 
@@ -196,9 +196,9 @@ function formatLrcTime (time) {
 // Helper function to fix ASS/SSA timestamps
 function formatAssTime (time) {
   const parts = time.split(':')
-  const hours = parts.length === 3 ? parseInt(parts[0], 10) : 0
+  const hours = parts.length === 3 ? Number.parseInt(parts[0], 10) : 0
   const minutes = parts.length === 3 ? parts[1] : parts[0]
-  const seconds = parts[parts.length - 1].replace('.', ':')
+  const seconds = parts.at(-1).replace('.', ':')
 
   // Ensure proper milliseconds formatting (000)
   const [sec, ms = '000'] = seconds.split(':')

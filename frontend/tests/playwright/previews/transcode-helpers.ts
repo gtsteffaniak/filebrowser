@@ -11,8 +11,9 @@ seg/00000.m4s
 `;
 
 /**
- * Force the static app-config (and live media settings API) to advertise
- * transcoding so the plyr mode menu appears even when the CI image lacks ffmpeg.
+ * Force ffmpeg availability in the static app-config and advertise transcoding via
+ * the live media settings API, so the plyr mode menu appears even when the CI image
+ * lacks ffmpeg. Transcode state is read only from the live API.
  *
  * Hook getElementById so the patch runs when constants.js reads `#app-config`.
  * Only rewrite the JSON text — do not replace `window.globalVars` with a new
@@ -20,17 +21,11 @@ seg/00000.m4s
  */
 export async function enableTranscodeUi(page: Page) {
   await page.addInitScript(() => {
-    const original = Document.prototype.getElementById;
-    Document.prototype.getElementById = function patchedGetElementById(id) {
-      const el = original.call(this, id);
-      if (id === "app-config" && el && el.textContent && !el.dataset.transcodeUiPatched) {
+    const patchAppConfig = (el: HTMLElement | null) => {
+      if (el?.textContent && !el.dataset.transcodeUiPatched) {
         try {
           const cfg = JSON.parse(el.textContent);
           cfg.ffmpegAvailable = true;
-          cfg.transcodeEnabled = true;
-          if (!Array.isArray(cfg.transcodeProfiles) || cfg.transcodeProfiles.length === 0) {
-            cfg.transcodeProfiles = ["quality", "balanced", "datasaver"];
-          }
           el.textContent = JSON.stringify(cfg);
           el.dataset.transcodeUiPatched = "1";
         } catch (_) {
@@ -39,6 +34,16 @@ export async function enableTranscodeUi(page: Page) {
       }
       return el;
     };
+    const originalGetElementById = Document.prototype.getElementById;
+    Document.prototype.getElementById = function patchedGetElementById(this: Document, id: string) {
+      const el = originalGetElementById.call(this, id);
+      return id === "app-config" ? patchAppConfig(el) : el;
+    };
+    const originalQuerySelector = Document.prototype.querySelector;
+    Document.prototype.querySelector = function patchedQuerySelector(this: Document, selector: string) {
+      const el = originalQuerySelector.call(this, selector) as HTMLElement | null;
+      return selector === "#app-config" ? patchAppConfig(el) : el;
+    } as typeof Document.prototype.querySelector;
   });
 
   await page.route("**/api/settings/media", async (route) => {
@@ -48,11 +53,14 @@ export async function enableTranscodeUi(page: Page) {
     await route.fulfill({
       status: 200,
       contentType: "application/json",
+      // Matches the PUBLIC UserMedia payload from GET /api/settings/media.
       body: JSON.stringify({
-        enabled: true,
-        profiles: ["quality", "balanced", "datasaver"],
-        maxConcurrentPerUser: 1,
-        hardwareAcceleration: false,
+        transcode: {
+          enabled: true,
+          maxConcurrentPerUser: 1,
+          enabledProfiles: ["quality", "balanced", "datasaver"],
+        },
+        imagePreview: {},
       }),
     });
   });
@@ -90,7 +98,7 @@ export async function mockTranscodeSessions(
         sessions.delete(body.replaceSessionId);
       }
       // Mirror backend same-file handover when replaceSessionId is omitted.
-      for (const [id, sess] of [...sessions.entries()]) {
+      for (const [id, sess] of sessions.entries()) {
         if (sess.source === body.source && sess.path === body.path) {
           sessions.delete(id);
         }

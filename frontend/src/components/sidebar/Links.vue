@@ -30,6 +30,20 @@
         aria-label="Edit Links"
         @click="openSidebarLinksPrompt" class="material-symbols action button">edit</i>
     </div>
+    <!-- Source switcher only in navigation mode and when multiple sources exist (hidden in shares).
+         Kept outside the scrollable content area so it does not scroll horizontally with the folder tree. -->
+    <div
+      v-if="mode === 'navigation' && !isShare && sourceNames.length > 1"
+      class="source-card-container"
+    >
+      <ExpandDropdown
+        class="sidebar-source-switcher"
+        :model-value="activeSource"
+        :options="sourceDropdownOptions"
+        :aria-label="$t('general.source')"
+        @update:model-value="navigateToSource"
+      />
+    </div>
     <!-- Scrollable Content Area -->
     <div class="sidebar-links-content">
       <!-- Links Mode -->
@@ -38,7 +52,7 @@
         <div v-if="isShare && !disableShareCard" class="share-info-section">
           <ShareInfo :hash="hash" :token="token" :sub-path="subPath" />
         </div>
-        <transition-group name="expand" tag="div" class="inner-card">
+        <transition-group :css="false" tag="div" class="inner-card" @enter="slideEnter" @leave="slideLeave">
           <template v-for="(link, index) in sidebarLinksToDisplay" :key="`link-${index}-${link.category}`">
             <!-- Divider: renders as hr line or text label -->
             <div v-if="link.category === 'divider'" class="sidebar-divider-container">
@@ -131,20 +145,6 @@
       </template>
       <!-- Navigation Mode -->
       <template v-else>
-        <!-- Source switcher only when multiple sources (hidden in shares) -->
-        <div
-          v-if="!isShare && sourceNames.length > 1"
-          class="source-card-container"
-          ref="sourceCardContainer"
-        >
-          <ExpandDropdown
-            class="sidebar-source-switcher"
-            :model-value="activeSource"
-            :options="sourceDropdownOptions"
-            :aria-label="$t('general.source')"
-            @update:model-value="navigateToSource"
-          />
-        </div>
         <FileTree
           :currentPath="currentPath"
           :currentSource="currentSource"
@@ -157,7 +157,7 @@
 
 <script>
 import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
-import { state, getters, mutations } from "@/store";
+import { state, getters, mutations } from "@/store/index.ts";
 import {
   hideInteractiveTooltip,
   onComponentTooltipClick,
@@ -167,17 +167,18 @@ import {
   useTapForTooltip,
 } from "@/utils/tooltipHelp.js";
 import ProgressBar from "@/components/ProgressBar.vue";
-import { goToItem } from "@/utils/url";
-import { getIconClass } from "@/utils/material-symbols";
-import { baseSidebarCategory, isRootOnlySidebarCategory, isSourceSidebarCategory } from "@/utils/sidebarCategory";
+import { goToItem } from "@/utils/url.js";
+import { getIconClass } from "@/utils/material-symbols.js";
+import { baseSidebarCategory, isRootOnlySidebarCategory, isSourceSidebarCategory } from "@/utils/sidebarCategory.ts";
 import { getObjectProperty } from '@/utils/object.js';
 import IndexInfo from "@/components/files/IndexInfo.vue";
-import { globalVars } from "@/utils/constants";
-import { availableTools, hasToolAccess, toolIdFromPath } from "@/utils/toolAccess";
+import { globalVars } from "@/utils/constants.ts";
+import { availableTools, hasToolAccess, toolIdFromPath } from "@/utils/toolAccess.js";
 import { showShareDownloadPrompt } from "@/utils/download.js";
 import ShareInfo from "@/components/files/ShareInfo.vue";
 import FileTree from '@/components/files/FileTree.vue';
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
+import { slideEnter, slideLeave } from "@/utils/transitions.ts";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 export default {
   name: "SidebarLinks",
@@ -297,6 +298,8 @@ export default {
     hideInteractiveTooltip(true);
   },
   methods: {
+    slideEnter,
+    slideLeave,
     isSourceCategory(category) {
       return isSourceSidebarCategory(category);
     },
@@ -342,14 +345,14 @@ export default {
         const sourceInfo = this.sourceInfo[link.sourceName];
         if (!sourceInfo) return '#'; // Source not found
         const encodedSourceName = encodeURIComponent(link.sourceName);
-        const targetPath = link.target.startsWith('/') ? link.target.substring(1) : link.target;
+        const targetPath = link.target.startsWith('/') ? link.target.slice(1) : link.target;
         fullPath = `/files/${encodedSourceName}/${targetPath}`;
       } else {
         // For other links (tools, custom, share), use target as-is
         fullPath = link.target;
       }
 
-      const target = fullPath.startsWith('/') ? fullPath.substring(1) : fullPath;
+      const target = fullPath.startsWith('/') ? fullPath.slice(1) : fullPath;
       return baseURL + target;
     },
     goHome() {
@@ -530,32 +533,6 @@ export default {
       mutations.showPrompt({
         name: "SidebarLinks",
       });
-    },
-    beforeEnter(el) {
-      el.style.height = '0';
-      el.style.opacity = '0';
-    },
-    enter(el, done) {
-      el.style.transition = '';
-      el.style.height = '0';
-      el.style.opacity = '0';
-      // Force reflow
-      void el.offsetHeight;
-      el.style.transition = 'height 0.3s, opacity 0.3s';
-      el.style.height = `${el.scrollHeight}px`;
-      el.style.opacity = '1';
-      setTimeout(() => {
-        el.style.height = 'auto';
-        done();
-      }, 300);
-    },
-    leave(el, done) {
-      el.style.transition = 'height 0.3s, opacity 0.3s';
-      el.style.height = `${el.scrollHeight}px`;
-      void el.offsetHeight;
-      el.style.height = '0';
-      el.style.opacity = '0';
-      setTimeout(done, 300);
     },
     showTooltip(event, text) {
       if (text) {
@@ -791,19 +768,6 @@ a.sidebar-link-button {
   transform: none !important;
 }
 
-.expand-enter-active,
-.expand-leave-active {
-  transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  overflow: hidden;
-  will-change: opacity, max-height;
-}
-
-.expand-enter,
-.expand-leave-to {
-  height: 0 !important;
-  opacity: 0;
-}
-
 .source-button {
   display: block;
 }
@@ -898,9 +862,15 @@ a.sidebar-link-button {
 
 .source-card-container {
   position: relative;
+  margin-top: 0.5em;
   margin-bottom: 0;
   padding-bottom: 0;
   border-bottom: 1px solid var(--divider);
+}
+
+/* When the source switcher sits above the scroll area, the content keeps its tree flush under the divider. */
+.source-card-container + .sidebar-links-content {
+  margin-top: 0;
 }
 
 .sidebar-source-switcher {

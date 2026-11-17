@@ -8,7 +8,7 @@ import { patchMediaSettings } from '@/api/settings.js';
 import {
   enabledTranscodeProfileIds,
   mergeMediaSettings,
-  normalizeMediaPlayerSettings,
+  normalizeSharedMediaSettings,
   saveMediaSettingsPatch,
   stripLockedMediaPaths,
 } from '@/utils/mediaSettings.js';
@@ -104,7 +104,7 @@ describe('mediaSettings', () => {
     });
   });
 
-  describe('normalizeMediaPlayerSettings', () => {
+  describe('normalizeSharedMediaSettings', () => {
     it('derives enabled profiles in menu order from the admin settings shape', () => {
       const media = {
         transcode: {
@@ -116,37 +116,34 @@ describe('mediaSettings', () => {
             datasaver: { enabled: true },
           },
         },
-        hardwareAcceleration: true,
       };
       expect(enabledTranscodeProfileIds(media)).toEqual(['quality', 'datasaver']);
-      expect(normalizeMediaPlayerSettings(media)).toEqual({
+      expect(normalizeSharedMediaSettings(media)).toEqual({
         enabled: true,
         profiles: ['quality', 'datasaver'],
         maxConcurrentPerUser: 2,
-        hardwareAcceleration: true,
+        imagePreview: {},
       });
     });
 
     it('accepts the player-only shape returned to non-admin users', () => {
-      expect(normalizeMediaPlayerSettings({
-        enabled: false,
-        profiles: ['quality'],
-        maxConcurrentPerUser: 3,
-        hardwareAcceleration: false,
+      expect(normalizeSharedMediaSettings({
+        transcode: { enabled: false, maxConcurrentPerUser: 3, enabledProfiles: ['quality'] },
+        imagePreview: { heic: true },
       })).toEqual({
         enabled: false,
         profiles: ['quality'],
         maxConcurrentPerUser: 3,
-        hardwareAcceleration: false,
+        imagePreview: { heic: true },
       });
     });
 
     it('falls back to a per-user limit of one and disabled when values are absent', () => {
-      expect(normalizeMediaPlayerSettings(undefined)).toEqual({
+      expect(normalizeSharedMediaSettings(undefined)).toEqual({
         enabled: false,
         profiles: [],
         maxConcurrentPerUser: 1,
-        hardwareAcceleration: false,
+        imagePreview: {},
       });
     });
   });

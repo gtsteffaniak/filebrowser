@@ -3,6 +3,7 @@ package web
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"path/filepath"
@@ -12,7 +13,10 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/files"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/ffmpeg"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/gomedia"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/mediacache"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 )
 
@@ -106,9 +110,34 @@ func subtitlesHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 
 	var content string
 	if !embedded {
-		subtitlePath := filepath.Join(filepath.Dir(fileInfo.RealPath), filepath.Base(track.Name))
+		var subtitlePath string
+		if d.Share.Hash != "" {
+			if d.Share.Path == "" {
+				return http.StatusForbidden, fmt.Errorf("share has no path scope")
+			}
+			idx := indexing.GetIndex(source)
+			if idx == nil {
+				return http.StatusInternalServerError, fmt.Errorf("source %s is not available", source)
+			}
+			bound, sidecarIndexPath, scopeErr := shareSubtitleSidecarIndexPaths(d, source, path, track.Name)
+			if scopeErr != nil {
+				return http.StatusForbidden, scopeErr
+			}
+			subtitlePath, _, err = idx.GetRealPathScoped(bound, sidecarIndexPath)
+			if err != nil {
+				return realPathErrStatus(err), err
+			}
+			if !state.AccessPermittedAtRealPath(idx, d.ShareUser.Username, subtitlePath, false) {
+				return http.StatusForbidden, fmt.Errorf("access denied")
+			}
+		} else {
+			subtitlePath = filepath.Join(filepath.Dir(fileInfo.RealPath), filepath.Base(track.Name))
+		}
 		content, err = utils.GetSubtitleSidecarContent(subtitlePath)
 		if err != nil {
+			if errors.Is(err, utils.ErrSubtitleSidecarNotRegular) {
+				return http.StatusForbidden, err
+			}
 			return http.StatusInternalServerError, fmt.Errorf("failed to get subtitle sidecar content: %v", err)
 		}
 	} else {
@@ -123,7 +152,8 @@ func subtitlesHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 			}
 			// Shadow ffmpeg runs after the fast path; bound it so a detached request cannot
 			// leave extraction running indefinitely (sync fallback still uses r.Context()).
-			legacyCtx, cancel := context.WithTimeout(context.WithoutCancel(r.Context()), time.Minute)
+			// WithoutCache: compare against a fresh extraction, not the value go-media stored.
+			legacyCtx, cancel := context.WithTimeout(mediacache.WithoutCache(context.WithoutCancel(r.Context())), time.Minute)
 			defer cancel()
 			vtt, extractErr := svc.ExtractSubtitle(legacyCtx, fileInfo.RealPath, *track.Index)
 			return vtt, extractErr == nil
@@ -158,6 +188,34 @@ func findSubtitleTrack(subtitles []utils.SubtitleTrack, name string, embedded bo
 		}
 	}
 	return nil
+}
+
+// shareSubtitleSidecarIndexPaths maps middleware IndexPath (user-scope-relative) and Share.Path
+// to scoped index paths for sidecar containment (see publicDeleteHandler).
+func shareSubtitleSidecarIndexPaths(d *Context, sourceName, videoIndexPath, sidecarFileName string) (bound, sidecarIndexPath string, err error) {
+	userScope, scopeErr := d.ShareUser.GetScopeForSourceName(sourceName)
+	if scopeErr != nil || userScope == "" {
+		return "", "", fmt.Errorf("user has no access to source: %s", sourceName)
+	}
+	if d.Share.Path == "" {
+		return "", "", fmt.Errorf("share has no path scope")
+	}
+	shareRel := strings.TrimPrefix(d.Share.Path, userScope)
+	bound = utils.JoinScopedIndexPath(userScope, shareRel)
+	videoRel := strings.Trim(strings.TrimSpace(videoIndexPath), "/")
+	fullVideo := utils.JoinScopedIndexPath(userScope, videoRel)
+	if strings.TrimSuffix(bound, "/") == strings.TrimSuffix(fullVideo, "/") {
+		parent := utils.GetParentDirectoryPath(strings.TrimSuffix(bound, "/"))
+		if parent == "" {
+			parent = "/"
+		}
+		bound = parent
+	}
+	sidecarIndexPath = utils.JoinPathAsUnix(
+		utils.GetParentDirectoryPath(strings.TrimSuffix(fullVideo, "/")),
+		filepath.Base(sidecarFileName),
+	)
+	return bound, sidecarIndexPath, nil
 }
 
 // metadataHandler returns the same directory resource shape as GET /api/resources with metadata enabled,

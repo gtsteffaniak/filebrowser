@@ -19,6 +19,7 @@ import (
 
 func setupQuotaHTTPTest(t *testing.T) {
 	t.Helper()
+	lockWebGlobals(t)
 	dbPath := filepath.Join(t.TempDir(), "quota-http-test.sqlite")
 	if _, err := state.Initialize(dbPath); err != nil {
 		t.Fatal(err)

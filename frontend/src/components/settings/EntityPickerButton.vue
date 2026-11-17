@@ -29,8 +29,8 @@
 </template>
 
 <script>
-import { mutations } from "@/store";
-import { eventBus } from "@/store/eventBus";
+import { mutations } from "@/store/index.ts";
+import { eventBus } from "@/store/eventBus.ts";
 import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
 
 export default {
@@ -93,7 +93,10 @@ export default {
     },
   },
 
-  emits: ["select", "cancel"],
+  emits: {
+    selected: (names) => Array.isArray(names),
+    cancel: () => true,
+  },
 
   data() {
     return {
@@ -151,7 +154,7 @@ export default {
         return;
       }
       this.pendingContextId = null;
-      this.$emit("select", data.names || []);
+      this.$emit("selected", data.names || []);
     },
     onEntityPickerCancelled(data) {
       if (!this.pendingContextId || data?.selectionContextId !== this.pendingContextId) {

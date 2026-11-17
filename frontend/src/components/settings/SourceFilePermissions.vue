@@ -3,10 +3,10 @@
     <ToggleSwitch
       class="item"
       :modelValue="permissions.view"
-      @update:modelValue="(v) => setPermission('view', v)"
+      @update:model-value="(v) => setPermission('view', v)"
       :enforceable="enforceable"
       :enforced="!!enforcedPermissions.view"
-      @update:enforced="(v) => $emit('enforced-change', 'view', v)"
+      @update:enforced="(v) => $emit('enforced-change', { field: 'view', value: v })"
       :disabled="isValueDisabled('view')"
       :value-tooltip="configLockTooltip('view')"
       :name="viewPermissionName"
@@ -14,10 +14,10 @@
     <ToggleSwitch
       class="item"
       :modelValue="permissions.download"
-      @update:modelValue="(v) => setPermission('download', v)"
+      @update:model-value="(v) => setPermission('download', v)"
       :enforceable="enforceable"
       :enforced="!!enforcedPermissions.download"
-      @update:enforced="(v) => $emit('enforced-change', 'download', v)"
+      @update:enforced="(v) => $emit('enforced-change', { field: 'download', value: v })"
       :disabled="isValueDisabled('download')"
       :value-tooltip="configLockTooltip('download')"
       :name="downloadPermissionName"
@@ -25,10 +25,10 @@
     <ToggleSwitch
       class="item"
       :modelValue="permissions.modify"
-      @update:modelValue="(v) => setPermission('modify', v)"
+      @update:model-value="(v) => setPermission('modify', v)"
       :enforceable="enforceable"
       :enforced="!!enforcedPermissions.modify"
-      @update:enforced="(v) => $emit('enforced-change', 'modify', v)"
+      @update:enforced="(v) => $emit('enforced-change', { field: 'modify', value: v })"
       :disabled="isValueDisabled('modify')"
       :value-tooltip="configLockTooltip('modify')"
       :name="modifyPermissionName"
@@ -36,10 +36,10 @@
     <ToggleSwitch
       class="item"
       :modelValue="permissions.create"
-      @update:modelValue="(v) => setPermission('create', v)"
+      @update:model-value="(v) => setPermission('create', v)"
       :enforceable="enforceable"
       :enforced="!!enforcedPermissions.create"
-      @update:enforced="(v) => $emit('enforced-change', 'create', v)"
+      @update:enforced="(v) => $emit('enforced-change', { field: 'create', value: v })"
       :disabled="isValueDisabled('create')"
       :value-tooltip="configLockTooltip('create')"
       :name="createPermissionName"
@@ -47,10 +47,10 @@
     <ToggleSwitch
       class="item"
       :modelValue="permissions.delete"
-      @update:modelValue="(v) => setPermission('delete', v)"
+      @update:model-value="(v) => setPermission('delete', v)"
       :enforceable="enforceable"
       :enforced="!!enforcedPermissions.delete"
-      @update:enforced="(v) => $emit('enforced-change', 'delete', v)"
+      @update:enforced="(v) => $emit('enforced-change', { field: 'delete', value: v })"
       :disabled="isValueDisabled('delete')"
       :value-tooltip="configLockTooltip('delete')"
       :name="deletePermissionName"
@@ -63,7 +63,10 @@ import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 
 export default {
   name: "source-file-permissions",
-  emits: ["changed", "enforced-change"],
+  emits: {
+    changed: (change) => typeof change?.key === "string",
+    "enforced-change": (change) => typeof change?.field === "string",
+  },
   props: {
     permissions: {
       type: Object,
@@ -129,7 +132,7 @@ export default {
         return;
       }
       if (this.emitChanges) {
-        this.$emit("changed", key, value);
+        this.$emit("changed", { key, value });
       }
     },
     permissionValue(key) {

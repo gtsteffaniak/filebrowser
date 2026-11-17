@@ -23,8 +23,8 @@
 import Breadcrumbs from "@/components/files/Breadcrumbs.vue";
 import ListingHeader from "@/components/files/ListingHeader.vue";
 import DuplicateFinderActions from "@/components/tools/DuplicateFinderActions.vue";
-import { getters, state } from "@/store";
-import { eventBus } from "@/store/eventBus";
+import { getters, state } from "@/store/index.ts";
+import { eventBus } from "@/store/eventBus.ts";
 
 export default {
   name: "Shelf",
@@ -88,7 +88,7 @@ export default {
     moveWithSidebar() {
       if (getters.isStickySidebar() && getters.isSidebarVisible()) {
         return {
-          left: `${state.sidebar.width}em`,
+          left: "var(--sidebar-width)",
         };
       }
       return {};
@@ -207,7 +207,7 @@ export default {
   z-index: 1000;
   right: 0;
   left: 0;
-  transition: left 0.2s ease;
+  transition: left 0.22s cubic-bezier(0.2, 0, 0, 1);
   box-sizing: border-box;
   height: auto;
   min-height: 0;

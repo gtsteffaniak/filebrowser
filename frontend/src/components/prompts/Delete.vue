@@ -3,14 +3,14 @@
       <!-- Loading spinner overlay -->
       <div v-show="deleting" class="loading-content">
         <LoadingSpinner size="small" />
-        <p class="loading-text">{{ $t("prompts.operationInProgress") }}</p>
+        <p class="loading-text">{{ t("prompts.operationInProgress") }}</p>
       </div>
       <div v-show="!deleting">
         <p class="card-message" v-if="itemsToDelete.length === 1">
-          {{ $t("prompts.deleteMessageSingle") }}
+          {{ t("prompts.deleteMessageSingle") }}
         </p>
         <p class="card-message" v-else>
-          {{ $t("prompts.deleteMessageMultiple", { count: itemsToDelete.length }) }}
+          {{ t("prompts.deleteMessageMultiple", { count: itemsToDelete.length }) }}
         </p>
         <div ref="list" class="delete-items-list" @contextmenu.capture.prevent.stop>
           <div data-virtual-group="items" :style="virtual.group('items').style">
@@ -52,9 +52,9 @@
         @click="closeTopPrompt"
         class="button button--flat button--grey"
         :disabled="deleting"
-        :aria-label="$t('general.cancel')"
-        :title="$t('general.cancel')">
-        {{ $t("general.cancel") }}
+        :aria-label="t('general.cancel')"
+        :title="t('general.cancel')">
+        {{ t("general.cancel") }}
       </button>
       <button
         type="button"
@@ -62,25 +62,25 @@
         class="button button--flat button--red"
         :disabled="deleting"
         aria-label="Confirm-Delete"
-        :title="$t('general.delete')">
-        {{ $t("general.delete") }}
+        :title="t('general.delete')">
+        {{ t("general.delete") }}
       </button>
     </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from "vue";
-import { useI18n } from "vue-i18n";
-import { resourcesApi } from "@/api";
-import buttons from "@/utils/buttons";
-import { state, getters, mutations } from "@/store";
-import type { FileListItem } from "@/store/types";
-import { notify } from "@/notify";
+import { computed, onMounted, ref, useTemplateRef, watch } from "vue";
+import { useI18n } from "@/i18n/index.ts";
+import { resourcesApi } from "@/api/index.js";
+import buttons from "@/utils/buttons.js";
+import { state, getters, mutations } from "@/store/index.ts";
+import type { FileListItem } from "@/store/types.ts";
+import { notify } from "@/notify/index.ts";
 import ListingItem from "@/components/files/ListingItem.vue";
-import { eventBus } from "@/store/eventBus";
+import { eventBus } from "@/store/eventBus.ts";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import { useListingVirtualization } from "@/composables/useListingVirtualization.ts";
-import url from "@/utils/url";
+import url from "@/utils/url.js";
 import { removeFromFolderLists } from "@/utils/cache/listingCache.ts";
 
 export interface DeleteItem {
@@ -111,7 +111,7 @@ defineOptions({ name: "delete" });
 
 const { t } = useI18n();
 
-const list = ref<HTMLElement | null>(null);
+const list = useTemplateRef<HTMLElement>("list");
 const failedItems = ref<FailedItem[]>([]);
 const deleting = ref(false);
 
@@ -184,7 +184,7 @@ function closeTopPrompt() {
 
 function getItemName(path: string) {
   const parts = path.split("/").filter(p => p);
-  return parts[parts.length - 1] || path;
+  return parts.at(-1) || path;
 }
 
 function getItemError(item: DeleteItem) {

@@ -32,13 +32,13 @@
 </template>
 
 <script>
-import { resourcesApi } from "@/api";
-import { notify } from "@/notify";
-import { getters, mutations, state } from "@/store";
-import { url } from "@/utils";
+import { resourcesApi } from "@/api/index.js";
+import { notify } from "@/notify/index.ts";
+import { getters, mutations, state } from "@/store/index.ts";
+import { url } from "@/utils/index.ts";
 import { getObjectProperty } from '@/utils/object.js';
-import { goToItemNotificationButton } from "@/utils/notificationActions";
-import { notifyMoveCopyFailure } from "@/utils/appNotifications";
+import { goToItemNotificationButton } from "@/utils/notificationActions.js";
+import { notifyMoveCopyFailure } from "@/utils/appNotifications.js";
 
 export default {
   name: "breadcrumbs",
@@ -48,7 +48,12 @@ export default {
       dragOverItem: null, // Track which breadcrumb is being dragged over
     };
   },
-  props: ["noLink"],
+  props: {
+    noLink: {
+      type: Boolean,
+      default: false,
+    },
+  },
   mounted() {
     this.updatePaths();
     window.addEventListener('dragend', this.clearDragState);
@@ -97,7 +102,7 @@ export default {
         originalParts.shift();
         encodedParts.shift();
       }
-      if (originalParts[originalParts.length - 1] === "") {
+      if (originalParts.at(-1) === "") {
         originalParts.pop();
         encodedParts.pop();
       }
@@ -304,10 +309,10 @@ export default {
         mutations.showPrompt({
           name: "replace-rename",
           pinned: true,
-          confirm: (event, option) => {
+          confirm: (e, option) => {
             const overwrite = option === "overwrite";
             const rename = option === "rename";
-            event.preventDefault();
+            e.preventDefault();
             mutations.closeTopPrompt();
             void moveAction(overwrite, rename);
           },

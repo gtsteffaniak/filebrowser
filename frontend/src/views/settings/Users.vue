@@ -7,7 +7,7 @@
     :edge-offset="{ bottom: '1rem', right: '1rem' }"
     :auto-hide="false"
     :label="newUserLabel()"
-    @click="openPrompt(null)"
+    @press="openPrompt(null)"
   />
   <errors v-if="error" :errorCode="error.status" />
   <div class="card-title">
@@ -20,19 +20,19 @@
         class="item"
         :name="$t('settings.userDefaults')"
         :description="$t('settings.userDefaultsDescription')"
-        @click="openUserDefaultsPrompt"
+        @activate="openUserDefaultsPrompt"
       />
       <SettingsButton
         class="item"
         :name="$t('sidebar.sidebarLinkDefaults')"
         :description="$t('sidebar.sidebarLinkDefaultsDescription')"
-        @click="openSidebarLinkDefaultsPrompt"
+        @activate="openSidebarLinkDefaultsPrompt"
       />
       <SettingsButton
         class="item"
         :name="$t('tools.toolAccessDefaults')"
         :description="$t('tools.toolAccessDefaultsDescription')"
-        @click="openToolAccessDefaultsPrompt"
+        @activate="openToolAccessDefaultsPrompt"
       />
       <ActivityViewerButton class="item" :href="activityViewerHref" />
     </div>
@@ -69,15 +69,15 @@
 </template>
 
 <script>
-import { state, mutations } from "@/store";
-import { usersApi } from "@/api";
+import { state, mutations } from "@/store/index.ts";
+import { usersApi } from "@/api/index.js";
 import Errors from "@/views/Errors.vue";
 import SettingsTable from "@/components/settings/Table.vue";
 import SettingsButton from "@/components/settings/SettingsButton.vue";
 import ActivityViewerButton from "@/components/settings/ActivityViewerButton.vue";
 import FloatingActionButton from "@/components/settings/FloatingActionButton.vue";
-import { activityViewerPresets } from "@/utils/activityViewerLink";
-import { eventBus } from "@/store/eventBus";
+import { activityViewerPresets } from "@/utils/activityViewerLink.js";
+import { eventBus } from "@/store/eventBus.ts";
 
 export default {
   name: "users",

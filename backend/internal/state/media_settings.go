@@ -14,14 +14,21 @@ const (
 
 var (
 	mediaSettingsMu      sync.RWMutex
-	mediaSettingsDefault settings.MediaSettings
+	mediaSettingsDefault settings.FullAdminMedia
 )
+
+// saveMediaSettings is the only write path for media settings. It clears derived
+// fields (EnabledProfiles, ImagePreview) so read-time values are never persisted.
+func saveMediaSettings(key string, ms settings.FullAdminMedia) error {
+	settings.ClearMediaDerived(&ms)
+	return sqlDb.SaveSetting(key, ms)
+}
 
 // InitMediaSettings loads persisted runtime media settings from SQLite and seeds from config when missing.
 func InitMediaSettings() error {
 	if _, err := sqlDb.GetSetting(mediaSettingsDefaultKey); err != nil {
 		seed := settings.SanitizeMediaSettings(settings.CurrentMediaSettings())
-		if saveErr := sqlDb.SaveSetting(mediaSettingsDefaultKey, seed); saveErr != nil {
+		if saveErr := saveMediaSettings(mediaSettingsDefaultKey, seed); saveErr != nil {
 			return fmt.Errorf("seed media settings: %w", saveErr)
 		}
 	}
@@ -43,7 +50,7 @@ func InitMediaSettings() error {
 		// sanitize, so clamps (e.g. the readRate floor) must run again.
 		overlaid = settings.SanitizeMediaSettings(overlaid)
 		if !settings.MediaSettingsEqual(loaded, overlaid) {
-			if saveErr := sqlDb.SaveSetting(mediaSettingsDefaultKey, overlaid); saveErr != nil {
+			if saveErr := saveMediaSettings(mediaSettingsDefaultKey, overlaid); saveErr != nil {
 				return fmt.Errorf("save config-synced media settings: %w", saveErr)
 			}
 			loaded = overlaid
@@ -57,22 +64,22 @@ func InitMediaSettings() error {
 	return nil
 }
 
-func loadMediaSettingsSetting(key string) (settings.MediaSettings, error) {
+func loadMediaSettingsSetting(key string) (settings.FullAdminMedia, error) {
 	raw, err := sqlDb.GetSetting(key)
 	if err != nil {
-		return settings.MediaSettings{}, err
+		return settings.FullAdminMedia{}, err
 	}
-	var ms settings.MediaSettings
+	var ms settings.FullAdminMedia
 	if err := json.Unmarshal(raw, &ms); err != nil {
-		return settings.MediaSettings{}, fmt.Errorf("parse %s: %w", key, err)
+		return settings.FullAdminMedia{}, fmt.Errorf("parse %s: %w", key, err)
 	}
 	return ms, nil
 }
 
-// GetMediaSettings returns the runtime media settings. The value is deep-copied
+// GetMediaSettings returns the stored runtime media settings. The value is deep-copied
 // so callers cannot mutate the stored settings (or the live config they are
 // applied to) through the conversion maps.
-func GetMediaSettings() settings.MediaSettings {
+func GetMediaSettings() settings.FullAdminMedia {
 	mediaSettingsMu.RLock()
 	defer mediaSettingsMu.RUnlock()
 	return settings.CloneMediaSettings(mediaSettingsDefault)
@@ -90,8 +97,11 @@ func PatchMediaSettings(patchJSON []byte) error {
 		return mergeErr
 	}
 	merged = settings.SanitizeMediaSettings(merged)
+	// A patch may echo derived fields back (e.g. imagePreview from the admin UI).
+	// Clear them before the value reaches memory or the database.
+	settings.ClearMediaDerived(&merged)
 
-	if saveErr := sqlDb.SaveSetting(mediaSettingsDefaultKey, merged); saveErr != nil {
+	if saveErr := saveMediaSettings(mediaSettingsDefaultKey, merged); saveErr != nil {
 		mediaSettingsMu.Unlock()
 		return fmt.Errorf("save media settings: %w", saveErr)
 	}

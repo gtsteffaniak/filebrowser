@@ -25,8 +25,8 @@ export function px(value: string | undefined): number {
 export function measureGroup(group: HTMLElement, itemClass = "listing-item"): LayoutMetrics | null {
   const children = group.children;
   let first: HTMLElement | null = null;
-  for (let i = 0; i < children.length; i++) {
-    const child = children[i] as HTMLElement;
+  for (const el of children) {
+    const child = el as HTMLElement;
     if (child.classList.contains(itemClass)) {
       first = child;
       break;

@@ -4,7 +4,7 @@
       <form class="card-content advanced-search-card-form" @submit.prevent="runSearch()">
         <div class="advanced-search-config-row">
           <div class="config-primary">
-            <div class="as-section-label">{{ $t("tools.advancedSearch.searchTerms") }}</div>
+            <div class="as-section-label">{{ t("tools.advancedSearch.searchTerms") }}</div>
             <template v-for="(term, idx) in termInputs" :key="`term-${idx}`">
               <div
                 v-if="idx > 0"
@@ -22,13 +22,13 @@
                   :class="{ 'flat-right': termInputs.length > 1 }"
                   type="search"
                   autocomplete="off"
-                  :placeholder="$t('general.search', { suffix: '...' })"
+                  :placeholder="t('general.search', { suffix: '...' })"
                 />
                 <button
                   v-if="termInputs.length > 1"
                   type="button"
                   class="button flat-left no-height"
-                  :aria-label="$t('general.delete')"
+                  :aria-label="t('general.delete')"
                   @click="removeTermAt(idx)"
                 >
                   <i class="material-symbols material-size">delete</i>
@@ -46,21 +46,21 @@
               v-if="termInputs.length > 1"
               v-model="termsJoinAnd"
               class="advanced-search-switch"
-              :name="$t('tools.advancedSearch.matchAllTerms')"
-              :description="$t('tools.advancedSearch.matchAllTermsDescription')"
+              :name="t('tools.advancedSearch.matchAllTerms')"
+              :description="t('tools.advancedSearch.matchAllTermsDescription')"
             />
           </div>
 
           <div class="config-secondary">
             <div class="as-sources-block">
-              <div class="as-section-label">{{ $t("general.sources") }}</div>
+              <div class="as-section-label">{{ t("general.sources") }}</div>
               <ExpandDropdown
                 v-model="selectedSourceNames"
                 class="source-dropdown-select"
                 :options="sourceOptions"
                 allow-multiple
-                :all-selected-label="$t('general.allSources')"
-                :aria-label="$t('general.sources', { suffix: '' })"
+                :all-selected-label="t('general.allSources')"
+                :aria-label="t('general.sources', { suffix: '' })"
               />
               <template
                 v-for="srcName in activeSources"
@@ -72,17 +72,17 @@
                   :source="srcName"
                   :show-files="false"
                   :show-folders="true"
-                  :aria-label="$t('tools.advancedSearch.scopeAria')"
-                  :placeholder="$t('sidebar.chooseSource')"
+                  :aria-label="t('tools.advancedSearch.scopeAria')"
+                  :placeholder="t('sidebar.chooseSource')"
                 />
               </template>
             </div>
 
             <div v-if="!disableSearchOptions" class="advanced-search-options-section">
-              <SearchFilters :filters="filters">
+              <SearchFilters v-model:expanded="filtersExpanded" :filters="filters">
                 <template #extra-settings>
                   <div class="settings-number-input item">
-                    <label for="advanced-search-limit">{{ $t('tools.advancedSearch.resultLimit') }}</label>
+                    <label for="advanced-search-limit">{{ t('tools.advancedSearch.resultLimit') }}</label>
                     <div>
                       <input
                         id="advanced-search-limit"
@@ -102,7 +102,7 @@
             <div class="advanced-search-actions-row">
               <button type="submit" class="button search-submit" :disabled="loading" :aria-busy="loading">
                 <i v-if="loading" class="material-symbols spin">autorenew</i>
-                <span v-else>{{ $t("general.search") }}</span>
+                <span v-else>{{ t("general.search") }}</span>
               </button>
             </div>
           </div>
@@ -113,14 +113,14 @@
     <div v-if="searchExecuted" class="advanced-search-results-plane">
       <h2 v-if="loading" class="message delayed">
         <LoadingSpinner size="medium" />
-        <span>{{ $t("general.loading", { suffix: "..." }) }}</span>
+        <span>{{ t("general.loading", { suffix: "..." }) }}</span>
       </h2>
       <template v-else>
         <div v-if="error" class="error-message padded-message">
           {{ error }}
         </div>
         <div v-else-if="resultsEmpty" class="empty-state-message padded-message">
-          <p>{{ $t("tools.advancedSearch.noResults") }}</p>
+          <p>{{ t("tools.advancedSearch.noResults") }}</p>
         </div>
         <div v-else ref="results" class="advanced-search-listing-results">
           <div class="advanced-search-sticky-header" :class="{ 'header-hidden': headerHidden }">
@@ -142,7 +142,7 @@
               <template v-for="section in sections" :key="section.key">
                 <template v-if="section.items.length > 0">
                   <div>
-                    <h2>{{ $t(section.title) }}</h2>
+                    <h2>{{ section.title }}</h2>
                   </div>
                   <div
                     :class="[section.class, { lastGroup: section.last }]"
@@ -183,31 +183,31 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
-import type { FileListItem, fileListItemIndex, ReqObject } from "@/store/types";
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from "vue";
+import type { FileListItem, fileListItemIndex, ReqObject } from "@/store/types.ts";
 import { useRoute } from "vue-router";
-import { useI18n } from "vue-i18n";
-import { toolsApi } from "@/api";
-import { router } from "@/router";
-import { state, getters, mutations } from "@/store";
-import { eventBus } from "@/store/eventBus";
-import { globalVars } from "@/utils/constants";
+import { useI18n } from "@/i18n/index.ts";
+import { toolsApi } from "@/api/index.js";
+import { router } from "@/router/index.ts";
+import { state, getters, mutations } from "@/store/index.ts";
+import { eventBus } from "@/store/eventBus.ts";
+import { globalVars } from "@/utils/constants.ts";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import PathPickerButton from "@/components/files/PathPickerButton.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import Item from "@/components/files/ListingItem.vue";
 import { removeTrailingSlash, removeLeadingSlash, isSameItem, goToItem } from "@/utils/url.js";
-import { selectAndScrollToIndex } from "@/utils/listing/selectAndScroll";
+import { selectAndScrollToIndex } from "@/utils/listing/selectAndScroll.ts";
 import ListingHeader from "@/components/files/ListingHeader.vue";
 import SearchFilters from "@/components/tools/SearchFilters.vue";
-import { useSearchFilters } from "@/composables/useSearchFilters";
-import { useSearchRequest } from "@/composables/useSearchRequest";
-import { useListingKeyboard } from "@/composables/useListingKeyboard";
-import { useListingLayout } from "@/composables/useListingLayout";
+import { useSearchFilters } from "@/composables/useSearchFilters.ts";
+import { useSearchRequest } from "@/composables/useSearchRequest.ts";
+import { useListingKeyboard } from "@/composables/useListingKeyboard.ts";
+import { useListingLayout } from "@/composables/useListingLayout.ts";
 import { useListingVirtualization } from "@/composables/useListingVirtualization.ts";
-import { useMouseSelection } from "@/composables/useRectangleSelection";
-import { useListingContextMenu } from "@/composables/useListingContextMenu";
+import { useMouseSelection } from "@/composables/useRectangleSelection.ts";
+import { useListingContextMenu } from "@/composables/useListingContextMenu.ts";
 import { getObjectProperty, setObjectProperty } from '@/utils/object.js';
 
 type QueryRecord = Record<string, unknown>;
@@ -262,7 +262,7 @@ function displayName(fullPath: string, isDirectory: boolean) {
       ? fullPath.slice(0, -1)
       : fullPath;
   const parts = withoutTrailing.split("/").filter(Boolean);
-  const name = parts[parts.length - 1] ?? "";
+  const name = parts.at(-1) ?? "";
 
   return name !== "" ? name : (isDirectory ? "/" : "?");
 }
@@ -391,9 +391,9 @@ function collectScopeRawFromQuery(q: QueryRecord) {
 const { t } = useI18n();
 const route = useRoute();
 
-const rootEl = ref<HTMLElement | null>(null);
-const results = ref<HTMLElement | null>(null);
-const listingView = ref<HTMLElement | null>(null);
+const rootEl = useTemplateRef<HTMLElement>("rootEl");
+const results = useTemplateRef<HTMLElement>("results");
+const listingView = useTemplateRef<HTMLElement>("listingView");
 
 const resultLimit = ref(Math.min(500, globalVars.searchResultsLimit || 1000));
 const termInputs = ref<string[]>([""]);
@@ -405,6 +405,7 @@ const error = ref<string | null>(null);
 const searchExecuted = ref(false);
 const resultsEmpty = ref(false);
 const headerHidden = ref(false);
+const filtersExpanded = ref(false);
 
 // Updates the URL whenever a filter changes.
 const { filters, buildRequest, toRouteQuery, applyRouteQuery, hasRouteFilters } = useSearchFilters({ onChange: scheduleAdvancedSearchUrlUpdate });
@@ -482,9 +483,11 @@ const reqListing = computed(() => {
   return grouped;
 });
 
-const sections = computed(() => [
-  { key: "dirs", class: "folder-items", title: "general.folders", label: "Folder Items", items: reqListing.value.dirs, last: reqListing.value.files.length === 0 },
-  { key: "files", class: "file-items", title: "general.files", label: "File Items", items: reqListing.value.files, last: true },
+const sections = computed<
+  { key: string; class: string; title: string; label: string; items: typeof reqListing.value.dirs; last: boolean }[]
+>(() => [
+  { key: "dirs", class: "folder-items", title: t("general.folders"), label: "Folder Items", items: reqListing.value.dirs, last: reqListing.value.files.length === 0 },
+  { key: "files", class: "file-items", title: t("general.files"), label: "File Items", items: reqListing.value.files, last: true },
 ]);
 
 const allItems = computed(() => [...reqListing.value.dirs, ...reqListing.value.files]);
@@ -562,7 +565,7 @@ function handleScroll() {
   const container = scrollContainer;
   if (!container) return;
   const top = container.scrollTop;
-  const stickyTop = container.getBoundingClientRect().top + parseFloat(getComputedStyle(container).paddingTop);
+  const stickyTop = container.getBoundingClientRect().top + Number.parseFloat(getComputedStyle(container).paddingTop);
   const resultsTop = results.value?.getBoundingClientRect().top;
   if (resultsTop === undefined || resultsTop > stickyTop) {
     headerHidden.value = false;

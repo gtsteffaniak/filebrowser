@@ -51,6 +51,7 @@ function makeGroup(opts: {
     });
     group.appendChild(el);
   }
+  document.body.appendChild(group);
   return group;
 }
 

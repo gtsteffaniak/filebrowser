@@ -120,7 +120,11 @@ func warnHttpProxyConfig() {
 	}
 	if Config.Http.TrustProxyHeaders && Config.Http.Socket != "" && !strings.HasPrefix(Config.Http.Socket, "@") &&
 		len(Config.Http.UnixSocketTrustedUIDs) == 0 && len(Config.Http.UnixSocketTrustedGIDs) == 0 {
-		logger.Warning("http.trustProxyHeaders is true and http.socket is a filesystem Unix socket, but http.unixSocketTrustedUIDs and http.unixSocketTrustedGIDs are empty; X-Forwarded-For and X-Real-IP are ignored until you list the reverse proxy's UID or GID (Linux peer credentials).")
+		if Config.Http.UnixSocketTrustAllLocalPeers {
+			logger.Warning("http.unixSocketTrustAllLocalPeers is true: any local process that can connect to the filesystem socket may present X-Forwarded-For and X-Real-IP. Prefer http.unixSocketTrustedUIDs and/or http.unixSocketTrustedGIDs so only peers with allowed Linux credentials can set forwarded headers.")
+		} else {
+			logger.Warning("http.trustProxyHeaders is true on a filesystem Unix socket, but http.unixSocketTrustedUIDs and http.unixSocketTrustedGIDs are empty; forwarded client headers from socket peers are ignored. List allowed peer UIDs and/or GIDs (Linux SO_PEERCRED), or set http.unixSocketTrustAllLocalPeers: true only if you accept legacy trust-all behavior.")
+		}
 	}
 	if !Env.IsDevMode {
 		if u := Config.Http.ExternalUrl; u != "" && strings.HasPrefix(strings.ToLower(u), "http://") {
@@ -428,7 +432,7 @@ const (
 // clampTranscodeReadRate enforces throttled producers: unset or sub-realtime
 // read rates are raised, so a producer is never left unthrottled. Burst and
 // catch-up pacing are left to ffmpeg's defaults.
-func clampTranscodeReadRate(t *MediaTranscode) {
+func clampTranscodeReadRate(t *FullAdminTranscode) {
 	if t.ReadRate <= 0 {
 		t.ReadRate = defaultTranscodeReadRate
 	} else if t.ReadRate < minTranscodeReadRate {
@@ -769,7 +773,9 @@ func loadConfigWithDefaults(configFile string, generate bool) error {
 	}
 
 	// Second pass: Decode with strict validation (disallow unknown fields within valid sections)
-	decoder := yaml.NewDecoder(bytes.NewReader(filteredYAML), yaml.DisallowUnknownField())
+	// UseJSONUnmarshaler lets typed fields with custom UnmarshalJSON (e.g. users.DarkMode)
+	// handle YAML scalars like booleans instead of the generic decoder casting them to strings.
+	decoder := yaml.NewDecoder(bytes.NewReader(filteredYAML), yaml.DisallowUnknownField(), yaml.UseJSONUnmarshaler())
 	err = decoder.Decode(&Config)
 	if err != nil {
 		return fmt.Errorf("error unmarshaling YAML data: %v", err)
@@ -1036,15 +1042,16 @@ func SetDefaults(generate bool) Settings {
 				DisableOptions: false,
 			},
 			UI: UserDefaultsUI{
-				DarkMode:    boolPtr(true),
+				DarkMode:    users.DarkModeDark,
 				ThemeColor:  "var(--blue)",
 				CustomTheme: "",
 				Locale:      "en",
 			},
 			FileLoading: users.FileLoading{
-				MaxConcurrent:     10,
-				UploadChunkSize:   10, // 10MB
-				DownloadChunkSize: 0,  // 0MB, default to no chunking
+				MaxConcurrent:             10,
+				UploadChunkSize:           10, // 10MB
+				DownloadChunkSize:         0,  // 0MB, default to no chunking
+				UploadStallTimeoutSeconds: 10, // pause an upload after 10 seconds without progress
 			},
 			Account: UserDefaultsAccount{
 				Permissions: UserDefaultsAccountPermissions{
@@ -1073,14 +1080,16 @@ func SetDefaults(generate bool) Settings {
 	for _, t := range AllVideoPreviewTypes {
 		s.Integrations.Media.Convert.VideoPreview[t] = boolPtr(true)
 	}
-	s.Integrations.Media.Transcode = MediaTranscode{
-		Enabled:              false,
-		MaxConcurrent:        2,
-		MaxConcurrentPerUser: 1,
-		CacheMaxSizeMB:       10240,
-		CacheRetentionH:      24,
-		ReadRate:             defaultTranscodeReadRate,
-		Profiles:             DefaultTranscodeProfiles(),
+	s.Integrations.Media.Transcode = FullAdminTranscode{
+		UserTranscode: UserTranscode{
+			Enabled:              false,
+			MaxConcurrentPerUser: 1,
+		},
+		MaxConcurrent:   2,
+		CacheMaxSizeMB:  10240,
+		CacheRetentionH: 24,
+		ReadRate:        defaultTranscodeReadRate,
+		Profiles:        DefaultTranscodeProfiles(),
 	}
 	// Hardware acceleration is opt-out: "auto" lets go-ffmpeg follow its device
 	// hierarchy (integrated GPU, discrete GPU, then software).

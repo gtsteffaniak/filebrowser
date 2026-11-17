@@ -366,7 +366,7 @@ function passkeyActorPasswordCancelledError() {
   return err
 }
 
-function promptPasskeyActorPassword(i18nKey) {
+function promptPasskeyActorPassword() {
   return new Promise((resolve, reject) => {
     let settled = false
     const finish = (fn, value) => {
@@ -382,7 +382,7 @@ function promptPasskeyActorPassword(i18nKey) {
         finish(reject, passkeyActorPasswordCancelledError())
       },
       props: {
-        infoText: i18n.global.t(i18nKey || 'prompts.confirmPasswordToSaveUser'),
+        infoText: i18n.global.t('prompts.confirmPasswordToSaveUser'),
         submitLabel: i18n.global.t('general.confirm'),
         submitCallback: async (actorPassword) => {
           finish(resolve, actorPassword)
@@ -442,7 +442,7 @@ export async function beginPasskeyRegistration(options = {}) {
     if (!canRetry) {
       throw err
     }
-    const actorPassword = await promptPasskeyActorPassword(options.actorPasswordPromptI18nKey)
+    const actorPassword = await promptPasskeyActorPassword()
     return beginPasskeyRegistration({
       ...options,
       actorPassword,
@@ -479,7 +479,7 @@ export async function deletePasskeyCredential(credentialId, options = {}) {
     if (!canRetry) {
       throw err
     }
-    const actorPassword = await promptPasskeyActorPassword(options.actorPasswordPromptI18nKey)
+    const actorPassword = await promptPasskeyActorPassword()
     return deletePasskeyCredential(credentialId, {
       ...options,
       actorPassword,

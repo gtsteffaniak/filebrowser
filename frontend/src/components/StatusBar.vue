@@ -36,7 +36,8 @@
             max="24"
             step="1"
           />
-          <span class="size-label">{{ editorFontSize }}px</span> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          <!-- i18n-ignore -->
+          <span class="size-label">{{ editorFontSize }}px</span>
         </div>
       </div>
     </div>
@@ -44,8 +45,8 @@
 </template>
 
 <script>
-import { getters, mutations, state } from "@/store";
-import { getHumanReadableFilesize } from "@/utils/filesizes";
+import { getters, mutations, state } from "@/store/index.ts";
+import { getHumanReadableFilesize } from "@/utils/filesizes.js";
 
 export default {
   name: "StatusBar",
@@ -138,7 +139,7 @@ export default {
     moveWithSidebar() {
       if (getters.isStickySidebar() && getters.isSidebarVisible()) {
         return {
-          left: `${state.sidebar.width}em`,
+          left: "var(--sidebar-width)",
         };
       }
       return {};
@@ -168,7 +169,7 @@ export default {
   },
   methods: {
     updateGallerySize(event) {
-      const newValue = parseInt(event.target.value, 10);
+      const newValue = Number.parseInt(event.target.value, 10);
       this.gallerySize = newValue;
     },
     commitGallerySize() {
@@ -247,7 +248,7 @@ export default {
   overflow: hidden;
   margin: 0;
   padding: 0;
-  transition: bottom 0.5s ease, left 0.2s ease, width 0.2s ease;
+  transition: bottom 0.5s ease, left 0.22s cubic-bezier(0.2, 0, 0, 1), width 0.22s cubic-bezier(0.2, 0, 0, 1);
   pointer-events: none;
 }
 
@@ -277,7 +278,7 @@ export default {
 .button {
   padding: 0 0.5em;
   font-size: 0.9em;
-  font-weight: bold;
+  font-weight: 700;
   cursor: unset;
 }
 

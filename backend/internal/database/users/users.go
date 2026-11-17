@@ -308,7 +308,7 @@ type NonAdminEditable struct {
 	DeleteWithoutConfirming    bool                 `json:"deleteWithoutConfirming"` // delete files without confirmation
 	Preview                    Preview              `json:"preview"`
 	StickySidebar              bool                 `json:"stickySidebar"` // keep sidebar open when navigating
-	DarkMode                   bool                 `json:"darkMode"`      // should dark mode be enabled
+	DarkMode                   DarkMode             `json:"darkMode"`      // theme preference: "auto" (follow system), "dark", or "light"
 	Password                   string               `json:"password,omitempty"`
 	Locale                     string               `json:"locale"`          // language to use: eg. de, en, or fr
 	ViewMode                   string               `json:"viewMode"`        // view mode to use: eg. normal, list, grid, or compact
@@ -346,10 +346,11 @@ type NonAdminEditable struct {
 }
 
 type FileLoading struct {
-	MaxConcurrent     int  `json:"maxConcurrentUpload"`
-	UploadChunkSize   int  `json:"uploadChunkSizeMb"`
-	ClearAll          bool `json:"clearAll"`
-	DownloadChunkSize int  `json:"downloadChunkSizeMb"`
+	MaxConcurrent             int  `json:"maxConcurrentUpload"`
+	UploadChunkSize           int  `json:"uploadChunkSizeMb"`
+	ClearAll                  bool `json:"clearAll"`
+	DownloadChunkSize         int  `json:"downloadChunkSizeMb"`
+	UploadStallTimeoutSeconds int  `json:"uploadStallTimeoutSeconds"` // seconds without progress before an upload is paused, 0 uses the default (10)
 }
 
 // SidebarLink represents a customizable link in the sidebar.

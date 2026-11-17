@@ -7,7 +7,7 @@
     <!-- Error state -->
     <div v-if="error" class="tree-error">
       <i class="material-symbols">error</i>
-      <span>{{ $t("prompts.error") }}</span>
+      <span>{{ t("prompts.error") }}</span>
     </div>
     <div v-if="rootNodes.length" ref="listEl" class="tree-list">
       <div data-virtual-group="rows" :style="virtual.group('rows').style">
@@ -60,7 +60,7 @@
           </a>
           <div v-else-if="row.kind === 'empty'" class="tree-empty-folder">
             <i class="material-symbols-outlined">sentiment_dissatisfied</i>
-            <span>{{ $t('files.lonely') }}</span>
+            <span>{{ t('files.lonely') }}</span>
           </div>
           <div v-else-if="row.kind === 'loading'" class="tree-loading">
             <LoadingSpinner size="small" mode="placeholder" />
@@ -74,24 +74,24 @@
     <!-- Empty state -->
     <div v-if="rootNodes.length === 0 && !loading && !error" class="tree-empty">
       <i class="material-symbols-outlined">sentiment_dissatisfied</i>
-      {{ $t('files.lonely') }}
+      {{ t('files.lonely') }}
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
-import { resourcesApi } from '@/api';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from 'vue';
+import { resourcesApi } from "@/api/index.js";
 import Icon from '@/components/files/Icon.vue';
 import LoadingSpinner from '@/components/LoadingSpinner.vue';
 import i18n from '@/i18n/index.ts';
-import { state, getters, mutations } from '@/store';
-import { eventBus } from '@/store/eventBus';
+import { state, getters, mutations } from "@/store/index.ts";
+import { eventBus } from "@/store/eventBus.ts";
 import type { FileListItem } from '@/store/types.ts';
-import { buildItemUrl, goToItem, joinPath } from '@/utils/url';
-import { goToItemNotificationButton } from '@/utils/notificationActions';
-import { notify } from '@/notify';
-import { notifyMoveCopyFailure } from '@/utils/appNotifications';
+import { buildItemUrl, goToItem, joinPath } from "@/utils/url.js";
+import { goToItemNotificationButton } from "@/utils/notificationActions.js";
+import { notify } from "@/notify/index.ts";
+import { notifyMoveCopyFailure } from "@/utils/appNotifications.js";
 import { getObjectProperty } from '@/utils/object.js';
 import { sortedItems } from '@/utils/sort.ts';
 import { findScrollParents, useListingVirtualization } from '@/composables/useListingVirtualization.ts';
@@ -162,8 +162,8 @@ const props = withDefaults(
 
 const t = i18n.global.t.bind(i18n.global);
 
-const treeEl = ref<HTMLElement | null>(null);
-const listEl = ref<HTMLElement | null>(null);
+const treeEl = useTemplateRef<HTMLElement>("treeEl");
+const listEl = useTemplateRef<HTMLElement>("listEl");
 const rootNodes = ref<TreeNode[]>([]);
 const loading = ref(false);
 const error = ref<string | null>(null);
@@ -730,10 +730,10 @@ async function handleDrop(event: DragEvent, node: TreeNode) {
     mutations.showPrompt({
       name: 'replace-rename',
       pinned: true,
-      confirm: async (event: Event, option: string) => {
+      confirm: async (e: Event, option: string) => {
         const overwrite = option === 'overwrite';
         const rename = option === 'rename';
-        event.preventDefault();
+        e.preventDefault();
         mutations.closeTopPrompt();
         try {
           await performAction(overwrite, rename);
