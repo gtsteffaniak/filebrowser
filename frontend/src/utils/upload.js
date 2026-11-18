@@ -103,6 +103,7 @@ class UploadManager {
     this.conflictsCancelled = false; // the user stopped this batch
     this.skipAll = false; // the batch answer was "leave what is there"
     this.answers = new Map(); // submission -> "replace" | "skip", answered by the user
+    this.continuingSubmission = null; // the submission a continuation add() belongs to
     this.cancelledSubmissions = new Set(); // submissions the user stopped
     this.continuingBatch = false; // add() continues the batch it just answered
     this.submissionId = 0; // which submission a queued job belongs to
@@ -209,14 +210,15 @@ class UploadManager {
     return { items: remaining, skipped, renamed };
   }
 
-  resolveConflict(basePath, items, resolution) {
+  resolveConflict(basePath, items, resolution, submission = this.submissionId) {
     this.conflictPromptOpen = false;
     this.pendingConflictItems = null;
     if (resolution === true) {
       // User chose overwrite - set the flag and add with overwrite=true
       this.overwriteAll = true;
       this.skipAll = false;
-      this.answers.set(this.submissionId, "replace");
+      this.answers.set(submission, "replace");
+      this.continuingSubmission = submission;
       this.continuingBatch = true;
       void this.add(basePath, items, true);
     } else if (resolution?.rename) {
@@ -231,7 +233,8 @@ class UploadManager {
       // The answer covers the rest of this batch: later conflicts are skipped
       // without asking again.
       this.skipAll = true;
-      this.answers.set(this.submissionId, "skip");
+      this.answers.set(submission, "skip");
+      this.continuingSubmission = submission;
       this.continuingBatch = true;
       void this.add(basePath, pending, false, true);
     } else {
@@ -240,6 +243,8 @@ class UploadManager {
       this.conflictingFolder = null;
       this.pendingItems = null;
     }
+    // Conflicts that arrived while this question was open are asked now.
+    setTimeout(() => this.askConflictForBatch(), 0);
   }
 
   /**
@@ -405,7 +410,7 @@ class UploadManager {
       const cancelled = items[0]?.submission ?? this.submissionId;
       this.cancelledSubmissions.add(cancelled);
       for (const item of this.queue) {
-        if (item.status === "pending" && item.submission === cancelled) {
+        if ((item.status === "pending" || item.status === "conflict") && item.submission === cancelled) {
           item.status = "paused";
         }
       }
@@ -486,13 +491,16 @@ class UploadManager {
     // new one. The id is captured before the first await, so two calls cannot end
     // up sharing it.
     const continuing = this.continuingBatch;
+    const continuingSubmission = this.continuingSubmission;
     this.continuingBatch = false;
+    this.continuingSubmission = null;
+    // A new submission gets its own id; a continuation keeps the id of the
+    // submission it came from, even when another upload starts meanwhile.
+    let submission = continuingSubmission ?? this.submissionId;
     if (!continuing) {
-      // A new submission gets its own id; the answers stay keyed to the
-      // submission they were given for, so a running batch keeps its own.
       this.submissionId += 1;
+      submission = this.submissionId;
     }
-    const submission = this.submissionId;
     // Handle undefined/null basePath
     if (!basePath) {
       basePath = "/";
@@ -566,23 +574,19 @@ class UploadManager {
           // Wait for any open question first: writing this state earlier would
           // overwrite what the open dialog is about to read.
           await this.waitForFreePrompt();
-          if (this.conflictPromptOpen) {
-            // Another question is still open: do not stack a second one. Upload
-            // now; a real conflict shows up on the transfer and is asked there.
-            this.conflictingFolder = null;
+          if (!this.conflictPromptOpen) {
+            // Store the conflicting folder name (take the first one for now)
+            this.conflictingFolder = conflictingDirs[0];
             this.pendingItems = items;
-            void this.processQueue();
+            this.conflictPromptOpen = true;
+            this.onConflict(
+              (resolution) => this.resolveConflict(basePath, items, resolution, submission),
+              { allowRename: true }
+            );
             return;
           }
-          // Store the conflicting folder name (take the first one for now)
-          this.conflictingFolder = conflictingDirs[0];
-          this.pendingItems = items;
-          this.conflictPromptOpen = true;
-          this.onConflict(
-            (resolution) => this.resolveConflict(basePath, items, resolution),
-            { allowRename: true }
-          );
-          return;
+          // Another question is still open: queue this batch now; a real conflict
+          // is asked on the transfer instead of stacking a second dialog.
         }
         // Store probed directories so we can skip them in queue processing
         this.probedDirs = probedDirs;
@@ -598,25 +602,23 @@ class UploadManager {
         );
         if (hasLooseConflict) {
           await this.waitForFreePrompt();
-          if (this.conflictPromptOpen) {
+          if (!this.conflictPromptOpen) {
             this.conflictingFolder = null;
             this.pendingItems = items;
-            void this.processQueue();
+            // Name them in the question: these files are already in the listing, so
+            // they are known here and must not be left out of it.
+            this.pendingConflictItems = Array.from(items).filter(
+              (item) => !item.relativePath?.includes("/") && existingNames.has(item.uploadName || item.file.name)
+            );
+            this.conflictPromptOpen = true;
+            this.onConflict(
+              (resolution) => this.resolveConflict(basePath, items, resolution, submission),
+              { allowRename: this.conflictAllowsRename() }
+            );
             return;
           }
-          this.conflictingFolder = null;
-          this.pendingItems = items;
-          // Name them in the question: these files are already in the listing, so
-          // they are known here and must not be left out of it.
-          this.pendingConflictItems = Array.from(items).filter(
-            (item) => !item.relativePath?.includes("/") && existingNames.has(item.uploadName || item.file.name)
-          );
-          this.conflictPromptOpen = true;
-          this.onConflict(
-            (resolution) => this.resolveConflict(basePath, items, resolution),
-            { allowRename: this.conflictAllowsRename() }
-          );
-          return;
+          // Another question is still open: queue the files now; a real conflict is
+          // asked on the transfer.
         }
       }
     }

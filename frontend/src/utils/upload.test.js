@@ -1170,11 +1170,19 @@ describe("answers never cross submissions", () => {
       { file: { name: "done.mov", size: 100 }, relativePath: "done.mov" },
     ]);
 
-    // The new submission is asked, and none of its jobs may overwrite by default.
+    // The new submission is asked, and once answered its own jobs go in without
+    // overwriting: the earlier Replace answer belongs to another submission.
     expect(onConflict).toHaveBeenCalledTimes(1);
+    uploadManager.resolveConflict("/base/", [], { skip: true }, uploadManager.submissionId);
+    await vi.waitFor(() =>
+      expect(
+        uploadManager.queue.some((item) => item.submission === uploadManager.submissionId)
+      ).toBe(true)
+    );
     const ownJobs = uploadManager.queue.filter(
       (item) => item.submission === uploadManager.submissionId
     );
+    expect(ownJobs.length).toBeGreaterThan(0);
     expect(ownJobs.every((item) => item.overwrite !== true)).toBe(true);
   });
 });
