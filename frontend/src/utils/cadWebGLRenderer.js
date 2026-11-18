@@ -558,8 +558,9 @@ export class CadWebGLRenderer {
   }
 
   /** The world point (mm) under a client-space event, or null: an ortho ray
-   * (origin on the view plane towards the screen interior) against every
-   * triangle, Möller–Trumbore. */
+   * cast from in front of the model (beyond its bounds, toward the camera
+   * side) into the screen, against every triangle, Möller–Trumbore. Starting
+   * on the target plane would begin inside the model and hit back faces. */
   pointSous(e) {
     if (!this.positions) return null;
     const c = this.canvas,
@@ -568,9 +569,13 @@ export class CadWebGLRenderer {
     const nx = (((e.clientX - r.left) / r.width) * 2 - 1) * this.demi * aspect;
     const ny = (1 - ((e.clientY - r.top) / r.height) * 2) * this.demi;
     const origine = ajout(
-      ajout(this.cible, this.droite, nx),
-      this.haut,
-      ny
+      ajout(
+        ajout(this.cible, this.droite, nx),
+        this.haut,
+        ny
+      ),
+      this.arriere,
+      2 * (this.rayon || 1)
     );
     const dir = this.arriere.map((x) => -x);
     const p = this.positions;

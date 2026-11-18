@@ -423,6 +423,8 @@
   },
   "prompts": {
     "noTemplate": "Your template is empty!",
+    "confirmOverwrite": "The file {file} already exists. Overwrite it?",
+    "fileExists": "The file already exists; conversion was not saved.",
     "newFileTemplate": "New file template",
     "newFileTemplateMessage": "Add new filenames here, they will be used as template for new file creation in the context menu!",
     "newFileTemplatePlaceholder": "Enter a filename with an extension",

@@ -503,6 +503,11 @@ export default {
             if (!('origColorHex' in child.userData)) {
               child.userData.origColorHex = material.color.getHex();
             }
+            // Remember the model's own vertex-colour setting so Standard mode
+            // and thumbnails keep it (e.g. GLTF vertex colours).
+            if (!('origVertexColors' in child.userData)) {
+              child.userData.origVertexColors = material.vertexColors === true;
+            }
             if (child.userData.isCadMesh && child.geometry?.attributes?.color) {
               // OpenCASCADE view: each face keeps its own colour.
               material.vertexColors = true;
@@ -522,7 +527,9 @@ export default {
           this.addEdgeOverlay(child);
         } else {
           if (material) {
-            material.vertexColors = false;
+            if ('origVertexColors' in child.userData) {
+              material.vertexColors = child.userData.origVertexColors;
+            }
             material.needsUpdate = true;
             if ('origColorHex' in child.userData) {
               material.color.setHex(child.userData.origColorHex);
@@ -958,7 +965,9 @@ export default {
       out.volume = Math.abs(vol6) / 6; // mm³
       out.area = area; // mm²
       if (Math.abs(vol6) > 1e-9) {
-        out.center = [com[0], com[1], com[2]].map((v) => v / (3 * vol6));
+        // Tetra centroid = (a+b+c+origin)/4 and volume = v6/6, so the
+        // moment Σ(a+b+c)·v6 divides by 4·Σv6 (not 3·Σv6).
+        out.center = [com[0], com[1], com[2]].map((v) => v / (4 * vol6));
       } else {
         // Open shell: the centre of mass is not defined; show the bbox centre.
         const box = new Box3().setFromObject(this.model);

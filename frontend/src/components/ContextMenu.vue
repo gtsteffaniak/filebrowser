@@ -258,7 +258,7 @@ import { url } from "@/utils";
 import { copyToClipboard } from "@/utils/clipboard";
 import { globalVars } from "@/utils/constants.js";
 import downloadFiles from "@/utils/download";
-import { isCadFile } from "@/utils/cadService.ts";
+import { isCadFile, getCadConversionTargets } from "@/utils/cadService.ts";
 import { canNativeShare, nativeShareFile } from "@/utils/nativeShare";
 import { isRichTextPreviewMimeType, getTypeInfoFromExt } from "@/utils/mimetype";
 import { isMediaRequest } from "@/utils/mediaFile";
@@ -436,7 +436,9 @@ export default {
       if (this.showLimitedOptions || this.showCreate) return false;
       if (this.selectedCount !== 1) return false;
       const item = this.firstSelected;
-      return item && isCadFile(item.name || item.path || "");
+      // Only offer the action when the engine actually has a target format
+      // for this input (e.g. bare .step files have none).
+      return item && getCadConversionTargets(item.name || item.path || "").length > 0;
     },
     showShareAction() {
       if (this.showLimitedOptions) return false;
@@ -461,15 +463,19 @@ export default {
     },
     showCadConvertInPreview() {
       if (this.showLimitedOptions) return false;
-      return (this.isPreview || this.isCadViewer) && isCadFile(this.req?.name || "");
+      if (!isCadFile(this.req?.name || "")) return false;
+      // Same target gating as the listing action.
+      return getCadConversionTargets(this.req?.name || "").length > 0;
     },
     showCadPropertiesInPreview() {
       if (this.showLimitedOptions) return false;
-      return (this.isPreview || this.isCadViewer) && isCadFile(this.req?.name || "");
+      // Properties and Measure are viewer actions routed through the CAD
+      // viewer's event listener; drawings are handled by DrawingViewer.
+      return this.isCadViewer;
     },
     showCadMeasureInPreview() {
       if (this.showLimitedOptions) return false;
-      return (this.isPreview || this.isCadViewer) && isCadFile(this.req?.name || "");
+      return this.isCadViewer;
     },
     showRename() {
       if (this.showLimitedOptions) return false;
@@ -1063,7 +1069,22 @@ export default {
       });
     },
     showCadConvertPromptFromPreview() {
-      this.emitCadViewerAction("convert");
+      // The convert dialog runs on its own worker fetch; open it directly so
+      // it works from any preview context, not just the mounted CAD viewer.
+      mutations.closeTopPrompt();
+      const req = state.req;
+      if (!req) return;
+      mutations.showPrompt({
+        name: "CadConvert",
+        props: {
+          item: {
+            path: req.path,
+            source: req.source,
+            name: req.name,
+            viewToken: req.viewToken,
+          },
+        },
+      });
     },
     showCadPropertiesFromPreview() {
       this.emitCadViewerAction("properties");

@@ -130,6 +130,11 @@ func swMatrix(text string) ([16]float64, error) {
 		}
 		v[i] = x
 	}
+	// v[15] is the scale. Neither Place nor compose applies it, so a non-unit
+	// value would silently produce wrongly-sized geometry; reject it instead.
+	if math.Abs(v[15]-1) > 1e-9 {
+		return [16]float64{}, fmt.Errorf("%w: non-unit swTransform scale %g", ErrAssembly, v[15])
+	}
 	return [16]float64{
 		v[0], v[1], v[2],
 		v[4], v[5], v[6],
@@ -199,23 +204,25 @@ func treeComponents(xmldata []byte) ([]*Component, error) {
 	for _, f := range files {
 		fileByID[f.attrs["id"]] = f
 	}
-	modelOf := func(fileID string) *xmlNode {
+	modelByID := map[string]*xmlNode{}
+	for _, m := range models {
+		modelByID[m.attrs["id"]] = m
+	}
+	modelOfFile := func(fileID string) *xmlNode {
 		for _, m := range models {
-			if m.attrs["swFileRef"] != fileID {
-				continue
-			}
-			for _, c := range m.children {
-				if c.is("swReference") {
-					return m
-				}
+			if m.attrs["swFileRef"] == fileID {
+				return m
 			}
 		}
 		return nil
 	}
-
 	var out []*Component
-	var descend func(model *xmlNode, parent [16]float64, prefix string, hidden, suppressed bool)
-	descend = func(model *xmlNode, parent [16]float64, prefix string, hidden, suppressed bool) {
+	// activePath holds the assembly file IDs on the current recursion path;
+	// revisiting one means the instance tree is cyclic and would recurse
+	// forever. Entries are removed on unwind so the same subassembly stays
+	// valid when referenced from separate branches.
+	var descend func(model *xmlNode, parent [16]float64, prefix string, hidden, suppressed bool, activePath map[string]bool) error
+	descend = func(model *xmlNode, parent [16]float64, prefix string, hidden, suppressed bool, activePath map[string]bool) error {
 		for _, ref := range model.children {
 			if !ref.is("swReference") {
 				continue
@@ -227,7 +234,7 @@ func treeComponents(xmldata []byte) ([]*Component, error) {
 				continue
 			}
 			m = compose(m, parent)
-			child := modelOf(a["swModelRef"])
+			child := modelByID[a["swModelRef"]]
 			var file *xmlNode
 			if child != nil {
 				file = fileByID[child.attrs["swFileRef"]]
@@ -235,8 +242,17 @@ func treeComponents(xmldata []byte) ([]*Component, error) {
 			h := hidden || a["swHidden"] == "YES"
 			s := suppressed || a["swSuppressed"] == "YES"
 			if file != nil && file.attrs["swDocType"] == "ASSEMBLY" {
-				if sub := modelOf(file.attrs["id"]); sub != nil {
-					descend(sub, m, prefix+name+"/", h, s)
+				if sub := modelOfFile(file.attrs["id"]); sub != nil {
+					fileID := file.attrs["id"]
+					if activePath[fileID] {
+						return fmt.Errorf("%w: cyclic assembly reference to file %q", ErrAssembly, fileID)
+					}
+					activePath[fileID] = true
+					err := descend(sub, m, prefix+name+"/", h, s, activePath)
+					delete(activePath, fileID)
+					if err != nil {
+						return err
+					}
 					continue
 				}
 			}
@@ -254,12 +270,15 @@ func treeComponents(xmldata []byte) ([]*Component, error) {
 				Config:        a["swConfigurationName"],
 			})
 		}
+		return nil
 	}
-	model := modelOf(head.attrs["id"])
+	model := modelOfFile(head.attrs["id"])
 	if model == nil {
 		return nil, fmt.Errorf("%w: the assembly model has no reference", ErrAssembly)
 	}
-	descend(model, identityMatrix, "", false, false)
+	if err := descend(model, identityMatrix, "", false, false, map[string]bool{head.attrs["id"]: true}); err != nil {
+		return nil, err
+	}
 	return out, nil
 }
 

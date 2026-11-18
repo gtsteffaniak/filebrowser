@@ -42,6 +42,10 @@ function getWorker(): Worker {
         req.reject(new Error(e.message || "CAD Web Worker crashed"));
         pendingRequests.delete(id);
       }
+      // The worker is dead; drop it so the next request spins up a fresh one
+      // instead of reusing a broken instance.
+      workerInstance?.terminate();
+      workerInstance = null;
     };
 
     // Initialize paths
@@ -161,7 +165,7 @@ export function loadCadProperties(
   const worker = getWorker();
   const id = ++messageIdCounter;
   return new Promise((resolve, reject) => {
-    pendingRequests.set(id, { resolve, reject, onProgress });
+    pendingRequests.set(id, { resolve: resolve as (value: unknown) => void, reject, onProgress });
     const copy = dataBuffer.slice(0);
     worker.postMessage({ id, action: "properties", filename, data: copy }, [copy]);
   });
@@ -176,7 +180,7 @@ export function loadCad3D(
   const id = ++messageIdCounter;
 
   return new Promise((resolve, reject) => {
-    pendingRequests.set(id, { resolve, reject, onProgress });
+    pendingRequests.set(id, { resolve: resolve as (value: unknown) => void, reject, onProgress });
     const copy = dataBuffer.slice(0);
     worker.postMessage(
       {
@@ -199,7 +203,7 @@ export function loadCadDrawing(
   const id = ++messageIdCounter;
 
   return new Promise((resolve, reject) => {
-    pendingRequests.set(id, { resolve, reject, onProgress });
+    pendingRequests.set(id, { resolve: resolve as (value: unknown) => void, reject, onProgress });
     const copy = dataBuffer.slice(0);
     worker.postMessage(
       {
@@ -223,7 +227,7 @@ export function convertCadFile(
   const id = ++messageIdCounter;
 
   return new Promise((resolve, reject) => {
-    pendingRequests.set(id, { resolve, reject, onProgress });
+    pendingRequests.set(id, { resolve: resolve as (value: unknown) => void, reject, onProgress });
     const copy = dataBuffer.slice(0);
     worker.postMessage(
       {

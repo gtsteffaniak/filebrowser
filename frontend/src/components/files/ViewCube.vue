@@ -57,12 +57,13 @@ export default {
     if (this.rafId) cancelAnimationFrame(this.rafId);
   },
   methods: {
-    // Mirror the camera orientation on the cube: yaw/pitch of the view
-    // direction rotate the CSS cube the same way the model is seen.
+    // Mirror the camera orientation on the cube. dir faces into the screen,
+    // so the yaw that brings the camera-facing cube side toward the viewer is
+    // measured from -dir.z; with +dir.z the Front view showed the Back face.
     syncRotation() {
       if (!this.$refs.cube) return;
       const dir = this.getDirection();
-      const yaw = Math.atan2(dir.x, dir.z);
+      const yaw = Math.atan2(dir.x, -dir.z);
       const pitch = Math.asin(Math.max(-1, Math.min(1, -dir.y)));
       this.$refs.cube.style.transform =
         `rotateX(${pitch}rad) rotateY(${yaw}rad)`;

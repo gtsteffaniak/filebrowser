@@ -11,20 +11,23 @@
       </p>
 
       <p class="prompts-label">{{ $t("cad.selectFormat") }}</p>
-      <div class="target-options">
-        <div
+      <div class="target-options" role="radiogroup" :aria-label="$t('cad.selectFormat')">
+        <button
           v-for="target in availableTargets"
           :key="target.format"
+          type="button"
+          role="radio"
           class="target-card"
+          :aria-checked="selectedFormat === target.format"
           :class="{ selected: selectedFormat === target.format }"
           @click="selectedFormat = target.format"
         >
-          <div class="target-card-header">
+          <span class="target-card-header">
             <i class="material-symbols-outlined target-icon">{{ target.icon }}</i>
             <span class="target-label">{{ target.label }}</span>
-          </div>
+          </span>
           <span class="target-desc">{{ target.description }}</span>
-        </div>
+        </button>
       </div>
 
       <p class="prompts-label">{{ $t("cad.outputDestination") }}</p>
@@ -91,7 +94,9 @@ export default {
   },
   computed: {
     canSaveToServer() {
-      return !getters.isShare() && getters.sourcePermissions()?.create;
+      // The save posts to the item's own source, not whatever is currently
+      // listed in the request.
+      return !getters.isShare() && getters.sourcePermissions(this.item?.source)?.create;
     },
   },
   methods: {
@@ -154,7 +159,27 @@ export default {
           const parentDir = removeLastDir(this.item.path) || "/";
           const targetPath = `${parentDir.replace(/\/$/, "")}/${result.filename}`;
           const blob = new Blob([result.data], { type: "application/octet-stream" });
-          await resourcesApi.post(this.item.source, targetPath, blob, true);
+          // Never replace an existing file silently: confirm first, and only
+          // enable overwrite when the user accepted.
+          let overwrite = false;
+          try {
+            const listing = await resourcesApi.fetchFiles(this.item.source, parentDir, false, false, true);
+            const exists = (listing?.items || []).some((i) => i.name === result.filename);
+            if (exists) {
+              overwrite = window.confirm(
+                this.$t("prompts.confirmOverwrite", { file: result.filename })
+              );
+              if (!overwrite) {
+                this.error = this.$t("prompts.fileExists");
+                this.converting = false;
+                return;
+              }
+            }
+          } catch {
+            // A listing failure (permissions, races) must not block the save;
+            // post without overwrite and let a real conflict surface as 409.
+          }
+          await resourcesApi.post(this.item.source, targetPath, blob, overwrite);
           notify.success(this.$t("cad.conversionSaved", { file: result.filename }));
           mutations.setReload(true);
         }
