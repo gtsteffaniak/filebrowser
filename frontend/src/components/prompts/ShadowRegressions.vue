@@ -179,6 +179,7 @@ export default {
       spotlightHeight: 0,
       observer: null,
       clearing: false,
+      loadGeneration: 0,
     };
   },
   computed: {
@@ -234,16 +235,21 @@ export default {
   },
   methods: {
     async loadRegressions() {
+      // Each load gets a new generation number. Only the latest load may write to the
+      // view, so a slow response from before a clear cannot restore deleted records.
+      const generation = ++this.loadGeneration;
       try {
         const [entries, stats, incompatible] = await Promise.all([
           getShadowRegressions(),
           getShadowRegressionStats(),
           getShadowIncompatible(),
         ]);
+        if (generation !== this.loadGeneration) return;
         this.regressionsContent = JSON.stringify(entries, null, 2);
         this.stats = stats;
         this.incompatible = incompatible;
       } catch (e) {
+        if (generation !== this.loadGeneration) return;
         console.error(e);
         notify.showErrorToast(this.$t("media.shadowRegressionsLoadFailed"));
         this.regressionsContent = "";
@@ -282,7 +288,9 @@ export default {
   display: flex;
   gap: 0.75em;
   overflow-x: auto;
-  flex-shrink: 0;
+  /* Shrinks and scrolls vertically when the panel is short, so the editor keeps its minimum height. */
+  flex-shrink: 1;
+  min-height: 0;
   padding-bottom: 0.25em;
 }
 
@@ -363,7 +371,8 @@ export default {
 }
 
 .incompatible {
-  flex-shrink: 0;
+  flex-shrink: 1;
+  min-height: 0;
   overflow: auto;
   border: 1px solid var(--divider, #ccc);
   border-radius: 6px;
@@ -406,7 +415,8 @@ export default {
 .editor-container {
   position: relative;
   flex: 1 1 auto;
-  min-height: 0;
+  /* Keeps the regression editor usable even when the cards and incompatible list are tall. */
+  min-height: 12em;
   overflow: hidden;
   border: 1px solid var(--divider, #ccc);
   border-radius: 4px;

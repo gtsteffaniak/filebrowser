@@ -728,7 +728,7 @@
     "shadowRegressionsViewDescription": "Открыть список зарегистрированных регрессий, доступный только для чтения. Записи фиксируются только при включенном параметре FILEBROWSER_DEVMODE.",
     "shadowRegressionsLoadFailed": "Не удалось загрузить регрессии",
     "shadowRegressionsClearFailed": "Не удалось устранить регрессии",
-    "shadowRegressionsCleared": "Регрессии устранены",
+    "shadowRegressionsCleared": "Записи о регрессиях удалены",
     "shadowRegressionsAllOperations": "Все операции",
     "shadowRegressionsSucceeded": "Удалось",
     "shadowRegressionsRegressions": "Регрессии",

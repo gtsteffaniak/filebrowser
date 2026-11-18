@@ -145,7 +145,7 @@ const MaxPreviewPixels = 40_000_000
 // files often hold a full-size JPEG next to a mid-size preview, and the full-size one can be
 // over budget. If nothing fits, the largest JPEG is returned so the caller can reject it.
 func readLargestJPEGPreview(f *os.File, candidates []previewCandidate) ([]byte, error) {
-	var best, largest []byte
+	var best, largest, undecodable []byte
 	bestPixels := int64(0)
 	largestPixels := int64(0)
 	for _, c := range candidates {
@@ -156,11 +156,17 @@ func readLargestJPEGPreview(f *os.File, candidates []previewCandidate) ([]byte, 
 		if err != nil || len(data) == 0 || !IsJPEG(data) {
 			continue
 		}
-		// When the header cannot be read, the byte length stands in for size.
-		pixels := int64(len(data))
-		if cfg, _, err := image.DecodeConfig(bytes.NewReader(data)); err == nil {
-			pixels = int64(cfg.Width) * int64(cfg.Height)
+		cfg, _, err := image.DecodeConfig(bytes.NewReader(data))
+		if err != nil {
+			// A damaged header gives no pixel count, so its byte length says nothing
+			// about size. It must not compete with decoded candidates. It is kept only
+			// as a last resort.
+			if len(data) > len(undecodable) {
+				undecodable = data
+			}
+			continue
 		}
+		pixels := int64(cfg.Width) * int64(cfg.Height)
 		if pixels > largestPixels {
 			largest, largestPixels = data, pixels
 		}
@@ -171,7 +177,10 @@ func readLargestJPEGPreview(f *os.File, candidates []previewCandidate) ([]byte, 
 	if len(best) > 0 {
 		return best, nil
 	}
-	return largest, nil
+	if len(largest) > 0 {
+		return largest, nil
+	}
+	return undecodable, nil
 }
 
 const maxPreviewReadSize = 100 * 1024 * 1024 // embedded previews are never larger

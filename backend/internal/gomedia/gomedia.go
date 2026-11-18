@@ -171,14 +171,22 @@ func logFallback(op, path string, err error) {
 // phrases appended to the message. JPEG XL has no fallback, so it passes
 // phrases that do not mention ffmpeg.
 func logFallbackTo(op, path string, err error, next, failed string) {
+	if reportFallback(op, path, err, next, failed) {
+		markUnsupported(op, path)
+	}
+}
+
+// reportFallback logs a go-media failure without setting the shared unsupported
+// mark. It reports whether err means the input is unsupported by design.
+func reportFallback(op, path string, err error, next, failed string) bool {
 	// ErrNotMedia means the file is not a container go-media reads. That is an
 	// expected fallback, not a failure, so it logs as a warning.
 	if errors.Is(err, media.ErrUnsupported) || errors.Is(err, media.ErrUnsupportedProfile) || errors.Is(err, media.ErrNotMedia) {
-		markUnsupported(op, path)
 		logger.Warningf("go-media does not support %s for %s (%v); %s", op, path, err, next)
-		return
+		return true
 	}
 	logger.Errorf("go-media %s failed for %s: %v; %s", op, path, err, failed)
+	return false
 }
 
 // logUnsupported records a container or codec that go-media does not handle.
@@ -237,66 +245,67 @@ func Probe(path string, legacy Legacy[ProbeResult]) (ProbeResult, bool) {
 	if declinedByDesign(path, supportsVideoContainer) {
 		return ProbeResult{}, false
 	}
-	return timed("probe", path, legacy, probeDiff, func() (ProbeResult, bool) { return probeFast(path) })
+	return timedOutcome("probe", path, legacy, probeDiff, func() (ProbeResult, bool, bool) {
+		out := probeFast(path)
+		return out.res, out.ok, out.unsupported
+	})
 }
 
-func probeFast(path string) (ProbeResult, bool) {
+// probeOutcome is the result of one container read. It travels with the read,
+// so every caller that shares the read through probeGroup gets the same outcome.
+// Probe does not use the shared unsupported-mark map: concurrent callers would
+// race on it, and only one would see the mark.
+type probeOutcome struct {
+	res         ProbeResult
+	ok          bool
+	unsupported bool
+}
+
+func probeFast(path string) probeOutcome {
 	if !Enabled() {
-		return ProbeResult{}, false
+		return probeOutcome{}
 	}
 	if !supportsVideoContainer(path) {
-		return ProbeResult{}, false
+		return probeOutcome{}
 	}
 
 	f, info, err := openFileInfo(path)
 	if err != nil {
-		logFallback("probe", path, err)
-		return ProbeResult{}, false
+		reportFallback("probe", path, err, "using ffmpeg", "falling back to ffmpeg")
+		return probeOutcome{}
 	}
 	defer f.Close()
 
 	cacheKey := mediacache.FromFileInfo(path, info).String()
 	if res, ok := mediacache.Probes.Get(cacheKey); ok {
-		return res, true
+		return probeOutcome{res: res, ok: true}
 	}
 
 	// Coalesce concurrent probes of the same file into one container read.
-	v, err, _ := probeGroup.Do(cacheKey, func() (any, error) {
-		res, ok := parseProbe(path, f, info.Size())
-		if !ok {
-			return nil, errProbeUnsupported
+	v, _, _ := probeGroup.Do(cacheKey, func() (any, error) {
+		out := parseProbe(path, f, info.Size())
+		if out.ok {
+			mediacache.Probes.Set(cacheKey, out.res)
 		}
-		mediacache.Probes.Set(cacheKey, res)
-		return res, nil
+		return out, nil
 	})
-	if err != nil {
-		return ProbeResult{}, false
-	}
-	res, ok := v.(ProbeResult)
-	if !ok {
-		return ProbeResult{}, false
-	}
-	return res, true
+	out, _ := v.(probeOutcome)
+	return out
 }
 
-// errProbeUnsupported marks a probe that go-media chose not to answer. It carries
-// no detail because parseProbe already logged the specific reason.
-var errProbeUnsupported = errors.New("probe unsupported")
-
-// parseProbe reads a container and builds a ProbeResult. It reports false when
-// go-media should defer to ffmpeg, having logged why.
-func parseProbe(path string, f *os.File, size int64) (ProbeResult, bool) {
+// parseProbe reads a container and builds a ProbeResult. When go-media should
+// defer to ffmpeg it reports ok=false, having logged why, and says whether the
+// input is unsupported by design.
+func parseProbe(path string, f *os.File, size int64) probeOutcome {
 	info, err := media.Probe(f, size)
 	if err != nil {
-		logFallback("probe", path, err)
-		return ProbeResult{}, false
+		return probeOutcome{unsupported: reportFallback("probe", path, err, "using ffmpeg", "falling back to ffmpeg")}
 	}
 
 	if info.Duration <= 0 {
 		// Fragmented or unusual files can report no length. ffprobe answers instead,
 		// the same as durationFast does.
-		logUnsupported("probe", path, "duration not in container header")
-		return ProbeResult{}, false
+		return probeUnsupported(path, "duration not in container header")
 	}
 	res := ProbeResult{Duration: info.Duration.Seconds(), FormatName: info.FormatName}
 	if name, ok := ffprobeFormatNames[info.Format]; ok {
@@ -307,23 +316,28 @@ func parseProbe(path string, f *os.File, size int64) (ProbeResult, bool) {
 		case media.StreamVideo:
 			if s.Codec == "" {
 				// The UI would show no codec, so let ffprobe answer instead.
-				logUnsupported("probe", path, "video codec not identified")
-				return ProbeResult{}, false
+				return probeUnsupported(path, "video codec not identified")
 			}
 			if res.VideoCodec == "" {
 				res.VideoCodec = s.Codec
 			}
 		case media.StreamAudio:
 			if s.Codec == "" {
-				logUnsupported("probe", path, "audio codec not identified")
-				return ProbeResult{}, false
+				return probeUnsupported(path, "audio codec not identified")
 			}
 			if res.AudioCodec == "" {
 				res.AudioCodec = s.Codec
 			}
 		}
 	}
-	return res, true
+	return probeOutcome{res: res, ok: true}
+}
+
+// probeUnsupported logs a container or codec that go-media does not handle for
+// a probe, and returns the unsupported outcome for the caller.
+func probeUnsupported(path, reason string) probeOutcome {
+	logger.Warningf("go-media does not support probe for %s (%s); using ffmpeg", path, reason)
+	return probeOutcome{unsupported: true}
 }
 
 // Duration returns the media length in seconds from container headers.

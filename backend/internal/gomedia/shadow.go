@@ -181,15 +181,48 @@ func ShadowEnabled() bool {
 // otherwise compete with the next request's go-media decode and skew its timing.
 var shadowFfmpegSem = make(chan struct{}, 1)
 
-// shadowInFlight counts shadow goroutines that have started and not finished,
+// maxShadowQueue bounds how many shadow comparisons may be admitted at once,
+// running or waiting for shadowFfmpegSem. Without a bound, a burst of requests
+// starts one goroutine each, and every waiting goroutine keeps its go-media
+// value and legacy closure alive.
+const maxShadowQueue = 32
+
+// shadowAdmit holds one token per admitted shadow comparison.
+var shadowAdmit = make(chan struct{}, maxShadowQueue)
+
+// shadowInFlight counts admitted shadow comparisons that have not finished,
 // including ones waiting for shadowFfmpegSem.
 var shadowInFlight atomic.Int64
 
-// runLegacy runs the ffmpeg side of a shadow comparison one at a time.
-func runLegacy[T any](legacy Legacy[T]) (T, bool) {
+// spawnShadow runs run in the background when a queue slot is free. When the
+// queue is full the comparison is skipped: the caller already has its result,
+// and shadow diagnostics are best effort.
+func spawnShadow(run func()) {
+	select {
+	case shadowAdmit <- struct{}{}:
+	default:
+		shadowLogf("go-media shadow skipped: %d comparisons already queued", maxShadowQueue)
+		return
+	}
+	shadowInFlight.Add(1)
+	go func() {
+		defer func() {
+			shadowInFlight.Add(-1)
+			<-shadowAdmit
+		}()
+		run()
+	}()
+}
+
+// runLegacy runs the ffmpeg side of a shadow comparison one at a time. It also
+// returns how long legacy itself ran. The wait for shadowFfmpegSem is excluded,
+// so a comparison queued behind another one does not look slow.
+func runLegacy[T any](legacy Legacy[T]) (T, bool, time.Duration) {
 	shadowFfmpegSem <- struct{}{}
 	defer func() { <-shadowFfmpegSem }()
-	return legacy()
+	start := time.Now()
+	v, ok := legacy()
+	return v, ok, time.Since(start)
 }
 
 // timed runs the go-media fast path and logs its latency when it succeeds.
@@ -201,20 +234,28 @@ func runLegacy[T any](legacy Legacy[T]) (T, bool) {
 // shadow mode legacy also runs in the background, so an ffmpeg success that
 // go-media missed is recorded as an error regression.
 func timed[T any](op, path string, legacy Legacy[T], diff Differ[T], fast func() (T, bool)) (T, bool) {
+	return timedOutcome(op, path, legacy, diff, func() (T, bool, bool) {
+		v, ok := fast()
+		// Consume the mark even when shadow is off, so it never outlives the call.
+		return v, ok, !ok && takeUnsupported(op, path)
+	})
+}
+
+// timedOutcome is timed for a fast path that reports its own unsupported outcome.
+// unsupported is only meaningful when ok is false. It travels with the call, not
+// through the shared mark map, so every caller that shares a fast result (for
+// example through a singleflight group) sees the same outcome.
+func timedOutcome[T any](op, path string, legacy Legacy[T], diff Differ[T], fast func() (v T, ok, unsupported bool)) (T, bool) {
 	start := time.Now()
 	// Shadow runs in flight when this go-media call starts. A regression recorded
 	// with a non-zero load ran under contention and is marked as such.
 	load := shadowInFlight.Load()
-	v, ok := fast()
+	v, ok, unsupported := fast()
 	if !ok {
-		// Consume the mark even when shadow is off, so it never outlives the call.
-		unsupported := takeUnsupported(op, path)
 		if ShadowEnabled() && Enabled() && legacy != nil {
-			shadowInFlight.Add(1)
-			go func() {
-				defer shadowInFlight.Add(-1)
+			spawnShadow(func() {
 				runFallbackShadowOutcome(op, path, legacy, unsupported)
-			}()
+			})
 		}
 		return v, false
 	}
@@ -224,11 +265,9 @@ func timed[T any](op, path string, legacy Legacy[T], diff Differ[T], fast func()
 	if !ShadowEnabled() || legacy == nil {
 		return v, true
 	}
-	shadowInFlight.Add(1)
-	go func() {
-		defer shadowInFlight.Add(-1)
+	spawnShadow(func() {
 		runShadow(op, path, goLatency, v, legacy, diff, load)
-	}()
+	})
 	return v, true
 }
 
@@ -253,7 +292,7 @@ func runFallbackShadowOutcome[T any](op, path string, legacy Legacy[T], unsuppor
 		}
 	}()
 	var legacyVal T
-	legacyVal, ffOK = runLegacy(legacy)
+	legacyVal, ffOK, _ = runLegacy(legacy)
 	if !ffOK {
 		return
 	}
@@ -284,10 +323,8 @@ func runShadow[T any](op, path string, goLatency time.Duration, fast T, legacy L
 			logger.Errorf("go-media shadow %s for %s panicked: %v", op, path, r)
 		}
 	}()
-	ffStart := time.Now()
 	var legacyVal T
-	legacyVal, ffOK = runLegacy(legacy)
-	ffLatency = time.Since(ffStart)
+	legacyVal, ffOK, ffLatency = runLegacy(legacy)
 	shadowLogf("go-media shadow %s for %s: go-media=%.2fms legacy(ffmpeg/dhowden)=%.2fms diff(go-legacy)=%+.2fms",
 		op, path, ms(goLatency), ms(ffLatency), ms(goLatency)-ms(ffLatency))
 

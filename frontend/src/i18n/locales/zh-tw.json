@@ -728,7 +728,7 @@
     "shadowRegressionsViewDescription": "開啟一個僅供讀取的已記錄回歸測試清單。僅當 FILEBROWSER_DEVMODE 啟用時，才會記錄項目。",
     "shadowRegressionsLoadFailed": "無法載入回歸分析",
     "shadowRegressionsClearFailed": "無法清除回歸問題",
-    "shadowRegressionsCleared": "迴歸分析已完成",
+    "shadowRegressionsCleared": "迴歸記錄已清除",
     "shadowRegressionsAllOperations": "所有操作",
     "shadowRegressionsSucceeded": "成功了",
     "shadowRegressionsRegressions": "迴歸分析",

@@ -733,7 +733,7 @@
     "shadowRegressionsSucceeded": "Garaipena lortu du",
     "shadowRegressionsRegressions": "Erregresioak",
     "shadowRegressionsAverageTime": "Batez besteko denbora",
-    "shadowRegressionsGoMedia": "joan-media",
+    "shadowRegressionsGoMedia": "go-media",
     "shadowRegressionsFfmpeg": "ffmpeg",
     "shadowRegressionsVersus": "eta bestea",
     "shadowIncompatibleTitle": "go-mediak ez du onartzen, ffmpeg-ek kudeatzen du",

@@ -528,22 +528,22 @@ func GeneratePreviewWithCacheHash(ctx context.Context, file iteminfo.ExtendedFil
 	if useEmbeddedPreview(file) {
 		embedded, err := embeddedpreview.Extract(ctx, file.Name, file.Type, file.RealPath)
 		decodable := false
-		// Original size with an embedded upright JPEG: serve the bytes as stored. Nothing is decoded,
-		// so neither the pixel budget nor the decode permit applies. Rotated images still go through
-		// the orientation correction below.
+		// Original size with an embedded upright JPEG is served as stored: no resize and no
+		// orientation correction. The bytes still pass the same full decode as every other
+		// embedded path, so a truncated or corrupt image falls through to the normal preview.
+		// Rotated images still go through the orientation correction below.
 		asStored := previewSize == "original" && isStoredImageExt(embedded.Ext) && err == nil && len(embedded.Data) >= minPreviewSize &&
 			(!embedded.Oriented || orientationIsNormal(imagemeta.GetOrientation(ctx, file.RealPath)))
-		if asStored {
-			decodable = true
-		} else if err == nil && len(embedded.Data) >= minPreviewSize {
-			// The decode and the embedded-image resize allocate every pixel, so the permit is held
-			// until this function returns. A fallback to the normal path releases it straight away.
+		if err == nil && len(embedded.Data) >= minPreviewSize {
+			// The decode allocates every pixel, so the permit is held until this function
+			// returns when the bytes are used for a resize. A stored image or a fallback
+			// releases it straight away.
 			release, acqErr := service.acquireEmbeddedPermit(ctx, imagePermitHeld)
 			if acqErr != nil {
 				return nil, acqErr
 			}
 			decodable = embeddedImageDecodes(embedded.Data)
-			if decodable {
+			if decodable && !asStored {
 				defer release()
 			} else {
 				release()
