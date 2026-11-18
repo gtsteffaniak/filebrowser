@@ -3,10 +3,15 @@ package sqldb
 import (
 	"database/sql"
 	"fmt"
+
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
+	"github.com/gtsteffaniak/go-logger/logger"
 )
 
 // currentSchemaVersion is the SQLite schema marker for this codebase.
-const currentSchemaVersion = 4
+// Version 5 clears the preview and thumbnail cache once, for databases upgraded from
+// a version older than v2.2.0. Earlier versions used different cache keys.
+const currentSchemaVersion = 5
 
 // Schema creates all tables for the SQLite database
 func createSchema(db *sql.DB) error {
@@ -219,6 +224,12 @@ func runMigrations(db *sql.DB, fromVersion int) error {
 		case 4:
 			if err := addHashedTokenExpiryColumn(db); err != nil {
 				return err
+			}
+		case 5:
+			// Previews and thumbnails from earlier versions are regenerated on demand.
+			// A failure to clear is logged and does not block startup.
+			if err := settings.ClearPreviewDiskCache(); err != nil {
+				logger.Warningf("failed to clear preview cache during upgrade to schema 5: %v", err)
 			}
 		default:
 			return fmt.Errorf("unknown schema version: %d", v)

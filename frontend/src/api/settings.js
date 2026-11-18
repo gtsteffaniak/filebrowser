@@ -63,6 +63,14 @@ export function getShadowRegressions() {
   return fetchJSON(getApiPath("settings/shadow-regressions"));
 }
 
+export function getShadowIncompatible() {
+  return fetchJSON(getApiPath("settings/shadow-incompatible"));
+}
+
+export function getShadowRegressionStats() {
+  return fetchJSON(getApiPath("settings/shadow-regressions/stats"));
+}
+
 export function clearShadowRegressions() {
   return fetchJSON(getApiPath("settings/shadow-regressions"), {
     method: "DELETE",

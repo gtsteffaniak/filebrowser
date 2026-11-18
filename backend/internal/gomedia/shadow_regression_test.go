@@ -35,7 +35,7 @@ func TestRunShadowRecordsTimeRegressionAboveFiftyPercent(t *testing.T) {
 		return 0, true
 	}
 	// go-media took 30ms, ffmpeg about 10ms: +200%, well above the +50% threshold.
-	runShadow("duration", fixtureMP4, 30*time.Millisecond, 0.0, legacy, nil)
+	runShadow("duration", fixtureMP4, 30*time.Millisecond, 0.0, legacy, nil, 0)
 
 	regs := get()
 	require.Len(t, regs, 1)
@@ -54,7 +54,7 @@ func TestRunShadowIgnoresSlowdownBelowThreshold(t *testing.T) {
 		return 0, true
 	}
 	// go-media 25ms vs ffmpeg ~20ms is +25%, under the +50% threshold.
-	runShadow("duration", fixtureMP4, 25*time.Millisecond, 0.0, legacy, nil)
+	runShadow("duration", fixtureMP4, 25*time.Millisecond, 0.0, legacy, nil, 0)
 
 	require.Empty(t, get())
 }
@@ -63,7 +63,7 @@ func TestRunShadowIgnoresTooShortFfmpegRuns(t *testing.T) {
 	get := captureRegressions(t)
 
 	// ffmpeg finishes instantly, so a ratio would be noise; no record is expected.
-	runShadow("duration", fixtureMP4, 50*time.Millisecond, 0.0, func() (float64, bool) { return 0, true }, nil)
+	runShadow("duration", fixtureMP4, 50*time.Millisecond, 0.0, func() (float64, bool) { return 0, true }, nil, 0)
 
 	require.Empty(t, get())
 }

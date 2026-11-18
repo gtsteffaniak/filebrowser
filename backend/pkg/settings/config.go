@@ -1171,6 +1171,18 @@ func DownloadCacheDir() string {
 	return filepath.Join(Config.Server.CacheDir, "downloads")
 }
 
+// PreviewDiskCacheDir holds generated previews and thumbnails. It is the "diskcache"
+// folder that diskcache.NewFileCacheWithLimit creates under the cache directory.
+func PreviewDiskCacheDir() string {
+	return filepath.Join(Config.Server.CacheDir, "diskcache")
+}
+
+// ClearPreviewDiskCache removes all previews and thumbnails. The index database in
+// the cache directory's sql folder is left alone.
+func ClearPreviewDiskCache() error {
+	return fileutils.ClearDirectoryContents(PreviewDiskCacheDir())
+}
+
 // TranscodeCacheDir is where HLS transcode output is cached on disk.
 func TranscodeCacheDir() string {
 	return filepath.Join(Config.Server.CacheDir, "transcoding")

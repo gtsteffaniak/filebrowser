@@ -127,6 +127,8 @@ func configureHTTPRouter(router, api, publicRoutes, publicApi *http.ServeMux) {
 	api.HandleFunc("PATCH /settings/analytics", withTimeout(time5s, withAdminHelper(settingsAnalyticsUpdateHandler)))
 	api.HandleFunc("GET /settings/analytics/preview", withTimeout(time30s, withAdminHelper(settingsAnalyticsPreviewHandler)))
 	api.HandleFunc("GET /settings/shadow-regressions", withTimeout(time5s, withAdminHelper(settingsShadowRegressionsGetHandler)))
+	api.HandleFunc("GET /settings/shadow-regressions/stats", withTimeout(time5s, withAdminHelper(settingsShadowRegressionStatsHandler)))
+	api.HandleFunc("GET /settings/shadow-incompatible", withTimeout(time5s, withAdminHelper(settingsShadowIncompatibleGetHandler)))
 	api.HandleFunc("DELETE /settings/shadow-regressions", withTimeout(time5s, withAdminHelper(settingsShadowRegressionsClearHandler)))
 	api.HandleFunc("GET /settings/source", withTimeout(time5s, withUserHelper(settingsSourceGetHandler)))
 	api.HandleFunc("PATCH /settings/source", withTimeout(time5s, withAdminHelper(settingsSourcePatchHandler)))

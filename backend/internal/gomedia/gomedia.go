@@ -152,6 +152,14 @@ func supportsCameraRAW(path string) bool {
 	return cameraRawExts[strings.ToLower(filepath.Ext(path))]
 }
 
+// declinedByDesign reports whether path is outside the container or format list
+// that go-media targets for an operation. Such calls return before timed: no
+// fast attempt, no shadow run, and no log line. The caller uses ffmpeg, as it
+// does after any go-media failure.
+func declinedByDesign(path string, supported func(string) bool) bool {
+	return !supported(path)
+}
+
 // logFallback records why go-media was not used for op on path, for operations
 // that fall back to ffmpeg.
 func logFallback(op, path string, err error) {
@@ -166,6 +174,7 @@ func logFallbackTo(op, path string, err error, next, failed string) {
 	// ErrNotMedia means the file is not a container go-media reads. That is an
 	// expected fallback, not a failure, so it logs as a warning.
 	if errors.Is(err, media.ErrUnsupported) || errors.Is(err, media.ErrUnsupportedProfile) || errors.Is(err, media.ErrNotMedia) {
+		markUnsupported(op, path)
 		logger.Warningf("go-media does not support %s for %s (%v); %s", op, path, err, next)
 		return
 	}
@@ -174,6 +183,7 @@ func logFallbackTo(op, path string, err error, next, failed string) {
 
 // logUnsupported records a container or codec that go-media does not handle.
 func logUnsupported(op, path, reason string) {
+	markUnsupported(op, path)
 	logger.Warningf("go-media does not support %s for %s (%s); using ffmpeg", op, path, reason)
 }
 
@@ -224,6 +234,9 @@ type ProbeResult = ffmpeg.FileProbeInfo
 // Probe returns duration, codecs, and container name for a local media file.
 // legacy is the ffmpeg probe, run only in shadow mode.
 func Probe(path string, legacy Legacy[ProbeResult]) (ProbeResult, bool) {
+	if declinedByDesign(path, supportsVideoContainer) {
+		return ProbeResult{}, false
+	}
 	return timed("probe", path, legacy, probeDiff, func() (ProbeResult, bool) { return probeFast(path) })
 }
 
@@ -462,6 +475,9 @@ func lyricsFast(path string) (text, format string, ok bool) {
 // modification time.
 // legacy is the ffmpeg subtitle detection, run only in shadow mode.
 func EmbeddedSubtitles(path string, modtime time.Time, legacy Legacy[[]utils.SubtitleTrack]) ([]utils.SubtitleTrack, bool) {
+	if declinedByDesign(path, supportsVideoContainer) {
+		return nil, false
+	}
 	return timed("subtitle list", path, legacy, subtitleListDiff, func() ([]utils.SubtitleTrack, bool) {
 		return embeddedSubtitlesFast(path, modtime)
 	})
@@ -517,6 +533,9 @@ func embeddedSubtitlesFast(path string, modtime time.Time) ([]utils.SubtitleTrac
 // streamIndex is the same index EmbeddedSubtitles reports.
 // legacy is the ffmpeg subtitle extraction, run only in shadow mode.
 func ExtractSubtitle(path string, streamIndex int, legacy Legacy[string]) (string, bool) {
+	if declinedByDesign(path, supportsVideoContainer) {
+		return "", false
+	}
 	return timed("subtitle extract", path, legacy, subtitleExtractDiff, func() (string, bool) {
 		return extractSubtitleFast(path, streamIndex)
 	})
@@ -563,6 +582,9 @@ func extractSubtitleFast(path string, streamIndex int) (string, bool) {
 // Then no scaling happens in go-media either.
 // legacy is the ffmpeg preview frame, run only in shadow mode.
 func VideoThumbnail(path string, width, height, quality int, seekPercent float64, legacy Legacy[[]byte]) ([]byte, bool) {
+	if declinedByDesign(path, supportsVideoThumbnail) {
+		return nil, false
+	}
 	return timed("video thumbnail", path, legacy, thumbnailDiff, func() ([]byte, bool) {
 		return videoThumbnailFast(path, width, height, quality, seekPercent)
 	})
@@ -619,17 +641,24 @@ func videoThumbnailFast(path string, width, height, quality int, seekPercent flo
 	return res.Data, true
 }
 
-// HEICJPEG decodes HEIC/HEIF to JPEG at full resolution (bounds heicDecodeMaxEdge).
-// Resize for small/large/xlarge previews is done later by the preview service.
-// legacy is ffmpeg full decode, run only in shadow mode.
-func HEICJPEG(path string, quality int, legacy Legacy[[]byte]) ([]byte, bool) {
+// HEICJPEG decodes HEIC/HEIF to JPEG, scaled to fit maxW×maxH. Zero or negative
+// bounds mean full resolution (heicDecodeMaxEdge). Callers pass a bound only when
+// the output is a fit-mode preview, so the result needs no further resize.
+// legacy is the ffmpeg decode, run only in shadow mode.
+func HEICJPEG(path string, maxW, maxH, quality int, legacy Legacy[[]byte]) ([]byte, bool) {
+	if declinedByDesign(path, supportsHEIFImage) {
+		return nil, false
+	}
 	return timed("heic jpeg", path, legacy, thumbnailDiff, func() ([]byte, bool) {
-		return heicJPEGFast(path, quality)
+		return heicJPEGFast(path, maxW, maxH, quality)
 	})
 }
 
-func heicJPEGFast(path string, quality int) ([]byte, bool) {
-	return gatedStillImageJPEG(path, heicDecodeMaxEdge, heicDecodeMaxEdge, quality, "heic jpeg", supportsHEIFImage)
+func heicJPEGFast(path string, maxW, maxH, quality int) ([]byte, bool) {
+	if maxW <= 0 || maxH <= 0 {
+		maxW, maxH = heicDecodeMaxEdge, heicDecodeMaxEdge
+	}
+	return gatedStillImageJPEG(path, maxW, maxH, quality, "heic jpeg", supportsHEIFImage)
 }
 
 // JXLJPEG decodes JPEG XL to JPEG at full resolution (bounds heicDecodeMaxEdge).
@@ -651,6 +680,9 @@ func jxlJPEGFast(path string, quality int) ([]byte, bool) {
 // CameraRAWJPEG decodes camera RAW to JPEG at the requested bounds (0 means full
 // resolution up to heicDecodeMaxEdge). legacy is ffmpeg ConvertImageToJPEG, shadow only.
 func CameraRAWJPEG(path string, width, height, quality int, legacy Legacy[[]byte]) ([]byte, bool) {
+	if declinedByDesign(path, supportsCameraRAW) {
+		return nil, false
+	}
 	return timed("raw jpeg", path, legacy, thumbnailDiff, func() ([]byte, bool) {
 		return cameraRAWJPEGFast(path, width, height, quality)
 	})

@@ -1,10 +1,13 @@
 package gomedia
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"time"
 
@@ -28,8 +31,9 @@ const (
 )
 
 // timeRegressionRatio is how much slower go-media may be than ffmpeg before a
-// time regression is recorded. 1.5 means +50%.
-const timeRegressionRatio = 1.5
+// time regression is recorded. 2 means +100%: go-media must take more than
+// twice as long as ffmpeg.
+const timeRegressionRatio = 2.0
 
 // regressionMinFfmpegLatency skips timing ratios on runs too short to measure
 // reliably.
@@ -39,12 +43,42 @@ const regressionMinFfmpegLatency = 5 * time.Millisecond
 // path or name, only format and size information for diagnosis.
 type Regression struct {
 	CreatedAt time.Time
+	// FileKey identifies the file: a SHA-256 of its path. The store keeps one
+	// row per key, so a file never produces more than one entry.
+	FileKey   string
 	Operation string
 	Label     string
 	Detail    string
 	Format    string
 	SizeBytes int64
 	Codecs    string
+}
+
+// regressionFileKey identifies a file without storing its path. The same path
+// always maps to the same key.
+func regressionFileKey(path string) string {
+	sum := sha256.Sum256([]byte(path))
+	return hex.EncodeToString(sum[:])
+}
+
+// unsupportedMarks remembers, per op and path, that the go-media fast path
+// reported the input as unsupported (by design). logFallbackTo and logUnsupported
+// set a mark only while shadow mode is on. timed consumes it in the same call
+// that produced the failure, so the shadow run can tell "go-media does not do
+// this format" apart from "go-media broke".
+var unsupportedMarks sync.Map
+
+func unsupportedKey(op, path string) string { return op + "\x00" + path }
+
+func markUnsupported(op, path string) {
+	if ShadowEnabled() {
+		unsupportedMarks.Store(unsupportedKey(op, path), struct{}{})
+	}
+}
+
+func takeUnsupported(op, path string) bool {
+	_, ok := unsupportedMarks.LoadAndDelete(unsupportedKey(op, path))
+	return ok
 }
 
 var regressionSink atomic.Pointer[func(Regression)]
@@ -68,11 +102,55 @@ func recordRegression(op, path, label, detail, codecs string) {
 	}
 	r := Regression{
 		CreatedAt: time.Now(),
+		FileKey:   regressionFileKey(path),
 		Operation: op,
 		Label:     label,
 		Detail:    detail,
 		Format:    strings.TrimPrefix(strings.ToLower(filepath.Ext(path)), "."),
 		Codecs:    codecs,
+	}
+	if fi, err := os.Stat(path); err == nil {
+		r.SizeBytes = fi.Size()
+	}
+	(*sink)(r)
+}
+
+// Incompatible is a file that go-media does not support and ffmpeg handled. Unlike
+// Regression, it keeps the file path, so the list can show which files these are.
+// It is only produced in shadow (dev) mode.
+type Incompatible struct {
+	CreatedAt time.Time
+	FileKey   string
+	Path      string
+	Operation string
+	Format    string
+	SizeBytes int64
+}
+
+var incompatibleSink atomic.Pointer[func(Incompatible)]
+
+// SetIncompatibleSink registers the function that stores incompatible files. Until
+// it is set, they are not recorded.
+func SetIncompatibleSink(fn func(Incompatible)) {
+	if fn == nil {
+		incompatibleSink.Store(nil)
+		return
+	}
+	incompatibleSink.Store(&fn)
+}
+
+// recordIncompatible hands a file that go-media does not support, but ffmpeg did, to the sink.
+func recordIncompatible(op, path string) {
+	sink := incompatibleSink.Load()
+	if sink == nil {
+		return
+	}
+	r := Incompatible{
+		CreatedAt: time.Now(),
+		FileKey:   regressionFileKey(path),
+		Path:      path,
+		Operation: op,
+		Format:    strings.TrimPrefix(strings.ToLower(filepath.Ext(path)), "."),
 	}
 	if fi, err := os.Stat(path); err == nil {
 		r.SizeBytes = fi.Size()
@@ -99,6 +177,21 @@ func ShadowEnabled() bool {
 	return settings.Env.IsDevMode
 }
 
+// shadowFfmpegSem allows one shadow ffmpeg run at a time. Shadow ffmpeg work would
+// otherwise compete with the next request's go-media decode and skew its timing.
+var shadowFfmpegSem = make(chan struct{}, 1)
+
+// shadowInFlight counts shadow goroutines that have started and not finished,
+// including ones waiting for shadowFfmpegSem.
+var shadowInFlight atomic.Int64
+
+// runLegacy runs the ffmpeg side of a shadow comparison one at a time.
+func runLegacy[T any](legacy Legacy[T]) (T, bool) {
+	shadowFfmpegSem <- struct{}{}
+	defer func() { <-shadowFfmpegSem }()
+	return legacy()
+}
+
 // timed runs the go-media fast path and logs its latency when it succeeds.
 // In shadow mode, legacy runs in a background goroutine. The caller gets the
 // go-media result immediately. The goroutine logs the timing and, when the
@@ -109,10 +202,19 @@ func ShadowEnabled() bool {
 // go-media missed is recorded as an error regression.
 func timed[T any](op, path string, legacy Legacy[T], diff Differ[T], fast func() (T, bool)) (T, bool) {
 	start := time.Now()
+	// Shadow runs in flight when this go-media call starts. A regression recorded
+	// with a non-zero load ran under contention and is marked as such.
+	load := shadowInFlight.Load()
 	v, ok := fast()
 	if !ok {
+		// Consume the mark even when shadow is off, so it never outlives the call.
+		unsupported := takeUnsupported(op, path)
 		if ShadowEnabled() && Enabled() && legacy != nil {
-			go runFallbackShadow(op, path, legacy)
+			shadowInFlight.Add(1)
+			go func() {
+				defer shadowInFlight.Add(-1)
+				runFallbackShadowOutcome(op, path, legacy, unsupported)
+			}()
 		}
 		return v, false
 	}
@@ -122,37 +224,70 @@ func timed[T any](op, path string, legacy Legacy[T], diff Differ[T], fast func()
 	if !ShadowEnabled() || legacy == nil {
 		return v, true
 	}
-	go runShadow(op, path, goLatency, v, legacy, diff)
+	shadowInFlight.Add(1)
+	go func() {
+		defer shadowInFlight.Add(-1)
+		runShadow(op, path, goLatency, v, legacy, diff, load)
+	}()
 	return v, true
 }
 
 // runFallbackShadow runs legacy after go-media returned no result. If ffmpeg
 // succeeds, the go-media miss is recorded as an error regression.
 func runFallbackShadow[T any](op, path string, legacy Legacy[T]) {
+	runFallbackShadowOutcome(op, path, legacy, false)
+}
+
+// runFallbackShadowOutcome is runFallbackShadow with the go-media outcome known.
+// When go-media reported the input as unsupported (by design, not a fault), a
+// successful ffmpeg run is expected and is logged at info level, not as a regression.
+func runFallbackShadowOutcome[T any](op, path string, legacy Legacy[T], unsupported bool) {
+	regressed := false
+	ffOK := false
+	defer func() {
+		shadowStats.observe(op, shadowObservation{goOK: false, ffOK: ffOK, regressed: regressed})
+	}()
 	defer func() {
 		if r := recover(); r != nil {
 			logger.Errorf("go-media shadow %s for %s panicked: %v", op, path, r)
 		}
 	}()
-	legacyVal, ffOK := legacy()
+	var legacyVal T
+	legacyVal, ffOK = runLegacy(legacy)
 	if !ffOK {
+		return
+	}
+	if unsupported {
+		logger.Infof("go-media shadow %s for %s: unsupported by go-media, ffmpeg handled it (expected)", op, path)
+		recordIncompatible(op, path)
 		return
 	}
 	// go-media produced no value, so the codecs come from the ffmpeg result.
 	recordRegression(op, path, LabelError, "go-media returned no result while ffmpeg succeeded", describeCodecs(any(legacyVal)))
+	regressed = true
 }
 
 // runShadow times legacy, compares it with the go-media value, and logs the
 // result. It runs off the request path, so a panic is recovered and logged.
-func runShadow[T any](op, path string, goLatency time.Duration, fast T, legacy Legacy[T], diff Differ[T]) {
+func runShadow[T any](op, path string, goLatency time.Duration, fast T, legacy Legacy[T], diff Differ[T], load int64) {
+	regressed := false
+	ffOK := false
+	var ffLatency time.Duration
+	// Closures, not direct arguments: the values are read when the run ends.
+	defer func() {
+		shadowStats.observe(op, shadowObservation{
+			goOK: true, goLatency: goLatency, ffOK: ffOK, ffLatency: ffLatency, regressed: regressed,
+		})
+	}()
 	defer func() {
 		if r := recover(); r != nil {
 			logger.Errorf("go-media shadow %s for %s panicked: %v", op, path, r)
 		}
 	}()
 	ffStart := time.Now()
-	legacyVal, ffOK := legacy()
-	ffLatency := time.Since(ffStart)
+	var legacyVal T
+	legacyVal, ffOK = runLegacy(legacy)
+	ffLatency = time.Since(ffStart)
 	shadowLogf("go-media shadow %s for %s: go-media=%.2fms legacy(ffmpeg/dhowden)=%.2fms diff(go-legacy)=%+.2fms",
 		op, path, ms(goLatency), ms(ffLatency), ms(goLatency)-ms(ffLatency))
 
@@ -165,7 +300,11 @@ func runShadow[T any](op, path string, goLatency time.Duration, fast T, legacy L
 	if ffLatency >= regressionMinFfmpegLatency && float64(goLatency) > timeRegressionRatio*float64(ffLatency) {
 		detail := fmt.Sprintf("go-media %.1fms vs ffmpeg %.1fms (+%.0f%%)",
 			ms(goLatency), ms(ffLatency), (ms(goLatency)/ms(ffLatency)-1)*100)
+		if load > 0 {
+			detail += fmt.Sprintf(" [under load: %d shadow runs in flight at start]", load)
+		}
 		recordRegression(op, path, LabelTimeRegression, detail, describeCodecs(any(fast)))
+		regressed = true
 	}
 	var diffs []string
 	if diff != nil {
