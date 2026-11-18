@@ -72,7 +72,8 @@ func recaptchaSettings(pwd settings.PasswordAuthConfig) (enabled bool, host, key
 
 // spaContentSecurityPolicy restricts only scripts. srcdoc preview frames inherit
 // this header, blocking inline scripts without limiting frames, images, or API calls.
-// worker-src blob: is required for Ace editor web workers (analytics/config preview).
+// worker-src blob: is required for Ace editor web workers (analytics/config preview);
+// 'self' allows the CAD preview worker served from /wasm/.
 func spaContentSecurityPolicy(nonce string) string {
 	policy := fmt.Sprintf(
 		"script-src 'self' 'nonce-%s' https://cdn.jsdelivr.net https://www.google.com https://www.gstatic.com",
@@ -81,7 +82,7 @@ func spaContentSecurityPolicy(nonce string) string {
 	for _, origin := range onlyOfficeScriptSrcOrigins() {
 		policy += " " + origin
 	}
-	policy += "; worker-src blob:"
+	policy += "; worker-src 'self' blob:"
 	return policy
 }
 
@@ -366,6 +367,10 @@ func setContentType(w http.ResponseWriter, path string) {
 		w.Header().Set("Content-Type", "application/manifest+json")
 	case ".json":
 		w.Header().Set("Content-Type", "application/json")
+	case ".zip":
+		w.Header().Set("Content-Type", "application/zip")
+	case ".wasm":
+		w.Header().Set("Content-Type", "application/wasm")
 	}
 }
 
@@ -415,11 +420,22 @@ func rootFontHandler(w http.ResponseWriter, r *http.Request) {
 func staticAssetHandler(w http.ResponseWriter, r *http.Request) {
 	const maxAge = 86400 // 1 day
 	w.Header().Set("Cache-Control", fmt.Sprintf("public, max-age=%v", maxAge))
-	w.Header().Set("Content-Security-Policy", `default-src 'self'; style-src 'unsafe-inline';`)
 
 	// Strip baseURL and /static/ prefix to get clean asset path
 	path := strings.TrimPrefix(r.URL.Path, "/public")
 	path = strings.TrimPrefix(path, "/static/")
+
+	// The CAD preview worker (wasm/) importScripts()es its WASM engines from a CDN;
+	// a dedicated worker's policy comes from its own script response, so the generic
+	// static CSP (default-src 'self') must not apply to it.
+	if !strings.HasPrefix(path, "wasm/") {
+		w.Header().Set("Content-Security-Policy", `default-src 'self'; style-src 'unsafe-inline';`)
+	} else {
+		// Engine builds change with the app and the worker is not
+		// content-hashed: always revalidate so a stale worker never outlives
+		// its protocol.
+		w.Header().Set("Cache-Control", "no-cache")
+	}
 	// Handle special routes that need path mapping
 	var assetPath string
 	switch path {

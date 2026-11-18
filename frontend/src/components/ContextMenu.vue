@@ -136,6 +136,12 @@
           @action="showUnarchivePrompt"
         />
         <action
+          v-if="showCadConvert"
+          icon="change_circle"
+          :label="$t('cad.convert')"
+          @action="showCadConvertPrompt"
+        />
+        <action
           v-if="showShareAction"
           icon="share"
           :label="$t('general.share')"
@@ -228,6 +234,9 @@
       <action v-if="hasDownload" icon="file_download" :label="$t('general.download')" @action="startDownload" />
       <action v-if="showSendToAppInPreview" icon="ios_share" :label="$t('buttons.sendToApp')" @action="sendToAppFromPreview" />
       <action v-if="showUnarchiveInOverflow" icon="folder_open" :label="$t('prompts.unarchive')" @action="showUnarchivePromptFromPreview" />
+      <action v-if="showCadConvertInPreview" icon="change_circle" :label="$t('cad.convert')" @action="showCadConvertPromptFromPreview" />
+      <action v-if="showCadPropertiesInPreview" icon="analytics" :label="$t('threejs.properties')" @action="showCadPropertiesFromPreview" />
+      <action v-if="showCadMeasureInPreview" icon="architecture" :label="$t('threejs.measure')" @action="showCadMeasureFromPreview" />
       <action v-if="showEditButton" icon="edit" :label="$t('general.edit')" @action="goToEdit" />
       <action v-if="showPreviewButton" icon="visibility" :label="$t('general.preview')" @action="goToPreview" />
       <action v-if="showDelete" icon="delete" :label="$t('general.delete')" @action="showDeletePrompt" />
@@ -240,6 +249,7 @@ import { resourcesApi, shareApi, usersApi } from "@/api";
 import Action from "@/components/Action.vue";
 import { notify } from "@/notify";
 import { getters, mutations, state } from "@/store";
+import { eventBus } from "@/store/eventBus";
 import {
   hideInteractiveTooltip,
   showHoverTooltip,
@@ -248,6 +258,7 @@ import { url } from "@/utils";
 import { copyToClipboard } from "@/utils/clipboard";
 import { globalVars } from "@/utils/constants.js";
 import downloadFiles from "@/utils/download";
+import { isCadFile, getCadConversionTargets } from "@/utils/cadService.ts";
 import { canNativeShare, nativeShareFile } from "@/utils/nativeShare";
 import { isRichTextPreviewMimeType, getTypeInfoFromExt } from "@/utils/mimetype";
 import { isMediaRequest } from "@/utils/mediaFile";
@@ -421,6 +432,14 @@ export default {
       const item = this.firstSelected;
       return item && isArchivePath(item.path || item.from || item.name);
     },
+    showCadConvert() {
+      if (this.showLimitedOptions || this.showCreate) return false;
+      if (this.selectedCount !== 1) return false;
+      const item = this.firstSelected;
+      // Only offer the action when the engine actually has a target format
+      // for this input (e.g. bare .step files have none).
+      return item && getCadConversionTargets(item.name || item.path || "").length > 0;
+    },
     showShareAction() {
       if (this.showLimitedOptions) return false;
       // Advanced search results have no folder of their own to share, only the selected results do.
@@ -438,6 +457,25 @@ export default {
       if (!canNativeShare()) return false;
       if (!this.hasDownload || this.req?.isDir) return false;
       return this.isPreview;
+    },
+    isCadViewer() {
+      return getters.currentView() === "cadViewer" && isCadFile(this.req?.name || "");
+    },
+    showCadConvertInPreview() {
+      if (this.showLimitedOptions) return false;
+      if (!isCadFile(this.req?.name || "")) return false;
+      // Same target gating as the listing action.
+      return getCadConversionTargets(this.req?.name || "").length > 0;
+    },
+    showCadPropertiesInPreview() {
+      if (this.showLimitedOptions) return false;
+      // Properties and Measure are viewer actions routed through the CAD
+      // viewer's event listener; drawings are handled by DrawingViewer.
+      return this.isCadViewer;
+    },
+    showCadMeasureInPreview() {
+      if (this.showLimitedOptions) return false;
+      return this.isCadViewer;
     },
     showRename() {
       if (this.showLimitedOptions) return false;
@@ -1014,6 +1052,55 @@ export default {
         props: {
           item: { path, source, name: item.name },
         },
+      });
+    },
+    showCadConvertPrompt() {
+      mutations.closeTopPrompt();
+      const item = this.firstSelected;
+      if (!item) return;
+      mutations.showPrompt({
+        name: "CadConvert",
+        props: {
+          item: {
+            ...item,
+            source: item.source || state.req.source,
+          },
+        },
+      });
+    },
+    showCadConvertPromptFromPreview() {
+      // The convert dialog runs on its own worker fetch; open it directly so
+      // it works from any preview context, not just the mounted CAD viewer.
+      mutations.closeTopPrompt();
+      const req = state.req;
+      if (!req) return;
+      mutations.showPrompt({
+        name: "CadConvert",
+        props: {
+          item: {
+            path: req.path,
+            source: req.source,
+            name: req.name,
+            viewToken: req.viewToken,
+          },
+        },
+      });
+    },
+    showCadPropertiesFromPreview() {
+      this.emitCadViewerAction("properties");
+    },
+    showCadMeasureFromPreview() {
+      this.emitCadViewerAction("measure");
+    },
+    emitCadViewerAction(action) {
+      const req = state.req;
+      if (!req || !isCadFile(req.name || "")) return;
+      mutations.closeTopPrompt();
+      eventBus.emit("cadViewerAction", {
+        action,
+        path: req.path,
+        source: req.source,
+        name: req.name,
       });
     },
     goToRaw() {

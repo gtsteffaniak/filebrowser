@@ -300,6 +300,12 @@ var model3DMimeType = map[string]string{
 	".pcd":   "model/pcd",
 	".xyz":   "model/xyz",
 	".vox":   "model/vox",
+	".step":  "model/step",
+	".stp":   "model/step",
+	".x_t":   "model/x-parasolid",
+	".x_b":   "model/x-parasolid",
+	".sldprt": "model/x-solidworks-part",
+	".sldasm": "model/x-solidworks-assembly",
 }
 
 var audioMetadataTypes = map[string]bool{
@@ -450,6 +456,9 @@ func (i *ItemInfo) DetectType(realPath string, saveContent bool) {
 		return
 	case ".kmz":
 		i.Type = "application/vnd.google-earth.kmz"
+		return
+	case ".slddrw":
+		i.Type = "application/x-solidworks-drawing"
 		return
 	}
 	i.Type = strings.Split(mime.TypeByExtension(ext), ";")[0]
