@@ -9,6 +9,15 @@
   </div>
   <div class="card-actions">
     <button
+      type="button"
+      class="button button--flat button--blue"
+      @click="cancelPrompt"
+      :aria-label="$t('general.cancel')"
+      :title="$t('general.cancel')"
+    >
+      {{ $t("general.cancel") }}
+    </button>
+    <button
       v-if="allowRename"
       type="button"
       class="button button--flat button--blue"
@@ -40,20 +49,11 @@
       :title="$t('general.replace')">
       {{ $t("general.replace") }}
     </button>
-    <button
-      type="button"
-      class="button button--flat button--blue"
-      @click="(event) => currentPrompt.confirm(event, 'cancel')"
-      :aria-label="$t('general.cancel')"
-      :title="$t('general.cancel')"
-    >
-      {{ $t("general.cancel") }}
-    </button>
   </div>
 </template>
 
 <script>
-import { getters, state } from "@/store";
+import { getters, mutations, state } from "@/store";
 import { uploadManager } from "@/utils/upload";
 
 export default {
@@ -89,6 +89,14 @@ export default {
       return canModify;
     },
   },
-  methods: {},
+  methods: {
+    // Cancel means "close and do nothing" for every caller of this dialog, not
+    // an option their confirm handlers have to know about.
+    cancelPrompt() {
+      const prompt = this.currentPrompt;
+      mutations.closeTopPrompt(undefined, { skipCancel: true });
+      prompt?.cancel?.();
+    },
+  },
 };
 </script>
