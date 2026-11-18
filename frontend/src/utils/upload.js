@@ -103,6 +103,7 @@ class UploadManager {
     this.conflictsCancelled = false; // the user stopped this batch
     this.skipAll = false; // the batch answer was "leave what is there"
     this.continuingBatch = false; // add() continues the batch it just answered
+    this.submissionId = 0; // which submission a queued job belongs to
     this.pendingConflictItems = null; // items waiting for the batch answer
     this.isOverallPaused = false;
     this.onConflict = () => {}; // Callback for UI
@@ -319,10 +320,25 @@ class UploadManager {
     upload.status = "pending";
 
     if (isDirectory) {
-      // Everything queued inside the directory moves with it.
+      // Only jobs from this submission move with the directory: another transfer
+      // may be aiming at the same folder, and its destinations are not ours.
       for (const item of this.queue) {
-        if (item !== upload && item.path?.startsWith(oldPrefix)) {
-          item.path = `${newPath}${item.path.slice(oldPrefix.length)}`;
+        const owned = item.submission === upload.submission && item.source === upload.source;
+        if (item === upload || !owned || !item.path?.startsWith(oldPrefix)) {
+          continue;
+        }
+        // A transfer in flight or already finished is left alone: its request is
+        // on its way, or its file is already where it belongs.
+        if (item.status === "uploading" || item.status === "completed") {
+          continue;
+        }
+        item.path = `${newPath}${item.path.slice(oldPrefix.length)}`;
+        // An offset into the old path is meaningless under the new name.
+        item.chunkOffset = 0;
+        item.progress = 0;
+        item.sessionId = newUploadSessionId();
+        if (item.status === "paused" || item.status === "error") {
+          item.status = "pending";
         }
       }
     }
@@ -439,6 +455,7 @@ class UploadManager {
       this.skipAll = false;
       this.conflictsCancelled = false;
       this.isOverallPaused = false;
+      this.submissionId += 1;
     }
     this.continuingBatch = false;
     // Handle undefined/null basePath
@@ -603,6 +620,7 @@ class UploadManager {
         const upload = {
           id: this.nextId++,
           sessionId: newUploadSessionId(),
+          submission: this.submissionId,
           name: dirName,
           size: 0,
           progress: 0,
@@ -627,6 +645,7 @@ class UploadManager {
       const upload = {
         id,
         sessionId: newUploadSessionId(),
+        submission: this.submissionId,
         file,
         name: item.uploadName || file.name,
         size: file.size,

@@ -963,3 +963,44 @@ describe("second review round", () => {
     expect(uploadManager.skipAll).toBe(true);
   });
 });
+
+describe("directory renames stay inside their submission", () => {
+  it("moves only the jobs of the renamed submission", () => {
+    const dir = addUpload("conflict");
+    Object.assign(dir, { type: "directory", path: "/base/docs/", submission: 1, source: "shared" });
+    const own = addUpload("pending");
+    Object.assign(own, { path: "/base/docs/a.txt", submission: 1, source: "shared" });
+    const foreign = addUpload("pending");
+    Object.assign(foreign, { path: "/base/docs/b.txt", submission: 2, source: "shared" });
+    const otherSource = addUpload("pending");
+    Object.assign(otherSource, { path: "/base/docs/c.txt", submission: 1, source: "other" });
+
+    uploadManager.renameQueuedUpload(dir, "docs-copy");
+
+    expect(own.path).toBe("/base/docs-copy/a.txt");
+    expect(foreign.path).toBe("/base/docs/b.txt");
+    expect(otherSource.path).toBe("/base/docs/c.txt");
+  });
+
+  it("restarts a paused job under the new name instead of resuming the old one", () => {
+    const dir = addUpload("conflict");
+    Object.assign(dir, { type: "directory", path: "/base/docs/", submission: 1, source: "shared" });
+    const paused = addUpload("paused");
+    Object.assign(paused, {
+      path: "/base/docs/big.bin",
+      submission: 1,
+      source: "shared",
+      chunkOffset: 5000000,
+      progress: 40,
+      sessionId: "old-session",
+    });
+
+    uploadManager.renameQueuedUpload(dir, "docs-copy");
+
+    expect(paused.path).toBe("/base/docs-copy/big.bin");
+    expect(paused.chunkOffset).toBe(0);
+    expect(paused.progress).toBe(0);
+    expect(paused.sessionId).not.toBe("old-session");
+    expect(paused.status).toBe("pending");
+  });
+});
