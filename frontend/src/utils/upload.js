@@ -113,6 +113,7 @@ class UploadManager {
     this.hadActiveUploads = false; // Track if we've had active uploads
     this.conflictingFolder = null; // Track the folder name that caused conflict
     this.pendingItems = null; // Store pending items during conflict resolution
+    this.pendingBasePath = null; // Where those items were going
     this.probedDirs = new Set(); // Track directories that were probed/created during conflict check
     this.progressTimeouts = new Map(); // Track progress timeouts per upload ID
     this.lastUploadActivityTime = null;
@@ -131,6 +132,16 @@ class UploadManager {
       this.conflictPromptOpen = false;
       this.isPausedForConflict = false;
       this.pendingConflictItems = null;
+      // A batch waiting behind a question that will never be shown is queued now,
+      // and the queue keeps running without the window.
+      const waiting = this.pendingItems;
+      const basePath = this.pendingBasePath;
+      this.pendingItems = null;
+      this.pendingBasePath = null;
+      if (waiting && basePath) {
+        void this.add(basePath, waiting);
+      }
+      void this.processQueue();
     }
   }
 
@@ -589,6 +600,7 @@ class UploadManager {
             // Store the conflicting folder name (take the first one for now)
             this.conflictingFolder = conflictingDirs[0];
             this.pendingItems = items;
+            this.pendingBasePath = basePath;
             this.conflictPromptOpen = true;
             this.onConflict(
               (resolution) => this.resolveConflict(basePath, items, resolution, submission),
@@ -616,6 +628,7 @@ class UploadManager {
           if (!this.conflictPromptOpen && typeof this.onConflict === "function") {
             this.conflictingFolder = null;
             this.pendingItems = items;
+            this.pendingBasePath = basePath;
             // Name them in the question: these files are already in the listing, so
             // they are known here and must not be left out of it.
             this.pendingConflictItems = Array.from(items).filter(
@@ -743,6 +756,7 @@ class UploadManager {
     // reading them: its Skip and Rename answers use them.
     if (!this.conflictPromptOpen) {
       this.pendingItems = null;
+      this.pendingBasePath = null;
       this.conflictingFolder = null;
     }
     this.probedDirs.clear();
@@ -805,6 +819,7 @@ class UploadManager {
       this.conflictsCancelled = false;
       this.answers.clear();
       this.cancelledSubmissions.clear();
+      this.pendingBasePath = null;
     }
   }
 

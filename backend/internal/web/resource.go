@@ -1215,7 +1215,13 @@ func publicUploadHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 	r.URL.RawQuery = q.Encode()
 	status, err := ResourcePostHandler(w, r, d)
 	if err != nil {
-		logger.Errorf("public upload handler: error uploading with error %v", err)
+		// A file that already exists is an ordinary answer for an upload, asked
+		// about in the UI, not a server error.
+		if status == http.StatusConflict {
+			logger.Debugf("public upload handler: conflict: %v", err)
+		} else {
+			logger.Errorf("public upload handler: error uploading with error %v", err)
+		}
 		if status == 0 {
 			status = http.StatusInternalServerError
 		}
