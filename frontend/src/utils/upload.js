@@ -101,6 +101,7 @@ class UploadManager {
     this.isPausedForConflict = false;
     this.conflictPromptOpen = false; // one batch question at a time
     this.conflictsCancelled = false; // the user stopped this batch
+    this.skipAll = false; // the batch answer was "leave what is there"
     this.pendingConflictItems = null; // items waiting for the batch answer
     this.isOverallPaused = false;
     this.onConflict = () => {}; // Callback for UI
@@ -218,6 +219,9 @@ class UploadManager {
       // User chose skip - only upload what is missing or incomplete
       const pending = this.pendingItems;
       this.conflictingFolder = null;
+      // The answer covers the rest of this batch: later conflicts are skipped
+      // without asking again.
+      this.skipAll = true;
       void this.add(basePath, pending, false, true);
     } else {
       // User cancelled
@@ -238,12 +242,13 @@ class UploadManager {
       return;
     }
     // Already answered for this batch: apply the answer, do not ask again.
-    if (this.overwriteAll === true) {
-      for (const item of conflicting) {
-        item.overwrite = true;
-        item.status = "pending";
+    if (this.overwriteAll === true || this.skipAll) {
+      if (this.skipAll) {
+        this.dropConflicting(conflicting);
+      } else {
+        this.retryConflicts(conflicting);
       }
-      void this.processQueue();
+      setTimeout(() => void this.processQueue(), 0);
       return;
     }
     if (this.overwriteAll === false) {
@@ -260,6 +265,47 @@ class UploadManager {
     this.onConflict((resolution) => this.resolveConflictForBatch(resolution), {
       allowRename: this.conflictAllowsRename(),
     });
+  }
+
+  /** Waits while a question is on screen, so two of them never stack up. */
+  async waitForFreePrompt() {
+    for (let i = 0; i < 300 && this.conflictPromptOpen; i += 1) {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+  }
+
+  /** How many times one file may be sent again after a conflict. */
+  static get MAX_CONFLICT_RETRIES() {
+    return 3;
+  }
+
+  /** Sends the conflicting items again with permission to overwrite, up to a limit. */
+  retryConflicts(items) {
+    for (const item of items) {
+      item.conflictRetries = (item.conflictRetries || 0) + 1;
+      if (item.conflictRetries > UploadManager.MAX_CONFLICT_RETRIES) {
+        // Retrying forever would hide a conflict that overwriting cannot solve,
+        // such as another session holding the same path.
+        item.status = "error";
+        item.errorDetails = "Still in conflict after several attempts";
+        continue;
+      }
+      item.overwrite = true;
+      item.status = "pending";
+    }
+  }
+
+  /** Points a queued job at the name the user chose and starts it over. */
+  renameQueuedUpload(upload, newName) {
+    const path = upload.path || "/";
+    const slash = path.lastIndexOf("/");
+    const dir = slash <= 0 ? "/" : path.slice(0, slash + 1);
+    upload.path = `${dir}${newName}`;
+    upload.name = newName;
+    upload.chunkOffset = 0;
+    upload.progress = 0;
+    upload.overwrite = false;
+    upload.status = "pending";
   }
 
   /** Leaves the given items out of the queue and reports how many were skipped. */
@@ -284,16 +330,18 @@ class UploadManager {
     if (resolution === true) {
       // Replace all: the answer covers the whole batch, not just these items.
       this.overwriteAll = true;
-      for (const item of items) {
-        item.overwrite = true;
-        item.status = "pending";
-      }
+      this.retryConflicts(items);
     } else if (resolution?.skip) {
       // Skip all: the answer covers the whole batch as well.
       this.overwriteAll = false;
       this.dropConflicting(items);
+    } else if (resolution?.rename) {
+      // One item was in the way and the user gave it another name: send it there.
+      if (items[0]) {
+        this.renameQueuedUpload(items[0], resolution.rename);
+      }
     } else {
-      // Cancel: stop the queue and do not ask again for this batch.
+      // Cancel: stop this batch and do not ask again for it.
       this.isOverallPaused = true;
       this.conflictsCancelled = true;
     }
@@ -302,7 +350,8 @@ class UploadManager {
     // above: apply the same answer to them before the queue moves on, otherwise
     // they stay marked as conflicts and nothing asks about them again.
     this.askConflictForBatch();
-    void this.processQueue();
+    // Let the failed requests release their slots before the queue is refilled.
+    setTimeout(() => void this.processQueue(), 0);
   }
 
   /**
@@ -344,7 +393,9 @@ class UploadManager {
 
   /** Whether the destination of this upload already exists on the server. */
   async targetExists(upload) {
-    if (getters.isShare() || !upload?.path) {
+    if (getters.isShare() || !upload?.path || upload.overwrite) {
+      // A replacement expects the file to be there: a dropped connection during
+      // it is an ordinary interruption to resume, not a conflict.
       return false;
     }
     const path = upload.path;
@@ -354,11 +405,19 @@ class UploadManager {
       return false;
     }
     const dir = slash <= 0 ? "/" : path.slice(0, slash + 1);
-    const listing = await resourcesApi.listDirectoryEntries(state.req.source, dir);
+    const source = upload.source || state.req.source;
+    const listing = await resourcesApi.listDirectoryEntries(source, dir);
     return Boolean(listing?.has(name));
   }
 
   async add(basePath, items, overwrite = false, skipExisting = false) {
+    if (this.queue.length === 0) {
+      // A new batch starts with no answers left over from the previous one.
+      this.overwriteAll = null;
+      this.skipAll = false;
+      this.conflictsCancelled = false;
+      this.isOverallPaused = false;
+    }
     // Handle undefined/null basePath
     if (!basePath) {
       basePath = "/";
@@ -430,6 +489,7 @@ class UploadManager {
           this.conflictingFolder = conflictingDirs[0];
           this.pendingItems = items;
 
+          await this.waitForFreePrompt();
           this.onConflict(
             (resolution) => this.resolveConflict(basePath, items, resolution),
             { allowRename: true }
@@ -456,6 +516,7 @@ class UploadManager {
           this.pendingConflictItems = Array.from(items).filter(
             (item) => !item.relativePath?.includes("/") && existingNames.has(item.uploadName || item.file.name)
           );
+          await this.waitForFreePrompt();
           this.onConflict(
             (resolution) => this.resolveConflict(basePath, items, resolution),
             { allowRename: this.conflictAllowsRename() }
@@ -627,6 +688,7 @@ class UploadManager {
       }
       this.hadActiveUploads = false; // Reset the flag
       this.overwriteAll = null; // Reset for next batch of uploads
+      this.skipAll = false;
       this.conflictsCancelled = false;
     }
   }

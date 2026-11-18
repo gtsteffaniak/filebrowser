@@ -866,3 +866,57 @@ describe("after renaming the incoming file", () => {
     expect(queued?.name).toBe("done-kopija.mov");
   });
 });
+
+describe("review follow-ups", () => {
+  beforeEach(() => {
+    uploadManager.pendingItems = null;
+    uploadManager.pendingConflictItems = null;
+    uploadManager.conflictingFolder = null;
+    uploadManager.overwriteAll = null;
+    uploadManager.skipAll = false;
+    uploadManager.isOverallPaused = false;
+    vi.spyOn(uploadManager, "processQueue").mockResolvedValue();
+  });
+
+  afterEach(() => {
+    uploadManager.setOnConflict(() => {});
+    uploadManager.overwriteAll = null;
+    uploadManager.skipAll = false;
+  });
+
+  it("stops sending a file that keeps conflicting", () => {
+    const item = addUpload("conflict");
+    for (let round = 0; round < 3; round += 1) {
+      uploadManager.retryConflicts([item]);
+      item.status = "conflict";
+    }
+    uploadManager.retryConflicts([item]);
+    expect(item.status).toBe("error");
+  });
+
+  it("renames a queued job instead of the file on the server", () => {
+    const item = addUpload("conflict");
+    item.path = "/base/old.txt";
+    uploadManager.renameQueuedUpload(item, "new.txt");
+    expect(item.path).toBe("/base/new.txt");
+    expect(item.name).toBe("new.txt");
+    expect(item.overwrite).toBe(false);
+    expect(item.status).toBe("pending");
+  });
+
+  it("does not treat a dropped replacement as a conflict", async () => {
+    resourcesApi.listDirectoryEntries.mockResolvedValue(
+      new Map([["file", { size: 1, type: "file" }]])
+    );
+    const item = addUpload("uploading");
+    item.overwrite = true;
+    expect(await uploadManager.targetExists(item)).toBe(false);
+  });
+
+  it("keeps the skip answer for later conflicts in the batch", () => {
+    uploadManager.skipAll = true;
+    addUpload("conflict");
+    uploadManager.askConflictForBatch();
+    expect(uploadManager.queue).toHaveLength(0);
+  });
+});

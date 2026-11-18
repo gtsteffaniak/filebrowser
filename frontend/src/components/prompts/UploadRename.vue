@@ -8,7 +8,7 @@
       class="input"
       type="text"
       aria-label="New Name"
-      @keyup.enter="submit"
+      @keydown.enter="onEnter"
     />
   </div>
   <div class="card-actions">
@@ -25,7 +25,7 @@
       type="button"
       id="focus-prompt"
       class="button button--flat button--red"
-      :disabled="!name"
+      :disabled="!isValid"
       @click="submit"
       :aria-label="$t('general.rename')"
       :title="$t('general.rename')"
@@ -37,6 +37,12 @@
 
 <script>
 import { getters } from "@/store";
+
+/** One file or folder name: no path separators. */
+function isSingleName(value) {
+  const name = (value || "").trim();
+  return name.length > 0 && !/[\\/]/.test(name);
+}
 
 /**
  * Asks for the name the folder being uploaded should take when a folder with the
@@ -62,13 +68,24 @@ export default {
     currentPrompt() {
       return getters.currentPrompt();
     },
+    isValid() {
+      return isSingleName(this.name);
+    },
   },
   methods: {
-    submit() {
-      if (!this.name) {
+    onEnter(event) {
+      // Enter that commits an IME candidate is not a confirmation.
+      if (event?.isComposing || event?.keyCode === 229) {
         return;
       }
-      this.currentPrompt.confirm(undefined, this.name);
+      this.submit();
+    },
+    submit() {
+      // Another prompt may have taken over while this one was closing.
+      if (this.currentPrompt?.name !== "upload-rename" || !this.isValid) {
+        return;
+      }
+      this.currentPrompt.confirm(undefined, this.name.trim());
     },
   },
 };

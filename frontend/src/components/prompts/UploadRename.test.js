@@ -2,7 +2,7 @@ import { createApp } from "vue";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 const { prompt } = vi.hoisted(() => ({
-  prompt: { confirm: () => {} },
+  prompt: { name: "upload-rename", confirm: () => {} },
 }));
 
 vi.mock("@/store", () => ({
@@ -15,6 +15,7 @@ let app, root;
 
 async function mount(folderName) {
   prompt.confirm = vi.fn();
+  prompt.name = "upload-rename";
   root = document.createElement("div");
   document.body.append(root);
   app = createApp(UploadRename, { initialName: folderName });

@@ -290,21 +290,32 @@ export default {
           } else if (option === "rename") {
             showRenamePrompt();
           } else {
-            resolveConflict(false);
+            settleConflict(false);
           }
         },
+        // Escape and the close button answer the question with "cancel";
+        // otherwise the queue stays paused with nothing to resume it.
+        cancel: () => settleConflict(false, false),
       });
     };
 
-    const resolveConflict = (overwrite) => {
+    // Answering the question settles the upload; the close that follows must not
+    // look like the user dismissing it, so it skips the cancel handler.
+    const settleConflict = (resolution, closePrompt = true) => {
       if (conflictResolver) {
-        conflictResolver(overwrite);
+        conflictResolver(resolution);
       }
-      mutations.closeTopPrompt(); // Only close the conflict prompt, return to upload prompt
+      if (closePrompt) {
+        mutations.closeTopPrompt(undefined, { skipCancel: true });
+      }
     };
 
+    const resolveConflict = (resolution) => settleConflict(resolution);
+
     const showRenamePrompt = () => {
-      mutations.closeTopPrompt(); // Only close the replace-rename prompt, keep upload prompt open
+      // Leave the question without answering it: the answer comes from the name
+      // window, so the close here must not run the cancel handler.
+      mutations.closeTopPrompt(undefined, { skipCancel: true });
       const details = uploadManager.getConflictDetails();
       const target = details.names[0];
       if (!target) {
@@ -317,14 +328,13 @@ export default {
         props: { initialName: target },
         confirm: async (_event, newName) => {
           if (!newName) {
-            resolveConflict(false);
+            settleConflict(false);
             return;
           }
           if (existingNames.has(newName)) {
             notify.showError(new Error(`An item named "${newName}" already exists`));
             return;
           }
-          mutations.closeTopPrompt();
           // Only the incoming upload takes the new name: whatever is already on the
           // server stays untouched, so the result is two items, as the user expects.
           if (details.kind === "folder") {
@@ -332,8 +342,10 @@ export default {
           } else {
             uploadManager.renamePendingFile(target, newName);
           }
-          resolveConflict({ rename: newName });
+          settleConflict({ rename: newName });
         },
+        // Dismissing the name window cancels the upload instead of leaving it hanging.
+        cancel: () => settleConflict(false, false),
       });
     };
 
