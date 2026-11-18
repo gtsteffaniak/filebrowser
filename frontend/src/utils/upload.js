@@ -109,7 +109,7 @@ class UploadManager {
     this.submissionId = 0; // which submission a queued job belongs to
     this.pendingConflictItems = null; // items waiting for the batch answer
     this.isOverallPaused = false;
-    this.onConflict = () => {}; // Callback for UI
+    this.onConflict = null; // Callback for UI; null = no window can ask
     this.hadActiveUploads = false; // Track if we've had active uploads
     this.conflictingFolder = null; // Track the folder name that caused conflict
     this.pendingItems = null; // Store pending items during conflict resolution
@@ -125,7 +125,7 @@ class UploadManager {
   }
 
   setOnConflict(handler) {
-    this.onConflict = handler || (() => {});
+    this.onConflict = handler;
     if (!handler) {
       // Nothing can show the question: do not park the queue on it.
       this.conflictPromptOpen = false;
@@ -262,6 +262,10 @@ class UploadManager {
   askConflictForBatch() {
     const conflicts = this.queue.filter((item) => item.status === "conflict");
     if (conflicts.length === 0) {
+      return;
+    }
+    if (typeof this.onConflict !== "function") {
+      // No window can show the question right now; it is asked again when one opens.
       return;
     }
 
@@ -581,7 +585,7 @@ class UploadManager {
           // Wait for any open question first: writing this state earlier would
           // overwrite what the open dialog is about to read.
           await this.waitForFreePrompt();
-          if (!this.conflictPromptOpen) {
+          if (!this.conflictPromptOpen && typeof this.onConflict === "function") {
             // Store the conflicting folder name (take the first one for now)
             this.conflictingFolder = conflictingDirs[0];
             this.pendingItems = items;
@@ -609,7 +613,7 @@ class UploadManager {
         );
         if (hasLooseConflict) {
           await this.waitForFreePrompt();
-          if (!this.conflictPromptOpen) {
+          if (!this.conflictPromptOpen && typeof this.onConflict === "function") {
             this.conflictingFolder = null;
             this.pendingItems = items;
             // Name them in the question: these files are already in the listing, so
@@ -1235,10 +1239,6 @@ class UploadManager {
           item.status === "paused"
       )
     );
-  }
-
-  getConflictingFolder() {
-    return this.conflictingFolder;
   }
 
   async renameFolder(oldName, newName) {

@@ -436,6 +436,8 @@ export default {
     onMounted(async () => {
       document.addEventListener("visibilitychange", void handleVisibilityChange);
       uploadManager.setOnConflict(handleConflict);
+      // Conflicts found while no window was open are asked now.
+      uploadManager.askConflictForBatch();
       if (props.initialItems) {
         await processItems(props.initialItems);
       }
@@ -444,6 +446,11 @@ export default {
     onUnmounted(() => {
       document.removeEventListener("visibilitychange", void handleVisibilityChange);
       uploadManager.setOnConflict(null); // no dialog can answer now
+      // This window asks the questions: do not leave one floating over the next page.
+      const openPrompt = getters.currentPrompt();
+      if (openPrompt?.name === "replace-rename" || openPrompt?.name === "upload-rename") {
+        mutations.closeTopPrompt(undefined, { skipCancel: true });
+      }
       releaseWakeLock();
     });
 
@@ -771,21 +778,6 @@ export default {
   flex-direction: column;
   position: relative;
   padding: 1em;
-}
-
-.conflict-overlay {
-  position: absolute;
-  inset: 0;
-  background-color: rgb(0 0 0 / 70%);
-  z-index: 999;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.conflict-overlay .card {
-  padding: 1em;
-  border-radius: 8px;
 }
 
 /* Upload settings styles */
