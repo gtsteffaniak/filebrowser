@@ -302,11 +302,15 @@ export default {
     // Answering the question settles the upload; the close that follows must not
     // look like the user dismissing it, so it skips the cancel handler.
     const settleConflict = (resolution, closePrompt = true) => {
-      if (conflictResolver) {
-        conflictResolver(resolution);
-      }
+      // Take the resolver off this prompt before anything else: the resolver may
+      // open the next question synchronously, and that one must keep its own.
+      const resolver = conflictResolver;
+      conflictResolver = null;
       if (closePrompt) {
         mutations.closeTopPrompt(undefined, { skipCancel: true });
+      }
+      if (resolver) {
+        resolver(resolution);
       }
     };
 

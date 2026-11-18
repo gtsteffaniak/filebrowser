@@ -920,3 +920,46 @@ describe("review follow-ups", () => {
     expect(uploadManager.queue).toHaveLength(0);
   });
 });
+
+describe("second review round", () => {
+  beforeEach(() => {
+    uploadManager.pendingItems = null;
+    uploadManager.pendingConflictItems = null;
+    uploadManager.overwriteAll = null;
+    uploadManager.skipAll = false;
+    uploadManager.continuingBatch = false;
+    vi.spyOn(uploadManager, "processQueue").mockResolvedValue();
+  });
+
+  afterEach(() => {
+    state.req.items = [];
+    uploadManager.setOnConflict(() => {});
+    uploadManager.skipAll = false;
+    uploadManager.continuingBatch = false;
+  });
+
+  it("renames a queued directory together with everything inside it", () => {
+    const dir = addUpload("conflict");
+    dir.type = "directory";
+    dir.path = "/base/docs/";
+    const child = addUpload("pending");
+    child.path = "/base/docs/a.txt";
+    const other = addUpload("pending");
+    other.path = "/base/other.txt";
+
+    uploadManager.renameQueuedUpload(dir, "docs-copy");
+
+    expect(dir.path).toBe("/base/docs-copy/");
+    expect(child.path).toBe("/base/docs-copy/a.txt");
+    expect(other.path).toBe("/base/other.txt");
+  });
+
+  it("keeps the skip answer while the same batch continues", async () => {
+    uploadManager.skipAll = true;
+    uploadManager.continuingBatch = true;
+    await uploadManager.add("/base/", [
+      { file: { name: "new.mov", size: 5 }, relativePath: "new.mov" },
+    ]);
+    expect(uploadManager.skipAll).toBe(true);
+  });
+});

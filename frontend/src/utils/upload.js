@@ -102,6 +102,7 @@ class UploadManager {
     this.conflictPromptOpen = false; // one batch question at a time
     this.conflictsCancelled = false; // the user stopped this batch
     this.skipAll = false; // the batch answer was "leave what is there"
+    this.continuingBatch = false; // add() continues the batch it just answered
     this.pendingConflictItems = null; // items waiting for the batch answer
     this.isOverallPaused = false;
     this.onConflict = () => {}; // Callback for UI
@@ -210,10 +211,12 @@ class UploadManager {
     if (resolution === true) {
       // User chose overwrite - set the flag and add with overwrite=true
       this.overwriteAll = true;
+      this.continuingBatch = true;
       void this.add(basePath, items, true);
     } else if (resolution?.rename) {
       // User chose rename - continue with renamed items
       this.conflictingFolder = null;
+      this.continuingBatch = true;
       void this.add(basePath, this.pendingItems, false);
     } else if (resolution?.skip) {
       // User chose skip - only upload what is missing or incomplete
@@ -222,6 +225,7 @@ class UploadManager {
       // The answer covers the rest of this batch: later conflicts are skipped
       // without asking again.
       this.skipAll = true;
+      this.continuingBatch = true;
       void this.add(basePath, pending, false, true);
     } else {
       // User cancelled
@@ -298,14 +302,30 @@ class UploadManager {
   /** Points a queued job at the name the user chose and starts it over. */
   renameQueuedUpload(upload, newName) {
     const path = upload.path || "/";
-    const slash = path.lastIndexOf("/");
-    const dir = slash <= 0 ? "/" : path.slice(0, slash + 1);
-    upload.path = `${dir}${newName}`;
+    const isDirectory = upload.type === "directory" || path.endsWith("/");
+    // A directory path keeps its trailing slash in mind: strip it, replace the
+    // last segment, then put it back.
+    const trimmed = path.endsWith("/") ? path.slice(0, -1) : path;
+    const slash = trimmed.lastIndexOf("/");
+    const dir = slash <= 0 ? "/" : trimmed.slice(0, slash + 1);
+    const oldPrefix = path.endsWith("/") ? path : `${path}/`;
+    const newPath = `${dir}${newName}${isDirectory ? "/" : ""}`;
+
+    upload.path = newPath;
     upload.name = newName;
     upload.chunkOffset = 0;
     upload.progress = 0;
     upload.overwrite = false;
     upload.status = "pending";
+
+    if (isDirectory) {
+      // Everything queued inside the directory moves with it.
+      for (const item of this.queue) {
+        if (item !== upload && item.path?.startsWith(oldPrefix)) {
+          item.path = `${newPath}${item.path.slice(oldPrefix.length)}`;
+        }
+      }
+    }
   }
 
   /** Leaves the given items out of the queue and reports how many were skipped. */
@@ -411,13 +431,16 @@ class UploadManager {
   }
 
   async add(basePath, items, overwrite = false, skipExisting = false) {
-    if (this.queue.length === 0) {
-      // A new batch starts with no answers left over from the previous one.
+    if (this.queue.length === 0 && !this.continuingBatch) {
+      // A new submission starts with no answers left over from the previous one.
+      // Continuing after a conflict answer keeps them: that answer covers the
+      // rest of this batch.
       this.overwriteAll = null;
       this.skipAll = false;
       this.conflictsCancelled = false;
       this.isOverallPaused = false;
     }
+    this.continuingBatch = false;
     // Handle undefined/null basePath
     if (!basePath) {
       basePath = "/";
