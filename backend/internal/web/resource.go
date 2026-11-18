@@ -549,7 +549,7 @@ func ResourceBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *Contex
 				})
 				continue
 			}
-			filePerms, permErr := effectiveFilePerms(d, item.Source)
+			filePerms, permErr := effectiveFilePermsForClientPath(d, item.Source, sanitizedPath)
 			if permErr != nil || !filePerms.Delete {
 				response.Failed = append(response.Failed, BulkDeleteItem{
 					Source:  item.Source,
@@ -1911,7 +1911,7 @@ func mockData(w http.ResponseWriter, r *http.Request) {
 // @Router /api/resources/items [get]
 func itemsGetHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
 	source := r.URL.Query().Get("source")
-	filePerms, err := effectiveFilePerms(d, source)
+	filePerms, err := effectiveFilePermsForClientPath(d, source, r.URL.Query().Get("path"))
 	if err != nil {
 		return http.StatusForbidden, err
 	}
