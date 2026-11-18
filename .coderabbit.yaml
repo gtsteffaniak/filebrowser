@@ -1,0 +1,64 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+language: "en"
+early_access: true
+reviews:
+  profile: "chill"
+  auto_approvals:
+    enabled: true
+  high_level_summary: true
+  poem: false
+  review_status: true
+  review_details: false
+  review_info: true
+  review_progress: true
+  related_issues: true
+  related_prs: true
+  suggested_labels: false
+  in_progress_fortune: false
+  enable_prompt_for_ai_agents: true
+  path_filters:
+    - "!backend/swagger/**"
+    - "!frontend/src/i18n/**/*.json"
+    - "!frontend/src/i18n/messages.generated.ts"
+  path_instructions:
+    - path: "**/*.go"
+      instructions: |
+        - Reduce duplication where there is clear duplication found, prefer consolidated functions.
+        - Prefer standard library and warn about new third-party packages that could be easily implemented with standard library code.
+        - Make sure all http apis have proper sanitization for path to prevent path traversal vulnerabilities.
+    - path: "frontend/src/**/*.vue"
+      instructions: |
+        - New files should use <script setup lang="ts"> rather than plain <script>.
+        - Use the typed t() from useI18n, imported from '@/i18n/index.ts', including in templates of <script setup> files.
+        - Don't flag $t() uses in older/existing <script> files.
+  auto_review:
+    enabled: true
+    drafts: false
+    auto_incremental_review: true
+    auto_pause_after_reviewed_commits: 5
+    base_branches:
+      - .*
+  finishing_touches:
+    unit_tests:
+      enabled: false
+    autofix:
+      enabled: false
+    fix_ci:
+      enabled: false
+    resolve_merge_conflict:
+      enabled: false
+  tools:
+    phpstan:
+      enabled: false
+    fbinfer:
+      enabled: false
+    presidio:
+      enabled: false
+    biome:
+      enabled: false # coderabbit uses our repo config and they're using old biome versions, which will fail.
+knowledge_base:
+  web_search:
+    enabled: true
+chat:
+  auto_reply: true
+  art: false
