@@ -184,9 +184,11 @@ func (u *User) FilePermsForSourcePath(sourcePath string, indexPath ...string) (S
 		var bestLen int
 		for i, scope := range u.BackendScopes {
 			if scope.Path == sourcePath {
-				// Check if currentPath starts with this scope's Scope prefix
-				if strings.HasPrefix(currentPath, scope.Scope) || currentPath == scope.Scope {
-					scopeLen := len(scope.Scope)
+				scopePath := scope.Scope
+				// Root scope "/" matches every path; others match by prefix
+				matches := scopePath == "/" || currentPath == scopePath || strings.HasPrefix(currentPath, scopePath+"/")
+				if matches {
+					scopeLen := len(scopePath)
 					if scopeLen > bestLen {
 						bestLen = scopeLen
 						bestScope = &u.BackendScopes[i]
@@ -195,7 +197,6 @@ func (u *User) FilePermsForSourcePath(sourcePath string, indexPath ...string) (S
 			}
 		}
 		if bestScope == nil {
-			// Path was provided but no scope matched — deny
 			return DenyAllSourceFilePermissions(), false
 		}
 		perms := bestScope.Permissions

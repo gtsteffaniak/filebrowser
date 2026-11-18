@@ -438,9 +438,11 @@ func (u *User) GetScopeForSourcePath(sourcePath string, indexPath ...string) (st
 		var bestLen int
 		for i, scope := range u.BackendScopes {
 			if scope.Path == sourcePath {
-				// Check if currentPath starts with this scope's Scope prefix
-				if strings.HasPrefix(currentPath, scope.Scope) || currentPath == scope.Scope {
-					scopeLen := len(scope.Scope)
+				scopePath := scope.Scope
+				// Root scope "/" matches every path; others match by prefix
+				matches := scopePath == "/" || currentPath == scopePath || strings.HasPrefix(currentPath, scopePath+"/")
+				if matches {
+					scopeLen := len(scopePath)
 					if scopeLen > bestLen {
 						bestLen = scopeLen
 						bestScope = &u.BackendScopes[i]
@@ -451,7 +453,6 @@ func (u *User) GetScopeForSourcePath(sourcePath string, indexPath ...string) (st
 		if bestScope != nil {
 			return bestScope.Scope, nil
 		}
-		// Path was provided but no scope matched — not found
 		return "", fmt.Errorf("no scope matches path %q for source %q", currentPath, sourcePath)
 	}
 

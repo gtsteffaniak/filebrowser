@@ -815,6 +815,8 @@ export const getters = {
       .filter((entry) => {
         // Check if currentPath starts with this scope's path (or is exact match)
         const scopePath = entry.scope || "/";
+        // Root scope "/" matches every path
+        if (scopePath === "/") return true;
         return currentPath === scopePath || currentPath.startsWith(scopePath + "/");
       })
       .sort((a, b) => (b.scope?.length ?? 0) - (a.scope?.length ?? 0));

@@ -58,6 +58,38 @@ func TestGetScopeForSourcePathLongestPrefix(t *testing.T) {
 			wantOK:    true,
 		},
 		{
+			name: "root scope / matches any path",
+			scopes: []BackendScope{
+				{Path: "/srv", Scope: "/"},
+			},
+			source:    "/srv",
+			path:      "/khoi5/5A/doc.txt",
+			wantScope: "/",
+			wantOK:    true,
+		},
+		{
+			name: "root scope with child - child wins for deeper path",
+			scopes: []BackendScope{
+				{Path: "/srv", Scope: "/"},
+				{Path: "/srv", Scope: "/khoi5/5A"},
+			},
+			source:    "/srv",
+			path:      "/khoi5/5A/doc.txt",
+			wantScope: "/khoi5/5A",
+			wantOK:    true,
+		},
+		{
+			name: "root scope with child - root used for path outside child",
+			scopes: []BackendScope{
+				{Path: "/srv", Scope: "/"},
+				{Path: "/srv", Scope: "/khoi5/5A"},
+			},
+			source:    "/srv",
+			path:      "/khoi5/5B/doc.txt",
+			wantScope: "/",
+			wantOK:    true,
+		},
+		{
 			name: "no matching scope",
 			scopes: []BackendScope{
 				{Path: "/srv", Scope: "/khoi5"},
