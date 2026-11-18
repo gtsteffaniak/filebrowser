@@ -84,9 +84,16 @@ func TestShadowPanicIsRecovered(t *testing.T) {
 	time.Sleep(50 * time.Millisecond)
 }
 
-func TestShadowSkipsLegacyWhenGoMediaFails(t *testing.T) {
+// TestShadowRunsLegacyWhenGoMediaFails checks that when go-media returns no
+// result, shadow mode still runs ffmpeg and records an error regression if
+// ffmpeg succeeds. The caller's own fallback still handles the request.
+func TestShadowRunsLegacyWhenGoMediaFails(t *testing.T) {
 	withGate(t, false)
 	withDevMode(t, true)
+
+	var got atomic.Pointer[Regression]
+	SetRegressionSink(func(r Regression) { got.Store(&r) })
+	t.Cleanup(func() { SetRegressionSink(nil) })
 
 	var calls atomic.Int32
 	// A missing file makes go-media fail, so the caller's own fallback handles it.
@@ -95,8 +102,11 @@ func TestShadowSkipsLegacyWhenGoMediaFails(t *testing.T) {
 		return ProbeResult{}, true
 	})
 	require.False(t, ok)
-	time.Sleep(20 * time.Millisecond)
-	require.Equal(t, int32(0), calls.Load())
+	require.Eventually(t, func() bool { return got.Load() != nil }, 5*time.Second, 5*time.Millisecond)
+	require.Equal(t, int32(1), calls.Load())
+	require.Equal(t, LabelError, got.Load().Label)
+	require.Equal(t, "probe", got.Load().Operation)
+	require.Equal(t, "mp4", got.Load().Format)
 }
 
 func TestShadowSkippedWhenAlwaysUseFfmpeg(t *testing.T) {

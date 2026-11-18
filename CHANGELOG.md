@@ -17,6 +17,12 @@ All notable changes to this project will be documented in this file. For commit 
       - AVIF images get previews through the HEIC preview path (go-media decode, ffmpeg fallback) when HEIC previews are enabled.
       - WMV/ASF video thumbnails use go-media for WMV3; WMV1/WMV2 still use ffmpeg.
       - ffmpeg and go-media share one media metadata cache keyed by path, size and modification time, so a probe, duration or subtitle result from either backend is reused by the other.
+      - Preview cache keys use a faster, non-cryptographic xxHash instead of MD5. When upgrading from a version older than v2.2.0, the preview and thumbnail cache is cleared once at startup and previews regenerate on demand. The index database is not affected.
+      - Camera RAW previews use the largest embedded JPEG that fits the decode size limit. Some Nikon NEF files, whose full-size JPEG exceeded the limit, previously showed no preview.
+      - Original-size previews of camera RAW files and other embedded images (JPEG, PNG, WebP) are returned as stored, without decoding, resizing, or re-encoding. Rotated JPEGs are still corrected for orientation.
+      - HEIC/HEIF previews decode at the requested preview size for small and large previews instead of decoding full resolution, and the JPEG is encoded straight from the decoded YCbCr planes, which reduces CPU time and memory.
+      - HEIC/HEIF files with extra bytes after the last valid container box (for example some Samsung files) now decode instead of failing.
+      - HEIC/HEIF previews from the coded decode path convert limited-range YCbCr to full range before JPEG encoding.
   - Document enhancements
     - Official Collabora support using WOPI config.
     - Document previews use a pure-go in-process package (all versions get it now).
