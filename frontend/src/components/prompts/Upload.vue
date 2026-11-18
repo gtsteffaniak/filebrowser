@@ -263,12 +263,17 @@ export default {
         }
         resolver(resolution);
       };
+      // The dialog is shared with other flows: it gets the names it shows instead
+      // of reading this manager's state.
+      const conflict = uploadManager.getConflictDetails();
       mutations.showPrompt({
         name: "replace-rename",
         pinned: true,
         props: {
           allowSkip: !getters.isShare(),
           allowRename: options.allowRename !== false,
+          conflictNames: conflict.names,
+          conflictCount: conflict.count,
           ...(getters.isShare() ? {} : { title: i18n.global.t("prompts.uploadConflictTitle") }),
         },
         confirm: (_event, option) => {
@@ -438,7 +443,7 @@ export default {
 
     onUnmounted(() => {
       document.removeEventListener("visibilitychange", void handleVisibilityChange);
-      uploadManager.setOnConflict(() => {}); // cleanup
+      uploadManager.setOnConflict(null); // no dialog can answer now
       releaseWakeLock();
     });
 

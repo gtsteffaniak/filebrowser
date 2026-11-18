@@ -125,7 +125,13 @@ class UploadManager {
   }
 
   setOnConflict(handler) {
-    this.onConflict = handler;
+    this.onConflict = handler || (() => {});
+    if (!handler) {
+      // Nothing can show the question: do not park the queue on it.
+      this.conflictPromptOpen = false;
+      this.isPausedForConflict = false;
+      this.pendingConflictItems = null;
+    }
   }
 
   /**
@@ -224,6 +230,7 @@ class UploadManager {
     } else if (resolution?.rename) {
       // User chose rename - continue with renamed items
       this.conflictingFolder = null;
+      this.continuingSubmission = submission;
       this.continuingBatch = true;
       void this.add(basePath, this.pendingItems, false);
     } else if (resolution?.skip) {

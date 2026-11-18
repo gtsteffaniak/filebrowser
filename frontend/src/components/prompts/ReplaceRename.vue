@@ -1,14 +1,15 @@
 <template>
   <div class="card-content">
-    <p v-if="conflictDetails.count > 0" class="conflict-target">
-      <strong>{{ conflictDetails.names.join(", ") }}</strong>
-      <span v-if="conflictDetails.count > conflictDetails.names.length">+{{ conflictDetails.count - conflictDetails.names.length }}<!--eslint-disable-line @intlify/vue-i18n/no-raw-text--></span>
+    <p v-if="conflictCount > 0" class="conflict-target">
+      <strong>{{ conflictNames.join(", ") }}</strong>
+      <span v-if="conflictCount > conflictNames.length">+{{ conflictCount - conflictNames.length }}<!--eslint-disable-line @intlify/vue-i18n/no-raw-text--></span>
     </p>
     <p v-if="allowSkip">{{ $t("prompts.uploadConflictMessage") }}</p>
     <p v-else>{{ $t("prompts.replaceMessage") }}</p>
   </div>
   <div class="card-actions">
     <button
+      v-if="canCancel"
       type="button"
       class="button button--flat button--blue"
       @click="cancelPrompt"
@@ -54,7 +55,6 @@
 
 <script>
 import { getters, mutations, state } from "@/store";
-import { uploadManager } from "@/utils/upload";
 
 export default {
   name: "replace-rename",
@@ -63,10 +63,21 @@ export default {
       type: [String, Number],
       default: null,
     },
+    // Only the upload flow names the items that are in the way.
+    conflictNames: {
+      type: Array,
+      default: () => [],
+    },
+    conflictCount: {
+      type: Number,
+      default: 0,
+    },
   },
   computed: {
-    conflictDetails() {
-      return uploadManager.getConflictDetails();
+    canCancel() {
+      // Other callers settle their own promise only from confirm: a Cancel button
+      // there would close the dialog and leave them waiting forever.
+      return typeof this.currentPrompt?.cancel === "function";
     },
     currentPrompt() {
       return getters.currentPrompt();
