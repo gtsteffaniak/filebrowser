@@ -210,10 +210,12 @@ class UploadManager {
   }
 
   resolveConflict(basePath, items, resolution) {
+    this.conflictPromptOpen = false;
     this.pendingConflictItems = null;
     if (resolution === true) {
       // User chose overwrite - set the flag and add with overwrite=true
       this.overwriteAll = true;
+      this.skipAll = false;
       this.continuingBatch = true;
       void this.add(basePath, items, true);
     } else if (resolution?.rename) {
@@ -248,26 +250,38 @@ class UploadManager {
     if (conflicts.length === 0) {
       return;
     }
-    // One question at a time, about one submission: another one asks its own.
-    const submission = conflicts[0]?.submission;
-    const conflicting = conflicts.filter((item) => item.submission === submission);
-    // Already answered for this submission: apply the answer, do not ask again.
-    if (this.answerSubmission !== null && this.answerSubmission === submission && (this.overwriteAll === true || this.skipAll)) {
+
+    // 1) The submission that was already answered gets that answer, without a
+    //    second question, including the files that conflicted meanwhile.
+    const answered = conflicts.filter(
+      (item) =>
+        this.answerSubmission !== null &&
+        item.submission === this.answerSubmission &&
+        (this.overwriteAll === true || this.skipAll)
+    );
+    if (answered.length > 0) {
       if (this.skipAll) {
-        this.dropConflicting(conflicting);
+        this.dropConflicting(answered);
       } else {
-        this.retryConflicts(conflicting);
+        this.retryConflicts(answered);
       }
       setTimeout(() => void this.processQueue(), 0);
-      return;
     }
-    // This submission was stopped already; another one may still ask.
-    if (this.cancelledSubmission !== null && this.cancelledSubmission === submission) {
-      return;
-    }
+
+    // 2) Ask about the next submission that still needs an answer. A cancelled or
+    //    already answered submission must not block it by sitting first in line.
     if (this.conflictPromptOpen) {
       return;
     }
+    const remaining = this.queue.filter((item) => item.status === "conflict");
+    const next = remaining.find(
+      (item) => item.submission !== this.cancelledSubmission && item.submission !== this.answerSubmission
+    );
+    if (!next) {
+      return;
+    }
+    const conflicting = remaining.filter((item) => item.submission === next.submission);
+
     this.conflictPromptOpen = true;
     this.isPausedForConflict = true;
     this.pendingConflictItems = conflicting;
@@ -370,6 +384,7 @@ class UploadManager {
     if (resolution === true) {
       // Replace all: the answer covers this submission, not just these items.
       this.overwriteAll = true;
+      this.skipAll = false;
       this.answerSubmission = items[0]?.submission ?? this.submissionId;
       this.retryConflicts(items);
     } else if (resolution?.skip) {
@@ -548,6 +563,7 @@ class UploadManager {
           // Store the conflicting folder name (take the first one for now)
           this.conflictingFolder = conflictingDirs[0];
           this.pendingItems = items;
+          this.conflictPromptOpen = true;
           this.onConflict(
             (resolution) => this.resolveConflict(basePath, items, resolution),
             { allowRename: true }
@@ -575,6 +591,7 @@ class UploadManager {
           this.pendingConflictItems = Array.from(items).filter(
             (item) => !item.relativePath?.includes("/") && existingNames.has(item.uploadName || item.file.name)
           );
+          this.conflictPromptOpen = true;
           this.onConflict(
             (resolution) => this.resolveConflict(basePath, items, resolution),
             { allowRename: this.conflictAllowsRename() }
@@ -689,9 +706,12 @@ class UploadManager {
 
     this.queue.push(...newUploads, ...fileUploads);
 
-    // Clean up pending items after successful add
-    this.pendingItems = null;
-    this.conflictingFolder = null;
+    // Clean up pending items after successful add, unless a question is still
+    // reading them: its Skip and Rename answers use them.
+    if (!this.conflictPromptOpen) {
+      this.pendingItems = null;
+      this.conflictingFolder = null;
+    }
     this.probedDirs.clear();
 
     void this.processQueue();

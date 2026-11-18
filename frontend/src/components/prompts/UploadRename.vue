@@ -78,6 +78,10 @@ export default {
       if (event?.isComposing || event?.keyCode === 229) {
         return;
       }
+      // The window-level handler presses the last button on Enter; without this
+      // the confirmation would run twice and close the wrong prompt.
+      event.preventDefault();
+      event.stopPropagation();
       this.submit();
     },
     submit() {

@@ -44,22 +44,6 @@
       </div>
     </div>
     <div v-if="files.length > 0" style="position: relative;">
-      <div v-if="showConflictPrompt" class="conflict-overlay">
-        <div class="card">
-          <div class="card-content">
-            <p>{{ $t("prompts.conflictsDetected") }}</p>
-          </div>
-          <div class="card-actions">
-            <button
-              type="button"
-              @click="resolveConflict(true)"
-              class="button button--flat button--red"
-            >
-              {{ $t("general.replace") }}
-            </button>
-          </div>
-        </div>
-      </div>
       <div class="upload-list">
         <div v-for="file in files" :key="file.id" class="upload-item">
           <i class="file-icon" :class="fileTypeInfo(file).classes">{{ fileTypeInfo(file).materialSymbol }}</i>
@@ -245,8 +229,6 @@ export default {
     const videoInput = ref(null);
     const files = computed(() => uploadManager.queue);
     const isDragging = ref(false);
-    const showConflictPrompt = ref(false);
-    let conflictResolver = null;
 
     let wakeLock = null;
 
@@ -273,7 +255,14 @@ export default {
     };
 
     const handleConflict = (resolver, options = {}) => {
-      conflictResolver = resolver;
+      // Each question keeps its own answer function: a second dialog opened while
+      // this one waits must not take its resolver away.
+      const answer = (resolution, closePrompt = true) => {
+        if (closePrompt) {
+          mutations.closeTopPrompt(undefined, { skipCancel: true });
+        }
+        resolver(resolution);
+      };
       mutations.showPrompt({
         name: "replace-rename",
         pinned: true,
@@ -284,39 +273,22 @@ export default {
         },
         confirm: (_event, option) => {
           if (option === "overwrite") {
-            resolveConflict(true);
+            answer(true);
           } else if (option === "skip") {
-            resolveConflict({ skip: true });
+            answer({ skip: true });
           } else if (option === "rename") {
-            showRenamePrompt();
+            showRenamePrompt(answer);
           } else {
-            settleConflict(false);
+            answer(false);
           }
         },
         // Escape and the close button answer the question with "cancel";
         // otherwise the queue stays paused with nothing to resume it.
-        cancel: () => settleConflict(false, false),
+        cancel: () => answer(false, false),
       });
     };
 
-    // Answering the question settles the upload; the close that follows must not
-    // look like the user dismissing it, so it skips the cancel handler.
-    const settleConflict = (resolution, closePrompt = true) => {
-      // Take the resolver off this prompt before anything else: the resolver may
-      // open the next question synchronously, and that one must keep its own.
-      const resolver = conflictResolver;
-      conflictResolver = null;
-      if (closePrompt) {
-        mutations.closeTopPrompt(undefined, { skipCancel: true });
-      }
-      if (resolver) {
-        resolver(resolution);
-      }
-    };
-
-    const resolveConflict = (resolution) => settleConflict(resolution);
-
-    const showRenamePrompt = () => {
+    const showRenamePrompt = (answer) => {
       // Leave the question without answering it: the answer comes from the name
       // window, so the close here must not run the cancel handler.
       mutations.closeTopPrompt(undefined, { skipCancel: true });
@@ -332,7 +304,7 @@ export default {
         props: { initialName: target },
         confirm: async (_event, newName) => {
           if (!newName) {
-            settleConflict(false);
+            answer(false);
             return;
           }
           if (existingNames.has(newName)) {
@@ -346,10 +318,10 @@ export default {
           } else {
             uploadManager.renamePendingFile(target, newName);
           }
-          settleConflict({ rename: newName });
+          answer({ rename: newName });
         },
         // Dismissing the name window cancels the upload instead of leaving it hanging.
-        cancel: () => settleConflict(false, false),
+        cancel: () => answer(false, false),
       });
     };
 
@@ -686,8 +658,6 @@ export default {
       clearCompleted,
       hasCompleted,
       hasClearable,
-      showConflictPrompt,
-      resolveConflict,
       showRenamePrompt,
       canPauseAll,
       canResumeAll,
