@@ -822,9 +822,9 @@ export const getters = {
         ? reqPath
         : reqPath === "/"
           ? baseScope
-          : reqPath === baseScope || reqPath.startsWith(baseScope + "/")
+          : reqPath === baseScope || reqPath.startsWith(`${baseScope}/`)
             ? reqPath
-            : baseScope + (reqPath.startsWith("/") ? reqPath : "/" + reqPath);
+            : baseScope + (reqPath.startsWith("/") ? reqPath : `/${reqPath}`);
 
     const matchingScopes = sourceScopes
       .filter((entry) => {
@@ -832,7 +832,7 @@ export const getters = {
         const scopePath = (entry.scope || "/").replace(/\/+$/, "") || "/";
         // Root scope "/" matches every path
         if (scopePath === "/") return true;
-        return currentPath === scopePath || currentPath.startsWith(scopePath + "/");
+        return currentPath === scopePath || currentPath.startsWith(`${scopePath}/`);
       })
       .sort((a, b) => (b.scope?.length ?? 0) - (a.scope?.length ?? 0));
 

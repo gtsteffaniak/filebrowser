@@ -421,42 +421,9 @@ func SourceConfigLoaded() bool {
 	return sourceConfig != nil
 }
 
-// GetScopeForSourcePath returns the scope for a given source path (backend-style).
-// When indexPath is provided, returns the deepest matching scope (longest-prefix).
-// If indexPath is provided but no matching scope, returns error.
-// If indexPath is not provided, returns the first scope for source (backward compat).
-func (u *User) GetScopeForSourcePath(sourcePath string, indexPath ...string) (string, error) {
-	var currentPath string
-	pathProvided := len(indexPath) > 0 && indexPath[0] != ""
-	if pathProvided {
-		currentPath = indexPath[0]
-	}
-
-	// If a path is provided, find the scope with the longest matching prefix
-	if pathProvided {
-		var bestScope *BackendScope
-		var bestLen int
-		for i, scope := range u.BackendScopes {
-			if scope.Path == sourcePath {
-				scopePath := scope.Scope
-				// Root scope "/" matches every path; others match by prefix
-				matches := scopePath == "/" || currentPath == scopePath || strings.HasPrefix(currentPath, scopePath+"/")
-				if matches {
-					scopeLen := len(scopePath)
-					if scopeLen > bestLen {
-						bestLen = scopeLen
-						bestScope = &u.BackendScopes[i]
-					}
-				}
-			}
-		}
-		if bestScope != nil {
-			return bestScope.Scope, nil
-		}
-		return "", fmt.Errorf("no scope matches path %q for source %q", currentPath, sourcePath)
-	}
-
-	// No path provided (backward compat): return first scope for source
+// GetScopeForSourcePath returns the scope for a given source path (backend-style)
+// This method works with backend-style scopes where Name is the source path
+func (u *User) GetScopeForSourcePath(sourcePath string) (string, error) {
 	for _, scope := range u.BackendScopes {
 		if scope.Path == sourcePath {
 			return scope.Scope, nil
@@ -465,10 +432,9 @@ func (u *User) GetScopeForSourcePath(sourcePath string, indexPath ...string) (st
 	return "", fmt.Errorf("scope not found for source %v", sourcePath)
 }
 
-// GetScopeForSourceName returns the scope for a given source name (frontend-style).
-// When indexPath is provided, returns the deepest matching scope (longest-prefix).
+// GetScopeForSourceName returns the scope for a given source name (frontend-style)
 // Uses the global SourceNameResolver to convert source names to paths
-func (u *User) GetScopeForSourceName(sourceName string, indexPath ...string) (string, error) {
+func (u *User) GetScopeForSourceName(sourceName string) (string, error) {
 	if sourceNameResolver == nil {
 		return "", fmt.Errorf("source name resolver not initialized")
 	}
@@ -478,9 +444,6 @@ func (u *User) GetScopeForSourceName(sourceName string, indexPath ...string) (st
 		return "", err
 	}
 
-	if len(indexPath) > 0 {
-		return u.GetScopeForSourcePath(sourcePath, indexPath[0])
-	}
 	return u.GetScopeForSourcePath(sourcePath)
 }
 

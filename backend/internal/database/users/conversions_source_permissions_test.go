@@ -57,3 +57,107 @@ func TestAPISourcePermsToBackendAndFrontendRoundTrip(t *testing.T) {
 		t.Fatalf("frontend perms: %+v", front[0].Permissions)
 	}
 }
+
+func TestFilePermsForSourcePathLongestPrefix(t *testing.T) {
+	tests := []struct {
+		name       string
+		scopes     []BackendScope
+		source     string
+		path       string
+		wantView   bool
+		wantCreate bool
+		wantOK     bool
+	}{
+		{
+			name: "nested scopes - child permissions override parent",
+			scopes: []BackendScope{
+				{
+					Path:        "/srv",
+					Scope:       "/khoi5",
+					Permissions: SourceFilePermissions{View: true, Create: false, Modify: false, Delete: false},
+				},
+				{
+					Path:        "/srv",
+					Scope:       "/khoi5/5A",
+					Permissions: SourceFilePermissions{View: true, Create: true, Modify: true, Delete: true},
+				},
+			},
+			source:     "/srv",
+			path:       "/khoi5/5A/test.txt",
+			wantView:   true,
+			wantCreate: true,
+			wantOK:     true,
+		},
+		{
+			name: "nested scopes - parent permissions for path outside child",
+			scopes: []BackendScope{
+				{
+					Path:        "/srv",
+					Scope:       "/khoi5",
+					Permissions: SourceFilePermissions{View: true, Create: false},
+				},
+				{
+					Path:        "/srv",
+					Scope:       "/khoi5/5A",
+					Permissions: SourceFilePermissions{View: true, Create: true},
+				},
+			},
+			source:     "/srv",
+			path:       "/khoi5/5B/test.txt",
+			wantView:   true,
+			wantCreate: false,
+			wantOK:     true,
+		},
+		{
+			name: "root scope with child - child wins for deeper path, root used outside",
+			scopes: []BackendScope{
+				{
+					Path:        "/srv",
+					Scope:       "/",
+					Permissions: SourceFilePermissions{View: true, Create: false},
+				},
+				{
+					Path:        "/srv",
+					Scope:       "/khoi5/5A",
+					Permissions: SourceFilePermissions{View: true, Create: true},
+				},
+			},
+			source:     "/srv",
+			path:       "/khoi5/5B/doc.txt",
+			wantView:   true,
+			wantCreate: false,
+			wantOK:     true,
+		},
+		{
+			name: "prefix boundary enforced (/khoi5 does not match /khoi50)",
+			scopes: []BackendScope{
+				{
+					Path:        "/srv",
+					Scope:       "/khoi5",
+					Permissions: SourceFilePermissions{View: true, Create: true},
+				},
+			},
+			source:     "/srv",
+			path:       "/khoi50/doc.txt",
+			wantView:   false,
+			wantCreate: false,
+			wantOK:     false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			user := &User{BackendScopes: tt.scopes}
+			perms, ok := user.FilePermsForSourcePath(tt.source, tt.path)
+			if ok != tt.wantOK {
+				t.Fatalf("FilePermsForSourcePath() ok = %v, want %v", ok, tt.wantOK)
+			}
+			if perms.View != tt.wantView {
+				t.Errorf("FilePermsForSourcePath() View = %v, want %v", perms.View, tt.wantView)
+			}
+			if perms.Create != tt.wantCreate {
+				t.Errorf("FilePermsForSourcePath() Create = %v, want %v", perms.Create, tt.wantCreate)
+			}
+		})
+	}
+}
