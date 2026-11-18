@@ -148,7 +148,8 @@ func (s *Store) RecordIncompatible(e IncompatibleEntry) error {
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback()
+	// Rollback after a successful Commit returns sql.ErrTxDone, which is safe to ignore.
+	defer func() { _ = tx.Rollback() }()
 
 	if _, err := tx.Exec(
 		`INSERT INTO shadow_incompatible
@@ -225,7 +226,8 @@ func (s *Store) Record(e Entry) error {
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback()
+	// Rollback after a successful Commit returns sql.ErrTxDone, which is safe to ignore.
+	defer func() { _ = tx.Rollback() }()
 
 	if _, err := tx.Exec(
 		`INSERT INTO shadow_regressions
@@ -297,7 +299,7 @@ func (s *Store) Clear() error {
 	if err != nil {
 		return err
 	}
-	if _, err := db.Exec(`DELETE FROM shadow_regressions`); err != nil {
+	if _, err = db.Exec(`DELETE FROM shadow_regressions`); err != nil {
 		return err
 	}
 	_, err = db.Exec(`DELETE FROM shadow_incompatible`)

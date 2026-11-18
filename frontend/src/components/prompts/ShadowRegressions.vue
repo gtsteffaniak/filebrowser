@@ -80,6 +80,7 @@
 
 <script>
 import { markRaw } from "vue";
+import i18n from "@/i18n/index.ts";
 import { createAsyncComponent } from "@/utils/asyncComponent.js";
 import { notify } from "@/notify/index.ts";
 import {
@@ -130,15 +131,15 @@ function formatMs(value) {
 // into the values shown on a spotlight card.
 // speedText describes go-media relative to ffmpeg as a factor: "2× faster" when
 // go-media takes half the time, "1.5× slower" when it takes one and a half times as long.
-function speedText(ratio, t) {
-  if (Math.abs(ratio - 1) < 0.005) return t("media.shadowRegressionsSameSpeed");
+function speedText(ratio) {
+  if (Math.abs(ratio - 1) < 0.005) return i18n.global.t("media.shadowRegressionsSameSpeed");
   if (ratio < 1) {
-    return t("media.shadowRegressionsFaster", { factor: (1 / ratio).toFixed(2) });
+    return i18n.global.t("media.shadowRegressionsFaster", { factor: (1 / ratio).toFixed(2) });
   }
-  return t("media.shadowRegressionsSlower", { factor: ratio.toFixed(2) });
+  return i18n.global.t("media.shadowRegressionsSlower", { factor: ratio.toFixed(2) });
 }
 
-function summarise(key, title, s, t) {
+function summarise(key, title, s) {
   const successRate = s.runs ? s.succeeded / s.runs : 0;
   const regressionRate = s.runs ? s.regressions / s.runs : 0;
   const ratio = s.pairedRuns && s.ffmpegAvgMs ? s.goAvgMs / s.ffmpegAvgMs : null;
@@ -155,7 +156,7 @@ function summarise(key, title, s, t) {
     timingTone: timingTone(ratio),
     goAvg: formatMs(s.goAvgMs),
     ffAvg: formatMs(s.ffmpegAvgMs),
-    timingRatio: ratio === null ? "—" : speedText(ratio, t),
+    timingRatio: ratio === null ? "—" : speedText(ratio),
   };
 }
 
@@ -211,8 +212,8 @@ export default {
         ffmpegAvgMs: total.pairedRuns ? total.ffSum / total.pairedRuns : 0,
       };
       return [
-        summarise("all", this.$t("media.shadowRegressionsAllOperations"), all, (k, p) => this.$t(k, p)),
-        ...this.stats.map((s) => summarise(s.operation, s.operation, s, (k, p) => this.$t(k, p))),
+        summarise("all", this.$t("media.shadowRegressionsAllOperations"), all),
+        ...this.stats.map((s) => summarise(s.operation, s.operation, s)),
       ];
     },
   },
