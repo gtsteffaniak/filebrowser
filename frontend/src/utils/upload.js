@@ -99,6 +99,9 @@ class UploadManager {
     this.nextId = 0;
     this.overwriteAll = null; // null: ask, true: overwrite, false: skip
     this.isPausedForConflict = false;
+    this.conflictPromptOpen = false; // one batch question at a time
+    this.conflictsCancelled = false; // the user stopped this batch
+    this.pendingConflictItems = null; // items waiting for the batch answer
     this.isOverallPaused = false;
     this.onConflict = () => {}; // Callback for UI
     this.hadActiveUploads = false; // Track if we've had active uploads
@@ -202,6 +205,7 @@ class UploadManager {
   }
 
   resolveConflict(basePath, items, resolution) {
+    this.pendingConflictItems = null;
     if (resolution === true) {
       // User chose overwrite - set the flag and add with overwrite=true
       this.overwriteAll = true;
@@ -221,6 +225,137 @@ class UploadManager {
       this.conflictingFolder = null;
       this.pendingItems = null;
     }
+  }
+
+  /**
+   * A conflict showed up while transferring. Ask once for the whole batch and
+   * keep the answer for the rest of it: a folder with thousands of existing
+   * files must not turn into one question per file.
+   */
+  askConflictForBatch() {
+    const conflicting = this.queue.filter((item) => item.status === "conflict");
+    if (conflicting.length === 0) {
+      return;
+    }
+    // Already answered for this batch: apply the answer, do not ask again.
+    if (this.overwriteAll === true) {
+      for (const item of conflicting) {
+        item.overwrite = true;
+        item.status = "pending";
+      }
+      void this.processQueue();
+      return;
+    }
+    if (this.overwriteAll === false) {
+      this.dropConflicting(conflicting);
+      void this.processQueue();
+      return;
+    }
+    if (this.conflictPromptOpen || this.conflictsCancelled) {
+      return;
+    }
+    this.conflictPromptOpen = true;
+    this.isPausedForConflict = true;
+    this.pendingConflictItems = conflicting;
+    this.onConflict((resolution) => this.resolveConflictForBatch(resolution), {
+      allowRename: this.conflictAllowsRename(),
+    });
+  }
+
+  /** Leaves the given items out of the queue and reports how many were skipped. */
+  dropConflicting(items) {
+    for (const item of items) {
+      const index = this.queue.indexOf(item);
+      if (index !== -1) {
+        this.queue.splice(index, 1);
+      }
+    }
+    if (items.length > 0) {
+      notify.showSuccessToast(
+        i18n.global.t("prompts.uploadSkipped", { count: items.length })
+      );
+    }
+  }
+
+  resolveConflictForBatch(resolution) {
+    const items = this.pendingConflictItems || [];
+    this.conflictPromptOpen = false;
+    this.pendingConflictItems = null;
+    if (resolution === true) {
+      // Replace all: the answer covers the whole batch, not just these items.
+      this.overwriteAll = true;
+      for (const item of items) {
+        item.overwrite = true;
+        item.status = "pending";
+      }
+    } else if (resolution?.skip) {
+      // Skip all: the answer covers the whole batch as well.
+      this.overwriteAll = false;
+      this.dropConflicting(items);
+    } else {
+      // Cancel: stop the queue and do not ask again for this batch.
+      this.isOverallPaused = true;
+      this.conflictsCancelled = true;
+    }
+    this.isPausedForConflict = false;
+    // Files that conflicted while the question was open were not in the list
+    // above: apply the same answer to them before the queue moves on, otherwise
+    // they stay marked as conflicts and nothing asks about them again.
+    this.askConflictForBatch();
+    void this.processQueue();
+  }
+
+  /**
+   * What the conflict question is about, so the user is not asked to choose a
+   * course of action without seeing which files or folder are involved.
+   */
+  getConflictDetails() {
+    if (this.pendingConflictItems?.length) {
+      return {
+        kind: "files",
+        count: this.pendingConflictItems.length,
+        names: this.pendingConflictItems.slice(0, 5).map((item) => item.name || item.file?.name),
+      };
+    }
+    if (this.conflictingFolder) {
+      return { kind: "folder", count: 1, names: [this.conflictingFolder] };
+    }
+    return { kind: "files", count: 0, names: [] };
+  }
+
+  /** Renaming makes sense only when the question is about a single item. */
+  conflictAllowsRename() {
+    return this.getConflictDetails().count === 1;
+  }
+
+  /** Gives the single conflicting file a new name before it is sent. */
+  renamePendingFile(oldName, newName) {
+    if (!this.pendingItems) {
+      return;
+    }
+    this.pendingItems = this.pendingItems.map((item) => {
+      const name = item.file?.name || item.relativePath;
+      if (name !== oldName) {
+        return item;
+      }
+      return { ...item, relativePath: newName, uploadName: newName };
+    });
+  }
+
+  /** Whether the destination of this upload already exists on the server. */
+  async targetExists(upload) {
+    if (getters.isShare() || !upload?.path) {
+      return false;
+    }
+    const path = upload.path;
+    const slash = path.lastIndexOf("/");
+    const name = path.slice(slash + 1);
+    if (!name) {
+      return false;
+    }
+    const dir = slash <= 0 ? "/" : path.slice(0, slash + 1);
+    const listing = await resourcesApi.listDirectoryEntries(state.req.source, dir);
+    return Boolean(listing?.has(name));
   }
 
   async add(basePath, items, overwrite = false, skipExisting = false) {
@@ -311,14 +446,19 @@ class UploadManager {
       if (!getters.isShare() && currentDir === basePath) {
         const existingNames = new Set((state.req.items || []).map((i) => i.name));
         const hasLooseConflict = Array.from(items).some(
-          (item) => !item.relativePath?.includes("/") && existingNames.has(item.file.name)
+          (item) => !item.relativePath?.includes("/") && existingNames.has(item.uploadName || item.file.name)
         );
         if (hasLooseConflict) {
           this.conflictingFolder = null;
           this.pendingItems = items;
+          // Name them in the question: these files are already in the listing, so
+          // they are known here and must not be left out of it.
+          this.pendingConflictItems = Array.from(items).filter(
+            (item) => !item.relativePath?.includes("/") && existingNames.has(item.uploadName || item.file.name)
+          );
           this.onConflict(
             (resolution) => this.resolveConflict(basePath, items, resolution),
-            { allowRename: false }
+            { allowRename: this.conflictAllowsRename() }
           );
           return;
         }
@@ -487,6 +627,7 @@ class UploadManager {
       }
       this.hadActiveUploads = false; // Reset the flag
       this.overwriteAll = null; // Reset for next batch of uploads
+      this.conflictsCancelled = false;
     }
   }
 
@@ -985,6 +1126,7 @@ class UploadManager {
     if (err?.response?.status === 409) {
       upload.status = "conflict";
       upload.connectionIssue = false;
+      this.askConflictForBatch();
     } else if (err.message !== "Upload aborted") {
       // Detect connection-related errors
       const isConnectionError =
@@ -999,6 +1141,18 @@ class UploadManager {
         upload.type !== "directory" && upload.size >= this.chunkSizeBytes();
       const canResumeChunked =
         isChunked && upload.chunkOffset > 0 && upload.chunkOffset < upload.size;
+
+      // A refusal can reach the client as a dropped connection instead of the
+      // answer: the server closes the socket as soon as it finds a conflict. Ask
+      // the server whether the destination is already there; if it is, this is a
+      // conflict to resolve, not a stalled transfer to resume.
+      if (isConnectionError && (await this.targetExists(upload))) {
+        upload.status = "conflict";
+        upload.connectionIssue = false;
+        upload.errorDetails = undefined;
+        this.askConflictForBatch();
+        return;
+      }
 
       // Connection drops on chunked uploads: pause so Resume continues from last chunk
       // (same semantics as the stall timeout path).

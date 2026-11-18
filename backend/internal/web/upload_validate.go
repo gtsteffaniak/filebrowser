@@ -127,12 +127,22 @@ func rollbackChunkForResume(outFile *os.File, tempFilePath string, offset int64)
 }
 
 // abortConflictingUpload closes an upload body without draining it and marks the
-// response connection for closure so the server can return immediately.
+// response connection for closure so the server can return immediately. The
+// client is usually still sending; it stops when the connection closes, so the
+// answer can be lost on the way and must be repeated by the caller when needed.
 func abortConflictingUpload(w http.ResponseWriter, r *http.Request) {
 	if r.Body != nil {
 		_ = r.Body.Close()
 	}
 	w.Header().Set("Connection", "close")
+}
+
+// conflictRefusal refuses the request at once and explains why, so a client that
+// does receive the answer can tell the user what happened instead of showing a
+// bare failure.
+func conflictRefusal(w http.ResponseWriter, r *http.Request, reason string) (int, error) {
+	abortConflictingUpload(w, r)
+	return http.StatusConflict, fmt.Errorf("%s", reason)
 }
 
 type chunkUploadResponse struct {

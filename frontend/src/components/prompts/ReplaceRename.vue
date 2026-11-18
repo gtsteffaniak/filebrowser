@@ -1,20 +1,10 @@
 <template>
   <div class="card-content">
-    <template v-if="allowSkip">
-      <p>{{ $t("prompts.uploadConflictMessage") }}</p>
-      <p>
-        <strong>{{ $t("prompts.optionLabel", { name: $t("prompts.uploadMissing") }) }}</strong>
-        {{ $t("prompts.uploadMissingInfo") }}
-      </p>
-      <p v-if="canReplace">
-        <strong>{{ $t("prompts.optionLabel", { name: $t("general.replace") }) }}</strong>
-        {{ $t("prompts.uploadReplaceInfo") }}
-      </p>
-      <p v-if="allowRename">
-        <strong>{{ $t("prompts.optionLabel", { name: $t("general.rename") }) }}</strong>
-        {{ $t("prompts.uploadRenameInfo") }}
-      </p>
-    </template>
+    <p v-if="conflictDetails.count > 0" class="conflict-target">
+      <strong>{{ conflictDetails.names.join(", ") }}</strong>
+      <span v-if="conflictDetails.count > conflictDetails.names.length">+{{ conflictDetails.count - conflictDetails.names.length }}<!--eslint-disable-line @intlify/vue-i18n/no-raw-text--></span>
+    </p>
+    <p v-if="allowSkip">{{ $t("prompts.uploadConflictMessage") }}</p>
     <p v-else>{{ $t("prompts.replaceMessage") }}</p>
   </div>
   <div class="card-actions">
@@ -50,11 +40,21 @@
       :title="$t('general.replace')">
       {{ $t("general.replace") }}
     </button>
+    <button
+      type="button"
+      class="button button--flat button--blue"
+      @click="(event) => currentPrompt.confirm(event, 'cancel')"
+      :aria-label="$t('general.cancel')"
+      :title="$t('general.cancel')"
+    >
+      {{ $t("general.cancel") }}
+    </button>
   </div>
 </template>
 
 <script>
 import { getters, state } from "@/store";
+import { uploadManager } from "@/utils/upload";
 
 export default {
   name: "replace-rename",
@@ -65,6 +65,9 @@ export default {
     },
   },
   computed: {
+    conflictDetails() {
+      return uploadManager.getConflictDetails();
+    },
     currentPrompt() {
       return getters.currentPrompt();
     },

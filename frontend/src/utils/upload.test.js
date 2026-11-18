@@ -378,7 +378,7 @@ describe("conflicts on loose files", () => {
     uploadManager.overwriteAll = null;
   });
 
-  it("asks what to do when a loose file already exists in the current folder, without offering rename", async () => {
+  it("offers rename when a single loose file already exists in the current folder", async () => {
     state.req.items = [{ name: "done.mov", type: "video/quicktime", size: 100 }];
     const onConflict = vi.fn();
     uploadManager.setOnConflict(onConflict);
@@ -386,7 +386,8 @@ describe("conflicts on loose files", () => {
     await uploadManager.add("/base/", [looseItem("done.mov", 100), looseItem("new.mov", 5)]);
 
     expect(onConflict).toHaveBeenCalledTimes(1);
-    expect(onConflict.mock.calls[0][1]).toEqual({ allowRename: false });
+    // One file in the way: the user may give the upload another name, as for a folder.
+    expect(onConflict.mock.calls[0][1]).toEqual({ allowRename: true });
     expect(uploadManager.queue).toHaveLength(0);
   });
 
@@ -568,5 +569,300 @@ describe("upload stall timeout setting", () => {
     expect(uploadManager.stallLimitMs(upload)).toBe(uploadManager.SERVER_RESPONSE_TIMEOUT_MS);
     state.user.fileLoading.uploadStallTimeoutSeconds = 1800;
     expect(uploadManager.stallLimitMs(upload)).toBe(1800000);
+  });
+});
+
+describe("conflicts found while transferring", () => {
+  beforeEach(() => {
+    uploadManager.conflictPromptOpen = false;
+    uploadManager.conflictsCancelled = false;
+    uploadManager.pendingConflictItems = null;
+    uploadManager.overwriteAll = null;
+    uploadManager.isPausedForConflict = false;
+    uploadManager.isOverallPaused = false;
+    vi.spyOn(uploadManager, "processQueue").mockResolvedValue();
+  });
+
+  afterEach(() => {
+    uploadManager.setOnConflict(() => {});
+    uploadManager.overwriteAll = null;
+  });
+
+  it("asks once for every conflicting file instead of once per file", () => {
+    const onConflict = vi.fn();
+    uploadManager.setOnConflict(onConflict);
+    addUpload("conflict");
+    addUpload("conflict");
+
+    uploadManager.askConflictForBatch();
+
+    expect(onConflict).toHaveBeenCalledTimes(1);
+    expect(onConflict.mock.calls[0][1]).toEqual({ allowRename: false });
+    expect(uploadManager.isPausedForConflict).toBe(true);
+  });
+
+  it("replaces every conflicting file after choosing replace all", () => {
+    uploadManager.setOnConflict((resolve) => resolve(true));
+    const first = addUpload("conflict");
+    const second = addUpload("conflict");
+
+    uploadManager.askConflictForBatch();
+    uploadManager.resolveConflictForBatch(true);
+
+    expect(first.status).toBe("pending");
+    expect(second.status).toBe("pending");
+    expect(first.overwrite).toBe(true);
+    expect(second.overwrite).toBe(true);
+    expect(uploadManager.isPausedForConflict).toBe(false);
+  });
+
+  it("drops only the conflicting files after choosing skip all", () => {
+    addUpload("conflict");
+    const done = addUpload("completed");
+
+    uploadManager.askConflictForBatch();
+    uploadManager.resolveConflictForBatch({ skip: true });
+
+    expect(uploadManager.queue).toEqual([done]);
+    expect(notify.showSuccessToast).toHaveBeenCalledWith("prompts.uploadSkipped:1");
+  });
+
+  it("stops the queue when the conflict question is cancelled", () => {
+    const upload = addUpload("conflict");
+
+    uploadManager.askConflictForBatch();
+    uploadManager.resolveConflictForBatch(false);
+
+    expect(uploadManager.isOverallPaused).toBe(true);
+    expect(uploadManager.queue).toEqual([upload]);
+  });
+
+  it("treats a dropped connection as a conflict when the file is already on the server", async () => {
+    resourcesApi.listDirectoryEntries.mockResolvedValue(
+      new Map([["file", { size: 1, type: "file" }]])
+    );
+    const onConflict = vi.fn();
+    uploadManager.setOnConflict(onConflict);
+    const upload = addUpload("uploading");
+
+    await uploadManager.handleUploadError(upload, new Error("Network error"));
+
+    expect(upload.status).toBe("conflict");
+    expect(onConflict).toHaveBeenCalledTimes(1);
+  });
+
+  it("still offers to resume a stalled transfer when the file is not on the server", async () => {
+    resourcesApi.listDirectoryEntries.mockResolvedValue(new Map());
+    const onConflict = vi.fn();
+    uploadManager.setOnConflict(onConflict);
+    const upload = addUpload("uploading");
+    upload.size = 10 * 1024 * 1024;
+    upload.chunkOffset = 5 * 1024 * 1024;
+
+    await uploadManager.handleUploadError(upload, new Error("Network error"));
+
+    expect(upload.status).toBe("paused");
+    expect(onConflict).not.toHaveBeenCalled();
+  });
+});
+
+describe("conflict answers cover the rest of the batch", () => {
+  beforeEach(() => {
+    uploadManager.conflictPromptOpen = false;
+    uploadManager.conflictsCancelled = false;
+    uploadManager.pendingConflictItems = null;
+    uploadManager.overwriteAll = null;
+    uploadManager.isOverallPaused = false;
+    vi.spyOn(uploadManager, "processQueue").mockResolvedValue();
+  });
+
+  afterEach(() => {
+    uploadManager.setOnConflict(() => {});
+    uploadManager.overwriteAll = null;
+  });
+
+  it("does not ask again when replace all was chosen and another file conflicts later", () => {
+    const onConflict = vi.fn();
+    uploadManager.setOnConflict(onConflict);
+    addUpload("conflict");
+    uploadManager.askConflictForBatch();
+    uploadManager.resolveConflictForBatch(true);
+
+    const later = addUpload("conflict");
+    uploadManager.askConflictForBatch();
+
+    expect(onConflict).toHaveBeenCalledTimes(1);
+    expect(later.status).toBe("pending");
+    expect(later.overwrite).toBe(true);
+  });
+
+  it("drops later conflicts without asking when skip all was chosen", () => {
+    const onConflict = vi.fn();
+    uploadManager.setOnConflict(onConflict);
+    addUpload("conflict");
+    uploadManager.askConflictForBatch();
+    uploadManager.resolveConflictForBatch({ skip: true });
+
+    addUpload("conflict");
+    uploadManager.askConflictForBatch();
+
+    expect(onConflict).toHaveBeenCalledTimes(1);
+    expect(uploadManager.queue).toHaveLength(0);
+  });
+
+  it("stops asking after the batch is cancelled", () => {
+    const onConflict = vi.fn();
+    uploadManager.setOnConflict(onConflict);
+    addUpload("conflict");
+    uploadManager.askConflictForBatch();
+    uploadManager.resolveConflictForBatch(false);
+
+    addUpload("conflict");
+    uploadManager.askConflictForBatch();
+
+    expect(onConflict).toHaveBeenCalledTimes(1);
+    expect(uploadManager.isOverallPaused).toBe(true);
+  });
+});
+
+describe("files that conflict while the question is open", () => {
+  beforeEach(() => {
+    uploadManager.conflictPromptOpen = false;
+    uploadManager.conflictsCancelled = false;
+    uploadManager.pendingConflictItems = null;
+    uploadManager.overwriteAll = null;
+    uploadManager.isPausedForConflict = false;
+    uploadManager.isOverallPaused = false;
+    vi.spyOn(uploadManager, "processQueue").mockResolvedValue();
+  });
+
+  afterEach(() => {
+    uploadManager.setOnConflict(() => {});
+    uploadManager.overwriteAll = null;
+  });
+
+  it("retries them with the answer already given instead of leaving them stuck", () => {
+    const onConflict = vi.fn();
+    uploadManager.setOnConflict(onConflict);
+    addUpload("conflict");
+    uploadManager.askConflictForBatch();
+    const late = addUpload("conflict");
+    uploadManager.resolveConflictForBatch(true);
+    expect(onConflict).toHaveBeenCalledTimes(1);
+    expect(late.status).toBe("pending");
+    expect(late.overwrite).toBe(true);
+  });
+
+  it("drops them when skip all was chosen", () => {
+    uploadManager.setOnConflict(() => {});
+    addUpload("conflict");
+    uploadManager.askConflictForBatch();
+    addUpload("conflict");
+    uploadManager.resolveConflictForBatch({ skip: true });
+    expect(uploadManager.queue).toHaveLength(0);
+  });
+});
+
+describe("the conflict question names what conflicts", () => {
+  beforeEach(() => {
+    uploadManager.conflictingFolder = null;
+    uploadManager.pendingConflictItems = null;
+  });
+
+  it("names the folder when a folder of the same name is in the way", () => {
+    uploadManager.conflictingFolder = "upload-test-10";
+    expect(uploadManager.getConflictDetails()).toEqual({
+      kind: "folder",
+      count: 1,
+      names: ["upload-test-10"],
+    });
+  });
+
+  it("lists the files that conflict, with the count", () => {
+    uploadManager.pendingConflictItems = [addUpload("conflict"), addUpload("conflict")];
+    const details = uploadManager.getConflictDetails();
+    expect(details.kind).toBe("files");
+    expect(details.count).toBe(2);
+    expect(details.names).toHaveLength(2);
+  });
+});
+
+describe("naming the conflicting files before the upload starts", () => {
+  afterEach(() => {
+    state.req.items = [];
+    uploadManager.setOnConflict(() => {});
+    uploadManager.pendingConflictItems = null;
+  });
+
+  it("lists the loose files that are already in the folder", async () => {
+    state.req.items = [{ name: "done.mov", type: "video/quicktime", size: 100 }];
+    uploadManager.setOnConflict(() => {});
+    await uploadManager.add("/base/", [
+      { file: { name: "done.mov", size: 100 }, relativePath: "done.mov" },
+      { file: { name: "new.mov", size: 5 }, relativePath: "new.mov" },
+    ]);
+    expect(uploadManager.getConflictDetails().names).toEqual(["done.mov"]);
+  });
+});
+
+describe("renaming the incoming folder", () => {
+  it("moves the queued upload to the new name and leaves the existing folder alone", async () => {
+    uploadManager.pendingItems = [
+      { file: { name: "a.txt", size: 1 }, relativePath: "upload-test-10/a.txt" },
+      { file: { name: "b.txt", size: 1 }, relativePath: "upload-test-10/b.txt" },
+    ];
+    await uploadManager.renameFolder("upload-test-10", "upload-test-101");
+    expect(uploadManager.pendingItems.map((item) => item.relativePath)).toEqual([
+      "upload-test-101/a.txt",
+      "upload-test-101/b.txt",
+    ]);
+  });
+});
+
+describe("renaming a single incoming file", () => {
+  beforeEach(() => {
+    uploadManager.pendingItems = null;
+    uploadManager.pendingConflictItems = null;
+    uploadManager.conflictingFolder = null;
+  });
+
+  it("sends the file under the new name and leaves the existing one alone", () => {
+    uploadManager.pendingItems = [
+      { file: { name: "testas-01.txt", size: 1 }, relativePath: "testas-01.txt" },
+    ];
+    uploadManager.renamePendingFile("testas-01.txt", "testas-01-kopija.txt");
+    expect(uploadManager.pendingItems[0].relativePath).toBe("testas-01-kopija.txt");
+  });
+
+  it("offers rename only when a single item is in the way", () => {
+    uploadManager.pendingConflictItems = [addUpload("conflict")];
+    expect(uploadManager.conflictAllowsRename()).toBe(true);
+    uploadManager.pendingConflictItems = [addUpload("conflict"), addUpload("conflict")];
+    expect(uploadManager.conflictAllowsRename()).toBe(false);
+  });
+});
+
+describe("after renaming the incoming file", () => {
+  afterEach(() => {
+    state.req.items = [];
+    uploadManager.setOnConflict(() => {});
+    uploadManager.pendingItems = null;
+    uploadManager.queue.splice(0);
+  });
+
+  it("does not treat the renamed file as a conflict again", async () => {
+    state.req.items = [{ name: "done.mov", type: "video/quicktime", size: 100 }];
+    const onConflict = vi.fn();
+    uploadManager.setOnConflict(onConflict);
+    vi.spyOn(uploadManager, "processQueue").mockResolvedValue();
+    uploadManager.pendingItems = [{ file: { name: "done.mov", size: 100 }, relativePath: "done.mov" }];
+
+    uploadManager.renamePendingFile("done.mov", "done-kopija.mov");
+    await uploadManager.add("/base/", uploadManager.pendingItems, false);
+
+    expect(onConflict).not.toHaveBeenCalled();
+    const queued = uploadManager.queue.find((item) => item.path?.includes("done-kopija.mov"));
+    expect(queued?.path).toBe("/base/done-kopija.mov");
+    expect(queued?.name).toBe("done-kopija.mov");
   });
 });

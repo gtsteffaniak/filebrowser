@@ -305,42 +305,36 @@ export default {
 
     const showRenamePrompt = () => {
       mutations.closeTopPrompt(); // Only close the replace-rename prompt, keep upload prompt open
-      // Get the conflicting folder name from the upload queue
-      const conflictingFolder = uploadManager.getConflictingFolder();
-      if (!conflictingFolder) {
-        console.error("No conflicting folder found for rename");
+      const details = uploadManager.getConflictDetails();
+      const target = details.names[0];
+      if (!target) {
+        console.error("No conflicting item found for rename");
         return;
       }
-
+      const existingNames = new Set((state.req?.items || []).map((item) => item.name));
       mutations.showPrompt({
-        name: "rename",
-        confirm: (newName) => {
-          void renameUploadFolder(conflictingFolder, newName);
+        name: "upload-rename",
+        props: { initialName: target },
+        confirm: async (_event, newName) => {
+          if (!newName) {
+            resolveConflict(false);
+            return;
+          }
+          if (existingNames.has(newName)) {
+            notify.showError(new Error(`An item named "${newName}" already exists`));
+            return;
+          }
+          mutations.closeTopPrompt();
+          // Only the incoming upload takes the new name: whatever is already on the
+          // server stays untouched, so the result is two items, as the user expects.
+          if (details.kind === "folder") {
+            await uploadManager.renameFolder(target, newName);
+          } else {
+            uploadManager.renamePendingFile(target, newName);
+          }
+          resolveConflict({ rename: newName });
         },
-        props: { folderName: conflictingFolder }
       });
-    };
-
-    const renameUploadFolder = async (oldName, newName) => {
-      try {
-        // Check if the new name already exists
-        const existingItems = new Set(state.req.items.map(i => i.name));
-        if (existingItems.has(newName)) {
-          notify.showError(new Error(`A folder named "${newName}" already exists`));
-          return;
-        }
-
-        // Update upload manager with the new folder name
-        await uploadManager.renameFolder(oldName, newName);
-
-        // Resolve the conflict and continue upload
-        if (conflictResolver) {
-          conflictResolver({ rename: newName });
-        }
-        mutations.closeTopPrompt(); // Only close the rename prompt, return to upload prompt
-      } catch (error) {
-        console.error(error);
-      }
     };
 
     const acquireWakeLock = async () => {
@@ -679,7 +673,6 @@ export default {
       showConflictPrompt,
       resolveConflict,
       showRenamePrompt,
-      renameUploadFolder,
       canPauseAll,
       canResumeAll,
       handleConflictAction,
