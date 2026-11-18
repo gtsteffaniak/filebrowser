@@ -633,7 +633,9 @@ describe("conflicts found while transferring", () => {
     uploadManager.askConflictForBatch();
     uploadManager.resolveConflictForBatch(false);
 
-    expect(uploadManager.isOverallPaused).toBe(true);
+    // The batch is left as it is; a new submission may start again.
+    expect(uploadManager.isOverallPaused).toBe(false);
+    expect(uploadManager.conflictsCancelled).toBe(true);
     expect(uploadManager.queue).toEqual([upload]);
   });
 
@@ -721,7 +723,7 @@ describe("conflict answers cover the rest of the batch", () => {
     uploadManager.askConflictForBatch();
 
     expect(onConflict).toHaveBeenCalledTimes(1);
-    expect(uploadManager.isOverallPaused).toBe(true);
+    expect(uploadManager.conflictsCancelled).toBe(true);
   });
 });
 
@@ -1002,5 +1004,33 @@ describe("directory renames stay inside their submission", () => {
     expect(paused.progress).toBe(0);
     expect(paused.sessionId).not.toBe("old-session");
     expect(paused.status).toBe("pending");
+  });
+});
+
+describe("submission identity", () => {
+  beforeEach(() => {
+    vi.spyOn(uploadManager, "processQueue").mockResolvedValue();
+  });
+
+  afterEach(() => {
+    uploadManager.setOnConflict(() => {});
+    state.req.items = [];
+  });
+
+  it("gives a second submission its own id even while the first is still queued", async () => {
+    await uploadManager.add("/base/", [{ file: { name: "a.txt", size: 1 }, relativePath: "a.txt" }]);
+    const first = uploadManager.queue.at(-1).submission;
+    await uploadManager.add("/base/", [{ file: { name: "b.txt", size: 1 }, relativePath: "b.txt" }]);
+    const second = uploadManager.queue.at(-1).submission;
+    expect(first).toBeDefined();
+    expect(second).toBeGreaterThan(first);
+  });
+
+  it("keeps the id when the same batch continues after an answer", async () => {
+    await uploadManager.add("/base/", [{ file: { name: "a.txt", size: 1 }, relativePath: "a.txt" }]);
+    const first = uploadManager.queue.at(-1).submission;
+    uploadManager.continuingBatch = true;
+    await uploadManager.add("/base/", [{ file: { name: "a.txt", size: 1 }, relativePath: "a.txt" }]);
+    expect(uploadManager.queue.at(-1).submission).toBe(first);
   });
 });

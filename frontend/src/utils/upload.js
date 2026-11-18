@@ -377,8 +377,14 @@ class UploadManager {
         this.renameQueuedUpload(items[0], resolution.rename);
       }
     } else {
-      // Cancel: stop this batch and do not ask again for it.
-      this.isOverallPaused = true;
+      // Cancel: leave the items of this batch where they are and do not ask again
+      // for it. A new submission is free to start; the global pause stays a
+      // separate control of the user.
+      for (const item of this.queue) {
+        if (item.status === "pending") {
+          item.status = "paused";
+        }
+      }
       this.conflictsCancelled = true;
     }
     this.isPausedForConflict = false;
@@ -447,17 +453,19 @@ class UploadManager {
   }
 
   async add(basePath, items, overwrite = false, skipExisting = false) {
-    if (this.queue.length === 0 && !this.continuingBatch) {
+    // A continuation answers for the submission it came from; anything else is a
+    // new one. The id is captured before the first await, so two calls cannot end
+    // up sharing it.
+    const continuing = this.continuingBatch;
+    this.continuingBatch = false;
+    if (!continuing) {
       // A new submission starts with no answers left over from the previous one.
-      // Continuing after a conflict answer keeps them: that answer covers the
-      // rest of this batch.
       this.overwriteAll = null;
       this.skipAll = false;
       this.conflictsCancelled = false;
-      this.isOverallPaused = false;
       this.submissionId += 1;
     }
-    this.continuingBatch = false;
+    const submission = this.submissionId;
     // Handle undefined/null basePath
     if (!basePath) {
       basePath = "/";
@@ -620,7 +628,7 @@ class UploadManager {
         const upload = {
           id: this.nextId++,
           sessionId: newUploadSessionId(),
-          submission: this.submissionId,
+          submission,
           name: dirName,
           size: 0,
           progress: 0,
@@ -645,7 +653,7 @@ class UploadManager {
       const upload = {
         id,
         sessionId: newUploadSessionId(),
-        submission: this.submissionId,
+        submission,
         file,
         name: item.uploadName || file.name,
         size: file.size,
