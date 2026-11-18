@@ -809,19 +809,34 @@ export const getters = {
       return denyFile;
     }
     // Find scope with longest-prefix match for nested scopes
-    const currentPath = state.req?.path ?? "/";
-    const matchingScopes = state.user.scopes
-      .filter((entry) => entry?.name === activeSource)
+    const sourceScopes = state.user.scopes.filter((entry) => entry?.name === activeSource);
+    if (sourceScopes.length === 0) {
+      return denyFile;
+    }
+    const baseScope = (sourceScopes[0]?.scope || "/").replace(/\/+$/, "") || "/";
+    const reqPath = (state.req?.path ?? "/").replace(/\/+$/, "") || "/";
+    // state.req.path is relative to baseScope (backend strips baseScope in finalizeResponse),
+    // while entry.scope is source-relative. Reconstruct the full source-relative path.
+    const currentPath =
+      baseScope === "/"
+        ? reqPath
+        : reqPath === "/"
+          ? baseScope
+          : reqPath === baseScope || reqPath.startsWith(baseScope + "/")
+            ? reqPath
+            : baseScope + (reqPath.startsWith("/") ? reqPath : "/" + reqPath);
+
+    const matchingScopes = sourceScopes
       .filter((entry) => {
         // Check if currentPath starts with this scope's path (or is exact match)
-        const scopePath = entry.scope || "/";
+        const scopePath = (entry.scope || "/").replace(/\/+$/, "") || "/";
         // Root scope "/" matches every path
         if (scopePath === "/") return true;
         return currentPath === scopePath || currentPath.startsWith(scopePath + "/");
       })
       .sort((a, b) => (b.scope?.length ?? 0) - (a.scope?.length ?? 0));
 
-    const scopeEntry = matchingScopes[0];
+    const scopeEntry = matchingScopes[0] ?? sourceScopes[0];
     const permissions = scopeEntry?.permissions ?? denyFile;
     // The server refuses writes to a read-only source whatever the scope grants, so do not offer them.
     if (state.sources?.info?.[activeSource]?.readOnly) {

@@ -81,41 +81,41 @@ func MergeDefaultEnabledBackendScopes(existing []users.BackendScope, declined []
 	for _, path := range declined {
 		declinedSet[path] = struct{}{}
 	}
-	byPath := make(map[string]users.BackendScope, len(existing))
+	bySourcePath := make(map[string][]users.BackendScope, len(existing))
 	for _, s := range existing {
-		byPath[s.Path] = s
+		bySourcePath[s.Path] = append(bySourcePath[s.Path], s)
 	}
 
 	newScopes := make([]users.BackendScope, 0, len(existing)+len(Config.Server.Sources))
-	seen := make(map[string]struct{}, len(Config.Server.Sources))
+	configured := make(map[string]struct{}, len(Config.Server.Sources))
 	for _, src := range Config.Server.Sources {
 		if src == nil {
 			continue
 		}
-		existingScope, ok := byPath[src.Path]
-		if ok {
-			if existingScope.Scope == "" {
-				existingScope.Scope = src.Config.DefaultUserScope
+		configured[src.Path] = struct{}{}
+		// A source may carry several scopes (nested path scopes); keep every one of them.
+		if scopes, ok := bySourcePath[src.Path]; ok {
+			for _, scope := range scopes {
+				if scope.Scope == "" {
+					scope.Scope = src.Config.DefaultUserScope
+				}
+				newScopes = append(newScopes, scope)
 			}
-		} else if src.Config.DefaultEnabled {
-			if _, omitted := declinedSet[src.Path]; omitted {
-				continue
-			}
-			existingScope = users.BackendScope{
-				Scope: src.Config.DefaultUserScope,
-			}
-		} else {
+			continue
+		}
+		if !src.Config.DefaultEnabled {
+			continue
+		}
+		if _, omitted := declinedSet[src.Path]; omitted {
 			continue
 		}
 		newScopes = append(newScopes, users.BackendScope{
-			Path:        src.Path,
-			Scope:       existingScope.Scope,
-			Permissions: existingScope.Permissions,
+			Path:  src.Path,
+			Scope: src.Config.DefaultUserScope,
 		})
-		seen[src.Path] = struct{}{}
 	}
 	for _, s := range existing {
-		if _, ok := seen[s.Path]; !ok {
+		if _, ok := configured[s.Path]; !ok {
 			newScopes = append(newScopes, s)
 		}
 	}

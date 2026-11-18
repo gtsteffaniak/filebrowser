@@ -21,6 +21,7 @@ import (
 	libErrors "github.com/gtsteffaniak/filebrowser/backend/internal/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/preview"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/quota"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing/iteminfo"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 	"github.com/gtsteffaniak/go-cache/cache"
@@ -58,6 +59,26 @@ func effectiveFilePerms(d *Context, sourceName string, indexPath ...string) (use
 		return share.EffectiveFilePermissionsForPath(d.User, link, sourceName, indexPath[0])
 	}
 	return share.EffectiveFilePermissions(d.User, link, sourceName)
+}
+
+// effectiveFilePermsForClientPath resolves file permissions for a scope-relative API path
+// by joining it with the user's base scope for the source before longest-prefix matching.
+func effectiveFilePermsForClientPath(d *Context, sourceName, clientPath string) (users.SourceFilePermissions, error) {
+	if d == nil {
+		return users.DenyAllSourceFilePermissions(), fmt.Errorf("user context not set")
+	}
+	if d.Share.Hash != "" {
+		return share.EffectiveFilePermissions(d.User, &d.Share, sourceName)
+	}
+	if d.User == nil {
+		return users.DenyAllSourceFilePermissions(), fmt.Errorf("user context not set")
+	}
+	baseScope, err := d.User.GetScopeForSourceName(sourceName)
+	if err != nil {
+		return users.DenyAllSourceFilePermissions(), err
+	}
+	fullIndexPath := utils.JoinScopedIndexPath(strings.TrimRight(baseScope, "/"), clientPath)
+	return share.EffectiveFilePermissionsForPath(d.User, nil, sourceName, fullIndexPath)
 }
 
 // accessCheckUsername is the username used for filesystem access-rule checks.

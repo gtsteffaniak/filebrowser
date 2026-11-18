@@ -152,7 +152,7 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *Context) (int
 	}
 	path = cleanPath
 	source := r.URL.Query().Get("source")
-	filePerms, err := effectiveFilePerms(d, source, path)
+	filePerms, err := effectiveFilePermsForClientPath(d, source, path)
 	if err != nil {
 		return http.StatusForbidden, err
 	}
@@ -262,7 +262,7 @@ func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *Context) (
 	if cleanErr != nil {
 		permsPath = path
 	}
-	filePerms, err := effectiveFilePerms(d, source, permsPath)
+	filePerms, err := effectiveFilePermsForClientPath(d, source, permsPath)
 	if err != nil {
 		return http.StatusForbidden, err
 	}
@@ -682,7 +682,7 @@ func resourcePauseHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 	if err != nil {
 		cleanPath = path
 	}
-	filePerms, err := effectiveFilePerms(d, source, cleanPath)
+	filePerms, err := effectiveFilePermsForClientPath(d, source, cleanPath)
 	if err != nil {
 		return http.StatusForbidden, err
 	}
@@ -780,7 +780,7 @@ func ResourcePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 		FollowSymlinks: true,
 	}
 
-	userscope, err := filePermUser.GetScopeForSourceName(source, path)
+	userscope, err := filePermUser.GetScopeForSourceName(source)
 	if err != nil {
 		logger.Debugf("error getting scope from source name: %v", err)
 		return http.StatusForbidden, err
@@ -804,7 +804,7 @@ func ResourcePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 	}
 
 	if d.Share.Hash == "" {
-		filePerms, permErr := effectiveFilePerms(d, source, path)
+		filePerms, permErr := effectiveFilePermsForClientPath(d, source, path)
 		if permErr != nil {
 			return http.StatusForbidden, permErr
 		}
@@ -1253,7 +1253,7 @@ func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *Context) (int
 		return http.StatusBadRequest, err
 	}
 	path = cleanPath
-	filePerms, err := effectiveFilePerms(d, source, path)
+	filePerms, err := effectiveFilePermsForClientPath(d, source, path)
 	if err != nil {
 		return http.StatusForbidden, err
 	}
@@ -1261,7 +1261,7 @@ func resourcePutHandler(w http.ResponseWriter, r *http.Request, d *Context) (int
 		return http.StatusForbidden, fmt.Errorf("user is not allowed to modify files in this source")
 	}
 	// Get user scope to resolve full index path for write operation
-	userScope, err := d.User.GetScopeForSourceName(source, path)
+	userScope, err := d.User.GetScopeForSourceName(source)
 	if err != nil {
 		return http.StatusForbidden, err
 	}
@@ -1413,33 +1413,29 @@ func ResourcePatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 		userscopeSrc := ""
 		userscopeDst := ""
 		if d.Share.Hash == "" {
-			userscopeSrc, err = d.User.GetScopeForSourceName(item.FromSource, cleanFromPath)
+			userscopeSrc, err = d.User.GetScopeForSourceName(item.FromSource)
 			if err != nil {
 				item.Message = "source not available"
 				response.Failed = append(response.Failed, moveCopyWithClientPaths(item, clientFromPath, clientToPath))
 				continue
 			}
-			userscopeDst, err = d.User.GetScopeForSourceName(item.ToSource, cleanToPath)
+			userscopeDst, err = d.User.GetScopeForSourceName(item.ToSource)
 			if err != nil {
 				item.Message = "destination source not available"
 				response.Failed = append(response.Failed, moveCopyWithClientPaths(item, clientFromPath, clientToPath))
 				continue
 			}
-			fromPerms, permErr := effectiveFilePerms(d, item.FromSource, cleanFromPath)
+			fromPerms, permErr := effectiveFilePermsForClientPath(d, item.FromSource, cleanFromPath)
 			if permErr != nil {
 				item.Message = "permission denied"
 				response.Failed = append(response.Failed, moveCopyWithClientPaths(item, clientFromPath, clientToPath))
 				continue
 			}
-			toPerms := fromPerms
-			if item.ToSource != item.FromSource {
-				var toErr error
-				toPerms, toErr = effectiveFilePerms(d, item.ToSource, cleanToPath)
-				if toErr != nil {
-					item.Message = "permission denied"
-					response.Failed = append(response.Failed, moveCopyWithClientPaths(item, clientFromPath, clientToPath))
-					continue
-				}
+			toPerms, toErr := effectiveFilePermsForClientPath(d, item.ToSource, cleanToPath)
+			if toErr != nil {
+				item.Message = "permission denied"
+				response.Failed = append(response.Failed, moveCopyWithClientPaths(item, clientFromPath, clientToPath))
+				continue
 			}
 			if msg := resourcePatchPermCheck(req.Action, item.FromSource, item.ToSource, fromPerms, toPerms); msg != "" {
 				item.Message = msg
