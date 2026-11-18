@@ -35,7 +35,8 @@ CREATE TABLE IF NOT EXISTS shadow_regressions (
 	size_bytes INTEGER NOT NULL,
 	codecs TEXT NOT NULL DEFAULT '',
 	occurrences INTEGER NOT NULL DEFAULT 1
-);`
+);
+CREATE INDEX IF NOT EXISTS idx_shadow_regressions_created ON shadow_regressions(created_at, id);`
 
 // incompatibleSchema holds files go-media does not support that ffmpeg handled.
 // Unlike shadow_regressions, it stores the file path so the list can name the files.
@@ -248,10 +249,13 @@ func (s *Store) Record(e Entry) error {
 		return err
 	}
 	// Prune by last-seen time, so a file that keeps regressing is not dropped
-	// just because its row was created long ago.
+	// just because its row was created long ago. Only the rows over the limit
+	// are removed, oldest first, so the index on created_at does the work and
+	// a normal insert deletes nothing.
 	if _, err := tx.Exec(
-		`DELETE FROM shadow_regressions WHERE id NOT IN (
-			SELECT id FROM shadow_regressions ORDER BY created_at DESC, id DESC LIMIT ?)`,
+		`DELETE FROM shadow_regressions WHERE id IN (
+			SELECT id FROM shadow_regressions ORDER BY created_at ASC, id ASC
+			LIMIT MAX(0, (SELECT COUNT(*) FROM shadow_regressions) - ?))`,
 		MaxEntries,
 	); err != nil {
 		return err
