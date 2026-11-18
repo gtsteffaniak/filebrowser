@@ -41,8 +41,9 @@ function resetConflictState() {
   uploadManager.conflictingFolder = null;
   uploadManager.overwriteAll = null;
   uploadManager.skipAll = false;
-  uploadManager.answerSubmission = null;
-  uploadManager.cancelledSubmission = null;
+  uploadManager.answers.clear();
+    uploadManager.answers.clear();
+  uploadManager.cancelledSubmissions.clear();
   uploadManager.isPausedForConflict = false;
   uploadManager.isOverallPaused = false;
   uploadManager.submissionId = 0;
@@ -91,8 +92,9 @@ beforeEach(() => {
   uploadManager.conflictingFolder = null;
   uploadManager.overwriteAll = null;
   uploadManager.skipAll = false;
-  uploadManager.answerSubmission = null;
-  uploadManager.cancelledSubmission = null;
+  uploadManager.answers.clear();
+    uploadManager.answers.clear();
+  uploadManager.cancelledSubmissions.clear();
   uploadManager.submissionId = 0;
   uploadManager.isPausedForConflict = false;
 });
@@ -605,16 +607,16 @@ describe("conflicts found while transferring", () => {
     uploadManager.conflictsCancelled = false;
     uploadManager.pendingConflictItems = null;
     uploadManager.overwriteAll = null;
-    uploadManager.answerSubmission = null;
-    uploadManager.cancelledSubmission = null;
+    uploadManager.answers.clear();
+    uploadManager.cancelledSubmissions.clear();
     uploadManager.isPausedForConflict = false;
     uploadManager.isOverallPaused = false;
     uploadManager.conflictPromptOpen = false;
     uploadManager.submissionId = 0;
     uploadManager.pendingItems = null;
     uploadManager.conflictingFolder = null;
-    uploadManager.answerSubmission = null;
-    uploadManager.cancelledSubmission = null;
+    uploadManager.answers.clear();
+    uploadManager.cancelledSubmissions.clear();
     vi.spyOn(uploadManager, "processQueue").mockResolvedValue();
   });
 
@@ -670,7 +672,7 @@ describe("conflicts found while transferring", () => {
 
     // The batch is left as it is; a new submission may start again.
     expect(uploadManager.isOverallPaused).toBe(false);
-    expect(uploadManager.cancelledSubmission).toBe(upload.submission);
+    expect(uploadManager.cancelledSubmissions.has(upload.submission)).toBe(true);
     expect(uploadManager.queue).toEqual([upload]);
   });
 
@@ -709,15 +711,15 @@ describe("conflict answers cover the rest of the batch", () => {
     uploadManager.conflictsCancelled = false;
     uploadManager.pendingConflictItems = null;
     uploadManager.overwriteAll = null;
-    uploadManager.answerSubmission = null;
-    uploadManager.cancelledSubmission = null;
+    uploadManager.answers.clear();
+    uploadManager.cancelledSubmissions.clear();
     uploadManager.isOverallPaused = false;
     uploadManager.conflictPromptOpen = false;
     uploadManager.submissionId = 0;
     uploadManager.pendingItems = null;
     uploadManager.conflictingFolder = null;
-    uploadManager.answerSubmission = null;
-    uploadManager.cancelledSubmission = null;
+    uploadManager.answers.clear();
+    uploadManager.cancelledSubmissions.clear();
     vi.spyOn(uploadManager, "processQueue").mockResolvedValue();
   });
 
@@ -768,7 +770,7 @@ describe("conflict answers cover the rest of the batch", () => {
     uploadManager.askConflictForBatch();
 
     expect(onConflict).toHaveBeenCalledTimes(1);
-    expect(uploadManager.cancelledSubmission).toBe(first.submission);
+    expect(uploadManager.cancelledSubmissions.has(first.submission)).toBe(true);
   });
 });
 
@@ -778,16 +780,16 @@ describe("files that conflict while the question is open", () => {
     uploadManager.conflictsCancelled = false;
     uploadManager.pendingConflictItems = null;
     uploadManager.overwriteAll = null;
-    uploadManager.answerSubmission = null;
-    uploadManager.cancelledSubmission = null;
+    uploadManager.answers.clear();
+    uploadManager.cancelledSubmissions.clear();
     uploadManager.isPausedForConflict = false;
     uploadManager.isOverallPaused = false;
     uploadManager.conflictPromptOpen = false;
     uploadManager.submissionId = 0;
     uploadManager.pendingItems = null;
     uploadManager.conflictingFolder = null;
-    uploadManager.answerSubmission = null;
-    uploadManager.cancelledSubmission = null;
+    uploadManager.answers.clear();
+    uploadManager.cancelledSubmissions.clear();
     vi.spyOn(uploadManager, "processQueue").mockResolvedValue();
   });
 
@@ -923,6 +925,32 @@ describe("after renaming the incoming file", () => {
   });
 });
 
+it("keeps each submission's answer when another submission answers later", () => {
+  resetConflictState();
+  const onConflict = vi.fn();
+  uploadManager.setOnConflict(onConflict);
+
+  // The first submission is answered "replace", the second one "skip".
+  uploadManager.submissionId = 1;
+  uploadManager.pendingItems = [];
+  uploadManager.resolveConflict("/base/", [], true);
+  uploadManager.submissionId = 2;
+  uploadManager.pendingItems = [];
+  uploadManager.resolveConflict("/base/", [], { skip: true });
+
+  // A late conflict of the first submission keeps its own answer.
+  const first = addUpload("conflict");
+  first.submission = 1;
+  const second = addUpload("conflict");
+  second.submission = 2;
+
+  uploadManager.askConflictForBatch();
+
+  expect(onConflict).not.toHaveBeenCalled();
+  expect(uploadManager.queue.some((item) => item.submission === 2)).toBe(false);
+  expect(first.overwrite).toBe(true);
+});
+
 describe("review follow-ups", () => {
   beforeEach(() => {
     uploadManager.pendingItems = null;
@@ -930,15 +958,15 @@ describe("review follow-ups", () => {
     uploadManager.conflictingFolder = null;
     uploadManager.overwriteAll = null;
     uploadManager.skipAll = false;
-    uploadManager.answerSubmission = null;
-    uploadManager.cancelledSubmission = null;
+    uploadManager.answers.clear();
+    uploadManager.cancelledSubmissions.clear();
     uploadManager.isOverallPaused = false;
     uploadManager.conflictPromptOpen = false;
     uploadManager.submissionId = 0;
     uploadManager.pendingItems = null;
     uploadManager.conflictingFolder = null;
-    uploadManager.answerSubmission = null;
-    uploadManager.cancelledSubmission = null;
+    uploadManager.answers.clear();
+    uploadManager.cancelledSubmissions.clear();
     vi.spyOn(uploadManager, "processQueue").mockResolvedValue();
   });
 

@@ -102,8 +102,8 @@ class UploadManager {
     this.conflictPromptOpen = false; // one batch question at a time
     this.conflictsCancelled = false; // the user stopped this batch
     this.skipAll = false; // the batch answer was "leave what is there"
-    this.answerSubmission = null; // submission the replace/skip answer belongs to
-    this.cancelledSubmission = null; // submission the user stopped
+    this.answers = new Map(); // submission -> "replace" | "skip", answered by the user
+    this.cancelledSubmissions = new Set(); // submissions the user stopped
     this.continuingBatch = false; // add() continues the batch it just answered
     this.submissionId = 0; // which submission a queued job belongs to
     this.pendingConflictItems = null; // items waiting for the batch answer
@@ -216,6 +216,7 @@ class UploadManager {
       // User chose overwrite - set the flag and add with overwrite=true
       this.overwriteAll = true;
       this.skipAll = false;
+      this.answers.set(this.submissionId, "replace");
       this.continuingBatch = true;
       void this.add(basePath, items, true);
     } else if (resolution?.rename) {
@@ -230,6 +231,7 @@ class UploadManager {
       // The answer covers the rest of this batch: later conflicts are skipped
       // without asking again.
       this.skipAll = true;
+      this.answers.set(this.submissionId, "skip");
       this.continuingBatch = true;
       void this.add(basePath, pending, false, true);
     } else {
@@ -253,18 +255,16 @@ class UploadManager {
 
     // 1) The submission that was already answered gets that answer, without a
     //    second question, including the files that conflicted meanwhile.
-    const answered = conflicts.filter(
-      (item) =>
-        this.answerSubmission !== null &&
-        item.submission === this.answerSubmission &&
-        (this.overwriteAll === true || this.skipAll)
-    );
-    if (answered.length > 0) {
-      if (this.skipAll) {
-        this.dropConflicting(answered);
+    const answered = conflicts.filter((item) => this.answers.has(item.submission));
+    for (const submission of new Set(answered.map((item) => item.submission))) {
+      const items = answered.filter((item) => item.submission === submission);
+      if (this.answers.get(submission) === "skip") {
+        this.dropConflicting(items);
       } else {
-        this.retryConflicts(answered);
+        this.retryConflicts(items);
       }
+    }
+    if (answered.length > 0) {
       setTimeout(() => void this.processQueue(), 0);
     }
 
@@ -275,7 +275,7 @@ class UploadManager {
     }
     const remaining = this.queue.filter((item) => item.status === "conflict");
     const next = remaining.find(
-      (item) => item.submission !== this.cancelledSubmission && item.submission !== this.answerSubmission
+      (item) => !this.cancelledSubmissions.has(item.submission) && !this.answers.has(item.submission)
     );
     if (!next) {
       return;
@@ -385,13 +385,13 @@ class UploadManager {
       // Replace all: the answer covers this submission, not just these items.
       this.overwriteAll = true;
       this.skipAll = false;
-      this.answerSubmission = items[0]?.submission ?? this.submissionId;
+      this.answers.set(items[0]?.submission ?? this.submissionId, "replace");
       this.retryConflicts(items);
     } else if (resolution?.skip) {
       // Skip all: the answer covers this submission as well.
       this.overwriteAll = false;
       this.skipAll = true;
-      this.answerSubmission = items[0]?.submission ?? this.submissionId;
+      this.answers.set(items[0]?.submission ?? this.submissionId, "skip");
       this.dropConflicting(items);
     } else if (resolution?.rename) {
       // One item was in the way and the user gave it another name: send it there.
@@ -403,7 +403,7 @@ class UploadManager {
       // about it again. Another submission keeps running; the global pause stays
       // a separate control of the user.
       const cancelled = items[0]?.submission ?? this.submissionId;
-      this.cancelledSubmission = cancelled;
+      this.cancelledSubmissions.add(cancelled);
       for (const item of this.queue) {
         if (item.status === "pending" && item.submission === cancelled) {
           item.status = "paused";
@@ -458,7 +458,7 @@ class UploadManager {
 
   /** Whether the destination of this upload already exists on the server. */
   async targetExists(upload) {
-    if (getters.isShare() || !upload?.path || upload.overwrite) {
+    if (!upload?.path || upload.overwrite) {
       // A replacement expects the file to be there: a dropped connection during
       // it is an ordinary interruption to resume, not a conflict.
       return false;
@@ -470,6 +470,12 @@ class UploadManager {
       return false;
     }
     const dir = slash <= 0 ? "/" : path.slice(0, slash + 1);
+    if (getters.isShare()) {
+      const listing = await resourcesApi
+        .fetchFilesPublic(dir, state.shareInfo?.hash)
+        .catch(() => null);
+      return Boolean(listing?.items?.some((item) => item.name === name));
+    }
     const source = upload.source || state.req.source;
     const listing = await resourcesApi.listDirectoryEntries(source, dir);
     return Boolean(listing?.has(name));
@@ -505,7 +511,7 @@ class UploadManager {
     // Skip probing if overwrite is already true or overwriteAll is set
     // Only the submission that was answered may skip the preflight question or
     // overwrite; every other submission starts with a clean slate.
-    const answerOverwrite = this.answerSubmission === submission ? this.overwriteAll : null;
+    const answerOverwrite = this.answers.get(submission) === "replace" ? true : null;
     if (answerOverwrite === null && !overwrite && !skipExisting) {
       const topLevelDirs = new Set();
       for (const item of items) {
@@ -560,6 +566,14 @@ class UploadManager {
           // Wait for any open question first: writing this state earlier would
           // overwrite what the open dialog is about to read.
           await this.waitForFreePrompt();
+          if (this.conflictPromptOpen) {
+            // Another question is still open: do not stack a second one. Upload
+            // now; a real conflict shows up on the transfer and is asked there.
+            this.conflictingFolder = null;
+            this.pendingItems = items;
+            void this.processQueue();
+            return;
+          }
           // Store the conflicting folder name (take the first one for now)
           this.conflictingFolder = conflictingDirs[0];
           this.pendingItems = items;
@@ -584,6 +598,12 @@ class UploadManager {
         );
         if (hasLooseConflict) {
           await this.waitForFreePrompt();
+          if (this.conflictPromptOpen) {
+            this.conflictingFolder = null;
+            this.pendingItems = items;
+            void this.processQueue();
+            return;
+          }
           this.conflictingFolder = null;
           this.pendingItems = items;
           // Name them in the question: these files are already in the listing, so
@@ -744,7 +764,7 @@ class UploadManager {
           this.queue.find((item) => item.type === "directory" && item.status === "pending") ||
           this.queue.find((item) => item.status === "pending");
         if (upload) {
-          if (this.answerSubmission === upload.submission && this.overwriteAll) {
+          if (this.answers.get(upload.submission) === "replace") {
             upload.overwrite = true;
           }
           this.start(upload.id);
@@ -770,8 +790,8 @@ class UploadManager {
       this.overwriteAll = null; // Reset when nothing is left to answer for
       this.skipAll = false;
       this.conflictsCancelled = false;
-      this.answerSubmission = null;
-      this.cancelledSubmission = null;
+      this.answers.clear();
+      this.cancelledSubmissions.clear();
     }
   }
 
