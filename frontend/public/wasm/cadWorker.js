@@ -19,11 +19,14 @@ function chargerOcct(dire) {
   if (!occtPromise) {
     occtPromise = (async () => {
       log(dire, "Loading OpenCASCADE WebAssembly engine...", "step");
-      importScripts(`${OCCT}occt-import-js.js`);
+      importScripts(OCCT + "occt-import-js.js");
       const occt = await occtimportjs({ locateFile: (f) => OCCT + f });
       log(dire, "OpenCASCADE WASM engine ready", "ok");
       return occt;
     })();
+    // A failed load must not stay cached as a rejected promise: clear it so
+    // the next request can retry (same behavior as chargerGo).
+    occtPromise.catch(() => { occtPromise = null; });
   }
   return occtPromise;
 }
@@ -58,11 +61,27 @@ for nom in ("webbrowser", "signal", "http.server", "socketserver"):
       log(dire, `OpenSW engine loaded in ${((performance.now() - t0) / 1000).toFixed(1)}s`, "ok");
       return { nav, py };
     })();
+    // Clear a failed startup so the next request can retry without a reload.
+    pythonPromise.catch(() => { pythonPromise = null; });
   }
   return pythonPromise;
 }
 
 const NIVEAUX = 64;
+
+// One BOM row builder for both engines: the Go engine names the BOM-excluded
+// flag horsNomenclature, the Python one hors_nomenclature.
+function bomRowCsv(c) {
+  const field = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+  const excluded = c.horsNomenclature ?? c.hors_nomenclature;
+  return `${field(c.nom)},${field(c.fichier)},${field(c.configuration || "")},${c.supprime ? "true" : "false"},${c.cache ? "true" : "false"},${excluded ? "true" : "false"}\n`;
+}
+
+function bomCsv(bom) {
+  let csv = "Component,File,Configuration,Suppressed,Hidden,ExcludedFromBOM\n";
+  for (const c of bom || []) csv += bomRowCsv(c);
+  return csv;
+}
 
 // The OpenSW port compiled to Go/WebAssembly: instant start, no Python
 // runtime. Covers assembly views (display mesh, STL, BOM); geometry-heavy
@@ -474,12 +493,7 @@ self.onmessage = async (e) => {
             postMessage({ id, type: "converted", filename: filename.replace(/\.sldasm$/i, ".stl"), data: r.stlBytes }, [r.stlBytes.buffer]);
             return;
           }
-          const bom = r.composants || [];
-          let csv = "Component,File,Configuration,Suppressed,Hidden,ExcludedFromBOM\n";
-          for (const c of bom) {
-            csv += `"${c.nom}","${c.fichier}","${c.configuration || ''}",${c.supprime ? 'true' : 'false'},${c.cache ? 'true' : 'false'},${c.horsNomenclature ? 'true' : 'false'}\n`;
-          }
-          const enc = new TextEncoder().encode(csv);
+          const enc = new TextEncoder().encode(bomCsv(r.composants));
           const outName = filename.replace(/\.sldasm$/i, "_BOM.csv");
           postMessage({ id, type: "converted", filename: outName, data: enc }, [enc.buffer]);
           return;
@@ -502,12 +516,7 @@ self.onmessage = async (e) => {
           return;
         } else if (target === "csv") {
           // Bill of materials CSV
-          const bom = r.composants || [];
-          let csv = "Component,File,Configuration,Suppressed,Hidden,ExcludedFromBOM\n";
-          for (const c of bom) {
-            csv += `"${c.nom}","${c.fichier}","${c.configuration || ''}",${c.supprime ? 'true' : 'false'},${c.cache ? 'true' : 'false'},${c.hors_nomenclature ? 'true' : 'false'}\n`;
-          }
-          const enc = new TextEncoder().encode(csv);
+          const enc = new TextEncoder().encode(bomCsv(r.composants));
           const outName = filename.replace(/\.sldasm$/i, "_BOM.csv");
           postMessage({ id, type: "converted", filename: outName, data: enc }, [enc.buffer]);
           return;

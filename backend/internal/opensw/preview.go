@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"errors"
+	"fmt"
 	"image"
 	"image/color"
 	"image/png"
@@ -17,11 +18,26 @@ import (
 
 var pngSignature = []byte{0x89, 'P', 'N', 'G', '\r', '\n', 0x1a, '\n'}
 
+// maxDIBPixels caps the decoded size of the legacy DIB preview so a crafted
+// header cannot force a full-image allocation.
+const maxDIBPixels = 64 << 20 // 64 MP
+
+// maxSolidWorksDocSize caps how much of a document the preview extraction
+// reads into memory; larger files simply have no embedded preview served.
+const maxSolidWorksDocSize = 512 << 20 // 512 MB
+
 // ExtractSolidWorksPreview returns the embedded preview PNG of a SolidWorks
 // document (.sldprt/.sldasm/.slddrw), in OpenSW's order: PreviewPNG, then the
 // legacy "Preview" DIB converted pixel-for-pixel, then the drawing's first
 // sheet image.
 func ExtractSolidWorksPreview(realPath string) ([]byte, error) {
+	info, err := os.Stat(realPath)
+	if err != nil {
+		return nil, err
+	}
+	if info.Size() > maxSolidWorksDocSize {
+		return nil, fmt.Errorf("opensw: document larger than the preview cap (%d bytes)", info.Size())
+	}
 	data, err := os.ReadFile(realPath)
 	if err != nil {
 		return nil, err
@@ -69,6 +85,11 @@ func dibToPNG(data []byte) ([]byte, error) {
 		w <= 0 || h <= 0 || w > 20_000 || h > 20_000 {
 		return nil, errors.New("opensw: unsupported DIB variant")
 	}
+	// Bound the decoded image before allocating anything: a crafted header
+	// must not turn a tiny payload into a full-image allocation.
+	if w*h > maxDIBPixels {
+		return nil, fmt.Errorf("opensw: DIB dimensions %dx%d exceed the pixel limit", w, h)
+	}
 	colours := int(binary.LittleEndian.Uint32(data[36:40]))
 	if colours == 0 {
 		colours = 256
@@ -94,7 +115,7 @@ func dibToPNG(data []byte) ([]byte, error) {
 	pixels := data[start:]
 	if compression == 0 {
 		step := (w + 3) &^ 3
-		if len(pixels) < step*h {
+		if int64(len(pixels)) < int64(step)*int64(h) {
 			return nil, errors.New("opensw: short uncompressed DIB")
 		}
 		for y := 0; y < h; y++ {
@@ -128,10 +149,10 @@ func dibToPNG(data []byte) ([]byte, error) {
 					x, y = x+int(pixels[i]), y+int(pixels[i+1])
 					i += 2
 				default: // absolute run, padded to a word
-					run := pixels[i : i+value]
-					if len(run) < value {
+					if i+value > n || value+(value&1) > n-i {
 						return nil, errors.New("opensw: truncated RLE8 run")
 					}
+					run := pixels[i : i+value]
 					end := min(x+value, w)
 					if y < h && end > x {
 						copy(rows[y][x:end], run[:end-x])

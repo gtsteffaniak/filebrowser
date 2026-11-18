@@ -96,6 +96,7 @@ export default {
       loading: true,
       error: null,
       statusMessage: "Loading SolidWorks drawing...",
+      loadGeneration: 0,
       sheets: [],
       currentSheetIndex: 0,
       dxfBytes: null,
@@ -129,11 +130,19 @@ export default {
     window.addEventListener("mouseup", this.onMouseUp);
   },
   beforeUnmount() {
+    // Invalidate in-flight loads: a completed request must not update an
+    // unmounted or re-targeted viewer.
+    this.loadGeneration = -1;
     window.removeEventListener("mousemove", this.onMouseMove);
     window.removeEventListener("mouseup", this.onMouseUp);
   },
   methods: {
     async loadDrawing() {
+      // Each load gets a generation and captures its target: only the newest
+      // generation for the same file may touch the component state.
+      const generation = ++this.loadGeneration;
+      const path = this.fbdata.path;
+      const source = this.fbdata.source;
       this.loading = true;
       this.error = null;
       this.statusMessage = "Loading drawing in browser...";
@@ -141,13 +150,14 @@ export default {
       try {
         let viewToken = this.fbdata.viewToken;
         if (!viewToken && !getters.isShare()) {
-          viewToken = await ensureViewToken(this.fbdata.source);
+          viewToken = await ensureViewToken(source);
         }
+        if (generation !== this.loadGeneration || path !== this.fbdata.path) return;
 
         let url;
         if (getters.isShare()) {
           url = resourcesApi.getDownloadURLPublic(
-            this.fbdata.path,
+            path,
             state.shareInfo.hash,
             null,
             false,
@@ -155,16 +165,18 @@ export default {
             viewToken
           );
         } else {
-          url = resourcesApi.getViewURL(this.fbdata.source, this.fbdata.path, viewToken, null, false);
+          url = resourcesApi.getViewURL(source, path, viewToken, null, false);
         }
 
         const res = await fetch(url);
         if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
         const buffer = await res.arrayBuffer();
+        if (generation !== this.loadGeneration || path !== this.fbdata.path) return;
 
         const result = await loadCadDrawing(buffer, this.fbdata.name, (msg) => {
-          this.statusMessage = msg;
+          if (generation === this.loadGeneration) this.statusMessage = msg;
         });
+        if (generation !== this.loadGeneration || path !== this.fbdata.path) return;
 
         this.sheets = result.plan?.feuilles || [];
         this.dxfBytes = result.dxfBytes || null;
@@ -174,6 +186,7 @@ export default {
         this.resetView();
         this.loading = false;
       } catch (err) {
+        if (generation !== this.loadGeneration) return;
         this.error = err.message || "Failed to parse drawing";
         this.loading = false;
       }

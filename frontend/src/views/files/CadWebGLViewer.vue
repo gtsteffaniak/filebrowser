@@ -185,8 +185,11 @@ export default {
     async modelUrl() {
       const typeHint = this.fbdata.name;
       if (getters.isShare()) {
+        const identity = requestViewIdentity(state.req);
         const token = await ensureViewToken(this.fbdata.source);
-        if (token) mutations.setRequestViewToken(token);
+        if (token && requestViewIdentity(state.req) === identity) {
+          mutations.setRequestViewToken(token);
+        }
         return resourcesApi.getViewURL(
           this.fbdata.source,
           this.fbdata.path,
@@ -591,7 +594,9 @@ export default {
       out.volume = Math.abs(vol6) / 6; // mm³
       out.area = area; // mm²
       if (Math.abs(vol6) > 1e-9) {
-        out.center = [com[0], com[1], com[2]].map((v) => v / (3 * vol6));
+        // Tetra centroid = (a+b+c+origin)/4 and volume = v6/6, so the
+        // moment Σ(a+b+c)·v6 divides by 4·Σv6 (not 3·Σv6).
+        out.center = [com[0], com[1], com[2]].map((v) => v / (4 * vol6));
       } else {
         out.center = [(lo[0] + hi[0]) / 2, (lo[1] + hi[1]) / 2, (lo[2] + hi[2]) / 2];
       }

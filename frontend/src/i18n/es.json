@@ -158,6 +158,8 @@
   },
   "prompts": {
     "noTemplate": "¡Tu plantilla está vacía!",
+    "confirmOverwrite": "El archivo {file} ya existe. ¿Quieres sobrescribirlo?",
+    "fileExists": "El archivo ya existe; la conversión no se guardó.",
     "newFileTemplate": "Plantilla para nuevos archivos",
     "newFileTemplateMessage": "¡Añade nuevos nombres de archivo aquí, se usarán como plantilla para crear nuevos archivos en el menú contextual!",
     "newFileTemplatePlaceholder": "Introduce un nombre de archivo con extensión",

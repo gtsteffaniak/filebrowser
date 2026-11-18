@@ -121,6 +121,16 @@ func readCFB(data []byte) (*cfbFile, error) {
 	firstDIFAT := binary.LittleEndian.Uint32(data[68:72])
 	numDIFAT := binary.LittleEndian.Uint32(data[72:76])
 
+	// Table counts come from the file; bound them by the sectors the file can
+	// actually hold so a crafted header cannot trigger an oversized allocation.
+	maxSectors := int64(len(data)-512+int(f.sectorSize)-1) / int64(f.sectorSize)
+	if maxSectors < 0 {
+		maxSectors = 0
+	}
+	if int64(numDIFAT) > maxSectors || int64(numMiniFAT) > maxSectors {
+		return nil, errors.New("opensw: DIFAT/miniFAT sector count beyond file size")
+	}
+
 	// DIFAT: 109 entries in the header, then a chain of DIFAT sectors.
 	difat := make([]uint32, 0, 109+int(numDIFAT)*f.sectorSize/4)
 	for i := 0; i < 109; i++ {
@@ -153,7 +163,11 @@ func readCFB(data []byte) (*cfbFile, error) {
 		return nil, err
 	}
 	for off := 0; off+128 <= len(dirBytes); off += 128 {
-		f.entries = append(f.entries, parseEntry(dirBytes[off:off+128]))
+		entry, parseErr := parseEntry(dirBytes[off : off+128])
+		if parseErr != nil {
+			return nil, parseErr
+		}
+		f.entries = append(f.entries, entry)
 	}
 	if len(f.entries) == 0 || f.entries[0].entryType != 5 {
 		return nil, errors.New("opensw: missing root directory entry")
@@ -173,7 +187,9 @@ func readCFB(data []byte) (*cfbFile, error) {
 	// entry itself has no name in stream paths ("PreviewPNG", not
 	// "Root Entry/PreviewPNG").
 	if f.entries[0].child != cfbFreeSector {
-		f.walk(int(f.entries[0].child), "")
+		if err := f.walk(int(f.entries[0].child), "", map[int]bool{0: true}); err != nil {
+			return nil, err
+		}
 	}
 	return f, nil
 }
@@ -204,12 +220,16 @@ func (f *cfbFile) sector(sid uint32) ([]byte, error) {
 }
 
 // readChain follows fat from start and returns at most limit bytes of
-// chained sector payloads.
+// chained sector payloads. A valid chain never repeats a sector, so more
+// steps than FAT entries means the chain loops.
 func (f *cfbFile) readChain(fat []uint32, start uint32, limit int64) ([]byte, error) {
 	var out []byte
-	for sid := start; sid != cfbEndOfChain && sid != cfbFreeSector; {
+	for sid, steps := start, 0; sid != cfbEndOfChain && sid != cfbFreeSector; steps++ {
 		if int(sid) >= len(fat) {
 			return nil, errors.New("opensw: FAT chain out of range")
+		}
+		if steps > len(fat) {
+			return nil, errors.New("opensw: FAT chain loops")
 		}
 		sect, err := f.sector(sid)
 		if err != nil {
@@ -237,8 +257,13 @@ func (f *cfbFile) readChainSlice(fat []uint32, start uint32, limit int64) ([]uin
 	return out, nil
 }
 
-func parseEntry(e []byte) cfbEntry {
+func parseEntry(e []byte) (cfbEntry, error) {
 	nameLen := int(binary.LittleEndian.Uint16(e[64:66]))
+	// The name field is 64 bytes; nameLen counts UTF-16 units including the
+	// terminator, so it must fit the field and be even.
+	if nameLen > 64 || nameLen%2 != 0 {
+		return cfbEntry{}, fmt.Errorf("opensw: bad directory name length %d", nameLen)
+	}
 	name := ""
 	if nameLen >= 2 {
 		raw := e[:nameLen-2] // trailing NUL excluded
@@ -248,6 +273,10 @@ func parseEntry(e []byte) cfbEntry {
 		}
 		name = string(utf16.Decode(u16))
 	}
+	size := binary.LittleEndian.Uint64(e[120:128])
+	if size > 1<<63-1 {
+		return cfbEntry{}, fmt.Errorf("opensw: directory stream size %d out of range", size)
+	}
 	return cfbEntry{
 		name:      name,
 		entryType: e[66],
@@ -255,18 +284,24 @@ func parseEntry(e []byte) cfbEntry {
 		right:     binary.LittleEndian.Uint32(e[72:76]),
 		child:     binary.LittleEndian.Uint32(e[76:80]),
 		start:     binary.LittleEndian.Uint32(e[116:120]),
-		size:      int64(binary.LittleEndian.Uint64(e[120:128])),
-	}
+		size:      int64(size),
+	}, nil
 }
 
-// walk records full storage paths, visiting siblings and children.
-func (f *cfbFile) walk(id int, prefix string) {
+// walk records full storage paths, visiting siblings and children. visited
+// holds every directory ID seen so far; a revisit means a malformed (cyclic
+// or shared) tree, which would otherwise recurse forever or blow up.
+func (f *cfbFile) walk(id int, prefix string, visited map[int]bool) error {
 	if id < 0 || id >= len(f.entries) {
-		return
+		return nil
 	}
+	if visited[id] {
+		return fmt.Errorf("opensw: cyclic directory entry %d", id)
+	}
+	visited[id] = true
 	e := f.entries[id]
 	if e.entryType == 0 {
-		return
+		return nil
 	}
 	path := e.name
 	if prefix != "" {
@@ -278,10 +313,14 @@ func (f *cfbFile) walk(id int, prefix string) {
 		}
 	}
 	if e.child != cfbFreeSector {
-		f.walk(int(e.child), path)
+		if err := f.walk(int(e.child), path, visited); err != nil {
+			return err
+		}
 	}
-	f.walk(int(e.left), prefix)
-	f.walk(int(e.right), prefix)
+	if err := f.walk(int(e.left), prefix, visited); err != nil {
+		return err
+	}
+	return f.walk(int(e.right), prefix, visited)
 }
 
 // stream returns the payload of the stream entry, or nil.

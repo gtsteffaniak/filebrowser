@@ -102,7 +102,8 @@ export default {
   },
   computed: {
     storedEntry() {
-      return this.storedProperties.find((p) => p.available && p.mass) || null;
+      // The viewer passes null while properties load or when unavailable.
+      return (this.storedProperties || []).find((p) => p.available && p.mass) || null;
     },
     storedMass() {
       return this.storedEntry?.mass || null;
