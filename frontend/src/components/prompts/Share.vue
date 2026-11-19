@@ -202,6 +202,13 @@ import { shareApi } from "@/api/index.js";
 import { copyToClipboard } from "@/utils/clipboard.js";
 import { fromNowSeconds } from "@/utils/moment.ts";
 import { buildItemUrl } from "@/utils/url.js";
+import { notify } from "@/notify";
+import { state, getters, mutations } from "@/store";
+import { shareApi } from "@/api";
+import { copyToClipboard } from "@/utils/clipboard";
+import { fromNowSeconds } from "@/utils/moment";
+import { buildItemUrl } from "@/utils/url";
+import { globalVars } from "@/utils/constants.js";
 import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
 import SettingsTable from "@/components/settings/Table.vue";
 import ActivityViewerButton from "@/components/settings/ActivityViewerButton.vue";
@@ -258,6 +265,7 @@ export default {
       /** @type {Share[]} */
       links: [],
       password: "",
+      customHash: "",
       listing: true,
       allowModify: false,
       disableDownload: false,
@@ -500,6 +508,12 @@ export default {
       const currentLink = this.isEditMode ? this.link : this.editingLink;
       return currentLink?.hasPassword;
     },
+    canSetCustomHash() {
+      return !!globalVars.unsafeCustomShare && !this.isEditMode && !this.editingLink;
+    },
+    customHashValid() {
+      return /^[A-Za-z0-9_-]{1,64}$/.test(this.customHash);
+    },
   },
   watch: {
     link() {
@@ -729,6 +743,14 @@ export default {
           payload.hash = this.editingLink.hash;
         }
 
+        if (this.canSetCustomHash && this.customHash) {
+          if (!this.customHashValid) {
+            notify.showError(this.$t("share.customHashInvalid"));
+            return;
+          }
+          payload.customHash = this.customHash;
+        }
+
         if (this.sourceReadOnly) {
           payload.shareType = 'normal';
           payload.allowModify = false;
@@ -753,6 +775,7 @@ export default {
         this.time = "";
         this.unit = "hours";
         this.password = "";
+        this.customHash = "";
         this.isChangingPassword = false;
 
         this.listing = true;
@@ -874,6 +897,7 @@ export default {
         // Clear editing link when switching to create new share
         this.editingLink = null;
         this.isChangingPassword = false;
+        this.customHash = "";
         this.resetQuotaForm();
         // Set default sidebar links for new shares
         this.setDefaultSidebarLinks();
