@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -262,6 +263,9 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 		if err != nil {
 			return http.StatusInternalServerError, err
 		}
+		if req.CustomHash != "" {
+			return http.StatusBadRequest, fmt.Errorf("customHash can only be set when creating a share")
+		}
 	}
 
 	hash, status, err2 := sharePasswordFromRequest(req.Password)
@@ -382,6 +386,18 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
+	if req.CustomHash != "" {
+		if !settings.Env.UnsafeCustomShare {
+			return http.StatusForbidden, fmt.Errorf("custom share URLs are disabled on this server")
+		}
+		if err = validateCustomShareHash(req.CustomHash); err != nil {
+			return http.StatusBadRequest, err
+		}
+		if state.ShareHashExists(req.CustomHash) {
+			return http.StatusConflict, fmt.Errorf("a share with this URL already exists")
+		}
+		secureHash = req.CustomHash
+	}
 	idx := indexing.GetIndex(source.Name)
 	if idx == nil {
 		return http.StatusForbidden, fmt.Errorf("source with name not found: %s", req.SourceName)
@@ -435,6 +451,9 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 	s.SingleFileShare = false
 
 	if err = state.CreateShare(s); err != nil {
+		if req.CustomHash != "" && strings.Contains(err.Error(), "already exists") {
+			return http.StatusConflict, fmt.Errorf("a share with this URL already exists")
+		}
 		return http.StatusInternalServerError, err
 	}
 
@@ -851,6 +870,15 @@ func applySharePasswordUpdate(link *share.Share, password *string, hashedPasswor
 		return nil
 	}
 	link.PasswordHash = hashedPassword
+	return nil
+}
+
+var customShareHashPattern = regexp.MustCompile(`^[A-Za-z0-9_-]{1,64}$`)
+
+func validateCustomShareHash(hash string) error {
+	if !customShareHashPattern.MatchString(hash) {
+		return fmt.Errorf("custom share URL must be 1-64 characters: letters, digits, '-' or '_'")
+	}
 	return nil
 }
 

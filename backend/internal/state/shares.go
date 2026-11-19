@@ -95,6 +95,14 @@ func GetSharesByPath(source, path string) ([]share.Share, error) {
 	return shares, nil
 }
 
+// ShareHashExists reports whether a share with this hash is stored, including expired shares.
+func ShareHashExists(hash string) bool {
+	sharesMux.RLock()
+	defer sharesMux.RUnlock()
+	_, exists := sharesByHash[hash]
+	return exists
+}
+
 // CreateShare creates a new share with write-through to SQL
 func CreateShare(link *share.Share) error {
 	sharesMux.Lock()

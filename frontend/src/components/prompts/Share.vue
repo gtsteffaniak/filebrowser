@@ -129,6 +129,19 @@
             :aria-label="timeUnitLabel()"
           />
         </div>
+        <template v-if="canSetCustomHash">
+          <p>
+            {{ $t("share.customHash") }}
+            <HelpTooltipIcon :text="$t('share.customHashDescription')" />
+          </p>
+          <input class="input" type="text" autocomplete="off" maxlength="64" aria-label="Custom-Share-URL"
+            :placeholder="$t('share.customHashPlaceholder')" v-model.trim="customHash" />
+          <p v-if="customHash && !customHashValid" class="read-only-notice">{{ $t('share.customHashInvalid') }}</p>
+          <div v-if="customHash" class="warning-banner">
+            <i class="material-symbols">warning</i>
+            <span>{{ $t('share.customHashWarning') }}</span>
+          </div>
+        </template>
         <p>
           {{ $t("prompts.optionalPassword") }}
           <HelpTooltipIcon :text="$t('share.passwordDescription')" />
