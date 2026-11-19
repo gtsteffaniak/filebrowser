@@ -263,9 +263,6 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 		if err != nil {
 			return http.StatusInternalServerError, err
 		}
-		if req.CustomHash != "" {
-			return http.StatusBadRequest, fmt.Errorf("customHash can only be set when creating a share")
-		}
 	}
 
 	hash, status, err2 := sharePasswordFromRequest(req.Password)
