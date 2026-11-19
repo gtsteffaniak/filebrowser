@@ -34,7 +34,7 @@ func TestComputeDeclinedDefaultSources(t *testing.T) {
 	}
 }
 
-func TestMergeDefaultEnabledBackendScopes_PresservesMultipleNestedScopes(t *testing.T) {
+func TestMergeDefaultEnabledBackendScopes_PreservesMultipleNestedScopes(t *testing.T) {
 	settings.Config.Server.Sources = []*settings.Source{
 		{Path: "/data", Name: "source1", Config: settings.SourceConfig{DefaultEnabled: true, DefaultUserScope: "/"}},
 	}

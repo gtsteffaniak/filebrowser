@@ -235,22 +235,24 @@ func archiveCreateHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 	if status, roErr := denyIfSourceReadOnly(req.FromSource); req.DeleteAfter && roErr != nil {
 		return status, roErr
 	}
-	destPerms, err := effectiveFilePerms(d, destSource)
+	destPerms, err := effectiveFilePermsForClientPath(d, destSource, req.Destination)
 	if err != nil {
 		return http.StatusForbidden, err
 	}
 	if !destPerms.Create {
 		return http.StatusForbidden, fmt.Errorf("user is not allowed to create resources in destination source")
 	}
-	fromPerms, err := effectiveFilePerms(d, req.FromSource)
-	if err != nil {
-		return http.StatusForbidden, err
-	}
-	if !fromPerms.Download {
-		return http.StatusForbidden, fmt.Errorf("user is not allowed to download source files")
-	}
-	if req.DeleteAfter && !fromPerms.Delete {
-		return http.StatusForbidden, fmt.Errorf("user is not allowed to delete source files")
+	for _, srcPath := range req.Paths {
+		fromPerms, fromErr := effectiveFilePermsForClientPath(d, req.FromSource, srcPath)
+		if fromErr != nil {
+			return http.StatusForbidden, fromErr
+		}
+		if !fromPerms.Download {
+			return http.StatusForbidden, fmt.Errorf("user is not allowed to download source files")
+		}
+		if req.DeleteAfter && !fromPerms.Delete {
+			return http.StatusForbidden, fmt.Errorf("user is not allowed to delete source files")
+		}
 	}
 
 	idx := indexing.GetIndex(req.FromSource)
@@ -435,24 +437,6 @@ func unarchiveHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 	if status, roErr := denyIfSourceReadOnly(req.FromSource); req.DeleteAfter && !req.Preview && roErr != nil {
 		return status, roErr
 	}
-	destPerms, err := effectiveFilePerms(d, req.ToSource)
-	if err != nil {
-		return http.StatusForbidden, err
-	}
-	if !destPerms.Create {
-		return http.StatusForbidden, fmt.Errorf("user is not allowed to create resources in destination source")
-	}
-	fromPerms, err := effectiveFilePerms(d, req.FromSource)
-	if err != nil {
-		return http.StatusForbidden, err
-	}
-	if !fromPerms.Download {
-		return http.StatusForbidden, fmt.Errorf("user is not allowed to download archive source")
-	}
-	if req.DeleteAfter && !req.Preview && !fromPerms.Delete {
-		return http.StatusForbidden, fmt.Errorf("user is not allowed to delete archive source")
-	}
-
 	pathClean, err := utils.SanitizePath(req.Path)
 	if err != nil {
 		return http.StatusBadRequest, err
@@ -463,6 +447,24 @@ func unarchiveHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 	}
 	req.Path = pathClean
 	req.Destination = destClean
+
+	destPerms, err := effectiveFilePermsForClientPath(d, req.ToSource, req.Destination)
+	if err != nil {
+		return http.StatusForbidden, err
+	}
+	if !destPerms.Create {
+		return http.StatusForbidden, fmt.Errorf("user is not allowed to create resources in destination source")
+	}
+	fromPerms, err := effectiveFilePermsForClientPath(d, req.FromSource, req.Path)
+	if err != nil {
+		return http.StatusForbidden, err
+	}
+	if !fromPerms.Download {
+		return http.StatusForbidden, fmt.Errorf("user is not allowed to download archive source")
+	}
+	if req.DeleteAfter && !req.Preview && !fromPerms.Delete {
+		return http.StatusForbidden, fmt.Errorf("user is not allowed to delete archive source")
+	}
 
 	idxFrom := indexing.GetIndex(req.FromSource)
 	if idxFrom == nil {

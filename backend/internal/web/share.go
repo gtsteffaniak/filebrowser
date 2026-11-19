@@ -298,7 +298,7 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 			return status, policyErr
 		}
 		if updateSourceName != "" {
-			ownerPerms, permErr := d.User.FilePermsForSourceName(updateSourceName)
+			ownerPerms, permErr := d.User.FilePermsForSourceName(updateSourceName, beforeShare.Path)
 			if permErr != nil {
 				return http.StatusForbidden, permErr
 			}
@@ -402,7 +402,7 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 	if status, policyErr := applyShareDefaultsPolicy(d.User, &req.ShareEditable, true); policyErr != nil {
 		return status, policyErr
 	}
-	ownerPerms, permErr := d.User.FilePermsForSourceName(source.Name)
+	ownerPerms, permErr := d.User.FilePermsForSourceName(source.Name, storedPath)
 	if permErr != nil {
 		return http.StatusForbidden, permErr
 	}

@@ -86,7 +86,7 @@ func wopiSessionHandler(w http.ResponseWriter, r *http.Request, d *Context) (int
 	}
 	source = sourceInfo.Name
 
-	perms, err := effectiveFilePerms(d, source)
+	perms, err := effectiveFilePermsForClientPath(d, source, path)
 	if err != nil || !perms.View {
 		return http.StatusForbidden, errors.New("user is not allowed to view files in this source")
 	}
@@ -198,7 +198,7 @@ func serveWopi(w http.ResponseWriter, r *http.Request, fn wopiHandlerFunc) int {
 	}
 	SetUserInResponseWriter(w, &user)
 	ctx := &Context{User: &user, Ctx: r.Context()}
-	perms, err := effectiveFilePerms(ctx, claims.Source)
+	perms, err := effectiveFilePermsForClientPath(ctx, claims.Source, claims.Path)
 	if err != nil || !perms.View {
 		logger.Debugf("wopi: user %s lost view permission on source %s", user.Username, claims.Source)
 		return http.StatusUnauthorized

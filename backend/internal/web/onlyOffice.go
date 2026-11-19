@@ -219,7 +219,7 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 	// Determine file type and editing permissions
 	fileType := strings.TrimPrefix(filepath.Ext(d.FileInfo.Name), ".")
 
-	filePerms, permErr := effectiveFilePerms(d, source)
+	filePerms, permErr := effectiveFilePermsForClientPath(d, source, providedPath)
 	if permErr != nil {
 		return http.StatusForbidden, permErr
 	}
@@ -654,7 +654,7 @@ func processOnlyOfficeCallback(w http.ResponseWriter, r *http.Request, d *Contex
 		}
 
 		// Check modify permission for save operations
-		filePerms, permErr := effectiveFilePerms(d, source)
+		filePerms, permErr := effectiveFilePermsForClientPath(d, source, path)
 		if permErr != nil || !filePerms.Modify {
 			logger.Errorf("OnlyOffice callback: user %s lacks modify permissions for source=%s path=%s",
 				user.Username, source, path)
