@@ -2,7 +2,6 @@ package settings
 
 import (
 	"os"
-	"path/filepath"
 	"runtime"
 	"testing"
 )
@@ -72,8 +71,9 @@ func TestListenUnixFilesystemSetsModeWithRestrictiveUmask(t *testing.T) {
 	orig := Config.Http
 	Config.Http.SocketFileMode = ""
 	t.Cleanup(func() {
-		Config.Http = orig
 		_ = os.Remove(socketPath)
+		_ = os.Chdir(wd)
+		Config.Http = orig
 	})
 	ln, err := ListenUnixFilesystem(socketPath)
 	if err != nil {

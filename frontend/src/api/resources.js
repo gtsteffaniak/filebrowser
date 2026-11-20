@@ -297,12 +297,16 @@ export async function put(source, path, content = '') {
   return result
 }
 
+function isDirectoryItem(item) {
+  return item?.isDir === true || item?.type === "directory"
+}
+
 export async function download(format, files, shareHash = "") {
   const downloadChunkSizeMb = state.user?.fileLoading?.downloadChunkSizeMb || 0
   const sizeThreshold = downloadChunkSizeMb * 1024 * 1024
 
   const isMultiItemArchive =
-    files.length > 1 || (files.length === 1 && files[0].isDir)
+    files.length > 1 || (files.length === 1 && isDirectoryItem(files[0]))
 
   const useChunkedArchive =
     downloadChunkSizeMb > 0 && isMultiItemArchive
@@ -310,7 +314,7 @@ export async function download(format, files, shareHash = "") {
   const useChunkedDownload =
     downloadChunkSizeMb > 0 &&
     files.length === 1 &&
-    !files[0].isDir &&
+    !isDirectoryItem(files[0]) &&
     files[0].size &&
     files[0].size >= sizeThreshold
 
@@ -456,7 +460,7 @@ async function resolveDownloadContentLength(url) {
 function archiveDisplayFileName(format, files) {
   const ext = format === 'zip' ? '.zip' : '.tar.gz'
   const first = files[0]
-  if (files.length === 1 && first.isDir) {
+  if (files.length === 1 && isDirectoryItem(first)) {
     const base =
       first.name ||
       (first.path?.split('/').filter(Boolean).pop()) ||
@@ -626,9 +630,14 @@ async function downloadChunkedArchive(url, format, files, filePaths, source, sha
   }
   const chunkSize = downloadChunkSizeMb * 1024 * 1024
   const fileName = archiveDisplayFileName(format, files)
-  const { size: fileSize, token } = await resolveDownloadContentLength(url)
+  const sizeProbeMessage = 'Could not determine archive size for chunked download'
+  const { size: fileSize, token } = await resolveDownloadContentLength(url).catch((error) => {
+    notifyDownloadError(fileName, error?.message || sizeProbeMessage)
+    throw error
+  })
   if (!fileSize || fileSize <= 0) {
-    throw new Error('Could not determine archive size for chunked download')
+    notifyDownloadError(fileName, sizeProbeMessage)
+    throw new Error(sizeProbeMessage)
   }
 
   const baseUrl = appendArchiveTokenToUrl(url, token)
