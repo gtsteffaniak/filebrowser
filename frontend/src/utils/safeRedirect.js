@@ -5,7 +5,7 @@
 function hasUnsafeControlChars(str) {
   for (let i = 0; i < str.length; i++) {
     const code = str.charCodeAt(i);
-    if (code === 0 || code === 10 || code === 13) {
+    if (code < 32 || code === 127) {
       return true;
     }
   }

@@ -2,6 +2,7 @@ import { settingsApi } from "@/api/index.js"
 import i18n from "@/i18n/index.ts"
 import { notify } from "@/notify/index.ts"
 import { mutations, state } from "@/store/index.ts"
+import { getObjectProperty } from "@/utils/object.js"
 import { globalVars } from "@/utils/constants.js"
 
 let eventSrc = null
@@ -10,11 +11,18 @@ let isManuallyClosed = false
 let authenticationFailed = false
 let hasShownShutdownMessage = false
 
+// Responses can arrive out of order when refreshes overlap. Only the newest request may update
+// the store, so an older snapshot cannot overwrite newer usage and quota values.
+let sourceInfoRequestSeq = 0
+
 async function updateSourceInfo() {
+  const seq = ++sourceInfoRequestSeq
   try {
     const sourceinfo = await settingsApi.sources()
+    if (seq !== sourceInfoRequestSeq) return
     mutations.updateSourceInfo(sourceinfo)
   } catch (err) {
+    if (seq !== sourceInfoRequestSeq) return
     mutations.updateSourceInfo(err)
   }
 }
@@ -179,7 +187,17 @@ async function eventRouter (eventType, message) {
       // Parse the JSON string before passing to updateSourceInfo
       try {
         const parsedMessage = JSON.parse(message)
+        // SSE entries (ReducedIndex) never include scopeQuota. Keep the quota already loaded
+        // from /api/settings/sources instead of letting the update clear it.
+        for (const [name, entry] of Object.entries(parsedMessage)) {
+          if (entry && typeof entry === 'object' && entry.scopeQuota === undefined) {
+            entry.scopeQuota = getObjectProperty(state.sources.info, name)?.scopeQuota
+          }
+        }
         mutations.updateSourceInfo(parsedMessage)
+        // Uploads and deletions change scope quota usage, which SSE entries do not carry.
+        // Refresh the snapshot so the sidebar quota does not stay stale until reconnect.
+        void updateSourceInfo()
       } catch (err) {
         console.error('Error parsing sourceUpdate message:', err, message)
       }
