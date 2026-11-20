@@ -1261,6 +1261,13 @@ func resolveSymlinkTargetAt(linkDir, linkname string, depth int, expansionsLeft 
 		}
 		switch part {
 		case "..":
+			// Popping ".." off a path that does not exist yet is unsafe: a later archive
+			// entry can create that component as a symlink, which changes where ".." lands
+			// (e.g. dest/hop -> "z-pivot/..", then "z-pivot -> ." escapes dest). Reject it
+			// now; ordinary dangling links without ".." are still accepted below.
+			if _, err := os.Lstat(cur); err != nil {
+				return "", errSymlinkTargetEscape()
+			}
 			cur = filepath.Dir(cur)
 		default:
 			next := filepath.Join(cur, part)
@@ -1390,6 +1397,11 @@ func extractArchivedSymlink(destRoot, destPath, target string, modTime time.Time
 	}
 	if err := symlinkTargetStaysUnderDest(destRoot, destPath, target); err != nil {
 		return err
+	}
+	// Never replace a directory with a symlink. os.Remove would delete an empty directory, and
+	// a pre-existing ".." symlink that resolved through it could then escape the destination.
+	if info, err := os.Lstat(destPath); err == nil && info.IsDir() {
+		return fmt.Errorf("symlink from archive entry would replace a directory")
 	}
 	if err := os.Remove(destPath); err != nil && !os.IsNotExist(err) {
 		logger.Debugf("unarchive: remove symlink: %v", err)

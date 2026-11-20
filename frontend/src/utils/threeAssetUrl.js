@@ -7,6 +7,8 @@
 const EXTERNAL_URL_RE = /^https?:\/\//i;
 const WINDOWS_DRIVE_RE = /^[a-zA-Z]:/;
 const API_FILE_URL_RE = /\/api\/(media\/stream|resources\/(view|download))\?/;
+// glTF external buffers (.bin) always sit beside the model file, never in a textures folder.
+const GLTF_BUFFER_RE = /\.bin$/i;
 
 function safeDecode(value) {
   try {
@@ -35,6 +37,10 @@ function readFileParam(url) {
  * Uses the sibling listing when known; otherwise falls back to `textures/`.
  */
 function resolveBareFilename(filename, modelDir, parentDirItems) {
+  if (GLTF_BUFFER_RE.test(filename)) {
+    // Buffers resolve beside the model even when the sibling listing is unavailable.
+    return `${modelDir}/${filename}`;
+  }
   if (!Array.isArray(parentDirItems)) {
     return `${modelDir}/textures/${filename}`;
   }
@@ -90,6 +96,9 @@ export function resolveAssetFilePath(url, { modelPath = "", parentDirItems } = {
     ref = ref.replace(WINDOWS_DRIVE_RE, "");
   }
 
+  // A leading slash marks a source-root-relative path (loaders such as three.js expand external
+  // references like "/models/mesh.bin" this way). It must not be re-anchored under the model dir.
+  const isSourceRootRelative = ref.startsWith("/") && !isDriveAbsolute;
   ref = ref.replace(/^\/+/, "");
   const filename = ref.split("/").filter(Boolean).pop();
   if (!filename) {
@@ -99,6 +108,10 @@ export function resolveAssetFilePath(url, { modelPath = "", parentDirItems } = {
   const modelDir = parentDirOf(modelPath);
   if (isDriveAbsolute || !ref.includes("/")) {
     return resolveBareFilename(filename, modelDir, parentDirItems);
+  }
+
+  if (isSourceRootRelative) {
+    return resolveRelativeTo("/", ref);
   }
 
   return resolveRelativeTo(modelPath, ref);

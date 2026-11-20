@@ -188,6 +188,9 @@ async function eventRouter (eventType, message) {
           }
         }
         mutations.updateSourceInfo(parsedMessage)
+        // Uploads and deletions change scope quota usage, which SSE entries do not carry.
+        // Refresh the snapshot so the sidebar quota does not stay stale until reconnect.
+        void updateSourceInfo()
       } catch (err) {
         console.error('Error parsing sourceUpdate message:', err, message)
       }

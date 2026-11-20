@@ -409,6 +409,9 @@ export default {
       } catch (err) {
         console.warn("Failed to refresh view token for 3D preview:", err);
       }
+      // The viewer is reused across source changes, so a refresh for a previous source must not
+      // overwrite the token of the current one.
+      if (requestViewIdentity(state.req) !== viewIdentity) return;
       this.activeViewToken = token || this.fbdata.viewToken || getCachedViewToken(this.fbdata.source) || "";
     },
 

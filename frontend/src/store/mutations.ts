@@ -64,6 +64,14 @@ const uploadBeforeUnloadHandler = (event: BeforeUnloadEvent) => {
   event.returnValue = "";
 };
 
+/** True when a source carries usage, capacity, or scope quota information worth showing. */
+const sourceHasInfo = (source: SourceInfo | undefined): boolean =>
+  !!source &&
+  (source.total > 0 ||
+    source.used > 0 ||
+    source.usedAlt > 0 ||
+    (source.scopeQuota?.limitBytes ?? 0) > 0);
+
 export const mutations = {
   disableEventThemes: () => {
     if (state.disableEventThemes) {
@@ -224,7 +232,6 @@ export const mutations = {
       state.sources.info = info;
     } else {
       let info = state.sources.info;
-      let hasAny = false;
       for (const [k, source] of Object.entries(value)) {
         const existing = getObjectProperty(info, k) as SourceInfo | undefined;
         if (existing) {
@@ -255,18 +262,12 @@ export const mutations = {
             scopeQuota: source.scopeQuota,
           };
           info = setObjectProperty(info, k, updated) as Record<string, SourceInfo>;
-          if (
-            updated.total > 0 ||
-            updated.used > 0 ||
-            updated.usedAlt > 0 ||
-            (updated.scopeQuota?.limitBytes ?? 0) > 0
-          ) {
-            hasAny = true;
-          }
         }
       }
       state.sources.info = info;
-      state.sources.hasSourceInfo = hasAny;
+      // An SSE event carries only some sources, so compute this from the merged map.
+      // Sources not in this event may still hold quota or usage data.
+      state.sources.hasSourceInfo = Object.values(info).some(sourceHasInfo);
     }
     emitStateChanged();
   },
@@ -331,16 +332,7 @@ export const mutations = {
       };
     }
     // Sidebar usage bar uses hasSourceInfo + per-source used/total; must survive object replace
-    sources.hasSourceInfo = user.scopes.some((s: UserScope) => {
-      const e = sources.info[s.name];
-      return (
-        e &&
-        (e.total > 0 ||
-          e.used > 0 ||
-          e.usedAlt > 0 ||
-          (e.scopeQuota?.limitBytes ?? 0) > 0)
-      );
-    });
+    sources.hasSourceInfo = user.scopes.some((s: UserScope) => sourceHasInfo(sources.info[s.name]));
     // Check if user has custom sidebar links with sources
     let targetSource = sources.current;
     if (state.user?.sidebarLinks && state.user.sidebarLinks.length > 0) {

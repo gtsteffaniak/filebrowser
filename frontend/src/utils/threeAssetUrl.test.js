@@ -73,6 +73,33 @@ describe("resolveAssetFilePath", () => {
     );
   });
 
+  it("keeps parser-expanded source-root-relative references absolute", () => {
+    // three.js expands an external buffer to "/models/mesh.bin" for a model at /models/ship.glb.
+    // It must not be prefixed with the model directory a second time.
+    expect(resolveAssetFilePath("/models/mesh.bin", { modelPath: "/models/ship.glb" })).toBe(
+      "/models/mesh.bin",
+    );
+  });
+
+  it("still resolves genuinely relative references against the model directory", () => {
+    expect(resolveAssetFilePath("models/mesh.bin", { modelPath: "/work/ship.glb" })).toBe(
+      "/work/models/mesh.bin",
+    );
+  });
+
+  it("resolves a bare glTF buffer beside the model when the listing is missing", () => {
+    expect(resolveAssetFilePath("ship.bin", { modelPath: "/models/ship.gltf" })).toBe(
+      "/models/ship.bin",
+    );
+  });
+
+  it("resolves a bare glTF buffer beside the model even when a textures folder exists", () => {
+    const items = [TEXTURES_DIR];
+    expect(
+      resolveAssetFilePath("ship.bin", { modelPath: "/models/ship.gltf", parentDirItems: items }),
+    ).toBe("/models/ship.bin");
+  });
+
   it("reads the file parameter from FileBrowser API URLs", () => {
     expect(
       resolveAssetFilePath("/api/resources/view?source=default&file=%2F3D%20Prints%2Ftex.png&viewToken=abc", {
