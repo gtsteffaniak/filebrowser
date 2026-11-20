@@ -38,8 +38,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   mailcap \
   tzdata \
   && rm -rf /var/lib/apt/lists/* \
-  && (dpkg --print-architecture | grep -q amd64 \
-    && apt-get update \
+  && if [ "$(dpkg --print-architecture)" = "amd64" ]; then \
+    apt-get update \
     && apt-get install -y --no-install-recommends \
       libva2 \
       libva-drm2 \
@@ -49,9 +49,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
       mesa-vulkan-drivers \
       ocl-icd-libopencl1 \
       intel-media-va-driver \
-      libmfx1 \
-    && rm -rf /var/lib/apt/lists/* \
-    || true)
+      libmfx-gen1.2 \
+    && rm -rf /var/lib/apt/lists/*; \
+  fi
 COPY --from=ffmpeg [ "/ffmpeg", "/ffprobe", "/usr/local/bin/" ]
 ENV FILEBROWSER_FFMPEG_PATH="/usr/local/bin/"
 ENV FILEBROWSER_DATABASE_PATH="/home/filebrowser/data/database.sqlite"
