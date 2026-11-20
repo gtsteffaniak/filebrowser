@@ -618,9 +618,14 @@ async function downloadChunkedArchive(url, format, files, filePaths, source, sha
   }
   const chunkSize = downloadChunkSizeMb * 1024 * 1024
   const fileName = archiveDisplayFileName(format, files)
-  const { size: fileSize, token } = await resolveDownloadContentLength(url)
+  const sizeProbeMessage = 'Could not determine archive size for chunked download'
+  const { size: fileSize, token } = await resolveDownloadContentLength(url).catch((error) => {
+    notifyDownloadError(fileName, error?.message || sizeProbeMessage)
+    throw error
+  })
   if (!fileSize || fileSize <= 0) {
-    throw new Error('Could not determine archive size for chunked download')
+    notifyDownloadError(fileName, sizeProbeMessage)
+    throw new Error(sizeProbeMessage)
   }
 
   const baseUrl = appendArchiveTokenToUrl(url, token)
