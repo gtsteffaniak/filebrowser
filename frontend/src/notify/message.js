@@ -532,6 +532,46 @@ export function showToast(type, message, options = {}) {
   }
 }
 
+const PENDING_TOAST_KEY = 'pendingToast'
+
+/**
+ * Store a toast to show once after the next full page load.
+ * Use before window.location navigation, which drops the in-memory toast queue.
+ * @param {'success' | 'error' | 'info' | 'warning'} type
+ * @param {string} message
+ */
+export function queueToastForNextPage(type, message) {
+  try {
+    sessionStorage.setItem(PENDING_TOAST_KEY, JSON.stringify({ type, message }))
+  } catch {
+    // sessionStorage unavailable; the toast is skipped
+  }
+}
+
+/**
+ * Show and clear a toast queued by queueToastForNextPage.
+ */
+export function showPendingToast() {
+  let raw = null
+  try {
+    raw = sessionStorage.getItem(PENDING_TOAST_KEY)
+    sessionStorage.removeItem(PENDING_TOAST_KEY)
+  } catch {
+    return
+  }
+  if (!raw) {
+    return
+  }
+  try {
+    const { type, message } = JSON.parse(raw)
+    if (['success', 'error', 'info', 'warning'].includes(type) && typeof message === 'string' && message !== '') {
+      showToast(type, message)
+    }
+  } catch {
+    // ignore malformed entries
+  }
+}
+
 /**
  * Get default icon for toast type
  * @param {'success' | 'error' | 'info' | 'warning'} type

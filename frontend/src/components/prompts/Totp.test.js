@@ -22,7 +22,7 @@ const { store, router, notify } = vi.hoisted(() => {
       },
     },
     router: { push: vi.fn() },
-    notify: { showError: vi.fn(), showSuccessToast: vi.fn() },
+    notify: { showError: vi.fn(), showSuccessToast: vi.fn(), queueToastForNextPage: vi.fn() },
   };
 });
 
@@ -74,6 +74,7 @@ describe('TOTP login and enrollment', () => {
   beforeEach(() => {
     stopSessionKeepAlive();
     vi.clearAllMocks();
+    vi.stubGlobal('location', { ...window.location, replace: vi.fn() });
     store.state.user = null;
     fetchMock = vi.fn();
     vi.stubGlobal('fetch', (url, options) => {
@@ -115,9 +116,20 @@ describe('TOTP login and enrollment', () => {
       });
     }
     expect(store.mutations.setCurrentUser).toHaveBeenCalledWith(user);
-    expect(router.push).toHaveBeenCalledWith('/files/');
+    expect(window.location.replace).toHaveBeenCalledWith('/files/');
+    expect(notify.queueToastForNextPage).toHaveBeenCalledWith('success', 'otp.verificationSucceed');
+    expect(notify.showSuccessToast).not.toHaveBeenCalled();
     expect(prompt.succeeded).toBe(true);
     expect(store.mutations.closeTopPrompt).toHaveBeenCalledOnce();
+  });
+
+  it('falls back to the default path when the prompt redirect contains a control character', async () => {
+    fetchMock.mockResolvedValueOnce(response(200)).mockResolvedValueOnce(response(200, user));
+    const prompt = mountPrompt({ redirect: '/\t/evil.example/' });
+    prompt.code = '123456';
+    await prompt.verifyCode();
+
+    expect(window.location.replace).toHaveBeenCalledWith('/files/');
   });
 
   it('passes the captcha token rather than the redirect to the login endpoint', async () => {
@@ -146,6 +158,7 @@ describe('TOTP login and enrollment', () => {
     expect(prompt.verifyInFlight).toBe(false);
     expect(store.state.user).toBeNull();
     expect(router.push).not.toHaveBeenCalled();
+    expect(window.location.replace).not.toHaveBeenCalled();
     expect(store.mutations.closeTopPrompt).not.toHaveBeenCalled();
 
     prompt.code = '123456';
@@ -159,12 +172,14 @@ describe('TOTP login and enrollment', () => {
     await prompt.verifyCode();
     expect(prompt.error).toBe('otp.invalidCodeType');
     expect(fetchMock).not.toHaveBeenCalled();
+    expect(window.location.replace).not.toHaveBeenCalled();
   });
 
   it('keeps invalid credentials in the password form without opening an OTP prompt', async () => {
     fetchMock.mockResolvedValueOnce(response(403, { message: 'invalid credentials' }));
     const form = await submitLogin();
     expect(form.error).toBe('invalid credentials');
+    expect(window.location.replace).not.toHaveBeenCalled();
     expect(store.mutations.showPrompt).not.toHaveBeenCalled();
     expect(store.state.user).toBeNull();
   });
@@ -176,7 +191,8 @@ describe('TOTP login and enrollment', () => {
     expect(paths()).toEqual(['/api/auth/login', '/api/users']);
     expect(store.mutations.showPrompt).not.toHaveBeenCalled();
     expect(store.state.user).toEqual(noOtpUser);
-    expect(router.push).toHaveBeenCalledWith({ path: '/files/' });
+    expect(window.location.replace).toHaveBeenCalledWith('/files/');
+    expect(router.push).not.toHaveBeenCalled();
   });
 
   it('uses generate and verify before logging in after first-time enforced enrollment', async () => {
@@ -212,6 +228,9 @@ describe('TOTP login and enrollment', () => {
 
     expect(paths()).toEqual(['/api/auth/otp/generate', '/api/auth/otp/verify']);
     expect(router.push).not.toHaveBeenCalled();
+    expect(window.location.replace).not.toHaveBeenCalled();
+    expect(notify.showSuccessToast).toHaveBeenCalledWith('otp.verificationSucceed');
+    expect(notify.queueToastForNextPage).not.toHaveBeenCalled();
     expect(prompt.succeeded).toBe(true);
   });
 });

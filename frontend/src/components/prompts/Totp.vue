@@ -35,6 +35,7 @@
 </template>
 
 <script>
+import { postLoginRedirectForServer, sanitizePostLoginRedirect } from "@/utils/safeRedirect.js";
 import { mutations } from "@/store";
 import { notify } from "@/notify";
 import { authApi } from "@/api";
@@ -138,13 +139,16 @@ export default {
         if (this.redirect !== "") {
           await authApi.login(this.username, this.password, this.recaptcha, this.code);
           await initAuth();
-          // Wait for navigation so Layout mounts and registers the toast callback before we toast
-          await this.$router.push(this.redirect);
+          // The full page load drops the in-memory toast queue, so hand the toast to the next page
+          notify.queueToastForNextPage("success", this.$t("otp.verificationSucceed"));
+          window.location.replace(postLoginRedirectForServer(sanitizePostLoginRedirect(this.redirect), globalVars.baseURL));
         }
         void mutations.updateCurrentUser({ otpEnabled: true });
         this.succeeded = true;
         this.error = "";
-        notify.showSuccessToast(this.$t("otp.verificationSucceed"));
+        if (this.redirect === "") {
+          notify.showSuccessToast(this.$t("otp.verificationSucceed"));
+        }
         mutations.closeTopPrompt();
       } catch (error) {
         this.error = this.$t("otp.verificationFailed");
@@ -163,7 +167,7 @@ export default {
         await authApi.beginPasskeyLogin(this.username, this.password);
         if (this.redirect !== "") {
           await initAuth();
-          await this.$router.push(this.redirect);
+          window.location.replace(postLoginRedirectForServer(sanitizePostLoginRedirect(this.redirect), globalVars.baseURL));
         }
         this.succeeded = true;
         this.error = "";
