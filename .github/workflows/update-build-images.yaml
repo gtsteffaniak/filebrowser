@@ -27,9 +27,7 @@ jobs:
         uses: docker/metadata-action@v6
         with:
           images: ghcr.io/gtsteffaniak/playwright-base
-          tags: |
-            chromium
-            latest
+          tags: chromium
       - name: Build and push playwright-base
         uses: docker/build-push-action@v7
         with:
@@ -41,3 +39,22 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha,scope=playwright-base
           cache-to: type=gha,mode=max,scope=playwright-base
+      - name: Extract metadata (tags, labels) for Docker (latest)
+        id: meta_latest
+        uses: docker/metadata-action@v6
+        with:
+          images: ghcr.io/gtsteffaniak/playwright-base
+          tags: latest
+      - name: Build and push playwright-base (Firefox)
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          file: _docker/Dockerfile.playwright-base
+          push: true
+          build-args: |
+            PLAYWRIGHT_BROWSERS=chromium-headless-shell firefox
+          tags: ${{ steps.meta_latest.outputs.tags }}
+          labels: ${{ steps.meta_latest.outputs.labels }}
+          cache-from: type=gha,scope=playwright-base-latest
+          cache-to: type=gha,mode=max,scope=playwright-base-latest
