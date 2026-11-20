@@ -2,8 +2,12 @@ import { resourcesApi } from "@/api/index.js";
 import { notify } from "@/notify/index.ts";
 import { getters, mutations, state } from "@/store/index.ts";
 
+function isItemDirectory(item) {
+  return item?.isDir === true || item?.type === "directory";
+}
+
 function isSingleFileItem(items) {
-  return items.length === 1 && !items[0].isDir;
+  return items.length === 1 && !isItemDirectory(items[0]);
 }
 
 export default function downloadFiles(items) {
@@ -23,12 +27,12 @@ export default function downloadFiles(items) {
   const willUseChunkedDownload =
     downloadChunkSizeMb > 0 &&
     items.length === 1 &&
-    !items[0].isDir &&
+    !isItemDirectory(items[0]) &&
     items[0].size &&
     items[0].size >= sizeThreshold
 
   const isMultiItemArchive =
-    items.length > 1 || (items.length === 1 && items[0].isDir)
+    items.length > 1 || (items.length === 1 && isItemDirectory(items[0]))
 
   const willUseChunkedArchive =
     downloadChunkSizeMb > 0 && isMultiItemArchive
@@ -113,11 +117,11 @@ export function showShareDownloadPrompt(items) {
   const willUseChunkedDownload =
     downloadChunkSizeMb > 0 &&
     items.length === 1 &&
-    !items[0].isDir &&
+    !isItemDirectory(items[0]) &&
     items[0].size &&
     items[0].size >= sizeThreshold;
   const isMultiItemArchive =
-    items.length > 1 || (items.length === 1 && items[0].isDir);
+    items.length > 1 || (items.length === 1 && isItemDirectory(items[0]));
   const willUseChunkedArchive =
     downloadChunkSizeMb > 0 && isMultiItemArchive;
 
