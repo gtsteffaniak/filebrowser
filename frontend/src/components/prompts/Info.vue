@@ -85,7 +85,7 @@
             @activate="openQuotaPrompt"
           />
         </div>
-        <div class="info-item">
+        <div v-if="quotaLoaded" class="info-item">
           <strong>{{ t("general.enabled") }}</strong>
           <span>{{ quotaEnabled ? t("general.yes") : t("general.no") }}</span>
         </div>
@@ -150,7 +150,7 @@
 
 </template>
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import { useI18n } from "@/i18n/index.ts";
 import { getHumanReadableFilesize } from "@/utils/filesizes.js";
 import { formatTimestamp, fromNow } from "@/utils/moment.ts";
@@ -198,6 +198,7 @@ const hashResult = ref("");
 const generatingHash = ref(false);
 const quotaSnapshot = ref<QuotaSnapshot>({});
 const quotaExists = ref(false);
+const quotaLoaded = ref(false);
 const lyricsText = ref("");
 const lyricsLoading = ref(false);
 const showLyrics = ref(false);
@@ -206,6 +207,7 @@ const subtitleContent = ref<Record<string, string>>({});
 // Listing items carry no subtitles, they're fetched when the tab opens
 const mediaDetails = ref<InfoItem | null>(null);
 let mediaRequested = false;
+let quotaRequested = false;
 
 const isShare = getters.isShare();
 const source = computed(() => props.item.source || "");
@@ -283,10 +285,10 @@ watch(activeTab, (tab) => {
     mediaRequested = true;
     void loadMediaDetails();
   }
-});
-
-onMounted(async () => {
-  if (showQuotaSection.value) await loadQuota();
+  if (tab === "quota" && !quotaRequested) {
+    quotaRequested = true;
+    void loadQuota();
+  }
 });
 
 function formatDate(date?: string) {
@@ -363,6 +365,8 @@ async function loadQuota() {
     quotaExists.value = (limitBytes || 0) > 0;
   } catch {
     // no quota or preview unavailable
+  } finally {
+    quotaLoaded.value = true;
   }
 }
 
