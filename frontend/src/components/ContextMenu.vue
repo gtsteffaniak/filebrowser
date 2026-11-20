@@ -119,7 +119,8 @@ import { notify } from "@/notify/index.ts";
 import { getters, mutations, state } from "@/store/index.ts";
 import type { FileListItem, ReqObject } from "@/store/types.ts";
 import { hideInteractiveTooltip, showHoverTooltip } from "@/utils/tooltipHelp.js";
-import { goToItem, getParentDir, removeLastDir } from "@/utils/url.js";
+import { buildWebDavUrl, goToItem, getParentDir, removeLastDir } from "@/utils/url.js";
+import { globalVars } from "@/utils/constants.ts";
 import { copyToClipboard } from "@/utils/clipboard.js";
 import downloadFiles from "@/utils/download.js";
 import { canNativeShare, nativeShareFile } from "@/utils/nativeShare.js";
@@ -128,7 +129,7 @@ import { isMediaRequest } from "@/utils/mediaFile.js";
 import { actionIconClass } from "@/components/Action.vue";
 import { popEnter, popLeave } from "@/utils/transitions.ts";
 
-type MenuItem = FileListItem & { isDir?: boolean; from?: string };
+type MenuItem = FileListItem & { isDir?: boolean; from?: string; url?: string };
 
 interface MenuAction {
   id: string;
@@ -142,12 +143,14 @@ const props = withDefaults(
     createOnly?: boolean;
     showCentered?: boolean;
     showLimitedOptions?: boolean;
+    breadcrumb?: boolean;
     items?: MenuItem[] | null;
   }>(),
   {
     createOnly: false,
     showCentered: false,
     showLimitedOptions: false,
+    breadcrumb: false,
     items: null,
   },
 );
@@ -254,6 +257,8 @@ const showContext = computed(() => getters.currentPromptName() === "ContextMenu"
 const showOverflow = computed(() => getters.currentPromptName() === "OverflowMenu");
 const isOpen = computed(() => showContext.value || showOverflow.value);
 
+const limitedOptions = computed(() => props.showLimitedOptions || props.breadcrumb);
+
 const centered = computed(
   () => props.showCentered || getters.isMobile() || !posX.value || !posY.value,
 );
@@ -273,23 +278,23 @@ const canOpenCreatePanel = computed(() => {
 
 /** New folder / new file / upload requires permissions.create only (not admin alone) */
 const showCreateFileActions = computed(() => {
-  if (props.showLimitedOptions || isAdvancedSearch.value) return false;
+  if (limitedOptions.value || isAdvancedSearch.value) return false;
   if (!permissions.value.create) return false;
   return showCreate.value && !isSearchActive.value;
 });
 
 const showInfo = computed(() => {
-  if (props.showLimitedOptions) return selectedCount.value === 1;
+  if (limitedOptions.value) return selectedCount.value === 1;
   return !showCreate.value && selectedCount.value === 1;
 });
 
 const showDownload = computed(() => {
-  if (props.showLimitedOptions) return false;
+  if (limitedOptions.value) return false;
   return !showCreate.value && !!permissions.value.download && selectedCount.value > 0;
 });
 
 const showUnarchive = computed(() => {
-  if (props.showLimitedOptions || getters.isShare()) return false;
+  if (limitedOptions.value || getters.isShare()) return false;
   if (!permissions.value.create || showCreate.value) return false;
   if (selectedCount.value !== 1) return false;
   const item = firstSelected.value;
@@ -297,7 +302,7 @@ const showUnarchive = computed(() => {
 });
 
 const showArchive = computed(() => {
-  if (props.showLimitedOptions || getters.isShare()) return false;
+  if (limitedOptions.value || getters.isShare()) return false;
   if (!permissions.value.create) return false;
   return (
     showCreate.value &&
@@ -308,21 +313,21 @@ const showArchive = computed(() => {
 });
 
 const showShareAction = computed(() => {
-  if (props.showLimitedOptions) return false;
+  if (limitedOptions.value) return false;
   if (isAdvancedSearch.value && selectedCount.value === 0) return false;
   return selectedCount.value <= 1 && !getters.isShare() && !!permissions.value.share;
 });
 
 const showSendToApp = computed(() => {
   if (!canNativeShare()) return false;
-  if (props.showLimitedOptions || showCreate.value) return false;
+  if (limitedOptions.value || showCreate.value) return false;
   if (!permissions.value.download || selectedCount.value !== 1) return false;
   const item = firstSelected.value;
   return !!item && !isFolderItem(item);
 });
 
 const showRename = computed(() => {
-  if (props.showLimitedOptions) return false;
+  if (limitedOptions.value) return false;
   return (
     !showCreate.value &&
     selectedCount.value === 1 &&
@@ -332,7 +337,7 @@ const showRename = computed(() => {
 });
 
 const showPinAction = computed(() => {
-  if (props.showLimitedOptions) return false;
+  if (limitedOptions.value) return false;
   if (!getters.isLoggedIn()) return false;
   if (getters.isShare() && !state.shareInfo?.canEditShare) return false;
   if (showCreate.value || isSearchActive.value) return false;
@@ -341,7 +346,7 @@ const showPinAction = computed(() => {
 });
 
 const showCopy = computed(() => {
-  if (props.showLimitedOptions) return false;
+  if (limitedOptions.value) return false;
   if (showCreate.value || selectedCount.value === 0) return false;
   // A share refuses every change, copy included, unless it allows modify.
   if (getters.isShare()) return !!permissions.value.modify;
@@ -353,31 +358,39 @@ const showCopy = computed(() => {
 });
 
 const showCopyPath = computed(() => {
+  if (props.breadcrumb) return selectedCount.value === 1;
   if (props.showLimitedOptions) return false;
   return !showCreate.value && selectedCount.value === 1 && !!state.user?.showCopyPath;
 });
+
+const showCopyUrl = computed(() => props.breadcrumb && selectedCount.value === 1);
+
+const showCopyWebdavUrl = computed(
+  () => showCopyUrl.value && !globalVars.webdavDisabled && !getters.isShare(),
+);
 
 const showOpenParentFolder = computed(
   () =>
     !showCreate.value &&
     selectedCount.value === 1 &&
+    !props.breadcrumb &&
     (isSearchActive.value || props.showLimitedOptions || isAdvancedSearch.value),
 );
 
 const showGoToItem = computed(() => props.showLimitedOptions && selectedCount.value === 1);
 
 const showMove = computed(() => {
-  if (props.showLimitedOptions) return false;
+  if (limitedOptions.value) return false;
   return !showCreate.value && selectedCount.value > 0 && !!permissions.value.modify;
 });
 
 const showSelectAll = computed(() => {
-  if (props.showLimitedOptions) return false;
+  if (limitedOptions.value) return false;
   return !showCreate.value && !isSearchActive.value && (state.req?.items?.length ?? 0) > 0;
 });
 
 const showDelete = computed(() => {
-  if (props.showLimitedOptions || selectedCount.value === 0) return false;
+  if (limitedOptions.value || selectedCount.value === 0) return false;
   return (
     getters.currentView() !== "settings" &&
     !isSearchActive.value &&
@@ -386,7 +399,7 @@ const showDelete = computed(() => {
 });
 
 const showSelectMultiple = computed(() => {
-  if (props.showLimitedOptions) return false;
+  if (limitedOptions.value) return false;
   if (state.multiple || isSearchActive.value) return false;
   if (isAdvancedSearch.value) return true;
   if (state.user?.showSelectMultiple) return true;
@@ -394,13 +407,13 @@ const showSelectMultiple = computed(() => {
 });
 
 const showAccess = computed(() => {
-  if (props.showLimitedOptions || getters.isShare()) return false;
+  if (limitedOptions.value || getters.isShare()) return false;
   if (selectedCount.value > 1) return false;
   return getters.isAdmin() && showCreate.value;
 });
 
 const showQuotaAction = computed(() => {
-  if (props.showLimitedOptions || getters.isShare()) return false;
+  if (limitedOptions.value || getters.isShare()) return false;
   if (!getters.isAdmin() || !showCreate.value || isSearchActive.value) return false;
   if (selectedCount.value > 1) return false;
   if (selectedCount.value === 1) return isFolderItem(firstSelected.value);
@@ -409,14 +422,14 @@ const showQuotaAction = computed(() => {
 
 /** + control in listing / share directory context; disabled when the panel cannot be opened. */
 const showCreateToggle = computed(() => {
-  if (props.showLimitedOptions || props.createOnly) return false;
+  if (limitedOptions.value || props.createOnly) return false;
   return !isSearchActive.value;
 });
 
 const createToggleDisabled = computed(() => !canOpenCreatePanel.value);
 
 const showDivider = computed(() => {
-  if (props.showLimitedOptions || props.createOnly) return false;
+  if (limitedOptions.value || props.createOnly) return false;
   return showCreateToggle.value || selectedCount.value > 0;
 });
 
@@ -494,12 +507,22 @@ function itemsForPrompt(): MenuItem[] {
   return markRaw(providedItems.value.map((item) => toRaw(item)));
 }
 
-function showInfoPrompt() {
-  const item =
+async function showInfoPrompt() {
+  let item =
     isPreview.value && !props.items?.length && (showOverflow.value || !firstSelected.value)
       ? state.req
       : firstSelected.value;
+  const needsDetails =
+    props.breadcrumb && !getters.isShare() && item?.size === undefined && !!item?.source;
   mutations.closeHovers();
+  if (item && needsDetails) {
+    try {
+      const folder = await resourcesApi.fetchFiles(item.source, item.path, false, false, true);
+      item = { ...item, size: folder.size, modified: folder.modified, created: folder.created };
+    } catch (_e) {
+      // info still opens with what is known
+    }
+  }
   mutations.showPrompt({ name: "info", props: { item } });
 }
 
@@ -648,10 +671,22 @@ async function togglePin() {
   }
 }
 
-async function copyPathToClipboard() {
-  await copyToClipboard(firstSelected.value?.path || "");
+async function copyAndClose(text: string) {
+  await copyToClipboard(text);
   mutations.closeHovers();
 }
+
+const copyPathToClipboard = () => copyAndClose(firstSelected.value?.path || "");
+
+const copyUrlToClipboard = () =>
+  copyAndClose(`${window.location.origin}${router.resolve(firstSelected.value?.url || "/").href}`);
+
+const copyWebdavUrlToClipboard = () => {
+  const item = firstSelected.value;
+  return copyAndClose(
+    `${window.location.origin}${buildWebDavUrl(item?.source || state.req.source, item?.path || "/")}`,
+  );
+};
 
 function showArchivePrompt() {
   mutations.closeTopPrompt();
@@ -764,6 +799,8 @@ const mainActions = computed<MenuAction[]>(() => {
   );
   addAction(list, showRename.value, "rename", "edit", t("general.rename"), showRenamePrompt);
   addAction(list, showCopy.value, "copy", "file_copy", t("buttons.copyFile"), showCopyPrompt);
+  addAction(list, showCopyUrl.value, "copy-url", "link", t("buttons.copyUrl"), copyUrlToClipboard);
+  addAction(list, showCopyWebdavUrl.value, "copy-webdav-url", "cloud", t("buttons.copyWebdavUrl"), copyWebdavUrlToClipboard);
   addAction(list, showCopyPath.value, "copy-path", "copy_all", t("buttons.copyPath"), copyPathToClipboard);
   addAction(list, showOpenParentFolder.value, "open-parent", "folder", t("buttons.openParentFolder"), openParentFolder);
   addAction(list, showGoToItem.value, "go-to-item", "folder", t("buttons.goToItem"), navToItem);

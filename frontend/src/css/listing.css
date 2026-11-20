@@ -617,12 +617,12 @@ body.rtl .listing-items {
     border-width: 0.45em;
   }
 
-  .tree-item:has(> &:last-child) + .tree-item > & {
+  .tree-row:has(> &:last-child) + .tree-row > & {
     border-top-left-radius: 0;
     border-top-right-radius: 0;
   }
 
-  .tree-item:has(+ .tree-item > &) > &:last-child {
+  .tree-row:has(+ .tree-row > &) > &:last-child {
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
   }
@@ -649,11 +649,11 @@ body.rtl .listing-items {
     border-bottom: 0;
   }
 
-  .tree-item:has(> &:last-child) + .tree-item > &::before {
+  .tree-row:has(> &:last-child) + .tree-row > &::before {
     border-top-width: 0;
   }
 
-  .tree-item:has(+ .tree-item > &) > &:last-child::before {
+  .tree-row:has(+ .tree-row > &) > &:last-child::before {
     border-bottom-width: 0;
   }
 }

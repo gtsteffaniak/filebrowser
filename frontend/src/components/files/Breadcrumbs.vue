@@ -2,12 +2,13 @@
   <div v-if="items.length > 0" id="breadcrumbs">
     <ul>
       <li>
-        <router-link :to="base" :aria-label="$t('general.home')" :title="$t('general.home')"
-          :class="{ 'droppable-breadcrumb': isDroppable, 'drag-over': dragOverItem?.type === 'home' }"
+        <router-link :to="base" :aria-label="t('general.home')" :title="t('general.home')"
+          :class="{ 'drag-over': dragOverItem?.type === 'home', 'context-item': isSelected(homeLink) }"
           @dragenter.prevent="dragEnter($event, homeLink)"
           @dragleave.prevent="dragLeave($event, homeLink)"
           @dragover.prevent="dragOver($event, homeLink)"
-          @drop.prevent="drop($event, homeLink)">
+          @drop.prevent="drop($event, homeLink)"
+          @contextmenu.prevent.stop="openMenu($event, homeLink)">
           <i class="material-symbols">home</i>
         </router-link>
       </li>
@@ -16,14 +17,15 @@
           :to="link.url"
           :aria-label="`breadcrumb-link-${link.name}`"
           :title="link.name"
-          :key="index"
-          :class="{ changeAvailable: hasUpdate,
-            'droppable-breadcrumb': isDroppable && link.type !== 'truncated',
-            'drag-over': dragOverItem?.path === link.path, }"
+          :class="{
+            'drag-over': dragOverItem?.path === link.path,
+            'context-item': isSelected(link),
+          }"
           @dragenter="dragEnter($event, link)"
           @dragleave="dragLeave($event, link)"
           @dragover="dragOver($event, link)"
-          @drop="drop($event, link)">
+          @drop="drop($event, link)"
+          @contextmenu.prevent.stop="openMenu($event, link)">
           <span class="breadcrumb-text">{{ link.name }}</span>
         </router-link>
       </li>
@@ -31,302 +33,342 @@
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
+import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { useI18n } from "@/i18n/index.ts";
 import { resourcesApi } from "@/api/index.js";
 import { notify } from "@/notify/index.ts";
 import { getters, mutations, state } from "@/store/index.ts";
-import { url } from "@/utils/index.ts";
-import { getObjectProperty } from '@/utils/object.js';
+import { encodedPath, joinPath } from "@/utils/url.js";
 import { goToItemNotificationButton } from "@/utils/notificationActions.js";
 import { notifyMoveCopyFailure } from "@/utils/appNotifications.js";
 
-export default {
-  name: "breadcrumbs",
-  data() {
-    return {
-      base: "/files/",
-      dragOverItem: null, // Track which breadcrumb is being dragged over
-    };
-  },
-  props: {
-    noLink: {
-      type: Boolean,
-      default: false,
-    },
-  },
-  mounted() {
-    this.updatePaths();
-    window.addEventListener('dragend', this.clearDragState);
-  },
-  beforeUnmount() {
-    window.removeEventListener('dragend', this.clearDragState);
-  },
-  watch: {
-    $route() {
-      this.updatePaths();
-    },
-    req() {
-      this.updatePaths();
-    },
-  },
-  computed: {
-    req() {
-      return state.req;
-    },
-    hasUpdate() {
-      return state.req.hasUpdate;
-    },
-    isDroppable() {
-      return getters.sourcePermissions().modify
-    },
-    homeLink() {
-      return {
-        name: this.$t('general.home'),
-        url: this.base,
-        path: '/',
-        type: 'home',
-      };
-    },
-    scrollRatio() {
-      const ratio = state.listing.scrollRatio || 0;
-      return ratio;
-    },
-    items() {
-      const req = state.req;
-      if (!req.path) return [];
-      const encodedPathString = url.encodedPath(state.req.path);
-      const originalParts = state.req.path.split("/");
-      const encodedParts = encodedPathString.split("/");
-      // Remove empty strings from both arrays consistently
-      if (originalParts[0] === "") {
-        originalParts.shift();
-        encodedParts.shift();
-      }
-      if (originalParts.at(-1) === "") {
-        originalParts.pop();
-        encodedParts.pop();
-      }
-      const breadcrumbs = [];
-      let buildRef = this.base;
-      let accumulatedPath = "";
+type BreadcrumbType = "home" | "normal" | "truncated";
 
-      for (let i = 0; i < originalParts.length; i++) {
-        const origPart = getObjectProperty(originalParts, i);
-        const encodedElement = getObjectProperty(encodedParts, i);
-        buildRef = `${buildRef + encodedElement}/`;
-        accumulatedPath = accumulatedPath ? `${accumulatedPath}/${origPart}` : origPart;
+interface BreadcrumbLink {
+  name: string;
+  url: string;
+  path: string;
+  type: BreadcrumbType;
+}
 
-        breadcrumbs.push({
-          name: origPart,
-          url: buildRef,
-          path: `/${accumulatedPath}`,
-          type: 'normal'
-        });
-      }
-      if (breadcrumbs.length > 3) {
-        while (breadcrumbs.length !== 4) {
-          breadcrumbs.shift();
-        }
-        breadcrumbs[0] = {
-          name: "...",
-          url: breadcrumbs[0].url, // Keep the URL of the first visible breadcrumb
-          path: breadcrumbs[0].path, // Same here, but with the path
-          type: 'truncated'
-        };
-      }
-      return breadcrumbs;
+const INTERNAL_DRAG_TYPE = "application/x-filebrowser-internal-drag";
+
+const { t } = useI18n();
+
+const dragOverItem = ref<BreadcrumbLink | null>(null); // Track which breadcrumb is being dragged over
+
+const base = computed(() =>
+  getters.isShare() ? getters.sharePathBase() : `/files/${state.req.source}/`,
+);
+const isDroppable = computed(() => !!getters.sourcePermissions().modify);
+
+const homeLink = computed<BreadcrumbLink>(() => ({
+  name: t("general.home"),
+  url: base.value,
+  path: "/",
+  type: "home",
+}));
+
+const items = computed<BreadcrumbLink[]>(() => {
+  const req = state.req;
+  if (!req.path) return [];
+  const originalParts = req.path.split("/");
+  const encodedParts = encodedPath(req.path).split("/");
+  // Remove empty strings from both arrays
+  if (originalParts[0] === "") {
+    originalParts.shift();
+    encodedParts.shift();
+  }
+  if (originalParts.at(-1) === "") {
+    originalParts.pop();
+    encodedParts.pop();
+  }
+  const breadcrumbs: BreadcrumbLink[] = [];
+  let buildRef = base.value;
+  let accumulatedPath = "";
+
+  for (const [i, origPart] of originalParts.entries()) {
+    buildRef = `${buildRef + (encodedParts.at(i) ?? "")}/`;
+    accumulatedPath = accumulatedPath ? `${accumulatedPath}/${origPart}` : origPart;
+    breadcrumbs.push({
+      name: origPart,
+      url: buildRef,
+      path: `/${accumulatedPath}`,
+      type: "normal",
+    });
+  }
+  if (breadcrumbs.length > 3) {
+    breadcrumbs.splice(0, breadcrumbs.length - 4);
+    const [first] = breadcrumbs;
+    if (first) {
+      breadcrumbs[0] = { name: "...", url: first.url, path: first.path, type: "truncated" };
+    }
+  }
+  return breadcrumbs;
+});
+
+/** Name of the folder a breadcrumb stands for ("..." and home have no name of their own). */
+function linkName(link: BreadcrumbLink, source: string): string {
+  if (link.type === "home") return source || link.name;
+  if (link.type === "truncated") return link.path.split("/").filter(Boolean).pop() ?? link.name;
+  return link.name;
+}
+
+interface BreadcrumbSelection {
+  source?: string;
+  path?: string;
+  heldSelected?: boolean;
+}
+
+interface PromptProps {
+  items?: unknown;
+  item?: BreadcrumbSelection;
+  sourceName?: string;
+  path?: string;
+  targetPath?: string;
+  targetSource?: string;
+}
+
+function selectionKey(source: string | undefined, path: string) {
+  return getters.isShare() ? path : `${source ?? ""}\u0000${path}`;
+}
+
+const selectedKeys = computed(() => {
+  const keys = new Set<string>();
+  for (const prompt of state.prompts) {
+    const promptProps = (prompt.props || {}) as PromptProps;
+    let candidates: BreadcrumbSelection[] = [];
+    if (Array.isArray(promptProps.items)) {
+      candidates = promptProps.items as BreadcrumbSelection[];
+    } else if (promptProps.item) {
+      candidates = [promptProps.item];
+    } else if (promptProps.sourceName && promptProps.path) {
+      candidates = [{ source: promptProps.sourceName, path: promptProps.path }];
+    } else if (promptProps.targetPath && promptProps.targetSource) {
+      candidates = [{ source: promptProps.targetSource, path: promptProps.targetPath }];
+    }
+    for (const selected of candidates) {
+      if (!selected.path || selected.heldSelected) continue; // picked from ListingView
+      keys.add(selectionKey(selected.source, selected.path));
+    }
+  }
+  return keys;
+});
+
+function isSelected(link: BreadcrumbLink): boolean {
+  return selectedKeys.value.has(selectionKey(state.req.source || state.sources?.current, link.path));
+}
+
+function openMenu(event: MouseEvent, link: BreadcrumbLink) {
+  if (getters.currentPromptName() === "ContextMenu") return;
+  mutations.resetSelected();
+  const source = state.req.source || state.sources?.current || "";
+  const isCurrent = normalizePath(link.path) === normalizePath(state.req.path);
+  mutations.showPrompt({
+    name: "ContextMenu",
+    props: {
+      posX: event.clientX,
+      posY: event.clientY,
+      breadcrumb: true,
+      items: [
+        {
+          name: linkName(link, source),
+          path: link.path,
+          url: link.url,
+          source,
+          type: "directory",
+          isDir: true,
+          ...(isCurrent && {
+            size: state.req.size,
+            modified: state.req.modified,
+            created: state.req.created,
+          }),
+        },
+      ],
     },
-  },
-  methods: {
-    updatePaths() {
+  });
+}
+
+onMounted(() => window.addEventListener("dragend", clearDragState));
+onBeforeUnmount(() => window.removeEventListener("dragend", clearDragState));
+
+function isInternalDrag(event: DragEvent): boolean {
+  return Array.from(event.dataTransfer?.types ?? []).includes(INTERNAL_DRAG_TYPE);
+}
+
+function dragEnter(event: DragEvent, link: BreadcrumbLink) {
+  // Don't allow drag over "..." (is a truncated breadcrumb)
+  if (!isDroppable.value || link.type === "truncated") return;
+  if (!isInternalDrag(event)) return;
+  event.preventDefault();
+  dragOverItem.value = link;
+}
+
+function dragOver(event: DragEvent, link: BreadcrumbLink) {
+  if (!isDroppable.value || link.type === "truncated") return;
+  if (!isInternalDrag(event)) return;
+  event.preventDefault();
+}
+
+function dragLeave(event: DragEvent, link: BreadcrumbLink) {
+  // Don't clear drag state if we're just moving to a child element
+  if ((event.currentTarget as Node | null)?.contains(event.relatedTarget as Node | null)) {
+    return;
+  }
+  if (
+    dragOverItem.value?.path === link.path ||
+    (dragOverItem.value?.type === "home" && link.type === "home")
+  ) {
+    clearDragState();
+  }
+}
+
+function clearDragState() {
+  dragOverItem.value = null;
+}
+
+interface MoveItem {
+  from: string;
+  fromSource: string | undefined;
+  to: string;
+  toSource: string;
+  itemType: string | undefined;
+  isDir: boolean;
+  name: string;
+}
+
+// Normalize paths for comparison
+function normalizePath(path: string | undefined): string {
+  if (!path || path === "/") return "/";
+  return path.replace(/\/$/, ""); // Remove trailing slash
+}
+
+async function drop(event: DragEvent, link: BreadcrumbLink) {
+  // Don't allow drop on "..."
+  if (link.type === "truncated") return;
+  if (!isDroppable.value) return;
+
+  event.preventDefault();
+  event.stopPropagation();
+  clearDragState();
+
+  if (!isInternalDrag(event)) return;
+
+  // Get the target path for this breadcrumb
+  const targetPath = link.path;
+  const currentPath = state.req.path;
+  const source = state.req.source ?? "";
+
+  if (normalizePath(targetPath) === normalizePath(currentPath)) {
+    notify.showErrorToast(t("files.sameFolder"));
+    console.error("Cannot move to same folder");
+    return;
+  }
+
+  // Build list of items to move from selected items
+  let itemsToMove: MoveItem[] = [];
+  for (const i of state.selected) {
+    if (typeof i !== "number" || i < 0 || i >= state.req.items.length) continue;
+
+    const selectedItem = state.req.items.at(i);
+    if (!selectedItem) continue;
+
+    const fromPath = selectedItem.path || joinPath(state.req.path, selectedItem.name);
+
+    itemsToMove.push({
+      from: fromPath,
+      fromSource: selectedItem.source,
+      to: joinPath(targetPath, selectedItem.name),
+      toSource: source,
+      itemType: selectedItem.type,
+      isDir: selectedItem.type === "directory",
+      name: selectedItem.name,
+    });
+  }
+
+  // Filter out invalid moves
+  itemsToMove = itemsToMove.filter((item) => {
+    if (item.from === item.to) return false;
+
+    // Prevent moving a directory into itself -- likely never will happen but just in case
+    if (item.itemType === "directory") {
+      const fromDir = normalizePath(item.from);
+      const toDir = normalizePath(item.to);
+      // Check if destination is inside the directory
+      if (toDir.startsWith(`${fromDir}/`)) {
+        return false;
+      }
+    }
+    return true;
+  });
+
+  // Check for conflicts in target directory
+  let targetDirItems: { name: string }[] = [];
+  try {
+    if (getters.isShare()) {
+      const response = await resourcesApi.fetchFilesPublic(targetPath, state.shareInfo.hash);
+      targetDirItems = response?.items ?? [];
+    } else {
+      const response = await resourcesApi.fetchFiles(source, targetPath);
+      targetDirItems = response?.items ?? [];
+    }
+  } catch (_e) {
+    notify.showError(t("files.cannotAccesDir"));
+    return;
+  }
+
+  // if any item conflics will show replace-rename prompt later
+  const conflict = itemsToMove.some((item) => {
+    const itemName = item.to.split("/").pop(); // Extract filename from destination path
+    return targetDirItems.some((targetItem) => targetItem.name === itemName);
+  });
+
+  const moveAction = async (overwrite: boolean, rename: boolean) => {
+    mutations.showPrompt({
+      name: "move",
+      props: { operationInProgress: true },
+    });
+
+    try {
       if (getters.isShare()) {
-        this.base = getters.sharePathBase();
+        await resourcesApi.moveCopyPublic(state.shareInfo.hash, itemsToMove, "move", overwrite, rename);
       } else {
-        this.base = `/files/${state.req.source}/`;
+        await resourcesApi.moveCopy(itemsToMove, "move", overwrite, rename);
       }
-    },
-
-    dragEnter(event, link) {
-      // Don't allow drag over "..." (is a truncated breadcrumb)
-      if (!this.isDroppable || link.type === 'truncated') return;
-      if (!event.dataTransfer.types.includes("application/x-filebrowser-internal-drag")) return;
-      event.preventDefault();
-      this.dragOverItem = link;
-    },
-
-    dragOver(event, link) {
-      if (!this.isDroppable || link.type === 'truncated') return;
-      if (!event.dataTransfer.types.includes("application/x-filebrowser-internal-drag")) return;
-      event.preventDefault();
-    },
-
-    dragLeave(event, link) {
-      // Don't clear drag state if we're just moving to a child element
-      if (event.currentTarget.contains(event.relatedTarget)) {
-        return;
-      }
-
-      if (this.dragOverItem?.path === link.path ||
-          (this.dragOverItem?.type === 'home' && link.type === 'home')) {
-        this.clearDragState();
-      }
-    },
-
-    clearDragState() {
-      this.dragOverItem = null;
-    },
-
-    async drop(event, link) {
-      // Don't allow drop on "..."
-      if (link.type === 'truncated') return;
-      if (!this.isDroppable) return;
-
-      event.preventDefault();
-      event.stopPropagation();
-      this.clearDragState();
-
-      const isInternal = Array.from(event.dataTransfer.types).includes(
-        "application/x-filebrowser-internal-drag"
-      );
-
-      if (!isInternal) return;
-
-      // Get the target path for this breadcrumb
-      const targetPath = link.path; // Use the path from the link object
-      const currentPath = state.req.path;
-      const source = state.req.source;
-
-      // Normalize paths for comparison
-      const normalizePath = (path) => {
-        if (!path || path === "/") return "/";
-        return path.replace(/\/$/, ''); // Remove trailing slash
-      };
-
-      const normalizedTarget = normalizePath(targetPath);
-      const normalizedCurrent = normalizePath(currentPath);
-
-      if (normalizedTarget === normalizedCurrent) {
-        notify.showErrorToast(this.$t("files.sameFolder"));
-        console.error("Cannot move to same folder");
-        return;
-      }
-
-      // Build list of items to move from selected items
-      let itemsToMove = [];
-      for (const i of state.selected) {
-        if (i < 0 || i >= state.req.length) continue;
-
-        const selectedItem = state.req.items.at(i);
-
-        let fromPath = selectedItem.path;
-
-        if (!fromPath) {
-          fromPath = url.joinPath(state.req.path, selectedItem.name);
-        }
-
-        itemsToMove.push({
-          from: fromPath,
-          fromSource: selectedItem.source,
-          to: url.joinPath(targetPath, selectedItem.name),
-          toSource: source,
-          itemType: selectedItem.type,
-          isDir: selectedItem.type === 'directory',
-          name: selectedItem.name
-        });
-      }
-
-      // Filter out invalid moves
-      itemsToMove = itemsToMove.filter(item => {
-        if (item.from === item.to) return false;
-
-        // Prevent moving a directory into itself -- likely never will happen but just in case
-        if (item.itemType === 'directory') {
-          const fromDir = normalizePath(item.from);
-          const toDir = normalizePath(item.to);
-
-          // Check if destination is inside the directory
-          if (toDir.startsWith(`${fromDir}/`)) {
-            return false;
-          }
-        }
-        return true;
+      notify.showSuccess(t("prompts.moveSuccess"), {
+        icon: "folder",
+        buttons: [
+          goToItemNotificationButton(t("buttons.goToItem"), source, targetPath, getters.isShare()),
+        ],
       });
-
-      // Check for conflicts in target directory
-      let targetDirItems = [];
-      try {
-        if (getters.isShare()) {
-          const response = await resourcesApi.fetchFilesPublic(targetPath, state.shareInfo.hash);
-          targetDirItems = response?.items;
-        } else {
-          const response = await resourcesApi.fetchFiles(source, targetPath);
-          targetDirItems = response?.items;
-        }
-      } catch (_e) {
-        notify.showError(this.$t("files.cannotAccesDir"));
-        return;
-      }
-
-      // if any item conflics will show replace-rename prompt later
-      const conflict = itemsToMove.some(item => {
-        const itemName = item.to.split('/').pop(); // Extract filename from destination path
-        return targetDirItems.some(targetItem => targetItem.name === itemName);
-      });
-
-      const moveAction = async (overwrite, rename) => {
-        mutations.showPrompt({
-          name: "move",
-          props: { operationInProgress: true },
-        });
-
-        try {
-          if (getters.isShare()) {
-            await resourcesApi.moveCopyPublic(state.shareInfo.hash, itemsToMove, "move", overwrite, rename);
-          } else {
-            await resourcesApi.moveCopy(itemsToMove, "move", overwrite, rename);
-          }
-
-          notify.showSuccess(this.$t("prompts.moveSuccess"), {
-            icon: "folder",
-            buttons: [
-              goToItemNotificationButton(
-                this.$t("buttons.goToItem"),
-                source,
-                targetPath,
-                getters.isShare()
-              ),
-            ],
-          });
-          mutations.closeTopPrompt();
-          mutations.setReload(true);
-        } catch (error) {
-          mutations.closeTopPrompt();
-          notifyMoveCopyFailure(error);
-        }
-      };
-
-      if (conflict) {
-        mutations.showPrompt({
-          name: "replace-rename",
-          pinned: true,
-          confirm: (e, option) => {
-            const overwrite = option === "overwrite";
-            const rename = option === "rename";
-            e.preventDefault();
-            mutations.closeTopPrompt();
-            void moveAction(overwrite, rename);
-          },
-        });
-        return;
-      }
-      try {
-        await moveAction(false, false);
-      } catch (error) {
-        notifyMoveCopyFailure(error);
-      }
-    },
-  },
-};
+      mutations.closeTopPrompt();
+      mutations.setReload(true);
+    } catch (error) {
+      mutations.closeTopPrompt();
+      notifyMoveCopyFailure(error);
+    }
+  };
+  if (conflict) {
+    mutations.showPrompt({
+      name: "replace-rename",
+      pinned: true,
+      confirm: (e: Event, option: string) => {
+        const overwrite = option === "overwrite";
+        const rename = option === "rename";
+        e.preventDefault();
+        mutations.closeTopPrompt();
+        void moveAction(overwrite, rename);
+      },
+    });
+    return;
+  }
+  try {
+    await moveAction(false, false);
+  } catch (error) {
+    notifyMoveCopyFailure(error);
+  }
+}
 </script>
 
 <style scoped>
@@ -335,7 +377,6 @@ export default {
   scrollbar-width: none;
 }
 
-/* Hide scrollbar for Chrome, Safari and Opera */
 #breadcrumbs::-webkit-scrollbar {
   display: none;
 }
@@ -375,15 +416,17 @@ export default {
   user-select: none;
   white-space: nowrap;
   max-width: 90vw;
+  --chevron-depth: calc(1.275em + 1px);
+  --has-left-notch: 1;
+  --has-right-point: 1;
   clip-path: polygon(
-    0% 0%,
-    calc(100% - 1.275em) 0%,
+    0 0,
+    calc(100% - var(--has-right-point) * var(--chevron-depth)) 0,
     100% 50%,
-    calc(100% - 1.275em) 100%,
-    0% 100%,
-    1.275em 50%);
-  margin-right: -0.90em;
-  border: 1px solid rgb(0 0 0 / 10%);
+    calc(100% - var(--has-right-point) * var(--chevron-depth)) 100%,
+    0 100%,
+    calc(var(--has-left-notch) * var(--chevron-depth)) 50%);
+  margin-right: -1em;
 }
 
 #breadcrumbs ul li a .breadcrumb-text {
@@ -396,12 +439,7 @@ export default {
 #breadcrumbs ul li:first-child a {
   border-top-left-radius: 0.85em;
   border-bottom-left-radius: 0.85em;
-  clip-path: polygon(
-    0% 0%,
-    calc(100% - 1.275em) 0%,
-    100% 50%,
-    calc(100% - 1.275em) 100%,
-    0% 100%);
+  --has-left-notch: 0;
   padding-left: 1.1em;
 }
 
@@ -409,12 +447,7 @@ export default {
   padding-right: 1.275em;
   border-top-right-radius: 0.85em;
   border-bottom-right-radius: 0.85em;
-  clip-path: polygon(
-    0% 0%,
-    100% 0%,
-    100% 100%,
-    0% 100%,
-    1.275em 50%);
+  --has-right-point: 0;
   margin-right: 0;
 }
 
@@ -423,8 +456,33 @@ export default {
   color: white;
 }
 
-#breadcrumbs ul li:last-child a.changeAvailable {
-  filter: contrast(0.8) hue-rotate(200deg) saturate(1);
+#breadcrumbs ul li a.context-item {
+  --highlight-border: var(--borderWidth);
+  background: var(--primaryColor);
+  color: white;
+}
+
+#breadcrumbs ul li a.context-item::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: calc(var(--highlight-border) - 1px);
+  background: color-mix(in srgb, var(--primaryColor) 50%, var(--surfacePrimary));
+  clip-path: polygon(
+    calc(var(--has-left-notch) * 1.414 * var(--highlight-border)) 0,
+    calc(100% - var(--has-right-point) * (var(--chevron-depth) - 0.586 * var(--highlight-border))) 0,
+    calc(100% - var(--has-right-point) * 0.414 * var(--highlight-border)) 50%,
+    calc(100% - var(--has-right-point) * (var(--chevron-depth) - 0.586 * var(--highlight-border))) 100%,
+    calc(var(--has-left-notch) * 1.414 * var(--highlight-border)) 100%,
+    calc(var(--has-left-notch) * (var(--chevron-depth) + 0.414 * var(--highlight-border))) 50%);
+}
+
+#breadcrumbs ul li:first-child a.context-item::before {
+  border-radius: calc(0.85em - var(--highlight-border)) 0 0 calc(0.85em - var(--highlight-border));
+}
+
+#breadcrumbs ul li:last-child a.context-item::before {
+  border-radius: 0 calc(0.85em - var(--highlight-border)) calc(0.85em - var(--highlight-border)) 0;
 }
 
 .drag-over {
@@ -439,5 +497,4 @@ export default {
   50% { transform: scale(1.05); }
   100% { transform: scale(1); }
 }
-
 </style>
