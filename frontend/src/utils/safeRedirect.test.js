@@ -13,6 +13,18 @@ describe('sanitizePostLoginRedirect', () => {
     expect(sanitizePostLoginRedirect('https://evil.example/')).toBe('/files/');
   });
 
+  it('rejects paths containing ASCII control characters', () => {
+    expect(sanitizePostLoginRedirect('/files/\tx')).toBe('/files/');
+    expect(sanitizePostLoginRedirect('/files/\vx')).toBe('/files/');
+    expect(sanitizePostLoginRedirect('/files/\x7fx')).toBe('/files/');
+    expect(sanitizePostLoginRedirect('/files/\x1fx')).toBe('/files/');
+    expect(sanitizePostLoginRedirect('/\t/evil.example/')).toBe('/files/');
+  });
+
+  it('keeps percent-encoded control characters as literal path text', () => {
+    expect(sanitizePostLoginRedirect('/files/%09x')).toBe('/files/%09x');
+  });
+
   it('allows safe relative paths', () => {
     expect(sanitizePostLoginRedirect('/files/?a=1')).toBe('/files/?a=1');
   });

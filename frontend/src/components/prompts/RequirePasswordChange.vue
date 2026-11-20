@@ -50,6 +50,8 @@
 </template>
 
 <script>
+import { postLoginRedirectForServer, sanitizePostLoginRedirect } from "@/utils/safeRedirect.js";
+import { globalVars } from "@/utils/constants";
 import { mutations } from "@/store";
 import { notify } from "@/notify";
 import { authApi } from "@/api";
@@ -154,8 +156,8 @@ export default {
         await authApi.changeRequiredPassword(this.username, this.password, this.newPassword, this.otp);
         await initAuth();
         const path = this.redirect !== "" ? this.redirect : "/files/";
-        await this.$router.push(path);
-        notify.showSuccessToast(this.$t("login.requirePasswordChangeSuccess"));
+        notify.queueToastForNextPage("success", this.$t("login.requirePasswordChangeSuccess"));
+        window.location.replace(postLoginRedirectForServer(sanitizePostLoginRedirect(path), globalVars.baseURL));
         mutations.closeTopPrompt();
       } catch (err) {
         const message = err.message || this.$t("login.failedLogin");

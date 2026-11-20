@@ -19,6 +19,8 @@ const notify = {
     getToasts: messageFunctions.getToasts,
     closeToast: messageFunctions.closeToast,
     setToastUpdateCallback: messageFunctions.setToastUpdateCallback,
+    queueToastForNextPage: messageFunctions.queueToastForNextPage,
+    showPendingToast: messageFunctions.showPendingToast,
 };
 
 export { events, notify };
