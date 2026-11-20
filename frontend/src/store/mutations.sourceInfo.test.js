@@ -115,4 +115,39 @@ describe("mutations.updateSourceInfo scope quota", () => {
     expect(info.total).toBe(50 * 1024 ** 3);
     expect(stateMock.sources.hasSourceInfo).toBe(true);
   });
+
+  it("keeps hasSourceInfo true when a partial update only touches an empty source", () => {
+    mutations.updateSourceInfo({
+      data: {
+        used: 100,
+        total: 50 * 1024 ** 3,
+        status: "ready",
+        name: "data",
+        scopeQuota: {
+          quotaKind: "scope",
+          limitBytes: SCOPE_LIMIT,
+          usedBytes: SCOPE_USED,
+          reservedBytes: 0,
+          meter: "index_scope",
+        },
+      },
+    });
+    stateMock.sources.info.other = {
+      ...stateMock.sources.info.data,
+      name: "other",
+      used: 0,
+      total: 0,
+      usedAlt: 0,
+      scopeQuota: undefined,
+    };
+
+    // SSE events carry one source at a time. An empty source must not clear the flag while
+    // "data" still holds quota information.
+    mutations.updateSourceInfo({
+      other: { used: 0, total: 0, status: "ready", name: "other" },
+    });
+
+    expect(stateMock.sources.info.data.scopeQuota?.limitBytes).toBe(SCOPE_LIMIT);
+    expect(stateMock.sources.hasSourceInfo).toBe(true);
+  });
 });

@@ -11,6 +11,7 @@ import { getApiPath, getPublicApiPath, getParentDir } from '@/utils/url.js'
 import { adjustedData, fetchURL } from "./utils.ts"
 import { rememberViewToken } from "./viewToken.js"
 import { isMediaFile } from "@/utils/mediaFile.js"
+import { isDirectoryItem } from "@/utils/directoryItem.js"
 import { getObjectProperty } from "@/utils/object.js"
 import { getStreamURL, getStreamURLPublic } from "./media.js"
 import { invalidateDirMetadataCache } from '@/utils/metadataCache.js'
@@ -283,10 +284,6 @@ export async function put(source, path, content = '') {
   }
   // resourceAction already handles error notification, just propagate
   return await resourceAction(source, path, 'PUT', content)
-}
-
-function isDirectoryItem(item) {
-  return item?.isDir === true || item?.type === "directory"
 }
 
 export async function download(format, files, shareHash = "") {
@@ -721,12 +718,23 @@ async function downloadChunked(file, shareHash = "") {
   const baseUrl = window.origin + apiPath
 
   let fileSize = Number(file.size)
-  const { size: serverLen } = await resolveDownloadContentLength(baseUrl)
-  if (Number.isFinite(serverLen) && serverLen > 0) {
-    fileSize = serverLen
+  // Probe failures happen before a download entry exists, so report them here. Callers may
+  // suppress the error they rethrow (silentChunkedError), which would otherwise hide it.
+  try {
+    const { size: serverLen } = await resolveDownloadContentLength(baseUrl)
+    if (Number.isFinite(serverLen) && serverLen > 0) {
+      fileSize = serverLen
+    }
+  } catch (error) {
+    if (error?.name !== 'AbortError') {
+      notifyDownloadError(fileName, error?.message || 'Could not determine file size for chunked download')
+    }
+    throw error
   }
   if (!Number.isFinite(fileSize) || fileSize <= 0) {
-    throw new Error('Could not determine file size for chunked download')
+    const sizeError = 'Could not determine file size for chunked download'
+    notifyDownloadError(fileName, sizeError)
+    throw new Error(sizeError)
   }
 
   const queuedFile = { ...file, size: fileSize }

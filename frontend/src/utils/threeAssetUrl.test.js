@@ -73,6 +73,58 @@ describe("resolveAssetFilePath", () => {
     );
   });
 
+  it("keeps parser-expanded source-root-relative references absolute", () => {
+    // three.js expands an external buffer to "/models/mesh.bin" for a model at /models/ship.glb.
+    // It must not be prefixed with the model directory a second time.
+    expect(resolveAssetFilePath("/models/mesh.bin", { modelPath: "/models/ship.glb" })).toBe(
+      "/models/mesh.bin",
+    );
+  });
+
+  it("keeps a bare mesh.bin model-relative", () => {
+    expect(resolveAssetFilePath("mesh.bin", { modelPath: "/models/ship.glb" })).toBe(
+      "/models/mesh.bin",
+    );
+  });
+
+  it("resolves textures against the model's folder when the viewer path has a trailing slash", () => {
+    // The viewer passes "/3dmodels/Rigged Hand.3ds/". Without trimming, the base becomes the model
+    // file itself, which produced .../Rigged Hand.3ds/textures/HAND_C.jpg (HTTP 500 in playwright).
+    const modelPath = "/3dmodels/Rigged Hand.3ds/";
+    expect(resolveAssetFilePath("textures/HAND_C.jpg", { modelPath })).toBe(
+      "/3dmodels/textures/HAND_C.jpg",
+    );
+    expect(resolveAssetFilePath("HAND_C.jpg", { modelPath, parentDirItems: [TEXTURES_DIR] })).toBe(
+      "/3dmodels/textures/HAND_C.jpg",
+    );
+    expect(resolveAssetFilePath("HAND_C.jpg", { modelPath })).toBe("/3dmodels/textures/HAND_C.jpg");
+  });
+
+  it("resolves a .bin buffer beside the model when the model path has a trailing slash", () => {
+    expect(resolveAssetFilePath("ship.bin", { modelPath: "/models/ship.gltf/" })).toBe(
+      "/models/ship.bin",
+    );
+  });
+
+  it("still resolves genuinely relative references against the model directory", () => {
+    expect(resolveAssetFilePath("models/mesh.bin", { modelPath: "/work/ship.glb" })).toBe(
+      "/work/models/mesh.bin",
+    );
+  });
+
+  it("resolves a bare glTF buffer beside the model when the listing is missing", () => {
+    expect(resolveAssetFilePath("ship.bin", { modelPath: "/models/ship.gltf" })).toBe(
+      "/models/ship.bin",
+    );
+  });
+
+  it("resolves a bare glTF buffer beside the model even when a textures folder exists", () => {
+    const items = [TEXTURES_DIR];
+    expect(
+      resolveAssetFilePath("ship.bin", { modelPath: "/models/ship.gltf", parentDirItems: items }),
+    ).toBe("/models/ship.bin");
+  });
+
   it("reads the file parameter from FileBrowser API URLs", () => {
     expect(
       resolveAssetFilePath("/api/resources/view?source=default&file=%2F3D%20Prints%2Ftex.png&viewToken=abc", {

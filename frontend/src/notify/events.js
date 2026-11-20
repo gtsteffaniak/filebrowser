@@ -11,11 +11,18 @@ let isManuallyClosed = false
 let authenticationFailed = false
 let hasShownShutdownMessage = false
 
+// Responses can arrive out of order when refreshes overlap. Only the newest request may update
+// the store, so an older snapshot cannot overwrite newer usage and quota values.
+let sourceInfoRequestSeq = 0
+
 async function updateSourceInfo() {
+  const seq = ++sourceInfoRequestSeq
   try {
     const sourceinfo = await settingsApi.sources()
+    if (seq !== sourceInfoRequestSeq) return
     mutations.updateSourceInfo(sourceinfo)
   } catch (err) {
+    if (seq !== sourceInfoRequestSeq) return
     mutations.updateSourceInfo(err)
   }
 }
@@ -188,6 +195,9 @@ async function eventRouter (eventType, message) {
           }
         }
         mutations.updateSourceInfo(parsedMessage)
+        // Uploads and deletions change scope quota usage, which SSE entries do not carry.
+        // Refresh the snapshot so the sidebar quota does not stay stale until reconnect.
+        void updateSourceInfo()
       } catch (err) {
         console.error('Error parsing sourceUpdate message:', err, message)
       }

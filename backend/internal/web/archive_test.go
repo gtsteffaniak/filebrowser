@@ -654,6 +654,111 @@ func TestSymlinkTargetStaysUnderDest_rejectsChainedRelativeEscape(t *testing.T) 
 	}
 }
 
+func TestSymlinkTargetStaysUnderDest_rejectsDotDotAfterDanglingComponent(t *testing.T) {
+	// Pre-existing hop -> "z-pivot/..", where z-pivot does not exist yet. Accepting a-ref -> hop
+	// now would let a later "z-pivot -> ." entry turn a-ref into an escape from dest.
+	destDir := t.TempDir()
+	if err := os.Symlink("z-pivot/..", filepath.Join(destDir, "hop")); err != nil {
+		t.Fatal(err)
+	}
+	if err := symlinkTargetStaysUnderDest(destDir, filepath.Join(destDir, "a-ref"), "hop"); err == nil {
+		t.Fatal("expected hop through dangling z-pivot/.. to be rejected")
+	}
+}
+
+func TestSymlinkTargetStaysUnderDest_allowsOrdinaryDanglingLink(t *testing.T) {
+	destDir := t.TempDir()
+	if err := os.Symlink("missing/file.txt", filepath.Join(destDir, "dangling")); err != nil {
+		t.Fatal(err)
+	}
+	if err := symlinkTargetStaysUnderDest(destDir, filepath.Join(destDir, "link"), "dangling"); err != nil {
+		t.Fatalf("ordinary in-dest dangling link should be allowed: %v", err)
+	}
+}
+
+func TestExtractArchivedSymlink_refusesToReplaceEmptyDirectory(t *testing.T) {
+	// Pre-existing x -> "sub/.." resolves to dest while sub is an empty directory. Replacing sub
+	// with "sub -> ." would make x point outside dest, so the replacement must be refused.
+	destDir := t.TempDir()
+	sub := filepath.Join(destDir, "sub")
+	if err := os.Mkdir(sub, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Symlink("sub/..", filepath.Join(destDir, "x")); err != nil {
+		t.Fatal(err)
+	}
+	err := extractArchivedSymlink(destDir, sub, ".", time.Now())
+	if err == nil {
+		t.Fatal("expected replacing an existing directory with a symlink to be rejected")
+	}
+	info, statErr := os.Lstat(sub)
+	if statErr != nil || !info.IsDir() {
+		t.Fatalf("directory should be left in place, lstat err=%v", statErr)
+	}
+}
+
+func TestSymlinkTargetStaysUnderDest_rejectsDotDotAfterRegularFilePivot(t *testing.T) {
+	// A regular file "pivot" exists, so Lstat succeeds. ".." must still be refused, because a
+	// later entry can replace the file with "pivot -> .".
+	destDir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(destDir, "pivot"), []byte("x"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Symlink("pivot/..", filepath.Join(destDir, "hop")); err != nil {
+		t.Fatal(err)
+	}
+	if err := symlinkTargetStaysUnderDest(destDir, filepath.Join(destDir, "a-ref"), "hop"); err == nil {
+		t.Fatal("expected hop through regular-file pivot/.. to be rejected")
+	}
+}
+
+func TestExtractArchivedSymlink_refusesToReplaceDirectoryAlias(t *testing.T) {
+	// alias -> sub is a symlink, but it resolves to a directory. Replacing it with alias -> "."
+	// would let a pre-existing hop -> "alias/.." escape dest, so the replacement must be refused.
+	destDir := t.TempDir()
+	sub := filepath.Join(destDir, "sub")
+	if err := os.Mkdir(sub, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	alias := filepath.Join(destDir, "alias")
+	if err := os.Symlink("sub", alias); err != nil {
+		t.Fatal(err)
+	}
+	if err := extractArchivedSymlink(destDir, alias, ".", time.Now()); err == nil {
+		t.Fatal("expected replacing a symlink-to-directory alias to be rejected")
+	}
+	target, err := os.Readlink(alias)
+	if err != nil || target != "sub" {
+		t.Fatalf("alias should be left unchanged, got target %q err=%v", target, err)
+	}
+}
+
+func TestSymlinkTargetStaysUnderDest_relativeHopResolution(t *testing.T) {
+	destDir := t.TempDir()
+	if err := os.MkdirAll(filepath.Join(destDir, "a", "b"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	// Link text "a/b/l1/x" contains no ".." segment, so the lexical guard does not apply;
+	// the walk must follow l1 itself.
+	if err := os.Symlink("../..", filepath.Join(destDir, "a", "b", "l1")); err != nil {
+		t.Fatal(err)
+	}
+	if err := symlinkTargetStaysUnderDest(destDir, filepath.Join(destDir, "ok"), "a/b/l1/x"); err != nil {
+		t.Fatalf("l1 -> ../.. should resolve inside dest: %v", err)
+	}
+
+	l1 := filepath.Join(destDir, "a", "b", "l1")
+	if err := os.Remove(l1); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Symlink("../../..", l1); err != nil {
+		t.Fatal(err)
+	}
+	if err := symlinkTargetStaysUnderDest(destDir, filepath.Join(destDir, "bad"), "a/b/l1/x"); err == nil {
+		t.Fatal("l1 -> ../../.. should escape dest and be rejected")
+	}
+}
+
 func TestExtractZip_rejectsChainedSymlinkEscape(t *testing.T) {
 	destDir := t.TempDir()
 	zipPath := filepath.Join(t.TempDir(), "chain.zip")
