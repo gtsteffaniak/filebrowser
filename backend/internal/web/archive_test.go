@@ -697,6 +697,42 @@ func TestExtractArchivedSymlink_refusesToReplaceEmptyDirectory(t *testing.T) {
 	}
 }
 
+func TestSymlinkTargetStaysUnderDest_rejectsDotDotAfterRegularFilePivot(t *testing.T) {
+	// A regular file "pivot" exists, so Lstat succeeds. ".." must still be refused, because a
+	// later entry can replace the file with "pivot -> .".
+	destDir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(destDir, "pivot"), []byte("x"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Symlink("pivot/..", filepath.Join(destDir, "hop")); err != nil {
+		t.Fatal(err)
+	}
+	if err := symlinkTargetStaysUnderDest(destDir, filepath.Join(destDir, "a-ref"), "hop"); err == nil {
+		t.Fatal("expected hop through regular-file pivot/.. to be rejected")
+	}
+}
+
+func TestExtractArchivedSymlink_refusesToReplaceDirectoryAlias(t *testing.T) {
+	// alias -> sub is a symlink, but it resolves to a directory. Replacing it with alias -> "."
+	// would let a pre-existing hop -> "alias/.." escape dest, so the replacement must be refused.
+	destDir := t.TempDir()
+	sub := filepath.Join(destDir, "sub")
+	if err := os.Mkdir(sub, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	alias := filepath.Join(destDir, "alias")
+	if err := os.Symlink("sub", alias); err != nil {
+		t.Fatal(err)
+	}
+	if err := extractArchivedSymlink(destDir, alias, ".", time.Now()); err == nil {
+		t.Fatal("expected replacing a symlink-to-directory alias to be rejected")
+	}
+	target, err := os.Readlink(alias)
+	if err != nil || target != "sub" {
+		t.Fatalf("alias should be left unchanged, got target %q err=%v", target, err)
+	}
+}
+
 func TestSymlinkTargetStaysUnderDest_relativeHopResolution(t *testing.T) {
 	destDir := t.TempDir()
 	if err := os.MkdirAll(filepath.Join(destDir, "a", "b"), 0o755); err != nil {

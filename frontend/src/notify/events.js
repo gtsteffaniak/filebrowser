@@ -11,11 +11,18 @@ let isManuallyClosed = false
 let authenticationFailed = false
 let hasShownShutdownMessage = false
 
+// Responses can arrive out of order when refreshes overlap. Only the newest request may update
+// the store, so an older snapshot cannot overwrite newer usage and quota values.
+let sourceInfoRequestSeq = 0
+
 async function updateSourceInfo() {
+  const seq = ++sourceInfoRequestSeq
   try {
     const sourceinfo = await settingsApi.sources()
+    if (seq !== sourceInfoRequestSeq) return
     mutations.updateSourceInfo(sourceinfo)
   } catch (err) {
+    if (seq !== sourceInfoRequestSeq) return
     mutations.updateSourceInfo(err)
   }
 }

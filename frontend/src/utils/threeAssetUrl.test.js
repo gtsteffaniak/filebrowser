@@ -81,6 +81,12 @@ describe("resolveAssetFilePath", () => {
     );
   });
 
+  it("keeps a bare mesh.bin model-relative", () => {
+    expect(resolveAssetFilePath("mesh.bin", { modelPath: "/models/ship.glb" })).toBe(
+      "/models/mesh.bin",
+    );
+  });
+
   it("still resolves genuinely relative references against the model directory", () => {
     expect(resolveAssetFilePath("models/mesh.bin", { modelPath: "/work/ship.glb" })).toBe(
       "/work/models/mesh.bin",
