@@ -1674,7 +1674,8 @@ func ResourcePatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 			realDest = addVersionSuffix(realDest)
 			if d.Share.Hash == "" {
 				if isSrcDir {
-					if subErr := patchSubtreePermitted(d, dstIdx, item.ToSource, addVersionSuffix(fullDstIndexPath), realDest, req.Action, destPermCheck); subErr != nil {
+					suffixedClientIndexPath := utils.JoinPathAsUnix(path.Dir(fullDstIndexPath), filepath.Base(realDest))
+					if subErr := patchSubtreePermitted(d, dstIdx, item.ToSource, suffixedClientIndexPath, realDest, req.Action, destPermCheck); subErr != nil {
 						item.Message = "permission denied"
 						response.Failed = append(response.Failed, moveCopyWithClientPaths(item, clientFromPath, clientToPath))
 						continue
