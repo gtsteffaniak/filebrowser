@@ -58,6 +58,21 @@ func resourcePostPermCheck(exists bool, override bool, perms users.SourceFilePer
 	return 0, nil
 }
 
+// patchSubtreePermitted checks nested child scopes under both the client and resolved index paths.
+func patchSubtreePermitted(d *Context, idx *indexing.Index, sourceName, fullIndexPath, realPath, action string, check func(users.SourceFilePermissions) bool) error {
+	resolvedIdxPath, err := resolvedIndexPathAtRealPath(idx, realPath, true)
+	if err != nil {
+		return err
+	}
+	if err = subtreeScopesPermitted(d, sourceName, fullIndexPath, action, check); err != nil {
+		return err
+	}
+	if resolvedIdxPath != fullIndexPath {
+		return subtreeScopesPermitted(d, sourceName, resolvedIdxPath, action, check)
+	}
+	return nil
+}
+
 // resourcePatchPermCheck validates move/copy/rename permissions. Returns a failure message when denied.
 func resourcePatchPermCheck(action, fromSource, toSource string, fromPerms, toPerms users.SourceFilePermissions) string {
 	switch action {
@@ -1603,6 +1618,12 @@ func ResourcePatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 			response.Failed = append(response.Failed, moveCopyWithClientPaths(item, clientFromPath, clientToPath))
 			continue
 		}
+		destPermCheck := func(p users.SourceFilePermissions) bool {
+			if req.Action == "copy" {
+				return p.Create
+			}
+			return p.Modify
+		}
 		if d.Share.Hash == "" {
 			if realSrcErr := mutationPermsAtRealPath(d, srcIdx, item.FromSource, realSrc, isSrcDir, func(p users.SourceFilePermissions) bool {
 				if req.Action == "copy" {
@@ -1615,37 +1636,24 @@ func ResourcePatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 				continue
 			}
 			if isSrcDir {
-				resolvedSrcIdxPath, idxErr := resolvedIndexPathAtRealPath(srcIdx, realSrc, true)
-				if idxErr != nil {
-					item.Message = "permission denied"
-					response.Failed = append(response.Failed, moveCopyWithClientPaths(item, clientFromPath, clientToPath))
-					continue
-				}
 				subtreeCheck := func(p users.SourceFilePermissions) bool {
 					if req.Action == "copy" {
 						return p.Download
 					}
 					return p.Modify && p.Delete
 				}
-				if subErr := subtreeScopesPermitted(d, item.FromSource, fullSrcIndexPath, req.Action, subtreeCheck); subErr != nil {
+				if subErr := patchSubtreePermitted(d, srcIdx, item.FromSource, fullSrcIndexPath, realSrc, req.Action, subtreeCheck); subErr != nil {
 					item.Message = "permission denied"
 					response.Failed = append(response.Failed, moveCopyWithClientPaths(item, clientFromPath, clientToPath))
 					continue
 				}
-				if resolvedSrcIdxPath != fullSrcIndexPath {
-					if subErr := subtreeScopesPermitted(d, item.FromSource, resolvedSrcIdxPath, req.Action, subtreeCheck); subErr != nil {
-						item.Message = "permission denied"
-						response.Failed = append(response.Failed, moveCopyWithClientPaths(item, clientFromPath, clientToPath))
-						continue
-					}
+				if subErr := patchSubtreePermitted(d, dstIdx, item.ToSource, fullDstIndexPath, realDest, req.Action, destPermCheck); subErr != nil {
+					item.Message = "permission denied"
+					response.Failed = append(response.Failed, moveCopyWithClientPaths(item, clientFromPath, clientToPath))
+					continue
 				}
 			}
-			if realPermErr := mutationPermsAtRealPath(d, dstIdx, item.ToSource, realDest, isSrcDir, func(p users.SourceFilePermissions) bool {
-				if req.Action == "copy" {
-					return p.Create
-				}
-				return p.Modify
-			}); realPermErr != nil {
+			if realPermErr := mutationPermsAtRealPath(d, dstIdx, item.ToSource, realDest, isSrcDir, destPermCheck); realPermErr != nil {
 				item.Message = "permission denied"
 				response.Failed = append(response.Failed, moveCopyWithClientPaths(item, clientFromPath, clientToPath))
 				continue
@@ -1664,6 +1672,13 @@ func ResourcePatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 		// Auto-rename if requested
 		if req.Rename {
 			realDest = addVersionSuffix(realDest)
+			if d.Share.Hash == "" {
+				if realPermErr := mutationPermsAtRealPath(d, dstIdx, item.ToSource, realDest, isSrcDir, destPermCheck); realPermErr != nil {
+					item.Message = "permission denied"
+					response.Failed = append(response.Failed, moveCopyWithClientPaths(item, clientFromPath, clientToPath))
+					continue
+				}
+			}
 			if !state.AccessPermittedAtRealPath(dstIdx, d.User.Username, realDest, isSrcDir) {
 				item.Message = "access denied to destination path"
 				if d.Share.Hash != "" {
