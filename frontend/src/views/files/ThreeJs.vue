@@ -70,6 +70,13 @@ import { resourcesApi } from "@/api/index.js";
 import { getCachedViewToken, ensureViewToken, requestViewIdentity } from "@/api/viewToken.js";
 import { removeLastDir, resolveRelativePath } from "@/utils/url.js";
 import { getObjectProperty } from '@/utils/object.js';
+import { resolveAssetFilePath, hasSiblingFile } from "@/utils/threeAssetUrl.js";
+
+// Texture slots on three.js materials that hold a Texture needing disposal.
+const TEXTURE_SLOTS = [
+  'map', 'normalMap', 'roughnessMap', 'metalnessMap', 'emissiveMap',
+  'aoMap', 'alphaMap', 'bumpMap', 'specularMap', 'envMap', 'displacementMap', 'lightMap',
+];
 
 const LOADERS = {
   gltf: GLTFLoader,
@@ -130,8 +137,9 @@ export default {
       loadTimer: null,
       hasInitialized: false,
       isInView: false,
-      viewTokenByPath: {},
-      fetchedDirs: new Set(),
+      // Source-scoped view token: one token authorizes the model and all of its
+      // external assets (textures, .mtl) within the same source.
+      activeViewToken: "",
       lastRender: 0,
     };
   },
@@ -364,7 +372,7 @@ export default {
       if (!filePath) {
         return "";
       }
-      const viewToken = this.resolveViewTokenForPath(filePath);
+      const viewToken = this.resolveViewToken();
       if (!viewToken) {
         return "";
       }
@@ -388,183 +396,45 @@ export default {
       return url || "";
     },
 
-    normalizeAssetPath(filePath) {
-      if (!filePath) {
-        return filePath;
-      }
-      const trimmed = filePath.replace(/\/+$/, "");
-      return trimmed.startsWith("/") ? trimmed : `/${trimmed}`;
-    },
-
-    indexViewTokens(items) {
-      if (!items?.length) {
-        return;
-      }
-      for (const item of items) {
-        if (item.path && item.viewToken) {
-          this.viewTokenByPath[this.normalizeAssetPath(item.path)] = item.viewToken;
-        }
-      }
-    },
-
-    directoryListingPath(dirPath) {
-      const normalized = this.normalizeAssetPath(dirPath);
-      return `${normalized}/`;
-    },
-
-    async fetchDirectoryTokens(dirPath) {
-      const listingPath = this.directoryListingPath(dirPath);
-      if (this.fetchedDirs.has(listingPath)) {
-        return;
-      }
-      this.fetchedDirs.add(listingPath);
-      try {
-        let listing;
-        if (getters.isShare()) {
-          listing = await resourcesApi.fetchFilesPublic(
-            listingPath,
-            state.shareInfo.hash,
-            "",
-            false,
-            false,
-          );
-        } else {
-          listing = await resourcesApi.fetchFiles(
-            this.fbdata.source,
-            listingPath,
-            false,
-            false,
-          );
-        }
-        if (listing?.type === "directory" && listing.items?.length) {
-          this.indexViewTokens(listing.items);
-        }
-      } catch {
-        // Missing or inaccessible directories are ignored.
-      }
-    },
-
-    async prefetchAssetViewTokens() {
+    /**
+     * Resolve the single source-scoped view token used for this model and all of
+     * its external assets. Refreshes it if it is near expiry.
+     */
+    async ensureModelViewToken() {
       const viewIdentity = requestViewIdentity(state.req);
+      let token = "";
       try {
-        const token = await ensureViewToken(this.fbdata.source);
+        token = await ensureViewToken(this.fbdata.source);
         if (token && requestViewIdentity(state.req) === viewIdentity) {
           mutations.setRequestViewToken(token);
-          if (this.fbdata.path) {
-            this.viewTokenByPath[this.normalizeAssetPath(this.fbdata.path)] = token;
-          }
         }
       } catch (err) {
         console.warn("Failed to refresh view token for 3D preview:", err);
       }
-      this.indexViewTokens(this.fbdata.parentDirItems);
-      if (this.fbdata.path && this.fbdata.viewToken) {
-        this.viewTokenByPath[this.normalizeAssetPath(this.fbdata.path)] = this.fbdata.viewToken;
-      }
-
-      const modelDir = removeLastDir(this.fbdata.path);
-      await this.fetchDirectoryTokens(modelDir);
-      if (this.fbdata.parentDirItems?.some((item) => item.name === "textures" && item.type === "directory")) {
-        await this.fetchDirectoryTokens(`${modelDir}/textures`);
-      }
+      // The viewer is reused across source changes, so a refresh for a previous source must not
+      // overwrite the token of the current one.
+      if (requestViewIdentity(state.req) !== viewIdentity) return;
+      this.activeViewToken = token || this.fbdata.viewToken || getCachedViewToken(this.fbdata.source) || "";
     },
 
-    resolveViewTokenForPath(filePath) {
-      const normalizedPath = this.normalizeAssetPath(filePath);
-      const cachedToken = getObjectProperty(this.viewTokenByPath, normalizedPath);
-      if (cachedToken) {
-        return cachedToken;
-      }
-      if (
-        this.normalizeAssetPath(this.fbdata.path) === normalizedPath &&
-        this.fbdata.viewToken
-      ) {
-        return this.fbdata.viewToken;
-      }
-      const items = this.fbdata.parentDirItems;
-      if (!items?.length) {
-        return getCachedViewToken(this.fbdata.source);
-      }
-
-      const exact = items.find(
-        (item) => this.normalizeAssetPath(item.path) === normalizedPath,
-      );
-      if (exact?.viewToken) {
-        return exact.viewToken;
-      }
-
-      const fileDir = removeLastDir(normalizedPath);
-      const name = normalizedPath.split("/").filter(Boolean).pop();
-      if (!name) {
-        return getCachedViewToken(this.fbdata.source);
-      }
-
-      const sibling = items.find((item) => {
-        if (item.name !== name) {
-          return false;
-        }
-        if (item.path) {
-          return removeLastDir(this.normalizeAssetPath(item.path)) === fileDir;
-        }
-        return fileDir === removeLastDir(this.fbdata.path);
-      });
-      return sibling?.viewToken ?? getCachedViewToken(this.fbdata.source);
+    resolveViewToken() {
+      return this.activeViewToken || this.fbdata.viewToken || getCachedViewToken(this.fbdata.source) || "";
     },
 
+    /** Map a loader-emitted asset URL to a view URL; passthrough for blob:, data:, external. */
     resolveTextureUrl(url) {
-      if (!url) {
+      const filePath = resolveAssetFilePath(url, {
+        modelPath: this.fbdata.path,
+        parentDirItems: this.fbdata.parentDirItems,
+      });
+      if (!filePath) {
         return url;
       }
-      if (url.startsWith("blob:") || url.startsWith("data:")) {
-        return url;
-      }
-      if (
-        url.includes("/api/media/stream?") ||
-        url.includes("/api/resources/view?") ||
-        url.includes("/api/resources/download?")
-      ) {
-        try {
-          const parsed = new URL(url, window.origin);
-          const filePath = parsed.searchParams.get("file") || parsed.searchParams.getAll("file")[0];
-          if (filePath) {
-            return this.resourceViewUrl(filePath);
-          }
-        } catch {
-          return url;
-        }
-        return url;
-      }
-
-      const cleanUrl = url.split(/[?#]/)[0];
-      let relativePath;
-      if (cleanUrl.includes("/api/resources/")) {
-        relativePath = cleanUrl.split("/api/resources/").pop() || "";
-      } else if (/^https?:\/\//i.test(cleanUrl)) {
-        return url;
-      } else {
-        relativePath = cleanUrl;
-      }
-
-      relativePath = relativePath.replace(/^\/+/, "");
-      const filename = relativePath.split("/").pop();
-      if (!filename) {
-        return url;
-      }
-
-      const modelDir = removeLastDir(this.fbdata.path);
-      let texturePath;
-      if (relativePath.includes("/")) {
-        texturePath = resolveRelativePath(this.fbdata.path, relativePath);
-      } else if (this.fbdata.parentDirItems?.some((item) => item.name === filename)) {
-        texturePath = `${modelDir}/${filename}`;
-      } else {
-        texturePath = `${modelDir}/textures/${filename}`;
-      }
-      return this.resourceViewUrl(texturePath);
+      return this.resourceViewUrl(filePath);
     },
 
     async loadModel() {
-      await this.prefetchAssetViewTokens();
+      await this.ensureModelViewToken();
       if (!this.modelUrl) {
         this.handleError(new Error("No view token available for model"), "Failed to load model");
         return;
@@ -631,7 +501,9 @@ export default {
 
         // Verify Magic Number
         const magic = new TextDecoder().decode(new Uint8Array(data, 0, 4));
-        const modelDir = this.fbdata.path.slice(0, this.fbdata.path.lastIndexOf('/') + 1);
+        // Strip a trailing slash first, otherwise the buffer base is the model file itself.
+        const modelPath = this.fbdata.path.replace(/\/+$/, '');
+        const modelDir = modelPath.substring(0, modelPath.lastIndexOf('/') + 1);
 
         if (magic !== 'glTF') {
           // Try text parse
@@ -660,7 +532,10 @@ export default {
       // Remove trailing slash if present before replacing extension
       const cleanPath = this.fbdata.path.replace(/\/$/, '');
       const mtlPath = cleanPath.replace(/\.obj$/i, '.mtl');
-      const mtlUrl = this.resourceViewUrl(mtlPath);
+      const mtlName = mtlPath.split("/").pop();
+      // Skip the .mtl request when the directory listing proves it does not exist.
+      // Note: this assumes mtllib names the .mtl by basename; a differing mtllib name will still fall back gracefully.
+      const mtlUrl = hasSiblingFile(this.fbdata.parentDirItems, mtlName) ? this.resourceViewUrl(mtlPath) : "";
       if (!mtlUrl) {
         this.doLoad(loader);
         return;
@@ -712,7 +587,8 @@ export default {
       // Format specifics
       if (ext === '3mf') object.rotation.set(-Math.PI / 2, 0, 0);
 
-      if (['stl', 'ply', 'amf'].includes(ext)) {
+      // AMFLoader returns a Group with its own materials, so only geometry-only formats are wrapped.
+      if (['stl', 'ply'].includes(ext)) {
         const material = new MeshStandardMaterial({
           color: 0x4fc3f7,
           flatShading: ext === 'stl',
@@ -756,7 +632,6 @@ export default {
              const mats = Array.isArray(child.material) ? child.material : [child.material];
              for (const m of mats) {
                 m.side = DoubleSide;
-                if (child.isSkinnedMesh) m.skinning = true;
              }
           }
         }
@@ -872,7 +747,12 @@ export default {
         this.model.traverse((c) => {
           if (c.geometry) c.geometry.dispose();
           if (c.material) {
-            for (const m of [].concat(c.material)) { m.dispose(); }
+            for (const m of [].concat(c.material)) {
+              for (const slot of TEXTURE_SLOTS) {
+                m[slot]?.dispose?.();
+              }
+              m.dispose();
+            }
           }
         });
         this.model = null;
@@ -890,8 +770,7 @@ export default {
     },
 
     reinit() {
-      this.viewTokenByPath = {};
-      this.fetchedDirs = new Set();
+      this.activeViewToken = "";
       this.cleanup();
       this.initScene();
       void this.loadModel();

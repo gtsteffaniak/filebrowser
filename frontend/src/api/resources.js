@@ -11,6 +11,7 @@ import { getApiPath, getPublicApiPath } from '@/utils/url.js'
 import { adjustedData, fetchURL } from "./utils.ts"
 import { rememberViewToken } from "./viewToken.js"
 import { isMediaFile } from "@/utils/mediaFile.js"
+import { isDirectoryItem } from "@/utils/directoryItem.js"
 import { getObjectProperty } from "@/utils/object.js"
 import { getStreamURL } from "./media.ts"
 import {
@@ -302,7 +303,7 @@ export async function download(format, files, shareHash = "") {
   const sizeThreshold = downloadChunkSizeMb * 1024 * 1024
 
   const isMultiItemArchive =
-    files.length > 1 || (files.length === 1 && files[0].isDir)
+    files.length > 1 || (files.length === 1 && isDirectoryItem(files[0]))
 
   const useChunkedArchive =
     downloadChunkSizeMb > 0 && isMultiItemArchive
@@ -310,7 +311,7 @@ export async function download(format, files, shareHash = "") {
   const useChunkedDownload =
     downloadChunkSizeMb > 0 &&
     files.length === 1 &&
-    !files[0].isDir &&
+    !isDirectoryItem(files[0]) &&
     files[0].size &&
     files[0].size >= sizeThreshold
 
@@ -456,7 +457,7 @@ async function resolveDownloadContentLength(url) {
 function archiveDisplayFileName(format, files) {
   const ext = format === 'zip' ? '.zip' : '.tar.gz'
   const first = files[0]
-  if (files.length === 1 && first.isDir) {
+  if (files.length === 1 && isDirectoryItem(first)) {
     const base =
       first.name ||
       (first.path?.split('/').filter(Boolean).pop()) ||
@@ -626,9 +627,14 @@ async function downloadChunkedArchive(url, format, files, filePaths, source, sha
   }
   const chunkSize = downloadChunkSizeMb * 1024 * 1024
   const fileName = archiveDisplayFileName(format, files)
-  const { size: fileSize, token } = await resolveDownloadContentLength(url)
+  const sizeProbeMessage = 'Could not determine archive size for chunked download'
+  const { size: fileSize, token } = await resolveDownloadContentLength(url).catch((error) => {
+    notifyDownloadError(fileName, error?.message || sizeProbeMessage)
+    throw error
+  })
   if (!fileSize || fileSize <= 0) {
-    throw new Error('Could not determine archive size for chunked download')
+    notifyDownloadError(fileName, sizeProbeMessage)
+    throw new Error(sizeProbeMessage)
   }
 
   const baseUrl = appendArchiveTokenToUrl(url, token)
@@ -724,12 +730,23 @@ async function downloadChunked(file, shareHash = "") {
   const baseUrl = window.origin + apiPath
 
   let fileSize = Number(file.size)
-  const { size: serverLen } = await resolveDownloadContentLength(baseUrl)
-  if (Number.isFinite(serverLen) && serverLen > 0) {
-    fileSize = serverLen
+  // Probe failures happen before a download entry exists, so report them here. Callers may
+  // suppress the error they rethrow (silentChunkedError), which would otherwise hide it.
+  try {
+    const { size: serverLen } = await resolveDownloadContentLength(baseUrl)
+    if (Number.isFinite(serverLen) && serverLen > 0) {
+      fileSize = serverLen
+    }
+  } catch (error) {
+    if (error?.name !== 'AbortError') {
+      notifyDownloadError(fileName, error?.message || 'Could not determine file size for chunked download')
+    }
+    throw error
   }
   if (!Number.isFinite(fileSize) || fileSize <= 0) {
-    throw new Error('Could not determine file size for chunked download')
+    const sizeError = 'Could not determine file size for chunked download'
+    notifyDownloadError(fileName, sizeError)
+    throw new Error(sizeError)
   }
 
   const queuedFile = { ...file, size: fileSize }

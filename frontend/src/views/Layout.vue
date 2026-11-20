@@ -92,6 +92,7 @@ export default {
       this.toasts = toasts;
     });
     this.toasts = notify.getToasts();
+    notify.showPendingToast();
     this.reEval()
     this.initialize();
   },

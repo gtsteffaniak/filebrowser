@@ -72,8 +72,8 @@ func TestListenUnixFilesystemSetsModeWithRestrictiveUmask(t *testing.T) {
 	orig := Config.Http
 	Config.Http.SocketFileMode = ""
 	t.Cleanup(func() {
-		Config.Http = orig
 		_ = os.Remove(socketPath)
+		Config.Http = orig
 	})
 	ln, err := ListenUnixFilesystem(socketPath)
 	if err != nil {
