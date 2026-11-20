@@ -1673,6 +1673,13 @@ func ResourcePatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 		if req.Rename {
 			realDest = addVersionSuffix(realDest)
 			if d.Share.Hash == "" {
+				if isSrcDir {
+					if subErr := patchSubtreePermitted(d, dstIdx, item.ToSource, addVersionSuffix(fullDstIndexPath), realDest, req.Action, destPermCheck); subErr != nil {
+						item.Message = "permission denied"
+						response.Failed = append(response.Failed, moveCopyWithClientPaths(item, clientFromPath, clientToPath))
+						continue
+					}
+				}
 				if realPermErr := mutationPermsAtRealPath(d, dstIdx, item.ToSource, realDest, isSrcDir, destPermCheck); realPermErr != nil {
 					item.Message = "permission denied"
 					response.Failed = append(response.Failed, moveCopyWithClientPaths(item, clientFromPath, clientToPath))
