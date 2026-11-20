@@ -1,7 +1,6 @@
 {
   "name": "filebrowser",
-  "image": "mcr.microsoft.com/devcontainers/go:1.25-bookworm",
-  
+  "image": "mcr.microsoft.com/devcontainers/go:1-trixie",
 
   "features": {
     "ghcr.io/devcontainers/features/node:1": {
@@ -11,7 +10,7 @@
   },
 
   "containerEnv": {
-    "CGO_ENABLED": "1",
+    "CGO_ENABLED": "0",
     "FILEBROWSER_DEVMODE": "true"
   },
 
@@ -30,9 +29,12 @@
       "extensions": [
         "golang.go",
         "Vue.volar",
-        "esbenp.prettier-vscode",
+        "biomejs.biome",
         "ms-azuretools.vscode-docker"
-      ]
+      ],
+      "settings": {
+        "biome.enabled": true
+      }
     }
   }
 }
