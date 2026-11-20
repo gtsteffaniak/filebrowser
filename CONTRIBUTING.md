@@ -77,7 +77,8 @@ Note: consider using make commands above instead.
 
 ```bash
 cd frontend
-npm run lint       # Biome + i18n checks
+npm run lint       # Biome
+npm run i18n:check # i18n checks
 npm run lint:fix   # Auto-fix Biome issues
 npm run typecheck  # vue-tsc
 npm run test       # Vitest
