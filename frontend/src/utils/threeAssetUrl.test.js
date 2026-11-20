@@ -87,6 +87,25 @@ describe("resolveAssetFilePath", () => {
     );
   });
 
+  it("resolves textures against the model's folder when the viewer path has a trailing slash", () => {
+    // The viewer passes "/3dmodels/Rigged Hand.3ds/". Without trimming, the base becomes the model
+    // file itself, which produced .../Rigged Hand.3ds/textures/HAND_C.jpg (HTTP 500 in playwright).
+    const modelPath = "/3dmodels/Rigged Hand.3ds/";
+    expect(resolveAssetFilePath("textures/HAND_C.jpg", { modelPath })).toBe(
+      "/3dmodels/textures/HAND_C.jpg",
+    );
+    expect(resolveAssetFilePath("HAND_C.jpg", { modelPath, parentDirItems: [TEXTURES_DIR] })).toBe(
+      "/3dmodels/textures/HAND_C.jpg",
+    );
+    expect(resolveAssetFilePath("HAND_C.jpg", { modelPath })).toBe("/3dmodels/textures/HAND_C.jpg");
+  });
+
+  it("resolves a .bin buffer beside the model when the model path has a trailing slash", () => {
+    expect(resolveAssetFilePath("ship.bin", { modelPath: "/models/ship.gltf/" })).toBe(
+      "/models/ship.bin",
+    );
+  });
+
   it("still resolves genuinely relative references against the model directory", () => {
     expect(resolveAssetFilePath("models/mesh.bin", { modelPath: "/work/ship.glb" })).toBe(
       "/work/models/mesh.bin",

@@ -499,7 +499,9 @@ export default {
 
         // Verify Magic Number
         const magic = new TextDecoder().decode(new Uint8Array(data, 0, 4));
-        const modelDir = this.fbdata.path.substring(0, this.fbdata.path.lastIndexOf('/') + 1);
+        // Strip a trailing slash first, otherwise the buffer base is the model file itself.
+        const modelPath = this.fbdata.path.replace(/\/+$/, '');
+        const modelDir = modelPath.substring(0, modelPath.lastIndexOf('/') + 1);
 
         if (magic !== 'glTF') {
           // Try text parse

@@ -19,8 +19,11 @@ function safeDecode(value) {
 }
 
 function parentDirOf(filePath) {
-  const index = filePath.lastIndexOf("/");
-  return index <= 0 ? "" : filePath.slice(0, index);
+  // Viewer paths can carry a trailing slash (e.g. "/models/ship.glb/"). Strip it first, or the
+  // "parent" becomes the model file itself and every relative texture resolves under it.
+  const clean = filePath.replace(/\/+$/, "");
+  const index = clean.lastIndexOf("/");
+  return index <= 0 ? "" : clean.slice(0, index);
 }
 
 function readFileParam(url) {
