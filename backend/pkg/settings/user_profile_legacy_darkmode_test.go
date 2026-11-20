@@ -12,11 +12,11 @@ func TestApplyProfileToUser_legacyStringDarkMode(t *testing.T) {
 	tests := []struct {
 		name  string
 		value string
-		want  bool
+		want  users.DarkMode
 	}{
-		{"dark", `"dark"`, true},
-		{"light", `"light"`, false},
-		{"auto falls back to default (dark)", `"auto"`, true},
+		{"dark", `"dark"`, users.DarkModeDark},
+		{"light", `"light"`, users.DarkModeLight},
+		{"auto is preserved", `"auto"`, users.DarkModeAuto},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -44,8 +44,8 @@ func TestApplyProfileToUser_boolDarkModeUnchanged(t *testing.T) {
 	if err := ApplyProfileToUser(u, []byte(`{"ui":{"darkMode":false}}`)); err != nil {
 		t.Fatalf("ApplyProfileToUser: %v", err)
 	}
-	if u.DarkMode {
-		t.Fatal("DarkMode = true, want false")
+	if u.DarkMode != users.DarkModeLight {
+		t.Fatalf("DarkMode = %v, want %v", u.DarkMode, users.DarkModeLight)
 	}
 }
 
@@ -55,11 +55,11 @@ func TestApplyProfileToUser_v220ProfileRollback(t *testing.T) {
 	tests := []struct {
 		name     string
 		darkMode string
-		want     bool
+		want     users.DarkMode
 	}{
-		{"dark", `"dark"`, true},
-		{"light", `"light"`, false},
-		{"auto", `"auto"`, true},
+		{"dark", `"dark"`, users.DarkModeDark},
+		{"light", `"light"`, users.DarkModeLight},
+		{"auto", `"auto"`, users.DarkModeAuto},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
