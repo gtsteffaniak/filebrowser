@@ -7,7 +7,7 @@
 #   /dev/video10 or /dev/video11 (and group video). Pi 5 VAAPI via /dev/dri is optional (mesa on arm64).
 FROM gtstef/ffmpeg:9.0.2 AS ffmpeg
 
-FROM golang:bookworm AS base
+FROM golang:trixie AS base
 ARG VERSION
 ARG REVISION
 WORKDIR /app
@@ -29,7 +29,7 @@ COPY ./frontend/ ./frontend/
 WORKDIR /build/frontend
 RUN npm run build:docker
 
-FROM debian:bookworm-slim AS runtime
+FROM debian:trixie-slim AS runtime
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
