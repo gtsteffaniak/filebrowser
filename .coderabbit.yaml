@@ -15,6 +15,7 @@ reviews:
   related_prs: true
   suggested_labels: false
   in_progress_fortune: false
+  allow_author_approval: false
   enable_prompt_for_ai_agents: true
   path_filters:
     - "!backend/swagger/**"

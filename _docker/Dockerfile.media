@@ -7,7 +7,7 @@
 #   /dev/video10 or /dev/video11 (and group video). Pi 5 VAAPI via /dev/dri is optional (mesa on arm64).
 FROM gtstef/ffmpeg:9.0.2 AS ffmpeg
 
-FROM golang:bookworm AS base
+FROM golang:trixie AS base
 ARG VERSION
 ARG REVISION
 WORKDIR /app
@@ -20,7 +20,7 @@ RUN --mount=type=cache,target=/go/pkg/mod --mount=type=cache,target=/root/.cache
   -X 'github.com/gtsteffaniak/filebrowser/backend/internal/version.CommitSHA=${REVISION}'" \
   -o filebrowser .
 
-FROM --platform=$BUILDPLATFORM node:jod-slim AS nbuild
+FROM --platform=$BUILDPLATFORM node:lithium-slim AS nbuild
 WORKDIR /build
 COPY ./frontend/package.json ./frontend/package-lock.json ./frontend/
 RUN apt-get update && apt-get install -y --no-install-recommends git ca-certificates
@@ -29,7 +29,7 @@ COPY ./frontend/ ./frontend/
 WORKDIR /build/frontend
 RUN npm run build:docker
 
-FROM debian:bookworm-slim AS runtime
+FROM debian:trixie-slim AS runtime
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -38,8 +38,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   mailcap \
   tzdata \
   && rm -rf /var/lib/apt/lists/* \
-  && (dpkg --print-architecture | grep -q amd64 \
-    && apt-get update \
+  && if [ "$(dpkg --print-architecture)" = "amd64" ]; then \
+    apt-get update \
     && apt-get install -y --no-install-recommends \
       libva2 \
       libva-drm2 \
@@ -49,9 +49,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
       mesa-vulkan-drivers \
       ocl-icd-libopencl1 \
       intel-media-va-driver \
-      libmfx1 \
-    && rm -rf /var/lib/apt/lists/* \
-    || true)
+      libmfx-gen1.2 \
+    && rm -rf /var/lib/apt/lists/*; \
+  fi
 COPY --from=ffmpeg [ "/ffmpeg", "/ffprobe", "/usr/local/bin/" ]
 ENV FILEBROWSER_FFMPEG_PATH="/usr/local/bin/"
 ENV FILEBROWSER_DATABASE_PATH="/home/filebrowser/data/database.sqlite"

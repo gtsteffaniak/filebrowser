@@ -4,8 +4,8 @@
   "private": true,
   "type": "module",
   "engines": {
-    "npm": ">=10.9.0",
-    "node": "^22.22.2 || ^24.15.0 || >=26.0.0"
+    "npm": ">=11.20.0",
+    "node": "^24.15.0 || >=26.0.0"
   },
   "scripts": {
     "build": "vite build",
@@ -13,7 +13,7 @@
     "dev": "vite",
     "watch": "vite build --watch",
     "typecheck": "vue-tsc --build",
-    "lint": "biome check && npm run i18n:check",
+    "lint": "biome check",
     "lint:fix": "biome check --write",
     "format": "biome format --write",
     "i18n:check": "node scripts/i18n/index.ts check",
@@ -36,17 +36,17 @@
     "hls.js": "^1.7.4",
     "js-yaml": "^5.5.0",
     "mammoth": "^1.13.0",
-    "marked": "^18.2.0",
+    "marked": "^18.2.1",
     "plyr": "^3.8.5",
-    "qrcode.vue": "^3.11.0",
+    "qrcode.vue": "^3.11.1",
     "temml": "^0.14.0",
     "three": "^0.187.0",
-    "vue": "^3.5.45",
-    "vue-i18n": "^11.4.20",
+    "vue": "^3.5.46",
+    "vue-i18n": "^11.4.23",
     "vue-router": "^5.5.1"
   },
   "overrides": {
-    "minimatch": "^11.0.8",
+    "minimatch": "^11.0.9",
     "@xmldom/xmldom": "^0.8.15",
     "mammoth": {
       "argparse": "^3.0.4"
@@ -70,7 +70,7 @@
     "vite": "^8.3.8",
     "vite-plugin-checker": "^1.0.0",
     "vite-plugin-compression2": "^2.5.4",
-    "vitest": "^5.1.0",
+    "vitest": "^5.1.1",
     "vue-tsc": "^3.3.14",
     "wawoff2": "^2.0.1"
   }

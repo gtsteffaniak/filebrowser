@@ -5,7 +5,7 @@ Thank you for your interest in contributing to FileBrowser Quantum! This guide w
 ## Prerequisites
 
 - **Go 1.27+** (see `backend/go.mod`)
-- **Node.js 22.22.2+** (or 24.15.0+, 26+) and **npm 10.9.0+** (see `frontend/package.json`)
+- **Node.js 26+** and **npm 11.20.0+** (see `frontend/package.json`)
 - **Docker** (optional, for containerized development)
 - **Git** especially important on Windows -- needed for bash support.
 
@@ -77,7 +77,8 @@ Note: consider using make commands above instead.
 
 ```bash
 cd frontend
-npm run lint       # Biome + i18n checks
+npm run lint       # Biome
+npm run i18n:check # i18n checks
 npm run lint:fix   # Auto-fix Biome issues
 npm run typecheck  # vue-tsc
 npm run test       # Vitest

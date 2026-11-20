@@ -98,7 +98,7 @@ build-frontend:
 	@echo "✓ Frontend built successfully"
 
 lint-frontend:
-	cd frontend && npm run lint
+	cd frontend && npm run lint && npm run i18n:check
 	cd frontend && npm run typecheck
 
 lint-backend:
