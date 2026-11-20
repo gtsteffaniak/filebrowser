@@ -5,11 +5,14 @@ All notable changes to this project will be documented in this file. For commit 
 ## v2.1.6
 
  **Security**:
- - [High] Archive extraction now bounds symlink target resolution under the extract destination and rejects absolute or `..` link text, including chained symlinks created during the same extract, closing a follow-up escape path related to GHSA-jg32-ppcc-ph62 (#3404)
+ - [High] Archive extraction now bounds symlink target resolution under the extract destination and rejects absolute or `..` link text, including chained symlinks created during the same extract, closing a follow-up escape path related to GHSA-jg32-ppcc-ph62 (#3404) (#3384)
 
  **Bug Fixes**:
- - fix(utils): `IsTextFile` reads only an 8KB sample instead of the whole file, avoiding excessive memory use when classifying large files for the editor, file watcher, and subtitle checks (#3405)
- - fix(frontend): standard source usage bar (`source` and `source-alt` sidebar categories) now shows per-user scope quota (used vs cap) from `GET /api/settings/sources` instead of the parent source partition size when a scope quota is configured, and keeps that quota across realtime `sourceUpdate` events (#3402)
+ - fix(utils): `IsTextFile` reads only an 8KB sample instead of the whole file, avoiding excessive memory use when classifying large files for the editor, file watcher, and subtitle checks (#3405) (#3395)
+ - fix(frontend): shows per-user scope quota (used vs cap) when a scope quota is configured (#3406) (#3402)
+ - fix: custom themes apply immediately after login. (#3418) (#3375) (#2953)
+ - fix: single-file downloads from shared items start without a format (#3420) (#3412)
+ - fix: 3D model previews resolve related assets such as textures and material files from the same source, reusing the source-scoped token for all assets (#3423) (#3410)
 
 ## v2.1.5
 
