@@ -1,6 +1,7 @@
 package preview
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"path/filepath"
@@ -24,9 +25,21 @@ func heicLegacyQualityString(previewSize string) string {
 	}
 }
 
-// convertHEICToJPEG decodes HEIC to JPEG at full resolution. go-media is tried
-// first; ffmpeg is the fallback. Tile-grid iPhone HEIC cannot use ffmpeg -vf
-// scale; resize is done later by CreatePreview.
+// heicDecodeBounds returns the box go-media decodes HEIC into for previewSize.
+// Only fit-mode previews are bounded: the decode then already fits the box, and
+// CreatePreview returns it unchanged. small crops to fill, which needs pixels
+// beyond its box, so it and original decode at full resolution (0, 0).
+func heicDecodeBounds(previewSize string) (int, int) {
+	opts, err := getPreviewOptions(previewSize)
+	if err != nil || opts.ResizeMode != ResizeModeFit {
+		return 0, 0
+	}
+	return opts.Width, opts.Height
+}
+
+// convertHEICToJPEG decodes HEIC to JPEG. go-media is tried first, bounded for
+// fit-mode sizes; ffmpeg is the fallback. Tile-grid iPhone HEIC cannot use ffmpeg
+// -vf scale, so ffmpeg output is resized by CreatePreview.
 func (s *Service) convertHEICToJPEG(ctx context.Context, filePath string, previewSize string) ([]byte, error) {
 	if s.ffmpegService == nil {
 		return nil, fmt.Errorf("FFmpeg is not available")
@@ -38,13 +51,30 @@ func (s *Service) convertHEICToJPEG(ctx context.Context, filePath string, previe
 
 	qualityStr := heicLegacyQualityString(previewSize)
 	goQuality := ffmpeg.PreviewQualityFromLegacyQScale(qualityStr)
+	maxW, maxH := heicDecodeBounds(previewSize)
 
 	shadowCtx := context.WithoutCancel(ctx)
+	// The shadow legacy result must match what production returns for this size:
+	// ffmpeg's full decode, resized to the same fit box when go-media is bounded.
 	legacy := func() ([]byte, bool) {
 		data, err := s.ffmpegService.ConvertHEICToJPEG(shadowCtx, filePath, 0, 0, qualityStr)
-		return data, err == nil && len(data) > 0
+		if err != nil || len(data) == 0 {
+			return nil, false
+		}
+		if maxW > 0 {
+			opts, err := getPreviewOptions(previewSize)
+			if err != nil {
+				return nil, false
+			}
+			resized, err := s.CreatePreview(shadowCtx, bytes.NewReader(data), 0, opts)
+			if err != nil || len(resized) == 0 {
+				return nil, false
+			}
+			return resized, true
+		}
+		return data, true
 	}
-	if data, ok := gomedia.HEICJPEG(filePath, goQuality, legacy); ok {
+	if data, ok := gomedia.HEICJPEG(filePath, maxW, maxH, goQuality, legacy); ok {
 		return data, nil
 	}
 

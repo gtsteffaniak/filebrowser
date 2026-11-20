@@ -152,6 +152,14 @@ func supportsCameraRAW(path string) bool {
 	return cameraRawExts[strings.ToLower(filepath.Ext(path))]
 }
 
+// declinedByDesign reports whether path is outside the container or format list
+// that go-media targets for an operation. Such calls return before timed: no
+// fast attempt, no shadow run, and no log line. The caller uses ffmpeg, as it
+// does after any go-media failure.
+func declinedByDesign(path string, supported func(string) bool) bool {
+	return !supported(path)
+}
+
 // logFallback records why go-media was not used for op on path, for operations
 // that fall back to ffmpeg.
 func logFallback(op, path string, err error) {
@@ -163,17 +171,27 @@ func logFallback(op, path string, err error) {
 // phrases appended to the message. JPEG XL has no fallback, so it passes
 // phrases that do not mention ffmpeg.
 func logFallbackTo(op, path string, err error, next, failed string) {
+	if reportFallback(op, path, err, next, failed) {
+		markUnsupported(op, path)
+	}
+}
+
+// reportFallback logs a go-media failure without setting the shared unsupported
+// mark. It reports whether err means the input is unsupported by design.
+func reportFallback(op, path string, err error, next, failed string) bool {
 	// ErrNotMedia means the file is not a container go-media reads. That is an
 	// expected fallback, not a failure, so it logs as a warning.
 	if errors.Is(err, media.ErrUnsupported) || errors.Is(err, media.ErrUnsupportedProfile) || errors.Is(err, media.ErrNotMedia) {
 		logger.Warningf("go-media does not support %s for %s (%v); %s", op, path, err, next)
-		return
+		return true
 	}
 	logger.Errorf("go-media %s failed for %s: %v; %s", op, path, err, failed)
+	return false
 }
 
 // logUnsupported records a container or codec that go-media does not handle.
 func logUnsupported(op, path, reason string) {
+	markUnsupported(op, path)
 	logger.Warningf("go-media does not support %s for %s (%s); using ffmpeg", op, path, reason)
 }
 
@@ -224,66 +242,70 @@ type ProbeResult = ffmpeg.FileProbeInfo
 // Probe returns duration, codecs, and container name for a local media file.
 // legacy is the ffmpeg probe, run only in shadow mode.
 func Probe(path string, legacy Legacy[ProbeResult]) (ProbeResult, bool) {
-	return timed("probe", path, legacy, probeDiff, func() (ProbeResult, bool) { return probeFast(path) })
-}
-
-func probeFast(path string) (ProbeResult, bool) {
-	if !Enabled() {
+	if declinedByDesign(path, supportsVideoContainer) {
 		return ProbeResult{}, false
 	}
+	return timedOutcome("probe", path, legacy, probeDiff, func() (ProbeResult, bool, bool) {
+		out := probeFast(path)
+		return out.res, out.ok, out.unsupported
+	})
+}
+
+// probeOutcome is the result of one container read. It travels with the read,
+// so every caller that shares the read through probeGroup gets the same outcome.
+// Probe does not use the shared unsupported-mark map: concurrent callers would
+// race on it, and only one would see the mark.
+type probeOutcome struct {
+	res         ProbeResult
+	ok          bool
+	unsupported bool
+}
+
+func probeFast(path string) probeOutcome {
+	if !Enabled() {
+		return probeOutcome{}
+	}
 	if !supportsVideoContainer(path) {
-		return ProbeResult{}, false
+		return probeOutcome{}
 	}
 
 	f, info, err := openFileInfo(path)
 	if err != nil {
-		logFallback("probe", path, err)
-		return ProbeResult{}, false
+		reportFallback("probe", path, err, "using ffmpeg", "falling back to ffmpeg")
+		return probeOutcome{}
 	}
 	defer f.Close()
 
 	cacheKey := mediacache.FromFileInfo(path, info).String()
 	if res, ok := mediacache.Probes.Get(cacheKey); ok {
-		return res, true
+		return probeOutcome{res: res, ok: true}
 	}
 
 	// Coalesce concurrent probes of the same file into one container read.
-	v, err, _ := probeGroup.Do(cacheKey, func() (any, error) {
-		res, ok := parseProbe(path, f, info.Size())
-		if !ok {
-			return nil, errProbeUnsupported
+	v, _, _ := probeGroup.Do(cacheKey, func() (any, error) {
+		out := parseProbe(path, f, info.Size())
+		if out.ok {
+			mediacache.Probes.Set(cacheKey, out.res)
 		}
-		mediacache.Probes.Set(cacheKey, res)
-		return res, nil
+		return out, nil
 	})
-	if err != nil {
-		return ProbeResult{}, false
-	}
-	res, ok := v.(ProbeResult)
-	if !ok {
-		return ProbeResult{}, false
-	}
-	return res, true
+	out, _ := v.(probeOutcome)
+	return out
 }
 
-// errProbeUnsupported marks a probe that go-media chose not to answer. It carries
-// no detail because parseProbe already logged the specific reason.
-var errProbeUnsupported = errors.New("probe unsupported")
-
-// parseProbe reads a container and builds a ProbeResult. It reports false when
-// go-media should defer to ffmpeg, having logged why.
-func parseProbe(path string, f *os.File, size int64) (ProbeResult, bool) {
+// parseProbe reads a container and builds a ProbeResult. When go-media should
+// defer to ffmpeg it reports ok=false, having logged why, and says whether the
+// input is unsupported by design.
+func parseProbe(path string, f *os.File, size int64) probeOutcome {
 	info, err := media.Probe(f, size)
 	if err != nil {
-		logFallback("probe", path, err)
-		return ProbeResult{}, false
+		return probeOutcome{unsupported: reportFallback("probe", path, err, "using ffmpeg", "falling back to ffmpeg")}
 	}
 
 	if info.Duration <= 0 {
 		// Fragmented or unusual files can report no length. ffprobe answers instead,
 		// the same as durationFast does.
-		logUnsupported("probe", path, "duration not in container header")
-		return ProbeResult{}, false
+		return probeUnsupported(path, "duration not in container header")
 	}
 	res := ProbeResult{Duration: info.Duration.Seconds(), FormatName: info.FormatName}
 	if name, ok := ffprobeFormatNames[info.Format]; ok {
@@ -294,23 +316,28 @@ func parseProbe(path string, f *os.File, size int64) (ProbeResult, bool) {
 		case media.StreamVideo:
 			if s.Codec == "" {
 				// The UI would show no codec, so let ffprobe answer instead.
-				logUnsupported("probe", path, "video codec not identified")
-				return ProbeResult{}, false
+				return probeUnsupported(path, "video codec not identified")
 			}
 			if res.VideoCodec == "" {
 				res.VideoCodec = s.Codec
 			}
 		case media.StreamAudio:
 			if s.Codec == "" {
-				logUnsupported("probe", path, "audio codec not identified")
-				return ProbeResult{}, false
+				return probeUnsupported(path, "audio codec not identified")
 			}
 			if res.AudioCodec == "" {
 				res.AudioCodec = s.Codec
 			}
 		}
 	}
-	return res, true
+	return probeOutcome{res: res, ok: true}
+}
+
+// probeUnsupported logs a container or codec that go-media does not handle for
+// a probe, and returns the unsupported outcome for the caller.
+func probeUnsupported(path, reason string) probeOutcome {
+	logger.Warningf("go-media does not support probe for %s (%s); using ffmpeg", path, reason)
+	return probeOutcome{unsupported: true}
 }
 
 // Duration returns the media length in seconds from container headers.
@@ -462,6 +489,9 @@ func lyricsFast(path string) (text, format string, ok bool) {
 // modification time.
 // legacy is the ffmpeg subtitle detection, run only in shadow mode.
 func EmbeddedSubtitles(path string, modtime time.Time, legacy Legacy[[]utils.SubtitleTrack]) ([]utils.SubtitleTrack, bool) {
+	if declinedByDesign(path, supportsVideoContainer) {
+		return nil, false
+	}
 	return timed("subtitle list", path, legacy, subtitleListDiff, func() ([]utils.SubtitleTrack, bool) {
 		return embeddedSubtitlesFast(path, modtime)
 	})
@@ -517,6 +547,9 @@ func embeddedSubtitlesFast(path string, modtime time.Time) ([]utils.SubtitleTrac
 // streamIndex is the same index EmbeddedSubtitles reports.
 // legacy is the ffmpeg subtitle extraction, run only in shadow mode.
 func ExtractSubtitle(path string, streamIndex int, legacy Legacy[string]) (string, bool) {
+	if declinedByDesign(path, supportsVideoContainer) {
+		return "", false
+	}
 	return timed("subtitle extract", path, legacy, subtitleExtractDiff, func() (string, bool) {
 		return extractSubtitleFast(path, streamIndex)
 	})
@@ -563,6 +596,9 @@ func extractSubtitleFast(path string, streamIndex int) (string, bool) {
 // Then no scaling happens in go-media either.
 // legacy is the ffmpeg preview frame, run only in shadow mode.
 func VideoThumbnail(path string, width, height, quality int, seekPercent float64, legacy Legacy[[]byte]) ([]byte, bool) {
+	if declinedByDesign(path, supportsVideoThumbnail) {
+		return nil, false
+	}
 	return timed("video thumbnail", path, legacy, thumbnailDiff, func() ([]byte, bool) {
 		return videoThumbnailFast(path, width, height, quality, seekPercent)
 	})
@@ -619,17 +655,24 @@ func videoThumbnailFast(path string, width, height, quality int, seekPercent flo
 	return res.Data, true
 }
 
-// HEICJPEG decodes HEIC/HEIF to JPEG at full resolution (bounds heicDecodeMaxEdge).
-// Resize for small/large/xlarge previews is done later by the preview service.
-// legacy is ffmpeg full decode, run only in shadow mode.
-func HEICJPEG(path string, quality int, legacy Legacy[[]byte]) ([]byte, bool) {
+// HEICJPEG decodes HEIC/HEIF to JPEG, scaled to fit maxW×maxH. Zero or negative
+// bounds mean full resolution (heicDecodeMaxEdge). Callers pass a bound only when
+// the output is a fit-mode preview, so the result needs no further resize.
+// legacy is the ffmpeg decode, run only in shadow mode.
+func HEICJPEG(path string, maxW, maxH, quality int, legacy Legacy[[]byte]) ([]byte, bool) {
+	if declinedByDesign(path, supportsHEIFImage) {
+		return nil, false
+	}
 	return timed("heic jpeg", path, legacy, thumbnailDiff, func() ([]byte, bool) {
-		return heicJPEGFast(path, quality)
+		return heicJPEGFast(path, maxW, maxH, quality)
 	})
 }
 
-func heicJPEGFast(path string, quality int) ([]byte, bool) {
-	return gatedStillImageJPEG(path, heicDecodeMaxEdge, heicDecodeMaxEdge, quality, "heic jpeg", supportsHEIFImage)
+func heicJPEGFast(path string, maxW, maxH, quality int) ([]byte, bool) {
+	if maxW <= 0 || maxH <= 0 {
+		maxW, maxH = heicDecodeMaxEdge, heicDecodeMaxEdge
+	}
+	return gatedStillImageJPEG(path, maxW, maxH, quality, "heic jpeg", supportsHEIFImage)
 }
 
 // JXLJPEG decodes JPEG XL to JPEG at full resolution (bounds heicDecodeMaxEdge).
@@ -651,6 +694,9 @@ func jxlJPEGFast(path string, quality int) ([]byte, bool) {
 // CameraRAWJPEG decodes camera RAW to JPEG at the requested bounds (0 means full
 // resolution up to heicDecodeMaxEdge). legacy is ffmpeg ConvertImageToJPEG, shadow only.
 func CameraRAWJPEG(path string, width, height, quality int, legacy Legacy[[]byte]) ([]byte, bool) {
+	if declinedByDesign(path, supportsCameraRAW) {
+		return nil, false
+	}
 	return timed("raw jpeg", path, legacy, thumbnailDiff, func() ([]byte, bool) {
 		return cameraRAWJPEGFast(path, width, height, quality)
 	})

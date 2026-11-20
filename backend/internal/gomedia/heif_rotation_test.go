@@ -76,7 +76,7 @@ func TestHEICRotationDiff(t *testing.T) {
 // HEIC decode path.
 func TestAVIFDecodesThroughHEICPath(t *testing.T) {
 	withGate(t, false)
-	data, ok := HEICJPEG(fixtureAVIFRotated, 80, nil)
+	data, ok := HEICJPEG(fixtureAVIFRotated, 0, 0, 80, nil)
 	require.True(t, ok)
 	require.NotEmpty(t, data)
 }

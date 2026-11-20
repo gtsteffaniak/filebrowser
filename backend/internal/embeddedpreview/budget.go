@@ -3,6 +3,8 @@ package embeddedpreview
 import (
 	"bytes"
 	"image"
+
+	"github.com/gtsteffaniak/filebrowser/backend/internal/imagemeta"
 	// Decoders for embedded images, so Usable can decode every format the preview path accepts.
 	_ "image/gif"
 	_ "image/jpeg"
@@ -11,10 +13,10 @@ import (
 	_ "golang.org/x/image/webp"
 )
 
-// maxPixels caps width x height of an embedded image. The read cap bounds encoded bytes, not
-// decoded size: a small file can declare huge dimensions, and decoding allocates every pixel
-// (about 4 bytes each as RGBA).
-const maxPixels = 40_000_000
+// maxPixels caps width x height of an embedded image. It is the same limit imagemeta uses to choose
+// among embedded JPEGs. The read cap bounds encoded bytes, not decoded size: a small file can declare
+// huge dimensions, and decoding allocates every pixel (about 4 bytes each as RGBA).
+const maxPixels = imagemeta.MaxPreviewPixels
 
 // WithinPixelBudget reports whether an image of the given size can be decoded safely.
 func WithinPixelBudget(width, height int) bool {

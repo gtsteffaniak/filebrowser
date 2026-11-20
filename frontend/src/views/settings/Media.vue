@@ -28,12 +28,6 @@
           :name="$t('media.alwaysUseFfmpeg')"
           :description="$t('media.alwaysUseFfmpegDescription')"
           @update:model-value="save" />
-        <ToggleSwitch class="item" v-model="media.alwaysUseOnlyOffice"
-          :disabled="isLocked('alwaysUseOnlyOffice')"
-          :value-tooltip="fieldTooltip('alwaysUseOnlyOffice')"
-          :name="$t('media.alwaysUseOffice')"
-          :description="$t('media.alwaysUseOfficeDescription')"
-          @update:model-value="save" />
         <ToggleSwitch class="item" v-model="media.debug" :name="$t('media.debug')"
           :disabled="isLocked('debug')"
           :value-tooltip="fieldTooltip('debug')"
@@ -59,13 +53,21 @@
           :disabled="!media.transcode.enabled"
           @activate="openTranscodeSettings" />
       </div>
+
+      <div v-if="isAdmin" class="settings-items">
+        <h3>{{ $t("media.shadowRegressions") }}</h3>
+        <SettingsButton class="item"
+          :name="$t('media.shadowRegressionsView')"
+          :description="$t('media.shadowRegressionsViewDescription')"
+          @activate="openShadowRegressions" />
+      </div>
     </template>
   </div>
 </template>
 
 <script>
 import { notify } from "@/notify/index.ts";
-import { mutations } from "@/store/index.ts";
+import { getters, mutations } from "@/store/index.ts";
 import { eventBus } from "@/store/eventBus.ts";
 import { getMediaSettings } from "@/api/settings.js";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
@@ -109,6 +111,9 @@ export default {
       return this.isLocked("hardwareAcceleration") || this.isLocked("accelDevice")
         ? this.$t("settings.lockedFromConfig")
         : this.$t("media.accelDeviceDescription");
+    },
+    isAdmin() {
+      return getters.isAdmin();
     },
     accelDeviceSelectOptions() {
       const options = Array.isArray(this.accelDeviceOptions) ? this.accelDeviceOptions : [];
@@ -175,6 +180,14 @@ export default {
         },
       });
     },
+    openShadowRegressions() {
+      mutations.showPrompt({
+        name: "shadow-regressions",
+        props: {
+          title: this.$t("media.shadowRegressionsView"),
+        },
+      });
+    },
     openTranscodeSettings() {
       mutations.showPrompt({
         name: "media-transcode-settings",
@@ -191,7 +204,6 @@ export default {
         const { skipped, media } = await saveMediaSettingsPatch({
           accelDevice: this.media.accelDevice,
           alwaysUseFfmpeg: this.media.alwaysUseFfmpeg,
-          alwaysUseOnlyOffice: this.media.alwaysUseOnlyOffice,
           debug: this.media.debug,
           transcode: { enabled: this.media.transcode.enabled },
         }, this.lockedFromConfigPaths);

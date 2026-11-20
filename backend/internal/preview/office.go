@@ -21,7 +21,7 @@ type officePreviewResponse struct {
 }
 
 // GenerateOfficePreview generates a preview for an office document using the office converter.
-// Note: Global image processor semaphore is acquired at GeneratePreviewWithMD5 level
+// Note: Global image processor semaphore is acquired at GeneratePreviewWithCacheHash level
 func (s *Service) GenerateOfficePreview(ctx context.Context, filetype, key, title, url string) ([]byte, error) {
 	data := []byte{}
 	// Create the request payload
