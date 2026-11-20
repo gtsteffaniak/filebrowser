@@ -1,23 +1,23 @@
 <template>
   <div class="card-content">
-    <template v-if="allowSkip">
-      <p>{{ $t("prompts.uploadConflictMessage") }}</p>
-      <p>
-        <strong>{{ $t("prompts.optionLabel", { name: $t("prompts.uploadMissing") }) }}</strong>
-        {{ $t("prompts.uploadMissingInfo") }}
-      </p>
-      <p v-if="canReplace">
-        <strong>{{ $t("prompts.optionLabel", { name: $t("general.replace") }) }}</strong>
-        {{ $t("prompts.uploadReplaceInfo") }}
-      </p>
-      <p v-if="allowRename">
-        <strong>{{ $t("prompts.optionLabel", { name: $t("general.rename") }) }}</strong>
-        {{ $t("prompts.uploadRenameInfo") }}
-      </p>
-    </template>
+    <p v-if="conflictCount > 0" class="conflict-target">
+      <strong>{{ conflictNames.join(", ") }}</strong>
+      <span v-if="conflictCount > conflictNames.length">+{{ conflictCount - conflictNames.length }}<!--eslint-disable-line @intlify/vue-i18n/no-raw-text--></span>
+    </p>
+    <p v-if="allowSkip">{{ $t("prompts.uploadConflictMessage") }}</p>
     <p v-else>{{ $t("prompts.replaceMessage") }}</p>
   </div>
   <div class="card-actions">
+    <button
+      v-if="canCancel"
+      type="button"
+      class="button button--flat button--blue"
+      @click="cancelPrompt"
+      :aria-label="$t('general.cancel')"
+      :title="$t('general.cancel')"
+    >
+      {{ $t("general.cancel") }}
+    </button>
     <button
       v-if="allowRename"
       type="button"
@@ -54,7 +54,7 @@
 </template>
 
 <script>
-import { getters, state } from "@/store";
+import { getters, mutations, state } from "@/store";
 
 export default {
   name: "replace-rename",
@@ -63,8 +63,22 @@ export default {
       type: [String, Number],
       default: null,
     },
+    // Only the upload flow names the items that are in the way.
+    conflictNames: {
+      type: Array,
+      default: () => [],
+    },
+    conflictCount: {
+      type: Number,
+      default: 0,
+    },
   },
   computed: {
+    canCancel() {
+      // Other callers settle their own promise only from confirm: a Cancel button
+      // there would close the dialog and leave them waiting forever.
+      return typeof this.currentPrompt?.cancel === "function";
+    },
     currentPrompt() {
       return getters.currentPrompt();
     },
@@ -86,6 +100,14 @@ export default {
       return canModify;
     },
   },
-  methods: {},
+  methods: {
+    // Cancel means "close and do nothing" for every caller of this dialog, not
+    // an option their confirm handlers have to know about.
+    cancelPrompt() {
+      const prompt = this.currentPrompt;
+      mutations.closeTopPrompt(undefined, { skipCancel: true });
+      prompt?.cancel?.();
+    },
+  },
 };
 </script>

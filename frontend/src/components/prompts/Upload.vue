@@ -44,22 +44,6 @@
       </div>
     </div>
     <div v-if="files.length > 0" style="position: relative;">
-      <div v-if="showConflictPrompt" class="conflict-overlay">
-        <div class="card">
-          <div class="card-content">
-            <p>{{ $t("prompts.conflictsDetected") }}</p>
-          </div>
-          <div class="card-actions">
-            <button
-              type="button"
-              @click="resolveConflict(true)"
-              class="button button--flat button--red"
-            >
-              {{ $t("general.replace") }}
-            </button>
-          </div>
-        </div>
-      </div>
       <div class="upload-list">
         <div v-for="file in files" :key="file.id" class="upload-item">
           <i class="file-icon" :class="fileTypeInfo(file).classes">{{ fileTypeInfo(file).materialSymbol }}</i>
@@ -245,8 +229,6 @@ export default {
     const videoInput = ref(null);
     const files = computed(() => uploadManager.queue);
     const isDragging = ref(false);
-    const showConflictPrompt = ref(false);
-    let conflictResolver = null;
 
     let wakeLock = null;
 
@@ -273,74 +255,79 @@ export default {
     };
 
     const handleConflict = (resolver, options = {}) => {
-      conflictResolver = resolver;
+      // Each question keeps its own answer function: a second dialog opened while
+      // this one waits must not take its resolver away.
+      const answer = (resolution, closePrompt = true) => {
+        if (closePrompt) {
+          mutations.closeTopPrompt(undefined, { skipCancel: true });
+        }
+        resolver(resolution);
+      };
+      // The dialog is shared with other flows: it gets the names it shows instead
+      // of reading this manager's state.
+      const conflict = uploadManager.getConflictDetails();
       mutations.showPrompt({
         name: "replace-rename",
         pinned: true,
         props: {
           allowSkip: !getters.isShare(),
           allowRename: options.allowRename !== false,
+          conflictNames: conflict.names,
+          conflictCount: conflict.count,
           ...(getters.isShare() ? {} : { title: i18n.global.t("prompts.uploadConflictTitle") }),
         },
         confirm: (_event, option) => {
           if (option === "overwrite") {
-            resolveConflict(true);
+            answer(true);
           } else if (option === "skip") {
-            resolveConflict({ skip: true });
+            answer({ skip: true });
           } else if (option === "rename") {
-            showRenamePrompt();
+            showRenamePrompt(answer);
           } else {
-            resolveConflict(false);
+            answer(false);
           }
         },
+        // Escape and the close button answer the question with "cancel";
+        // otherwise the queue stays paused with nothing to resume it.
+        cancel: () => answer(false, false),
       });
     };
 
-    const resolveConflict = (overwrite) => {
-      if (conflictResolver) {
-        conflictResolver(overwrite);
-      }
-      mutations.closeTopPrompt(); // Only close the conflict prompt, return to upload prompt
-    };
-
-    const showRenamePrompt = () => {
-      mutations.closeTopPrompt(); // Only close the replace-rename prompt, keep upload prompt open
-      // Get the conflicting folder name from the upload queue
-      const conflictingFolder = uploadManager.getConflictingFolder();
-      if (!conflictingFolder) {
-        console.error("No conflicting folder found for rename");
+    const showRenamePrompt = (answer) => {
+      // Leave the question without answering it: the answer comes from the name
+      // window, so the close here must not run the cancel handler.
+      mutations.closeTopPrompt(undefined, { skipCancel: true });
+      const details = uploadManager.getConflictDetails();
+      const target = details.names[0];
+      if (!target) {
+        console.error("No conflicting item found for rename");
         return;
       }
-
+      const existingNames = new Set((state.req?.items || []).map((item) => item.name));
       mutations.showPrompt({
-        name: "rename",
-        confirm: (newName) => {
-          void renameUploadFolder(conflictingFolder, newName);
+        name: "upload-rename",
+        props: { initialName: target },
+        confirm: async (_event, newName) => {
+          if (!newName) {
+            answer(false);
+            return;
+          }
+          if (existingNames.has(newName)) {
+            notify.showError(new Error(`An item named "${newName}" already exists`));
+            return;
+          }
+          // Only the incoming upload takes the new name: whatever is already on the
+          // server stays untouched, so the result is two items, as the user expects.
+          if (details.kind === "folder") {
+            await uploadManager.renameFolder(target, newName);
+          } else {
+            uploadManager.renamePendingFile(target, newName);
+          }
+          answer({ rename: newName });
         },
-        props: { folderName: conflictingFolder }
+        // Dismissing the name window cancels the upload instead of leaving it hanging.
+        cancel: () => answer(false, false),
       });
-    };
-
-    const renameUploadFolder = async (oldName, newName) => {
-      try {
-        // Check if the new name already exists
-        const existingItems = new Set(state.req.items.map(i => i.name));
-        if (existingItems.has(newName)) {
-          notify.showError(new Error(`A folder named "${newName}" already exists`));
-          return;
-        }
-
-        // Update upload manager with the new folder name
-        await uploadManager.renameFolder(oldName, newName);
-
-        // Resolve the conflict and continue upload
-        if (conflictResolver) {
-          conflictResolver({ rename: newName });
-        }
-        mutations.closeTopPrompt(); // Only close the rename prompt, return to upload prompt
-      } catch (error) {
-        console.error(error);
-      }
     };
 
     const acquireWakeLock = async () => {
@@ -449,6 +436,8 @@ export default {
     onMounted(async () => {
       document.addEventListener("visibilitychange", void handleVisibilityChange);
       uploadManager.setOnConflict(handleConflict);
+      // Conflicts found while no window was open are asked now.
+      uploadManager.askConflictForBatch();
       if (props.initialItems) {
         await processItems(props.initialItems);
       }
@@ -456,7 +445,12 @@ export default {
 
     onUnmounted(() => {
       document.removeEventListener("visibilitychange", void handleVisibilityChange);
-      uploadManager.setOnConflict(() => {}); // cleanup
+      uploadManager.setOnConflict(null); // no dialog can answer now
+      // This window asks the questions: do not leave one floating over the next page.
+      const openPrompt = getters.currentPrompt();
+      if (openPrompt?.name === "replace-rename" || openPrompt?.name === "upload-rename") {
+        mutations.closeTopPrompt(undefined, { skipCancel: true });
+      }
       releaseWakeLock();
     });
 
@@ -676,10 +670,7 @@ export default {
       clearCompleted,
       hasCompleted,
       hasClearable,
-      showConflictPrompt,
-      resolveConflict,
       showRenamePrompt,
-      renameUploadFolder,
       canPauseAll,
       canResumeAll,
       handleConflictAction,
@@ -787,21 +778,6 @@ export default {
   flex-direction: column;
   position: relative;
   padding: 1em;
-}
-
-.conflict-overlay {
-  position: absolute;
-  inset: 0;
-  background-color: rgb(0 0 0 / 70%);
-  z-index: 999;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.conflict-overlay .card {
-  padding: 1em;
-  border-radius: 8px;
 }
 
 /* Upload settings styles */

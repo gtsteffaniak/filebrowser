@@ -93,6 +93,7 @@ import Download from "./Download.vue";
 import MoveCopy from "./MoveCopy.vue";
 import NewFile from "./NewFile.vue";
 import NewDir from "./NewDir.vue";
+import UploadRename from "./UploadRename.vue";
 import Replace from "./Replace.vue";
 import ReplaceRename from "./ReplaceRename.vue";
 import Share from "./Share.vue";
@@ -154,6 +155,7 @@ export default {
     Share,
     NewFile,
     NewDir,
+    UploadRename,
     Help,
     Replace,
     ReplaceRename,
@@ -446,6 +448,8 @@ export default {
           return this.$t("prompts.newFile");
         case "newdir":
           return this.$t("general.newFolder");
+        case "upload-rename":
+          return this.$t("general.rename");
         case "replace-rename":
           return this.$t("general.replace");
         case "archive":

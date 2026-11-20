@@ -825,13 +825,13 @@ func ResourcePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 		requestingDir := isDir
 
 		if r.URL.Query().Get("override") != "true" {
-			return http.StatusConflict, nil
+			return conflictRefusal(w, r, "resource already exists")
 		}
 
 		// If type mismatch (file vs folder or folder vs file) and not overriding
 		if existingIsDir != requestingDir && r.URL.Query().Get("override") != "true" {
 			logger.Debugf("Type conflict detected in chunked: existing is dir=%v, requesting dir=%v at path=%v", existingIsDir, requestingDir, realPath)
-			return http.StatusConflict, nil
+			return conflictRefusal(w, r, "a folder with the same name already exists")
 		}
 	}
 
@@ -918,8 +918,7 @@ func ResourcePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 				// If type mismatch (existing dir vs requesting file) and not overriding
 				if existingIsDir != requestingDir && r.URL.Query().Get("override") != "true" {
 					logger.Debugf("Type conflict detected in chunked: existing is dir=%v, requesting dir=%v at path=%v", existingIsDir, requestingDir, realPath)
-					abortConflictingUpload(w, r)
-					return http.StatusConflict, nil
+					return conflictRefusal(w, r, "a folder with the same name already exists")
 				}
 			}
 
@@ -928,8 +927,7 @@ func ResourcePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 			if err == nil { // File exists
 				if r.URL.Query().Get("override") != "true" {
 					logger.Debugf("resource already exists: %v", fileInfo.RealPath)
-					abortConflictingUpload(w, r)
-					return http.StatusConflict, nil
+					return conflictRefusal(w, r, "file already exists")
 				}
 				// If overriding, delete existing thumbnails
 				preview.DelThumbs(r.Context(), *fileInfo)
@@ -1055,7 +1053,7 @@ func ResourcePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 	if err == nil { // File exists
 		if r.URL.Query().Get("override") != "true" {
 			logger.Debugf("resource already exists: %v", fileInfo.RealPath)
-			return http.StatusConflict, nil
+			return conflictRefusal(w, r, "file already exists")
 		}
 		// If overriding, delete existing thumbnails
 		preview.DelThumbs(r.Context(), *fileInfo)
@@ -1217,7 +1215,13 @@ func publicUploadHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 	r.URL.RawQuery = q.Encode()
 	status, err := ResourcePostHandler(w, r, d)
 	if err != nil {
-		logger.Errorf("public upload handler: error uploading with error %v", err)
+		// A file that already exists is an ordinary answer for an upload, asked
+		// about in the UI, not a server error.
+		if status == http.StatusConflict {
+			logger.Debugf("public upload handler: conflict: %v", err)
+		} else {
+			logger.Errorf("public upload handler: error uploading with error %v", err)
+		}
 		if status == 0 {
 			status = http.StatusInternalServerError
 		}

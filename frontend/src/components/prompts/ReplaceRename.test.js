@@ -10,6 +10,7 @@ const { store } = vi.hoisted(() => ({
 }));
 vi.mock("@/store", () => ({
   state: { shareInfo: null },
+  mutations: { closeTopPrompt: vi.fn() },
   getters: {
     currentPrompt: () => store.prompt,
     isShare: () => false,
@@ -39,5 +40,37 @@ describe("ReplaceRename replace permission", () => {
 
   it("checks the browsed source when no destination is given", () => {
     expect(mount({ operation: "copy" })).toBeNull();
+  });
+});
+
+describe("ReplaceRename action order", () => {
+  let app, root;
+  const mountPrompt = (props) => {
+    store.prompt = { props, confirm: vi.fn(), cancel: vi.fn() };
+    root = document.createElement("div");
+    document.body.append(root);
+    app = createApp(ReplaceRename);
+    app.config.globalProperties.$t = (key) => key;
+    app.mount(root);
+    return root;
+  };
+
+  afterEach(() => {
+    app?.unmount();
+    root?.remove();
+  });
+
+  it("keeps Replace as the last action, because Enter presses the last button", () => {
+    const el = mountPrompt({ allowSkip: true, allowRename: true, destSource: "inbox" });
+    const buttons = [...el.querySelectorAll(".card-actions button")];
+    expect(buttons[0].getAttribute("aria-label")).toBe("general.cancel");
+    expect(buttons.at(-1).getAttribute("aria-label")).toBe("general.replace");
+  });
+
+  it("cancels without handing an option to the confirm handler of the caller", () => {
+    const el = mountPrompt({ allowSkip: true, allowRename: true });
+    el.querySelector('button[aria-label="general.cancel"]').click();
+    expect(store.prompt.confirm).not.toHaveBeenCalled();
+    expect(store.prompt.cancel).toHaveBeenCalledTimes(1);
   });
 });
