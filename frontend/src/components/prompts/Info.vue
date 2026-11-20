@@ -91,7 +91,6 @@
         </div>
         <div v-if="quotaEnabled" class="info-quota-usage">
           <QuotaFolderBar
-            class="info-quota-bar"
             :source="source"
             :path="filePath"
             :enabled="true"
@@ -159,7 +158,7 @@ import { copyToClipboard } from "@/utils/clipboard.js";
 import { formatDuration } from "@/utils/files.js";
 import { resourcesApi, quotasApi, mediaApi } from "@/api/index.js";
 import { getters, mutations, state } from "@/store/index.ts";
-import type { InfoItem, SubtitleTrack } from "@/store/types.ts";
+import type { InfoItem, QuotaSnapshot, SubtitleTrack } from "@/store/types.ts";
 import { notify } from "@/notify/index.ts";
 import { activityViewerPresets } from "@/utils/activityViewerLink.js";
 import SlidingTabs from "@/components/settings/SlidingTabs.vue";
@@ -171,13 +170,6 @@ import Access from "@/components/prompts/Access.vue";
 
 type InfoTab = "basic" | "media" | "quota" | "access" | "additional" | "checksums";
 type HashAlgo = "md5" | "sha1" | "sha256" | "sha512";
-
-interface QuotaSnapshot {
-  usedBytes?: number;
-  reservedBytes?: number;
-  measurementStatus?: string;
-  limitBytes?: number;
-}
 
 interface InfoRow {
   key: string;
