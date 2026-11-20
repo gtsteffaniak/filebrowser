@@ -24,6 +24,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/fileutils"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/archiveencoding"
 	activitydb "github.com/gtsteffaniak/filebrowser/backend/internal/database/activity"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing"
@@ -239,7 +240,7 @@ func archiveCreateHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 	if err != nil {
 		return http.StatusForbidden, err
 	}
-	if !destPerms.Create {
+	if !destPerms.Create && !destPerms.Modify {
 		return http.StatusForbidden, fmt.Errorf("user is not allowed to create resources in destination source")
 	}
 	for _, srcPath := range req.Paths {
@@ -290,6 +291,23 @@ func archiveCreateHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("destination path invalid: %v", err)
 	}
+	_, destStatErr := os.Stat(destFileReal)
+	destExists := destStatErr == nil
+	if destExists {
+		if !destPerms.Modify {
+			return http.StatusForbidden, fmt.Errorf("user is not allowed to modify existing destination file")
+		}
+	} else if !destPerms.Create {
+		return http.StatusForbidden, fmt.Errorf("user is not allowed to create resources in destination source")
+	}
+	if realPermErr := mutationPermsAtRealPath(d, idxTo, destSource, destFileReal, false, func(p users.SourceFilePermissions) bool {
+		if destExists {
+			return p.Modify
+		}
+		return p.Create
+	}); realPermErr != nil {
+		return http.StatusForbidden, realPermErr
+	}
 	if !state.AccessPermittedAtRealPath(idxTo, d.User.Username, destFileReal, false) {
 		return http.StatusForbidden, fmt.Errorf("access denied to destination %s", req.Destination)
 	}
@@ -323,6 +341,11 @@ func archiveCreateHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 		full := utils.JoinPathAsUnix(userScope, it)
 		if !state.AccessPermitted(idx.Path, utils.IndexPathFromNormalized(full, true), d.User.Username) {
 			continue // silently skip
+		}
+		if req.DeleteAfter {
+			if delErr := subtreeDeletePermitted(d, req.FromSource, full); delErr != nil {
+				return http.StatusForbidden, delErr
+			}
 		}
 		itemPaths = append(itemPaths, full)
 	}
@@ -545,6 +568,9 @@ func unarchiveHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 		destIndexPrefix: fullDestPath,
 		username:        d.User.Username,
 		perms:           destPerms,
+		permsForPath: func(indexPath string) (users.SourceFilePermissions, error) {
+			return effectiveFilePerms(d, req.ToSource, indexPath)
+		},
 	}
 	var extractErr error
 	if strings.HasSuffix(lower, ".zip") {
@@ -587,6 +613,9 @@ func addFile(source string, path string, d *Context, tarWriter *tar.Writer, zipW
 	// Check access control directly for each file and silently skip if access is denied
 	if !state.AccessPermitted(idx.Path, utils.IndexPathFromNormalized(path, true), permUser) {
 		return nil // Silently skip this file/folder
+	}
+	if perms, permErr := effectiveFilePerms(d, source, path); permErr != nil || !perms.Download {
+		return nil // Silently skip entries denied by nested scope permissions
 	}
 
 	// Symlink resolution is contained to the share path for shares and the user
@@ -651,6 +680,12 @@ func addFile(source string, path string, d *Context, tarWriter *tar.Writer, zipW
 			// owner's deny rules apply to share visitors as well.
 			indexPath := utils.IndexPathFromNormalized(indexRelPath, true)
 			if !state.AccessPermitted(idx.Path, indexPath, permUser) {
+				if fileInfo.IsDir() {
+					return filepath.SkipDir
+				}
+				return nil
+			}
+			if perms, permErr := effectiveFilePerms(d, source, indexRelPath); permErr != nil || !perms.Download {
 				if fileInfo.IsDir() {
 					return filepath.SkipDir
 				}

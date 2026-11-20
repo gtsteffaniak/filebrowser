@@ -861,3 +861,50 @@ func TestValidateViewGrantSourceScopedGrantOnPublicShare(t *testing.T) {
 		t.Fatalf("ValidateViewGrant: %v", err)
 	}
 }
+
+func TestMintAndValidateViewGrant_NestedScopes(t *testing.T) {
+	t.Parallel()
+	initStreamTestSources(t)
+	d := &requestContext{
+		User: &users.User{
+			ID: 77,
+			FrontendUser: users.FrontendUser{
+				Username: "nested-user",
+			},
+			BackendScopes: []users.BackendScope{
+				{
+					Path:        "/default",
+					Scope:       "/school",
+					Permissions: users.SourceFilePermissions{View: false, Download: false},
+				},
+				{
+					Path:        "/default",
+					Scope:       "/school/class-a",
+					Permissions: users.SourceFilePermissions{View: true, Download: true},
+				},
+			},
+			Version: users.SourcePermissionsMigrationVersion,
+		},
+	}
+
+	// Minting for the parent path where View=false must fail.
+	if _, err := mintViewGrant(d, "default", "/school/secret.docx"); err == nil {
+		t.Fatal("expected mintViewGrant to fail for parent scope with View=false")
+	}
+
+	// Minting for the nested child scope where View=true must succeed.
+	token, err := mintViewGrant(d, "default", "/school/class-a/doc.docx")
+	if err != nil {
+		t.Fatalf("mintViewGrant for nested scope failed: %v", err)
+	}
+
+	// Validation for the allowed nested path must succeed.
+	if err = ValidateViewGrant(token, d, "default", "/school/class-a/doc.docx"); err != nil {
+		t.Fatalf("ValidateViewGrant for nested scope failed: %v", err)
+	}
+
+	// Validation of the same token against a path in the parent scope (View=false) must fail.
+	if err = ValidateViewGrant(token, d, "default", "/school/secret.docx"); err == nil {
+		t.Fatal("expected ValidateViewGrant to reject path in parent scope with View=false")
+	}
+}

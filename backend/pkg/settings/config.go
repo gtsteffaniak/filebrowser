@@ -502,9 +502,7 @@ func setupSources(generate bool) {
 			}
 			modifyExcludeInclude(source)
 			setConditionals(source)
-			if source.Config.DefaultUserScope == "" {
-				source.Config.DefaultUserScope = "/"
-			}
+			source.Config.DefaultUserScope = users.NormalizeScope(source.Config.DefaultUserScope)
 			Config.Server.SourceMap[source.Path] = source
 			Config.Server.NameToSource[source.Name] = source
 		}

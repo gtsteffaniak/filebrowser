@@ -600,11 +600,11 @@ export const getters = {
     }
     return false
   },
-  shouldFetchFileContent: (fileInfo: { name: string; source?: string; onlyOfficeId?: string }) => {
+  shouldFetchFileContent: (fileInfo: { name: string; source?: string; path?: string; onlyOfficeId?: string }) => {
     if (getters.fileViewingDisabled(fileInfo.name)) return false
     if (getters.isWopiFile(fileInfo.name) && !getters.isShare()) return false
     if (fileInfo.onlyOfficeId && !getters.officeViewingDisabled(fileInfo.name)) return false
-    if (!getters.sourcePermissions(fileInfo.source).download) return false
+    if (!getters.sourcePermissions(fileInfo.source, fileInfo.path).download) return false
     return true
   },
   anonymous: () => {
@@ -777,7 +777,7 @@ export const getters = {
       archive: !!globalPerms.archive,
     };
   },
-  sourcePermissions: (source?: string) => {
+  sourcePermissions: (source?: string, targetPath?: string) => {
     if (getters.isShare()) {
       return {
         view: !state.shareInfo?.disableFileViewer,
@@ -814,7 +814,8 @@ export const getters = {
       return denyFile;
     }
     const baseScope = (sourceScopes[0]?.scope || "/").replace(/\/+$/, "") || "/";
-    const reqPath = (state.req?.path ?? "/").replace(/\/+$/, "") || "/";
+    const rawReqPath = (targetPath ?? state.req?.path ?? "/").replace(/\/+$/, "") || "/";
+    const reqPath = rawReqPath.startsWith("/") ? rawReqPath : `/${rawReqPath}`;
     // state.req.path is relative to baseScope (backend strips baseScope in finalizeResponse),
     // while entry.scope is source-relative. Reconstruct the full source-relative path.
     const currentPath =
@@ -822,9 +823,7 @@ export const getters = {
         ? reqPath
         : reqPath === "/"
           ? baseScope
-          : reqPath === baseScope || reqPath.startsWith(`${baseScope}/`)
-            ? reqPath
-            : baseScope + (reqPath.startsWith("/") ? reqPath : `/${reqPath}`);
+          : `${baseScope}${reqPath}`;
 
     const matchingScopes = sourceScopes
       .filter((entry) => {

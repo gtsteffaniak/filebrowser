@@ -50,7 +50,7 @@ func setupExtractAccessPolicyTest(t *testing.T) (destDir, sourceRoot, sourceName
 	username = "extract-user"
 	perms := fullPerms()
 	user := &users.User{
-		ID: 1,
+		ID:           1,
 		FrontendUser: users.FrontendUser{Username: username},
 		BackendScopes: []users.BackendScope{{
 			Path:        sourceRoot,
@@ -523,4 +523,130 @@ func TestUnarchiveHandler_accessDeniedAndSanitizesErrors(t *testing.T) {
 		t.Fatalf("unexpected client error: %v", handlerErr)
 	}
 	_ = sourceName
+}
+
+func TestUnarchiveHandler_NestedScopePerEntryPermissions(t *testing.T) {
+	destDir, sourceRoot, sourceName, username := setupExtractAccessPolicyTest(t)
+	user, err := state.GetUserByUsername(username)
+	if err != nil {
+		t.Fatal(err)
+	}
+	readOnly := users.SourceFilePermissions{View: true, Download: true}
+	user.BackendScopes = []users.BackendScope{
+		{Path: sourceRoot, Scope: "/", Permissions: fullPerms()},
+		{Path: sourceRoot, Scope: "/dest/protected", Permissions: readOnly},
+	}
+
+	archivePath := filepath.Join(sourceRoot, "nested.zip")
+	writeTestZip(t, archivePath, func(zw *zip.Writer) error {
+		w, err := zw.Create("protected/a.txt")
+		if err != nil {
+			return err
+		}
+		_, err = w.Write([]byte("blocked"))
+		return err
+	})
+
+	body := `{"fromSource":"data","toSource":"data","path":"/nested.zip","destination":"/dest"}`
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodPost, "/api/resources/unarchive", strings.NewReader(body))
+	status, handlerErr := unarchiveHandler(rec, req, &Context{User: &user})
+	if status != http.StatusForbidden || handlerErr == nil {
+		t.Fatalf("expected 403 when extracting into read-only nested scope, got status=%d err=%v", status, handlerErr)
+	}
+	if _, statErr := os.Stat(filepath.Join(destDir, "protected", "a.txt")); !os.IsNotExist(statErr) {
+		t.Fatal("protected/a.txt should not have been extracted")
+	}
+	_ = sourceName
+}
+
+func TestArchiveCreateAndMutation_NestedScopes(t *testing.T) {
+	destDir, sourceRoot, sourceName, username := setupExtractAccessPolicyTest(t)
+	user, err := state.GetUserByUsername(username)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Create source tree: /src/public.txt and /src/secret/hidden.txt
+	srcDir := filepath.Join(sourceRoot, "src")
+	secretDir := filepath.Join(srcDir, "secret")
+	if err = os.MkdirAll(secretDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err = os.WriteFile(filepath.Join(srcDir, "public.txt"), []byte("pub"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err = os.WriteFile(filepath.Join(secretDir, "hidden.txt"), []byte("sec"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	createNoModify := users.SourceFilePermissions{View: true, Download: true, Create: true, Modify: false, Delete: true}
+	noDownloadNoDelete := users.SourceFilePermissions{View: true, Download: false, Create: false, Modify: false, Delete: false}
+	user.BackendScopes = []users.BackendScope{
+		{Path: sourceRoot, Scope: "/", Permissions: fullPerms()},
+		{Path: sourceRoot, Scope: "/dest", Permissions: createNoModify},
+		{Path: sourceRoot, Scope: "/src/secret", Permissions: noDownloadNoDelete},
+	}
+
+	// 1. Overwriting existing archive in /dest (Create=true, Modify=false) must fail without truncating.
+	existingZip := filepath.Join(destDir, "existing.zip")
+	if err = os.WriteFile(existingZip, []byte("keep-me"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	body := `{"fromSource":"data","toSource":"data","paths":["/src/public.txt"],"destination":"/dest/existing.zip"}`
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodPost, "/api/resources/archive", strings.NewReader(body))
+	status, handlerErr := archiveCreateHandler(rec, req, &Context{User: &user})
+	if status != http.StatusForbidden || handlerErr == nil {
+		t.Fatalf("expected 403 when overwriting archive without Modify, got status=%d err=%v", status, handlerErr)
+	}
+	if data, readErr := os.ReadFile(existingZip); readErr != nil || string(data) != "keep-me" {
+		t.Fatalf("existing archive should remain untouched, got %q err=%v", string(data), readErr)
+	}
+
+	// 2. Creating new archive from /src must skip /src/secret (Download=false).
+	newZip := filepath.Join(destDir, "new.zip")
+	body = `{"fromSource":"data","toSource":"data","paths":["/src"],"destination":"/dest/new.zip"}`
+	rec = httptest.NewRecorder()
+	req = httptest.NewRequest(http.MethodPost, "/api/resources/archive", strings.NewReader(body))
+	status, handlerErr = archiveCreateHandler(rec, req, &Context{User: &user})
+	if status != http.StatusOK || handlerErr != nil {
+		t.Fatalf("expected 200 creating new archive, got status=%d err=%v", status, handlerErr)
+	}
+	zr, err := zip.OpenReader(newZip)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer zr.Close()
+	var names []string
+	for _, f := range zr.File {
+		names = append(names, f.Name)
+		if strings.Contains(f.Name, "hidden.txt") {
+			t.Fatalf("archive should not include denied nested scope file: %s", f.Name)
+		}
+	}
+	if len(names) == 0 {
+		t.Fatal("expected public.txt in archive")
+	}
+
+	// 3. Subtree delete check blocks deleting /src because /src/secret has Delete=false.
+	if delErr := subtreeDeletePermitted(&Context{User: &user}, sourceName, "/src"); delErr == nil {
+		t.Fatal("expected subtreeDeletePermitted to block deleting parent of Delete=false child scope")
+	}
+
+	// 4. Symlink inside writable /src pointing to read-only /src/secret must be blocked by mutationPermsAtRealPath.
+	idx := indexing.GetIndex(sourceName)
+	linkPath := filepath.Join(srcDir, "link_to_secret")
+	if err = os.Symlink(secretDir, linkPath); err != nil {
+		t.Fatal(err)
+	}
+	realTarget, err := idx.GetRealPathForMutation("/", "/src/link_to_secret/pwn.txt")
+	if err != nil {
+		t.Fatalf("GetRealPathForMutation: %v", err)
+	}
+	if mutErr := mutationPermsAtRealPath(&Context{User: &user}, idx, sourceName, realTarget, false, func(p users.SourceFilePermissions) bool {
+		return p.Create
+	}); mutErr == nil {
+		t.Fatal("expected mutationPermsAtRealPath to reject symlink write targeting read-only nested scope")
+	}
 }

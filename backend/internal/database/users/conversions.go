@@ -122,15 +122,21 @@ func (u *User) GetBackendSidebarLinks() ([]SidebarLink, error) {
 	return newLinks, nil
 }
 
-// normalizeScope ensures scope starts with / and doesn't end with / (except for root)
-func normalizeScope(scope string) string {
+// NormalizeScope ensures scope starts with / and doesn't end with / (except for root).
+func NormalizeScope(scope string) string {
 	if !strings.HasPrefix(scope, "/") {
 		scope = "/" + scope
 	}
-	if scope != "/" && strings.HasSuffix(scope, "/") {
-		scope = strings.TrimSuffix(scope, "/")
+	scope = strings.TrimRight(scope, "/")
+	if scope == "" {
+		return "/"
 	}
 	return scope
+}
+
+// normalizeScope ensures scope starts with / and doesn't end with / (except for root)
+func normalizeScope(scope string) string {
+	return NormalizeScope(scope)
 }
 
 // APISourcePermsToBackend maps API sourcePermissions (display name keys) to backend path keys.
@@ -182,9 +188,11 @@ func (u *User) FilePermsForSourcePath(sourcePath string, indexPath ...string) (S
 	if pathProvided {
 		var bestScope *BackendScope
 		var bestLen int
+		var hasSourceScope bool
 		for i, scope := range u.BackendScopes {
 			if scope.Path == sourcePath {
-				scopePath := scope.Scope
+				hasSourceScope = true
+				scopePath := normalizeScope(scope.Scope)
 				// Root scope "/" matches every path; others match by prefix
 				matches := scopePath == "/" || currentPath == scopePath || strings.HasPrefix(currentPath, scopePath+"/")
 				if matches {
@@ -197,6 +205,10 @@ func (u *User) FilePermsForSourcePath(sourcePath string, indexPath ...string) (S
 			}
 		}
 		if bestScope == nil {
+			if !hasSourceScope && u.BackendSourcePermissions != nil {
+				perms, ok := u.BackendSourcePermissions[sourcePath]
+				return perms, ok
+			}
 			return DenyAllSourceFilePermissions(), false
 		}
 		perms := bestScope.Permissions

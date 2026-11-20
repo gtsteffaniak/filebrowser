@@ -21,6 +21,17 @@ type extractAccessPolicy struct {
 	destIndexPrefix string
 	username        string
 	perms           users.SourceFilePermissions
+	permsForPath    func(indexPath string) (users.SourceFilePermissions, error)
+}
+
+func (p *extractAccessPolicy) effectivePermsForIndex(indexPath string) users.SourceFilePermissions {
+	if p != nil && p.permsForPath != nil {
+		if perms, err := p.permsForPath(indexPath); err == nil {
+			return perms
+		}
+		return users.DenyAllSourceFilePermissions()
+	}
+	return p.perms
 }
 
 // allowWriteSymlinkEntry authorizes creating or replacing a symlink at destPath without following the final path component.
@@ -58,13 +69,14 @@ func (p *extractAccessPolicy) allowWriteSymlinkEntry(archiveEntryName, destPath 
 		logger.Debugf("unarchive: symlink entry %q denied at index path %s for user %s", archiveEntryName, indexPath, p.username)
 		return newExtractAccessDenied(archiveEntryName)
 	}
+	entryPerms := p.effectivePermsForIndex(indexPath)
 	if _, statErr := os.Lstat(destPath); os.IsNotExist(statErr) {
-		if !p.perms.Create {
+		if !entryPerms.Create {
 			return fmt.Errorf("%w: create permission required", newExtractAccessDenied(archiveEntryName))
 		}
 		return nil
 	}
-	if !p.perms.Modify {
+	if !entryPerms.Modify {
 		return fmt.Errorf("%w: modify permission required", newExtractAccessDenied(archiveEntryName))
 	}
 	return nil
@@ -117,13 +129,14 @@ func (p *extractAccessPolicy) allowWrite(archiveEntryName, destPath string) erro
 		logger.Debugf("unarchive: entry %q denied at index path %s for user %s", archiveEntryName, indexPath, p.username)
 		return newExtractAccessDenied(archiveEntryName)
 	}
+	entryPerms := p.effectivePermsForIndex(indexPath)
 	if _, statErr := os.Stat(destPath); os.IsNotExist(statErr) {
-		if !p.perms.Create {
+		if !entryPerms.Create {
 			return fmt.Errorf("%w: create permission required", newExtractAccessDenied(archiveEntryName))
 		}
 		return nil
 	}
-	if !p.perms.Modify {
+	if !entryPerms.Modify {
 		return fmt.Errorf("%w: modify permission required", newExtractAccessDenied(archiveEntryName))
 	}
 	return nil

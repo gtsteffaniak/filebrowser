@@ -7,7 +7,6 @@ import (
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
-
 )
 
 func viewFilesHandler(w http.ResponseWriter, r *http.Request, d *Context, source string, scopedFileList []string) (int, error) {
@@ -55,15 +54,14 @@ func viewHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("invalid file path: %v", err)
 	}
-	if err = ValidateViewGrant(token, d, source); err != nil {
-		return http.StatusForbidden, err
-	}
-
 	userscope, err := d.User.GetScopeForSourceName(source)
 	if err != nil {
 		return http.StatusForbidden, err
 	}
 	scopedPath := utils.JoinScopedIndexPath(userscope, cleanPath)
+	if err = ValidateViewGrant(token, d, source, scopedPath); err != nil {
+		return http.StatusForbidden, err
+	}
 	return viewFilesHandler(w, r, d, source, []string{scopedPath})
 }
 

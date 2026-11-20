@@ -265,7 +265,11 @@ func onlyofficeClientConfigGetHandler(w http.ResponseWriter, r *http.Request, d 
 	SendOnlyOfficeLogEvent(logContext, "INFO", "config", fmt.Sprintf("OnlyOffice session started for document: %s ", path))
 
 	// Mint source-scoped view grant for OnlyOffice document fetch (viewing, not download)
-	viewToken, err := mintViewGrant(d, source)
+	var viewGrantIndexPath string
+	if d.Share.Hash == "" {
+		viewGrantIndexPath, _ = effectiveClientIndexPath(d, source, providedPath)
+	}
+	viewToken, err := mintViewGrant(d, source, viewGrantIndexPath)
 	if err != nil {
 		logger.Errorf("OnlyOffice: failed to mint view grant: %v", err)
 		return http.StatusForbidden, err

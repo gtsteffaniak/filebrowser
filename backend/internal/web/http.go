@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -22,6 +23,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/internal/preview"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/quota"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing/iteminfo"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 	"github.com/gtsteffaniak/go-cache/cache"
@@ -61,6 +63,18 @@ func effectiveFilePerms(d *Context, sourceName string, indexPath ...string) (use
 	return share.EffectiveFilePermissions(d.User, link, sourceName)
 }
 
+// effectiveClientIndexPath resolves a scope-relative client path to a full index path.
+func effectiveClientIndexPath(d *Context, sourceName, clientPath string) (string, error) {
+	if d == nil || d.User == nil {
+		return "", fmt.Errorf("user context not set")
+	}
+	baseScope, err := d.User.GetScopeForSourceName(sourceName)
+	if err != nil {
+		return "", err
+	}
+	return utils.JoinScopedIndexPath(strings.TrimRight(baseScope, "/"), clientPath), nil
+}
+
 // effectiveFilePermsForClientPath resolves file permissions for a scope-relative API path
 // by joining it with the user's base scope for the source before longest-prefix matching.
 func effectiveFilePermsForClientPath(d *Context, sourceName, clientPath string) (users.SourceFilePermissions, error) {
@@ -70,15 +84,68 @@ func effectiveFilePermsForClientPath(d *Context, sourceName, clientPath string) 
 	if d.Share.Hash != "" {
 		return share.EffectiveFilePermissions(d.User, &d.Share, sourceName)
 	}
-	if d.User == nil {
-		return users.DenyAllSourceFilePermissions(), fmt.Errorf("user context not set")
-	}
-	baseScope, err := d.User.GetScopeForSourceName(sourceName)
+	fullIndexPath, err := effectiveClientIndexPath(d, sourceName, clientPath)
 	if err != nil {
 		return users.DenyAllSourceFilePermissions(), err
 	}
-	fullIndexPath := utils.JoinScopedIndexPath(strings.TrimRight(baseScope, "/"), clientPath)
 	return share.EffectiveFilePermissionsForPath(d.User, nil, sourceName, fullIndexPath)
+}
+
+// subtreeDeletePermitted ensures no nested child scope strictly under fullIndexPath denies Delete.
+func subtreeDeletePermitted(d *Context, sourceName, fullIndexPath string) error {
+	if d == nil || d.Share.Hash != "" || d.User == nil {
+		return nil
+	}
+	idx := indexing.GetIndex(sourceName)
+	if idx == nil {
+		return nil
+	}
+	normTarget := users.NormalizeScope(fullIndexPath)
+	for _, scope := range d.User.BackendScopes {
+		if scope.Path != idx.Path {
+			continue
+		}
+		s := users.NormalizeScope(scope.Scope)
+		isDescendant := s != normTarget && (normTarget == "/" || strings.HasPrefix(s, normTarget+"/"))
+		if isDescendant && !scope.Permissions.Delete {
+			return fmt.Errorf("user is not allowed to delete protected child scope %s", s)
+		}
+	}
+	return nil
+}
+
+// mutationPermsAtRealPath re-evaluates file permissions against the symlink-resolved realPath.
+func mutationPermsAtRealPath(d *Context, idx *indexing.Index, sourceName, realPath string, isDir bool, check func(users.SourceFilePermissions) bool) error {
+	if d == nil || d.Share.Hash != "" || idx == nil {
+		return nil
+	}
+	lexical := realPath
+	if !strings.HasPrefix(realPath, idx.Path) {
+		root, err := filepath.EvalSymlinks(idx.Path)
+		if err != nil {
+			return fmt.Errorf("user is not allowed to mutate resolved target path")
+		}
+		rel, err := filepath.Rel(root, realPath)
+		if err != nil || rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
+			return fmt.Errorf("user is not allowed to mutate resolved target path")
+		}
+		lexical = idx.Path
+		if rel != "." {
+			lexical = filepath.Join(idx.Path, rel)
+		}
+	}
+	resolvedIndexPath := idx.MakeIndexPath(lexical, isDir).String()
+	if resolvedIndexPath != "/" {
+		resolvedIndexPath = strings.TrimRight(resolvedIndexPath, "/")
+	}
+	perms, err := effectiveFilePerms(d, sourceName, resolvedIndexPath)
+	if err != nil {
+		return err
+	}
+	if !check(perms) {
+		return fmt.Errorf("user is not allowed to mutate resolved target path")
+	}
+	return nil
 }
 
 // accessCheckUsername is the username used for filesystem access-rule checks.

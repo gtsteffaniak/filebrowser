@@ -89,3 +89,18 @@ func TestMergeDefaultEnabledBackendScopes_QuotaSurvives(t *testing.T) {
 		t.Errorf("Quota.LimitBytes = %v, want %v", got[0].Quota.LimitBytes, quota.LimitBytes)
 	}
 }
+
+func TestMergeDefaultEnabledBackendScopes_CanonicalizesDefaultUserScope(t *testing.T) {
+	settings.Config.Server.Sources = []*settings.Source{
+		{Path: "/data", Name: "source1", Config: settings.SourceConfig{DefaultEnabled: true, DefaultUserScope: "/team/"}},
+	}
+	t.Cleanup(func() { settings.Config.Server.Sources = nil })
+
+	got := settings.MergeDefaultEnabledBackendScopes(nil, nil)
+	if len(got) != 1 {
+		t.Fatalf("MergeDefaultEnabledBackendScopes() returned %d scopes, want 1", len(got))
+	}
+	if got[0].Scope != "/team" {
+		t.Fatalf("MergeDefaultEnabledBackendScopes() Scope = %q, want %q", got[0].Scope, "/team")
+	}
+}

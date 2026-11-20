@@ -143,6 +143,21 @@ func TestFilePermsForSourcePathLongestPrefix(t *testing.T) {
 			wantCreate: false,
 			wantOK:     false,
 		},
+		{
+			name: "trailing slash on configured scope still matches descendants",
+			scopes: []BackendScope{
+				{
+					Path:        "/srv",
+					Scope:       "/team/",
+					Permissions: SourceFilePermissions{View: true, Create: true},
+				},
+			},
+			source:     "/srv",
+			path:       "/team/file.txt",
+			wantView:   true,
+			wantCreate: true,
+			wantOK:     true,
+		},
 	}
 
 	for _, tt := range tests {

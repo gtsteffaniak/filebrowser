@@ -280,7 +280,6 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 		if !beforeShare.UserCanEdit(d.User) {
 			return http.StatusForbidden, fmt.Errorf("you are not allowed to update this share")
 		}
-		updateSourceName := beforeShare.GetSourceName()
 		mergedEditable, mergeErr := sharedefaults.MergeEditableUpdate(share.EditableFromShare(&beforeShare), bodyBytes)
 		if mergeErr != nil {
 			return http.StatusBadRequest, mergeErr
@@ -297,16 +296,19 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 		if status, policyErr := applyShareDefaultsPolicy(d.User, &req.ShareEditable, false); policyErr != nil {
 			return status, policyErr
 		}
-		if updateSourceName != "" {
-			ownerPerms, permErr := d.User.FilePermsForSourceName(updateSourceName, beforeShare.Path)
-			if permErr != nil {
-				return http.StatusForbidden, permErr
-			}
-			share.ClampShareEditable(ownerPerms, &req.ShareEditable)
-		}
+		var permForbiddenErr error
 		err = state.UpdateShare(req.Hash, func(link *share.Share) error {
 			shouldResetCounts := link.DownloadsLimit != req.DownloadsLimit ||
 				link.PerUserDownloadLimit != req.PerUserDownloadLimit
+
+			if linkSourceName := link.GetSourceName(); linkSourceName != "" {
+				ownerPerms, permErr := d.User.FilePermsForSourceName(linkSourceName, link.Path)
+				if permErr != nil {
+					permForbiddenErr = permErr
+					return permErr
+				}
+				share.ClampShareEditable(ownerPerms, &req.ShareEditable)
+			}
 
 			if err = applySharePasswordUpdate(link, req.Password, stringHash); err != nil {
 				return err
@@ -328,6 +330,9 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 			}
 			return nil
 		})
+		if permForbiddenErr != nil {
+			return http.StatusForbidden, permForbiddenErr
+		}
 		if err != nil {
 			return http.StatusInternalServerError, err
 		}

@@ -69,8 +69,11 @@ func resourcePatchPermCheck(action, fromSource, toSource string, fromPerms, toPe
 		if !fromPerms.Modify {
 			return "user is not allowed to modify"
 		}
-		if toSource != fromSource && !toPerms.Modify {
-			return "user is not allowed to modify destination source"
+		if !toPerms.Modify {
+			if toSource != fromSource {
+				return "user is not allowed to modify destination source"
+			}
+			return "user is not allowed to modify"
 		}
 	}
 	return ""
@@ -163,17 +166,17 @@ func resourceGetHandler(w http.ResponseWriter, r *http.Request, d *Context) (int
 	getMetadata := r.URL.Query().Get("metadata") == "true"
 	skipExtendedAttrs := r.URL.Query().Get("skipExtendedAttrs") == "true"
 	fileInfo, err := files.FileInfoFaster(utils.FileOptions{
-		FollowSymlinks:           true,
-		Path:                     path,
-		Source:                   source,
-		Expand:                   true,
-		Content:                  getContent,
-		Metadata:   getMetadata,
-		ShowHidden: d.User.ShowHidden,
-		HideFileExt:              d.User.HideFileExt,
-		SkipExtendedAttrs:        skipExtendedAttrs,
-		ShowSharedAttr:           true,
-		ShowPinnedItems:          true,
+		FollowSymlinks:    true,
+		Path:              path,
+		Source:            source,
+		Expand:            true,
+		Content:           getContent,
+		Metadata:          getMetadata,
+		ShowHidden:        d.User.ShowHidden,
+		HideFileExt:       d.User.HideFileExt,
+		SkipExtendedAttrs: skipExtendedAttrs,
+		ShowSharedAttr:    true,
+		ShowPinnedItems:   true,
 	}, d.User)
 	if err != nil {
 		return ErrToStatus(err), err
@@ -299,6 +302,9 @@ func resourceDeleteHandler(w http.ResponseWriter, r *http.Request, d *Context) (
 		return http.StatusForbidden, err
 	}
 	fullIndexPath := utils.JoinScopedIndexPath(userScope, path)
+	if delErr := subtreeDeletePermitted(d, source, fullIndexPath); delErr != nil {
+		return http.StatusForbidden, delErr
+	}
 
 	// delete thumbnails
 	preview.DelThumbs(r.Context(), *fileInfo)
@@ -594,6 +600,14 @@ func ResourceBulkDeleteHandler(w http.ResponseWriter, r *http.Request, d *Contex
 				continue
 			}
 			fullIndexPath := utils.JoinScopedIndexPath(userScope, sanitizedPath)
+			if delErr := subtreeDeletePermitted(d, item.Source, fullIndexPath); delErr != nil {
+				response.Failed = append(response.Failed, BulkDeleteItem{
+					Source:  item.Source,
+					Path:    rawPath,
+					Message: delErr.Error(),
+				})
+				continue
+			}
 			adjustments := prepareDeleteQuotaAdjustments(d, item.Source, fullIndexPath, fileInfo)
 			err = files.DeleteFiles(item.Source, userScope, fullIndexPath, fileInfo.Type == "directory")
 			if err != nil {
@@ -809,8 +823,16 @@ func ResourcePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 			return http.StatusForbidden, permErr
 		}
 		_, statErr := os.Stat(realPath)
-		if status, gateErr := resourcePostPermCheck(statErr == nil, r.URL.Query().Get("override") == "true", filePerms); gateErr != nil {
+		exists := statErr == nil
+		override := r.URL.Query().Get("override") == "true"
+		if status, gateErr := resourcePostPermCheck(exists, override, filePerms); gateErr != nil {
 			return status, gateErr
+		}
+		if realPermErr := mutationPermsAtRealPath(d, idx, source, realPath, isDir, func(p users.SourceFilePermissions) bool {
+			_, checkErr := resourcePostPermCheck(exists, override, p)
+			return checkErr == nil
+		}); realPermErr != nil {
+			return http.StatusForbidden, realPermErr
 		}
 	}
 
@@ -1580,6 +1602,28 @@ func ResourcePatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 			}
 			response.Failed = append(response.Failed, moveCopyWithClientPaths(item, clientFromPath, clientToPath))
 			continue
+		}
+		if d.Share.Hash == "" {
+			if realSrcErr := mutationPermsAtRealPath(d, srcIdx, item.FromSource, realSrc, isSrcDir, func(p users.SourceFilePermissions) bool {
+				if req.Action == "copy" {
+					return p.Download
+				}
+				return p.Modify
+			}); realSrcErr != nil {
+				item.Message = "permission denied"
+				response.Failed = append(response.Failed, moveCopyWithClientPaths(item, clientFromPath, clientToPath))
+				continue
+			}
+			if realPermErr := mutationPermsAtRealPath(d, dstIdx, item.ToSource, realDest, isSrcDir, func(p users.SourceFilePermissions) bool {
+				if req.Action == "copy" {
+					return p.Create
+				}
+				return p.Modify
+			}); realPermErr != nil {
+				item.Message = "permission denied"
+				response.Failed = append(response.Failed, moveCopyWithClientPaths(item, clientFromPath, clientToPath))
+				continue
+			}
 		}
 		if !state.AccessPermittedAtRealPath(dstIdx, d.User.Username, realDest, access.IsDirAtRealPath(realDest)) {
 			item.Message = "access denied to destination path"

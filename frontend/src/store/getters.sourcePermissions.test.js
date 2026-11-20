@@ -96,4 +96,52 @@ describe('getters.sourcePermissions on read-only sources', () => {
     stateMock.shareInfo = { allowModify: true, allowCreate: true, allowDelete: true };
     expect(getters.sourcePermissions('archive')).toEqual(allowAll);
   });
+
+  it('always joins baseScope with reqPath even when reqPath starts with baseScope name', () => {
+    stateMock.sources = {
+      current: 'data',
+      info: { data: { name: 'data', readOnly: false } },
+    };
+    stateMock.user = {
+      username: 'teacher',
+      scopes: [
+        { name: 'data', scope: '/data', permissions: { view: true, download: false, modify: false, create: false, delete: false } },
+        { name: 'data', scope: '/data/data', permissions: { ...allowAll } },
+      ],
+    };
+    // Backend stripped baseScope '/data', so req.path '/data/x' corresponds to '/data/data/x'.
+    stateMock.req = { path: '/data/x' };
+    expect(getters.sourcePermissions('data').modify).toBe(true);
+  });
+
+  it('evaluates shouldFetchFileContent against the target file path instead of stale state.req.path', () => {
+    stateMock.sources = {
+      current: 'data',
+      info: { data: { name: 'data', readOnly: false } },
+    };
+    stateMock.user = {
+      username: 'teacher',
+      scopes: [
+        { name: 'data', scope: '/', permissions: { view: true, download: false, modify: false, create: false, delete: false },
+        },
+        { name: 'data', scope: '/allowed', permissions: { ...allowAll } },
+      ],
+    };
+    // Previous directory denied download
+    stateMock.req = { path: '/denied' };
+    expect(
+      getters.shouldFetchFileContent({
+        name: 'notes.txt',
+        source: 'data',
+        path: '/allowed/notes.txt',
+      })
+    ).toBe(true);
+    expect(
+      getters.shouldFetchFileContent({
+        name: 'secret.txt',
+        source: 'data',
+        path: '/denied/secret.txt',
+      })
+    ).toBe(false);
+  });
 });

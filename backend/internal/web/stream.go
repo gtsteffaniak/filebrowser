@@ -88,7 +88,7 @@ func shareRelativeDisplayName(d *Context, shareRelativePath string) string {
 	return name
 }
 
-func mintViewGrant(d *Context, sourceName string) (string, error) {
+func mintViewGrant(d *Context, sourceName string, indexPath ...string) (string, error) {
 	internalSource := sourceName
 	if d.Share.Hash != "" {
 		var err error
@@ -99,7 +99,7 @@ func mintViewGrant(d *Context, sourceName string) (string, error) {
 	} else if internalSource == "" {
 		return "", fmt.Errorf("source is required")
 	}
-	if !canMintViewToken(d, internalSource) {
+	if !canMintViewToken(d, internalSource, indexPath...) {
 		return "", fmt.Errorf("view permission required")
 	}
 	scope := viewGrantScope(d, internalSource)
@@ -226,7 +226,7 @@ func viewTokenHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 	return http.StatusOK, nil
 }
 
-func ValidateViewGrant(token string, d *Context, sourceName string) error {
+func ValidateViewGrant(token string, d *Context, sourceName string, indexPath ...string) error {
 	grant, ok := utils.ViewGrantsCache.Get(token)
 	if !ok {
 		return fmt.Errorf("invalid or expired view token")
@@ -250,7 +250,7 @@ func ValidateViewGrant(token string, d *Context, sourceName string) error {
 			return err
 		}
 	}
-	perms, err := effectiveFilePerms(viewCtx, internalSource)
+	perms, err := effectiveFilePerms(viewCtx, internalSource, indexPath...)
 	if err != nil || !perms.View {
 		return fmt.Errorf("view permission required")
 	}
@@ -295,11 +295,11 @@ func hydratePublicShareContext(d *Context, r *http.Request) {
 	}
 }
 
-func canMintViewToken(d *Context, source string) bool {
+func canMintViewToken(d *Context, source string, indexPath ...string) bool {
 	if d.Share.Hash != "" && d.Share.ShareType == "upload" {
 		return false
 	}
-	perms, err := effectiveFilePerms(d, source)
+	perms, err := effectiveFilePerms(d, source, indexPath...)
 	return err == nil && perms.View
 }
 
@@ -607,18 +607,17 @@ func streamHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, err
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("invalid file path: %v", err)
 	}
-	if err = ValidateViewGrant(token, d, source); err != nil {
-		return http.StatusForbidden, err
-	}
-	if !IsMediaStreamFile(filepath.Base(cleanPath)) {
-		return http.StatusForbidden, fmt.Errorf("stream endpoint supports audio and video only")
-	}
-
 	userscope, err := d.User.GetScopeForSourceName(source)
 	if err != nil {
 		return http.StatusForbidden, err
 	}
 	scopedPath := utils.JoinScopedIndexPath(userscope, cleanPath)
+	if err = ValidateViewGrant(token, d, source, scopedPath); err != nil {
+		return http.StatusForbidden, err
+	}
+	if !IsMediaStreamFile(filepath.Base(cleanPath)) {
+		return http.StatusForbidden, fmt.Errorf("stream endpoint supports audio and video only")
+	}
 	return streamFilesHandler(w, r, d, source, []string{scopedPath})
 }
 

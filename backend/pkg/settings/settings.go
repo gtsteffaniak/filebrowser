@@ -97,7 +97,7 @@ func MergeDefaultEnabledBackendScopes(existing []users.BackendScope, declined []
 		if scopes, ok := bySourcePath[src.Path]; ok {
 			for _, scope := range scopes {
 				if scope.Scope == "" {
-					scope.Scope = src.Config.DefaultUserScope
+					scope.Scope = users.NormalizeScope(src.Config.DefaultUserScope)
 				}
 				newScopes = append(newScopes, scope)
 			}
@@ -111,7 +111,7 @@ func MergeDefaultEnabledBackendScopes(existing []users.BackendScope, declined []
 		}
 		newScopes = append(newScopes, users.BackendScope{
 			Path:  src.Path,
-			Scope: src.Config.DefaultUserScope,
+			Scope: users.NormalizeScope(src.Config.DefaultUserScope),
 		})
 	}
 	for _, s := range existing {
