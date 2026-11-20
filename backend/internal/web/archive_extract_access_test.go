@@ -629,9 +629,19 @@ func TestArchiveCreateAndMutation_NestedScopes(t *testing.T) {
 		t.Fatal("expected public.txt in archive")
 	}
 
-	// 3. Subtree delete check blocks deleting /src because /src/secret has Delete=false.
+	// 3. Subtree checks block deleting, moving, or copying /src because /src/secret has Delete=false and Download=false.
 	if delErr := subtreeDeletePermitted(&Context{User: &user}, sourceName, "/src"); delErr == nil {
 		t.Fatal("expected subtreeDeletePermitted to block deleting parent of Delete=false child scope")
+	}
+	if moveErr := subtreeScopesPermitted(&Context{User: &user}, sourceName, "/src", "move", func(p users.SourceFilePermissions) bool {
+		return p.Modify && p.Delete
+	}); moveErr == nil {
+		t.Fatal("expected subtreeScopesPermitted to block moving parent of non-modifiable/non-deletable child scope")
+	}
+	if copyErr := subtreeScopesPermitted(&Context{User: &user}, sourceName, "/src", "copy", func(p users.SourceFilePermissions) bool {
+		return p.Download
+	}); copyErr == nil {
+		t.Fatal("expected subtreeScopesPermitted to block copying parent of Download=false child scope")
 	}
 
 	// 4. Symlink inside writable /src pointing to read-only /src/secret must be blocked by mutationPermsAtRealPath.
@@ -648,5 +658,14 @@ func TestArchiveCreateAndMutation_NestedScopes(t *testing.T) {
 		return p.Create
 	}); mutErr == nil {
 		t.Fatal("expected mutationPermsAtRealPath to reject symlink write targeting read-only nested scope")
+	}
+
+	// 5. ServeSingleFile rejects viewing a symlink inside viewable /src that resolves into a View=false child scope.
+	user.BackendScopes[2].Permissions.View = false
+	rec = httptest.NewRecorder()
+	req = httptest.NewRequest(http.MethodGet, "/api/resources/view", nil)
+	status, handlerErr = ServeSingleFile(rec, req, &Context{User: &user}, sourceName, "/src/link_to_secret/hidden.txt", "hidden.txt", ServeSingleFileOptions{ForceInline: true})
+	if status != http.StatusForbidden || handlerErr == nil {
+		t.Fatalf("expected ServeSingleFile to reject symlink targeting View=false scope, got status=%d err=%v", status, handlerErr)
 	}
 }

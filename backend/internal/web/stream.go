@@ -14,6 +14,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing"
@@ -496,6 +497,14 @@ func ServeSingleFile(w http.ResponseWriter, r *http.Request, d *Context, source 
 	}
 	if !state.AccessPermittedAtRealPath(idx, permUser, realPath, isDir) {
 		return http.StatusForbidden, fmt.Errorf("access denied to path %s", scopedFilePath)
+	}
+	if realPermErr := mutationPermsAtRealPath(d, idx, source, realPath, isDir, func(p users.SourceFilePermissions) bool {
+		if !opts.ForceInline && !opts.RangeOnly {
+			return p.View && p.Download
+		}
+		return p.View
+	}); realPermErr != nil {
+		return http.StatusForbidden, realPermErr
 	}
 
 	isOnlyOffice := IsOnlyOfficeCompatibleFile(displayFileName) && settings.Config.Integrations.OnlyOffice.Url != "" && !settings.Config.Integrations.OnlyOffice.IsCollabora()

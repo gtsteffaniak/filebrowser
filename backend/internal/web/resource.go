@@ -1614,6 +1614,32 @@ func ResourcePatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 				response.Failed = append(response.Failed, moveCopyWithClientPaths(item, clientFromPath, clientToPath))
 				continue
 			}
+			if isSrcDir {
+				resolvedSrcIdxPath, idxErr := resolvedIndexPathAtRealPath(srcIdx, realSrc, true)
+				if idxErr != nil {
+					item.Message = "permission denied"
+					response.Failed = append(response.Failed, moveCopyWithClientPaths(item, clientFromPath, clientToPath))
+					continue
+				}
+				subtreeCheck := func(p users.SourceFilePermissions) bool {
+					if req.Action == "copy" {
+						return p.Download
+					}
+					return p.Modify && p.Delete
+				}
+				if subErr := subtreeScopesPermitted(d, item.FromSource, fullSrcIndexPath, req.Action, subtreeCheck); subErr != nil {
+					item.Message = "permission denied"
+					response.Failed = append(response.Failed, moveCopyWithClientPaths(item, clientFromPath, clientToPath))
+					continue
+				}
+				if resolvedSrcIdxPath != fullSrcIndexPath {
+					if subErr := subtreeScopesPermitted(d, item.FromSource, resolvedSrcIdxPath, req.Action, subtreeCheck); subErr != nil {
+						item.Message = "permission denied"
+						response.Failed = append(response.Failed, moveCopyWithClientPaths(item, clientFromPath, clientToPath))
+						continue
+					}
+				}
+			}
 			if realPermErr := mutationPermsAtRealPath(d, dstIdx, item.ToSource, realDest, isSrcDir, func(p users.SourceFilePermissions) bool {
 				if req.Action == "copy" {
 					return p.Create

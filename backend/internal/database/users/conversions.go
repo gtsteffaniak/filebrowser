@@ -188,10 +188,10 @@ func (u *User) FilePermsForSourcePath(sourcePath string, indexPath ...string) (S
 	if pathProvided {
 		var bestScope *BackendScope
 		var bestLen int
-		var hasSourceScope bool
+		var sourceScopeCount int
 		for i, scope := range u.BackendScopes {
 			if scope.Path == sourcePath {
-				hasSourceScope = true
+				sourceScopeCount++
 				scopePath := normalizeScope(scope.Scope)
 				// Root scope "/" matches every path; others match by prefix
 				matches := scopePath == "/" || currentPath == scopePath || strings.HasPrefix(currentPath, scopePath+"/")
@@ -205,14 +205,14 @@ func (u *User) FilePermsForSourcePath(sourcePath string, indexPath ...string) (S
 			}
 		}
 		if bestScope == nil {
-			if !hasSourceScope && u.BackendSourcePermissions != nil {
+			if sourceScopeCount == 0 && u.BackendSourcePermissions != nil {
 				perms, ok := u.BackendSourcePermissions[sourcePath]
 				return perms, ok
 			}
 			return DenyAllSourceFilePermissions(), false
 		}
 		perms := bestScope.Permissions
-		if perms.IsUnset() {
+		if perms.IsUnset() && sourceScopeCount == 1 {
 			if u.BackendSourcePermissions != nil {
 				if legacy, ok := u.BackendSourcePermissions[sourcePath]; ok {
 					return legacy, true

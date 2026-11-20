@@ -122,12 +122,11 @@ describe('getters.sourcePermissions on read-only sources', () => {
     stateMock.user = {
       username: 'teacher',
       scopes: [
-        { name: 'data', scope: '/', permissions: { view: true, download: false, modify: false, create: false, delete: false },
-        },
+        { name: 'data', scope: '/', permissions: { view: false, download: false, modify: false, create: false, delete: false } },
         { name: 'data', scope: '/allowed', permissions: { ...allowAll } },
       ],
     };
-    // Previous directory denied download
+    // Previous directory denied both view and download
     stateMock.req = { path: '/denied' };
     expect(
       getters.shouldFetchFileContent({

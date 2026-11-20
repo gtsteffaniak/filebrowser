@@ -63,8 +63,11 @@ func (p *extractAccessPolicy) allowWriteSymlinkEntry(archiveEntryName, destPath 
 	if rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
 		return errEntryPathEscape
 	}
-	rel = filepath.ToSlash(rel)
-	indexPath := utils.JoinPathAsUnix(p.destIndexPrefix, rel)
+	indexPath, err := resolvedIndexPathAtRealPath(p.idx, linkPath, false)
+	if err != nil {
+		logger.Debugf("unarchive: symlink entry index path: %v", err)
+		return errEntryPathInvalid
+	}
 	if !state.AccessPermitted(p.idx.Path, utils.IndexPathFromNormalized(indexPath, true), p.username) {
 		logger.Debugf("unarchive: symlink entry %q denied at index path %s for user %s", archiveEntryName, indexPath, p.username)
 		return newExtractAccessDenied(archiveEntryName)
@@ -118,13 +121,15 @@ func (p *extractAccessPolicy) allowWrite(archiveEntryName, destPath string) erro
 		logger.Debugf("unarchive: eval destination symlinks: %v", err)
 		return errEntryPathInvalid
 	}
-	rel, err := filepath.Rel(filepath.Clean(destResolved), filepath.Clean(effectivePath))
-	if err != nil {
+	if _, err = filepath.Rel(filepath.Clean(destResolved), filepath.Clean(effectivePath)); err != nil {
 		logger.Debugf("unarchive: entry relative path: %v", err)
 		return errEntryPathInvalid
 	}
-	rel = filepath.ToSlash(rel)
-	indexPath := utils.JoinPathAsUnix(p.destIndexPrefix, rel)
+	indexPath, err := resolvedIndexPathAtRealPath(p.idx, filepath.Clean(effectivePath), false)
+	if err != nil {
+		logger.Debugf("unarchive: entry index path: %v", err)
+		return errEntryPathInvalid
+	}
 	if !state.AccessPermitted(p.idx.Path, utils.IndexPathFromNormalized(indexPath, true), p.username) {
 		logger.Debugf("unarchive: entry %q denied at index path %s for user %s", archiveEntryName, indexPath, p.username)
 		return newExtractAccessDenied(archiveEntryName)

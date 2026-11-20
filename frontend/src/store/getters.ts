@@ -554,13 +554,13 @@ export const getters = {
     }
     return files.sort((a, b) => a.progress - b.progress)
   },
-  fileViewingDisabled: (filename: string) => {
+  fileViewingDisabled: (filename: string, source?: string, targetPath?: string) => {
     if (getters.isShare()) {
       if (state.shareInfo?.disableFileViewer || state.shareInfo?.shareType === "upload") {
         return true
       }
     } else {
-      if (!getters.sourcePermissions().view) {
+      if (!getters.sourcePermissions(source, targetPath).view) {
         return true
       }
     }
@@ -601,7 +601,7 @@ export const getters = {
     return false
   },
   shouldFetchFileContent: (fileInfo: { name: string; source?: string; path?: string; onlyOfficeId?: string }) => {
-    if (getters.fileViewingDisabled(fileInfo.name)) return false
+    if (getters.fileViewingDisabled(fileInfo.name, fileInfo.source, fileInfo.path)) return false
     if (getters.isWopiFile(fileInfo.name) && !getters.isShare()) return false
     if (fileInfo.onlyOfficeId && !getters.officeViewingDisabled(fileInfo.name)) return false
     if (!getters.sourcePermissions(fileInfo.source, fileInfo.path).download) return false

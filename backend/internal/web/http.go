@@ -91,8 +91,9 @@ func effectiveFilePermsForClientPath(d *Context, sourceName, clientPath string) 
 	return share.EffectiveFilePermissionsForPath(d.User, nil, sourceName, fullIndexPath)
 }
 
-// subtreeDeletePermitted ensures no nested child scope strictly under fullIndexPath denies Delete.
-func subtreeDeletePermitted(d *Context, sourceName, fullIndexPath string) error {
+// subtreeScopesPermitted ensures every nested child scope strictly under fullIndexPath
+// satisfies check(scope.Permissions).
+func subtreeScopesPermitted(d *Context, sourceName, fullIndexPath, action string, check func(users.SourceFilePermissions) bool) error {
 	if d == nil || d.Share.Hash != "" || d.User == nil {
 		return nil
 	}
@@ -107,27 +108,36 @@ func subtreeDeletePermitted(d *Context, sourceName, fullIndexPath string) error 
 		}
 		s := users.NormalizeScope(scope.Scope)
 		isDescendant := s != normTarget && (normTarget == "/" || strings.HasPrefix(s, normTarget+"/"))
-		if isDescendant && !scope.Permissions.Delete {
-			return fmt.Errorf("user is not allowed to delete protected child scope %s", s)
+		if isDescendant && !check(scope.Permissions) {
+			return fmt.Errorf("user is not allowed to %s protected child scope %s", action, s)
 		}
 	}
 	return nil
 }
 
-// mutationPermsAtRealPath re-evaluates file permissions against the symlink-resolved realPath.
-func mutationPermsAtRealPath(d *Context, idx *indexing.Index, sourceName, realPath string, isDir bool, check func(users.SourceFilePermissions) bool) error {
-	if d == nil || d.Share.Hash != "" || idx == nil {
-		return nil
+// subtreeDeletePermitted ensures no nested child scope strictly under fullIndexPath denies Delete.
+func subtreeDeletePermitted(d *Context, sourceName, fullIndexPath string) error {
+	return subtreeScopesPermitted(d, sourceName, fullIndexPath, "delete", func(p users.SourceFilePermissions) bool {
+		return p.Delete
+	})
+}
+
+// resolvedIndexPathAtRealPath maps a symlink-resolved filesystem path back to its canonical
+// index path under idx.Path, rejecting any path that escapes the source root.
+func resolvedIndexPathAtRealPath(idx *indexing.Index, realPath string, isDir bool) (string, error) {
+	if idx == nil || realPath == "" {
+		return "", fmt.Errorf("user is not allowed to mutate resolved target path")
 	}
 	lexical := realPath
-	if !strings.HasPrefix(realPath, idx.Path) {
+	relToIdx, relErr := filepath.Rel(idx.Path, realPath)
+	if relErr != nil || relToIdx == ".." || strings.HasPrefix(relToIdx, ".."+string(filepath.Separator)) {
 		root, err := filepath.EvalSymlinks(idx.Path)
 		if err != nil {
-			return fmt.Errorf("user is not allowed to mutate resolved target path")
+			return "", fmt.Errorf("user is not allowed to mutate resolved target path")
 		}
 		rel, err := filepath.Rel(root, realPath)
 		if err != nil || rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
-			return fmt.Errorf("user is not allowed to mutate resolved target path")
+			return "", fmt.Errorf("user is not allowed to mutate resolved target path")
 		}
 		lexical = idx.Path
 		if rel != "." {
@@ -137,6 +147,18 @@ func mutationPermsAtRealPath(d *Context, idx *indexing.Index, sourceName, realPa
 	resolvedIndexPath := idx.MakeIndexPath(lexical, isDir).String()
 	if resolvedIndexPath != "/" {
 		resolvedIndexPath = strings.TrimRight(resolvedIndexPath, "/")
+	}
+	return resolvedIndexPath, nil
+}
+
+// mutationPermsAtRealPath re-evaluates file permissions against the symlink-resolved realPath.
+func mutationPermsAtRealPath(d *Context, idx *indexing.Index, sourceName, realPath string, isDir bool, check func(users.SourceFilePermissions) bool) error {
+	if d == nil || d.Share.Hash != "" || idx == nil {
+		return nil
+	}
+	resolvedIndexPath, err := resolvedIndexPathAtRealPath(idx, realPath, isDir)
+	if err != nil {
+		return err
 	}
 	perms, err := effectiveFilePerms(d, sourceName, resolvedIndexPath)
 	if err != nil {
