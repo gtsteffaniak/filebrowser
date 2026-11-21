@@ -11,7 +11,7 @@ vi.mock('@/store', () => ({
   state: { sessionId: 'test-session' },
 }));
 
-import { attachHlsToVideo } from '@/plyr/hlsAdapter.js';
+import { attachHlsToVideo } from '@/player/hlsAdapter.js';
 
 /** Minimal MediaSource-less element that reports native HLS support. */
 function nativeHlsVideo() {

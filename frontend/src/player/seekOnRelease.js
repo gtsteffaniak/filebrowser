@@ -8,7 +8,7 @@
  * @param {HTMLInputElement} input
  * @returns {number | null}
  */
-export function readPlyrSeekPercent(input) {
+export function readSeekPercent(input) {
   const attr = input.getAttribute('seek-value');
   if (attr !== null && attr !== '') {
     input.removeAttribute('seek-value');
@@ -39,7 +39,7 @@ function clientXFromEvent(event) {
  *   target in seconds before the browser clamps it to the seekable range —
  *   for live-paced transcodes the intent can lie past the produced edge.
  */
-export function commitPlyrSeek(player, event, onSeekTarget) {
+export function commitSeek(player, event, onSeekTarget) {
   const seek = player?.elements?.inputs?.seek;
   const duration = player?.duration;
   if (!seek || !Number.isFinite(duration) || duration <= 0) {
@@ -58,7 +58,7 @@ export function commitPlyrSeek(player, event, onSeekTarget) {
     }
   }
   const target = event?.currentTarget instanceof HTMLInputElement ? event.currentTarget : seek;
-  const percent = readPlyrSeekPercent(target);
+  const percent = readSeekPercent(target);
   if (percent === null) {
     return;
   }
@@ -72,7 +72,7 @@ export function commitPlyrSeek(player, event, onSeekTarget) {
  * @param {{ onSeekTarget?: (targetSec: number) => void }} [options]
  * @returns {() => void}
  */
-export function enablePlyrSeekOnRelease(player, { onSeekTarget } = {}) {
+export function enableSeekOnRelease(player, { onSeekTarget } = {}) {
   const seek = player?.elements?.inputs?.seek;
   if (!seek) {
     return () => {};
@@ -88,7 +88,7 @@ export function enablePlyrSeekOnRelease(player, { onSeekTarget } = {}) {
     if (event.type === 'mouseup' || event.type === 'touchend') {
       ignoreNextChange = true;
     }
-    commitPlyrSeek(player, event, onSeekTarget);
+    commitSeek(player, event, onSeekTarget);
   };
 
   const captureOpts = { capture: true };
@@ -106,6 +106,6 @@ export function enablePlyrSeekOnRelease(player, { onSeekTarget } = {}) {
 }
 
 /** Plyr listeners.seek hook: return false to skip seek-on-input. */
-export function blockPlyrSeekOnInput() {
+export function blockSeekOnInput() {
   return false;
 }

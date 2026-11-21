@@ -5,8 +5,8 @@
       <LoadingSpinner size="medium" />
     </div>
     <div class="preview" :class="{
-      'plyr-background-light': !isDarkMode && previewType === 'audio',
-      'plyr-background-dark': isDarkMode && previewType === 'audio',
+      'media-background-light': !isDarkMode && previewType === 'audio',
+      'media-background-dark': isDarkMode && previewType === 'audio',
       'transitioning': isTransitioning
     }" v-if="!isDeleted">
       <template v-if="showImage && !isTransitioning">
@@ -41,7 +41,7 @@
           :sharedTranscodePlayback="transcodePlaybackController"
           @playback-start="playbackStarted = true"
           @needs-transcode="handleVideoTranscodeOffer"
-          :class="{ 'plyr-background': previewType === 'audio' }"
+          :class="{ 'media-background': previewType === 'audio' }"
           @navigate-previous="navigatePrevious"
           @navigate-next="navigateNext"
           @close-preview="exitPreviewFromImageGesture"
@@ -156,8 +156,8 @@ import {
 } from "@/utils/playbackQuery.js";
 import { isPdfFile } from "@/utils/mediaFile.js";
 import { shouldUsePdfPreviewFallback } from "@/utils/pdfPreview.js";
-import { TranscodePlaybackController } from "@/plyr/transcodePlaybackController.js";
-import { isTranscodeAvailable } from "@/plyr/transcodeMode.js";
+import { TranscodePlaybackController } from "@/player/transcodePlaybackController.js";
+import { isTranscodeAvailable } from "@/player/transcodeMode.js";
 export default {
   name: "preview",
   components: {

@@ -253,7 +253,7 @@ export function positionScrubPreviewPopup(popup, progressRect, clientX, bounds =
  * }} options
  * @returns {() => void}
  */
-export function enablePlyrScrubPreview(player, options) {
+export function enableScrubPreview(player, options) {
   const {
     buildPreviewUrl,
     formatTime = formatScrubPreviewTime,

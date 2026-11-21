@@ -7,7 +7,7 @@ import {
   isPlayTeardownError,
   primePlay,
   resumeWhenReady,
-} from '@/plyr/playbackIntent.js';
+} from '@/player/playbackIntent.js';
 
 function videoStub({ readyState = 0, paused = true, ended = false, play } = {}) {
   const listeners = new Map();

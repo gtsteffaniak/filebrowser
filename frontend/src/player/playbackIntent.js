@@ -1,4 +1,4 @@
-import { transcodeLog, transcodeWarn } from '@/plyr/transcodeDebug.js';
+import { transcodeLog, transcodeWarn } from '@/player/transcodeDebug.js';
 
 /**
  * Helpers for preserving playback intent across src/HLS handoffs.

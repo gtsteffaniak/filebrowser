@@ -1,7 +1,7 @@
 import Hls from 'hls.js';
 import { getTranscodePlaylistURL } from '@/api/transcode.js';
 import { state } from '@/store/index.ts';
-import { transcodeError, transcodeLog, transcodeVerbose, transcodeWarn } from '@/plyr/transcodeDebug.js';
+import { transcodeError, transcodeLog, transcodeVerbose, transcodeWarn } from '@/player/transcodeDebug.js';
 
 const ATTACH_TIMEOUT_MS = 45_000;
 /** Wait for decoded dimensions before declaring attach ready (MSE can buffer without painting). */

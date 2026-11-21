@@ -135,7 +135,7 @@ export default {
   methods: {
     onKeydown(event) {
       // Allow "esc" key to close prompt and block other shortcuts
-      // e.g. in plyrViewer we have "P" and "L", without this we can't type those letters
+      // e.g. in the media player we have "P" and "L", without this we can't type those letters
     if (event.key !== "Escape") {
         event.stopPropagation();
       }

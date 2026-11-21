@@ -5,7 +5,7 @@ import {
   isTranscodeHlsMode,
   normalizeTranscodeMode,
   normalizeTranscodeSessionStatus,
-} from '@/plyr/transcodeMode.js';
+} from '@/player/transcodeMode.js';
 
 describe('transcodeMode', () => {
   it('normalizes supported modes', () => {

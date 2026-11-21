@@ -1,9 +1,9 @@
-import { transcodeLog } from '@/plyr/transcodeDebug.js';
+import { transcodeLog } from '@/player/transcodeDebug.js';
 
 /**
  * Show a loading indicator while the native video element is fetching or buffering.
  */
-export function enablePlyrVideoLoadingIndicator(player, onLoadingChange) {
+export function enableVideoLoadingIndicator(player, onLoadingChange) {
   if (!player?.media || typeof onLoadingChange !== 'function') {
     return () => {};
   }

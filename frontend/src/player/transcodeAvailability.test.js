@@ -7,7 +7,7 @@ vi.mock('@/utils/constants', () => ({
 
 import { state } from '@/store/index.ts';
 import { globalVars } from '@/utils/constants.ts';
-import { isTranscodeAvailable } from '@/plyr/transcodeMode.js';
+import { isTranscodeAvailable } from '@/player/transcodeMode.js';
 
 describe('isTranscodeAvailable', () => {
   beforeEach(() => {

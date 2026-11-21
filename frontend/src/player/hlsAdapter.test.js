@@ -58,7 +58,7 @@ vi.mock('@/store', () => ({
   state: { sessionId: 'test-session' },
 }));
 
-import { attachHlsToVideo, waitUntilVideoRenderable, attachDeadlineMs, Hls } from '@/plyr/hlsAdapter.js';
+import { attachHlsToVideo, waitUntilVideoRenderable, attachDeadlineMs, Hls } from '@/player/hlsAdapter.js';
 
 describe('attachDeadlineMs', () => {
   it('uses the base budget for a start at 0', () => {

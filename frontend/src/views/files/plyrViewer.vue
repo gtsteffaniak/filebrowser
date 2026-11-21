@@ -1,10 +1,10 @@
 <template>
-  <div class="plyr-viewer">
+  <div class="media-player">
     <!-- Audio with plyr -->
     <div
       v-if="previewType === 'audio'"
       ref="audioPlayerGestureRoot"
-      class="audio-player-container audio-player-container--plyr-gestures"
+      class="audio-player-container audio-player-container--gestures"
       :class="{ 'audio-player-container--lyrics-open': mobileLyricsActive }"
     >
       <!-- Desktop panel button, will auto‑hide only when panel is closed -->
@@ -75,7 +75,7 @@
           icon="lyrics"
           position="top-left"
           zone-height="8.5em"
-          group="plyr-controls"
+          group="media-controls"
           :label="$t('player.toggleLyrics')"
           @press="showMobileLyrics = !showMobileLyrics"
         />
@@ -85,7 +85,7 @@
       </template>
       <!-- Audio controls -->
       <div class="audio-controls-container">
-        <div class="plyr-audio-container">
+        <div class="media-audio-container">
           <audio :src="raw" :type="req.type" :autoplay="shouldAutoplay" @play="handlePlay" ref="audioElement"></audio>
         </div>
       </div>
@@ -111,7 +111,7 @@
         'video-player-container--transcode-switching': transcodeSwitchInProgress,
       }"
     >
-      <div class="plyr-video-container">
+      <div class="media-video-container">
         <video
           ref="videoElement"
           :type="req.type"
@@ -154,7 +154,7 @@
       v-if="showQueueButton"
       icon="queue_music"
       :badge="queueCount"
-      group="plyr-controls"
+      group="media-controls"
       @press="showQueuePrompt"
       :label="queueButtonLabel"
     />
@@ -202,12 +202,12 @@ import { globalVars } from "@/utils/constants.ts";
 import { getSubtitleFormatExtension } from "@/utils/subtitles.js";
 import { getPreviewURL, getPreviewURLPublic } from "@/api/resources.js";
 import {
-  blockPlyrSeekOnInput,
-  enablePlyrSeekOnRelease,
-} from "@/plyr/plyrSeekOnRelease.js";
-import { enablePlyrScrubPreview } from "@/plyr/plyrScrubPreview.js";
-import { enablePlyrVideoLoadingIndicator } from "@/plyr/plyrVideoLoading.js";
-import { enableOverlaidHintController } from "@/plyr/overlaidHintController.js";
+  blockSeekOnInput,
+  enableSeekOnRelease,
+} from "@/player/seekOnRelease.js";
+import { enableScrubPreview } from "@/player/scrubPreview.js";
+import { enableVideoLoadingIndicator } from "@/player/videoLoading.js";
+import { enableOverlaidHintController } from "@/player/overlaidHintController.js";
 import LoadingSpinner from '@/components/LoadingSpinner.vue';
 import FloatingActionButton from '@/components/settings/FloatingActionButton.vue';
 import {
@@ -219,8 +219,8 @@ import {
   resolveTranscodeModeForPlayback,
   savePreferredTranscodeMode,
 } from '@/utils/transcodePreference.js';
-import { createTranscodeClientId } from '@/plyr/transcodeSession.js';
-import { TranscodePlaybackController } from '@/plyr/transcodePlaybackController.js';
+import { createTranscodeClientId } from '@/player/transcodeSession.js';
+import { TranscodePlaybackController } from '@/player/transcodePlaybackController.js';
 import {
   TRANSCODE_MODES as PLYR_TRANSCODE_MODES,
   TRANSCODE_HLS_MODES as PLYR_TRANSCODE_HLS_MODES,
@@ -228,15 +228,15 @@ import {
   normalizeTranscodeSessionStatus,
   isTranscodeHlsMode,
   isTranscodeAvailable,
-} from '@/plyr/transcodeMode.js';
-import { transcodeLog, transcodeWarn } from '@/plyr/transcodeDebug.js';
-import { appendMediaFragment, isPlayBlockedError, primePlay } from '@/plyr/playbackIntent.js';
+} from '@/player/transcodeMode.js';
+import { transcodeLog, transcodeWarn } from '@/player/transcodeDebug.js';
+import { appendMediaFragment, isPlayBlockedError, primePlay } from '@/player/playbackIntent.js';
 import { needsTranscodeFirst } from '@/utils/canBrowserPlayNative.js';
 import { getTranscodeSessions } from '@/api/transcode.js';
 import { getCachedViewToken } from '@/api/viewToken.js';
 import { notify } from "@/notify/index.ts";
 import { isInLeftNavTapZone, isInRightNavTapZone } from '@/utils/navigationEdgeZones.js';
-import { zoneFromClientX } from '@/plyr/gestureZones.js';
+import { zoneFromClientX } from '@/player/gestureZones.js';
 import { ownsMediaSession as ownsMediaSessionSlot } from "@/utils/mediaSessionOwnership.js";
 
 const PLYR_CAPTION_SIZE_IDS = ['small', 'medium', 'large', 'xlarge'];
@@ -331,6 +331,7 @@ export default {
       // Metadata & Art
       metadata: null, // Null by default, will be loaded from the audio file.
       albumArtUrl: null,
+      // Storage keys (plyrAlbumArtSize, plyrShowDesktopPanel, plyrShowMobileLyrics) keep the legacy prefix so saved preferences survive.
       albumArtSize: Number.parseFloat(sessionStorage.getItem('plyrAlbumArtSize')) || 24,
       isHovering: false, // Track hover state
 
@@ -889,7 +890,7 @@ export default {
           fallback: true,
           // iPhone Safari has no element Fullscreen API; only video.webkitEnterFullscreen() hides the browser UI.
           iosNative: true,
-          container: '.plyr-viewer',
+          container: '.media-player',
         },
         iconUrl: `${globalVars.baseURL}public/static/img/plyr.svg`,
         // Blob/async tracks need addtrack → captions.update; otherwise meta never fills and toggle CC throws (track undefined).
@@ -900,7 +901,7 @@ export default {
           update: true,
         },
         listeners: {
-          seek: blockPlyrSeekOnInput,
+          seek: blockSeekOnInput,
         },
       };
     },
@@ -1318,9 +1319,9 @@ export default {
       }
       const el = this.player.elements.container;
       for (const id of PLYR_CAPTION_SIZE_IDS) {
-        el.classList.remove(`plyr-caption-size--${id}`);
+        el.classList.remove(`caption-size--${id}`);
       }
-      el.classList.add(`plyr-caption-size--${this.getStoredCaptionSize()}`);
+      el.classList.add(`caption-size--${this.getStoredCaptionSize()}`);
     },
     syncCaptionSizeSettingsVisibility() {
       if (!this.player) {
@@ -1527,7 +1528,7 @@ export default {
         }
         this.setupMediaSession();
         this.setupPlyrEvents();
-        this.seekOnReleaseCleanup = enablePlyrSeekOnRelease(this.player);
+        this.seekOnReleaseCleanup = enableSeekOnRelease(this.player);
         this.setupScrubPreview();
         this.setupVideoLoadingIndicator();
         if (this.previewType === 'video' && (this.startTranscode || (this.wantsTranscodePlayback && !this.shouldProactivelyOfferTranscode))) {
@@ -2330,7 +2331,7 @@ export default {
         return;
       }
       this.videoLoadingCleanup?.();
-      this.videoLoadingCleanup = enablePlyrVideoLoadingIndicator(
+      this.videoLoadingCleanup = enableVideoLoadingIndicator(
         this.player,
         (loading) => {
           this.videoPlaybackLoading = loading;
@@ -2342,7 +2343,7 @@ export default {
         return;
       }
       this.scrubPreviewCleanup?.();
-      this.scrubPreviewCleanup = enablePlyrScrubPreview(this.player, {
+      this.scrubPreviewCleanup = enableScrubPreview(this.player, {
         buildPreviewUrl: (atPercentage) => {
           const base = getters.isShare()
             ? getPreviewURLPublic(this.req.path, 'large')
@@ -3649,11 +3650,11 @@ export default {
 }
 
 /* Background styles for the audio player */
-.plyr-background-dark {
+.media-background-dark {
   background: radial-gradient(#3b3b3b, black);
 }
 
-.plyr-background-light {
+.media-background-light {
   background: radial-gradient(#262626, #e2e2e2);
 }
 
@@ -3661,12 +3662,12 @@ export default {
 *** STYLES FOR THE MEDIA PLAYER ***
 **********************************/
 
-.plyr-video-container {
+.media-video-container {
   width: 100%;
   height: 100%;
 }
 
-.plyr-viewer {
+.media-player {
   height: 100%;
   width: 100%;
 }
@@ -4052,7 +4053,7 @@ export default {
 }
 
 /*
- * Caption size: --fb-captions-font-size on .plyr (plyr-caption-size--* from JS; inherits to .plyr__captions).
+ * Caption size: --fb-captions-font-size on .plyr (caption-size--* from JS; inherits to .plyr__captions).
  * Video: cqmin replaces vmin when supported so small players don’t use the full viewport scale.
  */
 .plyr__captions {
@@ -4072,19 +4073,19 @@ export default {
     0 0.08em 0.2em rgb(0 0 0 / 55%);
 }
 
-.plyr.plyr-caption-size--small {
+.plyr.caption-size--small {
   --fb-captions-font-size: max(1em, 2.5vmin);
 }
 
-.plyr.plyr-caption-size--medium {
+.plyr.caption-size--medium {
   --fb-captions-font-size: max(1.5em, 4vmin);
 }
 
-.plyr.plyr-caption-size--large {
+.plyr.caption-size--large {
   --fb-captions-font-size: max(2em, 5vmin);
 }
 
-.plyr.plyr-caption-size--xlarge {
+.plyr.caption-size--xlarge {
   --fb-captions-font-size: max(2.5em, 5.5vmin);
 }
 
@@ -4170,7 +4171,7 @@ export default {
 }
 
 /* Full-area swipe / double-tap seek (album art + metadata + Plyr); skip overlay uses position absolute. */
-.audio-player-container--plyr-gestures {
+.audio-player-container--gestures {
   position: relative;
   touch-action: manipulation;
 }

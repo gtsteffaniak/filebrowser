@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
-import { enableOverlaidHintController } from '@/plyr/overlaidHintController.js';
+import { enableOverlaidHintController } from '@/player/overlaidHintController.js';
 
 function createMockPlayer({ playing = true } = {}) {
   const container = document.createElement('div');

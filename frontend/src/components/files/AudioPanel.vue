@@ -88,6 +88,7 @@ type AnalyserSettings = Pick<VisualizerConfig, "fftSize" | "smoothing" | "minDec
 const createFftBuffer = (length: number) => new Float32Array(length);
 type FftBuffer = ReturnType<typeof createFftBuffer>;
 
+// Keeps the legacy "plyr" prefix so saved preferences survive.
 const LAST_TAB_KEY = "plyrSidePanelActiveTab";
 const PANEL_TAB_IDS: readonly PanelTab[] = ["queue", "lyrics", "visualizer"];
 const VIS_PAD_LEFT = 34; // px reserved on the left for Y-axis (dB) labels

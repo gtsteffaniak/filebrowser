@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { enablePlyrVideoLoadingIndicator } from '@/plyr/plyrVideoLoading.js';
+import { enableVideoLoadingIndicator } from '@/player/videoLoading.js';
 
 function fakePlayer() {
   const handlers = {};
@@ -19,7 +19,7 @@ function fakePlayer() {
 function startPlayback() {
   const player = fakePlayer();
   const states = [];
-  enablePlyrVideoLoadingIndicator(player, (show) => { states.push(show); });
+  enableVideoLoadingIndicator(player, (show) => { states.push(show); });
   player.emit('play');
   player.media.readyState = HTMLMediaElement.HAVE_ENOUGH_DATA;
   player.media.networkState = HTMLMediaElement.NETWORK_LOADING;

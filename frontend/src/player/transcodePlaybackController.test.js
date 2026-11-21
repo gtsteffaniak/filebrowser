@@ -1,8 +1,8 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { reactive } from 'vue';
-import { TranscodePlaybackController } from '@/plyr/transcodePlaybackController.js';
+import { TranscodePlaybackController } from '@/player/transcodePlaybackController.js';
 
-vi.mock('@/plyr/hlsAdapter.js', () => ({
+vi.mock('@/player/hlsAdapter.js', () => ({
   attachHlsToVideo: vi.fn(async () => ({
     cleanup: vi.fn(),
   })),
@@ -20,7 +20,7 @@ vi.mock('@/api/transcode.js', () => ({
   stopTranscodeSession: vi.fn(async () => {}),
 }));
 
-import { attachHlsToVideo } from '@/plyr/hlsAdapter.js';
+import { attachHlsToVideo } from '@/player/hlsAdapter.js';
 import { startTranscodeSession, stopTranscodeSession } from '@/api/transcode.js';
 
 describe('TranscodePlaybackController', () => {

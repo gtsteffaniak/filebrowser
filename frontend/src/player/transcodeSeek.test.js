@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { servableCoverage } from '@/plyr/transcodePlaybackController.js';
+import { servableCoverage } from '@/player/transcodePlaybackController.js';
 
 describe('servableCoverage', () => {
   it('returns the full media range for any VOD session', () => {

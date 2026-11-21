@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isStationaryTap, zoneFromClientX } from '@/plyr/gestureZones.js';
+import { isStationaryTap, zoneFromClientX } from '@/player/gestureZones.js';
 
 describe('gesture zone helpers', () => {
   const rect = { left: 0, width: 300, top: 0, height: 200 };

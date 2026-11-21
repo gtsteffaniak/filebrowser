@@ -1,9 +1,9 @@
-import { attachDeadlineMs, attachHlsToVideo } from '@/plyr/hlsAdapter.js';
-import { continuePlay } from '@/plyr/playbackIntent.js';
-import { TranscodeSessionController } from '@/plyr/transcodeSession.js';
-import { transcodeError, transcodeLog, transcodeWarn } from '@/plyr/transcodeDebug.js';
+import { attachDeadlineMs, attachHlsToVideo } from '@/player/hlsAdapter.js';
+import { continuePlay } from '@/player/playbackIntent.js';
+import { TranscodeSessionController } from '@/player/transcodeSession.js';
+import { transcodeError, transcodeLog, transcodeWarn } from '@/player/transcodeDebug.js';
 import { getTranscodeSessions } from '@/api/transcode.js';
-import { isTranscodeHlsMode } from '@/plyr/transcodeMode.js';
+import { isTranscodeHlsMode } from '@/player/transcodeMode.js';
 
 const TRANSCODE_PROFILES = { quality: 'quality', balanced: 'balanced', datasaver: 'datasaver' };
 

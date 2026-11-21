@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
-import { TranscodeSessionController } from '@/plyr/transcodeSession.js';
+import { TranscodeSessionController } from '@/player/transcodeSession.js';
 
 vi.mock('@/api/transcode.js', () => ({
   startTranscodeSession: vi.fn(async () => ({

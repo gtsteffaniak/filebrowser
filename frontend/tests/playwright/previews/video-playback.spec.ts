@@ -3,12 +3,12 @@ import {
   domClick,
   enableTranscodeUi,
   mockTranscodeSessions,
-  nativePlyrVideo,
-  plyrSettingsButton,
-  plyrTranscodeMenuButton,
+  nativeVideo,
+  settingsButton,
+  transcodeMenuButton,
   selectTranscodeMode,
   startNativeVideoPlayback,
-  waitForNativePlyrMounted,
+  waitForNativePlayerMounted,
 } from "./transcode-helpers.ts";
 
 const TESTDATA = "/files/playwright-files/myfolder/testdata";
@@ -38,7 +38,7 @@ test("mp4 preview mounts the native player", async ({ page, checkForErrors }) =>
 
   // Native previews lazy-bind /api/media/stream on first play, not at mount.
   await startNativeVideoPlayback(page);
-  const video = nativePlyrVideo(page);
+  const video = nativeVideo(page);
   await expect(video).toHaveAttribute("src", /media\/stream/, { timeout: 15_000 });
   await expect(page.locator(".transcode-offer-message")).toHaveCount(0);
 
@@ -84,7 +84,7 @@ test("switching transcode modes sends replaceSessionId for the same file", async
 
   await page.goto(`${TESTDATA}/${NATIVE_PREVIEW_VIDEO}`);
   await expect(page).toHaveTitle(`Graham's Filebrowser - Files - ${NATIVE_PREVIEW_VIDEO}`);
-  await waitForNativePlyrMounted(page);
+  await waitForNativePlayerMounted(page);
 
   await selectTranscodeMode(page, "datasaver");
   await expect.poll(() => mock.starts.length).toBe(1);
@@ -117,15 +117,15 @@ test("transcode mode menu is shown when the server enables transcoding", async (
 
   // Real server config (no mocks): the preview image enables ffmpeg and transcoding.
   await page.goto(`${TESTDATA}/${NATIVE_PREVIEW_VIDEO}`);
-  await waitForNativePlyrMounted(page);
+  await waitForNativePlayerMounted(page);
 
   const ffmpegAvailable = await page.evaluate(() => window.globalVars?.ffmpegAvailable === true);
   expect(ffmpegAvailable, "server reports ffmpeg unavailable").toBe(true);
 
-  const settings = plyrSettingsButton(page);
+  const settings = settingsButton(page);
   await expect(settings).toBeAttached({ timeout: 15_000 });
   await domClick(settings);
-  await expect(plyrTranscodeMenuButton(page)).toBeVisible({ timeout: 10_000 });
+  await expect(transcodeMenuButton(page)).toBeVisible({ timeout: 10_000 });
 
   checkForErrors(0, mediaFailures());
 });
