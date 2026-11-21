@@ -2,8 +2,8 @@
   <div class="card-content visualizer-settings-content settings-items">
     <div class="setting-row item">
       <div class="setting-label">
-        <label for="vis-bar-count">{{ $t("player.visualizer.barCount") }}</label>
-        <HelpTooltipIcon :text="$t('player.visualizer.barCountDescription')" />
+        <label for="vis-bar-count">{{ t("player.visualizer.barCount") }}</label>
+        <HelpTooltipIcon :text="t('player.visualizer.barCountDescription')" />
       </div>
       <div class="setting-control">
         <input
@@ -13,53 +13,53 @@
           v-model.number="barCount"
           min="2"
           max="200"
-          :aria-label="$t('player.visualizer.barCount')"
+          :aria-label="t('player.visualizer.barCount')"
         />
       </div>
     </div>
     <div class="setting-row item">
       <div class="setting-label">
-        <span id="vis-fft-size-label">{{ $t("player.visualizer.fftSize") }}</span>
-        <HelpTooltipIcon :text="$t('player.visualizer.fftSizeDescription')" />
+        <span id="vis-fft-size-label">{{ t("player.visualizer.fftSize") }}</span>
+        <HelpTooltipIcon :text="t('player.visualizer.fftSizeDescription')" />
       </div>
       <div class="setting-control">
         <ExpandDropdown
           :options="fftSizeOptions"
           v-model="fftSize"
-          :aria-label="$t('player.visualizer.fftSize')"
+          :aria-label="t('player.visualizer.fftSize')"
         />
       </div>
     </div>
     <div class="setting-row item">
       <div class="setting-label">
-        <span id="vis-min-freq-label">{{ $t("player.visualizer.minFrequency") }}</span>
-        <HelpTooltipIcon :text="$t('player.visualizer.minFrequencyDescription')" />
+        <span id="vis-min-freq-label">{{ t("player.visualizer.minFrequency") }}</span>
+        <HelpTooltipIcon :text="t('player.visualizer.minFrequencyDescription')" />
       </div>
       <div class="setting-control">
         <ExpandDropdown
           :options="minFrequencyOptions"
           v-model="minFrequency"
-          :aria-label="$t('player.visualizer.minFrequency')"
+          :aria-label="t('player.visualizer.minFrequency')"
         />
       </div>
     </div>
     <div class="setting-row item">
       <div class="setting-label">
-        <span id="vis-max-freq-label">{{ $t("player.visualizer.maxFrequency") }}</span>
-        <HelpTooltipIcon :text="$t('player.visualizer.maxFrequencyDescription')" />
+        <span id="vis-max-freq-label">{{ t("player.visualizer.maxFrequency") }}</span>
+        <HelpTooltipIcon :text="t('player.visualizer.maxFrequencyDescription')" />
       </div>
       <div class="setting-control">
         <ExpandDropdown
           :options="maxFrequencyOptions"
           v-model="maxFrequency"
-          :aria-label="$t('player.visualizer.maxFrequency')"
+          :aria-label="t('player.visualizer.maxFrequency')"
         />
       </div>
     </div>
     <div class="setting-row slider-setting item">
       <div class="setting-label">
-        <label for="vis-smoothing">{{ $t("player.visualizer.smoothing") }}</label>
-        <HelpTooltipIcon :text="$t('player.visualizer.smoothingDescription')" />
+        <label for="vis-smoothing">{{ t("player.visualizer.smoothing") }}</label>
+        <HelpTooltipIcon :text="t('player.visualizer.smoothingDescription')" />
       </div>
       <div class="setting-control slider-setting-value">
         <input id="vis-smoothing" type="range" min="0" max="1" step="0.01" v-model.number="smoothing" />
@@ -68,8 +68,8 @@
     </div>
     <div class="setting-row slider-setting item">
       <div class="setting-label">
-        <label for="vis-min-db">{{ $t("player.visualizer.minDecibels") }}</label>
-        <HelpTooltipIcon :text="$t('player.visualizer.minDecibelsDescription')" />
+        <label for="vis-min-db">{{ t("player.visualizer.minDecibels") }}</label>
+        <HelpTooltipIcon :text="t('player.visualizer.minDecibelsDescription')" />
       </div>
       <div class="setting-control slider-setting-value">
         <input id="vis-min-db" type="range" min="-120" max="-60" step="1" v-model.number="minDecibels" />
@@ -78,8 +78,8 @@
     </div>
     <div class="setting-row slider-setting item">
       <div class="setting-label">
-        <label for="vis-max-db">{{ $t("player.visualizer.maxDecibels") }}</label>
-        <HelpTooltipIcon :text="$t('player.visualizer.maxDecibelsDescription')" />
+        <label for="vis-max-db">{{ t("player.visualizer.maxDecibels") }}</label>
+        <HelpTooltipIcon :text="t('player.visualizer.maxDecibelsDescription')" />
       </div>
       <div class="setting-control slider-setting-value">
         <input id="vis-max-db" type="range" min="-40" max="20" step="1" v-model.number="maxDecibels" />
@@ -88,14 +88,14 @@
     </div>
     <ToggleSwitch
       class="item"
-      :name="$t('player.visualizer.showScales')"
-      :description="$t('player.visualizer.showScalesDescription')"
+      :name="t('player.visualizer.showScales')"
+      :description="t('player.visualizer.showScalesDescription')"
       v-model="showScales"
     />
     <ToggleSwitch
       class="item"
-      :name="$t('player.visualizer.showPeaks')"
-      :description="$t('player.visualizer.showPeaksDescription')"
+      :name="t('player.visualizer.showPeaks')"
+      :description="t('player.visualizer.showPeaksDescription')"
       v-model="showPeaks"
     />
   </div>
@@ -104,95 +104,69 @@
       type="button"
       class="button button--flat button--grey"
       @click="resetVisualizerConfig"
-      :aria-label="$t('player.visualizer.resetDefaults')"
-      :title="$t('player.visualizer.resetDefaults')"
-    > {{ $t("player.visualizer.resetDefaults") }}
+      :aria-label="t('player.visualizer.resetDefaults')"
+      :title="t('player.visualizer.resetDefaults')"
+    > {{ t("player.visualizer.resetDefaults") }}
     </button>
     <button
       type="button"
       class="button button--flat"
       @click="closeTopPrompt"
-      :aria-label="$t('general.ok')"
-      :title="$t('general.ok')"
-    > {{ $t("general.ok") }}
+      :aria-label="t('general.ok')"
+      :title="t('general.ok')"
+    > {{ t("general.ok") }}
     </button>
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
+import { computed } from "vue";
 import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
+import { useI18n } from "@/i18n/index.ts";
 import { mutations } from "@/store/index.ts";
-import { visualizerConfig, saveVisualizerConfig, resetVisualizerConfig } from "@/utils/visualizerConfig.js";
+import { visualizerConfig, saveVisualizerConfig, resetVisualizerConfig, type VisualizerConfig } from "@/utils/visualizerConfig.ts";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 
-function freqOptions(values) {
+withDefaults(
+  defineProps<{
+    promptId?: string | number | null;
+  }>(),
+  { promptId: null },
+);
+
+defineOptions({ name: "VisualizerSettings" });
+
+function freqOptions(values: number[]) {
   return values.map((value) => ({ value, label: `${value} Hz` }));
 }
 
-export default {
-  name: "VisualizerSettings",
-  components: { HelpTooltipIcon, ExpandDropdown, ToggleSwitch },
-  props: {
-    promptId: { type: [String, Number], default: null },
-  },
-  data() {
-    return {
-      fftSizeOptions: [1024, 2048, 4096, 8192, 16384, 32768].map((value) => ({ value, label: `${value}` })),
-      minFrequencyOptions: freqOptions([20, 30, 40, 50]),
-      maxFrequencyOptions: freqOptions([8000, 10000, 15000, 20000, 22050]),
-    };
-  },
-  computed: {
-    barCount: {
-      get() { return visualizerConfig.barCount; },
-      set(value) {
-        const clamped = Math.min(200, Math.max(2, Math.round(value) || 0));
-        saveVisualizerConfig({ barCount: clamped });
-      },
-    },
-    fftSize: {
-      get() { return visualizerConfig.fftSize; },
-      set(value) { saveVisualizerConfig({ fftSize: Number(value) }); },
-    },
-    minFrequency: {
-      get() { return visualizerConfig.minFrequency; },
-      set(value) { saveVisualizerConfig({ minFrequency: Number(value) }); },
-    },
-    maxFrequency: {
-      get() { return visualizerConfig.maxFrequency; },
-      set(value) { saveVisualizerConfig({ maxFrequency: Number(value) }); },
-    },
-    smoothing: {
-      get() { return visualizerConfig.smoothing; },
-      set(value) { saveVisualizerConfig({ smoothing: value }); },
-    },
-    minDecibels: {
-      get() { return visualizerConfig.minDecibels; },
-      set(value) { saveVisualizerConfig({ minDecibels: value }); },
-    },
-    maxDecibels: {
-      get() { return visualizerConfig.maxDecibels; },
-      set(value) { saveVisualizerConfig({ maxDecibels: value }); },
-    },
-    showScales: {
-      get() { return visualizerConfig.showScales; },
-      set(value) { saveVisualizerConfig({ showScales: value }); },
-    },
-    showPeaks: {
-      get() { return visualizerConfig.showPeaks; },
-      set(value) { saveVisualizerConfig({ showPeaks: value }); },
-    },
-  },
-  methods: {
-    closeTopPrompt() {
-      mutations.closeTopPrompt();
-    },
-    resetVisualizerConfig() {
-      resetVisualizerConfig();
-    },
-  },
-};
+const { t } = useI18n();
+
+const fftSizeOptions = [1024, 2048, 4096, 8192, 16384, 32768].map((value) => ({ value, label: `${value}` }));
+const minFrequencyOptions = freqOptions([20, 30, 40, 50]);
+const maxFrequencyOptions = freqOptions([8000, 10000, 15000, 20000, 22050]);
+
+function configRef<K extends keyof VisualizerConfig>(key: K, parse: (value: unknown) => VisualizerConfig[K] = (value) => value as VisualizerConfig[K]) {
+  return computed<VisualizerConfig[K]>({
+    get: () => visualizerConfig[key],
+    set: (value) => saveVisualizerConfig({ [key]: parse(value) } as Partial<VisualizerConfig>),
+  });
+}
+
+const barCount = configRef("barCount", (value) => Math.min(200, Math.max(2, Math.round(Number(value)) || 0)));
+const fftSize = configRef("fftSize", Number);
+const minFrequency = configRef("minFrequency", Number);
+const maxFrequency = configRef("maxFrequency", Number);
+const smoothing = configRef("smoothing");
+const minDecibels = configRef("minDecibels");
+const maxDecibels = configRef("maxDecibels");
+const showScales = configRef("showScales");
+const showPeaks = configRef("showPeaks");
+
+function closeTopPrompt() {
+  mutations.closeTopPrompt();
+}
 </script>
 
 <style scoped>

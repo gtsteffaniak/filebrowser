@@ -5,7 +5,7 @@
       v-if="previewType === 'audio'"
       ref="audioPlayerGestureRoot"
       class="audio-player-container audio-player-container--plyr-gestures"
-      :class="{ 'audio-player-container--lyrics-open': isMobile && showMobileLyrics && lyrics.length }"
+      :class="{ 'audio-player-container--lyrics-open': mobileLyricsActive }"
     >
       <!-- Desktop panel button, will auto‑hide only when panel is closed -->
       <FloatingActionButton
@@ -62,54 +62,33 @@
           <AudioPanel
             v-if="!isMobile && showDesktopPanel"
             :lyrics="lyrics"
-            :lyrics-meta="lyricsMeta"
-            :active-lyric-index="activeLyricIndex"
-            :active-word-index="activeWordIndex"
             :player="player"
             :audio-context="audioContext"
             :audio-source="audioSource"
             class="lyrics-panel"
-            @seek="seekToLyric"
             @needs-audio-graph="setupAudioVisualizer"
           />
         </Transition>
       </div>
-
-      <!-- Mobile inline lyrics -->
-      <div v-if="isMobile && showMobileLyrics && lyrics.length" class="lyrics-mobile">
-        <!-- Scrollable area -->
-        <div class="lyrics-mobile-scrollable" ref="lyricsMobileScrollable">
-          <p v-if="lyricsMeta" class="lyrics-meta-header" aria-hidden="true">{{ lyricsMeta }}</p>
-          <p
-            v-for="(line, i) in lyrics"
-            :key="i"
-            :class="{ active: syncedLyrics && lyrics[i].timestamp === lyrics[activeLyricIndex]?.timestamp }"
-            class="lyric-line"
-            @click.stop="syncedLyrics && seekToLyric(line.timestamp)"
-            tabindex="0"
-            role="button"
-            :aria-label="syncedLyrics ? `Seek to ${line.text}` : undefined"
-          >
-            <template v-if="i === activeLyricIndex && line.words && line.words.length">
-              <span
-                v-for="(word, w) in line.words"
-                :key="w"
-                class="lyric-word"
-                :class="{ sung: w <= activeWordIndex, current: w === activeWordIndex }"
-              >{{ word.text }}&nbsp;</span>
-            </template>
-            <template v-else>{{ line.text }}</template>
-          </p>
+      <template v-if="isMobile && lyrics.length">
+        <FloatingActionButton
+          icon="lyrics"
+          position="top-left"
+          zone-height="8.5em"
+          group="plyr-controls"
+          :label="$t('player.toggleLyrics')"
+          @press="showMobileLyrics = !showMobileLyrics"
+        />
+        <div v-if="showMobileLyrics" class="lyrics-mobile">
+          <LyricsList compact :lyrics="lyrics" :player="player" />
         </div>
-      </div>
-
+      </template>
       <!-- Audio controls -->
       <div class="audio-controls-container">
         <div class="plyr-audio-container">
           <audio :src="raw" :type="req.type" :autoplay="shouldAutoplay" @play="handlePlay" ref="audioElement"></audio>
         </div>
       </div>
-
       <!-- Double‑tap / seek feedback overlay -->
       <div
         class="video-skip-feedback-layer"
@@ -123,7 +102,6 @@
         <i :key="skipFeedbackKey" class="material-symbols video-skip-feedback-layer__icon">{{ skipFeedbackIcon }}</i>
       </div>
     </div>
-
     <!-- Video with plyr -->
     <div
       v-else-if="previewType === 'video'"
@@ -171,7 +149,6 @@
         <i :key="skipFeedbackKey" class="material-symbols video-skip-feedback-layer__icon">{{ skipFeedbackIcon }}</i>
       </div>
     </div>
-
     <!-- Right detection zone – always for video/mobile audio queue button & desktop panel toggle -->
     <FloatingActionButton
       v-if="showQueueButton"
@@ -181,31 +158,6 @@
       @press="showQueuePrompt"
       :label="queueButtonLabel"
     />
-
-    <!-- Lyrics button (left side) – only on mobile when lyrics exist -->
-    <FloatingActionButton
-      v-if="isMobile && lyrics.length"
-      icon="lyrics"
-      position="top-left"
-      zone-height="8.5em"
-      group="plyr-controls"
-      @press="showMobileLyrics = !showMobileLyrics"
-      :label="lyricsToggleLabel"
-    />
-
-    <!-- Lyrics scroll lock (mobile, bottom‑right) – visible while lyrics overlay is open -->
-    <FloatingActionButton
-      v-if="isMobile && previewType === 'audio' && showMobileLyrics && lyrics.length && syncedLyrics"
-      icon="lock"
-      :icon-outlined="mobileLyricsScrollLocked"
-      position="bottom-right"
-      size="small"
-      :offset="{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 6rem)' }"
-      :auto-hide="false"
-      @press="mobileLyricsScrollLocked = !mobileLyricsScrollLocked"
-      :label="mobileLyricsLockToggleLabel"
-    />
-
     <!-- Toast when you change playback modes in the media player -->
     <div :class="['playback-toast', toastVisible ? 'visible' : '']">
       <!-- Loop icon for "single playback", "loop single file" and "loop all files" -->
@@ -243,6 +195,7 @@ import {
 import { getTypeFromMime } from '@/utils/files.js';
 import { buildItemUrl, removeTrailingSlash } from '@/utils/url.js';
 import AudioPanel from "@/components/files/AudioPanel.vue";
+import LyricsList from "@/components/files/LyricsList.vue";
 import { getters, mutations, state } from "@/store/index.ts";
 import { getObjectProperty } from '@/utils/object.js';
 import { globalVars } from "@/utils/constants.ts";
@@ -330,6 +283,7 @@ export default {
   name: "plyrViewer",
   components: {
     AudioPanel,
+    LyricsList,
     LoadingSpinner,
     FloatingActionButton,
   },
@@ -391,15 +345,12 @@ export default {
       albumArtSize: Number.parseFloat(sessionStorage.getItem('plyrAlbumArtSize')) || 24,
       isHovering: false, // Track hover state
 
-      // Lyrics
-      activeLyricIndex: -1,
-      activeWordIndex: -1,
       doubleTapSeekCleanup: null,
       rewindForwardFeedback: null,
-      mobileLyricsScrollLocked: false,
 
       // Audio Visualizer
       audioContext: null,
+      mediaGraph: null,
       audioSource: null,
       audioGraphInitialized: false,
 
@@ -538,30 +489,8 @@ export default {
     albumArtSize(val) {
       sessionStorage.setItem('plyrAlbumArtSize', val.toString());
     },
-    async activeLyricIndex() {
-      if (this.showMobileLyrics && this.isMobile) {
-        await this.$nextTick();
-        this.scrollMobileLyrics();
-      }
-    },
-    lyrics(newLyrics, oldLyrics) {
-      if (newLyrics !== oldLyrics) {
-        this.activeLyricIndex = -1;
-        this.activeWordIndex = -1;
-      }
-    },
-    async mobileLyricsScrollLocked(val) {
-      if (!val && this.showMobileLyrics && this.lyrics.length) {
-        await this.$nextTick();
-        this.scrollMobileLyrics();
-      }
-    },
-    async showMobileLyrics(val) {
+    showMobileLyrics(val) {
         sessionStorage.setItem('plyrShowMobileLyrics', val ? '1' : '0');
-        if (val && this.lyrics.length) {
-            await this.$nextTick();
-            this.scrollMobileLyrics();
-        }
     },
     shouldTogglePlayPause(newVal, oldVal) {
       if (newVal !== oldVal) {
@@ -691,12 +620,6 @@ export default {
     queueButtonLabel() {
       return this.$t('player.QueueButtonHint');
     },
-    lyricsToggleLabel() {
-      return this.$t('player.toggleLyrics');
-    },
-    mobileLyricsLockToggleLabel() {
-      return this.mobileLyricsScrollLocked ? this.$t('player.unlockLyrics') : this.$t('player.lockLyrics');
-    },
     showQueueButton() {
       if (this.previewType === 'video') {
         return !this.isFullscreen;
@@ -707,7 +630,7 @@ export default {
       return this.isMobile && this.showMobileLyrics && this.lyrics.length > 0;
     },
     displayArtSize() {
-      if (this.isMobile && this.showMobileLyrics && this.lyrics.length) {
+      if (this.mobileLyricsActive) {
         return 5;
       }
       return this.albumArtSize;
@@ -788,16 +711,6 @@ export default {
     },
     isMobile() {
       return getters.isMobile();
-    },
-    syncedLyrics() {
-      return this.lyrics.length > 0 && !this.lyrics.every(line => line.timestamp === 0);
-    },
-    // "Title - Artist" shown above the lyrics from the [ti:] [ar:] tags on lyrics (if present)
-    lyricsMeta() {
-      const lyricsTitle = this.lyrics?.lrcMeta?.title;
-      const lyricsArtist = this.lyrics?.lrcMeta?.artist;
-      if (lyricsTitle && lyricsArtist) return `${lyricsTitle} - ${lyricsArtist}`;
-      return lyricsTitle || lyricsArtist || '';
     },
     scrubPreviewEnabled() {
       return (
@@ -1046,6 +959,7 @@ export default {
     try {
       this.destroyPlyr();
     } finally {
+      this.cleanupAudioVisualizer({ close: true });
       this.clearMediaSession();
       document.removeEventListener('keydown', this.handleKeydown);
       window.removeEventListener('pagehide', this.onPageHide);
@@ -1054,7 +968,7 @@ export default {
   methods: {
     onPageHide(event) {
       if (event.persisted) return;
-      this.cleanupAudioVisualizer(); // to stop the visualizer when viewing another browser tab
+      this.cleanupAudioVisualizer({ close: true });
       this.teardownTranscodePlayback({ stopSession: true, keepalive: true });
       this.stopMediaElement();
     },
@@ -1345,22 +1259,21 @@ export default {
       this.loopButtons = null;
       this.loopValueSpan = null;
     },
-    cleanupAudioVisualizer() {
-      if (this.audioSource) {
-        try { this.audioSource.disconnect(); } catch (_) { /* ignore */ }
-        this.audioSource = null;
-      }
-      if (this.audioContext) {
-        const context = this.audioContext;
-        try {
-          const closed = context.close();
-          if (closed?.catch) closed.catch(() => {});
-        } catch (_) {
-          /* ignore */
-        }
-        this.audioContext = null;
-      }
+    cleanupAudioVisualizer({ close = false } = {}) {
+      this.audioSource = null;
+      this.audioContext = null;
       this.audioGraphInitialized = false;
+      if (close) {
+        this.closeMediaGraph(this.mediaGraph);
+        this.mediaGraph = null;
+      }
+    },
+    closeMediaGraph(graph) {
+      try {
+        graph?.context.close().catch(() => {});
+      } catch (_) {
+        /* ignore */
+      }
     },
     togglePlayPause() {
       if (this.plyrTeardownDone) {
@@ -1548,72 +1461,6 @@ export default {
         currentItem: this.req,
         isShare: getters.isShare()
       });
-    },
-    // Seek the player to the given timestamp (in milliseconds)
-    seekToLyric(timestampMs) {
-      if (!this.player) return;
-      this.player.currentTime = timestampMs / 1000;
-    },
-    // Update active lyric line based on current player time.
-    syncLyrics() {
-      if (!this.lyrics.length || !this.syncedLyrics) return;
-      const currentMs = this.player.currentTime * 1000;
-      let idx = this.activeLyricIndex;
-      if (idx > this.lyrics.length - 1) {
-        idx = -1;
-      }
-      if (idx >= 0 && this.lyrics.at(idx)?.timestamp > currentMs) {
-        idx = -1;
-      }
-      while (
-        idx + 1 < this.lyrics.length &&
-        this.lyrics.at(idx + 1).timestamp <= currentMs
-      ) {
-        idx++;
-      }
-      let first = idx;
-      while (
-        first > 0 &&
-        this.lyrics.at(first - 1)?.timestamp === this.lyrics.at(idx)?.timestamp
-      ) {
-        first--;
-      }
-      if (first !== this.activeLyricIndex) {
-        this.activeLyricIndex = first;
-        this.activeWordIndex = -1;
-      }
-      this.syncActiveWord(currentMs);
-    },
-    // Update active word within the active lyric line (for elrc)
-    syncActiveWord(currentMs) {
-      const words = this.activeLyricIndex >= 0 ? this.lyrics.at(this.activeLyricIndex)?.words : null;
-      if (!words?.length) {
-        this.activeWordIndex = -1;
-        return;
-      }
-      let idx = this.activeWordIndex;
-      if (idx > words.length - 1) {
-        idx = -1;
-      }
-      if (idx < 0 || words.at(idx)?.timestamp > currentMs) {
-        idx = 0;
-      }
-      while (idx + 1 < words.length && words.at(idx + 1).timestamp <= currentMs) {
-        idx++;
-      }
-      if (words.at(idx)?.timestamp > currentMs) {
-        idx = -1;
-      }
-      if (idx !== this.activeWordIndex) {
-        this.activeWordIndex = idx;
-      }
-    },
-    scrollMobileLyrics() {
-      if (this.mobileLyricsScrollLocked) return;
-      const el = this.$refs.lyricsMobileScrollable;
-      if (!el) return;
-      const active = el.querySelector('.lyric-line.active');
-      if (active) active.scrollIntoView({ behavior: 'smooth', block: 'center' });
     },
     showToast() {
       if (this.toastTimeout) {
@@ -2763,27 +2610,37 @@ export default {
       // This method gets called once only when in the visualizer tab of the audio panel
       if (this.audioGraphInitialized) return;
       if (this.previewType !== 'audio') return;
-      if (this.audioContext) {
-        this.cleanupAudioVisualizer();
-      }
       const audio = this.mediaElement;
       if (!audio) return;
+      let newContext = null;
       try {
-        const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
-        if (!AudioContextCtor) return;
-        const ctx = new AudioContextCtor({ latencyHint: 'playback' });
-        const source = ctx.createMediaElementSource(audio);
-        // Connect source to destination
-        source.connect(ctx.destination);
-        this.audioContext = ctx;
-        this.audioSource = source;
+        let graph = this.mediaGraph;
+        if (!(graph && graph.element === audio && graph.context.state !== 'closed')) {
+          if (graph) {
+            this.closeMediaGraph(graph);
+            this.mediaGraph = null;
+          }
+          const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
+          if (!AudioContextCtor) return;
+          newContext = new AudioContextCtor({ latencyHint: 'playback' });
+          const source = newContext.createMediaElementSource(audio);
+          source.connect(newContext.destination);
+          graph = { element: audio, context: newContext, source };
+          this.mediaGraph = graph;
+          newContext = null; // owned by this.mediaGraph from here on
+        }
+        this.audioContext = graph.context;
+        this.audioSource = graph.source;
         this.audioGraphInitialized = true;
       } catch (err) {
         console.warn('Audio visualizer creation failed:', err);
+        if (newContext) {
+          try { newContext.close(); } catch (_) { /* ignore */ }
+        }
       }
     },
     resumeAudioGraph() {
-      const context = this.audioContext;
+      const context = this.mediaGraph?.context;
       if (context?.state !== 'suspended') return;
       try {
         const resumed = context.resume();
@@ -2816,7 +2673,6 @@ export default {
         },
         timeupdate: () => {
           this.updateMediaSessionPlaybackState();
-          this.syncLyrics();
           if (this.transcodePlayback.sessionController) {
             this.transcodePlayback.updatePlayback({
               currentTime: this.player?.currentTime,
@@ -4554,6 +4410,14 @@ export default {
   justify-content: center;
 }
 
+.lyrics-mobile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0%;
+  min-height: 0;
+}
+
 /* When mobile lyrics are open: push art+meta to top */
 .audio-player-container--lyrics-open {
   justify-content: flex-start;
@@ -4618,6 +4482,7 @@ export default {
   background: transparent;
   border-radius: var(--borderRadius);
   box-sizing: border-box;
+  scrollbar-width: none;
 }
 
 /* --- panel transition --- */
@@ -4632,109 +4497,6 @@ export default {
 .panel-slide-enter-from,
 .panel-slide-leave-to {
   opacity: 0;
-}
-
-/* Lyrics */
-.lyric-line {
-  padding: 0.2em 0;
-  opacity: 0.5;
-  transition: opacity 0.25s ease, color 0.25s ease, font-size 0.25s ease, transform 0.25s ease;
-  transform: scale(1);
-  transform-origin: center;
-  overflow-wrap: break-word;
-  cursor: pointer;
-  font-size: 1.15rem;
-}
-
-.lyric-line:hover {
-  opacity: 0.85;
-}
-
-.lyric-line.active {
-  opacity: 1;
-  font-weight: 700;
-  color: var(--primaryColor);
-  font-size: 1.35rem;
-  animation: lyric-line-in 0.3s ease;
-}
-
-@keyframes lyric-line-in {
-  0% { transform: scale(0.98); }
-  100% { transform: scale(1); }
-}
-
-.lyric-word {
-  display: inline-block;
-  opacity: 0.4;
-  transform: scale(1);
-  transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
-}
-
-.lyric-word.sung {
-  opacity: 1;
-}
-
-.lyric-word.current {
-  transform: scale(1.06);
-}
-
-.lyrics-mobile {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  max-height: 30vh;
-  margin-top: -0.5em;
-  padding-top: 0;
-}
-
-.audio-player-container--lyrics-open .lyrics-mobile {
-  flex: 1 1 0%;
-  min-height: 0;
-  max-height: none;
-  margin-top: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-.lyrics-mobile-scrollable {
-  flex: 1;
-  overflow-y: auto;
-  padding: 0 1em;
-  text-align: center;
-  color: var(--textPrimary);
-}
-
-/* Hide scrollbars in lyrics */
-.lyrics-scrollable,
-.lyrics-mobile-scrollable,
-.lyrics-panel {
-  scrollbar-width: none;
-}
-
-.lyrics-scrollable::-webkit-scrollbar,
-.lyrics-mobile-scrollable::-webkit-scrollbar,
-.lyrics-panel::-webkit-scrollbar {
-  display: none;
-}
-
-.audio-player-container--lyrics-open .lyrics-mobile-scrollable {
-  flex: 1;
-  min-height: 0;
-}
-
-.lyrics-mobile-scrollable .lyric-line:first-child {
-  padding-top: 0;
-}
-
-.lyrics-meta-header {
-  padding: 0.2em 0 0.6em;
-  margin: 0;
-  opacity: 0.55;
-  font-size: 0.85rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-  user-select: none;
 }
 
 .album-art-container {

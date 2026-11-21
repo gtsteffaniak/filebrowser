@@ -21,6 +21,10 @@ export interface LyricsMeta {
 
 export type LyricLines = LyricLine[] & { lrcMeta?: LyricsMeta };
 
+export function isSyncedLyrics(lyrics: LyricLine[]): boolean {
+  return lyrics.length > 0 && !lyrics.every((line) => line.timestamp === 0);
+}
+
 const INLINE_TAG_RE = /<[^>]*>/g;
 
 // Lines that have brackets like [ti: Title] - unlike the timestamps that are like
