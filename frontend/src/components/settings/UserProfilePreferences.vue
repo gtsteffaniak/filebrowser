@@ -516,10 +516,12 @@
           :description="helpText('fileViewer', 'autoplayMedia', $t('profileSettings.autoplayMediaDescription'))"
         />
         <ProfilePreferenceToggle
-          field="preferEditorForMarkdown"
+          v-for="viewer in preferEditorViewers"
+          :key="viewer.field"
+          :field="viewer.field"
           section="fileViewer"
-          :name="$t('profileSettings.preferEditorForMarkdown')"
-          :description="$t('profileSettings.preferEditorForMarkdownDescription')"
+          :name="$t('profileSettings.preferEditor', { filetype: viewer.filetype })"
+          :description="$t('profileSettings.preferEditorDescription', { filetype: viewer.filetype })"
         />
       </div>
       <template v-if="showExtensionInputs">
@@ -867,6 +869,11 @@ export default {
       formDisabledViewing: "",
       formDisableOfficeViewing: "",
       formHideExt: "",
+      // one toggle per rich-text viewer; to cover another viewer add its field here
+      preferEditorViewers: [
+        { field: "preferEditorForMarkdown", filetype: "Markdown" },
+        { field: "preferEditorForHtml", filetype: "HTML" },
+      ],
     };
   },
   computed: {

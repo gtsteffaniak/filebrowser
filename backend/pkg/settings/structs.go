@@ -502,6 +502,7 @@ type UserDefaultsFileViewer struct {
 	DisableViewingExt       string `json:"disableViewingExt"`       // comma separated list of file extensions to disable viewing for
 	DisableOnlyOfficeExt    string `json:"disableOnlyOfficeExt"`    // list of file extensions to disable onlyoffice editor for
 	PreferEditorForMarkdown bool   `json:"preferEditorForMarkdown"` // prefer editor first for markdown files instead of the Markdown Viewer
+	PreferEditorForHtml     bool   `json:"preferEditorForHtml"`     // prefer editor first for HTML files instead of the HTML viewer
 	DebugOffice             bool   `json:"debugOffice"`             // debug onlyoffice editor
 }
 

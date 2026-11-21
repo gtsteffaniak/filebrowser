@@ -306,6 +306,7 @@ export interface UserObject {
   showAdvancedProfile?: boolean;
   debugOffice: boolean;
   preferEditorForMarkdown: boolean;
+  preferEditorForHtml: boolean;
   showCopyPath?: boolean;
   showSelectMultiple?: boolean;
   showTypeColumn?: boolean;

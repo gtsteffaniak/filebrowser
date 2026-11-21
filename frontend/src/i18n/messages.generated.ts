@@ -521,8 +521,8 @@ export interface MessageParams {
   "profileSettings.enforcedByAdmin": never;
   "profileSettings.hideFileExt": never;
   "profileSettings.hideFileExtDescription": never;
-  "profileSettings.preferEditorForMarkdown": never;
-  "profileSettings.preferEditorForMarkdownDescription": never;
+  "profileSettings.preferEditor": "filetype";
+  "profileSettings.preferEditorDescription": "filetype";
   "profileSettings.deleteAfterArchive": never;
   "profileSettings.deleteAfterArchiveDescription": never;
   "profileSettings.defaultViewMode": never;

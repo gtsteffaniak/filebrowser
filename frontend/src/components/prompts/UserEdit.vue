@@ -280,6 +280,7 @@ const PROFILE_SNAPSHOT_FIELDS = [
   "deleteAfterArchive",
   "deleteWithoutConfirming",
   "preferEditorForMarkdown",
+  "preferEditorForHtml",
   "disablePreviewExt",
   "disableViewingExt",
   "disableOnlyOfficeExt",
