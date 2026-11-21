@@ -512,15 +512,27 @@ async function showInfoPrompt() {
     isPreview.value && !props.items?.length && (showOverflow.value || !firstSelected.value)
       ? state.req
       : firstSelected.value;
+  const inShare = getters.isShare();
   const needsDetails =
-    props.breadcrumb && !getters.isShare() && item?.size === undefined && !!item?.source;
+    props.breadcrumb && item?.size === undefined && !!item?.path && (inShare || !!item?.source);
   mutations.closeHovers();
   if (item && needsDetails) {
+    const startedAt = { prompt: state.promptIdCounter, route: router.currentRoute.value.fullPath };
+    const shareHash = inShare ? state.shareInfo.hash : "";
+    const itemPath = item.path ?? "";
     try {
-      const folder = await resourcesApi.fetchFiles(item.source, item.path, false, false, true);
+      const folder = inShare
+        ? await resourcesApi.fetchFilesPublic(itemPath, shareHash, "", false, false, true)
+        : await resourcesApi.fetchFiles(item.source, itemPath, false, false, true);
       item = { ...item, size: folder.size, modified: folder.modified, created: folder.created };
     } catch (_e) {
       // info still opens with what is known
+    }
+    if (
+      state.promptIdCounter !== startedAt.prompt ||
+      router.currentRoute.value.fullPath !== startedAt.route
+    ) {
+      return;
     }
   }
   mutations.showPrompt({ name: "info", props: { item } });

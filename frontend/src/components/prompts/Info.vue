@@ -218,8 +218,9 @@ const isDir = computed(() => props.item.type === "directory");
 const isAudio = computed(() => !!props.item.type?.startsWith("audio"));
 const isVideo = computed(() => !!props.item.type?.startsWith("video"));
 const isAdmin = computed(() => getters.isAdmin());
-
-const humanSize = computed(() => getHumanReadableFilesize(props.item.size || 0));
+const humanSize = computed(() =>
+  typeof props.item.size === "number" ? getHumanReadableFilesize(props.item.size) : t("general.unknown"),
+);
 const humanTime = computed(() => formatDate(props.item.modified));
 const modTime = computed(() => relativeDate(props.item.modified));
 const humanCreatedTime = computed(() => formatDate(props.item.created));
