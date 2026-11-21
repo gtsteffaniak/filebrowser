@@ -2,16 +2,21 @@ package iteminfo
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/binary"
 	"errors"
 	"io"
 	"os"
 )
 
-// Album art detection runs for every audio file during indexing, so it only
-// reads container headers. Frame, block, box and comment payloads are skipped
-// by offset, never read, and every walk has a hard cap on how many entries it
-// visits. Cover bytes are never loaded.
+// Album art detection runs for every audio file during indexing, so it reads
+// container headers and skips frame, block, box and comment payloads by offset
+// where the format allows. Reads go through a small read-ahead window, so a
+// cover that sits inside that window may be read along with the headers, and
+// an unsynchronised ID3v2.3 tag is read (up to id3MaxUnsyncRead) because its
+// frame headers are only valid after decoding. Images are never decoded or
+// copied into a separate buffer, and every walk has a hard cap on how many
+// entries it visits.
 const (
 	// artReadWindow is the read-ahead window used for header reads.
 	artReadWindow = 4 << 10
@@ -179,9 +184,12 @@ func id3TagSize(r io.ReaderAt, off int64) (int64, []byte, error) {
 	return total, hdr, nil
 }
 
-// id3HasPicture reports whether the ID3v2 tag at off has a picture frame (APIC
-// in v2.3/v2.4, PIC in v2.2). Only frame headers are read, unless the whole tag
-// is unsynchronised, in which case at most id3MaxUnsyncRead bytes are read.
+// id3HasPicture reports whether the ID3v2 tag at off has an embedded picture
+// frame (APIC in v2.3/v2.4, PIC in v2.2); frames that only link to an image
+// ("-->") do not count. Only frame headers and the first bytes of a picture
+// frame are read, unless the whole tag is unsynchronised, in which case at most
+// id3MaxUnsyncRead bytes of the tag are read. A tag whose declared size runs
+// past the end of the file is rejected.
 func id3HasPicture(r *windowReader, off int64) (bool, error) {
 	total, hdr, err := id3TagSize(r, off)
 	if err != nil || total == 0 {
@@ -193,17 +201,20 @@ func id3HasPicture(r *windowReader, off int64) (bool, error) {
 	}
 	start := off + 10
 	end := off + total
+	if end > r.size {
+		return false, nil
+	}
 	if version == 4 && flags&0x10 != 0 {
 		end -= 10
-	}
-	if end > r.size {
-		end = r.size
 	}
 
 	if flags&0x80 != 0 && version < 4 {
 		// Tag-level unsynchronisation: frame headers are only valid after
-		// removing the inserted zero bytes.
-		n := end - start
+		// removing the inserted zero bytes. Only a bounded prefix is read
+		// and decoded; that prefix limits how far the walk can scan, while
+		// frame sizes are still checked against the declared tag size.
+		bodyLen := end - start
+		n := bodyLen
 		if n > id3MaxUnsyncRead {
 			n = id3MaxUnsyncRead
 		}
@@ -212,17 +223,26 @@ func id3HasPicture(r *windowReader, off int64) (bool, error) {
 			return false, nil
 		}
 		buf = bytes.ReplaceAll(buf, []byte{0xff, 0x00}, []byte{0xff})
-		mr := newWindowReader(bytes.NewReader(buf), int64(len(buf)))
-		return id3WalkFrames(mr, version, flags, 0, int64(len(buf)))
+		scanEnd := int64(len(buf))
+		boundEnd := scanEnd
+		if n < bodyLen {
+			// Decoded offsets are never larger than encoded ones, so the
+			// encoded body length bounds frames that end past the prefix.
+			boundEnd = bodyLen
+		}
+		mr := newWindowReader(bytes.NewReader(buf), scanEnd)
+		return id3WalkFrames(mr, version, flags, 0, scanEnd, boundEnd)
 	}
-	return id3WalkFrames(r, version, flags, start, end)
+	return id3WalkFrames(r, version, flags, start, end, end)
 }
 
-// id3WalkFrames walks ID3v2 frames in [start, end) and reports whether a
-// picture frame is present. For v2.4 it retries with plain 32-bit frame sizes
-// when synchsafe sizes run into a malformed frame, since some taggers write
-// v2.4 tags with v2.3-style sizes.
-func id3WalkFrames(r io.ReaderAt, version, flags byte, start, end int64) (bool, error) {
+// id3WalkFrames walks ID3v2 frames starting at start and reports whether an
+// embedded picture frame is present. Frame headers are only read before
+// scanEnd, and every frame must end by boundEnd. For v2.4 it retries with plain
+// 32-bit frame sizes when synchsafe sizes run into a malformed frame, or when
+// any frame size reads differently under the two encodings, since some taggers
+// write v2.4 tags with v2.3-style sizes.
+func id3WalkFrames(r io.ReaderAt, version, flags byte, start, scanEnd, boundEnd int64) (bool, error) {
 	pos := start
 	if flags&0x40 != 0 {
 		switch version {
@@ -246,31 +266,39 @@ func id3WalkFrames(r io.ReaderAt, version, flags byte, start, end int64) (bool, 
 			pos += n
 		}
 	}
-	found, malformed := id3Walk(r, version, pos, end, version == 4)
-	if found || !malformed || version != 4 {
-		return found, nil
+	res := id3Walk(r, version, pos, scanEnd, boundEnd, version == 4)
+	if res.found || version != 4 || (!res.malformed && !res.ambiguous) {
+		return res.found, nil
 	}
-	found, _ = id3Walk(r, version, pos, end, false)
-	return found, nil
+	return id3Walk(r, version, pos, scanEnd, boundEnd, false).found, nil
 }
 
-// id3Walk visits frame headers from pos to end. malformed is true when the
-// walk stopped at a frame that is neither valid nor padding.
-func id3Walk(r io.ReaderAt, version byte, pos, end int64, synchsafeSizes bool) (found, malformed bool) {
+// id3WalkResult is the outcome of one ID3v2 frame walk.
+type id3WalkResult struct {
+	found     bool // an embedded picture frame was reached
+	malformed bool // the walk stopped at a frame that is neither valid nor padding
+	ambiguous bool // a synchsafe frame size differs from its plain 32-bit reading
+}
+
+// id3Walk visits frame headers from pos while they start before scanEnd.
+// A frame that would end past boundEnd stops the walk as malformed.
+func id3Walk(r io.ReaderAt, version byte, pos, scanEnd, boundEnd int64, synchsafeSizes bool) id3WalkResult {
+	var res id3WalkResult
 	idLen, hdrLen, picID := 4, int64(10), "APIC"
 	if version == 2 {
 		idLen, hdrLen, picID = 3, 6, "PIC"
 	}
 	hdr := make([]byte, hdrLen)
-	for i := 0; i < id3MaxFrames && pos+hdrLen <= end; i++ {
+	for i := 0; i < id3MaxFrames && pos+hdrLen <= scanEnd; i++ {
 		if err := readFullAt(r, hdr, pos); err != nil {
-			return false, false
+			return res
 		}
 		if hdr[0] == 0 {
-			return false, false // padding
+			return res // padding
 		}
 		if !validFrameID(hdr[:idLen]) {
-			return false, true
+			res.malformed = true
+			return res
 		}
 		var size int64
 		switch {
@@ -279,22 +307,44 @@ func id3Walk(r io.ReaderAt, version byte, pos, end int64, synchsafeSizes bool) (
 		case synchsafeSizes:
 			s, ok := synchsafe32(hdr[4:8])
 			if !ok {
-				return false, true
+				res.malformed = true
+				return res
+			}
+			if s != int64(binary.BigEndian.Uint32(hdr[4:8])) {
+				res.ambiguous = true
 			}
 			size = s
 		default:
 			size = int64(binary.BigEndian.Uint32(hdr[4:8]))
 		}
 		next := pos + hdrLen + size
-		if size == 0 || next > end {
-			return false, true
+		if size == 0 || next > boundEnd {
+			res.malformed = true
+			return res
 		}
-		if string(hdr[:idLen]) == picID {
-			return true, false
+		if string(hdr[:idLen]) == picID && !id3PictureIsLink(r, version, pos+hdrLen, size) {
+			res.found = true
+			return res
+		}
+		if next > scanEnd {
+			return res // the rest of the tag is past the scan budget
 		}
 		pos = next
 	}
-	return false, false
+	return res
+}
+
+// id3PictureIsLink reports whether the picture frame payload at off (size
+// bytes) only holds a URL: image format "-->" in v2.2 PIC, MIME type "-->" in
+// APIC. When the marker cannot be read the frame is treated as embedded.
+func id3PictureIsLink(r io.ReaderAt, version byte, off, size int64) bool {
+	var b [5]byte
+	if version == 2 {
+		// text encoding (1), image format (3)
+		return size >= 4 && readFullAt(r, b[:4], off) == nil && string(b[1:4]) == "-->"
+	}
+	// text encoding (1), MIME type terminated by 0
+	return size >= 5 && readFullAt(r, b[:5], off) == nil && string(b[1:5]) == "-->\x00"
 }
 
 // validFrameID reports whether id is made of A-Z and 0-9 only.
@@ -334,7 +384,8 @@ func flacHasPicture(r *windowReader) (bool, error) {
 		}
 		switch typ {
 		case 6:
-			if size > 0 {
+			head := make([]byte, flacPictureHeadLen)
+			if size >= flacPictureMinLen && readFullAt(r, head, body) == nil && !flacPictureIsLink(head) {
 				return true, nil
 			}
 		case 4:
@@ -351,6 +402,21 @@ func flacHasPicture(r *windowReader) (bool, error) {
 		pos = body + size
 	}
 	return false, nil
+}
+
+// flacPictureMinLen is the size of a FLAC PICTURE block with empty strings and
+// no image data: type, MIME length, description length, width, height, depth,
+// colours and data length, 4 bytes each.
+const flacPictureMinLen = 32
+
+// flacPictureHeadLen is how much of a PICTURE block flacPictureIsLink needs.
+const flacPictureHeadLen = 11
+
+// flacPictureIsLink reports whether a FLAC PICTURE block, given by its first
+// flacPictureHeadLen bytes, has MIME type "-->", meaning the block holds a URI
+// instead of an embedded image.
+func flacPictureIsLink(head []byte) bool {
+	return len(head) >= flacPictureHeadLen && binary.BigEndian.Uint32(head[4:8]) == 3 && string(head[8:11]) == "-->"
 }
 
 // packetReader reads one logical packet sequentially and can skip ahead
@@ -403,10 +469,17 @@ var vorbisPictureFields = [][]byte{
 	[]byte("COVER_ART="),
 }
 
+// vorbisCommentPrefixLen is how much of each Vorbis comment is read: enough
+// for the longest picture field name plus 16 base64 characters, which decode
+// to the first 12 bytes of a METADATA_BLOCK_PICTURE block.
+const vorbisCommentPrefixLen = 48
+
 // vorbisCommentHasPicture parses a Vorbis comment structure (vendor string,
 // count, length-prefixed comments) and reports whether any comment is a
-// non-empty cover art field. Only the first bytes of each comment are read;
-// the rest is skipped.
+// non-empty cover art field. METADATA_BLOCK_PICTURE values that only link to
+// an image ("-->") do not count, and a matching comment must be complete.
+// Only the first vorbisCommentPrefixLen bytes of each comment are read; the
+// rest is skipped.
 func vorbisCommentHasPicture(pr packetReader) (bool, error) {
 	var n4 [4]byte
 	if _, err := io.ReadFull(pr, n4[:]); err != nil {
@@ -422,7 +495,7 @@ func vorbisCommentHasPicture(pr packetReader) (bool, error) {
 	if count > vorbisMaxComments {
 		count = vorbisMaxComments
 	}
-	prefix := make([]byte, 32)
+	prefix := make([]byte, vorbisCommentPrefixLen)
 	for i := uint32(0); i < count; i++ {
 		if _, err := io.ReadFull(pr, n4[:]); err != nil {
 			return false, err
@@ -435,16 +508,37 @@ func vorbisCommentHasPicture(pr packetReader) (bool, error) {
 		if _, err := io.ReadFull(pr, prefix[:want]); err != nil {
 			return false, err
 		}
-		for _, field := range vorbisPictureFields {
-			if length > int64(len(field)) && want >= int64(len(field)) && bytes.EqualFold(prefix[:len(field)], field) {
-				return true, nil
-			}
-		}
+		match := vorbisPictureComment(prefix[:want], length)
+		// Skipping the rest also checks that the comment is complete.
 		if err := pr.skip(length - want); err != nil {
 			return false, err
 		}
+		if match {
+			return true, nil
+		}
 	}
 	return false, nil
+}
+
+// vorbisPictureComment reports whether a comment of total size length, whose
+// first bytes are prefix, is a non-empty cover art field that embeds an image.
+func vorbisPictureComment(prefix []byte, length int64) bool {
+	for _, field := range vorbisPictureFields {
+		if length <= int64(len(field)) || len(prefix) < len(field) || !bytes.EqualFold(prefix[:len(field)], field) {
+			continue
+		}
+		if len(field) == len("METADATA_BLOCK_PICTURE=") {
+			value := prefix[len(field):]
+			if len(value) >= 16 {
+				head := make([]byte, 12)
+				if _, err := base64.StdEncoding.Decode(head, value[:16]); err == nil && flacPictureIsLink(head) {
+					return false
+				}
+			}
+		}
+		return true
+	}
+	return false
 }
 
 // oggHasPicture reports whether the first logical stream of an Ogg file
@@ -491,7 +585,13 @@ func oggHasPicture(r *windowReader) (bool, error) {
 			typ := hdr[0] & 0x7f
 			switch typ {
 			case 6:
-				return true, nil
+				size := int64(hdr[1])<<16 | int64(hdr[2])<<8 | int64(hdr[3])
+				head := make([]byte, flacPictureHeadLen)
+				if size >= flacPictureMinLen {
+					if _, err := io.ReadFull(op, head); err == nil && !flacPictureIsLink(head) && op.skip(size-flacPictureHeadLen) == nil {
+						return true, nil
+					}
+				}
 			case 4:
 				if ok, err := vorbisCommentHasPicture(op); err == nil && ok {
 					return true, nil
@@ -569,6 +669,10 @@ func (op *oggPacketReader) loadPage(off int64, first bool) (uint32, error) {
 		var dataLen int64
 		for _, l := range lacing {
 			dataLen += int64(l)
+		}
+		if dataOff+dataLen > op.r.size {
+			// The lacing claims more data than the file holds.
+			return 0, io.ErrUnexpectedEOF
 		}
 		if !first && serial != op.serial {
 			off = dataOff + dataLen
@@ -677,20 +781,16 @@ func (op *oggPacketReader) nextPacket() bool {
 		}
 	}
 	// Move past the terminating segment of the packet that just ended.
-	if op.seg >= len(op.lacing) {
+	if op.seg >= len(op.lacing) || !op.advanceSegment() {
 		return false
-	}
-	op.segOff += int64(op.lacing[op.seg])
-	op.seg++
-	op.segRead = 0
-	for op.seg >= len(op.lacing) {
-		if _, err := op.loadPage(op.nextPage, false); err != nil {
-			return false
-		}
 	}
 	op.ended = false
 	return true
 }
+
+// errMP4BoxBounds is returned when a box's declared size runs past its parent
+// or the end of the file.
+var errMP4BoxBounds = errors.New("album art: mp4 box extends past its parent")
 
 // mp4Box is one ISO BMFF box header.
 type mp4Box struct {
@@ -729,7 +829,7 @@ func (w *mp4Walker) children(start, end int64, fn func(b mp4Box) (bool, error)) 
 			}
 			large := binary.BigEndian.Uint64(w.hdr[8:16])
 			if large > uint64(end-pos) {
-				large = uint64(end - pos) // truncated file; clamp
+				return false, errMP4BoxBounds
 			}
 			size = int64(large)
 			hdrLen = 16
@@ -738,7 +838,9 @@ func (w *mp4Walker) children(start, end int64, fn func(b mp4Box) (bool, error)) 
 			return false, errors.New("album art: bad mp4 box size")
 		}
 		if size > end-pos {
-			size = end - pos // truncated file; clamp
+			// Truncated file or corrupt size: the box does not fit in
+			// its parent, so nothing inside it can be trusted.
+			return false, errMP4BoxBounds
 		}
 		var b mp4Box
 		copy(b.typ[:], w.hdr[4:8])
@@ -788,14 +890,11 @@ func mp4HasCover(r *windowReader) (bool, error) {
 }
 
 // metaHasCover looks for ilst/covr/data inside a meta box. meta is a full box
-// in ISO files and a plain container in QuickTime files; both are handled.
+// (4 bytes of version and flags before its children) in ISO files and a plain
+// container in QuickTime files; both are handled, whatever the child order.
 func (w *mp4Walker) metaHasCover(meta mp4Box) (bool, error) {
 	start := meta.payload
-	var peek [8]byte
-	if err := readFullAt(w.r, peek[:], start); err != nil {
-		return false, nil
-	}
-	if string(peek[4:8]) != "hdlr" {
+	if !w.plausibleChild(start, meta.end) {
 		start += 4 // version and flags
 	}
 	return w.children(start, meta.end, func(il mp4Box) (bool, error) {
@@ -812,6 +911,21 @@ func (w *mp4Walker) metaHasCover(meta mp4Box) (bool, error) {
 			})
 		})
 	})
+}
+
+// plausibleChild reports whether a box header at pos fits in [pos, end) and has
+// a printable type. An ISO meta box starts with version and flags (normally
+// zero), which never read as a valid header, so this tells the meta layouts
+// apart without assuming which child comes first.
+func (w *mp4Walker) plausibleChild(pos, end int64) bool {
+	var h [8]byte
+	if pos+8 > end || readFullAt(w.r, h[:], pos) != nil {
+		return false
+	}
+	size := int64(binary.BigEndian.Uint32(h[:4]))
+	var typ [4]byte
+	copy(typ[:], h[4:8])
+	return size >= 8 && size <= end-pos && printableFourCC(typ)
 }
 
 // printableFourCC reports whether t is four printable ASCII bytes.
