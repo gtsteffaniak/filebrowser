@@ -173,6 +173,7 @@ export default {
     MarkdownViewer: createAsyncComponent(() => import('@/views/files/MarkdownViewer.vue')),
     ThreeJsViewer: createAsyncComponent(() => import('@/views/files/ThreeJs.vue')),
     Slideshow: createAsyncComponent(() => import('@/views/files/Slideshow.vue')),
+    MediaPlayer: createAsyncComponent(() => import('@/views/files/MediaPlayer.vue')),
   },
   data() {
     return {

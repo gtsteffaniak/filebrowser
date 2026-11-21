@@ -126,7 +126,7 @@ const itemsToDelete = computed<DeleteItem[]>(() => {
   }
   // Otherwise, compute from state (backward compatibility)
   let selectedItems: FileListItem[];
-  if (state.isSearchActive || getters.currentView() === "preview") {
+  if (state.isSearchActive || getters.currentView() === "preview" || getters.currentView() === "mediaPlayer") {
     const selected = state.selected[0] as number | FileListItem;
     selectedItems = [(typeof selected === "number" ? state.req.items?.at(selected) : selected) as FileListItem];
   } else if (!getters.isListing()) {

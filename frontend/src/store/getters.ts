@@ -475,6 +475,8 @@ export const getters = {
       if ('content' in state.req) return 'editor';
       if (state.req.type.startsWith('application/epub')) return 'epubViewer';
       if (state.req.type.startsWith('application/vnd.openxmlformats-officedocument.wordprocessingml.document')) return 'docViewer';
+      const simpleType = getTypeInfo(state.req.type).simpleType;
+      if ((simpleType === 'audio' || simpleType === 'video') && !getters.fileViewingDisabled(reqName)) return 'mediaPlayer';
       return 'preview';
     }
     return 'listingView';

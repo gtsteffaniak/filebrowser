@@ -444,7 +444,7 @@ const showWatch = computed(() => {
 const showGoToRaw = computed(() => {
   if (!permissions.value.download || isMediaRequest(state.req)) return false;
   const view = getters.currentView();
-  return view === "preview" || view === "markdownViewer" || view === "editor";
+  return view === "preview" || view === "mediaPlayer" || view === "markdownViewer" || view === "editor";
 });
 
 const showUnarchiveInOverflow = computed(() => {
