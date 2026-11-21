@@ -52,7 +52,6 @@ function getWorker(): Worker {
     workerInstance.postMessage({
       type: "init",
       openswZipUrl: `${base}/wasm/opensw.zip`,
-      goOpenSwUrl: `${base}/wasm/opensw.wasm${version}`,
       pyodideUrl: "https://cdn.jsdelivr.net/pyodide/v0.29.5/full/",
       occtUrl: "https://cdn.jsdelivr.net/npm/occt-import-js@0.0.23/dist/",
     });

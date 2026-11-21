@@ -5,11 +5,9 @@
 let PYODIDE = "https://cdn.jsdelivr.net/pyodide/v0.29.5/full/";
 let OCCT = "https://cdn.jsdelivr.net/npm/occt-import-js@0.0.23/dist/";
 let OPENSW_ZIP = "/public/static/wasm/opensw.zip";
-let GO_OPENSW = "/public/static/wasm/opensw.wasm";
 
 let pythonPromise = null;
 let occtPromise = null;
-let goPromise = null;
 
 function log(dire, text, kind = "detail") {
   if (dire) dire(text, kind);
@@ -25,7 +23,7 @@ function chargerOcct(dire) {
       return occt;
     })();
     // A failed load must not stay cached as a rejected promise: clear it so
-    // the next request can retry (same behavior as chargerGo).
+    // the next request can retry.
     occtPromise.catch(() => { occtPromise = null; });
   }
   return occtPromise;
@@ -69,11 +67,10 @@ for nom in ("webbrowser", "signal", "http.server", "socketserver"):
 
 const NIVEAUX = 64;
 
-// One BOM row builder for both engines: the Go engine names the BOM-excluded
-// flag horsNomenclature, the Python one hors_nomenclature.
+// One BOM row builder: names the BOM-excluded flag hors_nomenclature.
 function bomRowCsv(c) {
   const field = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
-  const excluded = c.horsNomenclature ?? c.hors_nomenclature;
+  const excluded = c.hors_nomenclature ?? c.horsNomenclature;
   return `${field(c.nom)},${field(c.fichier)},${field(c.configuration || "")},${c.supprime ? "true" : "false"},${c.cache ? "true" : "false"},${excluded ? "true" : "false"}\n`;
 }
 
@@ -81,50 +78,6 @@ function bomCsv(bom) {
   let csv = "Component,File,Configuration,Suppressed,Hidden,ExcludedFromBOM\n";
   for (const c of bom || []) csv += bomRowCsv(c);
   return csv;
-}
-
-// The OpenSW port compiled to Go/WebAssembly: instant start, no Python
-// runtime. Covers assembly views (display mesh, STL, BOM); geometry-heavy
-// routes (part → STEP) still use the Pyodide engine below.
-function chargerGo(dire) {
-  if (!goPromise) {
-    goPromise = (async () => {
-      const t0 = performance.now();
-      log(dire, "Loading OpenSW-Go WebAssembly engine...", "step");
-      const base = GO_OPENSW.slice(0, GO_OPENSW.lastIndexOf("/") + 1);
-      importScripts(`${base}wasm_exec.js`);
-      const ready = new Promise((resolve) => { self.__openswGoResolve = resolve; });
-      const go = new Go();
-      const resp = await fetch(GO_OPENSW);
-      if (!resp.ok) throw new Error(`Failed to load opensw.wasm: HTTP ${resp.status}`);
-      const bytes = await resp.arrayBuffer();
-      const { instance } = await WebAssembly.instantiate(bytes, go.importObject);
-      go.run(instance); // resolves when Go's main signals readiness
-      await ready;
-      log(dire, `OpenSW-Go engine ready in ${((performance.now() - t0) / 1000).toFixed(2)}s`, "ok");
-      return true;
-    })();
-    goPromise.catch(() => { goPromise = null; });
-  }
-  return goPromise;
-}
-
-// Assembly preview through the Go engine; throws when it cannot read the
-// file so the caller falls back to the Python engine.
-async function vueAssemblageGo(octets, dire) {
-  await chargerGo(dire);
-  const r = openswGoAssembly(octets, (text, kind) => dire(text, kind));
-  if (r?.ok !== true) {
-    throw new Error((r?.error) || "OpenSW-Go could not read the assembly");
-  }
-  const vue = r.vue;
-  const mesh = {
-    faces: vue.faces,
-    corps: vue.corps,
-    rayon: vue.rayon,
-    sommets: vue.sommets.buffer,
-  };
-  return { mesh, stlBytes: r.stl ? new Uint8Array(r.stl) : null, composants: r.composants };
 }
 
 const srgb = (x) => (x <= 0.0031308 ? x * 12.92 : 1.055 * x ** (1 / 2.4) - 0.055);
@@ -296,7 +249,6 @@ self.onmessage = async (e) => {
     if (m.pyodideUrl) PYODIDE = m.pyodideUrl;
     if (m.occtUrl) OCCT = m.occtUrl;
     if (m.openswZipUrl) OPENSW_ZIP = m.openswZipUrl;
-    if (m.goOpenSwUrl) GO_OPENSW = m.goOpenSwUrl;
     return;
   }
 
@@ -310,16 +262,53 @@ self.onmessage = async (e) => {
     const ext = (format || filename.split(".").pop() || "").toLowerCase();
 
     if (action === "properties") {
-      dire("Reading SolidWorks stored properties with OpenSW-Go...", "step");
+      dire("Reading SolidWorks stored properties with OpenSW...", "step");
       try {
-        await chargerGo(dire);
-        const p = openswGoProperties(rawBytes);
-        if (p?.ok) {
-          postMessage({ id, type: "properties", properties: p.properties });
+        const { py } = await preparerPython(dire);
+        py.globals.set("raw_cad_bytes", rawBytes);
+        const propsJson = py.runPython(`
+import json
+from sldprt.container import open_container
+from sldprt.properties import read_properties
+
+def _get_stored_props():
+    try:
+        c = open_container(bytes(raw_cad_bytes))
+        props = read_properties(c)
+        configs = props.get("configurations", [])
+        out = []
+        for conf in configs:
+            mass = conf.get("masse")
+            m = None
+            if mass:
+                m = {
+                    "centerM": list(mass.get("centre_m", [0, 0, 0])),
+                    "volumeM3": float(mass.get("volume_m3", 0.0)),
+                    "areaM2": float(mass.get("aire_m2", 0.0)),
+                    "massKg": float(mass.get("masse_kg", 0.0)),
+                    "inertiaKgM2": list(mass.get("inertie_kg_m2", [])),
+                }
+            mat = conf.get("materiau") or {}
+            out.append({
+                "available": m is not None,
+                "configuration": conf.get("nom", ""),
+                "mass": m,
+                "material": mat.get("nom", "") if isinstance(mat, dict) else str(mat),
+                "materialBase": mat.get("base", "") if isinstance(mat, dict) else "",
+            })
+        return json.dumps({"ok": True, "properties": out})
+    except Exception as e:
+        return json.dumps({"ok": False, "error": str(e)})
+
+_get_stored_props()
+`);
+        const res = JSON.parse(propsJson);
+        if (res?.ok) {
+          postMessage({ id, type: "properties", properties: res.properties });
           return;
         }
       } catch (e) {
-        dire(`Go properties unavailable: ${e.message}`, "detail");
+        dire(`OpenSW properties unavailable: ${e.message}`, "detail");
       }
       throw new Error("SolidWorks stored properties are unavailable for this file");
     }
@@ -351,17 +340,8 @@ self.onmessage = async (e) => {
         return;
       }
 
-      // Assembly preview (.SLDASM) — instant-start Go engine first
+      // Assembly preview (.SLDASM)
       if (ext === "sldasm") {
-        try {
-          const r = await vueAssemblageGo(rawBytes, dire);
-          const transfer = [r.mesh.sommets];
-          if (r.stlBytes) transfer.push(r.stlBytes.buffer);
-          postMessage({ id, type: "preview3d", mesh: r.mesh, stlBytes: r.stlBytes, composants: r.composants }, transfer);
-          return;
-        } catch (e) {
-          dire(`Go engine: ${e.message} — falling back to Python OpenSW...`, "detail");
-        }
         dire("Reading SolidWorks Assembly with OpenSW...", "step");
         const { nav } = await preparerPython(dire);
         const r = nav.lancer("assemblage", filename, rawBytes, (json) => {
@@ -423,28 +403,6 @@ self.onmessage = async (e) => {
           stepError = e;
         }
 
-        // The exact B-rep → STEP conversion failed (OpenSW's writer rejects
-        // some curve types); a SolidWorks part still carries the display
-        // mesh it draws. Show it, clearly labelled, through the Go engine.
-        if (ext === "sldprt") {
-          try {
-            dire(`STEP route failed (${stepError.message}) — showing the SolidWorks display mesh instead...`, "detail");
-            await chargerGo(dire);
-            const r = openswGoPart(rawBytes, (text, kind) => dire(text, kind));
-            if (r && r.ok === true && r.vue) {
-              const mesh = {
-                faces: r.vue.faces,
-                corps: r.vue.corps,
-                rayon: r.vue.rayon,
-                sommets: r.vue.sommets.buffer,
-              };
-              postMessage({ id, type: "preview3d", mesh, displayMesh: true }, [mesh.sommets]);
-              return;
-            }
-          } catch (e2) {
-            dire(`Display mesh fallback failed: ${e2.message}`, "detail");
-          }
-        }
         throw stepError;
       }
 
@@ -482,24 +440,6 @@ self.onmessage = async (e) => {
         const resultat = new Uint8Array(r.resultat);
         postMessage({ id, type: "converted", filename: r.fichier, data: resultat }, [resultat.buffer]);
         return;
-      }
-
-      // Assembly conversions — STL and BOM through the Go engine first
-      if (ext === "sldasm" && (target === "stl" || target === "csv")) {
-        try {
-          const r = await vueAssemblageGo(rawBytes, dire);
-          if (target === "stl") {
-            if (!r.stlBytes) throw new Error("Failed to generate STL from assembly");
-            postMessage({ id, type: "converted", filename: filename.replace(/\.sldasm$/i, ".stl"), data: r.stlBytes }, [r.stlBytes.buffer]);
-            return;
-          }
-          const enc = new TextEncoder().encode(bomCsv(r.composants));
-          const outName = filename.replace(/\.sldasm$/i, "_BOM.csv");
-          postMessage({ id, type: "converted", filename: outName, data: enc }, [enc.buffer]);
-          return;
-        } catch (e) {
-          dire(`Go engine: ${e.message} — falling back to Python OpenSW...`, "detail");
-        }
       }
 
       if (ext === "sldasm") {

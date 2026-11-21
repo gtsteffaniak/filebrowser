@@ -11,9 +11,6 @@ RUN go build -tags analytics,mupdf,musl -ldflags="-w -s \
   -X 'github.com/gtsteffaniak/filebrowser/backend/internal/version.Version=${VERSION}' \
   -X 'github.com/gtsteffaniak/filebrowser/backend/internal/version.CommitSHA=${REVISION}'" \
   -o filebrowser .
-# OpenSW ported to Go, compiled to WebAssembly for instant-start CAD views.
-RUN CGO_ENABLED=0 GOOS=js GOARCH=wasm go build -trimpath -o opensw.wasm ./cmd/opensw-wasm \
-  && cp "$(go env GOROOT)/lib/wasm/wasm_exec.js" wasm_exec.js
 
 FROM node:jod-slim AS nbuild
 WORKDIR /build
@@ -42,8 +39,6 @@ COPY --from=base --chown=filebrowser:1000 [ "/app/config.yaml", "./data/config.y
 COPY --from=base --chown=filebrowser:1000 [ "/app/config.yaml", "./" ]
 COPY --from=base --chown=filebrowser:1000 [ "/app/reduce-rounded-corners.css", "./" ]
 COPY --from=nbuild --chown=filebrowser:1000 [ "/build/backend/internal/web/dist/", "./internal/web/dist/" ]
-COPY --from=base --chown=filebrowser:1000 [ "/app/opensw.wasm", "./internal/web/dist/wasm/opensw.wasm" ]
-COPY --from=base --chown=filebrowser:1000 [ "/app/wasm_exec.js", "./internal/web/dist/wasm/wasm_exec.js" ]
 ## sanity checks
 RUN [ "filebrowser", "version" ]
 RUN [ "ffmpeg", "-version" ]
