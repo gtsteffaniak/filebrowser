@@ -359,6 +359,7 @@ async function toggleSubtitle(track: SubtitleTrack) {
 
 async function loadQuota() {
   quotaFailed.value = false;
+  quotaLoaded.value = false;
   try {
     const raw = await quotasApi.get(source.value, filePath.value);
     const data = Array.isArray(raw) ? raw[0] : raw;
