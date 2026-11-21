@@ -48,6 +48,24 @@ export function checkTranslations(): string[] {
   return problems;
 }
 
+export function checkOrder(): string[] {
+  const master = Object.keys(readLocale("en.json"));
+  const problems: string[] = [];
+  for (const file of translationFiles()) {
+    let keys: string[];
+    try {
+      keys = Object.keys(readLocale(file));
+    } catch {
+      continue; // checkTranslations reports it
+    }
+    const actual = keys.filter((key) => master.includes(key));
+    const expected = master.filter((key) => keys.includes(key));
+    const index = expected.findIndex((key, i) => key !== actual[i]);
+    if (index !== -1) problems.push(`${file}: keys are not in the order of en.json"`);
+  }
+  return problems;
+}
+
 async function translateText(text: string, targetLanguage: string, keyPath: string): Promise<string | null> {
   if (!text.trim()) {
     console.warn(`Skipping translation for empty text: "${text}"`);
@@ -101,7 +119,7 @@ async function processKeys(
   target: Tree,
   lang: string,
   parents: string[],
-  enforceOrder: boolean,
+  reorder: boolean,
   cleanup: boolean,
 ): Promise<boolean | "UNSUPPORTED"> {
   let changed = false;
@@ -123,7 +141,7 @@ async function processKeys(
       }
       const child = target[key];
       if (isTree(child)) {
-        const result = await processKeys(masterValue, child, lang, [...parents, key], enforceOrder, cleanup);
+        const result = await processKeys(masterValue, child, lang, [...parents, key], reorder, cleanup);
         if (result === "UNSUPPORTED") {
           console.log(`Skipping translation for "${lang}" due to unsupported structure.`);
           return result;
@@ -134,7 +152,7 @@ async function processKeys(
       if (typeof masterValue === "string") {
         const existing = target[key];
         if (!Object.hasOwn(target, key) || existing === "" || existing === null) {
-          if (enforceOrder) {
+          if (reorder) {
             console.log(`Skipping new key "${keyPath}" for ${lang}.json`);
           } else {
             const translated = await translateText(masterValue, lang, keyPath);
@@ -162,21 +180,21 @@ async function processKeys(
   return changed;
 }
 
-export async function syncTranslations({ enforceOrder, cleanup }: { enforceOrder: boolean; cleanup: boolean }): Promise<number> {
-  const reorder = enforceOrder && !cleanup;
+export async function syncTranslations({ reorder, cleanup }: { reorder: boolean; cleanup: boolean }): Promise<number> {
+  const orderKeys = !cleanup;
 
-  if (!enforceOrder && !cleanup) {
+  if (!reorder && !cleanup) {
     const apiKey = process.env.DEEPL_API_KEY;
     if (!apiKey) {
       console.error("❌ Missing DEEPL_API_KEY in environment.");
       return 1;
     }
     translator = new DeepLClient(apiKey);
-    console.warn("--- Using DeepL API for translation ---");
+    console.warn("--- Using DeepL API for translation, keys will be reordered afterwards ---");
   } else if (cleanup) {
     console.warn("--- Only obsolete keys will be removed - No translations, or reordering will happen ---");
   } else {
-    console.warn("--- Enforcing order of all files to match master language (no translations will be performed) ---");
+    console.warn("--- Reordering the keys of all files to match master language (no translations will be performed) ---");
   }
 
   const master = readJson(path.join(localesDir, "en.json")) as Tree;
@@ -205,7 +223,7 @@ export async function syncTranslations({ enforceOrder, cleanup }: { enforceOrder
     }
 
     let orderChanged = false;
-    if (reorder) {
+    if (orderKeys) {
       target = reorderObject(target, master) as Tree;
       orderChanged = JSON.stringify(original) !== JSON.stringify(target);
       if (orderChanged) console.log(`- Reordered keys in ${lang}.json`);
@@ -224,7 +242,7 @@ export async function syncTranslations({ enforceOrder, cleanup }: { enforceOrder
   }
 
   if (cleanup) console.log("\n✅ Cleanup complete (obsolete keys removed).");
-  else if (reorder) console.log("\n✅ Enforce order complete.");
+  else if (reorder) console.log("\n✅ Reorder complete.");
   else console.log("\n✅ Translation synchronization complete (via DeepL).");
   return 0;
 }
