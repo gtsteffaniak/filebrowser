@@ -70,6 +70,7 @@ export function sectionsFromFlatUser(user) {
     fileViewer: {
       autoplayMedia: boolPtr(preview.autoplayMedia),
       preferEditorForMarkdown: !!u.preferEditorForMarkdown,
+      preferEditorForHtml: !!u.preferEditorForHtml,
       debugOffice: !!u.debugOffice,
       disableViewingExt: u.disableViewingExt || "",
       disableOnlyOfficeExt: u.disableOnlyOfficeExt || "",
@@ -153,6 +154,7 @@ export function applySectionsToFlatUser(user, sections) {
 
   user.preview.autoplayMedia = boolPtr(fileViewer.autoplayMedia);
   user.preferEditorForMarkdown = !!fileViewer.preferEditorForMarkdown;
+  user.preferEditorForHtml = !!fileViewer.preferEditorForHtml;
   user.debugOffice = !!fileViewer.debugOffice;
   user.disableViewingExt = fileViewer.disableViewingExt || "";
   user.disableOnlyOfficeExt = fileViewer.disableOnlyOfficeExt || "";
@@ -209,6 +211,7 @@ const FLAT_PROFILE_FIELD_ENFORCED_PATHS = {
   deleteAfterArchive: ["listing", "deleteAfterArchive"],
   deleteWithoutConfirming: ["listing", "deleteWithoutConfirming"],
   preferEditorForMarkdown: ["fileViewer", "preferEditorForMarkdown"],
+  preferEditorForHtml: ["fileViewer", "preferEditorForHtml"],
   disablePreviewExt: ["preview", "disablePreviewExt"],
   disableViewingExt: ["fileViewer", "disableViewingExt"],
   disableOnlyOfficeExt: ["fileViewer", "disableOnlyOfficeExt"],

@@ -57,6 +57,7 @@ func TestApplyUserDefaults_copiesUserDefaultsOntoUser(t *testing.T) {
 				DisableViewingExt:       ".bat",
 				DisableOnlyOfficeExt:    ".x",
 				PreferEditorForMarkdown: true,
+				PreferEditorForHtml:     true,
 				DebugOffice:             true,
 			},
 			Search: UserDefaultsSearch{
@@ -134,6 +135,7 @@ func TestApplyUserDefaults_copiesUserDefaultsOntoUser(t *testing.T) {
 				DeleteWithoutConfirming:    true,
 				DeleteAfterArchive:         false,
 				PreferEditorForMarkdown:    true,
+				PreferEditorForHtml:        true,
 				ShowToolsInSidebar:         true,
 				FileLoading: users.FileLoading{
 					MaxConcurrent:     3,
