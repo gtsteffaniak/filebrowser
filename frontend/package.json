@@ -21,7 +21,7 @@
     "i18n:types": "node scripts/i18n/index.ts types",
     "i18n:sync": "node scripts/i18n/index.ts sync",
     "i18n:cleanup": "node scripts/i18n/index.ts sync --cleanup",
-    "i18n:enforce-order": "node scripts/i18n/index.ts sync --enforce-order",
+    "i18n:reorder": "node scripts/i18n/index.ts sync --reorder",
     "icons:sync": "node ./scripts/build-icon-subset.js",
     "icons:check": "node ./scripts/build-icon-subset.js --check",
     "test": "vitest run "
