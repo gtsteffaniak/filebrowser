@@ -677,14 +677,15 @@ async function copyAndClose(text: string) {
 }
 
 const copyPathToClipboard = () => copyAndClose(firstSelected.value?.path || "");
+const extURL = () => globalVars.externalUrl || window.location.origin;
 
 const copyUrlToClipboard = () =>
-  copyAndClose(`${window.location.origin}${router.resolve(firstSelected.value?.url || "/").href}`);
+  copyAndClose(`${extURL()}${router.resolve(firstSelected.value?.url || "/").href}`);
 
 const copyWebdavUrlToClipboard = () => {
   const item = firstSelected.value;
   return copyAndClose(
-    `${window.location.origin}${buildWebDavUrl(item?.source || state.req.source, item?.path || "/")}`,
+    `${extURL()}${buildWebDavUrl(item?.source || state.req.source, item?.path || "/")}`,
   );
 };
 
