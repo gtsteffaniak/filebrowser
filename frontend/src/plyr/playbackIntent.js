@@ -2,7 +2,7 @@ import { transcodeLog, transcodeWarn } from '@/plyr/transcodeDebug.js';
 
 /**
  * Helpers for preserving playback intent across src/HLS handoffs.
- * Mirrors native attachVideoStreamAndPlay / attemptPipHandoffPlay semantics.
+ * Mirrors native attachVideoStreamAndPlay semantics.
  */
 
 export function isPlayBlockedError(err) {
@@ -167,4 +167,13 @@ export async function continuePlay(video, playPromise, { playCall, onPlaying, is
     }
   }
   return resumeWhenReady(video, { playCall, onPlaying, isCancelled });
+}
+
+/** @param {string} url @param {number} seconds */
+export function appendMediaFragment(url, seconds) {
+  if (!url || !Number.isFinite(seconds) || seconds <= 0) {
+    return url;
+  }
+  const base = String(url).split('#')[0];
+  return `${base}#t=${seconds}`;
 }

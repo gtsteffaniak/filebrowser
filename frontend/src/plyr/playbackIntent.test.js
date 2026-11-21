@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
+  appendMediaFragment,
   continuePlay,
   isPlayBlockedError,
   isPlaybackProgressing,
@@ -139,5 +140,19 @@ describe('playbackIntent', () => {
     const result = await continuePlay(null, Promise.resolve(), { onPlaying });
     expect(onPlaying).not.toHaveBeenCalled();
     expect(result.played).toBe(false);
+  });
+});
+
+describe('appendMediaFragment', () => {
+  it('adds #t= seek hint to stream URL', () => {
+    expect(appendMediaFragment('https://example.com/v.mp4', 90)).toBe(
+      'https://example.com/v.mp4#t=90',
+    );
+    expect(appendMediaFragment('https://example.com/v.mp4#t=1', 90)).toBe(
+      'https://example.com/v.mp4#t=90',
+    );
+    expect(appendMediaFragment('https://example.com/v.mp4', 0)).toBe(
+      'https://example.com/v.mp4',
+    );
   });
 });

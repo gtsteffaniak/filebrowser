@@ -154,10 +154,6 @@ import {
   parseTranscodeModeFromQuery,
   playbackQueryChanged,
 } from "@/utils/playbackQuery.js";
-import {
-  hasActiveSession as hasActivePipSession,
-  pendingInlineResumeFor,
-} from "@/plyr/pipSession.js";
 import { isPdfFile } from "@/utils/mediaFile.js";
 import { shouldUsePdfPreviewFallback } from "@/utils/pdfPreview.js";
 import { TranscodePlaybackController } from "@/plyr/transcodePlaybackController.js";
@@ -459,14 +455,9 @@ export default {
         this.mediaEnrichDoneForPath = null;
         this.lyricsFetchedForPath = null;
       } else {
-        const pipHandoffForThisFile =
-          hasActivePipSession(state.req.source, state.req.path)
-          || pendingInlineResumeFor(state.req.source, state.req.path);
         if (this.mediaEnrichDoneForPath !== path) {
           this.mediaEnrichDoneForPath = path;
-          if (!pipHandoffForThisFile) {
-            this.avMetadataLoading = true;
-          }
+          this.avMetadataLoading = true;
           try {
             await this.enrichAvFromMediaApi(path);
             if (state.req.path !== path) {

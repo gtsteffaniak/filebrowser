@@ -208,23 +208,6 @@ import {
 import { enablePlyrScrubPreview } from "@/plyr/plyrScrubPreview.js";
 import { enablePlyrVideoLoadingIndicator } from "@/plyr/plyrVideoLoading.js";
 import { enableOverlaidHintController } from "@/plyr/overlaidHintController.js";
-import {
-  appendMediaFragment,
-  clearPendingInlineResumeFor,
-  exitPictureInPictureProgrammatically,
-  getPendingInlineResume,
-  hasActiveSession as hasActivePipSession,
-  initPipSession,
-  isPipBlockedForPreview,
-  onPendingInlineResume,
-  onPipAvailabilityChange,
-  pendingMatchesPreview,
-  registerSession as registerPipSession,
-  resolvePipMediaKey,
-  setPendingInlineResume,
-  shouldDeferVideoStreamAttach,
-  takeSessionSnapshot,
-} from '@/plyr/pipSession.js';
 import LoadingSpinner from '@/components/LoadingSpinner.vue';
 import FloatingActionButton from '@/components/settings/FloatingActionButton.vue';
 import {
@@ -247,7 +230,7 @@ import {
   isTranscodeAvailable,
 } from '@/plyr/transcodeMode.js';
 import { transcodeLog, transcodeWarn } from '@/plyr/transcodeDebug.js';
-import { isPlayBlockedError, primePlay } from '@/plyr/playbackIntent.js';
+import { appendMediaFragment, isPlayBlockedError, primePlay } from '@/plyr/playbackIntent.js';
 import { needsTranscodeFirst } from '@/utils/canBrowserPlayNative.js';
 import { getTranscodeSessions } from '@/api/transcode.js';
 import { getCachedViewToken } from '@/api/viewToken.js';
@@ -262,7 +245,6 @@ const PLYR_LOCALSTORAGE_KEY = 'plyr';
 /** Custom field inside Plyr’s JSON blob so caption size travels with other Plyr prefs. */
 const PLYR_CAPTION_SIZE_FIELD = 'captionSize';
 let pendingFullscreenResume = false;
-let pendingPipResume = false;
 let pendingResumeTimestamp = 0;
 let mediaSessionOwner = 0;
 
@@ -277,6 +259,13 @@ function decodePathSafely(path) {
   } catch (_) {
     return path;
   }
+}
+
+function resolveMountedPreviewKey(source, path) {
+  return {
+    source: source || state.sources?.current || '',
+    path: path ? (path.startsWith('/') ? path : `/${path}`) : '',
+  };
 }
 
 export default {
@@ -425,17 +414,13 @@ export default {
       scrubPreviewCleanup: null,
       videoLoadingCleanup: null,
       plyrTeardownDone: false,
-      /** Inline resume after PiP handoff; applied when the video stream attaches. */
-      inlineResumeSnapshot: null,
-      /** Seek target passed via Media Fragments URI (#t=) when handing off from PiP. */
-      pipHandoffSeekSeconds: null,
-      pipReadinessHandler: null,
-      pipAvailabilityCleanup: null,
-      pipPendingResumeCleanup: null,
+      /** Playhead restore (transcode -> native); applied when the video stream attaches. */
+      resumeSnapshot: null,
+      /** Seek target passed via Media Fragments URI (#t=) when re-attaching the native stream. */
+      resumeSeekSeconds: null,
       /** Source+path this instance mounted for; guards stale instances during route transitions. */
       mountedPreviewKey: null,
-      pipHandoffApplying: false,
-      /** Keeps :src stable after PiP handoff so Vue does not rebind without #t=. */
+      /** Keeps :src stable after a resume attach so Vue does not rebind without #t=. */
       lockedNativeVideoSrc: null,
       transcodePlayback: null,
       transcodeClientId: createTranscodeClientId(),
@@ -805,9 +790,9 @@ export default {
         return this.lockedNativeVideoSrc;
       }
       if (this.shouldAttachVideoStream) {
-        const handoffTime = this.pipHandoffSeekSeconds
-          ?? this.inlineResumeSnapshot?.currentTime;
-        return appendMediaFragment(this.raw, handoffTime);
+        const resumeTime = this.resumeSeekSeconds
+          ?? this.resumeSnapshot?.currentTime;
+        return appendMediaFragment(this.raw, resumeTime);
       }
       return null;
     },
@@ -815,20 +800,14 @@ export default {
       if (this.formatNeedsTranscode) {
         return false;
       }
-      if (
-        this.previewType === 'video'
-        && shouldDeferVideoStreamAttach(this.req?.source, this.req?.path)
-      ) {
-        return false;
-      }
       return this.videoStreamAttached || this.shouldAutoplay;
     },
-    pipHandoffShouldAutoplay() {
+    resumeShouldAutoplay() {
       if (this.previewType !== 'video') {
         return false;
       }
-      const snap = this.inlineResumeSnapshot;
-      if (!snap && !this.pipHandoffSeekSeconds) {
+      const snap = this.resumeSnapshot;
+      if (!snap && !this.resumeSeekSeconds) {
         return false;
       }
       return snap?.wasPlaying !== false;
@@ -843,13 +822,10 @@ export default {
       if (this.formatNeedsTranscode) {
         return false;
       }
-      if (shouldDeferVideoStreamAttach(this.req?.source, this.req?.path)) {
-        return false;
-      }
-      if (this.pipHandoffShouldAutoplay) {
+      if (this.resumeShouldAutoplay) {
         return true;
       }
-      if (this.inlineResumeSnapshot || this.pipHandoffSeekSeconds) {
+      if (this.resumeSnapshot || this.resumeSeekSeconds) {
         return false;
       }
       return this.shouldAutoplay;
@@ -867,7 +843,6 @@ export default {
         'mute',
         'volume',
         'captions',
-        'pip',
         'settings',
         'fullscreen',
       ];
@@ -880,7 +855,6 @@ export default {
         'mute',
         'volume',
         'captions',
-        'pip',
         'settings',
         'fullscreen',
       ];
@@ -932,10 +906,9 @@ export default {
     },
   },
   async mounted() {
-    initPipSession();
     // Record the mounted file before any async prepare step so route-leave
     // detection works while Plyr is still waiting on subtitles/metadata.
-    this.mountedPreviewKey = resolvePipMediaKey(this.req?.source, this.req?.path);
+    this.mountedPreviewKey = resolveMountedPreviewKey(this.req?.source, this.req?.path);
     this.loadMediaMetadata();
     if (this.previewType === 'video' || this.previewType === 'audio') {
       await this.preparePlyrMount();
@@ -1082,7 +1055,7 @@ export default {
     },
     resetFilePlaybackState() {
       this.videoStreamAttached = false;
-      this.pipHandoffSeekSeconds = null;
+      this.resumeSeekSeconds = null;
       this.lockedNativeVideoSrc = null;
       this.hasStartedPlayback = false;
       this.transcodeOfferEmitted = false;
@@ -1091,10 +1064,6 @@ export default {
     },
     getActiveMediaElement() {
       return this.player?.media ?? this.mediaElement ?? null;
-    },
-    isMediaInPictureInPicture(media = null) {
-      const el = media ?? this.getActiveMediaElement();
-      return Boolean(el && document.pictureInPictureElement === el);
     },
     stopIfRouteLeftThisFile() {
       if (this.plyrTeardownDone) {
@@ -1140,9 +1109,6 @@ export default {
       } catch (_) {
         // ignore
       }
-      if (document.pictureInPictureElement === el) {
-        void exitPictureInPictureProgrammatically();
-      }
       el.removeAttribute('src');
       try {
         el.load();
@@ -1171,43 +1137,29 @@ export default {
       }
       this.videoPlaybackLoading = false;
       this.teardownOverlaidHintController();
-      this.teardownPipControlGuard();
-      this.pipPendingResumeCleanup?.();
-      this.pipPendingResumeCleanup = null;
       this.mountedPreviewKey = null;
-      this.pipHandoffApplying = false;
       this.lockedNativeVideoSrc = null;
       const media = this.getActiveMediaElement();
-      const inPip = this.isMediaInPictureInPicture(media);
       const isTransition = state.navigation.isTransitioning;
-      const leavingInPip = inPip && this.req?.path;
 
       // Stop the element before controller/player teardown. Those paths can
       // throw or await, and a failure there must never leave audio playing on
       // an element that is about to be detached from the DOM.
-      if (!leavingInPip && media) {
+      if (media) {
         this.stopMediaElement(media);
       }
 
       // Any deliberate teardown of this viewer (route leave, source swap, close)
-      // must stop the server session. The only exemption is the PiP handoff,
-      // which keeps hls.js + the session feeding the adopted element. This used
-      // to pass stopSession:false while a transcode was active, so closing a
-      // playing video only detached the client and left the session (and its
-      // per-user slot) alive until the 15-90s janitor reclaim.
-      this.teardownTranscodePlayback({
-        stopSession: !leavingInPip,
-        keepAlive: Boolean(leavingInPip),
-      });
+      // must stop the server session.
+      this.teardownTranscodePlayback({ stopSession: true });
       if (!this.usesSharedTranscodePlayback()) {
         this.transcodePlayback = null;
       }
       this.disarmResumeOnNextGesture();
 
       if (this.player) {
-        if (isTransition && !inPip) {
+        if (isTransition) {
           pendingFullscreenResume = this.player.fullscreen?.active || false;
-          pendingPipResume = false;
           pendingResumeTimestamp = Date.now();
         }
         if (this.nativePlayerPlay) {
@@ -1220,28 +1172,13 @@ export default {
         this.cleanupAudioVisualizer();
         this.clearMediaSession();
         this.player.off();
-        if (leavingInPip && media) {
-          registerPipSession(media, {
-            ...resolvePipMediaKey(this.req.source, this.req.path),
-            wasInlineFullscreen: Boolean(this.player?.fullscreen?.active),
-            wasPlaying: !media.paused,
-          });
-          this.player = null;
-        } else {
-          this.stopMediaElement(media);
-          this.player.destroy();
-          this.player = null;
-          // hls.js can re-attach its MediaSource while Plyr tears down; stop the
-          // element once more so no audio survives the unmount.
-          this.stopMediaElement(media);
-        }
-      } else if (leavingInPip && media) {
-        registerPipSession(media, {
-          ...resolvePipMediaKey(this.req.source, this.req.path),
-          wasInlineFullscreen: Boolean(this.player?.fullscreen?.active),
-          wasPlaying: !media.paused,
-        });
-      } else if (!inPip) {
+        this.stopMediaElement(media);
+        this.player.destroy();
+        this.player = null;
+        // hls.js can re-attach its MediaSource while Plyr tears down; stop the
+        // element once more so no audio survives the unmount.
+        this.stopMediaElement(media);
+      } else {
         this.stopMediaElement(media);
       }
 
@@ -1560,11 +1497,9 @@ export default {
       this.mountPlyrInProgress = true;
       try {
         this.bindTranscodePlaybackController();
-        this.mountedPreviewKey = resolvePipMediaKey(this.req?.source, this.req?.path);
-        this.pipHandoffApplying = false;
+        this.mountedPreviewKey = resolveMountedPreviewKey(this.req?.source, this.req?.path);
         this.initTranscodeModeFromRoute();
         await this.stripPlaybackTimeFromUrl();
-        await this.reconcilePipSessionOnMount();
         if (!this.mediaElement || this.plyrTeardownDone || this.player) {
           return;
         }
@@ -1592,15 +1527,6 @@ export default {
         }
         this.setupMediaSession();
         this.setupPlyrEvents();
-        if (this.previewType === 'video') {
-          this.setupPipControlGuard();
-          this.pipPendingResumeCleanup = onPendingInlineResume((snapshot) => {
-            if (!this.mountedPreviewMatchesPending(snapshot)) {
-              return;
-            }
-            this.resumePlaybackAfterNavigation();
-          });
-        }
         this.seekOnReleaseCleanup = enablePlyrSeekOnRelease(this.player);
         this.setupScrubPreview();
         this.setupVideoLoadingIndicator();
@@ -1614,33 +1540,28 @@ export default {
         this.mountPlyrInProgress = false;
       }
     },
-    applyInlineResumeSeek(el, snapshot, onDone) {
+    applyResumeSeek(el, snapshot, onDone) {
       if (!el || !snapshot) {
         onDone?.();
         return;
       }
       const targetTime = Number.isFinite(snapshot.currentTime) ? snapshot.currentTime : 0;
       let finished = false;
-      let handoffCompleted = false;
-      const completeHandoff = () => {
-        if (handoffCompleted) {
+      let resumeCompleted = false;
+      const completeResume = () => {
+        if (resumeCompleted) {
           return;
         }
-        handoffCompleted = true;
-        if (snapshot.wasFullscreen) {
-          this.player?.fullscreen?.enter();
-        }
+        resumeCompleted = true;
         if (snapshot.wasPlaying !== false) {
-          this.attemptPipHandoffPlay(el, snapshot);
+          this.attemptResumePlay(el, snapshot);
         }
         const boundSrc = el.currentSrc || el.getAttribute('src');
         if (boundSrc) {
           this.lockedNativeVideoSrc = boundSrc;
         }
-        this.inlineResumeSnapshot = null;
-        this.pipHandoffSeekSeconds = null;
-        this.pipHandoffApplying = false;
-        clearPendingInlineResumeFor(snapshot.source, snapshot.path);
+        this.resumeSnapshot = null;
+        this.resumeSeekSeconds = null;
         onDone?.();
       };
       const finish = () => {
@@ -1649,10 +1570,10 @@ export default {
         }
         finished = true;
         if (snapshot.wasPlaying !== false && el.readyState < HTMLMediaElement.HAVE_FUTURE_DATA) {
-          el.addEventListener('canplay', () => completeHandoff(), { once: true });
-          window.setTimeout(() => completeHandoff(), 8000);
+          el.addEventListener('canplay', () => completeResume(), { once: true });
+          window.setTimeout(() => completeResume(), 8000);
         } else {
-          completeHandoff();
+          completeResume();
         }
       };
       const readTime = () => this.player?.currentTime ?? el.currentTime;
@@ -1724,9 +1645,6 @@ export default {
     },
     async attachVideoStreamAndPlay() {
       if (this.plyrTeardownDone || this.videoStreamAttached || this.previewType !== 'video' || !this.raw) {
-        if (this.inlineResumeSnapshot) {
-          this.pipHandoffApplying = false;
-        }
         return;
       }
       this.videoStreamAttached = true;
@@ -1740,9 +1658,9 @@ export default {
       if (!el) {
         return;
       }
-      const snap = this.inlineResumeSnapshot;
-      const handoffTime = snap?.currentTime ?? this.pipHandoffSeekSeconds;
-      const streamUrl = appendMediaFragment(this.raw, handoffTime);
+      const snap = this.resumeSnapshot;
+      const resumeTime = snap?.currentTime ?? this.resumeSeekSeconds;
+      const streamUrl = appendMediaFragment(this.raw, resumeTime);
       if (streamUrl && !el.getAttribute('src')) {
         el.setAttribute('src', streamUrl);
         this.lockedNativeVideoSrc = streamUrl;
@@ -1751,7 +1669,7 @@ export default {
         }
       }
       if (snap?.wasPlaying !== false) {
-        const onCanPlay = () => this.attemptPipHandoffPlay(el, snap);
+        const onCanPlay = () => this.attemptResumePlay(el, snap);
         if (el.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) {
           onCanPlay();
         } else {
@@ -1770,7 +1688,7 @@ export default {
       const startWithResume = () => {
         this.clearAttachVideoStreamWait();
         const onMeta = () => {
-          this.applyInlineResumeSeek(el, snap);
+          this.applyResumeSeek(el, snap);
         };
         if (el.readyState >= HTMLMediaElement.HAVE_METADATA) {
           onMeta();
@@ -1872,9 +1790,7 @@ export default {
     },
     resumeTranscodePlayback() {
       const media = this.player?.media || this.mediaElement;
-      // After teardown the element is an orphan unless it was handed to PiP;
-      // a PiP-adopted element is intentionally alive and may still resume.
-      if (this.plyrTeardownDone && !this.isMediaInPictureInPicture(media)) {
+      if (this.plyrTeardownDone) {
         return Promise.resolve();
       }
       transcodeLog('resumeTranscodePlayback', {
@@ -2270,18 +2186,15 @@ export default {
       }
       await this.$nextTick();
 
-      // Restore the playhead through the inline-resume path, which waits for the
+      // Restore the playhead through the resume path, which waits for the
       // new source to report metadata before seeking. Setting currentTime any
       // earlier is discarded and playback restarts at 0:00.
       const canResume = Number.isFinite(currentTime) && currentTime > 0;
       if (canResume) {
-        this.pipHandoffSeekSeconds = currentTime;
-        this.inlineResumeSnapshot = {
-          source: this.req?.source,
-          path: this.req?.path,
+        this.resumeSeekSeconds = currentTime;
+        this.resumeSnapshot = {
           currentTime,
           wasPlaying: shouldPlay,
-          wasFullscreen: false,
         };
       }
 
@@ -2370,153 +2283,14 @@ export default {
         });
       }
     },
-    async reconcilePipSessionOnMount() {
-      if (!this.req?.path) {
-        return;
-      }
-      if (hasActivePipSession(this.req.source, this.req.path)) {
-        const snap = await takeSessionSnapshot(this.req.source, this.req.path);
-        if (snap) {
-          setPendingInlineResume({
-            source: snap.source,
-            path: snap.path,
-            currentTime: snap.currentTime,
-            wasPlaying: snap.wasPlaying,
-            wasFullscreen: Boolean(snap.wasFullscreen),
-            timestamp: Date.now(),
-          });
-        }
-      }
-    },
-    mountedPreviewMatchesPending(snapshot = getPendingInlineResume()) {
-      if (!this.mountedPreviewKey || !snapshot) {
-        return false;
-      }
-      return pendingMatchesPreview(this.mountedPreviewKey.source, this.mountedPreviewKey.path, snapshot);
-    },
-    isHandoffTargetPreview() {
-      if (!this.req?.path || !this.mountedPreviewKey) {
-        return false;
-      }
-      const current = resolvePipMediaKey(this.req.source, this.req.path);
-      return current.source === this.mountedPreviewKey.source
-        && current.path === this.mountedPreviewKey.path;
-    },
     resumePlaybackAfterNavigation() {
-      const pending = getPendingInlineResume();
-      const inlineSnap = this.mountedPreviewMatchesPending(pending) ? pending : null;
-      if (inlineSnap) {
-        if (this.pipHandoffApplying) {
-          return;
-        }
-        const isStale = Date.now() - inlineSnap.timestamp > 30000;
-        if (!isStale) {
-          this.applyInlineResume(inlineSnap);
-        } else {
-          clearPendingInlineResumeFor(this.req.source, this.req.path);
-        }
-        return;
-      }
-
       const isStale = Date.now() - pendingResumeTimestamp > 3000;
       if (pendingFullscreenResume) {
         pendingFullscreenResume = false;
         if (!isStale) this.player.fullscreen?.enter();
       }
-      if (pendingPipResume) {
-        pendingPipResume = false;
-        if (!isStale) {
-          void this.requestPictureInPictureWhenReady();
-        }
-      }
     },
-    waitForMediaReady(el, minReadyState = HTMLMediaElement.HAVE_METADATA) {
-      if (!el) {
-        return Promise.resolve();
-      }
-      if (el.readyState >= minReadyState) {
-        return Promise.resolve();
-      }
-      const event = minReadyState >= HTMLMediaElement.HAVE_FUTURE_DATA ? 'canplay' : 'loadedmetadata';
-      return new Promise((resolve) => {
-        el.addEventListener(event, () => resolve(), { once: true });
-      });
-    },
-    async requestPictureInPictureWhenReady() {
-      if (this.plyrTeardownDone || this.isPipControlBlocked()) {
-        return;
-      }
-      const el = this.mediaElement;
-      if (!el?.requestPictureInPicture) {
-        return;
-      }
-      if (!this.videoStreamAttached && this.previewType === 'video') {
-        void this.attachVideoStreamAndPlay();
-      }
-      await this.waitForMediaReady(el, HTMLMediaElement.HAVE_METADATA);
-      if (document.pictureInPictureElement === el) {
-        return;
-      }
-      try {
-        await el.requestPictureInPicture();
-      } catch (_) {
-        // ignore
-      }
-    },
-    isPipControlBlocked() {
-      return isPipBlockedForPreview(this.req?.source, this.req?.path, this.mediaElement);
-    },
-    syncPipControlAvailability() {
-      const pipBtn = this.player?.elements?.buttons?.pip;
-      if (!pipBtn || this.previewType !== 'video') {
-        return;
-      }
-      const blocked = this.isPipControlBlocked();
-      pipBtn.disabled = blocked;
-      pipBtn.classList.toggle('plyr__control--disabled', blocked);
-      pipBtn.setAttribute('aria-disabled', blocked ? 'true' : 'false');
-    },
-    setupPipControlGuard() {
-      this.teardownPipControlGuard();
-      const pipBtn = this.player?.elements?.buttons?.pip;
-      if (!pipBtn) {
-        return;
-      }
-      this.syncPipControlAvailability();
-      this.pipAvailabilityCleanup = onPipAvailabilityChange(() => {
-        this.syncPipControlAvailability();
-      });
-      this.pipReadinessHandler = (event) => {
-        if (this.isPipControlBlocked()) {
-          event.preventDefault();
-          event.stopImmediatePropagation();
-          return;
-        }
-        const el = this.mediaElement;
-        if (!el || el.readyState >= HTMLMediaElement.HAVE_METADATA) {
-          return;
-        }
-        event.preventDefault();
-        event.stopImmediatePropagation();
-        void this.requestPictureInPictureWhenReady();
-      };
-      pipBtn.addEventListener('click', this.pipReadinessHandler, true);
-    },
-    teardownPipControlGuard() {
-      const pipBtn = this.player?.elements?.buttons?.pip;
-      if (pipBtn && this.pipReadinessHandler) {
-        pipBtn.removeEventListener('click', this.pipReadinessHandler, true);
-      }
-      this.pipReadinessHandler = null;
-      this.pipAvailabilityCleanup?.();
-      this.pipAvailabilityCleanup = null;
-      if (pipBtn) {
-        pipBtn.disabled = false;
-        pipBtn.classList.remove('plyr__control--disabled');
-        pipBtn.setAttribute('aria-disabled', 'false');
-      }
-    },
-    attemptPipHandoffPlay(el, snapshot) {
+    attemptResumePlay(el, snapshot) {
       if (this.plyrTeardownDone || !el || snapshot?.wasPlaying === false) {
         return;
       }
@@ -2539,34 +2313,6 @@ export default {
         return;
       }
       el.addEventListener('canplay', tryPlay, { once: true });
-    },
-    applyInlineResume(snapshot) {
-      const el = this.mediaElement;
-      if (!el || !this.player) {
-        return;
-      }
-      if (!this.mountedPreviewMatchesPending(snapshot)) {
-        return;
-      }
-      if (!pendingMatchesPreview(this.mountedPreviewKey.source, this.mountedPreviewKey.path, snapshot)) {
-        return;
-      }
-      if (this.pipHandoffApplying) {
-        return;
-      }
-      this.pipHandoffApplying = true;
-      if (this.previewType === 'video') {
-        if (this.videoStreamAttached) {
-          this.stopMediaElement(el);
-          this.videoStreamAttached = false;
-        }
-        const seekSeconds = Number.isFinite(snapshot.currentTime) ? snapshot.currentTime : 0;
-        this.pipHandoffSeekSeconds = seekSeconds > 0 ? seekSeconds : null;
-        this.inlineResumeSnapshot = snapshot;
-        void this.attachVideoStreamAndPlay();
-        return;
-      }
-      this.applyInlineResumeSeek(el, snapshot);
     },
     getPlaybackDuration() {
       const fromPlayer = this.player?.duration;
@@ -4367,8 +4113,7 @@ export default {
 }
 
 /* Hide some unnesary buttons on the audio player */
-.plyr--audio .plyr__control[data-plyr="fullscreen"],
-.plyr--audio .plyr__control[data-plyr="pip"] {
+.plyr--audio .plyr__control[data-plyr="fullscreen"] {
   display: none !important;
 }
 
