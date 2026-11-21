@@ -95,13 +95,33 @@ func GetSharesByPath(source, path string) ([]share.Share, error) {
 	return shares, nil
 }
 
+// ShareHashExists reports whether a share with this hash is cached or persisted, including expired shares.
+func ShareHashExists(hash string) bool {
+	sharesMux.RLock()
+	_, exists := sharesByHash[hash]
+	sharesMux.RUnlock()
+	if exists {
+		return true
+	}
+	persisted, err := sqlDb.ShareHashExists(hash)
+	return err == nil && persisted
+}
+
 // CreateShare creates a new share with write-through to SQL
 func CreateShare(link *share.Share) error {
 	sharesMux.Lock()
 	defer sharesMux.Unlock()
 
-	// 1. Check if share already exists in cache (state)
+	// 1. Check if share already exists in cache or database. The database check
+	// covers expired shares that are not loaded into the cache after a restart.
 	if _, exists := sharesByHash[link.Hash]; exists {
+		return fmt.Errorf("share with hash %s already exists", link.Hash)
+	}
+	persisted, checkErr := sqlDb.ShareHashExists(link.Hash)
+	if checkErr != nil {
+		return checkErr
+	}
+	if persisted {
 		return fmt.Errorf("share with hash %s already exists", link.Hash)
 	}
 
