@@ -22,7 +22,7 @@ func TestSharePostCustomHash_AllowedWithExpiration(t *testing.T) {
 	settings.Env.UnsafeCustomShare = true
 	t.Cleanup(func() { settings.Env.UnsafeCustomShare = prevUnsafe })
 
-	const customHash = "workfiles"
+	const customHash = "workfiles-q3-review-2026"
 	raw, err := json.Marshal(map[string]interface{}{
 		"source":     "srv",
 		"path":       "/",

@@ -134,10 +134,10 @@
             {{ $t("share.customHash") }}
             <HelpTooltipIcon :text="$t('share.customHashDescription')" />
           </p>
-          <input class="input" type="text" autocomplete="off" maxlength="64" aria-label="Custom-Share-URL"
+          <input class="input" type="text" autocomplete="off" maxlength="512" aria-label="Custom-Share-URL"
             :placeholder="$t('share.customHashPlaceholder')" v-model.trim="customHash" />
           <p v-if="customHash && !customHashValid" class="read-only-notice">{{ $t('share.customHashInvalid') }}</p>
-          <div v-if="customHash" class="warning-banner">
+          <div class="warning-banner">
             <i class="material-symbols">warning</i>
             <span>{{ $t('share.customHashWarning') }}</span>
           </div>
@@ -202,13 +202,7 @@ import { shareApi } from "@/api/index.js";
 import { copyToClipboard } from "@/utils/clipboard.js";
 import { fromNowSeconds } from "@/utils/moment.ts";
 import { buildItemUrl } from "@/utils/url.js";
-import { notify } from "@/notify";
-import { state, getters, mutations } from "@/store";
-import { shareApi } from "@/api";
-import { copyToClipboard } from "@/utils/clipboard";
-import { fromNowSeconds } from "@/utils/moment";
-import { buildItemUrl } from "@/utils/url";
-import { globalVars } from "@/utils/constants.js";
+import { globalVars } from "@/utils/constants.ts";
 import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
 import SettingsTable from "@/components/settings/Table.vue";
 import ActivityViewerButton from "@/components/settings/ActivityViewerButton.vue";
@@ -512,7 +506,7 @@ export default {
       return !!globalVars.unsafeCustomShare && !this.isEditMode && !this.editingLink;
     },
     customHashValid() {
-      return /^[A-Za-z0-9_-]{1,64}$/.test(this.customHash);
+      return /^[A-Za-z0-9_-]{16,512}$/.test(this.customHash);
     },
   },
   watch: {

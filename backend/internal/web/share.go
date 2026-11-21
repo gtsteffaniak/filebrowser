@@ -870,11 +870,11 @@ func applySharePasswordUpdate(link *share.Share, password *string, hashedPasswor
 	return nil
 }
 
-var customShareHashPattern = regexp.MustCompile(`^[A-Za-z0-9_-]{1,64}$`)
+var customShareHashPattern = regexp.MustCompile(`^[A-Za-z0-9_-]{16,512}$`)
 
 func validateCustomShareHash(hash string) error {
 	if !customShareHashPattern.MatchString(hash) {
-		return fmt.Errorf("custom share URL must be 1-64 characters: letters, digits, '-' or '_'")
+		return fmt.Errorf("custom share URL must be 16-512 characters: letters, digits, '-' or '_'")
 	}
 	return nil
 }

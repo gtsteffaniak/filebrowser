@@ -68,7 +68,6 @@ import FloatingActionButton from "@/components/settings/FloatingActionButton.vue
 import { state, mutations, getters } from "@/store/index.ts";
 import { resourcesApi } from "@/api/index.js";
 import { getCachedViewToken, ensureViewToken, requestViewIdentity } from "@/api/viewToken.js";
-import { removeLastDir, resolveRelativePath } from "@/utils/url.js";
 import { getObjectProperty } from '@/utils/object.js';
 import { resolveAssetFilePath, hasSiblingFile } from "@/utils/threeAssetUrl.js";
 
@@ -503,7 +502,7 @@ export default {
         const magic = new TextDecoder().decode(new Uint8Array(data, 0, 4));
         // Strip a trailing slash first, otherwise the buffer base is the model file itself.
         const modelPath = this.fbdata.path.replace(/\/+$/, '');
-        const modelDir = modelPath.substring(0, modelPath.lastIndexOf('/') + 1);
+        const modelDir = modelPath.slice(0, modelPath.lastIndexOf('/') + 1);
 
         if (magic !== 'glTF') {
           // Try text parse
