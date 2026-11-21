@@ -48,8 +48,6 @@ const previewPermsComputed = computed<Readonly<PreviewPerms>>(() => {
   };
 });
 
-const hasDurationCache = new WeakMap<object, boolean>();
-
 export const getters = {
   displayPreferenceFor: (source: string, path: string): DisplayPreference | null => {
     const sourceKey = getters.isShare() ? getters.currentHash() : source;
@@ -350,12 +348,7 @@ export const getters = {
   hasDuration: () => {
     const items = state.req?.items;
     if (!Array.isArray(items)) return false;
-    let result = hasDurationCache.get(items);
-    if (result === undefined) {
-      result = items.some((item: FileListItem) => item.type !== 'directory' && !!item.metadata?.duration);
-      hasDurationCache.set(items, result);
-    }
-    return result;
+    return items.some((item: FileListItem) => item.type !== 'directory' && !!item.metadata?.duration);
   },
   isSidebarVisible: () => {
     if (globalVars.disableSidebar || getters.isInvalidShare()) {

@@ -259,6 +259,8 @@ async function drop(event: DragEvent, link: BreadcrumbLink) {
   const targetPath = link.path;
   const currentPath = state.req.path;
   const source = state.req.source ?? "";
+  const isShareMove = getters.isShare();
+  const shareHash = isShareMove ? state.shareInfo.hash : "";
 
   if (normalizePath(targetPath) === normalizePath(currentPath)) {
     notify.showErrorToast(t("files.sameFolder"));
@@ -306,8 +308,8 @@ async function drop(event: DragEvent, link: BreadcrumbLink) {
   // Check for conflicts in target directory
   let targetDirItems: { name: string }[] = [];
   try {
-    if (getters.isShare()) {
-      const response = await resourcesApi.fetchFilesPublic(targetPath, state.shareInfo.hash);
+    if (isShareMove) {
+      const response = await resourcesApi.fetchFilesPublic(targetPath, shareHash);
       targetDirItems = response?.items ?? [];
     } else {
       const response = await resourcesApi.fetchFiles(source, targetPath);
@@ -331,15 +333,15 @@ async function drop(event: DragEvent, link: BreadcrumbLink) {
     });
 
     try {
-      if (getters.isShare()) {
-        await resourcesApi.moveCopyPublic(state.shareInfo.hash, itemsToMove, "move", overwrite, rename);
+      if (isShareMove) {
+        await resourcesApi.moveCopyPublic(shareHash, itemsToMove, "move", overwrite, rename);
       } else {
         await resourcesApi.moveCopy(itemsToMove, "move", overwrite, rename);
       }
       notify.showSuccess(t("prompts.moveSuccess"), {
         icon: "folder",
         buttons: [
-          goToItemNotificationButton(t("buttons.goToItem"), source, targetPath, getters.isShare()),
+          goToItemNotificationButton(t("buttons.goToItem"), source, targetPath, isShareMove),
         ],
       });
       mutations.closeTopPrompt();

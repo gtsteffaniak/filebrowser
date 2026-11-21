@@ -87,7 +87,8 @@
         </div>
         <div v-if="quotaLoaded" class="info-item">
           <strong>{{ t("general.enabled") }}</strong>
-          <span>{{ quotaEnabled ? t("general.yes") : t("general.no") }}</span>
+          <span v-if="quotaFailed">{{ t("general.error") }}</span>
+          <span v-else>{{ quotaEnabled ? t("general.yes") : t("general.no") }}</span>
         </div>
         <div v-if="quotaEnabled" class="info-quota-usage">
           <QuotaFolderBar
@@ -199,6 +200,7 @@ const generatingHash = ref(false);
 const quotaSnapshot = ref<QuotaSnapshot>({});
 const quotaExists = ref(false);
 const quotaLoaded = ref(false);
+const quotaFailed = ref(false);
 const lyricsText = ref("");
 const lyricsLoading = ref(false);
 const showLyrics = ref(false);
@@ -356,6 +358,7 @@ async function toggleSubtitle(track: SubtitleTrack) {
 }
 
 async function loadQuota() {
+  quotaFailed.value = false;
   try {
     const raw = await quotasApi.get(source.value, filePath.value);
     const data = Array.isArray(raw) ? raw[0] : raw;
@@ -363,8 +366,11 @@ async function loadQuota() {
     const { usedBytes, reservedBytes, measurementStatus, limitBytes } = data;
     quotaSnapshot.value = { usedBytes, reservedBytes, measurementStatus, limitBytes };
     quotaExists.value = (limitBytes || 0) > 0;
-  } catch {
-    // no quota or preview unavailable
+  } catch (err) {
+    if ((err as { status?: number })?.status !== 404) {
+      quotaFailed.value = true;
+      quotaRequested = false;
+    }
   } finally {
     quotaLoaded.value = true;
   }
