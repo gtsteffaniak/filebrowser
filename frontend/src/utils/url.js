@@ -261,6 +261,11 @@ export function buildItemUrl(source, path, includeBaseURL = false) {
   return `/${urlPath}`;
 }
 
+export function buildWebDavUrl(source, path) {
+  const encodedItemPath = encodePath(removeLeadingSlash(path));
+  return `${globalVars.baseURL}dav/${encodeURIComponent(source)}/${encodedItemPath}`;
+}
+
 export function encodedPath(path) {
   if (path === undefined) {
     return "";

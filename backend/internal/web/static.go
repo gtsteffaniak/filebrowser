@@ -327,6 +327,7 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"officeProduct":          officeProductForSPA(),
 		"officeExtensions":       wopiExtensionsForSPA(),
 		"textPreviewMimeTypes":   iteminfo.TextPreviewMimeTypes(),
+		"webdavDisabled":         settings.Config.Http.DisableWebDAV,
 	}
 
 	cspNonce, err := utils.CSPNonce()

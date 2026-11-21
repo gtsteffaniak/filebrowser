@@ -16,6 +16,7 @@ vi.mock("@/store", () => ({
     isShare: () => false,
     isLoading: () => false,
     reqItems: () => ({ pinned: [], dirs: [], files: [] }),
+    hasDuration: () => false,
     viewMode: () => "normal",
     isCardView: () => true,
     isMobile: () => false,
