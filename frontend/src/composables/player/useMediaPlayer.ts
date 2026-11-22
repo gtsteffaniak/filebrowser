@@ -1,14 +1,13 @@
-import type { ShallowRef } from "vue";
+import { type ShallowRef, watch } from "vue";
 // The only value import of `plyr`: the whole player is created and destroyed here so the
-// Video.js 10 migration has a single place to replace. Its stylesheet and our shared
-// overrides are imported next to it, in this order.
+// Video.js 10 migration has a single place to replace. Its stylesheet is in `MediaPlayer.vue`.
 import Plyr from "plyr";
-import "plyr/dist/plyr.css";
-import "@/css/player.css";
 import { useI18n } from "@/i18n/index.ts";
 import { blockSeekOnInput } from "@/player/seekOnRelease.js";
+import { router } from "@/router/index.ts";
 import { mutations, state } from "@/store/index.ts";
 import { globalVars } from "@/utils/constants.ts";
+import { buildPlaybackQueryPatch, playbackQueryChanged } from "@/utils/playbackQuery.js";
 import { getEndOfMediaAction, navigatePlaybackQueue } from "@/utils/playbackQueue.js";
 import { buildItemUrl, removeTrailingSlash } from "@/utils/url.js";
 
@@ -37,6 +36,29 @@ interface PlyrRuntime {
 export interface MountedFileKey {
   source: string;
   path: string;
+}
+
+/** The props both players take, besides what only one of them needs. */
+export interface PlayerFile {
+  name?: string;
+  type?: string;
+  path?: string;
+  source?: string;
+}
+
+export type PlayerEmits = {
+  "playback-start": [];
+  "navigate-previous": [];
+  "navigate-next": [];
+  "close-preview": [];
+};
+
+/** Drops the `time` query param so a reload does not seek to a stale position. */
+export async function stripPlaybackTimeFromUrl(): Promise<void> {
+  const route = router.currentRoute.value;
+  const nextQuery = buildPlaybackQueryPatch(route.query as Record<string, string | undefined>, { time: null });
+  if (!playbackQueryChanged(route.query, nextQuery)) return;
+  await router.replace({ path: route.path, query: nextQuery, hash: route.hash });
 }
 
 /** The source/path a player instance mounts for; used to detect a route change away from it. */
@@ -73,20 +95,26 @@ interface MediaPlayerOptions {
   getMediaElement: () => HTMLMediaElement | null | undefined;
   /** Source/path of the file currently requested (may be cleared during a close). */
   getRequestedFile: () => { source?: string; path?: string } | null | undefined;
-  /** Source/path this instance mounted for. */
-  getMountedFile: () => MountedFileKey | null | undefined;
-  isTornDown: () => boolean;
+  /** Called on play, pause, seek and the other events that change what the media session reports. */
+  onPlaybackState: () => void;
   /** Full teardown of the owning component state (called when the route left the file). */
   destroy: () => void;
   /** Runs before an element is stopped, e.g. to cancel a pending stream attach. */
   beforeStopMedia?: () => void;
 }
 
-/** Creates, wires, stops and destroys the Plyr instance, and ends/advances playback. */
+/** Creates, wires, stops and destroys Plyr , and ends/advances playback. */
 export function useMediaPlayer(options: MediaPlayerOptions) {
   const { player } = options;
   const { t } = useI18n();
   let nativePlay: NativePlay | null = null;
+
+  const lifecycle: {
+    mountedFile: MountedFileKey | null;
+    tornDown: boolean;
+    unmounted: boolean;
+    mountInProgress: boolean;
+  } = { mountedFile: null, tornDown: false, unmounted: false, mountInProgress: false };
 
   /** The Plyr options both players share; `createPlayer` merges the per-player extras over them. */
   function buildPlyrOptions(extra: Plyr.Options): PlyrRuntimeOptions {
@@ -165,6 +193,46 @@ export function useMediaPlayer(options: MediaPlayerOptions) {
     player.value?.on(event, fn);
   }
 
+  /** The events both players handle the same way; `extra` runs after the shared handling of play, pause and timeupdate. */
+  function setupSharedEvents(extra: { play?: () => void; pause?: () => void; timeupdate?: () => void } = {}): void {
+    const current = player.value;
+    if (!current) return;
+    mutations.setPlaybackState(current.playing);
+    const events: [Plyr.StandardEvent | Plyr.Html5Event, () => void][] = [
+      ["ended", handleMediaEnd],
+      [
+        "play",
+        () => {
+          mutations.setPlaybackState(true);
+          options.onPlaybackState();
+          extra.play?.();
+        },
+      ],
+      [
+        "pause",
+        () => {
+          mutations.setPlaybackState(false);
+          options.onPlaybackState();
+          extra.pause?.();
+        },
+      ],
+      [
+        "timeupdate",
+        () => {
+          options.onPlaybackState();
+          extra.timeupdate?.();
+        },
+      ],
+      ["seeked", options.onPlaybackState],
+      ["loadedmetadata", options.onPlaybackState],
+      ["ratechange", options.onPlaybackState],
+      ["canplay", options.onPlaybackState],
+    ];
+    for (const [event, handler] of events) {
+      onPlayerEvent(event, handler);
+    }
+  }
+
   function getActiveMediaElement(): HTMLMediaElement | null {
     return (player.value as unknown as PlyrRuntime | null)?.media ?? options.getMediaElement() ?? null;
   }
@@ -220,11 +288,11 @@ export function useMediaPlayer(options: MediaPlayerOptions) {
   }
 
   function stopIfRouteLeftThisFile(): void {
-    if (options.isTornDown()) {
+    if (lifecycle.tornDown) {
       return;
     }
     const requested = options.getRequestedFile();
-    const mounted = options.getMountedFile();
+    const mounted = lifecycle.mountedFile;
     const source = mounted?.source ?? requested?.source;
     const path = mounted?.path ?? requested?.path;
     if (!path) {
@@ -252,7 +320,7 @@ export function useMediaPlayer(options: MediaPlayerOptions) {
   }
 
   function togglePlayPause(): void {
-    if (options.isTornDown()) {
+    if (lifecycle.tornDown) {
       return;
     }
     if (player.value) {
@@ -283,7 +351,17 @@ export function useMediaPlayer(options: MediaPlayerOptions) {
     }
   }
 
+  watch(
+    () => state.playbackQueue.shouldTogglePlayPause || false,
+    (newVal, oldVal) => {
+      if (newVal !== oldVal) togglePlayPause();
+    },
+  );
+  watch(() => state.route.path, stopIfRouteLeftThisFile);
+
   return {
+    lifecycle,
+    setupSharedEvents,
     createPlayer,
     overridePlay,
     getNativePlay,

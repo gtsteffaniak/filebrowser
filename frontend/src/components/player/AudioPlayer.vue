@@ -84,18 +84,18 @@
           <audio :src="raw" :type="req.type" :autoplay="shouldAutoplay" @play="handlePlay" ref="audioElement"></audio>
         </div>
       </div>
-      <!-- Double‑tap / seek feedback overlay -->
-      <div
-        class="video-skip-feedback-layer"
-        :class="{
-          'video-skip-feedback-layer--visible': skipFeedbackVisible,
-          'video-skip-feedback-layer--left': skipFeedbackSide === 'left',
-          'video-skip-feedback-layer--right': skipFeedbackSide === 'right',
-        }"
-        aria-hidden="true"
-      >
-        <i :key="skipFeedbackKey" class="material-symbols video-skip-feedback-layer__icon">{{ skipFeedbackIcon }}</i>
-      </div>
+      <PlayerOverlays
+        :skip-visible="skipFeedbackVisible"
+        :skip-side="skipFeedbackSide"
+        :skip-icon="skipFeedbackIcon"
+        :skip-key="skipFeedbackKey"
+        :toast-visible="toastVisible"
+        :toast-icon="toastIcon"
+        :toast-message="playbackModeMessage"
+        :toast-loop-state="toastType === 'loop' ? (loop !== 'off' ? 'on' : 'off') : undefined"
+        :speed-toast-visible="speedToastVisible"
+        :speed-toast-message="speedToastMessage"
+      />
     </div>
     <FloatingActionButton
       v-if="isMobile"
@@ -105,16 +105,6 @@
       @press="showQueuePrompt"
       :label="t('player.QueueButtonHint')"
     />
-    <div :class="['playback-toast', toastVisible ? 'visible' : '']">
-      <i class="material-symbols">{{ toastIcon }}</i>
-      <span>{{ playbackModeMessage }}</span>
-      <span v-if="toastType === 'loop'" :class="[
-          'status-indicator', loop !== 'off' ? 'status-on' : 'status-off',]"></span>
-    </div>
-    <div v-if="speedToastVisible" class="playback-toast visible">
-      <i class="material-symbols">speed</i>
-      <span>{{ speedToastMessage }}</span>
-    </div>
   </div>
 </template>
 
@@ -124,6 +114,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, shallowRef, useTem
 import AudioPanel from "@/components/files/AudioPanel.vue";
 import LyricsList from "@/components/files/LyricsList.vue";
 import FloatingActionButton from "@/components/settings/FloatingActionButton.vue";
+import PlayerOverlays from "@/components/player/PlayerOverlays.vue";
 import { getSettingsElements } from "@/composables/player/settingsElements.ts";
 import {
   readAlbumArtSize,
@@ -138,19 +129,23 @@ import { useEmbeddedArtwork } from "@/composables/player/useEmbeddedArtwork.ts";
 import { useDoubleTapSeek } from "@/composables/player/useDoubleTapSeek.ts";
 import { useGestureState } from "@/composables/player/useGestureState.ts";
 import { useMediaKeyboard } from "@/composables/player/useMediaKeyboard.ts";
-import { type MountedFileKey, resolveMountedFileKey, useMediaPlayer } from "@/composables/player/useMediaPlayer.ts";
+import {
+  type PlayerEmits,
+  type PlayerFile,
+  resolveMountedFileKey,
+  stripPlaybackTimeFromUrl,
+  useMediaPlayer,
+} from "@/composables/player/useMediaPlayer.ts";
 import { useMediaSession } from "@/composables/player/useMediaSession.ts";
 import { usePlaybackQueue } from "@/composables/player/usePlaybackQueue.ts";
 import { useSwipeNavigationGestures } from "@/composables/player/useSwipeNavigationGestures.ts";
 import { useI18n } from "@/i18n/index.ts";
 import { enableSeekOnRelease } from "@/player/seekOnRelease.js";
-import { router } from "@/router/index.ts";
-import { getters, mutations, state } from "@/store/index.ts";
+import { getters } from "@/store/index.ts";
 import type { FileListItem } from "@/store/types.ts";
 import { globalVars } from "@/utils/constants.ts";
 import { getTypeFromMime } from "@/utils/files.js";
 import type { LyricLines } from "@/utils/lyrics.ts";
-import { buildPlaybackQueryPatch, playbackQueryChanged } from "@/utils/playbackQuery.js";
 import { formatArtist } from "@/utils/playbackQueue.js";
 
 interface AudioMetadata {
@@ -162,11 +157,7 @@ interface AudioMetadata {
   albumArt?: string;
 }
 
-interface AudioFile {
-  name?: string;
-  type?: string;
-  path?: string;
-  source?: string;
+interface AudioFile extends PlayerFile {
   metadata?: AudioMetadata;
 }
 
@@ -182,12 +173,7 @@ const props = withDefaults(
   { lyrics: () => [], listing: () => [], autoPlayEnabled: false },
 );
 
-const emit = defineEmits<{
-  "playback-start": [];
-  "navigate-previous": [];
-  "navigate-next": [];
-  "close-preview": [];
-}>();
+const emit = defineEmits<PlayerEmits>();
 
 const { t } = useI18n();
 
@@ -246,18 +232,17 @@ const gestures = useGestureState();
 const playbackQueueState = usePlaybackQueue({
   getReq: () => props.req,
   getListing: () => props.listing,
+  onQueueChange: updateMediaSessionNavHandlers,
+  applyMenus: ensurePlaybackModeApplied,
 });
 const {
   queueCount,
   playbackQueue,
-  currentQueueIndex,
-  playbackMode,
   loop,
   toastVisible,
   toastType,
   toastIcon,
   playbackModeMessage,
-  showToast,
   showQueuePrompt,
   toggleSingleLoop,
   cyclePlaybackModes,
@@ -270,12 +255,6 @@ const {
 
 const shouldAutoplay = computed(() => props.autoPlayEnabled || playbackQueue.value.length > 1);
 
-/** Source+path this instance mounted for; guards stale instances during route transitions. */
-let mountedFile: MountedFileKey | null = null;
-let tornDown = false;
-// Set first thing on unmount so continuations that resume afterwards never register listeners.
-let unmounted = false;
-let mountInProgress = false;
 let seekOnReleaseCleanup: (() => void) | null = null;
 
 const doubleTap = useDoubleTapSeek({
@@ -310,24 +289,15 @@ const swipe = useSwipeNavigationGestures({
   onClosePreview: () => emit("close-preview"),
 });
 const { speedToastVisible, speedToastMessage, setupSwipeGestures, teardownSwipeGestures, clearDismissAnimTimers } = swipe;
-const {
-  createPlayer,
-  onPlayerEvent,
-  getActiveMediaElement,
-  stopMediaElement,
-  destroyPlayer,
-  stopIfRouteLeftThisFile,
-  togglePlayPause,
-  handleMediaEnd,
-} = useMediaPlayer({
-  kind: "audio",
-  player,
-  getMediaElement: () => audioElement.value,
-  getRequestedFile: () => props.req,
-  getMountedFile: () => mountedFile,
-  isTornDown: () => tornDown,
-  destroy,
-});
+const { lifecycle, createPlayer, setupSharedEvents, getActiveMediaElement, stopMediaElement, destroyPlayer } =
+  useMediaPlayer({
+    kind: "audio",
+    player,
+    getMediaElement: () => audioElement.value,
+    getRequestedFile: () => props.req,
+    onPlaybackState: updateMediaSessionPlaybackState,
+    destroy,
+  });
 const { attachKeyboard, detachKeyboard } = useMediaKeyboard({
   player,
   getPreviewType: () => "audio",
@@ -368,80 +338,20 @@ function ensurePlaybackModeApplied(): void {
   }
 }
 
-watch(playbackMode, async (newMode, oldMode) => {
-  if (newMode === oldMode) return;
-  if (oldMode !== undefined) {
-    // can only be "single" via clearPlaybackQueue
-    toastType.value = newMode === "single" ? "cleared" : "mode";
-    showToast();
-  }
-  updateMediaSessionNavHandlers();
-  await nextTick();
-  ensurePlaybackModeApplied();
-});
-watch(loop, async (newVal, oldVal) => {
-  if (newVal === oldVal) return;
-  toastType.value = "loop";
-  showToast();
-  updateMediaSessionNavHandlers();
-  await nextTick();
-  ensurePlaybackModeApplied();
-});
-watch(currentQueueIndex, updateMediaSessionNavHandlers);
-watch(
-  () => state.playbackQueue.shouldTogglePlayPause || false,
-  (newVal, oldVal) => {
-    if (newVal !== oldVal) togglePlayPause();
-  },
-);
-watch(() => state.route.path, stopIfRouteLeftThisFile);
 watch(
   () => props.req.source,
   (newSource, oldSource) => {
     if (!newSource || newSource === oldSource) return;
     destroy();
-    tornDown = false;
+    lifecycle.tornDown = false;
     void initializePlayer();
   },
 );
 
 // --- Mount / teardown ---
-async function stripPlaybackTimeFromUrl(): Promise<void> {
-  const route = router.currentRoute.value;
-  const nextQuery = buildPlaybackQueryPatch(route.query as Record<string, string | undefined>, { time: null });
-  if (!playbackQueryChanged(route.query, nextQuery)) return;
-  await router.replace({ path: route.path, query: nextQuery, hash: route.hash });
-}
-
 function setupPlayerEvents(): void {
-  const current = player.value;
-  if (!current) return;
-  mutations.setPlaybackState(current.playing);
-  const events: [Plyr.StandardEvent | Plyr.Html5Event, () => void][] = [
-    ["ended", handleMediaEnd],
-    [
-      "play",
-      () => {
-        mutations.setPlaybackState(true);
-        updateMediaSessionPlaybackState();
-      },
-    ],
-    [
-      "pause",
-      () => {
-        mutations.setPlaybackState(false);
-        updateMediaSessionPlaybackState();
-      },
-    ],
-    ["timeupdate", updateMediaSessionPlaybackState],
-    ["seeked", updateMediaSessionPlaybackState],
-    ["loadedmetadata", updateMediaSessionPlaybackState],
-    ["ratechange", updateMediaSessionPlaybackState],
-    ["canplay", updateMediaSessionPlaybackState],
-  ];
-  for (const [event, handler] of events) {
-    onPlayerEvent(event, handler);
-  }
+  if (!player.value) return;
+  setupSharedEvents();
   ensurePlaybackModeApplied();
   setupDoubleTapSeek();
   setupSwipeGestures();
@@ -449,12 +359,12 @@ function setupPlayerEvents(): void {
 }
 
 async function mountPlayer(): Promise<void> {
-  if (!audioElement.value || player.value || mountInProgress || tornDown) return;
-  mountInProgress = true;
+  if (!audioElement.value || player.value || lifecycle.mountInProgress || lifecycle.tornDown) return;
+  lifecycle.mountInProgress = true;
   try {
-    mountedFile = resolveMountedFileKey(props.req?.source, props.req?.path);
+    lifecycle.mountedFile = resolveMountedFileKey(props.req?.source, props.req?.path);
     await stripPlaybackTimeFromUrl();
-    if (!audioElement.value || tornDown || player.value) return;
+    if (!audioElement.value || lifecycle.tornDown || player.value) return;
     createPlayer();
     if (!player.value) return;
     setupMediaSession({
@@ -466,33 +376,33 @@ async function mountPlayer(): Promise<void> {
     setupPlayerEvents();
     seekOnReleaseCleanup = enableSeekOnRelease(player.value);
   } finally {
-    mountInProgress = false;
+    lifecycle.mountInProgress = false;
   }
 }
 
 async function initializePlayer(): Promise<void> {
-  if (!audioElement.value || player.value || tornDown) return;
+  if (!audioElement.value || player.value || lifecycle.tornDown) return;
   await nextTick();
-  if (!audioElement.value || player.value || tornDown) return;
+  if (!audioElement.value || player.value || lifecycle.tornDown) return;
   void mountPlayer();
 }
 
 function handlePlay(): void {
-  if (tornDown) return;
+  if (lifecycle.tornDown) return;
   emit("playback-start");
   resumeAudioGraph();
 }
 
 /** Stops playback and releases the player, listeners and album art */
 function destroy(): void {
-  if (tornDown) return;
-  tornDown = true;
+  if (lifecycle.tornDown) return;
+  lifecycle.tornDown = true;
   cleanupAlbumArt();
   if (seekOnReleaseCleanup) {
     seekOnReleaseCleanup();
     seekOnReleaseCleanup = null;
   }
-  mountedFile = null;
+  lifecycle.mountedFile = null;
   const media = getActiveMediaElement();
 
   if (media) {
@@ -516,16 +426,16 @@ function onPageHide(event: PageTransitionEvent): void {
 }
 
 onMounted(async () => {
-  mountedFile = resolveMountedFileKey(props.req?.source, props.req?.path);
+  lifecycle.mountedFile = resolveMountedFileKey(props.req?.source, props.req?.path);
   loadMediaMetadata();
   await initializePlayer();
-  if (unmounted || tornDown) return;
+  if (lifecycle.unmounted || lifecycle.tornDown) return;
   attachKeyboard();
   window.addEventListener("pagehide", onPageHide);
 });
 
 onBeforeUnmount(() => {
-  unmounted = true;
+  lifecycle.unmounted = true;
   clearDismissAnimTimers();
   try {
     destroy();

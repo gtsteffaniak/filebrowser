@@ -1,4 +1,4 @@
-import { computed, onBeforeUnmount, ref, watch } from "vue";
+import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue";
 import type Plyr from "plyr";
 import { useI18n } from "@/i18n/index.ts";
 import { getters, mutations, state } from "@/store/index.ts";
@@ -26,10 +26,12 @@ interface PlaybackQueueOptions {
   getReq: () => QueueItem;
   /** The listing of the folder the file lives in. */
   getListing: () => FileListItem[] | null | undefined;
+  onQueueChange: () => void;
+  applyMenus: () => void;
 }
 
 /** Queue, loop and playback modes, the mode toast and the hand-built playback/loop settings menus. */
-export function usePlaybackQueue({ getReq, getListing }: PlaybackQueueOptions) {
+export function usePlaybackQueue({ getReq, getListing, onQueueChange, applyMenus }: PlaybackQueueOptions) {
   const { t } = useI18n();
 
   const queueCount = computed(() => state.playbackQueue.queue.length || 0);
@@ -150,6 +152,26 @@ export function usePlaybackQueue({ getReq, getListing }: PlaybackQueueOptions) {
     },
     { immediate: true },
   );
+
+  watch(playbackMode, async (newMode, oldMode) => {
+    if (newMode === oldMode) return;
+    if (oldMode !== undefined) {
+      toastType.value = newMode === "single" ? "cleared" : "mode";
+      showToast();
+    }
+    onQueueChange();
+    await nextTick();
+    applyMenus();
+  });
+  watch(loop, async (newVal, oldVal) => {
+    if (newVal === oldVal) return;
+    toastType.value = "loop";
+    showToast();
+    onQueueChange();
+    await nextTick();
+    applyMenus();
+  });
+  watch(currentQueueIndex, onQueueChange);
 
   // --- Plyr settings menus (Plyr-specific DOM -- should be rewritten with the Video.js 10 migration) ---
   const playbackMenuInitialized = ref(false);

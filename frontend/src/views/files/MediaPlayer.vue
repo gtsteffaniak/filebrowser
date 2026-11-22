@@ -1,53 +1,48 @@
 <template>
-  <div id="previewer">
-    <div v-if="isTransitioning" class="transition-loading">
-      <LoadingSpinner size="medium" />
-    </div>
-    <div class="preview" :class="{
-      'media-background-light': !isDarkMode && previewType === 'audio',
-      'media-background-dark': isDarkMode && previewType === 'audio',
-      'transitioning': isTransitioning
-    }">
-      <div v-if="previewType === 'audio' || previewType === 'video'" class="av-preview-wrap">
-        <div v-if="avMetadataLoading" class="av-preview-loading">
-          <LoadingSpinner size="medium" />
-        </div>
-        <AudioPlayer v-else-if="previewType === 'audio'"
-          :key="`audio:${viewerKey}`"
-          ref="audioRef"
-          :req="req"
-          :raw="raw"
-          :lyrics="lyrics"
-          :listing="listing"
-          :autoPlayEnabled="autoPlay"
-          class="media-background"
-          @playback-start="playbackStarted = true"
-          @navigate-previous="navigatePrevious"
-          @navigate-next="navigateNext"
-          @close-preview="exitPreviewFromImageGesture"
-        />
-        <VideoPlayer v-else
-          :key="`video:${viewerKey}`"
-          ref="videoRef"
-          :raw="raw"
-          :subtitlesList="subtitlesList"
-          :req="req"
-          :listing="listing"
-          :autoPlayEnabled="autoPlay"
-          @playback-start="playbackStarted = true"
-          @navigate-previous="navigatePrevious"
-          @navigate-next="navigateNext"
-          @close-preview="exitPreviewFromImageGesture"
-        />
+  <PreviewShell :preview-class="{
+    'media-background-light': !isDarkMode && previewType === 'audio',
+    'media-background-dark': isDarkMode && previewType === 'audio',
+  }">
+    <div v-if="previewType === 'audio' || previewType === 'video'" class="av-preview-wrap">
+      <div v-if="avMetadataLoading" class="av-preview-loading">
+        <LoadingSpinner size="medium" />
       </div>
+      <AudioPlayer v-else-if="previewType === 'audio'"
+        :key="`audio:${viewerKey}`"
+        ref="audioRef"
+        :req="req"
+        :raw="raw"
+        :lyrics="lyrics"
+        :listing="listing"
+        :autoPlayEnabled="autoPlay"
+        class="media-background"
+        @playback-start="playbackStarted = true"
+        @navigate-previous="navigatePrevious"
+        @navigate-next="navigateNext"
+        @close-preview="exitPreviewFromImageGesture"
+      />
+      <VideoPlayer v-else
+        :key="`video:${viewerKey}`"
+        ref="videoRef"
+        :raw="raw"
+        :subtitlesList="subtitlesList"
+        :req="req"
+        :listing="listing"
+        :autoPlayEnabled="autoPlay"
+        @playback-start="playbackStarted = true"
+        @navigate-previous="navigatePrevious"
+        @navigate-next="navigateNext"
+        @close-preview="exitPreviewFromImageGesture"
+      />
     </div>
-  </div>
+  </PreviewShell>
 </template>
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, useTemplateRef, watch } from "vue";
 import { mediaApi, resourcesApi } from "@/api/index.js";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
+import PreviewShell from "@/components/files/PreviewShell.vue";
 import { usePreviewNavigation } from "@/composables/preview/usePreviewNavigation.ts";
 import { getters, mutations, state } from "@/store/index.ts";
 import { createAsyncComponent } from "@/utils/asyncComponent.js";
@@ -96,7 +91,6 @@ const {
 
 const req = computed(() => state.req);
 const isDarkMode = computed(() => getters.isDarkMode());
-const isTransitioning = computed(() => state.navigation.isTransitioning);
 const previewType = computed(() => {
   if (getters.fileViewingDisabled(state.req.name ?? "")) {
     return "preview";
@@ -340,7 +334,99 @@ async function subtitles(): Promise<SubtitleSource[]> {
 
 </script>
 
+<style src="plyr/dist/plyr.css"></style>
+
 <style>
+.plyr,
+.plyr__video-wrapper,
+.plyr video {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.plyr__video-wrapper:focus,
+.plyr video:focus {
+  outline: none;
+}
+
+.media-player {
+  height: 100%;
+  width: 100%;
+}
+
+.plyr {
+  --plyr-color-main: var(--primaryColor);
+  --plyr-video-background: rgb(0 0 0 / 100%);
+  --plyr-focus-visible-color: var(--primaryColor);
+  --plyr-audio-control-color: #fff;
+  --plyr-menu-background: rgb(0 0 0 / 70%);
+  --plyr-menu-color: #fff;
+  --plyr-menu-border-shadow-color: rgb(0 0 0 / 50%);
+  --plyr-menu-radius: 12px;
+  --plyr-menu-shadow: 0 1px 2px rgb(0 0 0 / 50%);
+  --plyr-control-radius: 12px;
+  --plyr-control-icon-size: 16px;
+  --plyr-control-spacing: 8px;
+  --plyr-control-padding: 6px;
+  --plyr-tooltip-background: rgb(0 0 0 / 80%);
+  --plyr-tooltip-color: #fff;
+  --plyr-video-controls-background: linear-gradient(
+    transparent,
+    rgb(0 0 0 / 70%)
+  );
+
+  overflow: visible;
+  background-color: rgb(216 216 216);
+  box-shadow: 0 2px 6px rgb(88 88 88 / 45%);
+}
+
+.plyr__controls {
+  color: black;
+}
+
+.plyr .plyr__controls {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  background-color: transparent;
+}
+
+.plyr .plyr__controls__items {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: nowrap;
+}
+
+.plyr .plyr__control {
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease;
+  flex-shrink: 0;
+  display: flex;
+  min-width: 2em;
+  justify-content: center;
+  align-items: center;
+}
+
+.plyr .plyr__progress__container {
+  flex: 100%;
+  margin: 0;
+}
+
+@media (width <= 768px) {
+  .plyr .plyr__control[data-plyr="rewind"],
+  .plyr .plyr__control[data-plyr="fast-forward"] {
+    display: none;
+  }
+}
+
+@media (width <= 550px) {
+  .plyr__volume {
+    display: none;
+  }
+}
+
 .av-preview-loading {
   display: flex;
   align-items: center;
@@ -351,29 +437,12 @@ async function subtitles(): Promise<SubtitleSource[]> {
 </style>
 
 <style scoped>
-.media-background-dark {
+:deep(.media-background-dark) {
   background: radial-gradient(#3b3b3b, black);
 }
 
-.media-background-light {
+:deep(.media-background-light) {
   background: radial-gradient(#262626, #e2e2e2);
-}
-
-.transition-loading {
-  position: fixed;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background: var(--background);
-  z-index: 10000;
-  transition: opacity 0.1s ease;
-}
-
-.preview.transitioning {
-  opacity: 0.3;
-  pointer-events: none;
 }
 
 .av-preview-wrap {

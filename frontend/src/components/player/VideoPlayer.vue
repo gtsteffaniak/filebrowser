@@ -1,11 +1,12 @@
 <template>
   <div class="media-player">
     <!-- Native playback is not possible: offer transcoding instead of the player -->
-    <div v-if="transcodeOffer" class="info">
-      <div class="title">
-        <i class="material-symbols">feedback</i>
-        {{ transcodeOfferTitle }}
-      </div>
+    <PreviewNotice
+      v-if="transcodeOffer"
+      icon="feedback"
+      :title="transcodeOfferTitle"
+      :download-url="canDownload ? downloadUrl : undefined"
+    >
       <p v-if="showTranscodeOfferDetail" class="transcode-offer-message">{{ transcodeOfferMessage }}</p>
       <ul v-if="showTranscodeSessionList" class="transcode-session-list">
         <li v-for="sess in transcodeOffer.sessions" :key="sess.id">
@@ -13,7 +14,7 @@
           <span v-if="sess.source" class="transcode-session-source">{{ `(${sess.source})` }}</span>
         </li>
       </ul>
-      <div class="preview-buttons">
+      <template #actions>
         <button
           v-if="transcodeOffer.mode === 'offer'"
           type="button"
@@ -24,17 +25,8 @@
         >
           <i class="material-symbols">sync</i>
         </button>
-        <a
-          v-if="canDownload"
-          target="_blank"
-          :href="downloadUrl"
-          class="button button--flat preview-action--icon-only"
-          :aria-label="t('general.download', { suffix: '' })"
-        >
-          <i class="material-symbols">file_download</i>
-        </a>
-      </div>
-    </div>
+      </template>
+    </PreviewNotice>
     <template v-else>
     <div v-if="offerCheckPending" class="av-preview-loading">
       <LoadingSpinner size="medium" />
@@ -73,17 +65,18 @@
       >
         <LoadingSpinner size="large" />
       </div>
-      <div
-        class="video-skip-feedback-layer"
-        :class="{
-          'video-skip-feedback-layer--visible': skipFeedbackVisible,
-          'video-skip-feedback-layer--left': skipFeedbackSide === 'left',
-          'video-skip-feedback-layer--right': skipFeedbackSide === 'right',
-        }"
-        aria-hidden="true"
-      >
-        <i :key="skipFeedbackKey" class="material-symbols video-skip-feedback-layer__icon">{{ skipFeedbackIcon }}</i>
-      </div>
+      <PlayerOverlays
+        :skip-visible="skipFeedbackVisible"
+        :skip-side="skipFeedbackSide"
+        :skip-icon="skipFeedbackIcon"
+        :skip-key="skipFeedbackKey"
+        :toast-visible="toastVisible"
+        :toast-icon="toastIcon"
+        :toast-message="playbackModeMessage"
+        :toast-loop-state="toastType === 'loop' ? (loop !== 'off' ? 'on' : 'off') : undefined"
+        :speed-toast-visible="speedToastVisible"
+        :speed-toast-message="speedToastMessage"
+      />
     </div>
     <!-- Queue button (hidden in fullscreen) -->
     <FloatingActionButton
@@ -94,16 +87,6 @@
       @press="showQueuePrompt"
       :label="t('player.QueueButtonHint')"
     />
-    <div :class="['playback-toast', toastVisible ? 'visible' : '']">
-      <i class="material-symbols">{{ toastIcon }}</i>
-      <span>{{ playbackModeMessage }}</span>
-      <span v-if="toastType === 'loop'" :class="[
-          'status-indicator', loop !== 'off' ? 'status-on' : 'status-off',]"></span>
-    </div>
-    <div v-if="speedToastVisible" class="playback-toast visible">
-      <i class="material-symbols">speed</i>
-      <span>{{ speedToastMessage }}</span>
-    </div>
     </template>
   </div>
 </template>
@@ -114,8 +97,10 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, shallowRef, useTem
 import { useRoute } from "vue-router";
 import { getPreviewURL, getPreviewURLPublic } from "@/api/resources.js";
 import { resourcesApi } from "@/api/index.js";
+import PreviewNotice from "@/components/files/PreviewNotice.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import FloatingActionButton from "@/components/settings/FloatingActionButton.vue";
+import PlayerOverlays from "@/components/player/PlayerOverlays.vue";
 import { getPlayerI18n, getSettingsElements } from "@/composables/player/settingsElements.ts";
 import {
   CAPTION_SIZE_IDS,
@@ -129,7 +114,13 @@ import { useEmbeddedArtwork } from "@/composables/player/useEmbeddedArtwork.ts";
 import { useFullscreenState } from "@/composables/player/useFullscreenState.ts";
 import { useGestureState } from "@/composables/player/useGestureState.ts";
 import { useMediaKeyboard } from "@/composables/player/useMediaKeyboard.ts";
-import { type MountedFileKey, resolveMountedFileKey, useMediaPlayer } from "@/composables/player/useMediaPlayer.ts";
+import {
+  type PlayerEmits,
+  type PlayerFile,
+  resolveMountedFileKey,
+  stripPlaybackTimeFromUrl,
+  useMediaPlayer,
+} from "@/composables/player/useMediaPlayer.ts";
 import { useMediaSession } from "@/composables/player/useMediaSession.ts";
 import { usePlaybackQueue } from "@/composables/player/usePlaybackQueue.ts";
 import { useSwipeNavigationGestures } from "@/composables/player/useSwipeNavigationGestures.ts";
@@ -145,22 +136,13 @@ import {
   TRANSCODE_MODES,
 } from "@/player/transcodeMode.js";
 import { enableVideoLoadingIndicator } from "@/player/videoLoading.js";
-import { router } from "@/router/index.ts";
-import { getters, mutations, state } from "@/store/index.ts";
+import { getters, state } from "@/store/index.ts";
 import type { FileListItem, SubtitleTrack as FileSubtitleTrack } from "@/store/types.ts";
 import { globalVars } from "@/utils/constants.ts";
-import {
-  buildPlaybackQueryPatch,
-  parseTranscodeModeFromQuery,
-  playbackQueryChanged,
-} from "@/utils/playbackQuery.js";
+import { parseTranscodeModeFromQuery } from "@/utils/playbackQuery.js";
 import { getSubtitleFormatExtension } from "@/utils/subtitles.js";
 
-interface VideoFile {
-  name?: string;
-  type?: string;
-  path?: string;
-  source?: string;
+interface VideoFile extends PlayerFile {
   modified?: string;
   hasPreview?: boolean;
   viewToken?: string;
@@ -205,12 +187,7 @@ const props = withDefaults(
   },
 );
 
-const emit = defineEmits<{
-  "playback-start": [];
-  "navigate-previous": [];
-  "navigate-next": [];
-  "close-preview": [];
-}>();
+const emit = defineEmits<PlayerEmits>();
 
 const { t } = useI18n();
 const route = useRoute();
@@ -222,11 +199,6 @@ const videoElement = useTemplateRef<HTMLVideoElement>("videoElement");
 /** Centered spinner while the video is loading or buffering. */
 const videoPlaybackLoading = ref(false);
 
-/** Source+path this instance mounted for; guards stale instances during route transitions. */
-let mountedFile: MountedFileKey | null = null;
-let tornDown = false;
-let unmounted = false;
-let mountInProgress = false;
 let seekOnReleaseCleanup: (() => void) | null = null;
 let scrubPreviewCleanup: (() => void) | null = null;
 let videoLoadingCleanup: LoadingIndicatorHandle | null = null;
@@ -265,18 +237,17 @@ const gestures = useGestureState();
 const queue = usePlaybackQueue({
   getReq: () => props.req,
   getListing: () => props.listing,
+  onQueueChange: updateMediaSessionNavHandlers,
+  applyMenus: ensurePlaybackModeApplied,
 });
 const {
   queueCount,
   playbackQueue,
-  currentQueueIndex,
-  playbackMode,
   loop,
   toastVisible,
   toastType,
   toastIcon,
   playbackModeMessage,
-  showToast,
   showQueuePrompt,
   toggleSingleLoop,
   cyclePlaybackModes,
@@ -331,7 +302,7 @@ const {
   getVideoElement: () => videoElement.value,
   getPlaybackMedia: () => getActiveMediaElement(),
   getNativePlay: () => getNativePlay(),
-  isTornDown: () => tornDown,
+  isTornDown: () => lifecycle.tornDown,
   isPlaybackLoading: () => videoPlaybackLoading.value,
   onStreamAttach: () => videoLoadingCleanup?.expectPlayback?.(),
   onPlaybackStart: () => emit("playback-start"),
@@ -429,7 +400,9 @@ const { isFullscreen, onFullscreenEnter, onFullscreenExit } = useFullscreenState
   onEnter: swipe.resetEdgeGestureImmediate,
 });
 const {
+  lifecycle,
   createPlayer,
+  setupSharedEvents,
   overridePlay,
   getNativePlay,
   restoreNativePlay,
@@ -439,16 +412,12 @@ const {
   rememberFullscreenForTransition,
   resumeFullscreenAfterNavigation,
   destroyPlayer,
-  stopIfRouteLeftThisFile,
-  togglePlayPause,
-  handleMediaEnd,
 } = useMediaPlayer({
   kind: "video",
   player,
   getMediaElement: () => videoElement.value,
   getRequestedFile: () => props.req,
-  getMountedFile: () => mountedFile,
-  isTornDown: () => tornDown,
+  onPlaybackState: updateMediaSessionPlaybackState,
   destroy,
   beforeStopMedia: clearAttachVideoStreamWait,
 });
@@ -499,32 +468,6 @@ function resetFilePlaybackState(): void {
   resetOverlaidHints();
 }
 
-watch(playbackMode, async (newMode, oldMode) => {
-  if (newMode === oldMode) return;
-  if (oldMode !== undefined) {
-    // can only be "single" via clearPlaybackQueue
-    toastType.value = newMode === "single" ? "cleared" : "mode";
-    showToast();
-  }
-  updateMediaSessionNavHandlers();
-  await nextTick();
-  ensurePlaybackModeApplied();
-});
-watch(loop, async (newVal, oldVal) => {
-  if (newVal === oldVal) return;
-  toastType.value = "loop";
-  showToast();
-  updateMediaSessionNavHandlers();
-  await nextTick();
-  ensurePlaybackModeApplied();
-});
-watch(currentQueueIndex, updateMediaSessionNavHandlers);
-watch(
-  () => state.playbackQueue.shouldTogglePlayPause || false,
-  (newVal, oldVal) => {
-    if (newVal !== oldVal) togglePlayPause();
-  },
-);
 watch(
   () => state.playbackQueue.isPlaying || false,
   (isPlaying) => syncOverlaidHintPlayback(isPlaying),
@@ -538,11 +481,10 @@ watch(
     }
     resetFilePlaybackState();
     teardownPlayer();
-    tornDown = false;
+    lifecycle.tornDown = false;
     void initializePlayer();
   },
 );
-watch(() => state.route.path, stopIfRouteLeftThisFile);
 watch(
   () => props.subtitlesList,
   async (newSubs, oldSubs) => {
@@ -617,10 +559,10 @@ function onPageHide(event: PageTransitionEvent): void {
  * The transcode controller stays usable, so the player can be created again (source change, offer accepted).
  */
 function teardownPlayer(): void {
-  if (tornDown) {
+  if (lifecycle.tornDown) {
     return;
   }
-  tornDown = true;
+  lifecycle.tornDown = true;
   cleanupAlbumArt();
 
   if (scrubPreviewCleanup) {
@@ -637,7 +579,7 @@ function teardownPlayer(): void {
   }
   videoPlaybackLoading.value = false;
   teardownOverlaidHintController();
-  mountedFile = null;
+  lifecycle.mountedFile = null;
   lockedNativeVideoSrc.value = null;
   const media = getActiveMediaElement();
   const isTransition = state.navigation.isTransitioning;
@@ -679,8 +621,8 @@ function destroy(): void {
 async function remountPlayer(): Promise<void> {
   await nextTick(); // the <video> element is rendered again
   resetFilePlaybackState();
-  tornDown = false;
-  mountedFile = resolveMountedFileKey(props.req?.source, props.req?.path);
+  lifecycle.tornDown = false;
+  lifecycle.mountedFile = resolveMountedFileKey(props.req?.source, props.req?.path);
   loadMediaMetadata();
   await preparePlayerMount();
 }
@@ -706,7 +648,7 @@ function requestPlay(): void {
 }
 
 function handlePlay(): void {
-  if (tornDown) {
+  if (lifecycle.tornDown) {
     return;
   }
   emit("playback-start");
@@ -750,32 +692,32 @@ async function preparePlayerMount(): Promise<void> {
 }
 
 async function initializePlayer(): Promise<void> {
-  if (!videoElement.value || player.value || tornDown) {
+  if (!videoElement.value || player.value || lifecycle.tornDown) {
     return;
   }
   await nextTick();
-  if (!videoElement.value || player.value || tornDown) {
+  if (!videoElement.value || player.value || lifecycle.tornDown) {
     return;
   }
   void mountPlayer();
 }
 
 async function mountPlayer(): Promise<void> {
-  if (!videoElement.value || player.value || mountInProgress || tornDown) {
+  if (!videoElement.value || player.value || lifecycle.mountInProgress || lifecycle.tornDown) {
     return;
   }
-  mountInProgress = true;
+  lifecycle.mountInProgress = true;
   try {
     ensureTranscodePlaybackController();
-    mountedFile = resolveMountedFileKey(props.req?.source, props.req?.path);
+    lifecycle.mountedFile = resolveMountedFileKey(props.req?.source, props.req?.path);
     initTranscodeModeFromRoute();
     await stripPlaybackTimeFromUrl();
-    if (!videoElement.value || tornDown || player.value) {
+    if (!videoElement.value || lifecycle.tornDown || player.value) {
       return;
     }
     if (!startRequested.value && !wantsTranscodePlayback.value && shouldProactivelyOfferTranscode.value) {
       await offerTranscodePlayback();
-      if (!videoElement.value || tornDown || player.value) {
+      if (!videoElement.value || lifecycle.tornDown || player.value) {
         return;
       }
     }
@@ -810,21 +752,8 @@ async function mountPlayer(): Promise<void> {
     }
     resumeFullscreenAfterNavigation();
   } finally {
-    mountInProgress = false;
+    lifecycle.mountInProgress = false;
   }
-}
-
-async function stripPlaybackTimeFromUrl(): Promise<void> {
-  const query = route.query as Record<string, string | undefined>;
-  const nextQuery = buildPlaybackQueryPatch(query, { time: null });
-  if (!playbackQueryChanged(route.query, nextQuery)) {
-    return;
-  }
-  await router.replace({
-    path: route.path,
-    query: nextQuery,
-    hash: route.hash,
-  });
 }
 
 // --- Transcode ---
@@ -909,56 +838,27 @@ function setupScrubPreview(): void {
 }
 
 function setupPlayerEvents(): void {
-  const current = player.value;
-  if (!current) return;
-  mutations.setPlaybackState(current.playing);
-  const events: [Plyr.StandardEvent | Plyr.Html5Event, () => void][] = [
-    ["ended", handleMediaEnd],
-    [
-      "play",
-      () => {
-        hasStartedPlayback.value = true;
-        mutations.setPlaybackState(true);
-        updateMediaSessionPlaybackState();
-        transcodePlayback.value?.updatePlayback({
-          currentTime: player.value?.currentTime,
-          paused: false,
-        });
-      },
-    ],
-    [
-      "pause",
-      () => {
-        mutations.setPlaybackState(false);
-        updateMediaSessionPlaybackState();
-        transcodePlayback.value?.updatePlayback({
-          currentTime: player.value?.currentTime,
-          paused: true,
-        });
-      },
-    ],
-    [
-      "timeupdate",
-      () => {
-        updateMediaSessionPlaybackState();
-        if (transcodePlayback.value?.sessionController) {
-          transcodePlayback.value.updatePlayback({
-            currentTime: player.value?.currentTime,
-            paused: !player.value?.playing,
-          });
-        }
-      },
-    ],
-    ["seeked", updateMediaSessionPlaybackState],
-    ["loadedmetadata", updateMediaSessionPlaybackState],
-    ["ratechange", updateMediaSessionPlaybackState],
-    ["canplay", updateMediaSessionPlaybackState],
+  if (!player.value) return;
+  const syncTranscode = (paused: boolean) =>
+    transcodePlayback.value?.updatePlayback({ currentTime: player.value?.currentTime, paused });
+  setupSharedEvents({
+    play: () => {
+      hasStartedPlayback.value = true;
+      syncTranscode(false);
+    },
+    pause: () => syncTranscode(true),
+    timeupdate: () => {
+      if (transcodePlayback.value?.sessionController) {
+        syncTranscode(!player.value?.playing);
+      }
+    },
+  });
+  for (const [event, handler] of [
     ["enterfullscreen", onFullscreenEnter],
     ["exitfullscreen", onFullscreenExit],
     ["enterfullscreen", applyCaptionSizeClass],
     ["exitfullscreen", applyCaptionSizeClass],
-  ];
-  for (const [event, handler] of events) {
+  ] as const) {
     onPlayerEvent(event, handler);
   }
   ensurePlaybackModeApplied();
@@ -1138,7 +1038,7 @@ function applyCustomSettings(plyr: Plyr): void {
 onMounted(async () => {
   // Record the mounted file before any async prepare step so route-leave
   // detection works while Plyr is still waiting on subtitles/metadata.
-  mountedFile = resolveMountedFileKey(props.req?.source, props.req?.path);
+  lifecycle.mountedFile = resolveMountedFileKey(props.req?.source, props.req?.path);
   loadMediaMetadata();
   if (shouldProactivelyOfferTranscode.value) {
     // Decide before the player appears: an unsupported format gets the offer, not a blank player.
@@ -1150,13 +1050,13 @@ onMounted(async () => {
     }
   }
   await preparePlayerMount();
-  if (unmounted) return;
+  if (lifecycle.unmounted) return;
   attachKeyboard();
   window.addEventListener("pagehide", onPageHide);
 });
 
 onBeforeUnmount(() => {
-  unmounted = true;
+  lifecycle.unmounted = true;
   clearDismissAnimTimers();
   disarmResumeOnNextGesture();
   try {
@@ -1196,12 +1096,6 @@ defineExpose({ destroy });
 }
 
 /* Transcode offer (shown instead of the player; layout comes from `#previewer .preview .info`). */
-.preview-buttons {
-  display: flex;
-  flex-direction: row;
-  gap: 1em;
-}
-
 .transcode-offer-message {
   margin: 1rem 0;
   text-align: center;
