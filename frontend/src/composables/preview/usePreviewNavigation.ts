@@ -46,7 +46,7 @@ export function usePreviewNavigation(options: PreviewNavigationOptions = {}) {
       }
     }
 
-    if (!listing.value || (listing.value as unknown) === "undefined") {
+    if (!listing.value) {
       if (state.req.parentDirItems) {
         listing.value = state.req.parentDirItems;
         listingKey.value = currentListingKey;
@@ -67,7 +67,7 @@ export function usePreviewNavigation(options: PreviewNavigationOptions = {}) {
     }
     const expectedListingKey = listingContextKey(directoryPath);
 
-    if (!listing.value || (listing.value as unknown) === "undefined") {
+    if (!listing.value) {
       // Try to use pre-fetched parent directory items first
       if (state.req.parentDirItems) {
         listing.value = state.req.parentDirItems;
@@ -89,22 +89,22 @@ export function usePreviewNavigation(options: PreviewNavigationOptions = {}) {
         } catch (error) {
           if (state.req.path !== expectedPath) return;
           console.error("error Preview.vue", error);
-          listing.value = [state.req as unknown as FileListItem];
+          listing.value = [state.req as FileListItem];
         }
       } else {
-        listing.value = [state.req as unknown as FileListItem];
+        listing.value = [state.req as FileListItem];
       }
     }
 
     if (!listing.value) {
-      listing.value = [state.req as unknown as FileListItem];
+      listing.value = [state.req as FileListItem];
     }
     listingKey.value = listingContextKey(directoryPath);
 
     // Setup navigation using the new state management
     mutations.setupNavigation({
       listing: listing.value,
-      currentItem: state.req as unknown as Partial<FileListItem>,
+      currentItem: state.req,
       directoryPath: directoryPath,
     });
   }
@@ -120,7 +120,7 @@ export function usePreviewNavigation(options: PreviewNavigationOptions = {}) {
       modified: state.req.modified,
       created: state.req.created,
       hasPreview: state.req.hasPreview,
-    } as unknown as FileListItem);
+    } as FileListItem);
   }
 
   function navigatePrevious() {

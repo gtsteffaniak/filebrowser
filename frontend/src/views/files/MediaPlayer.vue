@@ -13,7 +13,7 @@
           <LoadingSpinner size="medium" />
         </div>
         <AudioPlayer v-else-if="previewType === 'audio'"
-          :key="viewerKey"
+          :key="`audio:${viewerKey}`"
           ref="audioRef"
           :req="req"
           :raw="raw"
@@ -27,7 +27,7 @@
           @close-preview="exitPreviewFromImageGesture"
         />
         <VideoPlayer v-else
-          :key="viewerKey"
+          :key="`video:${viewerKey}`"
           ref="videoRef"
           :raw="raw"
           :subtitlesList="subtitlesList"
