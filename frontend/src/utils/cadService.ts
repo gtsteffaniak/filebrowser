@@ -1,6 +1,6 @@
 import { globalVars } from "@/utils/constants.js";
 
-let workerInstance: Worker | null = null;
+let workerPromise: Promise<Worker> | null = null;
 let messageIdCounter = 0;
 const pendingRequests = new Map<number, {
   resolve: (val: unknown) => void;
@@ -8,56 +8,70 @@ const pendingRequests = new Map<number, {
   onProgress?: (msg: string, kind: string) => void;
 }>();
 
-function getWorker(): Worker {
-  if (!workerInstance) {
-    const base = `${globalVars?.baseURL || ""}public/static`;
-    // The worker is not content-hashed, so version its URL with this bundle's
-    // own hash: a stale cached worker never outlives its protocol.
-    const bundleHash = (import.meta.url.match(/-([A-Za-z0-9_-]+)\.js$/) || [])[1] || "";
-    const version = bundleHash ? `?v=${bundleHash}` : "";
-    const workerUrl = `${base}/wasm/cadWorker.js${version}`;
-    workerInstance = new Worker(workerUrl);
+async function createWorker(): Promise<Worker> {
+  const base = `${globalVars?.baseURL || ""}public/static`;
+  // The worker is not content-hashed, so version its URL with this bundle's
+  // own hash: a stale cached worker never outlives its protocol.
+  const bundleHash = (import.meta.url.match(/-([A-Za-z0-9_-]+)\.js$/) || [])[1] || "";
+  const version = bundleHash ? `?v=${bundleHash}` : "";
+  const workerUrl = `${base}/wasm/cadWorker.js${version}`;
 
-    workerInstance.onmessage = (e) => {
-      const { id, type, error, text, kind, ...rest } = e.data;
-      const req = pendingRequests.get(id);
-      if (!req) return;
+  // The upstream CSP only allows blob: workers, so load the script as a static
+  // asset and instantiate it from a Blob instead of a same-origin URL.
+  const response = await fetch(workerUrl);
+  if (!response.ok) throw new Error(`Unable to load CAD worker (${response.status})`);
+  const blobUrl = URL.createObjectURL(new Blob([await response.text()], { type: "text/javascript" }));
+  const worker = new Worker(blobUrl);
+  URL.revokeObjectURL(blobUrl);
 
-      if (type === "log") {
-        if (req.onProgress) req.onProgress(text, kind);
-        return;
-      }
+  worker.onmessage = (e) => {
+    const { id, type, error, text, kind, ...rest } = e.data;
+    const req = pendingRequests.get(id);
+    if (!req) return;
 
+    if (type === "log") {
+      if (req.onProgress) req.onProgress(text, kind);
+      return;
+    }
+
+    pendingRequests.delete(id);
+    if (type === "error" || error) {
+      req.reject(new Error(error || "CAD processing error"));
+    } else {
+      req.resolve(rest);
+    }
+  };
+
+  worker.onerror = (e) => {
+    console.error("[CAD Worker Error]", e);
+    for (const [id, req] of pendingRequests.entries()) {
+      req.reject(new Error(e.message || "CAD Web Worker crashed"));
       pendingRequests.delete(id);
-      if (type === "error" || error) {
-        req.reject(new Error(error || "CAD processing error"));
-      } else {
-        req.resolve(rest);
-      }
-    };
+    }
+    // The worker is dead; drop it so the next request spins up a fresh one.
+    worker.terminate();
+    workerPromise = null;
+  };
 
-    workerInstance.onerror = (e) => {
-      console.error("[CAD Worker Error]", e);
-      for (const [id, req] of pendingRequests.entries()) {
-        req.reject(new Error(e.message || "CAD Web Worker crashed"));
-        pendingRequests.delete(id);
-      }
-      // The worker is dead; drop it so the next request spins up a fresh one
-      // instead of reusing a broken instance.
-      workerInstance?.terminate();
-      workerInstance = null;
-    };
+  worker.postMessage({
+    type: "init",
+    openswZipUrl: `${base}/wasm/opensw.zip`,
+    goOpenSwUrl: `${base}/wasm/opensw.wasm${version}`,
+    pyodideUrl: "https://cdn.jsdelivr.net/pyodide/v0.29.5/full/",
+    occtUrl: "https://cdn.jsdelivr.net/npm/occt-import-js@0.0.23/dist/",
+  });
 
-    // Initialize paths
-    workerInstance.postMessage({
-      type: "init",
-      openswZipUrl: `${base}/wasm/opensw.zip`,
-      goOpenSwUrl: `${base}/wasm/opensw.wasm${version}`,
-      pyodideUrl: "https://cdn.jsdelivr.net/pyodide/v0.29.5/full/",
-      occtUrl: "https://cdn.jsdelivr.net/npm/occt-import-js@0.0.23/dist/",
+  return worker;
+}
+
+function getWorker(): Promise<Worker> {
+  if (!workerPromise) {
+    workerPromise = createWorker().catch((error) => {
+      workerPromise = null;
+      throw error;
     });
   }
-  return workerInstance;
+  return workerPromise;
 }
 
 export function isCad3DFile(filename: string): boolean {
@@ -172,13 +186,12 @@ export function loadCadProperties(
   filename: string,
   onProgress?: (msg: string, kind?: string) => void,
 ): Promise<{ properties: CadStoredProperties[] }> {
-  const worker = getWorker();
   const id = ++messageIdCounter;
-  return new Promise((resolve, reject) => {
+  const copy = dataBuffer.slice(0);
+  return getWorker().then((worker) => new Promise((resolve, reject) => {
     pendingRequests.set(id, { resolve: resolve as (value: unknown) => void, reject, onProgress });
-    const copy = dataBuffer.slice(0);
     worker.postMessage({ id, action: "properties", filename, data: copy }, [copy]);
-  });
+  }));
 }
 
 function requestCad3D(
@@ -187,12 +200,11 @@ function requestCad3D(
   onProgress?: (msg: string, kind?: string) => void,
   brep = false
 ): Promise<Cad3DResult> {
-  const worker = getWorker();
   const id = ++messageIdCounter;
+  const copy = dataBuffer.slice(0);
 
-  return new Promise((resolve, reject) => {
+  return getWorker().then((worker) => new Promise((resolve, reject) => {
     pendingRequests.set(id, { resolve: resolve as (value: unknown) => void, reject, onProgress });
-    const copy = dataBuffer.slice(0);
     worker.postMessage(
       {
         id,
@@ -203,7 +215,7 @@ function requestCad3D(
       },
       [copy]
     );
-  });
+  }));
 }
 
 export function loadCad3D(
@@ -227,12 +239,11 @@ export function loadCadDrawing(
   filename: string,
   onProgress?: (msg: string, kind?: string) => void
 ): Promise<CadDrawingResult> {
-  const worker = getWorker();
   const id = ++messageIdCounter;
+  const copy = dataBuffer.slice(0);
 
-  return new Promise((resolve, reject) => {
+  return getWorker().then((worker) => new Promise((resolve, reject) => {
     pendingRequests.set(id, { resolve: resolve as (value: unknown) => void, reject, onProgress });
-    const copy = dataBuffer.slice(0);
     worker.postMessage(
       {
         id,
@@ -242,7 +253,7 @@ export function loadCadDrawing(
       },
       [copy]
     );
-  });
+  }));
 }
 
 export function convertCadFile(
@@ -251,12 +262,11 @@ export function convertCadFile(
   targetFormat: string,
   onProgress?: (msg: string, kind?: string) => void
 ): Promise<{ filename: string; data: Uint8Array }> {
-  const worker = getWorker();
   const id = ++messageIdCounter;
+  const copy = dataBuffer.slice(0);
 
-  return new Promise((resolve, reject) => {
+  return getWorker().then((worker) => new Promise((resolve, reject) => {
     pendingRequests.set(id, { resolve: resolve as (value: unknown) => void, reject, onProgress });
-    const copy = dataBuffer.slice(0);
     worker.postMessage(
       {
         id,
@@ -267,5 +277,5 @@ export function convertCadFile(
       },
       [copy]
     );
-  });
+  }));
 }
