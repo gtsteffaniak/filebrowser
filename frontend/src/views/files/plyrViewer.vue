@@ -179,7 +179,9 @@
 <script>
 import { getCurrentInstance, shallowRef } from 'vue';
 import { useDoubleTapSeek } from '@/composables/player/useDoubleTapSeek.ts';
+import { useFullscreenState } from '@/composables/player/useFullscreenState.ts';
 import { useGestureState } from '@/composables/player/useGestureState.ts';
+import { useSwipeNavigationGestures } from '@/composables/player/useSwipeNavigationGestures.ts';
 import { useMediaPlayer } from '@/composables/player/useMediaPlayer.ts';
 import { useMediaKeyboard } from '@/composables/player/useMediaKeyboard.ts';
 import { usePlaybackQueue } from '@/composables/player/usePlaybackQueue.ts';
@@ -301,7 +303,7 @@ export default {
     'close-preview': () => true,
     'needs-transcode': () => true,
   },
-  setup(props) {
+  setup(props, { emit }) {
     // The Plyr instance is held in a shallow ref: it is a third-party object and must not be deep-proxied.
     const player = shallowRef(null);
     const { applyCaptionSizeClass, syncCaptionSizeSettingsVisibility } = useCaptionSize({
@@ -325,6 +327,18 @@ export default {
       getAudioGestureRoot: () => audioPlayerGestureRoot.value,
       requestPlay: () => vm?.requestPlay(),
     });
+    const swipe = useSwipeNavigationGestures({
+      player,
+      gestures,
+      getPreviewType: () => props.previewType,
+      isMobileLyricsActive: () => vm?.mobileLyricsActive ?? false,
+      getGestureSurface: doubleTap.getGestureSurface,
+      isControlOrMenuTarget: doubleTap.isControlOrMenuTarget,
+      onNavigatePrevious: () => emit('navigate-previous'),
+      onNavigateNext: () => emit('navigate-next'),
+      onClosePreview: () => emit('close-preview'),
+    });
+    const fullscreen = useFullscreenState({ onEnter: swipe.resetEdgeGestureImmediate });
     const playbackQueue = usePlaybackQueue({
       getReq: () => props.req,
       getListing: () => props.listing,
@@ -356,6 +370,8 @@ export default {
       ...playbackQueue,
       ...gestures,
       ...doubleTap,
+      ...swipe,
+      ...fullscreen,
       audioPlayerGestureRoot,
       applyCaptionSizeClass,
       syncCaptionSizeSettingsVisibility,
@@ -383,35 +399,7 @@ export default {
       // Playback settings
       showDesktopPanel: readDesktopPanelOpen(),
       showMobileLyrics: readMobileLyricsOpen(),
-      isFullscreen: false,
 
-      // Plyr video: full-frame edge gestures
-      videoEdgeKind: null,
-      videoEdgeStartX: 0,
-      videoEdgeStartY: 0,
-      videoEdgeDx: 0,
-      videoEdgeDy: 0,
-      videoDragOffsetX: 0,
-      videoDragOffsetY: 0,
-      videoGestureSnapBack: false,
-      videoEdgeMouseActive: false,
-      videoShowNavHint: false,
-      videoNavHintDir: 'next',
-      videoShowDismissHint: false,
-      videoDismissFlashActive: false,
-      videoEdgeHintPx: 44,
-      videoEdgeCommitX: 130,
-      videoEdgeCommitY: 110,
-      videoEdgeRubberMax: 100,
-      videoSwipeCleanup: null,
-      /** When audio scrub/menu steals touchstart, ignore move/end for this touch id (Plyr has no video wrapper). */
-      videoSwipeSuppressedTouchId: null,
-      videoDismissCloseTimer: null,
-      videoDismissHintTimer: null,
-
-      speedToastVisible: false,
-      speedToastMessage: '',
-      speedToastTimer: null,
 
       captionSizeMenuInitialized: false,
       /** Native video: defer stream URL until play so opening preview does not range-fetch the file. */
@@ -607,27 +595,6 @@ export default {
     },
     fileName() {
       return this.req.name ? this.req.name.replace(/\.[^/.]+$/, "") : '';
-    },
-    videoSwipeGesturesActive() {
-      return (
-        (this.previewType === 'video' || this.previewType === 'audio') &&
-        !!this.player && !this.mobileLyricsActive
-      );
-    },
-    videoNavigationGestureAllowed() {
-      return state.navigation.enabled && getters.currentPrompt() === null;
-    },
-    hasVideoPreviousNav() {
-      if (getters.isPreviewPlaybackQueueNavMode()) {
-        return this.videoNavigationGestureAllowed && getters.playbackQueueCanGoPrevious();
-      }
-      return this.videoNavigationGestureAllowed && state.navigation.previousLink !== '';
-    },
-    hasVideoNextNav() {
-      if (getters.isPreviewPlaybackQueueNavMode()) {
-        return this.videoNavigationGestureAllowed && getters.playbackQueueCanGoNext();
-      }
-      return this.videoNavigationGestureAllowed && state.navigation.nextLink !== '';
     },
     isMobile() {
       return getters.isMobile();
@@ -853,12 +820,7 @@ export default {
   },
   beforeUnmount() {
     // Cleanup timeouts
-    for (const timeout of [
-    this.videoDismissCloseTimer,
-    this.videoDismissHintTimer,
-  ]) {
-      if (timeout) clearTimeout(timeout);
-    }
+    this.clearDismissAnimTimers();
     // Cleanup Plyr. Always finish listener/media-session cleanup even if a
     // teardown step throws, so an orphaned element cannot keep playing.
     this.disarmResumeOnNextGesture();
@@ -938,7 +900,7 @@ export default {
           this.rememberFullscreenForTransition();
         }
         this.restoreNativePlay();
-        this.teardownVideoSwipeGestures();
+        this.teardownSwipeGestures();
         this.teardownDoubleTapSeek();
         this.clearRewindForwardFeedback();
         this.cleanupAudioVisualizer();
@@ -2066,532 +2028,13 @@ export default {
       }
       if (this.previewType === 'video' || this.previewType === 'audio') {
         this.setupDoubleTapSeek();
-        this.setupVideoSwipeGestures();
+        this.setupSwipeGestures();
         this.setupRewindForwardFeedback();
       }
       if (this.previewType === 'video') {
         this.setupOverlaidHintController();
       }
     },
-    applyVideoSwipeTransform() {
-      const el = this.getGestureSurface();
-      if (!el) {
-        return;
-      }
-      const transition = this.videoGestureSnapBack
-        ? 'transform 0.22s cubic-bezier(0.32, 0.72, 0, 1)'
-        : 'none';
-      el.style.transition = transition;
-      const x = this.videoDragOffsetX;
-      const y = this.videoDragOffsetY;
-      el.style.transform = x || y ? `translate(${x}px, ${y}px)` : '';
-    },
-    syncVideoNavigationGestureHintToStore() {
-      const ax = Math.abs(this.videoEdgeDx);
-      const ay = Math.abs(this.videoEdgeDy);
-      const navPrevReady =
-        this.hasVideoPreviousNav &&
-        this.videoEdgeDx >= this.videoEdgeCommitX &&
-        ax >= ay;
-      const navNextReady =
-        this.hasVideoNextNav &&
-        this.videoEdgeDx <= -this.videoEdgeCommitX &&
-        ax >= ay;
-      const dismissReady =
-        this.videoEdgeDy >= this.videoEdgeCommitY && ay >= ax;
-      let kind = null;
-      let commitReady = false;
-      let flashClose = false;
-      if (this.videoDismissFlashActive) {
-        kind = 'close';
-        commitReady = dismissReady;
-        flashClose = true;
-      } else if (this.videoShowDismissHint) {
-        kind = 'close';
-        commitReady = dismissReady;
-      } else if (this.videoShowNavHint && this.videoNavHintDir === 'prev' && this.hasVideoPreviousNav) {
-        kind = 'previous';
-        commitReady = navPrevReady;
-      } else if (this.videoShowNavHint && this.videoNavHintDir === 'next' && this.hasVideoNextNav) {
-        kind = 'next';
-        commitReady = navNextReady;
-      }
-      mutations.setNavigationGestureHint({ kind, commitReady, flashClose });
-    },
-    videoRubberband(value, max) {
-      const sign = value < 0 ? -1 : 1;
-      const a = Math.abs(value);
-      if (a <= max) {
-        return value;
-      }
-      return sign * (max + (a - max) * 0.32);
-    },
-    decideVideoEdgeKind() {
-      if (this.videoEdgeKind) return;
-      const ax = Math.abs(this.videoEdgeDx);
-      const ay = Math.abs(this.videoEdgeDy);
-      if (ax < 12 && ay < 12) return;
-      if (this.previewType === 'audio') {
-        if (ay > ax * 1.12 && ay > 14 && this.videoEdgeDy > 0) {
-          this.videoEdgeKind = 'vertical-dismiss';
-        } else if (ax > ay * 1.12 && ax > 14) {
-          this.videoEdgeKind = 'horizontal';
-        }
-        return;
-      }
-      if (ay > ax * 1.12 && ay > 14) {
-        this.videoEdgeKind = this.videoEdgeDy > 0 ? 'vertical-dismiss' : 'vertical-fullscreen';
-      } else if (ax > ay * 1.12 && ax > 14) {
-        this.videoEdgeKind = 'horizontal';
-      }
-    },
-    applyVideoEdgeVisuals() {
-      if (this.previewType === 'audio' && this.videoEdgeDy < 0 && Math.abs(this.videoEdgeDy) > Math.abs(this.videoEdgeDx)) {
-        this.videoDragOffsetX = 0;
-        this.videoDragOffsetY = 0;
-        this.videoShowNavHint = false;
-        this.videoShowDismissHint = false;
-        this.applyVideoSwipeTransform();
-        this.syncVideoNavigationGestureHintToStore();
-        return;
-      }
-
-      const kind = this.videoEdgeKind;
-      if (kind === 'horizontal') {
-        this.videoDragOffsetX = this.videoRubberband(this.videoEdgeDx, this.videoEdgeRubberMax);
-        this.videoDragOffsetY = 0;
-        const adx = Math.abs(this.videoEdgeDx);
-        this.videoShowNavHint = adx >= this.videoEdgeHintPx;
-        this.videoNavHintDir = this.videoEdgeDx > 0 ? 'prev' : 'next';
-        if (this.videoNavHintDir === 'prev' && !this.hasVideoPreviousNav) this.videoShowNavHint = false;
-        if (this.videoNavHintDir === 'next' && !this.hasVideoNextNav) this.videoShowNavHint = false;
-        this.videoShowDismissHint = false;
-      } else if (kind === 'vertical-dismiss') {
-        this.videoDragOffsetX = 0;
-        this.videoDragOffsetY = this.videoEdgeDy;
-        this.videoShowDismissHint = this.videoEdgeDy >= this.videoEdgeHintPx;
-        this.videoShowNavHint = false;
-      } else if (kind === 'vertical-fullscreen') {
-        this.videoDragOffsetX = 0;
-        this.videoDragOffsetY = this.videoEdgeDy;
-        this.videoShowDismissHint = false;
-        this.videoShowNavHint = false;
-      } else {
-        this.videoDragOffsetX = 0;
-        this.videoDragOffsetY = 0;
-        this.videoShowNavHint = false;
-        this.videoShowDismissHint = false;
-      }
-      this.applyVideoSwipeTransform();
-      this.syncVideoNavigationGestureHintToStore();
-    },
-    snapBackVideoEdgeGesture() {
-      this.videoGestureSnapBack = true;
-      this.videoDragOffsetX = 0;
-      this.videoDragOffsetY = 0;
-      this.videoShowNavHint = false;
-      this.videoShowDismissHint = false;
-      this.videoEdgeKind = null;
-      this.videoEdgeDx = 0;
-      this.videoEdgeDy = 0;
-      this.setSkipNextTap(200);
-      this.applyVideoSwipeTransform();
-      mutations.setNavigationGestureHint({});
-      setTimeout(() => {
-        this.videoGestureSnapBack = false;
-        this.applyVideoSwipeTransform();
-      }, 240);
-    },
-    resetVideoSwipeVisualState() {
-      this.clearVideoDismissAnimTimers();
-      this.videoSwipeSuppressedTouchId = null;
-      this.videoEdgeKind = null;
-      this.videoEdgeDx = 0;
-      this.videoEdgeDy = 0;
-      this.videoDragOffsetX = 0;
-      this.videoDragOffsetY = 0;
-      this.videoShowNavHint = false;
-      this.videoShowDismissHint = false;
-      this.videoGestureSnapBack = false;
-      this.videoDismissFlashActive = false;
-      this.applyVideoSwipeTransform();
-      mutations.setNavigationGestureHint({});
-    },
-    resetVideoEdgeGestureImmediate() {
-      this.resetVideoSwipeVisualState();
-      this.clearEdgeTapGestureState();
-      this.clearSkipNextTap();
-    },
-    clearVideoDismissAnimTimers() {
-      if (this.videoDismissCloseTimer) {
-        clearTimeout(this.videoDismissCloseTimer);
-        this.videoDismissCloseTimer = null;
-      }
-      if (this.videoDismissHintTimer) {
-        clearTimeout(this.videoDismissHintTimer);
-        this.videoDismissHintTimer = null;
-      }
-    },
-    finishVideoEdgeGesture() {
-      if (!this.videoSwipeGesturesActive) {
-        this.resetVideoEdgeGestureImmediate();
-        return;
-      }
-      const ax0 = Math.abs(this.videoEdgeDx);
-      const ay0 = Math.abs(this.videoEdgeDy);
-      if (!this.videoEdgeKind && ax0 < 5 && ay0 < 5) {
-        this.resetVideoSwipeVisualState();
-        return;
-      }
-      let kind = this.videoEdgeKind;
-      if (!kind) {
-        const ax = Math.abs(this.videoEdgeDx);
-        const ay = Math.abs(this.videoEdgeDy);
-        if (ax < this.videoEdgeHintPx && ay < this.videoEdgeHintPx) {
-          this.snapBackVideoEdgeGesture();
-          return;
-        }
-        kind = ax >= ay ? 'horizontal' : 'vertical-dismiss';
-      }
-      if (kind === 'horizontal') {
-        if (this.videoEdgeDx >= this.videoEdgeCommitX && this.hasVideoPreviousNav) {
-          this.$emit('navigate-previous');
-          this.resetVideoEdgeGestureImmediate();
-          return;
-        }
-        if (this.videoEdgeDx <= -this.videoEdgeCommitX && this.hasVideoNextNav) {
-          this.$emit('navigate-next');
-          this.resetVideoEdgeGestureImmediate();
-          return;
-        }
-      } else if (kind === 'vertical-dismiss') {
-        if (this.videoEdgeDy >= this.videoEdgeCommitY) {
-          this.clearVideoDismissAnimTimers();
-          this.videoDismissFlashActive = true;
-          this.videoShowDismissHint = true;
-          this.videoDragOffsetX = 0;
-          this.videoDragOffsetY = 0;
-          this.videoEdgeKind = null;
-          this.applyVideoSwipeTransform();
-          this.syncVideoNavigationGestureHintToStore();
-          this.setSkipNextTap(200);
-          // If we're in fullscreen, exit fullscreen instead of closing preview
-          if (this.player?.fullscreen?.active) {
-            this.player.fullscreen.exit();
-            this.videoDismissHintTimer = setTimeout(() => {
-              this.videoDismissHintTimer = null;
-              this.videoDismissFlashActive = false;
-              this.videoShowDismissHint = false;
-              mutations.setNavigationGestureHint({});
-            }, 420);
-            return;
-          }
-          // Normal close preview
-          this.videoDismissCloseTimer = setTimeout(() => {
-            this.videoDismissCloseTimer = null;
-            this.$emit('close-preview');
-          }, 120);
-          this.videoDismissHintTimer = setTimeout(() => {
-            this.videoDismissHintTimer = null;
-            this.videoDismissFlashActive = false;
-            this.videoShowDismissHint = false;
-            mutations.setNavigationGestureHint({});
-          }, 420);
-          return;
-        }
-      } else if (kind === 'vertical-fullscreen') {
-        if (!this.player) {
-          this.resetVideoEdgeGestureImmediate();
-          return;
-        }
-        if (this.videoEdgeDy <= -this.videoEdgeCommitY) {
-          this.player.fullscreen.toggle();
-          this.resetVideoEdgeGestureImmediate();
-          // Set skipNextTap to prevent play/pause toggle
-          this.setSkipNextTap(300);
-          return;
-        }
-      }
-      this.snapBackVideoEdgeGesture();
-    },
-    teardownVideoSwipeMouseDocListeners() {
-      document.removeEventListener('mousemove', this.onVideoSwipeMouseDocMove, true);
-      document.removeEventListener('mouseup', this.onVideoSwipeMouseDocUp, true);
-      this.videoEdgeMouseActive = false;
-    },
-    onVideoSwipeMouseDocMove(event) {
-      if (!this.videoEdgeMouseActive || !this.videoSwipeGesturesActive) {
-        return;
-      }
-      this.videoEdgeDx = event.clientX - this.videoEdgeStartX;
-      this.videoEdgeDy = event.clientY - this.videoEdgeStartY;
-      this.decideVideoEdgeKind();
-      this.applyVideoEdgeVisuals();
-      if (Math.abs(this.videoEdgeDx) > 3 || Math.abs(this.videoEdgeDy) > 3) {
-        event.preventDefault();
-      }
-    },
-    onVideoSwipeMouseDocUp(event) {
-      if (!this.videoEdgeMouseActive) {
-        this.teardownVideoSwipeMouseDocListeners();
-        return;
-      }
-      this.videoEdgeDx = event.clientX - this.videoEdgeStartX;
-      this.videoEdgeDy = event.clientY - this.videoEdgeStartY;
-      this.finishVideoEdgeGesture();
-      this.teardownVideoSwipeMouseDocListeners();
-      if (Math.abs(this.videoEdgeDx) > 3 || Math.abs(this.videoEdgeDy) > 3) {
-        event.preventDefault();
-      }
-    },
-    onVideoSwipeMouseDown(event) {
-      if (event.button !== 0 || !this.videoSwipeGesturesActive) return;
-      // Don't start a gesture if we are selecting some text
-      if (window.getSelection()?.toString().length > 0) return;
-      if (this.isControlOrMenuTarget(event.target)) {
-        return;
-      }
-      this.clearVideoDismissAnimTimers();
-      this.teardownVideoSwipeMouseDocListeners();
-      this.videoEdgeMouseActive = true;
-      this.videoEdgeStartX = event.clientX;
-      this.videoEdgeStartY = event.clientY;
-      this.videoEdgeDx = 0;
-      this.videoEdgeDy = 0;
-      this.videoEdgeKind = null;
-      document.addEventListener('mousemove', this.onVideoSwipeMouseDocMove, true);
-      document.addEventListener('mouseup', this.onVideoSwipeMouseDocUp, true);
-    },
-    onVideoSwipeTouchStart(event) {
-      if (!this.videoSwipeGesturesActive || event.targetTouches.length !== 1) return;
-      // Don't start a gesture if we are selecting some text
-      if (window.getSelection()?.toString().length > 0) return;
-      if (this.isControlOrMenuTarget(event.target)) {
-        this.videoSwipeSuppressedTouchId = event.targetTouches[0].identifier;
-        return;
-      }
-      this.videoSwipeSuppressedTouchId = null;
-      this.clearVideoDismissAnimTimers();
-
-      // long-press timer
-      this.clearLongPressTimer();
-      this.longPressPending = true;
-      this.longPressTriggered = false;
-      this.longPressPreviousSpeed = this.player?.speed || 1;
-
-      // only start timer if not already at 2x
-      if (this.player && this.player.speed !== 2) {
-        this.longPressTimer = setTimeout(() => {
-          this.longPressTimer = null;
-          if (this.player && this.longPressPending) {
-            this.longPressPreviousSpeed = this.player.speed || 1;
-            this.player.speed = 2;
-            this.longPressTriggered = true;
-            this.longPressPending = false;
-            // Show toast
-            this.speedToastVisible = true;
-            this.speedToastMessage = '2x';
-          }
-        }, 500);
-      } else {
-        // If already at 2x don't change speed again
-        if (this.player?.speed === 2) {
-          this.longPressPending = false;
-        }
-      }
-
-      const touch = event.targetTouches[0];
-      this.videoEdgeStartX = touch.pageX;
-      this.videoEdgeStartY = touch.pageY;
-      this.videoEdgeDx = 0;
-      this.videoEdgeDy = 0;
-      this.videoEdgeKind = null;
-      this.videoDragOffsetX = 0;
-      this.videoDragOffsetY = 0;
-    },
-    onVideoSwipeTouchMove(event) {
-      if (this.longPressTriggered) {
-        event.preventDefault();
-        return;
-      }
-
-      // If there's significant movement cancel any pending long press so if when using swipe gestures they don't change speed
-      if (this.longPressPending) {
-        const touch = event.targetTouches[0];
-        const dx = Math.abs(touch.pageX - this.videoEdgeStartX);
-        const dy = Math.abs(touch.pageY - this.videoEdgeStartY);
-        if (dx > 20 || dy > 20) {
-          this.clearLongPressTimer();
-          this.longPressPending = false;
-          this.clearEdgeTapGestureState();
-        }
-      }
-
-      if (!this.videoSwipeGesturesActive || event.targetTouches.length !== 1) {
-        if (this.videoEdgeKind || this.videoEdgeDx || this.videoEdgeDy) {
-          this.resetVideoEdgeGestureImmediate();
-        }
-        return;
-      }
-      const touch = event.targetTouches[0];
-      if (
-        this.videoSwipeSuppressedTouchId !== null &&
-        touch.identifier === this.videoSwipeSuppressedTouchId
-      ) {
-        return;
-      }
-      this.videoEdgeDx = touch.pageX - this.videoEdgeStartX;
-      this.videoEdgeDy = touch.pageY - this.videoEdgeStartY;
-      this.decideVideoEdgeKind();
-      this.applyVideoEdgeVisuals();
-      const ax = Math.abs(this.videoEdgeDx);
-      const ay = Math.abs(this.videoEdgeDy);
-      if (this.videoEdgeKind || ax > 14 || ay > 14) {
-        event.preventDefault();
-      }
-    },
-    onVideoSwipeTouchEnd(event) {
-      if (!this.videoSwipeGesturesActive || event.changedTouches.length === 0) {
-        return;
-      }
-      const t = event.changedTouches[0];
-      if (
-        this.videoSwipeSuppressedTouchId !== null &&
-        t.identifier === this.videoSwipeSuppressedTouchId
-      ) {
-        this.videoSwipeSuppressedTouchId = null;
-        return;
-      }
-      if (this.longPressPending) {
-        this.clearLongPressTimer();
-        this.longPressPending = false;
-      }
-
-      // Handle long-press release
-      if (this.longPressTriggered) {
-        this.clearLongPressTimer();
-        this.speedToastVisible = false;
-        if (this.player && this.longPressPreviousSpeed !== 2) {
-          this.player.speed = this.longPressPreviousSpeed;
-        }
-        this.longPressTriggered = false;
-        this.clearEdgeTapGestureState();
-        this.resetVideoEdgeGestureImmediate();
-        event.preventDefault();
-        return;
-      }
-
-      // Normal swipe gesture
-      this.videoEdgeDx = t.pageX - this.videoEdgeStartX;
-      this.videoEdgeDy = t.pageY - this.videoEdgeStartY;
-      const ax = Math.abs(this.videoEdgeDx);
-      const ay = Math.abs(this.videoEdgeDy);
-      const hadLockedKind = this.videoEdgeKind !== null;
-      this.finishVideoEdgeGesture();
-      if (hadLockedKind || ax > 14 || ay > 14) {
-        this.clearEdgeTapGestureState();
-        event.preventDefault();
-      }
-    },
-    onVideoSwipeTouchCancel(event) {
-      // If long-press was triggered, handle release
-      if (this.longPressTriggered) {
-        this.clearLongPressTimer();
-        this.speedToastVisible = false;
-        if (this.player && this.longPressPreviousSpeed !== 2) {
-          this.player.speed = this.longPressPreviousSpeed;
-        }
-        this.longPressTriggered = false;
-        this.longPressPending = false;
-        this.resetVideoEdgeGestureImmediate();
-        if (event) event.preventDefault();
-        return;
-      }
-
-      // If long-press was pending clear it
-      if (this.longPressPending) {
-        this.clearLongPressTimer();
-        this.longPressPending = false;
-      }
-
-      if (event?.changedTouches?.length) {
-        const t = event.changedTouches[0];
-        if (
-          this.videoSwipeSuppressedTouchId !== null &&
-          t.identifier === this.videoSwipeSuppressedTouchId
-        ) {
-          this.videoSwipeSuppressedTouchId = null;
-          return;
-        }
-      }
-      if (this.videoEdgeKind || this.videoEdgeDx || this.videoEdgeDy) {
-        this.snapBackVideoEdgeGesture();
-      }
-    },
-    setupVideoSwipeGestures() {
-      this.teardownVideoSwipeGestures();
-      if ((this.previewType !== 'video' && this.previewType !== 'audio') || !this.player) {
-        return;
-      }
-      const surface = this.getGestureSurface();
-      if (!surface) {
-        return;
-      }
-      const touchOpts = { passive: false };
-      surface.addEventListener('touchstart', this.onVideoSwipeTouchStart, touchOpts);
-      surface.addEventListener('touchmove', this.onVideoSwipeTouchMove, touchOpts);
-      surface.addEventListener('touchend', this.onVideoSwipeTouchEnd, touchOpts);
-      surface.addEventListener('touchcancel', this.onVideoSwipeTouchCancel, touchOpts);
-      surface.addEventListener('mousedown', this.onVideoSwipeMouseDown);
-
-      this.videoSwipeCleanup = () => {
-        surface.removeEventListener('touchstart', this.onVideoSwipeTouchStart, touchOpts);
-        surface.removeEventListener('touchmove', this.onVideoSwipeTouchMove, touchOpts);
-        surface.removeEventListener('touchend', this.onVideoSwipeTouchEnd, touchOpts);
-        surface.removeEventListener('touchcancel', this.onVideoSwipeTouchCancel, touchOpts);
-        surface.removeEventListener('mousedown', this.onVideoSwipeMouseDown);
-        this.teardownVideoSwipeMouseDocListeners();
-      };
-    },
-    teardownVideoSwipeGestures() {
-      if (typeof this.videoSwipeCleanup === 'function') {
-        this.videoSwipeCleanup();
-        this.videoSwipeCleanup = null;
-      }
-      this.clearVideoDismissAnimTimers();
-      this.resetVideoEdgeGestureImmediate();
-      this.clearLongPressTimer();
-      this.clearLongPressTimer();
-      this.longPressPending = false;
-      this.speedToastVisible = false;
-      if (this.longPressTriggered && this.player && this.longPressPreviousSpeed !== 2) {
-        this.player.speed = this.longPressPreviousSpeed;
-      }
-      this.longPressTriggered = false;
-    },
-    async onFullscreenEnter() {
-      this.isFullscreen = true;
-      this.resetVideoEdgeGestureImmediate();
-      // Allow free rotation when video enters full screen mode. This works even if the device's orientation is currently locked.
-      try {
-        await screen.orientation.lock('any');
-      } catch (error) {
-        // The NotSupportedError is thrown for non-mobile browsers and there seems to be no way to pre-check if it is supported.
-        // -> Swallow NotSupportedError but let other errors be thrown.
-        if (error.name !== 'NotSupportedError')
-          throw error;
-      }
-    },
-    onFullscreenExit() {
-      this.isFullscreen = false;
-      if (!screen.orientation?.unlock) return;
-      try {
-        screen.orientation.unlock();
-      } catch (error) {
-        if (error.name !== 'NotSupportedError') throw error;
-      }
-    },
-
     // Builds playback and caption menus once, then updates state without rebuilding again.
     applyCustomSettings(player) {
       try {
