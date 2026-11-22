@@ -137,7 +137,7 @@ import { useTranscodePlayback } from "@/composables/player/useTranscodePlayback.
 import { useI18n } from "@/i18n/index.ts";
 import { primePlay } from "@/player/playbackIntent.js";
 import { enableScrubPreview } from "@/player/scrubPreview.js";
-import { blockSeekOnInput, enableSeekOnRelease } from "@/player/seekOnRelease.js";
+import { enableSeekOnRelease } from "@/player/seekOnRelease.js";
 import { transcodeLog, transcodeWarn } from "@/player/transcodeDebug.js";
 import {
   normalizeTranscodeMode,
@@ -239,7 +239,6 @@ let transcodeModeButtons: NodeListOf<HTMLButtonElement> | null = null;
 let transcodeModeValueSpan: HTMLElement | null = null;
 
 // --- Derived state ---
-const isMobile = computed(() => getters.isMobile());
 const hasSubtitles = computed(() => props.subtitlesList.length > 0);
 const fileName = computed(() => (props.req.name ? props.req.name.replace(/\.[^/.]+$/, "") : ""));
 const { metadata, albumArtUrl, loadMediaMetadata, cleanupAlbumArt } = useEmbeddedArtwork({
@@ -444,6 +443,7 @@ const {
   togglePlayPause,
   handleMediaEnd,
 } = useMediaPlayer({
+  kind: "video",
   player,
   getMediaElement: () => videoElement.value,
   getRequestedFile: () => props.req,
@@ -472,76 +472,20 @@ const settingsMenu = computed(() => {
   return base;
 });
 
-const playerOptions = computed<Plyr.Options>(() => {
-  const controlsDesktop = [
-    "play-large",
-    "rewind",
-    "play",
-    "fast-forward",
-    "progress",
-    "current-time",
-    "duration",
-    "mute",
-    "volume",
-    "captions",
-    "settings",
-    "fullscreen",
-  ];
-  const controlsMobile = [
-    "play-large",
-    "play",
-    "progress",
-    "current-time",
-    "duration",
-    "mute",
-    "volume",
-    "captions",
-    "settings",
-    "fullscreen",
-  ];
-  return {
-    controls: isMobile.value ? controlsMobile : controlsDesktop,
-    settings: settingsMenu.value,
-    i18n: {
-      playback: t("player.playbackMode"),
-      captionSize: t("player.captionSize"),
-      loop: t("player.loop"),
-      transcodeMode: t("general.transcode"),
-    },
-    speed: {
-      selected: 1,
-      options: [0.25, 0.5, 0.75, 1, 1.25, 1.5, 2],
-    },
-    disableContextMenu: true,
-    seekTime: 10,
-    hideControls: true,
-    keyboard: { focused: true, global: true },
-    tooltips: { controls: true, seek: !scrubPreviewEnabled.value },
-    loop: { active: false },
-    blankVideo: "",
-    muted: false,
-    autoplay: false,
-    playsinline: true,
-    clickToPlay: false, // we manage this ourselves with the gestures, plyr has a issue where this doesn't work in mobile.
-    resetOnEnd: false,
-    preload: "none",
-    fullscreen: {
-      enabled: true,
-      fallback: true,
-      iosNative: true,
-      container: ".media-player",
-    },
-    iconUrl: `${globalVars.baseURL}public/static/img/plyr.svg`,
-    captions: {
-      active: false,
-      language: "auto",
-      update: true,
-    },
-    listeners: {
-      seek: blockSeekOnInput,
-    },
-  };
-});
+/** The Plyr options only the video player needs */
+const videoPlyrOptions = computed<Plyr.Options>(() => ({
+  settings: settingsMenu.value,
+  i18n: {
+    captionSize: t("player.captionSize"),
+    transcodeMode: t("general.transcode"),
+  },
+  tooltips: { controls: true, seek: !scrubPreviewEnabled.value },
+  captions: {
+    active: false,
+    language: "auto",
+    update: true,
+  },
+}));
 
 /** Plyr captions menu: show format only (e.g. `.srt`, `.ass`), not the video basename. */
 function subtitleTrackLabel(sub: SubtitleTrack): string {
@@ -835,7 +779,7 @@ async function mountPlayer(): Promise<void> {
         return;
       }
     }
-    createPlayer(playerOptions.value);
+    createPlayer(videoPlyrOptions.value);
     if (!player.value) {
       return;
     }
@@ -1227,13 +1171,59 @@ onBeforeUnmount(() => {
 defineExpose({ destroy });
 </script>
 
-<style >
-
+<style scoped>
 .media-video-container {
   width: 100%;
   height: 100%;
 }
 
+.video-player-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background-color: #000;
+}
+
+.video-loading-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  background: rgb(0 0 0 / 35%);
+}
+
+/* Transcode offer (shown instead of the player; layout comes from `#previewer .preview .info`). */
+.preview-buttons {
+  display: flex;
+  flex-direction: row;
+  gap: 1em;
+}
+
+.transcode-offer-message {
+  margin: 1rem 0;
+  text-align: center;
+}
+
+.transcode-session-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1rem;
+  text-align: center;
+}
+
+.transcode-session-list li {
+  margin: 0.25rem 0;
+}
+
+.transcode-session-source {
+  opacity: 0.7;
+}
+</style>
+
+<style>
 /* this is just a workaround, the own plyr poster was hiding the video poster and showing black
    when it didn't loaded (somehow happens); but summarizing, this a bug of plyr, it also loads the poster image 2 times
    cuz it sets the URL on the html video tags and in their own */
@@ -1438,24 +1428,6 @@ defineExpose({ destroy });
   pointer-events: none !important;
 }
 
-.video-player-container {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  background-color: #000;
-}
-
-.video-loading-overlay {
-  position: absolute;
-  inset: 0;
-  z-index: 6;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  pointer-events: none;
-  background: rgb(0 0 0 / 35%);
-}
-
 /* Letterboxing and Plyr chrome */
 .video-player-container .plyr {
   background-color: #000;
@@ -1527,32 +1499,5 @@ defineExpose({ destroy });
 .plyr__caption {
   background: transparent;
   line-height: 150%;
-}
-
-/* Transcode offer (shown instead of the player; layout comes from `#previewer .preview .info`). */
-.preview-buttons {
-  display: flex;
-  flex-direction: row;
-  gap: 1em;
-}
-
-.transcode-offer-message {
-  margin: 1rem 0;
-  text-align: center;
-}
-
-.transcode-session-list {
-  list-style: none;
-  padding: 0;
-  margin: 0 0 1rem;
-  text-align: center;
-}
-
-.transcode-session-list li {
-  margin: 0.25rem 0;
-}
-
-.transcode-session-source {
-  opacity: 0.7;
 }
 </style>

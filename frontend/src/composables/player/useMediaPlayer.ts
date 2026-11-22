@@ -5,7 +5,10 @@ import type { ShallowRef } from "vue";
 import Plyr from "plyr";
 import "plyr/dist/plyr.css";
 import "@/css/player.css";
+import { useI18n } from "@/i18n/index.ts";
+import { blockSeekOnInput } from "@/player/seekOnRelease.js";
 import { mutations, state } from "@/store/index.ts";
+import { globalVars } from "@/utils/constants.ts";
 import { getEndOfMediaAction, navigatePlaybackQueue } from "@/utils/playbackQueue.js";
 import { buildItemUrl, removeTrailingSlash } from "@/utils/url.js";
 
@@ -23,6 +26,7 @@ function decodePathSafely(path: string): string {
 }
 
 type NativePlay = () => Promise<void> | void;
+type PlyrRuntimeOptions = Plyr.Options & { playsinline?: boolean; preload?: string };
 
 /** Plyr keeps `media` and a no-arg `off()` at runtime but its typings omit them. */
 interface PlyrRuntime {
@@ -43,7 +47,27 @@ export function resolveMountedFileKey(source?: string, path?: string): MountedFi
   };
 }
 
+const PLYR_CONTROLS = [
+  "play-large",
+  "rewind",
+  "play",
+  "fast-forward",
+  "progress",
+  "current-time",
+  "duration",
+  "mute",
+  "volume",
+  "captions",
+  "settings",
+  "fullscreen",
+];
+const AUDIO_EXCLUDED_CONTROLS = ["play-large", "captions", "fullscreen"];
+
+export type MediaKind = "audio" | "video";
+
 interface MediaPlayerOptions {
+  /** Decides the control set and whether fullscreen is available. */
+  kind: MediaKind;
   player: ShallowRef<Plyr | null>;
   /** The <audio>/<video> element rendered by the component. */
   getMediaElement: () => HTMLMediaElement | null | undefined;
@@ -61,12 +85,56 @@ interface MediaPlayerOptions {
 /** Creates, wires, stops and destroys the Plyr instance, and ends/advances playback. */
 export function useMediaPlayer(options: MediaPlayerOptions) {
   const { player } = options;
+  const { t } = useI18n();
   let nativePlay: NativePlay | null = null;
 
-  function createPlayer(plyrOptions: Plyr.Options): Plyr | null {
+  /** The Plyr options both players share; `createPlayer` merges the per-player extras over them. */
+  function buildPlyrOptions(extra: Plyr.Options): PlyrRuntimeOptions {
+    const isVideo = options.kind === "video";
+    return {
+      controls: isVideo ? [...PLYR_CONTROLS] : PLYR_CONTROLS.filter((id) => !AUDIO_EXCLUDED_CONTROLS.includes(id)),
+      settings: ["captions", "quality", "speed", "playback", "loop"],
+      speed: {
+        selected: 1,
+        options: [0.25, 0.5, 0.75, 1, 1.25, 1.5, 2],
+      },
+      disableContextMenu: true,
+      seekTime: 10,
+      hideControls: true,
+      keyboard: { focused: true, global: true },
+      loop: { active: false },
+      blankVideo: "",
+      muted: false,
+      autoplay: false,
+      playsinline: true,
+      clickToPlay: false, // we manage this ourselves with the gestures, plyr has a issue where this doesn't work in mobile.
+      resetOnEnd: false,
+      preload: "none",
+      fullscreen: {
+        enabled: isVideo,
+        fallback: true,
+        iosNative: true,
+        container: ".media-player",
+      },
+      iconUrl: `${globalVars.baseURL}public/static/img/plyr.svg`,
+      listeners: {
+        seek: blockSeekOnInput,
+      },
+      ...extra,
+      i18n: {
+        playback: t("player.playbackMode"),
+        loop: t("player.loop"),
+        ...extra.i18n,
+      },
+      tooltips: { controls: true, seek: true, ...extra.tooltips },
+    };
+  }
+
+  /** `extra` holds what only one player needs */
+  function createPlayer(extra: Plyr.Options = {}): Plyr | null {
     const el = options.getMediaElement();
     if (!el) return null;
-    player.value = new Plyr(el, plyrOptions);
+    player.value = new Plyr(el, buildPlyrOptions(extra));
     return player.value;
   }
 

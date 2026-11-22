@@ -2,10 +2,8 @@ import type { ShallowRef } from "vue";
 import type Plyr from "plyr";
 import { state } from "@/store/index.ts";
 import { globalVars } from "@/utils/constants.ts";
-import { ownsMediaSession } from "@/utils/mediaSessionOwnership.js";
 import { getNextItem, navigatePlaybackQueue } from "@/utils/playbackQueue.js";
 
-/** Latest owner id handed out; only the instance holding it may touch the global Media Session. */
 let mediaSessionOwner = 0;
 
 export interface MediaSessionInfo {
@@ -20,7 +18,7 @@ export function useMediaSession(player: Readonly<ShallowRef<Plyr | null>>) {
   let ownerId = 0;
 
   function owns(): boolean {
-    return ownsMediaSession(ownerId, mediaSessionOwner);
+    return ownerId > 0 && ownerId === mediaSessionOwner;
   }
 
   function updateMediaSessionNavHandlers(): void {

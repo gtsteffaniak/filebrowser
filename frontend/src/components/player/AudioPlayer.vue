@@ -136,7 +136,6 @@ import {
 import { useAudioVisualizer } from "@/composables/player/useAudioVisualizer.ts";
 import { useEmbeddedArtwork } from "@/composables/player/useEmbeddedArtwork.ts";
 import { useDoubleTapSeek } from "@/composables/player/useDoubleTapSeek.ts";
-import { useFullscreenState } from "@/composables/player/useFullscreenState.ts";
 import { useGestureState } from "@/composables/player/useGestureState.ts";
 import { useMediaKeyboard } from "@/composables/player/useMediaKeyboard.ts";
 import { type MountedFileKey, resolveMountedFileKey, useMediaPlayer } from "@/composables/player/useMediaPlayer.ts";
@@ -144,7 +143,7 @@ import { useMediaSession } from "@/composables/player/useMediaSession.ts";
 import { usePlaybackQueue } from "@/composables/player/usePlaybackQueue.ts";
 import { useSwipeNavigationGestures } from "@/composables/player/useSwipeNavigationGestures.ts";
 import { useI18n } from "@/i18n/index.ts";
-import { enableSeekOnRelease, blockSeekOnInput } from "@/player/seekOnRelease.js";
+import { enableSeekOnRelease } from "@/player/seekOnRelease.js";
 import { router } from "@/router/index.ts";
 import { getters, mutations, state } from "@/store/index.ts";
 import type { FileListItem } from "@/store/types.ts";
@@ -311,19 +310,17 @@ const swipe = useSwipeNavigationGestures({
   onClosePreview: () => emit("close-preview"),
 });
 const { speedToastVisible, speedToastMessage, setupSwipeGestures, teardownSwipeGestures, clearDismissAnimTimers } = swipe;
-const { onFullscreenEnter, onFullscreenExit } = useFullscreenState({ onEnter: swipe.resetEdgeGestureImmediate });
 const {
   createPlayer,
   onPlayerEvent,
   getActiveMediaElement,
   stopMediaElement,
-  rememberFullscreenForTransition,
-  resumeFullscreenAfterNavigation,
   destroyPlayer,
   stopIfRouteLeftThisFile,
   togglePlayPause,
   handleMediaEnd,
 } = useMediaPlayer({
+  kind: "audio",
   player,
   getMediaElement: () => audioElement.value,
   getRequestedFile: () => props.req,
@@ -416,70 +413,6 @@ async function stripPlaybackTimeFromUrl(): Promise<void> {
   await router.replace({ path: route.path, query: nextQuery, hash: route.hash });
 }
 
-const playerOptions = computed<Plyr.Options>(() => {
-  const controlsDesktop = [
-    "play-large",
-    "rewind",
-    "play",
-    "fast-forward",
-    "progress",
-    "current-time",
-    "duration",
-    "mute",
-    "volume",
-    "captions",
-    "settings",
-    "fullscreen",
-  ];
-  const controlsMobile = [
-    "play-large",
-    "play",
-    "progress",
-    "current-time",
-    "duration",
-    "mute",
-    "volume",
-    "captions",
-    "settings",
-    "fullscreen",
-  ];
-  return {
-    controls: isMobile.value ? controlsMobile : controlsDesktop,
-    settings: ["captions", "quality", "speed", "playback", "loop"],
-    i18n: {
-      playback: t("player.playbackMode"),
-      loop: t("player.loop"),
-    },
-    speed: {
-      selected: 1,
-      options: [0.25, 0.5, 0.75, 1, 1.25, 1.5, 2],
-    },
-    disableContextMenu: true,
-    seekTime: 10,
-    hideControls: true,
-    keyboard: { focused: true, global: true },
-    tooltips: { controls: true, seek: true },
-    loop: { active: false },
-    blankVideo: "",
-    muted: false,
-    autoplay: false,
-    playsinline: true,
-    clickToPlay: false, // we manage this ourselves with the gestures, plyr has a issue where this doesn't work in mobile.
-    resetOnEnd: false,
-    preload: "none",
-    fullscreen: {
-      enabled: true,
-      fallback: true,
-      iosNative: true,
-      container: ".media-player",
-    },
-    iconUrl: `${globalVars.baseURL}public/static/img/plyr.svg`,
-    listeners: {
-      seek: blockSeekOnInput,
-    },
-  };
-});
-
 function setupPlayerEvents(): void {
   const current = player.value;
   if (!current) return;
@@ -505,8 +438,6 @@ function setupPlayerEvents(): void {
     ["loadedmetadata", updateMediaSessionPlaybackState],
     ["ratechange", updateMediaSessionPlaybackState],
     ["canplay", updateMediaSessionPlaybackState],
-    ["enterfullscreen", onFullscreenEnter],
-    ["exitfullscreen", onFullscreenExit],
   ];
   for (const [event, handler] of events) {
     onPlayerEvent(event, handler);
@@ -524,7 +455,7 @@ async function mountPlayer(): Promise<void> {
     mountedFile = resolveMountedFileKey(props.req?.source, props.req?.path);
     await stripPlaybackTimeFromUrl();
     if (!audioElement.value || tornDown || player.value) return;
-    createPlayer(playerOptions.value);
+    createPlayer();
     if (!player.value) return;
     setupMediaSession({
       title: metadata.value?.title || fileName.value,
@@ -534,7 +465,6 @@ async function mountPlayer(): Promise<void> {
     });
     setupPlayerEvents();
     seekOnReleaseCleanup = enableSeekOnRelease(player.value);
-    resumeFullscreenAfterNavigation();
   } finally {
     mountInProgress = false;
   }
@@ -564,15 +494,11 @@ function destroy(): void {
   }
   mountedFile = null;
   const media = getActiveMediaElement();
-  const isTransition = state.navigation.isTransitioning;
 
   if (media) {
     stopMediaElement(media);
   }
   if (player.value) {
-    if (isTransition) {
-      rememberFullscreenForTransition();
-    }
     teardownSwipeGestures();
     teardownDoubleTapSeek();
     clearRewindForwardFeedback();
@@ -614,48 +540,7 @@ onBeforeUnmount(() => {
 defineExpose({ destroy });
 </script>
 
-<style>
-/* Hide the overlaid play button in audio mode */
-.plyr--audio .plyr__control--overlaid {
-  display: none !important;
-}
-
-/* Hide the captions button in audio mode */
-.plyr--audio .plyr__control[data-plyr="captions"] {
-  display: none !important;
-}
-
-.plyr.plyr--audio {
-  border-radius: var(--borderRadius);
-  backdrop-filter: var(--panel-blur);
-  background-color: var(--alt-background);
-}
-
-.audio-controls-container .plyr .plyr__controls {
-  color: var(--textPrimary);
-}
-
-.plyr--audio .plyr__control[data-plyr="fullscreen"] {
-  display: none !important;
-}
-
-@media (width <= 768px) {
-  .plyr--audio .plyr__control {
-    min-width: 44px;
-    min-height: 44px;
-  }
-  .plyr--audio .plyr__progress__container {
-    margin: 10px 0;
-  }
-  .plyr--audio .plyr__controls__items {
-    justify-content: center;
-    gap: 12px;
-  }
-  .plyr--audio .plyr__control--play {
-    transform: scale(1.25);
-  }
-}
-
+<style scoped>
 .audio-player-container {
   display: flex;
   flex-direction: column;
@@ -850,14 +735,6 @@ defineExpose({ destroy });
     padding: 0;
     padding-top: 1em;
   }
-  .plyr.plyr--audio {
-    padding: 1em;
-    border-radius: 0;
-  }
-  .plyr--audio .plyr__controls {
-    padding: 0;
-    gap: 5px;
-  }
   .album-art-container {
     margin-top: 1em;
     max-width: min(71vw);
@@ -868,11 +745,6 @@ defineExpose({ destroy });
 }
 
 @media (width <= 550px) {
-  /* Time playing */
-  .plyr--audio .plyr__time {
-    font-size: 14px;
-    margin: 0 5px;
-  }
   .audio-left-column {
     padding: 0;
     margin: 0;
@@ -886,6 +758,55 @@ defineExpose({ destroy });
     height: min(100px, 30vh);
     margin: 0;
     flex-shrink: 0;
+  }
+}
+</style>
+
+<style>
+.plyr.plyr--audio {
+  border-radius: var(--borderRadius);
+  backdrop-filter: var(--panel-blur);
+  background-color: var(--alt-background);
+}
+
+.audio-controls-container .plyr .plyr__controls {
+  color: var(--textPrimary);
+}
+
+@media (width <= 768px) {
+  .plyr--audio .plyr__control {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .plyr--audio .plyr__progress__container {
+    margin: 10px 0;
+  }
+  .plyr--audio .plyr__controls__items {
+    justify-content: center;
+    gap: 12px;
+  }
+  .plyr--audio .plyr__control--play {
+    transform: scale(1.25);
+  }
+}
+
+/* For small tablets and phones with big screen */
+@media (width <= 740px) {
+  .plyr.plyr--audio {
+    padding: 1em;
+    border-radius: 0;
+  }
+  .plyr--audio .plyr__controls {
+    padding: 0;
+    gap: 5px;
+  }
+}
+
+@media (width <= 550px) {
+  /* Time playing */
+  .plyr--audio .plyr__time {
+    font-size: 14px;
+    margin: 0 5px;
   }
 }
 </style>

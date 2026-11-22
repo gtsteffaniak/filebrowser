@@ -340,18 +340,7 @@ async function subtitles(): Promise<SubtitleSource[]> {
 
 </script>
 
-<!-- Classes owned by this view; the shared player styles live in src/css/player.css. -->
 <style>
-/* Background styles for the audio player */
-.media-background-dark {
-  background: radial-gradient(#3b3b3b, black);
-}
-
-.media-background-light {
-  background: radial-gradient(#262626, #e2e2e2);
-}
-
-/* Also used by VideoPlayer while it checks whether native playback is possible. */
 .av-preview-loading {
   display: flex;
   align-items: center;
@@ -362,6 +351,14 @@ async function subtitles(): Promise<SubtitleSource[]> {
 </style>
 
 <style scoped>
+.media-background-dark {
+  background: radial-gradient(#3b3b3b, black);
+}
+
+.media-background-light {
+  background: radial-gradient(#262626, #e2e2e2);
+}
+
 .transition-loading {
   position: fixed;
   inset: 0;

@@ -81,6 +81,13 @@
   margin: 0;
 }
 
+@media (width <= 768px) {
+  .plyr .plyr__control[data-plyr="rewind"],
+  .plyr .plyr__control[data-plyr="fast-forward"] {
+    display: none;
+  }
+}
+
 /* Hide volume buttons on narrow screens to make more space */
 @media (width <= 550px) {
   .plyr__volume {
