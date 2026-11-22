@@ -133,7 +133,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, shallowRef, useTem
 import AudioPanel from "@/components/files/AudioPanel.vue";
 import LyricsList from "@/components/files/LyricsList.vue";
 import FloatingActionButton from "@/components/settings/FloatingActionButton.vue";
-import { getSettingsElements } from "@/composables/player/plyrSettingsElements.ts";
+import { getSettingsElements } from "@/composables/player/settingsElements.ts";
 import {
   readAlbumArtSize,
   readDesktopPanelOpen,
@@ -156,6 +156,7 @@ import { useI18n } from "@/i18n/index.ts";
 import { enableSeekOnRelease, blockSeekOnInput } from "@/player/seekOnRelease.js";
 import { router } from "@/router/index.ts";
 import { getters, mutations, state } from "@/store/index.ts";
+import type { FileListItem } from "@/store/types.ts";
 import { globalVars } from "@/utils/constants.ts";
 import { getTypeFromMime } from "@/utils/files.js";
 import type { LyricLines } from "@/utils/lyrics.ts";
@@ -185,7 +186,7 @@ const props = withDefaults(
     raw: string;
     lyrics?: LyricLines;
     /** Folder listing the playback queue is built from. */
-    listing?: unknown[];
+    listing?: FileListItem[];
     autoPlayEnabled?: boolean;
   }>(),
   { lyrics: () => [], listing: () => [], autoPlayEnabled: false },

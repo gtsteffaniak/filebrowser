@@ -10,7 +10,7 @@ type NavHintDir = "prev" | "next";
 interface SwipeNavigationOptions {
   player: Readonly<ShallowRef<Plyr | null>>;
   gestures: GestureState;
-  getPreviewType: () => string;
+  getPreviewType: () => "audio" | "video";
   /** The swipe is paused while the mobile lyrics overlay is scrolling. */
   isMobileLyricsActive: () => boolean;
   /** The element the touch/mouse listeners are attached to. */
@@ -67,7 +67,6 @@ export function useSwipeNavigationGestures({
 
   const swipeGesturesActive = computed(
     () =>
-      (getPreviewType() === "video" || getPreviewType() === "audio") &&
       !!player.value &&
       !isMobileLyricsActive(),
   );
@@ -549,7 +548,7 @@ export function useSwipeNavigationGestures({
   }
   function setupSwipeGestures() {
     teardownSwipeGestures();
-    if ((getPreviewType() !== 'video' && getPreviewType() !== 'audio') || !player.value) {
+    if (!player.value) {
       return;
     }
     const surface = getGestureSurface();

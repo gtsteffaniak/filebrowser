@@ -2,6 +2,7 @@ import { computed, onBeforeUnmount, ref, watch } from "vue";
 import type Plyr from "plyr";
 import { useI18n } from "@/i18n/index.ts";
 import { getters, mutations, state } from "@/store/index.ts";
+import type { FileListItem } from "@/store/types.ts";
 import {
   buildPlaybackQueue,
   clearPlaybackQueue,
@@ -12,19 +13,19 @@ import {
   getModeLabel,
   toggleSingleLoop as nextSingleLoop,
 } from "@/utils/playbackQueue.js";
-import { getPlayerI18n, getSettingsElements } from "./plyrSettingsElements.ts";
+import { getPlayerI18n, getSettingsElements } from "./settingsElements.ts";
 
 type ToastType = "mode" | "loop" | "cleared";
 type LoopMode = "all" | "off" | "single";
 
-// biome-ignore lint/suspicious/noExplicitAny: queue items are the untyped file entries the playback helpers expect
-type QueueItem = any;
+/** The fields the queue identifies items by; the file being played may not carry the rest yet. */
+type QueueItem = Pick<Partial<FileListItem>, "name" | "path" | "type">;
 
 interface PlaybackQueueOptions {
   /** The file being played. */
   getReq: () => QueueItem;
   /** The listing of the folder the file lives in. */
-  getListing: () => QueueItem[] | null | undefined;
+  getListing: () => FileListItem[] | null | undefined;
 }
 
 /** Queue, loop and playback modes, the mode toast and the hand-built playback/loop settings menus. */
@@ -116,9 +117,9 @@ export function usePlaybackQueue({ getReq, getListing }: PlaybackQueueOptions) {
     (newListing) => {
       if (!newListing?.length) return;
       const isShare = getters.isShare();
-      const getId = (item: QueueItem): string => (isShare ? item.name : item.path);
+      const getId = (item: QueueItem): string | undefined => (isShare ? item.name : item.path);
       const mediaFiles = newListing.filter((item) => /^(audio|video)\//.test(item.type || ""));
-      const queue: QueueItem[] = state.playbackQueue.queue;
+      const queue = state.playbackQueue.queue as QueueItem[];
       const mode = state.playbackQueue.mode;
 
       if (queue.length && mediaFiles.length === queue.length) {

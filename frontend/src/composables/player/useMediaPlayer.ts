@@ -1,8 +1,10 @@
 import type { ShallowRef } from "vue";
 // The only value import of `plyr`: the whole player is created and destroyed here so the
-// Video.js 10 migration has a single place to replace. (Its stylesheet is still
-// imported by MediaPlayer.vue's shared <style> block; it moves here in phase 6.)
+// Video.js 10 migration has a single place to replace. Its stylesheet and our shared
+// overrides are imported next to it, in this order.
 import Plyr from "plyr";
+import "plyr/dist/plyr.css";
+import "@/css/player.css";
 import { mutations, state } from "@/store/index.ts";
 import { getEndOfMediaAction, navigatePlaybackQueue } from "@/utils/playbackQueue.js";
 import { buildItemUrl, removeTrailingSlash } from "@/utils/url.js";

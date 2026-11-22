@@ -1,6 +1,6 @@
 import type { ShallowRef } from "vue";
 import type Plyr from "plyr";
-import { getSettingsElements } from "./plyrSettingsElements.ts";
+import { getSettingsElements } from "./settingsElements.ts";
 import { CAPTION_SIZE_IDS, getStoredCaptionSize } from "./playerStorage.ts";
 
 interface CaptionSizeOptions {

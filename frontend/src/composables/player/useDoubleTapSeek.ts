@@ -6,13 +6,13 @@ import { globalVars } from "@/utils/constants.ts";
 import { zoneFromClientX } from "@/player/gestureZones.js";
 import { enableOverlaidHintController } from "@/player/overlaidHintController.js";
 import { isInLeftNavTapZone, isInRightNavTapZone } from "@/utils/navigationEdgeZones.js";
-import { getPlayerSeekTime } from "./plyrSettingsElements.ts";
+import { getPlayerSeekTime } from "./settingsElements.ts";
 import type { GestureState } from "./useGestureState.ts";
 
 interface DoubleTapSeekOptions {
   player: Readonly<ShallowRef<Plyr | null>>;
   gestures: GestureState;
-  getPreviewType: () => string;
+  getPreviewType: () => "audio" | "video";
   /** Gesture surface of the audio player (the whole player, not only the Plyr wrapper). */
   getAudioGestureRoot: () => HTMLElement | null | undefined;
   /** Starts playback from the surface; the owner decides about transcode offers. */
@@ -44,7 +44,7 @@ export function useDoubleTapSeek({
   let ignoreClickUntil = 0;
 
   function setupDoubleTapSeek() {
-    if ((getPreviewType() !== 'video' && getPreviewType() !== 'audio') || !player.value) {
+    if (!player.value) {
       return;
     }
     teardownDoubleTapSeek();

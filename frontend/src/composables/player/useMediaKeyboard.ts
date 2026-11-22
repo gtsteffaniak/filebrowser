@@ -4,7 +4,7 @@ import { getters, state } from "@/store/index.ts";
 
 interface MediaKeyboardOptions {
   player: Readonly<ShallowRef<Plyr | null>>;
-  getPreviewType: () => string;
+  getPreviewType: () => "audio" | "video";
   cyclePlaybackModes: () => void;
   toggleSingleLoop: () => void;
   showQueuePrompt: () => void;

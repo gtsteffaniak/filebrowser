@@ -23,7 +23,7 @@ function fakePlayer(fullscreenActive = false) {
   };
 }
 
-function setup({ previewType = "video", player = fakePlayer(), lyricsActive = false } = {}) {
+function setup({ previewType = "video" as "audio" | "video", player = fakePlayer(), lyricsActive = false } = {}) {
   const surface = document.createElement("div");
   document.body.appendChild(surface);
   const callbacks = { prev: vi.fn(), next: vi.fn(), close: vi.fn() };

@@ -121,7 +121,7 @@ import { getPreviewURL, getPreviewURLPublic } from "@/api/resources.js";
 import { resourcesApi } from "@/api/index.js";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import FloatingActionButton from "@/components/settings/FloatingActionButton.vue";
-import { getPlayerI18n, getSettingsElements } from "@/composables/player/plyrSettingsElements.ts";
+import { getPlayerI18n, getSettingsElements } from "@/composables/player/settingsElements.ts";
 import {
   CAPTION_SIZE_IDS,
   getCaptionSizeLabel,
@@ -152,6 +152,7 @@ import {
 import { enableVideoLoadingIndicator } from "@/player/videoLoading.js";
 import { router } from "@/router/index.ts";
 import { getters, mutations, state } from "@/store/index.ts";
+import type { FileListItem, SubtitleTrack as FileSubtitleTrack } from "@/store/types.ts";
 import { globalVars } from "@/utils/constants.ts";
 import {
   buildPlaybackQueryPatch,
@@ -168,7 +169,7 @@ interface VideoFile {
   modified?: string;
   hasPreview?: boolean;
   viewToken?: string;
-  subtitles?: unknown[];
+  subtitles?: FileSubtitleTrack[];
   metadata?: {
     title?: string;
     artist?: string;
@@ -200,7 +201,7 @@ const props = withDefaults(
     req: VideoFile;
     subtitlesList?: SubtitleTrack[];
     autoPlayEnabled?: boolean;
-    listing?: unknown[];
+    listing?: FileListItem[];
   }>(),
   {
     subtitlesList: () => [],
@@ -334,7 +335,7 @@ const {
   getRaw: () => props.raw,
   getRoute: () => route,
   getVideoElement: () => videoElement.value,
-  getPlaybackMedia,
+  getPlaybackMedia: () => getActiveMediaElement(),
   getNativePlay: () => getNativePlay(),
   isTornDown: () => tornDown,
   isPlaybackLoading: () => videoPlaybackLoading.value,
@@ -555,11 +556,6 @@ const playerOptions = computed<Plyr.Options>(() => {
 function subtitleTrackLabel(sub: SubtitleTrack): string {
   const ext = getSubtitleFormatExtension(sub?.name || "");
   return ext || sub?.name || "";
-}
-
-/** The element Plyr plays on; falls back to the template ref before the player exists. */
-function getPlaybackMedia(): HTMLMediaElement | null | undefined {
-  return (player.value as unknown as { media?: HTMLMediaElement } | null)?.media || videoElement.value;
 }
 
 function resetFilePlaybackState(): void {
@@ -1166,7 +1162,7 @@ function applyCustomSettings(plyr: Plyr): void {
                 return;
               }
               const wasPlaying = !!player.value?.playing;
-              const el = getPlaybackMedia();
+              const el = getActiveMediaElement();
               transcodeLog("transcode menu selection", {
                 value,
                 wasPlaying,
