@@ -22,7 +22,7 @@ backend_dev_tool = $$(cd $(BACKEND_BUILD) && go tool -n $(1))
 .PHONY: setup update build build-docker build-backend build-frontend dev run generate-docs
 .PHONY: lint-frontend lint-backend lint test test-backend test-frontend check-all
 .PHONY: check-translations sync-translations test-playwright test-playwright-performance playwright-base playwright-perf-base perf-check perf-smoke perf-baseline perf-dashboard run-proxy screenshots
-.PHONY: check-icons generate-icons sync-icons setup-gofitz-cgo
+.PHONY: check-icons generate-icons sync-icons setup-gofitz-cgo build-opensw-wasm
 
 setup:
 	echo "creating ./backend/test_config.yaml for local testing..."
@@ -61,7 +61,7 @@ build-backend:
 
 # Local development: Vite HMR (frontend) + Air (backend)
 .NOTPARALLEL: dev
-dev: generate-docs generate-icons setup-gofitz-cgo
+dev: generate-docs generate-icons setup-gofitz-cgo build-opensw-wasm
 	@echo "Starting dev servers (Vite HMR + Air)... Press Ctrl+C to stop."
 	bash ./scripts/dev.sh
 
@@ -87,10 +87,19 @@ generate-docs:
 	@echo "Generating frontend config..."
 	cd backend && FILEBROWSER_GENERATE_CONFIG=true go run .
 
-build-frontend:
+build-frontend: build-opensw-wasm
 	@echo "Building frontend..."
 	cd frontend && npm run build
 	@echo "✓ Frontend built successfully"
+
+build-opensw-wasm:
+	@echo "Building OpenSW WebAssembly module..."
+	mkdir -p frontend/public/wasm
+	cd frontend/wasm-src && CGO_ENABLED=0 GOOS=js GOARCH=wasm go build -trimpath -o ../public/wasm/opensw.wasm ./cmd/opensw-wasm
+	goRoot="$$(cd frontend/wasm-src && go env GOROOT)"; \
+	if command -v cygpath >/dev/null 2>&1; then goRoot="$$(cygpath -u "$$goRoot")"; fi; \
+	cp "$$goRoot/lib/wasm/wasm_exec.js" frontend/public/wasm/wasm_exec.js
+	@echo "✓ OpenSW WebAssembly built successfully"
 
 lint-frontend:
 	cd frontend && npm run lint
