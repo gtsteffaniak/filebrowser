@@ -87,7 +87,12 @@ export function usePreviewNavigation(options: PreviewNavigationOptions = {}) {
           }
           listing.value = res.items;
         } catch (error) {
-          if (state.req.path !== expectedPath) return;
+          if (
+            state.req.path !== expectedPath ||
+            listingContextKey(directoryPath) !== expectedListingKey
+          ) {
+            return;
+          }
           console.error("error Preview.vue", error);
           listing.value = [state.req as FileListItem];
         }

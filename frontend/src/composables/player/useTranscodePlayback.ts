@@ -77,6 +77,15 @@ interface RecoverContext {
   playPrime?: ReturnType<typeof primePlay> | null;
 }
 
+/** Outcome of startTranscodePlayback; `ok` only when the HLS attachment succeeded. */
+export interface StartTranscodeResult {
+  ok: boolean;
+  reason?: string;
+}
+
+/** Reasons that end a start without it being a playback failure */
+const NON_FAILURE_START_REASONS = ["cancelled", "disposed", "stale", "recovered"];
+
 interface StartTranscodeOptions {
   replaceSessionId?: string;
   startSec?: number;
@@ -159,9 +168,13 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
   const transcodeClientId = createTranscodeClientId();
 
   let attachVideoStreamResume: (() => void) | null = null;
+  /** Cancels the native resume in flight */
+  let cancelNativeResume: (() => void) | null = null;
+  let offerRequestId = 0;
+  let offerLookupPending = false;
+  let startPreparationId = 0;
   let transcodeFallbackAttempted = false;
   let transcodeOfferEmitted = false;
-  /** Armed when autoplay is blocked so the next user gesture can resume playback. */
   let resumeOnGestureArmed = false;
   let resumeOnGestureHandler: (() => void) | null = null;
 
@@ -270,15 +283,48 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
 
   // --- Resume and native stream attach ---
   function applyResumeSeek(el: HTMLVideoElement | null | undefined, snapshot: ResumeSnapshot | null, onDone?: () => void): void {
+    cancelNativeResume?.();
     if (!el || !snapshot) {
       onDone?.();
       return;
     }
     const targetTime = Number.isFinite(snapshot.currentTime) ? snapshot.currentTime : 0;
+    let cancelled = false;
     let finished = false;
     let resumeCompleted = false;
+    const cleanups: Array<() => void> = [];
+    const cancel = () => {
+      if (cancelled) {
+        return;
+      }
+      cancelled = true;
+      for (const cleanup of cleanups.splice(0)) {
+        cleanup();
+      }
+      if (cancelNativeResume === cancel) {
+        cancelNativeResume = null;
+      }
+    };
+    cancelNativeResume = cancel;
+    const once = (type: string, handler: () => void) => {
+      const listener = () => {
+        if (!cancelled) {
+          handler();
+        }
+      };
+      el.addEventListener(type, listener, { once: true });
+      cleanups.push(() => el.removeEventListener(type, listener));
+    };
+    const after = (ms: number, handler: () => void) => {
+      const id = window.setTimeout(() => {
+        if (!cancelled) {
+          handler();
+        }
+      }, ms);
+      cleanups.push(() => window.clearTimeout(id));
+    };
     const completeResume = () => {
-      if (resumeCompleted) {
+      if (cancelled || resumeCompleted) {
         return;
       }
       resumeCompleted = true;
@@ -291,6 +337,7 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
       }
       resumeSnapshot.value = null;
       resumeSeekSeconds.value = null;
+      cancel();
       onDone?.();
     };
     const finish = () => {
@@ -299,8 +346,8 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
       }
       finished = true;
       if (snapshot.wasPlaying !== false && el.readyState < HTMLMediaElement.HAVE_FUTURE_DATA) {
-        el.addEventListener("canplay", () => completeResume(), { once: true });
-        window.setTimeout(() => completeResume(), 8000);
+        once("canplay", completeResume);
+        after(8000, completeResume);
       } else {
         completeResume();
       }
@@ -329,39 +376,66 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
         finish();
         return;
       }
+      let retried = false;
+      const giveUp = () => {
+        if (finished) {
+          return;
+        }
+        console.warn("native resume: could not restore the playback position", {
+          targetTime,
+          currentTime: readTime(),
+        });
+        finished = true;
+        completeResume();
+      };
+      const retrySeek = () => {
+        if (finished) {
+          return;
+        }
+        if (retried) {
+          giveUp();
+          return;
+        }
+        retried = true;
+        try {
+          writeTime(targetTime);
+        } catch (_) {
+          giveUp();
+          return;
+        }
+        once("seeked", () => {
+          if (nearTarget()) {
+            finish();
+          } else {
+            giveUp();
+          }
+        });
+        after(3000, giveUp);
+      };
       const onSeeked = () => {
         if (nearTarget()) {
           finish();
           return;
         }
-        el.addEventListener(
-          "canplay",
-          () => {
-            try {
-              writeTime(targetTime);
-            } catch (_) {
-              finish();
-              return;
-            }
-            el.addEventListener(
-              "seeked",
-              () => {
-                if (nearTarget()) {
-                  finish();
-                }
-              },
-              { once: true },
-            );
-          },
-          { once: true },
-        );
-      };
-      el.addEventListener("seeked", onSeeked, { once: true });
-      window.setTimeout(() => {
-        if (!finished && nearTarget()) {
-          finish();
+        if (el.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) {
+          retrySeek();
+          return;
         }
-      }, 5000);
+        once("canplay", retrySeek);
+      };
+      once("seeked", onSeeked);
+      after(5000, () => {
+        if (finished) {
+          return;
+        }
+        if (nearTarget()) {
+          finish();
+        } else if (el.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA && !retried) {
+          retrySeek();
+        } else {
+          giveUp();
+        }
+      });
     };
     const whenSeekable = () => {
       if (nearTarget()) {
@@ -372,12 +446,12 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
         seek();
         return;
       }
-      el.addEventListener("canplay", seek, { once: true });
+      once("canplay", seek);
     };
     if (el.readyState >= HTMLMediaElement.HAVE_METADATA) {
       whenSeekable();
     } else {
-      el.addEventListener("loadedmetadata", whenSeekable, { once: true });
+      once("loadedmetadata", whenSeekable);
     }
   }
 
@@ -484,14 +558,23 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
     return getReq()?.viewToken || getCachedViewToken(getReq()?.source) || "";
   }
 
-  async function offerTranscodePlayback(): Promise<void> {
+  function invalidateOfferRequest(): void {
+    if (!offerLookupPending) {
+      return;
+    }
+    offerRequestId++;
+    offerLookupPending = false;
+    transcodeOfferEmitted = false;
+  }
+
+  async function offerTranscodePlayback({ confirmedFailure = false }: { confirmedFailure?: boolean } = {}): Promise<void> {
     if (isTornDown() || transcodeSwitchInProgress.value || isTranscodePlaybackMode.value) {
       return;
     }
     if (transcodeOfferEmitted) {
       return;
     }
-    if (getters.isShare() || !formatNeedsTranscode.value) {
+    if (getters.isShare() || (!confirmedFailure && !formatNeedsTranscode.value)) {
       return;
     }
     transcodeOfferEmitted = true;
@@ -501,16 +584,47 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
       showTranscodeOffer({ enabled: false, canStart: false, sessions: [] });
       return;
     }
+    const requestId = ++offerRequestId;
+    offerLookupPending = true;
     try {
       const status = await getTranscodeSessions();
+      if (requestId !== offerRequestId || isTornDown()) {
+        return;
+      }
+      offerLookupPending = false;
       showTranscodeOffer(normalizeTranscodeSessionStatus(status, {
           source: getReq()?.source,
           path: getReq()?.path,
         }),
       );
     } catch (err) {
+      if (requestId !== offerRequestId || isTornDown()) {
+        return;
+      }
+      offerLookupPending = false;
       console.error("Failed to check transcode sessions:", err);
       showTranscodeOffer({ enabled: false, canStart: false, sessions: [] });
+    }
+  }
+
+  /** Looks up the session status and shows the offer for it */
+  async function loadAndShowTranscodeOffer(): Promise<void> {
+    try {
+      const status = await getTranscodeSessions();
+      if (isTornDown()) {
+        return;
+      }
+      showTranscodeOffer(
+        normalizeTranscodeSessionStatus(status, {
+          source: getReq()?.source,
+          path: getReq()?.path,
+        }),
+      );
+    } catch (err) {
+      console.error("Failed to check transcode sessions:", err);
+      if (!isTornDown()) {
+        showTranscodeOffer({ enabled: false, canStart: false, sessions: [] });
+      }
     }
   }
 
@@ -673,9 +787,9 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
     autoplay,
     playPrime,
     manageSwitchState = true,
-  }: StartTranscodeOptions = {}): Promise<void> {
+  }: StartTranscodeOptions = {}): Promise<StartTranscodeResult> {
     if (isTornDown()) {
-      return;
+      return { ok: false, reason: "cancelled" };
     }
     transcodeLog("startTranscodePlayback called", {
       source: getReq()?.source,
@@ -693,26 +807,45 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
         path: getReq()?.path,
         transcodeEnabled: transcodeEnabled.value,
       });
-      return;
+      return { ok: false, reason: "preconditions" };
     }
     const activeMode = isTranscodeHlsMode(mode) ? normalizeTranscodeMode(mode) : resolveActiveTranscodeMode();
     if (!isTranscodeHlsMode(activeMode)) {
       transcodeWarn("startTranscodePlayback skipped — not an HLS mode", { activeMode });
-      return;
+      return { ok: false, reason: "preconditions" };
     }
     const viewToken = resolveViewTokenForTranscode();
     if (!viewToken) {
       transcodeWarn("startTranscodePlayback skipped — missing view token");
-      return;
+      return { ok: false, reason: "preconditions" };
     }
+    // switching the source to HLS: a native resume still waiting must not touch the new source
+    cancelNativeResume?.();
+    invalidateOfferRequest();
+    const startSource = getReq()?.source;
+    const startPath = getReq()?.path;
+    const preparationId = startPreparationId;
     const manageSwitch = manageSwitchState && !transcodeSwitchInProgress.value;
     if (manageSwitch) {
       transcodeSwitchInProgress.value = true;
     }
-    const effectiveReplaceSessionId =
-      replaceSessionId ??
-      transcodePlayback.value?.sessionController?.session?.id ??
-      (await resolveReuseSessionId());
+    let effectiveReplaceSessionId: string | undefined =
+      replaceSessionId ?? transcodePlayback.value?.sessionController?.session?.id;
+    if (effectiveReplaceSessionId === undefined || effectiveReplaceSessionId === null) {
+      effectiveReplaceSessionId = await resolveReuseSessionId();
+      if (
+        preparationId !== startPreparationId ||
+        isTornDown() ||
+        getReq()?.source !== startSource ||
+        getReq()?.path !== startPath
+      ) {
+        transcodeLog("startTranscodePlayback dropped — request changed while preparing");
+        if (manageSwitch) {
+          transcodeSwitchInProgress.value = false;
+        }
+        return { ok: false, reason: "cancelled" };
+      }
+    }
     const seekSec = startSec ?? player.value?.currentTime ?? 0;
     const shouldPlay = autoplay ?? shouldAutoplay.value;
     transcodeLog("startTranscodePlayback params", {
@@ -724,6 +857,15 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
       transcodeSwitchInProgress: transcodeSwitchInProgress.value,
     });
 
+    let pendingUrlSync: { transcodeMode?: string } | null = null;
+    const requestUrlSync = (opts: { transcodeMode?: string } = {}) => {
+      if (manageSwitch) {
+        pendingUrlSync = opts;
+      } else {
+        syncPlaybackUrl(opts);
+      }
+    };
+
     try {
       transcodeLog("preparing video element for HLS", {
         replaceSessionId: effectiveReplaceSessionId,
@@ -734,8 +876,8 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
       lockedNativeVideoSrc.value = null;
 
       const startParams = {
-        source: getReq().source,
-        path: getReq().path,
+        source: startSource,
+        path: startPath,
         viewToken,
         mode: activeMode,
         clientId: transcodeClientId,
@@ -759,7 +901,7 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
             startSec: ctx?.startSec,
             sessionId: ctx?.sessionId,
           });
-          await startTranscodePlayback({
+          const recovered = await startTranscodePlayback({
             mode: ctx?.mode ?? resolveActiveTranscodeMode(),
             startSec: ctx?.startSec ?? player.value?.currentTime ?? 0,
             replaceSessionId: ctx?.sessionId,
@@ -767,7 +909,7 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
             manageSwitchState: true,
             playPrime: ctx?.playPrime,
           });
-          return true;
+          return recovered.ok || NON_FAILURE_START_REASONS.includes(recovered.reason ?? "");
         },
         onCapacityStatus: (status: unknown) => {
           showTranscodeOffer(normalizeTranscodeSessionStatus(status, {
@@ -801,17 +943,41 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
         // startTranscodePlayback and spin on the 409 limit.
         transcodeMode.value = "native";
         onModeMenuChange();
-        syncPlaybackUrl();
+        requestUrlSync();
         await switchToNativePlayback();
-        return;
+        return { ok: false, reason: "capacity" };
+      }
+      if (
+        !result.ok &&
+        (result.reason === "fallback" || result.reason === "error") &&
+        !isTornDown() &&
+        isTranscodeHlsMode(transcodeMode.value)
+      ) {
+        transcodeMode.value = "native";
+        onModeMenuChange();
+        requestUrlSync();
+        if (formatNeedsTranscode.value) {
+          // offer transcoding again so the user can retry.
+          transcodeOfferEmitted = false;
+          await loadAndShowTranscodeOffer();
+        } else {
+          // restore native playback before attaching it.
+          await switchToNativePlayback();
+        }
+        return { ok: false, reason: result.reason };
       }
       if (result.ok) {
         onModeMenuChange();
-        syncPlaybackUrl({ transcodeMode: activeMode });
+        requestUrlSync({ transcodeMode: activeMode });
       }
+      return { ok: result.ok === true, reason: result.reason };
     } finally {
       if (manageSwitch) {
         transcodeSwitchInProgress.value = false;
+        const urlSync = pendingUrlSync as { transcodeMode?: string } | null;
+        if (urlSync) {
+          syncPlaybackUrl(urlSync);
+        }
       }
     }
   }
@@ -827,7 +993,7 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
     if (code !== MediaError.MEDIA_ERR_DECODE && code !== MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED) {
       return;
     }
-    void offerTranscodePlayback();
+    void offerTranscodePlayback({ confirmedFailure: true });
   }
 
   async function switchToNativePlayback({ autoplay }: { autoplay?: boolean } = {}): Promise<void> {
@@ -855,11 +1021,11 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
     const canResume = Number.isFinite(currentTime) && currentTime > 0;
     if (canResume) {
       resumeSeekSeconds.value = currentTime;
-      resumeSnapshot.value = {
-        currentTime,
-        wasPlaying: shouldPlay,
-      };
     }
+    resumeSnapshot.value = {
+      currentTime: canResume ? currentTime : 0,
+      wasPlaying: shouldPlay,
+    };
 
     await attachVideoStreamAndPlay();
     if (!canResume && shouldPlay && player.value) {
@@ -878,6 +1044,7 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
     if (mode === transcodeMode.value || transcodeSwitchInProgress.value) {
       return;
     }
+    invalidateOfferRequest();
     const previousMode = transcodeMode.value;
     const wasPlaying = !!player.value?.playing;
     transcodeLog("switchTranscodeMode start", {
@@ -963,6 +1130,9 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
     keepAlive = false,
     keepalive = false,
   }: TeardownTranscodeOptions = {}): void {
+    cancelNativeResume?.();
+    invalidateOfferRequest();
+    startPreparationId++;
     const controller = transcodePlayback.value;
     if (!controller || keepAlive) {
       return;
@@ -972,6 +1142,9 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
 
   /** Final release of the controller (component teardown, or an offer replacing the player). */
   function disposeTranscodeController({ stopSession = true, keepalive = false } = {}): void {
+    cancelNativeResume?.();
+    invalidateOfferRequest();
+    startPreparationId++;
     const controller = transcodePlayback.value;
     if (!controller) {
       return;
@@ -1063,6 +1236,9 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
 
   /** Back to the per-file defaults (new file, or the player is being re-created). */
   function resetFileState(): void {
+    cancelNativeResume?.();
+    invalidateOfferRequest();
+    startPreparationId++;
     videoStreamAttached.value = false;
     resumeSnapshot.value = null;
     resumeSeekSeconds.value = null;
