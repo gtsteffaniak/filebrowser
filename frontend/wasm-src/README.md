@@ -1,5 +1,7 @@
 # OpenSW Go → WebAssembly source
 
+Insipired in the work of [cehaho/OpenSW](https://github.com/cehaho/OpenSW).
+
 Standalone Go module for the OpenSW CAD readers used by the browser worker.
 It is intentionally kept under `frontend/` and out of the backend module so no
 server-side CAD parsing code ships in the Filebrowser binary.
