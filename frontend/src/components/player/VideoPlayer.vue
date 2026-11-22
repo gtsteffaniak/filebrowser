@@ -130,7 +130,7 @@ import { getCachedViewToken } from '@/api/viewToken.js';
 import { notify } from "@/notify/index.ts";
 
 export default {
-  name: "plyrViewer",
+  name: "VideoPlayer",
   components: {
     LoadingSpinner,
     FloatingActionButton,

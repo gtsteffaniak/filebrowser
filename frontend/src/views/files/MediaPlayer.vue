@@ -26,7 +26,7 @@
           @navigate-next="navigateNext"
           @close-preview="exitPreviewFromImageGesture"
         />
-        <MediaViewer v-else
+        <VideoPlayer v-else
           :key="viewerKey"
           ref="viewerRef"
           :previewType="previewType"
@@ -107,8 +107,7 @@ import { convertToVTT, getSubtitleFormatExtension } from "@/utils/subtitles.js";
 import { removeLastDir } from "@/utils/url.js";
 
 const AudioPlayer = createAsyncComponent(() => import("@/components/player/AudioPlayer.vue"));
-// The existing viewer now only plays video; it becomes VideoPlayer in the next phase.
-const MediaViewer = createAsyncComponent(() => import("@/views/files/plyrViewer.vue"));
+const VideoPlayer = createAsyncComponent(() => import("@/components/player/VideoPlayer.vue"));
 
 interface TranscodeSession {
   id?: string;
