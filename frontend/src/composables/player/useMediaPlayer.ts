@@ -1,7 +1,7 @@
 import type { ShallowRef } from "vue";
 // The only value import of `plyr`: the whole player is created and destroyed here so the
 // Video.js 10 migration has a single place to replace. (Its stylesheet is still
-// imported by the viewer's <style> block; it moves here in phase 6.)
+// imported by MediaPlayer.vue's shared <style> block; it moves here in phase 6.)
 import Plyr from "plyr";
 import { mutations, state } from "@/store/index.ts";
 import { getEndOfMediaAction, navigatePlaybackQueue } from "@/utils/playbackQueue.js";
@@ -35,6 +35,14 @@ interface PlyrRuntime {
 export interface MountedFileKey {
   source: string;
   path: string;
+}
+
+/** The source/path a player instance mounts for; used to detect a route change away from it. */
+export function resolveMountedFileKey(source?: string, path?: string): MountedFileKey {
+  return {
+    source: source || (state.sources?.current as string | undefined) || "",
+    path: path ? (path.startsWith("/") ? path : `/${path}`) : "",
+  };
 }
 
 interface MediaPlayerOptions {

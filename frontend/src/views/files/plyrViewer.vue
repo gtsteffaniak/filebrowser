@@ -1,110 +1,8 @@
 <template>
   <div class="media-player">
-    <!-- Audio with plyr -->
-    <div
-      v-if="previewType === 'audio'"
-      ref="audioPlayerGestureRoot"
-      class="audio-player-container audio-player-container--gestures"
-      :class="{ 'audio-player-container--lyrics-open': mobileLyricsActive }"
-    >
-      <!-- Desktop panel button, will auto‑hide only when panel is closed -->
-      <FloatingActionButton
-        v-if="previewType === 'audio' && !isMobile"
-        :icon="showDesktopPanel ? 'close' : 'queue_music'"
-        :badge="!showDesktopPanel ? queueCount : null"
-        :auto-hide="!showDesktopPanel"
-        :offset="{ zIndex: '9999' }"
-        @press="showDesktopPanel = !showDesktopPanel"
-        :label="desktopPanelToggleLabel"
-      />
-
-      <!-- Two‑column layout -->
-        <div class="audio-player-content" :class="{ 'panel-open': !isMobile && showDesktopPanel }" >
-        <!-- Left column: art + meta -->
-        <div class="audio-left-column">
-          <!-- Album art with a generic icon if no image/metadata -->
-          <div class="album-art-container"
-              :class="{ 'no-artwork': !artworkUrl }"
-              :style="{
-                width: `${displayArtSize}em`,
-                maxWidth: '100%',
-                aspectRatio: '1 / 1'
-              }"
-              @mouseenter="onAlbumArtHover"
-              @mouseleave="onAlbumArtLeave"
-              @wheel="onAlbumArtScroll">
-            <img class="no-select album-art" v-if="artworkUrl" :src="artworkUrl" :alt="metadata.album || 'Album art'" />
-            <div v-else class="album-art-fallback">
-              <i class="material-symbols">music_note</i>
-            </div>
-          </div>
-
-          <!-- Metadata info -->
-          <div class="audio-metadata" v-if="metadata">
-            <div class="audio-title">
-              {{ metadata.title }}
-            </div>
-            <div class="audio-artist" v-if="metadata.artist">
-              {{ formattedArtist }}
-            </div>
-            <div class="audio-album" v-if="metadata.album">
-              {{ metadata.album }}
-            </div>
-            <div class="audio-year" v-if="metadata.album">
-              {{ metadata.year }}
-              <span class="filetype-badge">{{ filetype }}</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Right column: panel with Queue & Lyrics tabs (desktop) -->
-        <Transition name="panel-slide">
-          <AudioPanel
-            v-if="!isMobile && showDesktopPanel"
-            :lyrics="lyrics"
-            :player="player"
-            :audio-context="audioContext"
-            :audio-source="audioSource"
-            class="lyrics-panel"
-            @needs-audio-graph="setupAudioVisualizer"
-          />
-        </Transition>
-      </div>
-      <template v-if="isMobile && lyrics.length">
-        <FloatingActionButton
-          icon="lyrics"
-          position="top-left"
-          zone-height="8.5em"
-          group="media-controls"
-          :label="$t('player.toggleLyrics')"
-          @press="showMobileLyrics = !showMobileLyrics"
-        />
-        <div v-if="showMobileLyrics" class="lyrics-mobile">
-          <LyricsList compact :lyrics="lyrics" :player="player" />
-        </div>
-      </template>
-      <!-- Audio controls -->
-      <div class="audio-controls-container">
-        <div class="media-audio-container">
-          <audio :src="raw" :type="req.type" :autoplay="shouldAutoplay" @play="handlePlay" ref="audioElement"></audio>
-        </div>
-      </div>
-      <!-- Double‑tap / seek feedback overlay -->
-      <div
-        class="video-skip-feedback-layer"
-        :class="{
-          'video-skip-feedback-layer--visible': skipFeedbackVisible,
-          'video-skip-feedback-layer--left': skipFeedbackSide === 'left',
-          'video-skip-feedback-layer--right': skipFeedbackSide === 'right',
-        }"
-        aria-hidden="true"
-      >
-        <i :key="skipFeedbackKey" class="material-symbols video-skip-feedback-layer__icon">{{ skipFeedbackIcon }}</i>
-      </div>
-    </div>
     <!-- Video with plyr -->
     <div
-      v-else-if="previewType === 'video'"
+      v-if="previewType === 'video'"
       class="video-player-container"
       :class="{
         'no-captions': !hasSubtitles,
@@ -149,7 +47,7 @@
         <i :key="skipFeedbackKey" class="material-symbols video-skip-feedback-layer__icon">{{ skipFeedbackIcon }}</i>
       </div>
     </div>
-    <!-- Right detection zone – always for video/mobile audio queue button & desktop panel toggle -->
+    <!-- Queue button (hidden in fullscreen) -->
     <FloatingActionButton
       v-if="showQueueButton"
       icon="queue_music"
@@ -182,7 +80,7 @@ import { useDoubleTapSeek } from '@/composables/player/useDoubleTapSeek.ts';
 import { useFullscreenState } from '@/composables/player/useFullscreenState.ts';
 import { useGestureState } from '@/composables/player/useGestureState.ts';
 import { useSwipeNavigationGestures } from '@/composables/player/useSwipeNavigationGestures.ts';
-import { useMediaPlayer } from '@/composables/player/useMediaPlayer.ts';
+import { resolveMountedFileKey, useMediaPlayer } from '@/composables/player/useMediaPlayer.ts';
 import { useMediaKeyboard } from '@/composables/player/useMediaKeyboard.ts';
 import { usePlaybackQueue } from '@/composables/player/usePlaybackQueue.ts';
 import { useMediaSession } from '@/composables/player/useMediaSession.ts';
@@ -191,20 +89,8 @@ import {
   CAPTION_SIZE_IDS,
   getCaptionSizeLabel,
   getStoredCaptionSize,
-  readAlbumArtSize,
-  readDesktopPanelOpen,
-  readMobileLyricsOpen,
   setStoredCaptionSize,
-  writeAlbumArtSize,
-  writeDesktopPanelOpen,
-  writeMobileLyricsOpen,
 } from '@/composables/player/playerStorage.ts';
-import {
-  formatArtist
-} from '@/utils/playbackQueue.js';
-import { getTypeFromMime } from '@/utils/files.js';
-import AudioPanel from "@/components/files/AudioPanel.vue";
-import LyricsList from "@/components/files/LyricsList.vue";
 import { getters, mutations, state } from "@/store/index.ts";
 import { globalVars } from "@/utils/constants.ts";
 import { getSubtitleFormatExtension } from "@/utils/subtitles.js";
@@ -243,18 +129,9 @@ import { getTranscodeSessions } from '@/api/transcode.js';
 import { getCachedViewToken } from '@/api/viewToken.js';
 import { notify } from "@/notify/index.ts";
 
-function resolveMountedPreviewKey(source, path) {
-  return {
-    source: source || state.sources?.current || '',
-    path: path ? (path.startsWith('/') ? path : `/${path}`) : '',
-  };
-}
-
 export default {
   name: "plyrViewer",
   components: {
-    AudioPanel,
-    LyricsList,
     LoadingSpinner,
     FloatingActionButton,
   },
@@ -268,10 +145,6 @@ export default {
       required: true,
     },
     subtitlesList: {
-      type: Array,
-      default: () => [],
-    },
-    lyrics: {
       type: Array,
       default: () => [],
     },
@@ -317,21 +190,20 @@ export default {
       clearMediaSession,
     } = useMediaSession(player);
     const gestures = useGestureState();
-    const audioPlayerGestureRoot = shallowRef(null);
-    // Bridge to the Options API instance for component methods the composables call lazily; goes away when this component is split in phase 5.
+    // Bridge to the Options API instance for component methods the composables call lazily; goes away with phase 5c.
     const vm = getCurrentInstance()?.proxy;
     const doubleTap = useDoubleTapSeek({
       player,
       gestures,
       getPreviewType: () => props.previewType,
-      getAudioGestureRoot: () => audioPlayerGestureRoot.value,
+      getAudioGestureRoot: () => null,
       requestPlay: () => vm?.requestPlay(),
     });
     const swipe = useSwipeNavigationGestures({
       player,
       gestures,
       getPreviewType: () => props.previewType,
-      isMobileLyricsActive: () => vm?.mobileLyricsActive ?? false,
+      isMobileLyricsActive: () => false,
       getGestureSurface: doubleTap.getGestureSurface,
       isControlOrMenuTarget: doubleTap.isControlOrMenuTarget,
       onNavigatePrevious: () => emit('navigate-previous'),
@@ -359,9 +231,7 @@ export default {
       toggleSingleLoop: playbackQueue.toggleSingleLoop,
       showQueuePrompt: playbackQueue.showQueuePrompt,
       flashSkipFeedback: doubleTap.flashSkipFeedback,
-      toggleDesktopPanel: () => {
-        if (vm) vm.showDesktopPanel = !vm.showDesktopPanel;
-      },
+      toggleDesktopPanel: () => undefined, // the desktop panel exists only in AudioPlayer
     });
     return {
       player,
@@ -372,7 +242,6 @@ export default {
       ...doubleTap,
       ...swipe,
       ...fullscreen,
-      audioPlayerGestureRoot,
       applyCaptionSizeClass,
       syncCaptionSizeSettingsVisibility,
       setupMediaSession,
@@ -384,22 +253,8 @@ export default {
   data() {
     return {
       // Metadata & Art
-      metadata: null, // Null by default, will be loaded from the audio file.
+      metadata: null, // Null by default, will be loaded from the file metadata.
       albumArtUrl: null,
-      // Storage keys (plyrAlbumArtSize, plyrShowDesktopPanel, plyrShowMobileLyrics) keep the legacy prefix so saved preferences survive.
-      albumArtSize: readAlbumArtSize(),
-      isHovering: false, // Track hover state
-
-      // Audio Visualizer
-      audioContext: null,
-      mediaGraph: null,
-      audioSource: null,
-      audioGraphInitialized: false,
-
-      // Playback settings
-      showDesktopPanel: readDesktopPanelOpen(),
-      showMobileLyrics: readMobileLyricsOpen(),
-
 
       captionSizeMenuInitialized: false,
       /** Native video: defer stream URL until play so opening preview does not range-fetch the file. */
@@ -460,15 +315,6 @@ export default {
     },
     currentQueueIndex() {
       this.updateMediaSessionNavHandlers();
-    },
-    showDesktopPanel(val) {
-      writeDesktopPanelOpen(val);
-    },
-    albumArtSize(val) {
-      writeAlbumArtSize(val);
-    },
-    showMobileLyrics(val) {
-      writeMobileLyricsOpen(val);
     },
     shouldTogglePlayPause(newVal, oldVal) {
       if (newVal !== oldVal) {
@@ -549,32 +395,11 @@ export default {
     routePath() {
       return state.route.path;
     },
-    filetype() {
-      return getTypeFromMime(this.req.type || '');
-    },
-    formattedArtist() {
-      return formatArtist(this.metadata?.artist);
-    },
-    desktopPanelToggleLabel() {
-      return this.showDesktopPanel ? this.$t('player.closePanel') : this.$t('player.openPanel');
-    },
     queueButtonLabel() {
       return this.$t('player.QueueButtonHint');
     },
     showQueueButton() {
-      if (this.previewType === 'video') {
-        return !this.isFullscreen;
-      }
-      return this.isMobile && this.previewType === 'audio';
-    },
-    mobileLyricsActive() {
-      return this.isMobile && this.showMobileLyrics && this.lyrics.length > 0;
-    },
-    displayArtSize() {
-      if (this.mobileLyricsActive) {
-        return 5;
-      }
-      return this.albumArtSize;
+      return !this.isFullscreen;
     },
     shouldTogglePlayPause() {
       return state.playbackQueue.shouldTogglePlayPause || false;
@@ -586,9 +411,7 @@ export default {
       return this.subtitlesList && this.subtitlesList.length > 0;
     },
     mediaElement() {
-      return this.previewType === 'video'
-        ? this.$refs.videoElement
-        : this.$refs.audioElement;
+      return this.$refs.videoElement;
     },
     shouldAutoplay() {
       return this.autoPlayEnabled || this.playbackQueue.length > 1;
@@ -810,9 +633,9 @@ export default {
   async mounted() {
     // Record the mounted file before any async prepare step so route-leave
     // detection works while Plyr is still waiting on subtitles/metadata.
-    this.mountedPreviewKey = resolveMountedPreviewKey(this.req?.source, this.req?.path);
+    this.mountedPreviewKey = resolveMountedFileKey(this.req?.source, this.req?.path);
     this.loadMediaMetadata();
-    if (this.previewType === 'video' || this.previewType === 'audio') {
+    if (this.previewType === 'video') {
       await this.preparePlyrMount();
     }
     this.attachKeyboard();
@@ -827,7 +650,6 @@ export default {
     try {
       this.destroyPlyr();
     } finally {
-      this.cleanupAudioVisualizer({ close: true });
       this.clearMediaSession();
       this.detachKeyboard();
       window.removeEventListener('pagehide', this.onPageHide);
@@ -836,7 +658,6 @@ export default {
   methods: {
     onPageHide(event) {
       if (event.persisted) return;
-      this.cleanupAudioVisualizer({ close: true });
       this.teardownTranscodePlayback({ stopSession: true, keepalive: true });
       this.stopMediaElement();
     },
@@ -903,7 +724,6 @@ export default {
         this.teardownSwipeGestures();
         this.teardownDoubleTapSeek();
         this.clearRewindForwardFeedback();
-        this.cleanupAudioVisualizer();
         this.clearMediaSession();
       }
       this.destroyPlayer(media);
@@ -915,22 +735,6 @@ export default {
       this.captionSizeValueSpan = null;
       this.transcodeModeButtons = null;
       this.transcodeModeValueSpan = null;
-    },
-    cleanupAudioVisualizer({ close = false } = {}) {
-      this.audioSource = null;
-      this.audioContext = null;
-      this.audioGraphInitialized = false;
-      if (close) {
-        this.closeMediaGraph(this.mediaGraph);
-        this.mediaGraph = null;
-      }
-    },
-    closeMediaGraph(graph) {
-      try {
-        graph?.context.close().catch(() => {});
-      } catch (_) {
-        /* ignore */
-      }
     },
     /** Starts playback from the gesture surface or the overlaid play button. */
     requestPlay() {
@@ -961,9 +765,6 @@ export default {
       ) {
         void this.startTranscodePlayback({ autoplay: true });
       }
-      if (this.previewType === 'audio') {
-        this.resumeAudioGraph();
-      }
     },
     ensurePlaybackModeApplied() {
       if (!this.player) return;
@@ -988,21 +789,6 @@ export default {
       } catch (error) {
         console.error('Error ensuring playback mode applied:', error);
       }
-    },
-    // Album art hover and scroll handlers
-    onAlbumArtHover() {
-      this.isHovering = true;
-    },
-    onAlbumArtLeave() {
-      this.isHovering = false;
-    },
-    onAlbumArtScroll(event) {
-      if (!this.isHovering) return;
-      event.preventDefault();
-      const scrollDelta = event.deltaY > 0 ? -5 : 5; // Scroll down decreases, scroll up increases
-      const newSize = this.albumArtSize + scrollDelta;
-      // Apply size constraints (minimum 10em, maximum 50em)
-      this.albumArtSize = Math.max(10, Math.min(50, newSize));
     },
     // Load metadata from the backend response
     loadMediaMetadata() {
@@ -1078,7 +864,7 @@ export default {
       this.mountPlyrInProgress = true;
       try {
         this.bindTranscodePlaybackController();
-        this.mountedPreviewKey = resolveMountedPreviewKey(this.req?.source, this.req?.path);
+        this.mountedPreviewKey = resolveMountedFileKey(this.req?.source, this.req?.path);
         this.initTranscodeModeFromRoute();
         await this.stripPlaybackTimeFromUrl();
         if (!this.mediaElement || this.plyrTeardownDone || this.player) {
@@ -1109,7 +895,7 @@ export default {
           title: this.metadata?.title || this.fileName,
           artist: this.metadata?.artist || globalVars.name || "Filebrowser Quantum",
           album: this.metadata?.album || "",
-          // Video and audio use the embedded artwork (if any), otherwise the thumbnail/preview url.
+          // Embedded artwork (if any), otherwise the thumbnail/preview url.
           artworkSrc: this.artworkUrl,
         });
         this.setupPlyrEvents();
@@ -1679,7 +1465,7 @@ export default {
       });
     },
     syncPlaybackUrl({ transcodeMode } = {}) {
-      if (this.previewType !== 'video' && this.previewType !== 'audio') {
+      if (this.previewType !== 'video') {
         return;
       }
       if (this.transcodeSwitchInProgress) {
@@ -1931,49 +1717,6 @@ export default {
         getDuration: () => this.getPlaybackDuration(),
       });
     },
-    setupAudioVisualizer() {
-      // This method gets called once only when in the visualizer tab of the audio panel
-      if (this.audioGraphInitialized) return;
-      if (this.previewType !== 'audio') return;
-      const audio = this.mediaElement;
-      if (!audio) return;
-      let newContext = null;
-      try {
-        let graph = this.mediaGraph;
-        if (!(graph && graph.element === audio && graph.context.state !== 'closed')) {
-          if (graph) {
-            this.closeMediaGraph(graph);
-            this.mediaGraph = null;
-          }
-          const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
-          if (!AudioContextCtor) return;
-          newContext = new AudioContextCtor({ latencyHint: 'playback' });
-          const source = newContext.createMediaElementSource(audio);
-          source.connect(newContext.destination);
-          graph = { element: audio, context: newContext, source };
-          this.mediaGraph = graph;
-          newContext = null; // owned by this.mediaGraph from here on
-        }
-        this.audioContext = graph.context;
-        this.audioSource = graph.source;
-        this.audioGraphInitialized = true;
-      } catch (err) {
-        console.warn('Audio visualizer creation failed:', err);
-        if (newContext) {
-          try { newContext.close(); } catch (_) { /* ignore */ }
-        }
-      }
-    },
-    resumeAudioGraph() {
-      const context = this.mediaGraph?.context;
-      if (context?.state !== 'suspended') return;
-      try {
-        const resumed = context.resume();
-        if (resumed?.catch) resumed.catch(err => console.warn('Audio graph resume failed:', err));
-      } catch (err) {
-        console.warn('Audio visualizer resume failed:', err);
-      }
-    },
     setupPlyrEvents() {
       if (!this.player) return;
       mutations.setPlaybackState(this.player.playing);
@@ -2013,10 +1756,8 @@ export default {
       for (const [evt, fn] of Object.entries(eventMap)) {
         this.onPlayerEvent(evt, fn);
       }
-      if ((this.previewType === 'video' || this.previewType === 'audio')) {
-        this.onPlayerEvent('enterfullscreen', this.onFullscreenEnter);
-        this.onPlayerEvent('exitfullscreen', this.onFullscreenExit);
-      }
+      this.onPlayerEvent('enterfullscreen', this.onFullscreenEnter);
+      this.onPlayerEvent('exitfullscreen', this.onFullscreenExit);
       if (this.previewType === 'video') {
         this.onPlayerEvent('enterfullscreen', this.applyCaptionSizeClass);
         this.onPlayerEvent('exitfullscreen', this.applyCaptionSizeClass);
@@ -2026,11 +1767,9 @@ export default {
         this.applyCaptionSizeClass();
         this.syncCaptionSizeSettingsVisibility();
       }
-      if (this.previewType === 'video' || this.previewType === 'audio') {
-        this.setupDoubleTapSeek();
-        this.setupSwipeGestures();
-        this.setupRewindForwardFeedback();
-      }
+      this.setupDoubleTapSeek();
+      this.setupSwipeGestures();
+      this.setupRewindForwardFeedback();
       if (this.previewType === 'video') {
         this.setupOverlaidHintController();
       }
@@ -2193,28 +1932,6 @@ export default {
 </script>
 
 <style >
-@import url("plyr/dist/plyr.css");
-
-/* Remove blue overlay when tapping on mobile */
-.plyr,
-.plyr__video-wrapper,
-.plyr video {
-  -webkit-tap-highlight-color: transparent;
-}
-
-.plyr__video-wrapper:focus,
-.plyr video:focus {
-  outline: none;
-}
-
-/* Background styles for the audio player */
-.media-background-dark {
-  background: radial-gradient(#3b3b3b, black);
-}
-
-.media-background-light {
-  background: radial-gradient(#262626, #e2e2e2);
-}
 
 /**********************************
 *** STYLES FOR THE MEDIA PLAYER ***
@@ -2225,69 +1942,7 @@ export default {
   height: 100%;
 }
 
-.media-player {
-  height: 100%;
-  width: 100%;
-}
 
-.plyr {
-  --plyr-color-main: var(--primaryColor);
-  --plyr-video-background: rgb(0 0 0 / 100%);
-  --plyr-focus-visible-color: var(--primaryColor);
-  --plyr-audio-control-color: #fff;
-  --plyr-menu-background: rgb(0 0 0 / 70%);
-  --plyr-menu-color: #fff;
-  --plyr-menu-border-shadow-color: rgb(0 0 0 / 50%);
-  --plyr-menu-radius: 12px;
-  --plyr-menu-shadow: 0 1px 2px rgb(0 0 0 / 50%);
-  --plyr-control-radius: 12px;
-  --plyr-control-icon-size: 16px;
-  --plyr-control-spacing: 8px;
-  --plyr-control-padding: 6px;
-  --plyr-tooltip-background: rgb(0 0 0 / 80%);
-  --plyr-tooltip-color: #fff;
-  --plyr-video-controls-background: linear-gradient(transparent,
-          rgb(0 0 0 / 70%));
-
-  overflow: visible;
-  background-color: rgb(216 216 216);
-  box-shadow: 0 2px 6px rgb(88 88 88 / 45%);
-}
-
-.plyr__controls {
-  color: black;
-}
-
-/* Position/space of the buttons */
-.plyr .plyr__controls {
-  display: flex;
-  flex-direction: row;
-  gap: 8px;
-  background-color: transparent;
-}
-
-.plyr .plyr__controls__items {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: nowrap;
-}
-
-/* Transitions (e.g. how much time take to hide the player UI) */
-.plyr .plyr__control {
-  transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
-  flex-shrink: 0;
-  display: flex;
-  min-width: 2em;
-  justify-content: center;
-  align-items: center;
-}
-
-/* Progress bar with full width (audio and video) */
-.plyr .plyr__progress__container {
-  flex: 100%;
-  margin: 0;
-}
 
 /* this is just a workaround, the own plyr poster was hiding the video poster and showing black
    when it didn't loaded (somehow happens); but summarizing, this a bug of plyr, it also loads the poster image 2 times
@@ -2439,10 +2094,6 @@ export default {
   transform: translate(-50%, -50%) !important;
 }
 
-/* Hide the overlaid play button in audio mode */
-.plyr--audio .plyr__control--overlaid {
-  display: none !important;
-}
 
 /* Big play button when pause/start the video */
 .plyr--full-ui.plyr--video .plyr__control--overlaid {
@@ -2524,7 +2175,7 @@ export default {
   background: rgb(0 0 0 / 35%);
 }
 
-/* Letterboxing and Plyr chrome: match cinema-style black (audio uses .audio-controls-container .plyr) */
+/* Letterboxing and Plyr chrome: match cinema-style black */
 .video-player-container .plyr {
   background-color: #000;
   box-shadow: none;
@@ -2545,65 +2196,7 @@ export default {
   cursor: pointer;
 }
 
-/* Double-tap / double-click seek feedback (left/right third of video) */
-.video-skip-feedback-layer {
-  position: absolute;
-  inset: 0;
-  z-index: 8;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  pointer-events: none;
-}
 
-.video-skip-feedback-layer--left {
-  justify-content: flex-start;
-  padding-left: min(22%, 7rem);
-}
-
-.video-skip-feedback-layer--right {
-  justify-content: flex-end;
-  padding-right: min(22%, 7rem);
-}
-
-/*
- * Global fonts.css sets `.material-symbols { font-size: 24px }`.
- * Use high specificity and flex-shrink: 0 so the flex parent cannot squeeze the glyph.
- */
-.video-skip-feedback-layer i.material-symbols.video-skip-feedback-layer__icon {
-  flex-shrink: 0;
-  font-size: clamp(2.5rem, 7vmin, 6rem);
-  line-height: 1;
-  color: rgb(255 255 255 / 96%);
-  filter: drop-shadow(0 2px 16px rgb(0 0 0 / 85%));
-  opacity: 0;
-  transform: scale(0.55);
-  font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 40;
-}
-
-.video-skip-feedback-layer--visible i.material-symbols.video-skip-feedback-layer__icon {
-  animation: video-skip-feedback-pop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-}
-
-@keyframes video-skip-feedback-pop {
-  0% {
-    opacity: 0;
-    transform: scale(0.55);
-  }
-  28% {
-    opacity: 1;
-    transform: scale(1.12);
-  }
-  100% {
-    opacity: 0;
-    transform: scale(1);
-  }
-}
-
-/* Hide the captions button in audio mode */
-.plyr--audio .plyr__control[data-plyr="captions"] {
-  display: none !important;
-}
 
 /* Hide captions button when there are no subtitle tracks */
 .video-player-container.no-captions .plyr__control[data-plyr="captions"] {
@@ -2655,345 +2248,6 @@ export default {
 .plyr__caption {
   background: transparent;
   line-height: 150%;
-}
-
-/************
-*** AUDIO ***
-************/
-
-.plyr.plyr--audio {
-  border-radius: var(--borderRadius);
-  backdrop-filter: var(--panel-blur);
-  background-color: var(--alt-background);
-}
-
-.audio-controls-container .plyr .plyr__controls {
-  color: var(--textPrimary);
-}
-
-/* Hide some unnesary buttons on the audio player */
-.plyr--audio .plyr__control[data-plyr="fullscreen"] {
-  display: none !important;
-}
-
-/* Style for audio player on mobile */
-@media (width <= 768px) {
-  /* Buttons container more "big" for easy touch */
-  .plyr--audio .plyr__control {
-    min-width: 44px;
-    min-height: 44px;
-  }
-  .plyr--audio .plyr__progress__container {
-    margin: 10px 0;
-  }
-  .plyr--audio .plyr__controls__items {
-    justify-content: center;
-    gap: 12px;
-  }
-
-  /* Play button a bit more big */
-  .plyr--audio .plyr__control--play {
-    transform: scale(1.25);
-  }
-}
-
-/*****************************
-*** ALBUM ART AND METADATA ***
-*****************************/
-
-.audio-player-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1em;
-  margin: 0 auto;
-  padding: 1em;
-  width: 100%;
-  box-sizing: border-box;
-  height: 100%;
-  justify-content: center;
-}
-
-.lyrics-mobile {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  flex: 1 1 0%;
-  min-height: 0;
-}
-
-/* When mobile lyrics are open: push art+meta to top */
-.audio-player-container--lyrics-open {
-  justify-content: flex-start;
-  gap: 0;
-}
-
-/* Full-area swipe / double-tap seek (album art + metadata + Plyr); skip overlay uses position absolute. */
-.audio-player-container--gestures {
-  position: relative;
-  touch-action: manipulation;
-}
-
-.audio-player-content {
-  width: 100%;
-  max-width: 1500px;
-  margin: 0 auto;
-  padding: 0 3.5em;
-  padding-bottom: 0;
-  box-sizing: border-box;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  overflow: hidden;
-  position: relative;
-}
-
-.audio-player-container--lyrics-open .audio-player-content {
-  height: auto;
-  flex: none;
-}
-
-/* Left column (album art + metadata) */
-.audio-left-column {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  width: 100%;
-  padding: 0 2em;
-  box-sizing: border-box;
-  transition: width 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-  min-width: 0;
-  flex-shrink: 0;
-}
-
-.panel-open .audio-left-column {
-  width: 50%;
-}
-
-/* Right panel (lyrics / queue) */
-.lyrics-panel {
-  width: 50%;
-  flex-shrink: 0;
-  height: 100%;
-  overflow-y: auto;
-  padding: 0.5em 2em;
-  color: var(--textPrimary);
-  scroll-behavior: smooth;
-  text-align: center;
-  background: transparent;
-  border-radius: var(--borderRadius);
-  box-sizing: border-box;
-  scrollbar-width: none;
-}
-
-/* --- panel transition --- */
-.panel-slide-enter-active {
-  transition: opacity 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-}
-
-.panel-slide-leave-active {
-  transition: none;
-}
-
-.panel-slide-enter-from,
-.panel-slide-leave-to {
-  opacity: 0;
-}
-
-.album-art-container {
-  flex-shrink: 0;
-  border-radius: 1em;
-  overflow: hidden;
-  box-shadow: 0 6px 20px rgb(0 0 0 / 20%);
-  transition: width 0.3s ease;
-  will-change: transform;
-}
-
-.audio-player-container--lyrics-open .album-art-container {
-  width: 5em;
-  height: 5em;
-}
-
-.album-art {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.album-art-fallback {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-  border-radius: 18px;
-  background: linear-gradient(115deg, var(--primaryColor), rgb(2 0 36 / 90%));
-  filter: brightness(0.85);
-}
-
-.album-art-fallback i.material-symbols {
-  font-size: 5rem;
-  color: white;
-  opacity: 0.8;
-  user-select: none;
-}
-
-.album-art-container.no-artwork {
-  box-shadow: 0 4px 12px rgb(0 0 0 / 15%);
-  height: auto;
-  aspect-ratio: 1 / 1;
-}
-
-/* Metadata */
-.audio-title {
-  font-size: max(1.4rem, 3.1vmin);
-  font-weight: 700;
-  margin-bottom: 8px;
-  overflow-wrap: break-word;
-}
-
-.audio-metadata {
-   text-align: center;
-   color: whitesmoke;
-   box-sizing: border-box;
-   padding-bottom: 0;
-   margin-bottom: 0;
-   padding-top: 1.2em;
-   overflow-wrap: break-word;
-}
-
-.audio-artist,
-.audio-album,
-.audio-year {
-  font-size: max(1.2rem, 2.5vmin);
-  opacity: 0.8;
-  margin-bottom: 5px;
-  overflow-wrap: break-word;
-}
-
-.filetype-badge {
-  display: inline-block;
-  background: var(--primaryColor);
-  color: white;
-  padding: 2px 8px;
-  border-radius: var(--borderRadius);
-  font-size: 0.8em;
-  margin-left: 0.5em;
-  vertical-align: middle;
-}
-
-.audio-controls-container {
-  width: 100%;
-  border-radius: var(--borderRadius);
-  margin: -2px;
-}
-
-/* For small tablets and phones with big screen */
-@media (width <= 740px) {
-  .audio-player-container {
-    padding: 0;
-    padding-top: 1em;
-  }
-  .plyr.plyr--audio {
-    padding: 1em;
-    border-radius: 0;
-  }
-  .plyr--audio .plyr__controls {
-    padding: 0;
-    gap: 5px;
-  }
-  .album-art-container {
-    margin-top: 1em;
-    max-width: min(71vw);
-  }
-  .audio-player-container--lyrics-open .album-art-container {
-    transition: none !important;
-  }
-}
-
-@media (width <= 550px) {
-  /* Hide volume buttons to made more space */
-  .plyr__volume {
-    display: none;
-  }
-
-  /* Time playing */
-  .plyr--audio .plyr__time {
-    font-size: 14px;
-    margin: 0 5px;
-  }
-  .audio-left-column {
-    padding: 0;
-    margin: 0;
-  }
-}
-
-/* For small screens in landscape orientation (Like a phone) */
-@media (height <= 600px) and (orientation: landscape) {
-  .album-art-container {
-    width: min(100px, 30vh);
-    height: min(100px, 30vh);
-    margin: 0;
-    flex-shrink: 0;
-  }
-}
-
-/*********************
-*** PLAYBACK TOAST ***
-**********************/
-
-.playback-toast {
-  position: fixed;
-  bottom: 50px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgb(0 0 0 / 80%);
-  color: white;
-  padding: 15px 25px;
-  border-radius: 8px;
-  font-size: 1.1rem;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  z-index: 10000;
-  pointer-events: none;
-  user-select: none;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  box-shadow: 0 4px 12px rgb(0 0 0 / 30%);
-}
-
-.playback-toast.visible {
-  opacity: 1;
-}
-
-.playback-toast .material-symbols {
-  font-size: 24px;
-  color: white;
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.status-indicator {
-  display: inline-block;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  margin-left: 10px;
-}
-
-.status-on {
-  background: #4caf50;
-}
-
-.status-off {
-  background: #f44336;
 }
 
 </style>
