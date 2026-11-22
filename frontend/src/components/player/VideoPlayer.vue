@@ -1095,7 +1095,7 @@ defineExpose({ destroy });
   background: rgb(0 0 0 / 35%);
 }
 
-/* Transcode offer (shown instead of the player; layout comes from `#previewer .preview .info`). */
+/* Transcode offer (shown instead of the player; layout comes from PreviewNotice). */
 .transcode-offer-message {
   margin: 1rem 0;
   text-align: center;
