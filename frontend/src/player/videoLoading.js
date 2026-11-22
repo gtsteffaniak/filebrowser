@@ -12,7 +12,6 @@ export function enableVideoLoadingIndicator(player, onLoadingChange) {
   let waiting = false;
   let seeking = false;
   let loading = false;
-  /** True after play is requested; cleared when paused and not loading/buffering. */
   let playbackExpected = false;
 
   const isLoadingOrBuffering = () => (
@@ -53,11 +52,7 @@ export function enableVideoLoadingIndicator(player, onLoadingChange) {
   };
 
   const onPause = () => {
-    const stillLoadingForPlayback = media.readyState < HTMLMediaElement.HAVE_FUTURE_DATA
-      || isLoadingOrBuffering();
-    if (!stillLoadingForPlayback) {
-      playbackExpected = false;
-    }
+    playbackExpected = false;
     sync();
   };
 

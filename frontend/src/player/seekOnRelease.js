@@ -79,14 +79,20 @@ export function enableSeekOnRelease(player, { onSeekTarget } = {}) {
   }
 
   let ignoreNextChange = false;
+  let releaseValue = null;
 
   const onCommit = (event) => {
     if (event.type === 'change' && ignoreNextChange) {
+      const sameAsRelease = seek.value === releaseValue;
       ignoreNextChange = false;
-      return;
+      releaseValue = null;
+      if (sameAsRelease) {
+        return;
+      }
     }
     if (event.type === 'mouseup' || event.type === 'touchend') {
       ignoreNextChange = true;
+      releaseValue = seek.value;
     }
     commitSeek(player, event, onSeekTarget);
   };

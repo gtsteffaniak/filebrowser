@@ -443,7 +443,7 @@ export function enableScrubPreview(player, options) {
   const onImageLoad = () => {
     if (pendingPercent !== null) {
       const expectedSrc = cache.get(pendingPercent);
-      if (expectedSrc && img.src !== expectedSrc) {
+      if (!expectedSrc || img.src !== expectedSrc) {
         return;
       }
       if (syncFrameToLoadedImage()) {
@@ -669,6 +669,9 @@ export function enableScrubPreview(player, options) {
 
     // Same bucket — only reposition the popup, no image/time churn.
     if (percentInt === displayedPercent) {
+      pendingPercent = percentInt;
+      pendingVisualPercent = null;
+      setLoading(false);
       return;
     }
 

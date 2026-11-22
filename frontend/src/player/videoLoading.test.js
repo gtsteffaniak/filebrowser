@@ -40,4 +40,16 @@ describe('video loading indicator', () => {
     player.emit('waiting');
     expect(states.at(-1)).toBe(true);
   });
+
+  it('stays hidden after an explicit pause while buffering', () => {
+    const { player, states } = startPlayback();
+    player.media.readyState = HTMLMediaElement.HAVE_CURRENT_DATA;
+    player.emit('waiting');
+    expect(states.at(-1)).toBe(true);
+    player.emit('pause');
+    expect(states.at(-1)).toBe(false);
+    player.media.readyState = HTMLMediaElement.HAVE_ENOUGH_DATA;
+    player.emit('canplay');
+    expect(states.at(-1)).toBe(false);
+  });
 });

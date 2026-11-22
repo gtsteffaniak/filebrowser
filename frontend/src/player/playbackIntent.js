@@ -116,7 +116,13 @@ export function resumeWhenReady(video, { playCall, onPlaying, isCancelled } = {}
         paused: video.paused,
         hasPlayCall: Boolean(playCall),
       });
-      void Promise.resolve(invoke()).then(() => {
+      let playResult;
+      try {
+        playResult = invoke();
+      } catch (err) {
+        playResult = Promise.reject(err);
+      }
+      void Promise.resolve(playResult).then(() => {
         if (settled) return;
         if (isCancelled?.()) {
           transcodeLog('resumeWhenReady cancelled while play was pending');

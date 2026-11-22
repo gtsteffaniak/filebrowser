@@ -50,11 +50,13 @@ export class TranscodePlaybackController {
     this.disposed = false;
     this.startInProgress = false;
     this._startChain = Promise.resolve();
+    this._startSeq = (this._startSeq ?? 0) + 1;
   }
 
   dispose({ stopSession = false, keepalive = false } = {}) {
     this.disposed = true;
     this.attempt += 1;
+    this._startSeq += 1;
     this._cancelInFlight({ stopSession, keepalive });
     this.active = false;
     this.startInProgress = false;
@@ -90,9 +92,16 @@ export class TranscodePlaybackController {
       this.attachAbort?.abort();
     }
     this.startInProgress = true;
+    const startSeq = ++this._startSeq;
     this._startChain = this._startChain
       .catch(() => {})
-      .then(() => this._startOnce(params));
+      .then(() => {
+        if (startSeq !== this._startSeq) {
+          transcodeLog('discarding queued transcode start');
+          return { ok: false, reason: 'cancelled' };
+        }
+        return this._startOnce(params);
+      });
     return this._startChain;
   }
 
@@ -374,12 +383,21 @@ export class TranscodePlaybackController {
       if (err?.status === 409 || err?.status === 503) {
         try {
           const status = await getTranscodeSessions();
-          onCapacityStatus?.(status);
+          if (this.isCurrentAttempt(attempt)) {
+            onCapacityStatus?.(status);
+          }
         } catch (fetchErr) {
           console.error('Failed to refresh transcode sessions after limit:', fetchErr);
         }
+        if (!this.isCurrentAttempt(attempt)) {
+          return { ok: false, reason: 'cancelled' };
+        }
         return { ok: false, reason: 'capacity', error: err };
       }
+      if (this.sessionController === controller) {
+        this.sessionController = null;
+      }
+      void controller.stop();
 
       if (onAttachNative) {
         onAttachNative(err);
@@ -397,6 +415,7 @@ export class TranscodePlaybackController {
 
   teardownLocal({ stopSession = false, keepalive = false } = {}) {
     this.attempt += 1;
+    this._startSeq += 1;
     this._cancelInFlight({ stopSession, keepalive });
     // Invalidate any in-flight start: its finally block compares attempts and
     // would otherwise leave the flag set, blocking every future start.

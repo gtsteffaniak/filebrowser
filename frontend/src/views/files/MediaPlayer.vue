@@ -45,7 +45,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, useTemplateRef, watch } from "vue";
+import { computed, onBeforeUnmount, ref, useTemplateRef, watch } from "vue";
 import { mediaApi, resourcesApi } from "@/api/index.js";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import { usePreviewNavigation } from "@/composables/preview/usePreviewNavigation.ts";
@@ -72,8 +72,10 @@ const subtitlesList = ref<SubtitleSource[]>([]);
 const lyrics = ref<ReturnType<typeof parseLyrics>>([]);
 let lyricsFetchedForPath: string | null = null;
 const avMetadataLoading = ref(false);
-/** Skip duplicate media-metadata fetch when patchRequestFileMediaMetadata updates `req` for same path */
+/** Skip duplicate media-metadata fetch when patchRequestFileMediaMetadata updates `req` for same file */
 let mediaEnrichDoneForPath: string | null = null;
+let loadOwner = 0;
+let loadIdentity: string | null = null;
 /** enables autoplay for queue navigation even when autoplayMedia pref is off */
 const playbackStarted = ref(false);
 
@@ -129,6 +131,10 @@ const raw = computed(() => {
 /** Keyed by file so each file gets a fresh player; transcode/native switching happens inside VideoPlayer. */
 const viewerKey = computed(() => state.req.path);
 
+onBeforeUnmount(() => {
+  loadOwner += 1;
+});
+
 watch(
   () => state.req,
   async () => {
@@ -137,11 +143,20 @@ watch(
   { immediate: true },
 );
 
-async function attachDirMediaMetadata(dirListing: NonNullable<typeof listing.value>, dirPath: string) {
+function mediaIdentity(): string {
+  const shareHash = getters.isShare() ? state.shareInfo.hash : "";
+  return `${shareHash ?? ""}|${state.req.source ?? ""}|${state.req.path ?? ""}`;
+}
+
+async function attachDirMediaMetadata(
+  dirListing: NonNullable<typeof listing.value>,
+  dirPath: string,
+  isStale: () => boolean,
+) {
   if (!dirListing?.length) return;
   try {
     const metaMap = await mediaApi.getDirectoryMetadataMap(dirPath, { source: state.req.source });
-    if (listing.value !== dirListing) return;
+    if (isStale() || listing.value !== dirListing) return;
     mutations.patchListingMetadata(dirListing, metaMap, state.req.path);
     mutations.setupNavigation({
       listing: dirListing,
@@ -160,8 +175,17 @@ async function loadMediaForReq() {
   if (!getters.isPreviewPlaybackQueueNavMode()) {
     playbackStarted.value = false;
   }
-  const path = state.req.path;
+  const identity = mediaIdentity();
+  if (identity !== loadIdentity) {
+    loadIdentity = identity;
+    loadOwner += 1;
+  }
+  const owner = loadOwner;
+  const isStale = () => owner !== loadOwner;
   await loadListingContext();
+  if (isStale()) {
+    return;
+  }
 
   const isAv =
     !getters.fileViewingDisabled(state.req.name ?? "") &&
@@ -173,16 +197,16 @@ async function loadMediaForReq() {
     mediaEnrichDoneForPath = null;
     lyricsFetchedForPath = null;
   } else {
-    if (mediaEnrichDoneForPath !== path) {
-      mediaEnrichDoneForPath = path ?? null;
+    if (mediaEnrichDoneForPath !== identity) {
+      mediaEnrichDoneForPath = identity;
       avMetadataLoading.value = true;
       try {
-        await enrichAvFromMediaApi(path);
-        if (state.req.path !== path) {
+        await enrichAvFromMediaApi(isStale);
+        if (isStale()) {
           return;
         }
       } finally {
-        if (state.req.path === path) {
+        if (!isStale()) {
           avMetadataLoading.value = false;
         }
       }
@@ -191,28 +215,45 @@ async function loadMediaForReq() {
     }
   }
 
-  if (state.req.path !== path) {
+  if (isStale()) {
     return;
   }
   await updatePreview();
+  if (isStale()) {
+    return;
+  }
   if (isAv && listing.value) {
     const directoryPath = removeLastDir(state.req.path) || "/";
-    await attachDirMediaMetadata(listing.value, directoryPath);
+    await attachDirMediaMetadata(listing.value, directoryPath, isStale);
+    if (isStale()) {
+      return;
+    }
   }
-  subtitlesList.value = await subtitles();
-  if (previewType.value === "audio" && lyricsFetchedForPath !== state.req.path) {
-    lyricsFetchedForPath = state.req.path ?? null;
+  const loadedSubtitles = await subtitles();
+  if (isStale()) {
+    return;
+  }
+  subtitlesList.value = loadedSubtitles;
+  if (previewType.value === "audio" && lyricsFetchedForPath !== identity) {
+    lyricsFetchedForPath = identity;
     if (state.req.metadata?.hasLyrics) {
+      let loadedLyrics: ReturnType<typeof parseLyrics> = [];
       try {
         const { lyrics: rawLyrics, format } = await mediaApi.getLyrics(
           state.req.source as string,
           state.req.path as string,
         );
-        lyrics.value = parseLyrics(rawLyrics, format);
+        loadedLyrics = parseLyrics(rawLyrics, format);
       } catch (err) {
         console.warn("Failed to fetch lyrics:", err);
-        lyrics.value = [];
       }
+      if (isStale()) {
+        if (lyricsFetchedForPath === identity) {
+          lyricsFetchedForPath = null;
+        }
+        return;
+      }
+      lyrics.value = loadedLyrics;
     } else {
       lyrics.value = [];
     }
@@ -221,8 +262,8 @@ async function loadMediaForReq() {
 }
 
 /** GET /api/media/metadata?albumArt=true - subtitles, duration, embedded cover for the viewer. */
-async function enrichAvFromMediaApi(expectedPath: string | undefined) {
-  if (state.req.path !== expectedPath) {
+async function enrichAvFromMediaApi(isStale: () => boolean) {
+  if (isStale()) {
     return;
   }
   const currentReq = state.req;
@@ -234,7 +275,7 @@ async function enrichAvFromMediaApi(expectedPath: string | undefined) {
       source: currentReq.source,
       albumArt: true,
     });
-    if (state.req.path !== expectedPath) {
+    if (isStale()) {
       return;
     }
     if (enriched && enriched.type !== "directory") {

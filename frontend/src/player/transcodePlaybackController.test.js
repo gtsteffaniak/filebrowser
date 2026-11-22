@@ -31,11 +31,18 @@ describe('TranscodePlaybackController', () => {
   it('cancels stale starts after dispose', async () => {
     const controller = new TranscodePlaybackController();
     const video = document.createElement('video');
-    let resolveStart;
-    const startPromise = new Promise((resolve) => {
-      resolveStart = resolve;
+    const cleanup = vi.fn();
+    let resolveAttach;
+    let signalAttachEntered;
+    const attachEntered = new Promise((resolve) => {
+      signalAttachEntered = resolve;
     });
-    vi.mocked(attachHlsToVideo).mockReturnValueOnce(startPromise);
+    vi.mocked(attachHlsToVideo).mockImplementationOnce(() => {
+      signalAttachEntered();
+      return new Promise((resolve) => {
+        resolveAttach = resolve;
+      });
+    });
 
     const pending = controller.start({
       source: 's',
@@ -49,12 +56,14 @@ describe('TranscodePlaybackController', () => {
       shouldAutoplay: false,
     });
 
+    await attachEntered;
     controller.dispose();
-    resolveStart({ cleanup: vi.fn() });
+    resolveAttach({ cleanup });
 
     const result = await pending;
-    expect(result.ok).toBe(false);
-    expect(['cancelled', 'stale', 'disposed']).toContain(result.reason);
+    expect(result).toMatchObject({ ok: false, reason: 'stale' });
+    expect(controller.active).toBe(false);
+    expect(cleanup).toHaveBeenCalledOnce();
   });
 
   it('marks playback active after successful attach', async () => {
