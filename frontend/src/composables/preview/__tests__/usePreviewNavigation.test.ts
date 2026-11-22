@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { type App, createApp, defineComponent, h } from "vue";
-import { usePreviewNavigation } from "../../preview/usePreviewNavigation.ts";
+import { usePreviewNavigation } from "../usePreviewNavigation.ts";
 
 const { stateMock, gettersMock, mutationsMock, routerMock, navigatePlaybackQueue } = vi.hoisted(() => ({
   stateMock: {

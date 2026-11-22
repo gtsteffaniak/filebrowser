@@ -177,27 +177,33 @@
 </template>
 
 <script>
-import Plyr from 'plyr';
+import { getCurrentInstance, shallowRef } from 'vue';
+import { useDoubleTapSeek } from '@/composables/player/useDoubleTapSeek.ts';
+import { useGestureState } from '@/composables/player/useGestureState.ts';
+import { useMediaPlayer } from '@/composables/player/useMediaPlayer.ts';
+import { useMediaKeyboard } from '@/composables/player/useMediaKeyboard.ts';
+import { usePlaybackQueue } from '@/composables/player/usePlaybackQueue.ts';
+import { useMediaSession } from '@/composables/player/useMediaSession.ts';
+import { useCaptionSize } from '@/composables/player/useCaptionSize.ts';
 import {
-  buildPlaybackQueue,
-  navigatePlaybackQueue,
-  getEndOfMediaAction,
-  getNextItem,
-  cyclePlaybackModes,
-  toggleSingleLoop,
-  clearPlaybackQueue,
-  getModeLabel,
-  getModeIcon,
-  getLoopLabel,
-  getLoopIcon,
+  CAPTION_SIZE_IDS,
+  getCaptionSizeLabel,
+  getStoredCaptionSize,
+  readAlbumArtSize,
+  readDesktopPanelOpen,
+  readMobileLyricsOpen,
+  setStoredCaptionSize,
+  writeAlbumArtSize,
+  writeDesktopPanelOpen,
+  writeMobileLyricsOpen,
+} from '@/composables/player/playerStorage.ts';
+import {
   formatArtist
 } from '@/utils/playbackQueue.js';
 import { getTypeFromMime } from '@/utils/files.js';
-import { buildItemUrl, removeTrailingSlash } from '@/utils/url.js';
 import AudioPanel from "@/components/files/AudioPanel.vue";
 import LyricsList from "@/components/files/LyricsList.vue";
 import { getters, mutations, state } from "@/store/index.ts";
-import { getObjectProperty } from '@/utils/object.js';
 import { globalVars } from "@/utils/constants.ts";
 import { getSubtitleFormatExtension } from "@/utils/subtitles.js";
 import { getPreviewURL, getPreviewURLPublic } from "@/api/resources.js";
@@ -207,7 +213,6 @@ import {
 } from "@/player/seekOnRelease.js";
 import { enableScrubPreview } from "@/player/scrubPreview.js";
 import { enableVideoLoadingIndicator } from "@/player/videoLoading.js";
-import { enableOverlaidHintController } from "@/player/overlaidHintController.js";
 import LoadingSpinner from '@/components/LoadingSpinner.vue';
 import FloatingActionButton from '@/components/settings/FloatingActionButton.vue';
 import {
@@ -235,31 +240,6 @@ import { needsTranscodeFirst } from '@/utils/canBrowserPlayNative.js';
 import { getTranscodeSessions } from '@/api/transcode.js';
 import { getCachedViewToken } from '@/api/viewToken.js';
 import { notify } from "@/notify/index.ts";
-import { isInLeftNavTapZone, isInRightNavTapZone } from '@/utils/navigationEdgeZones.js';
-import { zoneFromClientX } from '@/player/gestureZones.js';
-import { ownsMediaSession as ownsMediaSessionSlot } from "@/utils/mediaSessionOwnership.js";
-
-const PLYR_CAPTION_SIZE_IDS = ['small', 'medium', 'large', 'xlarge'];
-/** Same localStorage key Plyr uses for `captions`, `language`, etc. (see Plyr defaults `storage.key`). */
-const PLYR_LOCALSTORAGE_KEY = 'plyr';
-/** Custom field inside Plyr’s JSON blob so caption size travels with other Plyr prefs. */
-const PLYR_CAPTION_SIZE_FIELD = 'captionSize';
-let pendingFullscreenResume = false;
-let pendingResumeTimestamp = 0;
-let mediaSessionOwner = 0;
-
-/**
- * Percent-decode a route path, tolerating malformed escapes. Vue Router and
- * buildItemUrl do not always encode the same characters (spaces, quotes,
- * parentheses), so route-leave checks compare both forms.
- */
-function decodePathSafely(path) {
-  try {
-    return decodeURI(path);
-  } catch (_) {
-    return path;
-  }
-}
 
 function resolveMountedPreviewKey(source, path) {
   return {
@@ -321,22 +301,78 @@ export default {
     'close-preview': () => true,
     'needs-transcode': () => true,
   },
+  setup(props) {
+    // The Plyr instance is held in a shallow ref: it is a third-party object and must not be deep-proxied.
+    const player = shallowRef(null);
+    const { applyCaptionSizeClass, syncCaptionSizeSettingsVisibility } = useCaptionSize({
+      player,
+      isVisible: () => props.previewType === 'video' && props.subtitlesList.length > 0,
+    });
+    const {
+      setupMediaSession,
+      updateMediaSessionNavHandlers,
+      updateMediaSessionPlaybackState,
+      clearMediaSession,
+    } = useMediaSession(player);
+    const gestures = useGestureState();
+    const audioPlayerGestureRoot = shallowRef(null);
+    // Bridge to the Options API instance for component methods the composables call lazily; goes away when this component is split in phase 5.
+    const vm = getCurrentInstance()?.proxy;
+    const doubleTap = useDoubleTapSeek({
+      player,
+      gestures,
+      getPreviewType: () => props.previewType,
+      getAudioGestureRoot: () => audioPlayerGestureRoot.value,
+      requestPlay: () => vm?.requestPlay(),
+    });
+    const playbackQueue = usePlaybackQueue({
+      getReq: () => props.req,
+      getListing: () => props.listing,
+    });
+    const mediaPlayer = useMediaPlayer({
+      player,
+      getMediaElement: () => vm?.mediaElement,
+      getRequestedFile: () => props.req,
+      getMountedFile: () => vm?.mountedPreviewKey,
+      isTornDown: () => vm?.plyrTeardownDone ?? false,
+      destroy: () => vm?.destroyPlyr(),
+      beforeStopMedia: () => vm?.clearAttachVideoStreamWait(),
+    });
+    const keyboard = useMediaKeyboard({
+      player,
+      getPreviewType: () => props.previewType,
+      cyclePlaybackModes: playbackQueue.cyclePlaybackModes,
+      toggleSingleLoop: playbackQueue.toggleSingleLoop,
+      showQueuePrompt: playbackQueue.showQueuePrompt,
+      flashSkipFeedback: doubleTap.flashSkipFeedback,
+      toggleDesktopPanel: () => {
+        if (vm) vm.showDesktopPanel = !vm.showDesktopPanel;
+      },
+    });
+    return {
+      player,
+      ...keyboard,
+      ...mediaPlayer,
+      ...playbackQueue,
+      ...gestures,
+      ...doubleTap,
+      audioPlayerGestureRoot,
+      applyCaptionSizeClass,
+      syncCaptionSizeSettingsVisibility,
+      setupMediaSession,
+      updateMediaSessionNavHandlers,
+      updateMediaSessionPlaybackState,
+      clearMediaSession,
+    };
+  },
   data() {
     return {
-      // Toast
-      toastVisible: false,
-      toastTimeout: null,
-      toastType: 'mode', // 'mode' for the playback modes and 'loop'... for loop.
-
       // Metadata & Art
       metadata: null, // Null by default, will be loaded from the audio file.
       albumArtUrl: null,
       // Storage keys (plyrAlbumArtSize, plyrShowDesktopPanel, plyrShowMobileLyrics) keep the legacy prefix so saved preferences survive.
-      albumArtSize: Number.parseFloat(sessionStorage.getItem('plyrAlbumArtSize')) || 24,
+      albumArtSize: readAlbumArtSize(),
       isHovering: false, // Track hover state
-
-      doubleTapSeekCleanup: null,
-      rewindForwardFeedback: null,
 
       // Audio Visualizer
       audioContext: null,
@@ -345,28 +381,9 @@ export default {
       audioGraphInitialized: false,
 
       // Playback settings
-      playbackMenuInitialized: false,
-      loopMenuInitialized: false,
-      lastAppliedMode: null,
-      showDesktopPanel: localStorage.getItem('plyrShowDesktopPanel') === '1',
-      showMobileLyrics: sessionStorage.getItem('plyrShowMobileLyrics') === '1',
+      showDesktopPanel: readDesktopPanelOpen(),
+      showMobileLyrics: readMobileLyricsOpen(),
       isFullscreen: false,
-
-      // Gestures
-      skipFeedbackVisible: false,
-      skipFeedbackSide: 'left',
-      skipFeedbackIcon: 'replay_10',
-      skipFeedbackKey: 0,
-      skipFeedbackTimer: null,
-      skipNextTap: false,
-      skipNextTapTimer: null, // Timer for clearing skipNextTap
-      edgeTapLastTime: 0,
-      edgeTapLastZone: null,
-      ignoreClickUntil: 0,
-
-      hasStartedPlayback: false,
-      overlaidHintApi: null,
-      overlaidHintCleanup: null,
 
       // Plyr video: full-frame edge gestures
       videoEdgeKind: null,
@@ -392,23 +409,14 @@ export default {
       videoDismissCloseTimer: null,
       videoDismissHintTimer: null,
 
-      // Long-press for 2x speed (only for touch)
-      longPressTimer: null,
-      longPressPending: false,
-      longPressTriggered: false,
-      longPressPreviousSpeed: 1,
       speedToastVisible: false,
       speedToastMessage: '',
       speedToastTimer: null,
 
-      // Plyr instance
-      player: null,
       captionSizeMenuInitialized: false,
       /** Native video: defer stream URL until play so opening preview does not range-fetch the file. */
       videoStreamAttached: false,
       attachVideoStreamResume: null,
-      mediaSessionOwnerId: 0,
-      nativePlayerPlay: null,
       /** Centered spinner while the video is loading or buffering. */
       videoPlaybackLoading: false,
       seekOnReleaseCleanup: null,
@@ -431,12 +439,8 @@ export default {
       transcodeMenuInitialized: false,
       transcodeModeButtons: null,
       transcodeModeValueSpan: null,
-      playbackButtons: null,
-      playbackValueSpan: null,
       captionSizeButtons: null,
       captionSizeValueSpan: null,
-      loopButtons: null,
-      loopValueSpan: null,
       transcodeOfferEmitted: false,
       mountPlyrInProgress: false,
       /** Armed when autoplay is blocked so the next user gesture can resume playback. */
@@ -470,13 +474,13 @@ export default {
       this.updateMediaSessionNavHandlers();
     },
     showDesktopPanel(val) {
-      localStorage.setItem('plyrShowDesktopPanel', val ? '1' : '0');
+      writeDesktopPanelOpen(val);
     },
     albumArtSize(val) {
-      sessionStorage.setItem('plyrAlbumArtSize', val.toString());
+      writeAlbumArtSize(val);
     },
     showMobileLyrics(val) {
-        sessionStorage.setItem('plyrShowMobileLyrics', val ? '1' : '0');
+      writeMobileLyricsOpen(val);
     },
     shouldTogglePlayPause(newVal, oldVal) {
       if (newVal !== oldVal) {
@@ -485,7 +489,7 @@ export default {
     },
     isPlaying(isPlaying) {
       if (this.previewType === 'video') {
-        this.overlaidHintApi?.syncPlayback(isPlaying);
+        this.syncOverlaidHintPlayback(isPlaying);
       }
     },
     'req.path'() {
@@ -502,43 +506,6 @@ export default {
     },
     routePath() {
       this.stopIfRouteLeftThisFile();
-    },
-    listing: {
-      handler(newListing) {
-        if (!newListing?.length) return;
-        const isShare = getters.isShare();
-        const getId = item => isShare ? item.name : item.path;
-        const mediaFiles = newListing.filter(item => /^(audio|video)\//.test(item.type || ''));
-        const queue = state.playbackQueue.queue;
-        const mode = state.playbackQueue.mode;
-
-        if (queue.length && mediaFiles.length === queue.length) {
-          const currIds = mediaFiles.map(getId);
-          const queIds = queue.map(getId);
-          let match;
-          if (mode === 'shuffle') {
-            const set = new Set(queIds);
-            match = currIds.every(id => set.has(id));
-          } else {
-            match = currIds.every((id, i) => id === queIds.at(i));
-          }
-          if (match) {
-            const byId = new Map(mediaFiles.map(item => [getId(item), item]));
-            const playbackQueue = queue.map(item => byId.get(getId(item)) || item);
-            const currentItemId = getId(this.req);
-            const newIndex = playbackQueue.findIndex(item => getId(item) === currentItemId);
-            mutations.setPlaybackQueue({
-              queue: playbackQueue,
-              currentIndex: newIndex !== -1 ? newIndex : state.playbackQueue.currentIndex,
-              mode,
-              loop: this.loop
-            });
-            return;
-          }
-        }
-        this.setupPlaybackQueue();
-      },
-      immediate: true
     },
     subtitlesList: {
       async handler(newSubs, oldSubs) {
@@ -621,44 +588,11 @@ export default {
       }
       return this.albumArtSize;
     },
-    queueCount() {
-      return state.playbackQueue.queue.length || 0;
-    },
     shouldTogglePlayPause() {
       return state.playbackQueue.shouldTogglePlayPause || false;
     },
     isPlaying() {
       return state.playbackQueue.isPlaying || false;
-    },
-    playbackQueue() {
-      return state.playbackQueue.queue;
-    },
-    currentQueueIndex() {
-      return state.playbackQueue.currentIndex ?? -1;
-    },
-    playbackMode() {
-      return state.playbackQueue.mode;
-    },
-    loop() {
-      return state.playbackQueue.loop || 'off';
-    },
-    playbackModeMessage() {
-      if (this.toastType === 'loop') {
-        return getLoopLabel(this.loop);
-      }
-      if (this.toastType === 'cleared') {
-        return this.$t('player.queueCleared');
-      }
-      return getModeLabel(this.playbackMode);
-    },
-    toastIcon() {
-      if (this.toastType === 'loop') {
-        return getLoopIcon(this.loop);
-      }
-      if (this.toastType === 'cleared') {
-        return 'delete';
-      }
-      return getModeIcon(this.playbackMode);
     },
     hasSubtitles() {
       return this.subtitlesList && this.subtitlesList.length > 0;
@@ -914,16 +848,14 @@ export default {
     if (this.previewType === 'video' || this.previewType === 'audio') {
       await this.preparePlyrMount();
     }
-    document.addEventListener('keydown', this.handleKeydown);
+    this.attachKeyboard();
     window.addEventListener('pagehide', this.onPageHide);
   },
   beforeUnmount() {
     // Cleanup timeouts
-    for (const timeout of [this.toastTimeout,
-    this.skipFeedbackTimer,
+    for (const timeout of [
     this.videoDismissCloseTimer,
     this.videoDismissHintTimer,
-    this.skipNextTapTimer,
   ]) {
       if (timeout) clearTimeout(timeout);
     }
@@ -935,7 +867,7 @@ export default {
     } finally {
       this.cleanupAudioVisualizer({ close: true });
       this.clearMediaSession();
-      document.removeEventListener('keydown', this.handleKeydown);
+      this.detachKeyboard();
       window.removeEventListener('pagehide', this.onPageHide);
     }
   },
@@ -951,109 +883,6 @@ export default {
       const ext = getSubtitleFormatExtension(sub?.name || '');
       return ext || sub?.name || '';
     },
-    ownsMediaSession() {
-      return ownsMediaSessionSlot(this.mediaSessionOwnerId, mediaSessionOwner);
-    },
-    showQueuePrompt() {
-      mutations.showPrompt({
-        name: "PlaybackQueue",
-      });
-    },
-    setupMediaSession() {
-      if (!('mediaSession' in navigator) || !this.player) return;
-      this.mediaSessionOwnerId = ++mediaSessionOwner;
-      // Create a fresh fallback URL with timestamp to prevent caching issues
-      const fallbackIcon = globalVars.loginIcon;
-      const timestamp = Date.now();
-      const fallbackUrl = fallbackIcon.includes('?')
-        ? `${fallbackIcon}&t=${timestamp}`
-        : `${fallbackIcon}?t=${timestamp}`;
-      // Video and audio uses the embedded artwork (if any), otherwise will fallback to the thumbnail/preview url.
-      const artworkSrc = this.artworkUrl;
-      const metadata = {
-        title: this.metadata?.title || this.fileName,
-        artist: this.metadata?.artist || globalVars.name || "Filebrowser Quantum",
-        album: this.metadata?.album || "",
-        // In current versions of Firefox the artwork will not work, seems that doesn't like blob URLs.
-        // But testing in 149.0a1 (nightly builds), it seems to work, so this something that will solve over time :)
-        artwork: [ { src: artworkSrc || fallbackUrl } ]
-      };
-      navigator.mediaSession.metadata = new MediaMetadata(metadata);
-      // Setup handlers for the media session
-      const actionHandlers = [
-        ['play', () => this.player?.play()],
-        ['pause', () => this.player?.pause()],
-        ['seekbackward', (details) => this.player?.rewind(details.seekOffset || 10)],
-        ['seekforward', (details) => this.player?.forward(details.seekOffset || 10)],
-        ['seekto', (details) => {
-          if (details.fastSeek && details.fastSeek === 'optional') return;
-          this.player.currentTime = details.seekTime;
-        }]
-      ];
-      for (const [action, handler] of actionHandlers) {
-        try {
-          navigator.mediaSession.setActionHandler(action, handler);
-        } catch (e) {
-          console.warn(`The media session action "${String(action)}" is not supported`, e);
-        }
-      }
-      this.updateMediaSessionNavHandlers();
-      this.updateMediaSessionPlaybackState();
-    },
-    updateMediaSessionNavHandlers() {
-      if (!('mediaSession' in navigator) || !this.ownsMediaSession()) return;
-      const { queue, currentIndex, loop } = state.playbackQueue;
-      const hasPrevious = queue.length > 1 && !!getNextItem(queue, currentIndex, loop, -1);
-      const hasNext = queue.length > 1 && !!getNextItem(queue, currentIndex, loop, 1);
-      try {
-        navigator.mediaSession.setActionHandler(
-          'previoustrack',
-          hasPrevious ? () => this.playPrevious() : null
-        );
-      } catch (_e) { /*ignore*/ }
-      try {
-        navigator.mediaSession.setActionHandler(
-          'nexttrack',
-          hasNext ? () => this.playNext() : null
-        );
-      } catch (_e) { /*ignore*/ }
-    },
-    onRateChange() {
-      this.updateMediaSessionPlaybackState();
-    },
-    updateMediaSessionPlaybackState() {
-      if (!('mediaSession' in navigator)) return;
-      if (!this.ownsMediaSession()) return;
-      if (this.player) {
-        navigator.mediaSession.playbackState = this.player.playing ? 'playing' : 'paused';
-        // Update position state
-        if (navigator.mediaSession.setPositionState) {
-          navigator.mediaSession.setPositionState({
-            duration: this.player.duration,
-            playbackRate: this.player.speed || 1,
-            position: this.player.currentTime,
-          });
-        }
-      }
-    },
-    clearMediaSession() {
-      if (!('mediaSession' in navigator)) return;
-      if (!this.ownsMediaSession()) return;
-      // Clear metadata
-      navigator.mediaSession.metadata = null;
-      // Clear all action handlers
-      const actions = [ 'play', 'pause', 'previoustrack', 'nexttrack', 'seekbackward', 'seekforward', 'seekto', 'stop' ];
-      for (const action of actions) {
-        navigator.mediaSession.setActionHandler(action, null);
-      }
-      // Clear position state
-      if (navigator.mediaSession.setPositionState) {
-        navigator.mediaSession.setPositionState(null);
-      }
-      // Reset playback state
-      navigator.mediaSession.playbackState = 'none';
-      this.mediaSessionOwnerId = 0;
-    },
     resetFilePlaybackState() {
       this.videoStreamAttached = false;
       this.resumeSeekSeconds = null;
@@ -1061,61 +890,7 @@ export default {
       this.hasStartedPlayback = false;
       this.transcodeOfferEmitted = false;
       this.transcodeFallbackAttempted = false;
-      this.overlaidHintApi?.reset();
-    },
-    getActiveMediaElement() {
-      return this.player?.media ?? this.mediaElement ?? null;
-    },
-    stopIfRouteLeftThisFile() {
-      if (this.plyrTeardownDone) {
-        return;
-      }
-      // Preview.close() clears state.req before navigating; fall back to the
-      // file this instance mounted for so route changes still stop playback.
-      const source = this.req?.source ?? this.mountedPreviewKey?.source;
-      const path = this.req?.path ?? this.mountedPreviewKey?.path;
-      if (!path) {
-        this.destroyPlyr();
-        return;
-      }
-      const expected = buildItemUrl(source, path);
-      const current = state.route.path;
-      const normalizedCurrent = removeTrailingSlash(current);
-      const normalizedExpected = removeTrailingSlash(expected);
-      if (
-        normalizedCurrent === normalizedExpected
-        || current === expected
-        || current.startsWith(`${expected}#`)
-      ) {
-        return;
-      }
-      // Encoding differences must not look like a route change while the file
-      // is still open, nor hide a real departure.
-      if (
-        decodePathSafely(normalizedCurrent) === decodePathSafely(normalizedExpected)
-        || decodePathSafely(current).startsWith(`${decodePathSafely(expected)}#`)
-      ) {
-        return;
-      }
-      this.destroyPlyr();
-    },
-    stopMediaElement(media = null) {
-      const el = media ?? this.getActiveMediaElement();
-      if (!el) {
-        return;
-      }
-      this.clearAttachVideoStreamWait();
-      try {
-        el.pause();
-      } catch (_) {
-        // ignore
-      }
-      el.removeAttribute('src');
-      try {
-        el.load();
-      } catch (_) {
-        // ignore
-      }
+      this.resetOverlaidHints();
     },
     destroyPlyr() {
       if (this.plyrTeardownDone) {
@@ -1160,42 +935,24 @@ export default {
 
       if (this.player) {
         if (isTransition) {
-          pendingFullscreenResume = this.player.fullscreen?.active || false;
-          pendingResumeTimestamp = Date.now();
+          this.rememberFullscreenForTransition();
         }
-        if (this.nativePlayerPlay) {
-          this.player.play = this.nativePlayerPlay;
-          this.nativePlayerPlay = null;
-        }
+        this.restoreNativePlay();
         this.teardownVideoSwipeGestures();
         this.teardownDoubleTapSeek();
         this.clearRewindForwardFeedback();
         this.cleanupAudioVisualizer();
         this.clearMediaSession();
-        this.player.off();
-        this.stopMediaElement(media);
-        this.player.destroy();
-        this.player = null;
-        // hls.js can re-attach its MediaSource while Plyr tears down; stop the
-        // element once more so no audio survives the unmount.
-        this.stopMediaElement(media);
-      } else {
-        this.stopMediaElement(media);
       }
+      this.destroyPlayer(media);
 
-      this.playbackMenuInitialized = false;
+      this.resetPlaybackMenuState();
       this.captionSizeMenuInitialized = false;
-      this.loopMenuInitialized = false;
       this.transcodeMenuInitialized = false;
-      this.lastAppliedMode = null;
-      this.playbackButtons = null;
-      this.playbackValueSpan = null;
       this.captionSizeButtons = null;
       this.captionSizeValueSpan = null;
       this.transcodeModeButtons = null;
       this.transcodeModeValueSpan = null;
-      this.loopButtons = null;
-      this.loopValueSpan = null;
     },
     cleanupAudioVisualizer({ close = false } = {}) {
       this.audioSource = null;
@@ -1213,17 +970,21 @@ export default {
         /* ignore */
       }
     },
-    togglePlayPause() {
-      if (this.plyrTeardownDone) {
+    /** Starts playback from the gesture surface or the overlaid play button. */
+    requestPlay() {
+      // Only offer transcoding when the source cannot play natively and no
+      // transcode is already running. Otherwise a transcoded `.wmv` could never
+      // be resumed from the player surface or the overlaid play button.
+      if (this.formatNeedsTranscode && !this.isTranscodePlaybackMode && !this.transcodeActive) {
+        void this.offerTranscodePlayback();
         return;
       }
-      if (this.player) {
-        this.player.togglePlay();
-        return;
-      }
-      const media = this.mediaElement;
-      if (!media) return;
-      if (media.paused) media.play(); else media.pause();
+      void this.player.play().catch((playErr) => {
+        transcodeWarn('player.play failed', { message: playErr?.message });
+        if (playErr?.name === 'NotSupportedError' && !this.transcodeActive) {
+          void this.offerTranscodePlayback();
+        }
+      });
     },
     handlePlay() {
       if (this.plyrTeardownDone) {
@@ -1265,149 +1026,6 @@ export default {
       } catch (error) {
         console.error('Error ensuring playback mode applied:', error);
       }
-    },
-    getStoredCaptionSize() {
-      try {
-        const raw = localStorage.getItem(PLYR_LOCALSTORAGE_KEY);
-        if (!raw) {
-          return 'medium';
-        }
-        const data = JSON.parse(raw);
-        const id = getObjectProperty(data, PLYR_CAPTION_SIZE_FIELD);
-        if (id && PLYR_CAPTION_SIZE_IDS.includes(id)) {
-          return id;
-        }
-      } catch {
-        /* ignore */
-      }
-      return 'medium';
-    },
-    setStoredCaptionSize(id) {
-      if (!PLYR_CAPTION_SIZE_IDS.includes(id)) {
-        return;
-      }
-      this._mergePlyrStorage({ [PLYR_CAPTION_SIZE_FIELD]: id });
-    },
-    /** Merge into Plyr’s JSON store without clobbering `captions`, `language`, etc. */
-    _mergePlyrStorage(partial) {
-      try {
-        let data = {};
-        const raw = localStorage.getItem(PLYR_LOCALSTORAGE_KEY);
-        if (raw) {
-          data = JSON.parse(raw);
-          if (typeof data !== 'object' || data === null) {
-            data = {};
-          }
-        }
-        Object.assign(data, partial);
-        localStorage.setItem(PLYR_LOCALSTORAGE_KEY, JSON.stringify(data));
-      } catch {
-        /* ignore */
-      }
-    },
-    captionSizeMenuLabels() {
-      return {
-        small: 'Small',
-        medium: 'Medium',
-        large: 'Large',
-        xlarge: 'Extra large',
-      };
-    },
-    applyCaptionSizeClass() {
-      if (!this.player?.elements?.container) {
-        return;
-      }
-      const el = this.player.elements.container;
-      for (const id of PLYR_CAPTION_SIZE_IDS) {
-        el.classList.remove(`caption-size--${id}`);
-      }
-      el.classList.add(`caption-size--${this.getStoredCaptionSize()}`);
-    },
-    syncCaptionSizeSettingsVisibility() {
-      if (!this.player) {
-        return;
-      }
-      const btn = this.player.elements.settings?.buttons?.captionSize;
-      if (!btn) {
-        return;
-      }
-      const visible = this.previewType === 'video' && this.hasSubtitles;
-      if (visible) {
-        btn.removeAttribute('hidden');
-      } else {
-        btn.setAttribute('hidden', '');
-      }
-    },
-    getCaptionSizeLabel(size) {
-      switch (size) {
-        case 'small': return 'Small';
-        case 'medium': return 'Medium';
-        case 'large': return 'Large';
-        case 'xlarge': return 'Extra large';
-        default: return 'Medium';
-      }
-    },
-    toggleSingleLoop() {
-      const newLoop = toggleSingleLoop(this.loop);
-      mutations.setPlaybackQueue({
-        queue: this.playbackQueue,
-        currentIndex: this.currentQueueIndex,
-        mode: this.playbackMode,
-        loop: newLoop
-      });
-    },
-    handleKeydown(event) {
-      if (event.repeat) return;
-      if (event.ctrlKey || event.metaKey || event.altKey) return;
-      const key = event.key.toLowerCase();
-      const target = event.target;
-      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT')) {
-        return;
-      }
-      // Handle 'P' and 'L' keys for loop and change playback
-      if (key === 'p' || key === 'l') {
-        event.stopPropagation();
-        event.preventDefault();
-        if (key === 'p') this.cyclePlaybackModes();
-        if (key === 'l') this.toggleSingleLoop();
-        return;
-      }
-      // left/right arrows for seek feedback
-      if (key === 'arrowleft' || key === 'arrowright') {
-        if (!this.player) return;
-        event.preventDefault();
-        const rewind = key === 'arrowleft';
-        this.flashSkipFeedback(rewind);
-        return;
-      }
-      // "Q" key – open/close panel on desktop audio, queue prompt on vids
-      if (key === 'q') {
-        if (this.previewType === 'audio' && !this.isMobile) {
-          event.stopPropagation();
-          event.preventDefault();
-          this.showDesktopPanel = !this.showDesktopPanel;
-        } else if (state.prompts.length === 0) {
-          event.stopPropagation();
-          event.preventDefault();
-          this.showQueuePrompt();
-        }
-      }
-    },
-    cyclePlaybackModes() {
-      cyclePlaybackModes(this.playbackMode, {
-        listing: this.listing,
-        currentItem: this.req,
-        isShare: getters.isShare()
-      });
-    },
-    showToast() {
-      if (this.toastTimeout) {
-        clearTimeout(this.toastTimeout);
-      }
-      this.toastVisible = true;
-      this.toastTimeout = setTimeout(() => {
-        this.toastVisible = false;
-      }, 1500);
     },
     // Album art hover and scroll handlers
     onAlbumArtHover() {
@@ -1515,18 +1133,23 @@ export default {
             return;
           }
         }
-        this.player = new Plyr(this.mediaElement, this.plyrOptions);
+        this.createPlayer(this.plyrOptions);
         if (this.previewType === 'video' && !this.shouldAttachVideoStream) {
-          this.nativePlayerPlay = this.player.play.bind(this.player);
-          this.player.play = () => {
+          this.overridePlay((nativePlay) => {
             if (!this.videoStreamAttached) {
               this.attachVideoStreamAndPlay();
               return Promise.resolve();
             }
-            return this.nativePlayerPlay();
-          };
+            return nativePlay();
+          });
         }
-        this.setupMediaSession();
+        this.setupMediaSession({
+          title: this.metadata?.title || this.fileName,
+          artist: this.metadata?.artist || globalVars.name || "Filebrowser Quantum",
+          album: this.metadata?.album || "",
+          // Video and audio use the embedded artwork (if any), otherwise the thumbnail/preview url.
+          artworkSrc: this.artworkUrl,
+        });
         this.setupPlyrEvents();
         this.seekOnReleaseCleanup = enableSeekOnRelease(this.player);
         this.setupScrubPreview();
@@ -1536,7 +1159,7 @@ export default {
             autoplay: this.shouldAutoplay,
           });
         }
-        this.resumePlaybackAfterNavigation();
+        this.resumeFullscreenAfterNavigation();
       } finally {
         this.mountPlyrInProgress = false;
       }
@@ -2284,13 +1907,6 @@ export default {
         });
       }
     },
-    resumePlaybackAfterNavigation() {
-      const isStale = Date.now() - pendingResumeTimestamp > 3000;
-      if (pendingFullscreenResume) {
-        pendingFullscreenResume = false;
-        if (!isStale) this.player.fullscreen?.enter();
-      }
-    },
     attemptResumePlay(el, snapshot) {
       if (this.plyrTeardownDone || !el || snapshot?.wasPlaying === false) {
         return;
@@ -2299,7 +1915,7 @@ export default {
         if (this.plyrTeardownDone) {
           return;
         }
-        const playCall = this.nativePlayerPlay
+        const playCall = this.getNativePlay()
           ?? (() => this.player?.play?.() ?? el.play());
         void Promise.resolve(playCall()).then(() => {
           mutations.setPlaybackState(true);
@@ -2429,19 +2045,19 @@ export default {
         },
         seeked: this.updateMediaSessionPlaybackState,
         loadedmetadata: this.updateMediaSessionPlaybackState,
-        ratechange: this.onRateChange,
+        ratechange: this.updateMediaSessionPlaybackState,
         canplay: this.updateMediaSessionPlaybackState,
       };
       for (const [evt, fn] of Object.entries(eventMap)) {
-        this.player.on(evt, fn);
+        this.onPlayerEvent(evt, fn);
       }
       if ((this.previewType === 'video' || this.previewType === 'audio')) {
-        this.player.on('enterfullscreen', this.onFullscreenEnter);
-        this.player.on('exitfullscreen', this.onFullscreenExit);
+        this.onPlayerEvent('enterfullscreen', this.onFullscreenEnter);
+        this.onPlayerEvent('exitfullscreen', this.onFullscreenExit);
       }
       if (this.previewType === 'video') {
-        this.player.on('enterfullscreen', this.applyCaptionSizeClass);
-        this.player.on('exitfullscreen', this.applyCaptionSizeClass);
+        this.onPlayerEvent('enterfullscreen', this.applyCaptionSizeClass);
+        this.onPlayerEvent('exitfullscreen', this.applyCaptionSizeClass);
       }
       this.ensurePlaybackModeApplied();
       if (this.previewType === 'video') {
@@ -2457,313 +2073,8 @@ export default {
         this.setupOverlaidHintController();
       }
     },
-    getPlyrGestureSurface() {
-      if (
-        this.previewType === 'audio' &&
-        this.player &&
-        this.$refs.audioPlayerGestureRoot
-      ) {
-        return this.$refs.audioPlayerGestureRoot;
-      }
-      if (!this.player?.elements) {
-        return null;
-      }
-      if (this.player.elements.wrapper) {
-        return this.player.elements.wrapper;
-      }
-      return this.player.elements.container ?? null;
-    },
-    isPlyrControlOrMenuTarget(el) {
-      if (!el || typeof el.closest !== 'function') return false;
-      if (el.closest('.plyr__control--overlaid')) {
-        return true;
-      }
-      return !!el.closest(
-        '.plyr__controls, .plyr__control, .plyr__menu__container, .plyr__menu, ' +
-        '[data-plyr="seek"], .plyr__progress, [data-plyr="volume"], .plyr__volume, ' +
-        '.audio-side-panel .sliding-tab, ' +
-        '.audio-side-panel .fab-button, ' +
-        '.audio-side-panel .lyric-line, ' +
-        '.audio-side-panel .repeat-one-btn, ' +
-        '.audio-side-panel .queue-item, ' +
-        '.audio-side-panel .clear-queue-btn, ' +
-        '.lyrics-mobile .lyric-line'
-      );
-    },
-    teardownDoubleTapSeek() {
-      if (typeof this.doubleTapSeekCleanup === 'function') {
-        this.doubleTapSeekCleanup();
-        this.doubleTapSeekCleanup = null;
-      }
-    },
-    setupRewindForwardFeedback() {
-      this.clearRewindForwardFeedback();
-      const container = this.player?.elements?.container;
-      if (!container) {
-        return;
-      }
-      const rewind = container.querySelector('[data-plyr="rewind"]');
-      const forward = container.querySelector('[data-plyr="fast-forward"]');
-      if (!rewind && !forward) {
-        return;
-      }
-      const onRewind = () => this.flashSkipFeedback(true);
-      const onForward = () => this.flashSkipFeedback(false);
-      rewind?.addEventListener('click', onRewind);
-      forward?.addEventListener('click', onForward);
-      this.rewindForwardFeedback = () => {
-        rewind?.removeEventListener('click', onRewind);
-        forward?.removeEventListener('click', onForward);
-      };
-    },
-    clearRewindForwardFeedback() {
-      if (typeof this.rewindForwardFeedback === 'function') {
-        this.rewindForwardFeedback();
-      }
-      this.rewindForwardFeedback = null;
-    },
-    setupOverlaidHintController() {
-      this.teardownOverlaidHintController();
-      if (!this.player) {
-        return;
-      }
-      const api = enableOverlaidHintController({
-        player: this.player,
-        hasStartedPlayback: () => this.hasStartedPlayback,
-        baseUrl: globalVars.baseURL,
-        isPlaying: this.isPlaying,
-      });
-      this.overlaidHintApi = api;
-      this.overlaidHintCleanup = api.cleanup;
-    },
-    teardownOverlaidHintController() {
-      if (typeof this.overlaidHintCleanup === 'function') {
-        this.overlaidHintCleanup();
-      }
-      this.overlaidHintCleanup = null;
-      this.overlaidHintApi = null;
-    },
-    clearEdgeTapGestureState() {
-      this.edgeTapLastTime = 0;
-      this.edgeTapLastZone = null;
-    },
-    setupDoubleTapSeek() {
-      if ((this.previewType !== 'video' && this.previewType !== 'audio') || !this.player) {
-        return;
-      }
-      this.teardownDoubleTapSeek();
-      const surface = this.getPlyrGestureSurface();
-      if (!surface || !this.player) return;
-
-      const EDGE_CLICK_MS = 200;
-
-      const peekNavChromeForEdgeTap = (clientX, zone) => {
-        if (!state.navigation.enabled) {
-          return;
-        }
-        const moveWithSidebar = getters.isSidebarVisible() && getters.isStickySidebar();
-        const sidebarWidthEm = state.sidebar?.width || 20;
-        const opts = { moveWithSidebar, sidebarWidthEm };
-        if (zone === 'left' && isInLeftNavTapZone(clientX, opts)) {
-          mutations.peekNavigationChrome('left');
-        } else if (zone === 'right' && isInRightNavTapZone(clientX)) {
-          mutations.peekNavigationChrome('right');
-        }
-      };
-
-      const zoneFromSurfaceX = (clientX) => {
-        const rect = surface.getBoundingClientRect();
-        return zoneFromClientX(clientX, rect);
-      };
-      const OVERLAID_BUTTON_TOUCH_PADDING = 8;
-      const isOverlaidButtonHit = (clientX, clientY) => {
-        const btn = this.player?.elements?.container?.querySelector('.plyr__control--overlaid');
-        if (!btn) return false;
-        const r = btn.getBoundingClientRect();
-        if (!r.width || !r.height) return false;
-        const cx = r.left + (r.width / 2);
-        const cy = r.top + (r.height / 2);
-        const radius = (Math.min(r.width, r.height) / 2) + OVERLAID_BUTTON_TOUCH_PADDING;
-        const dx = clientX - cx;
-        const dy = clientY - cy;
-        return (dx * dx) + (dy * dy) <= radius * radius;
-      };
-
-      const applySeek = (rewind) => {
-        this.clearEdgeTapGestureState();
-        this.clearLongPressTimer();
-        this.longPressPending = false;
-
-        const step = this.player.config.seekTime || 10;
-        const cur = this.player.currentTime;
-        const dur = this.player.duration;
-        const next = rewind ? cur - step : cur + step;
-        const max = Number.isFinite(dur) && dur > 0 ? dur : next;
-        this.player.currentTime = Math.max(0, Math.min(next, max));
-        this.flashSkipFeedback(rewind);
-      };
-
-      const togglePlayPause = () => {
-        if (this.player.playing) {
-          this.player.pause();
-          return;
-        }
-        // Only offer transcoding when the source cannot play natively and no
-        // transcode is already running. Otherwise a transcoded `.wmv` could never
-        // be resumed from the player surface or the overlaid play button.
-        if (this.formatNeedsTranscode && !this.isTranscodePlaybackMode && !this.transcodeActive) {
-          void this.offerTranscodePlayback();
-          return;
-        }
-        void this.player.play().catch((playErr) => {
-          transcodeWarn('player.play failed', { message: playErr?.message });
-          if (playErr?.name === 'NotSupportedError' && !this.transcodeActive) {
-            void this.offerTranscodePlayback();
-          }
-        });
-      };
-      const handleEdgeZoneTap = (zone, event) => {
-        const now = Date.now();
-        if (zone === this.edgeTapLastZone && now - this.edgeTapLastTime < 300) {
-          applySeek(zone === 'left');
-          if (event) {
-            event.preventDefault();
-            event.stopPropagation();
-          }
-          return;
-        }
-        this.edgeTapLastTime = now;
-        this.edgeTapLastZone = zone;
-        if (event) {
-          event.preventDefault();
-          event.stopPropagation();
-        }
-      };
-
-      const handleCenterTap = (event) => {
-        this.clearEdgeTapGestureState();
-        if (this.previewType === 'video') {
-          togglePlayPause();
-        }
-        if (event) {
-          event.preventDefault();
-          event.stopPropagation();
-        }
-      };
-
-      const onTouchEnd = (event) => {
-        if (this.longPressTriggered) {
-          return;
-        }
-        if (this.skipNextTap) return;
-
-        if (event.changedTouches.length !== 1) return;
-        const t = event.changedTouches[0];
-        const topEl = typeof document.elementFromPoint === 'function'
-          ? document.elementFromPoint(t.clientX, t.clientY)
-          : null;
-        if (this.isPlyrControlOrMenuTarget(topEl)) {
-          this.clearEdgeTapGestureState();
-          return;
-        }
-        if (isOverlaidButtonHit(t.clientX, t.clientY)) {
-          handleCenterTap(event);
-          this.ignoreClickUntil = Date.now() + 500;
-          return;
-        }
-        const zone = zoneFromSurfaceX(t.clientX);
-        if (zone === 'left' || zone === 'right') {
-          handleEdgeZoneTap(zone, event);
-          peekNavChromeForEdgeTap(t.clientX, zone);
-          this.ignoreClickUntil = Date.now() + 500;
-          return;
-        }
-        this.clearEdgeTapGestureState();
-        this.ignoreClickUntil = Date.now() + 500;
-      };
-      let edgeClickToggleTimer = null;
-      const clearEdgeClickToggleTimer = () => {
-        if (edgeClickToggleTimer) {
-          clearTimeout(edgeClickToggleTimer);
-          edgeClickToggleTimer = null;
-        }
-      };
-      const onClick = (event) => {
-        if (Date.now() < this.ignoreClickUntil) {
-          event.preventDefault();
-          event.stopPropagation();
-          return;
-        }
-        if (this.isPlyrControlOrMenuTarget(event.target)) {
-          return;
-        }
-        if (this.skipNextTap) return;
-        this.clearEdgeTapGestureState();
-        const zone = zoneFromSurfaceX(event.clientX);
-        if (zone === 'left' || zone === 'right') {
-          if (event.detail >= 2) {
-            clearEdgeClickToggleTimer();
-          } else {
-            clearEdgeClickToggleTimer();
-            edgeClickToggleTimer = setTimeout(() => {
-              edgeClickToggleTimer = null;
-              if (this.previewType === 'video') {
-                togglePlayPause();
-              }
-            }, EDGE_CLICK_MS);
-          }
-          peekNavChromeForEdgeTap(event.clientX, zone);
-        } else if (this.previewType === 'video') {
-          togglePlayPause();
-        }
-
-        event.preventDefault();
-        event.stopPropagation();
-      };
-
-      const onDblClick = (event) => {
-        if (Date.now() < this.ignoreClickUntil) {
-          return;
-        }
-        if (this.isPlyrControlOrMenuTarget(event.target)) {
-          return;
-        }
-        const zone = zoneFromSurfaceX(event.clientX);
-        if (zone === 'left' || zone === 'right') {
-          clearEdgeClickToggleTimer();
-          applySeek(zone === 'left');
-          event.preventDefault();
-          event.stopPropagation();
-        }
-      };
-
-      surface.addEventListener('touchend', onTouchEnd, { passive: false });
-      surface.addEventListener('click', onClick);
-      surface.addEventListener('dblclick', onDblClick);
-
-      this.doubleTapSeekCleanup = () => {
-        surface.removeEventListener('touchend', onTouchEnd);
-        surface.removeEventListener('click', onClick);
-        surface.removeEventListener('dblclick', onDblClick);
-        clearEdgeClickToggleTimer();
-        this.clearEdgeTapGestureState();
-      };
-    },
-    flashSkipFeedback(rewind) {
-      if (this.skipFeedbackTimer) {
-        clearTimeout(this.skipFeedbackTimer);
-      }
-      this.skipFeedbackSide = rewind ? 'left' : 'right';
-      this.skipFeedbackIcon = rewind ? 'replay_10' : 'forward_10';
-      this.skipFeedbackKey += 1;
-      this.skipFeedbackVisible = true;
-      this.skipFeedbackTimer = setTimeout(() => {
-        this.skipFeedbackVisible = false;
-        this.skipFeedbackTimer = null;
-      }, 700);
-    },
     applyVideoSwipeTransform() {
-      const el = this.getPlyrGestureSurface();
+      const el = this.getGestureSurface();
       if (!el) {
         return;
       }
@@ -2909,11 +2220,7 @@ export default {
     resetVideoEdgeGestureImmediate() {
       this.resetVideoSwipeVisualState();
       this.clearEdgeTapGestureState();
-      this.skipNextTap = false;
-      if (this.skipNextTapTimer) {
-        clearTimeout(this.skipNextTapTimer);
-        this.skipNextTapTimer = null;
-      }
+      this.clearSkipNextTap();
     },
     clearVideoDismissAnimTimers() {
       if (this.videoDismissCloseTimer) {
@@ -3041,7 +2348,7 @@ export default {
       if (event.button !== 0 || !this.videoSwipeGesturesActive) return;
       // Don't start a gesture if we are selecting some text
       if (window.getSelection()?.toString().length > 0) return;
-      if (this.isPlyrControlOrMenuTarget(event.target)) {
+      if (this.isControlOrMenuTarget(event.target)) {
         return;
       }
       this.clearVideoDismissAnimTimers();
@@ -3059,7 +2366,7 @@ export default {
       if (!this.videoSwipeGesturesActive || event.targetTouches.length !== 1) return;
       // Don't start a gesture if we are selecting some text
       if (window.getSelection()?.toString().length > 0) return;
-      if (this.isPlyrControlOrMenuTarget(event.target)) {
+      if (this.isControlOrMenuTarget(event.target)) {
         this.videoSwipeSuppressedTouchId = event.targetTouches[0].identifier;
         return;
       }
@@ -3226,7 +2533,7 @@ export default {
       if ((this.previewType !== 'video' && this.previewType !== 'audio') || !this.player) {
         return;
       }
-      const surface = this.getPlyrGestureSurface();
+      const surface = this.getGestureSurface();
       if (!surface) {
         return;
       }
@@ -3262,28 +2569,6 @@ export default {
       }
       this.longPressTriggered = false;
     },
-    clearLongPressTimer() {
-      if (this.longPressTimer) {
-        clearTimeout(this.longPressTimer);
-        this.longPressTimer = null;
-      }
-      if (this.longPressTimer) {
-        clearTimeout(this.longPressTimer);
-        this.longPressTimer = null;
-      }
-    },
-    setSkipNextTap(delay) {
-      this.clearEdgeTapGestureState();
-      if (this.skipNextTapTimer) {
-        clearTimeout(this.skipNextTapTimer);
-        this.skipNextTapTimer = null;
-      }
-      this.skipNextTap = true;
-      this.skipNextTapTimer = setTimeout(() => {
-        this.skipNextTap = false;
-        this.skipNextTapTimer = null;
-      }, delay);
-    },
     async onFullscreenEnter() {
       this.isFullscreen = true;
       this.resetVideoEdgeGestureImmediate();
@@ -3306,186 +2591,16 @@ export default {
         if (error.name !== 'NotSupportedError') throw error;
       }
     },
-    handleMediaEnd() {
-      mutations.setPlaybackState(false);
-      const queue = state.playbackQueue.queue;
-      const currentIndex = state.playbackQueue.currentIndex;
-      const loop = state.playbackQueue.loop;
-      const action = getEndOfMediaAction(queue, currentIndex, loop);
-      if (action === 'next') {
-        navigatePlaybackQueue(1);
-      } else if (action === 'restart') {
-        this.restartCurrentFile();
-      }
-    },
-    playPrevious() {
-      navigatePlaybackQueue(-1);
-    },
 
-    playNext() {
-      navigatePlaybackQueue(1);
-    },
-    restartCurrentFile() {
-      if (this.player) {
-        this.player.currentTime = 0;
-        this.player.play();
-      }
-    },
-    setupPlaybackQueue() {
-      const listing = this.listing;
-      if (!listing || !this.req) return;
-      const isShare = getters.isShare();
-      const currentItem = this.req;
-      const mode = state.playbackQueue.mode || 'single';
-      const { queue, currentIndex } = buildPlaybackQueue(listing, currentItem, mode, isShare);
-      mutations.setPlaybackQueue({
-        queue,
-        currentIndex,
-        mode,
-        loop: this.loop
-      });
-    },
     // Builds playback and caption menus once, then updates state without rebuilding again.
     applyCustomSettings(player) {
       try {
-        const playbackBtn = player.elements.settings?.buttons?.playback;
-        const playbackPanel = player.elements.settings?.panels?.playback;
         const captionSizeBtn = player.elements.settings?.buttons?.captionSize;
         const captionSizePanel = player.elements.settings?.panels?.captionSize;
 
-        // --- Playback menu ---
-        if (playbackBtn && playbackPanel) {
-          playbackBtn.removeAttribute('hidden');
-          const title = player.config.i18n?.playback || 'Playback';
-          const currentLabel = getModeLabel(this.playbackMode, this.queueCount);
-
-          if (!this.playbackMenuInitialized) {
-            const menu = playbackPanel.querySelector('div[role="menu"]');
-            menu.innerHTML = `
-              <button data-plyr="playback" type="button" role="menuitemradio" class="plyr__control" value="single">
-                <span>${getModeLabel('single')}</span>
-              </button>
-              <button data-plyr="playback" type="button" role="menuitemradio" class="plyr__control" value="sequential">
-                <span>${getModeLabel('sequential')}</span>
-              </button>
-              <button data-plyr="playback" type="button" role="menuitemradio" class="plyr__control" value="shuffle">
-                <span>${getModeLabel('shuffle')}</span>
-              </button>
-            `;
-            this.playbackButtons = menu.querySelectorAll('button[data-plyr="playback"]');
-            // Set initial checked state
-            for (const btn of this.playbackButtons) {
-              btn.setAttribute('aria-checked', btn.getAttribute('value') === this.playbackMode);
-            }
-            // Add click listeners
-            for (const btn of this.playbackButtons) {
-              btn.addEventListener('click', (event) => {
-                const value = event.currentTarget.getAttribute('value');
-                if (value === 'single') {
-                  clearPlaybackQueue();
-                } else {
-                  cyclePlaybackModes(this.playbackMode, {
-                    listing: this.listing,
-                    currentItem: this.req,
-                    isShare: getters.isShare(),
-                    targetMode: value
-                  });
-                }
-                const newLabel = getModeLabel(value);
-                if (this.playbackValueSpan) this.playbackValueSpan.textContent = newLabel;
-                for (const b of this.playbackButtons) {
-                  b.setAttribute('aria-checked', b.getAttribute('value') === value);
-                }
-              });
-            }
-            const valueSpan = playbackBtn.querySelector('span .plyr__menu__value');
-            if (valueSpan) {
-              valueSpan.textContent = currentLabel;
-              this.playbackValueSpan = valueSpan;
-            } else {
-              playbackBtn.querySelector('span').innerHTML = `${title}: <span class="plyr__menu__value">${currentLabel}</span>`;
-              this.playbackValueSpan = playbackBtn.querySelector('span .plyr__menu__value');
-            }
-            this.lastAppliedMode = this.playbackMode;
-            this.playbackMenuInitialized = true;
-          } else {
-            // Just update checked states and label
-            if (this.playbackButtons) {
-              for (const btn of this.playbackButtons) {
-                btn.setAttribute('aria-checked', btn.getAttribute('value') === this.playbackMode);
-              }
-            }
-            if (this.playbackValueSpan) {
-              this.playbackValueSpan.textContent = currentLabel;
-            }
-          }
-        }
-        // --- Loop menu (off, loop all, loop single) ---
-        const loopBtn = player.elements.settings?.buttons?.loop;
-        const loopPanel = player.elements.settings?.panels?.loop;
-        if (loopBtn && loopPanel) {
-          loopBtn.removeAttribute('hidden');
-          const loopTitle = this.$t('player.loop');
-          const currentLoopLabel = getLoopLabel(this.loop);
-
-          if (!this.loopMenuInitialized) {
-            const menu = loopPanel.querySelector('div[role="menu"]');
-            menu.innerHTML = `
-              <button data-plyr="loop" type="button" role="menuitemradio" class="plyr__control" value="off">
-                <span>${getLoopLabel('off')}</span>
-              </button>
-              <button data-plyr="loop" type="button" role="menuitemradio" class="plyr__control" value="all">
-                <span>${getLoopLabel('all')}</span>
-              </button>
-              <button data-plyr="loop" type="button" role="menuitemradio" class="plyr__control" value="single">
-                <span>${getLoopLabel('single')}</span>
-              </button>
-            `;
-            this.loopButtons = menu.querySelectorAll('button[data-plyr="loop"]');
-            // Set initial checked state
-            for (const btn of this.loopButtons) {
-              btn.setAttribute('aria-checked', btn.getAttribute('value') === this.loop);
-            }
-            // Add click listeners
-            for (const btn of this.loopButtons) {
-              btn.addEventListener('click', (event) => {
-                const value = event.currentTarget.getAttribute('value');
-                if (value !== this.loop) {
-                  mutations.setPlaybackQueue({
-                    queue: this.playbackQueue,
-                    currentIndex: this.currentQueueIndex,
-                    mode: this.playbackMode,
-                    loop: value
-                  });
-                }
-                const newLabel = getLoopLabel(value);
-                if (this.loopValueSpan) this.loopValueSpan.textContent = newLabel;
-                for (const b of this.loopButtons) {
-                  b.setAttribute('aria-checked', b.getAttribute('value') === value);
-                }
-              });
-            }
-            const valueSpan = loopBtn.querySelector('span .plyr__menu__value');
-            if (valueSpan) {
-              valueSpan.textContent = currentLoopLabel;
-              this.loopValueSpan = valueSpan;
-            } else {
-              loopBtn.querySelector('span').innerHTML = `${loopTitle}: <span class="plyr__menu__value">${currentLoopLabel}</span>`;
-              this.loopValueSpan = loopBtn.querySelector('span .plyr__menu__value');
-            }
-            this.loopMenuInitialized = true;
-          } else {
-            // Update checked states and label
-            if (this.loopButtons) {
-              for (const btn of this.loopButtons) {
-                btn.setAttribute('aria-checked', btn.getAttribute('value') === this.loop);
-              }
-            }
-            if (this.loopValueSpan) {
-              this.loopValueSpan.textContent = currentLoopLabel;
-            }
-          }
-        }
+        // --- Playback and loop menus (usePlaybackQueue) ---
+        this.applyPlaybackMenu(player);
+        this.applyLoopMenu(player);
         // --- Caption size menu ---
         if (captionSizeBtn && captionSizePanel) {
           const visible = this.previewType === 'video' && this.hasSubtitles;
@@ -3495,14 +2610,14 @@ export default {
           } else {
           captionSizeBtn.removeAttribute('hidden');
           const title = player.config.i18n?.captionSize || 'Caption size';
-          const currentSize = this.getStoredCaptionSize();
-          const currentSizeLabel = this.getCaptionSizeLabel(currentSize);
+          const currentSize = getStoredCaptionSize();
+          const currentSizeLabel = getCaptionSizeLabel(currentSize);
 
           if (!this.captionSizeMenuInitialized) {
             const menu = captionSizePanel.querySelector('div[role="menu"]');
-            menu.innerHTML = PLYR_CAPTION_SIZE_IDS.map(
+            menu.innerHTML = CAPTION_SIZE_IDS.map(
               (id) => `<button type="button" data-plyr="caption-size" role="menuitemradio" class="plyr__control" value="${id}">
-                        <span>${this.getCaptionSizeLabel(id)}</span>
+                        <span>${getCaptionSizeLabel(id)}</span>
                       </button>`
             ).join('');
 
@@ -3515,15 +2630,15 @@ export default {
             for (const btn of this.captionSizeButtons) {
               btn.addEventListener('click', (event) => {
                 const value = event.currentTarget.getAttribute('value');
-                if (!PLYR_CAPTION_SIZE_IDS.includes(value)) return;
-                this.setStoredCaptionSize(value);
+                if (!CAPTION_SIZE_IDS.includes(value)) return;
+                setStoredCaptionSize(value);
                 this.applyCaptionSizeClass();
                 // Update checked states and label
                 for (const b of this.captionSizeButtons) {
                   b.setAttribute('aria-checked', b.getAttribute('value') === value);
                 }
                 // Update label in button
-                const label = this.getCaptionSizeLabel(value);
+                const label = getCaptionSizeLabel(value);
                 if (this.captionSizeValueSpan) this.captionSizeValueSpan.textContent = label;
               });
             }
