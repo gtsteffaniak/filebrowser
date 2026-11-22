@@ -502,18 +502,22 @@ export default {
       const occt = this.displayMode === 'occt' && !this.isThumbnail;
       this.scene.background = occt ? this.createOpenCASCADEBackground() : new Color(this.backgroundColor);
       if (!this.model) return;
+      // Meshes can share a material, so snapshot it once per material identity
+      // before styling it; per-mesh snapshots would capture an already-modified color.
+      if (!this.materialSnapshots) this.materialSnapshots = new WeakMap();
+      const snapshots = this.materialSnapshots;
       this.model.traverse((child) => {
         if (!child.isMesh || child.userData.isEdgeOverlay || child.userData.isMeasureOverlay) return;
         const material = child.material && !Array.isArray(child.material) ? child.material : null;
         if (occt) {
           if (material) {
-            if (!('origColorHex' in child.userData)) {
-              child.userData.origColorHex = material.color.getHex();
-            }
-            // Remember the model's own vertex-colour setting so Standard mode
-            // and thumbnails keep it (e.g. GLTF vertex colours).
-            if (!('origVertexColors' in child.userData)) {
-              child.userData.origVertexColors = material.vertexColors === true;
+            if (!snapshots.has(material)) {
+              snapshots.set(material, {
+                colorHex: material.color.getHex(),
+                vertexColors: material.vertexColors === true,
+                metalness: material.metalness,
+                roughness: material.roughness,
+              });
             }
             if (child.userData.isCadMesh && child.geometry?.attributes?.color) {
               // OpenCASCADE view: each face keeps its own colour.
@@ -534,13 +538,14 @@ export default {
           this.addEdgeOverlay(child);
         } else {
           if (material) {
-            if ('origVertexColors' in child.userData) {
-              material.vertexColors = child.userData.origVertexColors;
+            const snapshot = snapshots.get(material);
+            if (snapshot) {
+              material.vertexColors = snapshot.vertexColors;
+              material.color.setHex(snapshot.colorHex);
+              material.metalness = snapshot.metalness;
+              material.roughness = snapshot.roughness;
             }
             material.needsUpdate = true;
-            if ('origColorHex' in child.userData) {
-              material.color.setHex(child.userData.origColorHex);
-            }
             material.polygonOffset = false;
           }
           this.removeEdgeOverlay(child);

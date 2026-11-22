@@ -125,7 +125,7 @@ import { state, mutations, getters } from "@/store";
 import { eventBus } from "@/store/eventBus";
 import { resourcesApi } from "@/api";
 import { fetchPreviewImage } from "@/utils/previewRequests.js";
-import { ensureViewToken, getCachedViewToken, requestViewIdentity } from "@/api/viewToken";
+import { ensureViewToken, requestViewIdentity } from "@/api/viewToken";
 import { loadCad3D, loadCadBRep, loadCadProperties } from "@/utils/cadService.ts";
 import { CadWebGLRenderer } from "@/utils/cadWebGLRenderer.js";
 
@@ -231,28 +231,20 @@ export default {
     /** View URL for the raw file via viewToken (non-metered). */
     async modelUrl() {
       const typeHint = this.fbdata.name;
+      const identity = requestViewIdentity(state.req);
+      const token = await ensureViewToken(this.fbdata.source);
+      if (token && requestViewIdentity(state.req) === identity) {
+        mutations.setRequestViewToken(token);
+      }
       if (getters.isShare()) {
-        const identity = requestViewIdentity(state.req);
-        const token = await ensureViewToken(this.fbdata.source);
-        if (token && requestViewIdentity(state.req) === identity) {
-          mutations.setRequestViewToken(token);
-        }
         return resourcesApi.getViewURL(
           this.fbdata.source,
           this.fbdata.path,
-          this.fbdata.viewToken || getCachedViewToken(this.fbdata.source) || "",
+          token || "",
           { path: state.shareInfo.subPath, hash: state.shareInfo.hash },
           false,
           typeHint
         );
-      }
-      const identity = requestViewIdentity(state.req);
-      let token = this.fbdata.viewToken || getCachedViewToken(this.fbdata.source);
-      if (!token) {
-        token = await ensureViewToken(this.fbdata.source);
-        if (token && requestViewIdentity(state.req) === identity) {
-          mutations.setRequestViewToken(token);
-        }
       }
       return resourcesApi.getViewURL(this.fbdata.source, this.fbdata.path, token || "", null, false, typeHint);
     },
@@ -335,6 +327,12 @@ export default {
     },
 
     applyCadMesh(mesh) {
+      // Selection/measure state references faces of the previous mesh.
+      this.selectedFace = -1;
+      this.measurePicks = [];
+      this.measureLabels = [];
+      this.measureLines = [];
+      this.labelBoxes = [];
       this.positions = new Float32Array(mesh.sommets);
       this.rayon = mesh.rayon || 1;
       let tri = 0;

@@ -265,10 +265,12 @@ export default {
       const basis = this.getOrientation();
       if (!basis?.right || !basis?.up || !basis?.back) return;
       const [r, u, b] = [basis.right, basis.up, basis.back];
+      // CSS cube space is Y-down while the camera basis is Y-up: conjugate by
+      // diag(1,-1,1) so the local -Y (Top) normal faces the viewer in top view.
       const values = [
-        r[0], u[0], b[0], 0,
-        r[1], u[1], b[1], 0,
-        r[2], u[2], b[2], 0,
+        r[0], -u[0], b[0], 0,
+        -r[1], u[1], -b[1], 0,
+        r[2], -u[2], b[2], 0,
         0, 0, 0, 1,
       ];
       const rounded = values.map((value) => Number(value.toFixed(5)));

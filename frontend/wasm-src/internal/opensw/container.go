@@ -75,7 +75,11 @@ func OpenContainer(data []byte) (*Container, error) {
 		}
 		return &Container{Streams: out}, nil
 	case blockMarkerIn(data):
-		return &Container{Streams: readBlockBlobs(data)}, nil
+		blobs, err := readBlockBlobs(data)
+		if err != nil {
+			return nil, err
+		}
+		return &Container{Streams: blobs}, nil
 	default:
 		return nil, errors.New("opensw: unknown SolidWorks container")
 	}
@@ -121,11 +125,17 @@ func readCFB(data []byte) (*cfbFile, error) {
 	firstDIFAT := binary.LittleEndian.Uint32(data[68:72])
 	numDIFAT := binary.LittleEndian.Uint32(data[72:76])
 
-	// Table counts come from the file; bound them by the sectors the file can
-	// actually hold so a crafted header cannot trigger an oversized allocation.
-	maxSectors := int64(len(data)-512+int(f.sectorSize)-1) / int64(f.sectorSize)
-	if maxSectors < 0 {
-		maxSectors = 0
+	// The header occupies one whole sector; sector 0 starts after it. Bound
+	// table counts by the sectors the file can actually hold so a crafted
+	// header cannot trigger an oversized allocation.
+	headerSpan := int64(f.sectorSize)
+	maxSectors := int64(0)
+	if int64(len(data)) > headerSpan {
+		maxSectors = (int64(len(data)) - headerSpan + headerSpan - 1) / headerSpan
+	}
+	numFatSectors := binary.LittleEndian.Uint32(data[44:48])
+	if int64(numFatSectors) > maxSectors {
+		return nil, errors.New("opensw: FAT sector count beyond file size")
 	}
 	if int64(numDIFAT) > maxSectors || int64(numMiniFAT) > maxSectors {
 		return nil, errors.New("opensw: DIFAT/miniFAT sector count beyond file size")
@@ -138,12 +148,23 @@ func readCFB(data []byte) (*cfbFile, error) {
 	}
 	difat = append(difat, difatEntries(f, firstDIFAT, int(numDIFAT))...)
 
-	// FAT: every DIFAT-listed sector holds sectorSize/4 links.
-	fat := make([]uint32, 0, len(difat)*f.sectorSize/4)
+	// FAT: only ordinary, unique, in-range sectors may back it. Validate them
+	// before allocating so a crafted DIFAT cannot inflate the capacity.
+	seen := make(map[uint32]bool, len(difat))
+	validDIFAT := make([]uint32, 0, len(difat))
 	for _, sid := range difat {
 		if sid == cfbFreeSector {
 			continue
 		}
+		if sid == cfbEndOfChain || sid == cfbDIFATSector || int64(sid) >= maxSectors || seen[sid] {
+			return nil, fmt.Errorf("opensw: invalid FAT sector id %d", sid)
+		}
+		seen[sid] = true
+		validDIFAT = append(validDIFAT, sid)
+	}
+	difat = validDIFAT
+	fat := make([]uint32, 0, int(numFatSectors)*f.sectorSize/4)
+	for _, sid := range difat {
 		sect, err := f.sector(sid)
 		if err != nil {
 			return nil, err
@@ -212,7 +233,7 @@ func difatEntries(f *cfbFile, first uint32, count int) []uint32 {
 }
 
 func (f *cfbFile) sector(sid uint32) ([]byte, error) {
-	off := int64(512) + int64(sid)*int64(f.sectorSize)
+	off := (int64(sid) + 1) * int64(f.sectorSize)
 	if off+int64(f.sectorSize) > int64(len(f.data)) {
 		return nil, fmt.Errorf("opensw: sector %d beyond end of file", sid)
 	}
@@ -398,10 +419,20 @@ func printableName(name string) bool {
 	return true
 }
 
+const (
+	maxBlockInflated = 64 << 20  // per-stream inflated limit
+	maxDecodedPerDoc = 256 << 20 // all retained decoded streams in one document
+)
+
+type decodeBudget struct {
+	remaining int64
+	exceeded  bool
+}
+
 // tryBlock decodes the block at off: marker, type id, crc32, compressed and
 // uncompressed sizes, name length, then the rotated name and the DEFLATE
 // payload. ok is false unless every check passes.
-func tryBlock(data []byte, off, key int) (name string, raw []byte, end int, ok bool) {
+func tryBlock(data []byte, off, key int, b *decodeBudget) (name string, raw []byte, end int, ok bool) {
 	if off+blockHeaderSize > len(data) {
 		return "", nil, 0, false
 	}
@@ -409,7 +440,12 @@ func tryBlock(data []byte, off, key int) (name string, raw []byte, end int, ok b
 	compSz := binary.LittleEndian.Uint32(data[off+14 : off+18])
 	uncompSz := binary.LittleEndian.Uint32(data[off+18 : off+22])
 	preSz := binary.LittleEndian.Uint32(data[off+22 : off+26])
-	if preSz > 4096 || uint64(compSz) > uint64(len(data)) || uncompSz > 1<<31 {
+	if preSz > 4096 || uint64(compSz) > uint64(len(data)) || uncompSz > maxBlockInflated {
+		return "", nil, 0, false
+	}
+	// Check before inflating: a stream may use only the remaining document budget.
+	if int64(uncompSz)+1 > b.remaining {
+		b.exceeded = true
 		return "", nil, 0, false
 	}
 	body := off + blockHeaderSize
@@ -421,7 +457,11 @@ func tryBlock(data []byte, off, key int) (name string, raw []byte, end int, ok b
 	fr := flate.NewReader(bytes.NewReader(payload))
 	defer fr.Close()
 	// One byte past uncompSz: a stream that inflates larger must be rejected.
-	raw, err := io.ReadAll(io.LimitReader(fr, int64(uncompSz)+1))
+	limit := int64(uncompSz) + 1
+	if limit > b.remaining {
+		limit = b.remaining
+	}
+	raw, err := io.ReadAll(io.LimitReader(fr, limit))
 	if err != nil {
 		return "", nil, 0, false
 	}
@@ -436,10 +476,11 @@ func tryBlock(data []byte, off, key int) (name string, raw []byte, end int, ok b
 }
 
 // readBlockBlobs scans for marker-prefixed blocks and returns the first
-// payload per name.
-func readBlockBlobs(data []byte) map[string][]byte {
+// payload per name, bounded by a document-wide decoded budget.
+func readBlockBlobs(data []byte) (map[string][]byte, error) {
 	key := nameKey(data)
 	out := map[string][]byte{}
+	b := &decodeBudget{remaining: maxDecodedPerDoc}
 	searchFrom := 0
 	for {
 		rel := bytes.Index(data[searchFrom:], blockMarker)
@@ -447,14 +488,19 @@ func readBlockBlobs(data []byte) map[string][]byte {
 			break
 		}
 		off := searchFrom + rel
-		if name, raw, end, ok := tryBlock(data, off, key); ok {
+		name, raw, end, ok := tryBlock(data, off, key, b)
+		if b.exceeded {
+			return nil, errors.New("opensw: decoded block budget exceeded")
+		}
+		if ok {
 			if _, exists := out[name]; !exists {
 				out[name] = raw
+				b.remaining -= int64(len(raw))
 			}
 			searchFrom = end
 		} else {
 			searchFrom = off + len(blockMarker)
 		}
 	}
-	return out
+	return out, nil
 }

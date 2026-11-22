@@ -53,10 +53,12 @@ async function createWorker(): Promise<Worker> {
     workerPromise = null;
   };
 
+  // A blob worker has a blob: base URL, so resolve asset paths against the page.
+  const absoluteAssetUrl = (assetPath: string) => new URL(assetPath, window.location.origin).href;
   worker.postMessage({
     type: "init",
-    openswZipUrl: `${base}/wasm/opensw.zip`,
-    goOpenSwUrl: `${base}/wasm/opensw.wasm${version}`,
+    openswZipUrl: absoluteAssetUrl(`${base}/wasm/opensw.zip`),
+    goOpenSwUrl: absoluteAssetUrl(`${base}/wasm/opensw.wasm${version}`),
     pyodideUrl: "https://cdn.jsdelivr.net/pyodide/v0.29.5/full/",
     occtUrl: "https://cdn.jsdelivr.net/npm/occt-import-js@0.0.23/dist/",
   });

@@ -6,6 +6,10 @@ Standalone Go module for the OpenSW CAD readers used by the browser worker.
 It is intentionally kept under `frontend/` and out of the backend module so no
 server-side CAD parsing code ships in the Filebrowser binary.
 
+Building requires Go 1.24 or newer: `wasm_exec.js` is copied from
+`$GOROOT/lib/wasm/`, a location introduced in Go 1.24 (older versions use
+`misc/wasm`).
+
 Build (from the repository root):
 
 ```bash

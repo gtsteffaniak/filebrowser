@@ -8,9 +8,19 @@ import (
 	"fmt"
 	"io"
 	"math"
+	"sort"
 	"strconv"
 	"strings"
 	"unicode/utf16"
+)
+
+// Shared traversal budget: repeated instances are kept while they fit, but a
+// crafted tree cannot expand forever or allocate unbounded components.
+type assemblyBudget struct{ work, output int }
+
+const (
+	maxAssemblyWork  = 1 << 20
+	maxAssemblyParts = 1 << 20
 )
 
 // Assembly reading, ported from OpenSW (sldprt assembly.py). An assembly is
@@ -221,11 +231,15 @@ func treeComponents(xmldata []byte) ([]*Component, error) {
 	// revisiting one means the instance tree is cyclic and would recurse
 	// forever. Entries are removed on unwind so the same subassembly stays
 	// valid when referenced from separate branches.
-	var descend func(model *xmlNode, parent [16]float64, prefix string, hidden, suppressed, excluded bool, activePath map[string]bool) error
-	descend = func(model *xmlNode, parent [16]float64, prefix string, hidden, suppressed, excluded bool, activePath map[string]bool) error {
+	var descend func(model *xmlNode, parent [16]float64, prefix string, hidden, suppressed, excluded bool, activePath map[string]bool, budget *assemblyBudget) error
+	descend = func(model *xmlNode, parent [16]float64, prefix string, hidden, suppressed, excluded bool, activePath map[string]bool, budget *assemblyBudget) error {
 		for _, ref := range model.children {
 			if !ref.is("swReference") {
 				continue
+			}
+			budget.work++
+			if budget.work > maxAssemblyWork {
+				return fmt.Errorf("%w: assembly work budget exceeded", ErrAssembly)
 			}
 			a := ref.attrs
 			name := fmt.Sprintf("%s-%s", a["swName"], a["swReferenceNumber"])
@@ -249,7 +263,7 @@ func treeComponents(xmldata []byte) ([]*Component, error) {
 						return fmt.Errorf("%w: cyclic assembly reference to file %q", ErrAssembly, fileID)
 					}
 					activePath[fileID] = true
-					err := descend(sub, m, prefix+name+"/", h, s, x, activePath)
+					err := descend(sub, m, prefix+name+"/", h, s, x, activePath, budget)
 					delete(activePath, fileID)
 					if err != nil {
 						return err
@@ -260,6 +274,10 @@ func treeComponents(xmldata []byte) ([]*Component, error) {
 			path := ""
 			if file != nil {
 				path = file.attrs["swPath"]
+			}
+			budget.output++
+			if budget.output > maxAssemblyParts {
+				return fmt.Errorf("%w: assembly component budget exceeded", ErrAssembly)
 			}
 			out = append(out, &Component{
 				Name:           prefix + name,
@@ -277,7 +295,7 @@ func treeComponents(xmldata []byte) ([]*Component, error) {
 	if model == nil {
 		return nil, fmt.Errorf("%w: the assembly model has no reference", ErrAssembly)
 	}
-	if err := descend(model, identityMatrix, "", false, false, false, map[string]bool{head.attrs["id"]: true}); err != nil {
+	if err := descend(model, identityMatrix, "", false, false, false, map[string]bool{head.attrs["id"]: true}, &assemblyBudget{}); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -516,7 +534,13 @@ func tessellations(streams map[string][]byte) (map[string][][][3][3]float64, err
 	}
 
 	blocks := map[string][][][3][3]float64{}
-	for stream, d := range data {
+	streamNames := make([]string, 0, len(data))
+	for stream := range data {
+		streamNames = append(streamNames, stream)
+	}
+	sort.Strings(streamNames)
+	for _, stream := range streamNames {
+		d := data[stream]
 		tries := starts[stream]
 		sortMeshKeys(tries)
 		for x, mk := range tries {
@@ -524,7 +548,15 @@ func tessellations(streams map[string][]byte) (map[string][][][3][3]float64, err
 			if x+1 < len(tries) {
 				fin = tries[x+1].at
 			}
-			blocks[mk.key] = blockFaces(d, mk.at+8, fin)
+			candidate := blockFaces(d, mk.at+8, fin)
+			if len(candidate) == 0 {
+				continue
+			}
+			// Keep the key bound to its stream/offset until validated; an
+			// empty or later match must never discard a valid mesh.
+			if _, done := blocks[mk.key]; !done {
+				blocks[mk.key] = candidate
+			}
 		}
 	}
 	out := map[string][][][3][3]float64{}

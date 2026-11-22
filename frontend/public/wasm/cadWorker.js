@@ -96,7 +96,12 @@ function buildBom(components) {
 }
 
 function bomRowCsv(row) {
-  const field = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+  const field = (v) => {
+    const text = String(v ?? "");
+    // CAD metadata is user-controlled: neutralize spreadsheet formulas before quoting.
+    const safe = /^[=+\-@\t\r]/.test(text) ? `'${text}` : text;
+    return `"${safe.replace(/"/g, '""')}"`;
+  };
   return `${field(row.file)},${field(row.configuration)},${row.quantity},${field(row.instances.join("; "))}\n`;
 }
 
@@ -120,8 +125,14 @@ function chargerGo(dire) {
       if (!resp.ok) throw new Error(`Failed to load opensw.wasm: HTTP ${resp.status}`);
       const bytes = await resp.arrayBuffer();
       const { instance } = await WebAssembly.instantiate(bytes, go.importObject);
-      go.run(instance); // resolves when Go's main signals readiness
-      await ready;
+      const runtime = Promise.resolve(go.run(instance)); // settles when the Go runtime exits
+      runtime.catch(() => {}); // a late rejection must not stay unhandled
+      // Fail startup if the runtime rejects or exits before Go signals ready.
+      // Once ready wins, do not wait for the runtime (Go stays alive via select{}).
+      await Promise.race([
+        ready,
+        runtime.then(() => { throw new Error("OpenSW-Go runtime exited before ready"); }),
+      ]);
       log(dire, `OpenSW-Go engine ready in ${((performance.now() - t0) / 1000).toFixed(2)}s`, "ok");
       return true;
     })();
