@@ -260,6 +260,7 @@ export default {
       links: [],
       password: "",
       customHash: "",
+      pendingRefresh: false,
       listing: true,
       allowModify: false,
       disableDownload: false,
@@ -667,6 +668,12 @@ export default {
       await copyToClipboard(text);
     },
     async submit() {
+      if (this.pendingRefresh) {
+        if (await this.completeCreate()) {
+          this.resetAfterCreate();
+        }
+        return;
+      }
       if (this.hideFileExt !== "" && !this.validateExtensions(this.hideFileExt)) {
         notify.showError("Invalid input, does not match requirement.");
         return;
@@ -760,25 +767,36 @@ export default {
           eventBus.emit('sharesChanged');
           mutations.closeTopPrompt();
         } else {
-          const refreshed = await this.refreshShares();
-          if (!refreshed) return;
-          this.editingLink = null;
-          eventBus.emit('sharesChanged');
+          // The share is committed: never resend the create request or the custom hash.
+          this.customHash = "";
+          this.pendingRefresh = true;
+          if (!(await this.completeCreate())) return;
         }
 
-        this.time = "";
-        this.unit = "hours";
-        this.password = "";
-        this.customHash = "";
-        this.isChangingPassword = false;
-
-        this.listing = true;
+        this.resetAfterCreate();
       } catch (err) {
         if (!err.message) {
           // didn't come from api, show error to user
           notify.showError(err);
         }
       }
+    },
+    async completeCreate() {
+      const refreshed = await this.refreshShares();
+      if (!refreshed) return false;
+      this.pendingRefresh = false;
+      this.editingLink = null;
+      eventBus.emit('sharesChanged');
+      return true;
+    },
+    resetAfterCreate() {
+      this.time = "";
+      this.unit = "hours";
+      this.password = "";
+      this.customHash = "";
+      this.isChangingPassword = false;
+
+      this.listing = true;
     },
     async refreshShares() {
       if (this.isEditMode) return true;
