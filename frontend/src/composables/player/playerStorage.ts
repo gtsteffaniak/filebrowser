@@ -47,9 +47,13 @@ export function mergePlayerStorage(partial: Record<string, unknown>): void {
     let data: Record<string, unknown> = {};
     const raw = localStorage.getItem(PLAYER_STORAGE_KEY);
     if (raw) {
-      const parsed: unknown = JSON.parse(raw);
-      if (typeof parsed === "object" && parsed !== null) {
-        data = parsed as Record<string, unknown>;
+      try {
+        const parsed: unknown = JSON.parse(raw);
+        if (typeof parsed === "object" && parsed !== null && !Array.isArray(parsed)) {
+          data = parsed as Record<string, unknown>;
+        }
+      } catch {
+        data = {};
       }
     }
     Object.assign(data, partial);
@@ -66,26 +70,42 @@ export function setStoredCaptionSize(id: string): void {
   mergePlayerStorage({ [CAPTION_SIZE_FIELD]: id });
 }
 
+function safeRead(storage: () => Storage, key: string): string | null {
+  try {
+    return storage().getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function safeWrite(storage: () => Storage, key: string, value: string): void {
+  try {
+    storage().setItem(key, value);
+  } catch {
+    /* ignore */
+  }
+}
+
 export function readDesktopPanelOpen(): boolean {
-  return localStorage.getItem(DESKTOP_PANEL_KEY) === "1";
+  return safeRead(() => localStorage, DESKTOP_PANEL_KEY) === "1";
 }
 
 export function writeDesktopPanelOpen(open: boolean): void {
-  localStorage.setItem(DESKTOP_PANEL_KEY, open ? "1" : "0");
+  safeWrite(() => localStorage, DESKTOP_PANEL_KEY, open ? "1" : "0");
 }
 
 export function readMobileLyricsOpen(): boolean {
-  return sessionStorage.getItem(MOBILE_LYRICS_KEY) === "1";
+  return safeRead(() => sessionStorage, MOBILE_LYRICS_KEY) === "1";
 }
 
 export function writeMobileLyricsOpen(open: boolean): void {
-  sessionStorage.setItem(MOBILE_LYRICS_KEY, open ? "1" : "0");
+  safeWrite(() => sessionStorage, MOBILE_LYRICS_KEY, open ? "1" : "0");
 }
 
 export function readAlbumArtSize(): number {
-  return Number.parseFloat(sessionStorage.getItem(ALBUM_ART_SIZE_KEY) ?? "") || 24;
+  return Number.parseFloat(safeRead(() => sessionStorage, ALBUM_ART_SIZE_KEY) ?? "") || 24;
 }
 
 export function writeAlbumArtSize(size: number): void {
-  sessionStorage.setItem(ALBUM_ART_SIZE_KEY, size.toString());
+  safeWrite(() => sessionStorage, ALBUM_ART_SIZE_KEY, size.toString());
 }

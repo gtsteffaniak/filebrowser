@@ -176,12 +176,10 @@ export function useDoubleTapSeek({
       }
     };
     const onClick = (event: MouseEvent) => {
+      if (isControlOrMenuTarget(event.target)) return;
       if (Date.now() < ignoreClickUntil) {
         event.preventDefault();
         event.stopPropagation();
-        return;
-      }
-      if (isControlOrMenuTarget(event.target)) {
         return;
       }
       if (gestures.skipNextTap.value) return;

@@ -231,6 +231,9 @@ const videoPlaybackLoading = ref(false);
 /** Source+path this instance mounted for; guards stale instances during route transitions. */
 let mountedFile: MountedFileKey | null = null;
 let tornDown = false;
+// Set first thing on unmount (unlike tornDown, which an offer can also set while the preview stays
+// mounted) so the mount callback never registers global listeners after cleanup already ran.
+let unmounted = false;
 let mountInProgress = false;
 let seekOnReleaseCleanup: (() => void) | null = null;
 let scrubPreviewCleanup: (() => void) | null = null;
@@ -632,6 +635,12 @@ watch(
       syncCaptionSizeSettingsVisibility();
       captionSizeMenuInitialized = false;
       applyCustomSettings(player.value);
+    } else if (newSubs !== oldSubs && (props.req?.subtitles?.length ?? 0) > 0) {
+      // The parent finished loading the subtitles but none could be fetched (an empty list was
+      // assigned). preparePlayerMount() was waiting on them, so start Plyr without captions
+      // instead of leaving an otherwise playable video without controls.
+      await nextTick();
+      void initializePlayer();
     }
   },
   { deep: true },
@@ -656,6 +665,20 @@ watch(transcodeMenuAvailable, () => {
     applyCustomSettings(player.value);
   }
 });
+// A live settings change can swap the configured profiles while transcoding stays available. The
+// built menu buttons are stale then, so drop them and rebuild. Mode changes only need the
+// selection update, which applyCustomSettings does on the existing buttons.
+watch(
+  () => transcodeProfileOptions.value.join(","),
+  () => {
+    transcodeMenuInitialized = false;
+    transcodeModeButtons = null;
+    transcodeModeValueSpan = null;
+    if (player.value) {
+      applyCustomSettings(player.value);
+    }
+  },
+);
 
 // --- Mount / teardown ---
 function onPageHide(event: PageTransitionEvent): void {
@@ -1217,11 +1240,13 @@ onMounted(async () => {
     }
   }
   await preparePlayerMount();
+  if (unmounted) return;
   attachKeyboard();
   window.addEventListener("pagehide", onPageHide);
 });
 
 onBeforeUnmount(() => {
+  unmounted = true;
   clearDismissAnimTimers();
   // Always finish listener/media-session cleanup even if a teardown step throws,
   // so an orphaned element cannot keep playing.

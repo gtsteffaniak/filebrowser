@@ -7,6 +7,7 @@ class FakeSource {
 
 class FakeAudioContext {
   static instances: FakeAudioContext[] = [];
+  static wrappedElements = new WeakSet<object>();
   static at(index: number): FakeAudioContext {
     const instance = FakeAudioContext.instances[index];
     if (!instance) throw new Error(`no AudioContext #${index}`);
@@ -26,7 +27,11 @@ class FakeAudioContext {
   constructor() {
     FakeAudioContext.instances.push(this);
   }
-  createMediaElementSource() {
+  createMediaElementSource(element: HTMLMediaElement) {
+    if (FakeAudioContext.wrappedElements.has(element)) {
+      throw new Error("HTMLMediaElement already connected previously to a different MediaElementSourceNode");
+    }
+    FakeAudioContext.wrappedElements.add(element);
     const source = new FakeSource();
     this.sources.push(source);
     return source;
@@ -42,6 +47,7 @@ function setup(element: HTMLMediaElement | null = document.createElement("audio"
 describe("useAudioVisualizer", () => {
   beforeEach(() => {
     FakeAudioContext.instances = [];
+    FakeAudioContext.wrappedElements = new WeakSet();
     vi.stubGlobal("AudioContext", FakeAudioContext);
     vi.spyOn(window, "AudioContext", "get").mockReturnValue(FakeAudioContext as unknown as typeof AudioContext);
   });
@@ -81,14 +87,29 @@ describe("useAudioVisualizer", () => {
     expect(v.audioContext.value).toBe(FakeAudioContext.at(0));
   });
 
-  it("closes the graph on cleanup with close and builds a new one afterwards", () => {
+  it("closes the graph on cleanup with close and builds a new one for a fresh element", () => {
     const v = setup();
     v.setupAudioVisualizer();
     const first = FakeAudioContext.at(0);
     v.cleanupAudioVisualizer({ close: true });
     expect(first.close).toHaveBeenCalled();
+    v.setElement(document.createElement("audio"));
     v.setupAudioVisualizer();
     expect(FakeAudioContext.instances).toHaveLength(2);
+    expect(v.audioContext.value).toBe(FakeAudioContext.at(1));
+    expect(v.audioSource.value).toBe(FakeAudioContext.at(1).sources[0]);
+  });
+
+  it("does not expose a graph when the same element is wrapped again after close", () => {
+    const v = setup();
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    v.setupAudioVisualizer();
+    v.cleanupAudioVisualizer({ close: true });
+    v.setupAudioVisualizer();
+    expect(v.audioContext.value).toBeNull();
+    expect(v.audioSource.value).toBeNull();
+    expect(FakeAudioContext.at(1).close).toHaveBeenCalled();
+    expect(warn).toHaveBeenCalled();
   });
 
   it("replaces the graph when the element changed", () => {

@@ -160,12 +160,10 @@ export function useMediaPlayer(options: MediaPlayerOptions) {
     if (options.isTornDown()) {
       return;
     }
-    // Preview.close() clears state.req before navigating; fall back to the
-    // file this instance mounted for so route changes still stop playback.
     const requested = options.getRequestedFile();
     const mounted = options.getMountedFile();
-    const source = requested?.source ?? mounted?.source;
-    const path = requested?.path ?? mounted?.path;
+    const source = mounted?.source ?? requested?.source;
+    const path = mounted?.path ?? requested?.path;
     if (!path) {
       options.destroy();
       return;

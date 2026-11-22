@@ -25,7 +25,7 @@
           :tabindex="syncedLyrics ? 0 : undefined"
           :aria-label="syncedLyrics ? `Seek to ${line.text}` : undefined"
         >
-          <template v-if="index === activeLyricIndex && line.words && line.words.length">
+          <template v-if="index === activeLyricIndex && hasFullWordCoverage(line)">
             <span
               v-for="(word, w) in line.words"
               :key="w"
@@ -84,6 +84,14 @@ const lockButtonProps = computed(() =>
     ? { position: "bottom-right", offset: { bottom: "calc(env(safe-area-inset-bottom, 0px) + 6rem)" } }
     : { positionMode: "absolute", edgeOffset: { top: "0.5em", right: "0.5em" } }
 );
+
+// Word highlighting is only safe when the timed words cover the whole line text. Untimed segments
+// (e.g. "Hello" in "[00:10.00]Hello <00:11.00>world") are not in `words`, so such lines render as plain text.
+function hasFullWordCoverage(line: LyricLines[number]) {
+  const words = line.words;
+  if (!words?.length) return false;
+  return words.map((word) => word.text).join(" ") === line.text;
+}
 
 // Seek the player to the given timestamp (in milliseconds)
 function seek(timestampMs: number) {

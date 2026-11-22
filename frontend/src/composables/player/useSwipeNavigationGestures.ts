@@ -56,8 +56,9 @@ export function useSwipeNavigationGestures({
   const edgeCommitY = 110;
   const edgeRubberMax = 100;
   let swipeCleanup: (() => void) | null = null;
-  /** When audio scrub/menu steals touchstart, ignore move/end for this touch id (Plyr has no video wrapper). */
   let swipeSuppressedTouchId: number | null = null;
+  let swipeActiveTouchId: number | null = null;
+  let snapBackTimer: ReturnType<typeof setTimeout> | null = null;
   let dismissCloseTimer: ReturnType<typeof setTimeout> | null = null;
   let dismissHintTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -198,7 +199,22 @@ export function useSwipeNavigationGestures({
     applySwipeTransform();
     syncNavigationGestureHintToStore();
   }
+  function clearSnapBackTimer() {
+    if (snapBackTimer) {
+      clearTimeout(snapBackTimer);
+      snapBackTimer = null;
+    }
+  }
+  function findTouchById(list: TouchList, id: number | null): Touch | null {
+    if (id === null) return null;
+    for (let i = 0; i < list.length; i++) {
+      const touch = list.item(i);
+      if (touch && touch.identifier === id) return touch;
+    }
+    return null;
+  }
   function snapBackEdgeGesture() {
+    clearSnapBackTimer();
     gestureSnapBack = true;
     dragOffsetX = 0;
     dragOffsetY = 0;
@@ -210,14 +226,17 @@ export function useSwipeNavigationGestures({
     gestures.setSkipNextTap(200);
     applySwipeTransform();
     mutations.setNavigationGestureHint({});
-    setTimeout(() => {
+    snapBackTimer = setTimeout(() => {
+      snapBackTimer = null;
       gestureSnapBack = false;
       applySwipeTransform();
     }, 240);
   }
   function resetSwipeVisualState() {
     clearDismissAnimTimers();
+    clearSnapBackTimer();
     swipeSuppressedTouchId = null;
+    swipeActiveTouchId = null;
     edgeKind = null;
     edgeDx = 0;
     edgeDy = 0;
@@ -376,7 +395,13 @@ export function useSwipeNavigationGestures({
     document.addEventListener('mouseup', onSwipeMouseDocUp, true);
   }
   function onSwipeTouchStart(event: TouchEvent) {
+    if (event.targetTouches.length > 1) {
+      gestures.clearLongPressTimer();
+      gestures.longPressPending.value = false;
+      return;
+    }
     if (!swipeGesturesActive.value || event.targetTouches.length !== 1) return;
+    swipeActiveTouchId = null;
     // Don't start a gesture if we are selecting some text
     if ((window.getSelection()?.toString().length ?? 0) > 0) return;
     if (isControlOrMenuTarget(event.target)) {
@@ -415,6 +440,7 @@ export function useSwipeNavigationGestures({
 
     const touch = event.targetTouches[0];
     if (!touch) return;
+    swipeActiveTouchId = touch.identifier;
     edgeStartX = touch.pageX;
     edgeStartY = touch.pageY;
     edgeDx = 0;
@@ -456,6 +482,7 @@ export function useSwipeNavigationGestures({
     ) {
       return;
     }
+    if (touch.identifier !== swipeActiveTouchId) return;
     edgeDx = touch.pageX - edgeStartX;
     edgeDy = touch.pageY - edgeStartY;
     decideEdgeKind();
@@ -470,15 +497,18 @@ export function useSwipeNavigationGestures({
     if (!swipeGesturesActive.value || event.changedTouches.length === 0) {
       return;
     }
-    const t = event.changedTouches[0];
-    if (!t) return;
+    const first = event.changedTouches[0];
+    if (!first) return;
     if (
       swipeSuppressedTouchId !== null &&
-      t.identifier === swipeSuppressedTouchId
+      first.identifier === swipeSuppressedTouchId
     ) {
       swipeSuppressedTouchId = null;
       return;
     }
+    const t = findTouchById(event.changedTouches, swipeActiveTouchId);
+    if (!t) return;
+    swipeActiveTouchId = null;
     if (gestures.longPressPending.value) {
       gestures.clearLongPressTimer();
       gestures.longPressPending.value = false;
@@ -511,6 +541,7 @@ export function useSwipeNavigationGestures({
     }
   }
   function onSwipeTouchCancel(event?: TouchEvent) {
+    swipeActiveTouchId = null;
     // If long-press was triggered, handle release
     if (gestures.longPressTriggered.value) {
       gestures.clearLongPressTimer();

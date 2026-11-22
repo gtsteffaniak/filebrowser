@@ -284,6 +284,8 @@ const shouldAutoplay = computed(() => props.autoPlayEnabled || playbackQueue.val
 /** Source+path this instance mounted for; guards stale instances during route transitions. */
 let mountedFile: MountedFileKey | null = null;
 let tornDown = false;
+// Set first thing on unmount so continuations that resume afterwards never register listeners.
+let unmounted = false;
 let mountInProgress = false;
 let seekOnReleaseCleanup: (() => void) | null = null;
 
@@ -607,11 +609,13 @@ onMounted(async () => {
   mountedFile = resolveMountedFileKey(props.req?.source, props.req?.path);
   loadMediaMetadata();
   await initializePlayer();
+  if (unmounted || tornDown) return;
   attachKeyboard();
   window.addEventListener("pagehide", onPageHide);
 });
 
 onBeforeUnmount(() => {
+  unmounted = true;
   clearDismissAnimTimers();
   // Always finish listener/media-session cleanup even if a teardown step throws,
   // so an orphaned element cannot keep playing.
