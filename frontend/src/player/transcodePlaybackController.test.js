@@ -520,4 +520,32 @@ describe('TranscodePlaybackController', () => {
     await Promise.resolve();
     expect(stopTranscodeSession).toHaveBeenCalledWith('sess-1', { keepalive: true });
   });
+
+  it('stops reporting active when the adapter fails terminally after attach', async () => {
+    const controller = new TranscodePlaybackController();
+    const video = document.createElement('video');
+    const onFatal = vi.fn();
+    let adapterOnFatal;
+    vi.mocked(attachHlsToVideo).mockImplementationOnce(async ({ onFatal: fatal }) => {
+      adapterOnFatal = fatal;
+      return { cleanup: vi.fn() };
+    });
+    const result = await controller.start({
+      source: 's',
+      path: '/v.mp4',
+      viewToken: 'token',
+      mode: 'quality',
+      clientId: 'c1',
+      startSec: 0,
+      getVideoElement: () => video,
+      nextTick: async () => {},
+      shouldAutoplay: false,
+      onFatal,
+    });
+    expect(result.ok).toBe(true);
+    expect(controller.active).toBe(true);
+    adapterOnFatal({ fatal: true });
+    expect(controller.active).toBe(false);
+    expect(onFatal).toHaveBeenCalledOnce();
+  });
 });

@@ -24,6 +24,8 @@ const MAX_SEEK_WARMUP_MS = 45_000;
  * attach is never aborted by the wall-clock deadline alone.
  */
 const ATTACH_STALL_TIMEOUT_MS = 30_000;
+const FRAG_FIRST_BYTE_TIMEOUT_MS = 45_000;
+const ATTACH_STARTUP_STALL_TIMEOUT_MS = FRAG_FIRST_BYTE_TIMEOUT_MS;
 
 /**
  * Total attach budget for a start position: the base deadline plus a bounded
@@ -110,49 +112,62 @@ function describeVideo(video) {
  */
 export function waitUntilVideoRenderable(video, signal, maxMs = RENDERABLE_WAIT_MS) {
   return new Promise((resolve) => {
-    if (!video) {
+    if (!video || signal?.aborted) {
       resolve(false);
       return;
     }
-    if (signal?.aborted) {
-      resolve(false);
+    const hasPicture = () => video.videoWidth > 0
+      && video.videoHeight > 0
+      && video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA;
+    if (hasPicture()) {
+      resolve(true);
       return;
     }
-    const startedAt = performance.now();
+
     let settled = false;
+    let timeoutId = null;
+    let frameHandle = null;
     const finish = (ok) => {
       if (settled) {
         return;
       }
       settled = true;
+      clearTimeout(timeoutId);
+      signal?.removeEventListener('abort', onAbort);
       video.removeEventListener('loadeddata', onProgress);
       video.removeEventListener('canplay', onProgress);
       video.removeEventListener('timeupdate', onProgress);
+      if (frameHandle !== null && typeof video.cancelVideoFrameCallback === 'function') {
+        video.cancelVideoFrameCallback(frameHandle);
+      }
+      frameHandle = null;
       resolve(ok);
+    };
+    const onAbort = () => finish(false);
+    const onTimeout = () => {
+      transcodeWarn('waitUntilVideoRenderable timed out', describeVideo(video));
+      finish(false);
     };
     const onProgress = () => {
       if (signal?.aborted) {
         finish(false);
         return;
       }
-      const hasPicture = video.videoWidth > 0
-        && video.videoHeight > 0
-        && video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA;
-      if (hasPicture) {
+      if (hasPicture()) {
         finish(true);
-        return;
-      }
-      if (performance.now() - startedAt >= maxMs) {
-        transcodeWarn('waitUntilVideoRenderable timed out', describeVideo(video));
-        finish(false);
       }
     };
+
+    signal?.addEventListener('abort', onAbort, { once: true });
     video.addEventListener('loadeddata', onProgress);
     video.addEventListener('canplay', onProgress);
     video.addEventListener('timeupdate', onProgress);
-    onProgress();
+    timeoutId = setTimeout(onTimeout, maxMs);
     if (typeof video.requestVideoFrameCallback === 'function') {
-      video.requestVideoFrameCallback(() => onProgress());
+      frameHandle = video.requestVideoFrameCallback(() => {
+        frameHandle = null;
+        onProgress();
+      });
     }
   });
 }
@@ -179,6 +194,90 @@ function describeHlsError(data) {
     response: data?.response,
     frag: describeFrag(data?.frag),
   };
+}
+
+function attachNativeHls({ video, playlistURL, initialStart, signal, onFirstBuffered, budgetMs }) {
+  return new Promise((resolve, reject) => {
+    const deadlineMs = resolveAttachDeadlineMs(initialStart, budgetMs);
+    let settled = false;
+    let timeoutId = null;
+
+    const removeListeners = () => {
+      clearTimeout(timeoutId);
+      signal?.removeEventListener('abort', onAbort);
+      video.removeEventListener('loadeddata', onReady);
+      video.removeEventListener('canplay', onReady);
+      video.removeEventListener('error', onError);
+    };
+    const releaseSource = () => {
+      video.removeAttribute('src');
+      video.load();
+    };
+    const cleanup = () => {
+      removeListeners();
+      releaseSource();
+    };
+    const fail = (error) => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      cleanup();
+      reject(error);
+    };
+
+    function onAbort() {
+      const error = new Error('HLS attach aborted');
+      error.name = 'AbortError';
+      fail(error);
+    }
+    function onError() {
+      const mediaError = video.error;
+      transcodeError('native hls playback error', {
+        playlistURL,
+        code: mediaError?.code,
+        message: mediaError?.message,
+        video: describeVideo(video),
+      });
+      const error = new Error(mediaError?.message || 'Native HLS playback failed');
+      error.name = 'NativeHlsError';
+      error.code = mediaError?.code;
+      fail(error);
+    }
+    function onTimeout() {
+      transcodeError('native hls attach timed out waiting for readiness', {
+        playlistURL,
+        deadlineMs,
+        video: describeVideo(video),
+      });
+      const error = new Error('HLS attach timed out');
+      error.name = 'AttachTimeoutError';
+      fail(error);
+    }
+    function onReady() {
+      if (settled) {
+        return;
+      }
+      if (signal?.aborted) {
+        onAbort();
+        return;
+      }
+      settled = true;
+      removeListeners();
+      try {
+        onFirstBuffered?.(video);
+      } finally {
+        resolve({ cleanup });
+      }
+    }
+
+    signal?.addEventListener('abort', onAbort, { once: true });
+    video.addEventListener('loadeddata', onReady);
+    video.addEventListener('canplay', onReady);
+    video.addEventListener('error', onError);
+    timeoutId = setTimeout(onTimeout, deadlineMs);
+    video.src = playlistURL;
+  });
 }
 
 /**
@@ -222,32 +321,13 @@ export function attachHlsToVideo({
         error.name = 'AbortError';
         return Promise.reject(error);
       }
-      // Native HLS has no hls.js events, so report readiness from the element.
-      // onFirstBuffered marks the session active, applies the start position and
-      // resumes the primed play promise; without it playback stays paused.
-      let reportedReady = false;
-      const onReady = () => {
-        if (reportedReady || signal?.aborted) {
-          return;
-        }
-        reportedReady = true;
-        onFirstBuffered?.(video);
-      };
-      const onAbortNative = () => {
-        video.removeEventListener('loadeddata', onReady);
-        video.removeEventListener('canplay', onReady);
-      };
-      signal?.addEventListener('abort', onAbortNative, { once: true });
-      video.addEventListener('loadeddata', onReady, { once: true });
-      video.addEventListener('canplay', onReady, { once: true });
-      video.src = playlistURL;
-      return Promise.resolve({
-        cleanup: () => {
-          onAbortNative();
-          signal?.removeEventListener('abort', onAbortNative);
-          video.removeAttribute('src');
-          video.load();
-        },
+      return attachNativeHls({
+        video,
+        playlistURL,
+        initialStart,
+        signal,
+        onFirstBuffered,
+        budgetMs,
       });
     }
     return Promise.reject(new Error('HLS not supported in this browser'));
@@ -267,9 +347,10 @@ export function attachHlsToVideo({
     const minBufferFrags = 1;
     let startup503Retries = 0;
     let last503FragSn = null;
+    let destroyed = false;
 
     const tryRecoverPlayback = (data, reason) => {
-      if (!onRecoverPlayback || settled) {
+      if (!onRecoverPlayback || destroyed) {
         return false;
       }
       const resumeAt = Number.isFinite(data?.frag?.start)
@@ -310,6 +391,7 @@ export function attachHlsToVideo({
     const deadlineMs = resolveAttachDeadlineMs(initialStart, budgetMs);
     let hardTimeoutId = null;
     let stallTimeoutId = null;
+    let fragmentProgressed = false;
 
     const finish = (kind, payload) => {
       if (settled) {
@@ -355,7 +437,10 @@ export function attachHlsToVideo({
       if (remaining <= 0) {
         return;
       }
-      stallTimeoutId = setTimeout(onAttachTimeout, Math.min(ATTACH_STALL_TIMEOUT_MS, remaining));
+      const limitMs = fragmentProgressed
+        ? ATTACH_STALL_TIMEOUT_MS
+        : ATTACH_STARTUP_STALL_TIMEOUT_MS;
+      stallTimeoutId = setTimeout(onAttachTimeout, Math.min(limitMs, remaining));
     };
 
     let appendRecoveryAttempts = 0;
@@ -419,7 +504,7 @@ export function attachHlsToVideo({
           // (hardware→software decode retry) can keep the first byte waiting
           // well past hls.js's 10s default. Aborting at 10s cancelled the
           // request server-side and surfaced as a 503 + skipped segment.
-          maxTimeToFirstByteMs: 45_000,
+          maxTimeToFirstByteMs: FRAG_FIRST_BYTE_TIMEOUT_MS,
           maxLoadTimeMs: 120_000,
           timeoutRetry: {
             maxNumRetry: 4,
@@ -448,6 +533,8 @@ export function attachHlsToVideo({
     });
 
     const cleanup = () => {
+      if (destroyed) return;
+      destroyed = true;
       transcodeLog('hls destroy', { sessionId: session?.id });
       // Detach before destroy: destroying with a live MediaSource attached can
       // leave the element feeding buffered audio after the preview unmounts.
@@ -500,11 +587,15 @@ export function attachHlsToVideo({
 
     hls.on(Hls.Events.FRAG_LOADING, (_event, data) => {
       transcodeLog('hls frag loading', { frag: describeFrag(data?.frag) });
+      if (!fragmentProgressed) {
+        noteAttachProgress();
+      }
     });
 
     hls.on(Hls.Events.FRAG_LOADED, (_event, data) => {
       // First byte of the seek fragment arrived: the producer is making
       // progress, so push the stall guard out.
+      fragmentProgressed = true;
       noteAttachProgress();
       transcodeLog('hls frag loaded', {
         frag: describeFrag(data?.frag),
@@ -514,6 +605,7 @@ export function attachHlsToVideo({
 
     hls.on(Hls.Events.FRAG_BUFFERED, (_event, data) => {
       bufferedFrags += 1;
+      fragmentProgressed = true;
       noteAttachProgress();
       const fragInfo = describeFrag(data?.frag);
       transcodeLog('hls frag buffered', {
@@ -531,6 +623,7 @@ export function attachHlsToVideo({
     });
 
     hls.on(Hls.Events.ERROR, (_event, data) => {
+      if (destroyed) return;
       const info = {
         ...describeHlsError(data),
         video: describeVideo(video),

@@ -77,8 +77,12 @@ export function enableOverlaidHintController({
       plyrEl.classList.add(CLASS_FADE_OUT);
     });
     fadeTimer = setTimeout(() => {
-      plyrEl.classList.remove(CLASS_SHOWN, CLASS_FADE_OUT, CLASS_FADE_IN);
       fadeTimer = null;
+      if (fadeInRaf !== null) {
+        cancelAnimationFrame(fadeInRaf);
+        fadeInRaf = null;
+      }
+      plyrEl.classList.remove(CLASS_SHOWN, CLASS_FADE_OUT, CLASS_FADE_IN);
     }, FADE_MS);
   };
 
@@ -114,6 +118,9 @@ export function enableOverlaidHintController({
   };
 
   const onControlsHidden = () => {
+    if (!getPlyrEl()?.classList.contains(CLASS_SHOWN)) {
+      return;
+    }
     fadeOut();
   };
 

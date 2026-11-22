@@ -23,26 +23,32 @@ function nativeHlsVideo() {
   return video;
 }
 
+const session = { id: 'sess-1', deliveryBaseUrl: '/api/media/transcode/sessions/sess-1' };
+
 describe('attachHlsToVideo native HLS fallback', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('reports first-buffered once the element is ready', async () => {
+  it('stays pending until the element is ready, then reports first-buffered and resolves', async () => {
     const video = nativeHlsVideo();
     const onFirstBuffered = vi.fn();
 
-    const handle = await attachHlsToVideo({
-      video,
-      session: { id: 'sess-1', deliveryBaseUrl: '/api/media/transcode/sessions/sess-1' },
-      onFirstBuffered,
+    const attach = attachHlsToVideo({ video, session, onFirstBuffered });
+    let resolved = false;
+    void attach.then(() => {
+      resolved = true;
     });
 
+    await Promise.resolve();
+    expect(resolved).toBe(false);
     expect(onFirstBuffered).not.toHaveBeenCalled();
+
     video.dispatchEvent(new Event('loadeddata'));
+    const handle = await attach;
+
     expect(onFirstBuffered).toHaveBeenCalledTimes(1);
     expect(onFirstBuffered).toHaveBeenCalledWith(video);
-
     handle.cleanup();
   });
 
@@ -50,33 +56,59 @@ describe('attachHlsToVideo native HLS fallback', () => {
     const video = nativeHlsVideo();
     const onFirstBuffered = vi.fn();
 
-    const handle = await attachHlsToVideo({
-      video,
-      session: { id: 'sess-1', deliveryBaseUrl: '/api/media/transcode/sessions/sess-1' },
-      onFirstBuffered,
-    });
-
+    const attach = attachHlsToVideo({ video, session, onFirstBuffered });
     video.dispatchEvent(new Event('loadeddata'));
     video.dispatchEvent(new Event('canplay'));
-    expect(onFirstBuffered).toHaveBeenCalledTimes(1);
+    const handle = await attach;
 
+    expect(onFirstBuffered).toHaveBeenCalledTimes(1);
     handle.cleanup();
+  });
+
+  it('rejects when the element reports an error before it is ready', async () => {
+    const video = nativeHlsVideo();
+    const onFirstBuffered = vi.fn();
+
+    const attach = attachHlsToVideo({ video, session, onFirstBuffered });
+    video.dispatchEvent(new Event('error'));
+
+    await expect(attach).rejects.toMatchObject({ name: 'NativeHlsError' });
+    expect(onFirstBuffered).not.toHaveBeenCalled();
+    expect(video.hasAttribute('src')).toBe(false);
+    video.dispatchEvent(new Event('loadeddata'));
+    expect(onFirstBuffered).not.toHaveBeenCalled();
+  });
+
+  it('rejects with an attach timeout when no event arrives in time', async () => {
+    vi.useFakeTimers();
+    try {
+      const video = nativeHlsVideo();
+      const attach = attachHlsToVideo({ video, session, onFirstBuffered: vi.fn(), budgetMs: 1_000 });
+      attach.catch(() => {});
+
+      await vi.advanceTimersByTimeAsync(1_001);
+      await expect(attach).rejects.toMatchObject({ name: 'AttachTimeoutError' });
+      expect(video.hasAttribute('src')).toBe(false);
+      expect(vi.getTimerCount()).toBe(0);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('does not report readiness after cleanup', async () => {
     const video = nativeHlsVideo();
     const onFirstBuffered = vi.fn();
 
-    const handle = await attachHlsToVideo({
-      video,
-      session: { id: 'sess-1', deliveryBaseUrl: '/api/media/transcode/sessions/sess-1' },
-      onFirstBuffered,
-    });
+    const attach = attachHlsToVideo({ video, session, onFirstBuffered });
+    video.dispatchEvent(new Event('canplay'));
+    const handle = await attach;
+    onFirstBuffered.mockClear();
 
     handle.cleanup();
     video.dispatchEvent(new Event('loadeddata'));
     video.dispatchEvent(new Event('canplay'));
     expect(onFirstBuffered).not.toHaveBeenCalled();
+    expect(video.hasAttribute('src')).toBe(false);
   });
 
   it('rejects when the signal is already aborted', async () => {
@@ -85,7 +117,7 @@ describe('attachHlsToVideo native HLS fallback', () => {
 
     await expect(attachHlsToVideo({
       video: nativeHlsVideo(),
-      session: { id: 'sess-1', deliveryBaseUrl: '/api/media/transcode/sessions/sess-1' },
+      session,
       signal: controller.signal,
       onFirstBuffered: vi.fn(),
     })).rejects.toMatchObject({ name: 'AbortError' });

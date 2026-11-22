@@ -72,6 +72,11 @@ export function resumeWhenReady(video, { playCall, onPlaying, isCancelled } = {}
       resolve({ played: false, blocked: false });
       return;
     }
+    if (isCancelled?.()) {
+      transcodeLog('resumeWhenReady cancelled before start');
+      resolve({ played: false, blocked: false });
+      return;
+    }
     if (isPlaybackProgressing(video)) {
       transcodeLog('resumeWhenReady skipped — already playing');
       resolve({ played: true, blocked: false });
@@ -79,6 +84,7 @@ export function resumeWhenReady(video, { playCall, onPlaying, isCancelled } = {}
     }
 
     let settled = false;
+    let playAttempted = false;
     let timerId = null;
     const finish = (result) => {
       if (settled) {
@@ -92,6 +98,9 @@ export function resumeWhenReady(video, { playCall, onPlaying, isCancelled } = {}
       resolve(result);
     };
     const tryPlay = () => {
+      if (settled || playAttempted) {
+        return;
+      }
       // The owning preview may have been closed/unmounted while we waited for
       // canplay. Never start playback on an element that is being torn down.
       if (isCancelled?.()) {
@@ -99,6 +108,8 @@ export function resumeWhenReady(video, { playCall, onPlaying, isCancelled } = {}
         finish({ played: false, blocked: false });
         return;
       }
+      playAttempted = true;
+      video.removeEventListener('canplay', tryPlay);
       const invoke = playCall ?? (() => video.play());
       transcodeLog('resumeWhenReady tryPlay', {
         readyState: video.readyState,
@@ -106,12 +117,21 @@ export function resumeWhenReady(video, { playCall, onPlaying, isCancelled } = {}
         hasPlayCall: Boolean(playCall),
       });
       void Promise.resolve(invoke()).then(() => {
+        if (settled) return;
+        if (isCancelled?.()) {
+          transcodeLog('resumeWhenReady cancelled while play was pending');
+          finish({ played: false, blocked: false });
+          return;
+        }
         transcodeLog('resumeWhenReady play resolved');
         onPlaying?.();
         finish({ played: true, blocked: false });
       }).catch((err) => {
         transcodeWarn('resumeWhenReady play rejected', { name: err?.name, message: err?.message });
-        finish({ played: false, blocked: isPlayBlockedError(err) });
+        finish({
+          played: false,
+          blocked: !isCancelled?.() && isPlayBlockedError(err),
+        });
       });
     };
 
@@ -140,30 +160,37 @@ export async function continuePlay(video, playPromise, { playCall, onPlaying, is
     paused: video?.paused,
   });
   if (playPromise) {
+    let primedError = null;
     try {
       await playPromise;
-      if (isCancelled?.()) {
-        transcodeLog('continuePlay cancelled after primed promise');
-        return { played: false, blocked: false };
+    } catch (err) {
+      primedError = err;
+    }
+    if (isCancelled?.()) {
+      transcodeLog('continuePlay cancelled after primed promise');
+      return { played: false, blocked: false };
+    }
+    if (primedError) {
+      transcodeWarn('continuePlay primed promise rejected', {
+        name: primedError?.name,
+        message: primedError?.message,
+      });
+      if (isPlayBlockedError(primedError)) {
+        transcodeWarn('continuePlay blocked by autoplay policy');
+        return { played: false, blocked: true };
       }
+    } else if (isPlaybackProgressing(video)) {
       // The primed promise may belong to a source that has since been replaced
       // (for example a transcode mode switch), so its resolution is not proof
       // that the current element is actually playing.
-      if (isPlaybackProgressing(video)) {
-        transcodeLog('continuePlay primed promise resolved — current source playing');
-        onPlaying?.();
-        return { played: true, blocked: false };
-      }
+      transcodeLog('continuePlay primed promise resolved - current source playing');
+      onPlaying?.();
+      return { played: true, blocked: false };
+    } else {
       transcodeWarn('continuePlay primed promise resolved but current source is not playing', {
         readyState: video?.readyState,
         paused: video?.paused,
       });
-    } catch (err) {
-      transcodeWarn('continuePlay primed promise rejected', { name: err?.name, message: err?.message });
-      if (isPlayBlockedError(err)) {
-        transcodeWarn('continuePlay blocked by autoplay policy');
-        return { played: false, blocked: true };
-      }
     }
   }
   return resumeWhenReady(video, { playCall, onPlaying, isCancelled });

@@ -319,6 +319,7 @@ export class TranscodePlaybackController {
               if (!this.isCurrentAttempt(attempt)) {
                 return;
               }
+              this.active = false;
               onFatal?.(data);
             },
           });

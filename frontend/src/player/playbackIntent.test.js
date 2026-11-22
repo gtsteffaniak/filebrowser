@@ -143,6 +143,95 @@ describe('playbackIntent', () => {
   });
 });
 
+describe('playbackIntent cancellation and single-attempt', () => {
+  const deferred = () => {
+    let resolve;
+    let reject;
+    const promise = new Promise((res, rej) => {
+      resolve = res;
+      reject = rej;
+    });
+    return { promise, resolve, reject };
+  };
+
+  it('resumeWhenReady does not report success for a cancelled operation on a playing element', async () => {
+    const onPlaying = vi.fn();
+    const video = videoStub({ readyState: HTMLMediaElement.HAVE_FUTURE_DATA, paused: false });
+    const result = await resumeWhenReady(video, { onPlaying, isCancelled: () => true });
+    expect(result).toEqual({ played: false, blocked: false });
+    expect(onPlaying).not.toHaveBeenCalled();
+  });
+
+  it('resumeWhenReady makes a single play attempt when canplay fires again while play is pending', async () => {
+    const pendingPlay = deferred();
+    const playCall = vi.fn(() => pendingPlay.promise);
+    const onPlaying = vi.fn();
+    const video = videoStub({ readyState: 0, paused: true });
+
+    const result = resumeWhenReady(video, { playCall, onPlaying });
+    video.emit('canplay');
+    expect(playCall).toHaveBeenCalledTimes(1);
+    expect(video.removeEventListener).toHaveBeenCalledWith('canplay', expect.any(Function));
+
+    // Readiness drops and recovers while the first call is still pending.
+    video.emit('canplay');
+    expect(playCall).toHaveBeenCalledTimes(1);
+
+    pendingPlay.resolve();
+    expect(await result).toEqual({ played: true, blocked: false });
+    expect(onPlaying).toHaveBeenCalledTimes(1);
+  });
+
+  it('resumeWhenReady ignores a play success that arrives after the timeout', async () => {
+    vi.useFakeTimers();
+    try {
+      const pendingPlay = deferred();
+      const onPlaying = vi.fn();
+      const video = videoStub({ readyState: HTMLMediaElement.HAVE_FUTURE_DATA, paused: true });
+
+      const result = resumeWhenReady(video, { playCall: () => pendingPlay.promise, onPlaying });
+      await vi.advanceTimersByTimeAsync(10_001);
+      expect(await result).toEqual({ played: false, blocked: false });
+
+      pendingPlay.resolve();
+      await vi.advanceTimersByTimeAsync(0);
+      expect(onPlaying).not.toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('resumeWhenReady ignores a play success after the owner cancels', async () => {
+    let cancelled = false;
+    const pendingPlay = deferred();
+    const onPlaying = vi.fn();
+    const video = videoStub({ readyState: HTMLMediaElement.HAVE_FUTURE_DATA, paused: true });
+
+    const result = resumeWhenReady(video, {
+      playCall: () => pendingPlay.promise,
+      onPlaying,
+      isCancelled: () => cancelled,
+    });
+    cancelled = true;
+    pendingPlay.resolve();
+
+    expect(await result).toEqual({ played: false, blocked: false });
+    expect(onPlaying).not.toHaveBeenCalled();
+  });
+
+  it('resumeWhenReady still reports a timely success on the active operation', async () => {
+    const onPlaying = vi.fn();
+    const video = videoStub({ readyState: HTMLMediaElement.HAVE_FUTURE_DATA, paused: true });
+    const result = await resumeWhenReady(video, {
+      playCall: () => Promise.resolve(),
+      onPlaying,
+      isCancelled: () => false,
+    });
+    expect(result).toEqual({ played: true, blocked: false });
+    expect(onPlaying).toHaveBeenCalledTimes(1);
+  });
+});
+
 describe('appendMediaFragment', () => {
   it('adds #t= seek hint to stream URL', () => {
     expect(appendMediaFragment('https://example.com/v.mp4', 90)).toBe(
