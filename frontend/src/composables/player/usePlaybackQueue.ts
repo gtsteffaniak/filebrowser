@@ -18,7 +18,7 @@ import { getPlayerI18n, getSettingsElements } from "./settingsElements.ts";
 type ToastType = "mode" | "loop" | "cleared";
 type LoopMode = "all" | "off" | "single";
 
-/** The fields the queue identifies items by; the file being played may not carry the rest yet. */
+/** The fields the queue identifies items by */
 type QueueItem = Pick<Partial<FileListItem>, "name" | "path" | "type">;
 
 interface PlaybackQueueOptions {
@@ -151,7 +151,7 @@ export function usePlaybackQueue({ getReq, getListing }: PlaybackQueueOptions) {
     { immediate: true },
   );
 
-  // --- Plyr settings menus (Plyr-specific DOM; rewritten with the Video.js 10 migration) ---
+  // --- Plyr settings menus (Plyr-specific DOM -- should be rewritten with the Video.js 10 migration) ---
   const playbackMenuInitialized = ref(false);
   const loopMenuInitialized = ref(false);
   let playbackButtons: NodeListOf<HTMLButtonElement> | null = null;
@@ -159,7 +159,6 @@ export function usePlaybackQueue({ getReq, getListing }: PlaybackQueueOptions) {
   let loopButtons: NodeListOf<HTMLButtonElement> | null = null;
   let loopValueSpan: HTMLElement | null = null;
 
-  /** Forgets the built menus, e.g. when the player is destroyed. */
   function resetPlaybackMenuState(): void {
     playbackMenuInitialized.value = false;
     loopMenuInitialized.value = false;

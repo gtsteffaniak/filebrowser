@@ -70,7 +70,7 @@ export function useAudioVisualizer({ getMediaElement }: AudioVisualizerOptions) 
     }
   }
 
-  /** Browsers suspend a context created before a user gesture; resume it when playback starts. */
+  /** Browsers suspend a context created before a user gesture, so resume when playback starts. */
   function resumeAudioGraph(): void {
     const context = mediaGraph?.context;
     if (context?.state !== "suspended") return;

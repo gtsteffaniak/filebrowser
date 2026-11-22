@@ -5,11 +5,10 @@ import { CAPTION_SIZE_IDS, getStoredCaptionSize } from "./playerStorage.ts";
 
 interface CaptionSizeOptions {
   player: Readonly<ShallowRef<Plyr | null>>;
-  /** True when the caption-size setting should be offered (video with subtitles). */
   isVisible: () => boolean;
 }
 
-/** Caption size class on the player container and the settings button visibility. */
+/** Caption size class on the player container and the settings button visibility */
 export function useCaptionSize({ player, isVisible }: CaptionSizeOptions) {
   function applyCaptionSizeClass(): void {
     const el = player.value?.elements?.container;

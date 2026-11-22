@@ -1,7 +1,6 @@
 import { ref } from "vue";
 
 interface FullscreenStateOptions {
-  /** Runs when the player enters fullscreen, before the orientation is unlocked (e.g. to cancel a swipe in progress). */
   onEnter?: () => void;
 }
 
@@ -16,8 +15,6 @@ export function useFullscreenState({ onEnter }: FullscreenStateOptions = {}) {
     try {
       await screen.orientation.lock("any");
     } catch (error) {
-      // The NotSupportedError is thrown for non-mobile browsers and there seems to be no way to pre-check if it is supported.
-      // -> Swallow NotSupportedError but let other errors be thrown.
       if ((error as DOMException).name !== "NotSupportedError") throw error;
     }
   }
@@ -31,6 +28,5 @@ export function useFullscreenState({ onEnter }: FullscreenStateOptions = {}) {
       if ((error as DOMException).name !== "NotSupportedError") throw error;
     }
   }
-
   return { isFullscreen, onFullscreenEnter, onFullscreenExit };
 }

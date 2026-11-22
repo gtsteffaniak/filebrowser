@@ -13,11 +13,7 @@ import { buildItemUrl, removeTrailingSlash } from "@/utils/url.js";
 let pendingFullscreenResume = false;
 let pendingResumeTimestamp = 0;
 
-/**
- * Percent-decode a route path, tolerating malformed escapes. Vue Router and
- * buildItemUrl do not always encode the same characters (spaces, quotes,
- * parentheses), so route-leave checks compare both forms.
- */
+/** Vue Router and buildItemUrl do not always encode the same characters, so route-leave checks compare both forms. */
 function decodePathSafely(path: string): string {
   try {
     return decodeURI(path);
@@ -155,7 +151,6 @@ export function useMediaPlayer(options: MediaPlayerOptions) {
     stopMediaElement(media);
   }
 
-  /** Stops playback when the route no longer points at the file this instance mounted for. */
   function stopIfRouteLeftThisFile(): void {
     if (options.isTornDown()) {
       return;
@@ -179,8 +174,6 @@ export function useMediaPlayer(options: MediaPlayerOptions) {
     ) {
       return;
     }
-    // Encoding differences must not look like a route change while the file
-    // is still open, nor hide a real departure.
     if (
       decodePathSafely(normalizedCurrent) === decodePathSafely(normalizedExpected) ||
       decodePathSafely(current).startsWith(`${decodePathSafely(expected)}#`)

@@ -12,7 +12,6 @@ export interface MediaSessionInfo {
   title: string;
   artist: string;
   album: string;
-  /** Embedded artwork or thumbnail; falls back to the login icon when absent. */
   artworkSrc?: string;
 }
 
@@ -72,8 +71,6 @@ export function useMediaSession(player: Readonly<ShallowRef<Plyr | null>>) {
     const fallbackUrl = fallbackIcon.includes("?")
       ? `${fallbackIcon}&t=${timestamp}`
       : `${fallbackIcon}?t=${timestamp}`;
-    // In current versions of Firefox the artwork will not work, seems that doesn't like blob URLs.
-    // But testing in 149.0a1 (nightly builds), it seems to work, so this something that will solve over time :)
     navigator.mediaSession.metadata = new MediaMetadata({
       title: info.title,
       artist: info.artist,

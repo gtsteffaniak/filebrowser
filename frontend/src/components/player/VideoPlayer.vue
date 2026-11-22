@@ -94,17 +94,12 @@
       @press="showQueuePrompt"
       :label="t('player.QueueButtonHint')"
     />
-    <!-- Toast when you change playback modes in the media player -->
     <div :class="['playback-toast', toastVisible ? 'visible' : '']">
-      <!-- Loop icon for "single playback", "loop single file" and "loop all files" -->
       <i class="material-symbols">{{ toastIcon }}</i>
       <span>{{ playbackModeMessage }}</span>
-
-      <!-- Status indicator for loop -->
       <span v-if="toastType === 'loop'" :class="[
           'status-indicator', loop !== 'off' ? 'status-on' : 'status-off',]"></span>
     </div>
-    <!-- Speed toast (long-press) -->
     <div v-if="speedToastVisible" class="playback-toast visible">
       <i class="material-symbols">speed</i>
       <span>{{ speedToastMessage }}</span>
@@ -224,15 +219,12 @@ const route = useRoute();
 const player = shallowRef<Plyr | null>(null);
 const videoElement = useTemplateRef<HTMLVideoElement>("videoElement");
 
-// --- State ---
 /** Centered spinner while the video is loading or buffering. */
 const videoPlaybackLoading = ref(false);
 
 /** Source+path this instance mounted for; guards stale instances during route transitions. */
 let mountedFile: MountedFileKey | null = null;
 let tornDown = false;
-// Set first thing on unmount (unlike tornDown, which an offer can also set while the preview stays
-// mounted) so the mount callback never registers global listeners after cleanup already ran.
 let unmounted = false;
 let mountInProgress = false;
 let seekOnReleaseCleanup: (() => void) | null = null;
@@ -480,7 +472,6 @@ const settingsMenu = computed(() => {
   return base;
 });
 
-/** Rewind / fast-forward in the control bar only on non-mobile (gestures stay as elsewhere). */
 const playerOptions = computed<Plyr.Options>(() => {
   const controlsDesktop = [
     "play-large",
@@ -537,13 +528,10 @@ const playerOptions = computed<Plyr.Options>(() => {
     fullscreen: {
       enabled: true,
       fallback: true,
-      // iPhone Safari has no element Fullscreen API; only video.webkitEnterFullscreen() hides the browser UI.
       iosNative: true,
       container: ".media-player",
     },
     iconUrl: `${globalVars.baseURL}public/static/img/plyr.svg`,
-    // Blob/async tracks need addtrack → captions.update; otherwise meta never fills and toggle CC throws (track undefined).
-    // Do not call toggleCaptions() here — Plyr already applies `plyr` localStorage for captions on/off.
     captions: {
       active: false,
       language: "auto",
@@ -567,7 +555,6 @@ function resetFilePlaybackState(): void {
   resetOverlaidHints();
 }
 
-// --- Watchers ---
 watch(playbackMode, async (newMode, oldMode) => {
   if (newMode === oldMode) return;
   if (oldMode !== undefined) {
@@ -636,9 +623,6 @@ watch(
       captionSizeMenuInitialized = false;
       applyCustomSettings(player.value);
     } else if (newSubs !== oldSubs && (props.req?.subtitles?.length ?? 0) > 0) {
-      // The parent finished loading the subtitles but none could be fetched (an empty list was
-      // assigned). preparePlayerMount() was waiting on them, so start Plyr without captions
-      // instead of leaving an otherwise playable video without controls.
       await nextTick();
       void initializePlayer();
     }
@@ -665,9 +649,7 @@ watch(transcodeMenuAvailable, () => {
     applyCustomSettings(player.value);
   }
 });
-// A live settings change can swap the configured profiles while transcoding stays available. The
-// built menu buttons are stale then, so drop them and rebuild. Mode changes only need the
-// selection update, which applyCustomSettings does on the existing buttons.
+
 watch(
   () => transcodeProfileOptions.value.join(","),
   () => {
@@ -680,7 +662,6 @@ watch(
   },
 );
 
-// --- Mount / teardown ---
 function onPageHide(event: PageTransitionEvent): void {
   if (event.persisted) return;
   teardownTranscodePlayback({ stopSession: true, keepalive: true });
@@ -688,7 +669,7 @@ function onPageHide(event: PageTransitionEvent): void {
 }
 
 /**
- * Stops playback and releases the player, listeners, transcode session and album art. Safe to call more than once.
+ * Stops playback and releases the player, listeners, transcode session and album art.
  * The transcode controller stays usable, so the player can be created again (source change, offer accepted).
  */
 function teardownPlayer(): void {
@@ -717,15 +698,9 @@ function teardownPlayer(): void {
   const media = getActiveMediaElement();
   const isTransition = state.navigation.isTransitioning;
 
-  // Stop the element before controller/player teardown. Those paths can
-  // throw or await, and a failure there must never leave audio playing on
-  // an element that is about to be detached from the DOM.
   if (media) {
     stopMediaElement(media);
   }
-
-  // Any deliberate teardown of this viewer (route leave, source swap, close)
-  // must stop the server session.
   teardownTranscodePlayback({ stopSession: true });
   disarmResumeOnNextGesture();
 
@@ -750,13 +725,13 @@ function teardownPlayer(): void {
   transcodeModeValueSpan = null;
 }
 
-/** Final teardown (route leave, close, unmount): also releases the transcode controller. Safe to call more than once. */
+/** Final teardown: also releases the transcode controller */
 function destroy(): void {
   teardownPlayer();
   disposeTranscodeController({ stopSession: true });
 }
 
-/** Creates the player again after the offer was accepted (the offer had released it). */
+/** Creates the player again after the offer was accepted (the offer had released it) */
 async function remountPlayer(): Promise<void> {
   await nextTick(); // the <video> element is rendered again
   resetFilePlaybackState();
@@ -772,11 +747,8 @@ async function onStartTranscodeClick(): Promise<void> {
   }
 }
 
-/** Starts playback from the gesture surface or the overlaid play button. */
+/** Starts playback from the gesture surface or the overlaid play button */
 function requestPlay(): void {
-  // Only offer transcoding when the source cannot play natively and no
-  // transcode is already running. Otherwise a transcoded `.wmv` could never
-  // be resumed from the player surface or the overlaid play button.
   if (formatNeedsTranscode.value && !isTranscodePlaybackMode.value && !transcodeActive.value) {
     void offerTranscodePlayback();
     return;
@@ -830,7 +802,6 @@ async function preparePlayerMount(): Promise<void> {
     // Wait for subtitles to be loaded (watcher will call initializePlayer)
     return;
   }
-
   void initializePlayer();
 }
 
@@ -955,7 +926,6 @@ function setTranscodeModeMenuDisabled(disabled: boolean): void {
   }
 }
 
-// --- Player features ---
 function getPlaybackDuration(): number {
   const fromPlayer = player.value?.duration;
   if (fromPlayer && Number.isFinite(fromPlayer) && fromPlayer > 0) {
@@ -1056,14 +1026,13 @@ function setupPlayerEvents(): void {
   setupOverlaidHintController();
 }
 
-/** Plyr-specific: builds the caption size and transcode menus once (innerHTML), then only updates their state. */
+/** Plyr-specific: builds the caption size and transcode menus once (innerHTML), then only updates their state */
 function applyCustomSettings(plyr: Plyr): void {
   try {
     const settings = getSettingsElements(plyr);
     const captionSizeBtn = settings?.buttons?.captionSize;
     const captionSizePanel = settings?.panels?.captionSize;
 
-    // --- Playback and loop menus (usePlaybackQueue) ---
     applyPlaybackMenu(plyr);
     applyLoopMenu(plyr);
     // --- Caption size menu ---
@@ -1139,13 +1108,10 @@ function applyCustomSettings(plyr: Plyr): void {
     const transcodeBtn = settings?.buttons?.transcodeMode;
     const transcodePanel = settings?.panels?.transcodeMode;
     if (transcodeBtn && transcodePanel) {
-      // Stable hook for tests — Plyr stamps data-plyr="settings" on every menu item.
+      // Stable hook for tests - Plyr stamps data-plyr="settings" on every menu item.
       transcodeBtn.setAttribute("data-plyr-menu", "transcodeMode");
       if (!transcodeMenuAvailable.value) {
         transcodeBtn.setAttribute("hidden", "");
-        // Availability flipped off after init (logout, live settings
-        // sync): the built buttons are stale, so a later availability flip
-        // must rebuild them.
         transcodeMenuInitialized = false;
         transcodeModeButtons = null;
         transcodeModeValueSpan = null;
@@ -1248,8 +1214,6 @@ onMounted(async () => {
 onBeforeUnmount(() => {
   unmounted = true;
   clearDismissAnimTimers();
-  // Always finish listener/media-session cleanup even if a teardown step throws,
-  // so an orphaned element cannot keep playing.
   disarmResumeOnNextGesture();
   try {
     destroy();
@@ -1265,16 +1229,10 @@ defineExpose({ destroy });
 
 <style >
 
-/**********************************
-*** STYLES FOR THE MEDIA PLAYER ***
-**********************************/
-
 .media-video-container {
   width: 100%;
   height: 100%;
 }
-
-
 
 /* this is just a workaround, the own plyr poster was hiding the video poster and showing black
    when it didn't loaded (somehow happens); but summarizing, this a bug of plyr, it also loads the poster image 2 times
@@ -1283,7 +1241,6 @@ defineExpose({ destroy });
   display: none !important;
 }
 
-/* Scrub preview popup (mounted on Plyr container / fullscreen root while scrubbing) */
 .fb-scrub-preview {
   position: fixed;
   z-index: 2147483646;
@@ -1345,7 +1302,6 @@ defineExpose({ destroy });
   display: none;
 }
 
-/* Spinner sits above the previous frame while the next preview loads. */
 .fb-scrub-preview__frame--loading:not(.fb-scrub-preview__frame--empty) .fb-scrub-preview__loading {
   background: rgb(0 0 0 / 50%);
 }
@@ -1426,8 +1382,6 @@ defineExpose({ destroy });
   transform: translate(-50%, -50%) !important;
 }
 
-
-/* Big play button when pause/start the video */
 .plyr--full-ui.plyr--video .plyr__control--overlaid {
   display: flex;
   justify-content: center;
@@ -1484,11 +1438,6 @@ defineExpose({ destroy });
   pointer-events: none !important;
 }
 
-/************
-*** VIDEO ***
-************/
-
-/* Video container size */
 .video-player-container {
   position: relative;
   width: 100%;
@@ -1507,7 +1456,7 @@ defineExpose({ destroy });
   background: rgb(0 0 0 / 35%);
 }
 
-/* Letterboxing and Plyr chrome: match cinema-style black */
+/* Letterboxing and Plyr chrome */
 .video-player-container .plyr {
   background-color: #000;
   box-shadow: none;
@@ -1527,8 +1476,6 @@ defineExpose({ destroy });
   touch-action: manipulation;
   cursor: pointer;
 }
-
-
 
 /* Hide captions button when there are no subtitle tracks */
 .video-player-container.no-captions .plyr__control[data-plyr="captions"] {
@@ -1581,7 +1528,6 @@ defineExpose({ destroy });
   background: transparent;
   line-height: 150%;
 }
-
 
 /* Transcode offer (shown instead of the player; layout comes from `#previewer .preview .info`). */
 .preview-buttons {

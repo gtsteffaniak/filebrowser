@@ -102,7 +102,7 @@ describe("useTranscodePlayback start and offer ownership", () => {
     });
   });
 
-  describe("obsolete offer lookups (16)", () => {
+  describe("obsolete offer lookups ", () => {
     it("does not publish an offer when the file was reset while the lookup was pending", async () => {
       hoisted.needsTranscode.value = true;
       const lookup = deferred<unknown>();
@@ -145,7 +145,7 @@ describe("useTranscodePlayback start and offer ownership", () => {
     });
   });
 
-  describe("recovery result (18)", () => {
+  describe("recovery result", () => {
     async function recoverWith(second: { ok: boolean; reason?: string }) {
       const { transcode } = setup();
       hoisted.results = [{ ok: true }, second];

@@ -156,7 +156,6 @@ export function usePreviewNavigation(options: PreviewNavigationOptions = {}) {
     }
   }
 
-  /** True when a remembered history item points at the file being previewed. */
   function isCurrentPreviewItem(item: { source?: string; path?: string; returnTo?: unknown }) {
     const current = state.req;
     if (!item?.path || !current?.path || item.returnTo) return false;
@@ -240,7 +239,6 @@ export function usePreviewNavigation(options: PreviewNavigationOptions = {}) {
   onBeforeUnmount(() => {
     window.removeEventListener("keydown", keyEvent);
     options.onBeforeTeardown?.();
-    // Clear navigation state when leaving preview
     mutations.clearNavigation();
   });
 

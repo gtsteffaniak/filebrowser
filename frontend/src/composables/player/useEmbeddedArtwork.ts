@@ -13,7 +13,7 @@ interface EmbeddedArtworkOptions {
   getFileName: () => string;
 }
 
-/** Title/artist/album and the embedded cover art of the current file, shared by the audio and video players. */
+/** Title/artist/album and the embedded cover art of the current file, shared by the audio and video player */
 export function useEmbeddedArtwork({ getMetadata, getFileName }: EmbeddedArtworkOptions) {
   const metadata = ref<EmbeddedMetadata | null>(null);
   const albumArtUrl = ref<string | null>(null);

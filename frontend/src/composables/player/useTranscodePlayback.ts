@@ -128,8 +128,7 @@ export interface UseTranscodePlaybackOptions {
 /**
  * Transcode and native-stream lifecycle of the video player: HLS start/recovery/teardown through
  * TranscodePlaybackController, profile switching, session reuse, resume after a transcode->native switch,
- * deferred native stream attach, and the "transcode this file" offer. The controller is owned here, so it
- * survives the Plyr instance being re-created while the component stays mounted.
+ * deferred native stream attach, and the "transcode this file" offer
  */
 export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
   const {
@@ -606,7 +605,6 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
       showTranscodeOffer({ enabled: false, canStart: false, sessions: [] });
     }
   }
-
   /** Looks up the session status and shows the offer for it */
   async function loadAndShowTranscodeOffer(): Promise<void> {
     try {
@@ -685,8 +683,7 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
   }
 
   /**
-   * Autoplay was blocked (Safari requires the play() call to come directly from
-   * a gesture handler). Arm a one-shot resume so a single tap or keypress
+   * Autoplay was blocked. Arm a one-shot resume so a single tap or keypress
    * anywhere restarts playback instead of the user hunting for the play button.
    */
   function armResumeOnNextGesture(): void {
@@ -1001,9 +998,7 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
     const shouldPlay = autoplay ?? !!player.value?.playing;
     transcodeLog("switchToNativePlayback", { currentTime, shouldPlay });
 
-    // Release the HLS source even when a shared controller owns it. hls.js
-    // otherwise keeps its MediaSource attached to the element and the native
-    // source never loads, leaving the player frozen on the last frame.
+    // Release the HLS source even when a shared controller owns it.
     teardownTranscodePlayback({ stopSession: true });
     lockedNativeVideoSrc.value = null;
     videoStreamAttached.value = false;
@@ -1016,8 +1011,7 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
     await nextTick();
 
     // Restore the playhead through the resume path, which waits for the
-    // new source to report metadata before seeking. Setting currentTime any
-    // earlier is discarded and playback restarts at 0:00.
+    // new source to report metadata before seeking
     const canResume = Number.isFinite(currentTime) && currentTime > 0;
     if (canResume) {
       resumeSeekSeconds.value = currentTime;
@@ -1174,7 +1168,6 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
       hash: route.hash,
     });
   }
-
   /** Native playback failed or the container is unsupported: release the session and show the offer. */
   function showTranscodeOffer(rawStatus: TranscodeStatus): void {
     if (getters.isShare()) {

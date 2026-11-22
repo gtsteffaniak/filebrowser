@@ -2,7 +2,7 @@ import type Plyr from "plyr";
 
 /**
  * Plyr builds a settings menu at construction time but its typings omit
- * `elements.settings`. Plyr-specific: goes away with the Video.js 10 migration.
+ * `elements.settings`. Since this is plyr-specific should go away with the Video.js 10 migration.
  */
 export interface PlayerSettingsElements {
   menu?: HTMLElement;

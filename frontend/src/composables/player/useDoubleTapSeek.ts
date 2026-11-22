@@ -1,3 +1,6 @@
+// This file (and related code) can be deleted (or maybe some part of it) once we migrate to Videojs
+// videojs has its own double tap / click gesture to seek built-in.
+
 import { onBeforeUnmount, ref } from "vue";
 import type { ShallowRef } from "vue";
 import type Plyr from "plyr";
@@ -13,16 +16,13 @@ interface DoubleTapSeekOptions {
   player: Readonly<ShallowRef<Plyr | null>>;
   gestures: GestureState;
   getPreviewType: () => "audio" | "video";
-  /** Gesture surface of the audio player (the whole player, not only the Plyr wrapper). */
+  /** Gesture surface of the audio player (the whole player) */
   getAudioGestureRoot: () => HTMLElement | null | undefined;
   /** Starts playback from the surface; the owner decides about transcode offers. */
   requestPlay: () => void;
 }
 
-/**
- * Double-tap / double-click seek on the left and right edges, the rewind and
- * fast-forward feedback flash, and the "overlaid" play-button hint.
- */
+/** Double-tap / double-click seek on the left and right edges */
 export function useDoubleTapSeek({
   player,
   gestures,

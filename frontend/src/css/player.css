@@ -48,7 +48,6 @@
   color: black;
 }
 
-/* Position/space of the buttons */
 .plyr .plyr__controls {
   display: flex;
   flex-direction: row;
@@ -110,10 +109,6 @@
   padding-right: min(22%, 7rem);
 }
 
-/*
- * Global fonts.css sets `.material-symbols { font-size: 24px }`.
- * Use high specificity and flex-shrink: 0 so the flex parent cannot squeeze the glyph.
- */
 .video-skip-feedback-layer i.material-symbols.video-skip-feedback-layer__icon {
   flex-shrink: 0;
   font-size: clamp(2.5rem, 7vmin, 6rem);

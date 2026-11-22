@@ -11,7 +11,7 @@ interface SwipeNavigationOptions {
   player: Readonly<ShallowRef<Plyr | null>>;
   gestures: GestureState;
   getPreviewType: () => "audio" | "video";
-  /** The swipe is paused while the mobile lyrics overlay is scrolling. */
+  /** The swipe is paused while the mobile lyrics overlay is scrolling */
   isMobileLyricsActive: () => boolean;
   /** The element the touch/mouse listeners are attached to. */
   getGestureSurface: () => HTMLElement | null | undefined;
@@ -22,10 +22,9 @@ interface SwipeNavigationOptions {
 }
 
 /**
- * Full-frame edge/swipe gestures for audio and video: horizontal swipe to the
+ * Edge/swipe gestures for audio and video: horizontal swipe to the
  * previous/next file, vertical swipe down to close (or leave fullscreen), swipe
- * up to toggle fullscreen on video, and the touch long-press 2x speed. Shared by
- * both players. State is plain (non-reactive) on purpose: nothing renders from it.
+ * up to toggle fullscreen on video, and the touch long-press 2x speed.
  */
 export function useSwipeNavigationGestures({
   player,
@@ -513,7 +512,6 @@ export function useSwipeNavigationGestures({
       gestures.clearLongPressTimer();
       gestures.longPressPending.value = false;
     }
-
     // Handle long-press release
     if (gestures.longPressTriggered.value) {
       gestures.clearLongPressTimer();
@@ -527,7 +525,6 @@ export function useSwipeNavigationGestures({
       event.preventDefault();
       return;
     }
-
     // Normal swipe gesture
     edgeDx = t.pageX - edgeStartX;
     edgeDy = t.pageY - edgeStartY;
@@ -555,7 +552,6 @@ export function useSwipeNavigationGestures({
       if (event) event.preventDefault();
       return;
     }
-
     // If long-press was pending clear it
     if (gestures.longPressPending.value) {
       gestures.clearLongPressTimer();

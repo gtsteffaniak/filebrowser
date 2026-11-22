@@ -13,7 +13,7 @@ interface MediaKeyboardOptions {
   toggleDesktopPanel: () => void;
 }
 
-/** Player shortcuts: P (playback mode), L (loop), Q (queue/panel) and arrow-key seek feedback. */
+/** Player shortcuts: P (playback mode), L (loop), Q (queue/panel) and arrow-key seek feedback */
 export function useMediaKeyboard(options: MediaKeyboardOptions) {
   function handleKeydown(event: KeyboardEvent): void {
     if (event.repeat) return;
@@ -38,7 +38,7 @@ export function useMediaKeyboard(options: MediaKeyboardOptions) {
       options.flashSkipFeedback(key === "arrowleft");
       return;
     }
-    // "Q" key: open/close panel on desktop audio, queue prompt on video
+    // "Q" open/close panel on desktop audio, queue prompt on video
     if (key === "q") {
       if (options.getPreviewType() === "audio" && !getters.isMobile()) {
         event.stopPropagation();

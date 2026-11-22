@@ -15,7 +15,6 @@
         @press="showDesktopPanel = !showDesktopPanel"
         :label="desktopPanelToggleLabel"
       />
-
       <!-- Two‑column layout -->
       <div class="audio-player-content" :class="{ 'panel-open': !isMobile && showDesktopPanel }">
         <!-- Left column: art + meta -->
@@ -36,7 +35,6 @@
               <i class="material-symbols">music_note</i>
             </div>
           </div>
-
           <!-- Metadata info -->
           <div class="audio-metadata" v-if="metadata">
             <div class="audio-title">
@@ -54,7 +52,6 @@
             </div>
           </div>
         </div>
-
         <!-- Right column: panel with Queue & Lyrics tabs (desktop) -->
         <Transition name="panel-slide">
           <AudioPanel
@@ -100,7 +97,6 @@
         <i :key="skipFeedbackKey" class="material-symbols video-skip-feedback-layer__icon">{{ skipFeedbackIcon }}</i>
       </div>
     </div>
-    <!-- Mobile queue button -->
     <FloatingActionButton
       v-if="isMobile"
       icon="queue_music"
@@ -109,17 +105,12 @@
       @press="showQueuePrompt"
       :label="t('player.QueueButtonHint')"
     />
-    <!-- Toast when you change playback modes in the media player -->
     <div :class="['playback-toast', toastVisible ? 'visible' : '']">
-      <!-- Loop icon for "single playback", "loop single file" and "loop all files" -->
       <i class="material-symbols">{{ toastIcon }}</i>
       <span>{{ playbackModeMessage }}</span>
-
-      <!-- Status indicator for loop -->
       <span v-if="toastType === 'loop'" :class="[
           'status-indicator', loop !== 'off' ? 'status-on' : 'status-off',]"></span>
     </div>
-    <!-- Speed toast (long-press) -->
     <div v-if="speedToastVisible" class="playback-toast visible">
       <i class="material-symbols">speed</i>
       <span>{{ speedToastMessage }}</span>
@@ -201,13 +192,13 @@ const emit = defineEmits<{
 
 const { t } = useI18n();
 
-// The Plyr instance is held in a shallow ref: it is a third-party object and must not be deep-proxied.
+// The Plyr instance is held in a shallow ref, it's a third-party object and must not be deep-proxied.
 const player = shallowRef<Plyr | null>(null);
 const audioElement = useTemplateRef<HTMLAudioElement>("audioElement");
 const gestureRoot = useTemplateRef<HTMLElement>("gestureRoot");
 
 // --- Metadata and album art ---
-// Storage keys (plyrAlbumArtSize, plyrShowDesktopPanel, plyrShowMobileLyrics) keep the legacy prefix so saved preferences survive.
+// Storage keys (plyrAlbumArtSize, plyrShowDesktopPanel, plyrShowMobileLyrics)
 const albumArtSize = ref(readAlbumArtSize());
 const isHovering = ref(false);
 const showDesktopPanel = ref(readDesktopPanelOpen());
@@ -248,7 +239,6 @@ watch(showDesktopPanel, writeDesktopPanelOpen);
 watch(albumArtSize, writeAlbumArtSize);
 watch(showMobileLyrics, writeMobileLyricsOpen);
 
-// --- Player glue ---
 const { audioContext, audioSource, setupAudioVisualizer, resumeAudioGraph, cleanupAudioVisualizer } =
   useAudioVisualizer({ getMediaElement: () => audioElement.value });
 const { setupMediaSession, updateMediaSessionNavHandlers, updateMediaSessionPlaybackState, clearMediaSession } =
@@ -295,7 +285,6 @@ const doubleTap = useDoubleTapSeek({
   getPreviewType: () => "audio",
   getAudioGestureRoot: () => gestureRoot.value,
   requestPlay: () => {
-    // Autoplay can be blocked or the source unsupported; there is nothing to offer for audio.
     void Promise.resolve(player.value?.play()).catch(() => {});
   },
 });
@@ -481,7 +470,6 @@ const playerOptions = computed<Plyr.Options>(() => {
     fullscreen: {
       enabled: true,
       fallback: true,
-      // iPhone Safari has no element Fullscreen API; only video.webkitEnterFullscreen() hides the browser UI.
       iosNative: true,
       container: ".media-player",
     },
@@ -565,7 +553,7 @@ function handlePlay(): void {
   resumeAudioGraph();
 }
 
-/** Stops playback and releases the player, listeners and album art. Safe to call more than once. */
+/** Stops playback and releases the player, listeners and album art */
 function destroy(): void {
   if (tornDown) return;
   tornDown = true;
@@ -578,9 +566,6 @@ function destroy(): void {
   const media = getActiveMediaElement();
   const isTransition = state.navigation.isTransitioning;
 
-  // Stop the element before the player teardown. Those paths can throw, and a
-  // failure there must never leave audio playing on an element that is about
-  // to be detached from the DOM.
   if (media) {
     stopMediaElement(media);
   }
@@ -605,7 +590,6 @@ function onPageHide(event: PageTransitionEvent): void {
 }
 
 onMounted(async () => {
-  // Record the mounted file before any async step so route-leave detection works while the player mounts.
   mountedFile = resolveMountedFileKey(props.req?.source, props.req?.path);
   loadMediaMetadata();
   await initializePlayer();
@@ -617,8 +601,6 @@ onMounted(async () => {
 onBeforeUnmount(() => {
   unmounted = true;
   clearDismissAnimTimers();
-  // Always finish listener/media-session cleanup even if a teardown step throws,
-  // so an orphaned element cannot keep playing.
   try {
     destroy();
   } finally {
@@ -643,10 +625,6 @@ defineExpose({ destroy });
   display: none !important;
 }
 
-/************
-*** AUDIO ***
-************/
-
 .plyr.plyr--audio {
   border-radius: var(--borderRadius);
   backdrop-filter: var(--panel-blur);
@@ -657,14 +635,11 @@ defineExpose({ destroy });
   color: var(--textPrimary);
 }
 
-/* Hide some unnesary buttons on the audio player */
 .plyr--audio .plyr__control[data-plyr="fullscreen"] {
   display: none !important;
 }
 
-/* Style for audio player on mobile */
 @media (width <= 768px) {
-  /* Buttons container more "big" for easy touch */
   .plyr--audio .plyr__control {
     min-width: 44px;
     min-height: 44px;
@@ -676,16 +651,10 @@ defineExpose({ destroy });
     justify-content: center;
     gap: 12px;
   }
-
-  /* Play button a bit more big */
   .plyr--audio .plyr__control--play {
     transform: scale(1.25);
   }
 }
-
-/*****************************
-*** ALBUM ART AND METADATA ***
-*****************************/
 
 .audio-player-container {
   display: flex;
@@ -714,7 +683,6 @@ defineExpose({ destroy });
   gap: 0;
 }
 
-/* Full-area swipe / double-tap seek (album art + metadata + Plyr); skip overlay uses position absolute. */
 .audio-player-container--gestures {
   position: relative;
   touch-action: manipulation;
@@ -775,7 +743,6 @@ defineExpose({ destroy });
   scrollbar-width: none;
 }
 
-/* --- panel transition --- */
 .panel-slide-enter-active {
   transition: opacity 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
 }

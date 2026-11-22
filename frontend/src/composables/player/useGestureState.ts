@@ -1,11 +1,7 @@
 import { onBeforeUnmount, ref } from "vue";
 
-/**
- * Tap/long-press flags shared by the double-tap seek and the swipe/long-press
- * gestures, so both stay in sync without reaching into each other.
- */
+/** Tap/long-press shared by the double-tap seek and the swipe/long-press gestures, both staying in sync */
 export function useGestureState() {
-  /** Set after a swipe/long-press so the trailing tap does not toggle playback. */
   const skipNextTap = ref(false);
   let skipNextTapTimer: ReturnType<typeof setTimeout> | null = null;
 

@@ -55,9 +55,8 @@ import type { LyricLines } from "@/utils/lyrics.ts";
 const props = withDefaults(
   defineProps<{
     lyrics?: LyricLines;
-    /** the active line and word follow its current time, and clicking a line seeks it */
     player?: Plyr | null;
-    /** tighter spacing, for the mobile view */
+    /** tighter spacing for the mobile view */
     compact?: boolean;
   }>(),
   {
@@ -85,8 +84,6 @@ const lockButtonProps = computed(() =>
     : { positionMode: "absolute", edgeOffset: { top: "0.5em", right: "0.5em" } }
 );
 
-// Word highlighting is only safe when the timed words cover the whole line text. Untimed segments
-// (e.g. "Hello" in "[00:10.00]Hello <00:11.00>world") are not in `words`, so such lines render as plain text.
 function hasFullWordCoverage(line: LyricLines[number]) {
   const words = line.words;
   if (!words?.length) return false;
@@ -99,8 +96,6 @@ function seek(timestampMs: number) {
   if (player) player.currentTime = timestampMs / 1000;
 }
 
-// Last item that has started by currentMs, scanning forward from the previous index
-// (-1 if none has). A previous index that is stale or already ahead of the time restarts the scan.
 function findActiveIndex(items: readonly { timestamp: number }[], from: number, currentMs: number) {
   let idx = from >= 0 && from < items.length && (items.at(from)?.timestamp ?? 0) <= currentMs ? from : -1;
   while (idx + 1 < items.length && (items.at(idx + 1)?.timestamp ?? Number.POSITIVE_INFINITY) <= currentMs) {
@@ -116,7 +111,7 @@ function syncLyrics() {
   const lyrics = props.lyrics;
   const currentMs = player.currentTime * 1000;
   const idx = findActiveIndex(lyrics, activeLyricIndex.value, currentMs);
-  // lines sharing a timestamp are highlighted together, so point at the first of them
+  // lines sharing a timestamp are highlighted together
   let first = idx;
   while (first > 0 && lyrics.at(first - 1)?.timestamp === lyrics.at(idx)?.timestamp) {
     first--;

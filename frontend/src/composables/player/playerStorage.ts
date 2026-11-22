@@ -1,6 +1,6 @@
 import { getObjectProperty } from "@/utils/object.js";
 
-// Storage keys keep the legacy "plyr" prefix so users do not lose their saved preferences.
+// Storage keys keep the legacy "plyr" prefix
 const PLAYER_STORAGE_KEY = "plyr";
 const CAPTION_SIZE_FIELD = "captionSize";
 const DESKTOP_PANEL_KEY = "plyrShowDesktopPanel";
