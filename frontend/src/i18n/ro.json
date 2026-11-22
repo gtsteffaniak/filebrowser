@@ -1135,6 +1135,7 @@
     "connectionLost": "Conexiunea la server a fost pierdută. Încercați să vă reconectați..."
   },
   "threejs": {
+    "loadBrep": "Încarcă B-rep exact (Python)",
     "failedToLoad": "Eșec la încărcarea modelului 3D",
     "keyboard": "Tastatură:",
     "autoRotate": "Rotire automată",

@@ -27,6 +27,13 @@
       </div>
     </div>
 
+    <p
+      v-if="brepLoading || brepError"
+      :class="['brep-feedback', { 'brep-feedback--error': brepError }]"
+      :role="brepError ? 'alert' : 'status'"
+      aria-live="polite"
+    >{{ brepError || cadStatusMessage || $t("general.loading", { suffix: "..." }) }}</p>
+
     <template v-if="!loading && !error">
       <div class="mode-switcher" :title="$t('threejs.viewMode')">
         <button
@@ -47,7 +54,7 @@
         </button>
       </div>
 
-      <div class="status-bar">{{ statusText }}</div>
+      <div v-if="statusText" class="status-bar">{{ statusText }}</div>
 
       <!-- Keep actions away from the OpenSW triad (bottom-left) and view cube (bottom-right). -->
       <div v-if="measuring" class="measure-toolbar">
@@ -64,8 +71,50 @@
       </div>
       <div v-if="measuring && hint" class="measure-hint">{{ hint }}</div>
 
-      <ViewCube :get-direction="cameraDirection" @select="setView" />
+      <ViewCube :get-orientation="cameraOrientation" @select="setView" />
     </template>
+
+    <aside v-if="showBom" class="cad-bom-panel">
+      <header class="cad-bom-header">
+        <h2>{{ $t("cadView.bom") }}</h2>
+        <div class="cad-bom-actions">
+          <button
+            v-if="bomCsv"
+            type="button"
+            class="cad-bom-icon"
+            :title="$t('cadView.exportBom')"
+            :aria-label="$t('cadView.exportBom')"
+            @click="exportBom"
+          ><i class="material-symbols-outlined">download</i></button>
+          <button
+            type="button"
+            class="cad-bom-icon"
+            :title="$t('general.close')"
+            :aria-label="$t('general.close')"
+            @click="showBom = false"
+          ><i class="material-symbols-outlined">close</i></button>
+        </div>
+      </header>
+      <div v-if="bomRows.length" class="cad-bom-table-wrap">
+        <table class="cad-bom-table">
+          <thead>
+            <tr>
+              <th>{{ $t("cadView.part") }}</th>
+              <th>{{ $t("cadView.configuration") }}</th>
+              <th>{{ $t("cadView.quantity") }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="row in bomRows" :key="`${row.file}:${row.configuration}`" :title="row.instances.join(', ')">
+              <td>{{ row.file }}</td>
+              <td>{{ row.configuration || "—" }}</td>
+              <td class="cad-bom-quantity">{{ row.quantity }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p v-else class="cad-bom-empty">{{ $t("cadView.bomEmpty") }}</p>
+    </aside>
   </div>
 </template>
 
@@ -77,7 +126,7 @@ import { eventBus } from "@/store/eventBus";
 import { resourcesApi } from "@/api";
 import { fetchPreviewImage } from "@/utils/previewRequests.js";
 import { ensureViewToken, getCachedViewToken, requestViewIdentity } from "@/api/viewToken";
-import { loadCad3D, loadCadProperties } from "@/utils/cadService.ts";
+import { loadCad3D, loadCadBRep, loadCadProperties } from "@/utils/cadService.ts";
 import { CadWebGLRenderer } from "@/utils/cadWebGLRenderer.js";
 
 export default {
@@ -91,6 +140,12 @@ export default {
       loading: true,
       error: null,
       cadStatusMessage: "",
+      brepLoading: false,
+      brepLoaded: false,
+      brepError: "",
+      bomRows: [],
+      bomCsv: "",
+      showBom: false,
       previewBgUrl: null,
       previewAbort: null,
       displayMode: (() => {
@@ -105,7 +160,6 @@ export default {
       positions: null,
       cadFaces: [], // { start, count, nom, corps, area }
       rayon: 1,
-      faceCount: 0,
       storedProperties: null,
       selectedFace: -1,
       // Measure state: picks are { point } or { range, point }.
@@ -130,18 +184,11 @@ export default {
         : this.$t("threejs.measureHintF2");
     },
     statusText() {
-      if (this.measuring) return this.hint;
       if (this.selectedFace >= 0 && this.cadFaces[this.selectedFace]) {
         const f = this.cadFaces[this.selectedFace];
         return `${f.nom || "?"} · ${this.$t("cadView.faceInfo", { body: f.corps, tri: f.count })}`;
       }
-      if (this.faceCount) {
-        return this.$t("cadView.ready", { f: this.faceCount, b: this.bodyCount });
-      }
       return "";
-    },
-    bodyCount() {
-      return this.cadFaces.reduce((m, f) => Math.max(m, f.corps || 0), 0);
     },
   },
   async mounted() {
@@ -244,6 +291,8 @@ export default {
       const result = await loadCad3D(buffer, this.fbdata.name, (msg) => {
         this.cadStatusMessage = msg;
       });
+      this.bomRows = result.bom || [];
+      this.bomCsv = result.bomCsv || "";
       // SolidWorks mass properties are stored in the document; ask the Go
       // OpenSW reader for them (they are never recomputed from the mesh).
       try {
@@ -255,11 +304,41 @@ export default {
         this.storedProperties = [];
       }
 
-      this.positions = new Float32Array(result.mesh.sommets);
-      this.rayon = result.mesh.rayon || 1;
-      this.faceCount = result.mesh.faces?.length || 0;
+      this.applyCadMesh(result.mesh);
+      this.brepLoaded = result.displayMesh !== true;
+      this.clearPreviewBackground();
+      this.loading = false;
+    },
+
+    async loadExactBrep() {
+      if (this.brepLoading || this.brepLoaded) return;
+      this.brepLoading = true;
+      this.brepError = "";
+      try {
+        const url = await this.modelUrl();
+        if (!url) throw new Error("No view token available for model");
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        const buffer = await response.arrayBuffer();
+        const result = await loadCadBRep(buffer, this.fbdata.name, (msg) => {
+          this.cadStatusMessage = msg;
+        });
+        this.error = null;
+        this.applyCadMesh(result.mesh);
+        this.brepLoaded = true;
+      } catch (err) {
+        this.brepError = err.message || String(err);
+      } finally {
+        this.brepLoading = false;
+        this.cadStatusMessage = "";
+      }
+    },
+
+    applyCadMesh(mesh) {
+      this.positions = new Float32Array(mesh.sommets);
+      this.rayon = mesh.rayon || 1;
       let tri = 0;
-      this.cadFaces = (result.mesh.faces || []).map((f) => {
+      this.cadFaces = (mesh.faces || []).map((f) => {
         const range = {
           start: tri,
           count: f.triangles || 0,
@@ -271,10 +350,12 @@ export default {
         return range;
       });
       this.computeFaceAreas();
-
-      this.initRenderer(result.mesh.faces);
-      this.clearPreviewBackground();
-      this.loading = false;
+      if (this.renderer?.ok) {
+        this.renderer.setMesh(this.positions, mesh.faces || [], this.rayon);
+        this.applyStyle();
+      } else {
+        this.initRenderer(mesh.faces || []);
+      }
     },
 
     computeFaceAreas() {
@@ -535,8 +616,10 @@ export default {
 
     // --- view cube --------------------------------------------------------
 
-    cameraDirection() {
-      return this.renderer?.ok ? this.renderer.direction() : { x: 0, y: 0, z: -1 };
+    cameraOrientation() {
+      return this.renderer?.ok
+        ? this.renderer.orientation()
+        : { right: [1, 0, 0], up: [0, 1, 0], back: [0, 0, 1] };
     },
 
     setView(view) {
@@ -550,6 +633,8 @@ export default {
       if (payload.action === "properties") this.showCadProperties();
       else if (payload.action === "measure") this.toggleMeasure();
       else if (payload.action === "convert") this.showCadConvertPrompt();
+      else if (payload.action === "brep") this.loadExactBrep();
+      else if (payload.action === "bom") this.showBom = !this.showBom;
     },
 
     showCadConvertPrompt() {
@@ -557,6 +642,19 @@ export default {
         name: "CadConvert",
         props: { item: this.fbdata },
       });
+    },
+
+    exportBom() {
+      if (!this.bomCsv) return;
+      const blob = new Blob(["\uFEFF", this.bomCsv], { type: "text/csv;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = `${(this.fbdata.name || "assembly").replace(/\.sldasm$/i, "")}_BOM.csv`;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 10000);
     },
 
     /** Mesh-derived properties as a fallback when SolidWorks stored none:
@@ -753,6 +851,27 @@ export default {
   z-index: 5;
 }
 
+.brep-feedback {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 12;
+  max-width: min(60vw, 32rem);
+  margin: 0;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid rgb(255 255 255 / 20%);
+  border-radius: 8px;
+  color: #fff;
+  background: rgb(15 23 32 / 82%);
+  font-size: 0.78rem;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 16px rgb(0 0 0 / 18%);
+}
+
+.brep-feedback--error {
+  color: #ffcdd2;
+}
+
 .mode-btn {
   display: flex;
   align-items: center;
@@ -847,5 +966,114 @@ export default {
   font-size: 0.78rem;
   z-index: 5;
   pointer-events: none;
+}
+
+.cad-bom-panel {
+  position: absolute;
+  top: 3.6rem;
+  right: 0.75rem;
+  z-index: 8;
+  display: flex;
+  flex-direction: column;
+  width: min(440px, calc(100% - 1.5rem));
+  max-height: calc(100% - 6rem);
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--textPrimary) 18%, transparent);
+  border-radius: 12px;
+  color: var(--textPrimary);
+  background: color-mix(in srgb, var(--background) 94%, transparent);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 12px 36px rgb(0 0 0 / 24%);
+}
+
+.cad-bom-header {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.65rem 0.8rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--textPrimary) 14%, transparent);
+}
+
+.cad-bom-header h2 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 650;
+}
+
+.cad-bom-actions {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.cad-bom-icon {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  border: 0;
+  border-radius: 7px;
+  color: inherit;
+  background: transparent;
+  cursor: pointer;
+}
+
+.cad-bom-icon:hover,
+.cad-bom-icon:focus-visible {
+  background: color-mix(in srgb, var(--textPrimary) 12%, transparent);
+}
+
+.cad-bom-table-wrap {
+  overflow: auto;
+}
+
+.cad-bom-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+
+.cad-bom-table th,
+.cad-bom-table td {
+  padding: 0.55rem 0.7rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--textPrimary) 10%, transparent);
+  text-align: left;
+}
+
+.cad-bom-table th {
+  position: sticky;
+  top: 0;
+  color: var(--textSecondary);
+  background: var(--background);
+  font-size: 0.7rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.cad-bom-table td:first-child {
+  overflow-wrap: anywhere;
+}
+
+.cad-bom-quantity {
+  width: 4.5rem;
+  font-variant-numeric: tabular-nums;
+  text-align: right !important;
+}
+
+.cad-bom-empty {
+  margin: 0;
+  padding: 1rem;
+  color: var(--textSecondary);
+  font-size: 0.85rem;
+}
+
+@media (width <= 600px) {
+  .cad-bom-panel {
+    right: 0.5rem;
+    width: calc(100% - 1rem);
+    max-height: calc(100% - 5rem);
+  }
 }
 </style>

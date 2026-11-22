@@ -19,6 +19,8 @@ frontend/tsconfig.tsbuildinfo
 /backend/tmp
 /backend/dist
 /frontend/dist
+/frontend/public/wasm/opensw.wasm
+/frontend/public/wasm/wasm_exec.js
 /frontend/pkg
 /frontend/.cache
 /frontend/test-results

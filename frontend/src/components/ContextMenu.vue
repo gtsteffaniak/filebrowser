@@ -235,6 +235,8 @@
       <action v-if="showSendToAppInPreview" icon="ios_share" :label="$t('buttons.sendToApp')" @action="sendToAppFromPreview" />
       <action v-if="showUnarchiveInOverflow" icon="folder_open" :label="$t('prompts.unarchive')" @action="showUnarchivePromptFromPreview" />
       <action v-if="showCadConvertInPreview" icon="change_circle" :label="$t('cad.convert')" @action="showCadConvertPromptFromPreview" />
+      <action v-if="showCadBrepInPreview" icon="precision_manufacturing" :label="$t('threejs.loadBrep')" @action="loadCadBrepFromPreview" />
+      <action v-if="showCadBomInPreview" icon="table_view" :label="$t('cadView.bom')" @action="showCadBomFromPreview" />
       <action v-if="showCadPropertiesInPreview" icon="analytics" :label="$t('threejs.properties')" @action="showCadPropertiesFromPreview" />
       <action v-if="showCadMeasureInPreview" icon="architecture" :label="$t('threejs.measure')" @action="showCadMeasureFromPreview" />
       <action v-if="showEditButton" icon="edit" :label="$t('general.edit')" @action="goToEdit" />
@@ -466,6 +468,12 @@ export default {
       if (!isCadFile(this.req?.name || "")) return false;
       // Same target gating as the listing action.
       return getCadConversionTargets(this.req?.name || "").length > 0;
+    },
+    showCadBrepInPreview() {
+      return !this.showLimitedOptions && this.isCadViewer && /\.sldprt$/i.test(this.req?.name || "");
+    },
+    showCadBomInPreview() {
+      return !this.showLimitedOptions && this.isCadViewer && /\.sldasm$/i.test(this.req?.name || "");
     },
     showCadPropertiesInPreview() {
       if (this.showLimitedOptions) return false;
@@ -1091,6 +1099,12 @@ export default {
     },
     showCadMeasureFromPreview() {
       this.emitCadViewerAction("measure");
+    },
+    loadCadBrepFromPreview() {
+      this.emitCadViewerAction("brep");
+    },
+    showCadBomFromPreview() {
+      this.emitCadViewerAction("bom");
     },
     emitCadViewerAction(action) {
       const req = state.req;

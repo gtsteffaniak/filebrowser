@@ -1135,6 +1135,7 @@
     "connectionLost": "La connexion au serveur a été perdue. Tentative de reconnexion..."
   },
   "threejs": {
+    "loadBrep": "Charger le B-rep exact (Python)",
     "failedToLoad": "Échec du chargement du modèle 3D",
     "keyboard": "Clavier :",
     "autoRotate": "Auto-rotation",

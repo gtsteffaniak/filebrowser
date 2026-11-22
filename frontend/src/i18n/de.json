@@ -1135,6 +1135,7 @@
     "connectionLost": "Die Verbindung zum Server wurde unterbrochen. Ich versuche, die Verbindung wiederherzustellen..."
   },
   "threejs": {
+    "loadBrep": "Exaktes B-rep laden (Python)",
     "failedToLoad": "3D-Modell konnte nicht geladen werden",
     "keyboard": "Tastatur:",
     "autoRotate": "Automatisches Drehen",

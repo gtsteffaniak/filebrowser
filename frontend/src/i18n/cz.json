@@ -1135,6 +1135,7 @@
     "connectionLost": "Spojení se serverem bylo ztraceno. Zkouším se znovu připojit..."
   },
   "threejs": {
+    "loadBrep": "Načíst přesný B-rep (Python)",
     "failedToLoad": "Nepodařilo se načíst 3D model",
     "keyboard": "Klávesnice:",
     "autoRotate": "Automatické otáčení",

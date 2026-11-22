@@ -1135,6 +1135,7 @@
     "connectionLost": "החיבור לשרת אבד. מנסה להתחבר מחדש..."
   },
   "threejs": {
+    "loadBrep": "טעינת B-rep מדויק (Python)",
     "failedToLoad": "לא ניתן לטעון את המודל התלת-ממדי",
     "keyboard": "מקלדת:",
     "autoRotate": "סיבוב אוטומטי",

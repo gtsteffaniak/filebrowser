@@ -1146,6 +1146,7 @@
     "connectionLost": "Връзката със сървъра беше загубена. Опит за повторно свързване..."
   },
   "threejs": {
+    "loadBrep": "Зареди точния B-rep (Python)",
     "controls": "3D контроли",
     "changeBackground": "Промяна на фона",
     "failedToLoad": "Неуспешно зареждане на 3D модел",

@@ -1135,6 +1135,7 @@
     "connectionLost": "Sunucu ile bağlantı kesildi. Yeniden bağlanmaya çalışıyorum..."
   },
   "threejs": {
+    "loadBrep": "Kesin B-rep'i yükle (Python)",
     "failedToLoad": "3D Model Yüklenemedi",
     "keyboard": "Klavye:",
     "autoRotate": "Otomatik döndürme",

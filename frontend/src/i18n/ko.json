@@ -1135,6 +1135,7 @@
     "connectionLost": "서버에 대한 연결이 끊어졌습니다. 다시 연결하려고 합니다..."
   },
   "threejs": {
+    "loadBrep": "정확한 B-rep 불러오기 (Python)",
     "failedToLoad": "3D 모델 로드 실패",
     "keyboard": "키보드:",
     "autoRotate": "자동 회전",

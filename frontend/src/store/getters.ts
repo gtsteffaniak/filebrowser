@@ -323,7 +323,9 @@ export const getters = {
       visible = false
     }
     if (previewViews.includes(cv) && !getters.previewPerms().disableHideSidebar) {
-      visible = false
+      const sideBySideCadViewer =
+        !getters.isMobile() && (cv === 'cadViewer' || cv === 'drawingViewer')
+      visible = sideBySideCadViewer || state.showSidebar
     }
     if (state.shareInfo?.singleFileShare) {
       visible = state.showSidebar
@@ -337,6 +339,9 @@ export const getters = {
     const currentView = getters.currentView()
     if (currentView === 'settings') {
       sticky = true
+    }
+    if (currentView === 'cadViewer' || currentView === 'drawingViewer') {
+      sticky = !getters.isMobile()
     }
     if (currentView === '' && !getters.isLoading()) {
       sticky = true

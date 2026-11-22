@@ -52,6 +52,7 @@ function getWorker(): Worker {
     workerInstance.postMessage({
       type: "init",
       openswZipUrl: `${base}/wasm/opensw.zip`,
+      goOpenSwUrl: `${base}/wasm/opensw.wasm${version}`,
       pyodideUrl: "https://cdn.jsdelivr.net/pyodide/v0.29.5/full/",
       occtUrl: "https://cdn.jsdelivr.net/npm/occt-import-js@0.0.23/dist/",
     });
@@ -137,7 +138,17 @@ export interface Cad3DResult {
   stepBytes?: Uint8Array;
   stlBytes?: Uint8Array;
   composants?: Array<Record<string, unknown>>;
+  bom?: CadBomRow[];
+  bomCsv?: string;
   properties?: CadStoredProperties[];
+  displayMesh?: boolean;
+}
+
+export interface CadBomRow {
+  file: string;
+  configuration: string;
+  quantity: number;
+  instances: string[];
 }
 
 export interface DrawingSheet {
@@ -170,10 +181,11 @@ export function loadCadProperties(
   });
 }
 
-export function loadCad3D(
+function requestCad3D(
   dataBuffer: ArrayBuffer,
   filename: string,
-  onProgress?: (msg: string, kind?: string) => void
+  onProgress?: (msg: string, kind?: string) => void,
+  brep = false
 ): Promise<Cad3DResult> {
   const worker = getWorker();
   const id = ++messageIdCounter;
@@ -186,11 +198,28 @@ export function loadCad3D(
         id,
         action: "preview",
         filename,
+        brep,
         data: copy,
       },
       [copy]
     );
   });
+}
+
+export function loadCad3D(
+  dataBuffer: ArrayBuffer,
+  filename: string,
+  onProgress?: (msg: string, kind?: string) => void
+): Promise<Cad3DResult> {
+  return requestCad3D(dataBuffer, filename, onProgress);
+}
+
+export function loadCadBRep(
+  dataBuffer: ArrayBuffer,
+  filename: string,
+  onProgress?: (msg: string, kind?: string) => void
+): Promise<Cad3DResult> {
+  return requestCad3D(dataBuffer, filename, onProgress, true);
 }
 
 export function loadCadDrawing(

@@ -1135,6 +1135,7 @@
     "connectionLost": "與伺服器的連線中斷。正在嘗試重新連線…"
   },
   "threejs": {
+    "loadBrep": "載入精確 B-rep (Python)",
     "failedToLoad": "載入 3D 模型失敗",
     "keyboard": "鍵盤：",
     "autoRotate": "自動旋轉",

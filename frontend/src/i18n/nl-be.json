@@ -1135,6 +1135,7 @@
     "connectionLost": "De verbinding met de server is verbroken. Probeer opnieuw verbinding te maken..."
   },
   "threejs": {
+    "loadBrep": "Exacte B-rep laden (Python)",
     "failedToLoad": "Laden 3D-model mislukt",
     "keyboard": "Toetsenbord:",
     "autoRotate": "Automatisch draaien",

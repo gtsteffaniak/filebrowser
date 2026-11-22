@@ -1135,6 +1135,7 @@
     "connectionLost": "Megszakadt a kapcsolat a kiszolgálóval. Próbáljuk újracsatlakoztatni..."
   },
   "threejs": {
+    "loadBrep": "Pontos B-rep betöltése (Python)",
     "failedToLoad": "Nem sikerült betölteni a 3D modellt",
     "keyboard": "Billentyűzet:",
     "autoRotate": "Automatikus forgatás",

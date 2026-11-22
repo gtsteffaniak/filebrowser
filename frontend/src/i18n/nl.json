@@ -1166,6 +1166,7 @@
     "connectionLost": "De verbinding met de server is verbroken. Verbinding herstellen…"
   },
   "threejs": {
+    "loadBrep": "Exacte B-rep laden (Python)",
     "controls": "3D-besturingselementen",
     "changeBackground": "Achtergrondkleur wijzigen",
     "failedToLoad": "Laden 3D-model mislukt",

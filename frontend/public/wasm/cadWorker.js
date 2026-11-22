@@ -1,13 +1,16 @@
 // cadWorker.js - Unified Web Worker for CAD file previews & conversions
-// Uses occt-import-js (OpenCASCADE in WebAssembly) and OpenSW (Pyodide Python in WebAssembly).
+// Uses OpenSW-Go for fast previews; Pyodide is loaded only for exact B-rep or
+// CAD operations that have not yet been ported.
 
 
 let PYODIDE = "https://cdn.jsdelivr.net/pyodide/v0.29.5/full/";
 let OCCT = "https://cdn.jsdelivr.net/npm/occt-import-js@0.0.23/dist/";
 let OPENSW_ZIP = "/public/static/wasm/opensw.zip";
+let GO_OPENSW = "/public/static/wasm/opensw.wasm";
 
 let pythonPromise = null;
 let occtPromise = null;
+let goPromise = null;
 
 function log(dire, text, kind = "detail") {
   if (dire) dire(text, kind);
@@ -23,7 +26,7 @@ function chargerOcct(dire) {
       return occt;
     })();
     // A failed load must not stay cached as a rejected promise: clear it so
-    // the next request can retry.
+    // the next request can retry (same behavior as chargerGo).
     occtPromise.catch(() => { occtPromise = null; });
   }
   return occtPromise;
@@ -67,17 +70,81 @@ for nom in ("webbrowser", "signal", "http.server", "socketserver"):
 
 const NIVEAUX = 64;
 
-// One BOM row builder: names the BOM-excluded flag hors_nomenclature.
-function bomRowCsv(c) {
-  const field = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
-  const excluded = c.hors_nomenclature ?? c.horsNomenclature;
-  return `${field(c.nom)},${field(c.fichier)},${field(c.configuration || "")},${c.supprime ? "true" : "false"},${c.cache ? "true" : "false"},${excluded ? "true" : "false"}\n`;
+function buildBom(components) {
+  const rows = new Map();
+  for (const component of components || []) {
+    if (!component || typeof component !== "object") continue;
+    const excluded = component.horsNomenclature ?? component.hors_nomenclature;
+    const isFlagSet = (value) => value === true || value === 1 || value === "YES";
+    if (isFlagSet(component.supprime) || isFlagSet(excluded)) continue;
+
+    const file = String(component.fichier || component.nom || "").trim();
+    if (!file) continue;
+    const configuration = String(component.configuration || "").trim();
+    const key = `${file.toLowerCase()}\0${configuration.toLowerCase()}`;
+    let row = rows.get(key);
+    if (!row) {
+      row = { file, configuration, quantity: 0, instances: [] };
+      rows.set(key, row);
+    }
+    row.quantity++;
+    if (component.nom) row.instances.push(String(component.nom));
+  }
+  return [...rows.values()].sort((a, b) =>
+    a.file.localeCompare(b.file) || a.configuration.localeCompare(b.configuration)
+  );
 }
 
-function bomCsv(bom) {
-  let csv = "Component,File,Configuration,Suppressed,Hidden,ExcludedFromBOM\n";
-  for (const c of bom || []) csv += bomRowCsv(c);
+function bomRowCsv(row) {
+  const field = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+  return `${field(row.file)},${field(row.configuration)},${row.quantity},${field(row.instances.join("; "))}\n`;
+}
+
+function bomCsv(rows) {
+  let csv = "Part,Configuration,Quantity,Instances\n";
+  for (const row of rows || []) csv += bomRowCsv(row);
   return csv;
+}
+
+// The OpenSW port compiled to Go/WebAssembly; loading it does not start Python.
+function chargerGo(dire) {
+  if (!goPromise) {
+    goPromise = (async () => {
+      const t0 = performance.now();
+      log(dire, "Loading OpenSW-Go WebAssembly engine...", "step");
+      const base = GO_OPENSW.slice(0, GO_OPENSW.lastIndexOf("/") + 1);
+      importScripts(`${base}wasm_exec.js`);
+      const ready = new Promise((resolve) => { self.__openswGoResolve = resolve; });
+      const go = new Go();
+      const resp = await fetch(GO_OPENSW);
+      if (!resp.ok) throw new Error(`Failed to load opensw.wasm: HTTP ${resp.status}`);
+      const bytes = await resp.arrayBuffer();
+      const { instance } = await WebAssembly.instantiate(bytes, go.importObject);
+      go.run(instance); // resolves when Go's main signals readiness
+      await ready;
+      log(dire, `OpenSW-Go engine ready in ${((performance.now() - t0) / 1000).toFixed(2)}s`, "ok");
+      return true;
+    })();
+    goPromise.catch(() => { goPromise = null; });
+  }
+  return goPromise;
+}
+
+// Assembly preview through the Go engine; throws when it cannot read the file.
+async function vueAssemblageGo(octets, dire) {
+  await chargerGo(dire);
+  const r = openswGoAssembly(octets, (text, kind) => dire(text, kind));
+  if (r?.ok !== true) {
+    throw new Error((r?.error) || "OpenSW-Go could not read the assembly");
+  }
+  const vue = r.vue;
+  const mesh = {
+    faces: vue.faces,
+    corps: vue.corps,
+    rayon: vue.rayon,
+    sommets: vue.sommets.buffer,
+  };
+  return { mesh, stlBytes: r.stl ? new Uint8Array(r.stl) : null, composants: r.composants };
 }
 
 const srgb = (x) => (x <= 0.0031308 ? x * 12.92 : 1.055 * x ** (1 / 2.4) - 0.055);
@@ -249,10 +316,11 @@ self.onmessage = async (e) => {
     if (m.pyodideUrl) PYODIDE = m.pyodideUrl;
     if (m.occtUrl) OCCT = m.occtUrl;
     if (m.openswZipUrl) OPENSW_ZIP = m.openswZipUrl;
+    if (m.goOpenSwUrl) GO_OPENSW = m.goOpenSwUrl;
     return;
   }
 
-  const { id, action, format, filename, data, targetFormat } = m;
+  const { id, action, format, filename, data, targetFormat, brep } = m;
   const dire = (text, kind = "detail") => {
     postMessage({ id, type: "log", text, kind });
   };
@@ -262,53 +330,16 @@ self.onmessage = async (e) => {
     const ext = (format || filename.split(".").pop() || "").toLowerCase();
 
     if (action === "properties") {
-      dire("Reading SolidWorks stored properties with OpenSW...", "step");
+      dire("Reading SolidWorks stored properties with OpenSW-Go...", "step");
       try {
-        const { py } = await preparerPython(dire);
-        py.globals.set("raw_cad_bytes", rawBytes);
-        const propsJson = py.runPython(`
-import json
-from sldprt.container import open_container
-from sldprt.properties import read_properties
-
-def _get_stored_props():
-    try:
-        c = open_container(bytes(raw_cad_bytes))
-        props = read_properties(c)
-        configs = props.get("configurations", [])
-        out = []
-        for conf in configs:
-            mass = conf.get("masse")
-            m = None
-            if mass:
-                m = {
-                    "centerM": list(mass.get("centre_m", [0, 0, 0])),
-                    "volumeM3": float(mass.get("volume_m3", 0.0)),
-                    "areaM2": float(mass.get("aire_m2", 0.0)),
-                    "massKg": float(mass.get("masse_kg", 0.0)),
-                    "inertiaKgM2": list(mass.get("inertie_kg_m2", [])),
-                }
-            mat = conf.get("materiau") or {}
-            out.append({
-                "available": m is not None,
-                "configuration": conf.get("nom", ""),
-                "mass": m,
-                "material": mat.get("nom", "") if isinstance(mat, dict) else str(mat),
-                "materialBase": mat.get("base", "") if isinstance(mat, dict) else "",
-            })
-        return json.dumps({"ok": True, "properties": out})
-    except Exception as e:
-        return json.dumps({"ok": False, "error": str(e)})
-
-_get_stored_props()
-`);
-        const res = JSON.parse(propsJson);
-        if (res?.ok) {
-          postMessage({ id, type: "properties", properties: res.properties });
+        await chargerGo(dire);
+        const p = openswGoProperties(rawBytes);
+        if (p?.ok) {
+          postMessage({ id, type: "properties", properties: p.properties });
           return;
         }
       } catch (e) {
-        dire(`OpenSW properties unavailable: ${e.message}`, "detail");
+        dire(`Go properties unavailable: ${e.message}`, "detail");
       }
       throw new Error("SolidWorks stored properties are unavailable for this file");
     }
@@ -319,6 +350,25 @@ _get_stored_props()
         dire("Meshing STEP with OpenCASCADE WASM...", "step");
         const mesh = await maillerStepDirect(rawBytes, dire);
         postMessage({ id, type: "preview3d", mesh }, [mesh.sommets]);
+        return;
+      }
+
+      // The embedded display mesh is the fast default; exact B-rep loading is
+      // an explicit user action so Pyodide is never started for this route.
+      if (ext === "sldprt" && !brep) {
+        dire("Reading the SolidWorks display mesh with OpenSW-Go...", "step");
+        await chargerGo(dire);
+        const r = openswGoPart(rawBytes, (text, kind) => dire(text, kind));
+        if (r?.ok !== true || !r.vue) {
+          throw new Error(r?.error || "No SolidWorks display mesh found in part");
+        }
+        const mesh = {
+          faces: r.vue.faces,
+          corps: r.vue.corps,
+          rayon: r.vue.rayon,
+          sommets: r.vue.sommets.buffer,
+        };
+        postMessage({ id, type: "preview3d", mesh, displayMesh: true }, [mesh.sommets]);
         return;
       }
 
@@ -340,8 +390,26 @@ _get_stored_props()
         return;
       }
 
-      // Assembly preview (.SLDASM)
+      // Assembly preview (.SLDASM) — instant-start Go engine first
       if (ext === "sldasm") {
+        try {
+          const r = await vueAssemblageGo(rawBytes, dire);
+          const transfer = [r.mesh.sommets];
+          if (r.stlBytes) transfer.push(r.stlBytes.buffer);
+          const bom = buildBom(r.composants);
+          postMessage({
+            id,
+            type: "preview3d",
+            mesh: r.mesh,
+            stlBytes: r.stlBytes,
+            composants: r.composants,
+            bom,
+            bomCsv: bomCsv(bom),
+          }, transfer);
+          return;
+        } catch (e) {
+          dire(`Go engine: ${e.message} — falling back to Python OpenSW...`, "detail");
+        }
         dire("Reading SolidWorks Assembly with OpenSW...", "step");
         const { nav } = await preparerPython(dire);
         const r = nav.lancer("assemblage", filename, rawBytes, (json) => {
@@ -364,7 +432,16 @@ _get_stored_props()
           };
           const transfer = [sommets.buffer];
           if (stlBytes) transfer.push(stlBytes.buffer);
-          postMessage({ id, type: "preview3d", mesh, stlBytes, composants: r.composants }, transfer);
+          const bom = buildBom(r.composants);
+          postMessage({
+            id,
+            type: "preview3d",
+            mesh,
+            stlBytes,
+            composants: r.composants,
+            bom,
+            bomCsv: bomCsv(bom),
+          }, transfer);
           return;
         } else {
           throw new Error("No 3D display mesh found in assembly");
@@ -372,7 +449,7 @@ _get_stored_props()
       }
 
       // SolidWorks Part (.SLDPRT) or Parasolid (.x_t, .x_b)
-      if (ext === "sldprt" || ext === "x_t" || ext === "x_b") {
+      if ((ext === "sldprt" && brep) || ext === "x_t" || ext === "x_b") {
         let stepError = null;
         try {
           dire(`Converting ${ext.toUpperCase()} to STEP with OpenSW...`, "step");
@@ -442,6 +519,24 @@ _get_stored_props()
         return;
       }
 
+      // Assembly conversions — STL and BOM through the Go engine first
+      if (ext === "sldasm" && (target === "stl" || target === "csv")) {
+        try {
+          const r = await vueAssemblageGo(rawBytes, dire);
+          if (target === "stl") {
+            if (!r.stlBytes) throw new Error("Failed to generate STL from assembly");
+            postMessage({ id, type: "converted", filename: filename.replace(/\.sldasm$/i, ".stl"), data: r.stlBytes }, [r.stlBytes.buffer]);
+            return;
+          }
+          const enc = new TextEncoder().encode(bomCsv(buildBom(r.composants)));
+          const outName = filename.replace(/\.sldasm$/i, "_BOM.csv");
+          postMessage({ id, type: "converted", filename: outName, data: enc }, [enc.buffer]);
+          return;
+        } catch (e) {
+          dire(`Go engine: ${e.message} — falling back to Python OpenSW...`, "detail");
+        }
+      }
+
       if (ext === "sldasm") {
         const { nav } = await preparerPython(dire);
         const r = nav.lancer("assemblage", filename, rawBytes, (json) => {
@@ -456,7 +551,7 @@ _get_stored_props()
           return;
         } else if (target === "csv") {
           // Bill of materials CSV
-          const enc = new TextEncoder().encode(bomCsv(r.composants));
+          const enc = new TextEncoder().encode(bomCsv(buildBom(r.composants)));
           const outName = filename.replace(/\.sldasm$/i, "_BOM.csv");
           postMessage({ id, type: "converted", filename: outName, data: enc }, [enc.buffer]);
           return;

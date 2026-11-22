@@ -1135,6 +1135,7 @@
     "connectionLost": "Anslutningen till servern förlorades. Försöker återansluta..."
   },
   "threejs": {
+    "loadBrep": "Läs in exakt B-rep (Python)",
     "failedToLoad": "Misslyckades med att ladda 3D-modell",
     "keyboard": "Tangentbord:",
     "autoRotate": "Auto-rotera",

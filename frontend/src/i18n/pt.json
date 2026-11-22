@@ -1135,6 +1135,7 @@
     "connectionLost": "A ligação ao servidor perdeu-se. Estou a tentar restabelecer a ligação..."
   },
   "threejs": {
+    "loadBrep": "Carregar B-rep exato (Python)",
     "failedToLoad": "Falha ao carregar o modelo 3D",
     "keyboard": "Teclado:",
     "autoRotate": "Rotação automática",

@@ -1166,6 +1166,7 @@
     "connectionLost": "Connessione al server persa. Tentativo di riconnessione..."
   },
   "threejs": {
+    "loadBrep": "Carica B-rep esatto (Python)",
     "controls": "Controlli 3D",
     "changeBackground": "Cambia colore sfondo",
     "failedToLoad": "Caricamento modello 3D fallito",

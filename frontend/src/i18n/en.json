@@ -1168,6 +1168,7 @@
     "connectionLost": "The connection to server was lost. Trying to reconnect..."
   },
   "threejs": {
+    "loadBrep": "Load exact B-rep (Python)",
     "controls": "3D Controls",
     "changeBackground": "Change background color",
     "failedToLoad": "Failed to Load 3D Model",
@@ -1179,11 +1180,20 @@
     "modeStandard": "Standard",
     "modeOcct": "OpenCASCADE",
     "iso": "ISO",
+    "front": "Front",
+    "back": "Back",
+    "left": "Left",
+    "right": "Right",
+    "top": "Top",
+    "bottom": "Bottom",
     "propConfigurationSeparator": "·",
     "inertiaUnit": "kg·m²",
     "densityUnit": "g/cm³",
     "densityValue": "({value} {unit})",
     "viewCube": "Views",
+    "rotateLeft": "Rotate left",
+    "rotateRight": "Rotate right",
+    "wcs": "WCS",
     "properties": "Properties",
     "measure": "Measure",
     "measureExit": "Exit measure",
@@ -1210,9 +1220,14 @@
     "propNote": "Computed from the tessellated mesh (mm). Mass is volume × chosen density; for exact stored SolidWorks mass properties use the CAD file."
   },
   "cadView": {
-    "ready": "{f} faces, {b} bodies. Click a face to read its name.",
     "faceInfo": "body {body} · {tri} triangles",
-    "noWebgl": "This browser has no WebGL: no 3D view."
+    "noWebgl": "This browser has no WebGL: no 3D view.",
+    "bom": "Bill of materials",
+    "bomEmpty": "No components are eligible for the bill of materials.",
+    "exportBom": "Download CSV",
+    "part": "Part",
+    "configuration": "Configuration",
+    "quantity": "Qty."
   },
   "cad": {
     "convert": "Convert CAD...",

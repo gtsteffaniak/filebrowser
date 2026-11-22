@@ -1166,6 +1166,7 @@
     "connectionLost": "Zerbitzariarekiko konexioa galdu da. Berriro konektatzen saiatzen..."
   },
   "threejs": {
+    "loadBrep": "Kargatu B-rep zehatza (Python)",
     "controls": "3D kontrolak",
     "changeBackground": "Aldatu atzeko planoaren kolorea",
     "failedToLoad": "Ezin izan da 3D eredua kargatu",

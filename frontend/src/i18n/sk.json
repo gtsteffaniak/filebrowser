@@ -1135,6 +1135,7 @@
     "connectionLost": "Spojenie so serverom bolo stratené. Pri pokuse o opätovné pripojenie..."
   },
   "threejs": {
+    "loadBrep": "Načítať presný B-rep (Python)",
     "failedToLoad": "Nepodarilo sa načítať 3D model",
     "keyboard": "Klávesnica:",
     "autoRotate": "Automatické otáčanie",

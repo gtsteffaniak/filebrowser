@@ -77,6 +77,22 @@ const unite = (u) => {
   return u.map((x) => x / l);
 };
 
+export function cameraBasisFromOffset(offset, upHint = [0, 1, 0]) {
+  const back = unite(offset);
+  if (Math.hypot(...back) < 1e-8) return null;
+
+  const projectUp = (hint) => {
+    const alongBack = scal(hint, back);
+    return hint.map((value, i) => value - alongBack * back[i]);
+  };
+  let up = projectUp(upHint);
+  if (Math.hypot(...up) < 1e-8) {
+    up = projectUp(back[1] > 0 ? [0, 0, -1] : [0, 0, 1]);
+  }
+  up = unite(up);
+  return { right: unite(vect(up, back)), up, back };
+}
+
 // Rodrigues: v rotated by `angle` about the unit axis `axe`.
 function rodrigues(v, axe, angle) {
   const c = Math.cos(angle),
@@ -341,13 +357,23 @@ export class CadWebGLRenderer {
     this.opts.onViewChanged?.();
   }
 
-  orienter(nom) {
-    const vue = VUES[nom];
-    if (!vue) return;
-    const [d, h] = vue;
-    this.droite = d.slice();
-    this.haut = h.slice();
-    this.arriere = vect(d, h);
+  orienter(view) {
+    if (typeof view === "string") {
+      const vue = VUES[view];
+      if (!vue) return;
+      const [d, h] = vue;
+      this.droite = d.slice();
+      this.haut = h.slice();
+      this.arriere = vect(d, h);
+    } else if (view?.cameraOffset) {
+      const basis = cameraBasisFromOffset(view.cameraOffset, view.up);
+      if (!basis) return;
+      this.droite = basis.right;
+      this.haut = basis.up;
+      this.arriere = basis.back;
+    } else {
+      return;
+    }
     this.ajuster();
   }
 
@@ -619,6 +645,14 @@ export class CadWebGLRenderer {
   /** The camera's view direction (for the view cube). */
   direction() {
     return { x: -this.arriere[0], y: -this.arriere[1], z: -this.arriere[2] };
+  }
+
+  orientation() {
+    return {
+      right: this.droite.slice(),
+      up: this.haut.slice(),
+      back: this.arriere.slice(),
+    };
   }
 
   select(rang) {

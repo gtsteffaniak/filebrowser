@@ -1135,6 +1135,7 @@
     "connectionLost": "فُقد الاتصال بالخادم. محاولة إعادة الاتصال..."
   },
   "threejs": {
+    "loadBrep": "تحميل B-rep الدقيق (Python)",
     "failedToLoad": "فشل تحميل نموذج ثلاثي الأبعاد",
     "keyboard": "لوحة المفاتيح:",
     "autoRotate": "تدوير تلقائي",

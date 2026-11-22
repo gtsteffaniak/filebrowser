@@ -1135,6 +1135,7 @@
     "connectionLost": "サーバーへの接続が失われました。再接続を試みます..."
   },
   "threejs": {
+    "loadBrep": "正確な B-rep を読み込む (Python)",
     "failedToLoad": "3Dモデルの読み込みに失敗しました",
     "keyboard": "キーボード",
     "autoRotate": "自動回転",

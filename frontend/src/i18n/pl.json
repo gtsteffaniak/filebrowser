@@ -1135,6 +1135,7 @@
     "connectionLost": "Połączenie z serwerem zostało utracone. Próba ponownego połączenia..."
   },
   "threejs": {
+    "loadBrep": "Wczytaj dokładny B-rep (Python)",
     "failedToLoad": "Nie udało się załadować modelu 3D",
     "keyboard": "Klawiatura:",
     "autoRotate": "Automatyczny obrót",

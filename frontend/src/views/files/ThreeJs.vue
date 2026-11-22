@@ -93,7 +93,7 @@
     </div>
     <ViewCube
       v-if="!isThumbnail && !error && !loading && model"
-      :get-direction="cameraDirection"
+      :get-orientation="cameraOrientation"
       @select="setView"
     />
   </div>
@@ -634,12 +634,19 @@ export default {
 
     // --- view cube -----------------------------------------------------------
 
-    cameraDirection() {
-      if (!this.camera) return { x: 0, y: 0, z: -1 };
-      return this.camera.getWorldDirection(new Vector3());
+    cameraOrientation() {
+      if (!this.camera) {
+        return { right: [1, 0, 0], up: [0, 1, 0], back: [0, 0, 1] };
+      }
+      const q = this.camera.quaternion;
+      return {
+        right: new Vector3(1, 0, 0).applyQuaternion(q).toArray(),
+        up: new Vector3(0, 1, 0).applyQuaternion(q).toArray(),
+        back: new Vector3(0, 0, 1).applyQuaternion(q).toArray(),
+      };
     },
 
-    /** Fly the camera to a named orthographic-ish view. */
+    /** Fly the camera to a cube target or named orthographic-ish view. */
     setView(view) {
       if (!this.camera || !this.controls) return;
       const dirs = {
@@ -651,13 +658,17 @@ export default {
         back: new Vector3(0, 0, -1),
         iso: new Vector3(1, 1, 1),
       };
-      const dir = dirs[view];
-      if (!dir) return;
+      const isTarget = typeof view === "object" && Array.isArray(view?.cameraOffset);
+      const dir = isTarget ? new Vector3(...view.cameraOffset) : dirs[view];
+      if (!dir || dir.lengthSq() === 0) return;
       dir.normalize();
       const target = this.controls.target.clone();
       const dist = this.camera.position.distanceTo(target);
       const from = this.camera.position.clone();
       const to = target.clone().add(dir.multiplyScalar(dist));
+      if (isTarget && Array.isArray(view.up)) {
+        this.camera.up.set(...view.up).normalize();
+      }
       const t0 = performance.now();
       const dur = 350;
       const step = () => {

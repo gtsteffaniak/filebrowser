@@ -1137,6 +1137,7 @@
     "connectionLost": "Se perdió la conexión con el servidor. Intentando reconectar..."
   },
   "threejs": {
+    "loadBrep": "Cargar B-rep exacto (Python)",
     "failedToLoad": "Error al cargar el modelo 3D",
     "keyboard": "Teclado:",
     "autoRotate": "Rotación automática",
@@ -1148,11 +1149,20 @@
     "modeStandard": "Estándar",
     "modeOcct": "OpenCASCADE",
     "iso": "ISO",
+    "front": "Frente",
+    "back": "Atrás",
+    "left": "Izquierda",
+    "right": "Derecha",
+    "top": "Superior",
+    "bottom": "Inferior",
     "propConfigurationSeparator": "·",
     "inertiaUnit": "kg·m²",
     "densityUnit": "g/cm³",
     "densityValue": "({value} {unit})",
     "viewCube": "Vistas",
+    "rotateLeft": "Girar a la izquierda",
+    "rotateRight": "Girar a la derecha",
+    "wcs": "WCS",
     "properties": "Propiedades",
     "measure": "Medir",
     "measureExit": "Salir de medición",
@@ -1179,9 +1189,14 @@
     "propNote": "Calculado sobre la malla teselada (mm). La masa es volumen × densidad elegida; para propiedades de masa exactas guardadas, usa el archivo CAD."
   },
   "cadView": {
-    "ready": "{f} caras, {b} cuerpos. Haz clic en una cara para leer su nombre.",
     "faceInfo": "cuerpo {body} · {tri} triángulos",
-    "noWebgl": "Este navegador no ofrece WebGL: no hay vista 3D."
+    "noWebgl": "Este navegador no ofrece WebGL: no hay vista 3D.",
+    "bom": "Lista de materiales",
+    "bomEmpty": "No hay componentes incluidos en la lista de materiales.",
+    "exportBom": "Descargar CSV",
+    "part": "Pieza",
+    "configuration": "Configuración",
+    "quantity": "Cant."
   },
   "cad": {
     "convert": "Convertir CAD...",

@@ -7,6 +7,7 @@
       "!dist",
       "!public/config.generated.yaml",
       "!public/index.html",
+      "!public/wasm/wasm_exec.js",
       "!node_modules",
       "!test-results"
     ]
