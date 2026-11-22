@@ -426,13 +426,19 @@ const (
 
 type decodeBudget struct {
 	remaining int64
-	exceeded  bool
+}
+
+// canRetain reports whether a decoded payload fits in the remaining
+// document-wide budget. A payload exactly filling the budget is accepted.
+func canRetain(remaining int64, size int) bool {
+	return int64(size) <= remaining
 }
 
 // tryBlock decodes the block at off: marker, type id, crc32, compressed and
 // uncompressed sizes, name length, then the rotated name and the DEFLATE
-// payload. ok is false unless every check passes.
-func tryBlock(data []byte, off, key int, b *decodeBudget) (name string, raw []byte, end int, ok bool) {
+// payload. ok is false unless every check passes. The per-block inflated
+// limit bounds the temporary decode; retention is decided by the caller.
+func tryBlock(data []byte, off, key int) (name string, raw []byte, end int, ok bool) {
 	if off+blockHeaderSize > len(data) {
 		return "", nil, 0, false
 	}
@@ -441,11 +447,6 @@ func tryBlock(data []byte, off, key int, b *decodeBudget) (name string, raw []by
 	uncompSz := binary.LittleEndian.Uint32(data[off+18 : off+22])
 	preSz := binary.LittleEndian.Uint32(data[off+22 : off+26])
 	if preSz > 4096 || uint64(compSz) > uint64(len(data)) || uncompSz > maxBlockInflated {
-		return "", nil, 0, false
-	}
-	// Check before inflating: a stream may use only the remaining document budget.
-	if int64(uncompSz)+1 > b.remaining {
-		b.exceeded = true
 		return "", nil, 0, false
 	}
 	body := off + blockHeaderSize
@@ -457,11 +458,8 @@ func tryBlock(data []byte, off, key int, b *decodeBudget) (name string, raw []by
 	fr := flate.NewReader(bytes.NewReader(payload))
 	defer fr.Close()
 	// One byte past uncompSz: a stream that inflates larger must be rejected.
-	limit := int64(uncompSz) + 1
-	if limit > b.remaining {
-		limit = b.remaining
-	}
-	raw, err := io.ReadAll(io.LimitReader(fr, limit))
+	// This extra byte belongs to the inflation check, not the retained budget.
+	raw, err := io.ReadAll(io.LimitReader(fr, int64(uncompSz)+1))
 	if err != nil {
 		return "", nil, 0, false
 	}
@@ -478,9 +476,13 @@ func tryBlock(data []byte, off, key int, b *decodeBudget) (name string, raw []by
 // readBlockBlobs scans for marker-prefixed blocks and returns the first
 // payload per name, bounded by a document-wide decoded budget.
 func readBlockBlobs(data []byte) (map[string][]byte, error) {
+	return readBlockBlobsWithBudget(data, maxDecodedPerDoc)
+}
+
+func readBlockBlobsWithBudget(data []byte, budget int64) (map[string][]byte, error) {
 	key := nameKey(data)
 	out := map[string][]byte{}
-	b := &decodeBudget{remaining: maxDecodedPerDoc}
+	b := &decodeBudget{remaining: budget}
 	searchFrom := 0
 	for {
 		rel := bytes.Index(data[searchFrom:], blockMarker)
@@ -488,12 +490,14 @@ func readBlockBlobs(data []byte) (map[string][]byte, error) {
 			break
 		}
 		off := searchFrom + rel
-		name, raw, end, ok := tryBlock(data, off, key, b)
-		if b.exceeded {
-			return nil, errors.New("opensw: decoded block budget exceeded")
-		}
+		name, raw, end, ok := tryBlock(data, off, key)
 		if ok {
+			// Validate and deduplicate before charging: a discarded duplicate
+			// must not consume the document budget.
 			if _, exists := out[name]; !exists {
+				if !canRetain(b.remaining, len(raw)) {
+					return nil, errors.New("opensw: decoded block budget exceeded")
+				}
 				out[name] = raw
 				b.remaining -= int64(len(raw))
 			}

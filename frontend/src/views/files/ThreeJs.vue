@@ -157,6 +157,7 @@ import { fetchPreviewImage } from "@/utils/previewRequests.js";
 import { getCachedViewToken, ensureViewToken, requestViewIdentity } from "@/api/viewToken";
 import { getObjectProperty } from '@/utils/object.js';
 import { resolveAssetFilePath, hasSiblingFile } from "@/utils/threeAssetUrl.js";
+import { projectPointOnPlane } from "@/utils/projectPointOnPlane.js";
 
 // Texture slots on three.js materials that hold a Texture needing disposal.
 const TEXTURE_SLOTS = [
@@ -952,7 +953,7 @@ export default {
       const n = cross(ab, ac);
       const nn = dot(n, n) || 1;
       const t = dot(n, sub(p, a)) / nn;
-      const q = [p[0] - t * n[0] / Math.sqrt(nn), p[1] - t * n[1] / Math.sqrt(nn), p[2] - t * n[2] / Math.sqrt(nn)];
+      const q = projectPointOnPlane(p, a, n);
       this.triClosest = q;
       return Math.abs(t) * Math.sqrt(nn);
     },
