@@ -143,6 +143,7 @@ import {
   writeMobileLyricsOpen,
 } from "@/composables/player/playerStorage.ts";
 import { useAudioVisualizer } from "@/composables/player/useAudioVisualizer.ts";
+import { useEmbeddedArtwork } from "@/composables/player/useEmbeddedArtwork.ts";
 import { useDoubleTapSeek } from "@/composables/player/useDoubleTapSeek.ts";
 import { useFullscreenState } from "@/composables/player/useFullscreenState.ts";
 import { useGestureState } from "@/composables/player/useGestureState.ts";
@@ -205,8 +206,6 @@ const audioElement = useTemplateRef<HTMLAudioElement>("audioElement");
 const gestureRoot = useTemplateRef<HTMLElement>("gestureRoot");
 
 // --- Metadata and album art ---
-const metadata = ref<AudioMetadata | null>(null);
-const albumArtUrl = ref<string | null>(null);
 // Storage keys (plyrAlbumArtSize, plyrShowDesktopPanel, plyrShowMobileLyrics) keep the legacy prefix so saved preferences survive.
 const albumArtSize = ref(readAlbumArtSize());
 const isHovering = ref(false);
@@ -217,6 +216,10 @@ const isMobile = computed(() => getters.isMobile());
 const filetype = computed(() => getTypeFromMime(props.req.type || ""));
 const formattedArtist = computed(() => formatArtist(metadata.value?.artist ?? ""));
 const fileName = computed(() => (props.req.name ? props.req.name.replace(/\.[^/.]+$/, "") : ""));
+const { metadata, albumArtUrl, loadMediaMetadata, cleanupAlbumArt } = useEmbeddedArtwork({
+  getMetadata: () => props.req.metadata,
+  getFileName: () => fileName.value,
+});
 const artworkUrl = computed(() => albumArtUrl.value || undefined);
 const desktopPanelToggleLabel = computed(() =>
   showDesktopPanel.value ? t("player.closePanel") : t("player.openPanel"),
@@ -238,33 +241,6 @@ function onAlbumArtScroll(event: WheelEvent): void {
   const scrollDelta = event.deltaY > 0 ? -5 : 5; // Scroll down decreases, scroll up increases
   // Apply size constraints (minimum 10em, maximum 50em)
   albumArtSize.value = Math.max(10, Math.min(50, albumArtSize.value + scrollDelta));
-}
-
-/** Reads the metadata the parent already fetched from the backend. */
-function loadMediaMetadata(): void {
-  const meta = props.req.metadata;
-  metadata.value = {
-    title: meta?.title || fileName.value, // Fallback to filename
-    artist: meta?.artist,
-    album: meta?.album,
-    year: meta?.year,
-  };
-  if (!meta?.albumArt) return;
-  try {
-    const bytes = Uint8Array.from(atob(meta.albumArt), (c) => c.charCodeAt(0));
-    albumArtUrl.value = URL.createObjectURL(new Blob([bytes], { type: "image/jpeg" }));
-  } catch (error) {
-    console.error("Failed to decode album art:", error);
-    albumArtUrl.value = null;
-  }
-}
-
-function cleanupAlbumArt(): void {
-  if (albumArtUrl.value?.startsWith("blob:")) {
-    URL.revokeObjectURL(albumArtUrl.value);
-  }
-  albumArtUrl.value = null;
-  metadata.value = null;
 }
 
 watch(showDesktopPanel, writeDesktopPanelOpen);

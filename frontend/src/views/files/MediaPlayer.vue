@@ -28,8 +28,7 @@
         />
         <VideoPlayer v-else
           :key="viewerKey"
-          ref="viewerRef"
-          :previewType="previewType"
+          ref="videoRef"
           :raw="raw"
           :subtitlesList="subtitlesList"
           :req="req"
@@ -140,7 +139,7 @@ interface SubtitleSource {
 
 const { t } = useI18n();
 
-const viewerRef = useTemplateRef<{ destroyPlyr?: () => void }>("viewerRef");
+const videoRef = useTemplateRef<{ destroy?: () => void }>("videoRef");
 const audioRef = useTemplateRef<{ destroy?: () => void }>("audioRef");
 
 const subtitlesList = ref<SubtitleSource[]>([]);
@@ -167,7 +166,7 @@ const {
 } = usePreviewNavigation({
   onBeforeTeardown: () => {
     audioRef.value?.destroy?.();
-    viewerRef.value?.destroyPlyr?.();
+    videoRef.value?.destroy?.();
     disposeTranscodePlaybackController();
   },
 });

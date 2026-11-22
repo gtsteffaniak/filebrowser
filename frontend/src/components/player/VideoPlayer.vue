@@ -1,8 +1,6 @@
 <template>
   <div class="media-player">
-    <!-- Video with plyr -->
     <div
-      v-if="previewType === 'video'"
       class="video-player-container"
       :class="{
         'no-captions': !hasSubtitles,
@@ -13,7 +11,7 @@
         <video
           ref="videoElement"
           :type="req.type"
-          :src="nativeVideoSrc"
+          :src="nativeVideoSrc ?? undefined"
           :poster="artworkUrl"
           :autoplay="videoElementAutoplay"
           @play="handlePlay"
@@ -29,7 +27,7 @@
         v-if="videoPlaybackLoading || transcodeSwitchInProgress"
         class="video-loading-overlay"
         :class="{ 'video-loading-overlay--blocking': transcodeSwitchInProgress }"
-        :aria-label="transcodeSwitchInProgress ? $t('player.transcodeLoading') : undefined"
+        :aria-label="transcodeSwitchInProgress ? t('player.transcodeLoading') : undefined"
         aria-hidden="true"
         aria-busy="true"
       >
@@ -54,7 +52,7 @@
       :badge="queueCount"
       group="media-controls"
       @press="showQueuePrompt"
-      :label="queueButtonLabel"
+      :label="t('player.QueueButtonHint')"
     />
     <!-- Toast when you change playback modes in the media player -->
     <div :class="['playback-toast', toastVisible ? 'visible' : '']">
@@ -74,1861 +72,1910 @@
   </div>
 </template>
 
-<script>
-import { getCurrentInstance, shallowRef } from 'vue';
-import { useDoubleTapSeek } from '@/composables/player/useDoubleTapSeek.ts';
-import { useFullscreenState } from '@/composables/player/useFullscreenState.ts';
-import { useGestureState } from '@/composables/player/useGestureState.ts';
-import { useSwipeNavigationGestures } from '@/composables/player/useSwipeNavigationGestures.ts';
-import { resolveMountedFileKey, useMediaPlayer } from '@/composables/player/useMediaPlayer.ts';
-import { useMediaKeyboard } from '@/composables/player/useMediaKeyboard.ts';
-import { usePlaybackQueue } from '@/composables/player/usePlaybackQueue.ts';
-import { useMediaSession } from '@/composables/player/useMediaSession.ts';
-import { useCaptionSize } from '@/composables/player/useCaptionSize.ts';
+<script setup lang="ts">
+import type Plyr from "plyr";
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, shallowRef, useTemplateRef, watch } from "vue";
+import { useRoute } from "vue-router";
+import { getPreviewURL, getPreviewURLPublic } from "@/api/resources.js";
+import { getTranscodeSessions } from "@/api/transcode.js";
+import { getCachedViewToken } from "@/api/viewToken.js";
+import LoadingSpinner from "@/components/LoadingSpinner.vue";
+import FloatingActionButton from "@/components/settings/FloatingActionButton.vue";
+import { getPlayerI18n, getSettingsElements } from "@/composables/player/plyrSettingsElements.ts";
 import {
   CAPTION_SIZE_IDS,
   getCaptionSizeLabel,
   getStoredCaptionSize,
   setStoredCaptionSize,
-} from '@/composables/player/playerStorage.ts';
-import { getters, mutations, state } from "@/store/index.ts";
-import { globalVars } from "@/utils/constants.ts";
-import { getSubtitleFormatExtension } from "@/utils/subtitles.js";
-import { getPreviewURL, getPreviewURLPublic } from "@/api/resources.js";
-import {
-  blockSeekOnInput,
-  enableSeekOnRelease,
-} from "@/player/seekOnRelease.js";
+} from "@/composables/player/playerStorage.ts";
+import { useCaptionSize } from "@/composables/player/useCaptionSize.ts";
+import { useDoubleTapSeek } from "@/composables/player/useDoubleTapSeek.ts";
+import { useEmbeddedArtwork } from "@/composables/player/useEmbeddedArtwork.ts";
+import { useFullscreenState } from "@/composables/player/useFullscreenState.ts";
+import { useGestureState } from "@/composables/player/useGestureState.ts";
+import { useMediaKeyboard } from "@/composables/player/useMediaKeyboard.ts";
+import { type MountedFileKey, resolveMountedFileKey, useMediaPlayer } from "@/composables/player/useMediaPlayer.ts";
+import { useMediaSession } from "@/composables/player/useMediaSession.ts";
+import { usePlaybackQueue } from "@/composables/player/usePlaybackQueue.ts";
+import { useSwipeNavigationGestures } from "@/composables/player/useSwipeNavigationGestures.ts";
+import { useI18n } from "@/i18n/index.ts";
+import { notify } from "@/notify/index.ts";
+import { appendMediaFragment, isPlayBlockedError, primePlay } from "@/player/playbackIntent.js";
 import { enableScrubPreview } from "@/player/scrubPreview.js";
-import { enableVideoLoadingIndicator } from "@/player/videoLoading.js";
-import LoadingSpinner from '@/components/LoadingSpinner.vue';
-import FloatingActionButton from '@/components/settings/FloatingActionButton.vue';
+import { blockSeekOnInput, enableSeekOnRelease } from "@/player/seekOnRelease.js";
+import { transcodeLog, transcodeWarn } from "@/player/transcodeDebug.js";
 import {
-  parseTranscodeModeFromQuery,
-  buildPlaybackQueryPatch,
-  playbackQueryChanged,
-} from "@/utils/playbackQuery.js";
-import {
-  resolveTranscodeModeForPlayback,
-  savePreferredTranscodeMode,
-} from '@/utils/transcodePreference.js';
-import { createTranscodeClientId } from '@/player/transcodeSession.js';
-import { TranscodePlaybackController } from '@/player/transcodePlaybackController.js';
-import {
-  TRANSCODE_MODES as PLYR_TRANSCODE_MODES,
-  TRANSCODE_HLS_MODES as PLYR_TRANSCODE_HLS_MODES,
+  isTranscodeAvailable,
+  isTranscodeHlsMode,
   normalizeTranscodeMode,
   normalizeTranscodeSessionStatus,
-  isTranscodeHlsMode,
-  isTranscodeAvailable,
-} from '@/player/transcodeMode.js';
-import { transcodeLog, transcodeWarn } from '@/player/transcodeDebug.js';
-import { appendMediaFragment, isPlayBlockedError, primePlay } from '@/player/playbackIntent.js';
-import { needsTranscodeFirst } from '@/utils/canBrowserPlayNative.js';
-import { getTranscodeSessions } from '@/api/transcode.js';
-import { getCachedViewToken } from '@/api/viewToken.js';
-import { notify } from "@/notify/index.ts";
+  TRANSCODE_HLS_MODES,
+  TRANSCODE_MODES,
+} from "@/player/transcodeMode.js";
+import { TranscodePlaybackController } from "@/player/transcodePlaybackController.js";
+import { createTranscodeClientId } from "@/player/transcodeSession.js";
+import { enableVideoLoadingIndicator } from "@/player/videoLoading.js";
+import { router } from "@/router/index.ts";
+import { getters, mutations, state } from "@/store/index.ts";
+import { needsTranscodeFirst } from "@/utils/canBrowserPlayNative.js";
+import { globalVars } from "@/utils/constants.ts";
+import {
+  buildPlaybackQueryPatch,
+  parseTranscodeModeFromQuery,
+  playbackQueryChanged,
+} from "@/utils/playbackQuery.js";
+import { getSubtitleFormatExtension } from "@/utils/subtitles.js";
+import { resolveTranscodeModeForPlayback, savePreferredTranscodeMode } from "@/utils/transcodePreference.js";
 
-export default {
-  name: "VideoPlayer",
-  components: {
-    LoadingSpinner,
-    FloatingActionButton,
-  },
-  props: {
-    previewType: {
-      type: String,
-      required: true,
-    },
-    raw: {
-      type: String,
-      required: true,
-    },
-    subtitlesList: {
-      type: Array,
-      default: () => [],
-    },
-    req: {
-      type: Object,
-      required: true,
-    },
-    autoPlayEnabled: {
-      type: Boolean,
-      default: false,
-    },
-    listing: {
-      type: Array,
-      default: () => [],
-    },
-    startTranscode: {
-      type: Boolean,
-      default: false,
-    },
-    sharedTranscodePlayback: {
-      type: Object,
-      default: null,
-    },
-  },
-  emits: {
-    'playback-start': () => true,
-    'navigate-previous': () => true,
-    'navigate-next': () => true,
-    'close-preview': () => true,
-    'needs-transcode': () => true,
-  },
-  setup(props, { emit }) {
-    // The Plyr instance is held in a shallow ref: it is a third-party object and must not be deep-proxied.
-    const player = shallowRef(null);
-    const { applyCaptionSizeClass, syncCaptionSizeSettingsVisibility } = useCaptionSize({
-      player,
-      isVisible: () => props.previewType === 'video' && props.subtitlesList.length > 0,
-    });
-    const {
-      setupMediaSession,
-      updateMediaSessionNavHandlers,
-      updateMediaSessionPlaybackState,
-      clearMediaSession,
-    } = useMediaSession(player);
-    const gestures = useGestureState();
-    // Bridge to the Options API instance for component methods the composables call lazily; goes away with phase 5c.
-    const vm = getCurrentInstance()?.proxy;
-    const doubleTap = useDoubleTapSeek({
-      player,
-      gestures,
-      getPreviewType: () => props.previewType,
-      getAudioGestureRoot: () => null,
-      requestPlay: () => vm?.requestPlay(),
-    });
-    const swipe = useSwipeNavigationGestures({
-      player,
-      gestures,
-      getPreviewType: () => props.previewType,
-      isMobileLyricsActive: () => false,
-      getGestureSurface: doubleTap.getGestureSurface,
-      isControlOrMenuTarget: doubleTap.isControlOrMenuTarget,
-      onNavigatePrevious: () => emit('navigate-previous'),
-      onNavigateNext: () => emit('navigate-next'),
-      onClosePreview: () => emit('close-preview'),
-    });
-    const fullscreen = useFullscreenState({ onEnter: swipe.resetEdgeGestureImmediate });
-    const playbackQueue = usePlaybackQueue({
-      getReq: () => props.req,
-      getListing: () => props.listing,
-    });
-    const mediaPlayer = useMediaPlayer({
-      player,
-      getMediaElement: () => vm?.mediaElement,
-      getRequestedFile: () => props.req,
-      getMountedFile: () => vm?.mountedPreviewKey,
-      isTornDown: () => vm?.plyrTeardownDone ?? false,
-      destroy: () => vm?.destroyPlyr(),
-      beforeStopMedia: () => vm?.clearAttachVideoStreamWait(),
-    });
-    const keyboard = useMediaKeyboard({
-      player,
-      getPreviewType: () => props.previewType,
-      cyclePlaybackModes: playbackQueue.cyclePlaybackModes,
-      toggleSingleLoop: playbackQueue.toggleSingleLoop,
-      showQueuePrompt: playbackQueue.showQueuePrompt,
-      flashSkipFeedback: doubleTap.flashSkipFeedback,
-      toggleDesktopPanel: () => undefined, // the desktop panel exists only in AudioPlayer
-    });
-    return {
-      player,
-      ...keyboard,
-      ...mediaPlayer,
-      ...playbackQueue,
-      ...gestures,
-      ...doubleTap,
-      ...swipe,
-      ...fullscreen,
-      applyCaptionSizeClass,
-      syncCaptionSizeSettingsVisibility,
-      setupMediaSession,
-      updateMediaSessionNavHandlers,
-      updateMediaSessionPlaybackState,
-      clearMediaSession,
-    };
-  },
-  data() {
-    return {
-      // Metadata & Art
-      metadata: null, // Null by default, will be loaded from the file metadata.
-      albumArtUrl: null,
+interface VideoFile {
+  name?: string;
+  type?: string;
+  path?: string;
+  source?: string;
+  modified?: string;
+  hasPreview?: boolean;
+  viewToken?: string;
+  subtitles?: unknown[];
+  metadata?: {
+    title?: string;
+    artist?: string;
+    album?: string;
+    year?: string | number;
+    albumArt?: string;
+    duration?: number;
+    videoCodec?: string;
+    audioCodec?: string;
+  };
+}
 
-      captionSizeMenuInitialized: false,
-      /** Native video: defer stream URL until play so opening preview does not range-fetch the file. */
-      videoStreamAttached: false,
-      attachVideoStreamResume: null,
-      /** Centered spinner while the video is loading or buffering. */
-      videoPlaybackLoading: false,
-      seekOnReleaseCleanup: null,
-      scrubPreviewCleanup: null,
-      videoLoadingCleanup: null,
-      plyrTeardownDone: false,
-      /** Playhead restore (transcode -> native); applied when the video stream attaches. */
-      resumeSnapshot: null,
-      /** Seek target passed via Media Fragments URI (#t=) when re-attaching the native stream. */
-      resumeSeekSeconds: null,
-      /** Source+path this instance mounted for; guards stale instances during route transitions. */
-      mountedPreviewKey: null,
-      /** Keeps :src stable after a resume attach so Vue does not rebind without #t=. */
-      lockedNativeVideoSrc: null,
-      transcodePlayback: null,
-      transcodeClientId: createTranscodeClientId(),
-      transcodeSwitchInProgress: false,
-      transcodeFallbackAttempted: false,
-      transcodeMode: 'native',
-      transcodeMenuInitialized: false,
-      transcodeModeButtons: null,
-      transcodeModeValueSpan: null,
-      captionSizeButtons: null,
-      captionSizeValueSpan: null,
-      transcodeOfferEmitted: false,
-      mountPlyrInProgress: false,
-      /** Armed when autoplay is blocked so the next user gesture can resume playback. */
-      resumeOnGestureArmed: false,
-      resumeOnGestureHandler: null,
-    };
+interface SubtitleTrack {
+  src?: string;
+  name?: string;
+  srclang?: string;
+  language?: string;
+}
+
+/** Playhead restore (transcode -> native); applied when the video stream attaches. */
+interface ResumeSnapshot {
+  currentTime: number;
+  wasPlaying?: boolean;
+}
+
+interface RecoverContext {
+  startSec?: number;
+  sessionId?: string;
+  mode?: string;
+  shouldAutoplay?: boolean;
+  playPrime?: ReturnType<typeof primePlay> | null;
+}
+
+/** Disposer returned by enableVideoLoadingIndicator; `expectPlayback` is absent on its no-op variant. */
+interface LoadingIndicatorHandle {
+  (): void;
+  expectPlayback?: () => void;
+}
+
+interface StartTranscodeOptions {
+  replaceSessionId?: string;
+  startSec?: number;
+  mode?: string;
+  autoplay?: boolean;
+  playPrime?: ReturnType<typeof primePlay> | null;
+  manageSwitchState?: boolean;
+}
+
+interface TeardownTranscodeOptions {
+  stopSession?: boolean;
+  keepAlive?: boolean;
+  keepalive?: boolean;
+}
+
+type TranscodeOffer = ReturnType<typeof normalizeTranscodeSessionStatus>;
+
+const props = withDefaults(
+  defineProps<{
+    raw: string;
+    req: VideoFile;
+    subtitlesList?: SubtitleTrack[];
+    autoPlayEnabled?: boolean;
+    listing?: unknown[];
+    startTranscode?: boolean;
+    /** Controller owned by MediaPlayer.vue so it survives this component being re-keyed. */
+    sharedTranscodePlayback?: TranscodePlaybackController | null;
+  }>(),
+  {
+    subtitlesList: () => [],
+    autoPlayEnabled: false,
+    listing: () => [],
+    startTranscode: false,
+    sharedTranscodePlayback: null,
   },
-  watch: {
-    async playbackMode(newMode, oldMode) {
-      if (newMode !== oldMode) {
-        if (oldMode !== undefined) {
-          // can only be "single" via clearPlaybackQueue
-          this.toastType = newMode === 'single' ? 'cleared' : 'mode';
-          this.showToast();
-        }
-        this.updateMediaSessionNavHandlers();
-        await this.$nextTick();
-        this.ensurePlaybackModeApplied();
-      }
+);
+
+const emit = defineEmits<{
+  "playback-start": [];
+  "navigate-previous": [];
+  "navigate-next": [];
+  "close-preview": [];
+  "needs-transcode": [status: TranscodeOffer];
+}>();
+
+const { t } = useI18n();
+const route = useRoute();
+
+// The Plyr instance is held in a shallow ref: it is a third-party object and must not be deep-proxied.
+const player = shallowRef<Plyr | null>(null);
+const videoElement = useTemplateRef<HTMLVideoElement>("videoElement");
+
+// --- State ---
+/** Native video: defer stream URL until play so opening preview does not range-fetch the file. */
+const videoStreamAttached = ref(false);
+/** Centered spinner while the video is loading or buffering. */
+const videoPlaybackLoading = ref(false);
+const resumeSnapshot = ref<ResumeSnapshot | null>(null);
+/** Seek target passed via Media Fragments URI (#t=) when re-attaching the native stream. */
+const resumeSeekSeconds = ref<number | null>(null);
+/** Keeps :src stable after a resume attach so Vue does not rebind without #t=. */
+const lockedNativeVideoSrc = ref<string | null>(null);
+const transcodePlayback = ref<TranscodePlaybackController | null>(null);
+const transcodeSwitchInProgress = ref(false);
+const transcodeMode = ref("native");
+const transcodeClientId = createTranscodeClientId();
+
+/** Source+path this instance mounted for; guards stale instances during route transitions. */
+let mountedFile: MountedFileKey | null = null;
+let tornDown = false;
+let mountInProgress = false;
+let seekOnReleaseCleanup: (() => void) | null = null;
+let scrubPreviewCleanup: (() => void) | null = null;
+let videoLoadingCleanup: LoadingIndicatorHandle | null = null;
+let attachVideoStreamResume: (() => void) | null = null;
+let transcodeFallbackAttempted = false;
+let transcodeOfferEmitted = false;
+/** Armed when autoplay is blocked so the next user gesture can resume playback. */
+let resumeOnGestureArmed = false;
+let resumeOnGestureHandler: (() => void) | null = null;
+// Plyr-specific menu state (the custom caption size and transcode menus are built with innerHTML).
+let captionSizeMenuInitialized = false;
+let transcodeMenuInitialized = false;
+let captionSizeButtons: NodeListOf<HTMLButtonElement> | null = null;
+let captionSizeValueSpan: HTMLElement | null = null;
+let transcodeModeButtons: NodeListOf<HTMLButtonElement> | null = null;
+let transcodeModeValueSpan: HTMLElement | null = null;
+
+// --- Derived state ---
+const isMobile = computed(() => getters.isMobile());
+const hasSubtitles = computed(() => props.subtitlesList.length > 0);
+const fileName = computed(() => (props.req.name ? props.req.name.replace(/\.[^/.]+$/, "") : ""));
+const { metadata, albumArtUrl, loadMediaMetadata, cleanupAlbumArt } = useEmbeddedArtwork({
+  getMetadata: () => props.req.metadata,
+  getFileName: () => fileName.value,
+});
+
+const scrubPreviewEnabled = computed(() => Boolean(props.req?.hasPreview) && getters.previewPerms().video);
+const artworkUrl = computed(() => {
+  if (albumArtUrl.value) return albumArtUrl.value;
+  if (!scrubPreviewEnabled.value) return undefined;
+  return getters.isShare()
+    ? getPreviewURLPublic(props.req.path ?? "", "original")
+    : `${getPreviewURL(props.req.source, props.req.path, props.req.modified)}&size=original`;
+});
+
+const transcodeEnabled = computed(() => isTranscodeAvailable());
+const transcodeActive = computed(() => transcodePlayback.value?.active === true);
+const transcodeStartInProgress = computed(() => transcodePlayback.value?.startInProgress === true);
+const transcodeMenuAvailable = computed(
+  () => transcodeEnabled.value && getters.isLoggedIn() && !getters.isShare(),
+);
+const isTranscodePlaybackMode = computed(
+  () => transcodeEnabled.value && TRANSCODE_HLS_MODES.includes(transcodeMode.value),
+);
+const wantsTranscodePlayback = computed(() => isTranscodePlaybackMode.value);
+const formatNeedsTranscode = computed(() => needsTranscodeFirst(transcodeProbeParams()));
+const transcodeProfileOptions = computed<string[]>(() => {
+  const live = state.mediaSettings?.profiles;
+  const configured: string[] = Array.isArray(live) ? live : TRANSCODE_HLS_MODES;
+  return configured.filter((id) => TRANSCODE_HLS_MODES.includes(id));
+});
+const shouldProactivelyOfferTranscode = computed(() => {
+  if (props.startTranscode) {
+    return false;
+  }
+  if (isTranscodePlaybackMode.value || getters.isShare()) {
+    return false;
+  }
+  return formatNeedsTranscode.value;
+});
+
+function transcodeProbeParams() {
+  const meta = props.req?.metadata || {};
+  return {
+    videoCodec: meta.videoCodec,
+    audioCodec: meta.audioCodec,
+    mimeType: props.req?.type,
+    fileName: props.req?.name,
+  };
+}
+
+const { applyCaptionSizeClass, syncCaptionSizeSettingsVisibility } = useCaptionSize({
+  player,
+  isVisible: () => props.subtitlesList.length > 0,
+});
+const { setupMediaSession, updateMediaSessionNavHandlers, updateMediaSessionPlaybackState, clearMediaSession } =
+  useMediaSession(player);
+const gestures = useGestureState();
+const queue = usePlaybackQueue({
+  getReq: () => props.req,
+  getListing: () => props.listing,
+});
+const {
+  queueCount,
+  playbackQueue,
+  currentQueueIndex,
+  playbackMode,
+  loop,
+  toastVisible,
+  toastType,
+  toastIcon,
+  playbackModeMessage,
+  showToast,
+  showQueuePrompt,
+  toggleSingleLoop,
+  cyclePlaybackModes,
+  playbackMenuInitialized,
+  loopMenuInitialized,
+  applyPlaybackMenu,
+  applyLoopMenu,
+  resetPlaybackMenuState,
+} = queue;
+
+const shouldAutoplay = computed(() => props.autoPlayEnabled || playbackQueue.value.length > 1);
+const showQueueButton = computed(() => !isFullscreen.value);
+
+const doubleTap = useDoubleTapSeek({
+  player,
+  gestures,
+  getPreviewType: () => "video",
+  getAudioGestureRoot: () => null,
+  requestPlay,
+});
+const {
+  skipFeedbackVisible,
+  skipFeedbackSide,
+  skipFeedbackIcon,
+  skipFeedbackKey,
+  hasStartedPlayback,
+  flashSkipFeedback,
+  setupDoubleTapSeek,
+  teardownDoubleTapSeek,
+  setupRewindForwardFeedback,
+  clearRewindForwardFeedback,
+  setupOverlaidHintController,
+  teardownOverlaidHintController,
+  resetOverlaidHints,
+  syncOverlaidHintPlayback,
+} = doubleTap;
+const swipe = useSwipeNavigationGestures({
+  player,
+  gestures,
+  getPreviewType: () => "video",
+  isMobileLyricsActive: () => false,
+  getGestureSurface: doubleTap.getGestureSurface,
+  isControlOrMenuTarget: doubleTap.isControlOrMenuTarget,
+  onNavigatePrevious: () => emit("navigate-previous"),
+  onNavigateNext: () => emit("navigate-next"),
+  onClosePreview: () => emit("close-preview"),
+});
+const { speedToastVisible, speedToastMessage, setupSwipeGestures, teardownSwipeGestures, clearDismissAnimTimers } = swipe;
+const { isFullscreen, onFullscreenEnter, onFullscreenExit } = useFullscreenState({
+  onEnter: swipe.resetEdgeGestureImmediate,
+});
+const {
+  createPlayer,
+  overridePlay,
+  getNativePlay,
+  restoreNativePlay,
+  onPlayerEvent,
+  getActiveMediaElement,
+  stopMediaElement,
+  rememberFullscreenForTransition,
+  resumeFullscreenAfterNavigation,
+  destroyPlayer,
+  stopIfRouteLeftThisFile,
+  togglePlayPause,
+  handleMediaEnd,
+} = useMediaPlayer({
+  player,
+  getMediaElement: () => videoElement.value,
+  getRequestedFile: () => props.req,
+  getMountedFile: () => mountedFile,
+  isTornDown: () => tornDown,
+  destroy,
+  beforeStopMedia: clearAttachVideoStreamWait,
+});
+const { attachKeyboard, detachKeyboard } = useMediaKeyboard({
+  player,
+  getPreviewType: () => "video",
+  cyclePlaybackModes,
+  toggleSingleLoop,
+  showQueuePrompt,
+  flashSkipFeedback,
+  toggleDesktopPanel: () => undefined, // the desktop panel exists only in AudioPlayer
+});
+
+// --- Native stream source ---
+const shouldAttachVideoStream = computed(() => {
+  if (formatNeedsTranscode.value) {
+    return false;
+  }
+  return videoStreamAttached.value || shouldAutoplay.value;
+});
+
+const nativeVideoSrc = computed(() => {
+  if (transcodeActive.value || transcodeStartInProgress.value) {
+    return null;
+  }
+  if (isTranscodeHlsMode(transcodeMode.value) || formatNeedsTranscode.value) {
+    return null;
+  }
+  if (lockedNativeVideoSrc.value) {
+    return lockedNativeVideoSrc.value;
+  }
+  if (shouldAttachVideoStream.value) {
+    const resumeTime = resumeSeekSeconds.value ?? resumeSnapshot.value?.currentTime;
+    return appendMediaFragment(props.raw, resumeTime ?? 0);
+  }
+  return null;
+});
+
+const resumeShouldAutoplay = computed(() => {
+  const snap = resumeSnapshot.value;
+  if (!snap && !resumeSeekSeconds.value) {
+    return false;
+  }
+  return snap?.wasPlaying !== false;
+});
+
+const videoElementAutoplay = computed(() => {
+  if (isTranscodeHlsMode(transcodeMode.value) || transcodeStartInProgress.value) {
+    return false;
+  }
+  if (formatNeedsTranscode.value) {
+    return false;
+  }
+  if (resumeShouldAutoplay.value) {
+    return true;
+  }
+  if (resumeSnapshot.value || resumeSeekSeconds.value) {
+    return false;
+  }
+  return shouldAutoplay.value;
+});
+
+/** Plyr only builds settings panels at mount; applyCustomSettings toggles visibility when media/live settings settle. */
+const settingsMenu = computed(() => {
+  const base = ["captions", "captionSize", "quality", "speed", "playback", "loop"];
+  // Register the slot whenever authenticated video can show it later.
+  if (getters.isLoggedIn() && !getters.isShare()) {
+    return [...base, "transcodeMode"];
+  }
+  return base;
+});
+
+/** Rewind / fast-forward in the control bar only on non-mobile (gestures stay as elsewhere). */
+const playerOptions = computed<Plyr.Options>(() => {
+  const controlsDesktop = [
+    "play-large",
+    "rewind",
+    "play",
+    "fast-forward",
+    "progress",
+    "current-time",
+    "duration",
+    "mute",
+    "volume",
+    "captions",
+    "settings",
+    "fullscreen",
+  ];
+  const controlsMobile = [
+    "play-large",
+    "play",
+    "progress",
+    "current-time",
+    "duration",
+    "mute",
+    "volume",
+    "captions",
+    "settings",
+    "fullscreen",
+  ];
+  return {
+    controls: isMobile.value ? controlsMobile : controlsDesktop,
+    settings: settingsMenu.value,
+    i18n: {
+      playback: t("player.playbackMode"),
+      captionSize: t("player.captionSize"),
+      loop: t("player.loop"),
+      transcodeMode: t("general.transcode"),
     },
-    async loop(newVal, oldVal) {
-      if (newVal !== oldVal) {
-        this.toastType = 'loop';
-        this.showToast();
-        this.updateMediaSessionNavHandlers();
-        await this.$nextTick();
-        this.ensurePlaybackModeApplied();
-      }
+    speed: {
+      selected: 1,
+      options: [0.25, 0.5, 0.75, 1, 1.25, 1.5, 2],
     },
-    currentQueueIndex() {
-      this.updateMediaSessionNavHandlers();
+    disableContextMenu: true,
+    seekTime: 10,
+    hideControls: true,
+    keyboard: { focused: true, global: true },
+    tooltips: { controls: true, seek: !scrubPreviewEnabled.value },
+    loop: { active: false },
+    blankVideo: "",
+    muted: false,
+    autoplay: false,
+    playsinline: true,
+    clickToPlay: false, // we manage this ourselves with the gestures, plyr has a issue where this doesn't work in mobile.
+    resetOnEnd: false,
+    preload: "none",
+    fullscreen: {
+      enabled: true,
+      fallback: true,
+      // iPhone Safari has no element Fullscreen API; only video.webkitEnterFullscreen() hides the browser UI.
+      iosNative: true,
+      container: ".media-player",
     },
-    shouldTogglePlayPause(newVal, oldVal) {
-      if (newVal !== oldVal) {
-      this.togglePlayPause();
-      }
+    iconUrl: `${globalVars.baseURL}public/static/img/plyr.svg`,
+    // Blob/async tracks need addtrack → captions.update; otherwise meta never fills and toggle CC throws (track undefined).
+    // Do not call toggleCaptions() here — Plyr already applies `plyr` localStorage for captions on/off.
+    captions: {
+      active: false,
+      language: "auto",
+      update: true,
     },
-    isPlaying(isPlaying) {
-      if (this.previewType === 'video') {
-        this.syncOverlaidHintPlayback(isPlaying);
-      }
+    listeners: {
+      seek: blockSeekOnInput,
     },
-    'req.path'() {
-      this.resetFilePlaybackState();
-    },
-    'req.source'(newSource, oldSource) {
-      if (!newSource || newSource === oldSource) {
-        return;
-      }
-      this.resetFilePlaybackState();
-      this.destroyPlyr();
-      this.plyrTeardownDone = false;
-      void this.initializePlyr();
-    },
-    routePath() {
-      this.stopIfRouteLeftThisFile();
-    },
-    subtitlesList: {
-      async handler(newSubs, oldSubs) {
-        const gained = newSubs && newSubs.length > 0 && (!oldSubs || oldSubs.length === 0);
-        const lost = (!newSubs || newSubs.length === 0) && oldSubs && oldSubs.length > 0;
-        if (gained || lost) {
-          this.captionSizeMenuInitialized = false;
-        }
-        if (gained) {
-          if (!this.player && this.previewType === 'video') {
-            await this.$nextTick();
-            void this.initializePlyr();
-          } else if (this.player && this.previewType === 'video') {
-            await this.$nextTick();
-            this.applyCustomSettings(this.player);
-            this.syncCaptionSizeSettingsVisibility();
-            this.applyCaptionSizeClass();
-          }
-        } else if (this.player && this.previewType === 'video') {
-          await this.$nextTick();
-          this.syncCaptionSizeSettingsVisibility();
-          this.captionSizeMenuInitialized = false;
-          this.applyCustomSettings(this.player);
-        }
-      },
-      deep: true,
-    },
-    '$route.query': {
-      handler(newQuery, oldQuery) {
-        const urlTranscode = parseTranscodeModeFromQuery(newQuery);
-        const oldUrlTranscode = parseTranscodeModeFromQuery(oldQuery);
-        if (urlTranscode !== oldUrlTranscode) {
-          const requestedMode = urlTranscode || 'native';
-          if (requestedMode !== this.transcodeMode) {
-            void this.switchTranscodeMode(requestedMode);
-          }
-        }
-      },
-    },
-    transcodeSwitchInProgress(val) {
-      this.setTranscodeModeMenuDisabled(val);
-    },
-    transcodeMode() {
-      this.updateTranscodeModeMenuSelection();
-    },
-    transcodeMenuAvailable() {
-      if (this.player) {
-        this.applyCustomSettings(this.player);
-      }
-    },
+  };
+});
+
+/** Plyr captions menu: show format only (e.g. `.srt`, `.ass`), not the video basename. */
+function subtitleTrackLabel(sub: SubtitleTrack): string {
+  const ext = getSubtitleFormatExtension(sub?.name || "");
+  return ext || sub?.name || "";
+}
+
+/** The element Plyr plays on; falls back to the template ref before the player exists. */
+function getPlaybackMedia(): HTMLMediaElement | null | undefined {
+  return (player.value as unknown as { media?: HTMLMediaElement } | null)?.media || videoElement.value;
+}
+
+function resetFilePlaybackState(): void {
+  videoStreamAttached.value = false;
+  resumeSeekSeconds.value = null;
+  lockedNativeVideoSrc.value = null;
+  hasStartedPlayback.value = false;
+  transcodeOfferEmitted = false;
+  transcodeFallbackAttempted = false;
+  resetOverlaidHints();
+}
+
+// --- Watchers ---
+watch(playbackMode, async (newMode, oldMode) => {
+  if (newMode === oldMode) return;
+  if (oldMode !== undefined) {
+    // can only be "single" via clearPlaybackQueue
+    toastType.value = newMode === "single" ? "cleared" : "mode";
+    showToast();
+  }
+  updateMediaSessionNavHandlers();
+  await nextTick();
+  ensurePlaybackModeApplied();
+});
+watch(loop, async (newVal, oldVal) => {
+  if (newVal === oldVal) return;
+  toastType.value = "loop";
+  showToast();
+  updateMediaSessionNavHandlers();
+  await nextTick();
+  ensurePlaybackModeApplied();
+});
+watch(currentQueueIndex, updateMediaSessionNavHandlers);
+watch(
+  () => state.playbackQueue.shouldTogglePlayPause || false,
+  (newVal, oldVal) => {
+    if (newVal !== oldVal) togglePlayPause();
   },
-  computed: {
-    routePath() {
-      return state.route.path;
-    },
-    queueButtonLabel() {
-      return this.$t('player.QueueButtonHint');
-    },
-    showQueueButton() {
-      return !this.isFullscreen;
-    },
-    shouldTogglePlayPause() {
-      return state.playbackQueue.shouldTogglePlayPause || false;
-    },
-    isPlaying() {
-      return state.playbackQueue.isPlaying || false;
-    },
-    hasSubtitles() {
-      return this.subtitlesList && this.subtitlesList.length > 0;
-    },
-    mediaElement() {
-      return this.$refs.videoElement;
-    },
-    shouldAutoplay() {
-      return this.autoPlayEnabled || this.playbackQueue.length > 1;
-    },
-    fileName() {
-      return this.req.name ? this.req.name.replace(/\.[^/.]+$/, "") : '';
-    },
-    isMobile() {
-      return getters.isMobile();
-    },
-    scrubPreviewEnabled() {
-      return (
-        this.previewType === 'video'
-        && Boolean(this.req?.hasPreview)
-        && getters.previewPerms().video
-      );
-    },
-    artworkUrl() {
-      if (this.albumArtUrl) return this.albumArtUrl;
-      if (!this.scrubPreviewEnabled) return undefined;
-      return getters.isShare()
-        ? getPreviewURLPublic(this.req.path, 'original')
-        : `${getPreviewURL(this.req.source, this.req.path, this.req.modified)}&size=original`;
-    },
-    transcodeQueryMode() {
-      return parseTranscodeModeFromQuery(this.$route?.query);
-    },
-    transcodeEnabled() {
-      return isTranscodeAvailable();
-    },
-    transcodeActive() {
-      return this.transcodePlayback?.active === true;
-    },
-    transcodeStartInProgress() {
-      return this.transcodePlayback?.startInProgress === true;
-    },
-    transcodeMenuAvailable() {
-      return (
-        this.transcodeEnabled
-        && this.previewType === 'video'
-        && getters.isLoggedIn()
-        && !getters.isShare()
-      );
-    },
-    isTranscodePlaybackMode() {
-      return (
-        this.transcodeEnabled
-        && PLYR_TRANSCODE_HLS_MODES.includes(this.transcodeMode)
-      );
-    },
-    wantsTranscodePlayback() {
-      return this.previewType === 'video' && this.isTranscodePlaybackMode;
-    },
-    nativeVideoTranscodeEligible() {
-      return (
-        this.transcodeEnabled
-        && this.previewType === 'video'
-        && this.transcodeMode === 'native'
-        && !this.transcodeSwitchInProgress
-        && !getters.isShare()
-      );
-    },
-    formatNeedsTranscode() {
-      if (this.previewType !== 'video') {
-        return false;
-      }
-      return needsTranscodeFirst(this.transcodeProbeParams());
-    },
-    transcodeProfileOptions() {
-      const live = state.mediaSettings?.profiles;
-      const configured = Array.isArray(live) ? live : PLYR_TRANSCODE_HLS_MODES;
-      return configured.filter((id) => PLYR_TRANSCODE_HLS_MODES.includes(id));
-    },
-    shouldProactivelyOfferTranscode() {
-      if (this.previewType !== 'video' || this.startTranscode) {
-        return false;
-      }
-      if (this.isTranscodePlaybackMode || getters.isShare()) {
-        return false;
-      }
-      return this.formatNeedsTranscode;
-    },
-    plyrSettingsMenu() {
-      const base = ['captions', 'captionSize', 'quality', 'speed', 'playback', 'loop'];
-      // Register the slot whenever authenticated video can show it later.
-      // Plyr only builds settings panels at mount; applyCustomSettings toggles
-      // visibility when media/live settings settle (e.g. after syncMediaSettings).
-      if (this.previewType === 'video' && getters.isLoggedIn() && !getters.isShare()) {
-        return [...base, 'transcodeMode'];
-      }
-      return base;
-    },
-    nativeVideoSrc() {
-      if (this.previewType !== 'video' || this.transcodeActive || this.transcodeStartInProgress) {
-        return null;
-      }
-      if (isTranscodeHlsMode(this.transcodeMode) || this.formatNeedsTranscode) {
-        return null;
-      }
-      if (this.lockedNativeVideoSrc) {
-        return this.lockedNativeVideoSrc;
-      }
-      if (this.shouldAttachVideoStream) {
-        const resumeTime = this.resumeSeekSeconds
-          ?? this.resumeSnapshot?.currentTime;
-        return appendMediaFragment(this.raw, resumeTime);
-      }
-      return null;
-    },
-    shouldAttachVideoStream() {
-      if (this.formatNeedsTranscode) {
-        return false;
-      }
-      return this.videoStreamAttached || this.shouldAutoplay;
-    },
-    resumeShouldAutoplay() {
-      if (this.previewType !== 'video') {
-        return false;
-      }
-      const snap = this.resumeSnapshot;
-      if (!snap && !this.resumeSeekSeconds) {
-        return false;
-      }
-      return snap?.wasPlaying !== false;
-    },
-    videoElementAutoplay() {
-      if (this.previewType !== 'video') {
-        return false;
-      }
-      if (isTranscodeHlsMode(this.transcodeMode) || this.transcodeStartInProgress) {
-        return false;
-      }
-      if (this.formatNeedsTranscode) {
-        return false;
-      }
-      if (this.resumeShouldAutoplay) {
-        return true;
-      }
-      if (this.resumeSnapshot || this.resumeSeekSeconds) {
-        return false;
-      }
-      return this.shouldAutoplay;
-    },
-    /** Rewind / fast-forward in the control bar only on non-mobile (gestures stay as elsewhere). */
-    plyrOptions() {
-      const controlsDesktop = [
-        'play-large',
-        'rewind',
-        'play',
-        'fast-forward',
-        'progress',
-        'current-time',
-        'duration',
-        'mute',
-        'volume',
-        'captions',
-        'settings',
-        'fullscreen',
-      ];
-      const controlsMobile = [
-        'play-large',
-        'play',
-        'progress',
-        'current-time',
-        'duration',
-        'mute',
-        'volume',
-        'captions',
-        'settings',
-        'fullscreen',
-      ];
-      return {
-        controls: this.isMobile ? controlsMobile : controlsDesktop,
-        settings: this.plyrSettingsMenu,
-        i18n: {
-          playback: this.$t('player.playbackMode'),
-          captionSize: this.$t('player.captionSize'),
-          loop: this.$t('player.loop'),
-          transcodeMode: this.$t('general.transcode'),
-        },
-        speed: {
-          selected: 1,
-          options: [0.25, 0.5, 0.75, 1, 1.25, 1.5, 2],
-        },
-        disableContextMenu: true,
-        seekTime: 10,
-        hideControls: true,
-        keyboard: { focused: true, global: true },
-        tooltips: { controls: true, seek: !this.scrubPreviewEnabled },
-        loop: { active: false },
-        blankVideo: '',
-        muted: false,
-        autoplay: false,
-        playsinline: true,
-        clickToPlay: false, // we manage this ourselves with the gestures, plyr has a issue where this doesn't work in mobile.
-        resetOnEnd: false,
-        preload: 'none',
-        fullscreen: {
-          enabled: true,
-          fallback: true,
-          // iPhone Safari has no element Fullscreen API; only video.webkitEnterFullscreen() hides the browser UI.
-          iosNative: true,
-          container: '.media-player',
-        },
-        iconUrl: `${globalVars.baseURL}public/static/img/plyr.svg`,
-        // Blob/async tracks need addtrack → captions.update; otherwise meta never fills and toggle CC throws (track undefined).
-        // Do not call toggleCaptions() here — Plyr already applies `plyr` localStorage for captions on/off.
-        captions: {
-          active: false,
-          language: 'auto',
-          update: true,
-        },
-        listeners: {
-          seek: blockSeekOnInput,
-        },
-      };
-    },
-  },
-  async mounted() {
-    // Record the mounted file before any async prepare step so route-leave
-    // detection works while Plyr is still waiting on subtitles/metadata.
-    this.mountedPreviewKey = resolveMountedFileKey(this.req?.source, this.req?.path);
-    this.loadMediaMetadata();
-    if (this.previewType === 'video') {
-      await this.preparePlyrMount();
+);
+watch(
+  () => state.playbackQueue.isPlaying || false,
+  (isPlaying) => syncOverlaidHintPlayback(isPlaying),
+);
+watch(() => props.req.path, resetFilePlaybackState);
+watch(
+  () => props.req.source,
+  (newSource, oldSource) => {
+    if (!newSource || newSource === oldSource) {
+      return;
     }
-    this.attachKeyboard();
-    window.addEventListener('pagehide', this.onPageHide);
+    resetFilePlaybackState();
+    destroy();
+    tornDown = false;
+    void initializePlayer();
   },
-  beforeUnmount() {
-    // Cleanup timeouts
-    this.clearDismissAnimTimers();
-    // Cleanup Plyr. Always finish listener/media-session cleanup even if a
-    // teardown step throws, so an orphaned element cannot keep playing.
-    this.disarmResumeOnNextGesture();
-    try {
-      this.destroyPlyr();
-    } finally {
-      this.clearMediaSession();
-      this.detachKeyboard();
-      window.removeEventListener('pagehide', this.onPageHide);
+);
+watch(() => state.route.path, stopIfRouteLeftThisFile);
+watch(
+  () => props.subtitlesList,
+  async (newSubs, oldSubs) => {
+    const gained = newSubs && newSubs.length > 0 && (!oldSubs || oldSubs.length === 0);
+    const lost = (!newSubs || newSubs.length === 0) && oldSubs && oldSubs.length > 0;
+    if (gained || lost) {
+      captionSizeMenuInitialized = false;
+    }
+    if (gained) {
+      if (!player.value) {
+        await nextTick();
+        void initializePlayer();
+      } else {
+        await nextTick();
+        applyCustomSettings(player.value);
+        syncCaptionSizeSettingsVisibility();
+        applyCaptionSizeClass();
+      }
+    } else if (player.value) {
+      await nextTick();
+      syncCaptionSizeSettingsVisibility();
+      captionSizeMenuInitialized = false;
+      applyCustomSettings(player.value);
     }
   },
-  methods: {
-    onPageHide(event) {
-      if (event.persisted) return;
-      this.teardownTranscodePlayback({ stopSession: true, keepalive: true });
-      this.stopMediaElement();
-    },
-    /** Plyr captions menu: show format only (e.g. `.srt`, `.ass`), not the video basename. */
-    subtitleTrackLabel(sub) {
-      const ext = getSubtitleFormatExtension(sub?.name || '');
-      return ext || sub?.name || '';
-    },
-    resetFilePlaybackState() {
-      this.videoStreamAttached = false;
-      this.resumeSeekSeconds = null;
-      this.lockedNativeVideoSrc = null;
-      this.hasStartedPlayback = false;
-      this.transcodeOfferEmitted = false;
-      this.transcodeFallbackAttempted = false;
-      this.resetOverlaidHints();
-    },
-    destroyPlyr() {
-      if (this.plyrTeardownDone) {
+  { deep: true },
+);
+watch(
+  () => route.query,
+  (newQuery, oldQuery) => {
+    const urlTranscode = parseTranscodeModeFromQuery(newQuery);
+    const oldUrlTranscode = parseTranscodeModeFromQuery(oldQuery);
+    if (urlTranscode !== oldUrlTranscode) {
+      const requestedMode = urlTranscode || "native";
+      if (requestedMode !== transcodeMode.value) {
+        void switchTranscodeMode(requestedMode);
+      }
+    }
+  },
+);
+watch(transcodeSwitchInProgress, (val) => setTranscodeModeMenuDisabled(val));
+watch(transcodeMode, updateTranscodeModeMenuSelection);
+watch(transcodeMenuAvailable, () => {
+  if (player.value) {
+    applyCustomSettings(player.value);
+  }
+});
+
+// --- Mount / teardown ---
+function onPageHide(event: PageTransitionEvent): void {
+  if (event.persisted) return;
+  teardownTranscodePlayback({ stopSession: true, keepalive: true });
+  stopMediaElement();
+}
+
+/** Stops playback and releases the player, listeners, transcode session and album art. Safe to call more than once. */
+function destroy(): void {
+  if (tornDown) {
+    return;
+  }
+  tornDown = true;
+  cleanupAlbumArt();
+
+  if (scrubPreviewCleanup) {
+    scrubPreviewCleanup();
+    scrubPreviewCleanup = null;
+  }
+  if (seekOnReleaseCleanup) {
+    seekOnReleaseCleanup();
+    seekOnReleaseCleanup = null;
+  }
+  if (videoLoadingCleanup) {
+    videoLoadingCleanup();
+    videoLoadingCleanup = null;
+  }
+  videoPlaybackLoading.value = false;
+  teardownOverlaidHintController();
+  mountedFile = null;
+  lockedNativeVideoSrc.value = null;
+  const media = getActiveMediaElement();
+  const isTransition = state.navigation.isTransitioning;
+
+  // Stop the element before controller/player teardown. Those paths can
+  // throw or await, and a failure there must never leave audio playing on
+  // an element that is about to be detached from the DOM.
+  if (media) {
+    stopMediaElement(media);
+  }
+
+  // Any deliberate teardown of this viewer (route leave, source swap, close)
+  // must stop the server session.
+  teardownTranscodePlayback({ stopSession: true });
+  if (!usesSharedTranscodePlayback()) {
+    transcodePlayback.value = null;
+  }
+  disarmResumeOnNextGesture();
+
+  if (player.value) {
+    if (isTransition) {
+      rememberFullscreenForTransition();
+    }
+    restoreNativePlay();
+    teardownSwipeGestures();
+    teardownDoubleTapSeek();
+    clearRewindForwardFeedback();
+    clearMediaSession();
+  }
+  destroyPlayer(media);
+
+  resetPlaybackMenuState();
+  captionSizeMenuInitialized = false;
+  transcodeMenuInitialized = false;
+  captionSizeButtons = null;
+  captionSizeValueSpan = null;
+  transcodeModeButtons = null;
+  transcodeModeValueSpan = null;
+}
+
+/** Starts playback from the gesture surface or the overlaid play button. */
+function requestPlay(): void {
+  // Only offer transcoding when the source cannot play natively and no
+  // transcode is already running. Otherwise a transcoded `.wmv` could never
+  // be resumed from the player surface or the overlaid play button.
+  if (formatNeedsTranscode.value && !isTranscodePlaybackMode.value && !transcodeActive.value) {
+    void offerTranscodePlayback();
+    return;
+  }
+  void Promise.resolve(player.value?.play()).catch((playErr: Error) => {
+    transcodeWarn("player.play failed", { message: playErr?.message });
+    if (playErr?.name === "NotSupportedError" && !transcodeActive.value) {
+      void offerTranscodePlayback();
+    }
+  });
+}
+
+function handlePlay(): void {
+  if (tornDown) {
+    return;
+  }
+  emit("playback-start");
+  if (isTranscodePlaybackMode.value && !transcodeActive.value && !transcodeStartInProgress.value) {
+    void startTranscodePlayback({ autoplay: true });
+  }
+}
+
+function ensurePlaybackModeApplied(): void {
+  if (!player.value) return;
+  try {
+    const settings = getSettingsElements(player.value);
+    const settingsMenuEl = settings?.menu;
+    const buttons = settings?.buttons;
+    const menuOpen =
+      settingsMenuEl && settingsMenuEl.style.display !== "none" && settingsMenuEl.getAttribute("hidden") === null;
+    const needPlayback = buttons?.playback && !playbackMenuInitialized.value;
+    const needCaptionSize = buttons?.captionSize && !captionSizeMenuInitialized;
+    const needLoop = buttons?.loop && !loopMenuInitialized.value;
+    const needTranscodeMode = buttons?.transcodeMode && !transcodeMenuInitialized;
+
+    if (menuOpen || needPlayback || needCaptionSize || needLoop || needTranscodeMode) {
+      applyCustomSettings(player.value);
+    }
+  } catch (error) {
+    console.error("Error ensuring playback mode applied:", error);
+  }
+}
+
+async function preparePlayerMount(): Promise<void> {
+  // For videos with subtitle metadata, wait for subtitles to load before initializing Plyr
+  // This prevents Plyr from trying to access tracks before they have valid blob URLs
+  const hasSubtitleMetadata = (props.req?.subtitles?.length ?? 0) > 0;
+  const subtitlesNotLoaded = props.subtitlesList.length === 0;
+
+  if (hasSubtitleMetadata && subtitlesNotLoaded) {
+    // Wait for subtitles to be loaded (watcher will call initializePlayer)
+    return;
+  }
+
+  void initializePlayer();
+}
+
+async function initializePlayer(): Promise<void> {
+  if (!videoElement.value || player.value || tornDown) {
+    return;
+  }
+  await nextTick();
+  if (!videoElement.value || player.value || tornDown) {
+    return;
+  }
+  void mountPlayer();
+}
+
+function usesSharedTranscodePlayback(): boolean {
+  return Boolean(props.sharedTranscodePlayback && transcodePlayback.value === props.sharedTranscodePlayback);
+}
+
+function bindTranscodePlaybackController(): void {
+  if (props.sharedTranscodePlayback && !props.sharedTranscodePlayback.disposed) {
+    transcodePlayback.value = props.sharedTranscodePlayback;
+    return;
+  }
+  if (!transcodePlayback.value || transcodePlayback.value.disposed) {
+    transcodePlayback.value = new TranscodePlaybackController();
+  }
+}
+
+async function mountPlayer(): Promise<void> {
+  if (!videoElement.value || player.value || mountInProgress || tornDown) {
+    return;
+  }
+  mountInProgress = true;
+  try {
+    bindTranscodePlaybackController();
+    mountedFile = resolveMountedFileKey(props.req?.source, props.req?.path);
+    initTranscodeModeFromRoute();
+    await stripPlaybackTimeFromUrl();
+    if (!videoElement.value || tornDown || player.value) {
+      return;
+    }
+    if (!props.startTranscode && !wantsTranscodePlayback.value && shouldProactivelyOfferTranscode.value) {
+      await offerTranscodePlayback();
+      if (!videoElement.value || tornDown || player.value) {
         return;
       }
-      this.plyrTeardownDone = true;
-      this.cleanupAlbumArt();
-
-      if (this.scrubPreviewCleanup) {
-        this.scrubPreviewCleanup();
-        this.scrubPreviewCleanup = null;
-      }
-      if (this.seekOnReleaseCleanup) {
-        this.seekOnReleaseCleanup();
-        this.seekOnReleaseCleanup = null;
-      }
-      if (this.videoLoadingCleanup) {
-        this.videoLoadingCleanup();
-        this.videoLoadingCleanup = null;
-      }
-      this.videoPlaybackLoading = false;
-      this.teardownOverlaidHintController();
-      this.mountedPreviewKey = null;
-      this.lockedNativeVideoSrc = null;
-      const media = this.getActiveMediaElement();
-      const isTransition = state.navigation.isTransitioning;
-
-      // Stop the element before controller/player teardown. Those paths can
-      // throw or await, and a failure there must never leave audio playing on
-      // an element that is about to be detached from the DOM.
-      if (media) {
-        this.stopMediaElement(media);
-      }
-
-      // Any deliberate teardown of this viewer (route leave, source swap, close)
-      // must stop the server session.
-      this.teardownTranscodePlayback({ stopSession: true });
-      if (!this.usesSharedTranscodePlayback()) {
-        this.transcodePlayback = null;
-      }
-      this.disarmResumeOnNextGesture();
-
-      if (this.player) {
-        if (isTransition) {
-          this.rememberFullscreenForTransition();
+    }
+    createPlayer(playerOptions.value);
+    if (!player.value) {
+      return;
+    }
+    if (!shouldAttachVideoStream.value) {
+      overridePlay((nativePlay) => {
+        if (!videoStreamAttached.value) {
+          void attachVideoStreamAndPlay();
+          return Promise.resolve();
         }
-        this.restoreNativePlay();
-        this.teardownSwipeGestures();
-        this.teardownDoubleTapSeek();
-        this.clearRewindForwardFeedback();
-        this.clearMediaSession();
-      }
-      this.destroyPlayer(media);
-
-      this.resetPlaybackMenuState();
-      this.captionSizeMenuInitialized = false;
-      this.transcodeMenuInitialized = false;
-      this.captionSizeButtons = null;
-      this.captionSizeValueSpan = null;
-      this.transcodeModeButtons = null;
-      this.transcodeModeValueSpan = null;
-    },
-    /** Starts playback from the gesture surface or the overlaid play button. */
-    requestPlay() {
-      // Only offer transcoding when the source cannot play natively and no
-      // transcode is already running. Otherwise a transcoded `.wmv` could never
-      // be resumed from the player surface or the overlaid play button.
-      if (this.formatNeedsTranscode && !this.isTranscodePlaybackMode && !this.transcodeActive) {
-        void this.offerTranscodePlayback();
-        return;
-      }
-      void this.player.play().catch((playErr) => {
-        transcodeWarn('player.play failed', { message: playErr?.message });
-        if (playErr?.name === 'NotSupportedError' && !this.transcodeActive) {
-          void this.offerTranscodePlayback();
-        }
+        return nativePlay();
       });
-    },
-    handlePlay() {
-      if (this.plyrTeardownDone) {
-        return;
-      }
-      this.$emit('playback-start');
-      if (
-        this.previewType === 'video'
-        && this.isTranscodePlaybackMode
-        && !this.transcodeActive
-        && !this.transcodeStartInProgress
-      ) {
-        void this.startTranscodePlayback({ autoplay: true });
-      }
-    },
-    ensurePlaybackModeApplied() {
-      if (!this.player) return;
-      try {
-        const settingsMenu = this.player.elements.settings?.menu;
-        const playbackBtn = this.player.elements.settings?.buttons?.playback;
-        const captionSizeBtn = this.player.elements.settings?.buttons?.captionSize;
-        const loopBtn = this.player.elements.settings?.buttons?.loop;
-        const transcodeBtn = this.player.elements.settings?.buttons?.transcodeMode;
-        const menuOpen =
-          settingsMenu
-          && settingsMenu.style.display !== 'none'
-          && settingsMenu.getAttribute('hidden') === null;
-        const needPlayback = playbackBtn && !this.playbackMenuInitialized;
-        const needCaptionSize = captionSizeBtn && !this.captionSizeMenuInitialized;
-        const needLoop = loopBtn && !this.loopMenuInitialized;
-        const needTranscodeMode = transcodeBtn && !this.transcodeMenuInitialized;
+    }
+    setupMediaSession({
+      title: metadata.value?.title || fileName.value,
+      artist: metadata.value?.artist || globalVars.name || "Filebrowser Quantum",
+      album: metadata.value?.album || "",
+      // Embedded artwork (if any), otherwise the thumbnail/preview url.
+      artworkSrc: artworkUrl.value,
+    });
+    setupPlayerEvents();
+    seekOnReleaseCleanup = enableSeekOnRelease(player.value);
+    setupScrubPreview();
+    setupVideoLoadingIndicator();
+    if (props.startTranscode || (wantsTranscodePlayback.value && !shouldProactivelyOfferTranscode.value)) {
+      await startTranscodePlayback({
+        autoplay: shouldAutoplay.value,
+      });
+    }
+    resumeFullscreenAfterNavigation();
+  } finally {
+    mountInProgress = false;
+  }
+}
 
-        if (menuOpen || needPlayback || needCaptionSize || needLoop || needTranscodeMode) {
-          this.applyCustomSettings(this.player);
-        }
-      } catch (error) {
-        console.error('Error ensuring playback mode applied:', error);
-      }
-    },
-    // Load metadata from the backend response
-    loadMediaMetadata() {
-      const meta = this.req.metadata;
-      this.metadata = {
-        title: meta?.title || this.fileName, // Fallback to filename
-        artist: meta?.artist || null,
-        album: meta?.album || null,
-        year: meta?.year || null,
-      };
-      if (!meta?.albumArt) return;
-      // Base64 encoded art
-      try {
-        const bytes = Uint8Array.from(atob(meta.albumArt), (c) => c.charCodeAt(0));
-        this.albumArtUrl = URL.createObjectURL(new Blob([bytes], { type: 'image/jpeg' }));
-      } catch (error) {
-        console.error("Failed to decode album art:", error);
-        this.albumArtUrl = null;
-      }
-    },
-    cleanupAlbumArt() {
-      if (typeof this.albumArtUrl === 'string' && this.albumArtUrl.startsWith('blob:')) {
-        URL.revokeObjectURL(this.albumArtUrl);
-      }
-      this.albumArtUrl = null;
-      this.metadata = null;
-    },
-    hookEvents() {
-      void this.preparePlyrMount();
-    },
-    async preparePlyrMount() {
-      // For videos with subtitle metadata, wait for subtitles to load before initializing Plyr
-      // This prevents Plyr from trying to access tracks before they have valid blob URLs
-      const hasSubtitleMetadata = this.req?.subtitles?.length > 0;
-      const subtitlesNotLoaded = !this.subtitlesList || this.subtitlesList.length === 0;
+async function stripPlaybackTimeFromUrl(): Promise<void> {
+  const query = route.query as Record<string, string | undefined>;
+  const nextQuery = buildPlaybackQueryPatch(query, { time: null });
+  if (!playbackQueryChanged(route.query, nextQuery)) {
+    return;
+  }
+  await router.replace({
+    path: route.path,
+    query: nextQuery,
+    hash: route.hash,
+  });
+}
 
-      if (this.previewType === 'video' && hasSubtitleMetadata && subtitlesNotLoaded) {
-        // Wait for subtitles to be loaded (watcher will call initializePlyr)
-        return;
-      }
+function syncPlaybackUrl({ transcodeMode: explicit }: { transcodeMode?: string } = {}): void {
+  if (transcodeSwitchInProgress.value) {
+    return;
+  }
+  const explicitMode = explicit !== undefined;
+  const resolvedMode = normalizeTranscodeMode(explicitMode ? explicit : transcodeMode.value);
+  let modeForQuery: string | null = null;
+  if (TRANSCODE_HLS_MODES.includes(resolvedMode)) {
+    if (explicitMode || transcodeActive.value) {
+      modeForQuery = resolvedMode;
+    }
+  }
+  const nextQuery = buildPlaybackQueryPatch(route.query as Record<string, string | undefined>, {
+    time: null,
+    transcodeMode: modeForQuery,
+  });
+  if (!playbackQueryChanged(route.query, nextQuery)) {
+    return;
+  }
+  void router.replace({
+    path: route.path,
+    query: nextQuery,
+    hash: route.hash,
+  });
+}
 
-      void this.initializePlyr();
-    },
-    async initializePlyr() {
-      if (!this.mediaElement || this.player || this.plyrTeardownDone) {
+// --- Resume and native stream attach ---
+function applyResumeSeek(el: HTMLVideoElement | null | undefined, snapshot: ResumeSnapshot | null, onDone?: () => void): void {
+  if (!el || !snapshot) {
+    onDone?.();
+    return;
+  }
+  const targetTime = Number.isFinite(snapshot.currentTime) ? snapshot.currentTime : 0;
+  let finished = false;
+  let resumeCompleted = false;
+  const completeResume = () => {
+    if (resumeCompleted) {
+      return;
+    }
+    resumeCompleted = true;
+    if (snapshot.wasPlaying !== false) {
+      attemptResumePlay(el, snapshot);
+    }
+    const boundSrc = el.currentSrc || el.getAttribute("src");
+    if (boundSrc) {
+      lockedNativeVideoSrc.value = boundSrc;
+    }
+    resumeSnapshot.value = null;
+    resumeSeekSeconds.value = null;
+    onDone?.();
+  };
+  const finish = () => {
+    if (finished) {
+      return;
+    }
+    finished = true;
+    if (snapshot.wasPlaying !== false && el.readyState < HTMLMediaElement.HAVE_FUTURE_DATA) {
+      el.addEventListener("canplay", () => completeResume(), { once: true });
+      window.setTimeout(() => completeResume(), 8000);
+    } else {
+      completeResume();
+    }
+  };
+  const readTime = () => player.value?.currentTime ?? el.currentTime;
+  const writeTime = (time: number) => {
+    if (player.value) {
+      player.value.currentTime = time;
+    } else {
+      el.currentTime = time;
+    }
+  };
+  const nearTarget = () => targetTime <= 0 || Math.abs(readTime() - targetTime) <= 1.5;
+  const seek = () => {
+    if (targetTime <= 0) {
+      finish();
+      return;
+    }
+    if (nearTarget()) {
+      finish();
+      return;
+    }
+    try {
+      writeTime(targetTime);
+    } catch (_) {
+      finish();
+      return;
+    }
+    const onSeeked = () => {
+      if (nearTarget()) {
+        finish();
         return;
       }
-      await this.$nextTick();
-      if (!this.mediaElement || this.player || this.plyrTeardownDone) {
-        return;
-      }
-      void this.mountPlyrPlayer();
-    },
-    usesSharedTranscodePlayback() {
-      return Boolean(
-        this.sharedTranscodePlayback
-        && this.transcodePlayback === this.sharedTranscodePlayback,
-      );
-    },
-    bindTranscodePlaybackController() {
-      if (this.sharedTranscodePlayback && !this.sharedTranscodePlayback.disposed) {
-        this.transcodePlayback = this.sharedTranscodePlayback;
-        return;
-      }
-      if (!this.transcodePlayback || this.transcodePlayback.disposed) {
-        this.transcodePlayback = new TranscodePlaybackController();
-      }
-    },
-    async mountPlyrPlayer() {
-      if (!this.mediaElement || this.player || this.mountPlyrInProgress || this.plyrTeardownDone) {
-        return;
-      }
-      this.mountPlyrInProgress = true;
-      try {
-        this.bindTranscodePlaybackController();
-        this.mountedPreviewKey = resolveMountedFileKey(this.req?.source, this.req?.path);
-        this.initTranscodeModeFromRoute();
-        await this.stripPlaybackTimeFromUrl();
-        if (!this.mediaElement || this.plyrTeardownDone || this.player) {
-          return;
-        }
-        if (
-          this.previewType === 'video'
-          && !this.startTranscode
-          && !this.wantsTranscodePlayback
-          && this.shouldProactivelyOfferTranscode
-        ) {
-          await this.offerTranscodePlayback();
-          if (!this.mediaElement || this.plyrTeardownDone || this.player) {
-            return;
-          }
-        }
-        this.createPlayer(this.plyrOptions);
-        if (this.previewType === 'video' && !this.shouldAttachVideoStream) {
-          this.overridePlay((nativePlay) => {
-            if (!this.videoStreamAttached) {
-              this.attachVideoStreamAndPlay();
-              return Promise.resolve();
-            }
-            return nativePlay();
-          });
-        }
-        this.setupMediaSession({
-          title: this.metadata?.title || this.fileName,
-          artist: this.metadata?.artist || globalVars.name || "Filebrowser Quantum",
-          album: this.metadata?.album || "",
-          // Embedded artwork (if any), otherwise the thumbnail/preview url.
-          artworkSrc: this.artworkUrl,
-        });
-        this.setupPlyrEvents();
-        this.seekOnReleaseCleanup = enableSeekOnRelease(this.player);
-        this.setupScrubPreview();
-        this.setupVideoLoadingIndicator();
-        if (this.previewType === 'video' && (this.startTranscode || (this.wantsTranscodePlayback && !this.shouldProactivelyOfferTranscode))) {
-          await this.startTranscodePlayback({
-            autoplay: this.shouldAutoplay,
-          });
-        }
-        this.resumeFullscreenAfterNavigation();
-      } finally {
-        this.mountPlyrInProgress = false;
-      }
-    },
-    applyResumeSeek(el, snapshot, onDone) {
-      if (!el || !snapshot) {
-        onDone?.();
-        return;
-      }
-      const targetTime = Number.isFinite(snapshot.currentTime) ? snapshot.currentTime : 0;
-      let finished = false;
-      let resumeCompleted = false;
-      const completeResume = () => {
-        if (resumeCompleted) {
-          return;
-        }
-        resumeCompleted = true;
-        if (snapshot.wasPlaying !== false) {
-          this.attemptResumePlay(el, snapshot);
-        }
-        const boundSrc = el.currentSrc || el.getAttribute('src');
-        if (boundSrc) {
-          this.lockedNativeVideoSrc = boundSrc;
-        }
-        this.resumeSnapshot = null;
-        this.resumeSeekSeconds = null;
-        onDone?.();
-      };
-      const finish = () => {
-        if (finished) {
-          return;
-        }
-        finished = true;
-        if (snapshot.wasPlaying !== false && el.readyState < HTMLMediaElement.HAVE_FUTURE_DATA) {
-          el.addEventListener('canplay', () => completeResume(), { once: true });
-          window.setTimeout(() => completeResume(), 8000);
-        } else {
-          completeResume();
-        }
-      };
-      const readTime = () => this.player?.currentTime ?? el.currentTime;
-      const writeTime = (time) => {
-        if (this.player) {
-          this.player.currentTime = time;
-        } else {
-          el.currentTime = time;
-        }
-      };
-      const nearTarget = () => targetTime <= 0 || Math.abs(readTime() - targetTime) <= 1.5;
-      const seek = () => {
-        if (targetTime <= 0) {
-          finish();
-          return;
-        }
-        if (nearTarget()) {
-          finish();
-          return;
-        }
-        try {
-          writeTime(targetTime);
-        } catch (_) {
-          finish();
-          return;
-        }
-        const onSeeked = () => {
-          if (nearTarget()) {
+      el.addEventListener(
+        "canplay",
+        () => {
+          try {
+            writeTime(targetTime);
+          } catch (_) {
             finish();
             return;
           }
-          el.addEventListener('canplay', () => {
-            try {
-              writeTime(targetTime);
-            } catch (_) {
-              finish();
-              return;
-            }
-            el.addEventListener('seeked', () => {
+          el.addEventListener(
+            "seeked",
+            () => {
               if (nearTarget()) {
                 finish();
               }
-            }, { once: true });
-          }, { once: true });
-        };
-        el.addEventListener('seeked', onSeeked, { once: true });
-        window.setTimeout(() => {
-          if (!finished && nearTarget()) {
-            finish();
-          }
-        }, 5000);
-      };
-      const whenSeekable = () => {
-        if (nearTarget()) {
-          finish();
-          return;
-        }
-        if (el.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) {
-          seek();
-          return;
-        }
-        el.addEventListener('canplay', seek, { once: true });
-      };
-      if (el.readyState >= HTMLMediaElement.HAVE_METADATA) {
-        whenSeekable();
-      } else {
-        el.addEventListener('loadedmetadata', whenSeekable, { once: true });
+            },
+            { once: true },
+          );
+        },
+        { once: true },
+      );
+    };
+    el.addEventListener("seeked", onSeeked, { once: true });
+    window.setTimeout(() => {
+      if (!finished && nearTarget()) {
+        finish();
       }
-    },
-    async attachVideoStreamAndPlay() {
-      if (this.plyrTeardownDone || this.videoStreamAttached || this.previewType !== 'video' || !this.raw) {
-        return;
-      }
-      this.videoStreamAttached = true;
-      this.videoLoadingCleanup?.expectPlayback?.();
-      await this.$nextTick();
-      await this.$nextTick();
-      if (this.plyrTeardownDone || !this.mediaElement) {
-        return;
-      }
-      const el = this.mediaElement;
-      if (!el) {
-        return;
-      }
-      const snap = this.resumeSnapshot;
-      const resumeTime = snap?.currentTime ?? this.resumeSeekSeconds;
-      const streamUrl = appendMediaFragment(this.raw, resumeTime);
-      if (streamUrl && !el.getAttribute('src')) {
-        el.setAttribute('src', streamUrl);
-        this.lockedNativeVideoSrc = streamUrl;
-        if (snap?.wasPlaying !== false) {
-          el.autoplay = true;
-        }
-      }
-      if (snap?.wasPlaying !== false) {
-        const onCanPlay = () => this.attemptResumePlay(el, snap);
-        if (el.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) {
-          onCanPlay();
-        } else {
-          el.addEventListener('canplay', onCanPlay, { once: true });
-        }
-      }
+    }, 5000);
+  };
+  const whenSeekable = () => {
+    if (nearTarget()) {
+      finish();
+      return;
+    }
+    if (el.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) {
+      seek();
+      return;
+    }
+    el.addEventListener("canplay", seek, { once: true });
+  };
+  if (el.readyState >= HTMLMediaElement.HAVE_METADATA) {
+    whenSeekable();
+  } else {
+    el.addEventListener("loadedmetadata", whenSeekable, { once: true });
+  }
+}
 
-      const startDefault = () => {
-        this.clearAttachVideoStreamWait();
-        if (this.plyrTeardownDone) {
-          return;
-        }
-        void el.play().catch(() => {});
-      };
+async function attachVideoStreamAndPlay(): Promise<void> {
+  if (tornDown || videoStreamAttached.value || !props.raw) {
+    return;
+  }
+  videoStreamAttached.value = true;
+  videoLoadingCleanup?.expectPlayback?.();
+  await nextTick();
+  await nextTick();
+  const el = videoElement.value;
+  if (tornDown || !el) {
+    return;
+  }
+  const snap = resumeSnapshot.value;
+  const resumeTime = snap?.currentTime ?? resumeSeekSeconds.value;
+  const streamUrl = appendMediaFragment(props.raw, resumeTime ?? 0);
+  if (streamUrl && !el.getAttribute("src")) {
+    el.setAttribute("src", streamUrl);
+    lockedNativeVideoSrc.value = streamUrl;
+    if (snap?.wasPlaying !== false) {
+      el.autoplay = true;
+    }
+  }
+  if (snap?.wasPlaying !== false) {
+    const onCanPlay = () => attemptResumePlay(el, snap);
+    if (el.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) {
+      onCanPlay();
+    } else {
+      el.addEventListener("canplay", onCanPlay, { once: true });
+    }
+  }
 
-      const startWithResume = () => {
-        this.clearAttachVideoStreamWait();
-        const onMeta = () => {
-          this.applyResumeSeek(el, snap);
-        };
-        if (el.readyState >= HTMLMediaElement.HAVE_METADATA) {
-          onMeta();
-        } else {
-          el.addEventListener('loadedmetadata', onMeta, { once: true });
-        }
-      };
+  const startDefault = () => {
+    clearAttachVideoStreamWait();
+    if (tornDown) {
+      return;
+    }
+    void el.play().catch(() => {});
+  };
 
-      const start = snap ? startWithResume : startDefault;
-      this.attachVideoStreamResume = start;
-      if (snap) {
-        if (el.readyState >= HTMLMediaElement.HAVE_METADATA) {
-          start();
-        } else {
-          el.addEventListener('loadedmetadata', start, { once: true });
-        }
-      } else {
-        start();
-      }
-    },
-    clearAttachVideoStreamWait() {
-      const el = this.mediaElement;
-      if (el && this.attachVideoStreamResume) {
-        el.removeEventListener('canplay', this.attachVideoStreamResume);
-        el.removeEventListener('loadedmetadata', this.attachVideoStreamResume);
-      }
-      this.attachVideoStreamResume = null;
-    },
-    resolveViewTokenForTranscode() {
-      return this.req?.viewToken || getCachedViewToken(this.req?.source) || '';
-    },
-    transcodeProbeParams() {
-      const meta = this.req?.metadata || {};
-      return {
-        videoCodec: meta.videoCodec,
-        audioCodec: meta.audioCodec,
-        mimeType: this.req?.type,
-        fileName: this.req?.name,
-      };
-    },
-    ensureTranscodePlaybackController() {
-      this.bindTranscodePlaybackController();
-      return this.transcodePlayback;
-    },
-    async offerTranscodePlayback() {
-      if (this.plyrTeardownDone || this.transcodeSwitchInProgress || this.isTranscodePlaybackMode) {
-        return;
-      }
-      if (this.transcodeOfferEmitted) {
-        return;
-      }
-      if (this.previewType !== 'video' || getters.isShare() || !this.formatNeedsTranscode) {
-        return;
-      }
-      this.transcodeOfferEmitted = true;
-      if (!this.transcodeEnabled) {
-        // Transcoding is off on this server: show the unsupported notice without
-        // asking for sessions, which would answer 503.
-        this.$emit('needs-transcode', { enabled: false, canStart: false, sessions: [] });
-        return;
-      }
-      try {
-        const status = await getTranscodeSessions();
-        this.$emit('needs-transcode', normalizeTranscodeSessionStatus(status, {
-          source: this.req?.source,
-          path: this.req?.path,
-        }));
-      } catch (err) {
-        console.error('Failed to check transcode sessions:', err);
-        this.$emit('needs-transcode', { enabled: false, canStart: false, sessions: [] });
-      }
-    },
-    onVideoLoadedMetadata() {
-      if (this.transcodeOfferEmitted || getters.isShare()) {
-        return;
-      }
-      const video = this.mediaElement;
-      if (!video || video.videoWidth > 0 || video.videoHeight > 0) {
-        return;
-      }
-      if (!Number.isFinite(video.duration) || video.duration <= 0) {
-        return;
-      }
-      void this.offerTranscodePlayback();
-    },
-    syncPlyrAfterTranscodeReady() {
-      if (!this.transcodeActive || !this.player) {
-        return;
-      }
-      const video = this.player.media || this.mediaElement;
-      if (!video) {
-        return;
-      }
-      const container = this.player.elements?.container;
-      if (container && video.videoWidth > 0 && video.videoHeight > 0) {
-        container.style.aspectRatio = `${video.videoWidth} / ${video.videoHeight}`;
-      }
-      this.ensurePlaybackModeApplied();
-    },
-    resumeTranscodePlayback() {
-      const media = this.player?.media || this.mediaElement;
-      if (this.plyrTeardownDone) {
-        return Promise.resolve();
-      }
-      transcodeLog('resumeTranscodePlayback', {
-        playerPaused: this.player?.paused,
-        mediaPaused: media?.paused,
-        readyState: media?.readyState,
+  const startWithResume = () => {
+    clearAttachVideoStreamWait();
+    const onMeta = () => {
+      applyResumeSeek(el, snap);
+    };
+    if (el.readyState >= HTMLMediaElement.HAVE_METADATA) {
+      onMeta();
+    } else {
+      el.addEventListener("loadedmetadata", onMeta, { once: true });
+    }
+  };
+
+  const start = snap ? startWithResume : startDefault;
+  attachVideoStreamResume = start;
+  if (snap) {
+    if (el.readyState >= HTMLMediaElement.HAVE_METADATA) {
+      start();
+    } else {
+      el.addEventListener("loadedmetadata", start, { once: true });
+    }
+  } else {
+    start();
+  }
+}
+
+function clearAttachVideoStreamWait(): void {
+  const el = videoElement.value;
+  if (el && attachVideoStreamResume) {
+    el.removeEventListener("canplay", attachVideoStreamResume);
+    el.removeEventListener("loadedmetadata", attachVideoStreamResume);
+  }
+  attachVideoStreamResume = null;
+}
+
+function attemptResumePlay(el: HTMLVideoElement | null | undefined, snapshot: ResumeSnapshot | null): void {
+  if (tornDown || !el || snapshot?.wasPlaying === false) {
+    return;
+  }
+  const tryPlay = () => {
+    if (tornDown) {
+      return;
+    }
+    const playCall = getNativePlay() ?? (() => player.value?.play?.() ?? el.play());
+    void Promise.resolve(playCall())
+      .then(() => {
+        mutations.setPlaybackState(true);
+        emit("playback-start");
+      })
+      .catch(() => {});
+  };
+  if (el.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA && !el.paused) {
+    return;
+  }
+  if (el.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) {
+    tryPlay();
+    return;
+  }
+  el.addEventListener("canplay", tryPlay, { once: true });
+}
+
+// --- Transcode ---
+function resolveViewTokenForTranscode(): string {
+  return props.req?.viewToken || getCachedViewToken(props.req?.source) || "";
+}
+
+function ensureTranscodePlaybackController(): TranscodePlaybackController {
+  bindTranscodePlaybackController();
+  return transcodePlayback.value as TranscodePlaybackController;
+}
+
+async function offerTranscodePlayback(): Promise<void> {
+  if (tornDown || transcodeSwitchInProgress.value || isTranscodePlaybackMode.value) {
+    return;
+  }
+  if (transcodeOfferEmitted) {
+    return;
+  }
+  if (getters.isShare() || !formatNeedsTranscode.value) {
+    return;
+  }
+  transcodeOfferEmitted = true;
+  if (!transcodeEnabled.value) {
+    // Transcoding is off on this server: show the unsupported notice without
+    // asking for sessions, which would answer 503.
+    emit("needs-transcode", { enabled: false, canStart: false, sessions: [] });
+    return;
+  }
+  try {
+    const status = await getTranscodeSessions();
+    emit(
+      "needs-transcode",
+      normalizeTranscodeSessionStatus(status, {
+        source: props.req?.source,
+        path: props.req?.path,
+      }),
+    );
+  } catch (err) {
+    console.error("Failed to check transcode sessions:", err);
+    emit("needs-transcode", { enabled: false, canStart: false, sessions: [] });
+  }
+}
+
+function onVideoLoadedMetadata(): void {
+  if (transcodeOfferEmitted || getters.isShare()) {
+    return;
+  }
+  const video = videoElement.value;
+  if (!video || video.videoWidth > 0 || video.videoHeight > 0) {
+    return;
+  }
+  if (!Number.isFinite(video.duration) || video.duration <= 0) {
+    return;
+  }
+  void offerTranscodePlayback();
+}
+
+function syncPlayerAfterTranscodeReady(): void {
+  if (!transcodeActive.value || !player.value) {
+    return;
+  }
+  const video = getPlaybackMedia() as HTMLVideoElement | null | undefined;
+  if (!video) {
+    return;
+  }
+  const container = player.value.elements?.container;
+  if (container && video.videoWidth > 0 && video.videoHeight > 0) {
+    container.style.aspectRatio = `${video.videoWidth} / ${video.videoHeight}`;
+  }
+  ensurePlaybackModeApplied();
+}
+
+function resumeTranscodePlayback(): Promise<void> {
+  const media = getPlaybackMedia();
+  if (tornDown) {
+    return Promise.resolve();
+  }
+  transcodeLog("resumeTranscodePlayback", {
+    playerPaused: player.value?.paused,
+    mediaPaused: media?.paused,
+    readyState: media?.readyState,
+  });
+  const playResult = player.value?.play ? player.value.play() : media?.play();
+  return Promise.resolve(playResult)
+    .then(() => {
+      transcodeLog("resumeTranscodePlayback play resolved");
+    })
+    .catch((playErr: Error) => {
+      transcodeWarn("player.play failed during transcode attach", {
+        name: playErr?.name,
+        message: playErr?.message,
       });
-      const playResult = this.player?.play ? this.player.play() : media?.play();
-      return Promise.resolve(playResult).then(() => {
-        transcodeLog('resumeTranscodePlayback play resolved');
-      }).catch((playErr) => {
-        transcodeWarn('player.play failed during transcode attach', {
-          name: playErr?.name,
-          message: playErr?.message,
-        });
-        if (isPlayBlockedError(playErr)) {
-          this.armResumeOnNextGesture();
-        }
-        throw playErr;
-      });
-    },
-    /**
-     * Autoplay was blocked (Safari requires the play() call to come directly from
-     * a gesture handler). Arm a one-shot resume so a single tap or keypress
-     * anywhere restarts playback instead of the user hunting for the play button.
-     */
-    armResumeOnNextGesture() {
-      if (this.resumeOnGestureArmed) {
-        return;
+      if (isPlayBlockedError(playErr)) {
+        armResumeOnNextGesture();
       }
-      this.resumeOnGestureArmed = true;
-      const handler = () => {
-        this.disarmResumeOnNextGesture();
-        const media = this.player?.media || this.mediaElement;
-        if (!this.transcodeActive || !media?.paused) {
-          return;
-        }
-        transcodeLog('resuming transcode playback after user gesture');
-        void this.resumeTranscodePlayback().catch(() => {});
-      };
-      this.resumeOnGestureHandler = handler;
-      window.addEventListener('pointerdown', handler, { once: true, capture: true });
-      window.addEventListener('keydown', handler, { once: true, capture: true });
-    },
-    disarmResumeOnNextGesture() {
-      const handler = this.resumeOnGestureHandler;
-      this.resumeOnGestureArmed = false;
-      this.resumeOnGestureHandler = null;
-      if (!handler) {
-        return;
-      }
-      window.removeEventListener('pointerdown', handler, { capture: true });
-      window.removeEventListener('keydown', handler, { capture: true });
-    },
-    syncTranscodePlaybackState() {
-      if (this.plyrTeardownDone) {
-        return;
-      }
-      mutations.setPlaybackState(true);
-      this.$emit('playback-start');
-    },
-    initTranscodeModeFromRoute() {
-      if (this.previewType !== 'video' || !this.transcodeEnabled) {
-        this.transcodeMode = 'native';
-        return;
-      }
-      if (this.startTranscode) {
-        this.transcodeMode = resolveTranscodeModeForPlayback(this.$route?.query);
-        return;
-      }
-      if (needsTranscodeFirst(this.transcodeProbeParams())) {
-        this.transcodeMode = 'native';
-        return;
-      }
-      const urlTranscode = parseTranscodeModeFromQuery(this.$route?.query);
-      if (urlTranscode) {
-        this.transcodeMode = urlTranscode;
-        return;
-      }
-      this.transcodeMode = 'native';
-    },
-    resolveActiveTranscodeMode() {
-      const urlMode = parseTranscodeModeFromQuery(this.$route?.query);
-      if (urlMode) {
-        return urlMode;
-      }
-      if (PLYR_TRANSCODE_HLS_MODES.includes(this.transcodeMode)) {
-        return this.transcodeMode;
-      }
-      return resolveTranscodeModeForPlayback(this.$route?.query);
-    },
-    async resolveReuseSessionId() {
-      if (!this.req?.source || !this.req?.path) {
-        return undefined;
-      }
-      try {
-        const status = await getTranscodeSessions();
-        const sameFile = (status.sessions || []).filter(
-          (session) => session.source === this.req?.source && session.path === this.req?.path,
-        );
-        // Prefer a live session so a completed cache entry for another profile
-        // is not passed as replaceSessionId while an older profile is still active.
-        const active = sameFile.find(
-          (session) => session.state === 'starting' || session.state === 'running',
-        );
-        return active?.id ?? sameFile[0]?.id;
-      } catch {
-        return undefined;
-      }
-    },
-    async startTranscodePlayback({
-      replaceSessionId,
-      startSec,
-      mode,
-      autoplay,
+      throw playErr;
+    });
+}
+
+/**
+ * Autoplay was blocked (Safari requires the play() call to come directly from
+ * a gesture handler). Arm a one-shot resume so a single tap or keypress
+ * anywhere restarts playback instead of the user hunting for the play button.
+ */
+function armResumeOnNextGesture(): void {
+  if (resumeOnGestureArmed) {
+    return;
+  }
+  resumeOnGestureArmed = true;
+  const handler = () => {
+    disarmResumeOnNextGesture();
+    const media = getPlaybackMedia();
+    if (!transcodeActive.value || !media?.paused) {
+      return;
+    }
+    transcodeLog("resuming transcode playback after user gesture");
+    void resumeTranscodePlayback().catch(() => {});
+  };
+  resumeOnGestureHandler = handler;
+  window.addEventListener("pointerdown", handler, { once: true, capture: true });
+  window.addEventListener("keydown", handler, { once: true, capture: true });
+}
+
+function disarmResumeOnNextGesture(): void {
+  const handler = resumeOnGestureHandler;
+  resumeOnGestureArmed = false;
+  resumeOnGestureHandler = null;
+  if (!handler) {
+    return;
+  }
+  window.removeEventListener("pointerdown", handler, { capture: true });
+  window.removeEventListener("keydown", handler, { capture: true });
+}
+
+function syncTranscodePlaybackState(): void {
+  if (tornDown) {
+    return;
+  }
+  mutations.setPlaybackState(true);
+  emit("playback-start");
+}
+
+function initTranscodeModeFromRoute(): void {
+  if (!transcodeEnabled.value) {
+    transcodeMode.value = "native";
+    return;
+  }
+  if (props.startTranscode) {
+    transcodeMode.value = resolveTranscodeModeForPlayback(route.query);
+    return;
+  }
+  if (needsTranscodeFirst(transcodeProbeParams())) {
+    transcodeMode.value = "native";
+    return;
+  }
+  const urlTranscode = parseTranscodeModeFromQuery(route.query);
+  if (urlTranscode) {
+    transcodeMode.value = urlTranscode;
+    return;
+  }
+  transcodeMode.value = "native";
+}
+
+function resolveActiveTranscodeMode(): string {
+  const urlMode = parseTranscodeModeFromQuery(route.query);
+  if (urlMode) {
+    return urlMode;
+  }
+  if (TRANSCODE_HLS_MODES.includes(transcodeMode.value)) {
+    return transcodeMode.value;
+  }
+  return resolveTranscodeModeForPlayback(route.query);
+}
+
+async function resolveReuseSessionId(): Promise<string | undefined> {
+  if (!props.req?.source || !props.req?.path) {
+    return undefined;
+  }
+  try {
+    const status = await getTranscodeSessions();
+    const sameFile = (status.sessions || []).filter(
+      (session: { source?: string; path?: string }) =>
+        session.source === props.req?.source && session.path === props.req?.path,
+    );
+    // Prefer a live session so a completed cache entry for another profile
+    // is not passed as replaceSessionId while an older profile is still active.
+    const active = sameFile.find(
+      (session: { state?: string }) => session.state === "starting" || session.state === "running",
+    );
+    return active?.id ?? sameFile[0]?.id;
+  } catch {
+    return undefined;
+  }
+}
+
+async function startTranscodePlayback({
+  replaceSessionId,
+  startSec,
+  mode,
+  autoplay,
+  playPrime,
+  manageSwitchState = true,
+}: StartTranscodeOptions = {}): Promise<void> {
+  if (tornDown) {
+    return;
+  }
+  transcodeLog("startTranscodePlayback called", {
+    source: props.req?.source,
+    path: props.req?.path,
+    transcodeEnabled: transcodeEnabled.value,
+    transcodeMode: transcodeMode.value,
+    requestedMode: mode,
+    hasPlayer: Boolean(player.value),
+    replaceSessionId,
+    startSec,
+  });
+  if (!props.req?.source || !props.req?.path || !transcodeEnabled.value) {
+    transcodeWarn("startTranscodePlayback skipped — preconditions failed", {
+      source: props.req?.source,
+      path: props.req?.path,
+      transcodeEnabled: transcodeEnabled.value,
+    });
+    return;
+  }
+  const activeMode = isTranscodeHlsMode(mode) ? normalizeTranscodeMode(mode) : resolveActiveTranscodeMode();
+  if (!isTranscodeHlsMode(activeMode)) {
+    transcodeWarn("startTranscodePlayback skipped — not an HLS mode", { activeMode });
+    return;
+  }
+  const viewToken = resolveViewTokenForTranscode();
+  if (!viewToken) {
+    transcodeWarn("startTranscodePlayback skipped — missing view token");
+    return;
+  }
+  const manageSwitch = manageSwitchState && !transcodeSwitchInProgress.value;
+  if (manageSwitch) {
+    transcodeSwitchInProgress.value = true;
+  }
+  const effectiveReplaceSessionId =
+    replaceSessionId ??
+    transcodePlayback.value?.sessionController?.session?.id ??
+    (await resolveReuseSessionId());
+  const seekSec = startSec ?? player.value?.currentTime ?? 0;
+  const shouldPlay = autoplay ?? shouldAutoplay.value;
+  transcodeLog("startTranscodePlayback params", {
+    activeMode,
+    manageSwitch,
+    shouldPlay,
+    seekSec,
+    hasPlayPrime: Boolean(playPrime),
+    transcodeSwitchInProgress: transcodeSwitchInProgress.value,
+  });
+
+  try {
+    transcodeLog("preparing video element for HLS", {
+      replaceSessionId: effectiveReplaceSessionId,
+      seekSec,
+    });
+    videoStreamAttached.value = true;
+    transcodeMode.value = activeMode;
+    lockedNativeVideoSrc.value = null;
+
+    const startParams = {
+      source: props.req.source,
+      path: props.req.path,
+      viewToken,
+      mode: activeMode,
+      clientId: transcodeClientId,
+      replaceSessionId: effectiveReplaceSessionId,
+      startSec: seekSec,
       playPrime,
-      manageSwitchState = true,
-    } = {}) {
-      if (this.plyrTeardownDone) {
-        return;
+      getVideoElement: () => getPlaybackMedia(),
+      nextTick: () => nextTick(),
+      shouldAutoplay: shouldPlay,
+      onFirstBuffered: () => {
+        transcodeLog("first HLS fragment buffered — starting playback");
+        syncPlayerAfterTranscodeReady();
+      },
+      onResumePlayback: () => resumeTranscodePlayback(),
+      onPlaybackStarted: () => syncTranscodePlaybackState(),
+      onFatal: () => {
+        notify.showError(t("player.transcodeFailed"));
+      },
+      onRecoverPlayback: async (ctx?: RecoverContext) => {
+        transcodeLog("recovering transcode playback after HLS failure", {
+          startSec: ctx?.startSec,
+          sessionId: ctx?.sessionId,
+        });
+        await startTranscodePlayback({
+          mode: ctx?.mode ?? resolveActiveTranscodeMode(),
+          startSec: ctx?.startSec ?? player.value?.currentTime ?? 0,
+          replaceSessionId: ctx?.sessionId,
+          autoplay: ctx?.shouldAutoplay ?? shouldAutoplay.value,
+          manageSwitchState: true,
+          playPrime: ctx?.playPrime,
+        });
+        return true;
+      },
+      onCapacityStatus: (status: unknown) => {
+        emit(
+          "needs-transcode",
+          normalizeTranscodeSessionStatus(status, {
+            source: props.req?.source,
+            path: props.req?.path,
+          }),
+        );
+      },
+      onShowError: (err?: Error) => {
+        notify.showError(err?.message || t("player.transcodeFailed"));
+      },
+      onAttachNative: () => {
+        if (!transcodeFallbackAttempted && !wantsTranscodePlayback.value) {
+          void attachVideoStreamAndPlay();
+        }
+      },
+    };
+
+    const result = await ensureTranscodePlaybackController().start(startParams);
+
+    if (!result.ok && result.reason !== "cancelled" && result.reason !== "disposed" && result.reason !== "recovered") {
+      transcodeWarn("transcode playback did not start", { reason: result.reason });
+      if (result.reason === "error") {
+        notify.showError(t("player.transcodeFailed"));
       }
-      transcodeLog('startTranscodePlayback called', {
-        source: this.req?.source,
-        path: this.req?.path,
-        transcodeEnabled: this.transcodeEnabled,
-        transcodeMode: this.transcodeMode,
-        requestedMode: mode,
-        hasPlayer: Boolean(this.player),
+    }
+
+    if (result.reason === "capacity" && isTranscodeHlsMode(transcodeMode.value)) {
+      // Fall back fully: leaving transcodeMode on an HLS profile would make
+      // the play event fired by attachVideoStreamAndPlay re-enter
+      // startTranscodePlayback and spin on the 409 limit.
+      transcodeMode.value = "native";
+      updateTranscodeModeMenuSelection();
+      syncPlaybackUrl();
+      await switchToNativePlayback();
+      return;
+    }
+    if (result.ok) {
+      updateTranscodeModeMenuSelection();
+      syncPlaybackUrl({ transcodeMode: activeMode });
+    }
+  } finally {
+    if (manageSwitch) {
+      transcodeSwitchInProgress.value = false;
+    }
+  }
+}
+
+function teardownTranscodePlayback({
+  stopSession = false,
+  keepAlive = false,
+  keepalive = false,
+}: TeardownTranscodeOptions = {}): void {
+  const controller = transcodePlayback.value;
+  if (!controller || keepAlive) {
+    return;
+  }
+  if (usesSharedTranscodePlayback()) {
+    controller.teardownLocal({ stopSession, keepalive });
+    return;
+  }
+  controller.dispose({ stopSession, keepalive });
+}
+
+function onVideoPlaybackError(event: Event): void {
+  if (transcodeSwitchInProgress.value || transcodeStartInProgress.value || isTranscodePlaybackMode.value) {
+    return;
+  }
+  if (transcodeOfferEmitted || getters.isShare()) {
+    return;
+  }
+  const code = (event.target as HTMLMediaElement | null)?.error?.code;
+  if (code !== MediaError.MEDIA_ERR_DECODE && code !== MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED) {
+    return;
+  }
+  void offerTranscodePlayback();
+}
+
+function getTranscodeModeLabel(mode: string): string {
+  switch (normalizeTranscodeMode(mode)) {
+    case "datasaver":
+      return t("general.dataSaver");
+    case "balanced":
+      return t("general.balanced");
+    case "quality":
+      return t("general.quality");
+    default:
+      return t("general.off");
+  }
+}
+
+function updateTranscodeModeMenuSelection(): void {
+  if (!transcodeModeButtons) {
+    return;
+  }
+  const label = getTranscodeModeLabel(transcodeMode.value);
+  for (const btn of transcodeModeButtons) {
+    btn.setAttribute("aria-checked", String(btn.getAttribute("value") === transcodeMode.value));
+  }
+  if (transcodeModeValueSpan) {
+    // Only the profile name is shown; the resolved encoder/accel is a
+    // backend/ops detail and does not belong in the player's profile picker.
+    transcodeModeValueSpan.textContent = label;
+  }
+}
+
+function setTranscodeModeMenuDisabled(disabled: boolean): void {
+  if (!transcodeModeButtons) {
+    return;
+  }
+  for (const btn of transcodeModeButtons) {
+    btn.disabled = disabled;
+    if (disabled) {
+      btn.setAttribute("aria-disabled", "true");
+    } else {
+      btn.removeAttribute("aria-disabled");
+    }
+  }
+}
+
+async function switchToNativePlayback({ autoplay }: { autoplay?: boolean } = {}): Promise<void> {
+  const currentTime = player.value?.currentTime ?? 0;
+  const shouldPlay = autoplay ?? !!player.value?.playing;
+  transcodeLog("switchToNativePlayback", { currentTime, shouldPlay });
+
+  // Release the HLS source even when a shared controller owns it. hls.js
+  // otherwise keeps its MediaSource attached to the element and the native
+  // source never loads, leaving the player frozen on the last frame.
+  const controller = transcodePlayback.value;
+  if (controller) {
+    if (usesSharedTranscodePlayback()) {
+      controller.teardownLocal({ stopSession: true });
+    } else {
+      controller.dispose({ stopSession: true });
+    }
+  }
+  lockedNativeVideoSrc.value = null;
+  videoStreamAttached.value = false;
+  // hls.js leaves its (now revoked) MediaSource blob URL on the element, and
+  // attachVideoStreamAndPlay only binds when no src is present.
+  const media = getPlaybackMedia();
+  if (media?.hasAttribute("src")) {
+    media.removeAttribute("src");
+  }
+  await nextTick();
+
+  // Restore the playhead through the resume path, which waits for the
+  // new source to report metadata before seeking. Setting currentTime any
+  // earlier is discarded and playback restarts at 0:00.
+  const canResume = Number.isFinite(currentTime) && currentTime > 0;
+  if (canResume) {
+    resumeSeekSeconds.value = currentTime;
+    resumeSnapshot.value = {
+      currentTime,
+      wasPlaying: shouldPlay,
+    };
+  }
+
+  await attachVideoStreamAndPlay();
+  if (!canResume && shouldPlay && player.value) {
+    await Promise.resolve(player.value.play()).catch(() => {});
+  }
+}
+
+async function switchTranscodeMode(
+  requested: string,
+  { playPrime }: { playPrime?: ReturnType<typeof primePlay> | null } = {},
+): Promise<void> {
+  const mode = normalizeTranscodeMode(requested);
+  if (!TRANSCODE_MODES.includes(mode)) {
+    return;
+  }
+  if (mode === transcodeMode.value || transcodeSwitchInProgress.value) {
+    return;
+  }
+  const previousMode = transcodeMode.value;
+  const wasPlaying = !!player.value?.playing;
+  transcodeLog("switchTranscodeMode start", {
+    mode,
+    previousMode,
+    wasPlaying,
+    playerPaused: player.value?.paused,
+    mediaPaused: getPlaybackMedia()?.paused,
+    shouldAutoplay: shouldAutoplay.value,
+    currentTime: player.value?.currentTime,
+  });
+  transcodeSwitchInProgress.value = true;
+  // Capture before mode/teardown changes so same-file profile switches always
+  // send replaceSessionId even if the controller is mid-start.
+  const replaceSessionId = transcodePlayback.value?.sessionController?.session?.id ?? (await resolveReuseSessionId());
+  transcodeMode.value = mode;
+  if (TRANSCODE_HLS_MODES.includes(mode)) {
+    savePreferredTranscodeMode(mode);
+  }
+  try {
+    if (TRANSCODE_HLS_MODES.includes(mode)) {
+      await startTranscodePlayback({
         replaceSessionId,
-        startSec,
-      });
-      if (this.previewType !== 'video' || !this.req?.source || !this.req?.path || !this.transcodeEnabled) {
-        transcodeWarn('startTranscodePlayback skipped — preconditions failed', {
-          previewType: this.previewType,
-          source: this.req?.source,
-          path: this.req?.path,
-          transcodeEnabled: this.transcodeEnabled,
-        });
-        return;
-      }
-      const activeMode = isTranscodeHlsMode(mode)
-        ? normalizeTranscodeMode(mode)
-        : this.resolveActiveTranscodeMode();
-      if (!isTranscodeHlsMode(activeMode)) {
-        transcodeWarn('startTranscodePlayback skipped — not an HLS mode', { activeMode });
-        return;
-      }
-      const viewToken = this.resolveViewTokenForTranscode();
-      if (!viewToken) {
-        transcodeWarn('startTranscodePlayback skipped — missing view token');
-        return;
-      }
-      const manageSwitch = manageSwitchState && !this.transcodeSwitchInProgress;
-      if (manageSwitch) {
-        this.transcodeSwitchInProgress = true;
-      }
-      const effectiveReplaceSessionId = replaceSessionId
-        ?? this.transcodePlayback?.sessionController?.session?.id
-        ?? await this.resolveReuseSessionId();
-      const seekSec = startSec ?? this.player?.currentTime ?? 0;
-      const shouldPlay = autoplay ?? this.shouldAutoplay;
-      transcodeLog('startTranscodePlayback params', {
-        activeMode,
-        manageSwitch,
-        shouldPlay,
-        seekSec,
-        hasPlayPrime: Boolean(playPrime),
-        transcodeSwitchInProgress: this.transcodeSwitchInProgress,
-      });
-
-      try {
-        transcodeLog('preparing video element for HLS', {
-          replaceSessionId: effectiveReplaceSessionId,
-          seekSec,
-        });
-        this.videoStreamAttached = true;
-        this.transcodeMode = activeMode;
-        this.lockedNativeVideoSrc = null;
-
-        const startParams = {
-          source: this.req.source,
-          path: this.req.path,
-          viewToken,
-          mode: activeMode,
-          clientId: this.transcodeClientId,
-          replaceSessionId: effectiveReplaceSessionId,
-          startSec: seekSec,
-          playPrime,
-          getVideoElement: () => this.player?.media || this.mediaElement,
-          nextTick: () => this.$nextTick(),
-          shouldAutoplay: shouldPlay,
-          onFirstBuffered: () => {
-            transcodeLog('first HLS fragment buffered — starting playback');
-            this.syncPlyrAfterTranscodeReady();
-          },
-          onResumePlayback: () => this.resumeTranscodePlayback(),
-          onPlaybackStarted: () => this.syncTranscodePlaybackState(),
-          onFatal: () => {
-            notify.showError(this.$t('player.transcodeFailed'));
-          },
-          onRecoverPlayback: async (ctx) => {
-            transcodeLog('recovering transcode playback after HLS failure', {
-              startSec: ctx?.startSec,
-              sessionId: ctx?.sessionId,
-            });
-            await this.startTranscodePlayback({
-              mode: ctx?.mode ?? this.resolveActiveTranscodeMode(),
-              startSec: ctx?.startSec ?? this.player?.currentTime ?? 0,
-              replaceSessionId: ctx?.sessionId,
-              autoplay: ctx?.shouldAutoplay ?? this.shouldAutoplay,
-              manageSwitchState: true,
-              playPrime: ctx?.playPrime,
-            });
-            return true;
-          },
-          onCapacityStatus: (status) => {
-            this.$emit('needs-transcode', normalizeTranscodeSessionStatus(status, {
-              source: this.req?.source,
-              path: this.req?.path,
-            }));
-          },
-          onShowError: (err) => {
-            notify.showError(err?.message || this.$t('player.transcodeFailed'));
-          },
-          onAttachNative: () => {
-            if (!this.transcodeFallbackAttempted && !this.wantsTranscodePlayback) {
-              this.attachVideoStreamAndPlay();
-            }
-          },
-        };
-
-        const result = await this.ensureTranscodePlaybackController().start(startParams);
-
-        if (!result.ok && result.reason !== 'cancelled' && result.reason !== 'disposed' && result.reason !== 'recovered') {
-          transcodeWarn('transcode playback did not start', { reason: result.reason });
-          if (result.reason === 'error') {
-            notify.showError(this.$t('player.transcodeFailed'));
-          }
-        }
-
-        if (result.reason === 'capacity' && isTranscodeHlsMode(this.transcodeMode)) {
-          // Fall back fully: leaving transcodeMode on an HLS profile would make
-          // the play event fired by attachVideoStreamAndPlay re-enter
-          // startTranscodePlayback and spin on the 409 limit.
-          this.transcodeMode = 'native';
-          this.updateTranscodeModeMenuSelection();
-          this.syncPlaybackUrl();
-          await this.switchToNativePlayback();
-          return;
-        }
-        if (result.ok) {
-          this.updateTranscodeModeMenuSelection();
-          this.syncPlaybackUrl({ transcodeMode: activeMode });
-        }
-      } finally {
-        if (manageSwitch) {
-          this.transcodeSwitchInProgress = false;
-        }
-      }
-    },
-    teardownTranscodePlayback({ stopSession = false, keepAlive = false, keepalive = false } = {}) {
-      if (!this.transcodePlayback || keepAlive) {
-        return;
-      }
-      if (this.usesSharedTranscodePlayback()) {
-        this.transcodePlayback.teardownLocal({ stopSession, keepalive });
-        return;
-      }
-      this.transcodePlayback.dispose({ stopSession, keepalive });
-    },
-    onVideoPlaybackError(event) {
-      if (
-        this.transcodeSwitchInProgress
-        || this.transcodeStartInProgress
-        || this.isTranscodePlaybackMode
-      ) {
-        return;
-      }
-      if (this.transcodeOfferEmitted || getters.isShare()) {
-        return;
-      }
-      const code = event?.target?.error?.code;
-      if (
-        code !== MediaError.MEDIA_ERR_DECODE
-        && code !== MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED
-      ) {
-        return;
-      }
-      void this.offerTranscodePlayback();
-    },
-    async stripPlaybackTimeFromUrl() {
-      const nextQuery = buildPlaybackQueryPatch(this.$route.query, { time: null });
-      if (!playbackQueryChanged(this.$route.query, nextQuery)) {
-        return;
-      }
-      await this.$router.replace({
-        path: this.$route.path,
-        query: nextQuery,
-        hash: this.$route.hash,
-      });
-    },
-    syncPlaybackUrl({ transcodeMode } = {}) {
-      if (this.previewType !== 'video') {
-        return;
-      }
-      if (this.transcodeSwitchInProgress) {
-        return;
-      }
-      const explicitMode = transcodeMode !== undefined;
-      const resolvedMode = normalizeTranscodeMode(
-        explicitMode ? transcodeMode : this.transcodeMode,
-      );
-      let modeForQuery = null;
-      if (PLYR_TRANSCODE_HLS_MODES.includes(resolvedMode)) {
-        if (explicitMode || this.transcodeActive) {
-          modeForQuery = resolvedMode;
-        }
-      }
-      const nextQuery = buildPlaybackQueryPatch(this.$route.query, {
-        time: null,
-        transcodeMode: modeForQuery,
-      });
-      if (!playbackQueryChanged(this.$route.query, nextQuery)) {
-        return;
-      }
-      this.$router.replace({
-        path: this.$route.path,
-        query: nextQuery,
-        hash: this.$route.hash,
-      });
-    },
-    getTranscodeModeLabel(mode) {
-      switch (normalizeTranscodeMode(mode)) {
-        case 'datasaver':
-          return this.$t('general.dataSaver');
-        case 'balanced':
-          return this.$t('general.balanced');
-        case 'quality':
-          return this.$t('general.quality');
-        default:
-          return this.$t('general.off');
-      }
-    },
-    updateTranscodeModeMenuSelection() {
-      if (!this.transcodeModeButtons) {
-        return;
-      }
-      const label = this.getTranscodeModeLabel(this.transcodeMode);
-      for (const btn of this.transcodeModeButtons) {
-        btn.setAttribute('aria-checked', btn.getAttribute('value') === this.transcodeMode);
-      }
-      if (this.transcodeModeValueSpan) {
-        // Only the profile name is shown; the resolved encoder/accel is a
-        // backend/ops detail and does not belong in the player's profile picker.
-        this.transcodeModeValueSpan.textContent = label;
-      }
-    },
-    setTranscodeModeMenuDisabled(disabled) {
-      if (!this.transcodeModeButtons) {
-        return;
-      }
-      for (const btn of this.transcodeModeButtons) {
-        btn.disabled = disabled;
-        if (disabled) {
-          btn.setAttribute('aria-disabled', 'true');
-        } else {
-          btn.removeAttribute('aria-disabled');
-        }
-      }
-    },    async switchToNativePlayback({ autoplay } = {}) {
-      const currentTime = this.player?.currentTime ?? 0;
-      const shouldPlay = autoplay ?? !!this.player?.playing;
-      transcodeLog('switchToNativePlayback', { currentTime, shouldPlay });
-
-      // Release the HLS source even when a shared controller owns it. hls.js
-      // otherwise keeps its MediaSource attached to the element and the native
-      // source never loads, leaving the player frozen on the last frame.
-      const controller = this.transcodePlayback;
-      if (controller) {
-        if (this.usesSharedTranscodePlayback()) {
-          controller.teardownLocal({ stopSession: true });
-        } else {
-          controller.dispose({ stopSession: true });
-        }
-      }
-      this.lockedNativeVideoSrc = null;
-      this.videoStreamAttached = false;
-      // hls.js leaves its (now revoked) MediaSource blob URL on the element, and
-      // attachVideoStreamAndPlay only binds when no src is present.
-      const media = this.player?.media || this.mediaElement;
-      if (media?.hasAttribute('src')) {
-        media.removeAttribute('src');
-      }
-      await this.$nextTick();
-
-      // Restore the playhead through the resume path, which waits for the
-      // new source to report metadata before seeking. Setting currentTime any
-      // earlier is discarded and playback restarts at 0:00.
-      const canResume = Number.isFinite(currentTime) && currentTime > 0;
-      if (canResume) {
-        this.resumeSeekSeconds = currentTime;
-        this.resumeSnapshot = {
-          currentTime,
-          wasPlaying: shouldPlay,
-        };
-      }
-
-      await this.attachVideoStreamAndPlay();
-      if (!canResume && shouldPlay && this.player) {
-        await this.player.play().catch(() => {});
-      }
-    },
-    async switchTranscodeMode(mode, { playPrime } = {}) {
-      mode = normalizeTranscodeMode(mode);
-      if (!PLYR_TRANSCODE_MODES.includes(mode)) {
-        return;
-      }
-      if (mode === this.transcodeMode || this.transcodeSwitchInProgress) {
-        return;
-      }
-      const previousMode = this.transcodeMode;
-      const wasPlaying = !!this.player?.playing;
-      transcodeLog('switchTranscodeMode start', {
+        startSec: player.value?.currentTime ?? 0,
         mode,
-        previousMode,
-        wasPlaying,
-        playerPaused: this.player?.paused,
-        mediaPaused: (this.player?.media || this.mediaElement)?.paused,
-        shouldAutoplay: this.shouldAutoplay,
-        currentTime: this.player?.currentTime,
+        autoplay: wasPlaying || shouldAutoplay.value,
+        playPrime: wasPlaying ? playPrime : null,
+        manageSwitchState: false,
       });
-      this.transcodeSwitchInProgress = true;
-      // Capture before mode/teardown changes so same-file profile switches always
-      // send replaceSessionId even if the controller is mid-start.
-      const replaceSessionId = this.transcodePlayback?.sessionController?.session?.id
-        ?? await this.resolveReuseSessionId();
-      this.transcodeMode = mode;
-      if (PLYR_TRANSCODE_HLS_MODES.includes(mode)) {
-        savePreferredTranscodeMode(mode);
+    } else if (needsTranscodeFirst(transcodeProbeParams())) {
+      transcodeOfferEmitted = false;
+      if (!usesSharedTranscodePlayback()) {
+        teardownTranscodePlayback({ stopSession: true });
       }
       try {
-        if (PLYR_TRANSCODE_HLS_MODES.includes(mode)) {
-          await this.startTranscodePlayback({
-            replaceSessionId,
-            startSec: this.player?.currentTime ?? 0,
-            mode,
-            autoplay: wasPlaying || this.shouldAutoplay,
-            playPrime: wasPlaying ? playPrime : null,
-            manageSwitchState: false,
-          });
-        } else if (needsTranscodeFirst(this.transcodeProbeParams())) {
-          this.transcodeOfferEmitted = false;
-          if (!this.usesSharedTranscodePlayback()) {
-            this.teardownTranscodePlayback({ stopSession: true });
-          }
-          try {
-            const status = await getTranscodeSessions();
-            this.$emit('needs-transcode', normalizeTranscodeSessionStatus(status, {
-              source: this.req?.source,
-              path: this.req?.path,
-            }));
-          } catch (err) {
-            console.error('Failed to check transcode sessions:', err);
-          }
-        } else {
-          await this.switchToNativePlayback({ autoplay: wasPlaying || this.shouldAutoplay });
-        }
-        this.updateTranscodeModeMenuSelection();
+        const status = await getTranscodeSessions();
+        emit(
+          "needs-transcode",
+          normalizeTranscodeSessionStatus(status, {
+            source: props.req?.source,
+            path: props.req?.path,
+          }),
+        );
       } catch (err) {
-        console.error('Transcode mode switch failed:', err);
-        this.transcodeMode = previousMode;
-        this.updateTranscodeModeMenuSelection();
-        if (previousMode === 'native') {
-          await this.switchToNativePlayback();
-        } else {
-          await this.startTranscodePlayback({
-            startSec: this.player?.currentTime ?? 0,
-            manageSwitchState: false,
-          });
-        }
-      } finally {
-        this.transcodeSwitchInProgress = false;
-        this.syncPlaybackUrl({ transcodeMode: this.transcodeMode });
-        transcodeLog('switchTranscodeMode done', {
-          mode: this.transcodeMode,
-          transcodeActive: this.transcodeActive,
-          playerPaused: this.player?.paused,
-          mediaPaused: (this.player?.media || this.mediaElement)?.paused,
-          videoPlaybackLoading: this.videoPlaybackLoading,
-        });
+        console.error("Failed to check transcode sessions:", err);
       }
-    },
-    attemptResumePlay(el, snapshot) {
-      if (this.plyrTeardownDone || !el || snapshot?.wasPlaying === false) {
-        return;
-      }
-      const tryPlay = () => {
-        if (this.plyrTeardownDone) {
-          return;
-        }
-        const playCall = this.getNativePlay()
-          ?? (() => this.player?.play?.() ?? el.play());
-        void Promise.resolve(playCall()).then(() => {
-          mutations.setPlaybackState(true);
-          this.$emit('playback-start');
-        }).catch(() => {});
-      };
-      if (el.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA && !el.paused) {
-        return;
-      }
-      if (el.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) {
-        tryPlay();
-        return;
-      }
-      el.addEventListener('canplay', tryPlay, { once: true });
-    },
-    getPlaybackDuration() {
-      const fromPlayer = this.player?.duration;
-      if (Number.isFinite(fromPlayer) && fromPlayer > 0) {
-        return fromPlayer;
-      }
-      const meta = this.req?.metadata?.duration;
-      if (Number.isFinite(meta) && meta > 0) {
-        return meta;
-      }
-      return 0;
-    },
-    setupVideoLoadingIndicator() {
-      if (this.previewType !== 'video' || !this.player) {
-        return;
-      }
-      this.videoLoadingCleanup?.();
-      this.videoLoadingCleanup = enableVideoLoadingIndicator(
-        this.player,
-        (loading) => {
-          this.videoPlaybackLoading = loading;
-        }
-      );
-    },
-    setupScrubPreview() {
-      if (!this.scrubPreviewEnabled || !this.player) {
-        return;
-      }
-      this.scrubPreviewCleanup?.();
-      this.scrubPreviewCleanup = enableScrubPreview(this.player, {
-        buildPreviewUrl: (atPercentage) => {
-          const base = getters.isShare()
-            ? getPreviewURLPublic(this.req.path, 'large')
-            : `${getPreviewURL(this.req.source, this.req.path, this.req.modified)}&size=large`;
-          return `${base}&atPercentage=${atPercentage}`;
-        },
-        getDuration: () => this.getPlaybackDuration(),
+    } else {
+      await switchToNativePlayback({ autoplay: wasPlaying || shouldAutoplay.value });
+    }
+    updateTranscodeModeMenuSelection();
+  } catch (err) {
+    console.error("Transcode mode switch failed:", err);
+    transcodeMode.value = previousMode;
+    updateTranscodeModeMenuSelection();
+    if (previousMode === "native") {
+      await switchToNativePlayback();
+    } else {
+      await startTranscodePlayback({
+        startSec: player.value?.currentTime ?? 0,
+        manageSwitchState: false,
       });
+    }
+  } finally {
+    transcodeSwitchInProgress.value = false;
+    syncPlaybackUrl({ transcodeMode: transcodeMode.value });
+    transcodeLog("switchTranscodeMode done", {
+      mode: transcodeMode.value,
+      transcodeActive: transcodeActive.value,
+      playerPaused: player.value?.paused,
+      mediaPaused: getPlaybackMedia()?.paused,
+      videoPlaybackLoading: videoPlaybackLoading.value,
+    });
+  }
+}
+
+// --- Player features ---
+function getPlaybackDuration(): number {
+  const fromPlayer = player.value?.duration;
+  if (fromPlayer && Number.isFinite(fromPlayer) && fromPlayer > 0) {
+    return fromPlayer;
+  }
+  const meta = props.req?.metadata?.duration;
+  if (meta && Number.isFinite(meta) && meta > 0) {
+    return meta;
+  }
+  return 0;
+}
+
+function setupVideoLoadingIndicator(): void {
+  if (!player.value) {
+    return;
+  }
+  videoLoadingCleanup?.();
+  videoLoadingCleanup = enableVideoLoadingIndicator(player.value, (loading: boolean) => {
+    videoPlaybackLoading.value = loading;
+  });
+}
+
+function setupScrubPreview(): void {
+  if (!scrubPreviewEnabled.value || !player.value) {
+    return;
+  }
+  scrubPreviewCleanup?.();
+  scrubPreviewCleanup = enableScrubPreview(player.value, {
+    buildPreviewUrl: (atPercentage: number) => {
+      const base = getters.isShare()
+        ? getPreviewURLPublic(props.req.path ?? "", "large")
+        : `${getPreviewURL(props.req.source, props.req.path, props.req.modified)}&size=large`;
+      return `${base}&atPercentage=${atPercentage}`;
     },
-    setupPlyrEvents() {
-      if (!this.player) return;
-      mutations.setPlaybackState(this.player.playing);
-      const eventMap = {
-        ended: this.handleMediaEnd,
-        play: () => {
-          this.hasStartedPlayback = true;
-          mutations.setPlaybackState(true);
-          this.updateMediaSessionPlaybackState();
-          this.transcodePlayback?.updatePlayback({
-            currentTime: this.player?.currentTime,
-            paused: false,
+    getDuration: () => getPlaybackDuration(),
+  });
+}
+
+function setupPlayerEvents(): void {
+  const current = player.value;
+  if (!current) return;
+  mutations.setPlaybackState(current.playing);
+  const events: [Plyr.StandardEvent | Plyr.Html5Event, () => void][] = [
+    ["ended", handleMediaEnd],
+    [
+      "play",
+      () => {
+        hasStartedPlayback.value = true;
+        mutations.setPlaybackState(true);
+        updateMediaSessionPlaybackState();
+        transcodePlayback.value?.updatePlayback({
+          currentTime: player.value?.currentTime,
+          paused: false,
+        });
+      },
+    ],
+    [
+      "pause",
+      () => {
+        mutations.setPlaybackState(false);
+        updateMediaSessionPlaybackState();
+        transcodePlayback.value?.updatePlayback({
+          currentTime: player.value?.currentTime,
+          paused: true,
+        });
+      },
+    ],
+    [
+      "timeupdate",
+      () => {
+        updateMediaSessionPlaybackState();
+        if (transcodePlayback.value?.sessionController) {
+          transcodePlayback.value.updatePlayback({
+            currentTime: player.value?.currentTime,
+            paused: !player.value?.playing,
           });
-        },
-        pause: () => {
-          mutations.setPlaybackState(false);
-          this.updateMediaSessionPlaybackState();
-          this.transcodePlayback?.updatePlayback({
-            currentTime: this.player?.currentTime,
-            paused: true,
-          });
-        },
-        timeupdate: () => {
-          this.updateMediaSessionPlaybackState();
-          if (this.transcodePlayback.sessionController) {
-            this.transcodePlayback.updatePlayback({
-              currentTime: this.player?.currentTime,
-              paused: !this.player?.playing,
+        }
+      },
+    ],
+    ["seeked", updateMediaSessionPlaybackState],
+    ["loadedmetadata", updateMediaSessionPlaybackState],
+    ["ratechange", updateMediaSessionPlaybackState],
+    ["canplay", updateMediaSessionPlaybackState],
+    ["enterfullscreen", onFullscreenEnter],
+    ["exitfullscreen", onFullscreenExit],
+    ["enterfullscreen", applyCaptionSizeClass],
+    ["exitfullscreen", applyCaptionSizeClass],
+  ];
+  for (const [event, handler] of events) {
+    onPlayerEvent(event, handler);
+  }
+  ensurePlaybackModeApplied();
+  applyCaptionSizeClass();
+  syncCaptionSizeSettingsVisibility();
+  setupDoubleTapSeek();
+  setupSwipeGestures();
+  setupRewindForwardFeedback();
+  setupOverlaidHintController();
+}
+
+/** Plyr-specific: builds the caption size and transcode menus once (innerHTML), then only updates their state. */
+function applyCustomSettings(plyr: Plyr): void {
+  try {
+    const settings = getSettingsElements(plyr);
+    const captionSizeBtn = settings?.buttons?.captionSize;
+    const captionSizePanel = settings?.panels?.captionSize;
+
+    // --- Playback and loop menus (usePlaybackQueue) ---
+    applyPlaybackMenu(plyr);
+    applyLoopMenu(plyr);
+    // --- Caption size menu ---
+    if (captionSizeBtn && captionSizePanel) {
+      if (!hasSubtitles.value) {
+        captionSizeBtn.setAttribute("hidden", "");
+        captionSizeMenuInitialized = true;
+      } else {
+        captionSizeBtn.removeAttribute("hidden");
+        const title = getPlayerI18n(plyr)?.captionSize || "Caption size";
+        const currentSize = getStoredCaptionSize();
+        const currentSizeLabel = getCaptionSizeLabel(currentSize);
+
+        if (!captionSizeMenuInitialized) {
+          const menu = captionSizePanel.querySelector<HTMLElement>('div[role="menu"]');
+          if (!menu) throw new Error("caption size menu element missing");
+          menu.innerHTML = CAPTION_SIZE_IDS.map(
+            (id) => `<button type="button" data-plyr="caption-size" role="menuitemradio" class="plyr__control" value="${id}">
+                        <span>${getCaptionSizeLabel(id)}</span>
+                      </button>`,
+          ).join("");
+
+          const buttons = menu.querySelectorAll<HTMLButtonElement>('button[data-plyr="caption-size"]');
+          captionSizeButtons = buttons;
+          // Set initial checked state
+          for (const btn of buttons) {
+            btn.setAttribute("aria-checked", String(btn.getAttribute("value") === currentSize));
+          }
+          // Add click listeners
+          for (const btn of buttons) {
+            btn.addEventListener("click", (event) => {
+              const value = (event.currentTarget as HTMLElement).getAttribute("value");
+              if (!value || !(CAPTION_SIZE_IDS as readonly string[]).includes(value)) return;
+              setStoredCaptionSize(value as (typeof CAPTION_SIZE_IDS)[number]);
+              applyCaptionSizeClass();
+              // Update checked states and label
+              for (const b of buttons) {
+                b.setAttribute("aria-checked", String(b.getAttribute("value") === value));
+              }
+              // Update label in button
+              const label = getCaptionSizeLabel(value as (typeof CAPTION_SIZE_IDS)[number]);
+              if (captionSizeValueSpan) captionSizeValueSpan.textContent = label;
             });
           }
-        },
-        seeked: this.updateMediaSessionPlaybackState,
-        loadedmetadata: this.updateMediaSessionPlaybackState,
-        ratechange: this.updateMediaSessionPlaybackState,
-        canplay: this.updateMediaSessionPlaybackState,
-      };
-      for (const [evt, fn] of Object.entries(eventMap)) {
-        this.onPlayerEvent(evt, fn);
-      }
-      this.onPlayerEvent('enterfullscreen', this.onFullscreenEnter);
-      this.onPlayerEvent('exitfullscreen', this.onFullscreenExit);
-      if (this.previewType === 'video') {
-        this.onPlayerEvent('enterfullscreen', this.applyCaptionSizeClass);
-        this.onPlayerEvent('exitfullscreen', this.applyCaptionSizeClass);
-      }
-      this.ensurePlaybackModeApplied();
-      if (this.previewType === 'video') {
-        this.applyCaptionSizeClass();
-        this.syncCaptionSizeSettingsVisibility();
-      }
-      this.setupDoubleTapSeek();
-      this.setupSwipeGestures();
-      this.setupRewindForwardFeedback();
-      if (this.previewType === 'video') {
-        this.setupOverlaidHintController();
-      }
-    },
-    // Builds playback and caption menus once, then updates state without rebuilding again.
-    applyCustomSettings(player) {
-      try {
-        const captionSizeBtn = player.elements.settings?.buttons?.captionSize;
-        const captionSizePanel = player.elements.settings?.panels?.captionSize;
-
-        // --- Playback and loop menus (usePlaybackQueue) ---
-        this.applyPlaybackMenu(player);
-        this.applyLoopMenu(player);
-        // --- Caption size menu ---
-        if (captionSizeBtn && captionSizePanel) {
-          const visible = this.previewType === 'video' && this.hasSubtitles;
-          if (!visible) {
-            captionSizeBtn.setAttribute('hidden', '');
-            this.captionSizeMenuInitialized = true;
+          const valueSpan = captionSizeBtn.querySelector<HTMLElement>("span .plyr__menu__value");
+          if (valueSpan) {
+            valueSpan.textContent = currentSizeLabel;
+            captionSizeValueSpan = valueSpan;
           } else {
-          captionSizeBtn.removeAttribute('hidden');
-          const title = player.config.i18n?.captionSize || 'Caption size';
-          const currentSize = getStoredCaptionSize();
-          const currentSizeLabel = getCaptionSizeLabel(currentSize);
-
-          if (!this.captionSizeMenuInitialized) {
-            const menu = captionSizePanel.querySelector('div[role="menu"]');
-            menu.innerHTML = CAPTION_SIZE_IDS.map(
-              (id) => `<button type="button" data-plyr="caption-size" role="menuitemradio" class="plyr__control" value="${id}">
-                        <span>${getCaptionSizeLabel(id)}</span>
-                      </button>`
-            ).join('');
-
-            this.captionSizeButtons = menu.querySelectorAll('button[data-plyr="caption-size"]');
-            // Set initial checked state
-            for (const btn of this.captionSizeButtons) {
-              btn.setAttribute('aria-checked', btn.getAttribute('value') === currentSize);
+            const labelSpan = captionSizeBtn.querySelector("span");
+            if (labelSpan) {
+              labelSpan.innerHTML = `${title}: <span class="plyr__menu__value">${currentSizeLabel}</span>`;
             }
-            // Add click listeners
-            for (const btn of this.captionSizeButtons) {
-              btn.addEventListener('click', (event) => {
-                const value = event.currentTarget.getAttribute('value');
-                if (!CAPTION_SIZE_IDS.includes(value)) return;
-                setStoredCaptionSize(value);
-                this.applyCaptionSizeClass();
-                // Update checked states and label
-                for (const b of this.captionSizeButtons) {
-                  b.setAttribute('aria-checked', b.getAttribute('value') === value);
-                }
-                // Update label in button
-                const label = getCaptionSizeLabel(value);
-                if (this.captionSizeValueSpan) this.captionSizeValueSpan.textContent = label;
-              });
-            }
-            const valueSpan = captionSizeBtn.querySelector('span .plyr__menu__value');
-            if (valueSpan) {
-              valueSpan.textContent = currentSizeLabel;
-              this.captionSizeValueSpan = valueSpan;
-            } else {
-              captionSizeBtn.querySelector('span').innerHTML = `${title}: <span class="plyr__menu__value">${currentSizeLabel}</span>`;
-              this.captionSizeValueSpan = captionSizeBtn.querySelector('span .plyr__menu__value');
-            }
-            this.captionSizeMenuInitialized = true;
-          } else {
-            // Update checked states and label
-            if (this.captionSizeButtons) {
-              for (const btn of this.captionSizeButtons) {
-                btn.setAttribute('aria-checked', btn.getAttribute('value') === currentSize);
-              }
-            }
-            if (this.captionSizeValueSpan) {
-              this.captionSizeValueSpan.textContent = currentSizeLabel;
+            captionSizeValueSpan = captionSizeBtn.querySelector<HTMLElement>("span .plyr__menu__value");
+          }
+          captionSizeMenuInitialized = true;
+        } else {
+          // Update checked states and label
+          if (captionSizeButtons) {
+            for (const btn of captionSizeButtons) {
+              btn.setAttribute("aria-checked", String(btn.getAttribute("value") === currentSize));
             }
           }
-          this.applyCaptionSizeClass();
+          if (captionSizeValueSpan) {
+            captionSizeValueSpan.textContent = currentSizeLabel;
           }
         }
+        applyCaptionSizeClass();
+      }
+    }
 
-        // --- Transcode mode menu (video + transcode enabled) ---
-        const transcodeBtn = player.elements.settings?.buttons?.transcodeMode;
-        const transcodePanel = player.elements.settings?.panels?.transcodeMode;
-        if (transcodeBtn && transcodePanel) {
-          // Stable hook for tests — Plyr stamps data-plyr="settings" on every menu item.
-          transcodeBtn.setAttribute('data-plyr-menu', 'transcodeMode');
-          if (!this.transcodeMenuAvailable) {
-            transcodeBtn.setAttribute('hidden', '');
-            // Availability flipped off after init (logout, live settings
-            // sync): the built buttons are stale, so a later availability flip
-            // must rebuild them.
-            this.transcodeMenuInitialized = false;
-            this.transcodeModeButtons = null;
-            this.transcodeModeValueSpan = null;
-          } else {
-            transcodeBtn.removeAttribute('hidden');
-            const currentLabel = this.getTranscodeModeLabel(this.transcodeMode);
+    // --- Transcode mode menu (video + transcode enabled) ---
+    const transcodeBtn = settings?.buttons?.transcodeMode;
+    const transcodePanel = settings?.panels?.transcodeMode;
+    if (transcodeBtn && transcodePanel) {
+      // Stable hook for tests — Plyr stamps data-plyr="settings" on every menu item.
+      transcodeBtn.setAttribute("data-plyr-menu", "transcodeMode");
+      if (!transcodeMenuAvailable.value) {
+        transcodeBtn.setAttribute("hidden", "");
+        // Availability flipped off after init (logout, live settings
+        // sync): the built buttons are stale, so a later availability flip
+        // must rebuild them.
+        transcodeMenuInitialized = false;
+        transcodeModeButtons = null;
+        transcodeModeValueSpan = null;
+      } else {
+        transcodeBtn.removeAttribute("hidden");
+        const currentLabel = getTranscodeModeLabel(transcodeMode.value);
 
-            if (!this.transcodeMenuInitialized) {
-              const menu = transcodePanel.querySelector('div[role="menu"]');
-              const modeButtons = [{ value: 'native', label: this.$t('general.off') }]
-                .concat(this.transcodeProfileOptions.map((id) => ({
-                  value: id,
-                  label: this.getTranscodeModeLabel(id),
-                })));
-              menu.innerHTML = modeButtons.map((opt) => `
+        if (!transcodeMenuInitialized) {
+          const menu = transcodePanel.querySelector<HTMLElement>('div[role="menu"]');
+          if (!menu) throw new Error("transcode menu element missing");
+          const modeButtons = [{ value: "native", label: t("general.off") }].concat(
+            transcodeProfileOptions.value.map((id) => ({
+              value: id,
+              label: getTranscodeModeLabel(id),
+            })),
+          );
+          menu.innerHTML = modeButtons
+            .map(
+              (opt) => `
                 <button data-plyr="transcode-mode" type="button" role="menuitemradio" class="plyr__control" value="${opt.value}">
                   <span>${opt.label}</span>
-                </button>`).join('');
-              this.transcodeModeButtons = menu.querySelectorAll('button[data-plyr="transcode-mode"]');
-              for (const btn of this.transcodeModeButtons) {
-                btn.setAttribute('aria-checked', btn.getAttribute('value') === this.transcodeMode);
+                </button>`,
+            )
+            .join("");
+          const buttons = menu.querySelectorAll<HTMLButtonElement>('button[data-plyr="transcode-mode"]');
+          transcodeModeButtons = buttons;
+          for (const btn of buttons) {
+            btn.setAttribute("aria-checked", String(btn.getAttribute("value") === transcodeMode.value));
+          }
+          for (const btn of buttons) {
+            btn.addEventListener("click", (event) => {
+              if (transcodeSwitchInProgress.value) {
+                return;
               }
-              for (const btn of this.transcodeModeButtons) {
-                btn.addEventListener('click', (event) => {
-                  if (this.transcodeSwitchInProgress) {
-                    return;
-                  }
-                  const value = event.currentTarget.getAttribute('value');
-                  if (!PLYR_TRANSCODE_MODES.includes(value)) {
-                    return;
-                  }
-                  const wasPlaying = !!this.player?.playing;
-                  const el = this.player?.media || this.mediaElement;
-                  transcodeLog('transcode menu selection', {
-                    value,
-                    wasPlaying,
-                    playerPaused: this.player?.paused,
-                    mediaPaused: el?.paused,
-                    currentTime: this.player?.currentTime,
-                    shouldAutoplay: this.shouldAutoplay,
-                  });
-                  const playPrime = wasPlaying ? primePlay(el) : null;
-                  void this.switchTranscodeMode(value, { playPrime });
-                });
+              const value = (event.currentTarget as HTMLElement).getAttribute("value");
+              if (!value || !TRANSCODE_MODES.includes(value)) {
+                return;
               }
-              const valueSpan = transcodeBtn.querySelector('span .plyr__menu__value');
-              if (valueSpan) {
-                valueSpan.textContent = currentLabel;
-                this.transcodeModeValueSpan = valueSpan;
-              } else {
-                transcodeBtn.querySelector('span').innerHTML = `<span class="plyr__menu__value">${currentLabel}</span>`;
-                this.transcodeModeValueSpan = transcodeBtn.querySelector('span .plyr__menu__value');
-              }
-              this.transcodeMenuInitialized = true;
-            } else if (this.transcodeModeButtons) {
-              for (const btn of this.transcodeModeButtons) {
-                btn.setAttribute('aria-checked', btn.getAttribute('value') === this.transcodeMode);
-              }
-              if (this.transcodeModeValueSpan) {
-                this.transcodeModeValueSpan.textContent = currentLabel;
-              }
+              const wasPlaying = !!player.value?.playing;
+              const el = getPlaybackMedia();
+              transcodeLog("transcode menu selection", {
+                value,
+                wasPlaying,
+                playerPaused: player.value?.paused,
+                mediaPaused: el?.paused,
+                currentTime: player.value?.currentTime,
+                shouldAutoplay: shouldAutoplay.value,
+              });
+              const playPrime = wasPlaying ? primePlay(el) : null;
+              void switchTranscodeMode(value, { playPrime });
+            });
+          }
+          const valueSpan = transcodeBtn.querySelector<HTMLElement>("span .plyr__menu__value");
+          if (valueSpan) {
+            valueSpan.textContent = currentLabel;
+            transcodeModeValueSpan = valueSpan;
+          } else {
+            const labelSpan = transcodeBtn.querySelector("span");
+            if (labelSpan) {
+              labelSpan.innerHTML = `<span class="plyr__menu__value">${currentLabel}</span>`;
             }
+            transcodeModeValueSpan = transcodeBtn.querySelector<HTMLElement>("span .plyr__menu__value");
+          }
+          transcodeMenuInitialized = true;
+        } else if (transcodeModeButtons) {
+          for (const btn of transcodeModeButtons) {
+            btn.setAttribute("aria-checked", String(btn.getAttribute("value") === transcodeMode.value));
+          }
+          if (transcodeModeValueSpan) {
+            transcodeModeValueSpan.textContent = currentLabel;
           }
         }
-      } catch (error) {
-        console.error('Error applying custom settings:', error);
       }
-    },
-  },
-};
+    }
+  } catch (error) {
+    console.error("Error applying custom settings:", error);
+  }
+}
+
+onMounted(async () => {
+  // Record the mounted file before any async prepare step so route-leave
+  // detection works while Plyr is still waiting on subtitles/metadata.
+  mountedFile = resolveMountedFileKey(props.req?.source, props.req?.path);
+  loadMediaMetadata();
+  await preparePlayerMount();
+  attachKeyboard();
+  window.addEventListener("pagehide", onPageHide);
+});
+
+onBeforeUnmount(() => {
+  clearDismissAnimTimers();
+  // Always finish listener/media-session cleanup even if a teardown step throws,
+  // so an orphaned element cannot keep playing.
+  disarmResumeOnNextGesture();
+  try {
+    destroy();
+  } finally {
+    clearMediaSession();
+    detachKeyboard();
+    window.removeEventListener("pagehide", onPageHide);
+  }
+});
+
+defineExpose({ destroy });
 </script>
 
 <style >
