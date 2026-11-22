@@ -335,7 +335,7 @@ export function useDoubleTapSeek({
       '.plyr__controls, .plyr__control, .plyr__menu__container, .plyr__menu, ' +
       '[data-plyr="seek"], .plyr__progress, [data-plyr="volume"], .plyr__volume, ' +
       '.audio-side-panel .sliding-tab, ' +
-      '.audio-side-panel .fab-button, ' +
+      '.fab-button, ' +
       '.audio-side-panel .lyric-line, ' +
       '.audio-side-panel .repeat-one-btn, ' +
       '.audio-side-panel .queue-item, ' +
