@@ -8,6 +8,10 @@ let OCCT = "https://cdn.jsdelivr.net/npm/occt-import-js@0.0.23/dist/";
 let OPENSW_ZIP = "/public/static/wasm/opensw.zip";
 let GO_OPENSW = "/public/static/wasm/opensw.wasm";
 
+// OCCT reports uncolored faces as [0,0,0]; render those as neutral gray.
+const DEFAULT_FACE_COLOR = [0.78, 0.78, 0.78];
+const isUnsetColor = (c) => !c || c.length < 3 || (c[0] === 0 && c[1] === 0 && c[2] === 0);
+
 let pythonPromise = null;
 let occtPromise = null;
 let goPromise = null;
@@ -217,7 +221,7 @@ async function mailler(octets, table, dire) {
         corps: f ? f.corps : rangMaillage + 1,
         triangles: bf.last - bf.first + 1,
       };
-      if (f?.couleur) face.couleur = f.couleur;
+      if (!isUnsetColor(f?.couleur)) face.couleur = f.couleur;
       corpsMax = Math.max(corpsMax, face.corps);
       faces.push(face);
     }
@@ -267,7 +271,7 @@ async function maillerStepDirect(octets, dire) {
   res.meshes.forEach((m, rangMaillage) => {
     const p = m.attributes.position.array;
     const ix = m.index ? m.index.array : null;
-    const color = m.color ? [m.color[0], m.color[1], m.color[2]] : [0.65, 0.72, 0.85];
+    const color = isUnsetColor(m.color) ? DEFAULT_FACE_COLOR : m.color.slice(0, 3);
 
     if (m.brep_faces && m.brep_faces.length > 0 && ix) {
       for (const bf of m.brep_faces) {
@@ -281,7 +285,7 @@ async function maillerStepDirect(octets, dire) {
           nom: `Body ${rangMaillage + 1}`,
           corps: rangMaillage + 1,
           triangles: bf.last - bf.first + 1,
-          couleur: bf.color ? bf.color.slice(0, 3) : color,
+          couleur: isUnsetColor(bf.color) ? color : bf.color.slice(0, 3),
         });
       }
     } else if (ix) {

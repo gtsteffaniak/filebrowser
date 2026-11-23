@@ -1214,7 +1214,7 @@ export default {
       // reported one (STEP colours, kept through the SolidWorks → STEP trip).
       const faces = Array.isArray(cadMesh.faces) ? cadMesh.faces : [];
       const colors = new Float32Array(sommetsArray.length);
-      const base = new Color().setRGB(0.565, 0.706, 0.827, SRGBColorSpace);
+      const base = new Color().setRGB(0.78, 0.78, 0.78, SRGBColorSpace);
       for (let i = 0; i < colors.length; i += 3) {
         colors[i] = base.r;
         colors[i + 1] = base.g;
@@ -1229,7 +1229,9 @@ export default {
           nom: f.nom || '',
           corps: f.corps || 0,
           area: 0,
-          color: f.couleur ? f.couleur.slice(0, 3) : null,
+          color: f.couleur && !(f.couleur[0] === 0 && f.couleur[1] === 0 && f.couleur[2] === 0)
+            ? f.couleur.slice(0, 3)
+            : null,
         };
         if (range.color) {
           const c = new Color().setRGB(range.color[0], range.color[1], range.color[2], SRGBColorSpace);
@@ -1265,7 +1267,7 @@ export default {
       geometry.setAttribute('color', new BufferAttribute(colors, 3));
 
       const material = new MeshStandardMaterial({
-        color: 0x90caf9,
+        color: 0xc9ccd1,
         metalness: 0.2,
         roughness: 0.5,
         side: DoubleSide,
