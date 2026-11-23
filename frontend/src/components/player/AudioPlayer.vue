@@ -566,7 +566,6 @@ defineExpose({ destroy });
   color: var(--textPrimary);
   scroll-behavior: smooth;
   text-align: center;
-  background: transparent;
   border-radius: var(--borderRadius);
   box-sizing: border-box;
   scrollbar-width: none;

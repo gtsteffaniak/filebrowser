@@ -25,7 +25,7 @@ const STORAGE_KEY = "visualizerConfig";
 
 const DEFAULTS: Readonly<VisualizerConfig> = {
   barCount: 60,
-  smoothing: 0.92,
+  smoothing: 0.72,
   fftSize: 8192,
   minFrequency: 20,
   maxFrequency: 20000,
