@@ -735,13 +735,13 @@ func vorbisCommentHasPicture(pr packetReader) (bool, error) {
 // Ogg packet has no terminating segment yet (a 255-byte lacing continuation
 // with no following data). Other packet readers always return true.
 func packetPictureMatchOK(pr packetReader) bool {
-	op, ok := pr.(*oggPacketReader)
-	if !ok {
-		if bp, ok := pr.(*boundedPacket); ok {
-			op, ok = bp.pr.(*oggPacketReader)
+	op, isOgg := pr.(*oggPacketReader)
+	if !isOgg {
+		if bp, isBounded := pr.(*boundedPacket); isBounded {
+			op, isOgg = bp.pr.(*oggPacketReader)
 		}
 	}
-	if !ok {
+	if !isOgg {
 		return true
 	}
 	if op.ended {
