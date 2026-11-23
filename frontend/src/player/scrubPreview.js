@@ -669,15 +669,18 @@ export function enableScrubPreview(player, options) {
 
     // Same bucket — only reposition the popup, no image/time churn.
     if (percentInt === displayedPercent) {
-      pendingPercent = percentInt;
-      pendingVisualPercent = null;
       const displayedSrc = cache.get(displayedPercent);
-      if (displayedSrc && img.src !== displayedSrc) {
-        applyCachedImage(percentInt);
+      if (displayedSrc) {
+        pendingPercent = percentInt;
+        pendingVisualPercent = null;
+        if (img.src !== displayedSrc) {
+          applyCachedImage(percentInt);
+          return;
+        }
+        setLoading(false);
         return;
       }
-      setLoading(false);
-      return;
+      displayedPercent = null;
     }
 
     pendingPercent = percentInt;

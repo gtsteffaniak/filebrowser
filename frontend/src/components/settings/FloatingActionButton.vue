@@ -3,7 +3,7 @@
     v-if="showZone"
     ref="zoneEl"
     class="fab-zone"
-    :class="[`fab-zone--${position}`, { 'fab-zone--interactive': interactiveZone, 'fab-zone--fullscreen': fullscreenHost }]"
+    :class="[`fab-zone--${position}`, { 'fab-zone--interactive': interactiveZone, 'fab-zone--fullscreen': fullscreenHost, 'fab-zone--behind-overlay': behindOverlay }]"
     :style="zoneStyle"
     @pointerenter="handleZoneEnter"
     @pointerleave="handleZoneLeave"
@@ -20,6 +20,7 @@
       {
         'fab-button--extended': extended,
         'fab-button--fullscreen': fullscreenHost,
+        'fab-button--behind-overlay': behindOverlay,
         'fab-button--slide-in-visible': topCenterVisible,
         'fab-button--hidden': autoHide && !showButton,
       },
@@ -177,6 +178,9 @@ export default {
     },
     isZoneActive(): boolean {
       return this.sharedState ? this.sharedState.zoneActive : this.buttonZone;
+    },
+    behindOverlay(): boolean {
+      return !!this.fullscreenHost && getters.showOverlay();
     },
     showZone(): boolean {
       return this.autoHide;
@@ -362,6 +366,11 @@ export default {
   z-index: 10000;
 }
 
+.fab-zone--behind-overlay,
+.fab-zone--behind-overlay.fab-zone--interactive {
+  z-index: 3;
+}
+
 .fab-zone--top-right {
   top: 4em;
   right: 0;
@@ -415,6 +424,10 @@ export default {
   outline: none;
   z-index: 10001;
   opacity: 1;
+}
+
+.fab-button--behind-overlay {
+  z-index: 3;
 }
 
 .fab-button:not(.fab-button--primary) {

@@ -52,6 +52,8 @@ import { useI18n } from "@/i18n/index.ts";
 import { isSyncedLyrics } from "@/utils/lyrics.ts";
 import type { LyricLines } from "@/utils/lyrics.ts";
 
+const scrollLocked = defineModel<boolean>("scrollLocked");
+
 const props = withDefaults(
   defineProps<{
     lyrics?: LyricLines;
@@ -72,7 +74,6 @@ const lyricsScrollable = useTemplateRef<HTMLElement>("lyricsScrollable");
 
 const activeLyricIndex = ref(-1);
 const activeWordIndex = ref(-1);
-const scrollLocked = ref(false);
 
 const syncedLyrics = computed(() => isSyncedLyrics(props.lyrics));
 // "Title - Artist" shown above the lyrics from the [ti:] [ar:] tags on lyrics (if present)

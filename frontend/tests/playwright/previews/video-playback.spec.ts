@@ -140,21 +140,32 @@ async function tagPlayerElements(page: import("@playwright/test").Page) {
 }
 
 async function expectPlayerReused(page: import("@playwright/test").Page, fileName: string) {
+  await waitForNativePlayerMounted(page);
   await startNativeVideoPlayback(page);
+  const video = nativeVideo(page);
+  const srcMatches = (el: HTMLVideoElement, name: string) => {
+    const src = el.currentSrc || el.getAttribute("src") || "";
+    try {
+      return decodeURIComponent(src).includes(name);
+    } catch {
+      return src.includes(name);
+    }
+  };
+  await expect.poll(() => video.evaluate(srcMatches, fileName), { timeout: 15_000 }).toBe(true);
+  const startTime = await video.evaluate((el: HTMLVideoElement) => el.currentTime);
   await expect
     .poll(
       () =>
-        nativeVideo(page).evaluate((el: HTMLVideoElement) => {
-          const src = el.currentSrc || el.getAttribute("src") || "";
-          try {
-            return decodeURIComponent(src);
-          } catch {
-            return src;
-          }
-        }),
-      { timeout: 15_000 },
+        video.evaluate(
+          (el: HTMLVideoElement, [name, from]: [string, number]) => {
+            const src = decodeURIComponent(el.currentSrc || el.getAttribute("src") || "");
+            return src.includes(name) && !el.paused && el.currentTime > from + 0.05;
+          },
+          [fileName, startTime] as [string, number],
+        ),
+      { timeout: 15_000, intervals: [100, 250, 500] },
     )
-    .toContain(fileName);
+    .toBe(true);
   await expect(page.locator(".media-player video")).toHaveCount(1);
   await expect(nativeVideo(page)).toHaveAttribute("data-reuse-probe", "1");
   await expect(page.locator(".media-player .plyr[data-reuse-probe='1']")).toHaveCount(1);

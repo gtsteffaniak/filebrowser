@@ -9,7 +9,7 @@
         <PlaybackQueue embedded />
       </div>
       <div v-else-if="activeTab === 'lyrics'" class="tab-lyrics">
-        <LyricsList :lyrics="lyrics" :player="player" />
+        <LyricsList v-model:scroll-locked="lyricsScrollLocked" :lyrics="lyrics" :player="player" />
       </div>
       <div v-else-if="activeTab === 'visualizer'" ref="visualizerContainer" class="tab-visualizer">
         <FloatingActionButton
@@ -125,6 +125,7 @@ function readStoredTab(): PanelTab {
 }
 
 const activeTab = ref<PanelTab>(readStoredTab());
+const lyricsScrollLocked = ref<boolean | undefined>(false);
 
 const visualizerContainer = useTemplateRef<HTMLElement>("visualizerContainer");
 const visualizerCanvas = useTemplateRef<HTMLCanvasElement>("visualizerCanvas");

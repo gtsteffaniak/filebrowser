@@ -67,6 +67,8 @@ interface CommittedSource {
   raw: string;
   subtitles: SubtitleSource[];
   lyrics: LyricLines;
+  subtitleInputs: string | null;
+  lyricsInputs: string | null;
 }
 
 function revokeSubtitleUrls(tracks: readonly SubtitleSource[]): void {
@@ -268,17 +270,22 @@ async function loadAndCommit(identity: string, isStale: () => boolean) {
   }
 
   const kind = previewType.value as "audio" | "video";
-  // the same file again (e.g. a late metadata patch) keeps its subtitles and lyrics
   const current = committed.value;
   const reuse = current?.key === identity && current.kind === kind ? current : null;
-  const loadedSubtitles = reuse ? reuse.subtitles : await subtitles(isStale);
+  const subtitleInputs = JSON.stringify((state.req.subtitles ?? []).map((track) => [track?.name, track?.embedded]));
+  const lyricsInputs = kind === "audio" && state.req.metadata?.hasLyrics ? "lyrics" : "";
+  const reuseSubtitles = reuse?.subtitleInputs === subtitleInputs ? reuse : null;
+  const reuseLyrics = reuse?.lyricsInputs === lyricsInputs ? reuse : null;
+  const subtitlesOutcome = { failed: false };
+  const lyricsOutcome = { failed: false };
+  const loadedSubtitles = reuseSubtitles ? reuseSubtitles.subtitles : await subtitles(isStale, subtitlesOutcome);
   if (isStale()) {
-    if (!reuse) revokeSubtitleUrls(loadedSubtitles);
+    if (!reuseSubtitles) revokeSubtitleUrls(loadedSubtitles);
     return;
   }
-  const loadedLyrics = reuse ? reuse.lyrics : kind === "audio" ? await loadLyrics() : [];
+  const loadedLyrics = reuseLyrics ? reuseLyrics.lyrics : kind === "audio" ? await loadLyrics(lyricsOutcome) : [];
   if (isStale()) {
-    if (!reuse) revokeSubtitleUrls(loadedSubtitles);
+    if (!reuseSubtitles) revokeSubtitleUrls(loadedSubtitles);
     return;
   }
   commitSource({
@@ -288,12 +295,14 @@ async function loadAndCommit(identity: string, isStale: () => boolean) {
     raw: buildRaw(),
     subtitles: loadedSubtitles,
     lyrics: loadedLyrics,
+    subtitleInputs: subtitlesOutcome.failed ? null : subtitleInputs,
+    lyricsInputs: lyricsOutcome.failed ? null : lyricsInputs,
   });
   avMetadataLoading.value = false;
   selectCurrentItem();
 }
 
-async function loadLyrics(): Promise<LyricLines> {
+async function loadLyrics(outcome: { failed: boolean }): Promise<LyricLines> {
   if (!state.req.metadata?.hasLyrics) {
     return [];
   }
@@ -302,6 +311,7 @@ async function loadLyrics(): Promise<LyricLines> {
     return parseLyrics(rawLyrics, format);
   } catch (err) {
     console.warn("Failed to fetch lyrics:", err);
+    outcome.failed = true;
     return [];
   }
 }
@@ -335,7 +345,7 @@ async function enrichAvFromMediaApi(isStale: () => boolean): Promise<boolean> {
   return false;
 }
 
-async function subtitles(isStale: () => boolean): Promise<SubtitleSource[]> {
+async function subtitles(isStale: () => boolean, outcome: { failed: boolean }): Promise<SubtitleSource[]> {
   const source = state.req.source as string;
   const path = state.req.path as string;
   const tracks = [...(state.req.subtitles ?? [])];
@@ -384,6 +394,7 @@ async function subtitles(isStale: () => boolean): Promise<SubtitleSource[]> {
       }
     } catch (err) {
       console.error("Failed to load subtitle:", subtitleTrack.name, err);
+      outcome.failed = true;
     }
   }
   return subs;

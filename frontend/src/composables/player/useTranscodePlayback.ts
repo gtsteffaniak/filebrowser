@@ -165,6 +165,10 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
   const transcodeOffer = ref<TranscodeOffer | null>(null);
   /** The user accepted the offer: play through transcoding from the start. */
   const startRequested = ref(false);
+  /** The user paused before a profile change: keep it paused through native attachment */
+  const profileChangePaused = ref(false);
+  /** The offer whose acceptance is awaiting its status lookup */
+  let pendingAcceptance: TranscodeOffer | null = null;
   const transcodeClientId = createTranscodeClientId();
 
   let attachVideoStreamResume: (() => void) | null = null;
@@ -235,7 +239,7 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
     if (isTranscodeHlsMode(transcodeMode.value) || transcodeStartInProgress.value) {
       return false;
     }
-    if (formatNeedsTranscode.value) {
+    if (formatNeedsTranscode.value || profileChangePaused.value) {
       return false;
     }
     if (resumeShouldAutoplay.value) {
@@ -603,7 +607,14 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
     if (transcodeOfferEmitted) {
       return;
     }
-    if (getters.isShare() || (!confirmedFailure && !formatNeedsTranscode.value)) {
+    if (getters.isShare()) {
+      // Shares cannot transcode
+      if (confirmedFailure || formatNeedsTranscode.value) {
+        notify.showError(t("player.transcodeUnsupportedFormat"));
+      }
+      return;
+    }
+    if (!confirmedFailure && !formatNeedsTranscode.value) {
       return;
     }
     transcodeOfferEmitted = true;
@@ -1085,6 +1096,7 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
     invalidateOfferRequest();
     const previousMode = transcodeMode.value;
     const wasPlaying = !!player.value?.playing;
+    profileChangePaused.value = !wasPlaying;
     transcodeLog("switchTranscodeMode start", {
       mode,
       previousMode,
@@ -1113,7 +1125,7 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
           replaceSessionId,
           startSec: player.value?.currentTime ?? 0,
           mode,
-          autoplay: wasPlaying || shouldAutoplay.value,
+          autoplay: wasPlaying,
           playPrime: wasPlaying ? playPrime : null,
           manageSwitchState: false,
         });
@@ -1122,16 +1134,18 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
         teardownTranscodePlayback({ stopSession: true });
         try {
           const status = await getTranscodeSessions();
-          showTranscodeOffer(normalizeTranscodeSessionStatus(status, {
-              source: getReq()?.source,
-              path: getReq()?.path,
-            }),
-          );
+          if (generation === fileGeneration) {
+            showTranscodeOffer(normalizeTranscodeSessionStatus(status, {
+                source: getReq()?.source,
+                path: getReq()?.path,
+              }),
+            );
+          }
         } catch (err) {
           console.error("Failed to check transcode sessions:", err);
         }
       } else {
-        await switchToNativePlayback({ autoplay: wasPlaying || shouldAutoplay.value });
+        await switchToNativePlayback({ autoplay: wasPlaying });
       }
       onModeMenuChange();
     } catch (err) {
@@ -1148,7 +1162,9 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
       }
     } finally {
       transcodeSwitchInProgress.value = false;
-      syncPlaybackUrl({ transcodeMode: transcodeMode.value });
+      if (generation === fileGeneration) {
+        syncPlaybackUrl({ transcodeMode: transcodeMode.value });
+      }
       transcodeLog("switchTranscodeMode done", {
         mode: transcodeMode.value,
         transcodeActive: transcodeActive.value,
@@ -1256,6 +1272,11 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
       transcodeOffer.value = null;
       return false;
     }
+    const offer = transcodeOffer.value;
+    if (offer && pendingAcceptance === offer) {
+      return false;
+    }
+    pendingAcceptance = offer;
     try {
       const status = normalizeTranscodeSessionStatus(await getTranscodeSessions(), {
         source: getReq()?.source,
@@ -1276,6 +1297,10 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
     } catch (err) {
       console.error("Failed to verify transcode availability:", err);
       return false;
+    } finally {
+      if (pendingAcceptance === offer) {
+        pendingAcceptance = null;
+      }
     }
   }
 
@@ -1289,6 +1314,8 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
     resumeSnapshot.value = null;
     resumeSeekSeconds.value = null;
     lockedNativeVideoSrc.value = null;
+    profileChangePaused.value = false;
+    pendingAcceptance = null;
     transcodeOfferEmitted = false;
     transcodeFallbackAttempted = false;
   }

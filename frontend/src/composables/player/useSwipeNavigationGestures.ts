@@ -250,6 +250,9 @@ export function useSwipeNavigationGestures({
     mutations.setNavigationGestureHint({});
   }
   function resetEdgeGestureImmediate() {
+    if (gestures.longPressTriggered.value) {
+      releaseLongPressHold();
+    }
     resetSwipeVisualState();
     gestures.clearEdgeTapGestureState();
     gestures.clearSkipNextTap();
@@ -396,7 +399,7 @@ export function useSwipeNavigationGestures({
     document.addEventListener('mouseup', onSwipeMouseDocUp, true);
   }
   function onSwipeTouchStart(event: TouchEvent) {
-    if (event.targetTouches.length > 1) {
+    if (event.touches.length > 1) {
       gestures.clearLongPressTimer();
       gestures.longPressPending.value = false;
       if (!gestures.longPressTriggered.value) {
@@ -404,7 +407,7 @@ export function useSwipeNavigationGestures({
       }
       return;
     }
-    if (!swipeGesturesActive.value || event.targetTouches.length !== 1) return;
+    if (!swipeGesturesActive.value || event.touches.length !== 1) return;
     swipeActiveTouchId = null;
     // Don't start a gesture if we are selecting some text
     if ((window.getSelection()?.toString().length ?? 0) > 0) return;
@@ -508,6 +511,13 @@ export function useSwipeNavigationGestures({
   }
   function onSwipeTouchEnd(event: TouchEvent) {
     if (!swipeGesturesActive.value) {
+      if (
+        gestures.longPressPending.value &&
+        findTouchById(event.changedTouches, swipeActiveTouchId)
+      ) {
+        gestures.clearLongPressTimer();
+        gestures.longPressPending.value = false;
+      }
       if (
         gestures.longPressTriggered.value &&
         findTouchById(event.changedTouches, swipeActiveTouchId)

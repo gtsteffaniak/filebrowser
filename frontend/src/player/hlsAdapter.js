@@ -26,6 +26,7 @@ const MAX_SEEK_WARMUP_MS = 45_000;
 const ATTACH_STALL_TIMEOUT_MS = 30_000;
 const FRAG_FIRST_BYTE_TIMEOUT_MS = 45_000;
 const ATTACH_STARTUP_STALL_TIMEOUT_MS = FRAG_FIRST_BYTE_TIMEOUT_MS;
+const FRAG_MAX_LOAD_MS = 120_000;
 
 /**
  * Total attach budget for a start position: the base deadline plus a bounded
@@ -196,7 +197,17 @@ function describeHlsError(data) {
   };
 }
 
-function attachNativeHls({ video, playlistURL, initialStart, signal, onFirstBuffered, budgetMs }) {
+function attachNativeHls({
+  video,
+  playlistURL,
+  initialStart,
+  signal,
+  onFirstBuffered,
+  budgetMs,
+  sessionId,
+  onFatal,
+  onRecoverPlayback,
+}) {
   return new Promise((resolve, reject) => {
     const deadlineMs = resolveAttachDeadlineMs(initialStart, budgetMs);
     let settled = false;
@@ -207,7 +218,6 @@ function attachNativeHls({ video, playlistURL, initialStart, signal, onFirstBuff
       signal?.removeEventListener('abort', onAbort);
       video.removeEventListener('loadeddata', onReady);
       video.removeEventListener('canplay', onReady);
-      video.removeEventListener('error', onError);
     };
     const releaseSource = () => {
       video.removeAttribute('src');
@@ -215,6 +225,7 @@ function attachNativeHls({ video, playlistURL, initialStart, signal, onFirstBuff
     };
     const cleanup = () => {
       removeListeners();
+      video.removeEventListener('error', onError);
       releaseSource();
     };
     const fail = (error) => {
@@ -242,7 +253,30 @@ function attachNativeHls({ video, playlistURL, initialStart, signal, onFirstBuff
       const error = new Error(mediaError?.message || 'Native HLS playback failed');
       error.name = 'NativeHlsError';
       error.code = mediaError?.code;
+      if (settled) {
+        reportPostReadyError(error);
+        return;
+      }
       fail(error);
+    }
+    function reportPostReadyError(error) {
+      const data = { fatal: true, type: 'mediaError', details: 'nativeHlsError', code: error.code, reason: error.message };
+      const startSec = Number.isFinite(video.currentTime) ? video.currentTime : 0;
+      const shouldAutoplay = !video.paused && !video.ended;
+      cleanup();
+      if (error.code === MediaError.MEDIA_ERR_NETWORK && onRecoverPlayback) {
+        void onRecoverPlayback({ startSec, sessionId, shouldAutoplay })
+          .then((ok) => {
+            if (!ok) {
+              onFatal?.(data);
+            }
+          })
+          .catch(() => {
+            onFatal?.(data);
+          });
+        return;
+      }
+      onFatal?.(data);
     }
     function onTimeout() {
       transcodeError('native hls attach timed out waiting for readiness', {
@@ -328,6 +362,9 @@ export function attachHlsToVideo({
         signal,
         onFirstBuffered,
         budgetMs,
+        sessionId: session?.id,
+        onFatal,
+        onRecoverPlayback,
       });
     }
     return Promise.reject(new Error('HLS not supported in this browser'));
@@ -341,6 +378,7 @@ export function attachHlsToVideo({
   return new Promise((resolve, reject) => {
     let settled = false;
     let readyToPlay = false;
+    let startApplied = false;
     let bufferedFrags = 0;
     // The synthetic VOD playlist lists the full media duration; a single
     // buffered fragment is enough to start playback.
@@ -353,7 +391,7 @@ export function attachHlsToVideo({
       if (!onRecoverPlayback || destroyed) {
         return false;
       }
-      const playbackStarted = readyToPlay;
+      const playbackStarted = startApplied;
       const currentTime = video?.currentTime;
       const resumeAt = playbackStarted && Number.isFinite(currentTime)
         ? currentTime
@@ -447,6 +485,17 @@ export function attachHlsToVideo({
         : ATTACH_STARTUP_STALL_TIMEOUT_MS;
       stallTimeoutId = setTimeout(onAttachTimeout, Math.min(limitMs, remaining));
     };
+    const noteFragmentResponseStarted = () => {
+      if (settled) {
+        return;
+      }
+      clearTimeout(stallTimeoutId);
+      const remaining = deadlineMs - (performance.now() - attachStartedAt);
+      if (remaining <= 0) {
+        return;
+      }
+      stallTimeoutId = setTimeout(onAttachTimeout, Math.min(FRAG_MAX_LOAD_MS, remaining));
+    };
 
     let appendRecoveryAttempts = 0;
     const startPlaybackReady = (reason) => {
@@ -473,6 +522,7 @@ export function attachHlsToVideo({
           });
         }
         onFirstBuffered?.(video);
+        startApplied = true;
         finish('resolve', { cleanup, hls });
       });
     };
@@ -510,7 +560,7 @@ export function attachHlsToVideo({
           // well past hls.js's 10s default. Aborting at 10s cancelled the
           // request server-side and surfaced as a 503 + skipped segment.
           maxTimeToFirstByteMs: FRAG_FIRST_BYTE_TIMEOUT_MS,
-          maxLoadTimeMs: 120_000,
+          maxLoadTimeMs: FRAG_MAX_LOAD_MS,
           timeoutRetry: {
             maxNumRetry: 4,
             retryDelayMs: 1000,
@@ -529,6 +579,13 @@ export function attachHlsToVideo({
           xhr.setRequestHeader(key, value);
         }
         transcodeVerbose('hls xhr open', { url });
+        if (!/\.m3u8(\?|$)/.test(url)) {
+          xhr.addEventListener('readystatechange', () => {
+            if (xhr.readyState === XMLHttpRequest.HEADERS_RECEIVED && xhr.status >= 200 && xhr.status < 300) {
+              noteFragmentResponseStarted();
+            }
+          });
+        }
       },
       fetchSetup(context, initParams) {
         transcodeVerbose('hls fetch setup', { url: context?.url });
