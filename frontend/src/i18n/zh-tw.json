@@ -253,7 +253,9 @@
     "zipFilenamePreview": "Filename preview",
     "zipEncodingUnavailable": "No supported encoding can decode all filenames in this ZIP.",
     "downloadFailed": "分塊下載失敗 - 如果此情況重複發生，請嘗試減少分塊大小：{message}",
-    "confirmPasswordToSaveUser": "輸入您目前的密碼以儲存這些使用者變更。"
+    "confirmPasswordToSaveUser": "輸入您目前的密碼以儲存這些使用者變更。",
+    "confirmOverwrite": "The file {file} already exists. Overwrite it?",
+    "fileExists": "The file already exists; conversion was not saved."
   },
   "search": {
     "smallerThan": "小於：",
@@ -1135,13 +1137,56 @@
     "connectionLost": "與伺服器的連線中斷。正在嘗試重新連線…"
   },
   "threejs": {
+    "loadBrep": "載入精確 B-rep (Python)",
     "failedToLoad": "載入 3D 模型失敗",
     "keyboard": "鍵盤：",
     "autoRotate": "自動旋轉",
     "rotateY": "旋轉 Y",
     "rotateX": "旋轉 X",
     "controls": "3D 控制",
-    "changeBackground": "變更背景顏色"
+    "changeBackground": "變更背景顏色",
+    "viewMode": "Display mode",
+    "modeStandard": "Standard",
+    "modeOcct": "OpenCASCADE",
+    "iso": "ISO",
+    "front": "Front",
+    "back": "Back",
+    "left": "Left",
+    "right": "Right",
+    "top": "Top",
+    "bottom": "Bottom",
+    "propConfigurationSeparator": "·",
+    "inertiaUnit": "kg·m²",
+    "densityUnit": "g/cm³",
+    "densityValue": "({value} {unit})",
+    "viewCube": "Views",
+    "rotateLeft": "Rotate left",
+    "rotateRight": "Rotate right",
+    "wcs": "WCS",
+    "properties": "Properties",
+    "measure": "Measure",
+    "measureExit": "Exit measure",
+    "measurePoints": "Points",
+    "measureFaces": "Faces",
+    "measureHintP1": "Click a first point on the model",
+    "measureHintP2": "Click a second point to measure the distance",
+    "measureHintF1": "Click a face to see its area",
+    "measureHintF2": "Click a second face to measure the distance between them",
+    "measureArea": "Area",
+    "measureDist": "Distance",
+    "propVolume": "Volume",
+    "propArea": "Surface area",
+    "propMass": "Mass",
+    "propStored": "Stored by SolidWorks",
+    "propDensity": "Density (fallback)",
+    "propInertia": "Inertia",
+    "propMaterial": "Material",
+    "propCustom": "Custom…",
+    "propCenter": "Center of mass",
+    "propBBox": "Bounding box",
+    "propTriangles": "Triangles",
+    "propFaces": "BRep faces",
+    "propNote": "Computed from the tessellated mesh (mm). Mass is volume × chosen density; for exact stored SolidWorks mass properties use the CAD file."
   },
   "onlyoffice": {
     "debugTitle": "OnlyOffice 除錯追蹤",
@@ -1212,5 +1257,34 @@
     "errors": {
       "exceeded": "儲存空間已超過配額"
     }
+  },
+  "cadView": {
+    "faceInfo": "body {body} · {tri} triangles",
+    "noWebgl": "This browser has no WebGL: no 3D view.",
+    "bom": "Bill of materials",
+    "bomEmpty": "No components are eligible for the bill of materials.",
+    "exportBom": "Download CSV",
+    "part": "Part",
+    "configuration": "Configuration",
+    "quantity": "Qty."
+  },
+  "cad": {
+    "convert": "Convert CAD...",
+    "selectFormat": "Select Target Format",
+    "outputDestination": "Output Destination",
+    "downloadLocally": "Download converted file to browser",
+    "saveToFilebrowser": "Save file into current folder",
+    "convertAction": "Convert",
+    "conversionSuccess": "CAD file converted and downloaded successfully",
+    "conversionSaved": "Converted file saved as {file}",
+    "drawingLoadError": "Failed to Load Drawing",
+    "percentUnit": "%",
+    "svgFormat": "SVG",
+    "dxfFormat": "DXF",
+    "zoomIn": "Zoom In",
+    "zoomOut": "Zoom Out",
+    "resetView": "Reset View",
+    "exportSvg": "Export Sheet as SVG",
+    "exportDxf": "Export Drawing as DXF"
   }
 }

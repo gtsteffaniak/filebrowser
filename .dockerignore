@@ -7,6 +7,7 @@ backend/filebrowser.sqlite*
 **.crt
 **.key
 backend/tmp
+backend/internal/preview/gofitzinclude
 backend/dist
 backend/backend*
 backend/internal/web/dist/**

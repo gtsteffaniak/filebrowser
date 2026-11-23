@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const { stateMock } = vi.hoisted(() => ({
   stateMock: {
@@ -12,7 +12,11 @@ const { stateMock } = vi.hoisted(() => ({
 
 vi.mock('./state', () => ({ state: stateMock }));
 vi.mock('./mutations', () => ({ mutations: {} }));
-vi.mock('@/utils/constants', () => ({ globalVars: {}, previewViews: [], tools: () => [] }));
+vi.mock('@/utils/constants', () => ({
+  globalVars: {},
+  previewViews: ['cadViewer', 'drawingViewer'],
+  tools: () => [],
+}));
 vi.mock('@/i18n', () => ({ detectLocale: () => 'en' }));
 vi.mock('@/utils/url.js', () => ({
   buildItemUrl: vi.fn(),
@@ -40,6 +44,10 @@ import { getters } from './getters.ts';
 const allowAll = { view: true, download: true, modify: true, create: true, delete: true };
 
 describe('getters.sourcePermissions on read-only sources', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   beforeEach(() => {
     stateMock.shareInfo = null;
     stateMock.route = { path: '/files/' };
@@ -95,5 +103,29 @@ describe('getters.sourcePermissions on read-only sources', () => {
     stateMock.route = { path: '/public/share/abc/' };
     stateMock.shareInfo = { allowModify: true, allowCreate: true, allowDelete: true };
     expect(getters.sourcePermissions('archive')).toEqual(allowAll);
+  });
+
+  it.each(['cadViewer', 'drawingViewer'])('keeps the %s sidebar beside the viewer on desktop', (view) => {
+    stateMock.showSidebar = false;
+    vi.spyOn(getters, 'currentView').mockReturnValue(view);
+    vi.spyOn(getters, 'isInvalidShare').mockReturnValue(false);
+    vi.spyOn(getters, 'isMobile').mockReturnValue(false);
+    vi.spyOn(getters, 'currentPromptName').mockReturnValue('');
+    vi.spyOn(getters, 'previewPerms').mockReturnValue({ disableHideSidebar: false });
+
+    expect(getters.isStickySidebar()).toBe(true);
+    expect(getters.isSidebarVisible()).toBe(true);
+  });
+
+  it('does not force the lateral sidebar on mobile CAD previews', () => {
+    stateMock.showSidebar = false;
+    vi.spyOn(getters, 'currentView').mockReturnValue('cadViewer');
+    vi.spyOn(getters, 'isInvalidShare').mockReturnValue(false);
+    vi.spyOn(getters, 'isMobile').mockReturnValue(true);
+    vi.spyOn(getters, 'currentPromptName').mockReturnValue('');
+    vi.spyOn(getters, 'previewPerms').mockReturnValue({ disableHideSidebar: false });
+
+    expect(getters.isStickySidebar()).toBe(false);
+    expect(getters.isSidebarVisible()).toBe(false);
   });
 });

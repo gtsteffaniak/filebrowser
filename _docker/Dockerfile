@@ -12,6 +12,14 @@ RUN go build -tags analytics,mupdf,musl -ldflags="-w -s \
   -X 'github.com/gtsteffaniak/filebrowser/backend/internal/version.CommitSHA=${REVISION}'" \
   -o filebrowser .
 
+# OpenSW CAD reader is a standalone Go module under frontend/; compile it to
+# WebAssembly so Vite ships it as a static asset (no backend endpoint).
+FROM golang:alpine AS wasmbuilder
+WORKDIR /build
+COPY ./frontend/wasm-src/ ./wasm-src/
+RUN cd wasm-src && CGO_ENABLED=0 GOOS=js GOARCH=wasm go build -trimpath -o /opensw.wasm ./cmd/opensw-wasm \
+  && cp "$(go env GOROOT)/lib/wasm/wasm_exec.js" /wasm_exec.js
+
 FROM node:jod-slim AS nbuild
 WORKDIR /build
 COPY ./frontend/package.json ./frontend/package-lock.json ./frontend/
@@ -20,6 +28,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends git ca-certific
     && git config --global url."https://github.com/".insteadOf "ssh://git@github.com/"
 RUN cd frontend && npm ci --maxsockets 1
 COPY ./frontend/ ./frontend/
+COPY --from=wasmbuilder [ "/opensw.wasm", "/wasm_exec.js", "/build/frontend/public/wasm/" ]
 WORKDIR /build/frontend
 RUN npm run build:docker
 

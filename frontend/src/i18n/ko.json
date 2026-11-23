@@ -253,7 +253,9 @@
     "zipFilenamePreview": "Filename preview",
     "zipEncodingUnavailable": "No supported encoding can decode all filenames in this ZIP.",
     "downloadFailed": "청크 다운로드에 실패했습니다 - 이 문제가 반복되면 청크 크기를 줄여 보세요: {message}",
-    "confirmPasswordToSaveUser": "이러한 사용자 변경 사항을 저장하려면 현재 비밀번호를 입력합니다."
+    "confirmPasswordToSaveUser": "이러한 사용자 변경 사항을 저장하려면 현재 비밀번호를 입력합니다.",
+    "confirmOverwrite": "The file {file} already exists. Overwrite it?",
+    "fileExists": "The file already exists; conversion was not saved."
   },
   "search": {
     "smallerThan": "보다 작습니다:",
@@ -1135,13 +1137,56 @@
     "connectionLost": "서버에 대한 연결이 끊어졌습니다. 다시 연결하려고 합니다..."
   },
   "threejs": {
+    "loadBrep": "정확한 B-rep 불러오기 (Python)",
     "failedToLoad": "3D 모델 로드 실패",
     "keyboard": "키보드:",
     "autoRotate": "자동 회전",
     "rotateY": "Y 회전",
     "rotateX": "X 회전",
     "controls": "3D 컨트롤",
-    "changeBackground": "배경색 변경"
+    "changeBackground": "배경색 변경",
+    "viewMode": "Display mode",
+    "modeStandard": "Standard",
+    "modeOcct": "OpenCASCADE",
+    "iso": "ISO",
+    "front": "Front",
+    "back": "Back",
+    "left": "Left",
+    "right": "Right",
+    "top": "Top",
+    "bottom": "Bottom",
+    "propConfigurationSeparator": "·",
+    "inertiaUnit": "kg·m²",
+    "densityUnit": "g/cm³",
+    "densityValue": "({value} {unit})",
+    "viewCube": "Views",
+    "rotateLeft": "Rotate left",
+    "rotateRight": "Rotate right",
+    "wcs": "WCS",
+    "properties": "Properties",
+    "measure": "Measure",
+    "measureExit": "Exit measure",
+    "measurePoints": "Points",
+    "measureFaces": "Faces",
+    "measureHintP1": "Click a first point on the model",
+    "measureHintP2": "Click a second point to measure the distance",
+    "measureHintF1": "Click a face to see its area",
+    "measureHintF2": "Click a second face to measure the distance between them",
+    "measureArea": "Area",
+    "measureDist": "Distance",
+    "propVolume": "Volume",
+    "propArea": "Surface area",
+    "propMass": "Mass",
+    "propStored": "Stored by SolidWorks",
+    "propDensity": "Density (fallback)",
+    "propInertia": "Inertia",
+    "propMaterial": "Material",
+    "propCustom": "Custom…",
+    "propCenter": "Center of mass",
+    "propBBox": "Bounding box",
+    "propTriangles": "Triangles",
+    "propFaces": "BRep faces",
+    "propNote": "Computed from the tessellated mesh (mm). Mass is volume × chosen density; for exact stored SolidWorks mass properties use the CAD file."
   },
   "onlyoffice": {
     "debugTitle": "OnlyOffice 디버그 추적",
@@ -1212,5 +1257,34 @@
     "errors": {
       "exceeded": "저장 용량 한도를 초과했습니다"
     }
+  },
+  "cadView": {
+    "faceInfo": "body {body} · {tri} triangles",
+    "noWebgl": "This browser has no WebGL: no 3D view.",
+    "bom": "Bill of materials",
+    "bomEmpty": "No components are eligible for the bill of materials.",
+    "exportBom": "Download CSV",
+    "part": "Part",
+    "configuration": "Configuration",
+    "quantity": "Qty."
+  },
+  "cad": {
+    "convert": "Convert CAD...",
+    "selectFormat": "Select Target Format",
+    "outputDestination": "Output Destination",
+    "downloadLocally": "Download converted file to browser",
+    "saveToFilebrowser": "Save file into current folder",
+    "convertAction": "Convert",
+    "conversionSuccess": "CAD file converted and downloaded successfully",
+    "conversionSaved": "Converted file saved as {file}",
+    "drawingLoadError": "Failed to Load Drawing",
+    "percentUnit": "%",
+    "svgFormat": "SVG",
+    "dxfFormat": "DXF",
+    "zoomIn": "Zoom In",
+    "zoomOut": "Zoom Out",
+    "resetView": "Reset View",
+    "exportSvg": "Export Sheet as SVG",
+    "exportDxf": "Export Drawing as DXF"
   }
 }

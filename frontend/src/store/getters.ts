@@ -11,6 +11,7 @@ import { getNestedProperty, getObjectProperty } from '@/utils/object.js';
 import { buildItemUrl, removeLeadingSlash, removePrefix } from '@/utils/url.js';
 import { defaultDarkMode } from "@/utils/theme.js";
 import { isMobileLayout } from '@/utils/viewport.js';
+import { isCad3DFile } from "@/utils/cadService.ts";
 import type { DisplayPreference, FileListItem } from "./types.ts";
 
 export const getters = {
@@ -322,7 +323,9 @@ export const getters = {
       visible = false
     }
     if (previewViews.includes(cv) && !getters.previewPerms().disableHideSidebar) {
-      visible = false
+      const sideBySideCadViewer =
+        !getters.isMobile() && (cv === 'cadViewer' || cv === 'drawingViewer')
+      visible = sideBySideCadViewer || state.showSidebar
     }
     if (state.shareInfo?.singleFileShare) {
       visible = state.showSidebar
@@ -336,6 +339,9 @@ export const getters = {
     const currentView = getters.currentView()
     if (currentView === 'settings') {
       sticky = true
+    }
+    if (currentView === 'cadViewer' || currentView === 'drawingViewer') {
+      sticky = !getters.isMobile()
     }
     if (currentView === '' && !getters.isLoading()) {
       sticky = true
@@ -404,7 +410,11 @@ export const getters = {
       if (state.user.disableViewingExt?.includes(ext)) return 'preview';
       if (state.req.type === 'directory') return 'listingView';
       if (state.req.onlyOfficeId && !getters.officeViewingDisabled(reqName)) return 'onlyOfficeEditor';
+      // CAD B-rep documents open in the dedicated OpenSW-style WebGL viewer;
+      // every other 3D format keeps the Three.js viewer.
+      if (isCad3DFile(reqName)) return 'cadViewer';
       if (getTypeInfo(state.req.type).simpleType === '3d-model') return 'threeJsViewer';
+      if (getTypeInfo(state.req.type).simpleType === 'drawing' || ext === '.slddrw') return 'drawingViewer';
 
       if ('content' in state.req && isRichTextPreviewMimeType(state.req.type)) {
         const hash = window.location.hash;

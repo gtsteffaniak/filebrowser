@@ -1649,7 +1649,19 @@ func setFilePreviewFlags(fileInfo *iteminfo.ItemInfo, realPath string) {
 		return
 	}
 	simpleType := strings.Split(fileInfo.Type, "/")[0]
+	// SolidWorks extensions are not part of the system MIME database, so detect
+	// them here to keep the preview flag self-contained in the backend.
+	switch strings.ToLower(filepath.Ext(realPath)) {
+	case ".sldprt", ".sldasm", ".slddrw":
+		fileInfo.HasPreview = true
+		return
+	}
 	switch fileInfo.Type {
+	case "model/x-solidworks-part", "model/x-solidworks-assembly", "application/x-solidworks-drawing":
+		// SolidWorks documents embed their own preview image, read straight
+		// from the container (see preview.ExtractSolidWorksPreview).
+		fileInfo.HasPreview = true
+		return
 	case "image/heic", "image/heif":
 		if fileInfo.Size > iteminfo.LargeFileSizeThreshold {
 			fileInfo.HasPreview = false

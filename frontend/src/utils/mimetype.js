@@ -569,11 +569,40 @@ const TYPE_TABLE = [
   },
   {
     // 3D model formats
+    mimeTypes: [
+      "application/step",
+      "model/step",
+      "model/x-parasolid",
+      "model/x-solidworks-part",
+      "model/x-solidworks-assembly",
+    ],
     prefix: "model/",
-    extensions: [".glb", ".gltf", ".obj", ".stl", ".fbx", ".3ds", ".blend"],
+    extensions: [
+      ".glb",
+      ".gltf",
+      ".obj",
+      ".stl",
+      ".fbx",
+      ".3ds",
+      ".blend",
+      ".step",
+      ".stp",
+      ".x_t",
+      ".x_b",
+      ".sldprt",
+      ".sldasm",
+    ],
     classes: "purple-icons material-symbols-outlined",
     materialSymbol: "view_in_ar",
     simpleType: "3d-model",
+  },
+  {
+    // SolidWorks 2D Drawings
+    mimeTypes: ["application/x-solidworks-drawing"],
+    extensions: [".slddrw"],
+    classes: "teal-icons material-symbols-outlined",
+    materialSymbol: "architecture",
+    simpleType: "drawing",
   },
   {
     // Generic text/* fallback (only reached if nothing more specific matched above)
@@ -669,6 +698,7 @@ export const KIND_ORDER = [
   "text",
   "video",
   "3d-model",
+  "drawing",
   "other",
   "invalid_link",
 ];
