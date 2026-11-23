@@ -4,6 +4,9 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/binary"
+	"image"
+	"image/color"
+	"image/png"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -15,6 +18,26 @@ import (
 
 // fakeJPEG is a stand-in cover image; detection never decodes it.
 var fakeJPEG = append([]byte{0xff, 0xd8, 0xff, 0xe0}, bytes.Repeat([]byte{0x42}, 600)...)
+
+// writeTestCoverPNG writes a tiny PNG cover with the standard library so tests
+// do not depend on FFmpeg's PNG encoder.
+func writeTestCoverPNG(t *testing.T, path string) []byte {
+	t.Helper()
+	img := image.NewRGBA(image.Rect(0, 0, 64, 64))
+	for y := 0; y < 64; y++ {
+		for x := 0; x < 64; x++ {
+			img.Set(x, y, color.RGBA{R: uint8(x * 4), G: uint8(y * 4), B: 128, A: 255})
+		}
+	}
+	var buf bytes.Buffer
+	if err := png.Encode(&buf, img); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(path, buf.Bytes(), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	return buf.Bytes()
+}
 
 // box builds an MP4 box.
 func box(typ string, payload ...[]byte) []byte {
@@ -253,11 +276,11 @@ func TestHasAlbumArtSynthetic(t *testing.T) {
 		{"m4a truncated before moov", ".m4a", m4aFixture(64<<10, false, true, metaISO)[:40<<10], false},
 		{"not mp4", ".m4a", []byte("\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09garbage"), false},
 
-		{"mp3 v2.3 APIC", ".mp3", id3Tag(3, 0, id3Frame(3, "TIT2", []byte("\x00t")), id3Frame(3, "APIC", fakeJPEG)), true},
-		{"mp3 v2.3 APIC after 120KB frame", ".mp3", id3Tag(3, 0, bigLyrics, id3Frame(3, "APIC", fakeJPEG)), true},
-		{"mp3 v2.4 synchsafe APIC after large frame", ".mp3", id3Tag(4, 0, id3Frame(4, "TXXX", make([]byte, 300)), id3Frame(4, "APIC", fakeJPEG)), true},
-		{"mp3 v2.4 with v2.3-style sizes", ".mp3", id3Tag(4, 0, id3Frame(3, "TXXX", bytes.Repeat([]byte{1}, 200)), id3Frame(3, "APIC", fakeJPEG)), true},
-		{"mp3 v2.2 PIC", ".mp3", id3Tag(2, 0, append([]byte("TT2\x00\x00\x02\x00t"), append([]byte("PIC\x00\x02\x58"), fakeJPEG...)...)), true},
+		{"mp3 v2.3 APIC", ".mp3", id3Tag(3, 0, id3Frame(3, "TIT2", []byte("\x00t")), id3Frame(3, "APIC", apicFrame("image/jpeg", fakeJPEG))), true},
+		{"mp3 v2.3 APIC after 120KB frame", ".mp3", id3Tag(3, 0, bigLyrics, id3Frame(3, "APIC", apicFrame("image/jpeg", fakeJPEG))), true},
+		{"mp3 v2.4 synchsafe APIC after large frame", ".mp3", id3Tag(4, 0, id3Frame(4, "TXXX", make([]byte, 300)), id3Frame(4, "APIC", apicFrame("image/jpeg", fakeJPEG))), true},
+		{"mp3 v2.4 with v2.3-style sizes", ".mp3", id3Tag(4, 0, id3Frame(3, "TXXX", bytes.Repeat([]byte{1}, 200)), id3Frame(3, "APIC", apicFrame("image/jpeg", fakeJPEG))), true},
+		{"mp3 v2.2 PIC", ".mp3", id3Tag(2, 0, append([]byte("TT2\x00\x00\x02\x00t"), append([]byte("PIC\x00\x02\x58"), append([]byte{0}, append([]byte("JPG"), append([]byte{0, 3, 0}, fakeJPEG...)...)...)...)...)), true},
 		{"mp3 no APIC", ".mp3", id3Tag(3, 0, id3Frame(3, "TIT2", []byte("\x00APIC in text"))), false},
 		{"mp3 no ID3", ".mp3", []byte{0xff, 0xfb, 0x90, 0x00, 0, 0, 0, 0, 0, 0, 0, 0}, false},
 
@@ -308,7 +331,7 @@ func TestHasAlbumArtSynthetic(t *testing.T) {
 func TestHasAlbumArtTruncated(t *testing.T) {
 	files := map[string][]byte{
 		".m4a":  m4aFixture(512, false, true, metaISO),
-		".mp3":  id3Tag(4, 0, id3Frame(4, "TIT2", []byte("\x00t")), id3Frame(4, "APIC", fakeJPEG)),
+		".mp3":  id3Tag(4, 0, id3Frame(4, "TIT2", []byte("\x00t")), id3Frame(4, "APIC", apicFrame("image/jpeg", fakeJPEG))),
 		".flac": append([]byte("fLaC"), flacBlock(6, true, flacPicture("image/jpeg", fakeJPEG))...),
 		".ogg":  oggStream(3, append([]byte("\x01vorbis"), make([]byte, 22)...), append([]byte("\x03vorbis"), vorbisComment("TITLE=t", pictureComment("METADATA_BLOCK_PICTURE"))...)),
 	}
@@ -329,19 +352,8 @@ func TestHasAlbumArtFFmpeg(t *testing.T) {
 		t.Skip("ffmpeg not installed")
 	}
 	dir := t.TempDir()
-	run := func(args ...string) {
-		t.Helper()
-		out, err := exec.Command("ffmpeg", append([]string{"-v", "error", "-y"}, args...)...).CombinedOutput()
-		if err != nil {
-			t.Fatalf("ffmpeg %v: %v\n%s", args, err, out)
-		}
-	}
 	cover := filepath.Join(dir, "cover.png")
-	run("-f", "lavfi", "-i", "testsrc2=size=64x64", "-frames:v", "1", cover)
-	coverData, err := os.ReadFile(cover)
-	if err != nil {
-		t.Fatal(err)
-	}
+	coverData := writeTestCoverPNG(t, cover)
 	var pic bytes.Buffer
 	_ = binary.Write(&pic, binary.BigEndian, uint32(3))
 	_ = binary.Write(&pic, binary.BigEndian, uint32(9))

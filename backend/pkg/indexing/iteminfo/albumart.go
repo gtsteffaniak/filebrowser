@@ -226,9 +226,9 @@ func id3HasPicture(r *windowReader, off int64) (bool, error) {
 		scanEnd := int64(len(buf))
 		boundEnd := scanEnd
 		if n < bodyLen {
-			// Decoded offsets are never larger than encoded ones, so the
-			// encoded body length bounds frames that end past the prefix.
-			boundEnd = bodyLen
+			// Unsync removal shrinks the decoded prefix by n-scanEnd bytes;
+			// the full decoded tag is at most that much shorter than bodyLen.
+			boundEnd = bodyLen - (n - scanEnd)
 		}
 		mr := newWindowReader(bytes.NewReader(buf), scanEnd)
 		return id3WalkFrames(mr, version, flags, 0, scanEnd, boundEnd)
@@ -267,17 +267,24 @@ func id3WalkFrames(r io.ReaderAt, version, flags byte, start, scanEnd, boundEnd 
 		}
 	}
 	res := id3Walk(r, version, pos, scanEnd, boundEnd, version == 4)
-	if res.found || version != 4 || (!res.malformed && !res.ambiguous) {
+	if res.found || version != 4 {
 		return res.found, nil
 	}
-	return id3Walk(r, version, pos, scanEnd, boundEnd, false).found, nil
+	if res.ambiguous && !res.malformed && res.paddingEnd {
+		return false, nil
+	}
+	if res.malformed || res.ambiguous {
+		return id3Walk(r, version, pos, scanEnd, boundEnd, false).found, nil
+	}
+	return false, nil
 }
 
 // id3WalkResult is the outcome of one ID3v2 frame walk.
 type id3WalkResult struct {
-	found     bool // an embedded picture frame was reached
-	malformed bool // the walk stopped at a frame that is neither valid nor padding
-	ambiguous bool // a synchsafe frame size differs from its plain 32-bit reading
+	found       bool // an embedded picture frame was reached
+	malformed   bool // the walk stopped at a frame that is neither valid nor padding
+	ambiguous   bool // a synchsafe frame size differs from its plain 32-bit reading
+	paddingEnd  bool // the walk ended on tag padding that runs to boundEnd
 }
 
 // id3Walk visits frame headers from pos while they start before scanEnd.
@@ -294,7 +301,12 @@ func id3Walk(r io.ReaderAt, version byte, pos, scanEnd, boundEnd int64, synchsaf
 			return res
 		}
 		if hdr[0] == 0 {
-			return res // padding
+			if id3RangeAllZero(r, pos, boundEnd) {
+				res.paddingEnd = true
+				return res // padding
+			}
+			res.malformed = true
+			return res
 		}
 		if !validFrameID(hdr[:idLen]) {
 			res.malformed = true
@@ -322,9 +334,12 @@ func id3Walk(r io.ReaderAt, version byte, pos, scanEnd, boundEnd int64, synchsaf
 			res.malformed = true
 			return res
 		}
-		if string(hdr[:idLen]) == picID && !id3PictureIsLink(r, version, pos+hdrLen, size) {
-			res.found = true
-			return res
+		if string(hdr[:idLen]) == picID {
+			payOff, paySize := id3PicturePayload(version, hdr, pos+hdrLen, size)
+			if id3PictureHasEmbedded(r, version, payOff, paySize) {
+				res.found = true
+				return res
+			}
 		}
 		if next > scanEnd {
 			return res // the rest of the tag is past the scan budget
@@ -334,17 +349,140 @@ func id3Walk(r io.ReaderAt, version byte, pos, scanEnd, boundEnd int64, synchsaf
 	return res
 }
 
-// id3PictureIsLink reports whether the picture frame payload at off (size
-// bytes) only holds a URL: image format "-->" in v2.2 PIC, MIME type "-->" in
-// APIC. When the marker cannot be read the frame is treated as embedded.
-func id3PictureIsLink(r io.ReaderAt, version byte, off, size int64) bool {
-	var b [5]byte
-	if version == 2 {
-		// text encoding (1), image format (3)
-		return size >= 4 && readFullAt(r, b[:4], off) == nil && string(b[1:4]) == "-->"
+// id3RangeAllZero reports whether every byte in [pos, boundEnd) is zero.
+func id3RangeAllZero(r io.ReaderAt, pos, boundEnd int64) bool {
+	for pos < boundEnd {
+		var chunk [256]byte
+		n := boundEnd - pos
+		if n > int64(len(chunk)) {
+			n = int64(len(chunk))
+		}
+		if err := readFullAt(r, chunk[:n], pos); err != nil {
+			return false
+		}
+		for _, c := range chunk[:n] {
+			if c != 0 {
+				return false
+			}
+		}
+		pos += n
 	}
-	// text encoding (1), MIME type terminated by 0
-	return size >= 5 && readFullAt(r, b[:5], off) == nil && string(b[1:5]) == "-->\x00"
+	return true
+}
+
+// id3PicturePayload returns the picture field offset and size inside a frame
+// body, skipping ID3v2.3/v2.4 format fields declared in hdr.
+func id3PicturePayload(version byte, hdr []byte, off, size int64) (int64, int64) {
+	if version == 2 {
+		return off, size
+	}
+	payOff, paySize := off, size
+	if version == 4 && hdr[9]&0x01 != 0 {
+		payOff += 4
+		paySize -= 4
+	}
+	if version >= 3 && hdr[9]&0x40 != 0 {
+		payOff++
+		paySize--
+	}
+	if paySize <= 0 {
+		return off, 0
+	}
+	return payOff, paySize
+}
+
+// id3PictureHasEmbedded reports whether a picture frame holds image data
+// rather than a URL-only APIC/PIC frame.
+func id3PictureHasEmbedded(r io.ReaderAt, version byte, off, size int64) bool {
+	if size < 1 {
+		return false
+	}
+	if version == 2 {
+		if size < 4 {
+			return false
+		}
+		var b [4]byte
+		if readFullAt(r, b[:4], off) != nil {
+			return false
+		}
+		if string(b[1:4]) == "-->" {
+			return false
+		}
+		// encoding, format (3), type, description, image
+		cur := off + 4
+		rem := size - 4
+		if rem < 2 {
+			return false
+		}
+		cur++
+		rem--
+		return id3SkipToImageV22(r, cur, rem)
+	}
+	// APIC: encoding (1), MIME\\0, type (1), description\\0, image
+	if size < 5 {
+		return false
+	}
+	var b [5]byte
+	if readFullAt(r, b[:5], off) != nil {
+		return false
+	}
+	if string(b[1:5]) == "-->\x00" {
+		return false
+	}
+	return id3SkipApicToImage(r, off+1, size-1)
+}
+
+// id3SkipToImageV22 skips PIC type and description and requires image bytes.
+func id3SkipToImageV22(r io.ReaderAt, off, size int64) bool {
+	if size < 1 {
+		return false
+	}
+	off++
+	size--
+	for size > 0 {
+		var c [1]byte
+		if readFullAt(r, c[:], off) != nil {
+			return false
+		}
+		off++
+		size--
+		if c[0] == 0 {
+			return size >= 1
+		}
+	}
+	return false
+}
+
+// id3SkipApicToImage skips MIME, picture type, and description; image remains.
+func id3SkipApicToImage(r io.ReaderAt, off, size int64) bool {
+	for size > 0 {
+		var c [1]byte
+		if readFullAt(r, c[:], off) != nil {
+			return false
+		}
+		off++
+		size--
+		if c[0] == 0 {
+			break
+		}
+	}
+	if size < 2 {
+		return false
+	}
+	off++
+	size--
+	for size > 0 {
+		var c [1]byte
+		if readFullAt(r, c[:], off) != nil {
+			return false
+		}
+		off++
+		size--
+		if c[0] == 0 {
+			return size >= 1
+		}
+	}
+	return false
 }
 
 // validFrameID reports whether id is made of A-Z and 0-9 only.
@@ -384,8 +522,7 @@ func flacHasPicture(r *windowReader) (bool, error) {
 		}
 		switch typ {
 		case 6:
-			head := make([]byte, flacPictureHeadLen)
-			if size >= flacPictureMinLen && readFullAt(r, head, body) == nil && !flacPictureIsLink(head) {
+			if flacPictureHasEmbedded(r, body, size) {
 				return true, nil
 			}
 		case 4:
@@ -417,6 +554,38 @@ const flacPictureHeadLen = 11
 // instead of an embedded image.
 func flacPictureIsLink(head []byte) bool {
 	return len(head) >= flacPictureHeadLen && binary.BigEndian.Uint32(head[4:8]) == 3 && string(head[8:11]) == "-->"
+}
+
+// flacPictureHasEmbedded reports whether a PICTURE metadata block of size bytes
+// at off holds a nonempty embedded image (not a URI-only block).
+func flacPictureHasEmbedded(r io.ReaderAt, off, size int64) bool {
+	if size < flacPictureMinLen {
+		return false
+	}
+	head := make([]byte, flacPictureHeadLen)
+	if readFullAt(r, head, off) != nil || flacPictureIsLink(head) {
+		return false
+	}
+	mimeLen := int64(binary.BigEndian.Uint32(head[4:8]))
+	cur := off + 8 + mimeLen
+	if cur+4 > off+size {
+		return false
+	}
+	var descLenBuf [4]byte
+	if readFullAt(r, descLenBuf[:], cur) != nil {
+		return false
+	}
+	descLen := int64(binary.BigEndian.Uint32(descLenBuf[:]))
+	cur += 4 + descLen + 16 // width, height, depth, colours, data length
+	if cur+4 > off+size {
+		return false
+	}
+	var dataLenBuf [4]byte
+	if readFullAt(r, dataLenBuf[:], cur) != nil {
+		return false
+	}
+	dataLen := int64(binary.BigEndian.Uint32(dataLenBuf[:]))
+	return dataLen > 0 && cur+4+dataLen <= off+size
 }
 
 // packetReader reads one logical packet sequentially and can skip ahead
@@ -461,6 +630,45 @@ func (s *sectionPacket) skip(n int64) error {
 	return nil
 }
 
+// boundedPacket limits how many bytes may be read or skipped from an inner
+// packetReader (used for FLAC metadata blocks inside Ogg packets).
+type boundedPacket struct {
+	pr  packetReader
+	max int64
+	rem int64
+}
+
+func newBoundedPacket(pr packetReader, max int64) *boundedPacket {
+	return &boundedPacket{pr: pr, max: max, rem: max}
+}
+
+func (b *boundedPacket) Read(p []byte) (int, error) {
+	if b.rem <= 0 {
+		return 0, io.EOF
+	}
+	if int64(len(p)) > b.rem {
+		p = p[:b.rem]
+	}
+	n, err := b.pr.Read(p)
+	b.rem -= int64(n)
+	if b.rem <= 0 && (err == nil || err == io.EOF) {
+		return n, io.EOF
+	}
+	return n, err
+}
+
+func (b *boundedPacket) skip(n int64) error {
+	if n > b.rem {
+		b.rem = 0
+		return io.ErrUnexpectedEOF
+	}
+	if err := b.pr.skip(n); err != nil {
+		return err
+	}
+	b.rem -= n
+	return nil
+}
+
 // vorbisPictureFields are the comment names that carry embedded cover art,
 // compared case-insensitively as the Vorbis comment spec requires.
 var vorbisPictureFields = [][]byte{
@@ -470,9 +678,9 @@ var vorbisPictureFields = [][]byte{
 }
 
 // vorbisCommentPrefixLen is how much of each Vorbis comment is read: enough
-// for the longest picture field name plus 16 base64 characters, which decode
-// to the first 12 bytes of a METADATA_BLOCK_PICTURE block.
-const vorbisCommentPrefixLen = 48
+// for the longest picture field name plus a base64 prefix that covers a
+// minimal METADATA_BLOCK_PICTURE block header.
+const vorbisCommentPrefixLen = 72
 
 // vorbisCommentHasPicture parses a Vorbis comment structure (vendor string,
 // count, length-prefixed comments) and reports whether any comment is a
@@ -514,10 +722,42 @@ func vorbisCommentHasPicture(pr packetReader) (bool, error) {
 			return false, err
 		}
 		if match {
+			if !packetPictureMatchOK(pr) {
+				continue
+			}
 			return true, nil
 		}
 	}
 	return false, nil
+}
+
+// packetPictureMatchOK rejects a picture comment match when the underlying
+// Ogg packet has no terminating segment yet (a 255-byte lacing continuation
+// with no following data). Other packet readers always return true.
+func packetPictureMatchOK(pr packetReader) bool {
+	op, ok := pr.(*oggPacketReader)
+	if !ok {
+		if bp, ok := pr.(*boundedPacket); ok {
+			op, ok = bp.pr.(*oggPacketReader)
+		}
+	}
+	if !ok {
+		return true
+	}
+	if op.ended {
+		return true
+	}
+	if op.seg >= len(op.lacing) {
+		return false
+	}
+	if op.lacing[op.seg] < 255 {
+		return true
+	}
+	if op.segRead < int64(op.lacing[op.seg]) {
+		return true // still inside a segment
+	}
+	// On a 255 continuation with no next segment loaded, require another page.
+	return op.seg+1 < len(op.lacing)
 }
 
 // vorbisPictureComment reports whether a comment of total size length, whose
@@ -528,12 +768,33 @@ func vorbisPictureComment(prefix []byte, length int64) bool {
 			continue
 		}
 		if len(field) == len("METADATA_BLOCK_PICTURE=") {
+			valueLen := length - int64(len(field))
+			minB64 := base64.StdEncoding.EncodedLen(flacPictureMinLen)
+			if valueLen < int64(minB64) {
+				continue
+			}
 			value := prefix[len(field):]
-			if len(value) >= 16 {
-				head := make([]byte, 12)
-				if _, err := base64.StdEncoding.Decode(head, value[:16]); err == nil && flacPictureIsLink(head) {
-					return false
-				}
+			read := len(value)
+			if read > minB64 {
+				read = minB64
+			}
+			read -= read % 4
+			if read < 16 {
+				continue
+			}
+			block := make([]byte, base64.StdEncoding.DecodedLen(read))
+			if _, err := base64.StdEncoding.Decode(block, value[:read]); err != nil {
+				continue
+			}
+			if len(block) < flacPictureMinLen {
+				continue
+			}
+			if flacPictureIsLink(block[:flacPictureHeadLen]) {
+				continue
+			}
+			dataLen := binary.BigEndian.Uint32(block[28:32])
+			if dataLen == 0 {
+				continue
 			}
 		}
 		return true
@@ -586,14 +847,18 @@ func oggHasPicture(r *windowReader) (bool, error) {
 			switch typ {
 			case 6:
 				size := int64(hdr[1])<<16 | int64(hdr[2])<<8 | int64(hdr[3])
-				head := make([]byte, flacPictureHeadLen)
-				if size >= flacPictureMinLen {
-					if _, err := io.ReadFull(op, head); err == nil && !flacPictureIsLink(head) && op.skip(size-flacPictureHeadLen) == nil {
+				blockOff := op.segOff + op.segRead
+				if size >= flacPictureMinLen && flacPictureHasEmbedded(op.r, blockOff, size) {
+					if op.skip(size) == nil {
 						return true, nil
 					}
+				} else if size > 0 {
+					_ = op.skip(size)
 				}
 			case 4:
-				if ok, err := vorbisCommentHasPicture(op); err == nil && ok {
+				size := int64(hdr[1])<<16 | int64(hdr[2])<<8 | int64(hdr[3])
+				bp := newBoundedPacket(op, size)
+				if ok, err := vorbisCommentHasPicture(bp); err == nil && ok {
 					return true, nil
 				}
 			}
@@ -626,11 +891,13 @@ type oggPacketReader struct {
 	pages  int
 
 	nextPage int64  // file offset of the next page header
+	pageSeq  uint32 // sequence number of the current page
 	lacing   []byte // lacing values of the current page
 	seg      int    // index of the current segment in lacing
 	segOff   int64  // file offset of the current segment's data
 	segRead  int64  // bytes already consumed from the current segment
 	ended    bool   // the current packet has ended
+	inPacket bool   // false before the first byte of a new packet is read
 }
 
 // newOggPacketReader positions a reader at the first packet of the first page.
@@ -678,11 +945,19 @@ func (op *oggPacketReader) loadPage(off int64, first bool) (uint32, error) {
 			off = dataOff + dataLen
 			continue
 		}
+		pageSeq := binary.LittleEndian.Uint32(hdr[18:22])
+		continued := hdr[5]&0x01 != 0
+		if !first && op.inPacket {
+			if !continued || pageSeq != op.pageSeq+1 {
+				return 0, errors.New("album art: broken ogg packet")
+			}
+		}
 		op.lacing = lacing
 		op.seg = 0
 		op.segOff = dataOff
 		op.segRead = 0
 		op.nextPage = dataOff + dataLen
+		op.pageSeq = pageSeq
 		return serial, nil
 	}
 }
@@ -704,6 +979,7 @@ func (op *oggPacketReader) advanceSegment() bool {
 // Read implements io.Reader over the current packet and returns io.EOF at
 // its end.
 func (op *oggPacketReader) Read(p []byte) (int, error) {
+	op.inPacket = true
 	total := 0
 	for len(p) > 0 && !op.ended {
 		if op.seg >= len(op.lacing) {
@@ -740,6 +1016,7 @@ func (op *oggPacketReader) Read(p []byte) (int, error) {
 
 // skip implements packetReader.
 func (op *oggPacketReader) skip(n int64) error {
+	op.inPacket = true
 	for n > 0 {
 		if op.ended || op.seg >= len(op.lacing) {
 			return io.ErrUnexpectedEOF
@@ -748,13 +1025,19 @@ func (op *oggPacketReader) skip(n int64) error {
 		rem := segLen - op.segRead
 		if rem >= n {
 			op.segRead += n
+			if segLen < 255 && op.segRead >= segLen {
+				op.ended = true
+			}
 			return nil
 		}
 		n -= rem
 		op.segRead = segLen
 		if segLen < 255 {
 			op.ended = true
-			return io.ErrUnexpectedEOF
+			if n > 0 {
+				return io.ErrUnexpectedEOF
+			}
+			return nil
 		}
 		if !op.advanceSegment() {
 			return io.ErrUnexpectedEOF
@@ -785,6 +1068,7 @@ func (op *oggPacketReader) nextPacket() bool {
 		return false
 	}
 	op.ended = false
+	op.inPacket = false
 	return true
 }
 
