@@ -2,75 +2,16 @@ package ffmpeg
 
 import (
 	"context"
-	"os"
-	"os/exec"
-	"path/filepath"
-	"sync"
 	"testing"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/mediacache"
 )
 
-const cacheFixtureMP4 = "../../../frontend/tests/playwright-files/myfolder/testdata/sample-640x480.mp4"
-
-var (
-	testServiceOnce sync.Once
-	testServiceErr  error
-)
-
-// initTestService starts the ffmpeg service once, without hardware probes, or
-// skips.
-func initTestService(t *testing.T) *Service {
-	t.Helper()
-	if testing.Short() {
-		t.Skip("starts ffmpeg")
-	}
-	if _, err := exec.LookPath("ffmpeg"); err != nil {
-		t.Skip("ffmpeg not installed")
-	}
-	if _, err := exec.LookPath("ffprobe"); err != nil {
-		t.Skip("ffprobe not installed")
-	}
-	testServiceOnce.Do(func() {
-		testServiceErr = Initialize(context.Background(), InitOptions{SkipHWTests: true, CacheDir: os.TempDir()})
-	})
-	if testServiceErr != nil {
-		t.Skipf("ffmpeg init failed: %v", testServiceErr)
-	}
-	svc := Get()
-	if svc == nil {
-		t.Skip("ffmpeg service unavailable")
-	}
-	return svc
-}
-
-// copyFixture copies the MP4 fixture so the test owns its cache key.
-func copyFixture(t *testing.T) (string, mediacache.Key) {
-	t.Helper()
-	data, err := os.ReadFile(cacheFixtureMP4)
-	if err != nil {
-		t.Fatal(err)
-	}
-	path := filepath.Join(t.TempDir(), "sample.mp4")
-	if err = os.WriteFile(path, data, 0o644); err != nil {
-		t.Fatal(err)
-	}
-	key, err := mediacache.Stat(path)
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Cleanup(func() {
-		mediacache.Probes.Delete(key.String())
-		mediacache.Durations.Delete(key.String())
-	})
-	return path, key
-}
-
 // TestProbeFileUsesSharedCache checks that ffprobe results go into the shared
 // cache, cached values are reused, and WithoutCache bypasses both.
 func TestProbeFileUsesSharedCache(t *testing.T) {
-	svc := initTestService(t)
-	path, key := copyFixture(t)
+	svc := initIntegrationService(t)
+	path, key := copyTestFixtureMP4(t)
 
 	got, err := svc.ProbeFile(context.Background(), path)
 	if err != nil {
@@ -100,8 +41,8 @@ func TestProbeFileUsesSharedCache(t *testing.T) {
 // TestGetMediaDurationUsesSharedCache checks that cached durations are reused
 // and WithoutCache probes fresh.
 func TestGetMediaDurationUsesSharedCache(t *testing.T) {
-	svc := initTestService(t)
-	path, key := copyFixture(t)
+	svc := initIntegrationService(t)
+	path, key := copyTestFixtureMP4(t)
 
 	mediacache.Durations.Set(key.String(), 4242)
 	d, err := svc.GetMediaDuration(context.Background(), path)

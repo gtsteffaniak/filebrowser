@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/mediacache"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/testutil"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 	"github.com/stretchr/testify/require"
@@ -34,11 +35,14 @@ func withGate(t *testing.T, alwaysFfmpeg bool) {
 	t.Cleanup(func() { settings.ApplyMediaSettings(prev) })
 }
 
-// requireTool skips the test when an ffmpeg binary is not on PATH.
+// requireTool skips the test when a media binary is not on PATH.
 func requireTool(t *testing.T, name string) {
 	t.Helper()
-	if _, err := exec.LookPath(name); err != nil {
-		t.Skipf("%s not installed", name)
+	switch name {
+	case "ffmpeg", "ffprobe":
+		testutil.SkipIfNoFFmpeg(t)
+	default:
+		testutil.SkipIfNoTool(t, name)
 	}
 }
 
@@ -49,7 +53,9 @@ func ffprobeValue(t *testing.T, path string, args ...string) string {
 	full := append([]string{"-v", "error"}, args...)
 	full = append(full, "-of", "default=nw=1:nk=1", path)
 	out, err := exec.Command("ffprobe", full...).Output()
-	require.NoError(t, err)
+	if err != nil {
+		t.Skipf("ffprobe: %v", err)
+	}
 	return strings.TrimSpace(string(out))
 }
 
@@ -74,7 +80,9 @@ func makeMP3(t *testing.T) string {
 		"-f", "lavfi", "-i", "sine=frequency=440:duration=2",
 		"-metadata", "title=Gomedia Title",
 		"-c:a", "libmp3lame", path).CombinedOutput()
-	require.NoError(t, err, string(out))
+	if err != nil {
+		t.Skipf("ffmpeg could not encode mp3: %v\n%s", err, out)
+	}
 	return path
 }
 
@@ -312,7 +320,9 @@ func TestEmbeddedSubtitleIndexMatchesFFprobe(t *testing.T) {
 		"-i", srt,
 		"-map", "0:v", "-map", "1:s",
 		"-c:v", "mpeg4", "-c:s", "srt", mkv).CombinedOutput()
-	require.NoError(t, err, string(out))
+	if err != nil {
+		t.Skipf("ffmpeg could not build subtitle fixture: %v\n%s", err, out)
+	}
 
 	tracks, ok := EmbeddedSubtitles(mkv, time.Now(), nil)
 	require.True(t, ok, "go-media must list MKV subtitle tracks")

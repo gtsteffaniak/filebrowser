@@ -57,6 +57,7 @@ All notable changes to this project will be documented in this file. For commit 
  - Media probes are cached by file identity and concurrent reads are coalesced, so opening a file no longer triggers repeated ffprobe runs.
  - Client-initiated stream cancels (seek/navigation) no longer log spurious write-error responses.
  - Gzipped `.woff` font files are no longer generated without being served; only `.js` and `.woff2` are precompressed.
+ - Album art detection during indexing walks container headers instead of scanning a fixed-size prefix. M4A/MP4 cover art is found wherever `moov` sits in the file, and M4A files without cover art no longer report a preview. MP3 (ID3v2.2-2.4), FLAC and Ogg Vorbis/Opus/FLAC detection now finds art after large frames, padding or long comments, within per-format scan limits (for example, at most 256 KiB of an unsynchronised ID3v2.3 tag is read). Pictures that only link to an image URL are not counted.
  - Text preview tiles no longer show the bottom truncation fade; truncated content is clipped at the tile edge instead.
  - Text preview tiles lay out at a minimum width and are clipped, instead of wrapping aggressively on narrow tiles.
  - Queued text preview requests are canceled when their tiles unmount, so scrolling through a folder of text files and then opening another folder no longer delays the new folder's previews.
