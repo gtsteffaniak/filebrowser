@@ -301,31 +301,6 @@ func gpuDisplayName(g platform.GPUDevice) string {
 	return g.RenderNode
 }
 
-// autoGPUAccel describes the GPU driving the detected default hardware
-// encoder (e.g. Apple VideoToolbox → "Apple GPU"/vendor "apple").
-func autoGPUAccel(caps *capabilities.Capabilities) capabilities.AccelGPU {
-	var fallback capabilities.AccelType
-	for _, opt := range caps.EncodeOptions {
-		if !opt.Available || opt.Accel == "" || opt.Accel == capabilities.AccelNone {
-			continue
-		}
-		if opt.Codec != capabilities.CodecH264 {
-			continue
-		}
-		if opt.Default {
-			if gpu := capabilities.GPUForAccel(caps, opt.Accel); gpu.Name != "" {
-				return gpu
-			}
-		}
-		fallback = opt.Accel
-	}
-	gpu := capabilities.GPUForAccel(caps, fallback)
-	if gpu.Name == "CPU" || gpu.Vendor == "software" {
-		return capabilities.AccelGPU{}
-	}
-	return gpu
-}
-
 // EncoderBackendOption is one selectable entry in the encoder backend list.
 type EncoderBackendOption struct {
 	ID    string `json:"id"`
