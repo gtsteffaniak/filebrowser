@@ -75,6 +75,7 @@ vi.mock("@/composables/player/useSwipeNavigationGestures.ts", () => ({
     setupSwipeGestures: vi.fn(),
     teardownSwipeGestures: vi.fn(),
     clearDismissAnimTimers: vi.fn(),
+    resetEdgeGestureImmediate: vi.fn(),
   }),
 }));
 vi.mock("@/composables/player/useMediaKeyboard.ts", () => ({
