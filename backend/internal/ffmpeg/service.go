@@ -171,14 +171,13 @@ type AccelDeviceOption struct {
 }
 
 // AccelDeviceOptions lists concrete acceleration devices for the admin UI.
-// The default auto-selected GPU (when stored as "auto") is included by name;
-// there is no separate "auto" entry.
+// The first entry is always id "auto" (optional chain hint in the label).
 func (s *Service) AccelDeviceOptions() []AccelDeviceOption {
-	out := []AccelDeviceOption{}
+	out := []AccelDeviceOption{{ID: "auto", Label: "auto"}}
 	if caps := s.Capabilities(); caps != nil {
-		defaultLabel, defaultID, gpuOpts := resolvedAccelDeviceOptions(caps, s.gpuList())
-		if defaultID != "" {
-			out = append(out, AccelDeviceOption{ID: defaultID, Label: defaultLabel})
+		defaultLabel, _, gpuOpts := resolvedAccelDeviceOptions(caps, s.gpuList())
+		if defaultLabel != "" {
+			out[0].Label = "auto (" + defaultLabel + ")"
 		}
 		out = append(out, gpuOpts...)
 	}
@@ -186,84 +185,73 @@ func (s *Service) AccelDeviceOptions() []AccelDeviceOption {
 	return out
 }
 
-// ResolveAccelDevice maps stored "auto"/empty to the concrete device the UI
-// should display; explicit software aliases and device IDs are unchanged.
+// ResolveAccelDevice normalizes stored acceleration device values. "auto" and
+// empty stay auto so go-ffmpeg keeps the full device chain (iGPU → dGPU → software).
 func (s *Service) ResolveAccelDevice(device string) string {
 	dev := strings.TrimSpace(device)
 	switch strings.ToLower(dev) {
 	case "software", "cpu", "none":
 		return "software"
-	}
-	if dev != "" && !strings.EqualFold(dev, "auto") {
+	case "", "auto":
+		return "auto"
+	default:
 		return dev
 	}
-	caps := s.Capabilities()
-	if caps == nil {
-		return "software"
-	}
-	defaultLabel, defaultID, gpuOpts := resolvedAccelDeviceOptions(caps, s.gpuList())
-	if defaultID != "" {
-		return defaultID
-	}
-	if len(gpuOpts) == 1 {
-		return gpuOpts[0].ID
-	}
-	for _, opt := range gpuOpts {
-		if opt.Label == defaultLabel {
-			return opt.ID
-		}
-	}
-	if id, _ := wslNVIDIAAccelDefault(caps); id != "" {
-		return id
-	}
-	return "software"
 }
 
 // resolvedAccelDeviceOptions labels the default auto-selected GPU and lists
 // every other enumerated device.
 func resolvedAccelDeviceOptions(caps *capabilities.Capabilities, gpus []platform.GPUDevice) (autoLabel, resolvedID string, opts []AccelDeviceOption) {
-	resolved := caps.Platform.Details["render_device"]
-	autoAccel := autoGPUAccel(caps)
-	wslID, wslLabel := wslNVIDIAAccelDefault(caps)
+	autoLabel = autoDeviceChainLabel(caps, gpus)
 	seen := map[string]bool{}
 	for _, g := range gpus {
 		label := gpuClassLabel(g) + " (" + gpuDisplayName(g) + ")"
-		if seen[accelDeviceID(g)] {
+		id := accelDeviceID(g)
+		if id == "" || seen[id] {
 			continue
 		}
-		seen[accelDeviceID(g)] = true
-		switch {
-		case resolvedID == "" && wslID != "" && g.Vendor == "nvidia" && g.RenderNode == "" && resolved == "" && autoAccel.Vendor == "":
-			// WSL exposes the NVIDIA GPU without a DRM node; the enumerated
-			// entry is the auto default, so it must not be listed twice.
-			autoLabel, resolvedID = label, accelDeviceID(g)
-			continue
-		case g.RenderNode != "" && g.RenderNode == resolved:
-			autoLabel, resolvedID = label, g.RenderNode
-			continue
-		case resolvedID == "" && autoAccel.Vendor != "" && g.Vendor == autoAccel.Vendor:
-			// Vendor-level default for platforms without a render node (macOS,
-			// synthetic GPUs): this device backs the preferred hardware encoder,
-			// so it is the resolved auto selection, not an extra option.
-			autoLabel, resolvedID = label, accelDeviceID(g)
-			continue
-		}
-		if id := accelDeviceID(g); id != "" {
-			opts = append(opts, AccelDeviceOption{ID: id, Label: label})
-		}
+		seen[id] = true
+		opts = append(opts, AccelDeviceOption{ID: id, Label: label})
 	}
-	if autoLabel == "" {
-		autoLabel = autoAccel.Name
-	}
-	if resolvedID == "" {
-		if wslID != "" {
-			if autoLabel == "" {
-				autoLabel = wslLabel
+	return autoLabel, "", opts
+}
+
+func autoDeviceChainLabel(caps *capabilities.Capabilities, gpus []platform.GPUDevice) string {
+	if caps != nil {
+		for _, c := range caps.DeviceChain {
+			if c.SoftwareOnly {
+				continue
 			}
-			resolvedID = wslID
+			if c.Name != "" {
+				return gpuClassLabelFromChoice(c) + " (" + c.Name + ")"
+			}
+			if c.Label != "" {
+				return c.Label
+			}
 		}
 	}
-	return autoLabel, resolvedID, opts
+	for _, g := range gpus {
+		if g.Integrated || g.DeviceClass == "igpu" {
+			return gpuClassLabel(g) + " (" + gpuDisplayName(g) + ")"
+		}
+	}
+	if len(gpus) > 0 {
+		g := gpus[0]
+		return gpuClassLabel(g) + " (" + gpuDisplayName(g) + ")"
+	}
+	if caps != nil {
+		if id, label := wslNVIDIAAccelDefault(caps); id != "" {
+			return label
+		}
+	}
+	return ""
+}
+
+func gpuClassLabelFromChoice(c platform.GPUChoice) string {
+	if c.Integrated {
+		return "Integrated GPU"
+	}
+	return "Dedicated GPU"
 }
 
 // wslNVIDIAAccelDefault exposes dgpu when WSL has an NVIDIA driver but no DRM nodes.
@@ -311,31 +299,6 @@ func gpuDisplayName(g platform.GPUDevice) string {
 		return g.Name
 	}
 	return g.RenderNode
-}
-
-// autoGPUAccel describes the GPU driving the detected default hardware
-// encoder (e.g. Apple VideoToolbox → "Apple GPU"/vendor "apple").
-func autoGPUAccel(caps *capabilities.Capabilities) capabilities.AccelGPU {
-	var fallback capabilities.AccelType
-	for _, opt := range caps.EncodeOptions {
-		if !opt.Available || opt.Accel == "" || opt.Accel == capabilities.AccelNone {
-			continue
-		}
-		if opt.Codec != capabilities.CodecH264 {
-			continue
-		}
-		if opt.Default {
-			if gpu := capabilities.GPUForAccel(caps, opt.Accel); gpu.Name != "" {
-				return gpu
-			}
-		}
-		fallback = opt.Accel
-	}
-	gpu := capabilities.GPUForAccel(caps, fallback)
-	if gpu.Name == "CPU" || gpu.Vendor == "software" {
-		return capabilities.AccelGPU{}
-	}
-	return gpu
 }
 
 // EncoderBackendOption is one selectable entry in the encoder backend list.
@@ -528,7 +491,7 @@ func logCapabilities(svc *goffmpeg.Service, wantsHardware bool, accelDevice stri
 // report the fallback at info.
 func warnIfAccelDeviceUnavailable(caps *capabilities.Capabilities, accelDevice string) {
 	if reason, ok := accelDeviceFallbackReason(accelDevice); ok {
-		logger.Warningf("ffmpeg accel device %q is unavailable (%s); using automatic selection instead", strings.TrimSpace(accelDevice), reason)
+		logger.Warningf("ffmpeg accel device %q is unavailable (%s); using auto instead", strings.TrimSpace(accelDevice), reason)
 	}
 }
 

@@ -8,23 +8,18 @@ import (
 	"github.com/gtsteffaniak/go-ffmpeg/platform"
 )
 
-func TestAccelDeviceOptionsOmitsAuto(t *testing.T) {
+func TestAccelDeviceOptionsIncludesAuto(t *testing.T) {
 	s := &Service{}
 	opts := s.AccelDeviceOptions()
-	for _, opt := range opts {
-		if opt.ID == "auto" {
-			t.Fatalf("options must not include auto: %+v", opts)
-		}
-	}
-	if len(opts) != 1 || opts[0].ID != "software" {
-		t.Fatalf("without capabilities want software only, got %+v", opts)
+	if len(opts) != 2 || opts[0].ID != "auto" || opts[1].ID != "software" {
+		t.Fatalf("without capabilities want auto + software, got %+v", opts)
 	}
 }
 
 func TestResolveAccelDeviceWithoutCapabilities(t *testing.T) {
 	s := &Service{}
-	if got := s.ResolveAccelDevice("auto"); got != "software" {
-		t.Fatalf("ResolveAccelDevice(auto) = %q, want software", got)
+	if got := s.ResolveAccelDevice("auto"); got != "auto" {
+		t.Fatalf("ResolveAccelDevice(auto) = %q, want auto", got)
 	}
 	if got := s.ResolveAccelDevice("/dev/dri/renderD128"); got != "/dev/dri/renderD128" {
 		t.Fatalf("ResolveAccelDevice(explicit) = %q", got)
@@ -69,14 +64,12 @@ func wslCaps() *capabilities.Capabilities {
 // list it once, whether it is resolved through enumeration or the WSL default.
 func TestAccelDeviceOptionsWSLListsNVIDIAOnce(t *testing.T) {
 	gpus := []platform.GPUDevice{{Name: "NVIDIA GeForce RTX 3050", Vendor: "nvidia", DeviceClass: "dgpu"}}
-	label, id, opts := resolvedAccelDeviceOptions(wslCaps(), gpus)
-	if id == "" || label == "" {
-		t.Fatalf("expected a resolved default, got %q/%q", id, label)
+	label, _, opts := resolvedAccelDeviceOptions(wslCaps(), gpus)
+	if label == "" {
+		t.Fatalf("expected an auto label, got %q", label)
 	}
-	for _, o := range opts {
-		if o.ID == id || strings.Contains(o.Label, "RTX 3050") {
-			t.Fatalf("device listed twice: default=%q opts=%+v", id, opts)
-		}
+	if len(opts) != 1 || !strings.Contains(opts[0].Label, "RTX 3050") {
+		t.Fatalf("want one NVIDIA option, got %+v", opts)
 	}
 }
 
@@ -87,8 +80,15 @@ func TestAccelDeviceOptionsKeepsDistinctGPUs(t *testing.T) {
 	}
 	caps := capabilities.NewCapabilities()
 	caps.Platform.Details = map[string]string{"render_device": "/dev/dri/renderD128"}
-	_, id, opts := resolvedAccelDeviceOptions(caps, gpus)
-	if id != "/dev/dri/renderD128" || len(opts) != 1 || opts[0].ID != "/dev/dri/renderD129" {
-		t.Fatalf("id=%q opts=%+v", id, opts)
+	caps.DeviceChain = []platform.GPUChoice{
+		{Name: "Intel UHD Graphics", Vendor: "intel", Integrated: true, RenderDevice: "/dev/dri/renderD128"},
+		{Name: "NVIDIA GeForce RTX 3050", Vendor: "nvidia"},
+	}
+	label, _, opts := resolvedAccelDeviceOptions(caps, gpus)
+	if !strings.Contains(label, "renderD128") && !strings.Contains(label, "UHD") {
+		t.Fatalf("auto label should prefer integrated chain device, got %q", label)
+	}
+	if len(opts) != 2 {
+		t.Fatalf("want both GPUs listed, got %+v", opts)
 	}
 }
