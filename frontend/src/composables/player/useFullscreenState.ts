@@ -20,6 +20,13 @@ function onEscapeKey(event: KeyboardEvent): void {
   void document.exitFullscreen();
 }
 
+const ORIENTATION_LOCK_POLICY_ERRORS = new Set([
+  "NotSupportedError",
+  "SecurityError",
+  "NotAllowedError",
+  "AbortError",
+]);
+
 /** Tracks the player's fullscreen state and frees the screen orientation while in fullscreen. */
 export function useFullscreenState({ onEnter }: FullscreenStateOptions = {}) {
   const isFullscreen = ref(false);
@@ -41,10 +48,11 @@ export function useFullscreenState({ onEnter }: FullscreenStateOptions = {}) {
     onEnter?.();
     lockEscape();
     // Allow free rotation when video enters full screen mode. This works even if the device's orientation is currently locked.
+    if (typeof screen.orientation?.lock !== "function") return;
     try {
       await screen.orientation.lock("any");
     } catch (error) {
-      if ((error as DOMException).name !== "NotSupportedError") throw error;
+      if (!ORIENTATION_LOCK_POLICY_ERRORS.has((error as DOMException)?.name)) throw error;
     }
   }
 

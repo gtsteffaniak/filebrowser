@@ -139,7 +139,22 @@ async function tagPlayerElements(page: import("@playwright/test").Page) {
   });
 }
 
-async function expectPlayerReused(page: import("@playwright/test").Page) {
+async function expectPlayerReused(page: import("@playwright/test").Page, fileName: string) {
+  await startNativeVideoPlayback(page);
+  await expect
+    .poll(
+      () =>
+        nativeVideo(page).evaluate((el: HTMLVideoElement) => {
+          const src = el.currentSrc || el.getAttribute("src") || "";
+          try {
+            return decodeURIComponent(src);
+          } catch {
+            return src;
+          }
+        }),
+      { timeout: 15_000 },
+    )
+    .toContain(fileName);
   await expect(page.locator(".media-player video")).toHaveCount(1);
   await expect(nativeVideo(page)).toHaveAttribute("data-reuse-probe", "1");
   await expect(page.locator(".media-player .plyr[data-reuse-probe='1']")).toHaveCount(1);
@@ -155,11 +170,11 @@ test("next and previous keep the same video element and player", async ({ page, 
 
   await page.locator('button[aria-label="Next"]').click();
   await expect(page).toHaveTitle(`Graham's Filebrowser - Files - ${NEXT_PREVIEW_VIDEO}`);
-  await expectPlayerReused(page);
+  await expectPlayerReused(page, NEXT_PREVIEW_VIDEO);
 
   await page.locator('button[aria-label="Previous"]').click();
   await expect(page).toHaveTitle(`Graham's Filebrowser - Files - ${NATIVE_PREVIEW_VIDEO}`);
-  await expectPlayerReused(page);
+  await expectPlayerReused(page, NATIVE_PREVIEW_VIDEO);
 
   checkForErrors(0, mediaFailures());
 });
@@ -188,13 +203,13 @@ test("fullscreen persists across next and previous", async ({ page, checkForErro
 
   await page.locator('button[aria-label="Next"]').click();
   await expect(page).toHaveTitle(`Graham's Filebrowser - Files - ${NEXT_PREVIEW_VIDEO}`);
-  await expectPlayerReused(page);
+  await expectPlayerReused(page, NEXT_PREVIEW_VIDEO);
   expect(await isFullscreen()).toBe(true);
   await expect.poll(() => navInFullscreen("Previous"), { timeout: 10_000 }).toBe(true);
 
   await page.locator('button[aria-label="Previous"]').click();
   await expect(page).toHaveTitle(`Graham's Filebrowser - Files - ${NATIVE_PREVIEW_VIDEO}`);
-  await expectPlayerReused(page);
+  await expectPlayerReused(page, NATIVE_PREVIEW_VIDEO);
   expect(await isFullscreen()).toBe(true);
 
   checkForErrors(0, mediaFailures());

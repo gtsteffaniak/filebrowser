@@ -671,6 +671,11 @@ export function enableScrubPreview(player, options) {
     if (percentInt === displayedPercent) {
       pendingPercent = percentInt;
       pendingVisualPercent = null;
+      const displayedSrc = cache.get(displayedPercent);
+      if (displayedSrc && img.src !== displayedSrc) {
+        applyCachedImage(percentInt);
+        return;
+      }
       setLoading(false);
       return;
     }

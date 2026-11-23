@@ -325,6 +325,11 @@ function resetLevels(barsPerSide: number) {
   levelsRight = zeros();
 }
 
+function invalidateGeometry() {
+  barPositions = [];
+  barFrequencyRanges = [];
+}
+
 function computeGeometry() {
   settledFrames = 0; // resizing clears the canvas
   const analyser = analyserLeft || analyserRight;
@@ -345,7 +350,10 @@ function computeGeometry() {
   // drawable area inside the axis padding
   const drawW = width - padLeft - padRight;
   const drawH = height - padTop - padBottom;
-  if (drawW <= 0 || drawH <= 0) return;
+  if (drawW <= 0 || drawH <= 0) {
+    invalidateGeometry();
+    return;
+  }
   drawArea = { x: padLeft, y: padTop, w: drawW, h: drawH };
 
   const halfCount = Math.floor(barCount / 2);
@@ -355,7 +363,10 @@ function computeGeometry() {
   const centerX = padLeft + drawW / 2; // pixel x of the stereo axis
   const sideWidth = drawW / 2 - centerGap / 2;
   const barWidth = (sideWidth - (halfCount - 1) * gap) / halfCount;
-  if (barWidth <= 0) return;
+  if (barWidth <= 0) {
+    invalidateGeometry();
+    return;
+  }
 
   barPositions = [];
 

@@ -150,10 +150,12 @@ export function usePlaybackQueue({ getReq, getListing, onQueueChange, applyMenus
             mode,
             loop: loop.value,
           });
+          onQueueChange();
           return;
         }
       }
       setupPlaybackQueue();
+      onQueueChange();
     },
     { immediate: true },
   );

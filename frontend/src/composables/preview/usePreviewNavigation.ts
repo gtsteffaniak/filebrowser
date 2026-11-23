@@ -15,6 +15,7 @@ interface PreviewNavigationOptions {
 export function usePreviewNavigation(options: PreviewNavigationOptions = {}) {
   const listing = ref<FileListItem[] | null>(null);
   const listingKey = ref<string | null>(null);
+  const listingIsFailureFallback = ref(false);
 
   function listingContextKey(directoryPath: string): string {
     return getters.isShare()
@@ -32,6 +33,7 @@ export function usePreviewNavigation(options: PreviewNavigationOptions = {}) {
     const currentListingKey = listingContextKey(currentDirectoryPath);
     if (listingKey.value !== currentListingKey) {
       listing.value = null;
+      listingIsFailureFallback.value = false;
     }
 
     if (state.req.type !== "directory" && !getters.fileViewingDisabled(state.req.name ?? "")) {
@@ -46,11 +48,16 @@ export function usePreviewNavigation(options: PreviewNavigationOptions = {}) {
       }
     }
 
-    if (!listing.value) {
+    if (!listing.value || listingIsFailureFallback.value) {
+      // The request may have moved to another directory while the token refresh was pending.
+      if (listingContextKey(removeLastDir(state.req.path) || "/") !== currentListingKey) {
+        return;
+      }
       if (state.req.parentDirItems) {
         listing.value = state.req.parentDirItems;
         listingKey.value = currentListingKey;
-      } else if (state.req.items) {
+        listingIsFailureFallback.value = false;
+      } else if (!listing.value && state.req.items) {
         listing.value = state.req.items;
         listingKey.value = currentListingKey;
       }
@@ -67,10 +74,11 @@ export function usePreviewNavigation(options: PreviewNavigationOptions = {}) {
     }
     const expectedListingKey = listingContextKey(directoryPath);
 
-    if (!listing.value) {
+    if (!listing.value || listingIsFailureFallback.value) {
       // Try to use pre-fetched parent directory items first
       if (state.req.parentDirItems) {
         listing.value = state.req.parentDirItems;
+        listingIsFailureFallback.value = false;
       } else if (directoryPath !== state.req.path) {
         try {
           let res: { items: FileListItem[] };
@@ -86,6 +94,7 @@ export function usePreviewNavigation(options: PreviewNavigationOptions = {}) {
             return;
           }
           listing.value = res.items;
+          listingIsFailureFallback.value = false;
         } catch (error) {
           if (
             state.req.path !== expectedPath ||
@@ -95,9 +104,11 @@ export function usePreviewNavigation(options: PreviewNavigationOptions = {}) {
           }
           console.error("error Preview.vue", error);
           listing.value = [state.req as FileListItem];
+          listingIsFailureFallback.value = true;
         }
       } else {
         listing.value = [state.req as FileListItem];
+        listingIsFailureFallback.value = false;
       }
     }
 

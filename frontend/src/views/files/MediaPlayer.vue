@@ -271,7 +271,7 @@ async function loadAndCommit(identity: string, isStale: () => boolean) {
   // the same file again (e.g. a late metadata patch) keeps its subtitles and lyrics
   const current = committed.value;
   const reuse = current?.key === identity && current.kind === kind ? current : null;
-  const loadedSubtitles = reuse ? reuse.subtitles : await subtitles();
+  const loadedSubtitles = reuse ? reuse.subtitles : await subtitles(isStale);
   if (isStale()) {
     if (!reuse) revokeSubtitleUrls(loadedSubtitles);
     return;
@@ -335,23 +335,27 @@ async function enrichAvFromMediaApi(isStale: () => boolean): Promise<boolean> {
   return false;
 }
 
-async function subtitles(): Promise<SubtitleSource[]> {
-  if (!state.req.subtitles?.length) {
+async function subtitles(isStale: () => boolean): Promise<SubtitleSource[]> {
+  const source = state.req.source as string;
+  const path = state.req.path as string;
+  const tracks = [...(state.req.subtitles ?? [])];
+  if (!tracks.length) {
     return [];
   }
   const subs: SubtitleSource[] = [];
   // Fetch subtitle content for each track using the media API
-  for (let index = 0; index < state.req.subtitles.length; index++) {
-    const subtitleTrack = state.req.subtitles.at(index);
+  for (const subtitleTrack of tracks) {
     if (!subtitleTrack) continue;
+    if (isStale()) break;
     try {
       // Fetch subtitle content from API using name and embedded
       const content = await mediaApi.getSubtitleContent(
-        state.req.source as string,
-        state.req.path as string,
+        source,
+        path,
         subtitleTrack.name,
         subtitleTrack.embedded,
       );
+      if (isStale()) break;
       if (!content || content.length === 0) {
         console.warn("Subtitle track has no content:", subtitleTrack.name);
         continue;

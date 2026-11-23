@@ -99,19 +99,20 @@ export function useSwipeNavigationGestures({
     const y = dragOffsetY;
     el.style.transform = x || y ? `translate(${x}px, ${y}px)` : '';
   }
-  function syncNavigationGestureHintToStore() {
+  function edgeCommitState() {
     const ax = Math.abs(edgeDx);
     const ay = Math.abs(edgeDy);
-    const navPrevReady =
-      hasPreviousNav.value &&
-      edgeDx >= edgeCommitX &&
-      ax >= ay;
-    const navNextReady =
-      hasNextNav.value &&
-      edgeDx <= -edgeCommitX &&
-      ax >= ay;
-    const dismissReady =
-      edgeDy >= edgeCommitY && ay >= ax;
+    return {
+      previous: hasPreviousNav.value && edgeDx >= edgeCommitX && ax >= ay,
+      next: hasNextNav.value && edgeDx <= -edgeCommitX && ax >= ay,
+      dismiss: edgeDy >= edgeCommitY && ay >= ax,
+    };
+  }
+  function syncNavigationGestureHintToStore() {
+    const commit = edgeCommitState();
+    const navPrevReady = commit.previous;
+    const navNextReady = commit.next;
+    const dismissReady = commit.dismiss;
     let kind: "close" | "previous" | "next" | null = null;
     let commitReady = false;
     let flashClose = false;
@@ -284,19 +285,20 @@ export function useSwipeNavigationGestures({
       }
       kind = ax >= ay ? 'horizontal' : 'vertical-dismiss';
     }
+    const commit = edgeCommitState();
     if (kind === 'horizontal') {
-      if (edgeDx >= edgeCommitX && hasPreviousNav.value) {
+      if (commit.previous) {
         onNavigatePrevious();
         resetEdgeGestureImmediate();
         return;
       }
-      if (edgeDx <= -edgeCommitX && hasNextNav.value) {
+      if (commit.next) {
         onNavigateNext();
         resetEdgeGestureImmediate();
         return;
       }
     } else if (kind === 'vertical-dismiss') {
-      if (edgeDy >= edgeCommitY) {
+      if (commit.dismiss) {
         clearDismissAnimTimers();
         dismissFlashActive = true;
         showDismissHint = true;
@@ -397,6 +399,9 @@ export function useSwipeNavigationGestures({
     if (event.targetTouches.length > 1) {
       gestures.clearLongPressTimer();
       gestures.longPressPending.value = false;
+      if (!gestures.longPressTriggered.value) {
+        resetEdgeGestureImmediate();
+      }
       return;
     }
     if (!swipeGesturesActive.value || event.targetTouches.length !== 1) return;
@@ -492,8 +497,29 @@ export function useSwipeNavigationGestures({
       event.preventDefault();
     }
   }
+  function releaseLongPressHold() {
+    gestures.clearLongPressTimer();
+    speedToastVisible.value = false;
+    if (player.value && gestures.longPressPreviousSpeed.value !== 2) {
+      player.value.speed = gestures.longPressPreviousSpeed.value;
+    }
+    gestures.longPressTriggered.value = false;
+    gestures.clearEdgeTapGestureState();
+  }
   function onSwipeTouchEnd(event: TouchEvent) {
-    if (!swipeGesturesActive.value || event.changedTouches.length === 0) {
+    if (!swipeGesturesActive.value) {
+      if (
+        gestures.longPressTriggered.value &&
+        findTouchById(event.changedTouches, swipeActiveTouchId)
+      ) {
+        swipeActiveTouchId = null;
+        releaseLongPressHold();
+        resetEdgeGestureImmediate();
+        event.preventDefault();
+      }
+      return;
+    }
+    if (event.changedTouches.length === 0) {
       return;
     }
     const first = event.changedTouches[0];
@@ -514,13 +540,7 @@ export function useSwipeNavigationGestures({
     }
     // Handle long-press release
     if (gestures.longPressTriggered.value) {
-      gestures.clearLongPressTimer();
-      speedToastVisible.value = false;
-      if (player.value && gestures.longPressPreviousSpeed.value !== 2) {
-        player.value.speed = gestures.longPressPreviousSpeed.value;
-      }
-      gestures.longPressTriggered.value = false;
-      gestures.clearEdgeTapGestureState();
+      releaseLongPressHold();
       resetEdgeGestureImmediate();
       event.preventDefault();
       return;

@@ -35,6 +35,9 @@ const DEFAULTS: Readonly<VisualizerConfig> = {
   showPeaks: true,
 };
 
+/** Sizes the Web Audio AnalyserNode accepts, they should be powers of two from 32 to 32768. */
+const SUPPORTED_FFT_SIZES: readonly number[] = [32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768];
+
 function sanitize(value: Partial<VisualizerConfig> | null): Partial<VisualizerConfig> {
   const valid: Partial<VisualizerConfig> = {};
   if (typeof value !== "object" || value === null) return valid;
@@ -42,6 +45,7 @@ function sanitize(value: Partial<VisualizerConfig> | null): Partial<VisualizerCo
     const candidate = value[key];
     if (typeof candidate !== typeof DEFAULTS[key]) continue;
     if (typeof candidate === "number" && !Number.isFinite(candidate)) continue;
+    if (key === "fftSize" && !SUPPORTED_FFT_SIZES.includes(candidate as number)) continue;
     Object.assign(valid, { [key]: candidate });
   }
   return valid;

@@ -140,6 +140,7 @@ describe("MediaPlayer committed source", () => {
   let urls: string[];
   let revoke: ReturnType<typeof vi.fn>;
   let unmounted = false;
+  let originalUrlDescriptors: Record<"createObjectURL" | "revokeObjectURL", PropertyDescriptor | undefined>;
 
   async function mountView(req: ReqObject) {
     state.req = req;
@@ -161,6 +162,10 @@ describe("MediaPlayer committed source", () => {
     urls = [];
     revoke = vi.fn();
     vi.clearAllMocks();
+    originalUrlDescriptors = {
+      createObjectURL: Object.getOwnPropertyDescriptor(URL, "createObjectURL"),
+      revokeObjectURL: Object.getOwnPropertyDescriptor(URL, "revokeObjectURL"),
+    };
     vi.stubGlobal(
       "URL",
       Object.assign(URL, {
@@ -178,6 +183,14 @@ describe("MediaPlayer committed source", () => {
     if (!unmounted) app.unmount();
     container.remove();
     vi.unstubAllGlobals();
+    for (const key of ["createObjectURL", "revokeObjectURL"] as const) {
+      const descriptor = originalUrlDescriptors[key];
+      if (descriptor) {
+        Object.defineProperty(URL, key, descriptor);
+      } else {
+        Reflect.deleteProperty(URL, key);
+      }
+    }
   });
 
   it("commits the first file after everything is loaded", async () => {

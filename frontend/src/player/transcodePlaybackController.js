@@ -287,7 +287,7 @@ export class TranscodePlaybackController {
             budgetMs: remainingMs,
             signal: attachAbort.signal,
             onRecoverPlayback: onRecoverPlayback
-              ? ({ startSec: recoverStartSec, sessionId }) => onRecoverPlayback({
+              ? ({ startSec: recoverStartSec, sessionId, shouldAutoplay: recoverAutoplay }) => onRecoverPlayback({
                 startSec: recoverStartSec,
                 sessionId,
                 mode,
@@ -298,7 +298,7 @@ export class TranscodePlaybackController {
                 playPrime,
                 getVideoElement,
                 nextTick,
-                shouldAutoplay,
+                shouldAutoplay: recoverAutoplay ?? shouldAutoplay,
                 onFirstBuffered,
                 onResumePlayback,
                 onPlaybackStarted,

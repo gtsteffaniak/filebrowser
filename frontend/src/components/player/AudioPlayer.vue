@@ -382,6 +382,7 @@ function restoreFileSource(): void {
 async function onFileSwap(newKey?: string, oldKey?: string): Promise<void> {
   if (!newKey || newKey === oldKey || lifecycle.tornDown) return;
   const generation = ++swapGeneration;
+  swipe.resetEdgeGestureImmediate();
   releaseFile();
   setMountedFile(props.req?.source, props.req?.path);
   loadMediaMetadata();

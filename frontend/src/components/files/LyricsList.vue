@@ -96,10 +96,15 @@ function seek(timestampMs: number) {
   if (player) player.currentTime = timestampMs / 1000;
 }
 
-function findActiveIndex(items: readonly { timestamp: number }[], from: number, currentMs: number) {
-  let idx = from >= 0 && from < items.length && (items.at(from)?.timestamp ?? 0) <= currentMs ? from : -1;
-  while (idx + 1 < items.length && (items.at(idx + 1)?.timestamp ?? Number.POSITIVE_INFINITY) <= currentMs) {
-    idx++;
+function findActiveIndex(items: readonly { timestamp: number }[], currentMs: number) {
+  let idx = -1;
+  let best = Number.NEGATIVE_INFINITY;
+  for (let i = 0; i < items.length; i++) {
+    const timestamp = items.at(i)?.timestamp ?? Number.POSITIVE_INFINITY;
+    if (timestamp <= currentMs && timestamp > best) {
+      best = timestamp;
+      idx = i;
+    }
   }
   return idx;
 }
@@ -110,18 +115,13 @@ function syncLyrics() {
   if (!player || !syncedLyrics.value) return;
   const lyrics = props.lyrics;
   const currentMs = player.currentTime * 1000;
-  const idx = findActiveIndex(lyrics, activeLyricIndex.value, currentMs);
-  // lines sharing a timestamp are highlighted together
-  let first = idx;
-  while (first > 0 && lyrics.at(first - 1)?.timestamp === lyrics.at(idx)?.timestamp) {
-    first--;
-  }
+  const first = findActiveIndex(lyrics, currentMs);
   if (first !== activeLyricIndex.value) {
     activeLyricIndex.value = first;
     activeWordIndex.value = -1;
   }
   const words = first >= 0 ? lyrics.at(first)?.words : null;
-  activeWordIndex.value = words?.length ? findActiveIndex(words, activeWordIndex.value, currentMs) : -1;
+  activeWordIndex.value = words?.length ? findActiveIndex(words, currentMs) : -1;
 }
 
 function scrollToActiveLine() {

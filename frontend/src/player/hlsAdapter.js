@@ -353,9 +353,14 @@ export function attachHlsToVideo({
       if (!onRecoverPlayback || destroyed) {
         return false;
       }
-      const resumeAt = Number.isFinite(data?.frag?.start)
-        ? data.frag.start
-        : (Number.isFinite(initialStart) && initialStart >= 0 ? initialStart : 0);
+      const playbackStarted = readyToPlay;
+      const currentTime = video?.currentTime;
+      const resumeAt = playbackStarted && Number.isFinite(currentTime)
+        ? currentTime
+        : Number.isFinite(data?.frag?.start)
+          ? data.frag.start
+          : (Number.isFinite(initialStart) && initialStart >= 0 ? initialStart : 0);
+      const shouldAutoplay = playbackStarted ? !video.paused && !video.ended : undefined;
       transcodeWarn('hls requesting transcode session recovery', {
         reason,
         resumeAt,
@@ -363,7 +368,7 @@ export function attachHlsToVideo({
         responseCode: data?.response?.code,
       });
       cleanup();
-      void onRecoverPlayback({ startSec: resumeAt, sessionId: session?.id })
+      void onRecoverPlayback({ startSec: resumeAt, sessionId: session?.id, shouldAutoplay })
         .then((ok) => {
           if (!ok) {
             onFatal?.(data);

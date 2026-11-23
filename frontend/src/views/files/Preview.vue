@@ -1,6 +1,9 @@
 <template>
   <PreviewShell>
-    <template v-if="showImage && !isTransitioning">
+    <div v-if="isTransitioning" class="preview-loading">
+      <LoadingSpinner size="medium" />
+    </div>
+    <template v-else-if="showImage">
       <ExtendedImage :src="raw" @navigate-previous="navigatePrevious"
         @navigate-next="navigateNext" @close-preview="exitPreviewFromImageGesture" />
 
@@ -12,7 +15,6 @@
         @press="openSlideshowOptions"
       />
     </template>
-
     <div v-else-if="isPdf" class="pdf-wrapper">
       <PreviewNotice
         v-if="usePdfPreviewFallback"
@@ -28,7 +30,6 @@
         :title="req.name || 'PDF'"
       ></iframe>
     </div>
-
     <PreviewNotice
       v-else
       icon="feedback"
@@ -45,6 +46,7 @@
 <script setup lang="ts">
 import { computed, watch } from "vue";
 import { resourcesApi } from "@/api/index.js";
+import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import PreviewNotice from "@/components/files/PreviewNotice.vue";
 import PreviewShell from "@/components/files/PreviewShell.vue";
 import FloatingActionButton from "@/components/settings/FloatingActionButton.vue";
@@ -104,7 +106,11 @@ const showImage = computed(() => {
   return previewType.value === "image" || pdfConvertable.value;
 });
 
-const isPdf = computed(() => isPdfFile(state.req.type) || isPdfFile(state.req.name));
+const isPdf = computed(
+  () =>
+    !getters.fileViewingDisabled(state.req.name ?? "") &&
+    (isPdfFile(state.req.type) || isPdfFile(state.req.name)),
+);
 const usePdfPreviewFallback = computed(() => isPdf.value && shouldUsePdfPreviewFallback());
 
 const raw = computed(() => {
@@ -182,6 +188,14 @@ watch(
 </script>
 
 <style scoped>
+.preview-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
 .pdf-wrapper {
   position: relative;
   width: 100%;

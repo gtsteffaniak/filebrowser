@@ -803,7 +803,7 @@ async function startFile(): Promise<void> {
   setupVideoLoadingIndicator();
   if (shouldStartTranscodeWithFile()) {
     await startTranscodePlayback({
-      autoplay: shouldAutoplay.value,
+      autoplay: startRequested.value || shouldAutoplay.value,
     });
   }
 }
@@ -817,6 +817,7 @@ async function onFileSwap(newKey?: string, oldKey?: string): Promise<void> {
     return;
   }
   const generation = ++swapGeneration;
+  swipe.resetEdgeGestureImmediate();
   offerCheckPending.value = false;
   const isCurrent = () =>
     generation === swapGeneration && !lifecycle.unmounted && !lifecycle.tornDown && Boolean(player.value);

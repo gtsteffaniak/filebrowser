@@ -160,6 +160,7 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
   const lockedNativeVideoSrc = ref<string | null>(null);
   const transcodePlayback = ref<TranscodePlaybackController | null>(null);
   const transcodeSwitchInProgress = ref(false);
+  let transcodeSwitchOwner: symbol | null = null;
   const transcodeMode = ref("native");
   const transcodeOffer = ref<TranscodeOffer | null>(null);
   /** The user accepted the offer: play through transcoding from the start. */
@@ -856,10 +857,19 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
     const startSource = getReq()?.source;
     const startPath = getReq()?.path;
     const preparationId = startPreparationId;
-    const manageSwitch = manageSwitchState && !transcodeSwitchInProgress.value;
+    const switchToken = Symbol("transcodeSwitch");
+    const manageSwitch =
+      manageSwitchState && (!transcodeSwitchInProgress.value || transcodeSwitchOwner !== null);
     if (manageSwitch) {
       transcodeSwitchInProgress.value = true;
+      transcodeSwitchOwner = switchToken;
     }
+    const releaseSwitch = () => {
+      if (transcodeSwitchOwner === switchToken) {
+        transcodeSwitchOwner = null;
+        transcodeSwitchInProgress.value = false;
+      }
+    };
     let effectiveReplaceSessionId: string | undefined =
       replaceSessionId ?? transcodePlayback.value?.sessionController?.session?.id;
     if (effectiveReplaceSessionId === undefined || effectiveReplaceSessionId === null) {
@@ -872,7 +882,7 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
       ) {
         transcodeLog("startTranscodePlayback dropped — request changed while preparing");
         if (manageSwitch) {
-          transcodeSwitchInProgress.value = false;
+          releaseSwitch();
         }
         return { ok: false, reason: "cancelled" };
       }
@@ -1004,7 +1014,7 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
       return { ok: result.ok === true, reason: result.reason };
     } finally {
       if (manageSwitch) {
-        transcodeSwitchInProgress.value = false;
+        releaseSwitch();
         const urlSync = pendingUrlSync as { transcodeMode?: string } | null;
         if (urlSync) {
           syncPlaybackUrl(urlSync);

@@ -199,11 +199,11 @@ describe("useTranscodePlayback start and offer ownership", () => {
 
     it("removes the rejected HLS mode from the URL after a capacity fallback", async () => {
       hoisted.results = [{ ok: false, reason: "capacity" }];
-      const { transcode } = setup({ query: { transcode: "balanced" } });
+      const { transcode } = setup({ query: { transcode: "balanced", keep: "1" } });
       await transcode.startTranscodePlayback({ mode: "balanced" });
       expect(transcode.transcodeMode.value).toBe("native");
       expect(replace).toHaveBeenCalled();
-      expect(replace.mock.calls.at(-1)?.[0]).toMatchObject({ query: {} });
+      expect(replace.mock.calls.at(-1)?.[0]).toHaveProperty("query", { keep: "1" });
     });
   });
 
