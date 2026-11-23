@@ -276,7 +276,8 @@ func TestRewritePlaylistRewritesDeliveryURLs(t *testing.T) {
 
 func TestManagerJanitorDoesNotRace(t *testing.T) {
 	newTestManager(t, nil)
-	time.Sleep(janitorInterval + 20*time.Millisecond)
+	// Exercise several janitor ticks without waiting for the production interval.
+	time.Sleep(testJanitorInterval * 3)
 }
 
 func TestSessionInfoOmitsUserID(t *testing.T) {
@@ -1040,7 +1041,7 @@ func TestManagerRestartsProducerWithSoftwareDecode(t *testing.T) {
 
 	// A second unreliable flag must not trigger another restart.
 	engine.LastJob().SetVTUnreliable()
-	time.Sleep(500 * time.Millisecond)
+	assertCountStable(t, 80*time.Millisecond, 10*time.Millisecond, 2, engine.StartCount)
 	if got := engine.StartCount(); got != 2 {
 		t.Fatalf("starts = %d, want exactly 2 (decode retry is once-only)", got)
 	}
@@ -1264,6 +1265,9 @@ func TestManagerStopReleasesSuspendedProducer(t *testing.T) {
 	}
 }
 
+// testJanitorInterval keeps manager tests from sleeping through the 5s production tick.
+const testJanitorInterval = 15 * time.Millisecond
+
 func newTestManager(t *testing.T, engine Engine) (*Manager, *Store) {
 	t.Helper()
 	store, err := NewStore(t.TempDir())
@@ -1273,12 +1277,24 @@ func newTestManager(t *testing.T, engine Engine) (*Manager, *Store) {
 	if engine == nil {
 		engine = NewFakeEngine()
 	}
-	mgr, err := NewManager(context.Background(), engine, store, "")
+	mgr, err := newManager(context.Background(), engine, store, "", testJanitorInterval)
 	if err != nil {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { _ = mgr.Close(context.Background()) })
 	return mgr, store
+}
+
+// assertCountStable fails if count() differs from want during the observation window.
+func assertCountStable(t *testing.T, observe, step time.Duration, want int, count func() int) {
+	t.Helper()
+	deadline := time.Now().Add(observe)
+	for time.Now().Before(deadline) {
+		if got := count(); got != want {
+			t.Fatalf("count=%d, want %d held for %v", got, want, observe)
+		}
+		time.Sleep(step)
+	}
 }
 
 // testInput returns a StartInput for username+path with the defaults most tests

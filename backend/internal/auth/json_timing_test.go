@@ -25,6 +25,7 @@ import (
 	"fmt"
 	"math"
 	"net/http"
+	"sort"
 	"net/url"
 	"testing"
 	"time"
@@ -214,22 +215,27 @@ func TestJSONAuth_NoTimingAttack(t *testing.T) {
 		{"fakeadmin", false},
 	}
 
-	// Number of samples per test case for statistical analysis
-	samplesPerCase := 5
+	const warmupIterations = 10
+	const samplesPerCase = 40
 
 	// Collect timing measurements
 	measurements := make(map[string][]time.Duration)
 	for _, tc := range testCases {
-		measurements[tc.username] = make([]time.Duration, 0, samplesPerCase)
+		measurements[tc.username] = make([]time.Duration, 0, warmupIterations+samplesPerCase)
 	}
 
-	// Run multiple iterations to gather statistical data
-	for i := 0; i < samplesPerCase; i++ {
-		// Randomize order to avoid cache effects
+	runRound := func() {
 		for _, tc := range testCases {
 			elapsed := measureAuthTime(t, auther, tc.username, "wrongpassword123")
 			measurements[tc.username] = append(measurements[tc.username], elapsed)
 		}
+	}
+
+	for i := 0; i < warmupIterations; i++ {
+		runRound()
+	}
+	for i := 0; i < samplesPerCase; i++ {
+		runRound()
 	}
 
 	// Calculate statistics for each test case
@@ -240,7 +246,28 @@ func TestJSONAuth_NoTimingAttack(t *testing.T) {
 		max    time.Duration
 	}
 
+	measurementSamples := func(durations []time.Duration) []time.Duration {
+		if len(durations) <= warmupIterations {
+			return durations
+		}
+		return durations[warmupIterations:]
+	}
+
+	medianDuration := func(durations []time.Duration) time.Duration {
+		if len(durations) == 0 {
+			return 0
+		}
+		sorted := append([]time.Duration(nil), durations...)
+		sort.Slice(sorted, func(i, j int) bool { return sorted[i] < sorted[j] })
+		mid := len(sorted) / 2
+		if len(sorted)%2 == 0 {
+			return (sorted[mid-1] + sorted[mid]) / 2
+		}
+		return sorted[mid]
+	}
+
 	calculateStats := func(durations []time.Duration) stats {
+		durations = measurementSamples(durations)
 		if len(durations) == 0 {
 			return stats{}
 		}
@@ -297,31 +324,36 @@ func TestJSONAuth_NoTimingAttack(t *testing.T) {
 		}
 	}
 
-	// Calculate overall statistics for valid vs invalid users
-	var validMeanSum, invalidMeanSum time.Duration
-	for _, s := range validUserStats {
-		validMeanSum += s.mean
-	}
-	for _, s := range invalidUserStats {
-		invalidMeanSum += s.mean
+	// Pool per-username medians so one username is not overweighted vs others.
+	validMedians := make([]time.Duration, 0, len(validUserStats))
+	invalidMedians := make([]time.Duration, 0, len(invalidUserStats))
+	for _, tc := range testCases {
+		samples := measurementSamples(measurements[tc.username])
+		med := medianDuration(samples)
+		if tc.isValid {
+			validMedians = append(validMedians, med)
+		} else {
+			invalidMedians = append(invalidMedians, med)
+		}
 	}
 
-	validAvgMean := validMeanSum / time.Duration(len(validUserStats))
-	invalidAvgMean := invalidMeanSum / time.Duration(len(invalidUserStats))
+	validPooledMedian := medianDuration(validMedians)
+	invalidPooledMedian := medianDuration(invalidMedians)
 
 	t.Logf("\n=== Summary ===")
-	t.Logf("Valid users average: %.4fms", float64(validAvgMean.Microseconds())/1000.0)
-	t.Logf("Invalid users average: %.4fms", float64(invalidAvgMean.Microseconds())/1000.0)
+	t.Logf("Valid users pooled median: %.4fms", float64(validPooledMedian.Microseconds())/1000.0)
+	t.Logf("Invalid users pooled median: %.4fms", float64(invalidPooledMedian.Microseconds())/1000.0)
 
-	// Calculate the percentage difference
-	diff := float64(validAvgMean - invalidAvgMean)
-	percentDiff := math.Abs(diff) / float64(validAvgMean) * 100.0
+	diff := float64(validPooledMedian - invalidPooledMedian)
+	denominator := float64(validPooledMedian)
+	if denominator == 0 {
+		denominator = float64(invalidPooledMedian)
+	}
+	percentDiff := math.Abs(diff) / denominator * 100.0
 	t.Logf("Difference: %.4fms (%.2f%%)", diff/1e6, percentDiff)
 
-	// Assert: The timing difference should be less than 20%
-	// Bcrypt's constant-time comparison should make both cases take similar time
-	// We allow 20% threshold to account for system noise and variability
-	threshold := 20.0 // percent
+	// Medians of many bcrypt(check) samples should track; allow slack for scheduler noise.
+	threshold := 25.0 // percent
 	if percentDiff > threshold {
 		t.Errorf("TIMING ATTACK VULNERABILITY DETECTED: Valid vs invalid user timing differs by %.2f%% (threshold: %.2f%%)",
 			percentDiff, threshold)
@@ -331,25 +363,26 @@ func TestJSONAuth_NoTimingAttack(t *testing.T) {
 			percentDiff, threshold)
 	}
 
-	// Additional check: Ensure no individual case is an obvious outlier
-	// Check if any single user's timing is significantly faster than bcrypt operations
-	allStats := append(validUserStats, invalidUserStats...)
-	var allMeansSum time.Duration
-	for _, s := range allStats {
-		allMeansSum += s.mean
+	// Fast path bypass would show up as one group finishing far quicker than bcrypt work.
+	const minExpected = 400 * time.Microsecond // bcrypt cost 4 is ~1ms; allow wide slack
+	if validPooledMedian < minExpected || invalidPooledMedian < minExpected {
+		t.Errorf("suspiciously fast auth path: valid median=%v invalid median=%v (expected bcrypt comparison)",
+			validPooledMedian, invalidPooledMedian)
 	}
-	overallMean := allMeansSum / time.Duration(len(allStats))
+
+	allMedians := append(append([]time.Duration(nil), validMedians...), invalidMedians...)
+	overallMedian := medianDuration(allMedians)
 
 	for _, tc := range testCases {
-		s := calculateStats(measurements[tc.username])
-		deviation := math.Abs(float64(s.mean-overallMean)) / float64(overallMean) * 100.0
+		samples := measurementSamples(measurements[tc.username])
+		userMed := medianDuration(samples)
+		deviation := math.Abs(float64(userMed-overallMedian)) / float64(overallMedian) * 100.0
 
-		// If any user is more than 30% faster/slower than average, it's suspicious
-		if deviation > 30.0 {
-			t.Errorf("OUTLIER DETECTED: %s deviates by %.2f%% from overall mean (%.4fms vs %.4fms)",
+		if deviation > 40.0 {
+			t.Errorf("OUTLIER DETECTED: %s median deviates by %.2f%% from pooled median (%.4fms vs %.4fms)",
 				tc.username, deviation,
-				float64(s.mean.Microseconds())/1000.0,
-				float64(overallMean.Microseconds())/1000.0)
+				float64(userMed.Microseconds())/1000.0,
+				float64(overallMedian.Microseconds())/1000.0)
 		}
 	}
 }

@@ -138,6 +138,9 @@ type Manager struct {
 	runCtx     context.Context
 	cancel     context.CancelFunc
 	lastEvict  time.Time
+
+	// janitorTick overrides janitorInterval when non-zero (tests use a fast tick).
+	janitorTick time.Duration
 }
 
 // defaultManager is the process-wide manager used by the HTTP layer. It is stored
@@ -162,6 +165,10 @@ func Default() *Manager {
 // baseURL is the public URL prefix the app is served under; segment/playlist
 // URLs the manager writes are prefixed with it.
 func NewManager(ctx context.Context, engine Engine, store *Store, baseURL string) (*Manager, error) {
+	return newManager(ctx, engine, store, baseURL, 0)
+}
+
+func newManager(ctx context.Context, engine Engine, store *Store, baseURL string, janitorTick time.Duration) (*Manager, error) {
 	if engine == nil {
 		engine = NewMediaEngine()
 	}
@@ -177,21 +184,29 @@ func NewManager(ctx context.Context, engine Engine, store *Store, baseURL string
 	}
 	runCtx, cancel := context.WithCancel(ctx)
 	m := &Manager{
-		engine:     engine,
-		store:      store,
-		baseURL:    strings.TrimSuffix(baseURL, "/"),
-		sessions:   make(map[string]*playbackSession),
-		byReuse:    make(map[string]string),
-		inflight:   make(map[string]*inflightStart),
-		producers:  make(map[string]*producer),
-		userCounts: make(map[string]int),
-		subs:       make(map[chan EventPayload]struct{}),
-		runCtx:     runCtx,
-		cancel:     cancel,
+		engine:      engine,
+		store:       store,
+		baseURL:     strings.TrimSuffix(baseURL, "/"),
+		sessions:    make(map[string]*playbackSession),
+		byReuse:     make(map[string]string),
+		inflight:    make(map[string]*inflightStart),
+		producers:   make(map[string]*producer),
+		userCounts:  make(map[string]int),
+		subs:        make(map[chan EventPayload]struct{}),
+		runCtx:      runCtx,
+		cancel:      cancel,
+		janitorTick: janitorTick,
 	}
 	m.wg.Add(1)
 	go m.janitor(runCtx)
 	return m, nil
+}
+
+func (m *Manager) effectiveJanitorInterval() time.Duration {
+	if m.janitorTick > 0 {
+		return m.janitorTick
+	}
+	return janitorInterval
 }
 
 func (m *Manager) Enabled() bool {
@@ -1461,7 +1476,7 @@ func (m *Manager) publicSession(sess *playbackSession, reused bool) SessionInfo 
 
 func (m *Manager) janitor(ctx context.Context) {
 	defer m.wg.Done()
-	ticker := time.NewTicker(janitorInterval)
+	ticker := time.NewTicker(m.effectiveJanitorInterval())
 	defer ticker.Stop()
 	for {
 		select {

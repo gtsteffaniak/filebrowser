@@ -722,9 +722,6 @@ func vorbisCommentHasPicture(pr packetReader) (bool, error) {
 			return false, err
 		}
 		if match {
-			if !packetPictureMatchOK(pr) {
-				continue
-			}
 			return true, nil
 		}
 	}
@@ -947,8 +944,8 @@ func (op *oggPacketReader) loadPage(off int64, first bool) (uint32, error) {
 		}
 		pageSeq := binary.LittleEndian.Uint32(hdr[18:22])
 		continued := hdr[5]&0x01 != 0
-		if !first && op.inPacket {
-			if !continued || pageSeq != op.pageSeq+1 {
+		if !first && op.inPacket && continued {
+			if pageSeq != op.pageSeq+1 {
 				return 0, errors.New("album art: broken ogg packet")
 			}
 		}
@@ -1064,6 +1061,7 @@ func (op *oggPacketReader) nextPacket() bool {
 		}
 	}
 	// Move past the terminating segment of the packet that just ended.
+	op.inPacket = false
 	if op.seg >= len(op.lacing) || !op.advanceSegment() {
 		return false
 	}

@@ -17,7 +17,7 @@ func TestStoreServeContractOpensNormalizedSegment(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	mgr, err := NewManager(ctx, NewFakeEngine(), store, "/testing")
+	mgr, err := newManager(ctx, NewFakeEngine(), store, "/testing", testJanitorInterval)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -2,75 +2,21 @@ package ffmpeg
 
 import (
 	"context"
-	"os"
-	"os/exec"
-	"path/filepath"
 	"sync"
 	"testing"
 	"time"
-
-	goffmpeg "github.com/gtsteffaniak/go-ffmpeg"
-	"github.com/gtsteffaniak/go-ffmpeg/capabilities"
 )
 
-func requireFFmpegBinaries(t *testing.T) {
-	t.Helper()
-	if os.Getenv("GOFFMPEG_FFMPEG_PATH") != "" {
-		return
-	}
-	if _, err := exec.LookPath("ffmpeg"); err != nil {
-		t.Skip("ffmpeg not available")
-	}
-	if _, err := exec.LookPath("ffprobe"); err != nil {
-		t.Skip("ffprobe not available")
-	}
-}
-
-func testSampleMP4(t *testing.T) string {
-	t.Helper()
-	if p := os.Getenv("GOFFMPEG_SAMPLE_MP4"); p != "" {
-		return p
-	}
-
-	dir := t.TempDir()
-	out := filepath.Join(dir, "sample.mp4")
-	cmd := exec.Command("ffmpeg", "-hide_banner", "-loglevel", "error",
-		"-f", "lavfi", "-i", "color=c=blue:s=320x240:d=2",
-		"-c:v", "libx264", "-pix_fmt", "yuv420p", "-y", out)
-	if err := cmd.Run(); err != nil {
-		t.Skipf("could not generate sample mp4: %v", err)
-	}
-	return out
-}
-
 // TestGetMediaDurationConcurrentNoDeadlock ensures probe-tier concurrency does not deadlock.
-// With MaxProbe=2, four concurrent GetMediaDuration calls queue and complete.
+// With MaxProbe=2 (see initIntegrationService), four concurrent GetMediaDuration calls
+// queue and complete. Probe concurrency is what we test here—not hardware encoder smoke
+// probes (those belong in go-ffmpeg).
 func TestGetMediaDurationConcurrentNoDeadlock(t *testing.T) {
-	requireFFmpegBinaries(t)
-	sample := testSampleMP4(t)
+	svc := initIntegrationService(t)
+	path, _ := copyTestFixtureMP4(t)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
-
-	err := Initialize(ctx, InitOptions{
-		Concurrency: goffmpeg.Concurrency{
-			MaxProbe:  2,
-			MaxDecode: 4,
-			MaxEncode: 2,
-		},
-		CacheDir:             t.TempDir(),
-		HardwareAcceleration: false,
-		EncoderHierarchy:     []capabilities.AccelType{capabilities.AccelNone},
-	})
-	if err != nil {
-		t.Fatalf("Initialize() error = %v", err)
-	}
-	t.Cleanup(func() { global.Store(nil) })
-
-	svc := Get()
-	if svc == nil {
-		t.Fatal("Get() returned nil after Initialize")
-	}
 
 	const workers = 4
 	var wg sync.WaitGroup
@@ -80,7 +26,7 @@ func TestGetMediaDurationConcurrentNoDeadlock(t *testing.T) {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			if _, err := svc.GetMediaDuration(ctx, sample); err != nil {
+			if _, err := svc.GetMediaDuration(ctx, path); err != nil {
 				errCh <- err
 			}
 		}()
