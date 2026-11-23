@@ -20,9 +20,9 @@ require (
 	github.com/google/go-cmp v0.7.0
 	github.com/google/uuid v1.6.0
 	github.com/gtsteffaniak/go-cache v1.1.0
-	github.com/gtsteffaniak/go-ffmpeg v1.6.2
+	github.com/gtsteffaniak/go-ffmpeg v1.6.3
 	github.com/gtsteffaniak/go-logger v1.1.0
-	github.com/gtsteffaniak/go-media v1.3.1
+	github.com/gtsteffaniak/go-media v1.3.2
 	github.com/kovidgoyal/imaging v1.9.0
 	github.com/pquerna/otp v1.5.0
 	github.com/spf13/afero v1.15.0
@@ -35,7 +35,7 @@ require (
 	golang.org/x/oauth2 v0.37.0
 	golang.org/x/sync v0.25.0
 	golang.org/x/sys v0.50.0
-	golang.org/x/term v0.47.0
+	golang.org/x/term v0.48.0
 	golang.org/x/text v0.44.0
 	golang.org/x/time v0.16.0
 	golang.org/x/tools v0.52.0
@@ -55,10 +55,10 @@ require (
 	github.com/dustin/go-humanize v1.1.0 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.6 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.16 // indirect
-	github.com/gen2brain/gav1d v0.2.7 // indirect
-	github.com/gen2brain/h265 v0.2.5 // indirect
-	github.com/gen2brain/jxl v0.2.1 // indirect
-	github.com/gen2brain/vpx v0.2.2 // indirect
+	github.com/gen2brain/gav1d v0.2.10 // indirect
+	github.com/gen2brain/h265 v0.2.7 // indirect
+	github.com/gen2brain/jxl v0.2.2 // indirect
+	github.com/gen2brain/vpx v0.2.3 // indirect
 	github.com/go-asn1-ber/asn1-ber v1.5.8 // indirect
 	github.com/go-errors/errors v1.5.1 // indirect
 	github.com/go-jose/go-jose/v4 v4.1.6 // indirect

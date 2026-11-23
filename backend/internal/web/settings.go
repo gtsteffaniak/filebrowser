@@ -502,7 +502,6 @@ func settingsMediaGetHandler(w http.ResponseWriter, r *http.Request, d *Context)
 	var accelDeviceOptions []ffmpeg.AccelDeviceOption
 	var encoderBackendOptions []ffmpeg.EncoderBackendOption
 	if svc != nil {
-		media.AccelDevice = svc.ResolveAccelDevice(media.AccelDevice)
 		accelDeviceOptions = svc.AccelDeviceOptions()
 		encoderBackendOptions = svc.EncoderBackendOptions()
 	}

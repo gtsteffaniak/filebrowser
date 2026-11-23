@@ -1036,6 +1036,7 @@ func SetDefaults(generate bool) Settings {
 				DisableViewingExt:       "",
 				DisableOnlyOfficeExt:    ".md .txt .pdf .html .xml",
 				PreferEditorForMarkdown: false,
+				PreferEditorForHtml:     false,
 				DebugOffice:             false,
 			},
 			Search: UserDefaultsSearch{

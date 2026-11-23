@@ -56,6 +56,7 @@ type UserDefaultsFileViewerEnforcement struct {
 	DisableViewingExt       bool `json:"disableViewingExt,omitempty"`
 	DisableOnlyOfficeExt    bool `json:"disableOnlyOfficeExt,omitempty"`
 	PreferEditorForMarkdown bool `json:"preferEditorForMarkdown,omitempty"`
+	PreferEditorForHtml     bool `json:"preferEditorForHtml,omitempty"`
 	DebugOffice             bool `json:"debugOffice,omitempty"`
 }
 
