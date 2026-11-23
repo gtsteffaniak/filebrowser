@@ -10,7 +10,7 @@ let GO_OPENSW = "/public/static/wasm/opensw.wasm";
 
 // OCCT reports uncolored faces as [0,0,0]; render those as neutral gray.
 const DEFAULT_FACE_COLOR = [0.78, 0.78, 0.78];
-const isUnsetColor = (c) => !c || c.length < 3 || (c[0] === 0 && c[1] === 0 && c[2] === 0);
+const isUnsetColor = (c) => !c || c.length < 3 || Math.max(c[0], c[1], c[2]) < 0.08;
 
 let pythonPromise = null;
 let occtPromise = null;

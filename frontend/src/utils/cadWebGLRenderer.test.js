@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { cameraBasisFromOffset } from "./cadWebGLRenderer.js";
+import { cameraBasisFromOffset, faceColor } from "./cadWebGLRenderer.js";
 
 const dot = (a, b) => a.reduce((sum, value, i) => sum + value * b[i], 0);
 
@@ -22,5 +22,14 @@ describe("CAD camera basis", () => {
     expect(dot(basis.right, basis.up)).toBeCloseTo(0);
     expect(dot(basis.up, basis.back)).toBeCloseTo(0);
     expect(dot(basis.right, basis.back)).toBeCloseTo(0);
+  });
+});
+
+describe("CAD face colours", () => {
+  it("falls back to neutral gray for dark or missing face colours", () => {
+    expect(faceColor({})).toEqual([0.894, 0.894, 0.894]);
+    expect(faceColor({ couleur: [0, 0, 0] })).toEqual([0.894, 0.894, 0.894]);
+    expect(faceColor({ couleur: [0.02, 0.03, 0.01] })).toEqual([0.894, 0.894, 0.894]);
+    expect(faceColor({ couleur: [0.2, 0.3, 0.4] })).toEqual([0.2, 0.3, 0.4]);
   });
 });

@@ -117,6 +117,14 @@ const VUES = {
 // between faces; drawn edges are face boundaries, i.e. edges belonging to a
 // single facet. Shared vertices are matched by their bits: a mesh point is
 // always written with the same three floats.
+// OCCT/SolidWorks can report an uncoloured face as black or nearly black.
+// Treat very dark values as "no colour" so the part stays neutral gray.
+export function faceColor(f) {
+  const c = f?.couleur;
+  if (!c || c.length < 3 || Math.max(c[0], c[1], c[2]) < 0.08) return SW.defaut;
+  return c.slice(0, 3);
+}
+
 function preparer(faces, pos) {
   const n = pos.length / 3;
   const bits = new Uint32Array(pos.buffer, pos.byteOffset, pos.length);
@@ -128,7 +136,7 @@ function preparer(faces, pos) {
   const boites = [];
   let k = 0;
   faces.forEach((f, rang) => {
-    const c = (f.couleur || SW.defaut).map((x) => Math.round(255 * x));
+    const c = faceColor(f).map((x) => Math.round(255 * x));
     const ids = new Map(),
       somme = [],
       local = new Int32Array(3 * f.triangles);

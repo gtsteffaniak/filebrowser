@@ -1229,7 +1229,7 @@ export default {
           nom: f.nom || '',
           corps: f.corps || 0,
           area: 0,
-          color: f.couleur && !(f.couleur[0] === 0 && f.couleur[1] === 0 && f.couleur[2] === 0)
+          color: f.couleur && f.couleur.length >= 3 && Math.max(f.couleur[0], f.couleur[1], f.couleur[2]) >= 0.08
             ? f.couleur.slice(0, 3)
             : null,
         };
