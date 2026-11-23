@@ -1,11 +1,13 @@
 <template>
   <div :class="{ 'sidebar-overlay': floatingSidebar }" @dragover.prevent @drop.prevent>
-    <transition name="overlay-fade">
-      <div v-show="showOverlay" @contextmenu.prevent="resetItems" @click="resetItems" class="overlay" :class="{ 'overlay-menu': menuOnlyOpen }"></div>
-    </transition>
-    <transition name="overlay-fade">
-      <div v-if="overlayOverPrompt" @contextmenu.prevent="closeContextMenu" @click="closeContextMenu" class="overlay overlay-prompt"></div>
-    </transition>
+    <Teleport :to="fullscreenHost" :disabled="!fullscreenHost">
+      <transition name="overlay-fade">
+        <div v-show="showOverlay" @contextmenu.prevent="resetItems" @click="resetItems" class="overlay" :class="{ 'overlay-menu': menuOnlyOpen }"></div>
+      </transition>
+      <transition name="overlay-fade">
+        <div v-if="overlayOverPrompt" @contextmenu.prevent="closeContextMenu" @click="closeContextMenu" class="overlay overlay-prompt"></div>
+      </transition>
+    </Teleport>
     <div v-if="progress" class="progress">
       <div :style="{ width: `${progress}%` }"></div>
     </div>
@@ -46,6 +48,7 @@ import PopupPreview from "@/components/files/PopupPreview.vue";
 import Shelf from "@/components/Shelf.vue";
 import { settingsApi } from "@/api/index.js";
 import { state, getters, mutations } from "@/store/index.ts";
+import { useFullscreen } from "@/composables/useFullscreen.ts";
 import { events, notify } from "@/notify/index.ts";
 import { generateRandomCode } from "@/utils/auth.js";
 import { globalVars } from "@/utils/constants.ts";
@@ -54,6 +57,9 @@ import Search from "@/components/Search.vue";
 
 export default {
   name: "layout",
+  setup() {
+    return { fullscreenHost: useFullscreen() };
+  },
   components: {
     ContextMenu,
     Notifications,

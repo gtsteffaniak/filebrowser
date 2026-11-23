@@ -1,4 +1,5 @@
 <template>
+  <Teleport :to="fullscreenHost || 'body'" :disabled="!fullscreenHost">
   <!-- Left edge detection zone -->
   <div
     v-if="enabled && hasPrevious"
@@ -89,6 +90,7 @@
   >
     <i class="material-symbols">close</i>
   </button>
+  </Teleport>
 
   <!-- Prefetch links for better performance -->
   <link v-if="previousRaw" rel="prefetch" :href="previousRaw" />
@@ -97,6 +99,7 @@
 
 <script>
 import { state, getters, mutations } from "@/store/index.ts";
+import { useFullscreen } from "@/composables/useFullscreen.ts";
 import throttle from "@/utils/throttle.js";
 import { previewViews } from "@/utils/constants.ts";
 import { url } from "@/utils/index.ts";
@@ -111,6 +114,9 @@ import {
 
 export default {
   name: "NextPrevious",
+  setup() {
+    return { fullscreenHost: useFullscreen() };
+  },
   data() {
     return {
       hoverNav: false,
@@ -149,7 +155,7 @@ export default {
       return state.navigation.sorting;
     },
     moveWithSidebar() {
-      return getters.isSidebarVisible() && getters.isStickySidebar();
+      return !this.fullscreenHost && getters.isSidebarVisible() && getters.isStickySidebar();
     },
     sidebarWidth() {
       return state.sidebar?.width || 20;

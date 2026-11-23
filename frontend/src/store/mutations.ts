@@ -1479,6 +1479,9 @@ export const mutations = {
     if (isTransitioning === state.navigation.isTransitioning) {
       return;
     }
+    if (isTransitioning && state.req && ['audio', 'video'].includes(getters.previewType())) {
+      return;
+    }
     state.navigation.isTransitioning = isTransitioning;
     if (isTransitioning) {
       state.navigation.transitionStartTime = Date.now();

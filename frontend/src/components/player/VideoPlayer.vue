@@ -1,6 +1,6 @@
 <template>
   <div class="media-player">
-    <!-- Native playback is not possible: offer transcoding instead of the player -->
+    <!-- Native playback is not possible: the offer takes the place of the player, which stays mounted but hidden -->
     <PreviewNotice
       v-if="transcodeOffer"
       icon="feedback"
@@ -27,12 +27,11 @@
         </button>
       </template>
     </PreviewNotice>
-    <template v-else>
     <div v-if="offerCheckPending" class="av-preview-loading">
       <LoadingSpinner size="medium" />
     </div>
     <div
-      v-show="!offerCheckPending"
+      v-show="!offerCheckPending && !transcodeOffer"
       class="video-player-container"
       :class="{
         'no-captions': !hasSubtitles,
@@ -51,7 +50,7 @@
           @loadedmetadata="onVideoLoadedMetadata"
           playsinline
         >
-          <track kind="captions" v-for="(sub, index) in subtitlesList" :key="index" :src="sub.src"
+          <track kind="captions" v-for="sub in subtitlesList" :key="sub.src" :src="sub.src"
             :label="sub.name || subtitleTrackLabel(sub)" :srclang="sub.srclang || sub.language" />
         </video>
       </div>
@@ -78,16 +77,14 @@
         :speed-toast-message="speedToastMessage"
       />
     </div>
-    <!-- Queue button (hidden in fullscreen) -->
     <FloatingActionButton
-      v-if="showQueueButton"
+      v-if="!transcodeOffer"
       icon="queue_music"
       :badge="queueCount"
       group="media-controls"
       @press="showQueuePrompt"
       :label="t('player.QueueButtonHint')"
     />
-    </template>
   </div>
 </template>
 
@@ -117,11 +114,10 @@ import { useMediaKeyboard } from "@/composables/player/useMediaKeyboard.ts";
 import {
   type PlayerEmits,
   type PlayerFile,
-  resolveMountedFileKey,
   stripPlaybackTimeFromUrl,
   useMediaPlayer,
 } from "@/composables/player/useMediaPlayer.ts";
-import { useMediaSession } from "@/composables/player/useMediaSession.ts";
+import { buildMediaSessionInfo, useMediaSession } from "@/composables/player/useMediaSession.ts";
 import { usePlaybackQueue } from "@/composables/player/usePlaybackQueue.ts";
 import { useSwipeNavigationGestures } from "@/composables/player/useSwipeNavigationGestures.ts";
 import { useTranscodePlayback } from "@/composables/player/useTranscodePlayback.ts";
@@ -138,7 +134,6 @@ import {
 import { enableVideoLoadingIndicator } from "@/player/videoLoading.js";
 import { getters, state } from "@/store/index.ts";
 import type { FileListItem, SubtitleTrack as FileSubtitleTrack } from "@/store/types.ts";
-import { globalVars } from "@/utils/constants.ts";
 import { parseTranscodeModeFromQuery } from "@/utils/playbackQuery.js";
 import { getSubtitleFormatExtension } from "@/utils/subtitles.js";
 
@@ -174,6 +169,8 @@ interface LoadingIndicatorHandle {
 
 const props = withDefaults(
   defineProps<{
+    /** Identifies the file; a new key swaps the file on the same player. */
+    fileKey?: string;
     raw: string;
     req: VideoFile;
     subtitlesList?: SubtitleTrack[];
@@ -231,8 +228,13 @@ const { applyCaptionSizeClass, syncCaptionSizeSettingsVisibility } = useCaptionS
   player,
   isVisible: () => props.subtitlesList.length > 0,
 });
-const { setupMediaSession, updateMediaSessionNavHandlers, updateMediaSessionPlaybackState, clearMediaSession } =
-  useMediaSession(player);
+const {
+  setupMediaSession,
+  updateMediaSessionMetadata,
+  updateMediaSessionNavHandlers,
+  updateMediaSessionPlaybackState,
+  clearMediaSession,
+} = useMediaSession(player);
 const gestures = useGestureState();
 const queue = usePlaybackQueue({
   getReq: () => props.req,
@@ -259,7 +261,6 @@ const {
 } = queue;
 
 const shouldAutoplay = computed(() => props.autoPlayEnabled || playbackQueue.value.length > 1);
-const showQueueButton = computed(() => !isFullscreen.value);
 
 const {
   transcodeMode,
@@ -308,9 +309,14 @@ const {
   onPlaybackStart: () => emit("playback-start"),
   ensurePlaybackModeApplied,
   onModeMenuChange: updateTranscodeModeMenuSelection,
-  // The offer replaces the player in the template, so release it right away.
-  onOfferShown: teardownPlayer,
+  // The offer hides the player but keeps it alive: only the media and the session are stopped.
+  onOfferShown,
 });
+/** The offer is on screen: stop the media and the HLS session, the instance stays for the next file or the accept. */
+function onOfferShown(): void {
+  releaseFile();
+  videoPlaybackLoading.value = false;
+}
 const transcodeMenuAvailable = computed(
   () => transcodeEnabled.value && getters.isLoggedIn() && !getters.isShare(),
 );
@@ -396,7 +402,7 @@ const swipe = useSwipeNavigationGestures({
   onClosePreview: () => emit("close-preview"),
 });
 const { speedToastVisible, speedToastMessage, setupSwipeGestures, teardownSwipeGestures, clearDismissAnimTimers } = swipe;
-const { isFullscreen, onFullscreenEnter, onFullscreenExit } = useFullscreenState({
+const { onFullscreenEnter, onFullscreenExit } = useFullscreenState({
   onEnter: swipe.resetEdgeGestureImmediate,
 });
 const {
@@ -409,8 +415,11 @@ const {
   onPlayerEvent,
   getActiveMediaElement,
   stopMediaElement,
-  rememberFullscreenForTransition,
-  resumeFullscreenAfterNavigation,
+  setMountedFile,
+  releaseFile,
+  resumeFile,
+  getReleasedFile,
+  reapplyPlaybackRate,
   destroyPlayer,
 } = useMediaPlayer({
   kind: "video",
@@ -420,6 +429,11 @@ const {
   onPlaybackState: updateMediaSessionPlaybackState,
   destroy,
   beforeStopMedia: clearAttachVideoStreamWait,
+  onReleaseFile: () => {
+    teardownTranscodePlayback({ stopSession: true });
+    disarmResumeOnNextGesture();
+  },
+  restoreSource: restoreFileSource,
 });
 const { attachKeyboard, detachKeyboard } = useMediaKeyboard({
   player,
@@ -466,25 +480,15 @@ function resetFilePlaybackState(): void {
   resetFileState();
   hasStartedPlayback.value = false;
   resetOverlaidHints();
+  captionSizeMenuInitialized = false;
+  transcodeMenuInitialized = false;
+  // HLS playback sets the container's aspect ratio from the stream; the next file starts without it.
+  const container = player.value?.elements?.container;
+  if (container) {
+    container.style.aspectRatio = "";
+  }
 }
 
-watch(
-  () => state.playbackQueue.isPlaying || false,
-  (isPlaying) => syncOverlaidHintPlayback(isPlaying),
-);
-watch(() => props.req.path, resetFilePlaybackState);
-watch(
-  () => props.req.source,
-  (newSource, oldSource) => {
-    if (!newSource || newSource === oldSource) {
-      return;
-    }
-    resetFilePlaybackState();
-    teardownPlayer();
-    lifecycle.tornDown = false;
-    void initializePlayer();
-  },
-);
 watch(
   () => props.subtitlesList,
   async (newSubs, oldSubs) => {
@@ -493,24 +497,21 @@ watch(
     if (gained || lost) {
       captionSizeMenuInitialized = false;
     }
+    if (!player.value) {
+      return; // the committed subtitles are in place when the player is created
+    }
+    await nextTick();
+    if (!player.value) {
+      return;
+    }
     if (gained) {
-      if (!player.value) {
-        await nextTick();
-        void initializePlayer();
-      } else {
-        await nextTick();
-        applyCustomSettings(player.value);
-        syncCaptionSizeSettingsVisibility();
-        applyCaptionSizeClass();
-      }
-    } else if (player.value) {
-      await nextTick();
+      applyCustomSettings(player.value);
+      syncCaptionSizeSettingsVisibility();
+      applyCaptionSizeClass();
+    } else {
       syncCaptionSizeSettingsVisibility();
       captionSizeMenuInitialized = false;
       applyCustomSettings(player.value);
-    } else if (newSubs !== oldSubs && (props.req?.subtitles?.length ?? 0) > 0) {
-      await nextTick();
-      void initializePlayer();
     }
   },
   { deep: true },
@@ -556,7 +557,7 @@ function onPageHide(event: PageTransitionEvent): void {
 
 /**
  * Stops playback and releases the player, listeners, transcode session and album art.
- * The transcode controller stays usable, so the player can be created again (source change, offer accepted).
+ * Only the final teardown (unmount, `destroy()`) uses it: the offer and the file swaps keep the player alive.
  */
 function teardownPlayer(): void {
   if (lifecycle.tornDown) {
@@ -582,7 +583,6 @@ function teardownPlayer(): void {
   lifecycle.mountedFile = null;
   lockedNativeVideoSrc.value = null;
   const media = getActiveMediaElement();
-  const isTransition = state.navigation.isTransitioning;
 
   if (media) {
     stopMediaElement(media);
@@ -591,9 +591,6 @@ function teardownPlayer(): void {
   disarmResumeOnNextGesture();
 
   if (player.value) {
-    if (isTransition) {
-      rememberFullscreenForTransition();
-    }
     restoreNativePlay();
     teardownSwipeGestures();
     teardownDoubleTapSeek();
@@ -617,24 +614,27 @@ function destroy(): void {
   disposeTranscodeController({ stopSession: true });
 }
 
-/** Creates the player again after the offer was accepted (the offer had released it) */
-async function remountPlayer(): Promise<void> {
-  await nextTick(); // the <video> element is rendered again
-  resetFilePlaybackState();
-  lifecycle.tornDown = false;
-  lifecycle.mountedFile = resolveMountedFileKey(props.req?.source, props.req?.path);
-  loadMediaMetadata();
-  await preparePlayerMount();
-}
-
+/**
+ * The offer's accept button. The player is still alive (the offer only stopped it), so HLS starts on it;
+ * a player that was never created (the offer came before the first mount) is created now.
+ */
 async function onStartTranscodeClick(): Promise<void> {
-  if (await startVideoTranscode()) {
-    await remountPlayer();
+  const generation = swapGeneration;
+  const isCurrent = () => generation === swapGeneration && !lifecycle.unmounted;
+  if (!(await startVideoTranscode(isCurrent)) || !isCurrent()) {
+    return;
   }
+  resetFilePlaybackState();
+  if (!player.value) {
+    void initializePlayer();
+    return;
+  }
+  await startFile();
 }
 
 /** Starts playback from the gesture surface or the overlaid play button */
 function requestPlay(): void {
+  if (transcodeSwitchInProgress.value) return;
   if (formatNeedsTranscode.value && !isTranscodePlaybackMode.value && !transcodeActive.value) {
     void offerTranscodePlayback();
     return;
@@ -678,19 +678,6 @@ function ensurePlaybackModeApplied(): void {
   }
 }
 
-async function preparePlayerMount(): Promise<void> {
-  // For videos with subtitle metadata, wait for subtitles to load before initializing Plyr
-  // This prevents Plyr from trying to access tracks before they have valid blob URLs
-  const hasSubtitleMetadata = (props.req?.subtitles?.length ?? 0) > 0;
-  const subtitlesNotLoaded = props.subtitlesList.length === 0;
-
-  if (hasSubtitleMetadata && subtitlesNotLoaded) {
-    // Wait for subtitles to be loaded (watcher will call initializePlayer)
-    return;
-  }
-  void initializePlayer();
-}
-
 async function initializePlayer(): Promise<void> {
   if (!videoElement.value || player.value || lifecycle.tornDown) {
     return;
@@ -702,59 +689,164 @@ async function initializePlayer(): Promise<void> {
   void mountPlayer();
 }
 
+/** True while a mount that is in progress still has a media element and no player. */
+function canContinueMount(): boolean {
+  return Boolean(videoElement.value) && !lifecycle.tornDown && !player.value;
+}
+
+/** Bumped by every file swap; async work started for an older file compares it and stops. */
+let swapGeneration = 0;
+
 async function mountPlayer(): Promise<void> {
-  if (!videoElement.value || player.value || lifecycle.mountInProgress || lifecycle.tornDown) {
+  if (!canContinueMount() || lifecycle.mountInProgress) {
     return;
   }
   lifecycle.mountInProgress = true;
+  const generation = swapGeneration;
   try {
     ensureTranscodePlaybackController();
-    lifecycle.mountedFile = resolveMountedFileKey(props.req?.source, props.req?.path);
-    initTranscodeModeFromRoute();
-    await stripPlaybackTimeFromUrl();
-    if (!videoElement.value || lifecycle.tornDown || player.value) {
+    if (!(await prepareFile(() => generation === swapGeneration && canContinueMount()))) {
       return;
     }
-    if (!startRequested.value && !wantsTranscodePlayback.value && shouldProactivelyOfferTranscode.value) {
-      await offerTranscodePlayback();
-      if (!videoElement.value || lifecycle.tornDown || player.value) {
-        return;
-      }
-    }
-    createPlayer(videoPlyrOptions.value);
+    setupPlayerInstance();
     if (!player.value) {
       return;
     }
-    if (!shouldAttachVideoStream.value) {
-      overridePlay((nativePlay) => {
-        if (!videoStreamAttached.value) {
-          void attachVideoStreamAndPlay();
-          return Promise.resolve();
-        }
-        return nativePlay();
-      });
-    }
-    setupMediaSession({
-      title: metadata.value?.title || fileName.value,
-      artist: metadata.value?.artist || globalVars.name || "Filebrowser Quantum",
-      album: metadata.value?.album || "",
-      // Embedded artwork (if any), otherwise the thumbnail/preview url.
-      artworkSrc: artworkUrl.value,
-    });
-    setupPlayerEvents();
-    seekOnReleaseCleanup = enableSeekOnRelease(player.value);
-    setupScrubPreview();
-    setupVideoLoadingIndicator();
-    if (startRequested.value || (wantsTranscodePlayback.value && !shouldProactivelyOfferTranscode.value)) {
-      await startTranscodePlayback({
-        autoplay: shouldAutoplay.value,
-      });
-    }
-    resumeFullscreenAfterNavigation();
+    await startFile();
   } finally {
     lifecycle.mountInProgress = false;
+    if (generation !== swapGeneration) {
+      // another file arrived while this mount was running for the previous one
+      void initializePlayer();
+    }
   }
 }
+
+/**
+ * Per file, before the new source is attached: the transcode mode from the route and the proactive offer.
+ * Returns false when the caller must stop (`isCurrent` turned false, or the offer is showing for this file).
+ */
+async function prepareFile(isCurrent: () => boolean): Promise<boolean> {
+  setMountedFile(props.req?.source, props.req?.path);
+  initTranscodeModeFromRoute();
+  await stripPlaybackTimeFromUrl();
+  if (!isCurrent()) {
+    return false;
+  }
+  if (!startRequested.value && !wantsTranscodePlayback.value && shouldProactivelyOfferTranscode.value) {
+    await offerTranscodePlayback();
+    if (!isCurrent() || transcodeOffer.value) {
+      return false;
+    }
+  }
+  return true;
+}
+
+/** Per instance, once: the player, the play override, media session handlers, events and gestures. */
+function setupPlayerInstance(): void {
+  createPlayer(videoPlyrOptions.value);
+  if (!player.value) {
+    return;
+  }
+  // Installed always: whether the stream is attached on play is decided per call, so it follows the current file.
+  overridePlay((nativePlay) => {
+    if (transcodeOffer.value) {
+      return Promise.resolve(); // the offer is showing: keys and media session buttons must not start the file
+    }
+    if (!shouldAttachVideoStream.value && !videoStreamAttached.value) {
+      void attachVideoStreamAndPlay();
+      return Promise.resolve();
+    }
+    return nativePlay();
+  });
+  setupMediaSession(mediaSessionInfo());
+  setupPlayerEvents();
+  seekOnReleaseCleanup = enableSeekOnRelease(player.value);
+}
+
+function shouldStartTranscodeWithFile(): boolean {
+  return startRequested.value || (wantsTranscodePlayback.value && !shouldProactivelyOfferTranscode.value);
+}
+
+async function restoreFileSource(): Promise<void> {
+  if (lifecycle.tornDown || lifecycle.unmounted || transcodeOffer.value || !player.value) {
+    return;
+  }
+  const generation = swapGeneration;
+  const releasedAtStart = getReleasedFile();
+  resetFilePlaybackState();
+  await nextTick();
+  if (
+    generation !== swapGeneration ||
+    getReleasedFile() !== releasedAtStart ||
+    lifecycle.unmounted ||
+    transcodeOffer.value
+  ) {
+    return;
+  }
+  const media = videoElement.value;
+  const src = nativeVideoSrc.value;
+  if (media && src && media.getAttribute("src") !== src) {
+    media.setAttribute("src", src);
+    media.load();
+  }
+  reapplyPlaybackRate();
+  await startFile();
+}
+
+/** Per file, once the player exists: scrub preview, loading indicator and the transcode start. */
+async function startFile(): Promise<void> {
+  resumeFile();
+  setupScrubPreview();
+  setupVideoLoadingIndicator();
+  if (shouldStartTranscodeWithFile()) {
+    await startTranscodePlayback({
+      autoplay: shouldAutoplay.value,
+    });
+  }
+}
+
+/**
+ * A new file on the same player (pre-flush: the per-file state is reset before the template computes the new `:src`).
+ * Without a player (the first file's offer was showing, a destroy, or an early failure) it creates one for the new file.
+ */
+async function onFileSwap(newKey?: string, oldKey?: string): Promise<void> {
+  if (!newKey || newKey === oldKey || lifecycle.unmounted) {
+    return;
+  }
+  const generation = ++swapGeneration;
+  offerCheckPending.value = false;
+  const isCurrent = () =>
+    generation === swapGeneration && !lifecycle.unmounted && !lifecycle.tornDown && Boolean(player.value);
+  releaseFile();
+  resetFilePlaybackState();
+  startRequested.value = false;
+  transcodeOffer.value = null;
+  videoPlaybackLoading.value = false;
+  lifecycle.tornDown = false;
+  loadMediaMetadata();
+  if (!player.value) {
+    await nextTick();
+    if (generation === swapGeneration) {
+      void initializePlayer();
+    }
+    return;
+  }
+  updateMediaSessionMetadata(mediaSessionInfo());
+  if (!(await prepareFile(isCurrent))) {
+    return;
+  }
+  await nextTick(); // the template sets the new src
+  if (!isCurrent()) {
+    return;
+  }
+  reapplyPlaybackRate();
+  await startFile();
+}
+
+watch(() => props.fileKey, onFileSwap, { flush: "pre" });
+
+const mediaSessionInfo = () => buildMediaSessionInfo(metadata.value, fileName.value, artworkUrl.value);
 
 // --- Transcode ---
 function getTranscodeModeLabel(mode: string): string {
@@ -822,10 +914,12 @@ function setupVideoLoadingIndicator(): void {
 }
 
 function setupScrubPreview(): void {
+  // The previous file's preview goes away even when the next file has none.
+  scrubPreviewCleanup?.();
+  scrubPreviewCleanup = null;
   if (!scrubPreviewEnabled.value || !player.value) {
     return;
   }
-  scrubPreviewCleanup?.();
   scrubPreviewCleanup = enableScrubPreview(player.value, {
     buildPreviewUrl: (atPercentage: number) => {
       const base = getters.isShare()
@@ -844,9 +938,13 @@ function setupPlayerEvents(): void {
   setupSharedEvents({
     play: () => {
       hasStartedPlayback.value = true;
+      syncOverlaidHintPlayback(true);
       syncTranscode(false);
     },
-    pause: () => syncTranscode(true),
+    pause: () => {
+      syncOverlaidHintPlayback(false);
+      syncTranscode(true);
+    },
     timeupdate: () => {
       if (transcodePlayback.value?.sessionController) {
         syncTranscode(!player.value?.playing);
@@ -1038,18 +1136,25 @@ function applyCustomSettings(plyr: Plyr): void {
 onMounted(async () => {
   // Record the mounted file before any async prepare step so route-leave
   // detection works while Plyr is still waiting on subtitles/metadata.
-  lifecycle.mountedFile = resolveMountedFileKey(props.req?.source, props.req?.path);
+  setMountedFile(props.req?.source, props.req?.path);
   loadMediaMetadata();
+  let offerLookupStale = false;
   if (shouldProactivelyOfferTranscode.value) {
     // Decide before the player appears: an unsupported format gets the offer, not a blank player.
+    const generation = swapGeneration;
     offerCheckPending.value = true;
     try {
       await offerTranscodePlayback();
     } finally {
-      offerCheckPending.value = false;
+      if (generation === swapGeneration) {
+        offerCheckPending.value = false;
+      }
     }
+    offerLookupStale = generation !== swapGeneration;
   }
-  await preparePlayerMount();
+  if (!offerLookupStale && !transcodeOffer.value) {
+    void initializePlayer();
+  }
   if (lifecycle.unmounted) return;
   attachKeyboard();
   window.addEventListener("pagehide", onPageHide);
@@ -1095,7 +1200,6 @@ defineExpose({ destroy });
   background: rgb(0 0 0 / 35%);
 }
 
-/* Transcode offer (shown instead of the player; layout comes from PreviewNotice). */
 .transcode-offer-message {
   margin: 1rem 0;
   text-align: center;

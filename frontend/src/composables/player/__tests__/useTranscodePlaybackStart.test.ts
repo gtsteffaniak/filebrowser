@@ -4,7 +4,7 @@ import { ref, shallowRef } from "vue";
 import { getTranscodeSessions } from "@/api/transcode.js";
 import { router } from "@/router/index.ts";
 import { useTranscodePlayback } from "../useTranscodePlayback.ts";
-import { withSetup } from "./withSetup.ts";
+import { withSetup } from "./mediaTestUtils.ts";
 
 const hoisted = vi.hoisted(() => ({
   needsTranscode: { value: false },

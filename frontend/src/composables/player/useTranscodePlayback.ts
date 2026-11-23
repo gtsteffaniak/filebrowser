@@ -1134,7 +1134,7 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
     controller.teardownLocal({ stopSession, keepalive });
   }
 
-  /** Final release of the controller (component teardown, or an offer replacing the player). */
+  /** Final release of the controller (component teardown). */
   function disposeTranscodeController({ stopSession = true, keepalive = false } = {}): void {
     cancelNativeResume?.();
     invalidateOfferRequest();
@@ -1173,7 +1173,7 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
     if (getters.isShare()) {
       return;
     }
-    disposeTranscodeController({ stopSession: true });
+    teardownTranscodePlayback({ stopSession: true });
     const status = normalizeTranscodeSessionStatus(rawStatus, {
       source: getReq()?.source,
       path: getReq()?.path,
@@ -1202,7 +1202,7 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
   }
 
   /** The offer's button: verifies a session can start and hides the offer. Returns whether the player should mount. */
-  async function startVideoTranscode(): Promise<boolean> {
+  async function startVideoTranscode(isCurrent: () => boolean = () => true): Promise<boolean> {
     if (startRequested.value) {
       transcodeOffer.value = null;
       return false;
@@ -1212,6 +1212,9 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
         source: getReq()?.source,
         path: getReq()?.path,
       }) as TranscodeStatus;
+      if (!isCurrent()) {
+        return false;
+      }
       if (!status.canStart) {
         showTranscodeOffer(status);
         return false;
@@ -1227,7 +1230,7 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
     }
   }
 
-  /** Back to the per-file defaults (new file, or the player is being re-created). */
+  /** Back to the per-file defaults (new file, or the offer was accepted). */
   function resetFileState(): void {
     cancelNativeResume?.();
     invalidateOfferRequest();

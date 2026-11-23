@@ -3,7 +3,7 @@
     v-if="showZone"
     ref="zoneEl"
     class="fab-zone"
-    :class="[`fab-zone--${position}`, { 'fab-zone--interactive': interactiveZone }]"
+    :class="[`fab-zone--${position}`, { 'fab-zone--interactive': interactiveZone, 'fab-zone--fullscreen': fullscreenHost }]"
     :style="zoneStyle"
     @pointerenter="handleZoneEnter"
     @pointerleave="handleZoneLeave"
@@ -19,6 +19,7 @@
       `fab-button--${variant}`,
       {
         'fab-button--extended': extended,
+        'fab-button--fullscreen': fullscreenHost,
         'fab-button--slide-in-visible': topCenterVisible,
         'fab-button--hidden': autoHide && !showButton,
       },
@@ -42,6 +43,7 @@
 <script lang="ts">
 import { reactive, type PropType } from "vue";
 import { getters } from "@/store/index.ts";
+import { useFullscreen } from "@/composables/useFullscreen.ts";
 
 const buttonGroup = new Map<string, { visible: boolean; zoneActive: boolean; timer: ReturnType<typeof setTimeout> | null }>();
 
@@ -58,6 +60,9 @@ const POSITIONS = ["top-right", "top-left", "bottom-right", "bottom-left", "top-
 
 export default {
   name: "floatingActionButton",
+  setup() {
+    return { fullscreenHost: useFullscreen() };
+  },
   emits: { press: (_event: MouseEvent) => true },
   props: {
     icon: {
@@ -367,6 +372,11 @@ export default {
   left: 0;
 }
 
+.fab-zone--fullscreen.fab-zone--top-right,
+.fab-zone--fullscreen.fab-zone--top-left {
+  top: 0;
+}
+
 .fab-zone--top-center {
   top: 0;
   left: 50%;
@@ -489,6 +499,11 @@ export default {
 .fab-button--top-left {
   top: 80px;
   left: var(--fab-edge-offset-media);
+}
+
+.fab-button--fullscreen.fab-button--top-right,
+.fab-button--fullscreen.fab-button--top-left {
+  top: calc(env(safe-area-inset-top, 0px) + var(--fab-edge-offset-media));
 }
 
 .fab-button--top-center {

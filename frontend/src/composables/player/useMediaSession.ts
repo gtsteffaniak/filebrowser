@@ -1,5 +1,6 @@
 import type { ShallowRef } from "vue";
 import type Plyr from "plyr";
+import type { EmbeddedMetadata } from "@/composables/player/useEmbeddedArtwork.ts";
 import { state } from "@/store/index.ts";
 import { globalVars } from "@/utils/constants.ts";
 import { getNextItem, navigatePlaybackQueue } from "@/utils/playbackQueue.js";
@@ -11,6 +12,19 @@ export interface MediaSessionInfo {
   artist: string;
   album: string;
   artworkSrc?: string;
+}
+
+export function buildMediaSessionInfo(
+  metadata: EmbeddedMetadata | null,
+  fallbackTitle: string,
+  artworkSrc?: string,
+): MediaSessionInfo {
+  return {
+    title: metadata?.title || fallbackTitle,
+    artist: metadata?.artist || globalVars.name || "Filebrowser Quantum",
+    album: metadata?.album || "",
+    artworkSrc,
+  };
 }
 
 /** Browser Media Session metadata, transport handlers and playback state for one player. */
@@ -60,9 +74,9 @@ export function useMediaSession(player: Readonly<ShallowRef<Plyr | null>>) {
     }
   }
 
-  function setupMediaSession(info: MediaSessionInfo): void {
-    if (!("mediaSession" in navigator) || !player.value) return;
-    ownerId = ++mediaSessionOwner;
+  /** Per-file part: the title, artist, album and artwork shown by the browser. */
+  function updateMediaSessionMetadata(info: MediaSessionInfo): void {
+    if (!("mediaSession" in navigator) || !owns()) return;
     // Fresh fallback URL with a timestamp to prevent caching issues
     const fallbackIcon: string = globalVars.loginIcon;
     const timestamp = Date.now();
@@ -75,6 +89,13 @@ export function useMediaSession(player: Readonly<ShallowRef<Plyr | null>>) {
       album: info.album,
       artwork: [{ src: info.artworkSrc || fallbackUrl }],
     });
+  }
+
+  /** One-time part (per player): takes the session over and registers the handlers, then sets the metadata. */
+  function setupMediaSession(info: MediaSessionInfo): void {
+    if (!("mediaSession" in navigator) || !player.value) return;
+    ownerId = ++mediaSessionOwner;
+    updateMediaSessionMetadata(info);
     const actionHandlers: [MediaSessionAction, MediaSessionActionHandler][] = [
       ["play", () => player.value?.play()],
       ["pause", () => player.value?.pause()],
@@ -127,6 +148,7 @@ export function useMediaSession(player: Readonly<ShallowRef<Plyr | null>>) {
 
   return {
     setupMediaSession,
+    updateMediaSessionMetadata,
     updateMediaSessionNavHandlers,
     updateMediaSessionPlaybackState,
     clearMediaSession,

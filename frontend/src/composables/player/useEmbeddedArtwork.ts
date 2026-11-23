@@ -18,28 +18,36 @@ export function useEmbeddedArtwork({ getMetadata, getFileName }: EmbeddedArtwork
   const metadata = ref<EmbeddedMetadata | null>(null);
   const albumArtUrl = ref<string | null>(null);
 
+  function revokeAlbumArt(url: string | null): void {
+    if (url?.startsWith("blob:")) URL.revokeObjectURL(url);
+  }
+
+  function decodeAlbumArt(albumArt: string): string | null {
+    try {
+      const bytes = Uint8Array.from(atob(albumArt), (c) => c.charCodeAt(0));
+      return URL.createObjectURL(new Blob([bytes], { type: "image/jpeg" }));
+    } catch (error) {
+      console.error("Failed to decode album art:", error);
+      return null;
+    }
+  }
+
+  /** Replaces metadata and cover in one step (no empty state in between) and revokes the previous cover. */
   function loadMediaMetadata(): void {
     const meta = getMetadata();
+    const previousUrl = albumArtUrl.value;
     metadata.value = {
       title: meta?.title || getFileName(), // Fallback to filename
       artist: meta?.artist,
       album: meta?.album,
       year: meta?.year,
     };
-    if (!meta?.albumArt) return;
-    try {
-      const bytes = Uint8Array.from(atob(meta.albumArt), (c) => c.charCodeAt(0));
-      albumArtUrl.value = URL.createObjectURL(new Blob([bytes], { type: "image/jpeg" }));
-    } catch (error) {
-      console.error("Failed to decode album art:", error);
-      albumArtUrl.value = null;
-    }
+    albumArtUrl.value = meta?.albumArt ? decodeAlbumArt(meta.albumArt) : null;
+    revokeAlbumArt(previousUrl);
   }
 
   function cleanupAlbumArt(): void {
-    if (albumArtUrl.value?.startsWith("blob:")) {
-      URL.revokeObjectURL(albumArtUrl.value);
-    }
+    revokeAlbumArt(albumArtUrl.value);
     albumArtUrl.value = null;
     metadata.value = null;
   }

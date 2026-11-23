@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { state } from "@/store/index.ts";
 import { useGestureState } from "../useGestureState.ts";
 import { useSwipeNavigationGestures } from "../useSwipeNavigationGestures.ts";
-import { withSetup } from "./withSetup.ts";
+import { withSetup } from "./mediaTestUtils.ts";
 
 vi.mock("@/store/index.ts", () => ({
   state: reactive({ navigation: { enabled: false, previousLink: "", nextLink: "" } }),

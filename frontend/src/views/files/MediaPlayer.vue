@@ -1,18 +1,17 @@
 <template>
-  <PreviewShell :preview-class="{
-    'media-background-light': !isDarkMode && previewType === 'audio',
-    'media-background-dark': isDarkMode && previewType === 'audio',
-  }">
+  <PreviewShell
+    :preview-class="{
+      'media-background-light': !isDarkMode && committed?.kind === 'audio',
+      'media-background-dark': isDarkMode && committed?.kind === 'audio',
+    }"
+  >
     <div v-if="previewType === 'audio' || previewType === 'video'" class="av-preview-wrap">
-      <div v-if="avMetadataLoading" class="av-preview-loading">
-        <LoadingSpinner size="medium" />
-      </div>
-      <AudioPlayer v-else-if="previewType === 'audio'"
-        :key="`audio:${viewerKey}`"
+      <AudioPlayer v-if="committed?.kind === 'audio'"
         ref="audioRef"
-        :req="req"
-        :raw="raw"
-        :lyrics="lyrics"
+        :file-key="committed.key"
+        :req="committed.req"
+        :raw="committed.raw"
+        :lyrics="committed.lyrics"
         :listing="listing"
         :autoPlayEnabled="autoPlay"
         class="media-background"
@@ -21,12 +20,12 @@
         @navigate-next="navigateNext"
         @close-preview="exitPreviewFromImageGesture"
       />
-      <VideoPlayer v-else
-        :key="`video:${viewerKey}`"
+      <VideoPlayer v-else-if="committed?.kind === 'video'"
         ref="videoRef"
-        :raw="raw"
-        :subtitlesList="subtitlesList"
-        :req="req"
+        :file-key="committed.key"
+        :raw="committed.raw"
+        :subtitlesList="committed.subtitles"
+        :req="committed.req"
         :listing="listing"
         :autoPlayEnabled="autoPlay"
         @playback-start="playbackStarted = true"
@@ -34,25 +33,26 @@
         @navigate-next="navigateNext"
         @close-preview="exitPreviewFromImageGesture"
       />
+      <div v-if="avMetadataLoading" class="av-preview-loading">
+        <LoadingSpinner size="medium" />
+      </div>
     </div>
   </PreviewShell>
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref, useTemplateRef, watch } from "vue";
+import { computed, nextTick, onBeforeUnmount, ref, shallowRef, useTemplateRef, watch } from "vue";
 import { mediaApi, resourcesApi } from "@/api/index.js";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import PreviewShell from "@/components/files/PreviewShell.vue";
 import { usePreviewNavigation } from "@/composables/preview/usePreviewNavigation.ts";
 import { getters, mutations, state } from "@/store/index.ts";
+import type { ReqObject } from "@/store/types.ts";
 import { createAsyncComponent } from "@/utils/asyncComponent.js";
-import { parseLyrics } from "@/utils/lyrics.ts";
+import { type LyricLines, parseLyrics } from "@/utils/lyrics.ts";
 import { shouldAutoPlayPreview } from "@/utils/previewAutoplay.js";
 import { convertToVTT, getSubtitleFormatExtension } from "@/utils/subtitles.js";
 import { removeLastDir } from "@/utils/url.js";
-
-const AudioPlayer = createAsyncComponent(() => import("@/components/player/AudioPlayer.vue"));
-const VideoPlayer = createAsyncComponent(() => import("@/components/player/VideoPlayer.vue"));
 
 interface SubtitleSource {
   name: string;
@@ -60,17 +60,35 @@ interface SubtitleSource {
   srclang?: string;
 }
 
+interface CommittedSource {
+  key: string;
+  kind: "audio" | "video";
+  req: ReqObject;
+  raw: string;
+  subtitles: SubtitleSource[];
+  lyrics: LyricLines;
+}
+
+function revokeSubtitleUrls(tracks: readonly SubtitleSource[]): void {
+  for (const subtitle of tracks) {
+    if (subtitle.src.startsWith("blob:")) URL.revokeObjectURL(subtitle.src);
+  }
+}
+
+const AudioPlayer = createAsyncComponent(() => import("@/components/player/AudioPlayer.vue"));
+const VideoPlayer = createAsyncComponent(() => import("@/components/player/VideoPlayer.vue"));
+
 const videoRef = useTemplateRef<{ destroy?: () => void }>("videoRef");
 const audioRef = useTemplateRef<{ destroy?: () => void }>("audioRef");
 
-const subtitlesList = ref<SubtitleSource[]>([]);
-const lyrics = ref<ReturnType<typeof parseLyrics>>([]);
-let lyricsFetchedForPath: string | null = null;
+/** What the players show; only replaced once everything for the next file is loaded. */
+const committed = shallowRef<CommittedSource | null>(null);
 const avMetadataLoading = ref(false);
 /** Skip duplicate media-metadata fetch when patchRequestFileMediaMetadata updates `req` for same file */
 let mediaEnrichDoneForPath: string | null = null;
 let loadOwner = 0;
 let loadIdentity: string | null = null;
+let inFlightIdentity: string | null = null;
 /** enables autoplay for queue navigation even when autoplayMedia pref is off */
 const playbackStarted = ref(false);
 
@@ -89,7 +107,6 @@ const {
   },
 });
 
-const req = computed(() => state.req);
 const isDarkMode = computed(() => getters.isDarkMode());
 const previewType = computed(() => {
   if (getters.fileViewingDisabled(state.req.name ?? "")) {
@@ -104,7 +121,8 @@ const autoPlay = computed(() =>
     getters.isPreviewPlaybackQueueNavMode(),
   ),
 );
-const raw = computed(() => {
+
+function buildRaw(): string {
   const viewToken = state.req.viewToken;
   const typeHint = state.req.type || state.req.name;
   if (getters.isShare()) {
@@ -121,12 +139,22 @@ const raw = computed(() => {
     );
   }
   return resourcesApi.getViewURL(state.req.source, state.req.path, viewToken, null, false, typeHint);
-});
-/** Keyed by file so each file gets a fresh player; transcode/native switching happens inside VideoPlayer. */
-const viewerKey = computed(() => state.req.path);
+}
+
+function commitSource(next: CommittedSource | null) {
+  const previous = committed.value;
+  committed.value = next;
+  void nextTick().then(() => {
+    const kept = new Set(next?.subtitles.map((subtitle) => subtitle.src));
+    revokeSubtitleUrls((previous?.subtitles ?? []).filter((subtitle) => !kept.has(subtitle.src)));
+  });
+}
 
 onBeforeUnmount(() => {
   loadOwner += 1;
+  if (committed.value) {
+    revokeSubtitleUrls(committed.value.subtitles);
+  }
 });
 
 watch(
@@ -139,7 +167,7 @@ watch(
 
 function mediaIdentity(): string {
   const shareHash = getters.isShare() ? state.shareInfo.hash : "";
-  return `${shareHash ?? ""}|${state.req.source ?? ""}|${state.req.path ?? ""}`;
+  return `${shareHash}|${state.req.source ?? ""}|${state.req.path ?? ""}`;
 }
 
 async function attachDirMediaMetadata(
@@ -173,9 +201,29 @@ async function loadMediaForReq() {
   if (identity !== loadIdentity) {
     loadIdentity = identity;
     loadOwner += 1;
+  } else if (inFlightIdentity === identity) {
+    // the running load commits `state.req` as it is at the end, so it sees this update too
+    return;
   }
   const owner = loadOwner;
   const isStale = () => owner !== loadOwner;
+  inFlightIdentity = identity;
+  if (committed.value) {
+    avMetadataLoading.value = true;
+  }
+  try {
+    await loadAndCommit(identity, isStale);
+  } finally {
+    if (!isStale() && inFlightIdentity === identity) {
+      inFlightIdentity = null;
+    }
+    if (!isStale()) {
+      avMetadataLoading.value = false;
+    }
+  }
+}
+
+async function loadAndCommit(identity: string, isStale: () => boolean) {
   await loadListingContext();
   if (isStale()) {
     return;
@@ -186,73 +234,74 @@ async function loadMediaForReq() {
     state.req.type !== "directory" &&
     (previewType.value === "audio" || previewType.value === "video");
 
-  if (!isAv) {
-    avMetadataLoading.value = false;
-    mediaEnrichDoneForPath = null;
-    lyricsFetchedForPath = null;
-  } else {
+  if (isAv) {
+    avMetadataLoading.value = true;
     if (mediaEnrichDoneForPath !== identity) {
       mediaEnrichDoneForPath = identity;
-      avMetadataLoading.value = true;
-      try {
-        await enrichAvFromMediaApi(isStale);
-        if (isStale()) {
-          return;
-        }
-      } finally {
-        if (!isStale()) {
-          avMetadataLoading.value = false;
-        }
+      await enrichAvFromMediaApi(isStale);
+      if (isStale()) {
+        return;
       }
-    } else {
-      avMetadataLoading.value = false;
     }
+  } else {
+    avMetadataLoading.value = false;
+    mediaEnrichDoneForPath = null;
   }
 
-  if (isStale()) {
-    return;
-  }
   await updatePreview();
   if (isStale()) {
     return;
   }
-  if (isAv && listing.value) {
+  if (!isAv) {
+    commitSource(null);
+    selectCurrentItem();
+    return;
+  }
+  if (listing.value) {
     const directoryPath = removeLastDir(state.req.path) || "/";
     await attachDirMediaMetadata(listing.value, directoryPath, isStale);
     if (isStale()) {
       return;
     }
   }
-  const loadedSubtitles = await subtitles();
+
+  const kind = previewType.value as "audio" | "video";
+  // the same file again (e.g. a late metadata patch) keeps its subtitles and lyrics
+  const current = committed.value;
+  const reuse = current?.key === identity && current.kind === kind ? current : null;
+  const loadedSubtitles = reuse ? reuse.subtitles : await subtitles();
   if (isStale()) {
+    if (!reuse) revokeSubtitleUrls(loadedSubtitles);
     return;
   }
-  subtitlesList.value = loadedSubtitles;
-  if (previewType.value === "audio" && lyricsFetchedForPath !== identity) {
-    lyricsFetchedForPath = identity;
-    if (state.req.metadata?.hasLyrics) {
-      let loadedLyrics: ReturnType<typeof parseLyrics> = [];
-      try {
-        const { lyrics: rawLyrics, format } = await mediaApi.getLyrics(
-          state.req.source as string,
-          state.req.path as string,
-        );
-        loadedLyrics = parseLyrics(rawLyrics, format);
-      } catch (err) {
-        console.warn("Failed to fetch lyrics:", err);
-      }
-      if (isStale()) {
-        if (lyricsFetchedForPath === identity) {
-          lyricsFetchedForPath = null;
-        }
-        return;
-      }
-      lyrics.value = loadedLyrics;
-    } else {
-      lyrics.value = [];
-    }
+  const loadedLyrics = reuse ? reuse.lyrics : kind === "audio" ? await loadLyrics() : [];
+  if (isStale()) {
+    if (!reuse) revokeSubtitleUrls(loadedSubtitles);
+    return;
   }
+  commitSource({
+    key: identity,
+    kind,
+    req: state.req,
+    raw: buildRaw(),
+    subtitles: loadedSubtitles,
+    lyrics: loadedLyrics,
+  });
+  avMetadataLoading.value = false;
   selectCurrentItem();
+}
+
+async function loadLyrics(): Promise<LyricLines> {
+  if (!state.req.metadata?.hasLyrics) {
+    return [];
+  }
+  try {
+    const { lyrics: rawLyrics, format } = await mediaApi.getLyrics(state.req.source as string, state.req.path as string);
+    return parseLyrics(rawLyrics, format);
+  } catch (err) {
+    console.warn("Failed to fetch lyrics:", err);
+    return [];
+  }
 }
 
 /** GET /api/media/metadata?albumArt=true - subtitles, duration, embedded cover for the viewer. */
@@ -428,11 +477,13 @@ async function subtitles(): Promise<SubtitleSource[]> {
 }
 
 .av-preview-loading {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 100%;
-  min-height: 12rem;
+  background: rgb(0 0 0 / 35%);
 }
 </style>
 
@@ -446,6 +497,7 @@ async function subtitles(): Promise<SubtitleSource[]> {
 }
 
 .av-preview-wrap {
+  position: relative;
   width: 100%;
   height: 100%;
   min-height: 12rem;

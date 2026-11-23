@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ref, shallowRef } from "vue";
 import { getTranscodeSessions } from "@/api/transcode.js";
 import { useTranscodePlayback } from "../useTranscodePlayback.ts";
-import { withSetup } from "./withSetup.ts";
+import { withSetup } from "./mediaTestUtils.ts";
 
 const hoisted = vi.hoisted(() => ({
   isShare: { value: false },
@@ -102,6 +102,15 @@ describe("useTranscodePlayback", () => {
       expect(getSessions).toHaveBeenCalledTimes(1);
     });
 
+    it("keeps the controller usable behind the offer, for the accept", async () => {
+      getSessions.mockResolvedValue({ enabled: true, canStart: true, sessions: [] });
+      const { transcode } = setup();
+      const controller = transcode.ensureTranscodePlaybackController();
+      await transcode.offerTranscodePlayback();
+      expect(transcode.transcodePlayback.value).toBe(controller);
+      expect(controller.disposed).toBe(false);
+    });
+
     it("shows the unsupported notice without asking for sessions when transcoding is off", async () => {
       hoisted.available.value = false;
       const { transcode } = setup();
@@ -163,6 +172,26 @@ describe("useTranscodePlayback", () => {
     });
   });
 
+  describe("startVideoTranscode for a swapped-away file", () => {
+    it("leaves the current offer and start flag untouched when the accept result is stale", async () => {
+      getSessions.mockResolvedValue({ canStart: true, sessions: [] });
+      const { transcode, hooks } = setup();
+      await transcode.offerTranscodePlayback();
+      const offer = transcode.transcodeOffer.value;
+      expect(await transcode.startVideoTranscode(() => false)).toBe(false);
+      expect(transcode.transcodeOffer.value).toBe(offer);
+      expect(transcode.startRequested.value).toBe(false);
+      expect(hooks.onPlaybackStart).not.toHaveBeenCalled();
+    });
+
+    it("does not show an offer for a stale denied result", async () => {
+      getSessions.mockResolvedValue({ canStart: false, blockReason: "global_limit", globalLimit: 1, sessions: [] });
+      const { transcode } = setup();
+      expect(await transcode.startVideoTranscode(() => false)).toBe(false);
+      expect(transcode.transcodeOffer.value).toBeNull();
+    });
+  });
+
   describe("initTranscodeModeFromRoute", () => {
     it("starts native for formats that need transcoding first, ignoring the URL mode", () => {
       const { transcode } = setup({ transcode: "balanced" });
@@ -195,6 +224,52 @@ describe("useTranscodePlayback", () => {
       expect(first.disposed).toBe(true);
       expect(transcode.transcodePlayback.value).toBeNull();
       expect(transcode.ensureTranscodePlaybackController()).not.toBe(first);
+    });
+  });
+
+  describe("per-file reset", () => {
+    it("clears the native attach state but keeps the controller between files", () => {
+      const { transcode } = setup();
+      const controller = transcode.ensureTranscodePlaybackController();
+      transcode.videoStreamAttached.value = true;
+      transcode.lockedNativeVideoSrc.value = "/raw/a.mp4#t=12";
+
+      transcode.resetFileState();
+
+      expect(transcode.videoStreamAttached.value).toBe(false);
+      expect(transcode.lockedNativeVideoSrc.value).toBeNull();
+      expect(transcode.ensureTranscodePlaybackController()).toBe(controller);
+      expect(controller.disposed).toBe(false);
+    });
+
+    it("lets the next file be offered again after the previous one was offered", async () => {
+      getSessions.mockResolvedValue({ enabled: true, canStart: true, sessions: [] });
+      const { transcode, hooks } = setup();
+      await transcode.offerTranscodePlayback();
+      await transcode.offerTranscodePlayback();
+      expect(getSessions).toHaveBeenCalledTimes(1);
+
+      transcode.resetFileState();
+      await transcode.offerTranscodePlayback();
+
+      expect(getSessions).toHaveBeenCalledTimes(2);
+      expect(hooks.onOfferShown).toHaveBeenCalledTimes(2);
+    });
+
+    it("decides the transcode mode again for each file", () => {
+      const { transcode } = setup({ transcode: "balanced" });
+      transcode.initTranscodeModeFromRoute();
+      expect(transcode.transcodeMode.value).toBe("native");
+
+      hoisted.needsTranscode.value = false;
+      transcode.resetFileState();
+      transcode.initTranscodeModeFromRoute();
+      expect(transcode.transcodeMode.value).toBe("balanced");
+
+      hoisted.needsTranscode.value = true;
+      transcode.resetFileState();
+      transcode.initTranscodeModeFromRoute();
+      expect(transcode.transcodeMode.value).toBe("native");
     });
   });
 });

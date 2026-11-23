@@ -113,10 +113,15 @@ export function usePlaybackQueue({ getReq, getListing, onQueueChange, applyMenus
     mutations.setPlaybackQueue({ queue, currentIndex, mode, loop: loop.value });
   }
 
+  const getCurrentItemId = (): string | undefined => {
+    const item = getReq();
+    return getters.isShare() ? item?.name : item?.path;
+  };
+
   // Keep the queue in sync with the listing: refresh matching items in place, otherwise rebuild.
   watch(
-    getListing,
-    (newListing) => {
+    [getListing, getCurrentItemId],
+    ([newListing]) => {
       if (!newListing?.length) return;
       const isShare = getters.isShare();
       const getId = (item: QueueItem): string | undefined => (isShare ? item.name : item.path);

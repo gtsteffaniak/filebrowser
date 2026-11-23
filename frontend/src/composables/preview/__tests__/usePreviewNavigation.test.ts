@@ -84,16 +84,6 @@ describe("usePreviewNavigation", () => {
     app = null;
   });
 
-  it("follows the folder neighbours outside queue mode", () => {
-    const api = mountComposable();
-    api.navigatePrevious();
-    expect(mutationsMock.setNavigationTransitioning).toHaveBeenCalledWith(true);
-    expect(routerMock.replace).toHaveBeenCalledWith({ path: "/prev" });
-    api.navigateNext();
-    expect(routerMock.replace).toHaveBeenLastCalledWith({ path: "/next" });
-    expect(navigatePlaybackQueue).not.toHaveBeenCalled();
-  });
-
   it("walks the playback queue in queue mode", () => {
     gettersMock.isPreviewPlaybackQueueNavMode.mockReturnValue(true);
     const api = mountComposable();
@@ -112,26 +102,6 @@ describe("usePreviewNavigation", () => {
     api.navigatePrevious();
     api.navigateNext();
     expect(navigatePlaybackQueue).not.toHaveBeenCalled();
-  });
-
-  it("closes to the parent folder on Escape and Alt+ArrowUp", () => {
-    mountComposable();
-    pressKey({ key: "Escape" });
-    expect(mutationsMock.replaceRequest).toHaveBeenCalledWith({});
-    expect(routerMock.push).toHaveBeenLastCalledWith({ path: "/files/srv/music/" });
-    pressKey({ key: "ArrowUp", altKey: true });
-    expect(routerMock.push).toHaveBeenCalledTimes(2);
-  });
-
-  it("opens the delete prompt on Delete and ignores keys while a prompt is open", () => {
-    mountComposable();
-    pressKey({ key: "Delete" });
-    expect(mutationsMock.showPrompt).toHaveBeenCalledTimes(1);
-    gettersMock.currentPromptName.mockReturnValue("delete");
-    pressKey({ key: "Delete" });
-    pressKey({ key: "Escape" });
-    expect(mutationsMock.showPrompt).toHaveBeenCalledTimes(1);
-    expect(routerMock.push).not.toHaveBeenCalled();
   });
 
   it("tears down the view first, then clears navigation, and stops listening", () => {

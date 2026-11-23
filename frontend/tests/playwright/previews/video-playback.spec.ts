@@ -14,6 +14,7 @@ import {
 const TESTDATA = "/files/playwright-files/myfolder/testdata";
 /** VP8/WebM plays natively in Playwright Chromium; H.264 MP4 often does not in headless builds. */
 const NATIVE_PREVIEW_VIDEO = "clip-a.webm";
+const NEXT_PREVIEW_VIDEO = "clip-b.webm";
 
 /**
  * Media endpoints that probe or transcode (`/api/media/metadata`,
@@ -126,6 +127,75 @@ test("transcode mode menu is shown when the server enables transcoding", async (
   await expect(settings).toBeAttached({ timeout: 15_000 });
   await domClick(settings);
   await expect(transcodeMenuButton(page)).toBeVisible({ timeout: 10_000 });
+
+  checkForErrors(0, mediaFailures());
+});
+
+/** Marks the live `<video>` and Plyr container; a re-created player would lose both marks. */
+async function tagPlayerElements(page: import("@playwright/test").Page) {
+  await nativeVideo(page).evaluate((el: HTMLVideoElement) => {
+    el.dataset.reuseProbe = "1";
+    (el.closest(".plyr") as HTMLElement | null)?.setAttribute("data-reuse-probe", "1");
+  });
+}
+
+async function expectPlayerReused(page: import("@playwright/test").Page) {
+  await expect(page.locator(".media-player video")).toHaveCount(1);
+  await expect(nativeVideo(page)).toHaveAttribute("data-reuse-probe", "1");
+  await expect(page.locator(".media-player .plyr[data-reuse-probe='1']")).toHaveCount(1);
+}
+
+test("next and previous keep the same video element and player", async ({ page, checkForErrors }) => {
+  test.setTimeout(45_000);
+  const mediaFailures = trackMediaApiFailures(page);
+
+  await page.goto(`${TESTDATA}/${NATIVE_PREVIEW_VIDEO}`);
+  await waitForNativePlayerMounted(page);
+  await tagPlayerElements(page);
+
+  await page.locator('button[aria-label="Next"]').click();
+  await expect(page).toHaveTitle(`Graham's Filebrowser - Files - ${NEXT_PREVIEW_VIDEO}`);
+  await expectPlayerReused(page);
+
+  await page.locator('button[aria-label="Previous"]').click();
+  await expect(page).toHaveTitle(`Graham's Filebrowser - Files - ${NATIVE_PREVIEW_VIDEO}`);
+  await expectPlayerReused(page);
+
+  checkForErrors(0, mediaFailures());
+});
+
+test("fullscreen persists across next and previous", async ({ page, checkForErrors }) => {
+  test.setTimeout(45_000);
+  const mediaFailures = trackMediaApiFailures(page);
+
+  await page.goto(`${TESTDATA}/${NATIVE_PREVIEW_VIDEO}`);
+  await waitForNativePlayerMounted(page);
+  test.skip(!(await page.evaluate(() => document.fullscreenEnabled)), "fullscreen is not available in this browser");
+  await tagPlayerElements(page);
+
+  await nativeVideo(page).hover();
+  await page.locator(".media-player button[data-plyr='fullscreen']").first().click();
+  const isFullscreen = () => page.evaluate(() => document.fullscreenElement !== null);
+  await expect.poll(isFullscreen, { timeout: 10_000 }).toBe(true);
+
+  const navInFullscreen = (label: string) =>
+    page.evaluate(
+      (aria) => document.fullscreenElement?.querySelector(`button[aria-label="${aria}"]`) != null,
+      label,
+    );
+  await expect.poll(() => navInFullscreen("Next"), { timeout: 10_000 }).toBe(true);
+  await expect(page.locator('button[aria-label="Next"]')).toBeVisible();
+
+  await page.locator('button[aria-label="Next"]').click();
+  await expect(page).toHaveTitle(`Graham's Filebrowser - Files - ${NEXT_PREVIEW_VIDEO}`);
+  await expectPlayerReused(page);
+  expect(await isFullscreen()).toBe(true);
+  await expect.poll(() => navInFullscreen("Previous"), { timeout: 10_000 }).toBe(true);
+
+  await page.locator('button[aria-label="Previous"]').click();
+  await expect(page).toHaveTitle(`Graham's Filebrowser - Files - ${NATIVE_PREVIEW_VIDEO}`);
+  await expectPlayerReused(page);
+  expect(await isFullscreen()).toBe(true);
 
   checkForErrors(0, mediaFailures());
 });

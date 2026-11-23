@@ -136,14 +136,13 @@ import {
   stripPlaybackTimeFromUrl,
   useMediaPlayer,
 } from "@/composables/player/useMediaPlayer.ts";
-import { useMediaSession } from "@/composables/player/useMediaSession.ts";
+import { buildMediaSessionInfo, useMediaSession } from "@/composables/player/useMediaSession.ts";
 import { usePlaybackQueue } from "@/composables/player/usePlaybackQueue.ts";
 import { useSwipeNavigationGestures } from "@/composables/player/useSwipeNavigationGestures.ts";
 import { useI18n } from "@/i18n/index.ts";
 import { enableSeekOnRelease } from "@/player/seekOnRelease.js";
 import { getters } from "@/store/index.ts";
 import type { FileListItem } from "@/store/types.ts";
-import { globalVars } from "@/utils/constants.ts";
 import { getTypeFromMime } from "@/utils/files.js";
 import type { LyricLines } from "@/utils/lyrics.ts";
 import { formatArtist } from "@/utils/playbackQueue.js";
@@ -165,6 +164,8 @@ const props = withDefaults(
   defineProps<{
     req: AudioFile;
     raw: string;
+    /** Identity of the file; a change swaps the file on the same player. */
+    fileKey?: string;
     lyrics?: LyricLines;
     /** Folder listing the playback queue is built from. */
     listing?: FileListItem[];
@@ -226,8 +227,13 @@ watch(showMobileLyrics, writeMobileLyricsOpen);
 
 const { audioContext, audioSource, setupAudioVisualizer, resumeAudioGraph, cleanupAudioVisualizer } =
   useAudioVisualizer({ getMediaElement: () => audioElement.value });
-const { setupMediaSession, updateMediaSessionNavHandlers, updateMediaSessionPlaybackState, clearMediaSession } =
-  useMediaSession(player);
+const {
+  setupMediaSession,
+  updateMediaSessionMetadata,
+  updateMediaSessionNavHandlers,
+  updateMediaSessionPlaybackState,
+  clearMediaSession,
+} = useMediaSession(player);
 const gestures = useGestureState();
 const playbackQueueState = usePlaybackQueue({
   getReq: () => props.req,
@@ -289,15 +295,25 @@ const swipe = useSwipeNavigationGestures({
   onClosePreview: () => emit("close-preview"),
 });
 const { speedToastVisible, speedToastMessage, setupSwipeGestures, teardownSwipeGestures, clearDismissAnimTimers } = swipe;
-const { lifecycle, createPlayer, setupSharedEvents, getActiveMediaElement, stopMediaElement, destroyPlayer } =
-  useMediaPlayer({
-    kind: "audio",
-    player,
-    getMediaElement: () => audioElement.value,
-    getRequestedFile: () => props.req,
-    onPlaybackState: updateMediaSessionPlaybackState,
-    destroy,
-  });
+const {
+  lifecycle,
+  createPlayer,
+  setupSharedEvents,
+  getActiveMediaElement,
+  stopMediaElement,
+  releaseFile,
+  setMountedFile,
+  reapplyPlaybackRate,
+  destroyPlayer,
+} = useMediaPlayer({
+  kind: "audio",
+  player,
+  getMediaElement: () => audioElement.value,
+  getRequestedFile: () => props.req,
+  onPlaybackState: updateMediaSessionPlaybackState,
+  destroy,
+  restoreSource: restoreFileSource,
+});
 const { attachKeyboard, detachKeyboard } = useMediaKeyboard({
   player,
   getPreviewType: () => "audio",
@@ -338,16 +354,6 @@ function ensurePlaybackModeApplied(): void {
   }
 }
 
-watch(
-  () => props.req.source,
-  (newSource, oldSource) => {
-    if (!newSource || newSource === oldSource) return;
-    destroy();
-    lifecycle.tornDown = false;
-    void initializePlayer();
-  },
-);
-
 // --- Mount / teardown ---
 function setupPlayerEvents(): void {
   if (!player.value) return;
@@ -358,6 +364,39 @@ function setupPlayerEvents(): void {
   setupRewindForwardFeedback();
 }
 
+const mediaSessionInfo = () => buildMediaSessionInfo(metadata.value, fileName.value, artworkUrl.value);
+
+let swapGeneration = 0;
+
+function restoreFileSource(): void {
+  const media = audioElement.value;
+  if (lifecycle.tornDown || !media || !props.raw || media.getAttribute("src") === props.raw) {
+    return;
+  }
+  media.setAttribute("src", props.raw);
+  media.load();
+  reapplyPlaybackRate();
+}
+
+/** A new file on the same player: only the per-file data changes (pre-flush, before the new `:src` renders). */
+async function onFileSwap(newKey?: string, oldKey?: string): Promise<void> {
+  if (!newKey || newKey === oldKey || lifecycle.tornDown) return;
+  const generation = ++swapGeneration;
+  releaseFile();
+  setMountedFile(props.req?.source, props.req?.path);
+  loadMediaMetadata();
+  if (!player.value) {
+    void initializePlayer();
+    return;
+  }
+  updateMediaSessionMetadata(mediaSessionInfo());
+  await nextTick(); // the template sets the new src
+  if (generation !== swapGeneration || lifecycle.tornDown || !player.value) return;
+  reapplyPlaybackRate();
+}
+
+watch(() => props.fileKey, onFileSwap, { flush: "pre" });
+
 async function mountPlayer(): Promise<void> {
   if (!audioElement.value || player.value || lifecycle.mountInProgress || lifecycle.tornDown) return;
   lifecycle.mountInProgress = true;
@@ -367,12 +406,7 @@ async function mountPlayer(): Promise<void> {
     if (!audioElement.value || lifecycle.tornDown || player.value) return;
     createPlayer();
     if (!player.value) return;
-    setupMediaSession({
-      title: metadata.value?.title || fileName.value,
-      artist: metadata.value?.artist || globalVars.name || "Filebrowser Quantum",
-      album: metadata.value?.album || "",
-      artworkSrc: artworkUrl.value,
-    });
+    setupMediaSession(mediaSessionInfo());
     setupPlayerEvents();
     seekOnReleaseCleanup = enableSeekOnRelease(player.value);
   } finally {

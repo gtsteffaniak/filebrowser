@@ -1,5 +1,5 @@
 <template>
-   <Teleport to="body" v-for="prompt in prompts" :key="`prompt-${prompt.id}`">
+   <Teleport :to="fullscreenHost || 'body'" v-for="prompt in prompts" :key="`prompt-${prompt.id}`">
     <div
       ref="promptWindow"
       class="floating-window"
@@ -142,10 +142,14 @@ import DefaultViewPrefs from "./DefaultViewPrefs.vue";
 import MediaConversionFormats from "./MediaConversionFormats.vue";
 import MediaTranscodeSettings from "./MediaTranscodeSettings.vue";
 import { state, getters, mutations } from "@/store/index.ts";
+import { useFullscreen } from "@/composables/useFullscreen.ts";
 import { getObjectProperty, omitObjectProperty, setObjectProperty } from "@/utils/object.js";
 
 export default {
   name: "Prompts",
+  setup() {
+    return { fullscreenHost: useFullscreen() };
+  },
   components: {
     UserEdit,
     GroupEdit,
@@ -815,6 +819,8 @@ export default {
   flex-direction: column;
   overflow: hidden;
   color: var(--textPrimary);
+  /* Inside the fullscreen player this would inherit the preview's centered text. */
+  text-align: start;
 }
 
 @keyframes show {

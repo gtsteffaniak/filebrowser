@@ -11,10 +11,6 @@ import { buildPlaybackQueryPatch, playbackQueryChanged } from "@/utils/playbackQ
 import { getEndOfMediaAction, navigatePlaybackQueue } from "@/utils/playbackQueue.js";
 import { buildItemUrl, removeTrailingSlash } from "@/utils/url.js";
 
-/** Fullscreen state carried across a navigation between two media files (module-level on purpose). */
-let pendingFullscreenResume = false;
-let pendingResumeTimestamp = 0;
-
 /** Vue Router and buildItemUrl do not always encode the same characters, so route-leave checks compare both forms. */
 function decodePathSafely(path: string): string {
   try {
@@ -31,6 +27,7 @@ type PlyrRuntimeOptions = Plyr.Options & { playsinline?: boolean; preload?: stri
 interface PlyrRuntime {
   media?: HTMLMediaElement;
   off: () => void;
+  captions?: { currentTrack: number; currentTrackNode?: TextTrack };
 }
 
 export interface MountedFileKey {
@@ -81,9 +78,10 @@ const PLYR_CONTROLS = [
   "volume",
   "captions",
   "settings",
+  "pip",
   "fullscreen",
 ];
-const AUDIO_EXCLUDED_CONTROLS = ["play-large", "captions", "fullscreen"];
+const AUDIO_EXCLUDED_CONTROLS = ["play-large", "captions", "pip", "fullscreen"];
 
 export type MediaKind = "audio" | "video";
 
@@ -101,6 +99,9 @@ interface MediaPlayerOptions {
   destroy: () => void;
   /** Runs before an element is stopped, e.g. to cancel a pending stream attach. */
   beforeStopMedia?: () => void;
+  /** Runs after the element is stopped by `releaseFile`, e.g. to end a transcode session. */
+  onReleaseFile?: () => void;
+  restoreSource?: () => void | Promise<void>;
 }
 
 /** Creates, wires, stops and destroys Plyr , and ends/advances playback. */
@@ -108,6 +109,7 @@ export function useMediaPlayer(options: MediaPlayerOptions) {
   const { player } = options;
   const { t } = useI18n();
   let nativePlay: NativePlay | null = null;
+  let releasedFor: MountedFileKey | null = null;
 
   const lifecycle: {
     mountedFile: MountedFileKey | null;
@@ -234,7 +236,7 @@ export function useMediaPlayer(options: MediaPlayerOptions) {
   }
 
   function getActiveMediaElement(): HTMLMediaElement | null {
-    return (player.value as unknown as PlyrRuntime | null)?.media ?? options.getMediaElement() ?? null;
+    return (player.value as (Plyr & PlyrRuntime) | null)?.media ?? options.getMediaElement() ?? null;
   }
 
   function stopMediaElement(media: HTMLMediaElement | null = null): void {
@@ -248,6 +250,7 @@ export function useMediaPlayer(options: MediaPlayerOptions) {
     } catch (_) {
       // ignore
     }
+    mutations.setPlaybackState(false);
     el.removeAttribute("src");
     try {
       el.load();
@@ -256,19 +259,42 @@ export function useMediaPlayer(options: MediaPlayerOptions) {
     }
   }
 
-  /** Remembers fullscreen so the next file opened right after this one can re-enter it. */
-  function rememberFullscreenForTransition(): void {
-    pendingFullscreenResume = player.value?.fullscreen?.active || false;
-    pendingResumeTimestamp = Date.now();
+  /** Plyr keeps the selected caption by index and track node. When the next file has a track at the same index, Plyr sees "no change" */
+  function resetCaptionTrack(): void {
+    const captions = (player.value as (Plyr & PlyrRuntime) | null)?.captions;
+    if (!captions) return;
+    captions.currentTrack = -1;
+    captions.currentTrackNode = undefined;
   }
 
-  /** Re-enters fullscreen if the previous file left it pending (stale after 3s). */
-  function resumeFullscreenAfterNavigation(): void {
-    const isStale = Date.now() - pendingResumeTimestamp > 3000;
-    if (pendingFullscreenResume) {
-      pendingFullscreenResume = false;
-      if (!isStale) player.value?.fullscreen?.enter();
-    }
+  /** Stops the current file and keeps the instance alive; the playback rate survives the `load()`. */
+  function releaseFile(): void {
+    const media = getActiveMediaElement();
+    if (media) media.defaultPlaybackRate = media.playbackRate;
+    stopMediaElement(media);
+    resetCaptionTrack();
+    options.onReleaseFile?.();
+    releasedFor = lifecycle.mountedFile;
+  }
+  function resumeFile(): void {
+    releasedFor = null;
+  }
+  function getReleasedFile(): MountedFileKey | null {
+    return releasedFor;
+  }
+
+  /** Marks the file the instance now plays, for the route-leave check. */
+  function setMountedFile(source?: string, path?: string): void {
+    lifecycle.mountedFile = resolveMountedFileKey(source, path);
+  }
+
+  /** Re-applies the rate kept by `releaseFile`; call after attaching the next source. */
+  function reapplyPlaybackRate(): void {
+    const media = getActiveMediaElement();
+    if (!media) return;
+    const rate = media.defaultPlaybackRate || 1;
+    if (player.value) player.value.speed = rate;
+    else media.playbackRate = rate;
   }
 
   /** Removes listeners, stops the element and destroys the instance. No-op without an instance. */
@@ -278,13 +304,21 @@ export function useMediaPlayer(options: MediaPlayerOptions) {
       stopMediaElement(media);
       return;
     }
-    (current as unknown as PlyrRuntime).off();
+    (current as Plyr & PlyrRuntime).off();
     stopMediaElement(media);
     current.destroy();
     player.value = null;
     // hls.js can re-attach its MediaSource while Plyr tears down; stop the
     // element once more so no audio survives the unmount.
     stopMediaElement(media);
+  }
+
+  function restoreSourceIfReleased(): void {
+    if (!releasedFor || releasedFor !== lifecycle.mountedFile) {
+      return;
+    }
+    releasedFor = null;
+    void options.restoreSource?.();
   }
 
   function stopIfRouteLeftThisFile(): void {
@@ -308,15 +342,20 @@ export function useMediaPlayer(options: MediaPlayerOptions) {
       current === expected ||
       current.startsWith(`${expected}#`)
     ) {
+      restoreSourceIfReleased();
       return;
     }
     if (
       decodePathSafely(normalizedCurrent) === decodePathSafely(normalizedExpected) ||
       decodePathSafely(current).startsWith(`${decodePathSafely(expected)}#`)
     ) {
+      restoreSourceIfReleased();
       return;
     }
-    options.destroy();
+    if (releasedFor && releasedFor === mounted) {
+      return;
+    }
+    releaseFile();
   }
 
   function togglePlayPause(): void {
@@ -369,12 +408,12 @@ export function useMediaPlayer(options: MediaPlayerOptions) {
     onPlayerEvent,
     getActiveMediaElement,
     stopMediaElement,
-    rememberFullscreenForTransition,
-    resumeFullscreenAfterNavigation,
+    releaseFile,
+    resumeFile,
+    getReleasedFile,
+    setMountedFile,
+    reapplyPlaybackRate,
     destroyPlayer,
     stopIfRouteLeftThisFile,
-    togglePlayPause,
-    restartCurrentFile,
-    handleMediaEnd,
   };
 }

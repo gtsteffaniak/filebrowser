@@ -16,7 +16,7 @@ interface MediaKeyboardOptions {
 /** Player shortcuts: P (playback mode), L (loop), Q (queue/panel) and arrow-key seek feedback */
 export function useMediaKeyboard(options: MediaKeyboardOptions) {
   function handleKeydown(event: KeyboardEvent): void {
-    if (event.repeat) return;
+    if (event.repeat || !event.key) return;
     if (event.ctrlKey || event.metaKey || event.altKey) return;
     const key = event.key.toLowerCase();
     const target = event.target as HTMLElement | null;
