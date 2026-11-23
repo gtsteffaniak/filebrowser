@@ -272,7 +272,7 @@ async function loadAndCommit(identity: string, isStale: () => boolean) {
   const kind = previewType.value as "audio" | "video";
   const current = committed.value;
   const reuse = current?.key === identity && current.kind === kind ? current : null;
-  const subtitleInputs = JSON.stringify((state.req.subtitles ?? []).map((track) => [track?.name, track?.embedded]));
+  const subtitleInputs = JSON.stringify((state.req.subtitles ?? []).map((track) => [track?.name, track?.embedded, track?.srclang || track?.language]));
   const lyricsInputs = kind === "audio" && state.req.metadata?.hasLyrics ? "lyrics" : "";
   const reuseSubtitles = reuse?.subtitleInputs === subtitleInputs ? reuse : null;
   const reuseLyrics = reuse?.lyricsInputs === lyricsInputs ? reuse : null;

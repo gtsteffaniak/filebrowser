@@ -476,11 +476,15 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
     nativeListenerCleanups.push(cleanup);
   }
 
-  function cancelNativeAttach(): void {
-    fileGeneration++;
+  function clearNativeListeners(): void {
     for (const cleanup of nativeListenerCleanups.splice(0)) {
       cleanup();
     }
+  }
+
+  function cancelNativeAttach(): void {
+    fileGeneration++;
+    clearNativeListeners();
   }
 
   async function attachVideoStreamAndPlay(): Promise<void> {
@@ -864,6 +868,7 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
     }
     // switching the source to HLS: a native resume still waiting must not touch the new source
     cancelNativeResume?.();
+    clearNativeListeners();
     invalidateOfferRequest();
     const startSource = getReq()?.source;
     const startPath = getReq()?.path;

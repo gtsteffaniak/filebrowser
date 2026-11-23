@@ -250,6 +250,8 @@ export function useSwipeNavigationGestures({
     mutations.setNavigationGestureHint({});
   }
   function resetEdgeGestureImmediate() {
+    gestures.clearLongPressTimer();
+    gestures.longPressPending.value = false;
     if (gestures.longPressTriggered.value) {
       releaseLongPressHold();
     }

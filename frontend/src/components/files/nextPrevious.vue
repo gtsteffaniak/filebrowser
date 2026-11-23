@@ -1124,16 +1124,18 @@ export default {
   transform: scale(1.1);
 }
 
-/* Mobile styles */
-@media (width <= 768px) {
+@media (width <= 768px), (height <= 500px) {
   .nav-button {
     width: var(--fab-size-small);
     height: var(--fab-size-small);
   }
   .nav-button i.material-symbols {
-    font-size: 20px;
+    font-size: 25px;
   }
+}
 
+:fullscreen .nav-button {
+  margin-top: 0;
 }
 
 /* Ensure buttons don't interfere with scrollbars */
