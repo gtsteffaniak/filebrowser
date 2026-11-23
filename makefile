@@ -129,7 +129,7 @@ generate-translation-types:
 	cd frontend && npm run i18n:types
 
 reorder-translations:
-	cd frontend && npm run i18n:enforce-order
+	cd frontend && npm run i18n:reorder
 
 cleanup-translations:
 	cd frontend && npm run i18n:cleanup

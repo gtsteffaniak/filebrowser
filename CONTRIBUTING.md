@@ -133,7 +133,7 @@ When changing a key in `en.json`:
 
 ```shell
 make generate-translation-types  # regenerate messages.generated.ts
-make sync-translations           # also translates new keys in the other locales (but needs DEEPL_API_KEY)
+make sync-translations           # translates new keys in the other locales (needs DEEPL_API_KEY)
 make check-translations          # run the i18n checks
 ```
 
