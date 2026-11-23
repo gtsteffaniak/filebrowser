@@ -100,6 +100,7 @@
       @toggled="showMoreExpanded = $event"
     >
       <div class="settings-items">
+        <slot name="advanced-start" />
         <div
           class="preference-field-block"
           :class="{ 'preference-field-block--enforceable': enforceable }"

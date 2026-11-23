@@ -45,15 +45,14 @@ type Http struct {
 	UnixSocketTrustedGIDs        []int  `json:"unixSocketTrustedGIDs"`
 	UnixSocketTrustAllLocalPeers bool   `json:"unixSocketTrustAllLocalPeers"` // default false: set true to trust forwarded headers from any local filesystem socket peer when allowlists are empty
 	SocketFileMode               string `json:"socketFileMode"`               // octal mode for filesystem http.socket (default "0660"); ignored for abstract sockets
-	SocketGroup           string `json:"socketGroup"`      // optional group name or numeric gid for the socket file (filesystem sockets only)
-	DisableRateLimit      bool   `json:"disableRateLimit"` // turns off built-in auth route rate limiting and failed-login lockout (default false).
+	SocketGroup                  string `json:"socketGroup"`                  // optional group name or numeric gid for the socket file (filesystem sockets only)
+	DisableRateLimit             bool   `json:"disableRateLimit"`             // turns off built-in auth route rate limiting and failed-login lockout (default false).
 }
 
 type Environment struct {
 	IsCLIMode                        bool     `json:"-"` // true when running a CLI subcommand (user set, promote, etc.)
 	IsPlaywright                     bool     `json:"-"`
 	IsDevMode                        bool     `json:"-"`
-	UnsafeCustomShare                bool     `json:"-"` // true when UNSAFE_CUSTOM_SHARE=enabled; allows users to choose share URLs
 	IsFirstLoad                      bool     `json:"-"` // used internally to track if this is the first load of the application
 	ConfigUserDefaultsSpecified      bool     `json:"-"` // true when the config file contained a userDefaults section
 	ConfigUserDefaultsSpecifiedPaths []string `json:"-"` // dot-paths explicitly set under userDefaults in config
@@ -515,9 +514,9 @@ type UserDefaultsSearch struct {
 // UserDefaultsUI holds UI/appearance settings
 type UserDefaultsUI struct {
 	DarkMode    users.DarkMode `json:"darkMode"`    // theme preference: "auto" (follow system), "dark", or "light"
-	ThemeColor  string `json:"themeColor"`  // theme color to use: eg. #ff0000, or var(--red), var(--purple), etc
-	CustomTheme string `json:"customTheme"` // Name of theme to use chosen from custom themes config
-	Locale      string `json:"locale"`      // language to use: eg. de, en, or fr
+	ThemeColor  string         `json:"themeColor"`  // theme color to use: eg. #ff0000, or var(--red), var(--purple), etc
+	CustomTheme string         `json:"customTheme"` // Name of theme to use chosen from custom themes config
+	Locale      string         `json:"locale"`      // language to use: eg. de, en, or fr
 
 }
 
@@ -530,6 +529,7 @@ type UserDefaultsAccount struct {
 	LoginMethod                string                         `json:"loginMethod,omitempty"`      // login method to use: eg. password, proxy, oidc
 	DisableUpdateNotifications bool                           `json:"disableUpdateNotifications"` // disable update notifications banner for admin users
 	ShowAdvancedProfile        bool                           `json:"showAdvancedProfile"`        // show advanced profile settings in the user profile page
+	UseCustomShare             *bool                          `json:"useCustomShare"`             // allow users to choose custom share URLs (default: true)
 	MaxConcurrentTranscodes    int                            `json:"maxConcurrentTranscodes"`    // per-user concurrent transcode sessions (default: 1)
 }
 

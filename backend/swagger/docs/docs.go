@@ -7413,6 +7413,10 @@ const docTemplate = `{
                 "showAdvancedProfile": {
                     "description": "show advanced profile settings in the user profile page",
                     "type": "boolean"
+                },
+                "useCustomShare": {
+                    "description": "allow users to choose custom share URLs (default: true)",
+                    "type": "boolean"
                 }
             }
         },
@@ -8305,7 +8309,6 @@ const docTemplate = `{
                     "$ref": "#/definitions/users.LoginMethod"
                 },
                 "maxConcurrentTranscodes": {
-                    "description": "MaxConcurrentTranscodes is admin-set: it stays out of NonAdminEditable so a\nuser cannot raise their own limit through a self-service PATCH.",
                     "type": "integer"
                 },
                 "newFileTemplate": {
@@ -8432,6 +8435,10 @@ const docTemplate = `{
                             "$ref": "#/definitions/users.ToolAccessMap"
                         }
                     ]
+                },
+                "useCustomShare": {
+                    "description": "UseCustomShare and MaxConcurrentTranscodes are admin-set: they stay out of\nNonAdminEditable so a user cannot grant themselves the capability through a\nself-service PATCH.",
+                    "type": "boolean"
                 },
                 "username": {
                     "type": "string"

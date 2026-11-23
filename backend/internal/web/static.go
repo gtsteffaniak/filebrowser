@@ -327,7 +327,6 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"officeProduct":          officeProductForSPA(),
 		"officeExtensions":       wopiExtensionsForSPA(),
 		"textPreviewMimeTypes":   iteminfo.TextPreviewMimeTypes(),
-		"unsafeCustomShare":      settings.Env.UnsafeCustomShare,
 	}
 
 	cspNonce, err := utils.CSPNonce()

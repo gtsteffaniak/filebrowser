@@ -217,7 +217,7 @@ func sharePatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int,
 		From:  thisShare.Path,
 		To:    updatedShare.Path,
 	}}
-	activity.RecordShareMutation(r, toActor(d), activitydb.EventShareUpdate, body.Hash, updatedShare.SourceName, updatedShare.Path, changes)
+	activity.RecordShareMutation(r, toActor(d), activitydb.EventShareUpdate, share.PresentedHash(&updatedShare), updatedShare.SourceName, updatedShare.Path, changes)
 	return RenderJSON(w, r, prepared)
 }
 
@@ -365,7 +365,7 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 			return http.StatusInternalServerError, fmt.Errorf("could not prepare share response")
 		}
 		if len(changes) > 0 {
-			activity.RecordShareMutation(r, toActor(d), activitydb.EventShareUpdate, req.Hash, updatedShare.SourceName, updatedShare.Path, changes)
+			activity.RecordShareMutation(r, toActor(d), activitydb.EventShareUpdate, share.PresentedHash(&updatedShare), updatedShare.SourceName, updatedShare.Path, changes)
 		}
 		return RenderJSON(w, r, prepared)
 	}
@@ -384,8 +384,8 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 		return http.StatusInternalServerError, err
 	}
 	if req.CustomHash != "" {
-		if !settings.Env.UnsafeCustomShare {
-			return http.StatusForbidden, fmt.Errorf("custom share URLs are disabled on this server")
+		if !d.User.UseCustomShare {
+			return http.StatusForbidden, fmt.Errorf("custom share URLs are not enabled for your account")
 		}
 		if err = validateCustomShareHash(req.CustomHash); err != nil {
 			return http.StatusBadRequest, err
@@ -393,7 +393,6 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 		if state.ShareHashExists(req.CustomHash) {
 			return http.StatusConflict, fmt.Errorf("a share with this URL already exists")
 		}
-		secureHash = req.CustomHash
 	}
 	idx := indexing.GetIndex(source.Name)
 	if idx == nil {
@@ -430,6 +429,7 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 		},
 		ShareColumns: share.ShareColumns{
 			Hash:   secureHash,
+			Alias:  req.CustomHash,
 			Path:   storedPath,
 			Expire: expire,
 		},
@@ -463,7 +463,7 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 	if prepared == nil {
 		return http.StatusInternalServerError, fmt.Errorf("could not prepare share response")
 	}
-	activity.RecordShareMutation(r, toActor(d), activitydb.EventShareCreate, s.Hash, s.SourceName, s.Path, nil)
+	activity.RecordShareMutation(r, toActor(d), activitydb.EventShareCreate, share.PresentedHash(s), s.SourceName, s.Path, nil)
 	return RenderJSON(w, r, prepared)
 }
 
@@ -656,7 +656,7 @@ func shareInfoHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 		return http.StatusNotFound, fmt.Errorf("share hash not found")
 	}
 	frontendShareInfo := shareInfo.FrontendShareInfo
-	frontendShareInfo.ShareURL = ShareURLFromRequest(r, hash, false, shareInfo.HasPassword())
+	frontendShareInfo.ShareURL = ShareURLFromRequest(r, share.PresentedHash(&shareInfo), false, shareInfo.HasPassword())
 	frontendShareInfo.BannerUrl = shareInfo.BannerURL()
 	frontendShareInfo.FaviconUrl = shareInfo.FaviconURL()
 	filtered := make([]users.SidebarLink, 0, len(frontendShareInfo.SidebarLinks))
@@ -692,7 +692,7 @@ func shareInfoHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 		QuotaLimitBytes:   shareInfo.QuotaLimitBytes,
 	}
 	if shareInfo.QuotaLimitBytes > 0 {
-		used, reserved := state.GetShareQuotaUsage(hash)
+		used, reserved := state.GetShareQuotaUsage(shareInfo.Hash)
 		resp.QuotaUsedBytes = used
 		avail := shareInfo.QuotaLimitBytes - used - reserved
 		if avail < 0 {

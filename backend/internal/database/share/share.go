@@ -43,14 +43,14 @@ type FrontendShareInfo struct {
 
 // ShareLimits are bandwidth, access, and banner settings stored in share_settings JSON.
 type ShareLimits struct {
-	MaxBandwidth             int      `json:"maxBandwidth,omitempty"`
-	AllowedUsernames         []string `json:"allowedUsernames,omitempty"`
+	MaxBandwidth         int      `json:"maxBandwidth,omitempty"`
+	AllowedUsernames     []string `json:"allowedUsernames,omitempty"`
 	PerUserDownloadLimit bool     `json:"perUserDownloadLimit,omitempty"`
 	DownloadsLimit       int      `json:"downloadsLimit,omitempty"`
-	QuotaLimitBytes          int64    `json:"quotaLimitBytes,omitempty"`
-	HideFileExt              string   `json:"hideFileExt,omitempty"` // show hidden files based on extensions in shares
-	Banner                   string   `json:"banner,omitempty"`
-	SourceName               string   `json:"source,omitempty"` // source display name for API; backend path is Share.SourcePath
+	QuotaLimitBytes      int64    `json:"quotaLimitBytes,omitempty"`
+	HideFileExt          string   `json:"hideFileExt,omitempty"` // show hidden files based on extensions in shares
+	Banner               string   `json:"banner,omitempty"`
+	SourceName           string   `json:"source,omitempty"` // source display name for API; backend path is Share.SourcePath
 }
 
 // ShareExpiryInput is POST body input used to compute ShareColumns.Expire (not persisted).
@@ -67,11 +67,26 @@ type ShareSettings struct {
 }
 
 // ShareColumns are SQL-backed identity and counter fields.
+// Hash is always the internal random identifier. Alias is an optional owner-chosen URL
+// identifier that resolves to Hash; it is never serialized directly (see PresentedHash).
 type ShareColumns struct {
 	Hash      string `json:"hash,omitempty" storm:"id,index"`
+	Alias     string `json:"-"`
 	Path      string `json:"path,omitempty"`
 	Expire    int64  `json:"expire"`
 	Downloads int    `json:"downloads,omitempty"`
+}
+
+// PresentedHash returns the identifier shown to clients and used in share URLs:
+// the custom alias when one is set, otherwise the internal hash.
+func PresentedHash(link *Share) string {
+	if link == nil {
+		return ""
+	}
+	if link.Alias != "" {
+		return link.Alias
+	}
+	return link.Hash
 }
 
 // ShareEditable is the client-editable subset used in POST/PATCH bodies.

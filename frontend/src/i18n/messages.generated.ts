@@ -332,6 +332,11 @@ export interface MessageParams {
   "share.keepAfterExpiration": never;
   "share.keepAfterExpirationDescription": never;
   "share.shareDurationDescription": never;
+  "share.customHash": never;
+  "share.customHashDescription": never;
+  "share.customHashPlaceholder": never;
+  "share.customHashInvalid": never;
+  "share.customHashWarning": never;
   "share.passwordDescription": never;
   "share.shareThemeColorDescription": never;
   "share.shareTitleDescription": never;
@@ -559,6 +564,7 @@ export interface MessageParams {
   "profileSettings.accountOptions": never;
   "profileSettings.showAdvancedProfile": never;
   "profileSettings.showAdvancedProfileDescription": never;
+  "profileSettings.useCustomShareDescription": never;
   "profileSettings.disableHideSidebar": never;
   "profileSettings.disableHideSidebarDescription": never;
   "profileSettings.autoplayMedia": never;

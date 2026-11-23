@@ -84,6 +84,7 @@ type UserDefaultsAccountEnforcement struct {
 	DisableSettings            bool                                      `json:"disableSettings,omitempty"`
 	DisableUpdateNotifications bool                                      `json:"disableUpdateNotifications,omitempty"`
 	ShowAdvancedProfile        bool                                      `json:"showAdvancedProfile,omitempty"`
+	UseCustomShare             bool                                      `json:"useCustomShare,omitempty"`
 	MaxConcurrentTranscodes    bool                                      `json:"maxConcurrentTranscodes,omitempty"`
 	Permissions                UserDefaultsAccountPermissionsEnforcement `json:"permissions,omitempty"`
 }

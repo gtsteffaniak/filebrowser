@@ -58,6 +58,12 @@ func createLegacySharesDB(t *testing.T) *SQLStore {
 		t.Fatalf("insert legacy share: %v", err)
 	}
 
+	// Open() always runs the idempotent alias step after migrations; mirror that here so the
+	// legacy-shaped table is writable with the current share columns.
+	if err := addShareAliasColumn(store.db); err != nil {
+		t.Fatalf("addShareAliasColumn: %v", err)
+	}
+
 	return store
 }
 

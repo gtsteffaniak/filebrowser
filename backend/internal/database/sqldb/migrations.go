@@ -11,7 +11,8 @@ import (
 // currentSchemaVersion is the SQLite schema marker for this codebase.
 // Version 5 clears the preview and thumbnail cache once, for databases upgraded from
 // a version older than v2.2.0. Earlier versions used different cache keys.
-const currentSchemaVersion = 5
+// Version 6 adds shares.alias, the optional owner-chosen URL identifier that resolves to shares.hash.
+const currentSchemaVersion = 6
 
 // Schema creates all tables for the SQLite database
 func createSchema(db *sql.DB) error {
@@ -37,6 +38,7 @@ func createSchema(db *sql.DB) error {
 	-- Shares (owner is user_id)
 	CREATE TABLE IF NOT EXISTS shares (
 		hash TEXT PRIMARY KEY,
+		alias TEXT NOT NULL DEFAULT '',
 		user_id TEXT NOT NULL,
 		source TEXT NOT NULL,
 		path TEXT NOT NULL,
@@ -229,7 +231,11 @@ func runMigrations(db *sql.DB, fromVersion int) error {
 			// Previews and thumbnails from earlier versions are regenerated on demand.
 			// A failure to clear is logged and does not block startup.
 			if err := settings.ClearPreviewDiskCache(); err != nil {
-				logger.Warningf("failed to clear preview cache during upgrade to schema 5: %v", err)
+				logger.Warningf("failed to clear preview cache during upgrade to schema 6: %v", err)
+			}
+		case 6:
+			if err := addShareAliasColumn(db); err != nil {
+				return err
 			}
 		default:
 			return fmt.Errorf("unknown schema version: %d", v)
@@ -316,6 +322,24 @@ func addHashedTokenExpiryColumn(db *sql.DB) error {
 	}
 	if _, err := db.Exec(`ALTER TABLE hashed_tokens ADD COLUMN expires_at INTEGER NOT NULL DEFAULT 0`); err != nil {
 		return fmt.Errorf("failed to add hashed_tokens.expires_at: %w", err)
+	}
+	return nil
+}
+
+// addShareAliasColumn adds shares.alias and its unique partial index to databases created
+// before custom share aliases existed. Existing shares get an empty alias and keep working.
+func addShareAliasColumn(db *sql.DB) error {
+	hasColumn, err := tableHasColumn(db, "shares", "alias")
+	if err != nil {
+		return err
+	}
+	if !hasColumn {
+		if _, err := db.Exec(`ALTER TABLE shares ADD COLUMN alias TEXT NOT NULL DEFAULT ''`); err != nil {
+			return fmt.Errorf("failed to add shares.alias: %w", err)
+		}
+	}
+	if _, err := db.Exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_shares_alias ON shares(alias) WHERE alias <> ''`); err != nil {
+		return fmt.Errorf("failed to create shares alias index: %w", err)
 	}
 	return nil
 }

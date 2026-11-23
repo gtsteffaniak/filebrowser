@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"path/filepath"
 
-	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
-	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 )
 
 // PrepForFrontend builds API-safe ShareFrontend copies (never exposes backend Share fields).
@@ -33,6 +33,8 @@ func copyShareFrontendFromShare(link *Share) ShareFrontend {
 		},
 		ShareColumns: snap.ShareColumns,
 	}
+	// Clients only ever see the presented identifier (alias when set, otherwise hash).
+	out.Hash = PresentedHash(link)
 	if snap.AllowedUsernames != nil {
 		out.AllowedUsernames = append([]string(nil), snap.AllowedUsernames...)
 	}

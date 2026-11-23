@@ -8,9 +8,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/gtsteffaniak/filebrowser/backend/internal/database/share"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing"
-	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 )
 
 func TestSharePostCustomHash_AllowedWithExpiration(t *testing.T) {
@@ -18,9 +18,7 @@ func TestSharePostCustomHash_AllowedWithExpiration(t *testing.T) {
 	indexing.SetTestIndex("srv", "/srv")
 	t.Cleanup(func() { indexing.ClearTestIndices() })
 
-	prevUnsafe := settings.Env.UnsafeCustomShare
-	settings.Env.UnsafeCustomShare = true
-	t.Cleanup(func() { settings.Env.UnsafeCustomShare = prevUnsafe })
+	owner.UseCustomShare = true
 
 	const customHash = "workfiles-q3-review-2026"
 	raw, err := json.Marshal(map[string]interface{}{
@@ -47,8 +45,14 @@ func TestSharePostCustomHash_AllowedWithExpiration(t *testing.T) {
 	if err != nil {
 		t.Fatalf("GetShare(%q): %v", customHash, err)
 	}
-	if got.Hash != customHash {
-		t.Fatalf("stored hash=%q want %q", got.Hash, customHash)
+	if got.Alias != customHash {
+		t.Fatalf("alias=%q want %q", got.Alias, customHash)
+	}
+	if got.Hash == customHash || got.Hash == "" {
+		t.Fatalf("stored hash=%q must be a generated real hash, not the alias", got.Hash)
+	}
+	if presented := share.PresentedHash(&got); presented != customHash {
+		t.Fatalf("presented hash=%q want alias %q", presented, customHash)
 	}
 	const hour = int64(time.Hour / time.Second)
 	if got.Expire < before+hour || got.Expire > after+hour {

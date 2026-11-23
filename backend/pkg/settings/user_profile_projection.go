@@ -74,6 +74,7 @@ func ProfileFromUser(u *users.User) UserProfile {
 			DisableSettings:            u.DisableSettings,
 			DisableUpdateNotifications: u.DisableUpdateNotifications,
 			ShowAdvancedProfile:        u.ShowAdvancedProfile,
+			UseCustomShare:             boolPtr(u.UseCustomShare),
 			MaxConcurrentTranscodes:    u.MaxConcurrentTranscodes,
 			Permissions: UserDefaultsAccountPermissions{
 				Api:      u.Permissions.Api,
@@ -95,6 +96,8 @@ func ExpandProfileIntoUser(u *users.User, p UserProfile) {
 	u.RequirePasswordChange = p.Account.RequirePasswordChange
 	u.DisableUpdateNotifications = p.Account.DisableUpdateNotifications
 	u.ShowAdvancedProfile = p.Account.ShowAdvancedProfile
+	// Profiles saved before this setting existed have no key; they keep custom share enabled.
+	u.UseCustomShare = boolValueOrDefault(p.Account.UseCustomShare, true)
 	if p.Account.MaxConcurrentTranscodes > 0 {
 		u.MaxConcurrentTranscodes = p.Account.MaxConcurrentTranscodes
 	}

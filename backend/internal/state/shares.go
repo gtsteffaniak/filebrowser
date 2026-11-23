@@ -6,21 +6,34 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/share"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
 // Share operations
 
-// GetShare retrieves a share by hash
+// resolveShareLocked maps a presented identifier (custom alias or internal hash) to the cached
+// share. Callers must hold sharesMux. The returned share's Hash is the internal identifier.
+func resolveShareLocked(identifier string) (*share.Share, bool) {
+	if link, exists := sharesByHash[identifier]; exists {
+		return link, true
+	}
+	if hash, exists := sharesByAlias[identifier]; exists {
+		link, ok := sharesByHash[hash]
+		return link, ok
+	}
+	return nil, false
+}
+
+// GetShare retrieves a share by its presented identifier (custom alias) or internal hash.
 // Returns a value (not pointer) to prevent modifications to the cache
-func GetShare(hash string) (share.Share, error) {
+func GetShare(identifier string) (share.Share, error) {
 	sharesMux.RLock()
 	defer sharesMux.RUnlock()
 
-	link, exists := sharesByHash[hash]
+	link, exists := resolveShareLocked(identifier)
 	if !exists {
 		return share.Share{}, fmt.Errorf("share not found")
 	}
@@ -95,15 +108,16 @@ func GetSharesByPath(source, path string) ([]share.Share, error) {
 	return shares, nil
 }
 
-// ShareHashExists reports whether a share with this hash is cached or persisted, including expired shares.
-func ShareHashExists(hash string) bool {
+// ShareHashExists reports whether an identifier is already used by a share, either as an
+// internal hash or as a custom alias. Cached and persisted (including expired) shares count.
+func ShareHashExists(identifier string) bool {
 	sharesMux.RLock()
-	_, exists := sharesByHash[hash]
+	_, exists := resolveShareLocked(identifier)
 	sharesMux.RUnlock()
 	if exists {
 		return true
 	}
-	persisted, err := sqlDb.ShareHashExists(hash)
+	persisted, err := sqlDb.ShareHashExists(identifier)
 	return err == nil && persisted
 }
 
@@ -112,17 +126,23 @@ func CreateShare(link *share.Share) error {
 	sharesMux.Lock()
 	defer sharesMux.Unlock()
 
-	// 1. Check if share already exists in cache or database. The database check
-	// covers expired shares that are not loaded into the cache after a restart.
-	if _, exists := sharesByHash[link.Hash]; exists {
-		return fmt.Errorf("share with hash %s already exists", link.Hash)
+	// 1. The internal hash and the optional alias must each be free in both namespaces. The
+	// database check covers expired shares that are not loaded into the cache after a restart.
+	identifiers := []string{link.Hash}
+	if link.Alias != "" {
+		identifiers = append(identifiers, link.Alias)
 	}
-	persisted, checkErr := sqlDb.ShareHashExists(link.Hash)
-	if checkErr != nil {
-		return checkErr
-	}
-	if persisted {
-		return fmt.Errorf("share with hash %s already exists", link.Hash)
+	for _, id := range identifiers {
+		if _, exists := resolveShareLocked(id); exists {
+			return fmt.Errorf("share with hash %s already exists", id)
+		}
+		persisted, checkErr := sqlDb.ShareHashExists(id)
+		if checkErr != nil {
+			return checkErr
+		}
+		if persisted {
+			return fmt.Errorf("share with hash %s already exists", id)
+		}
 	}
 
 	if link.QuotaLimitBytes > 0 {
@@ -142,6 +162,12 @@ func CreateShare(link *share.Share) error {
 
 	// 3. Update cache to match database
 	sharesByHash[link.Hash] = link
+	if link.Alias != "" {
+		if sharesByAlias == nil {
+			sharesByAlias = make(map[string]string)
+		}
+		sharesByAlias[link.Alias] = link.Hash
+	}
 	pathKey := makePathKey(link.SourcePath, link.Path)
 
 	// Add to path index
@@ -152,12 +178,12 @@ func CreateShare(link *share.Share) error {
 
 // UpdateShare updates an existing share with write-through to SQL
 // Takes a function that modifies the share to ensure thread-safe updates
-func UpdateShare(hash string, updateFn func(*share.Share) error) error {
+func UpdateShare(identifier string, updateFn func(*share.Share) error) error {
 	sharesMux.Lock()
 	defer sharesMux.Unlock()
 
 	// 1. Check if share exists in cache (state)
-	link, exists := sharesByHash[hash]
+	link, exists := resolveShareLocked(identifier)
 	if !exists {
 		return fmt.Errorf("share not found in cache")
 	}
@@ -182,10 +208,10 @@ func UpdateShare(hash string, updateFn func(*share.Share) error) error {
 // per-user limits are enabled, the count for viewerUsername. This is not activity audit
 // logging — use activity.RecordDownload for the Activity Viewer. Callers must not mutate
 // download counters on share snapshots directly.
-func IncrementShareDownloadCount(hash, viewerUsername string) error {
+func IncrementShareDownloadCount(identifier, viewerUsername string) error {
 	sharesMux.Lock()
 	defer sharesMux.Unlock()
-	link, exists := sharesByHash[hash]
+	link, exists := resolveShareLocked(identifier)
 	if !exists {
 		return fmt.Errorf("share not found in cache")
 	}
@@ -196,16 +222,17 @@ func IncrementShareDownloadCount(hash, viewerUsername string) error {
 	return sqlDb.SaveShare(link)
 }
 
-// DeleteShare deletes a share by hash
-func DeleteShare(hash string) error {
+// DeleteShare deletes a share by its presented identifier (custom alias) or internal hash.
+func DeleteShare(identifier string) error {
 	sharesMux.Lock()
 	defer sharesMux.Unlock()
 
 	// 1. Check if share exists in cache (state)
-	link, exists := sharesByHash[hash]
+	link, exists := resolveShareLocked(identifier)
 	if !exists {
 		return fmt.Errorf("share not found in cache")
 	}
+	hash := link.Hash
 
 	// 2. Delete from database
 	err := sqlDb.DeleteShare(hash)
@@ -233,6 +260,9 @@ func DeleteShare(hash string) error {
 
 	// 3. Remove from cache to match database
 	delete(sharesByHash, hash)
+	if link.Alias != "" {
+		delete(sharesByAlias, link.Alias)
+	}
 
 	// Remove from path index
 	pathKey := makePathKey(link.SourcePath, link.Path)
@@ -253,15 +283,16 @@ func DeleteShare(hash string) error {
 }
 
 // UpdateSharePath updates the path for a specific share
-func UpdateSharePath(hash, newPath string) error {
+func UpdateSharePath(identifier, newPath string) error {
 	sharesMux.Lock()
 	defer sharesMux.Unlock()
 
 	// 1. Check if share exists in cache (state)
-	link, exists := sharesByHash[hash]
+	link, exists := resolveShareLocked(identifier)
 	if !exists {
 		return fmt.Errorf("share not found in cache")
 	}
+	hash := link.Hash
 
 	oldPathKey := makePathKey(link.SourcePath, link.Path)
 
@@ -436,16 +467,24 @@ func PrepSharesForFrontend(viewer *users.User, r *http.Request, publicHost, publ
 		return u.Username
 	}
 	out := share.PrepForFrontend(viewer, r, publicHost, publicScheme, ownerLookup, links...)
-	enrichShareQuotaFields(out)
+	// Presented hashes are aliases; quota counters are keyed by the internal hash.
+	internalHashes := make([]string, 0, len(links))
+	for _, l := range links {
+		if l != nil {
+			internalHashes = append(internalHashes, l.Hash)
+		}
+	}
+	enrichShareQuotaFields(out, internalHashes)
 	return out
 }
 
-func enrichShareQuotaFields(out []*share.ShareFrontend) {
-	for _, s := range out {
-		if s == nil || s.QuotaLimitBytes <= 0 {
+// enrichShareQuotaFields fills quota fields. internalHashes[i] is the internal hash of out[i].
+func enrichShareQuotaFields(out []*share.ShareFrontend, internalHashes []string) {
+	for i, s := range out {
+		if s == nil || s.QuotaLimitBytes <= 0 || i >= len(internalHashes) {
 			continue
 		}
-		used, reserved := GetShareQuotaUsage(s.Hash)
+		used, reserved := GetShareQuotaUsage(internalHashes[i])
 		s.QuotaUsedBytes = used
 		s.QuotaReservedBytes = reserved
 		avail := s.QuotaLimitBytes - used - reserved

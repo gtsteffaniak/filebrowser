@@ -59,6 +59,18 @@
         :name="$t('profileSettings.showAdvancedProfile')"
         :description="$t('profileSettings.showAdvancedProfileDescription')"
       />
+      <ToggleSwitch
+        class="item"
+        :enforceable="enforceable"
+        :enforced="!!enforced.useCustomShare"
+        :model-value="account.useCustomShare !== false"
+        @update:model-value="(v) => emitAccountChange('useCustomShare', v)"
+        @update:enforced="(v) => emitEnforced('useCustomShare', v)"
+        :disabled="isFieldDisabled('useCustomShare')"
+        :value-tooltip="fieldDisabledTooltip('useCustomShare')"
+        :name="$t('share.customHash')"
+        :description="$t('profileSettings.useCustomShareDescription')"
+      />
       <div
         v-if="enforceable || account.maxConcurrentTranscodes !== undefined"
         class="settings-number-input item"
