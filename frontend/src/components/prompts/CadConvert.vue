@@ -200,14 +200,14 @@ export default {
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1rem;
-  background-color: var(--surface-secondary, #f1f3f4);
+  background-color: var(--surfaceSecondary);
   border-radius: 6px;
   font-weight: 500;
   margin-bottom: 1rem;
 }
 
 .file-icon {
-  color: var(--primary, #1a73e8);
+  color: var(--primaryColor);
 }
 
 .file-name {
@@ -226,20 +226,21 @@ export default {
 .target-card {
   padding: 0.75rem 1rem;
   border-radius: 6px;
-  border: 1px solid var(--border-color, #dadce0);
-  background-color: var(--surface-primary, #fff);
+  border: 1px solid var(--surfaceSecondary);
+  background-color: var(--surfaceSecondary);
+  color: var(--textPrimary);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .target-card:hover {
-  background-color: var(--surface-hover, rgb(0 0 0 / 3%));
-  border-color: var(--primary, #1a73e8);
+  background-color: color-mix(in srgb, var(--primaryColor) 12%, var(--surfaceSecondary));
+  border-color: var(--primaryColor);
 }
 
 .target-card.selected {
-  border-color: var(--primary, #1a73e8);
-  background-color: rgb(26 115 232 / 8%);
+  border-color: var(--primaryColor);
+  background-color: color-mix(in srgb, var(--primaryColor) 18%, var(--surfaceSecondary));
 }
 
 .target-card-header {
@@ -251,17 +252,18 @@ export default {
 
 .target-icon {
   font-size: 1.2rem;
-  color: var(--primary, #1a73e8);
+  color: var(--primaryColor);
 }
 
 .target-label {
   font-weight: 600;
   font-size: 0.95rem;
+  color: var(--textPrimary);
 }
 
 .target-desc {
   font-size: 0.8rem;
-  color: var(--text-secondary, #5f6368);
+  color: var(--textSecondary);
   display: block;
   margin-left: 1.7rem;
 }
@@ -299,6 +301,6 @@ export default {
 .loading-text {
   margin-top: 1rem;
   font-size: 0.9rem;
-  color: var(--text-secondary, #5f6368);
+  color: var(--textSecondary);
 }
 </style>

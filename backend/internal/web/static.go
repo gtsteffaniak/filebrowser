@@ -72,7 +72,8 @@ func recaptchaSettings(pwd settings.PasswordAuthConfig) (enabled bool, host, key
 
 // spaContentSecurityPolicy restricts only scripts. srcdoc preview frames inherit
 // this header, blocking inline scripts without limiting frames, images, or API calls.
-// worker-src blob: is required for Ace editor web workers (analytics/config preview).
+// worker-src blob: is required for Ace editor web workers (analytics/config preview)
+// and the CAD Web Worker; wasm-unsafe-eval lets that worker compile OpenSW WASM.
 func spaContentSecurityPolicy(nonce string) string {
 	policy := fmt.Sprintf(
 		"script-src 'self' 'nonce-%s' https://cdn.jsdelivr.net https://www.google.com https://www.gstatic.com",
@@ -81,6 +82,7 @@ func spaContentSecurityPolicy(nonce string) string {
 	for _, origin := range onlyOfficeScriptSrcOrigins() {
 		policy += " " + origin
 	}
+	policy += " 'wasm-unsafe-eval'"
 	policy += "; worker-src blob:"
 	return policy
 }
