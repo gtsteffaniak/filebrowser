@@ -53,6 +53,7 @@ type Environment struct {
 	IsCLIMode                        bool     `json:"-"` // true when running a CLI subcommand (user set, promote, etc.)
 	IsPlaywright                     bool     `json:"-"`
 	IsDevMode                        bool     `json:"-"`
+	UnsafeCustomShare                bool     `json:"-"` // true when UNSAFE_CUSTOM_SHARE=enabled; allows users to choose share URLs
 	IsFirstLoad                      bool     `json:"-"` // used internally to track if this is the first load of the application
 	ConfigUserDefaultsSpecified      bool     `json:"-"` // true when the config file contained a userDefaults section
 	ConfigUserDefaultsSpecifiedPaths []string `json:"-"` // dot-paths explicitly set under userDefaults in config

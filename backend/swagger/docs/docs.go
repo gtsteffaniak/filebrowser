@@ -8023,6 +8023,9 @@ const docTemplate = `{
                 "canEditShare": {
                     "type": "boolean"
                 },
+                "customHash": {
+                    "type": "string"
+                },
                 "description": {
                     "type": "string"
                 },

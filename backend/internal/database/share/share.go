@@ -96,9 +96,10 @@ type ShareFrontend struct {
 // Password omitted (nil) on update means keep the existing hash; empty string clears it.
 type SharePostBody struct {
 	ShareEditable
-	Password *string `json:"password,omitempty"`
-	Hash     string  `json:"hash,omitempty"`
-	Path     string  `json:"path,omitempty"`
+	Password   *string `json:"password,omitempty"`
+	Hash       string  `json:"hash,omitempty"`
+	Path       string  `json:"path,omitempty"`
+	CustomHash string  `json:"customHash,omitempty"`
 }
 
 // EditableFromShare returns the client-editable subset of a persisted share.

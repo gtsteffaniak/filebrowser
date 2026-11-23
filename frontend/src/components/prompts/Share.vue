@@ -129,6 +129,19 @@
             :aria-label="timeUnitLabel()"
           />
         </div>
+        <template v-if="canSetCustomHash">
+          <p>
+            {{ $t("share.customHash") }}
+            <HelpTooltipIcon :text="$t('share.customHashDescription')" />
+          </p>
+          <input class="input" type="text" autocomplete="off" maxlength="512" aria-label="Custom-Share-URL"
+            :placeholder="$t('share.customHashPlaceholder')" v-model.trim="customHash" />
+          <p v-if="customHash && !customHashValid" class="read-only-notice">{{ $t('share.customHashInvalid') }}</p>
+          <div class="warning-banner">
+            <i class="material-symbols">warning</i>
+            <span>{{ $t('share.customHashWarning') }}</span>
+          </div>
+        </template>
         <p>
           {{ $t("prompts.optionalPassword") }}
           <HelpTooltipIcon :text="$t('share.passwordDescription')" />
@@ -189,6 +202,7 @@ import { shareApi } from "@/api/index.js";
 import { copyToClipboard } from "@/utils/clipboard.js";
 import { fromNowSeconds } from "@/utils/moment.ts";
 import { buildItemUrl } from "@/utils/url.js";
+import { globalVars } from "@/utils/constants.ts";
 import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
 import SettingsTable from "@/components/settings/Table.vue";
 import ActivityViewerButton from "@/components/settings/ActivityViewerButton.vue";
@@ -245,6 +259,8 @@ export default {
       /** @type {Share[]} */
       links: [],
       password: "",
+      customHash: "",
+      pendingRefresh: false,
       listing: true,
       allowModify: false,
       disableDownload: false,
@@ -487,6 +503,12 @@ export default {
       const currentLink = this.isEditMode ? this.link : this.editingLink;
       return currentLink?.hasPassword;
     },
+    canSetCustomHash() {
+      return !!globalVars.unsafeCustomShare && !this.isEditMode && !this.editingLink;
+    },
+    customHashValid() {
+      return /^[A-Za-z0-9_-]{16,512}$/.test(this.customHash);
+    },
   },
   watch: {
     link() {
@@ -646,6 +668,12 @@ export default {
       await copyToClipboard(text);
     },
     async submit() {
+      if (this.pendingRefresh) {
+        if (await this.completeCreate()) {
+          this.resetAfterCreate();
+        }
+        return;
+      }
       if (this.hideFileExt !== "" && !this.validateExtensions(this.hideFileExt)) {
         notify.showError("Invalid input, does not match requirement.");
         return;
@@ -716,6 +744,14 @@ export default {
           payload.hash = this.editingLink.hash;
         }
 
+        if (this.canSetCustomHash && this.customHash) {
+          if (!this.customHashValid) {
+            notify.showError(this.$t("share.customHashInvalid"));
+            return;
+          }
+          payload.customHash = this.customHash;
+        }
+
         if (this.sourceReadOnly) {
           payload.shareType = 'normal';
           payload.allowModify = false;
@@ -731,24 +767,36 @@ export default {
           eventBus.emit('sharesChanged');
           mutations.closeTopPrompt();
         } else {
-          const refreshed = await this.refreshShares();
-          if (!refreshed) return;
-          this.editingLink = null;
-          eventBus.emit('sharesChanged');
+          // The share is committed: never resend the create request or the custom hash.
+          this.customHash = "";
+          this.pendingRefresh = true;
+          if (!(await this.completeCreate())) return;
         }
 
-        this.time = "";
-        this.unit = "hours";
-        this.password = "";
-        this.isChangingPassword = false;
-
-        this.listing = true;
+        this.resetAfterCreate();
       } catch (err) {
         if (!err.message) {
           // didn't come from api, show error to user
           notify.showError(err);
         }
       }
+    },
+    async completeCreate() {
+      const refreshed = await this.refreshShares();
+      if (!refreshed) return false;
+      this.pendingRefresh = false;
+      this.editingLink = null;
+      eventBus.emit('sharesChanged');
+      return true;
+    },
+    resetAfterCreate() {
+      this.time = "";
+      this.unit = "hours";
+      this.password = "";
+      this.customHash = "";
+      this.isChangingPassword = false;
+
+      this.listing = true;
     },
     async refreshShares() {
       if (this.isEditMode) return true;
@@ -861,6 +909,7 @@ export default {
         // Clear editing link when switching to create new share
         this.editingLink = null;
         this.isChangingPassword = false;
+        this.customHash = "";
         this.resetQuotaForm();
         // Set default sidebar links for new shares
         this.setDefaultSidebarLinks();

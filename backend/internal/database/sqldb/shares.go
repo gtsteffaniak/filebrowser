@@ -81,6 +81,16 @@ func (s *SQLStore) GetShareByHash(hash string) (*share.Share, error) {
 	return &link, nil
 }
 
+// ShareHashExists reports whether a share row with this hash is persisted, including expired shares.
+func (s *SQLStore) ShareHashExists(hash string) (bool, error) {
+	var exists int
+	err := s.db.QueryRow(`SELECT EXISTS(SELECT 1 FROM shares WHERE hash = ?)`, hash).Scan(&exists)
+	if err != nil {
+		return false, fmt.Errorf("failed to check share hash: %w", err)
+	}
+	return exists == 1, nil
+}
+
 // GetSharesByUserID retrieves all non-expired shares for an owner user id.
 func (s *SQLStore) GetSharesByUserID(userID uint64) ([]*share.Share, error) {
 	now := time.Now().Unix()

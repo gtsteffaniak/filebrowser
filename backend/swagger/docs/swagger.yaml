@@ -1743,6 +1743,8 @@ definitions:
         type: string
       canEditShare:
         type: boolean
+      customHash:
+        type: string
       description:
         type: string
       disableAnonymous:
