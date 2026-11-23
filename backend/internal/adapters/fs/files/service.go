@@ -96,5 +96,5 @@ func (s *Service) GetDirItems(opts utils.FileOptions, user *users.User) (Items, 
 
 // MoveResource moves a file or directory and updates access rules when needed.
 func (s *Service) MoveResource(isSrcDir bool, sourceIndex, destIndex, realsrc, realdst string) error {
-	return moveResourceImpl(isSrcDir, sourceIndex, destIndex, realsrc, realdst, s)
+	return moveResourceImpl(isSrcDir, sourceIndex, destIndex, realsrc, realdst, s, false)
 }

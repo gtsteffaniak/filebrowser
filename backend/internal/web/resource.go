@@ -1664,6 +1664,7 @@ func ResourcePatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 			dst:      realDest,
 			d:        d,
 			isSrcDir: isSrcDir,
+			overwrite: req.Overwrite && !req.Rename,
 		})
 		if err != nil {
 			releaseCopyMoveQuota(patchSessionID)
@@ -1820,6 +1821,7 @@ type patchActionParams struct {
 	dst      string
 	d        *Context
 	isSrcDir bool
+	overwrite bool
 }
 
 func patchAction(ctx context.Context, params patchActionParams) error {
@@ -1852,7 +1854,11 @@ func patchAction(ctx context.Context, params patchActionParams) error {
 
 		// delete thumbnails
 		preview.DelThumbs(ctx, *fileInfo)
-		err = files.MoveResource(params.isSrcDir, params.srcIndex, params.dstIndex, params.src, params.dst)
+		if params.action == "move" && params.overwrite && params.isSrcDir {
+			err = files.MoveResourceMerge(params.isSrcDir, params.srcIndex, params.dstIndex, params.src, params.dst)
+		} else {
+			err = files.MoveResource(params.isSrcDir, params.srcIndex, params.dstIndex, params.src, params.dst)
+		}
 		if err != nil {
 			return err
 		}
