@@ -7456,6 +7456,10 @@ const docTemplate = `{
                     "description": "comma separated list of file extensions to disable viewing for",
                     "type": "string"
                 },
+                "preferEditorForHtml": {
+                    "description": "prefer editor first for HTML files instead of the HTML viewer",
+                    "type": "boolean"
+                },
                 "preferEditorForMarkdown": {
                     "description": "prefer editor first for markdown files instead of the Markdown Viewer",
                     "type": "boolean"
@@ -8330,6 +8334,10 @@ const docTemplate = `{
                             "$ref": "#/definitions/users.Permissions"
                         }
                     ]
+                },
+                "preferEditorForHtml": {
+                    "description": "prefer editor first for HTML files instead of the HTML viewer",
+                    "type": "boolean"
                 },
                 "preferEditorForMarkdown": {
                     "description": "prefer editor first for markdown files instead of the Markdown Viewer",

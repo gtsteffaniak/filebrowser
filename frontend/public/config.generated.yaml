@@ -212,6 +212,7 @@ userDefaults:                             # optional signup/CLI defaults; per-us
     disableViewingExt: ""                 # comma separated list of file extensions to disable viewing for
     disableOnlyOfficeExt: ".md .txt .pdf .html .xml" # list of file extensions to disable onlyoffice editor for
     preferEditorForMarkdown: false        # prefer editor first for markdown files instead of the Markdown Viewer
+    preferEditorForHtml: false            # prefer editor first for HTML files instead of the HTML viewer
     debugOffice: false                    # debug onlyoffice editor
   search:
     disableOptions: false                 # disable the search options in the search bar
