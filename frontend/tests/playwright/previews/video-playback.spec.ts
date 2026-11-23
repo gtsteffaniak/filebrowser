@@ -57,7 +57,7 @@ test("wmv preview requires transcoding", async ({ page, checkForErrors }) => {
   // rather than the generic "no preview" screen.
   // In offer mode the page shows the title (not .transcode-offer-message, which is
   // only rendered for the other modes) and the Transcode button.
-  const title = page.locator(".info .title");
+  const title = page.locator(".preview-notice .title");
   await expect(title).toBeVisible({ timeout: 15_000 });
   await expect(title).toContainText("not supported by your browser");
   await expect(page.locator('button[aria-label="Transcode"]')).toBeVisible();
