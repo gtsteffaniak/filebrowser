@@ -681,6 +681,7 @@ func TestManagerRepositionsSeekBeyondProducedEdge(t *testing.T) {
 
 	in := testInput(t, "seeker", "/v.mp4")
 	first := mustStart(t, mgr, in)
+	waitForStarts(t, engine, 1)
 	// Segments 0..4 produced: edge at 20s on the 4s grid.
 	genDir := sessionJobDir(t, mgr, first.ID)
 	waitForPlaylistFile(t, genDir)

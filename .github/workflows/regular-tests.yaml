@@ -14,6 +14,8 @@ jobs:
       - uses: actions/setup-go@v6
         with:
           go-version: 'stable'
+      - name: Install ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg
       - working-directory: backend
         run: go test -race ./... -timeout 45s
   lint-backend:

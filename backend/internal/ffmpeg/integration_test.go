@@ -3,7 +3,6 @@ package ffmpeg
 import (
 	"context"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"sync"
 	"testing"
@@ -12,6 +11,7 @@ import (
 	"github.com/gtsteffaniak/go-ffmpeg/capabilities"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/mediacache"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/testutil"
 )
 
 const testFixtureMP4 = "../../../frontend/tests/playwright-files/myfolder/testdata/sample-640x480.mp4"
@@ -23,15 +23,7 @@ var (
 
 func requireFFmpegBinaries(t *testing.T) {
 	t.Helper()
-	if os.Getenv("GOFFMPEG_FFMPEG_PATH") != "" {
-		return
-	}
-	if _, err := exec.LookPath("ffmpeg"); err != nil {
-		t.Skip("ffmpeg not available")
-	}
-	if _, err := exec.LookPath("ffprobe"); err != nil {
-		t.Skip("ffprobe not available")
-	}
+	testutil.SkipIfNoFFmpeg(t)
 }
 
 // initIntegrationService starts the global ffmpeg service once for subprocess

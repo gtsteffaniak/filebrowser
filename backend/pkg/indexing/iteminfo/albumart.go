@@ -281,10 +281,10 @@ func id3WalkFrames(r io.ReaderAt, version, flags byte, start, scanEnd, boundEnd 
 
 // id3WalkResult is the outcome of one ID3v2 frame walk.
 type id3WalkResult struct {
-	found       bool // an embedded picture frame was reached
-	malformed   bool // the walk stopped at a frame that is neither valid nor padding
-	ambiguous   bool // a synchsafe frame size differs from its plain 32-bit reading
-	paddingEnd  bool // the walk ended on tag padding that runs to boundEnd
+	found      bool // an embedded picture frame was reached
+	malformed  bool // the walk stopped at a frame that is neither valid nor padding
+	ambiguous  bool // a synchsafe frame size differs from its plain 32-bit reading
+	paddingEnd bool // the walk ended on tag padding that runs to boundEnd
 }
 
 // id3Walk visits frame headers from pos while they start before scanEnd.
@@ -726,35 +726,6 @@ func vorbisCommentHasPicture(pr packetReader) (bool, error) {
 		}
 	}
 	return false, nil
-}
-
-// packetPictureMatchOK rejects a picture comment match when the underlying
-// Ogg packet has no terminating segment yet (a 255-byte lacing continuation
-// with no following data). Other packet readers always return true.
-func packetPictureMatchOK(pr packetReader) bool {
-	op, isOgg := pr.(*oggPacketReader)
-	if !isOgg {
-		if bp, isBounded := pr.(*boundedPacket); isBounded {
-			op, isOgg = bp.pr.(*oggPacketReader)
-		}
-	}
-	if !isOgg {
-		return true
-	}
-	if op.ended {
-		return true
-	}
-	if op.seg >= len(op.lacing) {
-		return false
-	}
-	if op.lacing[op.seg] < 255 {
-		return true
-	}
-	if op.segRead < int64(op.lacing[op.seg]) {
-		return true // still inside a segment
-	}
-	// On a 255 continuation with no next segment loaded, require another page.
-	return op.seg+1 < len(op.lacing)
 }
 
 // vorbisPictureComment reports whether a comment of total size length, whose

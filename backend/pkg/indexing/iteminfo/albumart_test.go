@@ -351,6 +351,9 @@ func TestHasAlbumArtFFmpeg(t *testing.T) {
 	if _, err := exec.LookPath("ffmpeg"); err != nil {
 		t.Skip("ffmpeg not installed")
 	}
+	if _, err := exec.LookPath("ffprobe"); err != nil {
+		t.Skip("ffprobe not installed")
+	}
 	dir := t.TempDir()
 	cover := filepath.Join(dir, "cover.png")
 	coverData := writeTestCoverPNG(t, cover)
@@ -364,7 +367,7 @@ func TestHasAlbumArtFFmpeg(t *testing.T) {
 
 	encOut, err := exec.Command("ffmpeg", "-hide_banner", "-encoders").CombinedOutput()
 	if err != nil {
-		t.Fatalf("ffmpeg -encoders: %v\n%s", err, encOut)
+		t.Skipf("ffmpeg -encoders: %v\n%s", err, encOut)
 	}
 	encoders := map[string]bool{}
 	for _, line := range strings.Split(string(encOut), "\n") {
@@ -405,7 +408,7 @@ func TestHasAlbumArtFFmpeg(t *testing.T) {
 			path := filepath.Join(dir, tc.name)
 			out, err := exec.Command("ffmpeg", append(append([]string{"-v", "error", "-y"}, tc.args...), path)...).CombinedOutput()
 			if err != nil {
-				t.Fatalf("ffmpeg could not write %s: %v\n%s", tc.name, err, out)
+				t.Skipf("ffmpeg could not write %s: %v\n%s", tc.name, err, out)
 			}
 			if got := HasAlbumArt(path, filepath.Ext(path)); got != tc.want {
 				t.Fatalf("HasAlbumArt(%s) = %v, want %v", tc.name, got, tc.want)
