@@ -533,9 +533,7 @@ func TestManagerCloseWaitsForProducers(t *testing.T) {
 	mgr, _ := newTestManager(t, engine)
 
 	info := mustStart(t, mgr, testInput(t, "close-user", "/close.mp4"))
-	pollUntil(t, 2*time.Second, func() bool {
-		return producerFor(t, mgr, info.ID) != nil
-	}, "producer registration")
+	waitForProducerVODJobAttached(t, mgr, info.ID)
 
 	closeCtx, closeCancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer closeCancel()

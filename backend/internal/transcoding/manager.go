@@ -763,21 +763,25 @@ func (m *Manager) runProducerJob(ctx context.Context, gen, jobDir, realPath stri
 	planCopy := plan
 	var vodSess *ffmpeg.HLSVODSession
 	m.mu.Lock()
-	if p := m.producerForGenerationLocked(gen); p != nil {
-		if p.vodRestartIndex >= 0 {
-			startIndex = p.vodRestartIndex
-			p.startIndex = startIndex
-			p.startSec = vodPlaylistStartSec(plan, startIndex)
-			p.encodeHead = startIndex
-			p.vodRestartIndex = -1
-		}
-		// Launching a job means the producer is no longer parked.
-		p.suspended = false
-		p.jobStarting = true
-		planCopy.vodClearFromIndex = p.clearSegmentsOnStart
-		p.clearSegmentsOnStart = false
-		vodSess = p.vodSession
+	p := m.producerForGenerationLocked(gen)
+	if p == nil {
+		m.mu.Unlock()
+		cancel()
+		return producerGone
 	}
+	if p.vodRestartIndex >= 0 {
+		startIndex = p.vodRestartIndex
+		p.startIndex = startIndex
+		p.startSec = vodPlaylistStartSec(plan, startIndex)
+		p.encodeHead = startIndex
+		p.vodRestartIndex = -1
+	}
+	// Launching a job means the producer is no longer parked.
+	p.suspended = false
+	p.jobStarting = true
+	planCopy.vodClearFromIndex = p.clearSegmentsOnStart
+	p.clearSegmentsOnStart = false
+	vodSess = p.vodSession
 	m.mu.Unlock()
 	job, err := m.engine.StartVODJob(jobCtx, realPath, jobDir, planCopy, startIndex, vodSess)
 	if err != nil {

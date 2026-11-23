@@ -25,6 +25,17 @@ func box(typ string, payload ...[]byte) []byte {
 	return append(out, body...)
 }
 
+// boxLarge builds an MP4 box with a 64-bit extended size field (size=1).
+func boxLarge(typ string, payload ...[]byte) []byte {
+	body := bytes.Join(payload, nil)
+	total := uint64(16 + len(body))
+	out := make([]byte, 16, 16+len(body))
+	binary.BigEndian.PutUint32(out, 1)
+	copy(out[4:], typ)
+	binary.BigEndian.PutUint64(out[8:], total)
+	return append(out, body...)
+}
+
 // metaLayout selects how m4aFixture lays out the meta box.
 type metaLayout int
 
@@ -33,6 +44,7 @@ const (
 	metaQuickTime                       // plain container: hdlr, ilst
 	metaQuickTimeFree                   // plain container: free, hdlr, ilst
 	metaISOFree                         // full box: version/flags, free, hdlr, ilst
+	metaQuickTimeExtHdlr                // plain container: extended-size hdlr, ilst
 )
 
 // m4aFixture builds an M4A file with an mdat of mdatSize bytes. moovFirst puts
@@ -51,6 +63,8 @@ func m4aFixture(mdatSize int, moovFirst, withCover bool, layout metaLayout) []by
 	switch layout {
 	case metaQuickTime:
 		meta = box("meta", hdlr, ilst)
+	case metaQuickTimeExtHdlr:
+		meta = box("meta", boxLarge("hdlr", make([]byte, 8), []byte("mdirappl"), make([]byte, 9)), ilst)
 	case metaQuickTimeFree:
 		meta = box("meta", free, hdlr, ilst)
 	case metaISOFree:
@@ -262,6 +276,7 @@ func TestHasAlbumArtSynthetic(t *testing.T) {
 		{"not ogg", ".ogg", []byte("RIFF....WAVEfmt "), false},
 
 		{"m4a quicktime meta with leading free", ".m4a", m4aFixture(4096, false, true, metaQuickTimeFree), true},
+		{"m4a quicktime meta with extended-size hdlr", ".m4a", m4aFixture(4096, false, true, metaQuickTimeExtHdlr), true},
 		{"m4a iso meta with leading free", ".m4a", m4aFixture(4096, false, true, metaISOFree), true},
 		{"m4a cover data truncated", ".m4a", truncatedCover, false},
 		{"mp3 unsynchronised v2.3 with 300KB APIC first", ".mp3", id3Tag(3, 0x80, id3Frame(3, "APIC", apicFrame("image/jpeg", bigCover)), id3Frame(3, "TIT2", []byte("\x00t"))), true},

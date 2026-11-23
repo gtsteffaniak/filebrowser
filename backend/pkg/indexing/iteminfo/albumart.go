@@ -918,14 +918,32 @@ func (w *mp4Walker) metaHasCover(meta mp4Box) (bool, error) {
 // zero), which never read as a valid header, so this tells the meta layouts
 // apart without assuming which child comes first.
 func (w *mp4Walker) plausibleChild(pos, end int64) bool {
-	var h [8]byte
-	if pos+8 > end || readFullAt(w.r, h[:], pos) != nil {
+	var h [16]byte
+	if pos+8 > end || readFullAt(w.r, h[:8], pos) != nil {
 		return false
 	}
 	size := int64(binary.BigEndian.Uint32(h[:4]))
+	hdrLen := int64(8)
+	switch size {
+	case 0:
+		size = end - pos
+	case 1:
+		if pos+16 > end || readFullAt(w.r, h[8:16], pos+8) != nil {
+			return false
+		}
+		large := binary.BigEndian.Uint64(h[8:16])
+		if large > uint64(end-pos) {
+			return false
+		}
+		size = int64(large)
+		hdrLen = 16
+	}
+	if size < hdrLen || size > end-pos {
+		return false
+	}
 	var typ [4]byte
 	copy(typ[:], h[4:8])
-	return size >= 8 && size <= end-pos && printableFourCC(typ)
+	return printableFourCC(typ)
 }
 
 // printableFourCC reports whether t is four printable ASCII bytes.
