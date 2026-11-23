@@ -237,10 +237,12 @@ async function loadAndCommit(identity: string, isStale: () => boolean) {
   if (isAv) {
     avMetadataLoading.value = true;
     if (mediaEnrichDoneForPath !== identity) {
-      mediaEnrichDoneForPath = identity;
-      await enrichAvFromMediaApi(isStale);
+      const applied = await enrichAvFromMediaApi(isStale);
       if (isStale()) {
         return;
+      }
+      if (applied) {
+        mediaEnrichDoneForPath = identity;
       }
     }
   } else {
@@ -305,13 +307,13 @@ async function loadLyrics(): Promise<LyricLines> {
 }
 
 /** GET /api/media/metadata?albumArt=true - subtitles, duration, embedded cover for the viewer. */
-async function enrichAvFromMediaApi(isStale: () => boolean) {
+async function enrichAvFromMediaApi(isStale: () => boolean): Promise<boolean> {
   if (isStale()) {
-    return;
+    return false;
   }
   const currentReq = state.req;
   if (!getters.isShare() && !getters.isLoggedIn()) {
-    return;
+    return false;
   }
   try {
     const enriched = await mediaApi.getItemMediaMetadata(currentReq.path as string, {
@@ -319,16 +321,18 @@ async function enrichAvFromMediaApi(isStale: () => boolean) {
       albumArt: true,
     });
     if (isStale()) {
-      return;
+      return false;
     }
     if (enriched && enriched.type !== "directory") {
       mutations.patchRequestFileMediaMetadata(
         enriched as Parameters<typeof mutations.patchRequestFileMediaMetadata>[0],
       );
+      return true;
     }
   } catch (e) {
     console.warn("Preview: media metadata fetch failed", e);
   }
+  return false;
 }
 
 async function subtitles(): Promise<SubtitleSource[]> {

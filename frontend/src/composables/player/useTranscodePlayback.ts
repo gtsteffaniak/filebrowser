@@ -169,6 +169,8 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
   let attachVideoStreamResume: (() => void) | null = null;
   /** Cancels the native resume in flight */
   let cancelNativeResume: (() => void) | null = null;
+  let fileGeneration = 0;
+  let nativeListenerCleanups: Array<() => void> = [];
   let offerRequestId = 0;
   let offerLookupPending = false;
   let startPreparationId = 0;
@@ -454,16 +456,39 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
     }
   }
 
+  function listenOnceForFile(el: HTMLMediaElement, type: string, handler: () => void, generation: number): void {
+    const cleanup = () => {
+      el.removeEventListener(type, listener);
+      nativeListenerCleanups = nativeListenerCleanups.filter((fn) => fn !== cleanup);
+    };
+    const listener = () => {
+      cleanup();
+      if (generation === fileGeneration) {
+        handler();
+      }
+    };
+    el.addEventListener(type, listener);
+    nativeListenerCleanups.push(cleanup);
+  }
+
+  function cancelNativeAttach(): void {
+    fileGeneration++;
+    for (const cleanup of nativeListenerCleanups.splice(0)) {
+      cleanup();
+    }
+  }
+
   async function attachVideoStreamAndPlay(): Promise<void> {
     if (isTornDown() || videoStreamAttached.value || !getRaw()) {
       return;
     }
+    const generation = fileGeneration;
     videoStreamAttached.value = true;
     onStreamAttach();
     await nextTick();
     await nextTick();
     const el = getVideoElement();
-    if (isTornDown() || !el) {
+    if (generation !== fileGeneration || isTornDown() || !el) {
       return;
     }
     const snap = resumeSnapshot.value;
@@ -481,13 +506,13 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
       if (el.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) {
         onCanPlay();
       } else {
-        el.addEventListener("canplay", onCanPlay, { once: true });
+        listenOnceForFile(el, "canplay", onCanPlay, generation);
       }
     }
 
     const startDefault = () => {
       clearAttachVideoStreamWait();
-      if (isTornDown()) {
+      if (generation !== fileGeneration || isTornDown()) {
         return;
       }
       void el.play().catch(() => {});
@@ -501,7 +526,7 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
       if (el.readyState >= HTMLMediaElement.HAVE_METADATA) {
         onMeta();
       } else {
-        el.addEventListener("loadedmetadata", onMeta, { once: true });
+        listenOnceForFile(el, "loadedmetadata", onMeta, generation);
       }
     };
 
@@ -511,7 +536,7 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
       if (el.readyState >= HTMLMediaElement.HAVE_METADATA) {
         start();
       } else {
-        el.addEventListener("loadedmetadata", start, { once: true });
+        listenOnceForFile(el, "loadedmetadata", start, generation);
       }
     } else {
       start();
@@ -531,13 +556,17 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
     if (isTornDown() || !el || snapshot?.wasPlaying === false) {
       return;
     }
+    const generation = fileGeneration;
     const tryPlay = () => {
-      if (isTornDown()) {
+      if (generation !== fileGeneration || isTornDown()) {
         return;
       }
       const playCall = getNativePlay() ?? (() => player.value?.play?.() ?? el.play());
       void Promise.resolve(playCall())
         .then(() => {
+          if (generation !== fileGeneration) {
+            return;
+          }
           mutations.setPlaybackState(true);
           onPlaybackStart();
         })
@@ -550,7 +579,7 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
       tryPlay();
       return;
     }
-    el.addEventListener("canplay", tryPlay, { once: true });
+    listenOnceForFile(el, "canplay", tryPlay, generation);
   }
 
   function resolveViewTokenForTranscode(): string {
@@ -607,11 +636,14 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
   }
   /** Looks up the session status and shows the offer for it */
   async function loadAndShowTranscodeOffer(): Promise<void> {
+    const requestId = ++offerRequestId;
+    offerLookupPending = true;
     try {
       const status = await getTranscodeSessions();
-      if (isTornDown()) {
+      if (requestId !== offerRequestId || isTornDown()) {
         return;
       }
+      offerLookupPending = false;
       showTranscodeOffer(
         normalizeTranscodeSessionStatus(status, {
           source: getReq()?.source,
@@ -619,10 +651,12 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
         }),
       );
     } catch (err) {
-      console.error("Failed to check transcode sessions:", err);
-      if (!isTornDown()) {
-        showTranscodeOffer({ enabled: false, canStart: false, sessions: [] });
+      if (requestId !== offerRequestId || isTornDown()) {
+        return;
       }
+      offerLookupPending = false;
+      console.error("Failed to check transcode sessions:", err);
+      showTranscodeOffer({ enabled: false, canStart: false, sessions: [] });
     }
   }
 
@@ -1051,9 +1085,14 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
       currentTime: player.value?.currentTime,
     });
     transcodeSwitchInProgress.value = true;
+    const generation = fileGeneration;
     // Capture before mode/teardown changes so same-file profile switches always
     // send replaceSessionId even if the controller is mid-start.
     const replaceSessionId = transcodePlayback.value?.sessionController?.session?.id ?? (await resolveReuseSessionId());
+    if (generation !== fileGeneration) {
+      transcodeSwitchInProgress.value = false;
+      return;
+    }
     transcodeMode.value = mode;
     if (TRANSCODE_HLS_MODES.includes(mode)) {
       savePreferredTranscodeMode(mode);
@@ -1232,6 +1271,7 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
 
   /** Back to the per-file defaults (new file, or the offer was accepted). */
   function resetFileState(): void {
+    cancelNativeAttach();
     cancelNativeResume?.();
     invalidateOfferRequest();
     startPreparationId++;
@@ -1274,6 +1314,7 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
     disposeTranscodeController,
     attachVideoStreamAndPlay,
     clearAttachVideoStreamWait,
+    cancelNativeAttach,
     disarmResumeOnNextGesture,
     syncPlaybackUrl,
     startVideoTranscode,

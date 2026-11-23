@@ -290,6 +290,7 @@ const {
   disposeTranscodeController,
   attachVideoStreamAndPlay,
   clearAttachVideoStreamWait,
+  cancelNativeAttach,
   disarmResumeOnNextGesture,
   startVideoTranscode,
   onVideoLoadedMetadata,
@@ -430,6 +431,7 @@ const {
   destroy,
   beforeStopMedia: clearAttachVideoStreamWait,
   onReleaseFile: () => {
+    cancelNativeAttach();
     teardownTranscodePlayback({ stopSession: true });
     disarmResumeOnNextGesture();
   },

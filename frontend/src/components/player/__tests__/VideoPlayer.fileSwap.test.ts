@@ -213,6 +213,7 @@ vi.mock("@/composables/player/useTranscodePlayback.ts", async () => {
         disposeTranscodeController: hoisted.dispose,
         attachVideoStreamAndPlay: hoisted.attachStream,
         clearAttachVideoStreamWait: vi.fn(),
+        cancelNativeAttach: vi.fn(),
         disarmResumeOnNextGesture: vi.fn(),
         startVideoTranscode: async () => {
           if (!hoisted.acceptOffer) return false;
