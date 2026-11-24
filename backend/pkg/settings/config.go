@@ -93,10 +93,6 @@ func setupEnv() {
 	if Env.IsDevMode {
 		logger.Warning("Running in dev mode. This is not recommended for production.")
 	}
-	Env.UnsafeCustomShare = strings.TrimSpace(os.Getenv("UNSAFE_CUSTOM_SHARE")) == "enabled"
-	if Env.UnsafeCustomShare {
-		logger.Warning("UNSAFE_CUSTOM_SHARE is enabled: users with share permission can choose share URLs. Custom share URLs are guessable; protect them with a password.")
-	}
 }
 
 func setupHttp() {
@@ -1071,6 +1067,7 @@ func SetDefaults(generate bool) Settings {
 				LoginMethod:                "",
 				DisableUpdateNotifications: false,
 				ShowAdvancedProfile:        false,
+				AllowCustomShareURL:        boolPtr(false),
 				MaxConcurrentTranscodes:    1,
 			},
 		},

@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-const shareSelectColumns = `hash, user_id, source, path, expire, downloads,
+const shareSelectColumns = `hash, alias, user_id, source, path, expire, downloads,
 			  password_hash, user_downloads, share_settings, version`
 
 func sharesTableHasColumn(db *sql.DB, column string) (bool, error) {

@@ -30,6 +30,7 @@ var (
 
 	// In-memory caches (authoritative at runtime after Initialize for shares/access/index; users use TTL cache)
 	sharesByHash    map[string]*share.Share
+	sharesByAlias   map[string]string   // custom alias -> internal share hash (write-through with sharesByHash)
 	sharesByPath    map[string][]string // "source:path" -> []hash
 	indexInfoByPath map[string]*dbindex.IndexInfo
 
@@ -98,6 +99,7 @@ func initialize(dbPath string) (bool, error) {
 	users.SetUsernameToID(UserIDForUsername)
 
 	newSharesByHash := make(map[string]*share.Share)
+	newSharesByAlias := make(map[string]string)
 	newSharesByPath := make(map[string][]string)
 	sharesList, err := sqlDb.ListAllShares()
 	if err != nil {
@@ -105,6 +107,9 @@ func initialize(dbPath string) (bool, error) {
 	}
 	for _, link := range sharesList {
 		newSharesByHash[link.Hash] = link
+		if link.Alias != "" {
+			newSharesByAlias[link.Alias] = link.Hash
+		}
 		pathKey := makePathKey(link.SourcePath, link.Path)
 		newSharesByPath[pathKey] = append(newSharesByPath[pathKey], link.Hash)
 	}
@@ -187,6 +192,7 @@ func initialize(dbPath string) (bool, error) {
 	sharesMux.Lock()
 	indexMux.Lock()
 	sharesByHash = newSharesByHash
+	sharesByAlias = newSharesByAlias
 	sharesByPath = newSharesByPath
 	indexInfoByPath = newIndexInfoByPath
 	accessDb = newAccessDb

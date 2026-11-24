@@ -10,23 +10,7 @@ import (
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/share"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
-	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 )
-
-func TestValidateCustomShareHash(t *testing.T) {
-	valid := []string{"a", "workfiles", "my-share_01", strings.Repeat("x", 64)}
-	for _, h := range valid {
-		if err := validateCustomShareHash(h); err != nil {
-			t.Errorf("validateCustomShareHash(%q) unexpected error: %v", h, err)
-		}
-	}
-	invalid := []string{"", "has space", "a/b", "a.b", "../x", "héllo", "a?b", "a#b", strings.Repeat("x", 65)}
-	for _, h := range invalid {
-		if err := validateCustomShareHash(h); err == nil {
-			t.Errorf("validateCustomShareHash(%q) expected error", h)
-		}
-	}
-}
 
 func postCreateWithCustomHash(t *testing.T, user *Context, customHash string) (int, error) {
 	t.Helper()
@@ -45,25 +29,39 @@ func postCreateWithCustomHash(t *testing.T, user *Context, customHash string) (i
 	return sharePostHandler(rec, req, user)
 }
 
-func TestSharePostCustomHash_RejectedWhenDisabled(t *testing.T) {
-	owner, _, _ := setupShareAuthTestUsers(t)
-	settings.Env.UnsafeCustomShare = false
-
-	status, _ := postCreateWithCustomHash(t, &Context{User: owner}, "workfiles")
-	if status != http.StatusForbidden {
-		t.Fatalf("expected 403 when UNSAFE_CUSTOM_SHARE is disabled, got %d", status)
+func TestValidateCustomShareHashCharset(t *testing.T) {
+	invalid := []string{"has space", "a/b", "a.b", "../x-with-enough-length", "héllo-with-long-name", "a?b-with-long-name"}
+	for _, h := range invalid {
+		if err := validateCustomShareHash(h); err == nil {
+			t.Errorf("validateCustomShareHash(%q) expected error", h)
+		}
 	}
-	if state.ShareHashExists("workfiles") {
-		t.Fatalf("custom share must not be created when feature is disabled")
+	if err := validateCustomShareHash(strings.Repeat("x", 16)); err != nil {
+		t.Errorf("16-character hash should be valid: %v", err)
+	}
+}
+
+func TestSharePostCustomHash_RejectedWhenUserDisabled(t *testing.T) {
+	owner, _, _ := setupShareAuthTestUsers(t)
+	owner.AllowCustomShareURL = false
+
+	status, err := postCreateWithCustomHash(t, &Context{User: owner}, "workfiles-q3-review-2026")
+	if status != http.StatusForbidden {
+		t.Fatalf("expected 403 when allowCustomShareURL is disabled for the user, got %d", status)
+	}
+	if err == nil || !strings.Contains(err.Error(), "not enabled for your account") {
+		t.Fatalf("expected account-level error message, got %v", err)
+	}
+	if state.ShareHashExists("workfiles-q3-review-2026") {
+		t.Fatalf("custom share must not be created when disabled for the user")
 	}
 }
 
 func TestSharePostCustomHash_RejectsInvalidAndDuplicate(t *testing.T) {
 	owner, _, _ := setupShareAuthTestUsers(t)
-	settings.Env.UnsafeCustomShare = true
-	t.Cleanup(func() { settings.Env.UnsafeCustomShare = false })
+	owner.AllowCustomShareURL = true
 
-	if status, _ := postCreateWithCustomHash(t, &Context{User: owner}, "bad/hash"); status != http.StatusBadRequest {
+	if status, _ := postCreateWithCustomHash(t, &Context{User: owner}, "bad/hash-with-enough-length"); status != http.StatusBadRequest {
 		t.Fatalf("expected 400 for invalid hash, got %d", status)
 	}
 
