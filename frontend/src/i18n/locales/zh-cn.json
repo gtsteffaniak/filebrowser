@@ -193,6 +193,8 @@
     "generateNewOtp": "重置并生成新的双因素代码",
     "copyFile": "复制文件",
     "copyPath": "复制路径",
+    "copyUrl": "复制 URL",
+    "copyWebdavUrl": "复制 WebDAV URL",
     "copyToClipboard": "复制到剪贴板",
     "copyDownloadLinkToClipboard": "将下载链接复制到剪贴板",
     "moveFile": "移动文件",

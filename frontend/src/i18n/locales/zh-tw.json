@@ -193,6 +193,8 @@
     "generateNewOtp": "重設並產生新的雙因素驗證碼",
     "copyFile": "複製檔案",
     "copyPath": "複製路徑",
+    "copyUrl": "複製 URL",
+    "copyWebdavUrl": "複製 WebDAV URL",
     "copyToClipboard": "複製到剪貼簿",
     "copyDownloadLinkToClipboard": "複製下載連結到剪貼簿",
     "moveFile": "移動檔案",

@@ -193,6 +193,8 @@
     "generateNewOtp": "Επαναφορά και δημιουργία νέου κωδικού δύο παραγόντων",
     "copyFile": "Αντιγραφή αρχείου",
     "copyPath": "Αντιγραφή διαδρομής",
+    "copyUrl": "Αντιγραφή URL",
+    "copyWebdavUrl": "Αντιγραφή URL WebDAV",
     "copyToClipboard": "Αντιγραφή στο πρόχειρο",
     "copyDownloadLinkToClipboard": "Αντιγραφή συνδέσμου λήψης στο πρόχειρο",
     "moveFile": "Μετακίνηση αρχείου",

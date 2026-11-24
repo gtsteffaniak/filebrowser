@@ -193,6 +193,8 @@
     "generateNewOtp": "Új kétfaktoros kód visszaállítása és generálása",
     "copyFile": "Fájl másolása",
     "copyPath": "Másolás útvonal",
+    "copyUrl": "URL másolása",
+    "copyWebdavUrl": "WebDAV URL másolása",
     "copyToClipboard": "Másolás vágólapra",
     "copyDownloadLinkToClipboard": "Letöltési link másolása a vágólapra",
     "moveFile": "Fájl mozgatása",

@@ -192,6 +192,8 @@ export interface MessageParams {
   "buttons.generateNewOtp": never;
   "buttons.copyFile": never;
   "buttons.copyPath": never;
+  "buttons.copyUrl": never;
+  "buttons.copyWebdavUrl": never;
   "buttons.copyToClipboard": never;
   "buttons.copyDownloadLinkToClipboard": never;
   "buttons.moveFile": never;

@@ -193,6 +193,8 @@
     "generateNewOtp": "Sıfırla ve yeni iki faktörlü kod oluştur",
     "copyFile": "Dosyayı kopyala",
     "copyPath": "Yolu Kopyala",
+    "copyUrl": "URL'yi kopyala",
+    "copyWebdavUrl": "WebDAV URL'sini kopyala",
     "copyToClipboard": "Panoya kopyala",
     "copyDownloadLinkToClipboard": "İndirme bağlantısını panoya kopyala",
     "moveFile": "Dosyayı taşı",

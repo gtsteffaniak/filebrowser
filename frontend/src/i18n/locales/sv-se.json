@@ -193,6 +193,8 @@
     "generateNewOtp": "Återställ och skapa ny tvåfaktorkod",
     "copyFile": "Kopiera fil",
     "copyPath": "Kopiera sökväg",
+    "copyUrl": "Kopiera URL",
+    "copyWebdavUrl": "Kopiera WebDAV-URL",
     "copyToClipboard": "Kopiera till urklipp",
     "copyDownloadLinkToClipboard": "Kopiera nedladdningslänken till urklipp",
     "moveFile": "Flytta fil",

@@ -193,6 +193,8 @@
     "generateNewOtp": "Herstellen en nieuwe twee-factorcode genereren",
     "copyFile": "Bestand kopiëren",
     "copyPath": "Pad kopiëren",
+    "copyUrl": "URL kopiëren",
+    "copyWebdavUrl": "WebDAV-URL kopiëren",
     "copyToClipboard": "Kopiëren naar klembord",
     "copyDownloadLinkToClipboard": "Downloadlink kopiëren naar klembord",
     "moveFile": "Bestand verplaatsen",

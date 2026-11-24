@@ -193,6 +193,8 @@
     "generateNewOtp": "リセットして新しい2ファクタコードを生成する",
     "copyFile": "ファイルをコピー",
     "copyPath": "コピーパス",
+    "copyUrl": "URLをコピー",
+    "copyWebdavUrl": "WebDAV URLをコピー",
     "copyToClipboard": "クリップボードにコピー",
     "copyDownloadLinkToClipboard": "ダウンロードリンクをクリップボードにコピーする",
     "moveFile": "ファイルを移動",

@@ -193,6 +193,8 @@
     "generateNewOtp": "Berrezarri eta sortu bi faktoreko kode berria",
     "copyFile": "Kopiatu fitxategia",
     "copyPath": "Kopiatu bidea",
+    "copyUrl": "Kopiatu URLa",
+    "copyWebdavUrl": "Kopiatu WebDAV URLa",
     "copyToClipboard": "Kopiatu arbelean",
     "copyDownloadLinkToClipboard": "Kopiatu deskarga-esteka arbelean",
     "moveFile": "Mugitu fitxategia",

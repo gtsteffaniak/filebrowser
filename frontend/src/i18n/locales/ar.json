@@ -193,6 +193,8 @@
     "generateNewOtp": "إعادة تعيين وإنشاء رمز ثنائي العامل الجديد",
     "copyFile": "نسخ الملف",
     "copyPath": "مسار النسخ",
+    "copyUrl": "نسخ URL",
+    "copyWebdavUrl": "نسخ رابط WebDAV",
     "copyToClipboard": "نسخ الى الحافظة",
     "copyDownloadLinkToClipboard": "نسخ رابط التحميل إلى الحافظة",
     "moveFile": "نقل الملف",

@@ -193,6 +193,8 @@
     "generateNewOtp": "Obnovenie a generovanie nového dvojfaktorového kódu",
     "copyFile": "Kopírovať súbor",
     "copyPath": "Kopírovať cestu",
+    "copyUrl": "Kopírovať URL",
+    "copyWebdavUrl": "Kopírovať URL WebDAV",
     "copyToClipboard": "Kopírovať do schránky",
     "copyDownloadLinkToClipboard": "Skopírujte odkaz na stiahnutie do schránky",
     "moveFile": "Presunúť súbory",

@@ -193,6 +193,8 @@
     "generateNewOtp": "Скинути та згенерувати новий двофакторний код",
     "copyFile": "Копіювати файл",
     "copyPath": "Шлях копіювання",
+    "copyUrl": "Копіювати URL",
+    "copyWebdavUrl": "Копіювати URL WebDAV",
     "copyToClipboard": "Копіювати в буфер обміну",
     "copyDownloadLinkToClipboard": "Скопіюйте посилання для завантаження в буфер обміну",
     "moveFile": "Перемістити файл",
