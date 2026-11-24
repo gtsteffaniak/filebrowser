@@ -41,7 +41,7 @@ All notable changes to this project will be documented in this file. For commit 
     - Listings now are cached (with a cap) allowing a more responsive navigation between folders (#3193).
   - Upload and download prompts list is reversed (#2998) (#3328).
   - Replaced `indented soft wrap` editor setting by a dropdown with more wrap settings (#3183) (#3282).
-  - Specify custom share URI is possible when user account settings are enabled via `userDefaults.Account.allowCustomShareURL: true` (default `false`)
+  - Specify custom share URI is possible when user account settings are enabled via `userDefaults.Account.allowCustomShareURL: true` (default `false`). default generated hash values for a share will still work after creating a custom one.
 
  **Notes**:
  - **Document preview formats:** New in-process support includes **`.azw3`**, **`.chm`**, **`.htm`**, and **`.html`**. However, `.doc` continues to require the office integration for thumbnails. **`.xps`** and **`.cbz`** previews come from embedded images. With **Always use office for document previews** enabled, office files still use the office converter

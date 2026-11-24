@@ -6451,13 +6451,14 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "unixSocketTrustedGIDs": {
+                    "description": "present X-Forwarded-* on a filesystem http.socket listener. When both are empty, peers are not trusted unless UnixSocketTrustAllLocalPeers is true (legacy; startup logs a warning). A GID allowlist trusts every peer with that GID, not only a single reverse-proxy process. Abstract sockets (@name) never trust forwarded headers.",
                     "type": "array",
                     "items": {
                         "type": "integer"
                     }
                 },
                 "unixSocketTrustedUIDs": {
-                    "description": "UnixSocketTrustedUIDs and UnixSocketTrustedGIDs list peer credentials (Linux SO_PEERCRED) allowed to\npresent X-Forwarded-* on a filesystem http.socket listener. When both are empty, peers are not trusted\nunless UnixSocketTrustAllLocalPeers is true (legacy; startup logs a warning). A GID allowlist trusts\nevery peer with that GID, not only a single reverse-proxy process. Abstract sockets (@name) never trust\nforwarded headers.",
+                    "description": "UnixSocketTrustedUIDs and UnixSocketTrustedGIDs list peer credentials (Linux SO_PEERCRED) allowed to",
                     "type": "array",
                     "items": {
                         "type": "integer"
@@ -6722,7 +6723,7 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "skipHwCheck": {
-                    "description": "SkipHwCheck skips the ffmpeg hardware codec probe entirely (software-only).\nConfig-only, not a runtime setting — advanced use, e.g. keeping the\nmulti-second probe out of CI startup.",
+                    "description": "SkipHwCheck skips the ffmpeg hardware codec probe entirely (software-only).",
                     "type": "boolean"
                 },
                 "transcode": {
@@ -7309,7 +7310,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "enabled": {
-                    "description": "show this preset in the player menu (default: true)",
+                    "description": "show this preset in the player menu (default: false)",
                     "type": "boolean"
                 },
                 "encoderBackend": {
@@ -7383,6 +7384,10 @@ const docTemplate = `{
         "settings.UserDefaultsAccount": {
             "type": "object",
             "properties": {
+                "allowCustomShareURL": {
+                    "description": "allow users to choose custom share URLs (default: false)",
+                    "type": "boolean"
+                },
                 "disableSettings": {
                     "description": "disable the user from viewing the settings page",
                     "type": "boolean"
@@ -7412,10 +7417,6 @@ const docTemplate = `{
                 },
                 "showAdvancedProfile": {
                     "description": "show advanced profile settings in the user profile page",
-                    "type": "boolean"
-                },
-                "allowCustomShareURL": {
-                    "description": "allow users to choose custom share URLs (default: true)",
                     "type": "boolean"
                 }
             }
@@ -8213,6 +8214,10 @@ const docTemplate = `{
         "users.FrontendUser": {
             "type": "object",
             "properties": {
+                "allowCustomShareURL": {
+                    "description": "AllowCustomShareURL and MaxConcurrentTranscodes are admin-set: they stay out of\nNonAdminEditable so a user cannot grant themselves the capability through a\nself-service PATCH.",
+                    "type": "boolean"
+                },
                 "customTheme": {
                     "description": "Name of theme to use chosen from custom themes config.",
                     "type": "string"
@@ -8439,10 +8444,6 @@ const docTemplate = `{
                             "$ref": "#/definitions/users.ToolAccessMap"
                         }
                     ]
-                },
-                "allowCustomShareURL": {
-                    "description": "AllowCustomShareURL and MaxConcurrentTranscodes are admin-set: they stay out of\nNonAdminEditable so a user cannot grant themselves the capability through a\nself-service PATCH.",
-                    "type": "boolean"
                 },
                 "username": {
                     "type": "string"
@@ -9226,3 +9227,4 @@ var SwaggerInfo = &swag.Spec{
 	LeftDelim:        "{{",
 	RightDelim:       "}}",
 }
+

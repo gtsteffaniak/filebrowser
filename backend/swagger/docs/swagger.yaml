@@ -579,16 +579,17 @@ definitions:
           local filesystem socket peer when allowlists are empty'
         type: boolean
       unixSocketTrustedGIDs:
+        description: present X-Forwarded-* on a filesystem http.socket listener. When
+          both are empty, peers are not trusted unless UnixSocketTrustAllLocalPeers
+          is true (legacy; startup logs a warning). A GID allowlist trusts every peer
+          with that GID, not only a single reverse-proxy process. Abstract sockets
+          (@name) never trust forwarded headers.
         items:
           type: integer
         type: array
       unixSocketTrustedUIDs:
-        description: |-
-          UnixSocketTrustedUIDs and UnixSocketTrustedGIDs list peer credentials (Linux SO_PEERCRED) allowed to
-          present X-Forwarded-* on a filesystem http.socket listener. When both are empty, peers are not trusted
-          unless UnixSocketTrustAllLocalPeers is true (legacy; startup logs a warning). A GID allowlist trusts
-          every peer with that GID, not only a single reverse-proxy process. Abstract sockets (@name) never trust
-          forwarded headers.
+        description: UnixSocketTrustedUIDs and UnixSocketTrustedGIDs list peer credentials
+          (Linux SO_PEERCRED) allowed to
         items:
           type: integer
         type: array
@@ -803,10 +804,7 @@ definitions:
           deprecated: manage via the admin media settings API'
         type: boolean
       skipHwCheck:
-        description: |-
-          SkipHwCheck skips the ffmpeg hardware codec probe entirely (software-only).
-          Config-only, not a runtime setting — advanced use, e.g. keeping the
-          multi-second probe out of CI startup.
+        description: SkipHwCheck skips the ffmpeg hardware codec probe entirely (software-only).
         type: boolean
       transcode:
         allOf:
@@ -1249,7 +1247,7 @@ definitions:
         description: average video bitrate in kbps; 0 = original
         type: integer
       enabled:
-        description: 'show this preset in the player menu (default: true)'
+        description: 'show this preset in the player menu (default: false)'
         type: boolean
       encoderBackend:
         description: encoder backend override; "" inherits transcode.encoderBackend
@@ -1294,6 +1292,9 @@ definitions:
     type: object
   settings.UserDefaultsAccount:
     properties:
+      allowCustomShareURL:
+        description: 'allow users to choose custom share URLs (default: false)'
+        type: boolean
       disableSettings:
         description: disable the user from viewing the settings page
         type: boolean
@@ -1316,9 +1317,6 @@ definitions:
         type: boolean
       showAdvancedProfile:
         description: show advanced profile settings in the user profile page
-        type: boolean
-      allowCustomShareURL:
-        description: 'allow users to choose custom share URLs (default: true)'
         type: boolean
     type: object
   settings.UserDefaultsAccountPermissions:
@@ -1876,6 +1874,12 @@ definitions:
     type: object
   users.FrontendUser:
     properties:
+      allowCustomShareURL:
+        description: |-
+          AllowCustomShareURL and MaxConcurrentTranscodes are admin-set: they stay out of
+          NonAdminEditable so a user cannot grant themselves the capability through a
+          self-service PATCH.
+        type: boolean
       customTheme:
         description: Name of theme to use chosen from custom themes config.
         type: string
@@ -2041,12 +2045,6 @@ definitions:
         allOf:
         - $ref: '#/definitions/users.ToolAccessMap'
         description: per-tool access overrides
-      allowCustomShareURL:
-        description: |-
-          AllowCustomShareURL and MaxConcurrentTranscodes are admin-set: they stay out of
-          NonAdminEditable so a user cannot grant themselves the capability through a
-          self-service PATCH.
-        type: boolean
       username:
         type: string
       viewMode:
