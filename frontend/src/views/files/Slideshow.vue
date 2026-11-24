@@ -34,7 +34,7 @@
             :style="layer.style"
             alt=""
             @load="onMediaLoaded"
-            @error="onMediaError"
+            @error="onMediaError($event)"
           />
           <video
             v-else
@@ -46,7 +46,7 @@
             preload="auto"
             @ended="onVideoEnded"
             @loadeddata="onMediaLoaded"
-            @error="onMediaError"
+            @error="onMediaError($event)"
           />
         </template>
       </div>
@@ -211,10 +211,11 @@ async function loadSlides() {
   loading.value = true;
   loadError.value = "";
   const { source, path, items } = props.fbdata;
+  let viewToken: string | null = null;
   try {
-    token.value = await ensureViewToken(source);
+    viewToken = await ensureViewToken(source);
   } catch {
-    token.value = null;
+    viewToken = null;
   }
 
   let loaded: SlideshowSlide[] | null = null;
@@ -238,7 +239,7 @@ async function loadSlides() {
     return;
   }
 
-  if (!token.value && loaded.some(needsViewToken)) {
+  if (!viewToken && loaded.some(needsViewToken)) {
     loadError.value = t("slideshow.tokenFailed");
     slides.value = [];
     loading.value = false;
@@ -268,6 +269,7 @@ async function loadSlides() {
     return;
   }
 
+  token.value = viewToken;
   slides.value = nextSlides;
   index.value = Math.max(0, start);
   loading.value = false;
@@ -448,10 +450,12 @@ function onMediaLoaded(event: Event) {
   const el = event.target as HTMLElement;
   if (!el.closest(".slide-layer.active")) return;
   failStreak.value = 0;
-  if (!paused.value) scheduleCurrent();
+  scheduleCurrent();
 }
 
-function onMediaError() {
+function onMediaError(event: Event) {
+  const el = event.target as HTMLElement;
+  if (!el.closest(".slide-layer.active")) return;
   failStreak.value += 1;
   if (failStreak.value >= slides.value.length) {
     loadError.value = t("slideshow.allFailed");
