@@ -63,11 +63,11 @@ func boxLarge(typ string, payload ...[]byte) []byte {
 type metaLayout int
 
 const (
-	metaISO           metaLayout = iota // full box: version/flags, hdlr, ilst
-	metaQuickTime                       // plain container: hdlr, ilst
-	metaQuickTimeFree                   // plain container: free, hdlr, ilst
-	metaISOFree                         // full box: version/flags, free, hdlr, ilst
-	metaQuickTimeExtHdlr                // plain container: extended-size hdlr, ilst
+	metaISO              metaLayout = iota // full box: version/flags, hdlr, ilst
+	metaQuickTime                          // plain container: hdlr, ilst
+	metaQuickTimeFree                      // plain container: free, hdlr, ilst
+	metaISOFree                            // full box: version/flags, free, hdlr, ilst
+	metaQuickTimeExtHdlr                   // plain container: extended-size hdlr, ilst
 )
 
 // m4aFixture builds an M4A file with an mdat of mdatSize bytes. moovFirst puts
@@ -229,6 +229,31 @@ func pictureComment(name string) string {
 	return name + "=" + base64.StdEncoding.EncodeToString(flacPicture("image/jpeg", fakeJPEG))
 }
 
+// flacPictureWith builds a FLAC PICTURE block body with MIME type, description,
+// dimensions and image data.
+func flacPictureWith(mime, desc string, width, height uint32, data []byte) []byte {
+	var b bytes.Buffer
+	_ = binary.Write(&b, binary.BigEndian, uint32(3))
+	_ = binary.Write(&b, binary.BigEndian, uint32(len(mime)))
+	b.WriteString(mime)
+	_ = binary.Write(&b, binary.BigEndian, uint32(len(desc)))
+	b.WriteString(desc)
+	_ = binary.Write(&b, binary.BigEndian, width)
+	_ = binary.Write(&b, binary.BigEndian, height)
+	_ = binary.Write(&b, binary.BigEndian, uint32(24))
+	_ = binary.Write(&b, binary.BigEndian, uint32(0))
+	_ = binary.Write(&b, binary.BigEndian, uint32(len(data)))
+	b.Write(data)
+	return b.Bytes()
+}
+
+// pictureCommentValue returns a METADATA_BLOCK_PICTURE comment for block and
+// its total length.
+func pictureCommentValue(block []byte) ([]byte, int64) {
+	s := "METADATA_BLOCK_PICTURE=" + base64.StdEncoding.EncodeToString(block)
+	return []byte(s), int64(len(s))
+}
+
 // checkBytes runs detection on data as if it were a file with extension ext.
 func checkBytes(t *testing.T, data []byte, ext string) bool {
 	t.Helper()
@@ -290,6 +315,8 @@ func TestHasAlbumArtSynthetic(t *testing.T) {
 		{"flac behind ID3v2", ".flac", append(id3Prefix, append([]byte("fLaC"), flacBlock(6, true, flacPicture("image/jpeg", fakeJPEG))...)...), true},
 
 		{"ogg vorbis picture", ".ogg", oggStream(255, vorbisIdent, append([]byte("\x03vorbis"), vorbisComment("TITLE=t", pictureComment("METADATA_BLOCK_PICTURE"))...), []byte("\x05vorbis")), true},
+		{"ogg vorbis picture height 0", ".ogg", oggStream(255, vorbisIdent, append([]byte("\x03vorbis"), vorbisComment("TITLE=t", "METADATA_BLOCK_PICTURE="+base64.StdEncoding.EncodeToString(flacPictureWith("image/jpeg", "front", 640, 0, fakeJPEG)))...), []byte("\x05vorbis")), true},
+		{"ogg vorbis picture empty data", ".ogg", oggStream(255, vorbisIdent, append([]byte("\x03vorbis"), vorbisComment("TITLE=t", "METADATA_BLOCK_PICTURE="+base64.StdEncoding.EncodeToString(flacPictureWith("image/jpeg", "", 640, 480, nil)))...), []byte("\x05vorbis")), false},
 		{"ogg vorbis picture after 70KB comment spanning pages", ".ogg", oggStream(40, vorbisIdent, append([]byte("\x03vorbis"), vorbisComment(longComment, pictureComment("METADATA_BLOCK_PICTURE"))...)), true},
 		{"ogg vorbis legacy COVERART", ".ogg", oggStream(255, vorbisIdent, append([]byte("\x03vorbis"), vorbisComment("coverart=AAAA")...)), true},
 		{"ogg vorbis no picture", ".ogg", oggStream(255, vorbisIdent, append([]byte("\x03vorbis"), vorbisComment("TITLE=METADATA_BLOCK_PICTURE=x")...)), false},
@@ -321,6 +348,216 @@ func TestHasAlbumArtSynthetic(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := checkBytes(t, tt.data, tt.ext); got != tt.want {
 				t.Fatalf("hasAlbumArtReader(%s) = %v, want %v", tt.ext, got, tt.want)
+			}
+		})
+	}
+}
+
+// TestVorbisPictureComment covers METADATA_BLOCK_PICTURE comments whose
+// picture length is not at a fixed 32-byte offset, plus malformed values.
+func TestVorbisPictureComment(t *testing.T) {
+	jpegDesc, jpegDescLen := pictureCommentValue(flacPictureWith("image/jpeg", "front cover", 100, 80, fakeJPEG))
+	headerOnly := 23 + base64.StdEncoding.EncodedLen(flacPictureHeaderCap)
+	if headerOnly > len(jpegDesc) {
+		headerOnly = len(jpegDesc)
+	}
+	hugeMIME := strings.Repeat("a", flacPictureMaxMIME+1)
+	hugeDesc := strings.Repeat("d", flacPictureMaxDesc+1)
+	oversizeData := flacPictureWith("image/jpeg", "", 100, 80, fakeJPEG)
+	// Rewrite the data-length field so it claims more bytes than the block holds.
+	oversizeData = append([]byte{}, oversizeData...)
+	dataLenOff := 4 + 4 + len("image/jpeg") + 4 + 16
+	binary.BigEndian.PutUint32(oversizeData[dataLenOff:dataLenOff+4], 1<<20)
+
+	tests := []struct {
+		name   string
+		prefix []byte
+		length int64
+		want   bool
+	}{
+		{
+			name: "empty mime and description",
+			prefix: func() []byte {
+				p, _ := pictureCommentValue(flacPictureWith("", "", 1, 1, fakeJPEG))
+				return p
+			}(),
+			length: func() int64 {
+				_, n := pictureCommentValue(flacPictureWith("", "", 1, 1, fakeJPEG))
+				return n
+			}(),
+			want: true,
+		},
+		{
+			name:   "image/jpeg with description",
+			prefix: jpegDesc,
+			length: jpegDescLen,
+			want:   true,
+		},
+		{
+			name: "height 0 with image data",
+			prefix: func() []byte {
+				p, _ := pictureCommentValue(flacPictureWith("image/jpeg", "", 100, 0, fakeJPEG))
+				return p
+			}(),
+			length: func() int64 {
+				_, n := pictureCommentValue(flacPictureWith("image/jpeg", "", 100, 0, fakeJPEG))
+				return n
+			}(),
+			want: true,
+		},
+		{
+			name: "zero-length data",
+			prefix: func() []byte {
+				p, _ := pictureCommentValue(flacPictureWith("image/jpeg", "", 100, 80, nil))
+				return p
+			}(),
+			length: func() int64 {
+				_, n := pictureCommentValue(flacPictureWith("image/jpeg", "", 100, 80, nil))
+				return n
+			}(),
+			want: false,
+		},
+		{
+			name: "link only",
+			prefix: func() []byte {
+				p, _ := pictureCommentValue(flacPicture("-->", []byte("http://example.com/c.jpg")))
+				return p
+			}(),
+			length: func() int64 {
+				_, n := pictureCommentValue(flacPicture("-->", []byte("http://example.com/c.jpg")))
+				return n
+			}(),
+			want: false,
+		},
+		{
+			name:   "header-only prefix of a larger picture",
+			prefix: jpegDesc[:headerOnly],
+			length: jpegDescLen,
+			want:   true,
+		},
+		{
+			name:   "truncated base64 prefix",
+			prefix: jpegDesc[:40],
+			length: jpegDescLen,
+			want:   false,
+		},
+		{
+			name:   "malformed base64",
+			prefix: []byte("METADATA_BLOCK_PICTURE=!!!!not-valid-base64????"),
+			length: int64(len("METADATA_BLOCK_PICTURE=!!!!not-valid-base64????")),
+			want:   false,
+		},
+		{
+			name:   "incomplete base64 quantum",
+			prefix: jpegDesc[:len(jpegDesc)-1],
+			length: jpegDescLen,
+			want:   true, // dropping the last character still leaves a whole header quantum
+		},
+		{
+			name:   "complete value with invalid length",
+			prefix: []byte("METADATA_BLOCK_PICTURE=abcd"),
+			length: int64(len("METADATA_BLOCK_PICTURE=abc")), // prefix longer than claimed, non-multiple-of-4 complete value
+			want:   false,
+		},
+		{
+			name: "oversized mime length",
+			prefix: func() []byte {
+				p, _ := pictureCommentValue(flacPictureWith(hugeMIME, "", 100, 80, fakeJPEG))
+				return p
+			}(),
+			length: func() int64 {
+				_, n := pictureCommentValue(flacPictureWith(hugeMIME, "", 100, 80, fakeJPEG))
+				return n
+			}(),
+			want: false,
+		},
+		{
+			name: "oversized description length",
+			prefix: func() []byte {
+				p, _ := pictureCommentValue(flacPictureWith("image/jpeg", hugeDesc, 100, 80, fakeJPEG))
+				return p
+			}(),
+			length: func() int64 {
+				_, n := pictureCommentValue(flacPictureWith("image/jpeg", hugeDesc, 100, 80, fakeJPEG))
+				return n
+			}(),
+			want: false,
+		},
+		{
+			name: "data length past end of block",
+			prefix: func() []byte {
+				p, _ := pictureCommentValue(oversizeData)
+				return p
+			}(),
+			length: func() int64 {
+				_, n := pictureCommentValue(oversizeData)
+				return n
+			}(),
+			want: false,
+		},
+		{
+			name:   "empty field",
+			prefix: []byte("METADATA_BLOCK_PICTURE="),
+			length: int64(len("METADATA_BLOCK_PICTURE=")),
+			want:   false,
+		},
+		{
+			name: "declared image byte missing from complete value",
+			prefix: func() []byte {
+				block := flacPictureWith("image/jpeg", "front", 640, 480, nil)
+				dataLenOff := 4 + 4 + len("image/jpeg") + 4 + len("front") + 16
+				binary.BigEndian.PutUint32(block[dataLenOff:dataLenOff+4], 1)
+				p, _ := pictureCommentValue(block)
+				return p
+			}(),
+			length: func() int64 {
+				block := flacPictureWith("image/jpeg", "front", 640, 480, nil)
+				dataLenOff := 4 + 4 + len("image/jpeg") + 4 + len("front") + 16
+				binary.BigEndian.PutUint32(block[dataLenOff:dataLenOff+4], 1)
+				_, n := pictureCommentValue(block)
+				return n
+			}(),
+			want: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := vorbisPictureComment(tt.prefix, tt.length); got != tt.want {
+				t.Fatalf("vorbisPictureComment(%q) = %v, want %v", tt.name, got, tt.want)
+			}
+		})
+	}
+}
+
+// TestFlacPictureHasEmbedded checks the shared PICTURE parser, including a
+// header-only reader whose logical size still covers the image data.
+func TestFlacPictureHasEmbedded(t *testing.T) {
+	jpegDesc := flacPictureWith("image/jpeg", "front cover", 100, 80, fakeJPEG)
+	headerEnd := 4 + 4 + len("image/jpeg") + 4 + len("front cover") + 16 + 4
+	tests := []struct {
+		name string
+		data []byte
+		size int64
+		want bool
+	}{
+		{"empty mime and description", flacPictureWith("", "", 1, 1, fakeJPEG), 0, true},
+		{"image/jpeg with description", jpegDesc, 0, true},
+		{"height 0 with image data", flacPictureWith("image/jpeg", "", 100, 0, fakeJPEG), 0, true},
+		{"zero-length data", flacPictureWith("image/jpeg", "", 100, 80, nil), 0, false},
+		{"link only", flacPicture("-->", []byte("http://example.com/c.jpg")), 0, false},
+		{"header-only prefix with full size", jpegDesc[:headerEnd], int64(len(jpegDesc)), true},
+		{"truncated header", jpegDesc[:20], int64(len(jpegDesc)), false},
+		{"oversized mime length", flacPictureWith(strings.Repeat("a", flacPictureMaxMIME+1), "", 100, 80, fakeJPEG), 0, false},
+		{"oversized description length", flacPictureWith("image/jpeg", strings.Repeat("d", flacPictureMaxDesc+1), 100, 80, fakeJPEG), 0, false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			size := tt.size
+			if size == 0 {
+				size = int64(len(tt.data))
+			}
+			if got := flacPictureHasEmbedded(bytes.NewReader(tt.data), 0, size); got != tt.want {
+				t.Fatalf("flacPictureHasEmbedded(%q) = %v, want %v", tt.name, got, tt.want)
 			}
 		})
 	}

@@ -556,8 +556,26 @@ func flacPictureIsLink(head []byte) bool {
 	return len(head) >= flacPictureHeadLen && binary.BigEndian.Uint32(head[4:8]) == 3 && string(head[8:11]) == "-->"
 }
 
+// flacPictureMaxMIME is the largest MIME type string accepted in a PICTURE
+// block. Real album-art MIME types are short (for example "image/jpeg").
+const flacPictureMaxMIME = 256
+
+// flacPictureMaxDesc is the largest description string accepted in a PICTURE
+// block while deciding whether the block embeds an image.
+const flacPictureMaxDesc = 4096
+
+// flacPictureHeaderCap is how many decoded PICTURE bytes are needed to reach
+// the data-length field when the MIME type and description are at their caps:
+// type, MIME length, MIME, description length, description, width, height,
+// depth, colours and data length.
+const flacPictureHeaderCap = 4 + 4 + flacPictureMaxMIME + 4 + flacPictureMaxDesc + 16 + 4
+
 // flacPictureHasEmbedded reports whether a PICTURE metadata block of size bytes
-// at off holds a nonempty embedded image (not a URI-only block).
+// at off holds a nonempty embedded image (not a URI-only block). size is the
+// logical block length; r need only provide the header through the data-length
+// field, so a truncated prefix is enough when size still covers the image
+// data. MIME types longer than flacPictureMaxMIME or descriptions longer than
+// flacPictureMaxDesc are rejected.
 func flacPictureHasEmbedded(r io.ReaderAt, off, size int64) bool {
 	if size < flacPictureMinLen {
 		return false
@@ -567,6 +585,9 @@ func flacPictureHasEmbedded(r io.ReaderAt, off, size int64) bool {
 		return false
 	}
 	mimeLen := int64(binary.BigEndian.Uint32(head[4:8]))
+	if mimeLen > flacPictureMaxMIME {
+		return false
+	}
 	cur := off + 8 + mimeLen
 	if cur+4 > off+size {
 		return false
@@ -576,7 +597,10 @@ func flacPictureHasEmbedded(r io.ReaderAt, off, size int64) bool {
 		return false
 	}
 	descLen := int64(binary.BigEndian.Uint32(descLenBuf[:]))
-	cur += 4 + descLen + 16 // width, height, depth, colours, data length
+	if descLen > flacPictureMaxDesc {
+		return false
+	}
+	cur += 4 + descLen + 16 // width, height, depth, colours, then data length
 	if cur+4 > off+size {
 		return false
 	}
@@ -679,15 +703,16 @@ var vorbisPictureFields = [][]byte{
 
 // vorbisCommentPrefixLen is how much of each Vorbis comment is read: enough
 // for the longest picture field name plus a base64 prefix that covers a
-// minimal METADATA_BLOCK_PICTURE block header.
-const vorbisCommentPrefixLen = 72
+// METADATA_BLOCK_PICTURE header whose MIME type and description are within
+// flacPictureMaxMIME and flacPictureMaxDesc.
+const vorbisCommentPrefixLen = 8 << 10
 
 // vorbisCommentHasPicture parses a Vorbis comment structure (vendor string,
 // count, length-prefixed comments) and reports whether any comment is a
 // non-empty cover art field. METADATA_BLOCK_PICTURE values that only link to
 // an image ("-->") do not count, and a matching comment must be complete.
-// Only the first vorbisCommentPrefixLen bytes of each comment are read; the
-// rest is skipped.
+// Only the first vorbisCommentPrefixLen bytes of each comment are read (enough
+// to parse a METADATA_BLOCK_PICTURE header); the rest is skipped.
 func vorbisCommentHasPicture(pr packetReader) (bool, error) {
 	var n4 [4]byte
 	if _, err := io.ReadFull(pr, n4[:]); err != nil {
@@ -736,38 +761,75 @@ func vorbisPictureComment(prefix []byte, length int64) bool {
 			continue
 		}
 		if len(field) == len("METADATA_BLOCK_PICTURE=") {
-			valueLen := length - int64(len(field))
-			minB64 := base64.StdEncoding.EncodedLen(flacPictureMinLen)
-			if valueLen < int64(minB64) {
-				continue
-			}
-			value := prefix[len(field):]
-			read := len(value)
-			if read > minB64 {
-				read = minB64
-			}
-			read -= read % 4
-			if read < 16 {
-				continue
-			}
-			block := make([]byte, base64.StdEncoding.DecodedLen(read))
-			if _, err := base64.StdEncoding.Decode(block, value[:read]); err != nil {
-				continue
-			}
-			if len(block) < flacPictureMinLen {
-				continue
-			}
-			if flacPictureIsLink(block[:flacPictureHeadLen]) {
-				continue
-			}
-			dataLen := binary.BigEndian.Uint32(block[28:32])
-			if dataLen == 0 {
+			if !vorbisPictureBlockEmbedded(prefix[len(field):], length-int64(len(field))) {
 				continue
 			}
 		}
 		return true
 	}
 	return false
+}
+
+// vorbisPictureBlockEmbedded reports whether a METADATA_BLOCK_PICTURE comment
+// value of total size valueLen, whose leading bytes are prefix, decodes to a
+// PICTURE block with a nonempty embedded image. The full decoded size is used
+// for bounds checks so a header-only prefix is enough; the image payload is
+// not read.
+func vorbisPictureBlockEmbedded(prefix []byte, valueLen int64) bool {
+	block, logicalSize, ok := decodeBase64Prefix(prefix, valueLen, flacPictureHeaderCap)
+	if !ok {
+		return false
+	}
+	return flacPictureHasEmbedded(bytes.NewReader(block), 0, logicalSize)
+}
+
+// base64StdMaxDecodedLen is the maximum number of bytes StdEncoding can
+// produce from n base64 characters.
+func base64StdMaxDecodedLen(n int64) int64 {
+	if n < 0 {
+		return 0
+	}
+	return n / 4 * 3
+}
+
+// decodeBase64Prefix decodes a leading prefix of a base64 value of total size
+// valueLen, returning at most maxDecoded bytes and the logical PICTURE block
+// length to use for bounds checks. A prefix of a longer value is trimmed to a
+// whole 4-character quantum; a complete value is decoded with its padding
+// intact. When the entire value is available and fits in maxDecoded, logical
+// size is the actual decoded length; otherwise it is base64StdMaxDecodedLen
+// (valueLen). Invalid encoding reports ok=false.
+func decodeBase64Prefix(prefix []byte, valueLen int64, maxDecoded int) ([]byte, int64, bool) {
+	if valueLen <= 0 || maxDecoded <= 0 || len(prefix) == 0 {
+		return nil, 0, false
+	}
+	raw := prefix
+	if int64(len(raw)) > valueLen {
+		raw = raw[:valueLen]
+	}
+	complete := int64(len(raw)) == valueLen
+	if !complete {
+		raw = raw[:len(raw)-len(raw)%4]
+	} else if len(raw)%4 != 0 {
+		return nil, 0, false
+	}
+	if len(raw) < 4 {
+		return nil, 0, false
+	}
+	maxEnc := base64.StdEncoding.EncodedLen(maxDecoded)
+	if len(raw) > maxEnc {
+		raw = raw[:maxEnc]
+	}
+	buf := make([]byte, base64.StdEncoding.DecodedLen(len(raw)))
+	n, err := base64.StdEncoding.Decode(buf, raw)
+	if err != nil || n == 0 {
+		return nil, 0, false
+	}
+	logicalSize := base64StdMaxDecodedLen(valueLen)
+	if complete && valueLen <= int64(maxEnc) {
+		logicalSize = int64(n)
+	}
+	return buf[:n], logicalSize, true
 }
 
 // oggHasPicture reports whether the first logical stream of an Ogg file
