@@ -1301,6 +1301,7 @@
     "empty": "In questa cartella non ci sono immagini o video da mostrare.",
     "allFailed": "Non è stato possibile visualizzare nessuno dei file.",
     "searchFailed": "Impossibile effettuare la ricerca nelle sottocartelle. Viene visualizzata solo questa cartella.",
+    "tokenFailed": "Impossibile aprire i file per la visualizzazione. Riprovare o uscire.",
     "truncated": "Vengono visualizzati i primi articoli di \" {max} \".",
     "fadeTransition": "Transizione con dissolvenza",
     "fitToScreen": "Adatta l'immagine allo schermo",

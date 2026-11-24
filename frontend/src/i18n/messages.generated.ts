@@ -1200,6 +1200,7 @@ export interface MessageParams {
   "slideshow.empty": never;
   "slideshow.allFailed": never;
   "slideshow.searchFailed": never;
+  "slideshow.tokenFailed": never;
   "slideshow.truncated": "max";
   "slideshow.fadeTransition": never;
   "slideshow.fitToScreen": never;

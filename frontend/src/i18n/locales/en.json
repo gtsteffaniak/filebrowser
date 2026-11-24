@@ -1301,6 +1301,7 @@
     "empty": "No images or videos to show in this folder.",
     "allFailed": "None of the files could be shown.",
     "searchFailed": "Could not search subfolders. Showing this folder only.",
+    "tokenFailed": "Could not open files for viewing. Try again or exit.",
     "truncated": "Showing the first {max} items.",
     "fadeTransition": "Fade transition",
     "fitToScreen": "Fit image to screen",

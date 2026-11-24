@@ -1301,6 +1301,7 @@
     "empty": "Nu există imagini sau videoclipuri în acest folder.",
     "allFailed": "Niciunul dintre fișiere nu a putut fi afișat.",
     "searchFailed": "Nu s-a putut efectua căutarea în subfoldere. Se afișează doar acest folder.",
+    "tokenFailed": "Nu s-au putut deschide fișierele pentru vizualizare. Încercați din nou sau ieșiți.",
     "truncated": "Se afișează primele articole de pe {max}.",
     "fadeTransition": "Tranziție de estompare",
     "fitToScreen": "Potrivire imagine la ecran",

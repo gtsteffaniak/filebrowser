@@ -1301,6 +1301,7 @@
     "empty": "Não há imagens nem vídeos para exibir nesta pasta.",
     "allFailed": "Nenhum dos arquivos pôde ser exibido.",
     "searchFailed": "Não foi possível pesquisar nas subpastas. Exibindo apenas esta pasta.",
+    "tokenFailed": "Não foi possível abrir os arquivos para visualização. Tente novamente ou saia.",
     "truncated": "Exibindo os primeiros {max} itens.",
     "fadeTransition": "Transição de desvanecimento",
     "fitToScreen": "Ajustar a imagem à tela",

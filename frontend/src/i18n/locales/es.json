@@ -1301,6 +1301,7 @@
     "empty": "No hay imágenes ni vídeos que mostrar en esta carpeta.",
     "allFailed": "No se ha podido mostrar ninguno de los archivos.",
     "searchFailed": "No se han podido buscar subcarpetas. Solo se muestra esta carpeta.",
+    "tokenFailed": "No se han podido abrir los archivos para su visualización. Inténtalo de nuevo o sal.",
     "truncated": "Se muestran los primeros {max} artículos.",
     "fadeTransition": "Transición de fundido",
     "fitToScreen": "Ajustar la imagen a la pantalla",

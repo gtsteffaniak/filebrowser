@@ -1301,6 +1301,7 @@
     "empty": "W tym folderze nie ma żadnych zdjęć ani filmów.",
     "allFailed": "Nie udało się wyświetlić żadnego z plików.",
     "searchFailed": "Nie udało się przeszukać podfolderów. Wyświetlany jest tylko ten folder.",
+    "tokenFailed": "Nie udało się otworzyć plików do przeglądania. Spróbuj ponownie lub zamknij program.",
     "truncated": "Wyświetlanie pierwszych pozycji z kategorii „ {max} ”.",
     "fadeTransition": "Przejście z efektem zanikania",
     "fitToScreen": "Dopasuj obraz do ekranu",

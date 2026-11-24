@@ -149,8 +149,8 @@ func itemMatchesSearchFilters(item iteminfo.ItemInfo, isDir bool, searchOptions 
 	if nameFiltered {
 		return item.MatchesSearchAuxiliaryFilters(searchOptions)
 	}
-	// A type-only query (for example "type:image") has no name terms. Match it on the type conditions alone.
-	if !hasNonEmptySearchTerm(searchOptions.Terms) && hasTypeCondition(searchOptions) {
+	// Filter-only queries (type, size, or date) with no name terms.
+	if !hasNonEmptySearchTerm(searchOptions.Terms) && (hasTypeCondition(searchOptions) || hasDateBounds(searchOptions)) {
 		return item.MatchesSearchAuxiliaryFilters(searchOptions)
 	}
 	if searchOptions.MatchAllTerms {
@@ -187,12 +187,16 @@ func hasNonEmptySearchTerm(terms []string) bool {
 }
 
 func hasTypeCondition(opts iteminfo.SearchOptions) bool {
-	for k, v := range opts.Conditions {
-		if k != "exact" && v {
+	for k := range opts.Conditions {
+		if k != "exact" {
 			return true
 		}
 	}
 	return false
+}
+
+func hasDateBounds(opts iteminfo.SearchOptions) bool {
+	return opts.ModifiedOlderThan > 0 || opts.ModifiedNewerThan > 0
 }
 
 func searchDateMatches(modUnix int64, opts iteminfo.SearchOptions) bool {

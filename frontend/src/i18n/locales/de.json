@@ -1301,6 +1301,7 @@
     "empty": "In diesem Ordner sind keine Bilder oder Videos vorhanden.",
     "allFailed": "Keine der Dateien konnte angezeigt werden.",
     "searchFailed": "Unterordner konnten nicht durchsucht werden. Es wird nur dieser Ordner angezeigt.",
+    "tokenFailed": "Die Dateien konnten nicht zur Anzeige geöffnet werden. Versuchen Sie es erneut oder beenden Sie den Vorgang.",
     "truncated": "Die ersten „ {max} “-Artikel werden angezeigt.",
     "fadeTransition": "Überblendung",
     "fitToScreen": "Bild an Bildschirm anpassen",

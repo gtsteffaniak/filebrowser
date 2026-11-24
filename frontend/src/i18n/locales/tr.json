@@ -1301,6 +1301,7 @@
     "empty": "Bu klasörde gösterilecek resim veya video yok.",
     "allFailed": "Dosyaların hiçbiri görüntülenemedi.",
     "searchFailed": "Alt klasörlerde arama yapılamadı. Yalnızca bu klasör gösteriliyor.",
+    "tokenFailed": "Dosyalar görüntülenmek üzere açılamadı. Tekrar deneyin veya çıkın.",
     "truncated": "{max} 'daki ilk öğeler gösteriliyor.",
     "fadeTransition": "Fade geçişi",
     "fitToScreen": "Görüntüyü ekrana sığdır",

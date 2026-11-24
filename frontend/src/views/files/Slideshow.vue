@@ -97,6 +97,7 @@ import {
   onMounted,
   ref,
   useTemplateRef,
+  watch,
   type ComponentPublicInstance,
 } from "vue";
 import { useRoute } from "vue-router";
@@ -180,7 +181,10 @@ let timerHandle: ReturnType<typeof setTimeout> | null = null;
 let timerStart = 0;
 let hideHandle: ReturnType<typeof setTimeout> | null = null;
 let advanceHandle: ReturnType<typeof setTimeout> | null = null;
-const videoEls: Record<number, HTMLVideoElement> = {};
+let wakeLockGeneration = 0;
+let loadGeneration = 0;
+let disposed = false;
+const videoEls = new Map<number, HTMLVideoElement>();
 
 const sidebarShowing = computed(() => getters.isSidebarVisible());
 // Only a pinned (sticky) sidebar takes up layout room. A floating sidebar overlays the slideshow.
@@ -193,8 +197,19 @@ function fullscreenActive(): boolean {
   return !!(document.fullscreenElement || doc.webkitFullscreenElement);
 }
 
+function needsViewToken(slide: SlideshowSlide): boolean {
+  return !(slide.kind === "image" && slide.preview && !getters.isShare());
+}
+
+function clearAdvanceHandle() {
+  if (advanceHandle !== null) clearTimeout(advanceHandle);
+  advanceHandle = null;
+}
+
 async function loadSlides() {
+  const gen = ++loadGeneration;
   loading.value = true;
+  loadError.value = "";
   const { source, path, items } = props.fbdata;
   try {
     token.value = await ensureViewToken(source);
@@ -218,6 +233,18 @@ async function loadSlides() {
     loaded = slidesFromListing(items, source);
   }
 
+  if (gen !== loadGeneration || disposed) {
+    loading.value = false;
+    return;
+  }
+
+  if (!token.value && loaded.some(needsViewToken)) {
+    loadError.value = t("slideshow.tokenFailed");
+    slides.value = [];
+    loading.value = false;
+    return;
+  }
+
   let nextSlides = cfg.shuffle ? shuffled(loaded) : loaded;
 
   const queryStart = (query: unknown): string => {
@@ -236,6 +263,11 @@ async function loadSlides() {
     }
   }
 
+  if (gen !== loadGeneration || disposed) {
+    loading.value = false;
+    return;
+  }
+
   slides.value = nextSlides;
   index.value = Math.max(0, start);
   loading.value = false;
@@ -244,10 +276,26 @@ async function loadSlides() {
   }
 }
 
+async function reloadFromContext() {
+  clearAdvanceHandle();
+  clearTimer();
+  remaining.value = null;
+  failStreak.value = 0;
+  releaseWakeLock();
+  await loadSlides();
+  if (disposed) return;
+  if (slides.value.length) {
+    paused.value = false;
+    await beginSlideshow();
+  }
+}
+
 function setVideoRef(el: Element | ComponentPublicInstance | null, layerIndex: number) {
   if (el instanceof HTMLVideoElement) {
-    videoEls[layerIndex] = el;
+    videoEls.set(layerIndex, el);
+    return;
   }
+  videoEls.delete(layerIndex);
 }
 
 function randomKenBurns(): Record<string, string> {
@@ -261,6 +309,9 @@ function randomKenBurns(): Record<string, string> {
 }
 
 async function showSlide(i: number, animate: boolean) {
+  clearAdvanceHandle();
+  clearTimer();
+  remaining.value = null;
   index.value = i;
   const slide = slides.value[i];
   if (!slide) return;
@@ -278,11 +329,11 @@ async function showSlide(i: number, animate: boolean) {
   active.value = target;
 
   await nextTick();
-  for (const [layer, el] of Object.entries(videoEls)) {
-    if (Number(layer) !== active.value) el.pause();
+  for (const [layer, el] of videoEls) {
+    if (layer !== active.value) el.pause();
   }
-  const video = videoEls[active.value];
-  if (video) {
+  const video = videoEls.get(active.value);
+  if (video && slide.kind === "video") {
     video.currentTime = 0;
     if (!paused.value) video.play().catch(() => {});
   }
@@ -324,7 +375,7 @@ function scheduleCurrent() {
 }
 
 function activeVideo(): HTMLVideoElement | null {
-  return videoEls[active.value] ?? null;
+  return videoEls.get(active.value) ?? null;
 }
 
 function advance() {
@@ -337,7 +388,6 @@ function advance() {
     pause();
     return;
   }
-  scheduleCurrent();
 }
 
 function goNext() {
@@ -354,7 +404,6 @@ function goPrev() {
   } else if (cfg.loop) {
     showSlide(last, true);
   }
-  scheduleCurrent();
   revealChrome();
 }
 
@@ -379,9 +428,10 @@ function pause() {
 function resume() {
   paused.value = false;
   const slide = currentSlide.value;
-  if (slide?.kind === "video" && cfg.playVideosToEnd) {
+  if (slide?.kind === "video") {
     activeVideo()?.play().catch(() => {});
-  } else if (remaining.value !== null) {
+  }
+  if (!(slide?.kind === "video" && cfg.playVideosToEnd) && remaining.value !== null) {
     startTimer(remaining.value);
   }
   requestWakeLock();
@@ -394,8 +444,11 @@ function onVideoEnded() {
   }
 }
 
-function onMediaLoaded() {
+function onMediaLoaded(event: Event) {
+  const el = event.target as HTMLElement;
+  if (!el.closest(".slide-layer.active")) return;
   failStreak.value = 0;
+  if (!paused.value) scheduleCurrent();
 }
 
 function onMediaError() {
@@ -407,9 +460,10 @@ function onMediaError() {
     return;
   }
   if (!paused.value) {
-    if (advanceHandle !== null) clearTimeout(advanceHandle);
+    const failedIndex = index.value;
+    clearAdvanceHandle();
     advanceHandle = setTimeout(() => {
-      if (!paused.value) advance();
+      if (!paused.value && index.value === failedIndex) advance();
     }, 1000);
   }
 }
@@ -514,14 +568,21 @@ function toggleFullscreen() {
 
 async function requestWakeLock() {
   if (wakeLock.value || !navigator.wakeLock) return;
+  const generation = wakeLockGeneration;
   try {
-    wakeLock.value = await navigator.wakeLock.request("screen");
+    const sentinel = await navigator.wakeLock.request("screen");
+    if (generation !== wakeLockGeneration || paused.value || wakeLock.value) {
+      sentinel.release().catch(() => {});
+    } else {
+      wakeLock.value = sentinel;
+    }
   } catch {
     /* not available or denied */
   }
 }
 
 function releaseWakeLock() {
+  wakeLockGeneration++;
   wakeLock.value?.release?.();
   wakeLock.value = null;
 }
@@ -542,6 +603,30 @@ const visibilityHandler = () => {
   if (document.visibilityState === "visible" && !paused.value) requestWakeLock();
 };
 
+async function beginSlideshow() {
+  if (disposed || !slides.value.length) return;
+  await showSlide(index.value, false);
+  requestWakeLock();
+  if (cfg.startFullscreen) enterFullscreen();
+  scheduleHide();
+}
+
+watch(
+  () =>
+    [
+      props.fbdata.source,
+      props.fbdata.path,
+      props.fbdata.items?.length ?? 0,
+    ] as const,
+  (current, previous) => {
+    if (!previous) return;
+    const [source, path, count] = current;
+    const [prevSource, prevPath, prevCount] = previous;
+    if (source === prevSource && path === prevPath && count === prevCount) return;
+    void reloadFromContext();
+  },
+);
+
 onMounted(async () => {
   window.addEventListener("keydown", keyHandler);
   document.addEventListener("fullscreenchange", fullscreenHandler);
@@ -549,23 +634,22 @@ onMounted(async () => {
   document.addEventListener("visibilitychange", visibilityHandler);
 
   await loadSlides();
+  if (disposed) return;
   if (slides.value.length) {
-    showSlide(index.value, false);
-    scheduleCurrent();
-    requestWakeLock();
-    if (cfg.startFullscreen) enterFullscreen();
-    scheduleHide();
+    await beginSlideshow();
   }
 });
 
 onBeforeUnmount(() => {
+  disposed = true;
+  loadGeneration++;
   window.removeEventListener("keydown", keyHandler);
   document.removeEventListener("fullscreenchange", fullscreenHandler);
   document.removeEventListener("webkitfullscreenchange", fullscreenHandler);
   document.removeEventListener("visibilitychange", visibilityHandler);
   clearTimer();
   if (hideHandle !== null) clearTimeout(hideHandle);
-  if (advanceHandle !== null) clearTimeout(advanceHandle);
+  clearAdvanceHandle();
   releaseWakeLock();
   if (fullscreenActive()) exitFullscreen();
 });

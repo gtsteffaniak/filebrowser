@@ -1301,6 +1301,7 @@
     "empty": "Ebben a mappában nincs megjeleníthető kép vagy videó.",
     "allFailed": "Egyik fájl sem jeleníthető meg.",
     "searchFailed": "Az almappákban nem sikerült keresni. Csak ez a mappa jelenik meg.",
+    "tokenFailed": "A fájlokat nem sikerült megnyitni megtekintés céljából. Próbálja meg újra, vagy lépjen ki.",
     "truncated": "Az első „ {max} ” elemek megjelenítése.",
     "fadeTransition": "Fade átmenet",
     "fitToScreen": "Kép méretének a képernyőhöz igazítása",

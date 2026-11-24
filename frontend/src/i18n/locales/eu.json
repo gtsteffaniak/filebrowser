@@ -1301,6 +1301,7 @@
     "empty": "Karpetan ez dago irudi edo bideo erakusteko.",
     "allFailed": "Fitxategi guztiak ezin izan ziren erakutsi.",
     "searchFailed": "Azpikarpetetan ezin izan da bilatu. Karpeta hau bakarrik erakusten da.",
+    "tokenFailed": "Fitxategiak ikusteko ezin izan dira ireki. Saiatu berriro edo irten.",
     "truncated": "{max} -eko lehen elementuak erakusten.",
     "fadeTransition": "Itzaltze-trantsizioa",
     "fitToScreen": "Egokitu irudia pantailara",

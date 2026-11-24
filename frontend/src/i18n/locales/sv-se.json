@@ -1301,6 +1301,7 @@
     "empty": "Det finns inga bilder eller videoklipp att visa i den här mappen.",
     "allFailed": "Ingen av filerna kunde visas.",
     "searchFailed": "Det gick inte att söka i undermappar. Endast den här mappen visas.",
+    "tokenFailed": "Det gick inte att öppna filerna för visning. Försök igen eller avsluta.",
     "truncated": "Visar de första {max} artiklarna.",
     "fadeTransition": "Övergång med toning",
     "fitToScreen": "Anpassa bilden till skärmen",

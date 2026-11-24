@@ -1301,6 +1301,7 @@
     "empty": "Ce dossier ne contient ni images ni vidéos.",
     "allFailed": "Aucun de ces fichiers n'a pu être affiché.",
     "searchFailed": "Impossible d'effectuer une recherche dans les sous-dossiers. Affichage de ce dossier uniquement.",
+    "tokenFailed": "Impossible d'ouvrir les fichiers pour les consulter. Veuillez réessayer ou quitter.",
     "truncated": "Affichage des premiers éléments de la collection « {max} ».",
     "fadeTransition": "Transition par fondu",
     "fitToScreen": "Ajuster l'image à l'écran",

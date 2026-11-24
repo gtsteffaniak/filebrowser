@@ -1301,6 +1301,7 @@
     "empty": "V tejto zložke nie sú žiadne obrázky ani videá.",
     "allFailed": "Žiaden zo súborov sa nepodarilo zobraziť.",
     "searchFailed": "Nepodarilo sa vyhľadať v podadresároch. Zobrazujú sa len obsahy tohto adresára.",
+    "tokenFailed": "Nepodarilo sa otvoriť súbory na prehliadanie. Skúste to znovu alebo ukončite.",
     "truncated": "Zobrazujú sa prvé položky z kategórie „ {max} “.",
     "fadeTransition": "Prechod s postupným stmavovaním",
     "fitToScreen": "Prispôsobiť obrázok veľkosti obrazovky",

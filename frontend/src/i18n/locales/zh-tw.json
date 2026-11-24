@@ -1301,6 +1301,7 @@
     "empty": "此資料夾中沒有可顯示的圖片或影片。",
     "allFailed": "無法顯示任何檔案。",
     "searchFailed": "無法搜尋子資料夾。僅顯示此資料夾。",
+    "tokenFailed": "無法開啟檔案以供檢視。請重試或退出。",
     "truncated": "顯示前{max} 筆項目。",
     "fadeTransition": "淡入淡出轉場",
     "fitToScreen": "將圖片調整為符合螢幕大小",

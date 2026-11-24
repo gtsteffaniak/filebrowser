@@ -1301,6 +1301,7 @@
     "empty": "该文件夹中没有图片或视频。",
     "allFailed": "无法显示任何文件。",
     "searchFailed": "无法搜索子文件夹。仅显示此文件夹。",
+    "tokenFailed": "无法打开文件进行查看。请重试或退出。",
     "truncated": "显示前{max} 个项目。",
     "fadeTransition": "淡入淡出过渡",
     "fitToScreen": "将图片调整为屏幕大小",

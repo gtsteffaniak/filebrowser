@@ -1301,6 +1301,7 @@
     "empty": "V této složce nejsou žádné obrázky ani videa.",
     "allFailed": "Žádný ze souborů se nepodařilo zobrazit.",
     "searchFailed": "Nedařilo se prohledat podsložky. Zobrazují se pouze obsah této složky.",
+    "tokenFailed": "Soubory se nepodařilo otevřít k prohlížení. Zkuste to znovu nebo ukončete program.",
     "truncated": "Zobrazují se první položky z kategorie „ {max} “.",
     "fadeTransition": "Přechod s vyblednutím",
     "fitToScreen": "Přizpůsobit obrázek velikosti obrazovky",

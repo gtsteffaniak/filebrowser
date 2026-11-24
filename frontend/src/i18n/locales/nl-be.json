@@ -1301,6 +1301,7 @@
     "empty": "Er zijn geen afbeeldingen of video's in deze map.",
     "allFailed": "Geen van de bestanden kon worden weergegeven.",
     "searchFailed": "Er kon niet in submappen worden gezocht. Alleen deze map wordt weergegeven.",
+    "tokenFailed": "De bestanden konden niet worden geopend om te bekijken. Probeer het opnieuw of sluit het programma af.",
     "truncated": "De eerste {max} items worden weergegeven.",
     "fadeTransition": "Fade-overgang",
     "fitToScreen": "Afbeelding aan scherm aanpassen",

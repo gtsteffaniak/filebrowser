@@ -133,8 +133,12 @@ export async function slidesFromSearch(
 
   const seen = new Set<string>();
   const slides: SlideshowSlide[] = [];
+  let truncated = false;
   for (const results of responses) {
     if (!Array.isArray(results)) continue;
+    if (results.length >= maxItems) {
+      truncated = true;
+    }
     for (const result of results as SearchScopeResult[]) {
       const src = result.source || source;
       const name = nameFromPath(result.path);
@@ -159,7 +163,9 @@ export async function slidesFromSearch(
   }
 
   slides.sort((a, b) => a.path.localeCompare(b.path, undefined, { numeric: true, sensitivity: "base" }));
-  const truncated = slides.length > maxItems;
+  if (slides.length > maxItems) {
+    truncated = true;
+  }
   return { slides: slides.slice(0, maxItems), truncated };
 }
 

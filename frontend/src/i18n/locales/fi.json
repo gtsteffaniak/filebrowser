@@ -1301,6 +1301,7 @@
     "empty": "Tässä kansiossa ei ole kuvia tai videoita.",
     "allFailed": "Yhtäkään tiedostoa ei voitu näyttää.",
     "searchFailed": "Alikansioita ei voitu hakea. Näytetään vain tämä kansio.",
+    "tokenFailed": "Tiedostoja ei voitu avata katselua varten. Yritä uudelleen tai lopeta.",
     "truncated": "Näytetään ensimmäiset {max} -tuotteet.",
     "fadeTransition": "Haalistumissiirtymä",
     "fitToScreen": "Sovita kuva näyttöön",
