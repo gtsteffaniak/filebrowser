@@ -192,14 +192,17 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
     pendingModeRequest = null;
     return request;
   }
-  function applyPendingModeRequest(generation: number): void {
+
+  function applyPendingModeRequest(generation: number): boolean {
     if (generation !== fileGeneration) {
-      return;
+      return false;
     }
     const next = takePendingModeRequest();
-    if (next && next.mode !== transcodeMode.value) {
-      void switchTranscodeMode(next.mode, { playPrime: next.playPrime });
+    if (!next || next.mode === transcodeMode.value) {
+      return false;
     }
+    void switchTranscodeMode(next.mode, { playPrime: next.playPrime });
+    return true;
   }
   let resumeOnGestureArmed = false;
   let resumeOnGestureHandler: (() => void) | null = null;
@@ -1053,10 +1056,9 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
       if (manageSwitch) {
         releaseSwitch();
         const urlSync = pendingUrlSync as { transcodeMode?: string } | null;
-        if (urlSync) {
+        if (!applyPendingModeRequest(startGeneration) && urlSync) {
           syncPlaybackUrl(urlSync);
         }
-        applyPendingModeRequest(startGeneration);
       }
     }
   }
@@ -1223,10 +1225,9 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
       }
     } finally {
       releaseModeSwitch();
-      if (generation === fileGeneration) {
+      if (generation === fileGeneration && !applyPendingModeRequest(generation)) {
         syncPlaybackUrl({ transcodeMode: transcodeMode.value });
       }
-      applyPendingModeRequest(generation);
       transcodeLog("switchTranscodeMode done", {
         mode: transcodeMode.value,
         transcodeActive: transcodeActive.value,
