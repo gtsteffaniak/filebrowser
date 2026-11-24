@@ -85,9 +85,10 @@
             @activate="openQuotaPrompt"
           />
         </div>
-        <div class="info-item">
+        <div v-if="quotaLoaded" class="info-item">
           <strong>{{ t("general.enabled") }}</strong>
-          <span>{{ quotaEnabled ? t("general.yes") : t("general.no") }}</span>
+          <span v-if="quotaFailed">{{ t("general.error") }}</span>
+          <span v-else>{{ quotaEnabled ? t("general.yes") : t("general.no") }}</span>
         </div>
         <div v-if="quotaEnabled" class="info-quota-usage">
           <QuotaFolderBar
@@ -150,7 +151,7 @@
 
 </template>
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import { useI18n } from "@/i18n/index.ts";
 import { getHumanReadableFilesize } from "@/utils/filesizes.js";
 import { formatTimestamp, fromNow } from "@/utils/moment.ts";
@@ -198,6 +199,8 @@ const hashResult = ref("");
 const generatingHash = ref(false);
 const quotaSnapshot = ref<QuotaSnapshot>({});
 const quotaExists = ref(false);
+const quotaLoaded = ref(false);
+const quotaFailed = ref(false);
 const lyricsText = ref("");
 const lyricsLoading = ref(false);
 const showLyrics = ref(false);
@@ -206,6 +209,7 @@ const subtitleContent = ref<Record<string, string>>({});
 // Listing items carry no subtitles, they're fetched when the tab opens
 const mediaDetails = ref<InfoItem | null>(null);
 let mediaRequested = false;
+let quotaRequested = false;
 
 const isShare = getters.isShare();
 const source = computed(() => props.item.source || "");
@@ -214,8 +218,9 @@ const isDir = computed(() => props.item.type === "directory");
 const isAudio = computed(() => !!props.item.type?.startsWith("audio"));
 const isVideo = computed(() => !!props.item.type?.startsWith("video"));
 const isAdmin = computed(() => getters.isAdmin());
-
-const humanSize = computed(() => getHumanReadableFilesize(props.item.size || 0));
+const humanSize = computed(() =>
+  typeof props.item.size === "number" ? getHumanReadableFilesize(props.item.size) : t("general.unknown"),
+);
 const humanTime = computed(() => formatDate(props.item.modified));
 const modTime = computed(() => relativeDate(props.item.modified));
 const humanCreatedTime = computed(() => formatDate(props.item.created));
@@ -283,10 +288,10 @@ watch(activeTab, (tab) => {
     mediaRequested = true;
     void loadMediaDetails();
   }
-});
-
-onMounted(async () => {
-  if (showQuotaSection.value) await loadQuota();
+  if (tab === "quota" && !quotaRequested) {
+    quotaRequested = true;
+    void loadQuota();
+  }
 });
 
 function formatDate(date?: string) {
@@ -354,6 +359,8 @@ async function toggleSubtitle(track: SubtitleTrack) {
 }
 
 async function loadQuota() {
+  quotaFailed.value = false;
+  quotaLoaded.value = false;
   try {
     const raw = await quotasApi.get(source.value, filePath.value);
     const data = Array.isArray(raw) ? raw[0] : raw;
@@ -361,8 +368,13 @@ async function loadQuota() {
     const { usedBytes, reservedBytes, measurementStatus, limitBytes } = data;
     quotaSnapshot.value = { usedBytes, reservedBytes, measurementStatus, limitBytes };
     quotaExists.value = (limitBytes || 0) > 0;
-  } catch {
-    // no quota or preview unavailable
+  } catch (err) {
+    if ((err as { status?: number })?.status !== 404) {
+      quotaFailed.value = true;
+      quotaRequested = false;
+    }
+  } finally {
+    quotaLoaded.value = true;
   }
 }
 

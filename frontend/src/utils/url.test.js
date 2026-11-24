@@ -39,7 +39,7 @@ vi.mock('@/utils/constants', () => {
   };
 });
 
-import { extractSourceFromPath, getApiPath, getPublicApiPath, pathsMatch, removePrefix } from './url.js';
+import { buildWebDavUrl, extractSourceFromPath, getApiPath, getPublicApiPath, pathsMatch, removePrefix } from './url.js';
 
 describe('testurl', () => {
 
@@ -188,5 +188,19 @@ describe('pathsMatch', () => {
     expect(pathsMatch(undefined, '/trip/b.jpg')).toBe(false);
     expect(pathsMatch('/trip/b.jpg', undefined)).toBe(false);
     expect(pathsMatch(undefined, undefined)).toBe(false);
+  });
+});
+
+describe('buildWebDavUrl', () => {
+  it('replaces the files route with dav and keeps the base URL', () => {
+    expect(buildWebDavUrl('data', '/my/files')).toBe('/files/dav/data/my/files');
+  });
+
+  it('encodes the source and each path segment', () => {
+    expect(buildWebDavUrl('my data', '/a b/c#1.txt')).toBe('/files/dav/my%20data/a%20b/c%231.txt');
+  });
+
+  it('points at the source root for the root path', () => {
+    expect(buildWebDavUrl('data', '/')).toBe('/files/dav/data/');
   });
 });

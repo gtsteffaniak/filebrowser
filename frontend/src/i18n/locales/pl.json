@@ -193,6 +193,8 @@
     "generateNewOtp": "Resetowanie i generowanie nowego kodu dwuskładnikowego",
     "copyFile": "Kopiuj plik",
     "copyPath": "Ścieżka kopiowania",
+    "copyUrl": "Kopiuj URL",
+    "copyWebdavUrl": "Kopiuj adres URL WebDAV",
     "copyToClipboard": "kopiuj do schowka",
     "copyDownloadLinkToClipboard": "Skopiuj łącze pobierania do schowka",
     "moveFile": "Przenieś plik",

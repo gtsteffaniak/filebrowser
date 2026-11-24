@@ -193,6 +193,8 @@
     "generateNewOtp": "Generar nuevo código de dos factores (2FA)",
     "copyFile": "Copiar archivo",
     "copyPath": "Copiar ruta",
+    "copyUrl": "Copiar URL",
+    "copyWebdavUrl": "Copiar URL de WebDAV",
     "copyToClipboard": "Copiar al portapapeles",
     "copyDownloadLinkToClipboard": "Copiar enlace de descarga",
     "moveFile": "Mover archivo",

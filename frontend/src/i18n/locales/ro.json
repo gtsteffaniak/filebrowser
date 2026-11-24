@@ -193,6 +193,8 @@
     "generateNewOtp": "Resetați și generați un nou cod cu doi factori",
     "copyFile": "Copiază fișier",
     "copyPath": "Copiați calea",
+    "copyUrl": "Copiază URL",
+    "copyWebdavUrl": "Copiază URL WebDAV",
     "copyToClipboard": "Copiază în clipboard",
     "copyDownloadLinkToClipboard": "Copiați link-ul de descărcare în clipboard",
     "moveFile": "Mută fișier",

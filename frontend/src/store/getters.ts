@@ -345,6 +345,11 @@ export const getters = {
     }
     return { pinned, dirs, files };
   },
+  hasDuration: () => {
+    const items = state.req?.items;
+    if (!Array.isArray(items)) return false;
+    return items.some((item: FileListItem) => item.type !== 'directory' && !!item.metadata?.duration);
+  },
   isSidebarVisible: () => {
     if (globalVars.disableSidebar || getters.isInvalidShare()) {
       return false

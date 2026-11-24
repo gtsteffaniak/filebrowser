@@ -124,7 +124,6 @@
 
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, useTemplateRef, watch } from "vue";
-import type { fileListItemIndex } from "@/store/types.ts";
 import { useI18n } from "@/i18n/index.ts";
 import { readAllDirectoryEntries } from "@/utils/upload.ts";
 import { state, mutations, getters } from "@/store/index.ts";
@@ -182,12 +181,7 @@ const allItems = computed(() => pinnedItems.value.concat(dirs.value, files.value
 const numPinned = computed(() => pinnedItems.value.length);
 const numFiles = computed(() => files.value.length);
 const numDirs = computed(() => dirs.value.length);
-const hasDuration = computed(() => {
-  // Check if any pinned file or regular file has duration metadata
-  const hasMetadataDuration = (file: fileListItemIndex) =>
-    file.type !== "directory" && file.metadata?.duration;
-  return pinnedItems.value.some(hasMetadataDuration) || files.value.some(hasMetadataDuration);
-});
+const hasDuration = computed(() => getters.hasDuration());
 const pinnedHeaderText = computed(() => {
   const pinnedFolders = pinnedItems.value.filter((item) => item.type === "directory").length;
   const pinnedFiles = pinnedItems.value.filter((item) => item.type !== "directory").length;

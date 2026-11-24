@@ -193,6 +193,8 @@
     "generateNewOtp": "Resetovat a vygenerovat nový kód dvoufázového ověření",
     "copyFile": "Kopírovat soubor",
     "copyPath": "Kopírovat cestu",
+    "copyUrl": "Kopírovat URL",
+    "copyWebdavUrl": "Kopírovat WebDAV URL",
     "copyToClipboard": "Kopírovat do schránky",
     "copyDownloadLinkToClipboard": "Kopírovat odkaz ke stažení do schránky",
     "moveFile": "Přesunout soubor",

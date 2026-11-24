@@ -193,6 +193,8 @@
     "generateNewOtp": "אפס וצור קוד דו-גורמי חדש",
     "copyFile": "העתק קובץ",
     "copyPath": "העתק נתיב",
+    "copyUrl": "העתק URL",
+    "copyWebdavUrl": "העתק URL של WebDAV",
     "copyToClipboard": "העתק ללוח",
     "copyDownloadLinkToClipboard": "העתק את קישור ההורדה ללוח",
     "moveFile": "העבר קובץ",

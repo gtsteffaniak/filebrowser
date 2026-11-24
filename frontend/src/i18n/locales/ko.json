@@ -193,6 +193,8 @@
     "generateNewOtp": "새로운 2단계 인증 코드 재설정 및 생성",
     "copyFile": "파일 복사",
     "copyPath": "경로 복사",
+    "copyUrl": "URL 복사",
+    "copyWebdavUrl": "WebDAV URL 복사",
     "copyToClipboard": "클립보드 복사",
     "copyDownloadLinkToClipboard": "다운로드 링크를 클립보드에 복사",
     "moveFile": "파일 이동",

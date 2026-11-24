@@ -193,6 +193,8 @@
     "generateNewOtp": "Нулиране и генериране на нов двуфакторен код",
     "copyFile": "Копиране на файл",
     "copyPath": "Копиране на път",
+    "copyUrl": "Копиране на URL",
+    "copyWebdavUrl": "Копиране на WebDAV URL",
     "copyToClipboard": "Копиране в клипборда",
     "copyDownloadLinkToClipboard": "Копиране на линк за изтегляне в клипборда",
     "moveFile": "Преместване на файл",
