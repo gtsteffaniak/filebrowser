@@ -7,16 +7,30 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gtsteffaniak/filebrowser/backend/internal/mediacache"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	goffmpeg "github.com/gtsteffaniak/go-ffmpeg"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
-// DetectEmbeddedSubtitles detects embedded subtitle streams.
+// DetectEmbeddedSubtitles detects embedded subtitle streams. Results are stored
+// in the shared media cache, keyed by the file's current size and modification
+// time; modtime is kept for API compatibility and is not used for the key.
 func DetectEmbeddedSubtitles(videoPath string, modtime time.Time) []utils.SubtitleTrack {
-	key := "embedded_subtitles:" + videoPath + ":" + modtime.Format(time.RFC3339)
-	if cached, ok := MediaCache.Get(key); ok {
-		return cached
+	_ = modtime
+	return DetectEmbeddedSubtitlesContext(context.Background(), videoPath)
+}
+
+// DetectEmbeddedSubtitlesContext is DetectEmbeddedSubtitles with a context. The
+// shared media cache is skipped when ctx is mediacache.WithoutCache.
+func DetectEmbeddedSubtitlesContext(ctx context.Context, videoPath string) []utils.SubtitleTrack {
+	useCache := !mediacache.Bypassed(ctx)
+	key, statErr := mediacache.Stat(videoPath)
+	useCache = useCache && statErr == nil
+	if useCache {
+		if cached, ok := mediacache.SubtitleTracks.Get(key.String()); ok {
+			return cached
+		}
 	}
 
 	svc := Get()
@@ -24,33 +38,54 @@ func DetectEmbeddedSubtitles(videoPath string, modtime time.Time) []utils.Subtit
 		return nil
 	}
 
-	tracks, err := svc.inner.DetectSubtitles(context.Background(), videoPath)
+	tracks, err := svc.inner.DetectSubtitles(ctx, videoPath)
 	if err != nil {
 		logger.Debug("ffprobe failed for file: " + videoPath + ", error: " + err.Error())
 		return nil
 	}
 
 	subtitles := mapSubtitleTracks(tracks)
-	MediaCache.Set(key, subtitles)
+	if useCache {
+		mediacache.SubtitleTracks.Set(key.String(), subtitles)
+	}
+	return subtitles
+}
+
+// SubtitleStream is one embedded subtitle stream, independent of the probe
+// backend (ffprobe via go-ffmpeg, or go-media).
+type SubtitleStream struct {
+	Index    int
+	Codec    string
+	Language string
+	Title    string
+}
+
+// BuildSubtitleTracks maps embedded subtitle streams to track entries. Shared by
+// the ffmpeg and go-media paths so both produce identical track lists.
+func BuildSubtitleTracks(streams []SubtitleStream) []utils.SubtitleTrack {
+	subtitles := make([]utils.SubtitleTrack, 0, len(streams))
+	mapper := &subtitleTrackMapper{
+		seenLang: make(map[string]int),
+	}
+	for _, stream := range streams {
+		subtitles = append(subtitles, mapper.track(stream))
+	}
 	return subtitles
 }
 
 func mapSubtitleTracks(tracks []goffmpeg.SubtitleTrack) []utils.SubtitleTrack {
-	subtitles := make([]utils.SubtitleTrack, 0, len(tracks))
-	mapper := &subtitleTrackMapper{
-		seenLang: make(map[string]int),
+	streams := make([]SubtitleStream, 0, len(tracks))
+	for _, t := range tracks {
+		streams = append(streams, SubtitleStream{Index: t.Index, Codec: t.Codec, Language: t.Language, Title: t.Title})
 	}
-	for _, stream := range tracks {
-		subtitles = append(subtitles, mapper.track(stream))
-	}
-	return subtitles
+	return BuildSubtitleTracks(streams)
 }
 
 type subtitleTrackMapper struct {
 	seenLang map[string]int
 }
 
-func (m *subtitleTrackMapper) track(stream goffmpeg.SubtitleTrack) utils.SubtitleTrack {
+func (m *subtitleTrackMapper) track(stream SubtitleStream) utils.SubtitleTrack {
 	index := stream.Index
 	lang := strings.TrimSpace(stream.Language)
 	return utils.SubtitleTrack{

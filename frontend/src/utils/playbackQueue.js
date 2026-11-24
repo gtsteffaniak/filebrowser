@@ -1,6 +1,10 @@
 // src/utils/playbackQueue.js
+import i18n from "@/i18n/index.ts";
 import { getters, mutations, state } from "@/store/index.ts";
 import { url } from "@/utils/index.ts";
+import { sortedItems } from "@/utils/sort.ts";
+
+const t = i18n.global.t.bind(i18n.global);
 
 /**
  * Shuffles an array -- this is used for playback queue shuffle mode
@@ -26,6 +30,12 @@ export function shuffleArray(array) {
  * @returns {{ queue: Array, currentIndex: number }} The final queue and index of the current item.
  */
 export function buildPlaybackQueue(listing, currentItem, mode = false, isShare = false) {
+  const searchItems = getters.searchNavigationItems(currentItem);
+  if (searchItems) {
+    const sorting = state.searchResults.sorting;
+    listing = sorting ? sortedItems([...searchItems], sorting.by, sorting.asc) : searchItems;
+  }
+
   // Filter only audio/video files
   const mediaFiles = listing.filter(item => {
     const type = item?.type || '';
@@ -180,11 +190,10 @@ export function toggleSingleLoop(currentLoop) {
 /**
  * Gets label for the playback modes.
  * @param {string} mode - The mode.
- * @param {Function} t - i18n translate function.
  * @param {number} [queueLength] - Number of items in the queue. When provided, uses it for the playback mode label.
  * @returns {string} The label.
  */
-export function getModeLabel(mode, t, queueLength) {
+export function getModeLabel(mode, queueLength) {
   if (queueLength !== undefined && mode === 'single') {
     return t('general.none');
   }
@@ -211,10 +220,9 @@ export function getModeIcon(mode) {
 /**
  * Gets the label for the loop states
  * @param {string} loop - Loop state: 'off' | 'all' | 'single'
- * @param {Function} t - i18n translate function
  * @returns {string} The label
  */
-export function getLoopLabel(loop, t) {
+export function getLoopLabel(loop) {
   switch (loop) {
     case 'all':    return t('player.PlayAllLoopedPlayback');
     case 'single': return t('player.LoopSingle');

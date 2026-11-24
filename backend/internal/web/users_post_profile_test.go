@@ -34,8 +34,7 @@ func TestUsersPostKeepsRequestedProfileValues(t *testing.T) {
 	defaults := settings.Config.UserDefaults
 	defaults.UI.Locale = "en"
 	defaults.UI.ThemeColor = "var(--blue)"
-	darkTrue := true
-	defaults.UI.DarkMode = &darkTrue
+	defaults.UI.DarkMode = users.DarkModeDark
 	defaults.Account.LockPassword = false
 	defaults.Account.DisableSettings = false
 	defaults.Account.ShowAdvancedProfile = false
@@ -72,8 +71,8 @@ func TestUsersPostKeepsRequestedProfileValues(t *testing.T) {
 	if got.ThemeColor != "var(--green)" {
 		t.Errorf("themeColor = %q, want var(--green)", got.ThemeColor)
 	}
-	if got.DarkMode {
-		t.Errorf("darkMode = true, want false")
+	if got.DarkMode != users.DarkModeLight {
+		t.Errorf("darkMode = %q, want light", got.DarkMode)
 	}
 	if !got.LockPassword {
 		t.Errorf("lockPassword = false, want true")

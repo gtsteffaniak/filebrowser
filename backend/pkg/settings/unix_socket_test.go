@@ -2,6 +2,7 @@ package settings
 
 import (
 	"os"
+	"path/filepath"
 	"runtime"
 	"testing"
 )
@@ -60,22 +61,18 @@ func TestListenUnixFilesystemSetsModeWithRestrictiveUmask(t *testing.T) {
 	if runtime.GOOS == "windows" {
 		t.Skip("filesystem unix sockets are not used on Windows")
 	}
-	// Bind uses sockaddr_un.sun_path; macOS allows at most 104 bytes, so use a short
-	// relative path in the test working directory (not the long t.TempDir() absolute path).
-	dir := t.TempDir()
-	wd, err := os.Getwd()
+	// Unix socket paths are limited to ~104 bytes on macOS, and t.TempDir()
+	// paths under /var/folders plus the test name exceed that, so use a short dir.
+	dir, err := os.MkdirTemp("", "fbs")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if chdirErr := os.Chdir(dir); chdirErr != nil {
-		t.Fatal(chdirErr)
-	}
-	socketPath := "fb.sock"
+	t.Cleanup(func() { _ = os.RemoveAll(dir) })
+	socketPath := filepath.Join(dir, "fb.sock")
 	orig := Config.Http
 	Config.Http.SocketFileMode = ""
 	t.Cleanup(func() {
 		_ = os.Remove(socketPath)
-		_ = os.Chdir(wd)
 		Config.Http = orig
 	})
 	ln, err := ListenUnixFilesystem(socketPath)

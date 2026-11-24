@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div v-if="loadingProgress < 100" class="progress-line" :style="{ width: `${loadingProgress}%`, ...moveWithSidebar }"></div>
+    <div v-if="loadingProgress > 0 && loadingProgress < 100" class="progress-line" :style="{ width: `${loadingProgress}%`, ...moveWithSidebar }"></div>
     <errors v-if="error" :errorCode="error.status" />
     <component v-else-if="currentViewLoaded" :is="currentView" :fbdata="req"></component>
     <div v-else>
@@ -14,18 +14,22 @@
 
 <script>
 import { createAsyncComponent } from "@/utils/asyncComponent.js";
-import { resourcesApi, shareApi, mediaApi } from "@/api";
+import { resourcesApi, shareApi, mediaApi } from "@/api/index.js";
 import Errors from "@/views/Errors.vue";
 import Preview from "@/views/files/Preview.vue";
 import ListingView from "@/views/files/ListingView.vue";
-import { state, mutations, getters } from "@/store";
-import { router } from "@/router";
-import { extractSourceFromPath, removeLastDir, base64Encode, removeTrailingSlash } from "@/utils/url.js";
+import { state, mutations, getters } from "@/store/index.ts";
+import { router } from "@/router/index.ts";
+import { extractSourceFromPath, removeLastDir, removeTrailingSlash, pathsMatch } from "@/utils/url.js";
+import { selectAndScrollToIndex } from "@/utils/listing/selectAndScroll.ts";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
-import { globalVars } from "@/utils/constants";
-import { syncEventTheme } from "@/utils/theme";
-import { isRichTextPreviewMimeType } from "@/utils/mimetype";
-import { invalidateDirMetadataCache } from "@/utils/metadataCache.js";
+import { globalVars } from "@/utils/constants.ts";
+import { syncEventTheme } from "@/utils/theme.js";
+import { isRichTextPreviewMimeType } from "@/utils/mimetype.js";
+import { invalidateDirMetadataCache } from "@/utils/cache/metadataCache.ts";
+import { clearImageCache } from "@/utils/cache/imageCache.ts";
+import { markRaw, toRaw } from "vue";
+import { listingCacheKey, getCachedListing, cacheListing, deleteCachedListing, clearListingCache } from "@/utils/cache/listingCache.ts";
 import { showShareDownloadPrompt as openShareDownloadPrompt } from "@/utils/download.js";
 
 function directoryListingHasMediaChildren(req) {
@@ -35,14 +39,44 @@ function directoryListingHasMediaChildren(req) {
   );
 }
 
+function sameListing(a, b) {
+  if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length) {
+    return false;
+  }
+  const describeItem = (i) =>
+    [ i.type, i.size, i.modified,
+      i.created, i.pinned, i.hasPreview,
+      i.isShared, i.hidden, i.viewToken,
+    ].join("|");
+  const known = new Map();
+  for (const item of a) {
+    known.set(item.name, describeItem(item));
+  }
+  return b.every((item) => known.get(item.name) === describeItem(item));
+}
+
+function reusableParentItems(inScope, filePath) {
+  const req = state.req;
+  if (!req || !inScope(req)) {
+    return null;
+  }
+  const items = req.type === "directory" ? req.items : req.parentDirItems;
+  if (!Array.isArray(items)) {
+    return null;
+  }
+  return items.some((item) => pathsMatch(item.path, filePath)) ? items : null;
+}
+
 /** @returns {Promise<{ items?: object[], name: string, type: string, path: string, source: string, hash?: string, token?: string, parentDirItems?: object[] }>} */
-async function fetchShareItemWithParent(sharePassword) {
+async function fetchShareItemWithParent(sharePassword, signal, canReuseParent = false) {
   let file = await resourcesApi.fetchFilesPublic(
     state.shareInfo.subPath,
     state.shareInfo.hash,
     sharePassword,
     false,
-    false
+    false,
+    false,
+    signal
   );
   file.hash = state.shareInfo.hash;
   mutations.setShareData({ passwordValid: true });
@@ -56,6 +90,9 @@ async function fetchShareItemWithParent(sharePassword) {
     directoryPath = "/";
   }
   const shouldFetchParent = directoryPath !== state.shareInfo.subPath;
+  const cachedParent = shouldFetchParent && canReuseParent
+    ? reusableParentItems((req) => req.hash === state.shareInfo.hash, file.path)
+    : null;
   const contentPromise = getters.shouldFetchFileContent(file)
     ? resourcesApi
         .fetchFilesPublic(
@@ -63,30 +100,34 @@ async function fetchShareItemWithParent(sharePassword) {
           state.shareInfo.hash,
           sharePassword,
           true,
-          false
+          false,
+          false,
+          signal
         )
         .catch(() => file)
     : Promise.resolve(file);
   const promises = [contentPromise];
-  if (shouldFetchParent) {
+  if (shouldFetchParent && !cachedParent) {
     promises.push(
       resourcesApi
-        .fetchFilesPublic(directoryPath, state.shareInfo.hash, sharePassword, false, false)
+        .fetchFilesPublic(directoryPath, state.shareInfo.hash, sharePassword, false, false, false, signal)
         .catch(() => null)
     );
   }
   const results = await Promise.all(promises);
   file = results[0];
   file.hash = state.shareInfo.hash;
-  if (shouldFetchParent && results[1]?.items) {
+  if (cachedParent) {
+    file.parentDirItems = cachedParent;
+  } else if (shouldFetchParent && results[1]?.items) {
     file.parentDirItems = results[1].items;
   }
   return file;
 }
 
 /** @returns {Promise<{ items?: object[], name: string, type: string, path: string, source: string, parentDirItems?: object[] }>} */
-async function fetchAuthItemWithParent(fetchSource, fetchPath) {
-  let res = await resourcesApi.fetchFiles(fetchSource, fetchPath, false, false);
+async function fetchAuthItemWithParent(fetchSource, fetchPath, canReuseParent = false, signal) {
+  let res = await resourcesApi.fetchFiles(fetchSource, fetchPath, false, false, false, signal);
   if (res.type === "directory") {
     return res;
   }
@@ -95,18 +136,23 @@ async function fetchAuthItemWithParent(fetchSource, fetchPath) {
     directoryPath = "/";
   }
   const shouldFetchParent = directoryPath !== res.path;
+  const cachedParent = shouldFetchParent && canReuseParent
+    ? reusableParentItems((req) => req.source === res.source, res.path)
+    : null;
   const contentPromise = getters.shouldFetchFileContent(res)
-    ? resourcesApi.fetchFiles(res.source, res.path, true, false).catch(() => res)
+    ? resourcesApi.fetchFiles(res.source, res.path, true, false, false, signal).catch(() => res)
     : Promise.resolve(res);
   const promises = [contentPromise];
-  if (shouldFetchParent) {
+  if (shouldFetchParent && !cachedParent) {
     promises.push(
-      resourcesApi.fetchFiles(res.source, directoryPath, false, false).catch(() => null)
+      resourcesApi.fetchFiles(res.source, directoryPath, false, false, false, signal).catch(() => null)
     );
   }
   const results = await Promise.all(promises);
   res = results[0];
-  if (shouldFetchParent && results[1]?.items) {
+  if (cachedParent) {
+    res.parentDirItems = cachedParent;
+  } else if (shouldFetchParent && results[1]?.items) {
     res.parentDirItems = results[1].items;
   }
   return res;
@@ -121,10 +167,12 @@ export default {
     LoadingSpinner,
     Editor: createAsyncComponent(() => import('@/views/files/Editor.vue')),
     OnlyOfficeEditor: createAsyncComponent(() => import('@/views/files/OnlyOfficeEditor.vue')),
+    WopiEditor: createAsyncComponent(() => import('@/views/files/WopiEditor.vue')),
     EpubViewer: createAsyncComponent(() => import('@/views/files/EpubViewer.vue')),
     DocViewer: createAsyncComponent(() => import('@/views/files/DocViewer.vue')),
     MarkdownViewer: createAsyncComponent(() => import('@/views/files/MarkdownViewer.vue')),
     ThreeJsViewer: createAsyncComponent(() => import('@/views/files/ThreeJs.vue')),
+    Slideshow: createAsyncComponent(() => import('@/views/files/Slideshow.vue')),
   },
   data() {
     return {
@@ -139,6 +187,9 @@ export default {
       sharePassword: "",
       attemptedPasswordLogin: false,
       lastShareHash: "",
+      fetchId: 0,
+      loadingFetchId: 0,
+      fetchController: null,
     };
   },
   computed: {
@@ -162,7 +213,7 @@ export default {
         width: `${this.loadingProgress}%`,
       };
       if (getters.isStickySidebar() && getters.isSidebarVisible()) {
-        style.left = `${state.sidebar.width}em`;
+        style.left = "var(--sidebar-width)";
       }
       return style;
     },
@@ -215,6 +266,8 @@ export default {
     window.addEventListener("keydown", this.keyEvent);
   },
   beforeUnmount() {
+    this.fetchId++;
+    this.fetchController?.abort();
     window.removeEventListener("keydown", this.keyEvent);
   },
   unmounted() {
@@ -223,14 +276,7 @@ export default {
   methods: {
     selectAndScroll(name, replaceSelection = false) {
       const index = state.req?.items?.findIndex((item) => item.name === name) ?? -1;
-      if (index === -1) return false;
-      if (replaceSelection) mutations.resetSelected();
-      mutations.addSelected(index);
-      const el = document.getElementById(base64Encode(encodeURIComponent(name)));
-      console.log("selectAndScroll", name, index, !!el);
-      if (!el) return false; // selected but item is not in DOM
-      el.scrollIntoView({ behavior: "instant", block: "center" });
-      return true;
+      return index !== -1 && selectAndScrollToIndex(index, replaceSelection);
     },
     async highlightPending(final = true) {
       const pHighlight = state.pendingHighlight;
@@ -263,13 +309,10 @@ export default {
         ? getters.isShare() && state.shareInfo?.hash === currentHash && state.req?.path === path
         : !getters.isShare() && state.req?.source === currentSource && state.req?.path === path;
       try {
-        const metaMap = isShare
-          ? await mediaApi.getDirectoryMetadataMap(state.shareInfo.subPath, {
-              isShare: true,
-              hash: state.shareInfo.hash,
-              password: this.sharePassword,
-            })
-          : await mediaApi.getDirectoryMetadataMap(path, { source });
+        const metaMap = await mediaApi.getDirectoryMetadataMap(
+          isShare ? state.shareInfo.subPath : path,
+          { source: currentSource },
+        );
         if (!isCurrentListing()) {
           return;
         }
@@ -287,10 +330,27 @@ export default {
     async fetchData() {
       const hash = getters.shareHash();
       const isShare = hash !== "";
+      const fetchId = ++this.fetchId;
+      const isStale = () => fetchId !== this.fetchId;
+      this.fetchController?.abort();
+      const controller = new AbortController();
+      this.fetchController = controller;
+      const signal = controller.signal;
 
       // Fetch and store share info if this is a share
       if (isShare) {
-        const shareInfo = await shareApi.getShareInfoPublic(hash);
+        let shareInfo;
+        try {
+          shareInfo = await shareApi.getShareInfoPublic(hash, signal);
+        } catch (e) {
+          if (isStale()) return;
+          this.error = e;
+          this.loadingProgress = 0;
+          mutations.replaceRequest({});
+          mutations.setLoading("share", false);
+          return;
+        }
+        if (isStale()) return;
 
         // Check if the response is an error (has status field indicating error)
         if (!shareInfo || shareInfo.status >= 400) {
@@ -355,10 +415,25 @@ export default {
         });
       }
 
-      // Set loading and reset error
-      mutations.setLoading(isShare ? "share" : "files", true);
+      // keep the list mounted
+      const wasReload = state.reload;
+      const keepList =
+        wasReload &&
+        state.req?.type === "directory" &&
+        Array.isArray(state.req.items) &&
+        this.lastPath === state.route.path;
+      if (!keepList) {
+        mutations.setLoading(isShare ? "share" : "files", true);
+        this.loadingFetchId = fetchId;
+      }
       this.error = null;
       mutations.setReload(false);
+      if (wasReload) {
+        clearListingCache();
+      }
+      let cacheKey = null;
+      let cachedPending = null;
+      let showingCached = false;
 
       try {
         if (isShare) {
@@ -370,11 +445,13 @@ export default {
             if (state.shareInfo.hasPassword) {
               mutations.setShareData({ passwordValid: false });
               try {
-                await resourcesApi.fetchFilesPublic(state.shareInfo.subPath, state.shareInfo.hash, this.sharePassword, false, false);
+                await resourcesApi.fetchFilesPublic(state.shareInfo.subPath, state.shareInfo.hash, this.sharePassword, false, false, false, signal);
+                if (isStale()) return;
                 // If we get here, password is valid (unlikely for upload shares, but handle it)
                 mutations.setShareData({ passwordValid: true });
                 this.error = null; // Clear any previous errors
               } catch (e) {
+                if (isStale()) return;
                 // 501 means browsing is disabled for upload shares - this is expected and means auth succeeded
                 if (e.status === 501) {
                   mutations.setShareData({ passwordValid: true });
@@ -394,7 +471,8 @@ export default {
           // For regular shares, validate password on startup (similar to upload shares)
           if (state.shareInfo.hasPassword) {
             mutations.setShareData({ passwordValid: false });
-            await resourcesApi.fetchFilesPublic(state.shareInfo.subPath, state.shareInfo.hash, this.sharePassword, false, false);
+            await resourcesApi.fetchFilesPublic(state.shareInfo.subPath, state.shareInfo.hash, this.sharePassword, false, false, false, signal);
+            if (isStale()) return;
             mutations.setShareData({ passwordValid: true });
             this.error = null; // Clear any previous errors
           } else {
@@ -411,13 +489,15 @@ export default {
           }
 
           this.loadingProgress = 10;
-          const file = await fetchShareItemWithParent(this.sharePassword);
+          const file = await fetchShareItemWithParent(this.sharePassword, signal, !wasReload);
+          if (isStale()) return;
           mutations.replaceRequest(file);
           if (file.type !== "directory") {
             state.pendingHighlight = { path: file.path, source: file.source };
           }
           document.title = `${globalVars.name} - ${this.$t("general.share")} - ${file.name}`;
           await this.patchMediaMetadataIfNeeded(file);
+          if (isStale()) return;
           if (this.$route.query.download === "true") {
             this.promptShareDownload(file);
           }
@@ -469,36 +549,91 @@ export default {
             mutations.replaceRequest({});
             return;
           }
-
           mutations.resetSelected();
 
           this.loadingProgress = 10;
           const fetchSource = decodeURIComponent(result.source);
           const fetchPath = decodeURIComponent(result.path);
+          // highlight the directory we just left
+          const prevReq = state.req;
+          if (!wasReload && prevReq?.type === "directory" && prevReq.source === fetchSource) {
+            const up = fetchPath.split("/").filter(Boolean);
+            const down = (prevReq.path || "").split("/").filter(Boolean);
+            if (down.length > up.length && up.every((seg, i) => seg === down[i])) {
+              state.pendingHighlight = { path: `/${down.slice(0, up.length + 1).join("/")}`, source: fetchSource };
+            }
+          }
+          // Show the last listing of the folder and refresh it in the background
+          cacheKey = listingCacheKey(fetchSource, fetchPath);
+          const cached = wasReload ? null : getCachedListing(cacheKey);
+          if (cached) {
+            if (state.sources.count > 1) {
+              mutations.setCurrentSource(cached.res.source);
+            }
+            cachedPending = state.pendingHighlight;
+            document.title = `${globalVars.name} - ${this.$t("general.files")} - ${cached.res.name}`;
+            mutations.replaceRequest(cached.res);
+            showingCached = true;
+            this.lastPath = state.route.path;
+            mutations.setLoading("files", false);
+            if (state.navigation.isTransitioning) {
+              mutations.setNavigationTransitioning(false);
+            }
+            void this.highlightPending(false);
+          }
 
-          const res = await fetchAuthItemWithParent(fetchSource, fetchPath);
+          const res = await fetchAuthItemWithParent(fetchSource, fetchPath, !wasReload, signal);
+          if (isStale()) return;
           if (state.sources.count > 1) {
             mutations.setCurrentSource(res.source);
           }
           document.title = `${globalVars.name} - ${this.$t("general.files")} - ${res.name}`;
-          mutations.replaceRequest(res);
-          if (res.type !== "directory") {
-            state.pendingHighlight = { path: res.path, source: res.source };
+          if (cached && res.type === "directory" && sameListing(state.req?.items, res.items)) {
+            if (Array.isArray(res.parentDirItems)) {
+              res.parentDirItems = markRaw(res.parentDirItems);
+            }
+            Object.assign(state.req, res, { items: state.req.items });
+            cacheListing(cacheKey, toRaw(state.req));
+            await this.patchMediaMetadataIfNeeded(state.req, fetchSource);
+          } else {
+            if (cachedPending && !state.pendingHighlight && state.selected.length === 0) {
+              state.pendingHighlight = cachedPending;
+            }
+            mutations.replaceRequest(res);
+            showingCached = false;
+            if (res.type === "directory") {
+              this.lastPath = state.route.path;
+            }
+            if (res.type !== "directory") {
+              state.pendingHighlight = { path: res.path, source: res.source };
+            }
+            mutations.setLoading("files", false);
+            if (res.type === "directory") {
+              cacheListing(cacheKey, res);
+            } else {
+              deleteCachedListing(cacheKey);
+            }
+            await this.patchMediaMetadataIfNeeded(res, fetchSource);
           }
-          mutations.setLoading("files", false);
-          await this.patchMediaMetadataIfNeeded(res, fetchSource);
         }
 
       } catch (e) {
+        if (isStale()) return;
+        if (showingCached && ![401, 403, 404].includes(e?.status)) {
+          this.loadingProgress = 0;
+          return;
+        }
+        if (cacheKey) {
+          deleteCachedListing(cacheKey);
+        }
         this.error = e;
         mutations.replaceRequest({});
         this.loadingProgress = 0;
 
-        if (e.status === 404) {
-          void router.push({ name: "notFound" });
-        } else if (e.status === 403) {
-          void router.push({ name: "forbidden" });
-        } else if (e.status === 401 && isShare) {
+        // Keep the user on the current files/share URL and show <errors> inline.
+        // Do not navigate to /403|/404|/500 — those standalone routes have no Layout
+        // and leave users stranded after an access denial or missing path.
+        if (e.status === 401 && isShare) {
           // Handle share password requirement
           this.clearStoredSharePassword(state.shareInfo?.hash);
           this.attemptedPasswordLogin = this.sharePassword !== "";
@@ -509,17 +644,18 @@ export default {
             this.error = null;
           }
           this.showPasswordPrompt();
-        } else {
-          void router.push({ name: "error" });
         }
       } finally {
-        mutations.setLoading(isShare ? "share" : "files", false);
-        // Clear navigation transition when data fetch completes
-        if (state.navigation.isTransitioning) {
-          mutations.setNavigationTransitioning(false);
+        if (this.loadingFetchId === fetchId) {
+          this.loadingFetchId = 0;
+          mutations.setLoading(isShare ? "share" : "files", false);
+          // Clear navigation transition when data fetch completes
+          if (state.navigation.isTransitioning) {
+            mutations.setNavigationTransitioning(false);
+          }
         }
       }
-
+      if (isStale()) return;
       void this.highlightPending();
       this.lastPath = state.route.path;
     },
@@ -616,11 +752,12 @@ export default {
           }
         }
       }
-      // F4! - refresh the listing with its metadata
+      // F4 - refresh listing and cache
       if (event.key === "F4" && !event.ctrlKey && !event.metaKey && !event.repeat) {
         if (getters.currentPromptName() || getters.currentView() !== 'listingView') return;
         event.preventDefault();
         invalidateDirMetadataCache();
+        clearImageCache();
         mutations.setReload(true);
       }
       // CTRL+E - switch between editor and markdown viewer
@@ -687,7 +824,7 @@ export default {
   height: 1px;
   background: var(--primaryColor);
   z-index: 2000;
-  transition: width 0.3s ease, left 0.2s ease;
+  transition: width 0.3s ease, left 0.22s cubic-bezier(0.2, 0, 0, 1);
   box-shadow: 0 0 10px var(--primaryColor);
 }
 

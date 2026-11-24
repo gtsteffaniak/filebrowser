@@ -1,9 +1,10 @@
 import { router } from "@/router/index.ts";
 import { getters, mutations, state } from "@/store/index.ts";
-import { globalVars } from "@/utils/constants.js";
+import { globalVars } from "@/utils/constants.ts";
 
 export default {
   pathsMatch,
+  isSameItem,
   removeTrailingSlash,
   removeLeadingSlash,
   encodeRFC5987ValueChars,
@@ -63,7 +64,14 @@ export function encodePath(str) {
 }
 
 export function pathsMatch(url1, url2) {
+  if (typeof url1 !== "string" || typeof url2 !== "string") {
+    return false;
+  }
   return removeTrailingSlash(url1) === removeTrailingSlash(url2);
+}
+
+export function isSameItem(a, b) {
+  return a?.source === b?.source && pathsMatch(a?.path, b?.path);
 }
 
 export function removePrefix(path, prefix = "") {
@@ -240,17 +248,22 @@ export function extractSourceFromPath(url, knownSources = []) {
 
 export function buildItemUrl(source, path, includeBaseURL = false) {
   path = removeLeadingSlash(path);
-  const encodedPath = encodePath(path);
+  const encodedItemPath = encodePath(path);
   let urlPath;
   if (getters.isShare()) {
-    urlPath = `public/share/${state.shareInfo.hash}/${encodedPath}`;
+    urlPath = `public/share/${state.shareInfo.hash}/${encodedItemPath}`;
   } else {
-    urlPath = `files/${encodeURIComponent(source)}/${encodedPath}`;
+    urlPath = `files/${encodeURIComponent(source)}/${encodedItemPath}`;
   }
   if (includeBaseURL) {
     return `${globalVars.baseURL}${urlPath}`;
   }
   return `/${urlPath}`;
+}
+
+export function buildWebDavUrl(source, path) {
+  const encodedItemPath = encodePath(removeLeadingSlash(path));
+  return `${globalVars.baseURL}dav/${encodeURIComponent(source)}/${encodedItemPath}`;
 }
 
 export function encodedPath(path) {
@@ -264,6 +277,20 @@ export function encodedPath(path) {
 
 // assume non-encoded input path and source
 export function goToItem(source, path, previousHistoryItem, newTab = false, isShare = false) {
+  if (previousHistoryItem?.returnTo && !newTab) {
+    let returnTo = previousHistoryItem.returnTo;
+    const search = state.searchResults;
+    mutations.resetAll();
+    if (search?.focus) {
+      // if not in search results go to its parent folder instead
+      const inResults = search.items.some((i) => isSameItem(i, state.req));
+      search.focus = inResults ? { source: state.req.source, path: state.req.path } : undefined;
+      if (!inResults) returnTo = buildItemUrl(state.req.source, getParentDir(state.req.path));
+    }
+    mutations.setPreviousHistoryItem(search?.focus ? previousHistoryItem : null);
+    void router.push(returnTo);
+    return;
+  }
   const cv = getters.currentView();
   if (source === state.sources.current && path === state.req.path && cv === "listingView") {
     return;
@@ -285,6 +312,11 @@ export function goToItem(source, path, previousHistoryItem, newTab = false, isSh
     return;
   }
   mutations.resetAll();
+  if (previousHistoryItem === null && !state.previousHistoryItem?.returnTo) {
+    // Opening an item from the listing must not keep an older remembered item
+    // alive; otherwise closing the next preview navigates back to this file.
+    mutations.setPreviousHistoryItem(null);
+  }
 
   if (previousHistoryItem === undefined) {
     // When undefined will not create browser history

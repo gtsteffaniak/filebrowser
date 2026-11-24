@@ -53,9 +53,8 @@ type FileOptions struct {
 	Expand                   bool
 	Content                  bool
 	Recursive                bool   // whether to recursively index directories
-	Metadata                 bool   // whether to get metadata
-	ExtractEmbeddedSubtitles bool   // whether to extract embedded subtitles from media files
-	AlbumArt                 bool   // whether to get album art from media files
+	Metadata                 bool // whether to get metadata
+	AlbumArt                 bool // whether to get album art from media files
 	ShowHidden               bool   // whether to show hidden files (true = show, false = hide)
 	ShowPinnedItems          bool   // whether to show pinned items
 	ShareHash                string // when set, pinned items are loaded from this share link

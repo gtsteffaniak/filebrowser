@@ -5,8 +5,7 @@ vi.mock('@/utils/constants', () => {
     globalVars: {
       baseURL: "/files/",
       name: "Test App",
-      mediaAvailable: true,
-      muPdfAvailable: true,
+      docPreviewExtensions: ["pdf", "docx"],
       onlyOfficeUrl: "",
       recaptcha: false,
       recaptchaKey: "",
@@ -40,7 +39,7 @@ vi.mock('@/utils/constants', () => {
   };
 });
 
-import { extractSourceFromPath, getApiPath, getPublicApiPath, removePrefix } from './url.js';
+import { buildWebDavUrl, extractSourceFromPath, getApiPath, getPublicApiPath, pathsMatch, removePrefix } from './url.js';
 
 describe('testurl', () => {
 
@@ -169,5 +168,39 @@ describe('extractSourceFromPath', () => {
       expect(result.source).toEqual(test.expected.source);
       expect(result.path).toEqual(test.expected.path);
     }
+  });
+});
+
+describe('pathsMatch', () => {
+  it('ignores a trailing slash', () => {
+    expect(pathsMatch('/trip/b.jpg/', '/trip/b.jpg')).toBe(true);
+    expect(pathsMatch('/trip/b.jpg', '/trip/b.jpg')).toBe(true);
+    expect(pathsMatch('/trip/', '/trip')).toBe(true);
+    expect(pathsMatch('/b.jpg/', '/b.jpg')).toBe(true);
+  });
+
+  it('does not match different paths', () => {
+    expect(pathsMatch('/trip/a.jpg/', '/trip/b.jpg')).toBe(false);
+    expect(pathsMatch('/trip/b.jpg/', '/other/b.jpg')).toBe(false);
+  });
+
+  it('never matches a missing path', () => {
+    expect(pathsMatch(undefined, '/trip/b.jpg')).toBe(false);
+    expect(pathsMatch('/trip/b.jpg', undefined)).toBe(false);
+    expect(pathsMatch(undefined, undefined)).toBe(false);
+  });
+});
+
+describe('buildWebDavUrl', () => {
+  it('replaces the files route with dav and keeps the base URL', () => {
+    expect(buildWebDavUrl('data', '/my/files')).toBe('/files/dav/data/my/files');
+  });
+
+  it('encodes the source and each path segment', () => {
+    expect(buildWebDavUrl('my data', '/a b/c#1.txt')).toBe('/files/dav/my%20data/a%20b/c%231.txt');
+  });
+
+  it('points at the source root for the root path', () => {
+    expect(buildWebDavUrl('data', '/')).toBe('/files/dav/data/');
   });
 });

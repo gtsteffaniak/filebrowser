@@ -16,96 +16,71 @@
         type="button"
         class="clear-queue-btn"
         @click="clearQueue"
-        :title="$t('player.clearQueue')"
-        :aria-label="$t('player.clearQueue')"
+        :title="t('player.clearQueue')"
+        :aria-label="t('player.clearQueue')"
       >
         <i class="material-symbols">delete</i>
       </button>
     </div>
 
     <!-- Queue list -->
-    <div v-if="formattedQueue.length > 0" class="queue-container">
-      <div class="queue-list" ref="QueueList">
-        <div
-          v-for="(item, index) in formattedQueue"
-          :key="`${item.path}-${index}`"
-          class="queue-item"
-          :class="{ 'current': index === currentQueueIndex }"
-          @click="navigateToItem(index)"
-        >
-          <div class="queue-item-icon">
-            <Icon
-              :mimetype="item.type"
-              :filename="item.name"
-              :hasPreview="item.hasPreview"
-              :thumbnailUrl="item.thumbnailUrl"
-              :modified="item.modified"
-              :path="item.path"
-              :source="item.source"
-              :size="item.size"
-            />
-            <div v-if="index === currentQueueIndex" class="wave-indicator" :class="{ paused: !isPlaying }">
-              <!-- Now playing wave indicator -->
-              <span></span><span></span><span></span><span></span><span></span>
+    <div v-if="queueCount > 0" class="queue-container">
+      <div class="queue-list" ref="QueueList" :class="{ 'uniform-rows': virtual.active.value && hasTallRows }">
+        <div data-virtual-group="queue" :style="virtual.group('queue').style">
+          <div
+            v-for="item in visibleQueue"
+            :key="`${item.path}-${item.index}`"
+            class="queue-item"
+            :data-index="item.index"
+            :class="{ 'current': item.index === currentQueueIndex }"
+            @click="navigateToItem(item.index)"
+          >
+            <div class="queue-item-icon">
+              <Icon
+                :mimetype="item.type"
+                :filename="item.name"
+                :hasPreview="item.hasPreview"
+                :thumbnailUrl="item.thumbnailUrl"
+                :modified="item.modified"
+                :path="item.path"
+                :source="item.source"
+                :size="item.size"
+              />
+              <div v-if="item.index === currentQueueIndex" class="wave-indicator" :class="{ paused: !isPlaying }">
+                <!-- Now playing wave indicator -->
+                <span></span><span></span><span></span><span></span><span></span>
+              </div>
             </div>
-          </div>
-          <!-- Metadata -->
-          <div class="queue-item-info">
-            <div class="queue-item-title">{{ item.title }}</div>
-            <div v-if="item.artist" class="queue-item-metadata">{{ item.artist }}</div>
-            <div v-if="item.album" class="queue-item-metadata">{{ item.album }}</div>
-          </div>
-          <!-- Duration + file type + play indicator -->
-          <div class="queue-item-meta">
-            <span v-if="item.duration" class="queue-item-duration">{{ item.duration }}</span>
-            <span v-if="item.fileType" class="file-type-badge">{{ item.fileType }}</span>
-            <span class="queue-item-indicator">
-              <span v-if="index === currentQueueIndex" class="current-track">
-                <!-- eslint-disable-next-line @intlify/vue-i18n/no-raw-text -->
-                <i class="material-symbols">{{ isPlaying ? 'pause' : 'play_arrow' }}</i>
+            <!-- Metadata -->
+            <div class="queue-item-info">
+              <div class="queue-item-title">{{ item.title }}</div>
+              <div v-if="item.artist" class="queue-item-metadata">{{ item.artist }}</div>
+              <div v-if="item.album" class="queue-item-metadata">{{ item.album }}</div>
+            </div>
+            <!-- Duration + file type + play indicator -->
+            <div class="queue-item-meta">
+              <span v-if="item.duration" class="queue-item-duration">{{ item.duration }}</span>
+              <span v-if="item.fileType" class="file-type-badge">{{ item.fileType }}</span>
+              <span class="queue-item-indicator">
+                <span v-if="item.index === currentQueueIndex" class="current-track">
+                  <i class="material-symbols">{{ isPlaying ? 'pause' : 'play_arrow' }}</i>
+                </span>
+                <span v-else class="track-number">{{ item.index + 1 }}</span>
               </span>
-              <span v-else class="track-number">{{ index + 1 }}</span>
-            </span>
+            </div>
           </div>
         </div>
       </div>
     </div>
-
     <!-- Empty state -->
     <div v-else class="empty">
       <i class="material-symbols">queue_music</i>
-      <p>{{ $t('player.emptyQueue') }}</p>
+      <p>{{ t('player.emptyQueue') }}</p>
     </div>
   </div>
 
   <div class="card-actions">
-    <div class="mode-buttons">
-      <div class="mode-indicator" :style="modeIndicatorStyle"></div>
-      <input
-        type="radio"
-        id="mode-sequential"
-        name="playback-mode"
-        value="sequential"
-        :checked="playbackMode === 'sequential'"
-        @change="setMode('sequential')"
-        hidden
-      />
-      <label for="mode-sequential" class="mode-btn" :class="{ active: playbackMode === 'sequential' }" :title="$t('player.PlayAllOncePlayback')">
-        <i class="material-symbols">playlist_play</i>
-      </label>
-      <input
-        type="radio"
-        id="mode-shuffle"
-        name="playback-mode"
-        value="shuffle"
-        :checked="playbackMode === 'shuffle'"
-        @change="setMode('shuffle')"
-        hidden
-      />
-      <label for="mode-shuffle" class="mode-btn" :class="{ active: playbackMode === 'shuffle' }" :title="$t('player.ShuffleAllPlayback')">
-        <i class="material-symbols">shuffle</i>
-      </label>
-    </div>
+    <SlidingTabs icon-only :tabs="modeTabs" :model-value="playbackMode" @update:model-value="setMode" />
     <button
       type="button"
       class="repeat-one-btn"
@@ -119,9 +94,12 @@
   </div>
 </template>
 
-<script>
-import { state, mutations, getters } from "@/store";
-import { url } from "@/utils";
+<script setup lang="ts">
+import { computed, nextTick, onMounted, useTemplateRef, watch } from "vue";
+import { useI18n } from "@/i18n/index.ts";
+import { state, mutations, getters } from "@/store/index.ts";
+import type { MediaMetadata } from "@/store/types.ts";
+import { url } from "@/utils/index.ts";
 import {
   cyclePlaybackModes,
   cycleLoopState,
@@ -134,254 +112,271 @@ import {
   formatArtist
 } from '@/utils/playbackQueue.js';
 import Icon from "@/components/files/Icon.vue";
-import { resourcesApi } from "@/api";
-import { globalVars } from "@/utils/constants";
+import SlidingTabs from "@/components/settings/SlidingTabs.vue";
+import { resourcesApi } from "@/api/index.js";
+import { globalVars } from "@/utils/constants.ts";
 import { formatDuration, getTypeFromMime, removeExtension } from "@/utils/files.js";
+import { findScrollParents, useListingVirtualization } from "@/composables/useListingVirtualization.ts";
+import type { VirtualItem } from "@/composables/useListingVirtualization.ts";
 
-export default {
-  name: "PlaybackQueue",
-  components: { Icon },
-  props: {
-    embedded: {
-      type: Boolean,
-      default: false
-    },
-    promptId: {
-      type: Number,
-      default: null,
-    },
-  },
-  computed: {
-    playbackQueue() {
-      return state.playbackQueue.queue;
-    },
-    currentQueueIndex() {
-      return state.playbackQueue.currentIndex;
-    },
-    playbackMode() {
-      return state.playbackQueue.mode || 'single';
-    },
-    loop() {
-      return state.playbackQueue.loop || 'off';
-    },
-    queueCount() {
-      return this.playbackQueue.length;
-    },
-    currentModeLabel() {
-      return getModeLabel(this.playbackMode, this.$t, this.queueCount);
-    },
-    currentModeIcon() {
-      return getModeIcon(this.playbackMode);
-    },
-    loopIcon() {
-      return getLoopIcon(this.loop);
-    },
-    loopLabel() {
-      return getLoopLabel(this.loop, this.$t);
-    },
-    formattedQueue() {
-      return this.playbackQueue.map((item) => {
-        const metadata = item.metadata || {};
-        // Title: fallback to filename without extension
-        const title = metadata.title || removeExtension(item.name);
-        // Artist formatted
-        const artist = formatArtist(metadata.artist);
-        // Album name with year
-        let album = '';
-        if (metadata.album) {
-          album = metadata.album;
-          if (metadata.year) {
-            album += ` (${metadata.year})`;
-          }
-        } else if (metadata.year) {
-          album = metadata.year;
-        }
-        // File type
-        const fileType = getTypeFromMime(item.type);
-        // Duration
-        const duration = formatDuration(metadata.duration);
-        return {
-          name: item.name,
-          path: item.path,
-          type: item.type,
-          source: item.source,
-          modified: item.modified,
-          created: item.created,
-          size: item.size,
-          hasPreview: item.hasPreview,
-          thumbnailUrl: this.getThumbnailUrl(item),
-          title: title,
-          artist: artist,
-          album: album,
-          fileType: fileType,
-          duration: duration,
-        };
-      });
-    },
-    isPlaying() {
-      return state.playbackQueue.isPlaying || false;
-    },
-    isPromptVisible() {
-      // Check if this PlaybackQueue prompt is the current active prompt
-      return state.prompts.some(prompt => prompt.name === 'PlaybackQueue');
-    },
-    modeIndicatorStyle() {
-      const modes = ['sequential', 'shuffle'];
-      const index = modes.indexOf(this.playbackMode);
-      if (index === -1) return {};
-      const width = `${100 / modes.length}%`;
-      const left = `${index * (100 / modes.length)}%`;
-      return { left, width };
-    },
-    itemLayout() {
-      const item = this.formattedQueue[this.currentQueueIndex] || null;
-      if (!item) return '';
-      return `${item.artist}|${item.album}`;
+interface QueueItem {
+  name: string;
+  path: string;
+  type: string;
+  source?: string;
+  modified?: string;
+  created?: string;
+  size?: number;
+  hasPreview?: boolean;
+  metadata?: MediaMetadata;
+}
+
+const props = withDefaults(
+  defineProps<{
+    embedded?: boolean;
+    promptId?: number | null;
+  }>(),
+  {
+    embedded: false,
+    promptId: null,
+  }
+);
+
+const { t } = useI18n();
+
+const QueueList = useTemplateRef<HTMLElement>("QueueList");
+// Only renders the rows around the screen when the queue is long
+const virtual = useListingVirtualization<VirtualItem>({
+  container: QueueList,
+  groups: () => [{ key: "queue", count: state.playbackQueue.queue.length, at: (index) => ({ index }) }],
+  scroller: (container) => findScrollParents(container, true),
+  itemClass: "queue-item",
+  minItems: 10,
+});
+
+const playbackQueue = computed(() => state.playbackQueue.queue as QueueItem[]);
+const currentQueueIndex = computed(() => state.playbackQueue.currentIndex);
+const playbackMode = computed(() => state.playbackQueue.mode || 'single');
+const loop = computed(() => state.playbackQueue.loop || 'off');
+const queueCount = computed(() => playbackQueue.value.length);
+const currentModeLabel = computed(() => getModeLabel(playbackMode.value, queueCount.value));
+const currentModeIcon = computed(() => getModeIcon(playbackMode.value));
+const loopIcon = computed(() => getLoopIcon(loop.value));
+const loopLabel = computed(() => getLoopLabel(loop.value));
+const isPlaying = computed(() => state.playbackQueue.isPlaying || false);
+const isPromptVisible = computed(() => state.prompts.some(prompt => prompt.name === 'PlaybackQueue'));
+const modeTabs = computed(() => [
+  { id: 'sequential', icon: 'playlist_play', title: t('player.PlayAllOncePlayback') },
+  { id: 'shuffle', icon: 'shuffle', title: t('player.ShuffleAllPlayback') },
+]);
+
+// Only the rendered rows are formatted, with their position in the queue
+const visibleQueue = computed(() =>
+  virtual.group("queue").items.flatMap(({ index }) => {
+    const item = playbackQueue.value[index];
+    return item ? [{ ...formatQueueItem(item), index }] : [];
+  })
+);
+// Rows with artist and album are taller than the others, but the virtual list needs rows of one height
+const hasTallRows = computed(() => playbackQueue.value.some((item) => queueArtist(item) && queueAlbum(item)));
+const itemLayout = computed(() => {
+  const item = playbackQueue.value[currentQueueIndex.value];
+  if (!item) return '';
+  return `${queueArtist(item)}|${queueAlbum(item)}`;
+});
+
+watch(currentQueueIndex, async (newIndex, oldIndex) => {
+  // Auto-scroll when current item changes
+  if ((isPromptVisible.value || props.embedded) && newIndex !== oldIndex) {
+    await nextTick();
+    await scrollToCurrentItem();
+  }
+});
+watch(
+  isPromptVisible,
+  async (newVal) => {
+    if (!props.embedded && newVal) {
+      await nextTick();
+      setTimeout(() => {
+        void scrollToCurrentItem();
+      }, 50);
     }
   },
-  watch: {
-    async currentQueueIndex(newIndex, oldIndex) {
-      // Auto-scroll when current item changes
-      if ((this.isPromptVisible || this.embedded) && newIndex !== oldIndex) {
-        await this.$nextTick();
-        await this.scrollToCurrentItem();
-      }
-    },
-    isPromptVisible: {
-      async handler(newVal) {
-        if (!this.embedded && newVal) {
-          await this.$nextTick();
-          setTimeout(() => {
-            void this.scrollToCurrentItem();
-          }, 50);
-        }
-      },
-      immediate: true
-    },
-    async playbackMode(newMode, oldMode) {
-      if (newMode !== oldMode && (this.isPromptVisible || this.embedded)) {
-        await this.$nextTick();
-        await this.scrollToCurrentItem();
-      }
-    },
-    queueCount() {
-      this.updatePromptTitle();
-    },
-    async itemLayout() {
-      if (this.isPromptVisible || this.embedded) {
-        await this.$nextTick();
-        await this.scrollToCurrentItem();
-      }
-    },
-  },
-  async mounted() {
-    this.updatePromptTitle();
-    await this.$nextTick();
-    await this.scrollToCurrentItem();
-  },
-  methods: {
-    getThumbnailUrl(item) {
-      if (!globalVars.enableThumbs) return "";
-      const source = item.source;
-      const path = item.path;
-      if (!source || !path) return '';
-      if (getters.isShare()) {
-        return resourcesApi.getPreviewURLPublic(path);
-      }
-      return resourcesApi.getPreviewURL(source, path, item.modified);
-    },
-    setMode(mode) {
-      if (mode === this.playbackMode) return;
-      const listing = state.navigation.listing || state.req?.parentDirItems || [];
-      cyclePlaybackModes(this.playbackMode, {
-        listing,
-        currentItem: state.req,
-        isShare: getters.isShare(),
-        targetMode: mode
-      });
-      this.updatePromptTitle();
-    },
-    cycleLoop() {
-      const loop = this.queueCount <= 1 ? toggleSingleLoop(this.loop) : cycleLoopState(this.loop);
-      mutations.setPlaybackQueue({
-        queue: this.playbackQueue,
-        currentIndex: this.currentQueueIndex,
-        mode: this.playbackMode,
-        loop: loop
-      });
-    },
-    clearQueue() {
-      clearPlaybackQueue();
-      this.updatePromptTitle();
-    },
-    navigateToItem(index) {
-      if (index === this.currentQueueIndex) {
-        // Toggle play/pause for current item
-        this.togglePlayPause();
-        return;
-      } else {
-        // Navigate to different item
-        mutations.setNavigationTransitioning(true);
-        this.navigateToIndex(index);
-      }
-    },
-    togglePlayPause() {
-      mutations.togglePlayPause();
-    },
-    navigateToIndex(index) {
-      if (index >= 0 && index < this.playbackQueue.length) {
-        const item = this.playbackQueue.at(index);
-        // Update store with new current index
-        mutations.setPlaybackQueue({
-          queue: this.playbackQueue,
-          currentIndex: index,
-          mode: this.playbackMode,
-          loop: this.loop
-        });
-        // Trigger actual navigation
-        this.triggerNavigation(item);
-      }
-    },
-    triggerNavigation(item) {
-      url.goToItem(item.source || state.req.source, item.path, undefined, false, getters.isShare());
-    },
-    async scrollToCurrentItem() {
-      if (this.queueCount === 0) return;
-      await this.$nextTick();
-      const list = this.$refs.QueueList;
-      if (!list) return;
-      const currentItem = list.querySelector('.queue-item.current');
-      if (!currentItem) return;
-
-      this.centerCurrentItem(list, currentItem);
-    },
-    centerCurrentItem(list, item) {
-      const listRect = list.getBoundingClientRect();
-      const itemRect = item.getBoundingClientRect();
-      const itemTopRelative = itemRect.top - listRect.top + list.scrollTop;
-      const itemHeight = item.offsetHeight;
-      const listHeight = list.clientHeight;
-      const maxScroll = list.scrollHeight - listHeight;
-
-      // Target the item at 35% from the top
-      const viewportOffset = listHeight * 0.35;
-      const scrollTo = itemTopRelative - viewportOffset + (itemHeight / 2);
-
-      list.scrollTo({
-        top: Math.max(0, Math.min(scrollTo, maxScroll)),
-        behavior: 'smooth'
-      });
-    },
-    updatePromptTitle() {
-      if (this.embedded || this.promptId === null) return;
-      const base = this.$t('player.QueuePlayback');
-      const title = this.queueCount > 0
-        ? `${base} (${this.queueCount})`
-        : base;
-      mutations.updatePromptTitle(this.promptId, title);
-    },
+  { immediate: true }
+);
+watch(playbackMode, async (newMode, oldMode) => {
+  if (newMode !== oldMode && (isPromptVisible.value || props.embedded)) {
+    await nextTick();
+    await scrollToCurrentItem();
   }
-};
+});
+watch(queueCount, () => {
+  updatePromptTitle();
+});
+watch(itemLayout, async () => {
+  if (isPromptVisible.value || props.embedded) {
+    await nextTick();
+    await scrollToCurrentItem();
+  }
+});
+
+onMounted(async () => {
+  updatePromptTitle();
+  await nextTick();
+  await scrollToCurrentItem();
+});
+
+function queueArtist(item: QueueItem) {
+  return formatArtist(item.metadata?.artist ?? "");
+}
+
+function queueAlbum(item: QueueItem) {
+  const metadata = item.metadata || {};
+  // Album name with year
+  if (metadata.album) {
+    return metadata.year ? `${metadata.album} (${metadata.year})` : metadata.album;
+  }
+  return metadata.year || '';
+}
+
+function formatQueueItem(item: QueueItem) {
+  const metadata = item.metadata || {};
+  return {
+    name: item.name,
+    path: item.path,
+    type: item.type,
+    source: item.source,
+    modified: item.modified,
+    created: item.created,
+    size: item.size,
+    hasPreview: item.hasPreview,
+    thumbnailUrl: getThumbnailUrl(item),
+    // Title: fallback to filename without extension
+    title: metadata.title || removeExtension(item.name),
+    artist: queueArtist(item),
+    album: queueAlbum(item),
+    fileType: getTypeFromMime(item.type),
+    duration: formatDuration(metadata.duration),
+  };
+}
+
+function getThumbnailUrl(item: QueueItem) {
+  if (!globalVars.enableThumbs) return "";
+  const source = item.source;
+  const path = item.path;
+  if (!source || !path) return '';
+  if (getters.isShare()) {
+    return resourcesApi.getPreviewURLPublic(path, "small");
+  }
+  return resourcesApi.getPreviewURL(source, path, item.modified);
+}
+
+function setMode(mode: string) {
+  if (mode === playbackMode.value) return;
+  const listing = state.navigation.listing || state.req?.parentDirItems || [];
+  cyclePlaybackModes(playbackMode.value, {
+    listing,
+    currentItem: state.req,
+    isShare: getters.isShare(),
+    targetMode: mode
+  });
+  updatePromptTitle();
+}
+
+function cycleLoop() {
+  const nextLoop = queueCount.value <= 1 ? toggleSingleLoop(loop.value) : cycleLoopState(loop.value);
+  mutations.setPlaybackQueue({
+    queue: playbackQueue.value,
+    currentIndex: currentQueueIndex.value,
+    mode: playbackMode.value,
+    loop: nextLoop as typeof loop.value
+  });
+}
+
+function clearQueue() {
+  clearPlaybackQueue();
+  updatePromptTitle();
+}
+
+function navigateToItem(index: number) {
+  if (index === currentQueueIndex.value) {
+    // Toggle play/pause for current item
+    togglePlayPause();
+    return;
+  } else {
+    // Navigate to different item
+    mutations.setNavigationTransitioning(true);
+    navigateToIndex(index);
+  }
+}
+
+function togglePlayPause() {
+  mutations.togglePlayPause();
+}
+
+function navigateToIndex(index: number) {
+  if (index >= 0 && index < playbackQueue.value.length) {
+    const item = playbackQueue.value.at(index);
+    // Update store with new current index
+    mutations.setPlaybackQueue({
+      queue: playbackQueue.value,
+      currentIndex: index,
+      mode: playbackMode.value,
+      loop: loop.value
+    });
+    // Trigger actual navigation
+    if (item) triggerNavigation(item);
+  }
+}
+
+function triggerNavigation(item: QueueItem) {
+  url.goToItem(item.source || state.req.source, item.path, undefined, false, getters.isShare());
+}
+
+async function scrollToCurrentItem() {
+  if (queueCount.value === 0) return;
+  await nextTick();
+  const list = QueueList.value;
+  if (!list) return;
+  let currentItem = list.querySelector<HTMLElement>('.queue-item.current');
+  const index = currentQueueIndex.value;
+  if (!currentItem && virtual.active.value && index >= 0 && index < queueCount.value) {
+    // Not rendered: bring the row in, then it is centered like any other
+    virtual.scrollToIndex(currentQueueIndex.value, { block: 'center', behavior: 'instant' });
+    await virtual.refresh();
+    currentItem = list.querySelector<HTMLElement>('.queue-item.current');
+  }
+  if (!currentItem) return;
+
+  centerCurrentItem(list, currentItem);
+}
+
+function centerCurrentItem(list: HTMLElement, item: HTMLElement) {
+  const listRect = list.getBoundingClientRect();
+  const itemRect = item.getBoundingClientRect();
+  const itemTopRelative = itemRect.top - listRect.top + list.scrollTop;
+  const itemHeight = item.offsetHeight;
+  const listHeight = list.clientHeight;
+  const maxScroll = list.scrollHeight - listHeight;
+
+  // Target the item at 35% from the top
+  const viewportOffset = listHeight * 0.35;
+  const scrollTo = itemTopRelative - viewportOffset + (itemHeight / 2);
+
+  list.scrollTo({
+    top: Math.max(0, Math.min(scrollTo, maxScroll)),
+    behavior: 'instant'
+  });
+}
+
+function updatePromptTitle() {
+  if (props.embedded || props.promptId === null) return;
+  const base = t('player.QueuePlayback');
+  const title = queueCount.value > 0
+    ? `${base} (${queueCount.value})`
+    : base;
+  mutations.updatePromptTitle(props.promptId, title);
+}
 </script>
 
 <style scoped>
@@ -498,6 +493,22 @@ export default {
   border-radius: var(--borderRadius);
 }
 
+.queue-item-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0.1em 0;
+  overflow: hidden;
+  line-height: 1.3;
+}
+
+.queue-list.uniform-rows .queue-item-info {
+  box-sizing: border-box;
+  min-height: 3.50em;
+}
+
 .queue-item:hover {
   background: var(--hoverOverlay);
 }
@@ -507,7 +518,6 @@ export default {
   color: white;
 }
 
-.mode-btn i,
 .repeat-one-btn i {
   font-size: 1.5rem;
 }
@@ -533,17 +543,6 @@ export default {
   height: 100%;
 
   --icon-font-size: 1.8em;
-}
-
-.queue-item-info {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: 0.1em 0;
-  overflow: hidden;
-  line-height: 1.3;
 }
 
 .queue-item-title {
@@ -634,35 +633,12 @@ export default {
   user-select: none;
 }
 
-.mode-buttons {
-  display: flex;
-  position: relative;
-  background: var(--surfaceSecondary);
-  border-radius: 2em;
-  overflow: hidden;
-  padding: 0;
-  flex-shrink: 0;
-}
-
-.mode-indicator {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  background: var(--primaryColor);
-  border-radius: inherit;
-  transition: left 0.35s cubic-bezier(0.25, 0.8, 0.25, 1),
-              width 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
-  pointer-events: none;
-  z-index: 0;
-}
-
-.mode-btn,
 .repeat-one-btn {
   background: transparent;
   border: none;
-  border-radius: 0;
+  border-radius: 2em;
   padding: 0.35rem 0.75rem;
+  color: var(--textSecondary);
   cursor: pointer;
   font-size: inherit;
   transition: background 0.2s, color 0.2s, transform 0.2s;
@@ -670,28 +646,6 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.mode-btn {
-  flex: 1;
-  border-radius: 0;
-  color: var(--textSecondary);
-  z-index: 1;
-  position: relative;
-}
-
-.mode-btn.active {
-  color: white;
-}
-
-.mode-btn:hover:not(.active) {
-  color: var(--primaryColor);
-  transform: scale(1.02);
-}
-
-.repeat-one-btn {
-  border-radius: 2em;
-  color: var(--textSecondary);
 }
 
 .repeat-one-btn.active {

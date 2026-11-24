@@ -1,16 +1,20 @@
 :root {
   --borderRadius: 0.25em !important;
+
+  /* Button theming hooks (all optional — app defaults shown):
+     --button-background, --button-color, --button-shadow,
+     --button-padding-x, --button-padding-y,
+     --button-min-width, --button-min-height, --button-width,
+     --hover-transform, --hover-shadow, --action-hover-background */
 }
 
 .card,
-.listing-item,
 .floating-window,
 .button,
 button,
 .input,
 input,
-#listingView.gallery .item img,
-#listingView .item img,
+.listing-items .listing-item img,
 .sizeInputWrapper,
 .sizeInput,
 #search-input,
@@ -21,20 +25,9 @@ input,
     border-radius: 0.25em !important;
 }
 
-#listingView.compact .header {
-    border-bottom-left-radius: 0 !important;
-    border-bottom-right-radius: 0 !important;
-}
-
-#listingView.list .item:last-child,
 #results {
     border-bottom-left-radius: 0.25em !important;
     border-bottom-right-radius: 0.25em !important;
-}
-
-#listingView.list .item:first-child {
-    border-top-left-radius: 0.25em !important;
-    border-top-right-radius: 0.25em !important;
 }
 
 #breadcrumbs ul li:last-child a {

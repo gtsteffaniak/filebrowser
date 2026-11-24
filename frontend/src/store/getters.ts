@@ -1,17 +1,52 @@
+import { computed } from "vue";
 import { detectLocale } from "@/i18n/index.ts";
 import { mutations } from "./mutations.ts";
 import { state } from "./state.ts";
 import { url } from "@/utils/index.ts";
-import { globalVars, previewViews, tools } from "@/utils/constants.js";
+import { globalVars, previewViews, tools } from "@/utils/constants.ts";
 import { hasToolAccess, toolIdFromPath } from "@/utils/toolAccess.js";
 import { getFileExtension } from '@/utils/files.js';
 import { getTypeInfo, isHtmlMimeType, isRichTextPreviewMimeType } from "@/utils/mimetype.js";
 import { formatTimestamp, fromNow } from "@/utils/moment.ts";
 import { getNestedProperty, getObjectProperty } from '@/utils/object.js';
 import { buildItemUrl, removeLeadingSlash, removePrefix } from '@/utils/url.js';
-import { defaultDarkMode } from "@/utils/theme.js";
+import { defaultDarkMode, normalizeDarkMode, resolveDarkMode } from "@/utils/theme.js";
 import { isMobileLayout } from '@/utils/viewport.js';
-import type { DisplayPreference, FileListItem } from "./types.ts";
+import type { DisplayPreference, FileListItem, fileListItemIndex } from "./types.ts";
+
+export interface PreviewPerms {
+  audio: boolean;
+  video: boolean;
+  image: boolean;
+  office: boolean;
+  folder: boolean;
+  popup: boolean;
+  models: boolean;
+  motionVideoPreview: boolean;
+  disableHideSidebar: boolean;
+  autoplayMedia: boolean;
+  showHidden: boolean;
+}
+
+// previewPerms gets called lot of times per file, we computute it once and
+// cache it to avoid allocating a new object it will recompute when the route or permission change
+const previewPermsComputed = computed<Readonly<PreviewPerms>>(() => {
+  const preview = state.user?.preview;
+  const isShare = getters.isShare();
+  return {
+    audio: preview?.audio ?? true,
+    video: preview?.video ?? true,
+    image: preview?.image ?? true,
+    office: preview?.office ?? true,
+    folder: preview?.folder ?? true,
+    popup: preview?.popup ?? true,
+    models: preview?.models ?? true,
+    motionVideoPreview: preview?.motionVideoPreview ?? false,
+    disableHideSidebar: preview?.disableHideSidebar ?? false,
+    autoplayMedia: preview?.autoplayMedia ?? true,
+    showHidden: isShare ? (state.shareInfo?.showHidden !== undefined ? state.shareInfo?.showHidden : false) : false,
+  };
+});
 
 export const getters = {
   displayPreferenceFor: (source: string, path: string): DisplayPreference | null => {
@@ -75,15 +110,9 @@ export const getters = {
   },
   isScrollable: () => {
     if (getters.currentView() === 'markdownViewer') {
-      if (isHtmlMimeType(state.req?.type)) {
-        return false;
-      }
-      return true;
+      return !isHtmlMimeType(state.req?.type);
     }
-    if (getters.isPreviewView()) {
-      return false
-    }
-    return true
+    return !getters.isPreviewView();
   },
   displayPreference: () => {
     let source = state.sources.current;
@@ -92,8 +121,8 @@ export const getters = {
     }
     let path = state.route.path ?? "";
 
-    if (state.req.type !== "directory") {
-      path = path.substring(0, path.lastIndexOf("/") + 1) || "/";
+    if (state.req.type && state.req.type !== "directory") {
+      path = path.slice(0, path.lastIndexOf("/") + 1) || "/";
     }
 
     return getters.displayPreferenceFor(source, path);
@@ -140,7 +169,16 @@ export const getters = {
   },
   /** Sort used by nextPrevious and quick jump */
   navigationSorting: () => {
-    return state.navigation.sorting || getters.sorting();
+    const searchSorting = getters.searchNavigationItems(state.req) ? state.searchResults?.sorting : undefined;
+    return state.navigation.sorting || searchSorting || getters.sorting();
+  },
+  searchNavigationItems: (item: Partial<FileListItem>) => {
+    const items = state.searchResults?.items;
+    if (!state.previousHistoryItem?.returnTo || !items?.length) {
+      return null;
+    }
+    if (!item) return null;
+    return items.some((i) => url.isSameItem(i, item)) ? items : null;
   },
   /** Sort config for destination picker dialogs (copy/move/archive), independent of the main listing sort. */
   pickerSorting: () => {
@@ -201,15 +239,15 @@ export const getters = {
     if (!getters.isLoggedIn()) {
       // Public shares honor an initialized anonymous preference so the sidebar
       // toggle reaches the document. Login and other logged-out routes, and a
-      // share whose user or darkMode boolean is not ready yet, stay on the
+      // share whose user or darkMode preference is not ready yet, stay on the
       // configured default.
       const sharePreference = getters.isShare() ? state.user?.darkMode : undefined
-      if (typeof sharePreference === "boolean") {
-        return sharePreference
+      if (sharePreference !== undefined && sharePreference !== null) {
+        return resolveDarkMode(sharePreference, defaultDarkMode(state.systemDark), state.systemDark)
       }
-      return defaultDarkMode()
+      return defaultDarkMode(state.systemDark)
     }
-    return state.user.darkMode === true
+    return resolveDarkMode(state.user.darkMode, defaultDarkMode(state.systemDark), state.systemDark)
   },
   isLoggedIn: () => {
     if (state.user === null) {
@@ -289,12 +327,12 @@ export const getters = {
   },
   reqItems: () => {
     if (state.user === null) return { pinned: [], dirs: [], files: [] };
-    const pinned: FileListItem[] = [];
-    const dirs: FileListItem[] = [];
-    const files: FileListItem[] = [];
+    const pinned: fileListItemIndex[] = [];
+    const dirs: fileListItemIndex[] = [];
+    const files: fileListItemIndex[] = [];
     if (!state.req?.items) return { pinned, dirs, files };
 
-    for (const item of state.req.items) {
+    for (const item of state.req.items as fileListItemIndex[]) {
       if (item.pinned) {
         pinned.push(item);
         continue;
@@ -302,26 +340,31 @@ export const getters = {
       if (item.type === 'directory') {
         dirs.push(item);
       } else {
-        // Pre-existing: capitalized "Path" (not FileListItem's "path"), never read elsewhere. Left as-is.
-        (item as FileListItem & { Path?: string | undefined }).Path = state.req.path;
         files.push(item);
       }
     }
     return { pinned, dirs, files };
+  },
+  hasDuration: () => {
+    const items = state.req?.items;
+    if (!Array.isArray(items)) return false;
+    return items.some((item: FileListItem) => item.type !== 'directory' && !!item.metadata?.duration);
   },
   isSidebarVisible: () => {
     if (globalVars.disableSidebar || getters.isInvalidShare()) {
       return false
     }
     const cv = getters.currentView()
-    if (cv === 'onlyOfficeEditor') {
+    if (cv === 'onlyOfficeEditor' || cv === 'wopiEditor') {
       return false
     }
     let visible = (state.showSidebar || getters.isStickySidebar())
     if (getters.currentPromptName() && !getters.isStickySidebar()) {
       visible = false
     }
-    if (previewViews.includes(cv) && !getters.previewPerms().disableHideSidebar) {
+    // The slideshow hides the sidebar like preview views do, unless the user chose "always show sidebar".
+    const hidesSidebar = previewViews.includes(cv) || cv === 'slideshow';
+    if (hidesSidebar && !getters.previewPerms().disableHideSidebar) {
       visible = false
     }
     if (state.shareInfo?.singleFileShare) {
@@ -402,13 +445,19 @@ export const getters = {
       const reqName = state.req.name ?? "";
       const ext = `.${reqName.split(".").pop()?.toLowerCase() ?? ""}`;
       if (state.user.disableViewingExt?.includes(ext)) return 'preview';
-      if (state.req.type === 'directory') return 'listingView';
+      if (state.req.type === 'directory') {
+        // ?slideshow=1 on a folder shows the fullscreen slideshow view.
+        const query = state.route?.query as Record<string, string | undefined> | undefined;
+        return query?.slideshow === '1' ? 'slideshow' : 'listingView';
+      }
+      if (getters.isWopiFile(reqName) && !getters.isShare()) return 'wopiEditor';
       if (state.req.onlyOfficeId && !getters.officeViewingDisabled(reqName)) return 'onlyOfficeEditor';
       if (getTypeInfo(state.req.type).simpleType === '3d-model') return 'threeJsViewer';
 
       if ('content' in state.req && isRichTextPreviewMimeType(state.req.type)) {
         const hash = window.location.hash;
-        const preferEditor = state.user.preferEditorForMarkdown;
+        const isHtml = isHtmlMimeType(state.req.type);
+        const preferEditor = isHtml ? state.user.preferEditorForHtml : state.user.preferEditorForMarkdown;
         const isMarkdown = state.req.type === 'text/markdown' || state.req.type === 'text/x-markdown';
 
         const canEdit = getters.sourcePermissions().modify || (getters.isShare() && state.shareInfo?.allowModify);
@@ -419,7 +468,7 @@ export const getters = {
           case '#edit': return canEdit ? 'editor' : 'markdownViewer';
           case '#preview': return 'markdownViewer';
         }
-        if (isMarkdown && preferEditor && canEdit) return 'editor';
+        if ((isMarkdown || isHtml) && preferEditor && canEdit) return 'editor';
         return 'markdownViewer';
       }
 
@@ -467,7 +516,7 @@ export const getters = {
     if (state.prompts.length === 0) {
       return null
     }
-    return state.prompts[state.prompts.length - 1]
+    return state.prompts.at(-1)
   },
   currentPromptName: () => {
     // Ensure state.prompts is an array
@@ -475,7 +524,7 @@ export const getters = {
       return ""
     }
     // Check if the name property is a string
-    const lastPrompt = state.prompts[state.prompts.length - 1] as { name?: string };
+    const lastPrompt = state.prompts.at(-1) as { name?: string };
     if (typeof lastPrompt?.name !== 'string') {
       return ""
     }
@@ -536,6 +585,19 @@ export const getters = {
     }
     return false
   },
+  // isWopiFile reports whether a file opens in the WOPI editor: the office
+  // editor is Collabora, its discovery declares the extension, and the user
+  // has not disabled office viewing for it.
+  isWopiFile: (filename: string) => {
+    if (globalVars.officeProduct !== 'collabora') return false
+    const name = filename || ''
+    const dot = name.lastIndexOf('.')
+    if (dot === -1) return false
+    const ext = name.slice(dot + 1).toLowerCase()
+    const extensions: Record<string, string> = globalVars.officeExtensions || {}
+    if (!Object.hasOwn(extensions, ext)) return false
+    return !getters.officeViewingDisabled(name)
+  },
   officeViewingDisabled: (filename: string) => {
     const ext = ` ${getFileExtension(filename)}`;
     const disabledList = state.user.disableOnlyOfficeExt || ''
@@ -552,6 +614,7 @@ export const getters = {
   },
   shouldFetchFileContent: (fileInfo: { name: string; source?: string; onlyOfficeId?: string }) => {
     if (getters.fileViewingDisabled(fileInfo.name)) return false
+    if (getters.isWopiFile(fileInfo.name) && !getters.isShare()) return false
     if (fileInfo.onlyOfficeId && !getters.officeViewingDisabled(fileInfo.name)) return false
     if (!getters.sourcePermissions(fileInfo.source).download) return false
     return true
@@ -592,12 +655,16 @@ export const getters = {
       deleteAfterArchive: true,
       stickySidebar: true,
       hideFilesInTree: false,
-      darkMode: defaultDarkMode(),
+      // Keep the raw preference ("auto" stays "auto") so isDarkMode re-resolves
+      // it against the system on every read; storing the resolved boolean would
+      // freeze the theme at page load for public shares.
+      darkMode: normalizeDarkMode(globalVars.darkMode),
       dateFormat: false,
       disableViewingExt: "",
       disableOfficePreviewExt: "",
       disablePreviewExt: "",
       preferEditorForMarkdown: false,
+      preferEditorForHtml: false,
       fileLoading: {
         maxConcurrent: 1,
         chunkSizeMb: 5,
@@ -779,36 +846,5 @@ export const getters = {
       realtime: !!globalPerms.realtime,
     };
   },
-  previewPerms: () => {
-    if (getters.isShare()) {
-      // For shares, use defaults for preview settings (shares don't have per-share preview config)
-      return {
-        audio: state.user?.preview?.audio ?? true,
-        video: state.user?.preview?.video ?? true,
-        image: state.user?.preview?.image ?? true,
-        office: state.user?.preview?.office ?? true,
-        folder: state.user?.preview?.folder ?? true,
-        popup: state.user?.preview?.popup ?? true,
-        models: state.user?.preview?.models ?? true,
-        motionVideoPreview: state.user?.preview?.motionVideoPreview ?? false,
-        disableHideSidebar: state.user?.preview?.disableHideSidebar ?? false,
-        autoplayMedia: state.user?.preview?.autoplayMedia ?? true,
-        showHidden: state.shareInfo?.showHidden !== undefined ? state.shareInfo?.showHidden : false,
-      };
-    }
-    // For regular users, use their preview settings -- unless is share
-    return {
-      audio: state.user?.preview?.audio ?? true,
-      video: state.user?.preview?.video ?? true,
-      image: state.user?.preview?.image ?? true,
-      office: state.user?.preview?.office ?? true,
-      folder: state.user?.preview?.folder ?? true,
-      popup: state.user?.preview?.popup ?? true,
-      models: state.user?.preview?.models ?? true,
-      motionVideoPreview: state.user?.preview?.motionVideoPreview ?? false,
-      disableHideSidebar: state.user?.preview?.disableHideSidebar ?? false,
-      autoplayMedia: state.user?.preview?.autoplayMedia ?? true,
-      showHidden: false, // Backend handles this now, but kept for API compatibility
-    };
-  }
+  previewPerms: (): Readonly<PreviewPerms> => previewPermsComputed.value,
 };

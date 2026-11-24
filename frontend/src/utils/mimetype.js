@@ -16,7 +16,7 @@ export function isRawImageMimeType(mimeType) {
 // Extensions browsers render natively in <img> (no server-side conversion).
 const IMAGE_FILE_EXTENSIONS = new Set([
   ".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg", ".bmp", ".ico", ".avif",
-  ".heic", ".heif",
+  ".heic", ".heif", ".jxl",
 ]);
 
 export function isImageFilePath(path) {
@@ -79,7 +79,7 @@ const TYPE_TABLE = [
   },
   {
     prefix: "image/",
-    extensions: [".jpg", ".jpeg", ".png", ".webp", ".bmp", ".ico", ".avif", ".heic", ".heif", ".tif", ".tiff", ".svg"],
+    extensions: [".jpg", ".jpeg", ".png", ".webp", ".bmp", ".ico", ".avif", ".heic", ".heif", ".jxl", ".tif", ".tiff", ".svg"],
     classes: "coral-icons material-symbols-outlined",
     materialSymbol: "image",
     simpleType: "image",
@@ -634,16 +634,14 @@ function extensionOf(filename) {
   return filename.slice(dot).toLowerCase();
 }
 
-export function getTypeInfo(mimeType) {
-  if (!mimeType) {
-    return EMPTY_MIME_TYPE_INFO;
-  }
+const TYPE_INFO_CACHE = new Map();
+const TYPE_INFO_CACHE_MAX = 1000;
 
+function resolveTypeInfo(mimeType) {
   const exact = MIME_EXACT_INDEX.get(mimeType);
   if (exact) {
     return toTypeInfo(exact);
   }
-
   for (const rule of PREFIX_RULES) {
     if (mimeType.startsWith(rule.prefix)) {
       return toTypeInfo(rule);
@@ -651,6 +649,21 @@ export function getTypeInfo(mimeType) {
   }
 
   return DEFAULT_TYPE_INFO;
+}
+
+export function getTypeInfo(mimeType) {
+  if (!mimeType) {
+    return EMPTY_MIME_TYPE_INFO;
+  }
+  let info = TYPE_INFO_CACHE.get(mimeType);
+  if (info === undefined) {
+    info = resolveTypeInfo(mimeType);
+    if (TYPE_INFO_CACHE.size >= TYPE_INFO_CACHE_MAX) {
+      TYPE_INFO_CACHE.clear();
+    }
+    TYPE_INFO_CACHE.set(mimeType, info);
+  }
+  return info;
 }
 
 export function getTypeInfoFromExt(filename) {

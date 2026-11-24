@@ -1,7 +1,10 @@
 package settings
 
 func CanConvertImage(ext string) bool {
-	if !MediaEnabled() {
+	mediaMu.RLock()
+	defer mediaMu.RUnlock()
+	// JPEG XL previews are decoded by go-media and never need ffmpeg.
+	if !Env.FFmpegAvailable && ImagePreviewType(ext) != JXLImagePreview {
 		return false
 	}
 	val := Config.Integrations.Media.Convert.ImagePreview[ImagePreviewType(ext)]
@@ -12,7 +15,9 @@ func CanConvertImage(ext string) bool {
 }
 
 func CanConvertVideo(ext string) bool {
-	if !MediaEnabled() {
+	mediaMu.RLock()
+	defer mediaMu.RUnlock()
+	if !Env.FFmpegAvailable {
 		return false
 	}
 	val := Config.Integrations.Media.Convert.VideoPreview[VideoPreviewType(ext)]
@@ -22,6 +27,12 @@ func CanConvertVideo(ext string) bool {
 	return *val
 }
 
-func MediaEnabled() bool {
+// FFmpegEnabled reports whether ffmpeg initialized successfully. This gates only
+// the ffmpeg fallback and ffmpeg-only features (HEIC, transcoding). go-media does
+// not need it. Read under the media lock so it is consistent while an admin
+// toggles media settings.
+func FFmpegEnabled() bool {
+	mediaMu.RLock()
+	defer mediaMu.RUnlock()
 	return Env.FFmpegAvailable
 }

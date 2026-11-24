@@ -1,10 +1,12 @@
-import { reactive } from 'vue';
+import { markRaw, reactive } from 'vue';
 import { detectLocale } from "@/i18n/index.ts";
-import { globalVars } from "@/utils/constants.js";
+import { globalVars } from "@/utils/constants.ts";
+import { normalizeDarkMode, systemPrefersDark } from "@/utils/theme.js";
 import type { StoreState } from "./types.ts";
 
 export const state: StoreState = reactive({
   disableEventThemes: eventTheme(),
+  systemDark: systemPrefersDark(),
   tooltip: {
     show: false,
     content: "",
@@ -24,6 +26,7 @@ export const state: StoreState = reactive({
   contextMenuHasItems: false,
   deletedItem: false,
   pendingHighlight: null, // path, source of the item to select
+  searchResults: null, // last quick/adv search results
   showOverflowMenu: false,
   sessionId: "",
   isSafari: /^((?!chrome|android).)*safari/i.test(navigator.userAgent),
@@ -32,6 +35,8 @@ export const state: StoreState = reactive({
   showSidebar: false,
   displayPreferences: {},
   enforcedUserDefaults: {},
+  /** Runtime media state shared by the player and general UI; null until loaded (logged-in users only). */
+  mediaSettings: null,
   sidebarLinkDefaultsPolicy: { items: [] },
   toolAccessDefaultsPolicy: { items: [] },
   shareDefaultsPolicy: { values: {}, enforced: {} },
@@ -46,7 +51,7 @@ export const state: StoreState = reactive({
       words: 0,
       chars: 0,
     },
-    fontSize: parseInt(localStorage.getItem('editorFontSize') ?? '', 10) || 14,
+    fontSize: Number.parseInt(localStorage.getItem('editorFontSize') ?? '', 10) || 14,
     markdownSplitView: loadMarkdownSplitView(),
     scrollRatio: 0,
     scrollSource: null,
@@ -84,10 +89,11 @@ export const state: StoreState = reactive({
     newFileTemplate: [], // custom filenames that will be used as template for new files
     scopes: [],
     permissions: {}, // Default to an empty object for permissions
-    darkMode: globalVars.darkMode === true,
+    darkMode: normalizeDarkMode(globalVars.darkMode),
     disableSettings: false,
     debugOffice: false, // Debug mode for OnlyOffice integration
     preferEditorForMarkdown: false,
+    preferEditorForHtml: false,
     hideFileExt: "",   // files with certain extensions to hide in UI
     profile: { // Example of additional user properties
       username: '', // Default to an empty string
@@ -127,7 +133,7 @@ export const state: StoreState = reactive({
   sharePassword: "",
   loading: {}, // map of loadType -> true, see mutations.setLoading
   reload: false,
-  selected: [],
+  selected: markRaw([]),
   lastSelectedIndex: null,
   multiple: false,
   upload: {
@@ -203,10 +209,11 @@ export const state: StoreState = reactive({
  * Load notification history from sessionStorage
  * @returns {Array}
  */
-function loadNotificationHistory() {
+function loadNotificationHistory(): unknown[] {
   try {
     const stored = sessionStorage.getItem('notificationHistory');
-    return stored ? JSON.parse(stored) : [];
+    const parsed: unknown = stored ? JSON.parse(stored) : [];
+    return Array.isArray(parsed) ? parsed : [];
   } catch (error) {
     console.error('Failed to load notification history:', error);
     return [];
@@ -223,7 +230,7 @@ function loadMarkdownSplitView() {
  */
 function getSidebarWidth() {
   const savedWidth = localStorage.getItem("sidebarWidth");
-  return savedWidth ? parseFloat(savedWidth) : 20; // 20em
+  return savedWidth ? Number.parseFloat(savedWidth) : 20; // 20em
 }
 
 function getSidebarMode() {

@@ -6,7 +6,7 @@
       :class="{ 'with-top-spacing': isShare && !disableShareCard }">
       <i :class="{ 'disabled': !isLoggedIn }"
         aria-label="Navigate Home"
-        @click="goHome()" class="material-symbols action">home</i>
+        @click="goHome()" class="material-symbols action button">home</i>
       <span
         class="sidebar-mode-toggle-wrap item"
         @mouseenter="showTooltip($event, $t('sidebar.switchMode'))"
@@ -25,17 +25,16 @@
       </span>
       <i v-if="isShare" aria-label="Edit Share" @mouseenter="showTooltip($event, editShareText)" @mouseleave="hideTooltip"
         :class="{ 'disabled': !canEdit }"
-        @click="showEditShareHover" class="material-symbols action">edit</i>
+        @click="showEditShareHover" class="material-symbols action button">edit</i>
       <i v-else @mouseenter="showTooltip($event, $t('sidebar.customizeLinks'))" @mouseleave="hideTooltip"
         aria-label="Edit Links"
-        @click="openSidebarLinksPrompt" class="material-symbols action">edit</i>
+        @click="openSidebarLinksPrompt" class="material-symbols action button">edit</i>
     </div>
     <!-- Source switcher only in navigation mode and when multiple sources exist (hidden in shares).
          Kept outside the scrollable content area so it does not scroll horizontally with the folder tree. -->
     <div
       v-if="mode === 'navigation' && !isShare && sourceNames.length > 1"
       class="source-card-container"
-      ref="sourceCardContainer"
     >
       <ExpandDropdown
         class="sidebar-source-switcher"
@@ -53,7 +52,7 @@
         <div v-if="isShare && !disableShareCard" class="share-info-section">
           <ShareInfo :hash="hash" :token="token" :sub-path="subPath" />
         </div>
-        <transition-group name="expand" tag="div" class="inner-card">
+        <transition-group :css="false" tag="div" class="inner-card" @enter="slideEnter" @leave="slideLeave">
           <template v-for="(link, index) in sidebarLinksToDisplay" :key="`link-${index}-${link.category}`">
             <!-- Divider: renders as hr line or text label -->
             <div v-if="link.category === 'divider'" class="sidebar-divider-container">
@@ -158,7 +157,7 @@
 
 <script>
 import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
-import { state, getters, mutations } from "@/store";
+import { state, getters, mutations } from "@/store/index.ts";
 import {
   hideInteractiveTooltip,
   onComponentTooltipClick,
@@ -168,17 +167,18 @@ import {
   useTapForTooltip,
 } from "@/utils/tooltipHelp.js";
 import ProgressBar from "@/components/ProgressBar.vue";
-import { goToItem } from "@/utils/url";
-import { getIconClass } from "@/utils/material-symbols";
-import { baseSidebarCategory, isRootOnlySidebarCategory, isSourceSidebarCategory } from "@/utils/sidebarCategory";
+import { goToItem } from "@/utils/url.js";
+import { getIconClass } from "@/utils/material-symbols.js";
+import { baseSidebarCategory, isRootOnlySidebarCategory, isSourceSidebarCategory } from "@/utils/sidebarCategory.ts";
 import { getObjectProperty } from '@/utils/object.js';
 import IndexInfo from "@/components/files/IndexInfo.vue";
-import { globalVars } from "@/utils/constants";
-import { availableTools, hasToolAccess, toolIdFromPath } from "@/utils/toolAccess";
+import { globalVars } from "@/utils/constants.ts";
+import { availableTools, hasToolAccess, toolIdFromPath } from "@/utils/toolAccess.js";
 import { showShareDownloadPrompt } from "@/utils/download.js";
 import ShareInfo from "@/components/files/ShareInfo.vue";
 import FileTree from '@/components/files/FileTree.vue';
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
+import { slideEnter, slideLeave } from "@/utils/transitions.ts";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 export default {
   name: "SidebarLinks",
@@ -298,6 +298,8 @@ export default {
     hideInteractiveTooltip(true);
   },
   methods: {
+    slideEnter,
+    slideLeave,
     isSourceCategory(category) {
       return isSourceSidebarCategory(category);
     },
@@ -343,14 +345,14 @@ export default {
         const sourceInfo = this.sourceInfo[link.sourceName];
         if (!sourceInfo) return '#'; // Source not found
         const encodedSourceName = encodeURIComponent(link.sourceName);
-        const targetPath = link.target.startsWith('/') ? link.target.substring(1) : link.target;
+        const targetPath = link.target.startsWith('/') ? link.target.slice(1) : link.target;
         fullPath = `/files/${encodedSourceName}/${targetPath}`;
       } else {
         // For other links (tools, custom, share), use target as-is
         fullPath = link.target;
       }
 
-      const target = fullPath.startsWith('/') ? fullPath.substring(1) : fullPath;
+      const target = fullPath.startsWith('/') ? fullPath.slice(1) : fullPath;
       return baseURL + target;
     },
     goHome() {
@@ -532,32 +534,6 @@ export default {
         name: "SidebarLinks",
       });
     },
-    beforeEnter(el) {
-      el.style.height = '0';
-      el.style.opacity = '0';
-    },
-    enter(el, done) {
-      el.style.transition = '';
-      el.style.height = '0';
-      el.style.opacity = '0';
-      // Force reflow
-      void el.offsetHeight;
-      el.style.transition = 'height 0.3s, opacity 0.3s';
-      el.style.height = `${el.scrollHeight}px`;
-      el.style.opacity = '1';
-      setTimeout(() => {
-        el.style.height = 'auto';
-        done();
-      }, 300);
-    },
-    leave(el, done) {
-      el.style.transition = 'height 0.3s, opacity 0.3s';
-      el.style.height = `${el.scrollHeight}px`;
-      void el.offsetHeight;
-      el.style.height = '0';
-      el.style.opacity = '0';
-      setTimeout(done, 300);
-    },
     showTooltip(event, text) {
       if (text) {
         showHoverTooltip(text, event);
@@ -671,13 +647,14 @@ export default {
 }
 
 .sidebar-links-header .material-symbols.action {
-  padding: 0.25em;
-  border-radius: 0.5em;
-  transition: background 0.2s;
-}
-
-.sidebar-links-header .material-symbols.action:hover {
-  background: var(--surfaceSecondary);
+  --button-width: auto;
+  --button-padding-x: 0;
+  --button-padding-y: 0;
+  --button-min-width: 1.5em;
+  --button-min-height: 1.5em;
+  --hover-transform: scale(1.15);
+  --hover-shadow: inset 0 0 0 3em var(--hoverOverlay);
+  flex-shrink: 0;
 }
 
 .sidebar-links-header .sidebar-mode-toggle-wrap {
@@ -727,7 +704,6 @@ export default {
 
 .usage-info .vue-simple-progress {
   border: var(--borderWidth) solid var(--surfaceSecondary);
-  border-radius: var(--borderRadius) !important;
 }
 
 .sidebar-links .inner-card {
@@ -742,9 +718,10 @@ export default {
 .sidebar-link-button {
   margin: 0;
   margin-top: 0.25em;
-  padding-left: 0.5em;
-  padding-right: 0.5em;
-  border-radius: 0.5em;
+  border-radius: var(--borderRadius);
+
+  --button-padding-x: 0.5em;
+  --button-padding-y: 0;
   justify-content: flex-start;
   max-width: 98%;
 }
@@ -789,19 +766,6 @@ a.sidebar-link-button {
   background: var(--hoverOverlay);
   box-shadow: none !important;
   transform: none !important;
-}
-
-.expand-enter-active,
-.expand-leave-active {
-  transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  overflow: hidden;
-  will-change: opacity, max-height;
-}
-
-.expand-enter,
-.expand-leave-to {
-  height: 0 !important;
-  opacity: 0;
 }
 
 .source-button {

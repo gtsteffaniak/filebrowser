@@ -43,15 +43,14 @@ type FrontendShareInfo struct {
 
 // ShareLimits are bandwidth, access, and banner settings stored in share_settings JSON.
 type ShareLimits struct {
-	MaxBandwidth             int      `json:"maxBandwidth,omitempty"`
-	AllowedUsernames         []string `json:"allowedUsernames,omitempty"`
-	PerUserDownloadLimit     bool     `json:"perUserDownloadLimit,omitempty"`
-	ExtractEmbeddedSubtitles bool     `json:"extractEmbeddedSubtitles,omitempty"`
-	DownloadsLimit           int      `json:"downloadsLimit,omitempty"`
-	QuotaLimitBytes          int64    `json:"quotaLimitBytes,omitempty"`
-	HideFileExt              string   `json:"hideFileExt,omitempty"` // show hidden files based on extensions in shares
-	Banner                   string   `json:"banner,omitempty"`
-	SourceName               string   `json:"source,omitempty"` // source display name for API; backend path is Share.SourcePath
+	MaxBandwidth         int      `json:"maxBandwidth,omitempty"`
+	AllowedUsernames     []string `json:"allowedUsernames,omitempty"`
+	PerUserDownloadLimit bool     `json:"perUserDownloadLimit,omitempty"`
+	DownloadsLimit       int      `json:"downloadsLimit,omitempty"`
+	QuotaLimitBytes      int64    `json:"quotaLimitBytes,omitempty"`
+	HideFileExt          string   `json:"hideFileExt,omitempty"` // show hidden files based on extensions in shares
+	Banner               string   `json:"banner,omitempty"`
+	SourceName           string   `json:"source,omitempty"` // source display name for API; backend path is Share.SourcePath
 }
 
 // ShareExpiryInput is POST body input used to compute ShareColumns.Expire (not persisted).
@@ -68,11 +67,26 @@ type ShareSettings struct {
 }
 
 // ShareColumns are SQL-backed identity and counter fields.
+// Hash is always the internal random identifier. Alias is an optional owner-chosen URL
+// identifier that resolves to Hash; it is never serialized directly (see PresentedHash).
 type ShareColumns struct {
 	Hash      string `json:"hash,omitempty" storm:"id,index"`
+	Alias     string `json:"-"`
 	Path      string `json:"path,omitempty"`
 	Expire    int64  `json:"expire"`
 	Downloads int    `json:"downloads,omitempty"`
+}
+
+// PresentedHash returns the identifier shown to clients and used in share URLs:
+// the custom alias when one is set, otherwise the internal hash.
+func PresentedHash(link *Share) string {
+	if link == nil {
+		return ""
+	}
+	if link.Alias != "" {
+		return link.Alias
+	}
+	return link.Hash
 }
 
 // ShareEditable is the client-editable subset used in POST/PATCH bodies.
@@ -86,6 +100,9 @@ type ShareEditable struct {
 type ShareFrontend struct {
 	ShareEditable
 	ShareColumns
+	// CustomHash is the owner-chosen alias (empty when the share uses its random hash). Hash already
+	// carries the presented identifier, so this only tells the editor whether a custom value is set.
+	CustomHash          string `json:"customHash,omitempty"`
 	Username            string `json:"username,omitempty"`
 	PathExists          bool   `json:"pathExists,omitempty"`
 	QuotaUsedBytes      int64  `json:"quotaUsedBytes,omitempty"`
@@ -97,9 +114,10 @@ type ShareFrontend struct {
 // Password omitted (nil) on update means keep the existing hash; empty string clears it.
 type SharePostBody struct {
 	ShareEditable
-	Password *string `json:"password,omitempty"`
-	Hash     string  `json:"hash,omitempty"`
-	Path     string  `json:"path,omitempty"`
+	Password   *string `json:"password,omitempty"`
+	Hash       string  `json:"hash,omitempty"`
+	Path       string  `json:"path,omitempty"`
+	CustomHash string  `json:"customHash,omitempty"`
 }
 
 // EditableFromShare returns the client-editable subset of a persisted share.

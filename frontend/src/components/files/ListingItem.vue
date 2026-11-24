@@ -1,23 +1,23 @@
 <template>
-  <a
-    v-if="isClickable"
-    :href="getUrl()"
+  <component
+    :is="isClickable ? 'a' : 'div'"
+    :href="isClickable ? getUrl() : undefined"
     class="listing-item clickable no-select"
     :class="{
       activebutton: isSelected,
       'pinned-item': isPinned,
-      hiddenFile: isHiddenNotSelected && this && !this.isDraggedOver,
+      hiddenFile: isHiddenNotSelected && !isDraggedOver,
       'half-selected': isDraggedOver,
       'drag-hover': isDraggedOver,
     }"
     :id="getID"
     role="button"
     tabindex="0"
-    :draggable="isDraggable"
-    @dragstart="dragStart"
-    @dragleave="dragLeave"
-    @dragover="dragOver"
-    @drop="drop"
+    :draggable="isClickable ? isDraggable : undefined"
+    @dragstart="clickable && dragStart($event)"
+    @dragleave="clickable && dragLeave($event)"
+    @dragover="clickable && dragOver($event)"
+    @drop="clickable && drop($event)"
     :data-dir="isDir"
     :data-type="type"
     :data-name="name"
@@ -26,24 +26,26 @@
     :aria-selected="isSelected"
     @contextmenu="onRightClick"
     @click="click"
-    @touchstart="addSelected"
-    @touchmove="handleTouchMove"
-    @touchend="cancelContext"
+    @touchstart.passive="addSelected"
+    @touchmove.passive="handleTouchMove"
+    @touchend.passive="cancelContext"
     @mouseup="cancelContext"
   >
     <div :class="{ 'gallery-div': galleryView }">
       <Icon
         :mimetype="type"
-        :active="isSelected"
+        :active="isClickable ? isSelected : undefined"
         :thumbnailUrl="isThumbnailInView ? thumbnailUrl : ''"
         :filename="name"
         :hasPreview="hasPreview"
         :modified="modified"
+        :created="isClickable ? undefined : created"
         :path="path"
         :source="source"
         :size="size"
         :isShared="isShared"
         :viewToken="viewToken"
+        :textPreviewUrl="textPreviewUrl"
       />
       <button
         v-if="quickDownloadEnabled && galleryView"
@@ -51,7 +53,7 @@
         class="material-symbols overlay-icon overlay-icon--bottom clickable"
         aria-label="Download"
         @click.stop.prevent="downloadFile"
-      >file_download</button> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+      >file_download</button>
     </div>
 
     <div class="text">
@@ -65,9 +67,9 @@
         <span :title="nameTitle">{{ displayName }}</span>
       </p>
       <p class="size" :data-order="humanSize">{{ humanSize }}</p>
-      <p class="modified" :title="modifiedTitle"><time :datetime="modified">{{ formattedTime }}</time></p>
+      <p class="modified" @mouseenter="setModifiedTitle"><time :datetime="modified">{{ formattedTime }}</time></p>
       <p v-if="showKindColumn" class="kind">{{ kindLabel }}</p>
-      <p v-if="showCreatedColumn" class="created" :title="createdTitle">{{ formattedCreatedTime }}</p>
+      <p v-if="showCreatedColumn" class="created" @mouseenter="setCreatedTitle">{{ formattedCreatedTime }}</p>
       <p v-if="hasDuration" class="duration">{{ formattedDuration }}</p>
     </div>
     <div v-if="isPinned && !isListMode && !inlinePin" class="pin-icon-wrapper">
@@ -76,7 +78,7 @@
 
     <Icon
       @click.stop="downloadFile"
-      v-if="quickDownloadEnabled && !galleryView"
+      v-if="isClickable && quickDownloadEnabled && !galleryView"
       :filename="name"
       :hasPreview="hasPreview"
       mimetype="file_download"
@@ -87,92 +89,108 @@
       :clickable="true"
       :isShared="isShared"
     />
-  </a>
-  <div
-    v-else
-    class="listing-item no-select clickable"
-    :class="{
-      activebutton: isSelected,
-      'pinned-item': isPinned,
-      hiddenFile: isHiddenNotSelected && this && !this.isDraggedOver,
-      'half-selected': isDraggedOver,
-      'drag-hover': isDraggedOver,
-    }"
-    :id="getID"
-    role="button"
-    tabindex="0"
-    :data-dir="isDir"
-    :data-type="type"
-    :data-name="name"
-    :data-index="index"
-    :aria-label="name"
-    :aria-selected="isSelected"
-    @contextmenu="onRightClick"
-    @click="click"
-    @touchstart="addSelected"
-    @touchmove="handleTouchMove"
-    @touchend="cancelContext"
-    @mouseup="cancelContext"
-  >
-    <div :class="{ 'gallery-div': galleryView }">
-      <Icon
-        :mimetype="type"
-        :thumbnailUrl="isThumbnailInView ? thumbnailUrl : ''"
-        :filename="name"
-        :hasPreview="hasPreview"
-        :modified="modified"
-        :created="created"
-        :path="path"
-        :source="source"
-        :size="size"
-        :isShared="isShared"
-        :viewToken="viewToken"
-      />
-      <button
-        v-if="quickDownloadEnabled && galleryView"
-        type="button"
-        class="material-symbols overlay-icon overlay-icon--bottom clickable"
-        aria-label="Download"
-        @click.stop.prevent="downloadFile"
-      >file_download</button> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-    </div>
-
-    <div class="text">
-      <p v-if="isListMode || inlinePin" class="name">
-        <span :title="nameTitle">{{ displayName }}</span>
-        <i v-if="isPinned" class="material-symbols pinned-indicator">push_pin</i>
-      </p>
-      <p v-else class="name">
-        <span :title="nameTitle">{{ displayName }}</span>
-      </p>
-      <p class="size" :data-order="humanSize">{{ humanSize }}</p>
-      <p class="modified" :title="modifiedTitle"><time :datetime="modified">{{ formattedTime }}</time></p>
-      <p v-if="showKindColumn" class="kind">{{ kindLabel }}</p>
-      <p v-if="showCreatedColumn" class="created" :title="createdTitle">{{ formattedCreatedTime }}</p>
-      <p v-if="hasDuration" class="duration">{{ formattedDuration }}</p>
-    </div>
-    <div v-if="isPinned && !isListMode && !inlinePin" class="pin-icon-wrapper">
-      <i class="material-symbols pinned-indicator">push_pin</i>
-    </div>
-  </div>
+  </component>
 </template>
 
 <script>
-import { globalVars } from "@/utils/constants";
-import downloadFiles from "@/utils/download";
-import { getHumanReadableFilesize } from "@/utils/filesizes";
-import { getKindKey } from "@/utils/mimetype";
+import { computed, provide, shallowRef } from "vue";
+import { globalVars } from "@/utils/constants.ts";
+import downloadFiles from "@/utils/download.js";
+import { getHumanReadableFilesize } from "@/utils/filesizes.js";
+import { getKindKey } from "@/utils/mimetype.js";
+import { isTextPreviewableType } from "@/utils/textPreview.ts";
+import { hasCachedThumbnailBlob } from "@/utils/cache/imageCache.ts";
 import { formatDuration } from "@/utils/files.js";
 import { getObjectProperty } from '@/utils/object.js';
-import { resourcesApi } from "@/api";
-import { checkConflict } from "@/utils/upload";
-import { state, getters, mutations } from "@/store"; // Import your custom store
-import { url } from "@/utils";
-import { formatTimestamp, fromNow } from "@/utils/moment";
-import { notify } from "@/notify";
-import { goToItemNotificationButton } from "@/utils/notificationActions";
-import { notifyMoveCopyFailure } from "@/utils/appNotifications";
+import { resourcesApi } from "@/api/index.js";
+import { checkConflict } from "@/utils/upload.ts";
+import { state, getters, mutations } from "@/store/index.ts"; // Import your custom store
+import { url } from "@/utils/index.ts";
+import { formatTimestamp, fromNow } from "@/utils/moment.ts";
+import { notify } from "@/notify/index.ts";
+import { goToItemNotificationButton } from "@/utils/notificationActions.js";
+import { notifyMoveCopyFailure } from "@/utils/appNotifications.js";
 import Icon from "@/components/files/Icon.vue";
+
+const selectedIndexSet = computed(() => {
+  const set = new Set();
+  for (const entry of state.selected) {
+    if (typeof entry === "number") {
+      set.add(entry);
+    } else if (entry?.heldSelected) {
+      for (const index of entry.heldSelected) set.add(index);
+    }
+  }
+  return set;
+});
+
+const viewModeValue = computed(() => getters.viewMode());
+const isListModeValue = computed(() => viewModeValue.value === "list" || viewModeValue.value === "compact");
+const quickDownloadValue = computed(() =>
+  getters.isShare() ? state.shareInfo?.quickDownload : state.user?.quickDownload
+);
+const showTypeColumnValue = computed(() => isListModeValue.value && state.user?.showTypeColumn);
+const showCreationDateColumnValue = computed(() => isListModeValue.value && state.user?.showCreationDateColumn);
+
+/**
+ * True when this item's thumbnail was loaded before and is still cached, so the Icon can show it on
+ * its first render instead of flashing the type icon until the IntersectionObserver reports the item.
+ * Mirrors the source/modified/size the Icon uses for its cache lookups.
+ */
+function hasCachedThumbnail(item) {
+  if (!item.hasPreview || !item.path || !globalVars.enableThumbs) {
+    return false;
+  }
+  const source = getters.isShare() ? state.shareInfo?.hash : (item.source || state.req?.source);
+  const modified = item.modified || state.req?.modified || "";
+  const size = viewModeValue.value === "gallery" ? "large" : "small";
+  return hasCachedThumbnailBlob(source, item.path, modified, size);
+}
+
+// One IntersectionObserver per scroll container for all its items.
+// rootMargin only grows a real root, with root: null it does not reach past an inner scroller (#main),
+// so the 500px lookahead needs the scrolling ancestor as root.
+const viewportCallbacks = new WeakMap();
+const viewportObservers = new WeakMap(); // root element (or WINDOW_ROOT) -> observer
+const WINDOW_ROOT = {};
+const scrollRootByParent = new WeakMap(); // items of one group share the same parent, look it up once
+
+function findScrollRoot(el) {
+  const parent = el.parentElement;
+  if (!parent) {
+    return null;
+  }
+  if (scrollRootByParent.has(parent)) {
+    return scrollRootByParent.get(parent);
+  }
+  let root = null;
+  for (let node = parent; node; node = node.parentElement) {
+    const overflowY = getComputedStyle(node).overflowY;
+    if (overflowY === "auto" || overflowY === "scroll" || overflowY === "overlay") {
+      root = node;
+      break;
+    }
+  }
+  scrollRootByParent.set(parent, root);
+  return root;
+}
+
+function getViewportObserver(root) {
+  const key = root || WINDOW_ROOT;
+  let observer = viewportObservers.get(key);
+  if (!observer) {
+    observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          viewportCallbacks.get(entry.target)?.(entry.isIntersecting);
+        }
+      },
+      { root, rootMargin: "500px", threshold: 0 },
+    );
+    viewportObservers.set(key, observer);
+  }
+  return observer;
+}
 
 export default {
   name: "item",
@@ -181,16 +199,33 @@ export default {
   },
   data() {
     return {
-      isThumbnailInView: false,
+      isThumbnailInView: hasCachedThumbnail(this),
+      isDraggedOver: false,
+      localSelected: false,
+    };
+  },
+  emits: {
+    "item-select": (payload) => payload != null && "index" in payload,
+    "select-range": (payload) => payload != null && "startIndex" in payload && "endIndex" in payload,
+  },
+  setup() {
+    // The Icons inside this item inject it with Icon.vue
+    // we're using setup for now temporarily as is more easy than convert the whole component to script setup.
+    const viewportRef = shallowRef(false);
+    provide("inView", viewportRef);
+    return {
+      setInView(visible) {
+        viewportRef.value = visible;
+      },
       touches: 0,
       touchStartX: 0,
       touchStartY: 0,
       isLongPress: false,
       isSwipe: false,
-      isDraggedOver: false,
       contextTimeout: null,
+      observedEl: null,
       observer: null,
-      localSelected: false,
+      isUnmounted: false,
     };
   },
   props: {
@@ -271,49 +306,29 @@ export default {
         : formatTimestamp(this.created, state.user?.locale, { seconds: false });
     },
     galleryView() {
-      return getters.viewMode() === "gallery";
+      return viewModeValue.value === "gallery";
     },
     quickDownloadEnabled() {
-      if (getters.isShare()) {
-        return state.shareInfo?.quickDownload;
-      }
-      return state.user?.quickDownload;
-    },
-    quickDownloadPlaceholder() {
-      if (getters.isShare()) {
-        return state.shareInfo?.quickDownload && !this.galleryView && this.isDir;
-      }
-      return state.user?.quickDownload && !this.galleryView && getters.viewMode() !== "icons" && getters.viewMode() !== "normal" && this.isDir;
+      return quickDownloadValue.value;
     },
     isHiddenNotSelected() {
       return !this.isSelected && this.reducedOpacity;
     },
     getID() {
-      return url.base64Encode(encodeURIComponent(this.name));
+      return url.base64Encode(encodeURIComponent(`${this.source}::${this.path}`));
     },
     quickNav() {
       return state.user.singleClick && !state.multiple;
     },
-    user() {
-      return state.user;
-    },
     selected() {
       return state.selected;
-    },
-    isClicked() {
-      if (state.user.singleClick || !this.allowedView) {
-        return false;
-      }
-      return this.isSelected;
     },
     isSelected() {
       if (!this.updateGlobalState) {
         // If parent provides isSelectedProp, use it; otherwise use local state
         return this.isSelectedProp !== null ? this.isSelectedProp : this.localSelected;
       }
-      return state.selected.some((entry) =>
-        typeof entry === "number" ? entry === this.index : entry?.heldSelected?.includes(this.index)
-      );
+      return selectedIndexSet.value.has(Number(this.index));
     },
     isDraggable() {
       return (
@@ -364,8 +379,34 @@ export default {
       }
       return resourcesApi.getPreviewURL(this.source || state.req?.source, previewPath, this.modified);
     },
-    isThumbsEnabled() {
-      return globalVars.enableThumbs;
+    textPreviewUrl() {
+      // The text preview endpoint is JSON, not an image, so it needs its own URL.
+      // Reuse the same path resolution as thumbnailUrl so duplicates/FileTree work.
+      if (!globalVars.enableThumbs) {
+        return "";
+      }
+      // Only text-previewable names have a preview; other items must never build a URL
+      // (a DuplicateFinder row can pass a text-like name with no source).
+      if (!isTextPreviewableType(this.type)) {
+        return "";
+      }
+      let previewPath;
+      if (this.path) {
+        previewPath = this.path;
+      } else if (state.req?.path && this.name) {
+        previewPath = url.joinPath(state.req.path, this.name);
+      } else {
+        return "";
+      }
+      // getTextPreviewURL throws without a source; return "" so the icon falls back.
+      const source = this.source || state.req?.source;
+      if (this.forceFilesApi) {
+        return source ? resourcesApi.getTextPreviewURL(source, previewPath) : "";
+      }
+      if (getters.isShare()) {
+        return resourcesApi.getTextPreviewURLPublic(previewPath);
+      }
+      return source ? resourcesApi.getTextPreviewURL(source, previewPath) : "";
     },
     isClickable() {
       return this.clickable;
@@ -418,40 +459,57 @@ export default {
       return formatDuration(this.metadata?.duration);
     },
     showKindColumn() {
-      return this.isListMode && !this.showLimitedOptions && state.user?.showTypeColumn;
+      return !this.showLimitedOptions && showTypeColumnValue.value;
     },
     showCreatedColumn() {
-      return this.isListMode && !this.showLimitedOptions && state.user?.showCreationDateColumn;
+      return !this.showLimitedOptions && showCreationDateColumnValue.value;
     },
     isListMode() {
-      const mode = getters.viewMode();
-      return mode === 'list' || mode === 'compact';
+      return isListModeValue.value;
     },
   },
   async mounted() {
-    // Note: dragend listener moved to parent ListingView for better performance
-    if (!this.hasPreview) return;
-
-    this.observer = new IntersectionObserver(this.handleIntersect, {
-      root: null,
-      rootMargin: "500px",
-      threshold: 0,
-    });
-
-    await this.$nextTick();
-    if (this.$el && this.$el instanceof Element) {
-      this.observer?.observe(this.$el);
-    }
+    await this.observeViewport();
+  },
+  watch: {
+    hasPreview(value) {
+      if (value && !this.observedEl) {
+        void this.observeViewport();
+      }
+    },
   },
   beforeUnmount() {
-    // Clean up observer
-    if (this.observer) {
-      this.observer.disconnect();
+    this.isUnmounted = true;
+    if (this.observedEl) {
+      this.observer?.unobserve(this.observedEl);
       this.observer = null;
+      viewportCallbacks.delete(this.observedEl);
+      this.observedEl = null;
     }
-    // Note: dragend listener removed - handled by parent ListingView
   },
   methods: {
+    async observeViewport() {
+      if (!this.hasPreview && getKindKey(this.type) !== "3d-model") return;
+      await this.$nextTick();
+      if (this.isUnmounted || this.observedEl) return;
+      if (this.$el && this.$el instanceof Element) {
+        this.observedEl = this.$el;
+        viewportCallbacks.set(this.$el, (visible) => {
+          this.setInView(visible);
+          if (visible) {
+            this.isThumbnailInView = true;
+          }
+        });
+        this.observer = getViewportObserver(findScrollRoot(this.$el));
+        this.observer.observe(this.$el);
+      }
+    },
+    setModifiedTitle(event) {
+      event.currentTarget.title = this.modifiedTitle;
+    },
+    setCreatedTitle(event) {
+      event.currentTarget.title = this.createdTitle;
+    },
     /** @param {MouseEvent} event */
     downloadFile(event) {
       event.preventDefault();
@@ -462,7 +520,7 @@ export default {
         downloadFiles(state.selected);
       } else {
         // Emit selection event for local handling
-        this.$emit('select', { index: this.index, selected: true });
+        this.$emit('item-select', { index: this.index, selected: true });
       }
     },
     /** @param {TouchEvent} event */
@@ -489,11 +547,6 @@ export default {
         this.contextTimeout = null;
       }
       this.isLongPress = false;
-    },
-    /** @param {string} path */
-    updateHashAndNavigate(path) {
-      // Update hash in the browser without full page reload
-      window.location.hash = path;
     },
     getUrl() {
       if (this.hash) {
@@ -545,19 +598,6 @@ export default {
         },
       });
     },
-    /**
-     * @param {IntersectionObserverEntry[]} entries
-     * @param {IntersectionObserver} observer
-     */
-    handleIntersect(entries) {
-      for (const entry of entries) {
-        if (!entry.isIntersecting) continue;
-        this.isThumbnailInView = true;
-        if (this.observer) {
-          this.observer.unobserve(entry.target);
-        }
-      }
-    },
     /** @param {DragEvent} event */
     dragLeave(event) {
       // Only reset visual state for internal drags
@@ -578,7 +618,7 @@ export default {
       } else {
         // Emit selection event for local handling
         if (!this.localSelected) {
-          this.$emit('select', { index: this.index, selected: true });
+          this.$emit('item-select', { index: this.index, selected: true });
         }
       }
       if (event.dataTransfer) {
@@ -634,6 +674,7 @@ export default {
           to: url.joinPath(this.path, item.name),
           toSource: this.source,
           name: item.name,
+          isDir: item.type === 'directory',
         });
       }
 
@@ -650,11 +691,7 @@ export default {
         const destinationDir = this.path;
 
         // If destination dir is the same as or contains the source path, skip
-        if (fromPath === destinationDir || fromPath.startsWith(`${destinationDir}/`)) {
-          return false;
-        }
-
-        return true;
+        return !(fromPath === destinationDir || fromPath.startsWith(`${destinationDir}/`));
       });
 
       // If all items were filtered out, silently skip the operation
@@ -718,14 +755,14 @@ export default {
           name: "replace-rename",
           pinned: true,
           /**
-           * @param {Event} event
+           * @param {Event} confirmEvent
            * @param {string} option
            */
-          confirm: async (event, option) => {
+          confirm: async (confirmEvent, option) => {
             const overwrite = option === "overwrite";
             const rename = option === "rename";
 
-            event.preventDefault();
+            confirmEvent.preventDefault();
             mutations.closeTopPrompt();
             try {
               await action(overwrite, rename);
@@ -768,7 +805,7 @@ export default {
               mutations.resetSelected();
               mutations.addSelected(this.index);
             } else {
-              this.$emit('select', { index: this.index, selected: true });
+              this.$emit('item-select', { index: this.index, selected: true });
             }
           }
         }
@@ -801,27 +838,21 @@ export default {
 
       if (this.updateGlobalState) {
         if (event.shiftKey && this.selected.length > 0) {
-          let fi = 0;
-          let la = 0;
-
-          if (state.lastSelectedIndex !== null) {
-            if (this.index > state.lastSelectedIndex) {
-              fi = state.lastSelectedIndex;
-              la = this.index;
-            } else {
-              fi = this.index;
-              la = state.lastSelectedIndex;
+          const clicked = Number(this.index);
+          if (!Number.isNaN(clicked)) {
+            let anchor = state.lastSelectedIndex;
+            if (anchor === null) {
+              anchor = state.selected.find((entry) => typeof entry === "number") ?? clicked;
             }
-          }
-
-          mutations.resetSelected();
-
-          for (; fi <= la; fi++) {
-            if (this.selected.indexOf(fi) === -1) {
-              mutations.addSelected(fi);
+            let fi = Math.min(anchor, clicked);
+            const la = Math.max(anchor, clicked);
+            const range = [];
+            for (; fi <= la; fi++) {
+              range.push(fi);
             }
+            mutations.setSelected(range);
+            return;
           }
-          return;
         }
 
         if (this.selected.indexOf(this.index) !== -1) {
@@ -830,7 +861,6 @@ export default {
             mutations.setLastSelectedIndex(this.index);
             return;
           }
-
           // In multiple selection mode, clicking an already selected item should deselect it
           if (state.multiple) {
             mutations.removeSelected(this.index);
@@ -844,7 +874,6 @@ export default {
             mutations.setLastSelectedIndex(this.index);
             return;
           }
-
           // Single-select: clicking the only selected item again should deselect it.
           // ListingView's clickClear only runs when the click target is a child element,
           // but list/compact rows are full-width <a> tags so clicks often hit the anchor directly.
@@ -870,7 +899,7 @@ export default {
         // Local selection handling - emit events instead of updating global state
         if (event.shiftKey) {
           // Shift-click: select range (emit event for parent to handle)
-          this.$emit('selectRange', {
+          this.$emit('select-range', {
             startIndex: state.lastSelectedIndex !== null ? state.lastSelectedIndex : this.index,
             endIndex: this.index
           });
@@ -879,7 +908,7 @@ export default {
 
         // Always toggle - parent component will handle the toggle logic
         // Just emit the index, parent will check current state and toggle
-        this.$emit('select', { index: this.index });
+        this.$emit('item-select', { index: this.index });
       }
     },
     open() {
@@ -890,12 +919,28 @@ export default {
 
       // Check if state.req.items exists and has the item at this index
       // This prevents errors when ListingItem is used outside of the main file listing (e.g., duplicate finder)
-      const currentItem = getObjectProperty(state.req.items, this.index);
-      if (currentItem) {
-        state.pendingHighlight = {
-          path: `${state.req.path.replace(/\/+$/, "")}/${currentItem.name}`,
-          source: state.req.source,
-        };
+      if ((state.route.path || "").startsWith("/tools/advancedSearch")) {
+        state.pendingHighlight = { path: this.path, source: this.source };
+        if (state.searchResults) {
+          state.searchResults.sorting = { ...getters.sorting() };
+        }
+        mutations.setPreviousHistoryItem({
+          name: this.name,
+          source: this.source,
+          path: this.path,
+          returnTo: state.route.fullPath,
+        });
+      } else {
+        if (state.previousHistoryItem?.returnTo) {
+          mutations.setPreviousHistoryItem(null);
+        }
+        const currentItem = getObjectProperty(state.req.items, this.index);
+        if (currentItem) {
+          state.pendingHighlight = {
+            path: `${state.req.path.replace(/\/+$/, "")}/${currentItem.name}`,
+            source: state.req.source,
+          };
+        }
       }
       url.goToItem(this.source, this.path, null, false, getters.isShare());
     },

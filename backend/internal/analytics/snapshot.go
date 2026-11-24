@@ -205,8 +205,8 @@ func collectPayload(versionLabel string) (snapshotPayload, error) {
 		Integrations: integrationsPayload{
 			OnlyOfficeConfigured: strings.TrimSpace(settings.Config.Integrations.OnlyOffice.Url) != "",
 			OnlyOfficeViewOnly:   settings.Config.Integrations.OnlyOffice.ViewOnly,
-			MediaEnabled:         settings.MediaEnabled(),
-			HardwareAcceleration: settings.Config.Integrations.Media.HardwareAcceleration,
+			MediaEnabled:         settings.FFmpegEnabled(),
+			HardwareAcceleration: settings.HardwareAccelerationEnabled(),
 		},
 		Features: featuresPayload{
 			DisablePreviews:        settings.Config.Server.DisablePreviews,

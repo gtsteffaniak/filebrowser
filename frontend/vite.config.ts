@@ -8,7 +8,8 @@ import stripLegacyCSS from "./scripts/postcss-strip-legacy.ts";
 import protectTemplateStyles from "./scripts/vite-protect-template-styles.ts";
 
 const isDevBuild = process.env.DEV_BUILD === "true";
-const backendWebDist = path.resolve(import.meta.dirname, "../backend/internal/web/dist");
+// Docker builds skip vue-tsc here; CI type-checks in regular-tests.yaml.
+const skipTypecheck = process.env.SKIP_TYPECHECK === "1";
 
 const resolve = {
   alias: {
@@ -31,11 +32,21 @@ const test = {
   globals: true,
   include: [
     "src/**/*.test.{js,ts}",
+    "scripts/**/*.test.ts",
     "tests/playwright/performance/**/*.test.ts",
   ],
   exclude: ["src/**/*.vue"],
   environment: "jsdom",
   setupFiles: "tests/mocks/setup.js",
+  // The app's [transcode] diagnostics log via console.info/warn/error, which floods
+  // the reporter with stdout/stderr blocks even when every test passes. Keep those
+  // logs only for failing tests so real failures stay debuggable.
+  silent: "passed-only" as const,
+  // jsdom setup and per-file worker startup dominate the run, so Vitest suggests a
+  // `vm` pool or `isolate: false`. Both break this suite (tests rely on per-file
+  // module state and on redefining `globalThis.location`), so opt out of those two
+  // inapplicable suggestions rather than adopt changes that fail tests.
+  experimental: { diagnostics: { environment: false, isolate: false } },
 };
 
 const chunks: Record<string, string[]> = {
@@ -68,14 +79,15 @@ export default defineConfig(({ command }) => {
     // Only compress in production builds
     !isDevBuild && !isServe && compression({
       algorithms: ["gzip"],
-      include: /\.(js|woff2|woff)(\?|$)/i,
+      include: /\.(js|woff2)(\?|$)/i,
       deleteOriginalAssets: true,
     }),
     // Disable checker in watch mode to prevent task failures
-    !isDevBuild && !isServe && checker({
+    !isDevBuild && !isServe && !skipTypecheck && checker({
       typescript: false, // Disable redundant check
       vueTsc: {
         tsconfigPath: "./tsconfig.app.json",
+        buildMode: true,
       },
     }),
   ].filter(Boolean);
@@ -110,7 +122,6 @@ export default defineConfig(({ command }) => {
     base: "",
     define,
     build: {
-      outDir: backendWebDist,
       emptyOutDir: true,
       // Optimize for watch mode stability
       watch: isDevBuild ? {

@@ -51,7 +51,7 @@
           <i class="material-symbols">{{ btn.icon }}</i>
         </button>
         <Teleport to="body">
-          <transition name="expand" @before-enter="expandBeforeEnter" @enter="expandEnter" @leave="expandLeave">
+          <transition :css="false" @enter="popEnter" @leave="popLeave">
             <ul v-if="openMenu === btn.menu" :ref="(el) => setIconMenuEl(btn.menu as 'align' | 'clipboard', el as HTMLElement | null)" class="editor-toolbar-menu editor-toolbar-menu--icon-menu floating-window border-radius" :style="menuStyle">
               <li v-for="item in iconMenuItems(btn.menu)" :key="item.id">
                 <button
@@ -104,15 +104,15 @@
         ref="extraMenuTrigger"
         type="button"
         class="editor-toolbar-btn"
-        :title="$t('editor.md.moreOptions')"
-        :aria-label="$t('editor.md.moreOptions')"
+        :title="t('editor.md.moreOptions')"
+        :aria-label="t('editor.md.moreOptions')"
         @mousedown.prevent
         @click="toggleMenu('extra')"
       >
         <i class="material-symbols">more_horiz</i>
       </button>
       <Teleport to="body">
-        <transition name="expand" @before-enter="expandBeforeEnter" @enter="expandEnter" @leave="expandLeave">
+        <transition :css="false" @enter="popEnter" @leave="popLeave">
           <ul v-if="openMenu === 'extra'" ref="extraMenu" class="editor-toolbar-menu floating-window border-radius" :style="menuStyle">
             <li v-for="item in extraMenuItems" :key="item.id">
               <button
@@ -134,16 +134,16 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
-import { useI18n } from "vue-i18n";
+import { computed, onBeforeUnmount, onMounted, reactive, ref, useTemplateRef, watch } from "vue";
+import { useI18n } from "@/i18n/index.ts";
 import ace from "ace-builds";
 import type { Ace } from "ace-builds";
-import { mutations, state, getters } from "@/store";
-import { eventBus } from "@/store/eventBus";
+import { mutations, state, getters } from "@/store/index.ts";
+import { eventBus } from "@/store/eventBus.ts";
 import { removeLastDir } from "@/utils/url.js";
-import { expandBeforeEnter, expandEnter, expandLeave } from "@/utils/expandTransition";
+import { popEnter, popLeave } from "@/utils/transitions.ts";
 import { copyToClipboard } from "@/utils/clipboard.js";
-import { notify } from "@/notify";
+import { notify } from "@/notify/index.ts";
 
 interface AnchorRange {
   start: Ace.Anchor;
@@ -221,8 +221,8 @@ const lastColors = reactive(new Map<string, string>([
 const colorInputRefs = new Map<string, HTMLInputElement>();
 const iconMenuTriggerEls = new Map<"align" | "clipboard", HTMLElement>();
 const iconMenuEls = new Map<"align" | "clipboard", HTMLElement>();
-const extraMenuTrigger = ref<HTMLElement | null>(null);
-const extraMenu = ref<HTMLElement | null>(null);
+const extraMenuTrigger = useTemplateRef<HTMLElement>("extraMenuTrigger");
+const extraMenu = useTemplateRef<HTMLElement>("extraMenu");
 
 const toolbarButtons = computed((): ToolbarButton[] => {
   // alwaysAvailable are for buttons that will be available for all filetypes, not just markdown.
@@ -329,7 +329,7 @@ const extraMenuItems = computed((): ToolbarButton[] => {
 
 const menuStyle = computed(() => {
   if (openMenu.value === "align" || openMenu.value === "clipboard") {
-    return { top: `${menuPosition.value.top}px`, left: `${menuPosition.value.left}px`, transform: "translateX(-50%)" };
+    return { top: `${menuPosition.value.top}px`, left: `${menuPosition.value.left}px`, translate: "-50% 0" };
   }
   return { top: `${menuPosition.value.top}px`, right: `${menuPosition.value.right}px` };
 });
@@ -984,9 +984,11 @@ defineExpose({ save });
   padding-bottom: 0.65em;
   list-style: none;
   z-index: 9999;
+  transform-origin: top right;
 }
 
 .editor-toolbar-menu--icon-menu {
+  transform-origin: top center;
   display: flex;
   gap: 0.15em;
   padding-bottom: 0.5em;
@@ -1003,10 +1005,5 @@ defineExpose({ save });
 
 .editor-toolbar-menu-btn .material-symbols {
   font-size: 1.1em;
-}
-
-.expand-enter-active,
-.expand-leave-active {
-  overflow: hidden;
 }
 </style>

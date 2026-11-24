@@ -97,9 +97,10 @@
       :title="showMoreExpanded ? $t('buttons.showLess') : $t('buttons.showMore')"
       :collapsable="true"
       :start-collapsed="!showMoreExpanded"
-      @toggle="showMoreExpanded = $event"
+      @toggled="showMoreExpanded = $event"
     >
       <div class="settings-items">
+        <slot name="advanced-start" />
         <div
           class="preference-field-block"
           :class="{ 'preference-field-block--enforceable': enforceable }"
@@ -418,21 +419,6 @@
           @update:enforced="(v) => emitEnforced('perUserDownloadLimit', v)"
         />
         <ToggleSwitch
-          v-if="modelValue.shareType === 'normal'"
-          class="item"
-          :model-value="modelValue.extractEmbeddedSubtitles"
-          :name="$t('share.extractEmbeddedSubtitles')"
-          :description="$t('share.extractEmbeddedSubtitlesDescription')"
-          :disabled="fieldDisabled('extractEmbeddedSubtitles')"
-          :enforceable="enforceable"
-          :enforced="enforcedFlag('extractEmbeddedSubtitles')"
-          :enforcement-disabled="enforcementDisabled('extractEmbeddedSubtitles')"
-          :enforcement-locked="isEnforcementLocked('extractEmbeddedSubtitles')"
-          :value-tooltip="enforcementLockTooltip('extractEmbeddedSubtitles')"
-          @update:model-value="setField('extractEmbeddedSubtitles', $event)"
-          @update:enforced="(v) => emitEnforced('extractEmbeddedSubtitles', v)"
-        />
-        <ToggleSwitch
           class="item"
           :model-value="modelValue.disableLoginOption"
           :name="$t('share.disableLoginOption')"
@@ -667,10 +653,10 @@
 </template>
 
 <script>
-import { getters } from "@/store";
+import { getters } from "@/store/index.ts";
 import { getObjectProperty } from "@/utils/object.js";
-import { globalVars } from "@/utils/constants";
-import { bytesFromCustomAmount } from "@/utils/quotaUnits";
+import { globalVars } from "@/utils/constants.ts";
+import { bytesFromCustomAmount } from "@/utils/quotaUnits.js";
 import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import SettingsItem from "@/components/settings/SettingsItem.vue";
@@ -731,18 +717,23 @@ export default {
       type: Boolean,
       default: true,
     },
+    // Opens the advanced section on mount, e.g. when the share already has a custom URL to show.
+    advancedExpanded: {
+      type: Boolean,
+      default: false,
+    },
   },
-  emits: [
-    "update:modelValue",
-    "enforced-change",
-    "customize-sidebar-links",
-    "pick-banner",
-    "pick-favicon",
-    "change",
-  ],
+  emits: {
+    "update:modelValue": (values) => typeof values === "object" && values !== null,
+    "enforced-change": (change) => typeof change?.field === "string",
+    "customize-sidebar-links": () => true,
+    "pick-banner": () => true,
+    "pick-favicon": () => true,
+    changed: () => true,
+  },
   data() {
     return {
-      showMoreExpanded: false,
+      showMoreExpanded: this.advancedExpanded,
     };
   },
   computed: {
@@ -800,10 +791,10 @@ export default {
   methods: {
     setField(field, value) {
       this.$emit("update:modelValue", { ...this.modelValue, [field]: value });
-      this.$emit("change");
+      this.$emit("changed");
     },
     emitEnforced(field, value) {
-      this.$emit("enforced-change", field, value);
+      this.$emit("enforced-change", { field, value });
     },
     enforcedFlag(field) {
       return !!getObjectProperty(this.enforced, field);

@@ -7,11 +7,12 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/sqlitebusy"
-	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing/iteminfo"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
@@ -19,6 +20,7 @@ import (
 // It wraps the underlying sql.DB connection and provides type-safe methods.
 type IndexDB struct {
 	*TempDB
+	ftsReady atomic.Bool
 }
 
 func createIndexDB(name string, journalMode string, lockingMode string, batchSize int, cacheSizeMB int, disableReuse bool) (*IndexDB, error) {
@@ -110,6 +112,17 @@ func NewIndexDB(name string, journalMode string, batchSize int, cacheSizeMB int,
 	if err := idxDB.CreateIndexTable(); err != nil {
 		idxDB.Close()
 		return nil, false, err
+	}
+
+	// The FTS5 search index is optional (indexSqlConfig.fts5, default off). Enabling it
+	// builds from existing rows; disabling it drops the table and triggers.
+	idxDB.syncSearchIndex(settings.Config.Server.IndexSqlConfig.FTS5)
+	if !disableReuse && !isNewDb && idxDB.FTSReady() {
+		if err := idxDB.checkFTSHealth(); err != nil {
+			logger.Warningf("[DB_INIT] FTS search index is unhealthy (%v); rebuilding", err)
+			idxDB.dropSearchIndex()
+			idxDB.syncSearchIndex(true)
+		}
 	}
 	go idxDB.startPeriodicCleanup()
 	return idxDB, isNewDb, nil
@@ -234,6 +247,7 @@ func (db *IndexDB) startPeriodicCleanup() {
 		} else if deletedCount > 0 {
 			logger.Infof("[DB_MAINTENANCE] Cleaned up %d stale index entries", deletedCount)
 		}
+		db.optimizeFTS()
 	}
 }
 
@@ -259,11 +273,43 @@ func (db *IndexDB) CreateIndexTable() error {
 	CREATE INDEX IF NOT EXISTS idx_source_size ON index_items(source, size);
 	CREATE INDEX IF NOT EXISTS idx_last_updated ON index_items(source, last_updated);
 	`
-	_, err := db.Exec(query)
-	if err != nil {
+	if _, err := db.Exec(query); err != nil {
 		return err
 	}
 	return db.ensureCreatedTimeColumn()
+}
+
+// ensureSpathColumn adds the generated spath column (source:path) used by the FTS
+// search index when it is missing from an existing table. PRAGMA table_xinfo is used
+// because table_info omits generated columns.
+func (db *IndexDB) ensureSpathColumn() error {
+	rows, err := db.Query(`PRAGMA table_xinfo(index_items)`)
+	if err != nil {
+		return err
+	}
+	found := false
+	for rows.Next() {
+		var cid, notNull, pk, hidden int
+		var name, columnType string
+		var defaultValue interface{}
+		if scanErr := rows.Scan(&cid, &name, &columnType, &notNull, &defaultValue, &pk, &hidden); scanErr != nil {
+			rows.Close()
+			return scanErr
+		}
+		if name == "spath" {
+			found = true
+		}
+	}
+	if rowsErr := rows.Err(); rowsErr != nil {
+		rows.Close()
+		return rowsErr
+	}
+	rows.Close()
+	if found {
+		return nil
+	}
+	_, err = db.Exec(`ALTER TABLE index_items ADD COLUMN spath TEXT GENERATED ALWAYS AS (source || ':' || path) VIRTUAL`)
+	return err
 }
 
 // ensureCreatedTimeColumn adds the created_time column to index_items when it is

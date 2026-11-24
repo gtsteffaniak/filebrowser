@@ -49,3 +49,6 @@ auth:
 userDefaults:
   listing:
     showHidden: true
+integrations:
+  media:
+    skipHwCheck: true

@@ -2,12 +2,12 @@
   <div class="card-content">
     <p style="text-align: center">{{ uploadSettingsDescription }}</p>
     <div>
-      <SettingsItem :title="$t('fileLoading.uploadSettings')" :collapsable="true" :start-collapsed="true">
+      <SettingsItem :title="t('fileLoading.uploadSettings')" :collapsable="true" :start-collapsed="true">
         <div class="settings-items upload-settings">
           <div class="settings-number-input item">
             <div class="no-padding">
-              <label for="maxConcurrentUpload">{{ $t("fileLoading.maxConcurrentUpload") }}</label>
-              <HelpTooltipIcon :text="$t('fileLoading.maxConcurrentUploadHelp')" />
+              <label for="maxConcurrentUpload">{{ t("fileLoading.maxConcurrentUpload") }}</label>
+              <HelpTooltipIcon :text="t('fileLoading.maxConcurrentUploadHelp')" />
             </div>
             <div>
               <input v-model.number="maxConcurrentUpload" type="range" min="1" max="10" @change="updateUploadSettings" />
@@ -16,16 +16,16 @@
           </div>
           <div class="settings-number-input item">
             <div class="no-padding">
-              <label for="uploadChunkSizeMb">{{ $t("fileLoading.uploadChunkSizeMb") }}</label>
-              <HelpTooltipIcon :text="$t('fileLoading.uploadChunkSizeMbHelp')" />
+              <label for="uploadChunkSizeMb">{{ t("fileLoading.uploadChunkSizeMb") }}</label>
+              <HelpTooltipIcon :text="t('fileLoading.uploadChunkSizeMbHelp')" />
             </div>
             <div class="no-padding">
               <input class="sizeInput input" v-model.number="uploadChunkSizeMb" type="number" min="0" @change="updateUploadSettings" />
             </div>
           </div>
           <ToggleSwitch class="item" v-model="clearAll" @change="updateUploadSettings"
-            :name="$t('fileLoading.clearAll')"
-            :description="$t('fileLoading.clearAllDescription')" />
+            :name="t('fileLoading.clearAll')"
+            :description="t('fileLoading.clearAllDescription')" />
         </div>
       </SettingsItem>
       <div class="upload-prompt" :class="{ dropping: isDragging }"
@@ -33,7 +33,7 @@
         @dragover.prevent="onDragOver" @dragleave.prevent="onDragLeave" @drop.prevent="onDrop">
         <div class="upload-prompt-container">
           <i v-if="files.length === 0" class="material-symbols">cloud_upload</i>
-          <p v-if="files.length === 0">{{ $t("prompts.dragAndDrop") }}</p>
+          <p v-if="files.length === 0">{{ t("prompts.dragAndDrop") }}</p>
           <ButtonGroup
             class="upload-action-buttons"
             :buttons="uploadActionButtons"
@@ -43,11 +43,17 @@
         </div>
       </div>
     </div>
+    <div v-if="summary.totalFiles > 1" class="upload-summary">
+      <ProgressBar :val="summary.uploadedBytes" :max="summary.totalBytes" unit="bytes"
+        :status="summary.completedFiles === summary.totalFiles ? 'completed' : 'uploading'"
+        text-position="inside" size="20" />
+      <p class="upload-summary-text">{{ summaryText }}</p>
+    </div>
     <div v-if="files.length > 0" style="position: relative;">
       <div v-if="showConflictPrompt" class="conflict-overlay">
         <div class="card">
           <div class="card-content">
-            <p>{{ $t("prompts.conflictsDetected") }}</p>
+            <p>{{ t("prompts.conflictsDetected") }}</p>
           </div>
           <div class="card-actions">
             <button
@@ -55,27 +61,28 @@
               @click="resolveConflict(true)"
               class="button button--flat button--red"
             >
-              {{ $t("general.replace") }}
+              {{ t("general.replace") }}
             </button>
           </div>
         </div>
       </div>
-      <div class="upload-list">
-        <div v-for="file in files" :key="file.id" class="upload-item">
+      <div ref="list" class="upload-list">
+        <div data-virtual-group="uploads" :style="virtual.group('uploads').style">
+        <div v-for="{ file, index } in virtual.group('uploads').items" :key="file.id" class="upload-item" :data-index="index">
           <i class="file-icon" :class="fileTypeInfo(file).classes">{{ fileTypeInfo(file).materialSymbol }}</i>
           <div class="file-info">
             <p class="file-name">{{ file.name }}</p>
-            <progress-bar v-if="file.type !== 'directory'" :val="file.status === 'completed'
-                ? $t('prompts.completed')
+            <ProgressBar v-if="file.type !== 'directory'" :val="file.status === 'completed'
+                ? t('prompts.completed')
                 : file.status === 'error'
-                  ? $t('prompts.error')
+                  ? t('prompts.error')
                   : file.status === 'conflict'
-                    ? $t('prompts.conflictsDetected')
+                    ? t('prompts.conflictsDetected')
                     : (file.progress / 100) * file.size
               " :unit="file.status === 'completed' || file.status === 'error' ? '' : 'bytes'" :max="file.size"
               :status="file.status" text-position="inside" size="20"
               :help-text="getHelpText(file)">
-            </progress-bar>
+            </ProgressBar>
             <div v-else class="status-label">
               <span>{{ getStatusText(file.status, file) }}</span>
             </div>
@@ -86,8 +93,8 @@
               type="button"
               @click="uploadManager.pause(file.id)"
               class="action"
-              :aria-label="$t('general.pause')"
-              :title="$t('general.pause')"
+              :aria-label="t('general.pause')"
+              :title="t('general.pause')"
             >
               <i class="material-symbols">pause</i>
             </button>
@@ -96,8 +103,8 @@
               type="button"
               @click="uploadManager.resume(file.id)"
               class="action"
-              :aria-label="$t('general.resume')"
-              :title="$t('general.resume')"
+              :aria-label="t('general.resume')"
+              :title="t('general.resume')"
             >
               <i class="material-symbols">play_arrow</i>
             </button>
@@ -106,8 +113,8 @@
               type="button"
               @click="uploadManager.retry(file.id)"
               class="action"
-              :aria-label="$t('general.retry')"
-              :title="$t('general.retry')"
+              :aria-label="t('general.retry')"
+              :title="t('general.retry')"
             >
               <i class="material-symbols">replay</i>
             </button>
@@ -116,21 +123,22 @@
               type="button"
               @click="handleConflictAction(file)"
               class="action"
-              :aria-label="$t('general.replace')"
-              :title="$t('general.replace')"
+              :aria-label="t('general.replace')"
+              :title="t('general.replace')"
             >
               <i class="material-symbols">sync_problem</i>
             </button>
             <button
               type="button"
-              @click="cancelUpload(file.id)"
+              @click="uploadManager.cancel(file.id)"
               class="action"
-              :aria-label="$t('general.cancel')"
-              :title="$t('general.cancel')"
+              :aria-label="t('general.cancel')"
+              :title="t('general.cancel')"
             >
               <i class="material-symbols">close</i>
             </button>
           </div>
+        </div>
         </div>
       </div>
     </div>
@@ -140,32 +148,32 @@
     <button
       v-if="canPauseAll"
       type="button"
-      @click="uploadManager.pauseAll"
+      @click="uploadManager.pauseAll()"
       class="button button--flat"
-      :aria-label="$t('buttons.pauseAll')"
-      :title="$t('buttons.pauseAll')"
+      :aria-label="t('buttons.pauseAll')"
+      :title="t('buttons.pauseAll')"
     >
-      {{ $t("buttons.pauseAll") }}
+      {{ t("buttons.pauseAll") }}
     </button>
     <button
       v-if="canResumeAll"
       type="button"
-      @click="uploadManager.resumeAll"
+      @click="uploadManager.resumeAll()"
       class="button button--flat"
-      :aria-label="$t('buttons.resumeAll')"
-      :title="$t('buttons.resumeAll')"
+      :aria-label="t('buttons.resumeAll')"
+      :title="t('buttons.resumeAll')"
     >
-      {{ $t("buttons.resumeAll") }}
+      {{ t("buttons.resumeAll") }}
     </button>
     <button
       type="button"
-      @click="clearCompleted"
+      @click="uploadManager.clearCompleted()"
       class="button button--flat"
       :disabled="!hasClearable"
-      :aria-label="$t('buttons.clearCompleted')"
-      :title="$t('buttons.clearCompleted')"
+      :aria-label="t('buttons.clearCompleted')"
+      :title="t('buttons.clearCompleted')"
     >
-      {{ $t("buttons.clearCompleted") }}
+      {{ t("buttons.clearCompleted") }}
     </button>
   </div>
 
@@ -178,521 +186,518 @@
     style="display: none" />
 </template>
 
-<script>
-import { ref, computed, onMounted, onUnmounted, watch } from "vue";
-import { readAllDirectoryEntries, uploadManager } from "@/utils/upload";
-import { getTypeInfo, getTypeInfoFromExt } from "@/utils/mimetype";
-import { getters, mutations, state } from "@/store";
-import { notify } from "@/notify";
+<script setup lang="ts">
+import { computed, onMounted, onUnmounted, ref, useTemplateRef, watch } from "vue";
+import { toStandardLocale, useI18n } from "@/i18n/index.ts";
+import {
+  formatRemainingTime,
+  readAllDirectoryEntries,
+  summarizeUploads,
+  uploadedBytesById,
+  UploadRateMeter,
+  uploadManager,
+} from "@/utils/upload.ts";
+import { getHumanReadableFilesize } from "@/utils/filesizes.js";
+import type { UploadConflictResolution, UploadEntry, UploadItem, UploadStatus } from "@/utils/upload.ts";
+import { getTypeInfo, getTypeInfoFromExt } from "@/utils/mimetype.js";
+import { getters, mutations, state } from "@/store/index.ts";
+import { notify } from "@/notify/index.ts";
 import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
 import ProgressBar from "@/components/ProgressBar.vue";
 import SettingsItem from "@/components/settings/SettingsItem.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import ButtonGroup from "@/components/ButtonGroup.vue";
-import i18n from "@/i18n";
+import { findScrollParents, useListingVirtualization } from "@/composables/useListingVirtualization.ts";
 
-export default {
-  name: "UploadFiles",
-  components: {
-    HelpTooltipIcon,
-    ProgressBar,
-    SettingsItem,
-    ToggleSwitch,
-    ButtonGroup,
+/** What `initialItems` can be: dropped items, picked files, or entries pasted from the OS clipboard */
+type UploadInput = DataTransferItem[] | File[] | UploadEntry[] | FileList | null;
+
+const props = withDefaults(
+  defineProps<{
+    promptId?: string | number | null;
+    initialItems?: UploadInput;
+    filesToReplace?: unknown[];
+    targetPath?: string | null;
+    targetSource?: string | null;
+  }>(),
+  {
+    promptId: null,
+    initialItems: null,
+    filesToReplace: () => [],
+    targetPath: null,
+    targetSource: null,
   },
-  props: {
-    promptId: {
-      type: [String, Number],
-      default: null,
+);
+
+defineOptions({ name: "UploadFiles" });
+
+const { t, locale } = useI18n();
+
+const fileInput = useTemplateRef<HTMLInputElement>("fileInput");
+const folderInput = useTemplateRef<HTMLInputElement>("folderInput");
+const cameraInput = useTemplateRef<HTMLInputElement>("cameraInput");
+const videoInput = useTemplateRef<HTMLInputElement>("videoInput");
+const list = useTemplateRef<HTMLElement>("list");
+const files = computed(() => uploadManager.queue);
+const isDragging = ref(false);
+const showConflictPrompt = ref(false);
+let conflictResolver: ((resolution: UploadConflictResolution) => void) | null = null;
+let wakeLock: WakeLockSentinel | null = null;
+
+const virtual = useListingVirtualization<{ file: UploadItem; index: number }>({
+  container: list,
+  groups: () => [
+    {
+      key: "uploads",
+      count: files.value.length,
+      at: (index) => ({ file: files.value[index] as UploadItem, index }),
     },
-    initialItems: {
-      type: Object,
-      default: null,
+  ],
+  columnsHint: () => 1,
+  scroller: (container) => findScrollParents(container, true),
+  itemClass: "upload-item",
+  minItems: 10,
+});
+
+const uploadSettingsDescription = computed(() => {
+  const maxConcurrentUpload = state.user.fileLoading?.maxConcurrentUpload;
+  const uploadChunkSizeMb = state.user.fileLoading?.uploadChunkSizeMb;
+  if (uploadChunkSizeMb === 0) {
+    return t("prompts.uploadSettingsNoChunk", { maxConcurrentUpload });
+  }
+  return t("prompts.uploadSettingsChunked", { maxConcurrentUpload, uploadChunkSizeMb });
+});
+
+// Upload settings
+const maxConcurrentUpload = ref(state.user.fileLoading?.maxConcurrentUpload);
+const uploadChunkSizeMb = ref(state.user.fileLoading?.uploadChunkSizeMb);
+const clearAll = ref(state.user.fileLoading?.clearAll || false);
+
+async function updateUploadSettings() {
+  try {
+    const data = {
+      ...state.user,
+      fileLoading: {
+        maxConcurrentUpload: maxConcurrentUpload.value,
+        uploadChunkSizeMb: uploadChunkSizeMb.value,
+        clearAll: clearAll.value,
+      },
+    };
+    void mutations.updateCurrentUser(data);
+    notify.showSuccessToast("Upload settings updated");
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+function handleConflict(resolver: (resolution: UploadConflictResolution) => void, options: { allowRename?: boolean } = {}) {
+  conflictResolver = resolver;
+  mutations.showPrompt({
+    name: "replace-rename",
+    pinned: true,
+    props: {
+      allowSkip: !getters.isShare(),
+      allowRename: options.allowRename !== false,
+      ...(getters.isShare() ? {} : { title: t("prompts.uploadConflictTitle") }),
     },
-    filesToReplace: {
-      type: Array,
-      default: () => [],
-    },
-    targetPath: {
-      type: String,
-      default: null,
-    },
-    targetSource: {
-      type: String,
-      default: null,
-    },
-  },
-  computed: {
-    shareInfo() {
-      return state.shareInfo;
-    },
-    uploadSettingsDescription() {
-      const maxConcurrentUpload = state.user.fileLoading?.maxConcurrentUpload;
-      const uploadChunkSizeMb = state.user.fileLoading?.uploadChunkSizeMb;
-      if (uploadChunkSizeMb === 0) {
-        return this.$t("prompts.uploadSettingsNoChunk", { maxConcurrentUpload });
+    confirm: (_event: unknown, option: string) => {
+      if (option === "overwrite") {
+        resolveConflict(true);
+      } else if (option === "skip") {
+        resolveConflict({ skip: true });
+      } else if (option === "rename") {
+        showRenamePrompt();
+      } else {
+        resolveConflict(false);
       }
-      return this.$t("prompts.uploadSettingsChunked", {
-        maxConcurrentUpload,
-        uploadChunkSizeMb
-      });
+    },
+  });
+}
+
+function resolveConflict(overwrite: UploadConflictResolution) {
+  if (conflictResolver) {
+    conflictResolver(overwrite);
+  }
+  mutations.closeTopPrompt(); // Only close the conflict prompt, return to upload prompt
+}
+
+function showRenamePrompt() {
+  mutations.closeTopPrompt(); // Only close the replace-rename prompt, keep upload prompt open
+  // Get the conflicting folder name from the upload queue
+  const conflictingFolder = uploadManager.getConflictingFolder();
+  if (!conflictingFolder) {
+    console.error("No conflicting folder found for rename");
+    return;
+  }
+
+  mutations.showPrompt({
+    name: "rename",
+    confirm: (newName: string) => {
+      void renameUploadFolder(conflictingFolder, newName);
+    },
+    props: { folderName: conflictingFolder },
+  });
+}
+
+async function renameUploadFolder(oldName: string, newName: string) {
+  try {
+    // Check if the new name already exists
+    const existingItems = new Set(((state.req.items ?? []) as { name: string }[]).map((i) => i.name));
+    if (existingItems.has(newName)) {
+      notify.showError(new Error(`A folder named "${newName}" already exists`));
+      return;
+    }
+
+    // Update upload manager with the new folder name
+    await uploadManager.renameFolder(oldName, newName);
+
+    // Resolve the conflict and continue upload
+    if (conflictResolver) {
+      conflictResolver({ rename: newName });
+    }
+    mutations.closeTopPrompt(); // Only close the rename prompt, return to upload prompt
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+async function acquireWakeLock() {
+  if (!("wakeLock" in navigator)) {
+    return;
+  }
+  try {
+    if (wakeLock !== null) return; // Already locked
+    const sentinel = await navigator.wakeLock.request("screen");
+    wakeLock = sentinel;
+    sentinel.addEventListener("release", () => {
+      wakeLock = null;
+    });
+  } catch (err) {
+    const error = err as Error;
+    console.error(`Wake Lock failed: ${error.name}, ${error.message}`);
+  }
+}
+
+function releaseWakeLock() {
+  if (wakeLock !== null) {
+    void wakeLock.release();
+    wakeLock = null;
+  }
+}
+
+const isUploading = computed(() => state.upload.isUploading);
+
+// Overall progress of the queue, with the speed sampled every second while a file is transferring
+const summary = computed(() => summarizeUploads(files.value));
+// isUploading stays true while uploads are paused; only a file in "uploading" moves bytes.
+const isTransferring = computed(() => files.value.some((item) => item.status === "uploading"));
+const rateMeter = new UploadRateMeter();
+const bytesPerSecond = ref(0);
+let rateTimer: ReturnType<typeof setInterval> | null = null;
+
+function resetRate() {
+  rateMeter.reset();
+  bytesPerSecond.value = 0;
+}
+
+function sampleRate() {
+  if (!isTransferring.value) {
+    // Paused or waiting: start over with a fresh sample when transfers resume.
+    resetRate();
+    return;
+  }
+  bytesPerSecond.value = rateMeter.sample(uploadedBytesById(files.value), Date.now());
+}
+
+// Reset as soon as no file is transferring (all paused or waiting), not at the next
+// tick: a pause and resume between two ticks would otherwise keep the previous rate
+// and count the paused time in the next sample.
+watch(isTransferring, (transferring) => {
+  if (!transferring) {
+    resetRate();
+  }
+});
+
+function stopRateSampling() {
+  if (rateTimer !== null) {
+    clearInterval(rateTimer);
+    rateTimer = null;
+  }
+  resetRate();
+}
+
+watch(
+  isUploading,
+  (active) => {
+    stopRateSampling();
+    if (active) {
+      sampleRate();
+      rateTimer = setInterval(sampleRate, 1000);
     }
   },
-  setup(props) {
-    const fileInput = ref(null);
-    const folderInput = ref(null);
-    const cameraInput = ref(null);
-    const videoInput = ref(null);
-    const files = computed(() => uploadManager.queue);
-    const isDragging = ref(false);
-    const showConflictPrompt = ref(false);
-    let conflictResolver = null;
+  { immediate: true },
+);
 
-    let wakeLock = null;
+const summaryText = computed(() => {
+  const s = summary.value;
+  const parts = [`${s.completedFiles} / ${s.totalFiles} ${t("general.files", { suffix: "" })}`];
+  if (s.failedFiles > 0) {
+    parts.push(t("prompts.uploadSummaryFailed", { count: s.failedFiles }));
+  }
+  if (isTransferring.value && bytesPerSecond.value > 0) {
+    parts.push(`${getHumanReadableFilesize(bytesPerSecond.value)}/s`);
+    const remainingSeconds = (s.totalBytes - s.uploadedBytes) / bytesPerSecond.value;
+    parts.push(t("prompts.uploadSummaryRemaining", { time: formatRemainingTime(remainingSeconds, toStandardLocale(locale.value)) }));
+  }
+  return parts.join(" · ");
+});
 
-    // Upload settings
-    const maxConcurrentUpload = ref(state.user.fileLoading?.maxConcurrentUpload);
-    const uploadChunkSizeMb = ref(state.user.fileLoading?.uploadChunkSizeMb);
-    const clearAll = ref(state.user.fileLoading?.clearAll || false);
+watch(isUploading, (active) => {
+  if (active) {
+    void acquireWakeLock();
+  } else {
+    releaseWakeLock();
+  }
+});
 
-    const updateUploadSettings = async () => {
-      try {
-        const data = {
-          ...state.user,
-          fileLoading: {
-            maxConcurrentUpload: maxConcurrentUpload.value,
-            uploadChunkSizeMb: uploadChunkSizeMb.value,
-            clearAll: clearAll.value,
-          },
-        };
-        void mutations.updateCurrentUser(data);
-        notify.showSuccessToast("Upload settings updated");
-      } catch (e) {
-        console.error(e);
-      }
-    };
+const hasClearable = computed(() => {
+  if (state.user.fileLoading?.clearAll) {
+    // For "clear all" mode: check for completed, error, conflict, or paused uploads
+    return files.value.some(
+      (file) =>
+        file.status === "completed" ||
+        file.status === "error" ||
+        file.status === "conflict" ||
+        file.status === "paused",
+    );
+  }
+  // For "clear completed" mode: only check for completed uploads
+  return files.value.some((file) => file.status === "completed");
+});
 
-    const handleConflict = (resolver, options = {}) => {
-      conflictResolver = resolver;
-      mutations.showPrompt({
-        name: "replace-rename",
-        pinned: true,
-        props: {
-          allowSkip: !getters.isShare(),
-          allowRename: options.allowRename !== false,
-          ...(getters.isShare() ? {} : { title: i18n.global.t("prompts.uploadConflictTitle") }),
-        },
-        confirm: (_event, option) => {
-          if (option === "overwrite") {
-            resolveConflict(true);
-          } else if (option === "skip") {
-            resolveConflict({ skip: true });
-          } else if (option === "rename") {
-            showRenamePrompt();
-          } else {
-            resolveConflict(false);
-          }
-        },
+const canPauseAll = computed(() => files.value.some((file) => file.status === "uploading"));
+
+const canResumeAll = computed(() => !canPauseAll.value && files.value.some((file) => file.status === "paused"));
+
+function handleVisibilityChange() {
+  if (document.visibilityState === "visible" && isUploading.value) {
+    void acquireWakeLock();
+  }
+}
+
+// Helper to get the destination path (from prop or fallback to current request)
+function getDestinationPath(): string {
+  return props.targetPath || state.req.path || "";
+}
+
+const isFile = (item: unknown): item is File => item instanceof File;
+const isDataTransferItem = (item: unknown): item is DataTransferItem =>
+  typeof (item as DataTransferItem | undefined)?.getAsFile === "function";
+const isUploadEntry = (item: unknown): item is UploadEntry =>
+  (item as UploadEntry | undefined)?.file instanceof File &&
+  typeof (item as UploadEntry).relativePath === "string";
+
+async function processItems(items: UploadInput) {
+  const destination = getDestinationPath();
+  // When items are passed as a prop from ListingView, they can be either
+  // an array of DataTransferItem (from drag and drop) or an array of File (from input).
+  // or an array of objects (from clipboard paste of the OS).
+  if (Array.isArray(items)) {
+    if (items.length === 0) return;
+    const first: unknown = items[0];
+    if (isFile(first)) {
+      // This is an array of File objects from the input fallback in ListingView
+      processFileList(items as File[], destination);
+    } else if (isDataTransferItem(first)) {
+      // This is an array of DataTransferItem from drag and drop in ListingView
+      await processDroppedItems(items as DataTransferItem[], destination);
+    } else if (isUploadEntry(first)) {
+      // This is an array of objects {file, relativePath} for paste from clipboard OS.
+      void uploadManager.add(destination, items as UploadEntry[]);
+    }
+  } else if (items) {
+    // This case handles a FileList object from the upload prompt's own input fields.
+    // It is not an array, so we convert it.
+    processFileList(items, destination);
+  }
+}
+
+onMounted(async () => {
+  document.addEventListener("visibilitychange", handleVisibilityChange);
+  uploadManager.setOnConflict(handleConflict);
+  if (props.initialItems) {
+    await processItems(props.initialItems);
+  }
+});
+
+onUnmounted(() => {
+  document.removeEventListener("visibilitychange", handleVisibilityChange);
+  uploadManager.setOnConflict(() => {}); // cleanup
+  releaseWakeLock();
+  stopRateSampling();
+});
+
+const uploadActionButtons = computed(() => [
+  { label: t("general.file"), value: "file" },
+  { label: t("general.folder"), value: "folder" },
+  { label: t("general.camera"), value: "camera" },
+  { label: t("general.video"), value: "video" },
+]);
+
+function onUploadAction(value: string) {
+  switch (value) {
+    case "file":
+      fileInput.value?.click();
+      break;
+    case "folder":
+      folderInput.value?.click();
+      break;
+    case "camera":
+      cameraInput.value?.click();
+      break;
+    case "video":
+      videoInput.value?.click();
+      break;
+    default:
+      break;
+  }
+}
+
+function onFilePicked(event: Event) {
+  const input = event.target as HTMLInputElement | null;
+  const pickedFiles = input?.files;
+  if (pickedFiles && pickedFiles.length > 0) {
+    processFileList(pickedFiles, getDestinationPath());
+  }
+  if (input) input.value = "";
+}
+
+// Files and folders are handled the same way, the folder structure comes from webkitRelativePath
+const onFolderPicked = onFilePicked;
+
+async function onDrop(event: DragEvent) {
+  isDragging.value = false;
+  const destination = getDestinationPath();
+  const transfer = event.dataTransfer;
+  if (!transfer) return;
+  if (transfer.items) {
+    await processDroppedItems(Array.from(transfer.items), destination);
+  } else {
+    console.log("Upload.vue: Processing dropped files (fallback):", transfer.files);
+    processFileList(transfer.files, destination);
+  }
+}
+
+function onDragEnter() {
+  isDragging.value = true;
+}
+
+function onDragOver() {
+  isDragging.value = true;
+}
+
+function onDragLeave() {
+  isDragging.value = false;
+}
+
+async function getFilesFromDirectoryEntry(entry: FileSystemEntry): Promise<UploadEntry[]> {
+  if (entry.isFile) {
+    return new Promise((resolve) => {
+      (entry as FileSystemFileEntry).file((file) => {
+        const relativePath = entry.fullPath.startsWith("/") ? entry.fullPath.slice(1) : entry.fullPath;
+        resolve([{ file, relativePath }]);
       });
-    };
-
-    const resolveConflict = (overwrite) => {
-      if (conflictResolver) {
-        conflictResolver(overwrite);
-      }
-      mutations.closeTopPrompt(); // Only close the conflict prompt, return to upload prompt
-    };
-
-    const showRenamePrompt = () => {
-      mutations.closeTopPrompt(); // Only close the replace-rename prompt, keep upload prompt open
-      // Get the conflicting folder name from the upload queue
-      const conflictingFolder = uploadManager.getConflictingFolder();
-      if (!conflictingFolder) {
-        console.error("No conflicting folder found for rename");
-        return;
-      }
-
-      mutations.showPrompt({
-        name: "rename",
-        confirm: (newName) => {
-          void renameUploadFolder(conflictingFolder, newName);
-        },
-        props: { folderName: conflictingFolder }
-      });
-    };
-
-    const renameUploadFolder = async (oldName, newName) => {
-      try {
-        // Check if the new name already exists
-        const existingItems = new Set(state.req.items.map(i => i.name));
-        if (existingItems.has(newName)) {
-          notify.showError(new Error(`A folder named "${newName}" already exists`));
-          return;
-        }
-
-        // Update upload manager with the new folder name
-        await uploadManager.renameFolder(oldName, newName);
-
-        // Resolve the conflict and continue upload
-        if (conflictResolver) {
-          conflictResolver({ rename: newName });
-        }
-        mutations.closeTopPrompt(); // Only close the rename prompt, return to upload prompt
-      } catch (error) {
-        console.error(error);
-      }
-    };
-
-    const acquireWakeLock = async () => {
-      if (!("wakeLock" in navigator)) {
-        return;
-      }
-      try {
-        if (wakeLock !== null) return; // Already locked
-        wakeLock = await navigator.wakeLock.request("screen");
-        wakeLock.addEventListener("release", () => {
-          wakeLock = null;
-        });
-      } catch (err) {
-        console.error(`Wake Lock failed: ${err.name}, ${err.message}`);
-      }
-    };
-
-    const releaseWakeLock = () => {
-      if (wakeLock !== null) {
-        wakeLock.release();
-        wakeLock = null;
-      }
-    };
-
-    const isUploading = computed(() => state.upload.isUploading);
-
-    watch(isUploading, (active) => {
-      if (active) {
-        void acquireWakeLock();
-      } else {
-        releaseWakeLock();
-      }
     });
+  }
+  if (entry.isDirectory) {
+    const reader = (entry as FileSystemDirectoryEntry).createReader();
+    const pathLabel = entry.fullPath || entry.name || "";
+    const entries: FileSystemEntry[] = await readAllDirectoryEntries(reader, pathLabel);
+    const allFiles = await Promise.all(entries.map((subEntry) => getFilesFromDirectoryEntry(subEntry)));
+    return allFiles.flat();
+  }
+  return [];
+}
 
-    const hasCompleted = computed(() =>
-      files.value.some((file) => file.status === "completed")
-    );
+async function processDroppedItems(items: DataTransferItem[], destination: string) {
+  const filesToUpload: UploadEntry[] = [];
+  const promises = items.map((item) => {
+    const entry = item.webkitGetAsEntry();
+    if (entry) {
+      return getFilesFromDirectoryEntry(entry);
+    }
+    return Promise.resolve([] as UploadEntry[]);
+  });
 
-    const hasClearable = computed(() => {
-      if (state.user.fileLoading?.clearAll) {
-        // For "clear all" mode: check for completed, error, conflict, or paused uploads
-        return files.value.some((file) =>
-          file.status === "completed" ||
-          file.status === "error" ||
-          file.status === "conflict" ||
-          file.status === "paused"
-        );
-      } else {
-        // For "clear completed" mode: only check for completed uploads
-        return files.value.some((file) => file.status === "completed");
-      }
-    });
+  const allFiles = await Promise.all(promises);
+  for (const group of allFiles) {
+    filesToUpload.push(...group);
+  }
 
-    const canPauseAll = computed(() =>
-      files.value.some((file) => file.status === "uploading")
-    );
+  if (filesToUpload.length > 0) {
+    void uploadManager.add(destination, filesToUpload);
+  }
+}
 
-    const canResumeAll = computed(
-      () =>
-        !canPauseAll.value &&
-        files.value.some((file) => file.status === "paused")
-    );
+function processFileList(fileList: ArrayLike<File>, destination: string) {
+  const filesToAdd: UploadEntry[] = Array.from(fileList).map((file) => ({
+    file,
+    relativePath: file.webkitRelativePath || file.name,
+  }));
+  if (filesToAdd.length > 0) {
+    void uploadManager.add(destination, filesToAdd);
+  }
+}
 
-    const close = () => {
+function handleConflictAction(file: UploadItem) {
+  mutations.showPrompt({
+    name: "replace",
+    pinned: true,
+    confirm: () => {
+      uploadManager.retry(file.id, true);
       mutations.closeTopPrompt();
-    };
+    },
+  });
+}
 
-    const clearCompleted = () => {
-      uploadManager.clearCompleted();
-    };
+function getStatusText(status: UploadStatus, file?: UploadItem): string {
+  // Show connection issue in status for paused uploads
+  if (status === "paused" && file?.connectionIssue) {
+    return "Paused (connection issue)";
+  }
 
-    const handleVisibilityChange = async () => {
-      if (document.visibilityState === "visible" && isUploading.value) {
-        void acquireWakeLock();
-      }
-    };
+  switch (status) {
+    case "uploading":
+      return t("general.uploading", { suffix: "..." });
+    case "completed":
+      return t("prompts.completed");
+    case "error":
+      return t("prompts.error");
+    case "paused":
+      return t("general.paused");
+    case "conflict":
+      return t("general.conflict");
+    default:
+      return status;
+  }
+}
 
-    // Helper to get the destination path (from prop or fallback to current request)
-    const getDestinationPath = () => props.targetPath || state.req.path;
+function fileTypeInfo(file: UploadItem) {
+  return file.type === "directory" ? getTypeInfo("directory") : getTypeInfoFromExt(file.name);
+}
 
-    const processItems = async (items) => {
-      const destination = getDestinationPath();
-      // When items are passed as a prop from ListingView, they can be either
-      // an array of DataTransferItem (from drag and drop) or an array of File (from input).
-      // or an array of objects (from clipboard paste of the OS).
-      if (Array.isArray(items)) {
-        if (items.length === 0) return;
-        const first = items[0];
-        if (first instanceof File) {
-          // This is an array of File objects from the input fallback in ListingView
-          processFileList(items, destination);
-        } else if (typeof first.getAsFile === 'function') {
-          // This is an array of DataTransferItem from drag and drop in ListingView
-          await processDroppedItems(items, destination);
-        } else if (first.file instanceof File && typeof first.relativePath === 'string') {
-          // This is an array of objects {file, relativePath} for paste from clipboard OS.
-          void uploadManager.add(destination, items);
-        }
-      } else if (items) {
-        // This case handles a FileList object from the upload prompt's own input fields.
-        // It is not an array, so we convert it.
-        await processDroppedItems(Array.from(items), destination);
-      }
-    };
-
-    onMounted(async () => {
-      document.addEventListener("visibilitychange", void handleVisibilityChange);
-      uploadManager.setOnConflict(handleConflict);
-      if (props.initialItems) {
-        await processItems(props.initialItems);
-      }
-    });
-
-    onUnmounted(() => {
-      document.removeEventListener("visibilitychange", void handleVisibilityChange);
-      uploadManager.setOnConflict(() => {}); // cleanup
-      releaseWakeLock();
-    });
-
-    const triggerFilePicker = () => {
-      if (fileInput.value) fileInput.value.click();
-    };
-
-    const triggerFolderPicker = () => {
-      if (folderInput.value) folderInput.value.click();
-    };
-
-    const triggerCameraPicker = () => {
-      if (cameraInput.value) cameraInput.value.click();
-    };
-
-    const triggerVideoPicker = () => {
-      if (videoInput.value) videoInput.value.click();
-    };
-
-    const uploadActionButtons = computed(() => [
-      { label: i18n.global.t("general.file"), value: "file" },
-      { label: i18n.global.t("general.folder"), value: "folder" },
-      { label: i18n.global.t("general.camera"), value: "camera" },
-      { label: i18n.global.t("general.video"), value: "video" },
-    ]);
-
-    const onUploadAction = (value) => {
-      switch (value) {
-        case "file":
-          triggerFilePicker();
-          break;
-        case "folder":
-          triggerFolderPicker();
-          break;
-        case "camera":
-          triggerCameraPicker();
-          break;
-        case "video":
-          triggerVideoPicker();
-          break;
-        default:
-          break;
-      }
-    };
-
-    const onFilePicked = (event) => {
-      const pickedFiles = event.target.files;
-      if (pickedFiles.length > 0) {
-        processFileList(pickedFiles, getDestinationPath());
-      }
-      if (event.target) event.target.value = null;
-    };
-
-    const onFolderPicked = (event) => {
-      const pickedFiles = event.target.files;
-      if (pickedFiles.length > 0) {
-        processFileList(pickedFiles, getDestinationPath());
-      }
-      if (event.target) event.target.value = null;
-    };
-
-    const onDrop = async (event) => {
-      isDragging.value = false;
-      const destination = getDestinationPath();
-      if (event.dataTransfer.items) {
-        const items = Array.from(event.dataTransfer.items);
-        await processDroppedItems(items, destination);
-      } else {
-        const droppedFiles = event.dataTransfer.files;
-        console.log(
-          "Upload.vue: Processing dropped files (fallback):",
-          droppedFiles
-        );
-        processFileList(droppedFiles, destination);
-      }
-    };
-
-    const onDragEnter = () => {
-      isDragging.value = true;
-    };
-
-    const onDragOver = () => {
-      isDragging.value = true;
-    };
-
-    const onDragLeave = () => {
-      isDragging.value = false;
-    };
-
-    const getFilesFromDirectoryEntry = async (entry) => {
-      if (entry.isFile) {
-        return new Promise((resolve) => {
-          entry.file((file) => {
-            const relativePath = entry.fullPath.startsWith("/")
-              ? entry.fullPath.substring(1)
-              : entry.fullPath;
-            resolve([{ file, relativePath }]);
-          });
-        });
-      }
-      if (entry.isDirectory) {
-        const reader = entry.createReader();
-        const pathLabel = entry.fullPath || entry.name || "";
-        const entries = await readAllDirectoryEntries(reader, pathLabel);
-        const allFiles = await Promise.all(
-          entries.map((subEntry) => getFilesFromDirectoryEntry(subEntry))
-        );
-        return allFiles.flat();
-      }
-      return [];
-    };
-
-    const processDroppedItems = async (items, destination) => {
-      const filesToUpload = [];
-      const promises = items.map(item => {
-        const entry = item.webkitGetAsEntry();
-        if (entry) {
-          return getFilesFromDirectoryEntry(entry);
-        }
-        return Promise.resolve([]);
-      });
-
-      const allFiles = await Promise.all(promises);
-      for (const files of allFiles) { filesToUpload.push(...files); }
-
-      if (filesToUpload.length > 0) {
-        void uploadManager.add(destination, filesToUpload);
-      }
-    };
-
-    const processFileList = (fileList, destination) => {
-      const filesToAdd = Array.from(fileList).map((file) => ({
-        file,
-        relativePath: file.webkitRelativePath || file.name,
-      }));
-      if (filesToAdd.length > 0) {
-        void uploadManager.add(destination, filesToAdd);
-      }
-    };
-
-    const handleConflictAction = (file) => {
-      mutations.showPrompt({
-        name: "replace",
-        pinned: true,
-        confirm: () => {
-          uploadManager.retry(file.id, true);
-          mutations.closeTopPrompt();
-        },
-      });
-    };
-
-    const cancelUpload = (id) => {
-      uploadManager.cancel(id);
-    };
-
-    const getStatusText = (status, file) => {
-      // Show connection issue in status for paused uploads
-      if (status === 'paused' && file?.connectionIssue) {
-        return 'Paused (connection issue)';
-      }
-
-      switch (status) {
-        case 'uploading':
-          return i18n.global.t('general.uploading', { suffix: '...' });
-        case 'completed':
-          return i18n.global.t('prompts.completed');
-        case 'error':
-          return i18n.global.t('prompts.error');
-        case 'paused':
-          return i18n.global.t('general.paused');
-        case 'conflict':
-          return i18n.global.t('general.conflict');
-        default:
-          return status;
-      }
-    };
-
-    const fileTypeInfo = (file) => {
-      return file.type === "directory" ? getTypeInfo("directory") : getTypeInfoFromExt(file.name);
-    };
-
-    const getHelpText = (file) => {
-      if (file.status === 'error' && file.errorDetails) {
-        return file.errorDetails;
-      }
-      if (file.status === 'paused' && file.connectionIssue) {
-        return 'Connection stalled - upload paused. Click resume to retry.';
-      }
-      if (file.connectionIssue && file.status === 'error') {
-        return file.errorDetails || 'Connection issue detected. Click retry to resume.';
-      }
-      return '';
-    };
-
-    return {
-      triggerFilePicker,
-      triggerFolderPicker,
-      triggerCameraPicker,
-      triggerVideoPicker,
-      uploadActionButtons,
-      onUploadAction,
-      onFilePicked,
-      onFolderPicked,
-      fileInput,
-      folderInput,
-      cameraInput,
-      videoInput,
-      files,
-      isDragging,
-      onDragEnter,
-      onDragLeave,
-      onDragOver,
-      onDrop,
-      cancelUpload,
-      uploadManager,
-      close,
-      clearCompleted,
-      hasCompleted,
-      hasClearable,
-      showConflictPrompt,
-      resolveConflict,
-      showRenamePrompt,
-      renameUploadFolder,
-      canPauseAll,
-      canResumeAll,
-      handleConflictAction,
-      maxConcurrentUpload,
-      uploadChunkSizeMb,
-      clearAll,
-      getStatusText,
-      getHelpText,
-      fileTypeInfo,
-      updateUploadSettings,
-    };
-  },
-};
+function getHelpText(file: UploadItem): string {
+  if (file.status === "error" && file.errorDetails) {
+    return file.errorDetails;
+  }
+  if (file.status === "paused" && file.connectionIssue) {
+    return "Connection stalled - upload paused. Click resume to retry.";
+  }
+  if (file.connectionIssue && file.status === "error") {
+    return file.errorDetails || "Connection issue detected. Click retry to resume.";
+  }
+  return "";
+}
 </script>
 
 <style scoped>
@@ -730,10 +735,18 @@ export default {
 }
 
 .upload-list {
-  height: 100%;
-  display: flex;
-  flex-direction: column-reverse;
   min-height: 0;
+}
+
+.upload-summary {
+  margin-bottom: 1em;
+}
+
+.upload-summary-text {
+  margin: 0.3em 0 0;
+  color: #777;
+  font-size: 0.8em;
+  text-align: center;
 }
 
 .upload-item {
@@ -757,7 +770,8 @@ export default {
 .status-label {
   color: #777;
   font-size: 0.8em;
-  margin-top: 5px;
+  height: 20px;
+  line-height: 20px;
 }
 
 .file-actions .action {
@@ -804,7 +818,6 @@ export default {
   border-radius: 8px;
 }
 
-/* Upload settings styles */
 .upload-settings {
   margin: 0 1em;
 }
@@ -831,7 +844,7 @@ export default {
   margin-left: 1em;
   min-width: 2ch;
   text-align: center;
-  font-weight: bold;
+  font-weight: 700;
 }
 
 .sizeInput {

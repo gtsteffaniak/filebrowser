@@ -1,6 +1,6 @@
 <template>
   <div class="popup-preview" v-show="sourceInfo" ref="popup" :style="popupStyle"
-    :class="{ 'popup-preview--3d': sourceInfo && sourceInfo.type === '3d' }">
+    :class="{ 'popup-preview--3d': sourceInfo && sourceInfo.type === '3d', 'popup-preview--text': sourceInfo && sourceInfo.type === 'text' }">
     <div v-if="sourceInfo && sourceInfo.type === '3d' && sourceInfo.fbdata" class="popup-preview__3d">
       <ThreeJs
         :key="sourceInfo.path"
@@ -8,19 +8,28 @@
         :is-thumbnail="true"
       />
     </div>
-    <img v-else-if="sourceInfo?.url" :src="sourceInfo.url" alt="Popup img" @load="onImageLoad" />
+    <div v-else-if="sourceInfo && sourceInfo.type === 'text' && sourceInfo.textUrl" class="popup-preview__text">
+      <TextPreview
+        :key="sourceInfo.path"
+        :url="sourceInfo.textUrl"
+        :modified="sourceInfo.modified"
+        @load-error="onTextError"
+      />
+    </div>
+    <img v-else-if="sourceInfo?.url" :src="sourceInfo.url" :alt="$t('profileSettings.popupPreview')" @load="onImageLoad" />
   </div>
 </template>
 
 <script>
 import { createAsyncComponent } from "@/utils/asyncComponent.js";
-import { state, getters } from "@/store";
-import { setImageLoaded } from "@/utils/imageCache";
+import { state, getters, mutations } from "@/store/index.ts";
+import { setImageLoaded } from "@/utils/cache/imageCache.ts";
 
 export default {
   name: "PopupPreview",
   components: {
     ThreeJs: createAsyncComponent(() => import('@/views/files/ThreeJs.vue')),
+    TextPreview: createAsyncComponent(() => import('@/components/files/TextPreview.vue')),
   },
   data() {
     return {
@@ -30,6 +39,7 @@ export default {
       },
       cursorX: 0,
       cursorY: 0,
+      rafId: null,
     };
   },
   watch: {
@@ -53,12 +63,23 @@ export default {
   },
   beforeUnmount() {
     window.removeEventListener("mousemove", this.updateCursorPosition);
+    if (this.rafId !== null) {
+      cancelAnimationFrame(this.rafId);
+      this.rafId = null;
+    }
   },
   methods: {
+    onTextError() {
+      // Nothing to show if the text preview failed, so close the popup.
+      mutations.setPopupPreview(null);
+    },
     async onImageLoad() {
       if (!this.sourceInfo || this.sourceInfo.type === "3d") return;
       const { source, path, size, url, modified } = this.sourceInfo;
-      setImageLoaded(source, path, size, modified, url);
+      // images in motion aren't from the own item image so they're not cached
+      if (!url.includes("atPercentage")) {
+        setImageLoaded(source, path, size, modified, url);
+      }
       if (!getters.isMobile()) {
         await this.$nextTick();
         this.positionPopup();
@@ -67,7 +88,19 @@ export default {
     updateCursorPosition(event) {
       this.cursorX = event.clientX;
       this.cursorY = event.clientY;
-      if (!getters.isMobile()) this.positionPopup();
+      if (!this.sourceInfo || getters.isMobile() || this.rafId !== null) return;
+      this.rafId = requestAnimationFrame(() => {
+        this.rafId = null;
+        this.positionPopup();
+      });
+    },
+    applyPopupStyle(next) {
+      const current = this.popupStyle;
+      const nextKeys = Object.keys(next);
+      if (nextKeys.length === Object.keys(current).length && nextKeys.every((k) => current[k] === next[k])) {
+        return;
+      }
+      this.popupStyle = next;
     },
     positionPopup() {
       if (!this.sourceInfo) return;
@@ -75,17 +108,18 @@ export default {
       if (!popup) return;
 
       const { innerWidth, innerHeight } = window;
-      // 3D popup has fixed dimensions; img popup sizes to content
+      // 3D and text popups have fixed dimensions; img popup sizes to content
       const size3d = 512;
-      const width = popup.offsetWidth || (this.sourceInfo.type === "3d" ? size3d : 0);
-      const height = popup.offsetHeight || (this.sourceInfo.type === "3d" ? size3d : 0);
+      const hasFixedSize = this.sourceInfo.type === "3d" || this.sourceInfo.type === "text";
+      const width = popup.offsetWidth || (hasFixedSize ? size3d : 0);
+      const height = popup.offsetHeight || (hasFixedSize ? size3d : 0);
       const padding = 10;
 
       const minLeft = getters.isSidebarVisible() ? 320 : padding;
       const minTop = padding + 100;
 
       if (getters.isMobile()) {
-        this.popupStyle = {
+        this.applyPopupStyle({
           top: "50%",
           left: "5%",
           right: "5%",
@@ -93,7 +127,7 @@ export default {
           "max-width": "90vw",
           "max-height": "75vh",
           transform: "translate(0, -50%)",
-        };
+        });
         return;
       }
 
@@ -126,13 +160,13 @@ export default {
 
       const maxW = Math.min(innerWidth - padding * 2, innerWidth * 0.5);
       const maxH = innerHeight - padding * 2;
-      this.popupStyle = {
+      this.applyPopupStyle({
         top: `${top}px`,
         left: `${left}px`,
         "max-width": `${maxW}px`,
         "max-height": `${maxH}px`,
         transform: "none",
-      };
+      });
     },
   },
 };
@@ -173,6 +207,17 @@ export default {
   height: 100%;
   min-width: 512px;
   min-height: 512px;
+}
+
+/* Text popup: a fixed-size page, scaled down on small screens */
+.popup-preview--text {
+  background: var(--surfacePrimary);
+}
+
+/* Square frame, so the preview keeps one shape whatever the content */
+.popup-preview__text {
+  width: min(512px, 45vw, 75vh);
+  height: min(512px, 45vw, 75vh);
 }
 
 .popup-preview img {

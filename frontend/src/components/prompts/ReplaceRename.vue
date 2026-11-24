@@ -54,7 +54,7 @@
 </template>
 
 <script>
-import { getters, state } from "@/store";
+import { getters, state } from "@/store/index.ts";
 
 export default {
   name: "replace-rename",

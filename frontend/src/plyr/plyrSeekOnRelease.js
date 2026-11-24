@@ -35,8 +35,11 @@ function clientXFromEvent(event) {
 /**
  * @param {import('plyr').default} player
  * @param {Event} [event]
+ * @param {(targetSec: number) => void} [onSeekTarget] receives the intended
+ *   target in seconds before the browser clamps it to the seekable range —
+ *   for live-paced transcodes the intent can lie past the produced edge.
  */
-export function commitPlyrSeek(player, event) {
+export function commitPlyrSeek(player, event, onSeekTarget) {
   const seek = player?.elements?.inputs?.seek;
   const duration = player?.duration;
   if (!seek || !Number.isFinite(duration) || duration <= 0) {
@@ -48,7 +51,9 @@ export function commitPlyrSeek(player, event) {
     const rect = progress.getBoundingClientRect();
     if (rect.width > 0) {
       const percent = Math.max(0, Math.min(100, ((clientX - rect.left) / rect.width) * 100));
-      player.currentTime = (percent / 100) * duration;
+      const targetSec = (percent / 100) * duration;
+      onSeekTarget?.(targetSec);
+      player.currentTime = targetSec;
       return;
     }
   }
@@ -57,14 +62,17 @@ export function commitPlyrSeek(player, event) {
   if (percent === null) {
     return;
   }
-  player.currentTime = (percent / seek.max) * duration;
+  const targetSec = (percent / seek.max) * duration;
+  onSeekTarget?.(targetSec);
+  player.currentTime = targetSec;
 }
 
 /**
  * @param {import('plyr').default} player
+ * @param {{ onSeekTarget?: (targetSec: number) => void }} [options]
  * @returns {() => void}
  */
-export function enablePlyrSeekOnRelease(player) {
+export function enablePlyrSeekOnRelease(player, { onSeekTarget } = {}) {
   const seek = player?.elements?.inputs?.seek;
   if (!seek) {
     return () => {};
@@ -80,7 +88,7 @@ export function enablePlyrSeekOnRelease(player) {
     if (event.type === 'mouseup' || event.type === 'touchend') {
       ignoreNextChange = true;
     }
-    commitPlyrSeek(player, event);
+    commitPlyrSeek(player, event, onSeekTarget);
   };
 
   const captureOpts = { capture: true };

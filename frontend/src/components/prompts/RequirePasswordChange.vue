@@ -50,12 +50,12 @@
 </template>
 
 <script>
+import { mutations } from "@/store/index.ts";
+import { notify } from "@/notify/index.ts";
+import { authApi } from "@/api/index.js";
+import { initAuth } from "@/utils/auth.js";
 import { postLoginRedirectForServer, sanitizePostLoginRedirect } from "@/utils/safeRedirect.js";
-import { globalVars } from "@/utils/constants";
-import { mutations } from "@/store";
-import { notify } from "@/notify";
-import { authApi } from "@/api";
-import { initAuth } from "@/utils/auth";
+import { globalVars } from "@/utils/constants.ts";
 import { evaluatePasswordPolicy } from "@/utils/passwordPolicy.js";
 import PasswordRequirementsHint from "@/components/PasswordRequirementsHint.vue";
 

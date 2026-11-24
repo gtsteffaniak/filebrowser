@@ -66,9 +66,11 @@ describe("sidebar File actions in advanced search", () => {
     expect(mutations.showPrompt).toHaveBeenCalledWith({ name: "ContextMenu", props: { showCentered: true } });
   });
 
-  it("opens the create-only menu in the listing, as before", () => {
+  it("opens the create-only menu in the listing, without wiping the selection", () => {
     methods.openContextMenu.call({ isAdvancedSearch: false });
-    expect(mutations.resetSelected).toHaveBeenCalled();
+    // Kurami32: resetSelected() here lost the caller's selection on mobile when
+    // using the File actions menu; `createOnly` already restricts the menu.
+    expect(mutations.resetSelected).not.toHaveBeenCalled();
     expect(mutations.showPrompt).toHaveBeenCalledWith({
       name: "ContextMenu",
       props: { showCentered: true, createOnly: true },

@@ -3,6 +3,8 @@ package fileutils
 import (
 	"io/fs"
 	"net/http"
+
+	"github.com/gtsteffaniak/go-logger/logger"
 )
 
 var (
@@ -28,7 +30,17 @@ func InitAssetFS(embeddedAssets fs.FS, useEmbedded bool, devMode bool) {
 		// Dev mode: serve frontend source assets (templates, fonts, icons)
 		assetFs = dirFS{Dir: http.Dir("../frontend/public")}
 	} else {
-		assetFs = dirFS{Dir: http.Dir("internal/web/dist")}
+		// Non-dev disk build (e.g. Docker): dist is shipped beside the binary. Preload it
+		// into memory when possible; otherwise serve from disk.
+		diskAssets := dirFS{Dir: http.Dir("internal/web/dist")}
+		cached, err := loadMemFS(diskAssets)
+		if err != nil {
+			logger.Warningf("could not preload frontend assets into memory, serving from disk: %v", err)
+			assetFs = diskAssets
+		} else {
+			logger.Debugf("preloaded %d frontend assets (%d bytes) into memory", cached.Len(), cached.Size())
+			assetFs = cached
+		}
 	}
 }
 

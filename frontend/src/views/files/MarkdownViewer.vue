@@ -13,19 +13,13 @@
       src="about:blank"
       :sandbox="HTML_PREVIEW_SANDBOX"
       referrerpolicy="no-referrer"
-      title="HTML preview"
+      :title="t('general.preview')"
       @load="applyHtmlPreviewHeight"
     ></iframe>
     <div v-else class="markdown-content-container">
       <div ref="viewerEl" class="markdown-content">
-        <div
-          v-for="block in renderedContent"
-          :key="block.key"
-          class="md-block"
-          :data-line="block.line"
-          :data-code-line="block.codeLine"
-          v-html="block.html"
-        ></div>
+        <!-- biome-ignore lint/nursery/noVueVHtml: block.html is sanitized with DOMPurify -->
+        <div v-for="block in renderedContent" :key="block.key" class="md-block" :data-line="block.line" :data-code-line="block.codeLine" v-html="block.html"></div>
       </div>
     </div>
     <div v-if="!splitMode && !isHtml" class="spacer" :style="{ height: `${spaceForStatusBar}em` }"></div>
@@ -34,23 +28,23 @@
     v-if="!splitMode && showSplitViewToggle"
     icon="vertical_split"
     :label="splitViewActionLabel"
-    @click="toggleSplitView"
+    @press="toggleSplitView"
   />
 </template>
 
 <script setup lang="ts">
 import type { HLJSApi } from 'highlight.js';
 import type { Token } from "marked";
-import { computed, nextTick, onBeforeUnmount, onMounted, onUnmounted, ref, watch } from "vue";
-import { useI18n } from "vue-i18n";
+import { computed, nextTick, onBeforeUnmount, onMounted, onUnmounted, ref, useTemplateRef, watch } from "vue";
+import { useI18n } from "@/i18n/index.ts";
 import { Marked } from "marked";
 import DOMPurify from 'dompurify';
-import { state, mutations, getters } from "@/store";
-import { createScrollSyncGuard } from "@/utils/markdownScrollSync";
-import { copyToClipboard } from "@/utils/clipboard";
-import { globalVars } from "@/utils/constants";
-import { isHtmlMimeType } from "@/utils/mimetype";
-import { createHtmlPreviewLoader } from "@/utils/htmlPreviewLoader";
+import { state, mutations, getters } from "@/store/index.ts";
+import { createScrollSyncGuard } from "@/utils/markdownScrollSync.ts";
+import { copyToClipboard } from "@/utils/clipboard.js";
+import { globalVars } from "@/utils/constants.ts";
+import { isHtmlMimeType } from "@/utils/mimetype.js";
+import { createHtmlPreviewLoader } from "@/utils/htmlPreviewLoader.ts";
 import FloatingActionButton from "@/components/settings/FloatingActionButton.vue";
 import {
   HTML_PREVIEW_SANDBOX,
@@ -58,7 +52,7 @@ import {
   buildPreviewResourceUrl,
   rewriteHtmlResources,
   rewriteDocumentStyles,
-} from "@/utils/htmlPreview";
+} from "@/utils/htmlPreview.ts";
 
 const props = withDefaults(
   defineProps<{
@@ -121,8 +115,8 @@ marked.use({
 const MATH_PATTERN = /\$\$[\s\S]+?\$\$|\$[^\s$][^$\n]*\$/;
 const INLINE_MATH_RULE = /^(\${1,2})(?!\$)((?:\\.|[^\\\n])*?(?:\\.|[^\\\n$]))\1(?=[\s?!.,:？！。，：]|$)/;
 const BLOCK_MATH_RULE = /^(\${1,2})\n((?:\\[\s\S]|[^\\])+?)\n\1(?:\n|$)/;
-function contentHasMath(content: string): boolean {
-  return MATH_PATTERN.test(content);
+function contentHasMath(markdown: string): boolean {
+  return MATH_PATTERN.test(markdown);
 }
 let mathLoaded = false;
 let mathPromise: Promise<void> | null = null;
@@ -143,11 +137,11 @@ function loadMath(): Promise<void> {
                 const index = indexSrc.indexOf("$");
                 if (index === -1) return undefined;
                 if (index === 0 || indexSrc.charAt(index - 1) === " ") {
-                  if (INLINE_MATH_RULE.test(indexSrc.substring(index))) {
+                  if (INLINE_MATH_RULE.test(indexSrc.slice(index))) {
                     return index;
                   }
                 }
-                indexSrc = indexSrc.substring(index + 1).replace(/^\$+/, "");
+                indexSrc = indexSrc.slice(index + 1).replace(/^\$+/, "");
               }
               return undefined;
             },
@@ -217,7 +211,7 @@ function htmlTagBalance(raw: string): number {
 function hashText(text: string): string {
   let hash = 5381;
   for (let i = 0; i < text.length; i++) {
-    hash = ((hash << 5) + hash + text.charCodeAt(i)) | 0;
+    hash = Math.imul(hash, 33) ^ text.charCodeAt(i);
   }
   return hash.toString(36);
 }
@@ -234,8 +228,8 @@ defineOptions({ name: "markdownViewer", inheritAttrs: false });
 
 const { t } = useI18n();
 
-const scrollContainer = ref<HTMLElement | null>(null);
-const viewerEl = ref<HTMLElement | null>(null);
+const scrollContainer = useTemplateRef<HTMLElement>("scrollContainer");
+const viewerEl = useTemplateRef<HTMLElement>("viewerEl");
 
 const content = ref("");
 const mathReady = ref(false);
@@ -443,7 +437,7 @@ async function setHighlightTheme(isDark: boolean) {
     typeof globalVars.cspNonce === "string" && globalVars.cspNonce !== ""
       ? globalVars.cspNonce
       : "";
-  let style = document.getElementById(THEME_STYLE_ID) as HTMLStyleElement | null;
+  let style = document.querySelector<HTMLStyleElement>(`#${THEME_STYLE_ID}`);
   if (!style) {
     style = document.createElement("style");
     style.id = THEME_STYLE_ID;
@@ -490,7 +484,7 @@ function addLineNumbers(codeBlock: HTMLElement) {
   const lines = code.split('\n');
 
   // Remove trailing empty lines
-  if (lines[lines.length - 1] === '') {
+  if (lines.at(-1) === '') {
     lines.pop();
   }
 
@@ -627,7 +621,7 @@ function splitHighlightedHTML(html: string, expectedLines: number): string[] {
   const textLines = textContent.split('\n');
 
   // Remove trailing empty line from textLines if present
-  if (textLines[textLines.length - 1] === '') {
+  if (textLines.at(-1) === '') {
     textLines.pop();
   }
 
@@ -645,8 +639,8 @@ function splitHighlightedHTML(html: string, expectedLines: number): string[] {
     } else {
       const lineBreakIndex = currentHTML.indexOf('\n');
       if (lineBreakIndex !== -1) {
-        htmlLines.push(currentHTML.substring(0, lineBreakIndex));
-        currentHTML = currentHTML.substring(lineBreakIndex + 1);
+        htmlLines.push(currentHTML.slice(0, lineBreakIndex));
+        currentHTML = currentHTML.slice(lineBreakIndex + 1);
       } else {
         htmlLines.push(escapeHtml(lineText));
       }
@@ -663,12 +657,12 @@ function escapeHtml(text: string): string {
   return div.innerHTML;
 }
 
-function parseMarkdown(content: string, filePath: string, source: string): { key: string; line: number; html: string; codeLine?: number }[] {
+function parseMarkdown(markdown: string, filePath: string, source: string): { key: string; line: number; html: string; codeLine?: number }[] {
   const parser = marked;
   // Tag each top level block with its source line for scroll-sync
   let tokens: Token[] | null;
   try {
-    tokens = parser.lexer(content);
+    tokens = parser.lexer(markdown);
   } catch (err) {
     console.error("Failed to lex markdown:", err);
     tokens = null;
@@ -802,7 +796,7 @@ function attachScrollListener(el: HTMLElement | null) {
 function getScrollContainer(): HTMLElement | null {
   return props.splitMode
     ? (props.scrollTarget as HTMLElement | null) || scrollContainer.value
-    : document.getElementById("main");
+    : document.querySelector<HTMLElement>("#main");
 }
 
 function getLineAnchors(): { line: number; top: number }[] {
@@ -932,7 +926,6 @@ function applyScrollRatio(line: number) {
   box-sizing: border-box;
   border: none;
   min-height: 24em;
-  background: #fff;
   color-scheme: light dark;
 }
 

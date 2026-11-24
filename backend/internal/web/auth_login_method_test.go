@@ -159,6 +159,7 @@ func TestAuthenticatePasswordRejectsWrongLoginMethod(t *testing.T) {
 func TestLoginHelperReturnsInvalidLoginMethodForPasswordMismatch(t *testing.T) {
 	setupTestEnv(t)
 	app.MustWireServices(state.Default())
+	stopTranscodeManagerOnCleanup(t)
 
 	oidcUser := &users.User{
 		FrontendUser: users.FrontendUser{

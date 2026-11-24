@@ -18,8 +18,13 @@ import (
 func TestSearchHandlerConfiguredLimit(t *testing.T) {
 	original := settings.Config
 	originalDB := indexing.GetIndexDB()
-	t.Cleanup(func() { settings.Config = original; indexing.SetIndexDBForTesting(originalDB) })
-	settings.Config = settings.SetDefaults(true)
+	t.Cleanup(func() {
+		// Swap under the media lock: the transcode janitor reads Config on every
+		// eviction and must not observe a torn struct.
+		settings.SwapConfigForTest(original)
+		indexing.SetIndexDBForTesting(originalDB)
+	})
+	settings.SwapConfigForTest(settings.SetDefaults(true))
 	setupTestEnv(t)
 	settings.Config.Server.CacheDir = t.TempDir()
 	fileutils.SetFsPermissions(0644, 0755)

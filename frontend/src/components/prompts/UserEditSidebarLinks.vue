@@ -11,12 +11,12 @@
 </template>
 
 <script>
-import { mutations } from "@/store";
+import { mutations } from "@/store/index.ts";
 import SidebarLinksEditor from "@/components/sidebar/SidebarLinksEditor.vue";
 import {
   getUserEditSession,
   updateUserEditSession,
-} from "@/utils/userEditSession";
+} from "@/utils/userEditSession.js";
 
 export default {
   name: "user-edit-sidebar-links",

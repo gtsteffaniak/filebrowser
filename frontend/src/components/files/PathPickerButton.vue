@@ -13,8 +13,8 @@
 </template>
 
 <script>
-import { mutations, state } from "@/store";
-import { eventBus } from "@/store/eventBus";
+import { mutations, state } from "@/store/index.ts";
+import { eventBus } from "@/store/eventBus.ts";
 
 function normalizeContextId() {
   return `path-picker-btn-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
@@ -67,7 +67,11 @@ export default {
     },
   },
 
-  emits: ["update:path", "update:source", "navigate"],
+  emits: {
+    "update:path": (path) => typeof path === "string",
+    "update:source": (source) => typeof source === "string",
+    navigate: () => true,
+  },
 
   data() {
     return {

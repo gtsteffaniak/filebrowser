@@ -10,7 +10,7 @@
         class="item"
         :name="$t('share.shareDefaults')"
         :description="$t('share.shareDefaultsDescription')"
-        @click="openShareDefaultsPrompt"
+        @activate="openShareDefaultsPrompt"
       />
       <ActivityViewerButton class="item" :href="activityViewerHref" />
     </div>
@@ -34,9 +34,9 @@
       </template>
       <template #cell-downloads="{ row }">
         <template v-if="row.quotaLimitBytes && row.quotaLimitBytes > 0">
-          {{ formatBytes(row.quotaUsedBytes || 0) }} / {{ formatBytes(row.quotaLimitBytes) }} <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+          {{ formatBytes(row.quotaUsedBytes || 0) }} / {{ formatBytes(row.quotaLimitBytes) }}
         </template>
-        <template v-else-if="row.downloadsLimit && row.downloadsLimit > 0">{{ row.downloads }} / {{ row.downloadsLimit }}</template> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+        <template v-else-if="row.downloadsLimit && row.downloadsLimit > 0">{{ row.downloads }} / {{ row.downloadsLimit }}</template>
         <template v-else>{{ row.downloads }}</template>
       </template>
       <template #cell-warning="{ row }">
@@ -97,17 +97,17 @@
 </template>
 
 <script>
-import { notify } from "@/notify";
-import { shareApi } from "@/api";
-import { state, mutations, getters } from "@/store";
+import { notify } from "@/notify/index.ts";
+import { shareApi } from "@/api/index.js";
+import { state, mutations, getters } from "@/store/index.ts";
 import Errors from "@/views/Errors.vue";
 import SettingsTable from "@/components/settings/Table.vue";
 import SettingsButton from "@/components/settings/SettingsButton.vue";
 import ActivityViewerButton from "@/components/settings/ActivityViewerButton.vue";
-import { activityViewerPresets } from "@/utils/activityViewerLink";
-import { fromNowSeconds } from '@/utils/moment';
-import { eventBus } from "@/store/eventBus";
-import { copyToClipboard } from "@/utils/clipboard";
+import { activityViewerPresets } from "@/utils/activityViewerLink.js";
+import { fromNowSeconds } from "@/utils/moment.ts";
+import { eventBus } from "@/store/eventBus.ts";
+import { copyToClipboard } from "@/utils/clipboard.js";
 
 export default {
   name: "shares",

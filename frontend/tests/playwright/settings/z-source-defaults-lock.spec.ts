@@ -10,7 +10,7 @@ async function openAccessSettings(page: import("@playwright/test").Page) {
   await expect(page).toHaveTitle("Graham's Filebrowser - Settings");
 
   const defaultsResponse = page.waitForResponse(
-    (response) => isExactSettingsApiResponse(response, "settings/source", "GET"),
+    (apiResponse) => isExactSettingsApiResponse(apiResponse, "settings/source", "GET"),
   );
   const usersCard = page
     .locator(".settings-card-collapsible")
@@ -60,7 +60,7 @@ test("config-locked source defaults show lock help and skip patch", async ({ pag
     await expectLockTooltipOnRowHover(
       page,
       modifyRow,
-      "This default is set in the config file and cannot be changed here.",
+      "This setting is set in the config file and cannot be changed here.",
     );
 
     let patchCount = 0;

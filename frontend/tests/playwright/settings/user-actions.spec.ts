@@ -260,7 +260,7 @@ test.describe("User Settings Persistence", () => {
         await picker.getByRole("button", { name: "myfolder", exact: true }).click();
         await picker.locator('button[aria-label="Select"]').click();
         await expect(picker).not.toBeVisible();
-        const chosenPath = (await scopeButton.innerText()).trim();
+        const chosenPath = ((await scopeButton.textContent()) ?? "").trim();
         expect(chosenPath).toContain("myfolder");
 
         await modal.locator('button[aria-label="Save"]').click();

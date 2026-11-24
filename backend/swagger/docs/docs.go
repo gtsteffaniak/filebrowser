@@ -2853,6 +2853,99 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/resources/preview/text": {
+            "get": {
+                "description": "Returns the first ~16KB of a text-like file as JSON. Markdown, HTML, and CSS are returned as raw text; RTF is converted to HTML. The response is NOT sanitized: clients must sanitize HTML before rendering it. Responses are not cached on the server.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Resources"
+                ],
+                "summary": "Get text preview",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "File path of the text file to preview",
+                        "name": "path",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Source name",
+                        "name": "source",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Text preview content",
+                        "schema": {
+                            "$ref": "#/definitions/preview.TextPreviewResult"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request path",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "User is not allowed to view files in this source",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "File not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "415": {
+                        "description": "File type is not supported for text preview, or the file is binary",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "501": {
+                        "description": "Previews are disabled",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/resources/unarchive": {
             "post": {
                 "description": "Extracts a zip or tar.gz archive on the server into the given destination directory. Server-side only; no extracted bytes are returned. Supports extracting to a different source via toSource. Requires create permission. Archive size is checked against server.maxArchiveSizeGB limit if configured.\n\n**Request body parameters:**\n- **fromSource** (string, required): Source name where the archive file lives. Example: ` + "`" + `\"default\"` + "`" + `\n- **toSource** (string, optional): Source name where contents will be extracted. Defaults to fromSource if omitted. Example: ` + "`" + `\"restored\"` + "`" + `\n- **path** (string, required): Path to the archive file (on fromSource). Must be .zip, .tar.gz, or .tgz. Example: ` + "`" + `\"/downloads/data.zip\"` + "`" + `\n- **destination** (string, required): Directory path (on toSource) to extract into. Example: ` + "`" + `\"/projects/imported\"` + "`" + `\n- **deleteAfter** (boolean, optional): If true, delete the archive file after successful extraction. Default: false. Example: ` + "`" + `true` + "`" + `\n- **filenameEncoding** (string, optional): Fallback ZIP filename encoding: utf-8, cp932, gb18030, big5, euc-kr, cp437, windows-1252. Unicode metadata takes precedence. Omit to use a suggestion; ambiguous encodings require a selection.\n- **preview** (boolean, optional): Return ZIP encoding candidates and sample filenames without extracting or deleting anything. Requires the same source/destination permissions as extraction.",
@@ -3118,6 +3211,47 @@ const docTemplate = `{
                         "description": "System settings in YAML format",
                         "schema": {
                             "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/settings/media": {
+            "get": {
+                "description": "Returns the media settings the caller is allowed to see.\nAdmins get the full settings, including ffmpeg and hardware options, so they can edit them.\nEveryone else gets a small read-only view: whether transcoding is on, how many\ntranscodes they can run at once, which quality presets are enabled, and which image\npreviews the server can generate. Keys in the view are the same for admins and users.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Settings"
+                ],
+                "summary": "Get runtime media settings",
+                "responses": {
+                    "200": {
+                        "description": "Media settings",
+                        "schema": {
+                            "$ref": "#/definitions/web.mediaSettingsResponse"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "description": "Merges a partial JSON patch into the DB-backed media settings and applies them at runtime.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Settings"
+                ],
+                "summary": "Update runtime media settings",
+                "responses": {
+                    "200": {
+                        "description": "Updated media settings",
+                        "schema": {
+                            "$ref": "#/definitions/web.mediaSettingsResponse"
                         }
                     }
                 }
@@ -3689,7 +3823,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Filter prefix or full search text (required when no terms are supplied)",
+                        "description": "Filter prefix or full search text; no minimum length is enforced (clients enforce minSearchLength)",
                         "name": "query",
                         "in": "query"
                     },
@@ -3739,7 +3873,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
-                        "description": "Requested advanced search limit, capped by server.searchResultsLimit (default 1000); omitted for quick search (100)",
+                        "description": "Requested advanced search limit, capped by server.searchResultsLimit (default 1000) and a hard max of 5000; omitted for quick search (100)",
                         "name": "limit",
                         "in": "query"
                     },
@@ -3863,16 +3997,13 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/users.User"
+                            "$ref": "#/definitions/users.FrontendUser"
                         }
                     }
                 ],
                 "responses": {
                     "201": {
-                        "description": "Created user",
-                        "schema": {
-                            "$ref": "#/definitions/users.User"
-                        }
+                        "description": "Created user"
                     },
                     "400": {
                         "description": "Bad Request",
@@ -3982,7 +4113,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/users.User"
+                            "$ref": "#/definitions/users.FrontendUser"
                         }
                     }
                 ],
@@ -4091,6 +4222,83 @@ const docTemplate = `{
                         }
                     }
                 }
+            }
+        },
+        "/api/wopi/session": {
+            "get": {
+                "description": "Returns the editor URL and the access token the browser posts to it.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Office"
+                ],
+                "summary": "Open a file in the WOPI editor",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Source name",
+                        "name": "source",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "File path",
+                        "name": "path",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/web.wopiSessionResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Missing or invalid parameters",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "No view permission",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "415": {
+                        "description": "The editor does not handle this file type",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "503": {
+                        "description": "Editor discovery unavailable",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ]
             }
         },
         "/public/api/media/lyrics": {
@@ -5066,6 +5274,90 @@ const docTemplate = `{
                 }
             }
         },
+        "/public/api/resources/preview/text": {
+            "get": {
+                "description": "Returns the first ~16KB of a text-like file in a public share as JSON. Same content rules as the authenticated endpoint. Not available for upload-only shares.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Resources"
+                ],
+                "summary": "Get text preview from a public share",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Share hash for authentication",
+                        "name": "hash",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "File path within the share to preview",
+                        "name": "path",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Text preview content",
+                        "schema": {
+                            "$ref": "#/definitions/preview.TextPreviewResult"
+                        }
+                    },
+                    "403": {
+                        "description": "Share unavailable, access denied, or the file viewer is disabled for this share",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "File not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "415": {
+                        "description": "File type is not supported for text preview, or the file is binary",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "501": {
+                        "description": "Previews disabled globally, for this share, or for upload shares",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/public/api/resources/view": {
             "get": {
                 "description": "Returns raw file bytes for inline UI viewing on a share link. Requires viewToken from GET /public/api/resources. Does not count toward download limits.",
@@ -5382,6 +5674,28 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "ffmpeg.AccelDeviceOption": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "label": {
+                    "type": "string"
+                }
+            }
+        },
+        "ffmpeg.EncoderBackendOption": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "label": {
+                    "type": "string"
+                }
+            }
+        },
         "files.Items": {
             "type": "object",
             "properties": {
@@ -5730,6 +6044,31 @@ const docTemplate = `{
                 }
             }
         },
+        "preview.TextPreviewResult": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "description": "Content is plain text, or an HTML fragment when Format is \"html\".",
+                    "type": "string"
+                },
+                "format": {
+                    "description": "Format is \"text\" or \"html\". RTF is converted to HTML; everything else is text.",
+                    "type": "string"
+                },
+                "kind": {
+                    "description": "Kind is the renderer the frontend should use: plain, csv, markdown, html, css, code, or rtf.",
+                    "type": "string"
+                },
+                "size": {
+                    "description": "Size is the full size of the file in bytes.",
+                    "type": "integer"
+                },
+                "truncated": {
+                    "description": "Truncated is true when the file is larger than the returned content.",
+                    "type": "boolean"
+                }
+            }
+        },
         "settings.ActivityConfig": {
             "type": "object",
             "properties": {
@@ -5993,6 +6332,58 @@ const docTemplate = `{
                 }
             }
         },
+        "settings.FullAdminTranscode": {
+            "type": "object",
+            "properties": {
+                "cacheMaxSizeMB": {
+                    "description": "disk cache size limit in MB; 0 = unlimited (default: 10240)",
+                    "type": "integer"
+                },
+                "cacheRetentionH": {
+                    "description": "completed cache retention in hours (default: 24)",
+                    "type": "integer"
+                },
+                "enabled": {
+                    "description": "enable HLS transcoding for authenticated playback (default: false)",
+                    "type": "boolean"
+                },
+                "enabledProfiles": {
+                    "description": "derived at read time (player-menu profile ids); never stored",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "encoderBackend": {
+                    "description": "default video encoder backend for transcodes: \"\" (auto), \"cpu\", or an accel backend (nvenc, amf, qsv, vaapi, d3d12, videotoolbox)",
+                    "type": "string"
+                },
+                "maxConcurrent": {
+                    "description": "global concurrent transcode sessions (default: 2)",
+                    "type": "integer"
+                },
+                "maxConcurrentPerUser": {
+                    "description": "hard per-user concurrent transcode ceiling (default: 1)",
+                    "type": "integer"
+                },
+                "maxResolution": {
+                    "description": "superseded by profiles.\u003cname\u003e.maxResolution. deprecated: kept for config compatibility",
+                    "type": "integer"
+                },
+                "profiles": {
+                    "description": "per-profile transcode settings shown in the player menu",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/settings.TranscodeProfiles"
+                        }
+                    ]
+                },
+                "readRate": {
+                    "description": "VOD producer input pacing in Nx realtime (-readrate); unset or \u003c1 clamps to \u003e=1 (default: 2)",
+                    "type": "number"
+                }
+            }
+        },
         "settings.Http": {
             "type": "object",
             "properties": {
@@ -6060,13 +6451,14 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "unixSocketTrustedGIDs": {
+                    "description": "present X-Forwarded-* on a filesystem http.socket listener. When both are empty, peers are not trusted unless UnixSocketTrustAllLocalPeers is true (legacy; startup logs a warning). A GID allowlist trusts every peer with that GID, not only a single reverse-proxy process. Abstract sockets (@name) never trust forwarded headers.",
                     "type": "array",
                     "items": {
                         "type": "integer"
                     }
                 },
                 "unixSocketTrustedUIDs": {
-                    "description": "UnixSocketTrustedUIDs and UnixSocketTrustedGIDs list peer credentials (Linux SO_PEERCRED) allowed to\npresent X-Forwarded-* on a filesystem http.socket listener. When both are empty, peers are not trusted\nunless UnixSocketTrustAllLocalPeers is true (legacy; startup logs a warning). A GID allowlist trusts\nevery peer with that GID, not only a single reverse-proxy process. Abstract sockets (@name) never trust\nforwarded headers.",
+                    "description": "UnixSocketTrustedUIDs and UnixSocketTrustedGIDs list peer credentials (Linux SO_PEERCRED) allowed to",
                     "type": "array",
                     "items": {
                         "type": "integer"
@@ -6087,6 +6479,10 @@ const docTemplate = `{
                 },
                 "disableReuse": {
                     "description": "enable to always create a new indexing database on startup.",
+                    "type": "boolean"
+                },
+                "fts5": {
+                    "description": "Enable FTS5 to provide faster search queries, but 40% slower indexing and 15% larger database size",
                     "type": "boolean"
                 },
                 "startupIntegrityCheck": {
@@ -6290,8 +6686,20 @@ const docTemplate = `{
         "settings.Media": {
             "type": "object",
             "properties": {
+                "accelDevice": {
+                    "description": "AccelDevice selects the acceleration device: \"auto\" (default), \"software\"/\"cpu\",\n\"igpu\", \"dgpu\", a Linux DRM render node (e.g. /dev/dri/renderD128), or a GPU\nname substring. Managed via the admin media settings API.",
+                    "type": "string"
+                },
+                "alwaysUseFfmpeg": {
+                    "description": "deprecated: manage via the admin media settings API",
+                    "type": "boolean"
+                },
+                "alwaysUseOnlyOffice": {
+                    "description": "deprecated: skip folio previews for office converter; manage via the admin media settings API",
+                    "type": "boolean"
+                },
                 "convert": {
-                    "description": "config for ffmpeg conversion settings",
+                    "description": "deprecated: config for ffmpeg conversion settings. deprecated: manage via the admin media settings API",
                     "allOf": [
                         {
                             "$ref": "#/definitions/settings.FfmpegConvert"
@@ -6299,11 +6707,11 @@ const docTemplate = `{
                     ]
                 },
                 "debug": {
-                    "description": "output ffmpeg stdout for media integration -- careful can produces lots of output!",
+                    "description": "deprecated: output ffmpeg stdout for media integration. deprecated: manage via the admin media settings API",
                     "type": "boolean"
                 },
                 "extractEmbeddedSubtitles": {
-                    "description": "extract embedded subtitles from media files",
+                    "description": "deprecated: no longer configurable; embedded subtitles are always extracted",
                     "type": "boolean"
                 },
                 "ffmpegPath": {
@@ -6311,8 +6719,20 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "hardwareAcceleration": {
-                    "description": "enable hardware acceleration for ffmpeg if available",
+                    "description": "deprecated: enable hardware acceleration for ffmpeg if available. deprecated: manage via the admin media settings API",
                     "type": "boolean"
+                },
+                "skipHwCheck": {
+                    "description": "SkipHwCheck skips the ffmpeg hardware codec probe entirely (software-only).",
+                    "type": "boolean"
+                },
+                "transcode": {
+                    "description": "deprecated: HLS transcoding for media playback. deprecated: manage via the admin media settings API",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/settings.FullAdminTranscode"
+                        }
+                    ]
                 }
             }
         },
@@ -6375,24 +6795,35 @@ const docTemplate = `{
         "settings.OnlyOffice": {
             "type": "object",
             "required": [
-                "secret",
                 "url"
             ],
             "properties": {
                 "internalUrl": {
-                    "description": "An optional internal address that the filebrowser server can use to communicate with the OnlyOffice Document Server, could be useful to bypass proxy.",
+                    "description": "An optional internal address that the filebrowser server can use to communicate with the office editor, could be useful to bypass proxy.",
                     "type": "string"
+                },
+                "product": {
+                    "description": "office editor behind url: onlyoffice (default) or collabora",
+                    "type": "string",
+                    "enum": [
+                        "onlyoffice",
+                        "collabora"
+                    ]
                 },
                 "secret": {
-                    "description": "secret: authentication key for OnlyOffice integration",
+                    "description": "secret: OnlyOffice only, the JWT secret shared with the Document Server. Unused with collabora: editing sessions are signed with a key derived from auth.key, and Collabora trusts FileBrowser through its storage.wopi.host allow-list, where FileBrowser's host must be added.",
                     "type": "string"
                 },
+                "tokenExpirationHours": {
+                    "description": "collabora only: lifetime of an editing session, in hours (default: 10)",
+                    "type": "integer"
+                },
                 "url": {
-                    "description": "The URL to the OnlyOffice Document Server, needs to be accessible to the user.",
+                    "description": "The URL to the office editor (OnlyOffice Document Server or Collabora Online), needs to be accessible to the user.",
                     "type": "string"
                 },
                 "viewOnly": {
-                    "description": "view only mode for OnlyOffice",
+                    "description": "view only mode for the office editor",
                     "type": "boolean"
                 }
             }
@@ -6617,8 +7048,9 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "searchResultsLimit": {
-                    "description": "maximum requested search results across all sources (default: 1000); quick search defaults to 100, advanced search to 500; size viewer remains limited to 200",
+                    "description": "maximum requested search results across all sources, hard max 5000 (default: 1000); quick search defaults to 100, advanced search to 500; size viewer remains limited to 200",
                     "type": "integer",
+                    "maximum": 5000,
                     "minimum": 1
                 },
                 "sources": {
@@ -6721,9 +7153,6 @@ const docTemplate = `{
                 },
                 "enforceDarkLightMode": {
                     "type": "string"
-                },
-                "extractEmbeddedSubtitles": {
-                    "type": "boolean"
                 },
                 "favicon": {
                     "type": "string"
@@ -6874,6 +7303,56 @@ const docTemplate = `{
                 }
             }
         },
+        "settings.TranscodeProfile": {
+            "type": "object",
+            "properties": {
+                "avgBitrateKbps": {
+                    "description": "average video bitrate in kbps; 0 = original",
+                    "type": "integer"
+                },
+                "enabled": {
+                    "description": "show this preset in the player menu (default: false)",
+                    "type": "boolean"
+                },
+                "encoderBackend": {
+                    "description": "encoder backend override; \"\" inherits transcode.encoderBackend",
+                    "type": "string"
+                },
+                "maxResolution": {
+                    "description": "maximum output height in pixels; 0 = original",
+                    "type": "integer"
+                }
+            }
+        },
+        "settings.TranscodeProfiles": {
+            "type": "object",
+            "properties": {
+                "balanced": {
+                    "description": "balanced quality and size",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/settings.TranscodeProfile"
+                        }
+                    ]
+                },
+                "datasaver": {
+                    "description": "smallest output",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/settings.TranscodeProfile"
+                        }
+                    ]
+                },
+                "quality": {
+                    "description": "match the source unless capped",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/settings.TranscodeProfile"
+                        }
+                    ]
+                }
+            }
+        },
         "settings.UserDefaults": {
             "type": "object",
             "properties": {
@@ -6906,6 +7385,10 @@ const docTemplate = `{
         "settings.UserDefaultsAccount": {
             "type": "object",
             "properties": {
+                "allowCustomShareURL": {
+                    "description": "allow users to choose custom share URLs (default: false)",
+                    "type": "boolean"
+                },
                 "disableSettings": {
                     "description": "disable the user from viewing the settings page",
                     "type": "boolean"
@@ -6921,6 +7404,10 @@ const docTemplate = `{
                 "loginMethod": {
                     "description": "login method to use: eg. password, proxy, oidc",
                     "type": "string"
+                },
+                "maxConcurrentTranscodes": {
+                    "description": "per-user concurrent transcode sessions (default: 1)",
+                    "type": "integer"
                 },
                 "permissions": {
                     "$ref": "#/definitions/settings.UserDefaultsAccountPermissions"
@@ -6974,6 +7461,10 @@ const docTemplate = `{
                 "disableViewingExt": {
                     "description": "comma separated list of file extensions to disable viewing for",
                     "type": "string"
+                },
+                "preferEditorForHtml": {
+                    "description": "prefer editor first for HTML files instead of the HTML viewer",
+                    "type": "boolean"
                 },
                 "preferEditorForMarkdown": {
                     "description": "prefer editor first for markdown files instead of the Markdown Viewer",
@@ -7140,8 +7631,12 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "darkMode": {
-                    "description": "should dark mode be enabled",
-                    "type": "boolean"
+                    "description": "theme preference: \"auto\" (follow system), \"dark\", or \"light\"",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/users.DarkMode"
+                        }
+                    ]
                 },
                 "locale": {
                     "description": "language to use: eg. de, en, or fr",
@@ -7234,9 +7729,6 @@ const docTemplate = `{
                 },
                 "expire": {
                     "type": "integer"
-                },
-                "extractEmbeddedSubtitles": {
-                    "type": "boolean"
                 },
                 "favicon": {
                     "type": "string"
@@ -7366,6 +7858,10 @@ const docTemplate = `{
                 "canEditShare": {
                     "type": "boolean"
                 },
+                "customHash": {
+                    "description": "CustomHash is the owner-chosen alias (empty when the share uses its random hash). Hash already\ncarries the presented identifier, so this only tells the editor whether a custom value is set.",
+                    "type": "string"
+                },
                 "description": {
                     "type": "string"
                 },
@@ -7411,9 +7907,6 @@ const docTemplate = `{
                 },
                 "expires": {
                     "type": "string"
-                },
-                "extractEmbeddedSubtitles": {
-                    "type": "boolean"
                 },
                 "favicon": {
                     "type": "string"
@@ -7540,6 +8033,9 @@ const docTemplate = `{
                 "canEditShare": {
                     "type": "boolean"
                 },
+                "customHash": {
+                    "type": "string"
+                },
                 "description": {
                     "type": "string"
                 },
@@ -7579,9 +8075,6 @@ const docTemplate = `{
                 },
                 "expires": {
                     "type": "string"
-                },
-                "extractEmbeddedSubtitles": {
-                    "type": "boolean"
                 },
                 "favicon": {
                     "type": "string"
@@ -7666,59 +8159,18 @@ const docTemplate = `{
                 }
             }
         },
-        "users.AuthToken": {
-            "type": "object",
-            "properties": {
-                "Permissions": {
-                    "$ref": "#/definitions/users.Permissions"
-                },
-                "belongsTo": {
-                    "description": "legacy stored metadata only, never trusted for auth; identity is always the hashed_tokens lookup",
-                    "type": "integer"
-                },
-                "expiresAt": {
-                    "type": "integer"
-                },
-                "issuedAt": {
-                    "type": "integer"
-                },
-                "key": {
-                    "description": "for backward compatibility",
-                    "type": "string"
-                },
-                "minimal": {
-                    "description": "Minimal distinguishes owner-inheriting tokens from customized caps. Nil means legacy (infer from stored permissions).",
-                    "type": "boolean"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "token": {
-                    "type": "string"
-                },
-                "username": {
-                    "type": "string"
-                }
-            }
-        },
-        "users.BackendScope": {
-            "type": "object",
-            "properties": {
-                "path": {
-                    "description": "real path for the source",
-                    "type": "string"
-                },
-                "permissions": {
-                    "$ref": "#/definitions/users.SourceFilePermissions"
-                },
-                "quota": {
-                    "$ref": "#/definitions/users.ScopeQuota"
-                },
-                "scope": {
-                    "description": "index path within that source",
-                    "type": "string"
-                }
-            }
+        "users.DarkMode": {
+            "type": "string",
+            "enum": [
+                "auto",
+                "dark",
+                "light"
+            ],
+            "x-enum-varnames": [
+                "DarkModeAuto",
+                "DarkModeDark",
+                "DarkModeLight"
+            ]
         },
         "users.FileLoading": {
             "type": "object",
@@ -7763,13 +8215,21 @@ const docTemplate = `{
         "users.FrontendUser": {
             "type": "object",
             "properties": {
+                "allowCustomShareURL": {
+                    "description": "AllowCustomShareURL and MaxConcurrentTranscodes are admin-set: they stay out of\nNonAdminEditable so a user cannot grant themselves the capability through a\nself-service PATCH.",
+                    "type": "boolean"
+                },
                 "customTheme": {
                     "description": "Name of theme to use chosen from custom themes config.",
                     "type": "string"
                 },
                 "darkMode": {
-                    "description": "should dark mode be enabled",
-                    "type": "boolean"
+                    "description": "theme preference: \"auto\" (follow system), \"dark\", or \"light\"",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/users.DarkMode"
+                        }
+                    ]
                 },
                 "dateFormat": {
                     "description": "when false, the date is relative, when true, the date is an exact timestamp",
@@ -7858,6 +8318,9 @@ const docTemplate = `{
                 "loginMethod": {
                     "$ref": "#/definitions/users.LoginMethod"
                 },
+                "maxConcurrentTranscodes": {
+                    "type": "integer"
+                },
                 "newFileTemplate": {
                     "description": "list of custom filenames that will be used as template for new files",
                     "type": "array",
@@ -7887,6 +8350,10 @@ const docTemplate = `{
                             "$ref": "#/definitions/users.Permissions"
                         }
                     ]
+                },
+                "preferEditorForHtml": {
+                    "description": "prefer editor first for HTML files instead of the HTML viewer",
+                    "type": "boolean"
                 },
                 "preferEditorForMarkdown": {
                     "description": "prefer editor first for markdown files instead of the Markdown Viewer",
@@ -8046,18 +8513,6 @@ const docTemplate = `{
                 }
             }
         },
-        "users.PinnedItems": {
-            "type": "object",
-            "additionalProperties": {
-                "type": "object",
-                "additionalProperties": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                }
-            }
-        },
         "users.Preview": {
             "type": "object",
             "properties": {
@@ -8183,281 +8638,6 @@ const docTemplate = `{
             "type": "object",
             "additionalProperties": {
                 "type": "boolean"
-            }
-        },
-        "users.User": {
-            "type": "object",
-            "properties": {
-                "apiKeys": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "$ref": "#/definitions/users.AuthToken"
-                    }
-                },
-                "backendScopes": {
-                    "description": "BackendScopes is the authoritative, persisted access list (SourceScope.Name = backend source path).\nSQLite stores this inside user_data JSON under the key \"scopes\" (see sqldb.UserData).",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/users.BackendScope"
-                    }
-                },
-                "backendSourcePermissions": {
-                    "description": "key = source path",
-                    "type": "object",
-                    "additionalProperties": {
-                        "$ref": "#/definitions/users.SourceFilePermissions"
-                    }
-                },
-                "customTheme": {
-                    "description": "Name of theme to use chosen from custom themes config.",
-                    "type": "string"
-                },
-                "darkMode": {
-                    "description": "should dark mode be enabled",
-                    "type": "boolean"
-                },
-                "dateFormat": {
-                    "description": "when false, the date is relative, when true, the date is an exact timestamp",
-                    "type": "boolean"
-                },
-                "debugOffice": {
-                    "description": "debug onlyoffice editor",
-                    "type": "boolean"
-                },
-                "declinedDefaultSources": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "deleteAfterArchive": {
-                    "description": "delete source files after successful creation/extraction of archives",
-                    "type": "boolean"
-                },
-                "deleteWithoutConfirming": {
-                    "description": "delete files without confirmation",
-                    "type": "boolean"
-                },
-                "disableOfficePreviewExt": {
-                    "description": "deprecated",
-                    "type": "string"
-                },
-                "disableOnlyOfficeExt": {
-                    "description": "deprecated",
-                    "type": "string"
-                },
-                "disablePreviewExt": {
-                    "description": "space separated list of file extensions to disable preview for",
-                    "type": "string"
-                },
-                "disableQuickToggles": {
-                    "description": "disable the quick toggles in the sidebar",
-                    "type": "boolean"
-                },
-                "disableSearchOptions": {
-                    "description": "disable the search options in the search bar",
-                    "type": "boolean"
-                },
-                "disableSettings": {
-                    "type": "boolean"
-                },
-                "disableUpdateNotifications": {
-                    "description": "disable update notifications",
-                    "type": "boolean"
-                },
-                "disableViewingExt": {
-                    "description": "space separated list of file extensions to disable viewing for",
-                    "type": "string"
-                },
-                "effectiveToolAccess": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "boolean"
-                    }
-                },
-                "fileLoading": {
-                    "description": "upload and download settings",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/users.FileLoading"
-                        }
-                    ]
-                },
-                "gallerySize": {
-                    "description": "0-9 - the size of the gallery thumbnails",
-                    "type": "integer"
-                },
-                "hideFileExt": {
-                    "description": "space separated list of file extensions to hide in UI and API",
-                    "type": "string"
-                },
-                "hideFilesInTree": {
-                    "description": "hide files in the sidebar tree navigation, when true, will show only directories.",
-                    "type": "boolean"
-                },
-                "hideSidebarFileActions": {
-                    "description": "hide the file actions in the sidebar",
-                    "type": "boolean"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "locale": {
-                    "description": "language to use: eg. de, en, or fr",
-                    "type": "string"
-                },
-                "lockPassword": {
-                    "type": "boolean"
-                },
-                "loginMethod": {
-                    "$ref": "#/definitions/users.LoginMethod"
-                },
-                "newFileTemplate": {
-                    "description": "list of custom filenames that will be used as template for new files",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "otpEnabled": {
-                    "type": "boolean"
-                },
-                "passkeyCredentials": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/users.WebAuthnCredential"
-                    }
-                },
-                "password": {
-                    "type": "string"
-                },
-                "perm": {
-                    "$ref": "#/definitions/users.Permissions"
-                },
-                "permissions": {
-                    "description": "global: admin, api, share, realtime",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/users.Permissions"
-                        }
-                    ]
-                },
-                "pinnedItems": {
-                    "$ref": "#/definitions/users.PinnedItems"
-                },
-                "preferEditorForMarkdown": {
-                    "description": "prefer editor first for markdown files instead of the Markdown Viewer",
-                    "type": "boolean"
-                },
-                "preview": {
-                    "$ref": "#/definitions/users.Preview"
-                },
-                "promptRightCloseButton": {
-                    "description": "show the prompts close button on the right",
-                    "type": "boolean"
-                },
-                "quickDownload": {
-                    "description": "show icon to download in one click",
-                    "type": "boolean"
-                },
-                "requirePasswordChange": {
-                    "type": "boolean"
-                },
-                "scopes": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/users.FrontendScope"
-                    }
-                },
-                "showAdvancedProfile": {
-                    "type": "boolean"
-                },
-                "showCopyPath": {
-                    "description": "show copy path action in the context menu",
-                    "type": "boolean"
-                },
-                "showCreationDateColumn": {
-                    "description": "show the Creation date column in list and compact views",
-                    "type": "boolean"
-                },
-                "showFirstLogin": {
-                    "type": "boolean"
-                },
-                "showHidden": {
-                    "description": "show hidden files in the UI. On windows this includes files starting with a dot and windows hidden files",
-                    "type": "boolean"
-                },
-                "showSelectMultiple": {
-                    "description": "show select multiple files on desktop",
-                    "type": "boolean"
-                },
-                "showToolsInSidebar": {
-                    "description": "when false, sidebar hides links with category \"tool\" (default: true)",
-                    "type": "boolean"
-                },
-                "showTypeColumn": {
-                    "description": "show the Type column in list and compact views",
-                    "type": "boolean"
-                },
-                "sidebarLinks": {
-                    "description": "customizable sidebar links",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/users.SidebarLink"
-                    }
-                },
-                "singleClick": {
-                    "description": "open directory on single click, also enables middle click to open in new tab",
-                    "type": "boolean"
-                },
-                "sorting": {
-                    "$ref": "#/definitions/users.Sorting"
-                },
-                "sourcePermissions": {
-                    "description": "deprecated: use scopes[].permissions",
-                    "type": "object",
-                    "additionalProperties": {
-                        "$ref": "#/definitions/users.SourceFilePermissions"
-                    }
-                },
-                "stickySidebar": {
-                    "description": "keep sidebar open when navigating",
-                    "type": "boolean"
-                },
-                "themeColor": {
-                    "description": "theme color to use: eg. #ff0000, or var(--red), var(--purple), etc",
-                    "type": "string"
-                },
-                "tokens": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "$ref": "#/definitions/users.AuthToken"
-                    }
-                },
-                "toolAccess": {
-                    "description": "per-tool access overrides",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/users.ToolAccessMap"
-                        }
-                    ]
-                },
-                "totpNonce": {
-                    "type": "string"
-                },
-                "totpSecret": {
-                    "type": "string"
-                },
-                "username": {
-                    "type": "string"
-                },
-                "version": {
-                    "type": "integer"
-                },
-                "viewMode": {
-                    "description": "view mode to use: eg. normal, list, grid, or compact",
-                    "type": "string"
-                }
             }
         },
         "users.WebAuthnCredential": {
@@ -8858,6 +9038,79 @@ const docTemplate = `{
                 }
             }
         },
+        "web.mediaSettingsResponse": {
+            "type": "object",
+            "properties": {
+                "accelDevice": {
+                    "description": "acceleration device: \"auto\", \"software\"/\"cpu\", \"igpu\", \"dgpu\", a DRM render node, or a GPU name substring",
+                    "type": "string"
+                },
+                "accelDeviceOptions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/ffmpeg.AccelDeviceOption"
+                    }
+                },
+                "alwaysUseFfmpeg": {
+                    "description": "skip the go-media fast path and use ffmpeg for all probe, metadata, subtitle, and thumbnail work (default: false)",
+                    "type": "boolean"
+                },
+                "alwaysUseOnlyOffice": {
+                    "description": "skip folio document previews and use the office converter when configured (default: false)",
+                    "type": "boolean"
+                },
+                "autoAccelDevice": {
+                    "description": "AutoAccelDevice is the option id that accelDevice \"auto\" resolves to on this host.",
+                    "type": "string"
+                },
+                "convert": {
+                    "description": "config for ffmpeg conversion settings",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/settings.FfmpegConvert"
+                        }
+                    ]
+                },
+                "debug": {
+                    "description": "output ffmpeg stdout for media integration -- careful can produces lots of output!",
+                    "type": "boolean"
+                },
+                "encoderBackendOptions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/ffmpeg.EncoderBackendOption"
+                    }
+                },
+                "hardwareAcceleration": {
+                    "description": "enable hardware acceleration for ffmpeg if available",
+                    "type": "boolean"
+                },
+                "imagePreview": {
+                    "description": "image formats that can be converted",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "boolean"
+                    }
+                },
+                "lockMessage": {
+                    "type": "string"
+                },
+                "lockedFromConfigPaths": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "transcode": {
+                    "description": "HLS transcoding for media playback",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/settings.FullAdminTranscode"
+                        }
+                    ]
+                }
+            }
+        },
         "web.pinnedItemPatchRequest": {
             "type": "object",
             "required": [
@@ -8934,6 +9187,31 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "viewToken": {
+                    "type": "string"
+                }
+            }
+        },
+        "web.wopiSessionResponse": {
+            "type": "object",
+            "properties": {
+                "accessToken": {
+                    "description": "posted as access_token",
+                    "type": "string"
+                },
+                "accessTokenTtl": {
+                    "description": "posted as access_token_ttl: absolute expiry, epoch milliseconds",
+                    "type": "integer"
+                },
+                "actionUrl": {
+                    "description": "editor URL the iframe form posts to",
+                    "type": "string"
+                },
+                "mode": {
+                    "description": "\"edit\" or \"view\"",
+                    "type": "string"
+                },
+                "product": {
+                    "description": "collabora, onlyoffice or generic",
                     "type": "string"
                 }
             }

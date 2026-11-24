@@ -20,8 +20,8 @@
 </template>
 
 <script>
-import { state, getters, mutations } from "@/store";
-import { settings } from "@/utils/constants";
+import { state, getters, mutations } from "@/store/index.ts";
+import { settings } from "@/utils/constants.ts";
 import GlobalSettings from "@/views/settings/Global.vue";
 import ProfileSettings from "@/views/settings/Profile.vue";
 import SharesSettings from "@/views/settings/Shares.vue";
@@ -32,10 +32,11 @@ import UserSettings from "@/views/settings/Users.vue";
 import FileLoading from "@/views/settings/FileLoading.vue";
 import ApiKeys from "@/views/settings/Api.vue";
 import SystemAdmin from "@/views/settings/SystemAdmin.vue";
+import MediaSettings from "@/views/settings/Media.vue";
 import NotificationsSettings from "@/views/settings/Notifications.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import { getObjectProperty } from '@/utils/object.js';
-import { router } from "@/router";
+import { router } from "@/router/index.ts";
 
 export default {
   name: "settings",
@@ -50,6 +51,7 @@ export default {
     FileLoading,
     UserSettings,
     SystemAdmin,
+    MediaSettings,
     NotificationsSettings,
     LoadingSpinner,
   },
@@ -122,7 +124,8 @@ export default {
     shouldShow(setting) {
       const perm = setting?.permissions || {};
       const userPermissions = /** @type {Record<string, boolean>} */ (state.user.permissions || {});
-      return Object.keys(perm).every((key) => getObjectProperty(userPermissions, key));
+      const permitted = Object.keys(perm).every((key) => getObjectProperty(userPermissions, key));
+      return permitted;
     },
     findSection(setting, view) {
       return setting?.sections?.find(

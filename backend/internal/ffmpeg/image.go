@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"strconv"
 	"strings"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/fileutils"
@@ -75,21 +74,27 @@ func (s *Service) ConvertHEICToJPEG(ctx context.Context, heicPath string, target
 		return nil, ctx.Err()
 	}
 
-	orientation, err := s.GetHEICOrientation(heicPath)
-	if err != nil {
-		orientation = "Horizontal (normal)"
-	}
-
 	jpegBytes, err := s.runHEICConversion(ctx, heicPath, targetWidth, targetHeight, quality, "")
 	if err != nil {
 		return nil, fmt.Errorf("ffmpeg image conversion failed: %w", err)
 	}
+	return s.CorrectHEICJPEGOrientation(ctx, heicPath, jpegBytes), nil
+}
 
-	displayRotation, displayKnown := s.GetHEICDisplayMatrixRotation(ctx, heicPath)
-	if orientationNeedsPostCorrection(orientation, displayRotation, displayKnown) {
-		jpegBytes = applyOrientationToJPEG(jpegBytes, orientation)
+// CorrectHEICJPEGOrientation applies EXIF orientation after a filter-free ffmpeg HEIC decode
+// when the pixels are still in coded orientation. The display rotation (irot) comes from
+// HEICDisplayRotation: go-media reads it from the item properties, and the ffmpeg stderr probe
+// is only a fallback.
+func (s *Service) CorrectHEICJPEGOrientation(ctx context.Context, heicPath string, jpegBytes []byte) []byte {
+	orientation, err := s.GetHEICOrientation(heicPath)
+	if err != nil {
+		orientation = "Horizontal (normal)"
 	}
-	return jpegBytes, nil
+	displayRotation, displayKnown := s.HEICDisplayRotation(ctx, heicPath)
+	if orientationNeedsPostCorrection(orientation, displayRotation, displayKnown) {
+		return applyOrientationToJPEG(jpegBytes, orientation)
+	}
+	return jpegBytes
 }
 
 // ConvertImageToJPEG converts any supported image to JPEG using ffmpeg.
@@ -155,15 +160,4 @@ func (s *Service) runHEICConversion(ctx context.Context, inputPath string, targe
 		return nil, err
 	}
 	return os.ReadFile(outputFile)
-}
-
-func parseQuality(quality string) int {
-	n, err := strconv.Atoi(quality)
-	if err != nil || n < 1 {
-		return 5
-	}
-	if n > 10 {
-		return 10
-	}
-	return n
 }

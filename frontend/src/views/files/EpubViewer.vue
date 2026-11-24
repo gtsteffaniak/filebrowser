@@ -1,24 +1,27 @@
 <template>
   <div class="epub-container">
     <div v-if="!isReady" class="loading-indicator">
-      <p>{{ $t("general.loading", { suffix: "..." }) }}</p>
+      <p>{{ t("general.loading", { suffix: "..." }) }}</p>
     </div>
 
     <div id="viewer" ref="viewer" :class="{ ready: isReady }"></div>
 
     <div v-if="isReady" class="navigation">
-      <button type="button" @click="prevPage" class="nav-button">&lt;</button> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-      <button type="button" @click="nextPage" class="nav-button">&gt;</button> <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+      <button type="button" @click="prevPage" class="nav-button">&lt;</button>
+      <button type="button" @click="nextPage" class="nav-button">&gt;</button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from "vue";
 import type { Book, Rendition } from "@likecoin/epub-ts";
-import { state, mutations, getters } from "@/store";
-import { resourcesApi } from "@/api";
+import { state, mutations, getters } from "@/store/index.ts";
+import { resourcesApi } from "@/api/index.js";
 import { ensureViewToken, requestViewIdentity, getCachedViewToken, getRequestViewToken } from "@/api/viewToken.js";
+import { useI18n } from "@/i18n/index.ts";
+
+const { t } = useI18n();
 
 defineOptions({ name: "epubViewer" });
 
@@ -52,7 +55,7 @@ function cfiToString(cfi: unknown): string {
 
 const isReady = ref(false); // to indicate when the book is loaded
 const floatIn = ref(false); // for the animation
-const viewer = ref<HTMLElement | null>(null);
+const viewer = useTemplateRef<HTMLElement>("viewer");
 
 let book: Book | null = null;
 let rendition: Rendition | null = null;

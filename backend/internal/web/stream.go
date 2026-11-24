@@ -498,7 +498,7 @@ func ServeSingleFile(w http.ResponseWriter, r *http.Request, d *Context, source 
 		return http.StatusForbidden, fmt.Errorf("access denied to path %s", scopedFilePath)
 	}
 
-	isOnlyOffice := IsOnlyOfficeCompatibleFile(displayFileName) && settings.Config.Integrations.OnlyOffice.Url != ""
+	isOnlyOffice := IsOnlyOfficeCompatibleFile(displayFileName) && settings.Config.Integrations.OnlyOffice.Url != "" && !settings.Config.Integrations.OnlyOffice.IsCollabora()
 	var documentId string
 	var logContext *OnlyOfficeLogContext
 	if isOnlyOffice {

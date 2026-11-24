@@ -3,7 +3,10 @@
 package imagemeta
 
 import (
+	"bytes"
 	"context"
+	"image"
+	_ "image/jpeg"
 	"io"
 	"os"
 	"path/filepath"
@@ -135,8 +138,13 @@ func previewCandidates(ex exif.Exif) []previewCandidate {
 	return out
 }
 
+// readLargestJPEGPreview returns the largest embedded JPEG that fits MaxPreviewPixels. Camera
+// files often hold a full-size JPEG next to a mid-size preview, and the full-size one can be
+// over budget. If nothing fits, the largest JPEG is returned so the caller can reject it.
 func readLargestJPEGPreview(f *os.File, candidates []previewCandidate) ([]byte, error) {
-	var best []byte
+	var best, largest, undecodable []byte
+	bestPixels := int64(0)
+	largestPixels := int64(0)
 	for _, c := range candidates {
 		if c.length == 0 {
 			continue
@@ -145,14 +153,31 @@ func readLargestJPEGPreview(f *os.File, candidates []previewCandidate) ([]byte, 
 		if err != nil || len(data) == 0 || !IsJPEG(data) {
 			continue
 		}
-		if len(data) > len(best) {
-			best = data
+		cfg, _, err := image.DecodeConfig(bytes.NewReader(data))
+		if err != nil {
+			// A damaged header gives no pixel count, so its byte length says nothing
+			// about size. It must not compete with decoded candidates. It is kept only
+			// as a last resort.
+			if len(data) > len(undecodable) {
+				undecodable = data
+			}
+			continue
+		}
+		pixels := int64(cfg.Width) * int64(cfg.Height)
+		if pixels > largestPixels {
+			largest, largestPixels = data, pixels
+		}
+		if pixels <= MaxPreviewPixels && pixels > bestPixels {
+			best, bestPixels = data, pixels
 		}
 	}
-	if len(best) == 0 {
-		return nil, nil
+	if len(best) > 0 {
+		return best, nil
 	}
-	return best, nil
+	if len(largest) > 0 {
+		return largest, nil
+	}
+	return undecodable, nil
 }
 
 const maxPreviewReadSize = 100 * 1024 * 1024 // embedded previews are never larger

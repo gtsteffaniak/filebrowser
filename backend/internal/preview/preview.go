@@ -3,20 +3,20 @@ package preview
 import (
 	"bytes"
 	"context"
-	"crypto/md5"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"image"
 	"io"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
-	"sync"
 	"time"
 
+	"github.com/cespare/xxhash/v2"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/diskcache"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/fileutils"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/embeddedpreview"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/ffmpeg"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/imagemeta"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing/iteminfo"
@@ -37,7 +37,6 @@ type Service struct {
 	fileCache     diskcache.Interface
 	cacheDir      string // Cache directory used for thumbnails and temp files
 	debug         bool
-	docGenMutex   sync.Mutex            // Mutex to serialize access to doc generation (required for CGO thread safety with go-fitz)
 	ffmpegService *ffmpeg.FFmpegService // Shared FFmpeg service for video and HEIC/JPEG fallback
 	imageSem      chan struct{}         // Semaphore for small image decode/encode (<8MB)
 	imageLargeSem chan struct{}         // Semaphore for large image decode/encode (>=8MB), nil if only 1 processor
@@ -112,16 +111,29 @@ func NewPreviewGenerator(concurrencyLimit int, cacheDir string) *Service {
 
 	// Total max memory = concurrencyLimit × 50MB
 	// Example: concurrencyLimit=10 → ~500MB max
-	settings.Env.MuPdfAvailable = docEnabled()
 
 	return &Service{
 		fileCache:     fileCache,
 		cacheDir:      actualCacheDir,
-		debug:         settings.Config.Integrations.Media.Debug,
+		debug:         settings.MediaDebugEnabled(),
 		ffmpegService: ffmpegService,
 		imageSem:      imageSem,
 		imageLargeSem: imageLargeSem,
 	}
+}
+
+// acquireEmbeddedPermit takes an image-processor permit for the embedded-image decode and the resize
+// that follows it, unless the caller already holds one (permitHeld). The semaphore can have a single
+// slot, so a caller that holds one must not take a second. Folio documents skip the outer permit, so
+// they take one here. The returned func releases whatever was taken; it is a no-op when nothing was.
+func (s *Service) acquireEmbeddedPermit(ctx context.Context, permitHeld bool) (func(), error) {
+	if permitHeld {
+		return func() {}, nil
+	}
+	if err := s.acquireImageSem(ctx); err != nil {
+		return nil, err
+	}
+	return s.releaseImageSem, nil
 }
 
 // Global image processor semaphore methods
@@ -174,6 +186,16 @@ func GetService() *Service {
 	return service
 }
 
+// GetTextPreview returns a text preview for realPath, bounded by the preview service's
+// shared image-processor semaphore. It returns ErrPreviewServiceUnavailable when the
+// service has not been started.
+func GetTextPreview(ctx context.Context, realPath, kind string) (TextPreviewResult, error) {
+	if service == nil {
+		return TextPreviewResult{}, ErrPreviewServiceUnavailable
+	}
+	return service.ReadTextPreview(ctx, realPath, kind)
+}
+
 func GetPreviewForFile(ctx context.Context, file iteminfo.ExtendedFileInfo, previewSize, url string, seekPercentage int) ([]byte, error) {
 	if !file.HasPreview {
 		return nil, ErrUnsupportedMedia
@@ -184,31 +206,48 @@ func GetPreviewForFile(ctx context.Context, file iteminfo.ExtendedFileInfo, prev
 		return nil, ctx.Err()
 	}
 
-	// Generate fast cache key based on file metadata
-	var cacheHash string
-	if file.Metadata != nil && len(file.Metadata.AlbumArt) > 0 {
-		// For audio with album art, hash the album art content
-		hasher := md5.New()
-		_, _ = hasher.Write(file.Metadata.AlbumArt)
-		cacheHash = hex.EncodeToString(hasher.Sum(nil))
-	} else {
-		// For all other files, use fast metadata-based hash
-		hasher := md5.New()
-		cacheString := fmt.Sprintf("%s:%d:%s", file.RealPath, file.Size, file.ModTime.Format(time.RFC3339Nano))
-		_, _ = hasher.Write([]byte(cacheString))
-		cacheHash = hex.EncodeToString(hasher.Sum(nil))
-	}
+	cacheHash := previewCacheHash(file)
 
 	cacheKey := CacheKey(cacheHash, previewSize, seekPercentage)
-	if data, found, err := service.fileCache.Load(ctx, cacheKey); err != nil {
-		return nil, fmt.Errorf("failed to load from cache: %w", err)
-	} else if found {
-		if len(data) < minPreviewSize {
-			return nil, ErrPreviewTooSmall
+	skipCache := skipPreviewCacheInDev(file)
+	if !skipCache {
+		if data, found, err := service.fileCache.Load(ctx, cacheKey); err != nil {
+			return nil, fmt.Errorf("failed to load from cache: %w", err)
+		} else if found {
+			if len(data) < minPreviewSize {
+				return nil, ErrPreviewTooSmall
+			}
+			return data, nil
 		}
-		return data, nil
 	}
-	return GeneratePreviewWithMD5(ctx, file, previewSize, url, seekPercentage, cacheHash)
+	return GeneratePreviewWithCacheHash(ctx, file, previewSize, url, seekPercentage, cacheHash)
+}
+
+// previewCacheHash returns the cache fingerprint for a file's previews: a hash of
+// the embedded album art when there is one, otherwise of path, size and modtime.
+// It is not a content hash. GeneratePreview and DelThumbs must both use it so
+// that deletion finds the entries that generation stored.
+func previewCacheHash(file iteminfo.ExtendedFileInfo) string {
+	if file.Metadata != nil && len(file.Metadata.AlbumArt) > 0 {
+		return xxhashHex(file.Metadata.AlbumArt)
+	}
+	return xxhashHex([]byte(fmt.Sprintf("%s:%d:%s", file.RealPath, file.Size, file.ModTime.Format(time.RFC3339Nano))))
+}
+
+// xxhashHex returns the 64-bit xxHash of data as hex. xxHash is a fast
+// non-cryptographic hash, which is all a cache key needs.
+func xxhashHex(data []byte) string {
+	return strconv.FormatUint(xxhash.Sum64(data), 16)
+}
+
+// skipPreviewCacheInDev forces HEIC preview regeneration so go-media and shadow
+// logs are visible while developing. Disk cache still stores the result.
+func skipPreviewCacheInDev(file iteminfo.ExtendedFileInfo) bool {
+	if !settings.Env.IsDevMode {
+		return false
+	}
+	return strings.HasPrefix(file.Type, "image/hei") &&
+		settings.CanConvertImage(string(settings.HEICImagePreview))
 }
 
 // filePreviewType represents the type of preview generation needed
@@ -218,6 +257,7 @@ const (
 	previewTypeDocument filePreviewType = iota
 	previewTypeOffice
 	previewTypeHEIC
+	previewTypeJXL
 	previewTypeImage
 	previewTypeVideo
 	previewTypeAudio
@@ -236,10 +276,16 @@ func determinePreviewType(file iteminfo.ExtendedFileInfo) filePreviewType {
 		return previewTypeOffice
 	}
 
-	// Check HEIC with conversion enabled
-	if strings.HasPrefix(file.Type, "image/heic") &&
-		*settings.Config.Integrations.Media.Convert.ImagePreview[settings.HEICImagePreview] {
+	// Check HEIC with conversion enabled. AVIF is a HEIF container too and uses
+	// the same path (go-media decode, ffmpeg fallback) under the HEIC setting.
+	if (strings.HasPrefix(file.Type, "image/heic") || file.Type == "image/avif") &&
+		settings.CanConvertImage(string(settings.HEICImagePreview)) {
 		return previewTypeHEIC
+	}
+
+	if (file.Type == "image/jxl" || strings.HasSuffix(strings.ToLower(file.Name), ".jxl")) &&
+		settings.CanConvertImage(string(settings.JXLImagePreview)) {
+		return previewTypeJXL
 	}
 
 	// Check by MIME type prefix
@@ -261,13 +307,16 @@ func (s *Service) generateRawPreview(ctx context.Context, file iteminfo.Extended
 
 	switch previewType {
 	case previewTypeDocument:
-		return s.generateDocumentPreview(ctx, file, previewSize, hash)
+		return s.generateDocumentPreview(ctx, file, previewSize, officeUrl, hash)
 
 	case previewTypeOffice:
 		return s.generateOfficeFilePreview(ctx, file, officeUrl)
 
 	case previewTypeHEIC:
 		return s.generateHEICPreview(ctx, file, previewSize)
+
+	case previewTypeJXL:
+		return s.generateJXLPreview(ctx, file, previewSize)
 
 	case previewTypeImage:
 		ext := strings.ToLower(filepath.Ext(file.Name))
@@ -293,17 +342,25 @@ func (s *Service) generateRawPreview(ctx context.Context, file iteminfo.Extended
 	}
 }
 
-// generateDocumentPreview generates preview for PDF and document files
-func (s *Service) generateDocumentPreview(ctx context.Context, file iteminfo.ExtendedFileInfo, previewSize, hash string) ([]byte, error) {
-	tempFilePath := filepath.Join(s.cacheDir, "thumbnails", "docs", hash) + ".txt"
-	imageBytes, err := s.GenerateImageFromDoc(ctx, file, tempFilePath, 0, previewSize) // 0 for the first page
+// generateDocumentPreview generates preview via folio, with office converter fallback.
+func (s *Service) generateDocumentPreview(ctx context.Context, file iteminfo.ExtendedFileInfo, previewSize, officeUrl, hash string) ([]byte, error) {
+	imageBytes, err := s.GenerateImageFromDoc(ctx, file, 0, previewSize)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create image for PDF file: %w", err)
+		if file.OnlyOfficeId != "" {
+			return s.generateOfficeFilePreview(ctx, file, officeUrl)
+		}
+		return nil, fmt.Errorf("failed to create image for document file: %w", err)
 	}
-	return imageBytes, nil
+	if len(imageBytes) > 0 {
+		return imageBytes, nil
+	}
+	if file.OnlyOfficeId != "" {
+		return s.generateOfficeFilePreview(ctx, file, officeUrl)
+	}
+	return nil, ErrUnsupportedFormat
 }
 
-// generateOfficeFilePreview generates preview for Office files via OnlyOffice
+// generateOfficeFilePreview generates preview for office files via the office converter
 func (s *Service) generateOfficeFilePreview(ctx context.Context, file iteminfo.ExtendedFileInfo, officeUrl string) ([]byte, error) {
 	imageBytes, err := s.GenerateOfficePreview(ctx, filepath.Ext(file.Name), file.OnlyOfficeId, file.Name, officeUrl)
 	if err != nil {
@@ -312,9 +369,9 @@ func (s *Service) generateOfficeFilePreview(ctx context.Context, file iteminfo.E
 	return imageBytes, nil
 }
 
-// generateHEICPreview generates preview for HEIC files using FFmpeg
+// generateHEICPreview generates preview for HEIC files using go-media with ffmpeg fallback.
 func (s *Service) generateHEICPreview(ctx context.Context, file iteminfo.ExtendedFileInfo, previewSize string) ([]byte, error) {
-	imageBytes, err := s.convertHEICToJPEGWithFFmpeg(ctx, file.RealPath, previewSize)
+	imageBytes, err := s.convertHEICToJPEG(ctx, file.RealPath, previewSize)
 	if err != nil {
 		return nil, fmt.Errorf("failed to process HEIC image file: %w", err)
 	}
@@ -393,7 +450,7 @@ func (s *Service) generateImagePreview(ctx context.Context, file iteminfo.Extend
 // handleJPEGFallback attempts to use FFmpeg for problematic JPEG files
 // This is preview-specific logic for user files, not used for icon generation
 func handleJPEGFallback(ctx context.Context, s *Service, file iteminfo.ExtendedFileInfo, previewSize string, originalErr error) ([]byte, error) {
-	enableJPEGFallback := *settings.Config.Integrations.Media.Convert.ImagePreview[settings.JPEGImagePreview]
+	enableJPEGFallback := settings.CanConvertImage(string(settings.JPEGImagePreview))
 
 	if !enableJPEGFallback {
 		return nil, fmt.Errorf("failed to resize preview image (unsupported JPEG format, FFmpeg conversion disabled in settings): %w", originalErr)
@@ -412,10 +469,10 @@ func handleJPEGFallback(ctx context.Context, s *Service, file iteminfo.ExtendedF
 	return imageBytes, nil
 }
 
-func GeneratePreviewWithMD5(ctx context.Context, file iteminfo.ExtendedFileInfo, previewSize, officeUrl string, seekPercentage int, fileMD5 string) ([]byte, error) {
-	// Note: fileMD5 is actually a cache hash (metadata-based), not a true file content MD5
+func GeneratePreviewWithCacheHash(ctx context.Context, file iteminfo.ExtendedFileInfo, previewSize, officeUrl string, seekPercentage int, cacheHash string) ([]byte, error) {
+	// cacheHash is the metadata-based fingerprint from previewCacheHash, not a content hash.
 	// Validate that cache hash is not empty to prevent cache corruption
-	if fileMD5 == "" {
+	if cacheHash == "" {
 		errorMsg := fmt.Sprintf("Cache hash is empty for file: %s (path: %s)", file.Name, file.RealPath)
 		logger.Errorf("Preview generation failed: %s", errorMsg)
 		return nil, fmt.Errorf("preview generation failed: %s", errorMsg)
@@ -426,9 +483,11 @@ func GeneratePreviewWithMD5(ctx context.Context, file iteminfo.ExtendedFileInfo,
 		return nil, ctx.Err()
 	}
 
-	// MuPDF document previews render at target size in CGO; they only need docGenMutex.
+	// Folio document previews render at target size in-process; they skip imageSem.
 	previewTypeEarly := determinePreviewType(file)
-	skipImageSem := previewTypeEarly == previewTypeDocument && settings.Env.MuPdfAvailable
+	skipImageSem := previewTypeEarly == previewTypeDocument && folioEnabled() && iteminfo.HasDocConvertableExtension(file.Name, file.Type)
+	// True when the semaphore block below holds a permit for this whole function.
+	imagePermitHeld := !skipImageSem
 	if !skipImageSem {
 		const largeFileSizeThreshold = 8 * 1024 * 1024 // 8MB
 		if file.Size >= largeFileSizeThreshold && service.imageLargeSem != nil {
@@ -458,25 +517,51 @@ func GeneratePreviewWithMD5(ctx context.Context, file iteminfo.ExtendedFileInfo,
 		return nil, errors.New(message)
 	}
 
-	// Generate hash for temp file paths
-	hasher := md5.New()
-	_, _ = hasher.Write([]byte(CacheKey(fileMD5, previewSize, seekPercentage)))
-	hash := hex.EncodeToString(hasher.Sum(nil))
+	cacheKey := CacheKey(cacheHash, previewSize, seekPercentage)
+	// Temp file names derive from the same key.
+	hash := xxhashHex([]byte(cacheKey))
 
-	cacheKey := CacheKey(fileMD5, previewSize, seekPercentage)
-
-	// If this file type might have an embedded preview, try extracting it before any type-specific path.
+	// Use an image stored inside the file (camera RAW/HEIC, Krita, CBZ, XPS, Office and ODF thumbnails)
+	// before any type-specific path. A miss, an error, or undecodable bytes falls through to the normal path.
 	var imageBytes []byte
 	fromEmbeddedPreview := false
-	if hasEmbeddedPreview(file.Type, file.Name) {
-		if previewBytes, _ := imagemeta.ExtractEmbeddedPreview(ctx, file.RealPath); len(previewBytes) >= minPreviewSize && isJPEG(previewBytes) && embeddedPreviewWithinLimits(previewBytes) {
-			imageBytes = previewBytes
+	if useEmbeddedPreview(file) {
+		embedded, err := embeddedpreview.Extract(ctx, file.Name, file.Type, file.RealPath)
+		decodable := false
+		// Original size with an embedded upright JPEG is served as stored: no resize and no
+		// orientation correction. The bytes still pass the same full decode as every other
+		// embedded path, so a truncated or corrupt image falls through to the normal preview.
+		// Rotated images still go through the orientation correction below.
+		asStored := previewSize == "original" && isStoredImageExt(embedded.Ext) && err == nil && len(embedded.Data) >= minPreviewSize &&
+			(!embedded.Oriented || orientationIsNormal(imagemeta.GetOrientation(ctx, file.RealPath)))
+		if err == nil && len(embedded.Data) >= minPreviewSize {
+			// The decode allocates every pixel, so the permit is held until this function
+			// returns when the bytes are used for a resize. A stored image or a fallback
+			// releases it straight away.
+			release, acqErr := service.acquireEmbeddedPermit(ctx, imagePermitHeld)
+			if acqErr != nil {
+				return nil, acqErr
+			}
+			decodable = embeddedImageDecodes(embedded.Data)
+			if decodable && !asStored {
+				defer release()
+			} else {
+				release()
+			}
+		}
+		switch {
+		case err == nil && decodable:
+			imageBytes = embedded.Data
 			fromEmbeddedPreview = true
-			if orient := imagemeta.GetOrientation(ctx, file.RealPath); orient != "" {
-				if corrected := applyOrientationToPreviewBytes(imageBytes, orient); len(corrected) >= minPreviewSize {
-					imageBytes = corrected
+			if embedded.Oriented && !asStored {
+				if orient := imagemeta.GetOrientation(ctx, file.RealPath); orient != "" {
+					if corrected := applyOrientationToPreviewBytes(imageBytes, orient); len(corrected) >= minPreviewSize {
+						imageBytes = corrected
+					}
 				}
 			}
+		case err != nil && !errors.Is(err, embeddedpreview.ErrNotFound):
+			logger.Debugf("embedded preview unavailable for '%s': %v", file.Name, err)
 		}
 	}
 
@@ -498,9 +583,11 @@ func GeneratePreviewWithMD5(ctx context.Context, file iteminfo.ExtendedFileInfo,
 	// When we got bytes from an embedded preview, we still need to resize to small/large/xlarge (original is never converted).
 	// When we got bytes from type-specific path, regular images are already resized; others need resize below.
 	previewType := determinePreviewType(file)
+	// Video thumbnails come from go-media or ffmpeg already sized to the preview
+	// box, so they are final and need no ffmpeg gate here.
 	if !fromEmbeddedPreview && (previewType == previewTypeImage ||
-		(previewType == previewTypeDocument && settings.Env.MuPdfAvailable) ||
-		(previewType == previewTypeVideo && settings.Env.FFmpegAvailable)) {
+		(previewType == previewTypeDocument && folioEnabled() && iteminfo.HasDocConvertableExtension(file.Name, file.Type)) ||
+		previewType == previewTypeVideo) {
 		if err := service.fileCache.Store(ctx, cacheKey, imageBytes); err != nil {
 			logger.Errorf("failed to cache image: %v", err)
 		}
@@ -556,14 +643,27 @@ func GeneratePreviewWithMD5(ctx context.Context, file iteminfo.ExtendedFileInfo,
 	return imageBytes, nil
 }
 
-func GeneratePreview(ctx context.Context, file iteminfo.ExtendedFileInfo, previewSize, officeUrl string, seekPercentage int) ([]byte, error) {
-	// Generate fast metadata-based cache key
-	hasher := md5.New()
-	cacheString := fmt.Sprintf("%s:%d:%s", file.RealPath, file.Size, file.ModTime.Format(time.RFC3339Nano))
-	_, _ = hasher.Write([]byte(cacheString))
-	cacheHash := hex.EncodeToString(hasher.Sum(nil))
+// isStoredImageExt reports whether an embedded image of this extension can be served as stored
+// at original size. These formats are displayed by browsers, so the bytes need no conversion.
+func isStoredImageExt(ext string) bool {
+	switch ext {
+	case ".jpg", ".jpeg", ".png", ".webp":
+		return true
+	}
+	return false
+}
 
-	return GeneratePreviewWithMD5(ctx, file, previewSize, officeUrl, seekPercentage, cacheHash)
+// orientationIsNormal reports whether an EXIF orientation leaves the image upright.
+func orientationIsNormal(orientation string) bool {
+	switch orientation {
+	case "", "Horizontal (normal)", "Top-left", "1":
+		return true
+	}
+	return false
+}
+
+func GeneratePreview(ctx context.Context, file iteminfo.ExtendedFileInfo, previewSize, officeUrl string, seekPercentage int) ([]byte, error) {
+	return GeneratePreviewWithCacheHash(ctx, file, previewSize, officeUrl, seekPercentage, previewCacheHash(file))
 }
 
 // ImageFitsPreviewSize reports whether both image dimensions are within the preview bounds.
@@ -643,17 +743,13 @@ func (s *Service) CreatePreview(ctx context.Context, reader io.Reader, fileSize 
 	return output.Bytes(), nil
 }
 
-func CacheKey(md5, previewSize string, percentage int) string {
-	key := fmt.Sprintf("%x%x%x", md5, previewSize, percentage)
-	return key
+func CacheKey(cacheHash, previewSize string, percentage int) string {
+	return fmt.Sprintf("%s:%s:%d", cacheHash, previewSize, percentage)
 }
 
 func DelThumbs(ctx context.Context, file iteminfo.ExtendedFileInfo) {
 	// Generate metadata-based cache hash for deletion
-	hasher := md5.New()
-	cacheString := fmt.Sprintf("%s:%d:%s", file.RealPath, file.Size, file.ModTime.Format(time.RFC3339Nano))
-	_, _ = hasher.Write([]byte(cacheString))
-	cacheHash := hex.EncodeToString(hasher.Sum(nil))
+	cacheHash := previewCacheHash(file)
 
 	errSmall := service.fileCache.Delete(ctx, CacheKey(cacheHash, "small", 0))
 	if errSmall != nil {

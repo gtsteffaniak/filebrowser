@@ -43,7 +43,3 @@ class EventBus extends EventTarget {
 }
 
 export const eventBus = new EventBus();
-
-export function emitStateChanged() {
-  eventBus.emit('stateChanged');
-}

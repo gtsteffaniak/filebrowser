@@ -27,18 +27,29 @@
       :name="$t('profileSettings.disableHideSidebar')"
       :description="$t('profileSettings.disableHideSidebarDescription')"
     />
-    <ToggleSwitch
-      class="item"
-      :enforceable="enforceable"
-      :enforced="enforcedFlag('ui', 'darkMode')"
-      v-model="darkMode"
-      @change="() => emitSectionChange('ui', 'darkMode')"
-      @update:enforced="(v) => emitEnforced('ui', 'darkMode', v)"
-      :disabled="fieldDisabled('ui', 'darkMode')"
-      :enforcement-locked="isEnforcementLocked('ui', 'darkMode')"
-      :name="$t('profileSettings.darkMode')"
-      :description="helpText('ui', 'darkMode', $t('index.toggleDark'))"
-    />
+    <ProfileEnforceableField :enforceable="enforceable">
+      <h4>{{ $t('profileSettings.darkMode') }}</h4>
+      <div
+        class="form-flex-group"
+        @mouseenter="showEnforcedTooltipIfLocked($event, 'ui', 'darkMode')"
+        @mouseleave="hideTooltip"
+      >
+        <ExpandDropdown
+          v-model="darkMode"
+          :options="darkModeChoices"
+          :aria-label="$t('profileSettings.darkMode')"
+          :disabled="fieldDisabled('ui', 'darkMode')"
+        />
+      </div>
+      <template #enforce>
+        <ProfileEnforceSwitch
+          :visible="enforceable"
+          :enforced="enforcedFlag('ui', 'darkMode')"
+          :disabled="disabled"
+          @update:enforced="(v) => emitEnforced('ui', 'darkMode', v)"
+        />
+      </template>
+    </ProfileEnforceableField>
     <ProfileEnforceableField :enforceable="enforceable">
       <h4>{{ $t("settings.themeColor") }}</h4>
       <div
@@ -211,7 +222,7 @@
               :name="$t('profileSettings.defaultViewMode')"
               :description="$t('profileSettings.defaultViewModeDescription')"
               :disabled="fieldDisabled('listing', 'viewMode') && fieldDisabled('listing', 'gallerySize')"
-              @click="openDefaultViewPref"
+              @activate="openDefaultViewPref"
               @mouseenter="showEnforcedTooltipIfLocked($event, 'listing', 'viewMode')"
               @mouseleave="hideTooltip"
             />
@@ -235,7 +246,7 @@
               :name="$t('prompts.newFileTemplate')"
               :description="$t('prompts.newFileTemplateMessage')"
               :disabled="fieldDisabled('listing', 'newFileTemplate')"
-              @click="openNewFileTemplateEditor"
+              @activate="openNewFileTemplateEditor"
               @mouseenter="showEnforcedTooltipIfLocked($event, 'listing', 'newFileTemplate')"
               @mouseleave="hideTooltip"
             />
@@ -322,7 +333,6 @@
             :description="$t('profileSettings.previewDescription', { filetype: $t('general.images') })"
           />
           <ProfilePreferenceToggle
-            v-if="mediaEnabled"
             field="video"
             section="preview"
             :name="$t('general.videos')"
@@ -506,10 +516,12 @@
           :description="helpText('fileViewer', 'autoplayMedia', $t('profileSettings.autoplayMediaDescription'))"
         />
         <ProfilePreferenceToggle
-          field="preferEditorForMarkdown"
+          v-for="viewer in preferEditorViewers"
+          :key="viewer.field"
+          :field="viewer.field"
           section="fileViewer"
-          :name="$t('profileSettings.preferEditorForMarkdown')"
-          :description="$t('profileSettings.preferEditorForMarkdownDescription')"
+          :name="$t('profileSettings.preferEditor', { filetype: viewer.filetype })"
+          :description="$t('profileSettings.preferEditorDescription', { filetype: viewer.filetype })"
         />
       </div>
       <template v-if="showExtensionInputs">
@@ -627,18 +639,29 @@
       :start-collapsed="sectionStartsCollapsed('themeLanguage')"
     >
       <div class="settings-items">
-        <ToggleSwitch
-          class="item"
-          :enforceable="enforceable"
-          :enforced="enforcedFlag('ui', 'darkMode')"
-          v-model="darkMode"
-          @change="() => emitSectionChange('ui', 'darkMode')"
-          @update:enforced="(v) => emitEnforced('ui', 'darkMode', v)"
-          :disabled="fieldDisabled('ui', 'darkMode')"
-          :enforcement-locked="isEnforcementLocked('ui', 'darkMode')"
-          :name="$t('profileSettings.darkMode')"
-          :description="helpText('ui', 'darkMode', $t('index.toggleDark'))"
-        />
+        <ProfileEnforceableField :enforceable="enforceable">
+          <h4>{{ $t('profileSettings.darkMode') }}</h4>
+          <div
+            class="form-flex-group"
+            @mouseenter="showEnforcedTooltipIfLocked($event, 'ui', 'darkMode')"
+            @mouseleave="hideTooltip"
+          >
+            <ExpandDropdown
+              v-model="darkMode"
+              :options="darkModeChoices"
+              :aria-label="$t('profileSettings.darkMode')"
+              :disabled="fieldDisabled('ui', 'darkMode')"
+            />
+          </div>
+          <template #enforce>
+            <ProfileEnforceSwitch
+              :visible="enforceable"
+              :enforced="enforcedFlag('ui', 'darkMode')"
+              :disabled="disabled"
+              @update:enforced="(v) => emitEnforced('ui', 'darkMode', v)"
+            />
+          </template>
+        </ProfileEnforceableField>
         <ProfileEnforceableField :enforceable="enforceable">
           <h4>{{ $t("settings.themeColor") }}</h4>
           <div
@@ -738,14 +761,15 @@
 </template>
 
 <script>
-import { notify } from "@/notify";
-import { globalVars } from "@/utils/constants.js";
+import { notify } from "@/notify/index.ts";
+import { globalVars } from "@/utils/constants.ts";
 import {
   hideInteractiveTooltip,
   showHoverTooltip,
 } from "@/utils/tooltipHelp.js";
-import { getters, mutations } from "@/store";
+import { getters, mutations } from "@/store/index.ts";
 import { getObjectProperty, setObjectProperty } from "@/utils/object.js";
+import { normalizeDarkMode } from "@/utils/theme.js";
 import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
 import ProfilePreferenceToggle from "@/components/settings/ProfilePreferenceToggle.vue";
 import ProfileEnforceSwitch from "@/components/settings/ProfileEnforceSwitch.vue";
@@ -831,7 +855,13 @@ export default {
       default: false,
     },
   },
-  emits: ["update:modelValue", "change", "enforced-change", "theme-color", "locale-change"],
+  emits: {
+    "update:modelValue": (sections) => typeof sections === "object" && sections !== null,
+    changed: (change) => typeof change?.section === "string",
+    "enforced-change": (change) => typeof change?.section === "string",
+    "theme-color": (color) => typeof color === "string",
+    "locale-change": (locale) => typeof locale === "string",
+  },
   data() {
     return {
       expandedSection: null,
@@ -839,6 +869,11 @@ export default {
       formDisabledViewing: "",
       formDisableOfficeViewing: "",
       formHideExt: "",
+      // one toggle per rich-text viewer; to cover another viewer add its field here
+      preferEditorViewers: [
+        { field: "preferEditorForMarkdown", filetype: "Markdown" },
+        { field: "preferEditorForHtml", filetype: "HTML" },
+      ],
     };
   },
   computed: {
@@ -855,9 +890,6 @@ export default {
     },
     halloweenActive() {
       return getters.eventTheme() === "halloween";
-    },
-    mediaEnabled() {
-      return globalVars.mediaAvailable;
     },
     onlyOfficeAvailable() {
       return globalVars.onlyOfficeUrl !== "";
@@ -893,7 +925,7 @@ export default {
     },
     motionPreviewVisible() {
       const p = this.sections.preview || {};
-      return !!p.popup && ((this.mediaEnabled && p.video) || p.folder);
+      return !!p.popup && (p.video || p.folder);
     },
     showThumbnailsForPreviews: {
       get() {
@@ -929,13 +961,20 @@ export default {
     },
     darkMode: {
       get() {
-        const v = this.sections.ui?.darkMode;
-        return v === undefined || v === null ? true : !!v;
+        return normalizeDarkMode(this.sections.ui?.darkMode);
       },
       set(val) {
         const next = { ...this.sections, ui: { ...(this.sections.ui || {}), darkMode: val } };
         this.sections = next;
+        this.emitSectionChange("ui", "darkMode");
       },
+    },
+    darkModeChoices() {
+      return [
+        { value: "auto", label: this.$t("profileSettings.darkModeSystem") },
+        { value: "light", label: this.$t("profileSettings.darkModeLight") },
+        { value: "dark", label: this.$t("profileSettings.darkModeDark") },
+      ];
     },
     autoplayMedia: {
       get() {
@@ -1070,7 +1109,7 @@ export default {
     },
     configLockTooltip(section, field) {
       if (this.isConfigLocked(section, field)) {
-        return this.$t("settings.userDefaultFieldLockedFromConfig");
+        return this.$t("settings.lockedFromConfig");
       }
       return "";
     },
@@ -1111,10 +1150,7 @@ export default {
       const sectionData = getObjectProperty(this.sections, section);
       const val = getObjectProperty(sectionData, field);
       if (val === undefined || val === null) {
-        if (section === "preview") {
-          return true;
-        }
-        return false;
+        return section === "preview";
       }
       return !!val;
     },
@@ -1142,7 +1178,7 @@ export default {
       this.sections = setObjectProperty(this.sections, section, updatedSection);
     },
     emitSectionChange(section, field) {
-      this.$emit("change", { section, field });
+      this.$emit("changed", { section, field });
     },
     emitEnforced(section, field, value) {
       this.$emit("enforced-change", { section, field, value });

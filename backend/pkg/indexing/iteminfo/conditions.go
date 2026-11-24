@@ -3,6 +3,7 @@ package iteminfo
 import (
 	"mime"
 	"path/filepath"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -33,21 +34,41 @@ var SubtitleExts = map[string]bool{
 	".smi": true,
 }
 
-var MuPdfConvertable = map[string]bool{
-	".pdf":  true, // PDF
-	".xps":  true, // XPS
-	".epub": true, // EPUB
-	".mobi": true, // MOBI
-	".fb2":  true, // FB2
-	".cbz":  true, // CBZ
-	".svg":  true, // SVG
-	".txt":  true, // TXT
-	".docx": true, // DOCX
-	".pptx": true, // PPTX
-	".xlsx": true, // XLSX
-	".hwp":  true, // HWP
-	".hwpx": true, // HWPX
-	".md":   true, // Markdown
+var FolioConvertable = map[string]bool{
+	".pdf":  true,
+	".epub": true,
+	".mobi": true,
+	".azw3": true,
+	".chm":  true,
+	".fb2":  true,
+	".svg":  true,
+	".txt":  true,
+	".docx": true,
+	".pptx": true,
+	".xlsx": true,
+	".htm":  true,
+	".html": true,
+	".md":   true,
+}
+
+// DocPreviewExtensionsForSPA lists extensions the preview API can render locally
+// (folio) or via the office converter fallback. Values omit the leading dot.
+func DocPreviewExtensionsForSPA() []string {
+	seen := make(map[string]struct{}, len(FolioConvertable)+2)
+	for ext := range FolioConvertable {
+		seen[strings.TrimPrefix(ext, ".")] = struct{}{}
+	}
+	if settings.OfficeIntegrationConfigured() {
+		for _, ext := range []string{".hwp", ".hwpx"} {
+			seen[strings.TrimPrefix(ext, ".")] = struct{}{}
+		}
+	}
+	out := make([]string, 0, len(seen))
+	for ext := range seen {
+		out = append(out, ext)
+	}
+	sort.Strings(out)
+	return out
 }
 
 var ResizableImageTypes = map[string]bool{
@@ -60,6 +81,7 @@ var ResizableImageTypes = map[string]bool{
 	".tif":   true,
 	".heic":  true,
 	".heif":  true,
+	".jxl":   true,
 	".webp":  true,
 	".pbm":   true,
 	".pgm":   true,
@@ -249,57 +271,57 @@ var compressedFile = map[string]bool{
 
 // Raw camera image: extension -> MIME type (single source for IsRawImage + type detection)
 var rawImageMimeType = map[string]string{
-	".cr2":  "image/x-canon-cr2",
-	".cr3":  "image/x-canon-cr3",
-	".nef":  "image/x-nikon-nef",
-	".nrw":  "image/x-nikon-nef",
-	".arw":  "image/x-sony-arw",
-	".srf":  "image/x-sony-arw",
-	".sr2":  "image/x-sony-arw",
-	".orf":  "image/x-olympus-orf",
-	".rw2":  "image/x-panasonic-rw2",
-	".raw":  "image/x-panasonic-raw",
-	".dng":  "image/x-adobe-dng",
-	".raf":  "image/x-fuji-raf",
-	".pef":  "image/x-pentax-pef",
-	".ptx":  "image/x-pentax-pef",
-	".rwl":  "image/x-leica-rwl",
-	".3fr":  "image/x-hasselblad-3fr",
-	".fff":  "image/x-hasselblad-fff",
-	".erf":  "image/x-epson-erf",
-	".mrw":  "image/x-minolta-mrw",
-	".dcr":  "image/x-kodak-dcr",
-	".kdc":  "image/x-kodak-dcr",
-	".dc2":  "image/x-kodak-dc2",
-	".x3f":  "image/x-sigma-x3f",
-	".iiq":  "image/x-phaseone-iiq",
-	".nkc":  "image/x-kodak-nkc",
-	".r3d":  "image/x-red-r3d",
+	".cr2": "image/x-canon-cr2",
+	".cr3": "image/x-canon-cr3",
+	".nef": "image/x-nikon-nef",
+	".nrw": "image/x-nikon-nef",
+	".arw": "image/x-sony-arw",
+	".srf": "image/x-sony-arw",
+	".sr2": "image/x-sony-arw",
+	".orf": "image/x-olympus-orf",
+	".rw2": "image/x-panasonic-rw2",
+	".raw": "image/x-panasonic-raw",
+	".dng": "image/x-adobe-dng",
+	".raf": "image/x-fuji-raf",
+	".pef": "image/x-pentax-pef",
+	".ptx": "image/x-pentax-pef",
+	".rwl": "image/x-leica-rwl",
+	".3fr": "image/x-hasselblad-3fr",
+	".fff": "image/x-hasselblad-fff",
+	".erf": "image/x-epson-erf",
+	".mrw": "image/x-minolta-mrw",
+	".dcr": "image/x-kodak-dcr",
+	".kdc": "image/x-kodak-dcr",
+	".dc2": "image/x-kodak-dc2",
+	".x3f": "image/x-sigma-x3f",
+	".iiq": "image/x-phaseone-iiq",
+	".nkc": "image/x-kodak-nkc",
+	".r3d": "image/x-red-r3d",
 }
 
 // 3D model extension -> MIME type (single source for Is3DModel + type detection)
 var model3DMimeType = map[string]string{
-	".gltf":  "model/gltf+json",
-	".glb":   "model/gltf-binary",
-	".obj":   "model/obj",
-	".fbx":   "model/fbx",
-	".stl":   "model/stl",
-	".ply":   "model/ply",
-	".dae":   "model/vnd.collada+xml",
-	".3mf":   "model/3mf",
-	".3ds":   "model/3ds",
-	".usdz":  "model/vnd.usdz+zip",
-	".usd":   "model/vnd.usd+zip",
-	".usda":  "model/vnd.usd+zip",
-	".usdc":  "model/vnd.usd+zip",
-	".amf":   "model/x-amf",
-	".vrml":  "model/vrml",
-	".wrl":   "model/vrml",
-	".vtk":   "model/vtk",
-	".vtp":   "model/vtk",
-	".pcd":   "model/pcd",
-	".xyz":   "model/xyz",
-	".vox":   "model/vox",
+	".gltf": "model/gltf+json",
+	".glb":  "model/gltf-binary",
+	".obj":  "model/obj",
+	".fbx":  "model/fbx",
+	".stl":  "model/stl",
+	".ply":  "model/ply",
+	".dae":  "model/vnd.collada+xml",
+	".3mf":  "model/3mf",
+	".3ds":  "model/3ds",
+	".usdz": "model/vnd.usdz+zip",
+	".usd":  "model/vnd.usd+zip",
+	".usda": "model/vnd.usd+zip",
+	".usdc": "model/vnd.usd+zip",
+	".amf":  "model/x-amf",
+	".vrml": "model/vrml",
+	".wrl":  "model/vrml",
+	".vtk":  "model/vtk",
+	".vtp":  "model/vtk",
+	".pcd":  "model/pcd",
+	".xyz":  "model/xyz",
+	".vox":  "model/vox",
 }
 
 var audioMetadataTypes = map[string]bool{
@@ -448,6 +470,9 @@ func (i *ItemInfo) DetectType(realPath string, saveContent bool) {
 	case ".heic", ".heif":
 		i.Type = "image/heic"
 		return
+	case ".jxl":
+		i.Type = "image/jxl"
+		return
 	case ".kmz":
 		i.Type = "application/vnd.google-earth.kmz"
 		return
@@ -480,18 +505,17 @@ func hasBundleExtension(name string) bool {
 }
 
 func HasDocConvertableExtension(name, mimetype string) bool {
-	if !settings.Env.MuPdfAvailable {
+	if settings.AlwaysUseOnlyOfficeEnabled() {
 		return false
 	}
-	if strings.HasPrefix(mimetype, "text") {
+	ext := strings.ToLower(filepath.Ext(name))
+	if FolioConvertable[ext] {
 		return true
 	}
-	ext := strings.ToLower(filepath.Ext(name))
-	val, ok := MuPdfConvertable[ext]
-	if ok {
-		return val
+	if strings.HasPrefix(mimetype, "text/") {
+		return true
 	}
-	return false
+	return IsText(ext)
 }
 
 var ONLYOFFICE_READONLY_FILE_EXTENSIONS = map[string]bool{
@@ -505,4 +529,79 @@ func CanEditOnlyOffice(modify bool, extention string) bool {
 		return false
 	}
 	return !ONLYOFFICE_READONLY_FILE_EXTENSIONS[strings.ToLower(extention)]
+}
+
+// textPreviewKinds maps a lowercase extension (with dot) to the renderer kind the
+// frontend uses for the text preview endpoint. Every text type is previewable as
+// "code" unless it has a more specific kind below. .rtf is only in this map.
+var textPreviewKinds = buildTextPreviewKinds()
+
+func buildTextPreviewKinds() map[string]string {
+	kinds := make(map[string]string, len(textTypes)+1)
+	for ext := range textTypes {
+		kinds[ext] = "code"
+	}
+	for _, ext := range []string{".txt", ".log"} {
+		kinds[ext] = "plain"
+	}
+	kinds[".csv"] = "csv"
+	kinds[".tsv"] = "csv"
+	kinds[".md"] = "markdown"
+	kinds[".html"] = "html"
+	kinds[".htm"] = "html"
+	kinds[".css"] = "css"
+	kinds[".rtf"] = "rtf"
+	return kinds
+}
+
+// TextPreviewKind returns the renderer kind for a lowercase extension (with dot),
+// or "" when the file type has no text preview.
+func TextPreviewKind(ext string) string {
+	return textPreviewKinds[ext]
+}
+
+// textPreviewMimeTypes are non-text/* mimetypes that textTypes extensions resolve to
+// (see the custom table in backend/internal/adapters/fs/files/mime.go). The frontend
+// receives this list through globalVars (backend/internal/web/static.go), so it is
+// the single source of truth.
+// Do not add mimetypes shared with binaries (e.g. application/x-msdownload for .exe).
+var textPreviewMimeTypes = map[string]bool{
+	"application/json":         true,
+	"application/rtf":          true,
+	"application/yaml":         true,
+	"application/x-yaml":       true,
+	"application/sql":          true,
+	"application/x-sql":        true,
+	"application/x-sh":         true,
+	"application/x-php":        true,
+	"application/x-powershell": true,
+	"application/x-tex":        true,
+	"application/toml":         true,
+	"application/x-ruby":       true,
+}
+
+// IsTextPreviewable reports whether an item uses the text preview endpoint. The decision
+// is the item's mimetype: every text/* type and the textPreviewMimeTypes allowlist.
+func IsTextPreviewable(mimetype string) bool {
+	return strings.HasPrefix(mimetype, "text/") || textPreviewMimeTypes[mimetype]
+}
+
+// TextPreviewMimeTypes returns the non-text/* allowlist in sorted order, for the
+// frontend's globalVars. Sorting keeps the served value stable across restarts.
+func TextPreviewMimeTypes() []string {
+	types := make([]string, 0, len(textPreviewMimeTypes))
+	for mt := range textPreviewMimeTypes {
+		types = append(types, mt)
+	}
+	sort.Strings(types)
+	return types
+}
+
+// TextPreviewRenderKind returns the renderer kind for a text-previewable file: the
+// extension-specific kind when one exists, otherwise "plain".
+func TextPreviewRenderKind(name string) string {
+	if kind := TextPreviewKind(strings.ToLower(filepath.Ext(name))); kind != "" {
+		return kind
+	}
+	return "plain"
 }

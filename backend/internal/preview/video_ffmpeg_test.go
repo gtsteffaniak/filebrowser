@@ -20,12 +20,13 @@ func TestFfmpegPreviewParamsForSize(t *testing.T) {
 		wantError bool
 	}{
 		{
-			name:     "small fill",
+			// Video thumbnails fit inside the box and are never cropped.
+			name:     "small fit (no crop)",
 			size:     "small",
 			wantW:    256,
 			wantH:    256,
-			wantMode: ops.ScaleFill,
-			wantQual: ops.LegacyPreviewDefaultQuality,
+			wantMode: ops.ScaleFit,
+			wantQual: ffmpegMJPEGPreviewQuality,
 		},
 		{
 			name:     "large fit",
@@ -33,7 +34,7 @@ func TestFfmpegPreviewParamsForSize(t *testing.T) {
 			wantW:    640,
 			wantH:    640,
 			wantMode: ops.ScaleFit,
-			wantQual: ops.LegacyPreviewDefaultQuality,
+			wantQual: ffmpegMJPEGPreviewQuality,
 		},
 		{
 			name:     "xlarge fit",
@@ -41,12 +42,12 @@ func TestFfmpegPreviewParamsForSize(t *testing.T) {
 			wantW:    1024,
 			wantH:    1024,
 			wantMode: ops.ScaleFit,
-			wantQual: ops.LegacyPreviewDefaultQuality,
+			wantQual: ffmpegMJPEGPreviewQuality,
 		},
 		{
 			name:     "original no scale",
 			size:     "original",
-			wantQual: ops.LegacyPreviewDefaultQuality,
+			wantQual: ffmpegMJPEGPreviewQuality,
 		},
 		{
 			name:      "unsupported",

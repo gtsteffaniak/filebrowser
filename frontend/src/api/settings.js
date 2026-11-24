@@ -1,5 +1,6 @@
 import { notify } from "@/notify/index.ts";
 import { getApiPath, getPublicApiPath } from "@/utils/url.js";
+import { normalizeSharedMediaSettings } from "@/utils/mediaSettings.js";
 import { fetchJSON, fetchURL, requestTimeoutSignal } from "./utils.ts";
 
 const analyticsRequestTimeoutMs = 5000;
@@ -58,6 +59,24 @@ export function getAnalyticsPreview() {
   return fetchJSON(getApiPath("settings/analytics/preview"));
 }
 
+export function getShadowRegressions() {
+  return fetchJSON(getApiPath("settings/shadow-regressions"));
+}
+
+export function getShadowIncompatible() {
+  return fetchJSON(getApiPath("settings/shadow-incompatible"));
+}
+
+export function getShadowRegressionStats() {
+  return fetchJSON(getApiPath("settings/shadow-regressions/stats"));
+}
+
+export function clearShadowRegressions() {
+  return fetchJSON(getApiPath("settings/shadow-regressions"), {
+    method: "DELETE",
+  });
+}
+
 export function getUserDefaults() {
   return fetchJSON(getApiPath("settings/user-defaults"));
 }
@@ -114,6 +133,29 @@ export async function patchToolAccessDefaults(doc) {
   return fetchJSON(getApiPath("settings/tool-access-defaults"), {
     method: "PATCH",
     body: JSON.stringify(doc),
+    headers: { "Content-Type": "application/json" },
+  });
+}
+
+export function getMediaSettings() {
+  return fetchJSON(getApiPath("settings/media"));
+}
+
+/**
+ * Shared runtime media state (player + general UI), normalized to a flat shape.
+ * Non-admins receive the PUBLIC UserMedia payload; admins get the full payload on the
+ * same endpoint, which carries the same transcode and imagePreview keys.
+ * @returns {Promise<{ enabled: boolean, profiles: string[], maxConcurrentPerUser: number, imagePreview: object }>}
+ */
+export async function getSharedMediaSettings() {
+  const data = await fetchJSON(getApiPath("settings/media"));
+  return normalizeSharedMediaSettings(data);
+}
+
+export async function patchMediaSettings(partial) {
+  return fetchJSON(getApiPath("settings/media"), {
+    method: "PATCH",
+    body: JSON.stringify(partial),
     headers: { "Content-Type": "application/json" },
   });
 }

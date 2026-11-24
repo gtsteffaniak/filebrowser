@@ -2,6 +2,88 @@
 
 All notable changes to this project will be documented in this file. For commit guidelines, please refer to [Standard Version](https://github.com/conventional-changelog/standard-version).
 
+## v2.2.0
+
+ **New Features**:
+  - Media enhancements
+    - All server media settings can be managed in settings by admins.
+    - JXL image preview support (#3334) (#2551)
+    - Transcoding for media playback with quality presets (requires ffmpeg).
+    - Hardware Acceleration device selector (Software / detected GPU devices)
+    - More operations use native api operations rather than ffmpeg, improving performance in many cases. Added temporary config option to force ffmpeg to be used..
+      - HLS keyframe indexes for MP4/MOV/M4V/MKV/WebM are read from the container index with go-media instead of demuxing every packet with ffprobe; ffprobe still runs when go-media cannot read the file or reports a keyframe gap that would rule out stream copy.
+      - HEIC/AVIF rotation (irot) for the ffmpeg decode fallback is read with go-media instead of a full `ffmpeg -f null` decode.
+      - AVIF images get previews through the HEIC preview path (go-media decode, ffmpeg fallback) when HEIC previews are enabled.
+      - WMV/ASF video thumbnails use go-media for WMV3; WMV1/WMV2 still use ffmpeg.
+      - ffmpeg and go-media share one media metadata cache keyed by path, size and modification time, so a probe, duration or subtitle result from either backend is reused by the other.
+      - Preview cache keys use a faster, non-cryptographic xxHash instead of MD5. When upgrading from a version older than v2.2.0, the preview and thumbnail cache is cleared once at startup and previews regenerate on demand. The index database is not affected.
+      - Camera RAW previews use the largest embedded JPEG that fits the decode size limit. Some Nikon NEF files, whose full-size JPEG exceeded the limit, previously showed no preview.
+      - Original-size previews of camera RAW files and other embedded images (JPEG, PNG, WebP) are returned as stored, without decoding, resizing, or re-encoding. Rotated JPEGs are still corrected for orientation.
+      - HEIC/HEIF previews decode at the requested preview size for small and large previews instead of decoding full resolution, and the JPEG is encoded straight from the decoded YCbCr planes, which reduces CPU time and memory.
+      - HEIC/HEIF files with extra bytes after the last valid container box (for example some Samsung files) now decode instead of failing.
+      - HEIC/HEIF previews from the coded decode path convert limited-range YCbCr to full range before JPEG encoding.
+  - Document enhancements
+    - Official Collabora support using WOPI config.
+    - Document previews use a pure-go in-process package (all versions get it now).
+    - Added **Always use office for document previews** option to force OnlyOffice/Collabora.
+    - Office previews can use embedded thumbnail if possible.
+    - Text file previews are more efficient direct creation.
+    - New text preview API (`/api/resources/preview/text`) returns a 16KB text preview for text, Markdown, HTML, CSS, code and RTF files. Markdown and HTML render in the listing as sanitized previews. Previews are not cached on disk. SVG files are served directly as images.
+    - Text previews only render inline on tiles at least 60px wide, so narrower tiles (list, compact, normal) show the file-type icon with a `saved_search` badge instead when popup previews are enabled, and hovering still opens the larger popup preview. Text preview reads are bounded by the preview service's shared image-processor semaphore (`server.numImageProcessors`), and rendered preview HTML is cached in the browser so scrolling and hovering do not re-parse it.
+    - Embedded previews for Krita (`.kra`, [#2431](https://github.com/gtsteffaniak/filebrowser/issues/2431)), OpenRaster (`.ora`), Sketch (`.sketch`), MuseScore (`.mscz`), CBZ (first page), XPS (embedded thumbnail, when present), ODF (`.odt`, `.ods`, `.odp`, `.odg`), and Office Open XML (`.docx`, `.xlsx`, `.pptx`) thumbnails.
+  - Virtual scrolling for large lists: like the main listing, advanced search, file tree, etc. Only render the rows on screen, so very large folders stay responsive, resolving some performance issues (#2879) (#1773) (#3320) (#3326).
+  - Search and navigation improvements:
+    - Next/previous in a preview follows the results of quick search and advanced search, playback queue also uses if there's media (#3275).
+    - Closing a preview opened from quick or advanced search returns to the results and scrolls to the item like the normal listing (#3275).
+    - Advanced search now has almost all the features of the normal listing, including rectangle selection, keyboard navigation, etc (#3299).
+    - Quick search results use natural ordering.
+    - Optional FTS5 trigram index for faster name search via `server.indexSqlConfig.fts5: true` (default `false`; ~40% slower indexing and ~15% larger index DB). Quick search is debounced and cancels in-flight queries (#3146) (#3137).
+    - Type, file, and date filters can run without a search term. There is no minimum query length; results are capped at 5,000 (#3445).
+    - Listings now are cached (with a cap) allowing a more responsive navigation between folders (#3193).
+  - File Info is tabbed (details, media, quota, access, checksums). The Media Info tab shows album, lyrics, subtitles, and tags; videos use embedded artwork as poster/session art, and MP4/M4V/MOV tags and cover art are read in the backend. Access rules can be edited from Info (#3364).
+  - Right-click a breadcrumb for Info, copy page URL, copy WebDAV URL (when enabled), and copy path (#3428) (#3022).
+  - Upload prompt shows overall progress for multi-file uploads: files done/total, failures, speed, and time remaining (#3399) (#3398) (#2340).
+  - Upload and download prompts list is reversed (#2998) (#3328).
+  - Theme preference is Follow system / Light / Dark. Follow system tracks the OS `prefers-color-scheme` live; legacy boolean `darkMode` still loads (#3297).
+  - Replaced `indented soft wrap` editor setting by a dropdown with more wrap settings (#3183) (#3282).
+  - Option in settings to prefer editor first for HTML files, matching the existing Markdown option (#3431) (#3363).
+  - Finnish (Suomi) translation (#3400).
+  - Specify custom share URI is possible when user account settings are enabled via `userDefaults.Account.allowCustomShareURL: true` (default `false`). default generated hash values for a share will still work after creating a custom one (#3416) (#3439) (#841).
+  - Slideshow for images and videos in a folder, with duration, fade, fit/fill, shuffle, loop, Ken Burns, include subfolders (with a max-item cap), fullscreen, filename overlay, and play-videos-to-end (#3445) (#3339)
+
+ **Notes**:
+ - Core web assets are loaded into memory instead of served from disk.
+ - **Document preview formats:** New in-process support includes **`.azw3`**, **`.chm`**, **`.htm`**, and **`.html`**. However, `.doc` continues to require the office integration for thumbnails. **`.xps`** and **`.cbz`** previews come from embedded images. With **Always use office for document previews** enabled, office files still use the office converter
+ - UPX compression is removed from release builds.
+ - A `filebrowser-gpu` image is published alongside the main and slim images (amd64, hardware-accelerated ffmpeg).
+ - Previews (thumbnails, popup, and text previews) are no longer requested for sources the user does not have view access to.
+ - [docker] new filebrowser-gpu image for docker deployments with gpu devices available. Works for nvidia, AMD, Intel.
+ - [docker] ffmpeg upgraded to version 9.1
+ - [docker] filebrowser minimal image no longer published.
+ - Admin-only Shadow Regressions viewer compares go-media vs ffmpeg preview outcomes during the v2.2.x beta; it is not intended for stable (#3414).
+
+ **Bug Fixes**:
+ - Closing a video preview from the header bar now stops playback immediately instead of leaving audio running in the background.
+ - Closing a preview no longer navigates back to the same file when a stale "previous item" was remembered from an earlier navigation.
+ - Transcoding recovers from unreliable hardware decoding without discarding the segments already produced: the retry resumes at the encode head with software decode instead of wiping the generation and re-encoding from the start.
+ - The player no longer aborts a segment request after 10 seconds while the transcode producer is repositioning or restarting, which previously surfaced as a 503 and a skipped segment.
+ - getDirectoryPreview no longer requests metadata, so folder previews skip the per-file probe and subtitle scan.
+ - Media probes are cached by file identity and concurrent reads are coalesced, so opening a file no longer triggers repeated ffprobe runs.
+ - Client-initiated stream cancels (seek/navigation) no longer log spurious write-error responses.
+ - Gzipped `.woff` font files are no longer generated without being served; only `.js` and `.woff2` are precompressed.
+ - Album art detection during indexing walks container headers instead of scanning a fixed-size prefix. M4A/MP4 cover art is found wherever `moov` sits in the file, and M4A files without cover art no longer report a preview. MP3 (ID3v2.2-2.4), FLAC and Ogg Vorbis/Opus/FLAC detection now finds art after large frames, padding or long comments, within per-format scan limits (for example, at most 256 KiB of an unsynchronised ID3v2.3 tag is read). Pictures that only link to an image URL are not counted.
+- Ogg/Opus and Vorbis `METADATA_BLOCK_PICTURE` comments now use the same PICTURE parser as FLAC, so cover art with a MIME type or description — including images whose stored height is 0 — is detected, and empty picture data is not.
+ - Text preview tiles no longer show the bottom truncation fade; truncated content is clipped at the tile edge instead.
+ - Text preview tiles lay out at a minimum width and are clipped, instead of wrapping aggressively on narrow tiles.
+ - Queued text preview requests are canceled when their tiles unmount, so scrolling through a folder of text files and then opening another folder no longer delays the new folder's previews.
+ - Removed the stale, unreferenced `backend/internal/web/embed/` build output that was accidentally re-added; the frontend is embedded from `backend/internal/web/dist/` as before.
+ - Advanced search no longer loses the previously selected sorting (#3275)
+ - Context menu in iOS don't opening in Advanced Search (#2776) (#3299)
+ - Improved mobile layout of inputs in search filters.
+ - Doing actions in the main list/adv search, like move, copy, delete, or create a new file no longer reloads the entire listing, now updates in place and doesn't lost the position you were browsing at (#3193).
+ - Uploading lot of files freezing the UI for a few seconds (#3321).
+ - Directory uploads are prioritized, and files wait until their parent is ready (#3221).
+
 ## v2.1.6
 
  **Security**:
@@ -90,7 +172,7 @@ All notable changes to this project will be documented in this file. For commit 
  - [Moderate] Authenticated `GET /api/resources/view` no longer accepts view tokens minted for a public share when the caller lacks view permission on the requested source (GHSA-wxj5-g3qp-g732) reporter @BlueN0r
  - [Low] SSE source-update and user-targeted delivery hold the client registry lock through nonblocking sends, preventing concurrent map mutation and send-on-closed-channel panics when Realtime clients connect, disconnect, or shut down (GHSA-p9wm-f5jj-75pj) reporter @tao0845
  - [High] Incomplete symlink-containment remediation: an authenticated non-admin user could create a relative symlink via archive extraction, relocate it with WebDAV MOVE, and write through it to arbitrary host paths with the service account's privileges (GHSA-3j46-5w28-f8p2) reporter @Saku0512
- - [Moderate] Source-root containment bypass: create, write, delete, and move operations now resolve symlinks uncached and enforce the caller's scope, closing API escapes through pre-existing out-of-source symlinks on upload, PUT, PATCH, delete, and WebDAV endpoints (GHSA-j764-qg3m-rhv7) reporter @chaoming0625
+ - [Moderate] Source-root containment bypass: create, write, delete, and move operations now resolve symlinks uncached and enforce the caller's scope, closing escapes through pre-existing out-of-source symlinks on upload, PUT, PATCH, delete, and WebDAV endpoints (GHSA-j764-qg3m-rhv7) reporter @chaoming0625
  - [Moderate] Preview reads resolve symlinks within the caller's scope so authenticated preview cannot follow an out-of-scope symlink target (GHSA-g2q5-r6ch-v25f) reporter @tao0845
  - [Moderate] Archive downloads and extraction no longer read or write through symlinks that resolve outside the caller's share or user scope; escaping archive-walk entries are skipped (GHSA-qqf3-2wvq-q4w9) reporter @SmokinCaterpillar
  - [Moderate] Share directory-archive downloads now apply the share owner's access rules to every entry, closing a bypass where anonymous share visitors could download admin-denied content (GHSA-9fcr-gm58-p839) reporter @Tan-JunWei

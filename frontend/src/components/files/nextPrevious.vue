@@ -19,7 +19,6 @@
   <!-- Previous button -->
   <button
     v-if="enabled && hasPrevious"
-    ref="prevButton"
     type="button"
     :tabindex="showNav ? 0 : -1"
     @click.prevent="handlePrevClick"
@@ -37,7 +36,6 @@
       dragging: dragState.type === 'previous',
       active: (dragState.atFullExtent && dragState.type === 'previous') || (gestureHint === 'previous' && gestureHintCommitReady),
       'media-mode': isMediaQueueMode,
-      'sidebar-resizing': isSidebarResizing,
       'nav-button--hidden': !showNav,
     }"
     :style="previousButtonStyle"
@@ -45,14 +43,13 @@
     :title="$t('general.previous')"
   >
     <i class="material-symbols">
-      {{ dragState.type === 'previous' && dragState.atFullExtent ? 'list_alt' : 'chevron_left' }} <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+      {{ dragState.type === 'previous' && dragState.atFullExtent ? 'list_alt' : 'chevron_left' }}
     </i>
   </button>
 
   <!-- Next button -->
   <button
     v-if="enabled && hasNext"
-    ref="nextButton"
     type="button"
     :tabindex="showNav ? 0 : -1"
     @click.prevent="handleNextClick"
@@ -71,14 +68,13 @@
     :title="$t('general.next')"
   >
     <i class="material-symbols">
-      {{ dragState.type === 'next' && dragState.atFullExtent ? 'list_alt' : 'chevron_right' }} <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
+      {{ dragState.type === 'next' && dragState.atFullExtent ? 'list_alt' : 'chevron_right' }}
     </i>
   </button>
 
   <!-- Close preview (same control as swipe-down / back) -->
   <button
     v-if="enabled && showPreviewCloseButton"
-    ref="closeButton"
     type="button"
     :tabindex="showCloseNavChrome ? 0 : -1"
     @click.prevent="handleClosePreviewClick"
@@ -87,7 +83,6 @@
       active: gestureHint === 'close' && gestureHintCommitReady,
       'media-mode': isMediaQueueMode,
       'gesture-flash': gestureHintFlashClose,
-      'sidebar-resizing': isSidebarResizing,
       'nav-button--hidden': !showCloseNavChrome,
     }"
     :style="closeButtonStyle"
@@ -101,11 +96,11 @@
 </template>
 
 <script>
-import { state, getters, mutations } from "@/store";
-import throttle from "@/utils/throttle";
-import { previewViews } from "@/utils/constants";
-import { url } from "@/utils";
-import { resourcesApi } from "@/api";
+import { state, getters, mutations } from "@/store/index.ts";
+import throttle from "@/utils/throttle.js";
+import { previewViews } from "@/utils/constants.ts";
+import { url } from "@/utils/index.ts";
+import { resourcesApi } from "@/api/index.js";
 import { navigatePlaybackQueue } from "@/utils/playbackQueue.js";
 import {
   isInLeftNavHoverZone,
@@ -129,6 +124,7 @@ export default {
         threshold: 0, // Will be calculated as 10em in pixels
         atFullExtent: false,
         triggered: false,
+        wasDrag: false,
       },
       // State tracking
       navigationTimeout: null,
@@ -146,7 +142,6 @@ export default {
         tapTimeout: null,
         triggered: false
       },
-      isSidebarResizing: false, // Track if sidebar is being resized
     };
   },
   computed: {
@@ -199,8 +194,7 @@ export default {
     closeButtonStyle() {
       const styles = { right: 'auto' };
       if (this.moveWithSidebar) {
-        const half = this.sidebarWidth / 2;
-        styles.left = `calc(50% + ${half}em)`;
+        styles.left = 'calc(50% + var(--sidebar-width) / 2)';
       } else {
         styles.left = '50%';
       }
@@ -224,6 +218,12 @@ export default {
     nextRaw() {
       return state.navigation.nextRaw;
     },
+    navigationRequestKey() {
+      return state.req ? `${state.req.source ?? ""}\u0000${state.req.path ?? ""}` : "";
+    },
+    navigationParentItems() {
+      return state.req?.parentDirItems;
+    },
     currentView() {
       const view = getters.currentView();
       return view;
@@ -246,7 +246,7 @@ export default {
         width: '5em',
       };
       if (this.moveWithSidebar) {
-        styles.left = `${this.sidebarWidth}em`;
+        styles.left = 'var(--sidebar-width)';
       } else {
         styles.left = '0';
       }
@@ -259,7 +259,7 @@ export default {
       }
       // Calculate left position based on sidebar
       if (this.moveWithSidebar) {
-        styles.left = `calc(${this.sidebarWidth}em + 1em)`; // When sidebar is sticky the position of the button will have a tiny padding
+        styles.left = 'calc(var(--sidebar-width) + 1em)'; // tiny padding next to the sticky sidebar
       } else {
         styles.left = '1em';
       }
@@ -285,18 +285,6 @@ export default {
         await this.setupNavigationForCurrentItem();
       }
     },
-    'state.req': {
-      async handler() {
-        this.updateNavigationEnabled();
-        // Auto-setup navigation when request changes and we're enabled
-        if (this.enabled) {
-          await this.$nextTick();
-          await this.setupNavigationForCurrentItem();
-        }
-      },
-      deep: true,
-      immediate: false
-    },
     async enabled(newEnabled) {
       if (newEnabled && state.req) {
         await this.$nextTick();
@@ -313,21 +301,20 @@ export default {
         });
       }, 100);
     },
-    navigationSortOverride() {
+    navigationRequestKey() {
       if (this.enabled && state.req) {
         void this.setupNavigationForCurrentItem();
       }
     },
-    // Watch for when navigation links are set up
-    'state.navigation.previousLink'() {
-      this.showInitialNavigation();
+    navigationParentItems() {
+      if (this.enabled && state.req) {
+        void this.setupNavigationForCurrentItem();
+      }
     },
-    'state.navigation.nextLink'() {
-      this.showInitialNavigation();
-    },
-    'state.sidebar.isResizing'(newVal) {
-      // Track when sidebar is being resized to disable transitions
-      this.isSidebarResizing = newVal;
+    navigationSortOverride() {
+      if (this.enabled && state.req) {
+        void this.setupNavigationForCurrentItem();
+      }
     },
   },
   async mounted() {
@@ -342,7 +329,7 @@ export default {
     window.addEventListener("mousemove", this.handleGlobalMouseMove, true);
 
     // Calculate 10em threshold in pixels
-    const emSize = parseFloat(getComputedStyle(document.documentElement).fontSize);
+    const emSize = Number.parseFloat(getComputedStyle(document.documentElement).fontSize);
     this.dragState.threshold = 10 * emSize;
 
     this.updateNavigationEnabled();
@@ -524,13 +511,20 @@ export default {
       mutations.closeHovers();
       this.hoverNav = false;
       mutations.setNavigationGestureHint({});
-      if (state.previousHistoryItem?.name) {
+      const prev = state.previousHistoryItem;
+      // Consume the remembered item so a later close does not return here.
+      mutations.setPreviousHistoryItem(null);
+      const current = state.req;
+      const prevIsCurrent = prev?.path && current?.path && !prev.returnTo
+        && prev.source === current.source
+        && prev.path === current.path;
+      if (prev?.name && !prevIsCurrent) {
         url.goToItem(
-          state.previousHistoryItem.source,
-          state.previousHistoryItem.path,
-          state.previousHistoryItem,
+          prev.source,
+          prev.path,
+          prev,
           false,
-          state.previousHistoryItem.isShare
+          prev.isShare
         );
         return;
       }
@@ -732,7 +726,7 @@ export default {
         if (!this.dragState.isDragging) {
           // Calculate 10em threshold in pixels if not set
           if (!this.dragState.threshold) {
-            const emSize = parseFloat(getComputedStyle(document.documentElement).fontSize);
+            const emSize = Number.parseFloat(getComputedStyle(document.documentElement).fontSize);
             this.dragState.threshold = 10 * emSize;
           }
 
@@ -959,7 +953,7 @@ export default {
       // Get items from the current navigation listing (files in same directory)
       const listing = state.navigation.listing || [];
       return listing.map(item => ({
-        name: item.name, // Keep original names without emojis
+        name: item.name,
         path: item.path,
         source: item.source || state.req.source,
         type: item.type,
@@ -967,6 +961,8 @@ export default {
         size: item.size,
         modified: item.modified,
         created: item.created,
+        pinned: !!item.pinned,
+        metadata: item.metadata,
         originalItem: item
       }));
     },
@@ -1061,11 +1057,6 @@ export default {
   box-shadow: var(--fab-elevation-hover);
   color: white;
   opacity: 1;
-}
-
-/* Disable transitions during sidebar resizing */
-.nav-button.sidebar-resizing {
-  transition: opacity 0.4s ease, transform 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .nav-button.nav-close {

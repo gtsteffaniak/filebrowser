@@ -51,3 +51,7 @@ userDefaults:
     video: true
     office: true
     highQuality: true
+
+integrations:
+  media:
+    skipHwCheck: true

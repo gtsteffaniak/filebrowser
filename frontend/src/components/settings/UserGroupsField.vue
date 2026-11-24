@@ -2,12 +2,12 @@
   <EntityPickerButton
     kind="group"
     multiple
-    :label="$t('access.userGroups')"
+    :label="$t('general.groups')"
     :description="description"
     :username="username"
     :disabled="disabled"
     :initial-selected="modelValue"
-    @select="update"
+    @selected="update"
   />
 </template>
 
@@ -37,7 +37,9 @@ export default {
       default: false,
     },
   },
-  emits: ["update:modelValue"],
+  emits: {
+    "update:modelValue": (names) => Array.isArray(names),
+  },
   methods: {
     update(names) {
       this.$emit("update:modelValue", names);

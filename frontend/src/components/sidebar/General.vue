@@ -38,9 +38,9 @@
           <i class="material-symbols">ads_click</i>
         </div>
         <div aria-label="Toggle Theme" v-if="darkModeTogglePossible" class="clickable"
-          :class="{ active: user?.darkMode }" @click="toggleDarkMode"
-          @mouseenter="showTooltip($event, $t('index.toggleDark'))" @mouseleave="hideTooltip">
-          <i class="material-symbols">dark_mode</i>
+          :class="{ active: isDarkMode }" @click="cycleDarkMode"
+          @mouseenter="showTooltip($event, darkModeTooltip)" @mouseleave="hideTooltip">
+          <i class="material-symbols">{{ darkModeIcon }}</i>
         </div>
         <div class="clickable" :class="{ active: isStickySidebar }" @click="toggleSticky"
           @mouseenter="showTooltip($event, $t('index.toggleSticky'))" @mouseleave="hideTooltip" v-if="!isMobile">
@@ -50,8 +50,7 @@
     </div>
 
     <!-- Sidebar file actions -->
-    <transition v-if="shareInfo.shareType !== 'upload'" name="expand" @before-enter="beforeEnter" @enter="enter"
-      @leave="leave">
+    <transition v-if="shareInfo.shareType !== 'upload'" :css="false" @enter="collapseEnter" @leave="collapseLeave">
       <div v-if="showFileActions" class="card-wrapper">
         <button type="button" @click="openContextMenu" aria-label="File-Actions" data-testid="file-actions-button" class="action file-actions">
           <i class="material-symbols">add</i>
@@ -72,16 +71,17 @@
 </template>
 
 <script>
-import { logout } from "@/utils/auth";
-import { globalVars } from "@/utils/constants";
-import { state, getters, mutations } from "@/store";
+import { logout } from "@/utils/auth.js";
+import { globalVars } from "@/utils/constants.ts";
+import { state, getters, mutations } from "@/store/index.ts";
 import {
   hideInteractiveTooltip,
   showHoverTooltip,
 } from "@/utils/tooltipHelp.js";
 import SidebarLinks from "./Links.vue";
-import { url } from "@/utils";
-import { expandLeave } from "@/utils/expandTransition";
+import { url } from "@/utils/index.ts";
+import { normalizeDarkMode } from "@/utils/theme.js";
+import { collapseEnter, collapseLeave } from "@/utils/transitions.ts";
 
 export default {
   name: "SidebarGeneral",
@@ -134,6 +134,20 @@ export default {
     route: () => state.route,
     realtimeActive: () => state.realtimeActive,
     darkModeTogglePossible: () => state.shareInfo?.enforceDarkLightMode !== "dark" && state.shareInfo?.enforceDarkLightMode !== "light",
+    isDarkMode: () => getters.isDarkMode(),
+    darkModeIcon() {
+      const icons = { auto: "routine", light: "light_mode", dark: "dark_mode" };
+      return icons[normalizeDarkMode(state.user?.darkMode)];
+    },
+    darkModeTooltip() {
+      const labels = {
+        auto: this.$t("profileSettings.darkModeSystem"),
+        light: this.$t("profileSettings.darkModeLight"),
+        dark: this.$t("profileSettings.darkModeDark"),
+      };
+      const mode = labels[normalizeDarkMode(state.user?.darkMode)];
+      return `${this.$t("index.toggleDark")} — ${mode}`;
+    },
     shouldShowLogin() {
       if (getters.isShare()) {
         // Don't show login until shareInfo is fully loaded
@@ -161,7 +175,9 @@ export default {
         mutations.showPrompt({ name: "ContextMenu", props: { showCentered: true } });
         return;
       }
-      mutations.resetSelected();
+      // Listing: keep the caller's selection — `createOnly` already makes the menu
+      // act on nothing but create options (Kurami32: wiping it lost the selection
+      // on mobile when using the actions menu).
       mutations.showPrompt({
         name: "ContextMenu",
         props: {
@@ -176,8 +192,8 @@ export default {
     toggleClick() {
       void mutations.updateCurrentUser({ singleClick: !state.user.singleClick });
     },
-    toggleDarkMode() {
-      mutations.toggleDarkMode();
+    cycleDarkMode() {
+      mutations.cycleDarkMode();
     },
     toggleSticky() {
       // keep sidebar open if disabling sticky sidebar
@@ -218,29 +234,8 @@ export default {
       }
       await logout(sharePath);
     },
-    beforeEnter(el) {
-      el.style.maxHeight = '0';
-      el.style.opacity = '0';
-    },
-    enter(el, done) {
-      requestAnimationFrame(() => {
-        el.style.transition = 'max-height 0.2s ease, opacity 0.15s ease';
-        el.style.maxHeight = `${el.scrollHeight}px`;
-        el.style.opacity = '1';
-        const onTransitionEnd = () => {
-          el.style.maxHeight = '';
-          el.removeEventListener('transitionend', onTransitionEnd);
-          done();
-        };
-        el.addEventListener('transitionend', onTransitionEnd);
-      });
-    },
-    leave(el, done) {
-      // Finish on a timer, not transitionend: a card shown on first render never ran enter() and has no
-      // transition, and sidebar resizing sets `transition: none`. Either way transitionend never fires,
-      // done() is never called, and the card stays mounted, invisible but still clickable.
-      expandLeave(el, done, 200);
-    },
+    collapseEnter,
+    collapseLeave,
     showTooltip(event, text) {
       if (text) {
         showHoverTooltip(text, event);
@@ -321,7 +316,7 @@ export default {
 }
 
 button.action {
-  border-radius: 0.5em;
+  border-radius: var(--borderRadius);
 }
 
 .quick-toggles .active {
@@ -341,6 +336,13 @@ button.action {
 
 .headline-card {
   padding: 1em;
+}
+
+/* Icon spacing comes from .action i — these buttons stay zero-padded */
+.person-button,
+.logout-button {
+  --button-padding-x: 0;
+  --button-padding-y: 0;
 }
 
 .person-button {

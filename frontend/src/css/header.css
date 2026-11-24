@@ -42,3 +42,11 @@ header a:hover {
 header .action span {
   display: none;
 }
+
+/* Icon-only header buttons: compact, with a hover effect sized for icons */
+header .action.button {
+  --button-padding-x: 0;
+  --button-padding-y: 0;
+  --hover-transform: none;
+  --hover-shadow: inset 0 0 0 3em var(--hoverOverlay);
+}

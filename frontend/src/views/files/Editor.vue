@@ -20,14 +20,14 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, onUnmounted, ref, shallowRef, watch } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, onUnmounted, ref, shallowRef, useTemplateRef, watch } from "vue";
 import { useRoute, useRouter, type RouteLocationNormalized } from "vue-router";
-import { useI18n } from "vue-i18n";
+import { useI18n } from "@/i18n/index.ts";
 import type { Ace } from "ace-builds";
-import { state, getters, mutations } from "@/store";
-import { resourcesApi } from "@/api";
+import { state, getters, mutations } from "@/store/index.ts";
+import { resourcesApi } from "@/api/index.js";
 import { pathsMatch, removeLastDir } from "@/utils/url.js";
-import { notify } from "@/notify";
+import { notify } from "@/notify/index.ts";
 import ace, { version as ace_version } from "ace-builds";
 import modelist from "ace-builds/src-noconflict/ext-modelist";
 import "ace-builds/src-noconflict/ext-searchbox";
@@ -39,29 +39,22 @@ import "ace-builds/src-min-noconflict/mode-json";
 import "ace-builds/src-min-noconflict/mode-markdown";
 import EditorToolbar from "@/components/files/EditorToolbar.vue";
 import MarkdownSplitView from "@/components/files/MarkdownSplitView.vue";
-import { editorConfig, type EditorConfig } from "@/utils/editorConfig";
-import { rejectPutIfQuotaExceeded } from "@/utils/uploadQuota";
+import { editorConfig, type EditorConfig } from "@/utils/editorConfig.ts";
+import { rejectPutIfQuotaExceeded } from "@/utils/uploadQuota.js";
 
 type Req = typeof state.req;
 interface AceRendererInternal { $gutterLayer: { $renderer: unknown } }
 
-const props = defineProps({
-  viewerMode: {
-    type: Boolean,
-    default: false
-  },
-  content: {
-    type: String,
-    default: ""
-  },
-  editorMode: {
-    type: String,
-    default: "yaml" // Default to YAML for config viewing
-  },
-  readOnly: {
-    type: Boolean,
-    default: null // null means auto-determine
-  }
+const props = withDefaults(defineProps<{
+  viewerMode?: boolean;
+  content?: string;
+  editorMode?: string;
+  readOnly?: boolean | null;
+}>(), {
+  viewerMode: false,
+  content: "",
+  editorMode: "yaml", // Default to YAML for config viewing
+  readOnly: null, // null means auto-determine
 });
 
 const THEME_DARK = "ace/theme/tomorrow_night_bright";
@@ -73,10 +66,10 @@ const route = useRoute();
 const router = useRouter();
 const { t } = useI18n();
 
-const editorRoot = ref<HTMLElement | null>(null);
-const editorEl = ref<HTMLElement | null>(null);
-const splitView = ref<InstanceType<typeof MarkdownSplitView> | null>(null);
-const toolbar = ref<InstanceType<typeof EditorToolbar> | null>(null);
+const editorRoot = useTemplateRef<HTMLElement>("editorRoot");
+const editorEl = useTemplateRef<HTMLElement>("editorEl");
+const splitView = useTemplateRef<InstanceType<typeof MarkdownSplitView>>("splitView");
+const toolbar = useTemplateRef<InstanceType<typeof EditorToolbar>>("toolbar");
 
 const editor = shallowRef<Ace.Editor | null>(null); // The editor instance
 const originalReq = ref<Req | null>(null);
@@ -163,11 +156,12 @@ const showEditorToolbar = computed(() => !editorReadOnly.value);
 const isSplitActive = computed(() =>
   !props.viewerMode && isMarkdownFile.value && state.editor.markdownSplitView && !getters.isMobile() && permissions.value.modify
 );
+const WRAP_METHODS = { none: 'auto', aligned: 'text', extra: 'code' } as const;
 const editorAceOptions = computed(() => ({
   keybinding: editorConfig.keybinding,
   tabSize: editorConfig.tabSize,
   overscroll: editorConfig.overscroll,
-  indentedSoftWrap: editorConfig.indentedSoftWrap,
+  wrapIndent: editorConfig.wrapIndent,
   showIndentGuides: editorConfig.showIndentGuides,
   showGutter: editorConfig.showGutter,
   fixedGutterWidth: editorConfig.fixedGutterWidth,
@@ -385,7 +379,7 @@ function initializeEditor(initialScrollRatio: number = state.editor.scrollRatio)
       theme: isDarkMode.value ? THEME_DARK : THEME_LIGHT,
       readOnly: editorReadOnly.value,
       wrap: !!editorConfig.wrapEditorContent,
-      indentedSoftWrap: editorConfig.indentedSoftWrap,
+      indentedSoftWrap: editorConfig.wrapIndent !== 'none',
       enableMobileMenu: false,
       enableBasicAutocompletion: editorConfig.enableAutocompletion,
       enableLiveAutocompletion: editorConfig.enableAutocompletion && editorConfig.enableLiveAutocompletion,
@@ -402,6 +396,7 @@ function initializeEditor(initialScrollRatio: number = state.editor.scrollRatio)
       keyboardHandler: editorConfig.keybinding || null,
       fontSize: `${state.editor.fontSize}px`,
     });
+    editorInstance.session.setOption('wrapMethod', WRAP_METHODS[editorConfig.wrapIndent]);
     editor.value = editorInstance;
 
     savedContent = editorContent.value;
@@ -691,7 +686,8 @@ function applyAceOptions(cfg: Omit<EditorConfig, "wrapEditorContent"> = editorCo
   editor.value.setOption('keyboardHandler', cfg.keybinding || null);
   editor.value.setOption('tabSize', cfg.tabSize);
   editor.value.setOption('scrollPastEnd', cfg.overscroll);
-  editor.value.setOption('indentedSoftWrap', cfg.indentedSoftWrap);
+  editor.value.session.setOption('wrapMethod', WRAP_METHODS[cfg.wrapIndent]);
+  editor.value.setOption('indentedSoftWrap', cfg.wrapIndent !== 'none');
   editor.value.setOption('displayIndentGuides', cfg.showIndentGuides);
   editor.value.setOption('showGutter', cfg.showGutter);
   editor.value.setOption('fixedWidthGutter', cfg.fixedGutterWidth);
@@ -858,7 +854,7 @@ defineExpose({ getValue });
 .ace_editor .ace_gutter-active-line {
   background-color: color-mix(in srgb, var(--primaryColor) 20%, transparent) !important;
   color: var(--primaryColor) !important;
-  font-weight: bold !important;
+  font-weight: 700 !important;
 }
 
 /* Indent lines */

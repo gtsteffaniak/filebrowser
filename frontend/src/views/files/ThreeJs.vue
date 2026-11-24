@@ -18,7 +18,7 @@
       icon="settings"
       position="bottom-left"
       :auto-hide="false"
-      @click="showControlsPrompt"
+      @press="showControlsPrompt"
       :label="$t('threejs.controls')"
     />
   </div>
@@ -65,9 +65,9 @@ import { VOXLoader } from 'three/addons/loaders/VOXLoader.js';
 import { KMZLoader } from 'three/addons/loaders/KMZLoader.js';
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import FloatingActionButton from "@/components/settings/FloatingActionButton.vue";
-import { state, mutations, getters } from "@/store";
-import { resourcesApi } from "@/api";
-import { getCachedViewToken, ensureViewToken, requestViewIdentity } from "@/api/viewToken";
+import { state, mutations, getters } from "@/store/index.ts";
+import { resourcesApi } from "@/api/index.js";
+import { getCachedViewToken, ensureViewToken, requestViewIdentity } from "@/api/viewToken.js";
 import { getObjectProperty } from '@/utils/object.js';
 import { resolveAssetFilePath, hasSiblingFile } from "@/utils/threeAssetUrl.js";
 
@@ -105,6 +105,7 @@ const LOADERS = {
 export default {
   name: "threeJsViewer",
   components: { LoadingSpinner, FloatingActionButton },
+  emits: { "load-error": () => true },
   props: {
     fbdata: { type: Object, required: true },
     isThumbnail: { type: Boolean, default: false },
@@ -361,7 +362,7 @@ export default {
       }
       this.loading = false;
       if (this.isThumbnail) {
-        this.$emit('error', err);
+        this.$emit('load-error', err);
       }
     },
 
@@ -501,7 +502,7 @@ export default {
         const magic = new TextDecoder().decode(new Uint8Array(data, 0, 4));
         // Strip a trailing slash first, otherwise the buffer base is the model file itself.
         const modelPath = this.fbdata.path.replace(/\/+$/, '');
-        const modelDir = modelPath.substring(0, modelPath.lastIndexOf('/') + 1);
+        const modelDir = modelPath.slice(0, modelPath.lastIndexOf('/') + 1);
 
         if (magic !== 'glTF') {
           // Try text parse

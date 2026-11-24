@@ -1,24 +1,25 @@
-FROM gtstef/ffmpeg:9.0.2-decode AS ffmpeg
+# syntax=docker/dockerfile:1.4
+FROM gtstef/ffmpeg:9.1 AS ffmpeg
 FROM golang:alpine AS base
 ARG VERSION
 ARG REVISION
 WORKDIR /app
+COPY ./backend/go.mod ./backend/go.sum ./
+RUN --mount=type=cache,target=/go/pkg/mod go mod download
 COPY ./backend ./
-RUN apk update && apk add --no-cache gcc musl-dev
-RUN go mod download && go run ./scripts/setup-gofitz-cgo
-ENV CGO_ENABLED=1
-RUN go build -tags analytics,mupdf,musl -ldflags="-w -s \
+ENV CGO_ENABLED=0
+RUN --mount=type=cache,target=/go/pkg/mod --mount=type=cache,target=/root/.cache/go-build go build -trimpath -tags analytics -ldflags="-w -s \
   -X 'github.com/gtsteffaniak/filebrowser/backend/internal/version.Version=${VERSION}' \
   -X 'github.com/gtsteffaniak/filebrowser/backend/internal/version.CommitSHA=${REVISION}'" \
   -o filebrowser .
 
-FROM node:jod-slim AS nbuild
+FROM node:slim AS nbuild
 WORKDIR /build
 COPY ./frontend/package.json ./frontend/package-lock.json ./frontend/
 RUN apt-get update && apt-get install -y --no-install-recommends git ca-certificates \
     && git config --global url."https://github.com/".insteadOf "git@github.com:" \
     && git config --global url."https://github.com/".insteadOf "ssh://git@github.com/"
-RUN cd frontend && npm ci --maxsockets 1
+RUN --mount=type=cache,target=/root/.npm cd frontend && npm ci --maxsockets 1
 COPY ./frontend/ ./frontend/
 WORKDIR /build/frontend
 RUN npm run build:docker
@@ -38,7 +39,7 @@ COPY --from=base --chown=filebrowser:1000 [ "/app/filebrowser", "./" ]
 COPY --from=base --chown=filebrowser:1000 [ "/app/config.yaml", "./data/config.yaml" ]
 COPY --from=base --chown=filebrowser:1000 [ "/app/config.yaml", "./" ]
 COPY --from=base --chown=filebrowser:1000 [ "/app/reduce-rounded-corners.css", "./" ]
-COPY --from=nbuild --chown=filebrowser:1000 [ "/build/backend/internal/web/dist/", "./internal/web/dist/" ]
+COPY --from=nbuild --chown=filebrowser:1000 [ "/build/frontend/dist/", "./internal/web/dist/" ]
 ## sanity checks
 RUN [ "filebrowser", "version" ]
 RUN [ "ffmpeg", "-version" ]

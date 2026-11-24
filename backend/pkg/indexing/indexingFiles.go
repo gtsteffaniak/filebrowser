@@ -14,6 +14,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/fileutils"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/dbindex"
 	dbsql "github.com/gtsteffaniak/filebrowser/backend/internal/database/sql"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/embeddedpreview"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing/iteminfo"
@@ -1657,6 +1658,19 @@ func setFilePreviewFlags(fileInfo *iteminfo.ItemInfo, realPath string) {
 		}
 		fileInfo.HasPreview = settings.CanConvertImage("heic")
 		return
+	case "image/jxl":
+		if fileInfo.Size > iteminfo.LargeFileSizeThreshold {
+			fileInfo.HasPreview = false
+			return
+		}
+		fileInfo.HasPreview = settings.CanConvertImage("jxl")
+		return
+	}
+	// Text-like files are rendered by the text preview endpoint (not the image pipeline),
+	// so this runs before Folio/OnlyOffice. SVG is not a text preview type and stays an image.
+	if iteminfo.IsTextPreviewable(fileInfo.Type) {
+		fileInfo.HasPreview = true
+		return
 	}
 	switch simpleType {
 	case "image":
@@ -1680,7 +1694,13 @@ func setFilePreviewFlags(fileInfo *iteminfo.ItemInfo, realPath string) {
 		return
 	}
 	// Check for office docs and PDFs
-	if settings.Config.Integrations.OnlyOffice.Secret != "" && iteminfo.IsOnlyOffice(fileInfo.Name) {
+	if settings.Config.Integrations.OnlyOffice.Secret != "" && !settings.Config.Integrations.OnlyOffice.IsCollabora() && iteminfo.IsOnlyOffice(fileInfo.Name) {
+		fileInfo.HasPreview = true
+		return
+	}
+	// Embedded previews (Krita, CBZ, XPS, Office and ODF thumbnails, and others) come from an image
+	// inside the file. This runs after the OnlyOffice check; see embeddedpreview for the formats.
+	if embeddedpreview.Supports(fileInfo.Name, fileInfo.Type) {
 		fileInfo.HasPreview = true
 		return
 	}

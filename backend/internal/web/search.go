@@ -1,12 +1,14 @@
 package web
 
 import (
+	"context"
 	"fmt"
 	"math"
 	"net/http"
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
@@ -15,12 +17,15 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 )
 
+// searchTimeout bounds how long a single search may hold the index database. When it
+// elapses (or the client disconnects) the running query is interrupted.
+const searchTimeout = 15 * time.Second
+
 type searchOptions struct {
 	parsed        iteminfo.SearchOptions
 	sources       []string
 	searchScope   string
 	combinedPath  map[string]string // source -> combinedPath
-	sessionId     string
 	largest       bool
 	useWildcard   bool
 	olderThanUnix int64 // optional; 0 = unset. Modified time must be strictly before this Unix second.
@@ -62,14 +67,14 @@ type scopedSourcePath struct {
 // @Tags Tools
 // @Accept json
 // @Produce json
-// @Param query query string false "Filter prefix or full search text (required when no terms are supplied)"
+// @Param query query string false "Filter prefix or full search text; no minimum length is enforced (clients enforce minSearchLength)"
 // @Param terms query []string false "Repeated: one literal search term per parameter; combined with OR unless termJoin=and"
 // @Param sources query string false "Comma-separated source names when not using repeated scope=source:path"
 // @Param scope query []string false "Repeated: 'sourceName:relativePath' per source"
 // @Param olderThan query int false "Unix seconds; only results modified strictly before this time"
 // @Param newerThan query int false "Unix seconds; only results modified on or after this time"
 // @Param useWildcard query bool false "When true, match indexed file names with SQLite GLOB (wildcard patterns)"
-// @Param limit query int false "Requested advanced search limit, capped by server.searchResultsLimit (default 1000); omitted for quick search (100)"
+// @Param limit query int false "Requested advanced search limit, capped by server.searchResultsLimit (default 1000) and a hard max of 5000; omitted for quick search (100)"
 // @Param termJoin query string false "Optional: 'and' to require all repeated 'terms' match; default is OR"
 // @Success 200 {array} indexing.SearchResult "List of search results with source field populated"
 // @Failure 400 {object} map[string]string "Bad Request"
@@ -88,11 +93,11 @@ func searchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, err
 		if err != nil || requested < 1 {
 			return http.StatusBadRequest, fmt.Errorf("limit must be a positive integer")
 		}
-		searchSize = requested
-		if searchSize > settings.Config.Server.SearchResultsLimit {
-			searchSize = settings.Config.Server.SearchResultsLimit
-		}
+		searchSize = min(requested, settings.Config.Server.SearchResultsLimit, indexing.MaxSearchResultsLimit)
 	}
+
+	ctx, cancel := context.WithTimeout(r.Context(), searchTimeout)
+	defer cancel()
 
 	var response []*indexing.SearchResult
 	if len(searchOptions.sources) == 1 {
@@ -101,9 +106,9 @@ func searchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, err
 			return http.StatusBadRequest, fmt.Errorf("index not found for source %s", searchOptions.sources[0])
 		}
 		combinedPath := searchOptions.combinedPath[searchOptions.sources[0]]
-		response = index.SearchParsed(searchOptions.parsed, combinedPath, searchOptions.sessionId, searchOptions.largest, searchSize, searchOptions.olderThanUnix, searchOptions.newerThanUnix, searchOptions.useWildcard)
+		response = index.SearchParsed(ctx, searchOptions.parsed, combinedPath, searchOptions.largest, searchSize, searchOptions.olderThanUnix, searchOptions.newerThanUnix, searchOptions.useWildcard)
 	} else {
-		response = indexing.SearchMultiSourcesParsed(searchOptions.parsed, searchOptions.sources, searchOptions.combinedPath, searchOptions.sessionId, searchOptions.largest, searchSize, searchOptions.olderThanUnix, searchOptions.newerThanUnix, searchOptions.useWildcard)
+		response = indexing.SearchMultiSourcesParsed(ctx, searchOptions.parsed, searchOptions.sources, searchOptions.combinedPath, searchOptions.largest, searchSize, searchOptions.olderThanUnix, searchOptions.newerThanUnix, searchOptions.useWildcard)
 	}
 
 	// Filter out items that are not permitted according to access rules and trim user scope from paths
@@ -203,21 +208,6 @@ func prepSearchOptions(r *http.Request, d *Context) (*searchOptions, error) {
 
 	parsed := iteminfo.BuildSearchOptionsFromQuery(query, normalizedTerms, matchAllTerms)
 
-	minLen := settings.Config.Server.MinSearchLength
-	if !largest {
-		if len(normalizedTerms) > 0 {
-			for _, t := range normalizedTerms {
-				if len(t) < minLen {
-					return nil, fmt.Errorf("each term is too short, minimum length is %d", minLen)
-				}
-			}
-		} else if len(strings.TrimSpace(query)) < minLen {
-			return nil, fmt.Errorf("query is too short, minimum length is %d", minLen)
-		}
-	}
-
-	sessionId := r.Header.Get("SessionId")
-
 	var sources []string
 	combinedPathMap := make(map[string]string)
 	var searchScopeOut string
@@ -279,7 +269,6 @@ func prepSearchOptions(r *http.Request, d *Context) (*searchOptions, error) {
 		sources:       sources,
 		searchScope:   searchScopeOut,
 		combinedPath:  combinedPathMap,
-		sessionId:     sessionId,
 		largest:       largest,
 		useWildcard:   useWildcard,
 		olderThanUnix: olderThanUnix,

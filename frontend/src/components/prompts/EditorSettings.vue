@@ -1,69 +1,70 @@
 <template>
   <div class="card-content editor-settings-content settings-items">
-    <div v-for="field in fields" :key="field.key" class="setting-row item">
-      <div class="setting-label">
-        <span :id="`editor-${field.key}-label`">{{ field.label }}</span>
-        <i
-          class="no-select material-symbols-outlined tooltip-info-icon"
-          @mouseenter="showTooltip($event, field.desc)"
-          @mouseleave="hideTooltip"
-        >help</i>
+    <template v-for="field in settings" :key="field.key">
+      <div v-if="field.type" class="setting-row item">
+        <div class="setting-label">
+          <span :id="`editor-${field.key}-label`">{{ field.label }}</span>
+          <i
+            class="no-select material-symbols-outlined tooltip-info-icon"
+            @mouseenter="showTooltip($event, field.desc)"
+            @mouseleave="hideTooltip"
+          >help</i>
+        </div>
+        <div class="setting-control">
+          <ExpandDropdown
+            v-if="field.type === 'dropdown'"
+            :options="field.options"
+            :model-value="(config[field.key] as string | number)"
+            @update:model-value="setValue(field, $event)"
+            :aria-label="field.aria"
+          />
+          <input
+            v-else
+            type="number"
+            class="input"
+            :value="config[field.key]"
+            @change="setValue(field, ($event.target as HTMLInputElement).value)"
+            :min="field.min"
+            :max="field.max"
+            :aria-label="field.aria"
+          />
+        </div>
       </div>
-      <div class="setting-control">
-        <ExpandDropdown
-          v-if="field.type === 'dropdown'"
-          :options="field.options"
-          :model-value="(config[field.key] as string | number)"
-          @update:model-value="setValue(field, $event)"
-          :aria-label="field.aria"
-        />
-        <input
-          v-else
-          type="number"
-          class="input"
-          :value="config[field.key]"
-          @change="setValue(field, ($event.target as HTMLInputElement).value)"
-          :min="field.min"
-          :max="field.max"
-          :aria-label="field.aria"
-        />
-      </div>
-    </div>
-    <ToggleSwitch
-      v-for="toggle in toggles"
-      :key="toggle.key"
-      class="item"
-      :name="toggle.label"
-      :description="toggle.desc"
-      :model-value="(config[toggle.key] as boolean)"
-      @update:model-value="setValue(toggle, $event)"
-    />
+      <ToggleSwitch
+        v-else
+        class="item"
+        :name="field.label"
+        :description="field.desc"
+        :model-value="(config[field.key] as boolean)"
+        @update:model-value="setValue(field, $event)"
+      />
+    </template>
   </div>
   <div class="card-actions">
     <button
       type="button"
       class="button button--flat button--grey"
       @click="resetEditorConfig"
-      :aria-label="$t('player.visualizer.resetDefaults')"
-      :title="$t('player.visualizer.resetDefaults')"
-    > {{ $t("player.visualizer.resetDefaults") }}
+      :aria-label="t('player.visualizer.resetDefaults')"
+      :title="t('player.visualizer.resetDefaults')"
+    > {{ t("player.visualizer.resetDefaults") }}
     </button>
     <button
       type="button"
       class="button button--flat"
       @click="closeTopPrompt"
-      :aria-label="$t('general.ok')"
-      :title="$t('general.ok')"
-    > {{ $t("general.ok") }}
+      :aria-label="t('general.ok')"
+      :title="t('general.ok')"
+    > {{ t("general.ok") }}
     </button>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from "vue";
-import { useI18n } from "vue-i18n";
-import { mutations } from "@/store";
-import { editorConfig, saveEditorConfig, resetEditorConfig, type EditorConfig } from "@/utils/editorConfig";
+import { useI18n } from "@/i18n/index.ts";
+import { mutations } from "@/store/index.ts";
+import { editorConfig, saveEditorConfig, resetEditorConfig, type EditorConfig } from "@/utils/editorConfig.ts";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 
@@ -79,9 +80,12 @@ interface EditorSettingField {
   options?: { value: string | number; label: string }[];
 }
 
-defineProps({
-  promptId: { type: [String, Number], default: null },
-});
+withDefaults(
+  defineProps<{
+    promptId?: string | number | null;
+  }>(),
+  { promptId: null },
+);
 
 defineOptions({ name: "EditorSettings" });
 
@@ -131,9 +135,16 @@ const toggles = computed<EditorSettingField[]>(() => {
   const items: (EditorSettingField | false)[] = [
     { key: "wrapEditorContent", label: t("editor.settings.wrapContent"), desc: t("editor.settings.wrapContentDescription") },
     config.wrapEditorContent && {
-      key: "indentedSoftWrap",
-      label: t("editor.settings.indentedSoftWrap"),
-      desc: t("editor.settings.indentedSoftWrapDescription"),
+      key: "wrapIndent",
+      type: "dropdown",
+      label: t("editor.settings.wrapIndent.label"),
+      desc: t("editor.settings.wrapIndent.description"),
+      aria: t("editor.settings.wrapIndent.label"),
+      options: [
+        { value: "none", label: t("editor.settings.wrapIndent.none") },
+        { value: "aligned", label: t("editor.settings.wrapIndent.aligned") },
+        { value: "extra", label: t("editor.settings.wrapIndent.extra") },
+      ],
     },
     { key: "showIndentGuides", label: t("editor.settings.showIndentGuides"), desc: t("editor.settings.showIndentGuidesDescription") },
     { key: "showGutter", label: t("editor.settings.showGutter"), desc: t("editor.settings.showGutterDescription") },
@@ -150,6 +161,8 @@ const toggles = computed<EditorSettingField[]>(() => {
   ];
   return items.filter((item): item is EditorSettingField => item !== false);
 });
+
+const settings = computed(() => [...fields.value, ...toggles.value]);
 
 function setValue(field: EditorSettingField, value: string | number | boolean) {
   let val: string | number | boolean = value;

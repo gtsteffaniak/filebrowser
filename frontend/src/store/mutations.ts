@@ -3,6 +3,7 @@ import { markRaw } from "vue";
 import { resourcesApi, usersApi } from "@/api/index.js";
 import {
   getEnforcedUserDefaults,
+  getSharedMediaSettings,
   getShareDefaultsPolicy,
   getSidebarLinkDefaultsPolicy,
   getToolAccessDefaultsPolicy,
@@ -10,6 +11,7 @@ import {
 import { detectLocale, setLocale } from "@/i18n/index.ts";
 import { notify } from "@/notify/index.ts";
 import { url } from "@/utils/index.ts";
+import { normalizeDarkMode } from "@/utils/theme.js";
 import { getTypeInfo } from "@/utils/mimetype.js";
 import { getObjectProperty, setObjectProperty, omitObjectProperty } from '@/utils/object.js';
 import { sortedItems } from "@/utils/sort.ts";
@@ -21,12 +23,16 @@ import {
   confirmCloseUploadPrompt,
   hasCloseWithActiveUploadsPrompt,
 } from "@/utils/uploadNavigationGuard.ts";
-import { emitStateChanged } from "./eventBus.ts";
 import { getters } from "./getters.ts";
 import { state } from "./state.ts";
+
+/** Monotonic id so stale syncMediaSettings responses cannot overwrite newer state. */
+let mediaSettingsSyncGeneration = 0;
+import { rawList, withEntry, withoutEntry } from "@/utils/listing/selection.ts";
 import type {
   DisplayPreference,
   FileListItem,
+  MediaMetadata,
   Prompt,
   ReqObject,
   RouteObject,
@@ -45,6 +51,61 @@ let navigationSortCache: {
   asc: boolean;
   items: Partial<FileListItem>[];
 } | null = null;
+
+type DarkModePref = "auto" | "dark" | "light";
+
+/**
+ * Serialized dark-mode preference syncing for the sidebar quick toggle.
+ * Rapid clicks apply the choice optimistically and coalesce into at most one
+ * PATCH per settled request, so the saved preference always converges to the
+ * displayed one even when requests would otherwise race.
+ */
+let darkModeSyncQueue: Promise<void> = Promise.resolve();
+let queuedDarkModeTarget: DarkModePref | null = null;
+let syncedDarkMode: UserObject["darkMode"] | null = null;
+
+function queueDarkModeUpdate(value: DarkModePref) {
+  if (queuedDarkModeTarget === null) {
+    syncedDarkMode = state.user ? state.user.darkMode : null;
+    darkModeSyncQueue = darkModeSyncQueue.then(runQueuedDarkModeSync, runQueuedDarkModeSync);
+  }
+  queuedDarkModeTarget = value;
+  // Optimistic: show the chosen mode immediately; the queue reconciles the server.
+  if (state.user && state.user.darkMode !== value) {
+    state.user = { ...state.user, darkMode: value };
+  }
+}
+
+async function runQueuedDarkModeSync() {
+  while (queuedDarkModeTarget !== null) {
+    const target = queuedDarkModeTarget;
+    const snapshot = state.user;
+    if (!snapshot || snapshot.darkMode === syncedDarkMode) {
+      queuedDarkModeTarget = null;
+      continue;
+    }
+    try {
+      await usersApi.update(snapshot, ["darkMode"]);
+      // Only clear the queued target if it is still the one we just synced;
+      // a click made while this request was in flight must survive.
+      if (queuedDarkModeTarget === target) {
+        queuedDarkModeTarget = null;
+      }
+      syncedDarkMode = target;
+    } catch (e) {
+      if (queuedDarkModeTarget === target) {
+        // No newer click survived this failed request: roll the optimistic
+        // state back to the last value known to be on the server and stop.
+        if (state.user && syncedDarkMode !== null && state.user.darkMode !== syncedDarkMode) {
+          state.user = { ...state.user, darkMode: syncedDarkMode };
+        }
+        queuedDarkModeTarget = null;
+        notify.showError(e);
+      }
+      // A newer click is queued: keep it and let the next iteration try it.
+    }
+  }
+}
 
 function getSortedNavigationItems(listing: Partial<FileListItem>[], by: string, asc: boolean): Partial<FileListItem>[] {
   const cache = navigationSortCache;
@@ -88,7 +149,6 @@ export const mutations = {
       // Remove the override to use the default CSS variable
       document.documentElement.style.removeProperty("--primaryColor");
     }
-    emitStateChanged();
   },
   enableEventThemes: () => {
     localStorage.removeItem("disableEventThemes");
@@ -97,7 +157,17 @@ export const mutations = {
     if (getters.eventTheme() === "halloween") {
       syncEventTheme(true);
     }
-    emitStateChanged();
+  },
+  removeFromSearchResults: (removed: { source?: string; path: string }[]) => {
+    const search = state.searchResults;
+    if (!search || !removed?.length) return;
+    const targets = removed.map((r) => ({ source: r.source, path: url.trimSlashes(r.path) }));
+    search.items = search.items.filter((item) => {
+      const path = url.trimSlashes(item.path);
+      return !targets.some(
+        (t) => t.source === item.source && (path === t.path || path.startsWith(`${t.path}/`))
+      );
+    });
   },
   setPreviousHistoryItem: (value: StoreState['previousHistoryItem'] | null) => {
     if (value === state.previousHistoryItem) {
@@ -107,47 +177,39 @@ export const mutations = {
       value.isShare = getters.isShare();
     }
     state.previousHistoryItem = value;
-    emitStateChanged();
   },
   setContextMenuHasItems: (value: boolean) => {
     if (value === state.contextMenuHasItems) {
       return;
     }
     state.contextMenuHasItems = value;
-    emitStateChanged();
   },
   setEditorDirty: (value: boolean) => {
     if (value === state.editor.dirty) {
       return;
     }
     state.editor.dirty = value;
-    emitStateChanged();
   },
   setEditorSaveHandler: (handler: StoreState['editor']['saveHandler']) => {
     state.editor.saveHandler = handler;
-    emitStateChanged();
   },
   setEditorJsonFormatted: (value: boolean) => {
     if (value === state.editor.jsonFormatted) return;
     state.editor.jsonFormatted = value;
-    emitStateChanged();
   },
   setEditorStats: (stats: StoreState['editor']['stats']) => {
     if (JSON.stringify(state.editor.stats) === JSON.stringify(stats)) return;
     state.editor.stats = stats;
-    emitStateChanged();
   },
   setEditorFontSize: (size: number) => {
     if (state.editor.fontSize === size) return;
     state.editor.fontSize = size;
     localStorage.setItem('editorFontSize', String(size));
-    emitStateChanged();
   },
   setMarkdownSplitView: (value: boolean) => {
     if (value === state.editor.markdownSplitView) return;
     state.editor.markdownSplitView = value;
     sessionStorage.setItem("markdownSplitView", value ? "true" : "false");
-    emitStateChanged();
   },
   toggleSplitView: () => {
     mutations.setMarkdownSplitView(!state.editor.markdownSplitView);
@@ -155,7 +217,6 @@ export const mutations = {
   setEditorScrollRatio: (ratio: number, source: StoreState['editor']['scrollSource']) => {
     state.editor.scrollRatio = ratio;
     state.editor.scrollSource = source;
-    emitStateChanged();
   },
   // Called by both Editor and MarkdownViewer on mounts
   resetEditorScrollRatio: (path: string) => {
@@ -163,14 +224,12 @@ export const mutations = {
     state.editor.scrollPath = path;
     state.editor.scrollRatio = 0;
     state.editor.scrollSource = null;
-    emitStateChanged();
   },
   setDeletedItem: (value: boolean) => {
     if (value === state.deletedItem) {
       return;
     }
     state.deletedItem = value;
-    emitStateChanged();
   },
   setSeenUpdate: (value: string | null) => {
     if (value === state.seenUpdate) {
@@ -178,16 +237,17 @@ export const mutations = {
     }
     state.seenUpdate = value
     localStorage.setItem("seenUpdate", value ?? "");
-    emitStateChanged();
   },
   toggleOverflowMenu: () => {
     state.showOverflowMenu = !state.showOverflowMenu;
-    emitStateChanged();
   },
   setWatchDirChangeAvailable() {
     state.req.hasUpdate = true;
   },
   setPreviewSource: (value: string) => {
+    if (!value && !state.popupPreviewSourceInfo) {
+      return;
+    }
     if (value === state.popupPreviewSourceInfo?.url) {
       return;
     }
@@ -200,27 +260,37 @@ export const mutations = {
     } else {
       state.popupPreviewSourceInfo = null;
     }
-    emitStateChanged();
+  },
+  /** Sets (or clears with null) the full popup preview info, e.g. when an Icon is hovered. */
+  setPopupPreview: (info: StoreState['popupPreviewSourceInfo']) => {
+    if (!info && !state.popupPreviewSourceInfo) {
+      return;
+    }
+    state.popupPreviewSourceInfo = info;
   },
   updateListing: (value: StoreState['listing']) => {
     if (value === state.listing) {
       return;
     }
-    state.listing = value;
-    emitStateChanged();
+    // Assign only the fields that changed instead of replacing the object, so components
+    // reading aren't invalidated by a scrollRatio update.
+    const listing = state.listing as unknown as Record<string, unknown>;
+    for (const [key, next] of Object.entries(value)) {
+      if (!Object.is(listing[key], next)) {
+        listing[key] = next;
+      }
+    }
   },
   setCurrentSource: (value: string) => {
     if (value === state.sources.current) {
       return;
     }
     state.sources.current = value;
-    emitStateChanged();
   },
   updateSource: (sourcename: string, value: SourceInfo) => {
     if (getObjectProperty(state.sources.info, sourcename)) {
       state.sources.info = setObjectProperty(state.sources.info, sourcename, value) as Record<string, SourceInfo>;
     }
-    emitStateChanged();
   },
   updateSourceInfo: (value: Record<string, SourceInfoUpdate> | "error") => {
     if (value === "error") {
@@ -269,7 +339,6 @@ export const mutations = {
       // Sources not in this event may still hold quota or usage data.
       state.sources.hasSourceInfo = Object.values(info).some(sourceHasInfo);
     }
-    emitStateChanged();
   },
   setRealtimeActive: (value: boolean) => {
     if ( value === false ) {
@@ -281,7 +350,6 @@ export const mutations = {
       return;
     }
     state.realtimeActive = value;
-    emitStateChanged();
   },
   setSources: (user: UserObject) => {
     // Rebuilding sources from /api/users must not wipe stats already merged from
@@ -346,7 +414,6 @@ export const mutations = {
     }
     sources.defaultSource = targetSource;
     state.sources = sources;
-    emitStateChanged();
   },
   setGallerySize: (value: number) => {
     if (value === state.user.gallerySize) {
@@ -358,7 +425,6 @@ export const mutations = {
       const encoded = url.base64Encode(state.user.username);
       localStorage.setItem(`GallerySize_${encoded}`, String(value));
     }
-    emitStateChanged();
   },
   setActiveSettingsView: (value: string) => {
     if (value === state.activeSettingsView) {
@@ -367,10 +433,10 @@ export const mutations = {
     state.activeSettingsView = value;
     // Update the hash in the URL without reloading or changing history state
     window.history.replaceState(history.state, "", `#${value}`);
-    const container = document.getElementById("main");
-    const element = document.getElementById(value);
+    const container = document.querySelector<HTMLElement>("#main");
+    const element = document.querySelector<HTMLElement>(`#${CSS.escape(value)}`);
     if (container && element) {
-      const offset = 4 * parseFloat(getComputedStyle(document.documentElement).fontSize); // 4em in px
+      const offset = 4 * Number.parseFloat(getComputedStyle(document.documentElement).fontSize); // 4em in px
       const containerTop = container.getBoundingClientRect().top;
       const elementTop = element.getBoundingClientRect().top;
       const scrollOffset = elementTop - containerTop - offset;
@@ -379,33 +445,50 @@ export const mutations = {
         behavior: "smooth",
       });
     }
-    emitStateChanged();
   },
   setSettings: (value: StoreState['settings']) => {
     state.settings = value;
-    emitStateChanged();
   },
   toggleDarkMode() {
-    void mutations.updateCurrentUser({ "darkMode": !state.user.darkMode });
-    emitStateChanged();
+    // Switch to the explicit opposite of the currently resolved mode. From
+    // "auto", this picks the explicit counterpart of the system preference.
+    const dark = getters.isDarkMode();
+    queueDarkModeUpdate(dark ? "light" : "dark");
+  },
+  cycleDarkMode() {
+    // Cycle the preference auto -> light -> dark -> auto, matching the order
+    // of the theme dropdown in profile settings, so the sidebar quick toggle
+    // and the dropdown stay in sync.
+    //
+    // Anonymous share visitors cannot persist a preference (the users PATCH is
+    // skipped for them), so "auto" would only survive until the next page load
+    // and cycling through it breaks the expected "click twice, back where you
+    // started" behaviour. Keep their quick toggle a plain light <-> dark flip of
+    // the resolved theme.
+    if (state.user?.username === "anonymous") {
+      const dark = getters.isDarkMode();
+      queueDarkModeUpdate(dark ? "light" : "dark");
+      return;
+    }
+    const order = ["auto", "light", "dark"] as const;
+    const current = normalizeDarkMode(state.user?.darkMode) as (typeof order)[number];
+    const next = order[(order.indexOf(current) + 1) % order.length] as (typeof order)[number];
+    queueDarkModeUpdate(next);
   },
   toggleSidebar() {
     state.showSidebar = !state.showSidebar;
-    emitStateChanged();
   },
   closeSidebar() {
     if (!state.showSidebar) {
       return;
     }
     state.showSidebar = false;
-    emitStateChanged();
   },
   setSidebarVisible(value: boolean) {
     if (value === state.showSidebar) {
       return;
     }
     state.showSidebar = value;
-    emitStateChanged();
   },
   setIsUploading(value: boolean) {
     if (value === state.upload.isUploading) {
@@ -419,19 +502,18 @@ export const mutations = {
         window.removeEventListener("beforeunload", uploadBeforeUnloadHandler);
       }
     }
-    emitStateChanged();
   },
   closeHovers: () => {
     // Close only specific lightweight/ephemeral hovers. Like ContextMenu, OverflowMenu, tooltip or sidebar (if not pinned and floating)
     const closeableHovers = ['ContextMenu', 'OverflowMenu'];
     state.prompts = state.prompts.filter(p => !closeableHovers.includes(p.name ?? ""));
     mutations.closeSidebar();
-    mutations.hideTooltip(true);
+    mutations.hideTooltip();
   },
   closeTopPrompt: (id?: number, options?: { force?: boolean; skipCancel?: boolean }) => {
     if (!options?.force && state.prompts.length > 0) {
       const targetId =
-        id ?? state.prompts[state.prompts.length - 1]?.id;
+        id ?? state.prompts.at(-1)?.id;
       const promptToClose = state.prompts.find((p) => p.id === targetId);
       if (
         promptToClose?.name === "upload" &&
@@ -457,7 +539,7 @@ export const mutations = {
       // close topmost prompt
       if (state.prompts.length === 0) return;
       mutations.closeHovers();
-      closed = state.prompts[state.prompts.length - 1];
+      closed = state.prompts.at(-1);
       state.prompts.pop();
     } else {
       // close prompt by ID
@@ -477,7 +559,6 @@ export const mutations = {
     if (state.prompts.length === 0 && !(state as unknown as { stickySidebar?: boolean }).stickySidebar) {
       state.showSidebar = false;
     }
-    emitStateChanged();
   },
   showPrompt: (value: Prompt | string) => {
     const prompt: Prompt = typeof value === "string" ? { name: value } : (value ?? {});
@@ -486,7 +567,7 @@ export const mutations = {
     // Set parentId to the current topmost prompt, unless the prompt is pinned.
     let parentId = prompt.parentId;
     if (!parentId && !prompt.pinned) {
-      const topPrompt = state.prompts[state.prompts.length - 1];
+      const topPrompt = state.prompts.at(-1);
       if (topPrompt) {
         parentId = topPrompt.id;
       }
@@ -511,7 +592,7 @@ export const mutations = {
       const insertIndex = state.prompts.length - pinnedCount;
       state.prompts.splice(insertIndex, 0, entry);
     }
-    mutations.hideTooltip(true);
+    mutations.hideTooltip();
   },
   updatePromptTitle: (id: number, title: string) => {
     const prompt = state.prompts.find((p) => p.id === id);
@@ -521,7 +602,6 @@ export const mutations = {
     if (prompt.props) {
       prompt.props.title = title;
     }
-    emitStateChanged();
   },
   setLoading: (loadType: string, status: boolean) => {
     if (status === false) {
@@ -529,14 +609,12 @@ export const mutations = {
     } else {
       state.loading = setObjectProperty(state.loading, loadType, true);
     }
-    emitStateChanged();
   },
   setReload: (value: boolean) => {
     if (value === state.reload) {
       return;
     }
     state.reload = value;
-    emitStateChanged();
   },
   setCurrentUser: async (value: Partial<UserObject> | null) => {
     try {
@@ -547,7 +625,6 @@ export const mutations = {
         state.sidebarLinkDefaultsPolicy = { items: [] };
         state.shareDefaultsPolicy = { values: {}, enforced: {} };
         state.toolAccessDefaultsPolicy = { items: [] };
-        emitStateChanged();
         return;
       }
       if (value.username !== "anonymous") {
@@ -590,13 +667,16 @@ export const mutations = {
         if (state.user.fileLoading.downloadChunkSizeMb === undefined) {
           state.user.fileLoading.downloadChunkSizeMb = 0;
         }
+        if (state.user.fileLoading.uploadStallTimeoutSeconds === undefined) {
+          state.user.fileLoading.uploadStallTimeoutSeconds = 10;
+        }
       }
 
       // Load stored values or use defaults as fallback
       const isAnonymous = state.user.username === 'anonymous';
       const encoded = !isAnonymous ? url.base64Encode(state.user.username) : '';
       let viewMode = (!isAnonymous && localStorage.getItem(`ViewMode_${encoded}`)) || state.user.viewMode || 'normal';
-      let gallerySize = (!isAnonymous && parseInt(localStorage.getItem(`GallerySize_${encoded}`) ?? '', 10)) || state.user.gallerySize || 3;
+      let gallerySize = (!isAnonymous && Number.parseInt(localStorage.getItem(`GallerySize_${encoded}`) ?? '', 10)) || state.user.gallerySize || 3;
       gallerySize = Math.min(9, Math.max(1, gallerySize)); // ensure 1–9 since this is the slider min and max size
 
       // Normalize to use the view families too
@@ -622,7 +702,6 @@ export const mutations = {
     } catch (_error) {
       // Silently ignore errors when loading preferences
     }
-    emitStateChanged();
   },
   syncEnforcedUserDefaults: async () => {
     if (
@@ -631,7 +710,6 @@ export const mutations = {
       state.user?.username === "anonymous"
     ) {
       state.enforcedUserDefaults = {};
-      emitStateChanged();
       return;
     }
     try {
@@ -640,7 +718,36 @@ export const mutations = {
     } catch {
       state.enforcedUserDefaults = {};
     }
-    emitStateChanged();
+  },
+  /**
+   * Load the runtime media settings. Runtime admin changes are read from the API
+   * rather than static page constants. Called at app start so the state is present
+   * in every view, not only the player.
+   */
+  syncMediaSettings: async () => {
+    if (!getters.isLoggedIn() || getters.isShare() || state.user?.username === "anonymous") {
+      mediaSettingsSyncGeneration += 1;
+      state.mediaSettings = null;
+      return;
+    }
+    const generation = ++mediaSettingsSyncGeneration;
+    try {
+      const settings = await getSharedMediaSettings();
+      if (generation !== mediaSettingsSyncGeneration) {
+        return;
+      }
+      // The request can resolve after logout/share transition — don't write
+      // media settings into a logged-out state.
+      if (!getters.isLoggedIn() || getters.isShare() || state.user?.username === "anonymous") {
+        return;
+      }
+      state.mediaSettings = settings;
+    } catch {
+      if (generation !== mediaSettingsSyncGeneration) {
+        return;
+      }
+      state.mediaSettings = null;
+    }
   },
   syncSidebarLinkDefaultsPolicy: async () => {
     if (
@@ -650,7 +757,6 @@ export const mutations = {
       state.user?.username === "anonymous"
     ) {
       state.sidebarLinkDefaultsPolicy = { items: [] };
-      emitStateChanged();
       return;
     }
     try {
@@ -662,13 +768,11 @@ export const mutations = {
     } catch {
       state.sidebarLinkDefaultsPolicy = { items: [] };
     }
-    emitStateChanged();
   },
   applyToolAccessDefaultsPolicy: (items: unknown) => {
     state.toolAccessDefaultsPolicy = {
       items: Array.isArray(items) ? items : [],
     };
-    emitStateChanged();
   },
   syncToolAccessDefaultsPolicy: async () => {
     if (
@@ -678,7 +782,6 @@ export const mutations = {
       state.user?.username === "anonymous"
     ) {
       state.toolAccessDefaultsPolicy = { items: [] };
-      emitStateChanged();
       return;
     }
     try {
@@ -689,7 +792,6 @@ export const mutations = {
     } catch {
       state.toolAccessDefaultsPolicy = { items: [] };
     }
-    emitStateChanged();
   },
   syncShareDefaultsPolicy: async () => {
     if (
@@ -698,7 +800,6 @@ export const mutations = {
       state.user?.username === "anonymous"
     ) {
       state.shareDefaultsPolicy = { values: {}, enforced: {} };
-      emitStateChanged();
       return;
     }
     try {
@@ -710,7 +811,6 @@ export const mutations = {
     } catch {
       state.shareDefaultsPolicy = { values: {}, enforced: {} };
     }
-    emitStateChanged();
   },
   setShareData: (shareData: Partial<ShareInfoObject>) => {
     const newShare = { ...state.shareInfo, ...shareData };
@@ -719,7 +819,6 @@ export const mutations = {
     }
     state.shareInfo = newShare;
     updateManifestLink();
-    emitStateChanged();
   },
   clearShareData: () => {
     state.shareInfo = {
@@ -737,14 +836,12 @@ export const mutations = {
       description: "",
     };
     updateManifestLink();
-    emitStateChanged();
   },
   setSession: (value: string) => {
     if (value === state.sessionId) {
       return;
     }
     state.sessionId = value;
-    emitStateChanged();
   },
   setMultiple: (value: boolean) => {
     if (value === state.multiple) return;
@@ -754,33 +851,30 @@ export const mutations = {
     } else {
       notify.hideMultipleSelection();
     }
-    emitStateChanged();
   },
+  // The selection is a raw array that is replaced, never edited in place (see utils/selection.ts)
   addSelected: (value: number | FileListItem) => {
-    state.selected.push(value);
-    emitStateChanged();
+    state.selected = withEntry(state.selected, value);
+  },
+  /** Replace the whole selection in one go */
+  setSelected: (values: (number | FileListItem)[]) => {
+    state.selected = rawList(values);
+    mutations.setMultiple(false);
   },
   removeSelected: (value: number | FileListItem) => {
-    const i = state.selected.indexOf(value);
-    if (i === -1) return;
-    state.selected.splice(i, 1);
-    emitStateChanged();
+    const next = withoutEntry(state.selected, value);
+    if (next) state.selected = next;
   },
   resetSelected: () => {
-    state.selected = [];
+    state.selected = rawList([]);
+    state.lastSelectedIndex = null;
     mutations.setMultiple(false);
-    emitStateChanged();
   },
   selectAllItems: (options = { multiple: true }) => {
     if (state.req?.items?.length > 0) {
       // Close hovers
       mutations.closeHovers();
-      // Clear current selection first
-      mutations.resetSelected();
-      // Add all items from current directory to selection by their indices
-      state.req.items.forEach((_item, index) => {
-        mutations.addSelected(index);
-      });
+      mutations.setSelected(state.req.items.map((_item, index) => index));
       if (options.multiple) {
         mutations.setMultiple(true);
       }
@@ -791,14 +885,12 @@ export const mutations = {
       return;
     }
     state.lastSelectedIndex = index;
-    emitStateChanged();
   },
   setRaw: (value: string) => {
     if (value === state.previewRaw) {
       return;
     }
     state.previewRaw = value;
-    emitStateChanged();
   },
   updateCurrentUser: async (value: Partial<UserObject>) => {
     // Ensure the input is a valid object
@@ -852,6 +944,7 @@ export const mutations = {
         "deleteWithoutConfirming",
         "promptRightCloseButton",
         "preferEditorForMarkdown",
+        "preferEditorForHtml",
         "disablePreviewExt",
         "disableViewingExt",
         "disableOnlyOfficeExt",
@@ -895,21 +988,23 @@ export const mutations = {
             }
           }
           notify.showError(e);
-          emitStateChanged();
           throw e;
         }
       }
     }
     // Emit state change event
-    emitStateChanged();
   },
   replaceRequest: (value: ReqObject) => {
-    state.selected = [];
+    state.selected = rawList([]);
+    state.lastSelectedIndex = null;
     mutations.setMultiple(false);
+    // skip deep reactivity for parent dirs
+    if (Array.isArray(value?.parentDirItems)) {
+      value.parentDirItems = markRaw(value.parentDirItems);
+    }
     if (!value?.items) {
       state.req = value;
       setActiveViewGrantScope(value?.source ?? "");
-      emitStateChanged();
       return
     }
     const sorting = getters.sorting();
@@ -921,29 +1016,61 @@ export const mutations = {
     // Sort them separately
     const sortedDirs = sortedItems(dirs, sortby, asc);
     const sortedFiles = sortedItems(files, sortby, asc);
-    value.items = [...sortedDirs, ...sortedFiles];
-    value.items.forEach((item: FileListItem & { index?: number }, index: number) => {
-      item.index = index;
-    });
+    value.items = markRaw([...sortedDirs, ...sortedFiles]);
+    for (const [index, item] of value.items.entries()) {
+      (item as FileListItem & { index?: number }).index = index;
+    }
     state.req = value;
     setActiveViewGrantScope(value?.source ?? "");
-    emitStateChanged();
   },
-  patchListingMetadata: (items: FileListItem[] | undefined, metadataMap: Map<string, unknown> | undefined, mergeForPath: string | null = null) => {
+  patchListingMetadata: (items: FileListItem[] | undefined, metadataMap: Map<string, MediaMetadata> | undefined, mergeForPath: string | null = null) => {
     if (!items?.length || !metadataMap?.size) {
       return;
     }
+    const resolveMetadata = (item: FileListItem, metadata: MediaMetadata | undefined) =>
+      item.path === mergeForPath ? { ...metadata, ...item.metadata } : metadata;
+    // state.req.items is markRaw so editing an item would not re-render its row.
+    // For that, we swap the changed items for copies and replace the array
+    if (items === state.req?.items) {
+      let changed = false;
+      const nextItems = items.map((item) => {
+        if (!metadataMap.has(item.name)) return item;
+        changed = true;
+        return { ...item, metadata: resolveMetadata(item, metadataMap.get(item.name)) };
+      });
+      if (!changed) return;
+      let sortedNext = nextItems;
+      const { by, asc } = getters.sorting();
+      if (by === "duration") {
+        // sort once duration loads
+        sortedNext = [
+          ...sortedItems(nextItems.filter((i) => i.type === "directory"), by, asc),
+          ...sortedItems(nextItems.filter((i) => i.type !== "directory"), by, asc),
+        ];
+        for (const [index, item] of sortedNext.entries()) {
+          (item as FileListItem & { index?: number }).index = index;
+        }
+        const newIndexByName = new Map(sortedNext.map((item, index) => [item.name, index]));
+        const remap = (index: number) => {
+          const name = items[index]?.name;
+          return name !== undefined ? (newIndexByName.get(name) ?? index) : index;
+        };
+        state.selected = rawList(state.selected.map((entry) => (typeof entry === "number" ? remap(entry) : entry)));
+        if (state.lastSelectedIndex !== null) {
+          state.lastSelectedIndex = remap(state.lastSelectedIndex);
+        }
+      }
+      state.req.items = markRaw(sortedNext);
+      return;
+    }
+    // Other arrays (like preview navigation listing) are not reactive so in place is fine.
     for (const item of items) {
       if (!metadataMap.has(item.name)) continue;
-      const metadata = metadataMap.get(item.name);
-      item.metadata = item.path === mergeForPath
-        ? { ...(metadata as Record<string, unknown>), ...(item.metadata as Record<string, unknown>) }
-        : metadata;
+      item.metadata = resolveMetadata(item, metadataMap.get(item.name));
     }
     navigationSortCache = null;
-    emitStateChanged();
   },
-  patchRequestMetadata: (metadataItems: Array<{ name: string; metadata: unknown }> | undefined) => {
+  patchRequestMetadata: (metadataItems: Array<{ name: string; metadata: MediaMetadata }> | undefined) => {
     if (!state.req?.items || !metadataItems?.length) {
       return;
     }
@@ -953,7 +1080,14 @@ export const mutations = {
         byName.set(e.name, e.metadata);
       }
     }
-    mutations.patchListingMetadata(state.req.items, byName);
+    let changed = false;
+    const nextItems = state.req.items.map((item) => {
+      if (!byName.has(item.name)) return item;
+      changed = true;
+      return { ...item, metadata: byName.get(item.name) };
+    });
+    if (!changed) return;
+    state.req.items = markRaw(nextItems);
   },
   /** Merge media fields from GET /api/media/metadata (single file). Replace req object so Vue watchers see the update. */
   patchRequestFileMediaMetadata: (enriched: Partial<ReqObject> | null | undefined) => {
@@ -976,36 +1110,31 @@ export const mutations = {
       next.hasPreview = enriched.hasPreview;
     }
     state.req = next;
-    emitStateChanged();
   },
   setRequestContent: (content: string) => {
     if (!state.req || state.req.content === content) {
       return;
     }
     state.req = { ...state.req, content };
-    emitStateChanged();
   },
   setRequestViewToken: (viewToken: string) => {
     if (!state.req || !viewToken || state.req.viewToken === viewToken) {
       return;
     }
     state.req = { ...state.req, viewToken };
-    emitStateChanged();
   },
   clearRequest: () => {
     // Set req to null to prevent API calls with empty paths
     // Components should check for null req before accessing
     state.req = null as unknown as ReqObject;
-    state.selected = [];
+    state.selected = rawList([]);
     mutations.setMultiple(false);
-    emitStateChanged();
   },
   setRoute: (value: RouteObject) => {
     if (value === state.route) {
       return;
     }
     state.route = value;
-    emitStateChanged();
   },
   updateListingSortConfig: ({ field, asc }: { field: string; asc: boolean }) => {
     if (!state.user.sorting) {
@@ -1014,7 +1143,6 @@ export const mutations = {
     state.user.sorting.by = field;
     state.user.sorting.asc = asc;
     mutations.updateDisplayPreferences({ sorting: { by: field, asc: asc } });
-    emitStateChanged();
   },
   updateNavigationSortConfig: ({ field, asc }: { field: string; asc: boolean }) => {
     state.navigation.sorting = { by: field, asc };
@@ -1027,11 +1155,9 @@ export const mutations = {
       // localStorage can throw in private mode; log but don't block sorting
       console.error('Failed to save picker sorting:', error);
     }
-    emitStateChanged();
   },
   updateListingItems: () => {
     mutations.replaceRequest(state.req);
-    emitStateChanged();
   },
   updateClipboard: (value: StoreState['clipboard']) => {
     if (value.key === state.clipboard.key &&
@@ -1042,32 +1168,27 @@ export const mutations = {
     state.clipboard.key = value.key;
     state.clipboard.items = value.items;
     state.clipboard.path = value.path;
-    emitStateChanged();
   },
   resetClipboard: () => {
     state.clipboard.key = "";
     state.clipboard.items = [];
-    emitStateChanged();
   },
   setSharePassword: (value: string) => {
     if (value === state.sharePassword) {
       return;
     }
     state.sharePassword = value;
-    emitStateChanged();
   },
   setSearch: (value: boolean) => {
     if (value === state.isSearchActive) {
       return;
     }
     state.isSearchActive = value;
-    emitStateChanged();
   },
   resetAll: () => {
     state.isSearchActive = false;
-    state.selected = [];
+    state.selected = rawList([]);
     mutations.setMultiple(false);
-    emitStateChanged();
   },
   showTooltip(value: Partial<StoreState['tooltip']>) {
     const useComponent = Boolean(value.component);
@@ -1079,22 +1200,15 @@ export const mutations = {
     state.tooltip.width = value.width ?? null;
     state.tooltip.pointerEvents = value.pointerEvents ?? false;
     state.tooltip.show = true;
-    emitStateChanged();
   },
-  hideTooltip(force=false) {
-    if (!state.tooltip.show) {
-      if (force) {
-        emitStateChanged();
-      }
-      return;
-    }
+  hideTooltip() {
+    if (!state.tooltip.show) return;
     state.tooltip.show = false;
     state.tooltip.content = "";
     state.tooltip.component = null;
     state.tooltip.componentProps = null;
     state.tooltip.width = null;
     state.tooltip.pointerEvents = false;
-    emitStateChanged();
   },
   setMaxConcurrentUpload: (value: number) => {
     if (!state.user.fileLoading) {
@@ -1104,7 +1218,6 @@ export const mutations = {
       return;
     }
     state.user.fileLoading.maxConcurrentUpload = value;
-    emitStateChanged();
   },
   updateDisplayPreferences: (payload: Partial<DisplayPreference>) => {
     let source = state.sources.current;
@@ -1134,13 +1247,11 @@ export const mutations = {
       allPrefs = setObjectProperty(allPrefs, state.user.username, prefs);
       localStorage.setItem("displayPreferences", JSON.stringify(allPrefs));
     }
-    emitStateChanged();
   },
   setNavigationEnabled: (enabled: boolean) => {
     if (state.navigation.enabled === enabled) {
       if (!enabled && !state.navigation.isTransitioning && state.navigation.sorting) {
         state.navigation.sorting = null;
-        emitStateChanged();
       }
       return;
     }
@@ -1151,9 +1262,13 @@ export const mutations = {
       }
       mutations.clearNavigation();
     }
-    emitStateChanged();
   },
-  setupNavigation: ({ listing, currentItem, directoryPath }: { listing: unknown; currentItem: Partial<FileListItem>; directoryPath: string }) => {
+  setupNavigation: ({ listing, currentItem, directoryPath, useItemPaths = false }: { listing: unknown; currentItem: Partial<FileListItem>; directoryPath: string; useItemPaths?: boolean }) => {
+    const searchItems = getters.searchNavigationItems(currentItem);
+    if (searchItems) {
+      listing = searchItems;
+      useItemPaths = true;
+    }
     // Cancel any pending auto-hide from a previous setupNavigation; the raw
     // setTimeout used to leak and could fire setNavigationShow(false) right
     // after opening a new image (nextPrevious flicker).
@@ -1168,7 +1283,6 @@ export const mutations = {
     state.navigation.nextRaw = "";
 
     if (!listing || !currentItem) {
-      emitStateChanged();
       return;
     }
 
@@ -1177,23 +1291,29 @@ export const mutations = {
     const items = getSortedNavigationItems(listing as Partial<FileListItem>[], sorting.by, sorting.asc);
 
     // Find current item index in the listing
+    const trimSlash = (p?: string) => (p || "").replace(/\/+$/, "");
     for (let i = 0; i < items.length; i++) {
-      if (items.at(i)?.name === currentItem.name) {
+      const candidate = items.at(i);
+      const isCurrent = useItemPaths
+        ? candidate?.source === currentItem.source && trimSlash(candidate?.path) === trimSlash(currentItem.path)
+        : candidate?.name === currentItem.name;
+      if (isCurrent) {
         state.navigation.currentIndex = i;
         break;
       }
     }
 
     if (state.navigation.currentIndex === -1) {
-      emitStateChanged();
       return;
     }
 
     // Find previous item (skip directories)
-    for (const item of items.slice(0, state.navigation.currentIndex).reverse()) {
-      if (item.type === 'directory') continue;
-
-      item.path = url.joinPath(directoryPath, item.name);
+    for (let i = state.navigation.currentIndex - 1; i >= 0; i--) {
+      const item = items.at(i);
+      if (!item || item.type === 'directory') continue;
+      if (!useItemPaths) {
+        item.path = url.joinPath(directoryPath, item.name);
+      }
       state.navigation.previousItem = item;
       state.navigation.previousLink = url.buildItemUrl(item.source, item.path);
 
@@ -1207,10 +1327,12 @@ export const mutations = {
     }
 
     // Find next item (skip directories)
-    for (const item of items.slice(state.navigation.currentIndex + 1)) {
-      if (item.type === 'directory') continue;
-
-      item.path = url.joinPath(directoryPath, item.name);
+    for (let i = state.navigation.currentIndex + 1; i < items.length; i++) {
+      const item = items.at(i);
+      if (!item || item.type === 'directory') continue;
+      if (!useItemPaths) {
+        item.path = url.joinPath(directoryPath, item.name);
+      }
       state.navigation.nextItem = item;
       state.navigation.nextLink = url.buildItemUrl(item.source, item.path);
 
@@ -1223,7 +1345,6 @@ export const mutations = {
       break;
     }
 
-    emitStateChanged();
 
     // Auto-show navigation when it's first set up (timer tracked so new opens clear it)
     if (state.navigation.enabled && (state.navigation.previousLink || state.navigation.nextLink)) {
@@ -1259,7 +1380,6 @@ export const mutations = {
       return;
     }
     state.navigation.show = show;
-    emitStateChanged();
   },
   showNavigationChromePersistent: () => {
     if (!state.navigation.enabled) {
@@ -1311,7 +1431,6 @@ export const mutations = {
       return;
     }
     state.navigation.hoverNav = hover;
-    emitStateChanged();
   },
   setNavigationGestureHint: (payload: { kind?: null | 'previous' | 'next' | 'close', commitReady?: boolean, flashClose?: boolean } = {}) => {
     const kind = payload.kind ?? null;
@@ -1327,7 +1446,6 @@ export const mutations = {
     state.navigation.gestureHint = kind;
     state.navigation.gestureHintCommitReady = commitReady;
     state.navigation.gestureHintFlashClose = flashClose;
-    emitStateChanged();
   },
   setNavigationTimeout: (timeout: ReturnType<typeof setTimeout> | null) => {
     if (state.navigation.timeout) {
@@ -1356,7 +1474,6 @@ export const mutations = {
     state.navigation.previousRaw = "";
     state.navigation.nextRaw = "";
     mutations.clearNavigationTimeout();
-    emitStateChanged();
   },
   setNavigationTransitioning: (isTransitioning: boolean) => {
     if (isTransitioning === state.navigation.isTransitioning) {
@@ -1376,7 +1493,6 @@ export const mutations = {
     } else {
       state.navigation.transitionStartTime = null;
     }
-    emitStateChanged();
   },
   setPlaybackQueue: (playback: Partial<StoreState['playbackQueue']>) => {
     state.playbackQueue.queue = playback.queue || [];
@@ -1393,14 +1509,12 @@ export const mutations = {
         loop: state.playbackQueue.loop,
       }));
     } catch (_) { /* ignore */ }
-    emitStateChanged();
   },
   setPlaybackState: (isPlaying: boolean) => {
     if (isPlaying === state.playbackQueue.isPlaying) {
       return;
     }
     state.playbackQueue.isPlaying = isPlaying;
-    emitStateChanged();
   },
   navigateToQueueIndex: (index: number) => {
     if (index < 0 || index >= state.playbackQueue.queue.length) return;
@@ -1408,11 +1522,9 @@ export const mutations = {
     state.playbackQueue.currentIndex = index;
     // Update the current request to trigger navigation
     mutations.replaceRequest(item as ReqObject);
-    emitStateChanged();
   },
   togglePlayPause: () => {
     state.playbackQueue.shouldTogglePlayPause = !state.playbackQueue.shouldTogglePlayPause;
-    emitStateChanged();
   },
   setShareInfo: (shareInfo: Partial<ShareInfoObject>) => {
     const merged = { ...state.shareInfo, ...shareInfo };
@@ -1424,7 +1536,6 @@ export const mutations = {
     }
     state.shareInfo = merged;
     updateManifestLink();
-    emitStateChanged();
   },
   setSidebarWidth: (value: number) => {
     // Ensure width is within bounds
@@ -1435,7 +1546,6 @@ export const mutations = {
       return;
     }
     state.sidebar.width = newWidth;
-    emitStateChanged();
   },
   persistSidebarWidth: () => {
     localStorage.setItem("sidebarWidth", state.sidebar.width.toString());
@@ -1445,13 +1555,11 @@ export const mutations = {
       return;
     }
     state.sidebar.isResizing = value;
-    emitStateChanged();
   },
   setSidebarMode(value: string) {
     const newMode = value === 'navigation' ? 'navigation' : 'links';
     if (newMode === state.sidebar.mode) return;
     state.sidebar.mode = newMode;
     localStorage.setItem('sidebarMode', newMode);
-    emitStateChanged();
   },
 };

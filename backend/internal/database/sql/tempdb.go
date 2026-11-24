@@ -1,6 +1,7 @@
 package sql
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"os"
@@ -21,14 +22,6 @@ const (
 	// Pager cache target expressed as number of 4KB pages (negative = pages).
 	defaultCacheSizePages = -4096 // ~16MB
 )
-
-func init() {
-	if SqliteDriver == "sqlite3" {
-		logger.Debugf("CGO SQLite driver initialized")
-	} else {
-		logger.Debugf("Default SQLite driver initialized")
-	}
-}
 
 // TempDB manages a temporary SQLite database for operations that need
 // to stream large datasets without loading everything into memory.
@@ -227,7 +220,6 @@ func NewTempDB(id string, config ...*TempDBConfig) (*TempDB, error) {
 	}
 
 	// Open SQLite database with basic connection string.
-	// Driver is selected at compile time: "sqlite3" (CGO) or "sqlite" (pure Go).
 	// busy_timeout is set in the DSN so every pooled connection honors it.
 	db, err := sql.Open(SqliteDriver, sqlitebusy.WithBusyTimeout(tmpPath))
 	if err != nil {
@@ -403,6 +395,14 @@ func (t *TempDB) Query(query string, args ...interface{}) (*sql.Rows, error) {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 	return t.db.Query(query, args...)
+}
+
+// QueryContext executes a query that returns rows, honoring context cancellation so
+// an abandoned request interrupts the running statement instead of holding the connection.
+func (t *TempDB) QueryContext(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error) {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	return t.db.QueryContext(ctx, query, args...)
 }
 
 // QueryRow executes a query that is expected to return at most one row.

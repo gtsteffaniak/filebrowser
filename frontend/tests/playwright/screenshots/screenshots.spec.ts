@@ -149,8 +149,8 @@ test("copy from listing to new folder", async ({ page, theme }) => {
   await page.locator('button[aria-label="Copy file"]').click();
   await expect(page.locator('div[aria-label="copy-prompt"] .move-copy-path-picker')).toHaveText('/ (playwright)');
   await expect(page.locator('li[aria-selected="true"]')).toHaveCount(0);
-  await page.locator('.card-content > .listing-items > div[aria-label="myfolder"]').click();
-  await expect(page.locator('.card-content > .listing-items > div[aria-selected="true"]')).toHaveCount(1);
+  await page.locator('.card-content .listing-items div[aria-label="myfolder"]').click();
+  await expect(page.locator('.card-content .listing-items div[aria-selected="true"]')).toHaveCount(1);
   await sleep(500);
   await page.screenshot({ path: `./generated/prompts/copy-to-new-folder-${theme}.jpg`, quality: jpgQuality });
 })

@@ -39,3 +39,10 @@ userDefaults:
     office: true
     models: true
     highQuality: true
+
+integrations:
+  media:
+    skipHwCheck: true
+    # Real HLS transcoding for the preview specs (requires ffmpeg in the image).
+    transcode:
+      enabled: true

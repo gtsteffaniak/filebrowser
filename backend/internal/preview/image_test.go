@@ -26,6 +26,7 @@ func TestMain(m *testing.M) {
 	if fileutils.PermDir == 0 {
 		fileutils.SetFsPermissions(0644, 0755)
 	}
+	configureImagingParallelism()
 
 	// Run the tests
 	code := m.Run()
@@ -444,17 +445,17 @@ func TestCacheKeyConsistency(t *testing.T) {
 	// when the folder preview is based on a child file
 
 	// Test direct file preview
-	cacheKey1 := CacheKey("testmd5hash123", "small", 0)
+	cacheKey1 := CacheKey("testhash123", "small", 0)
 
-	// Test folder preview with same child MD5
-	cacheKey2 := CacheKey("testmd5hash123", "small", 0)
+	// Test folder preview with same child hash
+	cacheKey2 := CacheKey("testhash123", "small", 0)
 
 	// Both should produce the same cache key
 	require.Equal(t, cacheKey1, cacheKey2, "Folder preview and direct file preview should use the same cache key")
 
 	// Test with different seek percentages
-	cacheKey3 := CacheKey("testmd5hash123", "small", 25)
-	cacheKey4 := CacheKey("testmd5hash123", "small", 25)
+	cacheKey3 := CacheKey("testhash123", "small", 25)
+	cacheKey4 := CacheKey("testhash123", "small", 25)
 
 	require.Equal(t, cacheKey3, cacheKey4, "Cache keys should be consistent for same parameters")
 	require.NotEqual(t, cacheKey1, cacheKey3, "Different seek percentages should produce different cache keys")

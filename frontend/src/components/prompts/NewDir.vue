@@ -35,11 +35,11 @@
   </div>
 </template>
 <script>
-import { resourcesApi } from "@/api";
-import { getters, mutations, state } from "@/store"; // Import your custom store
-import { url } from "@/utils";
-import { notify } from "@/notify";
-import { goToItemNotificationButton } from "@/utils/notificationActions";
+import { resourcesApi } from "@/api/index.js";
+import { getters, mutations, state } from "@/store/index.ts"; // Import your custom store
+import { url } from "@/utils/index.ts";
+import { notify } from "@/notify/index.ts";
+import { goToItemNotificationButton } from "@/utils/notificationActions.js";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 export default {
   name: "new-dir",

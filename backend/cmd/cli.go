@@ -293,18 +293,23 @@ func createConfig(configpath string, noInput bool) error {
 	return nil
 }
 
+// setupConfigYAMLCandidates lists on-disk setup templates for config.generated.yaml.
+var setupConfigYAMLCandidates = []string{
+	"frontend/public/config.generated.yaml",
+	"../frontend/public/config.generated.yaml",
+	"internal/web/dist/config.generated.yaml",
+	"../internal/web/dist/config.generated.yaml",
+	"backend/internal/web/dist/config.generated.yaml",
+}
+
+func readSetupConfigTemplateYAML() (string, error) {
+	return settings.ReadFirstExistingFile(setupConfigYAMLCandidates)
+}
+
 func generateSetupConfigYAML(config *settings.Settings) (string, error) {
-	embeddedPaths := []string{
-		"frontend/public/config.generated.yaml",
-		"../frontend/public/config.generated.yaml",
-		"internal/web/dist/config.generated.yaml",
-		"../internal/web/dist/config.generated.yaml",
-	}
-	for _, path := range embeddedPaths {
-		embeddedYaml, err := os.ReadFile(path)
-		if err == nil && len(embeddedYaml) > 0 {
-			return settings.GenerateConfigYamlWithEmbedded(config, true, false, false, string(embeddedYaml))
-		}
+	embeddedYaml, err := readSetupConfigTemplateYAML()
+	if err == nil {
+		return settings.GenerateConfigYamlWithEmbedded(config, true, false, false, embeddedYaml)
 	}
 	return settings.GenerateConfigYaml(config, true, false, false)
 }

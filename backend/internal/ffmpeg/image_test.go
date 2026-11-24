@@ -161,10 +161,11 @@ func BenchmarkGetOrientationFilter(b *testing.B) {
 		"Unknown Orientation",
 	}
 
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
+	i := 0
+	for b.Loop() {
 		orientation := orientations[i%len(orientations)]
 		_ = service.GetOrientationFilter(orientation)
+		i++
 	}
 }
 

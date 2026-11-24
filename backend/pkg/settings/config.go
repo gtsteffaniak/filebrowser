@@ -2,8 +2,6 @@ package settings
 
 import (
 	"bytes"
-	"context"
-	"flag"
 	"fmt"
 	"io"
 	"log"
@@ -18,10 +16,8 @@ import (
 	"github.com/goccy/go-yaml"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/fileutils"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
-	"github.com/gtsteffaniak/filebrowser/backend/internal/ffmpeg"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/version"
-	goffmpeg "github.com/gtsteffaniak/go-ffmpeg"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
@@ -78,7 +74,7 @@ func initializeConfig(configFile string, cliMode bool) {
 	}
 	warnHttpProxyConfig()
 	setupFrontend(false)
-	setupMedia(false)
+	setupMedia()
 }
 
 func setupServer() {
@@ -353,7 +349,17 @@ func setupFrontend(generate bool) {
 	loadCustomFavicon()
 }
 
-func setupMedia(generate bool) {
+// setupMedia normalizes the media integration settings. ffmpeg initialization is
+// deferred to InitFFmpeg so the hardware codec probe runs once, after persisted
+// media settings have been applied.
+func setupMedia() {
+	applyMediaConvertDefaults()
+	setupMediaTranscode()
+}
+
+// applyMediaConvertDefaults re-seeds the conversion format maps and reapplies the
+// user's explicit config overrides (the maps are wiped during YAML unmarshal).
+func applyMediaConvertDefaults() {
 	// Save user's explicit config before applying defaults
 	userImageConfig := make(map[ImagePreviewType]*bool)
 	for k, v := range Config.Integrations.Media.Convert.ImagePreview {
@@ -363,11 +369,14 @@ func setupMedia(generate bool) {
 	// Re-initialize with defaults (gets wiped out during YAML unmarshal)
 	Config.Integrations.Media.Convert.ImagePreview = make(map[ImagePreviewType]*bool)
 	Config.Integrations.Media.Convert.ImagePreview[HEICImagePreview] = boolPtr(false) // HEIC defaults to disabled
+	Config.Integrations.Media.Convert.ImagePreview[JXLImagePreview] = boolPtr(true)   // JXL uses pure Go decode
 	Config.Integrations.Media.Convert.ImagePreview[JPEGImagePreview] = boolPtr(true)  // JPEG fallback defaults to enabled
 
-	// Apply user overrides (only for keys explicitly set in YAML)
+	// Apply user overrides (only for keys explicitly set in YAML). The pointers are
+	// cloned so the live config never shares *bool values with the settings it was
+	// built from.
 	for k, v := range userImageConfig {
-		Config.Integrations.Media.Convert.ImagePreview[k] = v
+		Config.Integrations.Media.Convert.ImagePreview[k] = cloneBoolPtr(v)
 	}
 
 	// VideoPreview: Merge user config with defaults
@@ -385,52 +394,77 @@ func setupMedia(generate bool) {
 
 	// Apply user overrides (only for keys explicitly set in YAML)
 	for k, v := range userVideoConfig {
-		Config.Integrations.Media.Convert.VideoPreview[k] = v
-	}
-
-	if !generate && !isGoTest() {
-		setupFFmpegIntegration()
+		Config.Integrations.Media.Convert.VideoPreview[k] = cloneBoolPtr(v)
 	}
 }
 
-func isGoTest() bool {
-	return flag.Lookup("test.v") != nil
+func setupMediaTranscode() {
+	t := &Config.Integrations.Media.Transcode
+	if t.MaxConcurrent <= 0 {
+		t.MaxConcurrent = 2
+	}
+	if t.MaxConcurrentPerUser <= 0 {
+		t.MaxConcurrentPerUser = 1
+	}
+	if t.CacheMaxSizeMB < 0 {
+		t.CacheMaxSizeMB = 0
+	}
+	if t.CacheMaxSizeMB == 0 && !t.Enabled {
+		t.CacheMaxSizeMB = 10240
+	}
+	if t.CacheRetentionH <= 0 {
+		t.CacheRetentionH = 24
+	}
+	clampTranscodeReadRate(t)
+	normalizeTranscodeProfile(&t.Profiles.Quality)
+	normalizeTranscodeProfile(&t.Profiles.Balanced)
+	normalizeTranscodeProfile(&t.Profiles.DataSaver)
 }
 
-func setupFFmpegIntegration() {
-	n := Config.Server.NumImageProcessors
-	if n < 1 {
-		n = 4
-	}
-	maxDecode := (n + 1) / 2
-	err := ffmpeg.Initialize(context.Background(), ffmpeg.InitOptions{
-		FFmpegPath: Config.Integrations.Media.FfmpegPath,
-		Concurrency: goffmpeg.Concurrency{
-			MaxProbe:  16,
-			MaxDecode: maxDecode,
-			MaxEncode: 2,
-		},
-		CacheDir:             Config.Server.CacheDir,
-		SkipHWTests:          !Config.Integrations.Media.HardwareAcceleration,
-		HardwareAcceleration: Config.Integrations.Media.HardwareAcceleration,
-	})
-	if err != nil {
-		logger.Warningf("ffmpeg unavailable: %v", err)
-		Env.FFmpegAvailable = false
-		Env.FFmpegPath = ""
-		Env.FFprobePath = ""
-		return
-	}
+const (
+	// defaultTranscodeReadRate applies when readRate is unset or non-positive.
+	defaultTranscodeReadRate = 2.0
+	// minTranscodeReadRate keeps producers at/above realtime so playback isn't
+	// starved by a producer slower than the player.
+	minTranscodeReadRate = 1.0
+)
 
-	svc := ffmpeg.Get()
-	if svc == nil {
-		Env.FFmpegAvailable = false
-		return
+// clampTranscodeReadRate enforces throttled producers: unset or sub-realtime
+// read rates are raised, so a producer is never left unthrottled. Burst and
+// catch-up pacing are left to ffmpeg's defaults.
+func clampTranscodeReadRate(t *FullAdminTranscode) {
+	if t.ReadRate <= 0 {
+		t.ReadRate = defaultTranscodeReadRate
+	} else if t.ReadRate < minTranscodeReadRate {
+		t.ReadRate = minTranscodeReadRate
 	}
+}
 
-	Env.FFmpegAvailable = true
-	Env.FFmpegPath = svc.FFmpegPath()
-	Env.FFprobePath = svc.FFprobePath()
+// normalizeTranscodeProfile clamps negative profile values (0 means "original").
+func normalizeTranscodeProfile(p *TranscodeProfile) {
+	if p.MaxResolution < 0 {
+		p.MaxResolution = 0
+	}
+	if p.AvgBitrateKbps < 0 {
+		p.AvgBitrateKbps = 0
+	}
+}
+
+// DefaultTranscodeProfiles returns the built-in transcode presets.
+func DefaultTranscodeProfiles() TranscodeProfiles {
+	return TranscodeProfiles{
+		// Quality preserves the source: it stream-copies whatever is already
+		// HLS-compatible (h264 video / AAC audio) and transcodes only what isn't.
+		Quality: TranscodeProfile{Enabled: true, MaxResolution: 0, AvgBitrateKbps: 0},
+		// Balanced always transcodes to a bounded 720p rung. 4000 kbps sits in
+		// the standard 720p ladder (~3000-6000 kbps); the cap is a ceiling, so a
+		// source already below it keeps its own bitrate.
+		Balanced: TranscodeProfile{Enabled: true, MaxResolution: 720, AvgBitrateKbps: 4000},
+		// Data saver always transcodes to a bounded 480p rung. 1500 kbps gives
+		// solid 480p quality while still cutting typical source bitrates well
+		// below balanced.
+		DataSaver: TranscodeProfile{Enabled: true, MaxResolution: 480, AvgBitrateKbps: 1500},
+	}
 }
 
 func setupSources(generate bool) {
@@ -542,6 +576,10 @@ func setupUrls() {
 	}
 	Config.Integrations.OnlyOffice.Url = strings.Trim(Config.Integrations.OnlyOffice.Url, "/")
 	Config.Integrations.OnlyOffice.InternalUrl = strings.Trim(Config.Integrations.OnlyOffice.InternalUrl, "/")
+	Config.Integrations.OnlyOffice.Product = strings.ToLower(strings.TrimSpace(Config.Integrations.OnlyOffice.Product))
+	if Config.Integrations.OnlyOffice.TokenExpirationHours <= 0 {
+		Config.Integrations.OnlyOffice.TokenExpirationHours = 10
+	}
 }
 
 func setupAuth(generate bool) {
@@ -622,13 +660,13 @@ func setupLogging() {
 	for i := range Config.Server.Logging {
 		cfg := &Config.Server.Logging[i]
 		// Enable debug logging automatically in dev mode
+		pattern := cfg.ApiFilter
+		if pattern == "" {
+			pattern = "^/health|^/favicon.ico|^/static|^/public/static|^/__vite"
+		}
 		levels := cfg.Levels
 		if os.Getenv("FILEBROWSER_DEVMODE") == "true" {
 			levels = "info|warning|error|debug"
-		}
-		pattern := cfg.ApiFilter
-		if pattern == "" {
-			pattern = "^/health|^/favicon.ico|^/static|^/public/static"
 		}
 		jsonCfg := logger.JsonConfig{
 			Levels:         levels,
@@ -707,6 +745,19 @@ func loadConfigWithDefaults(configFile string, generate bool) error {
 		}
 	}
 
+	// Runtime media settings live in the database; record which ones the config
+	// file pins so they can win over stored values and lock in the admin UI.
+	if integrations, ok := filteredConfig["integrations"].(map[string]interface{}); ok {
+		if mediaMap, ok := integrations["media"].(map[string]interface{}); ok {
+			paths := CollectMapLeafPaths(mediaMap, "")
+			// skipHwCheck is config-only, not a runtime media setting — don't
+			// let it trigger the "locked from config" admin UI state.
+			Env.ConfigMediaSpecifiedPaths = slices.DeleteFunc(paths, func(p string) bool {
+				return p == "skipHwCheck"
+			})
+		}
+	}
+
 	// check if database is set in the config
 	if server, ok := filteredConfig["server"].(map[string]interface{}); ok {
 		val, ok := server["database"].(string)
@@ -722,7 +773,9 @@ func loadConfigWithDefaults(configFile string, generate bool) error {
 	}
 
 	// Second pass: Decode with strict validation (disallow unknown fields within valid sections)
-	decoder := yaml.NewDecoder(bytes.NewReader(filteredYAML), yaml.DisallowUnknownField())
+	// UseJSONUnmarshaler lets typed fields with custom UnmarshalJSON (e.g. users.DarkMode)
+	// handle YAML scalars like booleans instead of the generic decoder casting them to strings.
+	decoder := yaml.NewDecoder(bytes.NewReader(filteredYAML), yaml.DisallowUnknownField(), yaml.UseJSONUnmarshaler())
 	err = decoder.Decode(&Config)
 	if err != nil {
 		return fmt.Errorf("error unmarshaling YAML data: %v", err)
@@ -917,6 +970,7 @@ func SetDefaults(generate bool) Settings {
 				BatchSize:             1000,
 				CacheSizeMB:           32,
 				DisableReuse:          false,
+				FTS5:                  false,
 				StartupIntegrityCheck: IndexStartupIntegrityQuickCheck,
 			},
 			Filesystem: Filesystem{
@@ -982,13 +1036,14 @@ func SetDefaults(generate bool) Settings {
 				DisableViewingExt:       "",
 				DisableOnlyOfficeExt:    ".md .txt .pdf .html .xml",
 				PreferEditorForMarkdown: false,
+				PreferEditorForHtml:     false,
 				DebugOffice:             false,
 			},
 			Search: UserDefaultsSearch{
 				DisableOptions: false,
 			},
 			UI: UserDefaultsUI{
-				DarkMode:    boolPtr(true),
+				DarkMode:    users.DarkModeDark,
 				ThemeColor:  "var(--blue)",
 				CustomTheme: "",
 				Locale:      "en",
@@ -1012,18 +1067,36 @@ func SetDefaults(generate bool) Settings {
 				LoginMethod:                "",
 				DisableUpdateNotifications: false,
 				ShowAdvancedProfile:        false,
+				AllowCustomShareURL:        boolPtr(false),
+				MaxConcurrentTranscodes:    1,
 			},
 		},
 	}
 	// Initialize ImagePreview map with defaults
 	s.Integrations.Media.Convert.ImagePreview = make(map[ImagePreviewType]*bool)
 	s.Integrations.Media.Convert.ImagePreview[HEICImagePreview] = boolPtr(false) // HEIC defaults to disabled
+	s.Integrations.Media.Convert.ImagePreview[JXLImagePreview] = boolPtr(true)   // JXL uses pure Go decode
 	s.Integrations.Media.Convert.ImagePreview[JPEGImagePreview] = boolPtr(true)  // JPEG fallback defaults to enabled
 	// Initialize VideoPreview map with defaults (all enabled)
 	s.Integrations.Media.Convert.VideoPreview = make(map[VideoPreviewType]*bool)
 	for _, t := range AllVideoPreviewTypes {
 		s.Integrations.Media.Convert.VideoPreview[t] = boolPtr(true)
 	}
+	s.Integrations.Media.Transcode = FullAdminTranscode{
+		UserTranscode: UserTranscode{
+			Enabled:              false,
+			MaxConcurrentPerUser: 1,
+		},
+		MaxConcurrent:   2,
+		CacheMaxSizeMB:  10240,
+		CacheRetentionH: 24,
+		ReadRate:        defaultTranscodeReadRate,
+		Profiles:        DefaultTranscodeProfiles(),
+	}
+	// Hardware acceleration is opt-out: "auto" lets go-ffmpeg follow its device
+	// hierarchy (integrated GPU, discrete GPU, then software).
+	s.Integrations.Media.HardwareAcceleration = true
+	s.Integrations.Media.AccelDevice = "auto"
 	return s
 }
 
@@ -1098,6 +1171,31 @@ func PWAIconsCacheDir() string {
 // Where transient archives for multi-request (Range) downloads are stored to support chunked downloads.
 func DownloadCacheDir() string {
 	return filepath.Join(Config.Server.CacheDir, "downloads")
+}
+
+// PreviewDiskCacheDir holds generated previews and thumbnails. It is the "diskcache"
+// folder that diskcache.NewFileCacheWithLimit creates under the cache directory.
+func PreviewDiskCacheDir() string {
+	return filepath.Join(Config.Server.CacheDir, "diskcache")
+}
+
+// ClearPreviewDiskCache removes all previews and thumbnails. The index database in
+// the cache directory's sql folder is left alone.
+func ClearPreviewDiskCache() error {
+	return fileutils.ClearDirectoryContents(PreviewDiskCacheDir())
+}
+
+// TranscodeCacheDir is where HLS transcode output is cached on disk.
+func TranscodeCacheDir() string {
+	return filepath.Join(Config.Server.CacheDir, "transcoding")
+}
+
+// TranscodeKeyframeCacheDir is where probed per-file keyframe indexes are
+// persisted. It is separate from TranscodeCacheDir so the segment-cache
+// retention/eviction sweep (which owns the transcode tree) never treats a
+// keyframe index as a generation.
+func TranscodeKeyframeCacheDir() string {
+	return filepath.Join(Config.Server.CacheDir, "transcode-keyframes")
 }
 
 // PrepareDownloadSpoolDir creates the download spool directory and removes any leftover dl-archive-*

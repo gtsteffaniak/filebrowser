@@ -1,5 +1,5 @@
 server:
-  searchResultsLimit: 1000                # maximum requested search results across all sources (default: 1000); quick search defaults to 100, advanced search to 500; size viewer remains limited to 200  validate:gte=1
+  searchResultsLimit: 1000                # maximum requested search results across all sources, hard max 5000 (default: 1000); quick search defaults to 100, advanced search to 500; size viewer remains limited to 200  validate:gte=1,lte=5000
   minSearchLength: 3                      # minimum length of search query to begin searching (default: 3)
   disableUpdateCheck: false               # disables backend update check service
   numImageProcessors: 4                   # number of concurrent image processing jobs used to create previews, default is 4.
@@ -60,6 +60,7 @@ server:
     cacheSizeMB: 32                       # size of the SQLite cache in MB
     walMode: false                        # enable the more complex WAL journaling mode. Slower, more memory usage, but better for deployments with constant user activity.
     disableReuse: false                   # enable to always create a new indexing database on startup.
+    fts5: false                           # Enable FTS5 to provide faster search queries, but 40% slower indexing and 15% larger database size
     startupIntegrityCheck: "quickCheck"   # the method used to check the integrity of the index database on startup (default: quickCheck)  validate:omitempty,oneof=quickCheck probe off
   database:                               # SQLite database configuration
     path: "filebrowser.sqlite"            # path to SQLite database file
@@ -211,11 +212,12 @@ userDefaults:                             # optional signup/CLI defaults; per-us
     disableViewingExt: ""                 # comma separated list of file extensions to disable viewing for
     disableOnlyOfficeExt: ".md .txt .pdf .html .xml" # list of file extensions to disable onlyoffice editor for
     preferEditorForMarkdown: false        # prefer editor first for markdown files instead of the Markdown Viewer
+    preferEditorForHtml: false            # prefer editor first for HTML files instead of the HTML viewer
     debugOffice: false                    # debug onlyoffice editor
   search:
     disableOptions: false                 # disable the search options in the search bar
   ui:
-    darkMode: true                        # should dark mode be enabled
+    darkMode: "dark"                      # theme preference: "auto" (follow system), "dark", or "light"
     themeColor: "var(--blue)"             # theme color to use: eg. #ff0000, or var(--red), var(--purple), etc
     customTheme: ""                       # Name of theme to use chosen from custom themes config
     locale: "en"                          # language to use: eg. de, en, or fr
@@ -237,6 +239,8 @@ userDefaults:                             # optional signup/CLI defaults; per-us
     loginMethod: "password"               # login method to use: eg. password, proxy, oidc
     disableUpdateNotifications: false     # disable update notifications banner for admin users
     showAdvancedProfile: false            # show advanced profile settings in the user profile page
+    allowCustomShareURL: false            # allow users to choose custom share URLs (default: false)
+    maxConcurrentTranscodes: 1            # per-user concurrent transcode sessions (default: 1)
 shareDefaults:                            # optional defaults for new shares; managed in the UI
   shareTheme: ""
   disableAnonymous: false
@@ -266,45 +270,21 @@ shareDefaults:                            # optional defaults for new shares; ma
   maxBandwidth: 0
   allowedUsernames:
   perUserDownloadLimit: false
-  extractEmbeddedSubtitles: false
   downloadsLimit: 0
   quotaLimitBytes: 0
   hideFileExt: ""
   banner: ""
 integrations:
   office:                                 #  validate:omitempty
-    url: ""                               # The URL to the OnlyOffice Document Server, needs to be accessible to the user.  validate:required
-    internalUrl: ""                       # An optional internal address that the filebrowser server can use to communicate with the OnlyOffice Document Server, could be useful to bypass proxy.
-    secret: ""                            # secret: authentication key for OnlyOffice integration  validate:required
-    viewOnly: false                       # view only mode for OnlyOffice
+    url: ""                               # The URL to the office editor (OnlyOffice Document Server or Collabora Online), needs to be accessible to the user.  validate:required
+    internalUrl: ""                       # An optional internal address that the filebrowser server can use to communicate with the office editor, could be useful to bypass proxy.
+    secret: ""                            # secret: OnlyOffice only, the JWT secret shared with the Document Server. Unused with collabora: editing sessions are signed with a key derived from auth.key, and Collabora trusts FileBrowser through its storage.wopi.host allow-list, where FileBrowser's host must be added.  validate:required_unless=Product collabora
+    product: ""                           # office editor behind url: onlyoffice (default) or collabora  validate:omitempty,oneof=onlyoffice collabora
+    tokenExpirationHours: 10              # collabora only: lifetime of an editing session, in hours (default: 10)
+    viewOnly: false                       # view only mode for the office editor
   media:                                  #  validate:omitempty
     ffmpegPath: ""                        # path to ffmpeg directory with ffmpeg and ffprobe (eg. /usr/local/bin)
-    convert:                              # config for ffmpeg conversion settings
-      imagePreview:                       # supported image preview formats. defaults vary by type (see individual type docs)
-        heic: false
-        jpeg: true
-      videoPreview:                       # supported video preview formats. defaults to true for all types unless explicitly disabled.
-        3g2: true
-        3gp: true
-        asf: true
-        avi: true
-        f4v: true
-        flv: true
-        m2ts: true
-        m4v: true
-        mkv: true
-        mov: true
-        mp4: true
-        mpeg: true
-        mpg: true
-        ogv: true
-        ts: true
-        vob: true
-        webm: true
-        wmv: true
-    debug: false                          # output ffmpeg stdout for media integration -- careful can produces lots of output!
-    extractEmbeddedSubtitles: false       # extract embedded subtitles from media files
-    hardwareAcceleration: false           # enable hardware acceleration for ffmpeg if available
+    skipHwCheck: false                    # SkipHwCheck skips the ffmpeg hardware codec probe entirely (software-only).
 http:
   socket: ""                              # socket to listen on - eg. /var/run/filebrowser.sock
   tlsKey: ""                              # path to TLS key
@@ -318,11 +298,7 @@ http:
   trustProxyHeaders: false                # honor X-Forwarded-* and X-Real-IP from a reverse proxy (default: false)
   trustedProxies:                         # IPs/CIDRs of trusted proxies; forwarded client headers are only honored when the socket peer matches one of these (default: empty = forwarded headers ignored)
   unixSocketTrustedUIDs:                  # UnixSocketTrustedUIDs and UnixSocketTrustedGIDs list peer credentials (Linux SO_PEERCRED) allowed to
-                                          # present X-Forwarded-* on a filesystem http.socket listener. When both are empty, peers are not trusted
-                                          # unless UnixSocketTrustAllLocalPeers is true (legacy; startup logs a warning). A GID allowlist trusts
-                                          # every peer with that GID, not only a single reverse-proxy process. Abstract sockets (@name) never trust
-                                          # forwarded headers.
-  unixSocketTrustedGIDs:
+  unixSocketTrustedGIDs:                  # present X-Forwarded-* on a filesystem http.socket listener. When both are empty, peers are not trusted unless UnixSocketTrustAllLocalPeers is true (legacy; startup logs a warning). A GID allowlist trusts every peer with that GID, not only a single reverse-proxy process. Abstract sockets (@name) never trust forwarded headers.
   unixSocketTrustAllLocalPeers: false     # default false: set true to trust forwarded headers from any local filesystem socket peer when allowlists are empty
   socketFileMode: ""                      # octal mode for filesystem http.socket (default "0660"); ignored for abstract sockets
   socketGroup: ""                         # optional group name or numeric gid for the socket file (filesystem sockets only)

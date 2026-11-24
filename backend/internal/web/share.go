@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -216,7 +217,7 @@ func sharePatchHandler(w http.ResponseWriter, r *http.Request, d *Context) (int,
 		From:  thisShare.Path,
 		To:    updatedShare.Path,
 	}}
-	activity.RecordShareMutation(r, toActor(d), activitydb.EventShareUpdate, body.Hash, updatedShare.SourceName, updatedShare.Path, changes)
+	activity.RecordShareMutation(r, toActor(d), activitydb.EventShareUpdate, share.PresentedHash(&updatedShare), updatedShare.SourceName, updatedShare.Path, changes)
 	return RenderJSON(w, r, prepared)
 }
 
@@ -281,6 +282,32 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 			return http.StatusForbidden, fmt.Errorf("you are not allowed to update this share")
 		}
 		updateSourceName := beforeShare.GetSourceName()
+
+		// customHash is optional on update: omitted keeps the alias, "" clears it, a value replaces it.
+		var aliasBody struct {
+			CustomHash *string `json:"customHash"`
+		}
+		if len(bodyBytes) > 0 {
+			if err = json.Unmarshal(bodyBytes, &aliasBody); err != nil {
+				return http.StatusBadRequest, fmt.Errorf("failed to decode body: %w", err)
+			}
+		}
+		newAlias := beforeShare.Alias
+		if aliasBody.CustomHash != nil {
+			newAlias = *aliasBody.CustomHash
+		}
+		if newAlias != beforeShare.Alias && newAlias != "" {
+			if !d.User.AllowCustomShareURL {
+				return http.StatusForbidden, fmt.Errorf("custom share URLs are not enabled for your account")
+			}
+			if err = validateCustomShareHash(newAlias); err != nil {
+				return http.StatusBadRequest, err
+			}
+			if state.ShareHashExists(newAlias) {
+				return http.StatusConflict, fmt.Errorf("custom share URL is already in use")
+			}
+		}
+
 		mergedEditable, mergeErr := sharedefaults.MergeEditableUpdate(share.EditableFromShare(&beforeShare), bodyBytes)
 		if mergeErr != nil {
 			return http.StatusBadRequest, mergeErr
@@ -318,6 +345,11 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 			preservedVersion := link.Version
 
 			share.ApplyPostBodyUpdate(link, &req, expire)
+			// Only apply the alias when the client sent customHash; otherwise newAlias may be a stale
+			// snapshot that would overwrite a concurrent alias change.
+			if aliasBody.CustomHash != nil {
+				link.Alias = newAlias
+			}
 
 			link.Path = preservedPath
 			link.SourcePath = preservedSourcePath
@@ -329,10 +361,13 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 			return nil
 		})
 		if err != nil {
+			if strings.Contains(err.Error(), "already exists") {
+				return http.StatusConflict, fmt.Errorf("a share with this URL already exists")
+			}
 			return http.StatusInternalServerError, err
 		}
 
-		updatedShare, err3 := state.GetShare(req.Hash)
+		updatedShare, err3 := state.GetShare(beforeShare.Hash)
 		if err3 != nil {
 			return http.StatusInternalServerError, err3
 		}
@@ -364,7 +399,7 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 			return http.StatusInternalServerError, fmt.Errorf("could not prepare share response")
 		}
 		if len(changes) > 0 {
-			activity.RecordShareMutation(r, toActor(d), activitydb.EventShareUpdate, req.Hash, updatedShare.SourceName, updatedShare.Path, changes)
+			activity.RecordShareMutation(r, toActor(d), activitydb.EventShareUpdate, share.PresentedHash(&updatedShare), updatedShare.SourceName, updatedShare.Path, changes)
 		}
 		return RenderJSON(w, r, prepared)
 	}
@@ -381,6 +416,17 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 	secureHash, err := generateShortUUID()
 	if err != nil {
 		return http.StatusInternalServerError, err
+	}
+	if req.CustomHash != "" {
+		if !d.User.AllowCustomShareURL {
+			return http.StatusForbidden, fmt.Errorf("custom share URLs are not enabled for your account")
+		}
+		if err = validateCustomShareHash(req.CustomHash); err != nil {
+			return http.StatusBadRequest, err
+		}
+		if state.ShareHashExists(req.CustomHash) {
+			return http.StatusConflict, fmt.Errorf("a share with this URL already exists")
+		}
 	}
 	idx := indexing.GetIndex(source.Name)
 	if idx == nil {
@@ -417,6 +463,7 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 		},
 		ShareColumns: share.ShareColumns{
 			Hash:   secureHash,
+			Alias:  req.CustomHash,
 			Path:   storedPath,
 			Expire: expire,
 		},
@@ -435,6 +482,9 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 	s.SingleFileShare = false
 
 	if err = state.CreateShare(s); err != nil {
+		if req.CustomHash != "" && strings.Contains(err.Error(), "already exists") {
+			return http.StatusConflict, fmt.Errorf("a share with this URL already exists")
+		}
 		return http.StatusInternalServerError, err
 	}
 
@@ -447,7 +497,7 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 	if prepared == nil {
 		return http.StatusInternalServerError, fmt.Errorf("could not prepare share response")
 	}
-	activity.RecordShareMutation(r, toActor(d), activitydb.EventShareCreate, s.Hash, s.SourceName, s.Path, nil)
+	activity.RecordShareMutation(r, toActor(d), activitydb.EventShareCreate, share.PresentedHash(s), s.SourceName, s.Path, nil)
 	return RenderJSON(w, r, prepared)
 }
 
@@ -548,7 +598,8 @@ func shareDirectDownloadHandler(w http.ResponseWriter, r *http.Request, d *Conte
 		return http.StatusBadRequest, err
 	}
 
-	response, err := mintShareDownloadTokenResponse(r, hash, ttl, maxUses)
+	// Mint with the internal hash: the download route validates tokens against it, not the alias.
+	response, err := mintShareDownloadTokenResponse(r, link.Hash, ttl, maxUses)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -640,7 +691,7 @@ func shareInfoHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 		return http.StatusNotFound, fmt.Errorf("share hash not found")
 	}
 	frontendShareInfo := shareInfo.FrontendShareInfo
-	frontendShareInfo.ShareURL = ShareURLFromRequest(r, hash, false, shareInfo.HasPassword())
+	frontendShareInfo.ShareURL = ShareURLFromRequest(r, share.PresentedHash(&shareInfo), false, shareInfo.HasPassword())
 	frontendShareInfo.BannerUrl = shareInfo.BannerURL()
 	frontendShareInfo.FaviconUrl = shareInfo.FaviconURL()
 	filtered := make([]users.SidebarLink, 0, len(frontendShareInfo.SidebarLinks))
@@ -676,7 +727,7 @@ func shareInfoHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 		QuotaLimitBytes:   shareInfo.QuotaLimitBytes,
 	}
 	if shareInfo.QuotaLimitBytes > 0 {
-		used, reserved := state.GetShareQuotaUsage(hash)
+		used, reserved := state.GetShareQuotaUsage(shareInfo.Hash)
 		resp.QuotaUsedBytes = used
 		avail := shareInfo.QuotaLimitBytes - used - reserved
 		if avail < 0 {
@@ -851,6 +902,15 @@ func applySharePasswordUpdate(link *share.Share, password *string, hashedPasswor
 		return nil
 	}
 	link.PasswordHash = hashedPassword
+	return nil
+}
+
+var customShareHashPattern = regexp.MustCompile(`^[A-Za-z0-9_-]{16,512}$`)
+
+func validateCustomShareHash(hash string) error {
+	if !customShareHashPattern.MatchString(hash) {
+		return fmt.Errorf("custom share URL must be 16-512 characters: letters, digits, '-' or '_'")
+	}
 	return nil
 }
 

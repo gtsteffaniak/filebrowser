@@ -1,10 +1,10 @@
 <template>
-  <div v-if="shareInfo.shareType !== 'upload'" class="listing-view-root no-select" :style="containerStyles">
+  <div v-if="shareInfo.shareType !== 'upload'" ref="rootEl" class="listing-view-root no-select" :style="containerStyles">
     <!-- Show loading spinner while loading OR if we haven't loaded any data yet -->
     <div v-if="loading">
       <h2 class="message delayed">
         <LoadingSpinner size="medium" />
-        <span>{{ $t("general.loading", { suffix: "..." }) }}</span>
+        <span>{{ t("general.loading", { suffix: "..." }) }}</span>
       </h2>
     </div>
 
@@ -13,13 +13,14 @@
       v-else
       ref="listingView"
       :class="{
-        'add-padding': isStickySidebar,
         [listingViewMode]: true,
         dropping: isDragging,
         'rectangle-selecting': isRectangleSelecting,
+        virtualized: virtual.active.value,
         'font-size-large': numDirs + numFiles + numPinned === 0
       }"
       :style="itemStyles"
+      :data-virtual-settled="virtual.active.value ? String(virtual.settled.value) : undefined"
       class="listing-items"
     >
       <!-- Rectangle selection overlay -->
@@ -29,7 +30,7 @@
       <div v-if="isDragging" class="drop-indicator">
         <div class="drop-indicator-content">
           <i class="material-symbols">cloud_upload</i>
-          <p>{{ $t("prompts.dragAndDrop") }}</p>
+          <p>{{ t("prompts.dragAndDrop") }}</p>
         </div>
       </div>
 
@@ -37,7 +38,7 @@
       <template v-if="numDirs + numFiles + numPinned === 0">
         <h2 class="message font-size-large">
           <i class="material-symbols-outlined">sentiment_dissatisfied</i>
-          <span>{{ $t("files.lonely") }}</span>
+          <span>{{ t("files.lonely") }}</span>
         </h2>
         <input
           style="display: none"
@@ -57,109 +58,43 @@
       </template>
 
       <template v-else>
-        <!-- Pinned Items Section -->
-        <div v-if="numPinned > 0">
-          <h2>{{ pinnedHeaderText }}</h2>
-        </div>
-        <div
-          v-if="numPinned > 0"
-          class="pinned-items"
-          role="group"
-          aria-label="Pinned Items"
-          :class="{ lastGroup: numDirs === 0 && numFiles === 0, firstGroup: true }"
-        >
-          <item
-            v-for="(item, idx) in pinnedItems"
-            :key="base64(`pinned-${item.path || item.name}`)"
-            :class="{ 'zebra-row': idx % 2 === 1 }"
-            v-bind:index="item.index"
-            v-bind:name="item.name"
-            v-bind:isDir="item.type === 'directory'"
-            v-bind:source="req.source"
-            v-bind:modified="item.modified"
-            v-bind:created="item.created"
-            v-bind:type="item.type"
-            v-bind:size="item.size"
-            v-bind:path="item.path"
-            v-bind:reducedOpacity="item.hidden || isDragging"
-            v-bind:hash="shareInfo.hash"
-            v-bind:hasPreview="item.hasPreview"
-            v-bind:metadata="item.metadata"
-            v-bind:hasDuration="hasDuration"
-            v-bind:isShared="item.isShared"
-            v-bind:pinned="item.pinned"
-            v-bind:viewToken="item.viewToken"
-          />
-        </div>
-
-        <!-- Directories Section -->
-        <div v-if="numDirs > 0">
-          <h2>{{ $t("general.folders") }}</h2>
-        </div>
-        <div
-          v-if="numDirs > 0"
-          class="folder-items"
-          role="group"
-          aria-label="Folder Items"
-          :class="{ lastGroup: numFiles === 0, firstGroup: numPinned === 0 }"
-        >
-          <item
-            v-for="(item, idx) in dirs"
-            :key="base64(item.name)"
-            :class="{ 'zebra-row': (numPinned + idx) % 2 === 1 }"
-            v-bind:index="item.index"
-            v-bind:name="item.name"
-            v-bind:isDir="item.type === 'directory'"
-            v-bind:source="req.source"
-            v-bind:modified="item.modified"
-            v-bind:created="item.created"
-            v-bind:type="item.type"
-            v-bind:size="item.size"
-            v-bind:path="item.path"
-            v-bind:reducedOpacity="item.hidden || isDragging"
-            v-bind:hash="shareInfo.hash"
-            v-bind:hasPreview="item.hasPreview"
-            v-bind:hasDuration="hasDuration"
-            v-bind:isShared="item.isShared"
-            v-bind:pinned="item.pinned"
-            v-bind:viewToken="item.viewToken"
-          />
-        </div>
-
-        <!-- Files Section -->
-        <div v-if="numFiles > 0">
-          <h2>{{ $t("general.files") }}</h2>
-        </div>
-        <div
-          v-if="numFiles > 0"
-          class="file-items"
-          :class="{ lastGroup: numFiles > 0, firstGroup: numPinned === 0 && numDirs === 0 }"
-          role="group"
-          aria-label="File Items"
-        >
-          <item
-            v-for="(item, idx) in files"
-            :key="base64(item.name)"
-            :class="{ 'zebra-row': (numPinned + numDirs + idx) % 2 === 1 }"
-            v-bind:index="item.index"
-            v-bind:name="item.name"
-            v-bind:isDir="item.type === 'directory'"
-            v-bind:modified="item.modified"
-            v-bind:created="item.created"
-            v-bind:source="req.source"
-            v-bind:type="item.type"
-            v-bind:size="item.size"
-            v-bind:path="item.path"
-            v-bind:reducedOpacity="item.hidden || isDragging"
-            v-bind:hash="shareInfo.hash"
-            v-bind:hasPreview="item.hasPreview"
-            v-bind:metadata="item.metadata"
-            v-bind:hasDuration="hasDuration"
-            v-bind:isShared="item.isShared"
-            v-bind:pinned="item.pinned"
-            v-bind:viewToken="item.viewToken"
-          />
-        </div>
+        <template v-for="section in sections" :key="section.key">
+          <template v-if="section.count > 0">
+            <div>
+              <h2>{{ section.title }}</h2>
+            </div>
+            <div
+              :class="[section.class, { firstGroup: section.first, lastGroup: section.last }]"
+              :data-virtual-group="section.key"
+              :style="virtual.group(section.key).style"
+              role="group"
+              :aria-label="section.label"
+            >
+              <Item
+                v-for="(item, idx) in virtual.group(section.key).items"
+                :key="item.path || item.name"
+                :class="{ 'zebra-row': (virtual.group(section.key).position + idx) % 2 === 1 }"
+                :index="item.index"
+                :name="item.name"
+                :isDir="item.type === 'directory'"
+                :source="req.source"
+                :modified="item.modified"
+                :created="item.created"
+                :type="item.type"
+                :size="item.size"
+                :path="item.path"
+                :reducedOpacity="item.hidden"
+                :hash="shareInfo.hash"
+                :hasPreview="item.hasPreview"
+                :metadata="item.metadata"
+                :hasDuration="hasDuration"
+                :isShared="item.isShared"
+                :pinned="item.pinned"
+                :viewToken="item.viewToken"
+              />
+            </div>
+          </template>
+        </template>
 
         <input
           style="display: none"
@@ -182,1246 +117,466 @@
 
   <!-- Upload Share Target -->
   <!-- Only show upload interface if password is validated (or no password required) -->
-  <div v-else-if="!shareInfo.hasPassword || shareInfo.passwordValid" class="upload-share-embed">
-    <Upload :initialItems="null" />
+  <div v-else-if="!shareInfo.hasPassword || shareInfo.passwordValid" ref="rootEl" class="upload-share-embed">
+    <Upload />
   </div>
 </template>
 
-<script>
-import downloadFiles from "@/utils/download";
-import { resourcesApi } from "@/api";
-import { router } from "@/router";
-import { readAllDirectoryEntries, checkConflict } from "@/utils/upload";
-import throttle from "@/utils/throttle";
-import { state, mutations, getters } from "@/store";
-import { url } from "@/utils";
+<script setup lang="ts">
+import { computed, nextTick, onBeforeUnmount, onMounted, reactive, useTemplateRef, watch } from "vue";
+import { useI18n } from "@/i18n/index.ts";
+import { readAllDirectoryEntries } from "@/utils/upload.ts";
+import { state, mutations, getters } from "@/store/index.ts";
+import { eventBus } from "@/store/eventBus.ts";
 import Item from "@/components/files/ListingItem.vue";
 import Upload from "@/components/prompts/Upload.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
-import {
-  isTypeAheadSessionActive,
-  processTypeAheadKey,
-  resetTypeAheadSession,
-} from "@/utils/listingTypeAhead.js";
-import { notifyMoveCopyFailure } from "@/utils/appNotifications";
+import { useListingClipboard } from "@/composables/useListingClipboard.ts";
+import { useListingKeyboard } from "@/composables/useListingKeyboard.ts";
+import { useListingLayout } from "@/composables/useListingLayout.ts";
+import { useListingVirtualization } from "@/composables/useListingVirtualization.ts";
+import { useMouseSelection } from "@/composables/useRectangleSelection.ts";
+import { useListingContextMenu } from "@/composables/useListingContextMenu.ts";
 
-export default {
-  name: "listingView",
-  components: {
-    Item,
-    Upload,
-    LoadingSpinner,
+defineOptions({ name: "listingView" });
+
+interface CollectedFile {
+  file: File;
+  relativePath: string;
+}
+
+type PastedItem =
+  | { type: "entry"; entry: FileSystemEntry }
+  | { type: "file"; file: File };
+
+const { t } = useI18n();
+
+const rootEl = useTemplateRef<HTMLElement>("rootEl");
+const listingView = useTemplateRef<HTMLElement>("listingView");
+
+const dragTargets = reactive(new Set<Element>());
+
+// Non reactive on purpose: big DOM-derived caches and transient interaction state.
+let itemNodes: HTMLCollectionOf<Element> | null = null; // .listing-item elements
+let itemNodesHost: HTMLElement | null = null;
+let contentResizeObserver: ResizeObserver | null = null;
+let observedListing: HTMLElement | null = null;
+
+const permissions = computed(() => ({ ...getters.globalPermissions(), ...getters.sourcePermissions() }));
+const shareInfo = computed(() => state.shareInfo);
+const isDragging = computed(() => {
+  const el = rootEl.value;
+  if (!el) return false;
+  if (getters.isShare()) {
+    return !!state.shareInfo.allowCreate && dragTargets.has(el);
+  }
+  return dragTargets.has(el);
+});
+const scrolling = computed(() => state.listing.listingScrollTop);
+const items = computed(() => getters.reqItems());
+const pinnedItems = computed(() => items.value.pinned || []);
+const dirs = computed(() => items.value.dirs);
+const files = computed(() => items.value.files);
+const allItems = computed(() => pinnedItems.value.concat(dirs.value, files.value));
+const numPinned = computed(() => pinnedItems.value.length);
+const numFiles = computed(() => files.value.length);
+const numDirs = computed(() => dirs.value.length);
+const hasDuration = computed(() => getters.hasDuration());
+const pinnedHeaderText = computed(() => {
+  const pinnedFolders = pinnedItems.value.filter((item) => item.type === "directory").length;
+  const pinnedFiles = pinnedItems.value.filter((item) => item.type !== "directory").length;
+  if (pinnedFolders > 0 && pinnedFiles === 0) {
+    return t("general.pinnedFolders");
+  }
+  if (pinnedFiles > 0 && pinnedFolders === 0) {
+    return t("general.pinnedFiles");
+  }
+  return t("general.pinned");
+});
+const sections = computed(() => [
+  { key: "pinned", class: "pinned-items", title: pinnedHeaderText.value, label: "Pinned Items", count: numPinned.value, first: true, last: numDirs.value + numFiles.value === 0 },
+  { key: "dirs", class: "folder-items", title: t("general.folders"), label: "Folder Items", count: numDirs.value, first: numPinned.value === 0, last: numFiles.value === 0 },
+  { key: "files", class: "file-items", title: t("general.files"), label: "File Items", count: numFiles.value, first: numPinned.value + numDirs.value === 0, last: true },
+]);
+const listingViewMode = computed(() => getters.viewMode());
+const selectedCount = computed(() => state.selected.length);
+const req = computed(() => state.req);
+const loading = computed(() => getters.isLoading());
+const containerStyles = computed(() => {
+  // Dynamic padding-top: applied to the entire container (loading spinner + listing items)
+  const isEmpty = numDirs.value + numFiles.value + numPinned.value === 0;
+  const isRootPath = state.req.path === "/" || !state.req.path;
+  if (isEmpty) {
+    return { "padding-top": "4.1em" }; // Empty - no files or folders
+  } else if (isRootPath) {
+    return { "padding-top": "4.29em" }; // Root - no breadcrumbs showing
+  } else {
+    return { "padding-top": "7.51em" }; // Non-root - breadcrumbs + listing header
+  }
+});
+const isListingView = () => getters.currentView() === "listingView";
+
+const { itemStyles, numColumns } = useListingLayout({ container: listingView });
+
+// Only renders the rows around the screen when the folder is big
+const virtual = useListingVirtualization({
+  container: listingView,
+  groups: () => [
+    { key: "pinned", items: pinnedItems.value },
+    { key: "dirs", items: dirs.value },
+    { key: "files", items: files.value },
+  ],
+  columnsHint: () => numColumns.value,
+  register: true,
+});
+
+const { isRectangleSelecting, rectangleStyle } = useMouseSelection({
+  container: rootEl,
+  bounds: listingView,
+  items: () => allItems.value,
+  isActive: isListingView,
+  hitTest: virtual.handle.hitTest,
+});
+
+useListingKeyboard({
+  container: rootEl,
+  items: () => allItems.value,
+  isActive: isListingView,
+  canModify: () => !!permissions.value?.modify,
+  virtual: virtual.handle,
+  onEscape: () => {
+    if (dragTargets.size === 0) return false;
+    dragTargets.clear();
+    return true;
   },
-  data() {
-    return {
-      columnWidth: 250 + state.user.gallerySize * 50,
-      dragTargets: new Set(),
-      width: window.innerWidth,
-      lastSelected: {},
-      contextTimeout: null,
-      clipboard: { items: [] },
-      internalClipboardTimestamp: 0,
-      isRectangleSelecting: false,
-      rectangleStart: { x: 0, y: 0 },
-      rectangleEnd: { x: 0, y: 0 },
-      rectangleSelection: [],
-      cssVariables: {},
-      rafId: null,
-      selectionUpdatePending: false,
-      isResizing: false,
-      resizeTimeout: null,
-    };
-  },
-  watch: {
-    gallerySize() {
-      this.columnWidth = 250 + state.user.gallerySize * 50;
-    },
-    scrolling() {
-      const scrollContainer = this.$refs.listingView;
-      if (!scrollContainer) return;
+});
 
-      // Select all visible listing items
-      const itemNodes = scrollContainer.querySelectorAll(".listing-item");
+useListingContextMenu(rootEl, { getProps: () => ({ createOnly: selectedCount.value === 0 }) });
 
-      // Find the first item near the top of the viewport
-      let topItem = null;
-      let minTop = Infinity;
-      for (const el of itemNodes) {
-        const rect = el.getBoundingClientRect();
-        if (rect.top >= 0 && rect.top < minTop) {
-          minTop = rect.top;
-          topItem = el;
-        }
-      }
+const { handleInternalPaste, hasInternalItems, isInternalRecent } = useListingClipboard();
 
-      // Decide category by checking which section is above
-      let letter = "A";
-      let category = "folders"; // Default category
+watch(loading, () => {
+  void nextTick(observeListingContent);
+});
 
-      if (topItem) {
-        letter = topItem.getAttribute("data-name")?.[0]?.toUpperCase() || "A";
-      } else if (this.numPinned > 0) {
-        const pinnedHeader = this.$el.querySelector(".pinned-items h2");
-        if (pinnedHeader && pinnedHeader.getBoundingClientRect().top >= 0) {
-          category = "pinned";
-          const firstPinned = this.pinnedItems[0];
-          letter = firstPinned?.name?.[0]?.toUpperCase();
-        }
-      }
+watch(scrolling, () => {
+  const scrollContainer = listingView.value;
+  const root = rootEl.value;
+  if (!scrollContainer || !root) return;
 
-      if (topItem?.closest('.pinned-items')) {
-        category = "pinned";
-        const firstPinned = this.pinnedItems[0];
-        letter = firstPinned?.name?.[0]?.toUpperCase();
-      }
-      else if (this.numFiles > 0) {
-        const fileSection = this.$el.querySelector(".file-items");
-        const fileTop = fileSection?.getBoundingClientRect().top ?? 0;
-        category = fileTop <= 0 ? "files" : "folders";
-      }
-      if (this.numDirs === 0 && category !== "pinned") {
-        category = "files"; // If no directories, only files
-      }
+  // Select all visible listing items
+  const nodes = getListingItemNodes(scrollContainer);
+  // Find the first item at/below the top of the viewport
+  let lo = 0;
+  let hi = nodes.length;
+  while (lo < hi) {
+    const mid = (lo + hi) >>> 1;
+    if ((nodes[mid] as Element).getBoundingClientRect().top >= 0) {
+      hi = mid;
+    } else {
+      lo = mid + 1;
+    }
+  }
+  const topItem = nodes[lo] ?? null;
+  // Decide category by checking which section is above
+  let letter = "A";
+  let category = "folders"; // Default category
 
-      mutations.updateListing({
-        ...state.listing,
-        category,
-        letter,
-      });
-    },
-  },
-  computed: {
-    permissions() {
-      return { ...getters.globalPermissions(), ...getters.sourcePermissions() };
-    },
-    shareInfo() {
-      return state.shareInfo;
-    },
-    state() {
-      return state;
-    },
-    isDragging() {
-      if (getters.isShare()) {
-        return state.shareInfo.allowCreate && this.dragTargets.has(this.$el);
-      }
-      return this.dragTargets.has(this.$el);
-    },
-    scrolling() {
-      return state.listing.scrollRatio;
-    },
-    isStickySidebar() {
-      return getters.isStickySidebar();
-    },
-    allItems() {
-      return [...this.pinnedItems, ...this.dirs, ...this.files];
-    },
-    numColumns() {
-      void this.width;
-      if (!getters.isCardView()) {
-        return 1;
-      }
-      const elem = document.querySelector("#main");
-      if (!elem) {
-        return 1;
-      }
-      if (getters.viewMode() === "icons") {
-        const containerSize = 70 + state.user.gallerySize * 15;
-        let columns = Math.floor(elem.offsetWidth / containerSize);
-        if (columns === 0) {
-          columns = 1;
-        }
-        const minColumns = 3;
-        const maxColumns = 12;
-        return Math.max(minColumns, Math.min(columns, maxColumns));
-      }
-      let columns = Math.floor(elem.offsetWidth / this.columnWidth);
-      if (columns === 0) {
-        columns = 1;
-      }
-      return columns;
-    },
-    gallerySize() {
-      return state.user.gallerySize;
-    },
-    ascOrdered() {
-      return getters.sorting().asc;
-    },
-    hasDuration() {
-      // Check if any pinned file or regular file has duration metadata
-      return [...this.pinnedItems, ...this.files].some(
-        file => file.type !== "directory" && file.metadata?.duration
+  if (topItem) {
+    letter = topItem.getAttribute("data-name")?.[0]?.toUpperCase() || "A";
+  } else if (numPinned.value > 0) {
+    const pinnedHeader = root.querySelector(".pinned-items h2");
+    if (pinnedHeader && pinnedHeader.getBoundingClientRect().top >= 0) {
+      category = "pinned";
+      const firstPinned = pinnedItems.value[0];
+      letter = firstPinned?.name?.[0]?.toUpperCase() as string;
+    }
+  }
+
+  if (topItem?.closest(".pinned-items")) {
+    category = "pinned";
+  }
+  else if (numFiles.value > 0) {
+    const fileSection = root.querySelector<HTMLElement>(".file-items");
+    const spacer = Number.parseFloat(fileSection?.style.marginTop || "0") || 0;
+    const fileTop = fileSection ? fileSection.getBoundingClientRect().top - spacer : 0;
+    category = fileTop <= 0 ? "files" : "folders";
+  }
+  if (numDirs.value === 0 && category !== "pinned") {
+    category = "files"; // If no directories, only files
+  }
+
+  mutations.updateListing({
+    ...state.listing,
+    category,
+    letter,
+  });
+});
+
+onMounted(() => {
+  mutations.setSearch(false);
+  const el = rootEl.value;
+  contentResizeObserver = new ResizeObserver(() => eventBus.emit("scrollContentResized"));
+  observeListingContent();
+  window.addEventListener("dragover", preventDefault);
+  window.addEventListener("paste", handlePaste);
+
+  // Single dragend listener for all items
+  document.addEventListener("dragend", handleGlobalDragEnd, { passive: true });
+  el?.addEventListener("dragenter", dragEnter);
+  el?.addEventListener("dragleave", dragLeave);
+  el?.addEventListener("drop", drop);
+});
+
+onBeforeUnmount(() => {
+  contentResizeObserver?.disconnect();
+  const el = rootEl.value;
+
+  // Remove event listeners before destroying this page.
+  window.removeEventListener("dragover", preventDefault);
+  window.removeEventListener("paste", handlePaste);
+  document.removeEventListener("dragend", handleGlobalDragEnd);
+
+  // Also clean up drag/drop listeners on the component's root element
+  el?.removeEventListener("dragenter", dragEnter);
+  el?.removeEventListener("dragleave", dragLeave);
+  el?.removeEventListener("drop", drop);
+});
+
+function observeListingContent() {
+  const el = listingView.value || null;
+  if (!contentResizeObserver || el === observedListing) return;
+  contentResizeObserver.disconnect();
+  observedListing = el;
+  if (el) contentResizeObserver.observe(el);
+}
+
+function handleGlobalDragEnd() {
+  // Reset drag state for all items (replaces per-item dragend listeners)
+  const listingItems = rootEl.value?.querySelectorAll(".listing-item.drag-hover, .listing-item.half-selected");
+  if (listingItems) {
+    for (const el of listingItems) {
+      el.classList.remove("drag-hover", "half-selected");
+    }
+  }
+  dragTargets.clear();
+}
+
+// stays in sync with the DOM and avoids rebuilding a NodeList on every call
+function getListingItemNodes(container: HTMLElement) {
+  if (itemNodesHost !== container || !itemNodes) {
+    itemNodesHost = container;
+    // biome-ignore lint/style/useDomQuerySelector: a live HTMLCollection is the point here, querySelectorAll returns a static snapshot
+    itemNodes = container.getElementsByClassName("listing-item");
+  }
+  return itemNodes;
+}
+
+function preventDefault(event: Event) {
+  event.preventDefault();
+}
+
+async function collectFilesFromEntry(entry: FileSystemEntry, relativePath = ""): Promise<CollectedFile[]> {
+  const collected: CollectedFile[] = [];
+  const entryPath = relativePath ? `${relativePath}/${entry.name}` : entry.name;
+
+  if (entry.isFile) {
+    // If it's a file we get the File object and add it with its relative path
+    const file = await new Promise<File>((resolve, reject) => {
+      (entry as FileSystemFileEntry).file(resolve, reject);
+    });
+    collected.push({
+      file,
+      relativePath: entryPath,
+    });
+  } else if (entry.isDirectory) {
+    // But if it's a directory, read the contents (readEntries may require
+    // multiple calls — browsers often return at most ~100 entries per batch)
+    const reader = (entry as FileSystemDirectoryEntry).createReader();
+    const entries: FileSystemEntry[] = await readAllDirectoryEntries(reader, entryPath);
+    // and then for each child recursively collect files
+    for (const childEntry of entries) {
+      const childFiles = await collectFilesFromEntry(
+        childEntry,
+        entryPath
       );
-    },
-    items() {
-      return getters.reqItems();
-    },
-    numPinned() {
-      return this.pinnedItems.length;
-    },
-    pinnedItems() {
-      return this.items.pinned || [];
-    },
-    numFiles() {
-      return this.files.length;
-    },
-    numDirs() {
-      return this.dirs.length;
-    },
-    pinnedHeaderText() {
-      const pinnedFolders = this.pinnedItems.filter(item => item.type === 'directory').length;
-      const pinnedFiles = this.pinnedItems.filter(item => item.type !== 'directory').length;
-      if (pinnedFolders > 0 && pinnedFiles === 0) {
-        return this.$t("general.pinnedFolders");
-      }
-      if (pinnedFiles > 0 && pinnedFolders === 0) {
-        return this.$t("general.pinnedFiles");
-      }
-      return this.$t("general.pinned");
-    },
-    dirs() {
-      return this.items.dirs;
-    },
-    files() {
-      return this.items.files;
-    },
-    viewIcon() {
-      const icons = {
-        list: "view_module",
-        compact: "view_module",
-        normal: "grid_view",
-        gallery: "view_list",
-      };
-      return icons[getters.viewMode()];
-    },
-    listingViewMode() {
-      return getters.viewMode();
-    },
-    selectedCount() {
-      return state.selected.length;
-    },
-    req() {
-      return state.req;
-    },
-    loading() {
-      const isLoading = getters.isLoading();
-      return isLoading;
-    },
-    rectangleStyle() {
-      if (!this.isRectangleSelecting) return { display: 'none' };
-      const left = Math.min(this.rectangleStart.x, this.rectangleEnd.x);
-      const top = Math.min(this.rectangleStart.y, this.rectangleEnd.y);
-      const width = Math.abs(this.rectangleStart.x - this.rectangleEnd.x);
-      const height = Math.abs(this.rectangleStart.y - this.rectangleEnd.y);
-      return {
-        left: `${left}px`,
-        top: `${top}px`,
-        width: `${width}px`,
-        height: `${height}px`,
-      };
-    },
-    containerStyles() {
-      // Dynamic padding-top: applied to the entire container (loading spinner + listing items)
-      const isEmpty = this.numDirs + this.numFiles + this.numPinned === 0;
-      const isRootPath = state.req.path === '/' || !state.req.path;
-      if (isEmpty) {
-        return { 'padding-top': '4.1em' }; // Empty - no files or folders
-      } else if (isRootPath) {
-        return { 'padding-top': '4.29em' }; // Root - no breadcrumbs showing
+      collected.push(...childFiles);
+    }
+  }
+  return collected;
+}
+
+async function getClipboardItems(pastedItems: PastedItem[]) {
+  const collected: CollectedFile[] = [];
+  for (const item of pastedItems) {
+    if (item.type === "entry") {
+      collected.push(...await collectFilesFromEntry(item.entry));
+    } else if (item.type === "file") {
+      collected.push({ file: item.file, relativePath: item.file.name });
+    }
+  }
+  return collected;
+}
+
+async function handlePaste(event: ClipboardEvent) {
+  // We can paste multiple files from clipboard and upload all of them at once, but
+  // Firefox has an issue https://bugzilla.mozilla.org/show_bug.cgi?id=864052  (12 years old lol)
+  // the clipboard entry is always getting 1 file (the first file/folder in selection),
+  // while chromium sees all and has no issues with it. Not sure about safari.
+  if (getters.currentView() !== "listingView" || getters.currentPromptName()) return;
+
+  const internalRecent = isInternalRecent();
+
+  // Collect all items from clipboard (skipped when the internal clipboard wins below)
+  const collectedItems: PastedItem[] = [];
+  if (!internalRecent && event.clipboardData?.items) {
+    // And loop through all items
+    for (const item of Array.from(event.clipboardData.items)) {
+      if (item.kind !== "file") continue;
+
+      const entry = item.webkitGetAsEntry();
+      if (entry) {
+        collectedItems.push({ type: "entry", entry });
       } else {
-        return { 'padding-top': '7.51em' }; // Non-root - breadcrumbs + listing header
-      }
-    },
-    itemStyles() {
-      const viewMode = getters.viewMode();
-      const styles = {};
-      const size = state.user.gallerySize;
-
-      if (viewMode === 'icons') {
-        const baseSize = 20 + (size * 15); // 35px to 155px
-        const cellSize = baseSize + 30;
-        styles['--icon-size'] = `${baseSize}px`;
-        styles['--icon-font-size'] = `${baseSize}px`;
-        styles['--icons-view-cell-size'] = `${cellSize}px`;
-      } else if (viewMode === 'gallery') {
-        const baseCalc = 80 + (size * 25);
-        const extraScaling = Math.max(0, size - 5) * 15;
-        const baseSize = baseCalc + extraScaling; // Size 5: 205px, Size 9: 345px
-        const iconFontSize = (3 + (size * 0.5)).toFixed(2); // 3em to 7.5em
-        styles['--icon-font-size'] = `${iconFontSize}em`;
-
-        if (getters.isMobile()) {
-          const minWidth = size <= 3 ? 120 : size <= 7 ? 160 : 280;
-          const mobileHeight = 120 + (size * 20); // 120px to 300px
-          styles['--gallery-mobile-min-width'] = `${minWidth}px`;
-          styles['--item-width'] = `${minWidth}px`;
-          styles['--item-height'] = `${mobileHeight}px`;
-        } else {
-          styles['--item-width'] = `${baseSize}px`;
-          styles['--item-height'] = `${Math.round(baseSize * 1.2)}px`;
+        const file = item.getAsFile();
+        if (file) {
+          collectedItems.push({ type: "file", file });
         }
-      } else if (viewMode === 'list' || viewMode === 'compact') {
-        const baseHeight = viewMode === 'compact'
-          ? 40 + (size * 2)  // 42px to 58px
-          : 50 + (size * 3); // 53px to 77px
-        const iconSize = (2 + (size * 0.12)).toFixed(2); // 2.12em to 3.08em
-        const iconFontSize = (1.5 + (size * 0.12)).toFixed(2); // 1.62em to 2.58em
-
-        styles['--item-width'] = `calc(${(100 / this.numColumns).toFixed(2)}% - 1em)`;
-        styles['--item-height'] = `${baseHeight}px`;
-        styles['--icon-size'] = `${iconSize}em`;
-        styles['--icon-font-size'] = `${iconFontSize}em`;
-      } else {
-        // Normal view
-        const iconSize = (3.2 + (size * 0.15)).toFixed(2); // 3.35em to 4.55em
-        const iconFontSize = (2.2 + (size * 0.12)).toFixed(2); // 2.32em to 3.28em
-
-        styles['--item-width'] = `calc(${(100 / this.numColumns)}% - 1em)`;
-        styles['--item-height'] = 'auto';
-        styles['--icon-size'] = `${iconSize}em`;
-        styles['--icon-font-size'] = `${iconFontSize}em`;
       }
-
-      return styles;
-    },
-  },
-  mounted() {
-    mutations.setSearch(false);
-    this.lastSelected = state.selected;
-
-    // Add the needed event listeners to the window and document.
-    window.addEventListener("keydown", this.keyEvent);
-    window.addEventListener("resize", this.windowsResize);
-    window.addEventListener("click", this.clickClear);
-    window.addEventListener("dragover", this.preventDefault);
-    window.addEventListener('paste', this.handlePaste);
-    document.addEventListener('mousemove', this.updateRectangleSelection, { passive: true });
-    document.addEventListener('mouseup', this.endRectangleSelection);
-    this.$el.addEventListener('mousedown', this.startRectangleSelection);
-    this.$el.addEventListener("touchmove", this.handleTouchMove, { passive: true });
-    this.$el.addEventListener('dblclick', this.handleDoubleClick);
-
-    // Single dragend listener for all items (prevents N listeners for N items)
-    document.addEventListener('dragend', this.handleGlobalDragEnd, { passive: true });
-
-    this.$el.addEventListener("contextmenu", this.openContext);
-    // Adjust contextmenu listener based on browser
-    if (state.isSafari) {
-      // For Safari, add touchstart or mousedown to open the context menu
-      this.$el.addEventListener("touchstart", this.openContextForSafari, {
-        passive: true,
-      });
-      this.$el.addEventListener("mousedown", this.openContextForSafari);
-
-      // Also clear the timeout if the user clicks or taps quickly
-      this.$el.addEventListener("touchend", this.cancelContext);
-      this.$el.addEventListener("mouseup", this.cancelContext);
     }
+  }
 
-    // if safari , make sure click and hold opens context menu, but not for any other browser
-    // Always listen: dragEnter and drop check create on the current source on every event. Deciding
-    // here, once, left no drop target after navigating from a source the user cannot write to.
-    this.$el.addEventListener("dragenter", this.dragEnter);
-    this.$el.addEventListener("dragleave", this.dragLeave);
-    this.$el.addEventListener("drop", this.drop);
-  },
-  beforeUnmount() {
-    resetTypeAheadSession();
+  // We handle this paste when the internal clipboard is recent, when the OS clipboard has files,
+  // or when we'll fall back to the internal clipboard. preventDefault()/stopPropagation() only work
+  // while the event is still being dispatched, so this has to run before the first await.
+  const target = event.target;
+  const isEditableTarget =
+    target instanceof HTMLElement && (target.isContentEditable || target.matches("input, textarea"));
+  if (!isEditableTarget && (internalRecent || collectedItems.length > 0 || hasInternalItems())) {
+    event.preventDefault();
+    event.stopPropagation();
+  }
 
-    if (this.resizeTimeout) {
-      clearTimeout(this.resizeTimeout);
-      this.resizeTimeout = null;
-    }
+  // If internal is recent (<20s), use it immediately, in case someone have both: internal and external clipboard with a file entry.
+  // After those 20s, if the OS clipboard has a file as most recent entry, will use that.
+  if (internalRecent) {
+    await handleInternalPaste();
+    return;
+  }
 
-    // Remove event listeners before destroying this page.
-    window.removeEventListener("keydown", this.keyEvent);
-    window.removeEventListener("resize", this.windowsResize);
-    window.removeEventListener("click", this.clickClear);
-    window.removeEventListener("dragover", this.preventDefault);
-    window.removeEventListener('paste', this.handlePaste);
-    document.removeEventListener('mousemove', this.updateRectangleSelection);
-    document.removeEventListener('mouseup', this.endRectangleSelection);
-    document.removeEventListener('dragend', this.handleGlobalDragEnd);
-    this.$el.removeEventListener('mousedown', this.startRectangleSelection);
-    this.$el.removeEventListener('dblclick', this.handleDoubleClick);
+  if (collectedItems.length > 0) {
+    // Then process the collected items (files and folders) asynchronously
+    const itemsFromClipboard = await getClipboardItems(collectedItems);
+    const pastedFiles = itemsFromClipboard.map((item) => item.file);
 
-    this.$el.removeEventListener("touchmove", this.handleTouchMove);
-    this.$el.removeEventListener("contextmenu", this.openContext);
-
-    // If Safari, remove touch/mouse listeners
-    if (state.isSafari) {
-      this.$el.removeEventListener("touchstart", this.openContextForSafari);
-      this.$el.removeEventListener("mousedown", this.openContextForSafari);
-      this.$el.removeEventListener("touchend", this.cancelContext);
-      this.$el.removeEventListener("mouseup", this.cancelContext);
-    }
-
-    // Also clean up drag/drop listeners on the component's root element
-    this.$el.removeEventListener("dragenter", this.dragEnter);
-    this.$el.removeEventListener("dragleave", this.dragLeave);
-    this.$el.removeEventListener("drop", this.drop);
-  },
-  methods: {
-    handleGlobalDragEnd() {
-      // Reset drag state for all items (replaces per-item dragend listeners)
-      const items = this.$el?.querySelectorAll('.listing-item.drag-hover, .listing-item.half-selected');
-      if (items) {
-        for (const el of items) {
-          el.classList.remove('drag-hover', 'half-selected');
-        }
-      }
-      this.dragTargets.clear();
-    },
-    cancelContext() {
-      if (this.contextTimeout) {
-        clearTimeout(this.contextTimeout);
-        this.contextTimeout = null;
-      }
-      this.isLongPress = false;
-    },
-    openContextForSafari(event) {
-      this.cancelContext(); // Clear any previous timeouts
-      this.isLongPress = false; // Reset state
-      this.isSwipe = false; // Reset swipe detection
-
-      const touch = event.touches[0];
-      this.touchStartX = touch.clientX;
-      this.touchStartY = touch.clientY;
-
-      // Start the long press detection
-      this.contextTimeout = setTimeout(() => {
-        if (!this.isSwipe) {
-          this.isLongPress = true;
-          event.preventDefault(); // Suppress Safari's callout menu
-          this.openContext(event); // Open the custom context menu
-        }
-      }, 500); // Long press delay (adjust as needed)
-    },
-    handleTouchMove(event) {
-      const touch = event.touches[0];
-      const deltaX = Math.abs(touch.clientX - this.touchStartX);
-      const deltaY = Math.abs(touch.clientY - this.touchStartY);
-      // Set a threshold for movement to detect a swipe
-      const movementThreshold = 10; // Adjust as needed
-      if (deltaX > movementThreshold || deltaY > movementThreshold) {
-        this.isSwipe = true;
-        this.cancelContext(); // Cancel long press if swipe is detected
-      }
-    },
-    handleTouchEnd() {
-      this.cancelContext(); // Clear timeout
-      this.isSwipe = false; // Reset swipe state
-    },
-    base64(name) {
-      return url.base64Encode(name);
-    },
-    showDeletePrompt() {
-      const items = [];
-      for (const index of state.selected) {
-        const item = state.req.items.at(index);
-        if (!item) continue;
-        const previewUrl = item.hasPreview
-          ? resourcesApi.getPreviewURL(item.source || state.req.source, item.path, item.modified)
-          : null;
-        items.push({
-          source: item.source || state.req.source,
-          path: item.path,
-          type: item.type,
-          size: item.size,
-          modified: item.modified,
-          created: item.created,
-          hasPreview: item.hasPreview,
-          previewUrl: previewUrl,
-        });
-      }
-      mutations.showPrompt({
-        name: "delete",
-        props: { items },
-      });
-    },
-    // Helper method to select the first item if nothing is selected
-    selectFirstItem() {
-      mutations.resetSelected();
-      if (this.allItems.length > 0) {
-        mutations.addSelected(this.allItems[0].index);
-      }
-    },
-    // Helper method to find the closest item in the given direction (up or down) from the current one.
-    findClosestItem(selectedItem, direction) {
-      const listItems = Array.from(this.$el.querySelectorAll('.listing-item'));
-      const selectedBounds = selectedItem.getBoundingClientRect();
-      const selectedMidX = (selectedBounds.left + selectedBounds.right) / 2;
-
-      let closestItem = null;
-      let closestDistance = Infinity;
-
-      for (const item of listItems) {
-        if (item === selectedItem) continue;
-        const itemBounds = item.getBoundingClientRect();
-        const itemMidX = (itemBounds.left + itemBounds.right) / 2;
-        const horizontalOffset = Math.abs(itemMidX - selectedMidX);
-
-        const verticalGap = direction === 'down'
-          ? itemBounds.top - selectedBounds.bottom
-          : selectedBounds.top - itemBounds.bottom;
-
-        if (verticalGap > 0) {
-          const distance = Math.hypot(horizontalOffset, verticalGap);
-          if (distance < closestDistance) {
-            closestDistance = distance;
-            closestItem = item;
-          }
-        }
-      }
-      return closestItem;
-    },
-    moveSelectionBy(step) {
-      const allItems = this.allItems;
-      const selectedIndex = state.selected.length > 0 ? state.selected[0] : null;
-      if (selectedIndex === null) {
-        this.selectFirstItem();
-        return false;
-      }
-      const currentItemIndex = allItems.findIndex(item => item.index === selectedIndex);
-      if (currentItemIndex === -1) {
-        this.selectFirstItem();
-        return false;
-      }
-      const nextItemIndex = currentItemIndex + step;
-      if (nextItemIndex >= 0 && nextItemIndex < allItems.length) {
-        const targetItem = allItems.at(nextItemIndex);
-        mutations.resetSelected();
-        mutations.addSelected(targetItem.index);
-        this.scrollSelectedIntoView();
-        return true;
-      }
-      return false;
-    },
-    // Helper method to handle selection based on arrow keys
-    navigateKeyboardArrows(arrowKey) {
-      const isCardView = getters.isCardView(); // gallery, normal, icons
-      const selectedIndex = state.selected.length > 0 ? state.selected[0] : null;
-
-      if (selectedIndex === null) {
-        // If nothing is selected, select the first item
-        this.selectFirstItem();
-        return;
-      }
-
-      // Left/Right arrows will always use the visual order that we see
-      if (arrowKey === 'ArrowLeft' || arrowKey === 'ArrowRight') {
-        const step = arrowKey === 'ArrowLeft' ? -1 : 1;
-        this.moveSelectionBy(step);
-        return;
-      }
-
-      // On list/compact views we use a simple linear navigation since all the items are aligned
-      if (!isCardView) {
-        const step = arrowKey === 'ArrowUp' ? -1 : 1;
-        this.moveSelectionBy(step);
-        return;
-      }
-
-      // But for gallery, normal, icons views, we need to find the closest item
-      // because the rows aren't always consistent (some have 1 item, others 5, etc)
-      // which caused "random jumps"
-      const selectedItem = this.$el.querySelector(`.listing-item[data-index="${selectedIndex}"]`);
-      if (!selectedItem) return;
-
-      let nextItem = null;
-
-      switch (arrowKey) {
-        case 'ArrowDown':
-          nextItem = this.findClosestItem(selectedItem, 'down');
-          break;
-        case 'ArrowUp':
-          nextItem = this.findClosestItem(selectedItem, 'up');
-          break;
-      }
-
-      const itemIndex = parseInt(nextItem?.dataset.index, 10);
-      if (!Number.isNaN(itemIndex)) {
-        mutations.resetSelected();
-        mutations.addSelected(itemIndex);
-        this.scrollSelectedIntoView();
-      }
-    },
-    scrollSelectedIntoView() {
-      setTimeout(() => {
-        const element = document.querySelector(
-          '.listing-item[aria-selected="true"]'
-        );
-        if (element) {
-          element.scrollIntoView({
-            behavior: "smooth",
-            block: "nearest",
-            inline: "nearest",
-          });
-        }
-      }, 50);
-    },
-    keyEvent(event) {
-      const { key, ctrlKey, metaKey, altKey, which } = event;
-      const isArrowKey = key === 'ArrowUp' ||
-                         key === 'ArrowDown' ||
-                         key === 'ArrowLeft' ||
-                         key === 'ArrowRight';
-      if (state.isSearchActive || getters.currentView() !== "listingView" ||
-        getters.currentPromptName() || (event.repeat && (!isArrowKey || altKey))) return;
-
-      if (
-        (key === ' ' || key === '/') &&
-        isTypeAheadSessionActive() &&
-        !state.isSearchActive &&
-        !getters.currentPromptName()
-      ) {
-        event.preventDefault();
-        return;
-      }
-
-      const isAlphanumeric = /^[a-z0-9]$/i.test(key);
-      const modifierKeys = ctrlKey || metaKey;
-      if (isAlphanumeric && !modifierKeys && state.selected.length <= 1) {
-        const t = event.target;
-        const tag = t?.tagName ? t.tagName.toLowerCase() : "";
-        if (
-          tag !== "input" &&
-          tag !== "textarea" &&
-          tag !== "select" &&
-          !t.isContentEditable
-        ) {
-          event.preventDefault();
-          this.alphanumericKeyPress(key);
-          return;
-        }
-      }
-
-      if (modifierKeys) {
-        const charKey = String.fromCharCode(which).toLowerCase();
-
-        switch (charKey) {
-          case "c":
-          case "x":
-            this.copyCut(event, charKey);
-            return;
-          case "a":
-            event.preventDefault();
-            mutations.selectAllItems({ multiple: false });
-            return;
-          case "d":
-            event.preventDefault();
-            downloadFiles(state.selected);
-            return;
-        }
-        // Don't return here - allow other modifier key combinations to propagate
-      }
-
-      // Handle key events using a switch statement
-      let shortcut = key;
-      if (altKey) shortcut = `Alt+${key}`;
-
-      switch (shortcut) {
-        case "Alt+ArrowUp":
-        case "Backspace": {
-          event.preventDefault();
-          // get current path and its parent
-          const currentPath = state.req.path || "/";
-          const parentPath = url.removeLastDir(currentPath);
-          if (parentPath === currentPath) {
-            return;
-          }
-          const source = getters.isShare() ? state.shareInfo.hash : state.req.source;
-          const newPath = url.buildItemUrl(source, parentPath);
-          void router.push({ path: newPath });
-          break;
-        }
-
-        case "Alt+ArrowDown":
-        case "Enter": {
-          event.preventDefault();
-          if (this.selectedCount === 1) {
-            const selected = getters.getFirstSelected();
-            const selectedUrl = url.buildItemUrl(selected.source, selected.path);
-            if (selectedUrl === state.route.path) return;
-            void router.push({ path: selectedUrl });
-          }
-          break;
-        }
-
-        case "Escape":
-          if (this.dragTargets.size > 0) {
-            this.dragTargets.clear();
-            event.preventDefault();
-            return;
-          }
-          mutations.resetSelected();
-          break;
-
-        case "Delete":
-          if (!this.permissions?.modify || state.selected.length === 0) return;
-          this.showDeletePrompt();
-          break;
-
-        case "ArrowUp":
-        case "ArrowDown":
-        case "ArrowLeft":
-        case "ArrowRight":
-          event.preventDefault();
-          this.navigateKeyboardArrows(key);
-          break;
-      }
-    },
-    alphanumericKeyPress(key) {
-      const selectedIndex = state.selected.length === 1 ? state.selected[0] : null;
-      const { matches, nextPos } = processTypeAheadKey(key, this.allItems, selectedIndex);
-      if (matches.length === 0) {
-        return;
-      }
-
-      const target = matches.at(nextPos);
-      if (!target) return;
-      mutations.resetSelected();
-      mutations.addSelected(target.index);
-      this.scrollSelectedIntoView();
-    },
-    preventDefault(event) {
-      // Wrapper around prevent default.
-      event.preventDefault();
-    },
-    copyCut(event, key) {
-      if (event.target.tagName.toLowerCase() === "input") {
-        return;
-      }
-
-      const items = state.selected
-        .map((i) => {
-          const item = state.req.items.at(i);
-          if (!item) return null;
-          return {
-            from: item.path,
-            fromSource: state.req.source,
-            name: item.name,
-          };
-        })
-        .filter(Boolean);
-
-      if (items.length === 0) {
-        return;
-      }
-
-      this.clipboard = {
-        key: key,
-        items: items,
-        path: state.route.path,
-      };
-      this.internalClipboardTimestamp = Date.now();
-    },
-    async collectFilesFromEntry(entry, relativePath = "") {
-      const files = [];
-      const entryPath = relativePath ? `${relativePath}/${entry.name}` : entry.name;
-
-      if (entry.isFile) {
-        // If it's a file we get the File object and add it with its relative path
-        const file = await new Promise((resolve, reject) => {
-          entry.file(resolve, reject);
-        });
-        files.push({
-          file,
-          relativePath: entryPath,
-        });
-      } else if (entry.isDirectory) {
-        // But if it's a directory, read the contents (readEntries may require
-        // multiple calls — browsers often return at most ~100 entries per batch)
-        const reader = entry.createReader();
-        const entries = await readAllDirectoryEntries(reader, entryPath);
-        // and then for each child recursively collect files
-        for (const childEntry of entries) {
-          const childFiles = await this.collectFilesFromEntry(
-            childEntry,
-            entryPath
-          );
-          files.push(...childFiles);
-        }
-      }
-      return files;
-    },
-
-    async getClipboardItems(items) {
-      const files = [];
-      for (const item of items) {
-        if (item.type === 'entry') {
-          const collected = await this.collectFilesFromEntry(item.entry);
-          files.push(...collected);
-        } else if (item.type === 'file') {
-          files.push({ file: item.file, relativePath: item.file.name });
-        }
-      }
-      return files;
-    },
-
-    async handlePaste(event) {
-      // We can paste multiple files from clipboard and upload all of them at once, but
-      // Firefox has an issue https://bugzilla.mozilla.org/show_bug.cgi?id=864052  (12 years old lol)
-      // the clipboard entry is always getting 1 file (the first file/folder in selection),
-      // while chromium sees all and has no issues with it. Not sure about safari.
-      if (getters.currentView() !== "listingView" || getters.currentPromptName()) return;
-
-      // Check if internal clipboard is recent (20 seconds)
-      const internalRecent = this.clipboard.items.length > 0 && (Date.now() - this.internalClipboardTimestamp) < 20000;
-
-      // If internal is recent (<20s), use it immediately, in case someone have both: internal and external clipboard with a file entry.
-      // After those 20s, if the OS clipboard has a file as most recent entry, will use that.
-      if (internalRecent) {
-        await this.handleInternalPaste();
-        event.preventDefault();
-        event.stopPropagation();
-        return;
-      }
-
-      if (event.clipboardData?.items) {
-        // Collect all items from clipboard
-        const collectedItems = [];
-        // And loop through all items
-        for (const item of Array.from(event.clipboardData.items)) {
-          if (item.kind !== 'file') continue;
-
-          const entry = item.webkitGetAsEntry();
-          if (entry) {
-            collectedItems.push({ type: 'entry', entry });
-          } else {
-            const file = item.getAsFile();
-            if (file) {
-              collectedItems.push({ type: 'file', file });
-            }
-          }
-        }
-
-        // Then process the collected items (files and folders) asynchronously
-        const itemsFromClipboard = await this.getClipboardItems(collectedItems);
-        const files = itemsFromClipboard.map(item => item.file);
-
-        // If found external files, upload them
-        if (files.length > 0) {
-          event.preventDefault();
-          event.stopPropagation();
-
-          const canUpload = getters.sourcePermissions()?.modify;
-          if (canUpload) {
-            // Pass the full array of {file, relativePath} to preserve directory structure
-            mutations.showPrompt({
-              name: "upload",
-              props: {
-                initialItems: itemsFromClipboard,
-                targetPath: state.req.path,
-              },
-            });
-          }
-          return;
-        }
-      }
-      // If internal clipboard exists but is not recent (>20s), and we don't have any file in clipboard, use the internal one
-      if (this.clipboard.items.length > 0) {
-        console.log('No external files, using internal clipboard.');
-        await this.handleInternalPaste();
-        event.preventDefault();
-        event.stopPropagation();
-        return;
-      }
-    },
-
-    async handleInternalPaste() {
-      if (!this.clipboard?.items || this.clipboard.items.length === 0) {
-        return;
-      }
-
-      const operation = this.clipboard.key === "x" ? "move" : "copy";
-      // Pasting writes into the current source; a cut also removes the items from where they were cut,
-      // and a share refuses any change unless it allows modify.
-      const canPaste =
-        getters.sourcePermissions().create &&
-        this.clipboard.items.every((item) => {
-          const origin = getters.sourcePermissions(item.fromSource);
-          return operation === "move" || getters.isShare() ? origin.modify : origin.download;
-        });
-      if (!canPaste) {
-        return;
-      }
-
-      // Construct destination path properly (without URL prefix)
-      const destPath = state.req.path.endsWith('/') ? state.req.path : `${state.req.path}/`;
-
-      const items = this.clipboard.items.map((item) => ({
-        from: item.from,
-        fromSource: item.fromSource,
-        to: destPath + item.name,
-        toSource: state.req.source,
-        name: item.name,
-      }));
-
-      // Show confirmation prompt first
-      mutations.showPrompt({
-        name: "CopyPasteConfirm",
-        props: {
-          operation: operation,
-          items: items,
-          onConfirm: () => {
-            return new Promise((resolve, reject) => {
-
-              const action = async (overwrite, rename) => {
-                try {
-                  if (getters.isShare()) {
-                    await resourcesApi.moveCopyPublic(state.shareInfo.hash, items, operation, overwrite, rename);
-                  } else {
-                    await resourcesApi.moveCopy(items, operation, overwrite, rename);
-                  }
-                  if (operation === "move") {
-                    this.clipboard = { items: [] };
-                    this.internalClipboardTimestamp = 0;
-                  }
-                  mutations.setReload(true);
-                  resolve();
-                } catch (error) {
-                  notifyMoveCopyFailure(error);
-                  reject(error);
-                }
-              };
-
-              if (this.clipboard.path === state.route.path) {
-                void action(false, true);
-                return;
-              }
-
-              const conflict = checkConflict(items, state.req.items);
-
-              if (conflict) {
-                mutations.showPrompt({
-                  name: "replace-rename",
-                  pinned: true,
-                  confirm: (event, option) => {
-                    const overwrite = option === "overwrite";
-                    const rename = option === "rename";
-                    event.preventDefault();
-                    mutations.closeTopPrompt();
-                    void action(overwrite, rename);
-                  },
-                });
-                return;
-              }
-              void action(false, false);
-            });
-          },
-        },
-      });
-    },
-    dragEnter(event) {
-      // If in upload share mode, let the embedded Upload component handle it
-      if (state.shareInfo?.shareType === 'upload') {
-        return;
-      }
-      const isInternal = Array.from(event.dataTransfer.types).includes(
-        "application/x-filebrowser-internal-drag"
-      );
-      if (isInternal) return;
-      if (!getters.sourcePermissions().create) return;
-
-      if (!this.$el.contains(event.relatedTarget)) {
-        this.dragTargets.add(this.$el);
-      }
-    },
-    dragLeave(event) {
-      // If in upload share mode, let the embedded Upload component handle it
-      if (state.shareInfo?.shareType === 'upload') {
-        return;
-      }
-      const isInternal = Array.from(event.dataTransfer.types).includes(
-        "application/x-filebrowser-internal-drag"
-      );
-      if (isInternal) return;
-
-      if (!this.$el.contains(event.relatedTarget)) {
-        this.dragTargets.delete(this.$el);
-      }
-    },
-    async drop(event) {
-      event.preventDefault();
-      // The drop listeners are always attached, so this is the gate: the source may be one the user
-      // cannot write to, or may have turned out read-only since dragEnter when its info arrived.
-      // Covers shares too (create = allowCreate). Clear the drop indicator dragEnter may have shown.
-      if (!getters.sourcePermissions().create) {
-        this.dragTargets.clear();
-        return;
-      }
-      const isInternal = Array.from(event.dataTransfer.types).includes(
-        "application/x-filebrowser-internal-drag"
-      );
-
-      if (isInternal) {
-        return;
-      }
-      await this.handleDrop(event);
-    },
-    async uploadInput(event) {
-      await this.handleDrop(event);
-    },
-    windowsResize: throttle(function () {
-      if (!this.isResizing) {
-        this.isResizing = true;
-        this.$refs.listingView?.classList.add("resizing");
-      }
-      if (this.resizeTimeout) {
-        clearTimeout(this.resizeTimeout);
-      }
-      this.width = window.innerWidth;
-      this.resizeTimeout = setTimeout(() => {
-        this.isResizing = false;
-        this.$refs.listingView?.classList.remove("resizing");
-      }, 150);
-    }, 100),
-    openContext(event) {
-      event.preventDefault();
-      event.stopPropagation();
-
-      // Prevent opening if already open
-      if (getters.currentPromptName() === "ContextMenu") {
-        return;
-      }
-
-      mutations.showPrompt({
-        name: "ContextMenu",
-        props: {
-          showCentered: getters.isMobile(),
-          posX: event.clientX,
-          posY: event.clientY,
-          createOnly: this.selectedCount === 0,
-        },
-      });
-    },
-    clickClear(event) {
-      // Only process clicks if we're on the listing view
-      if (getters.currentView() !== 'listingView') {
-        return;
-      }
-
-      const targetClasses = event.target.className;
-
-      if (typeof targetClasses === 'string' && targetClasses.includes('listing-item')) {
-        return;
-      }
-
-      // if control, meta, or shift is pressed, do not clear the selection
-      if (event.ctrlKey || event.metaKey || event.shiftKey) {
-        return;
-      }
-
-      const sameAsBefore = state.selected === this.lastSelected;
-      if (sameAsBefore && !state.multiple && getters.currentPromptName() === "") {
-        mutations.resetSelected();
-      }
-      this.lastSelected = state.selected;
-    },
-    async handleDrop(event) {
-      event.preventDefault();
-
-      // If we're already in the embedded upload view, don't open a new prompt
-      // The embedded Upload component will handle its own drops
-      if (state.shareInfo?.shareType === 'upload') {
-        return;
-      }
-
-      if (event.type === "drop") {
+    // If found external files, upload them
+    if (pastedFiles.length > 0) {
+      const canUpload = getters.sourcePermissions()?.modify;
+      if (canUpload) {
+        // Pass the full array of {file, relativePath} to preserve directory structure
         mutations.showPrompt({
           name: "upload",
           props: {
-            initialItems: Array.from(event.dataTransfer.items),
-          },
-        });
-      } else {
-        // This is for the <input type="file"> fallback
-        const files = event.target.files;
-        if (!files || files.length === 0) {
-          return;
-        }
-
-        mutations.showPrompt({
-          name: "upload",
-          props: {
-            // we send it as an array-like object so that it can be processed like a FileList by the Upload component
-            initialItems: Array.from(files),
+            initialItems: itemsFromClipboard,
+            targetPath: state.req.path,
           },
         });
       }
-      this.dragTargets.clear();
-    },
-    startRectangleSelection(event) {
-      // Start rectangle selection when clicking on empty space - don't start if the click was in the status bar, an item or the header
-      if (event.target.closest('.listing-item') || event.target.closest('.header') || event.target.closest('#status-bar')) {
-        return;
-      }
+      return;
+    }
+  }
+  // If internal clipboard exists but is not recent (>20s), and we don't have any file in clipboard, use the internal one
+  if (hasInternalItems()) {
+    console.log("No external files, using internal clipboard.");
+    await handleInternalPaste();
+  }
+}
 
-      // Don't start if it's a right click, this for avoid some issues with the context menu.
-      if (event.button !== 0) return;
+function dragEnter(event: DragEvent) {
+  // If in upload share mode, let the embedded Upload component handle it
+  if (state.shareInfo?.shareType === "upload") {
+    return;
+  }
+  const isInternal = Array.from(event.dataTransfer?.types ?? []).includes(
+    "application/x-filebrowser-internal-drag"
+  );
+  if (isInternal) return;
+  if (!getters.sourcePermissions().create) return;
 
-      this.isRectangleSelecting = true;
+  const el = rootEl.value;
+  if (el && !el.contains(event.relatedTarget as Node | null)) {
+    dragTargets.add(el);
+  }
+}
 
-      // Get the position to the listing view container
-      const listingRect = this.$refs.listingView.getBoundingClientRect();
-      let startX = event.clientX - listingRect.left;
-      let startY = event.clientY - listingRect.top;
+function dragLeave(event: DragEvent) {
+  // If in upload share mode, let the embedded Upload component handle it
+  if (state.shareInfo?.shareType === "upload") {
+    return;
+  }
+  const isInternal = Array.from(event.dataTransfer?.types ?? []).includes(
+    "application/x-filebrowser-internal-drag"
+  );
+  if (isInternal) return;
 
-      // Clamp to container bounds
-      const statusBar = document.getElementById('status-bar');
-      const statusBarVisible = statusBar && getComputedStyle(statusBar).display !== 'none';
-      const maxX = listingRect.width;
-      const maxY = statusBarVisible
-        ? Math.max(0, statusBar.getBoundingClientRect().top - listingRect.top)
-        : listingRect.height;
+  const el = rootEl.value;
+  if (el && !el.contains(event.relatedTarget as Node | null)) {
+    dragTargets.delete(el);
+  }
+}
 
-      startX = Math.max(0, Math.min(startX, maxX));
-      startY = Math.max(0, Math.min(startY, maxY));
+async function drop(event: DragEvent) {
+  event.preventDefault();
+  // The drop listeners are always attached, so this is the gate: the source may be one the user
+  // cannot write to, or may have turned out read-only since dragEnter when its info arrived.
+  // Covers shares too (create = allowCreate). Clear the drop indicator dragEnter may have shown.
+  if (!getters.sourcePermissions().create) {
+    dragTargets.clear();
+    return;
+  }
+  const isInternal = Array.from(event.dataTransfer?.types ?? []).includes(
+    "application/x-filebrowser-internal-drag"
+  );
 
-      this.rectangleStart = {
-        x: startX,
-        y: startY
-      };
-      this.rectangleEnd = {
-        x: startX,
-        y: startY
-      };
+  if (isInternal) {
+    return;
+  }
+  await handleDrop(event);
+}
 
-      // Store the current selection state when starting rectangle
-      this.initialSelectionState = [...state.selected];
+async function uploadInput(event: Event) {
+  await handleDrop(event);
+}
 
-      // Only clear selection when CTRL is not holded
-      const hasModifier = event.ctrlKey || event.metaKey;
-      if (!hasModifier) {
-        mutations.resetSelected();
-      }
+async function handleDrop(event: Event) {
+  event.preventDefault();
+  if (state.shareInfo?.shareType === "upload") {
+    return;
+  }
 
-      event.preventDefault();
-    },
+  if (event.type === "drop") {
+    mutations.showPrompt({
+      name: "upload",
+      props: {
+        initialItems: Array.from((event as DragEvent).dataTransfer?.items ?? []),
+      },
+    });
+  } else {
+    const inputFiles = (event.target as HTMLInputElement).files;
+    if (!inputFiles || inputFiles.length === 0) {
+      return;
+    }
 
-    updateRectangleSelection(event) {
-      if (!this.isRectangleSelecting) return;
+    mutations.showPrompt({
+      name: "upload",
+      props: {
+        initialItems: Array.from(inputFiles),
+      },
+    });
+  }
+  dragTargets.clear();
+}
 
-      // Get the position to the listing view container
-      const listingRect = this.$refs.listingView.getBoundingClientRect();
-      let endX = event.clientX - listingRect.left;
-      let endY = event.clientY - listingRect.top;
-
-      // Clamp to container bounds
-      const statusBar = document.getElementById('status-bar');
-      const statusBarVisible = statusBar && getComputedStyle(statusBar).display !== 'none';
-      const maxX = listingRect.width;
-      const maxY = statusBarVisible
-        ? Math.max(0, statusBar.getBoundingClientRect().top - listingRect.top)
-        : listingRect.height;
-
-      endX = Math.max(0, Math.min(endX, maxX));
-      endY = Math.max(0, Math.min(endY, maxY));
-
-      this.rectangleEnd = {
-        x: endX,
-        y: endY
-      };
-
-      // Use requestAnimationFrame to batch updates
-      if (!this.selectionUpdatePending) {
-        this.selectionUpdatePending = true;
-        this.rafId = requestAnimationFrame(() => {
-          this.updateSelectedItemsInRectangle(event.ctrlKey || event.metaKey);
-          this.selectionUpdatePending = false;
-        });
-      }
-    },
-
-    endRectangleSelection(event) {
-      if (!this.isRectangleSelecting) return;
-
-      // Cancel any pending animation frame
-      if (this.rafId) {
-        cancelAnimationFrame(this.rafId);
-        this.rafId = null;
-      }
-
-      this.isRectangleSelecting = false;
-      this.selectionUpdatePending = false;
-      this.updateSelectedItemsInRectangle(event.ctrlKey || event.metaKey);
-
-      // Clear rectangle after a short delay
-      setTimeout(() => {
-        this.rectangleStart = { x: 0, y: 0 };
-        this.rectangleEnd = { x: 0, y: 0 };
-        this.initialSelectionState = [];
-      }, 100);
-    },
-
-    updateSelectedItemsInRectangle(isAdditive) {
-      if (!this.isRectangleSelecting) return;
-
-      const listingRect = this.$refs.listingView.getBoundingClientRect();
-      const rect = {
-        left: Math.min(this.rectangleStart.x, this.rectangleEnd.x),
-        top: Math.min(this.rectangleStart.y, this.rectangleEnd.y),
-        right: Math.max(this.rectangleStart.x, this.rectangleEnd.x),
-        bottom: Math.max(this.rectangleStart.y, this.rectangleEnd.y)
-      };
-
-      const rectangleSelectedIndexes = [];
-
-      // Get all item elements - use querySelectorAll with specific selector for better performance
-      const itemElements = this.$el.querySelectorAll('.listing-item[data-index]');
-
-      for (const element of itemElements) {
-        const elementRect = element.getBoundingClientRect();
-
-        // Convert element position to be relative to listing view, this allows selection while scrolling
-        const elementRelativeRect = {
-          left: elementRect.left - listingRect.left,
-          top: elementRect.top - listingRect.top,
-          right: elementRect.right - listingRect.left,
-          bottom: elementRect.bottom - listingRect.top
-        };
-
-        // Check if the item intersects with the rectangle
-        if (
-          elementRelativeRect.left < rect.right &&
-          elementRelativeRect.right > rect.left &&
-          elementRelativeRect.top < rect.bottom &&
-          elementRelativeRect.bottom > rect.top
-        ) {
-          const index = parseInt(element.getAttribute('data-index'), 10);
-          if (!Number.isNaN(index)) {
-            rectangleSelectedIndexes.push(index);
-          }
-        }
-      }
-
-      // Batch DOM updates to minimize reflows
-      if (isAdditive) {
-        // only add more items to the current selection without reset selection
-        const newSelection = [...state.selected];
-        for (const index of rectangleSelectedIndexes) {
-          if (!newSelection.includes(index)) {
-            newSelection.push(index);
-          }
-        }
-
-        mutations.resetSelected();
-        for (const index of newSelection) { mutations.addSelected(index); }
-      } else {
-        // Select only the items in the rectangle and reset initial selection
-        // PS: If you don't want that just hold ctrl, the selection will not be reset, allowing multi select.
-        mutations.resetSelected();
-        for (const index of rectangleSelectedIndexes) { mutations.addSelected(index); }
-      }
-    },
-    handleDoubleClick(event) {
-      if (event.target.closest('.listing-item')) return;
-      if (getters.currentView() !== 'listingView' || getters.currentPromptName()) return;
-      if (event.ctrlKey || event.metaKey || event.shiftKey) return; // Don't interfere when pressing any mod key
-      mutations.selectAllItems({ multiple: getters.isMobile() });
-    },
-  },
-};
 </script>
 
 <style scoped>
@@ -1429,15 +584,19 @@ export default {
   height: 100%;
   display: flex;
   flex-direction: column;
-  padding-right: 0.5em;
+  padding: 0 0.25em;
 }
 
-.add-padding {
-  padding-left: 0.5em;
+.listing-view-root:has(.listing-items:is(.list, .compact)) {
+  padding: 0 0.75em;
 }
 
 .font-size-large h2 {
   font-size: 2em !important;
+}
+
+.listing-items.dropping .listing-item:not(.activebutton, .drag-hover) {
+  opacity: 0.5;
 }
 
 .listing-items.dropping {
@@ -1466,25 +625,6 @@ export default {
   padding: 2em;
   max-width: 768px;
   margin: 0 auto;
-}
-
-.selection-rectangle {
-  position: absolute;
-  border: 2px solid var(--primaryColor);
-  background-color: color-mix(in srgb, var(--primaryColor) 25%, transparent);
-  border-radius: var(--borderRadius);
-  pointer-events: none;
-  z-index: 10;
-  box-shadow: 0 2px 8px rgb(0 0 0 / 15%);
-}
-
-.rectangle-selecting {
-  cursor: crosshair;
-  user-select: none;
-}
-
-.rectangle-selecting .listing-item {
-  pointer-events: none;
 }
 
 .drop-indicator {

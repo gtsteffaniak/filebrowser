@@ -1,9 +1,9 @@
 package indexing
 
 import (
+	"context"
 	"sort"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
@@ -14,10 +14,11 @@ import (
 
 var SearchResultsCache = cache.NewCache[[]string](15 * time.Second)
 
-var (
-	sessionInProgress    sync.Map
-	DefaultSearchResults = 100
-)
+var DefaultSearchResults = 100
+
+// MaxSearchResultsLimit is the hard upper bound for a requested search limit,
+// regardless of server.searchResultsLimit.
+const MaxSearchResultsLimit = 5000
 
 type SearchResult struct {
 	Path       string `json:"path"`
@@ -30,16 +31,13 @@ type SearchResult struct {
 }
 
 // Search parses query and delegates to SearchParsed (legacy / tests).
-func (idx *Index) Search(search string, scope string, sourceSession string, largest bool, limit int, olderThanUnix, newerThanUnix int64, useWildcard bool) []*SearchResult {
-	return idx.SearchParsed(iteminfo.ParseSearch(search), scope, sourceSession, largest, limit, olderThanUnix, newerThanUnix, useWildcard)
+func (idx *Index) Search(ctx context.Context, search string, scope string, largest bool, limit int, olderThanUnix, newerThanUnix int64, useWildcard bool) []*SearchResult {
+	return idx.SearchParsed(ctx, iteminfo.ParseSearch(search), scope, largest, limit, olderThanUnix, newerThanUnix, useWildcard)
 }
 
 // SearchParsed runs indexing search using pre-built options (e.g. repeated HTTP term parameters plus filter prefix).
-func (idx *Index) SearchParsed(baseOpts iteminfo.SearchOptions, scope string, sourceSession string, largest bool, limit int, olderThanUnix, newerThanUnix int64, useWildcard bool) []*SearchResult {
+func (idx *Index) SearchParsed(ctx context.Context, baseOpts iteminfo.SearchOptions, scope string, largest bool, limit int, olderThanUnix, newerThanUnix int64, useWildcard bool) []*SearchResult {
 	scope = utils.AddTrailingSlashIfNotExists(scope)
-
-	runningHash := utils.InsecureRandomIdentifier(4)
-	sessionInProgress.Store(sourceSession, runningHash)
 
 	searchOptions := baseOpts
 	if olderThanUnix > 0 {
@@ -56,22 +54,16 @@ func (idx *Index) SearchParsed(baseOpts iteminfo.SearchOptions, scope string, so
 		searchOptions.Terms = []string{""}
 	}
 
-	nameGlobPatterns := iteminfo.NameGlobPatternsForSearch(searchOptions, useWildcard, largest)
-	caseExact := searchOptions.Conditions["exact"]
-	globAnd := len(nameGlobPatterns) > 0 && searchOptions.MatchAllTerms
+	nameFilter := iteminfo.NameFilterForSearch(searchOptions, useWildcard, largest)
+	nameFiltered := nameFilter != nil && len(nameFilter.Exact) > 0
 
-	rows, err := idx.db.SearchItems(idx.Name, scope, largest, nameGlobPatterns, globAnd, caseExact)
+	rows, err := idx.db.SearchItems(ctx, idx.Name, scope, largest, nameFilter)
 	if err != nil {
 		return []*SearchResult{}
 	}
 	defer rows.Close()
 
 	for rows.Next() {
-		value, found := sessionInProgress.Load(sourceSession)
-		if !found || value != runningHash {
-			return []*SearchResult{}
-		}
-
 		if limit > 0 && count >= limit {
 			break
 		}
@@ -98,7 +90,7 @@ func (idx *Index) SearchParsed(baseOpts iteminfo.SearchOptions, scope string, so
 			HasPreview: hasPreview,
 		}
 
-		matches := itemMatchesSearchFilters(item, isDir, searchOptions, largest, nameGlobPatterns)
+		matches := itemMatchesSearchFilters(item, isDir, searchOptions, largest, nameFiltered)
 
 		if matches {
 			resType := mimeType
@@ -137,7 +129,10 @@ func sortSearchResults(results map[string]*SearchResult) []*SearchResult {
 	return sortedKeys
 }
 
-func itemMatchesSearchFilters(item iteminfo.ItemInfo, isDir bool, searchOptions iteminfo.SearchOptions, largest bool, nameGlobPatterns []string) bool {
+// itemMatchesSearchFilters applies the remaining filters in Go. nameFiltered is true
+// when the SQL already applied the exact name predicate, so only the auxiliary
+// (type/size/date) filters are re-checked here.
+func itemMatchesSearchFilters(item iteminfo.ItemInfo, isDir bool, searchOptions iteminfo.SearchOptions, largest bool, nameFiltered bool) bool {
 	if largest {
 		largerThan := int64(searchOptions.LargerThan) * 1024 * 1024
 		sizeMatches := largerThan == 0 || item.Size > largerThan
@@ -151,7 +146,11 @@ func itemMatchesSearchFilters(item iteminfo.ItemInfo, isDir bool, searchOptions 
 		dateMatches := searchDateMatches(item.ModTime.Unix(), searchOptions)
 		return sizeMatches && typeMatches && dateMatches
 	}
-	if len(nameGlobPatterns) > 0 {
+	if nameFiltered {
+		return item.MatchesSearchAuxiliaryFilters(searchOptions)
+	}
+	// Filter-only queries (type, size, or date) with no name terms.
+	if !hasNonEmptySearchTerm(searchOptions.Terms) && (hasTypeCondition(searchOptions) || hasDateBounds(searchOptions)) {
 		return item.MatchesSearchAuxiliaryFilters(searchOptions)
 	}
 	if searchOptions.MatchAllTerms {
@@ -178,6 +177,28 @@ func itemMatchesSearchFilters(item iteminfo.ItemInfo, isDir bool, searchOptions 
 	return false
 }
 
+func hasNonEmptySearchTerm(terms []string) bool {
+	for _, t := range terms {
+		if t != "" {
+			return true
+		}
+	}
+	return false
+}
+
+func hasTypeCondition(opts iteminfo.SearchOptions) bool {
+	for k := range opts.Conditions {
+		if k != "exact" {
+			return true
+		}
+	}
+	return false
+}
+
+func hasDateBounds(opts iteminfo.SearchOptions) bool {
+	return opts.ModifiedOlderThan > 0 || opts.ModifiedNewerThan > 0
+}
+
 func searchDateMatches(modUnix int64, opts iteminfo.SearchOptions) bool {
 	if opts.ModifiedNewerThan > 0 && modUnix < opts.ModifiedNewerThan {
 		return false
@@ -189,12 +210,12 @@ func searchDateMatches(modUnix int64, opts iteminfo.SearchOptions) bool {
 }
 
 // SearchMultiSources parses query and delegates to SearchMultiSourcesParsed.
-func SearchMultiSources(search string, sources []string, sourceScopes map[string]string, sourceSession string, largest bool, limit int, olderThanUnix, newerThanUnix int64, useWildcard bool) []*SearchResult {
-	return SearchMultiSourcesParsed(iteminfo.ParseSearch(search), sources, sourceScopes, sourceSession, largest, limit, olderThanUnix, newerThanUnix, useWildcard)
+func SearchMultiSources(ctx context.Context, search string, sources []string, sourceScopes map[string]string, largest bool, limit int, olderThanUnix, newerThanUnix int64, useWildcard bool) []*SearchResult {
+	return SearchMultiSourcesParsed(ctx, iteminfo.ParseSearch(search), sources, sourceScopes, largest, limit, olderThanUnix, newerThanUnix, useWildcard)
 }
 
 // SearchMultiSourcesParsed searches multiple sources using pre-built options.
-func SearchMultiSourcesParsed(baseOpts iteminfo.SearchOptions, sources []string, sourceScopes map[string]string, sourceSession string, largest bool, limit int, olderThanUnix, newerThanUnix int64, useWildcard bool) []*SearchResult {
+func SearchMultiSourcesParsed(ctx context.Context, baseOpts iteminfo.SearchOptions, sources []string, sourceScopes map[string]string, largest bool, limit int, olderThanUnix, newerThanUnix int64, useWildcard bool) []*SearchResult {
 	if len(sources) == 0 {
 		return []*SearchResult{}
 	}
@@ -208,9 +229,6 @@ func SearchMultiSourcesParsed(baseOpts iteminfo.SearchOptions, sources []string,
 	for source, scope := range sourceScopes {
 		normalizedScopes[source] = utils.AddTrailingSlashIfNotExists(scope)
 	}
-
-	runningHash := utils.InsecureRandomIdentifier(4)
-	sessionInProgress.Store(sourceSession, runningHash)
 
 	searchOptions := baseOpts
 	if olderThanUnix > 0 {
@@ -227,22 +245,16 @@ func SearchMultiSourcesParsed(baseOpts iteminfo.SearchOptions, sources []string,
 		searchOptions.Terms = []string{""}
 	}
 
-	nameGlobPatterns := iteminfo.NameGlobPatternsForSearch(searchOptions, useWildcard, largest)
-	caseExact := searchOptions.Conditions["exact"]
-	globAnd := len(nameGlobPatterns) > 0 && searchOptions.MatchAllTerms
+	nameFilter := iteminfo.NameFilterForSearch(searchOptions, useWildcard, largest)
+	nameFiltered := nameFilter != nil && len(nameFilter.Exact) > 0
 
-	rows, err := db.SearchItemsMultiSource(sources, normalizedScopes, largest, nameGlobPatterns, globAnd, caseExact)
+	rows, err := db.SearchItemsMultiSource(ctx, sources, normalizedScopes, largest, nameFilter)
 	if err != nil {
 		return []*SearchResult{}
 	}
 	defer rows.Close()
 
 	for rows.Next() {
-		value, found := sessionInProgress.Load(sourceSession)
-		if !found || value != runningHash {
-			return []*SearchResult{}
-		}
-
 		if limit > 0 && count >= limit {
 			break
 		}
@@ -270,7 +282,7 @@ func SearchMultiSourcesParsed(baseOpts iteminfo.SearchOptions, sources []string,
 			HasPreview: hasPreview,
 		}
 
-		matches := itemMatchesSearchFilters(item, isDir, searchOptions, largest, nameGlobPatterns)
+		matches := itemMatchesSearchFilters(item, isDir, searchOptions, largest, nameFiltered)
 
 		if matches {
 			resType := mimeType

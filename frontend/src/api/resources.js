@@ -1,22 +1,26 @@
 import { notify } from "@/notify/index.ts"
 import { getters, mutations, state } from "@/store/index.ts"
-import { globalVars } from "@/utils/constants.js"
-import { downloadManager } from "@/utils/downloadManager.js"
+import { globalVars } from "@/utils/constants.ts"
+import { downloadManager } from "@/utils/downloadManager.ts"
 import {
   notifyDownloadComplete,
   notifyDownloadError,
 } from "@/utils/appNotifications.js"
 import { renew } from "@/utils/auth.js"
-import { getApiPath, getPublicApiPath, getParentDir } from '@/utils/url.js'
+import { getApiPath, getPublicApiPath } from '@/utils/url.js'
 import { adjustedData, fetchURL } from "./utils.ts"
 import { rememberViewToken } from "./viewToken.js"
 import { isMediaFile } from "@/utils/mediaFile.js"
 import { isDirectoryItem } from "@/utils/directoryItem.js"
 import { getObjectProperty } from "@/utils/object.js"
-import { getStreamURL, getStreamURLPublic } from "./media.js"
-import { invalidateDirMetadataCache } from '@/utils/metadataCache.js'
+import { getStreamURL } from "./media.ts"
+import {
+  invalidateDirMetadataItem,
+  markDirMetadataItemChanged,
+  removeDirMetadataItem
+} from '@/utils/cache/metadataCache.ts'
 
-export { fetchPreviewImage } from "@/utils/previewRequests.js"
+export { fetchPreviewBlob, fetchPreviewImage } from "@/utils/previewRequests.ts"
 
 const VIEW_TOKEN_TTL_SECONDS = 15 * 60;
 const MOCK_DATA_SOURCE = 'mockData';
@@ -31,7 +35,7 @@ function parseMockDataCount(value, defaultCount) {
   if (value === undefined || value === null || value === '') {
     return defaultCount;
   }
-  const n = parseInt(String(value), 10);
+  const n = Math.trunc(Number(value));
   if (!Number.isFinite(n) || n < 0) {
     return defaultCount;
   }
@@ -108,7 +112,7 @@ function cacheViewTokenFromListing(data) {
 }
 
 // Notify if errors occur
-export async function fetchFiles(source, path, content = false, metadata = false, skipExtendedAttrs = false) {
+export async function fetchFiles(source, path, content = false, metadata = false, skipExtendedAttrs = false, signal = undefined) {
   if (!source || source === undefined || source === null) {
     throw new Error('no source provided')
   }
@@ -136,13 +140,15 @@ export async function fetchFiles(source, path, content = false, metadata = false
       ...(metadata && { metadata: 'true' }),
       ...(skipExtendedAttrs && { skipExtendedAttrs: 'true' })
     })
-    const res = await fetchURL(apiPath)
+    const res = await fetchURL(apiPath, signal ? { signal } : undefined)
     const data = await res.json()
     const adjusted = adjustedData(data)
     cacheViewTokenFromListing(adjusted)
     return adjusted
   } catch (err) {
-    notify.showError(err.message || 'Error fetching data')
+    if (err?.name !== 'AbortError') {
+      notify.showError(err.message || 'Error fetching data')
+    }
     throw err
   }
 }
@@ -257,7 +263,11 @@ export async function bulkDelete(items) {
     // 200 = all succeeded, 207 = partial success (some succeeded, some failed)
     if (response.status === 200 || response.status === 207) {
       for (const item of items) {
-        invalidateDirMetadataCache({ source: item.source, path: getParentDir(item.path) })
+        if (response.status === 200) {
+          removeDirMetadataItem({ source: item.source }, item.path)
+        } else {
+          invalidateDirMetadataItem({ source: item.source }, item.path)
+        }
       }
       return data
     }
@@ -283,7 +293,9 @@ export async function put(source, path, content = '') {
     throw new Error('no source provided')
   }
   // resourceAction already handles error notification, just propagate
-  return await resourceAction(source, path, 'PUT', content)
+  const result = await resourceAction(source, path, 'PUT', content)
+  markDirMetadataItemChanged({ source }, path)
+  return result
 }
 
 export async function download(format, files, shareHash = "") {
@@ -385,7 +397,7 @@ function totalFromContentRange(headerVal) {
   if (!headerVal || typeof headerVal !== 'string') return 0
   const idx = headerVal.lastIndexOf('/')
   if (idx === -1) return 0
-  const n = parseInt(headerVal.slice(idx + 1), 10)
+  const n = Number.parseInt(headerVal.slice(idx + 1), 10)
   return Number.isFinite(n) ? n : 0
 }
 
@@ -403,7 +415,7 @@ async function resolveDownloadContentLength(url) {
     token = res.headers.get('X-Archive-Token')
     const cl = res.headers.get('Content-Length')
     if (cl) {
-      const n = parseInt(cl, 10)
+      const n = Number.parseInt(cl, 10)
       if (Number.isFinite(n) && n > 0) {
         return { size: n, token }
       }
@@ -427,7 +439,7 @@ async function resolveDownloadContentLength(url) {
     if (res.ok) {
       const cl = res.headers.get('Content-Length')
       if (cl) {
-        const n = parseInt(cl, 10)
+        const n = Number.parseInt(cl, 10)
         if (Number.isFinite(n) && n > 0) {
           cancelBody()
           return { size: n, token }
@@ -455,7 +467,7 @@ function archiveDisplayFileName(format, files) {
   if (first?.path) {
     const parts = first.path.split('/').filter(Boolean)
     if (parts.length >= 2) {
-      return `${parts[parts.length - 2]}${ext}`
+      return `${parts.at(-2)}${ext}`
     }
     if (parts.length === 1) {
       return `${parts[0]}${ext}`
@@ -485,8 +497,8 @@ async function chunkedRangeDownloadToBlob(
   let totalSize = fileSize
 
   while (offset < totalSize) {
-    const download = downloadManager.findById(downloadId)
-    if (download?.status === 'cancelled') {
+    const downloadItem = downloadManager.findById(downloadId)
+    if (downloadItem?.status === 'cancelled') {
       return null
     }
 
@@ -525,7 +537,7 @@ async function chunkedRangeDownloadToBlob(
     } else if (response.status === 200) {
       const clFull = response.headers.get('Content-Length')
       if (clFull) {
-        const n = parseInt(clFull, 10)
+        const n = Number.parseInt(clFull, 10)
         if (Number.isFinite(n) && n > 0) {
           totalSize = n
           const dl = downloadManager.findById(downloadId)
@@ -539,7 +551,7 @@ async function chunkedRangeDownloadToBlob(
     const cl = response.headers.get('Content-Length')
     let expectedChunkSize = end - offset + 1
     if (cl) {
-      const n = parseInt(cl, 10)
+      const n = Number.parseInt(cl, 10)
       if (Number.isFinite(n) && n > 0) {
         expectedChunkSize = n
       }
@@ -575,8 +587,8 @@ async function chunkedRangeDownloadToBlob(
         }
       }
     } catch (readError) {
-      const download = downloadManager.findById(downloadId)
-      if (readError.name === 'AbortError' || (download?.status === 'cancelled')) {
+      const currentDownload = downloadManager.findById(downloadId)
+      if (readError.name === 'AbortError' || (currentDownload?.status === 'cancelled')) {
         downloadManager.setStatus(downloadId, 'cancelled')
         return null
       }
@@ -683,8 +695,8 @@ async function downloadChunkedArchive(url, format, files, filePaths, source, sha
       URL.revokeObjectURL(blobUrl)
     }, 100)
   } catch (error) {
-    const download = downloadManager.findById(downloadId)
-    if (error.name === 'AbortError' || (download?.status === 'cancelled')) {
+    const downloadItem = downloadManager.findById(downloadId)
+    if (error.name === 'AbortError' || (downloadItem?.status === 'cancelled')) {
       downloadManager.setStatus(downloadId, 'cancelled')
       return
     }
@@ -749,9 +761,9 @@ async function downloadChunked(file, shareHash = "") {
     mutations.showPrompt({ name: 'download' })
   }
 
-  const download = downloadManager.findById(downloadId)
+  const downloadItem = downloadManager.findById(downloadId)
   const abortController = new AbortController()
-  download.abortController = abortController
+  downloadItem.abortController = abortController
 
   try {
     const blob = await chunkedRangeDownloadToBlob(
@@ -786,8 +798,8 @@ async function downloadChunked(file, shareHash = "") {
     }, 100)
   } catch (error) {
     // Check if download was cancelled by user
-    const download = downloadManager.findById(downloadId);
-    if (error.name === 'AbortError' || (download?.status === "cancelled")) {
+    const currentDownload = downloadManager.findById(downloadId);
+    if (error.name === 'AbortError' || (currentDownload?.status === "cancelled")) {
       downloadManager.setStatus(downloadId, "cancelled")
       // Don't throw error or show notification for user-initiated cancellation
       return;
@@ -800,6 +812,18 @@ async function downloadChunked(file, shareHash = "") {
   }
 }
 
+/**
+ * Uploads a file, one chunk of it, or creates a folder.
+ * @param {string | undefined} source
+ * @param {string} path
+ * @param {string | Blob} [content]
+ * @param {boolean} [overwrite]
+ * @param {((percent: number) => void) | undefined} [onupload]
+ * @param {Record<string, string | number>} [headers]
+ * @param {boolean} [isDir]
+ * @param {(() => void) | undefined} [onsent]
+ * @returns {Promise<any> & { xhr?: XMLHttpRequest | null, abort?: () => void }}
+ */
 export function post(
   source,
   path,
@@ -947,7 +971,7 @@ export function post(
       });
 
     const uploadPromise = startRequest(false).then((result) => {
-      invalidateDirMetadataCache({ source, path: getParentDir(path) });
+      markDirMetadataItemChanged({ source }, path);
       return result;
     });
     // Preserve .xhr for pause/abort; re-attach after .then() so callers still see it.
@@ -1015,8 +1039,19 @@ export async function moveCopy(
     // 200 = all succeeded, 207 = partial success (some succeeded, some failed)
     if (response.status === 200 || response.status === 207) {
       for (const item of items) {
-        invalidateDirMetadataCache({ source: item.fromSource, path: getParentDir(item.from) })
-        invalidateDirMetadataCache({ source: item.toSource, path: getParentDir(item.to) })
+        if (response.status !== 200) {
+          invalidateDirMetadataItem({ source: item.fromSource }, item.from)
+          invalidateDirMetadataItem({ source: item.toSource }, item.to)
+          continue
+        }
+        if (action === 'move') {
+          removeDirMetadataItem({ source: item.fromSource }, item.from)
+        }
+        if (rename) {
+          invalidateDirMetadataItem({ source: item.toSource }, item.to)
+        } else {
+          markDirMetadataItemChanged({ source: item.toSource }, item.isDir ? `${item.to}/` : item.to)
+        }
       }
       return data
     }
@@ -1087,6 +1122,9 @@ export async function checksum(source, path, algo) {
 /**
  * URL to open a file inline in a new browser tab via the download endpoint.
  * Uses inline disposition and respects download permissions and share limits.
+ * @param {string} source
+ * @param {string} path
+ * @param {{ path?: string, hash?: string } | null} [shareInfo]
  */
 export function getOpenFileURL(source, path, shareInfo = null) {
   if (isMediaFile(path)) {
@@ -1146,9 +1184,6 @@ export function getViewURL(source, path, viewToken, shareInfo = null, allowDownl
 
   if (viewToken) {
     if (isMediaFile(typeHint)) {
-      if (shareInfo) {
-        return getStreamURLPublic(shareInfo, [path], viewToken)
-      }
       return getStreamURL(source, path, viewToken)
     }
     if (shareInfo) {
@@ -1205,6 +1240,28 @@ export function getPreviewURL(source, path, modified) {
     return window.origin + apiPath
   } catch (err) {
     notify.showError(err.message || 'Error getting preview URL')
+    throw err
+  }
+}
+
+/**
+ * Build a text preview API URL. Use fetchTextPreview(url, modified) to load it.
+ * Separate from getPreviewURL: the text endpoint returns JSON, not an image.
+ */
+export function getTextPreviewURL(source, path) {
+  if (!source || source === undefined || source === null) {
+    throw new Error('no source provided')
+  }
+  try {
+    const params = {
+      path: path,
+      source: source,
+      inline: 'true'
+    }
+    const apiPath = getApiPath('resources/preview/text', params)
+    return window.origin + apiPath
+  } catch (err) {
+    notify.showError(err.message || 'Error getting text preview URL')
     throw err
   }
 }
@@ -1266,7 +1323,7 @@ function sharePublicAuthHeaders(hash) {
  * @param {boolean} metadata
  * @returns {Promise<any>}
  */
-export async function fetchFilesPublic(path, hash, password = "", content = false, metadata = false, skipExtendedAttrs = false) {
+export async function fetchFilesPublic(path, hash, password = "", content = false, metadata = false, skipExtendedAttrs = false, signal = undefined) {
   const params = {
     path: path,
     hash,
@@ -1279,6 +1336,7 @@ export async function fetchFilesPublic(path, hash, password = "", content = fals
   const response = await fetch(apiPath, {
     credentials: "same-origin",
     headers: sharePassword ? { "X-SHARE-PASSWORD": encodeURIComponent(sharePassword) } : {},
+    ...(signal && { signal }),
   });
 
   if (!response.ok) {
@@ -1360,6 +1418,40 @@ export function getPreviewURLPublic(path, size, viewToken = state.req?.viewToken
   }
 }
 
+// Generate a text preview URL for public shares
+/**
+ * @param {string} path
+ * @param {string} [viewToken]
+ * @returns {string}
+ */
+export function getTextPreviewURLPublic(path, viewToken = state.req?.viewToken) {
+  try {
+    const params = {
+      path: path,
+      hash: state.shareInfo.hash,
+      inline: 'true',
+      ...(viewToken && { viewToken }),
+    }
+    const apiPath = getPublicApiPath('resources/preview/text', params)
+    return window.origin + apiPath
+  } catch (/** @type {any} */ err) {
+    notify.showError(err.message || 'Error getting text preview URL')
+    throw err
+  }
+}
+
+/**
+ * Uploads a file, one chunk of it, or creates a folder.
+ * @param {string | undefined} hash
+ * @param {string} path
+ * @param {string | Blob} [content]
+ * @param {boolean} [overwrite]
+ * @param {((percent: number) => void) | undefined} [onupload]
+ * @param {Record<string, string | number>} [headers]
+ * @param {boolean} [isDir]
+ * @param {(() => void) | undefined} [onsent]
+ * @returns {Promise<any> & { xhr?: XMLHttpRequest | null, abort?: () => void }}
+ */
 export function postPublic(
   hash,
   path,
@@ -1460,7 +1552,7 @@ export function postPublic(
 
     promise.xhr = request;
     promise.then(() => {
-      invalidateDirMetadataCache({ isShare: true, hash, path: getParentDir(path) })
+      markDirMetadataItemChanged({ isShare: true, hash }, path)
     }).catch(() => { /* upload failed so do nothing */ });
     return promise;
   } catch (err) {
@@ -1504,7 +1596,9 @@ async function resourceActionPublic(hash, path, method, content, token = "") {
 }
 
 export async function putPublic(hash, path, content = '') {
-  return await resourceActionPublic(hash, path, 'PUT', content)
+  const result = await resourceActionPublic(hash, path, 'PUT', content)
+  markDirMetadataItemChanged({ isShare: true, hash }, path)
+  return result
 }
 
 export async function bulkDeletePublic(items) {
@@ -1539,7 +1633,11 @@ export async function bulkDeletePublic(items) {
 
     if (response.status === 200 || response.status === 207) {
       for (const item of items) {
-        invalidateDirMetadataCache({ isShare: true, hash, path: getParentDir(item.path) })
+        if (response.status === 200) {
+          removeDirMetadataItem({ isShare: true, hash }, item.path)
+        } else {
+          invalidateDirMetadataItem({ isShare: true, hash }, item.path)
+        }
       }
       return data
     }
@@ -1598,8 +1696,19 @@ export async function moveCopyPublic(
 
     if (response.status === 200 || response.status === 207) {
       for (const item of items) {
-        invalidateDirMetadataCache({ isShare: true, hash, path: getParentDir(item.from) })
-        invalidateDirMetadataCache({ isShare: true, hash, path: getParentDir(item.to) })
+        if (response.status !== 200) {
+          invalidateDirMetadataItem({ isShare: true, hash }, item.from)
+          invalidateDirMetadataItem({ isShare: true, hash }, item.to)
+          continue
+        }
+        if (action === 'move') {
+          removeDirMetadataItem({ isShare: true, hash }, item.from)
+        }
+        if (rename) {
+          invalidateDirMetadataItem({ isShare: true, hash }, item.to)
+        } else {
+          markDirMetadataItemChanged({ isShare: true, hash }, item.isDir ? `${item.to}/` : item.to)
+        }
       }
       return data
     }

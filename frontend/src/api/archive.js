@@ -1,5 +1,6 @@
 import { notify } from "@/notify/index.ts";
 import { getApiPath } from "@/utils/url.js";
+import { invalidateDirMetadataItem, markDirMetadataItemChanged } from "@/utils/cache/metadataCache.ts";
 import { fetchURL } from "./utils.ts";
 
 /**
@@ -34,6 +35,12 @@ export async function createArchive(opts) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     });
+    markDirMetadataItemChanged({ source: toSource || fromSource }, destination);
+    if (deleteAfter) {
+      for (const p of paths) {
+        invalidateDirMetadataItem({ source: fromSource }, p);
+      }
+    }
     return response.json();
   } catch (err) {
     notify.showError(err.message || "Error creating archive");
@@ -73,6 +80,12 @@ export async function unarchive(opts) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     });
+    if (!preview) {
+      invalidateDirMetadataItem({ source: toSource || fromSource }, destination);
+      if (deleteAfter) {
+        invalidateDirMetadataItem({ source: fromSource }, path);
+      }
+    }
     return response.json();
   } catch (err) {
     notify.showError(err.message || "Error extracting archive");

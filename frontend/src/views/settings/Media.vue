@@ -1,0 +1,269 @@
+<template>
+  <div class="card-title">
+    <h2>{{ $t("general.media") }}</h2>
+  </div>
+  <div class="card-content">
+    <errors v-if="error" :errorCode="error.status" />
+    <div v-else-if="loading" class="loading-hint">
+      <LoadingSpinner size="medium" />
+    </div>
+    <template v-else>
+      <div class="settings-items">
+        <div class="settings-select-input item">
+          <div class="no-padding">
+            <label for="accelDevice">{{ $t("media.accelDevice") }}</label>
+            <HelpTooltipIcon :text="accelDeviceTooltip" />
+          </div>
+          <ExpandDropdown
+            input-id="accelDevice"
+            :model-value="accelDeviceSelectValue"
+            :options="accelDeviceSelectOptions"
+            :aria-label="$t('media.accelDevice')"
+            :disabled="isLocked('hardwareAcceleration') || isLocked('accelDevice')"
+            @update:model-value="onAccelDeviceChange" />
+        </div>
+        <ToggleSwitch class="item" v-model="media.alwaysUseFfmpeg"
+          :disabled="isLocked('alwaysUseFfmpeg')"
+          :value-tooltip="fieldTooltip('alwaysUseFfmpeg')"
+          :name="$t('media.alwaysUseFfmpeg')"
+          :description="$t('media.alwaysUseFfmpegDescription')"
+          @update:model-value="save" />
+        <ToggleSwitch class="item" v-model="media.debug" :name="$t('media.debug')"
+          :disabled="isLocked('debug')"
+          :value-tooltip="fieldTooltip('debug')"
+          :description="$t('media.debugDescription')"
+          @update:model-value="save" />
+        <SettingsButton class="item"
+          :name="$t('media.imageVideoConversionFormats')"
+          :description="$t('media.imageVideoConversionFormatsDescription')"
+          @activate="openConversionFormats" />
+      </div>
+
+      <div class="settings-items">
+        <h3>{{ $t("media.transcode") }}</h3>
+        <ToggleSwitch class="item" v-model="media.transcode.enabled"
+          :disabled="isLocked('transcode.enabled')"
+          :value-tooltip="fieldTooltip('transcode.enabled')"
+          :name="$t('media.transcodeEnabled')"
+          :description="$t('media.transcodeEnabledDescription')"
+          @update:model-value="save" />
+        <SettingsButton class="item"
+          :name="$t('media.transcodeSettings')"
+          :description="$t('media.transcodeSettingsDescription')"
+          :disabled="!media.transcode.enabled"
+          @activate="openTranscodeSettings" />
+      </div>
+
+      <div v-if="isAdmin" class="settings-items">
+        <h3>{{ $t("media.shadowRegressions") }}</h3>
+        <SettingsButton class="item"
+          :name="$t('media.shadowRegressionsView')"
+          :description="$t('media.shadowRegressionsViewDescription')"
+          @activate="openShadowRegressions" />
+      </div>
+    </template>
+  </div>
+</template>
+
+<script>
+import { notify } from "@/notify/index.ts";
+import { getters, mutations } from "@/store/index.ts";
+import { eventBus } from "@/store/eventBus.ts";
+import { getMediaSettings } from "@/api/settings.js";
+import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
+import SettingsButton from "@/components/settings/SettingsButton.vue";
+import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
+import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
+import LoadingSpinner from "@/components/LoadingSpinner.vue";
+import Errors from "@/views/Errors.vue";
+import {
+  MEDIA_SETTINGS_CHANGED_EVENT,
+  emptyMediaSettings,
+  mergeMediaSettings,
+  saveMediaSettingsPatch,
+} from "@/utils/mediaSettings.js";
+
+export default {
+  name: "mediaSettings",
+  components: {
+    ToggleSwitch,
+    SettingsButton,
+    ExpandDropdown,
+    HelpTooltipIcon,
+    LoadingSpinner,
+    Errors,
+  },
+  data() {
+    return {
+      media: emptyMediaSettings(),
+      error: null,
+      loading: true,
+      mediaSettingsHandler: null,
+      /** Media settings pinned in the config file cannot be changed here. */
+      lockedFromConfigPaths: [],
+      lockMessage: "",
+      /** Selectable acceleration devices reported by the backend (no "auto" entry). */
+      accelDeviceOptions: [],
+      /** Device id that accelDevice "auto" resolves to on this host ("" = software only). */
+      autoAccelDevice: "",
+    };
+  },
+  computed: {
+    accelDeviceTooltip() {
+      return this.isLocked("hardwareAcceleration") || this.isLocked("accelDevice")
+        ? this.$t("settings.lockedFromConfig")
+        : this.$t("media.accelDeviceDescription");
+    },
+    isAdmin() {
+      return getters.isAdmin();
+    },
+    accelDeviceSelectOptions() {
+      const options = Array.isArray(this.accelDeviceOptions) ? this.accelDeviceOptions : [];
+      return options.map((option) => ({
+        value: option.id,
+        label: option.label || option.id,
+      }));
+    },
+    /** "auto" is never listed; show the device it resolves to instead. */
+    accelDeviceSelectValue() {
+      if (this.media.accelDevice === "auto") {
+        return this.autoAccelDevice || "software";
+      }
+      return this.media.accelDevice;
+    },
+  },
+  mounted() {
+    this.mediaSettingsHandler = () => {
+      void this.load({ silent: true });
+      // Keep the shared live view of media settings in sync after a save.
+      void mutations.syncMediaSettings();
+    };
+    eventBus.on(MEDIA_SETTINGS_CHANGED_EVENT, this.mediaSettingsHandler);
+    void this.load();
+  },
+  beforeUnmount() {
+    if (this.mediaSettingsHandler) {
+      eventBus.off(MEDIA_SETTINGS_CHANGED_EVENT, this.mediaSettingsHandler);
+      this.mediaSettingsHandler = null;
+    }
+  },
+  methods: {
+    async load({ silent = false } = {}) {
+      if (!silent) {
+        this.loading = true;
+      }
+      try {
+        const data = await getMediaSettings();
+        this.media = mergeMediaSettings(data);
+        this.accelDeviceOptions = Array.isArray(data?.accelDeviceOptions)
+          ? data.accelDeviceOptions
+          : [];
+        this.autoAccelDevice = typeof data?.autoAccelDevice === "string" ? data.autoAccelDevice : "";
+        this.lockedFromConfigPaths = Array.isArray(data?.lockedFromConfigPaths)
+          ? data.lockedFromConfigPaths
+          : [];
+        this.lockMessage = typeof data?.lockMessage === "string" ? data.lockMessage : "";
+        this.error = null;
+      } catch (e) {
+        this.error = e;
+      } finally {
+        this.loading = false;
+      }
+    },
+    isLocked(path) {
+      return this.lockedFromConfigPaths.includes(path);
+    },
+    fieldTooltip(path, fallback = "") {
+      return this.isLocked(path) ? this.$t("settings.lockedFromConfig") : fallback;
+    },
+    onAccelDeviceChange(value) {
+      // Picking the device auto resolves to keeps the stored "auto" so the
+      // fallback chain (iGPU -> dGPU -> software) still applies.
+      const isAutoDevice = this.autoAccelDevice && value === this.autoAccelDevice;
+      this.media.accelDevice = isAutoDevice ? "auto" : value;
+      void this.save();
+    },
+    openConversionFormats() {
+      mutations.showPrompt({
+        name: "media-conversion-formats",
+        props: {
+          title: this.$t("media.imageVideoConversionFormats"),
+          lockedFromConfigPaths: this.lockedFromConfigPaths,
+          lockMessage: this.lockMessage,
+        },
+      });
+    },
+    openShadowRegressions() {
+      mutations.showPrompt({
+        name: "shadow-regressions",
+        props: {
+          title: this.$t("media.shadowRegressionsView"),
+        },
+      });
+    },
+    openTranscodeSettings() {
+      mutations.showPrompt({
+        name: "media-transcode-settings",
+        props: {
+          title: this.$t("media.transcodeSettings"),
+          lockedFromConfigPaths: this.lockedFromConfigPaths,
+          lockMessage: this.lockMessage,
+        },
+      });
+    },
+    /** Only patch the fields owned by this section so prompt edits are not clobbered. */
+    async save() {
+      try {
+        const { skipped, media } = await saveMediaSettingsPatch({
+          accelDevice: this.media.accelDevice,
+          alwaysUseFfmpeg: this.media.alwaysUseFfmpeg,
+          debug: this.media.debug,
+          transcode: { enabled: this.media.transcode.enabled },
+        }, this.lockedFromConfigPaths);
+        if (skipped) {
+          notify.showSuccessToast(this.lockMessage || this.$t("settings.lockedFromConfig"));
+          return;
+        }
+        this.media = media;
+        void mutations.syncMediaSettings();
+        notify.showSuccessToast(this.$t("settings.settingsUpdated"));
+      } catch (e) {
+        notify.showError(e?.message || this.$t("media.updateFailed"));
+      }
+    },
+  },
+};
+</script>
+
+<style scoped>
+.card-content h3 {
+  text-align: center;
+}
+
+.item {
+  padding: 1em;
+}
+
+.settings-select-input {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.settings-select-input .no-padding {
+  display: flex;
+  padding: 0;
+  align-items: center;
+}
+
+.settings-select-input .expand-dropdown {
+  max-width: 20em;
+}
+
+.loading-hint {
+  display: flex;
+  justify-content: center;
+  padding: 2em;
+}
+</style>

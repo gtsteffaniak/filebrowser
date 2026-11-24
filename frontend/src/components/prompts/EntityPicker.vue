@@ -38,8 +38,8 @@
 </template>
 
 <script>
-import { mutations } from "@/store";
-import { eventBus } from "@/store/eventBus";
+import { mutations } from "@/store/index.ts";
+import { eventBus } from "@/store/eventBus.ts";
 import EntityPickerList from "./EntityPickerList.vue";
 
 export default {

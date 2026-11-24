@@ -13,8 +13,6 @@ import (
 	"os"
 	"time"
 
-	_ "net/http/pprof"
-
 	"github.com/coreos/go-systemd/v22/activation"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/files"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/fileutils"
@@ -44,9 +42,9 @@ func initRuntime(deps Deps, assets fs.FS) {
 	initSettingsSecretMarkers()
 }
 
-// Embed the files in the frontend/dist directory
+// Embed the frontend build output under internal/web/dist (see `make embed-frontend` after `npm run build` in frontend/).
 //
-//go:embed embed/*
+//go:embed dist/*
 var assets embed.FS
 
 // GetEmbeddedAssets returns the embedded assets filesystem
@@ -56,13 +54,7 @@ func GetEmbeddedAssets() embed.FS {
 
 // StartHttp starts the HTTP server and blocks until ctx is cancelled.
 func StartHttp(ctx context.Context, deps Deps, shutdownComplete chan struct{}) {
-	if settings.Env.IsDevMode {
-		go func() {
-			if err := http.ListenAndServe("localhost:6060", nil); err != nil {
-				logger.Fatalf("pprof server error: %v", err)
-			}
-		}()
-	}
+	startDebugServer()
 
 	fs := fileutils.GetAssetFS()
 	if fs == nil {
@@ -84,6 +76,7 @@ func StartHttp(ctx context.Context, deps Deps, shutdownComplete chan struct{}) {
 	}
 
 	initRuntime(deps, fs)
+	runWopiDiscoveryRefresher(ctx)
 
 	router := http.NewServeMux()
 	api := http.NewServeMux()

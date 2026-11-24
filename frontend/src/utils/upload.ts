@@ -1,0 +1,1280 @@
+import { reactive, toRaw } from "vue";
+import { resourcesApi } from "@/api/index.js";
+import { getters, mutations, state } from "@/store/index.ts";
+import { notify } from "@/notify/index.ts";
+import i18n from "@/i18n/index.ts";
+import {
+  notifyUploadComplete,
+  notifyUploadError,
+  notifyOperationError,
+} from "@/utils/appNotifications.js";
+import { rejectUploadIfQuotaExceeded, isQuotaExceededError, extractQuotaErrorMessage } from "@/utils/uploadQuota.js";
+
+export type UploadStatus = "pending" | "uploading" | "paused" | "completed" | "error" | "conflict";
+
+/** A request from the API with the XMLHttpRequest, so it can be aborted */
+export type UploadRequest = Promise<unknown> & {
+  xhr?: XMLHttpRequest | null;
+  abort?: () => void;
+};
+
+export interface UploadItem {
+  id: number;
+  sessionId: string;
+  batchId?: number;
+  name: string;
+  size: number;
+  progress: number;
+  status: UploadStatus;
+  type?: string;
+  file?: File;
+  path: string;
+  source?: string;
+  overwrite?: boolean;
+  isToplevelDir?: boolean;
+  chunkOffset?: number;
+  xhr?: XMLHttpRequest | null;
+  xhrPromise?: UploadRequest | null;
+  lastProgressTime?: number | null;
+  awaitingServer?: boolean;
+  connectionIssue?: boolean;
+  errorDetails?: string;
+}
+
+/** An upload of a file, as opposed to the creation of a folder */
+export interface FileUploadItem extends UploadItem {
+  file: File;
+  chunkOffset: number;
+}
+
+/** An entry given to `uploadManager.add` */
+export interface UploadEntry {
+  file: File;
+  relativePath: string;
+  /** Name to upload under when it differs from the file name (set when a numbered copy is made) */
+  uploadName?: string;
+  /** Replaces an existing file of the same name */
+  overwriteExisting?: boolean;
+}
+
+/** What the user chose for a conflict: overwrite or not, skip what exists, or upload a folder under a new name */
+export type UploadConflictResolution = boolean | { skip?: boolean; rename?: string };
+
+/** Asks the user what to do about a conflict, then calls `resolver` with the answer */
+export type UploadConflictHandler = (
+  resolver: (resolution: UploadConflictResolution) => void,
+  options?: { allowRename?: boolean },
+) => void;
+
+/** An error from the API, with the response when the server answered */
+export type RequestError = Error & {
+  response?: {
+    status?: number;
+    statusText?: string;
+    data?: { message?: string; error?: string };
+  };
+};
+
+/**
+ * Upload session token for isolating concurrent uploads to the same path.
+ * Prefers crypto.randomUUID(); falls back for older browsers / non-secure contexts.
+ */
+export function newUploadSessionId(): string {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  if (typeof crypto !== "undefined" && typeof crypto.getRandomValues === "function") {
+    const bytes = new Uint8Array(16);
+    crypto.getRandomValues(bytes);
+    // RFC 4122 version 4 bits
+    bytes[6] = ((bytes[6] ?? 0) & 0x0f) | 0x40;
+    bytes[8] = ((bytes[8] ?? 0) & 0x3f) | 0x80;
+    const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+    return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+  }
+  return `upload-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`;
+}
+
+/**
+ * Accumulates every directory entry from a FileSystemDirectoryReader.
+ *
+ * Chromium and Safari cap DirectoryReader.readEntries() at roughly one batch
+ * (often 100 entries) per call — callers must loop until a batch is empty.
+ *
+ * `debugLabel` is an optional path/name for diagnostic logs.
+ */
+export async function readAllDirectoryEntries(
+  reader: FileSystemDirectoryReader,
+  debugLabel = "",
+): Promise<FileSystemEntry[]> {
+  const all: FileSystemEntry[] = [];
+  let nonemptyBatches = 0;
+
+  let batch = await new Promise<FileSystemEntry[]>((resolve, reject) => {
+    reader.readEntries(resolve, reject);
+  });
+
+  while (batch.length > 0) {
+    nonemptyBatches++;
+    all.push(...batch);
+    batch = await new Promise<FileSystemEntry[]>((resolve, reject) => {
+      reader.readEntries(resolve, reject);
+    });
+  }
+
+  if (nonemptyBatches > 1 || all.length > 100) {
+    const suffix =
+      debugLabel !== ""
+        ? ` (${debugLabel})`
+        : "";
+    console.info(
+      `[FileBrowser upload] directory listing${suffix}: ${nonemptyBatches} readEntries batches — collected ${all.length} entries (multiple batches indicate a directory with > ~100 immediate children)`
+    );
+  }
+
+  return all;
+}
+
+// Directory listings report disk usage (rounded up to 4 KiB blocks) unless the source
+// sets useLogicalSize, so a complete remote file matches either its exact size or the
+// block-rounded one. Anything else (e.g. an empty leftover of a failed upload) differs.
+const DISK_BLOCK_SIZE = 4096;
+
+export function isSameSize(remoteSize: number, localSize: number): boolean {
+  return (
+    remoteSize === localSize ||
+    remoteSize === Math.ceil(localSize / DISK_BLOCK_SIZE) * DISK_BLOCK_SIZE
+  );
+}
+
+// "name.ext" -> "name_01.ext" (suffix goes before the extension).
+export function numberedName(name: string, n: number): string {
+  const dot = name.lastIndexOf(".");
+  const stem = dot > 0 ? name.slice(0, dot) : name;
+  const ext = dot > 0 ? name.slice(dot) : "";
+  return `${stem}_${String(n).padStart(2, "0")}${ext}`;
+}
+
+/** Totals of the files in an upload queue; folders are not counted */
+export interface UploadSummary {
+  totalFiles: number;
+  completedFiles: number;
+  /** Files in error or in conflict */
+  failedFiles: number;
+  totalBytes: number;
+  uploadedBytes: number;
+}
+
+/** Bytes of a file already sent: all of it once completed, otherwise its progress */
+function uploadedBytesOf(item: UploadItem): number {
+  if (item.status === "completed") {
+    return item.size;
+  }
+  const progress = Math.min(Math.max(item.progress, 0), 100);
+  return (progress / 100) * item.size;
+}
+
+export function summarizeUploads(queue: readonly UploadItem[]): UploadSummary {
+  const summary: UploadSummary = { totalFiles: 0, completedFiles: 0, failedFiles: 0, totalBytes: 0, uploadedBytes: 0 };
+  for (const item of queue) {
+    if (item.type === "directory") continue;
+    summary.totalFiles++;
+    summary.totalBytes += item.size;
+    summary.uploadedBytes += uploadedBytesOf(item);
+    if (item.status === "completed") {
+      summary.completedFiles++;
+    } else if (item.status === "error" || item.status === "conflict") {
+      summary.failedFiles++;
+    }
+  }
+  return summary;
+}
+
+/** Bytes sent so far for each file of the queue, by upload id */
+export function uploadedBytesById(queue: readonly UploadItem[]): Map<number, number> {
+  const bytes = new Map<number, number>();
+  for (const item of queue) {
+    if (item.type !== "directory") {
+      bytes.set(item.id, uploadedBytesOf(item));
+    }
+  }
+  return bytes;
+}
+
+/** Smoothed upload speed, computed from samples of the bytes sent so far by each file */
+export class UploadRateMeter {
+  bytesPerSecond = 0;
+  private last: { bytes: Map<number, number>; time: number } | null = null;
+
+  constructor(private readonly smoothing = 0.3) {}
+
+  /** Records the bytes sent by each file (by upload id) at `time` (ms) and returns the smoothed speed in bytes per second */
+  sample(bytesById: ReadonlyMap<number, number>, time: number): number {
+    const last = this.last;
+    this.last = { bytes: new Map(bytesById), time };
+    if (!last || time <= last.time) {
+      return this.bytesPerSecond;
+    }
+    // Sum per-file progress, so a file removed from the queue (cleared, cancelled)
+    // or restarted from zero does not hide what the other files sent.
+    let delta = 0;
+    for (const [id, sent] of bytesById) {
+      delta += Math.max(0, sent - (last.bytes.get(id) ?? 0));
+    }
+    const rate = (delta * 1000) / (time - last.time);
+    this.bytesPerSecond =
+      this.bytesPerSecond === 0 ? rate : this.smoothing * rate + (1 - this.smoothing) * this.bytesPerSecond;
+    return this.bytesPerSecond;
+  }
+
+  reset(): void {
+    this.bytesPerSecond = 0;
+    this.last = null;
+  }
+}
+
+/** Formats a remaining time for display: "45 sec", "12 min", "1 hr 5 min" in English */
+export function formatRemainingTime(seconds: number, locale?: string): string {
+  const format = (value: number, unit: string) =>
+    new Intl.NumberFormat(locale, { style: "unit", unit, unitDisplay: "short", maximumFractionDigits: 0 }).format(value);
+  if (seconds < 60) {
+    return format(Math.max(1, Math.ceil(seconds)), "second");
+  }
+  if (seconds < 3600) {
+    return format(Math.ceil(seconds / 60), "minute");
+  }
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.round((seconds % 3600) / 60);
+  return minutes > 0 ? `${format(hours, "hour")} ${format(minutes, "minute")}` : format(hours, "hour");
+}
+
+class UploadManager {
+  queue: UploadItem[] = reactive<UploadItem[]>([]);
+  activeUploads = 0;
+  nextId = 0;
+  nextBatchId = 0;
+  overwriteAll: boolean | null = null; // null: ask, true: overwrite, false: skip
+  isPausedForConflict = false;
+  isOverallPaused = false;
+  onConflict: UploadConflictHandler = () => {}; // Callback for UI
+  hadActiveUploads = false; // Track if we've had active uploads
+  conflictingFolder: string | null = null; // Track the folder name that caused conflict
+  pendingItems: UploadEntry[] | null = null; // Store pending items during conflict resolution
+  probedDirs = new Set<string>(); // Track directories that were probed/created during conflict check
+  progressTimeouts = new Map<number, ReturnType<typeof setTimeout>>(); // Track progress timeouts per upload ID
+  lastUploadActivityTime: number | null = null;
+  PROGRESS_TIMEOUT_MS = 10000; // default stall pause; see progressTimeoutMs()
+  DIRECTORY_PROGRESS_TIMEOUT_MS = 120000;
+  SERVER_RESPONSE_TIMEOUT_MS = 600000; // whole body sent; server may be saving to disk
+  quotaBatchAborted = false;
+
+  setOnConflict(handler: UploadConflictHandler): void {
+    this.onConflict = handler;
+  }
+
+  /**
+   * Decides what to do with each item that already exists at the destination, so
+   * a repeated upload of a folder only sends what is missing or incomplete:
+   * - same size (see isSameSize), or a numbered copy of it with the same size: skipped
+   * - existing file is empty (leftover of a failed upload): replaced
+   * - any other size: uploaded under the next free numbered name (name_01.ext, ...)
+   *   so the existing file is never overwritten
+   */
+  async filterExistingItems(
+    basePath: string,
+    items: UploadEntry[],
+  ): Promise<{ items: UploadEntry[]; skipped: number; renamed: number }> {
+    const dirOf = (item: UploadEntry) => {
+      const relativePath = item.relativePath || item.file.name;
+      const slash = relativePath.lastIndexOf("/");
+      return slash === -1 ? basePath : `${basePath}${relativePath.slice(0, slash + 1)}`;
+    };
+
+    const dirPaths = [...new Set(Array.from(items).map(dirOf))];
+    const listings = new Map<string, Map<string, { size: number; type?: string }> | null>();
+    const listBatchSize = 5;
+    for (let i = 0; i < dirPaths.length; i += listBatchSize) {
+      await Promise.all(
+        dirPaths.slice(i, i + listBatchSize).map(async (dirPath) => {
+          listings.set(
+            dirPath,
+            await resourcesApi.listDirectoryEntries(state.req.source, dirPath)
+          );
+        })
+      );
+    }
+
+    let skipped = 0;
+    let renamed = 0;
+    const remaining: UploadEntry[] = [];
+    for (const item of items) {
+      const dirPath = dirOf(item);
+      const listing = listings.get(dirPath);
+      const name = item.file.name;
+      const existing = listing?.get(name);
+      if (!existing || !listing) {
+        remaining.push(item);
+        continue;
+      }
+      const isFile = existing.type !== "directory";
+      if (isFile && isSameSize(existing.size, item.file.size)) {
+        skipped++;
+        continue;
+      }
+      if (isFile && existing.size === 0) {
+        remaining.push({ ...item, overwriteExisting: true });
+        continue;
+      }
+
+      // Different content under the same name: keep it and use a numbered name.
+      let n = 1;
+      let alreadyUploaded = false;
+      while (listing.has(numberedName(name, n))) {
+        const copy = listing.get(numberedName(name, n));
+        if (copy && copy.type !== "directory" && isSameSize(copy.size, item.file.size)) {
+          alreadyUploaded = true;
+          break;
+        }
+        n++;
+      }
+      if (alreadyUploaded) {
+        skipped++;
+        continue;
+      }
+      const newName = numberedName(name, n);
+      // Reserve the name so two items of this batch can't pick the same one.
+      listing.set(newName, { size: item.file.size, type: "file" });
+      const relativePath = item.relativePath || name;
+      const slash = relativePath.lastIndexOf("/");
+      renamed++;
+      remaining.push({
+        ...item,
+        relativePath: `${relativePath.slice(0, slash + 1)}${newName}`,
+        uploadName: newName,
+      });
+    }
+    return { items: remaining, skipped, renamed };
+  }
+
+  resolveConflict(basePath: string, items: UploadEntry[], resolution: UploadConflictResolution): void {
+    if (resolution === true) {
+      // User chose overwrite - set the flag and add with overwrite=true
+      this.overwriteAll = true;
+      void this.add(basePath, items, true);
+    } else if (typeof resolution === "object" && resolution.rename) {
+      // User chose rename - continue with renamed items
+      this.conflictingFolder = null;
+      void this.add(basePath, this.pendingItems ?? [], false);
+    } else if (typeof resolution === "object" && resolution.skip) {
+      // User chose skip - only upload what is missing or incomplete
+      const pending = this.pendingItems ?? [];
+      this.conflictingFolder = null;
+      void this.add(basePath, pending, false, true);
+    } else {
+      // User cancelled
+      this.overwriteAll = null;
+      this.conflictingFolder = null;
+      this.pendingItems = null;
+    }
+  }
+
+  async add(
+    basePath: string,
+    items: UploadEntry[],
+    overwrite = false,
+    skipExisting = false,
+  ): Promise<UploadItem[] | undefined> {
+    // Handle undefined/null basePath
+    if (!basePath) {
+      basePath = "/";
+    }
+    if (!basePath.endsWith("/")) {
+      basePath += "/";
+    }
+
+    this.quotaBatchAborted = false;
+
+    if (await rejectUploadIfQuotaExceeded(basePath, items)) {
+      return;
+    }
+
+    // Pre-upload conflict check for top-level directories
+    // Skip probing if overwrite is already true or overwriteAll is set
+    if (this.overwriteAll === null && !overwrite && !skipExisting) {
+      const topLevelDirs = new Set<string>();
+      for (const item of items) {
+        if (item.relativePath?.includes('/')) {
+          topLevelDirs.add(item.relativePath.split('/')[0] as string);
+        }
+      }
+
+      if (topLevelDirs.size > 0) {
+        // First try using state.req.items if available (regular uploads)
+        const existingItems = new Set((state.req.items || []).map((i) => i.name));
+        let conflictingDirs = [...topLevelDirs].filter(dir => existingItems.has(dir));
+        let probedDirs = new Set<string>();
+
+        // If state.req.items is not available (upload shares), probe the server
+        if (existingItems.size === 0 && topLevelDirs.size > 0) {
+          // Probe each top-level directory to check for conflicts
+          const probeResults = await Promise.all(
+            [...topLevelDirs].map(async (dirName) => {
+              try {
+                const testPath = `${basePath}${dirName}`;
+                if (getters.isShare()) {
+                  await resourcesApi.postPublic(state.shareInfo?.hash, testPath, new Blob([]), false, undefined, {}, true, undefined);
+                } else {
+                  await resourcesApi.post(state.req?.source, testPath, new Blob([]), false, undefined, {}, true, undefined);
+                }
+                // No conflict - directory was created successfully
+                // Mark it so we can skip it later in the queue
+                return { dirName, conflict: false, probed: true };
+              } catch (err) {
+                // 409 means conflict
+                if ((err as RequestError)?.response?.status === 409) {
+                  return { dirName, conflict: true, probed: false };
+                }
+                // Other errors are actual failures, treat as no conflict for now
+                return { dirName, conflict: false, probed: false };
+              }
+            })
+          );
+          conflictingDirs = probeResults
+            .filter(result => result.conflict)
+            .map(result => result.dirName);
+          // Track which directories we successfully probed (created)
+          probedDirs = new Set(
+            probeResults
+              .filter(result => result.probed)
+              .map(result => result.dirName)
+          );
+        }
+
+        if (conflictingDirs.length > 0) {
+          // Store the conflicting folder name (take the first one for now)
+          this.conflictingFolder = conflictingDirs[0] as string;
+          this.pendingItems = items;
+
+          this.onConflict(
+            (resolution) => this.resolveConflict(basePath, items, resolution),
+            { allowRename: true }
+          );
+          return;
+        }
+        // Store probed directories so we can skip them in queue processing
+        this.probedDirs = probedDirs;
+      }
+
+      // Loose files dropped into the folder being viewed: their names can be checked
+      // against the current listing (renaming is only offered for folders).
+      const currentDir = state.req?.path?.endsWith("/") ? state.req.path : `${state.req?.path}/`;
+      if (!getters.isShare() && currentDir === basePath) {
+        const existingNames = new Set((state.req.items || []).map((i) => i.name));
+        const hasLooseConflict = Array.from(items).some(
+          (item) => !item.relativePath?.includes("/") && existingNames.has(item.file.name)
+        );
+        if (hasLooseConflict) {
+          this.conflictingFolder = null;
+          this.pendingItems = items;
+          this.onConflict(
+            (resolution) => this.resolveConflict(basePath, items, resolution),
+            { allowRename: false }
+          );
+          return;
+        }
+      }
+    }
+
+    if (skipExisting) {
+      const filtered = await this.filterExistingItems(basePath, items);
+      if (filtered.skipped > 0) {
+        notify.showSuccessToast(
+          i18n.global.t("prompts.uploadSkipped", { count: filtered.skipped })
+        );
+      }
+      if (filtered.renamed > 0) {
+        notify.showSuccessToast(
+          i18n.global.t("prompts.uploadRenamed", { count: filtered.renamed })
+        );
+      }
+      items = filtered.items;
+      if (items.length === 0) {
+        this.pendingItems = null;
+        this.conflictingFolder = null;
+        this.probedDirs.clear();
+        return [];
+      }
+    }
+
+    const effectiveOverwrite = this.overwriteAll || overwrite;
+    const dirs = new Set<string>();
+    for (const item of items) {
+      if (item.relativePath) {
+        const pathParts = item.relativePath.split("/");
+        pathParts.pop(); // Grab the directory path by removing the filename.
+
+        let currentPath = "";
+        for (const part of pathParts) {
+          currentPath += `${part}/`;
+          dirs.add(currentPath);
+        }
+      }
+    }
+
+    const batchId = this.nextBatchId++;
+    const newUploads: UploadItem[] = [];
+
+    if (dirs.size > 0) {
+      // Sort paths to ensure parent directories are created before children.
+      const sortedDirs = [...dirs].sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
+
+      for (const dir of sortedDirs) {
+        const pathParts = dir.slice(0, -1).split("/");
+        const dirName = pathParts.at(-1) as string;
+
+        // Skip top-level directories that were already created during probing
+        if (pathParts.length === 1 && this.probedDirs.has(dirName)) {
+          continue;
+        }
+
+        const upload: UploadItem = {
+          id: this.nextId++,
+          sessionId: newUploadSessionId(),
+          batchId,
+          name: dirName,
+          size: 0,
+          progress: 0,
+          status: "pending",
+          type: "directory",
+          isToplevelDir: pathParts.length === 1,
+          path: `${basePath}${dir}`,
+          source: state.req.source,
+          // Existing folders are merged into when skipping existing files.
+          overwrite: effectiveOverwrite || skipExisting,
+        };
+
+        newUploads.push(upload);
+      }
+    }
+
+    const fileUploads = Array.from(items).map((item) => {
+      const id = this.nextId++;
+      const file = item.file;
+      const relativePath = item.relativePath || file.name;
+      const destinationPath = `${basePath}${relativePath}`;
+      const upload: UploadItem = {
+        id,
+        sessionId: newUploadSessionId(),
+        batchId,
+        file,
+        name: item.uploadName || file.name,
+        size: file.size,
+        progress: 0,
+        chunkOffset: 0,
+        status: "pending", // pending, uploading, paused, completed, error
+        xhr: null,
+        path: destinationPath, // Full destination path
+        source: state.req.source,
+        overwrite: effectiveOverwrite || item.overwriteExisting === true,
+        lastProgressTime: null, // Track when progress was last updated
+        connectionIssue: false, // Flag for connection-related issues
+      };
+      return upload;
+    });
+
+    const dirCount = newUploads.length;
+    if (fileUploads.length >= 50) {
+      console.info(
+        `[FileBrowser upload] add(): ${fileUploads.length} file job(s), ${dirCount} directory job(s) → base ${basePath}`
+      );
+    }
+
+    this.queue.push(...newUploads, ...fileUploads);
+
+    // Clean up pending items after successful add
+    this.pendingItems = null;
+    this.conflictingFolder = null;
+    this.probedDirs.clear();
+
+    void this.processQueue();
+    return newUploads;
+  }
+
+  async processQueue(): Promise<void> {
+    if (this.isPausedForConflict) {
+      return;
+    }
+
+    if (this.isOverallPaused) {
+      return;
+    }
+
+    if (this.quotaBatchAborted) {
+      // Still run batch bookkeeping below; only block scheduling new uploads.
+    } else {
+      const maxConcurrent = state.user.fileLoading?.maxConcurrentUpload || 3;
+      const queue = toRaw(this.queue);
+      // Directories stay open until completed
+      const openDirs = new Set(
+        queue
+          .filter((item) => item.type === "directory" && item.status !== "completed")
+          .map((item) => this.dirKey(item.batchId, item.path))
+      );
+      while (
+        this.activeUploads < maxConcurrent &&
+        this.hasPending()
+      ) {
+        const isReady = (item: UploadItem) => item.status === "pending" && !this.hasOpenParent(item, openDirs);
+        const upload =
+          queue.find((item) => item.type === "directory" && isReady(item)) ||
+          queue.find((item) => item.type !== "directory" && isReady(item));
+        if (!upload) {
+          break;
+        }
+        if (this.overwriteAll) {
+          reactive(upload).overwrite = true;
+        }
+        this.start(upload.id);
+      }
+    }
+
+    // Update isUploading for close/navigation guards and beforeunload
+    mutations.setIsUploading(this.hasOngoingUploads());
+
+    // Only reload when we transition from having active uploads to having none
+    const hasNoOngoingUploads = !this.hasOngoingUploads();
+    if (this.hadActiveUploads && hasNoOngoingUploads) {
+      console.log("all uploads processed  ", this.queue);
+      // Only reload if there are no errors or conflicts - keep prompt open so users can see and retry
+      const hasErrorsOrConflicts = this.queue.some((item) =>
+        item.status === "error" || item.status === "conflict"
+      );
+      if (!hasErrorsOrConflicts) {
+        mutations.setReload(true);
+      }
+      this.hadActiveUploads = false; // Reset the flag
+      this.overwriteAll = null; // Reset for next batch of uploads
+    }
+  }
+
+  start(id: number): void {
+    const upload = this.findById(id);
+    if (upload?.status !== "pending") {
+      console.log(
+        `upload.js: Cannot start upload for id ${id}. Status is not 'pending' or upload not found.`,
+        upload
+      );
+      return;
+    }
+
+    if (upload.type === "directory") {
+      void this.startDirectoryUpload(upload);
+    } else {
+      void this.startFileUpload(upload as FileUploadItem);
+    }
+  }
+
+  async startDirectoryUpload(upload: UploadItem): Promise<void> {
+    this.activeUploads++;
+    this.hadActiveUploads = true; // Mark that we've had active uploads
+    upload.status = "uploading";
+    upload.lastProgressTime = Date.now();
+    this.startProgressTimeout(upload);
+
+    try {
+      const onSent = () => this.markSentToServer(upload);
+      let promise: UploadRequest;
+      if (getters.isShare()) {
+        promise = resourcesApi.postPublic(state.shareInfo?.hash, upload.path, new Blob([]), upload.overwrite, undefined, {}, true, onSent);
+      } else {
+        promise = resourcesApi.post(upload.source, upload.path, new Blob([]), upload.overwrite, undefined, {}, true, onSent);
+      }
+      upload.xhrPromise = promise;
+      await promise;
+
+      this.clearProgressTimeout(upload.id);
+      upload.awaitingServer = false;
+      upload.status = "completed";
+      upload.progress = 100;
+      notifyUploadComplete(upload);
+    } catch (err) {
+      upload.awaitingServer = false;
+      this.clearProgressTimeout(upload.id);
+      await this.handleUploadError(upload, err as RequestError);
+    } finally {
+      this.activeUploads--;
+      void this.processQueue();
+    }
+  }
+
+  async startFileUpload(upload: FileUploadItem): Promise<void> {
+    this.activeUploads++;
+    this.hadActiveUploads = true; // Mark that we've had active uploads
+    upload.status = "uploading";
+
+    // Default to 5 MB when unset; explicit 0 disables chunking (single-shot upload).
+    const chunkSizeMb = state.user.fileLoading?.uploadChunkSizeMb ?? 5;
+    const chunkSize = chunkSizeMb * 1024 * 1024;
+
+    // Single-shot upload when chunking is disabled or file is smaller than chunk size.
+    if (chunkSize === 0 || upload.size < chunkSize) {
+      const progress = (percent: number) => {
+        this.updateProgress(upload, percent);
+      };
+
+      // Start progress timeout monitoring
+      upload.lastProgressTime = Date.now();
+      this.startProgressTimeout(upload);
+
+      try {
+        const onSent = () => this.markSentToServer(upload);
+        let promise: UploadRequest;
+        if (getters.isShare()) {
+          promise = resourcesApi.postPublic(state.shareInfo?.hash, upload.path, upload.file, upload.overwrite, progress, {
+            "X-File-Upload-Session": upload.sessionId,
+            "X-File-Total-Size": upload.size,
+          }, false, onSent);
+        } else {
+          promise = resourcesApi.post(upload.source, upload.path, upload.file, upload.overwrite, progress, {
+            "X-File-Upload-Session": upload.sessionId,
+            "X-File-Total-Size": upload.size,
+          }, false, onSent);
+        }
+
+        upload.xhrPromise = promise;
+        upload.xhr = promise.xhr;
+        await promise;
+
+        upload.awaitingServer = false;
+        this.recordUploadActivity(upload);
+        // Clear timeout on successful completion
+        this.clearProgressTimeout(upload.id);
+        upload.awaitingServer = false;
+        upload.status = "completed";
+        upload.progress = 100;
+        upload.connectionIssue = false;
+        notifyUploadComplete(upload);
+      } catch (err) {
+        upload.awaitingServer = false;
+        this.clearProgressTimeout(upload.id);
+        await this.handleUploadError(upload, err as RequestError);
+      } finally {
+        this.activeUploads--;
+        upload.xhr = null;
+        upload.xhrPromise = null;
+        void this.processQueue();
+      }
+      return;
+    }
+
+    // Start progress timeout monitoring for chunked uploads
+    upload.lastProgressTime = Date.now();
+    this.startProgressTimeout(upload);
+
+    // Chunked upload loop: The server supports resuming from any chunk offset.
+    // Each chunk is written atomically at the specified offset using Seek().
+    // If we pause/error during a chunk upload, that chunk will be retried on resume.
+    // chunkOffset is only incremented after successful chunk completion, so resuming
+    // will retry the current chunk if it was incomplete.
+    while (upload.chunkOffset < upload.size && upload.status === "uploading") {
+      const chunk = upload.file.slice(
+        upload.chunkOffset,
+        upload.chunkOffset + chunkSize
+      );
+
+      const chunkProgress = (percent: number) => {
+        const chunkLoaded = (percent / 100) * chunk.size;
+        const totalLoaded = upload.chunkOffset + chunkLoaded;
+        const progress = (totalLoaded / upload.size) * 100;
+        this.updateProgress(upload, Math.round(progress * 10) / 10);
+      };
+
+      try {
+        const onSent = () => this.markSentToServer(upload);
+        let promise: UploadRequest;
+        if (getters.isShare()) {
+          promise = resourcesApi.postPublic(
+            state.shareInfo?.hash,
+            upload.path,
+            chunk,
+            upload.overwrite,
+            chunkProgress,
+            {
+              "X-File-Upload-Session": upload.sessionId,
+              "X-File-Chunk-Offset": upload.chunkOffset,
+              "X-File-Total-Size": upload.size,
+            },
+            false,
+            onSent
+          );
+        } else {
+          promise = resourcesApi.post(
+            upload.source,
+            upload.path,
+            chunk,
+            upload.overwrite,
+            chunkProgress,
+            {
+              "X-File-Upload-Session": upload.sessionId,
+              "X-File-Chunk-Offset": upload.chunkOffset,
+              "X-File-Total-Size": upload.size,
+            },
+            false,
+            onSent
+          );
+        }
+
+        upload.xhrPromise = promise;
+        upload.xhr = promise.xhr;
+        await promise;
+
+        // Only increment chunkOffset after successful chunk upload.
+        // This ensures that if we pause/error mid-chunk, we'll retry that chunk on resume.
+        upload.chunkOffset += chunk.size;
+        upload.awaitingServer = false;
+        // A completed chunk is activity even when no progress event was emitted.
+        this.recordUploadActivity(upload);
+        if (upload.chunkOffset < upload.size) {
+          this.startProgressTimeout(upload);
+        }
+      } catch (err) {
+        upload.awaitingServer = false;
+        this.clearProgressTimeout(upload.id);
+        await this.handleUploadError(upload, err as RequestError);
+        break; // Exit loop on error or pause
+      }
+    }
+
+    // Clear timeout when upload finishes
+    this.clearProgressTimeout(upload.id);
+
+    if (upload.status === "uploading") {
+      // If the loop finished without being paused/errored
+      upload.awaitingServer = false;
+      upload.status = "completed";
+      upload.progress = 100;
+      notifyUploadComplete(upload);
+      upload.connectionIssue = false;
+    }
+
+    this.activeUploads--;
+    upload.xhr = null;
+    upload.xhrPromise = null;
+    void this.processQueue();
+  }
+
+  chunkSizeBytes(): number {
+    const chunkSizeMb = state.user.fileLoading?.uploadChunkSizeMb ?? 5;
+    return chunkSizeMb * 1024 * 1024;
+  }
+
+  async pauseAll(): Promise<void> {
+    this.isOverallPaused = true;
+    const jobs = this.queue
+      .filter((upload) => upload.status === "uploading")
+      .map((upload) => this.pause(upload.id));
+    await Promise.all(jobs);
+  }
+
+  resumeAll(): void {
+    this.isOverallPaused = false;
+    for (const upload of this.queue) {
+      if (upload.status === "paused") {
+        this.resume(upload.id);
+      }
+    }
+  }
+
+  activeXhr(upload?: UploadItem): XMLHttpRequest | null {
+    return upload?.xhrPromise?.xhr || upload?.xhr || null;
+  }
+
+  /** Abort the in-flight upload operation, including a pending 401 renew+retry. */
+  abortUpload(upload?: UploadItem): void {
+    if (upload?.xhrPromise && typeof upload.xhrPromise.abort === "function") {
+      upload.xhrPromise.abort();
+      return;
+    }
+    const xhr = this.activeXhr(upload);
+    if (xhr && xhr.readyState !== XMLHttpRequest.DONE) {
+      xhr.abort();
+    }
+  }
+
+  async pause(id: number): Promise<void> {
+    const upload = this.findById(id);
+    if (upload?.status !== "uploading") {
+      return;
+    }
+    if (upload.type !== "directory" && this.chunkSizeBytes() > 0 && upload.size >= this.chunkSizeBytes()) {
+      try {
+        if (getters.isShare()) {
+          await resourcesApi.signalUploadPause(null, upload.path, state.shareInfo.hash);
+        } else {
+          await resourcesApi.signalUploadPause(upload.source, upload.path, null);
+        }
+      } catch (e) {
+        console.warn("upload pause signal failed", e);
+      }
+    }
+    this.abortUpload(upload);
+    upload.status = "paused";
+    upload.awaitingServer = false;
+    this.clearProgressTimeout(id);
+  }
+
+  clearProgressTimeout(id: number): void {
+    const timeoutId = this.progressTimeouts.get(id);
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+      this.progressTimeouts.delete(id);
+    }
+  }
+
+  recordUploadActivity(upload: UploadItem): void {
+    upload.lastProgressTime = Date.now();
+    this.lastUploadActivityTime = upload.lastProgressTime;
+  }
+
+  progressTimeoutMs(): number {
+    const seconds = state.user?.fileLoading?.uploadStallTimeoutSeconds ?? 0;
+    return seconds > 0 ? seconds * 1000 : this.PROGRESS_TIMEOUT_MS;
+  }
+
+  stallLimitMs(upload: UploadItem): number {
+    const progressTimeout = this.progressTimeoutMs();
+    if (upload.awaitingServer) {
+      return Math.max(this.SERVER_RESPONSE_TIMEOUT_MS, progressTimeout);
+    }
+    if (upload.type === "directory") {
+      return Math.max(this.DIRECTORY_PROGRESS_TIMEOUT_MS, progressTimeout);
+    }
+    return progressTimeout;
+  }
+
+  markSentToServer(upload: UploadItem): void {
+    if (upload.status !== "uploading" || !this.findById(upload.id)) {
+      return;
+    }
+    upload.awaitingServer = true;
+    this.recordUploadActivity(upload);
+    this.startProgressTimeout(upload);
+  }
+
+  startProgressTimeout(upload: UploadItem, delay = this.stallLimitMs(upload)): void {
+    // Clear any existing timeout
+    this.clearProgressTimeout(upload.id);
+
+    // Requests can wait for bandwidth or a browser connection while siblings upload.
+    const timeoutId = setTimeout(() => {
+      this.progressTimeouts.delete(upload.id);
+      if (upload.status === "uploading") {
+        const lastActivity =
+          upload.type === "directory"
+            ? upload.lastProgressTime ?? 0
+            : Math.max(upload.lastProgressTime ?? 0, this.lastUploadActivityTime ?? 0);
+        const idleTime = Date.now() - lastActivity;
+        const limitMs = this.stallLimitMs(upload);
+        if (idleTime < limitMs) {
+          this.startProgressTimeout(upload, limitMs - idleTime);
+          return;
+        }
+        console.log(`Upload ${upload.id} stalled - no progress for ${limitMs}ms, pausing`);
+        upload.connectionIssue = true;
+        void this.pause(upload.id);
+        upload.errorDetails = "Connection stalled - upload paused. Click resume to retry.";
+      }
+    }, delay);
+
+    this.progressTimeouts.set(upload.id, timeoutId);
+  }
+
+  updateProgress(upload: UploadItem, progress: number): void {
+    if (upload.status !== "uploading" || !this.findById(upload.id)) {
+      return;
+    }
+    upload.progress = progress;
+    this.recordUploadActivity(upload);
+    upload.connectionIssue = false; // Clear connection issue on successful progress
+    // Reset the timeout whenever we get progress
+    this.startProgressTimeout(upload);
+  }
+
+  resume(id: number): void {
+    const upload = this.findById(id);
+    if (upload?.status === "paused") {
+      this.isOverallPaused = false;
+      upload.status = "pending";
+      upload.connectionIssue = false; // Clear connection issue on resume
+      const progress =
+        upload.size > 0 ? ((upload.chunkOffset ?? 0) / upload.size) * 100 : 0;
+      upload.progress = Math.round(progress * 10) / 10;
+      void this.processQueue();
+    }
+  }
+
+  cancel(id: number): void {
+    const upload = this.findById(id);
+    if (upload?.status === "uploading" || upload?.status === "paused") {
+      this.abortUpload(upload);
+    }
+    this.clearProgressTimeout(id);
+    // Cancelling a directory cancels everything under it
+    if (upload?.type === "directory") {
+      for (let i = this.queue.length - 1; i >= 0; i--) {
+        const child = this.queue[i];
+        if (child && child.id !== id && child.batchId === upload.batchId && child.path.startsWith(upload.path)) {
+          this.abortUpload(child);
+          this.clearProgressTimeout(child.id);
+          this.queue.splice(i, 1);
+        }
+      }
+    }
+    const index = this.queue.findIndex((item) => item.id === id);
+    if (index !== -1) {
+      this.queue.splice(index, 1);
+    }
+    mutations.setIsUploading(this.hasOngoingUploads());
+    void this.processQueue();
+  }
+
+  retry(id: number, overwrite = false): void {
+    const upload = this.findById(id);
+    if (upload && ["error", "conflict"].includes(upload.status)) {
+      this.quotaBatchAborted = false;
+      upload.overwrite = overwrite;
+      upload.status = "pending";
+      upload.connectionIssue = false; // Clear connection issue on retry
+      const isChunked =
+        upload.type !== "directory" && upload.size >= this.chunkSizeBytes();
+      const canResume = isChunked && (upload.chunkOffset ?? 0) > 0;
+      if (!canResume) {
+        if (upload.type !== "directory") {
+          upload.chunkOffset = 0;
+        }
+        upload.progress = 0;
+      } else {
+        // Resume chunked uploads from the last successful chunk.
+        upload.progress =
+          upload.size > 0
+            ? Math.round(((upload.chunkOffset ?? 0) / upload.size) * 1000) / 10
+            : 0;
+      }
+      void this.processQueue();
+    }
+  }
+
+  clearCompleted(): void {
+    let hadCompleted = false;
+    for (let i = this.queue.length - 1; i >= 0; i--) {
+      const upload = this.queue.at(i);
+      if (!upload) continue;
+      const status = upload.status;
+      if (status === "completed") {
+        this.clearProgressTimeout(upload.id);
+        this.queue.splice(i, 1);
+        hadCompleted = true;
+      }
+      if (state.user.fileLoading?.clearAll) {
+        if (status === "error" || status === "conflict" || status === "paused") {
+          if (status === "paused") {
+            this.abortUpload(upload);
+          }
+          this.clearProgressTimeout(upload.id);
+          this.queue.splice(i, 1);
+        }
+      }
+    }
+    // If we had completed uploads and the queue is now empty, trigger reload
+    if (hadCompleted && this.queue.length === 0) {
+      mutations.setReload(true);
+    }
+    mutations.setIsUploading(this.hasOngoingUploads());
+  }
+
+  findById(id: number): UploadItem | undefined {
+    return this.queue.find((item) => item.id === id);
+  }
+
+  dirKey(batchId: number | undefined, path: string): string {
+    return `${batchId}:${path}`;
+  }
+
+  hasOpenParent(upload: UploadItem, openDirs: Set<string>): boolean {
+    if (openDirs.size === 0) {
+      return false;
+    }
+    const path = upload.path;
+    for (let i = path.indexOf("/"); i !== -1 && i < path.length - 1; i = path.indexOf("/", i + 1)) {
+      if (openDirs.has(this.dirKey(upload.batchId, path.slice(0, i + 1)))) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  hasPending(): boolean {
+    return toRaw(this.queue).some((item) => item.status === "pending");
+  }
+
+  /** True while uploads may still run (including user- or stall-paused jobs). */
+  hasOngoingUploads(): boolean {
+    return (
+      this.activeUploads > 0 ||
+      toRaw(this.queue).some(
+        (item) =>
+          item.status === "pending" ||
+          item.status === "uploading" ||
+          item.status === "paused"
+      )
+    );
+  }
+
+  getConflictingFolder(): string | null {
+    return this.conflictingFolder;
+  }
+
+  async renameFolder(oldName: string, newName: string): Promise<boolean> {
+    if (!oldName || !newName || !this.pendingItems) {
+      throw new Error("Invalid parameters for folder rename");
+    }
+
+    // Update all items in the pending items that reference the old folder name
+    const updatedItems = this.pendingItems.map(item => {
+      if (item.relativePath) {
+        const pathParts = item.relativePath.split("/");
+        if (pathParts[0] === oldName) {
+          // Replace the first part of the path with the new name
+          pathParts[0] = newName;
+          return {
+            ...item,
+            relativePath: pathParts.join("/")
+          };
+        }
+      }
+      return item;
+    });
+
+    // Store the updated items for processing
+    this.pendingItems = updatedItems;
+    return true;
+  }
+
+  handleQuotaExceededBatch(err: RequestError, upload: UploadItem): void {
+    const message = extractQuotaErrorMessage(err);
+    if (!this.quotaBatchAborted) {
+      this.quotaBatchAborted = true;
+      for (const item of this.queue) {
+        if (item.status === "uploading") {
+          this.abortUpload(item);
+        }
+        if (item.status === "pending" || item.status === "uploading") {
+          item.status = "error";
+          item.errorDetails = message;
+          item.connectionIssue = false;
+        }
+      }
+      notify.showError(message);
+      notifyOperationError(message);
+    }
+    upload.status = "error";
+    upload.connectionIssue = false;
+    upload.errorDetails = message;
+  }
+
+  async handleUploadError(upload: UploadItem, err: RequestError): Promise<void> {
+    if (isQuotaExceededError(err)) {
+      this.handleQuotaExceededBatch(err, upload);
+      return;
+    }
+
+    // Check if the error is a 409 Conflict
+    if (err?.response?.status === 409) {
+      upload.status = "conflict";
+      upload.connectionIssue = false;
+    } else if (err.message !== "Upload aborted") {
+      // Detect connection-related errors
+      const isConnectionError =
+        err.message === "Network error" ||
+        err.message?.toLowerCase().includes("network") ||
+        err.message?.toLowerCase().includes("timeout") ||
+        err.message?.toLowerCase().includes("connection") ||
+        err.message?.toLowerCase().includes("failed to fetch") ||
+        !err.response; // No response usually means network issue
+
+      const isChunked =
+        upload.type !== "directory" && upload.size >= this.chunkSizeBytes();
+      const canResumeChunked =
+        isChunked && (upload.chunkOffset ?? 0) > 0 && (upload.chunkOffset ?? 0) < upload.size;
+
+      // Connection drops on chunked uploads: pause so Resume continues from last chunk
+      // (same semantics as the stall timeout path).
+      if (isConnectionError && canResumeChunked) {
+        upload.status = "paused";
+        upload.connectionIssue = true;
+        upload.errorDetails =
+          "Connection stalled - upload paused. Click resume to retry.";
+        upload.progress =
+          upload.size > 0
+            ? Math.round(((upload.chunkOffset ?? 0) / upload.size) * 1000) / 10
+            : 0;
+        notifyUploadError(upload.name, upload.errorDetails);
+        return;
+      }
+
+      upload.status = "error";
+      if (isConnectionError) {
+        upload.connectionIssue = true;
+        upload.errorDetails = `Connection error: ${this.formatErrorMessage(err)}. Click retry to resume.`;
+      } else {
+        upload.connectionIssue = false;
+        upload.errorDetails = this.formatErrorMessage(err);
+      }
+      notifyUploadError(upload.name, upload.errorDetails);
+    } else {
+      // Upload was aborted - preserve connectionIssue flag if it was already set
+      // (e.g., if we paused due to timeout, keep the connection issue flag)
+      const hadConnectionIssue = upload.connectionIssue;
+      console.log(`upload.js: Upload aborted for id ${upload.id}`, upload);
+      // Only clear connectionIssue if it wasn't already set (user-initiated pause)
+      if (!hadConnectionIssue) {
+        upload.connectionIssue = false;
+      }
+    }
+  }
+
+  formatErrorMessage(err?: RequestError): string {
+    if (err?.response) {
+      // API error with response
+      const status = err.response.status;
+      const statusText = err.response.statusText;
+      const message = err.response.data?.message || err.response.data?.error || statusText;
+      return `${status} ${statusText}: ${message}`;
+    } else if (err?.message) {
+      // Network error or other error with message
+      return err.message;
+    } else {
+      // Fallback for unknown errors
+      return "Unknown error occurred";
+    }
+  }
+}
+
+export const uploadManager = new UploadManager();
+
+// Check for conflicts between items to be uploaded/moved and existing items
+export function checkConflict(
+  newItems: Array<{ name?: string; file?: { name: string } }> | null | undefined,
+  existingItems: Array<{ name: string }> | null | undefined,
+): boolean {
+  if (!newItems || !existingItems) {
+    return false;
+  }
+
+  const existingNames = new Set(existingItems.map(item => item.name));
+
+  return newItems.some(item => {
+    const itemName = item.name || item.file?.name;
+    return itemName && existingNames.has(itemName);
+  });
+}

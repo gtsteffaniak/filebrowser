@@ -326,6 +326,10 @@ function applyPreviewLinkTargets(doc: ParentNode, source: string, pageViewerUrls
   }
 }
 
+// Default page colours: black text on a white canvas. Placed first in <head>, so any
+// colours the page declares later in its own styles override these defaults.
+const PREVIEW_DEFAULT_STYLE = "html{color-scheme:light;background-color:#fff;color:#000}";
+
 function wrapPreviewDocument(htmlEl: HTMLElement): string {
   const doc = htmlEl.ownerDocument;
   const head = doc.head ?? htmlEl.querySelector("head");
@@ -338,6 +342,10 @@ function wrapPreviewDocument(htmlEl: HTMLElement): string {
     csp.setAttribute("http-equiv", "Content-Security-Policy");
     csp.setAttribute("content", HTML_PREVIEW_CSP);
     head.insertBefore(csp, charset.nextSibling);
+
+    const defaults = doc.createElement("style");
+    defaults.textContent = PREVIEW_DEFAULT_STYLE;
+    head.insertBefore(defaults, csp.nextSibling);
   }
   return `<!DOCTYPE html>\n${htmlEl.outerHTML}`;
 }

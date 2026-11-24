@@ -11,7 +11,7 @@
           :config-locked-paths="lockedFromConfigPaths"
           show-extension-inputs
           :show-thumbnail-master="false"
-          @change="onPreferenceSectionChange"
+          @changed="onPreferenceSectionChange"
           @enforced-change="onEnforcedChange"
         />
         <UserDefaultsAccountSection
@@ -20,17 +20,17 @@
           :enforced-permissions="enforced.account?.permissions || {}"
           :config-locked-paths="lockedFromConfigPaths"
           :show-require-password-change="passwordAccountDefaults"
-          @account-change="onAccountFieldChange"
-          @enforced-change="(field, value) => patchEnforcedFlag('account', field, value)"
-          @enforced-permission-change="(field, value) => patchEnforcedFlag('account', `permissions.${field}`, value)"
+          @account-change="({ field, value }) => onAccountFieldChange(field, value)"
+          @enforced-change="({ field, value }) => patchEnforcedFlag('account', field, value)"
+          @enforced-permission-change="({ field, value }) => patchEnforcedFlag('account', `permissions.${field}`, value)"
         />
     </template>
   </div>
 </template>
 
 <script>
-import { notify } from "@/notify";
-import { getUserDefaults, patchUserDefaults } from "@/api/settings";
+import { notify } from "@/notify/index.ts";
+import { getUserDefaults, patchUserDefaults } from "@/api/settings.js";
 import { getObjectProperty } from "@/utils/object.js";
 import UserProfilePreferences from "@/components/settings/UserProfilePreferences.vue";
 import UserDefaultsAccountSection from "@/components/settings/UserDefaultsAccountSection.vue";

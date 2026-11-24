@@ -24,7 +24,7 @@
   </div>
 </template>
 <script>
-import { getters, mutations } from "@/store"; // Import your custom store
+import { getters, mutations } from "@/store/index.ts"; // Import your custom store
 
 export default {
   name: "replace",

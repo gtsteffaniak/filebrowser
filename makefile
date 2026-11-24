@@ -19,26 +19,21 @@ backend_dev_tool = $$(cd $(BACKEND_BUILD) && go tool -n $(1))
 
 .SILENT:
 
-.PHONY: setup update build build-docker build-backend build-frontend dev run generate-docs
+.PHONY: setup update build build-docker build-docker-gpu build-backend build-frontend embed-frontend dev run generate-docs
 .PHONY: lint-frontend lint-backend lint test test-backend test-frontend check-all
-.PHONY: check-translations sync-translations test-playwright test-playwright-performance playwright-base playwright-perf-base perf-check perf-smoke perf-baseline perf-dashboard run-proxy screenshots
-.PHONY: check-icons generate-icons sync-icons setup-gofitz-cgo
+.PHONY: check-translations sync-translations generate-translation-types test-playwright test-playwright-project test-playwright-performance playwright-base playwright-perf-base perf-check perf-smoke perf-baseline perf-dashboard run-proxy screenshots
+.PHONY: check-icons generate-icons sync-icons
 
 setup:
 	echo "creating ./backend/test_config.yaml for local testing..."
 	if [ ! -f backend/test_config.yaml ]; then \
 		cp backend/config.yaml backend/test_config.yaml; \
 	fi
-	$(MAKE) setup-gofitz-cgo
 	echo "installing backend dev tooling..."
 	cd backend/build && go get tool
-	cd backend/internal/web && mkdir -p embed dist && touch embed/.gitignore
+	cd backend/internal/web && mkdir -p dist
 	echo "installing npm requirements for frontend..."
 	cd frontend && npm i
-
-setup-gofitz-cgo:
-	echo "linking go-fitz MuPDF headers for preview CGO..."
-	cd backend && go run ./scripts/setup-gofitz-cgo
 
 # todo: updating build causes issues.
 # 	cd backend/build && go get -u tool && go mod tidy
@@ -54,25 +49,35 @@ build-docker:
 build-docker-slim:
 	docker build --build-arg="VERSION=testing" --build-arg="REVISION=n/a" -t gtstef/filebrowser -f _docker/Dockerfile.slim .
 
-build-backend:
+build-docker-gpu:
+	DOCKER_BUILDKIT=1 docker build --build-arg="VERSION=testing" --build-arg="REVISION=n/a" -t gtstef/filebrowser-gpu -f _docker/Dockerfile.gpu .
+
+embed-frontend:
+	@test -d frontend/dist || (echo "Missing frontend/dist; run 'make build-frontend' first." >&2 && exit 1)
+	mkdir -p backend/internal/web/dist
+	find backend/internal/web/dist -mindepth 1 ! -name '.gitkeep' ! -name 'config.generated.yaml' -delete
+	cp -r frontend/dist/. backend/internal/web/dist/
+
+build-backend: embed-frontend
 	@echo "Building backend..."
 	cd backend && go build -o filebrowser --ldflags="-w -s -X 'github.com/gtsteffaniak/filebrowser/backend/internal/version.CommitSHA=testingCommit' -X 'github.com/gtsteffaniak/filebrowser/backend/internal/version.Version=testing'"
 	@echo "✓ Backend built successfully"
 
 # Local development: Vite HMR (frontend) + Air (backend)
 .NOTPARALLEL: dev
-dev: generate-docs generate-icons setup-gofitz-cgo
+dev: generate-docs generate-icons
 	@echo "Starting dev servers (Vite HMR + Air)... Press Ctrl+C to stop."
 	bash ./scripts/dev.sh
 
-run: build-frontend generate-docs setup-gofitz-cgo
+run: build-frontend generate-docs
+	$(MAKE) embed-frontend
 	cd backend && $(call backend_dev_tool,swag) init --output swagger/docs
 	@if [ "$$(uname)" = "Darwin" ]; then \
 		sed -i '' '/func init/,+3d' backend/swagger/docs/docs.go; \
 	else \
 		sed -i '/func init/,+3d' backend/swagger/docs/docs.go; \
 	fi
-	cd backend && CGO_ENABLED=1 go run --tags=mupdf \
+	cd backend && CGO_ENABLED=0 go run --tags=debug \
 	--ldflags="-w -s -X 'github.com/gtsteffaniak/filebrowser/backend/internal/version.CommitSHA=testingCommit' -X 'github.com/gtsteffaniak/filebrowser/backend/internal/version.Version=testing'" . -c test_config.yaml
 
 generate-docs:
@@ -93,8 +98,8 @@ build-frontend:
 	@echo "✓ Frontend built successfully"
 
 lint-frontend:
-	cd frontend && npm run lint
-	cd frontend && npm run lint:css
+	cd frontend && npm run lint && npm run i18n:check
+	cd frontend && npm run typecheck
 
 lint-backend:
 	cd backend && GOLANGCI_LINT="$$(cd $(BACKEND_BUILD) && go tool -n golangci-lint)" && "$$GOLANGCI_LINT" run --path-prefix=backend
@@ -120,30 +125,41 @@ check-translations:
 sync-translations:
 	cd frontend && npm run i18n:sync
 
+generate-translation-types:
+	cd frontend && npm run i18n:types
+
 reorder-translations:
-	cd frontend && npm run i18n:enforce-order
+	cd frontend && npm run i18n:reorder
 
 cleanup-translations:
 	cd frontend && npm run i18n:cleanup
 
+# FFmpeg/ffprobe are optional locally (integration tests skip). CI installs ffmpeg.
 test-backend:
-	cd backend && go test -race -timeout=30s ./...
+	cd backend && go test -race -timeout=45s ./...
 
 test-frontend:
 	cd frontend && npm run test
 
-test-playwright: build-frontend
+# Playwright docker project names (match _docker/Dockerfile.playwright-<name>).
+PLAYWRIGHT_PROJECTS := sharing settings noauth general jwt proxy previews oidc no-config screenshots
+
+# Full matrix (default). To build/run a single project:
+#   make test-playwright-project PROJECT=previews
+# or:
+#   make test-playwright PROJECT=previews
+test-playwright: build-frontend embed-frontend
 	cd backend && GOOS=linux go build -o filebrowser .
-	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-sharing .
-	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-settings .
-	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-noauth .
-	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-general .
-	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-jwt .
-	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-proxy .
-	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-previews .
-	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-oidc .
-	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-no-config .
-	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-screenshots .
+ifeq ($(PROJECT),)
+	$(foreach p,$(PLAYWRIGHT_PROJECTS),docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-$(p) . ;)
+else
+	docker build -t filebrowser-playwright-tests -f _docker/Dockerfile.playwright-$(PROJECT) .
+endif
+
+# Single-project convenience target (same as test-playwright PROJECT=...).
+test-playwright-project:
+	@test -n "$(PROJECT)" || (echo "PROJECT is required, e.g. make test-playwright-project PROJECT=previews"; exit 1)
+	$(MAKE) test-playwright PROJECT=$(PROJECT)
 
 # --- Listing performance (optional; does not affect test-playwright / CI playwright matrix) ---
 
@@ -160,7 +176,7 @@ playwright-perf-base:
 		--build-arg PLAYWRIGHT_BROWSERS="$(PERF_PLAYWRIGHT_BROWSERS)" \
 		-f _docker/Dockerfile.playwright-perf-base .
 
-test-playwright-performance: build-frontend
+test-playwright-performance: build-frontend embed-frontend
 	cd backend && GOOS=linux go build -o filebrowser .
 	DOCKER_BUILDKIT=1 docker build --target ci -t filebrowser-playwright-performance \
 		-f _docker/Dockerfile.playwright-performance .
@@ -176,7 +192,9 @@ PERF_BROWSERS ?= chromium,firefox,webkit
 # Only chromium feeds the CI baseline; the others are advisory insight.
 perf-check:
 ifndef PERF_SKIP_BUILD
-	$(MAKE) build-frontend
+	$(MAKE) build-frontend embed-frontend
+else
+	$(MAKE) embed-frontend
 endif
 	cd backend && GOOS=linux go build -o filebrowser .
 ifndef PERF_SKIP_PLAYWRIGHT_BASE
@@ -207,7 +225,7 @@ perf-dashboard:
 # get version from environment variable, for example
 # cd frontend && npm i @playwright/test && npx playwright install --with-deps chromium
 # make PLAYWRIGHT_TEST=settings test-playwright-ui
-test-playwright-ui: build-frontend
+test-playwright-ui: build-frontend embed-frontend
 	docker stop local-playwright-tests || true
 	docker rm local-playwright-tests || true
 	rm -rf _docker/src/tmp/ || true && mkdir -p _docker/src/tmp/
@@ -228,7 +246,7 @@ run-jwt: build-frontend
 # optional: install playwright locally
 # once local playwright server is running, you can also watch the tests interactively with:
 # cd frontend && npx playwright test --project dark-screenshots --ui
-screenshots: build-frontend
+screenshots: build-frontend embed-frontend
 	cd backend && GOOS=linux go build -o filebrowser --ldflags="-w -s -X 'github.com/gtsteffaniak/filebrowser/backend/internal/version.Version=latest'" .
 	@echo "Running screenshots..."
 	cd _docker && docker compose down && docker compose up --build local-playwright-screenshots

@@ -14,7 +14,6 @@ func TestApplyUserDefaults_copiesUserDefaultsOntoUser(t *testing.T) {
 	saved := Config
 	defer func() { Config = saved }()
 
-	dark := false
 	Config = Settings{
 		Server: Server{},
 		UserDefaults: UserDefaults{
@@ -58,13 +57,14 @@ func TestApplyUserDefaults_copiesUserDefaultsOntoUser(t *testing.T) {
 				DisableViewingExt:       ".bat",
 				DisableOnlyOfficeExt:    ".x",
 				PreferEditorForMarkdown: true,
+				PreferEditorForHtml:     true,
 				DebugOffice:             true,
 			},
 			Search: UserDefaultsSearch{
 				DisableOptions: true,
 			},
 			UI: UserDefaultsUI{
-				DarkMode:    &dark,
+				DarkMode:    users.DarkModeLight,
 				ThemeColor:  "var(--red)",
 				CustomTheme: "Night",
 				Locale:      "de",
@@ -113,7 +113,7 @@ func TestApplyUserDefaults_copiesUserDefaultsOntoUser(t *testing.T) {
 				DisableSearchOptions:       true,
 				StickySidebar:              false,
 				HideFilesInTree:            true,
-				DarkMode:                   false,
+				DarkMode:                   users.DarkModeLight,
 				Locale:                     "de",
 				ViewMode:                   "list",
 				SingleClick:                true,
@@ -135,6 +135,7 @@ func TestApplyUserDefaults_copiesUserDefaultsOntoUser(t *testing.T) {
 				DeleteWithoutConfirming:    true,
 				DeleteAfterArchive:         false,
 				PreferEditorForMarkdown:    true,
+				PreferEditorForHtml:        true,
 				ShowToolsInSidebar:         true,
 				FileLoading: users.FileLoading{
 					MaxConcurrent:     3,

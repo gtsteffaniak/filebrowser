@@ -1,10 +1,10 @@
 <template>
-  <div class="advanced-search-root">
+  <div ref="rootEl" class="advanced-search-root">
     <div class="card advanced-search-toolbar padding-normal">
-      <form class="card-content advanced-search-card-form" @submit.prevent="runSearch">
+      <form class="card-content advanced-search-card-form" @submit.prevent="runSearch()">
         <div class="advanced-search-config-row">
           <div class="config-primary">
-            <div class="as-section-label">{{ $t("tools.advancedSearch.searchTerms") }}</div>
+            <div class="as-section-label">{{ t("tools.advancedSearch.searchTerms") }}</div>
             <template v-for="(term, idx) in termInputs" :key="`term-${idx}`">
               <div
                 v-if="idx > 0"
@@ -22,13 +22,13 @@
                   :class="{ 'flat-right': termInputs.length > 1 }"
                   type="search"
                   autocomplete="off"
-                  :placeholder="$t('general.search', { suffix: '...' })"
+                  :placeholder="t('general.search', { suffix: '...' })"
                 />
                 <button
                   v-if="termInputs.length > 1"
                   type="button"
                   class="button flat-left no-height"
-                  :aria-label="$t('general.delete')"
+                  :aria-label="t('general.delete')"
                   @click="removeTermAt(idx)"
                 >
                   <i class="material-symbols material-size">delete</i>
@@ -46,21 +46,21 @@
               v-if="termInputs.length > 1"
               v-model="termsJoinAnd"
               class="advanced-search-switch"
-              :name="$t('tools.advancedSearch.matchAllTerms')"
-              :description="$t('tools.advancedSearch.matchAllTermsDescription')"
+              :name="t('tools.advancedSearch.matchAllTerms')"
+              :description="t('tools.advancedSearch.matchAllTermsDescription')"
             />
           </div>
 
           <div class="config-secondary">
             <div class="as-sources-block">
-              <div class="as-section-label">{{ $t("general.sources") }}</div>
+              <div class="as-section-label">{{ t("general.sources") }}</div>
               <ExpandDropdown
                 v-model="selectedSourceNames"
                 class="source-dropdown-select"
                 :options="sourceOptions"
                 allow-multiple
-                :all-selected-label="$t('general.allSources')"
-                :aria-label="$t('general.sources', { suffix: '' })"
+                :all-selected-label="t('general.allSources')"
+                :aria-label="t('general.sources', { suffix: '' })"
               />
               <template
                 v-for="srcName in activeSources"
@@ -72,94 +72,37 @@
                   :source="srcName"
                   :show-files="false"
                   :show-folders="true"
-                  :aria-label="$t('tools.advancedSearch.scopeAria')"
-                  :placeholder="$t('sidebar.chooseSource')"
+                  :aria-label="t('tools.advancedSearch.scopeAria')"
+                  :placeholder="t('sidebar.chooseSource')"
                 />
               </template>
             </div>
 
             <div v-if="!disableSearchOptions" class="advanced-search-options-section">
-              <SettingsItem
-                :title="advancedOptionsExpanded ? $t('buttons.showLess') : $t('buttons.showMore')"
-                :collapsable="true"
-                :start-collapsed="!advancedOptionsExpanded"
-                @toggle="advancedOptionsExpanded = $event"
-              >
-                <div class="advanced-search-options-pane">
-                  <div class="search-filter-dropdowns">
-                    <ExpandDropdown
-                      v-model="entryTypeFilter"
-                      :options="entryTypeOptions"
-                      all-value="all"
-                      :all-selected-label="$t('search.filesAndFolders')"
-                      :aria-label="$t('search.filesAndFolders')"
-                    />
-                    <ExpandDropdown
-                      v-model="selectedMediaTypes"
-                      :options="mediaTypeOptions"
-                      allow-multiple
-                      empty-means-all
-                      :all-selected-label="$t('search.allFileTypes')"
-                      :disabled="foldersOnly"
-                      :aria-label="$t('search.allFileTypes')"
-                    />
-                  </div>
-                  <div class="constraints">
-                    <div class="sizeInputWrapper">
-                      <p>{{ $t("search.smallerThan") }}</p>
+              <SearchFilters v-model:expanded="filtersExpanded" :filters="filters">
+                <template #extra-settings>
+                  <div class="settings-number-input item">
+                    <label for="advanced-search-limit">{{ t('tools.advancedSearch.resultLimit') }}</label>
+                    <div>
                       <input
-                        class="sizeInput"
-                        v-model="smallerThan"
-                        type="number"
-                        min="0"
-                        placeholder="MB"
+                        id="advanced-search-limit"
+                        v-model.number="resultLimit"
+                        type="range"
+                        min="1"
+                        :max="maxSearchResults"
+                        :disabled="loading"
                       />
-                      <p>{{ $t("search.largerThan") }}</p>
-                      <input class="sizeInput" v-model="largerThan" type="number" placeholder="MB" />
-                    </div>
-                    <div class="sizeInputWrapper">
-                      <p>{{ $t("search.olderThanDate") }}</p>
-                      <input class="sizeInput" v-model="modifiedOlderThan" type="date" />
-                      <p>{{ $t("search.newerThanDate") }}</p>
-                      <input class="sizeInput" v-model="modifiedNewerThan" type="date" />
+                      <output for="advanced-search-limit" class="range-value">{{ resultLimit }}</output>
                     </div>
                   </div>
-                  <div class="settings-items">
-                    <div class="settings-number-input item">
-                      <label for="advanced-search-limit">{{ $t('tools.advancedSearch.resultLimit') }}</label>
-                      <div>
-                        <input
-                          id="advanced-search-limit"
-                          v-model.number="resultLimit"
-                          type="range"
-                          min="1"
-                          :max="maxSearchResults"
-                          :disabled="loading"
-                        />
-                        <output for="advanced-search-limit" class="range-value">{{ resultLimit }}</output>
-                      </div>
-                    </div>
-                    <ToggleSwitch
-                      v-model="useWildcardSearch"
-                      class="item"
-                      :name="$t('search.useWildcardSearch')"
-                      :description="$t('search.useWildcardSearchDescription')"
-                    />
-                    <ToggleSwitch
-                      v-model="caseExactSearch"
-                      class="item"
-                      :name="$t('search.caseExact')"
-                      :description="$t('search.caseExactDescription')"
-                    />
-                  </div>
-                </div>
-              </SettingsItem>
+                </template>
+              </SearchFilters>
             </div>
 
             <div class="advanced-search-actions-row">
               <button type="submit" class="button search-submit" :disabled="loading" :aria-busy="loading">
                 <i v-if="loading" class="material-symbols spin">autorenew</i>
-                <span v-else>{{ $t("general.search") }}</span>
+                <span v-else>{{ t("general.search") }}</span>
               </button>
             </div>
           </div>
@@ -168,88 +111,68 @@
     </div>
 
     <div v-if="searchExecuted" class="advanced-search-results-plane">
-      <div v-if="loading" class="results-loading">
+      <h2 v-if="loading" class="message delayed">
         <LoadingSpinner size="medium" />
-        <span>{{ $t("general.loading", { suffix: "..." }) }}</span>
-      </div>
+        <span>{{ t("general.loading", { suffix: "..." }) }}</span>
+      </h2>
       <template v-else>
         <div v-if="error" class="error-message padded-message">
           {{ error }}
         </div>
         <div v-else-if="resultsEmpty" class="empty-state-message padded-message">
-          <p>{{ $t("tools.advancedSearch.noResults") }}</p>
+          <p>{{ t("tools.advancedSearch.noResults") }}</p>
         </div>
-        <div v-else class="advanced-search-listing-results">
-          <ListingHeader class="advanced-search-inline-header" />
+        <div v-else ref="results" class="advanced-search-listing-results">
+          <div class="advanced-search-sticky-header" :class="{ 'header-hidden': headerHidden }">
+            <ListingHeader class="advanced-search-inline-header" />
+          </div>
           <div class="advanced-search-inner no-select">
             <div
               ref="listingView"
               :class="{
                 'add-padding': isStickySidebar,
+                'rectangle-selecting': isRectangleSelecting,
+                virtualized: virtual.active.value,
                 [listingViewMode]: true,
               }"
               :style="listingItemStyles"
               class="listing-items file-icons"
-              @contextmenu="openListingContext"
             >
-              <template v-if="reqListing.dirs.length > 0">
-                <div>
-                  <h2>{{ $t("general.folders") }}</h2>
-                </div>
-                <div
-                  class="folder-items"
-                  aria-label="Folder Items"
-                  :class="{ lastGroup: reqListing.files.length === 0 }"
-                >
-                  <Item
-                    v-for="entry in reqListing.dirs"
-                    :key="listingItemKey(entry)"
-                    :index="entry.index"
-                    :name="entry.name"
-                    :is-dir="entry.type === 'directory'"
-                    :source="entry.source"
-                    :modified="entry.modified"
-                    :created="entry.created"
-                    :type="entry.type"
-                    :size="entry.size"
-                    :path="entry.path"
-                    :reduced-opacity="false"
-                    :hash="shareInfo.hash"
-                    :has-preview="entry.hasPreview"
-                    :has-duration="false"
-                    :is-shared="entry.isShared || false"
-                    :read-only="true"
-                    :force-files-api="true"
-                  />
-                </div>
-              </template>
-              <template v-if="reqListing.files.length > 0">
-                <div>
-                  <h2>{{ $t("general.files") }}</h2>
-                </div>
-                <div class="file-items" :class="{ lastGroup: true }" aria-label="File Items">
-                  <Item
-                    v-for="entry in reqListing.files"
-                    :key="listingItemKey(entry)"
-                    :index="entry.index"
-                    :name="entry.name"
-                    :is-dir="entry.type === 'directory'"
-                    :modified="entry.modified"
-                    :created="entry.created"
-                    :source="entry.source"
-                    :type="entry.type"
-                    :size="entry.size"
-                    :path="entry.path"
-                    :reduced-opacity="false"
-                    :hash="shareInfo.hash"
-                    :has-preview="entry.hasPreview"
-                    :metadata="entry.metadata"
-                    :has-duration="false"
-                    :is-shared="entry.isShared || false"
-                    :read-only="true"
-                    :force-files-api="true"
-                  />
-                </div>
+              <div v-if="isRectangleSelecting" class="selection-rectangle" :style="rectangleStyle"></div>
+              <template v-for="section in sections" :key="section.key">
+                <template v-if="section.items.length > 0">
+                  <div>
+                    <h2>{{ section.title }}</h2>
+                  </div>
+                  <div
+                    :class="[section.class, { lastGroup: section.last }]"
+                    :data-virtual-group="section.key"
+                    :style="virtual.group(section.key).style"
+                    :aria-label="section.label"
+                  >
+                    <Item
+                      v-for="entry in virtual.group(section.key).items"
+                      :key="listingItemKey(entry)"
+                      :index="entry.index"
+                      :name="entry.name"
+                      :is-dir="entry.type === 'directory'"
+                      :source="entry.source"
+                      :modified="entry.modified"
+                      :created="entry.created"
+                      :type="entry.type"
+                      :size="entry.size"
+                      :path="entry.path"
+                      :reduced-opacity="false"
+                      :hash="shareInfo.hash"
+                      :has-preview="entry.hasPreview"
+                      :metadata="entry.metadata"
+                      :has-duration="false"
+                      :is-shared="entry.isShared || false"
+                      :read-only="true"
+                      :force-files-api="true"
+                    />
+                  </div>
+                </template>
               </template>
             </div>
           </div>
@@ -259,28 +182,55 @@
   </div>
 </template>
 
-<script>
-import { toolsApi } from "@/api";
-import { notify } from "@/notify/index.ts";
-import { router } from "@/router";
-import { state, getters, mutations } from "@/store";
-import { eventBus } from "@/store/eventBus";
-import { globalVars } from "@/utils/constants";
+<script setup lang="ts">
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from "vue";
+import type { FileListItem, fileListItemIndex, ReqObject } from "@/store/types.ts";
+import { useRoute } from "vue-router";
+import { useI18n } from "@/i18n/index.ts";
+import { toolsApi } from "@/api/index.js";
+import { router } from "@/router/index.ts";
+import { state, getters, mutations } from "@/store/index.ts";
+import { eventBus } from "@/store/eventBus.ts";
+import { globalVars } from "@/utils/constants.ts";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
-import SettingsItem from "@/components/settings/SettingsItem.vue";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import PathPickerButton from "@/components/files/PathPickerButton.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import Item from "@/components/files/ListingItem.vue";
-import { removeTrailingSlash, removeLeadingSlash } from "@/utils/url.js";
+import { removeTrailingSlash, removeLeadingSlash, isSameItem, goToItem } from "@/utils/url.js";
+import { selectAndScrollToIndex } from "@/utils/listing/selectAndScroll.ts";
 import ListingHeader from "@/components/files/ListingHeader.vue";
-import { utcStartOfDaySecondsFromDateInput } from "@/utils/moment";
+import SearchFilters from "@/components/tools/SearchFilters.vue";
+import { useSearchFilters } from "@/composables/useSearchFilters.ts";
+import { useSearchRequest } from "@/composables/useSearchRequest.ts";
+import { useListingKeyboard } from "@/composables/useListingKeyboard.ts";
+import { useListingLayout } from "@/composables/useListingLayout.ts";
+import { useListingVirtualization } from "@/composables/useListingVirtualization.ts";
+import { useMouseSelection } from "@/composables/useRectangleSelection.ts";
+import { useListingContextMenu } from "@/composables/useListingContextMenu.ts";
 import { getObjectProperty, setObjectProperty } from '@/utils/object.js';
+
+type QueryRecord = Record<string, unknown>;
+type NormalizedQuery = Record<string, string | string[]>;
+
+interface SearchResultRow {
+  source?: string;
+  path?: string;
+  type?: string;
+  size?: number;
+  modified?: string;
+  created?: string;
+  hasPreview?: boolean;
+}
+
+interface ItemsChangedEvent {
+  succeeded?: unknown[];
+}
 
 /**
  * Builds a canonical browse path within the selected scope (mirror of Search.vue getItemUrl path join).
  */
-function browsePath(scopePath, apiPath, isDirectory) {
+function browsePath(scopePath: string, apiPath: string, isDirectory: boolean) {
   const context =
     scopePath && scopePath !== "/" ? removeTrailingSlash(scopePath) : "";
   const trimmedApi = String(apiPath || "").trim();
@@ -306,32 +256,20 @@ function browsePath(scopePath, apiPath, isDirectory) {
   return resolvedBrowsePath;
 }
 
-function displayName(fullPath, isDirectory) {
+function displayName(fullPath: string, isDirectory: boolean) {
   const withoutTrailing =
     fullPath.endsWith("/") && fullPath.length > 1
       ? fullPath.slice(0, -1)
       : fullPath;
   const parts = withoutTrailing.split("/").filter(Boolean);
-  const name = parts.length ? parts[parts.length - 1] : "";
+  const name = parts.at(-1) ?? "";
 
   return name !== "" ? name : (isDirectory ? "/" : "?");
 }
 
-function queryTruthy(v) {
-  if (v === undefined || v === null || v === "") {
-    return false;
-  }
-  if (v === true || v === 1) {
-    return true;
-  }
-  const s = String(v).toLowerCase();
-  return s === "1" || s === "true" || s === "yes";
-}
-
-/** @param {Record<string, unknown>} routeQuery */
-function parseTermsFromRouteQuery(routeQuery) {
+function parseTermsFromRouteQuery(routeQuery: QueryRecord) {
   const q = routeQuery || {};
-  const out = [];
+  const out: string[] = [];
 
   const termRaw = q.term;
   if (Array.isArray(termRaw)) {
@@ -362,66 +300,29 @@ function parseTermsFromRouteQuery(routeQuery) {
   return out;
 }
 
-/** @param {Record<string, unknown>} q */
-function hasFilterOrTermSignalsForImplicitSources(q) {
-  if (parseTermsFromRouteQuery(q).length > 0) {
-    return true;
-  }
-
-  /** @param {string} queryKey */
-  const nonempty = (queryKey) => {
-    const raw = getObjectProperty(q, queryKey);
-    return raw !== undefined && raw !== null && String(raw).trim() !== "";
-  };
-
-  if (
-    nonempty("types") ||
-    nonempty("largerThan") ||
-    nonempty("smallerThan") ||
-    nonempty("limit") ||
-    nonempty("dateOlder") ||
-    nonempty("dateNewer")
-  ) {
-    return true;
-  }
-
-  if (queryTruthy(q.wildcard) || queryTruthy(q.caseExact) || queryTruthy(q.typeLock)) {
-    return true;
-  }
-
-  return false;
+function hasQueryValue(q: QueryRecord, queryKey: string) {
+  const raw = getObjectProperty(q, queryKey);
+  return raw !== undefined && raw !== null && String(raw).trim() !== "";
 }
 
-/** @param {Record<string, unknown>} q */
-function hasAnyAdvancedSearchRouteParams(q) {
-  if (hasFilterOrTermSignalsForImplicitSources(q)) {
-    return true;
-  }
+function hasFilterOrTermSignalsForImplicitSources(q: QueryRecord) {
+  return parseTermsFromRouteQuery(q).length > 0 || hasQueryValue(q, "limit") || hasRouteFilters(q);
+}
 
-  /** @param {string} queryKey */
-  const nonempty = (queryKey) => {
-    const raw = getObjectProperty(q, queryKey);
-    return raw !== undefined && raw !== null && String(raw).trim() !== "";
-  };
-
-  if (
-    nonempty("sources") ||
-    nonempty("scope") ||
+function hasAnyAdvancedSearchRouteParams(q: QueryRecord) {
+  return (
+    hasFilterOrTermSignalsForImplicitSources(q) ||
+    hasQueryValue(q, "sources") ||
+    hasQueryValue(q, "scope") ||
     String(q.termJoin || "").toLowerCase() === "and"
-  ) {
-    return true;
-  }
-
-  return false;
+  );
 }
 
 /** Canonicalize vue-router query for comparisons. */
-/** @param {Record<string, unknown>} routeQuery */
-function normalizeRouteQueryLoose(routeQuery) {
+function normalizeRouteQueryLoose(routeQuery: QueryRecord): NormalizedQuery {
   const q = routeQuery || {};
-  /** @type {string[]} */
   const entries = Object.entries(q).sort((a, b) => a[0].localeCompare(b[0]));
-  const nextEntries = [];
+  const nextEntries: [string, string | string[]][] = [];
   for (const [queryKey, rawValue] of entries) {
     if (rawValue === undefined || rawValue === null) continue;
     if (Array.isArray(rawValue)) {
@@ -430,7 +331,7 @@ function normalizeRouteQueryLoose(routeQuery) {
         .filter((entry) => entry !== "")
         .sort();
       if (sortedStrings.length === 1) {
-        nextEntries.push([queryKey, sortedStrings[0]]);
+        nextEntries.push([queryKey, sortedStrings[0] as string]);
       } else if (sortedStrings.length > 1) {
         nextEntries.push([queryKey, sortedStrings]);
       }
@@ -444,10 +345,8 @@ function normalizeRouteQueryLoose(routeQuery) {
   return Object.fromEntries(nextEntries);
 }
 
-/** @param {Record<string, string|string[]|unknown>} obj */
-function stableQueryStringFromObject(obj) {
-  /** @type {string[][]} */
-  let pairs = [];
+function stableQueryStringFromObject(obj: QueryRecord) {
+  let pairs: [string, string][] = [];
   const keys = Object.keys(obj).sort();
   for (const paramKey of keys) {
     const paramValue = getObjectProperty(obj, paramKey);
@@ -478,8 +377,7 @@ function stableQueryStringFromObject(obj) {
 }
 
 /** Raw `scope` query values (repeated or single). */
-/** @param {Record<string, unknown>} q */
-function collectScopeRawFromQuery(q) {
+function collectScopeRawFromQuery(q: QueryRecord) {
   const raw = q.scope;
   if (raw === undefined || raw === null) {
     return [];
@@ -490,1002 +388,782 @@ function collectScopeRawFromQuery(q) {
   return [String(raw)];
 }
 
-export default {
-  name: "AdvancedSearch",
-  components: {
-    ToggleSwitch,
-    SettingsItem,
-    ExpandDropdown,
-    PathPickerButton,
-    LoadingSpinner,
-    Item,
-    ListingHeader,
+const { t } = useI18n();
+const route = useRoute();
+
+const rootEl = useTemplateRef<HTMLElement>("rootEl");
+const results = useTemplateRef<HTMLElement>("results");
+const listingView = useTemplateRef<HTMLElement>("listingView");
+
+const resultLimit = ref(Math.min(500, globalVars.searchResultsLimit || 1000));
+const termInputs = ref<string[]>([""]);
+const termsJoinAnd = ref(false);
+const sourceEnabledFlags = ref<QueryRecord>({});
+const sourceScopedPaths = ref<Record<string, string>>({});
+const loading = ref(false);
+const error = ref<string | null>(null);
+const searchExecuted = ref(false);
+const resultsEmpty = ref(false);
+const headerHidden = ref(false);
+const filtersExpanded = ref(false);
+
+// Updates the URL whenever a filter changes.
+const { filters, buildRequest, toRouteQuery, applyRouteQuery, hasRouteFilters } = useSearchFilters({ onChange: scheduleAdvancedSearchUrlUpdate });
+// Aborts a superseded search and keeps a late response from overwriting newer results.
+const { isRunning, run: runSearchRequest, abort: abortSearch } = useSearchRequest();
+
+let didApplySearchListing = false;
+let hadInitialReq = false;
+let initialReqFrozen = "";
+let catalogRouteBootstrapDone = false;
+let isInitializing = true;
+let suppressRouteQueryNavigation = false;
+let emptyCatalogHydrateTimer: number | null = null;
+let refreshQueued = false;
+let lastScrollTop = 0;
+let scrollContainer: HTMLElement | null = null;
+
+const maxSearchResults = computed(() => globalVars.searchResultsLimit || 1000);
+const isAdvancedSearchRoute = computed(() => (route.path || "") === "/tools/advancedSearch");
+const shareInfo = computed(() => state.shareInfo);
+/** Keys from `state.sources.info`, sorted (sidebar catalogue). */
+const sourceNameList = computed(() => Object.keys(state.sources.info || {}).sort());
+const disableSearchOptions = computed(() => state.user.disableSearchOptions);
+const termJoinDividerLabel = computed(() => {
+  const raw = termsJoinAnd.value
+    ? t("general.and")
+    : t("general.or");
+  return String(raw ?? "").toUpperCase();
+});
+const activeSources = computed(() => {
+  const info = state.sources.info || {};
+  return Object.keys(info)
+    .filter((name) => getObjectProperty(sourceEnabledFlags.value, name) === true)
+    .sort();
+});
+const sourceOptions = computed(() =>
+  sourceNameList.value.map((name) => ({
+    value: name,
+    label: name,
+  })),
+);
+const selectedSourceNames = computed({
+  get() {
+    return activeSources.value;
   },
-  data() {
-    return {
-      // Guards async search results: drop responses after unmount or when a newer search started.
-      isUnmounted: false,
-      searchSeq: 0,
-      resultLimit: Math.min(500, globalVars.searchResultsLimit || 1000),
-      termInputs: [""],
-      termsJoinAnd: false,
-      sourceEnabledFlags: {},
-      sourceScopedPaths: {},
-      columnWidth: 250 + state.user.gallerySize * 50,
-      innerWidth: typeof window !== "undefined" ? window.innerWidth : 1024,
-      resizeListener: null,
-      largerThan: "",
-      smallerThan: "",
-      modifiedOlderThan: "",
-      modifiedNewerThan: "",
-      entryTypeFilter: "all",
-      selectedMediaTypes: [],
-      useWildcardSearch: false,
-      caseExactSearch: false,
-      loading: false,
-      error: null,
-      searchExecuted: false,
-      resultsEmpty: false,
-      didApplySearchListing: false,
-      hadInitialReq: false,
-      initialReqFrozen: "",
-      catalogRouteBootstrapDone: false,
-      isInitializing: true,
-      suppressRouteQueryNavigation: false,
-      emptyCatalogHydrateTimer: null,
-      advancedOptionsExpanded: false,
-      refreshQueued: false,
-    };
+  set(names: unknown) {
+    const selected = Array.isArray(names) ? (names as string[]) : [];
+    let nextFlags = { ...sourceEnabledFlags.value };
+    for (const name of sourceNameList.value) {
+      nextFlags = setObjectProperty(nextFlags, name, selected.includes(name));
+    }
+    sourceEnabledFlags.value = nextFlags;
+
+    let nextPaths = { ...sourceScopedPaths.value };
+    for (const name of selected) {
+      const currentPath = getObjectProperty(nextPaths, name);
+      if (currentPath === undefined || currentPath === null || currentPath === "") {
+        nextPaths = setObjectProperty(nextPaths, name, "/") as Record<string, string>;
+      }
+    }
+    sourceScopedPaths.value = nextPaths;
+
+    if (selected.length === 0) {
+      void nextTick().then(() => applyDefaultCurrentSourceIfNone());
+    }
   },
-  computed: {
-    maxSearchResults() {
-      return globalVars.searchResultsLimit || 1000;
-    },
-    isAdvancedSearchRoute() {
-      return (this.$route.path || "") === "/tools/advancedSearch";
-    },
-    shareInfo() {
-      return state.shareInfo;
-    },
-    sourcesInfoReactive() {
-      return state.sources.info;
-    },
-    gallerySizeBump() {
-      return state.user.gallerySize;
-    },
-    /** Keys from `state.sources.info`, sorted (sidebar catalogue). */
-    sourceNameList() {
-      return Object.keys(state.sources.info || {}).sort();
-    },
-    disableSearchOptions() {
-      return state.user.disableSearchOptions;
-    },
-    foldersOnly() {
-      return this.entryTypeFilter === "type:folder";
-    },
-    searchTypes() {
-      const parts = [];
-      if (this.entryTypeFilter !== "all") {
-        parts.push(this.entryTypeFilter);
-      }
-      parts.push(...this.selectedMediaTypes);
-      return parts.length > 0 ? `${parts.join(" ")} ` : "";
-    },
-    entryTypeOptions() {
-      return [
-        { value: "all", label: this.$t("search.filesAndFolders") },
-        { value: "type:file", label: this.$t("search.onlyFiles") },
-        { value: "type:folder", label: this.$t("search.onlyFolders") },
-      ];
-    },
-    mediaTypeOptions() {
-      return [
-        { value: "type:image", label: this.$t("general.photos") },
-        { value: "type:audio", label: this.$t("general.audio") },
-        { value: "type:video", label: this.$t("general.videos") },
-        { value: "type:doc", label: this.$t("general.documents") },
-        { value: "type:archive", label: this.$t("general.archives") },
-      ];
-    },
-    termJoinDividerLabel() {
-      const raw = this.termsJoinAnd
-        ? this.$t("general.and")
-        : this.$t("general.or");
-      return String(raw ?? "").toUpperCase();
-    },
-    activeSources() {
-      const info = state.sources.info || {};
-      return Object.keys(info)
-        .filter((name) => getObjectProperty(this.sourceEnabledFlags, name) === true)
-        .sort();
-    },
-    sourceOptions() {
-      return this.sourceNameList.map((name) => ({
-        value: name,
-        label: name,
-      }));
-    },
-    selectedSourceNames: {
-      get() {
-        return this.activeSources;
-      },
-      set(names) {
-        const selected = Array.isArray(names) ? names : [];
-        let nextFlags = { ...this.sourceEnabledFlags };
-        for (const name of this.sourceNameList) {
-          nextFlags = setObjectProperty(nextFlags, name, selected.includes(name));
-        }
-        this.sourceEnabledFlags = nextFlags;
+});
+const isStickySidebar = computed(() => getters.isStickySidebar());
+const listingViewMode = computed(() => getters.viewMode());
+const reqListing = computed(() => {
+  const grouped = getters.reqItems();
+  if (!grouped.dirs || !grouped.files) {
+    return { dirs: [], files: [] };
+  }
+  return grouped;
+});
 
-        let nextPaths = { ...this.sourceScopedPaths };
-        for (const name of selected) {
-          const currentPath = getObjectProperty(nextPaths, name);
-          if (currentPath === undefined || currentPath === null || currentPath === "") {
-            nextPaths = setObjectProperty(nextPaths, name, "/");
-          }
-        }
-        this.sourceScopedPaths = nextPaths;
+const sections = computed<
+  { key: string; class: string; title: string; label: string; items: typeof reqListing.value.dirs; last: boolean }[]
+>(() => [
+  { key: "dirs", class: "folder-items", title: t("general.folders"), label: "Folder Items", items: reqListing.value.dirs, last: reqListing.value.files.length === 0 },
+  { key: "files", class: "file-items", title: t("general.files"), label: "File Items", items: reqListing.value.files, last: true },
+]);
 
-        if (selected.length === 0) {
-          void this.$nextTick().then(() => this.applyDefaultCurrentSourceIfNone());
-        }
-      },
-    },
-    isStickySidebar() {
-      return getters.isStickySidebar();
-    },
-    listingViewMode() {
-      return getters.viewMode();
-    },
-    reqListing() {
-      const grouped = getters.reqItems();
-      if (!grouped.dirs || !grouped.files) {
-        return { dirs: [], files: [] };
-      }
-      return grouped;
-    },
-    listingNumColumns() {
-      void this.innerWidth;
-      if (!getters.isCardView()) {
-        return 1;
-      }
-      const elem = document.querySelector("#main");
-      if (!elem) {
-        return 1;
-      }
-      if (getters.viewMode() === "icons") {
-        const containerSize = 70 + state.user.gallerySize * 15;
-        let columns = Math.floor(elem.offsetWidth / containerSize);
-        if (columns === 0) {
-          columns = 1;
-        }
-        const minColumns = 3;
-        const maxColumns = 12;
-        return Math.max(minColumns, Math.min(columns, maxColumns));
-      }
-      let columns = Math.floor(elem.offsetWidth / this.columnWidth);
-      if (columns === 0) {
-        columns = 1;
-      }
-      return columns;
-    },
-    listingItemStyles() {
-      const viewMode = getters.viewMode();
-      const styles = {};
-      const size = state.user.gallerySize;
+const allItems = computed(() => [...reqListing.value.dirs, ...reqListing.value.files]);
 
-      if (viewMode === "icons") {
-        const baseSize = 20 + size * 15;
-        const cellSize = baseSize + 30;
-        styles["--icon-size"] = `${baseSize}px`;
-        styles["--icon-font-size"] = `${baseSize}px`;
-        styles["--icons-view-cell-size"] = `${cellSize}px`;
-      } else if (viewMode === "gallery") {
-        const baseCalc = 80 + size * 25;
-        const extraScaling = Math.max(0, size - 5) * 15;
-        const baseSize = baseCalc + extraScaling;
-        const iconFontSize = (3 + size * 0.5).toFixed(2);
-        styles["--icon-font-size"] = `${iconFontSize}em`;
+const { itemStyles: listingItemStyles, numColumns } = useListingLayout({ container: listingView });
 
-        if (getters.isMobile()) {
-          const minWidth = size <= 3 ? 120 : size <= 7 ? 160 : 280;
-          const mobileHeight = 120 + size * 20;
-          styles["--gallery-mobile-min-width"] = `${minWidth}px`;
-          styles["--item-width"] = `${minWidth}px`;
-          styles["--item-height"] = `${mobileHeight}px`;
-        } else {
-          styles["--item-width"] = `${baseSize}px`;
-          styles["--item-height"] = `${Math.round(baseSize * 1.2)}px`;
-        }
-      } else if (viewMode === "list" || viewMode === "compact") {
-        const baseHeight =
-          viewMode === "compact" ? 40 + size * 2 : 50 + size * 3;
-        const iconSize = (2 + size * 0.12).toFixed(2);
-        const iconFontSize = (1.5 + size * 0.12).toFixed(2);
+// only the rows around the screen are rendered when there are many results
+const virtual = useListingVirtualization({
+  container: listingView,
+  groups: () => [
+    { key: "dirs", items: reqListing.value.dirs },
+    { key: "files", items: reqListing.value.files },
+  ],
+  columnsHint: () => numColumns.value,
+  register: true,
+});
 
-        styles["--item-width"] = `calc(${(100 / this.listingNumColumns).toFixed(2)}% - 1em)`;
-        styles["--item-height"] = `${baseHeight}px`;
-        styles["--icon-size"] = `${iconSize}em`;
-        styles["--icon-font-size"] = `${iconFontSize}em`;
-      } else {
-        const iconSize = (3.2 + size * 0.15).toFixed(2);
-        const iconFontSize = (2.2 + size * 0.12).toFixed(2);
+const { isRectangleSelecting, rectangleStyle } = useMouseSelection({
+  container: results,
+  bounds: listingView,
+  items: () => allItems.value,
+  isActive: () => isAdvancedSearchRoute.value,
+  hitTest: virtual.handle.hitTest,
+});
 
-        styles["--item-width"] = `calc(${(100 / this.listingNumColumns)}% - 1em)`;
-        styles["--item-height"] = "auto";
-        styles["--icon-size"] = `${iconSize}em`;
-        styles["--icon-font-size"] = `${iconFontSize}em`;
-      }
-
-      return styles;
-    },
-    reload() {
-      return state.reload;
-    },
+useListingKeyboard({
+  container: results,
+  items: () => allItems.value,
+  isActive: () => isAdvancedSearchRoute.value,
+  // Results come from several sources and each with its own permissions
+  canModify: () =>
+    (state.selected as number[]).every(
+      (index) => !!getters.sourcePermissions(state.req.items.at(index)?.source).modify,
+    ),
+  ignoreEditableTargets: true,
+  parentNavigation: false,
+  virtual: virtual.handle,
+  openItem: (item) => {
+    state.pendingHighlight = { path: item.path, source: item.source };
+    if (state.searchResults) {
+      state.searchResults.sorting = { ...getters.sorting() };
+    }
+    mutations.setPreviousHistoryItem({
+      name: item.name,
+      source: item.source as string,
+      path: item.path,
+      returnTo: route.fullPath,
+    });
+    goToItem(item.source, item.path, null, false, getters.isShare());
   },
-  watch: {
-    reload(shouldReload) {
-      if (!shouldReload || !this.isAdvancedSearchRoute || !this.searchExecuted) {
-        return;
+});
+
+useListingContextMenu(listingView, {
+  getProps: () => ({ createOnly: state.selected.length === 0 }),
+  beforeOpen: () =>
+    state.selected.length > 0 ||
+    getters.isAdmin() ||
+    !!(state.user as { showSelectMultiple?: boolean } | undefined)?.showSelectMultiple ||
+    getters.isMobile(),
+});
+
+async function highlightPending() {
+  const p = state.pendingHighlight;
+  if (!p) return;
+  await nextTick();
+  state.pendingHighlight = null;
+  const items = state.req?.items ?? [];
+  const idx = items.findIndex((i) => isSameItem(i, p));
+  if (idx === -1) return;
+  selectAndScrollToIndex(idx, true);
+}
+
+/** The sort header sticks under the app bar; hide it scrolling down and show it scrolling up (like FileList). */
+function handleScroll() {
+  const container = scrollContainer;
+  if (!container) return;
+  const top = container.scrollTop;
+  const stickyTop = container.getBoundingClientRect().top + Number.parseFloat(getComputedStyle(container).paddingTop);
+  const resultsTop = results.value?.getBoundingClientRect().top;
+  if (resultsTop === undefined || resultsTop > stickyTop) {
+    headerHidden.value = false;
+  } else if (Math.abs(top - lastScrollTop) >= 30) {
+    headerHidden.value = top > lastScrollTop;
+  } else {
+    return;
+  }
+  lastScrollTop = top;
+}
+
+function handleSearchResultsChanged(data?: ItemsChangedEvent) {
+  if (!isAdvancedSearchRoute.value || !searchExecuted.value) {
+    return;
+  }
+  if (data?.succeeded?.length === 0) {
+    return;
+  }
+  scheduleSearchRefresh();
+}
+
+function scheduleSearchRefresh() {
+  if (refreshQueued) {
+    return;
+  }
+  refreshQueued = true;
+  void nextTick().then(() => {
+    refreshQueued = false;
+    void runSearch({ silent: true });
+  });
+}
+
+/** When no source is toggled on, enable `state.sources.current` if known in the catalogue. */
+function applyDefaultCurrentSourceIfNone() {
+  if (!isAdvancedSearchRoute.value) {
+    return;
+  }
+  const catalogue = [...sourceNameList.value];
+  if (catalogue.length === 0) {
+    return;
+  }
+
+  const enabledNames = catalogue.filter(
+    (sourceName) => getObjectProperty(sourceEnabledFlags.value, sourceName) === true,
+  );
+
+  if (enabledNames.length > 0) {
+    return;
+  }
+
+  const cur = state.sources.current;
+  if (typeof cur === "string" && cur !== "" && catalogue.includes(cur)) {
+    sourceEnabledFlags.value = setObjectProperty(sourceEnabledFlags.value, cur, true);
+    let pathsNext = sourceScopedPaths.value;
+    const currentPath = getObjectProperty(pathsNext, cur);
+    if (currentPath === undefined || currentPath === null || currentPath === "") {
+      pathsNext = setObjectProperty(pathsNext, cur, "/") as Record<string, string>;
+    }
+    sourceScopedPaths.value = pathsNext;
+  }
+}
+
+function normalizedScopedPathForSource(sourceName: string) {
+  let scopedPath = String(getObjectProperty(sourceScopedPaths.value, sourceName) ?? "/").trim();
+  if (scopedPath === "") {
+    scopedPath = "/";
+  }
+  if (!scopedPath.startsWith("/")) {
+    scopedPath = `/${scopedPath}`;
+  }
+  return scopedPath;
+}
+
+function maybeFinishCatalogRouteBootstrapFromSources() {
+  if (!isAdvancedSearchRoute.value) {
+    return;
+  }
+  if (catalogRouteBootstrapDone) {
+    return;
+  }
+  if (Object.keys(state.sources.info || {}).length === 0) {
+    return;
+  }
+  if (typeof window !== "undefined" && emptyCatalogHydrateTimer !== null) {
+    window.clearTimeout(emptyCatalogHydrateTimer);
+    emptyCatalogHydrateTimer = null;
+  }
+  finishCatalogBootstrapFromRoute();
+}
+
+function finishCatalogBootstrapFromRoute() {
+  if (!isAdvancedSearchRoute.value) {
+    return;
+  }
+  if (catalogRouteBootstrapDone) {
+    return;
+  }
+  catalogRouteBootstrapDone = true;
+
+  applyQueryFromRoute();
+  if (hasAnyAdvancedSearchRouteParams(route.query)) {
+    void nextTick().then(() => {
+      if (!restoreSearchResults()) {
+        void runSearch();
       }
-      mutations.setReload(false);
-      this.scheduleSearchRefresh();
-    },
-    termInputs: {
-      deep: true,
-      handler() {
-        if (this.termInputs.length <= 1) {
-          this.termsJoinAnd = false;
-        }
-        this.scheduleAdvancedSearchUrlUpdate();
-      },
-    },
-    termsJoinAnd() {
-      this.scheduleAdvancedSearchUrlUpdate();
-    },
-    sourceEnabledFlags: {
-      deep: true,
-      handler() {
-        this.scheduleAdvancedSearchUrlUpdate();
-      },
-    },
-    sourceScopedPaths: {
-      deep: true,
-      handler() {
-        this.scheduleAdvancedSearchUrlUpdate();
-      },
-    },
-    entryTypeFilter(newValue) {
-      if (newValue === "type:folder") {
-        this.selectedMediaTypes = [];
-      }
-      this.scheduleAdvancedSearchUrlUpdate();
-    },
-    selectedMediaTypes: {
-      deep: true,
-      handler() {
-        this.scheduleAdvancedSearchUrlUpdate();
-      },
-    },
-    largerThan() {
-      this.scheduleAdvancedSearchUrlUpdate();
-    },
-    resultLimit() {
-      this.scheduleAdvancedSearchUrlUpdate();
-    },
-    smallerThan() {
-      this.scheduleAdvancedSearchUrlUpdate();
-    },
-    modifiedOlderThan() {
-      this.scheduleAdvancedSearchUrlUpdate();
-    },
-    modifiedNewerThan() {
-      this.scheduleAdvancedSearchUrlUpdate();
-    },
-    useWildcardSearch() {
-      this.scheduleAdvancedSearchUrlUpdate();
-    },
-    caseExactSearch() {
-      this.scheduleAdvancedSearchUrlUpdate();
-    },
-    "$route.query": {
-      deep: true,
-      handler() {
-        if (!this.isAdvancedSearchRoute) {
-          return;
-        }
-        if (this.suppressRouteQueryNavigation || this.isInitializing) {
-          return;
-        }
-        if (!this.catalogRouteBootstrapDone) {
-          return;
-        }
+    });
+  }
+  isInitializing = false;
+  void nextTick().then(() => {
+    updateAdvancedSearchUrl();
+  });
+}
 
-        const qRoute = normalizeRouteQueryLoose(
-          /** @type {Record<string, unknown>} */
-          this.$route.query,
-        );
+function searchKey() {
+  return stableQueryStringFromObject(normalizeRouteQueryLoose(buildRouteQueryFromState()));
+}
 
-        /** @type {Record<string, unknown>} */
-        const qFormRebuild = normalizeRouteQueryLoose(
-          this.buildRouteQueryFromState(),
-        );
+/** Reuse the last results when returning from a preview with the same query */
+function restoreSearchResults() {
+  const search = state.searchResults;
+  if (search?.kind !== "advanced" || search.key !== searchKey()) {
+    return false;
+  }
+  searchExecuted.value = true;
+  showResults(search.items);
+  return true;
+}
 
-        if (
-          stableQueryStringFromObject(qRoute) ===
-          stableQueryStringFromObject(qFormRebuild)
-        ) {
-          return;
-        }
+function showResults(listingItems: FileListItem[]) {
+  headerHidden.value = false;
+  mutations.replaceRequest({
+    type: "directory",
+    path: "/",
+    name: t("tools.advancedSearch.resultsTitle"),
+    source: "",
+    items: listingItems,
+  } as ReqObject);
+  didApplySearchListing = true;
+  resultsEmpty.value = listingItems.length === 0;
+  void highlightPending();
+}
 
-        this.applyQueryFromRoute();
-        if (hasAnyAdvancedSearchRouteParams(this.$route.query)) {
-          void this.$nextTick().then(() => {
-            void this.runSearch();
-          });
-        }
-        this.scheduleAdvancedSearchUrlUpdate();
-      },
-    },
-    sourcesInfoReactive: {
-      immediate: true,
-      deep: true,
-      handler() {
-        const info = state.sources.info || {};
-        const keys = Object.keys(info);
-        let next = this.sourceEnabledFlags;
-        for (const catalogueSourceName of keys) {
-          if (!(catalogueSourceName in next)) {
-            next = setObjectProperty(next, catalogueSourceName, false);
-          }
-        }
-        const nextEntries = Object.entries(next).filter(([key]) => key in info);
-        next = Object.fromEntries(nextEntries);
-        this.sourceEnabledFlags = next;
-        let pathNext = this.sourceScopedPaths;
-        for (const catalogueSourceName of keys) {
-          const current = getObjectProperty(pathNext, catalogueSourceName);
-          if (current === undefined || current === null || current === "") {
-            pathNext = setObjectProperty(pathNext, catalogueSourceName, "/");
-          }
-        }
-        const pathEntries = Object.entries(pathNext).filter(([key]) => key in info);
-        pathNext = Object.fromEntries(pathEntries);
-        this.sourceScopedPaths = pathNext;
-        this.applyDefaultCurrentSourceIfNone();
-        this.maybeFinishCatalogRouteBootstrapFromSources();
-      },
-    },
-    activeSources: {
-      deep: true,
-      handler(names) {
-        const list = Array.isArray(names) ? names : [];
-        let next = this.sourceScopedPaths;
-        for (const activeSourceName of list) {
-          const current = getObjectProperty(next, activeSourceName);
-          if (current === undefined || current === null || current === "") {
-            next = setObjectProperty(next, activeSourceName, "/");
-          }
-        }
-        this.sourceScopedPaths = next;
-      },
-    },
-    gallerySizeBump() {
-      this.columnWidth = 250 + state.user.gallerySize * 50;
-    },
-  },
-  mounted() {
-    document.title = `${globalVars.name} - ${this.$t("tools.title")} - ${this.$t("tools.advancedSearch.name")}`;
-    mutations.setSearch(false);
+function buildRouteQueryFromState() {
+  const query: NormalizedQuery = {};
 
-    this.resizeListener = () => {
-      this.innerWidth = window.innerWidth;
-    };
-    window.addEventListener("resize", this.resizeListener);
+  const terms = termInputs.value
+    .map((termCell) => String(termCell || "").trim())
+    .filter((trimmedCell) => trimmedCell !== "");
+  if (terms.length === 1) {
+    query.term = terms[0] as string;
+  } else if (terms.length > 1) {
+    query.term = terms;
+  }
 
-    eventBus.on("itemsDeleted", this.handleSearchResultsChanged);
-    eventBus.on("itemsMoved", this.handleSearchResultsChanged);
-    eventBus.on("itemsRenamed", this.handleSearchResultsChanged);
+  if (termsJoinAnd.value) {
+    query.termJoin = "and";
+  }
 
-    if (state.req !== null && state.req !== undefined) {
-      this.hadInitialReq = true;
-      this.initialReqFrozen = JSON.stringify(state.req);
+  const catalogue = [...sourceNameList.value];
+  const enabled = catalogue
+    .filter((sourceName) => getObjectProperty(sourceEnabledFlags.value, sourceName) === true)
+    .sort();
+
+  if (enabled.length > 0) {
+    const scopeClauses: string[] = [];
+    for (const sourceName of enabled) {
+      scopeClauses.push(`${sourceName}:${normalizedScopedPathForSource(sourceName)}`);
+    }
+    if (scopeClauses.length === 1) {
+      query.scope = scopeClauses[0] as string;
     } else {
-      this.hadInitialReq = false;
-      this.initialReqFrozen = "";
+      query.scope = scopeClauses;
     }
+  }
+  Object.assign(query, toRouteQuery());
+  if (resultLimit.value !== Math.min(500, maxSearchResults.value)) {
+    query.limit = String(resultLimit.value);
+  }
+  return query;
+}
 
-    if (typeof window !== "undefined") {
-      this.emptyCatalogHydrateTimer = window.setTimeout(() => {
-        this.emptyCatalogHydrateTimer = null;
-        if (!this.catalogRouteBootstrapDone && this.isAdvancedSearchRoute) {
-          this.finishCatalogBootstrapFromRoute();
-        }
-      }, 520);
+function applyQueryFromRoute() {
+  const q: QueryRecord = route.query || {};
+  const catalogue = [...sourceNameList.value];
+
+  const terms = parseTermsFromRouteQuery(q);
+  termInputs.value = terms.length > 0 ? terms.map((termCell) => String(termCell)) : [""];
+
+  const termJoinRaw = q.termJoin;
+  termsJoinAnd.value = String(termJoinRaw ?? "").trim().toLowerCase() === "and";
+
+  const sourcesStr = typeof q.sources === "string" ? q.sources.trim() : "";
+  const rawSources = sourcesStr === ""
+    ? []
+    : sourcesStr.split(",").map((segment) => segment.trim()).filter((segment) => segment !== "");
+
+  const validSel: string[] = [];
+  for (const rawSourceName of rawSources) {
+    if (catalogue.includes(rawSourceName)) {
+      validSel.push(rawSourceName);
     }
-  },
-  beforeUnmount() {
-    this.isUnmounted = true;
-    if (
-      typeof window !== "undefined" &&
-      this.emptyCatalogHydrateTimer !== null
-    ) {
-      window.clearTimeout(this.emptyCatalogHydrateTimer);
-      this.emptyCatalogHydrateTimer = null;
+  }
+
+  const implicitAllSources = validSel.length === 0 && hasFilterOrTermSignalsForImplicitSources(q);
+
+  const scopeRaws = collectScopeRawFromQuery(q);
+
+  const colonPairs: { source: string; path: string }[] = [];
+
+  for (const scopeRaw of scopeRaws) {
+    const raw = String(scopeRaw || "").trim();
+    if (raw === "") continue;
+    const colonIndex = raw.indexOf(":");
+    if (colonIndex > 0) {
+      const sourceNameFromClause = raw.slice(0, colonIndex).trim();
+      let relativePath = raw.slice(colonIndex + 1).trim();
+      if (sourceNameFromClause === "") continue;
+      if (relativePath === "") relativePath = "/";
+      if (!relativePath.startsWith("/")) relativePath = `/${relativePath}`;
+      if (catalogue.includes(sourceNameFromClause)) {
+        colonPairs.push({ source: sourceNameFromClause, path: relativePath });
+      }
     }
+  }
 
-    if (this.resizeListener) {
-      window.removeEventListener("resize", this.resizeListener);
-      this.resizeListener = null;
+  if (colonPairs.length > 0) {
+    let nextFlags: QueryRecord = Object.fromEntries(catalogue.map(name => [name, false]));
+    const scopedPathBySource = Object.fromEntries(
+      colonPairs.map(pair => [pair.source, pair.path])
+    );
+    for (const sourcePathPair of colonPairs) {
+      nextFlags = setObjectProperty(nextFlags, sourcePathPair.source, true);
     }
+    sourceEnabledFlags.value = nextFlags;
+    sourceScopedPaths.value = scopedPathBySource;
+  } else {
+    const nextFlagsEntries = catalogue.map((catalogueSourceName): [string, boolean] => {
+      let sourceEnabled = false;
+      if (validSel.length > 0) {
+        sourceEnabled = validSel.includes(catalogueSourceName);
+      } else if (implicitAllSources) {
+        sourceEnabled = true;
+      }
+      return [catalogueSourceName, sourceEnabled];
+    });
+    const nextFlags = Object.fromEntries(nextFlagsEntries);
+    sourceEnabledFlags.value = nextFlags;
 
-    eventBus.off("itemsDeleted", this.handleSearchResultsChanged);
-    eventBus.off("itemsMoved", this.handleSearchResultsChanged);
-    eventBus.off("itemsRenamed", this.handleSearchResultsChanged);
+    const enabledNames = catalogue.filter(
+      (sourceName) => getObjectProperty(nextFlags, sourceName) === true
+    );
+    const scopedPathEntries = enabledNames.map((enabledSourceName): [string, string] => [
+      enabledSourceName,
+      "/",
+    ]);
+    sourceScopedPaths.value = Object.fromEntries(scopedPathEntries);
+  }
+  applyRouteQuery(q);
 
-    if (!this.didApplySearchListing) {
+  const requestedLimit = Number(q.limit);
+  resultLimit.value = Number.isSafeInteger(requestedLimit) && requestedLimit > 0
+    ? Math.min(requestedLimit, maxSearchResults.value)
+    : Math.min(500, maxSearchResults.value);
+
+  applyDefaultCurrentSourceIfNone();
+}
+
+function updateAdvancedSearchUrl() {
+  if (!isAdvancedSearchRoute.value || isInitializing) {
+    return;
+  }
+
+  const nextPlain = normalizeRouteQueryLoose(buildRouteQueryFromState());
+
+  const curQ = Object.fromEntries(Object.entries(route.query || {}));
+  const curPlain = normalizeRouteQueryLoose(curQ);
+
+  if (
+    stableQueryStringFromObject(nextPlain) ===
+    stableQueryStringFromObject(curPlain)
+  ) {
+    return;
+  }
+
+  suppressRouteQueryNavigation = true;
+  router
+    .replace({
+      path: route.path,
+      query: Object.keys(nextPlain).length > 0 ? nextPlain : {},
+    })
+    .catch(() => {})
+    .finally(() => {
+      void nextTick().then(() => {
+        suppressRouteQueryNavigation = false;
+      });
+    });
+}
+
+function scheduleAdvancedSearchUrlUpdate() {
+  if (!isAdvancedSearchRoute.value || isInitializing) {
+    return;
+  }
+  void nextTick().then(() => {
+    updateAdvancedSearchUrl();
+  });
+}
+
+function addTermField() {
+  termInputs.value.push("");
+}
+
+function removeTermAt(index: number) {
+  if (termInputs.value.length <= 1) {
+    return;
+  }
+  termInputs.value.splice(index, 1);
+}
+
+function listingItemKey(item: FileListItem) {
+  return `${item.source}::${item.path}`;
+}
+
+function selectedItemKeys() {
+  return (state.selected as number[])
+    .map((index) => state.req.items.at(index))
+    .filter((item): item is FileListItem => !!item)
+    .map(listingItemKey);
+}
+
+// Indexes change when the results do so the selection follows the items
+function restoreSelection(keys: string[]) {
+  const known = new Set(keys);
+  mutations.setSelected(
+    (state.req.items as fileListItemIndex[])
+      .filter((item) => known.has(listingItemKey(item)))
+      .map((item) => item.index),
+  );
+}
+
+async function runSearch(options: { silent?: boolean } = {}) {
+  error.value = null;
+
+  if (activeSources.value.length === 0) {
+    abortSearch();
+    error.value = t("tools.advancedSearch.invalidSources");
+    searchExecuted.value = true;
+    resultsEmpty.value = false;
+    loading.value = false;
+    return;
+  }
+
+  const terms: string[] = [];
+  for (const rawTerm of termInputs.value) {
+    const trimmedTerm = String(rawTerm || "").trim();
+    if (trimmedTerm !== "") {
+      terms.push(trimmedTerm);
+    }
+  }
+
+  if (terms.length === 0) {
+    abortSearch();
+    error.value = t("tools.advancedSearch.noTerms");
+    searchExecuted.value = true;
+    loading.value = false;
+    return;
+  }
+
+  for (const term of terms) {
+    if (term.length < globalVars.minSearchLength) {
+      abortSearch();
+      error.value = t("tools.advancedSearch.termTooShort", {
+        minSearchLength: globalVars.minSearchLength,
+      });
+      searchExecuted.value = true;
+      loading.value = false;
       return;
     }
-    if (!this.hadInitialReq) {
-      mutations.clearRequest();
-      return;
+  }
+
+  searchExecuted.value = true;
+  if (!options.silent) loading.value = true;
+  error.value = null;
+
+  const { queryPrefix, dateParams } = buildRequest();
+  const perSourceScopes: { source: string; path: string }[] = [];
+  for (const activeSourceName of activeSources.value) {
+    perSourceScopes.push({
+      source: activeSourceName,
+      path: normalizedScopedPathForSource(activeSourceName),
+    });
+  }
+  // Resolve result paths against the scopes sent with this request, not the live
+  // scope inputs, which may change while the request is in flight.
+  const scopeBySource = new Map(perSourceScopes.map(({ source, path }) => [source, path]));
+  const searchRequestKey = searchKey();
+  await runSearchRequest(
+    async (signal) => {
+      const rows: SearchResultRow[] = await toolsApi.search(
+        null,
+        activeSources.value,
+        queryPrefix,
+        false,
+        {
+          ...dateParams,
+          limit: resultLimit.value,
+          terms,
+          termJoin: termsJoinAnd.value ? "and" : undefined,
+          perSourceScopes,
+          signal,
+        }
+      );
+      if (!Array.isArray(rows)) {
+        throw new Error("Invalid search response");
+      }
+      return rows;
+    },
+    (rows) => {
+      const listingItems = rows.map((searchResult): FileListItem => {
+        const resultSource = String(searchResult.source || "");
+        const isDir = String(searchResult.type) === "directory";
+        const fullPath = browsePath(
+          scopeBySource.get(resultSource) ?? normalizedScopedPathForSource(resultSource),
+          searchResult.path || "",
+          isDir
+        );
+        return {
+          name: displayName(fullPath, isDir),
+          path: fullPath,
+          type: isDir ? "directory" : String(searchResult.type || "application/octet-stream"),
+          size: typeof searchResult.size === "number" ? searchResult.size : 0,
+          modified: typeof searchResult.modified === "string" ? searchResult.modified : "",
+          created: typeof searchResult.created === "string" ? searchResult.created : "",
+          hasPreview: !!searchResult.hasPreview,
+          source: resultSource,
+          isShared: false,
+          hidden: false,
+        };
+      });
+      state.searchResults = { kind: "advanced", key: searchRequestKey, items: listingItems };
+      const selectedKeys = options.silent ? selectedItemKeys() : [];
+      showResults(listingItems);
+      if (options.silent) restoreSelection(selectedKeys);
+    },
+    (err) => {
+      const message = (err as { message?: unknown } | null)?.message;
+      error.value = typeof message === "string" ? message : t("errors.internal");
+    },
+  );
+  if (!isRunning.value) {
+    loading.value = false;
+  }
+}
+
+watch(() => state.reload, (shouldReload) => {
+  if (!shouldReload || !isAdvancedSearchRoute.value || !searchExecuted.value) {
+    return;
+  }
+  mutations.setReload(false);
+  scheduleSearchRefresh();
+});
+
+watch(termInputs, () => {
+  if (termInputs.value.length <= 1) {
+    termsJoinAnd.value = false;
+  }
+  scheduleAdvancedSearchUrlUpdate();
+}, { deep: true });
+
+watch(termsJoinAnd, scheduleAdvancedSearchUrlUpdate);
+
+watch(sourceEnabledFlags, scheduleAdvancedSearchUrlUpdate, { deep: true });
+
+watch(sourceScopedPaths, scheduleAdvancedSearchUrlUpdate, { deep: true });
+
+watch(resultLimit, scheduleAdvancedSearchUrlUpdate);
+
+watch(() => route.query, () => {
+  if (!isAdvancedSearchRoute.value) {
+    return;
+  }
+  if (suppressRouteQueryNavigation || isInitializing) {
+    return;
+  }
+  if (!catalogRouteBootstrapDone) {
+    return;
+  }
+
+  const qRoute = normalizeRouteQueryLoose(route.query);
+
+  const qFormRebuild = normalizeRouteQueryLoose(buildRouteQueryFromState());
+
+  if (
+    stableQueryStringFromObject(qRoute) ===
+    stableQueryStringFromObject(qFormRebuild)
+  ) {
+    return;
+  }
+
+  applyQueryFromRoute();
+  if (hasAnyAdvancedSearchRouteParams(route.query)) {
+    void nextTick().then(() => {
+      void runSearch();
+    });
+  }
+  scheduleAdvancedSearchUrlUpdate();
+}, { deep: true });
+
+watch(() => state.sources.info, () => {
+  const info = state.sources.info || {};
+  const keys = Object.keys(info);
+  let next = sourceEnabledFlags.value;
+  for (const catalogueSourceName of keys) {
+    if (!(catalogueSourceName in next)) {
+      next = setObjectProperty(next, catalogueSourceName, false);
     }
-    mutations.replaceRequest(JSON.parse(this.initialReqFrozen));
-  },
-  methods: {
-    handleSearchResultsChanged(data) {
-      if (!this.isAdvancedSearchRoute || !this.searchExecuted) {
-        return;
-      }
-      if (data?.succeeded?.length === 0) {
-        return;
-      }
-      this.scheduleSearchRefresh();
-    },
-    scheduleSearchRefresh() {
-      if (this.refreshQueued) {
-        return;
-      }
-      this.refreshQueued = true;
-      void this.$nextTick().then(() => {
-        this.refreshQueued = false;
-        mutations.resetSelected();
-        void this.runSearch();
-      });
-    },
-    /** When no source is toggled on, enable `state.sources.current` if known in the catalogue. */
-    applyDefaultCurrentSourceIfNone() {
-      if (!this.isAdvancedSearchRoute) {
-        return;
-      }
-      const catalogue = [...this.sourceNameList];
-      if (catalogue.length === 0) {
-        return;
-      }
+  }
+  const nextEntries = Object.entries(next).filter(([key]) => key in info);
+  next = Object.fromEntries(nextEntries);
+  sourceEnabledFlags.value = next;
+  let pathNext = sourceScopedPaths.value;
+  for (const catalogueSourceName of keys) {
+    const current = getObjectProperty(pathNext, catalogueSourceName);
+    if (current === undefined || current === null || current === "") {
+      pathNext = setObjectProperty(pathNext, catalogueSourceName, "/") as Record<string, string>;
+    }
+  }
+  const pathEntries = Object.entries(pathNext).filter(([key]) => key in info);
+  pathNext = Object.fromEntries(pathEntries);
+  sourceScopedPaths.value = pathNext;
+  applyDefaultCurrentSourceIfNone();
+  maybeFinishCatalogRouteBootstrapFromSources();
+}, { immediate: true, deep: true });
 
-      /** @type {string[]} */
-      const enabledNames = catalogue.filter(
-        (sourceName) => getObjectProperty(this.sourceEnabledFlags, sourceName) === true,
-      );
+watch(activeSources, (names) => {
+  const list = Array.isArray(names) ? names : [];
+  let next = sourceScopedPaths.value;
+  for (const activeSourceName of list) {
+    const current = getObjectProperty(next, activeSourceName);
+    if (current === undefined || current === null || current === "") {
+      next = setObjectProperty(next, activeSourceName, "/") as Record<string, string>;
+    }
+  }
+  sourceScopedPaths.value = next;
+}, { deep: true });
 
-      if (enabledNames.length > 0) {
-        return;
-      }
+onMounted(() => {
+  document.title = `${globalVars.name} - ${t("tools.title")} - ${t("tools.advancedSearch.name")}`;
+  mutations.setSearch(false);
 
-      const cur = state.sources.current;
-      if (typeof cur === "string" && cur !== "" && catalogue.includes(cur)) {
-        this.sourceEnabledFlags = setObjectProperty(this.sourceEnabledFlags, cur, true);
-        let pathsNext = this.sourceScopedPaths;
-        const currentPath = getObjectProperty(pathsNext, cur);
-        if (currentPath === undefined || currentPath === null || currentPath === "") {
-          pathsNext = setObjectProperty(pathsNext, cur, "/");
-        }
-        this.sourceScopedPaths = pathsNext;
-      }
-    },
-    normalizedScopedPathForSource(sourceName) {
-      let scopedPath = String(getObjectProperty(this.sourceScopedPaths, sourceName) ?? "/").trim();
-      if (scopedPath === "") {
-        scopedPath = "/";
-      }
-      if (!scopedPath.startsWith("/")) {
-        scopedPath = `/${scopedPath}`;
-      }
-      return scopedPath;
-    },
-    maybeFinishCatalogRouteBootstrapFromSources() {
-      if (!this.isAdvancedSearchRoute) {
-        return;
-      }
-      if (this.catalogRouteBootstrapDone) {
-        return;
-      }
-      if (Object.keys(state.sources.info || {}).length === 0) {
-        return;
-      }
-      if (
-        typeof window !== "undefined" &&
-        this.emptyCatalogHydrateTimer !== null &&
-        this.emptyCatalogHydrateTimer !== undefined
-      ) {
-        window.clearTimeout(this.emptyCatalogHydrateTimer);
-        this.emptyCatalogHydrateTimer = null;
-      }
-      this.finishCatalogBootstrapFromRoute();
-    },
-    finishCatalogBootstrapFromRoute() {
-      if (!this.isAdvancedSearchRoute) {
-        return;
-      }
-      if (this.catalogRouteBootstrapDone) {
-        return;
-      }
-      this.catalogRouteBootstrapDone = true;
+  scrollContainer = rootEl.value?.closest<HTMLElement>(".scroll-wrapper") ?? null;
+  scrollContainer?.addEventListener("scroll", handleScroll, { passive: true });
 
-      this.applyQueryFromRoute();
-      if (
-        hasAnyAdvancedSearchRouteParams(
-          /** @type {Record<string, unknown>} */
-          this.$route.query,
-        )
-      ) {
-        void this.$nextTick().then(() => {
-          void this.runSearch();
-        });
+  eventBus.on("itemsDeleted", handleSearchResultsChanged);
+  eventBus.on("itemsMoved", handleSearchResultsChanged);
+  eventBus.on("itemsRenamed", handleSearchResultsChanged);
+
+  if (state.req !== null && state.req !== undefined) {
+    hadInitialReq = true;
+    initialReqFrozen = JSON.stringify(state.req);
+  } else {
+    hadInitialReq = false;
+    initialReqFrozen = "";
+  }
+
+  if (typeof window !== "undefined") {
+    emptyCatalogHydrateTimer = window.setTimeout(() => {
+      emptyCatalogHydrateTimer = null;
+      if (!catalogRouteBootstrapDone && isAdvancedSearchRoute.value) {
+        finishCatalogBootstrapFromRoute();
       }
-      this.isInitializing = false;
-      void this.$nextTick().then(() => {
-        this.updateAdvancedSearchUrl();
-      });
-    },
-    buildRouteQueryFromState() {
-      /** @type {Record<string, string | string[]>} */
-      const query = {};
+    }, 520);
+  }
+});
 
-      const terms = this.termInputs
-        .map((termCell) => String(termCell || "").trim())
-        .filter((trimmedCell) => trimmedCell !== "");
-      if (terms.length === 1) {
-        query.term = terms[0];
-      } else if (terms.length > 1) {
-        query.term = terms;
-      }
+onBeforeUnmount(() => {
+  if (
+    typeof window !== "undefined" &&
+    emptyCatalogHydrateTimer !== null
+  ) {
+    window.clearTimeout(emptyCatalogHydrateTimer);
+    emptyCatalogHydrateTimer = null;
+  }
 
-      if (this.termsJoinAnd) {
-        query.termJoin = "and";
-      }
+  scrollContainer?.removeEventListener("scroll", handleScroll);
 
-      const catalogue = [...this.sourceNameList];
-      const enabled = catalogue
-        .filter((sourceName) => getObjectProperty(this.sourceEnabledFlags, sourceName) === true)
-        .sort();
+  eventBus.off("itemsDeleted", handleSearchResultsChanged);
+  eventBus.off("itemsMoved", handleSearchResultsChanged);
+  eventBus.off("itemsRenamed", handleSearchResultsChanged);
 
-      if (enabled.length > 0) {
-        /** @type {string[]} */
-        const scopeClauses = [];
-        for (const sourceName of enabled) {
-          let scopedPath = String(getObjectProperty(this.sourceScopedPaths, sourceName) ?? "/").trim();
-          if (scopedPath === "") {
-            scopedPath = "/";
-          }
-          if (!scopedPath.startsWith("/")) {
-            scopedPath = `/${scopedPath}`;
-          }
-          scopeClauses.push(`${sourceName}:${scopedPath}`);
-        }
-        if (scopeClauses.length === 1) {
-          query.scope = scopeClauses[0];
-        } else {
-          query.scope = scopeClauses;
-        }
-      }
-
-      const trimmedTypes = String(this.searchTypes || "").trim();
-      if (trimmedTypes !== "") {
-        query.types = trimmedTypes;
-      }
-      if (this.largerThan !== "") {
-        query.largerThan = String(this.largerThan);
-      }
-      if (this.resultLimit !== Math.min(500, this.maxSearchResults)) {
-        query.limit = String(this.resultLimit);
-      }
-      if (this.smallerThan !== "") {
-        query.smallerThan = String(this.smallerThan);
-      }
-      if (this.modifiedOlderThan !== "") {
-        query.dateOlder = String(this.modifiedOlderThan);
-      }
-      if (this.modifiedNewerThan !== "") {
-        query.dateNewer = String(this.modifiedNewerThan);
-      }
-      if (this.useWildcardSearch) {
-        query.wildcard = "1";
-      }
-      if (this.caseExactSearch) {
-        query.caseExact = "1";
-      }
-      if (this.foldersOnly) {
-        query.typeLock = "1";
-      }
-
-      return query;
-    },
-    applyQueryFromRoute() {
-      /** @type {Record<string, unknown>} */
-      const q = this.$route.query || {};
-      const catalogue = [...this.sourceNameList];
-
-      const terms = parseTermsFromRouteQuery(q);
-      this.termInputs = terms.length > 0 ? terms.map((termCell) => String(termCell)) : [""];
-
-      const termJoinRaw = q.termJoin;
-      this.termsJoinAnd = String(termJoinRaw ?? "").trim().toLowerCase() === "and";
-
-      const sourcesStr = typeof q.sources === "string" ? q.sources.trim() : "";
-      const rawSources = sourcesStr === ""
-        ? []
-        : sourcesStr.split(",").map((segment) => segment.trim()).filter((segment) => segment !== "");
-
-      /** @type {string[]} */
-      const validSel = [];
-      for (const rawSourceName of rawSources) {
-        if (catalogue.includes(rawSourceName)) {
-          validSel.push(rawSourceName);
-        }
-      }
-
-      const implicitAllSources = validSel.length === 0 && hasFilterOrTermSignalsForImplicitSources(q);
-
-      const scopeRaws = collectScopeRawFromQuery(q);
-
-      /** @type {{ source: string, path: string }[]} */
-      const colonPairs = [];
-
-      for (const scopeRaw of scopeRaws) {
-        const raw = String(scopeRaw || "").trim();
-        if (raw === "") continue;
-        const colonIndex = raw.indexOf(":");
-        if (colonIndex > 0) {
-          const sourceNameFromClause = raw.slice(0, colonIndex).trim();
-          let relativePath = raw.slice(colonIndex + 1).trim();
-          if (sourceNameFromClause === "") continue;
-          if (relativePath === "") relativePath = "/";
-          if (!relativePath.startsWith("/")) relativePath = `/${relativePath}`;
-          if (catalogue.includes(sourceNameFromClause)) {
-            colonPairs.push({ source: sourceNameFromClause, path: relativePath });
-          }
-        }
-      }
-
-      if (colonPairs.length > 0) {
-        let nextFlags = Object.fromEntries(catalogue.map(name => [name, false]));
-        const scopedPathBySource = Object.fromEntries(
-          colonPairs.map(pair => [pair.source, pair.path])
-        );
-        for (const sourcePathPair of colonPairs) {
-          nextFlags = setObjectProperty(nextFlags, sourcePathPair.source, true);
-        }
-        this.sourceEnabledFlags = nextFlags;
-        this.sourceScopedPaths = scopedPathBySource;
-      } else {
-        const nextFlagsEntries = catalogue.map(catalogueSourceName => {
-          let sourceEnabled = false;
-          if (validSel.length > 0) {
-            sourceEnabled = validSel.includes(catalogueSourceName);
-          } else if (implicitAllSources) {
-            sourceEnabled = true;
-          }
-          return [catalogueSourceName, sourceEnabled];
-        });
-        const nextFlags = Object.fromEntries(nextFlagsEntries);
-        this.sourceEnabledFlags = nextFlags;
-
-        const enabledNames = catalogue.filter(
-          (sourceName) => getObjectProperty(nextFlags, sourceName) === true
-        );
-        const scopedPathEntries = enabledNames.map((enabledSourceName) => [
-          enabledSourceName,
-          "/",
-        ]);
-        this.sourceScopedPaths = Object.fromEntries(scopedPathEntries);
-      }
-
-      const typesIncoming = q.types;
-      const typesStr = typeof typesIncoming === "string"
-        ? typesIncoming.trim()
-        : typesIncoming !== undefined && typesIncoming !== null
-          ? String(typesIncoming).trim()
-          : "";
-      const parsedFilters = this.parseTypeFiltersFromQuery(typesStr);
-      this.entryTypeFilter = parsedFilters.entryTypeFilter;
-      this.selectedMediaTypes = parsedFilters.selectedMediaTypes;
-      if (queryTruthy(q.typeLock)) {
-        this.entryTypeFilter = "type:folder";
-        this.selectedMediaTypes = [];
-      }
-
-      const largerThanRaw = q.largerThan;
-      this.largerThan = largerThanRaw !== undefined && largerThanRaw !== null
-        ? String(largerThanRaw).trim()
-        : "";
-
-      const requestedLimit = Number(q.limit);
-      this.resultLimit = Number.isSafeInteger(requestedLimit) && requestedLimit > 0
-        ? Math.min(requestedLimit, this.maxSearchResults)
-        : Math.min(500, this.maxSearchResults);
-
-      const smallerThanRaw = q.smallerThan;
-      this.smallerThan = smallerThanRaw !== undefined && smallerThanRaw !== null
-        ? String(smallerThanRaw).trim()
-        : "";
-
-      const dateOlderRaw = q.dateOlder;
-      this.modifiedOlderThan = dateOlderRaw !== undefined && dateOlderRaw !== null
-        ? String(dateOlderRaw).trim()
-        : "";
-
-      const dateNewerRaw = q.dateNewer;
-      this.modifiedNewerThan = dateNewerRaw !== undefined && dateNewerRaw !== null
-        ? String(dateNewerRaw).trim()
-        : "";
-
-      this.useWildcardSearch = queryTruthy(q.wildcard);
-      this.caseExactSearch = queryTruthy(q.caseExact);
-
-      this.applyDefaultCurrentSourceIfNone();
-    },
-    parseTypeFiltersFromQuery(typesStr) {
-      const entryValues = new Set(["type:file", "type:folder"]);
-      const mediaValues = new Set([
-        "type:image",
-        "type:audio",
-        "type:video",
-        "type:doc",
-        "type:archive",
-      ]);
-      let entryTypeFilter = "all";
-      const selectedMediaTypes = [];
-      for (const token of String(typesStr || "").trim().split(/\s+/)) {
-        if (!token) {
-          continue;
-        }
-        if (entryValues.has(token)) {
-          entryTypeFilter = token;
-        } else if (mediaValues.has(token)) {
-          selectedMediaTypes.push(token);
-        }
-      }
-      return { entryTypeFilter, selectedMediaTypes };
-    },
-    updateAdvancedSearchUrl() {
-      if (!this.isAdvancedSearchRoute || this.isInitializing) {
-        return;
-      }
-
-      const nextPlain = normalizeRouteQueryLoose(this.buildRouteQueryFromState());
-
-      /** @type {Record<string, string | string[]>} */
-      const rq = /** @type {Record<string, string | string[]>} */ (
-        this.$route.query
-      );
-      const curQ = Object.fromEntries(Object.entries(rq || {}));
-      const curPlain = normalizeRouteQueryLoose(curQ);
-
-      if (
-        stableQueryStringFromObject(nextPlain) ===
-        stableQueryStringFromObject(curPlain)
-      ) {
-        return;
-      }
-
-      this.suppressRouteQueryNavigation = true;
-      router
-        .replace({
-          path: this.$route.path,
-          query: Object.keys(nextPlain).length > 0 ? nextPlain : {},
-        })
-        .catch(() => {})
-        .finally(() => {
-          void this.$nextTick().then(() => {
-            this.suppressRouteQueryNavigation = false;
-          });
-        });
-    },
-    scheduleAdvancedSearchUrlUpdate() {
-      if (!this.isAdvancedSearchRoute || this.isInitializing) {
-        return;
-      }
-      void this.$nextTick().then(() => {
-        this.updateAdvancedSearchUrl();
-      });
-    },
-    addTermField() {
-      this.termInputs.push("");
-    },
-    removeTermAt(index) {
-      if (this.termInputs.length <= 1) {
-        return;
-      }
-      this.termInputs.splice(index, 1);
-    },
-    listingItemKey(item) {
-      return `${item.source}::${item.path}`;
-    },
-    openListingContext(event) {
-      event.preventDefault();
-      event.stopPropagation();
-      if (getters.currentPromptName() === "ContextMenu") {
-        return;
-      }
-
-      mutations.showPrompt({
-        name: "ContextMenu",
-        props: {
-          showCentered: getters.isMobile(),
-          posX: event.clientX,
-          posY: event.clientY,
-          createOnly: state.selected.length === 0,
-        },
-      });
-    },
-    async runSearch() {
-      // Claim a sequence number first so an earlier in-flight search is stale even when this
-      // run exits early on validation.
-      const seq = ++this.searchSeq;
-      const isStale = () => this.isUnmounted || seq !== this.searchSeq;
-      this.error = null;
-
-      if (this.activeSources.length === 0) {
-        this.error = this.$t("tools.advancedSearch.invalidSources");
-        this.searchExecuted = true;
-        this.resultsEmpty = false;
-        this.loading = false;
-        return;
-      }
-
-      const terms = [];
-      for (const rawTerm of this.termInputs) {
-        const trimmedTerm = String(rawTerm || "").trim();
-        if (trimmedTerm !== "") {
-          terms.push(trimmedTerm);
-        }
-      }
-
-      if (terms.length === 0) {
-        this.error = this.$t("tools.advancedSearch.noTerms");
-        this.searchExecuted = true;
-        this.loading = false;
-        return;
-      }
-
-      for (const term of terms) {
-        if (term.length < globalVars.minSearchLength) {
-          this.error = this.$t("tools.advancedSearch.termTooShort", {
-            minSearchLength: globalVars.minSearchLength,
-          });
-          this.searchExecuted = true;
-          this.loading = false;
-          return;
-        }
-      }
-
-      this.searchExecuted = true;
-      this.loading = true;
-      this.error = null;
-
-      let searchTypesFull = this.searchTypes;
-      if (this.largerThan !== "") {
-        searchTypesFull = `${searchTypesFull}type:largerThan=${this.largerThan} `;
-      }
-      if (this.smallerThan !== "") {
-        searchTypesFull = `${searchTypesFull}type:smallerThan=${this.smallerThan} `;
-      }
-
-      const dateParams = {};
-      const olderUnix = utcStartOfDaySecondsFromDateInput(this.modifiedOlderThan);
-      if (olderUnix !== null) {
-        dateParams.olderThan = olderUnix;
-      }
-      const newerUnix = utcStartOfDaySecondsFromDateInput(this.modifiedNewerThan);
-      if (newerUnix !== null) {
-        dateParams.newerThan = newerUnix;
-      }
-      if (this.useWildcardSearch) {
-        dateParams.useWildcard = true;
-      }
-
-      let typedQueryPrefix = `${searchTypesFull}`.trim();
-      if (this.caseExactSearch) {
-        typedQueryPrefix =
-          typedQueryPrefix === ""
-            ? "case:exact "
-            : `case:exact ${typedQueryPrefix} `;
-      }
-
-      const perSourceScopes = [];
-      for (const activeSourceName of this.activeSources) {
-        perSourceScopes.push({
-          source: activeSourceName,
-          path: this.normalizedScopedPathForSource(activeSourceName),
-        });
-      }
-
-      // Resolve result paths against the scopes sent with this request, not the live
-      // scope inputs, which may change while the request is in flight.
-      const scopeBySource = new Map(perSourceScopes.map(({ source, path }) => [source, path]));
-      try {
-        const rows = await toolsApi.search(
-          null,
-          this.activeSources,
-          typedQueryPrefix,
-          false,
-          {
-            ...dateParams,
-            limit: this.resultLimit,
-            terms,
-            termJoin: this.termsJoinAnd ? "and" : undefined,
-            perSourceScopes,
-            // Report errors below, after the stale check, so obsolete requests stay silent.
-            suppressNotify: true,
-          }
-        );
-        // Do not overwrite the listing after leaving the tool or behind a newer search.
-        if (isStale()) return;
-
-        if (!Array.isArray(rows)) {
-          throw new Error("Invalid search response");
-        }
-
-        const listingItems = rows.map((searchResult) => {
-          const resultSource = String(searchResult.source || "");
-          const isDir = String(searchResult.type) === "directory";
-          const fullPath = browsePath(
-            scopeBySource.get(resultSource) ?? this.normalizedScopedPathForSource(resultSource),
-            searchResult.path || "",
-            isDir
-          );
-          const nm = displayName(fullPath, isDir);
-          return {
-            name: nm,
-            path: fullPath,
-            type: isDir ? "directory" : String(searchResult.type || "application/octet-stream"),
-            size: typeof searchResult.size === "number" ? searchResult.size : 0,
-            modified: typeof searchResult.modified === "string" ? searchResult.modified : "",
-            created: typeof searchResult.created === "string" ? searchResult.created : "",
-            hasPreview: !!(searchResult.hasPreview || searchResult.HasPreview),
-            source: resultSource,
-            isShared: false,
-            hidden: false,
-          };
-        });
-
-        mutations.replaceRequest({
-          type: "directory",
-          path: "/",
-          name: this.$t("tools.advancedSearch.resultsTitle"),
-          source: "",
-          items: listingItems,
-        });
-        this.didApplySearchListing = true;
-        if (listingItems.length === 0) {
-          this.resultsEmpty = true;
-        } else {
-          this.resultsEmpty = false;
-        }
-      } catch (err) {
-        if (isStale()) return;
-        this.error =
-          err && typeof err.message === "string"
-            ? err.message
-            : this.$t("errors.internal");
-        notify.showError(this.error);
-      } finally {
-        if (!isStale()) this.loading = false;
-      }
-    },
-  },
-};
+  if (!didApplySearchListing) {
+    return;
+  }
+  if (!hadInitialReq) {
+    mutations.clearRequest();
+    return;
+  }
+  mutations.replaceRequest(JSON.parse(initialReqFrozen));
+});
 </script>
 
 <style scoped>
@@ -1516,7 +1194,7 @@ export default {
 }
 
 .advanced-search-toolbar {
-  margin: 1em;
+  margin: 1em 0.75em;
 }
 
 .advanced-search-card-form {
@@ -1601,6 +1279,21 @@ export default {
   flex-shrink: 0;
 }
 
+.advanced-search-sticky-header {
+  position: sticky;
+  top: 0;
+  z-index: 999;
+  padding: 0.5em 0.75em 0;
+  backdrop-filter: blur(8px);
+  transition: transform 0.25s ease, opacity 0.25s ease;
+}
+
+.advanced-search-sticky-header.header-hidden {
+  transform: translateY(-100%);
+  opacity: 0;
+  pointer-events: none;
+}
+
 .search-term-row {
   display: flex;
   align-items: stretch;
@@ -1657,14 +1350,6 @@ export default {
   min-height: min(65vh, 800px);
 }
 
-.results-loading {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.75em;
-  padding: 2rem;
-}
-
 .padded-message {
   padding: 1.5rem;
 }
@@ -1688,41 +1373,24 @@ export default {
   }
 }
 
+.advanced-search-listing-results .listing-items {
+  position: relative;
+}
+
 .advanced-search-listing-results {
-  margin: 1em;
-  margin-top: 0;
+  margin: 0 0 1em;
 }
 
 .advanced-search-inner {
   margin-top: 0.5em;
+  padding: 0 0.25em;
 }
 
-.advanced-search-options-pane {
-  box-sizing: border-box;
-  width: 100%;
+.advanced-search-inner:has(.listing-items:is(.list, .compact)) {
+  padding: 0 0.75em;
 }
 
-.search-filter-dropdowns {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5em;
-  align-items: flex-start;
-  justify-content: center;
-  margin-bottom: 0.5em;
-}
-
-.search-filter-dropdowns :deep(.expand-dropdown) {
-  width: auto;
-  flex: 0 1 auto;
-  min-width: 15em;
-  max-width: 15em;
-}
-
-.search-filter-dropdowns :deep(.expand-dropdown-anchor.menu-panel) {
-  min-width: 0;
-}
-
-.advanced-search-options-pane .constraints {
+.advanced-search-options-section :deep(.constraints) {
   box-sizing: border-box;
   margin-left: 1em;
   margin-right: 1em;

@@ -15,8 +15,15 @@ export default {
   components: {
     ExpandDropdown,
   },
-  props: ["theme"],
-  emits: ["update:theme"],
+  props: {
+    theme: {
+      type: String,
+      default: "",
+    },
+  },
+  emits: {
+    "update:theme": (theme) => typeof theme === "string",
+  },
   computed: {
     themeOptions() {
       return [

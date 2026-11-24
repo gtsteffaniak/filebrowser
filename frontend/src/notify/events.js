@@ -3,7 +3,7 @@ import i18n from "@/i18n/index.ts"
 import { notify } from "@/notify/index.ts"
 import { mutations, state } from "@/store/index.ts"
 import { getObjectProperty } from "@/utils/object.js"
-import { globalVars } from "@/utils/constants.js"
+import { globalVars } from "@/utils/constants.ts"
 
 let eventSrc = null
 let reconnectTimeout = null

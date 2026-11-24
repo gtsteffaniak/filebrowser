@@ -6,11 +6,11 @@
     :edge-offset="{ bottom: '1rem', right: '1rem' }"
     :auto-hide="false"
     :label="$t('access.newGroup')"
-    @click="openPrompt(null)"
+    @press="openPrompt(null)"
   />
   <errors v-if="error" :errorCode="error.status" />
   <div class="card-title">
-    <h2>{{ $t("access.groups") }}</h2>
+    <h2>{{ $t("general.groups") }}</h2>
   </div>
 
   <div class="card-content full has-fab-bottom-right">
@@ -20,7 +20,7 @@
       :items="rows"
       item-key="name"
       default-sort-key="name"
-      :aria-label="$t('access.groups')"
+      :aria-label="$t('general.groups')"
       :loading="loading"
     >
       <template #cell-members="{ row }">{{ row.members.join(", ") }}</template>
@@ -51,13 +51,13 @@
 </template>
 
 <script>
-import { mutations } from "@/store";
-import { accessApi } from "@/api";
-import { notify } from "@/notify";
+import { mutations } from "@/store/index.ts";
+import { accessApi } from "@/api/index.js";
+import { notify } from "@/notify/index.ts";
 import Errors from "@/views/Errors.vue";
 import SettingsTable from "@/components/settings/Table.vue";
 import FloatingActionButton from "@/components/settings/FloatingActionButton.vue";
-import { eventBus } from "@/store/eventBus";
+import { eventBus } from "@/store/eventBus.ts";
 
 export default {
   name: "groups",

@@ -50,3 +50,35 @@ func TestOrientationNeedsPostCorrection(t *testing.T) {
 		}
 	}
 }
+
+func TestHEICDisplayRotationPrefersReader(t *testing.T) {
+	prev := heicDisplayRotationReader.Load()
+	t.Cleanup(func() { heicDisplayRotationReader.Store(prev) })
+
+	var calls int
+	SetHEICDisplayRotationReader(func(path string) (float64, bool) {
+		calls++
+		if path == "known.heic" {
+			return -90, true
+		}
+		return 0, false
+	})
+	var svc *Service // nil: the ffmpeg probe cannot run
+	got, ok := svc.HEICDisplayRotation(t.Context(), "known.heic")
+	if !ok || got != -90 {
+		t.Fatalf("HEICDisplayRotation(known) = %v, %v; want -90, true", got, ok)
+	}
+	// The reader cannot tell: the ffmpeg probe runs, and with no service it
+	// reports unknown rather than "no rotation".
+	if _, ok := svc.HEICDisplayRotation(t.Context(), "other.heic"); ok {
+		t.Fatal("HEICDisplayRotation(other) ok = true, want the ffmpeg probe's false")
+	}
+	if calls != 2 {
+		t.Fatalf("reader calls = %d, want 2", calls)
+	}
+
+	SetHEICDisplayRotationReader(nil)
+	if _, ok := svc.HEICDisplayRotation(t.Context(), "known.heic"); ok {
+		t.Fatal("with no reader, HEICDisplayRotation must use the ffmpeg probe")
+	}
+}

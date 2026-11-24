@@ -20,3 +20,7 @@ userDefaults:
   account:
     permissions:
       share: true
+
+integrations:
+  media:
+    skipHwCheck: true

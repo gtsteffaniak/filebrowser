@@ -15,6 +15,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/internal/icons"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/version"
+	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing/iteminfo"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 )
 
@@ -87,6 +88,10 @@ func spaContentSecurityPolicy(nonce string) string {
 
 func onlyOfficeScriptSrcOrigins() []string {
 	oo := settings.Config.Integrations.OnlyOffice
+	if oo.IsCollabora() {
+		// Collabora is an iframe, not a script the SPA loads.
+		return nil
+	}
 	candidates := []string{
 		cspOriginFromURL(oo.Url),
 		cspOriginFromURL(oo.InternalUrl),
@@ -146,7 +151,13 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		externalLinks = newExternalLinks
 	}
 
-	defaultThemeColor := settings.DefaultBackgroundColor()
+	// Instance default dark mode: htmlVars/defaultDark use a boolean for first paint;
+	// globalVars.darkMode carries the full preference (including "auto") for the SPA.
+	defaultDark := settings.DefaultDarkMode()
+	defaultThemeColor := settings.Config.Frontend.Styling.LightBackground
+	if defaultDark {
+		defaultThemeColor = settings.Config.Frontend.Styling.DarkBackground
+	}
 	staticURL := settings.Config.Http.BaseURL + "public/static"
 	description := settings.Config.Frontend.Description
 	title := settings.Config.Frontend.Name
@@ -240,11 +251,13 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		manifestURL = staticURL + "/site.webmanifest?" + query.Encode()
 	}
 
+	// only include constant values that don't change during a users session
 	data["htmlVars"] = map[string]interface{}{
 		"title":              title,
 		"customCSS":          template.CSS(settings.Config.Frontend.Styling.CustomCSSRaw),
 		"userSelectedTheme":  template.CSS(userSelectedTheme),
 		"defaultDarkMode":    settings.DefaultDarkMode(),
+		"autoDarkMode":       settings.DefaultDarkModeIsAuto(),
 		"lightBackground":    settings.Config.Frontend.Styling.LightBackground,
 		"darkBackground":     settings.Config.Frontend.Styling.DarkBackground,
 		"staticURL":          staticURL,
@@ -267,12 +280,13 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"devMode":            settings.Env.IsDevMode,
 	}
 
+	// only include constant values that don't change during a users session
 	data["globalVars"] = map[string]interface{}{
 		"name":                   settings.Config.Frontend.Name,
 		"minSearchLength":        settings.Config.Server.MinSearchLength,
 		"searchResultsLimit":     settings.Config.Server.SearchResultsLimit,
 		"disableExternal":        settings.Config.Frontend.DisableDefaultLinks,
-		"darkMode":               settings.Config.UserDefaults.UI.DarkMode,
+		"darkMode":               settings.DefaultDarkModePreference(),
 		"singleClick":            settings.Config.UserDefaults.Listing.SingleClick,
 		"lightBackground":        settings.Config.Frontend.Styling.LightBackground,
 		"darkBackground":         settings.Config.Frontend.Styling.DarkBackground,
@@ -284,19 +298,18 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"enableThumbs":           !settings.Config.Server.DisablePreviews,
 		"externalLinks":          externalLinks,
 		"externalUrl":            strings.TrimSuffix(settings.Config.Http.ExternalUrl, "/"),
-		"onlyOfficeUrl":          settings.Config.Integrations.OnlyOffice.Url,
+		"onlyOfficeUrl":          onlyOfficeUrlForSPA(),
 		"oidcAvailable":          settings.Config.Auth.Methods.OidcAuth.Enabled,
 		"jwtAvailable":           settings.Config.Auth.Methods.JwtAuth.Enabled,
 		"proxyAvailable":         settings.Config.Auth.Methods.ProxyAuth.Enabled,
 		"passwordAvailable":      settings.Config.Auth.Methods.PasswordAuth.Enabled,
 		"passwordMinLength":      settings.PasswordMinLength(),
 		"ldapAvailable":          settings.Config.Auth.Methods.LdapAuth.Enabled,
-		"mediaAvailable":         settings.MediaEnabled(),
-		"muPdfAvailable":         settings.Env.MuPdfAvailable,
+		"ffmpegAvailable":        settings.FFmpegEnabled(),
+		"docPreviewExtensions":   iteminfo.DocPreviewExtensionsForSPA(),
 		"updateAvailable":        utils.GetUpdateAvailableUrl(),
 		"disableNavButtons":      disableNavButtons,
 		"userSelectableThemes":   settings.Config.Frontend.Styling.CustomThemeOptions,
-		"enableHeicConversion":   settings.CanConvertImage("heic"),
 		"eventBasedThemes":       !settings.Config.Frontend.Styling.DisableEventBasedThemes,
 		"loginIcon":              loginIcon,
 		"disableSidebar":         disableSidebar,
@@ -311,6 +324,10 @@ func handleWithStaticData(w http.ResponseWriter, r *http.Request, d *requestCont
 		"disablePWAInstall":      settings.Config.Frontend.DisablePWAInstall,
 		"devMode":                settings.Env.IsDevMode,
 		"playwrightTest":         settings.Env.IsPlaywright,
+		"officeProduct":          officeProductForSPA(),
+		"officeExtensions":       wopiExtensionsForSPA(),
+		"textPreviewMimeTypes":   iteminfo.TextPreviewMimeTypes(),
+		"webdavDisabled":         settings.Config.Http.DisableWebDAV,
 	}
 
 	cspNonce, err := utils.CSPNonce()

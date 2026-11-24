@@ -12,7 +12,7 @@
         <input ref="filenameInput" class="input" aria-label="FileName Field" v-focus type="text" @keyup.enter="submit"
           v-model.trim="fileName" @input="updateFullName" />
         <template v-if="fileExtension">
-          <span class="extension-separator">.</span> <!--eslint-disable-line @intlify/vue-i18n/no-raw-text-->
+          <span class="extension-separator">.</span>
           <input
             class="input extension-input"
             type="text"
@@ -51,13 +51,13 @@
   </div>
 </template>
 <script>
-import { state } from "@/store";
-import { resourcesApi } from "@/api";
-import { getters, mutations } from "@/store"; // Import your custom store
-import { notify } from "@/notify";
-import { url } from "@/utils";
-import { goToItemNotificationButton } from "@/utils/notificationActions";
-import { getTypeInfoFromExt } from "@/utils/mimetype";
+import { state } from "@/store/index.ts";
+import { resourcesApi } from "@/api/index.js";
+import { getters, mutations } from "@/store/index.ts"; // Import your custom store
+import { notify } from "@/notify/index.ts";
+import { url } from "@/utils/index.ts";
+import { goToItemNotificationButton } from "@/utils/notificationActions.js";
+import { getTypeInfoFromExt } from "@/utils/mimetype.js";
 import { getFileExtension, removePrefix } from '@/utils/files.js';
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 export default {
@@ -85,7 +85,7 @@ export default {
     let fileExtension = "";
     if (usesTemplate) {
       const ext = getFileExtension(this.initialName);
-      fileName = this.initialName.substring(0, this.initialName.length - ext.length);
+      fileName = this.initialName.slice(0, this.initialName.length - ext.length);
       fileExtension = removePrefix(ext, ".");
     }
     return {
@@ -317,7 +317,7 @@ export default {
 }
 
 .extension-separator {
-  font-weight: bold;
+  font-weight: 700;
 }
 
 .file-type-icon {

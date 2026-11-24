@@ -43,8 +43,8 @@ frontend/.tmp-icons-*
 /backend/*test_config.yaml
 /backend/generated.yaml
 /backend/srv
-/backend/internal/web/dist
-/backend/internal/web/embed
+/backend/internal/web/dist/*
+!/backend/internal/web/dist/.gitkeep
 /backend/debug
 /backend/http
 

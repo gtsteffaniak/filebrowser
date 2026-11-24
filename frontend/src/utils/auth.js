@@ -1,5 +1,5 @@
 import { getters, mutations, state } from "@/store/index.ts";
-import { globalVars } from "@/utils/constants.js";
+import { globalVars } from "@/utils/constants.ts";
 import { getApiPath } from "@/utils/url.js";
 import { sanitizeLogoutDestination, sanitizePostLoginRedirect } from "@/utils/safeRedirect.js";
 
@@ -88,19 +88,20 @@ export async function validateLogin(isPublicRoute = false) {
   const userInfo = await res.json();
   await mutations.setCurrentUser(userInfo);
   await mutations.syncEnforcedUserDefaults();
+  await mutations.syncMediaSettings();
   await mutations.syncSidebarLinkDefaultsPolicy();
   await mutations.syncToolAccessDefaultsPolicy();
   await mutations.syncShareDefaultsPolicy();
   getters.isLoggedIn()
   // Public share/static routes use the public API; proxy session cookie login is protected-only.
   if (state.user.loginMethod === "proxy" && !isPublicRoute) {
-    const apiPath = getApiPath("auth/login")
-    const res = await fetch(apiPath, {
+    const loginPath = getApiPath("auth/login")
+    const loginRes = await fetch(loginPath, {
       method: "POST",
       credentials: 'same-origin', // Ensure cookies are sent and can be set
     });
-    const body = await res.text();
-    if (res.status !== 200) {
+    const body = await loginRes.text();
+    if (loginRes.status !== 200) {
       throw new Error(body);
     }
   }

@@ -1,4 +1,18 @@
 definitions:
+  ffmpeg.AccelDeviceOption:
+    properties:
+      id:
+        type: string
+      label:
+        type: string
+    type: object
+  ffmpeg.EncoderBackendOption:
+    properties:
+      id:
+        type: string
+      label:
+        type: string
+    type: object
   files.Items:
     properties:
       files:
@@ -246,6 +260,26 @@ definitions:
         description: release year
         type: integer
     type: object
+  preview.TextPreviewResult:
+    properties:
+      content:
+        description: Content is plain text, or an HTML fragment when Format is "html".
+        type: string
+      format:
+        description: Format is "text" or "html". RTF is converted to HTML; everything
+          else is text.
+        type: string
+      kind:
+        description: 'Kind is the renderer the frontend should use: plain, csv, markdown,
+          html, css, code, or rtf.'
+        type: string
+      size:
+        description: Size is the full size of the file in bytes.
+        type: integer
+      truncated:
+        description: Truncated is true when the file is larger than the returned content.
+        type: boolean
+    type: object
   settings.ActivityConfig:
     properties:
       disabled:
@@ -446,6 +480,46 @@ definitions:
       styling:
         $ref: '#/definitions/settings.StylingConfig'
     type: object
+  settings.FullAdminTranscode:
+    properties:
+      cacheMaxSizeMB:
+        description: 'disk cache size limit in MB; 0 = unlimited (default: 10240)'
+        type: integer
+      cacheRetentionH:
+        description: 'completed cache retention in hours (default: 24)'
+        type: integer
+      enabled:
+        description: 'enable HLS transcoding for authenticated playback (default:
+          false)'
+        type: boolean
+      enabledProfiles:
+        description: derived at read time (player-menu profile ids); never stored
+        items:
+          type: string
+        type: array
+      encoderBackend:
+        description: 'default video encoder backend for transcodes: "" (auto), "cpu",
+          or an accel backend (nvenc, amf, qsv, vaapi, d3d12, videotoolbox)'
+        type: string
+      maxConcurrent:
+        description: 'global concurrent transcode sessions (default: 2)'
+        type: integer
+      maxConcurrentPerUser:
+        description: 'hard per-user concurrent transcode ceiling (default: 1)'
+        type: integer
+      maxResolution:
+        description: 'superseded by profiles.<name>.maxResolution. deprecated: kept
+          for config compatibility'
+        type: integer
+      profiles:
+        allOf:
+        - $ref: '#/definitions/settings.TranscodeProfiles'
+        description: per-profile transcode settings shown in the player menu
+      readRate:
+        description: 'VOD producer input pacing in Nx realtime (-readrate); unset
+          or <1 clamps to >=1 (default: 2)'
+        type: number
+    type: object
   settings.Http:
     properties:
       baseURL:
@@ -505,16 +579,17 @@ definitions:
           local filesystem socket peer when allowlists are empty'
         type: boolean
       unixSocketTrustedGIDs:
+        description: present X-Forwarded-* on a filesystem http.socket listener. When
+          both are empty, peers are not trusted unless UnixSocketTrustAllLocalPeers
+          is true (legacy; startup logs a warning). A GID allowlist trusts every peer
+          with that GID, not only a single reverse-proxy process. Abstract sockets
+          (@name) never trust forwarded headers.
         items:
           type: integer
         type: array
       unixSocketTrustedUIDs:
-        description: |-
-          UnixSocketTrustedUIDs and UnixSocketTrustedGIDs list peer credentials (Linux SO_PEERCRED) allowed to
-          present X-Forwarded-* on a filesystem http.socket listener. When both are empty, peers are not trusted
-          unless UnixSocketTrustAllLocalPeers is true (legacy; startup logs a warning). A GID allowlist trusts
-          every peer with that GID, not only a single reverse-proxy process. Abstract sockets (@name) never trust
-          forwarded headers.
+        description: UnixSocketTrustedUIDs and UnixSocketTrustedGIDs list peer credentials
+          (Linux SO_PEERCRED) allowed to
         items:
           type: integer
         type: array
@@ -530,6 +605,10 @@ definitions:
         type: integer
       disableReuse:
         description: enable to always create a new indexing database on startup.
+        type: boolean
+      fts5:
+        description: Enable FTS5 to provide faster search queries, but 40% slower
+          indexing and 15% larger database size
         type: boolean
       startupIntegrityCheck:
         description: 'the method used to check the integrity of the index database
@@ -691,23 +770,47 @@ definitions:
     type: object
   settings.Media:
     properties:
+      accelDevice:
+        description: |-
+          AccelDevice selects the acceleration device: "auto" (default), "software"/"cpu",
+          "igpu", "dgpu", a Linux DRM render node (e.g. /dev/dri/renderD128), or a GPU
+          name substring. Managed via the admin media settings API.
+        type: string
+      alwaysUseFfmpeg:
+        description: 'deprecated: manage via the admin media settings API'
+        type: boolean
+      alwaysUseOnlyOffice:
+        description: 'deprecated: skip folio previews for office converter; manage
+          via the admin media settings API'
+        type: boolean
       convert:
         allOf:
         - $ref: '#/definitions/settings.FfmpegConvert'
-        description: config for ffmpeg conversion settings
+        description: 'deprecated: config for ffmpeg conversion settings. deprecated:
+          manage via the admin media settings API'
       debug:
-        description: output ffmpeg stdout for media integration -- careful can produces
-          lots of output!
+        description: 'deprecated: output ffmpeg stdout for media integration. deprecated:
+          manage via the admin media settings API'
         type: boolean
       extractEmbeddedSubtitles:
-        description: extract embedded subtitles from media files
+        description: 'deprecated: no longer configurable; embedded subtitles are always
+          extracted'
         type: boolean
       ffmpegPath:
         description: path to ffmpeg directory with ffmpeg and ffprobe (eg. /usr/local/bin)
         type: string
       hardwareAcceleration:
-        description: enable hardware acceleration for ffmpeg if available
+        description: 'deprecated: enable hardware acceleration for ffmpeg if available.
+          deprecated: manage via the admin media settings API'
         type: boolean
+      skipHwCheck:
+        description: SkipHwCheck skips the ffmpeg hardware codec probe entirely (software-only).
+        type: boolean
+      transcode:
+        allOf:
+        - $ref: '#/definitions/settings.FullAdminTranscode'
+        description: 'deprecated: HLS transcoding for media playback. deprecated:
+          manage via the admin media settings API'
     type: object
   settings.OidcConfig:
     properties:
@@ -758,21 +861,32 @@ definitions:
     properties:
       internalUrl:
         description: An optional internal address that the filebrowser server can
-          use to communicate with the OnlyOffice Document Server, could be useful
-          to bypass proxy.
+          use to communicate with the office editor, could be useful to bypass proxy.
+        type: string
+      product:
+        description: 'office editor behind url: onlyoffice (default) or collabora'
+        enum:
+        - onlyoffice
+        - collabora
         type: string
       secret:
-        description: 'secret: authentication key for OnlyOffice integration'
+        description: 'secret: OnlyOffice only, the JWT secret shared with the Document
+          Server. Unused with collabora: editing sessions are signed with a key derived
+          from auth.key, and Collabora trusts FileBrowser through its storage.wopi.host
+          allow-list, where FileBrowser''s host must be added.'
         type: string
+      tokenExpirationHours:
+        description: 'collabora only: lifetime of an editing session, in hours (default:
+          10)'
+        type: integer
       url:
-        description: The URL to the OnlyOffice Document Server, needs to be accessible
-          to the user.
+        description: The URL to the office editor (OnlyOffice Document Server or Collabora
+          Online), needs to be accessible to the user.
         type: string
       viewOnly:
-        description: view only mode for OnlyOffice
+        description: view only mode for the office editor
         type: boolean
     required:
-    - secret
     - url
     type: object
   settings.PasskeyAuthConfig:
@@ -942,9 +1056,10 @@ definitions:
           default is 4.
         type: integer
       searchResultsLimit:
-        description: 'maximum requested search results across all sources (default:
-          1000); quick search defaults to 100, advanced search to 500; size viewer
-          remains limited to 200'
+        description: 'maximum requested search results across all sources, hard max
+          5000 (default: 1000); quick search defaults to 100, advanced search to 500;
+          size viewer remains limited to 200'
+        maximum: 5000
         minimum: 1
         type: integer
       sources:
@@ -1014,8 +1129,6 @@ definitions:
         type: boolean
       enforceDarkLightMode:
         type: string
-      extractEmbeddedSubtitles:
-        type: boolean
       favicon:
         type: string
       hideFileExt:
@@ -1129,6 +1242,36 @@ definitions:
           color in light mode
         type: string
     type: object
+  settings.TranscodeProfile:
+    properties:
+      avgBitrateKbps:
+        description: average video bitrate in kbps; 0 = original
+        type: integer
+      enabled:
+        description: 'show this preset in the player menu (default: false)'
+        type: boolean
+      encoderBackend:
+        description: encoder backend override; "" inherits transcode.encoderBackend
+        type: string
+      maxResolution:
+        description: maximum output height in pixels; 0 = original
+        type: integer
+    type: object
+  settings.TranscodeProfiles:
+    properties:
+      balanced:
+        allOf:
+        - $ref: '#/definitions/settings.TranscodeProfile'
+        description: balanced quality and size
+      datasaver:
+        allOf:
+        - $ref: '#/definitions/settings.TranscodeProfile'
+        description: smallest output
+      quality:
+        allOf:
+        - $ref: '#/definitions/settings.TranscodeProfile'
+        description: match the source unless capped
+    type: object
   settings.UserDefaults:
     properties:
       account:
@@ -1150,6 +1293,9 @@ definitions:
     type: object
   settings.UserDefaultsAccount:
     properties:
+      allowCustomShareURL:
+        description: 'allow users to choose custom share URLs (default: false)'
+        type: boolean
       disableSettings:
         description: disable the user from viewing the settings page
         type: boolean
@@ -1162,6 +1308,9 @@ definitions:
       loginMethod:
         description: 'login method to use: eg. password, proxy, oidc'
         type: string
+      maxConcurrentTranscodes:
+        description: 'per-user concurrent transcode sessions (default: 1)'
+        type: integer
       permissions:
         $ref: '#/definitions/settings.UserDefaultsAccountPermissions'
       requirePasswordChange:
@@ -1200,6 +1349,9 @@ definitions:
       disableViewingExt:
         description: comma separated list of file extensions to disable viewing for
         type: string
+      preferEditorForHtml:
+        description: prefer editor first for HTML files instead of the HTML viewer
+        type: boolean
       preferEditorForMarkdown:
         description: prefer editor first for markdown files instead of the Markdown
           Viewer
@@ -1326,8 +1478,9 @@ definitions:
         description: Name of theme to use chosen from custom themes config
         type: string
       darkMode:
-        description: should dark mode be enabled
-        type: boolean
+        allOf:
+        - $ref: '#/definitions/users.DarkMode'
+        description: 'theme preference: "auto" (follow system), "dark", or "light"'
       locale:
         description: 'language to use: eg. de, en, or fr'
         type: string
@@ -1391,8 +1544,6 @@ definitions:
         type: string
       expire:
         type: integer
-      extractEmbeddedSubtitles:
-        type: boolean
       favicon:
         type: string
       faviconUrl:
@@ -1479,6 +1630,11 @@ definitions:
         type: string
       canEditShare:
         type: boolean
+      customHash:
+        description: |-
+          CustomHash is the owner-chosen alias (empty when the share uses its random hash). Hash already
+          carries the presented identifier, so this only tells the editor whether a custom value is set.
+        type: string
       description:
         type: string
       disableAnonymous:
@@ -1510,8 +1666,6 @@ definitions:
         type: integer
       expires:
         type: string
-      extractEmbeddedSubtitles:
-        type: boolean
       favicon:
         type: string
       faviconUrl:
@@ -1596,6 +1750,8 @@ definitions:
         type: string
       canEditShare:
         type: boolean
+      customHash:
+        type: string
       description:
         type: string
       disableAnonymous:
@@ -1623,8 +1779,6 @@ definitions:
         type: string
       expires:
         type: string
-      extractEmbeddedSubtitles:
-        type: boolean
       favicon:
         type: string
       faviconUrl:
@@ -1681,45 +1835,16 @@ definitions:
         description: default view mode for anonymous users
         type: string
     type: object
-  users.AuthToken:
-    properties:
-      Permissions:
-        $ref: '#/definitions/users.Permissions'
-      belongsTo:
-        description: legacy stored metadata only, never trusted for auth; identity
-          is always the hashed_tokens lookup
-        type: integer
-      expiresAt:
-        type: integer
-      issuedAt:
-        type: integer
-      key:
-        description: for backward compatibility
-        type: string
-      minimal:
-        description: Minimal distinguishes owner-inheriting tokens from customized
-          caps. Nil means legacy (infer from stored permissions).
-        type: boolean
-      name:
-        type: string
-      token:
-        type: string
-      username:
-        type: string
-    type: object
-  users.BackendScope:
-    properties:
-      path:
-        description: real path for the source
-        type: string
-      permissions:
-        $ref: '#/definitions/users.SourceFilePermissions'
-      quota:
-        $ref: '#/definitions/users.ScopeQuota'
-      scope:
-        description: index path within that source
-        type: string
-    type: object
+  users.DarkMode:
+    enum:
+    - auto
+    - dark
+    - light
+    type: string
+    x-enum-varnames:
+    - DarkModeAuto
+    - DarkModeDark
+    - DarkModeLight
   users.FileLoading:
     properties:
       clearAll:
@@ -1750,12 +1875,19 @@ definitions:
     type: object
   users.FrontendUser:
     properties:
+      allowCustomShareURL:
+        description: |-
+          AllowCustomShareURL and MaxConcurrentTranscodes are admin-set: they stay out of
+          NonAdminEditable so a user cannot grant themselves the capability through a
+          self-service PATCH.
+        type: boolean
       customTheme:
         description: Name of theme to use chosen from custom themes config.
         type: string
       darkMode:
-        description: should dark mode be enabled
-        type: boolean
+        allOf:
+        - $ref: '#/definitions/users.DarkMode'
+        description: 'theme preference: "auto" (follow system), "dark", or "light"'
       dateFormat:
         description: when false, the date is relative, when true, the date is an exact
           timestamp
@@ -1820,6 +1952,8 @@ definitions:
         type: boolean
       loginMethod:
         $ref: '#/definitions/users.LoginMethod'
+      maxConcurrentTranscodes:
+        type: integer
       newFileTemplate:
         description: list of custom filenames that will be used as template for new
           files
@@ -1840,6 +1974,9 @@ definitions:
         allOf:
         - $ref: '#/definitions/users.Permissions'
         description: 'global: admin, api, share, realtime'
+      preferEditorForHtml:
+        description: prefer editor first for HTML files instead of the HTML viewer
+        type: boolean
       preferEditorForMarkdown:
         description: prefer editor first for markdown files instead of the Markdown
           Viewer
@@ -1959,14 +2096,6 @@ definitions:
         description: 'deprecated: legacy user migration only; not used for API tokens'
         type: boolean
     type: object
-  users.PinnedItems:
-    additionalProperties:
-      additionalProperties:
-        items:
-          type: string
-        type: array
-      type: object
-    type: object
   users.Preview:
     properties:
       audio:
@@ -2056,207 +2185,6 @@ definitions:
   users.ToolAccessMap:
     additionalProperties:
       type: boolean
-    type: object
-  users.User:
-    properties:
-      apiKeys:
-        additionalProperties:
-          $ref: '#/definitions/users.AuthToken'
-        type: object
-      backendScopes:
-        description: |-
-          BackendScopes is the authoritative, persisted access list (SourceScope.Name = backend source path).
-          SQLite stores this inside user_data JSON under the key "scopes" (see sqldb.UserData).
-        items:
-          $ref: '#/definitions/users.BackendScope'
-        type: array
-      backendSourcePermissions:
-        additionalProperties:
-          $ref: '#/definitions/users.SourceFilePermissions'
-        description: key = source path
-        type: object
-      customTheme:
-        description: Name of theme to use chosen from custom themes config.
-        type: string
-      darkMode:
-        description: should dark mode be enabled
-        type: boolean
-      dateFormat:
-        description: when false, the date is relative, when true, the date is an exact
-          timestamp
-        type: boolean
-      debugOffice:
-        description: debug onlyoffice editor
-        type: boolean
-      declinedDefaultSources:
-        items:
-          type: string
-        type: array
-      deleteAfterArchive:
-        description: delete source files after successful creation/extraction of archives
-        type: boolean
-      deleteWithoutConfirming:
-        description: delete files without confirmation
-        type: boolean
-      disableOfficePreviewExt:
-        description: deprecated
-        type: string
-      disableOnlyOfficeExt:
-        description: deprecated
-        type: string
-      disablePreviewExt:
-        description: space separated list of file extensions to disable preview for
-        type: string
-      disableQuickToggles:
-        description: disable the quick toggles in the sidebar
-        type: boolean
-      disableSearchOptions:
-        description: disable the search options in the search bar
-        type: boolean
-      disableSettings:
-        type: boolean
-      disableUpdateNotifications:
-        description: disable update notifications
-        type: boolean
-      disableViewingExt:
-        description: space separated list of file extensions to disable viewing for
-        type: string
-      effectiveToolAccess:
-        additionalProperties:
-          type: boolean
-        type: object
-      fileLoading:
-        allOf:
-        - $ref: '#/definitions/users.FileLoading'
-        description: upload and download settings
-      gallerySize:
-        description: 0-9 - the size of the gallery thumbnails
-        type: integer
-      hideFileExt:
-        description: space separated list of file extensions to hide in UI and API
-        type: string
-      hideFilesInTree:
-        description: hide files in the sidebar tree navigation, when true, will show
-          only directories.
-        type: boolean
-      hideSidebarFileActions:
-        description: hide the file actions in the sidebar
-        type: boolean
-      id:
-        type: integer
-      locale:
-        description: 'language to use: eg. de, en, or fr'
-        type: string
-      lockPassword:
-        type: boolean
-      loginMethod:
-        $ref: '#/definitions/users.LoginMethod'
-      newFileTemplate:
-        description: list of custom filenames that will be used as template for new
-          files
-        items:
-          type: string
-        type: array
-      otpEnabled:
-        type: boolean
-      passkeyCredentials:
-        items:
-          $ref: '#/definitions/users.WebAuthnCredential'
-        type: array
-      password:
-        type: string
-      perm:
-        $ref: '#/definitions/users.Permissions'
-      permissions:
-        allOf:
-        - $ref: '#/definitions/users.Permissions'
-        description: 'global: admin, api, share, realtime'
-      pinnedItems:
-        $ref: '#/definitions/users.PinnedItems'
-      preferEditorForMarkdown:
-        description: prefer editor first for markdown files instead of the Markdown
-          Viewer
-        type: boolean
-      preview:
-        $ref: '#/definitions/users.Preview'
-      promptRightCloseButton:
-        description: show the prompts close button on the right
-        type: boolean
-      quickDownload:
-        description: show icon to download in one click
-        type: boolean
-      requirePasswordChange:
-        type: boolean
-      scopes:
-        items:
-          $ref: '#/definitions/users.FrontendScope'
-        type: array
-      showAdvancedProfile:
-        type: boolean
-      showCopyPath:
-        description: show copy path action in the context menu
-        type: boolean
-      showCreationDateColumn:
-        description: show the Creation date column in list and compact views
-        type: boolean
-      showFirstLogin:
-        type: boolean
-      showHidden:
-        description: show hidden files in the UI. On windows this includes files starting
-          with a dot and windows hidden files
-        type: boolean
-      showSelectMultiple:
-        description: show select multiple files on desktop
-        type: boolean
-      showToolsInSidebar:
-        description: 'when false, sidebar hides links with category "tool" (default:
-          true)'
-        type: boolean
-      showTypeColumn:
-        description: show the Type column in list and compact views
-        type: boolean
-      sidebarLinks:
-        description: customizable sidebar links
-        items:
-          $ref: '#/definitions/users.SidebarLink'
-        type: array
-      singleClick:
-        description: open directory on single click, also enables middle click to
-          open in new tab
-        type: boolean
-      sorting:
-        $ref: '#/definitions/users.Sorting'
-      sourcePermissions:
-        additionalProperties:
-          $ref: '#/definitions/users.SourceFilePermissions'
-        description: 'deprecated: use scopes[].permissions'
-        type: object
-      stickySidebar:
-        description: keep sidebar open when navigating
-        type: boolean
-      themeColor:
-        description: 'theme color to use: eg. #ff0000, or var(--red), var(--purple),
-          etc'
-        type: string
-      tokens:
-        additionalProperties:
-          $ref: '#/definitions/users.AuthToken'
-        type: object
-      toolAccess:
-        allOf:
-        - $ref: '#/definitions/users.ToolAccessMap'
-        description: per-tool access overrides
-      totpNonce:
-        type: string
-      totpSecret:
-        type: string
-      username:
-        type: string
-      version:
-        type: integer
-      viewMode:
-        description: 'view mode to use: eg. normal, list, grid, or compact'
-        type: string
     type: object
   users.WebAuthnCredential:
     properties:
@@ -2532,6 +2460,59 @@ definitions:
         - $ref: '#/definitions/web.fileWatchMetadata'
         description: File metadata for non-text files
     type: object
+  web.mediaSettingsResponse:
+    properties:
+      accelDevice:
+        description: 'acceleration device: "auto", "software"/"cpu", "igpu", "dgpu",
+          a DRM render node, or a GPU name substring'
+        type: string
+      accelDeviceOptions:
+        items:
+          $ref: '#/definitions/ffmpeg.AccelDeviceOption'
+        type: array
+      alwaysUseFfmpeg:
+        description: 'skip the go-media fast path and use ffmpeg for all probe, metadata,
+          subtitle, and thumbnail work (default: false)'
+        type: boolean
+      alwaysUseOnlyOffice:
+        description: 'skip folio document previews and use the office converter when
+          configured (default: false)'
+        type: boolean
+      autoAccelDevice:
+        description: AutoAccelDevice is the option id that accelDevice "auto" resolves
+          to on this host.
+        type: string
+      convert:
+        allOf:
+        - $ref: '#/definitions/settings.FfmpegConvert'
+        description: config for ffmpeg conversion settings
+      debug:
+        description: output ffmpeg stdout for media integration -- careful can produces
+          lots of output!
+        type: boolean
+      encoderBackendOptions:
+        items:
+          $ref: '#/definitions/ffmpeg.EncoderBackendOption'
+        type: array
+      hardwareAcceleration:
+        description: enable hardware acceleration for ffmpeg if available
+        type: boolean
+      imagePreview:
+        additionalProperties:
+          type: boolean
+        description: image formats that can be converted
+        type: object
+      lockMessage:
+        type: string
+      lockedFromConfigPaths:
+        items:
+          type: string
+        type: array
+      transcode:
+        allOf:
+        - $ref: '#/definitions/settings.FullAdminTranscode'
+        description: HLS transcoding for media playback
+    type: object
   web.pinnedItemPatchRequest:
     properties:
       name:
@@ -2592,6 +2573,24 @@ definitions:
       expiresAt:
         type: integer
       viewToken:
+        type: string
+    type: object
+  web.wopiSessionResponse:
+    properties:
+      accessToken:
+        description: posted as access_token
+        type: string
+      accessTokenTtl:
+        description: 'posted as access_token_ttl: absolute expiry, epoch milliseconds'
+        type: integer
+      actionUrl:
+        description: editor URL the iframe form posts to
+        type: string
+      mode:
+        description: '"edit" or "view"'
+        type: string
+      product:
+        description: collabora, onlyoffice or generic
         type: string
     type: object
 info:
@@ -4546,6 +4545,72 @@ paths:
       summary: Get image preview
       tags:
       - Resources
+  /api/resources/preview/text:
+    get:
+      consumes:
+      - application/json
+      description: 'Returns the first ~16KB of a text-like file as JSON. Markdown,
+        HTML, and CSS are returned as raw text; RTF is converted to HTML. The response
+        is NOT sanitized: clients must sanitize HTML before rendering it. Responses
+        are not cached on the server.'
+      parameters:
+      - description: File path of the text file to preview
+        in: query
+        name: path
+        required: true
+        type: string
+      - description: Source name
+        in: query
+        name: source
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Text preview content
+          schema:
+            $ref: '#/definitions/preview.TextPreviewResult'
+        "400":
+          description: Invalid request path
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: User is not allowed to view files in this source
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: File not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "415":
+          description: File type is not supported for text preview, or the file is
+            binary
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "501":
+          description: Previews are disabled
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get text preview
+      tags:
+      - Resources
   /api/resources/unarchive:
     post:
       consumes:
@@ -4743,6 +4808,39 @@ paths:
           schema:
             type: string
       summary: Get system settings as YAML
+      tags:
+      - Settings
+  /api/settings/media:
+    get:
+      description: |-
+        Returns the media settings the caller is allowed to see.
+        Admins get the full settings, including ffmpeg and hardware options, so they can edit them.
+        Everyone else gets a small read-only view: whether transcoding is on, how many
+        transcodes they can run at once, which quality presets are enabled, and which image
+        previews the server can generate. Keys in the view are the same for admins and users.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Media settings
+          schema:
+            $ref: '#/definitions/web.mediaSettingsResponse'
+      summary: Get runtime media settings
+      tags:
+      - Settings
+    patch:
+      consumes:
+      - application/json
+      description: Merges a partial JSON patch into the DB-backed media settings and
+        applies them at runtime.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Updated media settings
+          schema:
+            $ref: '#/definitions/web.mediaSettingsResponse'
+      summary: Update runtime media settings
       tags:
       - Settings
   /api/share:
@@ -5133,8 +5231,8 @@ paths:
         and metadata based on the user's session and scope. Supports searching across
         multiple sources when using the 'sources' parameter.
       parameters:
-      - description: Filter prefix or full search text (required when no terms are
-          supplied)
+      - description: Filter prefix or full search text; no minimum length is enforced
+          (clients enforce minSearchLength)
         in: query
         name: query
         type: string
@@ -5171,7 +5269,7 @@ paths:
         name: useWildcard
         type: boolean
       - description: Requested advanced search limit, capped by server.searchResultsLimit
-          (default 1000); omitted for quick search (100)
+          (default 1000) and a hard max of 5000; omitted for quick search (100)
         in: query
         name: limit
         type: integer
@@ -5301,7 +5399,7 @@ paths:
         name: data
         required: true
         schema:
-          $ref: '#/definitions/users.User'
+          $ref: '#/definitions/users.FrontendUser'
       responses:
         "204":
           description: No Content - User updated successfully
@@ -5348,14 +5446,12 @@ paths:
         name: data
         required: true
         schema:
-          $ref: '#/definitions/users.User'
+          $ref: '#/definitions/users.FrontendUser'
       produces:
       - application/json
       responses:
         "201":
           description: Created user
-          schema:
-            $ref: '#/definitions/users.User'
         "400":
           description: Bad Request
           schema:
@@ -5420,6 +5516,57 @@ paths:
       summary: Add or remove a pinned item
       tags:
       - Users
+  /api/wopi/session:
+    get:
+      description: Returns the editor URL and the access token the browser posts to
+        it.
+      parameters:
+      - description: Source name
+        in: query
+        name: source
+        required: true
+        type: string
+      - description: File path
+        in: query
+        name: path
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/web.wopiSessionResponse'
+        "400":
+          description: Missing or invalid parameters
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: No view permission
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "415":
+          description: The editor does not handle this file type
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "503":
+          description: Editor discovery unavailable
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Open a file in the WOPI editor
+      tags:
+      - Office
   /public/api/media/lyrics:
     get:
       parameters:
@@ -6092,6 +6239,66 @@ paths:
               type: string
             type: object
       summary: Get image/video preview from a public share
+      tags:
+      - Resources
+  /public/api/resources/preview/text:
+    get:
+      consumes:
+      - application/json
+      description: Returns the first ~16KB of a text-like file in a public share as
+        JSON. Same content rules as the authenticated endpoint. Not available for
+        upload-only shares.
+      parameters:
+      - description: Share hash for authentication
+        in: query
+        name: hash
+        required: true
+        type: string
+      - description: File path within the share to preview
+        in: query
+        name: path
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Text preview content
+          schema:
+            $ref: '#/definitions/preview.TextPreviewResult'
+        "403":
+          description: Share unavailable, access denied, or the file viewer is disabled
+            for this share
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: File not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "415":
+          description: File type is not supported for text preview, or the file is
+            binary
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "501":
+          description: Previews disabled globally, for this share, or for upload shares
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get text preview from a public share
       tags:
       - Resources
   /public/api/resources/view:

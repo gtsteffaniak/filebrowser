@@ -2,7 +2,7 @@ export function getRootEmSize() {
   if (typeof document === 'undefined') {
     return 16;
   }
-  return parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+  return Number.parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
 }
 
 /** Tap zone (3em) — matches nextPrevious handleDocumentClick. */

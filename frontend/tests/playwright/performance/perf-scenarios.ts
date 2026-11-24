@@ -46,7 +46,7 @@ export function parsePerfScales(): number[] {
   const raw = process.env.PERF_SCALES ?? "100,1000,10000";
   const scales = raw
     .split(",")
-    .map((s) => parseInt(s.trim(), 10))
+    .map((s) => Number.parseInt(s.trim(), 10))
     .filter((n) => Number.isFinite(n) && n > 0);
   return scales.length > 0 ? scales : [100, 1000, 10000];
 }
@@ -55,7 +55,7 @@ export function parsePerfScales(): number[] {
 export function seedForScale(scale: number): number {
   const env = process.env.PERF_MOCK_SEED;
   if (env) {
-    const n = parseInt(env, 10);
+    const n = Number.parseInt(env, 10);
     if (Number.isFinite(n)) return n + scale;
   }
   return scale * 1_000_003 + scale;
@@ -82,11 +82,35 @@ async function openMockListing(page: Page, scale: number): Promise<void> {
     .locator(".listing-items .listing-item")
     .first()
     .waitFor({ state: "visible", timeout });
+  await waitForListingRendered(page, count, timeout);
+}
+
+/** Waits until the listing has rendered. A virtual listing only renders the rows around the screen (`.listing-items.virtualized`) */
+async function waitForListingRendered(
+  page: Page,
+  expected: number,
+  timeout: number,
+): Promise<void> {
   await page.waitForFunction(
-    (expected) =>
-      document.querySelectorAll(".listing-items .listing-item").length >=
-      expected,
-    count,
+    (total) => {
+      const listing = document.querySelector(".listing-items");
+      const rendered = document.querySelectorAll(
+        ".listing-items .listing-item",
+      ).length;
+      if (!listing?.classList.contains("virtualized")) return rendered >= total;
+      const isSettled = () =>
+        document
+          .querySelector(".listing-items")
+          ?.getAttribute("data-virtual-settled") === "true" &&
+        document.querySelectorAll(".listing-items .listing-item").length > 0;
+      if (!isSettled()) return false;
+      return new Promise<boolean>((resolve) => {
+        requestAnimationFrame(() =>
+          requestAnimationFrame(() => resolve(isSettled())),
+        );
+      });
+    },
+    expected,
     { timeout },
   );
 }
@@ -237,13 +261,7 @@ export async function runLoadScenario(
             .locator(".listing-items .listing-item")
             .first()
             .waitFor({ state: "visible", timeout });
-          await page.waitForFunction(
-            (expected) =>
-              document.querySelectorAll(".listing-items .listing-item").length >=
-              expected,
-            count,
-            { timeout },
-          );
+          await waitForListingRendered(page, count, timeout);
         } else {
           await startFrameWindow(page);
         }
@@ -358,6 +376,7 @@ export async function runResizeScenario(
   options?: ScenarioOptions,
 ): Promise<void> {
   await ensureListing(page, scale, options);
+  const probeBefore = await readProbe(page);
   const windowStart = await pageNow(page);
   const sizes = [
     { width: 1280, height: 720 },
@@ -406,6 +425,7 @@ export async function runResizeScenario(
       windowStart,
       windowEnd,
       probe,
+      probeBefore,
       dom,
       cdp,
       cdpFlat: flattenCdp(cdp),
@@ -427,6 +447,7 @@ export async function runSelectScenario(
   options?: ScenarioOptions,
 ): Promise<void> {
   await ensureListing(page, scale, options);
+  const probeBefore = await readProbe(page);
   const modifier = process.platform === "darwin" ? "Meta" : "Control";
   const items = page.locator(".listing-items .listing-item");
   const count = await items.count();
@@ -482,6 +503,7 @@ export async function runSelectScenario(
       windowStart,
       windowEnd,
       probe,
+      probeBefore,
       dom,
       cdp,
       cdpFlat: flattenCdp(cdp),

@@ -110,6 +110,7 @@ import Access from "./Access.vue";
 import Password from "./Password.vue";
 import PlaybackQueue from "./PlaybackQueue.vue";
 import VisualizerSettings from "./VisualizerSettings.vue";
+import SlideshowOptions from "./SlideshowOptions.vue";
 import EditorSettings from "./EditorSettings.vue";
 import SharePicker from "./SharePicker.vue";
 import PathPicker from "./PathPicker.vue";
@@ -127,6 +128,7 @@ import ThreeJSControls from "./ThreeJSControls.vue";
 import ActivityEventDetails from "./ActivityEventDetails.vue";
 import AnalyticsDiagnostic from "./AnalyticsDiagnostic.vue";
 import ConfigViewer from "./ConfigViewer.vue";
+import ShadowRegressions from "./ShadowRegressions.vue";
 import UserDefaults from "./UserDefaults.vue";
 import ShareDefaults from "./ShareDefaults.vue";
 import SidebarLinkDefaults from "./SidebarLinkDefaults.vue";
@@ -137,7 +139,9 @@ import UserEditSidebarLinks from "./UserEditSidebarLinks.vue";
 import Quota from "./Quota.vue";
 import NewFileTemplate from "./NewFileTemplate.vue";
 import DefaultViewPrefs from "./DefaultViewPrefs.vue";
-import { state, getters, mutations } from "@/store";
+import MediaConversionFormats from "./MediaConversionFormats.vue";
+import MediaTranscodeSettings from "./MediaTranscodeSettings.vue";
+import { state, getters, mutations } from "@/store/index.ts";
 import { getObjectProperty, omitObjectProperty, setObjectProperty } from "@/utils/object.js";
 
 export default {
@@ -169,6 +173,7 @@ export default {
     Password,
     PlaybackQueue,
     VisualizerSettings,
+    SlideshowOptions,
     EditorSettings,
     PathPicker,
     EntityPicker,
@@ -186,6 +191,7 @@ export default {
     ActivityEventDetails,
     AnalyticsDiagnostic,
     ConfigViewer,
+    ShadowRegressions,
     UserDefaults,
     SidebarLinkDefaults,
     ToolAccessDefaults,
@@ -196,6 +202,8 @@ export default {
     Quota,
     NewFileTemplate,
     DefaultViewPrefs,
+    MediaConversionFormats,
+    MediaTranscodeSettings,
   },
   data() {
     return {
@@ -301,7 +309,7 @@ export default {
     },
     isTopmost(id) {
       const allPrompts = this.prompts;
-      return allPrompts[allPrompts.length - 1]?.id === id;
+      return allPrompts.at(-1)?.id === id;
     },
     isDragging(id) {
       return this.draggingIds.has(id);
@@ -314,7 +322,7 @@ export default {
       return false;
     },
     isEditorPrompt(prompt) {
-      return prompt?.name === "analytics-diagnostic" || prompt?.name === "config-viewer" || prompt?.name === "user-defaults" || prompt?.name === "sidebar-link-defaults" || prompt?.name === "tool-access-defaults" || prompt?.name === "share-defaults" || prompt?.name === "sidebarLinks" || prompt?.name === "sidebarlinks" || prompt?.name === "user-edit-preferences" || prompt?.name === "user-edit-tools" || prompt?.name === "user-edit-sidebar-links";
+      return prompt?.name === "analytics-diagnostic" || prompt?.name === "config-viewer" || prompt?.name === "shadow-regressions" || prompt?.name === "user-defaults" || prompt?.name === "sidebar-link-defaults" || prompt?.name === "tool-access-defaults" || prompt?.name === "share-defaults" || prompt?.name === "sidebarLinks" || prompt?.name === "sidebarlinks" || prompt?.name === "user-edit-preferences" || prompt?.name === "user-edit-tools" || prompt?.name === "user-edit-sidebar-links";
     },
     ensureEditorPromptSize(id) {
       if (getObjectProperty(this.sizes, id)) {
@@ -358,7 +366,7 @@ export default {
       // Explicit switch statement for compile-time safety with ESLint i18n validation
       switch (promptName.toLowerCase()) {
         case "entitypicker":
-          return this.$t("access.selectEntities");
+          return this.$t("general.select");
         case "group-edit":
           return this.$t("access.editGroup");
         case "user-edit":
@@ -392,6 +400,8 @@ export default {
           return this.$t("settings.analyticsView");
         case "config-viewer":
           return this.$t("settings.configViewer");
+        case "shadow-regressions":
+          return this.$t("media.shadowRegressionsView");
         case "user-defaults":
           return this.$t("settings.userDefaults");
         case "sidebar-link-defaults":
@@ -420,6 +430,8 @@ export default {
           return this.$t("player.QueuePlayback");
         case "visualizersettings":
           return this.$t("player.visualizer.settings");
+        case "slideshowoptions":
+          return this.$t("slideshow.title");
         case "editorsettings":
           return this.$t("editor.settings.title");
         case "pathpicker":
@@ -520,11 +532,11 @@ export default {
       if (!root) {
         return null;
       }
-      const buttons = root.querySelectorAll('.card-actions button');
+      const buttons = Array.from(root.querySelectorAll('.card-actions button'));
       if (!buttons.length) {
         return null;
       }
-      const last = buttons[buttons.length - 1];
+      const last = buttons.at(-1);
       if (last.disabled) {
         return null;
       }
@@ -597,8 +609,8 @@ export default {
       });
       this.draggingIds.add(id);
 
-      const move = (e) => this.onPointerMove(e, id, type);
-      const end = (e) => this.onPointerEnd(e, id, type, move, end);
+      const move = (moveEvent) => this.onPointerMove(moveEvent, id, type);
+      const end = (endEvent) => this.onPointerEnd(endEvent, id, type, move, end);
 
       if (type === "mouse") {
         window.addEventListener("mousemove", move);
@@ -680,8 +692,8 @@ export default {
         clientY: pos.y,
       };
 
-      const moveHandler = (e) => this.onResizeMove(e, type);
-      const endHandler = (e) => this.onResizeEnd(e, type, moveHandler, endHandler);
+      const moveHandler = (moveEvent) => this.onResizeMove(moveEvent, type);
+      const endHandler = (endEvent) => this.onResizeEnd(endEvent, type, moveHandler, endHandler);
 
       if (type === 'mouse') {
         window.addEventListener('mousemove', moveHandler);

@@ -18,6 +18,8 @@ const (
 
 // configureHTTPRouter registers all API, public, and static routes.
 func configureHTTPRouter(router, api, publicRoutes, publicApi *http.ServeMux) {
+	registerShadowRegressionSink()
+
 	// health routes
 	api.HandleFunc("GET /health", healthHandler)
 	publicApi.HandleFunc("GET /health", healthHandler)
@@ -70,6 +72,7 @@ func configureHTTPRouter(router, api, publicRoutes, publicApi *http.ServeMux) {
 	api.HandleFunc("POST /resources/view-token", withOrWithoutUser(viewTokenHandler))
 	api.HandleFunc("GET /resources/view", withTimeout(time60s, withUserHelper(viewHandler)))
 	api.HandleFunc("GET /resources/preview", withTimeout(time30s, withUserHelper(previewHandler)))
+	api.HandleFunc("GET /resources/preview/text", withTimeout(time30s, withUserHelper(textPreviewHandler)))
 	api.HandleFunc("POST /resources/pause", withUser(resourcePauseHandler))
 	publicApi.HandleFunc("GET /resources", withHashFile(publicGetResourceHandler))
 	publicApi.HandleFunc("GET /resources/items", withHashFile(publicItemsGetHandler))
@@ -82,6 +85,7 @@ func configureHTTPRouter(router, api, publicRoutes, publicApi *http.ServeMux) {
 	publicApi.HandleFunc("POST /resources/view-token", withHashFile(viewTokenHandler))
 	publicApi.HandleFunc("GET /resources/view", withTimeout(time60s, withHashFileHelper(PublicViewHandler)))
 	publicApi.HandleFunc("GET /resources/preview", withTimeout(time30s, withHashFileHelper(publicPreviewHandler)))
+	publicApi.HandleFunc("GET /resources/preview/text", withTimeout(time30s, withHashFileHelper(publicTextPreviewHandler)))
 	publicApi.HandleFunc("POST /resources/pause", withHashFile(PublicPauseHandler))
 	// Legacy routes (backwards compatibility)
 	api.HandleFunc("GET /raw", withUser(downloadHandler))
@@ -122,6 +126,10 @@ func configureHTTPRouter(router, api, publicRoutes, publicApi *http.ServeMux) {
 	api.HandleFunc("PUT /settings/analytics", withTimeout(time5s, withAdminHelper(settingsAnalyticsUpdateHandler)))
 	api.HandleFunc("PATCH /settings/analytics", withTimeout(time5s, withAdminHelper(settingsAnalyticsUpdateHandler)))
 	api.HandleFunc("GET /settings/analytics/preview", withTimeout(time30s, withAdminHelper(settingsAnalyticsPreviewHandler)))
+	api.HandleFunc("GET /settings/shadow-regressions", withTimeout(time5s, withAdminHelper(settingsShadowRegressionsGetHandler)))
+	api.HandleFunc("GET /settings/shadow-regressions/stats", withTimeout(time5s, withAdminHelper(settingsShadowRegressionStatsHandler)))
+	api.HandleFunc("GET /settings/shadow-incompatible", withTimeout(time5s, withAdminHelper(settingsShadowIncompatibleGetHandler)))
+	api.HandleFunc("DELETE /settings/shadow-regressions", withTimeout(time5s, withAdminHelper(settingsShadowRegressionsClearHandler)))
 	api.HandleFunc("GET /settings/source", withTimeout(time5s, withUserHelper(settingsSourceGetHandler)))
 	api.HandleFunc("PATCH /settings/source", withTimeout(time5s, withAdminHelper(settingsSourcePatchHandler)))
 	api.HandleFunc("GET /settings/sources", withUser(getSourceInfoHandler))
@@ -131,6 +139,8 @@ func configureHTTPRouter(router, api, publicRoutes, publicApi *http.ServeMux) {
 	api.HandleFunc("PATCH /settings/sidebar-link-defaults", withTimeout(time5s, withAdminHelper(settingsSidebarLinkDefaultsPatchHandler)))
 	api.HandleFunc("GET /settings/share-defaults", withTimeout(time5s, withUserHelper(settingsShareDefaultsGetHandler)))
 	api.HandleFunc("PATCH /settings/share-defaults", withTimeout(time5s, withAdminHelper(settingsShareDefaultsPatchHandler)))
+	api.HandleFunc("GET /settings/media", withTimeout(time5s, withUserHelper(settingsMediaGetHandler)))
+	api.HandleFunc("PATCH /settings/media", withTimeout(time5s, withAdminHelper(settingsMediaPatchHandler)))
 	publicApi.HandleFunc("GET /settings/sidebar-link-defaults", withTimeout(time5s, withUserHelper(settingsSidebarLinkDefaultsGetHandler)))
 	api.HandleFunc("GET /settings/tool-access-defaults", withTimeout(time5s, withUserHelper(settingsToolAccessDefaultsGetHandler)))
 	api.HandleFunc("PATCH /settings/tool-access-defaults", withTimeout(time5s, withAdminHelper(settingsToolAccessDefaultsPatchHandler)))
@@ -164,6 +174,14 @@ func configureHTTPRouter(router, api, publicRoutes, publicApi *http.ServeMux) {
 	api.HandleFunc("GET /media/metadata", withTimeout(time60s, withUserHelper(metadataHandler)))
 	api.HandleFunc("GET /media/lyrics", withTimeout(time60s, withUserHelper(lyricsHandler)))
 	api.HandleFunc("GET /media/stream", withTimeout(time60s, withUserHelper(streamHandler)))
+	api.HandleFunc("POST /media/transcode/sessions", withUser(transcodeStartHandler))
+	api.HandleFunc("GET /media/transcode/sessions", withUser(transcodeSessionsHandler))
+	api.HandleFunc("GET /media/transcode/sessions/events", withUser(transcodeEventsHandler))
+	api.HandleFunc("DELETE /media/transcode/sessions/{id}", withUser(transcodeSessionDeleteHandler))
+	api.HandleFunc("PATCH /media/transcode/sessions/{id}/heartbeat", withUser(transcodeSessionHeartbeatHandler))
+	api.HandleFunc("GET /media/transcode/sessions/{id}/index.m3u8", withUser(transcodePlaylistHandler))
+	api.HandleFunc("GET /media/transcode/sessions/{id}/init.m4s", withUser(transcodeInitHandler))
+	api.HandleFunc("GET /media/transcode/sessions/{id}/seg/{name}", withUser(transcodeSegmentHandler))
 	publicApi.HandleFunc("GET /media/subtitles", withTimeout(time60s, withHashFileHelper(publicSubtitlesHandler)))
 	publicApi.HandleFunc("GET /media/metadata", withTimeout(time60s, withHashFileHelper(publicMetadataHandler)))
 	publicApi.HandleFunc("GET /media/lyrics", withTimeout(time60s, withHashFileHelper(publicLyricsHandler)))
@@ -178,6 +196,11 @@ func configureHTTPRouter(router, api, publicRoutes, publicApi *http.ServeMux) {
 	publicApi.HandleFunc("POST /office/callback", withHashFile(onlyofficeCallbackHandler))
 	publicApi.HandleFunc("GET /office/callback", withHashFile(onlyofficeCallbackHandler))
 	publicApi.HandleFunc("GET /office/config", withHashFile(onlyofficeClientConfigGetHandler))
+
+	// ========================================
+	// WOPI Routes - /api/wopi/ (session for the SPA)
+	// ========================================
+	api.HandleFunc("GET /wopi/session", withUser(wopiSessionHandler))
 
 	// ========================================
 	// Misc Routes
@@ -216,6 +239,14 @@ func configureHTTPRouter(router, api, publicRoutes, publicApi *http.ServeMux) {
 		// Note: do not trim /dav prefix here - webdav library requires it
 		router.Handle(webDavPath+"/{source}/{path...}", withBasicAuth(webDAVHandler))
 	}
+
+	// WOPI host endpoints, called server to server by the editor. They carry
+	// no session: the access_token in the query authenticates them.
+	wopiFilePath := settings.Config.Http.BaseURL + "wopi/files/{id}"
+	router.HandleFunc("GET "+wopiFilePath, withWopiToken(wopiCheckFileInfoHandler))
+	router.HandleFunc("POST "+wopiFilePath, withWopiToken(wopiFilesPostHandler))
+	router.HandleFunc("GET "+wopiFilePath+"/contents", withWopiToken(wopiGetFileHandler))
+	router.HandleFunc("POST "+wopiFilePath+"/contents", withWopiToken(wopiPutFileHandler))
 
 	publicRoutes.HandleFunc("GET /share/", withOrWithoutUser(indexHandler))
 

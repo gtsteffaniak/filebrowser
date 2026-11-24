@@ -20,3 +20,6 @@ userDefaults:
     gallerySize: 3
   account:
     showAdvancedProfile: true
+integrations:
+  media:
+    skipHwCheck: true

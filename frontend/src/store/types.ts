@@ -15,7 +15,83 @@ export interface FileListItem {
   isShared?: boolean;
   pinned?: boolean;
   hidden?: boolean;
-  metadata?: unknown;
+  metadata?: MediaMetadata;
+}
+
+export interface InfoItem extends FileListItem {
+  subtitles?: SubtitleTrack[];
+  token?: string;
+  hash?: string;
+  onlyOfficeId?: string;
+}
+
+/** from backend utils.SubtitleTrack. */
+export interface SubtitleTrack {
+  name: string;
+  language?: string;
+  srclang?: string;
+  title?: string;
+  index?: number;
+  codec?: string;
+  embedded: boolean;
+}
+
+/** from backend iteminfo.MediaMetadata. */
+export interface MediaMetadata {
+  title?: string;
+  artist?: string;
+  album?: string;
+  year?: number;
+  genre?: string;
+  track?: number;
+  duration?: number;
+  videoCodec?: string;
+  audioCodec?: string;
+  container?: string;
+  albumArt?: string;
+  hasLyrics?: boolean;
+}
+
+export type QuotaMeter = "index_size" | "index_scope" | "accounted";
+export type QuotaUnit = "mb" | "gb";
+
+/** from backend web.folderQuotaResponse */
+export interface QuotaSnapshot {
+  limitBytes?: number;
+  usedBytes?: number;
+  reservedBytes?: number;
+  meter?: QuotaMeter;
+  configuredMeter?: QuotaMeter;
+  effectiveMeter?: QuotaMeter;
+  measurementStatus?: "ready" | "accounted_fallback";
+}
+
+export interface FolderQuota extends QuotaSnapshot {
+  source: string;
+  path: string;
+  limitBytes: number;
+}
+
+export type AccessRuleCategory = "user" | "group" | "all";
+
+/** from backend access.FrontendRuleSet */
+export interface AccessRuleSet {
+  users: string[];
+  groups: string[];
+}
+
+/** from backend access.FrontendAccessRule */
+export interface AccessRule {
+  denyAll?: boolean;
+  deny: AccessRuleSet;
+  allow: AccessRuleSet;
+  sourceDenyDefault: boolean;
+  pathExists: boolean;
+}
+
+/** List items have their position in `req.items` (by mutations.replaceRequest) */
+export interface fileListItemIndex extends FileListItem {
+  index: number;
 }
 
 export interface ReqObject {
@@ -38,12 +114,13 @@ export interface ReqObject {
   modified?: string;
   created?: string;
   hasPreview?: boolean;
-  subtitles?: unknown[];
+  subtitles?: SubtitleTrack[];
   viewToken?: string;
   parentDirItems?: FileListItem[];
   onlyOfficeId?: string;
   hasUpdate?: boolean;
-  metadata?: unknown;
+  isDir?: boolean;
+  metadata?: MediaMetadata;
 
   // Directory listing properties
   listing?: FileListItem[];
@@ -60,6 +137,7 @@ export interface ShareInfoObject {
   disableSidebar: boolean;
   isValid: boolean;
   shareType: string;
+  hasPassword?: boolean;
   title: string;
   description: string;
   viewMode?: string;
@@ -69,6 +147,7 @@ export interface ShareInfoObject {
   allowCreate?: boolean;
   allowReplacements?: boolean;
   allowDelete?: boolean;
+  canEditShare?: boolean;
   disableDownload?: boolean;
   showHidden?: boolean;
   quotaLimitBytes?: number;
@@ -214,17 +293,23 @@ export interface UserObject {
   stickySidebar: boolean;
   hideFilesInTree: boolean,
   deleteAfterArchive: boolean,
+  deleteWithoutConfirming?: boolean;
   locale: string;
   viewMode: string;
   showHidden: boolean;
+  disableSearchOptions?: boolean;
   scopes: UserScope[];
   permissions: Permissions;
-  darkMode: boolean;
+  /** Theme preference: "auto" (follow system), "dark", "light". Legacy booleans are tolerated. */
+  darkMode: boolean | "auto" | "dark" | "light";
   disableSettings: boolean;
   showAdvancedProfile?: boolean;
+  allowCustomShareURL?: boolean;
   debugOffice: boolean;
   preferEditorForMarkdown: boolean;
+  preferEditorForHtml: boolean;
   showCopyPath?: boolean;
+  showSelectMultiple?: boolean;
   showTypeColumn?: boolean;
   showCreationDateColumn?: boolean;
   hideFileExt?: string;
@@ -272,12 +357,16 @@ export interface UserObject {
 export interface RouteObject {
   name?: string | symbol | null | undefined;
   path?: string;
+  fullPath?: string;
   params?: unknown;
   query?: unknown;
 }
 
 export interface StoreState {
   disableEventThemes: boolean;
+  // Reactive snapshot of the OS color-scheme, so "auto" re-resolves when the
+  // system switches appearance. Kept in the reactive store on purpose.
+  systemDark: boolean;
   tooltip: {
     show: boolean;
     content: string;
@@ -293,10 +382,19 @@ export interface StoreState {
     source: string;
     path: string;
     isShare?: boolean;
+    returnTo?: string;
   } | null;
   contextMenuHasItems: boolean;
   deletedItem: boolean;
   pendingHighlight: { path: string; source?: string } | null;
+  searchResults: {
+    kind: "quick" | "advanced";
+    key?: string;
+    items: FileListItem[];
+    form?: Record<string, unknown>;
+    sorting?: { by: string; asc: boolean };
+    focus?: { source?: string; path: string };
+  } | null;
   showOverflowMenu: boolean;
   sessionId: string;
   isSafari: boolean;
@@ -310,6 +408,14 @@ export interface StoreState {
       newFileTemplate?: boolean;
     };
   };
+  /** Runtime media state for all UI (player, listings, previews); null until loaded. */
+  mediaSettings: {
+    enabled: boolean;
+    profiles: string[];
+    maxConcurrentPerUser: number;
+    /** Per image preview type (e.g. heic, jxl): conversion active on this server. */
+    imagePreview: Partial<Record<'heic' | 'jxl' | 'jpeg', boolean>>;
+  } | null;
   sidebarLinkDefaultsPolicy: {
     items?: Array<{
       enabled?: boolean;
@@ -354,7 +460,9 @@ export interface StoreState {
     size?: string;
     url?: string;
     modified?: string;
-    type?: "3d";
+    type?: "3d" | "text";
+    /** Text preview API URL, set when type is "text". */
+    textUrl?: string;
     fbdata?: {
       name: string;
       path: string;

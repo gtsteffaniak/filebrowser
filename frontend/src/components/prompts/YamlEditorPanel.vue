@@ -5,7 +5,7 @@
         ref="editor"
         :viewer-mode="true"
         :content="modelValue"
-        :editor-mode="'yaml'"
+        editor-mode="yaml"
         :read-only="false"
       />
     </div>
@@ -43,7 +43,11 @@ export default {
       default: false,
     },
   },
-  emits: ["update:modelValue", "apply", "cancel"],
+  emits: {
+    "update:modelValue": (text) => typeof text === "string",
+    apply: (text) => typeof text === "string",
+    cancel: () => true,
+  },
   data() {
     return {
       error: "",

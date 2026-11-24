@@ -325,7 +325,9 @@ export function registerSession(media, { source, path, wasInlineFullscreen = fal
     return;
   }
   if (session?.media && session.media !== media) {
-    detachSessionMediaLeaveListener(session.media);
+    // The previously adopted element keeps playing in the hidden host if only
+    // its listener is detached — fully retire it so it can't orphan audio.
+    retirePipMedia(session.media);
   }
   const key = resolvePipMediaKey(source, path);
   const playing = wasPlaying !== undefined ? wasPlaying : !media.paused;

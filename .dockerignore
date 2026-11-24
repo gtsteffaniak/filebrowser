@@ -9,9 +9,10 @@ backend/filebrowser.sqlite*
 backend/tmp
 backend/dist
 backend/backend*
-backend/internal/web/dist/**
 backend/vendor/**
+backend/internal/web/dist/*
+!backend/internal/web/dist/.gitkeep
 
-frontend/dist/**
+
 frontend/node_modules/**
 frontend/pkg/**

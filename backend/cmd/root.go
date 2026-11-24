@@ -9,14 +9,13 @@ import (
 	"syscall"
 	"time"
 
-	_ "net/http/pprof"
-
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/fileutils"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/analytics"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/app"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/icons"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/preview"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/state"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/transcoding"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/version"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/web"
@@ -51,6 +50,12 @@ func initializeDatabase(configFile string, cliMode bool) bool {
 	store, existingDb, err := state.Open(settings.Config.Server.DatabaseV2.Path)
 	if err != nil {
 		logger.Fatalf("could not initialize state: %v", err)
+	}
+	// state.Open applies persisted media settings, so initialize ffmpeg once here
+	// (before wiring, which reads Env.FFmpegAvailable) instead of during config
+	// load, which would run the multi-second hardware codec probe twice.
+	if !cliMode {
+		settings.InitFFmpeg()
 	}
 	runtimeApp, err = app.WireServices(store)
 	if err != nil {
@@ -87,14 +92,7 @@ func StartFilebrowser() {
 	done := make(chan struct{})             // Signals server has stopped
 	shutdownComplete := make(chan struct{}) // Signals shutdown process is complete
 
-	// Dev mode enables development features like template hot-reloading
-	_, err := os.Stat("internal/web/dist")
-	// In dev mode, always use filesystem assets. Otherwise, check if internal/web/dist exists
-	if !settings.Env.IsDevMode {
-		settings.Env.EmbeddedFs = os.IsNotExist(err)
-	}
-
-	err = utils.SetInvalidPasswordHash()
+	err := utils.SetInvalidPasswordHash()
 	if err != nil {
 		logger.Fatalf("Failed to set security hash: %v", err)
 	}
@@ -180,6 +178,13 @@ func StartFilebrowser() {
 		fileutils.ClearCacheDir(settings.Config.Server.CacheDir)
 	}
 	<-shutdownComplete
+	if transcodeMgr := transcoding.Default(); transcodeMgr != nil {
+		shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 30*time.Second)
+		if err := transcodeMgr.Close(shutdownCtx); err != nil {
+			logger.Warningf("transcode shutdown: %v", err)
+		}
+		shutdownCancel()
+	}
 	if err := fileutils.ClearDirectoryContents(settings.DownloadCacheDir()); err != nil {
 		logger.Warningf("failed to clear download spool on shutdown: %v", err)
 	}
@@ -194,14 +199,16 @@ func rootCMD(ctx context.Context, serverConfig *settings.Server, a *app.App, shu
 	numWorkers := settings.Config.Server.NumImageProcessors
 
 	// Initialize asset filesystem before starting services
-	if settings.Env.EmbeddedFs {
+	if !settings.Env.IsDevMode && web.EmbeddedFrontendAvailable() {
 		embeddedAssets := web.GetEmbeddedAssets()
-		subAssets, err := fs.Sub(embeddedAssets, "embed")
+		subAssets, err := fs.Sub(embeddedAssets, "dist")
 		if err != nil {
 			logger.Fatalf("Failed to create sub filesystem: %v", err)
 		}
+		settings.Env.EmbeddedFs = true
 		fileutils.InitAssetFS(subAssets, true, false)
 	} else {
+		settings.Env.EmbeddedFs = false
 		fileutils.InitAssetFS(nil, false, settings.Env.IsDevMode)
 	}
 
@@ -210,8 +217,6 @@ func rootCMD(ctx context.Context, serverConfig *settings.Server, a *app.App, shu
 	if err != nil {
 		logger.Fatalf("Error starting preview service: %v", err)
 	}
-	logger.Debugf("MuPDF Enabled            : %v", settings.Env.MuPdfAvailable)
-
 	// Generate PWA icons after preview service is initialized
 	if err := icons.GeneratePWAIcons(); err != nil {
 		logger.Warningf("Failed to generate PWA icons: %v", err)

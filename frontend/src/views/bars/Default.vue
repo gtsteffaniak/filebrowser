@@ -2,7 +2,7 @@
   <header v-if="!isOnlyOffice" :class="['flexbar']" :inert="overlayShown">
     <action
       v-if="!disableNavButtons"
-      class="nav-toggle-button"
+      class="nav-toggle-button button"
       icon="close_back"
       :label="$t('general.close')"
       :disabled="isDisabledMultiAction"
@@ -21,7 +21,7 @@
     <title v-if="!showSearch" class="topTitle">{{ getTopTitle }}</title>
     <action
       v-if="showHeaderSwitchView && !disableNavButtons"
-      class="menu-button"
+      class="menu-button button"
       :icon="viewIcon"
       :label="viewModeActionLabel"
       @action="switchView"
@@ -29,7 +29,7 @@
     />
     <template v-else>
       <action
-        class="overflow-menu-button"
+        class="overflow-menu-button button"
         :icon="iconName"
         :disabled="noItems || isSidebarFloating"
         @click="toggleOverflow"
@@ -39,11 +39,11 @@
 </template>
 
 <script>
-import { router } from "@/router";
-import { getters, state, mutations } from "@/store";
+import { router } from "@/router/index.ts";
+import { getters, state, mutations } from "@/store/index.ts";
 import Action from "@/components/Action.vue";
-import { globalVars } from "@/utils/constants";
-import { url } from "@/utils";
+import { globalVars } from "@/utils/constants.ts";
+import { url } from "@/utils/index.ts";
 
 export default {
   name: "UnifiedHeader",
@@ -80,7 +80,7 @@ export default {
       return regularDisabled || shareDisabled || uploadShare;
     },
     isOnlyOffice() {
-      return getters.currentView() === "onlyOfficeEditor";
+      return ["onlyOfficeEditor", "wopiEditor"].includes(getters.currentView());
     },
     isListingView() {
       return getters.currentView() === "listingView";
@@ -157,11 +157,8 @@ export default {
         mutations.closeSidebar();
         mutations.resetSelected();
         mutations.setSearch(true);
-        // this is hear to allow for animation
         setTimeout(() => {
-          const resultList = document.getElementById("result-list");
-          resultList.classList.add("active");
-          document.getElementById("search-input").focus();
+          document.querySelector("#search-input").focus();
         }, 100);
       }
     },
@@ -240,19 +237,28 @@ export default {
           return;
         }
         if (getters.isPreviewView()) {
-          if (state.previousHistoryItem?.name) {
-            url.goToItem(state.previousHistoryItem.source, state.previousHistoryItem.path, state.previousHistoryItem, false, state.previousHistoryItem.isShare);
+          const prev = state.previousHistoryItem;
+          // Consume the remembered item: leaving it set would send the next
+          // close back to this same file instead of its parent directory.
+          mutations.setPreviousHistoryItem(null);
+          if (prev?.name && !this.isCurrentPreviewItem(prev)) {
+            url.goToItem(prev.source, prev.path, prev, false, prev.isShare);
             return;
-          } else {
-            // navigate to parent directory of current url
-            const parentPath = url.removeLastDir(state.route.path);
-            void router.push({ path: parentPath });
           }
+          // navigate to parent directory of current url
+          const parentPath = url.removeLastDir(state.route.path);
+          void router.push({ path: parentPath });
           return;
         }
 
         router.go(-1);
       }
+    },
+    /** True when a remembered history item points at the file being previewed. */
+    isCurrentPreviewItem(item) {
+      const current = state.req;
+      if (!item?.path || !current?.path || item.returnTo) return false;
+      return item.source === current.source && item.path === current.path;
     },
     showSaveBeforeExitPrompt(onConfirmAction) {
       mutations.showPrompt({

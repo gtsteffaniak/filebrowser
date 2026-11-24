@@ -3,10 +3,9 @@
     @mousedown="mousedownStart" @mousemove="mouseMove" @mouseup="mouseUp" @wheel="wheelMove">
     <!-- Thumbnail placeholder (shown while full image loads, only if cached thumbnail exists) -->
     <img
-      v-if="cachedThumbnailUrl && !fullImageLoaded && !isTiff"
-      :src="cachedThumbnailUrl"
+      v-if="thumbnailSrc && !fullImageLoaded && !isTiff"
+      :src="thumbnailSrc"
       class="image-ex-img"
-      ref="thumbnail"
       aria-hidden="true"
     />
 
@@ -24,27 +23,27 @@
       ref="imgex"
       @load="onLoad"
       @error="onImageError"
-      :style="{ display: (cachedThumbnailUrl && !fullImageLoaded) ? 'none' : 'block' }"
+      :style="{ display: (thumbnailSrc && !fullImageLoaded) ? 'none' : 'block' }"
       aria-hidden="true"
     />
     <canvas
       v-else
       ref="imgex"
       class="image-ex-img"
-      :style="{ display: (cachedThumbnailUrl && !fullImageLoaded) ? 'none' : 'block' }"
+      :style="{ display: (thumbnailSrc && !fullImageLoaded) ? 'none' : 'block' }"
     ></canvas>
   </div>
 </template>
 
 <script>
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
-import { notify } from "@/notify";
-import { getters, mutations, state } from '@/store';
-import { globalVars } from "@/utils/constants";
-import { getBestCachedImage } from "@/utils/imageCache";
-import { isRawImageMimeType } from "@/utils/mimetype";
+import { notify } from "@/notify/index.ts";
+import { getters, mutations, state } from "@/store/index.ts";
+import { acquireBestCachedThumbnailBlob, getBestCachedImage, releaseThumbnailBlob } from "@/utils/cache/imageCache.ts";
+import { isRawImageMimeType } from "@/utils/mimetype.js";
+import { resourcesApi } from "@/api/index.js";
 import { refreshViewToken, requestViewIdentity } from "@/api/viewToken.js";
-import throttle from "@/utils/throttle";
+import throttle from "@/utils/throttle.js";
 
 export default {
   components: {
@@ -56,8 +55,14 @@ export default {
       default: null,
     },
   },
+  emits: {
+    "navigate-previous": () => true,
+    "navigate-next": () => true,
+    "close-preview": () => true,
+  },
   data() {
     return {
+      thumbBlobKey: null, // only read in lifecycle/sync code, never during render
       moveDisabledTime: 200,
       classList: [],
       zoomStep: 0.25,
@@ -102,6 +107,7 @@ export default {
       edgeRubberMax: 100,
       pinchActive: false,
       viewTokenRetried: false,
+      thumbBlobUrl: null, // blob of the cached thumbnail
       zoomTapStartX: 0,
       zoomTapStartY: 0,
       zoomTapMoved: false,
@@ -121,24 +127,63 @@ export default {
     isLoaded() {
       return !("preview-img" in (state?.loading || {}));
     },
-    cachedThumbnailUrl() {
+    isHeicOrHeif() {
+      const type = state.req?.type;
+      return type === "image/heic" || type === "image/heif";
+    },
+    /** Full-resolution source for the viewer (Safari HEIC/HEIF uses the native file, not size=original). */
+    fullImageSrc() {
+      if (!this.isHeicOrHeif || !state.isSafari || !state.req) {
+        return this.src;
+      }
+      const viewToken = state.req.viewToken;
+      const typeHint = state.req.type || state.req.name;
+      if (getters.isShare()) {
+        return resourcesApi.getViewURL(
+          state.req.source,
+          state.req.path,
+          viewToken,
+          {
+            path: state.shareInfo.subPath,
+            hash: state.shareInfo.hash,
+          },
+          false,
+          typeHint,
+        );
+      }
+      return resourcesApi.getViewURL(
+        state.req.source,
+        state.req.path,
+        viewToken,
+        null,
+        false,
+        typeHint,
+      );
+    },
+    // Cached preview thumbs (from listing's preview API) shown while the full image loads.
+    thumbnailLookup() {
       if (!state?.req) {
         return null;
       }
       if (!this.path || !state.req.hasPreview) {
         return null;
       }
-      // Don't use thumbnail when we show original embedded preview (HEIC/HEIF or raw)
-      const isHeicOrHeif = state.req?.type === "image/heic" || state.req?.type === "image/heif";
-      const useOriginalForHeic = isHeicOrHeif && (state.isSafari || (globalVars.mediaAvailable && globalVars.enableHeicConversion));
-      const useOriginalForRaw = isRawImageMimeType(state.req?.type);
-      if (useOriginalForHeic || useOriginalForRaw) {
+      const skipHeicThumbnail = this.isHeicOrHeif && !state.isSafari && state.req.hasPreview;
+      const skipRawThumbnail = isRawImageMimeType(state.req?.type);
+      if (skipHeicThumbnail || skipRawThumbnail) {
         return null;
       }
-      // Get cached thumbnail URL (prefers large, falls back to small)
       // For shares, use shareInfo.hash as the source; otherwise use this.source
       const source = getters.isShare() ? state.shareInfo?.hash : this.source;
-      return getBestCachedImage(source, this.path, state.req?.modified);
+      return { source, path: this.path, modified: state.req?.modified };
+    },
+    cachedThumbnailUrl() {
+      const lookup = this.thumbnailLookup;
+      return lookup ? getBestCachedImage(lookup.source, lookup.path, lookup.modified) : null;
+    },
+    // Prefer the blob over the URL
+    thumbnailSrc() {
+      return this.thumbBlobUrl || this.cachedThumbnailUrl;
     },
     navigationGestureAllowed() {
       return state.navigation.enabled && getters.currentPrompt() === null;
@@ -173,6 +218,9 @@ export default {
       return this.edgeDy >= this.edgeCommitY && ay >= ax;
     },
   },
+  created() {
+    this.syncThumbnailBlob();
+  },
   async mounted() {
     this.isTiff = this.checkIfTiff(this.src);
 
@@ -203,6 +251,8 @@ export default {
     }
   },
   beforeUnmount() {
+    this.dropThumbnailBlob();
+    mutations.setLoading("preview-img", false);
     // Clear any pending timeout
     if (this.loadTimeout) {
       clearTimeout(this.loadTimeout);
@@ -219,6 +269,26 @@ export default {
     document.removeEventListener("mouseup", this.onMouseUp);
   },
   methods: {
+    dropThumbnailBlob() {
+      if (this.thumbBlobKey) {
+        releaseThumbnailBlob(this.thumbBlobKey);
+        this.thumbBlobKey = null;
+      }
+      this.thumbBlobUrl = null;
+    },
+    /** Takes the cached thumbnail blob for the current image, if one is still held. */
+    syncThumbnailBlob() {
+      this.dropThumbnailBlob();
+      const lookup = this.thumbnailLookup;
+      if (!lookup) {
+        return;
+      }
+      const hit = acquireBestCachedThumbnailBlob(lookup.source, lookup.path, lookup.modified);
+      if (hit) {
+        this.thumbBlobKey = hit.key;
+        this.thumbBlobUrl = hit.blobUrl;
+      }
+    },
     syncNavigationGestureHintToStore() {
       let kind = null;
       let commitReady = false;
@@ -262,7 +332,8 @@ export default {
       }
     },
     async loadFullImage() {
-      if (!this.src) return;
+      const fullSrc = this.fullImageSrc;
+      if (!fullSrc) return;
       mutations.setLoading("preview-img", true);
 
       // Set src directly via JavaScript to avoid Vue's HTML entity encoding in template bindings
@@ -270,7 +341,7 @@ export default {
       await this.$nextTick();
       if (this.$refs.imgex && 'src' in this.$refs.imgex) {
         // Decode any HTML entities (Vue shouldn't encode props, but decode just in case)
-        const cleanSrc = String(this.src).replace(/&amp;/g, '&');
+        const cleanSrc = String(fullSrc).replace(/&amp;/g, '&');
         this.$refs.imgex.src = cleanSrc;
       }
     },
@@ -278,6 +349,7 @@ export default {
       // Step 3: Real image loaded - hide thumbnail and show image
       this.imageLoaded = true;
       this.fullImageLoaded = true;
+      this.dropThumbnailBlob();
       // Clear the timeout if image loaded successfully
       if (this.loadTimeout) {
         clearTimeout(this.loadTimeout);
@@ -455,7 +527,7 @@ export default {
           this.showDismissHint = false;
         } else {
           this.dragOffsetX = 0;
-          const downward = this.edgeDy > 0 ? this.edgeDy : 0;
+          const downward = Math.max(this.edgeDy, 0);
           this.dragOffsetY = this.rubberband(downward, this.edgeRubberMax);
           this.showDismissHint = this.edgeDy >= this.edgeHintPx;
           this.showNavHint = false;
@@ -479,7 +551,7 @@ export default {
         this.showDismissHint = false;
       } else {
         this.dragOffsetX = 0;
-        const downward = this.edgeDy > 0 ? this.edgeDy : 0;
+        const downward = Math.max(this.edgeDy, 0);
         this.dragOffsetY = this.rubberband(downward, this.edgeRubberMax);
         this.showDismissHint = this.edgeDy >= this.edgeHintPx;
         this.showNavHint = false;
@@ -743,7 +815,7 @@ export default {
 
         const p1 = event.targetTouches[0];
         const p2 = event.targetTouches[1];
-        const touchDistance = Math.sqrt((p2.pageX - p1.pageX) ** 2 + (p2.pageY - p1.pageY) ** 2);
+        const touchDistance = Math.hypot(p2.pageX - p1.pageX, p2.pageY - p1.pageY);
 
         if (!this.lastTouchDistance) {
           this.lastTouchDistance = touchDistance;
@@ -859,6 +931,7 @@ export default {
       this.fullImageLoaded = false;
       this.imageLoaded = false;
       this.isTiff = this.checkIfTiff(newSrc);
+      this.syncThumbnailBlob();
 
       // Cache check happens automatically via thumbnailUrl computed property
 

@@ -98,7 +98,7 @@ export function compareMetric(
 
   const delta = current - baseline.value;
   const deltaPct =
-    baseline.value !== 0 ? (delta / baseline.value) * 100 : current === 0 ? 0 : Infinity;
+    baseline.value !== 0 ? (delta / baseline.value) * 100 : current === 0 ? 0 : Number.POSITIVE_INFINITY;
 
   const base: Omit<MetricComparison, "status" | "detail"> = {
     key,

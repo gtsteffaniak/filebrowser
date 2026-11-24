@@ -3,9 +3,17 @@
 
 <head>
   <meta charset="utf-8">
+  {{- if .htmlVars.autoDarkMode }}
+  <!-- Default theme follows the system preference; resolve before first paint to avoid a flash -->
+  <script nonce="{{ .cspNonce }}">
+    if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      document.documentElement.classList.add("dark-mode");
+    }
+  </script>
+  {{- end }}
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover">
-  <title>"{{ .htmlVars.title }}"</title>
+  <title>{{ .htmlVars.title }}</title>
 
   <link rel="icon" type="image/png" sizes="256x256" href="{{ .htmlVars.favicon }}">
   <link rel="stylesheet" href="{{ .htmlVars.staticURL }}/css/variables.css">
@@ -82,7 +90,9 @@
 
 <body>
   <div id="app"></div>
-  <span class="loader loader--medium" aria-busy="true"><span class="loader__comet" aria-hidden="true"></span></span>
+  <span class="loader loader--medium" role="status" aria-live="polite" aria-label="Loading">
+    <span class="loader__comet" aria-hidden="true"></span>
+  </span>
 
   <script type="module" src="/src/main.ts"></script>
 

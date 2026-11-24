@@ -62,3 +62,7 @@ userDefaults:
 #office:
 #  url: "http://localhost:9052"
 #  secret: "6H1H7GzUk2alRkNxAPav0W02g8JS5oUd"
+
+integrations:
+  media:
+    skipHwCheck: true

@@ -26,7 +26,7 @@
   padding: 1em 0;
 }
 
-#main .spinner>div {
+#main .spinner > div {
   width: 0.8em;
   height: 0.8em;
   margin: 0 0.1em;
@@ -57,7 +57,11 @@
  * * * * * * * * * * * * * * * */
 .action {
   cursor: pointer;
-  transition: transform 0.2s ease, width 0.2s ease, height 0.2s ease, margin 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    width 0.2s ease,
+    height 0.2s ease,
+    margin 0.2s ease;
   border: 0;
   margin: 0;
   color: var(--textPrimary);
@@ -67,6 +71,40 @@
   vertical-align: middle;
   text-align: left;
   position: relative;
+  border-radius: var(--borderRadius);
+}
+
+/* Elements that are both an action and a button get flat button chrome.
+   .action would otherwise reset these after _buttons.css; every value is a
+   custom-property hook so themes restyle without fighting specificity. */
+.action.button {
+  padding: var(--button-padding-y, 0.5em) var(--button-padding-x, 1em);
+  background: var(--button-background, transparent);
+  color: var(--button-color, var(--textPrimary));
+  box-shadow: var(--button-shadow, none);
+  transition:
+    transform 0.2s ease,
+    width 0.2s ease,
+    height 0.2s ease,
+    margin 0.2s ease,
+    opacity 0.1s ease,
+    background-color 0.1s ease,
+    box-shadow 0.2s ease;
+}
+
+/* Material Symbols resets display/transition after _buttons.css; when the
+   icon itself is the button, keep button layout and merge transitions. */
+.material-symbols.button {
+  display: flex;
+  transition:
+    font-variation-settings 0.25s ease,
+    transform 0.2s ease,
+    width 0.2s ease,
+    height 0.2s ease,
+    margin 0.2s ease,
+    opacity 0.1s ease,
+    background-color 0.1s ease,
+    box-shadow 0.2s ease;
 }
 
 .action.disabled {
@@ -88,12 +126,15 @@
 button:hover,
 .action:hover,
 .listing-item.drag-hover {
-  box-shadow: inset 0 -3em 3em var(--hoverOverlay) !important;
-  transform: scale(1.02);
+  box-shadow: var(
+    --hover-shadow,
+    inset 0 -3em 3em var(--hoverOverlay)
+  ) !important;
+  transform: var(--hover-transform, scale(1.02));
 }
 
 .action:not(:disabled):hover {
-    background-color: rgb(0 0 0 / 12%);
+  background-color: var(--action-hover-background, rgb(0 0 0 / 12%));
 }
 
 .action .counter {
@@ -109,7 +150,7 @@ button:hover,
   height: 1.8em;
   text-align: center;
   line-height: 1.55em;
-  font-weight: bold;
+  font-weight: 700;
 }
 
 /* PREVIEWER */
@@ -190,7 +231,12 @@ button:hover,
   font-size: 1.3em;
 }
 
-#previewer .preview .info .preview-buttons .button--flat.preview-action--icon-only i {
+#previewer
+  .preview
+  .info
+  .preview-buttons
+  .button--flat.preview-action--icon-only
+  i {
   margin-bottom: 0;
 }
 
@@ -207,7 +253,7 @@ button:hover,
   margin-left: auto;
 }
 
-#previewer>button {
+#previewer > button {
   position: fixed;
   top: calc(50% + 1.85em);
   transform: translateY(-50%);
@@ -218,15 +264,18 @@ button:hover,
   border: 0;
   margin: 0;
   padding: 0;
-  transition: opacity 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+  transition:
+    opacity 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
 }
 
-#previewer>button.hidden {
+#previewer > button.hidden {
   opacity: 0;
   visibility: hidden;
 }
 
-#previewer>button:last-of-type {
+#previewer > button:last-of-type {
   right: 0.5em;
 }
 
@@ -271,7 +320,7 @@ button:hover,
 .search-entry.current-item .material-symbols-outlined,
 .queue-item:hover .material-symbols-outlined,
 .listing-item.context-item .material-symbols-outlined {
-  font-variation-settings: 'FILL' 1;
+  font-variation-settings: "FILL" 1;
 }
 
 .flat-right,
@@ -349,8 +398,14 @@ button.flat-right.flat-left,
 }
 
 /* Joined controls: input/button keeps full border; dropdown drops flat-side border */
-.form-flex-group > input.flat-right + .expand-dropdown.flat-left .expand-dropdown-anchor,
-.form-flex-group > .input.flat-right + .expand-dropdown.flat-left .expand-dropdown-anchor {
+.form-flex-group
+  > input.flat-right
+  + .expand-dropdown.flat-left
+  .expand-dropdown-anchor,
+.form-flex-group
+  > .input.flat-right
+  + .expand-dropdown.flat-left
+  .expand-dropdown-anchor {
   border-left-width: 0;
 }
 
@@ -377,7 +432,7 @@ button.flat-right.flat-left,
   padding: 0;
 }
 
-.form-flex-group>.form-compact {
+.form-flex-group > .form-compact {
   min-height: 2em;
   width: unset;
 }

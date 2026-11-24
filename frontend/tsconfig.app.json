@@ -12,7 +12,9 @@
     "composite": true,
     "strict": true,
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
-    "noEmit": true,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "outDir": "./node_modules/.tmp/app-types",
     "target": "ESNext",
     "module": "ESNext",
     "moduleResolution": "Bundler",
@@ -42,6 +44,8 @@
     "src/**/*.ts",
     "src/**/*.js",
     "src/**/*.d.ts",
-    "src/**/*.vue"
-  ]
+    "src/**/*.vue",
+    "src/i18n/**/*.json"
+  ],
+  "exclude": ["src/**/*.test.ts"]
 }

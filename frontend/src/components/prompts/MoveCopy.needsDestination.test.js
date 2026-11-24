@@ -21,6 +21,7 @@ vi.mock("@/utils/appNotifications", () => ({
   notifyOperationError: vi.fn(),
   notifyMoveCopyFailure: vi.fn(),
   extractMoveCopyErrorMessage: vi.fn(),
+  formatNotificationCount: vi.fn(),
 }));
 vi.mock("@/utils/notificationActions", () => ({ goToItemNotificationButton: vi.fn() }));
 vi.mock("@/components/LoadingSpinner.vue", () => ({ default: { render: () => null } }));
