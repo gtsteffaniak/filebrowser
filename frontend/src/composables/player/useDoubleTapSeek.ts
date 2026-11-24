@@ -53,6 +53,8 @@ export function useDoubleTapSeek({
     if (!surface || !player.value) return;
 
     const EDGE_CLICK_MS = 200;
+    const TAP_MAX_MOVE_PX = 14;
+    let touchStart: { id: number; x: number; y: number } | null = null;
 
     const peekNavChromeForEdgeTap = (clientX: number, zone: string) => {
       if (!state.navigation.enabled) {
@@ -138,6 +140,11 @@ export function useDoubleTapSeek({
       }
     };
 
+    const onTouchStart = (event: TouchEvent) => {
+      const t = event.touches.length === 1 ? event.touches[0] : null;
+      touchStart = t ? { id: t.identifier, x: t.clientX, y: t.clientY } : null;
+    };
+
     const onTouchEnd = (event: TouchEvent) => {
       if (gestures.longPressTriggered.value) {
         return;
@@ -154,8 +161,17 @@ export function useDoubleTapSeek({
         gestures.clearEdgeTapGestureState();
         return;
       }
+      const moved =
+        touchStart !== null &&
+        touchStart.id === t.identifier &&
+        Math.hypot(t.clientX - touchStart.x, t.clientY - touchStart.y) > TAP_MAX_MOVE_PX;
+      touchStart = null;
       if (isOverlaidButtonHit(t.clientX, t.clientY)) {
-        handleCenterTap(event);
+        if (moved) {
+          gestures.clearEdgeTapGestureState();
+        } else {
+          handleCenterTap(event);
+        }
         ignoreClickUntil = Date.now() + 500;
         return;
       }
@@ -166,7 +182,11 @@ export function useDoubleTapSeek({
         ignoreClickUntil = Date.now() + 500;
         return;
       }
-      handleCenterTap(event);
+      if (moved) {
+        gestures.clearEdgeTapGestureState();
+      } else {
+        handleCenterTap(event);
+      }
       ignoreClickUntil = Date.now() + 500;
     };
     let edgeClickToggleTimer: ReturnType<typeof setTimeout> | null = null;
@@ -224,11 +244,13 @@ export function useDoubleTapSeek({
       }
     };
 
+    surface.addEventListener('touchstart', onTouchStart, { passive: true });
     surface.addEventListener('touchend', onTouchEnd, { passive: false });
     surface.addEventListener('click', onClick);
     surface.addEventListener('dblclick', onDblClick);
 
     doubleTapSeekCleanup = () => {
+      surface.removeEventListener('touchstart', onTouchStart);
       surface.removeEventListener('touchend', onTouchEnd);
       surface.removeEventListener('click', onClick);
       surface.removeEventListener('dblclick', onDblClick);

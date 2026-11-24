@@ -563,7 +563,10 @@ export default {
       if (event.defaultPrevented) {
         return;
       }
-
+      const active = document.activeElement;
+      if (active?.tagName === 'BUTTON' && this.getPromptElement(top.id)?.contains(active)) {
+        return;
+      }
       const primary = this.findPrimaryActionButton(top.id);
       if (!primary) {
         return;

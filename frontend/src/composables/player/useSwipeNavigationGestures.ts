@@ -482,7 +482,11 @@ export function useSwipeNavigationGestures({
     }
 
     if (!swipeGesturesActive.value || event.touches.length !== 1) {
-      if (event.touches.length > 1) swipeActiveTouchId = null;
+      if (event.touches.length > 1) {
+        swipeActiveTouchId = null;
+        resetEdgeGestureImmediate();
+        return;
+      }
       if (edgeKind || edgeDx || edgeDy) {
         resetEdgeGestureImmediate();
       }
