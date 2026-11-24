@@ -10,6 +10,7 @@ const hoisted = vi.hoisted(() => ({
   needsTranscode: { value: false },
   results: [] as Array<{ ok: boolean; reason?: string }>,
   starts: [] as Array<Record<string, (...args: unknown[]) => unknown>>,
+  gate: null as Promise<void> | null,
 }));
 
 vi.mock("@/api/transcode.js", () => ({ getTranscodeSessions: vi.fn() }));
@@ -37,6 +38,7 @@ vi.mock("@/player/transcodePlaybackController.js", () => ({
     sessionController = null;
     start = vi.fn(async (params: Record<string, (...args: unknown[]) => unknown>) => {
       hoisted.starts.push(params);
+      await hoisted.gate;
       return hoisted.results.shift() ?? { ok: true };
     });
     teardownLocal = vi.fn();
@@ -87,6 +89,7 @@ describe("useTranscodePlayback start and offer ownership", () => {
     hoisted.needsTranscode.value = false;
     hoisted.results = [];
     hoisted.starts = [];
+    hoisted.gate = null;
   });
 
   describe("offer after a confirmed playback failure", () => {
@@ -185,6 +188,29 @@ describe("useTranscodePlayback start and offer ownership", () => {
       expect(transcode.transcodeMode.value).toBe("native");
       expect(transcode.transcodeOffer.value?.mode).toBe("offer");
       expect(hooks.onOfferShown).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe("mode requested during a standalone start", () => {
+    it("applies the newer mode and never writes the superseded start mode to the URL", async () => {
+      getSessions.mockResolvedValue({ sessions: [] });
+      const gate = deferred<void>();
+      hoisted.gate = gate.promise;
+      const { transcode } = setup();
+      const pending = transcode.startTranscodePlayback({ mode: "quality" });
+      await vi.waitFor(() => expect(hoisted.starts).toHaveLength(1));
+
+      void transcode.switchTranscodeMode("balanced");
+      hoisted.gate = null;
+      gate.resolve();
+      await pending;
+      await vi.waitFor(() => expect(hoisted.starts).toHaveLength(2));
+      await vi.waitFor(() => expect(transcode.transcodeSwitchInProgress.value).toBe(false));
+
+      expect(hoisted.starts.map((start) => start.mode)).toEqual(["quality", "balanced"]);
+      expect(transcode.transcodeMode.value).toBe("balanced");
+      const urlModes = replace.mock.calls.map(([to]) => (to as { query: { transcode?: string } }).query.transcode);
+      expect(urlModes).toEqual(["balanced"]);
     });
   });
 
