@@ -987,7 +987,7 @@ function applyCustomSettings(plyr: Plyr): void {
         captionSizeMenuInitialized = true;
       } else {
         captionSizeBtn.removeAttribute("hidden");
-        const title = getPlayerI18n(plyr)?.captionSize || "Caption size";
+        const title = getPlayerI18n(plyr)?.captionSize;
         const currentSize = getStoredCaptionSize();
         const currentSizeLabel = getCaptionSizeLabel(currentSize);
 
