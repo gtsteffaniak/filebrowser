@@ -98,13 +98,13 @@ type WebAuthnCredential struct {
 
 type AuthToken struct {
 	MinimalAuthToken
-	Key         string      `json:"key,omitempty"` // for backward compatibility
-	Token       string      `json:"token,omitempty"`
-	Name        string      `json:"name,omitempty"`
-	Username    string      `json:"username,omitempty"`
-	BelongsTo   uint64      `json:"belongsTo,omitempty"` // legacy stored metadata only, never trusted for auth; identity is always the hashed_tokens lookup
-	IssuedAt    int64       `json:"issuedAt,omitempty"`
-	ExpiresAt   int64       `json:"expiresAt,omitempty"`
+	Key       string `json:"key,omitempty"` // for backward compatibility
+	Token     string `json:"token,omitempty"`
+	Name      string `json:"name,omitempty"`
+	Username  string `json:"username,omitempty"`
+	BelongsTo uint64 `json:"belongsTo,omitempty"` // legacy stored metadata only, never trusted for auth; identity is always the hashed_tokens lookup
+	IssuedAt  int64  `json:"issuedAt,omitempty"`
+	ExpiresAt int64  `json:"expiresAt,omitempty"`
 	// Minimal distinguishes owner-inheriting tokens from customized caps. Nil means legacy (infer from stored permissions).
 	Minimal     *bool       `json:"minimal,omitempty"`
 	Permissions Permissions `json:"Permissions,omitempty"`
@@ -234,8 +234,10 @@ type Preview struct {
 type FrontendUser struct {
 	NonAdminEditable
 	DisableSettings bool `json:"disableSettings"`
-	// MaxConcurrentTranscodes is admin-set: it stays out of NonAdminEditable so a
-	// user cannot raise their own limit through a self-service PATCH.
+	// AllowCustomShareURL and MaxConcurrentTranscodes are admin-set: they stay out of
+	// NonAdminEditable so a user cannot grant themselves the capability through a
+	// self-service PATCH.
+	AllowCustomShareURL     bool                             `json:"allowCustomShareURL"`
 	MaxConcurrentTranscodes int                              `json:"maxConcurrentTranscodes"`
 	Username                string                           `json:"username"`
 	FrontendScopes          []FrontendScope                  `json:"scopes"`
@@ -339,6 +341,7 @@ type NonAdminEditable struct {
 	HideFilesInTree            bool                 `json:"hideFilesInTree"`            // hide files in the sidebar tree navigation, when true, will show only directories.
 	DeleteAfterArchive         bool                 `json:"deleteAfterArchive"`         // delete source files after successful creation/extraction of archives
 	PreferEditorForMarkdown    bool                 `json:"preferEditorForMarkdown"`    // prefer editor first for markdown files instead of the Markdown Viewer
+	PreferEditorForHtml        bool                 `json:"preferEditorForHtml"`        // prefer editor first for HTML files instead of the HTML viewer
 	PromptRightCloseButton     bool                 `json:"promptRightCloseButton"`     // show the prompts close button on the right
 	ShowFirstLogin             bool                 `json:"showFirstLogin"`
 	PasskeyCredentials         []WebAuthnCredential `json:"passkeyCredentials,omitempty"`

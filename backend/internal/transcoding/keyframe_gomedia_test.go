@@ -61,6 +61,9 @@ func TestGomediaKeyframesDefersCopyDecision(t *testing.T) {
 	if _, err := exec.LookPath("ffmpeg"); err != nil {
 		t.Skip("ffmpeg not installed")
 	}
+	if _, err := exec.LookPath("ffprobe"); err != nil {
+		t.Skip("ffprobe not installed")
+	}
 	path := filepath.Join(t.TempDir(), "longgop.mp4")
 	out, err := exec.Command("ffmpeg", "-v", "error", "-y", "-f", "lavfi", "-i", "testsrc2=size=128x96:rate=25:duration=40",
 		"-c:v", "libx264", "-g", "750", "-keyint_min", "750", "-sc_threshold", "0", "-pix_fmt", "yuv420p", path).CombinedOutput()
@@ -93,6 +96,9 @@ func TestGomediaKeyframesDefersTrailingGap(t *testing.T) {
 	}
 	if _, err := exec.LookPath("ffmpeg"); err != nil {
 		t.Skip("ffmpeg not installed")
+	}
+	if _, err := exec.LookPath("ffprobe"); err != nil {
+		t.Skip("ffprobe not installed")
 	}
 	path := filepath.Join(t.TempDir(), "short.mp4")
 	out, err := exec.Command("ffmpeg", "-v", "error", "-y", "-f", "lavfi", "-i", "testsrc2=size=128x96:rate=25:duration=4",

@@ -59,6 +59,18 @@
         :name="$t('profileSettings.showAdvancedProfile')"
         :description="$t('profileSettings.showAdvancedProfileDescription')"
       />
+      <ToggleSwitch
+        class="item"
+        :enforceable="enforceable"
+        :enforced="!!enforced.allowCustomShareURL"
+        :model-value="!!account.allowCustomShareURL"
+        @update:model-value="(v) => emitAccountChange('allowCustomShareURL', v)"
+        @update:enforced="(v) => emitEnforced('allowCustomShareURL', v)"
+        :disabled="isFieldDisabled('allowCustomShareURL')"
+        :value-tooltip="fieldDisabledTooltip('allowCustomShareURL')"
+        :name="$t('share.customHash')"
+        :description="$t('profileSettings.allowCustomShareURLDescription')"
+      />
       <div
         v-if="enforceable || account.maxConcurrentTranscodes !== undefined"
         class="settings-number-input item"

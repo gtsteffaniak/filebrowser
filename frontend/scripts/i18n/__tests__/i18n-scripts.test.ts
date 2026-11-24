@@ -47,8 +47,8 @@ describe("sync with a different shape in a locale", () => {
     for (const file of fs.readdirSync(dir)) fs.rmSync(path.join(dir, file));
   });
 
-  const run = (options: { enforceOrder?: boolean; cleanup?: boolean } = {}) =>
-    syncTranslations({ enforceOrder: false, cleanup: false, ...options });
+  const run = (options: { reorder?: boolean; cleanup?: boolean } = {}) =>
+    syncTranslations({ reorder: false, cleanup: false, ...options });
 
   describe("an object where en.json has a string", () => {
     beforeEach(() => {
@@ -66,8 +66,8 @@ describe("sync with a different shape in a locale", () => {
       expect(read("de.json")).toEqual({ general: {} });
     });
 
-    it("removes the obsolete subtree when enforcing the order", async () => {
-      expect(await run({ enforceOrder: true })).toBe(0);
+    it("removes the obsolete subtree when reordering", async () => {
+      expect(await run({ reorder: true })).toBe(0);
       expect(read("de.json")).toEqual({ general: {} });
     });
   });

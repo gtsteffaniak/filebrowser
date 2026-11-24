@@ -92,6 +92,13 @@ func NewSQLStoreWithOptions(dbPath string, opts NewSQLStoreOpts) (*SQLStore, boo
 		}
 	}
 
+	// The alias column and index are idempotent. Running them on every start keeps fresh
+	// databases (which skip migrations) and upgraded databases consistent.
+	if err = addShareAliasColumn(db); err != nil {
+		db.Close()
+		return nil, existingDb, err
+	}
+
 	store := &SQLStore{db: db}
 
 	logger.Debugf("SQLite database initialized at %s", dbPath)

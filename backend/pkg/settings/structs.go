@@ -25,51 +25,45 @@ type Settings struct {
 }
 
 type Http struct {
-	Socket            string   `json:"socket"`            // socket to listen on - eg. /var/run/filebrowser.sock
-	TLSKey            string   `json:"tlsKey"`            // path to TLS key
-	TLSCert           string   `json:"tlsCert"`           // path to TLS cert
-	Port              int      `json:"port"`              // port to listen on
-	ListenAddress     string   `json:"listen"`            // address to listen on (default: 0.0.0.0)
-	BaseURL           string   `json:"baseURL"`           // base URL for the server, the subpath that the server is running on.
-	ExternalUrl       string   `json:"externalUrl"`       // used by share links if set (eg. http://mydomain.com)
-	InternalUrl       string   `json:"internalUrl"`       // used by integrations if set, this is the base domain that an integration service will use to communicate with filebrowser (eg. http://localhost:8080)
-	DisableWebDAV     bool     `json:"disableWebDAV"`     // disable webdav support (default: false)
-	TrustProxyHeaders bool     `json:"trustProxyHeaders"` // honor X-Forwarded-* and X-Real-IP from a reverse proxy (default: false)
-	TrustedProxies    []string `json:"trustedProxies"`    // IPs/CIDRs of trusted proxies; forwarded client headers are only honored when the socket peer matches one of these (default: empty = forwarded headers ignored)
-	// UnixSocketTrustedUIDs and UnixSocketTrustedGIDs list peer credentials (Linux SO_PEERCRED) allowed to
-	// present X-Forwarded-* on a filesystem http.socket listener. When both are empty, peers are not trusted
-	// unless UnixSocketTrustAllLocalPeers is true (legacy; startup logs a warning). A GID allowlist trusts
-	// every peer with that GID, not only a single reverse-proxy process. Abstract sockets (@name) never trust
-	// forwarded headers.
-	UnixSocketTrustedUIDs        []int  `json:"unixSocketTrustedUIDs"`
-	UnixSocketTrustedGIDs        []int  `json:"unixSocketTrustedGIDs"`
-	UnixSocketTrustAllLocalPeers bool   `json:"unixSocketTrustAllLocalPeers"` // default false: set true to trust forwarded headers from any local filesystem socket peer when allowlists are empty
-	SocketFileMode               string `json:"socketFileMode"`               // octal mode for filesystem http.socket (default "0660"); ignored for abstract sockets
-	SocketGroup           string `json:"socketGroup"`      // optional group name or numeric gid for the socket file (filesystem sockets only)
-	DisableRateLimit      bool   `json:"disableRateLimit"` // turns off built-in auth route rate limiting and failed-login lockout (default false).
+	Socket                       string   `json:"socket"`                       // socket to listen on - eg. /var/run/filebrowser.sock
+	TLSKey                       string   `json:"tlsKey"`                       // path to TLS key
+	TLSCert                      string   `json:"tlsCert"`                      // path to TLS cert
+	Port                         int      `json:"port"`                         // port to listen on
+	ListenAddress                string   `json:"listen"`                       // address to listen on (default: 0.0.0.0)
+	BaseURL                      string   `json:"baseURL"`                      // base URL for the server, the subpath that the server is running on.
+	ExternalUrl                  string   `json:"externalUrl"`                  // used by share links if set (eg. http://mydomain.com)
+	InternalUrl                  string   `json:"internalUrl"`                  // used by integrations if set, this is the base domain that an integration service will use to communicate with filebrowser (eg. http://localhost:8080)
+	DisableWebDAV                bool     `json:"disableWebDAV"`                // disable webdav support (default: false)
+	TrustProxyHeaders            bool     `json:"trustProxyHeaders"`            // honor X-Forwarded-* and X-Real-IP from a reverse proxy (default: false)
+	TrustedProxies               []string `json:"trustedProxies"`               // IPs/CIDRs of trusted proxies; forwarded client headers are only honored when the socket peer matches one of these (default: empty = forwarded headers ignored)
+	UnixSocketTrustedUIDs        []int    `json:"unixSocketTrustedUIDs"`        // UnixSocketTrustedUIDs and UnixSocketTrustedGIDs list peer credentials (Linux SO_PEERCRED) allowed to
+	UnixSocketTrustedGIDs        []int    `json:"unixSocketTrustedGIDs"`        // present X-Forwarded-* on a filesystem http.socket listener. When both are empty, peers are not trusted unless UnixSocketTrustAllLocalPeers is true (legacy; startup logs a warning). A GID allowlist trusts every peer with that GID, not only a single reverse-proxy process. Abstract sockets (@name) never trust forwarded headers.
+	UnixSocketTrustAllLocalPeers bool     `json:"unixSocketTrustAllLocalPeers"` // default false: set true to trust forwarded headers from any local filesystem socket peer when allowlists are empty
+	SocketFileMode               string   `json:"socketFileMode"`               // octal mode for filesystem http.socket (default "0660"); ignored for abstract sockets
+	SocketGroup                  string   `json:"socketGroup"`                  // optional group name or numeric gid for the socket file (filesystem sockets only)
+	DisableRateLimit             bool     `json:"disableRateLimit"`             // turns off built-in auth route rate limiting and failed-login lockout (default false).
 }
 
 type Environment struct {
-	IsCLIMode                        bool     `json:"-"` // true when running a CLI subcommand (user set, promote, etc.)
-	IsPlaywright                     bool     `json:"-"`
-	IsDevMode                        bool     `json:"-"`
-	IsFirstLoad                      bool     `json:"-"` // used internally to track if this is the first load of the application
-	ConfigUserDefaultsSpecified      bool     `json:"-"` // true when the config file contained a userDefaults section
-	ConfigUserDefaultsSpecifiedPaths []string `json:"-"` // dot-paths explicitly set under userDefaults in config
-	ConfigMediaSpecifiedPaths        []string `json:"-"` // dot-paths explicitly set under integrations.media in config
-	// ConfigSourceDefaultPermissions maps permission flags explicitly set in config defaultPermissions (e.g. view -> true).
-	ConfigSourceDefaultPermissions map[string]bool `json:"-"`
-	EmbeddedFs                     bool            `json:"-"` // used internally if compiled with embedded fs support
-	FFmpegPath                     string          `json:"-"`
-	FFprobePath                    string          `json:"-"`
-	FFmpegAvailable                bool            `json:"-"`
-	HardwareAccelerationAvailable  bool            `json:"-"` // true when ffmpeg reports at least one usable hardware encoder
-	LoginIconPath                  string          `json:"-"` // resolved login icon path (filesystem or embedded)
-	LoginIconIsCustom              bool            `json:"-"` // true if login icon is from custom filesystem path
-	LoginIconEmbeddedPath          string          `json:"-"` // embedded asset path for default icon
-	FaviconPath                    string          `json:"-"` // resolved favicon path (filesystem or embedded)
-	FaviconIsCustom                bool            `json:"-"` // true if favicon is from custom filesystem path
-	FaviconEmbeddedPath            string          `json:"-"` // embedded asset path for default favicon
+	IsCLIMode                        bool            `json:"-"` // true when running a CLI subcommand (user set, promote, etc.)
+	IsPlaywright                     bool            `json:"-"`
+	IsDevMode                        bool            `json:"-"`
+	IsFirstLoad                      bool            `json:"-"` // used internally to track if this is the first load of the application
+	ConfigUserDefaultsSpecified      bool            `json:"-"` // true when the config file contained a userDefaults section
+	ConfigUserDefaultsSpecifiedPaths []string        `json:"-"` // dot-paths explicitly set under userDefaults in config
+	ConfigMediaSpecifiedPaths        []string        `json:"-"` // dot-paths explicitly set under integrations.media in config
+	ConfigSourceDefaultPermissions   map[string]bool `json:"-"`
+	EmbeddedFs                       bool            `json:"-"` // used internally if compiled with embedded fs support
+	FFmpegPath                       string          `json:"-"`
+	FFprobePath                      string          `json:"-"`
+	FFmpegAvailable                  bool            `json:"-"`
+	HardwareAccelerationAvailable    bool            `json:"-"` // true when ffmpeg reports at least one usable hardware encoder
+	LoginIconPath                    string          `json:"-"` // resolved login icon path (filesystem or embedded)
+	LoginIconIsCustom                bool            `json:"-"` // true if login icon is from custom filesystem path
+	LoginIconEmbeddedPath            string          `json:"-"` // embedded asset path for default icon
+	FaviconPath                      string          `json:"-"` // resolved favicon path (filesystem or embedded)
+	FaviconIsCustom                  bool            `json:"-"` // true if favicon is from custom filesystem path
+	FaviconEmbeddedPath              string          `json:"-"` // embedded asset path for default favicon
 }
 
 type Server struct {
@@ -170,11 +164,8 @@ func (o OnlyOffice) IsCollabora() bool {
 }
 
 type Media struct {
-	FfmpegPath string `json:"ffmpegPath"` // path to ffmpeg directory with ffmpeg and ffprobe (eg. /usr/local/bin)
-	// SkipHwCheck skips the ffmpeg hardware codec probe entirely (software-only).
-	// Config-only, not a runtime setting — advanced use, e.g. keeping the
-	// multi-second probe out of CI startup.
-	SkipHwCheck bool `json:"skipHwCheck"`
+	FfmpegPath  string `json:"ffmpegPath"`  // path to ffmpeg directory with ffmpeg and ffprobe (eg. /usr/local/bin)
+	SkipHwCheck bool   `json:"skipHwCheck"` // SkipHwCheck skips the ffmpeg hardware codec probe entirely (software-only).
 
 	// The fields below are deprecated and migrated to runtime (DB-backed) media settings on
 	// first run. They are kept only to seed the database from an existing config.yaml.
@@ -247,7 +238,7 @@ type TranscodeProfiles struct {
 
 // TranscodeProfile configures a single transcode quality preset.
 type TranscodeProfile struct {
-	Enabled        bool   `json:"enabled"`        // show this preset in the player menu (default: true)
+	Enabled        bool   `json:"enabled"`        // show this preset in the player menu (default: false)
 	MaxResolution  int    `json:"maxResolution"`  // maximum output height in pixels; 0 = original
 	AvgBitrateKbps int    `json:"avgBitrateKbps"` // average video bitrate in kbps; 0 = original
 	EncoderBackend string `json:"encoderBackend"` // encoder backend override; "" inherits transcode.encoderBackend
@@ -502,6 +493,7 @@ type UserDefaultsFileViewer struct {
 	DisableViewingExt       string `json:"disableViewingExt"`       // comma separated list of file extensions to disable viewing for
 	DisableOnlyOfficeExt    string `json:"disableOnlyOfficeExt"`    // list of file extensions to disable onlyoffice editor for
 	PreferEditorForMarkdown bool   `json:"preferEditorForMarkdown"` // prefer editor first for markdown files instead of the Markdown Viewer
+	PreferEditorForHtml     bool   `json:"preferEditorForHtml"`     // prefer editor first for HTML files instead of the HTML viewer
 	DebugOffice             bool   `json:"debugOffice"`             // debug onlyoffice editor
 }
 
@@ -513,9 +505,9 @@ type UserDefaultsSearch struct {
 // UserDefaultsUI holds UI/appearance settings
 type UserDefaultsUI struct {
 	DarkMode    users.DarkMode `json:"darkMode"`    // theme preference: "auto" (follow system), "dark", or "light"
-	ThemeColor  string `json:"themeColor"`  // theme color to use: eg. #ff0000, or var(--red), var(--purple), etc
-	CustomTheme string `json:"customTheme"` // Name of theme to use chosen from custom themes config
-	Locale      string `json:"locale"`      // language to use: eg. de, en, or fr
+	ThemeColor  string         `json:"themeColor"`  // theme color to use: eg. #ff0000, or var(--red), var(--purple), etc
+	CustomTheme string         `json:"customTheme"` // Name of theme to use chosen from custom themes config
+	Locale      string         `json:"locale"`      // language to use: eg. de, en, or fr
 
 }
 
@@ -528,6 +520,7 @@ type UserDefaultsAccount struct {
 	LoginMethod                string                         `json:"loginMethod,omitempty"`      // login method to use: eg. password, proxy, oidc
 	DisableUpdateNotifications bool                           `json:"disableUpdateNotifications"` // disable update notifications banner for admin users
 	ShowAdvancedProfile        bool                           `json:"showAdvancedProfile"`        // show advanced profile settings in the user profile page
+	AllowCustomShareURL        *bool                          `json:"allowCustomShareURL"`        // allow users to choose custom share URLs (default: false)
 	MaxConcurrentTranscodes    int                            `json:"maxConcurrentTranscodes"`    // per-user concurrent transcode sessions (default: 1)
 }
 

@@ -940,6 +940,7 @@ export const mutations = {
         "deleteWithoutConfirming",
         "promptRightCloseButton",
         "preferEditorForMarkdown",
+        "preferEditorForHtml",
         "disablePreviewExt",
         "disableViewingExt",
         "disableOnlyOfficeExt",

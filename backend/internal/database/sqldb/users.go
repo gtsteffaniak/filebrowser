@@ -16,13 +16,13 @@ import (
 type UserData struct {
 	Password string `json:"password,omitempty"`
 	// BackendScopes: persisted source access (Name = backend path). JSON key "scopes" is historical on-disk.
-	BackendScopes    []users.BackendScope       `json:"backendScopes"`
-	Tokens           map[string]users.AuthToken `json:"tokens,omitempty"`
-	TOTPSecret       string                     `json:"totpSecret,omitempty"`
-	TOTPNonce        string                     `json:"totpNonce,omitempty"`
-	LoginMethod      users.LoginMethod          `json:"loginMethod"`
-	OtpEnabled       bool                       `json:"otpEnabled"`
-	Version          int                        `json:"version"`
+	BackendScopes            []users.BackendScope                   `json:"backendScopes"`
+	Tokens                   map[string]users.AuthToken             `json:"tokens,omitempty"`
+	TOTPSecret               string                                 `json:"totpSecret,omitempty"`
+	TOTPNonce                string                                 `json:"totpNonce,omitempty"`
+	LoginMethod              users.LoginMethod                      `json:"loginMethod"`
+	OtpEnabled               bool                                   `json:"otpEnabled"`
+	Version                  int                                    `json:"version"`
 	ShowFirstLogin           bool                                   `json:"showFirstLogin"`
 	PinnedItems              users.PinnedItems                      `json:"pinnedItems,omitempty"`
 	Profile                  json.RawMessage                        `json:"profile,omitempty"`
@@ -108,12 +108,17 @@ func finishUserLoad(user *users.User, userDataJSON []byte) error {
 		if err := applyProfileSettingsOverlay(user, userData.Settings); err != nil {
 			return err
 		}
-	} else if len(userData.Settings) > 0 {
-		var legacySettings users.NonAdminEditable
-		if err := json.Unmarshal(userData.Settings, &legacySettings); err != nil {
-			return fmt.Errorf("parse legacy settings: %w", err)
+	} else {
+		// Records saved before profiles existed carry no account defaults, so they take the
+		// admin default instead of the zero value.
+		user.AllowCustomShareURL = settings.DefaultAllowCustomShareURL()
+		if len(userData.Settings) > 0 {
+			var legacySettings users.NonAdminEditable
+			if err := json.Unmarshal(userData.Settings, &legacySettings); err != nil {
+				return fmt.Errorf("parse legacy settings: %w", err)
+			}
+			user.NonAdminEditable = legacySettings
 		}
-		user.NonAdminEditable = legacySettings
 	}
 	if userData.Share {
 		user.Permissions.Share = true

@@ -450,7 +450,8 @@ export const getters = {
 
       if ('content' in state.req && isRichTextPreviewMimeType(state.req.type)) {
         const hash = window.location.hash;
-        const preferEditor = state.user.preferEditorForMarkdown;
+        const isHtml = isHtmlMimeType(state.req.type);
+        const preferEditor = isHtml ? state.user.preferEditorForHtml : state.user.preferEditorForMarkdown;
         const isMarkdown = state.req.type === 'text/markdown' || state.req.type === 'text/x-markdown';
 
         const canEdit = getters.sourcePermissions().modify || (getters.isShare() && state.shareInfo?.allowModify);
@@ -461,7 +462,7 @@ export const getters = {
           case '#edit': return canEdit ? 'editor' : 'markdownViewer';
           case '#preview': return 'markdownViewer';
         }
-        if (isMarkdown && preferEditor && canEdit) return 'editor';
+        if ((isMarkdown || isHtml) && preferEditor && canEdit) return 'editor';
         return 'markdownViewer';
       }
 
@@ -657,6 +658,7 @@ export const getters = {
       disableOfficePreviewExt: "",
       disablePreviewExt: "",
       preferEditorForMarkdown: false,
+      preferEditorForHtml: false,
       fileLoading: {
         maxConcurrent: 1,
         chunkSizeMb: 5,

@@ -1036,6 +1036,7 @@ func SetDefaults(generate bool) Settings {
 				DisableViewingExt:       "",
 				DisableOnlyOfficeExt:    ".md .txt .pdf .html .xml",
 				PreferEditorForMarkdown: false,
+				PreferEditorForHtml:     false,
 				DebugOffice:             false,
 			},
 			Search: UserDefaultsSearch{
@@ -1066,6 +1067,7 @@ func SetDefaults(generate bool) Settings {
 				LoginMethod:                "",
 				DisableUpdateNotifications: false,
 				ShowAdvancedProfile:        false,
+				AllowCustomShareURL:        boolPtr(false),
 				MaxConcurrentTranscodes:    1,
 			},
 		},

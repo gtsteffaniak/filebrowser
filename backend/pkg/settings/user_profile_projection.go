@@ -55,6 +55,7 @@ func ProfileFromUser(u *users.User) UserProfile {
 			DisableViewingExt:       u.DisableViewingExt,
 			DisableOnlyOfficeExt:    u.DisableOnlyOfficeExt,
 			PreferEditorForMarkdown: u.PreferEditorForMarkdown,
+			PreferEditorForHtml:     u.PreferEditorForHtml,
 			DebugOffice:             u.DebugOffice,
 		},
 		Search: UserDefaultsSearch{
@@ -73,6 +74,7 @@ func ProfileFromUser(u *users.User) UserProfile {
 			DisableSettings:            u.DisableSettings,
 			DisableUpdateNotifications: u.DisableUpdateNotifications,
 			ShowAdvancedProfile:        u.ShowAdvancedProfile,
+			AllowCustomShareURL:        boolPtr(u.AllowCustomShareURL),
 			MaxConcurrentTranscodes:    u.MaxConcurrentTranscodes,
 			Permissions: UserDefaultsAccountPermissions{
 				Api:      u.Permissions.Api,
@@ -94,6 +96,8 @@ func ExpandProfileIntoUser(u *users.User, p UserProfile) {
 	u.RequirePasswordChange = p.Account.RequirePasswordChange
 	u.DisableUpdateNotifications = p.Account.DisableUpdateNotifications
 	u.ShowAdvancedProfile = p.Account.ShowAdvancedProfile
+	// Profiles saved before this setting existed have no key; they keep custom share disabled (the default).
+	u.AllowCustomShareURL = boolValueOrDefault(p.Account.AllowCustomShareURL, false)
 	if p.Account.MaxConcurrentTranscodes > 0 {
 		u.MaxConcurrentTranscodes = p.Account.MaxConcurrentTranscodes
 	}
@@ -140,6 +144,7 @@ func ExpandProfileIntoUser(u *users.User, p UserProfile) {
 	u.DisableOnlyOfficeExt = p.FileViewer.DisableOnlyOfficeExt
 	u.DisableOfficePreviewExt = p.FileViewer.DisableOnlyOfficeExt
 	u.PreferEditorForMarkdown = p.FileViewer.PreferEditorForMarkdown
+	u.PreferEditorForHtml = p.FileViewer.PreferEditorForHtml
 	u.DebugOffice = p.FileViewer.DebugOffice
 
 	u.DisableSearchOptions = p.Search.DisableOptions
@@ -214,4 +219,10 @@ func normalizeLegacyUIDarkMode(profileJSON []byte) ([]byte, error) {
 // ProfileJSONFromUser returns JSON for SQLite user_data.profile.
 func ProfileJSONFromUser(u *users.User) ([]byte, error) {
 	return json.Marshal(ProfileFromUser(u))
+}
+
+// DefaultAllowCustomShareURL is the admin default for per-user custom share URLs (false when unset).
+// Used for stored users that have no profile yet, so they inherit the same default as new users.
+func DefaultAllowCustomShareURL() bool {
+	return boolValueOrDefault(Config.UserDefaults.Account.AllowCustomShareURL, false)
 }

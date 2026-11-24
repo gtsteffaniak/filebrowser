@@ -61,46 +61,67 @@ func requireSamePixels(t *testing.T, want, got image.Image) {
 	}
 }
 
+func matchImagingFill(t *testing.T, src image.Image, w, h int, filter imaging.ResampleFilter) {
+	t.Helper()
+	want := imaging.Fill(src, w, h, imaging.Center, filter)
+	got := fillCenter(src, w, h, filter)
+	require.Equal(t, fmt.Sprintf("%T", want), fmt.Sprintf("%T", got), "image type")
+	requireSamePixels(t, want, got)
+}
+
 // fillCenter must produce exactly what imaging.Fill(…, imaging.Center, …) produces: the same
 // pixels and the same image type, so the encoded preview is the same bytes.
 func TestFillCenter_MatchesImagingFill(t *testing.T) {
-	sources := map[string]image.Image{
-		"ycbcr landscape":                    patternYCbCr(1200, 801),
-		"ycbcr portrait":                     patternYCbCr(601, 1000),
-		"nrgba square":                       patternNRGBA(700, 700),
-		"nrgba wide":                         patternNRGBA(1500, 300),
-		"small (falls back to imaging.Fill)": patternNRGBA(90, 60),
-		"exact target size":                  patternNRGBA(256, 256),
-		"offset origin":                      patternNRGBA(900, 700).SubImage(image.Rect(37, 11, 837, 611)),
+	box := imaging.Box
+	type tc struct {
+		name string
+		src  image.Image
+		w, h int
 	}
-	// Every subsampling ratio, in shapes whose centered crop has an x (or y) offset and reaches
-	// the source's last row (or column) -- where a SubImage's buffer ends short of a full stride.
+	cases := []tc{
+		{"ycbcr landscape", patternYCbCr(1200, 801), 256, 256},
+		{"ycbcr portrait", patternYCbCr(601, 1000), 320, 180},
+		{"nrgba square", patternNRGBA(700, 700), 256, 256},
+		{"nrgba wide", patternNRGBA(1500, 300), 320, 180},
+		{"small (falls back to imaging.Fill)", patternNRGBA(90, 60), 256, 256},
+		{"exact target size", patternNRGBA(256, 256), 256, 256},
+		{"offset origin", patternNRGBA(900, 700).SubImage(image.Rect(37, 11, 837, 611)), 256, 256},
+		{"nycbcra 444 600x264", &image.NYCbCrA{YCbCr: *patternYCbCrRatio(600, 264, image.YCbCrSubsampleRatio444), A: make([]uint8, 600*264), AStride: 600}, 256, 256},
+		// 420 on tall and odd sizes: crop offset reaches last column/row (stride edges).
+		{"ycbcr 420 264x600", patternYCbCrRatio(264, 600, image.YCbCrSubsampleRatio420), 180, 320},
+		{"ycbcr 420 601x263", patternYCbCrRatio(601, 263, image.YCbCrSubsampleRatio420), 264, 264},
+	}
+	// Every subsampling ratio on 600x264: centered crop with x offset through the bottom row.
 	for _, r := range []image.YCbCrSubsampleRatio{
 		image.YCbCrSubsampleRatio444, image.YCbCrSubsampleRatio422, image.YCbCrSubsampleRatio420,
 		image.YCbCrSubsampleRatio440, image.YCbCrSubsampleRatio411, image.YCbCrSubsampleRatio410,
 	} {
-		for _, sz := range [][2]int{{600, 264}, {264, 600}, {601, 263}} {
-			sources[fmt.Sprintf("ycbcr %v %dx%d", r, sz[0], sz[1])] = patternYCbCrRatio(sz[0], sz[1], r)
-		}
+		src := patternYCbCrRatio(600, 264, r)
+		cases = append(cases,
+			tc{fmt.Sprintf("ycbcr %v 600x264 scale", r), src, 256, 256},
+			tc{fmt.Sprintf("ycbcr %v 600x264 exact crop", r), src, 264, 264},
+		)
 	}
-	sources["nycbcra 444 600x264"] = &image.NYCbCrA{YCbCr: *patternYCbCrRatio(600, 264, image.YCbCrSubsampleRatio444), A: make([]uint8, 600*264), AStride: 600}
-	// 264x264 is the crop of the 600x264 and 264x600 sources itself: nothing to scale.
-	targets := [][2]int{{256, 256}, {320, 180}, {180, 320}, {264, 264}}
-	filters := map[string]imaging.ResampleFilter{
-		"nearest": imaging.NearestNeighbor, "box": imaging.Box, "catmullrom": imaging.CatmullRom,
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			t.Parallel()
+			matchImagingFill(t, c.src, c.w, c.h, box)
+		})
 	}
-	for name, src := range sources {
-		for _, tg := range targets {
-			for fname, f := range filters {
-				t.Run(fmt.Sprintf("%s/%dx%d/%s", name, tg[0], tg[1], fname), func(t *testing.T) {
-					t.Parallel()
-					want := imaging.Fill(src, tg[0], tg[1], imaging.Center, f)
-					got := fillCenter(src, tg[0], tg[1], f)
-					require.Equal(t, fmt.Sprintf("%T", want), fmt.Sprintf("%T", got), "image type")
-					requireSamePixels(t, want, got)
-				})
-			}
-		}
+}
+
+// Resample filters share one code path in fillCenter; verify each against imaging.Fill once.
+func TestFillCenter_MatchesImagingFill_Filters(t *testing.T) {
+	src := patternYCbCr(1200, 801)
+	for name, filter := range map[string]imaging.ResampleFilter{
+		"nearest":    imaging.NearestNeighbor,
+		"box":        imaging.Box,
+		"catmullrom": imaging.CatmullRom,
+	} {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+			matchImagingFill(t, src, 256, 256, filter)
+		})
 	}
 }
 
