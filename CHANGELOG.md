@@ -48,6 +48,8 @@ All notable changes to this project will be documented in this file. For commit 
  - UPX compression is removed from release builds.
  - A `filebrowser-gpu` image is published alongside the main and slim images (amd64, hardware-accelerated ffmpeg).
  - Previews (thumbnails, popup, and text previews) are no longer requested for sources the user does not have view access to.
+ - [docker] new filebrowser-gpu image for docker deployments with gpu devices available. Works for nvidia, AMD, Intel.
+ - [docker] ffmpeg upgraded to version 9.1
 
  **Bug Fixes**:
  - Closing a video preview from the header bar now stops playback immediately instead of leaving audio running in the background.

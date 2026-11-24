@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.4
-FROM gtstef/ffmpeg:9.0.2 AS ffmpeg
+FROM gtstef/ffmpeg:9.1 AS ffmpeg
 FROM golang:alpine AS base
 ARG VERSION
 ARG REVISION
