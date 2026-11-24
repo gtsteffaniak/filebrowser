@@ -48,15 +48,19 @@ export default {
     async saveLinks({ links, showToolsInSidebar }) {
       try {
         if (this.context === "share") {
-          const payload = {
-            hash: this.shareData.hash,
-            sidebarLinks: links,
-          };
+          const hash = this.shareData?.hash;
+          // Share Defaults and unsaved new shares persist sidebar links through their parent form.
+          if (hash && hash !== "share-defaults" && hash !== "new") {
+            const payload = {
+              hash,
+              sidebarLinks: links,
+            };
 
-          await shareApi.create(payload);
+            await shareApi.create(payload);
+          }
 
           eventBus.emit("shareSidebarLinksUpdated", {
-            hash: this.shareData.hash,
+            hash,
             sidebarLinks: links,
           });
         } else {
