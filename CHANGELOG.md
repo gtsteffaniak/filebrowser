@@ -37,11 +37,19 @@ All notable changes to this project will be documented in this file. For commit 
     - Closing a preview opened from quick or advanced search returns to the results and scrolls to the item like the normal listing (#3275).
     - Advanced search now has almost all the features of the normal listing, including rectangle selection, keyboard navigation, etc (#3299).
     - Quick search results use natural ordering.
+    - Optional FTS5 trigram index for faster name search via `server.indexSqlConfig.fts5: true` (default `false`; ~40% slower indexing and ~15% larger index DB). Quick search is debounced and cancels in-flight queries (#3146) (#3137).
+    - Type, file, and date filters can run without a search term. There is no minimum query length; results are capped at 5,000 (#3445).
     - Listings now are cached (with a cap) allowing a more responsive navigation between folders (#3193).
+  - File Info is tabbed (details, media, quota, access, checksums). The Media Info tab shows album, lyrics, subtitles, and tags; videos use embedded artwork as poster/session art, and MP4/M4V/MOV tags and cover art are read in the backend. Access rules can be edited from Info (#3364).
+  - Right-click a breadcrumb for Info, copy page URL, copy WebDAV URL (when enabled), and copy path (#3428) (#3022).
+  - Upload prompt shows overall progress for multi-file uploads: files done/total, failures, speed, and time remaining (#3399) (#3398) (#2340).
   - Upload and download prompts list is reversed (#2998) (#3328).
+  - Theme preference is Follow system / Light / Dark. Follow system tracks the OS `prefers-color-scheme` live; legacy boolean `darkMode` still loads (#3297).
   - Replaced `indented soft wrap` editor setting by a dropdown with more wrap settings (#3183) (#3282).
-  - Specify custom share URI is possible when user account settings are enabled via `userDefaults.Account.allowCustomShareURL: true` (default `false`). default generated hash values for a share will still work after creating a custom one.
-  - Slideshow when browsing a picture folder (#3339)
+  - Option in settings to prefer editor first for HTML files, matching the existing Markdown option (#3431) (#3363).
+  - Finnish (Suomi) translation (#3400).
+  - Specify custom share URI is possible when user account settings are enabled via `userDefaults.Account.allowCustomShareURL: true` (default `false`). default generated hash values for a share will still work after creating a custom one (#3416) (#3439) (#841).
+  - Slideshow for images and videos in a folder, with duration, fade, fit/fill, shuffle, loop, Ken Burns, include subfolders (with a max-item cap), fullscreen, filename overlay, and play-videos-to-end (#3445) (#3339)
 
  **Notes**:
  - Core web assets are loaded into memory instead of served from disk.
@@ -51,6 +59,8 @@ All notable changes to this project will be documented in this file. For commit 
  - Previews (thumbnails, popup, and text previews) are no longer requested for sources the user does not have view access to.
  - [docker] new filebrowser-gpu image for docker deployments with gpu devices available. Works for nvidia, AMD, Intel.
  - [docker] ffmpeg upgraded to version 9.1
+ - [docker] filebrowser minimal image no longer published.
+ - Admin-only Shadow Regressions viewer compares go-media vs ffmpeg preview outcomes during the v2.2.x beta; it is not intended for stable (#3414).
 
  **Bug Fixes**:
  - Closing a video preview from the header bar now stops playback immediately instead of leaving audio running in the background.
@@ -73,6 +83,50 @@ All notable changes to this project will be documented in this file. For commit 
  - Doing actions in the main list/adv search, like move, copy, delete, or create a new file no longer reloads the entire listing, now updates in place and doesn't lost the position you were browsing at (#3193).
  - Uploading lot of files freezing the UI for a few seconds (#3321).
  - Directory uploads are prioritized, and files wait until their parent is ready (#3221).
+
+## v2.1.6
+
+ **Security**:
+ - [High] Archive extraction now bounds symlink target resolution under the extract destination and rejects absolute or `..` link text, including chained symlinks created during the same extract, closing a follow-up escape path related to GHSA-jg32-ppcc-ph62 (#3404) (#3384)
+
+ **Bug Fixes**:
+ - fix(utils): `IsTextFile` reads only an 8KB sample instead of the whole file, avoiding excessive memory use when classifying large files for the editor, file watcher, and subtitle checks (#3405) (#3395)
+ - fix(frontend): shows per-user scope quota (used vs cap) when a scope quota is configured (#3406) (#3402)
+ - fix: custom themes apply immediately after login. (#3418) (#3375) (#2953)
+ - fix: single-file downloads from shared items start without a format (#3420) (#3412)
+ - fix: 3D model previews resolve related assets such as textures and material files from the same source, reusing the source-scoped token for all assets (#3423) (#3410)
+
+## v2.1.5
+
+ **Security**:
+ - [High] Server-side archive create (`POST /api/resources/archive`) now resolves the full destination path for writes via symlink-scoped mutation resolution, closing arbitrary host file overwrite through an in-scope symlink leaf (GHSA-jg32-ppcc-ph62) reporter @manus-use
+ - [Moderate] `GET /api/media/subtitles` no longer follows symlink external subtitle sidecars beside the video file, and public share requests resolve sidecar paths under the share prefix before read (GHSA-hfvf-2639-p2mq) reporter @manus-use
+ - [Moderate] Directory motion-preview now resolves symlinked children within the caller's scope, closing the incomplete GHSA-g2q5 remediation path through `getDirectoryPreview` (GHSA-2546-vf4j-vh9v) reporter @manus-use
+ - [Moderate] RealPathCache entries for affected index paths are invalidated after symlink-scoped mutations so stale resolved paths cannot bypass containment on subsequent create, write, delete, or move operations (GHSA-j764-qg3m-rhv7 follow-up, #3381)
+ - [Moderate] File watcher, download, view, upload, copy, and WebDAV now enforce per-path access rules on symlink-resolved targets, so DENY rules and scope boundaries cannot be bypassed via a link inside an allowed folder (GHSA-823x-gh7f-grmf) reporters @ch4rlesexe @manus-use @zohuyhieuzo03
+
+ **New Features**:
+ - feat(cache): add server.cacheDirMaxSizeMB to cap the preview cache size (#3314)
+ - Square image previews: avoid the full-resolution crop copy in imaging.Fill (#3340)
+
+ **Bug Fixes**:
+ - fix(http): Unix socket hardening — default `http.socketFileMode` is `0660`; the socket is created under a restrictive umask and then `chmod`/`chown` apply your configured mode; on filesystem sockets, forwarded headers require `http.unixSocketTrustedUIDs` and/or `http.unixSocketTrustedGIDs`, with `http.unixSocketTrustAllLocalPeers: true` as an explicit opt-in for pre-#3309 trust-all behavior (startup warning) (#3309)
+ - fix(users): save the prompt close button and new file templates when editing a user (#3342) (#3323)
+ - fix(upload): serialize directory creation before uploading files (#3321)
+ - fix(preview): open RAW, HEIC and rendered documents in the viewer when previews are disabled (#3313)
+ - fix(users): keep requested profile values when creating a user
+ - fix advanced user toggle duplicate (#3353) (#3324)
+ - fix(upload): don't pause while the server saves, and make the stall timeout a setting (#3346)
+ - fix(preview): respect EXIF orientation on embedded JPEG thumbnails (#3358)
+ - fix(picker): open the parent folder on a single click (#3355)
+ - fix(users): show password-change requirement in edit preferences (#3354)
+ - fix(sidebar): keep source selector stationary during horizontal tree scrolling (#3368)
+ - fix(http): restore Unix socket reverse-proxy behavior after #3309 hardening (#3365)
+ - fix(share): file checksum generation on public shares uses `GET /public/api/resources?checksum=…` with the share hash and session cookie; anonymous visitors receive 401 and no longer see the checksum section in the file info dialog (#3360)
+
+ **Upgrade notes** (Unix socket listeners):
+ - If you listen on a filesystem `http.socket` with `http.trustProxyHeaders: true`, set `http.unixSocketTrustedUIDs` and/or `http.unixSocketTrustedGIDs` to the UID/GID(s) from Linux peer credentials (`SO_PEERCRED`) that may set `X-Forwarded-*`. A GID allowlist trusts every peer with that GID (for example when the proxy and FileBrowser share a group), not only one process. If you relied on empty allowlists before, set `http.unixSocketTrustAllLocalPeers: true` (a warning is logged).
+ - Default `http.socketFileMode` is `0660`; use optional `http.socketGroup` when the proxy runs as another user in the same group.
 
 ## v2.1.4
 
