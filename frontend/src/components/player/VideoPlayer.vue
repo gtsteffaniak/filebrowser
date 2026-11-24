@@ -134,7 +134,6 @@ import {
 import { enableVideoLoadingIndicator } from "@/player/videoLoading.js";
 import { getters, state } from "@/store/index.ts";
 import type { FileListItem, SubtitleTrack as FileSubtitleTrack } from "@/store/types.ts";
-import { parseTranscodeModeFromQuery } from "@/utils/playbackQuery.js";
 import { getSubtitleFormatExtension } from "@/utils/subtitles.js";
 
 interface VideoFile extends PlayerFile {
@@ -518,19 +517,6 @@ watch(
     }
   },
   { deep: true },
-);
-watch(
-  () => route.query,
-  (newQuery, oldQuery) => {
-    const urlTranscode = parseTranscodeModeFromQuery(newQuery);
-    const oldUrlTranscode = parseTranscodeModeFromQuery(oldQuery);
-    if (urlTranscode !== oldUrlTranscode) {
-      const requestedMode = urlTranscode || "native";
-      if (requestedMode !== transcodeMode.value) {
-        void switchTranscodeMode(requestedMode);
-      }
-    }
-  },
 );
 watch(transcodeSwitchInProgress, (val) => setTranscodeModeMenuDisabled(val));
 watch(transcodeMode, updateTranscodeModeMenuSelection);

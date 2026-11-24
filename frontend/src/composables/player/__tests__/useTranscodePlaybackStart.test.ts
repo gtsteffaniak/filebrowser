@@ -1,6 +1,6 @@
 import type Plyr from "plyr";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { ref, shallowRef } from "vue";
+import { nextTick, reactive, ref, shallowRef } from "vue";
 import { getTranscodeSessions } from "@/api/transcode.js";
 import { router } from "@/router/index.ts";
 import { useTranscodePlayback } from "../useTranscodePlayback.ts";
@@ -61,7 +61,12 @@ function deferred<T>() {
   return { promise, resolve };
 }
 
-function setup({ query = {}, player = null, video = null }: { query?: Record<string, string>; player?: unknown; video?: HTMLVideoElement | null } = {}) {
+function setup({
+  query = {},
+  player = null,
+  video = null,
+  route,
+}: { query?: Record<string, string>; player?: unknown; video?: HTMLVideoElement | null; route?: { query: Record<string, string>; path: string; hash: string } } = {}) {
   const hooks = { onOfferShown: vi.fn(), onPlaybackStart: vi.fn(), onModeMenuChange: vi.fn() };
   const { result } = withSetup(() =>
     useTranscodePlayback({
@@ -69,7 +74,7 @@ function setup({ query = {}, player = null, video = null }: { query?: Record<str
       shouldAutoplay: ref<boolean>(false),
       getReq: () => REQ,
       getRaw: () => "/raw/a.mp4",
-      getRoute: () => ({ query, path: "/files/a.mp4", hash: "" }) as never,
+      getRoute: () => (route ?? { query, path: "/files/a.mp4", hash: "" }) as never,
       getVideoElement: () => video,
       getPlaybackMedia: () => video,
       getNativePlay: () => null,
@@ -191,26 +196,36 @@ describe("useTranscodePlayback start and offer ownership", () => {
     });
   });
 
-  describe("mode requested during a standalone start", () => {
-    it("applies the newer mode and never writes the superseded start mode to the URL", async () => {
+  describe("route change during a standalone start", () => {
+    it("ends on the newer mode in the state and the URL once the route settles", async () => {
       getSessions.mockResolvedValue({ sessions: [] });
+      const route = reactive({ query: {} as Record<string, string>, path: "/files/a.mp4", hash: "" });
+      replace.mockImplementation((async (to: { query: Record<string, string> }) => {
+        await new Promise<void>((resolve) => {
+          setTimeout(resolve, 0);
+        });
+        route.query = to.query;
+      }) as never);
       const gate = deferred<void>();
       hoisted.gate = gate.promise;
-      const { transcode } = setup();
+      const { transcode } = setup({ route });
       const pending = transcode.startTranscodePlayback({ mode: "quality" });
       await vi.waitFor(() => expect(hoisted.starts).toHaveLength(1));
 
-      void transcode.switchTranscodeMode("balanced");
+      route.query = { transcode: "balanced" };
+      await nextTick();
       hoisted.gate = null;
       gate.resolve();
       await pending;
       await vi.waitFor(() => expect(hoisted.starts).toHaveLength(2));
       await vi.waitFor(() => expect(transcode.transcodeSwitchInProgress.value).toBe(false));
+      await new Promise<void>((resolve) => {
+        setTimeout(resolve, 20);
+      });
 
       expect(hoisted.starts.map((start) => start.mode)).toEqual(["quality", "balanced"]);
       expect(transcode.transcodeMode.value).toBe("balanced");
-      const urlModes = replace.mock.calls.map(([to]) => (to as { query: { transcode?: string } }).query.transcode);
-      expect(urlModes).toEqual(["balanced"]);
+      expect(route.query.transcode).toBe("balanced");
     });
   });
 

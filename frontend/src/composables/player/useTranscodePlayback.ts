@@ -1,5 +1,5 @@
 import type Plyr from "plyr";
-import { computed, nextTick, ref, type Ref, type ShallowRef } from "vue";
+import { computed, nextTick, ref, type Ref, type ShallowRef, watch } from "vue";
 import type { RouteLocationNormalizedLoaded } from "vue-router";
 import { getTranscodeSessions } from "@/api/transcode.js";
 import { getCachedViewToken } from "@/api/viewToken.js";
@@ -1386,6 +1386,20 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
     transcodeOfferEmitted = false;
     transcodeFallbackAttempted = false;
   }
+
+  watch(
+    () => getRoute().query,
+    (newQuery, oldQuery) => {
+      const urlTranscode = parseTranscodeModeFromQuery(newQuery);
+      if (urlTranscode === parseTranscodeModeFromQuery(oldQuery)) {
+        return;
+      }
+      const requestedMode = urlTranscode || "native";
+      if (requestedMode !== transcodeMode.value) {
+        void switchTranscodeMode(requestedMode);
+      }
+    },
+  );
 
   return {
     // state
