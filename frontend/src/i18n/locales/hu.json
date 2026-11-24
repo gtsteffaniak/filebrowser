@@ -1028,6 +1028,9 @@
     "toggleLyrics": "Dalszöveg be/ki",
     "closePanel": "Panel bezárása",
     "openPanel": "Panel megnyitása",
+    "fullscreen": "Teljes képernyős mód",
+    "exitFullscreen": "Kilépés a teljes képernyős módból",
+    "startFullscreen": "Teljes képernyős módban indítás",
     "transcodeFailed": "A kódátalakítás sikertelen volt",
     "transcodeLoading": "Transzkódolt adatfolyam előkészítése",
     "transcodeUnsupportedFormat": "A böngésződ nem támogatja ezt a videóformátumot.",
@@ -1279,5 +1282,32 @@
   },
   "pwa": {
     "install": "Alkalmazás telepítése"
+  },
+  "slideshow": {
+    "title": "Diavetítés beállításai",
+    "start": "Diavetítés indítása",
+    "duration": "Másodperc/dia",
+    "durationDescription": "Mennyi ideig marad egy-egy kép a képernyőn. A videók esetében ez csak akkor érvényes, ha a „lejátszás a végéig” beállítás ki van kapcsolva.",
+    "shuffle": "Véletlenszerű sorrend",
+    "loop": "Hurok a befejezés után",
+    "kenBurns": "Képmozgatás és nagyítás",
+    "playVideosToEnd": "A videókat nézd végig",
+    "playVideosToEndDescription": "Ne a diák megjelenési ideje után, hanem az egyes videók befejezése után lépj tovább.",
+    "showFilename": "Fájlnév megjelenítése",
+    "includeSubfolders": "Almappák bevonása",
+    "includeSubfoldersDescription": "Az almappákban található képeket és videókat is mutasd meg.",
+    "maxItems": "Legfeljebb tételek száma",
+    "maxItemsHint": "Legfeljebb {max} elem, a szerver keresési beállításai szerint.",
+    "empty": "Ebben a mappában nincs megjeleníthető kép vagy videó.",
+    "allFailed": "Egyik fájl sem jeleníthető meg.",
+    "searchFailed": "Az almappákban nem sikerült keresni. Csak ez a mappa jelenik meg.",
+    "truncated": "Az első „ {max} ” elemek megjelenítése.",
+    "fadeTransition": "Fade átmenet",
+    "fitToScreen": "Kép méretének a képernyőhöz igazítása",
+    "fitToScreenDescription": "Be: a kép teljes egészében látható, szükség esetén fekete sávokkal. Ki: a kép kitölti a képernyőt, és egyes részei levágódhatnak.",
+    "enlargeToFill": "Mindig teljes képernyősre nagyítsd",
+    "enlargeToFillDescription": "Be: a kis képek felbővülnek, hogy kitöltsék a képernyőt, ami kissé elmosódottnak tűnhet. Ki: a képek soha nem jelennek meg a tényleges méretüknél nagyobbak.",
+    "includeVideos": "Videók beillesztése",
+    "includeVideosDescription": "A videofájlokat a képekkel együtt jelenítse meg a diavetítésben. A videók hang nélkül játszódnak le."
   }
 }

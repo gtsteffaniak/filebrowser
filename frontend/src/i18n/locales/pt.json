@@ -1028,6 +1028,9 @@
     "toggleLyrics": "Alternar letra",
     "closePanel": "Fechar painel",
     "openPanel": "Abrir painel",
+    "fullscreen": "Ecrã inteiro",
+    "exitFullscreen": "Sair do modo de ecrã inteiro",
+    "startFullscreen": "Iniciar em ecrã inteiro",
     "transcodeFailed": "A transcodificação falhou",
     "transcodeLoading": "Preparação do fluxo transcodificado",
     "transcodeUnsupportedFormat": "Este formato de vídeo não é suportado pelo seu navegador.",
@@ -1279,5 +1282,32 @@
   },
   "pwa": {
     "install": "Instalar a aplicação"
+  },
+  "slideshow": {
+    "title": "Opções da apresentação de diapositivos",
+    "start": "Iniciar apresentação de slides",
+    "duration": "Segundos por diapositivo",
+    "durationDescription": "Quanto tempo cada imagem permanece no ecrã. Os vídeos utilizam esta opção apenas quando a reprodução até ao fim está desativada.",
+    "shuffle": "Ordem aleatória",
+    "loop": "Repetir quando terminar",
+    "kenBurns": "Panorâmica e zoom",
+    "playVideosToEnd": "Reproduzir os vídeos até ao fim",
+    "playVideosToEndDescription": "Avançar após o término de cada vídeo, em vez de após o tempo de exibição do slide.",
+    "showFilename": "Mostrar nome do ficheiro",
+    "includeSubfolders": "Incluir subpastas",
+    "includeSubfoldersDescription": "Mostrar também imagens e vídeos das subpastas.",
+    "maxItems": "Número máximo de artigos",
+    "maxItemsHint": "Até {max} itens, conforme a configuração de pesquisa do servidor.",
+    "empty": "Não há imagens nem vídeos para apresentar nesta pasta.",
+    "allFailed": "Não foi possível apresentar nenhum dos ficheiros.",
+    "searchFailed": "Não foi possível pesquisar nas subpastas. Apresentam-se apenas as pastas desta pasta.",
+    "truncated": "A apresentar os primeiros {max} itens.",
+    "fadeTransition": "Transição de desvanecimento",
+    "fitToScreen": "Ajustar a imagem ao ecrã",
+    "fitToScreenDescription": "Ativado: a imagem é exibida na totalidade, com barras pretas, se necessário. Desativado: a imagem ocupa todo o ecrã e algumas partes podem ser cortadas.",
+    "enlargeToFill": "Ampliar sempre para preencher o ecrã",
+    "enlargeToFillDescription": "Ativado: as imagens pequenas são ampliadas para preencher o ecrã, o que pode fazer com que pareçam pouco nítidas. Desativado: as imagens nunca são apresentadas com um tamanho superior ao seu tamanho real.",
+    "includeVideos": "Incluir vídeos",
+    "includeVideosDescription": "Mostrar ficheiros de vídeo na apresentação de slides juntamente com as imagens. Os vídeos são reproduzidos sem som."
   }
 }

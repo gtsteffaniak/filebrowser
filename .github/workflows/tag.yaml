@@ -142,7 +142,7 @@ jobs:
           tags: ${{ steps.modify-json.outputs.cleaned_tag }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha,scope=release-gpu
-          cache-to: type=gha,mode=max,scope=release-gpu
+          cache-to: type=gha,mode=max,scope=release-gpu,ignore-error=true
   push_slim_release_to_registry:
     name: Push slim release
     runs-on: ubuntu-latest

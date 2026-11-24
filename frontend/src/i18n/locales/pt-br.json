@@ -1028,6 +1028,9 @@
     "toggleLyrics": "Alternar letra",
     "closePanel": "Fechar painel",
     "openPanel": "Abrir painel",
+    "fullscreen": "Tela cheia",
+    "exitFullscreen": "Sair do modo de tela cheia",
+    "startFullscreen": "Iniciar em tela cheia",
     "transcodeFailed": "Falha na transcodificação",
     "transcodeLoading": "Preparação do fluxo transcodificado",
     "transcodeUnsupportedFormat": "Este formato de vídeo não é compatível com o seu navegador.",
@@ -1279,5 +1282,32 @@
   },
   "pwa": {
     "install": "Instalar o aplicativo"
+  },
+  "slideshow": {
+    "title": "Opções da apresentação de slides",
+    "start": "Iniciar apresentação de slides",
+    "duration": "Segundos por slide",
+    "durationDescription": "Por quanto tempo cada imagem permanece na tela. Os vídeos utilizam essa configuração apenas quando a opção “Reproduzir até o fim” está desativada.",
+    "shuffle": "Ordem aleatória",
+    "loop": "Repetir ao terminar",
+    "kenBurns": "Panorâmica e zoom",
+    "playVideosToEnd": "Assista aos vídeos até o fim",
+    "playVideosToEndDescription": "Avance após o término de cada vídeo, em vez de após o tempo de exibição do slide.",
+    "showFilename": "Mostrar nome do arquivo",
+    "includeSubfolders": "Incluir subpastas",
+    "includeSubfoldersDescription": "Mostre também imagens e vídeos das subpastas.",
+    "maxItems": "Número máximo de itens",
+    "maxItemsHint": "Até {max} itens, conforme a configuração de pesquisa do servidor.",
+    "empty": "Não há imagens nem vídeos para exibir nesta pasta.",
+    "allFailed": "Nenhum dos arquivos pôde ser exibido.",
+    "searchFailed": "Não foi possível pesquisar nas subpastas. Exibindo apenas esta pasta.",
+    "truncated": "Exibindo os primeiros {max} itens.",
+    "fadeTransition": "Transição de desvanecimento",
+    "fitToScreen": "Ajustar a imagem à tela",
+    "fitToScreenDescription": "Ativado: a imagem é exibida por inteiro, com barras pretas, se necessário. Desativado: a imagem ocupa toda a tela e partes dela podem ser cortadas.",
+    "enlargeToFill": "Sempre ampliar para preencher a tela",
+    "enlargeToFillDescription": "Ativado: as imagens pequenas são ampliadas para preencher a tela, o que pode causar uma aparência difusa. Desativado: as imagens nunca são exibidas maiores do que seu tamanho real.",
+    "includeVideos": "Incluir vídeos",
+    "includeVideosDescription": "Exiba arquivos de vídeo na apresentação de slides junto com as imagens. Os vídeos são reproduzidos sem som."
   }
 }

@@ -961,6 +961,9 @@ export interface MessageParams {
   "player.toggleLyrics": never;
   "player.closePanel": never;
   "player.openPanel": never;
+  "player.fullscreen": never;
+  "player.exitFullscreen": never;
+  "player.startFullscreen": never;
   "player.transcodeFailed": never;
   "player.transcodeLoading": never;
   "player.transcodeUnsupportedFormat": never;
@@ -1180,6 +1183,31 @@ export interface MessageParams {
   "onlyoffice.editorSuccess": never;
   "onlyoffice.setupError": never;
   "pwa.install": never;
+  "slideshow.title": never;
+  "slideshow.start": never;
+  "slideshow.duration": never;
+  "slideshow.durationDescription": never;
+  "slideshow.shuffle": never;
+  "slideshow.loop": never;
+  "slideshow.kenBurns": never;
+  "slideshow.playVideosToEnd": never;
+  "slideshow.playVideosToEndDescription": never;
+  "slideshow.showFilename": never;
+  "slideshow.includeSubfolders": never;
+  "slideshow.includeSubfoldersDescription": never;
+  "slideshow.maxItems": never;
+  "slideshow.maxItemsHint": "max";
+  "slideshow.empty": never;
+  "slideshow.allFailed": never;
+  "slideshow.searchFailed": never;
+  "slideshow.truncated": "max";
+  "slideshow.fadeTransition": never;
+  "slideshow.fitToScreen": never;
+  "slideshow.fitToScreenDescription": never;
+  "slideshow.enlargeToFill": never;
+  "slideshow.enlargeToFillDescription": never;
+  "slideshow.includeVideos": never;
+  "slideshow.includeVideosDescription": never;
 }
 
 /** Placeholders that callers may omit */

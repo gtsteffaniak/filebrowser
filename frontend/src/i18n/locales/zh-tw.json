@@ -1028,6 +1028,9 @@
     "toggleLyrics": "切換歌詞",
     "closePanel": "關閉面板",
     "openPanel": "開啟面板",
+    "fullscreen": "全螢幕",
+    "exitFullscreen": "退出全螢幕模式",
+    "startFullscreen": "以全螢幕模式開始",
     "transcodeFailed": "轉碼失敗",
     "transcodeLoading": "準備轉碼後的串流",
     "transcodeUnsupportedFormat": "您的瀏覽器不支援此影片格式。",
@@ -1279,5 +1282,32 @@
   },
   "pwa": {
     "install": "安裝應用程式"
+  },
+  "slideshow": {
+    "title": "幻燈片播放選項",
+    "start": "開始幻燈片播放",
+    "duration": "每張投影片的顯示時間（秒）",
+    "durationDescription": "每張圖片在螢幕上顯示的時間長度。影片僅在「播放至結束」功能關閉時才會使用此設定。",
+    "shuffle": "隨機排序",
+    "loop": "完成後循環",
+    "kenBurns": "平移與縮放",
+    "playVideosToEnd": "將影片播放至結尾",
+    "playVideosToEndDescription": "在每段影片結束後繼續播放，而非在投影片顯示時間結束後才繼續。",
+    "showFilename": "顯示檔案名稱",
+    "includeSubfolders": "包含子資料夾",
+    "includeSubfoldersDescription": "也顯示子資料夾中的圖片和影片。",
+    "maxItems": "最多項目數",
+    "maxItemsHint": "最多顯示{max} 項，實際數量受伺服器搜尋設定限制。",
+    "empty": "此資料夾中沒有可顯示的圖片或影片。",
+    "allFailed": "無法顯示任何檔案。",
+    "searchFailed": "無法搜尋子資料夾。僅顯示此資料夾。",
+    "truncated": "顯示前{max} 筆項目。",
+    "fadeTransition": "淡入淡出轉場",
+    "fitToScreen": "將圖片調整為符合螢幕大小",
+    "fitToScreenDescription": "開啟：顯示完整圖片，必要時會出現黑色邊框。關閉：圖片填滿整個螢幕，部分內容可能會被裁切。",
+    "enlargeToFill": "始終放大以填滿螢幕",
+    "enlargeToFillDescription": "開啟：小圖片會被放大以填滿螢幕，這可能會使畫面顯得模糊。關閉：圖片絕不會顯示得比其實際尺寸更大。",
+    "includeVideos": "加入影片",
+    "includeVideosDescription": "在幻燈片簡報中，將影片檔案與圖片一併顯示。影片播放時將靜音。"
   }
 }

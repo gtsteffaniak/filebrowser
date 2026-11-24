@@ -1028,6 +1028,9 @@
     "toggleLyrics": "Liedtext ein-/ausblenden",
     "closePanel": "Panel schließen",
     "openPanel": "Panel öffnen",
+    "fullscreen": "Vollbild",
+    "exitFullscreen": "Vollbildmodus beenden",
+    "startFullscreen": "Im Vollbildmodus starten",
     "transcodeFailed": "Die Transkodierung ist fehlgeschlagen",
     "transcodeLoading": "Vorbereitung des transkodierten Streams",
     "transcodeUnsupportedFormat": "Dieses Videoformat wird von Ihrem Browser nicht unterstützt.",
@@ -1279,5 +1282,32 @@
   },
   "pwa": {
     "install": "App installieren"
+  },
+  "slideshow": {
+    "title": "Optionen für die Diashow",
+    "start": "Diashow starten",
+    "duration": "Sekunden pro Folie",
+    "durationDescription": "Wie lange jedes Bild auf dem Bildschirm angezeigt wird. Bei Videos wird diese Einstellung nur verwendet, wenn die Option „Bis zum Ende abspielen“ deaktiviert ist.",
+    "shuffle": "Reihenfolge mischen",
+    "loop": "Nach Abschluss der Schleife",
+    "kenBurns": "Schwenken und Zoomen",
+    "playVideosToEnd": "Videos bis zum Ende abspielen",
+    "playVideosToEndDescription": "Nach jedem Video weitergehen, statt nach Ablauf der Foliendauer.",
+    "showFilename": "Dateinamen anzeigen",
+    "includeSubfolders": "Unterordner einbeziehen",
+    "includeSubfoldersDescription": "Zeige auch Bilder und Videos aus Unterordnern an.",
+    "maxItems": "Maximale Anzahl an Artikeln",
+    "maxItemsHint": "Bis zu {max} Einträge, begrenzt durch die Sucheinstellungen des Servers.",
+    "empty": "In diesem Ordner sind keine Bilder oder Videos vorhanden.",
+    "allFailed": "Keine der Dateien konnte angezeigt werden.",
+    "searchFailed": "Unterordner konnten nicht durchsucht werden. Es wird nur dieser Ordner angezeigt.",
+    "truncated": "Die ersten „ {max} “-Artikel werden angezeigt.",
+    "fadeTransition": "Überblendung",
+    "fitToScreen": "Bild an Bildschirm anpassen",
+    "fitToScreenDescription": "Ein: Das gesamte Bild wird angezeigt, gegebenenfalls mit schwarzen Balken. Aus: Das Bild füllt den Bildschirm aus, wobei Teile davon möglicherweise abgeschnitten werden.",
+    "enlargeToFill": "Immer auf Bildschirmgröße vergrößern",
+    "enlargeToFillDescription": "Ein: Kleine Bilder werden vergrößert, um den Bildschirm auszufüllen, was zu einem unscharfen Erscheinungsbild führen kann. Aus: Bilder werden niemals größer als ihre tatsächliche Größe angezeigt.",
+    "includeVideos": "Videos einbinden",
+    "includeVideosDescription": "Videodateien werden in der Diashow zusammen mit Bildern angezeigt. Die Videos werden ohne Ton abgespielt."
   }
 }

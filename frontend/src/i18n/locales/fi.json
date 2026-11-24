@@ -1028,6 +1028,9 @@
     "toggleLyrics": "Näytä tai piilota sanoitukset",
     "closePanel": "Sulje paneeli",
     "openPanel": "Avaa paneeli",
+    "fullscreen": "Koko näyttö",
+    "exitFullscreen": "Poistu koko näytön tilasta",
+    "startFullscreen": "Käynnistä koko näytön tilassa",
     "transcodeFailed": "Transkoodaus epäonnistui",
     "transcodeLoading": "Valmistellaan transkoodattua mediavirtaa",
     "transcodeUnsupportedFormat": "Selaimesi ei tue tätä videomuotoa.",
@@ -1279,5 +1282,32 @@
   },
   "pwa": {
     "install": "Asenna sovellus"
+  },
+  "slideshow": {
+    "title": "Diaesityksen asetukset",
+    "start": "Käynnistä diaesitys",
+    "duration": "Sekuntia per dia",
+    "durationDescription": "Kuinka kauan kukin kuva pysyy näytöllä. Videoissa tätä asetusta käytetään vain, kun ”Toista loppuun asti” -toiminto on pois päältä.",
+    "shuffle": "Sekoita järjestys",
+    "loop": "Toista, kun valmis",
+    "kenBurns": "Panorointi ja zoomaus",
+    "playVideosToEnd": "Toista videot loppuun asti",
+    "playVideosToEndDescription": "Siirry eteenpäin kunkin videon päätyttyä, ei dian keston päätyttyä.",
+    "showFilename": "Näytä tiedostonimi",
+    "includeSubfolders": "Sisällytä alikansiot",
+    "includeSubfoldersDescription": "Näytä kuvat ja videot myös alikansioista.",
+    "maxItems": "Tuotteiden enimmäismäärä",
+    "maxItemsHint": "Enintään {max} tulosta, palvelimen hakuasetusten mukaisesti.",
+    "empty": "Tässä kansiossa ei ole kuvia tai videoita.",
+    "allFailed": "Yhtäkään tiedostoa ei voitu näyttää.",
+    "searchFailed": "Alikansioita ei voitu hakea. Näytetään vain tämä kansio.",
+    "truncated": "Näytetään ensimmäiset {max} -tuotteet.",
+    "fadeTransition": "Haalistumissiirtymä",
+    "fitToScreen": "Sovita kuva näyttöön",
+    "fitToScreenDescription": "Päällä: koko kuva näkyy, tarvittaessa mustien palkkien kanssa. Pois: kuva täyttää näytön, ja osa siitä saattaa jäädä pois.",
+    "enlargeToFill": "Suurenna aina koko ruudun kokoiseksi",
+    "enlargeToFillDescription": "Päällä: pienet kuvat suurennetaan täyttämään näyttö, mikä voi näyttää epätarkalta. Pois päältä: kuvat eivät koskaan näy suurempina kuin niiden todellinen koko.",
+    "includeVideos": "Lisää videoita",
+    "includeVideosDescription": "Näytä videotiedostot diaesityksessä kuvien ohella. Videot toistetaan ilman ääntä."
   }
 }

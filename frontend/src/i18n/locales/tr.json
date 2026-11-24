@@ -1028,6 +1028,9 @@
     "toggleLyrics": "Şarkı sözlerini göster/gizle",
     "closePanel": "Paneli kapat",
     "openPanel": "Paneli aç",
+    "fullscreen": "Tam ekran",
+    "exitFullscreen": "Tam ekran modundan çık",
+    "startFullscreen": "Tam ekran olarak başlat",
     "transcodeFailed": "Kod dönüştürme işlemi başarısız oldu",
     "transcodeLoading": "Kod dönüştürülmüş akışın hazırlanması",
     "transcodeUnsupportedFormat": "Tarayıcınız bu video formatını desteklemiyor.",
@@ -1279,5 +1282,32 @@
   },
   "pwa": {
     "install": "Uygulamayı yükle"
+  },
+  "slideshow": {
+    "title": "Slayt gösterisi seçenekleri",
+    "start": "Slayt gösterisini başlat",
+    "duration": "Slayt başına saniye",
+    "durationDescription": "Her bir görüntünün ekranda ne kadar süre kalacağı. Videolarda bu ayar yalnızca “sonuna kadar oynat” seçeneği kapalıyken kullanılır.",
+    "shuffle": "Sırayı rastgele düzenle",
+    "loop": "Tamamlandığında döngüye gir",
+    "kenBurns": "Kaydırma ve yakınlaştırma",
+    "playVideosToEnd": "Videoları sonuna kadar izle",
+    "playVideosToEndDescription": "Slayt süresinin bitiminden sonra değil, her videonun bitiminden sonra bir sonraki slayta geçin.",
+    "showFilename": "Dosya adını göster",
+    "includeSubfolders": "Alt klasörleri dahil et",
+    "includeSubfoldersDescription": "Alt klasörlerdeki resimleri ve videoları da göster.",
+    "maxItems": "En fazla ürün sayısı",
+    "maxItemsHint": "{max} 'e kadar öğe; bu sayı, sunucu arama ayarına göre sınırlıdır.",
+    "empty": "Bu klasörde gösterilecek resim veya video yok.",
+    "allFailed": "Dosyaların hiçbiri görüntülenemedi.",
+    "searchFailed": "Alt klasörlerde arama yapılamadı. Yalnızca bu klasör gösteriliyor.",
+    "truncated": "{max} 'daki ilk öğeler gösteriliyor.",
+    "fadeTransition": "Fade geçişi",
+    "fitToScreen": "Görüntüyü ekrana sığdır",
+    "fitToScreenDescription": "Açık: Görüntünün tamamı görünür; gerekirse siyah çubuklar eklenir. Kapalı: Görüntü ekranı doldurur ve bazı kısımları kırpılabilir.",
+    "enlargeToFill": "Her zaman ekranı dolduracak şekilde büyüt",
+    "enlargeToFillDescription": "Açık: Küçük resimler ekranı dolduracak şekilde büyütülür; bu da görüntünün bulanık görünmesine neden olabilir. Kapalı: Resimler hiçbir zaman gerçek boyutlarından daha büyük gösterilmez.",
+    "includeVideos": "Videoları ekle",
+    "includeVideosDescription": "Slayt gösterisinde video dosyalarını resimlerle birlikte göster. Videolar ses kapatılmış olarak oynatılır."
   }
 }

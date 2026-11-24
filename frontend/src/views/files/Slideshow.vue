@@ -57,26 +57,24 @@
     </div>
 
     <div v-if="slides.length" class="slideshow-chrome slideshow-top-right">
-      {{ paused
-        ? $t("slideshow.counterPaused", { current: index + 1, total: slides.length })
-        : $t("slideshow.counter", { current: index + 1, total: slides.length }) }}
+      {{ `${index + 1}/${slides.length}${paused ? ` · ${t("general.paused", { suffix: "" })}` : ""}` }}
     </div>
 
     <div v-if="slides.length" class="slideshow-chrome slideshow-controls" @click.stop>
-      <button type="button" class="button button--flat" :aria-label="$t('slideshow.exit')"
-        :title="$t('slideshow.exit')" @click.stop="exit">
+      <button type="button" class="button button--flat" :aria-label="t('general.exit', { suffix: '' })"
+        :title="t('general.exit', { suffix: '' })" @click.stop="exit">
         <i class="material-symbols">{{ icons.close }}</i>
       </button>
-      <button type="button" class="button button--flat" :aria-label="$t('slideshow.previous')" @click="goPrev">
+      <button type="button" class="button button--flat" :aria-label="t('general.previous', { suffix: '' })" @click="goPrev">
         <i class="material-symbols">{{ icons.previous }}</i>
       </button>
-      <button type="button" class="button button--flat" :aria-label="paused ? $t('slideshow.play') : $t('slideshow.pause')" @click="togglePause">
+      <button type="button" class="button button--flat" :aria-label="paused ? t('general.resume', { suffix: '' }) : t('general.pause', { suffix: '' })" @click="togglePause">
         <i class="material-symbols">{{ paused ? icons.play : icons.pause }}</i>
       </button>
-      <button type="button" class="button button--flat" :aria-label="$t('slideshow.next')" @click="goNext">
+      <button type="button" class="button button--flat" :aria-label="t('general.next', { suffix: '' })" @click="goNext">
         <i class="material-symbols">{{ icons.next }}</i>
       </button>
-      <button type="button" class="button button--flat" :aria-label="isFullscreen ? $t('slideshow.exitFullscreen') : $t('slideshow.fullscreen')" @click="toggleFullscreen">
+      <button type="button" class="button button--flat" :aria-label="isFullscreen ? t('player.exitFullscreen') : t('player.fullscreen')" @click="toggleFullscreen">
         <i class="material-symbols">{{ isFullscreen ? icons.exitFullscreen : icons.fullscreen }}</i>
       </button>
     </div>
@@ -85,32 +83,67 @@
       <LoadingSpinner size="medium" />
     </div>
     <div v-else-if="!slides.length" class="slideshow-empty">
-      <p>{{ loadError || $t("slideshow.empty") }}</p>
-      <button type="button" class="button" @click.stop="exit">{{ $t("slideshow.exit") }}</button>
+      <p>{{ loadError || t("slideshow.empty") }}</p>
+      <button type="button" class="button" @click.stop="exit">{{ t("general.exit", { suffix: "" }) }}</button>
     </div>
   </div>
 </template>
 
-<script>
-import { state, getters } from "@/store";
+<script setup lang="ts">
+import {
+  computed,
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+  useTemplateRef,
+  type ComponentPublicInstance,
+} from "vue";
+import { useRoute } from "vue-router";
+import { useI18n } from "@/i18n/index.ts";
+import { state, getters } from "@/store/index.ts";
+import type { FileListItem } from "@/store/types.ts";
 import { router } from "@/router/index.ts";
 import { ensureViewToken } from "@/api/viewToken.js";
 import { buildItemUrl } from "@/utils/url.js";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import { notify } from "@/notify/index.ts";
-import { slideshowConfig } from "@/utils/slideshowConfig.js";
+import { slideshowConfig } from "@/utils/slideshowConfig.ts";
 import {
   slidesFromListing,
   slidesFromSearch,
   shuffled,
   slideUrl,
-} from "@/utils/slideshow.js";
+  type SlideshowMediaKind,
+  type SlideshowSlide,
+} from "@/utils/slideshow.ts";
+
+/** Directory context passed from Files.vue as `fbdata` (state.req). */
+const props = defineProps<{
+  fbdata: {
+    source: string;
+    path: string;
+    items: FileListItem[];
+  };
+}>();
+
+defineOptions({ name: "SlideshowView" });
+
+const { t } = useI18n();
+const route = useRoute();
 
 const CHROME_HIDE_MS = 3500;
 const POINTER_THROTTLE_MS = 100;
 const SWIPE_THRESHOLD_PX = 50;
 
-const emptyLayer = () => ({ kind: null, url: null, key: 0, style: {} });
+type SlideLayer = {
+  kind: SlideshowMediaKind | null;
+  url: string | null;
+  key: number;
+  style: Record<string, string>;
+};
+
+const emptyLayer = (): SlideLayer => ({ kind: null, url: null, key: 0, style: {} });
 
 // Material Symbols ligature names. Kept out of the template so they aren't read as raw text.
 const icons = {
@@ -121,422 +154,421 @@ const icons = {
   pause: "pause",
   fullscreen: "fullscreen",
   exitFullscreen: "fullscreen_exit",
+} as const;
+
+const cfg = slideshowConfig;
+
+const root = useTemplateRef<HTMLElement>("root");
+const slides = ref<SlideshowSlide[]>([]);
+const index = ref(0);
+const loading = ref(true);
+const loadError = ref("");
+const token = ref<string | null>(null);
+const layers = ref<SlideLayer[]>([emptyLayer(), emptyLayer()]);
+const active = ref(0);
+const layerKey = ref(0);
+const paused = ref(false);
+const remaining = ref<number | null>(null);
+const chromeVisible = ref(true);
+const isFullscreen = ref(false);
+const failStreak = ref(0);
+const wakeLock = ref<WakeLockSentinel | null>(null);
+const touchX = ref<number | null>(null);
+const lastPointer = ref(0);
+
+let timerHandle: ReturnType<typeof setTimeout> | null = null;
+let timerStart = 0;
+let hideHandle: ReturnType<typeof setTimeout> | null = null;
+let advanceHandle: ReturnType<typeof setTimeout> | null = null;
+const videoEls: Record<number, HTMLVideoElement> = {};
+
+const sidebarShowing = computed(() => getters.isSidebarVisible());
+// Only a pinned (sticky) sidebar takes up layout room. A floating sidebar overlays the slideshow.
+const moveWithSidebar = computed(() => sidebarShowing.value && getters.isStickySidebar());
+const sidebarWidth = computed(() => state.sidebar?.width || 20);
+const currentSlide = computed(() => slides.value[index.value] ?? null);
+
+function fullscreenActive(): boolean {
+  const doc = document as Document & { webkitFullscreenElement?: Element | null };
+  return !!(document.fullscreenElement || doc.webkitFullscreenElement);
+}
+
+async function loadSlides() {
+  loading.value = true;
+  const { source, path, items } = props.fbdata;
+  try {
+    token.value = await ensureViewToken(source);
+  } catch {
+    token.value = null;
+  }
+
+  let loaded: SlideshowSlide[] | null = null;
+  if (cfg.includeSubfolders && !getters.isShare()) {
+    try {
+      const result = await slidesFromSearch(source, path, cfg.maxItems);
+      loaded = result.slides;
+      if (result.truncated) {
+        notify.showSuccessToast(t("slideshow.truncated", { max: cfg.maxItems }));
+      }
+    } catch {
+      notify.showErrorToast(t("slideshow.searchFailed"));
+    }
+  }
+  if (!loaded) {
+    loaded = slidesFromListing(items, source);
+  }
+
+  let nextSlides = cfg.shuffle ? shuffled(loaded) : loaded;
+
+  const queryStart = (query: unknown): string => {
+    if (!query || typeof query !== "object") return "";
+    const start = (query as Record<string, unknown>).start;
+    return typeof start === "string" ? start : "";
+  };
+  const startName = queryStart(route.query) || queryStart(state.route?.query);
+  let start = startName ? nextSlides.findIndex((s) => s.name === startName) : -1;
+  if (cfg.shuffle && start > 0) {
+    const picked = nextSlides[start];
+    if (picked) {
+      nextSlides = [...nextSlides.slice(0, start), ...nextSlides.slice(start + 1)];
+      nextSlides.unshift(picked);
+      start = 0;
+    }
+  }
+
+  slides.value = nextSlides;
+  index.value = Math.max(0, start);
+  loading.value = false;
+  if (!nextSlides.length) {
+    loadError.value = t("slideshow.empty");
+  }
+}
+
+function setVideoRef(el: Element | ComponentPublicInstance | null, layerIndex: number) {
+  if (el instanceof HTMLVideoElement) {
+    videoEls[layerIndex] = el;
+  }
+}
+
+function randomKenBurns(): Record<string, string> {
+  const rand = (min: number, max: number) => min + Math.random() * (max - min);
+  return {
+    "--kb-x": `${rand(-5, 5).toFixed(2)}%`,
+    "--kb-y": `${rand(-5, 5).toFixed(2)}%`,
+    "--kb-scale": rand(1.05, 1.17).toFixed(3),
+    "--kb-duration": `${cfg.duration}s`,
+  };
+}
+
+async function showSlide(i: number, animate: boolean) {
+  index.value = i;
+  const slide = slides.value[i];
+  if (!slide) return;
+
+  const target = animate ? 1 - active.value : active.value;
+  layerKey.value += 1;
+  const nextLayers = [...layers.value];
+  nextLayers[target] = {
+    kind: slide.kind,
+    url: slideUrl(slide, token.value),
+    key: layerKey.value,
+    style: slide.kind === "image" && cfg.kenBurns ? randomKenBurns() : {},
+  };
+  layers.value = nextLayers;
+  active.value = target;
+
+  await nextTick();
+  for (const [layer, el] of Object.entries(videoEls)) {
+    if (Number(layer) !== active.value) el.pause();
+  }
+  const video = videoEls[active.value];
+  if (video) {
+    video.currentTime = 0;
+    if (!paused.value) video.play().catch(() => {});
+  }
+
+  preloadNext();
+}
+
+function preloadNext() {
+  const nextIndex =
+    index.value + 1 < slides.value.length ? index.value + 1 : cfg.loop ? 0 : -1;
+  const next = nextIndex >= 0 ? slides.value[nextIndex] : null;
+  if (next?.kind === "image") {
+    const url = slideUrl(next, token.value);
+    if (url) new Image().src = url;
+  }
+}
+
+function clearTimer() {
+  if (timerHandle !== null) clearTimeout(timerHandle);
+  timerHandle = null;
+}
+
+function startTimer(ms: number) {
+  clearTimer();
+  timerStart = Date.now();
+  timerHandle = setTimeout(() => advance(), ms);
+}
+
+function scheduleCurrent() {
+  clearTimer();
+  const slide = currentSlide.value;
+  if (!slide) return;
+  if (slide.kind === "video" && cfg.playVideosToEnd) {
+    remaining.value = null;
+    return;
+  }
+  remaining.value = cfg.duration * 1000;
+  if (!paused.value) startTimer(remaining.value);
+}
+
+function activeVideo(): HTMLVideoElement | null {
+  return videoEls[active.value] ?? null;
+}
+
+function advance() {
+  const last = slides.value.length - 1;
+  if (index.value < last) {
+    showSlide(index.value + 1, true);
+  } else if (cfg.loop) {
+    showSlide(0, true);
+  } else {
+    pause();
+    return;
+  }
+  scheduleCurrent();
+}
+
+function goNext() {
+  if (!slides.value.length) return;
+  advance();
+  revealChrome();
+}
+
+function goPrev() {
+  if (!slides.value.length) return;
+  const last = slides.value.length - 1;
+  if (index.value > 0) {
+    showSlide(index.value - 1, true);
+  } else if (cfg.loop) {
+    showSlide(last, true);
+  }
+  scheduleCurrent();
+  revealChrome();
+}
+
+function togglePause() {
+  if (paused.value) resume();
+  else pause();
+  revealChrome();
+}
+
+function pause() {
+  if (timerHandle !== null) {
+    const elapsed = Date.now() - timerStart;
+    remaining.value = Math.max(0, (remaining.value ?? 0) - elapsed);
+    clearTimer();
+  }
+  paused.value = true;
+  activeVideo()?.pause();
+  releaseWakeLock();
+  revealChrome();
+}
+
+function resume() {
+  paused.value = false;
+  const slide = currentSlide.value;
+  if (slide?.kind === "video" && cfg.playVideosToEnd) {
+    activeVideo()?.play().catch(() => {});
+  } else if (remaining.value !== null) {
+    startTimer(remaining.value);
+  }
+  requestWakeLock();
+  scheduleHide();
+}
+
+function onVideoEnded() {
+  if (!paused.value && currentSlide.value?.kind === "video" && cfg.playVideosToEnd) {
+    advance();
+  }
+}
+
+function onMediaLoaded() {
+  failStreak.value = 0;
+}
+
+function onMediaError() {
+  failStreak.value += 1;
+  if (failStreak.value >= slides.value.length) {
+    loadError.value = t("slideshow.allFailed");
+    slides.value = [];
+    pause();
+    return;
+  }
+  if (!paused.value) {
+    if (advanceHandle !== null) clearTimeout(advanceHandle);
+    advanceHandle = setTimeout(() => {
+      if (!paused.value) advance();
+    }, 1000);
+  }
+}
+
+function onStageClick() {
+  togglePause();
+}
+
+function revealChrome() {
+  chromeVisible.value = true;
+  scheduleHide();
+}
+
+function scheduleHide() {
+  if (hideHandle !== null) clearTimeout(hideHandle);
+  if (paused.value) return;
+  hideHandle = setTimeout(() => {
+    chromeVisible.value = false;
+  }, CHROME_HIDE_MS);
+}
+
+function onPointerMove() {
+  const now = Date.now();
+  if (now - lastPointer.value < POINTER_THROTTLE_MS) return;
+  lastPointer.value = now;
+  revealChrome();
+}
+
+function onTouchStart(e: TouchEvent) {
+  touchX.value = e.touches[0]?.clientX ?? null;
+  revealChrome();
+}
+
+function onTouchEnd(e: TouchEvent) {
+  if (touchX.value === null) return;
+  const dx = (e.changedTouches[0]?.clientX ?? touchX.value) - touchX.value;
+  touchX.value = null;
+  if (Math.abs(dx) < SWIPE_THRESHOLD_PX) return;
+  if (dx < 0) goNext();
+  else goPrev();
+}
+
+function onKeyDown(e: KeyboardEvent) {
+  if (getters.currentPromptName()) return;
+  switch (e.key) {
+    case " ":
+      e.preventDefault();
+      togglePause();
+      break;
+    case "ArrowRight":
+      e.preventDefault();
+      goNext();
+      break;
+    case "ArrowLeft":
+      e.preventDefault();
+      goPrev();
+      break;
+    case "f":
+    case "F":
+      toggleFullscreen();
+      break;
+    case "Escape":
+      if (!fullscreenActive()) exit();
+      break;
+  }
+}
+
+function enterFullscreen() {
+  const el = root.value as (HTMLElement & { webkitRequestFullscreen?: () => void | Promise<void> }) | null;
+  if (!el) return;
+  const request = el.requestFullscreen?.bind(el) ?? el.webkitRequestFullscreen?.bind(el);
+  if (!request) return;
+  try {
+    const result = request();
+    if (result && typeof (result as Promise<void>).catch === "function") {
+      (result as Promise<void>).catch(() => {});
+    }
+  } catch {
+    /* not allowed in this context */
+  }
+}
+
+function exitFullscreen() {
+  const doc = document as Document & { webkitExitFullscreen?: () => void | Promise<void> };
+  const requestExit =
+    document.exitFullscreen?.bind(document) ?? doc.webkitExitFullscreen?.bind(document);
+  if (!requestExit) return;
+  try {
+    const result = requestExit();
+    if (result && typeof (result as Promise<void>).catch === "function") {
+      (result as Promise<void>).catch(() => {});
+    }
+  } catch {
+    /* ignore */
+  }
+}
+
+function toggleFullscreen() {
+  if (fullscreenActive()) exitFullscreen();
+  else enterFullscreen();
+}
+
+async function requestWakeLock() {
+  if (wakeLock.value || !navigator.wakeLock) return;
+  try {
+    wakeLock.value = await navigator.wakeLock.request("screen");
+  } catch {
+    /* not available or denied */
+  }
+}
+
+function releaseWakeLock() {
+  wakeLock.value?.release?.();
+  wakeLock.value = null;
+}
+
+function exit() {
+  pause();
+  if (fullscreenActive()) exitFullscreen();
+  const slide = currentSlide.value;
+  const target = slide ? buildItemUrl(slide.source, slide.path) : state.route.path;
+  router.replace({ path: target });
+}
+
+const keyHandler = (e: KeyboardEvent) => onKeyDown(e);
+const fullscreenHandler = () => {
+  isFullscreen.value = fullscreenActive();
+};
+const visibilityHandler = () => {
+  if (document.visibilityState === "visible" && !paused.value) requestWakeLock();
 };
 
-export default {
-  name: "SlideshowView",
-  components: { LoadingSpinner },
-  props: {
-    // The directory being shown, provided by Files.vue as `fbdata`.
-    fbdata: { type: Object, required: true },
-  },
-  data() {
-    return {
-      icons,
-      slides: [],
-      index: 0,
-      loading: true,
-      loadError: "",
-      token: null,
-      layers: [emptyLayer(), emptyLayer()],
-      active: 0,
-      layerKey: 0,
-      paused: false,
-      remaining: null,
-      chromeVisible: true,
-      isFullscreen: false,
-      failStreak: 0,
-      wakeLock: null,
-      touchX: null,
-      lastPointer: 0,
-      timerHandle: null,
-      timerStart: 0,
-      hideHandle: null,
-      advanceHandle: null,
-      videoEls: {},
-      keyHandler: null,
-      fullscreenHandler: null,
-      visibilityHandler: null,
-    };
-  },
-  computed: {
-    cfg() {
-      return slideshowConfig;
-    },
-    sidebarShowing() {
-      return getters.isSidebarVisible();
-    },
-    // Only a pinned (sticky) sidebar takes up layout room. A floating sidebar overlays the slideshow.
-    moveWithSidebar() {
-      return this.sidebarShowing && getters.isStickySidebar();
-    },
-    sidebarWidth() {
-      return state.sidebar?.width || 20;
-    },
-    currentSlide() {
-      return this.slides[this.index] || null;
-    },
-  },
-  async mounted() {
-    this.keyHandler = (e) => this.onKeyDown(e);
-    this.fullscreenHandler = () => {
-      this.isFullscreen = !!(document.fullscreenElement || document.webkitFullscreenElement);
-    };
-    this.visibilityHandler = () => {
-      if (document.visibilityState === "visible" && !this.paused) this.requestWakeLock();
-    };
-    window.addEventListener("keydown", this.keyHandler);
-    document.addEventListener("fullscreenchange", this.fullscreenHandler);
-    document.addEventListener("webkitfullscreenchange", this.fullscreenHandler);
-    document.addEventListener("visibilitychange", this.visibilityHandler);
+onMounted(async () => {
+  window.addEventListener("keydown", keyHandler);
+  document.addEventListener("fullscreenchange", fullscreenHandler);
+  document.addEventListener("webkitfullscreenchange", fullscreenHandler);
+  document.addEventListener("visibilitychange", visibilityHandler);
 
-    await this.loadSlides();
-    if (this.slides.length) {
-      this.showSlide(this.index, false);
-      this.scheduleCurrent();
-      this.requestWakeLock();
-      if (this.cfg.startFullscreen) this.enterFullscreen();
-      this.scheduleHide();
-    }
-  },
-  beforeUnmount() {
-    window.removeEventListener("keydown", this.keyHandler);
-    document.removeEventListener("fullscreenchange", this.fullscreenHandler);
-    document.removeEventListener("webkitfullscreenchange", this.fullscreenHandler);
-    document.removeEventListener("visibilitychange", this.visibilityHandler);
-    this.clearTimer();
-    clearTimeout(this.hideHandle);
-    clearTimeout(this.advanceHandle);
-    this.releaseWakeLock();
-    if (document.fullscreenElement || document.webkitFullscreenElement) {
-      this.exitFullscreen();
-    }
-  },
-  methods: {
-    async loadSlides() {
-      this.loading = true;
-      const { source, path, items } = this.fbdata;
-      try {
-        this.token = await ensureViewToken(source);
-      } catch (_) {
-        this.token = null;
-      }
+  await loadSlides();
+  if (slides.value.length) {
+    showSlide(index.value, false);
+    scheduleCurrent();
+    requestWakeLock();
+    if (cfg.startFullscreen) enterFullscreen();
+    scheduleHide();
+  }
+});
 
-      let slides = null;
-      if (this.cfg.includeSubfolders && !getters.isShare()) {
-        try {
-          const result = await slidesFromSearch(source, path, this.cfg.maxItems);
-          slides = result.slides;
-          if (result.truncated) {
-            notify.showSuccessToast(this.$t("slideshow.truncated", { max: this.cfg.maxItems }));
-          }
-        } catch (_) {
-          notify.showErrorToast(this.$t("slideshow.searchFailed"));
-        }
-      }
-      if (!slides) {
-        slides = slidesFromListing(items, source);
-      }
-
-      if (this.cfg.shuffle) slides = shuffled(slides);
-
-      const startName = this.$route?.query?.start ?? state.route?.query?.start ?? "";
-      let start = startName ? slides.findIndex((s) => s.name === startName) : -1;
-      if (this.cfg.shuffle && start > 0) {
-        const [first] = slides.splice(start, 1);
-        slides.unshift(first);
-        start = 0;
-      }
-
-      this.slides = slides;
-      this.index = Math.max(0, start);
-      this.loading = false;
-      if (!slides.length) {
-        this.loadError = this.$t("slideshow.empty");
-      }
-    },
-
-    setVideoRef(el, layerIndex) {
-      if (el) this.videoEls[layerIndex] = el;
-    },
-
-    randomKenBurns() {
-      const rand = (min, max) => min + Math.random() * (max - min);
-      return {
-        "--kb-x": `${rand(-5, 5).toFixed(2)}%`,
-        "--kb-y": `${rand(-5, 5).toFixed(2)}%`,
-        "--kb-scale": rand(1.05, 1.17).toFixed(3),
-        "--kb-duration": `${this.cfg.duration}s`,
-      };
-    },
-
-    showSlide(i, animate) {
-      this.index = i;
-      const slide = this.slides[i];
-      if (!slide) return;
-
-      const target = animate ? 1 - this.active : this.active;
-      this.layerKey += 1;
-      this.layers[target] = {
-        kind: slide.kind,
-        url: slideUrl(slide, this.token),
-        key: this.layerKey,
-        style: slide.kind === "image" && this.cfg.kenBurns ? this.randomKenBurns() : {},
-      };
-      this.active = target;
-
-      this.$nextTick(() => {
-        Object.entries(this.videoEls).forEach(([layer, el]) => {
-          if (el && Number(layer) !== this.active) el.pause();
-        });
-        const video = this.videoEls[this.active];
-        if (video) {
-          video.currentTime = 0;
-          if (!this.paused) video.play().catch(() => {});
-        }
-      });
-
-      this.preloadNext();
-    },
-
-    preloadNext() {
-      const nextIndex = this.index + 1 < this.slides.length ? this.index + 1 : this.cfg.loop ? 0 : -1;
-      const next = nextIndex >= 0 ? this.slides[nextIndex] : null;
-      if (next && next.kind === "image") {
-        const url = slideUrl(next, this.token);
-        if (url) new Image().src = url;
-      }
-    },
-
-    clearTimer() {
-      clearTimeout(this.timerHandle);
-      this.timerHandle = null;
-    },
-
-    startTimer(ms) {
-      this.clearTimer();
-      this.timerStart = Date.now();
-      this.timerHandle = setTimeout(() => this.advance(), ms);
-    },
-
-    // Videos play to their natural end when the option is on. Everything else uses the slide duration.
-    scheduleCurrent() {
-      this.clearTimer();
-      const slide = this.currentSlide;
-      if (!slide) return;
-      if (slide.kind === "video" && this.cfg.playVideosToEnd) {
-        this.remaining = null;
-        return;
-      }
-      this.remaining = this.cfg.duration * 1000;
-      if (!this.paused) this.startTimer(this.remaining);
-    },
-
-    activeVideo() {
-      return this.videoEls[this.active] || null;
-    },
-
-    advance() {
-      const last = this.slides.length - 1;
-      if (this.index < last) {
-        this.showSlide(this.index + 1, true);
-      } else if (this.cfg.loop) {
-        this.showSlide(0, true);
-      } else {
-        // Stop on the last slide when loop is off.
-        this.pause();
-        return;
-      }
-      this.scheduleCurrent();
-    },
-
-    goNext() {
-      if (!this.slides.length) return;
-      this.advance();
-      this.revealChrome();
-    },
-
-    goPrev() {
-      if (!this.slides.length) return;
-      const last = this.slides.length - 1;
-      if (this.index > 0) {
-        this.showSlide(this.index - 1, true);
-      } else if (this.cfg.loop) {
-        this.showSlide(last, true);
-      }
-      this.scheduleCurrent();
-      this.revealChrome();
-    },
-
-    togglePause() {
-      if (this.paused) this.resume();
-      else this.pause();
-      this.revealChrome();
-    },
-
-    pause() {
-      if (this.timerHandle) {
-        const elapsed = Date.now() - this.timerStart;
-        this.remaining = Math.max(0, (this.remaining ?? 0) - elapsed);
-        this.clearTimer();
-      }
-      this.paused = true;
-      this.activeVideo()?.pause();
-      this.releaseWakeLock();
-      this.revealChrome();
-    },
-
-    resume() {
-      this.paused = false;
-      const slide = this.currentSlide;
-      if (slide?.kind === "video" && this.cfg.playVideosToEnd) {
-        this.activeVideo()?.play().catch(() => {});
-      } else if (this.remaining !== null) {
-        this.startTimer(this.remaining);
-      }
-      this.requestWakeLock();
-      this.scheduleHide();
-    },
-
-    onVideoEnded() {
-      if (!this.paused && this.currentSlide?.kind === "video" && this.cfg.playVideosToEnd) {
-        this.advance();
-      }
-    },
-
-    onMediaLoaded() {
-      this.failStreak = 0;
-    },
-
-    // Skip media that fails to load. Stop once every slide has failed in a row.
-    onMediaError() {
-      this.failStreak += 1;
-      if (this.failStreak >= this.slides.length) {
-        this.loadError = this.$t("slideshow.allFailed");
-        this.slides = [];
-        this.pause();
-        return;
-      }
-      if (!this.paused) {
-        clearTimeout(this.advanceHandle);
-        this.advanceHandle = setTimeout(() => {
-          if (!this.paused) this.advance();
-        }, 1000);
-      }
-    },
-
-    onStageClick() {
-      this.togglePause();
-    },
-
-    revealChrome() {
-      this.chromeVisible = true;
-      this.scheduleHide();
-    },
-
-    scheduleHide() {
-      clearTimeout(this.hideHandle);
-      if (this.paused) return;
-      this.hideHandle = setTimeout(() => {
-        this.chromeVisible = false;
-      }, CHROME_HIDE_MS);
-    },
-
-    onPointerMove() {
-      const now = Date.now();
-      if (now - this.lastPointer < POINTER_THROTTLE_MS) return;
-      this.lastPointer = now;
-      this.revealChrome();
-    },
-
-    onTouchStart(e) {
-      this.touchX = e.touches[0]?.clientX ?? null;
-      this.revealChrome();
-    },
-
-    onTouchEnd(e) {
-      if (this.touchX === null) return;
-      const dx = (e.changedTouches[0]?.clientX ?? this.touchX) - this.touchX;
-      this.touchX = null;
-      if (Math.abs(dx) < SWIPE_THRESHOLD_PX) return;
-      if (dx < 0) this.goNext();
-      else this.goPrev();
-    },
-
-    onKeyDown(e) {
-      if (getters.currentPromptName?.()) return;
-      switch (e.key) {
-        case " ":
-          e.preventDefault();
-          this.togglePause();
-          break;
-        case "ArrowRight":
-          e.preventDefault();
-          this.goNext();
-          break;
-        case "ArrowLeft":
-          e.preventDefault();
-          this.goPrev();
-          break;
-        case "f":
-        case "F":
-          this.toggleFullscreen();
-          break;
-        case "Escape":
-          // The browser exits fullscreen on Escape by itself, so only leave the slideshow when not fullscreen.
-          if (!(document.fullscreenElement || document.webkitFullscreenElement)) this.exit();
-          break;
-      }
-    },
-
-    enterFullscreen() {
-      const el = this.$refs.root;
-      if (!el) return;
-      const request = el.requestFullscreen || el.webkitRequestFullscreen;
-      if (!request) return;
-      try {
-        const result = request.call(el);
-        if (result && typeof result.catch === "function") result.catch(() => {});
-      } catch (_) { /* not allowed in this context */ }
-    },
-
-    exitFullscreen() {
-      const exit = document.exitFullscreen || document.webkitExitFullscreen;
-      if (!exit) return;
-      try {
-        const result = exit.call(document);
-        if (result && typeof result.catch === "function") result.catch(() => {});
-      } catch (_) { /* ignore */ }
-    },
-
-    toggleFullscreen() {
-      if (document.fullscreenElement || document.webkitFullscreenElement) this.exitFullscreen();
-      else this.enterFullscreen();
-    },
-
-    async requestWakeLock() {
-      if (this.wakeLock || !navigator.wakeLock) return;
-      try {
-        this.wakeLock = await navigator.wakeLock.request("screen");
-      } catch (_) { /* not available or denied */ }
-    },
-
-    releaseWakeLock() {
-      this.wakeLock?.release?.();
-      this.wakeLock = null;
-    },
-
-    exit() {
-      this.pause();
-      if (document.fullscreenElement || document.webkitFullscreenElement) this.exitFullscreen();
-      // Return to the preview of the slide that was showing last. Fall back to the folder if there is none.
-      // Replace the slideshow entry so Back from that preview doesn't return here.
-      const slide = this.currentSlide;
-      const target = slide ? buildItemUrl(slide.source, slide.path) : state.route.path;
-      router.replace({ path: target });
-    },
-  },
-};
+onBeforeUnmount(() => {
+  window.removeEventListener("keydown", keyHandler);
+  document.removeEventListener("fullscreenchange", fullscreenHandler);
+  document.removeEventListener("webkitfullscreenchange", fullscreenHandler);
+  document.removeEventListener("visibilitychange", visibilityHandler);
+  clearTimer();
+  if (hideHandle !== null) clearTimeout(hideHandle);
+  if (advanceHandle !== null) clearTimeout(advanceHandle);
+  releaseWakeLock();
+  if (fullscreenActive()) exitFullscreen();
+});
 </script>
 
 <style scoped>

@@ -180,10 +180,12 @@ jobs:
           context: .
           file: ./_docker/Dockerfile.gpu
           push: false # Do not push the image for now
+          load: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             VERSION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
             REVISION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
           cache-from: type=gha,scope=pr-gpu
-          cache-to: type=gha,mode=max,scope=pr-gpu
+          # Cache export is best-effort; flaky GHA cache (503) must not fail a green build.
+          cache-to: type=gha,mode=max,scope=pr-gpu,ignore-error=true

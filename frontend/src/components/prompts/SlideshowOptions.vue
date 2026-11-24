@@ -33,7 +33,7 @@
       :description="$t('slideshow.includeVideosDescription')" />
     <ToggleSwitch class="item" v-model="form.playVideosToEnd" :name="$t('slideshow.playVideosToEnd')" :description="$t('slideshow.playVideosToEndDescription')" />
     <ToggleSwitch class="item" v-model="form.showFilename" :name="$t('slideshow.showFilename')" />
-    <ToggleSwitch class="item" v-model="form.startFullscreen" :name="$t('slideshow.startFullscreen')" />
+    <ToggleSwitch class="item" v-model="form.startFullscreen" :name="$t('player.startFullscreen')" />
 
     <template v-if="!isShare">
       <ToggleSwitch
@@ -64,14 +64,14 @@
   </div>
   <div class="card-actions">
     <button type="button" class="button button--flat" @click="startSlideshow"
-      :aria-label="$t('slideshow.startSlideshow')" :title="$t('slideshow.startSlideshow')">
-      {{ $t("slideshow.startSlideshow") }}
+      :aria-label="$t('slideshow.start')" :title="$t('slideshow.start')">
+      {{ $t("slideshow.start") }}
     </button>
   </div>
 </template>
 
 <script>
-import { getters, mutations, state } from "@/store";
+import { getters, mutations, state } from "@/store/index.ts";
 import { router } from "@/router/index.ts";
 import { removeLastDir } from "@/utils/url.js";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
@@ -81,8 +81,8 @@ import {
   saveSlideshowConfig,
   SLIDESHOW_DEFAULTS,
   effectiveMaxItemsCap,
-} from "@/utils/slideshowConfig.js";
-import { globalVars } from "@/utils/constants";
+} from "@/utils/slideshowConfig.ts";
+import { globalVars } from "@/utils/constants.ts";
 
 export default {
   name: "SlideshowOptions",

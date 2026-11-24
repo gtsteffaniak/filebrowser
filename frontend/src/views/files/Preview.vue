@@ -132,7 +132,7 @@
 <script>
 import { createAsyncComponent } from "@/utils/asyncComponent.js";
 import FloatingActionButton from "@/components/settings/FloatingActionButton.vue";
-import { countMediaInListing } from "@/utils/slideshow.js";
+import { countMediaInListing } from "@/utils/slideshow.ts";
 import { resourcesApi, mediaApi } from "@/api/index.js";
 import { ensureViewToken, requestViewIdentity } from "@/api/viewToken.js";
 import { goToItem, removeTrailingSlash, removeLastDir } from "@/utils/url.js";

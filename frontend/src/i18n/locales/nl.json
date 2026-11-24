@@ -1028,6 +1028,9 @@
     "toggleLyrics": "Songtekst in-/uitschakelen",
     "closePanel": "Paneel sluiten",
     "openPanel": "Paneel openen",
+    "fullscreen": "Volledig scherm",
+    "exitFullscreen": "Volledig scherm afsluiten",
+    "startFullscreen": "Start in volledig scherm",
     "transcodeFailed": "Het transcoderen is mislukt",
     "transcodeLoading": "Een getranscodeerde stream voorbereiden",
     "transcodeUnsupportedFormat": "Dit videoformaat wordt niet ondersteund door je browser.",
@@ -1279,5 +1282,32 @@
   },
   "pwa": {
     "install": "App installeren"
+  },
+  "slideshow": {
+    "title": "Opties voor de diavoorstelling",
+    "start": "Diavoorstelling starten",
+    "duration": "Seconden per dia",
+    "durationDescription": "Hoe lang elke afbeelding op het scherm blijft staan. Bij video’s wordt dit alleen gebruikt als de optie ‘Tot het einde afspelen’ is uitgeschakeld.",
+    "shuffle": "Willekeurige volgorde",
+    "loop": "Herhaal wanneer klaar",
+    "kenBurns": "Pannen en zoomen",
+    "playVideosToEnd": "Speel video’s tot het einde af",
+    "playVideosToEndDescription": "Ga verder zodra elke video is afgelopen, in plaats van na afloop van de weergavetijd van de dia.",
+    "showFilename": "Bestandsnaam weergeven",
+    "includeSubfolders": "Submappen meenemen",
+    "includeSubfoldersDescription": "Toon ook afbeeldingen en video's uit submappen.",
+    "maxItems": "Maximaal aantal artikelen",
+    "maxItemsHint": "Maximaal {max} items, afhankelijk van de zoekinstellingen van de server.",
+    "empty": "Er zijn geen afbeeldingen of video's in deze map.",
+    "allFailed": "Geen van de bestanden kon worden weergegeven.",
+    "searchFailed": "Er kon niet in submappen worden gezocht. Alleen deze map wordt weergegeven.",
+    "truncated": "De eerste {max} items worden weergegeven.",
+    "fadeTransition": "Fade-overgang",
+    "fitToScreen": "Afbeelding aan scherm aanpassen",
+    "fitToScreenDescription": "Aan: de volledige afbeelding is zichtbaar, eventueel met zwarte balken. Uit: de afbeelding vult het scherm en delen ervan kunnen worden bijgesneden.",
+    "enlargeToFill": "Altijd vergroten tot schermvullend",
+    "enlargeToFillDescription": "Aan: kleine afbeeldingen worden vergroot tot ze het scherm vullen, waardoor ze er soms wat wazig kunnen uitzien. Uit: afbeeldingen worden nooit groter weergegeven dan hun werkelijke grootte.",
+    "includeVideos": "Video's toevoegen",
+    "includeVideosDescription": "Toon videobestanden in de diavoorstelling samen met afbeeldingen. Video’s worden zonder geluid afgespeeld."
   }
 }

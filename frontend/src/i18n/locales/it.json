@@ -1028,6 +1028,9 @@
     "toggleLyrics": "Attiva/disattiva testo",
     "closePanel": "Chiudi pannello",
     "openPanel": "Apri pannello",
+    "fullscreen": "A schermo intero",
+    "exitFullscreen": "Esci dalla modalità a schermo intero",
+    "startFullscreen": "Avvia in modalità a schermo intero",
     "transcodeFailed": "La transcodifica non è andata a buon fine",
     "transcodeLoading": "Preparazione dello stream transcodificato",
     "transcodeUnsupportedFormat": "Questo formato video non è supportato dal tuo browser.",
@@ -1279,5 +1282,32 @@
   },
   "pwa": {
     "install": "Installa l'app"
+  },
+  "slideshow": {
+    "title": "Opzioni della presentazione",
+    "start": "Avvia la presentazione",
+    "duration": "Secondi per diapositiva",
+    "durationDescription": "Per quanto tempo ogni immagine rimane sullo schermo. Nei video questa opzione viene utilizzata solo quando l'opzione \"Riproduci fino alla fine\" è disattivata.",
+    "shuffle": "Ordine casuale",
+    "loop": "Esegui un ciclo al termine",
+    "kenBurns": "Panoramica e zoom",
+    "playVideosToEnd": "Guarda i video fino alla fine",
+    "playVideosToEndDescription": "Passa alla diapositiva successiva al termine di ogni video, anziché al termine della durata della diapositiva.",
+    "showFilename": "Mostra nome file",
+    "includeSubfolders": "Includi le sottocartelle",
+    "includeSubfoldersDescription": "Mostra anche le immagini e i video contenuti nelle sottocartelle.",
+    "maxItems": "Numero massimo di articoli",
+    "maxItemsHint": "Fino a {max} risultati, in base alle impostazioni di ricerca del server.",
+    "empty": "In questa cartella non ci sono immagini o video da mostrare.",
+    "allFailed": "Non è stato possibile visualizzare nessuno dei file.",
+    "searchFailed": "Impossibile effettuare la ricerca nelle sottocartelle. Viene visualizzata solo questa cartella.",
+    "truncated": "Vengono visualizzati i primi articoli di \" {max} \".",
+    "fadeTransition": "Transizione con dissolvenza",
+    "fitToScreen": "Adatta l'immagine allo schermo",
+    "fitToScreenDescription": "Attivo: l'immagine viene visualizzata per intero, con delle barre nere se necessario. Disattivo: l'immagine riempie lo schermo e alcune parti potrebbero risultare ritagliate.",
+    "enlargeToFill": "Ingrandisci sempre a schermo intero",
+    "enlargeToFillDescription": "Attivo: le immagini di piccole dimensioni vengono ingrandite per riempire lo schermo, il che può conferire loro un aspetto sfocato. Disattivo: le immagini non vengono mai visualizzate più grandi delle loro dimensioni effettive.",
+    "includeVideos": "Includi video",
+    "includeVideosDescription": "Mostra i file video nella presentazione insieme alle immagini. I video vengono riprodotti senza audio."
   }
 }

@@ -1028,6 +1028,9 @@
     "toggleLyrics": "Prepnúť text",
     "closePanel": "Zavrieť panel",
     "openPanel": "Otvoriť panel",
+    "fullscreen": "Celá obrazovka",
+    "exitFullscreen": "Ukončiť režim celej obrazovky",
+    "startFullscreen": "Spustiť v režime celej obrazovky",
     "transcodeFailed": "Prekódovanie sa nepodarilo",
     "transcodeLoading": "Príprava transkódovaného prúdu",
     "transcodeUnsupportedFormat": "Váš prehliadač nepodporuje tento formát videa.",
@@ -1279,5 +1282,32 @@
   },
   "pwa": {
     "install": "Nainštalovať aplikáciu"
+  },
+  "slideshow": {
+    "title": "Možnosti prezentácie",
+    "start": "Spustiť prezentáciu",
+    "duration": "Sekúnd na jeden snímok",
+    "durationDescription": "Ako dlho sa každý obrázok zobrazuje na obrazovke. Pri videách sa táto funkcia používa len vtedy, ak je vypnutá možnosť „prehrávať až do konca“.",
+    "shuffle": "Náhodné zoradenie",
+    "loop": "Po dokončení zopakovať",
+    "kenBurns": "Posun a priblíženie",
+    "playVideosToEnd": "Prehrávajte videá až do konca",
+    "playVideosToEndDescription": "Pokračujte po skončení každého videa, a nie po uplynutí trvania snímky.",
+    "showFilename": "Zobraziť názov súboru",
+    "includeSubfolders": "Zahrnúť podadresáre",
+    "includeSubfoldersDescription": "Zobrazovať aj obrázky a videá z podpriečinkov.",
+    "maxItems": "Maximálny počet položiek",
+    "maxItemsHint": "Až {max} položiek, v závislosti od nastavení vyhľadávania na serveri.",
+    "empty": "V tejto zložke nie sú žiadne obrázky ani videá.",
+    "allFailed": "Žiaden zo súborov sa nepodarilo zobraziť.",
+    "searchFailed": "Nepodarilo sa vyhľadať v podadresároch. Zobrazujú sa len obsahy tohto adresára.",
+    "truncated": "Zobrazujú sa prvé položky z kategórie „ {max} “.",
+    "fadeTransition": "Prechod s postupným stmavovaním",
+    "fitToScreen": "Prispôsobiť obrázok veľkosti obrazovky",
+    "fitToScreenDescription": "Zapnuté: zobrazený je celý obrázok, v prípade potreby s čiernymi pruhmi. Vypnuté: obrázok vyplní celú obrazovku a niektoré jeho časti môžu byť orezané.",
+    "enlargeToFill": "Vždy zväčšiť na celú obrazovku",
+    "enlargeToFillDescription": "Zapnuté: malé obrázky sa zväčšia tak, aby vyplnili obrazovku, čo môže pôsobiť rozmazane. Vypnuté: obrázky sa nikdy nezobrazujú väčšie, ako je ich skutočná veľkosť.",
+    "includeVideos": "Vložiť videá",
+    "includeVideosDescription": "Zobrazovať video súbory v prezentácii spolu s obrázkami. Videá sa prehrávajú bez zvuku."
   }
 }

@@ -1028,6 +1028,9 @@
     "toggleLyrics": "切换歌词",
     "closePanel": "关闭面板",
     "openPanel": "打开面板",
+    "fullscreen": "全屏",
+    "exitFullscreen": "退出全屏模式",
+    "startFullscreen": "以全屏模式开始",
     "transcodeFailed": "转码失败",
     "transcodeLoading": "准备转码后的流",
     "transcodeUnsupportedFormat": "您的浏览器不支持此视频格式。",
@@ -1279,5 +1282,32 @@
   },
   "pwa": {
     "install": "安装应用"
+  },
+  "slideshow": {
+    "title": "幻灯片选项",
+    "start": "开始幻灯片放映",
+    "duration": "每张幻灯片所需时间（秒）",
+    "durationDescription": "每张图片在屏幕上显示的时间长度。视频仅在“播放至结束”功能关闭时才会使用此设置。",
+    "shuffle": "打乱顺序",
+    "loop": "完成后循环",
+    "kenBurns": "平移和缩放",
+    "playVideosToEnd": "将视频播放到结尾",
+    "playVideosToEndDescription": "在每个视频播放完毕后跳转，而不是在幻灯片显示时间结束后跳转。",
+    "showFilename": "显示文件名",
+    "includeSubfolders": "包含子文件夹",
+    "includeSubfoldersDescription": "也显示子文件夹中的图片和视频。",
+    "maxItems": "最大项目数",
+    "maxItemsHint": "最多显示{max} 条结果，具体数量受服务器搜索设置的限制。",
+    "empty": "该文件夹中没有图片或视频。",
+    "allFailed": "无法显示任何文件。",
+    "searchFailed": "无法搜索子文件夹。仅显示此文件夹。",
+    "truncated": "显示前{max} 个项目。",
+    "fadeTransition": "淡入淡出过渡",
+    "fitToScreen": "将图片调整为屏幕大小",
+    "fitToScreenDescription": "开启：显示整张图片，必要时会出现黑边。关闭：图片填满屏幕，部分内容可能会被裁剪。",
+    "enlargeToFill": "始终放大以填满屏幕",
+    "enlargeToFillDescription": "开启：小图片会被放大以填满屏幕，这可能会导致画面显得模糊。关闭：图片显示尺寸绝不会超过其实际大小。",
+    "includeVideos": "包含视频",
+    "includeVideosDescription": "在幻灯片放映中，视频文件将与图片一同显示。视频播放时默认静音。"
   }
 }
