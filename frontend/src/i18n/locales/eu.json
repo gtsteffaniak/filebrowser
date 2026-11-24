@@ -1197,7 +1197,8 @@
       "shareFilter": "Partekatze-iragazkia",
       "pathGlob": "Bide-eredua (glob)",
       "viewActivity": "Ikusi jarduera",
-      "tableColumns": "Taularen zutabeak"
+      "tableColumns": "Taularen zutabeak",
+      "eventFileModify": "Fitxategia aldatu"
     },
     "toolNotFound": "Ez da tresna aurkitu"
   },

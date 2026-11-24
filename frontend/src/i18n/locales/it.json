@@ -878,6 +878,8 @@
     "refineSearch": "Visualizzazione dei primi {count} risultati. Affina la ricerca per vederne altri.",
     "all": "Nega Tutto",
     "rules": "Regole di accesso",
+    "hasRules": "Regole di accesso configurate",
+    "manageDescription": "Apri le regole di accesso per questo percorso.",
     "deny": "Nega",
     "totalDenied": "Negati",
     "totalAllowed": "Consentiti",
