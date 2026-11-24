@@ -462,9 +462,11 @@ func settingsShareDefaultsPatchHandler(w http.ResponseWriter, r *http.Request, d
 // metadata and ffmpeg option lists. Non-admins never receive this type.
 type mediaSettingsResponse struct {
 	settings.FullAdminMedia
-	LockedFromConfigPaths []string                      `json:"lockedFromConfigPaths,omitempty"`
-	LockMessage           string                        `json:"lockMessage,omitempty"`
-	AccelDeviceOptions    []ffmpeg.AccelDeviceOption    `json:"accelDeviceOptions,omitempty"`
+	LockedFromConfigPaths []string                   `json:"lockedFromConfigPaths,omitempty"`
+	LockMessage           string                     `json:"lockMessage,omitempty"`
+	AccelDeviceOptions    []ffmpeg.AccelDeviceOption `json:"accelDeviceOptions,omitempty"`
+	// AutoAccelDevice is the option id that accelDevice "auto" resolves to on this host.
+	AutoAccelDevice       string                        `json:"autoAccelDevice,omitempty"`
 	EncoderBackendOptions []ffmpeg.EncoderBackendOption `json:"encoderBackendOptions,omitempty"`
 }
 
@@ -500,9 +502,11 @@ func settingsMediaGetHandler(w http.ResponseWriter, r *http.Request, d *Context)
 	lockedPaths, lockMessage := mediaSettingsLockMeta()
 	svc := ffmpeg.Get()
 	var accelDeviceOptions []ffmpeg.AccelDeviceOption
+	var autoAccelDevice string
 	var encoderBackendOptions []ffmpeg.EncoderBackendOption
 	if svc != nil {
 		accelDeviceOptions = svc.AccelDeviceOptions()
+		autoAccelDevice = svc.AutoAccelDevice()
 		encoderBackendOptions = svc.EncoderBackendOptions()
 	}
 	return RenderJSON(w, r, mediaSettingsResponse{
@@ -510,6 +514,7 @@ func settingsMediaGetHandler(w http.ResponseWriter, r *http.Request, d *Context)
 		LockedFromConfigPaths: lockedPaths,
 		LockMessage:           lockMessage,
 		AccelDeviceOptions:    accelDeviceOptions,
+		AutoAccelDevice:       autoAccelDevice,
 		EncoderBackendOptions: encoderBackendOptions,
 	})
 }

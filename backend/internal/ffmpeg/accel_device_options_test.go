@@ -8,11 +8,63 @@ import (
 	"github.com/gtsteffaniak/go-ffmpeg/platform"
 )
 
-func TestAccelDeviceOptionsIncludesAuto(t *testing.T) {
+func TestAccelDeviceOptionsOmitsAuto(t *testing.T) {
 	s := &Service{}
 	opts := s.AccelDeviceOptions()
-	if len(opts) != 2 || opts[0].ID != "auto" || opts[1].ID != "software" {
-		t.Fatalf("without capabilities want auto + software, got %+v", opts)
+	if len(opts) != 1 || opts[0].ID != "software" {
+		t.Fatalf("without capabilities want software only, got %+v", opts)
+	}
+	for _, o := range opts {
+		if o.ID == "auto" {
+			t.Fatalf("auto must not be a selectable option: %+v", opts)
+		}
+	}
+	if got := s.AutoAccelDevice(); got != "" {
+		t.Fatalf("AutoAccelDevice without capabilities = %q, want empty", got)
+	}
+}
+
+// The option list never contains an "auto" id, and the device auto resolves to
+// is listed as a real option so the dropdown can show it.
+func TestAutoDeviceIsListedAsOption(t *testing.T) {
+	gpus := []platform.GPUDevice{
+		{Name: "AMD Radeon Graphics", Vendor: "amd", DeviceClass: "igpu", Integrated: true, RenderNode: "/dev/dri/renderD128"},
+		{Name: "NVIDIA GeForce RTX 3050", Vendor: "nvidia", DeviceClass: "dgpu", RenderNode: "/dev/dri/renderD129"},
+	}
+	caps := capabilities.NewCapabilities()
+	caps.DeviceChain = []platform.GPUChoice{
+		{Name: "AMD Radeon Graphics", Vendor: "amd", Integrated: true, RenderDevice: "/dev/dri/renderD128"},
+	}
+	label, autoID, opts := resolvedAccelDeviceOptions(caps, gpus)
+	if autoID != "/dev/dri/renderD128" {
+		t.Fatalf("autoID = %q, want the integrated render node", autoID)
+	}
+	if label == "" {
+		t.Fatal("auto label must be set")
+	}
+	found := false
+	for _, o := range opts {
+		if o.ID == "auto" {
+			t.Fatalf("auto must not be an option: %+v", opts)
+		}
+		if o.ID == autoID {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatalf("auto device %q missing from options %+v", autoID, opts)
+	}
+}
+
+// When auto resolves to a device that was not enumerated, it is prepended so the
+// dropdown can still select it.
+func TestAutoDevicePrependedWhenNotEnumerated(t *testing.T) {
+	_, autoID, opts := resolvedAccelDeviceOptions(wslCaps(), nil)
+	if autoID != "NVIDIA GeForce RTX 3050" {
+		t.Fatalf("autoID = %q, want the WSL NVIDIA name", autoID)
+	}
+	if len(opts) != 1 || opts[0].ID != autoID {
+		t.Fatalf("want the WSL device prepended, got %+v", opts)
 	}
 }
 
@@ -32,7 +84,7 @@ func TestResolveAccelDeviceWSLNVIDIA(t *testing.T) {
 	caps.Platform.Details = map[string]string{"gpu": "NVIDIA GeForce RTX 3050"}
 	// Inject caps through a minimal service wrapper is not available; test helper directly.
 	id, label := wslNVIDIAAccelDefault(caps)
-	if id != "dgpu" || label != "Dedicated GPU (NVIDIA GeForce RTX 3050)" {
+	if id != "NVIDIA GeForce RTX 3050" || label != "Dedicated GPU (NVIDIA GeForce RTX 3050)" {
 		t.Fatalf("wsl default = %q / %q", id, label)
 	}
 }

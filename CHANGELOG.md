@@ -9,9 +9,9 @@ All notable changes to this project will be documented in this file. For commit 
   - Media enhancements
     - All server media settings can be managed in settings by admins.
     - JXL image preview support (#3334) (#2551)
-    - Transcoding for media playback with quality presets -- requires ffmpeg.
+    - Transcoding for media playback with quality presets (requires ffmpeg).
     - Hardware Acceleration device selector (Software / detected GPU devices)
-    - More operations use native api operations rather than ffmpeg, improving performance in many cases. Added temporary config option to force ffmpeg to be used
+    - More operations use native api operations rather than ffmpeg, improving performance in many cases. Added temporary config option to force ffmpeg to be used..
       - HLS keyframe indexes for MP4/MOV/M4V/MKV/WebM are read from the container index with go-media instead of demuxing every packet with ffprobe; ffprobe still runs when go-media cannot read the file or reports a keyframe gap that would rule out stream copy.
       - HEIC/AVIF rotation (irot) for the ffmpeg decode fallback is read with go-media instead of a full `ffmpeg -f null` decode.
       - AVIF images get previews through the HEIC preview path (go-media decode, ffmpeg fallback) when HEIC previews are enabled.
@@ -46,8 +46,10 @@ All notable changes to this project will be documented in this file. For commit 
  **Notes**:
  - **Document preview formats:** New in-process support includes **`.azw3`**, **`.chm`**, **`.htm`**, and **`.html`**. However, `.doc` continues to require the office integration for thumbnails. **`.xps`** and **`.cbz`** previews come from embedded images. With **Always use office for document previews** enabled, office files still use the office converter
  - UPX compression is removed from release builds.
- - A `filebrowser-media` image is published alongside the main and slim images.
+ - A `filebrowser-gpu` image is published alongside the main and slim images (amd64, hardware-accelerated ffmpeg).
  - Previews (thumbnails, popup, and text previews) are no longer requested for sources the user does not have view access to.
+ - [docker] new filebrowser-gpu image for docker deployments with gpu devices available. Works for nvidia, AMD, Intel.
+ - [docker] ffmpeg upgraded to version 9.1
 
  **Bug Fixes**:
  - Closing a video preview from the header bar now stops playback immediately instead of leaving audio running in the background.

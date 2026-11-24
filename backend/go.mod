@@ -20,7 +20,7 @@ require (
 	github.com/google/go-cmp v0.7.0
 	github.com/google/uuid v1.6.0
 	github.com/gtsteffaniak/go-cache v1.1.0
-	github.com/gtsteffaniak/go-ffmpeg v1.6.3
+	github.com/gtsteffaniak/go-ffmpeg v1.7.1
 	github.com/gtsteffaniak/go-logger v1.1.0
 	github.com/gtsteffaniak/go-media v1.3.2
 	github.com/kovidgoyal/imaging v1.9.0
@@ -45,10 +45,8 @@ require (
 
 require (
 	github.com/Azure/go-ntlmssp v0.1.1 // indirect
-	github.com/Eyevinn/mp4ff v0.62.1 // indirect
 	github.com/KyleBanks/depth v1.2.1 // indirect
 	github.com/abema/go-mp4 v1.7.4 // indirect
-	github.com/at-wat/ebml-go v0.19.4 // indirect
 	github.com/boombuler/barcode v1.1.0 // indirect
 	github.com/dsoprea/go-logging v0.0.0-20200710184922-b02d349568dd // indirect
 	github.com/dsoprea/go-utility/v2 v2.0.0-20221003172846-a3e1774ef349 // indirect

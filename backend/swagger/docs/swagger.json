@@ -9047,6 +9047,10 @@
                     "description": "skip folio document previews and use the office converter when configured (default: false)",
                     "type": "boolean"
                 },
+                "autoAccelDevice": {
+                    "description": "AutoAccelDevice is the option id that accelDevice \"auto\" resolves to on this host.",
+                    "type": "string"
+                },
                 "convert": {
                     "description": "config for ffmpeg conversion settings",
                     "allOf": [
