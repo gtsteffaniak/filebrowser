@@ -138,9 +138,6 @@ func previewCandidates(ex exif.Exif) []previewCandidate {
 	return out
 }
 
-// MaxPreviewPixels is the largest embedded image, in pixels, that the preview path decodes.
-const MaxPreviewPixels = 40_000_000
-
 // readLargestJPEGPreview returns the largest embedded JPEG that fits MaxPreviewPixels. Camera
 // files often hold a full-size JPEG next to a mid-size preview, and the full-size one can be
 // over budget. If nothing fits, the largest JPEG is returned so the caller can reject it.

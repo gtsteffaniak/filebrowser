@@ -745,6 +745,7 @@ class UploadManager {
         upload.xhr = promise.xhr;
         await promise;
 
+        upload.awaitingServer = false;
         this.recordUploadActivity(upload);
         // Clear timeout on successful completion
         this.clearProgressTimeout(upload.id);
@@ -833,6 +834,9 @@ class UploadManager {
         upload.awaitingServer = false;
         // A completed chunk is activity even when no progress event was emitted.
         this.recordUploadActivity(upload);
+        if (upload.chunkOffset < upload.size) {
+          this.startProgressTimeout(upload);
+        }
       } catch (err) {
         upload.awaitingServer = false;
         this.clearProgressTimeout(upload.id);
@@ -915,6 +919,7 @@ class UploadManager {
     }
     this.abortUpload(upload);
     upload.status = "paused";
+    upload.awaitingServer = false;
     this.clearProgressTimeout(id);
   }
 

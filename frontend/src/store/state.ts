@@ -103,6 +103,7 @@ export const state: StoreState = reactive({
     fileLoading: {
       maxConcurrentUpload: 3,
       uploadChunkSizeMb: 5,
+      uploadStallTimeoutSeconds: 10,
       clearAll: false
     }
   },

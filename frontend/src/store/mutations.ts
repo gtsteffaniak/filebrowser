@@ -657,6 +657,10 @@ export const mutations = {
         if (state.user.fileLoading.uploadChunkSizeMb === undefined) {
           state.user.fileLoading.uploadChunkSizeMb = 5;
         }
+        // 0 is what the server sends for users saved before this setting existed
+        if (!state.user.fileLoading.uploadStallTimeoutSeconds) {
+          state.user.fileLoading.uploadStallTimeoutSeconds = 10;
+        }
         if (state.user.fileLoading.clearAll === undefined) {
           state.user.fileLoading.clearAll = false;
         }
