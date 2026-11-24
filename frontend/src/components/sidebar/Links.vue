@@ -49,7 +49,6 @@
     <div
       v-if="mode === 'navigation' && !isShare && sourceNames.length > 1"
       class="source-card-container"
-      ref="sourceCardContainer"
     >
       <ExpandDropdown
         class="sidebar-source-switcher"

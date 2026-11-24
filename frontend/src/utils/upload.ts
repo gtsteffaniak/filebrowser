@@ -721,7 +721,6 @@ class UploadManager {
       const progress = (percent: number) => {
         this.updateProgress(upload, percent);
       };
-      const onSent = () => this.markSentToServer(upload);
 
       // Start progress timeout monitoring
       upload.lastProgressTime = Date.now();
@@ -789,8 +788,6 @@ class UploadManager {
         const progress = (totalLoaded / upload.size) * 100;
         this.updateProgress(upload, Math.round(progress * 10) / 10);
       };
-
-      const onSent = () => this.markSentToServer(upload);
 
       try {
         const onSent = () => this.markSentToServer(upload);

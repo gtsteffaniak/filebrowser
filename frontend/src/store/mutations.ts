@@ -1147,9 +1147,6 @@ export const mutations = {
   updateNavigationSortConfig: ({ field, asc }: { field: string; asc: boolean }) => {
     state.navigation.sorting = { by: field, asc };
   },
-  updateNavigationSortConfig: ({ field, asc }: { field: string; asc: boolean }) => {
-    state.navigation.sorting = { by: field, asc };
-  },
   updatePickerSortConfig: ({ field, asc }: { field: string; asc: boolean }) => {
     state.pickerSorting = { by: field, asc };
     try {
@@ -1549,9 +1546,6 @@ export const mutations = {
       return;
     }
     state.sidebar.width = newWidth;
-  },
-  persistSidebarWidth: () => {
-    localStorage.setItem("sidebarWidth", state.sidebar.width.toString());
   },
   persistSidebarWidth: () => {
     localStorage.setItem("sidebarWidth", state.sidebar.width.toString());
