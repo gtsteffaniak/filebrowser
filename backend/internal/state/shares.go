@@ -188,18 +188,57 @@ func UpdateShare(identifier string, updateFn func(*share.Share) error) error {
 		return fmt.Errorf("share not found in cache")
 	}
 
+	oldAlias := link.Alias
+	hash := link.Hash
+
 	// Apply updates to get the new state
 	if err := updateFn(link); err != nil {
+		link.Alias = oldAlias
 		return err
 	}
 
-	// 2. Write to database
-	err := sqlDb.SaveShare(link)
-	if err != nil {
+	newAlias := link.Alias
+	if newAlias != oldAlias {
+		// An alias change must stay unique in both namespaces, same as CreateShare.
+		if newAlias != "" {
+			if other, exists := resolveShareLocked(newAlias); exists && other.Hash != hash {
+				link.Alias = oldAlias
+				return fmt.Errorf("share with hash %s already exists", newAlias)
+			}
+			if newAlias == hash {
+				link.Alias = oldAlias
+				return fmt.Errorf("share with hash %s already exists", newAlias)
+			}
+			persisted, checkErr := sqlDb.ShareHashExists(newAlias)
+			if checkErr != nil {
+				link.Alias = oldAlias
+				return checkErr
+			}
+			if persisted {
+				link.Alias = oldAlias
+				return fmt.Errorf("share with hash %s already exists", newAlias)
+			}
+		}
+	}
+
+	// 2. Write to database; on failure restore the previous alias so cache and SQL stay aligned.
+	if err := sqlDb.SaveShare(link); err != nil {
+		link.Alias = oldAlias
 		return err
 	}
 
-	// 3. Cache is already updated since we modified the pointer directly
+	// 3. Write-through alias index: drop the old alias and register the new one.
+	if newAlias != oldAlias {
+		if oldAlias != "" {
+			delete(sharesByAlias, oldAlias)
+		}
+		if newAlias != "" {
+			if sharesByAlias == nil {
+				sharesByAlias = make(map[string]string)
+			}
+			sharesByAlias[newAlias] = hash
+		}
+	}
 
 	return nil
 }

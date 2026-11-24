@@ -74,7 +74,7 @@ func ProfileFromUser(u *users.User) UserProfile {
 			DisableSettings:            u.DisableSettings,
 			DisableUpdateNotifications: u.DisableUpdateNotifications,
 			ShowAdvancedProfile:        u.ShowAdvancedProfile,
-			UseCustomShare:             boolPtr(u.UseCustomShare),
+			AllowCustomShareURL:        boolPtr(u.AllowCustomShareURL),
 			MaxConcurrentTranscodes:    u.MaxConcurrentTranscodes,
 			Permissions: UserDefaultsAccountPermissions{
 				Api:      u.Permissions.Api,
@@ -96,8 +96,8 @@ func ExpandProfileIntoUser(u *users.User, p UserProfile) {
 	u.RequirePasswordChange = p.Account.RequirePasswordChange
 	u.DisableUpdateNotifications = p.Account.DisableUpdateNotifications
 	u.ShowAdvancedProfile = p.Account.ShowAdvancedProfile
-	// Profiles saved before this setting existed have no key; they keep custom share enabled.
-	u.UseCustomShare = boolValueOrDefault(p.Account.UseCustomShare, true)
+	// Profiles saved before this setting existed have no key; they keep custom share disabled (the default).
+	u.AllowCustomShareURL = boolValueOrDefault(p.Account.AllowCustomShareURL, false)
 	if p.Account.MaxConcurrentTranscodes > 0 {
 		u.MaxConcurrentTranscodes = p.Account.MaxConcurrentTranscodes
 	}
@@ -219,4 +219,10 @@ func normalizeLegacyUIDarkMode(profileJSON []byte) ([]byte, error) {
 // ProfileJSONFromUser returns JSON for SQLite user_data.profile.
 func ProfileJSONFromUser(u *users.User) ([]byte, error) {
 	return json.Marshal(ProfileFromUser(u))
+}
+
+// DefaultAllowCustomShareURL is the admin default for per-user custom share URLs (false when unset).
+// Used for stored users that have no profile yet, so they inherit the same default as new users.
+func DefaultAllowCustomShareURL() bool {
+	return boolValueOrDefault(Config.UserDefaults.Account.AllowCustomShareURL, false)
 }

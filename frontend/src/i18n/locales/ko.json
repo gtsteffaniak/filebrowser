@@ -589,7 +589,7 @@
     "accountOptions": "계정 설정",
     "showAdvancedProfile": "고급 프로필 설정 표시",
     "showAdvancedProfileDescription": "간소화된 프로필 보기 대신 사이드바에 분류별 프로필 설정을 표시합니다.",
-    "useCustomShareDescription": "이 사용자가 무작위로 생성된 URL 대신 직접 공유 URL을 선택할 수 있도록 허용합니다. 사용자 정의 URL은 잘못 선택하면 추측당할 수 있으므로, 공유를 생성할 때 표시되는 경고 사항을 참고하시기 바랍니다.",
+    "allowCustomShareURLDescription": "이 사용자가 무작위로 생성된 URL 대신 직접 공유 URL을 선택할 수 있도록 허용합니다. 사용자 정의 URL은 잘못 선택하면 추측당할 수 있으므로, 공유를 생성할 때 표시되는 경고 사항을 참고하시기 바랍니다.",
     "disableHideSidebar": "사이드바 항상 표시",
     "disableHideSidebarDescription": "활성화하면 파일을 미리 보거나 편집할 때 사이드바가 자동으로 숨겨지지 않습니다.",
     "autoplayMedia": "보기 시 미디어 파일 자동 재생",

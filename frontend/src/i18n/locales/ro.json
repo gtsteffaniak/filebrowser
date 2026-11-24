@@ -589,7 +589,7 @@
     "accountOptions": "Opțiuni de cont",
     "showAdvancedProfile": "Afișează setările avansate ale profilului",
     "showAdvancedProfileDescription": "Afișează setările de profil clasificate în bara laterală, în locul vizualizării simplificate a profilului.",
-    "useCustomShareDescription": "Permiteți acestui utilizator să-și aleagă propria adresă URL de partajare, în loc de una aleatorie. Adresele URL personalizate pot fi ghicite dacă sunt alese necorespunzător, așa că țineți cont de avertismentul afișat atunci când creați o partajare.",
+    "allowCustomShareURLDescription": "Permiteți acestui utilizator să-și aleagă propria adresă URL de partajare, în loc de una aleatorie. Adresele URL personalizate pot fi ghicite dacă sunt alese necorespunzător, așa că țineți cont de avertismentul afișat atunci când creați o partajare.",
     "disableHideSidebar": "Afișează întotdeauna bara laterală",
     "disableHideSidebarDescription": "Atunci când este activată, bara laterală nu se va ascunde automat la previzualizarea sau editarea fișierelor.",
     "autoplayMedia": "Redarea automată a fișierelor media la vizualizare",

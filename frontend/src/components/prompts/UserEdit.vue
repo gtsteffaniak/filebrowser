@@ -343,7 +343,7 @@ export default {
         disableSettings: false,
         disableUpdateNotifications: false,
         showAdvancedProfile: false,
-        useCustomShare: true,
+        allowCustomShareURL: false,
         maxConcurrentTranscodes: 1,
         toolAccess: {},
         sidebarLinks: [],
@@ -374,7 +374,7 @@ export default {
         disableSettings: false,
         disableUpdateNotifications: false,
         showAdvancedProfile: false,
-        useCustomShare: true,
+        allowCustomShareURL: false,
         maxConcurrentTranscodes: 1,
         permissions: {
           admin: false,
@@ -737,8 +737,8 @@ export default {
         user.requirePasswordChange = !!account.requirePasswordChange;
         user.disableSettings = !!account.disableSettings;
         user.disableUpdateNotifications = !!account.disableUpdateNotifications;
-        if (account.useCustomShare !== undefined) {
-          user.useCustomShare = !!account.useCustomShare;
+        if (account.allowCustomShareURL !== undefined) {
+          user.allowCustomShareURL = !!account.allowCustomShareURL;
         }
         if (account.loginMethod) {
           user.loginMethod = account.loginMethod;
@@ -1024,7 +1024,7 @@ export default {
         disableSettings: !!this.user.disableSettings,
         disableUpdateNotifications: !!this.user.disableUpdateNotifications,
         showAdvancedProfile: !!this.user.showAdvancedProfile,
-        useCustomShare: !!this.user.useCustomShare,
+        allowCustomShareURL: !!this.user.allowCustomShareURL,
         maxConcurrentTranscodes: Math.max(1, Number(this.user.maxConcurrentTranscodes) || 1),
         permissions: {
           admin: !!permissions.admin,
@@ -1080,10 +1080,10 @@ export default {
         fields.push("showAdvancedProfile");
       }
       if (
-        current.useCustomShare !== orig.useCustomShare
-        && !this.enforcedAccount.useCustomShare
+        current.allowCustomShareURL !== orig.allowCustomShareURL
+        && !this.enforcedAccount.allowCustomShareURL
       ) {
-        fields.push("useCustomShare");
+        fields.push("allowCustomShareURL");
       }
       if (
         current.maxConcurrentTranscodes !== orig.maxConcurrentTranscodes
@@ -1129,7 +1129,7 @@ export default {
       this.editAccount.disableSettings = !!this.user.disableSettings;
       this.editAccount.disableUpdateNotifications = !!this.user.disableUpdateNotifications;
       this.editAccount.showAdvancedProfile = !!this.user.showAdvancedProfile;
-      this.editAccount.useCustomShare = !!this.user.useCustomShare;
+      this.editAccount.allowCustomShareURL = !!this.user.allowCustomShareURL;
       this.editAccount.maxConcurrentTranscodes = this.user.maxConcurrentTranscodes > 0
         ? this.user.maxConcurrentTranscodes
         : 1;
@@ -1146,7 +1146,7 @@ export default {
       this.user.disableSettings = this.editAccount.disableSettings;
       this.user.disableUpdateNotifications = this.editAccount.disableUpdateNotifications;
       this.user.showAdvancedProfile = this.editAccount.showAdvancedProfile;
-      this.user.useCustomShare = this.editAccount.useCustomShare;
+      this.user.allowCustomShareURL = this.editAccount.allowCustomShareURL;
       this.user.maxConcurrentTranscodes = Math.max(1, Number(this.editAccount.maxConcurrentTranscodes) || 1);
       if (!this.user.permissions) {
         this.user.permissions = this.defaultPermissions();

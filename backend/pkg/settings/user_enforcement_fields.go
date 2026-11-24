@@ -45,7 +45,7 @@ var userJSONFieldEnforcementPaths = map[string]string{
 	"disableSettings":            "account.disableSettings",
 	"disableUpdateNotifications": "account.disableUpdateNotifications",
 	"showAdvancedProfile":        "account.showAdvancedProfile",
-	"useCustomShare":             "account.useCustomShare",
+	"allowCustomShareURL":        "account.allowCustomShareURL",
 	"maxConcurrentTranscodes":    "account.maxConcurrentTranscodes",
 }
 

@@ -589,7 +589,7 @@
     "accountOptions": "Opzioni dell'account",
     "showAdvancedProfile": "Mostra le impostazioni avanzate del profilo",
     "showAdvancedProfileDescription": "Mostra le impostazioni del profilo suddivise per categorie nella barra laterale, anziché la visualizzazione semplificata del profilo.",
-    "useCustomShareDescription": "Consenti a questo utente di scegliere il proprio URL di condivisione invece di uno casuale. Gli URL personalizzati possono essere indovinati se scelti in modo inadeguato, quindi tieni conto dell'avviso visualizzato al momento della creazione della condivisione.",
+    "allowCustomShareURLDescription": "Consenti a questo utente di scegliere il proprio URL di condivisione invece di uno casuale. Gli URL personalizzati possono essere indovinati se scelti in modo inadeguato, quindi tieni conto dell'avviso visualizzato al momento della creazione della condivisione.",
     "disableHideSidebar": "Mostra sempre la barra laterale",
     "disableHideSidebarDescription": "Impedisce alla barra laterale di nascondersi automaticamente.",
     "autoplayMedia": "Riproduzione automatica media",

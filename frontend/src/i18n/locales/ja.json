@@ -589,7 +589,7 @@
     "accountOptions": "アカウント設定",
     "showAdvancedProfile": "詳細なプロフィール設定を表示する",
     "showAdvancedProfileDescription": "簡易プロフィール表示の代わりに、サイドバーに分類されたプロフィール設定を表示します。",
-    "useCustomShareDescription": "このユーザーが、ランダムなURLではなく、自分で共有URLを選択できるようにします。不適切なURLを選択すると、そのURLが推測されやすくなる可能性があるため、共有を作成する際には表示される警告に従ってください。",
+    "allowCustomShareURLDescription": "このユーザーが、ランダムなURLではなく、自分で共有URLを選択できるようにします。不適切なURLを選択すると、そのURLが推測されやすくなる可能性があるため、共有を作成する際には表示される警告に従ってください。",
     "disableHideSidebar": "サイドバーを常に表示する",
     "disableHideSidebarDescription": "有効にすると、ファイルのプレビューや編集時にサイドバーが自動的に非表示になりません。",
     "autoplayMedia": "メディアファイル閲覧時の自動再生",

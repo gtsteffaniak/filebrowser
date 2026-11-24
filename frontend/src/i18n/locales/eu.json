@@ -589,7 +589,7 @@
     "accountOptions": "Kontuaren aukerak",
     "showAdvancedProfile": "Erakutsi profilaren ezarpen aurreratuak",
     "showAdvancedProfileDescription": "Erakutsi profilaren ezarpenak kategoriatan alboko barran, profilaren ikuspegi sinplifikatuaren ordez.",
-    "useCustomShareDescription": "Utzi erabiltzaileari bere partekatzeko URL propioa aukeratzen, ausazko baten ordez. URL pertsonalizatuak asmatzea erraza izan daiteke gaizki aukeratuta, beraz, partekatzea sortzerakoan agertzen den ohartarazpena erabili.",
+    "allowCustomShareURLDescription": "Utzi erabiltzaileari bere partekatzeko URL propioa aukeratzen, ausazko baten ordez. URL pertsonalizatuak asmatzea erraza izan daiteke gaizki aukeratuta, beraz, partekatzea sortzerakoan agertzen den ohartarazpena erabili.",
     "disableHideSidebar": "Erakutsi beti alboko barra",
     "disableHideSidebarDescription": "Gaituta dagoenean, alboko barra ez da automatikoki ezkutatuko fitxategiak aurreikusi edo editatzean.",
     "autoplayMedia": "Erreproduzitu automatikoki multimedia-fitxategiak ikustean",

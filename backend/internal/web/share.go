@@ -282,6 +282,32 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 			return http.StatusForbidden, fmt.Errorf("you are not allowed to update this share")
 		}
 		updateSourceName := beforeShare.GetSourceName()
+
+		// customHash is optional on update: omitted keeps the alias, "" clears it, a value replaces it.
+		var aliasBody struct {
+			CustomHash *string `json:"customHash"`
+		}
+		if len(bodyBytes) > 0 {
+			if err := json.Unmarshal(bodyBytes, &aliasBody); err != nil {
+				return http.StatusBadRequest, fmt.Errorf("failed to decode body: %w", err)
+			}
+		}
+		newAlias := beforeShare.Alias
+		if aliasBody.CustomHash != nil {
+			newAlias = *aliasBody.CustomHash
+		}
+		if newAlias != beforeShare.Alias && newAlias != "" {
+			if !d.User.AllowCustomShareURL {
+				return http.StatusForbidden, fmt.Errorf("custom share URLs are not enabled for your account")
+			}
+			if err := validateCustomShareHash(newAlias); err != nil {
+				return http.StatusBadRequest, err
+			}
+			if state.ShareHashExists(newAlias) {
+				return http.StatusConflict, fmt.Errorf("custom share URL is already in use")
+			}
+		}
+
 		mergedEditable, mergeErr := sharedefaults.MergeEditableUpdate(share.EditableFromShare(&beforeShare), bodyBytes)
 		if mergeErr != nil {
 			return http.StatusBadRequest, mergeErr
@@ -319,6 +345,7 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 			preservedVersion := link.Version
 
 			share.ApplyPostBodyUpdate(link, &req, expire)
+			link.Alias = newAlias
 
 			link.Path = preservedPath
 			link.SourcePath = preservedSourcePath
@@ -333,7 +360,7 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 			return http.StatusInternalServerError, err
 		}
 
-		updatedShare, err3 := state.GetShare(req.Hash)
+		updatedShare, err3 := state.GetShare(beforeShare.Hash)
 		if err3 != nil {
 			return http.StatusInternalServerError, err3
 		}
@@ -384,7 +411,7 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 		return http.StatusInternalServerError, err
 	}
 	if req.CustomHash != "" {
-		if !d.User.UseCustomShare {
+		if !d.User.AllowCustomShareURL {
 			return http.StatusForbidden, fmt.Errorf("custom share URLs are not enabled for your account")
 		}
 		if err = validateCustomShareHash(req.CustomHash); err != nil {

@@ -589,7 +589,7 @@
     "accountOptions": "Tilin asetukset",
     "showAdvancedProfile": "Näytä profiilin lisäasetukset",
     "showAdvancedProfileDescription": "Näytä profiilin asetukset sivupalkissa ryhmiteltyinä yksinkertaistetun profiilinäkymän sijaan.",
-    "useCustomShareDescription": "Anna tämän käyttäjän valita oma jakamis-URL-osoitteensa satunnaisen sijaan. Mukautetut URL-osoitteet ovat helposti arvattavissa, jos ne valitaan huonosti, joten ota huomioon jakamista luotaessa näkyvä varoitus.",
+    "allowCustomShareURLDescription": "Anna tämän käyttäjän valita oma jakamis-URL-osoitteensa satunnaisen sijaan. Mukautetut URL-osoitteet ovat helposti arvattavissa, jos ne valitaan huonosti, joten ota huomioon jakamista luotaessa näkyvä varoitus.",
     "disableHideSidebar": "Näytä sivupalkki aina",
     "disableHideSidebarDescription": "Älä piilota sivupalkkia automaattisesti tiedostojen esikatselun tai muokkaamisen ajaksi.",
     "autoplayMedia": "Toista mediatiedostot automaattisesti",

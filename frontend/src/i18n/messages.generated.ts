@@ -564,7 +564,7 @@ export interface MessageParams {
   "profileSettings.accountOptions": never;
   "profileSettings.showAdvancedProfile": never;
   "profileSettings.showAdvancedProfileDescription": never;
-  "profileSettings.useCustomShareDescription": never;
+  "profileSettings.allowCustomShareURLDescription": never;
   "profileSettings.disableHideSidebar": never;
   "profileSettings.disableHideSidebarDescription": never;
   "profileSettings.autoplayMedia": never;

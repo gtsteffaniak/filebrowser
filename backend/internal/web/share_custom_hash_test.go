@@ -43,11 +43,11 @@ func TestValidateCustomShareHashCharset(t *testing.T) {
 
 func TestSharePostCustomHash_RejectedWhenUserDisabled(t *testing.T) {
 	owner, _, _ := setupShareAuthTestUsers(t)
-	owner.UseCustomShare = false
+	owner.AllowCustomShareURL = false
 
 	status, err := postCreateWithCustomHash(t, &Context{User: owner}, "workfiles-q3-review-2026")
 	if status != http.StatusForbidden {
-		t.Fatalf("expected 403 when useCustomShare is disabled for the user, got %d", status)
+		t.Fatalf("expected 403 when allowCustomShareURL is disabled for the user, got %d", status)
 	}
 	if err == nil || !strings.Contains(err.Error(), "not enabled for your account") {
 		t.Fatalf("expected account-level error message, got %v", err)
@@ -59,7 +59,7 @@ func TestSharePostCustomHash_RejectedWhenUserDisabled(t *testing.T) {
 
 func TestSharePostCustomHash_RejectsInvalidAndDuplicate(t *testing.T) {
 	owner, _, _ := setupShareAuthTestUsers(t)
-	owner.UseCustomShare = true
+	owner.AllowCustomShareURL = true
 
 	if status, _ := postCreateWithCustomHash(t, &Context{User: owner}, "bad/hash-with-enough-length"); status != http.StatusBadRequest {
 		t.Fatalf("expected 400 for invalid hash, got %d", status)

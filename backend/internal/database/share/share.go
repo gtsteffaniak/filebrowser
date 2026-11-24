@@ -100,6 +100,9 @@ type ShareEditable struct {
 type ShareFrontend struct {
 	ShareEditable
 	ShareColumns
+	// CustomHash is the owner-chosen alias (empty when the share uses its random hash). Hash already
+	// carries the presented identifier, so this only tells the editor whether a custom value is set.
+	CustomHash          string `json:"customHash,omitempty"`
 	Username            string `json:"username,omitempty"`
 	PathExists          bool   `json:"pathExists,omitempty"`
 	QuotaUsedBytes      int64  `json:"quotaUsedBytes,omitempty"`

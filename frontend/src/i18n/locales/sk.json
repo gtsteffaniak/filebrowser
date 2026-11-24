@@ -589,7 +589,7 @@
     "accountOptions": "Možnosti účtu",
     "showAdvancedProfile": "Zobraziť pokročilé nastavenia profilu",
     "showAdvancedProfileDescription": "Zobraziť nastavenia profilu podľa kategórií v bočnom paneli namiesto zjednodušeného zobrazenia profilu.",
-    "useCustomShareDescription": "Povoľte tomuto používateľovi, aby si namiesto náhodnej adresy URL zvolil vlastnú adresu URL na zdieľanie. Vlastné adresy URL sa dajú ľahko uhádnuť, ak sú zle zvolené, preto pri vytváraní zdieľania využite zobrazené varovanie.",
+    "allowCustomShareURLDescription": "Povoľte tomuto používateľovi, aby si namiesto náhodnej adresy URL zvolil vlastnú adresu URL na zdieľanie. Vlastné adresy URL sa dajú ľahko uhádnuť, ak sú zle zvolené, preto pri vytváraní zdieľania využite zobrazené varovanie.",
     "disableHideSidebar": "Vždy zobraziť bočný panel",
     "disableHideSidebarDescription": "Ak je táto funkcia povolená, bočný panel sa pri náhľade alebo úprave súborov automaticky neskrýva.",
     "autoplayMedia": "Automatické prehrávanie mediálnych súborov pri prezeraní",

@@ -7414,7 +7414,7 @@ const docTemplate = `{
                     "description": "show advanced profile settings in the user profile page",
                     "type": "boolean"
                 },
-                "useCustomShare": {
+                "allowCustomShareURL": {
                     "description": "allow users to choose custom share URLs (default: true)",
                     "type": "boolean"
                 }
@@ -7855,6 +7855,10 @@ const docTemplate = `{
                 },
                 "canEditShare": {
                     "type": "boolean"
+                },
+                "customHash": {
+                    "description": "CustomHash is the owner-chosen alias (empty when the share uses its random hash). Hash already\ncarries the presented identifier, so this only tells the editor whether a custom value is set.",
+                    "type": "string"
                 },
                 "description": {
                     "type": "string"
@@ -8436,8 +8440,8 @@ const docTemplate = `{
                         }
                     ]
                 },
-                "useCustomShare": {
-                    "description": "UseCustomShare and MaxConcurrentTranscodes are admin-set: they stay out of\nNonAdminEditable so a user cannot grant themselves the capability through a\nself-service PATCH.",
+                "allowCustomShareURL": {
+                    "description": "AllowCustomShareURL and MaxConcurrentTranscodes are admin-set: they stay out of\nNonAdminEditable so a user cannot grant themselves the capability through a\nself-service PATCH.",
                     "type": "boolean"
                 },
                 "username": {
@@ -9222,4 +9226,3 @@ var SwaggerInfo = &swag.Spec{
 	LeftDelim:        "{{",
 	RightDelim:       "}}",
 }
-

@@ -589,7 +589,7 @@
     "accountOptions": "Fiókbeállítások",
     "showAdvancedProfile": "A profil speciális beállításainak megjelenítése",
     "showAdvancedProfileDescription": "Az egyszerűsített profilnézet helyett az oldalsávban jelenítse meg a kategóriák szerint csoportosított profilbeállításokat.",
-    "useCustomShareDescription": "Engedélyezze ennek a felhasználónak, hogy véletlenszerű URL helyett saját megosztási URL-t válasszon. A saját URL-ek rosszul megválasztva könnyen kitalálhatók, ezért a megosztás létrehozásakor vegye figyelembe a megjelenő figyelmeztetést.",
+    "allowCustomShareURLDescription": "Engedélyezze ennek a felhasználónak, hogy véletlenszerű URL helyett saját megosztási URL-t válasszon. A saját URL-ek rosszul megválasztva könnyen kitalálhatók, ezért a megosztás létrehozásakor vegye figyelembe a megjelenő figyelmeztetést.",
     "disableHideSidebar": "Az oldalsávot mindig mutasd”",
     "disableHideSidebarDescription": "Ha engedélyezve van, az oldalsáv nem rejtőzik el automatikusan a fájlok előnézeténél vagy szerkesztésénél.",
     "autoplayMedia": "Médiafájlok automatikus lejátszása megtekintéskor",

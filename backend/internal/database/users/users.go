@@ -234,10 +234,10 @@ type Preview struct {
 type FrontendUser struct {
 	NonAdminEditable
 	DisableSettings bool `json:"disableSettings"`
-	// UseCustomShare and MaxConcurrentTranscodes are admin-set: they stay out of
+	// AllowCustomShareURL and MaxConcurrentTranscodes are admin-set: they stay out of
 	// NonAdminEditable so a user cannot grant themselves the capability through a
 	// self-service PATCH.
-	UseCustomShare          bool                             `json:"useCustomShare"`
+	AllowCustomShareURL     bool                             `json:"allowCustomShareURL"`
 	MaxConcurrentTranscodes int                              `json:"maxConcurrentTranscodes"`
 	Username                string                           `json:"username"`
 	FrontendScopes          []FrontendScope                  `json:"scopes"`

@@ -589,7 +589,7 @@
     "accountOptions": "Accountopties",
     "showAdvancedProfile": "Geavanceerde profielinstellingen weergeven",
     "showAdvancedProfileDescription": "Toon de profielinstellingen per categorie in de zijbalk in plaats van de vereenvoudigde profielweergave.",
-    "useCustomShareDescription": "Geef deze gebruiker de mogelijkheid om zelf een URL voor het delen te kiezen in plaats van een willekeurige. Aangepaste URL’s zijn gemakkelijk te raden als ze slecht worden gekozen, dus houd rekening met de waarschuwing die wordt weergegeven bij het aanmaken van een deelkoppeling.",
+    "allowCustomShareURLDescription": "Geef deze gebruiker de mogelijkheid om zelf een URL voor het delen te kiezen in plaats van een willekeurige. Aangepaste URL’s zijn gemakkelijk te raden als ze slecht worden gekozen, dus houd rekening met de waarschuwing die wordt weergegeven bij het aanmaken van een deelkoppeling.",
     "disableHideSidebar": "Zijbalk altijd weergeven",
     "disableHideSidebarDescription": "Als deze optie is ingeschakeld, wordt de zijbalk niet automatisch verborgen bij het bekijken of bewerken van bestanden.",
     "autoplayMedia": "Mediabestanden automatisch afspelen bij het bekijken",

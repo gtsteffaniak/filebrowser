@@ -589,7 +589,7 @@
     "accountOptions": "Account options",
     "showAdvancedProfile": "Show advanced profile settings",
     "showAdvancedProfileDescription": "Show categorized profile settings in the sidebar instead of the simplified profile view.",
-    "useCustomShareDescription": "Allow this user to choose their own share URL instead of a random one. Custom URLs are guessable if chosen poorly, so use the warning shown when creating a share.",
+    "allowCustomShareURLDescription": "Allow this user to choose their own share URL instead of a random one. Custom URLs are guessable if chosen poorly, so use the warning shown when creating a share.",
     "disableHideSidebar": "Always show sidebar",
     "disableHideSidebarDescription": "When enabled, the sidebar will not hide automatically when previewing or editing files.",
     "autoplayMedia": "Autoplay media files when viewing",

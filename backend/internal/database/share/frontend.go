@@ -35,6 +35,7 @@ func copyShareFrontendFromShare(link *Share) ShareFrontend {
 	}
 	// Clients only ever see the presented identifier (alias when set, otherwise hash).
 	out.Hash = PresentedHash(link)
+	out.CustomHash = link.Alias
 	if snap.AllowedUsernames != nil {
 		out.AllowedUsernames = append([]string(nil), snap.AllowedUsernames...)
 	}

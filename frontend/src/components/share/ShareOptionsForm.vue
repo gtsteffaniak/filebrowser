@@ -717,6 +717,11 @@ export default {
       type: Boolean,
       default: true,
     },
+    // Opens the advanced section on mount, e.g. when the share already has a custom URL to show.
+    advancedExpanded: {
+      type: Boolean,
+      default: false,
+    },
   },
   emits: {
     "update:modelValue": (values) => typeof values === "object" && values !== null,
@@ -728,7 +733,7 @@ export default {
   },
   data() {
     return {
-      showMoreExpanded: false,
+      showMoreExpanded: this.advancedExpanded,
     };
   },
   computed: {

@@ -304,7 +304,7 @@ export interface UserObject {
   darkMode: boolean | "auto" | "dark" | "light";
   disableSettings: boolean;
   showAdvancedProfile?: boolean;
-  useCustomShare?: boolean;
+  allowCustomShareURL?: boolean;
   debugOffice: boolean;
   preferEditorForMarkdown: boolean;
   preferEditorForHtml: boolean;

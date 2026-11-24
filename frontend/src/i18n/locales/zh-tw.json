@@ -589,7 +589,7 @@
     "accountOptions": "帳戶選項",
     "showAdvancedProfile": "顯示進階個人資料設定",
     "showAdvancedProfileDescription": "在側邊欄中顯示分類後的個人資料設定，而非簡化版個人資料檢視。",
-    "useCustomShareDescription": "允許此使用者自行選擇分享網址，而非隨機生成的網址。若選擇不當，自訂網址容易被猜中，因此請在建立分享時留意顯示的警告訊息。",
+    "allowCustomShareURLDescription": "允許此使用者自行選擇分享網址，而非隨機生成的網址。若選擇不當，自訂網址容易被猜中，因此請在建立分享時留意顯示的警告訊息。",
     "disableHideSidebar": "始終顯示側邊欄",
     "disableHideSidebarDescription": "啟用後，預覽或編輯檔案時，側邊欄不會自動隱藏。",
     "autoplayMedia": "檢視時自動播放媒體檔案",

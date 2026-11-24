@@ -18,7 +18,7 @@ func TestSharePostCustomHash_AllowedWithExpiration(t *testing.T) {
 	indexing.SetTestIndex("srv", "/srv")
 	t.Cleanup(func() { indexing.ClearTestIndices() })
 
-	owner.UseCustomShare = true
+	owner.AllowCustomShareURL = true
 
 	const customHash = "workfiles-q3-review-2026"
 	raw, err := json.Marshal(map[string]interface{}{

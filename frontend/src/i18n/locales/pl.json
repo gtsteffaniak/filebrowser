@@ -589,7 +589,7 @@
     "accountOptions": "Opcje konta",
     "showAdvancedProfile": "Pokaż zaawansowane ustawienia profilu",
     "showAdvancedProfileDescription": "Wyświetlaj ustawienia profilu pogrupowane według kategorii na pasku bocznym zamiast uproszczonego widoku profilu.",
-    "useCustomShareDescription": "Zezwól temu użytkownikowi na wybranie własnego adresu URL udostępnienia zamiast losowego. Niestandardowe adresy URL można łatwo odgadnąć, jeśli zostaną źle dobrane, dlatego podczas tworzenia udostępnienia należy skorzystać z wyświetlanego ostrzeżenia.",
+    "allowCustomShareURLDescription": "Zezwól temu użytkownikowi na wybranie własnego adresu URL udostępnienia zamiast losowego. Niestandardowe adresy URL można łatwo odgadnąć, jeśli zostaną źle dobrane, dlatego podczas tworzenia udostępnienia należy skorzystać z wyświetlanego ostrzeżenia.",
     "disableHideSidebar": "Zawsze wyświetlaj pasek boczny",
     "disableHideSidebarDescription": "Po włączeniu tej opcji pasek boczny nie będzie ukrywany automatycznie podczas podglądu lub edycji plików.",
     "autoplayMedia": "Automatyczne odtwarzanie plików multimedialnych podczas przeglądania",

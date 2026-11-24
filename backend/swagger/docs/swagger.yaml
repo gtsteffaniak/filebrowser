@@ -1317,7 +1317,7 @@ definitions:
       showAdvancedProfile:
         description: show advanced profile settings in the user profile page
         type: boolean
-      useCustomShare:
+      allowCustomShareURL:
         description: 'allow users to choose custom share URLs (default: true)'
         type: boolean
     type: object
@@ -1631,6 +1631,11 @@ definitions:
         type: string
       canEditShare:
         type: boolean
+      customHash:
+        description: |-
+          CustomHash is the owner-chosen alias (empty when the share uses its random hash). Hash already
+          carries the presented identifier, so this only tells the editor whether a custom value is set.
+        type: string
       description:
         type: string
       disableAnonymous:
@@ -2036,9 +2041,9 @@ definitions:
         allOf:
         - $ref: '#/definitions/users.ToolAccessMap'
         description: per-tool access overrides
-      useCustomShare:
+      allowCustomShareURL:
         description: |-
-          UseCustomShare and MaxConcurrentTranscodes are admin-set: they stay out of
+          AllowCustomShareURL and MaxConcurrentTranscodes are admin-set: they stay out of
           NonAdminEditable so a user cannot grant themselves the capability through a
           self-service PATCH.
         type: boolean

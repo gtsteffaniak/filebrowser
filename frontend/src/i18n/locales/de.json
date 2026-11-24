@@ -589,7 +589,7 @@
     "accountOptions": "Kontooptionen",
     "showAdvancedProfile": "Erweiterte Profileinstellungen anzeigen",
     "showAdvancedProfileDescription": "Zeige die nach Kategorien geordneten Profileinstellungen in der Seitenleiste anstelle der vereinfachten Profilansicht an.",
-    "useCustomShareDescription": "Erlauben Sie diesem Benutzer, seine eigene Freigabe-URL anstelle einer zufälligen zu wählen. Benutzerdefinierte URLs lassen sich leicht erraten, wenn sie schlecht gewählt sind; beachten Sie daher die beim Erstellen einer Freigabe angezeigte Warnung.",
+    "allowCustomShareURLDescription": "Erlauben Sie diesem Benutzer, seine eigene Freigabe-URL anstelle einer zufälligen zu wählen. Benutzerdefinierte URLs lassen sich leicht erraten, wenn sie schlecht gewählt sind; beachten Sie daher die beim Erstellen einer Freigabe angezeigte Warnung.",
     "disableHideSidebar": "Seitenleiste immer anzeigen",
     "disableHideSidebarDescription": "Wenn diese Option aktiviert ist, wird die Seitenleiste nicht automatisch ausgeblendet, wenn Dateien in der Vorschau angezeigt oder bearbeitet werden.",
     "autoplayMedia": "Autoplay von Mediendateien bei der Anzeige",

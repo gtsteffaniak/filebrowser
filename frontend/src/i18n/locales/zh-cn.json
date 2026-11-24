@@ -589,7 +589,7 @@
     "accountOptions": "账户选项",
     "showAdvancedProfile": "显示高级个人资料设置",
     "showAdvancedProfileDescription": "在侧边栏中显示分类后的个人资料设置，而不是简化版个人资料视图。",
-    "useCustomShareDescription": "允许该用户自行选择分享链接，而不是使用随机生成的链接。如果选择不当，自定义链接可能会被轻易猜中，因此请在创建分享时注意显示的警告。",
+    "allowCustomShareURLDescription": "允许该用户自行选择分享链接，而不是使用随机生成的链接。如果选择不当，自定义链接可能会被轻易猜中，因此请在创建分享时注意显示的警告。",
     "disableHideSidebar": "始终显示侧边栏",
     "disableHideSidebarDescription": "启用后，侧边栏在预览或编辑文件时不会自动隐藏。",
     "autoplayMedia": "观看时自动播放媒体文件",

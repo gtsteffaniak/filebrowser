@@ -589,7 +589,7 @@
     "accountOptions": "Hesap seçenekleri",
     "showAdvancedProfile": "Gelişmiş profil ayarlarını göster",
     "showAdvancedProfileDescription": "Basitleştirilmiş profil görünümü yerine, kenar çubuğunda kategorilere ayrılmış profil ayarlarını göster.",
-    "useCustomShareDescription": "Bu kullanıcının rastgele bir URL yerine kendi paylaşım URL’sini seçmesine izin verin. Kötü seçildiğinde özel URL’ler kolayca tahmin edilebilir; bu nedenle, paylaşım oluştururken gösterilen uyarıyı dikkate alın.",
+    "allowCustomShareURLDescription": "Bu kullanıcının rastgele bir URL yerine kendi paylaşım URL’sini seçmesine izin verin. Kötü seçildiğinde özel URL’ler kolayca tahmin edilebilir; bu nedenle, paylaşım oluştururken gösterilen uyarıyı dikkate alın.",
     "disableHideSidebar": "Kenar çubuğunu her zaman göster",
     "disableHideSidebarDescription": "Etkinleştirildiğinde, dosyaları önizlerken veya düzenlerken kenar çubuğu otomatik olarak gizlenmez.",
     "autoplayMedia": "Medya dosyalarını görüntülerken otomatik oynat",

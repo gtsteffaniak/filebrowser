@@ -589,7 +589,7 @@
     "accountOptions": "Opções da conta",
     "showAdvancedProfile": "Mostrar definições avançadas do perfil",
     "showAdvancedProfileDescription": "Mostrar as definições do perfil por categorias na barra lateral, em vez da visualização simplificada do perfil.",
-    "useCustomShareDescription": "Permita que este utilizador escolha o seu próprio URL de partilha, em vez de um URL aleatório. Os URLs personalizados podem ser adivinhados se forem mal escolhidos; por isso, tenha em conta o aviso apresentado ao criar uma partilha.",
+    "allowCustomShareURLDescription": "Permita que este utilizador escolha o seu próprio URL de partilha, em vez de um URL aleatório. Os URLs personalizados podem ser adivinhados se forem mal escolhidos; por isso, tenha em conta o aviso apresentado ao criar uma partilha.",
     "disableHideSidebar": "Mostrar sempre a barra lateral",
     "disableHideSidebarDescription": "Quando activada, a barra lateral não se esconde automaticamente durante a pré-visualização ou edição de ficheiros.",
     "autoplayMedia": "Reprodução automática de ficheiros multimédia durante a visualização",

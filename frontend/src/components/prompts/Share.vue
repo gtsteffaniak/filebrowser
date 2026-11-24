@@ -146,6 +146,7 @@
         <input v-else class="input" type="password" autocomplete="new-password" v-model.trim="password" />
         <ShareOptionsForm
           v-model="shareForm"
+          :advanced-expanded="!!(link?.customHash || editingLink?.customHash)"
           :enforced="shareEnforced"
           :read-only-source="sourceReadOnly"
           :show-quota-usage="showShareQuotaUsage"
@@ -156,19 +157,19 @@
           @pick-favicon="openFaviconPicker"
         >
           <template #advanced-start>
-            <div v-if="canSetCustomHash" class="custom-hash-field">
+            <div class="custom-hash-field">
               <p>
                 {{ $t("share.customHash") }}
                 <HelpTooltipIcon :text="$t('share.customHashDescription')" />
               </p>
-              <div v-if="customHash" class="warning-banner custom-hash-warning">
+              <div v-if="customHash && canSetCustomHash" class="warning-banner custom-hash-warning">
                 <i class="material-symbols">warning</i>
                 <span>{{ $t('share.customHashWarning') }}</span>
               </div>
-              <input class="input" :class="{ 'form-invalid': customHash && !customHashValid }" type="text"
-                autocomplete="off" maxlength="512" aria-label="Custom-Share-URL"
+              <input class="input" :class="{ 'form-invalid': canSetCustomHash && customHash && !customHashValid }" type="text"
+                autocomplete="off" maxlength="512" aria-label="Custom-Share-URL" :disabled="!canSetCustomHash"
                 :placeholder="$t('share.customHashPlaceholder')" v-model.trim="customHash" />
-              <p v-if="customHash && !customHashValid" class="read-only-notice">{{ $t('share.customHashInvalid') }}</p>
+              <p v-if="canSetCustomHash && customHash && !customHashValid" class="read-only-notice">{{ $t('share.customHashInvalid') }}</p>
             </div>
           </template>
         </ShareOptionsForm>
@@ -263,6 +264,7 @@ export default {
       links: [],
       password: "",
       customHash: "",
+      originalCustomHash: "",
       pendingRefresh: false,
       listing: true,
       allowModify: false,
@@ -507,7 +509,7 @@ export default {
       return currentLink?.hasPassword;
     },
     canSetCustomHash() {
-      return !!state.user?.useCustomShare && !this.isEditMode && !this.editingLink;
+      return !!state.user?.allowCustomShareURL;
     },
     customHashValid() {
       return /^[A-Za-z0-9_-]{16,512}$/.test(this.customHash);
@@ -587,6 +589,8 @@ export default {
           this.shareType = this.link.shareType || "normal";
           this.disableLoginOption = this.link.disableLoginOption || false;
           this.applyQuotaFromLink(this.link);
+          this.customHash = this.link.customHash || "";
+          this.originalCustomHash = this.customHash;
           this.sidebarLinks = Array.isArray(this.link.sidebarLinks) ? [...this.link.sidebarLinks] : [];
           //this.viewMode = this.link.viewMode || "normal";
           if (this.sourceReadOnly) {
@@ -747,8 +751,9 @@ export default {
           payload.hash = this.editingLink.hash;
         }
 
-        if (this.canSetCustomHash && this.customHash) {
-          if (!this.customHashValid) {
+        // Sent only when changed: on create the original is empty, on edit "" clears the alias.
+        if (this.canSetCustomHash && this.customHash !== this.originalCustomHash) {
+          if (this.customHash && !this.customHashValid) {
             notify.showError(this.$t("share.customHashInvalid"));
             return;
           }
@@ -772,6 +777,7 @@ export default {
         } else {
           // The share is committed: never resend the create request or the custom hash.
           this.customHash = "";
+          this.originalCustomHash = "";
           this.pendingRefresh = true;
           if (!(await this.completeCreate())) return;
         }
@@ -797,6 +803,7 @@ export default {
       this.unit = "hours";
       this.password = "";
       this.customHash = "";
+          this.originalCustomHash = "";
       this.isChangingPassword = false;
 
       this.listing = true;
@@ -859,6 +866,8 @@ export default {
       this.shareType = link.shareType || "normal";
       this.disableLoginOption = link.disableLoginOption || false;
       this.applyQuotaFromLink(link);
+      this.customHash = link.customHash || "";
+      this.originalCustomHash = this.customHash;
       this.sidebarLinks = Array.isArray(link.sidebarLinks) ? [...link.sidebarLinks] : [];
       // Store the link being edited
       this.editingLink = link;
@@ -913,6 +922,7 @@ export default {
         this.editingLink = null;
         this.isChangingPassword = false;
         this.customHash = "";
+          this.originalCustomHash = "";
         this.resetQuotaForm();
         // Set default sidebar links for new shares
         this.setDefaultSidebarLinks();

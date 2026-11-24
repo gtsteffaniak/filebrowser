@@ -589,7 +589,7 @@
     "accountOptions": "Kontoalternativ",
     "showAdvancedProfile": "Visa avancerade profilinställningar",
     "showAdvancedProfileDescription": "Visa de kategoriserade profilinställningarna i sidofältet istället för den förenklade profilvyn.",
-    "useCustomShareDescription": "Låt den här användaren välja sin egen delnings-URL istället för en slumpmässig. Anpassade URL:er kan gissas om de väljs på ett dåligt sätt, så beakta varningen som visas när du skapar en delning.",
+    "allowCustomShareURLDescription": "Låt den här användaren välja sin egen delnings-URL istället för en slumpmässig. Anpassade URL:er kan gissas om de väljs på ett dåligt sätt, så beakta varningen som visas när du skapar en delning.",
     "disableHideSidebar": "Visa alltid sidofältet",
     "disableHideSidebarDescription": "När den är aktiverad döljs inte sidofältet automatiskt när du förhandsgranskar eller redigerar filer.",
     "autoplayMedia": "Autoplay av mediefiler vid visning",

@@ -1067,7 +1067,7 @@ func SetDefaults(generate bool) Settings {
 				LoginMethod:                "",
 				DisableUpdateNotifications: false,
 				ShowAdvancedProfile:        false,
-				UseCustomShare:             boolPtr(true),
+				AllowCustomShareURL:        boolPtr(false),
 				MaxConcurrentTranscodes:    1,
 			},
 		},

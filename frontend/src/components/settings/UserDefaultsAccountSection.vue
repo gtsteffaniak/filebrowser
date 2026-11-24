@@ -62,14 +62,14 @@
       <ToggleSwitch
         class="item"
         :enforceable="enforceable"
-        :enforced="!!enforced.useCustomShare"
-        :model-value="account.useCustomShare !== false"
-        @update:model-value="(v) => emitAccountChange('useCustomShare', v)"
-        @update:enforced="(v) => emitEnforced('useCustomShare', v)"
-        :disabled="isFieldDisabled('useCustomShare')"
-        :value-tooltip="fieldDisabledTooltip('useCustomShare')"
+        :enforced="!!enforced.allowCustomShareURL"
+        :model-value="!!account.allowCustomShareURL"
+        @update:model-value="(v) => emitAccountChange('allowCustomShareURL', v)"
+        @update:enforced="(v) => emitEnforced('allowCustomShareURL', v)"
+        :disabled="isFieldDisabled('allowCustomShareURL')"
+        :value-tooltip="fieldDisabledTooltip('allowCustomShareURL')"
         :name="$t('share.customHash')"
-        :description="$t('profileSettings.useCustomShareDescription')"
+        :description="$t('profileSettings.allowCustomShareURLDescription')"
       />
       <div
         v-if="enforceable || account.maxConcurrentTranscodes !== undefined"
