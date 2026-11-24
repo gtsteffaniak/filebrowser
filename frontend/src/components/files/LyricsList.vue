@@ -16,14 +16,14 @@
         <p
           v-for="(line, index) in lyrics"
           :key="index"
-          :class="{ active: syncedLyrics && !line.untimed && line.timestamp === lyrics[activeLyricIndex]?.timestamp, 'no-seek': !syncedLyrics }"
+          :class="{ active: syncedLyrics && !line.untimed && line.timestamp === lyrics[activeLyricIndex]?.timestamp, 'no-seek': !isSeekable(line) }"
           class="lyric-line"
-          @click.stop="syncedLyrics && seek(line.timestamp)"
-          @keydown.enter.stop.prevent="syncedLyrics && seek(line.timestamp)"
-          @keydown.space.stop.prevent="syncedLyrics && seek(line.timestamp)"
-          :role="syncedLyrics ? 'button' : undefined"
-          :tabindex="syncedLyrics ? 0 : undefined"
-          :aria-label="syncedLyrics ? `Seek to ${line.text}` : undefined"
+          @click.stop="isSeekable(line) && seek(line.timestamp)"
+          @keydown.enter.stop.prevent="isSeekable(line) && seek(line.timestamp)"
+          @keydown.space.stop.prevent="isSeekable(line) && seek(line.timestamp)"
+          :role="isSeekable(line) ? 'button' : undefined"
+          :tabindex="isSeekable(line) ? 0 : undefined"
+          :aria-label="isSeekable(line) ? `Seek to ${line.text}` : undefined"
         >
           <template v-if="index === activeLyricIndex && hasFullWordCoverage(line)">
             <span
@@ -50,7 +50,7 @@ import type Plyr from "plyr";
 import FloatingActionButton from "@/components/settings/FloatingActionButton.vue";
 import { useI18n } from "@/i18n/index.ts";
 import { isSyncedLyrics } from "@/utils/lyrics.ts";
-import type { LyricLines } from "@/utils/lyrics.ts";
+import type { LyricLine, LyricLines } from "@/utils/lyrics.ts";
 
 const scrollLocked = defineModel<boolean>("scrollLocked");
 
@@ -76,6 +76,7 @@ const activeLyricIndex = ref(-1);
 const activeWordIndex = ref(-1);
 
 const syncedLyrics = computed(() => isSyncedLyrics(props.lyrics));
+const isSeekable = (line: LyricLine) => syncedLyrics.value && !line.untimed;
 // "Title - Artist" shown above the lyrics from the [ti:] [ar:] tags on lyrics (if present)
 const meta = computed(() => [props.lyrics.lrcMeta?.title, props.lyrics.lrcMeta?.artist].filter(Boolean).join(" - "));
 const lockLabel = computed(() => (scrollLocked.value ? t("player.unlockLyrics") : t("player.lockLyrics")));

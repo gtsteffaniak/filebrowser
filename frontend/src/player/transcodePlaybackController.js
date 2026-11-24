@@ -334,13 +334,13 @@ export class TranscodePlaybackController {
           });
           break;
         } catch (attachErr) {
-          const retryable = attachErr?.name === 'AttachTimeoutError'
+          const retryable = (attachErr?.name === 'AttachTimeoutError' || attachErr?.name === 'NativeHlsError')
             && attachAttempt < MAX_ATTACH_RETRIES
             && this.isCurrentAttempt(attempt);
           if (!retryable) {
             throw attachErr;
           }
-          transcodeWarn('HLS attach timed out — reattaching', {
+          transcodeWarn('HLS attach failed before ready — reattaching', {
             sessionId: controller.session?.id,
             attachAttempt,
           });

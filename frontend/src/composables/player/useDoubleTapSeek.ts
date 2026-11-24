@@ -166,7 +166,7 @@ export function useDoubleTapSeek({
         ignoreClickUntil = Date.now() + 500;
         return;
       }
-      gestures.clearEdgeTapGestureState();
+      handleCenterTap(event);
       ignoreClickUntil = Date.now() + 500;
     };
     let edgeClickToggleTimer: ReturnType<typeof setTimeout> | null = null;

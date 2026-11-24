@@ -211,7 +211,9 @@ function attachNativeHls({
   return new Promise((resolve, reject) => {
     const deadlineMs = resolveAttachDeadlineMs(initialStart, budgetMs);
     let settled = false;
+    let hasPlayed = false;
     let timeoutId = null;
+    const originalPreload = video.getAttribute('preload');
 
     const removeListeners = () => {
       clearTimeout(timeoutId);
@@ -221,11 +223,17 @@ function attachNativeHls({
     };
     const releaseSource = () => {
       video.removeAttribute('src');
+      if (originalPreload === null) {
+        video.removeAttribute('preload');
+      } else {
+        video.setAttribute('preload', originalPreload);
+      }
       video.load();
     };
     const cleanup = () => {
       removeListeners();
       video.removeEventListener('error', onError);
+      video.removeEventListener('playing', onPlaying);
       releaseSource();
     };
     const fail = (error) => {
@@ -262,7 +270,7 @@ function attachNativeHls({
     function reportPostReadyError(error) {
       const data = { fatal: true, type: 'mediaError', details: 'nativeHlsError', code: error.code, reason: error.message };
       const startSec = Number.isFinite(video.currentTime) ? video.currentTime : 0;
-      const shouldAutoplay = !video.paused && !video.ended;
+      const shouldAutoplay = hasPlayed ? !video.paused && !video.ended : undefined;
       cleanup();
       if (error.code === MediaError.MEDIA_ERR_NETWORK && onRecoverPlayback) {
         void onRecoverPlayback({ startSec, sessionId, shouldAutoplay })
@@ -277,6 +285,9 @@ function attachNativeHls({
         return;
       }
       onFatal?.(data);
+    }
+    function onPlaying() {
+      hasPlayed = true;
     }
     function onTimeout() {
       transcodeError('native hls attach timed out waiting for readiness', {
@@ -309,6 +320,7 @@ function attachNativeHls({
     video.addEventListener('loadeddata', onReady);
     video.addEventListener('canplay', onReady);
     video.addEventListener('error', onError);
+    video.addEventListener('playing', onPlaying);
     timeoutId = setTimeout(onTimeout, deadlineMs);
     video.preload = 'auto';
     video.src = playlistURL;

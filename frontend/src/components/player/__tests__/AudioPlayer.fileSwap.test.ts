@@ -149,7 +149,7 @@ describe("AudioPlayer file swap", () => {
     session = installMediaSession();
     vi.stubGlobal(
       "URL",
-      Object.assign(URL, {
+      Object.assign(class extends URL {}, {
         createObjectURL: vi.fn(() => {
           const url = `blob:art-${created.length}`;
           created.push(url);

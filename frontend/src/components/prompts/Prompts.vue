@@ -22,6 +22,7 @@
         zIndex: 5 + prompts.indexOf(prompt),
       }"
       :aria-label="`${prompt.name}-prompt`"
+      :data-prompt-id="prompt.id"
       tabindex="-1"
     >
       <header
@@ -622,9 +623,8 @@ export default {
       const windows = this.$refs.promptWindow;
       const prompt = this.prompts.find(p => p.id === id);
       if (!prompt) return null;
-      const label = `${prompt.name}-prompt`;
       return Array.isArray(windows)
-        ? windows.find(w => w?.getAttribute('aria-label') === label)
+        ? windows.find(w => w?.dataset.promptId === String(id))
         : windows;
     },
     onPointerDown(e, id, type) {
@@ -685,8 +685,7 @@ export default {
       });
 
       // Find the element for this prompt
-      const windows = this.$refs.promptWindow;
-      const el = Array.isArray(windows) ? windows.find(w => w?.getAttribute('aria-label') === `${this.prompts.find(p => p.id === id)?.name}-prompt`) : windows;
+      const el = this.getPromptElement(id);
       if (el) this.clampDragOffset(id, el);
     },
     onPointerEnd(_e, id, type, moveHandler, endHandler) {
@@ -707,10 +706,7 @@ export default {
       const pos = this.getPointerPos(e, type);
       if (!pos) return;
       // Find the window
-      const windows = this.$refs.promptWindow;
-      const el = Array.isArray(windows)
-        ? windows.find(w => w?.getAttribute('aria-label') === `${this.prompts.find(p => p.id === id)?.name}-prompt`)
-        : windows;
+      const el = this.getPromptElement(id);
       if (!el) return;
       // Capture current size (if not already fixed, set it)
       let sizes = this.sizes;
@@ -819,10 +815,7 @@ export default {
         y: start.offsetY + deltaOffsetY,
       });
       // Clamp to viewport
-      const windows = this.$refs.promptWindow;
-      const el = Array.isArray(windows)
-        ? windows.find(w => w?.getAttribute('aria-label') === `${this.prompts.find(p => p.id === id)?.name}-prompt`)
-        : windows;
+      const el = this.getPromptElement(id);
       if (el) this.clampDragOffset(id, el);
     },
     onResizeEnd(_e, type, moveHandler, endHandler) {

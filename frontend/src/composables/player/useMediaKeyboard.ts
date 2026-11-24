@@ -33,7 +33,7 @@ export function useMediaKeyboard(options: MediaKeyboardOptions) {
     }
     // left/right arrows for seek feedback
     if (key === "arrowleft" || key === "arrowright") {
-      if (!options.player.value) return;
+      if (!options.player.value || state.prompts.length > 0) return;
       event.preventDefault();
       options.flashSkipFeedback(key === "arrowleft");
       return;

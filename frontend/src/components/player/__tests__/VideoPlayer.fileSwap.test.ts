@@ -466,6 +466,8 @@ describe("VideoPlayer file swap", () => {
       hoisted.offerGate = null;
 
       await swapTo(FILE_B);
+      expect(fakePlayers).toHaveLength(1);
+      expect(video().getAttribute("src")).toBe("/raw/b.mp4");
       release();
       await settle();
 

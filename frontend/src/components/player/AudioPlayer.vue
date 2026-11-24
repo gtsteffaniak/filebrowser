@@ -244,7 +244,6 @@ const playbackQueueState = usePlaybackQueue({
 });
 const {
   queueCount,
-  playbackQueue,
   loop,
   toastVisible,
   toastType,
@@ -260,7 +259,7 @@ const {
   resetPlaybackMenuState,
 } = playbackQueueState;
 
-const shouldAutoplay = computed(() => props.autoPlayEnabled || playbackQueue.value.length > 1);
+const shouldAutoplay = computed(() => props.autoPlayEnabled);
 
 let seekOnReleaseCleanup: (() => void) | null = null;
 

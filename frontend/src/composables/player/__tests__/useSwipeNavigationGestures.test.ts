@@ -6,7 +6,7 @@ import { useSwipeNavigationGestures } from "../useSwipeNavigationGestures.ts";
 import { withSetup } from "./mediaTestUtils.ts";
 
 vi.mock("@/store/index.ts", () => ({
-  state: reactive({ navigation: { enabled: false, previousLink: "", nextLink: "" } }),
+  state: reactive({ prompts: [], navigation: { enabled: false, previousLink: "", nextLink: "" } }),
   getters: {
     currentPrompt: () => null,
     isPreviewPlaybackQueueNavMode: () => false,

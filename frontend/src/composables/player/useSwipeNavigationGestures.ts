@@ -330,6 +330,7 @@ export function useSwipeNavigationGestures({
         // Normal close preview
         dismissCloseTimer = setTimeout(() => {
           dismissCloseTimer = null;
+          if (state.prompts.length > 0) return;
           onClosePreview();
         }, 120);
         dismissHintTimer = setTimeout(() => {
@@ -480,7 +481,8 @@ export function useSwipeNavigationGestures({
       }
     }
 
-    if (!swipeGesturesActive.value || event.targetTouches.length !== 1) {
+    if (!swipeGesturesActive.value || event.touches.length !== 1) {
+      if (event.touches.length > 1) swipeActiveTouchId = null;
       if (edgeKind || edgeDx || edgeDy) {
         resetEdgeGestureImmediate();
       }
@@ -558,6 +560,10 @@ export function useSwipeNavigationGestures({
       releaseLongPressHold();
       resetEdgeGestureImmediate();
       event.preventDefault();
+      return;
+    }
+    if (event.touches.length > 0) {
+      resetEdgeGestureImmediate();
       return;
     }
     // Normal swipe gesture

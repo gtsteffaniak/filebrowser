@@ -182,6 +182,16 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
   let startPreparationId = 0;
   let transcodeFallbackAttempted = false;
   let transcodeOfferEmitted = false;
+  interface PendingModeRequest {
+    mode: string;
+    playPrime?: ReturnType<typeof primePlay> | null;
+  }
+  let pendingModeRequest: PendingModeRequest | null = null;
+  function takePendingModeRequest(): PendingModeRequest | null {
+    const request = pendingModeRequest;
+    pendingModeRequest = null;
+    return request;
+  }
   let resumeOnGestureArmed = false;
   let resumeOnGestureHandler: (() => void) | null = null;
 
@@ -648,7 +658,7 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
       }
       offerLookupPending = false;
       console.error("Failed to check transcode sessions:", err);
-      showTranscodeOffer({ enabled: false, canStart: false, sessions: [] });
+      showTranscodeOffer({ enabled: true, canStart: true, sessions: [] });
     }
   }
   /** Looks up the session status and shows the offer for it */
@@ -673,7 +683,7 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
       }
       offerLookupPending = false;
       console.error("Failed to check transcode sessions:", err);
-      showTranscodeOffer({ enabled: false, canStart: false, sessions: [] });
+      showTranscodeOffer({ enabled: true, canStart: true, sessions: [] });
     }
   }
 
@@ -688,7 +698,7 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
     if (!Number.isFinite(video.duration) || video.duration <= 0) {
       return;
     }
-    void offerTranscodePlayback();
+    void offerTranscodePlayback({ confirmedFailure: true });
   }
 
   function syncPlayerAfterTranscodeReady(): void {
@@ -1098,9 +1108,21 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
     if (!TRANSCODE_MODES.includes(mode)) {
       return;
     }
-    if (mode === transcodeMode.value || transcodeSwitchInProgress.value) {
+    if (transcodeSwitchInProgress.value) {
+      pendingModeRequest = { mode, playPrime };
       return;
     }
+    if (mode === transcodeMode.value) {
+      return;
+    }
+    if (
+      TRANSCODE_HLS_MODES.includes(mode) &&
+      (!getReq()?.source || !getReq()?.path || !transcodeEnabled.value || !resolveViewTokenForTranscode())
+    ) {
+      syncPlaybackUrl({ transcodeMode: transcodeMode.value });
+      return;
+    }
+    pendingModeRequest = null;
     invalidateOfferRequest();
     const previousMode = transcodeMode.value;
     const wasPlaying = !!player.value?.playing;
@@ -1137,7 +1159,7 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
     }
     try {
       if (TRANSCODE_HLS_MODES.includes(mode)) {
-        await startTranscodePlayback({
+        const started = await startTranscodePlayback({
           replaceSessionId,
           startSec: player.value?.currentTime ?? 0,
           mode,
@@ -1145,6 +1167,12 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
           playPrime: wasPlaying ? playPrime : null,
           manageSwitchState: false,
         });
+        if (!started.ok && started.reason === "preconditions" && generation === fileGeneration) {
+          transcodeMode.value = previousMode;
+          if (previousMode === "native") {
+            await switchToNativePlayback({ autoplay: wasPlaying });
+          }
+        }
       } else if (needsTranscodeFirst(transcodeProbeParams())) {
         let status: TranscodeStatus | null = null;
         try {
@@ -1186,6 +1214,10 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
       releaseModeSwitch();
       if (generation === fileGeneration) {
         syncPlaybackUrl({ transcodeMode: transcodeMode.value });
+      }
+      const next = takePendingModeRequest();
+      if (next && generation === fileGeneration && next.mode !== transcodeMode.value) {
+        void switchTranscodeMode(next.mode, { playPrime: next.playPrime });
       }
       transcodeLog("switchTranscodeMode done", {
         mode: transcodeMode.value,
@@ -1333,6 +1365,7 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
     invalidateOfferRequest();
     startPreparationId++;
     modeSwitchToken = null;
+    pendingModeRequest = null;
     transcodeSwitchOwner = null;
     transcodeSwitchInProgress.value = false;
     videoStreamAttached.value = false;
