@@ -19,7 +19,7 @@ backend_dev_tool = $$(cd $(BACKEND_BUILD) && go tool -n $(1))
 
 .SILENT:
 
-.PHONY: setup update build build-docker build-docker-media build-backend build-frontend embed-frontend dev run generate-docs
+.PHONY: setup update build build-docker build-docker-gpu build-backend build-frontend embed-frontend dev run generate-docs
 .PHONY: lint-frontend lint-backend lint test test-backend test-frontend check-all
 .PHONY: check-translations sync-translations generate-translation-types test-playwright test-playwright-project test-playwright-performance playwright-base playwright-perf-base perf-check perf-smoke perf-baseline perf-dashboard run-proxy screenshots
 .PHONY: check-icons generate-icons sync-icons
@@ -49,8 +49,8 @@ build-docker:
 build-docker-slim:
 	docker build --build-arg="VERSION=testing" --build-arg="REVISION=n/a" -t gtstef/filebrowser -f _docker/Dockerfile.slim .
 
-build-docker-media:
-	DOCKER_BUILDKIT=1 docker build --build-arg="VERSION=testing" --build-arg="REVISION=n/a" -t gtstef/filebrowser-media -f _docker/Dockerfile.media .
+build-docker-gpu:
+	DOCKER_BUILDKIT=1 docker build --build-arg="VERSION=testing" --build-arg="REVISION=n/a" -t gtstef/filebrowser-gpu -f _docker/Dockerfile.gpu .
 
 embed-frontend:
 	@test -d frontend/dist || (echo "Missing frontend/dist; run 'make build-frontend' first." >&2 && exit 1)

@@ -1,11 +1,8 @@
 # syntax=docker/dockerfile:1.4
-# GPU-capable media image: mostly-static glibc FFmpeg + dynamic VA/Vulkan/OpenCL drivers (amd64).
-# Codecs/TLS are linked into gtstef/ffmpeg:<ver> (full track, not *-static).
-#
-# amd64: libva/Mesa/Vulkan/OpenCL userspace below; NVIDIA libs come from the host toolkit.
-# arm64 (e.g. Raspberry Pi): h264_v4l2m2m uses kernel V4L2 only — no extra GPU .debs; pass
-#   /dev/video10 or /dev/video11 (and group video). Pi 5 VAAPI via /dev/dri is optional (mesa on arm64).
-FROM gtstef/ffmpeg:9.0.2 AS ffmpeg
+# GPU image (filebrowser-gpu) for linux/amd64 only.
+# Final base is gtstef/ffmpeg-gpu:<ver> (Debian trixie-slim runtime). That image already
+# ships ffmpeg/ffprobe in /usr/local/bin, the GPU userspace (VA-API, Vulkan, OpenCL, VPL),
+# and the codec shared libraries. This file only adds the filebrowser layer.
 
 FROM golang:trixie AS base
 ARG VERSION
@@ -20,7 +17,7 @@ RUN --mount=type=cache,target=/go/pkg/mod --mount=type=cache,target=/root/.cache
   -X 'github.com/gtsteffaniak/filebrowser/backend/internal/version.CommitSHA=${REVISION}'" \
   -o filebrowser .
 
-FROM --platform=$BUILDPLATFORM node:lithium-slim AS nbuild
+FROM node:slim AS nbuild
 WORKDIR /build
 COPY ./frontend/package.json ./frontend/package-lock.json ./frontend/
 RUN apt-get update && apt-get install -y --no-install-recommends git ca-certificates
@@ -29,38 +26,17 @@ COPY ./frontend/ ./frontend/
 WORKDIR /build/frontend
 RUN npm run build:docker
 
-FROM debian:trixie-slim AS runtime
-ENV DEBIAN_FRONTEND=noninteractive
-
-RUN apt-get update && apt-get install -y --no-install-recommends \
-  ca-certificates \
-  curl \
-  mailcap \
-  tzdata \
-  && rm -rf /var/lib/apt/lists/* \
-  && if [ "$(dpkg --print-architecture)" = "amd64" ]; then \
-    apt-get update \
-    && apt-get install -y --no-install-recommends \
-      libva2 \
-      libva-drm2 \
-      libdrm2 \
-      libvulkan1 \
-      mesa-va-drivers \
-      mesa-vulkan-drivers \
-      ocl-icd-libopencl1 \
-      intel-media-va-driver \
-      libmfx-gen1.2 \
-    && rm -rf /var/lib/apt/lists/*; \
-  fi
-COPY --from=ffmpeg [ "/ffmpeg", "/ffprobe", "/usr/local/bin/" ]
-ENV FILEBROWSER_FFMPEG_PATH="/usr/local/bin/"
+FROM gtstef/ffmpeg-gpu:9.1
 ENV FILEBROWSER_DATABASE_PATH="/home/filebrowser/data/database.sqlite"
 ENV FILEBROWSER_CONFIG="/home/filebrowser/data/config.yaml"
 ENV PATH="$PATH:/home/filebrowser"
 ENV NVIDIA_VISIBLE_DEVICES=all
 ENV NVIDIA_DRIVER_CAPABILITIES=compute,video,utility,graphics
+# curl is used by the healthcheck; the GPU runtime image does not ship it.
+RUN apt-get update && apt-get install -y --no-install-recommends curl \
+  && rm -rf /var/lib/apt/lists/* \
+  && useradd -m -u 1000 -s /usr/sbin/nologin filebrowser
 
-RUN useradd -m -u 1000 -s /usr/sbin/nologin filebrowser
 USER filebrowser
 WORKDIR /home/filebrowser
 
@@ -70,7 +46,23 @@ COPY --from=base --chown=filebrowser:1000 [ "/app/config.yaml", "./" ]
 COPY --from=base --chown=filebrowser:1000 [ "/app/reduce-rounded-corners.css", "./" ]
 COPY --from=nbuild --chown=filebrowser:1000 [ "/build/frontend/dist/", "./internal/web/dist/" ]
 
+# Sanity checks: filebrowser and ffmpeg run, no missing shared libs, and the GPU
+# hwaccels/encoders/filters are compiled in. Mirrors scripts/check-gpu.sh in the ffmpeg repo.
+# These need no GPU device, so they run on CI runners.
 RUN filebrowser version && ffmpeg -version && ffprobe -version
+RUN ! ldd /usr/local/bin/ffmpeg | grep -q "not found"
+RUN ldd /usr/local/bin/ffmpeg | grep -q "libva.so" && ldd /usr/local/bin/ffmpeg | grep -q "libvpl.so"
+RUN ldconfig -p | grep -q libvulkan
+RUN ffmpeg -hide_banner -hwaccels | grep -q vaapi \
+  && ffmpeg -hide_banner -hwaccels | grep -q cuda \
+  && ffmpeg -hide_banner -hwaccels | grep -q vulkan
+RUN ffmpeg -hide_banner -encoders | grep -q h264_nvenc \
+  && ffmpeg -hide_banner -encoders | grep -q h264_vaapi \
+  && ffmpeg -hide_banner -encoders | grep -q h264_vulkan \
+  && ffmpeg -hide_banner -encoders | grep -q libx264 \
+  && ffmpeg -hide_banner -encoders | grep -q libvvenc
+RUN ffmpeg -hide_banner -filters | grep -q scale_vulkan \
+  && ffmpeg -hide_banner -filters | grep -q scale_vaapi
 
 EXPOSE 80
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \

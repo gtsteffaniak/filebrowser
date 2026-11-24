@@ -167,7 +167,7 @@ make build-backend   # Build Go binary with embedded assets
 ```bash
 make build-docker        # Image with ffmpeg
 make build-docker-slim   # Slim image
-make build-docker-media  # Media image
+make build-docker-gpu  # GPU image (amd64, ffmpeg-gpu base)
 ```
 
 ### Configuration

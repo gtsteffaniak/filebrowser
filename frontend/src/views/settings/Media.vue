@@ -16,7 +16,7 @@
           </div>
           <ExpandDropdown
             input-id="accelDevice"
-            :model-value="media.accelDevice"
+            :model-value="accelDeviceSelectValue"
             :options="accelDeviceSelectOptions"
             :aria-label="$t('media.accelDevice')"
             :disabled="isLocked('hardwareAcceleration') || isLocked('accelDevice')"
@@ -102,8 +102,10 @@ export default {
       /** Media settings pinned in the config file cannot be changed here. */
       lockedFromConfigPaths: [],
       lockMessage: "",
-      /** Selectable acceleration devices reported by the backend. */
+      /** Selectable acceleration devices reported by the backend (no "auto" entry). */
       accelDeviceOptions: [],
+      /** Device id that accelDevice "auto" resolves to on this host ("" = software only). */
+      autoAccelDevice: "",
     };
   },
   computed: {
@@ -121,6 +123,13 @@ export default {
         value: option.id,
         label: option.label || option.id,
       }));
+    },
+    /** "auto" is never listed; show the device it resolves to instead. */
+    accelDeviceSelectValue() {
+      if (this.media.accelDevice === "auto") {
+        return this.autoAccelDevice || "software";
+      }
+      return this.media.accelDevice;
     },
   },
   mounted() {
@@ -149,6 +158,7 @@ export default {
         this.accelDeviceOptions = Array.isArray(data?.accelDeviceOptions)
           ? data.accelDeviceOptions
           : [];
+        this.autoAccelDevice = typeof data?.autoAccelDevice === "string" ? data.autoAccelDevice : "";
         this.lockedFromConfigPaths = Array.isArray(data?.lockedFromConfigPaths)
           ? data.lockedFromConfigPaths
           : [];
@@ -167,7 +177,10 @@ export default {
       return this.isLocked(path) ? this.$t("settings.lockedFromConfig") : fallback;
     },
     onAccelDeviceChange(value) {
-      this.media.accelDevice = value;
+      // Picking the device auto resolves to keeps the stored "auto" so the
+      // fallback chain (iGPU -> dGPU -> software) still applies.
+      const isAutoDevice = this.autoAccelDevice && value === this.autoAccelDevice;
+      this.media.accelDevice = isAutoDevice ? "auto" : value;
       void this.save();
     },
     openConversionFormats() {
