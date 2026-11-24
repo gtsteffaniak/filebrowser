@@ -345,7 +345,11 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 			preservedVersion := link.Version
 
 			share.ApplyPostBodyUpdate(link, &req, expire)
-			link.Alias = newAlias
+			// Only apply the alias when the client sent customHash; otherwise newAlias may be a stale
+			// snapshot that would overwrite a concurrent alias change.
+			if aliasBody.CustomHash != nil {
+				link.Alias = newAlias
+			}
 
 			link.Path = preservedPath
 			link.SourcePath = preservedSourcePath
@@ -357,6 +361,9 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 			return nil
 		})
 		if err != nil {
+			if strings.Contains(err.Error(), "already exists") {
+				return http.StatusConflict, fmt.Errorf("a share with this URL already exists")
+			}
 			return http.StatusInternalServerError, err
 		}
 
@@ -591,7 +598,8 @@ func shareDirectDownloadHandler(w http.ResponseWriter, r *http.Request, d *Conte
 		return http.StatusBadRequest, err
 	}
 
-	response, err := mintShareDownloadTokenResponse(r, hash, ttl, maxUses)
+	// Mint with the internal hash: the download route validates tokens against it, not the alias.
+	response, err := mintShareDownloadTokenResponse(r, link.Hash, ttl, maxUses)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}

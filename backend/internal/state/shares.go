@@ -191,43 +191,41 @@ func UpdateShare(identifier string, updateFn func(*share.Share) error) error {
 	oldAlias := link.Alias
 	hash := link.Hash
 
-	// Apply updates to get the new state
-	if err := updateFn(link); err != nil {
-		link.Alias = oldAlias
+	// Apply updates to a private copy so a rejected update never touches the cached share.
+	updated := copyShareLink(link)
+	if err := updateFn(&updated); err != nil {
 		return err
 	}
 
-	newAlias := link.Alias
+	newAlias := updated.Alias
 	if newAlias != oldAlias {
 		// An alias change must stay unique in both namespaces, same as CreateShare.
 		if newAlias != "" {
 			if other, exists := resolveShareLocked(newAlias); exists && other.Hash != hash {
-				link.Alias = oldAlias
 				return fmt.Errorf("share with hash %s already exists", newAlias)
 			}
 			if newAlias == hash {
-				link.Alias = oldAlias
 				return fmt.Errorf("share with hash %s already exists", newAlias)
 			}
 			persisted, checkErr := sqlDb.ShareHashExists(newAlias)
 			if checkErr != nil {
-				link.Alias = oldAlias
 				return checkErr
 			}
 			if persisted {
-				link.Alias = oldAlias
 				return fmt.Errorf("share with hash %s already exists", newAlias)
 			}
 		}
 	}
 
-	// 2. Write to database; on failure restore the previous alias so cache and SQL stay aligned.
-	if err := sqlDb.SaveShare(link); err != nil {
-		link.Alias = oldAlias
+	// 2. Write to database before publishing; a failed save leaves the cache unchanged.
+	if err := sqlDb.SaveShare(&updated); err != nil {
 		return err
 	}
 
-	// 3. Write-through alias index: drop the old alias and register the new one.
+	// 3. Publish the saved copy to the cache. The pointer stays the same so existing references see it.
+	*link = updated
+
+	// 4. Write-through alias index: drop the old alias and register the new one.
 	if newAlias != oldAlias {
 		if oldAlias != "" {
 			delete(sharesByAlias, oldAlias)

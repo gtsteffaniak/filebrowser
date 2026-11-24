@@ -8,7 +8,7 @@ import (
 
 func TestApplyProfileToUser_AllowCustomShareURLDefaults(t *testing.T) {
 	t.Run("legacy profile without key defaults to enabled", func(t *testing.T) {
-		u := &users.User{Username: "alice"}
+		u := &users.User{FrontendUser: users.FrontendUser{Username: "alice"}}
 		if err := ApplyProfileToUser(u, []byte(`{"account":{}}`)); err != nil {
 			t.Fatal(err)
 		}
@@ -18,7 +18,7 @@ func TestApplyProfileToUser_AllowCustomShareURLDefaults(t *testing.T) {
 	})
 
 	t.Run("explicit false is respected", func(t *testing.T) {
-		u := &users.User{Username: "alice"}
+		u := &users.User{FrontendUser: users.FrontendUser{Username: "alice"}}
 		if err := ApplyProfileToUser(u, []byte(`{"account":{"allowCustomShareURL":false}}`)); err != nil {
 			t.Fatal(err)
 		}
@@ -28,7 +28,7 @@ func TestApplyProfileToUser_AllowCustomShareURLDefaults(t *testing.T) {
 	})
 
 	t.Run("round trips through profile JSON", func(t *testing.T) {
-		u := &users.User{Username: "alice", AllowCustomShareURL: false}
+		u := &users.User{FrontendUser: users.FrontendUser{Username: "alice", AllowCustomShareURL: false}}
 		b, err := ProfileJSONFromUser(u)
 		if err != nil {
 			t.Fatal(err)
