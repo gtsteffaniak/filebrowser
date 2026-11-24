@@ -132,7 +132,7 @@ import { getHumanReadableFilesize } from "@/utils/filesizes.js";
 import { eventBus } from "@/store/eventBus.ts";
 import ListingItem from "@/components/files/ListingItem.vue";
 import PathPickerButton from "@/components/files/PathPickerButton.vue";
-import { useListingVirtualization } from "@/composables/useListingVirtualization.ts";
+import { useListingVirtualization } from "@/composables/listing/useListingVirtualization.ts";
 import { globalVars } from "@/utils/constants.ts";
 
 defineOptions({ name: "DuplicateFinder" });

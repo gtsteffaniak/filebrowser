@@ -79,7 +79,7 @@ import { notify } from "@/notify/index.ts";
 import ListingItem from "@/components/files/ListingItem.vue";
 import { eventBus } from "@/store/eventBus.ts";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
-import { useListingVirtualization } from "@/composables/useListingVirtualization.ts";
+import { useListingVirtualization } from "@/composables/listing/useListingVirtualization.ts";
 import url from "@/utils/url.js";
 import { removeFromFolderLists } from "@/utils/cache/listingCache.ts";
 

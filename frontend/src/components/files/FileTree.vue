@@ -94,7 +94,7 @@ import { notify } from "@/notify/index.ts";
 import { notifyMoveCopyFailure } from "@/utils/appNotifications.js";
 import { getObjectProperty } from '@/utils/object.js';
 import { sortedItems } from '@/utils/sort.ts';
-import { findScrollParents, useListingVirtualization } from '@/composables/useListingVirtualization.ts';
+import { findScrollParents, useListingVirtualization } from "@/composables/listing/useListingVirtualization.ts";
 
 export interface TreeNode extends FileListItem {
   isDir: boolean;

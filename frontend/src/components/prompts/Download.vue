@@ -95,7 +95,7 @@ import { downloadManager } from "@/utils/downloadManager.ts";
 import type { DownloadItem } from "@/utils/downloadManager.ts";
 import { resourcesApi } from "@/api/index.js";
 import ProgressBar from "@/components/ProgressBar.vue";
-import { findScrollParents, useListingVirtualization } from "@/composables/useListingVirtualization.ts";
+import { findScrollParents, useListingVirtualization } from "@/composables/listing/useListingVirtualization.ts";
 
 withDefaults(
   defineProps<{

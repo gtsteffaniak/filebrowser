@@ -48,7 +48,7 @@ import PopupPreview from "@/components/files/PopupPreview.vue";
 import Shelf from "@/components/Shelf.vue";
 import { settingsApi } from "@/api/index.js";
 import { state, getters, mutations } from "@/store/index.ts";
-import { useFullscreen } from "@/composables/useFullscreen.ts";
+import { useFullscreen } from "@/composables/preview/useFullscreen.ts";
 import { events, notify } from "@/notify/index.ts";
 import { generateRandomCode } from "@/utils/auth.js";
 import { globalVars } from "@/utils/constants.ts";

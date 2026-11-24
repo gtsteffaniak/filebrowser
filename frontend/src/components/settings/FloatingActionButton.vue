@@ -44,7 +44,7 @@
 <script lang="ts">
 import { reactive, type PropType } from "vue";
 import { getters } from "@/store/index.ts";
-import { useFullscreen } from "@/composables/useFullscreen.ts";
+import { useFullscreen } from "@/composables/preview/useFullscreen.ts";
 
 const buttonGroup = new Map<string, { visible: boolean; zoneActive: boolean; timer: ReturnType<typeof setTimeout> | null }>();
 

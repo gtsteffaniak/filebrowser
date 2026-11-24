@@ -130,7 +130,7 @@ import { isRichTextPreviewMimeType, getTypeInfoFromExt } from "@/utils/mimetype.
 import { isMediaRequest } from "@/utils/mediaFile.js";
 import { actionIconClass } from "@/components/Action.vue";
 import { popEnter, popLeave } from "@/utils/transitions.ts";
-import { useFullscreen } from "@/composables/useFullscreen.ts";
+import { useFullscreen } from "@/composables/preview/useFullscreen.ts";
 
 type MenuItem = FileListItem & { isDir?: boolean; from?: string; url?: string };
 

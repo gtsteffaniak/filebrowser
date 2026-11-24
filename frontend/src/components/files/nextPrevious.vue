@@ -99,7 +99,7 @@
 
 <script>
 import { state, getters, mutations } from "@/store/index.ts";
-import { useFullscreen } from "@/composables/useFullscreen.ts";
+import { useFullscreen } from "@/composables/preview/useFullscreen.ts";
 import throttle from "@/utils/throttle.js";
 import { previewViews } from "@/utils/constants.ts";
 import { url } from "@/utils/index.ts";

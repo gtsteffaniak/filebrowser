@@ -10,7 +10,7 @@ import {
   processTypeAheadKey,
   resetTypeAheadSession,
 } from "@/utils/listingTypeAhead.js";
-import { useListingClipboard } from "@/composables/useListingClipboard.ts";
+import { useListingClipboard } from "@/composables/listing/useListingClipboard.ts";
 import type { VirtualListingHandle } from "@/utils/listing/virtualListing.ts";
 
 interface ListingKeyboardOptions {

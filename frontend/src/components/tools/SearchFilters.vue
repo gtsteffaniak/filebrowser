@@ -71,7 +71,7 @@ import { useI18n } from "@/i18n/index.ts";
 import SettingsItem from "@/components/settings/SettingsItem.vue";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
-import type { SearchFilters } from "@/composables/useSearchFilters.ts";
+import type { SearchFilters } from "@/composables/search/useSearchFilters.ts";
 
 // Whether the options are open
 const expanded = defineModel<boolean>("expanded", { required: true });

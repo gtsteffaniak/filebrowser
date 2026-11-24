@@ -201,13 +201,13 @@ import { removeTrailingSlash, removeLeadingSlash, isSameItem, goToItem } from "@
 import { selectAndScrollToIndex } from "@/utils/listing/selectAndScroll.ts";
 import ListingHeader from "@/components/files/ListingHeader.vue";
 import SearchFilters from "@/components/tools/SearchFilters.vue";
-import { useSearchFilters } from "@/composables/useSearchFilters.ts";
-import { useSearchRequest } from "@/composables/useSearchRequest.ts";
-import { useListingKeyboard } from "@/composables/useListingKeyboard.ts";
-import { useListingLayout } from "@/composables/useListingLayout.ts";
-import { useListingVirtualization } from "@/composables/useListingVirtualization.ts";
-import { useMouseSelection } from "@/composables/useRectangleSelection.ts";
-import { useListingContextMenu } from "@/composables/useListingContextMenu.ts";
+import { useSearchFilters } from "@/composables/search/useSearchFilters.ts";
+import { useSearchRequest } from "@/composables/search/useSearchRequest.ts";
+import { useListingKeyboard } from "@/composables/listing/useListingKeyboard.ts";
+import { useListingLayout } from "@/composables/listing/useListingLayout.ts";
+import { useListingVirtualization } from "@/composables/listing/useListingVirtualization.ts";
+import { useMouseSelection } from "@/composables/listing/useRectangleSelection.ts";
+import { useListingContextMenu } from "@/composables/listing/useListingContextMenu.ts";
 import { getObjectProperty, setObjectProperty } from '@/utils/object.js';
 
 type QueryRecord = Record<string, unknown>;

@@ -131,12 +131,12 @@ import { eventBus } from "@/store/eventBus.ts";
 import Item from "@/components/files/ListingItem.vue";
 import Upload from "@/components/prompts/Upload.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
-import { useListingClipboard } from "@/composables/useListingClipboard.ts";
-import { useListingKeyboard } from "@/composables/useListingKeyboard.ts";
-import { useListingLayout } from "@/composables/useListingLayout.ts";
-import { useListingVirtualization } from "@/composables/useListingVirtualization.ts";
-import { useMouseSelection } from "@/composables/useRectangleSelection.ts";
-import { useListingContextMenu } from "@/composables/useListingContextMenu.ts";
+import { useListingClipboard } from "@/composables/listing/useListingClipboard.ts";
+import { useListingKeyboard } from "@/composables/listing/useListingKeyboard.ts";
+import { useListingLayout } from "@/composables/listing/useListingLayout.ts";
+import { useListingVirtualization } from "@/composables/listing/useListingVirtualization.ts";
+import { useMouseSelection } from "@/composables/listing/useRectangleSelection.ts";
+import { useListingContextMenu } from "@/composables/listing/useListingContextMenu.ts";
 
 defineOptions({ name: "listingView" });
 

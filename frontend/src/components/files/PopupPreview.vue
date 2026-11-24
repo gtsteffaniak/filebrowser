@@ -26,7 +26,7 @@
 import { createAsyncComponent } from "@/utils/asyncComponent.js";
 import { state, getters, mutations } from "@/store/index.ts";
 import { setImageLoaded } from "@/utils/cache/imageCache.ts";
-import { useFullscreen } from "@/composables/useFullscreen.ts";
+import { useFullscreen } from "@/composables/preview/useFullscreen.ts";
 
 export default {
   name: "PopupPreview",

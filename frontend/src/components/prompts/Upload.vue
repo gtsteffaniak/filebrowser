@@ -207,7 +207,7 @@ import ProgressBar from "@/components/ProgressBar.vue";
 import SettingsItem from "@/components/settings/SettingsItem.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import ButtonGroup from "@/components/ButtonGroup.vue";
-import { findScrollParents, useListingVirtualization } from "@/composables/useListingVirtualization.ts";
+import { findScrollParents, useListingVirtualization } from "@/composables/listing/useListingVirtualization.ts";
 
 /** What `initialItems` can be: dropped items, picked files, or entries pasted from the OS clipboard */
 type UploadInput = DataTransferItem[] | File[] | UploadEntry[] | FileList | null;

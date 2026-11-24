@@ -144,7 +144,7 @@ import DefaultViewPrefs from "./DefaultViewPrefs.vue";
 import MediaConversionFormats from "./MediaConversionFormats.vue";
 import MediaTranscodeSettings from "./MediaTranscodeSettings.vue";
 import { state, getters, mutations } from "@/store/index.ts";
-import { useFullscreen } from "@/composables/useFullscreen.ts";
+import { useFullscreen } from "@/composables/preview/useFullscreen.ts";
 import { getObjectProperty, omitObjectProperty, setObjectProperty } from "@/utils/object.js";
 
 export default {
