@@ -197,7 +197,7 @@ describe("useTranscodePlayback start and offer ownership", () => {
   });
 
   describe("route change during a standalone start", () => {
-    it("ends on the newer mode in the state and the URL once the route settles", async () => {
+    async function runStartWithRouteChanges(routeModes: string[]) {
       getSessions.mockResolvedValue({ sessions: [] });
       const route = reactive({ query: {} as Record<string, string>, path: "/files/a.mp4", hash: "" });
       replace.mockImplementation((async (to: { query: Record<string, string> }) => {
@@ -212,20 +212,34 @@ describe("useTranscodePlayback start and offer ownership", () => {
       const pending = transcode.startTranscodePlayback({ mode: "quality" });
       await vi.waitFor(() => expect(hoisted.starts).toHaveLength(1));
 
-      route.query = { transcode: "balanced" };
-      await nextTick();
+      for (const mode of routeModes) {
+        route.query = { transcode: mode };
+        await nextTick();
+      }
       hoisted.gate = null;
       gate.resolve();
       await pending;
-      await vi.waitFor(() => expect(hoisted.starts).toHaveLength(2));
       await vi.waitFor(() => expect(transcode.transcodeSwitchInProgress.value).toBe(false));
       await new Promise<void>((resolve) => {
         setTimeout(resolve, 20);
       });
+      return { transcode, route };
+    }
+
+    it("ends on the newer mode in the state and the URL once the route settles", async () => {
+      const { transcode, route } = await runStartWithRouteChanges(["balanced"]);
 
       expect(hoisted.starts.map((start) => start.mode)).toEqual(["quality", "balanced"]);
       expect(transcode.transcodeMode.value).toBe("balanced");
       expect(route.query.transcode).toBe("balanced");
+    });
+
+    it("keeps the start mode when the route returns to it before the start finishes", async () => {
+      const { transcode, route } = await runStartWithRouteChanges(["balanced", "quality"]);
+
+      expect(hoisted.starts.map((start) => start.mode)).toEqual(["quality"]);
+      expect(transcode.transcodeMode.value).toBe("quality");
+      expect(route.query.transcode).toBe("quality");
     });
   });
 

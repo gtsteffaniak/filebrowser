@@ -1394,10 +1394,7 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
       if (urlTranscode === parseTranscodeModeFromQuery(oldQuery)) {
         return;
       }
-      const requestedMode = urlTranscode || "native";
-      if (requestedMode !== transcodeMode.value) {
-        void switchTranscodeMode(requestedMode);
-      }
+      void switchTranscodeMode(urlTranscode || "native");
     },
   );
 
