@@ -9,8 +9,18 @@
       'plyr-background-dark': isDarkMode && previewType === 'audio',
       'transitioning': isTransitioning
     }" v-if="!isDeleted">
-      <ExtendedImage v-if="showImage && !isTransitioning" :src="raw" @navigate-previous="navigatePrevious"
-        @navigate-next="navigateNext" @close-preview="exitPreviewFromImageGesture" />
+      <template v-if="showImage && !isTransitioning">
+        <ExtendedImage :src="raw" @navigate-previous="navigatePrevious"
+          @navigate-next="navigateNext" @close-preview="exitPreviewFromImageGesture" />
+
+        <FloatingActionButton
+          v-if="showSlideshowButton"
+          icon="slideshow"
+          position="top-right"
+          :label="$t('slideshow.start')"
+          @press="openSlideshowOptions"
+        />
+      </template>
 
       <!-- Media: load full metadata + album art from media API before mounting plyr so the correct view/art is stable. -->
       <div v-else-if="previewType === 'audio' || (previewType === 'video' && showVideoPlayer)" class="av-preview-wrap">
@@ -123,6 +133,8 @@
 </template>
 <script>
 import { createAsyncComponent } from "@/utils/asyncComponent.js";
+import FloatingActionButton from "@/components/settings/FloatingActionButton.vue";
+import { countMediaInListing } from "@/utils/slideshow.ts";
 import { resourcesApi, mediaApi } from "@/api/index.js";
 import { ensureViewToken, requestViewIdentity } from "@/api/viewToken.js";
 import { goToItem, removeTrailingSlash, removeLastDir } from "@/utils/url.js";
@@ -154,6 +166,7 @@ export default {
   name: "preview",
   components: {
     LoadingSpinner,
+    FloatingActionButton,
     ExtendedImage: createAsyncComponent(() => import('@/components/files/ExtendedImage.vue')),
     plyrViewer: createAsyncComponent(() => import('@/views/files/plyrViewer.vue')),
   },
@@ -181,6 +194,10 @@ export default {
     };
   },
   computed: {
+    // Slideshow entry point: images only, and only when the folder has at least two images or videos.
+    showSlideshowButton() {
+      return this.previewType === 'image' && !this.isTransitioning && countMediaInListing(this.listing) >= 2;
+    },
     permissions() {
       return getters.sourcePermissions();
     },
@@ -360,6 +377,12 @@ export default {
     mutations.clearNavigation();
   },
   methods: {
+    openSlideshowOptions() {
+      mutations.showPrompt({
+        name: 'SlideshowOptions',
+        props: { startName: state.req.name },
+      });
+    },
     async attachDirMediaMetadata(listing, dirPath) {
       if (!listing?.length) return;
       try {

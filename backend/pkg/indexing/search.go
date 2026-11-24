@@ -16,6 +16,10 @@ var SearchResultsCache = cache.NewCache[[]string](15 * time.Second)
 
 var DefaultSearchResults = 100
 
+// MaxSearchResultsLimit is the hard upper bound for a requested search limit,
+// regardless of server.searchResultsLimit.
+const MaxSearchResultsLimit = 5000
+
 type SearchResult struct {
 	Path       string `json:"path"`
 	Type       string `json:"type"`
@@ -145,6 +149,10 @@ func itemMatchesSearchFilters(item iteminfo.ItemInfo, isDir bool, searchOptions 
 	if nameFiltered {
 		return item.MatchesSearchAuxiliaryFilters(searchOptions)
 	}
+	// Filter-only queries (type, size, or date) with no name terms.
+	if !hasNonEmptySearchTerm(searchOptions.Terms) && (hasTypeCondition(searchOptions) || hasDateBounds(searchOptions)) {
+		return item.MatchesSearchAuxiliaryFilters(searchOptions)
+	}
 	if searchOptions.MatchAllTerms {
 		sawNonempty := false
 		for _, searchTerm := range searchOptions.Terms {
@@ -167,6 +175,28 @@ func itemMatchesSearchFilters(item iteminfo.ItemInfo, isDir bool, searchOptions 
 		}
 	}
 	return false
+}
+
+func hasNonEmptySearchTerm(terms []string) bool {
+	for _, t := range terms {
+		if t != "" {
+			return true
+		}
+	}
+	return false
+}
+
+func hasTypeCondition(opts iteminfo.SearchOptions) bool {
+	for k := range opts.Conditions {
+		if k != "exact" {
+			return true
+		}
+	}
+	return false
+}
+
+func hasDateBounds(opts iteminfo.SearchOptions) bool {
+	return opts.ModifiedOlderThan > 0 || opts.ModifiedNewerThan > 0
 }
 
 func searchDateMatches(modUnix int64, opts iteminfo.SearchOptions) bool {

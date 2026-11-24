@@ -1028,6 +1028,9 @@
     "toggleLyrics": "歌詞の表示切り替え",
     "closePanel": "パネルを閉じる",
     "openPanel": "パネルを開く",
+    "fullscreen": "全画面表示",
+    "exitFullscreen": "全画面表示を終了する",
+    "startFullscreen": "全画面表示で開始",
     "transcodeFailed": "トランスコードに失敗しました",
     "transcodeLoading": "トランスコード済みストリームの準備",
     "transcodeUnsupportedFormat": "お使いのブラウザでは、この動画形式はサポートされていません。",
@@ -1279,5 +1282,33 @@
   },
   "pwa": {
     "install": "アプリをインストール"
+  },
+  "slideshow": {
+    "title": "スライドショーの設定",
+    "start": "スライドショーを開始",
+    "duration": "スライドあたりの秒数",
+    "durationDescription": "各画像が画面に表示される時間。「再生を最後まで」がオフの場合にのみ、動画でこの設定が使用されます。",
+    "shuffle": "並べ替え順",
+    "loop": "完了したらループする",
+    "kenBurns": "パンとズーム",
+    "playVideosToEnd": "動画を最後まで再生する",
+    "playVideosToEndDescription": "スライドの表示時間が終了した後ではなく、各動画が終了するたびに次に進むようにします。",
+    "showFilename": "ファイル名を表示",
+    "includeSubfolders": "サブフォルダを含める",
+    "includeSubfoldersDescription": "サブフォルダ内の画像や動画も表示します。",
+    "maxItems": "最大アイテム数",
+    "maxItemsHint": "最大{max} 件まで（サーバーの検索設定による制限があります）。",
+    "empty": "このフォルダには表示する画像や動画がありません。",
+    "allFailed": "どのファイルも表示できませんでした。",
+    "searchFailed": "サブフォルダは検索できませんでした。このフォルダのみを表示しています。",
+    "tokenFailed": "ファイルを表示できませんでした。もう一度試すか、終了してください。",
+    "truncated": "{max} の最初のアイテムを表示しています。",
+    "fadeTransition": "フェード遷移",
+    "fitToScreen": "画像を画面に合わせる",
+    "fitToScreenDescription": "「オン」：画像全体が表示されます。必要に応じて黒い帯が表示されます。「オフ」：画像が画面いっぱいに表示され、一部が切り取られる場合があります。",
+    "enlargeToFill": "常に画面いっぱいに拡大する",
+    "enlargeToFillDescription": "「オン」の場合：小さな画像は画面いっぱいに拡大表示されるため、画像がぼやけて見えることがあります。「オフ」の場合：画像は実際のサイズより大きく表示されることはありません。",
+    "includeVideos": "動画を挿入する",
+    "includeVideosDescription": "スライドショーでは、画像とともに動画ファイルも表示されます。動画は音声をミュートした状態で再生されます。"
   }
 }

@@ -1028,6 +1028,9 @@
     "toggleLyrics": "Zobrazit/skrýt text písně",
     "closePanel": "Zavřít panel",
     "openPanel": "Otevřít panel",
+    "fullscreen": "Celá obrazovka",
+    "exitFullscreen": "Ukončit režim celé obrazovky",
+    "startFullscreen": "Spustit v režimu celé obrazovky",
     "transcodeFailed": "Překódování se nezdařilo",
     "transcodeLoading": "Příprava transkódovaného datového proudu",
     "transcodeUnsupportedFormat": "Tento formát videa není ve vašem prohlížeči podporován.",
@@ -1279,5 +1282,33 @@
   },
   "pwa": {
     "install": "Nainstalovat aplikaci"
+  },
+  "slideshow": {
+    "title": "Možnosti prezentace",
+    "start": "Spustit prezentaci",
+    "duration": "Sekundy na snímek",
+    "durationDescription": "Jak dlouho se jednotlivé snímky zobrazují na obrazovce. U videí se tato funkce používá pouze v případě, že je vypnutá možnost „Přehrát až do konce“.",
+    "shuffle": "Náhodné řazení",
+    "loop": "Po dokončení provést smyčku",
+    "kenBurns": "Posun a přiblížení",
+    "playVideosToEnd": "Přehrávejte videa až do konce",
+    "playVideosToEndDescription": "Pokračujte po skončení každého videa, nikoli až po uplynutí doby trvání snímku.",
+    "showFilename": "Zobrazit název souboru",
+    "includeSubfolders": "Zahrnout podsložky",
+    "includeSubfoldersDescription": "Zobrazit také obrázky a videa z podsložek.",
+    "maxItems": "Maximální počet položek",
+    "maxItemsHint": "Až {max} položek, v závislosti na nastavení vyhledávání na serveru.",
+    "empty": "V této složce nejsou žádné obrázky ani videa.",
+    "allFailed": "Žádný ze souborů se nepodařilo zobrazit.",
+    "searchFailed": "Nedařilo se prohledat podsložky. Zobrazují se pouze obsah této složky.",
+    "tokenFailed": "Soubory se nepodařilo otevřít k prohlížení. Zkuste to znovu nebo ukončete program.",
+    "truncated": "Zobrazují se první položky z kategorie „ {max} “.",
+    "fadeTransition": "Přechod s vyblednutím",
+    "fitToScreen": "Přizpůsobit obrázek velikosti obrazovky",
+    "fitToScreenDescription": "Zapnuto: je zobrazen celý obrázek, v případě potřeby s černými pruhy. Vypnuto: obrázek vyplňuje celou obrazovku a některé jeho části mohou být oříznuty.",
+    "enlargeToFill": "Vždy zvětšit na celou obrazovku",
+    "enlargeToFillDescription": "Zapnuto: malé obrázky se zvětší tak, aby vyplnily obrazovku, což může působit rozmazaně. Vypnuto: obrázky se nikdy nezobrazují větší, než je jejich skutečná velikost.",
+    "includeVideos": "Vložit videa",
+    "includeVideosDescription": "Ve prezentaci se budou zobrazovat video soubory společně s obrázky. Videa se přehrávají bez zvuku."
   }
 }

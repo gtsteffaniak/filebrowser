@@ -1028,6 +1028,9 @@
     "toggleLyrics": "가사 토글",
     "closePanel": "패널 닫기",
     "openPanel": "패널 열기",
+    "fullscreen": "전체 화면",
+    "exitFullscreen": "전체 화면 종료",
+    "startFullscreen": "전체 화면으로 시작하기",
     "transcodeFailed": "트랜스코딩에 실패했습니다",
     "transcodeLoading": "트랜스코딩된 스트림 준비",
     "transcodeUnsupportedFormat": "사용 중인 브라우저에서는 이 동영상 형식을 지원하지 않습니다.",
@@ -1279,5 +1282,33 @@
   },
   "pwa": {
     "install": "앱 설치"
+  },
+  "slideshow": {
+    "title": "슬라이드쇼 설정",
+    "start": "슬라이드쇼 시작",
+    "duration": "슬라이드당 초",
+    "durationDescription": "각 이미지가 화면에 표시되는 시간입니다. 동영상의 경우, ‘끝까지 재생’ 기능이 꺼져 있을 때만 이 설정이 적용됩니다.",
+    "shuffle": "순서 섞기",
+    "loop": "완료되면 반복",
+    "kenBurns": "팬 및 줌",
+    "playVideosToEnd": "동영상을 끝까지 재생하세요",
+    "playVideosToEndDescription": "슬라이드 표시 시간이 끝날 때마다가 아니라, 각 동영상이 끝날 때마다 다음으로 넘어가도록 설정하세요.",
+    "showFilename": "파일 이름 표시",
+    "includeSubfolders": "하위 폴더 포함",
+    "includeSubfoldersDescription": "하위 폴더에 있는 이미지와 동영상도 표시합니다.",
+    "maxItems": "최대 수량",
+    "maxItemsHint": "서버 검색 설정에 따라 최대 {max} 개 항목까지 표시됩니다.",
+    "empty": "이 폴더에는 표시할 이미지나 동영상이 없습니다.",
+    "allFailed": "파일을 하나도 표시할 수 없습니다.",
+    "searchFailed": "하위 폴더를 검색할 수 없습니다. 이 폴더만 표시됩니다.",
+    "tokenFailed": "파일을 열어 볼 수 없습니다. 다시 시도하거나 종료하십시오.",
+    "truncated": "{max} 의 첫 번째 항목들을 표시합니다.",
+    "fadeTransition": "페이드 전환",
+    "fitToScreen": "이미지를 화면 크기에 맞추기",
+    "fitToScreenDescription": "켜기: 전체 이미지가 표시되며, 필요한 경우 검은색 막대가 나타납니다. 끄기: 이미지가 화면 전체를 채우며, 일부가 잘릴 수 있습니다.",
+    "enlargeToFill": "항상 화면 전체로 확대하기",
+    "enlargeToFillDescription": "‘켜기’ 설정: 작은 이미지가 화면을 채우도록 확대되어, 이미지가 흐릿해 보일 수 있습니다. ‘끄기’ 설정: 이미지는 실제 크기보다 크게 표시되지 않습니다.",
+    "includeVideos": "동영상 포함",
+    "includeVideosDescription": "슬라이드쇼에서 이미지뿐만 아니라 동영상 파일도 표시합니다. 동영상은 소리가 꺼진 상태로 재생됩니다."
   }
 }

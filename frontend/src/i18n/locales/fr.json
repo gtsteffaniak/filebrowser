@@ -1028,6 +1028,9 @@
     "toggleLyrics": "Afficher/Masquer les paroles",
     "closePanel": "Fermer le panneau",
     "openPanel": "Ouvrir le panneau",
+    "fullscreen": "Plein écran",
+    "exitFullscreen": "Quitter le mode plein écran",
+    "startFullscreen": "Lancer en plein écran",
     "transcodeFailed": "Échec du transcodage",
     "transcodeLoading": "Préparation d'un flux transcodé",
     "transcodeUnsupportedFormat": "Ce format vidéo n'est pas pris en charge par votre navigateur.",
@@ -1279,5 +1282,33 @@
   },
   "pwa": {
     "install": "Installer l'application"
+  },
+  "slideshow": {
+    "title": "Options du diaporama",
+    "start": "Lancer le diaporama",
+    "duration": "Secondes par diapositive",
+    "durationDescription": "Durée d'affichage de chaque image à l'écran. Cette option n'est utilisée pour les vidéos que lorsque l'option « Lecture jusqu'à la fin » est désactivée.",
+    "shuffle": "Mélanger l'ordre",
+    "loop": "Répéter la boucle une fois terminé",
+    "kenBurns": "Panoramique et zoom",
+    "playVideosToEnd": "Regardez les vidéos jusqu'à la fin",
+    "playVideosToEndDescription": "Passez à la vidéo suivante dès la fin de chaque vidéo, et non à l'issue de la durée d'affichage de la diapositive.",
+    "showFilename": "Afficher le nom du fichier",
+    "includeSubfolders": "Inclure les sous-dossiers",
+    "includeSubfoldersDescription": "Afficher également les images et les vidéos des sous-dossiers.",
+    "maxItems": "Nombre maximal d'articles",
+    "maxItemsHint": "Jusqu'à {max} éléments, dans la limite des paramètres de recherche du serveur.",
+    "empty": "Ce dossier ne contient ni images ni vidéos.",
+    "allFailed": "Aucun de ces fichiers n'a pu être affiché.",
+    "searchFailed": "Impossible d'effectuer une recherche dans les sous-dossiers. Affichage de ce dossier uniquement.",
+    "tokenFailed": "Impossible d'ouvrir les fichiers pour les consulter. Veuillez réessayer ou quitter.",
+    "truncated": "Affichage des premiers éléments de la collection « {max} ».",
+    "fadeTransition": "Transition par fondu",
+    "fitToScreen": "Ajuster l'image à l'écran",
+    "fitToScreenDescription": "Activé : l'image est affichée dans son intégralité, avec des bandes noires si nécessaire. Désactivé : l'image occupe tout l'écran et certaines parties peuvent être rognées.",
+    "enlargeToFill": "Toujours agrandir pour remplir l'écran",
+    "enlargeToFillDescription": "Activé : les petites images sont agrandies pour remplir l'écran, ce qui peut donner un rendu flou. Désactivé : les images ne s'affichent jamais plus grandes que leur taille réelle.",
+    "includeVideos": "Ajouter des vidéos",
+    "includeVideosDescription": "Afficher les fichiers vidéo dans le diaporama en même temps que les images. Les vidéos sont lues sans son."
   }
 }

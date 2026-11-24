@@ -1028,6 +1028,9 @@
     "toggleLyrics": "Mostrar letras",
     "closePanel": "Cerrar panel",
     "openPanel": "Abrir panel",
+    "fullscreen": "Pantalla completa",
+    "exitFullscreen": "Salir del modo de pantalla completa",
+    "startFullscreen": "Iniciar en pantalla completa",
     "transcodeFailed": "Error en la transcodificación",
     "transcodeLoading": "Preparación de la transmisión transcodificada",
     "transcodeUnsupportedFormat": "Tu navegador no es compatible con este formato de vídeo.",
@@ -1279,5 +1282,33 @@
   },
   "pwa": {
     "install": "Instalar la aplicación"
+  },
+  "slideshow": {
+    "title": "Opciones de la presentación de diapositivas",
+    "start": "Iniciar presentación de diapositivas",
+    "duration": "Segundos por diapositiva",
+    "durationDescription": "El tiempo que permanece cada imagen en pantalla. En los vídeos, esta opción solo se utiliza cuando la reproducción hasta el final está desactivada.",
+    "shuffle": "Orden aleatorio",
+    "loop": "Repetir cuando haya terminado",
+    "kenBurns": "Desplazamiento y zoom",
+    "playVideosToEnd": "Reproduce los vídeos hasta el final",
+    "playVideosToEndDescription": "Avanza al terminar cada vídeo, en lugar de al finalizar la duración de la diapositiva.",
+    "showFilename": "Mostrar nombre del archivo",
+    "includeSubfolders": "Incluir subcarpetas",
+    "includeSubfoldersDescription": "Mostrar también imágenes y vídeos de las subcarpetas.",
+    "maxItems": "Número máximo de artículos",
+    "maxItemsHint": "Hasta {max} elementos, según la configuración de búsqueda del servidor.",
+    "empty": "No hay imágenes ni vídeos que mostrar en esta carpeta.",
+    "allFailed": "No se ha podido mostrar ninguno de los archivos.",
+    "searchFailed": "No se han podido buscar subcarpetas. Solo se muestra esta carpeta.",
+    "tokenFailed": "No se han podido abrir los archivos para su visualización. Inténtalo de nuevo o sal.",
+    "truncated": "Se muestran los primeros {max} artículos.",
+    "fadeTransition": "Transición de fundido",
+    "fitToScreen": "Ajustar la imagen a la pantalla",
+    "fitToScreenDescription": "Activado: se ve la imagen completa, con barras negras si es necesario. Desactivado: la imagen ocupa toda la pantalla y es posible que se recorten algunas partes.",
+    "enlargeToFill": "Ampliar siempre para ocupar toda la pantalla",
+    "enlargeToFillDescription": "Activado: las imágenes pequeñas se amplían para ocupar toda la pantalla, lo que puede hacer que se vean borrosas. Desactivado: las imágenes nunca se muestran más grandes que su tamaño real.",
+    "includeVideos": "Incluir vídeos",
+    "includeVideosDescription": "Muestra los archivos de vídeo en la presentación junto con las imágenes. Los vídeos se reproducen sin sonido."
   }
 }

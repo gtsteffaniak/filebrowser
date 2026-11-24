@@ -1028,6 +1028,9 @@
     "toggleLyrics": "Erakutsi/ezkutatu letra",
     "closePanel": "Itxi panela",
     "openPanel": "Ireki panela",
+    "fullscreen": "Pantaila osoa",
+    "exitFullscreen": "Irten pantaila osoan",
+    "startFullscreen": "Pantaila osoan hasi",
     "transcodeFailed": "Transkodaketa huts egin du",
     "transcodeLoading": "Transkodatutako korrontea prestatzen",
     "transcodeUnsupportedFormat": "Bideo-formatua ez dago zure nabigatzailean onartuta.",
@@ -1279,5 +1282,33 @@
   },
   "pwa": {
     "install": "Instalatu aplikazioa"
+  },
+  "slideshow": {
+    "title": "Diapositiba-aurkezpenaren aukerak",
+    "start": "Eman irudi-aurkezpena hasier",
+    "duration": "Segundoak glisada bakoitzeko",
+    "durationDescription": "Irudi bakoitzak pantailan zenbat denbora egoten den. Bideoek hau soilik erabiltzen dute 'play to end' desgaituta dagoenean.",
+    "shuffle": "Nahaste-hurrenkera",
+    "loop": "Amaitutakoan biratu",
+    "kenBurns": "Pan eta zoom",
+    "playVideosToEnd": "Bideoak bukaeraraino erreproduzitu",
+    "playVideosToEndDescription": "Bideo bakoitza amaitzean aurrera egin, diapositibaren iraupenaren ordez.",
+    "showFilename": "Fitxategiaren izena erakutsi",
+    "includeSubfolders": "Barneko karpetak barne hartu",
+    "includeSubfoldersDescription": "Azpikarpetetako irudiak eta bideoak ere erakutsi.",
+    "maxItems": "Gehienezko elementuak",
+    "maxItemsHint": "{max} elementu arte, zerbitzariaren bilaketa-ezarpenek mugatuta.",
+    "empty": "Karpetan ez dago irudi edo bideo erakusteko.",
+    "allFailed": "Fitxategi guztiak ezin izan ziren erakutsi.",
+    "searchFailed": "Azpikarpetetan ezin izan da bilatu. Karpeta hau bakarrik erakusten da.",
+    "tokenFailed": "Fitxategiak ikusteko ezin izan dira ireki. Saiatu berriro edo irten.",
+    "truncated": "{max} -eko lehen elementuak erakusten.",
+    "fadeTransition": "Itzaltze-trantsizioa",
+    "fitToScreen": "Egokitu irudia pantailara",
+    "fitToScreenDescription": "Eskuragarri: irudi osoa ikusgai dago, behar izanez gero barra beltzekin.   Desaktibatuta: irudiak pantaila betetzen du eta zati batzuk moztu daitezke.",
+    "enlargeToFill": "Beti handitu pantaila betetzeko",
+    "enlargeToFillDescription": "Ean: irudi txikiak pantaila betetzeko handitzen dira, eta horrek lausotuta ager daitezke.   Itzalita: irudiak ez dira inoiz beren benetako tamainatik handiago agertzen.",
+    "includeVideos": "Bideoak sartu",
+    "includeVideosDescription": "Irudiak eta bideo-fitxategiak diapositiba-aurkezpenean erakutsi. Bideoak isilik erreproduzitzen dira."
   }
 }

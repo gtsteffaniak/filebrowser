@@ -5,7 +5,6 @@ All notable changes to this project will be documented in this file. For commit 
 ## v2.2.0
 
  **New Features**:
-  - Core web assets are loaded into memory instead of served from disk.
   - Media enhancements
     - All server media settings can be managed in settings by admins.
     - JXL image preview support (#3334) (#2551)
@@ -42,8 +41,10 @@ All notable changes to this project will be documented in this file. For commit 
   - Upload and download prompts list is reversed (#2998) (#3328).
   - Replaced `indented soft wrap` editor setting by a dropdown with more wrap settings (#3183) (#3282).
   - Specify custom share URI is possible when user account settings are enabled via `userDefaults.Account.allowCustomShareURL: true` (default `false`). default generated hash values for a share will still work after creating a custom one.
+  - Slideshow when browsing a picture folder (#3339)
 
  **Notes**:
+ - Core web assets are loaded into memory instead of served from disk.
  - **Document preview formats:** New in-process support includes **`.azw3`**, **`.chm`**, **`.htm`**, and **`.html`**. However, `.doc` continues to require the office integration for thumbnails. **`.xps`** and **`.cbz`** previews come from embedded images. With **Always use office for document previews** enabled, office files still use the office converter
  - UPX compression is removed from release builds.
  - A `filebrowser-gpu` image is published alongside the main and slim images (amd64, hardware-accelerated ffmpeg).

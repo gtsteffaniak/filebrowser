@@ -3823,7 +3823,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Filter prefix or full search text (required when no terms are supplied)",
+                        "description": "Filter prefix or full search text; no minimum length is enforced (clients enforce minSearchLength)",
                         "name": "query",
                         "in": "query"
                     },
@@ -3873,7 +3873,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
-                        "description": "Requested advanced search limit, capped by server.searchResultsLimit (default 1000); omitted for quick search (100)",
+                        "description": "Requested advanced search limit, capped by server.searchResultsLimit (default 1000) and a hard max of 5000; omitted for quick search (100)",
                         "name": "limit",
                         "in": "query"
                     },
@@ -7048,8 +7048,9 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "searchResultsLimit": {
-                    "description": "maximum requested search results across all sources (default: 1000); quick search defaults to 100, advanced search to 500; size viewer remains limited to 200",
+                    "description": "maximum requested search results across all sources, hard max 5000 (default: 1000); quick search defaults to 100, advanced search to 500; size viewer remains limited to 200",
                     "type": "integer",
+                    "maximum": 5000,
                     "minimum": 1
                 },
                 "sources": {

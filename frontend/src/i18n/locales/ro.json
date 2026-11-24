@@ -1028,6 +1028,9 @@
     "toggleLyrics": "Comută versurile",
     "closePanel": "Închide panoul",
     "openPanel": "Deschide panoul",
+    "fullscreen": "Ecran complet",
+    "exitFullscreen": "Ieșire din modul ecran complet",
+    "startFullscreen": "Pornește în modul ecran complet",
     "transcodeFailed": "Transcodarea a eșuat",
     "transcodeLoading": "Pregătirea fluxului transcodat",
     "transcodeUnsupportedFormat": "Acest format video nu este acceptat de browserul tău.",
@@ -1279,5 +1282,33 @@
   },
   "pwa": {
     "install": "Instalează aplicația"
+  },
+  "slideshow": {
+    "title": "Opțiuni pentru prezentarea de diapozitive",
+    "start": "Pornește prezentarea",
+    "duration": "Secunde pe diapozitiv",
+    "durationDescription": "Cât timp rămâne fiecare imagine pe ecran. În cazul videoclipurilor, această opțiune se utilizează doar atunci când opțiunea „Redare până la sfârșit” este dezactivată.",
+    "shuffle": "Ordinea aleatorie",
+    "loop": "Repetă după finalizare",
+    "kenBurns": "Panoramare și zoom",
+    "playVideosToEnd": "Redă videoclipurile până la capăt",
+    "playVideosToEndDescription": "Treci la următorul videoclip după ce fiecare se termină, nu după expirarea duratei fiecărui diapozitiv.",
+    "showFilename": "Afișează numele fișierului",
+    "includeSubfolders": "Include subfoldere",
+    "includeSubfoldersDescription": "Afișează și imaginile și videoclipurile din subfoldere.",
+    "maxItems": "Numărul maxim de articole",
+    "maxItemsHint": "Până la {max} de articole, în funcție de setările de căutare ale serverului.",
+    "empty": "Nu există imagini sau videoclipuri în acest folder.",
+    "allFailed": "Niciunul dintre fișiere nu a putut fi afișat.",
+    "searchFailed": "Nu s-a putut efectua căutarea în subfoldere. Se afișează doar acest folder.",
+    "tokenFailed": "Nu s-au putut deschide fișierele pentru vizualizare. Încercați din nou sau ieșiți.",
+    "truncated": "Se afișează primele articole de pe {max}.",
+    "fadeTransition": "Tranziție de estompare",
+    "fitToScreen": "Potrivire imagine la ecran",
+    "fitToScreenDescription": "Activat: se afișează întreaga imagine, cu bare negre dacă este necesar. Dezactivat: imaginea ocupă tot ecranul, iar anumite părți ale acesteia pot fi decupate.",
+    "enlargeToFill": "Mărește întotdeauna imaginea pentru a umple ecranul",
+    "enlargeToFillDescription": "Activat: imaginile mici sunt mărite pentru a umple ecranul, ceea ce poate da un aspect neclar. Dezactivat: imaginile nu sunt afișate niciodată mai mari decât dimensiunea lor reală.",
+    "includeVideos": "Includeți videoclipuri",
+    "includeVideosDescription": "Afișează fișierele video în prezentarea de diapozitive împreună cu imaginile. Videoclipurile se redau fără sunet."
   }
 }

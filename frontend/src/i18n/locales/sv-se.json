@@ -1028,6 +1028,9 @@
     "toggleLyrics": "Visa/dölj text",
     "closePanel": "Stäng panel",
     "openPanel": "Öppna panel",
+    "fullscreen": "Helskärm",
+    "exitFullscreen": "Lämna helskärmsläget",
+    "startFullscreen": "Starta i helskärmsläge",
     "transcodeFailed": "Omkodningen misslyckades",
     "transcodeLoading": "Förberedelse av transkodad ström",
     "transcodeUnsupportedFormat": "Detta videoformat stöds inte av din webbläsare.",
@@ -1279,5 +1282,33 @@
   },
   "pwa": {
     "install": "Installera appen"
+  },
+  "slideshow": {
+    "title": "Alternativ för bildspel",
+    "start": "Starta bildspelet",
+    "duration": "Sekunder per bild",
+    "durationDescription": "Hur länge varje bild visas på skärmen. För videor gäller detta endast när alternativet ”Spela upp till slutet” är avstängt.",
+    "shuffle": "Blanda ordningen",
+    "loop": "Upprepa när du är klar",
+    "kenBurns": "Panorera och zooma",
+    "playVideosToEnd": "Spela upp videoklippen till slutet",
+    "playVideosToEndDescription": "Gå vidare när varje video har spelats klart, istället för när en bild har visats klart.",
+    "showFilename": "Visa filnamn",
+    "includeSubfolders": "Inkludera undermappar",
+    "includeSubfoldersDescription": "Visa även bilder och videor från undermappar.",
+    "maxItems": "Maximalt antal artiklar",
+    "maxItemsHint": "Upp till {max} poster, beroende på serverns sökinställningar.",
+    "empty": "Det finns inga bilder eller videoklipp att visa i den här mappen.",
+    "allFailed": "Ingen av filerna kunde visas.",
+    "searchFailed": "Det gick inte att söka i undermappar. Endast den här mappen visas.",
+    "tokenFailed": "Det gick inte att öppna filerna för visning. Försök igen eller avsluta.",
+    "truncated": "Visar de första {max} artiklarna.",
+    "fadeTransition": "Övergång med toning",
+    "fitToScreen": "Anpassa bilden till skärmen",
+    "fitToScreenDescription": "På: hela bilden visas, med svarta fält vid behov. Av: bilden fyller skärmen och delar av den kan beskäras.",
+    "enlargeToFill": "Förstora alltid så att bilden fyller hela skärmen",
+    "enlargeToFillDescription": "På: små bilder förstoras så att de fyller skärmen, vilket kan ge ett oskarpt intryck. Av: bilderna visas aldrig större än sin faktiska storlek.",
+    "includeVideos": "Lägg till videoklipp",
+    "includeVideosDescription": "Visa videofiler i bildspelet tillsammans med bilder. Videorna spelas upp utan ljud."
   }
 }

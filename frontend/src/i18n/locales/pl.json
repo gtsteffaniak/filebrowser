@@ -1028,6 +1028,9 @@
     "toggleLyrics": "Przełącz tekst",
     "closePanel": "Zamknij panel",
     "openPanel": "Otwórz panel",
+    "fullscreen": "Tryb pełnoekranowy",
+    "exitFullscreen": "Wyjdź z trybu pełnoekranowego",
+    "startFullscreen": "Uruchom w trybie pełnoekranowym",
     "transcodeFailed": "Transkodowanie nie powiodło się",
     "transcodeLoading": "Przygotowywanie strumienia po transkodowaniu",
     "transcodeUnsupportedFormat": "Ten format wideo nie jest obsługiwany przez Twoją przeglądarkę.",
@@ -1279,5 +1282,33 @@
   },
   "pwa": {
     "install": "Zainstaluj aplikację"
+  },
+  "slideshow": {
+    "title": "Opcje pokazu slajdów",
+    "start": "Rozpocznij pokaz slajdów",
+    "duration": "Sekundy na slajd",
+    "durationDescription": "Jak długo poszczególne obrazy pozostają na ekranie. W przypadku filmów opcja ta ma zastosowanie tylko wtedy, gdy funkcja „Odtwarzaj do końca” jest wyłączona.",
+    "shuffle": "Losowa kolejność",
+    "loop": "Powtórz po zakończeniu",
+    "kenBurns": "Przesuwanie i powiększanie",
+    "playVideosToEnd": "Oglądaj filmy do końca",
+    "playVideosToEndDescription": "Przechodź dalej po zakończeniu każdego filmu, a nie po upływie czasu wyświetlania slajdu.",
+    "showFilename": "Pokaż nazwę pliku",
+    "includeSubfolders": "Uwzględnij podfoldery",
+    "includeSubfoldersDescription": "Wyświetlaj również zdjęcia i filmy z podfolderów.",
+    "maxItems": "Maksymalna liczba pozycji",
+    "maxItemsHint": "Maksymalnie {max} pozycji, zgodnie z ustawieniami wyszukiwania serwera.",
+    "empty": "W tym folderze nie ma żadnych zdjęć ani filmów.",
+    "allFailed": "Nie udało się wyświetlić żadnego z plików.",
+    "searchFailed": "Nie udało się przeszukać podfolderów. Wyświetlany jest tylko ten folder.",
+    "tokenFailed": "Nie udało się otworzyć plików do przeglądania. Spróbuj ponownie lub zamknij program.",
+    "truncated": "Wyświetlanie pierwszych pozycji z kategorii „ {max} ”.",
+    "fadeTransition": "Przejście z efektem zanikania",
+    "fitToScreen": "Dopasuj obraz do ekranu",
+    "fitToScreenDescription": "Włączone: widoczny jest cały obraz, w razie potrzeby z czarnymi paskami. Wyłączone: obraz wypełnia ekran, a jego fragmenty mogą zostać przycięte.",
+    "enlargeToFill": "Zawsze powiększaj, aby wypełnić ekran",
+    "enlargeToFillDescription": "Włączone: małe obrazy są powiększane tak, aby wypełniły ekran, co może powodować ich rozmycie. Wyłączone: obrazy nigdy nie są wyświetlane w rozmiarze większym niż ich rzeczywisty rozmiar.",
+    "includeVideos": "Dodaj filmy",
+    "includeVideosDescription": "Wyświetlaj pliki wideo w pokazie slajdów razem ze zdjęciami. Filmy są odtwarzane bez dźwięku."
   }
 }
