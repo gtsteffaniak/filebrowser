@@ -2,7 +2,7 @@ body {
   font-family: Roboto, sans-serif;
   padding-top: var(--header-height);
   color: #333;
-  overflow:initial;
+  overflow: initial;
   scrollbar-width: none; /* Firefox */
 }
 
@@ -24,7 +24,8 @@ img {
   max-width: 100%;
 }
 
-audio, video {
+audio,
+video {
   width: 100%;
 }
 
@@ -71,9 +72,9 @@ audio, video {
   background-color: var(--background);
   border: var(--borderWidth) solid var(--surfaceSecondary);
   box-shadow:
-  0 1px 1px hsl(0deg 0% 0% / 7.5%),
-  0 2px 2px hsl(0deg 0% 0% / 7.5%),
-  0 4px 4px hsl(0deg 0% 0% / 7.5%),
-  0 8px 8px hsl(0deg 0% 0% / 7.5%),
-  0 16px 16px hsl(0deg 0% 0% / 7.5%);
+    0 1px 1px hsl(0deg 0% 0% / 7.5%),
+    0 2px 2px hsl(0deg 0% 0% / 7.5%),
+    0 4px 4px hsl(0deg 0% 0% / 7.5%),
+    0 8px 8px hsl(0deg 0% 0% / 7.5%),
+    0 16px 16px hsl(0deg 0% 0% / 7.5%);
 }

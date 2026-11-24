@@ -89,8 +89,8 @@
 </template>
 
 <script>
-import { getters, mutations } from "@/store";
-import { getTypeInfoFromExt } from "@/utils/mimetype";
+import { getters, mutations } from "@/store/index.ts";
+import { getTypeInfoFromExt } from "@/utils/mimetype.js";
 import { createDragReorder } from "@/utils/dragAndDropReorder.js";
 
 export default {

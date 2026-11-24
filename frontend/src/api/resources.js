@@ -1,20 +1,20 @@
 import { notify } from "@/notify/index.ts"
 import { getters, mutations, state } from "@/store/index.ts"
-import { globalVars } from "@/utils/constants.js"
+import { globalVars } from "@/utils/constants.ts"
 import { downloadManager } from "@/utils/downloadManager.ts"
 import {
   notifyDownloadComplete,
   notifyDownloadError,
 } from "@/utils/appNotifications.js"
 import { renew } from "@/utils/auth.js"
-import { getApiPath, getPublicApiPath, getParentDir } from '@/utils/url.js'
+import { getApiPath, getPublicApiPath } from '@/utils/url.js'
 import { adjustedData, fetchURL } from "./utils.ts"
 import { rememberViewToken } from "./viewToken.js"
 import { isMediaFile } from "@/utils/mediaFile.js"
+import { isDirectoryItem } from "@/utils/directoryItem.js"
 import { getObjectProperty } from "@/utils/object.js"
-import { getStreamURL, getStreamURLPublic } from "./media.js"
+import { getStreamURL } from "./media.ts"
 import {
-  invalidateDirMetadataCache,
   invalidateDirMetadataItem,
   markDirMetadataItemChanged,
   removeDirMetadataItem
@@ -35,7 +35,7 @@ function parseMockDataCount(value, defaultCount) {
   if (value === undefined || value === null || value === '') {
     return defaultCount;
   }
-  const n = parseInt(String(value), 10);
+  const n = Math.trunc(Number(value));
   if (!Number.isFinite(n) || n < 0) {
     return defaultCount;
   }
@@ -303,7 +303,7 @@ export async function download(format, files, shareHash = "") {
   const sizeThreshold = downloadChunkSizeMb * 1024 * 1024
 
   const isMultiItemArchive =
-    files.length > 1 || (files.length === 1 && files[0].isDir)
+    files.length > 1 || (files.length === 1 && isDirectoryItem(files[0]))
 
   const useChunkedArchive =
     downloadChunkSizeMb > 0 && isMultiItemArchive
@@ -311,7 +311,7 @@ export async function download(format, files, shareHash = "") {
   const useChunkedDownload =
     downloadChunkSizeMb > 0 &&
     files.length === 1 &&
-    !files[0].isDir &&
+    !isDirectoryItem(files[0]) &&
     files[0].size &&
     files[0].size >= sizeThreshold
 
@@ -397,7 +397,7 @@ function totalFromContentRange(headerVal) {
   if (!headerVal || typeof headerVal !== 'string') return 0
   const idx = headerVal.lastIndexOf('/')
   if (idx === -1) return 0
-  const n = parseInt(headerVal.slice(idx + 1), 10)
+  const n = Number.parseInt(headerVal.slice(idx + 1), 10)
   return Number.isFinite(n) ? n : 0
 }
 
@@ -415,7 +415,7 @@ async function resolveDownloadContentLength(url) {
     token = res.headers.get('X-Archive-Token')
     const cl = res.headers.get('Content-Length')
     if (cl) {
-      const n = parseInt(cl, 10)
+      const n = Number.parseInt(cl, 10)
       if (Number.isFinite(n) && n > 0) {
         return { size: n, token }
       }
@@ -439,7 +439,7 @@ async function resolveDownloadContentLength(url) {
     if (res.ok) {
       const cl = res.headers.get('Content-Length')
       if (cl) {
-        const n = parseInt(cl, 10)
+        const n = Number.parseInt(cl, 10)
         if (Number.isFinite(n) && n > 0) {
           cancelBody()
           return { size: n, token }
@@ -457,7 +457,7 @@ async function resolveDownloadContentLength(url) {
 function archiveDisplayFileName(format, files) {
   const ext = format === 'zip' ? '.zip' : '.tar.gz'
   const first = files[0]
-  if (files.length === 1 && first.isDir) {
+  if (files.length === 1 && isDirectoryItem(first)) {
     const base =
       first.name ||
       (first.path?.split('/').filter(Boolean).pop()) ||
@@ -467,7 +467,7 @@ function archiveDisplayFileName(format, files) {
   if (first?.path) {
     const parts = first.path.split('/').filter(Boolean)
     if (parts.length >= 2) {
-      return `${parts[parts.length - 2]}${ext}`
+      return `${parts.at(-2)}${ext}`
     }
     if (parts.length === 1) {
       return `${parts[0]}${ext}`
@@ -497,8 +497,8 @@ async function chunkedRangeDownloadToBlob(
   let totalSize = fileSize
 
   while (offset < totalSize) {
-    const download = downloadManager.findById(downloadId)
-    if (download?.status === 'cancelled') {
+    const downloadItem = downloadManager.findById(downloadId)
+    if (downloadItem?.status === 'cancelled') {
       return null
     }
 
@@ -537,7 +537,7 @@ async function chunkedRangeDownloadToBlob(
     } else if (response.status === 200) {
       const clFull = response.headers.get('Content-Length')
       if (clFull) {
-        const n = parseInt(clFull, 10)
+        const n = Number.parseInt(clFull, 10)
         if (Number.isFinite(n) && n > 0) {
           totalSize = n
           const dl = downloadManager.findById(downloadId)
@@ -551,7 +551,7 @@ async function chunkedRangeDownloadToBlob(
     const cl = response.headers.get('Content-Length')
     let expectedChunkSize = end - offset + 1
     if (cl) {
-      const n = parseInt(cl, 10)
+      const n = Number.parseInt(cl, 10)
       if (Number.isFinite(n) && n > 0) {
         expectedChunkSize = n
       }
@@ -587,8 +587,8 @@ async function chunkedRangeDownloadToBlob(
         }
       }
     } catch (readError) {
-      const download = downloadManager.findById(downloadId)
-      if (readError.name === 'AbortError' || (download?.status === 'cancelled')) {
+      const currentDownload = downloadManager.findById(downloadId)
+      if (readError.name === 'AbortError' || (currentDownload?.status === 'cancelled')) {
         downloadManager.setStatus(downloadId, 'cancelled')
         return null
       }
@@ -627,9 +627,14 @@ async function downloadChunkedArchive(url, format, files, filePaths, source, sha
   }
   const chunkSize = downloadChunkSizeMb * 1024 * 1024
   const fileName = archiveDisplayFileName(format, files)
-  const { size: fileSize, token } = await resolveDownloadContentLength(url)
+  const sizeProbeMessage = 'Could not determine archive size for chunked download'
+  const { size: fileSize, token } = await resolveDownloadContentLength(url).catch((error) => {
+    notifyDownloadError(fileName, error?.message || sizeProbeMessage)
+    throw error
+  })
   if (!fileSize || fileSize <= 0) {
-    throw new Error('Could not determine archive size for chunked download')
+    notifyDownloadError(fileName, sizeProbeMessage)
+    throw new Error(sizeProbeMessage)
   }
 
   const baseUrl = appendArchiveTokenToUrl(url, token)
@@ -690,8 +695,8 @@ async function downloadChunkedArchive(url, format, files, filePaths, source, sha
       URL.revokeObjectURL(blobUrl)
     }, 100)
   } catch (error) {
-    const download = downloadManager.findById(downloadId)
-    if (error.name === 'AbortError' || (download?.status === 'cancelled')) {
+    const downloadItem = downloadManager.findById(downloadId)
+    if (error.name === 'AbortError' || (downloadItem?.status === 'cancelled')) {
       downloadManager.setStatus(downloadId, 'cancelled')
       return
     }
@@ -725,12 +730,23 @@ async function downloadChunked(file, shareHash = "") {
   const baseUrl = window.origin + apiPath
 
   let fileSize = Number(file.size)
-  const { size: serverLen } = await resolveDownloadContentLength(baseUrl)
-  if (Number.isFinite(serverLen) && serverLen > 0) {
-    fileSize = serverLen
+  // Probe failures happen before a download entry exists, so report them here. Callers may
+  // suppress the error they rethrow (silentChunkedError), which would otherwise hide it.
+  try {
+    const { size: serverLen } = await resolveDownloadContentLength(baseUrl)
+    if (Number.isFinite(serverLen) && serverLen > 0) {
+      fileSize = serverLen
+    }
+  } catch (error) {
+    if (error?.name !== 'AbortError') {
+      notifyDownloadError(fileName, error?.message || 'Could not determine file size for chunked download')
+    }
+    throw error
   }
   if (!Number.isFinite(fileSize) || fileSize <= 0) {
-    throw new Error('Could not determine file size for chunked download')
+    const sizeError = 'Could not determine file size for chunked download'
+    notifyDownloadError(fileName, sizeError)
+    throw new Error(sizeError)
   }
 
   const queuedFile = { ...file, size: fileSize }
@@ -745,9 +761,9 @@ async function downloadChunked(file, shareHash = "") {
     mutations.showPrompt({ name: 'download' })
   }
 
-  const download = downloadManager.findById(downloadId)
+  const downloadItem = downloadManager.findById(downloadId)
   const abortController = new AbortController()
-  download.abortController = abortController
+  downloadItem.abortController = abortController
 
   try {
     const blob = await chunkedRangeDownloadToBlob(
@@ -782,8 +798,8 @@ async function downloadChunked(file, shareHash = "") {
     }, 100)
   } catch (error) {
     // Check if download was cancelled by user
-    const download = downloadManager.findById(downloadId);
-    if (error.name === 'AbortError' || (download?.status === "cancelled")) {
+    const currentDownload = downloadManager.findById(downloadId);
+    if (error.name === 'AbortError' || (currentDownload?.status === "cancelled")) {
       downloadManager.setStatus(downloadId, "cancelled")
       // Don't throw error or show notification for user-initiated cancellation
       return;
@@ -805,6 +821,7 @@ async function downloadChunked(file, shareHash = "") {
  * @param {((percent: number) => void) | undefined} [onupload]
  * @param {Record<string, string | number>} [headers]
  * @param {boolean} [isDir]
+ * @param {(() => void) | undefined} [onsent]
  * @returns {Promise<any> & { xhr?: XMLHttpRequest | null, abort?: () => void }}
  */
 export function post(
@@ -814,7 +831,8 @@ export function post(
   overwrite = false,
   onupload,
   headers = {},
-  isDir = false
+  isDir = false,
+  onsent
 ) {
   if (!source || source === undefined || source === null) {
     throw new Error('no source provided')
@@ -863,6 +881,10 @@ export function post(
               onupload(percentComplete);
             }
           };
+        }
+        if (typeof onsent === "function") {
+          // The whole body has been sent; from here the server answers when it is done saving it.
+          request.upload.onload = () => onsent();
         }
 
         request.onload = () => {
@@ -1026,7 +1048,7 @@ export async function moveCopy(
           removeDirMetadataItem({ source: item.fromSource }, item.from)
         }
         if (rename) {
-          invalidateDirMetadataCache({ source: item.toSource, path: getParentDir(item.to) })
+          invalidateDirMetadataItem({ source: item.toSource }, item.to)
         } else {
           markDirMetadataItemChanged({ source: item.toSource }, item.isDir ? `${item.to}/` : item.to)
         }
@@ -1067,6 +1089,21 @@ export async function checksum(source, path, algo) {
     throw new Error('no source provided')
   }
   try {
+    if (getters.isShare()) {
+      if (!getters.isLoggedIn()) {
+        throw new Error('login required to generate checksums')
+      }
+      const hash = state.shareInfo?.hash
+      if (!hash) {
+        throw new Error('no share hash provided')
+      }
+      const params = { path, hash, checksum: algo }
+      const res = await fetchURL(getPublicApiPath('resources', params), {
+        headers: sharePublicAuthHeaders(hash),
+      })
+      const data = await res.json()
+      return getObjectProperty(data.checksums, algo)
+    }
     const params = {
       path: path,
       source: source,
@@ -1085,6 +1122,9 @@ export async function checksum(source, path, algo) {
 /**
  * URL to open a file inline in a new browser tab via the download endpoint.
  * Uses inline disposition and respects download permissions and share limits.
+ * @param {string} source
+ * @param {string} path
+ * @param {{ path?: string, hash?: string } | null} [shareInfo]
  */
 export function getOpenFileURL(source, path, shareInfo = null) {
   if (isMediaFile(path)) {
@@ -1144,9 +1184,6 @@ export function getViewURL(source, path, viewToken, shareInfo = null, allowDownl
 
   if (viewToken) {
     if (isMediaFile(typeHint)) {
-      if (shareInfo) {
-        return getStreamURLPublic(shareInfo, [path], viewToken)
-      }
       return getStreamURL(source, path, viewToken)
     }
     if (shareInfo) {
@@ -1412,6 +1449,7 @@ export function getTextPreviewURLPublic(path, viewToken = state.req?.viewToken) 
  * @param {((percent: number) => void) | undefined} [onupload]
  * @param {Record<string, string | number>} [headers]
  * @param {boolean} [isDir]
+ * @param {(() => void) | undefined} [onsent]
  * @returns {Promise<any> & { xhr?: XMLHttpRequest | null, abort?: () => void }}
  */
 export function postPublic(
@@ -1421,7 +1459,8 @@ export function postPublic(
   overwrite = false,
   onupload,
   headers = {},
-  isDir = false
+  isDir = false,
+  onsent
 ) {
   if (!hash || hash === undefined || hash === null) {
     throw new Error('no hash provided')
@@ -1454,6 +1493,10 @@ export function postPublic(
           onupload(percentComplete);
         }
       };
+    }
+    if (typeof onsent === "function") {
+      // The whole body has been sent; from here the server answers when it is done saving it.
+      request.upload.onload = () => onsent();
     }
 
     const promise = new Promise((resolve, reject) => {
@@ -1662,7 +1705,7 @@ export async function moveCopyPublic(
           removeDirMetadataItem({ isShare: true, hash }, item.from)
         }
         if (rename) {
-          invalidateDirMetadataCache({ isShare: true, hash, path: getParentDir(item.to) })
+          invalidateDirMetadataItem({ isShare: true, hash }, item.to)
         } else {
           markDirMetadataItemChanged({ isShare: true, hash }, item.isDir ? `${item.to}/` : item.to)
         }

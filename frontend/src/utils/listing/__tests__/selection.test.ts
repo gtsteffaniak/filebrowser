@@ -24,11 +24,12 @@ describe("withoutEntry", () => {
   it("notifies what depends on the list once the result is assigned", async () => {
     const state = reactive({ selected: [1, 2, 3] });
     const set = computed(() => new Set(state.selected));
-    expect(set.value.has(2)).toBe(true);
+    const has = (entry: number) => set.value.has(entry);
+    expect(has(2)).toBe(true);
     state.selected = withoutEntry(state.selected, 2) as number[];
     await nextTick();
-    expect(set.value.has(2)).toBe(false);
-    expect(set.value.has(3)).toBe(true);
+    expect(has(2)).toBe(false);
+    expect(has(3)).toBe(true);
   });
 
   it("stays fast on a reactive list with a very large selection", () => {
@@ -71,10 +72,11 @@ describe("withEntry", () => {
   it("returns a raw array, and notifies once it is assigned to the state", async () => {
     const state = reactive({ selected: [] as number[] });
     const count = computed(() => state.selected.length);
-    expect(count.value).toBe(0);
+    const currentCount = () => count.value;
+    expect(currentCount()).toBe(0);
     state.selected = withEntry(state.selected, 7);
     await nextTick();
     expect(isReactive(state.selected)).toBe(false);
-    expect(count.value).toBe(1);
+    expect(currentCount()).toBe(1);
   });
 });

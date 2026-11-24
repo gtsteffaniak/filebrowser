@@ -4,7 +4,7 @@
     <div v-if="loading">
       <h2 class="message delayed">
         <LoadingSpinner size="medium" />
-        <span>{{ $t("general.loading", { suffix: "..." }) }}</span>
+        <span>{{ t("general.loading", { suffix: "..." }) }}</span>
       </h2>
     </div>
 
@@ -30,7 +30,7 @@
       <div v-if="isDragging" class="drop-indicator">
         <div class="drop-indicator-content">
           <i class="material-symbols">cloud_upload</i>
-          <p>{{ $t("prompts.dragAndDrop") }}</p>
+          <p>{{ t("prompts.dragAndDrop") }}</p>
         </div>
       </div>
 
@@ -38,7 +38,7 @@
       <template v-if="numDirs + numFiles + numPinned === 0">
         <h2 class="message font-size-large">
           <i class="material-symbols-outlined">sentiment_dissatisfied</i>
-          <span>{{ $t("files.lonely") }}</span>
+          <span>{{ t("files.lonely") }}</span>
         </h2>
         <input
           style="display: none"
@@ -74,23 +74,23 @@
                 v-for="(item, idx) in virtual.group(section.key).items"
                 :key="item.path || item.name"
                 :class="{ 'zebra-row': (virtual.group(section.key).position + idx) % 2 === 1 }"
-                v-bind:index="item.index"
-                v-bind:name="item.name"
-                v-bind:isDir="item.type === 'directory'"
-                v-bind:source="req.source"
-                v-bind:modified="item.modified"
-                v-bind:created="item.created"
-                v-bind:type="item.type"
-                v-bind:size="item.size"
-                v-bind:path="item.path"
-                v-bind:reducedOpacity="item.hidden"
-                v-bind:hash="shareInfo.hash"
-                v-bind:hasPreview="item.hasPreview"
-                v-bind:metadata="item.metadata"
-                v-bind:hasDuration="hasDuration"
-                v-bind:isShared="item.isShared"
-                v-bind:pinned="item.pinned"
-                v-bind:viewToken="item.viewToken"
+                :index="item.index"
+                :name="item.name"
+                :isDir="item.type === 'directory'"
+                :source="req.source"
+                :modified="item.modified"
+                :created="item.created"
+                :type="item.type"
+                :size="item.size"
+                :path="item.path"
+                :reducedOpacity="item.hidden"
+                :hash="shareInfo.hash"
+                :hasPreview="item.hasPreview"
+                :metadata="item.metadata"
+                :hasDuration="hasDuration"
+                :isShared="item.isShared"
+                :pinned="item.pinned"
+                :viewToken="item.viewToken"
               />
             </div>
           </template>
@@ -123,21 +123,20 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
-import type { fileListItemIndex } from "@/store/types";
-import { useI18n } from "vue-i18n";
-import { readAllDirectoryEntries } from "@/utils/upload";
-import { state, mutations, getters } from "@/store";
-import { eventBus } from "@/store/eventBus";
+import { computed, nextTick, onBeforeUnmount, onMounted, reactive, useTemplateRef, watch } from "vue";
+import { useI18n } from "@/i18n/index.ts";
+import { readAllDirectoryEntries } from "@/utils/upload.ts";
+import { state, mutations, getters } from "@/store/index.ts";
+import { eventBus } from "@/store/eventBus.ts";
 import Item from "@/components/files/ListingItem.vue";
 import Upload from "@/components/prompts/Upload.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
-import { useListingClipboard } from "@/composables/useListingClipboard";
-import { useListingKeyboard } from "@/composables/useListingKeyboard";
-import { useListingLayout } from "@/composables/useListingLayout";
-import { useListingVirtualization } from "@/composables/useListingVirtualization";
-import { useMouseSelection } from "@/composables/useRectangleSelection";
-import { useListingContextMenu } from "@/composables/useListingContextMenu";
+import { useListingClipboard } from "@/composables/useListingClipboard.ts";
+import { useListingKeyboard } from "@/composables/useListingKeyboard.ts";
+import { useListingLayout } from "@/composables/useListingLayout.ts";
+import { useListingVirtualization } from "@/composables/useListingVirtualization.ts";
+import { useMouseSelection } from "@/composables/useRectangleSelection.ts";
+import { useListingContextMenu } from "@/composables/useListingContextMenu.ts";
 
 defineOptions({ name: "listingView" });
 
@@ -152,8 +151,8 @@ type PastedItem =
 
 const { t } = useI18n();
 
-const rootEl = ref<HTMLElement | null>(null);
-const listingView = ref<HTMLElement | null>(null);
+const rootEl = useTemplateRef<HTMLElement>("rootEl");
+const listingView = useTemplateRef<HTMLElement>("listingView");
 
 const dragTargets = reactive(new Set<Element>());
 
@@ -182,12 +181,7 @@ const allItems = computed(() => pinnedItems.value.concat(dirs.value, files.value
 const numPinned = computed(() => pinnedItems.value.length);
 const numFiles = computed(() => files.value.length);
 const numDirs = computed(() => dirs.value.length);
-const hasDuration = computed(() => {
-  // Check if any pinned file or regular file has duration metadata
-  const hasMetadataDuration = (file: fileListItemIndex) =>
-    file.type !== "directory" && file.metadata?.duration;
-  return pinnedItems.value.some(hasMetadataDuration) || files.value.some(hasMetadataDuration);
-});
+const hasDuration = computed(() => getters.hasDuration());
 const pinnedHeaderText = computed(() => {
   const pinnedFolders = pinnedItems.value.filter((item) => item.type === "directory").length;
   const pinnedFiles = pinnedItems.value.filter((item) => item.type !== "directory").length;
@@ -372,6 +366,7 @@ function handleGlobalDragEnd() {
 function getListingItemNodes(container: HTMLElement) {
   if (itemNodesHost !== container || !itemNodes) {
     itemNodesHost = container;
+    // biome-ignore lint/style/useDomQuerySelector: a live HTMLCollection is the point here, querySelectorAll returns a static snapshot
     itemNodes = container.getElementsByClassName("listing-item");
   }
   return itemNodes;
@@ -432,18 +427,9 @@ async function handlePaste(event: ClipboardEvent) {
 
   const internalRecent = isInternalRecent();
 
-  // If internal is recent (<20s), use it immediately, in case someone have both: internal and external clipboard with a file entry.
-  // After those 20s, if the OS clipboard has a file as most recent entry, will use that.
-  if (internalRecent) {
-    await handleInternalPaste();
-    event.preventDefault();
-    event.stopPropagation();
-    return;
-  }
-
-  if (event.clipboardData?.items) {
-    // Collect all items from clipboard
-    const collectedItems: PastedItem[] = [];
+  // Collect all items from clipboard (skipped when the internal clipboard wins below)
+  const collectedItems: PastedItem[] = [];
+  if (!internalRecent && event.clipboardData?.items) {
     // And loop through all items
     for (const item of Array.from(event.clipboardData.items)) {
       if (item.kind !== "file") continue;
@@ -458,16 +444,33 @@ async function handlePaste(event: ClipboardEvent) {
         }
       }
     }
+  }
 
+  // We handle this paste when the internal clipboard is recent, when the OS clipboard has files,
+  // or when we'll fall back to the internal clipboard. preventDefault()/stopPropagation() only work
+  // while the event is still being dispatched, so this has to run before the first await.
+  const target = event.target;
+  const isEditableTarget =
+    target instanceof HTMLElement && (target.isContentEditable || target.matches("input, textarea"));
+  if (!isEditableTarget && (internalRecent || collectedItems.length > 0 || hasInternalItems())) {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+
+  // If internal is recent (<20s), use it immediately, in case someone have both: internal and external clipboard with a file entry.
+  // After those 20s, if the OS clipboard has a file as most recent entry, will use that.
+  if (internalRecent) {
+    await handleInternalPaste();
+    return;
+  }
+
+  if (collectedItems.length > 0) {
     // Then process the collected items (files and folders) asynchronously
     const itemsFromClipboard = await getClipboardItems(collectedItems);
     const pastedFiles = itemsFromClipboard.map((item) => item.file);
 
     // If found external files, upload them
     if (pastedFiles.length > 0) {
-      event.preventDefault();
-      event.stopPropagation();
-
       const canUpload = getters.sourcePermissions()?.modify;
       if (canUpload) {
         // Pass the full array of {file, relativePath} to preserve directory structure
@@ -486,9 +489,6 @@ async function handlePaste(event: ClipboardEvent) {
   if (hasInternalItems()) {
     console.log("No external files, using internal clipboard.");
     await handleInternalPaste();
-    event.preventDefault();
-    event.stopPropagation();
-    return;
   }
 }
 

@@ -41,8 +41,8 @@
 
 <script>
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
-import { tools } from "@/utils/constants";
-import { normalizeUserToolAccess } from "@/utils/toolAccess";
+import { tools } from "@/utils/constants.ts";
+import { normalizeUserToolAccess } from "@/utils/toolAccess.js";
 
 export default {
   name: "ToolsAccessEditor",
@@ -83,7 +83,12 @@ export default {
       default: null,
     },
   },
-  emits: ["update:modelValue", "update:userToolAccess", "save", "cancel"],
+  emits: {
+    "update:modelValue": (items) => typeof items === "object" && items !== null,
+    "update:userToolAccess": (access) => typeof access === "object" && access !== null,
+    save: () => true,
+    cancel: () => true,
+  },
   computed: {
     isDefaultsMode() {
       return this.mode === "defaults";
@@ -221,6 +226,10 @@ export default {
   background-color: var(--surfaceSecondary);
 }
 
+.tool-access-toggle :deep(.toggle-container--enforceable) {
+  padding: 0;
+}
+
 .tool-access-item:hover :deep(.toggle-container--enforceable),
 .tool-access-item:hover :deep(.toggle-container--enforceable:hover) {
   background-color: transparent;
@@ -234,9 +243,5 @@ export default {
 .tool-access-toggle {
   flex: 1 1 auto;
   min-width: 0;
-}
-
-.tool-access-toggle :deep(.toggle-container--enforceable) {
-  padding: 0;
 }
 </style>

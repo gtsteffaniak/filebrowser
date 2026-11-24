@@ -79,7 +79,7 @@
 
     <div v-if="!showAddForm && context === 'user' && !isDefaultsMode" class="settings-items">
       <ToggleSwitch class="item" :modelValue="showToolsInSidebar"
-        @update:modelValue="onShowToolsInSidebarChange"
+        @update:model-value="onShowToolsInSidebarChange"
         :name="$t('profileSettings.showToolsInSidebar')"
         :description="$t('profileSettings.showToolsInSidebarDescription')" />
     </div>
@@ -101,7 +101,7 @@
     <div v-if="showAddForm" class="add-link-form">
       <!-- Path Browser for Source/Share Links - shown when selecting path -->
       <div v-if="isSelectingPath">
-        <file-list ref="fileList" :browse-source="isSourceCategory(newLink.category) ? newLink.sourceName : null"
+        <file-list :browse-source="isSourceCategory(newLink.category) ? newLink.sourceName : null"
           :browse-share="newLink.category === 'share' ? getShareHash(newLink.target) : null"
           @update:selected="updateSelectedPath"></file-list>
       </div>
@@ -120,14 +120,12 @@
           <ToggleSwitch
             class="item sidebar-link-default-toggle"
             enforceable
-            :model-value="editMeta.enabled"
-            :enforced="editMeta.enforced"
+            v-model="editMeta.enabled"
+            v-model:enforced="editMeta.enforced"
             :name="editMetaLinkName"
             :description="editMetaDescription"
             :disabled="disabled"
             :enforcement-disabled="disabled"
-            @update:model-value="editMeta.enabled = $event"
-            @update:enforced="editMeta.enforced = $event"
           />
         </div>
 
@@ -177,13 +175,13 @@
             <!-- Show usage from indexed files toggle -->
             <ToggleSwitch class="item"
               :modelValue="showIndexedUsage"
-              @update:modelValue="updateUsageToggles('indexed', $event)"
+              @update:model-value="updateUsageToggles('indexed', $event)"
               :name="$t('sidebar.showIndexedUsage')"
               :description="$t('sidebar.showIndexedUsageDescription')" />
             <!-- Show disk/partition usage toggle -->
             <ToggleSwitch class="item"
               :modelValue="showDiskUsage"
-              @update:modelValue="updateUsageToggles('disk', $event)"
+              @update:model-value="updateUsageToggles('disk', $event)"
               :name="$t('sidebar.showDiskUsage')"
               :description="$t('sidebar.showDiskUsageDescription')" />
 
@@ -201,7 +199,7 @@
             <ToggleSwitch class="item"
               v-if="showIndexedUsage || showDiskUsage"
               :modelValue="rootFilesystemOnly"
-              @update:modelValue="updateRootFilesystemOnly"
+              @update:model-value="updateRootFilesystemOnly"
               :name="$t('sidebar.rootFilesystemOnly')"
               :description="$t('sidebar.rootFilesystemOnlyDescription')" />
           </div>
@@ -420,11 +418,11 @@
 </template>
 
 <script>
-import { state, getters, mutations } from "@/store";
-import { notify } from "@/notify";
-import { shareApi } from "@/api";
-import { availableTools } from "@/utils/toolAccess";
-import { getIconClass } from "@/utils/material-symbols";
+import { state, getters, mutations } from "@/store/index.ts";
+import { notify } from "@/notify/index.ts";
+import { shareApi } from "@/api/index.js";
+import { availableTools } from "@/utils/toolAccess.js";
+import { getIconClass } from "@/utils/material-symbols.js";
 import FileList from "../files/FileList.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
@@ -437,7 +435,7 @@ import {
   isRootOnlySidebarCategory,
   isSourceSidebarCategory,
   withRootOnlySuffix,
-} from "@/utils/sidebarCategory";
+} from "@/utils/sidebarCategory.ts";
 
 export default {
   name: "SidebarLinksEditor",
@@ -493,7 +491,12 @@ export default {
       default: null,
     },
   },
-  emits: ["update:modelValue", "change", "save", "cancel", "sub-flow-change"],
+  emits: {
+    "update:modelValue": (_value) => true,
+    save: (_payload) => true,
+    cancel: () => true,
+    "sub-flow-change": (_value) => true,
+  },
   beforeUnmount() {
     this.dragReorder.cancel();
   },
@@ -510,7 +513,7 @@ export default {
         sourcePath: "",
       },
       availableTools: [
-        { id: 'tools-hub', name: 'tools.title', path: '/tools', icon: 'build' },
+        { id: 'tools-hub', name: this.$t('tools.title'), path: '/tools', icon: 'build' },
         ...availableTools(),
       ],
       availableShares: [],
@@ -653,7 +656,7 @@ export default {
     toolTargetOptions() {
       return this.availableTools.map((tool) => ({
         value: tool.path,
-        label: this.$t(tool.name),
+        label: tool.name,
       }));
     },
     usageTextModeOptions() {
@@ -802,7 +805,7 @@ export default {
         return;
       }
       const mainEntry = this.availableTools.find((t) => t.path === "/tools");
-      const name = mainEntry ? this.$t(mainEntry.name) : this.$t("tools.title");
+      const name = mainEntry ? mainEntry.name : this.$t("tools.title");
       const icon = mainEntry ? mainEntry.icon : "build";
       this.links.push({
         name,
@@ -1039,23 +1042,12 @@ export default {
         return link.name || this.$t('general.divider');
       }
 
-      // Check if the name looks like a translation key that needs translating
+      // Links saved with the translation key as their name
       if (link.category === 'shareInfo' && link.name === 'share.shareInfo') {
         return this.$t('share.shareInfo');
       }
       if (link.category === 'download' && link.name === 'general.download') {
         return this.$t('general.download');
-      }
-      // Check if it's a general translation key pattern
-      if (typeof link.name === 'string' && link.name.includes('.') && link.name.split('.').length === 2) {
-        // Try to translate, if it fails, return original
-        try {
-          const translated = this.$t(link.name);
-          // If translation returns the same key, it means it doesn't exist, return original
-          return translated !== link.name ? translated : link.name;
-        } catch (_e) {
-          return link.name;
-        }
       }
       return link.name;
     },
@@ -1123,7 +1115,7 @@ export default {
       if (tool) {
         // Only set default name and icon if user hasn't entered them yet
         if (!this.newLink.name) {
-          this.newLink.name = this.$t(tool.name);
+          this.newLink.name = tool.name;
         }
         if (!this.newLink.icon) {
           this.newLink.icon = tool.icon;

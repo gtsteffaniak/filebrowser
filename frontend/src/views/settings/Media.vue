@@ -16,33 +16,27 @@
           </div>
           <ExpandDropdown
             input-id="accelDevice"
-            :model-value="media.accelDevice"
+            :model-value="accelDeviceSelectValue"
             :options="accelDeviceSelectOptions"
             :aria-label="$t('media.accelDevice')"
             :disabled="isLocked('hardwareAcceleration') || isLocked('accelDevice')"
-            @update:modelValue="onAccelDeviceChange" />
+            @update:model-value="onAccelDeviceChange" />
         </div>
         <ToggleSwitch class="item" v-model="media.alwaysUseFfmpeg"
           :disabled="isLocked('alwaysUseFfmpeg')"
           :value-tooltip="fieldTooltip('alwaysUseFfmpeg')"
           :name="$t('media.alwaysUseFfmpeg')"
           :description="$t('media.alwaysUseFfmpegDescription')"
-          @update:modelValue="save" />
-        <ToggleSwitch class="item" v-model="media.alwaysUseOnlyOffice"
-          :disabled="isLocked('alwaysUseOnlyOffice')"
-          :value-tooltip="fieldTooltip('alwaysUseOnlyOffice')"
-          :name="$t('media.alwaysUseOffice')"
-          :description="$t('media.alwaysUseOfficeDescription')"
-          @update:modelValue="save" />
+          @update:model-value="save" />
         <ToggleSwitch class="item" v-model="media.debug" :name="$t('media.debug')"
           :disabled="isLocked('debug')"
           :value-tooltip="fieldTooltip('debug')"
           :description="$t('media.debugDescription')"
-          @update:modelValue="save" />
+          @update:model-value="save" />
         <SettingsButton class="item"
           :name="$t('media.imageVideoConversionFormats')"
           :description="$t('media.imageVideoConversionFormatsDescription')"
-          @click="openConversionFormats" />
+          @activate="openConversionFormats" />
       </div>
 
       <div class="settings-items">
@@ -52,22 +46,30 @@
           :value-tooltip="fieldTooltip('transcode.enabled')"
           :name="$t('media.transcodeEnabled')"
           :description="$t('media.transcodeEnabledDescription')"
-          @update:modelValue="save" />
+          @update:model-value="save" />
         <SettingsButton class="item"
           :name="$t('media.transcodeSettings')"
           :description="$t('media.transcodeSettingsDescription')"
           :disabled="!media.transcode.enabled"
-          @click="openTranscodeSettings" />
+          @activate="openTranscodeSettings" />
+      </div>
+
+      <div v-if="isAdmin" class="settings-items">
+        <h3>{{ $t("media.shadowRegressions") }}</h3>
+        <SettingsButton class="item"
+          :name="$t('media.shadowRegressionsView')"
+          :description="$t('media.shadowRegressionsViewDescription')"
+          @activate="openShadowRegressions" />
       </div>
     </template>
   </div>
 </template>
 
 <script>
-import { notify } from "@/notify";
-import { mutations } from "@/store";
-import { eventBus } from "@/store/eventBus";
-import { getMediaSettings } from "@/api/settings";
+import { notify } from "@/notify/index.ts";
+import { getters, mutations } from "@/store/index.ts";
+import { eventBus } from "@/store/eventBus.ts";
+import { getMediaSettings } from "@/api/settings.js";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import SettingsButton from "@/components/settings/SettingsButton.vue";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
@@ -79,7 +81,7 @@ import {
   emptyMediaSettings,
   mergeMediaSettings,
   saveMediaSettingsPatch,
-} from "@/utils/mediaSettings";
+} from "@/utils/mediaSettings.js";
 
 export default {
   name: "mediaSettings",
@@ -100,8 +102,10 @@ export default {
       /** Media settings pinned in the config file cannot be changed here. */
       lockedFromConfigPaths: [],
       lockMessage: "",
-      /** Selectable acceleration devices reported by the backend. */
+      /** Selectable acceleration devices reported by the backend (no "auto" entry). */
       accelDeviceOptions: [],
+      /** Device id that accelDevice "auto" resolves to on this host ("" = software only). */
+      autoAccelDevice: "",
     };
   },
   computed: {
@@ -110,6 +114,9 @@ export default {
         ? this.$t("settings.lockedFromConfig")
         : this.$t("media.accelDeviceDescription");
     },
+    isAdmin() {
+      return getters.isAdmin();
+    },
     accelDeviceSelectOptions() {
       const options = Array.isArray(this.accelDeviceOptions) ? this.accelDeviceOptions : [];
       return options.map((option) => ({
@@ -117,12 +124,19 @@ export default {
         label: option.label || option.id,
       }));
     },
+    /** "auto" is never listed; show the device it resolves to instead. */
+    accelDeviceSelectValue() {
+      if (this.media.accelDevice === "auto") {
+        return this.autoAccelDevice || "software";
+      }
+      return this.media.accelDevice;
+    },
   },
   mounted() {
     this.mediaSettingsHandler = () => {
       void this.load({ silent: true });
-      // Keep the player's live view of media settings in sync after a save.
-      void mutations.syncMediaPlayerSettings();
+      // Keep the shared live view of media settings in sync after a save.
+      void mutations.syncMediaSettings();
     };
     eventBus.on(MEDIA_SETTINGS_CHANGED_EVENT, this.mediaSettingsHandler);
     void this.load();
@@ -144,6 +158,7 @@ export default {
         this.accelDeviceOptions = Array.isArray(data?.accelDeviceOptions)
           ? data.accelDeviceOptions
           : [];
+        this.autoAccelDevice = typeof data?.autoAccelDevice === "string" ? data.autoAccelDevice : "";
         this.lockedFromConfigPaths = Array.isArray(data?.lockedFromConfigPaths)
           ? data.lockedFromConfigPaths
           : [];
@@ -162,7 +177,10 @@ export default {
       return this.isLocked(path) ? this.$t("settings.lockedFromConfig") : fallback;
     },
     onAccelDeviceChange(value) {
-      this.media.accelDevice = value;
+      // Picking the device auto resolves to keeps the stored "auto" so the
+      // fallback chain (iGPU -> dGPU -> software) still applies.
+      const isAutoDevice = this.autoAccelDevice && value === this.autoAccelDevice;
+      this.media.accelDevice = isAutoDevice ? "auto" : value;
       void this.save();
     },
     openConversionFormats() {
@@ -172,6 +190,14 @@ export default {
           title: this.$t("media.imageVideoConversionFormats"),
           lockedFromConfigPaths: this.lockedFromConfigPaths,
           lockMessage: this.lockMessage,
+        },
+      });
+    },
+    openShadowRegressions() {
+      mutations.showPrompt({
+        name: "shadow-regressions",
+        props: {
+          title: this.$t("media.shadowRegressionsView"),
         },
       });
     },
@@ -191,7 +217,6 @@ export default {
         const { skipped, media } = await saveMediaSettingsPatch({
           accelDevice: this.media.accelDevice,
           alwaysUseFfmpeg: this.media.alwaysUseFfmpeg,
-          alwaysUseOnlyOffice: this.media.alwaysUseOnlyOffice,
           debug: this.media.debug,
           transcode: { enabled: this.media.transcode.enabled },
         }, this.lockedFromConfigPaths);
@@ -200,7 +225,7 @@ export default {
           return;
         }
         this.media = media;
-        void mutations.syncMediaPlayerSettings();
+        void mutations.syncMediaSettings();
         notify.showSuccessToast(this.$t("settings.settingsUpdated"));
       } catch (e) {
         notify.showError(e?.message || this.$t("media.updateFailed"));

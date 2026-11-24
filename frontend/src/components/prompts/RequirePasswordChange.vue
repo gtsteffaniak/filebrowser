@@ -50,10 +50,12 @@
 </template>
 
 <script>
-import { mutations } from "@/store";
-import { notify } from "@/notify";
-import { authApi } from "@/api";
-import { initAuth } from "@/utils/auth";
+import { mutations } from "@/store/index.ts";
+import { notify } from "@/notify/index.ts";
+import { authApi } from "@/api/index.js";
+import { initAuth } from "@/utils/auth.js";
+import { postLoginRedirectForServer, sanitizePostLoginRedirect } from "@/utils/safeRedirect.js";
+import { globalVars } from "@/utils/constants.ts";
 import { evaluatePasswordPolicy } from "@/utils/passwordPolicy.js";
 import PasswordRequirementsHint from "@/components/PasswordRequirementsHint.vue";
 
@@ -154,8 +156,8 @@ export default {
         await authApi.changeRequiredPassword(this.username, this.password, this.newPassword, this.otp);
         await initAuth();
         const path = this.redirect !== "" ? this.redirect : "/files/";
-        await this.$router.push(path);
-        notify.showSuccessToast(this.$t("login.requirePasswordChangeSuccess"));
+        notify.queueToastForNextPage("success", this.$t("login.requirePasswordChangeSuccess"));
+        window.location.replace(postLoginRedirectForServer(sanitizePostLoginRedirect(path), globalVars.baseURL));
         mutations.closeTopPrompt();
       } catch (err) {
         const message = err.message || this.$t("login.failedLogin");

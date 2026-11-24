@@ -27,7 +27,7 @@ import {
   createLightningStrike,
   prefersReducedMotion,
   type LightningStrike,
-} from "@/utils/lightning-bolt";
+} from "@/utils/lightning-bolt.ts";
 
 type Bolt = LightningStrike & { id: number };
 

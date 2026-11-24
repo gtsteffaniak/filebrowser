@@ -12,7 +12,11 @@
 }
 
 .input:hover {
-  border-color: color-mix(in srgb, var(--surfaceSecondary) 70%, var(--textPrimary));
+  border-color: color-mix(
+    in srgb,
+    var(--surfaceSecondary) 70%,
+    var(--textPrimary)
+  );
 }
 
 .input:focus {
@@ -58,7 +62,7 @@ input.sizeInput:disabled {
 .sizeInputWrapper {
   box-sizing: border-box;
   border-radius: var(--borderRadius);
-  margin: .5em;
+  margin: 0.5em;
   display: flex;
   align-items: center;
   background-color: var(--background);
@@ -69,7 +73,7 @@ input.sizeInput:disabled {
     0 4px 4px hsl(0deg 0% 0% / 7.5%),
     0 8px 8px hsl(0deg 0% 0% / 7.5%),
     0 16px 16px hsl(0deg 0% 0% / 7.5%);
-  padding: .25em .5em;
+  padding: 0.25em 0.5em;
   justify-content: center;
   color: var(--textPrimary);
 }

@@ -97,7 +97,7 @@
 </template>
 
 <script>
-import { state, getters, mutations } from "@/store";
+import { state, getters, mutations } from "@/store/index.ts";
 
 export default {
   name: "ListingHeader",
@@ -245,10 +245,6 @@ export default {
   padding: .85em;
   width: 100%;
   box-sizing: border-box;
-  border-top-left-radius: 1em;
-  border-top-right-radius: 1em;
-  border-bottom-left-radius: 0 !important;
-  border-bottom-right-radius: 0 !important;
   margin-bottom: 0 !important;
   justify-content: space-between;
   user-select: none;
@@ -286,7 +282,6 @@ span {
 
 /* Column widths are shared with the list/compact rows (see listing.css) so the
    header lines up with the items and the name column gets the remaining space. */
-/* stylelint-disable no-unknown-custom-properties -- defined in css/listing.css */
 .desktop-view {
   /* same right inset as the list/compact rows */
   padding-right: var(--listing-col-gap);
@@ -339,7 +334,6 @@ span {
 .desktop-view .duration {
   width: var(--listing-col-duration);
 }
-/* stylelint-enable no-unknown-custom-properties */
 
 i {
   font-size: 1.2em;
@@ -358,6 +352,6 @@ p:hover i,
 
 .active,
 p:hover {
-  font-weight: bold;
+  font-weight: 700;
 }
 </style>

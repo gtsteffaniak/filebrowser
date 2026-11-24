@@ -14,13 +14,13 @@ func TestUserUpdateChangesSkipsSensitiveFields(t *testing.T) {
 		FrontendUser: users.FrontendUser{
 			Username: "alice",
 			NonAdminEditable: users.NonAdminEditable{
-				DarkMode: true,
+				DarkMode: users.DarkModeDark,
 			},
 		},
 		TOTPSecret: "secret-value",
 	}
 	after := *before
-	after.DarkMode = false
+	after.DarkMode = users.DarkModeLight
 	after.TOTPSecret = "new-secret"
 
 	changes := UserUpdateChanges(before, &after, []string{"totpSecret", "darkMode"}, false)
@@ -36,7 +36,7 @@ func TestUserUpdateChangesFiltersUnchangedFields(t *testing.T) {
 		FrontendUser: users.FrontendUser{
 			Username: "akadmin",
 			NonAdminEditable: users.NonAdminEditable{
-				DarkMode:       true,
+				DarkMode:       users.DarkModeDark,
 				StickySidebar:  true,
 				Locale:         "en",
 				SingleClick:    false,
@@ -47,7 +47,7 @@ func TestUserUpdateChangesFiltersUnchangedFields(t *testing.T) {
 		},
 	}
 	after := *before
-	after.DarkMode = false
+	after.DarkMode = users.DarkModeLight
 	after.Sorting = users.Sorting{By: "name", Asc: true}
 
 	which := []string{
@@ -60,7 +60,7 @@ func TestUserUpdateChangesFiltersUnchangedFields(t *testing.T) {
 	if len(changes) != 3 {
 		t.Fatalf("expected 3 changes, got %d: %#v", len(changes), changes)
 	}
-	if changes[0].Field != "darkMode" || changes[0].From != "true" || changes[0].To != "false" {
+	if changes[0].Field != "darkMode" || changes[0].From != "dark" || changes[0].To != "light" {
 		t.Fatalf("unexpected darkMode change: %#v", changes[0])
 	}
 	if changes[1].Field != "sorting.asc" || changes[1].From != "false" || changes[1].To != "true" {

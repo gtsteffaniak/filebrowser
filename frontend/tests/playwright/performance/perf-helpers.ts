@@ -58,7 +58,7 @@ export function baselineUpdateRequested(): boolean {
  */
 export function repeatCount(): number {
   if (process.env.PERF_REPEATS) {
-    const n = parseInt(process.env.PERF_REPEATS, 10);
+    const n = Number.parseInt(process.env.PERF_REPEATS, 10);
     if (Number.isFinite(n) && n > 0) return n;
   }
   return process.env.CI ? 1 : 3;
@@ -95,7 +95,7 @@ export async function readDomSnapshot(page: Page): Promise<DomSnapshot> {
   return page.evaluate(() => ({
     listingItemCount: document.querySelectorAll(".listing-items .listing-item")
       .length,
-    documentElementCount: document.getElementsByTagName("*").length,
+    documentElementCount: document.querySelectorAll("*").length,
     bodyDescendantCount: document.body
       ? document.body.querySelectorAll("*").length
       : 0,

@@ -3,7 +3,7 @@ import { markRaw } from "vue";
 import { resourcesApi, usersApi } from "@/api/index.js";
 import {
   getEnforcedUserDefaults,
-  getMediaPlayerSettings,
+  getSharedMediaSettings,
   getShareDefaultsPolicy,
   getSidebarLinkDefaultsPolicy,
   getToolAccessDefaultsPolicy,
@@ -11,6 +11,7 @@ import {
 import { detectLocale, setLocale } from "@/i18n/index.ts";
 import { notify } from "@/notify/index.ts";
 import { url } from "@/utils/index.ts";
+import { normalizeDarkMode } from "@/utils/theme.js";
 import { getTypeInfo } from "@/utils/mimetype.js";
 import { getObjectProperty, setObjectProperty, omitObjectProperty } from '@/utils/object.js';
 import { sortedItems } from "@/utils/sort.ts";
@@ -24,10 +25,14 @@ import {
 } from "@/utils/uploadNavigationGuard.ts";
 import { getters } from "./getters.ts";
 import { state } from "./state.ts";
+
+/** Monotonic id so stale syncMediaSettings responses cannot overwrite newer state. */
+let mediaSettingsSyncGeneration = 0;
 import { rawList, withEntry, withoutEntry } from "@/utils/listing/selection.ts";
 import type {
   DisplayPreference,
   FileListItem,
+  MediaMetadata,
   Prompt,
   ReqObject,
   RouteObject,
@@ -47,6 +52,61 @@ let navigationSortCache: {
   items: Partial<FileListItem>[];
 } | null = null;
 
+type DarkModePref = "auto" | "dark" | "light";
+
+/**
+ * Serialized dark-mode preference syncing for the sidebar quick toggle.
+ * Rapid clicks apply the choice optimistically and coalesce into at most one
+ * PATCH per settled request, so the saved preference always converges to the
+ * displayed one even when requests would otherwise race.
+ */
+let darkModeSyncQueue: Promise<void> = Promise.resolve();
+let queuedDarkModeTarget: DarkModePref | null = null;
+let syncedDarkMode: UserObject["darkMode"] | null = null;
+
+function queueDarkModeUpdate(value: DarkModePref) {
+  if (queuedDarkModeTarget === null) {
+    syncedDarkMode = state.user ? state.user.darkMode : null;
+    darkModeSyncQueue = darkModeSyncQueue.then(runQueuedDarkModeSync, runQueuedDarkModeSync);
+  }
+  queuedDarkModeTarget = value;
+  // Optimistic: show the chosen mode immediately; the queue reconciles the server.
+  if (state.user && state.user.darkMode !== value) {
+    state.user = { ...state.user, darkMode: value };
+  }
+}
+
+async function runQueuedDarkModeSync() {
+  while (queuedDarkModeTarget !== null) {
+    const target = queuedDarkModeTarget;
+    const snapshot = state.user;
+    if (!snapshot || snapshot.darkMode === syncedDarkMode) {
+      queuedDarkModeTarget = null;
+      continue;
+    }
+    try {
+      await usersApi.update(snapshot, ["darkMode"]);
+      // Only clear the queued target if it is still the one we just synced;
+      // a click made while this request was in flight must survive.
+      if (queuedDarkModeTarget === target) {
+        queuedDarkModeTarget = null;
+      }
+      syncedDarkMode = target;
+    } catch (e) {
+      if (queuedDarkModeTarget === target) {
+        // No newer click survived this failed request: roll the optimistic
+        // state back to the last value known to be on the server and stop.
+        if (state.user && syncedDarkMode !== null && state.user.darkMode !== syncedDarkMode) {
+          state.user = { ...state.user, darkMode: syncedDarkMode };
+        }
+        queuedDarkModeTarget = null;
+        notify.showError(e);
+      }
+      // A newer click is queued: keep it and let the next iteration try it.
+    }
+  }
+}
+
 function getSortedNavigationItems(listing: Partial<FileListItem>[], by: string, asc: boolean): Partial<FileListItem>[] {
   const cache = navigationSortCache;
   if (cache && cache.listing === listing && cache.length === listing.length && cache.by === by && cache.asc === asc) {
@@ -64,6 +124,14 @@ const uploadBeforeUnloadHandler = (event: BeforeUnloadEvent) => {
   event.preventDefault();
   event.returnValue = "";
 };
+
+/** True when a source carries usage, capacity, or scope quota information worth showing. */
+const sourceHasInfo = (source: SourceInfo | undefined): boolean =>
+  !!source &&
+  (source.total > 0 ||
+    source.used > 0 ||
+    source.usedAlt > 0 ||
+    (source.scopeQuota?.limitBytes ?? 0) > 0);
 
 export const mutations = {
   disableEventThemes: () => {
@@ -234,7 +302,6 @@ export const mutations = {
       state.sources.info = info;
     } else {
       let info = state.sources.info;
-      let hasAny = false;
       for (const [k, source] of Object.entries(value)) {
         const existing = getObjectProperty(info, k) as SourceInfo | undefined;
         if (existing) {
@@ -262,13 +329,15 @@ export const mutations = {
             readOnly: source.readOnly || false,
             private: source.private || false,
             indexingDisabled: source.indexingDisabled || false,
+            scopeQuota: source.scopeQuota,
           };
           info = setObjectProperty(info, k, updated) as Record<string, SourceInfo>;
-          if (updated.total > 0 || updated.used > 0 || updated.usedAlt > 0) hasAny = true;
         }
       }
       state.sources.info = info;
-      state.sources.hasSourceInfo = hasAny;
+      // An SSE event carries only some sources, so compute this from the merged map.
+      // Sources not in this event may still hold quota or usage data.
+      state.sources.hasSourceInfo = Object.values(info).some(sourceHasInfo);
     }
   },
   setRealtimeActive: (value: boolean) => {
@@ -327,13 +396,11 @@ export const mutations = {
         readOnly: prev ? prev.readOnly : false,
         private: prev ? prev.private : false,
         indexingDisabled: prev ? prev.indexingDisabled : false,
+        scopeQuota: prev?.scopeQuota,
       };
     }
     // Sidebar usage bar uses hasSourceInfo + per-source used/total; must survive object replace
-    sources.hasSourceInfo = user.scopes.some((s: UserScope) => {
-      const e = sources.info[s.name];
-      return e && (e.total > 0 || e.used > 0 || e.usedAlt > 0);
-    });
+    sources.hasSourceInfo = user.scopes.some((s: UserScope) => sourceHasInfo(sources.info[s.name]));
     // Check if user has custom sidebar links with sources
     let targetSource = sources.current;
     if (state.user?.sidebarLinks && state.user.sidebarLinks.length > 0) {
@@ -366,10 +433,10 @@ export const mutations = {
     state.activeSettingsView = value;
     // Update the hash in the URL without reloading or changing history state
     window.history.replaceState(history.state, "", `#${value}`);
-    const container = document.getElementById("main");
-    const element = document.getElementById(value);
+    const container = document.querySelector<HTMLElement>("#main");
+    const element = document.querySelector<HTMLElement>(`#${CSS.escape(value)}`);
     if (container && element) {
-      const offset = 4 * parseFloat(getComputedStyle(document.documentElement).fontSize); // 4em in px
+      const offset = 4 * Number.parseFloat(getComputedStyle(document.documentElement).fontSize); // 4em in px
       const containerTop = container.getBoundingClientRect().top;
       const elementTop = element.getBoundingClientRect().top;
       const scrollOffset = elementTop - containerTop - offset;
@@ -383,7 +450,30 @@ export const mutations = {
     state.settings = value;
   },
   toggleDarkMode() {
-    void mutations.updateCurrentUser({ "darkMode": !state.user.darkMode });
+    // Switch to the explicit opposite of the currently resolved mode. From
+    // "auto", this picks the explicit counterpart of the system preference.
+    const dark = getters.isDarkMode();
+    queueDarkModeUpdate(dark ? "light" : "dark");
+  },
+  cycleDarkMode() {
+    // Cycle the preference auto -> light -> dark -> auto, matching the order
+    // of the theme dropdown in profile settings, so the sidebar quick toggle
+    // and the dropdown stay in sync.
+    //
+    // Anonymous share visitors cannot persist a preference (the users PATCH is
+    // skipped for them), so "auto" would only survive until the next page load
+    // and cycling through it breaks the expected "click twice, back where you
+    // started" behaviour. Keep their quick toggle a plain light <-> dark flip of
+    // the resolved theme.
+    if (state.user?.username === "anonymous") {
+      const dark = getters.isDarkMode();
+      queueDarkModeUpdate(dark ? "light" : "dark");
+      return;
+    }
+    const order = ["auto", "light", "dark"] as const;
+    const current = normalizeDarkMode(state.user?.darkMode) as (typeof order)[number];
+    const next = order[(order.indexOf(current) + 1) % order.length] as (typeof order)[number];
+    queueDarkModeUpdate(next);
   },
   toggleSidebar() {
     state.showSidebar = !state.showSidebar;
@@ -423,7 +513,7 @@ export const mutations = {
   closeTopPrompt: (id?: number, options?: { force?: boolean; skipCancel?: boolean }) => {
     if (!options?.force && state.prompts.length > 0) {
       const targetId =
-        id ?? state.prompts[state.prompts.length - 1]?.id;
+        id ?? state.prompts.at(-1)?.id;
       const promptToClose = state.prompts.find((p) => p.id === targetId);
       if (
         promptToClose?.name === "upload" &&
@@ -449,7 +539,7 @@ export const mutations = {
       // close topmost prompt
       if (state.prompts.length === 0) return;
       mutations.closeHovers();
-      closed = state.prompts[state.prompts.length - 1];
+      closed = state.prompts.at(-1);
       state.prompts.pop();
     } else {
       // close prompt by ID
@@ -477,7 +567,7 @@ export const mutations = {
     // Set parentId to the current topmost prompt, unless the prompt is pinned.
     let parentId = prompt.parentId;
     if (!parentId && !prompt.pinned) {
-      const topPrompt = state.prompts[state.prompts.length - 1];
+      const topPrompt = state.prompts.at(-1);
       if (topPrompt) {
         parentId = topPrompt.id;
       }
@@ -555,6 +645,7 @@ export const mutations = {
         state.user.fileLoading = {
           maxConcurrentUpload: 3,
           uploadChunkSizeMb: 5,
+          uploadStallTimeoutSeconds: 10,
           downloadChunkSizeMb: 0,
           clearAll: false
         };
@@ -572,13 +663,16 @@ export const mutations = {
         if (state.user.fileLoading.downloadChunkSizeMb === undefined) {
           state.user.fileLoading.downloadChunkSizeMb = 0;
         }
+        if (state.user.fileLoading.uploadStallTimeoutSeconds === undefined) {
+          state.user.fileLoading.uploadStallTimeoutSeconds = 10;
+        }
       }
 
       // Load stored values or use defaults as fallback
       const isAnonymous = state.user.username === 'anonymous';
       const encoded = !isAnonymous ? url.base64Encode(state.user.username) : '';
       let viewMode = (!isAnonymous && localStorage.getItem(`ViewMode_${encoded}`)) || state.user.viewMode || 'normal';
-      let gallerySize = (!isAnonymous && parseInt(localStorage.getItem(`GallerySize_${encoded}`) ?? '', 10)) || state.user.gallerySize || 3;
+      let gallerySize = (!isAnonymous && Number.parseInt(localStorage.getItem(`GallerySize_${encoded}`) ?? '', 10)) || state.user.gallerySize || 3;
       gallerySize = Math.min(9, Math.max(1, gallerySize)); // ensure 1–9 since this is the slider min and max size
 
       // Normalize to use the view families too
@@ -622,25 +716,33 @@ export const mutations = {
     }
   },
   /**
-   * Load the effective media settings for playback. `globalVars` are static
-   * page constants, so runtime changes to media settings are read from the API
-   * (available to every authenticated user) instead.
+   * Load the runtime media settings. Runtime admin changes are read from the API
+   * rather than static page constants. Called at app start so the state is present
+   * in every view, not only the player.
    */
-  syncMediaPlayerSettings: async () => {
+  syncMediaSettings: async () => {
     if (!getters.isLoggedIn() || getters.isShare() || state.user?.username === "anonymous") {
-      state.mediaPlayerSettings = null;
+      mediaSettingsSyncGeneration += 1;
+      state.mediaSettings = null;
       return;
     }
+    const generation = ++mediaSettingsSyncGeneration;
     try {
-      const settings = await getMediaPlayerSettings();
+      const settings = await getSharedMediaSettings();
+      if (generation !== mediaSettingsSyncGeneration) {
+        return;
+      }
       // The request can resolve after logout/share transition — don't write
       // media settings into a logged-out state.
       if (!getters.isLoggedIn() || getters.isShare() || state.user?.username === "anonymous") {
         return;
       }
-      state.mediaPlayerSettings = settings;
+      state.mediaSettings = settings;
     } catch {
-      state.mediaPlayerSettings = null;
+      if (generation !== mediaSettingsSyncGeneration) {
+        return;
+      }
+      state.mediaSettings = null;
     }
   },
   syncSidebarLinkDefaultsPolicy: async () => {
@@ -838,6 +940,7 @@ export const mutations = {
         "deleteWithoutConfirming",
         "promptRightCloseButton",
         "preferEditorForMarkdown",
+        "preferEditorForHtml",
         "disablePreviewExt",
         "disableViewingExt",
         "disableOnlyOfficeExt",
@@ -910,20 +1013,18 @@ export const mutations = {
     const sortedDirs = sortedItems(dirs, sortby, asc);
     const sortedFiles = sortedItems(files, sortby, asc);
     value.items = markRaw([...sortedDirs, ...sortedFiles]);
-    value.items.forEach((item: FileListItem & { index?: number }, index: number) => {
-      item.index = index;
-    });
+    for (const [index, item] of value.items.entries()) {
+      (item as FileListItem & { index?: number }).index = index;
+    }
     state.req = value;
     setActiveViewGrantScope(value?.source ?? "");
   },
-  patchListingMetadata: (items: FileListItem[] | undefined, metadataMap: Map<string, unknown> | undefined, mergeForPath: string | null = null) => {
+  patchListingMetadata: (items: FileListItem[] | undefined, metadataMap: Map<string, MediaMetadata> | undefined, mergeForPath: string | null = null) => {
     if (!items?.length || !metadataMap?.size) {
       return;
     }
-    const resolveMetadata = (item: FileListItem, metadata: unknown) =>
-      item.path === mergeForPath
-        ? { ...(metadata as Record<string, unknown>), ...(item.metadata as Record<string, unknown>) }
-        : metadata;
+    const resolveMetadata = (item: FileListItem, metadata: MediaMetadata | undefined) =>
+      item.path === mergeForPath ? { ...metadata, ...item.metadata } : metadata;
     // state.req.items is markRaw so editing an item would not re-render its row.
     // For that, we swap the changed items for copies and replace the array
     if (items === state.req?.items) {
@@ -942,9 +1043,9 @@ export const mutations = {
           ...sortedItems(nextItems.filter((i) => i.type === "directory"), by, asc),
           ...sortedItems(nextItems.filter((i) => i.type !== "directory"), by, asc),
         ];
-        sortedNext.forEach((item: FileListItem & { index?: number }, index: number) => {
-          item.index = index;
-        });
+        for (const [index, item] of sortedNext.entries()) {
+          (item as FileListItem & { index?: number }).index = index;
+        }
         const newIndexByName = new Map(sortedNext.map((item, index) => [item.name, index]));
         const remap = (index: number) => {
           const name = items[index]?.name;
@@ -965,7 +1066,7 @@ export const mutations = {
     }
     navigationSortCache = null;
   },
-  patchRequestMetadata: (metadataItems: Array<{ name: string; metadata: unknown }> | undefined) => {
+  patchRequestMetadata: (metadataItems: Array<{ name: string; metadata: MediaMetadata }> | undefined) => {
     if (!state.req?.items || !metadataItems?.length) {
       return;
     }

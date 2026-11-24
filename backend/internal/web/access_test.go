@@ -22,6 +22,7 @@ import (
 
 func setupAccessHTTPTest(t *testing.T) {
 	t.Helper()
+	lockWebGlobals(t)
 	dbPath := filepath.Join(t.TempDir(), "access-http-test.sqlite")
 	if _, err := state.Initialize(dbPath); err != nil {
 		t.Fatal(err)

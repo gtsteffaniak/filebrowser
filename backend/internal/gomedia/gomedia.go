@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/gtsteffaniak/filebrowser/backend/internal/ffmpeg"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/mediacache"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 	"github.com/gtsteffaniak/go-cache/cache"
@@ -28,20 +29,27 @@ import (
 	"golang.org/x/sync/singleflight"
 )
 
-var (
-	subtitleListCache    = cache.NewCache[[]utils.SubtitleTrack](24 * time.Hour)
-	subtitleContentCache = cache.NewCache[string](24 * time.Hour)
+// Probe, duration, and subtitle results are cached in the mediacache package,
+// which the ffmpeg code path shares. A directory listing probes every video
+// child, and the preview flow probes the focused file again; the cache keeps
+// each request from re-reading the same containers. Keys include size and
+// modification time, so an edited file is read again.
 
-	// probeCache caches successful probe results by file identity (path, modtime,
-	// size). A directory listing probes every video child, and the preview flow
-	// probes the focused file again; without this each request re-read the same
-	// containers. Keying on modtime+size means an edited file is re-probed.
-	probeCache = cache.NewCache[ProbeResult](24 * time.Hour)
+// probeGroup coalesces concurrent probes of the same file so a burst of
+// requests for one container reads it once.
+var probeGroup singleflight.Group
 
-	// probeGroup coalesces concurrent probes of the same file so a burst of
-	// requests for one container reads it once.
-	probeGroup singleflight.Group
-)
+// tagsCache caches the embedded part of a tag read by file identity. A listing
+// reads tags for every media child on each uncached request. Sidecar lyrics
+// are not cached: adding an .lrc next to a file does not change its modtime.
+var tagsCache = cache.NewCache[AudioInfo](24 * time.Hour)
+
+func init() {
+	// The ffmpeg HEIC decode path corrects orientation after decoding and needs
+	// the file's irot. internal/ffmpeg cannot import this package, so go-media's
+	// header reader is installed here.
+	ffmpeg.SetHEICDisplayRotationReader(HEICDisplayRotation)
+}
 
 // Enabled reports whether the go-media fast path may run. The admin
 // "Always use ffmpeg" setting turns it off.
@@ -60,9 +68,15 @@ func videoDimensions(info *media.ProbeInfo) (w, h int, ok bool) {
 }
 
 // videoContainerExts are the containers go-media parses for video probes,
-// thumbnails, and embedded subtitles. Other video containers (AVI, WMV, TS, ...)
-// are not go-media targets, so they go straight to ffmpeg with no file open and
-// no log line. go-media reads MOV as MP4.
+// thumbnails, embedded subtitles, and keyframe indexes. go-media reads MOV as
+// MP4.
+//
+// go-media also demuxes AVI, ASF/WMV, MPEG-TS/M2TS, and MPEG-PS (VOB), but their
+// probes are left to ffmpeg on purpose: go-media's results for those containers
+// do not yet match ffprobe (TS/M2TS and PS list no audio streams, PS durations
+// are missing or wrong, AVI misnames MPEG-4 Part 2 and AAC, ASF reports WMA Pro
+// as wmav2). Those files go straight to ffmpeg with no file open and no log
+// line. See videoThumbnailExts for the thumbnail exception.
 var videoContainerExts = map[string]bool{
 	".mp4":  true,
 	".m4v":  true,
@@ -71,14 +85,39 @@ var videoContainerExts = map[string]bool{
 	".webm": true,
 }
 
+// videoThumbnailExts are the containers go-media decodes video thumbnails from:
+// videoContainerExts plus ASF/WMV, whose WMV3 keyframes go-media decodes
+// bit-exact with ffmpeg. WMV1, WMV2, MS-MPEG4, and WVC1 Advanced Profile return
+// an unsupported error and fall back to ffmpeg. AVI, TS/M2TS, and PS stay on
+// ffmpeg: go-media's TS and PS thumbnails scan the whole file for the duration
+// (several times slower than ffmpeg on large files), and AVI seeks by a
+// duration that can be wrong.
+var videoThumbnailExts = map[string]bool{
+	".mp4":  true,
+	".m4v":  true,
+	".mov":  true,
+	".mkv":  true,
+	".webm": true,
+	".wmv":  true,
+	".asf":  true,
+}
+
 // heifImageExts are still-image containers go-media decodes for HEIC preview.
+// AVIF is a HEIF container with an AV1 image item; go-media decodes it in pure
+// Go and applies its irot/imir, like HEIC.
 var heifImageExts = map[string]bool{
 	".heic":  true,
 	".heif":  true,
 	".heics": true,
+	".avif":  true,
 }
 
 const heicDecodeMaxEdge = 16384
+
+// stillImageMaxSourcePixels caps the original image area (width×height) passed to
+// go-media for HEIC, JPEG XL, and camera RAW decode. JPEG XL honors it today
+// (~50 MiB of 8-bit RGB at 4096×4096); other still formats ignore the field.
+const stillImageMaxSourcePixels = 4096 * 4096
 
 // cameraRawExts match go-media rawpreview formats (also iteminfo raw extensions).
 var cameraRawExts = map[string]bool{
@@ -88,17 +127,37 @@ var cameraRawExts = map[string]bool{
 	".dc2": true, ".x3f": true, ".iiq": true, ".nkc": true, ".r3d": true,
 }
 
-// supportsVideoContainer reports whether go-media targets path's container.
+// supportsVideoContainer reports whether go-media targets path's container for
+// probes, embedded subtitles, and keyframe indexes.
 func supportsVideoContainer(path string) bool {
 	return videoContainerExts[strings.ToLower(filepath.Ext(path))]
 }
+
+// supportsVideoThumbnail reports whether go-media targets path's container for
+// video thumbnails.
+func supportsVideoThumbnail(path string) bool {
+	return videoThumbnailExts[strings.ToLower(filepath.Ext(path))]
+}
+
+// supportsHEIFImage reports whether path is a HEIF-family still image
+// (HEIC/HEIF/AVIF) go-media decodes.
 
 func supportsHEIFImage(path string) bool {
 	return heifImageExts[strings.ToLower(filepath.Ext(path))]
 }
 
+// supportsCameraRAW reports whether path is a camera RAW format go-media
+// extracts a preview from.
 func supportsCameraRAW(path string) bool {
 	return cameraRawExts[strings.ToLower(filepath.Ext(path))]
+}
+
+// declinedByDesign reports whether path is outside the container or format list
+// that go-media targets for an operation. Such calls return before timed: no
+// fast attempt, no shadow run, and no log line. The caller uses ffmpeg, as it
+// does after any go-media failure.
+func declinedByDesign(path string, supported func(string) bool) bool {
+	return !supported(path)
 }
 
 // logFallback records why go-media was not used for op on path, for operations
@@ -112,32 +171,52 @@ func logFallback(op, path string, err error) {
 // phrases appended to the message. JPEG XL has no fallback, so it passes
 // phrases that do not mention ffmpeg.
 func logFallbackTo(op, path string, err error, next, failed string) {
+	if reportFallback(op, path, err, next, failed) {
+		markUnsupported(op, path)
+	}
+}
+
+// reportFallback logs a go-media failure without setting the shared unsupported
+// mark. It reports whether err means the input is unsupported by design.
+func reportFallback(op, path string, err error, next, failed string) bool {
 	// ErrNotMedia means the file is not a container go-media reads. That is an
 	// expected fallback, not a failure, so it logs as a warning.
 	if errors.Is(err, media.ErrUnsupported) || errors.Is(err, media.ErrUnsupportedProfile) || errors.Is(err, media.ErrNotMedia) {
 		logger.Warningf("go-media does not support %s for %s (%v); %s", op, path, err, next)
-		return
+		return true
 	}
 	logger.Errorf("go-media %s failed for %s: %v; %s", op, path, err, failed)
+	return false
 }
 
 // logUnsupported records a container or codec that go-media does not handle.
 func logUnsupported(op, path, reason string) {
+	markUnsupported(op, path)
 	logger.Warningf("go-media does not support %s for %s (%s); using ffmpeg", op, path, reason)
 }
 
 // openFile opens path for go-media, which reads through io.ReaderAt.
 func openFile(path string) (*os.File, int64, error) {
-	f, err := os.Open(path)
+	f, info, err := openFileInfo(path)
 	if err != nil {
 		return nil, 0, err
+	}
+	return f, info.Size(), nil
+}
+
+// openFileInfo opens path and returns its FileInfo, which also gives the
+// shared cache key.
+func openFileInfo(path string) (*os.File, os.FileInfo, error) {
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, nil, err
 	}
 	info, err := f.Stat()
 	if err != nil {
 		_ = f.Close()
-		return nil, 0, err
+		return nil, nil, err
 	}
-	return f, info.Size(), nil
+	return f, info, nil
 }
 
 // ffprobeFormatNames maps go-media containers to the format_name strings ffprobe
@@ -163,77 +242,70 @@ type ProbeResult = ffmpeg.FileProbeInfo
 // Probe returns duration, codecs, and container name for a local media file.
 // legacy is the ffmpeg probe, run only in shadow mode.
 func Probe(path string, legacy Legacy[ProbeResult]) (ProbeResult, bool) {
-	return timed("probe", path, legacy, probeDiff, func() (ProbeResult, bool) { return probeFast(path) })
+	if declinedByDesign(path, supportsVideoContainer) {
+		return ProbeResult{}, false
+	}
+	return timedOutcome("probe", path, legacy, probeDiff, func() (ProbeResult, bool, bool) {
+		out := probeFast(path)
+		return out.res, out.ok, out.unsupported
+	})
 }
 
-func probeFast(path string) (ProbeResult, bool) {
+// probeOutcome is the result of one container read. It travels with the read,
+// so every caller that shares the read through probeGroup gets the same outcome.
+// Probe does not use the shared unsupported-mark map: concurrent callers would
+// race on it, and only one would see the mark.
+type probeOutcome struct {
+	res         ProbeResult
+	ok          bool
+	unsupported bool
+}
+
+func probeFast(path string) probeOutcome {
 	if !Enabled() {
-		return ProbeResult{}, false
+		return probeOutcome{}
 	}
 	if !supportsVideoContainer(path) {
-		return ProbeResult{}, false
+		return probeOutcome{}
 	}
 
-	f, size, err := openFile(path)
+	f, info, err := openFileInfo(path)
 	if err != nil {
-		logFallback("probe", path, err)
-		return ProbeResult{}, false
+		reportFallback("probe", path, err, "using ffmpeg", "falling back to ffmpeg")
+		return probeOutcome{}
 	}
 	defer f.Close()
 
-	info, err := f.Stat()
-	if err != nil {
-		logFallback("probe", path, err)
-		return ProbeResult{}, false
-	}
-	cacheKey := probeCacheKey(path, info.ModTime().UnixNano(), size)
-	if res, ok := probeCache.Get(cacheKey); ok {
-		return res, true
+	cacheKey := mediacache.FromFileInfo(path, info).String()
+	if res, ok := mediacache.Probes.Get(cacheKey); ok {
+		return probeOutcome{res: res, ok: true}
 	}
 
 	// Coalesce concurrent probes of the same file into one container read.
-	v, err, _ := probeGroup.Do(cacheKey, func() (any, error) {
-		res, ok := parseProbe(path, f, size)
-		if !ok {
-			return nil, errProbeUnsupported
+	v, _, _ := probeGroup.Do(cacheKey, func() (any, error) {
+		out := parseProbe(path, f, info.Size())
+		if out.ok {
+			mediacache.Probes.Set(cacheKey, out.res)
 		}
-		probeCache.Set(cacheKey, res)
-		return res, nil
+		return out, nil
 	})
-	if err != nil {
-		return ProbeResult{}, false
-	}
-	res, ok := v.(ProbeResult)
-	if !ok {
-		return ProbeResult{}, false
-	}
-	return res, true
+	out, _ := v.(probeOutcome)
+	return out
 }
 
-// errProbeUnsupported marks a probe that go-media chose not to answer. It carries
-// no detail because parseProbe already logged the specific reason.
-var errProbeUnsupported = errors.New("probe unsupported")
-
-// probeCacheKey identifies a file version for caching: path plus modtime and size.
-// An edited file gets a new key, so stale metadata is never served.
-func probeCacheKey(path string, modTimeNanos, size int64) string {
-	return fmt.Sprintf("probe:%s:%d:%d", path, modTimeNanos, size)
-}
-
-// parseProbe reads a container and builds a ProbeResult. It reports false when
-// go-media should defer to ffmpeg, having logged why.
-func parseProbe(path string, f *os.File, size int64) (ProbeResult, bool) {
+// parseProbe reads a container and builds a ProbeResult. When go-media should
+// defer to ffmpeg it reports ok=false, having logged why, and says whether the
+// input is unsupported by design.
+func parseProbe(path string, f *os.File, size int64) probeOutcome {
 	info, err := media.Probe(f, size)
 	if err != nil {
-		logFallback("probe", path, err)
-		return ProbeResult{}, false
+		return probeOutcome{unsupported: reportFallback("probe", path, err, "using ffmpeg", "falling back to ffmpeg")}
 	}
 
 	if info.Duration <= 0 {
 		// Fragmented or unusual files can report no length. ffprobe answers instead,
 		// the same as durationFast does.
-		logUnsupported("probe", path, "duration not in container header")
-		return ProbeResult{}, false
+		return probeUnsupported(path, "duration not in container header")
 	}
 	res := ProbeResult{Duration: info.Duration.Seconds(), FormatName: info.FormatName}
 	if name, ok := ffprobeFormatNames[info.Format]; ok {
@@ -244,23 +316,28 @@ func parseProbe(path string, f *os.File, size int64) (ProbeResult, bool) {
 		case media.StreamVideo:
 			if s.Codec == "" {
 				// The UI would show no codec, so let ffprobe answer instead.
-				logUnsupported("probe", path, "video codec not identified")
-				return ProbeResult{}, false
+				return probeUnsupported(path, "video codec not identified")
 			}
 			if res.VideoCodec == "" {
 				res.VideoCodec = s.Codec
 			}
 		case media.StreamAudio:
 			if s.Codec == "" {
-				logUnsupported("probe", path, "audio codec not identified")
-				return ProbeResult{}, false
+				return probeUnsupported(path, "audio codec not identified")
 			}
 			if res.AudioCodec == "" {
 				res.AudioCodec = s.Codec
 			}
 		}
 	}
-	return res, true
+	return probeOutcome{res: res, ok: true}
+}
+
+// probeUnsupported logs a container or codec that go-media does not handle for
+// a probe, and returns the unsupported outcome for the caller.
+func probeUnsupported(path, reason string) probeOutcome {
+	logger.Warningf("go-media does not support probe for %s (%s); using ffmpeg", path, reason)
+	return probeOutcome{unsupported: true}
 }
 
 // Duration returns the media length in seconds from container headers.
@@ -275,14 +352,18 @@ func durationFast(path string) (float64, bool) {
 	if !Enabled() {
 		return 0, false
 	}
-	f, size, err := openFile(path)
+	f, info, err := openFileInfo(path)
 	if err != nil {
 		logFallback("duration", path, err)
 		return 0, false
 	}
 	defer f.Close()
 
-	res, err := media.Duration(f, size)
+	cacheKey := mediacache.FromFileInfo(path, info).String()
+	if d, ok := mediacache.Durations.Get(cacheKey); ok {
+		return d, true
+	}
+	res, err := media.Duration(f, info.Size())
 	if err != nil {
 		logFallback("duration", path, err)
 		return 0, false
@@ -291,7 +372,9 @@ func durationFast(path string) (float64, bool) {
 		// Unknown duration is not an error; ffmpeg may still find one.
 		return 0, false
 	}
-	return res.Duration.Seconds(), true
+	d := res.Duration.Seconds()
+	mediacache.Durations.Set(cacheKey, d)
+	return d, true
 }
 
 // AudioInfo is the tag, lyrics availability, and cover art FileBrowser reads
@@ -306,36 +389,58 @@ type AudioInfo struct {
 // is true. A missing cover is not an error.
 // legacy is the dhowden tag read, run only in shadow mode.
 func Audio(path string, withArt bool, legacy Legacy[AudioInfo]) (AudioInfo, bool) {
-	return timed("tags", path, legacy, audioDiffer(withArt), func() (AudioInfo, bool) { return audioFast(path, withArt) })
+	return timed("tags", path, legacy, audioDiffer(withArt), func() (AudioInfo, bool) { return audioFast(path, withArt, true) })
 }
 
-func audioFast(path string, withArt bool) (AudioInfo, bool) {
+func audioFast(path string, withArt, withSidecar bool) (AudioInfo, bool) {
 	if !Enabled() {
 		return AudioInfo{}, false
 	}
-	f, size, err := openFile(path)
+	f, st, err := openFileInfo(path)
 	if err != nil {
 		logFallback("tags", path, err)
 		return AudioInfo{}, false
 	}
 	defer f.Close()
 
-	// One container parse gives tags, the embedded lyrics flag, and cover bytes.
-	// Separate ReadTags/HasLyrics/EmbeddedArtwork calls each re-parsed the file.
-	audio, err := media.InspectAudio(f, size, media.AudioOptions{WithArtwork: withArt})
-	if err != nil {
-		logFallback("tags", path, err)
-		return AudioInfo{}, false
+	size := st.Size()
+	cacheKey := tagsCacheKey(path, st.ModTime().UnixNano(), size)
+	var info AudioInfo
+	cached := false
+	if !withArt {
+		info, cached = tagsCache.Get(cacheKey)
 	}
-	info := AudioInfo{Tags: audio.Tags, HasLyrics: audio.HasEmbeddedLyrics}
-	if !info.HasLyrics {
+	if !cached {
+		// One container parse gives tags, the embedded lyrics flag, and cover bytes.
+		// Separate ReadTags/HasLyrics/EmbeddedArtwork calls each re-parsed the file.
+		audio, err := media.InspectAudio(f, size, media.AudioOptions{WithArtwork: withArt})
+		if err != nil {
+			logFallback("tags", path, err)
+			return AudioInfo{}, false
+		}
+		info = AudioInfo{Tags: audio.Tags, HasLyrics: audio.HasEmbeddedLyrics}
+		stored := info
+		stored.Tags.Raw = nil
+		tagsCache.Set(cacheKey, stored)
+		if withArt {
+			info.Artwork = audio.Artwork
+		}
+	}
+	if withSidecar && !info.HasLyrics {
 		// Sidecar lyrics are only checked when the file has no embedded lyrics.
 		_, _, info.HasLyrics = media.LyricsSidecar(path)
 	}
-	if withArt {
-		info.Artwork = audio.Artwork
-	}
 	return info, true
+}
+
+// tagsCacheKey identifies a file version for the tag cache: path plus modtime and size.
+func tagsCacheKey(path string, modTimeNanos, size int64) string {
+	return fmt.Sprintf("tags:%s:%d:%d", path, modTimeNanos, size)
+}
+
+// VideoTags reads embedded tags and cover from a video container
+func VideoTags(path string, withArt bool) (AudioInfo, bool) {
+	return timed("tags", path, nil, nil, func() (AudioInfo, bool) { return audioFast(path, withArt, false) })
 }
 
 // Lyrics returns lyrics from a sidecar file, or else from embedded tags. The
@@ -379,9 +484,14 @@ func lyricsFast(path string) (text, format string, ok bool) {
 
 // EmbeddedSubtitles lists embedded subtitle tracks. go-media supports MKV, WebM,
 // and MP4 only. Other containers are reported as unsupported, not as "no
-// subtitles", because go-media returns an empty list for them.
+// subtitles", because go-media returns an empty list for them. modtime is kept
+// for API compatibility; the cache key comes from the file's current size and
+// modification time.
 // legacy is the ffmpeg subtitle detection, run only in shadow mode.
 func EmbeddedSubtitles(path string, modtime time.Time, legacy Legacy[[]utils.SubtitleTrack]) ([]utils.SubtitleTrack, bool) {
+	if declinedByDesign(path, supportsVideoContainer) {
+		return nil, false
+	}
 	return timed("subtitle list", path, legacy, subtitleListDiff, func() ([]utils.SubtitleTrack, bool) {
 		return embeddedSubtitlesFast(path, modtime)
 	})
@@ -394,19 +504,20 @@ func embeddedSubtitlesFast(path string, modtime time.Time) ([]utils.SubtitleTrac
 	if !supportsVideoContainer(path) {
 		return nil, false
 	}
-	key := fmt.Sprintf("embedded_subtitles:%s:%d", path, modtime.Unix())
-	if cached, ok := subtitleListCache.Get(key); ok {
-		return cached, true
-	}
-
-	f, size, err := openFile(path)
+	_ = modtime
+	f, st, err := openFileInfo(path)
 	if err != nil {
 		logFallback("subtitle list", path, err)
 		return nil, false
 	}
 	defer f.Close()
 
-	info, err := media.Probe(f, size)
+	key := mediacache.FromFileInfo(path, st).String()
+	if cached, ok := mediacache.SubtitleTracks.Get(key); ok {
+		return cached, true
+	}
+
+	info, err := media.Probe(f, st.Size())
 	if err != nil {
 		logFallback("subtitle list", path, err)
 		return nil, false
@@ -428,7 +539,7 @@ func embeddedSubtitlesFast(path string, modtime time.Time) ([]utils.SubtitleTrac
 		})
 	}
 	tracks := ffmpeg.BuildSubtitleTracks(streams)
-	subtitleListCache.Set(key, tracks)
+	mediacache.SubtitleTracks.Set(key, tracks)
 	return tracks, true
 }
 
@@ -436,6 +547,9 @@ func embeddedSubtitlesFast(path string, modtime time.Time) ([]utils.SubtitleTrac
 // streamIndex is the same index EmbeddedSubtitles reports.
 // legacy is the ffmpeg subtitle extraction, run only in shadow mode.
 func ExtractSubtitle(path string, streamIndex int, legacy Legacy[string]) (string, bool) {
+	if declinedByDesign(path, supportsVideoContainer) {
+		return "", false
+	}
 	return timed("subtitle extract", path, legacy, subtitleExtractDiff, func() (string, bool) {
 		return extractSubtitleFast(path, streamIndex)
 	})
@@ -448,24 +562,19 @@ func extractSubtitleFast(path string, streamIndex int) (string, bool) {
 	if !supportsVideoContainer(path) {
 		return "", false
 	}
-	st, err := os.Stat(path)
-	if err != nil {
-		logFallback("subtitle extract", path, err)
-		return "", false
-	}
-	key := fmt.Sprintf("subtitle_content:%s:%d:%d", path, streamIndex, st.ModTime().Unix())
-	if content, ok := subtitleContentCache.Get(key); ok {
-		return content, true
-	}
-
-	f, size, err := openFile(path)
+	f, st, err := openFileInfo(path)
 	if err != nil {
 		logFallback("subtitle extract", path, err)
 		return "", false
 	}
 	defer f.Close()
 
-	vtt, err := media.ExtractEmbeddedSubtitle(f, size, streamIndex)
+	key := mediacache.FromFileInfo(path, st).Stream(streamIndex)
+	if content, ok := mediacache.SubtitleContent.Get(key); ok {
+		return content, true
+	}
+
+	vtt, err := media.ExtractEmbeddedSubtitle(f, st.Size(), streamIndex)
 	if err != nil {
 		logFallback("subtitle extract", path, err)
 		return "", false
@@ -474,7 +583,7 @@ func extractSubtitleFast(path string, streamIndex int) (string, bool) {
 		logFallback("subtitle extract", path, errors.New("empty subtitle output"))
 		return "", false
 	}
-	subtitleContentCache.Set(key, vtt)
+	mediacache.SubtitleContent.Set(key, vtt)
 	return vtt, true
 }
 
@@ -487,6 +596,9 @@ func extractSubtitleFast(path string, streamIndex int) (string, bool) {
 // Then no scaling happens in go-media either.
 // legacy is the ffmpeg preview frame, run only in shadow mode.
 func VideoThumbnail(path string, width, height, quality int, seekPercent float64, legacy Legacy[[]byte]) ([]byte, bool) {
+	if declinedByDesign(path, supportsVideoThumbnail) {
+		return nil, false
+	}
 	return timed("video thumbnail", path, legacy, thumbnailDiff, func() ([]byte, bool) {
 		return videoThumbnailFast(path, width, height, quality, seekPercent)
 	})
@@ -496,7 +608,7 @@ func videoThumbnailFast(path string, width, height, quality int, seekPercent flo
 	if !Enabled() {
 		return nil, false
 	}
-	if !supportsVideoContainer(path) {
+	if !supportsVideoThumbnail(path) {
 		return nil, false
 	}
 	f, size, err := openFile(path)
@@ -543,17 +655,24 @@ func videoThumbnailFast(path string, width, height, quality int, seekPercent flo
 	return res.Data, true
 }
 
-// HEICJPEG decodes HEIC/HEIF to JPEG at full resolution (bounds heicDecodeMaxEdge).
-// Resize for small/large/xlarge previews is done later by the preview service.
-// legacy is ffmpeg full decode, run only in shadow mode.
-func HEICJPEG(path string, quality int, legacy Legacy[[]byte]) ([]byte, bool) {
+// HEICJPEG decodes HEIC/HEIF to JPEG, scaled to fit maxW×maxH. Zero or negative
+// bounds mean full resolution (heicDecodeMaxEdge). Callers pass a bound only when
+// the output is a fit-mode preview, so the result needs no further resize.
+// legacy is the ffmpeg decode, run only in shadow mode.
+func HEICJPEG(path string, maxW, maxH, quality int, legacy Legacy[[]byte]) ([]byte, bool) {
+	if declinedByDesign(path, supportsHEIFImage) {
+		return nil, false
+	}
 	return timed("heic jpeg", path, legacy, thumbnailDiff, func() ([]byte, bool) {
-		return heicJPEGFast(path, quality)
+		return heicJPEGFast(path, maxW, maxH, quality)
 	})
 }
 
-func heicJPEGFast(path string, quality int) ([]byte, bool) {
-	return gatedStillImageJPEG(path, heicDecodeMaxEdge, heicDecodeMaxEdge, quality, "heic jpeg", supportsHEIFImage)
+func heicJPEGFast(path string, maxW, maxH, quality int) ([]byte, bool) {
+	if maxW <= 0 || maxH <= 0 {
+		maxW, maxH = heicDecodeMaxEdge, heicDecodeMaxEdge
+	}
+	return gatedStillImageJPEG(path, maxW, maxH, quality, "heic jpeg", supportsHEIFImage)
 }
 
 // JXLJPEG decodes JPEG XL to JPEG at full resolution (bounds heicDecodeMaxEdge).
@@ -575,6 +694,9 @@ func jxlJPEGFast(path string, quality int) ([]byte, bool) {
 // CameraRAWJPEG decodes camera RAW to JPEG at the requested bounds (0 means full
 // resolution up to heicDecodeMaxEdge). legacy is ffmpeg ConvertImageToJPEG, shadow only.
 func CameraRAWJPEG(path string, width, height, quality int, legacy Legacy[[]byte]) ([]byte, bool) {
+	if declinedByDesign(path, supportsCameraRAW) {
+		return nil, false
+	}
 	return timed("raw jpeg", path, legacy, thumbnailDiff, func() ([]byte, bool) {
 		return cameraRAWJPEGFast(path, width, height, quality)
 	})
@@ -628,10 +750,11 @@ func stillImageJPEG(path string, maxW, maxH, quality int, op string, supported f
 		quality = 85
 	}
 	res, err := media.Thumbnail(f, size, media.ThumbnailOptions{
-		MaxWidth:  maxW,
-		MaxHeight: maxH,
-		Format:    "jpeg",
-		Quality:   quality,
+		MaxWidth:        maxW,
+		MaxHeight:       maxH,
+		Format:          "jpeg",
+		Quality:         quality,
+		MaxSourcePixels: stillImageMaxSourcePixels,
 	})
 	if err != nil {
 		logFail(err)

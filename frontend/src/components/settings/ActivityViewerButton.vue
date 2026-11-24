@@ -3,13 +3,13 @@
     :name="name || $t('tools.activityViewer.viewActivity')"
     :description="description || $t('tools.activityViewer.description')"
     :disabled="disabled"
-    @click="openActivityViewer"
+    @activate="openActivityViewer"
   />
 </template>
 
 <script>
 import SettingsButton from "@/components/settings/SettingsButton.vue";
-import { navigateActivityViewerHref } from "@/utils/activityViewerLink";
+import { navigateActivityViewerHref } from "@/utils/activityViewerLink.js";
 
 export default {
   name: "ActivityViewerButton",

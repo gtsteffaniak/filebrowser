@@ -1,59 +1,62 @@
 <template>
-  <div class="card-content">
+  <div class="card-content" :class="{ 'embedded-content': embedded }">
     <div v-if="loading" class="loading-spinner-wrapper">
       <LoadingSpinner size="medium" />
     </div>
     <template v-else>
-      <!-- Warning banner for missing path -->
-      <div v-if="!pathExists && !isEditingPath" class="warning-banner">
+      <div v-if="!pathExists && baseEntries.length > 0 && !isEditingPath" class="warning-banner">
         <i class="material-symbols-outlined">warning</i>
-        <span>{{ $t("messages.pathNotFoundMessage") }}</span>
+        <span>{{ t("messages.pathNotFoundMessage") }}</span>
         <button type="button" class="button button--flat button--blue" @click="startPathReassignment">
-          {{ $t("messages.reassignPath") }}
+          {{ t("messages.reassignPath") }}
         </button>
       </div>
-
-      <div v-if="isEditingPath">
-        <file-list @update:selected="updateTempPath" :browseSource="sourceName" :showFiles="true"></file-list>
+      <div v-if="isEditingPath" :class="{ 'embedded-list': embedded }">
+        <FileList
+          @update:selected="updateTempPath"
+          :browseSource="sourceName"
+          :browsePath="embedded ? currentPath : null"
+          :hideDestinationSource="true"
+          :showFiles="true"
+        ></FileList>
       </div>
       <div v-else>
       <PathPickerButton
+        v-if="!embedded"
         class="path-picker"
         v-model:path="currentPath"
         v-model:source="currentSource"
         aria-label="access-path"
         :show-files="true"
         :show-folders="true"
-        :placeholder="$t('sidebar.chooseSource')"
+        :placeholder="t('sidebar.chooseSource')"
         @navigate="onPathPickerNavigate"
       />
-      <div class="settings-items">
+      <div v-if="!embedded" class="settings-items">
         <ActivityViewerButton class="item" :href="activityViewerHref" />
       </div>
       <!-- Default behavior banner -->
       <div class="card item">
         <div class="card-content banner-content">
-          <i class="material-symbols-outlined">{{ sourceDenyDefault ? 'do_not_disturb_on' : 'check_circle' }}</i>  <!-- eslint-disable-line @intlify/vue-i18n/no-raw-text -->
-          {{ $t("access.defaultBehavior", { suffix: ":" }) }} {{ sourceDenyDefault ? $t("access.deny") : $t("access.allow")
+          <i class="material-symbols-outlined">{{ sourceDenyDefault ? 'do_not_disturb_on' : 'check_circle' }}</i>
+          {{ t("access.defaultBehavior", { suffix: ":" }) }} {{ sourceDenyDefault ? t("access.deny") : t("access.allow")
           }}
-          <HelpTooltipIcon :text="$t('access.defaultBehaviorDescription')" />
+          <HelpTooltipIcon :text="t('access.defaultBehaviorDescription')" />
         </div>
-
       </div>
-      <!-- Add Form -->
       <div class="form-flex-group">
         <ExpandDropdown
           v-model="addType"
           class="flat-right form-compact access-type"
           :options="addTypeOptions"
-          :aria-label="$t('access.userGroup')"
+          :aria-label="t('access.userGroup')"
         />
         <ExpandDropdown
           v-if="addType !== 'all'"
           v-model="addListType"
           class="flat-right flat-left form-compact form-grow access-list"
           :options="addListTypeOptions"
-          :aria-label="$t('access.allowDeny')"
+          :aria-label="t('access.allowDeny')"
         />
         <EntityPickerButton
           v-if="addType !== 'all'"
@@ -63,60 +66,63 @@
           :icon="addType === 'group' ? 'group_add' : 'person_add'"
           class="flat-left form-compact"
           :exclude="existingNames"
-          @select="addEntries"
+          @selected="addEntries"
         />
         <button v-else type="button" class="button form-button flat-left form-compact" @click="addEntries([])">
           <i class="material-symbols-outlined">add</i>
         </button>
       </div>
       <!-- Cascade Delete Toggle -->
-      <div v-if="entries.length > 0" class="cascade-toggle-section">
-        <ToggleSwitch v-model="cascadeDelete"
-          :name="$t('access.cascadeDelete')"
-          :description="$t('access.cascadeDeleteDescription')" />
+      <div v-if="entries.length > 0" class="cascade-toggle-section settings-items">
+        <ToggleSwitch class="item" v-model="cascadeDelete"
+          :name="t('access.cascadeDelete')"
+          :description="t('access.cascadeDeleteDescription')" />
       </div>
-      <settings-table
+      <SettingsTable
         v-if="entries.length > 0"
         :columns="columns"
         :items="tableRows"
-        :aria-label="$t('general.access')"
+        :aria-label="t('general.access')"
       >
         <template #cell-edit="{ row }">
-          <button type="button" @click="deleteAccess(row.entry)" class="action" :aria-label="$t('general.delete')"
-            :title="$t('general.delete')">
+          <button type="button" @click="deleteAccess(row.entry)" class="action" :aria-label="t('general.delete')"
+            :title="t('general.delete')">
             <i class="material-symbols">delete</i>
           </button>
         </template>
-      </settings-table>
+      </SettingsTable>
       </div>
     </template>
   </div>
-  <div class="card-actions">
+  <div class="card-actions" :class="{ 'embedded-actions': embedded }">
     <template v-if="isEditingPath">
-      <button type="button" class="button button--flat button--grey" @click="cancelPathChange" :aria-label="$t('general.cancel')" :title="$t('general.cancel')">
-        {{ $t("general.cancel") }}
+      <button type="button" class="button button--flat button--grey" @click="cancelPathChange" :aria-label="t('general.cancel')" :title="t('general.cancel')">
+        {{ t("general.cancel") }}
       </button>
-      <button type="button" class="button button--flat" @click="confirmPathChange" :aria-label="$t('general.ok')" :title="$t('general.ok')">
-        {{ $t("general.ok") }}
+      <button type="button" class="button button--flat" @click="confirmPathChange" :aria-label="t('general.ok')" :title="t('general.ok')">
+        {{ t("general.ok") }}
       </button>
     </template>
     <template v-else>
-      <button type="button" class="button button--flat button--grey" @click="cancelChanges" :aria-label="$t('general.cancel')" :title="$t('general.cancel')">
-        {{ $t("general.cancel") }}
+      <button v-if="!embedded" type="button" class="button button--flat button--grey" @click="cancelChanges" :aria-label="t('general.cancel')" :title="t('general.cancel')">
+        {{ t("general.cancel") }}
       </button>
-      <button type="button" class="button button--flat" :disabled="!dirty || saving" @click="saveChanges" :aria-label="$t('general.save')" :title="$t('general.save')">
-        {{ $t("general.save") }}
+      <button type="button" class="button button--flat" :disabled="!dirty || saving" @click="saveChanges" :aria-label="t('general.save')" :title="t('general.save')">
+        {{ t("general.save") }}
       </button>
     </template>
   </div>
 </template>
 
-<script>
-import { notify } from "@/notify";
-import { mutations } from "@/store";
-import { accessApi } from "@/api";
+<script setup lang="ts">
+import { computed, onMounted, ref, watch } from "vue";
+import { useI18n } from "@/i18n/index.ts";
+import { notify } from "@/notify/index.ts";
+import { mutations } from "@/store/index.ts";
+import { accessApi } from "@/api/index.js";
 import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
 import FileList from "../files/FileList.vue";
+import type { SelectionPayload } from "../files/FileList.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import PathPickerButton from "@/components/files/PathPickerButton.vue";
@@ -124,311 +130,328 @@ import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import ActivityViewerButton from "@/components/settings/ActivityViewerButton.vue";
 import SettingsTable from "@/components/settings/Table.vue";
 import EntityPickerButton from "@/components/settings/EntityPickerButton.vue";
-import { activityViewerPresets } from "@/utils/activityViewerLink";
-import { eventBus } from "@/store/eventBus";
+import { activityViewerPresets } from "@/utils/activityViewerLink.js";
+import { eventBus } from "@/store/eventBus.ts";
+import type { AccessRule, AccessRuleCategory } from "@/store/types.ts";
 
-export default {
-  name: "access",
-  components: {
-    HelpTooltipIcon,
-    FileList,
-    ToggleSwitch,
-    LoadingSpinner,
-    PathPickerButton,
-    ExpandDropdown,
-    ActivityViewerButton,
-    SettingsTable,
-    EntityPickerButton,
-  },
-  props: {
-    promptId: { type: [String, Number], default: null },
-    sourceName: { type: String, required: true },
-    path: { type: String, required: true, default: "/" }
-  },
-  data() {
-    return {
-      loading: false,
-      isEditingPath: false,
-      isReassigningPath: false,
-      tempPath: this.path,
-      currentPath: this.path,
-      currentSource: this.sourceName,
-      tempSource: this.sourceName,
-      originalPath: this.path,
-      rule: { denyAll: false, deny: { users: [], groups: [] }, allow: { users: [], groups: [] } },
-      sourceDenyDefault: false,
-      pathExists: true,
-      addType: "user",
-      addListType: "deny",
-      cascadeDelete: false,
-      /** Staged rule edits; nothing is applied until Save. */
-      pendingAdds: [],
-      pendingDeletes: [],
-      saving: false
-    };
-  },
-  computed: {
-    addTypeOptions() {
-      return [
-        { value: "user", label: this.$t("general.user") },
-        { value: "group", label: this.$t("general.group") },
-        { value: "all", label: this.$t("access.all") },
-      ];
-    },
-    addListTypeOptions() {
-      return [
-        { value: "deny", label: this.$t("access.deny") },
-        { value: "allow", label: this.$t("access.allow") },
-      ];
-    },
-    /** Entries persisted on the server (before staged edits). */
-    baseEntries() {
-      /** @type {{allow: boolean, type: "user" | "group" | "all", name: string}[]} */
-      const entries = [];
-      if (this.rule.denyAll) {
-        entries.push({ allow: false, type: "all", name: this.$t("access.all") });
-      }
-      for (const name of this.rule.deny?.users || []) {
-        entries.push({ allow: false, type: "user", name });
-      }
-      for (const name of this.rule.deny?.groups || []) {
-        entries.push({ allow: false, type: "group", name });
-      }
-      for (const name of this.rule.allow?.users || []) {
-        entries.push({ allow: true, type: "user", name });
-      }
-      for (const name of this.rule.allow?.groups || []) {
-        entries.push({ allow: true, type: "group", name });
-      }
-      return entries;
-    },
-    /** What the rule will look like once Save applies the staged edits. */
-    entries() {
-      const deleted = new Set(this.pendingDeletes.map(this.opKey));
-      const base = this.baseEntries.filter(e => !deleted.has(this.opKey({
-        allow: e.allow,
-        ruleCategory: e.type,
-        value: e.type === "all" ? "" : e.name,
-      })));
-      const staged = this.pendingAdds.map(op => ({
-        allow: op.allow,
-        type: op.ruleCategory,
-        name: op.ruleCategory === "all" ? this.$t("access.all") : op.value,
-      }));
-      return [...base, ...staged];
-    },
-    dirty() {
-      return this.pendingAdds.length > 0 || this.pendingDeletes.length > 0;
-    },
-    columns() {
-      return [
-        { key: "allowDeny", label: this.$t("access.allowDeny"), sortable: true },
-        { key: "userGroup", label: this.$t("access.userGroup"), sortable: true },
-        { key: "name", label: this.$t("general.name"), sortable: true },
-        { key: "edit", label: this.$t("general.edit"), narrow: true, align: "right" },
-      ];
-    },
-    /** Names already present on the selected allow/deny list for the category (excluded from the picker). */
-    existingNames() {
-      return this.entries
-        .filter((e) => e.type === this.addType && e.allow === (this.addListType === "allow"))
-        .map((e) => e.name);
-    },
-    tableRows() {
-      return this.entries.map((entry) => ({
-        id: `${entry.type}-${entry.name}-${entry.allow ? "allow" : "deny"}`,
-        allowDeny: entry.allow ? this.$t("access.allow") : this.$t("access.deny"),
-        userGroup: entry.type === "user"
-          ? this.$t("general.user")
-          : (entry.type === "group" ? this.$t("general.group") : this.$t("access.all")),
-        name: entry.name,
-        entry,
-      }));
-    },
-    activityViewerHref() {
-      return activityViewerPresets.access(this.currentSource, this.currentPath);
-    },
-  },
-  async mounted() {
-    await this.fetchRule();
-  },
-  watch: {
-    sourceName(newSourceName) {
-      this.currentSource = newSourceName;
-      this.tempSource = newSourceName;
-      this.resetPending();
-      this.fetchRule();
-    },
-    path(newPath) {
-      this.currentPath = newPath;
-      this.tempPath = newPath;
-      this.isEditingPath = false;
-      this.resetPending();
-      this.fetchRule();
-    }
-  },
-  methods: {
-    async onPathPickerNavigate() {
-      this.resetPending();
-      await this.fetchRule();
-      eventBus.emit("accessRulesChanged");
-    },
-    /**
-     * @param {{path: string, source: string}} pathOrData
-     */
-    updateTempPath(pathOrData) {
-      if (pathOrData?.path) {
-        this.tempPath = pathOrData.path;
-        this.tempSource = pathOrData.source;
-      }
-    },
-    async confirmPathChange() {
-      if (this.isReassigningPath) {
-        // Reassigning path - call API to update
-        try {
-          await accessApi.updatePath(this.currentSource, this.originalPath, this.tempPath);
-          notify.showSuccessToast(this.$t("messages.pathReassigned"));
-          this.originalPath = this.tempPath;
-          this.currentPath = this.tempPath;
-          this.currentSource = this.tempSource;
-          this.pathExists = true;
-          this.isEditingPath = false;
-          this.isReassigningPath = false;
-          await this.fetchRule();
-          // Emit event to refresh access rules list
-          eventBus.emit('accessRulesChanged');
-        } catch (e) {
-          notify.showError(this.$t("messages.pathReassignFailed"));
-          console.error(e);
-        }
-      } else {
-        // Just viewing a different path
-        this.currentPath = this.tempPath;
-        this.currentSource = this.tempSource;
-        this.isEditingPath = false;
-        this.resetPending();
-        await this.fetchRule();
-      }
-    },
-    cancelPathChange() {
-      this.isEditingPath = false;
-      this.isReassigningPath = false;
-    },
-    startPathReassignment() {
-      this.isReassigningPath = true;
-      this.tempPath = this.currentPath;
-      this.isEditingPath = true;
-    },
-    async fetchRule() {
-      this.loading = true;
-      try {
-        const response = await accessApi.get(this.currentSource, this.currentPath);
-        // Handle new API response structure - now sourceDenyDefault is part of the rule
-        this.rule = response;
-        this.sourceDenyDefault = response.sourceDenyDefault || false;
-        this.pathExists = response.pathExists !== false;
-      } catch (_e) {
-        this.rule = { denyAll: false, deny: { users: [], groups: [] }, allow: { users: [], groups: [] } };
-        this.sourceDenyDefault = false;
-        this.pathExists = true;
-      } finally {
-        this.loading = false;
-      }
-    },
-    resetPending() {
-      this.pendingAdds = [];
-      this.pendingDeletes = [];
-    },
-    /** Stable key for matching entries to staged ops. */
-    opKey(op) {
-      return `${op.allow ? "allow" : "deny"}|${op.ruleCategory}|${op.value}`;
-    },
-    /**
-     * Stages a delete. Pending adds are simply un-staged; persisted
-     * entries get a delete op applied on Save.
-     * @param {{allow: boolean, type: string, name: string}} entry
-     */
-    deleteAccess(entry) {
-      const op = {
-        allow: entry.allow,
-        ruleCategory: entry.type,
-        value: entry.type === 'all' ? '' : entry.name,
-        cascade: this.cascadeDelete && entry.type !== 'all'
-      };
-      const pendingIdx = this.pendingAdds.findIndex(a => this.opKey(a) === this.opKey(op));
-      if (pendingIdx !== -1) {
-        this.pendingAdds.splice(pendingIdx, 1);
-        return;
-      }
-      this.pendingDeletes.push(op);
-    },
-    /**
-     * Stages rule entries. `names` are picked users/groups; for the 'all'
-     * category an empty list stages the single deny-all entry.
-     * @param {string[]} names
-     */
-    addEntries(names) {
-      const values = this.addType === 'all' ? [''] : names;
-      for (const value of values) {
-        const op = {
-          allow: this.addListType === 'allow' && this.addType !== 'all',
-          ruleCategory: this.addType,
-          value
-        };
-        // Re-adding a staged-for-delete entry just cancels the delete.
-        const delIdx = this.pendingDeletes.findIndex(d => this.opKey(d) === this.opKey(op));
-        if (delIdx !== -1) {
-          this.pendingDeletes.splice(delIdx, 1);
-          continue;
-        }
-        if (this.pendingAdds.some(a => this.opKey(a) === this.opKey(op))) {
-          continue;
-        }
-        // Same name on the opposite list (allow vs deny) is allowed by the backend.
-        this.pendingAdds.push(op);
-      }
-    },
-    /** Applies staged deletes then adds; keeps unapplied ops on failure. */
-    async saveChanges() {
-      if (this.saving) return;
-      this.saving = true;
-      try {
-        for (const op of [...this.pendingDeletes]) {
-          await accessApi.del(this.currentSource, this.currentPath, {
-            allow: op.allow,
-            ruleCategory: op.ruleCategory,
-            value: op.value,
-            cascade: op.cascade
-          });
-          this.pendingDeletes.splice(this.pendingDeletes.indexOf(op), 1);
-        }
-        for (const op of [...this.pendingAdds]) {
-          await accessApi.add(this.currentSource, this.currentPath, {
-            allow: op.allow,
-            ruleCategory: op.ruleCategory,
-            value: op.value
-          });
-          this.pendingAdds.splice(this.pendingAdds.indexOf(op), 1);
-        }
-      } catch (e) {
-        notify.showError(e);
-        console.error(e);
-      }
-      await this.fetchRule();
-      // Emit event to refresh access rules list
-      eventBus.emit('accessRulesChanged');
-      this.saving = false;
-      if (!this.dirty) {
-        mutations.closeTopPrompt(this.promptId ?? undefined);
-      }
-    },
-    cancelChanges() {
-      this.pendingAdds = [];
-      this.pendingDeletes = [];
-      mutations.closeTopPrompt(this.promptId ?? undefined);
-    },
+type AccessListType = "allow" | "deny";
+
+interface AccessEntry {
+  allow: boolean;
+  type: AccessRuleCategory;
+  name: string;
+}
+
+interface AccessOp {
+  allow: boolean;
+  ruleCategory: AccessRuleCategory;
+  value: string;
+  cascade?: boolean;
+}
+
+interface TableColumn {
+  key: string;
+  label: string;
+  sortable?: boolean;
+  narrow?: boolean;
+  align?: "left" | "center" | "right";
+}
+
+const props = withDefaults(
+  defineProps<{
+    promptId?: number | null;
+    sourceName: string;
+    path?: string;
+    embedded?: boolean;
+  }>(),
+  {
+    promptId: null,
+    path: "/",
+    embedded: false,
   }
-};
+);
+
+const { t } = useI18n();
+
+function emptyRule(): AccessRule {
+  return {
+    denyAll: false,
+    deny: { users: [], groups: [] },
+    allow: { users: [], groups: [] },
+    sourceDenyDefault: false,
+    pathExists: true,
+  };
+}
+
+const loading = ref(false);
+const isEditingPath = ref(false);
+const isReassigningPath = ref(false);
+const tempPath = ref(props.path);
+const currentPath = ref(props.path);
+const currentSource = ref(props.sourceName);
+const tempSource = ref(props.sourceName);
+const originalPath = ref(props.path);
+const rule = ref<AccessRule>(emptyRule());
+const addType = ref<AccessRuleCategory>("user");
+const addListType = ref<AccessListType>("deny");
+const cascadeDelete = ref(false);
+const pendingAdds = ref<AccessOp[]>([]);
+const pendingDeletes = ref<AccessOp[]>([]);
+const saving = ref(false);
+
+const addTypeOptions = computed<{ value: AccessRuleCategory; label: string }[]>(() => [
+  { value: "user", label: t("general.user") },
+  { value: "group", label: t("general.group") },
+  { value: "all", label: t("access.all") },
+]);
+const addListTypeOptions = computed<{ value: AccessListType; label: string }[]>(() => [
+  { value: "deny", label: t("access.deny") },
+  { value: "allow", label: t("access.allow") },
+]);
+/** Entries persisted on the server (before staged edits). */
+const baseEntries = computed(() => {
+  const entries: AccessEntry[] = [];
+  if (rule.value.denyAll) {
+    entries.push({ allow: false, type: "all", name: t("access.all") });
+  }
+  for (const name of rule.value.deny.users) {
+    entries.push({ allow: false, type: "user", name });
+  }
+  for (const name of rule.value.deny.groups) {
+    entries.push({ allow: false, type: "group", name });
+  }
+  for (const name of rule.value.allow.users) {
+    entries.push({ allow: true, type: "user", name });
+  }
+  for (const name of rule.value.allow.groups) {
+    entries.push({ allow: true, type: "group", name });
+  }
+  return entries;
+});
+/** What the rule will look like once Save applies the staged edits. */
+const entries = computed(() => {
+  const deleted = new Set(pendingDeletes.value.map(opKey));
+  const base = baseEntries.value.filter(e => !deleted.has(opKey({
+    allow: e.allow,
+    ruleCategory: e.type,
+    value: e.type === "all" ? "" : e.name,
+  })));
+  const staged = pendingAdds.value.map((op): AccessEntry => ({
+    allow: op.allow,
+    type: op.ruleCategory,
+    name: op.ruleCategory === "all" ? t("access.all") : op.value,
+  }));
+  return [...base, ...staged];
+});
+const sourceDenyDefault = computed(() => rule.value.sourceDenyDefault);
+const pathExists = computed(() => rule.value.pathExists);
+const dirty = computed(() => pendingAdds.value.length > 0 || pendingDeletes.value.length > 0);
+const columns = computed<TableColumn[]>(() => [
+  { key: "allowDeny", label: t("access.allowDeny"), sortable: true },
+  { key: "userGroup", label: t("access.userGroup"), sortable: true },
+  { key: "name", label: t("general.name"), sortable: true },
+  { key: "edit", label: t("general.edit"), narrow: true, align: "right" },
+]);
+/** Names already present on the selected allow/deny list for the category (excluded from the picker). */
+const existingNames = computed(() =>
+  entries.value
+    .filter((e) => e.type === addType.value && e.allow === (addListType.value === "allow"))
+    .map((e) => e.name)
+);
+const tableRows = computed(() =>
+  entries.value.map((entry) => ({
+    id: `${entry.type}-${entry.name}-${entry.allow ? "allow" : "deny"}`,
+    allowDeny: entry.allow ? t("access.allow") : t("access.deny"),
+    userGroup: entry.type === "user"
+      ? t("general.user")
+      : (entry.type === "group" ? t("general.group") : t("access.all")),
+    name: entry.name,
+    entry,
+  }))
+);
+const activityViewerHref = computed(() => activityViewerPresets.access(currentSource.value, currentPath.value));
+
+onMounted(fetchRule);
+
+watch(() => props.sourceName, (newSourceName) => {
+  currentSource.value = newSourceName;
+  tempSource.value = newSourceName;
+  resetPending();
+  fetchRule();
+});
+
+watch(() => props.path, (newPath) => {
+  currentPath.value = newPath;
+  tempPath.value = newPath;
+  isEditingPath.value = false;
+  resetPending();
+  fetchRule();
+});
+
+async function onPathPickerNavigate() {
+  resetPending();
+  await fetchRule();
+  eventBus.emit("accessRulesChanged");
+}
+
+function updateTempPath(payload: SelectionPayload) {
+  if (payload.path) {
+    tempPath.value = payload.path;
+    tempSource.value = payload.source ?? tempSource.value;
+  }
+}
+
+async function confirmPathChange() {
+  if (isReassigningPath.value) {
+    // Reassigning path - call API to update
+    try {
+      await accessApi.updatePath(currentSource.value, originalPath.value, tempPath.value);
+      notify.showSuccessToast(t("messages.pathReassigned"));
+      originalPath.value = tempPath.value;
+      currentPath.value = tempPath.value;
+      currentSource.value = tempSource.value;
+      isEditingPath.value = false;
+      isReassigningPath.value = false;
+      await fetchRule();
+      // Emit event to refresh access rules list
+      eventBus.emit("accessRulesChanged");
+    } catch (e) {
+      notify.showError(t("messages.pathReassignFailed"));
+      console.error(e);
+    }
+  } else {
+    // Just viewing a different path
+    currentPath.value = tempPath.value;
+    currentSource.value = tempSource.value;
+    isEditingPath.value = false;
+    resetPending();
+    await fetchRule();
+  }
+}
+
+function cancelPathChange() {
+  isEditingPath.value = false;
+  isReassigningPath.value = false;
+}
+
+function startPathReassignment() {
+  isReassigningPath.value = true;
+  tempPath.value = currentPath.value;
+  isEditingPath.value = true;
+}
+
+async function fetchRule() {
+  loading.value = true;
+  try {
+    const response: AccessRule = await accessApi.get(currentSource.value, currentPath.value);
+    // Handle new API response structure - now sourceDenyDefault is part of the rule
+    rule.value = response;
+  } catch {
+    rule.value = emptyRule();
+  } finally {
+    loading.value = false;
+  }
+}
+
+function resetPending() {
+  pendingAdds.value = [];
+  pendingDeletes.value = [];
+}
+
+/** Stable key for matching entries to staged ops. */
+function opKey(op: Pick<AccessOp, "allow" | "ruleCategory" | "value">) {
+  return `${op.allow ? "allow" : "deny"}|${op.ruleCategory}|${op.value}`;
+}
+
+/**
+ * Stages a delete. Pending adds are simply un-staged; persisted
+ * entries get a delete op applied on Save.
+ */
+function deleteAccess(entry: AccessEntry) {
+  const op: AccessOp = {
+    allow: entry.allow,
+    ruleCategory: entry.type,
+    value: entry.type === "all" ? "" : entry.name,
+    cascade: cascadeDelete.value && entry.type !== "all"
+  };
+  const pendingIdx = pendingAdds.value.findIndex(a => opKey(a) === opKey(op));
+  if (pendingIdx !== -1) {
+    pendingAdds.value.splice(pendingIdx, 1);
+    return;
+  }
+  pendingDeletes.value.push(op);
+}
+
+/**
+ * Stages rule entries. `names` are picked users/groups; for the 'all'
+ * category an empty list stages the single deny-all entry.
+ */
+function addEntries(names: string[]) {
+  const values = addType.value === "all" ? [""] : names;
+  for (const value of values) {
+    const op: AccessOp = {
+      allow: addListType.value === "allow" && addType.value !== "all",
+      ruleCategory: addType.value,
+      value
+    };
+    // Re-adding a staged-for-delete entry just cancels the delete.
+    const delIdx = pendingDeletes.value.findIndex(d => opKey(d) === opKey(op));
+    if (delIdx !== -1) {
+      pendingDeletes.value.splice(delIdx, 1);
+      continue;
+    }
+    if (pendingAdds.value.some(a => opKey(a) === opKey(op))) {
+      continue;
+    }
+    // Same name on the opposite list (allow vs deny) is allowed by the backend.
+    pendingAdds.value.push(op);
+  }
+}
+
+/** Applies staged deletes then adds; keeps unapplied ops on failure. */
+async function saveChanges() {
+  if (saving.value) return;
+  saving.value = true;
+  let failed = false;
+  try {
+    for (const op of pendingDeletes.value.slice()) {
+      await accessApi.del(currentSource.value, currentPath.value, {
+        allow: op.allow,
+        ruleCategory: op.ruleCategory,
+        value: op.value,
+        cascade: op.cascade
+      });
+      pendingDeletes.value.splice(pendingDeletes.value.indexOf(op), 1);
+    }
+    for (const op of pendingAdds.value.slice()) {
+      await accessApi.add(currentSource.value, currentPath.value, {
+        allow: op.allow,
+        ruleCategory: op.ruleCategory,
+        value: op.value
+      });
+      pendingAdds.value.splice(pendingAdds.value.indexOf(op), 1);
+    }
+  } catch (e) {
+    failed = true;
+    notify.showError(e);
+    console.error(e);
+  }
+  await fetchRule();
+  // Emit event to refresh access rules list
+  eventBus.emit("accessRulesChanged");
+  saving.value = false;
+  if (!failed && props.embedded) {
+    notify.showSuccessToast(t("settings.settingsUpdated"));
+  }
+  if (!dirty.value && !props.embedded) {
+    mutations.closeTopPrompt(props.promptId ?? undefined);
+  }
+}
+
+function cancelChanges() {
+  resetPending();
+  mutations.closeTopPrompt(props.promptId ?? undefined);
+}
 </script>
 
 <style scoped>
@@ -465,6 +488,26 @@ export default {
 .cascade-toggle-section {
   margin-top: 1em;
   margin-bottom: 1em;
+}
+
+.embedded-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.embedded-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.embedded-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.25em;
 }
 
 .loading-spinner-wrapper {

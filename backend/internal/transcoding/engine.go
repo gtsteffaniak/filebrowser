@@ -133,7 +133,7 @@ func (e *MediaEngine) BuildPlan(ctx context.Context, realPath string, profile Pr
 	copyImpossible := false
 	plan.segmentSec = defaults.SegmentDurationSec
 	if plan.remux || plan.videoCopy {
-		rawKeyframes, kfErr := probeKeyframesCached(ctx, svc, realPath, stat.Size(), stat.ModTime().UnixNano(), plan.segmentSec, true)
+		rawKeyframes, kfErr := probeKeyframesCached(ctx, svc, realPath, stat.Size(), stat.ModTime().UnixNano(), plan.segmentSec, mediaSpan{durationSec: info.Duration, startTimeSec: info.StartTime}, true)
 		if kfErr != nil {
 			copyImpossible = true
 			logger.Warningf("transcode: keyframe probe failed on %s (%v) — forcing video transcode for HLS", realPath, kfErr)
@@ -374,7 +374,7 @@ func logEncoderChoice(realPath string, profile Profile, p encode.VideoProfile, e
 
 	if software {
 		if requested != "" && requested != "auto" && requested != "cpu" {
-			logger.Warningf("transcode: encoder backend %q is unavailable for profile %s; falling back to automatic selection (%s)", requested, profile, realPath)
+			logger.Warningf("transcode: encoder backend %q is unavailable for profile %s; falling back to auto (%s)", requested, profile, realPath)
 		} else if hardwareEncodeAvailable(svc.Capabilities()) {
 			logger.Infof("transcode: using software encoder %q (%s) for profile=%s though hardware encode is available; check the configured accel device and encoder backend (%s)",
 				encoderName, requestedLabel(requested), profile, realPath)

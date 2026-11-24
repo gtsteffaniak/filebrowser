@@ -25,13 +25,13 @@
 
 <script>
 import SettingsTable from "@/components/settings/Table.vue";
-import { formatTimestamp } from "@/utils/moment";
+import { formatTimestamp } from "@/utils/moment.ts";
 import {
   buildActivityDetailRows,
   activityEventLabel,
   activityRowPath,
   activityRowSource,
-} from "@/utils/activityDetails";
+} from "@/utils/activityDetails.js";
 
 export default {
   name: "ActivityEventDetails",
@@ -50,7 +50,7 @@ export default {
   },
   computed: {
     eventLabel() {
-      return activityEventLabel(this.row.eventType, this.$t);
+      return activityEventLabel(this.row.eventType);
     },
     detailColumns() {
       return [
@@ -102,7 +102,7 @@ export default {
       return rows;
     },
     detailRows() {
-      return buildActivityDetailRows(this.row, this.$t);
+      return buildActivityDetailRows(this.row);
     },
   },
 };

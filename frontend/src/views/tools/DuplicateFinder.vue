@@ -8,11 +8,11 @@
           aria-label="duplicate-finder-path"
           :show-files="false"
           :show-folders="true"
-          :placeholder="$t('sidebar.chooseSource')"
+          :placeholder="t('sidebar.chooseSource')"
         />
-        <h3>{{ $t('duplicateFinder.minSize') }}</h3>
+        <h3>{{ t('duplicateFinder.minSize') }}</h3>
         <input aria-label="Minimum size input" v-model.number="minSizeValue" type="number" min="0" placeholder="1" class="input" />
-        <p class="hint">{{ $t('duplicateFinder.minSizeHint') }}</p>
+        <p class="hint">{{ t('duplicateFinder.minSizeHint') }}</p>
         <button
           type="button"
           aria-label="Find duplicates button"
@@ -21,7 +21,7 @@
           :disabled="loading"
         >
           <i v-if="loading" class="material-symbols spin">autorenew</i>
-          <span v-else>{{ $t('duplicateFinder.findDuplicates') }}</span>
+          <span v-else>{{ t('duplicateFinder.findDuplicates') }}</span>
         </button>
       </div>
     </div>
@@ -31,42 +31,42 @@
         {{ error }}
       </div>
 
-      <div v-if="duplicateGroups.length > 0">
+      <div v-if="duplicateGroups.length > 0 && resultsApplyToInputs">
         <div class="card-title">
-          <h2>{{ $t('general.results') }}</h2>
+          <h2>{{ t('general.results') }}</h2>
         </div>
         <div class="card-content">
           <div class="stats">
-            <span>{{ $t('duplicateFinder.groupsFound', { suffix: ': ' }) }}<strong>{{ duplicateGroups.length }}</strong></span>
-            <span>{{ $t('duplicateFinder.totalWastedSpace', { suffix: ': ' }) }}<strong>{{ humanSize(totalWastedSpace) }}</strong></span>
+            <span>{{ t('duplicateFinder.groupsFound', { suffix: ': ' }) }}<strong>{{ duplicateGroups.length }}</strong></span>
+            <span>{{ t('duplicateFinder.totalWastedSpace', { suffix: ': ' }) }}<strong>{{ humanSize(totalWastedSpace) }}</strong></span>
           </div>
 
           <!-- Show timeout/limit warning first if applicable -->
           <div v-if="isIncomplete" class="warning-message">
             <i class="material-symbols">warning</i>
             <div>
-              <strong>{{ $t('fileSizeAnalyzer.incompleteResults') }}</strong> {{ incompleteReason }}
+              <strong>{{ t('fileSizeAnalyzer.incompleteResults') }}</strong> {{ incompleteReason }}
             </div>
           </div>
           <!-- Show complete/maxGroups warning if no timeout -->
           <div v-else-if="duplicateGroups.length < maxGroups" class="success-message">
             <i class="material-symbols">check_circle</i>
             <div>
-              <strong>{{ $t('fileSizeAnalyzer.completeResults') }}</strong>
+              <strong>{{ t('fileSizeAnalyzer.completeResults') }}</strong>
             </div>
           </div>
           <div v-else class="warning-message">
             <i class="material-symbols">warning</i>
             <div>
-              <strong>{{ $t('fileSizeAnalyzer.incompleteResults') }}</strong> {{ $t('messages.incompleteResultsDetails', { max: maxGroups }) }}
+              <strong>{{ t('fileSizeAnalyzer.incompleteResults') }}</strong> {{ t('messages.incompleteResultsDetails', { max: maxGroups }) }}
             </div>
           </div>
           <div ref="list" class="duplicate-groups">
             <template v-for="(group, index) in duplicateGroups" :key="index">
               <div class="group-header">
-                <span class="group-title">{{ $t('general.group') }} {{ index + 1 }}</span>
+                <span class="group-title">{{ t('general.group') }} {{ index + 1 }}</span>
                 <span class="group-size">{{ getGroupSizeText(group) }}</span>
-                <span class="wasted-space">{{ $t('duplicateFinder.wasted', { suffix: ': ' }) }} {{ humanSize(group.size * (group.count - 1)) }}</span>
+                <span class="wasted-space">{{ t('duplicateFinder.wasted', { suffix: ': ' }) }} {{ humanSize(group.size * (group.count - 1)) }}</span>
               </div>
               <div class="group-files" :data-virtual-group="`g${index}`" :style="virtual.group(`g${index}`).style">
                 <div
@@ -92,9 +92,9 @@
                     :isSelectedProp="selectedIndices.has(entry.index)"
                     :clickable="false"
                     :showLimitedOptions="true"
-                    @select="handleItemSelect"
-                    @clearSelection="clearSelection"
-                    @selectRange="handleSelectRange"
+                    @item-select="handleItemSelect"
+                    @clear-selection="clearSelection"
+                    @select-range="handleSelectRange"
                   />
                 </div>
               </div>
@@ -103,26 +103,37 @@
         </div>
       </div>
       <div v-else-if="!loading" class="empty-state">
-        <i class="material-symbols-outlined">content_copy</i>
-        <p>{{ $t('duplicateFinder.emptyState') }}</p>
+        <template v-if="showNoDuplicateResults">
+          <i v-if="isIncomplete" class="material-symbols-outlined">warning</i>
+          <i v-else class="material-symbols-outlined">check_circle</i>
+          <template v-if="isIncomplete">
+            <p><strong>{{ t('fileSizeAnalyzer.incompleteResults') }}</strong></p>
+            <p v-if="incompleteReason">{{ incompleteReason }}</p>
+          </template>
+          <p v-else>{{ t('duplicateFinder.noResults') }}</p>
+        </template>
+        <template v-else>
+          <i class="material-symbols-outlined">content_copy</i>
+          <p>{{ t('duplicateFinder.emptyState') }}</p>
+        </template>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, shallowRef, watch } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, shallowRef, useTemplateRef, watch } from "vue";
 import { useRoute } from "vue-router";
-import { useI18n } from "vue-i18n";
-import { toolsApi } from "@/api";
-import { router } from "@/router";
-import { state, mutations } from "@/store";
-import { getHumanReadableFilesize } from "@/utils/filesizes";
-import { eventBus } from "@/store/eventBus";
+import { useI18n } from "@/i18n/index.ts";
+import { toolsApi } from "@/api/index.js";
+import { router } from "@/router/index.ts";
+import { state, mutations } from "@/store/index.ts";
+import { getHumanReadableFilesize } from "@/utils/filesizes.js";
+import { eventBus } from "@/store/eventBus.ts";
 import ListingItem from "@/components/files/ListingItem.vue";
 import PathPickerButton from "@/components/files/PathPickerButton.vue";
 import { useListingVirtualization } from "@/composables/useListingVirtualization.ts";
-import { globalVars } from "@/utils/constants";
+import { globalVars } from "@/utils/constants.ts";
 
 defineOptions({ name: "DuplicateFinder" });
 
@@ -158,13 +169,15 @@ const GROUP_STRIDE = 1_000_000;
 const { t } = useI18n();
 const route = useRoute();
 
-const list = ref<HTMLElement | null>(null);
+const list = useTemplateRef<HTMLElement>("list");
 const searchPath = ref("/");
 const selectedSource = ref("");
 const resultPath = ref("/");
 const resultSource = ref("");
 const minSizeValue = ref(10);
 const loading = ref(false);
+const hasSearched = ref(false);
+const searchedCriteria = ref<{ path: string; source: string; minSize: number } | null>(null);
 const error = ref<string | null>(null);
 const duplicateGroups = shallowRef<DuplicateGroup[]>([]);
 const isIncomplete = ref(false);
@@ -175,6 +188,20 @@ const selectedIndices = ref(new Set<number>());
 const deletedFiles = ref(new Set<string>());
 const failedFiles = ref(new Map<string, string>());
 let isInitializing = true;
+
+const resultsApplyToInputs = computed(() => {
+  if (!searchedCriteria.value) {
+    return false;
+  }
+  const s = searchedCriteria.value;
+  return s.path === searchPath.value &&
+    s.source === selectedSource.value &&
+    s.minSize === minSizeValue.value;
+});
+
+const showNoDuplicateResults = computed(() =>
+  hasSearched.value && resultsApplyToInputs.value && duplicateGroups.value.length === 0,
+);
 
 const totalWastedSpace = computed(() => {
   return duplicateGroups.value.reduce((sum, group) => {
@@ -214,7 +241,7 @@ onMounted(() => {
   selectedSource.value = (typeof query.source === 'string' ? query.source : null) || state.sources.current || Object.keys(state.sources.info || {})[0] || "";
 
   if (query.minSize) {
-    const parsed = parseInt(String(query.minSize), 10);
+    const parsed = Math.trunc(Number(query.minSize));
     if (!Number.isNaN(parsed)) {
       minSizeValue.value = parsed;
     }
@@ -272,6 +299,7 @@ async function fetchData() {
   lastRequestTime = now;
   const requestPath = searchPath.value;
   const requestSource = selectedSource.value;
+  const requestMinSize = minSizeValue.value;
 
   try {
     // API now expects minSizeMb directly (in megabytes)
@@ -283,14 +311,26 @@ async function fetchData() {
       false // Checksum disabled
     );
 
-    // Handle new response format with incomplete metadata
+    if (
+      requestPath !== searchPath.value ||
+      requestSource !== selectedSource.value ||
+      requestMinSize !== minSizeValue.value
+    ) {
+      return;
+    }
+
     resultPath.value = requestPath;
     resultSource.value = requestSource;
     duplicateGroups.value = result.groups || [];
     isIncomplete.value = result.incomplete || false;
     incompleteReason.value = result.reason || "";
+    searchedCriteria.value = {
+      path: requestPath,
+      source: requestSource,
+      minSize: requestMinSize,
+    };
 
-    // Reset selection, deleted, and failed files when new results arrive
+    hasSearched.value = true;
     clearSelection();
     deletedFiles.value.clear();
     failedFiles.value.clear();
@@ -299,6 +339,8 @@ async function fetchData() {
     duplicateGroups.value = [];
     isIncomplete.value = false;
     incompleteReason.value = "";
+    hasSearched.value = false;
+    searchedCriteria.value = null;
     clearSelection();
     deletedFiles.value.clear();
     failedFiles.value.clear();
@@ -339,7 +381,7 @@ function getGroupSizeText(group: DuplicateGroup) {
 
 function getFileName(path: string) {
   const parts = path.split("/").filter(p => p);
-  return parts[parts.length - 1] || path;
+  return parts.at(-1) || path;
 }
 
 function ensureLeadingSlash(path: string) {
@@ -363,7 +405,7 @@ function getFullPath(filePath: string) {
   }
 
   // Remove leading slash from file path if present before combining
-  const cleanFilePath = filePath.startsWith('/') ? filePath.substring(1) : filePath;
+  const cleanFilePath = filePath.startsWith('/') ? filePath.slice(1) : filePath;
   return `${normalizedSearchPath}/${cleanFilePath}`;
 }
 

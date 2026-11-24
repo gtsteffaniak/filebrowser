@@ -56,6 +56,7 @@ type UserDefaultsFileViewerEnforcement struct {
 	DisableViewingExt       bool `json:"disableViewingExt,omitempty"`
 	DisableOnlyOfficeExt    bool `json:"disableOnlyOfficeExt,omitempty"`
 	PreferEditorForMarkdown bool `json:"preferEditorForMarkdown,omitempty"`
+	PreferEditorForHtml     bool `json:"preferEditorForHtml,omitempty"`
 	DebugOffice             bool `json:"debugOffice,omitempty"`
 }
 
@@ -71,9 +72,10 @@ type UserDefaultsUIEnforcement struct {
 }
 
 type UserDefaultsFileLoadingEnforcement struct {
-	MaxConcurrent     bool `json:"maxConcurrentUpload,omitempty"`
-	UploadChunkSize   bool `json:"uploadChunkSizeMb,omitempty"`
-	DownloadChunkSize bool `json:"downloadChunkSizeMb,omitempty"`
+	MaxConcurrent             bool `json:"maxConcurrentUpload,omitempty"`
+	UploadChunkSize           bool `json:"uploadChunkSizeMb,omitempty"`
+	DownloadChunkSize         bool `json:"downloadChunkSizeMb,omitempty"`
+	UploadStallTimeoutSeconds bool `json:"uploadStallTimeoutSeconds,omitempty"`
 }
 
 type UserDefaultsAccountEnforcement struct {
@@ -82,6 +84,7 @@ type UserDefaultsAccountEnforcement struct {
 	DisableSettings            bool                                      `json:"disableSettings,omitempty"`
 	DisableUpdateNotifications bool                                      `json:"disableUpdateNotifications,omitempty"`
 	ShowAdvancedProfile        bool                                      `json:"showAdvancedProfile,omitempty"`
+	AllowCustomShareURL        bool                                      `json:"allowCustomShareURL,omitempty"`
 	MaxConcurrentTranscodes    bool                                      `json:"maxConcurrentTranscodes,omitempty"`
 	Permissions                UserDefaultsAccountPermissionsEnforcement `json:"permissions,omitempty"`
 }

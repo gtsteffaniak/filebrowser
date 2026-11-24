@@ -32,6 +32,7 @@ var userJSONFieldEnforcementPaths = map[string]string{
 	"disablePreviewExt":          "preview.disablePreviewExt",
 	"disableSearchOptions":       "search.disableOptions",
 	"preferEditorForMarkdown":    "fileViewer.preferEditorForMarkdown",
+	"preferEditorForHtml":        "fileViewer.preferEditorForHtml",
 	"debugOffice":                "fileViewer.debugOffice",
 	"disableViewingExt":          "fileViewer.disableViewingExt",
 	"disableOnlyOfficeExt":       "fileViewer.disableOnlyOfficeExt",
@@ -44,6 +45,7 @@ var userJSONFieldEnforcementPaths = map[string]string{
 	"disableSettings":            "account.disableSettings",
 	"disableUpdateNotifications": "account.disableUpdateNotifications",
 	"showAdvancedProfile":        "account.showAdvancedProfile",
+	"allowCustomShareURL":        "account.allowCustomShareURL",
 	"maxConcurrentTranscodes":    "account.maxConcurrentTranscodes",
 }
 
@@ -61,9 +63,10 @@ var previewJSONSubfields = map[string]string{
 }
 
 var fileLoadingJSONSubfields = map[string]string{
-	"maxConcurrentUpload": "fileLoading.maxConcurrentUpload",
-	"uploadChunkSizeMb":   "fileLoading.uploadChunkSizeMb",
-	"downloadChunkSizeMb": "fileLoading.downloadChunkSizeMb",
+	"maxConcurrentUpload":       "fileLoading.maxConcurrentUpload",
+	"uploadChunkSizeMb":         "fileLoading.uploadChunkSizeMb",
+	"downloadChunkSizeMb":       "fileLoading.downloadChunkSizeMb",
+	"uploadStallTimeoutSeconds": "fileLoading.uploadStallTimeoutSeconds",
 }
 
 // EnforcedPathsTouchedByUserJSONField returns enforcement paths a user JSON field name may affect.

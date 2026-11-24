@@ -2,12 +2,12 @@
   <div class="card-content">
     <p style="text-align: center">{{ uploadSettingsDescription }}</p>
     <div>
-      <SettingsItem :title="$t('fileLoading.uploadSettings')" :collapsable="true" :start-collapsed="true">
+      <SettingsItem :title="t('fileLoading.uploadSettings')" :collapsable="true" :start-collapsed="true">
         <div class="settings-items upload-settings">
           <div class="settings-number-input item">
             <div class="no-padding">
-              <label for="maxConcurrentUpload">{{ $t("fileLoading.maxConcurrentUpload") }}</label>
-              <HelpTooltipIcon :text="$t('fileLoading.maxConcurrentUploadHelp')" />
+              <label for="maxConcurrentUpload">{{ t("fileLoading.maxConcurrentUpload") }}</label>
+              <HelpTooltipIcon :text="t('fileLoading.maxConcurrentUploadHelp')" />
             </div>
             <div>
               <input v-model.number="maxConcurrentUpload" type="range" min="1" max="10" @change="updateUploadSettings" />
@@ -16,16 +16,16 @@
           </div>
           <div class="settings-number-input item">
             <div class="no-padding">
-              <label for="uploadChunkSizeMb">{{ $t("fileLoading.uploadChunkSizeMb") }}</label>
-              <HelpTooltipIcon :text="$t('fileLoading.uploadChunkSizeMbHelp')" />
+              <label for="uploadChunkSizeMb">{{ t("fileLoading.uploadChunkSizeMb") }}</label>
+              <HelpTooltipIcon :text="t('fileLoading.uploadChunkSizeMbHelp')" />
             </div>
             <div class="no-padding">
               <input class="sizeInput input" v-model.number="uploadChunkSizeMb" type="number" min="0" @change="updateUploadSettings" />
             </div>
           </div>
           <ToggleSwitch class="item" v-model="clearAll" @change="updateUploadSettings"
-            :name="$t('fileLoading.clearAll')"
-            :description="$t('fileLoading.clearAllDescription')" />
+            :name="t('fileLoading.clearAll')"
+            :description="t('fileLoading.clearAllDescription')" />
         </div>
       </SettingsItem>
       <div class="upload-prompt" :class="{ dropping: isDragging }"
@@ -33,7 +33,7 @@
         @dragover.prevent="onDragOver" @dragleave.prevent="onDragLeave" @drop.prevent="onDrop">
         <div class="upload-prompt-container">
           <i v-if="files.length === 0" class="material-symbols">cloud_upload</i>
-          <p v-if="files.length === 0">{{ $t("prompts.dragAndDrop") }}</p>
+          <p v-if="files.length === 0">{{ t("prompts.dragAndDrop") }}</p>
           <ButtonGroup
             class="upload-action-buttons"
             :buttons="uploadActionButtons"
@@ -43,11 +43,17 @@
         </div>
       </div>
     </div>
+    <div v-if="summary.totalFiles > 1" class="upload-summary">
+      <ProgressBar :val="summary.uploadedBytes" :max="summary.totalBytes" unit="bytes"
+        :status="summary.completedFiles === summary.totalFiles ? 'completed' : 'uploading'"
+        text-position="inside" size="20" />
+      <p class="upload-summary-text">{{ summaryText }}</p>
+    </div>
     <div v-if="files.length > 0" style="position: relative;">
       <div v-if="showConflictPrompt" class="conflict-overlay">
         <div class="card">
           <div class="card-content">
-            <p>{{ $t("prompts.conflictsDetected") }}</p>
+            <p>{{ t("prompts.conflictsDetected") }}</p>
           </div>
           <div class="card-actions">
             <button
@@ -55,7 +61,7 @@
               @click="resolveConflict(true)"
               class="button button--flat button--red"
             >
-              {{ $t("general.replace") }}
+              {{ t("general.replace") }}
             </button>
           </div>
         </div>
@@ -67,11 +73,11 @@
           <div class="file-info">
             <p class="file-name">{{ file.name }}</p>
             <ProgressBar v-if="file.type !== 'directory'" :val="file.status === 'completed'
-                ? $t('prompts.completed')
+                ? t('prompts.completed')
                 : file.status === 'error'
-                  ? $t('prompts.error')
+                  ? t('prompts.error')
                   : file.status === 'conflict'
-                    ? $t('prompts.conflictsDetected')
+                    ? t('prompts.conflictsDetected')
                     : (file.progress / 100) * file.size
               " :unit="file.status === 'completed' || file.status === 'error' ? '' : 'bytes'" :max="file.size"
               :status="file.status" text-position="inside" size="20"
@@ -87,8 +93,8 @@
               type="button"
               @click="uploadManager.pause(file.id)"
               class="action"
-              :aria-label="$t('general.pause')"
-              :title="$t('general.pause')"
+              :aria-label="t('general.pause')"
+              :title="t('general.pause')"
             >
               <i class="material-symbols">pause</i>
             </button>
@@ -97,8 +103,8 @@
               type="button"
               @click="uploadManager.resume(file.id)"
               class="action"
-              :aria-label="$t('general.resume')"
-              :title="$t('general.resume')"
+              :aria-label="t('general.resume')"
+              :title="t('general.resume')"
             >
               <i class="material-symbols">play_arrow</i>
             </button>
@@ -107,8 +113,8 @@
               type="button"
               @click="uploadManager.retry(file.id)"
               class="action"
-              :aria-label="$t('general.retry')"
-              :title="$t('general.retry')"
+              :aria-label="t('general.retry')"
+              :title="t('general.retry')"
             >
               <i class="material-symbols">replay</i>
             </button>
@@ -117,8 +123,8 @@
               type="button"
               @click="handleConflictAction(file)"
               class="action"
-              :aria-label="$t('general.replace')"
-              :title="$t('general.replace')"
+              :aria-label="t('general.replace')"
+              :title="t('general.replace')"
             >
               <i class="material-symbols">sync_problem</i>
             </button>
@@ -126,8 +132,8 @@
               type="button"
               @click="uploadManager.cancel(file.id)"
               class="action"
-              :aria-label="$t('general.cancel')"
-              :title="$t('general.cancel')"
+              :aria-label="t('general.cancel')"
+              :title="t('general.cancel')"
             >
               <i class="material-symbols">close</i>
             </button>
@@ -144,30 +150,30 @@
       type="button"
       @click="uploadManager.pauseAll()"
       class="button button--flat"
-      :aria-label="$t('buttons.pauseAll')"
-      :title="$t('buttons.pauseAll')"
+      :aria-label="t('buttons.pauseAll')"
+      :title="t('buttons.pauseAll')"
     >
-      {{ $t("buttons.pauseAll") }}
+      {{ t("buttons.pauseAll") }}
     </button>
     <button
       v-if="canResumeAll"
       type="button"
       @click="uploadManager.resumeAll()"
       class="button button--flat"
-      :aria-label="$t('buttons.resumeAll')"
-      :title="$t('buttons.resumeAll')"
+      :aria-label="t('buttons.resumeAll')"
+      :title="t('buttons.resumeAll')"
     >
-      {{ $t("buttons.resumeAll") }}
+      {{ t("buttons.resumeAll") }}
     </button>
     <button
       type="button"
       @click="uploadManager.clearCompleted()"
       class="button button--flat"
       :disabled="!hasClearable"
-      :aria-label="$t('buttons.clearCompleted')"
-      :title="$t('buttons.clearCompleted')"
+      :aria-label="t('buttons.clearCompleted')"
+      :title="t('buttons.clearCompleted')"
     >
-      {{ $t("buttons.clearCompleted") }}
+      {{ t("buttons.clearCompleted") }}
     </button>
   </div>
 
@@ -181,13 +187,21 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, watch } from "vue";
-import { useI18n } from "vue-i18n";
-import { readAllDirectoryEntries, uploadManager } from "@/utils/upload";
+import { computed, onMounted, onUnmounted, ref, useTemplateRef, watch } from "vue";
+import { toStandardLocale, useI18n } from "@/i18n/index.ts";
+import {
+  formatRemainingTime,
+  readAllDirectoryEntries,
+  summarizeUploads,
+  uploadedBytesById,
+  UploadRateMeter,
+  uploadManager,
+} from "@/utils/upload.ts";
+import { getHumanReadableFilesize } from "@/utils/filesizes.js";
 import type { UploadConflictResolution, UploadEntry, UploadItem, UploadStatus } from "@/utils/upload.ts";
-import { getTypeInfo, getTypeInfoFromExt } from "@/utils/mimetype";
-import { getters, mutations, state } from "@/store";
-import { notify } from "@/notify";
+import { getTypeInfo, getTypeInfoFromExt } from "@/utils/mimetype.js";
+import { getters, mutations, state } from "@/store/index.ts";
+import { notify } from "@/notify/index.ts";
 import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
 import ProgressBar from "@/components/ProgressBar.vue";
 import SettingsItem from "@/components/settings/SettingsItem.vue";
@@ -217,13 +231,13 @@ const props = withDefaults(
 
 defineOptions({ name: "UploadFiles" });
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 
-const fileInput = ref<HTMLInputElement | null>(null);
-const folderInput = ref<HTMLInputElement | null>(null);
-const cameraInput = ref<HTMLInputElement | null>(null);
-const videoInput = ref<HTMLInputElement | null>(null);
-const list = ref<HTMLElement | null>(null);
+const fileInput = useTemplateRef<HTMLInputElement>("fileInput");
+const folderInput = useTemplateRef<HTMLInputElement>("folderInput");
+const cameraInput = useTemplateRef<HTMLInputElement>("cameraInput");
+const videoInput = useTemplateRef<HTMLInputElement>("videoInput");
+const list = useTemplateRef<HTMLElement>("list");
 const files = computed(() => uploadManager.queue);
 const isDragging = ref(false);
 const showConflictPrompt = ref(false);
@@ -373,6 +387,71 @@ function releaseWakeLock() {
 
 const isUploading = computed(() => state.upload.isUploading);
 
+// Overall progress of the queue, with the speed sampled every second while a file is transferring
+const summary = computed(() => summarizeUploads(files.value));
+// isUploading stays true while uploads are paused; only a file in "uploading" moves bytes.
+const isTransferring = computed(() => files.value.some((item) => item.status === "uploading"));
+const rateMeter = new UploadRateMeter();
+const bytesPerSecond = ref(0);
+let rateTimer: ReturnType<typeof setInterval> | null = null;
+
+function resetRate() {
+  rateMeter.reset();
+  bytesPerSecond.value = 0;
+}
+
+function sampleRate() {
+  if (!isTransferring.value) {
+    // Paused or waiting: start over with a fresh sample when transfers resume.
+    resetRate();
+    return;
+  }
+  bytesPerSecond.value = rateMeter.sample(uploadedBytesById(files.value), Date.now());
+}
+
+// Reset as soon as no file is transferring (all paused or waiting), not at the next
+// tick: a pause and resume between two ticks would otherwise keep the previous rate
+// and count the paused time in the next sample.
+watch(isTransferring, (transferring) => {
+  if (!transferring) {
+    resetRate();
+  }
+});
+
+function stopRateSampling() {
+  if (rateTimer !== null) {
+    clearInterval(rateTimer);
+    rateTimer = null;
+  }
+  resetRate();
+}
+
+watch(
+  isUploading,
+  (active) => {
+    stopRateSampling();
+    if (active) {
+      sampleRate();
+      rateTimer = setInterval(sampleRate, 1000);
+    }
+  },
+  { immediate: true },
+);
+
+const summaryText = computed(() => {
+  const s = summary.value;
+  const parts = [`${s.completedFiles} / ${s.totalFiles} ${t("general.files", { suffix: "" })}`];
+  if (s.failedFiles > 0) {
+    parts.push(t("prompts.uploadSummaryFailed", { count: s.failedFiles }));
+  }
+  if (isTransferring.value && bytesPerSecond.value > 0) {
+    parts.push(`${getHumanReadableFilesize(bytesPerSecond.value)}/s`);
+    const remainingSeconds = (s.totalBytes - s.uploadedBytes) / bytesPerSecond.value;
+    parts.push(t("prompts.uploadSummaryRemaining", { time: formatRemainingTime(remainingSeconds, toStandardLocale(locale.value)) }));
+  }
+  return parts.join(" · ");
+});
+
 watch(isUploading, (active) => {
   if (active) {
     void acquireWakeLock();
@@ -455,6 +534,7 @@ onUnmounted(() => {
   document.removeEventListener("visibilitychange", handleVisibilityChange);
   uploadManager.setOnConflict(() => {}); // cleanup
   releaseWakeLock();
+  stopRateSampling();
 });
 
 const uploadActionButtons = computed(() => [
@@ -524,7 +604,7 @@ async function getFilesFromDirectoryEntry(entry: FileSystemEntry): Promise<Uploa
   if (entry.isFile) {
     return new Promise((resolve) => {
       (entry as FileSystemFileEntry).file((file) => {
-        const relativePath = entry.fullPath.startsWith("/") ? entry.fullPath.substring(1) : entry.fullPath;
+        const relativePath = entry.fullPath.startsWith("/") ? entry.fullPath.slice(1) : entry.fullPath;
         resolve([{ file, relativePath }]);
       });
     });
@@ -658,6 +738,17 @@ function getHelpText(file: UploadItem): string {
   min-height: 0;
 }
 
+.upload-summary {
+  margin-bottom: 1em;
+}
+
+.upload-summary-text {
+  margin: 0.3em 0 0;
+  color: #777;
+  font-size: 0.8em;
+  text-align: center;
+}
+
 .upload-item {
   display: flex;
   align-items: center;
@@ -753,7 +844,7 @@ function getHelpText(file: UploadItem): string {
   margin-left: 1em;
   min-width: 2ch;
   text-align: center;
-  font-weight: bold;
+  font-weight: 700;
 }
 
 .sizeInput {

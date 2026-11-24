@@ -34,7 +34,7 @@ func TestSyncEnforcedSourcePermissionsOntoUser_skipsAdmin(t *testing.T) {
 	enforced := SourceFilePermissionsEnforcement{Create: true}
 	u := &users.User{
 		FrontendUser: users.FrontendUser{
-			Username: "admin",
+			Username:    "admin",
 			Permissions: users.Permissions{Admin: true},
 		},
 		BackendScopes: []users.BackendScope{{
@@ -90,4 +90,3 @@ func TestValidateSelfUserUpdateScopesNotEnforced_caseInsensitive(t *testing.T) {
 		t.Fatal("expected mixed-case scope field to be blocked")
 	}
 }
-

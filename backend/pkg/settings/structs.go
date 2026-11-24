@@ -25,48 +25,45 @@ type Settings struct {
 }
 
 type Http struct {
-	Socket            string   `json:"socket"`            // socket to listen on - eg. /var/run/filebrowser.sock
-	TLSKey            string   `json:"tlsKey"`            // path to TLS key
-	TLSCert           string   `json:"tlsCert"`           // path to TLS cert
-	Port              int      `json:"port"`              // port to listen on
-	ListenAddress     string   `json:"listen"`            // address to listen on (default: 0.0.0.0)
-	BaseURL           string   `json:"baseURL"`           // base URL for the server, the subpath that the server is running on.
-	ExternalUrl       string   `json:"externalUrl"`       // used by share links if set (eg. http://mydomain.com)
-	InternalUrl       string   `json:"internalUrl"`       // used by integrations if set, this is the base domain that an integration service will use to communicate with filebrowser (eg. http://localhost:8080)
-	DisableWebDAV     bool     `json:"disableWebDAV"`     // disable webdav support (default: false)
-	TrustProxyHeaders bool     `json:"trustProxyHeaders"` // honor X-Forwarded-* and X-Real-IP from a reverse proxy (default: false)
-	TrustedProxies    []string `json:"trustedProxies"`    // IPs/CIDRs of trusted proxies; forwarded client headers are only honored when the socket peer matches one of these (default: empty = forwarded headers ignored)
-	// UnixSocketTrustedUIDs and UnixSocketTrustedGIDs list peer credentials (Linux SO_PEERCRED) allowed to
-	// present X-Forwarded-* on a filesystem http.socket listener. When both are empty, forwarded headers
-	// are not trusted on Unix sockets. Abstract sockets (@name) never trust forwarded headers.
-	UnixSocketTrustedUIDs []int  `json:"unixSocketTrustedUIDs"`
-	UnixSocketTrustedGIDs []int  `json:"unixSocketTrustedGIDs"`
-	SocketFileMode        string `json:"socketFileMode"`   // octal mode for filesystem http.socket (default "0660"); ignored for abstract sockets
-	SocketGroup           string `json:"socketGroup"`      // optional group name or numeric gid for the socket file (filesystem sockets only)
-	DisableRateLimit      bool   `json:"disableRateLimit"` // turns off built-in auth route rate limiting and failed-login lockout (default false).
+	Socket                       string   `json:"socket"`                       // socket to listen on - eg. /var/run/filebrowser.sock
+	TLSKey                       string   `json:"tlsKey"`                       // path to TLS key
+	TLSCert                      string   `json:"tlsCert"`                      // path to TLS cert
+	Port                         int      `json:"port"`                         // port to listen on
+	ListenAddress                string   `json:"listen"`                       // address to listen on (default: 0.0.0.0)
+	BaseURL                      string   `json:"baseURL"`                      // base URL for the server, the subpath that the server is running on.
+	ExternalUrl                  string   `json:"externalUrl"`                  // used by share links if set (eg. http://mydomain.com)
+	InternalUrl                  string   `json:"internalUrl"`                  // used by integrations if set, this is the base domain that an integration service will use to communicate with filebrowser (eg. http://localhost:8080)
+	DisableWebDAV                bool     `json:"disableWebDAV"`                // disable webdav support (default: false)
+	TrustProxyHeaders            bool     `json:"trustProxyHeaders"`            // honor X-Forwarded-* and X-Real-IP from a reverse proxy (default: false)
+	TrustedProxies               []string `json:"trustedProxies"`               // IPs/CIDRs of trusted proxies; forwarded client headers are only honored when the socket peer matches one of these (default: empty = forwarded headers ignored)
+	UnixSocketTrustedUIDs        []int    `json:"unixSocketTrustedUIDs"`        // UnixSocketTrustedUIDs and UnixSocketTrustedGIDs list peer credentials (Linux SO_PEERCRED) allowed to
+	UnixSocketTrustedGIDs        []int    `json:"unixSocketTrustedGIDs"`        // present X-Forwarded-* on a filesystem http.socket listener. When both are empty, peers are not trusted unless UnixSocketTrustAllLocalPeers is true (legacy; startup logs a warning). A GID allowlist trusts every peer with that GID, not only a single reverse-proxy process. Abstract sockets (@name) never trust forwarded headers.
+	UnixSocketTrustAllLocalPeers bool     `json:"unixSocketTrustAllLocalPeers"` // default false: set true to trust forwarded headers from any local filesystem socket peer when allowlists are empty
+	SocketFileMode               string   `json:"socketFileMode"`               // octal mode for filesystem http.socket (default "0660"); ignored for abstract sockets
+	SocketGroup                  string   `json:"socketGroup"`                  // optional group name or numeric gid for the socket file (filesystem sockets only)
+	DisableRateLimit             bool     `json:"disableRateLimit"`             // turns off built-in auth route rate limiting and failed-login lockout (default false).
 }
 
 type Environment struct {
-	IsCLIMode                        bool     `json:"-"` // true when running a CLI subcommand (user set, promote, etc.)
-	IsPlaywright                     bool     `json:"-"`
-	IsDevMode                        bool     `json:"-"`
-	IsFirstLoad                      bool     `json:"-"` // used internally to track if this is the first load of the application
-	ConfigUserDefaultsSpecified      bool     `json:"-"` // true when the config file contained a userDefaults section
-	ConfigUserDefaultsSpecifiedPaths []string `json:"-"` // dot-paths explicitly set under userDefaults in config
-	ConfigMediaSpecifiedPaths        []string `json:"-"` // dot-paths explicitly set under integrations.media in config
-	// ConfigSourceDefaultPermissions maps permission flags explicitly set in config defaultPermissions (e.g. view -> true).
-	ConfigSourceDefaultPermissions map[string]bool `json:"-"`
-	EmbeddedFs                     bool            `json:"-"` // used internally if compiled with embedded fs support
-	FFmpegPath                     string          `json:"-"`
-	FFprobePath                    string          `json:"-"`
-	FFmpegAvailable                bool            `json:"-"`
-	HardwareAccelerationAvailable  bool            `json:"-"` // true when ffmpeg reports at least one usable hardware encoder
-	LoginIconPath                  string          `json:"-"` // resolved login icon path (filesystem or embedded)
-	LoginIconIsCustom              bool            `json:"-"` // true if login icon is from custom filesystem path
-	LoginIconEmbeddedPath          string          `json:"-"` // embedded asset path for default icon
-	FaviconPath                    string          `json:"-"` // resolved favicon path (filesystem or embedded)
-	FaviconIsCustom                bool            `json:"-"` // true if favicon is from custom filesystem path
-	FaviconEmbeddedPath            string          `json:"-"` // embedded asset path for default favicon
+	IsCLIMode                        bool            `json:"-"` // true when running a CLI subcommand (user set, promote, etc.)
+	IsPlaywright                     bool            `json:"-"`
+	IsDevMode                        bool            `json:"-"`
+	IsFirstLoad                      bool            `json:"-"` // used internally to track if this is the first load of the application
+	ConfigUserDefaultsSpecified      bool            `json:"-"` // true when the config file contained a userDefaults section
+	ConfigUserDefaultsSpecifiedPaths []string        `json:"-"` // dot-paths explicitly set under userDefaults in config
+	ConfigMediaSpecifiedPaths        []string        `json:"-"` // dot-paths explicitly set under integrations.media in config
+	ConfigSourceDefaultPermissions   map[string]bool `json:"-"`
+	EmbeddedFs                       bool            `json:"-"` // used internally if compiled with embedded fs support
+	FFmpegPath                       string          `json:"-"`
+	FFprobePath                      string          `json:"-"`
+	FFmpegAvailable                  bool            `json:"-"`
+	HardwareAccelerationAvailable    bool            `json:"-"` // true when ffmpeg reports at least one usable hardware encoder
+	LoginIconPath                    string          `json:"-"` // resolved login icon path (filesystem or embedded)
+	LoginIconIsCustom                bool            `json:"-"` // true if login icon is from custom filesystem path
+	LoginIconEmbeddedPath            string          `json:"-"` // embedded asset path for default icon
+	FaviconPath                      string          `json:"-"` // resolved favicon path (filesystem or embedded)
+	FaviconIsCustom                  bool            `json:"-"` // true if favicon is from custom filesystem path
+	FaviconEmbeddedPath              string          `json:"-"` // embedded asset path for default favicon
 }
 
 type Server struct {
@@ -79,11 +76,12 @@ type Server struct {
 	DisableTypeDetectionByHeader bool           `json:"disableTypeDetectionByHeader"`                                  // disable type detection by header, useful if filesystem is slow.
 	Logging                      []LogConfig    `json:"logging" yaml:"logging"`
 	Sources                      []*Source      `json:"sources" validate:"required,dive"`
-	CacheDir                     string         `json:"cacheDir"`        // path to the cache directory, used for thumbnails and other cached files
-	CacheDirCleanup              bool           `json:"cacheDirCleanup"` // whether to automatically cleanup the cache directory. Note: docker must also mount a persistent volume to persist the cache (default: false)
-	MaxArchiveSizeGB             int64          `json:"maxArchiveSize"`  // maximum archive/unarchive size in GB. 0 means no limit. (default: 20)
-	Filesystem                   Filesystem     `json:"filesystem"`      // filesystem settings
-	IndexSqlConfig               IndexSqlConfig `json:"indexSqlConfig"`  // Index database SQL configuration
+	CacheDir                     string         `json:"cacheDir"`          // path to the cache directory, used for thumbnails and other cached files
+	CacheDirCleanup              bool           `json:"cacheDirCleanup"`   // whether to automatically cleanup the cache directory. Note: docker must also mount a persistent volume to persist the cache (default: false)
+	CacheDirMaxSizeMB            int64          `json:"cacheDirMaxSizeMB"` // maximum size in MB of the preview cache (cacheDir/diskcache). Past it, the least recently used files are deleted. 0 means no limit (default: 0)
+	MaxArchiveSizeGB             int64          `json:"maxArchiveSize"`    // maximum archive/unarchive size in GB. 0 means no limit. (default: 20)
+	Filesystem                   Filesystem     `json:"filesystem"`        // filesystem settings
+	IndexSqlConfig               IndexSqlConfig `json:"indexSqlConfig"`    // Index database SQL configuration
 	// not exposed to config
 	SourceMap    map[string]*Source `json:"-" validate:"omitempty"` // uses realpath as key
 	NameToSource map[string]*Source `json:"-" validate:"omitempty"` // uses name as key
@@ -166,52 +164,69 @@ func (o OnlyOffice) IsCollabora() bool {
 }
 
 type Media struct {
-	FfmpegPath string `json:"ffmpegPath"` // path to ffmpeg directory with ffmpeg and ffprobe (eg. /usr/local/bin)
-	// SkipHwCheck skips the ffmpeg hardware codec probe entirely (software-only).
-	// Config-only, not a runtime setting — advanced use, e.g. keeping the
-	// multi-second probe out of CI startup.
-	SkipHwCheck bool `json:"skipHwCheck"`
+	FfmpegPath  string `json:"ffmpegPath"`  // path to ffmpeg directory with ffmpeg and ffprobe (eg. /usr/local/bin)
+	SkipHwCheck bool   `json:"skipHwCheck"` // SkipHwCheck skips the ffmpeg hardware codec probe entirely (software-only).
 
 	// The fields below are deprecated and migrated to runtime (DB-backed) media settings on
 	// first run. They are kept only to seed the database from an existing config.yaml.
 
-	Convert                  FfmpegConvert  `json:"convert"`                  // deprecated: config for ffmpeg conversion settings. deprecated: manage via the admin media settings API
-	Debug                    bool           `json:"debug"`                    // deprecated: output ffmpeg stdout for media integration. deprecated: manage via the admin media settings API
-	ExtractEmbeddedSubtitles bool `json:"extractEmbeddedSubtitles"` // deprecated: no longer configurable; embedded subtitles are always extracted
-	HardwareAcceleration     bool           `json:"hardwareAcceleration"`     // deprecated: enable hardware acceleration for ffmpeg if available. deprecated: manage via the admin media settings API
-	Transcode                MediaTranscode `json:"transcode"`                // deprecated: HLS transcoding for media playback. deprecated: manage via the admin media settings API
+	Convert                  FfmpegConvert      `json:"convert"`                  // deprecated: config for ffmpeg conversion settings. deprecated: manage via the admin media settings API
+	Debug                    bool               `json:"debug"`                    // deprecated: output ffmpeg stdout for media integration. deprecated: manage via the admin media settings API
+	ExtractEmbeddedSubtitles bool               `json:"extractEmbeddedSubtitles"` // deprecated: no longer configurable; embedded subtitles are always extracted
+	HardwareAcceleration     bool               `json:"hardwareAcceleration"`     // deprecated: enable hardware acceleration for ffmpeg if available. deprecated: manage via the admin media settings API
+	Transcode                FullAdminTranscode `json:"transcode"`                // deprecated: HLS transcoding for media playback. deprecated: manage via the admin media settings API
 
 	// AccelDevice selects the acceleration device: "auto" (default), "software"/"cpu",
 	// "igpu", "dgpu", a Linux DRM render node (e.g. /dev/dri/renderD128), or a GPU
 	// name substring. Managed via the admin media settings API.
-	AccelDevice     string `json:"accelDevice"`     // deprecated: manage via the admin media settings API
-	AlwaysUseFfmpeg bool   `json:"alwaysUseFfmpeg"` // deprecated: manage via the admin media settings API
-	AlwaysUseOnlyOffice bool `json:"alwaysUseOnlyOffice"` // deprecated: skip folio previews for office converter; manage via the admin media settings API
+	AccelDevice         string `json:"accelDevice"`         // deprecated: manage via the admin media settings API
+	AlwaysUseFfmpeg     bool   `json:"alwaysUseFfmpeg"`     // deprecated: manage via the admin media settings API
+	AlwaysUseOnlyOffice bool   `json:"alwaysUseOnlyOffice"` // deprecated: skip folio previews for office converter; manage via the admin media settings API
 }
 
-// MediaSettings holds the runtime (DB-backed) media integration settings.
-// FfmpegPath is config-only and intentionally excluded.
-type MediaSettings struct {
-	Convert              FfmpegConvert `json:"convert"`              // config for ffmpeg conversion settings
-	Debug                bool          `json:"debug"`                // output ffmpeg stdout for media integration -- careful can produces lots of output!
-	HardwareAcceleration bool          `json:"hardwareAcceleration"` // enable hardware acceleration for ffmpeg if available
-	AccelDevice          string        `json:"accelDevice"`          // acceleration device: "auto", "software"/"cpu", "igpu", "dgpu", a DRM render node, or a GPU name substring
-	AlwaysUseFfmpeg          bool           `json:"alwaysUseFfmpeg"`          // skip the go-media fast path and use ffmpeg for all probe, metadata, subtitle, and thumbnail work (default: false)
-	AlwaysUseOnlyOffice      bool           `json:"alwaysUseOnlyOffice"`      // skip folio document previews and use the office converter when configured (default: false)
-	Transcode                MediaTranscode `json:"transcode"`                // HLS transcoding for media playback
+// FullAdminMedia holds every runtime (DB-backed) media integration setting.
+// ADMIN ONLY: non-admins receive UserMedia instead. FfmpegPath is config-only and intentionally excluded.
+// ImagePreview is derived at read time (see PrepMediaForFrontend) and is cleared before save.
+type FullAdminMedia struct {
+	ImagePreview         map[ImagePreviewType]bool `json:"imagePreview,omitempty"` // image formats that can be converted
+	Convert              FfmpegConvert             `json:"convert"`                // config for ffmpeg conversion settings
+	Debug                bool                      `json:"debug"`                  // output ffmpeg stdout for media integration -- careful can produces lots of output!
+	HardwareAcceleration bool                      `json:"hardwareAcceleration"`   // enable hardware acceleration for ffmpeg if available
+	AccelDevice          string                    `json:"accelDevice"`            // acceleration device: "auto", "software"/"cpu", "igpu", "dgpu", a DRM render node, or a GPU name substring
+	AlwaysUseFfmpeg      bool                      `json:"alwaysUseFfmpeg"`        // skip the go-media fast path and use ffmpeg for all probe, metadata, subtitle, and thumbnail work (default: false)
+	AlwaysUseOnlyOffice  bool                      `json:"alwaysUseOnlyOffice"`    // skip folio document previews and use the office converter when configured (default: false)
+	Transcode            FullAdminTranscode        `json:"transcode"`              // HLS transcoding for media playback
 }
 
-// MediaTranscode configures authenticated HLS transcoding (disabled by default).
-type MediaTranscode struct {
-	Enabled              bool              `json:"enabled"`              // enable HLS transcoding for authenticated playback (default: false)
-	MaxConcurrent        int               `json:"maxConcurrent"`        // global concurrent transcode sessions (default: 2)
-	MaxConcurrentPerUser int               `json:"maxConcurrentPerUser"` // hard per-user concurrent transcode ceiling (default: 1)
-	CacheMaxSizeMB       int               `json:"cacheMaxSizeMB"`       // disk cache size limit in MB; 0 = unlimited (default: 10240)
-	CacheRetentionH      int               `json:"cacheRetentionH"`      // completed cache retention in hours (default: 24)
-	Profiles             TranscodeProfiles `json:"profiles"`             // per-profile transcode settings shown in the player menu
-	MaxResolution        int               `json:"maxResolution"`        // superseded by profiles.<name>.maxResolution. deprecated: kept for config compatibility
-	EncoderBackend       string            `json:"encoderBackend"`       // default video encoder backend for transcodes: "" (auto), "cpu", or an accel backend (nvenc, amf, qsv, vaapi, d3d12, videotoolbox)
-	ReadRate             float64           `json:"readRate"`             // VOD producer input pacing in Nx realtime (-readrate); unset or <1 clamps to >=1 (default: 2)
+// UserTranscode is PUBLIC: transcode fields every authenticated user receives in
+// the UserMedia payload. FullAdminTranscode embeds it, so the same JSON keys appear
+// in both admin and user responses. Add a field here only if the UI reads it.
+type UserTranscode struct {
+	Enabled              bool     `json:"enabled"`                   // enable HLS transcoding for authenticated playback (default: false)
+	MaxConcurrentPerUser int      `json:"maxConcurrentPerUser"`      // hard per-user concurrent transcode ceiling (default: 1)
+	EnabledProfiles      []string `json:"enabledProfiles,omitempty"` // derived at read time (player-menu profile ids); never stored
+}
+
+// UserMedia is PUBLIC: the only media payload non-admin users receive.
+// Add a top-level key here only if the player or general UI reads it.
+type UserMedia struct {
+	Transcode    UserTranscode             `json:"transcode"`
+	ImagePreview map[ImagePreviewType]bool `json:"imagePreview"` // availability, derived at read time
+}
+
+// FullAdminTranscode configures authenticated HLS transcoding (disabled by default).
+// ADMIN ONLY beyond the embedded UserTranscode fields.
+type FullAdminTranscode struct {
+	// inline: flattens the public fields in YAML (config.yaml) the same way the embed
+	// flattens them in JSON, so config keys stay transcode.enabled, not transcode.UserTranscode.enabled.
+	UserTranscode   `yaml:",inline"`
+	MaxConcurrent   int               `json:"maxConcurrent"`   // global concurrent transcode sessions (default: 2)
+	CacheMaxSizeMB  int               `json:"cacheMaxSizeMB"`  // disk cache size limit in MB; 0 = unlimited (default: 10240)
+	CacheRetentionH int               `json:"cacheRetentionH"` // completed cache retention in hours (default: 24)
+	Profiles        TranscodeProfiles `json:"profiles"`        // per-profile transcode settings shown in the player menu
+	MaxResolution   int               `json:"maxResolution"`   // superseded by profiles.<name>.maxResolution. deprecated: kept for config compatibility
+	EncoderBackend  string            `json:"encoderBackend"`  // default video encoder backend for transcodes: "" (auto), "cpu", or an accel backend (nvenc, amf, qsv, vaapi, d3d12, videotoolbox)
+	ReadRate        float64           `json:"readRate"`        // VOD producer input pacing in Nx realtime (-readrate); unset or <1 clamps to >=1 (default: 2)
 }
 
 // TranscodeProfiles configures the player's transcode quality presets.
@@ -223,7 +238,7 @@ type TranscodeProfiles struct {
 
 // TranscodeProfile configures a single transcode quality preset.
 type TranscodeProfile struct {
-	Enabled        bool   `json:"enabled"`        // show this preset in the player menu (default: true)
+	Enabled        bool   `json:"enabled"`        // show this preset in the player menu (default: false)
 	MaxResolution  int    `json:"maxResolution"`  // maximum output height in pixels; 0 = original
 	AvgBitrateKbps int    `json:"avgBitrateKbps"` // average video bitrate in kbps; 0 = original
 	EncoderBackend string `json:"encoderBackend"` // encoder backend override; "" inherits transcode.encoderBackend
@@ -478,6 +493,7 @@ type UserDefaultsFileViewer struct {
 	DisableViewingExt       string `json:"disableViewingExt"`       // comma separated list of file extensions to disable viewing for
 	DisableOnlyOfficeExt    string `json:"disableOnlyOfficeExt"`    // list of file extensions to disable onlyoffice editor for
 	PreferEditorForMarkdown bool   `json:"preferEditorForMarkdown"` // prefer editor first for markdown files instead of the Markdown Viewer
+	PreferEditorForHtml     bool   `json:"preferEditorForHtml"`     // prefer editor first for HTML files instead of the HTML viewer
 	DebugOffice             bool   `json:"debugOffice"`             // debug onlyoffice editor
 }
 
@@ -488,10 +504,10 @@ type UserDefaultsSearch struct {
 
 // UserDefaultsUI holds UI/appearance settings
 type UserDefaultsUI struct {
-	DarkMode    *bool  `json:"darkMode"`    // should dark mode be enabled
-	ThemeColor  string `json:"themeColor"`  // theme color to use: eg. #ff0000, or var(--red), var(--purple), etc
-	CustomTheme string `json:"customTheme"` // Name of theme to use chosen from custom themes config
-	Locale      string `json:"locale"`      // language to use: eg. de, en, or fr
+	DarkMode    users.DarkMode `json:"darkMode"`    // theme preference: "auto" (follow system), "dark", or "light"
+	ThemeColor  string         `json:"themeColor"`  // theme color to use: eg. #ff0000, or var(--red), var(--purple), etc
+	CustomTheme string         `json:"customTheme"` // Name of theme to use chosen from custom themes config
+	Locale      string         `json:"locale"`      // language to use: eg. de, en, or fr
 
 }
 
@@ -504,6 +520,7 @@ type UserDefaultsAccount struct {
 	LoginMethod                string                         `json:"loginMethod,omitempty"`      // login method to use: eg. password, proxy, oidc
 	DisableUpdateNotifications bool                           `json:"disableUpdateNotifications"` // disable update notifications banner for admin users
 	ShowAdvancedProfile        bool                           `json:"showAdvancedProfile"`        // show advanced profile settings in the user profile page
+	AllowCustomShareURL        *bool                          `json:"allowCustomShareURL"`        // allow users to choose custom share URLs (default: false)
 	MaxConcurrentTranscodes    int                            `json:"maxConcurrentTranscodes"`    // per-user concurrent transcode sessions (default: 1)
 }
 

@@ -59,6 +59,18 @@
         :name="$t('profileSettings.showAdvancedProfile')"
         :description="$t('profileSettings.showAdvancedProfileDescription')"
       />
+      <ToggleSwitch
+        class="item"
+        :enforceable="enforceable"
+        :enforced="!!enforced.allowCustomShareURL"
+        :model-value="!!account.allowCustomShareURL"
+        @update:model-value="(v) => emitAccountChange('allowCustomShareURL', v)"
+        @update:enforced="(v) => emitEnforced('allowCustomShareURL', v)"
+        :disabled="isFieldDisabled('allowCustomShareURL')"
+        :value-tooltip="fieldDisabledTooltip('allowCustomShareURL')"
+        :name="$t('share.customHash')"
+        :description="$t('profileSettings.allowCustomShareURLDescription')"
+      />
       <div
         v-if="enforceable || account.maxConcurrentTranscodes !== undefined"
         class="settings-number-input item"
@@ -77,7 +89,7 @@
             step="1"
             :value="account.maxConcurrentTranscodes"
             @change="emitAccountChange('maxConcurrentTranscodes', clampMaxConcurrentTranscodes($event.target.value))"
-            :disabled="isFieldDisabled('maxConcurrentTranscodes')"
+            :disabled="isFieldDisabled('maxConcurrentTranscodes') || !maxConcurrentTranscodesLimitKnown"
           />
         </div>
       </div>
@@ -138,8 +150,7 @@ import SettingsItem from "@/components/settings/SettingsItem.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
 import { getObjectProperty } from "@/utils/object.js";
-import { globalVars } from "@/utils/constants";
-import { state } from "@/store";
+import { state } from "@/store/index.ts";
 
 let transcodeInputCounter = 0;
 
@@ -184,7 +195,11 @@ export default {
       default: false,
     },
   },
-  emits: ["account-change", "enforced-change", "enforced-permission-change"],
+  emits: {
+    "account-change": (change) => typeof change?.field === "string",
+    "enforced-change": (change) => typeof change?.field === "string",
+    "enforced-permission-change": (change) => typeof change?.field === "string",
+  },
   data() {
     transcodeInputCounter += 1;
     return {
@@ -192,14 +207,15 @@ export default {
     };
   },
   computed: {
+    maxConcurrentTranscodesLimitKnown() {
+      return this.maxConcurrentTranscodesLimit !== undefined;
+    },
     maxConcurrentTranscodesLimit() {
-      // Prefer the live media settings; globalVars are static page constants.
-      const live = state.mediaPlayerSettings?.maxConcurrentPerUser;
+      const live = state.mediaSettings?.maxConcurrentPerUser;
       if (Number.isFinite(live) && live > 0) {
         return live;
       }
-      const limit = globalVars?.transcodeMaxPerUser;
-      return Number.isFinite(limit) && limit > 0 ? limit : undefined;
+      return undefined;
     },
   },
   methods: {
@@ -251,13 +267,13 @@ export default {
       return "";
     },
     emitAccountChange(field, value) {
-      this.$emit("account-change", field, value);
+      this.$emit("account-change", { field, value });
     },
     emitEnforced(field, value) {
-      this.$emit("enforced-change", field, value);
+      this.$emit("enforced-change", { field, value });
     },
     emitEnforcedPermission(field, value) {
-      this.$emit("enforced-permission-change", field, value);
+      this.$emit("enforced-permission-change", { field, value });
     },
   },
 };

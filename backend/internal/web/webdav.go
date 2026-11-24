@@ -19,6 +19,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/internal/activity"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/files"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/fileutils"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/database/access"
 	activitydb "github.com/gtsteffaniak/filebrowser/backend/internal/database/activity"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 	commonerrors "github.com/gtsteffaniak/filebrowser/backend/internal/errors"
@@ -237,6 +238,35 @@ func (ffs *filteredFileSystem) checkScopePath(requestPath string, forRemoval boo
 	return err
 }
 
+// checkResolvedAccess enforces per-path DENY rules on the symlink-resolved target.
+func (ffs *filteredFileSystem) checkResolvedAccess(requestPath string, forRemoval bool) error {
+	idx := indexing.GetIndex(ffs.source)
+	if idx == nil {
+		return fmt.Errorf("source not found")
+	}
+	userScope, err := ffs.user.GetScopeForSourceName(ffs.source)
+	if err != nil {
+		return err
+	}
+	fullIndexPath := utils.JoinScopedIndexPath(userScope, strings.TrimPrefix(requestPath, "/"))
+	var realPath string
+	if forRemoval {
+		realPath, err = idx.GetRealPathForRemoval(userScope, fullIndexPath)
+	} else {
+		realPath, err = idx.GetRealPathForMutation(userScope, fullIndexPath)
+	}
+	if err != nil {
+		if errors.Is(err, commonerrors.ErrPathEscapesScope) {
+			return os.ErrPermission
+		}
+		return err
+	}
+	if !state.AccessPermittedAtRealPath(idx, ffs.user.Username, realPath, access.IsDirAtRealPath(realPath)) {
+		return os.ErrPermission
+	}
+	return nil
+}
+
 func (ffs *filteredFileSystem) requireCreatePermissionForNewFile(requestPath string) error {
 	idx := indexing.GetIndex(ffs.source)
 	if idx == nil {
@@ -412,6 +442,9 @@ func (ffs *filteredFileSystem) Mkdir(ctx context.Context, name string, perm os.F
 		logger.Debugf("Mkdir: scope check denied for %s: %v", name, err)
 		return err
 	}
+	if err := ffs.checkResolvedAccess(name, false); err != nil {
+		return err
+	}
 
 	if err := ffs.fs.Mkdir(ctx, name, perm); err != nil {
 		return err
@@ -450,6 +483,9 @@ func (ffs *filteredFileSystem) OpenFile(ctx context.Context, requestPath string,
 			logger.Debugf("OpenFile: scope check denied for %s: %v", requestPath, err)
 			return nil, err
 		}
+		if err := ffs.checkResolvedAccess(requestPath, false); err != nil {
+			return nil, err
+		}
 
 		if (flag&os.O_CREATE) != 0 && !ffs.sourceFilePerms().Create {
 			if err := ffs.requireCreatePermissionForNewFile(requestPath); err != nil {
@@ -461,6 +497,9 @@ func (ffs *filteredFileSystem) OpenFile(ctx context.Context, requestPath string,
 		if err := ffs.checkScopePath(requestPath, false); errors.Is(err, os.ErrPermission) {
 			logger.Debugf("OpenFile: read denied by scope for %s", requestPath)
 			return nil, os.ErrPermission
+		}
+		if err := ffs.checkResolvedAccess(requestPath, false); err != nil {
+			return nil, err
 		}
 	}
 

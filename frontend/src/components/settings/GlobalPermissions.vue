@@ -20,7 +20,9 @@ export default {
       required: true,
     },
   },
-  emits: ["update:permissions"],
+  emits: {
+    "update:permissions": (permissions) => typeof permissions === "object" && permissions !== null,
+  },
   components: {
     ToggleSwitch,
   },

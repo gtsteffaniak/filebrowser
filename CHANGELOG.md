@@ -5,13 +5,23 @@ All notable changes to this project will be documented in this file. For commit 
 ## v2.2.0
 
  **New Features**:
-  - Core web assets are loaded into memory instead of served from disk.
   - Media enhancements
     - All server media settings can be managed in settings by admins.
     - JXL image preview support (#3334) (#2551)
-    - Transcoding for media playback with quality presets -- requires ffmpeg.
+    - Transcoding for media playback with quality presets (requires ffmpeg).
     - Hardware Acceleration device selector (Software / detected GPU devices)
-    - More operations use native api operations rather than ffmpeg, improving performance in many cases. Added temporary config option to force ffmpeg to be used
+    - More operations use native api operations rather than ffmpeg, improving performance in many cases. Added temporary config option to force ffmpeg to be used..
+      - HLS keyframe indexes for MP4/MOV/M4V/MKV/WebM are read from the container index with go-media instead of demuxing every packet with ffprobe; ffprobe still runs when go-media cannot read the file or reports a keyframe gap that would rule out stream copy.
+      - HEIC/AVIF rotation (irot) for the ffmpeg decode fallback is read with go-media instead of a full `ffmpeg -f null` decode.
+      - AVIF images get previews through the HEIC preview path (go-media decode, ffmpeg fallback) when HEIC previews are enabled.
+      - WMV/ASF video thumbnails use go-media for WMV3; WMV1/WMV2 still use ffmpeg.
+      - ffmpeg and go-media share one media metadata cache keyed by path, size and modification time, so a probe, duration or subtitle result from either backend is reused by the other.
+      - Preview cache keys use a faster, non-cryptographic xxHash instead of MD5. When upgrading from a version older than v2.2.0, the preview and thumbnail cache is cleared once at startup and previews regenerate on demand. The index database is not affected.
+      - Camera RAW previews use the largest embedded JPEG that fits the decode size limit. Some Nikon NEF files, whose full-size JPEG exceeded the limit, previously showed no preview.
+      - Original-size previews of camera RAW files and other embedded images (JPEG, PNG, WebP) are returned as stored, without decoding, resizing, or re-encoding. Rotated JPEGs are still corrected for orientation.
+      - HEIC/HEIF previews decode at the requested preview size for small and large previews instead of decoding full resolution, and the JPEG is encoded straight from the decoded YCbCr planes, which reduces CPU time and memory.
+      - HEIC/HEIF files with extra bytes after the last valid container box (for example some Samsung files) now decode instead of failing.
+      - HEIC/HEIF previews from the coded decode path convert limited-range YCbCr to full range before JPEG encoding.
   - Document enhancements
     - Official Collabora support using WOPI config.
     - Document previews use a pure-go in-process package (all versions get it now).
@@ -30,12 +40,17 @@ All notable changes to this project will be documented in this file. For commit 
     - Listings now are cached (with a cap) allowing a more responsive navigation between folders (#3193).
   - Upload and download prompts list is reversed (#2998) (#3328).
   - Replaced `indented soft wrap` editor setting by a dropdown with more wrap settings (#3183) (#3282).
+  - Specify custom share URI is possible when user account settings are enabled via `userDefaults.Account.allowCustomShareURL: true` (default `false`). default generated hash values for a share will still work after creating a custom one.
+  - Slideshow when browsing a picture folder (#3339)
 
  **Notes**:
+ - Core web assets are loaded into memory instead of served from disk.
  - **Document preview formats:** New in-process support includes **`.azw3`**, **`.chm`**, **`.htm`**, and **`.html`**. However, `.doc` continues to require the office integration for thumbnails. **`.xps`** and **`.cbz`** previews come from embedded images. With **Always use office for document previews** enabled, office files still use the office converter
  - UPX compression is removed from release builds.
- - A `filebrowser-media` image is published alongside the main and slim images.
+ - A `filebrowser-gpu` image is published alongside the main and slim images (amd64, hardware-accelerated ffmpeg).
  - Previews (thumbnails, popup, and text previews) are no longer requested for sources the user does not have view access to.
+ - [docker] new filebrowser-gpu image for docker deployments with gpu devices available. Works for nvidia, AMD, Intel.
+ - [docker] ffmpeg upgraded to version 9.1
 
  **Bug Fixes**:
  - Closing a video preview from the header bar now stops playback immediately instead of leaving audio running in the background.
@@ -46,6 +61,8 @@ All notable changes to this project will be documented in this file. For commit 
  - Media probes are cached by file identity and concurrent reads are coalesced, so opening a file no longer triggers repeated ffprobe runs.
  - Client-initiated stream cancels (seek/navigation) no longer log spurious write-error responses.
  - Gzipped `.woff` font files are no longer generated without being served; only `.js` and `.woff2` are precompressed.
+ - Album art detection during indexing walks container headers instead of scanning a fixed-size prefix. M4A/MP4 cover art is found wherever `moov` sits in the file, and M4A files without cover art no longer report a preview. MP3 (ID3v2.2-2.4), FLAC and Ogg Vorbis/Opus/FLAC detection now finds art after large frames, padding or long comments, within per-format scan limits (for example, at most 256 KiB of an unsynchronised ID3v2.3 tag is read). Pictures that only link to an image URL are not counted.
+- Ogg/Opus and Vorbis `METADATA_BLOCK_PICTURE` comments now use the same PICTURE parser as FLAC, so cover art with a MIME type or description — including images whose stored height is 0 — is detected, and empty picture data is not.
  - Text preview tiles no longer show the bottom truncation fade; truncated content is clipped at the tile edge instead.
  - Text preview tiles lay out at a minimum width and are clipped, instead of wrapping aggressively on narrow tiles.
  - Queued text preview requests are canceled when their tiles unmount, so scrolling through a folder of text files and then opening another folder no longer delays the new folder's previews.

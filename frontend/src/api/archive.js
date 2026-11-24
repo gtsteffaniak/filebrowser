@@ -1,6 +1,6 @@
 import { notify } from "@/notify/index.ts";
-import { getApiPath, getParentDir } from "@/utils/url.js";
-import { invalidateDirMetadataCache, invalidateDirMetadataItem } from "@/utils/cache/metadataCache.ts";
+import { getApiPath } from "@/utils/url.js";
+import { invalidateDirMetadataItem, markDirMetadataItemChanged } from "@/utils/cache/metadataCache.ts";
 import { fetchURL } from "./utils.ts";
 
 /**
@@ -35,7 +35,7 @@ export async function createArchive(opts) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     });
-    invalidateDirMetadataCache({ source: toSource || fromSource, path: getParentDir(destination) });
+    markDirMetadataItemChanged({ source: toSource || fromSource }, destination);
     if (deleteAfter) {
       for (const p of paths) {
         invalidateDirMetadataItem({ source: fromSource }, p);
@@ -81,7 +81,7 @@ export async function unarchive(opts) {
       body: JSON.stringify(body),
     });
     if (!preview) {
-      invalidateDirMetadataCache({ source: toSource || fromSource, path: destination });
+      invalidateDirMetadataItem({ source: toSource || fromSource }, destination);
       if (deleteAfter) {
         invalidateDirMetadataItem({ source: fromSource }, path);
       }

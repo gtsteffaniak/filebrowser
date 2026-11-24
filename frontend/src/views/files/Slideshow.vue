@@ -56,13 +56,6 @@
       {{ currentSlide.name }}
     </div>
 
-    <div class="slideshow-chrome slideshow-top-left">
-      <button type="button" class="button button--flat slideshow-exit" :aria-label="$t('slideshow.exit')"
-        :title="$t('slideshow.exit')" @click.stop="exit">
-        <i class="material-symbols">{{ icons.close }}</i>
-      </button>
-    </div>
-
     <div v-if="slides.length" class="slideshow-chrome slideshow-top-right">
       {{ paused
         ? $t("slideshow.counterPaused", { current: index + 1, total: slides.length })
@@ -70,6 +63,10 @@
     </div>
 
     <div v-if="slides.length" class="slideshow-chrome slideshow-controls" @click.stop>
+      <button type="button" class="button button--flat" :aria-label="$t('slideshow.exit')"
+        :title="$t('slideshow.exit')" @click.stop="exit">
+        <i class="material-symbols">{{ icons.close }}</i>
+      </button>
       <button type="button" class="button button--flat" :aria-label="$t('slideshow.previous')" @click="goPrev">
         <i class="material-symbols">{{ icons.previous }}</i>
       </button>
@@ -635,12 +632,6 @@ export default {
   opacity: 1;
 }
 
-.slideshow-top-left {
-  position: absolute;
-  top: 1em;
-  left: 1em;
-}
-
 .slideshow-top-right {
   position: absolute;
   top: 1em;
@@ -650,25 +641,7 @@ export default {
   background: rgb(0 0 0 / 55%);
 }
 
-/* Round, icon-only floating button, matching the FloatingActionButton style. */
-.slideshow-exit {
-  width: 2.75em;
-  height: 2.75em;
-  padding: 0;
-  border-radius: 50%;
-  background: rgb(0 0 0 / 55%);
-  box-shadow: 0 2px 8px rgb(0 0 0 / 40%);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Outside fullscreen the app navbar is visible, so the top buttons sit below it with extra padding. */
-.slideshow.below-navbar .slideshow-top-left {
-  top: calc(var(--header-height) + 1em);
-  left: 1.5em;
-}
-
+/* Outside fullscreen the app navbar is visible, so the top counter sits below it with extra padding. */
 .slideshow.below-navbar .slideshow-top-right {
   top: calc(var(--header-height) + 1em);
   right: 1.5em;

@@ -13,8 +13,8 @@
         :icon="showDesktopPanel ? 'close' : 'queue_music'"
         :badge="!showDesktopPanel ? queueCount : null"
         :auto-hide="!showDesktopPanel"
-        :offset="{ zIndex: 9999 }"
-        @click="showDesktopPanel = !showDesktopPanel"
+        :offset="{ zIndex: '9999' }"
+        @press="showDesktopPanel = !showDesktopPanel"
         :label="desktopPanelToggleLabel"
       />
 
@@ -24,7 +24,7 @@
         <div class="audio-left-column">
           <!-- Album art with a generic icon if no image/metadata -->
           <div class="album-art-container"
-              :class="{ 'no-artwork': !albumArtUrl }"
+              :class="{ 'no-artwork': !artworkUrl }"
               :style="{
                 width: `${displayArtSize}em`,
                 maxWidth: '100%',
@@ -33,7 +33,7 @@
               @mouseenter="onAlbumArtHover"
               @mouseleave="onAlbumArtLeave"
               @wheel="onAlbumArtScroll">
-            <img class="no-select album-art" v-if="albumArtUrl" :src="albumArtUrl" :alt="metadata.album || 'Album art'" />
+            <img class="no-select album-art" v-if="artworkUrl" :src="artworkUrl" :alt="metadata.album || 'Album art'" />
             <div v-else class="album-art-fallback">
               <i class="material-symbols">music_note</i>
             </div>
@@ -105,7 +105,7 @@
 
       <!-- Audio controls -->
       <div class="audio-controls-container">
-        <div class="plyr-audio-container" ref="plyrAudioContainer">
+        <div class="plyr-audio-container">
           <audio :src="raw" :type="req.type" :autoplay="shouldAutoplay" @play="handlePlay" ref="audioElement"></audio>
         </div>
       </div>
@@ -127,20 +127,18 @@
     <!-- Video with plyr -->
     <div
       v-else-if="previewType === 'video'"
-      ref="videoPlayerContainer"
       class="video-player-container"
       :class="{
         'no-captions': !hasSubtitles,
         'video-player-container--transcode-switching': transcodeSwitchInProgress,
       }"
     >
-      <div class="plyr-video-container" ref="plyrVideoContainer">
+      <div class="plyr-video-container">
         <video
           ref="videoElement"
           :type="req.type"
-          preload="none"
           :src="nativeVideoSrc"
-          :poster="posterUrl"
+          :poster="artworkUrl"
           :autoplay="videoElementAutoplay"
           @play="handlePlay"
           @error="onVideoPlaybackError"
@@ -162,7 +160,6 @@
         <LoadingSpinner size="large" />
       </div>
       <div
-        ref="skipFeedbackLayer"
         class="video-skip-feedback-layer"
         :class="{
           'video-skip-feedback-layer--visible': skipFeedbackVisible,
@@ -181,7 +178,7 @@
       icon="queue_music"
       :badge="queueCount"
       group="plyr-controls"
-      @click="showQueuePrompt"
+      @press="showQueuePrompt"
       :label="queueButtonLabel"
     />
 
@@ -192,7 +189,7 @@
       position="top-left"
       zone-height="8.5em"
       group="plyr-controls"
-      @click="showMobileLyrics = !showMobileLyrics"
+      @press="showMobileLyrics = !showMobileLyrics"
       :label="lyricsToggleLabel"
     />
 
@@ -205,7 +202,7 @@
       size="small"
       :offset="{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 6rem)' }"
       :auto-hide="false"
-      @click="mobileLyricsScrollLocked = !mobileLyricsScrollLocked"
+      @press="mobileLyricsScrollLocked = !mobileLyricsScrollLocked"
       :label="mobileLyricsLockToggleLabel"
     />
 
@@ -246,18 +243,18 @@ import {
 import { getTypeFromMime } from '@/utils/files.js';
 import { buildItemUrl, removeTrailingSlash } from '@/utils/url.js';
 import AudioPanel from "@/components/files/AudioPanel.vue";
-import { getters, mutations, state } from '@/store';
+import { getters, mutations, state } from "@/store/index.ts";
 import { getObjectProperty } from '@/utils/object.js';
-import { globalVars } from '@/utils/constants';
-import { getSubtitleFormatExtension } from '@/utils/subtitles';
-import { getPreviewURL, getPreviewURLPublic } from '@/api/resources';
+import { globalVars } from "@/utils/constants.ts";
+import { getSubtitleFormatExtension } from "@/utils/subtitles.js";
+import { getPreviewURL, getPreviewURLPublic } from "@/api/resources.js";
 import {
   blockPlyrSeekOnInput,
   enablePlyrSeekOnRelease,
-} from '@/plyr/plyrSeekOnRelease';
-import { enablePlyrScrubPreview } from '@/plyr/plyrScrubPreview';
-import { enablePlyrVideoLoadingIndicator } from '@/plyr/plyrVideoLoading';
-import { enableOverlaidHintController } from '@/plyr/overlaidHintController';
+} from "@/plyr/plyrSeekOnRelease.js";
+import { enablePlyrScrubPreview } from "@/plyr/plyrScrubPreview.js";
+import { enablePlyrVideoLoadingIndicator } from "@/plyr/plyrVideoLoading.js";
+import { enableOverlaidHintController } from "@/plyr/overlaidHintController.js";
 import {
   appendMediaFragment,
   clearPendingInlineResumeFor,
@@ -281,7 +278,7 @@ import {
   parseTranscodeModeFromQuery,
   buildPlaybackQueryPatch,
   playbackQueryChanged,
-} from '@/utils/playbackQuery';
+} from "@/utils/playbackQuery.js";
 import {
   resolveTranscodeModeForPlayback,
   savePreferredTranscodeMode,
@@ -301,10 +298,10 @@ import { isPlayBlockedError, primePlay } from '@/plyr/playbackIntent.js';
 import { needsTranscodeFirst } from '@/utils/canBrowserPlayNative.js';
 import { getTranscodeSessions } from '@/api/transcode.js';
 import { getCachedViewToken } from '@/api/viewToken.js';
-import { notify } from '@/notify';
+import { notify } from "@/notify/index.ts";
 import { isInLeftNavTapZone, isInRightNavTapZone } from '@/utils/navigationEdgeZones.js';
 import { zoneFromClientX } from '@/plyr/gestureZones.js';
-import { ownsMediaSession as ownsMediaSessionSlot } from '@/utils/mediaSessionOwnership';
+import { ownsMediaSession as ownsMediaSessionSlot } from "@/utils/mediaSessionOwnership.js";
 
 const PLYR_CAPTION_SIZE_IDS = ['small', 'medium', 'large', 'xlarge'];
 /** Same localStorage key Plyr uses for `captions`, `language`, etc. (see Plyr defaults `storage.key`). */
@@ -374,7 +371,13 @@ export default {
       default: null,
     },
   },
-  emits: ['play', 'navigate-previous', 'navigate-next', 'close-preview', 'needs-transcode'],
+  emits: {
+    'playback-start': () => true,
+    'navigate-previous': () => true,
+    'navigate-next': () => true,
+    'close-preview': () => true,
+    'needs-transcode': () => true,
+  },
   data() {
     return {
       // Toast
@@ -385,7 +388,7 @@ export default {
       // Metadata & Art
       metadata: null, // Null by default, will be loaded from the audio file.
       albumArtUrl: null,
-      albumArtSize: parseFloat(sessionStorage.getItem('plyrAlbumArtSize')) || 24,
+      albumArtSize: Number.parseFloat(sessionStorage.getItem('plyrAlbumArtSize')) || 24,
       isHovering: false, // Track hover state
 
       // Lyrics
@@ -491,6 +494,12 @@ export default {
       transcodeMenuInitialized: false,
       transcodeModeButtons: null,
       transcodeModeValueSpan: null,
+      playbackButtons: null,
+      playbackValueSpan: null,
+      captionSizeButtons: null,
+      captionSizeValueSpan: null,
+      loopButtons: null,
+      loopValueSpan: null,
       transcodeOfferEmitted: false,
       mountPlyrInProgress: false,
       /** Armed when autoplay is blocked so the next user gesture can resume playback. */
@@ -690,11 +699,9 @@ export default {
     },
     showQueueButton() {
       if (this.previewType === 'video') {
-        if (this.isFullscreen) return false;
-        return true;
+        return !this.isFullscreen;
       }
-      if (this.isMobile && this.previewType === 'audio') return true;
-      return false;
+      return this.isMobile && this.previewType === 'audio';
     },
     mobileLyricsActive() {
       return this.isMobile && this.showMobileLyrics && this.lyrics.length > 0;
@@ -728,12 +735,12 @@ export default {
     },
     playbackModeMessage() {
       if (this.toastType === 'loop') {
-        return getLoopLabel(this.loop, this.$t);
+        return getLoopLabel(this.loop);
       }
       if (this.toastType === 'cleared') {
         return this.$t('player.queueCleared');
       }
-      return getModeLabel(this.playbackMode, this.$t);
+      return getModeLabel(this.playbackMode);
     },
     toastIcon() {
       if (this.toastType === 'loop') {
@@ -799,7 +806,8 @@ export default {
         && getters.previewPerms().video
       );
     },
-    posterUrl() {
+    artworkUrl() {
+      if (this.albumArtUrl) return this.albumArtUrl;
       if (!this.scrubPreviewEnabled) return undefined;
       return getters.isShare()
         ? getPreviewURLPublic(this.req.path, 'original')
@@ -850,17 +858,9 @@ export default {
       return needsTranscodeFirst(this.transcodeProbeParams());
     },
     transcodeProfileOptions() {
-      const live = state.mediaPlayerSettings?.profiles;
-      let configured;
-      if (Array.isArray(live)) {
-        configured = live;
-      } else {
-        configured = Array.isArray(globalVars.transcodeProfiles)
-          ? globalVars.transcodeProfiles
-          : PLYR_TRANSCODE_HLS_MODES;
-      }
-      const ids = configured.filter((id) => PLYR_TRANSCODE_HLS_MODES.includes(id));
-      return ids.length ? ids : PLYR_TRANSCODE_HLS_MODES;
+      const live = state.mediaSettings?.profiles;
+      const configured = Array.isArray(live) ? live : PLYR_TRANSCODE_HLS_MODES;
+      return configured.filter((id) => PLYR_TRANSCODE_HLS_MODES.includes(id));
     },
     shouldProactivelyOfferTranscode() {
       if (this.previewType !== 'video' || this.startTranscode) {
@@ -875,7 +875,7 @@ export default {
       const base = ['captions', 'captionSize', 'quality', 'speed', 'playback', 'loop'];
       // Register the slot whenever authenticated video can show it later.
       // Plyr only builds settings panels at mount; applyCustomSettings toggles
-      // visibility when media/live settings settle (e.g. after syncMediaPlayerSettings).
+      // visibility when media/live settings settle (e.g. after syncMediaSettings).
       if (this.previewType === 'video' && getters.isLoggedIn() && !getters.isShare()) {
         return [...base, 'transcodeMode'];
       }
@@ -996,7 +996,7 @@ export default {
         playsinline: true,
         clickToPlay: false, // we manage this ourselves with the gestures, plyr has a issue where this doesn't work in mobile.
         resetOnEnd: false,
-        preload: this.previewType === 'video' ? 'none' : 'metadata',
+        preload: 'none',
         fullscreen: {
           enabled: true,
           fallback: true,
@@ -1023,24 +1023,12 @@ export default {
     // Record the mounted file before any async prepare step so route-leave
     // detection works while Plyr is still waiting on subtitles/metadata.
     this.mountedPreviewKey = resolvePipMediaKey(this.req?.source, this.req?.path);
+    this.loadMediaMetadata();
     if (this.previewType === 'video' || this.previewType === 'audio') {
       await this.preparePlyrMount();
     }
-    if (this.previewType === "audio") {
-      this.loadAudioMetadata();
-    }
     document.addEventListener('keydown', this.handleKeydown);
-    this.pagehideHandler = (event) => {
-      if (event.persisted) return;
-      this.cleanupAudioVisualizer(); // to stop the visualizer when viewing another browser tab
-      // Tab close / page unload: stop the media element and fire a keepalive
-      // DELETE so the server session is released before the document tears down.
-      // A plain fetch would be cancelled mid-flight and leave the session
-      // counted against the per-user limit until the janitor reaps it.
-      this.teardownTranscodePlayback({ stopSession: true, keepalive: true });
-      this.stopMediaElement();
-    };
-    window.addEventListener('pagehide', this.pagehideHandler);
+    window.addEventListener('pagehide', this.onPageHide);
   },
   beforeUnmount() {
     // Cleanup timeouts
@@ -1060,10 +1048,16 @@ export default {
     } finally {
       this.clearMediaSession();
       document.removeEventListener('keydown', this.handleKeydown);
-      window.removeEventListener('pagehide', this.pagehideHandler);
+      window.removeEventListener('pagehide', this.onPageHide);
     }
   },
   methods: {
+    onPageHide(event) {
+      if (event.persisted) return;
+      this.cleanupAudioVisualizer(); // to stop the visualizer when viewing another browser tab
+      this.teardownTranscodePlayback({ stopSession: true, keepalive: true });
+      this.stopMediaElement();
+    },
     /** Plyr captions menu: show format only (e.g. `.srt`, `.ass`), not the video basename. */
     subtitleTrackLabel(sub) {
       const ext = getSubtitleFormatExtension(sub?.name || '');
@@ -1086,8 +1080,8 @@ export default {
       const fallbackUrl = fallbackIcon.includes('?')
         ? `${fallbackIcon}&t=${timestamp}`
         : `${fallbackIcon}?t=${timestamp}`;
-      // Video uses the same thumbnail as the poster; audio uses embedded album art (if any).
-      const artworkSrc = this.previewType === 'video' ? this.posterUrl : this.albumArtUrl;
+      // Video and audio uses the embedded artwork (if any), otherwise will fallback to the thumbnail/preview url.
+      const artworkSrc = this.artworkUrl;
       const metadata = {
         title: this.metadata?.title || this.fileName,
         artist: this.metadata?.artist || globalVars.name || "Filebrowser Quantum",
@@ -1247,6 +1241,7 @@ export default {
         return;
       }
       this.plyrTeardownDone = true;
+      this.cleanupAlbumArt();
 
       if (this.scrubPreviewCleanup) {
         this.scrubPreviewCleanup();
@@ -1310,7 +1305,6 @@ export default {
         this.clearRewindForwardFeedback();
         this.cleanupAudioVisualizer();
         this.clearMediaSession();
-        this.cleanupAlbumArt();
         this.player.off();
         if (leavingInPip && media) {
           registerPipSession(media, {
@@ -1384,7 +1378,7 @@ export default {
       if (this.plyrTeardownDone) {
         return;
       }
-      this.$emit('play');
+      this.$emit('playback-start');
       if (
         this.previewType === 'video'
         && this.isTranscodePlaybackMode
@@ -1646,39 +1640,25 @@ export default {
       this.albumArtSize = Math.max(10, Math.min(50, newSize));
     },
     // Load metadata from the backend response
-    loadAudioMetadata() {
-      if (this.previewType !== "audio") return;
-      // Check if metadata is already provided by the backend
-      if (this.req.metadata) {
-        this.metadata = {
-          title: this.req.metadata.title || this.fileName, // Fallback to filename
-          artist: this.req.metadata.artist || null,
-          album: this.req.metadata.album || null,
-          year: this.req.metadata.year || null
-        };
-        // Handle base64 encoded album art
-        if (this.req.metadata.albumArt) {
-          try {
-            const byteCharacters = atob(this.req.metadata.albumArt);
-            const byteArray = Uint8Array.from(byteCharacters, (c) => c.charCodeAt(0));
-            const blob = new Blob([byteArray], { type: 'image/jpeg' });
-            this.albumArtUrl = URL.createObjectURL(blob);
-          } catch (error) {
-            console.error("Failed to decode album art:", error);
-            this.albumArtUrl = null;
-          }
-        }
-      } else {
-        this.metadata = {
-          title: this.fileName,
-          artist: null,
-          album: null,
-          year: null,
-        };
+    loadMediaMetadata() {
+      const meta = this.req.metadata;
+      this.metadata = {
+        title: meta?.title || this.fileName, // Fallback to filename
+        artist: meta?.artist || null,
+        album: meta?.album || null,
+        year: meta?.year || null,
+      };
+      if (!meta?.albumArt) return;
+      // Base64 encoded art
+      try {
+        const bytes = Uint8Array.from(atob(meta.albumArt), (c) => c.charCodeAt(0));
+        this.albumArtUrl = URL.createObjectURL(new Blob([bytes], { type: 'image/jpeg' }));
+      } catch (error) {
+        console.error("Failed to decode album art:", error);
+        this.albumArtUrl = null;
       }
     },
     cleanupAlbumArt() {
-      if (this.previewType !== "audio") return;
       if (typeof this.albumArtUrl === 'string' && this.albumArtUrl.startsWith('blob:')) {
         URL.revokeObjectURL(this.albumArtUrl);
       }
@@ -2107,7 +2087,7 @@ export default {
         return;
       }
       mutations.setPlaybackState(true);
-      this.$emit('play');
+      this.$emit('playback-start');
     },
     initTranscodeModeFromRoute() {
       if (this.previewType !== 'video' || !this.transcodeEnabled) {
@@ -2701,7 +2681,7 @@ export default {
           ?? (() => this.player?.play?.() ?? el.play());
         void Promise.resolve(playCall()).then(() => {
           mutations.setPlaybackState(true);
-          this.$emit('play');
+          this.$emit('playback-start');
         }).catch(() => {});
       };
       if (el.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA && !el.paused) {
@@ -2898,12 +2878,9 @@ export default {
       return !!el.closest(
         '.plyr__controls, .plyr__control, .plyr__menu__container, .plyr__menu, ' +
         '[data-plyr="seek"], .plyr__progress, [data-plyr="volume"], .plyr__volume, ' +
-        '.audio-side-panel .tab-btn, ' +
+        '.audio-side-panel .sliding-tab, ' +
         '.audio-side-panel .fab-button, ' +
         '.audio-side-panel .lyric-line, ' +
-        '.audio-side-panel input[type="radio"], ' +
-        '.audio-side-panel label[for^="tab-"], ' +
-        '.audio-side-panel .mode-btn, ' +
         '.audio-side-panel .repeat-one-btn, ' +
         '.audio-side-panel .queue-item, ' +
         '.audio-side-panel .clear-queue-btn, ' +
@@ -3777,19 +3754,19 @@ export default {
         if (playbackBtn && playbackPanel) {
           playbackBtn.removeAttribute('hidden');
           const title = player.config.i18n?.playback || 'Playback';
-          const currentLabel = getModeLabel(this.playbackMode, this.$t, this.queueCount);
+          const currentLabel = getModeLabel(this.playbackMode, this.queueCount);
 
           if (!this.playbackMenuInitialized) {
             const menu = playbackPanel.querySelector('div[role="menu"]');
             menu.innerHTML = `
               <button data-plyr="playback" type="button" role="menuitemradio" class="plyr__control" value="single">
-                <span>${getModeLabel('single', this.$t)}</span>
+                <span>${getModeLabel('single')}</span>
               </button>
               <button data-plyr="playback" type="button" role="menuitemradio" class="plyr__control" value="sequential">
-                <span>${getModeLabel('sequential', this.$t)}</span>
+                <span>${getModeLabel('sequential')}</span>
               </button>
               <button data-plyr="playback" type="button" role="menuitemradio" class="plyr__control" value="shuffle">
-                <span>${getModeLabel('shuffle', this.$t)}</span>
+                <span>${getModeLabel('shuffle')}</span>
               </button>
             `;
             this.playbackButtons = menu.querySelectorAll('button[data-plyr="playback"]');
@@ -3811,7 +3788,7 @@ export default {
                     targetMode: value
                   });
                 }
-                const newLabel = getModeLabel(value, this.$t);
+                const newLabel = getModeLabel(value);
                 if (this.playbackValueSpan) this.playbackValueSpan.textContent = newLabel;
                 for (const b of this.playbackButtons) {
                   b.setAttribute('aria-checked', b.getAttribute('value') === value);
@@ -3846,19 +3823,19 @@ export default {
         if (loopBtn && loopPanel) {
           loopBtn.removeAttribute('hidden');
           const loopTitle = this.$t('player.loop');
-          const currentLoopLabel = getLoopLabel(this.loop, this.$t);
+          const currentLoopLabel = getLoopLabel(this.loop);
 
           if (!this.loopMenuInitialized) {
             const menu = loopPanel.querySelector('div[role="menu"]');
             menu.innerHTML = `
               <button data-plyr="loop" type="button" role="menuitemradio" class="plyr__control" value="off">
-                <span>${getLoopLabel('off', this.$t)}</span>
+                <span>${getLoopLabel('off')}</span>
               </button>
               <button data-plyr="loop" type="button" role="menuitemradio" class="plyr__control" value="all">
-                <span>${getLoopLabel('all', this.$t)}</span>
+                <span>${getLoopLabel('all')}</span>
               </button>
               <button data-plyr="loop" type="button" role="menuitemradio" class="plyr__control" value="single">
-                <span>${getLoopLabel('single', this.$t)}</span>
+                <span>${getLoopLabel('single')}</span>
               </button>
             `;
             this.loopButtons = menu.querySelectorAll('button[data-plyr="loop"]');
@@ -3878,7 +3855,7 @@ export default {
                     loop: value
                   });
                 }
-                const newLabel = getLoopLabel(value, this.$t);
+                const newLabel = getLoopLabel(value);
                 if (this.loopValueSpan) this.loopValueSpan.textContent = newLabel;
                 for (const b of this.loopButtons) {
                   b.setAttribute('aria-checked', b.getAttribute('value') === value);
@@ -4149,6 +4126,13 @@ export default {
 .plyr .plyr__progress__container {
   flex: 100%;
   margin: 0;
+}
+
+/* this is just a workaround, the own plyr poster was hiding the video poster and showing black
+   when it didn't loaded (somehow happens); but summarizing, this a bug of plyr, it also loads the poster image 2 times
+   cuz it sets the URL on the html video tags and in their own */
+.plyr__poster {
+  display: none !important;
 }
 
 /* Scrub preview popup (mounted on Plyr container / fullscreen root while scrubbing) */
@@ -4668,7 +4652,7 @@ export default {
 
 .lyric-line.active {
   opacity: 1;
-  font-weight: bold;
+  font-weight: 700;
   color: var(--primaryColor);
   font-size: 1.35rem;
   animation: lyric-line-in 0.3s ease;
@@ -4800,7 +4784,7 @@ export default {
 /* Metadata */
 .audio-title {
   font-size: max(1.4rem, 3.1vmin);
-  font-weight: bold;
+  font-weight: 700;
   margin-bottom: 8px;
   overflow-wrap: break-word;
 }

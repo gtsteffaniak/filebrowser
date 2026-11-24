@@ -48,6 +48,7 @@ func (s *SQLStore) GetShareByHash(hash string) (*share.Share, error) {
 
 	err := s.db.QueryRow(query, hash).Scan(
 		&link.Hash,
+		&link.Alias,
 		&userIDStr,
 		&link.SourcePath,
 		&link.Path,
@@ -79,6 +80,17 @@ func (s *SQLStore) GetShareByHash(hash string) (*share.Share, error) {
 	}
 
 	return &link, nil
+}
+
+// ShareHashExists reports whether an identifier is already used by a persisted share, either
+// as a share's internal hash or as its custom alias. Expired shares are included.
+func (s *SQLStore) ShareHashExists(identifier string) (bool, error) {
+	var exists int
+	err := s.db.QueryRow(`SELECT EXISTS(SELECT 1 FROM shares WHERE hash = ? OR alias = ?)`, identifier, identifier).Scan(&exists)
+	if err != nil {
+		return false, fmt.Errorf("failed to check share hash: %w", err)
+	}
+	return exists == 1, nil
 }
 
 // GetSharesByUserID retrieves all non-expired shares for an owner user id.
@@ -135,6 +147,7 @@ func (s *SQLStore) GetPermanentShare(source, path string, userID uint64) (*share
 
 	err := s.db.QueryRow(query, source, path, shareUserIDDB(userID)).Scan(
 		&link.Hash,
+		&link.Alias,
 		&userIDStr,
 		&link.SourcePath,
 		&link.Path,
@@ -210,11 +223,12 @@ func (s *SQLStore) SaveShare(link *share.Share) error {
 	var args []any
 	if hasLegacyToken {
 		query = `INSERT OR REPLACE INTO shares 
-			  (hash, user_id, source, path, expire, downloads, password_hash, 
+			  (hash, alias, user_id, source, path, expire, downloads, password_hash, 
 			   token, user_downloads, share_settings, version) 
-			  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+			  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 		args = []any{
 			link.Hash,
+			link.Alias,
 			shareUserIDDB(link.UserID),
 			link.SourcePath,
 			link.Path,
@@ -228,11 +242,12 @@ func (s *SQLStore) SaveShare(link *share.Share) error {
 		}
 	} else {
 		query = `INSERT OR REPLACE INTO shares 
-			  (hash, user_id, source, path, expire, downloads, password_hash, 
+			  (hash, alias, user_id, source, path, expire, downloads, password_hash, 
 			   user_downloads, share_settings, version) 
-			  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+			  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 		args = []any{
 			link.Hash,
+			link.Alias,
 			shareUserIDDB(link.UserID),
 			link.SourcePath,
 			link.Path,
@@ -314,6 +329,7 @@ func (s *SQLStore) scanShares(rows *sql.Rows) ([]*share.Share, error) {
 
 		err := rows.Scan(
 			&link.Hash,
+			&link.Alias,
 			&userIDStr,
 			&link.SourcePath,
 			&link.Path,

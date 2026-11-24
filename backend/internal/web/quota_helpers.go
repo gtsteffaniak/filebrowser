@@ -12,6 +12,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/files"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/adapters/fs/fileutils"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/database/access"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 	commonerrors "github.com/gtsteffaniak/filebrowser/backend/internal/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/quota"
@@ -170,6 +171,10 @@ func putResourceWithQuota(w http.ResponseWriter, r *http.Request, d *Context, so
 	realPath, err := idx.GetRealPathForMutation(boundIndexPath, fullIndexPath)
 	if err != nil {
 		return sanitizePutPathError(err)
+	}
+	permUser := accessCheckUsername(d)
+	if !state.AccessPermittedAtRealPath(idx, permUser, realPath, access.IsDirAtRealPath(realPath)) {
+		return http.StatusForbidden, fmt.Errorf("access denied to path %s", fullIndexPath)
 	}
 	if stat, statErr := os.Stat(realPath); statErr == nil && stat.IsDir() {
 		return http.StatusMethodNotAllowed, errPutPathIsDirectory

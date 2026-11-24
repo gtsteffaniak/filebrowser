@@ -1,68 +1,72 @@
+import i18n from "@/i18n/index.ts";
+
+const t = i18n.global.t.bind(i18n.global);
+
 /**
  * Label for an activity event type.
  */
-export function activityEventLabel(eventType, $t) {
+export function activityEventLabel(eventType) {
   switch (eventType) {
     case "download":
-      return $t("general.download");
+      return t("general.download");
     case "move":
-      return $t("general.move");
+      return t("general.move");
     case "copy":
-      return $t("general.copy");
+      return t("general.copy");
     case "rename":
-      return $t("general.rename");
+      return t("general.rename");
     case "upload":
-      return $t("general.upload");
+      return t("general.upload");
     case "fileModify":
-      return $t("tools.activityViewer.eventFileModify");
+      return t("tools.activityViewer.eventFileModify");
     case "delete":
-      return $t("general.delete");
+      return t("general.delete");
     case "login":
-      return $t("general.login");
+      return t("general.login");
     case "logout":
-      return $t("general.logout");
+      return t("general.logout");
     case "signup":
-      return $t("general.signup");
+      return t("general.signup");
     case "archive":
-      return $t("prompts.archive");
+      return t("prompts.archive");
     case "unarchive":
-      return $t("prompts.unarchive");
+      return t("prompts.unarchive");
     case "duplicateFinder":
-      return $t("tools.duplicateFinder.name");
+      return t("tools.duplicateFinder.name");
     case "bulkDelete":
-      return $t("tools.activityViewer.eventBulkDelete");
+      return t("tools.activityViewer.eventBulkDelete");
     case "shareCreate":
-      return $t("tools.activityViewer.eventShareCreate");
+      return t("tools.activityViewer.eventShareCreate");
     case "shareUpdate":
-      return $t("tools.activityViewer.eventShareUpdate");
+      return t("tools.activityViewer.eventShareUpdate");
     case "shareDelete":
-      return $t("tools.activityViewer.eventShareDelete");
+      return t("tools.activityViewer.eventShareDelete");
     case "userCreate":
-      return $t("tools.activityViewer.eventUserCreate");
+      return t("tools.activityViewer.eventUserCreate");
     case "userUpdate":
-      return $t("tools.activityViewer.eventUserUpdate");
+      return t("tools.activityViewer.eventUserUpdate");
     case "userDelete":
-      return $t("tools.activityViewer.eventUserDelete");
+      return t("tools.activityViewer.eventUserDelete");
     case "accessCreate":
-      return $t("tools.activityViewer.eventAccessCreate");
+      return t("tools.activityViewer.eventAccessCreate");
     case "accessUpdate":
-      return $t("tools.activityViewer.eventAccessUpdate");
+      return t("tools.activityViewer.eventAccessUpdate");
     case "accessDelete":
-      return $t("tools.activityViewer.eventAccessDelete");
+      return t("tools.activityViewer.eventAccessDelete");
     case "quotaCreate":
-      return $t("general.create");
+      return t("general.create");
     case "quotaUpdate":
-      return $t("general.update");
+      return t("general.update");
     case "quotaDelete":
-      return $t("general.delete");
+      return t("general.delete");
     case "tokenCreate":
-      return $t("tools.activityViewer.eventTokenCreate");
+      return t("tools.activityViewer.eventTokenCreate");
     case "tokenDelete":
-      return $t("tools.activityViewer.eventTokenDelete");
+      return t("tools.activityViewer.eventTokenDelete");
     case "passkeyRegister":
-      return $t("tools.activityViewer.passkeyRegister");
+      return t("tools.activityViewer.passkeyRegister");
     case "passkeyDelete":
-      return $t("tools.activityViewer.passkeyDelete");
+      return t("tools.activityViewer.passkeyDelete");
     default:
       return eventType;
   }
@@ -132,27 +136,27 @@ export function activityEventTypeBadgeClass(eventType) {
  * Chart title for grouped activity views.
  * @param {{ viewType: string, splitBy: string }} options
  */
-export function activityChartTitle({ viewType, splitBy }, $t) {
-  const eventTypeSubject = $t("tools.activityViewer.subjectEventType");
-  const userSubject = $t("general.user").toLowerCase();
+export function activityChartTitle({ viewType, splitBy }) {
+  const eventTypeSubject = t("tools.activityViewer.subjectEventType");
+  const userSubject = t("general.user").toLowerCase();
 
   if (viewType === "pie") {
-    return $t("tools.activityViewer.activityBy", {
+    return t("tools.activityViewer.activityBy", {
       subject: splitBy === "user" ? userSubject : eventTypeSubject,
     });
   }
   if (viewType === "summary") {
     return splitBy === "user"
-      ? $t("tools.activityViewer.activityTotalsBy", { subject: userSubject })
-      : $t("tools.activityViewer.eventTotals");
+      ? t("tools.activityViewer.activityTotalsBy", { subject: userSubject })
+      : t("tools.activityViewer.eventTotals");
   }
   if (splitBy === "user") {
-    return $t("tools.activityViewer.activityOverTimeBy", { subject: userSubject });
+    return t("tools.activityViewer.activityOverTimeBy", { subject: userSubject });
   }
   if (splitBy === "none") {
-    return $t("tools.activityViewer.activityOverTime");
+    return t("tools.activityViewer.activityOverTime");
   }
-  return $t("tools.activityViewer.activityOverTimeBy", { subject: eventTypeSubject });
+  return t("tools.activityViewer.activityOverTimeBy", { subject: eventTypeSubject });
 }
 
 /** Toggleable activity table columns (time, username, and event type are always shown). */
@@ -304,18 +308,18 @@ export function normalizeActivityTableRow(row) {
 /**
  * Human-readable token label for the activity table.
  */
-export function activityTokenDisplay(row, $t) {
+export function activityTokenDisplay(row) {
   const name = activityRowTokenName(row);
   const authMethod = row?.authMethod || row?.details?.authMethod || "";
   if (name) {
     if (authMethod === "webToken" && name.startsWith("WEB_TOKEN_")) {
       const suffix = name.slice("WEB_TOKEN_".length);
-      return $t("tools.activityViewer.webSessionNamed", { name: suffix });
+      return t("tools.activityViewer.webSessionNamed", { name: suffix });
     }
     return name;
   }
   if (authMethod === "webToken") {
-    return $t("tools.activityViewer.webSession");
+    return t("tools.activityViewer.webSession");
   }
   return "";
 }
@@ -356,7 +360,7 @@ function formatActivityFieldChange(change, eventType) {
  * Build label/value rows for activity detail tooltips (admin).
  * @returns {{ id: string, label: string, value: string }[]}
  */
-export function buildActivityDetailRows(row, $t) {
+export function buildActivityDetailRows(row) {
   if (!row) return [];
 
   const d = row.details || {};
@@ -366,7 +370,7 @@ export function buildActivityDetailRows(row, $t) {
   if (targetUser) {
     rows.push({
       id: "targetUser",
-      label: $t("general.user"),
+      label: t("general.user"),
       value: targetUser,
     });
   }
@@ -379,7 +383,7 @@ export function buildActivityDetailRows(row, $t) {
     });
     rows.push({
       id: "scopes",
-      label: $t("general.sources"),
+      label: t("general.sources"),
       value: scopeLines.join("\n"),
     });
   }
@@ -399,7 +403,7 @@ export function buildActivityDetailRows(row, $t) {
   if (d.affectedTokenName) {
     rows.push({
       id: "affectedToken",
-      label: $t("tools.activityViewer.affectedToken"),
+      label: t("tools.activityViewer.affectedToken"),
       value: d.affectedTokenName,
     });
   }
@@ -408,25 +412,25 @@ export function buildActivityDetailRows(row, $t) {
   if (tokenName && !row?.tokenName) {
     rows.push({
       id: "token",
-      label: $t("tools.activityViewer.actorToken"),
+      label: t("tools.activityViewer.actorToken"),
       value: tokenName,
     });
   }
   if (d.loginMethod) {
-    rows.push({ id: "loginMethod", label: $t("settings.loginMethod"), value: d.loginMethod });
+    rows.push({ id: "loginMethod", label: t("settings.loginMethod"), value: d.loginMethod });
   }
   if (d.passkeyName) {
-    rows.push({ id: "passkey", label: $t("profileSettings.passkeyDefaultName"), value: d.passkeyName });
+    rows.push({ id: "passkey", label: t("profileSettings.passkeyDefaultName"), value: d.passkeyName });
   }
   if (d.cached) {
-    rows.push({ id: "cached", label: $t("tools.activityViewer.cachedResult"), value: $t("general.yes") });
+    rows.push({ id: "cached", label: t("tools.activityViewer.cachedResult"), value: t("general.yes") });
   }
 
   const paths = Array.isArray(d.paths) ? d.paths : [];
   if (paths.length > 1) {
     rows.push({
       id: "paths",
-      label: $t("general.paths"),
+      label: t("general.paths"),
       value: paths.join("\n"),
     });
   }
@@ -434,25 +438,25 @@ export function buildActivityDetailRows(row, $t) {
   if (d.targetPath || row.targetPath) {
     rows.push({
       id: "targetPath",
-      label: $t("general.path"),
+      label: t("general.path"),
       value: d.targetPath || row.targetPath,
     });
   }
   if (d.fileCount > 1 && paths.length <= 1) {
-    rows.push({ id: "fileCount", label: $t("general.files"), value: String(d.fileCount) });
+    rows.push({ id: "fileCount", label: t("general.files"), value: String(d.fileCount) });
   }
   if (d.bytes > 0) {
-    rows.push({ id: "bytes", label: $t("general.size"), value: String(d.bytes) });
+    rows.push({ id: "bytes", label: t("general.size"), value: String(d.bytes) });
   }
   if (d.durationMs > 0) {
     rows.push({
       id: "durationMs",
-      label: $t("files.duration"),
+      label: t("files.duration"),
       value: `${d.durationMs} ms`,
     });
   }
   if (d.error) {
-    rows.push({ id: "error", label: $t("general.error"), value: d.error });
+    rows.push({ id: "error", label: t("general.error"), value: d.error });
   }
 
   return rows;

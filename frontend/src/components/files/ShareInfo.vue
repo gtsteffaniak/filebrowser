@@ -30,9 +30,9 @@
 </template>
 
 <script>
-import { state, getters } from "@/store";
-import { getHumanReadableFilesize } from "@/utils/filesizes";
-import { getTypeInfo } from "@/utils/mimetype";
+import { state, getters } from "@/store/index.ts";
+import { getHumanReadableFilesize } from "@/utils/filesizes.js";
+import { getTypeInfo } from "@/utils/mimetype.js";
 
 export default {
   name: "ShareInfo",
@@ -121,7 +121,7 @@ export default {
 
 .share-info__box__header {
   font-size: 1.2em;
-  font-weight: bold;
+  font-weight: 700;
   text-align: center;
   padding-bottom: 1em;
   border-bottom: 1px solid var(--divider);

@@ -17,7 +17,7 @@
         icon="slideshow"
         position="top-right"
         :label="$t('slideshow.start')"
-        @click="openSlideshowOptions"
+        @press="openSlideshowOptions"
       />
 
       <!-- Media: load full metadata + album art from media API before mounting plyr so the correct view/art is stable. -->
@@ -37,7 +37,7 @@
           :autoPlayEnabled="autoPlay"
           :startTranscode="transcodePlaybackActive"
           :sharedTranscodePlayback="transcodePlaybackController"
-          @play="playbackStarted = true"
+          @playback-start="playbackStarted = true"
           @needs-transcode="handleVideoTranscodeOffer"
           :class="{ 'plyr-background': previewType === 'audio' }"
           @navigate-previous="navigatePrevious"
@@ -133,15 +133,15 @@
 import { createAsyncComponent } from "@/utils/asyncComponent.js";
 import FloatingActionButton from "@/components/settings/FloatingActionButton.vue";
 import { countMediaInListing } from "@/utils/slideshow.js";
-import { resourcesApi, mediaApi } from "@/api";
+import { resourcesApi, mediaApi } from "@/api/index.js";
 import { ensureViewToken, requestViewIdentity } from "@/api/viewToken.js";
 import { goToItem, removeTrailingSlash, removeLastDir } from "@/utils/url.js";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
-import { state, getters, mutations } from "@/store";
-import { isRawImageMimeType } from "@/utils/mimetype";
-import { convertToVTT, getSubtitleFormatExtension } from "@/utils/subtitles";
-import { parseLyrics } from "@/utils/lyrics";
-import { globalVars } from "@/utils/constants";
+import { state, getters, mutations } from "@/store/index.ts";
+import { isRawImageMimeType } from "@/utils/mimetype.js";
+import { convertToVTT, getSubtitleFormatExtension } from "@/utils/subtitles.js";
+import { parseLyrics } from "@/utils/lyrics.ts";
+import { globalVars } from "@/utils/constants.ts";
 import { navigatePlaybackQueue } from "@/utils/playbackQueue.js";
 import { shouldAutoPlayPreview } from "@/utils/previewAutoplay.js";
 import { getTranscodeSessions } from "@/api/transcode.js";
@@ -156,11 +156,10 @@ import {
   hasActiveSession as hasActivePipSession,
   pendingInlineResumeFor,
 } from "@/plyr/pipSession.js";
-import { isPdfFile } from "@/utils/mediaFile";
+import { isPdfFile } from "@/utils/mediaFile.js";
 import { shouldUsePdfPreviewFallback } from "@/utils/pdfPreview.js";
 import { TranscodePlaybackController } from "@/plyr/transcodePlaybackController.js";
 import { isTranscodeAvailable } from "@/plyr/transcodeMode.js";
-
 export default {
   name: "preview",
   components: {
@@ -223,11 +222,10 @@ export default {
       const isSafari = /^((?!chrome|android).)*safari/i.test(userAgent);
       return isIOS && isSafari;
     },
-    // Viewable when we can get embedded/original preview: (media + heic conversion) or Safari native
+    // Safari: native HEIC in ExtendedImage. Other browsers: converted original when hasPreview.
     isHeicAndViewable() {
       if (state.isSafari) return true;
-      if (globalVars.ffmpegAvailable && globalVars.enableHeicConversion) return true;
-      return false;
+      return Boolean(state.req?.hasPreview);
     },
     pdfConvertable() {
       const ext = `.${state.req.name.split(".").pop().toLowerCase()}`;
@@ -259,26 +257,10 @@ export default {
       const typeHint = state.req.type || state.req.name;
       const isHeicOrHeif = state.req.type === "image/heic" || state.req.type === "image/heif";
 
-      if (state.isSafari && isHeicOrHeif) {
-        if (getters.isShare()) {
-          return resourcesApi.getViewURL(
-            state.req.source,
-            state.req.path,
-            viewToken,
-            {
-              path: state.shareInfo.subPath,
-              hash: state.shareInfo.hash,
-            },
-            false,
-            typeHint,
-          );
-        }
-        return resourcesApi.getViewURL(state.req.source, state.req.path, viewToken, null, false, typeHint);
-      }
-
       const getRawPreview = isRawImageMimeType(state.req.type);
-      const getHeicPreview = isHeicOrHeif && globalVars.ffmpegAvailable && globalVars.enableHeicConversion;
-      if (this.pdfConvertable || getRawPreview || getHeicPreview) {
+      // HEIC/HEIF at size=original for non-Safari; Safari full size is resolved in ExtendedImage.
+      const getHeicConvertedPreview = isHeicOrHeif && !state.isSafari && state.req?.hasPreview;
+      if (this.pdfConvertable || getRawPreview || getHeicConvertedPreview) {
         if (getters.isShare()) {
           const previewPath = removeTrailingSlash(state.req.path);
           return resourcesApi.getPreviewURLPublic(previewPath, "original", state.req.viewToken);
@@ -402,14 +384,7 @@ export default {
     async attachDirMediaMetadata(listing, dirPath) {
       if (!listing?.length) return;
       try {
-        const isShare = getters.isShare();
-        const metaMap = isShare
-          ? await mediaApi.getDirectoryMetadataMap(dirPath, {
-              isShare: true,
-              hash: state.shareInfo.hash,
-              password: localStorage.getItem(`sharepass:${state.shareInfo.hash}`) || '',
-            })
-          : await mediaApi.getDirectoryMetadataMap(dirPath, { source: state.req.source });
+        const metaMap = await mediaApi.getDirectoryMetadataMap(dirPath, { source: state.req.source });
         if (this.listing !== listing) return;
         mutations.patchListingMetadata(listing, metaMap, state.req.path);
         mutations.setupNavigation({
@@ -519,15 +494,8 @@ export default {
         this.lyricsFetchedForPath = state.req.path;
         if (state.req.metadata?.hasLyrics) {
           try {
-            if (getters.isShare()) {
-              const hash = state.shareInfo.hash;
-              const password = localStorage.getItem(`sharepass:${hash}`) || "";
-              const { lyrics: raw, format } = await mediaApi.getLyricsPublic(state.req.path, hash, password);
-              this.lyrics = parseLyrics(raw, format);
-            } else {
-              const { lyrics: raw, format } = await mediaApi.getLyrics(state.req.source, state.req.path);
-              this.lyrics = parseLyrics(raw, format);
-            }
+            const { lyrics: raw, format } = await mediaApi.getLyrics(state.req.source, state.req.path);
+            this.lyrics = parseLyrics(raw, format);
           } catch (err) {
             console.warn("Failed to fetch lyrics:", err);
             this.lyrics = [];
@@ -554,27 +522,14 @@ export default {
         return;
       }
       const req = state.req;
+      if (!getters.isShare() && !getters.isLoggedIn()) {
+        return;
+      }
       try {
-        let enriched;
-        if (getters.isShare()) {
-          const pwd =
-            localStorage.getItem(`sharepass:${state.shareInfo.hash}`) || "";
-          enriched = await mediaApi.fetchDirectoryMediaMetadataPublic(
-            req.path,
-            state.shareInfo.hash,
-            pwd,
-            true,
-          );
-        } else {
-          if (!getters.isLoggedIn()) {
-            return;
-          }
-          enriched = await mediaApi.fetchDirectoryMediaMetadata(
-            req.source,
-            req.path,
-            true,
-          );
-        }
+        const enriched = await mediaApi.getItemMediaMetadata(req.path, {
+          source: req.source,
+          albumArt: true,
+        });
         if (state.req.path !== expectedPath) {
           return;
         }

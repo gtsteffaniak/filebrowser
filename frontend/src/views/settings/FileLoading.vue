@@ -35,6 +35,16 @@
             :placeholder="$t('general.number')" />
         </div>
       </div>
+      <div class="settings-number-input item">
+        <div class="no-padding">
+          <label for="uploadStallTimeoutSeconds">{{ $t("fileLoading.uploadStallTimeoutSeconds") }}</label>
+          <HelpTooltipIcon :text="$t('fileLoading.uploadStallTimeoutSecondsHelp')" />
+        </div>
+        <div class="no-padding">
+          <input class="sizeInput input" v-model.number="localuser.fileLoading.uploadStallTimeoutSeconds" type="number" min="1"
+            :placeholder="$t('general.number')" />
+        </div>
+      </div>
       <ToggleSwitch class="item" v-model="localuser.fileLoading.clearAll" @change="updateSettings"
         :name="$t('fileLoading.clearAll')"
         :description="$t('fileLoading.clearAllDescription')" />
@@ -52,9 +62,9 @@
 </template>
 
 <script>
-import { notify } from "@/notify";
+import { notify } from "@/notify/index.ts";
 import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
-import { state, mutations } from "@/store";
+import { state, mutations } from "@/store/index.ts";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 
 export default {
@@ -66,7 +76,15 @@ export default {
 
   data() {
     return {
-      localuser: { fileLoading: { clearAll: false } },
+      localuser: {
+        fileLoading: {
+          clearAll: false,
+          maxConcurrentUpload: null,
+          uploadChunkSizeMb: null,
+          downloadChunkSizeMb: null,
+          uploadStallTimeoutSeconds: null,
+        },
+      },
     };
   },
   computed: {
@@ -84,6 +102,9 @@ export default {
     }
     if (this.localuser.fileLoading.downloadChunkSizeMb === undefined || this.localuser.fileLoading.downloadChunkSizeMb === null) {
       this.localuser.fileLoading.downloadChunkSizeMb = 0;
+    }
+    if (!(this.localuser.fileLoading.uploadStallTimeoutSeconds > 0)) {
+      this.localuser.fileLoading.uploadStallTimeoutSeconds = 10;
     }
   },
   methods: {

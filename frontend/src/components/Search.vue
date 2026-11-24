@@ -3,8 +3,8 @@
     <!-- Search input section -->
     <div class="search-input-container">
       <!-- Close button visible when search is active -->
-      <button v-if="active" type="button" class="action" @click="close" :aria-label="$t('general.close')"
-        :title="$t('general.close')">
+      <button v-if="active" type="button" class="action" @click="close" :aria-label="t('general.close')"
+        :title="t('general.close')">
         <i class="material-symbols">close</i>
       </button>
       <!-- Search icon when search is not active -->
@@ -12,13 +12,13 @@
       <!-- Input field for search -->
       <input id="search-input" type="text"
         @keyup.exact="keyup" @input="onInput" ref="input" :autofocus="active" v-model.trim="value"
-        aria-label="search input" :placeholder="$t('general.search', { suffix: '...' })" />
+        aria-label="search input" :placeholder="t('general.search', { suffix: '...' })" />
       <div v-if="eventTheme === 'halloween'" class="halloween-eyes" aria-hidden="true">
         <div class="eye"><div class="pupil"></div></div>
         <div class="eye right"><div class="pupil"></div></div>
       </div>
     </div>
-    <div v-show="active" id="results" ref="result">
+    <div v-show="active" id="results">
       <div class="inputWrapper">
         <ExpandDropdown
           v-if="multipleSources"
@@ -27,13 +27,13 @@
           transparent
           :options="searchSourceOptions"
           all-value="__all__"
-          :all-selected-label="$t('general.all')"
+          :all-selected-label="t('general.all')"
           aria-label="search sources dropdown"
           @update:model-value="updateSource"
         />
 
         <!-- Formatted display of selected value -->
-        <div class="searchContext">{{ $t("search.searchContext", { context: getContext }) }}</div>
+        <div class="searchContext">{{ t("search.searchContext", { context: getContext }) }}</div>
       </div>
 
       <div id="result-list" ref="resultListEl">
@@ -48,8 +48,8 @@
                 <ToggleSwitch
                   class="item"
                   v-model="showPreviewImages"
-                  :name="$t('search.showPreviewImages')"
-                  :description="$t('search.showPreviewImagesDescription')"
+                  :name="t('search.showPreviewImages')"
+                  :description="t('search.showPreviewImagesDescription')"
                 />
               </template>
             </SearchFilters>
@@ -90,7 +90,6 @@
                 :thumbnail-url="showPreviewImages ? getThumbnailUrl(s) : ''"
               />
               <span class="text-container">
-                <!-- eslint-disable-next-line @intlify/vue-i18n/no-raw-text -->
                 {{ basePath(s.path, s.type === "directory") }}{{ baseName(s.path) }}
               </span>
               <div class="filesize">{{ humanSize(s.size) }}</div>
@@ -105,7 +104,7 @@
           class="button open-advanced-search-button"
           @click.stop.prevent="openInAdvancedSearch"
         >
-          {{ $t("search.openInAdvancedSearch") }}
+          {{ t("search.openInAdvancedSearch") }}
         </button>
       </div>
     </div>
@@ -113,26 +112,26 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, toRefs, watch, type Ref } from "vue";
-import { useI18n } from "vue-i18n";
-import { useListingContextMenu } from "@/composables/useListingContextMenu";
-import { useSearchFilters } from "@/composables/useSearchFilters";
-import { useSearchRequest } from "@/composables/useSearchRequest";
-import { resourcesApi, toolsApi } from "@/api";
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, toRefs, useTemplateRef, watch, type Ref } from "vue";
+import { useI18n } from "@/i18n/index.ts";
+import { useListingContextMenu } from "@/composables/useListingContextMenu.ts";
+import { useSearchFilters } from "@/composables/useSearchFilters.ts";
+import { useSearchRequest } from "@/composables/useSearchRequest.ts";
+import { resourcesApi, toolsApi } from "@/api/index.js";
 import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
 import Icon from "@/components/files/Icon.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import SearchFilters from "@/components/tools/SearchFilters.vue";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
-import { router } from "@/router";
-import { getters, mutations, state } from "@/store";
-import type { FileListItem } from "@/store/types";
-import { url } from "@/utils/";
-import { globalVars } from "@/utils/constants";
+import { router } from "@/router/index.ts";
+import { getters, mutations, state } from "@/store/index.ts";
+import type { FileListItem } from "@/store/types.ts";
+import { url } from "@/utils/index.ts";
+import { globalVars } from "@/utils/constants.ts";
 import { debounce } from "@/utils/debounce.js";
 import { sortedItems } from "@/utils/sort.ts";
-import { getHumanReadableFilesize } from "@/utils/filesizes";
+import { getHumanReadableFilesize } from "@/utils/filesizes.js";
 import { isTypeAheadSessionActive } from "@/utils/listingTypeAhead.js";
 import { shouldIgnoreOutsideTap } from "@/utils/tooltipHelp.js";
 
@@ -150,8 +149,8 @@ interface SearchResult {
 
 const { t } = useI18n();
 
-const resultListEl = ref<HTMLElement | null>(null);
-const input = ref<HTMLInputElement | null>(null);
+const resultListEl = useTemplateRef<HTMLElement>("resultListEl");
+const input = useTemplateRef<HTMLInputElement>("input");
 const noneMessage = ref(t("search.typeToSearch", { minSearchLength: globalVars.minSearchLength }));
 const showPreviewImages = ref(false);
 const advancedOptionsExpanded = ref(false);
@@ -731,7 +730,7 @@ function selectResultAt(target: EventTarget | null): boolean {
 }
 
 #results {
-  animation: slide-down 0.5s forwards;
+  animation: slide-down 0.22s cubic-bezier(0.2, 0, 0, 1) forwards;
   border-radius: var(--borderRadius);
   border-top: none;
   border-top-left-radius: 0;
@@ -785,7 +784,7 @@ function selectResultAt(target: EventTarget | null): boolean {
   right: calc(2.5% + var(--safe-area-right));
   max-width: 1000px;
   margin: 0 auto;
-  animation: expand 0.3s ease 0.1s backwards;
+  animation: expand 0.22s cubic-bezier(0.2, 0, 0, 1) backwards;
 }
 
 .search-input-container {
@@ -1019,7 +1018,7 @@ body.rtl #search #result ul>* {
     animation: none;
   }
   .search-input-container {
-    transition: height 1s ease, background-color 1s ease, box-shadow 1s ease;
+    transition: height 0.22s cubic-bezier(0.2, 0, 0, 1), background-color 0.22s ease, box-shadow 0.22s ease;
   }
   #search.active .search-input-container {
     box-shadow: 0 0 10px rgb(0 0 0 / 10%);

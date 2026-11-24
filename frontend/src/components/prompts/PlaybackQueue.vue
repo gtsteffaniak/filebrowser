@@ -16,8 +16,8 @@
         type="button"
         class="clear-queue-btn"
         @click="clearQueue"
-        :title="$t('player.clearQueue')"
-        :aria-label="$t('player.clearQueue')"
+        :title="t('player.clearQueue')"
+        :aria-label="t('player.clearQueue')"
       >
         <i class="material-symbols">delete</i>
       </button>
@@ -63,7 +63,6 @@
               <span v-if="item.fileType" class="file-type-badge">{{ item.fileType }}</span>
               <span class="queue-item-indicator">
                 <span v-if="item.index === currentQueueIndex" class="current-track">
-                  <!-- eslint-disable-next-line @intlify/vue-i18n/no-raw-text -->
                   <i class="material-symbols">{{ isPlaying ? 'pause' : 'play_arrow' }}</i>
                 </span>
                 <span v-else class="track-number">{{ item.index + 1 }}</span>
@@ -73,42 +72,15 @@
         </div>
       </div>
     </div>
-
     <!-- Empty state -->
     <div v-else class="empty">
       <i class="material-symbols">queue_music</i>
-      <p>{{ $t('player.emptyQueue') }}</p>
+      <p>{{ t('player.emptyQueue') }}</p>
     </div>
   </div>
 
   <div class="card-actions">
-    <div class="mode-buttons">
-      <div class="mode-indicator" :style="modeIndicatorStyle"></div>
-      <input
-        type="radio"
-        id="mode-sequential"
-        name="playback-mode"
-        value="sequential"
-        :checked="playbackMode === 'sequential'"
-        @change="setMode('sequential')"
-        hidden
-      />
-      <label for="mode-sequential" class="mode-btn" :class="{ active: playbackMode === 'sequential' }" :title="$t('player.PlayAllOncePlayback')">
-        <i class="material-symbols">playlist_play</i>
-      </label>
-      <input
-        type="radio"
-        id="mode-shuffle"
-        name="playback-mode"
-        value="shuffle"
-        :checked="playbackMode === 'shuffle'"
-        @change="setMode('shuffle')"
-        hidden
-      />
-      <label for="mode-shuffle" class="mode-btn" :class="{ active: playbackMode === 'shuffle' }" :title="$t('player.ShuffleAllPlayback')">
-        <i class="material-symbols">shuffle</i>
-      </label>
-    </div>
+    <SlidingTabs icon-only :tabs="modeTabs" :model-value="playbackMode" @update:model-value="setMode" />
     <button
       type="button"
       class="repeat-one-btn"
@@ -123,11 +95,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref, watch } from "vue";
-import { useI18n } from "vue-i18n";
-import { state, mutations, getters } from "@/store";
+import { computed, nextTick, onMounted, useTemplateRef, watch } from "vue";
+import { useI18n } from "@/i18n/index.ts";
+import { state, mutations, getters } from "@/store/index.ts";
 import type { MediaMetadata } from "@/store/types.ts";
-import { url } from "@/utils";
+import { url } from "@/utils/index.ts";
 import {
   cyclePlaybackModes,
   cycleLoopState,
@@ -140,8 +112,9 @@ import {
   formatArtist
 } from '@/utils/playbackQueue.js';
 import Icon from "@/components/files/Icon.vue";
-import { resourcesApi } from "@/api";
-import { globalVars } from "@/utils/constants";
+import SlidingTabs from "@/components/settings/SlidingTabs.vue";
+import { resourcesApi } from "@/api/index.js";
+import { globalVars } from "@/utils/constants.ts";
 import { formatDuration, getTypeFromMime, removeExtension } from "@/utils/files.js";
 import { findScrollParents, useListingVirtualization } from "@/composables/useListingVirtualization.ts";
 import type { VirtualItem } from "@/composables/useListingVirtualization.ts";
@@ -171,7 +144,7 @@ const props = withDefaults(
 
 const { t } = useI18n();
 
-const QueueList = ref<HTMLElement | null>(null);
+const QueueList = useTemplateRef<HTMLElement>("QueueList");
 // Only renders the rows around the screen when the queue is long
 const virtual = useListingVirtualization<VirtualItem>({
   container: QueueList,
@@ -186,20 +159,16 @@ const currentQueueIndex = computed(() => state.playbackQueue.currentIndex);
 const playbackMode = computed(() => state.playbackQueue.mode || 'single');
 const loop = computed(() => state.playbackQueue.loop || 'off');
 const queueCount = computed(() => playbackQueue.value.length);
-const currentModeLabel = computed(() => getModeLabel(playbackMode.value, t, queueCount.value));
+const currentModeLabel = computed(() => getModeLabel(playbackMode.value, queueCount.value));
 const currentModeIcon = computed(() => getModeIcon(playbackMode.value));
 const loopIcon = computed(() => getLoopIcon(loop.value));
-const loopLabel = computed(() => getLoopLabel(loop.value, t));
+const loopLabel = computed(() => getLoopLabel(loop.value));
 const isPlaying = computed(() => state.playbackQueue.isPlaying || false);
 const isPromptVisible = computed(() => state.prompts.some(prompt => prompt.name === 'PlaybackQueue'));
-const modeIndicatorStyle = computed(() => {
-  const modes = ['sequential', 'shuffle'];
-  const index = modes.indexOf(playbackMode.value);
-  if (index === -1) return {};
-  const width = `${100 / modes.length}%`;
-  const left = `${index * (100 / modes.length)}%`;
-  return { left, width };
-});
+const modeTabs = computed(() => [
+  { id: 'sequential', icon: 'playlist_play', title: t('player.PlayAllOncePlayback') },
+  { id: 'shuffle', icon: 'shuffle', title: t('player.ShuffleAllPlayback') },
+]);
 
 // Only the rendered rows are formatted, with their position in the queue
 const visibleQueue = computed(() =>
@@ -302,7 +271,7 @@ function getThumbnailUrl(item: QueueItem) {
   return resourcesApi.getPreviewURL(source, path, item.modified);
 }
 
-function setMode(mode: 'sequential' | 'shuffle') {
+function setMode(mode: string) {
   if (mode === playbackMode.value) return;
   const listing = state.navigation.listing || state.req?.parentDirItems || [];
   cyclePlaybackModes(playbackMode.value, {
@@ -549,7 +518,6 @@ function updatePromptTitle() {
   color: white;
 }
 
-.mode-btn i,
 .repeat-one-btn i {
   font-size: 1.5rem;
 }
@@ -665,35 +633,12 @@ function updatePromptTitle() {
   user-select: none;
 }
 
-.mode-buttons {
-  display: flex;
-  position: relative;
-  background: var(--surfaceSecondary);
-  border-radius: 2em;
-  overflow: hidden;
-  padding: 0;
-  flex-shrink: 0;
-}
-
-.mode-indicator {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  background: var(--primaryColor);
-  border-radius: inherit;
-  transition: left 0.35s cubic-bezier(0.25, 0.8, 0.25, 1),
-              width 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
-  pointer-events: none;
-  z-index: 0;
-}
-
-.mode-btn,
 .repeat-one-btn {
   background: transparent;
   border: none;
-  border-radius: 0;
+  border-radius: 2em;
   padding: 0.35rem 0.75rem;
+  color: var(--textSecondary);
   cursor: pointer;
   font-size: inherit;
   transition: background 0.2s, color 0.2s, transform 0.2s;
@@ -701,28 +646,6 @@ function updatePromptTitle() {
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.mode-btn {
-  flex: 1;
-  border-radius: 0;
-  color: var(--textSecondary);
-  z-index: 1;
-  position: relative;
-}
-
-.mode-btn.active {
-  color: white;
-}
-
-.mode-btn:hover:not(.active) {
-  color: var(--primaryColor);
-  transform: scale(1.02);
-}
-
-.repeat-one-btn {
-  border-radius: 2em;
-  color: var(--textSecondary);
 }
 
 .repeat-one-btn.active {

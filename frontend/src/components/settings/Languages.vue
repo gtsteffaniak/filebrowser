@@ -10,7 +10,7 @@
 
 <script>
 import { defineComponent } from "vue";
-import { availableLocales } from "@/i18n/index.ts";
+import { locales } from "@/i18n/locales.ts";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 
 export default defineComponent({
@@ -28,19 +28,16 @@ export default defineComponent({
       default: false,
     },
   },
-  emits: ["update:locale"],
+  emits: {
+    "update:locale": (locale) => typeof locale === "string",
+  },
   computed: {
     languageOptions() {
-      return Object.keys(this.locales).map((label) => ({
-        value: label,
-        label: this.$t(`languages.${label}`),
+      return Object.entries(locales).map(([id, { name }]) => ({
+        value: id,
+        label: name,
       }));
     },
-  },
-  data() {
-    return {
-      locales: availableLocales,
-    };
   },
 });
 </script>

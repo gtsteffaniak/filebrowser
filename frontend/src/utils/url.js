@@ -1,6 +1,6 @@
 import { router } from "@/router/index.ts";
 import { getters, mutations, state } from "@/store/index.ts";
-import { globalVars } from "@/utils/constants.js";
+import { globalVars } from "@/utils/constants.ts";
 
 export default {
   pathsMatch,
@@ -248,17 +248,22 @@ export function extractSourceFromPath(url, knownSources = []) {
 
 export function buildItemUrl(source, path, includeBaseURL = false) {
   path = removeLeadingSlash(path);
-  const encodedPath = encodePath(path);
+  const encodedItemPath = encodePath(path);
   let urlPath;
   if (getters.isShare()) {
-    urlPath = `public/share/${state.shareInfo.hash}/${encodedPath}`;
+    urlPath = `public/share/${state.shareInfo.hash}/${encodedItemPath}`;
   } else {
-    urlPath = `files/${encodeURIComponent(source)}/${encodedPath}`;
+    urlPath = `files/${encodeURIComponent(source)}/${encodedItemPath}`;
   }
   if (includeBaseURL) {
     return `${globalVars.baseURL}${urlPath}`;
   }
   return `/${urlPath}`;
+}
+
+export function buildWebDavUrl(source, path) {
+  const encodedItemPath = encodePath(removeLeadingSlash(path));
+  return `${globalVars.baseURL}dav/${encodeURIComponent(source)}/${encodedItemPath}`;
 }
 
 export function encodedPath(path) {

@@ -11,7 +11,7 @@
 
 <script>
 import SettingsTable from "@/components/settings/Table.vue";
-import { buildActivityDetailRows } from "@/utils/activityDetails";
+import { buildActivityDetailRows } from "@/utils/activityDetails.js";
 
 export default {
   name: "ActivityDetailsInfo",
@@ -39,7 +39,7 @@ export default {
       ];
     },
     rows() {
-      return buildActivityDetailRows(this.row, this.$t);
+      return buildActivityDetailRows(this.row);
     },
   },
 };

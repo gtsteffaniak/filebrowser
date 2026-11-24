@@ -276,7 +276,8 @@ func TestRewritePlaylistRewritesDeliveryURLs(t *testing.T) {
 
 func TestManagerJanitorDoesNotRace(t *testing.T) {
 	newTestManager(t, nil)
-	time.Sleep(janitorInterval + 20*time.Millisecond)
+	// Exercise several janitor ticks without waiting for the production interval.
+	time.Sleep(testJanitorInterval * 3)
 }
 
 func TestSessionInfoOmitsUserID(t *testing.T) {
@@ -533,9 +534,7 @@ func TestManagerCloseWaitsForProducers(t *testing.T) {
 	mgr, _ := newTestManager(t, engine)
 
 	info := mustStart(t, mgr, testInput(t, "close-user", "/close.mp4"))
-	pollUntil(t, 2*time.Second, func() bool {
-		return producerFor(t, mgr, info.ID) != nil
-	}, "producer registration")
+	waitForProducerVODJobAttached(t, mgr, info.ID)
 
 	closeCtx, closeCancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer closeCancel()
@@ -682,6 +681,7 @@ func TestManagerRepositionsSeekBeyondProducedEdge(t *testing.T) {
 
 	in := testInput(t, "seeker", "/v.mp4")
 	first := mustStart(t, mgr, in)
+	waitForStarts(t, engine, 1)
 	// Segments 0..4 produced: edge at 20s on the 4s grid.
 	genDir := sessionJobDir(t, mgr, first.ID)
 	waitForPlaylistFile(t, genDir)
@@ -1042,7 +1042,7 @@ func TestManagerRestartsProducerWithSoftwareDecode(t *testing.T) {
 
 	// A second unreliable flag must not trigger another restart.
 	engine.LastJob().SetVTUnreliable()
-	time.Sleep(500 * time.Millisecond)
+	assertCountStable(t, 80*time.Millisecond, 10*time.Millisecond, 2, engine.StartCount)
 	if got := engine.StartCount(); got != 2 {
 		t.Fatalf("starts = %d, want exactly 2 (decode retry is once-only)", got)
 	}
@@ -1098,14 +1098,14 @@ func TestManagerSuspendsProducerWhenAllClientsPaused(t *testing.T) {
 	in := testInput(t, "pauser", "/v.mp4")
 	sess := mustStart(t, mgr, in)
 	waitForStarts(t, engine, 1)
-	job := engine.LastJob()
 
 	if err := mgr.Heartbeat(in.Username, sess.ID, HeartbeatRequest{ClientID: "c1", Paused: true}); err != nil {
 		t.Fatal(err)
 	}
+	waitForProducerVODJobAttached(t, mgr, sess.ID)
 	suspendPausedProducers(t, mgr, time.Now().Add(time.Hour))
 
-	pollUntil(t, 2*time.Second, func() bool { return !job.Running() }, "suspended job to stop")
+	waitForProducerParked(t, mgr, sess.ID)
 	if snap := snapshotProducer(t, mgr, sess.ID); !snap.exists || !snap.suspended {
 		t.Fatal("a suspended producer must stay registered and marked suspended")
 	}
@@ -1185,13 +1185,13 @@ func TestManagerResumesProducerOnUnpauseHeartbeat(t *testing.T) {
 	pollUntil(t, 2*time.Second, func() bool {
 		return snapshotProducer(t, mgr, sess.ID).encodeHead >= 1
 	}, "encode head to advance past segment 0")
-	job := engine.LastJob()
 
 	if err := mgr.Heartbeat(in.Username, sess.ID, HeartbeatRequest{ClientID: "c1", Paused: true}); err != nil {
 		t.Fatal(err)
 	}
+	waitForProducerVODJobAttached(t, mgr, sess.ID)
 	suspendPausedProducers(t, mgr, time.Now().Add(time.Hour))
-	pollUntil(t, 2*time.Second, func() bool { return !job.Running() }, "suspended job to stop")
+	waitForProducerParked(t, mgr, sess.ID)
 
 	if err := mgr.Heartbeat(in.Username, sess.ID, HeartbeatRequest{ClientID: "c1", Paused: false}); err != nil {
 		t.Fatal(err)
@@ -1216,13 +1216,13 @@ func TestManagerResumesProducerOnSegmentRequest(t *testing.T) {
 	in := testInput(t, "pauser", "/v.mp4")
 	sess := mustStart(t, mgr, in)
 	waitForStarts(t, engine, 1)
-	job := engine.LastJob()
 
 	if err := mgr.Heartbeat(in.Username, sess.ID, HeartbeatRequest{ClientID: "c1", Paused: true}); err != nil {
 		t.Fatal(err)
 	}
+	waitForProducerVODJobAttached(t, mgr, sess.ID)
 	suspendPausedProducers(t, mgr, time.Now().Add(time.Hour))
-	pollUntil(t, 2*time.Second, func() bool { return !job.Running() }, "suspended job to stop")
+	waitForProducerParked(t, mgr, sess.ID)
 
 	// The suspended job reads as !Running, so a request beyond its head takes
 	// the restart path: the relaunched job produces the requested segment.
@@ -1246,13 +1246,13 @@ func TestManagerStopReleasesSuspendedProducer(t *testing.T) {
 	in := testInput(t, "pauser", "/v.mp4")
 	sess := mustStart(t, mgr, in)
 	waitForStarts(t, engine, 1)
-	job := engine.LastJob()
 
 	if err := mgr.Heartbeat(in.Username, sess.ID, HeartbeatRequest{ClientID: "c1", Paused: true}); err != nil {
 		t.Fatal(err)
 	}
+	waitForProducerVODJobAttached(t, mgr, sess.ID)
 	suspendPausedProducers(t, mgr, time.Now().Add(time.Hour))
-	pollUntil(t, 2*time.Second, func() bool { return !job.Running() }, "suspended job to stop")
+	waitForProducerParked(t, mgr, sess.ID)
 
 	if err := mgr.Stop(in.Username, sess.ID); err != nil {
 		t.Fatal(err)
@@ -1266,6 +1266,9 @@ func TestManagerStopReleasesSuspendedProducer(t *testing.T) {
 	}
 }
 
+// testJanitorInterval keeps manager tests from sleeping through the 5s production tick.
+const testJanitorInterval = 15 * time.Millisecond
+
 func newTestManager(t *testing.T, engine Engine) (*Manager, *Store) {
 	t.Helper()
 	store, err := NewStore(t.TempDir())
@@ -1275,12 +1278,24 @@ func newTestManager(t *testing.T, engine Engine) (*Manager, *Store) {
 	if engine == nil {
 		engine = NewFakeEngine()
 	}
-	mgr, err := NewManager(context.Background(), engine, store, "")
+	mgr, err := newManager(context.Background(), engine, store, "", testJanitorInterval)
 	if err != nil {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { _ = mgr.Close(context.Background()) })
 	return mgr, store
+}
+
+// assertCountStable fails if count() differs from want during the observation window.
+func assertCountStable(t *testing.T, observe, step time.Duration, want int, count func() int) {
+	t.Helper()
+	deadline := time.Now().Add(observe)
+	for time.Now().Before(deadline) {
+		if got := count(); got != want {
+			t.Fatalf("count=%d, want %d held for %v", got, want, observe)
+		}
+		time.Sleep(step)
+	}
 }
 
 // testInput returns a StartInput for username+path with the defaults most tests
@@ -1306,6 +1321,29 @@ func mustStart(t *testing.T, mgr *Manager, in StartInput) SessionInfo {
 		t.Fatalf("start %s: %v", in.Path, err)
 	}
 	return info
+}
+
+// waitForProducerVODJobAttached waits until the session's producer has the VOD
+// job wired up. StartCount can advance before runProducerJob assigns p.job.
+func waitForProducerVODJobAttached(t *testing.T, mgr *Manager, sessionID string) {
+	t.Helper()
+	pollUntil(t, 5*time.Second, func() bool {
+		mgr.mu.Lock()
+		p := mgr.producers[sessionID]
+		ok := p != nil && p.job != nil
+		mgr.mu.Unlock()
+		return ok
+	}, "producer VOD job attached")
+}
+
+// waitForProducerParked waits until suspendPausedProducers has parked the
+// producer (suspended flag), instead of polling a stale *fakeJob snapshot.
+func waitForProducerParked(t *testing.T, mgr *Manager, sessionID string) {
+	t.Helper()
+	pollUntil(t, 5*time.Second, func() bool {
+		snap := snapshotProducer(t, mgr, sessionID)
+		return snap.exists && snap.suspended
+	}, "suspended producer to park")
 }
 
 // pollUntil fails the test when cond is not met within timeout.

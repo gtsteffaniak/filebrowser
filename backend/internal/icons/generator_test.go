@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/gtsteffaniak/filebrowser/backend/internal/database/users"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 	"github.com/kovidgoyal/imaging"
 )
@@ -122,23 +123,21 @@ func TestDefaultBackgroundColor(t *testing.T) {
 	saved := settings.Config
 	defer func() { settings.Config = saved }()
 
-	dark := true
-	light := false
 
 	settings.Config.Frontend.Styling.DarkBackground = "#111111"
 	settings.Config.Frontend.Styling.LightBackground = "#ffffff"
 
-	settings.Config.UserDefaults.UI.DarkMode = &dark
+	settings.Config.UserDefaults.UI.DarkMode = users.DarkModeDark
 	if got := settings.DefaultBackgroundColor(); got != "#111111" {
 		t.Fatalf("dark branch: got %q, want %q", got, "#111111")
 	}
 
-	settings.Config.UserDefaults.UI.DarkMode = &light
+	settings.Config.UserDefaults.UI.DarkMode = users.DarkModeLight
 	if got := settings.DefaultBackgroundColor(); got != "#ffffff" {
 		t.Fatalf("light branch (dark disabled): got %q, want %q", got, "#ffffff")
 	}
 
-	settings.Config.UserDefaults.UI.DarkMode = nil
+	settings.Config.UserDefaults.UI.DarkMode = ""
 	if got := settings.DefaultBackgroundColor(); got != "#ffffff" {
 		t.Fatalf("light branch (unset): got %q, want %q", got, "#ffffff")
 	}

@@ -15,7 +15,9 @@ export default {
       default: null,
     },
   },
-  emits: ["update:modelValue"],
+  emits: {
+    "update:modelValue": (name) => name === null || typeof name === "string",
+  },
   /** @returns {Record<symbol, { expanded: () => string | null, toggle: (name: string) => void }>} */
   provide() {
     return {

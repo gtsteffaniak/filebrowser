@@ -28,6 +28,9 @@ const EXTRA_ICONS = [
   'arrow_downward',
   'arrow_upward',
   'autorenew',
+  'dark_mode',
+  'light_mode',
+  'routine',
   'build',
   'check',
   'cloud_off',
@@ -35,6 +38,7 @@ const EXTRA_ICONS = [
   'create_new_folder',
   'do_not_disturb_on',
   'done',
+  'equalizer',
   'error_outline',
   'file',
   'file_copy',
@@ -138,7 +142,7 @@ function scanMimetype(icons) {
 }
 
 function scanConstants(icons) {
-  const content = fs.readFileSync(path.join(srcDir, 'utils/constants.js'), 'utf8');
+  const content = fs.readFileSync(path.join(srcDir, 'utils/constants.ts'), 'utf8');
   const iconField = new RegExp(`\\bicon:\\s*["'](${ICON_NAME})["']`, 'g');
   for (const match of content.matchAll(iconField)) addIcon(icons, match[1]);
 }
@@ -181,7 +185,7 @@ function collectIcons() {
   scanSearchFilters(icons);
   scanMarkdownViewer(icons);
   icons.delete('close_back');
-  return [...icons].sort();
+  return [...icons].sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
 }
 
 function readInventory() {

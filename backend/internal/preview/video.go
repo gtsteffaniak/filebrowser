@@ -28,8 +28,11 @@ func (s *Service) GenerateVideoPreview(ctx context.Context, videoPath, previewSi
 		return nil, err
 	}
 
-	// go-media fast path: fit within the box, no crop. Falls back to ffmpeg when
-	// unsupported (e.g. HEVC, VP9, AV1) or failed.
+	// go-media fast path: fit within the box, no crop. go-media decodes H.264,
+	// HEVC, VP8, VP9, AV1, MPEG-4 Part 2, and WMV3 keyframes in pure Go. It falls
+	// back to ffmpeg when the container is not a go-media target (AVI, MPEG-TS,
+	// MPEG-PS, ...), the codec or profile is unsupported (WMV1/WMV2, VC-1
+	// Advanced, AV1 above 4K, ...), or the decode fails.
 	// In shadow mode (dev only) the ffmpeg preview also runs, for comparison.
 	// The shadow run can outlive the request, so it uses a context that is not cancelled with it.
 	shadowCtx := context.WithoutCancel(ctx)

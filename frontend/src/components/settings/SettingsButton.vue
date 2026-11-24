@@ -15,7 +15,7 @@
       class="button button--settings-control"
       :disabled="disabled"
       :aria-label="ariaLabel || name"
-      @click="$emit('click')"
+      @click="$emit('activate')"
     >
       <i class="material-symbols-outlined">open_in_new</i>
     </button>
@@ -51,7 +51,9 @@ export default {
       default: false,
     },
   },
-  emits: ["click"],
+  emits: {
+    activate: () => true,
+  },
 };
 </script>
 

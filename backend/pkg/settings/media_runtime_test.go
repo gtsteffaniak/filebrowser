@@ -4,6 +4,8 @@ import (
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/gtsteffaniak/filebrowser/backend/internal/mediacache"
 )
 
 func withMediaConfig(t *testing.T) {
@@ -25,16 +27,15 @@ func TestMediaAccessorsReflectRuntimeSettings(t *testing.T) {
 	originalTranscode := Config.Integrations.Media.Transcode
 	t.Cleanup(func() { Config.Integrations.Media.Transcode = originalTranscode })
 
-	ApplyMediaSettings(MediaSettings{
+	ApplyMediaSettings(FullAdminMedia{
 		Debug:                true,
 		HardwareAcceleration: true,
-		Transcode: MediaTranscode{
-			Enabled:              true,
-			MaxConcurrent:        4,
-			MaxConcurrentPerUser: 2,
-			CacheMaxSizeMB:       512,
-			CacheRetentionH:      6,
-			Profiles:             DefaultTranscodeProfiles(),
+		Transcode: FullAdminTranscode{
+			UserTranscode:   UserTranscode{Enabled: true, MaxConcurrentPerUser: 2},
+			MaxConcurrent:   4,
+			CacheMaxSizeMB:  512,
+			CacheRetentionH: 6,
+			Profiles:        DefaultTranscodeProfiles(),
 		},
 	})
 
@@ -67,7 +68,7 @@ func TestMediaAccessorsReflectRuntimeSettings(t *testing.T) {
 
 func TestTranscodeAccessorsUseDefaultsWhenUnset(t *testing.T) {
 	withMediaConfig(t)
-	ApplyMediaSettings(MediaSettings{})
+	ApplyMediaSettings(FullAdminMedia{})
 
 	if got := TranscodeMaxConcurrent(); got != 2 {
 		t.Fatalf("TranscodeMaxConcurrent = %d, want the 2 default", got)
@@ -225,11 +226,11 @@ func TestMediaAccessorsAreRaceFree(t *testing.T) {
 			default:
 			}
 			enabled = !enabled
-			ApplyMediaSettings(MediaSettings{
+			ApplyMediaSettings(FullAdminMedia{
 				Debug:                enabled,
 				HardwareAcceleration: enabled,
-				Transcode: MediaTranscode{
-					Enabled:       enabled,
+				Transcode: FullAdminTranscode{
+					UserTranscode: UserTranscode{Enabled: enabled},
 					MaxConcurrent: 2,
 					Profiles:      DefaultTranscodeProfiles(),
 				},
@@ -307,5 +308,28 @@ func TestInitFFmpegIsIdempotent(t *testing.T) {
 	InitFFmpeg()
 	if ffmpegInitialized || Env.FFmpegAvailable {
 		t.Fatal("InitFFmpeg must not run the probe during tests")
+	}
+}
+
+// TestApplyMediaSettingsClearsMediaCacheOnBackendSwitch checks that toggling
+// "Always use ffmpeg" drops values the other backend cached, and that an
+// unrelated settings change keeps them.
+func TestApplyMediaSettingsClearsMediaCacheOnBackendSwitch(t *testing.T) {
+	withMediaConfig(t)
+	key := mediacache.Key{Path: "/settings-test.mp4", Size: 1, ModTime: 1}.String()
+	t.Cleanup(func() { mediacache.Durations.Delete(key) })
+
+	media := CurrentMediaSettings()
+	mediacache.Durations.Set(key, 1)
+	media.Debug = !media.Debug
+	ApplyMediaSettings(media)
+	if _, ok := mediacache.Durations.Get(key); !ok {
+		t.Fatal("an unrelated media settings change must keep the shared media cache")
+	}
+
+	media.AlwaysUseFfmpeg = !media.AlwaysUseFfmpeg
+	ApplyMediaSettings(media)
+	if _, ok := mediacache.Durations.Get(key); ok {
+		t.Fatal("switching Always use ffmpeg must clear the shared media cache")
 	}
 }

@@ -1,6 +1,6 @@
 :root {
   --blue: #2196f3;
-  --dark-blue: #1E88E5;
+  --dark-blue: #1e88e5;
   --red: #f44336;
   --dark-red: #be2626;
   --icon-red: #d23b4a;
@@ -26,11 +26,10 @@
   --header-height: calc(4em + var(--safe-area-top));
   --borderRadius: 0.85rem;
   --borderWidth: 2px;
-  --panel-bg: color-mix(in srgb, var(--alt-background) 65%, transparent);
-  --panel-blur: blur(12px) invert(0.1);
+  --panel-bg: color-mix(in srgb, var(--alt-background) 85%, transparent);
+  --panel-blur: blur(8px) invert(0.1);
   --surfaceElevationShadow:
-    0 1px 2px hsl(0deg 0% 0% / 7%),
-    0 2px 4px hsl(0deg 0% 0% / 6%),
+    0 1px 2px hsl(0deg 0% 0% / 7%), 0 2px 4px hsl(0deg 0% 0% / 6%),
     0 4px 8px hsl(0deg 0% 0% / 5%);
   --overlay: rgb(0 0 0 / 50%);
   --hoverOverlay: rgb(0 0 0 / 10%);

@@ -1,4 +1,4 @@
-import { globalVars } from "@/utils/constants.js";
+import { globalVars } from "@/utils/constants.ts";
 import { getters, state } from "@/store/index.ts";
 
 function manifestBaseUrl() {

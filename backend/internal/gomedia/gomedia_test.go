@@ -11,6 +11,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/gtsteffaniak/filebrowser/backend/internal/mediacache"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/testutil"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/settings"
 	"github.com/stretchr/testify/require"
 )
@@ -32,11 +35,14 @@ func withGate(t *testing.T, alwaysFfmpeg bool) {
 	t.Cleanup(func() { settings.ApplyMediaSettings(prev) })
 }
 
-// requireTool skips the test when an ffmpeg binary is not on PATH.
+// requireTool skips the test when a media binary is not on PATH.
 func requireTool(t *testing.T, name string) {
 	t.Helper()
-	if _, err := exec.LookPath(name); err != nil {
-		t.Skipf("%s not installed", name)
+	switch name {
+	case "ffmpeg", "ffprobe":
+		testutil.SkipIfNoFFmpeg(t)
+	default:
+		testutil.SkipIfNoTool(t, name)
 	}
 }
 
@@ -47,7 +53,9 @@ func ffprobeValue(t *testing.T, path string, args ...string) string {
 	full := append([]string{"-v", "error"}, args...)
 	full = append(full, "-of", "default=nw=1:nk=1", path)
 	out, err := exec.Command("ffprobe", full...).Output()
-	require.NoError(t, err)
+	if err != nil {
+		t.Skipf("ffprobe: %v", err)
+	}
 	return strings.TrimSpace(string(out))
 }
 
@@ -72,7 +80,9 @@ func makeMP3(t *testing.T) string {
 		"-f", "lavfi", "-i", "sine=frequency=440:duration=2",
 		"-metadata", "title=Gomedia Title",
 		"-c:a", "libmp3lame", path).CombinedOutput()
-	require.NoError(t, err, string(out))
+	if err != nil {
+		t.Skipf("ffmpeg could not encode mp3: %v\n%s", err, out)
+	}
 	return path
 }
 
@@ -131,27 +141,78 @@ func TestProbeUsesCache(t *testing.T) {
 	require.NoError(t, err)
 	require.NoError(t, os.WriteFile(path, data, 0o644))
 
-	st, err := os.Stat(path)
+	key, err := mediacache.Stat(path)
 	require.NoError(t, err)
-	key := probeCacheKey(path, st.ModTime().UnixNano(), st.Size())
 	sentinel := ProbeResult{Duration: 123, VideoCodec: "sentinel", AudioCodec: "sentinel", FormatName: "sentinel"}
-	probeCache.Set(key, sentinel)
-	t.Cleanup(func() { probeCache.Delete(key) })
+	// The ffmpeg probe stores into the same shared cache, so this also stands in
+	// for a value ffprobe produced earlier.
+	mediacache.Probes.Set(key.String(), sentinel)
+	t.Cleanup(func() { mediacache.Probes.Delete(key.String()) })
 
 	got, ok := Probe(path, nil)
 	require.True(t, ok)
 	require.Equal(t, sentinel, got, "probe must return the cached value for an unchanged file")
+
+	// An edit (new size and mtime) must miss the cached value.
+	require.NoError(t, os.WriteFile(path, append(data, 0), 0o644))
+	future := time.Now().Add(time.Hour)
+	require.NoError(t, os.Chtimes(path, future, future))
+	got, ok = Probe(path, nil)
+	require.True(t, ok)
+	require.NotEqual(t, sentinel, got, "an edited file must be probed again")
+	edited, err := mediacache.Stat(path)
+	require.NoError(t, err)
+	t.Cleanup(func() { mediacache.Probes.Delete(edited.String()) })
 }
 
-// TestProbeCacheKeyTracksFileIdentity checks that path, modtime, and size all
-// participate in the cache key, so an edited file is never served stale metadata.
-func TestProbeCacheKeyTracksFileIdentity(t *testing.T) {
-	base := probeCacheKey("f.mp4", 100, 200)
-	require.Equal(t, base, probeCacheKey("f.mp4", 100, 200), "identical identity must hash the same")
-	require.NotEqual(t, base, probeCacheKey("f.mp4", 101, 200), "modtime change must change the key")
-	require.NotEqual(t, base, probeCacheKey("f.mp4", 100, 201), "size change must change the key")
-	require.NotEqual(t, base, probeCacheKey("g.mp4", 100, 200), "path change must change the key")
-	require.NotEqual(t, base, probeCacheKey("f.mp4", 100, 201), "key must not collide across fields")
+// TestDurationUsesSharedCache checks that Duration reads and fills the shared
+// cache that ffmpeg's GetMediaDuration also uses.
+func TestDurationUsesSharedCache(t *testing.T) {
+	withGate(t, false)
+	path := filepath.Join(t.TempDir(), "sample.mp4")
+	data, err := os.ReadFile(fixtureMP4)
+	require.NoError(t, err)
+	require.NoError(t, os.WriteFile(path, data, 0o644))
+	key, err := mediacache.Stat(path)
+	require.NoError(t, err)
+	t.Cleanup(func() { mediacache.Durations.Delete(key.String()) })
+
+	d, ok := Duration(path, nil)
+	require.True(t, ok)
+	cached, found := mediacache.Durations.Get(key.String())
+	require.True(t, found, "go-media duration must be stored in the shared cache")
+	require.Equal(t, d, cached)
+
+	mediacache.Durations.Set(key.String(), 4242)
+	d, ok = Duration(path, nil)
+	require.True(t, ok)
+	require.Equal(t, 4242.0, d, "a cached duration (from either backend) must be reused")
+}
+
+// TestSubtitleCachesUseFileIdentity checks the subtitle list cache is keyed by
+// the file's real size and mtime, not by the caller's modtime argument.
+func TestSubtitleCachesUseFileIdentity(t *testing.T) {
+	withGate(t, false)
+	path := filepath.Join(t.TempDir(), "sample.mp4")
+	data, err := os.ReadFile(fixtureMP4)
+	require.NoError(t, err)
+	require.NoError(t, os.WriteFile(path, data, 0o644))
+	key, err := mediacache.Stat(path)
+	require.NoError(t, err)
+	sentinel := []utils.SubtitleTrack{{Name: "sentinel"}}
+	mediacache.SubtitleTracks.Set(key.String(), sentinel)
+	t.Cleanup(func() { mediacache.SubtitleTracks.Delete(key.String()) })
+
+	// The modtime argument is ignored for the key.
+	got, ok := EmbeddedSubtitles(path, time.Unix(1, 0), nil)
+	require.True(t, ok)
+	require.Equal(t, sentinel, got)
+
+	mediacache.SubtitleContent.Set(key.Stream(7), "WEBVTT\n\nsentinel")
+	t.Cleanup(func() { mediacache.SubtitleContent.Delete(key.Stream(7)) })
+	vtt, ok := ExtractSubtitle(path, 7, nil)
+	require.True(t, ok)
+	require.Equal(t, "WEBVTT\n\nsentinel", vtt)
 }
 
 func TestProbeWebMMatchesFFprobe(t *testing.T) {
@@ -259,7 +320,9 @@ func TestEmbeddedSubtitleIndexMatchesFFprobe(t *testing.T) {
 		"-i", srt,
 		"-map", "0:v", "-map", "1:s",
 		"-c:v", "mpeg4", "-c:s", "srt", mkv).CombinedOutput()
-	require.NoError(t, err, string(out))
+	if err != nil {
+		t.Skipf("ffmpeg could not build subtitle fixture: %v\n%s", err, out)
+	}
 
 	tracks, ok := EmbeddedSubtitles(mkv, time.Now(), nil)
 	require.True(t, ok, "go-media must list MKV subtitle tracks")

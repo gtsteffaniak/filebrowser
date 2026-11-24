@@ -3,8 +3,8 @@
 #
 # Usage: docker-release-tags.sh <metadata.json> <variant> <update_track> <update_major>
 #   metadata.json  JSON output of docker/metadata-action (uses .tags)
-#   variant        default | slim | media
-#                  default and media: floating tags include latest
+#   variant        default | slim | gpu
+#                  default and gpu: floating tags include latest
 #                  slim: every tag gets a -slim suffix and latest is not added
 #   update_track   true when the semver policy allows floating beta/stable/latest tags
 #   update_major   true when the semver policy allows major-only version tags
@@ -13,7 +13,7 @@
 set -euo pipefail
 
 if [[ $# -ne 4 ]]; then
-  echo "usage: $0 <metadata.json> <default|slim|media> <true|false> <true|false>" >&2
+  echo "usage: $0 <metadata.json> <default|slim|gpu> <true|false> <true|false>" >&2
   exit 2
 fi
 
@@ -33,10 +33,10 @@ slim)
   add_latest=false
   repos=(gtstef/filebrowser ghcr.io/gtsteffaniak/filebrowser)
   ;;
-media)
+gpu)
   suffix=""
   add_latest=true
-  repos=(gtstef/filebrowser-media ghcr.io/gtsteffaniak/filebrowser-media)
+  repos=(gtstef/filebrowser-gpu ghcr.io/gtsteffaniak/filebrowser-gpu)
   ;;
 *)
   echo "unknown variant: $variant" >&2

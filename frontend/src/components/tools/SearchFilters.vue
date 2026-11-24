@@ -1,9 +1,9 @@
 <template>
   <SettingsItem
-    :title="expanded ? $t('buttons.showLess') : $t('buttons.showMore')"
+    :title="expanded ? t('buttons.showLess') : t('buttons.showMore')"
     :collapsable="true"
     :start-collapsed="!expanded"
-    @toggle="expanded = $event"
+    @toggled="expanded = $event"
   >
     <div class="search-filters-inner">
       <div class="search-filter-dropdowns">
@@ -11,22 +11,23 @@
           v-model="filters.entryTypeFilter"
           :options="entryTypeOptions"
           all-value="all"
-          :all-selected-label="$t('search.filesAndFolders')"
-          :aria-label="$t('search.filesAndFolders')"
+          :all-selected-label="t('search.filesAndFolders')"
+          :aria-label="t('search.filesAndFolders')"
         />
         <ExpandDropdown
           v-model="filters.selectedMediaTypes"
           :options="mediaTypeOptions"
           allow-multiple
           empty-means-all
-          :all-selected-label="$t('search.allFileTypes')"
+          :all-selected-label="t('search.allFileTypes')"
           :disabled="foldersOnly"
-          :aria-label="$t('search.allFileTypes')"
+          :aria-label="t('search.allFileTypes')"
         />
       </div>
       <div class="constraints">
         <div class="sizeInputWrapper">
-          <p>{{ $t("search.smallerThan") }}</p>
+          <p>{{ t("search.smallerThan") }}</p>
+          <!-- i18n-ignore -->
           <input
             class="sizeInput input"
             v-model="filters.smallerThan"
@@ -34,13 +35,14 @@
             min="0"
             placeholder="MB"
           />
-          <p>{{ $t("search.largerThan") }}</p>
+          <p>{{ t("search.largerThan") }}</p>
+          <!-- i18n-ignore -->
           <input class="sizeInput input" v-model="filters.largerThan" type="number" placeholder="MB" />
         </div>
         <div class="sizeInputWrapper">
-          <p>{{ $t("search.olderThanDate") }}</p>
+          <p>{{ t("search.olderThanDate") }}</p>
           <input class="sizeInput input" v-model="filters.modifiedOlderThan" type="date" />
-          <p>{{ $t("search.newerThanDate") }}</p>
+          <p>{{ t("search.newerThanDate") }}</p>
           <input class="sizeInput input" v-model="filters.modifiedNewerThan" type="date" />
         </div>
       </div>
@@ -49,14 +51,14 @@
         <ToggleSwitch
           class="item"
           v-model="filters.useWildcardSearch"
-          :name="$t('search.useWildcardSearch')"
-          :description="$t('search.useWildcardSearchDescription')"
+          :name="t('search.useWildcardSearch')"
+          :description="t('search.useWildcardSearchDescription')"
         />
         <ToggleSwitch
           class="item"
           v-model="filters.caseExactSearch"
-          :name="$t('search.caseExact')"
-          :description="$t('search.caseExactDescription')"
+          :name="t('search.caseExact')"
+          :description="t('search.caseExactDescription')"
         />
       </div>
     </div>
@@ -65,15 +67,16 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
-import { useI18n } from "vue-i18n";
+import { useI18n } from "@/i18n/index.ts";
 import SettingsItem from "@/components/settings/SettingsItem.vue";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
-import type { SearchFilters } from "@/composables/useSearchFilters";
+import type { SearchFilters } from "@/composables/useSearchFilters.ts";
 
 // Whether the options are open
-const expanded = defineModel<boolean>("expanded", { default: false });
+const expanded = defineModel<boolean>("expanded", { required: true });
 const props = defineProps<{ filters: SearchFilters }>();
+defineSlots<{ "extra-settings"?(): unknown }>();
 defineOptions({ name: "search-filters" });
 const filters = props.filters;
 

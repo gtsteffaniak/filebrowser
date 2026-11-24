@@ -28,7 +28,7 @@ async function openUserDefaultsPrompt(page: import("@playwright/test").Page) {
     .click();
 
   const defaultsResponse = page.waitForResponse(
-    (response) => isExactSettingsApiResponse(response, "settings/user-defaults", "GET"),
+    (apiResponse) => isExactSettingsApiResponse(apiResponse, "settings/user-defaults", "GET"),
   );
   await page.getByRole("button", { name: "User defaults" }).click();
 

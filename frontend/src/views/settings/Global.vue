@@ -12,9 +12,9 @@
 </template>
 
 <script>
-import { notify } from "@/notify";
-import { state, mutations, getters } from "@/store";
-import { settingsApi } from "@/api";
+import { notify } from "@/notify/index.ts";
+import { state, mutations, getters } from "@/store/index.ts";
+import { settingsApi } from "@/api/index.js";
 import Errors from "@/views/Errors.vue";
 
 export default {

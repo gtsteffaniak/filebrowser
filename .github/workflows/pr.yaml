@@ -14,11 +14,11 @@ jobs:
     runs-on: ubuntu-24.04-arm
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
       - name: Prime Cache
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: _docker/Dockerfile.primecache
@@ -31,15 +31,15 @@ jobs:
     runs-on: ubuntu-24.04-arm
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+        uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
         with:
           node-version-file: frontend/.nvmrc
       - name: Build frontend
         working-directory: frontend
         run: npm ci && npm run build
       - name: Upload frontend build artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: dist
           path: frontend/dist
@@ -48,15 +48,15 @@ jobs:
     runs-on: ubuntu-24.04-arm
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+        uses: actions/checkout@v7
+      - uses: actions/setup-go@v6
         with:
           go-version: 'stable'
       - name: Build backend
         working-directory: backend
         run: go build -o filebrowser .
       - name: Upload backend build artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: filebrowser
           path: backend/filebrowser
@@ -92,26 +92,26 @@ jobs:
             dockerfile: ./_docker/Dockerfile.playwright-performance
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Download frontend build
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: dist
           path: frontend/dist
       - name: Download backend build
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: filebrowser
           path: backend/
       - name: Make backend executable
         run: chmod +x backend/filebrowser
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3.0.0
+        uses: docker/setup-qemu-action@v4
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3.0.0
+        uses: docker/setup-buildx-action@v4
       - name: Build and Test
         id: build
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: ${{ matrix.dockerfile }}
@@ -131,7 +131,7 @@ jobs:
           docker rm "$cid"
       - name: Upload listing performance results
         if: matrix.name == 'performance' && success()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: listing-performance-results
           path: perf-artifact/results.json
@@ -141,16 +141,16 @@ jobs:
     runs-on: ubuntu-24.04-arm
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3.0.0
+        uses: docker/setup-qemu-action@v4
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3.0.0
+        uses: docker/setup-buildx-action@v4
       - name: Extract metadata (tags, labels) for Docker
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
       - name: Build and push
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: ./_docker/Dockerfile.slim
@@ -163,29 +163,27 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-  build_media_docker_image:
-    name: Build media docker image
-    runs-on: ubuntu-24.04-arm
+  build_gpu_docker_image:
+    name: Build gpu docker image
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3.0.0
+        uses: actions/checkout@v7
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3.0.0
+        uses: docker/setup-buildx-action@v4
       - name: Extract metadata (tags, labels) for Docker
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
       - name: Build and push
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
-          file: ./_docker/Dockerfile.media
+          file: ./_docker/Dockerfile.gpu
           push: false # Do not push the image for now
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             VERSION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
             REVISION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
-          cache-from: type=gha,scope=pr-media
-          cache-to: type=gha,mode=max,scope=pr-media
+          cache-from: type=gha,scope=pr-gpu
+          cache-to: type=gha,mode=max,scope=pr-gpu

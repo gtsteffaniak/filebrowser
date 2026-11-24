@@ -69,7 +69,7 @@ export function setToastUpdateCallback(callback) {
  * @returns {string}
  */
 function generateId() {
-  return `notification-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+  return `notification-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`
 }
 
 /**
@@ -363,7 +363,7 @@ export function showError(message, options = {}) {
 export function showMultipleSelection() {
   const message = i18n.global.t('files.multipleSelectionEnabled');
   showPopup('success', message, { persistent: true });
-  const Notification = notifications[notifications.length - 1];
+  const Notification = notifications.at(-1);
   if (Notification) {
     Notification.isMultipleSelection = true;
   }
@@ -529,6 +529,46 @@ export function showToast(type, message, options = {}) {
     toast.timeoutId = setTimeout(() => {
       closeToast(toastId)
     }, duration)
+  }
+}
+
+const PENDING_TOAST_KEY = 'pendingToast'
+
+/**
+ * Store a toast to show once after the next full page load.
+ * Use before window.location navigation, which drops the in-memory toast queue.
+ * @param {'success' | 'error' | 'info' | 'warning'} type
+ * @param {string} message
+ */
+export function queueToastForNextPage(type, message) {
+  try {
+    sessionStorage.setItem(PENDING_TOAST_KEY, JSON.stringify({ type, message }))
+  } catch {
+    // sessionStorage unavailable; the toast is skipped
+  }
+}
+
+/**
+ * Show and clear a toast queued by queueToastForNextPage.
+ */
+export function showPendingToast() {
+  let raw = null
+  try {
+    raw = sessionStorage.getItem(PENDING_TOAST_KEY)
+    sessionStorage.removeItem(PENDING_TOAST_KEY)
+  } catch {
+    return
+  }
+  if (!raw) {
+    return
+  }
+  try {
+    const { type, message } = JSON.parse(raw)
+    if (['success', 'error', 'info', 'warning'].includes(type) && typeof message === 'string' && message !== '') {
+      showToast(type, message)
+    }
+  } catch {
+    // ignore malformed entries
   }
 }
 

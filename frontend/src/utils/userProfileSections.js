@@ -3,6 +3,7 @@
  */
 
 import { getNestedProperty, getObjectProperty } from "@/utils/object.js";
+import { normalizeDarkMode } from "@/utils/theme.js";
 
 function boolPtr(val, defaultValue = true) {
   if (val === undefined || val === null) {
@@ -69,6 +70,7 @@ export function sectionsFromFlatUser(user) {
     fileViewer: {
       autoplayMedia: boolPtr(preview.autoplayMedia),
       preferEditorForMarkdown: !!u.preferEditorForMarkdown,
+      preferEditorForHtml: !!u.preferEditorForHtml,
       debugOffice: !!u.debugOffice,
       disableViewingExt: u.disableViewingExt || "",
       disableOnlyOfficeExt: u.disableOnlyOfficeExt || "",
@@ -77,7 +79,7 @@ export function sectionsFromFlatUser(user) {
       disableOptions: !!u.disableSearchOptions,
     },
     ui: {
-      darkMode: boolPtr(u.darkMode),
+      darkMode: normalizeDarkMode(u.darkMode),
       themeColor: u.themeColor || "",
       customTheme: u.customTheme || "",
       locale: u.locale || "",
@@ -152,13 +154,16 @@ export function applySectionsToFlatUser(user, sections) {
 
   user.preview.autoplayMedia = boolPtr(fileViewer.autoplayMedia);
   user.preferEditorForMarkdown = !!fileViewer.preferEditorForMarkdown;
+  user.preferEditorForHtml = !!fileViewer.preferEditorForHtml;
   user.debugOffice = !!fileViewer.debugOffice;
   user.disableViewingExt = fileViewer.disableViewingExt || "";
   user.disableOnlyOfficeExt = fileViewer.disableOnlyOfficeExt || "";
 
   user.disableSearchOptions = !!search.disableOptions;
 
-  user.darkMode = boolPtr(ui.darkMode);
+  user.darkMode = ui.darkMode === undefined || ui.darkMode === null
+    ? normalizeDarkMode(user.darkMode)
+    : normalizeDarkMode(ui.darkMode);
   user.themeColor = ui.themeColor || "";
   user.customTheme = ui.customTheme || "";
   if (ui.locale !== undefined) {
@@ -206,6 +211,7 @@ const FLAT_PROFILE_FIELD_ENFORCED_PATHS = {
   deleteAfterArchive: ["listing", "deleteAfterArchive"],
   deleteWithoutConfirming: ["listing", "deleteWithoutConfirming"],
   preferEditorForMarkdown: ["fileViewer", "preferEditorForMarkdown"],
+  preferEditorForHtml: ["fileViewer", "preferEditorForHtml"],
   disablePreviewExt: ["preview", "disablePreviewExt"],
   disableViewingExt: ["fileViewer", "disableViewingExt"],
   disableOnlyOfficeExt: ["fileViewer", "disableOnlyOfficeExt"],

@@ -7,16 +7,30 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gtsteffaniak/filebrowser/backend/internal/mediacache"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	goffmpeg "github.com/gtsteffaniak/go-ffmpeg"
 	"github.com/gtsteffaniak/go-logger/logger"
 )
 
-// DetectEmbeddedSubtitles detects embedded subtitle streams.
+// DetectEmbeddedSubtitles detects embedded subtitle streams. Results are stored
+// in the shared media cache, keyed by the file's current size and modification
+// time; modtime is kept for API compatibility and is not used for the key.
 func DetectEmbeddedSubtitles(videoPath string, modtime time.Time) []utils.SubtitleTrack {
-	key := "embedded_subtitles:" + videoPath + ":" + modtime.Format(time.RFC3339)
-	if cached, ok := MediaCache.Get(key); ok {
-		return cached
+	_ = modtime
+	return DetectEmbeddedSubtitlesContext(context.Background(), videoPath)
+}
+
+// DetectEmbeddedSubtitlesContext is DetectEmbeddedSubtitles with a context. The
+// shared media cache is skipped when ctx is mediacache.WithoutCache.
+func DetectEmbeddedSubtitlesContext(ctx context.Context, videoPath string) []utils.SubtitleTrack {
+	useCache := !mediacache.Bypassed(ctx)
+	key, statErr := mediacache.Stat(videoPath)
+	useCache = useCache && statErr == nil
+	if useCache {
+		if cached, ok := mediacache.SubtitleTracks.Get(key.String()); ok {
+			return cached
+		}
 	}
 
 	svc := Get()
@@ -24,14 +38,16 @@ func DetectEmbeddedSubtitles(videoPath string, modtime time.Time) []utils.Subtit
 		return nil
 	}
 
-	tracks, err := svc.inner.DetectSubtitles(context.Background(), videoPath)
+	tracks, err := svc.inner.DetectSubtitles(ctx, videoPath)
 	if err != nil {
 		logger.Debug("ffprobe failed for file: " + videoPath + ", error: " + err.Error())
 		return nil
 	}
 
 	subtitles := mapSubtitleTracks(tracks)
-	MediaCache.Set(key, subtitles)
+	if useCache {
+		mediacache.SubtitleTracks.Set(key.String(), subtitles)
+	}
 	return subtitles
 }
 

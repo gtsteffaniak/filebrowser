@@ -38,9 +38,9 @@
 </template>
 
 <script>
-import { notify } from "@/notify";
-import { mutations } from "@/store";
-import { getToolAccessDefaults, patchToolAccessDefaults } from "@/api/settings";
+import { notify } from "@/notify/index.ts";
+import { mutations } from "@/store/index.ts";
+import { getToolAccessDefaults, patchToolAccessDefaults } from "@/api/settings.js";
 import ToolsAccessEditor from "@/components/tools/ToolsAccessEditor.vue";
 
 export default {

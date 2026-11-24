@@ -480,6 +480,46 @@ definitions:
       styling:
         $ref: '#/definitions/settings.StylingConfig'
     type: object
+  settings.FullAdminTranscode:
+    properties:
+      cacheMaxSizeMB:
+        description: 'disk cache size limit in MB; 0 = unlimited (default: 10240)'
+        type: integer
+      cacheRetentionH:
+        description: 'completed cache retention in hours (default: 24)'
+        type: integer
+      enabled:
+        description: 'enable HLS transcoding for authenticated playback (default:
+          false)'
+        type: boolean
+      enabledProfiles:
+        description: derived at read time (player-menu profile ids); never stored
+        items:
+          type: string
+        type: array
+      encoderBackend:
+        description: 'default video encoder backend for transcodes: "" (auto), "cpu",
+          or an accel backend (nvenc, amf, qsv, vaapi, d3d12, videotoolbox)'
+        type: string
+      maxConcurrent:
+        description: 'global concurrent transcode sessions (default: 2)'
+        type: integer
+      maxConcurrentPerUser:
+        description: 'hard per-user concurrent transcode ceiling (default: 1)'
+        type: integer
+      maxResolution:
+        description: 'superseded by profiles.<name>.maxResolution. deprecated: kept
+          for config compatibility'
+        type: integer
+      profiles:
+        allOf:
+        - $ref: '#/definitions/settings.TranscodeProfiles'
+        description: per-profile transcode settings shown in the player menu
+      readRate:
+        description: 'VOD producer input pacing in Nx realtime (-readrate); unset
+          or <1 clamps to >=1 (default: 2)'
+        type: number
+    type: object
   settings.Http:
     properties:
       baseURL:
@@ -534,15 +574,22 @@ definitions:
         items:
           type: string
         type: array
+      unixSocketTrustAllLocalPeers:
+        description: 'default false: set true to trust forwarded headers from any
+          local filesystem socket peer when allowlists are empty'
+        type: boolean
       unixSocketTrustedGIDs:
+        description: present X-Forwarded-* on a filesystem http.socket listener. When
+          both are empty, peers are not trusted unless UnixSocketTrustAllLocalPeers
+          is true (legacy; startup logs a warning). A GID allowlist trusts every peer
+          with that GID, not only a single reverse-proxy process. Abstract sockets
+          (@name) never trust forwarded headers.
         items:
           type: integer
         type: array
       unixSocketTrustedUIDs:
-        description: |-
-          UnixSocketTrustedUIDs and UnixSocketTrustedGIDs list peer credentials (Linux SO_PEERCRED) allowed to
-          present X-Forwarded-* on a filesystem http.socket listener. When both are empty, forwarded headers
-          are not trusted on Unix sockets. Abstract sockets (@name) never trust forwarded headers.
+        description: UnixSocketTrustedUIDs and UnixSocketTrustedGIDs list peer credentials
+          (Linux SO_PEERCRED) allowed to
         items:
           type: integer
         type: array
@@ -757,51 +804,13 @@ definitions:
           deprecated: manage via the admin media settings API'
         type: boolean
       skipHwCheck:
-        description: |-
-          SkipHwCheck skips the ffmpeg hardware codec probe entirely (software-only).
-          Config-only, not a runtime setting — advanced use, e.g. keeping the
-          multi-second probe out of CI startup.
+        description: SkipHwCheck skips the ffmpeg hardware codec probe entirely (software-only).
         type: boolean
       transcode:
         allOf:
-        - $ref: '#/definitions/settings.MediaTranscode'
+        - $ref: '#/definitions/settings.FullAdminTranscode'
         description: 'deprecated: HLS transcoding for media playback. deprecated:
           manage via the admin media settings API'
-    type: object
-  settings.MediaTranscode:
-    properties:
-      cacheMaxSizeMB:
-        description: 'disk cache size limit in MB; 0 = unlimited (default: 10240)'
-        type: integer
-      cacheRetentionH:
-        description: 'completed cache retention in hours (default: 24)'
-        type: integer
-      enabled:
-        description: 'enable HLS transcoding for authenticated playback (default:
-          false)'
-        type: boolean
-      encoderBackend:
-        description: 'default video encoder backend for transcodes: "" (auto), "cpu",
-          or an accel backend (nvenc, amf, qsv, vaapi, d3d12, videotoolbox)'
-        type: string
-      maxConcurrent:
-        description: 'global concurrent transcode sessions (default: 2)'
-        type: integer
-      maxConcurrentPerUser:
-        description: 'hard per-user concurrent transcode ceiling (default: 1)'
-        type: integer
-      maxResolution:
-        description: 'superseded by profiles.<name>.maxResolution. deprecated: kept
-          for config compatibility'
-        type: integer
-      profiles:
-        allOf:
-        - $ref: '#/definitions/settings.TranscodeProfiles'
-        description: per-profile transcode settings shown in the player menu
-      readRate:
-        description: 'VOD producer input pacing in Nx realtime (-readrate); unset
-          or <1 clamps to >=1 (default: 2)'
-        type: number
     type: object
   settings.OidcConfig:
     properties:
@@ -1001,6 +1010,11 @@ definitions:
           docker must also mount a persistent volume to persist the cache (default:
           false)'
         type: boolean
+      cacheDirMaxSizeMB:
+        description: 'maximum size in MB of the preview cache (cacheDir/diskcache).
+          Past it, the least recently used files are deleted. 0 means no limit (default:
+          0)'
+        type: integer
       database:
         allOf:
         - $ref: '#/definitions/settings.Database'
@@ -1234,7 +1248,7 @@ definitions:
         description: average video bitrate in kbps; 0 = original
         type: integer
       enabled:
-        description: 'show this preset in the player menu (default: true)'
+        description: 'show this preset in the player menu (default: false)'
         type: boolean
       encoderBackend:
         description: encoder backend override; "" inherits transcode.encoderBackend
@@ -1279,6 +1293,9 @@ definitions:
     type: object
   settings.UserDefaultsAccount:
     properties:
+      allowCustomShareURL:
+        description: 'allow users to choose custom share URLs (default: false)'
+        type: boolean
       disableSettings:
         description: disable the user from viewing the settings page
         type: boolean
@@ -1332,6 +1349,9 @@ definitions:
       disableViewingExt:
         description: comma separated list of file extensions to disable viewing for
         type: string
+      preferEditorForHtml:
+        description: prefer editor first for HTML files instead of the HTML viewer
+        type: boolean
       preferEditorForMarkdown:
         description: prefer editor first for markdown files instead of the Markdown
           Viewer
@@ -1458,8 +1478,9 @@ definitions:
         description: Name of theme to use chosen from custom themes config
         type: string
       darkMode:
-        description: should dark mode be enabled
-        type: boolean
+        allOf:
+        - $ref: '#/definitions/users.DarkMode'
+        description: 'theme preference: "auto" (follow system), "dark", or "light"'
       locale:
         description: 'language to use: eg. de, en, or fr'
         type: string
@@ -1609,6 +1630,11 @@ definitions:
         type: string
       canEditShare:
         type: boolean
+      customHash:
+        description: |-
+          CustomHash is the owner-chosen alias (empty when the share uses its random hash). Hash already
+          carries the presented identifier, so this only tells the editor whether a custom value is set.
+        type: string
       description:
         type: string
       disableAnonymous:
@@ -1724,6 +1750,8 @@ definitions:
         type: string
       canEditShare:
         type: boolean
+      customHash:
+        type: string
       description:
         type: string
       disableAnonymous:
@@ -1807,6 +1835,16 @@ definitions:
         description: default view mode for anonymous users
         type: string
     type: object
+  users.DarkMode:
+    enum:
+    - auto
+    - dark
+    - light
+    type: string
+    x-enum-varnames:
+    - DarkModeAuto
+    - DarkModeDark
+    - DarkModeLight
   users.FileLoading:
     properties:
       clearAll:
@@ -1816,6 +1854,10 @@ definitions:
       maxConcurrentUpload:
         type: integer
       uploadChunkSizeMb:
+        type: integer
+      uploadStallTimeoutSeconds:
+        description: seconds without progress before an upload is paused, 0 uses the
+          default (10)
         type: integer
     type: object
   users.FrontendScope:
@@ -1833,12 +1875,19 @@ definitions:
     type: object
   users.FrontendUser:
     properties:
+      allowCustomShareURL:
+        description: |-
+          AllowCustomShareURL and MaxConcurrentTranscodes are admin-set: they stay out of
+          NonAdminEditable so a user cannot grant themselves the capability through a
+          self-service PATCH.
+        type: boolean
       customTheme:
         description: Name of theme to use chosen from custom themes config.
         type: string
       darkMode:
-        description: should dark mode be enabled
-        type: boolean
+        allOf:
+        - $ref: '#/definitions/users.DarkMode'
+        description: 'theme preference: "auto" (follow system), "dark", or "light"'
       dateFormat:
         description: when false, the date is relative, when true, the date is an exact
           timestamp
@@ -1904,9 +1953,6 @@ definitions:
       loginMethod:
         $ref: '#/definitions/users.LoginMethod'
       maxConcurrentTranscodes:
-        description: |-
-          MaxConcurrentTranscodes is admin-set: it stays out of NonAdminEditable so a
-          user cannot raise their own limit through a self-service PATCH.
         type: integer
       newFileTemplate:
         description: list of custom filenames that will be used as template for new
@@ -1928,6 +1974,9 @@ definitions:
         allOf:
         - $ref: '#/definitions/users.Permissions'
         description: 'global: admin, api, share, realtime'
+      preferEditorForHtml:
+        description: prefer editor first for HTML files instead of the HTML viewer
+        type: boolean
       preferEditorForMarkdown:
         description: prefer editor first for markdown files instead of the Markdown
           Viewer
@@ -2412,9 +2461,6 @@ definitions:
         description: File metadata for non-text files
     type: object
   web.mediaSettingsResponse:
-    description: Admins receive the DB-backed media integration settings; every authenticated
-      user receives the player-relevant subset (transcode enabled, profiles, per-user
-      limit).
     properties:
       accelDevice:
         description: 'acceleration device: "auto", "software"/"cpu", "igpu", "dgpu",
@@ -2432,6 +2478,10 @@ definitions:
         description: 'skip folio document previews and use the office converter when
           configured (default: false)'
         type: boolean
+      autoAccelDevice:
+        description: AutoAccelDevice is the option id that accelDevice "auto" resolves
+          to on this host.
+        type: string
       convert:
         allOf:
         - $ref: '#/definitions/settings.FfmpegConvert'
@@ -2447,6 +2497,11 @@ definitions:
       hardwareAcceleration:
         description: enable hardware acceleration for ffmpeg if available
         type: boolean
+      imagePreview:
+        additionalProperties:
+          type: boolean
+        description: image formats that can be converted
+        type: object
       lockMessage:
         type: string
       lockedFromConfigPaths:
@@ -2455,7 +2510,7 @@ definitions:
         type: array
       transcode:
         allOf:
-        - $ref: '#/definitions/settings.MediaTranscode'
+        - $ref: '#/definitions/settings.FullAdminTranscode'
         description: HLS transcoding for media playback
     type: object
   web.pinnedItemPatchRequest:
@@ -4756,6 +4811,23 @@ paths:
       tags:
       - Settings
   /api/settings/media:
+    get:
+      description: |-
+        Returns the media settings the caller is allowed to see.
+        Admins get the full settings, including ffmpeg and hardware options, so they can edit them.
+        Everyone else gets a small read-only view: whether transcoding is on, how many
+        transcodes they can run at once, which quality presets are enabled, and which image
+        previews the server can generate. Keys in the view are the same for admins and users.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Media settings
+          schema:
+            $ref: '#/definitions/web.mediaSettingsResponse'
+      summary: Get runtime media settings
+      tags:
+      - Settings
     patch:
       consumes:
       - application/json
@@ -5159,8 +5231,8 @@ paths:
         and metadata based on the user's session and scope. Supports searching across
         multiple sources when using the 'sources' parameter.
       parameters:
-      - description: Filter prefix or full search text (required when no terms are
-          supplied)
+      - description: Filter prefix or full search text; no minimum length is enforced
+          (clients enforce minSearchLength)
         in: query
         name: query
         type: string
@@ -5664,6 +5736,11 @@ paths:
         in: query
         name: metadata
         type: string
+      - description: Optional checksum algorithm (md5, sha1, sha256, sha512); requires
+          a logged-in session
+        in: query
+        name: checksum
+        type: string
       produces:
       - application/json
       responses:
@@ -5671,6 +5748,12 @@ paths:
           description: File or directory metadata
           schema:
             $ref: '#/definitions/iteminfo.FileInfo'
+        "401":
+          description: Login required for checksum generation
+          schema:
+            additionalProperties:
+              type: string
+            type: object
         "403":
           description: Share unavailable or access denied
           schema:

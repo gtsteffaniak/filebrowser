@@ -11,7 +11,7 @@
       <div v-if="item.type !== 'directory'" class="filename-inputs">
       <i class="file-type-icon" :class="typeInfo.classes" aria-hidden="true">{{ typeInfo.materialSymbol }}</i>
       <input ref="filenameInput" aria-label="New Name" class="input" :class="{ 'form-invalid': !validation.valid }" v-focus type="text" @keydown="onKeydown" @keyup="onKeyup" v-model.trim="fileName" @input="updateFullName" />
-      <span class="extension-separator">.</span> <!--eslint-disable-line @intlify/vue-i18n/no-raw-text-->
+      <span class="extension-separator">.</span>
       <input
         class="input extension-input"
         type="text"
@@ -54,13 +54,13 @@
   </div>
 </template>
 <script>
-import { resourcesApi } from "@/api";
-import { mutations, state, getters } from "@/store";
-import { eventBus } from '@/store/eventBus';
-import { notify } from "@/notify";
+import { resourcesApi } from "@/api/index.js";
+import { mutations, state, getters } from "@/store/index.ts";
+import { eventBus } from "@/store/eventBus.ts";
+import { notify } from "@/notify/index.ts";
 import { getFileExtension, removePrefix } from '@/utils/files.js';
-import { getTypeInfo, getTypeInfoFromExt } from "@/utils/mimetype";
-import { url } from "@/utils";
+import { getTypeInfo, getTypeInfoFromExt } from "@/utils/mimetype.js";
+import { url } from "@/utils/index.ts";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 export default {
   name: "rename",
@@ -74,7 +74,6 @@ export default {
     },
     item: {
       type: Object,
-      required: true,
       default: () => ({ source: "", path: "", name: "" })
     },
     parentItems: {  // Parent items for comparison of filenames in a preview
@@ -88,7 +87,7 @@ export default {
     let fileExtension = "";
     if (this.item.type !== 'directory') {
       const ext = getFileExtension(this.item.name);
-      const filenamePrefix = this.item.name.substring(0, this.item.name.length - ext.length);
+      const filenamePrefix = this.item.name.slice(0, this.item.name.length - ext.length);
       fileName = filenamePrefix;
       fileExtension = removePrefix(ext, ".");
     }
@@ -225,16 +224,16 @@ export default {
     async submit() {
       // remove trailing slashes
       if (this.name.endsWith("/") || this.name.endsWith("\\")) {
-        this.name = this.name.substring(0, this.name.length - 1);
+        this.name = this.name.slice(0, -1);
       }
       if (!this.validation.valid || !this.canRename) return;
       // Remove trailing slashes from the source path before calculating parent directory
       let sourcePath = this.item.path;
       while (sourcePath.endsWith("/") || sourcePath.endsWith("\\")) {
-        sourcePath = sourcePath.substring(0, sourcePath.length - 1);
+        sourcePath = sourcePath.slice(0, -1);
       }
 
-      let newPath = sourcePath.substring(0, sourcePath.lastIndexOf("/"));
+      let newPath = sourcePath.slice(0, Math.max(0, sourcePath.lastIndexOf("/")));
       newPath = `${newPath}/${this.name}`;
       this.renaming = true;
       try {
@@ -326,7 +325,7 @@ export default {
 }
 
 .extension-separator {
-  font-weight: bold;
+  font-weight: 700;
 }
 
 .file-type-icon {

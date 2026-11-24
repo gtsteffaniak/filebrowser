@@ -279,19 +279,21 @@ func archiveCreateHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 	if fullDestParent != fullDestFile && !state.AccessPermitted(idxTo.Path, utils.IndexPathFromNormalized(fullDestParent, true), d.User.Username) {
 		return http.StatusForbidden, fmt.Errorf("access denied to destination parent of %s", req.Destination)
 	}
-	parentReal, err := idxTo.GetRealPathForMutation(userScopeTo, fullDestParent)
-	if err != nil {
-		return http.StatusBadRequest, fmt.Errorf("destination parent path invalid: %v", err)
-	}
-	if err = os.MkdirAll(parentReal, fileutils.EffectiveDirPerm()); err != nil {
-		return http.StatusInternalServerError, fmt.Errorf("cannot create destination parent directory: %v", err)
-	}
 	destRel := strings.TrimLeft(filepath.ToSlash(req.Destination), "/")
 	fileName := path.Base(destRel)
 	if fileName == "." || fileName == "/" {
 		return http.StatusBadRequest, fmt.Errorf("invalid destination file name")
 	}
-	destFileReal := filepath.Join(parentReal, fileName)
+	destFileReal, err := idxTo.GetRealPathForMutation(userScopeTo, fullDestFile)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("destination path invalid: %v", err)
+	}
+	if !state.AccessPermittedAtRealPath(idxTo, d.User.Username, destFileReal, false) {
+		return http.StatusForbidden, fmt.Errorf("access denied to destination %s", req.Destination)
+	}
+	if err = os.MkdirAll(filepath.Dir(destFileReal), fileutils.EffectiveDirPerm()); err != nil {
+		return http.StatusInternalServerError, fmt.Errorf("cannot create destination parent directory: %v", err)
+	}
 
 	format := strings.ToLower(strings.TrimSpace(req.Format))
 	if format == "" {
@@ -1161,28 +1163,164 @@ func applyArchivedTimesAndPerm(path string, mode fs.FileMode, modTime time.Time)
 	}
 }
 
-// symlinkTargetStaysUnderDest rejects absolute targets and paths that would resolve outside destRoot.
+// Bounds symlink target resolution during archive extraction (GHSA-jg32 / #3384).
+const (
+	maxSymlinkResolveDepth      = 40
+	maxSymlinkResolveExpansions = 255
+)
+
+// symlinkTargetStaysUnderDest rejects absolute targets and symlink text that would resolve
+// outside destRoot after following symlinks already created under the destination tree.
+// Lexical filepath.Clean alone is insufficient: a chained link can pass a prefix check yet
+// resolve outside dest when an intermediate path component is a symlink.
 func symlinkTargetStaysUnderDest(destRoot, destPath, linkname string) error {
+	linkname = strings.TrimSpace(linkname)
 	if linkname == "" {
 		return fmt.Errorf("empty symlink target")
 	}
 	if filepath.IsAbs(linkname) {
 		return fmt.Errorf("symlink has absolute target")
 	}
-	destAbs, err := filepath.Abs(destRoot)
+	if symlinkTargetHasDotDot(linkname) {
+		return fmt.Errorf("symlink target escapes destination directory")
+	}
+	destResolved, err := filepath.EvalSymlinks(destRoot)
 	if err != nil {
 		return err
 	}
-	resolved := filepath.Clean(filepath.Join(filepath.Dir(destPath), linkname))
-	resAbs, err := filepath.Abs(resolved)
+	linkDir, err := resolvedSymlinkParentDir(destPath)
+	if err != nil {
+		return fmt.Errorf("symlink target escapes destination directory")
+	}
+	expansionsLeft := maxSymlinkResolveExpansions
+	resolved, err := resolveSymlinkTargetAt(linkDir, linkname, 0, &expansionsLeft)
 	if err != nil {
 		return err
+	}
+	rel, err := filepath.Rel(filepath.Clean(destResolved), filepath.Clean(resolved))
+	if err != nil {
+		return fmt.Errorf("symlink target escapes destination directory")
 	}
 	sep := string(filepath.Separator)
-	if resAbs != destAbs && !strings.HasPrefix(resAbs, destAbs+sep) {
+	if rel == ".." || strings.HasPrefix(rel, ".."+sep) {
 		return fmt.Errorf("symlink target escapes destination directory")
 	}
 	return nil
+}
+
+// symlinkTargetHasDotDot reports whether linkname contains a ".." path segment before cleaning.
+func symlinkTargetHasDotDot(linkname string) bool {
+	linkname = filepath.ToSlash(strings.TrimSpace(linkname))
+	for _, seg := range strings.Split(linkname, "/") {
+		if seg == ".." {
+			return true
+		}
+	}
+	return false
+}
+
+// resolvedSymlinkParentDir returns the real directory that will host the new symlink at destPath.
+func resolvedSymlinkParentDir(destPath string) (string, error) {
+	linkPath, err := resolvedLinkPath(destPath)
+	if err != nil {
+		return "", err
+	}
+	return filepath.Dir(linkPath), nil
+}
+
+func errSymlinkTargetEscape() error {
+	return fmt.Errorf("symlink target escapes destination directory")
+}
+
+func consumeSymlinkExpansion(expansionsLeft *int) error {
+	if expansionsLeft == nil {
+		return nil
+	}
+	if *expansionsLeft <= 0 {
+		return errSymlinkTargetEscape()
+	}
+	*expansionsLeft--
+	return nil
+}
+
+// resolveSymlinkTargetAt walks linkname relative to linkDir, following existing symlinks at
+// each component without collapsing ".." lexically first (closes chained-link extraction bypass).
+// expansionsLeft is decremented on every symlink expansion and shared across recursion.
+func resolveSymlinkTargetAt(linkDir, linkname string, depth int, expansionsLeft *int) (string, error) {
+	if depth > maxSymlinkResolveDepth {
+		return "", errSymlinkTargetEscape()
+	}
+	if filepath.IsAbs(linkname) {
+		return resolveSymlinkTargetAbsolute(linkname, depth, expansionsLeft)
+	}
+	linkDir = filepath.Clean(linkDir)
+	cur := linkDir
+	for _, part := range strings.Split(filepath.ToSlash(linkname), "/") {
+		if part == "" || part == "." {
+			continue
+		}
+		switch part {
+		case "..":
+			// Popping ".." off a path that does not exist yet is unsafe: a later archive
+			// entry can create that component as a symlink, which changes where ".." lands
+			// (e.g. dest/hop -> "z-pivot/..", then "z-pivot -> ." escapes dest). Only an existing
+			// directory is safe to pop: a regular file can later be replaced by a symlink too.
+			// Ordinary dangling links without ".." are still accepted below.
+			info, err := os.Lstat(cur)
+			if err != nil || !info.IsDir() {
+				return "", errSymlinkTargetEscape()
+			}
+			cur = filepath.Dir(cur)
+		default:
+			next := filepath.Join(cur, part)
+			info, err := os.Lstat(next)
+			if err != nil {
+				if os.IsNotExist(err) {
+					cur = next
+					continue
+				}
+				return "", err
+			}
+			if info.Mode()&os.ModeSymlink != 0 {
+				if err := consumeSymlinkExpansion(expansionsLeft); err != nil {
+					return "", err
+				}
+				target, err := os.Readlink(next)
+				if err != nil {
+					return "", err
+				}
+				var nested string
+				if filepath.IsAbs(target) {
+					nested, err = resolveSymlinkTargetAbsolute(target, depth+1, expansionsLeft)
+				} else {
+					nested, err = resolveSymlinkTargetAt(filepath.Dir(next), target, depth+1, expansionsLeft)
+				}
+				if err != nil {
+					return "", err
+				}
+				cur = nested
+				continue
+			}
+			cur = next
+		}
+	}
+	return filepath.Clean(cur), nil
+}
+
+// resolveSymlinkTargetAbsolute walks an absolute path from the volume root so every path
+// component is resolved, including ancestor symlinks (a single Lstat on the full path would skip them).
+// The path must not be filepath.Clean'd before walking or ".." segments collapse before symlinks are seen.
+func resolveSymlinkTargetAbsolute(path string, depth int, expansionsLeft *int) (string, error) {
+	if depth > maxSymlinkResolveDepth {
+		return "", errSymlinkTargetEscape()
+	}
+	path = filepath.FromSlash(filepath.ToSlash(path))
+	root := filepath.VolumeName(path) + string(filepath.Separator)
+	if !strings.HasPrefix(path, root) {
+		return "", errSymlinkTargetEscape()
+	}
+	rel := path[len(root):]
+	return resolveSymlinkTargetAt(root, rel, depth, expansionsLeft)
 }
 
 // extractArchivedDir creates a directory from an archive entry and reapplies mode and mtime.
@@ -1262,6 +1400,13 @@ func extractArchivedSymlink(destRoot, destPath, target string, modTime time.Time
 	if err := symlinkTargetStaysUnderDest(destRoot, destPath, target); err != nil {
 		return err
 	}
+	// Never replace a directory, or a symlink that resolves to one, with a new symlink. os.Remove
+	// would delete an empty directory, and a pre-existing ".." link through it could then escape.
+	// os.Stat follows symlinks, so an alias such as alias -> sub is covered too. A missing
+	// destination passes through.
+	if info, err := os.Stat(destPath); err == nil && info.IsDir() {
+		return fmt.Errorf("symlink from archive entry would replace a directory")
+	}
 	if err := os.Remove(destPath); err != nil && !os.IsNotExist(err) {
 		logger.Debugf("unarchive: remove symlink: %v", err)
 		return fmt.Errorf("failed to create symlink from archive entry")
@@ -1270,6 +1415,7 @@ func extractArchivedSymlink(destRoot, destPath, target string, modTime time.Time
 		logger.Debugf("unarchive: symlink: %v", err)
 		return fmt.Errorf("failed to create symlink from archive entry")
 	}
+	indexing.ClearRealPathCaches()
 	return applyArchivedTimesAndPerm(destPath, fs.ModeSymlink, modTime)
 }
 

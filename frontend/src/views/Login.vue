@@ -12,15 +12,15 @@
     </div>
 
     <form class="card login-card" :class="{ 'tombstone': eventTheme === 'halloween' }" @submit="submit">
-      <!-- eslint-disable-next-line @intlify/vue-i18n/no-raw-text -->
+      <!-- i18n-ignore -->
       <span v-if="eventTheme === 'halloween'" class="tombstone-rip" aria-hidden="true">R.I.P.</span>
       <div class="login-brand">
-        <img :src="loginIconUrl" alt="Login Icon" class="login-icon" />
+        <img :src="loginIconUrl" :alt="$t('general.login')" class="login-icon" />
       </div>
       <div v-if="!inProgress" class="login-brand brand-text">
         <h3>{{ loginName }}</h3>
       </div>
-      <transition name="login-options" @before-enter="beforeEnter" @enter="enter" @leave="leave">
+      <transition :css="false" @enter="collapseEnter" @leave="collapseLeave">
         <div v-if="inProgress" class="login-spinner-wrapper">
           <LoadingSpinner size="medium" />
         </div>
@@ -219,15 +219,15 @@
 </template>
 
 <script>
-import { router } from "@/router";
-import { mutations, state, getters } from "@/store";
+import { mutations, state, getters } from "@/store/index.ts";
 import Prompts from "@/components/prompts/Prompts.vue";
-import { authApi } from "@/api";
-import { initAuth } from "@/utils/auth";
+import { authApi } from "@/api/index.js";
+import { initAuth } from "@/utils/auth.js";
 import { postLoginRedirectForServer, sanitizePostLoginRedirect } from "@/utils/safeRedirect.js";
-import { globalVars } from "@/utils/constants";
+import { globalVars } from "@/utils/constants.ts";
 import { evaluatePasswordPolicy } from "@/utils/passwordPolicy.js";
-import { defaultDarkMode, syncDocumentTheme } from "@/utils/theme";
+import { defaultDarkMode, syncDocumentTheme } from "@/utils/theme.js";
+import { collapseEnter, collapseLeave } from "@/utils/transitions.ts";
 import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
 import Tooltip from "@/components/Tooltip.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
@@ -333,8 +333,10 @@ export default {
     );
   },
   methods: {
+    collapseEnter,
+    collapseLeave,
     renderRecaptcha() {
-      const container = document.getElementById("globalVars.recaptcha");
+      const container = document.querySelector('[id="globalVars.recaptcha"]');
       if (!container) return;
       window.grecaptcha.ready(() => {
         this.recaptchaId = window.grecaptcha.render(container, {
@@ -354,34 +356,6 @@ export default {
         return globalVars.loginButtonText;
       }
       return this.$t("general.login");
-    },
-    beforeEnter(el) {
-      el.style.height = '0';
-      el.style.opacity = '0';
-    },
-    enter(el, done) {
-      el.style.transition = '';
-      el.style.height = '0';
-      el.style.opacity = '0';
-      // Force reflow
-      void el.offsetHeight;
-      el.style.transition = 'height 0.3s, opacity 0.3s';
-      el.style.height = `${el.scrollHeight}px`;
-      el.style.opacity = '1';
-      setTimeout(() => {
-        el.style.height = 'auto';
-        done();
-      }, 300);
-    },
-    leave(el, done) {
-      el.style.transition = 'height 0.3s, opacity 0.3s';
-      el.style.height = `${el.scrollHeight}px`;
-      el.style.opacity = '1';
-      // Force reflow
-      void el.offsetHeight;
-      el.style.height = '0';
-      el.style.opacity = '0';
-      setTimeout(done, 300);
     },
     toggleMode() {
       this.createMode = !this.createMode;
@@ -425,7 +399,7 @@ export default {
         }
         await authApi.login(this.username, this.password, captcha);
         await initAuth();
-        void router.push({ path: redirect });
+        window.location.replace(postLoginRedirectForServer(redirect, globalVars.baseURL));
       } catch (e) {
         console.log(e);
         this.inProgress = false;
@@ -481,7 +455,7 @@ export default {
           try {
             await authApi.beginPasskeyLogin(this.username, this.password);
             await initAuth();
-            void router.push({ path: redirect });
+            window.location.replace(postLoginRedirectForServer(redirect, globalVars.baseURL));
           } catch (passkeyErr) {
             this.error = passkeyErr.message;
             this.inProgress = false;
@@ -597,17 +571,6 @@ export default {
   align-items: center;
   overflow: hidden;
   flex-direction: column;
-}
-
-.login-options-enter-active,
-.login-options-leave-active {
-  transition: height 0.3s ease, opacity 0.3s ease;
-}
-
-.login-options-enter-from,
-.login-options-leave-to {
-  height: 0;
-  opacity: 0;
 }
 
 #login {

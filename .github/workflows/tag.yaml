@@ -14,14 +14,14 @@ jobs:
     runs-on: ubuntu-24.04-arm
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version-file: backend/go.mod
           cache-dependency-path: backend/go.sum
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version-file: frontend/.nvmrc
           cache: npm
@@ -30,7 +30,7 @@ jobs:
         run: npm ci && npm run build
         working-directory: frontend
       - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@v6
+        uses: goreleaser/goreleaser-action@v7
         with:
           args: release --clean
           workdir: backend
@@ -42,25 +42,25 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3.0.0
+        uses: docker/setup-qemu-action@v4
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3.0.0
+        uses: docker/setup-buildx-action@v4
       - name: Login to Docker Hub
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{github.actor}}
           password: ${{ secrets.PAT }}
       - name: Extract metadata (tags, labels) for Docker and GHCR
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: |
             gtstef/filebrowser
@@ -76,7 +76,7 @@ jobs:
           TAGS_CSV=$(bash .github/scripts/docker-release-tags.sh metadata.json default '${{ steps.floating.outputs.update_track }}' '${{ steps.floating.outputs.update_major }}')
           echo "cleaned_tag=$TAGS_CSV" >> $GITHUB_OUTPUT
       - name: Build and push
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           build-args: |
@@ -89,84 +89,84 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha,scope=release-main
           cache-to: type=gha,mode=max,scope=release-main
-  push_media_release_to_registry:
-    name: Push media release
+  push_gpu_release_to_registry:
+    name: Push gpu release
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3.0.0
+        uses: docker/setup-qemu-action@v4
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3.0.0
+        uses: docker/setup-buildx-action@v4
       - name: Login to Docker Hub
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{github.actor}}
           password: ${{ secrets.PAT }}
       - name: Extract metadata (tags, labels) for Docker and GHCR
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: |
-            gtstef/filebrowser-media
-            ghcr.io/gtsteffaniak/filebrowser-media
+            gtstef/filebrowser-gpu
+            ghcr.io/gtsteffaniak/filebrowser-gpu
       - name: Decide floating Docker tags
         id: floating
         env:
-          IMAGE_REPO: gtstef/filebrowser-media
+          IMAGE_REPO: gtstef/filebrowser-gpu
         run: bash .github/scripts/docker-floating-tag-policy.sh
       - name: Modify tags (strip 'v' and add version tags)
         id: modify-json
         run: |
           JSON='${{ steps.meta.outputs.json }}'
           printf '%s' "$JSON" > metadata.json
-          TAGS_CSV=$(bash .github/scripts/docker-release-tags.sh metadata.json media '${{ steps.floating.outputs.update_track }}' '${{ steps.floating.outputs.update_major }}')
+          TAGS_CSV=$(bash .github/scripts/docker-release-tags.sh metadata.json gpu '${{ steps.floating.outputs.update_track }}' '${{ steps.floating.outputs.update_major }}')
           echo "cleaned_tag=$TAGS_CSV" >> $GITHUB_OUTPUT
       - name: Build and push
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           build-args: |
             VERSION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
             REVISION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
-          platforms: linux/amd64,linux/arm64
-          file: ./_docker/Dockerfile.media
+          platforms: linux/amd64
+          file: ./_docker/Dockerfile.gpu
           push: true
           tags: ${{ steps.modify-json.outputs.cleaned_tag }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha,scope=release-media
-          cache-to: type=gha,mode=max,scope=release-media
+          cache-from: type=gha,scope=release-gpu
+          cache-to: type=gha,mode=max,scope=release-gpu
   push_slim_release_to_registry:
     name: Push slim release
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3.0.0
+        uses: docker/setup-qemu-action@v4
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3.0.0
+        uses: docker/setup-buildx-action@v4
       - name: Login to Docker Hub
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{github.actor}}
           password: ${{ secrets.PAT }}
       - name: Extract metadata (tags, labels) for Docker and GHCR
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: |
             gtstef/filebrowser
@@ -184,7 +184,7 @@ jobs:
           TAGS_CSV=$(bash .github/scripts/docker-release-tags.sh metadata.json slim '${{ steps.floating.outputs.update_track }}' '${{ steps.floating.outputs.update_major }}')
           echo "cleaned_tag=$TAGS_CSV" >> $GITHUB_OUTPUT
       - name: Build and push slim image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           build-args: |

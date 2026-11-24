@@ -68,14 +68,14 @@ func MediaPatchJSONForPaths(source any, paths []string) ([]byte, error) {
 
 // ApplyConfigSpecifiedPathsToMedia overlays config media values onto stored settings for the
 // paths the config file pins, so a config value always wins over the stored one.
-func ApplyConfigSpecifiedPathsToMedia(stored MediaSettings, config Media) (MediaSettings, error) {
+func ApplyConfigSpecifiedPathsToMedia(stored FullAdminMedia, config Media) (FullAdminMedia, error) {
 	paths := ConfigSpecifiedMediaPaths()
 	if len(paths) == 0 {
 		return stored, nil
 	}
 	patchJSON, err := MediaPatchJSONForPaths(config, paths)
 	if err != nil {
-		return MediaSettings{}, err
+		return FullAdminMedia{}, err
 	}
 	if len(patchJSON) == 0 || string(patchJSON) == "{}" || string(patchJSON) == "null" {
 		return stored, nil

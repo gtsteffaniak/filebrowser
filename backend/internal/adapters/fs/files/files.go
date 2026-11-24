@@ -17,6 +17,7 @@ import (
 	"github.com/gtsteffaniak/filebrowser/backend/internal/errors"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/ffmpeg"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/gomedia"
+	"github.com/gtsteffaniak/filebrowser/backend/internal/mediacache"
 	"github.com/gtsteffaniak/filebrowser/backend/internal/utils"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing"
 	"github.com/gtsteffaniak/filebrowser/backend/pkg/indexing/iteminfo"
@@ -52,7 +53,7 @@ func addMetadataToChildren(response *iteminfo.ExtendedFileInfo, opts utils.FileO
 					logger.Debugf("failed to extract metadata for file: %s, error: %v", fileItem.Name, err)
 				}
 			} else {
-				if err := extractVideoMetadata(context.Background(), fileItem, fullPath, sharedFFmpegService); err != nil {
+				if err := extractVideoMetadata(context.Background(), fileItem, fullPath, opts.AlbumArt, sharedFFmpegService); err != nil {
 					logger.Debugf("failed to extract video metadata for file: %s, error: %v", fileItem.Name, err)
 				}
 			}
@@ -380,7 +381,7 @@ func processContent(info *iteminfo.ExtendedFileInfo, idx *indexing.Index, opts u
 		extItem := &iteminfo.ExtendedItemInfo{
 			ItemInfo: info.ItemInfo,
 		}
-		err := extractVideoMetadata(context.Background(), extItem, info.RealPath, nil)
+		err := extractVideoMetadata(context.Background(), extItem, info.RealPath, opts.AlbumArt, nil)
 		if err != nil {
 			logger.Debugf("failed to extract video metadata for file: %s (%s): %v", info.RealPath, info.Name, err)
 		} else {
@@ -393,7 +394,8 @@ func processContent(info *iteminfo.ExtendedFileInfo, idx *indexing.Index, opts u
 			info.GetSubtitles(parentInfo)
 		}
 		subtitles, ok := gomedia.EmbeddedSubtitles(info.RealPath, info.ModTime, func() ([]utils.SubtitleTrack, bool) {
-			return ffmpeg.DetectEmbeddedSubtitles(info.RealPath, info.ModTime), true
+			// Shadow run: bypass the shared cache so ffprobe is compared fresh.
+			return ffmpeg.DetectEmbeddedSubtitlesContext(mediacache.WithoutCache(context.Background()), info.RealPath), true
 		})
 		if !ok {
 			subtitles = ffmpeg.DetectEmbeddedSubtitles(info.RealPath, info.ModTime)
@@ -471,22 +473,10 @@ func extractAudioMetadata(ctx context.Context, item *iteminfo.ExtendedItemInfo, 
 	// go-media fast path: tags, lyrics availability, and artwork. Unsupported or
 	// failed reads fall through to the existing dhowden/tag code below.
 	if info, ok := gomedia.Audio(realPath, getArt, func() (gomedia.AudioInfo, bool) { return legacyAudioInfo(realPath, getArt) }); ok {
-		item.Metadata = &iteminfo.MediaMetadata{
-			Title:     info.Tags.Title,
-			Artist:    info.Tags.Artist,
-			Album:     info.Tags.Album,
-			Year:      info.Tags.Year,
-			Genre:     info.Tags.Genre,
-			Track:     info.Tags.Track,
-			HasLyrics: info.HasLyrics,
-		}
+		item.Metadata = &iteminfo.MediaMetadata{HasLyrics: info.HasLyrics}
+		applyMediaTags(item.Metadata, info, realPath)
 		if getDuration {
 			audioDuration(ctx, item, realPath, ffmpegService)
-		}
-		if n := len(info.Artwork); n > 0 && n <= 5*1024*1024 {
-			item.Metadata.AlbumArt = info.Artwork
-		} else if n > 5*1024*1024 {
-			logger.Debugf("Skipping album art for %s: too large (%d bytes)", realPath, n)
 		}
 		return nil
 	}
@@ -541,8 +531,9 @@ func audioDuration(ctx context.Context, item *iteminfo.ExtendedItemInfo, realPat
 	if service == nil {
 		service = ffmpeg.Get()
 	}
-	// The shadow run can outlive the request, so it uses a context that is not cancelled with it.
-	shadowCtx := context.WithoutCancel(ctx)
+	// The shadow run can outlive the request, so it uses a context that is not
+	// cancelled with it. It bypasses the shared cache so ffmpeg is compared fresh.
+	shadowCtx := mediacache.WithoutCache(context.WithoutCancel(ctx))
 	legacy := func() (float64, bool) {
 		d, err := service.GetMediaDuration(shadowCtx, realPath)
 		return d, err == nil
@@ -707,14 +698,15 @@ func legacyLyrics(realPath string) (gomedia.LyricsResult, bool) {
 
 // extractVideoMetadata extracts duration and codec info from video files using ffprobe.
 // If ffmpegService is nil, a new service will be created (for backward compatibility)
-func extractVideoMetadata(ctx context.Context, item *iteminfo.ExtendedItemInfo, realPath string, ffmpegService *ffmpeg.FFmpegService) error {
+func extractVideoMetadata(ctx context.Context, item *iteminfo.ExtendedItemInfo, realPath string, getArt bool, ffmpegService *ffmpeg.FFmpegService) error {
 	// go-media fast path. Works without ffmpeg installed.
 	probeService := ffmpegService
 	if probeService == nil {
 		probeService = ffmpeg.Get()
 	}
-	// The shadow run can outlive the request, so it uses a context that is not cancelled with it.
-	shadowCtx := context.WithoutCancel(ctx)
+	// The shadow run can outlive the request, so it uses a context that is not
+	// cancelled with it. It bypasses the shared cache so ffprobe is compared fresh.
+	shadowCtx := mediacache.WithoutCache(context.WithoutCancel(ctx))
 	legacyProbe := func() (gomedia.ProbeResult, bool) {
 		info, err := probeService.ProbeFile(shadowCtx, realPath)
 		if err != nil || info == nil {
@@ -759,10 +751,31 @@ func extractVideoMetadata(ctx context.Context, item *iteminfo.ExtendedItemInfo, 
 	if info.FormatName != "" {
 		meta.Container = info.FormatName
 	}
+	if ok {
+		if tags, tagsOK := gomedia.VideoTags(realPath, getArt); tagsOK {
+			applyMediaTags(meta, tags, realPath)
+		}
+	}
 	if meta.Duration > 0 || meta.VideoCodec != "" || meta.AudioCodec != "" || meta.Container != "" {
 		item.Metadata = meta
 	}
 	return nil
+}
+
+// applyMediaTags copies go-media tags and embedded cover art into meta. Covers
+// over 8MB are skipped.
+func applyMediaTags(meta *iteminfo.MediaMetadata, info gomedia.AudioInfo, realPath string) {
+	meta.Title = info.Tags.Title
+	meta.Artist = info.Tags.Artist
+	meta.Album = info.Tags.Album
+	meta.Year = info.Tags.Year
+	meta.Genre = info.Tags.Genre
+	meta.Track = info.Tags.Track
+	if n := len(info.Artwork); n > 0 && n <= 8*1024*1024 {
+		meta.AlbumArt = info.Artwork
+	} else if n > 8*1024*1024 {
+		logger.Debugf("Skipping album art for %s: too large (%d bytes)", realPath, n)
+	}
 }
 
 // DeleteFiles deletes the file or directory at indexPath. boundIndexPath limits
@@ -777,6 +790,7 @@ func DeleteFiles(source, boundIndexPath, indexPath string, isDir bool) error {
 	if utils.CleanIndexPathSegment(indexPath) == "" {
 		return fmt.Errorf("refusing to delete source root directory: %s", indexPath)
 	}
+	deleteIndexPath := indexPath
 	realPath, err := index.GetRealPathForRemoval(boundIndexPath, indexPath)
 	if err != nil {
 		return err
@@ -795,9 +809,13 @@ func DeleteFiles(source, boundIndexPath, indexPath string, isDir bool) error {
 		return err
 	}
 
-	// Clear cache entries
-	indexing.RealPathCache.Delete(realPath)
-	indexing.IsDirCache.Delete(realPath + ":isdir")
+	if isDir {
+		indexing.ClearRealPathCaches()
+	}
+	index.InvalidateRealPathCache(deleteIndexPath, boundIndexPath)
+	if parent := utils.GetParentDirectoryPath(deleteIndexPath); parent != "" && parent != "/" {
+		index.InvalidateRealPathCache(parent, boundIndexPath)
+	}
 
 	// Remove metadata from index
 	deleteSuccess := index.DeleteMetadata(indexPath, isDir, isDir)
@@ -849,8 +867,7 @@ func RefreshIndex(source string, path string, isDir bool, recursive bool) error 
 			if !Exists(realPath) {
 				// Directory no longer exists, remove it from the index
 				// This clears both Directories and DirectoriesLedger maps
-				indexing.RealPathCache.Delete(realPath)
-				indexing.IsDirCache.Delete(realPath + ":isdir")
+				idx.InvalidateRealPathCache(path)
 				idx.DeleteMetadata(path, true, false)
 				return nil
 			}
@@ -927,6 +944,9 @@ func moveResourceImpl(isSrcDir bool, sourceIndex, destIndex, realsrc, realdst st
 	err := fileutils.MoveFile(realsrc, realdst)
 	if err != nil {
 		return err
+	}
+	if isSrcDir {
+		indexing.ClearRealPathCaches()
 	}
 
 	// Handle SOURCE cleanup (treat as deletion)
@@ -1088,6 +1108,11 @@ func WriteDirectory(boundIndexPath string, opts utils.FileOptions) error {
 		}
 	}
 
+	idx.InvalidateRealPathCache(opts.Path, boundIndexPath)
+	if parent := utils.GetParentDirectoryPath(opts.Path); parent != "" && parent != "/" {
+		idx.InvalidateRealPathCache(parent, boundIndexPath)
+	}
+
 	return nil
 }
 
@@ -1161,6 +1186,11 @@ func writeFile(source, boundIndexPath, path string, in io.Reader) error {
 		if err := RefreshIndex(source, parentPath, true, false); err != nil {
 			logger.Debugf("Could not refresh parent directory %s: %v", parentPath, err)
 		}
+	}
+
+	idx.InvalidateRealPathCache(path, boundIndexPath)
+	if parent := utils.GetParentDirectoryPath(path); parent != "" && parent != "/" {
+		idx.InvalidateRealPathCache(parent, boundIndexPath)
 	}
 
 	return nil

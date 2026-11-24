@@ -50,6 +50,7 @@ server:
           configured: false               # true when explicitly set (allows intentional deny-all)
   cacheDir: "tmp"                         # path to the cache directory, used for thumbnails and other cached files
   cacheDirCleanup: false                  # whether to automatically cleanup the cache directory. Note: docker must also mount a persistent volume to persist the cache (default: false)
+  cacheDirMaxSizeMB: 0                    # maximum size in MB of the preview cache (cacheDir/diskcache). Past it, the least recently used files are deleted. 0 means no limit (default: 0)
   maxArchiveSize: 20                      # maximum archive/unarchive size in GB. 0 means no limit. (default: 20)
   filesystem:                             # filesystem settings
     createFilePermission: "644"           # Unix permissions like 644, 755, 2755 (default: 644)  validate:required,file_permission
@@ -211,11 +212,12 @@ userDefaults:                             # optional signup/CLI defaults; per-us
     disableViewingExt: ""                 # comma separated list of file extensions to disable viewing for
     disableOnlyOfficeExt: ".md .txt .pdf .html .xml" # list of file extensions to disable onlyoffice editor for
     preferEditorForMarkdown: false        # prefer editor first for markdown files instead of the Markdown Viewer
+    preferEditorForHtml: false            # prefer editor first for HTML files instead of the HTML viewer
     debugOffice: false                    # debug onlyoffice editor
   search:
     disableOptions: false                 # disable the search options in the search bar
   ui:
-    darkMode: true                        # should dark mode be enabled
+    darkMode: "dark"                      # theme preference: "auto" (follow system), "dark", or "light"
     themeColor: "var(--blue)"             # theme color to use: eg. #ff0000, or var(--red), var(--purple), etc
     customTheme: ""                       # Name of theme to use chosen from custom themes config
     locale: "en"                          # language to use: eg. de, en, or fr
@@ -224,6 +226,7 @@ userDefaults:                             # optional signup/CLI defaults; per-us
     uploadChunkSizeMb: 10
     clearAll: false
     downloadChunkSizeMb: 0
+    uploadStallTimeoutSeconds: 10         # seconds without progress before an upload is paused, 0 uses the default (10)
   account:
     permissions:
       api: false                          # allow api access
@@ -236,6 +239,7 @@ userDefaults:                             # optional signup/CLI defaults; per-us
     loginMethod: "password"               # login method to use: eg. password, proxy, oidc
     disableUpdateNotifications: false     # disable update notifications banner for admin users
     showAdvancedProfile: false            # show advanced profile settings in the user profile page
+    allowCustomShareURL: false            # allow users to choose custom share URLs (default: false)
     maxConcurrentTranscodes: 1            # per-user concurrent transcode sessions (default: 1)
 shareDefaults:                            # optional defaults for new shares; managed in the UI
   shareTheme: ""
@@ -281,8 +285,6 @@ integrations:
   media:                                  #  validate:omitempty
     ffmpegPath: ""                        # path to ffmpeg directory with ffmpeg and ffprobe (eg. /usr/local/bin)
     skipHwCheck: false                    # SkipHwCheck skips the ffmpeg hardware codec probe entirely (software-only).
-                                          # Config-only, not a runtime setting — advanced use, e.g. keeping the
-                                          # multi-second probe out of CI startup.
 http:
   socket: ""                              # socket to listen on - eg. /var/run/filebrowser.sock
   tlsKey: ""                              # path to TLS key
@@ -296,9 +298,8 @@ http:
   trustProxyHeaders: false                # honor X-Forwarded-* and X-Real-IP from a reverse proxy (default: false)
   trustedProxies:                         # IPs/CIDRs of trusted proxies; forwarded client headers are only honored when the socket peer matches one of these (default: empty = forwarded headers ignored)
   unixSocketTrustedUIDs:                  # UnixSocketTrustedUIDs and UnixSocketTrustedGIDs list peer credentials (Linux SO_PEERCRED) allowed to
-                                          # present X-Forwarded-* on a filesystem http.socket listener. When both are empty, forwarded headers
-                                          # are not trusted on Unix sockets. Abstract sockets (@name) never trust forwarded headers.
-  unixSocketTrustedGIDs:
+  unixSocketTrustedGIDs:                  # present X-Forwarded-* on a filesystem http.socket listener. When both are empty, peers are not trusted unless UnixSocketTrustAllLocalPeers is true (legacy; startup logs a warning). A GID allowlist trusts every peer with that GID, not only a single reverse-proxy process. Abstract sockets (@name) never trust forwarded headers.
+  unixSocketTrustAllLocalPeers: false     # default false: set true to trust forwarded headers from any local filesystem socket peer when allowlists are empty
   socketFileMode: ""                      # octal mode for filesystem http.socket (default "0660"); ignored for abstract sockets
   socketGroup: ""                         # optional group name or numeric gid for the socket file (filesystem sockets only)
   disableRateLimit: false                 # turns off built-in auth route rate limiting and failed-login lockout (default false).
