@@ -40,10 +40,10 @@ vi.mock("@/utils/playbackQueue.js", () => ({
   navigatePlaybackQueue: vi.fn(),
 }));
 vi.mock("@/player/seekOnRelease.js", () => ({ blockSeekOnInput: vi.fn(), enableSeekOnRelease: () => () => {} }));
-vi.mock("@/components/files/AudioPanel.vue", () => ({ default: { render: () => null } }));
-vi.mock("@/components/files/LyricsList.vue", () => ({ default: { render: () => null } }));
+vi.mock("@/components/files/player/AudioPanel.vue", () => ({ default: { render: () => null } }));
+vi.mock("@/components/files/player/LyricsList.vue", () => ({ default: { render: () => null } }));
 vi.mock("@/components/settings/FloatingActionButton.vue", () => ({ default: { render: () => null } }));
-vi.mock("@/components/player/PlayerOverlays.vue", () => ({ default: { render: () => null } }));
+vi.mock("@/components/files/player/PlayerOverlays.vue", () => ({ default: { render: () => null } }));
 vi.mock("@/composables/player/useAudioVisualizer.ts", () => ({
   useAudioVisualizer: () => ({
     audioContext: { value: null },

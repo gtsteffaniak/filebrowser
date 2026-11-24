@@ -111,10 +111,10 @@
 <script setup lang="ts">
 import type Plyr from "plyr";
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, shallowRef, useTemplateRef, watch } from "vue";
-import AudioPanel from "@/components/files/AudioPanel.vue";
-import LyricsList from "@/components/files/LyricsList.vue";
+import AudioPanel from "@/components/files/player/AudioPanel.vue";
+import LyricsList from "@/components/files/player/LyricsList.vue";
 import FloatingActionButton from "@/components/settings/FloatingActionButton.vue";
-import PlayerOverlays from "@/components/player/PlayerOverlays.vue";
+import PlayerOverlays from "@/components/files/player/PlayerOverlays.vue";
 import { getSettingsElements, isSettingsMenuOpen } from "@/composables/player/settingsElements.ts";
 import {
   readAlbumArtSize,

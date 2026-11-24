@@ -11,7 +11,7 @@ import {
 import { settle } from "@/composables/player/__tests__/mediaTestUtils.ts";
 import type { FileListItem, ReqObject } from "@/store/types.ts";
 import type { LyricLines } from "@/utils/lyrics.ts";
-import MediaPlayer from "./MediaPlayer.vue";
+import MediaPlayer from "../MediaPlayer.vue";
 
 const hoisted = vi.hoisted(() => ({
   audioMounts: 0,
@@ -77,7 +77,7 @@ vi.mock("@/utils/asyncComponent.js", () => ({ createAsyncComponent: (loader: () 
     defineAsyncComponent(() => loader().then((module) => module.default)) }));
 vi.mock("@/utils/previewAutoplay.js", () => ({ shouldAutoPlayPreview: () => false }));
 vi.mock("@/components/LoadingSpinner.vue", () => ({ default: { render: () => h("div", { class: "spinner" }) } }));
-vi.mock("@/components/player/AudioPlayer.vue", () => ({
+vi.mock("@/components/files/player/AudioPlayer.vue", () => ({
   default: defineComponent({
     props: {
       fileKey: { type: String as PropType<string>, default: "" },
@@ -97,7 +97,7 @@ vi.mock("@/components/player/AudioPlayer.vue", () => ({
     },
   }),
 }));
-vi.mock("@/components/player/VideoPlayer.vue", () => ({
+vi.mock("@/components/files/player/VideoPlayer.vue", () => ({
   default: defineComponent({
     props: {
       req: { type: Object as PropType<ReqObject>, default: () => ({}) },

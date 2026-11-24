@@ -33,7 +33,7 @@ import type Plyr from "plyr";
 import SlidingTabs from "@/components/settings/SlidingTabs.vue";
 import PlaybackQueue from "@/components/prompts/PlaybackQueue.vue";
 import FloatingActionButton from "@/components/settings/FloatingActionButton.vue";
-import LyricsList from "@/components/files/LyricsList.vue";
+import LyricsList from "@/components/files/player/LyricsList.vue";
 import { useI18n } from "@/i18n/index.ts";
 import { mutations, state } from "@/store/index.ts";
 import type { LyricLines } from "@/utils/lyrics.ts";

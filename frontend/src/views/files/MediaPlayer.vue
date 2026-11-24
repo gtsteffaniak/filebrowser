@@ -77,8 +77,8 @@ function revokeSubtitleUrls(tracks: readonly SubtitleSource[]): void {
   }
 }
 
-const AudioPlayer = createAsyncComponent(() => import("@/components/player/AudioPlayer.vue"));
-const VideoPlayer = createAsyncComponent(() => import("@/components/player/VideoPlayer.vue"));
+const AudioPlayer = createAsyncComponent(() => import("@/components/files/player/AudioPlayer.vue"));
+const VideoPlayer = createAsyncComponent(() => import("@/components/files/player/VideoPlayer.vue"));
 
 const videoRef = useTemplateRef<{ destroy?: () => void }>("videoRef");
 const audioRef = useTemplateRef<{ destroy?: () => void }>("audioRef");

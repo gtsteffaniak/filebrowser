@@ -83,7 +83,7 @@ vi.mock("@/components/files/PreviewNotice.vue", () => ({
 }));
 vi.mock("@/components/LoadingSpinner.vue", () => ({ default: { render: () => null } }));
 vi.mock("@/components/settings/FloatingActionButton.vue", () => ({ default: { render: () => null } }));
-vi.mock("@/components/player/PlayerOverlays.vue", () => ({ default: { render: () => null } }));
+vi.mock("@/components/files/player/PlayerOverlays.vue", () => ({ default: { render: () => null } }));
 vi.mock("@/composables/player/useDoubleTapSeek.ts", async () => {
   const { ref } = await import("vue");
   return {

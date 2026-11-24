@@ -55,7 +55,7 @@ vi.mock("@/router", () => ({ router: {} }));
 vi.mock("@/utils/upload.ts", () => ({ checkConflict: vi.fn(() => false) }));
 vi.mock("@/utils/appNotifications.js", () => ({ notifyMoveCopyFailure: vi.fn() }));
 
-import { useListingClipboard } from "../useListingClipboard";
+import { useListingClipboard } from "../useListingClipboard.ts";
 
 const { copyCut, handleInternalPaste } = useListingClipboard();
 

@@ -44,7 +44,7 @@ vi.mock("@/utils/listingTypeAhead.js", () => ({
   resetTypeAheadSession: vi.fn(),
 }));
 vi.mock("@/utils/appNotifications", () => ({ notifyMoveCopyFailure: vi.fn() }));
-import ListingView from "./ListingView.vue";
+import ListingView from "../ListingView.vue";
 
 const dropEvents = ["dragenter", "dragleave", "drop"];
 const typesOn = (spy: MockInstance, el: Element) =>

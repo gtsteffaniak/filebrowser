@@ -97,7 +97,7 @@ import { resourcesApi } from "@/api/index.js";
 import PreviewNotice from "@/components/files/PreviewNotice.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import FloatingActionButton from "@/components/settings/FloatingActionButton.vue";
-import PlayerOverlays from "@/components/player/PlayerOverlays.vue";
+import PlayerOverlays from "@/components/files/player/PlayerOverlays.vue";
 import { getPlayerI18n, getSettingsElements, isSettingsMenuOpen } from "@/composables/player/settingsElements.ts";
 import {
   CAPTION_SIZE_IDS,

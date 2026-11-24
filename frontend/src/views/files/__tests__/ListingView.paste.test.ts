@@ -65,7 +65,7 @@ vi.mock("@/utils/listingTypeAhead.js", () => ({
   resetTypeAheadSession: vi.fn(),
 }));
 vi.mock("@/utils/appNotifications", () => ({ notifyMoveCopyFailure: vi.fn() }));
-import ListingView from "./ListingView.vue";
+import ListingView from "../ListingView.vue";
 
 // Ctrl+C / Ctrl+X in the source the item is copied from, then Ctrl+V in the current one.
 const copyOrCut = (key: "c" | "x", fromSource: string) => {
