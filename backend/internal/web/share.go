@@ -288,7 +288,7 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 			CustomHash *string `json:"customHash"`
 		}
 		if len(bodyBytes) > 0 {
-			if err := json.Unmarshal(bodyBytes, &aliasBody); err != nil {
+			if err = json.Unmarshal(bodyBytes, &aliasBody); err != nil {
 				return http.StatusBadRequest, fmt.Errorf("failed to decode body: %w", err)
 			}
 		}
@@ -300,7 +300,7 @@ func sharePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 			if !d.User.AllowCustomShareURL {
 				return http.StatusForbidden, fmt.Errorf("custom share URLs are not enabled for your account")
 			}
-			if err := validateCustomShareHash(newAlias); err != nil {
+			if err = validateCustomShareHash(newAlias); err != nil {
 				return http.StatusBadRequest, err
 			}
 			if state.ShareHashExists(newAlias) {

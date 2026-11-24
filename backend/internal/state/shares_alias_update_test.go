@@ -59,7 +59,7 @@ func TestUpdateShareAliasWriteThrough(t *testing.T) {
 	if err != nil || got.Hash != hash {
 		t.Fatalf("new alias did not resolve to hash: err=%v", err)
 	}
-	if _, err := GetShare(hash); err != nil {
+	if _, err = GetShare(hash); err != nil {
 		t.Fatalf("random hash stopped resolving after alias change: %v", err)
 	}
 	row, err := store.GetShareByHash(hash)
@@ -71,13 +71,13 @@ func TestUpdateShareAliasWriteThrough(t *testing.T) {
 	}
 
 	// Clearing the alias reverts the presented identifier to the random hash.
-	if err := UpdateShare(hash, func(link *share.Share) error {
+	if err = UpdateShare(hash, func(link *share.Share) error {
 		link.Alias = ""
 		return nil
 	}); err != nil {
 		t.Fatalf("UpdateShare clear alias: %v", err)
 	}
-	if _, err := GetShare("second-custom-alias-0002"); err == nil {
+	if _, err = GetShare("second-custom-alias-0002"); err == nil {
 		t.Fatal("cleared alias still resolves")
 	}
 	cleared, err := GetShare(hash)
