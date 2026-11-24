@@ -44,6 +44,21 @@
         @update:model-value="navigateToSource"
       />
     </div>
+    <!-- Source switcher only in navigation mode and when multiple sources exist (hidden in shares).
+         Kept outside the scrollable content area so it does not scroll horizontally with the folder tree. -->
+    <div
+      v-if="mode === 'navigation' && !isShare && sourceNames.length > 1"
+      class="source-card-container"
+      ref="sourceCardContainer"
+    >
+      <ExpandDropdown
+        class="sidebar-source-switcher"
+        :model-value="activeSource"
+        :options="sourceDropdownOptions"
+        :aria-label="$t('general.source')"
+        @update:model-value="navigateToSource"
+      />
+    </div>
     <!-- Scrollable Content Area -->
     <div class="sidebar-links-content">
       <!-- Links Mode -->
