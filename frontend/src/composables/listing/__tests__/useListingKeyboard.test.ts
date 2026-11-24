@@ -38,7 +38,7 @@ vi.mock("@/utils/listingTypeAhead.js", () => ({
   processTypeAheadKey: () => typeAhead.process(),
   resetTypeAheadSession: vi.fn(),
 }));
-vi.mock("@/composables/useListingClipboard", () => ({
+vi.mock("@/composables/listing/useListingClipboard.ts", () => ({
   useListingClipboard: () => ({ copyCut: vi.fn() }),
 }));
 import { useListingKeyboard } from "../useListingKeyboard.ts";

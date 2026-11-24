@@ -217,7 +217,7 @@ export default {
       };
 
       const isLeftPositioned = this.position === "top-left" || this.position === "bottom-left";
-      const pushedBySidebar = isLeftPositioned && getters.isSidebarVisible() && getters.isStickySidebar();
+      const pushedBySidebar = isLeftPositioned && !this.fullscreenHost && getters.isSidebarVisible() && getters.isStickySidebar();
       if (pushedBySidebar && style.left === undefined) {
         style.left = `calc(var(--fab-edge-offset-media) + var(--sidebar-width))`;
       }
