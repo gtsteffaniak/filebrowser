@@ -501,6 +501,24 @@ func TestVorbisPictureComment(t *testing.T) {
 			length: int64(len("METADATA_BLOCK_PICTURE=")),
 			want:   false,
 		},
+		{
+			name: "declared image byte missing from complete value",
+			prefix: func() []byte {
+				block := flacPictureWith("image/jpeg", "front", 640, 480, nil)
+				dataLenOff := 4 + 4 + len("image/jpeg") + 4 + len("front") + 16
+				binary.BigEndian.PutUint32(block[dataLenOff:dataLenOff+4], 1)
+				p, _ := pictureCommentValue(block)
+				return p
+			}(),
+			length: func() int64 {
+				block := flacPictureWith("image/jpeg", "front", 640, 480, nil)
+				dataLenOff := 4 + 4 + len("image/jpeg") + 4 + len("front") + 16
+				binary.BigEndian.PutUint32(block[dataLenOff:dataLenOff+4], 1)
+				_, n := pictureCommentValue(block)
+				return n
+			}(),
+			want: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

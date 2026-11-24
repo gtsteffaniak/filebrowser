@@ -776,11 +776,11 @@ func vorbisPictureComment(prefix []byte, length int64) bool {
 // for bounds checks so a header-only prefix is enough; the image payload is
 // not read.
 func vorbisPictureBlockEmbedded(prefix []byte, valueLen int64) bool {
-	block, ok := decodeBase64Prefix(prefix, valueLen, flacPictureHeaderCap)
+	block, logicalSize, ok := decodeBase64Prefix(prefix, valueLen, flacPictureHeaderCap)
 	if !ok {
 		return false
 	}
-	return flacPictureHasEmbedded(bytes.NewReader(block), 0, base64StdMaxDecodedLen(valueLen))
+	return flacPictureHasEmbedded(bytes.NewReader(block), 0, logicalSize)
 }
 
 // base64StdMaxDecodedLen is the maximum number of bytes StdEncoding can
@@ -793,12 +793,15 @@ func base64StdMaxDecodedLen(n int64) int64 {
 }
 
 // decodeBase64Prefix decodes a leading prefix of a base64 value of total size
-// valueLen, returning at most maxDecoded bytes. A prefix of a longer value is
-// trimmed to a whole 4-character quantum; a complete value is decoded with its
-// padding intact. Invalid encoding reports ok=false.
-func decodeBase64Prefix(prefix []byte, valueLen int64, maxDecoded int) ([]byte, bool) {
+// valueLen, returning at most maxDecoded bytes and the logical PICTURE block
+// length to use for bounds checks. A prefix of a longer value is trimmed to a
+// whole 4-character quantum; a complete value is decoded with its padding
+// intact. When the entire value is available and fits in maxDecoded, logical
+// size is the actual decoded length; otherwise it is base64StdMaxDecodedLen
+// (valueLen). Invalid encoding reports ok=false.
+func decodeBase64Prefix(prefix []byte, valueLen int64, maxDecoded int) ([]byte, int64, bool) {
 	if valueLen <= 0 || maxDecoded <= 0 || len(prefix) == 0 {
-		return nil, false
+		return nil, 0, false
 	}
 	raw := prefix
 	if int64(len(raw)) > valueLen {
@@ -808,10 +811,10 @@ func decodeBase64Prefix(prefix []byte, valueLen int64, maxDecoded int) ([]byte, 
 	if !complete {
 		raw = raw[:len(raw)-len(raw)%4]
 	} else if len(raw)%4 != 0 {
-		return nil, false
+		return nil, 0, false
 	}
 	if len(raw) < 4 {
-		return nil, false
+		return nil, 0, false
 	}
 	maxEnc := base64.StdEncoding.EncodedLen(maxDecoded)
 	if len(raw) > maxEnc {
@@ -820,9 +823,13 @@ func decodeBase64Prefix(prefix []byte, valueLen int64, maxDecoded int) ([]byte, 
 	buf := make([]byte, base64.StdEncoding.DecodedLen(len(raw)))
 	n, err := base64.StdEncoding.Decode(buf, raw)
 	if err != nil || n == 0 {
-		return nil, false
+		return nil, 0, false
 	}
-	return buf[:n], true
+	logicalSize := base64StdMaxDecodedLen(valueLen)
+	if complete && valueLen <= int64(maxEnc) {
+		logicalSize = int64(n)
+	}
+	return buf[:n], logicalSize, true
 }
 
 // oggHasPicture reports whether the first logical stream of an Ogg file
