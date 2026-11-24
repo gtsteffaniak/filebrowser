@@ -9,6 +9,7 @@ import { goToItem, removeLastDir } from "@/utils/url.js";
 
 interface PreviewNavigationOptions {
   onBeforeTeardown?: () => void;
+  canDelete?: () => boolean;
 }
 
 /** Listing context, prev/next nav, close and key handling */
@@ -16,6 +17,8 @@ export function usePreviewNavigation(options: PreviewNavigationOptions = {}) {
   const listing = ref<FileListItem[] | null>(null);
   const listingKey = ref<string | null>(null);
   const listingIsFailureFallback = ref(false);
+  let unmounted = false;
+  let previewGeneration = 0;
 
   function listingContextKey(directoryPath: string): string {
     return getters.isShare()
@@ -28,7 +31,7 @@ export function usePreviewNavigation(options: PreviewNavigationOptions = {}) {
    * context changed, refreshes the view token, then adopts the listing that
    * came with the request, if any.
    */
-  async function loadListingContext() {
+  async function loadListingContext(isStale?: () => boolean) {
     const currentDirectoryPath = removeLastDir(state.req.path) || "/";
     const currentListingKey = listingContextKey(currentDirectoryPath);
     if (listingKey.value !== currentListingKey) {
@@ -47,7 +50,7 @@ export function usePreviewNavigation(options: PreviewNavigationOptions = {}) {
         console.warn("Failed to refresh view token for preview:", err);
       }
     }
-
+    if (unmounted || isStale?.()) return;
     if (!listing.value || listingIsFailureFallback.value) {
       // The request may have moved to another directory while the token refresh was pending.
       if (listingContextKey(removeLastDir(state.req.path) || "/") !== currentListingKey) {
@@ -65,7 +68,9 @@ export function usePreviewNavigation(options: PreviewNavigationOptions = {}) {
   }
 
   /** Loads the folder listing if needed and sets up prev/next navigation for the current file. */
-  async function updatePreview() {
+  async function updatePreview(isStale?: () => boolean) {
+    const generation = ++previewGeneration;
+    const isInactive = () => unmounted || generation !== previewGeneration || !!isStale?.();
     const expectedPath = state.req.path;
     let directoryPath = removeLastDir(state.req.path);
 
@@ -88,6 +93,7 @@ export function usePreviewNavigation(options: PreviewNavigationOptions = {}) {
             res = await resourcesApi.fetchFiles(state.req.source, directoryPath);
           }
           if (
+            isInactive() ||
             state.req.path !== expectedPath ||
             listingContextKey(directoryPath) !== expectedListingKey
           ) {
@@ -97,6 +103,7 @@ export function usePreviewNavigation(options: PreviewNavigationOptions = {}) {
           listingIsFailureFallback.value = false;
         } catch (error) {
           if (
+            isInactive() ||
             state.req.path !== expectedPath ||
             listingContextKey(directoryPath) !== expectedListingKey
           ) {
@@ -111,7 +118,7 @@ export function usePreviewNavigation(options: PreviewNavigationOptions = {}) {
         listingIsFailureFallback.value = false;
       }
     }
-
+    if (isInactive()) return;
     if (!listing.value) {
       listing.value = [state.req as FileListItem];
     }
@@ -238,6 +245,9 @@ export function usePreviewNavigation(options: PreviewNavigationOptions = {}) {
         close();
         break;
       case "Delete":
+        if (options.canDelete && !options.canDelete()) {
+          break;
+        }
         showDeletePrompt();
         break;
     }
@@ -248,6 +258,7 @@ export function usePreviewNavigation(options: PreviewNavigationOptions = {}) {
   });
 
   onBeforeUnmount(() => {
+    unmounted = true;
     window.removeEventListener("keydown", keyEvent);
     options.onBeforeTeardown?.();
     mutations.clearNavigation();

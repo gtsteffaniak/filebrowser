@@ -16,7 +16,7 @@
         <p
           v-for="(line, index) in lyrics"
           :key="index"
-          :class="{ active: syncedLyrics && line.timestamp === lyrics[activeLyricIndex]?.timestamp, 'no-seek': !syncedLyrics }"
+          :class="{ active: syncedLyrics && !line.untimed && line.timestamp === lyrics[activeLyricIndex]?.timestamp, 'no-seek': !syncedLyrics }"
           class="lyric-line"
           @click.stop="syncedLyrics && seek(line.timestamp)"
           @keydown.enter.stop.prevent="syncedLyrics && seek(line.timestamp)"
@@ -97,12 +97,14 @@ function seek(timestampMs: number) {
   if (player) player.currentTime = timestampMs / 1000;
 }
 
-function findActiveIndex(items: readonly { timestamp: number }[], currentMs: number) {
+function findActiveIndex(items: readonly { timestamp: number; untimed?: boolean }[], currentMs: number, preferLast = false) {
   let idx = -1;
   let best = Number.NEGATIVE_INFINITY;
   for (let i = 0; i < items.length; i++) {
-    const timestamp = items.at(i)?.timestamp ?? Number.POSITIVE_INFINITY;
-    if (timestamp <= currentMs && timestamp > best) {
+    const item = items.at(i);
+    if (item?.untimed) continue;
+    const timestamp = item?.timestamp ?? Number.POSITIVE_INFINITY;
+    if (timestamp <= currentMs && (timestamp > best || (preferLast && timestamp === best))) {
       best = timestamp;
       idx = i;
     }
@@ -122,7 +124,7 @@ function syncLyrics() {
     activeWordIndex.value = -1;
   }
   const words = first >= 0 ? lyrics.at(first)?.words : null;
-  activeWordIndex.value = words?.length ? findActiveIndex(words, currentMs) : -1;
+  activeWordIndex.value = words?.length ? findActiveIndex(words, currentMs, true) : -1;
 }
 
 function scrollToActiveLine() {

@@ -211,9 +211,14 @@ export function nativeVideo(page: Page) {
   return page.locator(".media-player video").first();
 }
 
-/** Preview transcode-offer screen (not the in-player settings menu). */
-function previewTranscodeOfferButton(page: Page) {
-  return page.locator(".preview-notice button[aria-label='Transcode']");
+/** Preview notice shown instead of the player */
+function previewNotice(page: Page) {
+  return page.locator(".preview-notice");
+}
+
+/** The native video inside Plyr */
+function plyrVideo(page: Page) {
+  return page.locator(".media-player .plyr video").first();
 }
 
 /**
@@ -223,15 +228,15 @@ function previewTranscodeOfferButton(page: Page) {
 export async function waitForNativePlayerMounted(page: Page) {
   await expect(page.locator(".av-preview-loading")).toHaveCount(0, { timeout: 30_000 });
   await expect.poll(async () => {
-    if (await previewTranscodeOfferButton(page).count()) {
-      return "offer";
+    if (await previewNotice(page).isVisible()) {
+      return "notice";
     }
-    if (await page.locator(".media-player").count()) {
+    if (await plyrVideo(page).isVisible()) {
       return "player";
     }
     return "pending";
   }, { timeout: 30_000, intervals: [100, 250, 500, 1000] }).toBe("player");
-  await expect(nativeVideo(page)).toBeAttached({ timeout: 15_000 });
+  await expect(nativeVideo(page)).toBeVisible({ timeout: 15_000 });
 }
 
 async function clickPlayControl(page: Page) {

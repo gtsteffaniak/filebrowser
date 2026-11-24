@@ -161,6 +161,7 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
   const transcodePlayback = ref<TranscodePlaybackController | null>(null);
   const transcodeSwitchInProgress = ref(false);
   let transcodeSwitchOwner: symbol | null = null;
+  let modeSwitchToken: symbol | null = null;
   const transcodeMode = ref("native");
   const transcodeOffer = ref<TranscodeOffer | null>(null);
   /** The user accepted the offer: play through transcoding from the start. */
@@ -872,7 +873,7 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
     invalidateOfferRequest();
     const startSource = getReq()?.source;
     const startPath = getReq()?.path;
-    const preparationId = startPreparationId;
+    const preparationId = ++startPreparationId;
     const switchToken = Symbol("transcodeSwitch");
     const manageSwitch =
       manageSwitchState && (!transcodeSwitchInProgress.value || transcodeSwitchOwner !== null);
@@ -1057,6 +1058,7 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
     const currentTime = player.value?.currentTime ?? 0;
     const shouldPlay = autoplay ?? !!player.value?.playing;
     transcodeLog("switchToNativePlayback", { currentTime, shouldPlay });
+    const generation = fileGeneration;
 
     // Release the HLS source even when a shared controller owns it.
     teardownTranscodePlayback({ stopSession: true });
@@ -1069,6 +1071,7 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
       media.removeAttribute("src");
     }
     await nextTick();
+    if (generation !== fileGeneration || isTornDown()) return;
 
     // Restore the playhead through the resume path, which waits for the
     // new source to report metadata before seeking
@@ -1111,13 +1114,21 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
       shouldAutoplay: shouldAutoplay.value,
       currentTime: player.value?.currentTime,
     });
+    const switchToken = Symbol("modeSwitch");
+    modeSwitchToken = switchToken;
     transcodeSwitchInProgress.value = true;
+    const releaseModeSwitch = () => {
+      if (modeSwitchToken === switchToken) {
+        modeSwitchToken = null;
+        transcodeSwitchInProgress.value = false;
+      }
+    };
     const generation = fileGeneration;
     // Capture before mode/teardown changes so same-file profile switches always
     // send replaceSessionId even if the controller is mid-start.
     const replaceSessionId = transcodePlayback.value?.sessionController?.session?.id ?? (await resolveReuseSessionId());
     if (generation !== fileGeneration) {
-      transcodeSwitchInProgress.value = false;
+      releaseModeSwitch();
       return;
     }
     transcodeMode.value = mode;
@@ -1135,19 +1146,25 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
           manageSwitchState: false,
         });
       } else if (needsTranscodeFirst(transcodeProbeParams())) {
-        transcodeOfferEmitted = false;
-        teardownTranscodePlayback({ stopSession: true });
+        let status: TranscodeStatus | null = null;
         try {
-          const status = await getTranscodeSessions();
-          if (generation === fileGeneration) {
+          status = await getTranscodeSessions();
+        } catch (err) {
+          console.error("Failed to check transcode sessions:", err);
+        }
+        if (generation === fileGeneration) {
+          transcodeOfferEmitted = false;
+          if (status) {
             showTranscodeOffer(normalizeTranscodeSessionStatus(status, {
                 source: getReq()?.source,
                 path: getReq()?.path,
               }),
             );
+          } else if (transcodeActive.value) {
+            transcodeMode.value = previousMode;
+          } else {
+            showTranscodeOffer({ enabled: true, canStart: true, sessions: [] });
           }
-        } catch (err) {
-          console.error("Failed to check transcode sessions:", err);
         }
       } else {
         await switchToNativePlayback({ autoplay: wasPlaying });
@@ -1166,7 +1183,7 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
         });
       }
     } finally {
-      transcodeSwitchInProgress.value = false;
+      releaseModeSwitch();
       if (generation === fileGeneration) {
         syncPlaybackUrl({ transcodeMode: transcodeMode.value });
       }
@@ -1315,6 +1332,9 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
     cancelNativeResume?.();
     invalidateOfferRequest();
     startPreparationId++;
+    modeSwitchToken = null;
+    transcodeSwitchOwner = null;
+    transcodeSwitchInProgress.value = false;
     videoStreamAttached.value = false;
     resumeSnapshot.value = null;
     resumeSeekSeconds.value = null;

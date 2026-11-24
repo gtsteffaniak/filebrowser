@@ -268,9 +268,9 @@ export function useMediaPlayer(options: MediaPlayerOptions) {
   }
 
   /** Stops the current file and keeps the instance alive; the playback rate survives the `load()`. */
-  function releaseFile(): void {
+  function releaseFile(intendedRate?: number): void {
     const media = getActiveMediaElement();
-    if (media) media.defaultPlaybackRate = media.playbackRate;
+    if (media) media.defaultPlaybackRate = intendedRate ?? media.playbackRate;
     stopMediaElement(media);
     resetCaptionTrack();
     options.onReleaseFile?.();

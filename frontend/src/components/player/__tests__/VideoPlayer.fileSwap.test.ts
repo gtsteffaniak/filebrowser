@@ -96,6 +96,7 @@ vi.mock("@/composables/player/useDoubleTapSeek.ts", async () => {
       flashSkipFeedback: vi.fn(),
       setupDoubleTapSeek: vi.fn(),
       teardownDoubleTapSeek: vi.fn(),
+      cancelPendingEdgeClick: vi.fn(),
       setupRewindForwardFeedback: vi.fn(),
       clearRewindForwardFeedback: vi.fn(),
       setupOverlaidHintController: vi.fn(),

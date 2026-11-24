@@ -310,7 +310,9 @@ function attachNativeHls({
     video.addEventListener('canplay', onReady);
     video.addEventListener('error', onError);
     timeoutId = setTimeout(onTimeout, deadlineMs);
+    video.preload = 'auto';
     video.src = playlistURL;
+    video.load();
   });
 }
 
@@ -379,6 +381,11 @@ export function attachHlsToVideo({
     let settled = false;
     let readyToPlay = false;
     let startApplied = false;
+    let playbackBegan = false;
+    const onPlaying = () => {
+      playbackBegan = true;
+    };
+    video?.addEventListener('playing', onPlaying);
     let bufferedFrags = 0;
     // The synthetic VOD playlist lists the full media duration; a single
     // buffered fragment is enough to start playback.
@@ -398,7 +405,7 @@ export function attachHlsToVideo({
         : Number.isFinite(data?.frag?.start)
           ? data.frag.start
           : (Number.isFinite(initialStart) && initialStart >= 0 ? initialStart : 0);
-      const shouldAutoplay = playbackStarted ? !video.paused && !video.ended : undefined;
+      const shouldAutoplay = playbackBegan ? !video.paused && !video.ended : undefined;
       transcodeWarn('hls requesting transcode session recovery', {
         reason,
         resumeAt,
@@ -435,6 +442,7 @@ export function attachHlsToVideo({
     let hardTimeoutId = null;
     let stallTimeoutId = null;
     let fragmentProgressed = false;
+    let awaitingFirstByte = false;
 
     const finish = (kind, payload) => {
       if (settled) {
@@ -480,15 +488,19 @@ export function attachHlsToVideo({
       if (remaining <= 0) {
         return;
       }
-      const limitMs = fragmentProgressed
-        ? ATTACH_STALL_TIMEOUT_MS
-        : ATTACH_STARTUP_STALL_TIMEOUT_MS;
+      let limitMs = ATTACH_STARTUP_STALL_TIMEOUT_MS;
+      if (awaitingFirstByte) {
+        limitMs = FRAG_FIRST_BYTE_TIMEOUT_MS;
+      } else if (fragmentProgressed) {
+        limitMs = ATTACH_STALL_TIMEOUT_MS;
+      }
       stallTimeoutId = setTimeout(onAttachTimeout, Math.min(limitMs, remaining));
     };
     const noteFragmentResponseStarted = () => {
       if (settled) {
         return;
       }
+      awaitingFirstByte = false;
       clearTimeout(stallTimeoutId);
       const remaining = deadlineMs - (performance.now() - attachStartedAt);
       if (remaining <= 0) {
@@ -597,6 +609,7 @@ export function attachHlsToVideo({
     const cleanup = () => {
       if (destroyed) return;
       destroyed = true;
+      video?.removeEventListener('playing', onPlaying);
       transcodeLog('hls destroy', { sessionId: session?.id });
       // Detach before destroy: destroying with a live MediaSource attached can
       // leave the element feeding buffered audio after the preview unmounts.
@@ -649,15 +662,15 @@ export function attachHlsToVideo({
 
     hls.on(Hls.Events.FRAG_LOADING, (_event, data) => {
       transcodeLog('hls frag loading', { frag: describeFrag(data?.frag) });
-      if (!fragmentProgressed) {
-        noteAttachProgress();
-      }
+      awaitingFirstByte = true;
+      noteAttachProgress();
     });
 
     hls.on(Hls.Events.FRAG_LOADED, (_event, data) => {
       // First byte of the seek fragment arrived: the producer is making
       // progress, so push the stall guard out.
       fragmentProgressed = true;
+      awaitingFirstByte = false;
       noteAttachProgress();
       transcodeLog('hls frag loaded', {
         frag: describeFrag(data?.frag),

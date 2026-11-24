@@ -14,6 +14,12 @@ export function getSettingsElements(player: Plyr): PlayerSettingsElements | unde
   return (player.elements as unknown as { settings?: PlayerSettingsElements }).settings;
 }
 
+/** Whether Plyr's settings menu is open. */
+export function isSettingsMenuOpen(player: Plyr | null | undefined): boolean {
+  const menu = player ? getSettingsElements(player)?.menu : undefined;
+  return Boolean(menu && menu.style.display !== "none" && menu.getAttribute("hidden") === null);
+}
+
 /** Plyr's resolved config (typed as private); used for the i18n strings of the custom menus. */
 export function getPlayerI18n(player: Plyr): Record<string, string | undefined> | undefined {
   return (player as unknown as { config?: { i18n?: Record<string, string | undefined> } }).config?.i18n;

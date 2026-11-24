@@ -75,7 +75,7 @@
           @press="showMobileLyrics = !showMobileLyrics"
         />
         <div v-if="showMobileLyrics" class="lyrics-mobile">
-          <LyricsList compact :lyrics="lyrics" :player="player" />
+          <LyricsList v-model:scroll-locked="mobileLyricsScrollLocked" compact :lyrics="lyrics" :player="player" />
         </div>
       </template>
       <!-- Audio controls -->
@@ -115,7 +115,7 @@ import AudioPanel from "@/components/files/AudioPanel.vue";
 import LyricsList from "@/components/files/LyricsList.vue";
 import FloatingActionButton from "@/components/settings/FloatingActionButton.vue";
 import PlayerOverlays from "@/components/player/PlayerOverlays.vue";
-import { getSettingsElements } from "@/composables/player/settingsElements.ts";
+import { getSettingsElements, isSettingsMenuOpen } from "@/composables/player/settingsElements.ts";
 import {
   readAlbumArtSize,
   readDesktopPanelOpen,
@@ -189,6 +189,7 @@ const albumArtSize = ref(readAlbumArtSize());
 const isHovering = ref(false);
 const showDesktopPanel = ref(readDesktopPanelOpen());
 const showMobileLyrics = ref(readMobileLyricsOpen());
+const mobileLyricsScrollLocked = ref<boolean | undefined>(false);
 
 const isMobile = computed(() => getters.isMobile());
 const filetype = computed(() => getTypeFromMime(props.req.type || ""));
@@ -341,9 +342,7 @@ function ensurePlaybackModeApplied(): void {
   if (!player.value) return;
   try {
     const settings = getSettingsElements(player.value);
-    const settingsMenu = settings?.menu;
-    const menuOpen =
-      settingsMenu && settingsMenu.style.display !== "none" && settingsMenu.getAttribute("hidden") === null;
+    const menuOpen = isSettingsMenuOpen(player.value);
     const needPlayback = settings?.buttons?.playback && !playbackMenuInitialized.value;
     const needLoop = settings?.buttons?.loop && !loopMenuInitialized.value;
     if (menuOpen || needPlayback || needLoop) {
@@ -382,10 +381,10 @@ function restoreFileSource(): void {
 async function onFileSwap(newKey?: string, oldKey?: string): Promise<void> {
   if (!newKey || newKey === oldKey || lifecycle.tornDown) return;
   const generation = ++swapGeneration;
-  swipe.resetEdgeGestureImmediate();
-  releaseFile();
+  doubleTap.cancelPendingEdgeClick();
+  releaseFile(swipe.resetEdgeGestureImmediate());
   setMountedFile(props.req?.source, props.req?.path);
-  loadMediaMetadata();
+  refreshMetadata();
   if (!player.value) {
     void initializePlayer();
     return;
@@ -397,6 +396,22 @@ async function onFileSwap(newKey?: string, oldKey?: string): Promise<void> {
 }
 
 watch(() => props.fileKey, onFileSwap, { flush: "pre" });
+
+let metadataReq: AudioFile | null = null;
+function refreshMetadata(): void {
+  if (metadataReq === props.req) return;
+  metadataReq = props.req;
+  loadMediaMetadata();
+}
+
+watch(
+  () => props.req,
+  () => {
+    if (lifecycle.tornDown) return;
+    refreshMetadata();
+    if (player.value) updateMediaSessionMetadata(mediaSessionInfo());
+  },
+);
 
 async function mountPlayer(): Promise<void> {
   if (!audioElement.value || player.value || lifecycle.mountInProgress || lifecycle.tornDown) return;
@@ -462,7 +477,7 @@ function onPageHide(event: PageTransitionEvent): void {
 
 onMounted(async () => {
   lifecycle.mountedFile = resolveMountedFileKey(props.req?.source, props.req?.path);
-  loadMediaMetadata();
+  refreshMetadata();
   await initializePlayer();
   if (lifecycle.unmounted || lifecycle.tornDown) return;
   attachKeyboard();

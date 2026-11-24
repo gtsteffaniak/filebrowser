@@ -24,7 +24,7 @@ export function useMediaKeyboard(options: MediaKeyboardOptions) {
       return;
     }
     // 'P' and 'L' keys for playback mode and loop
-    if (key === "p" || key === "l") {
+    if ((key === "p" || key === "l") && state.prompts.length === 0) {
       event.stopPropagation();
       event.preventDefault();
       if (key === "p") options.cyclePlaybackModes();
@@ -41,6 +41,7 @@ export function useMediaKeyboard(options: MediaKeyboardOptions) {
     // "Q" open/close panel on desktop audio, queue prompt on video
     if (key === "q") {
       if (options.getPreviewType() === "audio" && !getters.isMobile()) {
+        if (state.prompts.length > 0) return;
         event.stopPropagation();
         event.preventDefault();
         options.toggleDesktopPanel();

@@ -30,6 +30,7 @@ export function useDoubleTapSeek({
   getAudioGestureRoot,
   requestPlay,
 }: DoubleTapSeekOptions) {
+  let cancelEdgeClick: (() => void) | null = null;
   const skipFeedbackVisible = ref(false);
   const skipFeedbackSide = ref<"left" | "right">("left");
   const skipFeedbackIcon = ref("replay_10");
@@ -175,6 +176,7 @@ export function useDoubleTapSeek({
         edgeClickToggleTimer = null;
       }
     };
+    cancelEdgeClick = clearEdgeClickToggleTimer;
     const onClick = (event: MouseEvent) => {
       if (isControlOrMenuTarget(event.target)) return;
       if (Date.now() < ignoreClickUntil) {
@@ -367,6 +369,7 @@ export function useDoubleTapSeek({
     flashSkipFeedback,
     setupDoubleTapSeek,
     teardownDoubleTapSeek,
+    cancelPendingEdgeClick: () => cancelEdgeClick?.(),
     setupRewindForwardFeedback,
     clearRewindForwardFeedback,
     setupOverlaidHintController,

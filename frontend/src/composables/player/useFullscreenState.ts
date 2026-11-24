@@ -1,8 +1,11 @@
+import type Plyr from "plyr";
 import { onBeforeUnmount, ref } from "vue";
+import { isSettingsMenuOpen } from "@/composables/player/settingsElements.ts";
 import { state } from "@/store/index.ts";
 
 interface FullscreenStateOptions {
   onEnter?: () => void;
+  getPlayer?: () => Plyr | null | undefined;
 }
 
 /** Keyboard Lock API (this only works in chromium, not in firefox sadly) */
@@ -10,14 +13,6 @@ type KeyboardWithLock = { lock?: (keyCodes?: string[]) => Promise<void>; unlock?
 
 function getKeyboard(): KeyboardWithLock | undefined {
   return (navigator as Navigator & { keyboard?: KeyboardWithLock }).keyboard;
-}
-
-function onEscapeKey(event: KeyboardEvent): void {
-  if (event.key !== "Escape" || state.prompts.length > 0 || state.isSearchActive) return;
-  if (!document.fullscreenElement) return;
-  event.preventDefault();
-  event.stopImmediatePropagation();
-  void document.exitFullscreen();
 }
 
 const ORIENTATION_LOCK_POLICY_ERRORS = new Set([
@@ -28,8 +23,16 @@ const ORIENTATION_LOCK_POLICY_ERRORS = new Set([
 ]);
 
 /** Tracks the player's fullscreen state and frees the screen orientation while in fullscreen. */
-export function useFullscreenState({ onEnter }: FullscreenStateOptions = {}) {
+export function useFullscreenState({ onEnter, getPlayer }: FullscreenStateOptions = {}) {
   const isFullscreen = ref(false);
+
+  function onEscapeKey(event: KeyboardEvent): void {
+    if (event.key !== "Escape" || state.prompts.length > 0 || state.isSearchActive) return;
+    if (!document.fullscreenElement || isSettingsMenuOpen(getPlayer?.())) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    void document.exitFullscreen();
+  }
 
   function lockEscape(): void {
     getKeyboard()

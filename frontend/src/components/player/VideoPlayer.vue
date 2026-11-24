@@ -98,7 +98,7 @@ import PreviewNotice from "@/components/files/PreviewNotice.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import FloatingActionButton from "@/components/settings/FloatingActionButton.vue";
 import PlayerOverlays from "@/components/player/PlayerOverlays.vue";
-import { getPlayerI18n, getSettingsElements } from "@/composables/player/settingsElements.ts";
+import { getPlayerI18n, getSettingsElements, isSettingsMenuOpen } from "@/composables/player/settingsElements.ts";
 import {
   CAPTION_SIZE_IDS,
   getCaptionSizeLabel,
@@ -405,6 +405,7 @@ const swipe = useSwipeNavigationGestures({
 const { speedToastVisible, speedToastMessage, setupSwipeGestures, teardownSwipeGestures, clearDismissAnimTimers } = swipe;
 const { onFullscreenEnter, onFullscreenExit } = useFullscreenState({
   onEnter: swipe.resetEdgeGestureImmediate,
+  getPlayer: () => player.value,
 });
 const {
   lifecycle,
@@ -663,10 +664,8 @@ function ensurePlaybackModeApplied(): void {
   if (!player.value) return;
   try {
     const settings = getSettingsElements(player.value);
-    const settingsMenuEl = settings?.menu;
     const buttons = settings?.buttons;
-    const menuOpen =
-      settingsMenuEl && settingsMenuEl.style.display !== "none" && settingsMenuEl.getAttribute("hidden") === null;
+    const menuOpen = isSettingsMenuOpen(player.value);
     const needPlayback = buttons?.playback && !playbackMenuInitialized.value;
     const needCaptionSize = buttons?.captionSize && !captionSizeMenuInitialized;
     const needLoop = buttons?.loop && !loopMenuInitialized.value;
@@ -817,11 +816,12 @@ async function onFileSwap(newKey?: string, oldKey?: string): Promise<void> {
     return;
   }
   const generation = ++swapGeneration;
-  swipe.resetEdgeGestureImmediate();
+  doubleTap.cancelPendingEdgeClick();
+  const heldRate = swipe.resetEdgeGestureImmediate();
   offerCheckPending.value = false;
   const isCurrent = () =>
     generation === swapGeneration && !lifecycle.unmounted && !lifecycle.tornDown && Boolean(player.value);
-  releaseFile();
+  releaseFile(heldRate);
   resetFilePlaybackState();
   startRequested.value = false;
   transcodeOffer.value = null;

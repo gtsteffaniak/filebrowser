@@ -22,6 +22,7 @@
         zIndex: 5 + prompts.indexOf(prompt),
       }"
       :aria-label="`${prompt.name}-prompt`"
+      tabindex="-1"
     >
       <header
         class="prompt-taskbar"
@@ -240,6 +241,7 @@ export default {
         for (const p of newVal) {
           if (!oldIds.has(p.id)) {
             this.triggerPromptBorderFlash(p.id);
+            this.$nextTick().then(() => this.focusPrompt(p.id));
             if (this.isEditorPrompt(p)) {
               this.ensureEditorPromptSize(p.id);
             }
@@ -289,6 +291,41 @@ export default {
         this.flashBorderIds = next;
         this.flashBorderTimers = omitObjectProperty(this.flashBorderTimers, id);
       }, 500));
+    },
+    getFocusable(root) {
+      const selector = 'a[href], button, input, select, textarea, [tabindex]';
+      return Array.from(root.querySelectorAll(selector)).filter(
+        (el) => el.tabIndex >= 0 && !el.disabled && el.getClientRects().length > 0,
+      );
+    },
+    focusPrompt(id) {
+      const root = this.getPromptElement(id);
+      if (!root || root.contains(document.activeElement)) return;
+      const target = this.getFocusable(root).find((el) => !el.classList.contains('prompt-close')) || root;
+      target.focus({ preventScroll: true });
+    },
+    trapTabFocus(event, id) {
+      const root = this.getPromptElement(id);
+      if (!root) return;
+      const items = this.getFocusable(root);
+      if (!items.length) {
+        event.preventDefault();
+        root.focus({ preventScroll: true });
+        return;
+      }
+      const first = items[0];
+      const last = items.at(-1);
+      const active = document.activeElement;
+      if (!root.contains(active) || active === root) {
+        event.preventDefault();
+        (event.shiftKey ? last : first).focus();
+      } else if (event.shiftKey && active === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && active === last) {
+        event.preventDefault();
+        first.focus();
+      }
     },
     handleWindowResize() {
       const maxWidth = window.innerWidth * 0.9;
@@ -505,7 +542,10 @@ export default {
       if (this.isBlocked(top)) {
         return;
       }
-
+      if (event.key === 'Tab') {
+        this.trapTabFocus(event, top.id);
+        return;
+      }
       if (event.key === 'Escape') {
         event.preventDefault();
         event.stopImmediatePropagation();

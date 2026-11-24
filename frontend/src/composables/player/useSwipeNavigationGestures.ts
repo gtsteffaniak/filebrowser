@@ -233,6 +233,7 @@ export function useSwipeNavigationGestures({
     }, 240);
   }
   function resetSwipeVisualState() {
+    teardownSwipeMouseDocListeners();
     clearDismissAnimTimers();
     clearSnapBackTimer();
     swipeSuppressedTouchId = null;
@@ -249,7 +250,8 @@ export function useSwipeNavigationGestures({
     applySwipeTransform();
     mutations.setNavigationGestureHint({});
   }
-  function resetEdgeGestureImmediate() {
+  function resetEdgeGestureImmediate(): number | undefined {
+    const heldFromRate = gestures.longPressTriggered.value ? gestures.longPressPreviousSpeed.value : undefined;
     gestures.clearLongPressTimer();
     gestures.longPressPending.value = false;
     if (gestures.longPressTriggered.value) {
@@ -258,6 +260,7 @@ export function useSwipeNavigationGestures({
     resetSwipeVisualState();
     gestures.clearEdgeTapGestureState();
     gestures.clearSkipNextTap();
+    return heldFromRate;
   }
   function clearDismissAnimTimers() {
     if (dismissCloseTimer) {

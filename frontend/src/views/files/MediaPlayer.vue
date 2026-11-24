@@ -91,6 +91,7 @@ let mediaEnrichDoneForPath: string | null = null;
 let loadOwner = 0;
 let loadIdentity: string | null = null;
 let inFlightIdentity: string | null = null;
+let inFlightSubtitleInputs: string | null = null;
 /** enables autoplay for queue navigation even when autoplayMedia pref is off */
 const playbackStarted = ref(false);
 
@@ -107,6 +108,7 @@ const {
     audioRef.value?.destroy?.();
     videoRef.value?.destroy?.();
   },
+  canDelete: () => (committed.value ? committed.value.key === mediaIdentity() : !avMetadataLoading.value),
 });
 
 const isDarkMode = computed(() => getters.isDarkMode());
@@ -192,6 +194,10 @@ async function attachDirMediaMetadata(
   }
 }
 
+function subtitleInputsFor(req: ReqObject): string {
+  return JSON.stringify((req.subtitles ?? []).map((track) => [track?.name, track?.embedded, track?.srclang || track?.language]));
+}
+
 async function loadMediaForReq() {
   if (!getters.isLoggedIn() && !getters.isShare()) {
     return;
@@ -205,8 +211,12 @@ async function loadMediaForReq() {
     loadOwner += 1;
   } else if (inFlightIdentity === identity) {
     // the running load commits `state.req` as it is at the end, so it sees this update too
-    return;
+    if (inFlightSubtitleInputs === null || inFlightSubtitleInputs === subtitleInputsFor(state.req)) {
+      return;
+    }
+    loadOwner += 1;
   }
+  inFlightSubtitleInputs = null;
   const owner = loadOwner;
   const isStale = () => owner !== loadOwner;
   inFlightIdentity = identity;
@@ -226,7 +236,7 @@ async function loadMediaForReq() {
 }
 
 async function loadAndCommit(identity: string, isStale: () => boolean) {
-  await loadListingContext();
+  await loadListingContext(isStale);
   if (isStale()) {
     return;
   }
@@ -252,7 +262,7 @@ async function loadAndCommit(identity: string, isStale: () => boolean) {
     mediaEnrichDoneForPath = null;
   }
 
-  await updatePreview();
+  await updatePreview(isStale);
   if (isStale()) {
     return;
   }
@@ -272,7 +282,8 @@ async function loadAndCommit(identity: string, isStale: () => boolean) {
   const kind = previewType.value as "audio" | "video";
   const current = committed.value;
   const reuse = current?.key === identity && current.kind === kind ? current : null;
-  const subtitleInputs = JSON.stringify((state.req.subtitles ?? []).map((track) => [track?.name, track?.embedded, track?.srclang || track?.language]));
+  const subtitleInputs = subtitleInputsFor(state.req);
+  inFlightSubtitleInputs = subtitleInputs;
   const lyricsInputs = kind === "audio" && state.req.metadata?.hasLyrics ? "lyrics" : "";
   const reuseSubtitles = reuse?.subtitleInputs === subtitleInputs ? reuse : null;
   const reuseLyrics = reuse?.lyricsInputs === lyricsInputs ? reuse : null;
