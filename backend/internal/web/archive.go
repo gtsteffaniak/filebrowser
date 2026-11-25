@@ -1592,7 +1592,7 @@ func extractZipWithEncoding(archivePath, destDir, charset string, policy *extrac
 // isTarRootDir reports the "./" entry that `tar -C dir .` writes first; it is the
 // destination itself.
 func isTarRootDir(h *tar.Header) bool {
-	return h.Typeflag == tar.TypeDir && path.Clean(strings.TrimLeft(h.Name, "/")) == "."
+	return h.Typeflag == tar.TypeDir && path.Clean(strings.TrimLeft(strings.ReplaceAll(h.Name, "\\", "/"), "/")) == "."
 }
 
 func extractTarGz(archivePath, destDir string, policy *extractAccessPolicy) error {
