@@ -1,5 +1,5 @@
 <template>
-   <Teleport to="body" v-for="prompt in prompts" :key="`prompt-${prompt.id}`">
+   <Teleport :to="fullscreenHost || 'body'" v-for="prompt in prompts" :key="`prompt-${prompt.id}`">
     <div
       ref="promptWindow"
       class="floating-window"
@@ -22,6 +22,8 @@
         zIndex: 5 + prompts.indexOf(prompt),
       }"
       :aria-label="`${prompt.name}-prompt`"
+      :data-prompt-id="prompt.id"
+      tabindex="-1"
     >
       <header
         class="prompt-taskbar"
@@ -142,10 +144,14 @@ import DefaultViewPrefs from "./DefaultViewPrefs.vue";
 import MediaConversionFormats from "./MediaConversionFormats.vue";
 import MediaTranscodeSettings from "./MediaTranscodeSettings.vue";
 import { state, getters, mutations } from "@/store/index.ts";
+import { useFullscreen } from "@/composables/preview/useFullscreen.ts";
 import { getObjectProperty, omitObjectProperty, setObjectProperty } from "@/utils/object.js";
 
 export default {
   name: "Prompts",
+  setup() {
+    return { fullscreenHost: useFullscreen() };
+  },
   components: {
     UserEdit,
     GroupEdit,
@@ -236,6 +242,7 @@ export default {
         for (const p of newVal) {
           if (!oldIds.has(p.id)) {
             this.triggerPromptBorderFlash(p.id);
+            this.$nextTick().then(() => this.focusPrompt(p.id));
             if (this.isEditorPrompt(p)) {
               this.ensureEditorPromptSize(p.id);
             }
@@ -285,6 +292,41 @@ export default {
         this.flashBorderIds = next;
         this.flashBorderTimers = omitObjectProperty(this.flashBorderTimers, id);
       }, 500));
+    },
+    getFocusable(root) {
+      const selector = 'a[href], button, input, select, textarea, [tabindex]';
+      return Array.from(root.querySelectorAll(selector)).filter(
+        (el) => el.tabIndex >= 0 && !el.disabled && el.getClientRects().length > 0,
+      );
+    },
+    focusPrompt(id) {
+      const root = this.getPromptElement(id);
+      if (!root || root.contains(document.activeElement)) return;
+      const target = this.getFocusable(root).find((el) => !el.classList.contains('prompt-close')) || root;
+      target.focus({ preventScroll: true });
+    },
+    trapTabFocus(event, id) {
+      const root = this.getPromptElement(id);
+      if (!root) return;
+      const items = this.getFocusable(root);
+      if (!items.length) {
+        event.preventDefault();
+        root.focus({ preventScroll: true });
+        return;
+      }
+      const first = items[0];
+      const last = items.at(-1);
+      const active = document.activeElement;
+      if (!root.contains(active) || active === root) {
+        event.preventDefault();
+        (event.shiftKey ? last : first).focus();
+      } else if (event.shiftKey && active === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && active === last) {
+        event.preventDefault();
+        first.focus();
+      }
     },
     handleWindowResize() {
       const maxWidth = window.innerWidth * 0.9;
@@ -501,7 +543,10 @@ export default {
       if (this.isBlocked(top)) {
         return;
       }
-
+      if (event.key === 'Tab') {
+        this.trapTabFocus(event, top.id);
+        return;
+      }
       if (event.key === 'Escape') {
         event.preventDefault();
         event.stopImmediatePropagation();
@@ -518,7 +563,10 @@ export default {
       if (event.defaultPrevented) {
         return;
       }
-
+      const active = document.activeElement;
+      if (active?.tagName === 'BUTTON' && this.getPromptElement(top.id)?.contains(active)) {
+        return;
+      }
       const primary = this.findPrimaryActionButton(top.id);
       if (!primary) {
         return;
@@ -578,9 +626,8 @@ export default {
       const windows = this.$refs.promptWindow;
       const prompt = this.prompts.find(p => p.id === id);
       if (!prompt) return null;
-      const label = `${prompt.name}-prompt`;
       return Array.isArray(windows)
-        ? windows.find(w => w?.getAttribute('aria-label') === label)
+        ? windows.find(w => w?.dataset.promptId === String(id))
         : windows;
     },
     onPointerDown(e, id, type) {
@@ -641,8 +688,7 @@ export default {
       });
 
       // Find the element for this prompt
-      const windows = this.$refs.promptWindow;
-      const el = Array.isArray(windows) ? windows.find(w => w?.getAttribute('aria-label') === `${this.prompts.find(p => p.id === id)?.name}-prompt`) : windows;
+      const el = this.getPromptElement(id);
       if (el) this.clampDragOffset(id, el);
     },
     onPointerEnd(_e, id, type, moveHandler, endHandler) {
@@ -663,10 +709,7 @@ export default {
       const pos = this.getPointerPos(e, type);
       if (!pos) return;
       // Find the window
-      const windows = this.$refs.promptWindow;
-      const el = Array.isArray(windows)
-        ? windows.find(w => w?.getAttribute('aria-label') === `${this.prompts.find(p => p.id === id)?.name}-prompt`)
-        : windows;
+      const el = this.getPromptElement(id);
       if (!el) return;
       // Capture current size (if not already fixed, set it)
       let sizes = this.sizes;
@@ -775,10 +818,7 @@ export default {
         y: start.offsetY + deltaOffsetY,
       });
       // Clamp to viewport
-      const windows = this.$refs.promptWindow;
-      const el = Array.isArray(windows)
-        ? windows.find(w => w?.getAttribute('aria-label') === `${this.prompts.find(p => p.id === id)?.name}-prompt`)
-        : windows;
+      const el = this.getPromptElement(id);
       if (el) this.clampDragOffset(id, el);
     },
     onResizeEnd(_e, type, moveHandler, endHandler) {
@@ -815,6 +855,8 @@ export default {
   flex-direction: column;
   overflow: hidden;
   color: var(--textPrimary);
+  /* Inside the fullscreen player this would inherit the preview's centered text. */
+  text-align: start;
 }
 
 @keyframes show {

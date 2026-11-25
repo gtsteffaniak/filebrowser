@@ -79,7 +79,7 @@ import { notify } from "@/notify/index.ts";
 import ListingItem from "@/components/files/ListingItem.vue";
 import { eventBus } from "@/store/eventBus.ts";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
-import { useListingVirtualization } from "@/composables/useListingVirtualization.ts";
+import { useListingVirtualization } from "@/composables/listing/useListingVirtualization.ts";
 import url from "@/utils/url.js";
 import { removeFromFolderLists } from "@/utils/cache/listingCache.ts";
 
@@ -126,7 +126,7 @@ const itemsToDelete = computed<DeleteItem[]>(() => {
   }
   // Otherwise, compute from state (backward compatibility)
   let selectedItems: FileListItem[];
-  if (state.isSearchActive || getters.currentView() === "preview") {
+  if (state.isSearchActive || getters.currentView() === "preview" || getters.currentView() === "mediaPlayer") {
     const selected = state.selected[0] as number | FileListItem;
     selectedItems = [(typeof selected === "number" ? state.req.items?.at(selected) : selected) as FileListItem];
   } else if (!getters.isListing()) {

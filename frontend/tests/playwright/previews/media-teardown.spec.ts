@@ -41,7 +41,7 @@ async function trackPlayedMedia(page: Page) {
 }
 
 async function startPlayback(page: Page) {
-  const video = page.locator(".plyr-viewer video").first();
+  const video = page.locator(".media-player video").first();
   await expect(video).toBeVisible({ timeout: 15_000 });
   const isPlaying = () =>
     video.evaluate((el: HTMLVideoElement) => !el.paused && el.currentTime > 0);

@@ -85,7 +85,7 @@ import ListingItem from "@/components/files/ListingItem.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import { sortedItems } from "@/utils/sort.ts";
-import { findScrollParents, findScroller, useListingVirtualization } from "@/composables/useListingVirtualization.ts";
+import { findScrollParents, findScroller, useListingVirtualization } from "@/composables/listing/useListingVirtualization.ts";
 import { useI18n } from "@/i18n/index.ts";
 
 type ItemInfo = FileListItem & { isDir?: boolean; hasDuration?: boolean };

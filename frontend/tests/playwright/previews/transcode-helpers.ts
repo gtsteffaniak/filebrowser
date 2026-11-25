@@ -2,13 +2,19 @@ import type { Locator, Page } from "@playwright/test";
 import { expect } from "../test-setup.ts";
 
 export const MINIMAL_PLAYLIST = `#EXTM3U
-#EXT-X-VERSION:6
+#EXT-X-VERSION:7
 #EXT-X-TARGETDURATION:2
 #EXT-X-MEDIA-SEQUENCE:0
+#EXT-X-PLAYLIST-TYPE:VOD
+#EXT-X-MAP:URI="init.mp4"
 #EXTINF:2.0,
 seg/00000.m4s
 #EXT-X-ENDLIST
 `;
+
+// 64x64 VP9 fMP4, 2s: hls must be able to buffer it or the HLS attach fails and the session is stopped
+const INIT_SEGMENT = Buffer.from("AAAAHGZ0eXBpc281AAACAGlzbzVpc282bXA0MQAAAw9tb292AAAAbG12aGQAAAAAAAAAAAAAAAAAAAPoAAAAAAABAAABAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAACEXRyYWsAAABcdGtoZAAAAAMAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAEAAAAAAQAAAAEAAAAAAACRlZHRzAAAAHGVsc3QAAAAAAAAAAQAAAAAAAAAAAAEAAAAAAYltZGlhAAAAIG1kaGQAAAAAAAAAAAAAAAAAACgAAAAAAFXEAAAAAAAtaGRscgAAAAAAAAAAdmlkZQAAAAAAAAAAAAAAAFZpZGVvSGFuZGxlcgAAAAE0bWluZgAAABR2bWhkAAAAAQAAAAAAAAAAAAAAJGRpbmYAAAAcZHJlZgAAAAAAAAABAAAADHVybCAAAAABAAAA9HN0YmwAAACoc3RzZAAAAAAAAAABAAAAmHZwMDkAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAQABAAEgAAABIAAAAAAAAAAEYTGF2YzYwLjMxLjEwMiBsaWJ2cHgtdnA5AAAAAAAAAAAY//8AAAAUdnBjQwEAAAAACoICAgIAAAAAAApmaWVsAQAAAAAQcGFzcAAAAAEAAAABAAAAFGJ0cnQAAAAAAABOIAAATiAAAAAQc3R0cwAAAAAAAAAAAAAAEHN0c2MAAAAAAAAAAAAAABRzdHN6AAAAAAAAAAAAAAAAAAAAEHN0Y28AAAAAAAAAAAAAAChtdmV4AAAAIHRyZXgAAAAAAAAAAQAAAAEAAAAAAAAAAAAAAAAAAABidWR0YQAAAFptZXRhAAAAAAAAACFoZGxyAAAAAAAAAABtZGlyYXBwbAAAAAAAAAAAAAAAAC1pbHN0AAAAJal0b28AAAAdZGF0YQAAAAEAAAAATGF2ZjYwLjE2LjEwMA==", "base64");
+const MEDIA_SEGMENT = Buffer.from("AAAAGHN0eXBtc2RoAAAAAG1zZGhtc2l4AAAANHNpZHgBAAAAAAAAAQAAKAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAfwAAFAAgAAAAAAAALhtb29mAAAAEG1maGQAAAAAAAAAAQAAAKB0cmFmAAAAHHRmaGQAAgA4AAAAAQAABAAAAAAfAQEAAAAAABR0ZmR0AQAAAAAAAAAAAAAAAAAAaHRydW4AAAIFAAAAFAAAAMACAAAAAAAAHwAAAA8AAAAPAAAADwAAAA8AAAAPAAAADwAAAA8AAAAPAAAADwAAAA8AAAAPAAAADwAAAA8AAAAPAAAADwAAAA8AAAAPAAAADwAAAA8AAAFEbWRhdIJJg0IAA/AD9gA4JBwYQgAAMGAAAGc///9ZrxE7swCGAECSnABJQAADIAAAVHCGAECSnABKwAADIAAAVHCGAECSnABJwAADIAAAVHCGAECSnABIoAADIAAAVHCGAECSnABHgAADIAAAVHCGAECSnABG4AADIAAAVHCGAECSnABGQAADIAAAVHCGAECSnABFwAADIAAAVHCGAECSnABFQAADIAAAVHCGAMCSnABBwAADIAAAVHCGAECSnABE4AADIAAAVHCGAECSnABEYAADIAAAVHCGAECSnABEAAADIAAAVHCGAECSnABDoAADIAAAVHCGAECSnABDQAADIAAAVHCGAECSnABDAAADIAAAVHCGAECSnABCwAADIAAAVHCGAECSnABCgAADIAAAVHCGAECSnABCQAADIAAAVHA=", "base64");
 
 /**
  * Force ffmpeg availability in the static app-config and advertise transcoding via
@@ -172,12 +178,13 @@ export async function mockTranscodeSessions(
       return;
     }
 
-    const segmentMatch = path.match(/\/sessions\/([^/]+)\/(?:init\.mp4|seg\/[^/]+)$/);
+    const segmentMatch = path.match(/\/sessions\/([^/]+)\/(init\.mp4|seg\/[^/]+)$/);
     if (method === "GET" && segmentMatch) {
+      const isInit = segmentMatch[2] === "init.mp4";
       await route.fulfill({
         status: 200,
-        contentType: "video/iso.segment",
-        body: Buffer.from([0, 0, 0, 0]),
+        contentType: isInit ? "video/mp4" : "video/iso.segment",
+        body: isInit ? INIT_SEGMENT : MEDIA_SEGMENT,
       });
       return;
     }
@@ -200,38 +207,43 @@ export async function mockTranscodeSessions(
   return { starts, sessions: () => sessions, playlistHits: () => playlistHits };
 }
 
-export function nativePlyrVideo(page: Page) {
-  return page.locator(".plyr-viewer video").first();
+export function nativeVideo(page: Page) {
+  return page.locator(".media-player video").first();
 }
 
-/** Preview transcode-offer screen (not the in-player settings menu). */
-function previewTranscodeOfferButton(page: Page) {
-  return page.locator(".info button[aria-label='Transcode']");
+/** Preview notice shown instead of the player */
+function previewNotice(page: Page) {
+  return page.locator(".preview-notice");
+}
+
+/** The native video inside Plyr */
+function plyrVideo(page: Page) {
+  return page.locator(".media-player .plyr video").first();
 }
 
 /**
- * Wait until Preview.vue finishes media enrichment and mounts the async plyrViewer
+ * Wait until Preview.vue finishes media enrichment and mounts the async media player
  * chunk (not the WMV transcode-offer screen).
  */
-export async function waitForNativePlyrMounted(page: Page) {
+export async function waitForNativePlayerMounted(page: Page) {
   await expect(page.locator(".av-preview-loading")).toHaveCount(0, { timeout: 30_000 });
   await expect.poll(async () => {
-    if (await previewTranscodeOfferButton(page).count()) {
-      return "offer";
+    if (await previewNotice(page).isVisible()) {
+      return "notice";
     }
-    if (await page.locator(".plyr-viewer").count()) {
-      return "plyr";
+    if (await plyrVideo(page).isVisible()) {
+      return "player";
     }
     return "pending";
-  }, { timeout: 30_000, intervals: [100, 250, 500, 1000] }).toBe("plyr");
-  await expect(nativePlyrVideo(page)).toBeAttached({ timeout: 15_000 });
+  }, { timeout: 30_000, intervals: [100, 250, 500, 1000] }).toBe("player");
+  await expect(nativeVideo(page)).toBeVisible({ timeout: 15_000 });
 }
 
-async function clickPlyrPlayControl(page: Page) {
-  const video = nativePlyrVideo(page);
+async function clickPlayControl(page: Page) {
+  const video = nativeVideo(page);
   await video.click({ force: true });
   const playBtn = page.locator(
-    ".plyr-viewer .plyr__control--overlaid, .plyr-viewer button.plyr__control[data-plyr='play']",
+    ".media-player .plyr__control--overlaid, .media-player button.plyr__control[data-plyr='play']",
   ).first();
   if (await playBtn.count()) {
     await domClick(playBtn);
@@ -266,8 +278,8 @@ export async function waitForNativeMediaStream(page: Page) {
  * Trusted play gesture so attachVideoStreamAndPlay runs and GET /api/media/stream fires.
  */
 export async function startNativeVideoPlayback(page: Page) {
-  await waitForNativePlyrMounted(page);
-  const video = nativePlyrVideo(page);
+  await waitForNativePlayerMounted(page);
+  const video = nativeVideo(page);
   const hasStreamSrc = () =>
     video.evaluate((el: HTMLVideoElement) => (el.getAttribute("src") || "").includes("media/stream"));
   const isPlaying = () => video.evaluate(videoIsActivelyPlaying());
@@ -276,12 +288,12 @@ export async function startNativeVideoPlayback(page: Page) {
     const streamWait = waitForNativeMediaStream(page);
 
     if (!(await isPlaying())) {
-      await clickPlyrPlayControl(page);
+      await clickPlayControl(page);
     }
 
     await streamWait;
   } else if (!(await isPlaying())) {
-    await clickPlyrPlayControl(page);
+    await clickPlayControl(page);
   }
 
   const playbackStartTime = await video.evaluate((el: HTMLVideoElement) => el.currentTime);
@@ -296,12 +308,12 @@ export async function startNativeVideoPlayback(page: Page) {
 }
 
 /** Top-level settings gear only — Plyr also stamps data-plyr="settings" on menu back buttons. */
-export function plyrSettingsButton(page: Page) {
-  return page.locator(".plyr-viewer button[data-plyr='settings']:not([role='menuitem'])");
+export function settingsButton(page: Page) {
+  return page.locator(".media-player button[data-plyr='settings']:not([role='menuitem'])");
 }
 
-export function plyrTranscodeMenuButton(page: Page) {
-  return page.locator(".plyr-viewer button[data-plyr-menu='transcodeMode']");
+export function transcodeMenuButton(page: Page) {
+  return page.locator(".media-player button[data-plyr-menu='transcodeMode']");
 }
 
 /** DOM click — Plyr controls are often off-screen / covered in the CI viewport. */
@@ -310,10 +322,10 @@ export async function domClick(locator: Locator) {
 }
 
 export async function openTranscodeModeMenu(page: Page) {
-  const settings = plyrSettingsButton(page);
+  const settings = settingsButton(page);
   await expect(settings).toBeAttached({ timeout: 15_000 });
   await domClick(settings);
-  const transcodeBtn = plyrTranscodeMenuButton(page);
+  const transcodeBtn = transcodeMenuButton(page);
   await expect(transcodeBtn).toBeAttached({ timeout: 10_000 });
   // ensurePlaybackModeApplied should have cleared hidden when transcode is available.
   await expect(transcodeBtn).not.toHaveAttribute("hidden", { timeout: 10_000 });
@@ -322,7 +334,7 @@ export async function openTranscodeModeMenu(page: Page) {
 
 export async function selectTranscodeMode(page: Page, mode: string) {
   await openTranscodeModeMenu(page);
-  const option = page.locator(`.plyr-viewer button[data-plyr='transcode-mode'][value='${mode}']`);
+  const option = page.locator(`.media-player button[data-plyr='transcode-mode'][value='${mode}']`);
   await expect(option).toBeAttached({ timeout: 10_000 });
   await domClick(option);
 }

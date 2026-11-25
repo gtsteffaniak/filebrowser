@@ -153,138 +153,14 @@ button:hover,
   font-weight: 700;
 }
 
-/* PREVIEWER */
-#previewer {
-  background-color: rgb(0 0 0 / 90%);
-  width: 100%;
-  height: 100%;
-  z-index: 9999;
-}
-
 .expand-dropdown.form-compact .expand-dropdown-trigger i,
 .expand-dropdown.form-compact .expand-dropdown-chevron {
   padding: 0;
   line-height: 1;
 }
 
-#previewer .preview {
-  text-align: center;
-  max-height: 100%;
-  max-width: 100%;
-  height: 100%;
-}
-
-#previewer .preview pre {
-  text-align: left;
-  overflow: auto;
-}
-
-#previewer .preview pre,
-#previewer .preview video,
-#previewer .preview img {
-  max-height: 100%;
-  margin: 0;
-}
-
-#previewer .preview video {
-  height: 100%;
-}
-
-#previewer .preview .info {
-  display: flex;
-  height: 100%;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  box-sizing: border-box;
-  padding: 2.5em;
-  font-size: 1.5em;
-  color: #fff;
-  text-align: center;
-}
-
-#previewer .preview .info .title {
-  margin-bottom: 1em;
-  max-width: 100%;
-}
-
-#previewer .preview .info .title i {
-  display: block;
-  margin-bottom: 0.1em;
-  font-size: 4em;
-}
-
-#previewer .preview .info .preview-buttons .button--flat {
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-}
-
-#previewer .preview .info .preview-buttons .button--flat:hover {
-  background-color: rgb(255 255 255 / 20%);
-}
-
-#previewer .preview .info .preview-buttons .button--flat i {
-  display: block;
-  margin-bottom: 4px;
-  font-size: 1.3em;
-}
-
-#previewer
-  .preview
-  .info
-  .preview-buttons
-  .button--flat.preview-action--icon-only
-  i {
-  margin-bottom: 0;
-}
-
-#previewer .pdf {
-  width: 100%;
-  height: 100%;
-}
-
-#previewer h2.message {
-  color: rgb(255 255 255 / 50%);
-}
-
 .rules button {
   margin-left: auto;
-}
-
-#previewer > button {
-  position: fixed;
-  top: calc(50% + 1.85em);
-  transform: translateY(-50%);
-  background-color: rgb(80 80 80 / 50%);
-  color: white;
-  border-radius: 50%;
-  cursor: pointer;
-  border: 0;
-  margin: 0;
-  padding: 0;
-  transition:
-    opacity 0.2s ease,
-    box-shadow 0.2s ease,
-    transform 0.2s ease;
-}
-
-#previewer > button.hidden {
-  opacity: 0;
-  visibility: hidden;
-}
-
-#previewer > button:last-of-type {
-  right: 0.5em;
-}
-
-#previewer .spinner {
-  text-align: center;
-  position: fixed;
-  top: calc(50% + 1.85em);
-  left: 50%;
-  transform: translate(-50%, -50%);
 }
 
 .icon-preview {

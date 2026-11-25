@@ -1,0 +1,75 @@
+import type Plyr from "plyr";
+import { onBeforeUnmount, ref } from "vue";
+import { isSettingsMenuOpen } from "@/composables/player/settingsElements.ts";
+import { state } from "@/store/index.ts";
+
+interface FullscreenStateOptions {
+  onEnter?: () => void;
+  getPlayer?: () => Plyr | null | undefined;
+}
+
+/** Keyboard Lock API (this only works in chromium, not in firefox sadly) */
+type KeyboardWithLock = { lock?: (keyCodes?: string[]) => Promise<void>; unlock?: () => void };
+
+function getKeyboard(): KeyboardWithLock | undefined {
+  return (navigator as Navigator & { keyboard?: KeyboardWithLock }).keyboard;
+}
+
+const ORIENTATION_LOCK_POLICY_ERRORS = new Set([
+  "NotSupportedError",
+  "SecurityError",
+  "NotAllowedError",
+  "AbortError",
+]);
+
+/** Tracks the player's fullscreen state and frees the screen orientation while in fullscreen. */
+export function useFullscreenState({ onEnter, getPlayer }: FullscreenStateOptions = {}) {
+  const isFullscreen = ref(false);
+
+  function onEscapeKey(event: KeyboardEvent): void {
+    if (event.key !== "Escape" || state.prompts.length > 0 || state.isSearchActive) return;
+    if (!document.fullscreenElement || isSettingsMenuOpen(getPlayer?.())) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    void document.exitFullscreen();
+  }
+
+  function lockEscape(): void {
+    getKeyboard()
+      ?.lock?.(["Escape"])
+      .catch(() => {});
+    window.addEventListener("keydown", onEscapeKey, true);
+  }
+
+  function unlockEscape(): void {
+    window.removeEventListener("keydown", onEscapeKey, true);
+    getKeyboard()?.unlock?.();
+  }
+
+  async function onFullscreenEnter(): Promise<void> {
+    isFullscreen.value = true;
+    onEnter?.();
+    lockEscape();
+    // Allow free rotation when video enters full screen mode. This works even if the device's orientation is currently locked.
+    if (typeof screen.orientation?.lock !== "function") return;
+    try {
+      await screen.orientation.lock("any");
+    } catch (error) {
+      if (!ORIENTATION_LOCK_POLICY_ERRORS.has((error as DOMException)?.name)) throw error;
+    }
+  }
+
+  function onFullscreenExit(): void {
+    isFullscreen.value = false;
+    unlockEscape();
+    if (!screen.orientation?.unlock) return;
+    try {
+      screen.orientation.unlock();
+    } catch (error) {
+      if ((error as DOMException).name !== "NotSupportedError") throw error;
+    }
+  }
+  onBeforeUnmount(unlockEscape);
+
+  return { isFullscreen, onFullscreenEnter, onFullscreenExit };
+}

@@ -3,7 +3,7 @@
     v-if="showZone"
     ref="zoneEl"
     class="fab-zone"
-    :class="[`fab-zone--${position}`, { 'fab-zone--interactive': interactiveZone }]"
+    :class="[`fab-zone--${position}`, { 'fab-zone--interactive': interactiveZone, 'fab-zone--fullscreen': fullscreenHost, 'fab-zone--behind-overlay': behindOverlay }]"
     :style="zoneStyle"
     @pointerenter="handleZoneEnter"
     @pointerleave="handleZoneLeave"
@@ -19,6 +19,8 @@
       `fab-button--${variant}`,
       {
         'fab-button--extended': extended,
+        'fab-button--fullscreen': fullscreenHost,
+        'fab-button--behind-overlay': behindOverlay,
         'fab-button--slide-in-visible': topCenterVisible,
         'fab-button--hidden': autoHide && !showButton,
       },
@@ -42,6 +44,7 @@
 <script lang="ts">
 import { reactive, type PropType } from "vue";
 import { getters } from "@/store/index.ts";
+import { useFullscreen } from "@/composables/preview/useFullscreen.ts";
 
 const buttonGroup = new Map<string, { visible: boolean; zoneActive: boolean; timer: ReturnType<typeof setTimeout> | null }>();
 
@@ -58,6 +61,9 @@ const POSITIONS = ["top-right", "top-left", "bottom-right", "bottom-left", "top-
 
 export default {
   name: "floatingActionButton",
+  setup() {
+    return { fullscreenHost: useFullscreen() };
+  },
   emits: { press: (_event: MouseEvent) => true },
   props: {
     icon: {
@@ -173,6 +179,9 @@ export default {
     isZoneActive(): boolean {
       return this.sharedState ? this.sharedState.zoneActive : this.buttonZone;
     },
+    behindOverlay(): boolean {
+      return !!this.fullscreenHost && getters.showOverlay();
+    },
     showZone(): boolean {
       return this.autoHide;
     },
@@ -208,7 +217,7 @@ export default {
       };
 
       const isLeftPositioned = this.position === "top-left" || this.position === "bottom-left";
-      const pushedBySidebar = isLeftPositioned && getters.isSidebarVisible() && getters.isStickySidebar();
+      const pushedBySidebar = isLeftPositioned && !this.fullscreenHost && getters.isSidebarVisible() && getters.isStickySidebar();
       if (pushedBySidebar && style.left === undefined) {
         style.left = `calc(var(--fab-edge-offset-media) + var(--sidebar-width))`;
       }
@@ -357,6 +366,11 @@ export default {
   z-index: 10000;
 }
 
+.fab-zone--behind-overlay,
+.fab-zone--behind-overlay.fab-zone--interactive {
+  z-index: 3;
+}
+
 .fab-zone--top-right {
   top: 4em;
   right: 0;
@@ -365,6 +379,11 @@ export default {
 .fab-zone--top-left {
   top: 4em;
   left: 0;
+}
+
+.fab-zone--fullscreen.fab-zone--top-right,
+.fab-zone--fullscreen.fab-zone--top-left {
+  top: 0;
 }
 
 .fab-zone--top-center {
@@ -405,6 +424,10 @@ export default {
   outline: none;
   z-index: 10001;
   opacity: 1;
+}
+
+.fab-button--behind-overlay {
+  z-index: 3;
 }
 
 .fab-button:not(.fab-button--primary) {
@@ -489,6 +512,11 @@ export default {
 .fab-button--top-left {
   top: 80px;
   left: var(--fab-edge-offset-media);
+}
+
+.fab-button--fullscreen.fab-button--top-right,
+.fab-button--fullscreen.fab-button--top-left {
+  top: calc(env(safe-area-inset-top, 0px) + var(--fab-edge-offset-media));
 }
 
 .fab-button--top-center {

@@ -1,972 +1,212 @@
 <template>
-  <div id="previewer">
-    <!-- Loading overlay during navigation transition -->
-    <div v-if="isTransitioning" class="transition-loading">
+  <PreviewShell>
+    <div v-if="isTransitioning" class="preview-loading">
       <LoadingSpinner size="medium" />
     </div>
-    <div class="preview" :class="{
-      'plyr-background-light': !isDarkMode && previewType === 'audio',
-      'plyr-background-dark': isDarkMode && previewType === 'audio',
-      'transitioning': isTransitioning
-    }" v-if="!isDeleted">
-      <template v-if="showImage && !isTransitioning">
-        <ExtendedImage :src="raw" @navigate-previous="navigatePrevious"
-          @navigate-next="navigateNext" @close-preview="exitPreviewFromImageGesture" />
+    <template v-else-if="showImage">
+      <ExtendedImage :src="raw" @navigate-previous="navigatePrevious"
+        @navigate-next="navigateNext" @close-preview="exitPreviewFromImageGesture" />
 
-        <FloatingActionButton
-          v-if="showSlideshowButton"
-          icon="slideshow"
-          position="top-right"
-          :label="$t('slideshow.start')"
-          @press="openSlideshowOptions"
-        />
-      </template>
-
-      <!-- Media: load full metadata + album art from media API before mounting plyr so the correct view/art is stable. -->
-      <div v-else-if="previewType === 'audio' || (previewType === 'video' && showVideoPlayer)" class="av-preview-wrap">
-        <div v-if="avMetadataLoading" class="av-preview-loading">
-          <LoadingSpinner size="medium" />
-        </div>
-        <plyrViewer v-else
-          :key="plyrViewerKey"
-          ref="plyrViewer"
-          :previewType="previewType"
-          :raw="raw"
-          :subtitlesList="subtitlesList"
-          :lyrics="lyrics"
-          :req="req"
-          :listing="listing"
-          :autoPlayEnabled="autoPlay"
-          :startTranscode="transcodePlaybackActive"
-          :sharedTranscodePlayback="transcodePlaybackController"
-          @playback-start="playbackStarted = true"
-          @needs-transcode="handleVideoTranscodeOffer"
-          :class="{ 'plyr-background': previewType === 'audio' }"
-          @navigate-previous="navigatePrevious"
-          @navigate-next="navigateNext"
-          @close-preview="exitPreviewFromImageGesture"
-        />
-      </div>
-
-      <div v-else-if="previewType === 'video' && videoTranscodeOffer" class="info">
-        <div class="title">
-          <i class="material-symbols">feedback</i>
-          {{ transcodeOfferTitle }}
-        </div>
-        <p v-if="showTranscodeOfferDetail" class="transcode-offer-message">{{ transcodeOfferMessage }}</p>
-        <ul v-if="showTranscodeSessionList" class="transcode-session-list">
-          <li v-for="sess in videoTranscodeOffer.sessions" :key="sess.id">
-            {{ sess.fileName || sess.path }}
-            <span v-if="sess.source" class="transcode-session-source">{{ `(${sess.source})` }}</span>
-          </li>
-        </ul>
-        <div class="preview-buttons">
-          <button
-            v-if="videoTranscodeOffer.mode === 'offer'"
-            type="button"
-            class="button button--flat preview-action--icon-only"
-            :aria-label="$t('general.transcode', { suffix: '' })"
-            :title="$t('general.transcode', { suffix: '' })"
-            @click="startVideoTranscode"
-          >
-            <i class="material-symbols">sync</i>
-          </button>
-          <a
-            v-if="permissions.download"
-            target="_blank"
-            :href="downloadUrl"
-            class="button button--flat preview-action--icon-only"
-            :aria-label="$t('general.download', { suffix: '' })"
-          >
-            <i class="material-symbols">file_download</i>
-          </a>
-        </div>
-      </div>
-
-      <div v-else-if="isPdf" class="pdf-wrapper">
-        <div v-if="usePdfPreviewFallback" class="info">
-          <div class="title">
-            <i class="material-symbols">picture_as_pdf</i>
-            {{ $t("files.mobilePdfPreviewHint") }}
-          </div>
-          <div class="preview-buttons" v-if="permissions.download">
-            <a
-              target="_blank"
-              :href="downloadUrl"
-              class="button button--flat preview-action--icon-only"
-              :aria-label="$t('general.download', { suffix: '' })"
-            >
-              <i class="material-symbols">file_download</i>
-            </a>
-          </div>
-        </div>
-        <iframe
-          v-else
-          allow="web-share"
-          class="pdf"
-          :src="raw"
-          :title="req.name || 'PDF'"
-        ></iframe>
-      </div>
-
-      <div v-else class="info">
-        <div class="title">
-          <i class="material-symbols">feedback</i>
-          {{ $t("files.noPreview") }}
-        </div>
-        <div class="preview-buttons" v-if="permissions.download">
-          <a
-            target="_blank"
-            :href="downloadUrl"
-            class="button button--flat preview-action--icon-only"
-            :aria-label="$t('general.download', { suffix: '' })"
-          >
-            <i class="material-symbols">file_download</i>
-          </a>
-        </div>
-        <div v-else>
-          <p> {{ $t("files.noDownloadAccess") }} </p>
-        </div>
-      </div>
+      <FloatingActionButton
+        v-if="showSlideshowButton"
+        icon="slideshow"
+        position="top-right"
+        :label="t('slideshow.start')"
+        @press="openSlideshowOptions"
+      />
+    </template>
+    <div v-else-if="isPdf" class="pdf-wrapper">
+      <PreviewNotice
+        v-if="usePdfPreviewFallback"
+        icon="picture_as_pdf"
+        :title="t('files.mobilePdfPreviewHint')"
+        :download-url="permissions.download ? downloadUrl : undefined"
+      />
+      <iframe
+        v-else
+        allow="web-share"
+        class="pdf"
+        :src="raw"
+        :title="req.name || 'PDF'"
+      ></iframe>
     </div>
-  </div>
+    <PreviewNotice
+      v-else
+      icon="feedback"
+      :title="t('files.noPreview')"
+      :download-url="permissions.download ? downloadUrl : undefined"
+    >
+      <div v-if="!permissions.download">
+        <p> {{ t("files.noDownloadAccess") }} </p>
+      </div>
+    </PreviewNotice>
+  </PreviewShell>
 </template>
-<script>
-import { createAsyncComponent } from "@/utils/asyncComponent.js";
-import FloatingActionButton from "@/components/settings/FloatingActionButton.vue";
-import { countMediaInListing } from "@/utils/slideshow.ts";
-import { resourcesApi, mediaApi } from "@/api/index.js";
-import { ensureViewToken, requestViewIdentity } from "@/api/viewToken.js";
-import { goToItem, removeTrailingSlash, removeLastDir } from "@/utils/url.js";
+
+<script setup lang="ts">
+import { computed, onBeforeUnmount, watch } from "vue";
+import { resourcesApi } from "@/api/index.js";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
-import { state, getters, mutations } from "@/store/index.ts";
-import { isRawImageMimeType } from "@/utils/mimetype.js";
-import { convertToVTT, getSubtitleFormatExtension } from "@/utils/subtitles.js";
-import { parseLyrics } from "@/utils/lyrics.ts";
+import PreviewNotice from "@/components/files/PreviewNotice.vue";
+import PreviewShell from "@/components/files/PreviewShell.vue";
+import FloatingActionButton from "@/components/settings/FloatingActionButton.vue";
+import { usePreviewNavigation } from "@/composables/preview/usePreviewNavigation.ts";
+import { useI18n } from "@/i18n/index.ts";
+import { getters, mutations, state } from "@/store/index.ts";
+import { createAsyncComponent } from "@/utils/asyncComponent.js";
 import { globalVars } from "@/utils/constants.ts";
-import { navigatePlaybackQueue } from "@/utils/playbackQueue.js";
-import { shouldAutoPlayPreview } from "@/utils/previewAutoplay.js";
-import { getTranscodeSessions } from "@/api/transcode.js";
-import { needsTranscodeFirst } from "@/utils/canBrowserPlayNative.js";
-import {
-  buildPlaybackQueryPatch,
-  parsePlaybackTimeFromQuery,
-  parseTranscodeModeFromQuery,
-  playbackQueryChanged,
-} from "@/utils/playbackQuery.js";
-import {
-  hasActiveSession as hasActivePipSession,
-  pendingInlineResumeFor,
-} from "@/plyr/pipSession.js";
 import { isPdfFile } from "@/utils/mediaFile.js";
+import { isRawImageMimeType } from "@/utils/mimetype.js";
 import { shouldUsePdfPreviewFallback } from "@/utils/pdfPreview.js";
-import { TranscodePlaybackController } from "@/plyr/transcodePlaybackController.js";
-import { isTranscodeAvailable } from "@/plyr/transcodeMode.js";
-export default {
-  name: "preview",
-  components: {
-    LoadingSpinner,
-    FloatingActionButton,
-    ExtendedImage: createAsyncComponent(() => import('@/components/files/ExtendedImage.vue')),
-    plyrViewer: createAsyncComponent(() => import('@/views/files/plyrViewer.vue')),
-  },
-  data() {
-    return {
-      listing: null,
-      name: "",
-      fullSize: true,
-      currentPrompt: null, // Replaces Vuex getter `currentPrompt`
-      subtitlesList: [],
-      lyrics: [],
-      lyricsFetchedForPath: null,
-      isDeleted: false,
-      tapTimeout: null,
-      avMetadataLoading: false,
-      /** Skip duplicate media-metadata fetch when patchRequestFileMediaMetadata updates `req` for same path. */
-      mediaEnrichDoneForPath: null,
-      listingKey: null,
-      /** User pressed play; enables autoplay for queue navigation even when autoplayMedia pref is off. */
-      playbackStarted: false,
-      videoTranscodeOffer: null,
-      transcodePlaybackActive: false,
-      transcodePlaybackController: null,
-      lastVideoPreviewPath: null,
-    };
-  },
-  computed: {
-    // Slideshow entry point: images only, and only when the folder has at least two images or videos.
-    showSlideshowButton() {
-      return this.previewType === 'image' && !this.isTransitioning && countMediaInListing(this.listing) >= 2;
-    },
-    permissions() {
-      return getters.sourcePermissions();
-    },
-    showImage() {
-      if (state.req.type === "image/heic" || state.req.type === "image/heif") {
-        return this.isHeicAndViewable;
-      }
-      if (isRawImageMimeType(state.req.type)) {
-        return true;
-      }
-      return this.previewType === 'image' || this.pdfConvertable;
-    },
-    autoPlay() {
-      return shouldAutoPlayPreview(
-        getters.previewPerms().autoplayMedia,
-        this.playbackStarted,
-        getters.isPreviewPlaybackQueueNavMode(),
-      );
-    },
-    isMobileSafari() {
-      const userAgent = window.navigator.userAgent;
-      const isIOS =
-        /iPad|iPhone|iPod/.test(userAgent) && !window.MSStream;
-      const isSafari = /^((?!chrome|android).)*safari/i.test(userAgent);
-      return isIOS && isSafari;
-    },
-    // Safari: native HEIC in ExtendedImage. Other browsers: converted original when hasPreview.
-    isHeicAndViewable() {
-      if (state.isSafari) return true;
-      return Boolean(state.req?.hasPreview);
-    },
-    pdfConvertable() {
-      const ext = `.${state.req.name.split(".").pop().toLowerCase()}`;
-      if (state.user.disableViewingExt.includes(ext)) {
-        return false;
-      }
-      const list = globalVars.docPreviewExtensions || [];
-      return list.includes(ext.slice(1));
-    },
-    sidebarShowing() {
-      return getters.isSidebarVisible();
-    },
-    previewType() {
-      if (getters.fileViewingDisabled(state.req.name)) {
-        return "preview";
-      }
-      return getters.previewType();
-    },
-    isPdf() {
-      return (
-        isPdfFile(state.req.type) || isPdfFile(state.req.name)
-      );
-    },
-    usePdfPreviewFallback() {
-      return this.isPdf && shouldUsePdfPreviewFallback();
-    },
-    raw() {
-      const viewToken = state.req.viewToken;
-      const typeHint = state.req.type || state.req.name;
-      const isHeicOrHeif = state.req.type === "image/heic" || state.req.type === "image/heif";
+import { countMediaInListing } from "@/utils/slideshow.ts";
+import { removeTrailingSlash } from "@/utils/url.js";
 
-      const getRawPreview = isRawImageMimeType(state.req.type);
-      // HEIC/HEIF at size=original for non-Safari; Safari full size is resolved in ExtendedImage.
-      const getHeicConvertedPreview = isHeicOrHeif && !state.isSafari && state.req?.hasPreview;
-      if (this.pdfConvertable || getRawPreview || getHeicConvertedPreview) {
-        if (getters.isShare()) {
-          const previewPath = removeTrailingSlash(state.req.path);
-          return resourcesApi.getPreviewURLPublic(previewPath, "original", state.req.viewToken);
-        }
-        return (
-          `${resourcesApi.getPreviewURL(
-            state.req.source,
-            state.req.path,
-            state.req.modified,
-          )}&size=original`
-        );
-      }
-      if (getters.isShare()) {
-        return resourcesApi.getViewURL(
-          state.req.source,
-          state.req.path,
-        viewToken,
-          {
-            path: state.shareInfo.subPath,
-            hash: state.shareInfo.hash,
-          },
-          false,
-          typeHint,
-        );
-      }
-      return resourcesApi.getViewURL(state.req.source, state.req.path, viewToken, null, false, typeHint);
-    },
-    isDarkMode() {
-      return getters.isDarkMode();
-    },
-    downloadUrl() {
-      if (getters.isShare()) {
-        return resourcesApi.getDownloadURLPublic(
-          {
-            path: state.shareInfo.subPath,
-            hash: state.shareInfo.hash,
-          },
-          [state.req.path],
-        );
-      }
-      return resourcesApi.getDownloadURL(state.req.source, state.req.path);
-    },
-    isTransitioning() {
-      return state.navigation.isTransitioning;
-    },
-    getSubtitles() {
-      return this.subtitles();
-    },
-    req() {
-      return state.req;
-    },
-    disableFileViewer() {
-      return state.shareInfo.disableFileViewer;
-    },
-    showVideoPlayer() {
-      return !this.videoTranscodeOffer;
-    },
-    plyrViewerKey() {
-      return `${state.req.path}-${this.transcodePlaybackActive ? 'transcode' : 'native'}`;
-    },
-    transcodeOfferMessage() {
-      if (!this.videoTranscodeOffer) {
-        return '';
-      }
-      switch (this.videoTranscodeOffer.mode) {
-        case 'user_limit':
-          return this.$t('player.transcodeUserLimitReached');
-        case 'system_limit':
-          return this.$t('player.transcodeSystemLimitReached', {
-            limit: this.videoTranscodeOffer.systemLimit,
-          });
-        default:
-          return this.$t('player.transcodeUnsupportedFormat');
-      }
-    },
-    transcodeOfferTitle() {
-      if (!this.videoTranscodeOffer) {
-        return '';
-      }
-      if (this.videoTranscodeOffer.mode === 'offer') {
-        return this.$t('player.transcodeUnsupportedFormat');
-      }
-      return this.$t('files.noPreview');
-    },
-    showTranscodeOfferDetail() {
-      return this.videoTranscodeOffer?.mode !== 'offer';
-    },
-    showTranscodeSessionList() {
-      const mode = this.videoTranscodeOffer?.mode;
-      if (!mode || mode === 'offer') {
-        return false;
-      }
-      return (this.videoTranscodeOffer.sessions?.length > 0);
-    },
-  },
-  watch: {
-    req: {
-      immediate: true,
-      async handler() {
-        await this.loadPreviewForReq();
+const ExtendedImage = createAsyncComponent(() => import("@/components/files/ExtendedImage.vue"));
+
+const { t } = useI18n();
+
+const { listing, loadListingContext, updatePreview, selectCurrentItem, navigatePrevious, navigateNext, exitPreviewFromImageGesture } =
+  usePreviewNavigation();
+
+const req = computed(() => state.req);
+const isTransitioning = computed(() => state.navigation.isTransitioning);
+const permissions = computed(() => getters.sourcePermissions());
+
+// Slideshow entry point: images only, and only when the folder has at least two images or videos.
+const showSlideshowButton = computed(
+  () => previewType.value === "image" && !isTransitioning.value && countMediaInListing(listing.value) >= 2,
+);
+
+const previewType = computed(() => {
+  if (getters.fileViewingDisabled(state.req.name ?? "")) {
+    return "preview";
+  }
+  return getters.previewType();
+});
+
+const pdfConvertable = computed(() => {
+  const ext = `.${(state.req.name ?? "").split(".").pop()?.toLowerCase()}`;
+  if (state.user.disableViewingExt?.includes(ext)) {
+    return false;
+  }
+  const list: string[] = globalVars.docPreviewExtensions || [];
+  return list.includes(ext.slice(1));
+});
+
+// Safari: native HEIC in ExtendedImage. Other browsers: converted original when hasPreview.
+const isHeicAndViewable = computed(() => state.isSafari || Boolean(state.req?.hasPreview));
+
+const showImage = computed(() => {
+  if (getters.fileViewingDisabled(state.req.name ?? "")) {
+    return false;
+  }
+  if (state.req.type === "image/heic" || state.req.type === "image/heif") {
+    return isHeicAndViewable.value;
+  }
+  if (isRawImageMimeType(state.req.type)) {
+    return true;
+  }
+  return previewType.value === "image" || pdfConvertable.value;
+});
+
+const isPdf = computed(
+  () =>
+    !getters.fileViewingDisabled(state.req.name ?? "") &&
+    (isPdfFile(state.req.type) || isPdfFile(state.req.name)),
+);
+const usePdfPreviewFallback = computed(() => isPdf.value && shouldUsePdfPreviewFallback());
+
+const raw = computed(() => {
+  const viewToken = state.req.viewToken;
+  const typeHint = state.req.type || state.req.name;
+  const isHeicOrHeif = state.req.type === "image/heic" || state.req.type === "image/heif";
+
+  const getRawPreview = isRawImageMimeType(state.req.type);
+  // HEIC/HEIF at size=original for non-Safari; Safari full size is resolved in ExtendedImage.
+  const getHeicConvertedPreview = isHeicOrHeif && !state.isSafari && state.req?.hasPreview;
+  if (pdfConvertable.value || getRawPreview || getHeicConvertedPreview) {
+    if (getters.isShare()) {
+      const previewPath = removeTrailingSlash(state.req.path);
+      return resourcesApi.getPreviewURLPublic(previewPath, "original", state.req.viewToken);
+    }
+    return `${resourcesApi.getPreviewURL(state.req.source, state.req.path, state.req.modified)}&size=original`;
+  }
+  if (getters.isShare()) {
+    return resourcesApi.getViewURL(
+      state.req.source,
+      state.req.path,
+      viewToken,
+      {
+        path: state.shareInfo.subPath,
+        hash: state.shareInfo.hash,
       },
-    },
+      false,
+      typeHint,
+    );
+  }
+  return resourcesApi.getViewURL(state.req.source, state.req.path, viewToken, null, false, typeHint);
+});
+
+const downloadUrl = computed(() => {
+  if (getters.isShare()) {
+    return resourcesApi.getDownloadURLPublic(
+      {
+        path: state.shareInfo.subPath,
+        hash: state.shareInfo.hash,
+      },
+      [state.req.path ?? ""],
+    );
+  }
+  return resourcesApi.getDownloadURL(state.req.source, state.req.path);
+});
+
+function openSlideshowOptions() {
+  mutations.showPrompt({
+    name: "SlideshowOptions",
+    props: { startName: state.req.name },
+  });
+}
+
+let loadOwner = 0;
+
+async function loadPreviewForReq() {
+  if (!getters.isLoggedIn() && !getters.isShare()) {
+    return;
+  }
+  const owner = ++loadOwner;
+  const path = state.req.path;
+  await loadListingContext();
+
+  if (owner !== loadOwner || state.req.path !== path) {
+    return;
+  }
+  await updatePreview(() => owner !== loadOwner || state.req.path !== path);
+  if (owner !== loadOwner) {
+    return;
+  }
+  selectCurrentItem();
+}
+
+onBeforeUnmount(() => {
+  loadOwner += 1;
+});
+
+watch(
+  () => state.req,
+  async () => {
+    await loadPreviewForReq();
   },
-  mounted() {
-    window.addEventListener("keydown", this.keyEvent);
-  },
-  beforeUnmount() {
-    window.removeEventListener("keydown", this.keyEvent);
-    this.$refs.plyrViewer?.destroyPlyr?.();
-    this.disposeTranscodePlaybackController();
-    // Clear navigation state when leaving preview
-    mutations.clearNavigation();
-  },
-  methods: {
-    openSlideshowOptions() {
-      mutations.showPrompt({
-        name: 'SlideshowOptions',
-        props: { startName: state.req.name },
-      });
-    },
-    async attachDirMediaMetadata(listing, dirPath) {
-      if (!listing?.length) return;
-      try {
-        const metaMap = await mediaApi.getDirectoryMetadataMap(dirPath, { source: state.req.source });
-        if (this.listing !== listing) return;
-        mutations.patchListingMetadata(listing, metaMap, state.req.path);
-        mutations.setupNavigation({
-          listing,
-          currentItem: state.req,
-          directoryPath: dirPath,
-        });
-      } catch (e) {
-        console.warn('dir items metadata fetch failed', e);
-      }
-    },
-    listingContextKey(directoryPath) {
-      return getters.isShare()
-        ? `share:${state.shareInfo?.hash || ""}:${directoryPath}`
-        : `source:${state.req.source || ""}:${directoryPath}`;
-    },
-    async loadPreviewForReq() {
-      if (!getters.isLoggedIn() && !getters.isShare()) {
-        return;
-      }
-      if (!getters.isPreviewPlaybackQueueNavMode()) {
-        this.playbackStarted = false;
-      }
-      this.isDeleted = false;
-      const path = state.req.path;
-      if (this.previewType === 'video' && this.lastVideoPreviewPath !== path) {
-        this.disposeTranscodePlaybackController();
-        this.videoTranscodeOffer = null;
-        this.transcodePlaybackActive = false;
-        this.lastVideoPreviewPath = path;
-      }
-      const currentDirectoryPath = removeLastDir(state.req.path) || '/';
-      const currentListingKey = this.listingContextKey(currentDirectoryPath);
-      if (this.listingKey !== currentListingKey) {
-        this.listing = null;
-      }
-
-      if (
-        state.req.type !== "directory"
-        && !getters.fileViewingDisabled(state.req.name)
-      ) {
-        const viewIdentity = requestViewIdentity(state.req);
-        try {
-          const viewToken = await ensureViewToken(state.req.source);
-          if (viewToken && requestViewIdentity(state.req) === viewIdentity) {
-            mutations.setRequestViewToken(viewToken);
-          }
-        } catch (err) {
-          console.warn("Failed to refresh view token for preview:", err);
-        }
-      }
-
-      if (!this.listing || this.listing === "undefined") {
-        if (state.req.parentDirItems) {
-          this.listing = state.req.parentDirItems;
-          this.listingKey = currentListingKey;
-        } else if (state.req.items) {
-          this.listing = state.req.items;
-          this.listingKey = currentListingKey;
-        }
-      }
-
-      const isAv =
-        !getters.fileViewingDisabled(state.req.name) &&
-        state.req.type !== "directory" &&
-        (this.previewType === "audio" || this.previewType === "video");
-
-      if (!isAv) {
-        this.avMetadataLoading = false;
-        this.mediaEnrichDoneForPath = null;
-        this.lyricsFetchedForPath = null;
-      } else {
-        const pipHandoffForThisFile =
-          hasActivePipSession(state.req.source, state.req.path)
-          || pendingInlineResumeFor(state.req.source, state.req.path);
-        if (this.mediaEnrichDoneForPath !== path) {
-          this.mediaEnrichDoneForPath = path;
-          if (!pipHandoffForThisFile) {
-            this.avMetadataLoading = true;
-          }
-          try {
-            await this.enrichAvFromMediaApi(path);
-            if (state.req.path !== path) {
-              return;
-            }
-            await this.checkProactiveVideoTranscodeOffer(path);
-          } finally {
-            if (state.req.path === path) {
-              this.avMetadataLoading = false;
-            }
-          }
-        } else {
-          this.avMetadataLoading = false;
-        }
-      }
-
-      if (state.req.path !== path) {
-        return;
-      }
-      await this.updatePreview();
-      if (isAv && this.listing) {
-        const directoryPath = removeLastDir(state.req.path) || '/';
-        await this.attachDirMediaMetadata(this.listing, directoryPath);
-      }
-      this.subtitlesList = await this.subtitles();
-      if (this.previewType === 'audio' && this.lyricsFetchedForPath !== state.req.path) {
-        this.lyricsFetchedForPath = state.req.path;
-        if (state.req.metadata?.hasLyrics) {
-          try {
-            const { lyrics: raw, format } = await mediaApi.getLyrics(state.req.source, state.req.path);
-            this.lyrics = parseLyrics(raw, format);
-          } catch (err) {
-            console.warn("Failed to fetch lyrics:", err);
-            this.lyrics = [];
-          }
-        } else {
-          this.lyrics = [];
-        }
-      }
-      mutations.resetSelected();
-      mutations.addSelected({
-        name: state.req.name,
-        path: state.req.path,
-        size: state.req.size,
-        type: state.req.type,
-        source: state.req.source,
-        modified: state.req.modified,
-        created: state.req.created,
-        hasPreview: state.req.hasPreview,
-      });
-    },
-    /** GET /api/media/metadata?albumArt=true — subtitles, duration, embedded cover for plyr. */
-    async enrichAvFromMediaApi(expectedPath) {
-      if (state.req.path !== expectedPath) {
-        return;
-      }
-      const req = state.req;
-      if (!getters.isShare() && !getters.isLoggedIn()) {
-        return;
-      }
-      try {
-        const enriched = await mediaApi.getItemMediaMetadata(req.path, {
-          source: req.source,
-          albumArt: true,
-        });
-        if (state.req.path !== expectedPath) {
-          return;
-        }
-        if (enriched && enriched.type !== "directory") {
-          mutations.patchRequestFileMediaMetadata(enriched);
-        }
-      } catch (e) {
-        console.warn("Preview: media metadata fetch failed", e);
-      }
-    },
-    async subtitles() {
-      if (!state.req.subtitles?.length) {
-        return [];
-      }
-      const subs = [];
-      // Fetch subtitle content for each track using the media API
-      for (let index = 0; index < state.req.subtitles.length; index++) {
-        const subtitleTrack = state.req.subtitles.at(index);
-        try {
-          // Fetch subtitle content from API using name and embedded
-          const content = await mediaApi.getSubtitleContent(
-            state.req.source,
-            state.req.path,
-            subtitleTrack.name,
-            subtitleTrack.embedded,
-          );
-          if (!content || content.length === 0) {
-            console.warn("Subtitle track has no content:", subtitleTrack.name);
-            continue;
-          }
-          // Convert to VTT if needed
-          let vttContent = content;
-          if (!content.startsWith("WEBVTT")) {
-            const ext = getSubtitleFormatExtension(subtitleTrack.name);
-            vttContent = convertToVTT(ext, content);
-          }
-          if (vttContent.startsWith("WEBVTT")) {
-            // Create a virtual file (Blob) and get a URL for it
-            const blob = new Blob([vttContent], { type: "text/vtt" });
-            const vttURL = URL.createObjectURL(blob);
-
-            subs.push({
-              name: subtitleTrack.name,
-              src: vttURL,
-              srclang: subtitleTrack.srclang || subtitleTrack.language,
-            });
-          } else {
-            console.warn(
-              "Skipping subtitle track - no WEBVTT header after conversion:",
-              subtitleTrack.name
-            );
-          }
-        } catch (err) {
-          console.error("Failed to load subtitle:", subtitleTrack.name, err);
-        }
-      }
-      return subs;
-    },
-    async keyEvent(event) {
-      if (getters.currentPromptName() || event.repeat) {
-        return;
-      }
-
-      const { key, altKey } = event;
-
-      let shortcut = key;
-      if (altKey) shortcut = `Alt+${key}`;
-
-      switch (shortcut) {
-        case "Alt+ArrowUp":
-          event.preventDefault();
-          this.close();
-          break;
-        case "Escape":
-        case "Backspace":
-          this.close();
-          break;
-        case "Delete":
-          this.showDeletePrompt();
-          break;
-      }
-    },
-    async updatePreview() {
-      const expectedPath = state.req.path;
-      let directoryPath = removeLastDir(state.req.path);
-
-      // If directoryPath is empty, the file is in root - use '/' as the directory
-      if (!directoryPath || directoryPath === '') {
-        directoryPath = '/';
-      }
-      const expectedListingKey = this.listingContextKey(directoryPath);
-
-      if (!this.listing || this.listing === "undefined") {
-        // Try to use pre-fetched parent directory items first
-        if (state.req.parentDirItems) {
-          this.listing = state.req.parentDirItems;
-        } else if (directoryPath !== state.req.path) {
-          // Fetch directory listing (now with '/' for root files)
-          try {
-            let res;
-            if (getters.isShare()) {
-              // Use public API for shared files
-              res = await resourcesApi.fetchFilesPublic(
-                directoryPath,
-                state.shareInfo?.hash,
-              );
-            } else {
-              // Use regular files API for authenticated users
-              res = await resourcesApi.fetchFiles(
-                state.req.source,
-                directoryPath,
-              );
-            }
-            if (state.req.path !== expectedPath || this.listingContextKey(directoryPath) !== expectedListingKey) return;
-            this.listing = res.items;
-          } catch (error) {
-            if (state.req.path !== expectedPath) return;
-            console.error("error Preview.vue", error);
-            this.listing = [state.req];
-          }
-        } else {
-          this.listing = [state.req];
-        }
-      }
-
-      if (!this.listing) {
-        this.listing = [state.req];
-      }
-      this.listingKey = this.listingContextKey(directoryPath);
-      this.name = state.req.name;
-
-      // Setup navigation using the new state management
-      mutations.setupNavigation({
-        listing: this.listing,
-        currentItem: state.req,
-        directoryPath: directoryPath
-      });
-    },
-
-    prefetchUrl(item) {
-      const viewToken = item.viewToken || state.req.viewToken;
-      const typeHint = item.type || item.name;
-      if (getters.isShare()) {
-        return this.fullSize
-          ? resourcesApi.getViewURL(
-              state.req.source,
-              item.path,
-              viewToken,
-              {
-                path: item.path,
-                hash: state.shareInfo?.hash,
-              },
-              false,
-              typeHint,
-            )
-          : resourcesApi.getPreviewURLPublic(item.path);
-      }
-      return this.fullSize
-        ? resourcesApi.getViewURL(state.req.source, item.path, viewToken, null, false, typeHint)
-        : resourcesApi.getPreviewURL(
-            state.req.source,
-            item.path,
-            item.modified,
-          );
-    },
-    resetPrompts() {
-      this.currentPrompt = null;
-    },
-    showDeletePrompt() {
-      const item = state.req;
-      const previewUrl = item.hasPreview
-        ? resourcesApi.getPreviewURL(item.source, item.path, item.modified)
-        : null;
-      mutations.showPrompt({
-        name: "delete",
-        props: {
-          items: [{
-            source: item.source,
-            path: item.path,
-            type: item.type,
-            size: item.size,
-            modified: item.modified,
-            created: item.created,
-            hasPreview: item.hasPreview,
-            previewUrl: previewUrl,
-          }],
-        },
-      });
-    },
-    toggleSize() {
-      this.fullSize = !this.fullSize;
-    },
-    close() {
-      if (state.previousHistoryItem?.name) {
-        this.exitPreviewFromImageGesture();
-        return;
-      }
-      mutations.replaceRequest({}); // Reset request data
-      const uri = `${removeLastDir(state.route.path)}/`;
-      this.$router.push({ path: uri });
-    },
-    download() {
-      const items = [state.req];
-      downloadFiles(items);
-    },
-    navigatePrevious() {
-      if (getters.isPreviewPlaybackQueueNavMode()) {
-        if (!getters.playbackQueueCanGoPrevious()) {
-          return;
-        }
-        navigatePlaybackQueue(-1);
-        return;
-      }
-      if (state.navigation.previousLink) {
-        mutations.setNavigationTransitioning(true);
-        this.$router.replace({ path: state.navigation.previousLink });
-      }
-    },
-    navigateNext() {
-      if (getters.isPreviewPlaybackQueueNavMode()) {
-        if (!getters.playbackQueueCanGoNext()) {
-          return;
-        }
-        navigatePlaybackQueue(1);
-        return;
-      }
-      if (state.navigation.nextLink) {
-        mutations.setNavigationTransitioning(true);
-        this.$router.replace({ path: state.navigation.nextLink });
-      }
-    },
-    /** Same navigation as header “back” in preview (Default.vue performNavigation). */
-    exitPreviewFromImageGesture() {
-      mutations.closeHovers();
-      const prev = state.previousHistoryItem;
-      // Consume the remembered item so a later close does not return here.
-      mutations.setPreviousHistoryItem(null);
-      if (prev?.name && !this.isCurrentPreviewItem(prev)) {
-        goToItem(
-          prev.source,
-          prev.path,
-          prev,
-          false,
-          prev.isShare
-        );
-        return;
-      }
-      const parentPath = removeLastDir(state.route.path);
-      this.$router.push({ path: parentPath });
-    },
-    /** True when a remembered history item points at the file being previewed. */
-    isCurrentPreviewItem(item) {
-      const current = state.req;
-      if (!item?.path || !current?.path || item.returnTo) return false;
-      return item.source === current.source && item.path === current.path;
-    },
-    clearTranscodeFromUrl() {
-      const hasTranscode = parseTranscodeModeFromQuery(this.$route?.query);
-      const hasTime = parsePlaybackTimeFromQuery(this.$route?.query) !== null;
-      if (!hasTranscode && !hasTime) {
-        return;
-      }
-      const nextQuery = buildPlaybackQueryPatch(this.$route.query, {
-        transcodeMode: null,
-        time: null,
-      });
-      if (!playbackQueryChanged(this.$route.query, nextQuery)) {
-        return;
-      }
-      this.$router.replace({
-        path: this.$route.path,
-        query: nextQuery,
-        hash: this.$route.hash,
-      });
-    },
-    /** Offer transcode UI before mounting plyr when metadata indicates native playback will fail. */
-    async checkProactiveVideoTranscodeOffer(expectedPath) {
-      if (state.req.path !== expectedPath) {
-        return;
-      }
-      if (this.previewType !== 'video' || getters.isShare()) {
-        return;
-      }
-      if (this.transcodePlaybackActive || parseTranscodeModeFromQuery(this.$route?.query)) {
-        return;
-      }
-      const meta = state.req.metadata || {};
-      if (!needsTranscodeFirst({
-        videoCodec: meta.videoCodec,
-        audioCodec: meta.audioCodec,
-        mimeType: state.req.type,
-        fileName: state.req.name,
-      })) {
-        return;
-      }
-      if (!isTranscodeAvailable()) {
-        // Transcoding is off on this server: show the unsupported notice without
-        // asking for sessions, which would answer 503.
-        this.handleVideoTranscodeOffer({ enabled: false, canStart: false, sessions: [] });
-        return;
-      }
-      try {
-        const status = await getTranscodeSessions();
-        if (state.req.path !== expectedPath) {
-          return;
-        }
-        this.handleVideoTranscodeOffer(this.normalizeTranscodeSessionStatus(status));
-      } catch (err) {
-        console.warn('Failed to check transcode for unsupported format:', err);
-        this.handleVideoTranscodeOffer({ enabled: false, canStart: false, sessions: [] });
-      }
-    },
-    disposeTranscodePlaybackController({ stopSession = true } = {}) {
-      if (!this.transcodePlaybackController) {
-        return;
-      }
-      this.transcodePlaybackController.dispose({ stopSession });
-      this.transcodePlaybackController = null;
-    },
-    /** plyrViewer failed native playback or detected an unsupported container. */
-    handleVideoTranscodeOffer(status) {
-      if (this.previewType !== 'video' || getters.isShare()) {
-        return;
-      }
-      this.disposeTranscodePlaybackController({ stopSession: true });
-      status = this.normalizeTranscodeSessionStatus(status);
-      let mode = 'offer';
-      if (status.enabled === false) {
-        mode = 'unsupported';
-      } else if (!status.canStart) {
-        if (status.blockReason === 'user_limit') {
-          mode = 'user_limit';
-        } else if (status.blockReason === 'global_limit') {
-          mode = 'system_limit';
-        }
-      }
-      this.transcodePlaybackActive = false;
-      this.videoTranscodeOffer = {
-        mode,
-        sessions: status.sessions || [],
-        systemLimit: status.globalLimit,
-        userLimit: status.userLimit,
-      };
-      if (mode === 'offer') {
-        this.clearTranscodeFromUrl();
-      }
-    },
-    normalizeTranscodeSessionStatus(status) {
-      if (!status || status.canStart || status.blockReason !== 'user_limit') {
-        return status;
-      }
-      const sameFileActive = (status.sessions || []).some(
-        (session) => session.source === state.req.source && session.path === state.req.path,
-      );
-      if (!sameFileActive) {
-        return status;
-      }
-      return { ...status, canStart: true, blockReason: '' };
-    },
-    async startVideoTranscode() {
-      if (this.transcodePlaybackActive) {
-        this.videoTranscodeOffer = null;
-        return;
-      }
-      try {
-        let status = await getTranscodeSessions();
-        status = this.normalizeTranscodeSessionStatus(status);
-        if (!status.canStart) {
-          this.handleVideoTranscodeOffer(status);
-          return;
-        }
-        if (!this.transcodePlaybackController || this.transcodePlaybackController.disposed) {
-          this.transcodePlaybackController = new TranscodePlaybackController();
-        }
-        // Pressing the offer button is a user gesture, so start playback right away
-        // instead of mounting the viewer paused.
-        this.playbackStarted = true;
-        this.videoTranscodeOffer = null;
-        this.transcodePlaybackActive = true;
-      } catch (err) {
-        console.error('Failed to verify transcode availability:', err);
-      }
-    },
-  },
-};
+  { immediate: true },
+);
 </script>
 
 <style scoped>
-/* Loading overlay for navigation transitions */
-.transition-loading {
-  position: fixed;
-  inset: 0;
+.preview-loading {
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: var(--background);
-  z-index: 10000;
-  transition: opacity 0.1s ease;
-}
-
-.transition-loading .spinner {
-  width: 70px;
-  text-align: center;
-}
-
-.transition-loading .spinner>div {
-  width: 18px;
-  height: 18px;
-  background-color: var(--textPrimary);
-  border-radius: 100%;
-  display: inline-block;
-  animation: sk-bouncedelay 1.4s infinite ease-in-out both;
-}
-
-.transition-loading .spinner .bounce1 {
-  animation-delay: -0.32s;
-}
-
-.transition-loading .spinner .bounce2 {
-  animation-delay: -0.16s;
-}
-
-@keyframes sk-bouncedelay {
-  0%, 80%, 100% {
-    transform: scale(0);
-  }
-  40% {
-    transform: scale(1.0);
-  }
-}
-
-.preview.transitioning {
-  opacity: 0.3;
-  pointer-events: none;
+  width: 100%;
+  height: 100%;
 }
 
 .pdf-wrapper {
@@ -989,45 +229,4 @@ export default {
 .pdf-wrapper .floating-btn:hover {
   background: rgb(0 0 0 / 70%);
 }
-
-.preview-buttons {
-  display: flex;
-  flex-direction: row;
-  gap: 1em;
-}
-
-.av-preview-wrap {
-  width: 100%;
-  height: 100%;
-  min-height: 12rem;
-}
-
-.av-preview-loading {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  min-height: 12rem;
-}
-
-.transcode-offer-message {
-  margin: 1rem 0;
-  text-align: center;
-}
-
-.transcode-session-list {
-  list-style: none;
-  padding: 0;
-  margin: 0 0 1rem;
-  text-align: center;
-}
-
-.transcode-session-list li {
-  margin: 0.25rem 0;
-}
-
-.transcode-session-source {
-  opacity: 0.7;
-}
-
 </style>

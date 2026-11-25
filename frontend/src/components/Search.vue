@@ -114,9 +114,9 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, toRefs, useTemplateRef, watch, type Ref } from "vue";
 import { useI18n } from "@/i18n/index.ts";
-import { useListingContextMenu } from "@/composables/useListingContextMenu.ts";
-import { useSearchFilters } from "@/composables/useSearchFilters.ts";
-import { useSearchRequest } from "@/composables/useSearchRequest.ts";
+import { useListingContextMenu } from "@/composables/listing/useListingContextMenu.ts";
+import { useSearchFilters } from "@/composables/search/useSearchFilters.ts";
+import { useSearchRequest } from "@/composables/search/useSearchRequest.ts";
 import { resourcesApi, toolsApi } from "@/api/index.js";
 import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
 import Icon from "@/components/files/Icon.vue";

@@ -10,7 +10,7 @@ const { fetchFiles, state } = vi.hoisted(() => ({
 // groups() as all-items — same seam as the real `useListingVirtualization`.
 vi.mock("@/api", () => ({ resourcesApi: { fetchFiles } }));
 vi.mock("@/i18n/index.ts", () => ({ useI18n: () => ({ t: (key: string) => key }) }));
-vi.mock("@/composables/useListingVirtualization.ts", () => ({
+vi.mock("@/composables/listing/useListingVirtualization.ts", () => ({
   findScrollParents: () => [],
   findScroller: () => null,
   useListingVirtualization: (options: { groups: () => Array<{ key: string; count: number; at: (index: number) => unknown }> }) => ({

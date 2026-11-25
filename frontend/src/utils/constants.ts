@@ -72,6 +72,7 @@ const settings: SettingsEntry[] = [
 
 const previewViews = [
   'preview',
+  'mediaPlayer',
   'markdownViewer',
   'epubViewer',
   'docViewer',

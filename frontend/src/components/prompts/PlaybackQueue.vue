@@ -116,8 +116,8 @@ import SlidingTabs from "@/components/settings/SlidingTabs.vue";
 import { resourcesApi } from "@/api/index.js";
 import { globalVars } from "@/utils/constants.ts";
 import { formatDuration, getTypeFromMime, removeExtension } from "@/utils/files.js";
-import { findScrollParents, useListingVirtualization } from "@/composables/useListingVirtualization.ts";
-import type { VirtualItem } from "@/composables/useListingVirtualization.ts";
+import { findScrollParents, useListingVirtualization } from "@/composables/listing/useListingVirtualization.ts";
+import type { VirtualItem } from "@/composables/listing/useListingVirtualization.ts";
 
 interface QueueItem {
   name: string;

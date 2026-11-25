@@ -1,4 +1,5 @@
 <template>
+  <Teleport :to="fullscreenHost || 'body'" :disabled="!fullscreenHost">
   <div class="popup-preview" v-show="sourceInfo" ref="popup" :style="popupStyle"
     :class="{ 'popup-preview--3d': sourceInfo && sourceInfo.type === '3d', 'popup-preview--text': sourceInfo && sourceInfo.type === 'text' }">
     <div v-if="sourceInfo && sourceInfo.type === '3d' && sourceInfo.fbdata" class="popup-preview__3d">
@@ -18,15 +19,20 @@
     </div>
     <img v-else-if="sourceInfo?.url" :src="sourceInfo.url" :alt="$t('profileSettings.popupPreview')" @load="onImageLoad" />
   </div>
+  </Teleport>
 </template>
 
 <script>
 import { createAsyncComponent } from "@/utils/asyncComponent.js";
 import { state, getters, mutations } from "@/store/index.ts";
 import { setImageLoaded } from "@/utils/cache/imageCache.ts";
+import { useFullscreen } from "@/composables/preview/useFullscreen.ts";
 
 export default {
   name: "PopupPreview",
+  setup() {
+    return { fullscreenHost: useFullscreen() };
+  },
   components: {
     ThreeJs: createAsyncComponent(() => import('@/views/files/ThreeJs.vue')),
     TextPreview: createAsyncComponent(() => import('@/components/files/TextPreview.vue')),
@@ -114,8 +120,7 @@ export default {
       const width = popup.offsetWidth || (hasFixedSize ? size3d : 0);
       const height = popup.offsetHeight || (hasFixedSize ? size3d : 0);
       const padding = 10;
-
-      const minLeft = getters.isSidebarVisible() ? 320 : padding;
+      const minLeft = getters.isSidebarVisible() && !this.fullscreenHost ? 320 : padding;
       const minTop = padding + 100;
 
       if (getters.isMobile()) {
@@ -183,6 +188,7 @@ export default {
   border-color: var(--primaryColor);
   overflow: hidden;
   z-index: 1000;
+  text-align: start;
   transition: top 0.3s ease-in-out, left 0.3s ease-in-out, right 0.3s ease-in-out,
     margin 0.3s ease-in-out, max-width 0.3s ease-in-out, max-height 0.3s ease-in-out,
     transform 0.3s ease-in-out;

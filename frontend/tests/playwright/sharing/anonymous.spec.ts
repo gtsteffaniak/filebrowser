@@ -172,7 +172,7 @@ test("anonymous visitor can stream video from myfolder share", async ({ page, ch
   await page.locator('a[aria-label="sample-640x480.mp4"]').dblclick();
   await expect(page).toHaveTitle(/sample-640x480\.mp4/);
 
-  const playButton = page.locator(".plyr-viewer .plyr__control--overlaid, .plyr-viewer button.plyr__control[data-plyr='play']");
+  const playButton = page.locator(".media-player .plyr__control--overlaid, .media-player button.plyr__control[data-plyr='play']");
   await playButton.first().click({ timeout: 15_000 });
 
   const stream = await streamResponse;

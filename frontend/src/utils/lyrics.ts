@@ -11,6 +11,7 @@ export interface LyricWord {
 export interface LyricLine {
   text: string;
   timestamp: number;
+  untimed?: true;
   words?: LyricWord[];
 }
 
@@ -20,6 +21,10 @@ export interface LyricsMeta {
 }
 
 export type LyricLines = LyricLine[] & { lrcMeta?: LyricsMeta };
+
+export function isSyncedLyrics(lyrics: LyricLine[]): boolean {
+  return lyrics.some((line) => !line.untimed);
+}
 
 const INLINE_TAG_RE = /<[^>]*>/g;
 
@@ -83,7 +88,7 @@ function parseLrc(raw: string): LyricLine[] {
     if (isMetadataTag(line)) continue;
     const tag = matchLrcTags(line);
     if (!tag) {
-      lines.push({ text: line.replace(INLINE_TAG_RE, "").trim(), timestamp: 0 });
+      lines.push({ text: line.replace(INLINE_TAG_RE, "").trim(), timestamp: 0, untimed: true });
       continue;
     }
     const text = tag.text.replace(INLINE_TAG_RE, "").trim();
@@ -102,7 +107,7 @@ function parseElrc(raw: string): LyricLine[] {
     if (isMetadataTag(line)) continue;
     const tag = matchLrcTags(line);
     if (!tag) {
-      lines.push({ text: line.replace(INLINE_TAG_RE, "").trim(), timestamp: 0, words: [] });
+      lines.push({ text: line.replace(INLINE_TAG_RE, "").trim(), timestamp: 0, untimed: true, words: [] });
       continue;
     }
     const rawWords = splitWordTags(tag.text).map((word) => ({ ...word, text: word.text.trim() }));
