@@ -23,7 +23,8 @@
       type="button"
       class="button button--flat button--blue"
       :id="canReplace ? undefined : 'focus-prompt'"
-      @click="(event) => currentPrompt.confirm(event, 'rename')"
+      :disabled="submitting"
+      @click="(event) => confirmAction(event, 'rename')"
       :aria-label="$t('general.rename')"
       :title="$t('general.rename')"
     >
@@ -33,7 +34,8 @@
       v-if="allowSkip"
       type="button"
       class="button button--flat button--blue"
-      @click="(event) => currentPrompt.confirm(event, 'skip')"
+      :disabled="submitting"
+      @click="(event) => confirmAction(event, 'skip')"
       :aria-label="$t('prompts.uploadMissing')"
       :title="$t('prompts.uploadMissing')"
     >
@@ -44,8 +46,8 @@
       type="button"
       id="focus-prompt"
       class="button button--flat button--red"
-      :disabled="isSameFile"
-      @click="(event) => currentPrompt.confirm(event, 'overwrite')"
+      :disabled="isSameFile || submitting"
+      @click="(event) => confirmAction(event, 'overwrite')"
       :aria-label="$t('general.replace')"
       :title="$t('general.replace')">
       {{ $t("general.replace") }}
@@ -63,6 +65,9 @@ export default {
       type: [String, Number],
       default: null,
     },
+  },
+  data() {
+    return { submitting: false };
   },
   computed: {
     currentPrompt() {
@@ -86,6 +91,16 @@ export default {
       return canModify;
     },
   },
-  methods: {},
+  methods: {
+    async confirmAction(event, action) {
+      if (this.submitting) return;
+      this.submitting = true;
+      try {
+        await this.currentPrompt.confirm(event, action);
+      } finally {
+        this.submitting = false;
+      }
+    },
+  },
 };
 </script>
