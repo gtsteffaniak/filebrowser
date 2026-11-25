@@ -1589,6 +1589,12 @@ func extractZipWithEncoding(archivePath, destDir, charset string, policy *extrac
 	return nil
 }
 
+// isTarRootDir reports the "./" entry that `tar -C dir .` writes first; it is the
+// destination itself.
+func isTarRootDir(h *tar.Header) bool {
+	return h.Typeflag == tar.TypeDir && path.Clean(strings.TrimLeft(h.Name, "/")) == "."
+}
+
 func extractTarGz(archivePath, destDir string, policy *extractAccessPolicy) error {
 	if err := preflightTarGz(archivePath, destDir, policy); err != nil {
 		return err
@@ -1615,6 +1621,9 @@ func extractTarGz(archivePath, destDir string, policy *extractAccessPolicy) erro
 		}
 		if err != nil {
 			return err
+		}
+		if isTarRootDir(h) {
+			continue
 		}
 		destPath, err := safeExtractPath(destDir, h.Name)
 		if err != nil {
@@ -1677,6 +1686,9 @@ func preflightTarGz(archivePath, destDir string, policy *extractAccessPolicy) er
 		}
 		if err != nil {
 			return err
+		}
+		if isTarRootDir(h) {
+			continue
 		}
 		destPath, err := safeExtractPath(destDir, h.Name)
 		if err != nil {

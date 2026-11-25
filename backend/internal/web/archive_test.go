@@ -436,6 +436,28 @@ func TestExtractTarGz_hardLinks(t *testing.T) {
 	}
 }
 
+func TestExtractTarGz_dotRootEntry(t *testing.T) {
+	// `tar -C proj -czf x.tar.gz .` writes "./" first and prefixes every name with "./".
+	archivePath := filepath.Join(t.TempDir(), "dot.tar.gz")
+	writeTestTarGz(t, archivePath, func(tw *tar.Writer) error {
+		if err := tw.WriteHeader(&tar.Header{Name: "./", Mode: 0o755, Typeflag: tar.TypeDir}); err != nil {
+			return err
+		}
+		if err := tw.WriteHeader(&tar.Header{Name: "./a.txt", Mode: 0o644, Size: 2, Typeflag: tar.TypeReg}); err != nil {
+			return err
+		}
+		_, err := io.WriteString(tw, "hi")
+		return err
+	})
+	destDir := t.TempDir()
+	if err := extractTarGz(archivePath, destDir, nil); err != nil {
+		t.Fatalf("extract: %v", err)
+	}
+	if got, err := os.ReadFile(filepath.Join(destDir, "a.txt")); err != nil || string(got) != "hi" {
+		t.Fatalf("a.txt: got %q, %v", got, err)
+	}
+}
+
 func TestExtractTarGz_symlinkDestination(t *testing.T) {
 	t.Run("pre-existing symlink at destination", func(t *testing.T) {
 		destDir := t.TempDir()
