@@ -180,7 +180,7 @@ async function loadPreviewForReq() {
   if (owner !== loadOwner || state.req.path !== path) {
     return;
   }
-  await updatePreview();
+  await updatePreview(() => owner !== loadOwner || state.req.path !== path);
   if (owner !== loadOwner) {
     return;
   }

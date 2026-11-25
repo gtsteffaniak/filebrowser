@@ -90,6 +90,7 @@ const avMetadataLoading = ref(false);
 let mediaEnrichDoneForPath: string | null = null;
 let loadOwner = 0;
 let loadIdentity: string | null = null;
+let loadedRoutePath: string | undefined;
 let inFlightIdentity: string | null = null;
 let inFlightSubtitleInputs: string | null = null;
 /** enables autoplay for queue navigation even when autoplayMedia pref is off */
@@ -108,7 +109,9 @@ const {
     audioRef.value?.destroy?.();
     videoRef.value?.destroy?.();
   },
-  canDelete: () => (committed.value ? committed.value.key === mediaIdentity() : !avMetadataLoading.value),
+  canDelete: () =>
+    state.route.path === loadedRoutePath &&
+    (committed.value ? committed.value.key === mediaIdentity() : !avMetadataLoading.value),
 });
 
 const isDarkMode = computed(() => getters.isDarkMode());
@@ -208,6 +211,7 @@ async function loadMediaForReq() {
   const identity = mediaIdentity();
   if (identity !== loadIdentity) {
     loadIdentity = identity;
+    loadedRoutePath = state.route.path;
     loadOwner += 1;
   } else if (inFlightIdentity === identity) {
     // the running load commits `state.req` as it is at the end, so it sees this update too

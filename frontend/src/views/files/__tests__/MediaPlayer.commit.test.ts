@@ -37,6 +37,7 @@ vi.mock("@/store/index.ts", async () => {
   const storeState = reactive({
     req: {} as Partial<ReqObject>,
     shareInfo: {},
+    route: { path: "" },
     navigation: { isTransitioning: false },
   });
   return {
