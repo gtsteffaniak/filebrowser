@@ -912,10 +912,14 @@ func validateMoveDestination(src, dst string, isSrcDir bool) error {
 }
 
 func MoveResource(isSrcDir bool, sourceIndex, destIndex, realsrc, realdst string) error {
-	return moveResourceImpl(isSrcDir, sourceIndex, destIndex, realsrc, realdst, svc())
+	return moveResourceImpl(isSrcDir, sourceIndex, destIndex, realsrc, realdst, svc(), false)
 }
 
-func moveResourceImpl(isSrcDir bool, sourceIndex, destIndex, realsrc, realdst string, s *Service) error {
+func MoveResourceMerge(isSrcDir bool, sourceIndex, destIndex, realsrc, realdst string) error {
+	return moveResourceImpl(isSrcDir, sourceIndex, destIndex, realsrc, realdst, svc(), true)
+}
+
+func moveResourceImpl(isSrcDir bool, sourceIndex, destIndex, realsrc, realdst string, s *Service, merge bool) error {
 	// Check if source and destination are the same file
 	if realsrc == realdst {
 		return fmt.Errorf("cannot move a file to itself: %s", realsrc)
@@ -941,7 +945,12 @@ func moveResourceImpl(isSrcDir bool, sourceIndex, destIndex, realsrc, realdst st
 	srcParentPath := filepath.Dir(realsrc)
 
 	// Perform the physical move
-	err := fileutils.MoveFile(realsrc, realdst)
+	var err error
+	if merge && isSrcDir {
+		err = fileutils.MoveFileMerge(realsrc, realdst)
+	} else {
+		err = fileutils.MoveFile(realsrc, realdst)
+	}
 	if err != nil {
 		return err
 	}
