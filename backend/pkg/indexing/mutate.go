@@ -131,12 +131,8 @@ func (idx *Index) GetReducedMetadata(target string, isDir bool) (*iteminfo.FileI
 	// If this is a directory, populate size from in-memory map (prefer in-memory over DB)
 	if item.Type == "directory" {
 		dirPath := utils.AddTrailingSlashIfNotExists(checkPath)
-		inMemSize, exists := idx.GetFolderSize(dirPath)
-		if !exists {
-			inMemSize = 0
-		}
-		if inMemSize > 0 || item.Size == 0 {
-			item.Size = int64(inMemSize)
+		if size, ok := idx.GetFolderSize(dirPath); ok {
+			item.Size = int64(size)
 		}
 	}
 
@@ -183,15 +179,9 @@ func (idx *Index) GetMetadataInfo(target string, isDir bool, shallow bool) (*ite
 		if child.Type == "directory" {
 			// Populate directory size from in-memory map (prefer in-memory over DB)
 			childPath := utils.AddTrailingSlashIfNotExists(child.Path)
-			inMemSize, exists := idx.GetFolderSize(childPath)
-			if !exists {
-				inMemSize = 0
+			if size, ok := idx.GetFolderSize(childPath); ok {
+				child.Size = int64(size)
 			}
-			if inMemSize > 0 || child.Size == 0 {
-				// Use in-memory if available, or if DB also shows 0
-				child.Size = int64(inMemSize)
-			}
-			// else: keep DB value if in-memory is 0 but DB has a value
 			dir.Folders = append(dir.Folders, child.ItemInfo)
 		} else {
 			dir.Files = append(dir.Files, iteminfo.ExtendedItemInfo{ItemInfo: child.ItemInfo})
@@ -199,12 +189,8 @@ func (idx *Index) GetMetadataInfo(target string, isDir bool, shallow bool) (*ite
 	}
 
 	// Populate the directory's own size from in-memory map (prefer in-memory over DB)
-	inMemSize, exists := idx.GetFolderSize(checkDir)
-	if !exists {
-		inMemSize = 0
-	}
-	if inMemSize > 0 || dir.Size == 0 {
-		dir.Size = int64(inMemSize)
+	if size, ok := idx.GetFolderSize(checkDir); ok {
+		dir.Size = int64(size)
 	}
 
 	return dir, true
