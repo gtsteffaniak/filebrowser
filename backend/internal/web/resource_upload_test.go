@@ -687,3 +687,101 @@ func TestResourcePostHandler_PartialChunkResponse(t *testing.T) {
 		t.Fatalf("unexpected final payload: %+v", finalPayload)
 	}
 }
+
+func TestParseUploadMtime(t *testing.T) {
+	t.Parallel()
+
+	req := httptest.NewRequest(http.MethodPost, "/", nil)
+	if _, ok := parseUploadMtime(req); ok {
+		t.Fatal("empty header: expected ok=false")
+	}
+
+	req.Header.Set("X-OC-Mtime", "1331683200")
+	mtime, ok := parseUploadMtime(req)
+	if !ok || mtime.Unix() != 1331683200 {
+		t.Fatalf("valid header: mtime=%v ok=%v", mtime, ok)
+	}
+
+	req.Header.Set("X-OC-Mtime", "1331683200.75")
+	mtime, ok = parseUploadMtime(req)
+	if !ok || mtime.Unix() != 1331683200 {
+		t.Fatalf("fractional header: mtime=%v ok=%v", mtime, ok)
+	}
+
+	for _, raw := range []string{"nope", "0", "-5", "NaN", "Inf", "999999999999999"} {
+		req.Header.Set("X-OC-Mtime", raw)
+		if _, ok = parseUploadMtime(req); ok {
+			t.Fatalf("header %q: expected ok=false", raw)
+		}
+	}
+}
+
+func TestResourcePostHandler_NonChunkedKeepsClientMtime(t *testing.T) {
+	root, user := setupUploadHTTPTest(t)
+	body := []byte("old-document")
+	status, err := postUpload(t, user, "/old.txt", bytes.NewReader(body), int64(len(body)), map[string]string{
+		"X-File-Total-Size": strconv.Itoa(len(body)),
+		"X-OC-Mtime":        "1331683200",
+	})
+	if status != http.StatusOK || err != nil {
+		t.Fatalf("status=%d err=%v", status, err)
+	}
+	info, err := os.Stat(filepath.Join(root, "old.txt"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := info.ModTime().Unix(); got != 1331683200 {
+		t.Fatalf("mtime=%d, want 1331683200", got)
+	}
+}
+
+func TestResourcePostHandler_ChunkedKeepsClientMtime(t *testing.T) {
+	root, user := setupUploadHTTPTest(t)
+	part1 := []byte("aaaa")
+	part2 := []byte("bbbb")
+	total := strconv.Itoa(len(part1) + len(part2))
+
+	status, err := postUpload(t, user, "/old.bin", bytes.NewReader(part1), int64(len(part1)), map[string]string{
+		"X-File-Chunk-Offset": "0",
+		"X-File-Total-Size":   total,
+		"X-OC-Mtime":          "1331683200",
+	})
+	if status != http.StatusOK || err != nil {
+		t.Fatalf("chunk1 status=%d err=%v", status, err)
+	}
+	status, err = postUpload(t, user, "/old.bin", bytes.NewReader(part2), int64(len(part2)), map[string]string{
+		"X-File-Chunk-Offset": strconv.Itoa(len(part1)),
+		"X-File-Total-Size":   total,
+		"X-OC-Mtime":          "1331683200",
+	})
+	if status != http.StatusOK || err != nil {
+		t.Fatalf("chunk2 status=%d err=%v", status, err)
+	}
+	info, err := os.Stat(filepath.Join(root, "old.bin"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := info.ModTime().Unix(); got != 1331683200 {
+		t.Fatalf("mtime=%d, want 1331683200", got)
+	}
+}
+
+func TestResourcePostHandler_InvalidMtimeKeepsUploadTime(t *testing.T) {
+	root, user := setupUploadHTTPTest(t)
+	body := []byte("new-document")
+	before := time.Now().Add(-time.Minute)
+	status, err := postUpload(t, user, "/new.txt", bytes.NewReader(body), int64(len(body)), map[string]string{
+		"X-File-Total-Size": strconv.Itoa(len(body)),
+		"X-OC-Mtime":        "not-a-time",
+	})
+	if status != http.StatusOK || err != nil {
+		t.Fatalf("status=%d err=%v", status, err)
+	}
+	info, err := os.Stat(filepath.Join(root, "new.txt"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if info.ModTime().Before(before) {
+		t.Fatalf("mtime=%v, want the upload time", info.ModTime())
+	}
+}

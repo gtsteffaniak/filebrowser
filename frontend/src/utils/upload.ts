@@ -79,6 +79,15 @@ export type RequestError = Error & {
  * Upload session token for isolating concurrent uploads to the same path.
  * Prefers crypto.randomUUID(); falls back for older browsers / non-secure contexts.
  */
+/**
+ * Header that carries the file's last-modified time (Unix seconds), so the
+ * server keeps the original date instead of the upload time.
+ */
+export function mtimeHeader(file?: File): Record<string, number> {
+  const ms = Number(file?.lastModified);
+  return Number.isFinite(ms) && ms > 0 ? { "X-OC-Mtime": Math.floor(ms / 1000) } : {};
+}
+
 export function newUploadSessionId(): string {
   if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
     return crypto.randomUUID();
@@ -733,11 +742,13 @@ class UploadManager {
           promise = resourcesApi.postPublic(state.shareInfo?.hash, upload.path, upload.file, upload.overwrite, progress, {
             "X-File-Upload-Session": upload.sessionId,
             "X-File-Total-Size": upload.size,
+            ...mtimeHeader(upload.file),
           }, false, onSent);
         } else {
           promise = resourcesApi.post(upload.source, upload.path, upload.file, upload.overwrite, progress, {
             "X-File-Upload-Session": upload.sessionId,
             "X-File-Total-Size": upload.size,
+            ...mtimeHeader(upload.file),
           }, false, onSent);
         }
 
@@ -803,6 +814,7 @@ class UploadManager {
               "X-File-Upload-Session": upload.sessionId,
               "X-File-Chunk-Offset": upload.chunkOffset,
               "X-File-Total-Size": upload.size,
+              ...mtimeHeader(upload.file),
             },
             false,
             onSent
@@ -818,6 +830,7 @@ class UploadManager {
               "X-File-Upload-Session": upload.sessionId,
               "X-File-Chunk-Offset": upload.chunkOffset,
               "X-File-Total-Size": upload.size,
+              ...mtimeHeader(upload.file),
             },
             false,
             onSent

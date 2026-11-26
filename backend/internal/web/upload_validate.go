@@ -9,6 +9,9 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"time"
+
+	"github.com/gtsteffaniak/go-logger/logger"
 )
 
 // uploadTempPath returns the temporary path used while assembling an upload for realPath.
@@ -49,6 +52,39 @@ func parseUploadTotalSize(r *http.Request) (total int64, ok bool, err error) {
 		return 0, false, fmt.Errorf("invalid total size: %d", total)
 	}
 	return total, true, nil
+}
+
+// maxUploadMtimeSeconds is 9999-12-31T23:59:59Z, the last second time.Time formats safely.
+const maxUploadMtimeSeconds = 253402300799
+
+// parseUploadMtime reads the optional X-OC-Mtime header: the file's original
+// modification time in Unix seconds, the same header WebDAV clients send.
+// ok is false when the header is absent or does not hold a usable time.
+func parseUploadMtime(r *http.Request) (mtime time.Time, ok bool) {
+	raw := r.Header.Get("X-OC-Mtime")
+	if raw == "" {
+		return time.Time{}, false
+	}
+	seconds, err := strconv.ParseFloat(raw, 64)
+	if err != nil || math.IsNaN(seconds) || seconds <= 0 || seconds > maxUploadMtimeSeconds {
+		logger.Debugf("ignoring invalid X-OC-Mtime header %q", raw)
+		return time.Time{}, false
+	}
+	return time.Unix(int64(seconds), 0), true
+}
+
+// applyUploadMtime sets the modification time requested by the client on a
+// fully received upload. It is called on the temporary file before it is moved
+// into place, so the destination never shows the upload time. A failure is
+// logged and otherwise ignored: the upload itself succeeded.
+func applyUploadMtime(r *http.Request, filePath string) {
+	mtime, ok := parseUploadMtime(r)
+	if !ok {
+		return
+	}
+	if err := os.Chtimes(filePath, time.Now(), mtime); err != nil {
+		logger.Debugf("could not set mtime on %s: %v", filePath, err)
+	}
 }
 
 // validateChunkBounds rejects invalid offsets and sizes before writing a chunk.

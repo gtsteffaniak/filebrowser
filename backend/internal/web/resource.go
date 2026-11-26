@@ -1025,6 +1025,7 @@ func ResourcePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 			}
 			// close file before moving
 			outFile.Close()
+			applyUploadMtime(r, tempFilePath)
 			// Move the completed file from the temp location to the final destination
 			err = files.MoveResource(false, source, source, tempFilePath, realPath)
 			if err != nil {
@@ -1160,6 +1161,7 @@ func ResourcePostHandler(w http.ResponseWriter, r *http.Request, d *Context) (in
 		return http.StatusBadRequest, err
 	}
 
+	applyUploadMtime(r, tempFilePath)
 	err = files.MoveResource(false, source, source, tempFilePath, realPath)
 	if err != nil {
 		_ = os.Remove(tempFilePath)
