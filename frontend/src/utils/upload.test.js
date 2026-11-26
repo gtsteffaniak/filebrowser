@@ -40,6 +40,7 @@ import {
   uploadedBytesById,
   UploadRateMeter,
   uploadManager,
+  mtimeHeader,
 } from "./upload.ts";
 
 function addUpload(status = "uploading", file = new Blob(["a"])) {
@@ -568,5 +569,18 @@ describe("formatRemainingTime", () => {
     }
     // Registry ids such as ptBR are not language tags: Intl rejects them.
     expect(() => formatRemainingTime(60, "ptBR")).toThrow(RangeError);
+  });
+});
+
+describe("mtimeHeader", () => {
+  it("sends the last-modified time in Unix seconds", () => {
+    const file = new File(["a"], "old.txt", { lastModified: 1331683200999 });
+    expect(mtimeHeader(file)).toEqual({ "X-OC-Mtime": 1331683200 });
+  });
+
+  it("sends nothing when the time is missing or not usable", () => {
+    expect(mtimeHeader(undefined)).toEqual({});
+    expect(mtimeHeader(new Blob(["a"]))).toEqual({});
+    expect(mtimeHeader({ lastModified: 0 })).toEqual({});
   });
 });
