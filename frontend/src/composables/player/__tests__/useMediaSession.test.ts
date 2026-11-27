@@ -8,7 +8,7 @@ vi.mock("@/store/index.ts", () => ({
   state: { playbackQueue: { queue: [], currentIndex: -1, loop: "off" } },
 }));
 vi.mock("@/utils/constants.ts", () => ({ globalVars: { loginIcon: "/icon.png" } }));
-vi.mock("@/utils/playbackQueue.ts", () => ({ getNextItem: vi.fn(), navigatePlaybackQueue: vi.fn() }));
+vi.mock("@/player/playback/playbackQueue.ts", () => ({ getNextItem: vi.fn(), navigatePlaybackQueue: vi.fn() }));
 
 const INFO = { title: "T", artist: "A", album: "B", artworkSrc: "blob:art" };
 

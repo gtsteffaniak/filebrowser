@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { enableOverlaidHintController, type OverlaidHintPlayer } from "@/player/overlaidHintController.ts";
+import { enableOverlaidHintController, type OverlaidHintPlayer } from "@/player/ui/overlaidHintController.ts";
 
 type ControlsEvent = "controlsshown" | "controlshidden";
 

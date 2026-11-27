@@ -1,5 +1,5 @@
 import { errorFields, type PlayerError } from "@/player/playerErrors.ts";
-import { transcodeLog, transcodeWarn } from "@/player/transcodeDebug.ts";
+import { transcodeLog, transcodeWarn } from "@/player/transcoding/transcodeDebug.ts";
 
 /**
  * Helpers for preserving playback intent across src/HLS handoffs.

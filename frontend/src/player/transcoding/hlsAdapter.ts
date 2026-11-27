@@ -8,7 +8,7 @@ import {
   type PlayerError,
   TranscodeRecoverError,
 } from "@/player/playerErrors.ts";
-import { transcodeError, transcodeLog, transcodeVerbose, transcodeWarn } from "@/player/transcodeDebug.ts";
+import { transcodeError, transcodeLog, transcodeVerbose, transcodeWarn } from "@/player/transcoding/transcodeDebug.ts";
 import { state } from "@/store/index.ts";
 
 const ATTACH_TIMEOUT_MS = 45_000;

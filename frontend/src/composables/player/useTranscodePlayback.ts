@@ -6,31 +6,31 @@ import type { TranscodeSession } from "@/api/transcode.ts";
 import { getCachedViewToken } from "@/api/viewToken.js";
 import { useI18n } from "@/i18n/index.ts";
 import { notify } from "@/notify/index.ts";
-import { appendMediaFragment, isPlayBlockedError, type PlayPrime } from "@/player/playbackIntent.ts";
+import { appendMediaFragment, isPlayBlockedError, type PlayPrime } from "@/player/playback/playbackIntent.ts";
 import { errorMessage, type PlayerError } from "@/player/playerErrors.ts";
-import { transcodeLog, transcodeWarn } from "@/player/transcodeDebug.ts";
+import { transcodeLog, transcodeWarn } from "@/player/transcoding/transcodeDebug.ts";
 import {
   isTranscodeAvailable,
   isTranscodeHlsMode,
   normalizeTranscodeMode,
   normalizeTranscodeSessionStatus,
   type TranscodeMode,
-} from "@/player/transcodeMode.ts";
+} from "@/player/transcoding/transcodeMode.ts";
 import {
   TranscodePlaybackController,
   type TranscodeRecoverContext,
   type TranscodeStartFailureReason,
-} from "@/player/transcodePlaybackController.ts";
-import { createTranscodeClientId } from "@/player/transcodeSession.ts";
+} from "@/player/transcoding/transcodePlaybackController.ts";
+import { createTranscodeClientId } from "@/player/transcoding/transcodeSession.ts";
 import { router } from "@/router/index.ts";
 import { getters, mutations } from "@/store/index.ts";
-import { needsTranscodeFirst } from "@/utils/canBrowserPlayNative.ts";
+import { needsTranscodeFirst } from "@/player/transcoding/canBrowserPlayNative.ts";
 import {
   buildPlaybackQueryPatch,
   parsePlaybackTimeFromQuery,
   parseTranscodeModeFromQuery,
   playbackQueryChanged,
-} from "@/player/playbackQuery.ts";
+} from "@/player/playback/playbackQuery.ts";
 import { resolveTranscodeModeForPlayback, savePreferredTranscodeMode } from "@/composables/player/playerStorage.ts";
 
 /** The parts of the requested file the transcode logic reads. */

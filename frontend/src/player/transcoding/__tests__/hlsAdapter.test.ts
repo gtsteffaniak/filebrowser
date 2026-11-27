@@ -67,7 +67,7 @@ vi.mock("@/store", () => ({
   state: { sessionId: "test-session" },
 }));
 
-import { attachDeadlineMs, attachHlsToVideo, waitUntilVideoRenderable } from "@/player/hlsAdapter.ts";
+import { attachDeadlineMs, attachHlsToVideo, waitUntilVideoRenderable } from "@/player/transcoding/hlsAdapter.ts";
 
 const sessionInfo = transcodeSession({ id: "sess-1", deliveryBaseUrl: "/api/media/transcode/sessions/sess-1" });
 

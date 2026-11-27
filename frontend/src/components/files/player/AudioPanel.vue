@@ -36,7 +36,7 @@ import FloatingActionButton from "@/components/settings/FloatingActionButton.vue
 import LyricsList from "@/components/files/player/LyricsList.vue";
 import { useI18n } from "@/i18n/index.ts";
 import { mutations, state } from "@/store/index.ts";
-import type { LyricLines } from "@/utils/lyrics.ts";
+import type { LyricLines } from "@/player/tracks/lyrics.ts";
 import { visualizerConfig } from "@/utils/config/visualizerConfig.ts";
 import type { VisualizerConfig } from "@/utils/config/visualizerConfig.ts";
 

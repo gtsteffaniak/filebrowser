@@ -1,7 +1,7 @@
 import type Plyr from "plyr";
 import { describe, expect, it } from "vitest";
 import type { Writable } from "@/composables/player/__tests__/mediaTestUtils.ts";
-import { enableVideoLoadingIndicator, type LoadingMedia, type LoadingPlayer } from "@/player/videoLoading.ts";
+import { enableVideoLoadingIndicator, type LoadingMedia, type LoadingPlayer } from "@/player/ui/videoLoading.ts";
 
 type PlayerEvent = keyof Plyr.PlyrEventMap;
 

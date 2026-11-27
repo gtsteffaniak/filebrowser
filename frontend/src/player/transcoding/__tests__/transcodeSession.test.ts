@@ -8,7 +8,7 @@ vi.mock("@/api/transcode.ts", () => ({
 }));
 
 import { heartbeatTranscodeSession, startTranscodeSession, stopTranscodeSession } from "@/api/transcode.ts";
-import { TranscodeSessionController } from "@/player/transcodeSession.ts";
+import { TranscodeSessionController } from "@/player/transcoding/transcodeSession.ts";
 
 describe("TranscodeSessionController", () => {
   beforeEach(() => {

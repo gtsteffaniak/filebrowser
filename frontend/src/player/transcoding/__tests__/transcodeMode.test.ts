@@ -6,7 +6,7 @@ import {
   normalizeTranscodeSessionStatus,
   TRANSCODE_HLS_MODES,
   TRANSCODE_MODES,
-} from "@/player/transcodeMode.ts";
+} from "@/player/transcoding/transcodeMode.ts";
 
 describe("transcodeMode", () => {
   it("normalizes supported modes", () => {

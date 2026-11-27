@@ -12,7 +12,7 @@ import {
   getModeIcon,
   getModeLabel,
   toggleSingleLoop as nextSingleLoop,
-} from "@/utils/playbackQueue.ts";
+} from "@/player/playback/playbackQueue.ts";
 import { getPlayerI18n, getSettingsElements } from "./settingsElements.ts";
 
 type ToastType = "mode" | "loop" | "cleared";

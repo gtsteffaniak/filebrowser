@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { reactive } from "vue";
 import { transcodeSession } from "@/composables/player/__tests__/mediaTestUtils.ts";
-import { TranscodePlaybackController } from "@/player/transcodePlaybackController.ts";
+import { TranscodePlaybackController } from "@/player/transcoding/transcodePlaybackController.ts";
 
-vi.mock("@/player/hlsAdapter.ts", () => ({
+vi.mock("@/player/transcoding/hlsAdapter.ts", () => ({
   attachHlsToVideo: vi.fn(async () => ({
     cleanup: vi.fn(),
   })),
@@ -22,7 +22,7 @@ vi.mock("@/api/transcode.ts", () => ({
 }));
 
 import { startTranscodeSession, stopTranscodeSession } from "@/api/transcode.ts";
-import { attachHlsToVideo, type AttachHlsOptions, type HlsAttachment } from "@/player/hlsAdapter.ts";
+import { attachHlsToVideo, type AttachHlsOptions, type HlsAttachment } from "@/player/transcoding/hlsAdapter.ts";
 
 /** A promise settled from the outside, to hold an attach pending. */
 function deferred<T>() {

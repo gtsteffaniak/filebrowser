@@ -110,7 +110,7 @@ import {
   getLoopLabel,
   getLoopIcon,
   formatArtist
-} from '@/utils/playbackQueue.ts';
+} from "@/player/playback/playbackQueue.ts";
 import Icon from "@/components/files/Icon.vue";
 import SlidingTabs from "@/components/settings/SlidingTabs.vue";
 import { resourcesApi } from "@/api/index.js";

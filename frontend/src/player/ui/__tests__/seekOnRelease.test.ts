@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { commitSeek, type SeekablePlayer } from "@/player/seekOnRelease.ts";
+import { commitSeek, type SeekablePlayer } from "@/player/ui/seekOnRelease.ts";
 
 interface PlayerOptions {
   duration?: number;

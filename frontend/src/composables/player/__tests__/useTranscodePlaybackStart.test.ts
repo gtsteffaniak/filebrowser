@@ -25,12 +25,12 @@ vi.mock("@/store/index.ts", () => ({
   getters: { isShare: () => false, isLoggedIn: () => true },
   mutations: { setPlaybackState: vi.fn() },
 }));
-vi.mock("@/utils/canBrowserPlayNative.ts", () => ({ needsTranscodeFirst: () => hoisted.needsTranscode.value }));
-vi.mock("@/player/transcodeMode.ts", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/player/transcodeMode.ts")>()),
+vi.mock("@/player/transcoding/canBrowserPlayNative.ts", () => ({ needsTranscodeFirst: () => hoisted.needsTranscode.value }));
+vi.mock("@/player/transcoding/transcodeMode.ts", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/player/transcoding/transcodeMode.ts")>()),
   isTranscodeAvailable: () => true,
 }));
-vi.mock("@/player/transcodePlaybackController.ts", () => ({
+vi.mock("@/player/transcoding/transcodePlaybackController.ts", () => ({
   TranscodePlaybackController: class {
     disposed = false;
     active = false;

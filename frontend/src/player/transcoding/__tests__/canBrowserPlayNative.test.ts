@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { canBrowserPlayNative, needsTranscodeFirst } from './canBrowserPlayNative.ts';
+import { canBrowserPlayNative, needsTranscodeFirst } from '../canBrowserPlayNative.ts';
 
 describe('canBrowserPlayNative', () => {
   it('does not blanket-reject mkv by extension when container support is unknown', () => {

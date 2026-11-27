@@ -140,12 +140,12 @@ import { buildMediaSessionInfo, useMediaSession } from "@/composables/player/use
 import { usePlaybackQueue } from "@/composables/player/usePlaybackQueue.ts";
 import { useSwipeNavigationGestures } from "@/composables/player/useSwipeNavigationGestures.ts";
 import { useI18n } from "@/i18n/index.ts";
-import { enableSeekOnRelease, type SeekablePlayer } from "@/player/seekOnRelease.ts";
+import { enableSeekOnRelease, type SeekablePlayer } from "@/player/ui/seekOnRelease.ts";
 import { getters } from "@/store/index.ts";
 import type { FileListItem } from "@/store/types.ts";
 import { getTypeFromMime } from "@/utils/files.js";
-import type { LyricLines } from "@/utils/lyrics.ts";
-import { formatArtist } from "@/utils/playbackQueue.ts";
+import type { LyricLines } from "@/player/tracks/lyrics.ts";
+import { formatArtist } from "@/player/playback/playbackQueue.ts";
 
 interface AudioMetadata {
   title?: string;

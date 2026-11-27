@@ -49,8 +49,8 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, useTemplateRef, wa
 import type Plyr from "plyr";
 import FloatingActionButton from "@/components/settings/FloatingActionButton.vue";
 import { useI18n } from "@/i18n/index.ts";
-import { isSyncedLyrics } from "@/utils/lyrics.ts";
-import type { LyricLine, LyricLines } from "@/utils/lyrics.ts";
+import { isSyncedLyrics } from "@/player/tracks/lyrics.ts";
+import type { LyricLine, LyricLines } from "@/player/tracks/lyrics.ts";
 
 const scrollLocked = defineModel<boolean>("scrollLocked");
 

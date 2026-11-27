@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { transcodeSession } from "@/composables/player/__tests__/mediaTestUtils.ts";
-import { servableCoverage } from "@/player/transcodePlaybackController.ts";
+import { servableCoverage } from "@/player/transcoding/transcodePlaybackController.ts";
 
 describe("servableCoverage", () => {
   it("returns the full media range for any VOD session", () => {

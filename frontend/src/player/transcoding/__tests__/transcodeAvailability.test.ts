@@ -5,7 +5,7 @@ vi.mock("@/utils/constants", () => ({
   globalVars: { ffmpegAvailable: true },
 }));
 
-import { isTranscodeAvailable } from "@/player/transcodeMode.ts";
+import { isTranscodeAvailable } from "@/player/transcoding/transcodeMode.ts";
 import { state } from "@/store/index.ts";
 import type { StoreState } from "@/store/types.ts";
 import { globalVars } from "@/utils/constants.ts";

@@ -7,7 +7,7 @@ import {
   isPlayTeardownError,
   primePlay,
   resumeWhenReady,
-} from "@/player/playbackIntent.ts";
+} from "@/player/playback/playbackIntent.ts";
 
 interface VideoStubOptions {
   readyState?: number;

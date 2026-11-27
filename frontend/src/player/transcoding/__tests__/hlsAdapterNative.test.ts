@@ -12,7 +12,7 @@ vi.mock("@/store", () => ({
   state: { sessionId: "test-session" },
 }));
 
-import { attachHlsToVideo } from "@/player/hlsAdapter.ts";
+import { attachHlsToVideo } from "@/player/transcoding/hlsAdapter.ts";
 
 /** Minimal element that reports native HLS support */
 function nativeHlsVideo() {

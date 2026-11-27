@@ -3,12 +3,12 @@ import { type ShallowRef, watch } from "vue";
 // Video.js 10 migration has a single place to replace. Its stylesheet is in `MediaPlayer.vue`.
 import Plyr from "plyr";
 import { useI18n } from "@/i18n/index.ts";
-import { blockSeekOnInput } from "@/player/seekOnRelease.ts";
+import { blockSeekOnInput } from "@/player/ui/seekOnRelease.ts";
 import { router } from "@/router/index.ts";
 import { mutations, state } from "@/store/index.ts";
 import { globalVars } from "@/utils/constants.ts";
-import { buildPlaybackQueryPatch, playbackQueryChanged } from "@/player/playbackQuery.ts";
-import { getEndOfMediaAction, navigatePlaybackQueue } from "@/utils/playbackQueue.ts";
+import { buildPlaybackQueryPatch, playbackQueryChanged } from "@/player/playback/playbackQuery.ts";
+import { getEndOfMediaAction, navigatePlaybackQueue } from "@/player/playback/playbackQueue.ts";
 import { buildItemUrl, removeTrailingSlash } from "@/utils/url.js";
 
 /** Vue Router and buildItemUrl do not always encode the same characters, so route-leave checks compare both forms. */

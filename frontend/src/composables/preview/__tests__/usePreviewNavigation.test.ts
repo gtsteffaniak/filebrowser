@@ -36,7 +36,7 @@ vi.mock("@/store/index.ts", () => ({
   mutations: mutationsMock,
 }));
 vi.mock("@/router/index.ts", () => ({ router: routerMock }));
-vi.mock("@/utils/playbackQueue.ts", () => ({ navigatePlaybackQueue }));
+vi.mock("@/player/playback/playbackQueue.ts", () => ({ navigatePlaybackQueue }));
 vi.mock("@/api/index.js", () => ({ resourcesApi: { getPreviewURL: vi.fn(() => "preview-url") } }));
 vi.mock("@/api/viewToken.js", () => ({
   ensureViewToken: vi.fn(),

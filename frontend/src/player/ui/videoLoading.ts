@@ -1,5 +1,5 @@
 import type Plyr from "plyr";
-import { transcodeLog } from "@/player/transcodeDebug.ts";
+import { transcodeLog } from "@/player/transcoding/transcodeDebug.ts";
 
 export interface VideoLoadingIndicator {
   (): void;

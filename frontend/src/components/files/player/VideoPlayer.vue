@@ -122,21 +122,21 @@ import { usePlaybackQueue } from "@/composables/player/usePlaybackQueue.ts";
 import { useSwipeNavigationGestures } from "@/composables/player/useSwipeNavigationGestures.ts";
 import { useTranscodePlayback } from "@/composables/player/useTranscodePlayback.ts";
 import { useI18n } from "@/i18n/index.ts";
-import { primePlay } from "@/player/playbackIntent.ts";
-import { enableScrubPreview } from "@/player/scrubPreview.ts";
-import { enableSeekOnRelease, type SeekablePlayer } from "@/player/seekOnRelease.ts";
-import { transcodeLog, transcodeWarn } from "@/player/transcodeDebug.ts";
+import { primePlay } from "@/player/playback/playbackIntent.ts";
+import { enableScrubPreview } from "@/player/ui/scrubPreview.ts";
+import { enableSeekOnRelease, type SeekablePlayer } from "@/player/ui/seekOnRelease.ts";
+import { transcodeLog, transcodeWarn } from "@/player/transcoding/transcodeDebug.ts";
 import {
   isTranscodeHlsMode,
   isTranscodeMode,
   normalizeTranscodeMode,
   TRANSCODE_HLS_MODES,
   type TranscodeHlsMode,
-} from "@/player/transcodeMode.ts";
-import { enableVideoLoadingIndicator, type LoadingPlayer, type VideoLoadingIndicator } from "@/player/videoLoading.ts";
+} from "@/player/transcoding/transcodeMode.ts";
+import { enableVideoLoadingIndicator, type LoadingPlayer, type VideoLoadingIndicator } from "@/player/ui/videoLoading.ts";
 import { getters, state } from "@/store/index.ts";
 import type { FileListItem, SubtitleTrack as FileSubtitleTrack } from "@/store/types.ts";
-import { getSubtitleFormatExtension } from "@/utils/subtitles.ts";
+import { getSubtitleFormatExtension } from "@/player/tracks/subtitles.ts";
 
 interface VideoFile extends PlayerFile {
   modified?: string;

@@ -6,7 +6,7 @@ import {
   type TranscodeSession,
 } from "@/api/transcode.ts";
 import { errorMessage, httpStatusOf, type PlayerError } from "@/player/playerErrors.ts";
-import { transcodeLog, transcodeWarn } from "@/player/transcodeDebug.ts";
+import { transcodeLog, transcodeWarn } from "@/player/transcoding/transcodeDebug.ts";
 
 let clientCounter = 0;
 

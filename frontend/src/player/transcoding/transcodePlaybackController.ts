@@ -4,12 +4,12 @@ import {
   attachHlsToVideo,
   type HlsAttachment,
   type HlsFatalData,
-} from "@/player/hlsAdapter.ts";
-import { continuePlay, type PlayPrime } from "@/player/playbackIntent.ts";
+} from "@/player/transcoding/hlsAdapter.ts";
+import { continuePlay, type PlayPrime } from "@/player/playback/playbackIntent.ts";
 import { errorFields, type PlayerError } from "@/player/playerErrors.ts";
-import { transcodeError, transcodeLog, transcodeWarn } from "@/player/transcodeDebug.ts";
-import { isTranscodeHlsMode, type TranscodeHlsMode, type TranscodeMode } from "@/player/transcodeMode.ts";
-import { TranscodeSessionController } from "@/player/transcodeSession.ts";
+import { transcodeError, transcodeLog, transcodeWarn } from "@/player/transcoding/transcodeDebug.ts";
+import { isTranscodeHlsMode, type TranscodeHlsMode, type TranscodeMode } from "@/player/transcoding/transcodeMode.ts";
+import { TranscodeSessionController } from "@/player/transcoding/transcodeSession.ts";
 
 /** A timed-out attach is retried in place rather than falling back to native playback */
 const MAX_ATTACH_RETRIES = 1;

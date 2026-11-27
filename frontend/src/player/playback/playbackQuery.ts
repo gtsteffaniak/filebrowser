@@ -1,5 +1,5 @@
 import type { TranscodeProfile } from "@/api/transcode.ts";
-import { getObjectProperty, setObjectProperty } from "../utils/object.js";
+import { getObjectProperty, setObjectProperty } from "@/utils/object.js";
 
 /** A URL query value, as vue-router parses it (a key may be absent or repeated) */
 type QueryValue = string | null | (string | null)[] | undefined;
