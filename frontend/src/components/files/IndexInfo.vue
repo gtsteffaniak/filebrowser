@@ -12,7 +12,7 @@
 <script>
 import i18n from "@/i18n/index.ts";
 import { state } from "@/store/index.ts";
-import { fromNow } from "@/utils/moment.ts";
+import { fromNowSeconds } from "@/utils/moment.ts";
 import SettingsTable from "@/components/settings/Table.vue";
 
 export default {
@@ -66,7 +66,7 @@ export function getHumanReadableTime(lastIndex, locale) {
   if (Number.isNaN(Number(lastIndex))) return "";
   const val = Number(lastIndex);
   if (val === 0) return "now";
-  return fromNow(val, locale);
+  return fromNowSeconds(val, locale);
 }
 
 export function formatDuration(seconds) {
