@@ -25,6 +25,7 @@ import { useRoute, useRouter, type RouteLocationNormalized } from "vue-router";
 import { useI18n } from "@/i18n/index.ts";
 import type { Ace } from "ace-builds";
 import { state, getters, mutations } from "@/store/index.ts";
+import type { FileListItem } from "@/store/types.ts";
 import { resourcesApi } from "@/api/index.js";
 import { pathsMatch, removeLastDir } from "@/utils/url.js";
 import { notify } from "@/notify/index.ts";
@@ -328,7 +329,7 @@ async function updateNavigationForCurrentItem() {
   if (!directoryPath || directoryPath === '') {
     directoryPath = '/';
   }
-  let listing: unknown;
+  let listing: Partial<FileListItem>[] | null;
 
   if (req.value.items) {
     listing = req.value.items;
@@ -338,7 +339,7 @@ async function updateNavigationForCurrentItem() {
   } else if (directoryPath !== req.value.path) {
     // Fetch directory listing (now with '/' for root files)
     try {
-      let res: { items: unknown; };
+      let res: { items: FileListItem[]; };
       if (getters.isShare()) {
         res = await resourcesApi.fetchFilesPublic(directoryPath, state.shareInfo.hash);
       } else {

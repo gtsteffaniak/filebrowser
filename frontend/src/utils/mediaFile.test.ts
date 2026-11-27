@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isMediaFile, isMediaRequest } from "./mediaFile.js";
+import { isMediaFile, isMediaRequest } from "./mediaFile.ts";
 
 describe("isMediaFile", () => {
   it("detects audio and video MIME types", () => {

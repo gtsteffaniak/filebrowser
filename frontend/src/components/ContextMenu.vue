@@ -127,7 +127,7 @@ import { copyToClipboard } from "@/utils/clipboard.js";
 import downloadFiles from "@/utils/download.js";
 import { canNativeShare, nativeShareFile } from "@/utils/nativeShare.js";
 import { isRichTextPreviewMimeType, getTypeInfoFromExt } from "@/utils/mimetype.js";
-import { isMediaRequest } from "@/utils/mediaFile.js";
+import { isMediaRequest } from "@/utils/mediaFile.ts";
 import { actionIconClass } from "@/components/Action.vue";
 import { popEnter, popLeave } from "@/utils/transitions.ts";
 import { useFullscreen } from "@/composables/preview/useFullscreen.ts";

@@ -1,4 +1,11 @@
-const CONTAINER_MIME = new Map([
+export interface NativePlaybackSource {
+  videoCodec?: string;
+  audioCodec?: string;
+  mimeType?: string;
+  fileName?: string;
+}
+
+const CONTAINER_MIME = new Map<string, string>([
   ['mkv', 'video/x-matroska'],
   ['webm', 'video/webm'],
   ['mp4', 'video/mp4'],
@@ -12,7 +19,7 @@ const CONTAINER_MIME = new Map([
   ['ogv', 'video/ogg'],
 ]);
 
-const FFPROBE_TO_MIME = {
+const FFPROBE_TO_MIME: Record<string, string> = {
   h264: 'avc1.42E01E',
   avc: 'avc1.42E01E',
   avc1: 'avc1.42E01E',
@@ -29,14 +36,14 @@ const FFPROBE_TO_MIME = {
   flac: 'flac',
 };
 
-function mimeCodec(name) {
+function mimeCodec(name?: string): string {
   if (!name) {
     return '';
   }
   return FFPROBE_TO_MIME[name.toLowerCase()] || name.toLowerCase();
 }
 
-function extensionFromName(fileName) {
+function extensionFromName(fileName?: string): string {
   if (!fileName || typeof fileName !== 'string') {
     return '';
   }
@@ -47,7 +54,7 @@ function extensionFromName(fileName) {
   return fileName.slice(dot + 1).toLowerCase();
 }
 
-function containerMimeFromFileName(fileName, mimeType) {
+function containerMimeFromFileName(fileName?: string, mimeType?: string): string {
   const ext = extensionFromName(fileName);
   const mapped = ext ? CONTAINER_MIME.get(ext) : undefined;
   if (mapped) {
@@ -59,8 +66,8 @@ function containerMimeFromFileName(fileName, mimeType) {
   return '';
 }
 
-function buildCodecMime(containerMime, videoCodec, audioCodec) {
-  const parts = [];
+function buildCodecMime(containerMime: string, videoCodec?: string, audioCodec?: string): string {
+  const parts: string[] = [];
   const v = mimeCodec(videoCodec);
   const a = mimeCodec(audioCodec);
   if (v) {
@@ -75,7 +82,7 @@ function buildCodecMime(containerMime, videoCodec, audioCodec) {
   return `${containerMime}; codecs="${parts.join(', ')}"`;
 }
 
-function probeCanPlayType(mime) {
+function probeCanPlayType(mime: string): boolean | null {
   if (!mime || typeof document === 'undefined') {
     return null;
   }
@@ -100,7 +107,7 @@ function probeCanPlayType(mime) {
  * MKV and other containers are evaluated by codec + container via canPlayType,
  * not by extension alone (Chrome supports H.264 in MKV; Firefox often does not).
  */
-export function canBrowserPlayNative({ videoCodec, audioCodec, mimeType, fileName } = {}) {
+export function canBrowserPlayNative({ videoCodec, audioCodec, mimeType, fileName }: NativePlaybackSource = {}): boolean | null {
   const containerMime = containerMimeFromFileName(fileName, mimeType);
   const ext = extensionFromName(fileName);
 
@@ -144,7 +151,7 @@ export function canBrowserPlayNative({ videoCodec, audioCodec, mimeType, fileNam
   return null;
 }
 
-export function needsTranscodeFirst({ videoCodec, audioCodec, mimeType, fileName } = {}) {
+export function needsTranscodeFirst({ videoCodec, audioCodec, mimeType, fileName }: NativePlaybackSource = {}): boolean {
   const result = canBrowserPlayNative({ videoCodec, audioCodec, mimeType, fileName });
   return result === false;
 }

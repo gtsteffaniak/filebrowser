@@ -51,7 +51,7 @@ import type { ReqObject } from "@/store/types.ts";
 import { createAsyncComponent } from "@/utils/asyncComponent.js";
 import { type LyricLines, parseLyrics } from "@/utils/lyrics.ts";
 import { shouldAutoPlayPreview } from "@/utils/previewAutoplay.js";
-import { convertToVTT, getSubtitleFormatExtension } from "@/utils/subtitles.js";
+import { convertToVTT, getSubtitleFormatExtension } from "@/utils/subtitles.ts";
 import { removeLastDir } from "@/utils/url.js";
 
 interface SubtitleSource {

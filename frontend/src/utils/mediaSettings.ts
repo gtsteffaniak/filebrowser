@@ -1,16 +1,58 @@
 /** Shared shapes/defaults for the runtime media settings (settings/media + prompts). */
 
 import { patchMediaSettings } from '@/api/settings.js';
+import type { TranscodeProfile } from '@/api/transcode.ts';
+import type { StoreState } from '@/store/types.ts';
 
 // We can inline this when we convert to typescript
 import { MEDIA_TRANSCODE_PROFILES } from '@/utils/mediaTranscodeProfiles.ts';
 export { MEDIA_TRANSCODE_PROFILES };
 
-export function emptyTranscodeProfile(maxResolution = 0, avgBitrateKbps = 0) {
+export interface TranscodeProfileSettings {
+  enabled: boolean;
+  maxResolution: number;
+  avgBitrateKbps: number;
+  encoderBackend: string;
+}
+
+export interface MediaTranscodeSettings {
+  enabled: boolean;
+  maxConcurrent: number;
+  maxConcurrentPerUser: number;
+  cacheMaxSizeMB: number;
+  cacheRetentionH: number;
+  encoderBackend: string;
+  readRate: number;
+  profiles: Record<TranscodeProfile, TranscodeProfileSettings>;
+}
+
+export interface MediaSettings {
+  convert: {
+    imagePreview: Record<string, boolean>;
+    videoPreview: Record<string, boolean>;
+  };
+  debug: boolean;
+  hardwareAcceleration: boolean;
+  accelDevice: string;
+  alwaysUseFfmpeg: boolean;
+  alwaysUseOnlyOffice: boolean;
+  transcode: MediaTranscodeSettings;
+}
+
+/** Every field optional, except the flag maps (`convert.*Preview`), which arrive whole. */
+export type DeepPartial<T> = T extends Record<string, boolean> ? T : { [K in keyof T]?: DeepPartial<T[K]> };
+
+/** Player-only subset the settings API returns to non-admins, plus the derived `enabledProfiles`. */
+type MediaSettingsPayload = DeepPartial<MediaSettings> & {
+  transcode?: { enabledProfiles?: string[] };
+  imagePreview?: Partial<Record<'heic' | 'jxl' | 'jpeg', boolean>>;
+};
+
+export function emptyTranscodeProfile(maxResolution = 0, avgBitrateKbps = 0): TranscodeProfileSettings {
   return { enabled: true, maxResolution, avgBitrateKbps, encoderBackend: '' };
 }
 
-export function emptyMediaTranscode() {
+export function emptyMediaTranscode(): MediaTranscodeSettings {
   return {
     enabled: false,
     maxConcurrent: 2,
@@ -28,7 +70,7 @@ export function emptyMediaTranscode() {
   };
 }
 
-export function emptyMediaSettings() {
+export function emptyMediaSettings(): MediaSettings {
   return {
     convert: { imagePreview: {}, videoPreview: {} },
     debug: false,
@@ -41,13 +83,13 @@ export function emptyMediaSettings() {
 }
 
 /** Producer pacing is always throttled: unset or non-positive values fall back to 2x. */
-export function normalizeTranscodeReadRate(value) {
+export function normalizeTranscodeReadRate(value: unknown): number {
   const rate = Number(value);
   return Number.isFinite(rate) && rate > 0 ? rate : 2;
 }
 
 /** Overlay a server response onto the defaults so partial payloads stay usable. */
-export function mergeMediaSettings(loaded) {
+export function mergeMediaSettings(loaded?: DeepPartial<MediaSettings> | null): MediaSettings {
   const base = emptyMediaSettings();
   const value = loaded || {};
   return {
@@ -74,7 +116,7 @@ export function mergeMediaSettings(loaded) {
 export const MEDIA_SETTINGS_CHANGED_EVENT = 'mediaSettingsChanged';
 
 /** Enabled transcode profile ids in player-menu order. */
-export function enabledTranscodeProfileIds(media) {
+export function enabledTranscodeProfileIds(media?: DeepPartial<MediaSettings> | null): string[] {
   const profiles = media?.transcode?.profiles || {};
   return MEDIA_TRANSCODE_PROFILES
     .filter((profile) => profiles[profile.id]?.enabled)
@@ -86,7 +128,7 @@ export function enabledTranscodeProfileIds(media) {
  * the full object to admins and a player-only subset to everyone else, so both
  * shapes collapse to the same fields here.
  */
-export function normalizeSharedMediaSettings(data) {
+export function normalizeSharedMediaSettings(data?: MediaSettingsPayload | null): NonNullable<StoreState['mediaSettings']> {
   // Both payloads share the transcode keys: enabled, maxConcurrentPerUser, and the
   // derived enabledProfiles. Admin payloads also carry the full profiles object, so
   // fall back to deriving the ids from it when enabledProfiles is absent.
@@ -99,17 +141,18 @@ export function normalizeSharedMediaSettings(data) {
   };
 }
 
-function deleteAtPath(target, path) {
+function deleteAtPath(target: unknown, path: string): void {
   const parts = String(path).split('.');
+  const last = parts.pop() ?? '';
   let node = target;
-  for (let i = 0; i < parts.length - 1; i += 1) {
+  for (const key of parts) {
     if (!node || typeof node !== 'object') {
       return;
     }
-    node = node[parts[i]];
+    node = Reflect.get(node, key);
   }
   if (node && typeof node === 'object') {
-    Reflect.deleteProperty(node, parts.at(-1));
+    Reflect.deleteProperty(node, last);
   }
 }
 
@@ -120,7 +163,7 @@ function deleteAtPath(target, path) {
  * the settings sections submit whole sub-objects (e.g. the full `transcode`
  * object). Without this, locking one field would make every sibling unsavable.
  */
-export function stripLockedMediaPaths(patch, lockedFromConfigPaths = []) {
+export function stripLockedMediaPaths<T extends object | null | undefined>(patch: T, lockedFromConfigPaths: string[] = []): T {
   if (!patch) {
     return patch;
   }
@@ -128,7 +171,7 @@ export function stripLockedMediaPaths(patch, lockedFromConfigPaths = []) {
   if (locked.length === 0) {
     return patch;
   }
-  const stripped = JSON.parse(JSON.stringify(patch));
+  const stripped: T = JSON.parse(JSON.stringify(patch));
   for (const path of locked) {
     deleteAtPath(stripped, path);
   }
@@ -136,7 +179,7 @@ export function stripLockedMediaPaths(patch, lockedFromConfigPaths = []) {
 }
 
 /** True when a (possibly nested) patch still carries at least one leaf value. */
-function hasPatchContent(value) {
+function hasPatchContent(value: unknown): boolean {
   if (value === null || typeof value !== 'object') {
     return true;
   }
@@ -145,9 +188,11 @@ function hasPatchContent(value) {
 
 /**
  * Patch media settings, skipping paths locked from the config file.
- * @returns {Promise<{ skipped: boolean, media?: object }>}
  */
-export async function saveMediaSettingsPatch(partial, lockedFromConfigPaths = []) {
+export async function saveMediaSettingsPatch(
+  partial: DeepPartial<MediaSettings>,
+  lockedFromConfigPaths: string[] = [],
+): Promise<{ skipped: boolean; media?: MediaSettings }> {
   const patch = stripLockedMediaPaths(partial, lockedFromConfigPaths);
   if (!hasPatchContent(patch)) {
     return { skipped: true };

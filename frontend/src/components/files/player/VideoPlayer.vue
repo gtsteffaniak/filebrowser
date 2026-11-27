@@ -136,7 +136,7 @@ import {
 import { enableVideoLoadingIndicator, type LoadingPlayer, type VideoLoadingIndicator } from "@/player/videoLoading.ts";
 import { getters, state } from "@/store/index.ts";
 import type { FileListItem, SubtitleTrack as FileSubtitleTrack } from "@/store/types.ts";
-import { getSubtitleFormatExtension } from "@/utils/subtitles.js";
+import { getSubtitleFormatExtension } from "@/utils/subtitles.ts";
 
 interface VideoFile extends PlayerFile {
   modified?: string;

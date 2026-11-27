@@ -7,8 +7,8 @@ import { blockSeekOnInput } from "@/player/seekOnRelease.ts";
 import { router } from "@/router/index.ts";
 import { mutations, state } from "@/store/index.ts";
 import { globalVars } from "@/utils/constants.ts";
-import { buildPlaybackQueryPatch, playbackQueryChanged } from "@/player/playbackQuery";
-import { getEndOfMediaAction, navigatePlaybackQueue } from "@/utils/playbackQueue.js";
+import { buildPlaybackQueryPatch, playbackQueryChanged } from "@/player/playbackQuery.ts";
+import { getEndOfMediaAction, navigatePlaybackQueue } from "@/utils/playbackQueue.ts";
 import { buildItemUrl, removeTrailingSlash } from "@/utils/url.js";
 
 /** Vue Router and buildItemUrl do not always encode the same characters, so route-leave checks compare both forms. */

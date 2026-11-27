@@ -64,7 +64,7 @@ vi.mock("@/utils/url.js", () => ({
   buildItemUrl: (source: string, path: string) => `/files/${source}${path}`,
   removeTrailingSlash: (path: string) => path.replace(/\/$/, ""),
 }));
-vi.mock("@/utils/playbackQueue.js", () => ({
+vi.mock("@/utils/playbackQueue.ts", () => ({
   formatArtist: (artist: string) => artist,
   getEndOfMediaAction: vi.fn(),
   getNextItem: vi.fn(),

@@ -4,7 +4,7 @@ import { ensureViewToken, requestViewIdentity } from "@/api/viewToken.js";
 import { router } from "@/router/index.ts";
 import { getters, mutations, state } from "@/store/index.ts";
 import type { FileListItem } from "@/store/types.ts";
-import { navigatePlaybackQueue } from "@/utils/playbackQueue.js";
+import { navigatePlaybackQueue } from "@/utils/playbackQueue.ts";
 import { goToItem, removeLastDir } from "@/utils/url.js";
 
 interface PreviewNavigationOptions {

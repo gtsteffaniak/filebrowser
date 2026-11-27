@@ -3,8 +3,8 @@ const MEDIA_EXTENSIONS = new Set([
   '.webm', '.mkv', '.avi', '.mov', '.wmv', '.m4v', '.aac', '.wma',
 ])
 
-/** @param {string | undefined | null} typeOrName MIME type or file name */
-export function isMediaFile(typeOrName) {
+/** @param typeOrName MIME type or file name */
+export function isMediaFile(typeOrName: string | undefined | null): boolean {
   if (!typeOrName || typeof typeOrName !== 'string') {
     return false
   }
@@ -18,22 +18,9 @@ export function isMediaFile(typeOrName) {
   return MEDIA_EXTENSIONS.has(typeOrName.slice(dot).toLowerCase())
 }
 
-/** @param {{ type?: string, name?: string, path?: string } | null | undefined} req */
-export function isMediaRequest(req) {
+export function isMediaRequest(req: { type?: string; name?: string; path?: string } | null | undefined): boolean {
   if (!req) {
     return false
   }
   return isMediaFile(req.type) || isMediaFile(req.name) || isMediaFile(req.path)
-}
-
-/** @param {string | undefined | null} typeOrName MIME type or file name/path */
-export function isPdfFile(typeOrName) {
-  if (!typeOrName || typeof typeOrName !== 'string') {
-    return false
-  }
-  const lower = typeOrName.toLowerCase()
-  if (lower === 'application/pdf') {
-    return true
-  }
-  return lower.endsWith('.pdf')
 }

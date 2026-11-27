@@ -145,7 +145,7 @@ import { getters } from "@/store/index.ts";
 import type { FileListItem } from "@/store/types.ts";
 import { getTypeFromMime } from "@/utils/files.js";
 import type { LyricLines } from "@/utils/lyrics.ts";
-import { formatArtist } from "@/utils/playbackQueue.js";
+import { formatArtist } from "@/utils/playbackQueue.ts";
 
 interface AudioMetadata {
   title?: string;

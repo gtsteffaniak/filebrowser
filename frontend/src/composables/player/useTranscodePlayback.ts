@@ -24,13 +24,13 @@ import {
 import { createTranscodeClientId } from "@/player/transcodeSession.ts";
 import { router } from "@/router/index.ts";
 import { getters, mutations } from "@/store/index.ts";
-import { needsTranscodeFirst } from "@/utils/canBrowserPlayNative.js";
+import { needsTranscodeFirst } from "@/utils/canBrowserPlayNative.ts";
 import {
   buildPlaybackQueryPatch,
   parsePlaybackTimeFromQuery,
   parseTranscodeModeFromQuery,
   playbackQueryChanged,
-} from "@/player/playbackQuery";
+} from "@/player/playbackQuery.ts";
 import { resolveTranscodeModeForPlayback, savePreferredTranscodeMode } from "@/composables/player/playerStorage.ts";
 
 /** The parts of the requested file the transcode logic reads. */

@@ -11,7 +11,7 @@ import {
   normalizeSharedMediaSettings,
   saveMediaSettingsPatch,
   stripLockedMediaPaths,
-} from '@/utils/mediaSettings.js';
+} from '@/utils/mediaSettings.ts';
 
 describe('mediaSettings', () => {
   beforeEach(() => {

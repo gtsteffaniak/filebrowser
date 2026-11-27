@@ -1,47 +1,59 @@
-// src/utils/playbackQueue.js
+// src/utils/playbackQueue.ts
 import i18n from "@/i18n/index.ts";
 import { getters, mutations, state } from "@/store/index.ts";
+import type { FileListItem, PlaybackLoop, PlaybackMode } from "@/store/types.ts";
 import { url } from "@/utils/index.ts";
 import { sortedItems } from "@/utils/sort.ts";
 
 const t = i18n.global.t.bind(i18n.global);
 
+type PartialItem = Partial<FileListItem>;
+
+function isQueueItem(item: PartialItem): item is FileListItem {
+  return item.name !== undefined && item.path !== undefined;
+}
+
 /**
  * Shuffles an array -- this is used for playback queue shuffle mode
- * @param {Array} array - The array to shuffle.
- * @returns {Array} A new shuffled array.
+ * @param array - The array to shuffle.
+ * @returns A new shuffled array.
  */
-export function shuffleArray(array) {
+export function shuffleArray<T>(array: T[]): T[] {
   const shuffled = [...array];
-  const result = [];
+  const result: T[] = [];
   while (shuffled.length > 0) {
     const randomIndex = Math.floor(Math.random() * shuffled.length);
-    result.push(shuffled.splice(randomIndex, 1)[0]);
+    result.push(...shuffled.splice(randomIndex, 1));
   }
   return result;
 }
 
 /**
  * Builds the playback queue based on the current listing, current item, and playback mode.
- * @param {Array} listing - The full list of items in the current directory.
- * @param {Object} currentItem - The item currently being played.
- * @param {string} mode - The current playback mode.
- * @param {boolean} isShare - Whether if we're on a share (for the paths).
- * @returns {{ queue: Array, currentIndex: number }} The final queue and index of the current item.
+ * @param listing - The full list of items in the current directory.
+ * @param currentItem - The item currently being played.
+ * @param mode - The current playback mode.
+ * @param isShare - Whether if we're on a share (for the paths).
+ * @returns The final queue and index of the current item.
  */
-export function buildPlaybackQueue(listing, currentItem, mode = false, isShare = false) {
+export function buildPlaybackQueue(
+  listing: PartialItem[],
+  currentItem: PartialItem,
+  mode: PlaybackMode | false = false,
+  isShare = false,
+): { queue: FileListItem[]; currentIndex: number } {
   const searchItems = getters.searchNavigationItems(currentItem);
   if (searchItems) {
-    const sorting = state.searchResults.sorting;
+    const sorting = state.searchResults?.sorting;
     listing = sorting ? sortedItems([...searchItems], sorting.by, sorting.asc) : searchItems;
   }
 
   // Filter only audio/video files
-  const mediaFiles = listing.filter(item => {
-    const type = item?.type || '';
+  const mediaFiles = listing.filter((item): item is FileListItem => {
+    const type = item.type || '';
     const isAudio = type.startsWith('audio/');
     const isVideo = type.startsWith('video/');
-    return isAudio || isVideo;
+    return isQueueItem(item) && (isAudio || isVideo);
   });
 
   if (mediaFiles.length === 0) {
@@ -56,28 +68,27 @@ export function buildPlaybackQueue(listing, currentItem, mode = false, isShare =
     isShare ? item.name === matchValue : item.path === matchValue
   );
 
-  let finalQueue;
-  let finalIndex;
+  let finalQueue: FileListItem[];
+  let finalIndex: number;
 
   switch (mode) {
     case 'single': {
       const currentFile = currentIndex !== -1 ? mediaFiles.at(currentIndex) : currentItem;
-      finalQueue = currentFile ? [currentFile] : [];
-      finalIndex = currentFile ? 0 : -1;
+      const queued = currentFile && isQueueItem(currentFile) ? currentFile : undefined;
+      finalQueue = queued ? [queued] : [];
+      finalIndex = queued ? 0 : -1;
       break;
     }
 
     case 'sequential': {
       const sortedFiles = [...mediaFiles];
       finalQueue = sortedFiles;
-      if (currentIndex !== -1) {
-        const currentFile = mediaFiles.at(currentIndex);
-        finalIndex = sortedFiles.findIndex(item =>
+      const currentFile = currentIndex !== -1 ? mediaFiles.at(currentIndex) : undefined;
+      finalIndex = currentFile
+        ? sortedFiles.findIndex(item =>
           isShare ? item.name === currentFile.name : item.path === currentFile.path
-        );
-      } else {
-        finalIndex = 0;
-      }
+        )
+        : 0;
       break;
     }
 
@@ -106,13 +117,18 @@ export function buildPlaybackQueue(listing, currentItem, mode = false, isShare =
 
 /**
  * Determines the next item in the queue based on direction and loop state.
- * @param {Array} queue - The playback queue.
- * @param {number} currentIndex - The current index in the queue.
- * @param {string} loop - Loop state: "off" | "all" | "single".
- * @param {number} direction - 1 for next, -1 for previous.
- * @returns {{ index: number, item: Object } | null} The next item and its index, or null if none.
+ * @param queue - The playback queue.
+ * @param currentIndex - The current index in the queue.
+ * @param loop - Loop state: "off" | "all" | "single".
+ * @param direction - 1 for next, -1 for previous.
+ * @returns The next item and its index, or null if none.
  */
-export function getNextItem(queue, currentIndex, loop, direction) {
+export function getNextItem(
+  queue: FileListItem[],
+  currentIndex: number,
+  loop: PlaybackLoop,
+  direction: number,
+): { index: number; item: FileListItem } | null {
   if (!queue.length || currentIndex < 0) return null;
 
   let newIndex = currentIndex + direction;
@@ -141,14 +157,22 @@ export function getNextItem(queue, currentIndex, loop, direction) {
  * Advances to the next playback mode, or jumps to targetMode if given.
  * Rebuilds the queue for the new mode and commits it to the store.
  * sequential -> shuffle -> sequential ...
- * @param {string} currentMode - The current mode.
- * @param {Object} options - { listing, currentItem, isShare, targetMode? }
- * @returns {string} The new mode.
+ * @param currentMode - The current mode.
+ * @param options - { listing, currentItem, isShare, targetMode? }
+ * @returns The new mode.
  */
-export function cyclePlaybackModes(currentMode, { listing, currentItem, isShare, targetMode } = {}) {
-  const modes = ['sequential', 'shuffle'];
+export function cyclePlaybackModes(
+  currentMode: PlaybackMode,
+  { listing, currentItem, isShare, targetMode }: {
+    listing: PartialItem[];
+    currentItem: PartialItem;
+    isShare?: boolean;
+    targetMode?: PlaybackMode;
+  },
+): PlaybackMode {
+  const modes: PlaybackMode[] = ['sequential', 'shuffle'];
   const currentIndex = modes.indexOf(currentMode);
-  const newMode = targetMode || modes.at((currentIndex + 1) % modes.length);
+  const newMode = targetMode || modes.at((currentIndex + 1) % modes.length) || 'sequential';
 
   const { queue, currentIndex: newQueueIndex } = buildPlaybackQueue(
     listing,
@@ -169,31 +193,31 @@ export function cyclePlaybackModes(currentMode, { listing, currentItem, isShare,
 /**
  * Advances to the next loop state.
  * off -> single -> all -> off ...
- * @param {string} currentLoop - Loop state: 'off' | 'all' | 'single'
- * @returns {string} New loop state
+ * @param currentLoop - Loop state: 'off' | 'all' | 'single'
+ * @returns New loop state
  */
-export function cycleLoopState(currentLoop) {
-  const states = ['off', 'single', 'all'];
+export function cycleLoopState(currentLoop: PlaybackLoop): PlaybackLoop {
+  const states: PlaybackLoop[] = ['off', 'single', 'all'];
   const currentIndex = states.indexOf(currentLoop);
-  return states.at((currentIndex + 1) % states.length);
+  return states.at((currentIndex + 1) % states.length) ?? 'off';
 }
 
 /**
  * Toggles single loop on/off, is only used by the "L" shortcut
- * @param {string} currentLoop - Loop state: 'off' | 'all' | 'single'
- * @returns {string} "off", "single"
+ * @param currentLoop - Loop state: 'off' | 'all' | 'single'
+ * @returns "off", "single"
  */
-export function toggleSingleLoop(currentLoop) {
+export function toggleSingleLoop(currentLoop: PlaybackLoop): PlaybackLoop {
   return currentLoop === 'single' ? 'off' : 'single';
 }
 
 /**
  * Gets label for the playback modes.
- * @param {string} mode - The mode.
- * @param {number} [queueLength] - Number of items in the queue. When provided, uses it for the playback mode label.
- * @returns {string} The label.
+ * @param mode - The mode.
+ * @param queueLength - Number of items in the queue. When provided, uses it for the playback mode label.
+ * @returns The label.
  */
-export function getModeLabel(mode, queueLength) {
+export function getModeLabel(mode: PlaybackMode, queueLength?: number): string {
   if (queueLength !== undefined && mode === 'single') {
     return t('general.none');
   }
@@ -206,10 +230,10 @@ export function getModeLabel(mode, queueLength) {
 
 /**
  * Gets the icon name for a playback mode - used in the toast when changing playback modes
- * @param {string} mode - Playback mode
- * @returns {string} Icon name
+ * @param mode - Playback mode
+ * @returns Icon name
  */
-export function getModeIcon(mode) {
+export function getModeIcon(mode: PlaybackMode): string {
   switch (mode) {
     case 'sequential': return 'playlist_play';
     case 'shuffle':    return 'shuffle';
@@ -219,10 +243,10 @@ export function getModeIcon(mode) {
 
 /**
  * Gets the label for the loop states
- * @param {string} loop - Loop state: 'off' | 'all' | 'single'
- * @returns {string} The label
+ * @param loop - Loop state: 'off' | 'all' | 'single'
+ * @returns The label
  */
-export function getLoopLabel(loop) {
+export function getLoopLabel(loop: PlaybackLoop): string {
   switch (loop) {
     case 'all':    return t('player.PlayAllLoopedPlayback');
     case 'single': return t('player.LoopSingle');
@@ -232,10 +256,10 @@ export function getLoopLabel(loop) {
 
 /**
  * Gets the icon for the loop states
- * @param {string} loop - Loop state: 'off' | 'all' | 'single'
- * @returns {string} Icon name
+ * @param loop - Loop state: 'off' | 'all' | 'single'
+ * @returns Icon name
  */
-export function getLoopIcon(loop) {
+export function getLoopIcon(loop: PlaybackLoop): string {
   switch (loop) {
     case 'single': return 'repeat_one';
     default:       return 'repeat';
@@ -244,12 +268,16 @@ export function getLoopIcon(loop) {
 
 /**
  * Determines the action to take when the current media ends.
- * @param {Array} queue - The playback queue.
- * @param {number} currentIndex - The current index.
- * @param {string} loop - Loop state: 'off' | 'all' | 'single'
- * @returns {'next' | 'restart' | 'none'} The action to take.
+ * @param queue - The playback queue.
+ * @param currentIndex - The current index.
+ * @param loop - Loop state: 'off' | 'all' | 'single'
+ * @returns The action to take.
  */
-export function getEndOfMediaAction(queue, currentIndex, loop = state.playbackQueue.loop) {
+export function getEndOfMediaAction(
+  queue: FileListItem[],
+  currentIndex: number,
+  loop: PlaybackLoop = state.playbackQueue.loop,
+): 'next' | 'restart' | 'none' {
   if (loop === 'single') return 'restart';
   if (!queue.length || currentIndex < 0) return 'none';
   if (queue.length === 1) return loop === 'all' ? 'restart' : 'none';
@@ -259,10 +287,10 @@ export function getEndOfMediaAction(queue, currentIndex, loop = state.playbackQu
 
 /**
  * Navigates the playback queue in a given direction (next or previous).
- * @param {number} direction - -1 for previous, 1 for next.
- * @returns {boolean} True if navigation was triggered, false otherwise.
+ * @param direction - -1 for previous, 1 for next.
+ * @returns True if navigation was triggered, false otherwise.
  */
-export function navigatePlaybackQueue(direction) {
+export function navigatePlaybackQueue(direction: number): boolean {
   const queue = state.playbackQueue.queue;
   const currentIndex = state.playbackQueue.currentIndex;
   const mode = state.playbackQueue.mode;
@@ -290,20 +318,20 @@ export function navigatePlaybackQueue(direction) {
 }
 
 /** Clears the queue, keeping only the current item. */
-export function clearPlaybackQueue(currentItem = state.req) {
+export function clearPlaybackQueue(currentItem: PartialItem = state.req): void {
   mutations.setPlaybackQueue({
-    queue: currentItem ? [currentItem] : [],
-    currentIndex: currentItem ? 0 : -1,
+    queue: isQueueItem(currentItem) ? [currentItem] : [],
+    currentIndex: isQueueItem(currentItem) ? 0 : -1,
     mode: 'single',
     loop: state.playbackQueue.loop
   });
 }
 
 /**
- * @param {string} artist - Artist from metadata
- * @returns {string} Formatted artist
+ * @param artist - Artist from metadata
+ * @returns Formatted artist
  */
-export function formatArtist(artist) {
+export function formatArtist(artist: string | null | undefined): string {
   if (typeof artist !== 'string' || !artist.trim()) {
     return '';
   }

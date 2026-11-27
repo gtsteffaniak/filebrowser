@@ -98,7 +98,7 @@
 import { computed, nextTick, onMounted, useTemplateRef, watch } from "vue";
 import { useI18n } from "@/i18n/index.ts";
 import { state, mutations, getters } from "@/store/index.ts";
-import type { MediaMetadata } from "@/store/types.ts";
+import type { FileListItem } from "@/store/types.ts";
 import { url } from "@/utils/index.ts";
 import {
   cyclePlaybackModes,
@@ -110,7 +110,7 @@ import {
   getLoopLabel,
   getLoopIcon,
   formatArtist
-} from '@/utils/playbackQueue.js';
+} from '@/utils/playbackQueue.ts';
 import Icon from "@/components/files/Icon.vue";
 import SlidingTabs from "@/components/settings/SlidingTabs.vue";
 import { resourcesApi } from "@/api/index.js";
@@ -118,18 +118,6 @@ import { globalVars } from "@/utils/constants.ts";
 import { formatDuration, getTypeFromMime, removeExtension } from "@/utils/files.js";
 import { findScrollParents, useListingVirtualization } from "@/composables/listing/useListingVirtualization.ts";
 import type { VirtualItem } from "@/composables/listing/useListingVirtualization.ts";
-
-interface QueueItem {
-  name: string;
-  path: string;
-  type: string;
-  source?: string;
-  modified?: string;
-  created?: string;
-  size?: number;
-  hasPreview?: boolean;
-  metadata?: MediaMetadata;
-}
 
 const props = withDefaults(
   defineProps<{
@@ -154,7 +142,7 @@ const virtual = useListingVirtualization<VirtualItem>({
   minItems: 10,
 });
 
-const playbackQueue = computed(() => state.playbackQueue.queue as QueueItem[]);
+const playbackQueue = computed(() => state.playbackQueue.queue);
 const currentQueueIndex = computed(() => state.playbackQueue.currentIndex);
 const playbackMode = computed(() => state.playbackQueue.mode || 'single');
 const loop = computed(() => state.playbackQueue.loop || 'off');
@@ -226,11 +214,11 @@ onMounted(async () => {
   await scrollToCurrentItem();
 });
 
-function queueArtist(item: QueueItem) {
+function queueArtist(item: FileListItem) {
   return formatArtist(item.metadata?.artist ?? "");
 }
 
-function queueAlbum(item: QueueItem) {
+function queueAlbum(item: FileListItem) {
   const metadata = item.metadata || {};
   // Album name with year
   if (metadata.album) {
@@ -239,12 +227,12 @@ function queueAlbum(item: QueueItem) {
   return metadata.year || '';
 }
 
-function formatQueueItem(item: QueueItem) {
+function formatQueueItem(item: FileListItem) {
   const metadata = item.metadata || {};
   return {
     name: item.name,
     path: item.path,
-    type: item.type,
+    type: item.type ?? "",
     source: item.source,
     modified: item.modified,
     created: item.created,
@@ -260,7 +248,7 @@ function formatQueueItem(item: QueueItem) {
   };
 }
 
-function getThumbnailUrl(item: QueueItem) {
+function getThumbnailUrl(item: FileListItem) {
   if (!globalVars.enableThumbs) return "";
   const source = item.source;
   const path = item.path;
@@ -272,6 +260,7 @@ function getThumbnailUrl(item: QueueItem) {
 }
 
 function setMode(mode: string) {
+  if (mode !== "single" && mode !== "sequential" && mode !== "shuffle") return;
   if (mode === playbackMode.value) return;
   const listing = state.navigation.listing || state.req?.parentDirItems || [];
   cyclePlaybackModes(playbackMode.value, {
@@ -289,7 +278,7 @@ function cycleLoop() {
     queue: playbackQueue.value,
     currentIndex: currentQueueIndex.value,
     mode: playbackMode.value,
-    loop: nextLoop as typeof loop.value
+    loop: nextLoop
   });
 }
 
@@ -329,7 +318,7 @@ function navigateToIndex(index: number) {
   }
 }
 
-function triggerNavigation(item: QueueItem) {
+function triggerNavigation(item: FileListItem) {
   url.goToItem(item.source || state.req.source, item.path, undefined, false, getters.isShare());
 }
 

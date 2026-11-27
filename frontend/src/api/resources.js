@@ -10,7 +10,7 @@ import { renew } from "@/utils/auth.js"
 import { getApiPath, getPublicApiPath } from '@/utils/url.js'
 import { adjustedData, fetchURL } from "./utils.ts"
 import { rememberViewToken } from "./viewToken.js"
-import { isMediaFile } from "@/utils/mediaFile.js"
+import { isMediaFile } from "@/utils/mediaFile.ts"
 import { isDirectoryItem } from "@/utils/directoryItem.js"
 import { getObjectProperty } from "@/utils/object.js"
 import { getStreamURL } from "./media.ts"

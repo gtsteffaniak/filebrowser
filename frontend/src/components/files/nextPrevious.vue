@@ -104,7 +104,7 @@ import throttle from "@/utils/throttle.js";
 import { previewViews } from "@/utils/constants.ts";
 import { url } from "@/utils/index.ts";
 import { resourcesApi } from "@/api/index.js";
-import { navigatePlaybackQueue } from "@/utils/playbackQueue.js";
+import { navigatePlaybackQueue } from "@/utils/playbackQueue.ts";
 import {
   isInLeftNavHoverZone,
   isInLeftNavTapZone,

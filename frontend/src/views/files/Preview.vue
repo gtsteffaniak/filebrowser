@@ -55,7 +55,6 @@ import { useI18n } from "@/i18n/index.ts";
 import { getters, mutations, state } from "@/store/index.ts";
 import { createAsyncComponent } from "@/utils/asyncComponent.js";
 import { globalVars } from "@/utils/constants.ts";
-import { isPdfFile } from "@/utils/mediaFile.js";
 import { isRawImageMimeType } from "@/utils/mimetype.js";
 import { shouldUsePdfPreviewFallback } from "@/utils/pdfPreview.js";
 import { countMediaInListing } from "@/utils/slideshow.ts";
@@ -112,7 +111,7 @@ const showImage = computed(() => {
 const isPdf = computed(
   () =>
     !getters.fileViewingDisabled(state.req.name ?? "") &&
-    (isPdfFile(state.req.type) || isPdfFile(state.req.name)),
+    (state.req.type?.toLowerCase() === "application/pdf" || state.req.name?.toLowerCase().endsWith(".pdf") === true),
 );
 const usePdfPreviewFallback = computed(() => isPdf.value && shouldUsePdfPreviewFallback());
 

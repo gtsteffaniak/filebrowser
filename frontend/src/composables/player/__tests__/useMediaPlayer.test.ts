@@ -21,7 +21,7 @@ vi.mock("@/store/index.ts", async () => {
   return { state: reactive(hoisted.state), mutations: { setPlaybackState: vi.fn() } };
 });
 vi.mock("@/utils/constants.ts", () => ({ globalVars: { baseURL: "/" } }));
-vi.mock("@/utils/playbackQueue.js", () => ({ getEndOfMediaAction: vi.fn(), navigatePlaybackQueue: vi.fn() }));
+vi.mock("@/utils/playbackQueue.ts", () => ({ getEndOfMediaAction: vi.fn(), navigatePlaybackQueue: vi.fn() }));
 vi.mock("@/utils/url.js", () => ({
   buildItemUrl: (source: string, path: string) => `/files/${source}${path}`,
   removeTrailingSlash: (path: string) => path.replace(/\/$/, ""),

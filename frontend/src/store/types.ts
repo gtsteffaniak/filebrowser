@@ -18,6 +18,9 @@ export interface FileListItem {
   metadata?: MediaMetadata;
 }
 
+export type PlaybackMode = 'single' | 'sequential' | 'shuffle';
+export type PlaybackLoop = 'off' | 'all' | 'single';
+
 export interface InfoItem extends FileListItem {
   subtitles?: SubtitleTrack[];
   token?: string;
@@ -535,7 +538,7 @@ export interface StoreState {
   navigation: {
     show: boolean;
     hoverNav: boolean;
-    listing: unknown;
+    listing: Partial<FileListItem>[] | null;
     currentIndex: number;
     previousItem: unknown;
     nextItem: unknown;
@@ -553,11 +556,11 @@ export interface StoreState {
     sorting: { by: string; asc: boolean } | null;
   };
   playbackQueue: {
-    queue: unknown[];
+    queue: FileListItem[];
     currentIndex: number;
-    mode: 'single' | 'sequential' | 'shuffle';
+    mode: PlaybackMode;
     isPlaying: boolean;
-    loop: 'off' | 'all' | 'single';
+    loop: PlaybackLoop;
     shouldTogglePlayPause?: boolean;
   };
   notificationHistory: unknown[];

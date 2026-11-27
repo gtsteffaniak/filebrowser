@@ -142,7 +142,7 @@ import {
   emptyMediaSettings,
   mergeMediaSettings,
   saveMediaSettingsPatch,
-} from "@/utils/mediaSettings.js";
+} from "@/utils/mediaSettings.ts";
 
 export default {
   name: "MediaTranscodeSettings",
