@@ -30,8 +30,8 @@ import {
   parsePlaybackTimeFromQuery,
   parseTranscodeModeFromQuery,
   playbackQueryChanged,
-} from "@/utils/playbackQuery.js";
-import { resolveTranscodeModeForPlayback, savePreferredTranscodeMode } from "@/utils/transcodePreference.js";
+} from "@/player/playbackQuery";
+import { resolveTranscodeModeForPlayback, savePreferredTranscodeMode } from "@/composables/player/playerStorage.ts";
 
 /** The parts of the requested file the transcode logic reads. */
 export interface TranscodeRequest {

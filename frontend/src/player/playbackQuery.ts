@@ -1,18 +1,33 @@
-import { getObjectProperty, setObjectProperty } from './object.js';
+import type { TranscodeProfile } from "@/api/transcode.ts";
+import { getObjectProperty, setObjectProperty } from "../utils/object.js";
 
-/** Query key for shareable playback position (`HH:MM:SS`). */
+/** A URL query value, as vue-router parses it (a key may be absent or repeated) */
+type QueryValue = string | null | (string | null)[] | undefined;
+
+/** Route query that the playback helpers read and rewrite */
+export type PlaybackQuery = Record<string, QueryValue>;
+
+export interface PlaybackQueryPatch {
+  time?: number | null;
+  transcodeMode?: TranscodeProfile | null;
+}
+
+/** Query key for shareable playback position (`HH:MM:SS`) */
 export const PLAYBACK_TIME_QUERY_KEY = 'time';
 
-/** Legacy numeric seconds key; still accepted when reading URLs. */
+/** Legacy numeric seconds key; still accepted when reading URLs */
 export const LEGACY_PLAYBACK_TIME_QUERY_KEY = 't';
 
-/** Transcode profile in shareable links (`quality` | `balanced` | `datasaver`). */
+/** Transcode profile in shareable links (`quality` | `balanced` | `datasaver`) */
 export const PLAYBACK_TRANSCODE_QUERY_KEY = 'transcode';
 
-const VALID_TRANSCODE_MODES = new Set(['quality', 'balanced', 'datasaver']);
+const VALID_TRANSCODE_MODES: ReadonlySet<string> = new Set<TranscodeProfile>(["quality", "balanced", "datasaver"]);
 
-/** @param {string} part */
-function isValidClockPart(part) {
+function isTranscodeProfile(value: string): value is TranscodeProfile {
+  return VALID_TRANSCODE_MODES.has(value);
+}
+
+function isValidClockPart(part: string): boolean {
   if (!part) {
     return false;
   }
@@ -31,8 +46,7 @@ function isValidClockPart(part) {
   return true;
 }
 
-/** @param {string} str */
-function parsePlainSecondsString(str) {
+function parsePlainSecondsString(str: string): number | null {
   if (str.includes(':')) {
     return null;
   }
@@ -63,11 +77,9 @@ function parsePlainSecondsString(str) {
 
 /**
  * Parse `HH:MM:SS` or `MM:SS` clock time.
- * @param {unknown} raw
- * @param {{ requireHours?: boolean }} [options]
- * @returns {number | null} seconds
+ * @returns seconds, or null when the value is not a valid clock time
  */
-export function parseClockTimeString(raw, options = {}) {
+export function parseClockTimeString(raw: unknown, options: { requireHours?: boolean } = {}): number | null {
   if (raw === null || raw === undefined || raw === '') {
     return null;
   }
@@ -85,8 +97,7 @@ export function parseClockTimeString(raw, options = {}) {
     return null;
   }
 
-  /** @type {number[]} */
-  const values = [];
+  const values: number[] = [];
   for (const partRaw of parts) {
     const part = partRaw.trim();
     if (!part || !isValidClockPart(part)) {
@@ -99,14 +110,8 @@ export function parseClockTimeString(raw, options = {}) {
     values.push(value);
   }
 
-  let hours = 0;
-  let minutes;
-  let seconds;
-  if (values.length === 3) {
-    [hours, minutes, seconds] = values;
-  } else {
-    [minutes, seconds] = values;
-  }
+  // Three parts are HH:MM:SS, two are MM:SS; the length was validated above.
+  const [hours = 0, minutes = 0, seconds = 0] = values.length === 3 ? values : [0, ...values];
 
   if (minutes >= 60 || seconds >= 60) {
     return null;
@@ -116,11 +121,7 @@ export function parseClockTimeString(raw, options = {}) {
   return Number.isFinite(total) && total >= 0 ? total : null;
 }
 
-/**
- * @param {number} seconds
- * @returns {string}
- */
-export function formatTimeForQuery(seconds) {
+export function formatTimeForQuery(seconds: number): string {
   const total = Math.max(0, Math.round(seconds));
   const h = Math.floor(total / 3600);
   const m = Math.floor((total % 3600) / 60);
@@ -128,11 +129,7 @@ export function formatTimeForQuery(seconds) {
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 }
 
-/**
- * @param {Record<string, unknown> | undefined} query
- * @returns {number | null}
- */
-export function parsePlaybackTimeFromQuery(query) {
+export function parsePlaybackTimeFromQuery(query: Record<string, unknown> | undefined): number | null {
   if (!query) {
     return null;
   }
@@ -153,11 +150,7 @@ export function parsePlaybackTimeFromQuery(query) {
   return null;
 }
 
-/**
- * @param {Record<string, unknown> | undefined} query
- * @returns {'quality' | 'datasaver' | null}
- */
-export function parseTranscodeModeFromQuery(query) {
+export function parseTranscodeModeFromQuery(query: Record<string, unknown> | undefined): TranscodeProfile | null {
   if (!query) {
     return null;
   }
@@ -166,29 +159,23 @@ export function parseTranscodeModeFromQuery(query) {
     return null;
   }
   const mode = String(raw).toLowerCase();
-  return VALID_TRANSCODE_MODES.has(mode) ? mode : null;
+  return isTranscodeProfile(mode) ? mode : null;
 }
 
-/**
- * @param {Record<string, string | null | (string | null)[] | undefined>} query
- * @param {{ time?: number | null, transcodeMode?: string | null }} [patch]
- * @returns {Record<string, string | undefined>}
- */
-export function buildPlaybackQueryPatch(query = {}, patch = {}) {
+export function buildPlaybackQueryPatch(query: PlaybackQuery = {}, patch: PlaybackQueryPatch = {}): PlaybackQuery {
   const {
     t: _legacyT,
     time: queryTime,
     transcode: queryTranscode,
     ...rest
   } = query;
-  /** @type {Record<string, string | undefined>} */
-  let next = { ...rest };
-  let timeValue = queryTime;
+  let next: PlaybackQuery = { ...rest };
+  let timeValue: QueryValue = queryTime;
   if (timeValue === undefined) {
     const parsedTime = parsePlaybackTimeFromQuery(query);
     timeValue = parsedTime === null ? undefined : formatTimeForQuery(parsedTime);
   }
-  let transcodeValue = queryTranscode;
+  let transcodeValue: QueryValue = queryTranscode;
 
   if (Object.hasOwn(patch, 'time')) {
     const { time } = patch;
@@ -198,31 +185,24 @@ export function buildPlaybackQueryPatch(query = {}, patch = {}) {
       timeValue = undefined;
     }
   }
-
   if (Object.hasOwn(patch, 'transcodeMode')) {
     const { transcodeMode } = patch;
-    if (transcodeMode && VALID_TRANSCODE_MODES.has(transcodeMode)) {
+    if (transcodeMode && isTranscodeProfile(transcodeMode)) {
       transcodeValue = transcodeMode;
     } else {
       transcodeValue = undefined;
     }
   }
-
   if (timeValue !== undefined) {
-    next = setObjectProperty(next, PLAYBACK_TIME_QUERY_KEY, timeValue);
+    next = setObjectProperty(next, PLAYBACK_TIME_QUERY_KEY, timeValue) as PlaybackQuery;
   }
   if (transcodeValue !== undefined) {
-    next = setObjectProperty(next, PLAYBACK_TRANSCODE_QUERY_KEY, transcodeValue);
+    next = setObjectProperty(next, PLAYBACK_TRANSCODE_QUERY_KEY, transcodeValue) as PlaybackQuery;
   }
   return next;
 }
 
-/**
- * @param {Record<string, unknown> | undefined} prev
- * @param {Record<string, unknown> | undefined} next
- * @returns {boolean}
- */
-export function playbackQueryChanged(prev = {}, next = {}) {
+export function playbackQueryChanged(prev: Record<string, unknown> = {}, next: Record<string, unknown> = {}): boolean {
   const prevSec = parsePlaybackTimeFromQuery(prev);
   const nextSec = parsePlaybackTimeFromQuery(next);
   const prevRounded = prevSec === null ? null : Math.round(prevSec);
@@ -233,14 +213,4 @@ export function playbackQueryChanged(prev = {}, next = {}) {
     prevRounded !== nextRounded
     || prevTranscode !== nextTranscode
   );
-}
-
-/** @deprecated use formatTimeForQuery */
-export function formatDurationForQuery(seconds) {
-  return formatTimeForQuery(seconds);
-}
-
-/** @deprecated use formatTimeForQuery */
-export function formatPlaybackTimeQueryValue(seconds) {
-  return formatTimeForQuery(seconds);
 }

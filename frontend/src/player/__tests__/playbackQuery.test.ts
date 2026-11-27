@@ -6,7 +6,7 @@ import {
   parseClockTimeString,
   parsePlaybackTimeFromQuery,
   playbackQueryChanged,
-} from './playbackQuery.js';
+} from "../playbackQuery.ts";
 
 describe('parseClockTimeString', () => {
   it('parses HH:MM:SS', () => {
