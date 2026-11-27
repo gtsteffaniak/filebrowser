@@ -2,11 +2,14 @@
 
 import { patchMediaSettings } from '@/api/settings.js';
 import type { TranscodeProfile } from '@/api/transcode.ts';
+import i18n from '@/i18n/index.ts';
 import type { StoreState } from '@/store/types.ts';
 
-// We can inline this when we convert to typescript
-import { MEDIA_TRANSCODE_PROFILES } from '@/utils/mediaTranscodeProfiles.ts';
-export { MEDIA_TRANSCODE_PROFILES };
+export const MEDIA_TRANSCODE_PROFILES: { id: TranscodeProfile; label: () => string }[] = [
+  { id: 'quality', label: () => i18n.global.t('general.quality') },
+  { id: 'balanced', label: () => i18n.global.t('general.balanced') },
+  { id: 'datasaver', label: () => i18n.global.t('general.dataSaver') },
+];
 
 export interface TranscodeProfileSettings {
   enabled: boolean;

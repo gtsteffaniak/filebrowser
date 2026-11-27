@@ -1,6 +1,6 @@
 import { TRANSCODE_HLS_MODES, type TranscodeHlsMode } from "@/player/transcodeMode.ts";
 import { getObjectProperty } from "@/utils/object.js";
-import { parseTranscodeModeFromQuery } from "@/player/playbackQuery";
+import { parseTranscodeModeFromQuery } from "@/player/playbackQuery.ts";
 
 // Storage keys keep the legacy "plyr" prefix
 const PLAYER_STORAGE_KEY = "plyr";
