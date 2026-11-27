@@ -84,3 +84,30 @@ func TestArchiveCreate_AllowsNonSymlinkDestination(t *testing.T) {
 		t.Fatalf("expected archive at %s: %v", dest, err)
 	}
 }
+
+func TestArchiveCreate_RejectsDeleteAfterWithDestinationInsideSource(t *testing.T) {
+	_, sourceRoot, sourceName, username := setupExtractAccessPolicyTest(t)
+	kept := filepath.Join(sourceRoot, "P", "sub", "b.txt")
+	if err := os.MkdirAll(filepath.Dir(kept), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(kept, []byte("keep"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	user, err := state.GetUserByUsername(username)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	body := `{"fromSource":"` + sourceName + `","paths":["/P"],"destination":"/P/inner.zip","deleteAfter":true}`
+	req := httptest.NewRequest(http.MethodPost, "/api/resources/archive", strings.NewReader(body))
+	rec := httptest.NewRecorder()
+	status, handlerErr := archiveCreateHandler(rec, req, &Context{User: &user})
+	if status != http.StatusBadRequest || handlerErr == nil {
+		t.Fatalf("status=%d err=%v", status, handlerErr)
+	}
+	if got, err := os.ReadFile(kept); err != nil || string(got) != "keep" {
+		t.Fatalf("source content=%q err=%v", got, err)
+	}
+}
