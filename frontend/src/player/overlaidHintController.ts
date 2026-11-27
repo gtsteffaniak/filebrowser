@@ -1,21 +1,41 @@
 const FADE_MS = 400;
 const REVEAL_AFTER_PLAY_MS = 1000;
 
-const CLASS_SHOWN = 'fb-overlaid--shown';
-const CLASS_FADE_IN = 'fb-overlaid--fade-in';
-const CLASS_FADE_OUT = 'fb-overlaid--fade-out';
+const CLASS_SHOWN = "fb-overlaid--shown";
+const CLASS_FADE_IN = "fb-overlaid--fade-in";
+const CLASS_FADE_OUT = "fb-overlaid--fade-out";
 
-/**
- * Overlaid play/pause hint while video is playing.
- * Visibility follows Plyr control show/hide; icon swaps on play/pause only.
- * The overlaid button stays non-interactive — gestures handle taps/clicks.
- */
+type ControlsEvent = "controlsshown" | "controlshidden";
+
+/** The part of a Plyr player the hint reads and listens to. */
+export interface OverlaidHintPlayer {
+  elements: {
+    container: HTMLElement | null;
+    buttons?: { play?: HTMLElement | HTMLElement[] };
+  };
+  on: (event: ControlsEvent, callback: () => void) => void;
+  off: (event: ControlsEvent, callback: () => void) => void;
+}
+
+export interface OverlaidHintOptions {
+  player: OverlaidHintPlayer;
+  hasStartedPlayback: () => boolean;
+  baseUrl: string;
+  isPlaying?: boolean;
+}
+
+export interface OverlaidHintController {
+  cleanup: () => void;
+  syncPlayback: (playing: boolean) => void;
+  reset: () => void;
+}
+
 export function enableOverlaidHintController({
   player,
   hasStartedPlayback,
   baseUrl,
   isPlaying = false,
-}) {
+}: OverlaidHintOptions): OverlaidHintController {
   if (!player?.elements?.container) {
     return {
       cleanup: () => {},
@@ -25,8 +45,8 @@ export function enableOverlaidHintController({
   }
 
   let currentlyPlaying = false;
-  let fadeTimer = null;
-  let fadeInRaf = null;
+  let fadeTimer: ReturnType<typeof setTimeout> | null = null;
+  let fadeInRaf: number | null = null;
   let suppressUntil = 0;
 
   const getPlyrEl = () => player.elements.container;
@@ -34,22 +54,22 @@ export function enableOverlaidHintController({
   const getOverlaidButton = () => {
     const buttons = player.elements?.buttons?.play;
     if (Array.isArray(buttons)) {
-      const overlaid = buttons.find((btn) => btn.classList?.contains('plyr__control--overlaid'));
+      const overlaid = buttons.find((btn) => btn.classList?.contains("plyr__control--overlaid"));
       if (overlaid) {
         return overlaid;
       }
     }
-    return player.elements.container.querySelector('.plyr__control--overlaid');
+    return player.elements.container?.querySelector(".plyr__control--overlaid");
   };
 
   const applyIcon = () => {
     const btn = getOverlaidButton();
-    const use = btn?.querySelector('use');
+    const use = btn?.querySelector("use");
     if (!use) return;
-    const icon = currentlyPlaying ? 'pause' : 'play';
+    const icon = currentlyPlaying ? "pause" : "play";
     const href = `${baseUrl}public/static/img/plyr.svg#plyr-${icon}`;
-    use.setAttribute('href', href);
-    use.setAttribute('xlink:href', href);
+    use.setAttribute("href", href);
+    use.setAttribute("xlink:href", href);
   };
 
   const clearTimers = () => {
@@ -124,10 +144,10 @@ export function enableOverlaidHintController({
     fadeOut();
   };
 
-  player.on('controlsshown', onControlsShown);
-  player.on('controlshidden', onControlsHidden);
+  player.on("controlsshown", onControlsShown);
+  player.on("controlshidden", onControlsHidden);
 
-  const syncPlayback = (playing) => {
+  const syncPlayback = (playing: boolean) => {
     currentlyPlaying = !!playing;
     applyIcon();
     if (currentlyPlaying) {
@@ -142,8 +162,8 @@ export function enableOverlaidHintController({
   const reset = () => syncPlayback(false);
 
   const cleanup = () => {
-    player.off('controlsshown', onControlsShown);
-    player.off('controlshidden', onControlsHidden);
+    player.off("controlsshown", onControlsShown);
+    player.off("controlshidden", onControlsHidden);
     reset();
   };
 

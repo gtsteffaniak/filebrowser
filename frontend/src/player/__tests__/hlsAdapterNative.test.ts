@@ -1,36 +1,35 @@
-import { describe, expect, it, vi, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { transcodeSession } from "@/composables/player/__tests__/mediaTestUtils.ts";
 
-vi.mock('hls.js', () => ({
+vi.mock("hls.js", () => ({
   default: {
     isSupported: () => false,
     Events: {},
   },
 }));
 
-vi.mock('@/store', () => ({
-  state: { sessionId: 'test-session' },
+vi.mock("@/store", () => ({
+  state: { sessionId: "test-session" },
 }));
 
-import { attachHlsToVideo } from '@/player/hlsAdapter.js';
+import { attachHlsToVideo } from "@/player/hlsAdapter.ts";
 
-/** Minimal MediaSource-less element that reports native HLS support. */
+/** Minimal element that reports native HLS support */
 function nativeHlsVideo() {
-  const video = document.createElement('video');
-  video.canPlayType = () => 'maybe';
-  // jsdom does not implement load(); the cleanup path calls it and jsdom would
-  // otherwise print "Not implemented: HTMLMediaElement's load() method".
+  const video = document.createElement("video");
+  video.canPlayType = () => "maybe";
   video.load = () => {};
   return video;
 }
 
-const session = { id: 'sess-1', deliveryBaseUrl: '/api/media/transcode/sessions/sess-1' };
+const session = transcodeSession({ id: "sess-1", deliveryBaseUrl: "/api/media/transcode/sessions/sess-1" });
 
-describe('attachHlsToVideo native HLS fallback', () => {
+describe("attachHlsToVideo native HLS fallback", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('stays pending until the element is ready, then reports first-buffered and resolves', async () => {
+  it("stays pending until the element is ready, then reports first-buffered and resolves", async () => {
     const video = nativeHlsVideo();
     const onFirstBuffered = vi.fn();
 
@@ -44,7 +43,7 @@ describe('attachHlsToVideo native HLS fallback', () => {
     expect(resolved).toBe(false);
     expect(onFirstBuffered).not.toHaveBeenCalled();
 
-    video.dispatchEvent(new Event('loadeddata'));
+    video.dispatchEvent(new Event("loadeddata"));
     const handle = await attach;
 
     expect(onFirstBuffered).toHaveBeenCalledTimes(1);
@@ -52,34 +51,34 @@ describe('attachHlsToVideo native HLS fallback', () => {
     handle.cleanup();
   });
 
-  it('reports readiness only once when both events fire', async () => {
+  it("reports readiness only once when both events fire", async () => {
     const video = nativeHlsVideo();
     const onFirstBuffered = vi.fn();
 
     const attach = attachHlsToVideo({ video, session, onFirstBuffered });
-    video.dispatchEvent(new Event('loadeddata'));
-    video.dispatchEvent(new Event('canplay'));
+    video.dispatchEvent(new Event("loadeddata"));
+    video.dispatchEvent(new Event("canplay"));
     const handle = await attach;
 
     expect(onFirstBuffered).toHaveBeenCalledTimes(1);
     handle.cleanup();
   });
 
-  it('rejects when the element reports an error before it is ready', async () => {
+  it("rejects when the element reports an error before it is ready", async () => {
     const video = nativeHlsVideo();
     const onFirstBuffered = vi.fn();
 
     const attach = attachHlsToVideo({ video, session, onFirstBuffered });
-    video.dispatchEvent(new Event('error'));
+    video.dispatchEvent(new Event("error"));
 
-    await expect(attach).rejects.toMatchObject({ name: 'NativeHlsError' });
+    await expect(attach).rejects.toMatchObject({ name: "NativeHlsError" });
     expect(onFirstBuffered).not.toHaveBeenCalled();
-    expect(video.hasAttribute('src')).toBe(false);
-    video.dispatchEvent(new Event('loadeddata'));
+    expect(video.hasAttribute("src")).toBe(false);
+    video.dispatchEvent(new Event("loadeddata"));
     expect(onFirstBuffered).not.toHaveBeenCalled();
   });
 
-  it('rejects with an attach timeout when no event arrives in time', async () => {
+  it("rejects with an attach timeout when no event arrives in time", async () => {
     vi.useFakeTimers();
     try {
       const video = nativeHlsVideo();
@@ -87,31 +86,31 @@ describe('attachHlsToVideo native HLS fallback', () => {
       attach.catch(() => {});
 
       await vi.advanceTimersByTimeAsync(1_001);
-      await expect(attach).rejects.toMatchObject({ name: 'AttachTimeoutError' });
-      expect(video.hasAttribute('src')).toBe(false);
+      await expect(attach).rejects.toMatchObject({ name: "AttachTimeoutError" });
+      expect(video.hasAttribute("src")).toBe(false);
       expect(vi.getTimerCount()).toBe(0);
     } finally {
       vi.useRealTimers();
     }
   });
 
-  it('does not report readiness after cleanup', async () => {
+  it("does not report readiness after cleanup", async () => {
     const video = nativeHlsVideo();
     const onFirstBuffered = vi.fn();
 
     const attach = attachHlsToVideo({ video, session, onFirstBuffered });
-    video.dispatchEvent(new Event('canplay'));
+    video.dispatchEvent(new Event("canplay"));
     const handle = await attach;
     onFirstBuffered.mockClear();
 
     handle.cleanup();
-    video.dispatchEvent(new Event('loadeddata'));
-    video.dispatchEvent(new Event('canplay'));
+    video.dispatchEvent(new Event("loadeddata"));
+    video.dispatchEvent(new Event("canplay"));
     expect(onFirstBuffered).not.toHaveBeenCalled();
-    expect(video.hasAttribute('src')).toBe(false);
+    expect(video.hasAttribute("src")).toBe(false);
   });
 
-  it('rejects when the signal is already aborted', async () => {
+  it("rejects when the signal is already aborted", async () => {
     const controller = new AbortController();
     controller.abort();
 
@@ -120,6 +119,6 @@ describe('attachHlsToVideo native HLS fallback', () => {
       session,
       signal: controller.signal,
       onFirstBuffered: vi.fn(),
-    })).rejects.toMatchObject({ name: 'AbortError' });
+    })).rejects.toMatchObject({ name: "AbortError" });
   });
 });

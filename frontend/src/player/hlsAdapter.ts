@@ -1,21 +1,21 @@
-import Hls from 'hls.js';
-import { getTranscodePlaylistURL } from '@/api/transcode.js';
-import { state } from '@/store/index.ts';
-import { transcodeError, transcodeLog, transcodeVerbose, transcodeWarn } from '@/player/transcodeDebug.js';
+import Hls, { type ErrorData, type Fragment } from "hls.js";
+import { getTranscodePlaylistURL, type TranscodeSession } from "@/api/transcode.ts";
+import {
+  AttachAbortError,
+  AttachTimeoutError,
+  errorMessage,
+  NativeHlsError,
+  type PlayerError,
+  TranscodeRecoverError,
+} from "@/player/playerErrors.ts";
+import { transcodeError, transcodeLog, transcodeVerbose, transcodeWarn } from "@/player/transcodeDebug.ts";
+import { state } from "@/store/index.ts";
 
 const ATTACH_TIMEOUT_MS = 45_000;
 /** Wait for decoded dimensions before declaring attach ready (MSE can buffer without painting). */
 const RENDERABLE_WAIT_MS = 8_000;
 const MAX_BUFFER_APPEND_RECOVERIES = 3;
-/**
- * A mid-file start has to wait for the producer to seek, warm up and publish the
- * first fragment that covers `startPosition`. The base attach budget is measured
- * from attach time and knows nothing about how far into the file the seek lands,
- * so a deep resume (e.g. datasaver resuming at ~10.5s) shares the same 45s as a
- * start at 0s even though its first usable fragment is produced later. Scale the
- * budget by the seek offset, bounded, so a deep seek is not killed while the
- * producer is still working.
- */
+/** A mid-file start has to wait for the producer to seek, warm up and publish the first fragment that covers `startPosition`. */
 const SEEK_WARMUP_MS_PER_SEC = 1_000;
 const MAX_SEEK_WARMUP_MS = 45_000;
 /**
@@ -28,70 +28,96 @@ const FRAG_FIRST_BYTE_TIMEOUT_MS = 45_000;
 const ATTACH_STARTUP_STALL_TIMEOUT_MS = FRAG_FIRST_BYTE_TIMEOUT_MS;
 const FRAG_MAX_LOAD_MS = 120_000;
 
+export interface HlsAttachment {
+  cleanup: () => void;
+  hls?: Hls;
+}
+
+/** Fatal failure reported when the browser native HLS breaks after it was ready */
+export interface NativeHlsFatalData {
+  fatal: true;
+  type: "mediaError";
+  details: "nativeHlsError";
+  code: number | undefined;
+  reason: string;
+}
+
+export type HlsFatalData = ErrorData | NativeHlsFatalData;
+
+/** The attachment broke mid-playback */
+export interface HlsRecoverRequest {
+  startSec: number;
+  sessionId?: string;
+  shouldAutoplay?: boolean;
+}
+
+/** Resolves true when the replacement session took over */
+export type HlsRecoverHandler = (request: HlsRecoverRequest) => Promise<boolean>;
+
+export interface AttachHlsOptions {
+  video: HTMLVideoElement;
+  session: Pick<TranscodeSession, "id" | "state" | "reused" | "deliveryBaseUrl">;
+  startPosition?: number;
+  signal?: AbortSignal;
+  onFatal?: (data: HlsFatalData) => void;
+  onRecoverPlayback?: HlsRecoverHandler;
+  onFirstBuffered?: (video: HTMLVideoElement) => void;
+  budgetMs?: number;
+}
+
 /**
  * Total attach budget for a start position: the base deadline plus a bounded
  * allowance for the seek/producer warm-up the first fragment needs.
  */
-export function attachDeadlineMs(startPosition) {
-  const seek = Number.isFinite(startPosition) && startPosition > 0 ? startPosition : 0;
+export function attachDeadlineMs(startPosition?: number): number {
+  const seek = startPosition !== undefined && Number.isFinite(startPosition) && startPosition > 0 ? startPosition : 0;
   const warmup = Math.min(seek * SEEK_WARMUP_MS_PER_SEC, MAX_SEEK_WARMUP_MS);
   return ATTACH_TIMEOUT_MS + warmup;
 }
 
 /**
- * Resolve the hard-attach deadline for one attempt. An explicit `budgetMs`
- * (a shared, already-decremented retry budget) wins when finite and positive;
+ * Resolve the hard-attach deadline for one attempt. An explicit `budgetMs`  wins when finite and positive,
  * otherwise fall back to the seek-scaled default for the start position.
  */
-function resolveAttachDeadlineMs(startPosition, budgetMs) {
-  if (Number.isFinite(budgetMs) && budgetMs > 0) {
+function resolveAttachDeadlineMs(startPosition: number, budgetMs?: number): number {
+  if (budgetMs !== undefined && Number.isFinite(budgetMs) && budgetMs > 0) {
     return budgetMs;
   }
   return attachDeadlineMs(startPosition);
 }
 
-const RECOVERABLE_HLS_DETAILS = new Set([
-  'bufferSeekOverHole',
-  'bufferNudgeOnStall',
-  'bufferStalledError',
-]);
+const RECOVERABLE_HLS_DETAILS = new Set<string>(["bufferSeekOverHole", "bufferNudgeOnStall", "bufferStalledError"]);
 
-function authHeaders() {
-  const headers = {};
+function authHeaders(): Record<string, string> {
+  const headers: Record<string, string> = {};
   if (state.sessionId) {
     headers.sessionId = state.sessionId;
   }
   return headers;
 }
 
-function applyAuthToFetchParams(initParams) {
-  initParams.credentials = 'same-origin';
-  const headers = authHeaders();
-  if (initParams.headers instanceof Headers) {
-    for (const [key, value] of Object.entries(headers)) {
-      initParams.headers.set(key, value);
-    }
-  } else {
-    initParams.headers = {
-      ...(initParams.headers || {}),
-      ...headers,
-    };
+function applyAuthToFetchParams(initParams: RequestInit): RequestInit {
+  initParams.credentials = "same-origin";
+  const headers = new Headers(initParams.headers);
+  for (const [key, value] of Object.entries(authHeaders())) {
+    headers.set(key, value);
   }
+  initParams.headers = headers;
   return initParams;
 }
 
-function describeBufferedRanges(video) {
-  if (!video?.buffered) {
+function describeBufferedRanges(video: HTMLMediaElement): Array<[number, number]> {
+  if (!video.buffered) {
     return [];
   }
-  const ranges = [];
+  const ranges: Array<[number, number]> = [];
   for (let i = 0; i < video.buffered.length; i += 1) {
     ranges.push([video.buffered.start(i), video.buffered.end(i)]);
   }
   return ranges;
 }
 
-function describeVideo(video) {
+function describeVideo(video?: HTMLVideoElement | null) {
   if (!video) {
     return null;
   }
@@ -101,7 +127,7 @@ function describeVideo(video) {
     paused: video.paused,
     currentTime: video.currentTime,
     duration: video.duration,
-    src: video.currentSrc || video.getAttribute('src') || null,
+    src: video.currentSrc || video.getAttribute("src") || null,
     size: `${video.videoWidth}x${video.videoHeight}`,
     buffered: describeBufferedRanges(video),
   };
@@ -109,36 +135,39 @@ function describeVideo(video) {
 
 /**
  * MSE may report buffered fragments while videoWidth is still 0. Wait briefly for
- * a decoded frame (or time advancing) before telling Plyr playback can start.
+ * a decoded frame (or time advancing) before telling the player playback can start.
  */
-export function waitUntilVideoRenderable(video, signal, maxMs = RENDERABLE_WAIT_MS) {
+export function waitUntilVideoRenderable(
+  video: HTMLVideoElement | null | undefined,
+  signal?: AbortSignal,
+  maxMs = RENDERABLE_WAIT_MS,
+): Promise<boolean> {
   return new Promise((resolve) => {
     if (!video || signal?.aborted) {
       resolve(false);
       return;
     }
-    const hasPicture = () => video.videoWidth > 0
-      && video.videoHeight > 0
-      && video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA;
+    const hasPicture = () =>
+      video.videoWidth > 0 && video.videoHeight > 0 && video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA;
     if (hasPicture()) {
       resolve(true);
       return;
     }
 
     let settled = false;
-    let timeoutId = null;
-    let frameHandle = null;
-    const finish = (ok) => {
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+    let frameHandle: number | null = null;
+    const finish = (ok: boolean) => {
       if (settled) {
         return;
       }
       settled = true;
       clearTimeout(timeoutId);
-      signal?.removeEventListener('abort', onAbort);
-      video.removeEventListener('loadeddata', onProgress);
-      video.removeEventListener('canplay', onProgress);
-      video.removeEventListener('timeupdate', onProgress);
-      if (frameHandle !== null && typeof video.cancelVideoFrameCallback === 'function') {
+      signal?.removeEventListener("abort", onAbort);
+      video.removeEventListener("loadeddata", onProgress);
+      video.removeEventListener("canplay", onProgress);
+      video.removeEventListener("timeupdate", onProgress);
+      if (frameHandle !== null && typeof video.cancelVideoFrameCallback === "function") {
         video.cancelVideoFrameCallback(frameHandle);
       }
       frameHandle = null;
@@ -146,7 +175,7 @@ export function waitUntilVideoRenderable(video, signal, maxMs = RENDERABLE_WAIT_
     };
     const onAbort = () => finish(false);
     const onTimeout = () => {
-      transcodeWarn('waitUntilVideoRenderable timed out', describeVideo(video));
+      transcodeWarn("waitUntilVideoRenderable timed out", describeVideo(video));
       finish(false);
     };
     const onProgress = () => {
@@ -159,12 +188,12 @@ export function waitUntilVideoRenderable(video, signal, maxMs = RENDERABLE_WAIT_
       }
     };
 
-    signal?.addEventListener('abort', onAbort, { once: true });
-    video.addEventListener('loadeddata', onProgress);
-    video.addEventListener('canplay', onProgress);
-    video.addEventListener('timeupdate', onProgress);
+    signal?.addEventListener("abort", onAbort, { once: true });
+    video.addEventListener("loadeddata", onProgress);
+    video.addEventListener("canplay", onProgress);
+    video.addEventListener("timeupdate", onProgress);
     timeoutId = setTimeout(onTimeout, maxMs);
-    if (typeof video.requestVideoFrameCallback === 'function') {
+    if (typeof video.requestVideoFrameCallback === "function") {
       frameHandle = video.requestVideoFrameCallback(() => {
         frameHandle = null;
         onProgress();
@@ -173,7 +202,7 @@ export function waitUntilVideoRenderable(video, signal, maxMs = RENDERABLE_WAIT_
   });
 }
 
-function describeFrag(frag) {
+function describeFrag(frag?: Fragment | null) {
   if (!frag) {
     return null;
   }
@@ -186,15 +215,27 @@ function describeFrag(frag) {
   };
 }
 
-function describeHlsError(data) {
+function describeHlsError(data: ErrorData) {
   return {
-    fatal: data?.fatal,
-    type: data?.type,
-    details: data?.details,
-    reason: data?.reason,
-    response: data?.response,
-    frag: describeFrag(data?.frag),
+    fatal: data.fatal,
+    type: data.type,
+    details: data.details,
+    reason: data.reason,
+    response: data.response,
+    frag: describeFrag(data.frag),
   };
+}
+
+interface NativeAttachOptions {
+  video: HTMLVideoElement;
+  playlistURL: string;
+  initialStart: number;
+  signal?: AbortSignal;
+  onFirstBuffered?: (video: HTMLVideoElement) => void;
+  budgetMs?: number;
+  sessionId: string;
+  onFatal?: (data: HlsFatalData) => void;
+  onRecoverPlayback?: HlsRecoverHandler;
 }
 
 function attachNativeHls({
@@ -207,36 +248,36 @@ function attachNativeHls({
   sessionId,
   onFatal,
   onRecoverPlayback,
-}) {
+}: NativeAttachOptions): Promise<HlsAttachment> {
   return new Promise((resolve, reject) => {
     const deadlineMs = resolveAttachDeadlineMs(initialStart, budgetMs);
     let settled = false;
     let hasPlayed = false;
-    let timeoutId = null;
-    const originalPreload = video.getAttribute('preload');
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+    const originalPreload = video.getAttribute("preload");
 
     const removeListeners = () => {
       clearTimeout(timeoutId);
-      signal?.removeEventListener('abort', onAbort);
-      video.removeEventListener('loadeddata', onReady);
-      video.removeEventListener('canplay', onReady);
+      signal?.removeEventListener("abort", onAbort);
+      video.removeEventListener("loadeddata", onReady);
+      video.removeEventListener("canplay", onReady);
     };
     const releaseSource = () => {
-      video.removeAttribute('src');
+      video.removeAttribute("src");
       if (originalPreload === null) {
-        video.removeAttribute('preload');
+        video.removeAttribute("preload");
       } else {
-        video.setAttribute('preload', originalPreload);
+        video.setAttribute("preload", originalPreload);
       }
       video.load();
     };
     const cleanup = () => {
       removeListeners();
-      video.removeEventListener('error', onError);
-      video.removeEventListener('playing', onPlaying);
+      video.removeEventListener("error", onError);
+      video.removeEventListener("playing", onPlaying);
       releaseSource();
     };
-    const fail = (error) => {
+    const fail = (error: Error) => {
       if (settled) {
         return;
       }
@@ -246,29 +287,31 @@ function attachNativeHls({
     };
 
     function onAbort() {
-      const error = new Error('HLS attach aborted');
-      error.name = 'AbortError';
-      fail(error);
+      fail(new AttachAbortError());
     }
     function onError() {
       const mediaError = video.error;
-      transcodeError('native hls playback error', {
+      transcodeError("native hls playback error", {
         playlistURL,
         code: mediaError?.code,
         message: mediaError?.message,
         video: describeVideo(video),
       });
-      const error = new Error(mediaError?.message || 'Native HLS playback failed');
-      error.name = 'NativeHlsError';
-      error.code = mediaError?.code;
+      const error = new NativeHlsError(mediaError?.message || "Native HLS playback failed", mediaError?.code);
       if (settled) {
         reportPostReadyError(error);
         return;
       }
       fail(error);
     }
-    function reportPostReadyError(error) {
-      const data = { fatal: true, type: 'mediaError', details: 'nativeHlsError', code: error.code, reason: error.message };
+    function reportPostReadyError(error: NativeHlsError) {
+      const data: NativeHlsFatalData = {
+        fatal: true,
+        type: "mediaError",
+        details: "nativeHlsError",
+        code: error.code,
+        reason: error.message,
+      };
       const startSec = Number.isFinite(video.currentTime) ? video.currentTime : 0;
       const shouldAutoplay = hasPlayed ? !video.paused && !video.ended : undefined;
       cleanup();
@@ -290,14 +333,12 @@ function attachNativeHls({
       hasPlayed = true;
     }
     function onTimeout() {
-      transcodeError('native hls attach timed out waiting for readiness', {
+      transcodeError("native hls attach timed out waiting for readiness", {
         playlistURL,
         deadlineMs,
         video: describeVideo(video),
       });
-      const error = new Error('HLS attach timed out');
-      error.name = 'AttachTimeoutError';
-      fail(error);
+      fail(new AttachTimeoutError());
     }
     function onReady() {
       if (settled) {
@@ -316,13 +357,13 @@ function attachNativeHls({
       }
     }
 
-    signal?.addEventListener('abort', onAbort, { once: true });
-    video.addEventListener('loadeddata', onReady);
-    video.addEventListener('canplay', onReady);
-    video.addEventListener('error', onError);
-    video.addEventListener('playing', onPlaying);
+    signal?.addEventListener("abort", onAbort, { once: true });
+    video.addEventListener("loadeddata", onReady);
+    video.addEventListener("canplay", onReady);
+    video.addEventListener("error", onError);
+    video.addEventListener("playing", onPlaying);
     timeoutId = setTimeout(onTimeout, deadlineMs);
-    video.preload = 'auto';
+    video.preload = "auto";
     video.src = playlistURL;
     video.load();
   });
@@ -345,29 +386,25 @@ export function attachHlsToVideo({
   onRecoverPlayback,
   onFirstBuffered,
   budgetMs,
-}) {
+}: AttachHlsOptions): Promise<HlsAttachment> {
   const playlistURL = getTranscodePlaylistURL(session);
-  const initialStart = Number.isFinite(startPosition) && startPosition >= 0
-    ? startPosition
-    : -1;
+  const initialStart = Number.isFinite(startPosition) && startPosition >= 0 ? startPosition : -1;
 
-  transcodeLog('hls attach requested', {
-    sessionId: session?.id,
+  transcodeLog("hls attach requested", {
+    sessionId: session.id,
     playlistURL,
     startPosition: initialStart,
     hlsSupported: Hls.isSupported(),
     video: describeVideo(video),
-    sessionState: session?.state,
-    reused: session?.reused,
+    sessionState: session.state,
+    reused: session.reused,
   });
 
   if (!Hls.isSupported()) {
-    if (video.canPlayType('application/vnd.apple.mpegurl')) {
-      transcodeLog('hls attach using native HLS', { playlistURL });
+    if (video.canPlayType("application/vnd.apple.mpegurl")) {
+      transcodeLog("hls attach using native HLS", { playlistURL });
       if (signal?.aborted) {
-        const error = new Error('HLS attach aborted');
-        error.name = 'AbortError';
-        return Promise.reject(error);
+        return Promise.reject(new AttachAbortError());
       }
       return attachNativeHls({
         video,
@@ -376,20 +413,18 @@ export function attachHlsToVideo({
         signal,
         onFirstBuffered,
         budgetMs,
-        sessionId: session?.id,
+        sessionId: session.id,
         onFatal,
         onRecoverPlayback,
       });
     }
-    return Promise.reject(new Error('HLS not supported in this browser'));
+    return Promise.reject(new Error("HLS not supported in this browser"));
   }
   if (signal?.aborted) {
-    const error = new Error('HLS attach aborted');
-    error.name = 'AbortError';
-    return Promise.reject(error);
+    return Promise.reject(new AttachAbortError());
   }
 
-  return new Promise((resolve, reject) => {
+  return new Promise<HlsAttachment>((resolve, reject) => {
     let settled = false;
     let readyToPlay = false;
     let startApplied = false;
@@ -397,35 +432,37 @@ export function attachHlsToVideo({
     const onPlaying = () => {
       playbackBegan = true;
     };
-    video?.addEventListener('playing', onPlaying);
+    video.addEventListener("playing", onPlaying);
     let bufferedFrags = 0;
     // The synthetic VOD playlist lists the full media duration; a single
     // buffered fragment is enough to start playback.
     const minBufferFrags = 1;
     let startup503Retries = 0;
-    let last503FragSn = null;
+    let last503FragSn: Fragment["sn"] | null = null;
     let destroyed = false;
 
-    const tryRecoverPlayback = (data, reason) => {
+    const tryRecoverPlayback = (data: ErrorData, reason: string): boolean => {
       if (!onRecoverPlayback || destroyed) {
         return false;
       }
       const playbackStarted = startApplied;
-      const currentTime = video?.currentTime;
-      const resumeAt = playbackStarted && Number.isFinite(currentTime)
-        ? currentTime
-        : Number.isFinite(data?.frag?.start)
-          ? data.frag.start
-          : (Number.isFinite(initialStart) && initialStart >= 0 ? initialStart : 0);
+      const currentTime = video.currentTime;
+      const fragStart = data.frag?.start;
+      const resumeAt =
+        playbackStarted && Number.isFinite(currentTime)
+          ? currentTime
+          : fragStart !== undefined && Number.isFinite(fragStart)
+            ? fragStart
+            : Math.max(initialStart, 0);
       const shouldAutoplay = playbackBegan ? !video.paused && !video.ended : undefined;
-      transcodeWarn('hls requesting transcode session recovery', {
+      transcodeWarn("hls requesting transcode session recovery", {
         reason,
         resumeAt,
-        sessionId: session?.id,
-        responseCode: data?.response?.code,
+        sessionId: session.id,
+        responseCode: data.response?.code,
       });
       cleanup();
-      void onRecoverPlayback({ startSec: resumeAt, sessionId: session?.id, shouldAutoplay })
+      void onRecoverPlayback({ startSec: resumeAt, sessionId: session.id, shouldAutoplay })
         .then((ok) => {
           if (!ok) {
             onFatal?.(data);
@@ -434,15 +471,13 @@ export function attachHlsToVideo({
         .catch(() => {
           onFatal?.(data);
         });
-      finish('reject', Object.assign(new Error('transcode session recovery'), { name: 'TranscodeRecoverError' }));
+      rejectOnce(new TranscodeRecoverError());
       return true;
     };
 
     const onAbort = () => {
       cleanup();
-      const error = new Error('HLS attach aborted');
-      error.name = 'AbortError';
-      finish('reject', error);
+      rejectOnce(new AttachAbortError());
     };
 
     // Two independent guards, both funnelling into the same timeout handler:
@@ -451,29 +486,35 @@ export function attachHlsToVideo({
     //   producer that keeps publishing is not killed by the wall clock alone.
     const attachStartedAt = performance.now();
     const deadlineMs = resolveAttachDeadlineMs(initialStart, budgetMs);
-    let hardTimeoutId = null;
-    let stallTimeoutId = null;
+    let hardTimeoutId: ReturnType<typeof setTimeout> | undefined;
+    let stallTimeoutId: ReturnType<typeof setTimeout> | undefined;
     let fragmentProgressed = false;
     let awaitingFirstByte = false;
 
-    const finish = (kind, payload) => {
+    const settle = (): boolean => {
       if (settled) {
-        return;
+        return false;
       }
       settled = true;
       clearTimeout(hardTimeoutId);
       clearTimeout(stallTimeoutId);
-      signal?.removeEventListener('abort', onAbort);
-      if (kind === 'resolve') {
-        resolve(payload);
-      } else {
-        reject(payload);
+      signal?.removeEventListener("abort", onAbort);
+      return true;
+    };
+    const resolveOnce = (attachment: HlsAttachment) => {
+      if (settle()) {
+        resolve(attachment);
+      }
+    };
+    const rejectOnce = (reason: PlayerError) => {
+      if (settle()) {
+        reject(reason);
       }
     };
 
     const onAttachTimeout = () => {
-      transcodeError('hls attach timed out waiting for buffered fragments', {
-        sessionId: session?.id,
+      transcodeError("hls attach timed out waiting for buffered fragments", {
+        sessionId: session.id,
         playlistURL,
         startPosition: initialStart,
         deadlineMs,
@@ -482,15 +523,10 @@ export function attachHlsToVideo({
         video: describeVideo(video),
       });
       cleanup();
-      const error = new Error('HLS attach timed out');
-      // Distinct name so the controller can retry a timed-out attach instead of
-      // falling back to native playback (which cannot decode the source at all).
-      error.name = 'AttachTimeoutError';
-      finish('reject', error);
+      rejectOnce(new AttachTimeoutError());
     };
 
-    // Progress restarts the stall guard, clamped so it can never outlive the
-    // hard deadline.
+    // Progress restarts the stall guard, clamped so it can never outlive the hard deadline.
     const noteAttachProgress = () => {
       if (settled) {
         return;
@@ -522,7 +558,7 @@ export function attachHlsToVideo({
     };
 
     let appendRecoveryAttempts = 0;
-    const startPlaybackReady = (reason) => {
+    const startPlaybackReady = (reason: string) => {
       if (settled || readyToPlay) {
         return;
       }
@@ -531,7 +567,7 @@ export function attachHlsToVideo({
         if (settled) {
           return;
         }
-        transcodeLog('hls attach ready', {
+        transcodeLog("hls attach ready", {
           reason,
           renderable,
           bufferedFrags,
@@ -540,14 +576,14 @@ export function attachHlsToVideo({
           video: describeVideo(video),
         });
         if (!renderable) {
-          transcodeWarn('hls attach: no decoded video dimensions yet', {
-            sessionId: session?.id,
+          transcodeWarn("hls attach: no decoded video dimensions yet", {
+            sessionId: session.id,
             video: describeVideo(video),
           });
         }
         onFirstBuffered?.(video);
         startApplied = true;
-        finish('resolve', { cleanup, hls });
+        resolveOnce({ cleanup, hls });
       });
     };
 
@@ -580,9 +616,8 @@ export function attachHlsToVideo({
       fragLoadPolicy: {
         default: {
           // Segments are produced on demand, so a seek or a producer restart
-          // (hardware→software decode retry) can keep the first byte waiting
-          // well past hls.js's 10s default. Aborting at 10s cancelled the
-          // request server-side and surfaced as a 503 + skipped segment.
+          // (hardware -> software decode retry) can keep the first byte waiting
+          // well past hls.js 10s default.
           maxTimeToFirstByteMs: FRAG_FIRST_BYTE_TIMEOUT_MS,
           maxLoadTimeMs: FRAG_MAX_LOAD_MS,
           timeoutRetry: {
@@ -597,22 +632,22 @@ export function attachHlsToVideo({
           },
         },
       },
-      xhrSetup(xhr, url) {
+      xhrSetup(xhr: XMLHttpRequest, url: string) {
         xhr.withCredentials = true;
         for (const [key, value] of Object.entries(authHeaders())) {
           xhr.setRequestHeader(key, value);
         }
-        transcodeVerbose('hls xhr open', { url });
+        transcodeVerbose("hls xhr open", { url });
         if (!/\.m3u8(\?|$)/.test(url)) {
-          xhr.addEventListener('readystatechange', () => {
+          xhr.addEventListener("readystatechange", () => {
             if (xhr.readyState === XMLHttpRequest.HEADERS_RECEIVED && xhr.status >= 200 && xhr.status < 300) {
               noteFragmentResponseStarted();
             }
           });
         }
       },
-      fetchSetup(context, initParams) {
-        transcodeVerbose('hls fetch setup', { url: context?.url });
+      fetchSetup(context, initParams: RequestInit) {
+        transcodeVerbose("hls fetch setup", { url: context.url });
         applyAuthToFetchParams(initParams);
         return new Request(context.url, initParams);
       },
@@ -621,10 +656,8 @@ export function attachHlsToVideo({
     const cleanup = () => {
       if (destroyed) return;
       destroyed = true;
-      video?.removeEventListener('playing', onPlaying);
-      transcodeLog('hls destroy', { sessionId: session?.id });
-      // Detach before destroy: destroying with a live MediaSource attached can
-      // leave the element feeding buffered audio after the preview unmounts.
+      video.removeEventListener("playing", onPlaying);
+      transcodeLog("hls destroy", { sessionId: session.id });
       try {
         hls.stopLoad();
       } catch (_) {
@@ -638,55 +671,52 @@ export function attachHlsToVideo({
       hls.destroy();
     };
 
-    signal?.addEventListener('abort', onAbort, { once: true });
+    signal?.addEventListener("abort", onAbort, { once: true });
     if (signal?.aborted) {
       onAbort();
       return;
     }
 
     hls.on(Hls.Events.MEDIA_ATTACHED, () => {
-      transcodeLog('hls media attached', { video: describeVideo(video) });
+      transcodeLog("hls media attached", { video: describeVideo(video) });
     });
 
     hls.on(Hls.Events.MANIFEST_LOADING, (_event, data) => {
-      transcodeLog('hls manifest loading', { url: data?.url });
+      transcodeLog("hls manifest loading", { url: data.url });
     });
 
     hls.on(Hls.Events.MANIFEST_LOADED, (_event, data) => {
-      transcodeLog('hls manifest loaded', {
-        levels: data?.levels?.length,
-        firstLevel: data?.firstLevel,
-        url: data?.url,
+      transcodeLog("hls manifest loaded", {
+        levels: data.levels.length,
+        url: data.url,
       });
     });
 
     hls.on(Hls.Events.MANIFEST_PARSED, (_event, data) => {
-      transcodeLog('hls manifest parsed — calling startLoad', {
-        levels: data?.levels?.length,
+      transcodeLog("hls manifest parsed — calling startLoad", {
+        levels: data.levels.length,
         startPosition: initialStart,
       });
       hls.startLoad(initialStart >= 0 ? initialStart : -1);
     });
 
     hls.on(Hls.Events.LEVEL_LOADING, (_event, data) => {
-      transcodeVerbose('hls level loading', { level: data?.level, url: data?.url });
+      transcodeVerbose("hls level loading", { level: data.level, url: data.url });
     });
 
     hls.on(Hls.Events.FRAG_LOADING, (_event, data) => {
-      transcodeLog('hls frag loading', { frag: describeFrag(data?.frag) });
+      transcodeLog("hls frag loading", { frag: describeFrag(data.frag) });
       awaitingFirstByte = true;
       noteAttachProgress();
     });
 
     hls.on(Hls.Events.FRAG_LOADED, (_event, data) => {
-      // First byte of the seek fragment arrived: the producer is making
-      // progress, so push the stall guard out.
       fragmentProgressed = true;
       awaitingFirstByte = false;
       noteAttachProgress();
-      transcodeLog('hls frag loaded', {
-        frag: describeFrag(data?.frag),
-        bytes: data?.frag?.stats?.total,
+      transcodeLog("hls frag loaded", {
+        frag: describeFrag(data.frag),
+        bytes: data.frag.stats.total,
       });
     });
 
@@ -694,9 +724,8 @@ export function attachHlsToVideo({
       bufferedFrags += 1;
       fragmentProgressed = true;
       noteAttachProgress();
-      const fragInfo = describeFrag(data?.frag);
-      transcodeLog('hls frag buffered', {
-        frag: fragInfo,
+      transcodeLog("hls frag buffered", {
+        frag: describeFrag(data.frag),
         video: describeVideo(video),
         bufferedFrags,
         minBufferFrags,
@@ -705,7 +734,7 @@ export function attachHlsToVideo({
         return;
       }
       if (bufferedFrags >= minBufferFrags) {
-        startPlaybackReady('buffer-satisfied');
+        startPlaybackReady("buffer-satisfied");
       }
     });
 
@@ -715,45 +744,47 @@ export function attachHlsToVideo({
         ...describeHlsError(data),
         video: describeVideo(video),
       };
-      if (data?.fatal) {
-        transcodeError('hls fatal error', info);
-        const code = data?.response?.code;
-        if (code === 503 || code === 409) {
-          if (tryRecoverPlayback(data, 'fatal-network')) {
+      const details: string = data.details;
+      const type: string = data.type;
+      const responseCode = data.response?.code;
+      if (data.fatal) {
+        transcodeError("hls fatal error", info);
+        if (responseCode === 503 || responseCode === 409) {
+          if (tryRecoverPlayback(data, "fatal-network")) {
             return;
           }
         }
         cleanup();
         onFatal?.(data);
-        finish('reject', data);
+        rejectOnce(data);
         return;
       }
-      if (data?.details === 'bufferAppendNoProgress') {
-        transcodeWarn('hls bufferAppendNoProgress', info);
+      if (details === "bufferAppendNoProgress") {
+        transcodeWarn("hls bufferAppendNoProgress", info);
         if (appendRecoveryAttempts < MAX_BUFFER_APPEND_RECOVERIES) {
           appendRecoveryAttempts += 1;
           try {
             hls.recoverMediaError();
-            transcodeLog('hls recoverMediaError after bufferAppendNoProgress', {
+            transcodeLog("hls recoverMediaError after bufferAppendNoProgress", {
               attempt: appendRecoveryAttempts,
             });
           } catch (err) {
-            transcodeWarn('hls recoverMediaError failed', { message: err?.message });
+            transcodeWarn("hls recoverMediaError failed", { message: errorMessage(err as PlayerError) });
           }
         }
         return;
       }
-      if (RECOVERABLE_HLS_DETAILS.has(data?.details)) {
-        transcodeVerbose('hls non-fatal media recovery', info);
+      if (RECOVERABLE_HLS_DETAILS.has(details)) {
+        transcodeVerbose("hls non-fatal media recovery", info);
         return;
       }
-      if (data?.type === Hls.ErrorTypes.NETWORK_ERROR && data?.response?.code === 409) {
-        tryRecoverPlayback(data, '409-needs-restart');
+      if (type === Hls.ErrorTypes.NETWORK_ERROR && responseCode === 409) {
+        tryRecoverPlayback(data, "409-needs-restart");
         return;
       }
       // Init/segment 503 during startup is common; recover before MSE requires reset.
-      if (data?.type === Hls.ErrorTypes.NETWORK_ERROR && data?.response?.code === 503) {
-        const fragSn = data?.frag?.sn;
+      if (type === Hls.ErrorTypes.NETWORK_ERROR && responseCode === 503) {
+        const fragSn = data.frag?.sn ?? null;
         if (fragSn === last503FragSn) {
           startup503Retries += 1;
         } else {
@@ -761,41 +792,40 @@ export function attachHlsToVideo({
           startup503Retries = 1;
         }
         if (startup503Retries >= 6) {
-          if (tryRecoverPlayback(data, '503-exhausted')) {
+          if (tryRecoverPlayback(data, "503-exhausted")) {
             return;
           }
         }
-        transcodeWarn('hls 503 during transcode startup — retrying load', info);
+        transcodeWarn("hls 503 during transcode startup — retrying load", info);
         // Resume at the fragment we were already waiting on. Do NOT use
         // hls.liveSyncPosition here: this is a #EXT-X-PLAYLIST-TYPE:VOD playlist
         // with #EXT-X-ENDLIST, so liveSyncPosition is the live-edge guess
         // (edge - liveSyncDurationCount*targetduration, e.g. 18.6s for this
         // 30.6s clip) — it jumps the playhead far ahead of the requested seek
         // and abandons the not-yet-ready fragment hls.js was already retrying.
-        const resumeAt = Number.isFinite(data?.frag?.start)
-          ? data.frag.start
-          : hls.startPosition;
+        const fragStart = data.frag?.start;
+        const resumeAt = fragStart !== undefined && Number.isFinite(fragStart) ? fragStart : hls.startPosition;
         try {
           hls.startLoad(Number.isFinite(resumeAt) && resumeAt > 0 ? resumeAt : -1);
         } catch (err) {
-          transcodeWarn('hls startLoad retry after 503 failed', { message: err?.message });
+          transcodeWarn("hls startLoad retry after 503 failed", { message: errorMessage(err as PlayerError) });
         }
         return;
       }
-      if (data?.details === 'mediaSourceRequiresReset' && appendRecoveryAttempts < MAX_BUFFER_APPEND_RECOVERIES) {
+      if (details === "mediaSourceRequiresReset" && appendRecoveryAttempts < MAX_BUFFER_APPEND_RECOVERIES) {
         appendRecoveryAttempts += 1;
-        transcodeWarn('hls mediaSourceRequiresReset — recoverMediaError', info);
+        transcodeWarn("hls mediaSourceRequiresReset — recoverMediaError", info);
         try {
           hls.recoverMediaError();
         } catch (err) {
-          transcodeWarn('hls recoverMediaError failed', { message: err?.message });
+          transcodeWarn("hls recoverMediaError failed", { message: errorMessage(err as PlayerError) });
         }
         return;
       }
-      transcodeWarn('hls non-fatal error', info);
+      transcodeWarn("hls non-fatal error", info);
     });
 
-    transcodeLog('hls attachMedia + loadSource', { playlistURL });
+    transcodeLog("hls attachMedia + loadSource", { playlistURL });
     hls.attachMedia(video);
     hls.loadSource(playlistURL);
   });

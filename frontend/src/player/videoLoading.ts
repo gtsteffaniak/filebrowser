@@ -1,14 +1,30 @@
-import { transcodeLog } from '@/player/transcodeDebug.js';
+import type Plyr from "plyr";
+import { transcodeLog } from "@/player/transcodeDebug.ts";
 
-/**
- * Show a loading indicator while the native video element is fetching or buffering.
- */
-export function enableVideoLoadingIndicator(player, onLoadingChange) {
-  if (!player?.media || typeof onLoadingChange !== 'function') {
+export interface VideoLoadingIndicator {
+  (): void;
+  expectPlayback?: () => void;
+}
+
+export type LoadingMedia = Pick<HTMLMediaElement, "currentSrc" | "src" | "networkState" | "readyState" | "paused">;
+
+/** The part of Plyr that the indicator reads and listens to */
+export interface LoadingPlayer {
+  media: LoadingMedia;
+  on: (event: keyof Plyr.PlyrEventMap, callback: () => void) => void;
+  off: (event: keyof Plyr.PlyrEventMap, callback: () => void) => void;
+}
+
+/** Show a loading indicator while the native video element is fetching or buffering */
+export function enableVideoLoadingIndicator(
+  player: LoadingPlayer,
+  onLoadingChange: (loading: boolean) => void,
+): VideoLoadingIndicator {
+  const media = player?.media;
+  if (!media || typeof onLoadingChange !== "function") {
     return () => {};
   }
 
-  const media = player.media;
   let waiting = false;
   let seeking = false;
   let loading = false;
@@ -30,7 +46,7 @@ export function enableVideoLoadingIndicator(player, onLoadingChange) {
     const show = playbackExpected && hasSource && isLoadingOrBuffering();
     if (show !== lastShow) {
       lastShow = show;
-      transcodeLog('loading overlay changed', {
+      transcodeLog("loading overlay changed", {
         show,
         playbackExpected,
         waiting,
@@ -96,25 +112,25 @@ export function enableVideoLoadingIndicator(player, onLoadingChange) {
     sync();
   };
 
-  const handlers = {
-    play: onPlay,
-    pause: onPause,
-    loadstart: onLoadStart,
-    waiting: onWaiting,
-    playing: onPlaying,
-    canplay: onCanPlay,
-    seeking: onSeeking,
-    seeked: onSeeked,
-    error: onError,
-    emptied: onEmptied,
-  };
+  const handlers: Array<[keyof Plyr.PlyrEventMap, () => void]> = [
+    ["play", onPlay],
+    ["pause", onPause],
+    ["loadstart", onLoadStart],
+    ["waiting", onWaiting],
+    ["playing", onPlaying],
+    ["canplay", onCanPlay],
+    ["seeking", onSeeking],
+    ["seeked", onSeeked],
+    ["error", onError],
+    ["emptied", onEmptied],
+  ];
 
-  for (const [evt, fn] of Object.entries(handlers)) {
+  for (const [evt, fn] of handlers) {
     player.on(evt, fn);
   }
 
   return Object.assign(() => {
-    for (const [evt, fn] of Object.entries(handlers)) {
+    for (const [evt, fn] of handlers) {
       player.off(evt, fn);
     }
     onLoadingChange(false);

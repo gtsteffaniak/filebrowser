@@ -1,9 +1,9 @@
 import type Plyr from "plyr";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ref, shallowRef } from "vue";
-import { getTranscodeSessions } from "@/api/transcode.js";
+import { getTranscodeSessions } from "@/api/transcode.ts";
 import { useTranscodePlayback } from "../useTranscodePlayback.ts";
-import { withSetup } from "./mediaTestUtils.ts";
+import { transcodeSession, transcodeStatus, withSetup } from "./mediaTestUtils.ts";
 
 const hoisted = vi.hoisted(() => ({
   isShare: { value: false },
@@ -11,7 +11,7 @@ const hoisted = vi.hoisted(() => ({
   available: { value: true },
 }));
 
-vi.mock("@/api/transcode.js", () => ({ getTranscodeSessions: vi.fn() }));
+vi.mock("@/api/transcode.ts", () => ({ getTranscodeSessions: vi.fn() }));
 vi.mock("@/api/viewToken.js", () => ({ getCachedViewToken: () => "" }));
 vi.mock("@/i18n/index.ts", () => ({ useI18n: () => ({ t: (key: string) => key }) }));
 vi.mock("@/notify/index.ts", () => ({ notify: { showError: vi.fn() } }));
@@ -24,8 +24,8 @@ vi.mock("@/store/index.ts", () => ({
   mutations: { setPlaybackState: vi.fn() },
 }));
 vi.mock("@/utils/canBrowserPlayNative.js", () => ({ needsTranscodeFirst: () => hoisted.needsTranscode.value }));
-vi.mock("@/player/transcodeMode.js", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/player/transcodeMode.js")>()),
+vi.mock("@/player/transcodeMode.ts", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/player/transcodeMode.ts")>()),
   isTranscodeAvailable: () => hoisted.available.value,
 }));
 
@@ -69,22 +69,22 @@ describe("useTranscodePlayback", () => {
 
   describe("resolveReuseSessionId", () => {
     it("prefers a live session of the same file over a completed one", async () => {
-      getSessions.mockResolvedValue({
+      getSessions.mockResolvedValue(transcodeStatus({
         sessions: [
-          { id: "other-file", source: "src", path: "/b.mkv", state: "running" },
-          { id: "done", source: "src", path: "/a.wmv", state: "completed" },
-          { id: "live", source: "src", path: "/a.wmv", state: "running" },
+          transcodeSession({ id: "other-file", source: "src", path: "/b.mkv", state: "running" }),
+          transcodeSession({ id: "done", source: "src", path: "/a.wmv", state: "completed" }),
+          transcodeSession({ id: "live", source: "src", path: "/a.wmv", state: "running" }),
         ],
-      });
+      }));
       const { transcode } = setup();
       expect(await transcode.resolveReuseSessionId()).toBe("live");
     });
 
     it("falls back to the first session of the file, and to undefined when there is none or the call fails", async () => {
       const { transcode } = setup();
-      getSessions.mockResolvedValueOnce({ sessions: [{ id: "done", source: "src", path: "/a.wmv", state: "completed" }] });
+      getSessions.mockResolvedValueOnce(transcodeStatus({ canStart: false, sessions: [transcodeSession({ id: "done", source: "src", path: "/a.wmv", state: "completed" })] }));
       expect(await transcode.resolveReuseSessionId()).toBe("done");
-      getSessions.mockResolvedValueOnce({ sessions: [{ id: "x", source: "src", path: "/b.mkv" }] });
+      getSessions.mockResolvedValueOnce(transcodeStatus({ canStart: false, sessions: [transcodeSession({ id: "x", source: "src", path: "/b.mkv" })] }));
       expect(await transcode.resolveReuseSessionId()).toBeUndefined();
       getSessions.mockRejectedValueOnce(new Error("503"));
       expect(await transcode.resolveReuseSessionId()).toBeUndefined();
@@ -93,7 +93,7 @@ describe("useTranscodePlayback", () => {
 
   describe("offer", () => {
     it("offers transcoding when a session can start, releases the player, and asks only once", async () => {
-      getSessions.mockResolvedValue({ enabled: true, canStart: true, sessions: [] });
+      getSessions.mockResolvedValue(transcodeStatus({ enabled: true, canStart: true, sessions: [] }));
       const { transcode, hooks } = setup();
       await transcode.offerTranscodePlayback();
       expect(transcode.transcodeOffer.value?.mode).toBe("offer");
@@ -103,7 +103,7 @@ describe("useTranscodePlayback", () => {
     });
 
     it("keeps the controller usable behind the offer, for the accept", async () => {
-      getSessions.mockResolvedValue({ enabled: true, canStart: true, sessions: [] });
+      getSessions.mockResolvedValue(transcodeStatus({ enabled: true, canStart: true, sessions: [] }));
       const { transcode } = setup();
       const controller = transcode.ensureTranscodePlaybackController();
       await transcode.offerTranscodePlayback();
@@ -120,21 +120,21 @@ describe("useTranscodePlayback", () => {
     });
 
     it("maps limits to their modes, but a user limit hit by this very file still offers", async () => {
-      getSessions.mockResolvedValue({ canStart: false, blockReason: "user_limit", sessions: [] });
+      getSessions.mockResolvedValue(transcodeStatus({ canStart: false, blockReason: "user_limit", sessions: [] }));
       const first = setup();
       await first.transcode.offerTranscodePlayback();
       expect(first.transcode.transcodeOffer.value?.mode).toBe("user_limit");
 
-      getSessions.mockResolvedValue({ canStart: false, blockReason: "global_limit", globalLimit: 3, sessions: [] });
+      getSessions.mockResolvedValue(transcodeStatus({ canStart: false, blockReason: "global_limit", globalLimit: 3, sessions: [] }));
       const second = setup();
       await second.transcode.offerTranscodePlayback();
       expect(second.transcode.transcodeOffer.value).toMatchObject({ mode: "system_limit", systemLimit: 3 });
 
-      getSessions.mockResolvedValue({
+      getSessions.mockResolvedValue(transcodeStatus({
         canStart: false,
         blockReason: "user_limit",
-        sessions: [{ id: "mine", source: "src", path: "/a.wmv" }],
-      });
+        sessions: [transcodeSession({ id: "mine", source: "src", path: "/a.wmv" })],
+      }));
       const third = setup();
       await third.transcode.offerTranscodePlayback();
       expect(third.transcode.transcodeOffer.value?.mode).toBe("offer");
@@ -155,7 +155,7 @@ describe("useTranscodePlayback", () => {
     });
 
     it("startVideoTranscode hides the offer and requests playback, or keeps the offer when a limit is hit", async () => {
-      getSessions.mockResolvedValue({ canStart: true, sessions: [] });
+      getSessions.mockResolvedValue(transcodeStatus({ canStart: true, sessions: [] }));
       const { transcode, hooks } = setup();
       await transcode.offerTranscodePlayback();
       expect(await transcode.startVideoTranscode()).toBe(true);
@@ -164,7 +164,7 @@ describe("useTranscodePlayback", () => {
       expect(hooks.onPlaybackStart).toHaveBeenCalledTimes(1);
       expect(transcode.shouldProactivelyOfferTranscode.value).toBe(false);
 
-      getSessions.mockResolvedValue({ canStart: false, blockReason: "global_limit", globalLimit: 1, sessions: [] });
+      getSessions.mockResolvedValue(transcodeStatus({ canStart: false, blockReason: "global_limit", globalLimit: 1, sessions: [] }));
       const limited = setup();
       expect(await limited.transcode.startVideoTranscode()).toBe(false);
       expect(limited.transcode.transcodeOffer.value?.mode).toBe("system_limit");
@@ -174,7 +174,7 @@ describe("useTranscodePlayback", () => {
 
   describe("startVideoTranscode for a swapped-away file", () => {
     it("leaves the current offer and start flag untouched when the accept result is stale", async () => {
-      getSessions.mockResolvedValue({ canStart: true, sessions: [] });
+      getSessions.mockResolvedValue(transcodeStatus({ canStart: true, sessions: [] }));
       const { transcode, hooks } = setup();
       await transcode.offerTranscodePlayback();
       const offer = transcode.transcodeOffer.value;
@@ -185,7 +185,7 @@ describe("useTranscodePlayback", () => {
     });
 
     it("does not show an offer for a stale denied result", async () => {
-      getSessions.mockResolvedValue({ canStart: false, blockReason: "global_limit", globalLimit: 1, sessions: [] });
+      getSessions.mockResolvedValue(transcodeStatus({ canStart: false, blockReason: "global_limit", globalLimit: 1, sessions: [] }));
       const { transcode } = setup();
       expect(await transcode.startVideoTranscode(() => false)).toBe(false);
       expect(transcode.transcodeOffer.value).toBeNull();
@@ -243,7 +243,7 @@ describe("useTranscodePlayback", () => {
     });
 
     it("lets the next file be offered again after the previous one was offered", async () => {
-      getSessions.mockResolvedValue({ enabled: true, canStart: true, sessions: [] });
+      getSessions.mockResolvedValue(transcodeStatus({ enabled: true, canStart: true, sessions: [] }));
       const { transcode, hooks } = setup();
       await transcode.offerTranscodePlayback();
       await transcode.offerTranscodePlayback();

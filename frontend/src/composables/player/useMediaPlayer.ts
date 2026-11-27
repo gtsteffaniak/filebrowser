@@ -3,7 +3,7 @@ import { type ShallowRef, watch } from "vue";
 // Video.js 10 migration has a single place to replace. Its stylesheet is in `MediaPlayer.vue`.
 import Plyr from "plyr";
 import { useI18n } from "@/i18n/index.ts";
-import { blockSeekOnInput } from "@/player/seekOnRelease.js";
+import { blockSeekOnInput } from "@/player/seekOnRelease.ts";
 import { router } from "@/router/index.ts";
 import { mutations, state } from "@/store/index.ts";
 import { globalVars } from "@/utils/constants.ts";

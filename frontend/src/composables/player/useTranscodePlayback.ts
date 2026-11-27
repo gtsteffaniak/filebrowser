@@ -1,22 +1,27 @@
 import type Plyr from "plyr";
 import { computed, nextTick, ref, type Ref, type ShallowRef, watch } from "vue";
 import type { RouteLocationNormalizedLoaded } from "vue-router";
-import { getTranscodeSessions } from "@/api/transcode.js";
+import { getTranscodeSessions, type TranscodeStatus } from "@/api/transcode.ts";
+import type { TranscodeSession } from "@/api/transcode.ts";
 import { getCachedViewToken } from "@/api/viewToken.js";
 import { useI18n } from "@/i18n/index.ts";
 import { notify } from "@/notify/index.ts";
-import { appendMediaFragment, isPlayBlockedError, type primePlay } from "@/player/playbackIntent.js";
-import { transcodeLog, transcodeWarn } from "@/player/transcodeDebug.js";
+import { appendMediaFragment, isPlayBlockedError, type PlayPrime } from "@/player/playbackIntent.ts";
+import { errorMessage, type PlayerError } from "@/player/playerErrors.ts";
+import { transcodeLog, transcodeWarn } from "@/player/transcodeDebug.ts";
 import {
   isTranscodeAvailable,
   isTranscodeHlsMode,
   normalizeTranscodeMode,
   normalizeTranscodeSessionStatus,
-  TRANSCODE_HLS_MODES,
-  TRANSCODE_MODES,
-} from "@/player/transcodeMode.js";
-import { TranscodePlaybackController } from "@/player/transcodePlaybackController.js";
-import { createTranscodeClientId } from "@/player/transcodeSession.js";
+  type TranscodeMode,
+} from "@/player/transcodeMode.ts";
+import {
+  TranscodePlaybackController,
+  type TranscodeRecoverContext,
+  type TranscodeStartFailureReason,
+} from "@/player/transcodePlaybackController.ts";
+import { createTranscodeClientId } from "@/player/transcodeSession.ts";
 import { router } from "@/router/index.ts";
 import { getters, mutations } from "@/store/index.ts";
 import { needsTranscodeFirst } from "@/utils/canBrowserPlayNative.js";
@@ -38,26 +43,9 @@ export interface TranscodeRequest {
   metadata?: { videoCodec?: string; audioCodec?: string };
 }
 
-interface TranscodeSession {
-  id?: string;
-  source?: string;
-  path?: string;
-  fileName?: string;
-}
-
-/** Session status as returned by the transcode API (or synthesized when transcoding is off). */
-export interface TranscodeStatus {
-  enabled?: boolean;
-  canStart?: boolean;
-  blockReason?: string;
-  sessions?: TranscodeSession[];
-  globalLimit?: number;
-  userLimit?: number;
-}
-
 /** What the video area shows instead of the player when native playback is not possible. */
 export interface TranscodeOffer {
-  mode: string;
+  mode: "offer" | "unsupported" | "user_limit" | "system_limit";
   sessions: TranscodeSession[];
   systemLimit?: number;
   userLimit?: number;
@@ -69,29 +57,21 @@ interface ResumeSnapshot {
   wasPlaying?: boolean;
 }
 
-interface RecoverContext {
-  startSec?: number;
-  sessionId?: string;
-  mode?: string;
-  shouldAutoplay?: boolean;
-  playPrime?: ReturnType<typeof primePlay> | null;
-}
-
 /** Outcome of startTranscodePlayback; `ok` only when the HLS attachment succeeded. */
 export interface StartTranscodeResult {
   ok: boolean;
-  reason?: string;
+  reason?: TranscodeStartFailureReason;
 }
 
 /** Reasons that end a start without it being a playback failure */
-const NON_FAILURE_START_REASONS = ["cancelled", "disposed", "stale", "recovered"];
+const NON_FAILURE_START_REASONS: readonly TranscodeStartFailureReason[] = ["cancelled", "disposed", "stale", "recovered"];
 
 interface StartTranscodeOptions {
   replaceSessionId?: string;
   startSec?: number;
-  mode?: string;
+  mode?: TranscodeMode;
   autoplay?: boolean;
-  playPrime?: ReturnType<typeof primePlay> | null;
+  playPrime?: PlayPrime;
   manageSwitchState?: boolean;
 }
 
@@ -162,7 +142,7 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
   const transcodeSwitchInProgress = ref(false);
   let transcodeSwitchOwner: symbol | null = null;
   let modeSwitchToken: symbol | null = null;
-  const transcodeMode = ref("native");
+  const transcodeMode = ref<TranscodeMode>("native");
   const transcodeOffer = ref<TranscodeOffer | null>(null);
   /** The user accepted the offer: play through transcoding from the start. */
   const startRequested = ref(false);
@@ -183,8 +163,8 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
   let transcodeFallbackAttempted = false;
   let transcodeOfferEmitted = false;
   interface PendingModeRequest {
-    mode: string;
-    playPrime?: ReturnType<typeof primePlay> | null;
+    mode: TranscodeMode;
+    playPrime?: PlayPrime;
   }
   let pendingModeRequest: PendingModeRequest | null = null;
   function takePendingModeRequest(): PendingModeRequest | null {
@@ -212,7 +192,7 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
   const transcodeActive = computed(() => transcodePlayback.value?.active === true);
   const transcodeStartInProgress = computed(() => transcodePlayback.value?.startInProgress === true);
   const isTranscodePlaybackMode = computed(
-    () => transcodeEnabled.value && TRANSCODE_HLS_MODES.includes(transcodeMode.value),
+    () => transcodeEnabled.value && isTranscodeHlsMode(transcodeMode.value),
   );
   const wantsTranscodePlayback = computed(() => isTranscodePlaybackMode.value);
   const formatNeedsTranscode = computed(() => needsTranscodeFirst(transcodeProbeParams()));
@@ -284,19 +264,19 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
     };
   }
 
-  function syncPlaybackUrl({ transcodeMode: explicit }: { transcodeMode?: string } = {}): void {
+  function syncPlaybackUrl({ transcodeMode: explicit }: { transcodeMode?: TranscodeMode } = {}): void {
     if (transcodeSwitchInProgress.value) {
       return;
     }
     const explicitMode = explicit !== undefined;
     const resolvedMode = normalizeTranscodeMode(explicitMode ? explicit : transcodeMode.value);
-    let modeForQuery: string | null = null;
-    if (TRANSCODE_HLS_MODES.includes(resolvedMode)) {
+    let modeForQuery: TranscodeMode | null = null;
+    if (isTranscodeHlsMode(resolvedMode)) {
       if (explicitMode || transcodeActive.value) {
         modeForQuery = resolvedMode;
       }
     }
-    const nextQuery = buildPlaybackQueryPatch(getRoute().query as Record<string, string | undefined>, {
+    const nextQuery = buildPlaybackQueryPatch(getRoute().query, {
       time: null,
       transcodeMode: modeForQuery,
     });
@@ -713,11 +693,16 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
     void offerTranscodePlayback({ confirmedFailure: true });
   }
 
+  function getPlaybackVideo(): HTMLVideoElement | null {
+    const media = getPlaybackMedia();
+    return media instanceof HTMLVideoElement ? media : null;
+  }
+
   function syncPlayerAfterTranscodeReady(): void {
     if (!transcodeActive.value || !player.value) {
       return;
     }
-    const video = getPlaybackMedia() as HTMLVideoElement | null | undefined;
+    const video = getPlaybackVideo();
     if (!video) {
       return;
     }
@@ -803,7 +788,7 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
       return;
     }
     if (startRequested.value) {
-      transcodeMode.value = resolveTranscodeModeForPlayback(getRoute().query);
+      transcodeMode.value = normalizeTranscodeMode(resolveTranscodeModeForPlayback(getRoute().query));
       return;
     }
     if (needsTranscodeFirst(transcodeProbeParams())) {
@@ -812,21 +797,21 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
     }
     const urlTranscode = parseTranscodeModeFromQuery(getRoute().query);
     if (urlTranscode) {
-      transcodeMode.value = urlTranscode;
+      transcodeMode.value = normalizeTranscodeMode(urlTranscode);
       return;
     }
     transcodeMode.value = "native";
   }
 
-  function resolveActiveTranscodeMode(): string {
+  function resolveActiveTranscodeMode(): TranscodeMode {
     const urlMode = parseTranscodeModeFromQuery(getRoute().query);
     if (urlMode) {
-      return urlMode;
+      return normalizeTranscodeMode(urlMode);
     }
-    if (TRANSCODE_HLS_MODES.includes(transcodeMode.value)) {
+    if (isTranscodeHlsMode(transcodeMode.value)) {
       return transcodeMode.value;
     }
-    return resolveTranscodeModeForPlayback(getRoute().query);
+    return normalizeTranscodeMode(resolveTranscodeModeForPlayback(getRoute().query));
   }
 
   async function resolveReuseSessionId(): Promise<string | undefined> {
@@ -938,8 +923,8 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
       transcodeSwitchInProgress: transcodeSwitchInProgress.value,
     });
 
-    let pendingUrlSync: { transcodeMode?: string } | null = null;
-    const requestUrlSync = (opts: { transcodeMode?: string } = {}) => {
+    let pendingUrlSync: { transcodeMode?: TranscodeMode } | null = null;
+    const requestUrlSync = (opts: { transcodeMode?: TranscodeMode } = {}) => {
       if (manageSwitch) {
         pendingUrlSync = opts;
       } else {
@@ -965,7 +950,8 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
         replaceSessionId: effectiveReplaceSessionId,
         startSec: seekSec,
         playPrime,
-        getVideoElement: () => getPlaybackMedia(),
+        // The element Plyr plays on is the <video> of this player.
+        getVideoElement: getPlaybackVideo,
         nextTick: () => nextTick(),
         shouldAutoplay: shouldPlay,
         onFirstBuffered: () => {
@@ -977,30 +963,30 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
         onFatal: () => {
           notify.showError(t("player.transcodeFailed"));
         },
-        onRecoverPlayback: async (ctx?: RecoverContext) => {
+        onRecoverPlayback: async (ctx: TranscodeRecoverContext) => {
           transcodeLog("recovering transcode playback after HLS failure", {
-            startSec: ctx?.startSec,
-            sessionId: ctx?.sessionId,
+            startSec: ctx.startSec,
+            sessionId: ctx.sessionId,
           });
           const recovered = await startTranscodePlayback({
-            mode: ctx?.mode ?? resolveActiveTranscodeMode(),
-            startSec: ctx?.startSec ?? player.value?.currentTime ?? 0,
-            replaceSessionId: ctx?.sessionId,
-            autoplay: ctx?.shouldAutoplay ?? shouldAutoplay.value,
+            mode: ctx.mode ?? resolveActiveTranscodeMode(),
+            startSec: ctx.startSec,
+            replaceSessionId: ctx.sessionId,
+            autoplay: ctx.shouldAutoplay ?? shouldAutoplay.value,
             manageSwitchState: true,
-            playPrime: ctx?.playPrime,
+            playPrime: ctx.playPrime,
           });
-          return recovered.ok || NON_FAILURE_START_REASONS.includes(recovered.reason ?? "");
+          return recovered.ok || (recovered.reason !== undefined && NON_FAILURE_START_REASONS.includes(recovered.reason));
         },
-        onCapacityStatus: (status: unknown) => {
+        onCapacityStatus: (status: TranscodeStatus) => {
           showTranscodeOffer(normalizeTranscodeSessionStatus(status, {
               source: getReq()?.source,
               path: getReq()?.path,
             }),
           );
         },
-        onShowError: (err?: Error) => {
-          notify.showError(err?.message || t("player.transcodeFailed"));
+        onShowError: (err: PlayerError) => {
+          notify.showError(errorMessage(err) || t("player.transcodeFailed"));
         },
         onAttachNative: () => {
           if (!transcodeFallbackAttempted && !wantsTranscodePlayback.value) {
@@ -1055,7 +1041,7 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
     } finally {
       if (manageSwitch) {
         releaseSwitch();
-        const urlSync = pendingUrlSync as { transcodeMode?: string } | null;
+        const urlSync = pendingUrlSync;
         if (!applyPendingModeRequest(startGeneration) && urlSync) {
           syncPlaybackUrl(urlSync);
         }
@@ -1070,7 +1056,7 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
     if (transcodeOfferEmitted || getters.isShare()) {
       return;
     }
-    const code = (event.target as HTMLMediaElement | null)?.error?.code;
+    const code = (event.target instanceof HTMLMediaElement ? event.target.error?.code : undefined);
     if (code !== MediaError.MEDIA_ERR_DECODE && code !== MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED) {
       return;
     }
@@ -1114,13 +1100,10 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
   }
 
   async function switchTranscodeMode(
-    requested: string,
-    { playPrime }: { playPrime?: ReturnType<typeof primePlay> | null } = {},
+    requested: TranscodeMode,
+    { playPrime }: { playPrime?: PlayPrime } = {},
   ): Promise<void> {
     const mode = normalizeTranscodeMode(requested);
-    if (!TRANSCODE_MODES.includes(mode)) {
-      return;
-    }
     if (transcodeSwitchInProgress.value) {
       pendingModeRequest = { mode, playPrime };
       return;
@@ -1129,7 +1112,7 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
       return;
     }
     if (
-      TRANSCODE_HLS_MODES.includes(mode) &&
+      isTranscodeHlsMode(mode) &&
       (!getReq()?.source || !getReq()?.path || !transcodeEnabled.value || !resolveViewTokenForTranscode())
     ) {
       syncPlaybackUrl({ transcodeMode: transcodeMode.value });
@@ -1167,11 +1150,11 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
       return;
     }
     transcodeMode.value = mode;
-    if (TRANSCODE_HLS_MODES.includes(mode)) {
+    if (isTranscodeHlsMode(mode)) {
       savePreferredTranscodeMode(mode);
     }
     try {
-      if (TRANSCODE_HLS_MODES.includes(mode)) {
+      if (isTranscodeHlsMode(mode)) {
         const started = await startTranscodePlayback({
           replaceSessionId,
           startSec: player.value?.currentTime ?? 0,
@@ -1283,7 +1266,7 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
     if (!hasTranscode && !hasTime) {
       return;
     }
-    const nextQuery = buildPlaybackQueryPatch(route.query as Record<string, string | undefined>, {
+    const nextQuery = buildPlaybackQueryPatch(route.query, {
       transcodeMode: null,
       time: null,
     });
@@ -1305,8 +1288,8 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
     const status = normalizeTranscodeSessionStatus(rawStatus, {
       source: getReq()?.source,
       path: getReq()?.path,
-    }) as TranscodeStatus;
-    let mode = "offer";
+    });
+    let mode: TranscodeOffer["mode"] = "offer";
     if (status.enabled === false) {
       mode = "unsupported";
     } else if (!status.canStart) {
@@ -1344,7 +1327,7 @@ export function useTranscodePlayback(options: UseTranscodePlaybackOptions) {
       const status = normalizeTranscodeSessionStatus(await getTranscodeSessions(), {
         source: getReq()?.source,
         path: getReq()?.path,
-      }) as TranscodeStatus;
+      });
       if (!isCurrent()) {
         return false;
       }

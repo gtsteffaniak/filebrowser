@@ -1,10 +1,10 @@
 import { computed, ref } from "vue";
 import type { ShallowRef } from "vue";
 import type Plyr from "plyr";
+import type { EdgeKind } from "@/player/gestureZones.ts";
 import { getters, mutations, state } from "@/store/index.ts";
 import type { GestureState } from "./useGestureState.ts";
 
-type EdgeKind = "horizontal" | "vertical-dismiss" | "vertical-fullscreen";
 type NavHintDir = "prev" | "next";
 
 interface SwipeNavigationOptions {

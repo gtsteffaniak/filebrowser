@@ -39,7 +39,7 @@ vi.mock("@/utils/playbackQueue.js", () => ({
   getNextItem: vi.fn(),
   navigatePlaybackQueue: vi.fn(),
 }));
-vi.mock("@/player/seekOnRelease.js", () => ({ blockSeekOnInput: vi.fn(), enableSeekOnRelease: () => () => {} }));
+vi.mock("@/player/seekOnRelease.ts", () => ({ blockSeekOnInput: vi.fn(), enableSeekOnRelease: () => () => {} }));
 vi.mock("@/components/files/player/AudioPanel.vue", () => ({ default: { render: () => null } }));
 vi.mock("@/components/files/player/LyricsList.vue", () => ({ default: { render: () => null } }));
 vi.mock("@/components/settings/FloatingActionButton.vue", () => ({ default: { render: () => null } }));

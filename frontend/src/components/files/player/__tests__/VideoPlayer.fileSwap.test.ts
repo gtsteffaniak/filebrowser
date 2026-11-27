@@ -70,14 +70,14 @@ vi.mock("@/utils/playbackQueue.js", () => ({
   getNextItem: vi.fn(),
   navigatePlaybackQueue: vi.fn(),
 }));
-vi.mock("@/player/seekOnRelease.js", () => ({ blockSeekOnInput: vi.fn(), enableSeekOnRelease: () => () => {} }));
-vi.mock("@/player/scrubPreview.js", () => ({
+vi.mock("@/player/seekOnRelease.ts", () => ({ blockSeekOnInput: vi.fn(), enableSeekOnRelease: () => () => {} }));
+vi.mock("@/player/scrubPreview.ts", () => ({
   enableScrubPreview: (player: object, options: object) => {
     hoisted.scrub(player, options);
     return hoisted.scrubCleanup;
   },
 }));
-vi.mock("@/player/videoLoading.js", () => ({ enableVideoLoadingIndicator: () => hoisted.loadingCleanup }));
+vi.mock("@/player/videoLoading.ts", () => ({ enableVideoLoadingIndicator: () => hoisted.loadingCleanup }));
 vi.mock("@/components/files/PreviewNotice.vue", () => ({
   default: { setup: (_props: object, { slots }: SetupContext) => () => h("div", { class: "offer-notice" }, slots.actions?.()) },
 }));

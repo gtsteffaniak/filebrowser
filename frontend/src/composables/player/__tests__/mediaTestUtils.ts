@@ -1,3 +1,4 @@
+import type { TranscodeSession, TranscodeStatus } from "@/api/transcode.ts";
 import type Plyr from "plyr";
 import { type Mock, vi } from "vitest";
 import { type App, createApp, defineComponent, h, nextTick } from "vue";
@@ -143,4 +144,23 @@ export function withSetup<T>(setup: () => T): { result: T; app: App } {
   );
   app.mount(document.createElement("div"));
   return { result, app };
+}
+
+/** A full transcode session for the fields a test does not care about. */
+export function transcodeSession(overrides: Partial<TranscodeSession> = {}): TranscodeSession {
+  return {
+    id: "session",
+    source: "src",
+    path: "/a.wmv",
+    profile: "quality",
+    state: "running",
+    startedAt: 0,
+    heartbeatIntervalSec: 12,
+    ...overrides,
+  };
+}
+
+/** A session status as the server answers it when transcoding is available. */
+export function transcodeStatus(overrides: Partial<TranscodeStatus> = {}): TranscodeStatus {
+  return { enabled: true, canStart: true, sessions: [], ...overrides };
 }

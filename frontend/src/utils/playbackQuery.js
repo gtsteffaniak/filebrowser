@@ -170,7 +170,7 @@ export function parseTranscodeModeFromQuery(query) {
 }
 
 /**
- * @param {Record<string, string | undefined>} query
+ * @param {Record<string, string | null | (string | null)[] | undefined>} query
  * @param {{ time?: number | null, transcodeMode?: string | null }} [patch]
  * @returns {Record<string, string | undefined>}
  */
