@@ -37,8 +37,8 @@ import LyricsList from "@/components/files/player/LyricsList.vue";
 import { useI18n } from "@/i18n/index.ts";
 import { mutations, state } from "@/store/index.ts";
 import type { LyricLines } from "@/utils/lyrics.ts";
-import { visualizerConfig } from "@/utils/visualizerConfig.ts";
-import type { VisualizerConfig } from "@/utils/visualizerConfig.ts";
+import { visualizerConfig } from "@/utils/config/visualizerConfig.ts";
+import type { VisualizerConfig } from "@/utils/config/visualizerConfig.ts";
 
 const props = withDefaults(
   defineProps<{

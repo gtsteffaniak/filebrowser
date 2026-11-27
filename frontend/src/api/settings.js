@@ -1,6 +1,6 @@
 import { notify } from "@/notify/index.ts";
 import { getApiPath, getPublicApiPath } from "@/utils/url.js";
-import { normalizeSharedMediaSettings } from "@/utils/mediaSettings.ts";
+import { normalizeSharedMediaSettings } from "@/utils/config/mediaSettings.ts";
 import { fetchJSON, fetchURL, requestTimeoutSignal } from "./utils.ts";
 
 const analyticsRequestTimeoutMs = 5000;
@@ -153,8 +153,8 @@ export async function getSharedMediaSettings() {
 }
 
 /**
- * @param {import("@/utils/mediaSettings.ts").DeepPartial<import("@/utils/mediaSettings.ts").MediaSettings>} partial
- * @returns {Promise<import("@/utils/mediaSettings.ts").DeepPartial<import("@/utils/mediaSettings.ts").MediaSettings>>}
+ * @param {import("@/utils/config/mediaSettings.ts").DeepPartial<import("@/utils/config/mediaSettings.ts").MediaSettings>} partial
+ * @returns {Promise<import("@/utils/config/mediaSettings.ts").DeepPartial<import("@/utils/config/mediaSettings.ts").MediaSettings>>}
  */
 export async function patchMediaSettings(partial) {
   return fetchJSON(getApiPath("settings/media"), {

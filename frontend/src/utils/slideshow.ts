@@ -4,7 +4,7 @@ import { getTypeInfo, getTypeInfoFromExt, isRawImageMimeType } from "@/utils/mim
 import { joinPath, removeTrailingSlash } from "@/utils/url.js";
 import { getters, state } from "@/store/index.ts";
 import { globalVars } from "@/utils/constants.ts";
-import { slideshowConfig } from "@/utils/slideshowConfig.ts";
+import { slideshowConfig } from "@/utils/config/slideshowConfig.ts";
 import type { ShareInfoObject } from "@/store/types.ts";
 
 const RAW_EXT = /\.(cr2|cr3|nef|nrw|arw|dng|orf|rw2|raf|pef|srw|raw)$/i;

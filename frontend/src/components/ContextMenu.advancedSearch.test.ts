@@ -73,7 +73,7 @@ vi.mock("@/utils/mimetype", () => ({
   isRichTextPreviewMimeType: () => false,
   getTypeInfoFromExt: () => ({ materialSymbol: "", classes: "" }),
 }));
-vi.mock("@/utils/mediaFile", () => ({ isMediaRequest: () => false }));
+vi.mock("@/utils/mediaFile.ts", () => ({ isMediaRequest: () => false }));
 vi.mock("@/utils/expandTransition", () => ({ expandBeforeEnter: vi.fn(), expandEnter: vi.fn(), expandLeave: vi.fn() }));
 // transitions import (popEnter/popLeave on mount) — leave real, WAAPI absent in jsdom.
 import ContextMenu from "./ContextMenu.vue";

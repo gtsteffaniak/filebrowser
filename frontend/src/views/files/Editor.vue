@@ -40,7 +40,7 @@ import "ace-builds/src-min-noconflict/mode-json";
 import "ace-builds/src-min-noconflict/mode-markdown";
 import EditorToolbar from "@/components/files/EditorToolbar.vue";
 import MarkdownSplitView from "@/components/files/MarkdownSplitView.vue";
-import { editorConfig, type EditorConfig } from "@/utils/editorConfig.ts";
+import { editorConfig, type EditorConfig } from "@/utils/config/editorConfig.ts";
 import { rejectPutIfQuotaExceeded } from "@/utils/uploadQuota.js";
 
 type Req = typeof state.req;

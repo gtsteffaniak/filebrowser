@@ -109,7 +109,7 @@ import { ensureViewToken } from "@/api/viewToken.js";
 import { buildItemUrl } from "@/utils/url.js";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import { notify } from "@/notify/index.ts";
-import { slideshowConfig } from "@/utils/slideshowConfig.ts";
+import { slideshowConfig } from "@/utils/config/slideshowConfig.ts";
 import {
   slidesFromListing,
   slidesFromSearch,

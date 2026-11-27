@@ -67,7 +67,7 @@ import {
   emptyMediaSettings,
   mergeMediaSettings,
   saveMediaSettingsPatch,
-} from "@/utils/mediaSettings.ts";
+} from "@/utils/config/mediaSettings.ts";
 
 export default {
   name: "MediaConversionFormats",

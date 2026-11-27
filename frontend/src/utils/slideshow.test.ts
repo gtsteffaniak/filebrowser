@@ -13,7 +13,7 @@ import {
   SLIDESHOW_MAX_ITEMS_HARD_CAP,
   saveSlideshowConfig,
   resetSlideshowConfig,
-} from "@/utils/slideshowConfig.ts";
+} from "@/utils/config/slideshowConfig.ts";
 import { slidesFromListing, shuffled, mediaInfo, countMediaInListing } from "@/utils/slideshow.ts";
 
 describe("effectiveMaxItemsCap", () => {
