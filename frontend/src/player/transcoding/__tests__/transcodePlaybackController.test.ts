@@ -567,4 +567,12 @@ describe("TranscodePlaybackController", () => {
     expect(controller.active).toBe(false);
     expect(onFatal).toHaveBeenCalledOnce();
   });
+
+  it("keeps attempt ids monotonic across reset", () => {
+    const controller = new TranscodePlaybackController();
+    const before = controller.attempt;
+    controller.reset();
+    expect(controller.attempt).toBeGreaterThan(before);
+    expect(controller.isCurrentAttempt(before)).toBe(false);
+  });
 });

@@ -37,6 +37,42 @@ export function stripAssOverrideTags (text: string): string {
     .trim()
 }
 
+/** Translates ASS line-break (\N) and non-breaking space (\h) escapes. */
+function decodeAssEscapes (text: string): string {
+  return text.replace(/\\N/g, '\n').replace(/\\n/g, ' ').replace(/\\h/g, '\u00a0')
+}
+
+const LRC_TIMESTAMP_RE = /^\[(\d+):(\d{1,2}(?:\.\d+)?)\]/
+const LRC_FALLBACK_DURATION_MS = 3000
+
+function lrcToVttCues (lines: string[]): string {
+  const entries: { start: number; dialogue: string }[] = []
+  for (const line of lines) {
+    let rest = line.trim()
+    const starts: number[] = []
+    let match = LRC_TIMESTAMP_RE.exec(rest)
+    while (match) {
+      starts.push(Number(match[1]) * 60000 + Math.round(Number.parseFloat(match[2] ?? '0') * 1000))
+      rest = rest.slice(match[0].length)
+      match = LRC_TIMESTAMP_RE.exec(rest)
+    }
+    const dialogue = rest.trim()
+    for (const start of starts) {
+      entries.push({ start, dialogue })
+    }
+  }
+  entries.sort((a, b) => a.start - b.start)
+  return entries
+    .map((entry, index) => {
+      if (!entry.dialogue) return ''
+      const next = entries.slice(index + 1).find(candidate => candidate.start > entry.start)
+      const end = next ? next.start : entry.start + LRC_FALLBACK_DURATION_MS
+      return `${formatMillisecondsToVTT(entry.start)} --> ${formatMillisecondsToVTT(end)}\n ${entry.dialogue}`
+    })
+    .filter(cue => cue !== '')
+    .join('\n\n')
+}
+
 export function convertToVTT (ext: string, text: string): string {
   if (ext === '.vtt') {
     return text
@@ -72,31 +108,7 @@ export function convertToVTT (ext: string, text: string): string {
       break
 
     case '.lrc':
-      // Convert LRC to VTT
-      vttContent += lrcLines
-        .map((line, index) => {
-          if (line.startsWith('[')) {
-            const [timeRaw, dialogue] = line.split(']') // Remove square brackets
-            let time = timeRaw
-            if (!time || !dialogue) return '' // Skip invalid lines
-
-            time = time.slice(1) // Remove opening square bracket
-
-            // Format time to HH:MM:SS.MMM
-            const startTime = formatLrcTime(time)
-            const endTime =
-              index + 1 < lrcLines.length
-                ? formatLrcTime((lrcLines[index + 1] ?? '').split(']')[0]?.slice(1) ?? '')
-                : startTime // Use next line's timestamp for end time
-
-            return `${startTime} --> ${endTime}\n ${dialogue.trim()}` // Add leading space before dialogue
-          } else {
-            return '' // Skip lines that don't start with '['
-          }
-        })
-        .filter(line => line !== '')
-        .join('\n\n')
-        .trim() // Remove empty lines
+      vttContent += lrcToVttCues(lrcLines)
       break
 
     case '.ass':
@@ -109,7 +121,7 @@ export function convertToVTT (ext: string, text: string): string {
           const parts = line.split(',')
           const startTime = formatAssTime((parts[1] ?? '').trim())
           const endTime = formatAssTime((parts[2] ?? '').trim())
-          const dialogue = stripAssOverrideTags(parts.slice(9).join(',').trim())
+          const dialogue = decodeAssEscapes(stripAssOverrideTags(parts.slice(9).join(',').trim()))
           return `${startTime} --> ${endTime}\n ${dialogue}` // Add leading space before dialogue
         })
         .join('\n\n')
@@ -117,36 +129,7 @@ export function convertToVTT (ext: string, text: string): string {
       break
     case '.smi':
       // Convert SAMI to VTT
-      vttContent += text
-        .replace(/\r\n|\r/g, '\n') // Normalize newlines
-        .match(/<SYNC Start=\d+>.*?<\/SYNC>/gs) // Match all <SYNC> blocks
-        ?.map(syncBlock => {
-          const startTime = syncBlock.match(/<SYNC Start=(\d+)>/)?.[1] ?? '0' // Extract start time in ms
-          const dialogueMatch = syncBlock.match(/<P[^>]*>(.*?)<\/P>/) // Extract text inside <P>
-          const dialogue = dialogueMatch
-            ? (dialogueMatch[1] ?? '').replace(/<[^>]+>/g, '').trim()
-            : '' // Remove HTML tags
-
-          if (!dialogue) return '' // Skip empty captions
-          const startFormatted = formatMillisecondsToVTT(Number(startTime))
-
-          // Use next SYNC start time as the end time if available
-          const currentTag = `<SYNC Start=${startTime}>`
-          const tagPos = text.indexOf(currentTag)
-          let endTime = Number.parseInt(startTime, 10) + 3000 // Default to +3s
-          if (tagPos >= 0) {
-            const nextMatch = text.slice(tagPos + currentTag.length).match(/<SYNC Start=(\d+)>/)
-            if (nextMatch) {
-              endTime = Number.parseInt(nextMatch[1] ?? '', 10)
-            }
-          }
-
-          const endFormatted = formatMillisecondsToVTT(endTime)
-          return `${startFormatted} --> ${endFormatted}\n${dialogue}`
-        })
-        .filter(syncBlock => syncBlock !== '')
-        .join('\n\n')
-        .trim()
+      vttContent += samiToVttCues(text)
       break
     case '.sub':
       // Convert SUB to VTT
@@ -180,15 +163,31 @@ export function convertToVTT (ext: string, text: string): string {
   return vttContent
 }
 
-// Helper function to format LRC time (e.g., 00:00.000 -> 00:00:00.000)
-function formatLrcTime (time: string): string {
-  const [minutes, seconds = ''] = time.split(':')
-  const sec = seconds.split('.')[0]
-  let ms = seconds.split('.')[1] || ''
-  ms = ms ? ms.padEnd(3, '0') : '000' // Ensure milliseconds are 3 digits
-
-  // Return in the correct format
-  return `00:${minutes}:${sec}.${ms}`
+function samiToVttCues (text: string): string {
+  const normalized = text.replace(/\r\n|\r/g, '\n')
+  const syncs = [...normalized.matchAll(/<SYNC\s+Start\s*=\s*["']?(\d+)["']?[^>]*>/gi)]
+  return syncs
+    .map((sync, index) => {
+      const start = Number.parseInt(sync[1] ?? '0', 10)
+      const bodyStart = (sync.index ?? 0) + sync[0].length
+      const bodyEnd = syncs[index + 1]?.index ?? normalized.length
+      const body = normalized.slice(bodyStart, bodyEnd).replace(/<\/SYNC>[\s\S]*$/i, '')
+      const dialogue = body
+        .replace(/<\/?(?:BODY|SAMI)[^>]*>[\s\S]*$/i, '')
+        .replace(/<br\s*\/?>/gi, '\n')
+        .replace(/<[^>]+>/g, '')
+        .replace(/&nbsp;/gi, ' ')
+        .split('\n')
+        .map(line => line.trim())
+        .filter(Boolean)
+        .join('\n')
+      if (!dialogue) return ''
+      const next = syncs.slice(index + 1).find(candidate => Number.parseInt(candidate[1] ?? '0', 10) > start)
+      const end = next ? Number.parseInt(next[1] ?? '0', 10) : start + 3000
+      return `${formatMillisecondsToVTT(start)} --> ${formatMillisecondsToVTT(end)}\n${dialogue}`
+    })
+    .filter(cue => cue !== '')
+    .join('\n\n')
 }
 
 // Helper function to fix ASS/SSA timestamps

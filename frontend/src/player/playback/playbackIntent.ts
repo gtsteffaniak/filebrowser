@@ -81,6 +81,7 @@ export function resumeWhenReady(
     }
     if (isPlaybackProgressing(video)) {
       transcodeLog("resumeWhenReady skipped — already playing");
+      onPlaying?.();
       resolve({ played: true, blocked: false });
       return;
     }
@@ -157,6 +158,29 @@ export function resumeWhenReady(
   });
 }
 
+/** Await a promise, but stop waiting once cancelled or the ready deadline passes. */
+function settleWithin(promise: Promise<void>, isCancelled?: () => boolean): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const deadline = Date.now() + PLAY_READY_TIMEOUT_MS;
+    const poll = setInterval(() => {
+      if (isCancelled?.() || Date.now() >= deadline) {
+        clearInterval(poll);
+        resolve();
+      }
+    }, 250);
+    promise.then(
+      () => {
+        clearInterval(poll);
+        resolve();
+      },
+      (err) => {
+        clearInterval(poll);
+        reject(err);
+      },
+    );
+  });
+}
+
 /** Await a play promise after HLS attach, or fall back to resumeWhenReady. */
 export async function continuePlay(
   video: HTMLMediaElement | null | undefined,
@@ -171,7 +195,7 @@ export async function continuePlay(
   if (playPromise !== null && playPromise !== undefined) {
     let primedError: PlayerError | null = null;
     try {
-      await playPromise;
+      await settleWithin(playPromise, isCancelled);
     } catch (err) {
       primedError = err as PlayerError;
     }

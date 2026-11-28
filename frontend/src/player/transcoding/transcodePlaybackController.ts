@@ -13,6 +13,8 @@ import { TranscodeSessionController } from "@/player/transcoding/transcodeSessio
 
 /** A timed-out attach is retried in place rather than falling back to native playback */
 const MAX_ATTACH_RETRIES = 1;
+const FIRST_ATTEMPT_BUDGET_SHARE = 0.6;
+const END_MARGIN_SEC = 1;
 
 /**
  * The media-time range a session's synthetic VOD playlist can serve: the full
@@ -103,11 +105,8 @@ export class TranscodePlaybackController {
   }
 
   reset(): void {
-    this.attempt = 0;
-    this.attachAbort = null;
-    this.hlsCleanup = null;
-    this.sessionController = null;
-    this.active = false;
+    this.attempt += 1;
+    this._cancelInFlight();
     this.disposed = false;
     this.startInProgress = false;
     this._startChain = Promise.resolve({ ok: false, reason: "cancelled" });
@@ -149,6 +148,7 @@ export class TranscodePlaybackController {
       transcodeLog("superseding in-flight transcode start");
       this.attempt += 1;
       this.attachAbort?.abort();
+      this.sessionController?.cancelPendingStart();
     }
     this.startInProgress = true;
     const startSeq = ++this._startSeq;
@@ -237,17 +237,20 @@ export class TranscodePlaybackController {
 
     // Restore the remembered playhead after a source swap. The timeline is
     // source-relative; clamp to the session's servable range and seek directly.
+    const clampStart = (target: number): number => {
+      const coverage = servableCoverage(controller.session);
+      if (!coverage) {
+        return target;
+      }
+      return Math.min(Math.max(target, coverage.start), Math.max(coverage.start, coverage.end - END_MARGIN_SEC));
+    };
     const applyStartPosition = (video: HTMLVideoElement | null | undefined) => {
       const target = Number(startSec);
       if (!video || !Number.isFinite(target) || target <= 0) {
         return;
       }
       try {
-        let clamped = target;
-        const coverage = servableCoverage(controller.session);
-        if (coverage) {
-          clamped = Math.min(Math.max(target, coverage.start), coverage.end);
-        }
+        const clamped = clampStart(target);
         if (Math.abs(video.currentTime - clamped) < 0.25) {
           return;
         }
@@ -304,7 +307,7 @@ export class TranscodePlaybackController {
       // `session.vodPlaylist` (production session responses never set it): the
       // post-buffer `applyStartPosition` seek is not a substitute, since it warms
       // up from zero and only then seeks, forcing an extra producer reposition.
-      const vodStart = startSec !== undefined && Number.isFinite(startSec) && startSec > 0 ? startSec : -1;
+      const vodStart = startSec !== undefined && Number.isFinite(startSec) && startSec > 0 ? clampStart(startSec) : -1;
 
       // One overall budget covers every attach attempt: retries share it rather
       // than each getting a fresh seek-scaled deadline, so two attempts cannot
@@ -317,6 +320,7 @@ export class TranscodePlaybackController {
       // Retry the attach a bounded number of times before giving up, so a slow
       // first fragment does not force a fallback that cannot decode the source.
       let hlsAttach: HlsAttachment | null = null;
+      let lastAttachErr: unknown = null;
       for (let attachAttempt = 0; attachAttempt <= MAX_ATTACH_RETRIES; attachAttempt += 1) {
         const remainingMs = attachDeadlineAt - performance.now();
         if (attachAttempt > 0 && remainingMs <= 0) {
@@ -325,7 +329,7 @@ export class TranscodePlaybackController {
             attachAttempt,
             attachBudgetMs,
           });
-          break;
+          throw lastAttachErr;
         }
         const attachAbort = new AbortController();
         this.attachAbort = attachAbort;
@@ -342,7 +346,7 @@ export class TranscodePlaybackController {
             video: el,
             session,
             startPosition: vodStart,
-            budgetMs: remainingMs,
+            budgetMs: attachAttempt < MAX_ATTACH_RETRIES ? remainingMs * FIRST_ATTEMPT_BUDGET_SHARE : remainingMs,
             signal: attachAbort.signal,
             onRecoverPlayback: onRecoverPlayback
               ? ({ startSec: recoverStartSec, sessionId, shouldAutoplay: recoverAutoplay }) =>
@@ -386,6 +390,7 @@ export class TranscodePlaybackController {
           if (!retryable) {
             throw attachErr;
           }
+          lastAttachErr = attachErr;
           transcodeWarn("HLS attach failed before ready — reattaching", {
             sessionId: session.id,
             attachAttempt,

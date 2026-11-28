@@ -8,6 +8,9 @@ import {
 import { errorMessage, httpStatusOf, type PlayerError } from "@/player/playerErrors.ts";
 import { transcodeLog, transcodeWarn } from "@/player/transcoding/transcodeDebug.ts";
 
+/** A session-start request that has not answered by then is abandoned */
+const SESSION_START_TIMEOUT_MS = 30_000;
+
 let clientCounter = 0;
 
 export function createTranscodeClientId(prefix = "plyr"): string {
@@ -39,6 +42,7 @@ export class TranscodeSessionController {
   heartbeatTimer: number | null = null;
   lastPlayhead = 0;
   paused = true;
+  startAbort: AbortController | null = null;
 
   constructor({ source, path, viewToken, profile, clientId }: TranscodeSessionControllerOptions) {
     this.source = source;
@@ -71,15 +75,32 @@ export class TranscodeSessionController {
       startSec,
       hasViewToken: Boolean(this.viewToken),
     });
-    const result = await startTranscodeSession({
-      source: this.source,
-      path: this.path,
-      viewToken: this.viewToken,
-      profile: this.profile,
-      replaceSessionId,
-      clientId: this.clientId,
-      startSec,
-    });
+    const abort = new AbortController();
+    this.startAbort = abort;
+    let result: TranscodeSession;
+    try {
+      result = await startTranscodeSession(
+        {
+          source: this.source,
+          path: this.path,
+          viewToken: this.viewToken,
+          profile: this.profile,
+          replaceSessionId,
+          clientId: this.clientId,
+          startSec,
+        },
+        AbortSignal.any([abort.signal, AbortSignal.timeout(SESSION_START_TIMEOUT_MS)]),
+      );
+    } finally {
+      if (this.startAbort === abort) {
+        this.startAbort = null;
+      }
+    }
+    if (abort.signal.aborted) {
+      // Torn down while the response was in flight -- release what the server just created.
+      void stopTranscodeSession(result.id).catch(() => {});
+      throw new DOMException("Session start cancelled", "AbortError");
+    }
     this.session = result;
     transcodeLog("session start response", {
       id: result.id,
@@ -106,9 +127,12 @@ export class TranscodeSessionController {
           paused: this.paused,
           clientId: this.clientId,
         }).catch((err: PlayerError) => {
+          if (this.session?.id !== sessionId) {
+            return;
+          }
           const status = httpStatusOf(err);
           transcodeWarn("heartbeat failed", {
-            sessionId: this.session?.id,
+            sessionId,
             message: errorMessage(err),
             status,
           });
@@ -137,7 +161,13 @@ export class TranscodeSessionController {
   }
   /** Detach client lease without stopping the server session (refresh/reuse). */
   detach(): void {
+    this.cancelPendingStart();
     this.stopHeartbeat();
+  }
+
+  cancelPendingStart(): void {
+    this.startAbort?.abort();
+    this.startAbort = null;
   }
 
   /**
@@ -145,6 +175,7 @@ export class TranscodeSessionController {
    * path so the DELETE is not cancelled as the document is torn down.
    */
   async stop({ keepalive = false }: { keepalive?: boolean } = {}): Promise<void> {
+    this.cancelPendingStart();
     this.stopHeartbeat();
     const id = this.session?.id;
     this.session = null;

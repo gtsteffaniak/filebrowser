@@ -72,4 +72,21 @@ describe("TranscodeSessionController", () => {
     expect(heartbeatTranscodeSession).not.toHaveBeenCalled();
     expect(stopTranscodeSession).not.toHaveBeenCalled();
   });
+
+  it("stops a session whose start response arrives after stop()", async () => {
+    let resolveStart: (value: ReturnType<typeof transcodeSession>) => void = () => {};
+    vi.mocked(startTranscodeSession).mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolveStart = resolve;
+      }),
+    );
+    const ctrl = new TranscodeSessionController({ source: "s", path: "/v.mp4", viewToken: "vt", profile: "quality" });
+    const started = ctrl.start({});
+    const rejected = expect(started).rejects.toMatchObject({ name: "AbortError" });
+    await ctrl.stop();
+    resolveStart(transcodeSession({ id: "late", heartbeatIntervalSec: 12 }));
+    await rejected;
+    expect(stopTranscodeSession).toHaveBeenCalledWith("late");
+    expect(ctrl.heartbeatTimer).toBeNull();
+  });
 });

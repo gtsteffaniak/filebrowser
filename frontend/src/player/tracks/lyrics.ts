@@ -110,11 +110,11 @@ function parseElrc(raw: string): LyricLine[] {
       lines.push({ text: line.replace(INLINE_TAG_RE, "").trim(), timestamp: 0, untimed: true, words: [] });
       continue;
     }
-    const rawWords = splitWordTags(tag.text).map((word) => ({ ...word, text: word.text.trim() }));
-    const text = rawWords.map((word) => word.text).filter(Boolean).join(" ");
-    const words: LyricWord[] = rawWords.filter(
-      (word): word is { text: string; timestamp: number } => word.timestamp !== null && !!word.text
-    );
+    const rawWords = splitWordTags(tag.text);
+    const text = rawWords.map((word) => word.text).join("").replace(/\s+/g, " ").trim();
+    const words: LyricWord[] = rawWords
+      .filter((word): word is { text: string; timestamp: number } => word.timestamp !== null && !!word.text.trim())
+      .map((word) => ({ ...word, text: word.text.replace(/\s+/g, " ") }));
     for (const timestamp of tag.timestamps) {
       lines.push({ text, timestamp, words });
     }

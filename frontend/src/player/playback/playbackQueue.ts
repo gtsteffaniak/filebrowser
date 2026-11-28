@@ -60,13 +60,15 @@ export function buildPlaybackQueue(
     return { queue: [], currentIndex: -1 };
   }
 
-  // Determine the value used to match the current item
-  const matchValue = isShare ? currentItem.name : currentItem.path;
+  const isCurrent = (item: PartialItem) => {
+    if (isShare) {
+      return item.name === currentItem.name;
+    }
+    const sameSource = !item.source || !currentItem.source || item.source === currentItem.source;
+    return sameSource && item.path === currentItem.path;
+  };
 
-  // Find current index in mediaFiles
-  const currentIndex = mediaFiles.findIndex(item =>
-    isShare ? item.name === matchValue : item.path === matchValue
-  );
+  const currentIndex = mediaFiles.findIndex(isCurrent);
 
   let finalQueue: FileListItem[];
   let finalIndex: number;
@@ -85,22 +87,16 @@ export function buildPlaybackQueue(
       finalQueue = sortedFiles;
       const currentFile = currentIndex !== -1 ? mediaFiles.at(currentIndex) : undefined;
       finalIndex = currentFile
-        ? sortedFiles.findIndex(item =>
-          isShare ? item.name === currentFile.name : item.path === currentFile.path
-        )
+        ? sortedFiles.indexOf(currentFile)
         : 0;
       break;
     }
 
     case 'shuffle': {
       // always reshuffle, but put current item at the top
-      const otherItems = mediaFiles.filter(item =>
-        isShare ? item.name !== currentItem.name : item.path !== currentItem.path
-      );
-      const shuffledOthers = shuffleArray([...otherItems]);
-      const currentFile = mediaFiles.find(item =>
-        isShare ? item.name === currentItem.name : item.path === currentItem.path
-      );
+      const currentFile = currentIndex !== -1 ? mediaFiles[currentIndex] : undefined;
+      const otherItems = mediaFiles.filter(item => item !== currentFile);
+      const shuffledOthers = shuffleArray(otherItems);
       finalQueue = currentFile ? [currentFile, ...shuffledOthers] : shuffledOthers;
       // at index 0
       finalIndex = currentFile ? 0 : -1;

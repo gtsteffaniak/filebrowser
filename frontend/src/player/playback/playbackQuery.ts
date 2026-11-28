@@ -171,7 +171,7 @@ export function buildPlaybackQueryPatch(query: PlaybackQuery = {}, patch: Playba
   } = query;
   let next: PlaybackQuery = { ...rest };
   let timeValue: QueryValue = queryTime;
-  if (timeValue === undefined) {
+  if (timeValue === undefined || timeValue === null || timeValue === '') {
     const parsedTime = parsePlaybackTimeFromQuery(query);
     timeValue = parsedTime === null ? undefined : formatTimeForQuery(parsedTime);
   }

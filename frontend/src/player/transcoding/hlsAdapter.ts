@@ -253,12 +253,16 @@ function attachNativeHls({
     const deadlineMs = resolveAttachDeadlineMs(initialStart, budgetMs);
     let settled = false;
     let hasPlayed = false;
+    let released = false;
+    let seekPending = initialStart > 0;
     let timeoutId: ReturnType<typeof setTimeout> | undefined;
     const originalPreload = video.getAttribute("preload");
 
     const removeListeners = () => {
       clearTimeout(timeoutId);
       signal?.removeEventListener("abort", onAbort);
+      video.removeEventListener("loadedmetadata", onMetadata);
+      video.removeEventListener("seeked", onSeeked);
       video.removeEventListener("loadeddata", onReady);
       video.removeEventListener("canplay", onReady);
     };
@@ -272,6 +276,8 @@ function attachNativeHls({
       video.load();
     };
     const cleanup = () => {
+      if (released) return;
+      released = true;
       removeListeners();
       video.removeEventListener("error", onError);
       video.removeEventListener("playing", onPlaying);
@@ -340,8 +346,22 @@ function attachNativeHls({
       });
       fail(new AttachTimeoutError());
     }
+    function onMetadata() {
+      try {
+        video.currentTime = initialStart;
+      } catch (err) {
+        transcodeWarn("native hls start seek failed", { message: errorMessage(err as PlayerError) });
+        seekPending = false;
+      }
+    }
+    function onSeeked() {
+      seekPending = false;
+      if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
+        onReady();
+      }
+    }
     function onReady() {
-      if (settled) {
+      if (settled || seekPending) {
         return;
       }
       if (signal?.aborted) {
@@ -358,6 +378,10 @@ function attachNativeHls({
     }
 
     signal?.addEventListener("abort", onAbort, { once: true });
+    if (seekPending) {
+      video.addEventListener("loadedmetadata", onMetadata, { once: true });
+      video.addEventListener("seeked", onSeeked);
+    }
     video.addEventListener("loadeddata", onReady);
     video.addEventListener("canplay", onReady);
     video.addEventListener("error", onError);
@@ -491,11 +515,13 @@ export function attachHlsToVideo({
     let fragmentProgressed = false;
     let awaitingFirstByte = false;
 
+    const renderWait = new AbortController();
     const settle = (): boolean => {
       if (settled) {
         return false;
       }
       settled = true;
+      renderWait.abort();
       clearTimeout(hardTimeoutId);
       clearTimeout(stallTimeoutId);
       signal?.removeEventListener("abort", onAbort);
@@ -563,7 +589,7 @@ export function attachHlsToVideo({
         return;
       }
       readyToPlay = true;
-      void waitUntilVideoRenderable(video, signal).then((renderable) => {
+      void waitUntilVideoRenderable(video, renderWait.signal).then((renderable) => {
         if (settled) {
           return;
         }
@@ -581,7 +607,13 @@ export function attachHlsToVideo({
             video: describeVideo(video),
           });
         }
-        onFirstBuffered?.(video);
+        try {
+          onFirstBuffered?.(video);
+        } catch (err) {
+          cleanup();
+          rejectOnce(err as PlayerError);
+          return;
+        }
         startApplied = true;
         resolveOnce({ cleanup, hls });
       });
@@ -806,7 +838,7 @@ export function attachHlsToVideo({
         const fragStart = data.frag?.start;
         const resumeAt = fragStart !== undefined && Number.isFinite(fragStart) ? fragStart : hls.startPosition;
         try {
-          hls.startLoad(Number.isFinite(resumeAt) && resumeAt > 0 ? resumeAt : -1);
+          hls.startLoad(Number.isFinite(resumeAt) && resumeAt >= 0 ? resumeAt : -1);
         } catch (err) {
           transcodeWarn("hls startLoad retry after 503 failed", { message: errorMessage(err as PlayerError) });
         }

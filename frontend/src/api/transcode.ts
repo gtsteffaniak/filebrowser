@@ -73,9 +73,10 @@ export interface TranscodeHeartbeatBody {
 }
 
 /** POST /api/media/transcode/sessions */
-export function startTranscodeSession(body: StartTranscodeSessionBody): Promise<TranscodeSession> {
+export function startTranscodeSession(body: StartTranscodeSessionBody, signal?: AbortSignal): Promise<TranscodeSession> {
   return fetchJSON<TranscodeSession>(getApiPath("media/transcode/sessions"), {
     method: "POST",
+    signal,
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
