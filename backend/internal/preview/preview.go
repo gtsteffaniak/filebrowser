@@ -34,6 +34,7 @@ var (
 )
 
 type Service struct {
+	videoJobs     videoPreviewJobs
 	fileCache     diskcache.Interface
 	cacheDir      string // Cache directory used for thumbnails and temp files
 	debug         bool
@@ -209,18 +210,34 @@ func GetPreviewForFile(ctx context.Context, file iteminfo.ExtendedFileInfo, prev
 	cacheHash := previewCacheHash(file)
 
 	cacheKey := CacheKey(cacheHash, previewSize, seekPercentage)
-	skipCache := skipPreviewCacheInDev(file)
-	if !skipCache {
-		if data, found, err := service.fileCache.Load(ctx, cacheKey); err != nil {
-			return nil, fmt.Errorf("failed to load from cache: %w", err)
-		} else if found {
-			if len(data) < minPreviewSize {
-				return nil, ErrPreviewTooSmall
-			}
-			return data, nil
-		}
+	if skipPreviewCacheInDev(file) {
+		return GeneratePreviewWithCacheHash(ctx, file, previewSize, url, seekPercentage, cacheHash)
 	}
-	return GeneratePreviewWithCacheHash(ctx, file, previewSize, url, seekPercentage, cacheHash)
+	if data, found, err := service.loadPreview(ctx, cacheKey); found || err != nil {
+		return data, err
+	}
+	if determinePreviewType(file) != previewTypeVideo {
+		return GeneratePreviewWithCacheHash(ctx, file, previewSize, url, seekPercentage, cacheHash)
+	}
+
+	return service.videoJobs.run(ctx, cacheKey, func(work context.Context) ([]byte, error) {
+		// Another viewer can complete generation after our first cache check.
+		if data, found, err := service.loadPreview(work, cacheKey); found || err != nil {
+			return data, err
+		}
+		return GeneratePreviewWithCacheHash(work, file, previewSize, url, seekPercentage, cacheHash)
+	})
+}
+
+func (s *Service) loadPreview(ctx context.Context, key string) ([]byte, bool, error) {
+	data, found, err := s.fileCache.Load(ctx, key)
+	if err != nil {
+		return nil, false, fmt.Errorf("failed to load from cache: %w", err)
+	}
+	if found && len(data) < minPreviewSize {
+		return nil, true, ErrPreviewTooSmall
+	}
+	return data, found, nil
 }
 
 // previewCacheHash returns the cache fingerprint for a file's previews: a hash of
