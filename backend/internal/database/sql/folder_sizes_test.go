@@ -34,8 +34,8 @@ func TestUpdateFolderSizesIfChangedBindsAllParameters(t *testing.T) {
 	require.NoError(t, err)
 	require.EqualValues(t, len(wanted), updated)
 	for path, size := range wanted {
-		row, err := db.GetItem(source, path)
-		require.NoError(t, err)
+		row, lookupErr := db.GetItem(source, path)
+		require.NoError(t, lookupErr)
 		require.NotNil(t, row)
 		require.EqualValues(t, size, row.Size)
 	}
