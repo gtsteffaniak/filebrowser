@@ -214,3 +214,16 @@ export function playbackQueryChanged(prev: Record<string, unknown> = {}, next: R
     || prevTranscode !== nextTranscode
   );
 }
+
+/** True when two routes differ only in the playback query, so the file doesn't refetch again */
+export function isPlaybackOnlyRouteChange(
+  to: { path: string; hash?: string; query?: PlaybackQuery },
+  from: { path: string; hash?: string; query?: PlaybackQuery },
+): boolean {
+  if (to.path !== from.path || (to.hash ?? '') !== (from.hash ?? '')) {
+    return false;
+  }
+  const strip = (query: PlaybackQuery = {}) =>
+    JSON.stringify(buildPlaybackQueryPatch(query, { time: null, transcodeMode: null }));
+  return strip(to.query) === strip(from.query);
+}

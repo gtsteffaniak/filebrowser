@@ -29,6 +29,7 @@ import { isRichTextPreviewMimeType } from "@/utils/mimetype.js";
 import { invalidateDirMetadataCache } from "@/utils/cache/metadataCache.ts";
 import { clearImageCache } from "@/utils/cache/imageCache.ts";
 import { markRaw, toRaw } from "vue";
+import { isPlaybackOnlyRouteChange } from "@/player/playback/playbackQuery.ts";
 import { listingCacheKey, getCachedListing, cacheListing, deleteCachedListing, clearListingCache } from "@/utils/cache/listingCache.ts";
 import { showShareDownloadPrompt as openShareDownloadPrompt } from "@/utils/download.js";
 
@@ -253,8 +254,9 @@ export default {
     this.fetchData();
   },
   watch: {
-    $route() {
+    $route(to, from) {
       syncEventTheme(getters.eventTheme() === "halloween");
+      if (isPlaybackOnlyRouteChange(to, from)) return;
       this.fetchData();
     },
     reload(value) {

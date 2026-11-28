@@ -5,6 +5,7 @@ import {
   formatTimeForQuery,
   parseClockTimeString,
   parsePlaybackTimeFromQuery,
+  isPlaybackOnlyRouteChange,
   playbackQueryChanged,
 } from "../playbackQuery.ts";
 
@@ -66,5 +67,15 @@ describe('playbackQueryChanged', () => {
   it('detects time changes', () => {
     expect(playbackQueryChanged({ time: '00:01:00' }, { time: '00:02:00' })).toBe(true);
     expect(playbackQueryChanged({ time: '00:01:00' }, { time: '00:01:00' })).toBe(false);
+  });
+});
+
+describe('isPlaybackOnlyRouteChange', () => {
+  it('ignores time and transcode changes but not other query or path changes', () => {
+    const base = { path: '/files/a.mkv', hash: '#preview', query: { source: 'x' } };
+    expect(isPlaybackOnlyRouteChange({ ...base, query: { source: 'x', transcode: 'quality', time: '0:01:00' } }, base)).toBe(true);
+    expect(isPlaybackOnlyRouteChange({ ...base, query: { source: 'y' } }, base)).toBe(false);
+    expect(isPlaybackOnlyRouteChange({ ...base, path: '/files/b.mkv' }, base)).toBe(false);
+    expect(isPlaybackOnlyRouteChange({ ...base, hash: '#edit' }, base)).toBe(false);
   });
 });
