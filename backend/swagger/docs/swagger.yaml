@@ -6144,6 +6144,12 @@ paths:
             additionalProperties:
               type: string
             type: object
+        "501":
+          description: Browsing disabled for upload shares
+          schema:
+            additionalProperties:
+              type: string
+            type: object
       summary: Get directory items (public share)
       tags:
       - Resources
