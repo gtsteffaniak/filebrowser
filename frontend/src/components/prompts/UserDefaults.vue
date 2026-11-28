@@ -1,6 +1,6 @@
 <template>
   <div class="card-content no-buttons user-defaults-prompt">
-    <div v-if="loading" class="loading-hint">{{ $t("general.loading") }}</div>
+    <div v-if="loading" class="loading-hint">{{ t("general.loading") }}</div>
 
     <template v-else>
       <UserProfilePreferences
@@ -28,17 +28,34 @@
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
+import { computed, nextTick, onMounted, ref } from "vue";
+import { useI18n } from "@/i18n/index.ts";
 import { notify } from "@/notify/index.ts";
 import { getUserDefaults, patchUserDefaults } from "@/api/settings.ts";
 import { getObjectProperty } from "@/utils/object.js";
-import UserProfilePreferences from "@/components/settings/UserProfilePreferences.vue";
 import UserDefaultsAccountSection from "@/components/settings/UserDefaultsAccountSection.vue";
+import UserProfilePreferences from "@/components/settings/UserProfilePreferences.vue";
+import type {
+  UserDefaults,
+  UserDefaultsDraft,
+  UserDefaultsEnforcement,
+  UserDefaultsPatch,
+  UserDefaultsResponse,
+} from "@/types/settings.ts";
 
-/** @typedef {import("@/types/media.ts").DeepPartial<import("@/types/settings.ts").UserDefaults>} UserDefaultsDraft */
+type DefaultsSection = keyof UserDefaults;
+type DefaultsValue = string | number | boolean | string[] | null;
 
-/** @returns {import("@/types/settings.ts").UserDefaultsEnforcement} */
-function emptyEnforced() {
+defineProps<{
+  promptId?: string | number | null;
+}>();
+
+const PERMISSIONS_PREFIX = "permissions.";
+
+const { t } = useI18n();
+
+function emptySections() {
   return {
     sidebar: {},
     listing: {},
@@ -51,242 +68,168 @@ function emptyEnforced() {
   };
 }
 
-/** @returns {UserDefaultsDraft} */
-function emptyDefaults() {
-  return {
-    sidebar: {},
-    listing: {},
-    preview: {},
-    fileViewer: {},
-    search: {},
-    ui: {},
-    account: { permissions: {} },
-    fileLoading: {},
-  };
-}
+const loading = ref(true);
+const saving = ref(false);
+const hydrating = ref(false);
+const lockedFromConfigPaths = ref<string[]>([]);
+const values = ref<UserDefaultsDraft>(emptySections());
+const enforced = ref<UserDefaultsEnforcement>(emptySections());
 
-export default {
-  name: "user-defaults",
-  components: {
-    UserProfilePreferences,
-    UserDefaultsAccountSection,
-  },
-  props: {
-    promptId: {
-      type: [String, Number],
-      default: null,
-    },
-  },
-  data() {
+const passwordAccountDefaults = computed(() => {
+  const method = values.value.account.loginMethod;
+  return !method || method === "password";
+});
+
+const preferenceSections = computed<UserDefaultsDraft>({
+  get() {
+    const v = values.value;
     return {
-      loading: true,
-      saving: false,
-      hydrating: false,
-      /** @type {string[]} */
-      lockedFromConfigPaths: [],
-      values: emptyDefaults(),
-      enforced: emptyEnforced(),
+      sidebar: { ...v.sidebar },
+      listing: { ...v.listing },
+      preview: { ...v.preview },
+      fileViewer: { ...v.fileViewer },
+      search: { ...v.search },
+      ui: { ...v.ui },
+      account: { ...v.account, permissions: { ...v.account.permissions } },
+      fileLoading: { ...v.fileLoading },
     };
   },
-  computed: {
-    passwordAccountDefaults() {
-      const method = this.values.account?.loginMethod;
-      return !method || method === "password";
-    },
-    preferenceSections: {
-      get() {
-        const v = this.values;
-        return {
-          sidebar: { ...(v.sidebar || {}) },
-          listing: { ...(v.listing || {}) },
-          preview: { ...(v.preview || {}) },
-          fileViewer: { ...(v.fileViewer || {}) },
-          search: { ...(v.search || {}) },
-          ui: { ...(v.ui || {}) },
-          account: { ...(v.account || {}), permissions: { ...(v.account?.permissions || {}) } },
-          fileLoading: { ...(v.fileLoading || {}) },
-        };
-      },
-      set(sections) {
-        this.values = {
-          ...this.values,
-          sidebar: { ...(sections.sidebar || {}) },
-          listing: { ...(sections.listing || {}) },
-          preview: { ...(sections.preview || {}) },
-          fileViewer: { ...(sections.fileViewer || {}) },
-          search: { ...(sections.search || {}) },
-          ui: { ...(sections.ui || {}) },
-          fileLoading: { ...(sections.fileLoading || {}) },
-        };
-      },
-    },
+  set(sections) {
+    values.value = {
+      ...values.value,
+      sidebar: { ...sections.sidebar },
+      listing: { ...sections.listing },
+      preview: { ...sections.preview },
+      fileViewer: { ...sections.fileViewer },
+      search: { ...sections.search },
+      ui: { ...sections.ui },
+      fileLoading: { ...sections.fileLoading },
+    };
   },
-  mounted() {
-    void this.load();
-  },
-  methods: {
-    normalizePreviewBool(val, defaultValue = true) {
-      if (val === undefined || val === null) {
-        return defaultValue;
-      }
-      return !!val;
+});
+
+function applyResponse(data: UserDefaultsResponse): void {
+  lockedFromConfigPaths.value = data.lockedFromConfigPaths ?? [];
+  const v = data.values;
+  const enf = data.enforced;
+  values.value = {
+    sidebar: { ...v?.sidebar },
+    listing: { ...v?.listing },
+    preview: {
+      image: v?.preview.image ?? true,
+      video: v?.preview.video ?? true,
+      audio: v?.preview.audio ?? true,
+      office: v?.preview.office ?? true,
+      folder: v?.preview.folder ?? true,
+      models: v?.preview.models ?? true,
+      popup: v?.preview.popup ?? true,
+      motionVideoPreview: v?.preview.motionVideoPreview ?? true,
+      disablePreviewExt: v?.preview.disablePreviewExt || "",
     },
-    /** @param {import("@/types/settings.ts").UserDefaultsResponse} data */
-    async applyResponse(data) {
-      this.hydrating = true;
-      this.lockedFromConfigPaths = Array.isArray(data.lockedFromConfigPaths)
-        ? data.lockedFromConfigPaths
-        : [];
-      const v = data.values || {};
-      const enf = data.enforced || {};
-      this.values = {
-        ...emptyDefaults(),
-        ...v,
-        sidebar: { ...(v.sidebar || {}) },
-        listing: { ...(v.listing || {}) },
-        preview: {
-          image: this.normalizePreviewBool(v.preview?.image),
-          video: this.normalizePreviewBool(v.preview?.video),
-          audio: this.normalizePreviewBool(v.preview?.audio),
-          office: this.normalizePreviewBool(v.preview?.office),
-          folder: this.normalizePreviewBool(v.preview?.folder),
-          models: this.normalizePreviewBool(v.preview?.models),
-          popup: this.normalizePreviewBool(v.preview?.popup),
-          motionVideoPreview: this.normalizePreviewBool(v.preview?.motionVideoPreview),
-          disablePreviewExt: v.preview?.disablePreviewExt || "",
-        },
-        fileViewer: { ...(v.fileViewer || {}) },
-        search: { ...(v.search || {}) },
-        ui: { ...(v.ui || {}) },
-        account: {
-          ...(v.account || {}),
-          permissions: { ...(v.account?.permissions || {}) },
-        },
-        fileLoading: { ...(v.fileLoading || {}) },
-      };
-      this.enforced = {
-        ...emptyEnforced(),
-        sidebar: { ...(enf.sidebar || {}) },
-        listing: { ...(enf.listing || {}) },
-        preview: { ...(enf.preview || {}) },
-        fileViewer: { ...(enf.fileViewer || {}) },
-        search: { ...(enf.search || {}) },
-        ui: { ...(enf.ui || {}) },
-        account: {
-          ...(enf.account || {}),
-          permissions: { ...(enf.account?.permissions || {}) },
-        },
-        fileLoading: { ...(enf.fileLoading || {}) },
-      };
-      await this.$nextTick();
-      this.hydrating = false;
-    },
-    canPatch() {
-      return !this.loading && !this.saving && !this.hydrating;
-    },
-    isConfigLockedPath(path) {
-      return this.lockedFromConfigPaths.includes(path);
-    },
-    async load() {
-      this.loading = true;
-      this.hydrating = true;
-      try {
-        const data = await getUserDefaults();
-        this.applyResponse(data);
-      } catch (e) {
-        console.error(e);
-        if (e?.message) {
-          notify.showError(e.message);
-        }
-      } finally {
-        this.loading = false;
-        await this.$nextTick();
-        this.hydrating = false;
-      }
-    },
-    /** @param {import("@/types/settings.ts").UserDefaultsPatch} partial */
-    async sendPatch(partial) {
-      if (!this.canPatch()) {
-        return;
-      }
-      this.saving = true;
-      try {
-        await patchUserDefaults(partial);
-      } catch (e) {
-        console.error(e);
-        if (e?.message) {
-          notify.showError(e.message);
-        }
-        await this.load();
-      } finally {
-        this.saving = false;
-      }
-    },
-    patchEnforcedFlag(section, key, value) {
-      if (!this.canPatch()) {
-        return;
-      }
-      const keyStr = String(key);
-      if (section === "account" && keyStr.startsWith("permissions.")) {
-        const permKey = keyStr.slice("permissions.".length);
-        void this.sendPatch({ enforced: { account: { permissions: { [permKey]: value } } } });
-        return;
-      }
-      void this.sendPatch({ enforced: { [section]: { [key]: value } } });
-    },
-    onEnforcedChange({ section, field, value }) {
-      this.patchEnforcedFlag(section, field, value);
-    },
-    onPreferenceSectionChange({ section, field }) {
-      if (!this.canPatch() || !section || !field) {
-        return;
-      }
-      const path = `${section}.${field}`;
-      if (this.isConfigLockedPath(path)) {
-        return;
-      }
-      const sectionData = getObjectProperty(this.values, section);
-      if (!sectionData) {
-        return;
-      }
-      let value = getObjectProperty(sectionData, field);
-      if (section === "preview" && typeof value === "boolean") {
-        value = this.normalizePreviewBool(value);
-      }
-      void this.sendPatch({ [section]: { [field]: value } });
-    },
-    onAccountFieldChange(field, value) {
-      if (!this.canPatch() || !field) {
-        return;
-      }
-      const fieldStr = String(field);
-      if (this.isConfigLockedPath(`account.${fieldStr}`)) {
-        return;
-      }
-      if (fieldStr.startsWith("permissions.")) {
-        const permKey = fieldStr.slice("permissions.".length);
-        this.values.account.permissions = {
-          ...this.values.account.permissions,
-          [permKey]: value,
-        };
-        void this.sendPatch({
-          account: {
-            permissions: {
-              [permKey]: getObjectProperty(this.values.account.permissions, permKey),
-            },
-          },
-        });
-        return;
-      }
-      this.values.account[fieldStr] = value;
-      void this.sendPatch({
-        account: {
-          [fieldStr]: getObjectProperty(this.values.account, fieldStr),
-        },
-      });
-    },
-  },
-};
+    fileViewer: { ...v?.fileViewer },
+    search: { ...v?.search },
+    ui: { ...v?.ui },
+    account: { ...v?.account, permissions: { ...v?.account.permissions } },
+    fileLoading: { ...v?.fileLoading },
+  };
+  enforced.value = {
+    sidebar: { ...enf.sidebar },
+    listing: { ...enf.listing },
+    preview: { ...enf.preview },
+    fileViewer: { ...enf.fileViewer },
+    search: { ...enf.search },
+    ui: { ...enf.ui },
+    account: { ...enf.account, permissions: { ...enf.account?.permissions } },
+    fileLoading: { ...enf.fileLoading },
+  };
+}
+
+function canPatch(): boolean {
+  return !loading.value && !saving.value && !hydrating.value;
+}
+
+function isConfigLockedPath(path: string): boolean {
+  return lockedFromConfigPaths.value.includes(path);
+}
+
+function reportError(e: unknown): void {
+  console.error(e);
+  if (e instanceof Error && e.message) {
+    notify.showError(e.message);
+  }
+}
+
+async function load(): Promise<void> {
+  loading.value = true;
+  hydrating.value = true;
+  try {
+    applyResponse(await getUserDefaults());
+  } catch (e) {
+    reportError(e);
+  } finally {
+    loading.value = false;
+    await nextTick();
+    hydrating.value = false;
+  }
+}
+
+async function sendPatch(partial: UserDefaultsPatch): Promise<void> {
+  if (!canPatch()) {
+    return;
+  }
+  saving.value = true;
+  try {
+    await patchUserDefaults(partial);
+  } catch (e) {
+    reportError(e);
+    await load();
+  } finally {
+    saving.value = false;
+  }
+}
+
+function patchEnforcedFlag(section: DefaultsSection, key: string, value: boolean): void {
+  if (section === "account" && key.startsWith(PERMISSIONS_PREFIX)) {
+    const permKey = key.slice(PERMISSIONS_PREFIX.length);
+    void sendPatch({ enforced: { account: { permissions: { [permKey]: value } } } });
+    return;
+  }
+  void sendPatch({ enforced: { [section]: { [key]: value } } });
+}
+
+function onEnforcedChange({ section, field, value }: { section: DefaultsSection; field: string; value: boolean }): void {
+  patchEnforcedFlag(section, field, value);
+}
+
+function onPreferenceSectionChange({ section, field }: { section: DefaultsSection; field: string }): void {
+  if (!section || !field || isConfigLockedPath(`${section}.${field}`)) {
+    return;
+  }
+  const sectionData = getObjectProperty(values.value, section) as Record<string, DefaultsValue> | undefined;
+  if (!sectionData) {
+    return;
+  }
+  void sendPatch({ [section]: { [field]: getObjectProperty(sectionData, field) as DefaultsValue } });
+}
+
+function onAccountFieldChange(field: string, value: DefaultsValue): void {
+  if (!canPatch() || !field || isConfigLockedPath(`account.${field}`)) {
+    return;
+  }
+  const { account } = values.value;
+  if (field.startsWith(PERMISSIONS_PREFIX)) {
+    const permKey = field.slice(PERMISSIONS_PREFIX.length);
+    account.permissions = { ...account.permissions, [permKey]: value };
+    void sendPatch({ account: { permissions: { [permKey]: value } } });
+    return;
+  }
+  Object.assign(account, { [field]: value });
+  void sendPatch({ account: { [field]: value } });
+}
+
+onMounted(() => {
+  void load();
+});
 </script>
 
 <style scoped>

@@ -218,7 +218,7 @@ import {
   bytesFromCustomAmount,
   customAmountFromBytes,
 } from "@/utils/quotaUnits.js";
-import { applyShareDefaultsToForm } from "@/utils/shareDefaultsForm.js";
+import { applyShareDefaultsToForm } from "@/utils/shareDefaultsForm.ts";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 //import ViewMode from "@/components/settings/ViewMode.vue";
 

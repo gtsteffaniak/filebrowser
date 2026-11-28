@@ -57,6 +57,7 @@ export interface UserObject {
   /** Theme preference: "auto" (follow system), "dark", "light" */
   darkMode: boolean | "auto" | "dark" | "light";
   disableSettings: boolean;
+  disableUpdateNotifications?: boolean;
   showAdvancedProfile?: boolean;
   allowCustomShareURL?: boolean;
   debugOffice: boolean;

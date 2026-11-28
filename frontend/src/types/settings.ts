@@ -104,6 +104,9 @@ export interface UserDefaults {
   account: UserDefaultsAccount;
 }
 
+/** Editable copy of {@link UserDefaults}: every section exists, its fields may be missing */
+export type UserDefaultsDraft = Required<DeepPartial<UserDefaults>>;
+
 /** Which user default fields are enforced for all users - absent means not enforced */
 export interface UserDefaultsEnforcement {
   sidebar?: {
@@ -225,6 +228,24 @@ export interface ShareDefaults {
 
 /** Same keys as {@link ShareDefaults} - a flag is true when that default is enforced for non-admins */
 export type ShareDefaultsEnforcement = { [K in keyof ShareDefaults]?: boolean };
+
+export type QuotaUnit = "mb" | "gb";
+
+/** Form-only fields that {@link ShareDefaults} stores as `allowedUsernames` and `quotaLimitBytes` */
+export interface ShareDefaultsFormExtras {
+  allowedUsernames: string;
+  enableAllowedUsernames: boolean;
+  quotaEnabled: boolean;
+  quotaCustomAmount: number;
+  quotaCustomUnit: QuotaUnit;
+}
+
+export type ShareDefaultsForm = Omit<ShareDefaults, "allowedUsernames"> & ShareDefaultsFormExtras;
+
+/** Share prompt form the admin defaults are applied onto - numeric limits are kept as input strings */
+export type ShareFormTarget = Partial<
+  Omit<ShareDefaultsForm, "downloadsLimit" | "maxBandwidth"> & { downloadsLimit: string; maxBandwidth: string }
+>;
 
 export interface ShareDefaultsResponse {
   values?: ShareDefaults;

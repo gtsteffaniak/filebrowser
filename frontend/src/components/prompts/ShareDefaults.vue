@@ -48,7 +48,7 @@ import {
   emptyShareDefaultsValues,
   shareDefaultsFromApi,
   shareDefaultsToApiPayload,
-} from "@/utils/shareDefaultsForm.js";
+} from "@/utils/shareDefaultsForm.ts";
 
 export default {
   name: "share-defaults",
