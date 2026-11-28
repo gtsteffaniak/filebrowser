@@ -70,6 +70,7 @@ type Options struct {
 	// Filesystem info retrieval options
 	SkipExtendedAttrs bool   // Skip hasPreview and other extended attributes
 	FollowSymlinks    bool   // Whether to follow symlinks or return symlink info
+	BoundIndexPath    string // index prefix for symlink containment (e.g. user scope)
 	ShowHidden        bool   // Whether to include hidden files/directories
 	HideFileExt       string // Hide files based on extensions
 }
@@ -505,6 +506,12 @@ func (idx *Index) resolveSymlinksContained(fsPath, boundIndexPath string) (strin
 	return resolved, nil
 }
 
+// isFollowableLink reports whether mode represents a symbolic link or, on
+// Windows, an NTFS directory junction (reported as os.ModeIrregular in Go 1.23+).
+func isFollowableLink(mode os.FileMode) bool {
+	return mode&os.ModeSymlink != 0 || (runtime.GOOS == "windows" && mode&os.ModeIrregular != 0)
+}
+
 // resolvePathContext resolves all path characteristics in a SINGLE stat call
 // This eliminates duplicate stat/lstat calls and redundant isHidden/isSymlink checks
 func (idx *Index) resolvePathContext(indexPath string, followSymlinks bool, boundIndexPath string) (*PathContext, error) {
@@ -516,7 +523,7 @@ func (idx *Index) resolvePathContext(indexPath string, followSymlinks bool, boun
 		return nil, err
 	}
 
-	isSymlink := fileInfo.Mode()&os.ModeSymlink != 0
+	isSymlink := isFollowableLink(fileInfo.Mode())
 
 	// Resolve symlink if requested
 	if isSymlink && followSymlinks {
@@ -639,6 +646,7 @@ func (idx *Index) getDirInfoFromContext(ctx *PathContext, isViewable, isIndexabl
 		IsRoutineScan:     req.IsRoutineScan,
 		SkipExtendedAttrs: req.SkipExtendedAttrs || !isIndexable,
 		FollowSymlinks:    req.FollowSymlinks,
+		BoundIndexPath:    req.BoundIndexPath,
 		ShowHidden:        req.ShowHidden,
 		HideFileExt:       req.HideFileExt,
 	}
@@ -1048,13 +1056,21 @@ func (idx *Index) GetDirInfoCore(dirInfo *os.File, stat os.FileInfo, indexPath s
 	for _, file := range files {
 		subfileBaseName := file.Name()
 		isDir := iteminfo.IsDirectory(file)
+		isSymlink := isFollowableLink(file.Mode())
+		if !isDir && isSymlink && opts.FollowSymlinks && !opts.Recursive && !idx.Config.ResolvedRules.IgnoreAllSymlinks {
+			entryRealPath := filepath.Join(dirInfo.Name(), subfileBaseName)
+			if resolved, err := idx.resolveSymlinksContained(entryRealPath, opts.BoundIndexPath); err == nil {
+				if targetStat, err := os.Stat(resolved); err == nil {
+					isDir = iteminfo.IsDirectory(targetStat)
+				}
+			}
+		}
 		fullCombined := indexPath + subfileBaseName
 		// Add trailing slash for directories to match normalized folder paths
 		if isDir {
 			fullCombined = fullCombined + "/"
 		}
 		hidden := IsHidden(utils.JoinPathAsUnix(idx.Path, indexPath, subfileBaseName))
-		isSymlink := file.Mode()&os.ModeSymlink != 0
 
 		// Check if item should be skipped
 		shouldSkip := false

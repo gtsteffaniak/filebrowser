@@ -571,6 +571,41 @@ func TestPersistDirectoryListing_PropagatesSizeToParents(t *testing.T) {
 	}
 }
 
+// TestGetFileInfo_SymlinkDirectoryListedAsFolder verifies that an in-scope
+// symlink to a directory is returned in Folders with Type "directory" and the
+// symlink's own name when FollowSymlinks is enabled.
+func TestGetFileInfo_SymlinkDirectoryListedAsFolder(t *testing.T) {
+	root := t.TempDir()
+	targetDir := filepath.Join(root, "target")
+	if err := os.Mkdir(targetDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Symlink(targetDir, filepath.Join(root, "link_dir")); err != nil {
+		t.Fatal(err)
+	}
+
+	idx := &Index{
+		Source: settings.Source{Path: root},
+	}
+
+	listing, err := idx.GetFileInfo(FileInfoRequest{
+		IndexPath:         "/",
+		FollowSymlinks:    true,
+		Expand:            true,
+		SkipExtendedAttrs: true,
+	})
+	if err != nil {
+		t.Fatalf("GetFileInfo: %v", err)
+	}
+
+	for _, f := range listing.Folders {
+		if f.Name == "link_dir" && f.Type == "directory" {
+			return
+		}
+	}
+	t.Fatalf("expected link_dir in Folders with Type=directory, got Folders=%+v Files=%+v", listing.Folders, listing.Files)
+}
+
 // mockFileInfo is a simple mock implementation of os.FileInfo for testing
 type mockFileInfo struct {
 	name    string
