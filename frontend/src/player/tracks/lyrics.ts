@@ -113,7 +113,7 @@ function parseElrc(raw: string): LyricLine[] {
     const rawWords = splitWordTags(tag.text);
     const text = rawWords.map((word) => word.text).join("").replace(/\s+/g, " ").trim();
     const words: LyricWord[] = rawWords
-      .filter((word): word is { text: string; timestamp: number } => word.timestamp !== null && !!word.text.trim())
+      .filter((word): word is { text: string; timestamp: number } => word.timestamp !== null && !!word.text)
       .map((word) => ({ ...word, text: word.text.replace(/\s+/g, " ") }));
     for (const timestamp of tag.timestamps) {
       lines.push({ text, timestamp, words });

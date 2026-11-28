@@ -37,9 +37,23 @@ export function stripAssOverrideTags (text: string): string {
     .trim()
 }
 
+/** For each index, the first later entry with a strictly greater value */
+function nextLaterBoundaries (starts: number[]): (number | undefined)[] {
+  const result: (number | undefined)[] = new Array(starts.length)
+  const stack: number[] = []
+  for (let i = starts.length - 1; i >= 0; i--) {
+    const current = starts[i] as number
+    while (stack.length && (starts[stack.at(-1) as number] as number) <= current) stack.pop()
+    const top = stack.at(-1)
+    result[i] = top === undefined ? undefined : starts[top]
+    stack.push(i)
+  }
+  return result
+}
+
 /** Translates ASS line-break (\N) and non-breaking space (\h) escapes. */
 function decodeAssEscapes (text: string): string {
-  return text.replace(/\\N/g, '\n').replace(/\\n/g, ' ').replace(/\\h/g, '\u00a0')
+  return text.replace(/(?:\\N)+/g, '\n').replace(/\\n/g, ' ').replace(/\\h/g, '\u00a0')
 }
 
 const LRC_TIMESTAMP_RE = /^\[(\d+):(\d{1,2}(?:\.\d+)?)\]/
@@ -62,11 +76,11 @@ function lrcToVttCues (lines: string[]): string {
     }
   }
   entries.sort((a, b) => a.start - b.start)
+  const nextStarts = nextLaterBoundaries(entries.map(entry => entry.start))
   return entries
     .map((entry, index) => {
       if (!entry.dialogue) return ''
-      const next = entries.slice(index + 1).find(candidate => candidate.start > entry.start)
-      const end = next ? next.start : entry.start + LRC_FALLBACK_DURATION_MS
+      const end = nextStarts[index] ?? entry.start + LRC_FALLBACK_DURATION_MS
       return `${formatMillisecondsToVTT(entry.start)} --> ${formatMillisecondsToVTT(end)}\n ${entry.dialogue}`
     })
     .filter(cue => cue !== '')
@@ -139,22 +153,22 @@ export function convertToVTT (ext: string, text: string): string {
         .map(block => {
           const lines = block.split('\n').filter(line => line.trim() !== ''); // Remove empty lines
           if (lines.length < 2) return ''; // Ensure each block has a timestamp and text
-    
+
           const [time = '', ...dialogue] = lines; // First line is time, rest is dialogue
           let [start, end] = time.split(','); // Split start and end time
-    
+
           if (!start || !end || dialogue.length === 0) return ''; // Skip invalid blocks
-    
+
           start = formatSubTime(start.trim());
           end = formatSubTime(end.trim());
-    
+
           return `${start} --> ${end}\n${dialogue.join(' ')}`; // Join dialogue lines into one block
         })
         .filter(block => block !== '') // Remove empty blocks
         .join('\n\n')
         .trim();
       break;
-      
+
 
     default:
       throw new Error('Unsupported subtitle format.')
@@ -166,6 +180,7 @@ export function convertToVTT (ext: string, text: string): string {
 function samiToVttCues (text: string): string {
   const normalized = text.replace(/\r\n|\r/g, '\n')
   const syncs = [...normalized.matchAll(/<SYNC\s+Start\s*=\s*["']?(\d+)["']?[^>]*>/gi)]
+  const nextStarts = nextLaterBoundaries(syncs.map(sync => Number.parseInt(sync[1] ?? '0', 10)))
   return syncs
     .map((sync, index) => {
       const start = Number.parseInt(sync[1] ?? '0', 10)
@@ -182,8 +197,7 @@ function samiToVttCues (text: string): string {
         .filter(Boolean)
         .join('\n')
       if (!dialogue) return ''
-      const next = syncs.slice(index + 1).find(candidate => Number.parseInt(candidate[1] ?? '0', 10) > start)
-      const end = next ? Number.parseInt(next[1] ?? '0', 10) : start + 3000
+      const end = nextStarts[index] ?? start + 3000
       return `${formatMillisecondsToVTT(start)} --> ${formatMillisecondsToVTT(end)}\n${dialogue}`
     })
     .filter(cue => cue !== '')

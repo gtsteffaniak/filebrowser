@@ -237,7 +237,8 @@ export function usePlaybackQueue({ getReq, getListing, onQueueChange, applyMenus
           const listing = getListing();
           if (value === "single") {
             clearPlaybackQueue();
-          } else if (listing) {
+          } else {
+            if (!listing) return;
             cycleMode(playbackMode.value, {
               listing,
               currentItem: getReq(),

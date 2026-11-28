@@ -89,7 +89,7 @@ const lockButtonProps = computed(() =>
 function hasFullWordCoverage(line: LyricLines[number]) {
   const words = line.words;
   if (!words?.length) return false;
-  return words.map((word) => word.text).join("").trim() === line.text;
+  return words.map((word) => word.text).join("").replace(/\s+/g, " ").trim() === line.text;
 }
 
 // Seek the player to the given timestamp (in milliseconds)

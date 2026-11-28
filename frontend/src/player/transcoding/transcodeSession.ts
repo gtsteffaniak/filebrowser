@@ -43,6 +43,7 @@ export class TranscodeSessionController {
   lastPlayhead = 0;
   paused = true;
   startAbort: AbortController | null = null;
+  startGeneration = 0;
 
   constructor({ source, path, viewToken, profile, clientId }: TranscodeSessionControllerOptions) {
     this.source = source;
@@ -53,11 +54,15 @@ export class TranscodeSessionController {
   }
 
   async start({ replaceSessionId, startSec }: StartSessionOptions = {}): Promise<TranscodeSession> {
+    const generation = this.startGeneration;
     try {
       return await this.startOnce({ replaceSessionId, startSec });
     } catch (err) {
       // The session we were told to replace is already gone so retry without it.
       if (httpStatusOf(err as PlayerError) === 404 && replaceSessionId) {
+        if (generation !== this.startGeneration) {
+          throw new DOMException("Session start cancelled", "AbortError");
+        }
         transcodeWarn("replace target missing; retrying without replaceSessionId", { replaceSessionId });
         return this.startOnce({ startSec });
       }
@@ -166,6 +171,7 @@ export class TranscodeSessionController {
   }
 
   cancelPendingStart(): void {
+    this.startGeneration += 1;
     this.startAbort?.abort();
     this.startAbort = null;
   }
