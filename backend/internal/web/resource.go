@@ -1947,8 +1947,12 @@ func itemsGetHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, e
 // @Failure 403 {object} map[string]string "Forbidden (access denied)"
 // @Failure 404 {object} map[string]string "Share not found or source not found"
 // @Failure 500 {object} map[string]string "Internal server error"
+// @Failure 501 {object} map[string]string "Browsing disabled for upload shares"
 // @Router /public/api/resources/items [get]
 func publicItemsGetHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, error) {
+	if d.Share.ShareType == "upload" {
+		return http.StatusNotImplemented, fmt.Errorf("browsing is disabled for upload shares")
+	}
 	sourceInfo, ok := settings.Config.Server.SourceMap[d.Share.SourcePath]
 	if !ok {
 		return http.StatusNotFound, fmt.Errorf("source not found")

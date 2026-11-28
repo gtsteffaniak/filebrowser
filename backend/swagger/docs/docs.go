@@ -5135,6 +5135,15 @@ const docTemplate = `{
                                 "type": "string"
                             }
                         }
+                    },
+                    "501": {
+                        "description": "Browsing disabled for upload shares",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
                     }
                 }
             }

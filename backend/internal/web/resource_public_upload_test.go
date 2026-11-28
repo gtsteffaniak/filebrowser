@@ -53,3 +53,25 @@ func TestPublicUploadHandlerAllowsOverrideQueryWhenReplacementsAllowed(t *testin
 		t.Fatal("expected override guard not to forbid when AllowReplacements is true")
 	}
 }
+
+func TestPublicItemsGetHandlerDeniesListingForUploadShares(t *testing.T) {
+	t.Parallel()
+
+	d := &Context{
+		Share: share.Share{
+			ShareSettings: share.ShareSettings{
+				FrontendShareInfo: share.FrontendShareInfo{
+					ShareType: "upload",
+				},
+			},
+		},
+	}
+	req := httptest.NewRequest(http.MethodGet, "/public/api/resources/items?path=/", nil)
+	status, err := publicItemsGetHandler(httptest.NewRecorder(), req, d)
+	if status != http.StatusNotImplemented {
+		t.Fatalf("expected 501, got %d", status)
+	}
+	if err == nil || err.Error() != "browsing is disabled for upload shares" {
+		t.Fatalf("unexpected err: %v", err)
+	}
+}
