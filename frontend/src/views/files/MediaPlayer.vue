@@ -47,7 +47,7 @@ import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import PreviewShell from "@/components/files/PreviewShell.vue";
 import { usePreviewNavigation } from "@/composables/preview/usePreviewNavigation.ts";
 import { getters, mutations, state } from "@/store/index.ts";
-import type { ReqObject } from "@/store/types.ts";
+import type { ReqObject } from "@/types/files.ts";
 import { createAsyncComponent } from "@/utils/asyncComponent.js";
 import { type LyricLines, parseLyrics } from "@/player/tracks/lyrics.ts";
 import { shouldAutoPlayPreview } from "@/utils/previewAutoplay.js";

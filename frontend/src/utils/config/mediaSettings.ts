@@ -1,49 +1,16 @@
 /** Shared shapes/defaults for the runtime media settings (settings/media + prompts). */
 
-import { patchMediaSettings } from '@/api/settings.js';
-import type { TranscodeProfile } from '@/api/transcode.ts';
+import { patchMediaSettings } from '@/api/settings.ts';
+import type { TranscodeProfile } from '@/types/transcode.ts';
 import i18n from '@/i18n/index.ts';
 import type { StoreState } from '@/store/types.ts';
+import type { DeepPartial, MediaSettings, MediaTranscodeSettings, TranscodeProfileSettings } from '@/types/media.ts';
 
 export const MEDIA_TRANSCODE_PROFILES: { id: TranscodeProfile; label: () => string }[] = [
   { id: 'quality', label: () => i18n.global.t('general.quality') },
   { id: 'balanced', label: () => i18n.global.t('general.balanced') },
   { id: 'datasaver', label: () => i18n.global.t('general.dataSaver') },
 ];
-
-export interface TranscodeProfileSettings {
-  enabled: boolean;
-  maxResolution: number;
-  avgBitrateKbps: number;
-  encoderBackend: string;
-}
-
-export interface MediaTranscodeSettings {
-  enabled: boolean;
-  maxConcurrent: number;
-  maxConcurrentPerUser: number;
-  cacheMaxSizeMB: number;
-  cacheRetentionH: number;
-  encoderBackend: string;
-  readRate: number;
-  profiles: Record<TranscodeProfile, TranscodeProfileSettings>;
-}
-
-export interface MediaSettings {
-  convert: {
-    imagePreview: Record<string, boolean>;
-    videoPreview: Record<string, boolean>;
-  };
-  debug: boolean;
-  hardwareAcceleration: boolean;
-  accelDevice: string;
-  alwaysUseFfmpeg: boolean;
-  alwaysUseOnlyOffice: boolean;
-  transcode: MediaTranscodeSettings;
-}
-
-/** Every field optional, except the flag maps (`convert.*Preview`), which arrive whole. */
-export type DeepPartial<T> = T extends Record<string, boolean> ? T : { [K in keyof T]?: DeepPartial<T[K]> };
 
 /** Player-only subset the settings API returns to non-admins, plus the derived `enabledProfiles`. */
 type MediaSettingsPayload = DeepPartial<MediaSettings> & {
@@ -195,7 +162,7 @@ function hasPatchContent(value: unknown): boolean {
 export async function saveMediaSettingsPatch(
   partial: DeepPartial<MediaSettings>,
   lockedFromConfigPaths: string[] = [],
-): Promise<{ skipped: boolean; media?: MediaSettings }> {
+): Promise<{ skipped: true; media?: undefined } | { skipped: false; media: MediaSettings }> {
   const patch = stripLockedMediaPaths(partial, lockedFromConfigPaths);
   if (!hasPatchContent(patch)) {
     return { skipped: true };

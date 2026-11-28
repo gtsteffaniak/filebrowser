@@ -98,7 +98,7 @@
 import { computed, nextTick, onMounted, useTemplateRef, watch } from "vue";
 import { useI18n } from "@/i18n/index.ts";
 import { state, mutations, getters } from "@/store/index.ts";
-import type { FileListItem } from "@/store/types.ts";
+import type { FileListItem } from "@/types/files.ts";
 import { url } from "@/utils/index.ts";
 import {
   cyclePlaybackModes,

@@ -7,7 +7,7 @@ import {
   getShareDefaultsPolicy,
   getSidebarLinkDefaultsPolicy,
   getToolAccessDefaultsPolicy,
-} from "@/api/settings.js";
+} from "@/api/settings.ts";
 import { detectLocale, setLocale } from "@/i18n/index.ts";
 import { notify } from "@/notify/index.ts";
 import { url } from "@/utils/index.ts";
@@ -29,20 +29,12 @@ import { state } from "./state.ts";
 /** Monotonic id so stale syncMediaSettings responses cannot overwrite newer state. */
 let mediaSettingsSyncGeneration = 0;
 import { rawList, withEntry, withoutEntry } from "@/utils/listing/selection.ts";
-import type {
-  DisplayPreference,
-  FileListItem,
-  MediaMetadata,
-  Prompt,
-  ReqObject,
-  RouteObject,
-  ShareInfoObject,
-  SourceInfo,
-  SourceInfoUpdate,
-  StoreState,
-  UserObject,
-  UserScope,
-} from "./types.ts";
+import type { SourceInfo, SourceInfoUpdate } from "@/types/sources.ts";
+import type { Prompt, RouteObject, StoreState } from "./types.ts";
+import type { DisplayPreference, UserObject, UserScope } from "@/types/users.ts";
+import type { FileListItem, ReqObject } from "@/types/files.ts";
+import type { MediaMetadata } from "@/types/media.ts";
+import type { ShareInfoObject } from "@/types/shares.ts";
 
 let navigationSortCache: {
   listing: Partial<FileListItem>[];

@@ -12,7 +12,8 @@ import { getNestedProperty, getObjectProperty } from '@/utils/object.js';
 import { buildItemUrl, removeLeadingSlash, removePrefix } from '@/utils/url.js';
 import { defaultDarkMode, normalizeDarkMode, resolveDarkMode } from "@/utils/theme.js";
 import { isMobileLayout } from '@/utils/viewport.js';
-import type { DisplayPreference, FileListItem, fileListItemIndex } from "./types.ts";
+import type { DisplayPreference } from "@/types/users.ts";
+import type { FileListItem, fileListItemIndex } from "@/types/files.ts";
 
 export interface PreviewPerms {
   audio: boolean;

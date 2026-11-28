@@ -36,7 +36,7 @@ vi.mock("./state.ts", () => ({ state: stateMock }));
 vi.mock("./eventBus.ts", () => ({ emitStateChanged: vi.fn() }));
 vi.mock("@/api/viewToken.js", () => ({ setActiveViewGrantScope: vi.fn() }));
 vi.mock("@/api/index.js", () => ({ resourcesApi: {}, usersApi: {} }));
-vi.mock("@/api/settings.js", () => ({
+vi.mock("@/api/settings.ts", () => ({
   getEnforcedUserDefaults: vi.fn(),
   getShareDefaultsPolicy: vi.fn(),
   getSidebarLinkDefaultsPolicy: vi.fn(),

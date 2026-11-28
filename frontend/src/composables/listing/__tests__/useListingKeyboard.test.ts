@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createApp, defineComponent, h, ref, type App } from "vue";
-import type { fileListItemIndex } from "@/store/types.ts";
+import type { fileListItemIndex } from "@/types/files.ts";
 import type { VirtualListingHandle } from "@/utils/listing/virtualListing.ts";
 
 const { state, mutations, getters, router, typeAhead } = vi.hoisted(() => ({

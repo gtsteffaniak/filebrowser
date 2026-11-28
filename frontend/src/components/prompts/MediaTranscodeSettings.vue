@@ -131,7 +131,7 @@
 import { notify } from "@/notify/index.ts";
 import { mutations } from "@/store/index.ts";
 import { eventBus } from "@/store/eventBus.ts";
-import { getMediaSettings } from "@/api/settings.js";
+import { getMediaSettings } from "@/api/settings.ts";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
@@ -159,7 +159,7 @@ export default {
     },
     /** Media settings pinned in the config file cannot be changed here. */
     lockedFromConfigPaths: {
-      type: Array,
+      type: /** @type {import("vue").PropType<string[]>} */ (Array),
       default: () => [],
     },
     lockMessage: {
@@ -172,6 +172,7 @@ export default {
       media: emptyMediaSettings(),
       profiles: MEDIA_TRANSCODE_PROFILES,
       /** H.264 encoder backends reported by the backend (hardware ones only when usable). */
+      /** @type {import("@/types/media.ts").EncoderBackendOption[]} */
       encoderBackendOptions: [],
       loading: true,
       saving: false,

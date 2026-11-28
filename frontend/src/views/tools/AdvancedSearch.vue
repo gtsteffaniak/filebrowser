@@ -184,7 +184,7 @@
 
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from "vue";
-import type { FileListItem, fileListItemIndex, ReqObject } from "@/store/types.ts";
+import type { FileListItem, fileListItemIndex, ReqObject } from "@/types/files.ts";
 import { useRoute } from "vue-router";
 import { useI18n } from "@/i18n/index.ts";
 import { toolsApi } from "@/api/index.js";

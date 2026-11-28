@@ -59,7 +59,7 @@
 import { notify } from "@/notify/index.ts";
 import { mutations } from "@/store/index.ts";
 import { eventBus } from "@/store/eventBus.ts";
-import { getMediaSettings } from "@/api/settings.js";
+import { getMediaSettings } from "@/api/settings.ts";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
 import {
@@ -82,7 +82,7 @@ export default {
     },
     /** Media settings pinned in the config file cannot be changed here. */
     lockedFromConfigPaths: {
-      type: Array,
+      type: /** @type {import("vue").PropType<string[]>} */ (Array),
       default: () => [],
     },
     lockMessage: {

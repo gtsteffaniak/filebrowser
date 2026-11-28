@@ -1,8 +1,9 @@
 import type Plyr from "plyr";
 import { computed, nextTick, ref, type Ref, type ShallowRef, watch } from "vue";
 import type { RouteLocationNormalizedLoaded } from "vue-router";
-import { getTranscodeSessions, type TranscodeStatus } from "@/api/transcode.ts";
-import type { TranscodeSession } from "@/api/transcode.ts";
+import { getTranscodeSessions } from "@/api/transcode.ts";
+import type { TranscodeStatus } from "@/types/transcode.ts";
+import type { TranscodeSession } from "@/types/transcode.ts";
 import { getCachedViewToken } from "@/api/viewToken.js";
 import { useI18n } from "@/i18n/index.ts";
 import { notify } from "@/notify/index.ts";

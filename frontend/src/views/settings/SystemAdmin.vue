@@ -26,7 +26,7 @@
 <script>
 import { notify } from "@/notify/index.ts";
 import { state, mutations } from "@/store/index.ts";
-import { getAnalytics, updateAnalytics, getMediaSettings } from "@/api/settings.js";
+import { getAnalytics, updateAnalytics, getMediaSettings } from "@/api/settings.ts";
 import { emptyMediaSettings, mergeMediaSettings, saveMediaSettingsPatch } from "@/utils/config/mediaSettings.ts";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import SettingsButton from "@/components/settings/SettingsButton.vue";
@@ -45,6 +45,7 @@ export default {
       analyticsLoading: false,
       media: emptyMediaSettings(),
       /** Media settings pinned in the config file cannot be changed here. */
+      /** @type {string[]} */
       lockedFromConfigPaths: [],
       lockMessage: "",
       /** True only after media settings and lock metadata both loaded. */

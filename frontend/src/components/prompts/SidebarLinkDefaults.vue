@@ -39,7 +39,7 @@
 <script>
 import { notify } from "@/notify/index.ts";
 import { mutations } from "@/store/index.ts";
-import { getSidebarLinkDefaults, patchSidebarLinkDefaults } from "@/api/settings.js";
+import { getSidebarLinkDefaults, patchSidebarLinkDefaults } from "@/api/settings.ts";
 import SidebarLinksEditor from "@/components/sidebar/SidebarLinksEditor.vue";
 
 export default {
@@ -58,6 +58,7 @@ export default {
       loading: true,
       saving: false,
       hydrating: false,
+      /** @type {{ enabled: boolean, enforced: boolean, link: Partial<import("@/types/settings.ts").SidebarLink> }[]} */
       items: [],
       linksInSubFlow: false,
     };
@@ -72,6 +73,7 @@ export default {
     closeTopPrompt() {
       mutations.closeTopPrompt();
     },
+    /** @param {import("@/types/settings.ts").SidebarLinkDefaults} data */
     async applyItems(data) {
       this.hydrating = true;
       this.items = Array.isArray(data.items)

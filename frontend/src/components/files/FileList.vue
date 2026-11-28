@@ -77,7 +77,8 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from "vue";
 import { state, mutations, getters } from "@/store/index.ts";
-import type { FileListItem, MediaMetadata } from "@/store/types.ts";
+import type { FileListItem } from "@/types/files.ts";
+import type { MediaMetadata } from "@/types/media.ts";
 import { url } from "@/utils/index.ts";
 import { resourcesApi } from "@/api/index.js";
 import ListingHeader from "@/components/files/ListingHeader.vue";

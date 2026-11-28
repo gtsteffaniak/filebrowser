@@ -30,11 +30,14 @@
 
 <script>
 import { notify } from "@/notify/index.ts";
-import { getUserDefaults, patchUserDefaults } from "@/api/settings.js";
+import { getUserDefaults, patchUserDefaults } from "@/api/settings.ts";
 import { getObjectProperty } from "@/utils/object.js";
 import UserProfilePreferences from "@/components/settings/UserProfilePreferences.vue";
 import UserDefaultsAccountSection from "@/components/settings/UserDefaultsAccountSection.vue";
 
+/** @typedef {import("@/types/media.ts").DeepPartial<import("@/types/settings.ts").UserDefaults>} UserDefaultsDraft */
+
+/** @returns {import("@/types/settings.ts").UserDefaultsEnforcement} */
 function emptyEnforced() {
   return {
     sidebar: {},
@@ -48,6 +51,7 @@ function emptyEnforced() {
   };
 }
 
+/** @returns {UserDefaultsDraft} */
 function emptyDefaults() {
   return {
     sidebar: {},
@@ -78,6 +82,7 @@ export default {
       loading: true,
       saving: false,
       hydrating: false,
+      /** @type {string[]} */
       lockedFromConfigPaths: [],
       values: emptyDefaults(),
       enforced: emptyEnforced(),
@@ -126,6 +131,7 @@ export default {
       }
       return !!val;
     },
+    /** @param {import("@/types/settings.ts").UserDefaultsResponse} data */
     async applyResponse(data) {
       this.hydrating = true;
       this.lockedFromConfigPaths = Array.isArray(data.lockedFromConfigPaths)
@@ -198,6 +204,7 @@ export default {
         this.hydrating = false;
       }
     },
+    /** @param {import("@/types/settings.ts").UserDefaultsPatch} partial */
     async sendPatch(partial) {
       if (!this.canPatch()) {
         return;

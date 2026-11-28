@@ -9,7 +9,7 @@ import {
   type PropType,
 } from "vue";
 import { settle } from "@/composables/player/__tests__/mediaTestUtils.ts";
-import type { FileListItem, ReqObject } from "@/store/types.ts";
+import type { FileListItem, ReqObject } from "@/types/files.ts";
 import type { LyricLines } from "@/player/tracks/lyrics.ts";
 import MediaPlayer from "../MediaPlayer.vue";
 

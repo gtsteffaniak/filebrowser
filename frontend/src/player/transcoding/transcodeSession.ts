@@ -1,10 +1,5 @@
-import {
-  heartbeatTranscodeSession,
-  startTranscodeSession,
-  stopTranscodeSession,
-  type TranscodeProfile,
-  type TranscodeSession,
-} from "@/api/transcode.ts";
+import { heartbeatTranscodeSession, startTranscodeSession, stopTranscodeSession } from "@/api/transcode.ts";
+import type { TranscodeProfile, TranscodeSession } from "@/types/transcode.ts";
 import { errorMessage, httpStatusOf, type PlayerError } from "@/player/playerErrors.ts";
 import { transcodeLog, transcodeWarn } from "@/player/transcoding/transcodeDebug.ts";
 

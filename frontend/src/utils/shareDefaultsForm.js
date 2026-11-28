@@ -1,5 +1,11 @@
 import { bytesFromCustomAmount, customAmountFromBytes } from "@/utils/quotaUnits.js";
 
+/**
+ * @typedef {{ allowedUsernames?: string | string[], quotaEnabled?: boolean, quotaCustomAmount?: number, quotaCustomUnit?: string, enableAllowedUsernames?: boolean }} ShareDefaultsFormExtras
+ * @typedef {Omit<import("@/types/settings.ts").ShareDefaults, "allowedUsernames"> & ShareDefaultsFormExtras} ShareDefaultsForm
+ */
+
+/** @returns {import("@/types/settings.ts").ShareDefaultsEnforcement} */
 export function emptyShareDefaultsEnforced() {
   return {
     shareTheme: false,
@@ -37,6 +43,7 @@ export function emptyShareDefaultsEnforced() {
   };
 }
 
+/** @returns {ShareDefaultsForm} */
 export function emptyShareDefaultsValues() {
   return {
     shareTheme: "default",
@@ -77,6 +84,10 @@ export function emptyShareDefaultsValues() {
   };
 }
 
+/**
+ * @param {import("@/types/settings.ts").ShareDefaults} [values]
+ * @returns {ShareDefaultsForm}
+ */
 export function shareDefaultsFromApi(values = {}) {
   const out = { ...emptyShareDefaultsValues(), ...values };
   const quota = values.quotaLimitBytes || 0;
@@ -108,6 +119,10 @@ export function shareDefaultsFromApi(values = {}) {
   return out;
 }
 
+/**
+ * @param {ShareDefaultsForm} form
+ * @returns {import("@/types/settings.ts").ShareDefaults}
+ */
 export function shareDefaultsToApiPayload(form) {
   return {
     shareTheme: form.shareTheme,

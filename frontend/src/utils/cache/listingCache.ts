@@ -1,5 +1,5 @@
 import { state } from "@/store/index.ts";
-import type { ReqObject } from "@/store/types.ts";
+import type { ReqObject } from "@/types/files.ts";
 import { getParentDir, pathsMatch } from "@/utils/url.js";
 
 interface ListingCacheEntry {

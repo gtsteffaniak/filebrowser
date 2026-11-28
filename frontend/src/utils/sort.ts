@@ -1,6 +1,6 @@
 import { getObjectProperty } from "@/utils/object.js";
 import { KIND_ORDER, getKindKey } from "@/utils/mimetype.js";
-import type { FileListItem } from "@/store/types.ts";
+import type { FileListItem } from "@/types/files.ts";
 
 type SortableItem = Partial<FileListItem>;
 const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: "base" });

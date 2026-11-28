@@ -30,7 +30,7 @@
 
 <script>
 import { mutations, state } from "@/store/index.ts";
-import { getToolAccessDefaults } from "@/api/settings.js";
+import { getToolAccessDefaults } from "@/api/settings.ts";
 import ToolsAccessEditor from "@/components/tools/ToolsAccessEditor.vue";
 import {
   getUserEditSession,
@@ -46,6 +46,7 @@ export default {
   },
   data() {
     return {
+      /** @type {NonNullable<import("@/types/settings.ts").ToolAccessDefaults["items"]>} */
       defaultItems: [],
       session: null,
       sessionUnsubscribe: null,

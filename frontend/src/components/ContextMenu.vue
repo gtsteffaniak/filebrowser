@@ -119,7 +119,7 @@ import { useRouter } from "vue-router";
 import { resourcesApi, shareApi, usersApi } from "@/api/index.js";
 import { notify } from "@/notify/index.ts";
 import { getters, mutations, state } from "@/store/index.ts";
-import type { FileListItem, ReqObject } from "@/store/types.ts";
+import type { FileListItem, ReqObject } from "@/types/files.ts";
 import { hideInteractiveTooltip, showHoverTooltip } from "@/utils/tooltipHelp.js";
 import { buildWebDavUrl, goToItem, getParentDir, removeLastDir } from "@/utils/url.js";
 import { globalVars } from "@/utils/constants.ts";

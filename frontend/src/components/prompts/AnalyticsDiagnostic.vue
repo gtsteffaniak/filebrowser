@@ -14,7 +14,7 @@
 <script>
 import { createAsyncComponent } from "@/utils/asyncComponent.js";
 import { notify } from "@/notify/index.ts";
-import { getAnalyticsPreview } from "@/api/settings.js";
+import { getAnalyticsPreview } from "@/api/settings.ts";
 
 export default {
   name: "AnalyticsDiagnostic",

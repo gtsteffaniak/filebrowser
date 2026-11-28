@@ -3,7 +3,7 @@ import downloadFiles from "@/utils/download.js";
 import { resourcesApi } from "@/api/index.js";
 import { router } from "@/router/index.ts";
 import { state, mutations, getters } from "@/store/index.ts";
-import type { FileListItem, fileListItemIndex } from "@/store/types.ts";
+import type { FileListItem, fileListItemIndex } from "@/types/files.ts";
 import { url } from "@/utils/index.ts";
 import {
   isTypeAheadSessionActive,

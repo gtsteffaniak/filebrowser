@@ -1,6 +1,6 @@
 /** Whether this server can serve transcoded playback right now. */
 
-import type { TranscodeProfile, TranscodeStatus } from "@/api/transcode.ts";
+import type { TranscodeProfile, TranscodeStatus } from "@/types/transcode.ts";
 import { state } from "@/store/index.ts";
 import { globalVars } from "@/utils/constants.ts";
 
