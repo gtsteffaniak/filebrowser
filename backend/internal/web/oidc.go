@@ -2,6 +2,7 @@ package web
 
 import (
 	"crypto/tls"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"maps"
@@ -23,6 +24,8 @@ const (
 	oidcStateCookieName    = "filebrowser_oidc_state"
 	oidcRedirectCookieName = "filebrowser_oidc_redirect"
 	oidcFlowCookieMaxAge   = 600 // seconds
+	oidcStateBytes         = 16
+	oidcStateHexLength     = oidcStateBytes * 2
 )
 
 func oidcFlowCookie(r *http.Request, name, value string, maxAge int) *http.Cookie {
@@ -38,21 +41,36 @@ func oidcFlowCookie(r *http.Request, name, value string, maxAge int) *http.Cooki
 	}
 }
 
-func clearOidcFlowCookies(w http.ResponseWriter, r *http.Request) {
-	http.SetCookie(w, oidcFlowCookie(r, oidcStateCookieName, "", -1))
-	http.SetCookie(w, oidcFlowCookie(r, oidcRedirectCookieName, "", -1))
+func attemptCookieName(base, state string) string {
+	return base + "_" + state
 }
 
-// validateOidcCallbackState checks the OAuth state parameter against the HttpOnly cookie set at login.
+// validateOidcCallbackState checks the returned state against the cookie for that attempt.
 func validateOidcCallbackState(r *http.Request, w http.ResponseWriter) (postLoginRedirect string, status int, err error) {
 	stateParam := r.URL.Query().Get("state")
-	stateCookie, stateErr := r.Cookie(oidcStateCookieName)
-	redirectCookie, _ := r.Cookie(oidcRedirectCookieName)
-	clearOidcFlowCookies(w, r)
-
-	if stateParam == "" || stateErr != nil || stateCookie.Value == "" || stateParam != stateCookie.Value {
+	if len(stateParam) != oidcStateHexLength {
 		return "", http.StatusBadRequest, fmt.Errorf("invalid OIDC state")
 	}
+	if _, err := hex.DecodeString(stateParam); err != nil {
+		return "", http.StatusBadRequest, fmt.Errorf("invalid OIDC state")
+	}
+
+	stateName := attemptCookieName(oidcStateCookieName, stateParam)
+	redirectName := attemptCookieName(oidcRedirectCookieName, stateParam)
+	stateCookie, stateErr := r.Cookie(stateName)
+	if stateErr == http.ErrNoCookie {
+		// Allow an already-started sign-in to finish after upgrading.
+		stateName = oidcStateCookieName
+		redirectName = oidcRedirectCookieName
+		stateCookie, stateErr = r.Cookie(stateName)
+	}
+	if stateErr != nil || stateParam != stateCookie.Value {
+		return "", http.StatusBadRequest, fmt.Errorf("invalid OIDC state")
+	}
+
+	redirectCookie, _ := r.Cookie(redirectName)
+	http.SetCookie(w, oidcFlowCookie(r, stateName, "", -1))
+	http.SetCookie(w, oidcFlowCookie(r, redirectName, "", -1))
 
 	postLoginRedirect = settings.Config.Http.BaseURL
 	if redirectCookie != nil && redirectCookie.Value != "" {
@@ -221,7 +239,7 @@ func oidcLoginHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 		Scopes:       strings.Fields(oidcCfg.Scopes),
 	}
 
-	state, err := utils.RandomHex(16)
+	state, err := utils.RandomHex(oidcStateBytes)
 	if err != nil {
 		return http.StatusInternalServerError, fmt.Errorf("generate OIDC state: %w", err)
 	}
@@ -235,8 +253,8 @@ func oidcLoginHandler(w http.ResponseWriter, r *http.Request, d *Context) (int, 
 		}
 	}
 
-	http.SetCookie(w, oidcFlowCookie(r, oidcStateCookieName, state, oidcFlowCookieMaxAge))
-	http.SetCookie(w, oidcFlowCookie(r, oidcRedirectCookieName, postLogin, oidcFlowCookieMaxAge))
+	http.SetCookie(w, oidcFlowCookie(r, attemptCookieName(oidcStateCookieName, state), state, oidcFlowCookieMaxAge))
+	http.SetCookie(w, oidcFlowCookie(r, attemptCookieName(oidcRedirectCookieName, state), postLogin, oidcFlowCookieMaxAge))
 
 	authURL := oauth2Config.AuthCodeURL(state)
 	http.Redirect(w, r, authURL, http.StatusFound)

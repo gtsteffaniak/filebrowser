@@ -13,9 +13,10 @@ func TestValidateOidcCallbackState(t *testing.T) {
 	settings.Config.Http.BaseURL = "/"
 	t.Cleanup(func() { settings.Config.Http.BaseURL = "/" })
 
-	t.Run("accepts matching state and redirect cookie", func(t *testing.T) {
-		req := httptest.NewRequest("GET", "/api/auth/oidc/callback?state=goodstate&code=x", nil)
-		req.AddCookie(&http.Cookie{Name: oidcStateCookieName, Value: "goodstate"})
+	t.Run("accepts matching legacy state and redirect cookies", func(t *testing.T) {
+		const state = "0123456789abcdef0123456789abcdef"
+		req := httptest.NewRequest("GET", "/api/auth/oidc/callback?state="+state+"&code=x", nil)
+		req.AddCookie(&http.Cookie{Name: oidcStateCookieName, Value: state})
 		req.AddCookie(&http.Cookie{Name: oidcRedirectCookieName, Value: "/files/"})
 		rec := httptest.NewRecorder()
 
@@ -33,13 +34,17 @@ func TestValidateOidcCallbackState(t *testing.T) {
 	})
 
 	t.Run("rejects tampered state", func(t *testing.T) {
-		req := httptest.NewRequest("GET", "/api/auth/oidc/callback?state=tampered&code=x", nil)
-		req.AddCookie(&http.Cookie{Name: oidcStateCookieName, Value: "expected"})
+		const state = "fedcba9876543210fedcba9876543210"
+		req := httptest.NewRequest("GET", "/api/auth/oidc/callback?state="+state+"&code=x", nil)
+		req.AddCookie(&http.Cookie{Name: oidcStateCookieName, Value: "0123456789abcdef0123456789abcdef"})
 		rec := httptest.NewRecorder()
 
 		_, status, err := validateOidcCallbackState(req, rec)
 		if err == nil || status != http.StatusBadRequest {
 			t.Fatalf("expected 400, got status=%d err=%v", status, err)
+		}
+		if cookies := rec.Result().Cookies(); len(cookies) != 0 {
+			t.Fatal("rejected callback modified a pending login cookie")
 		}
 	})
 }
@@ -82,4 +87,3 @@ func TestParseSignupCredentialsJSONMixedCaseContentType(t *testing.T) {
 		t.Fatalf("got user=%q pass=%q", user, pass)
 	}
 }
-
