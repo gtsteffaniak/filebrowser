@@ -672,3 +672,87 @@ func TestWithTimeoutHandlerErrorBeforeDeadline(t *testing.T) {
 		t.Fatalf("body.message = %q", body.Message)
 	}
 }
+
+// TestPublicUploadShareReadRoutesDoNotRevealMissingPaths checks that an upload share answers 501
+// for a path that exists and for one that does not, so the status never shows what is there.
+func TestPublicUploadShareReadRoutesDoNotRevealMissingPaths(t *testing.T) {
+	setupTestEnv(t)
+
+	originalFileInfoFaster := FileInfoFasterFunc
+	t.Cleanup(func() { FileInfoFasterFunc = originalFileInfoFaster })
+	FileInfoFasterFunc = func(opts utils.FileOptions, user *users.User) (*iteminfo.ExtendedFileInfo, error) {
+		if strings.HasSuffix(strings.TrimSuffix(opts.Path, "/"), "missing.txt") {
+			return nil, os.ErrNotExist
+		}
+		return &iteminfo.ExtendedFileInfo{
+			FileInfo: iteminfo.FileInfo{
+				Path: opts.Path,
+				ItemInfo: iteminfo.ItemInfo{
+					Name: "private.txt",
+					Type: "text/plain",
+				},
+			},
+		}, nil
+	}
+
+	newOwner := &users.User{
+		FrontendUser: users.FrontendUser{
+			Username:    "upload_lookup_owner",
+			Permissions: users.Permissions{Admin: false},
+		},
+		BackendScopes: []users.BackendScope{{Path: "/srv", Scope: "/"}},
+	}
+	if err := state.CreateUser(newOwner, ""); err != nil {
+		t.Fatal("failed to save user:", err)
+	}
+	owner, err := state.GetUserByUsername("upload_lookup_owner")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for hash, shareType := range map[string]string{"upload_lookup_hash": "upload", "normal_lookup_hash": ""} {
+		if err := state.CreateShare(&share.Share{
+			ShareSettings: share.ShareSettings{
+				ShareLimits:       share.ShareLimits{SourceName: "srv"},
+				FrontendShareInfo: share.FrontendShareInfo{ShareType: shareType},
+			},
+			ShareColumns: share.ShareColumns{Hash: hash, Path: "/"},
+			SourcePath:   "/srv",
+			UserID:       owner.ID,
+		}); err != nil {
+			t.Fatal("failed to create share:", err)
+		}
+	}
+
+	originalAuthKey := settings.Config.Auth.Key
+	settings.Config.Auth.Key = "key"
+	t.Cleanup(func() { settings.Config.Auth.Key = originalAuthKey })
+
+	routes := []struct {
+		route   string
+		handler handleFunc
+	}{
+		{"/public/api/resources", publicGetResourceHandler},
+		{"/public/api/resources/preview", publicPreviewHandler},
+		{"/public/api/resources/preview/text", publicTextPreviewHandler},
+		{"/public/api/raw", publicDownloadHandler},
+		{"/public/api/media/lyrics", publicLyricsHandler},
+	}
+	status := func(hash, route, path string, handler handleFunc) int {
+		req := httptest.NewRequest(http.MethodGet, route+"?hash="+hash+"&path="+path, nil)
+		recorder := httptest.NewRecorder()
+		withHashFile(handler)(recorder, req)
+		return recorder.Code
+	}
+	for _, rt := range routes {
+		for _, path := range []string{"/private.txt", "/missing.txt"} {
+			if got := status("upload_lookup_hash", rt.route, path, rt.handler); got != http.StatusNotImplemented {
+				t.Errorf("upload share %s path %s: expected 501, got %d", rt.route, path, got)
+			}
+		}
+	}
+	// Normal shares still look the path up, so a missing path stays a 404.
+	if got := status("normal_lookup_hash", "/public/api/resources", "/missing.txt", publicGetResourceHandler); got != http.StatusNotFound {
+		t.Errorf("normal share missing path: expected 404, got %d", got)
+	}
+}
