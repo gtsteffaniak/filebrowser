@@ -1098,15 +1098,14 @@ func (db *IndexDB) UpdateFolderSizesIfChanged(source string, pathSizes map[strin
 	// Build CASE statements for both SET and WHERE clauses
 	var setCaseParts []string
 	var whereCaseParts []string
-	var args []interface{}
+	var sizeArgs []any
 	var paths []string
 	var placeholders []string
 
 	for path, size := range pathSizes {
 		setCaseParts = append(setCaseParts, "WHEN path = ? THEN ?")
 		whereCaseParts = append(whereCaseParts, "WHEN path = ? THEN ?")
-		args = append(args, path, size)
-		args = append(args, path, size) // Duplicate for WHERE clause
+		sizeArgs = append(sizeArgs, path, size)
 		paths = append(paths, path)
 		placeholders = append(placeholders, "?")
 	}
@@ -1122,10 +1121,14 @@ func (db *IndexDB) UpdateFolderSizesIfChanged(source string, pathSizes map[strin
 		  AND size != CASE %s END
 	`, strings.Join(setCaseParts, " "), strings.Join(placeholders, ","), strings.Join(whereCaseParts, " "))
 
+	// Bind each group in the same order as its placeholders in the query.
+	args := make([]any, 0, 5*len(pathSizes)+1)
+	args = append(args, sizeArgs...)
 	args = append(args, source)
 	for _, path := range paths {
 		args = append(args, path)
 	}
+	args = append(args, sizeArgs...)
 
 	startTime := time.Now()
 	for attempt := 1; attempt <= dbTransientOpAttempts; attempt++ {
