@@ -135,7 +135,8 @@ import {
 } from "@/player/transcoding/transcodeMode.ts";
 import { enableVideoLoadingIndicator, type LoadingPlayer, type VideoLoadingIndicator } from "@/player/ui/videoLoading.ts";
 import { getters, state } from "@/store/index.ts";
-import type { FileListItem, SubtitleTrack as FileSubtitleTrack } from "@/store/types.ts";
+import type { FileListItem } from "@/types/files.ts";
+import type { SubtitleTrack as FileSubtitleTrack } from "@/types/media.ts";
 import { getSubtitleFormatExtension } from "@/player/tracks/subtitles.ts";
 
 interface VideoFile extends PlayerFile {

@@ -3,7 +3,7 @@ import { resourcesApi } from "@/api/index.js";
 import { ensureViewToken, requestViewIdentity } from "@/api/viewToken.js";
 import { router } from "@/router/index.ts";
 import { getters, mutations, state } from "@/store/index.ts";
-import type { FileListItem } from "@/store/types.ts";
+import type { FileListItem } from "@/types/files.ts";
 import { navigatePlaybackQueue } from "@/player/playback/playbackQueue.ts";
 import { goToItem, removeLastDir } from "@/utils/url.js";
 

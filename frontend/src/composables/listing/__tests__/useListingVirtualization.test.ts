@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createApp, defineComponent, h, nextTick, ref, shallowRef, type App } from "vue";
-import type { fileListItemIndex } from "@/store/types.ts";
+import type { fileListItemIndex } from "@/types/files.ts";
 
 const { getters, state } = vi.hoisted(() => ({
   getters: { viewMode: () => "list" },

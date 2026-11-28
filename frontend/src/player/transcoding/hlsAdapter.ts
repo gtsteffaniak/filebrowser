@@ -1,5 +1,6 @@
 import Hls, { type ErrorData, type Fragment } from "hls.js";
-import { getTranscodePlaylistURL, type TranscodeSession } from "@/api/transcode.ts";
+import { getTranscodePlaylistURL } from "@/api/transcode.ts";
+import type { TranscodeSession } from "@/types/transcode.ts";
 import {
   AttachAbortError,
   AttachTimeoutError,

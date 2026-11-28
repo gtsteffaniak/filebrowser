@@ -2,7 +2,7 @@ import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue";
 import type Plyr from "plyr";
 import { useI18n } from "@/i18n/index.ts";
 import { getters, mutations, state } from "@/store/index.ts";
-import type { FileListItem } from "@/store/types.ts";
+import type { FileListItem } from "@/types/files.ts";
 import {
   buildPlaybackQueue,
   clearPlaybackQueue,

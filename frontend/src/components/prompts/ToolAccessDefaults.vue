@@ -40,7 +40,7 @@
 <script>
 import { notify } from "@/notify/index.ts";
 import { mutations } from "@/store/index.ts";
-import { getToolAccessDefaults, patchToolAccessDefaults } from "@/api/settings.js";
+import { getToolAccessDefaults, patchToolAccessDefaults } from "@/api/settings.ts";
 import ToolsAccessEditor from "@/components/tools/ToolsAccessEditor.vue";
 
 export default {
@@ -53,6 +53,7 @@ export default {
       loading: true,
       saving: false,
       hydrating: false,
+      /** @type {NonNullable<import("@/types/settings.ts").ToolAccessDefaults["items"]>} */
       items: [],
     };
   },
@@ -63,6 +64,7 @@ export default {
     canPatch() {
       return !this.loading && !this.saving && !this.hydrating;
     },
+    /** @param {import("@/types/settings.ts").ToolAccessDefaults} data */
     async applyItems(data) {
       this.hydrating = true;
       this.items = Array.isArray(data.items)

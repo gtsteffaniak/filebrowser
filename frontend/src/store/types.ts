@@ -1,194 +1,17 @@
-// Store type definitions
-
 import type { Component } from "vue";
-
-export interface FileListItem {
-  name: string;
-  path: string;
-  size?: number;
-  type?: string;
-  source?: string;
-  modified?: string;
-  created?: string;
-  hasPreview?: boolean;
-  viewToken?: string;
-  isShared?: boolean;
-  pinned?: boolean;
-  hidden?: boolean;
-  metadata?: MediaMetadata;
-}
-
-export type PlaybackMode = 'single' | 'sequential' | 'shuffle';
-export type PlaybackLoop = 'off' | 'all' | 'single';
-
-export interface InfoItem extends FileListItem {
-  subtitles?: SubtitleTrack[];
-  token?: string;
-  hash?: string;
-  onlyOfficeId?: string;
-}
-
-/** from backend utils.SubtitleTrack. */
-export interface SubtitleTrack {
-  name: string;
-  language?: string;
-  srclang?: string;
-  title?: string;
-  index?: number;
-  codec?: string;
-  embedded: boolean;
-}
-
-/** from backend iteminfo.MediaMetadata. */
-export interface MediaMetadata {
-  title?: string;
-  artist?: string;
-  album?: string;
-  year?: number;
-  genre?: string;
-  track?: number;
-  duration?: number;
-  videoCodec?: string;
-  audioCodec?: string;
-  container?: string;
-  albumArt?: string;
-  hasLyrics?: boolean;
-}
-
-export type QuotaMeter = "index_size" | "index_scope" | "accounted";
-export type QuotaUnit = "mb" | "gb";
-
-/** from backend web.folderQuotaResponse */
-export interface QuotaSnapshot {
-  limitBytes?: number;
-  usedBytes?: number;
-  reservedBytes?: number;
-  meter?: QuotaMeter;
-  configuredMeter?: QuotaMeter;
-  effectiveMeter?: QuotaMeter;
-  measurementStatus?: "ready" | "accounted_fallback";
-}
-
-export interface FolderQuota extends QuotaSnapshot {
-  source: string;
-  path: string;
-  limitBytes: number;
-}
-
-export type AccessRuleCategory = "user" | "group" | "all";
-
-/** from backend access.FrontendRuleSet */
-export interface AccessRuleSet {
-  users: string[];
-  groups: string[];
-}
-
-/** from backend access.FrontendAccessRule */
-export interface AccessRule {
-  denyAll?: boolean;
-  deny: AccessRuleSet;
-  allow: AccessRuleSet;
-  sourceDenyDefault: boolean;
-  pathExists: boolean;
-}
-
-/** List items have their position in `req.items` (by mutations.replaceRequest) */
-export interface fileListItemIndex extends FileListItem {
-  index: number;
-}
-
-export interface ReqObject {
-  // Base properties always present
-  sorting: {
-    by: string;
-    asc: boolean;
-  };
-  items: FileListItem[];
-  numDirs: number;
-  numFiles: number;
-
-  // File-specific properties (added dynamically)
-  name?: string;
-  path?: string;
-  size?: number;
-  type?: string;
-  source?: string;
-  content?: string;
-  modified?: string;
-  created?: string;
-  hasPreview?: boolean;
-  subtitles?: SubtitleTrack[];
-  viewToken?: string;
-  parentDirItems?: FileListItem[];
-  onlyOfficeId?: string;
-  hasUpdate?: boolean;
-  isDir?: boolean;
-  metadata?: MediaMetadata;
-
-  // Directory listing properties
-  listing?: FileListItem[];
-}
-
-export interface ShareInfoObject {
-  isShare: boolean;
-  disableThumbnails: boolean;
-  hash: string;
-  token: string;
-  subPath: string;
-  passwordValid: boolean;
-  enforceDarkLightMode: string;
-  disableSidebar: boolean;
-  isValid: boolean;
-  shareType: string;
-  hasPassword?: boolean;
-  title: string;
-  description: string;
-  viewMode?: string;
-  singleFileShare?: boolean;
-  disableFileViewer?: boolean;
-  allowModify?: boolean;
-  allowCreate?: boolean;
-  allowReplacements?: boolean;
-  allowDelete?: boolean;
-  canEditShare?: boolean;
-  disableDownload?: boolean;
-  showHidden?: boolean;
-  quotaLimitBytes?: number;
-  quotaUsedBytes?: number;
-  quotaAvailableBytes?: number;
-  /** Applicable folder storage quotas for this share root (from share/info). */
-  folderQuotas?: Array<{
-    limitBytes: number;
-    usedBytes?: number;
-    reservedBytes?: number;
-  }>;
-}
-
-export interface Permissions {
-  share?: boolean;
-  modify?: boolean;
-  create?: boolean;
-  delete?: boolean;
-  download?: boolean;
-  admin?: boolean;
-  api?: boolean;
-  archive?: boolean;
-  realtime?: boolean;
-}
-
-export interface DisplayPreference {
-  viewMode?: string;
-  sorting?: {
-    by: string;
-    asc: boolean;
-  };
-}
-
-export interface SidebarLink {
-  category?: string;
-  sourceName?: string;
-  [key: string]: unknown;
-}
+import type { PlaybackLoop, PlaybackMode, SharedMediaSettings } from "@/types/media.ts";
+import type { FileListItem, ReqObject } from "@/types/files.ts";
+import type { ShareInfoObject } from "@/types/shares.ts";
+import type { UserObject } from "@/types/users.ts";
+import type { SourceInfo } from "@/types/sources.ts";
+import type {
+  GlobalSettings,
+  ShareDefaults,
+  ShareDefaultsEnforcement,
+  SidebarLinkDefaults,
+  ToolAccessDefaults,
+  UserDefaultsEnforcement,
+} from "@/types/settings.ts";
 
 export interface Prompt {
   id?: number | undefined;
@@ -200,161 +23,6 @@ export interface Prompt {
   props?: Record<string, unknown> | undefined;
   discard?: unknown;
   cancel?: unknown;
-}
-
-/** Scope quota snapshot from GET /api/settings/sources (sidebar usage bar). */
-export interface ScopeQuotaInfo {
-  quotaKind?: string;
-  limitBytes: number;
-  usedBytes?: number;
-  reservedBytes?: number;
-  meter?: string;
-  configuredMeter?: string;
-  effectiveMeter?: string;
-  measurementStatus?: string;
-}
-
-export interface SourceInfo {
-  pathPrefix?: string | undefined;
-  used: number;
-  total: number;
-  usedAlt: number;
-  totalRoot: number;
-  usedAltRoot: number;
-  usedPercentage: number;
-  usageScopeMismatch?: boolean | undefined;
-  status: string;
-  name: string;
-  files: number;
-  folders: number;
-  lastIndex: number;
-  quickScanDurationSeconds: number;
-  fullScanDurationSeconds: number;
-  complexity: number;
-  scanners: unknown[];
-  readOnly: boolean;
-  private: boolean;
-  indexingDisabled?: boolean | undefined;
-  scopeQuota?: ScopeQuotaInfo | undefined;
-}
-
-/** Raw shape of a single source entry as sent by /api/settings/sources or SSE updates. */
-export interface SourceInfoUpdate {
-  used?: number;
-  total?: number;
-  usedAlt?: number;
-  totalRoot?: number;
-  usedAltRoot?: number;
-  usageScopeMismatch?: boolean;
-  status?: string;
-  name?: string;
-  numFiles?: number;
-  numDirs?: number;
-  lastIndexedUnixTime?: number;
-  quickScanDurationSeconds?: number;
-  fullScanDurationSeconds?: number;
-  complexity?: number;
-  scanners?: unknown[];
-  readOnly?: boolean;
-  private?: boolean;
-  indexingDisabled?: boolean;
-  scopeQuota?: ScopeQuotaInfo;
-}
-
-export interface SourceFilePermissions {
-  view: boolean;
-  download: boolean;
-  modify: boolean;
-  create: boolean;
-  delete: boolean;
-}
-
-export interface UserScope {
-  name: string;
-  scope: string;
-  permissions?: SourceFilePermissions;
-}
-
-export interface UserObject {
-  preview: {
-    video: boolean;
-    audio: boolean;
-    image: boolean;
-    models: boolean;
-    popup: boolean;
-    autoplayMedia?: boolean;
-    office?: boolean;
-    folder?: boolean;
-    motionVideoPreview?: boolean;
-    disableHideSidebar?: boolean;
-  };
-  loginType: string;
-  username: string;
-  quickDownloadEnabled: boolean;
-  gallerySize: number;
-  singleClick: boolean;
-  stickySidebar: boolean;
-  hideFilesInTree: boolean,
-  deleteAfterArchive: boolean,
-  deleteWithoutConfirming?: boolean;
-  locale: string;
-  viewMode: string;
-  showHidden: boolean;
-  disableSearchOptions?: boolean;
-  scopes: UserScope[];
-  permissions: Permissions;
-  /** Theme preference: "auto" (follow system), "dark", "light". Legacy booleans are tolerated. */
-  darkMode: boolean | "auto" | "dark" | "light";
-  disableSettings: boolean;
-  showAdvancedProfile?: boolean;
-  allowCustomShareURL?: boolean;
-  debugOffice: boolean;
-  preferEditorForMarkdown: boolean;
-  preferEditorForHtml: boolean;
-  showCopyPath?: boolean;
-  showSelectMultiple?: boolean;
-  showTypeColumn?: boolean;
-  showCreationDateColumn?: boolean;
-  hideFileExt?: string;
-  newFileTemplate?: string[];
-  themeColor?: string;
-  sidebarLinks?: SidebarLink[];
-  toolAccess?: Record<string, boolean>;
-  effectiveToolAccess?: Record<string, boolean>;
-  profile: {
-    username: string;
-    email: string;
-    avatarUrl: string;
-  };
-  // Optional properties that may be added dynamically
-  disableViewingExt?: string;
-  disablePreviewExt?: string;
-  disableOnlyOfficeExt?: string;
-  displayNames?: string[];
-  id?: number;
-  password?: string;
-  scope?: string;
-  rules?: unknown[];
-  lockPassword?: boolean;
-  requirePasswordChange?: boolean;
-  hideDotfiles?: boolean;
-  sorting?: {
-    by: string;
-    asc: boolean;
-  };
-  dateFormat?: boolean;
-  perm?: unknown;
-  email?: string;
-  avatarUrl?: string;
-  fileLoading?: {
-    maxConcurrentUpload?: number;
-    uploadChunkSizeMb?: number;
-    uploadStallTimeoutSeconds?: number;
-    clearAll?: boolean;
-    downloadChunkSizeMb?: number;
-    maxConcurrent?: number;
-    chunkSizeMb?: number;
-  };
 }
 
 export interface RouteObject {
@@ -405,38 +73,14 @@ export interface StoreState {
   isSearchActive: boolean;
   showSidebar: boolean;
   displayPreferences: unknown;
-  enforcedUserDefaults: {
-    listing?: {
-      viewMode?: string;
-      newFileTemplate?: boolean;
-    };
-  };
+  enforcedUserDefaults: UserDefaultsEnforcement;
   /** Runtime media state for all UI (player, listings, previews); null until loaded. */
-  mediaSettings: {
-    enabled: boolean;
-    profiles: string[];
-    maxConcurrentPerUser: number;
-    /** Per image preview type (e.g. heic, jxl): conversion active on this server. */
-    imagePreview: Partial<Record<'heic' | 'jxl' | 'jpeg', boolean>>;
-  } | null;
-  sidebarLinkDefaultsPolicy: {
-    items?: Array<{
-      enabled?: boolean;
-      enforced?: boolean;
-      link?: SidebarLink;
-    }>;
-    sources?: string[];
-  };
-  toolAccessDefaultsPolicy: {
-    items?: Array<{
-      toolId?: string;
-      enabled?: boolean;
-      enforced?: boolean;
-    }>;
-  };
+  mediaSettings: SharedMediaSettings | null;
+  sidebarLinkDefaultsPolicy: SidebarLinkDefaults;
+  toolAccessDefaultsPolicy: ToolAccessDefaults;
   shareDefaultsPolicy: {
-    values?: Record<string, unknown>;
-    enforced?: Record<string, boolean>;
+    values?: ShareDefaults;
+    enforced?: ShareDefaultsEnforcement;
   };
   usages: unknown;
   editor: {
@@ -524,17 +168,7 @@ export interface StoreState {
   show: unknown;
   showConfirm: unknown;
   route: RouteObject;
-  settings: {
-    signup: boolean;
-    createUserDir: boolean;
-    userHomeBasePath: string;
-    rules: unknown[];
-    frontend: {
-      disableExternal: boolean;
-      name: string;
-      files: string;
-    };
-  };
+  settings: GlobalSettings | null;
   navigation: {
     show: boolean;
     hoverNav: boolean;

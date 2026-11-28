@@ -76,7 +76,7 @@
 
 <script>
 import { accessApi } from "@/api/index.js";
-import { getSourceSettings, patchSourceSettings } from "@/api/settings.js";
+import { getSourceSettings, patchSourceSettings } from "@/api/settings.ts";
 import { state, mutations } from "@/store/index.ts";
 import Errors from "@/views/Errors.vue";
 import SettingsTable from "@/components/settings/Table.vue";
@@ -123,6 +123,7 @@ export default {
       create: false,
       delete: false,
     },
+    /** @type {string[]} */
     lockedFromConfigPaths: [],
   }),
   async mounted() {
@@ -207,6 +208,7 @@ export default {
         !this.hydratingDefaults
       );
     },
+    /** @param {import("@/types/settings.ts").SourceSettings} settings */
     applySourceSettingsResponse(settings) {
       const perms = settings?.defaultPermissions ?? {};
       const enforced = settings?.enforcedPermissions ?? {};

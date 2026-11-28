@@ -25,7 +25,7 @@ import { useRoute, useRouter, type RouteLocationNormalized } from "vue-router";
 import { useI18n } from "@/i18n/index.ts";
 import type { Ace } from "ace-builds";
 import { state, getters, mutations } from "@/store/index.ts";
-import type { FileListItem } from "@/store/types.ts";
+import type { FileListItem } from "@/types/files.ts";
 import { resourcesApi } from "@/api/index.js";
 import { pathsMatch, removeLastDir } from "@/utils/url.js";
 import { notify } from "@/notify/index.ts";

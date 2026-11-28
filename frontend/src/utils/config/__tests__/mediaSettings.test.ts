@@ -1,10 +1,10 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 
-vi.mock('@/api/settings', () => ({
+vi.mock('@/api/settings.ts', () => ({
   patchMediaSettings: vi.fn(async (partial) => partial),
 }));
 
-import { patchMediaSettings } from '@/api/settings.js';
+import { patchMediaSettings } from '@/api/settings.ts';
 import {
   enabledTranscodeProfileIds,
   mergeMediaSettings,

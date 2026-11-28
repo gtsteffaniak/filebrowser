@@ -126,7 +126,7 @@ import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import { router } from "@/router/index.ts";
 import { getters, mutations, state } from "@/store/index.ts";
-import type { FileListItem } from "@/store/types.ts";
+import type { FileListItem } from "@/types/files.ts";
 import { url } from "@/utils/index.ts";
 import { globalVars } from "@/utils/constants.ts";
 import { debounce } from "@/utils/debounce.js";

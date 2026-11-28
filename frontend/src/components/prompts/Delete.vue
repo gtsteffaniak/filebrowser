@@ -74,7 +74,7 @@ import { useI18n } from "@/i18n/index.ts";
 import { resourcesApi } from "@/api/index.js";
 import buttons from "@/utils/buttons.js";
 import { state, getters, mutations } from "@/store/index.ts";
-import type { FileListItem } from "@/store/types.ts";
+import type { FileListItem } from "@/types/files.ts";
 import { notify } from "@/notify/index.ts";
 import ListingItem from "@/components/files/ListingItem.vue";
 import { eventBus } from "@/store/eventBus.ts";

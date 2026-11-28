@@ -1,21 +1,9 @@
 import { notify } from "@/notify/index.ts";
 import { getters, state } from "@/store/index.ts";
-import type { MediaMetadata, SubtitleTrack } from "@/store/types.ts";
+import type { Lyrics, MediaResource } from "@/types/media.ts";
 import { getApiPath, getPublicApiPath } from "@/utils/url.js";
-import { adjustedData, fetchURL, type ListingResponse } from "./utils.ts";
+import { adjustedData, fetchURL } from "./utils.ts";
 import { cachedDirectory, cachedItem, type DirMetadataMap, type MetadataScope } from "@/utils/cache/metadataCache.ts";
-
-/** GET /api/media/metadata: a directory with the metadata of its items, or a single file */
-export type MediaResource = ListingResponse & {
-  metadata?: MediaMetadata;
-  subtitles?: SubtitleTrack[];
-  hasPreview?: boolean;
-};
-
-export interface Lyrics {
-  lyrics: string;
-  format: string;
-}
 
 function errorMessage(err: unknown): string {
   return err instanceof Error ? err.message : "";

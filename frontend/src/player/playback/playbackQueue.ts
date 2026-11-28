@@ -1,7 +1,8 @@
 // src/utils/playbackQueue.ts
 import i18n from "@/i18n/index.ts";
 import { getters, mutations, state } from "@/store/index.ts";
-import type { FileListItem, PlaybackLoop, PlaybackMode } from "@/store/types.ts";
+import type { FileListItem } from "@/types/files.ts";
+import type { PlaybackLoop, PlaybackMode } from "@/types/media.ts";
 import { url } from "@/utils/index.ts";
 import { sortedItems } from "@/utils/sort.ts";
 

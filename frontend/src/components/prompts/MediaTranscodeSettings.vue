@@ -7,8 +7,8 @@
       <div class="settings-items">
         <div class="settings-number-input item">
           <div class="no-padding">
-            <label for="transcodeMaxConcurrent">{{ $t("media.transcodeMaxConcurrent") }}</label>
-            <HelpTooltipIcon :text="isLocked('transcode.maxConcurrent') ? lockMessageText : $t('media.transcodeMaxConcurrentHelp')" />
+            <label for="transcodeMaxConcurrent">{{ t("media.transcodeMaxConcurrent") }}</label>
+            <HelpTooltipIcon :text="isLocked('transcode.maxConcurrent') ? lockMessageText : t('media.transcodeMaxConcurrentHelp')" />
           </div>
           <div class="no-padding">
             <input id="transcodeMaxConcurrent" class="sizeInput input" :disabled="isLocked('transcode.maxConcurrent')" :title="fieldTooltip('transcode.maxConcurrent')" v-model.number="media.transcode.maxConcurrent" type="number" min="1" />
@@ -16,8 +16,8 @@
         </div>
         <div class="settings-number-input item">
           <div class="no-padding">
-            <label for="transcodeMaxConcurrentPerUser">{{ $t("media.transcodeMaxConcurrentPerUser") }}</label>
-            <HelpTooltipIcon :text="isLocked('transcode.maxConcurrentPerUser') ? lockMessageText : $t('media.transcodeMaxConcurrentPerUserHelp')" />
+            <label for="transcodeMaxConcurrentPerUser">{{ t("media.transcodeMaxConcurrentPerUser") }}</label>
+            <HelpTooltipIcon :text="isLocked('transcode.maxConcurrentPerUser') ? lockMessageText : t('media.transcodeMaxConcurrentPerUserHelp')" />
           </div>
           <div class="no-padding">
             <input id="transcodeMaxConcurrentPerUser" class="sizeInput input" :disabled="isLocked('transcode.maxConcurrentPerUser')" :title="fieldTooltip('transcode.maxConcurrentPerUser')" v-model.number="media.transcode.maxConcurrentPerUser" type="number" min="1" />
@@ -25,8 +25,8 @@
         </div>
         <div class="settings-number-input item">
           <div class="no-padding">
-            <label for="transcodeCacheMaxSizeMB">{{ $t("media.transcodeCacheMaxSizeMB") }}</label>
-            <HelpTooltipIcon :text="isLocked('transcode.cacheMaxSizeMB') ? lockMessageText : $t('media.transcodeCacheMaxSizeMBHelp')" />
+            <label for="transcodeCacheMaxSizeMB">{{ t("media.transcodeCacheMaxSizeMB") }}</label>
+            <HelpTooltipIcon :text="isLocked('transcode.cacheMaxSizeMB') ? lockMessageText : t('media.transcodeCacheMaxSizeMBHelp')" />
           </div>
           <div class="no-padding">
             <input id="transcodeCacheMaxSizeMB" class="sizeInput input" :disabled="isLocked('transcode.cacheMaxSizeMB')" :title="fieldTooltip('transcode.cacheMaxSizeMB')" v-model.number="media.transcode.cacheMaxSizeMB" type="number" min="0" />
@@ -34,8 +34,8 @@
         </div>
         <div class="settings-number-input item">
           <div class="no-padding">
-            <label for="transcodeCacheRetentionH">{{ $t("media.transcodeCacheRetentionH") }}</label>
-            <HelpTooltipIcon :text="isLocked('transcode.cacheRetentionH') ? lockMessageText : $t('media.transcodeCacheRetentionHHelp')" />
+            <label for="transcodeCacheRetentionH">{{ t("media.transcodeCacheRetentionH") }}</label>
+            <HelpTooltipIcon :text="isLocked('transcode.cacheRetentionH') ? lockMessageText : t('media.transcodeCacheRetentionHHelp')" />
           </div>
           <div class="no-padding">
             <input id="transcodeCacheRetentionH" class="sizeInput input" :disabled="isLocked('transcode.cacheRetentionH')" :title="fieldTooltip('transcode.cacheRetentionH')" v-model.number="media.transcode.cacheRetentionH" type="number" min="1" />
@@ -43,8 +43,8 @@
         </div>
         <div class="settings-number-input item">
           <div class="no-padding">
-            <label for="transcodeReadRate">{{ $t("media.transcodeReadRate") }}</label>
-            <HelpTooltipIcon :text="isLocked('transcode.readRate') ? lockMessageText : $t('media.transcodeReadRateHelp')" />
+            <label for="transcodeReadRate">{{ t("media.transcodeReadRate") }}</label>
+            <HelpTooltipIcon :text="isLocked('transcode.readRate') ? lockMessageText : t('media.transcodeReadRateHelp')" />
           </div>
           <div class="no-padding">
             <input id="transcodeReadRate" class="sizeInput input" :disabled="isLocked('transcode.readRate')" :title="fieldTooltip('transcode.readRate')" v-model.number="media.transcode.readRate" type="number" min="1" step="0.5" />
@@ -59,13 +59,13 @@
           v-model="media.transcode.profiles[profile.id].enabled"
           :disabled="isLocked(`transcode.profiles.${profile.id}.enabled`)"
           :value-tooltip="fieldTooltip(`transcode.profiles.${profile.id}.enabled`)"
-          :name="$t('media.transcodeProfileEnabled')"
-          :description="$t('media.transcodeProfileEnabledDescription')"
+          :name="t('media.transcodeProfileEnabled')"
+          :description="t('media.transcodeProfileEnabledDescription')"
         />
         <div class="settings-number-input item">
           <div class="no-padding">
-            <label :for="`profile-${profile.id}-maxResolution`">{{ $t("media.transcodeProfileMaxResolution") }}</label>
-            <HelpTooltipIcon :text="isLocked(`transcode.profiles.${profile.id}.maxResolution`) ? lockMessageText : $t('media.transcodeProfileMaxResolutionHelp')" />
+            <label :for="`profile-${profile.id}-maxResolution`">{{ t("media.transcodeProfileMaxResolution") }}</label>
+            <HelpTooltipIcon :text="isLocked(`transcode.profiles.${profile.id}.maxResolution`) ? lockMessageText : t('media.transcodeProfileMaxResolutionHelp')" />
           </div>
           <div class="no-padding">
             <input :id="`profile-${profile.id}-maxResolution`" class="sizeInput input"
@@ -76,8 +76,8 @@
         </div>
         <div class="settings-number-input item">
           <div class="no-padding">
-            <label :for="`profile-${profile.id}-avgBitrate`">{{ $t("media.transcodeProfileAvgBitrate") }}</label>
-            <HelpTooltipIcon :text="isLocked(`transcode.profiles.${profile.id}.avgBitrateKbps`) ? lockMessageText : $t('media.transcodeProfileAvgBitrateHelp')" />
+            <label :for="`profile-${profile.id}-avgBitrate`">{{ t("media.transcodeProfileAvgBitrate") }}</label>
+            <HelpTooltipIcon :text="isLocked(`transcode.profiles.${profile.id}.avgBitrateKbps`) ? lockMessageText : t('media.transcodeProfileAvgBitrateHelp')" />
           </div>
           <div class="no-padding">
             <input :id="`profile-${profile.id}-avgBitrate`" class="sizeInput input"
@@ -88,14 +88,14 @@
         </div>
         <div class="settings-number-input item">
           <div class="no-padding">
-            <label :for="`profile-${profile.id}-encoderBackend`">{{ $t("media.encoderBackend") }}</label>
-            <HelpTooltipIcon :text="isLocked(`transcode.profiles.${profile.id}.encoderBackend`) ? lockMessageText : $t('media.transcodeProfileEncoderBackendHelp')" />
+            <label :for="`profile-${profile.id}-encoderBackend`">{{ t("media.encoderBackend") }}</label>
+            <HelpTooltipIcon :text="isLocked(`transcode.profiles.${profile.id}.encoderBackend`) ? lockMessageText : t('media.transcodeProfileEncoderBackendHelp')" />
           </div>
           <ExpandDropdown
             :input-id="`profile-${profile.id}-encoderBackend`"
             :model-value="profileEncoderBackendValue(profile.id)"
             :options="backendSelectOptions"
-            :aria-label="$t('media.encoderBackend')"
+            :aria-label="t('media.encoderBackend')"
             :disabled="isLocked(`transcode.profiles.${profile.id}.encoderBackend`)"
             @update:model-value="onProfileBackendChange(profile.id, $event)" />
         </div>
@@ -109,148 +109,128 @@
       class="button button--flat button--grey"
       :disabled="saving"
       @click="close"
-      :aria-label="$t('general.cancel')"
-      :title="$t('general.cancel')"
+      :aria-label="t('general.cancel')"
+      :title="t('general.cancel')"
     >
-      {{ $t("general.cancel") }}
+      {{ t("general.cancel") }}
     </button>
     <button
       type="button"
       class="button button--flat button--blue"
       :disabled="saving || loading"
       @click="save"
-      :aria-label="$t('general.save')"
-      :title="$t('general.save')"
+      :aria-label="t('general.save')"
+      :title="t('general.save')"
     >
-      {{ $t("general.save") }}
+      {{ t("general.save") }}
     </button>
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
+import { computed, onMounted, ref } from "vue";
+import { useI18n } from "@/i18n/index.ts";
 import { notify } from "@/notify/index.ts";
 import { mutations } from "@/store/index.ts";
 import { eventBus } from "@/store/eventBus.ts";
-import { getMediaSettings } from "@/api/settings.js";
-import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
+import { getMediaSettings } from "@/api/settings.ts";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
+import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
+import type { EncoderBackendOption, MediaSettings } from "@/types/media.ts";
+import type { TranscodeProfile } from "@/types/transcode.ts";
 import {
   MEDIA_SETTINGS_CHANGED_EVENT,
-  MEDIA_TRANSCODE_PROFILES,
+  MEDIA_TRANSCODE_PROFILES as profiles,
   emptyMediaSettings,
   mergeMediaSettings,
   saveMediaSettingsPatch,
 } from "@/utils/config/mediaSettings.ts";
 
-export default {
-  name: "MediaTranscodeSettings",
-  components: {
-    ToggleSwitch,
-    ExpandDropdown,
-    HelpTooltipIcon,
-    LoadingSpinner,
-  },
-  props: {
-    promptId: {
-      type: [String, Number],
-      default: null,
-    },
+const props = withDefaults(
+  defineProps<{
+    promptId?: string | number | null;
     /** Media settings pinned in the config file cannot be changed here. */
-    lockedFromConfigPaths: {
-      type: Array,
-      default: () => [],
-    },
-    lockMessage: {
-      type: String,
-      default: "",
-    },
-  },
-  data() {
-    return {
-      media: emptyMediaSettings(),
-      profiles: MEDIA_TRANSCODE_PROFILES,
-      /** H.264 encoder backends reported by the backend (hardware ones only when usable). */
-      encoderBackendOptions: [],
-      loading: true,
-      saving: false,
-    };
-  },
-  async mounted() {
-    try {
-      const data = await getMediaSettings();
-      this.media = mergeMediaSettings(data);
-      this.encoderBackendOptions = Array.isArray(data?.encoderBackendOptions)
-        ? data.encoderBackendOptions
-        : [];
-    } catch (e) {
-      notify.showError(e);
-      console.error(e);
-    } finally {
-      this.loading = false;
+    lockedFromConfigPaths?: string[];
+    lockMessage?: string;
+  }>(),
+  { promptId: null, lockedFromConfigPaths: () => [], lockMessage: "" },
+);
+
+const { t } = useI18n();
+
+const media = ref<MediaSettings>(emptyMediaSettings());
+// H.264 encoder backends reported by the backend (hardware ones only when usable)
+const encoderBackendOptions = ref<EncoderBackendOption[]>([]);
+const loading = ref(true);
+const saving = ref(false);
+
+const lockMessageText = computed(() => t("settings.lockedFromConfig"));
+const backendSelectOptions = computed(() => [
+  { value: "", label: t("general.default") },
+  ...encoderBackendOptions.value.map((option) => ({
+    value: option.id,
+    label: option.label || option.id,
+  })),
+]);
+
+function isLocked(path: string): boolean {
+  return props.lockedFromConfigPaths.includes(path);
+}
+
+function fieldTooltip(path: string): string {
+  return isLocked(path) ? lockMessageText.value : "";
+}
+
+function profileEncoderBackendValue(profileId: TranscodeProfile): string {
+  return media.value.transcode.profiles[profileId].encoderBackend;
+}
+
+function onProfileBackendChange(profileId: TranscodeProfile, value: string | null): void {
+  media.value.transcode.profiles[profileId].encoderBackend = value ?? "";
+}
+
+function close(): void {
+  mutations.closeTopPrompt();
+}
+
+async function save(): Promise<void> {
+  if (saving.value || loading.value) {
+    return;
+  }
+  saving.value = true;
+  try {
+    // `transcode.enabled` belongs to the media section, so only send the
+    // transcode object this prompt owns (locked paths are stripped for us).
+    const result = await saveMediaSettingsPatch({ transcode: media.value.transcode }, props.lockedFromConfigPaths);
+    if (!result.skipped) {
+      media.value = result.media;
     }
-  },
-  computed: {
-    lockMessageText() {
-      return this.$t("settings.lockedFromConfig");
-    },
-    backendSelectOptions() {
-      return [
-        { value: "", label: this.$t("general.default") },
-        ...this.encoderBackendOptions.map((option) => ({
-          value: option.id,
-          label: option.label || option.id,
-        })),
-      ];
-    },
-  },
-  methods: {
-    isLocked(path) {
-      return this.lockedFromConfigPaths.includes(path);
-    },
-    fieldTooltip(path) {
-      return this.isLocked(path) ? this.$t("settings.lockedFromConfig") : "";
-    },
-    profileEncoderBackendValue(profileId) {
-      return this.media.transcode.profiles[profileId]?.encoderBackend ?? "";
-    },
-    onProfileBackendChange(profileId, value) {
-      if (this.media.transcode.profiles[profileId]) {
-        this.media.transcode.profiles[profileId].encoderBackend = value ?? "";
-      }
-    },
-    close() {
-      mutations.closeTopPrompt();
-    },
-    async save() {
-      if (this.saving || this.loading) {
-        return;
-      }
-      this.saving = true;
-      try {
-        // `transcode.enabled` belongs to the media section, so only send the
-        // transcode object this prompt owns (locked paths are stripped for us).
-        const { skipped, media } = await saveMediaSettingsPatch(
-          { transcode: this.media.transcode },
-          this.lockedFromConfigPaths,
-        );
-        if (!skipped) {
-          this.media = media;
-        }
-        void mutations.syncMediaSettings();
-        notify.showSuccess(this.$t("general.saved"));
-        eventBus.emit(MEDIA_SETTINGS_CHANGED_EVENT);
-        this.close();
-      } catch (e) {
-        notify.showError(e);
-        console.error(e);
-      } finally {
-        this.saving = false;
-      }
-    },
-  },
-};
+    void mutations.syncMediaSettings();
+    notify.showSuccess(t("general.saved"));
+    eventBus.emit(MEDIA_SETTINGS_CHANGED_EVENT);
+    close();
+  } catch (e) {
+    notify.showError(e);
+    console.error(e);
+  } finally {
+    saving.value = false;
+  }
+}
+
+onMounted(async () => {
+  try {
+    const data = await getMediaSettings();
+    media.value = mergeMediaSettings(data);
+    encoderBackendOptions.value = data.encoderBackendOptions ?? [];
+  } catch (e) {
+    notify.showError(e);
+    console.error(e);
+  } finally {
+    loading.value = false;
+  }
+});
 </script>
 
 <style scoped>

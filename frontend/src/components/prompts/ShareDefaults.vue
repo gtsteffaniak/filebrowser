@@ -41,14 +41,14 @@
 import { notify } from "@/notify/index.ts";
 import { mutations } from "@/store/index.ts";
 import { eventBus } from "@/store/eventBus.ts";
-import { getShareDefaults, patchShareDefaults } from "@/api/settings.js";
+import { getShareDefaults, patchShareDefaults } from "@/api/settings.ts";
 import ShareOptionsForm from "@/components/share/ShareOptionsForm.vue";
 import {
   emptyShareDefaultsEnforced,
   emptyShareDefaultsValues,
   shareDefaultsFromApi,
   shareDefaultsToApiPayload,
-} from "@/utils/shareDefaultsForm.js";
+} from "@/utils/shareDefaultsForm.ts";
 
 export default {
   name: "share-defaults",
@@ -80,6 +80,7 @@ export default {
     close() {
       mutations.closeTopPrompt();
     },
+    /** @param {import("@/types/settings.ts").ShareDefaultsResponse} data */
     applyResponse(data) {
       this.values = shareDefaultsFromApi(data.values || {});
       this.enforced = {

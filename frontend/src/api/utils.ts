@@ -1,6 +1,6 @@
 import i18n from "@/i18n/index.ts";
 import { state } from "@/store/index.ts";
-import type { FileListItem } from "@/store/types.ts";
+import type { ListingResponse } from "@/types/files.ts";
 
 const defaultRequestTimeoutMs = 5000;
 
@@ -15,18 +15,6 @@ export class HttpError extends Error {
 export type FetchOptions = Omit<RequestInit, "headers"> & {
   headers?: Record<string, string>;
 };
-
-export type RawListingItem = Partial<FileListItem> & { name: string };
-
-export interface ListingResponse {
-  type?: string;
-  source?: string;
-  path?: string;
-  pinnedItems?: string[];
-  folders?: RawListingItem[];
-  files?: RawListingItem[];
-  items?: RawListingItem[];
-}
 
 export function requestTimeoutSignal(ms = defaultRequestTimeoutMs): AbortSignal {
   if (typeof AbortSignal !== "undefined" && typeof AbortSignal.timeout === "function") {

@@ -142,7 +142,7 @@ import { useSwipeNavigationGestures } from "@/composables/player/useSwipeNavigat
 import { useI18n } from "@/i18n/index.ts";
 import { enableSeekOnRelease, type SeekablePlayer } from "@/player/ui/seekOnRelease.ts";
 import { getters } from "@/store/index.ts";
-import type { FileListItem } from "@/store/types.ts";
+import type { FileListItem } from "@/types/files.ts";
 import { getTypeFromMime } from "@/utils/files.js";
 import type { LyricLines } from "@/player/tracks/lyrics.ts";
 import { formatArtist } from "@/player/playback/playbackQueue.ts";

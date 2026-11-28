@@ -31,7 +31,7 @@
 import { computed } from "vue";
 import { useI18n } from "@/i18n/index.ts";
 import ProgressBar from "@/components/ProgressBar.vue";
-import type { QuotaSnapshot } from "@/store/types.ts";
+import type { QuotaSnapshot } from "@/types/quota.ts";
 
 type BarStatus = "disk" | "error" | "warning" | "normal";
 

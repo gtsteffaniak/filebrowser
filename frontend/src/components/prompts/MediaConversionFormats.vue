@@ -5,27 +5,29 @@
     </div>
     <template v-else>
       <div v-if="hasImagePreview" class="settings-items">
-        <h3>{{ $t("media.imagePreview") }}</h3>
+        <h3>{{ t("media.imagePreview") }}</h3>
         <ToggleSwitch
           v-for="(value, key) in media.convert.imagePreview"
           :key="`img-${key}`"
           class="item"
-          v-model="media.convert.imagePreview[key]"
+          :model-value="value"
+          @update:model-value="media.convert.imagePreview[key] = $event"
           :disabled="isLocked(`convert.imagePreview.${key}`)"
           :value-tooltip="fieldTooltip(`convert.imagePreview.${key}`)"
-          :name="String(key)"
+          :name="key"
         />
       </div>
       <div v-if="hasVideoPreview" class="settings-items">
-        <h3>{{ $t("media.videoPreview") }}</h3>
+        <h3>{{ t("media.videoPreview") }}</h3>
         <ToggleSwitch
           v-for="(value, key) in media.convert.videoPreview"
           :key="`vid-${key}`"
           class="item"
-          v-model="media.convert.videoPreview[key]"
+          :model-value="value"
+          @update:model-value="media.convert.videoPreview[key] = $event"
           :disabled="isLocked(`convert.videoPreview.${key}`)"
           :value-tooltip="fieldTooltip(`convert.videoPreview.${key}`)"
-          :name="String(key)"
+          :name="key"
         />
       </div>
     </template>
@@ -37,31 +39,34 @@
       class="button button--flat button--grey"
       :disabled="saving"
       @click="close"
-      :aria-label="$t('general.cancel')"
-      :title="$t('general.cancel')"
+      :aria-label="t('general.cancel')"
+      :title="t('general.cancel')"
     >
-      {{ $t("general.cancel") }}
+      {{ t("general.cancel") }}
     </button>
     <button
       type="button"
       class="button button--flat button--blue"
       :disabled="saving || loading"
       @click="save"
-      :aria-label="$t('general.save')"
-      :title="$t('general.save')"
+      :aria-label="t('general.save')"
+      :title="t('general.save')"
     >
-      {{ $t("general.save") }}
+      {{ t("general.save") }}
     </button>
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
+import { computed, onMounted, ref } from "vue";
+import { useI18n } from "@/i18n/index.ts";
 import { notify } from "@/notify/index.ts";
 import { mutations } from "@/store/index.ts";
 import { eventBus } from "@/store/eventBus.ts";
-import { getMediaSettings } from "@/api/settings.js";
-import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
+import { getMediaSettings } from "@/api/settings.ts";
 import LoadingSpinner from "@/components/LoadingSpinner.vue";
+import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
+import type { MediaSettings } from "@/types/media.ts";
 import {
   MEDIA_SETTINGS_CHANGED_EVENT,
   emptyMediaSettings,
@@ -69,88 +74,69 @@ import {
   saveMediaSettingsPatch,
 } from "@/utils/config/mediaSettings.ts";
 
-export default {
-  name: "MediaConversionFormats",
-  components: {
-    ToggleSwitch,
-    LoadingSpinner,
-  },
-  props: {
-    promptId: {
-      type: [String, Number],
-      default: null,
-    },
+const props = withDefaults(
+  defineProps<{
+    promptId?: string | number | null;
     /** Media settings pinned in the config file cannot be changed here. */
-    lockedFromConfigPaths: {
-      type: Array,
-      default: () => [],
-    },
-    lockMessage: {
-      type: String,
-      default: "",
-    },
-  },
-  data() {
-    return {
-      media: emptyMediaSettings(),
-      loading: true,
-      saving: false,
-    };
-  },
-  computed: {
-    hasImagePreview() {
-      return Object.keys(this.media.convert.imagePreview || {}).length > 0;
-    },
-    hasVideoPreview() {
-      return Object.keys(this.media.convert.videoPreview || {}).length > 0;
-    },
-  },
-  async mounted() {
-    try {
-      this.media = mergeMediaSettings(await getMediaSettings());
-    } catch (e) {
-      notify.showError(e);
-      console.error(e);
-    } finally {
-      this.loading = false;
+    lockedFromConfigPaths?: string[];
+    lockMessage?: string;
+  }>(),
+  { promptId: null, lockedFromConfigPaths: () => [], lockMessage: "" },
+);
+
+const { t } = useI18n();
+
+const media = ref<MediaSettings>(emptyMediaSettings());
+const loading = ref(true);
+const saving = ref(false);
+
+const hasImagePreview = computed(() => Object.keys(media.value.convert.imagePreview).length > 0);
+const hasVideoPreview = computed(() => Object.keys(media.value.convert.videoPreview).length > 0);
+
+function isLocked(path: string): boolean {
+  return props.lockedFromConfigPaths.includes(path);
+}
+
+function fieldTooltip(path: string): string {
+  return isLocked(path) ? t("settings.lockedFromConfig") : "";
+}
+
+function close(): void {
+  mutations.closeTopPrompt();
+}
+
+async function save(): Promise<void> {
+  if (saving.value || loading.value) {
+    return;
+  }
+  saving.value = true;
+  try {
+    const result = await saveMediaSettingsPatch({ convert: media.value.convert }, props.lockedFromConfigPaths);
+    if (!result.skipped) {
+      media.value = result.media;
     }
-  },
-  methods: {
-    isLocked(path) {
-      return this.lockedFromConfigPaths.includes(path);
-    },
-    fieldTooltip(path) {
-      return this.isLocked(path) ? this.$t("settings.lockedFromConfig") : "";
-    },
-    close() {
-      mutations.closeTopPrompt();
-    },
-    async save() {
-      if (this.saving || this.loading) {
-        return;
-      }
-      this.saving = true;
-      try {
-        const { skipped, media } = await saveMediaSettingsPatch(
-          { convert: this.media.convert },
-          this.lockedFromConfigPaths,
-        );
-        if (!skipped) {
-          this.media = media;
-        }
-        void mutations.syncMediaSettings();
-        notify.showSuccess(this.$t("general.saved"));
-        eventBus.emit(MEDIA_SETTINGS_CHANGED_EVENT);
-        this.close();
-      } catch (e) {
-        notify.showError(e);
-        console.error(e);
-      } finally {
-        this.saving = false;
-      }
-    },
-  },
-};
+    void mutations.syncMediaSettings();
+    notify.showSuccess(t("general.saved"));
+    eventBus.emit(MEDIA_SETTINGS_CHANGED_EVENT);
+    close();
+  } catch (e) {
+    notify.showError(e);
+    console.error(e);
+  } finally {
+    saving.value = false;
+  }
+}
+
+onMounted(async () => {
+  try {
+    media.value = mergeMediaSettings(await getMediaSettings());
+  } catch (e) {
+    notify.showError(e);
+    console.error(e);
+  } finally {
+    loading.value = false;
+  }
+});
 </script>
 
 <style scoped>

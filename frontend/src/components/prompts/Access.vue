@@ -132,7 +132,7 @@ import SettingsTable from "@/components/settings/Table.vue";
 import EntityPickerButton from "@/components/settings/EntityPickerButton.vue";
 import { activityViewerPresets } from "@/utils/activityViewerLink.js";
 import { eventBus } from "@/store/eventBus.ts";
-import type { AccessRule, AccessRuleCategory } from "@/store/types.ts";
+import type { AccessRule, AccessRuleCategory } from "@/types/access.ts";
 
 type AccessListType = "allow" | "deny";
 

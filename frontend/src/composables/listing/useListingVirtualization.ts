@@ -1,6 +1,6 @@
 import { computed, nextTick, onBeforeUnmount, shallowRef, watch, type CSSProperties, type Ref } from "vue";
 import { getters, state } from "@/store/index.ts";
-import type { fileListItemIndex } from "@/store/types.ts";
+import type { fileListItemIndex } from "@/types/files.ts";
 import {
   buildGridGroups,
   fitWindow,

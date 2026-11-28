@@ -1,6 +1,13 @@
 import { bytesFromCustomAmount, customAmountFromBytes } from "@/utils/quotaUnits.js";
+import type {
+  ShareDefaults,
+  ShareDefaultsEnforcement,
+  ShareDefaultsForm,
+  ShareFormTarget,
+  SidebarLink,
+} from "@/types/settings.ts";
 
-export function emptyShareDefaultsEnforced() {
+export function emptyShareDefaultsEnforced(): ShareDefaultsEnforcement {
   return {
     shareTheme: false,
     disableAnonymous: false,
@@ -37,7 +44,7 @@ export function emptyShareDefaultsEnforced() {
   };
 }
 
-export function emptyShareDefaultsValues() {
+export function emptyShareDefaultsValues(): ShareDefaultsForm {
   return {
     shareTheme: "default",
     disableAnonymous: false,
@@ -77,8 +84,9 @@ export function emptyShareDefaultsValues() {
   };
 }
 
-export function shareDefaultsFromApi(values = {}) {
-  const out = { ...emptyShareDefaultsValues(), ...values };
+export function shareDefaultsFromApi(values: ShareDefaults = {}): ShareDefaultsForm {
+  const { allowedUsernames, ...rest } = values;
+  const out: ShareDefaultsForm = { ...emptyShareDefaultsValues(), ...rest };
   const quota = values.quotaLimitBytes || 0;
   out.quotaEnabled = quota > 0;
   if (quota > 0) {
@@ -86,29 +94,21 @@ export function shareDefaultsFromApi(values = {}) {
     out.quotaCustomAmount = custom.amount;
     out.quotaCustomUnit = custom.unit;
   }
-  out.enableAllowedUsernames = Array.isArray(values.allowedUsernames) && values.allowedUsernames.length > 0;
-  out.allowedUsernames = out.enableAllowedUsernames ? values.allowedUsernames.join(", ") : "";
+  out.enableAllowedUsernames = Array.isArray(allowedUsernames) && allowedUsernames.length > 0;
+  out.allowedUsernames = out.enableAllowedUsernames ? (allowedUsernames ?? []).join(", ") : "";
   out.downloadsLimit = values.downloadsLimit || 0;
   out.maxBandwidth = values.maxBandwidth || 0;
-  if (!out.shareType) {
-    out.shareType = "normal";
-  }
-  if (!out.shareTheme) {
-    out.shareTheme = "default";
-  }
-  if (!out.enforceDarkLightMode) {
-    out.enforceDarkLightMode = "default";
-  }
-  if (!out.viewMode) {
-    out.viewMode = "normal";
-  }
+  out.shareType ||= "normal";
+  out.shareTheme ||= "default";
+  out.enforceDarkLightMode ||= "default";
+  out.viewMode ||= "normal";
   if (!Array.isArray(out.sidebarLinks)) {
     out.sidebarLinks = [];
   }
   return out;
 }
 
-export function shareDefaultsToApiPayload(form) {
+export function shareDefaultsToApiPayload(form: ShareDefaultsForm): ShareDefaults {
   return {
     shareTheme: form.shareTheme,
     disableAnonymous: form.disableAnonymous,
@@ -126,7 +126,7 @@ export function shareDefaultsToApiPayload(form) {
     showHidden: form.showHidden,
     hideFileExt: form.hideFileExt || "",
     allowedUsernames: form.enableAllowedUsernames
-      ? String(form.allowedUsernames || "").split(",").map((u) => u.trim()).filter(Boolean)
+      ? (form.allowedUsernames || "").split(",").map((u) => u.trim()).filter(Boolean)
       : [],
     keepAfterExpiration: form.keepAfterExpiration,
     themeColor: form.themeColor || "",
@@ -149,33 +149,32 @@ export function shareDefaultsToApiPayload(form) {
   };
 }
 
-const DEFAULT_SIDEBAR_LINKS = [
-  {
-    name: "Share QR Code and Info",
-    category: "shareInfo",
-    target: "#",
-    icon: "qr_code",
-  },
-  {
-    name: "Download",
-    category: "download",
-    target: "#",
-    icon: "download",
-  },
-];
+const SHARE_INFO_LINK: SidebarLink = {
+  name: "Share QR Code and Info",
+  category: "shareInfo",
+  target: "#",
+  icon: "qr_code",
+};
 
-export function defaultSidebarLinksForShareType(shareType) {
-  if (shareType === "upload") {
-    return [{ ...DEFAULT_SIDEBAR_LINKS[0] }];
-  }
-  return DEFAULT_SIDEBAR_LINKS.map((link) => ({ ...link }));
+const DOWNLOAD_LINK: SidebarLink = {
+  name: "Download",
+  category: "download",
+  target: "#",
+  icon: "download",
+};
+
+export function defaultSidebarLinksForShareType(shareType?: string): SidebarLink[] {
+  const links = shareType === "upload" ? [SHARE_INFO_LINK] : [SHARE_INFO_LINK, DOWNLOAD_LINK];
+  return links.map((link) => ({ ...link }));
 }
 
-/**
- * Apply admin share defaults onto a share prompt form object (mutates target).
- */
-export function applyShareDefaultsToForm(target, values, { titleDefault, descriptionDefault } = {}) {
-  if (!values || !target) {
+/** Apply admin share defaults onto a share prompt form object (mutates target). */
+export function applyShareDefaultsToForm(
+  target: ShareFormTarget,
+  values?: ShareDefaults | null,
+  { titleDefault, descriptionDefault }: { titleDefault?: string; descriptionDefault?: string } = {},
+): void {
+  if (!values) {
     return;
   }
   const mapped = shareDefaultsFromApi(values);
@@ -214,8 +213,8 @@ export function applyShareDefaultsToForm(target, values, { titleDefault, descrip
     quotaCustomUnit: mapped.quotaCustomUnit,
     title: mapped.title || titleDefault || "",
     description: mapped.description || descriptionDefault || "",
-    sidebarLinks: Array.isArray(mapped.sidebarLinks) && mapped.sidebarLinks.length > 0
+    sidebarLinks: mapped.sidebarLinks?.length
       ? mapped.sidebarLinks.map((link) => ({ ...link }))
       : defaultSidebarLinksForShareType(mapped.shareType),
-  });
+  } satisfies ShareFormTarget);
 }

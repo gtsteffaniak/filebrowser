@@ -1,4 +1,4 @@
-import type { TranscodeProfile } from "@/api/transcode.ts";
+import type { TranscodeProfile } from "@/types/transcode.ts";
 import { getObjectProperty, setObjectProperty } from "@/utils/object.js";
 
 /** A URL query value, as vue-router parses it (a key may be absent or repeated) */

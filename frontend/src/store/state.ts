@@ -148,17 +148,7 @@ export const state: StoreState = reactive({
   show: null,
   showConfirm: null,
   route: {},
-  settings: {
-    signup: false,
-    createUserDir: false,
-    userHomeBasePath: "",
-    rules: [],
-    frontend: {
-      disableExternal: false,
-      name: "",
-      files: "",
-    },
-  },
+  settings: null,
   navigation: {
     show: false,
     hoverNav: false,

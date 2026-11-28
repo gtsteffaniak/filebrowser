@@ -87,7 +87,8 @@ import QuotaCustomLimitInput from "@/components/settings/QuotaCustomLimitInput.v
 import { activityViewerPresets } from "@/utils/activityViewerLink.js";
 import { notify } from "@/notify/index.ts";
 import { bytesFromCustomAmount, customAmountFromBytes } from "@/utils/quotaUnits.js";
-import type { FileListItem, FolderQuota, QuotaMeter, QuotaSnapshot, QuotaUnit } from "@/store/types.ts";
+import type { FileListItem } from "@/types/files.ts";
+import type { FolderQuota, QuotaMeter, QuotaSnapshot, QuotaUnit } from "@/types/quota.ts";
 
 type QuotaResponse = FolderQuota | FolderQuota[];
 

@@ -87,7 +87,7 @@ import LoadingSpinner from '@/components/LoadingSpinner.vue';
 import i18n from '@/i18n/index.ts';
 import { state, getters, mutations } from "@/store/index.ts";
 import { eventBus } from "@/store/eventBus.ts";
-import type { FileListItem } from '@/store/types.ts';
+import type { FileListItem } from '@/types/files.ts';
 import { buildItemUrl, goToItem, joinPath } from "@/utils/url.js";
 import { goToItemNotificationButton } from "@/utils/notificationActions.js";
 import { notify } from "@/notify/index.ts";

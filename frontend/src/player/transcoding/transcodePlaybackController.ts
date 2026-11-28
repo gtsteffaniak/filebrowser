@@ -1,4 +1,5 @@
-import { getTranscodeSessions, type TranscodeSession, type TranscodeStatus } from "@/api/transcode.ts";
+import { getTranscodeSessions } from "@/api/transcode.ts";
+import type { TranscodeSession, TranscodeStatus } from "@/types/transcode.ts";
 import {
   attachDeadlineMs,
   attachHlsToVideo,

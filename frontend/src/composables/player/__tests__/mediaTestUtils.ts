@@ -1,4 +1,4 @@
-import type { TranscodeSession, TranscodeStatus } from "@/api/transcode.ts";
+import type { TranscodeSession, TranscodeStatus } from "@/types/transcode.ts";
 import type Plyr from "plyr";
 import { type Mock, vi } from "vitest";
 import { type App, createApp, defineComponent, h, nextTick } from "vue";

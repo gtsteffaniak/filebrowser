@@ -88,7 +88,7 @@ import {
   getShadowRegressionStats,
   getShadowIncompatible,
   clearShadowRegressions,
-} from "@/api/settings.js";
+} from "@/api/settings.ts";
 
 // Thresholds for the spotlight colours. Timing uses the same 2x ratio as the
 // backend's timeRegressionRatio, so a red timing card matches a recorded regression.
@@ -139,6 +139,11 @@ function speedText(ratio) {
   return i18n.global.t("media.shadowRegressionsSlower", { factor: ratio.toFixed(2) });
 }
 
+/**
+ * @param {string} key
+ * @param {string} title
+ * @param {Omit<import("@/types/settings.ts").ShadowOpStats, "operation">} s
+ */
 function summarise(key, title, s) {
   const successRate = s.runs ? s.succeeded / s.runs : 0;
   const regressionRate = s.runs ? s.regressions / s.runs : 0;
@@ -174,7 +179,9 @@ export default {
   data() {
     return {
       regressionsContent: "",
+      /** @type {import("@/types/settings.ts").ShadowOpStats[]} */
       stats: [],
+      /** @type {import("@/types/settings.ts").ShadowIncompatibleEntry[]} */
       incompatible: [],
       spotlightHeight: 0,
       observer: null,
