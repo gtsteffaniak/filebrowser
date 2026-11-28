@@ -140,12 +140,12 @@ import { buildMediaSessionInfo, useMediaSession } from "@/composables/player/use
 import { usePlaybackQueue } from "@/composables/player/usePlaybackQueue.ts";
 import { useSwipeNavigationGestures } from "@/composables/player/useSwipeNavigationGestures.ts";
 import { useI18n } from "@/i18n/index.ts";
-import { enableSeekOnRelease } from "@/player/seekOnRelease.js";
+import { enableSeekOnRelease, type SeekablePlayer } from "@/player/ui/seekOnRelease.ts";
 import { getters } from "@/store/index.ts";
 import type { FileListItem } from "@/store/types.ts";
 import { getTypeFromMime } from "@/utils/files.js";
-import type { LyricLines } from "@/utils/lyrics.ts";
-import { formatArtist } from "@/utils/playbackQueue.js";
+import type { LyricLines } from "@/player/tracks/lyrics.ts";
+import { formatArtist } from "@/player/playback/playbackQueue.ts";
 
 interface AudioMetadata {
   title?: string;
@@ -423,7 +423,7 @@ async function mountPlayer(): Promise<void> {
     if (!player.value) return;
     setupMediaSession(mediaSessionInfo());
     setupPlayerEvents();
-    seekOnReleaseCleanup = enableSeekOnRelease(player.value);
+    seekOnReleaseCleanup = enableSeekOnRelease(player.value as Plyr & SeekablePlayer);
   } finally {
     lifecycle.mountInProgress = false;
   }

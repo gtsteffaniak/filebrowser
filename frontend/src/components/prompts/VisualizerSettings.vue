@@ -124,7 +124,7 @@ import { computed } from "vue";
 import HelpTooltipIcon from "@/components/HelpTooltipIcon.vue";
 import { useI18n } from "@/i18n/index.ts";
 import { mutations } from "@/store/index.ts";
-import { visualizerConfig, saveVisualizerConfig, resetVisualizerConfig, type VisualizerConfig } from "@/utils/visualizerConfig.ts";
+import { visualizerConfig, saveVisualizerConfig, resetVisualizerConfig, type VisualizerConfig } from "@/utils/config/visualizerConfig.ts";
 import ExpandDropdown from "@/components/settings/ExpandDropdown.vue";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 

@@ -122,19 +122,21 @@ import { usePlaybackQueue } from "@/composables/player/usePlaybackQueue.ts";
 import { useSwipeNavigationGestures } from "@/composables/player/useSwipeNavigationGestures.ts";
 import { useTranscodePlayback } from "@/composables/player/useTranscodePlayback.ts";
 import { useI18n } from "@/i18n/index.ts";
-import { primePlay } from "@/player/playbackIntent.js";
-import { enableScrubPreview } from "@/player/scrubPreview.js";
-import { enableSeekOnRelease } from "@/player/seekOnRelease.js";
-import { transcodeLog, transcodeWarn } from "@/player/transcodeDebug.js";
+import { primePlay } from "@/player/playback/playbackIntent.ts";
+import { enableScrubPreview } from "@/player/ui/scrubPreview.ts";
+import { enableSeekOnRelease, type SeekablePlayer } from "@/player/ui/seekOnRelease.ts";
+import { transcodeLog, transcodeWarn } from "@/player/transcoding/transcodeDebug.ts";
 import {
+  isTranscodeHlsMode,
+  isTranscodeMode,
   normalizeTranscodeMode,
   TRANSCODE_HLS_MODES,
-  TRANSCODE_MODES,
-} from "@/player/transcodeMode.js";
-import { enableVideoLoadingIndicator } from "@/player/videoLoading.js";
+  type TranscodeHlsMode,
+} from "@/player/transcoding/transcodeMode.ts";
+import { enableVideoLoadingIndicator, type LoadingPlayer, type VideoLoadingIndicator } from "@/player/ui/videoLoading.ts";
 import { getters, state } from "@/store/index.ts";
 import type { FileListItem, SubtitleTrack as FileSubtitleTrack } from "@/store/types.ts";
-import { getSubtitleFormatExtension } from "@/utils/subtitles.js";
+import { getSubtitleFormatExtension } from "@/player/tracks/subtitles.ts";
 
 interface VideoFile extends PlayerFile {
   modified?: string;
@@ -158,12 +160,6 @@ interface SubtitleTrack {
   name?: string;
   srclang?: string;
   language?: string;
-}
-
-/** Disposer returned by enableVideoLoadingIndicator; `expectPlayback` is absent on its no-op variant. */
-interface LoadingIndicatorHandle {
-  (): void;
-  expectPlayback?: () => void;
 }
 
 const props = withDefaults(
@@ -197,7 +193,7 @@ const videoPlaybackLoading = ref(false);
 
 let seekOnReleaseCleanup: (() => void) | null = null;
 let scrubPreviewCleanup: (() => void) | null = null;
-let videoLoadingCleanup: LoadingIndicatorHandle | null = null;
+let videoLoadingCleanup: VideoLoadingIndicator | null = null;
 // Plyr-specific menu state (the custom caption size and transcode menus are built with innerHTML).
 let captionSizeMenuInitialized = false;
 let transcodeMenuInitialized = false;
@@ -320,10 +316,10 @@ function onOfferShown(): void {
 const transcodeMenuAvailable = computed(
   () => transcodeEnabled.value && getters.isLoggedIn() && !getters.isShare(),
 );
-const transcodeProfileOptions = computed<string[]>(() => {
+const transcodeProfileOptions = computed<TranscodeHlsMode[]>(() => {
   const live = state.mediaSettings?.profiles;
-  const configured: string[] = Array.isArray(live) ? live : TRANSCODE_HLS_MODES;
-  return configured.filter((id) => TRANSCODE_HLS_MODES.includes(id));
+  const configured: readonly string[] = Array.isArray(live) ? live : TRANSCODE_HLS_MODES;
+  return configured.filter(isTranscodeHlsMode);
 });
 
 // --- Transcode offer (shown instead of the player when native playback is not possible) ---
@@ -748,7 +744,7 @@ function setupPlayerInstance(): void {
   });
   setupMediaSession(mediaSessionInfo());
   setupPlayerEvents();
-  seekOnReleaseCleanup = enableSeekOnRelease(player.value);
+  seekOnReleaseCleanup = enableSeekOnRelease(player.value as Plyr & SeekablePlayer);
 }
 
 function shouldStartTranscodeWithFile(): boolean {
@@ -897,7 +893,7 @@ function setupVideoLoadingIndicator(): void {
     return;
   }
   videoLoadingCleanup?.();
-  videoLoadingCleanup = enableVideoLoadingIndicator(player.value, (loading: boolean) => {
+  videoLoadingCleanup = enableVideoLoadingIndicator(player.value as Plyr & LoadingPlayer, (loading: boolean) => {
     videoPlaybackLoading.value = loading;
   });
 }
@@ -1078,7 +1074,7 @@ function applyCustomSettings(plyr: Plyr): void {
                 return;
               }
               const value = (event.currentTarget as HTMLElement).getAttribute("value");
-              if (!value || !TRANSCODE_MODES.includes(value)) {
+              if (!isTranscodeMode(value)) {
                 return;
               }
               const wasPlaying = !!player.value?.playing;

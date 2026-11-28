@@ -1,10 +1,10 @@
 import type Plyr from "plyr";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { nextTick, reactive, ref, shallowRef } from "vue";
-import { getTranscodeSessions } from "@/api/transcode.js";
+import { getTranscodeSessions } from "@/api/transcode.ts";
 import { router } from "@/router/index.ts";
 import { useTranscodePlayback } from "../useTranscodePlayback.ts";
-import { withSetup } from "./mediaTestUtils.ts";
+import { transcodeStatus, withSetup } from "./mediaTestUtils.ts";
 
 const hoisted = vi.hoisted(() => ({
   needsTranscode: { value: false },
@@ -13,7 +13,7 @@ const hoisted = vi.hoisted(() => ({
   gate: null as Promise<void> | null,
 }));
 
-vi.mock("@/api/transcode.js", () => ({ getTranscodeSessions: vi.fn() }));
+vi.mock("@/api/transcode.ts", () => ({ getTranscodeSessions: vi.fn() }));
 vi.mock("@/api/viewToken.js", () => ({ getCachedViewToken: () => "" }));
 vi.mock("@/i18n/index.ts", () => ({ useI18n: () => ({ t: (key: string) => key }) }));
 vi.mock("@/notify/index.ts", () => ({ notify: { showError: vi.fn() } }));
@@ -25,12 +25,12 @@ vi.mock("@/store/index.ts", () => ({
   getters: { isShare: () => false, isLoggedIn: () => true },
   mutations: { setPlaybackState: vi.fn() },
 }));
-vi.mock("@/utils/canBrowserPlayNative.js", () => ({ needsTranscodeFirst: () => hoisted.needsTranscode.value }));
-vi.mock("@/player/transcodeMode.js", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/player/transcodeMode.js")>()),
+vi.mock("@/player/transcoding/canBrowserPlayNative.ts", () => ({ needsTranscodeFirst: () => hoisted.needsTranscode.value }));
+vi.mock("@/player/transcoding/transcodeMode.ts", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/player/transcoding/transcodeMode.ts")>()),
   isTranscodeAvailable: () => true,
 }));
-vi.mock("@/player/transcodePlaybackController.js", () => ({
+vi.mock("@/player/transcoding/transcodePlaybackController.ts", () => ({
   TranscodePlaybackController: class {
     disposed = false;
     active = false;
@@ -99,7 +99,7 @@ describe("useTranscodePlayback start and offer ownership", () => {
 
   describe("offer after a confirmed playback failure", () => {
     it("offers even when the probe predicts native support, but only for a confirmed failure", async () => {
-      getSessions.mockResolvedValue({ enabled: true, canStart: true, sessions: [] });
+      getSessions.mockResolvedValue(transcodeStatus({ enabled: true, canStart: true, sessions: [] }));
       const proactive = setup();
       await proactive.transcode.offerTranscodePlayback();
       expect(proactive.transcode.transcodeOffer.value).toBeNull();
@@ -118,7 +118,7 @@ describe("useTranscodePlayback start and offer ownership", () => {
       const { transcode, hooks } = setup();
       const pending = transcode.offerTranscodePlayback();
       transcode.resetFileState();
-      lookup.resolve({ enabled: true, canStart: true, sessions: [] });
+      lookup.resolve(transcodeStatus({ enabled: true, canStart: true, sessions: [] }));
       await pending;
       expect(transcode.transcodeOffer.value).toBeNull();
       expect(hooks.onOfferShown).not.toHaveBeenCalled();
@@ -144,7 +144,7 @@ describe("useTranscodePlayback start and offer ownership", () => {
       const { transcode } = setup();
       const pending = transcode.startTranscodePlayback({ mode: "balanced" });
       transcode.teardownTranscodePlayback({ stopSession: true });
-      lookup.resolve({ sessions: [] });
+      lookup.resolve(transcodeStatus({ canStart: false, sessions: [] }));
       const result = await pending;
       expect(result).toEqual({ ok: false, reason: "cancelled" });
       expect(hoisted.starts).toHaveLength(0);
@@ -186,7 +186,7 @@ describe("useTranscodePlayback start and offer ownership", () => {
 
     it("offers transcoding again when native playback is not possible either", async () => {
       hoisted.needsTranscode.value = true;
-      getSessions.mockResolvedValue({ enabled: true, canStart: true, sessions: [] });
+      getSessions.mockResolvedValue(transcodeStatus({ enabled: true, canStart: true, sessions: [] }));
       hoisted.results = [{ ok: false, reason: "fallback" }];
       const { transcode, hooks } = setup();
       await transcode.startTranscodePlayback({ mode: "balanced" });
@@ -198,7 +198,7 @@ describe("useTranscodePlayback start and offer ownership", () => {
 
   describe("route change during a standalone start", () => {
     async function runStartWithRouteChanges(routeModes: string[]) {
-      getSessions.mockResolvedValue({ sessions: [] });
+      getSessions.mockResolvedValue(transcodeStatus({ canStart: false, sessions: [] }));
       const route = reactive({ query: {} as Record<string, string>, path: "/files/a.mp4", hash: "" });
       replace.mockImplementation((async (to: { query: Record<string, string> }) => {
         await new Promise<void>((resolve) => {

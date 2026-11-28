@@ -1,0 +1,205 @@
+/** Shared shapes/defaults for the runtime media settings (settings/media + prompts). */
+
+import { patchMediaSettings } from '@/api/settings.js';
+import type { TranscodeProfile } from '@/api/transcode.ts';
+import i18n from '@/i18n/index.ts';
+import type { StoreState } from '@/store/types.ts';
+
+export const MEDIA_TRANSCODE_PROFILES: { id: TranscodeProfile; label: () => string }[] = [
+  { id: 'quality', label: () => i18n.global.t('general.quality') },
+  { id: 'balanced', label: () => i18n.global.t('general.balanced') },
+  { id: 'datasaver', label: () => i18n.global.t('general.dataSaver') },
+];
+
+export interface TranscodeProfileSettings {
+  enabled: boolean;
+  maxResolution: number;
+  avgBitrateKbps: number;
+  encoderBackend: string;
+}
+
+export interface MediaTranscodeSettings {
+  enabled: boolean;
+  maxConcurrent: number;
+  maxConcurrentPerUser: number;
+  cacheMaxSizeMB: number;
+  cacheRetentionH: number;
+  encoderBackend: string;
+  readRate: number;
+  profiles: Record<TranscodeProfile, TranscodeProfileSettings>;
+}
+
+export interface MediaSettings {
+  convert: {
+    imagePreview: Record<string, boolean>;
+    videoPreview: Record<string, boolean>;
+  };
+  debug: boolean;
+  hardwareAcceleration: boolean;
+  accelDevice: string;
+  alwaysUseFfmpeg: boolean;
+  alwaysUseOnlyOffice: boolean;
+  transcode: MediaTranscodeSettings;
+}
+
+/** Every field optional, except the flag maps (`convert.*Preview`), which arrive whole. */
+export type DeepPartial<T> = T extends Record<string, boolean> ? T : { [K in keyof T]?: DeepPartial<T[K]> };
+
+/** Player-only subset the settings API returns to non-admins, plus the derived `enabledProfiles`. */
+type MediaSettingsPayload = DeepPartial<MediaSettings> & {
+  transcode?: { enabledProfiles?: string[] };
+  imagePreview?: Partial<Record<'heic' | 'jxl' | 'jpeg', boolean>>;
+};
+
+export function emptyTranscodeProfile(maxResolution = 0, avgBitrateKbps = 0): TranscodeProfileSettings {
+  return { enabled: true, maxResolution, avgBitrateKbps, encoderBackend: '' };
+}
+
+export function emptyMediaTranscode(): MediaTranscodeSettings {
+  return {
+    enabled: false,
+    maxConcurrent: 2,
+    maxConcurrentPerUser: 1,
+    cacheMaxSizeMB: 10240,
+    cacheRetentionH: 24,
+    encoderBackend: '',
+    readRate: 2,
+    profiles: {
+      quality: emptyTranscodeProfile(0, 0),
+      // 720p balanced / 480p data saver: matches the backend defaults.
+      balanced: emptyTranscodeProfile(720, 4000),
+      datasaver: emptyTranscodeProfile(480, 1500),
+    },
+  };
+}
+
+export function emptyMediaSettings(): MediaSettings {
+  return {
+    convert: { imagePreview: {}, videoPreview: {} },
+    debug: false,
+    hardwareAcceleration: true,
+    accelDevice: 'auto',
+    alwaysUseFfmpeg: false,
+    alwaysUseOnlyOffice: false,
+    transcode: emptyMediaTranscode(),
+  };
+}
+
+/** Producer pacing is always throttled: unset or non-positive values fall back to 2x. */
+export function normalizeTranscodeReadRate(value: unknown): number {
+  const rate = Number(value);
+  return Number.isFinite(rate) && rate > 0 ? rate : 2;
+}
+
+/** Overlay a server response onto the defaults so partial payloads stay usable. */
+export function mergeMediaSettings(loaded?: DeepPartial<MediaSettings> | null): MediaSettings {
+  const base = emptyMediaSettings();
+  const value = loaded || {};
+  return {
+    ...base,
+    ...value,
+    convert: {
+      imagePreview: { ...base.convert.imagePreview, ...(value.convert?.imagePreview || {}) },
+      videoPreview: { ...base.convert.videoPreview, ...(value.convert?.videoPreview || {}) },
+    },
+    transcode: {
+      ...base.transcode,
+      ...(value.transcode || {}),
+      readRate: normalizeTranscodeReadRate(value.transcode?.readRate),
+      profiles: {
+        quality: { ...base.transcode.profiles.quality, ...(value.transcode?.profiles?.quality || {}) },
+        balanced: { ...base.transcode.profiles.balanced, ...(value.transcode?.profiles?.balanced || {}) },
+        datasaver: { ...base.transcode.profiles.datasaver, ...(value.transcode?.profiles?.datasaver || {}) },
+      },
+    },
+  };
+}
+
+/** Event emitted after a media settings prompt saves, so the section reloads. */
+export const MEDIA_SETTINGS_CHANGED_EVENT = 'mediaSettingsChanged';
+
+/** Enabled transcode profile ids in player-menu order. */
+export function enabledTranscodeProfileIds(media?: DeepPartial<MediaSettings> | null): string[] {
+  const profiles = media?.transcode?.profiles || {};
+  return MEDIA_TRANSCODE_PROFILES
+    .filter((profile) => profiles[profile.id]?.enabled)
+    .map((profile) => profile.id);
+}
+
+/**
+ * Normalize the media settings payload for playback. The settings API returns
+ * the full object to admins and a player-only subset to everyone else, so both
+ * shapes collapse to the same fields here.
+ */
+export function normalizeSharedMediaSettings(data?: MediaSettingsPayload | null): NonNullable<StoreState['mediaSettings']> {
+  // Both payloads share the transcode keys: enabled, maxConcurrentPerUser, and the
+  // derived enabledProfiles. Admin payloads also carry the full profiles object, so
+  // fall back to deriving the ids from it when enabledProfiles is absent.
+  const transcode = data?.transcode || {};
+  return {
+    enabled: Boolean(transcode.enabled),
+    profiles: Array.isArray(transcode.enabledProfiles) ? transcode.enabledProfiles : enabledTranscodeProfileIds(data),
+    maxConcurrentPerUser: Number(transcode.maxConcurrentPerUser) || 1,
+    imagePreview: { ...(data?.imagePreview || {}) },
+  };
+}
+
+function deleteAtPath(target: unknown, path: string): void {
+  const parts = String(path).split('.');
+  const last = parts.pop() ?? '';
+  let node = target;
+  for (const key of parts) {
+    if (!node || typeof node !== 'object') {
+      return;
+    }
+    node = Reflect.get(node, key);
+  }
+  if (node && typeof node === 'object') {
+    Reflect.deleteProperty(node, last);
+  }
+}
+
+/**
+ * Remove config-locked leaf paths from a partial media settings patch.
+ *
+ * The backend rejects any patch that touches a path pinned in `config.yaml`, and
+ * the settings sections submit whole sub-objects (e.g. the full `transcode`
+ * object). Without this, locking one field would make every sibling unsavable.
+ */
+export function stripLockedMediaPaths<T extends object | null | undefined>(patch: T, lockedFromConfigPaths: string[] = []): T {
+  if (!patch) {
+    return patch;
+  }
+  const locked = Array.isArray(lockedFromConfigPaths) ? lockedFromConfigPaths : [];
+  if (locked.length === 0) {
+    return patch;
+  }
+  const stripped: T = JSON.parse(JSON.stringify(patch));
+  for (const path of locked) {
+    deleteAtPath(stripped, path);
+  }
+  return stripped;
+}
+
+/** True when a (possibly nested) patch still carries at least one leaf value. */
+function hasPatchContent(value: unknown): boolean {
+  if (value === null || typeof value !== 'object') {
+    return true;
+  }
+  return Object.values(value).some(hasPatchContent);
+}
+
+/**
+ * Patch media settings, skipping paths locked from the config file.
+ */
+export async function saveMediaSettingsPatch(
+  partial: DeepPartial<MediaSettings>,
+  lockedFromConfigPaths: string[] = [],
+): Promise<{ skipped: boolean; media?: MediaSettings }> {
+  const patch = stripLockedMediaPaths(partial, lockedFromConfigPaths);
+  if (!hasPatchContent(patch)) {
+    return { skipped: true };
+  }
+  const media = await patchMediaSettings(patch);
+  return { skipped: false, media: mergeMediaSettings(media) };
+}

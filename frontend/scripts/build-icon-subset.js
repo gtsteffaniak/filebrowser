@@ -148,7 +148,7 @@ function scanConstants(icons) {
 }
 
 function scanPlaybackQueue(icons) {
-  const content = fs.readFileSync(path.join(srcDir, 'utils/playbackQueue.js'), 'utf8');
+  const content = fs.readFileSync(path.join(srcDir, 'player/playback/playbackQueue.ts'), 'utf8');
   const switchReturn = new RegExp(`return\\s+['"](${ICON_NAME})['"]`, 'g');
   for (const match of content.matchAll(switchReturn)) addIcon(icons, match[1]);
 }

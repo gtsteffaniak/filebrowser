@@ -49,9 +49,9 @@ import { usePreviewNavigation } from "@/composables/preview/usePreviewNavigation
 import { getters, mutations, state } from "@/store/index.ts";
 import type { ReqObject } from "@/store/types.ts";
 import { createAsyncComponent } from "@/utils/asyncComponent.js";
-import { type LyricLines, parseLyrics } from "@/utils/lyrics.ts";
+import { type LyricLines, parseLyrics } from "@/player/tracks/lyrics.ts";
 import { shouldAutoPlayPreview } from "@/utils/previewAutoplay.js";
-import { convertToVTT, getSubtitleFormatExtension } from "@/utils/subtitles.js";
+import { convertToVTT, getSubtitleFormatExtension } from "@/player/tracks/subtitles.ts";
 import { removeLastDir } from "@/utils/url.js";
 
 interface SubtitleSource {

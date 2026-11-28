@@ -33,13 +33,13 @@ vi.mock("@/utils/url.js", () => ({
   buildItemUrl: (source: string, path: string) => `/files/${source}${path}`,
   removeTrailingSlash: (path: string) => path.replace(/\/$/, ""),
 }));
-vi.mock("@/utils/playbackQueue.js", () => ({
+vi.mock("@/player/playback/playbackQueue.ts", () => ({
   formatArtist: (artist: string) => artist,
   getEndOfMediaAction: vi.fn(),
   getNextItem: vi.fn(),
   navigatePlaybackQueue: vi.fn(),
 }));
-vi.mock("@/player/seekOnRelease.js", () => ({ blockSeekOnInput: vi.fn(), enableSeekOnRelease: () => () => {} }));
+vi.mock("@/player/ui/seekOnRelease.ts", () => ({ blockSeekOnInput: vi.fn(), enableSeekOnRelease: () => () => {} }));
 vi.mock("@/components/files/player/AudioPanel.vue", () => ({ default: { render: () => null } }));
 vi.mock("@/components/files/player/LyricsList.vue", () => ({ default: { render: () => null } }));
 vi.mock("@/components/settings/FloatingActionButton.vue", () => ({ default: { render: () => null } }));

@@ -64,20 +64,20 @@ vi.mock("@/utils/url.js", () => ({
   buildItemUrl: (source: string, path: string) => `/files/${source}${path}`,
   removeTrailingSlash: (path: string) => path.replace(/\/$/, ""),
 }));
-vi.mock("@/utils/playbackQueue.js", () => ({
+vi.mock("@/player/playback/playbackQueue.ts", () => ({
   formatArtist: (artist: string) => artist,
   getEndOfMediaAction: vi.fn(),
   getNextItem: vi.fn(),
   navigatePlaybackQueue: vi.fn(),
 }));
-vi.mock("@/player/seekOnRelease.js", () => ({ blockSeekOnInput: vi.fn(), enableSeekOnRelease: () => () => {} }));
-vi.mock("@/player/scrubPreview.js", () => ({
+vi.mock("@/player/ui/seekOnRelease.ts", () => ({ blockSeekOnInput: vi.fn(), enableSeekOnRelease: () => () => {} }));
+vi.mock("@/player/ui/scrubPreview.ts", () => ({
   enableScrubPreview: (player: object, options: object) => {
     hoisted.scrub(player, options);
     return hoisted.scrubCleanup;
   },
 }));
-vi.mock("@/player/videoLoading.js", () => ({ enableVideoLoadingIndicator: () => hoisted.loadingCleanup }));
+vi.mock("@/player/ui/videoLoading.ts", () => ({ enableVideoLoadingIndicator: () => hoisted.loadingCleanup }));
 vi.mock("@/components/files/PreviewNotice.vue", () => ({
   default: { setup: (_props: object, { slots }: SetupContext) => () => h("div", { class: "offer-notice" }, slots.actions?.()) },
 }));

@@ -3,7 +3,7 @@ import type Plyr from "plyr";
 import type { EmbeddedMetadata } from "@/composables/player/useEmbeddedArtwork.ts";
 import { state } from "@/store/index.ts";
 import { globalVars } from "@/utils/constants.ts";
-import { getNextItem, navigatePlaybackQueue } from "@/utils/playbackQueue.js";
+import { getNextItem, navigatePlaybackQueue } from "@/player/playback/playbackQueue.ts";
 
 let mediaSessionOwner = 0;
 

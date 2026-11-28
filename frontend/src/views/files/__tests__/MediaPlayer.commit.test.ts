@@ -10,7 +10,7 @@ import {
 } from "vue";
 import { settle } from "@/composables/player/__tests__/mediaTestUtils.ts";
 import type { FileListItem, ReqObject } from "@/store/types.ts";
-import type { LyricLines } from "@/utils/lyrics.ts";
+import type { LyricLines } from "@/player/tracks/lyrics.ts";
 import MediaPlayer from "../MediaPlayer.vue";
 
 const hoisted = vi.hoisted(() => ({

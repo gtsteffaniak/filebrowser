@@ -81,7 +81,7 @@ import {
   saveSlideshowConfig,
   SLIDESHOW_DEFAULTS,
   effectiveMaxItemsCap,
-} from "@/utils/slideshowConfig.ts";
+} from "@/utils/config/slideshowConfig.ts";
 import { globalVars } from "@/utils/constants.ts";
 
 export default {

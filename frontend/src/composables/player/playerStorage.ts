@@ -1,4 +1,6 @@
+import { TRANSCODE_HLS_MODES, type TranscodeHlsMode } from "@/player/transcoding/transcodeMode.ts";
 import { getObjectProperty } from "@/utils/object.js";
+import { parseTranscodeModeFromQuery } from "@/player/playback/playbackQuery.ts";
 
 // Storage keys keep the legacy "plyr" prefix
 const PLAYER_STORAGE_KEY = "plyr";
@@ -108,4 +110,33 @@ export function readAlbumArtSize(): number {
 
 export function writeAlbumArtSize(size: number): void {
   safeWrite(() => sessionStorage, ALBUM_ART_SIZE_KEY, size.toString());
+}
+
+/** localStorage key for the preferred HLS transcode profile. */
+export const TRANSCODE_PREFERENCE_STORAGE_KEY = "filebrowser.transcodeMode";
+
+export const DEFAULT_TRANSCODE_MODE: TranscodeHlsMode = "quality";
+
+function asHlsMode(value: string | null): TranscodeHlsMode | undefined {
+  return TRANSCODE_HLS_MODES.find((known) => known === value);
+}
+
+export function loadPreferredTranscodeMode(): TranscodeHlsMode {
+  return asHlsMode(safeRead(() => localStorage, TRANSCODE_PREFERENCE_STORAGE_KEY)) ?? DEFAULT_TRANSCODE_MODE;
+}
+
+/** URL transcode param wins; otherwise use localStorage (default quality). */
+export function resolveTranscodeModeForPlayback(query: Record<string, unknown> | undefined): TranscodeHlsMode {
+  return parseTranscodeModeFromQuery(query) ?? loadPreferredTranscodeMode();
+}
+
+export function isTranscodeModeRequestedInUrl(query: Record<string, unknown> | undefined): boolean {
+  return parseTranscodeModeFromQuery(query) !== null;
+}
+
+export function savePreferredTranscodeMode(mode: string): void {
+  const valid = asHlsMode(mode);
+  if (valid) {
+    safeWrite(() => localStorage, TRANSCODE_PREFERENCE_STORAGE_KEY, valid);
+  }
 }

@@ -27,7 +27,7 @@
 import { notify } from "@/notify/index.ts";
 import { state, mutations } from "@/store/index.ts";
 import { getAnalytics, updateAnalytics, getMediaSettings } from "@/api/settings.js";
-import { emptyMediaSettings, mergeMediaSettings, saveMediaSettingsPatch } from "@/utils/mediaSettings.js";
+import { emptyMediaSettings, mergeMediaSettings, saveMediaSettingsPatch } from "@/utils/config/mediaSettings.ts";
 import ToggleSwitch from "@/components/settings/ToggleSwitch.vue";
 import SettingsButton from "@/components/settings/SettingsButton.vue";
 

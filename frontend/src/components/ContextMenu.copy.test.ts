@@ -64,7 +64,7 @@ vi.mock("@/utils/mimetype", () => ({
   isRichTextPreviewMimeType: () => false,
   getTypeInfoFromExt: () => ({ materialSymbol: "", classes: "" }),
 }));
-vi.mock("@/utils/mediaFile", () => ({ isMediaRequest: () => false }));
+vi.mock("@/utils/mediaFile.ts", () => ({ isMediaRequest: () => false }));
 import ContextMenu from "./ContextMenu.vue";
 
 let app: App | null = null;

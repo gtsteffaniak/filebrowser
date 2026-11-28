@@ -31,7 +31,7 @@
               :key="w"
               class="lyric-word"
               :class="{ sung: w <= activeWordIndex, current: w === activeWordIndex }"
-            >{{ word.text }}&nbsp;</span>
+            >{{ word.text }}</span>
           </template>
           <template v-else>{{ line.text }}</template>
         </p>
@@ -49,8 +49,8 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, useTemplateRef, wa
 import type Plyr from "plyr";
 import FloatingActionButton from "@/components/settings/FloatingActionButton.vue";
 import { useI18n } from "@/i18n/index.ts";
-import { isSyncedLyrics } from "@/utils/lyrics.ts";
-import type { LyricLine, LyricLines } from "@/utils/lyrics.ts";
+import { isSyncedLyrics } from "@/player/tracks/lyrics.ts";
+import type { LyricLine, LyricLines } from "@/player/tracks/lyrics.ts";
 
 const scrollLocked = defineModel<boolean>("scrollLocked");
 
@@ -89,7 +89,7 @@ const lockButtonProps = computed(() =>
 function hasFullWordCoverage(line: LyricLines[number]) {
   const words = line.words;
   if (!words?.length) return false;
-  return words.map((word) => word.text).join(" ") === line.text;
+  return words.map((word) => word.text).join("").replace(/\s+/g, " ").trim() === line.text;
 }
 
 // Seek the player to the given timestamp (in milliseconds)
@@ -253,6 +253,7 @@ onBeforeUnmount(() => listen(props.player, false));
 
 .lyric-word {
   display: inline-block;
+  white-space: pre;
   opacity: 0.4;
   transform: scale(1);
   transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);

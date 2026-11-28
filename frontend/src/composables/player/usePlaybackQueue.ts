@@ -12,12 +12,10 @@ import {
   getModeIcon,
   getModeLabel,
   toggleSingleLoop as nextSingleLoop,
-} from "@/utils/playbackQueue.js";
+} from "@/player/playback/playbackQueue.ts";
 import { getPlayerI18n, getSettingsElements } from "./settingsElements.ts";
 
 type ToastType = "mode" | "loop" | "cleared";
-type LoopMode = "all" | "off" | "single";
-
 /** The fields the queue identifies items by */
 type QueueItem = Pick<Partial<FileListItem>, "name" | "path" | "type">;
 
@@ -92,13 +90,15 @@ export function usePlaybackQueue({ getReq, getListing, onQueueChange, applyMenus
       queue: playbackQueue.value,
       currentIndex: currentQueueIndex.value,
       mode: playbackMode.value,
-      loop: nextSingleLoop(loop.value) as LoopMode,
+      loop: nextSingleLoop(loop.value),
     });
   }
 
   function cyclePlaybackModes(): void {
+    const listing = getListing();
+    if (!listing) return;
     cycleMode(playbackMode.value, {
-      listing: getListing(),
+      listing,
       currentItem: getReq(),
       isShare: getters.isShare(),
     });
@@ -124,9 +124,9 @@ export function usePlaybackQueue({ getReq, getListing, onQueueChange, applyMenus
     ([newListing]) => {
       if (!newListing?.length) return;
       const isShare = getters.isShare();
-      const getId = (item: QueueItem): string | undefined => (isShare ? item.name : item.path);
+      const getId = (item: Partial<FileListItem>): string | undefined => (isShare ? item.name : item.path);
       const mediaFiles = newListing.filter((item) => /^(audio|video)\//.test(item.type || ""));
-      const queue = state.playbackQueue.queue as QueueItem[];
+      const queue = state.playbackQueue.queue;
       const mode = state.playbackQueue.mode;
 
       if (queue.length && mediaFiles.length === queue.length) {
@@ -232,12 +232,15 @@ export function usePlaybackQueue({ getReq, getListing, onQueueChange, applyMenus
       setChecked(buttons, playbackMode.value);
       for (const btn of buttons) {
         btn.addEventListener("click", (event) => {
-          const value = (event.currentTarget as HTMLElement).getAttribute("value") ?? "";
+          const value = (event.currentTarget as HTMLElement).getAttribute("value");
+          if (value !== "single" && value !== "sequential" && value !== "shuffle") return;
+          const listing = getListing();
           if (value === "single") {
             clearPlaybackQueue();
           } else {
+            if (!listing) return;
             cycleMode(playbackMode.value, {
-              listing: getListing(),
+              listing,
               currentItem: getReq(),
               isShare: getters.isShare(),
               targetMode: value,
@@ -293,13 +296,14 @@ export function usePlaybackQueue({ getReq, getListing, onQueueChange, applyMenus
       setChecked(buttons, loop.value);
       for (const btn of buttons) {
         btn.addEventListener("click", (event) => {
-          const value = (event.currentTarget as HTMLElement).getAttribute("value") ?? "";
+          const value = (event.currentTarget as HTMLElement).getAttribute("value");
+          if (value !== "off" && value !== "all" && value !== "single") return;
           if (value !== loop.value) {
             mutations.setPlaybackQueue({
               queue: playbackQueue.value,
               currentIndex: currentQueueIndex.value,
               mode: playbackMode.value,
-              loop: value as LoopMode,
+              loop: value,
             });
           }
           if (loopValueSpan) loopValueSpan.textContent = getLoopLabel(value);

@@ -103,6 +103,6 @@ export function removeFromFolderLists(item: { source?: string; path: string }): 
   if (state.req) {
     state.req.parentDirItems = drop(state.req.parentDirItems);
   }
-  state.navigation.listing = drop(state.navigation.listing as { path?: string }[] | undefined);
+  drop(state.navigation.listing ?? undefined);
   deleteCachedListing(listingCacheKey(item.source as string, getParentDir(item.path)));
 }

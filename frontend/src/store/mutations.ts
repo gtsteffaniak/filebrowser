@@ -1263,7 +1263,7 @@ export const mutations = {
       mutations.clearNavigation();
     }
   },
-  setupNavigation: ({ listing, currentItem, directoryPath, useItemPaths = false }: { listing: unknown; currentItem: Partial<FileListItem>; directoryPath: string; useItemPaths?: boolean }) => {
+  setupNavigation: ({ listing, currentItem, directoryPath, useItemPaths = false }: { listing: Partial<FileListItem>[] | null; currentItem: Partial<FileListItem>; directoryPath: string; useItemPaths?: boolean }) => {
     const searchItems = getters.searchNavigationItems(currentItem);
     if (searchItems) {
       listing = searchItems;

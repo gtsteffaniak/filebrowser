@@ -81,7 +81,7 @@ import {
   emptyMediaSettings,
   mergeMediaSettings,
   saveMediaSettingsPatch,
-} from "@/utils/mediaSettings.js";
+} from "@/utils/config/mediaSettings.ts";
 
 export default {
   name: "mediaSettings",
