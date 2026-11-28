@@ -107,11 +107,9 @@ func MergeDefaultEnabledBackendScopes(existing []users.BackendScope, declined []
 		} else {
 			continue
 		}
-		newScopes = append(newScopes, users.BackendScope{
-			Path:        src.Path,
-			Scope:       existingScope.Scope,
-			Permissions: existingScope.Permissions,
-		})
+		// Preserve all persisted per-scope fields, including Quota.
+		existingScope.Path = src.Path
+		newScopes = append(newScopes, existingScope)
 		seen[src.Path] = struct{}{}
 	}
 	for _, s := range existing {
