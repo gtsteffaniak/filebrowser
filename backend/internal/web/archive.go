@@ -327,6 +327,14 @@ func archiveCreateHandler(w http.ResponseWriter, r *http.Request, d *Context) (i
 	if len(itemPaths) == 0 {
 		return http.StatusBadRequest, fmt.Errorf("no paths accessible; add at least one path you have access to")
 	}
+	// deleting the archived items would also delete an archive written inside them
+	if req.DeleteAfter && destSource == req.FromSource {
+		for _, full := range itemPaths {
+			if fullDestFile == full || strings.HasPrefix(fullDestFile, strings.TrimSuffix(full, "/")+"/") {
+				return http.StatusBadRequest, fmt.Errorf("destination %s is inside %s, which would be deleted after archiving", req.Destination, full)
+			}
+		}
+	}
 
 	// Check archive size limit if configured
 	if settings.Config.Server.MaxArchiveSizeGB > 0 {
