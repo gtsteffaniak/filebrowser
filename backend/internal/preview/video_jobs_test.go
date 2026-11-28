@@ -117,11 +117,26 @@ func TestVideoPreviewJobsRetryAfterLastViewerLeaves(t *testing.T) {
 		t.Fatal("work was not canceled when the last viewer left")
 	}
 
+	jobs.mu.Lock()
+	abandoned := jobs.active["thumbnail"]
+	jobs.mu.Unlock()
+	require.NotNil(t, abandoned)
+
 	request, stop := context.WithTimeout(t.Context(), 2*time.Second)
 	defer stop()
+	waiting := make(chan bool, 1)
+	replacement := doneNotifyingContext{
+		Context: request,
+		onDone: sync.OnceFunc(func() {
+			// Capture the job state when run evaluates the replacement's wait select.
+			jobs.mu.Lock()
+			defer jobs.mu.Unlock()
+			waiting <- jobs.active["thumbnail"] == abandoned && abandoned.waiters == 0
+		}),
+	}
 	retried := make(chan error, 1)
 	go func() {
-		_, err := jobs.run(request, "thumbnail", func(context.Context) ([]byte, error) {
+		_, err := jobs.run(replacement, "thumbnail", func(context.Context) ([]byte, error) {
 			select {
 			case <-cleanup:
 				return []byte("new thumbnail"), nil
@@ -132,10 +147,28 @@ func TestVideoPreviewJobsRetryAfterLastViewerLeaves(t *testing.T) {
 		retried <- err
 	}()
 	select {
+	case blocked := <-waiting:
+		require.True(t, blocked, "replacement did not wait for the abandoned job")
 	case err := <-retried:
 		t.Fatalf("replacement completed before cleanup: %v", err)
-	case <-time.After(20 * time.Millisecond):
+	case <-request.Done():
+		t.Fatal("replacement did not reach the wait for cleanup")
 	}
 	finishCleanup()
-	require.NoError(t, <-retried)
+	select {
+	case err := <-retried:
+		require.NoError(t, err)
+	case <-request.Done():
+		t.Fatal("replacement did not finish after cleanup")
+	}
+}
+
+type doneNotifyingContext struct {
+	context.Context
+	onDone func()
+}
+
+func (c doneNotifyingContext) Done() <-chan struct{} {
+	c.onDone()
+	return c.Context.Done()
 }
