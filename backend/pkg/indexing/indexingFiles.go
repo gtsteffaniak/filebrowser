@@ -466,7 +466,7 @@ func (idx *Index) filesystemBound(boundIndexPath string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return filepath.EvalSymlinks(abs)
+	return resolveLinkTarget(abs)
 }
 
 // ensureResolvedContained rejects resolved filesystem paths outside the source or scope prefix.
@@ -475,7 +475,7 @@ func (idx *Index) ensureResolvedContained(realPath, boundIndexPath string) error
 	if err != nil {
 		return err
 	}
-	if err := iteminfo.PathWithinRoot(sourceRoot, realPath); err != nil {
+	if !targetWithinRoot(sourceRoot, realPath) {
 		return errors.ErrPathEscapesScope
 	}
 	bound := boundIndexPath
@@ -487,7 +487,7 @@ func (idx *Index) ensureResolvedContained(realPath, boundIndexPath string) error
 		if err != nil {
 			return err
 		}
-		if err := iteminfo.PathWithinRoot(scopeRoot, realPath); err != nil {
+		if !targetWithinRoot(scopeRoot, realPath) {
 			return errors.ErrPathEscapesScope
 		}
 	}
@@ -496,7 +496,7 @@ func (idx *Index) ensureResolvedContained(realPath, boundIndexPath string) error
 
 // resolveSymlinksContained resolves symlinks and ensures the target stays within bounds.
 func (idx *Index) resolveSymlinksContained(fsPath, boundIndexPath string) (string, error) {
-	resolved, err := filepath.EvalSymlinks(fsPath)
+	resolved, err := resolveLinkTarget(fsPath)
 	if err != nil {
 		return "", err
 	}
