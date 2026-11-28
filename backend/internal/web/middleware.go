@@ -122,6 +122,12 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 			pathWithoutUserScope = pathWithoutUserScope + "/"
 		}
 		data.IndexPath = pathWithoutUserScope
+		// Upload shares never show what is inside them: the handlers for these read routes
+		// answer 501 for any path. Skip the lookup, or a missing path would answer 404
+		// and show that the file is not there.
+		if link.ShareType == "upload" && isUploadShareReadRoute(r) {
+			return fn(w, r, data)
+		}
 		// Skip FileInfoFaster prefetch for performance; handlers must apply equivalent
 		// checks (access rules + GetRealPathScoped with d.Share.Path where bytes are read).
 		// TODO: align all skipped public-share routes on one bound (Share.Path) or stop
@@ -169,6 +175,21 @@ func withHashFileHelper(fn handleFunc) handleFunc {
 		// Call the next handler with the data
 		return fn(w, r, data)
 	})
+}
+
+// isUploadShareReadRoute reports whether the request is a public share read route whose
+// handler refuses upload shares: listing, preview, text preview, raw download and lyrics.
+func isUploadShareReadRoute(r *http.Request) bool {
+	if r.Method != http.MethodGet {
+		return false
+	}
+	p := strings.TrimSuffix(r.URL.Path, "/")
+	for _, route := range []string{"/resources", "/resources/preview", "/resources/preview/text", "/raw", "/media/lyrics"} {
+		if strings.HasSuffix(p, route) {
+			return true
+		}
+	}
+	return false
 }
 
 // Middleware to ensure the user is an admin
