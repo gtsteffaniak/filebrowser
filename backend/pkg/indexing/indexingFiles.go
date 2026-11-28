@@ -507,9 +507,11 @@ func (idx *Index) resolveSymlinksContained(fsPath, boundIndexPath string) (strin
 }
 
 // isFollowableLink reports whether mode represents a symbolic link or, on
-// Windows, an NTFS directory junction (reported as os.ModeIrregular in Go 1.23+).
-func isFollowableLink(mode os.FileMode) bool {
-	return mode&os.ModeSymlink != 0 || (runtime.GOOS == "windows" && mode&os.ModeIrregular != 0)
+// Windows, a symlink or directory junction reparse point. Go reports junctions
+// and other non-symlink reparse points such as cloud placeholders as
+// os.ModeIrregular, so the reparse tag is checked.
+func isFollowableLink(path string, mode os.FileMode) bool {
+	return mode&os.ModeSymlink != 0 || (mode&os.ModeIrregular != 0 && isLinkReparsePoint(path))
 }
 
 // resolvePathContext resolves all path characteristics in a SINGLE stat call
@@ -523,7 +525,7 @@ func (idx *Index) resolvePathContext(indexPath string, followSymlinks bool, boun
 		return nil, err
 	}
 
-	isSymlink := isFollowableLink(fileInfo.Mode())
+	isSymlink := isFollowableLink(realPath, fileInfo.Mode())
 
 	// Resolve symlink if requested
 	if isSymlink && followSymlinks {
@@ -1056,9 +1058,9 @@ func (idx *Index) GetDirInfoCore(dirInfo *os.File, stat os.FileInfo, indexPath s
 	for _, file := range files {
 		subfileBaseName := file.Name()
 		isDir := iteminfo.IsDirectory(file)
-		isSymlink := isFollowableLink(file.Mode())
+		entryRealPath := filepath.Join(dirInfo.Name(), subfileBaseName)
+		isSymlink := isFollowableLink(entryRealPath, file.Mode())
 		if !isDir && isSymlink && opts.FollowSymlinks && !opts.Recursive && !idx.Config.ResolvedRules.IgnoreAllSymlinks {
-			entryRealPath := filepath.Join(dirInfo.Name(), subfileBaseName)
 			if resolved, err := idx.resolveSymlinksContained(entryRealPath, opts.BoundIndexPath); err == nil {
 				if targetStat, err := os.Stat(resolved); err == nil {
 					isDir = iteminfo.IsDirectory(targetStat)

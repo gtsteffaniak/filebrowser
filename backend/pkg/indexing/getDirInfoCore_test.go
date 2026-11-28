@@ -3,6 +3,7 @@ package indexing
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -604,6 +605,25 @@ func TestGetFileInfo_SymlinkDirectoryListedAsFolder(t *testing.T) {
 		}
 	}
 	t.Fatalf("expected link_dir in Folders with Type=directory, got Folders=%+v Files=%+v", listing.Folders, listing.Files)
+}
+
+func TestIsFollowableLink(t *testing.T) {
+	somePath := filepath.Join(t.TempDir(), "entry")
+
+	if !isFollowableLink(somePath, os.ModeSymlink) {
+		t.Error("expected ModeSymlink to be a followable link")
+	}
+	if isFollowableLink(somePath, 0o644) {
+		t.Error("expected plain file mode 0o644 not to be a followable link")
+	}
+	t.Run("ModeIrregular", func(t *testing.T) {
+		if runtime.GOOS == "windows" {
+			t.Skip("ModeIrregular depends on Windows reparse tags")
+		}
+		if isFollowableLink(somePath, os.ModeIrregular) {
+			t.Error("expected ModeIrregular not to be a followable link off Windows")
+		}
+	})
 }
 
 // mockFileInfo is a simple mock implementation of os.FileInfo for testing
