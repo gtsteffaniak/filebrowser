@@ -36,7 +36,7 @@ func CheckWindowsHidden(realpath string) bool {
 
 // isLinkReparsePoint reports whether path is a symlink or directory junction reparse point.
 func isLinkReparsePoint(path string) bool {
-	p, err := windows.UTF16PtrFromString(path)
+	p, err := windows.UTF16PtrFromString(toExtendedLengthPath(path))
 	if err != nil {
 		return false
 	}

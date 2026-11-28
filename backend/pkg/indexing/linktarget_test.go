@@ -4,10 +4,72 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	liberrors "github.com/gtsteffaniak/filebrowser/backend/internal/errors"
 )
+
+func TestToExtendedLengthPath(t *testing.T) {
+	longTail := strings.Repeat("a", 260)
+	longSlashTail := strings.Repeat("sub/", 70) + "file"
+	longBackslashTail := strings.Repeat(`sub\`, 70) + "file"
+
+	tests := []struct {
+		name string
+		in   string
+		want string
+	}{
+		{
+			name: "short drive path unchanged",
+			in:   `C:\src\file.txt`,
+			want: `C:\src\file.txt`,
+		},
+		{
+			name: "short UNC unchanged",
+			in:   `\\server\share\file.txt`,
+			want: `\\server\share\file.txt`,
+		},
+		{
+			name: "already extended-length prefixed unchanged",
+			in:   `\\?\C:\` + longTail,
+			want: `\\?\C:\` + longTail,
+		},
+		{
+			name: "already device-prefixed unchanged",
+			in:   `\\.\C:\` + longTail,
+			want: `\\.\C:\` + longTail,
+		},
+		{
+			name: "long drive path gets extended-length prefix",
+			in:   `C:\` + longTail,
+			want: `\\?\C:\` + longTail,
+		},
+		{
+			name: "long drive path with forward slashes is prefixed and normalized",
+			in:   "C:/" + longSlashTail,
+			want: `\\?\C:\` + longBackslashTail,
+		},
+		{
+			name: "long UNC path becomes UNC extended-length path",
+			in:   `\\server\share\` + longTail,
+			want: `\\?\UNC\server\share\` + longTail,
+		},
+		{
+			name: "long relative path unchanged",
+			in:   `relative\` + longTail,
+			want: `relative\` + longTail,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := toExtendedLengthPath(tc.in); got != tc.want {
+				t.Fatalf("toExtendedLengthPath(%q) = %q, want %q", tc.in, got, tc.want)
+			}
+		})
+	}
+}
 
 func TestStripFinalPathPrefix(t *testing.T) {
 	tests := []struct {
