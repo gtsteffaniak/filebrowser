@@ -70,6 +70,7 @@ type Options struct {
 	// Filesystem info retrieval options
 	SkipExtendedAttrs bool   // Skip hasPreview and other extended attributes
 	FollowSymlinks    bool   // Whether to follow symlinks or return symlink info
+	BoundIndexPath    string // index prefix for symlink containment (e.g. user scope)
 	ShowHidden        bool   // Whether to include hidden files/directories
 	HideFileExt       string // Hide files based on extensions
 }
@@ -465,7 +466,7 @@ func (idx *Index) filesystemBound(boundIndexPath string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return filepath.EvalSymlinks(abs)
+	return resolveLinkTarget(abs)
 }
 
 // ensureResolvedContained rejects resolved filesystem paths outside the source or scope prefix.
@@ -474,7 +475,7 @@ func (idx *Index) ensureResolvedContained(realPath, boundIndexPath string) error
 	if err != nil {
 		return err
 	}
-	if err := iteminfo.PathWithinRoot(sourceRoot, realPath); err != nil {
+	if !targetWithinRoot(sourceRoot, realPath) {
 		return errors.ErrPathEscapesScope
 	}
 	bound := boundIndexPath
@@ -486,7 +487,7 @@ func (idx *Index) ensureResolvedContained(realPath, boundIndexPath string) error
 		if err != nil {
 			return err
 		}
-		if err := iteminfo.PathWithinRoot(scopeRoot, realPath); err != nil {
+		if !targetWithinRoot(scopeRoot, realPath) {
 			return errors.ErrPathEscapesScope
 		}
 	}
@@ -495,7 +496,7 @@ func (idx *Index) ensureResolvedContained(realPath, boundIndexPath string) error
 
 // resolveSymlinksContained resolves symlinks and ensures the target stays within bounds.
 func (idx *Index) resolveSymlinksContained(fsPath, boundIndexPath string) (string, error) {
-	resolved, err := filepath.EvalSymlinks(fsPath)
+	resolved, err := resolveLinkTarget(fsPath)
 	if err != nil {
 		return "", err
 	}
@@ -503,6 +504,14 @@ func (idx *Index) resolveSymlinksContained(fsPath, boundIndexPath string) (strin
 		return "", err
 	}
 	return resolved, nil
+}
+
+// isFollowableLink reports whether mode represents a symbolic link or, on
+// Windows, a symlink or directory junction reparse point. Go reports junctions
+// and other non-symlink reparse points such as cloud placeholders as
+// os.ModeIrregular, so the reparse tag is checked.
+func isFollowableLink(path string, mode os.FileMode) bool {
+	return mode&os.ModeSymlink != 0 || (mode&os.ModeIrregular != 0 && isLinkReparsePoint(path))
 }
 
 // resolvePathContext resolves all path characteristics in a SINGLE stat call
@@ -516,7 +525,7 @@ func (idx *Index) resolvePathContext(indexPath string, followSymlinks bool, boun
 		return nil, err
 	}
 
-	isSymlink := fileInfo.Mode()&os.ModeSymlink != 0
+	isSymlink := isFollowableLink(realPath, fileInfo.Mode())
 
 	// Resolve symlink if requested
 	if isSymlink && followSymlinks {
@@ -639,6 +648,7 @@ func (idx *Index) getDirInfoFromContext(ctx *PathContext, isViewable, isIndexabl
 		IsRoutineScan:     req.IsRoutineScan,
 		SkipExtendedAttrs: req.SkipExtendedAttrs || !isIndexable,
 		FollowSymlinks:    req.FollowSymlinks,
+		BoundIndexPath:    req.BoundIndexPath,
 		ShowHidden:        req.ShowHidden,
 		HideFileExt:       req.HideFileExt,
 	}
@@ -1048,13 +1058,21 @@ func (idx *Index) GetDirInfoCore(dirInfo *os.File, stat os.FileInfo, indexPath s
 	for _, file := range files {
 		subfileBaseName := file.Name()
 		isDir := iteminfo.IsDirectory(file)
+		entryRealPath := filepath.Join(dirInfo.Name(), subfileBaseName)
+		isSymlink := isFollowableLink(entryRealPath, file.Mode())
+		if !isDir && isSymlink && opts.FollowSymlinks && !opts.Recursive && !idx.Config.ResolvedRules.IgnoreAllSymlinks {
+			if resolved, err := idx.resolveSymlinksContained(entryRealPath, opts.BoundIndexPath); err == nil {
+				if targetStat, err := os.Stat(resolved); err == nil {
+					isDir = iteminfo.IsDirectory(targetStat)
+				}
+			}
+		}
 		fullCombined := indexPath + subfileBaseName
 		// Add trailing slash for directories to match normalized folder paths
 		if isDir {
 			fullCombined = fullCombined + "/"
 		}
 		hidden := IsHidden(utils.JoinPathAsUnix(idx.Path, indexPath, subfileBaseName))
-		isSymlink := file.Mode()&os.ModeSymlink != 0
 
 		// Check if item should be skipped
 		shouldSkip := false

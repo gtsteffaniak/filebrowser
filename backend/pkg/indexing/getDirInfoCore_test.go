@@ -3,6 +3,7 @@ package indexing
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -569,6 +570,60 @@ func TestPersistDirectoryListing_PropagatesSizeToParents(t *testing.T) {
 	if size, _ := idx.GetFolderSize("/"); size != 90 {
 		t.Errorf("expected / size 90 after -30 delta, got %d", size)
 	}
+}
+
+// TestGetFileInfo_SymlinkDirectoryListedAsFolder verifies that an in-scope
+// symlink to a directory is returned in Folders with Type "directory" and the
+// symlink's own name when FollowSymlinks is enabled.
+func TestGetFileInfo_SymlinkDirectoryListedAsFolder(t *testing.T) {
+	root := t.TempDir()
+	targetDir := filepath.Join(root, "target")
+	if err := os.Mkdir(targetDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Symlink(targetDir, filepath.Join(root, "link_dir")); err != nil {
+		t.Fatal(err)
+	}
+
+	idx := &Index{
+		Source: settings.Source{Path: root},
+	}
+
+	listing, err := idx.GetFileInfo(FileInfoRequest{
+		IndexPath:         "/",
+		FollowSymlinks:    true,
+		Expand:            true,
+		SkipExtendedAttrs: true,
+	})
+	if err != nil {
+		t.Fatalf("GetFileInfo: %v", err)
+	}
+
+	for _, f := range listing.Folders {
+		if f.Name == "link_dir" && f.Type == "directory" {
+			return
+		}
+	}
+	t.Fatalf("expected link_dir in Folders with Type=directory, got Folders=%+v Files=%+v", listing.Folders, listing.Files)
+}
+
+func TestIsFollowableLink(t *testing.T) {
+	somePath := filepath.Join(t.TempDir(), "entry")
+
+	if !isFollowableLink(somePath, os.ModeSymlink) {
+		t.Error("expected ModeSymlink to be a followable link")
+	}
+	if isFollowableLink(somePath, 0o644) {
+		t.Error("expected plain file mode 0o644 not to be a followable link")
+	}
+	t.Run("ModeIrregular", func(t *testing.T) {
+		if runtime.GOOS == "windows" {
+			t.Skip("ModeIrregular depends on Windows reparse tags")
+		}
+		if isFollowableLink(somePath, os.ModeIrregular) {
+			t.Error("expected ModeIrregular not to be a followable link off Windows")
+		}
+	})
 }
 
 // mockFileInfo is a simple mock implementation of os.FileInfo for testing

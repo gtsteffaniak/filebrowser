@@ -34,6 +34,24 @@ func CheckWindowsHidden(realpath string) bool {
 	return false
 }
 
+// isLinkReparsePoint reports whether path is a symlink or directory junction reparse point.
+func isLinkReparsePoint(path string) bool {
+	p, err := windows.UTF16PtrFromString(toExtendedLengthPath(path))
+	if err != nil {
+		return false
+	}
+	var data windows.Win32finddata
+	h, err := windows.FindFirstFile(p, &data)
+	if err != nil {
+		return false
+	}
+	windows.FindClose(h)
+	if data.FileAttributes&windows.FILE_ATTRIBUTE_REPARSE_POINT == 0 {
+		return false
+	}
+	return data.Reserved0 == windows.IO_REPARSE_TAG_SYMLINK || data.Reserved0 == windows.IO_REPARSE_TAG_MOUNT_POINT
+}
+
 // getFileSizeByMode returns file size based on config mode
 // Centralizes the logic for choosing between disk usage and logical size
 func getFileSizeByMode(logicalSize int64, useLogicalSize bool) uint64 {

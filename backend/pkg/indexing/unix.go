@@ -16,6 +16,9 @@ func CheckWindowsHidden(realpath string) bool {
 	return false
 }
 
+// isLinkReparsePoint returns false because reparse points only exist on Windows.
+func isLinkReparsePoint(string) bool { return false }
+
 // getFileSizeByMode returns file size based on config mode
 func getFileSizeByMode(stat *syscall.Stat_t, useLogicalSize bool) uint64 {
 	if useLogicalSize {
